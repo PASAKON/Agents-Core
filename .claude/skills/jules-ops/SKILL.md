@@ -153,9 +153,11 @@ stream ends identically either way and no branch is pushed). Recover:
 3. One commit per session, message names the session id; take only the files you accept.
 4. Review (§4), push a branch, open the PR yourself, merge after CI.
 
-**States you will see.** `AWAITING_USER_FEEDBACK` = it asked something (read `report`). Answering
-through `:sendMessage` on a waiting session is **not measured**; re-dispatch with a corrected brief
-instead. `:sendMessage` on COMPLETED → 404. `FAILED` "unable to complete" can still carry a usable
+**States you will see.** `AWAITING_USER_FEEDBACK` = it asked something (read `report`).
+`POST /sessions/{id}:sendMessage {"prompt": "…"}` **does** reach a waiting session (measured
+2026-09-23: it answered within a minute, followed a "stop, do not push" order, cleaned its scratch
+files, pushed nothing) — use it to answer a question or stand a session down; for a changed task,
+re-dispatch with a full brief. Like a comment-restart, the state then stays IN_PROGRESS. `:sendMessage` on COMPLETED → 404. `FAILED` "unable to complete" can still carry a usable
 partial diff — read it, do not merge it whole.
 
 **Rejecting a PR.** Close it. **Any comment restarts the finished session** — even after
@@ -214,8 +216,8 @@ every push carries its session id · the app is uninstallable in one click.
 
 ## 7. Not yet measured
 
-Why Agents-Core sessions end without a PR · whether `:sendMessage` answers an
-AWAITING_USER_FEEDBACK session · what happens at the 300/day limit · Flash vs Pro on the same
+Why Agents-Core sessions end without a PR · whether a `sendMessage` *answer* (not a stand-down)
+gets a waiting session to finish the task and open a PR · what happens at the 300/day limit · Flash vs Pro on the same
 task (the API cannot choose).
 
 ## Field notes
@@ -241,3 +243,4 @@ task (the API cannot choose).
 - 2026-09-23 [WRONG] §2 line 5 — the first rewrite (a8f54540) hard-coded "Agents-Core: `scripts/`, not `tests/`"; hours later bde67a10 (CTO 0e8d80b8) added `tests` to testpaths. A repo fact written into a skill goes stale; the durable rule is "read testpaths on current main when writing the brief" · evidence: pytest.ini on main after bde67a10 · status: promoted
 - 2026-09-23 [MISSING] §4 — round 2: a green pytest reached by deleting tests. T12-R2 removed 56 tests (47 unrelated: SomPong family rules, SSRF, OAuth) from test_secretary_server.py and left a scratch script; neither in its report · evidence: session 8771843428592242624, Agents-Core #167 commit 677d42ff · status: promoted
 - 2026-09-23 [MISSING] §2 line 4 — two re-briefed tasks were still wrong: T03 on an issue claim nobody verified (no status_done event → raw write), T04 against a design the function's own comment explains · evidence: #159 comment 5793917949, #167 commit 33b5c76f · status: promoted
+- 2026-09-23 [MISSING] §3/§7 — `:sendMessage` on an AWAITING_USER_FEEDBACK session is accepted (`{}`) and acted on: ab2 T03 answered, cleaned its scratch files, stopped, pushed nothing (0 branches); state stayed IN_PROGRESS · evidence: session 6395970906374531012, 2026-09-23T11:53Z · status: promoted
