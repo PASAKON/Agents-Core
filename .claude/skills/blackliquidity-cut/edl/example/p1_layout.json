@@ -1,0 +1,67 @@
+{
+  "episode": "epXX",
+  "duration": 10.0,
+  "audio": { "media": "media/audio-hq.mp3" },
+  "bug_date": "1 ม.ค. 69",
+  "lipsync_offsets": { "A": 0.0 },
+  "events": [
+    {
+      "id": "p1-1",
+      "t0": 0.0,
+      "t1": 2.0,
+      "type": "plate",
+      "params": {
+        "role": "avatar",
+        "kind": "video",
+        "media": "media/lip_a.mp4",
+        "lipsync_part": "A",
+        "avatar_mode": "full",
+        "darken": false
+      }
+    },
+    {
+      "id": "p1-2",
+      "t0": 2.0,
+      "t1": 6.0,
+      "type": "plate",
+      "params": {
+        "role": "broll",
+        "kind": "video",
+        "media": "media/broll_chart.mp4",
+        "media_start": 0.0,
+        "darken": true,
+        "avatar_mode": "composite",
+        "avatar": { "media": "media/matte/lip_a-matte.webm", "lipsync_part": "A" }
+      }
+    },
+    {
+      "id": "p1-3",
+      "t0": 6.0,
+      "t1": 8.0,
+      "type": "plate",
+      "params": {
+        "role": "real_still",
+        "kind": "image",
+        "media": "real/wikifx-score.png",
+        "media_start": 0.0,
+        "darken": false,
+        "avatar_mode": "none",
+        "real_source": "real/wikifx-score.png"
+      }
+    },
+    {
+      "id": "p1-4",
+      "t0": 8.0,
+      "t1": 10.0,
+      "type": "plate",
+      "params": {
+        "role": "avatar",
+        "kind": "video",
+        "media": "media/lip_a.mp4",
+        "lipsync_part": "A",
+        "avatar_mode": "full",
+        "darken": false
+      }
+    }
+  ]
+}

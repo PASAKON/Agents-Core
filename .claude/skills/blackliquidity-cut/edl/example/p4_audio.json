@@ -1,0 +1,22 @@
+{
+  "episode": "epXX",
+  "duration": 10.0,
+  "events": [
+    {
+      "id": "p4-1",
+      "t0": 1.9,
+      "t1": 2.1,
+      "type": "sfx",
+      "params": { "media": "media/sfx/whoosh.mp3", "gain": 0.8 },
+      "refs": ["p2-1"]
+    },
+    {
+      "id": "p4-2",
+      "t0": 0.0,
+      "t1": 10.0,
+      "type": "music_bed",
+      "params": { "media": "media/music/bed.mp3", "gain": 0.3, "fade_in": 0.5, "fade_out": 1.0 },
+      "refs": ["p1-1"]
+    }
+  ]
+}

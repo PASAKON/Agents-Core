@@ -1,0 +1,22 @@
+{
+  "episode": "epXX",
+  "duration": 10.0,
+  "events": [
+    {
+      "id": "p3-1",
+      "t0": 2.2,
+      "t1": 5.8,
+      "type": "caption_chip",
+      "params": { "top": 700, "text": "ทำไมสเปรดสูง" },
+      "refs": ["p1-2"]
+    },
+    {
+      "id": "p3-2",
+      "t0": 6.2,
+      "t1": 7.8,
+      "type": "data_label",
+      "params": { "top": 600, "left": 120, "text": "1.69/10" },
+      "refs": ["p1-3", "p2-2"]
+    }
+  ]
+}
