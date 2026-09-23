@@ -100,6 +100,23 @@ def _isolate_trash_root(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolate_storage_state(tmp_path, monkeypatch):
+    """ADR 0030 state files that tests reach through delegate/watchdog paths:
+    the disk-spawn queue (a refused spawn in tests/test_delegate_disk_floor.py
+    enqueued real entries), the reclaim ledger and the Work watcher's state.
+    Point all three at tmp_path so no test writes org state."""
+    import importlib
+    for mod, attr, name in (("tools.disk_queue", "QUEUE_PATH", "disk_queue.jsonl"),
+                            ("tools.storage_reclaim", "LEDGER_PATH", "reclaim.jsonl"),
+                            ("tools.work_watch", "STATE_PATH", "work_watch_state.json")):
+        try:
+            m = importlib.import_module(mod)
+        except ImportError:
+            continue
+        monkeypatch.setattr(m, attr, tmp_path / "state" / name)
+
+
+@pytest.fixture(autouse=True)
 def _isolate_workdir_root(tmp_path, monkeypatch):
     """ADR 0030 / Work/RULES.md (task-36aaa3c4, iteration 1 fix): a test
     whose synthetic pilot owner passes `_storage_applies` -- e.g. tests/
