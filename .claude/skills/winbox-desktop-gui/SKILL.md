@@ -233,3 +233,6 @@ FAILED: none
 
 If any step could not be verified on screen, say so in that line and do not
 summarise the run as a success.
+
+## Field notes
+- 2026-09-23 [MISSING] silent-success #5 — a `.ps1` with ANY non-ASCII character (a Thai regex, a Thai window title) saved as UTF-8 **without a BOM** is read by Windows PowerShell 5.1 as ANSI and fails to parse. Run from an interactive scheduled task, the parse error is invisible: the task "runs", the caller's next step (`pc-lease give-back`) prints OK, and nothing happened on screen. Save scripts with a BOM (`printf '\xEF\xBB\xBF'`) and gate on a real parse: `$t=$null;$e=$null;[void][System.Management.Automation.Language.Parser]::ParseFile(p,[ref]$t,[ref]$e)` (define both vars first, or the check itself errors and prints nothing useful); prove the gate fails on the BOM-less copy · evidence: chrome-tidy.ps1 for task-e78669ee (errors=4 without BOM, 0 with; the fixed run minimised the window the bot was under) · status: pending

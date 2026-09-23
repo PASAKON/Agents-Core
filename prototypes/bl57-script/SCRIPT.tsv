@@ -1,16 +1,16 @@
-HOOK-1	ใครใช้โบรกนี้อยู่ รีบเข้าเว็บไปเช็กด่วนเลย		hook	avatar full frame, cold open, CEO's own line verbatim
+HOOK-1	ใครใช้โบรกนี้อยู่ รีบเข้าเว็บไปเช็กด่วนเลย	wikifx-profile-score	show	XXLMARKETS: name + logo from the WikiFX profile header, first frame of the episode (CEO 2026-09-23: the viewer must see WHICH broker from line 1)
 HOOK-2	ตอนนี้แม่งปิดเว็บ เข้าไม่ได้แล้ว		hook	avatar full frame, CEO's own line verbatim
-HOOK-3	นี่คือหลักฐานตอนที่กูพยายามเข้าเว็บ		hook	avatar full frame, CEO's own line verbatim -- sets up the step-by-step that follows
-HOOK-4	เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ เดี๋ยวกูจะพาไปดูของจริงทีละขั้น		hook	avatar full frame, names the broker before the discovery starts
-PATTERN-1	กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆเลย	xxlmarkets-direct-visit-error	show	real capture, headless Chrome Thai UI -- avatar shrinks as the address bar/typing beat leads into the error page
-PATTERN-2	หน้าเว็บขึ้นว่าเข้าไม่ได้	xxlmarkets-direct-visit-error	show	same real capture -- on-screen caption "เข้าไม่ได้ · ไม่พบเว็บ xxlmarkets.com"; IP/DNS text stays on the screenshot itself, never spoken
-PATTERN-3	ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง	xxlmarkets-www-visit-error	show	real capture, headless Chrome Thai UI, www.xxlmarkets.com attempt
-PATTERN-4	ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้	xxlmarkets-www-visit-error	show	same real capture -- same "เข้าไม่ได้" result, confirmed live 2026-09-23
+HOOK-3	นี่คือหลักฐานตอนที่กูพยายามเข้าเว็บ	xxlmarkets-direct-visit-error	show	real capture 22:50: the evidence the line promises, on screen as it is said
+HOOK-4	โบรกตัวนี้ชื่อ เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ มึงดูภาพเอาเอง	wikifx-xxlmarkets-review	show	the CEO's WikiFX card, big name + logo; credit ขอบคุณภาพจาก WikiFX: the picture tells who it is
+PATTERN-1	เป็นโบรกฟอเร็กซ์ ที่วิกิเอฟเอ็กซ์บอกว่าเปิดที่อังกฤษตั้งแต่ปีสองพันยี่สิบเอ็ด ให้เทรดทั้งค่าเงิน หุ้น และสินค้า	wikifx-profile-website-inaccessible	show	WikiFX company-profile paragraph crop (ก่อตั้งขึ้นในสหราชอาณาจักรในปี 2021 … ฟอเร็กซ์ หุ้น CFDs ดัชนี และสินค้า); on-screen: โบรกฟอเร็กซ์ · อังกฤษ · 2021. Leverage/spread deliberately NOT said (reads as promotion)
+PATTERN-2	กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆ หน้าเว็บขึ้นว่าเข้าไม่ได้	xxlmarkets-direct-visit-error	show	real capture 22:50; on-screen: เข้าไม่ได้ · ไม่พบเว็บ xxlmarkets.com
+PATTERN-3	ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง	xxlmarkets-www-visit-error	show	real capture 22:52, www.xxlmarkets.com
+PATTERN-4	ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้	xxlmarkets-www-visit-error	show	same capture: same result
 CONTEXT-1	กูไม่เชื่อว่าแค่เว็บล่มเฉยๆ เลยลองเช็กว่าใครเป็นเจ้าของชื่อเว็บนี้		verdict	avatar full frame, sets up the next real capture
 CONTEXT-2	เข้าเว็บเช็กชื่อเว็บฟรีๆ พิมพ์ชื่อเว็บนี้ลงไป		verdict	avatar full frame
-CONTEXT-3	เจอเลย ไม่มีใครเป็นเจ้าของชื่อเว็บนี้แล้วตอนนี้	whois-no-match	show	real capture, who.is -- "We don't have a current record for xxlmarkets.com" (title crop)
-CONTEXT-4	แต่เจอประวัติว่าเคยมีเจ้าของ ย้อนไปถึงปีสองพันยี่สิบสอง	whois-no-match	show	real capture, who.is -- "4 historical WHOIS/RDAP snapshots ... from 2022 to 2026" crop
-CONTEXT-5	หน้าเดียวกันนี้มีตัวนับให้ดูชัดๆอีกด้วย สี่ครั้งตั้งแต่สองพันยี่สิบสองถึงสองพันยี่สิบหก	whois-domain-history	show	real capture, who.is Domain History Archive page -- "4 snapshots spanning 2022-2026" (NEW capture this pass)
+CONTEXT-3	เจอเลย ไม่มีใครเป็นเจ้าของชื่อเว็บนี้แล้วตอนนี้	whois-no-match	show	"real capture, who.is -- ""We don't have a current record for xxlmarkets.com"" (title crop)"
+CONTEXT-4	แต่เจอประวัติว่าเคยมีเจ้าของ ย้อนไปถึงปีสองพันยี่สิบสอง	whois-no-match	show	"real capture, who.is -- ""4 historical WHOIS/RDAP snapshots ... from 2022 to 2026"" crop"
+CONTEXT-5	หน้าเดียวกันนี้มีตัวนับให้ดูชัดๆอีกด้วย สี่ครั้งตั้งแต่สองพันยี่สิบสองถึงสองพันยี่สิบหก	whois-domain-history	show	"real capture, who.is Domain History Archive page -- ""4 snapshots spanning 2022-2026"" (NEW capture this pass)"
 MAIN-1	กูเลยลองไปดูที่วิกิเอฟเอ็กซ์ เว็บที่เช็กโบรกทั่วโลก		verdict	avatar full frame
 MAIN-2	วิกิเอฟเอ็กซ์เขียนไว้เองเหมือนกันว่าเว็บนี้เข้าไม่ได้ตามปกติ	wikifx-profile-website-inaccessible	show	real capture, WikiFX TH dealer profile -- the Note line, avatar+username censored
 MAIN-3	แปลว่าไม่ใช่กูคนเดียวที่เข้าไม่ได้ วิกิเอฟเอ็กซ์ก็เจอเหมือนกัน		verdict	avatar full frame
