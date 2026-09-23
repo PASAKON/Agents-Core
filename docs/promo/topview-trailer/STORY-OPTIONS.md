@@ -1,6 +1,67 @@
-# TopView Wan3 Challenge: trailer story options
+# TopView Wan3 Challenge: trailer story
 
-## Draft 2 (2026-09-23): the CEO's direction
+## Draft 3 (2026-09-23): THE CEO'S STORY. This is the film.
+
+Verbatim:
+
+> ไม่เอาตัวละครคนนะ เอาตัวละครเอเลี่ยนเลย
+>
+> เนื้อเรื่องจะอยู่ที่อารยธรรมในดาวที่ไม่มีแผ่นดินเลย มีแค่น้ำกับสิ่งที่เขาเรียกว่าต้นไม้
+> หรืออาจจะไม่ใช่ แต่มันก็เป็นสิ่งที่อารยธรรมของสิ่งมีชีวิตต่างดาวอาศัย แน่นอนว่าตัวละครหลัก
+> อาจจะมี 2-3 ตัว แต่ชาวบ้านอื่นๆ เราใส่ไว้เป็น Prop ได้ ส่วน Under water ก็ต้องมีเช่นกัน
+>
+> เบื้องต้นเนื้อเรื่องคือ ชาวเอเลี่ยนครึ่งบกครึ่งน้ำแสนสุข ออกจากหมู่บ้านไปหาทรัพยากรกลางน้ำลึก
+> ท่ามกลางกระแสน้ำที่สูงผิดธรรมชาติ คลื่นลมที่รุนแรงผิดธรรมชาติ เราได้เจอกับอสุรกายตัวมหึมา
+> ใหญ่แค่ไหน เทียบ scale คือ โลก = คน ดวงอาทิตย์ = สัตว์ยักษ์ดึกดำบรรพ์
+> พวกเขาจะผ่านมันได้ยังไง ตัดจบ
+
+(Transcribed from the CEO's typing with obvious typos fixed; meaning unchanged.)
+
+Locked by the CEO: no humans, all aliens · a planet with NO land, only water and
+"trees" (or tree-like things) that the civilisation lives in · 2-3 main characters,
+other villagers as background props · above-water AND underwater scenes · happy
+amphibious aliens leave the village for resources in deep water · unnaturally high
+currents, unnaturally violent wind and waves · a primordial creature as big to them
+as the Sun is to the Earth · the trailer ends on "how will they get past it?".
+
+Scale, for the record: the Sun is 109x the Earth's diameter (1.3 million x its
+volume). For a 2 m alien, 109x is about 220 m, a 60-storey building. If the CEO
+means "the horizon moves", the creature must be kilometres long. He decides.
+
+### Trailer beats (CTO draft, to be cut to the music)
+
+| Time | Beat | What we see | Music |
+|---|---|---|---|
+| 0:00-0:18 | Home | The water planet from above; floating tree-villages; villagers playing among the roots underwater; our 2-3 heroes | gentle melody |
+| 0:18-0:35 | Leaving | Something the village needs is running out; the heroes set off toward the deep | melody + a pulse starts |
+| 0:35-0:55 | The wrong sea | Currents flowing like a river through the ocean; wind and waves too big; underwater, whole schools fleeing past them the other way | building |
+| 0:55-1:10 | Scale | A mountain rises on a planet that has no land. It moves. Underwater, a wall of skin passes beneath them for far too long. An eye opens, bigger than their home | hits, fast cuts |
+| 1:10-1:15 | Silence | The heroes, tiny, floating. The eye looking at them | nothing |
+| 1:15-1:25 | The question | How do you get past something the size of the sun? Cut to black. Title | one last hit |
+
+Suggestion, the CEO decides: the unnatural currents and storm are the creature
+moving. The trailer never says it; the audience works it out at the scale reveal.
+
+### How this scores
+
+Creativity 30%: an all-alien, landless water civilisation, nothing like the
+gallery's warriors and "The Last..." titles. Wan3 25%: the same 2-3 alien faces
+held across ~25 shots above and below water; the Scale block is TopView's own
+multi-shot example (establishing, close-ups, tracking, reveal). Story 20%: joy,
+then dread, then awe, in 85 s. Sharing 15%: the scale reveal is the clip people
+send. Quality 10%: water, light and colour.
+
+### Open questions for the CEO
+
+1. Scale: 220 m (true 109x) or kilometres (the horizon moves)?
+2. The heroes: 2 or 3, and their names (screened for collisions before use,
+   ai-film-production 10).
+3. Music: is there already a track on Google AI Ultra, or do we generate one to these beats?
+4. TopView Pro $29: generation cannot start without credits.
+
+---
+
+## Draft 2 (superseded by the CEO's own story above)
 
 > ฉันอยากได้ Sifi mystery Small-action ColorFull Dream UnderWaterPlatnet เอเลี่ยน 3-4 Charactor
 
