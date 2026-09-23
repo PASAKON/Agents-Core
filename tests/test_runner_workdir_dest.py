@@ -19,6 +19,7 @@ import types
 from pathlib import Path
 
 import pytest
+import yaml
 
 from tools import flow_ledger, flow_shoot
 from scripts.higgsfield import gen_loop
@@ -29,6 +30,27 @@ def _clean_work_dir_env(monkeypatch):
     # Never let a real ambient $WORK_DIR (e.g. this task's own pilot export)
     # leak into a test that expects it unset.
     monkeypatch.delenv("WORK_DIR", raising=False)
+
+
+def _write_policy(tmp_path: Path, *, scope_space_check, space_check_overrides=None) -> Path:
+    """A minimal storage_policy.load()-valid policy yaml with a custom
+    scope.space_check / space_check block (task-9586db0c) — for tests that
+    need a scope or estimate value the real config/storage-policy.yaml
+    (scope.space_check: all, default_estimate_gb: 1, min_free_after_gb: 5)
+    can't give them without editing that file, which this task leaves alone
+    (CTO note: C7 owns config/storage-policy.yaml this task)."""
+    space_check = {"min_free_after_gb": 5, "default_estimate_gb": 1, "estimates_gb": {}}
+    if space_check_overrides:
+        space_check.update(space_check_overrides)
+    policy = {
+        "gauge": {"green": 20, "yellow": 10, "orange": 5, "red": 0},
+        "tiers": {"HOT": [], "REBUILD": [], "COLD": [], "NEVER": []},
+        "scope": {"space_check": scope_space_check},
+        "space_check": space_check,
+    }
+    path = tmp_path / "policy.yaml"
+    path.write_text(yaml.safe_dump(policy))
+    return path
 
 
 # ── tools/flow_shoot.py: resolve_dest ───────────────────────────────────────
@@ -110,48 +132,107 @@ def test_build_parser_dest_optional_when_work_dir_set(monkeypatch, tmp_path):
     assert args.dest is None
 
 
-# ── tools/flow_shoot.py: check_free_space ───────────────────────────────────
+# ── tools/flow_shoot.py: check_free_space (task-9586db0c, CEO 2026-09-23) ──
+# Not a fixed floor: refuse iff free_gb - expected_gb < min_free_after_gb.
+# Whether the check runs at all is scope.space_check ("all" = always, a list
+# = $WORKER_CTO_ID membership, off = complete no-op) — no longer gated by
+# $WORK_DIR. The real config/storage-policy.yaml ships scope.space_check:
+# all, min_free_after_gb: 5, default_estimate_gb: 1 — used directly below
+# where those exact numbers matter; a private tmp policy (_write_policy)
+# wherever a specific scope or estimate value must be pinned instead.
 
-def test_flow_shoot_free_space_noop_when_work_dir_unset():
-    # TEETH: free_bytes_fn reports 0 bytes free — if the `if not wd: return`
-    # guard were removed, this would raise InsufficientFreeSpace and fail.
-    flow_shoot.check_free_space(free_bytes_fn=lambda: 0)
-
-
-def test_flow_shoot_free_space_refuses_below_keep_free_floor_unknown_size(monkeypatch, tmp_path):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    # config/storage-policy.yaml work_dir.keep_free_gb == 10
-    with pytest.raises(flow_shoot.InsufficientFreeSpace, match="Work/RULES.md rule 9"):
-        flow_shoot.check_free_space(free_bytes_fn=lambda: 5 * 1024 ** 3)
-
-
-def test_flow_shoot_free_space_ok_above_keep_free_floor_unknown_size(monkeypatch, tmp_path):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    flow_shoot.check_free_space(free_bytes_fn=lambda: 100 * 1024 ** 3)
+def test_flow_shoot_free_space_off_scope_is_a_complete_noop(tmp_path):
+    # TEETH: 0 bytes free, no estimate given — if _space_check_scope_applies
+    # were removed (or defaulted True), this raises and fails.
+    policy_path = _write_policy(tmp_path, scope_space_check=[])
+    flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 0)
 
 
-def test_flow_shoot_free_space_refuses_big_download_that_would_cross_floor(monkeypatch, tmp_path):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    # expected 2 GB (> big_download_gb=1), 11 GB free -> 11-2=9 < keep_free_gb=10
+def test_flow_shoot_free_space_list_scope_is_worker_cto_id_membership(monkeypatch, tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check=["cto-a"])
+    monkeypatch.delenv("WORKER_CTO_ID", raising=False)
+    flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 0)  # not a member
+    monkeypatch.setenv("WORKER_CTO_ID", "cto-a")
     with pytest.raises(flow_shoot.InsufficientFreeSpace):
-        flow_shoot.check_free_space(
-            expected_bytes=2 * 1024 ** 3, free_bytes_fn=lambda: 11 * 1024 ** 3)
+        flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 0)
 
 
-def test_flow_shoot_free_space_allows_big_download_with_enough_headroom(monkeypatch, tmp_path):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    flow_shoot.check_free_space(
-        expected_bytes=2 * 1024 ** 3, free_bytes_fn=lambda: 20 * 1024 ** 3)
+def test_flow_shoot_free_space_all_scope_applies_regardless_of_worker_cto_id(monkeypatch, tmp_path):
+    # "all" means always (task spec point 2) — no $WORKER_CTO_ID needed.
+    policy_path = _write_policy(tmp_path, scope_space_check="all")
+    monkeypatch.delenv("WORKER_CTO_ID", raising=False)
+    with pytest.raises(flow_shoot.InsufficientFreeSpace):
+        flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 0)
 
 
-def test_flow_shoot_free_space_small_known_download_skips_the_floor_check(monkeypatch, tmp_path):
-    # Spec: the size-known branch only refuses when the known size is ITSELF
-    # bigger than big_download_gb (1 GB). A known-small download (500 MB)
-    # never enters either branch, even with almost no free space — this is
-    # the literal rule 9 wording ("before a download > 1 GB").
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    flow_shoot.check_free_space(
-        expected_bytes=int(0.5 * 1024 ** 3), free_bytes_fn=lambda: 1)
+def test_flow_shoot_free_space_exactly_at_threshold_passes(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"min_free_after_gb": 5,
+                                                         "default_estimate_gb": 2})
+    # 7 GB free - 2 GB estimate = 5 GB left == min_free_after_gb -> passes.
+    flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 7 * 1024 ** 3)
+
+
+def test_flow_shoot_free_space_just_below_threshold_refuses(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"min_free_after_gb": 5,
+                                                         "default_estimate_gb": 2})
+    with pytest.raises(flow_shoot.InsufficientFreeSpace):
+        flow_shoot.check_free_space(policy_path=policy_path,
+                                     free_bytes_fn=lambda: 7 * 1024 ** 3 - 1)
+
+
+def test_flow_shoot_free_space_expect_gb_param_wins_over_env_and_project(monkeypatch, tmp_path):
+    monkeypatch.setenv("WORK_EXPECT_GB", "0.1")
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 0.1}})
+    # explicit expect_gb=10 on 10 GB free -> 0 left < 5 -> refuses, proving
+    # it (not the tiny env/project values) was used.
+    with pytest.raises(flow_shoot.InsufficientFreeSpace):
+        flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3,
+                                     expect_gb=10.0, project="proj")
+
+
+def test_flow_shoot_free_space_env_expect_gb_wins_when_no_flag(monkeypatch, tmp_path):
+    monkeypatch.setenv("WORK_EXPECT_GB", "10")
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 0.1}})
+    with pytest.raises(flow_shoot.InsufficientFreeSpace):
+        flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3,
+                                     project="proj")
+
+
+def test_flow_shoot_free_space_project_estimate_wins_when_no_flag_or_env(monkeypatch, tmp_path):
+    monkeypatch.delenv("WORK_EXPECT_GB", raising=False)
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 10},
+                                                         "default_estimate_gb": 0.1})
+    # default (0.1) would pass; the project estimate (10) must win instead.
+    with pytest.raises(flow_shoot.InsufficientFreeSpace):
+        flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3,
+                                     project="proj")
+
+
+def test_flow_shoot_free_space_project_via_env_work_project(monkeypatch, tmp_path):
+    monkeypatch.delenv("WORK_EXPECT_GB", raising=False)
+    monkeypatch.setenv("WORK_PROJECT", "proj")
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 10},
+                                                         "default_estimate_gb": 0.1})
+    with pytest.raises(flow_shoot.InsufficientFreeSpace):
+        flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3)
+
+
+def test_flow_shoot_free_space_default_estimate_logs_one_line(monkeypatch, tmp_path):
+    monkeypatch.delenv("WORK_EXPECT_GB", raising=False)
+    monkeypatch.delenv("WORK_PROJECT", raising=False)
+    monkeypatch.setattr(flow_shoot, "LOG_PATH", tmp_path / "flow_shoot.log")
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"default_estimate_gb": 3})
+    flow_shoot.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 100 * 1024 ** 3)
+    log_text = flow_shoot.LOG_PATH.read_text()
+    assert "no size estimate given" in log_text
+    assert "assumed 3 GB" in log_text
 
 
 # ── cmd_run / cmd_pull wiring: a forbidden --dest is refused before any
@@ -276,7 +357,8 @@ def _space_run_args(tmp_path: Path, ledger_name: str) -> object:
 
 def test_cmd_run_low_disk_blocks_submit_before_any_credit_spend(monkeypatch, tmp_path):
     monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    # 1 GB free < config/storage-policy.yaml work_dir.keep_free_gb (10)
+    # real config: default_estimate_gb 1, min_free_after_gb 5 -> 1 GB free
+    # leaves 0 GB, well under the floor.
     monkeypatch.setattr(flow_shoot.shutil, "disk_usage",
                          lambda path: types.SimpleNamespace(free=1 * 1024 ** 3))
     args = _space_run_args(tmp_path, "space.tsv")
@@ -305,9 +387,12 @@ def test_cmd_run_plenty_of_disk_still_reaches_submit(monkeypatch, tmp_path):
     assert stub.download_called is False  # stub's poll_result() always refuses
 
 
-def test_cmd_run_free_space_check_is_noop_when_work_dir_unset(tmp_path):
-    # WORK_DIR unset (autouse fixture) — byte-for-byte unchanged: reaches
-    # submit() regardless of disk state, since check_free_space() no-ops.
+def test_cmd_run_reaches_submit_regardless_of_work_dir_when_disk_is_fine(monkeypatch, tmp_path):
+    # WORK_DIR unset (autouse fixture) — real config scope.space_check: all
+    # (task-9586db0c) means the check now runs regardless of $WORK_DIR;
+    # with ample free space it still doesn't block submit().
+    monkeypatch.setattr(flow_shoot.shutil, "disk_usage",
+                         lambda path: types.SimpleNamespace(free=100 * 1024 ** 3))
     ap = flow_shoot.build_parser()
     args = ap.parse_args([
         "run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "no_workdir.tsv"),
@@ -316,6 +401,47 @@ def test_cmd_run_free_space_check_is_noop_when_work_dir_unset(tmp_path):
     stub = _SpaceGateStubBrowser(allow_generation=True)
     flow_shoot.cmd_run(args, browser_factory=lambda: stub)
     assert stub.submit_called is True
+
+
+def test_cmd_run_low_disk_blocks_submit_even_without_work_dir(monkeypatch, tmp_path):
+    # TEETH: proves scope.space_check "all" really means always (task spec
+    # point 2), not "only when $WORK_DIR is set" — same low-disk refusal as
+    # test_cmd_run_low_disk_blocks_submit_before_any_credit_spend above, but
+    # with $WORK_DIR left unset. If check_free_space() were still gated on
+    # `if not _work_dir(): return`, this reaches submit() and fails.
+    monkeypatch.setattr(flow_shoot.shutil, "disk_usage",
+                         lambda path: types.SimpleNamespace(free=1 * 1024 ** 3))
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "space_no_wd.tsv"),
+        "--dest", str(tmp_path / "dest"), "--credit-cap", "999", "--only", "35",
+    ])
+    stub = _SpaceGateStubBrowser()
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert stub.submit_called is False
+    assert stub.download_called is False
+    rows = flow_ledger.load_ledger(tmp_path / "space_no_wd.tsv")
+    assert rows[35]["status"] == "failed"
+    assert "space" in rows[35]["note"]
+    assert rc == 1
+
+
+def test_cmd_run_expect_gb_flag_reaches_check_free_space(monkeypatch, tmp_path):
+    # --expect-gb threads cmd_run -> _submit_or_raise -> check_free_space:
+    # 10 GB free - 8 GB explicit estimate = 2 GB left < 5 -> refuses, proving
+    # the CLI flag (not the real config's default_estimate_gb: 1) was used.
+    monkeypatch.setenv("WORK_DIR", str(tmp_path))
+    monkeypatch.setattr(flow_shoot.shutil, "disk_usage",
+                         lambda path: types.SimpleNamespace(free=10 * 1024 ** 3))
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "expectgb.tsv"),
+        "--credit-cap", "999", "--only", "35", "--expect-gb", "8",
+    ])
+    stub = _SpaceGateStubBrowser()
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert stub.submit_called is False
+    assert rc == 1
 
 
 # ── scripts/higgsfield/gen_loop.py: resolve_local_root ──────────────────────
@@ -339,18 +465,77 @@ def test_gen_loop_local_root_refuses_a_desktop_work_dir(monkeypatch, tmp_path):
         gen_loop.resolve_local_root()
 
 
-# ── scripts/higgsfield/gen_loop.py: check_free_space ────────────────────────
+# ── scripts/higgsfield/gen_loop.py: check_free_space (task-9586db0c) ───────
+# Same replacement, same estimate order and scope rules — duplicated in
+# gen_loop.py rather than imported (see that file's own comment); tested
+# independently here to catch a copy-paste divergence between the two.
 
-def test_gen_loop_free_space_noop_when_work_dir_unset():
-    gen_loop.check_free_space(free_bytes_fn=lambda: 0)
-
-
-def test_gen_loop_free_space_refuses_below_keep_free_floor(monkeypatch, tmp_path):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    with pytest.raises(gen_loop.InsufficientFreeSpace, match="Work/RULES.md rule 9"):
-        gen_loop.check_free_space(free_bytes_fn=lambda: 5 * 1024 ** 3)
+def test_gen_loop_free_space_off_scope_is_a_complete_noop(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check=[])
+    gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 0)
 
 
-def test_gen_loop_free_space_ok_above_keep_free_floor(monkeypatch, tmp_path):
-    monkeypatch.setenv("WORK_DIR", str(tmp_path))
-    gen_loop.check_free_space(free_bytes_fn=lambda: 100 * 1024 ** 3)
+def test_gen_loop_free_space_all_scope_refuses_below_threshold(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check="all")
+    with pytest.raises(gen_loop.InsufficientFreeSpace, match="space_check"):
+        gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 0)
+
+
+def test_gen_loop_free_space_ok_above_threshold(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check="all")
+    gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 100 * 1024 ** 3)
+
+
+def test_gen_loop_free_space_exactly_at_threshold_passes(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"min_free_after_gb": 5,
+                                                         "default_estimate_gb": 2})
+    gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 7 * 1024 ** 3)
+
+
+def test_gen_loop_free_space_just_below_threshold_refuses(tmp_path):
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"min_free_after_gb": 5,
+                                                         "default_estimate_gb": 2})
+    with pytest.raises(gen_loop.InsufficientFreeSpace):
+        gen_loop.check_free_space(policy_path=policy_path,
+                                   free_bytes_fn=lambda: 7 * 1024 ** 3 - 1)
+
+
+def test_gen_loop_free_space_expect_gb_param_wins_over_env_and_project(monkeypatch, tmp_path):
+    monkeypatch.setenv("WORK_EXPECT_GB", "0.1")
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 0.1}})
+    with pytest.raises(gen_loop.InsufficientFreeSpace):
+        gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3,
+                                   expect_gb=10.0, project="proj")
+
+
+def test_gen_loop_free_space_env_expect_gb_wins_when_no_flag(monkeypatch, tmp_path):
+    monkeypatch.setenv("WORK_EXPECT_GB", "10")
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 0.1}})
+    with pytest.raises(gen_loop.InsufficientFreeSpace):
+        gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3,
+                                   project="proj")
+
+
+def test_gen_loop_free_space_project_estimate_wins_when_no_flag_or_env(monkeypatch, tmp_path):
+    monkeypatch.delenv("WORK_EXPECT_GB", raising=False)
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"estimates_gb": {"proj": 10},
+                                                         "default_estimate_gb": 0.1})
+    with pytest.raises(gen_loop.InsufficientFreeSpace):
+        gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 10 * 1024 ** 3,
+                                   project="proj")
+
+
+def test_gen_loop_free_space_default_estimate_logs_one_line(monkeypatch, tmp_path, capsys):
+    monkeypatch.delenv("WORK_EXPECT_GB", raising=False)
+    monkeypatch.delenv("WORK_PROJECT", raising=False)
+    policy_path = _write_policy(tmp_path, scope_space_check="all",
+                                 space_check_overrides={"default_estimate_gb": 3})
+    gen_loop.check_free_space(policy_path=policy_path, free_bytes_fn=lambda: 100 * 1024 ** 3)
+    out = capsys.readouterr().out
+    assert "no size estimate given" in out
+    assert "assumed 3 GB" in out
