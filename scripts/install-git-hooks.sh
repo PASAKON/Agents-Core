@@ -15,7 +15,7 @@
 # Install with:
 #   sh scripts/install-git-hooks.sh
 #
-# Two stanzas land in .git/hooks/pre-commit:
+# Three stanzas land in .git/hooks/pre-commit:
 #   1. gitleaks secret guard  -- matches what was already live in this repo's
 #      hook (added 2026-07-20); reproduced here so it also survives a fresh
 #      clone, not only the skill-lint half this task actually asked for.
@@ -25,6 +25,15 @@
 #      commit regardless of what it finds (`|| true`) -- CEO decisions 4 and
 #      10 forbid an authoring gate, and a blocking pre-commit hook is a gate
 #      wearing a different hat.
+#   3. media-guard (pilot)   -- ADR 0030 / Work/RULES.md rule 5. Runs
+#      scripts/media_guard.py and BLOCKS the commit on a real finding, but
+#      ONLY when the committer is a pilot-scope worker: env WORKER_CTO_ID
+#      (delegate exports it for every worker) must be in
+#      config/storage-policy.yaml's `pilot_owner_cto` list. Anyone else --
+#      other sessions' workers, C-level sessions, the CEO -- sees no change.
+#      A broken read (missing .venv, missing PyYAML, bad policy file) prints
+#      a warning and never blocks -- this guard must never stop someone
+#      else's commit.
 
 set -eu
 
@@ -114,6 +123,54 @@ fi
 # --- END skill-lint ---
 SKILLLINT_EOF
   echo "installed: skill-lint stanza"
+fi
+
+if ! grep -q 'BEGIN media-guard (pilot)' "$hook" 2>/dev/null; then
+  cat >> "$hook" <<'MEDIAGUARD_EOF'
+
+# --- BEGIN media-guard (pilot) (ADR 0030 / Work/RULES.md rule 5; tracked via scripts/install-git-hooks.sh) ---
+# Blocks ONLY commits made by pilot-scope workers: env WORKER_CTO_ID
+# (delegate exports it for every worker) must be in
+# config/storage-policy.yaml's `pilot_owner_cto` list. Every other
+# committer -- other sessions' workers, C-level sessions, the CEO -- sees
+# no change (CEO scope: own work first, 2026-09-23).
+if [ -n "${WORKER_CTO_ID:-}" ]; then
+  worktree_root="$(git rev-parse --show-toplevel)"
+  common_dir="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || git rev-parse --git-common-dir)"
+  case "$common_dir" in
+    /*) : ;;
+    *) common_dir="$(cd "$common_dir" && pwd)" ;;
+  esac
+  main_root="$(dirname "$common_dir")"
+  py="$main_root/.venv/bin/python"
+  policy="$worktree_root/config/storage-policy.yaml"
+  guard_script="$worktree_root/scripts/media_guard.py"
+  pilot_rc=2
+  if [ -x "$py" ] && [ -f "$policy" ]; then
+    "$py" -c '
+import sys
+try:
+    import yaml
+    with open(sys.argv[1], encoding="utf-8") as f:
+        policy = yaml.safe_load(f) or {}
+    pilot = policy.get("pilot_owner_cto") or []
+    sys.exit(0 if sys.argv[2] in pilot else 1)
+except Exception:
+    sys.exit(2)
+' "$policy" "$WORKER_CTO_ID"
+    pilot_rc=$?
+  fi
+  if [ "$pilot_rc" = "2" ]; then
+    echo "media_guard: could not read storage policy -- skipping (not blocking)"
+  elif [ "$pilot_rc" = "0" ] && [ -f "$guard_script" ]; then
+    if ! "$py" "$guard_script" --repo "$worktree_root"; then
+      exit 1
+    fi
+  fi
+fi
+# --- END media-guard (pilot) ---
+MEDIAGUARD_EOF
+  echo "installed: media-guard (pilot) stanza"
 fi
 
 last_line="$(tail -n 1 "$hook" 2>/dev/null || true)"
