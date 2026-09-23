@@ -10,6 +10,10 @@ pandas>=3.0.5
 # Pinned now that pytest collects their mocked unit tests (ADR 0021); previously
 # installed ad hoc only in shells that ran those scripts.
 requests>=2.31,<3
+# Image I/O for tools/bl_realfootage.py, tools/plate_montage.py and the poster
+# scripts. Imported at module top, so collecting tests/test_bl_realfootage.py
+# without it stops CI before any test runs (main red since bde67a10).
+pillow>=12,<13
 # Test runner — ADR 0021 standardises on pytest (added 2026-08-13).
 pytest>=8,<9
 
