@@ -825,7 +825,7 @@ class FlowBrowser:
 def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
                       cap: int, expected_chip_count: int) -> None:
     """The ONLY call site for browser.submit() in the whole runner. All
-    three money/correctness guards are re-checked here, immediately before
+    four money/correctness guards are re-checked here, immediately before
     the call — task-04851451: cmd_run already had a cap check and a
     dry-run check ahead of its one submit() call, in that same order, and
     15 real generations still fired while iteration 2 edited the
@@ -835,11 +835,18 @@ def _submit_or_raise(browser: FlowBrowser, spent_this_run: int, estimate: int,
     above a call. expected_chip_count is forwarded into submit() itself
     (see ChipCountMismatch) rather than checked only here, so a caller
     skipping this wrapper entirely still can't spend with the wrong
-    references attached."""
+    references attached.
+
+    check_free_space() moved here task-2b587031 iteration 1 (CTO review):
+    it originally sat right before browser.download(), AFTER this call —
+    a disk-space refusal there still spent the credits on a generation
+    that then wasn't even downloaded. It belongs beside the other three
+    guards for exactly the reason this docstring already gives."""
     if browser.dry_run:
         raise RuntimeError("BUG: _submit_or_raise called while dry_run is set")
     if credit_cap_exceeded(spent_this_run, estimate, cap):
         raise CreditCapExceeded(spent_this_run, estimate, cap)
+    check_free_space()
     browser.submit(expected_chip_count=expected_chip_count)
 
 
@@ -1030,7 +1037,6 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 row["status"] = "generated"
                 flow_ledger.save_ledger(ledger_path, rows)
 
-                check_free_space()
                 downloaded = browser.download()
                 time.sleep(DOWNLOAD_GAP_S)
                 clip_path = extract_clip(downloaded, dest, n)

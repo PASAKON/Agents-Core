@@ -545,6 +545,12 @@ def main():
                 type_prompt(page, r['prompt']); time.sleep(random.uniform(0.6, 1.6))
                 # commit contenteditable via REAL keyboard Escape (React ignores programmatic blur)
                 page.keyboard.press("Escape"); page.wait_for_timeout(400)
+                # check_free_space() runs immediately before the ONLY click that spends a
+                # generation (task-2b587031 iteration 1, CTO review, same defect as
+                # flow_shoot.py's _submit_or_raise): it used to sit right before download(),
+                # AFTER this click and the full poll_for_result() wait — a disk-space refusal
+                # there still burned the generation for nothing.
+                check_free_space()
                 page.locator('button[type=submit]').first.click()
                 page.wait_for_timeout(8000)
                 if not page.evaluate("()=>/generating|processing|queued|rendering|in progress/i.test(document.body.innerText)"):
@@ -584,7 +590,6 @@ def main():
                 local_dir.mkdir(parents=True, exist_ok=True)
                 fname = f"{cid}-{r['duration']}-1080p-916.mp4"
                 local_path = local_dir / fname
-                check_free_space()
                 size = download(new_url, local_path, page)
                 did, dsize = drive_upload(token, local_path, fname, cat_id)
                 append_index([cid, r['category'], r['subcategory'], r['prompt'], r['palette'],
