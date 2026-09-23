@@ -22,7 +22,7 @@ class EDLError(Exception):
     not have to bisect the file by hand."""
 
 
-ROLES = {"avatar", "scene", "broll", "real_still", "real_clip"}
+ROLES = {"avatar", "scene", "broll", "real_still", "real_clip", "bg"}
 REAL_ROLES = {"real_still", "real_clip"}
 DARKEN_LEGAL_ROLES = {"scene", "broll"}
 AVATAR_MODES = {"full", "composite", "none"}
@@ -99,14 +99,28 @@ def validate_p1(doc: dict) -> None:
         role = p.get("role")
         if role not in ROLES:
             raise EDLError(f"p1 {eid}: unknown role '{role}'")
+        mode = p.get("avatar_mode")
+        if mode not in AVATAR_MODES:
+            raise EDLError(f"p1 {eid}: unknown avatar_mode '{mode}'")
+
+        if role == "bg":
+            # No footage at all -- the kit's own #bg stays on and a P3
+            # kinetic block (not yet rendered) carries the frame alone. No
+            # media, no kind, no avatar composite over bare kit background
+            # (composite is for an evidence plate, §6d -- extend this if a
+            # future episode needs it). SKILL.md: this is not a hole to be
+            # embarrassed about, BL51's approved cut ran 61% this way.
+            if mode != "none":
+                raise EDLError(f"p1 {eid}: role 'bg' only supports avatar_mode 'none', got '{mode}'")
+            if p.get("darken"):
+                raise EDLError(f"p1 {eid}: darken=true is illegal on role 'bg' (no plate to darken)")
+            continue
+
         kind = p.get("kind")
         if kind not in PLATE_KINDS:
             raise EDLError(f"p1 {eid}: unknown kind '{kind}'")
         if "media" not in p:
             raise EDLError(f"p1 {eid}: params.media missing")
-        mode = p.get("avatar_mode")
-        if mode not in AVATAR_MODES:
-            raise EDLError(f"p1 {eid}: unknown avatar_mode '{mode}'")
 
         if role == "avatar":
             if mode != "full":
@@ -220,6 +234,8 @@ def check_media_exists(doc: dict, media_root: Path) -> list[str]:
     want(doc["audio"]["media"], "audio")
     for ev in doc["events"]:
         p = ev["params"]
+        if p.get("role") == "bg":
+            continue  # no footage on this event by design -- see validate_p1
         want(p["media"], ev["id"])
         if p.get("avatar_mode") == "composite":
             want(p["avatar"]["media"], f"{ev['id']} (avatar)")

@@ -35,6 +35,8 @@ BUG_DATE_RE = re.compile(r'(<div class="dt2">)[^<]*(</div>)')
 
 def render_plate(ev: dict, offsets: dict, idx: int) -> list[str]:
     p = ev["params"]
+    if p.get("role") == "bg":
+        return []  # the kit's #bg is always on underneath -- nothing to place
     t0, t1 = ev["t0"], ev["t1"]
     dur = round(t1 - t0, 3)
     cls = "clip" + (" plate-darkened" if p.get("darken") else "")

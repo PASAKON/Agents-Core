@@ -134,7 +134,10 @@ dependency (e.g. a P3 headline with its own independent timing) may have
 P1 events **tile the voice track with no gaps and no overlaps**: sorted by
 `t0`, each event's `t1` equals the next event's `t0`; the first event's `t0`
 is `0`; the last event's `t1` equals `duration`. That tiling **is** the P1
-gate (`bl_check.py p1`, deliverable 3).
+gate (`bl_check.py p1`, deliverable 3). A text-only stretch is not a gap —
+author it as a `role: "bg"` event (see the field table below) so the timeline
+still tiles exactly; `bl_compose.py` emits no HTML for it (the kit's `#bg` is
+already always-on underneath).
 
 ```json
 {
@@ -157,7 +160,7 @@ gate (`bl_check.py p1`, deliverable 3).
 
 | field | values | meaning |
 |---|---|---|
-| `role` | `avatar` \| `scene` \| `broll` \| `real_still` \| `real_clip` | what kind of plate this is. `avatar` = a lipsync part playing full-frame. `scene` = a generated `S##` plate. `broll` = a channel-catalogue clip. `real_still` / `real_clip` = rule-5a real footage (image or video). |
+| `role` | `avatar` \| `scene` \| `broll` \| `real_still` \| `real_clip` \| `bg` | what kind of plate this is. `avatar` = a lipsync part playing full-frame. `scene` = a generated `S##` plate. `broll` = a channel-catalogue clip. `real_still` / `real_clip` = rule-5a real footage (image or video). `bg` = **no footage** — the kit's own `#bg` stays on and (once P3 renders) a kinetic text block carries the frame alone. Not a hole to apologise for: SKILL.md measures the channel's approved cuts running about half their length this way (BL51: 61%). A `bg` event carries no `media`/`kind` and `avatar_mode` must be `"none"`. |
 | `kind` | `video` \| `image` | how the plate is rendered: `<video class="clip">` or a full-bleed `<div class="clip">` with a `background-image` (stills need no ffmpeg Ken-Burns pass to be placed by P1 — that stays a P2 job if it ever becomes one). |
 | `media` | path | relative to the media root, e.g. `media/s15.mp4`. |
 | `media_start` | seconds | seek offset into `media`. Required unless `lipsync_part` is set (then it is derived — see above). Ignored for `kind: "image"`. |

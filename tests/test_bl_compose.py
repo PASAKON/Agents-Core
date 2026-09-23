@@ -54,6 +54,13 @@ def scene_event(eid, t0, t1, darken=False):
     }
 
 
+def bg_event(eid, t0, t1):
+    return {
+        "id": eid, "t0": t0, "t1": t1, "type": "plate",
+        "params": {"role": "bg", "avatar_mode": "none"},
+    }
+
+
 def real_still_event(eid, t0, t1, real_source="real/score.png", composite=False):
     p = {"role": "real_still", "kind": "image", "media": "real/score.png",
          "media_start": 0.0, "avatar_mode": "none", "darken": False,
@@ -123,6 +130,33 @@ def test_validate_p1_rejects_duplicate_id():
     doc = make_p1([avatar_event("p1-1", 0.0, 1.0), scene_event("p1-1", 1.0, 2.0)])
     with pytest.raises(bl_edl.EDLError, match="duplicate id"):
         bl_edl.validate_p1(doc)
+
+
+def test_validate_p1_accepts_bg_role_with_no_media():
+    doc = make_p1([avatar_event("p1-1", 0.0, 2.0), bg_event("p1-2", 2.0, 10.0)])
+    bl_edl.validate_p1(doc)  # must not raise -- a text-only stretch is legal
+
+
+def test_validate_p1_rejects_bg_role_with_composite_avatar():
+    ev = bg_event("p1-1", 0.0, 1.0)
+    ev["params"]["avatar_mode"] = "composite"
+    doc = make_p1([ev])
+    with pytest.raises(bl_edl.EDLError, match="only supports avatar_mode 'none'"):
+        bl_edl.validate_p1(doc)
+
+
+def test_check_media_exists_skips_bg_events(tmp_path: Path):
+    doc = make_p1([bg_event("p1-1", 0.0, 10.0)])
+    (tmp_path / "media").mkdir()
+    (tmp_path / "media" / "audio.mp3").write_bytes(b"x")
+    assert bl_edl.check_media_exists(doc, tmp_path) == []
+
+
+def test_compose_p1_renders_nothing_for_a_bg_event():
+    doc = make_p1([avatar_event("p1-1", 0.0, 4.0), bg_event("p1-2", 4.0, 10.0)])
+    template = bl_edl.DEFAULT_TEMPLATE.read_text(encoding="utf-8")
+    html = compose.compose_p1(doc, template)
+    assert 'id="v1"' in html and 'id="v2"' not in html  # only p1-1's avatar tag, nothing for p1-2
 
 
 def test_validate_p1_rejects_t0_not_less_than_t1():
