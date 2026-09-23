@@ -26,14 +26,14 @@ pilot_owner_cto: ["0e8d80b8"]
 # Per-feature scope (CEO 2026-09-23, after the pilot): which owner_cto each
 # feature applies to. "all" = every task of every session. Code reads this
 # map (task C7); until C7 merges, `pilot_owner_cto` above is still the key the
-# code reads. The CEO widened A-D + E; F (media_guard) stays pilot.
+# code reads. The CEO widened all six (A-F) on 2026-09-23.
 scope:
   disk_floor:      all              # A: no new worker under gauge.orange free
   sparse_worktree: all              # B: worker checkouts without large tracked media (video_editor still full)
   reclaim:         all              # C: under 10 GB, delete REBUILD dirs inside task worktrees
   work_dir:        all              # D: Work/<task>/ + WORK_DIR + close gate + watcher
   space_check:     all              # E: estimate-based check before a paid generation / download
-  media_guard:     ["0e8d80b8"]     # F: not widened — CEO did not approve it yet
+  media_guard:     all              # F: every commit (CEO 2026-09-23: "media ไม่ควรเอาเข้าอยู่แล้ว"); one-off bypass: git commit --no-verify
 
 # E, as the CEO ruled 2026-09-23: not a fixed 10 GB floor. Before creating,
 # the project's worker/CTO estimates the output size; proceed only if at least
