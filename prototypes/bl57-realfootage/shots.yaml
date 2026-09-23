@@ -1,10 +1,17 @@
 # BLACK LIQUIDITY EP57 -- เว็บหาย ไม่มีใบอนุญาต -- real-footage shot list
 # Run with: python tools/bl_realfootage.py run --shots prototypes/bl57-realfootage/shots.yaml --episode bl57
 #
-# NOTE: one entry in REAL_MANIFEST.json is NOT in this file --
-# third-party/wikifx-xxlmarkets-review.jpg (covers HOOK-3, MAIN-8) is the
-# CEO's own supplied image (third-party/SOURCES.md), added to the manifest
-# by hand since it was never run through this tool.
+# NOTE: three entries in REAL_MANIFEST.json are NOT in this file --
+# third-party/wikifx-xxlmarkets-review.jpg (covers CURIOSITY-1, CURIOSITY-2,
+# tags renamed for the v2 script) is the CEO's own supplied image
+# (third-party/SOURCES.md), added to the manifest by hand since it was
+# never run through this tool. real/whois-domain-history.jpg (covers
+# CONTEXT-5) and real/fca-register-search-spinner.jpg (covers MAIN-12) were
+# added 2026-09-23 for the v2 script rewrite (task-f80f98ff), captured
+# manually via Claude-in-Chrome (who.is's "History" tab and a direct visit
+# to register.fca.org.uk/s/search?q=XXLMARKETS) rather than through this
+# runner -- see prototypes/bl57-script/RUNLOG.md for the exact steps if
+# this tool is later extended to reproduce them.
 #
 # Sources:
 #   wikifx  = https://www.wikifx.com/th/dealer/3697715948.html (XXLMARKETS' WikiFX

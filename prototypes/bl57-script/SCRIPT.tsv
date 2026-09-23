@@ -1,40 +1,40 @@
-HOOK-1	เว็บเทรดที่มึงอาจเคยฝากเงินไว้หายไปจากอินเทอร์เน็ตแล้ว		hook
-HOOK-2	ไม่ใช่แค่เข้าเว็บไม่ได้ กูเช็กเองพบว่าโดเมนทั้งโดเมนไม่มีอยู่จริงด้วยซ้ำ		hook
-HOOK-3	เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ วิกิเอฟเอ็กซ์บอกไว้แล้วว่าไม่มีใบอนุญาต ไม่มีหน่วยงานคุ้มครอง	wikifx-xxlmarkets-review	show	1.99/10 · ไม่มีหน่วยงานคุ้มครอง
-HOOK-4	เดี๋ยววันนี้กูจะพาไปดูของจริงทีละขั้นให้ฟัง		hook
-PATTERN-1	ที่กูเพิ่งพูดไปคือสิ่งที่วิกิเอฟเอ็กซ์เขียนไว้เองเกี่ยวกับเจ้านี้	wikifx-profile-website-inaccessible	show	เข้าเว็บไม่ได้ตามปกติ
-PATTERN-2	บริษัทนี้จดทะเบียนอยู่ที่สหราชอาณาจักร เปิดมาสองถึงห้าปี	wikifx-profile-score	show	สหราชอาณาจักร · 2-5 ปี
-PATTERN-3	ประเทศใหญ่ไม่ได้แปลว่ามีใบอนุญาตกำกับฟอเร็กซ์เสมอไป		verdict
-PATTERN-4	ถ้าไม่มีใบอนุญาต เว็บจะเปิดหรือจะปิดเมื่อไหร่ก็ได้ ไม่มีใครสั่งให้เปิดกลับมา		verdict
-CONTEXT-1	วิกิเอฟเอ็กซ์เช็กแล้ว ไม่เจอใบอนุญาตซื้อขายฟอเร็กซ์ของเจ้านี้	wikifx-profile-no-license	show	ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์
-CONTEXT-2	เขียนไว้ชัดๆว่ายังไม่มีการกำกับดูแล	wikifx-profile-no-regulation	show	ยังไม่มีการกำกับดูแล
-CONTEXT-3	คะแนนความน่าเชื่อถือที่วิกิเอฟเอ็กซ์ให้ อยู่ที่หนึ่งจุดเก้าเก้าจากสิบ	wikifx-profile-score	show	1.99/10
-CONTEXT-4	วิกิเอฟเอ็กซ์เขียนไว้ด้วยว่าหน่วยงานกำกับอังกฤษไม่พบข้อมูลเจ้านี้		verdict
-CONTEXT-5	อันนี้ไม่ใช่กูพูดเอง วิกิเอฟเอ็กซ์เขียนไว้ มึงไปอ่านเองได้		verdict
-MAIN-1	กูไม่เชื่อคำว่าเข้าเว็บไม่ได้เฉยๆ เลยไปเช็กเองอีกที		verdict
-MAIN-2	กูลองพิมพ์เว็บนี้เข้าเบราว์เซอร์ตรงๆดูเลย ก็เจอแค่หน้าเออเรอร์		verdict
-MAIN-3	แล้วลองเช็กในระบบทะเบียนโดเมนสาธารณะอีกที ผลคือไม่พบการจดทะเบียนเลย	icann-whois-no-match	show	ไม่พบการจดทะเบียนโดเมน
-MAIN-4	ไม่ใช่แค่เว็บล่มชั่วคราว แต่เหมือนไม่มีใครจดทะเบียนโดเมนนี้อยู่เลย		verdict
-MAIN-5	เว็บหายแบบนี้ แปลว่าถ้ามึงมีเงินค้างอยู่ จะติดต่อใครไม่ได้เลย		verdict
-MAIN-6	ไม่มีใบอนุญาต แปลว่าไม่มีหน่วยงานไหนบังคับให้เจ้าของเว็บต้องรับผิดชอบ		verdict
-MAIN-7	เว็บจะหายไปเงียบๆแบบนี้ก็ได้ ไม่ต้องแจ้งใครก่อนเลย		verdict
-MAIN-8	คะแนนย่อยของวิกิเอฟเอ็กซ์ก็แย่แทบทุกด้าน ทั้งเรื่องกำกับดูแลและความเสี่ยง	wikifx-xxlmarkets-review	show	กำกับดูแล 2.69 · เทคโนโลยี 4.54
-MAIN-9	วิกิเอฟเอ็กซ์ยังเตือนไว้ด้วยว่าใบอนุญาตของเจ้านี้ถูกตั้งข้อสงสัย	wikifx-profile-warning-banner	show	ใบอนุญาตถูกตั้งข้อสงสัย
-MAIN-10	กลุ่มธุรกิจก็ถูกจัดว่าน่าสงสัยเหมือนกัน	wikifx-profile-warning-banner	show	กลุ่มธุรกิจที่ต้องสงสัย
-MAIN-11	คนที่เห็นชื่อผ่านตา มักไม่เคยเช็กว่าเว็บยังอยู่ไหมด้วยซ้ำ		verdict
-MAIN-12	เห็นชื่อฝรั่งดูน่าเชื่อถือ ไม่เท่ากับมีใครกำกับดูแลจริง		verdict
-MAIN-13	กูไม่ได้บอกว่าเจ้านี้โกงแน่นอน กูแค่บอกให้เช็กเองก่อนตัดสินใจ		verdict
-CURIOSITY-1	มึงรู้ไหมว่าเว็บที่หายแบบนี้ เช็กได้ด้วยตัวเองฟรีๆ		verdict
-CURIOSITY-2	แค่ค้นชื่อโดเมนในระบบตรวจสอบสาธารณะ ก็รู้ได้เลยว่ายังมีคนเป็นเจ้าของอยู่ไหม	icann-whois-no-match	show	lookup.icann.org
-CURIOSITY-3	วิธีเดียวกันนี้กูใช้เช็กเจ้านี้เองเมื่อกี้ที่เล่าให้ฟัง		verdict
-CURIOSITY-4	โบรกที่ยังไหวอยู่จริง จะไม่ปล่อยให้เว็บหายไปเงียบๆแบบนี้		verdict
-CURIOSITY-5	เว็บหายแบบนี้บางทีเป็นสัญญาณสุดท้ายก่อนทุกอย่างจะเงียบไปเลย		verdict
-SUMMARY-1	สรุปแบบไม่โลกสวย		verdict
-SUMMARY-2	เว็บหาย ไม่มีใบอนุญาต ไม่มีหน่วยงานคุ้มครอง สามอย่างนี้ไม่ใช่เรื่องบังเอิญ		verdict
-SUMMARY-3	ก่อนฝากเงินโบรกไหนก็ตาม เช็กสามอย่าง		verdict
-SUMMARY-4	หนึ่ง เว็บยังเปิดอยู่จริงไหม ลองเข้าดูเองตอนนี้เลย		cta
-SUMMARY-5	สอง มีใบอนุญาตจากหน่วยงานไหน เข้าเว็บหน่วยงานนั้นค้นเลขเอง		cta
-SUMMARY-6	สาม โดเมนยังจดทะเบียนอยู่ไหม เช็กได้ฟรีด้วยตัวเอง		cta
-SUMMARY-7	กูไม่ได้แนะนำให้ใช้หรือเลิกใช้เจ้าไหน กูแค่ชี้วิธีเช็กให้เป็น		verdict
-SUMMARY-8	คอมเมนต์คำว่า เช็กเว็บโบรก ถ้ามึงอยากได้ขั้นตอนเช็กเว็บและใบอนุญาตเอง		cta
-SUMMARY-9	อย่าปล่อยให้เว็บหายไปพร้อมเงินมึง		verdict
+HOOK-1	ใครใช้โบรกนี้อยู่ รีบเข้าเว็บไปเช็กด่วนเลย		hook	avatar full frame, cold open, CEO's own line verbatim
+HOOK-2	ตอนนี้แม่งปิดเว็บ เข้าไม่ได้แล้ว		hook	avatar full frame, CEO's own line verbatim
+HOOK-3	นี่คือหลักฐานตอนที่กูพยายามเข้าเว็บ		hook	avatar full frame, CEO's own line verbatim -- sets up the step-by-step that follows
+HOOK-4	เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ เดี๋ยวกูจะพาไปดูของจริงทีละขั้น		hook	avatar full frame, names the broker before the discovery starts
+PATTERN-1	กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆเลย		verdict	avatar full frame -- no capturable shot exists for this exact attempt, see SCRIPT.md
+PATTERN-2	หน้าเว็บขึ้นว่าเข้าไม่ได้		verdict	avatar full frame -- true result (NXDOMAIN, confirmed dig/whois/curl), not shown as a screenshot because the browser blocks capturing its own error page
+PATTERN-3	ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง		verdict	avatar full frame
+PATTERN-4	ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้		verdict	avatar full frame -- same result both ways, confirmed live 2026-09-23
+CONTEXT-1	กูไม่เชื่อว่าแค่เว็บล่มเฉยๆ เลยลองเช็กว่าใครเป็นเจ้าของชื่อเว็บนี้		verdict	avatar full frame, sets up the next real capture
+CONTEXT-2	เข้าเว็บเช็กชื่อเว็บฟรีๆ พิมพ์ชื่อเว็บนี้ลงไป		verdict	avatar full frame
+CONTEXT-3	เจอเลย ไม่มีใครเป็นเจ้าของชื่อเว็บนี้แล้วตอนนี้	whois-no-match	show	real capture, who.is -- "We don't have a current record for xxlmarkets.com" (title crop)
+CONTEXT-4	แต่เจอประวัติว่าเคยมีเจ้าของ ย้อนไปถึงปีสองพันยี่สิบสอง	whois-no-match	show	real capture, who.is -- "4 historical WHOIS/RDAP snapshots ... from 2022 to 2026" crop
+CONTEXT-5	หน้าเดียวกันนี้มีตัวนับให้ดูชัดๆอีกด้วย สี่ครั้งตั้งแต่สองพันยี่สิบสองถึงสองพันยี่สิบหก	whois-domain-history	show	real capture, who.is Domain History Archive page -- "4 snapshots spanning 2022-2026" (NEW capture this pass)
+MAIN-1	กูเลยลองไปดูที่วิกิเอฟเอ็กซ์ เว็บที่เช็กโบรกทั่วโลก		verdict	avatar full frame
+MAIN-2	วิกิเอฟเอ็กซ์เขียนไว้เองเหมือนกันว่าเว็บนี้เข้าไม่ได้ตามปกติ	wikifx-profile-website-inaccessible	show	real capture, WikiFX TH dealer profile -- the Note line, avatar+username censored
+MAIN-3	แปลว่าไม่ใช่กูคนเดียวที่เข้าไม่ได้ วิกิเอฟเอ็กซ์ก็เจอเหมือนกัน		verdict	avatar full frame
+MAIN-4	เช็กต่อว่ามีใบอนุญาตซื้อขายฟอเร็กซ์ไหม		verdict	avatar full frame
+MAIN-5	ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์เลย	wikifx-profile-no-license	show	real capture, WikiFX TH dealer profile -- license box
+MAIN-6	เช็กเรื่องหน่วยงานกำกับดูแลต่อ		verdict	avatar full frame
+MAIN-7	เจอคำเตือนว่ายังไม่มีการกำกับดูแลที่ถูกต้องจริงๆ	wikifx-profile-no-regulation	show	real capture, WikiFX TH dealer profile -- regulation warning box
+MAIN-8	คะแนนความน่าเชื่อถือที่วิกิเอฟเอ็กซ์ให้ อยู่ที่หนึ่งจุดเก้าเก้าจากสิบ	wikifx-profile-score	show	real capture, WikiFX TH dealer profile -- 1.99/10 score box
+MAIN-9	จดทะเบียนที่สหราชอาณาจักร เปิดมาแค่สองถึงห้าปี	wikifx-profile-score	show	real capture, same still, header line crop -- UK | 2-5 years
+MAIN-10	แล้วเจอคำเตือนอีกอัน ใบอนุญาตกำลังถูกตั้งข้อสงสัย	wikifx-profile-warning-banner	show	real capture, WikiFX TH dealer profile -- warning banner
+MAIN-11	กลุ่มธุรกิจก็ถูกจัดว่าน่าสงสัยเหมือนกัน	wikifx-profile-warning-banner	show	real capture, same still, second half of the same warning banner
+MAIN-12	กูลองเช็กหน่วยงานการเงินของอังกฤษเองด้วย แต่หน้าเว็บโหลดผลไม่ขึ้นเลย	fca-register-search-spinner	show	real capture, FCA Financial Services Register search (NEW capture this pass) -- our own attempt, title confirms the query ran, results never resolve
+MAIN-13	กูไม่ได้บอกว่าเจ้านี้โกงแน่นอน กูแค่พาไปดูของจริงที่เช็กเจอ		verdict	avatar full frame, compliance line -- no unverifiable motive claimed
+CURIOSITY-1	นี่คือการ์ดที่วิกิเอฟเอ็กซ์เขาสรุปเรื่องนี้ไว้เองเลย	wikifx-xxlmarkets-review	show	third-party card (CEO-supplied, credit ขอบคุณภาพจาก WikiFX) -- headline crop
+CURIOSITY-2	คะแนนย่อยแทบทุกด้านก็แย่เหมือนกัน ทั้งกำกับดูแลและความเสี่ยง	wikifx-xxlmarkets-review	show	same third-party card -- subscore radar crop
+CURIOSITY-3	วิกิเอฟเอ็กซ์เขียนไว้ด้วยว่าหน่วยงานการเงินของอังกฤษไม่พบข้อมูลเจ้านี้เหมือนกัน		verdict	avatar full frame -- attributed to WikiFX, not independently confirmed (see MAIN-12)
+CURIOSITY-4	อันนี้ไม่ใช่กูพูดเอง วิกิเอฟเอ็กซ์เขียนไว้ มึงไปอ่านเองได้		verdict	avatar full frame, source-honesty line
+CURIOSITY-5	โบรกที่ยังไหวอยู่จริง จะไม่ปล่อยให้เว็บหายไปเงียบๆแบบนี้		verdict	avatar full frame
+SUMMARY-1	สรุปแบบไม่โลกสวย		verdict	avatar full frame
+SUMMARY-2	เว็บหาย ไม่มีใบอนุญาต ไม่มีหน่วยงานคุ้มครอง สามอย่างนี้ไม่ใช่เรื่องบังเอิญ		verdict	avatar full frame
+SUMMARY-3	ก่อนฝากเงินโบรกไหนก็ตาม เช็กสามอย่างแบบที่กูทำให้ดูวันนี้		verdict	avatar full frame
+SUMMARY-4	หนึ่ง เข้าเว็บโบรกตรงๆตอนนี้เลย ยังเปิดอยู่จริงไหม		show	GRAPHIC checklist card 1/3, kinetic Thai text on brand graphic (no real footage -- per task brief, the checklist may be a graphic)
+SUMMARY-5	สอง เช็กชื่อเว็บที่เว็บตรวจสอบฟรีๆ ยังมีเจ้าของอยู่ไหม		show	GRAPHIC checklist card 2/3, kinetic Thai text
+SUMMARY-6	สาม เข้าวิกิเอฟเอ็กซ์ เช็กว่ามีใบอนุญาตจริงไหม		show	GRAPHIC checklist card 3/3, kinetic Thai text
+SUMMARY-7	กูไม่ได้แนะนำให้ใช้หรือเลิกใช้เจ้าไหน กูแค่ชี้วิธีเช็กให้เป็น		verdict	avatar full frame, compliance line
+SUMMARY-8	คอมเมนต์คำว่า เช็กเว็บโบรก ถ้ามึงอยากได้ขั้นตอนเช็กเว็บและใบอนุญาตเอง		cta	avatar full frame, direct-to-camera CTA, keyword unchanged from v1
+SUMMARY-9	อย่าปล่อยให้เว็บหายไปพร้อมเงินมึง		verdict	avatar full frame, close

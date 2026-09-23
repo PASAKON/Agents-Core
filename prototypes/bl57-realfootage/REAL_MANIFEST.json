@@ -3,8 +3,8 @@
     "file": "third-party/wikifx-xxlmarkets-review.jpg",
     "kind": "still",
     "covers": [
-      "HOOK-3",
-      "MAIN-8"
+      "CURIOSITY-1",
+      "CURIOSITY-2"
     ],
     "source_url": "https://www.wikifx.com/th/",
     "captured_at": "2026-09-23T00:00:00+07:00",
@@ -13,8 +13,8 @@
     "credit": "ขอบคุณภาพจาก WikiFX",
     "note": "third-party artwork given by the CEO in chat 2026-09-23, not captured by us -- see third-party/SOURCES.md. Uncensored per blackliquidity-cut SKILL.md §6e (WikiFX's own published card); carries the credit on the image plate, top-left, per the same section.",
     "evidence_box": [
-      {"x": 100, "y": 260, "w": 870, "h": 140, "proves": "HOOK-3 headline: เว็บเข้าไม่ได้ แถมไร้หน่วยงานคุ้มครอง"},
-      {"x": 35, "y": 605, "w": 700, "h": 290, "proves": "MAIN-8: score 1.99/10 + subscore radar chart (กำกับดูแล 2.69, เทคโนโลยี 4.54, การควบคุมความเสี่ยง 2.79, ชื่อเสียง 3.51, สภาพแวดล้อม 6.31)"}
+      {"x": 100, "y": 260, "w": 870, "h": 140, "proves": "CURIOSITY-1 headline: เว็บเข้าไม่ได้ แถมไร้หน่วยงานคุ้มครอง"},
+      {"x": 35, "y": 605, "w": 700, "h": 290, "proves": "CURIOSITY-2: score 1.99/10 + subscore radar chart (กำกับดูแล 2.69, เทคโนโลยี 4.54, การควบคุมความเสี่ยง 2.79, ชื่อเสียง 3.51, สภาพแวดล้อม 6.31)"}
     ],
     "evidence_box_source": "measured (image is a static third-party JPG with no DOM; boxes eyeballed on the full-resolution 1080x1350 file)"
   },
@@ -22,7 +22,7 @@
     "file": "real/wikifx-profile-website-inaccessible.png",
     "kind": "still",
     "covers": [
-      "PATTERN-1"
+      "MAIN-2"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
     "captured_at": "2026-09-23T21:57:16+07:00",
@@ -42,7 +42,7 @@
     "file": "real/wikifx-profile-no-license.png",
     "kind": "still",
     "covers": [
-      "CONTEXT-1"
+      "MAIN-5"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
     "captured_at": "2026-09-23T21:57:31+07:00",
@@ -57,7 +57,7 @@
     "file": "real/wikifx-profile-no-regulation.png",
     "kind": "still",
     "covers": [
-      "CONTEXT-2"
+      "MAIN-7"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
     "captured_at": "2026-09-23T21:57:39+07:00",
@@ -72,16 +72,16 @@
     "file": "real/wikifx-profile-score.png",
     "kind": "still",
     "covers": [
-      "CONTEXT-3",
-      "PATTERN-2"
+      "MAIN-8",
+      "MAIN-9"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
     "captured_at": "2026-09-23T22:10:09+07:00",
     "seconds": 0,
     "censored": [],
     "evidence_box": [
-      {"x": 0, "y": 780, "w": 660, "h": 270, "proves": "CONTEXT-3: คะแนน 1.99/10 score box"},
-      {"x": 695, "y": 455, "w": 385, "h": 160, "proves": "PATTERN-2: header line สหราชอาณาจักร | 2-5ปี"}
+      {"x": 0, "y": 780, "w": 660, "h": 270, "proves": "MAIN-8: คะแนน 1.99/10 score box"},
+      {"x": 695, "y": 455, "w": 385, "h": 160, "proves": "MAIN-9: header line สหราชอาณาจักร | 2-5ปี"}
     ],
     "evidence_box_source": "measured (selector-anchored crop, .head-l-score; box read by eye on the full-resolution still since the tool does not export the selector's own pixel box)"
   },
@@ -89,8 +89,8 @@
     "file": "real/wikifx-profile-warning-banner.png",
     "kind": "still",
     "covers": [
-      "MAIN-9",
-      "MAIN-10"
+      "MAIN-10",
+      "MAIN-11"
     ],
     "source_url": "https://www.wikifx.com/th/dealer/3697715948.html",
     "captured_at": "2026-09-23T21:57:57+07:00",
@@ -105,8 +105,8 @@
     "file": "real/whois-no-match.png",
     "kind": "still",
     "covers": [
-      "MAIN-3",
-      "CURIOSITY-2"
+      "CONTEXT-3",
+      "CONTEXT-4"
     ],
     "source_url": "https://who.is/whois/xxlmarkets.com",
     "captured_at": "2026-09-23T22:05:44+07:00",
@@ -122,5 +122,36 @@
       {"x": 195, "y": 800, "w": 890, "h": 170, "proves": "We don't have a current record for xxlmarkets.com, but we hold 4 historical WHOIS/RDAP snapshots of it from 2022 to 2026"}
     ],
     "evidence_box_source": "measured (no DOM anchor used for this shot -- whole-page capture; boxes read by eye on the full-resolution still)"
+  },
+  {
+    "file": "real/whois-domain-history.jpg",
+    "kind": "still",
+    "covers": [
+      "CONTEXT-5"
+    ],
+    "source_url": "https://who.is/history/xxlmarkets.com",
+    "captured_at": "2026-09-23T22:39:10+07:00",
+    "seconds": 0,
+    "censored": [],
+    "evidence_box": [
+      {"x": 160, "y": 755, "w": 690, "h": 100, "proves": "CONTEXT-5: 4 snapshots spanning 2022-2026 (who.is Domain History Archive summary for xxlmarkets.com)"}
+    ],
+    "evidence_box_source": "measured (whole-page capture, box read by eye on the full-resolution still)"
+  },
+  {
+    "file": "real/fca-register-search-spinner.jpg",
+    "kind": "still",
+    "covers": [
+      "MAIN-12"
+    ],
+    "source_url": "https://register.fca.org.uk/s/search?q=XXLMARKETS",
+    "captured_at": "2026-09-23T22:38:52+07:00",
+    "seconds": 0,
+    "censored": [],
+    "note": "our own direct attempt at the FCA Financial Services Register, tab title confirms the query ran (\"XXLMARKETS - Search Firms - FCA Register\") but the results panel never resolves a firm card -- same non-render this channel hit on 2026-09-23 in research/xxlmarkets-wikifx-fca-domain-202609.md, now independently reproduced. Used honestly as \"we tried this ourselves and it did not render\", not as proof either way of an FCA listing.",
+    "evidence_box": [
+      {"x": 0, "y": 0, "w": 1374, "h": 500, "proves": "MAIN-12: tab title bar (query = XXLMARKETS) + the FCA page's own empty results area, no firm card rendered"}
+    ],
+    "evidence_box_source": "measured (whole-page capture, box read by eye on the full-resolution still)"
   }
 ]
