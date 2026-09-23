@@ -273,3 +273,19 @@ def test_merge_unchanged_for_non_pilot_owner_even_with_unfiled_files(
     assert result["merged"] is True  # never gated — folder ignored
     assert folder.is_dir()  # workdir never touched for a non-pilot task
     assert (folder / "out" / "deliverable.mp4").exists()
+
+
+def test_merge_allowed_for_pilot_task_with_no_work_folder(
+    temp_db, work_root, merge_repo, monkeypatch
+):
+    """Tasks spawned before this change (e.g. task-2b587031) have no Work/
+    folder at all — merge_task must not require one to exist. The close
+    gate only fires when `workdir.folder_path(task_id).exists()`."""
+    monkeypatch.setattr(git_ops, "get_project", lambda key: _fake_git_ops_project(merge_repo))
+    tid, branch = _make_review_task(merge_repo, "pilot-owner")
+    assert not workdir.folder_path(tid, root=work_root).exists()  # never created
+
+    result = git_ops.merge_task(tid, push=False, cleanup=False)
+
+    assert result["merged"] is True
+    assert db_mod.get_task(tid)["status"] == "done"
