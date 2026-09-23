@@ -24,7 +24,8 @@ so **match the constants before you improve on them.**
 Reference for the bar: `reference/bl51-140s-reference.jpg` — 24 frames of the
 approved cut in one image. **Read that image, not a video.** Reading frames out
 of an MP4 costs far more than reading one contact sheet, and it is the reason
-`bl_tools.py sheet` exists.
+`bl_tools.py sheet` exists. For the avatar-composite constants specifically,
+read `reference/avatar-composite-reference.jpg` — see §6d.
 
 ## What you are given
 
@@ -476,12 +477,91 @@ though the script says ten. Call it "2 ตัวแรก" instead.
    while the catalogue held clips for exactly those claims. The folder you are
    given is the editor's material; the channel's library is step 5b, every time.
 
-## What this cannot do
+### 6d. Avatar composite — matte the avatar, lower it onto a plate
 
-The reference edit mattes its avatar and composites it over a darkened plate.
-A lipsync file with a baked background cannot do that, so text goes **below**
-the face rather than above a shrunken avatar. Changing that needs a matting
-model, which is not part of this skill.
+The reference edit (the CEO's ฿1300 editor cut, `reference/avatar-composite-reference.jpg`,
+measured 2026-09-23, task-4bce29e5) doesn't stay full-frame the whole time. It
+switches, shot by shot, between two modes:
+
+| mode | when | measured (n, mean ± stdev) |
+|---|---|---|
+| **full-frame avatar** | pure talking-head beats, no evidence to show | height **88.7%** of the 1920 frame, top at **11.3%**, x-center **52.4%** (n=2) |
+| **composited avatar** | a website screenshot, chart, or other evidence has to stay on screen while the avatar keeps talking | height **55.8% ± 3.1** (min 52.9 max 64.0), top at **44.2% ± 3.1** (y≈850px), x-center **≈37%** (left of centre), **always cut off by the frame bottom** — chest-up, never full body (n=10) |
+
+Composite mode is a **hard cut**, not an animated shrink — a shot is either
+fully full-frame or fully composited; there's no crossfade or scale tween
+between the two states in the reference. Build it that way: swap `.clip`
+plates and toggle `.avatar-comp` at the cut point, don't tween scale/position.
+
+**Where the text goes:** always above the avatar's head (above y≈850px on the
+1920 canvas), never overlapping it — the composite exists precisely to free
+that space.
+
+**Plate darkening — measured, not assumed, and it's NOT uniform:**
+
+| plate type | measured mean luminance (0-255) | treatment |
+|---|---|---|
+| real-footage screenshot (bright/white UI) | **227-237** — essentially undarkened | **none.** Rule 5a already says real footage outranks B-roll and must stay legible; darkening it would fight that rule. |
+| B-roll / chart / graphic plate | **17-42** | naturally dark source material in the reference, not necessarily graded darker on top — use `.plate-darkened` (brightness 0.4, slight blur) only on this kind of plate |
+
+Do not apply one rule to both. Two of the ten composite frames measured were
+real-footage screenshots at 227+ luminance; treating them like the dark ones
+would directly violate rule 5a.
+
+**The matte edge:** feathered, not hard — a thin (~8px) ring right at the
+cutout boundary measured **~15-20% darker** than the plate immediately behind
+it in every sample (ratio 0.48-1.01, mostly 0.83-0.92), consistent with a soft
+contact-shadow/feather blend, not a razor cutout and not a bright glow.
+
+#### The matte command
+
+```bash
+# needs torch - this ONE bl_tools.py command isn't numpy+Pillow-only
+/Users/gob/.claude/skills/reel-editor-th/.venv/bin/python3 <skill>/scripts/bl_tools.py matte \
+  lipsync_part_a.mp4 --out media/matte/lip_a-matte.webm --preview check.jpg
+```
+
+Picked **RVM (Robust Video Matting, mobilenetv3, MPS)** over rembg(u2net) and
+an attempted mediapipe selfie-segmenter, compared 2026-09-23 on EP55's real
+`lipsync_part_a/b/c.mp4` (beanie, sunglasses, moving hands, dark/red-lit
+background — the hard case):
+
+| | edge quality | speed |
+|---|---|---|
+| **RVM mobilenetv3** | clean on every scene incl. the red-lit set; ~1% of frame pixels soft/fractional | 481.8s for 350 frames (25fps, 14s clip) — 1.4s/frame steady state |
+| rembg (u2net) | **leaked badly on the red-lit set specifically** — 15-17× more soft-alpha pixels than RVM on the exact same frames (300k+ vs 17-20k out of 2.07M), a visible diagonal semi-transparent tear across the jacket. Fine on the darker b/c scenes. | slower too (1.1s/frame vs RVM's ~0.65s in a shorter test) |
+| mediapipe selfie-segmenter | not evaluated — the bundled Tasks API in this mediapipe version (1.0.1) threw on `ImageSegmenterOptions`/`segment()` before producing a mask, and RVM already won decisively | — |
+
+Model: `rvm_mobilenetv3.pth`, **14.5 MB**, lives at
+`~/.cache/torch/hub/checkpoints/` (the default torch.hub cache — no
+`TORCH_HOME` override needed). No paid API was needed or evaluated.
+
+#### Traps hit building this — all measured, not guessed
+
+- **A WebM with `-pix_fmt yuva420p` written to `ffmpeg`'s DEFAULT decoder on
+  read comes back fully opaque (alpha≡255).** `ffmpeg -i x.webm -pix_fmt rgba`
+  silently drops the alpha side-stream. Force it: `ffmpeg -c:v libvpx-vp9 -i
+  x.webm ...`. `bl_tools.py matte`'s own output is correct — this only bites
+  anyone reading it back with a bare `ffmpeg -i`.
+- **Without `-disposition:v default` on the muxer, a real `<video>` element
+  never leaves `readyState 0`.** No error, no console warning — it just spins
+  forever. `bl_tools.py matte` now sets this flag itself; if you ever hand-roll
+  the ffmpeg command, don't skip it.
+- **This skill's own sandboxed Chrome (claude-in-chrome) cannot play ANY WebM
+  at all** — confirmed against a known-good public test file, not just the
+  matte output. Don't debug alpha-webm problems by loading them in that
+  browser; it will look broken even when the file is fine. The REAL check is
+  `hyperframes render` (its own headless Chrome), which played this skill's
+  matte output correctly end to end — verified live 2026-09-23 building
+  `DEMO-avatar-composite.mp4`.
+- **A full-frame real-footage plate breaks the standing legal label's and
+  brand-bug date's contrast.** Both were tuned for the kit's normal dark/red
+  backgrounds; a bright white real-footage plate under them (new since rule
+  5a) drops `.bl-legal` to 1.1:1 against the WCAG-required 3:1. Fixed in the
+  template by giving `.bl-legal` the kit's existing `--outline` stroke instead
+  of a soft drop-shadow (same fix `.bug .dt2` already had). A kinetic caption
+  over a bright plate still needs its own solid backing band — see the field
+  note below, now confirmed on a second episode.
 
 Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
@@ -490,3 +570,5 @@ sound wrong.
 ## Field notes
 - 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted
 - 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s · status: pending
+- 2026-09-23 [WRONG] §5a/§6d — confirms the pending note above on a SECOND episode/task, and extends it: it isn't only kinetic captions that lose contrast over a bright real-footage plate — the STANDING legal label and brand-bug date do too (`.bl-legal` measured 1.1:1, need 3:1). Fixed `.bl-legal`'s text-shadow to reuse the kit's `--outline` stroke (`.bug .dt2` already had it). A caption still needs its own solid band regardless — the outline stroke alone did not satisfy `hyperframes check`'s contrast gate against pure white, only made it more readable by eye · evidence: task-4bce29e5, `hyperframes check` on `DEMO-avatar-composite.mp4`'s composition, contrast errors at t=4.308s/7.755s before the fix · status: promoted (2 independent tasks)
+- 2026-09-23 [MISSING] §6d — n=1, flag for confirmation: `bl_tools.py matte` on RVM mobilenetv3+MPS runs at ~1.4s/frame steady state (~8 min for a 14s/25fps lipsync part), so mattes all 3 parts of one episode before render eats 25-40 min. Budget for it; don't start it as the last step before a deadline · evidence: task-4bce29e5, full `lipsync_part_a_0s-14s.mp4` matte run, 481.8s/350 frames · status: pending

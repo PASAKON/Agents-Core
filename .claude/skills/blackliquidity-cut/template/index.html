@@ -138,6 +138,31 @@
       .clip { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
       video.clip { object-fit: cover; }
 
+      /* Avatar composite — matted avatar over a real-footage/B-roll plate.
+         Measured off the CEO's paid (฿1300) editor cut (task-4bce29e5,
+         2026-09-23; contact sheet + numbers in the skill's field notes),
+         n=10 composite frames: height 55.8% ±3.1 of the 1920 frame (min
+         52.9 max 64.0), top edge at 44.2% ±3.1 down the frame (y≈850px),
+         x-center ≈37% (left of centre), ALWAYS cut off by the frame
+         bottom — chest-up only, never full body. Full-frame avatar shots
+         measured separately at 88.7% height / 11.3% top / 52.4% x-center
+         (n=2) for comparison — that is the OTHER mode, not this one; do
+         not blend the two.
+         Use a <video class="avatar-comp" src="media/matte/lip_a-matte.webm">
+         made by `bl_tools.py matte`, layered above the plate (z-index 2)
+         and below kinetic text (.stage is z-index 30) so a block can still
+         wipe in over the avatar's head, same as the reference. */
+      .avatar-comp { position: absolute; left: 0; bottom: 0; z-index: 2;
+                     height: 56%; width: auto; object-fit: contain;
+                     object-position: left bottom; transform: translateX(-6%); }
+      /* Darken+blur a B-roll/chart plate behind a composited avatar —
+         measured mean luminance ~20-40/255 on those plates (naturally dark
+         source, not necessarily graded darker; verify before assuming).
+         Do NOT apply this to a real-footage screenshot plate (rule 5a) —
+         measured those at ~230+/255, essentially undarkened, because the
+         text on them has to stay legible. Apply by hand, never blindly. */
+      .plate-darkened { filter: brightness(.4) saturate(.85) blur(1.5px); }
+
       .bl-bg { position: absolute; inset: 0; z-index: 0; opacity: 1;   /* under the clips: footage covers it, text plates show it */
                background: radial-gradient(130% 62% at 50% 6%, rgba(224,32,47,.20), transparent 62%),
                            var(--ink); }
@@ -240,7 +265,12 @@
                   top: 1430px; z-index: 45;
                   font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
                   line-height: 1.35; text-align: center; color: #B9C0C6;
-                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1); }
+                  /* was a soft drop-shadow only - failed WCAG contrast (1.1:1) the
+                     first time a real-footage plate (rule 5a) filled the full frame
+                     bright white behind it (task-4bce29e5, EP55 demo). The kit's own
+                     --outline stroke fixes it the same way every .blk already relies
+                     on: 4-directional 2px stroke, not just a blur. */
+                  text-shadow: var(--outline); }
       /* Brand bug — the channel's real logo, same place on every clip.
          `left/top` and the logo height are fixed: the audience recognises the
          mark by where it sits, and a bug that drifts between episodes reads as
@@ -284,6 +314,18 @@
       <video class="clip" src="media/lip_a.mp4" muted playsinline
              data-start="0" data-duration="4.20" data-media-start="0"
              data-track-index="0"></video>
+
+           Avatar composite (see .avatar-comp above): the PLATE goes on the
+           normal .clip layer (add .plate-darkened if it's a B-roll/chart
+           plate, never on real footage), the MATTED avatar goes on top as
+           its own .avatar-comp video, same data-start/media-start seating
+           as any other clip:
+      <video class="clip plate-darkened" src="media/broll_x.mp4" muted playsinline
+             data-start="9.20" data-duration="3.0" data-media-start="0"
+             data-track-index="0"></video>
+      <video class="avatar-comp" src="media/matte/lip_a-matte.webm" muted playsinline
+             data-start="9.20" data-duration="3.0" data-media-start="9.20"
+             data-track-index="1"></video>
       -->
 
       <audio id="va" src="media/voice.m4a" data-start="0" data-duration="0"
