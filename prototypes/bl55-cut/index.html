@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* ============================ BL KIT ============================
+         BLACK LIQUIDITY video kit. Catalogue and rationale: BL-KIT.md
+         Theme (CEO 2026-09-18): black / red / white, red always emissive neon.
+         Motion grammar is measured off the reference edit, not chosen:
+         every reveal is expo.out, text arrives by clip-path wipe (never a
+         fade), rules scale from a left or top origin.
+         ================================================================ */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      :root {
+        --ink:    #07080A;
+        --red:    #E0202F;
+        --neon:   #FF2D40;
+        --white:  #F4F6F7;
+        --yellow: #F4DF14;
+        --muted:  #98A0A8;
+        --line:   rgba(255,255,255,.12);
+        --glow-s: 0 0 10px rgba(255,45,64,.55);
+        --glow-m: 0 0 22px rgba(255,45,64,.55), 0 0 44px rgba(255,45,64,.22);
+        --outline: 0 0 10px rgba(0,0,0,.95), 0 4px 18px rgba(0,0,0,.9),
+                   2px 2px 0 rgba(0,0,0,.92), -2px 2px 0 rgba(0,0,0,.92),
+                   2px -2px 0 rgba(0,0,0,.92), -2px -2px 0 rgba(0,0,0,.92);
+
+        /* TikTok safe area, in this canvas's own pixels. TikTok's published
+           spec is a 540x960 reference with margins 126 top / 60 left /
+           120 right / 378 bottom; doubled, that is what sits below. Measured
+           against a real post on the CEO's phone (1188x2576, 2026-09-18):
+           a 9:16 video is scaled to COVER a 19.5:9 screen, so 97px of each
+           side is cropped off the frame entirely and never seen, the app's
+           own top nav sits over y 138-186, the right rail over x 873-983
+           below y ~960, and the scrub bar over y ~1789. Nothing the audience
+           must read may leave this box. */
+        --safe-top:    252px;
+        --safe-left:   120px;
+        --safe-right:  240px;   /* right rail: content must end by x=840 */
+        --safe-bottom: 756px;   /* caption + scrub bar: end by y=1164 */
+      }
+
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
+      #root { position: relative; width: 100%; height: 100%;
+              background: var(--ink); color: var(--white); font-family: Kanit, sans-serif; }
+
+      .clip { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+      video.clip { object-fit: cover; }
+
+      .bl-bg { position: absolute; inset: 0; z-index: 0; opacity: 1;   /* under the clips: footage covers it, text plates show it */
+               background: radial-gradient(130% 62% at 50% 6%, rgba(224,32,47,.20), transparent 62%),
+                           var(--ink); }
+      .bl-bg .grid { position: absolute; inset: 0; opacity: .5;
+        background-image: linear-gradient(rgba(255,45,64,.07) 2px, transparent 2px),
+                          linear-gradient(90deg, rgba(255,45,64,.07) 2px, transparent 2px);
+        background-size: 108px 108px; }
+      .bl-bg .scan { position: absolute; inset: 0; opacity: .35;
+        background: repeating-linear-gradient(rgba(255,255,255,.035) 0 2px, transparent 2px 6px); }
+
+      /* Real-footage stills (WikiFX/BingX screenshots) are light-background
+         pages, unlike the dark AI plates the kit text was designed over —
+         `npm run check` failed contrast on the bug date and captions against
+         them (as low as 1.04:1, need 3:1). A standing top+bottom vignette,
+         always on regardless of what plate is under it, fixes it uniformly
+         instead of per-plate. */
+      .bl-vignette { position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        background: linear-gradient(to bottom,
+          rgba(0,0,0,.72) 0, rgba(0,0,0,.72) 440px, rgba(0,0,0,.10) 520px,
+          rgba(0,0,0,.10) 1150px, rgba(0,0,0,.55) 1280px, rgba(0,0,0,.82) 1500px, rgba(0,0,0,.90) 1920px); }
+
+      .stage { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+      /* Every overlay block lives inside the TikTok safe box. left was 62 and
+         right was 62 until 2026-09-18: 62 is inside the 97px the phone crops,
+         so the first characters of a left-aligned line were physically cut
+         off the screen, and the right edge ran under the like/comment rail. */
+      .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             opacity: 0; text-align: center; }
+      /* Thai writes without spaces between words, and the render's Chrome has no
+         ICU Thai dictionary, so it breaks a line wherever it runs out of room —
+         on EP54 that split สเปรด as "...ของส" / "เปรด...". `lang="th"` is set and
+         does NOT prevent this: the breaking happens in the render's Chrome.
+         `word-break: keep-all` does not prevent it either — CSS Text 3 scopes
+         keep-all to the CJK line-break classes (NU/AL/AI/ID); Thai is class SA
+         and is untouched. Measured, not assumed: the identical break rendered
+         with and without keep-all, and a ZWSP only ADDS a break opportunity
+         without removing the others.
+         What works is white-space: nowrap on the run itself. Wrap any Thai word
+         that must never split in <span class="nb">…</span>. No gate can see a
+         mid-word break — read the Thai in the rendered frame, as words. */
+      .nb { white-space: nowrap; }
+      /* Only for a block that ENDS above y=900 — above the rail the right
+         margin can come back in to 120. Never on anything lower. */
+      .blk.wide { right: var(--safe-left); }
+      .blk.l { text-align: left; }
+
+      .bl-xl { font-weight: 800; font-size: 104px; line-height: 1.26; text-shadow: var(--outline); }
+      .bl-lg { font-weight: 800; font-size:  82px; line-height: 1.28; text-shadow: var(--outline); }
+      .bl-md { font-weight: 800; font-size:  62px; line-height: 1.32; text-shadow: var(--outline); }
+      .bl-sm { font-weight: 600; font-size:  44px; line-height: 1.38; text-shadow: var(--outline); }
+      .bl-xs { font-weight: 600; font-size:  34px; line-height: 1.30; color: var(--muted); }
+      .y { color: var(--yellow); }
+      .n { color: var(--neon); text-shadow: var(--outline), var(--glow-s); }
+      .wipe { display: inline-block; clip-path: inset(0 100% 0 0); }
+
+      .bl-rule  { display: block; height: 8px; border-radius: 4px; background: var(--neon);
+                  box-shadow: var(--glow-m); transform: scaleX(0); transform-origin: left center; }
+      .bl-vline { position: absolute; width: 7px; border-radius: 4px;
+                  background: linear-gradient(var(--red), var(--neon));
+                  box-shadow: var(--glow-s); transform: scaleY(0); transform-origin: top center; }
+
+      .bl-card { position: relative; background: rgba(10,11,13,.78);
+                 border: 2px solid var(--line); border-left: 10px solid var(--neon);
+                 border-radius: 20px; padding: 26px 32px; text-align: left;
+                 box-shadow: 0 22px 50px rgba(0,0,0,.55), -14px 0 26px -12px rgba(255,45,64,.55); }
+      .bl-card .nm { font-family: Archivo, sans-serif; font-weight: 800; font-size: 52px;
+                     letter-spacing: -.01em; line-height: 1.20; }
+      .bl-card .cl { font-weight: 600; font-size: 38px; color: #D7DCE0; margin-top: 6px; }
+      .bl-card .badge { position: absolute; right: 24px; top: 22px; background: var(--red);
+                        color: #fff; font-weight: 800; font-size: 24px; padding: 7px 15px;
+                        border-radius: 10px; letter-spacing: .04em; box-shadow: var(--glow-s); }
+
+      .bl-rulecard .idx { width: 118px; height: 118px; border-radius: 50%;
+                          border: 4px solid var(--neon); box-shadow: var(--glow-m);
+                          display: flex; align-items: center; justify-content: center;
+                          font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                          color: var(--neon); }
+      .bl-rulecard .hd  { font-weight: 800; font-size: 72px; line-height: 1.30;
+                          margin-top: 28px; text-shadow: var(--outline); }
+      .bl-rulecard .dt  { font-weight: 600; font-size: 44px; line-height: 1.34;
+                          color: #CBD2D8; margin-top: 18px; }
+
+      .bl-row { display: flex; align-items: flex-start; gap: 22px; text-align: left;
+                background: rgba(10,11,13,.78); border: 2px solid var(--line);
+                border-radius: 18px; padding: 22px 26px; }
+      .bl-row .tick { flex: none; width: 46px; height: 46px; border-radius: 50%;
+                      background: var(--neon); box-shadow: var(--glow-s); color: #12060A;
+                      font-family: Archivo, sans-serif; font-weight: 800; font-size: 26px;
+                      display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+      .bl-row .tx { font-weight: 600; font-size: 42px; line-height: 1.26; }
+
+      .bl-stat .big { font-family: Archivo, sans-serif; font-weight: 800; font-size: 156px;
+                      line-height: .96; color: var(--neon); text-shadow: var(--outline), var(--glow-m); }
+      .bl-stat .lb  { font-weight: 600; font-size: 42px; color: #D7DCE0; margin-top: 12px;
+                      text-shadow: var(--outline); }   /* was missing; failed contrast over bright plates (BL50) */
+
+
+      /* Standing legal label — on every frame of every episode, never animated.
+         The CEO ruled on 2026-09-17 that a ป้ายเตือน goes on every Forex surface,
+         and the statute this answers to is the one aimed at the marketing layer:
+         BOT's 25 Jun 2026 statement puts anyone who "โฆษณา ประกาศ หรือชักชวน
+         ประชาชน" to trade FOREX under พ.ร.ก. การกู้ยืมเงินที่เป็นการฉ้อโกงประชาชน
+         2527, with no carve-out for promising no returns. A label does not cure
+         conduct — it states intent, and the script has to match it. */
+      /* y was 1790 until 2026-09-18. Measured on a real post on the CEO's own
+         phone that same day: TikTok's scrub bar sits at video y~1789 and its
+         caption block starts at y~1550, so a label at 1790 is drawn under the
+         player's own chrome and cannot be read. 1430 is the lowest line that
+         is still clear of both and still inside the frame the CEO drew. */
+      .bl-legal { position: absolute; left: var(--safe-left); right: var(--safe-right);
+                  top: 1430px; z-index: 45;
+                  font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
+                  line-height: 1.35; text-align: center; color: #B9C0C6;
+                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1); }
+      /* Brand bug — the channel's real logo, same place on every clip.
+         `left/top` and the logo height are fixed: the audience recognises the
+         mark by where it sits, and a bug that drifts between episodes reads as
+         a different channel. The date is the day the episode was MADE, not the
+         day it is posted — posting lands 0-2 days later and the made-on date is
+         what everything else references. */
+      .bug { position: absolute; right: 150px; top: 310px; z-index: 40;
+             display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+      .bug .logo { height: 60px; width: auto; display: block;
+                   filter: drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
+      .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                 letter-spacing: .06em; color: #fff; text-shadow: var(--outline); line-height: .92; }
+      .bug .b2 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 54px;
+                 letter-spacing: .10em; color: var(--neon); line-height: .92;
+                 text-shadow: var(--outline), var(--glow-s); }
+      .bug .rl { width: 74px; height: 5px; background: var(--neon); border-radius: 3px;
+                 box-shadow: var(--glow-s); }
+      .bug .dt2 { font-weight: 600; font-size: 24px; color: #E8EAEC; letter-spacing: .02em;
+                  text-shadow: var(--outline); }
+
+      /* y was 1600: that is inside TikTok's own caption + username block
+         (measured y 1550-1700 on a real post, 2026-09-18), so the subtitle was
+         being read through the app's text. 1300 keeps it low in frame and clear. */
+      .caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+      .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             top: 0; transform: translateY(-50%);
+             text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
+             line-height: 1.28; text-shadow: var(--outline); }
+      /* CTO review 15:10: the standing vignette alone was not enough — on a
+         real WikiFX/BingX page the caption sat directly on the page's own
+         text (a tab row, a heading, a paragraph) and was unreadable ("มีตัว
+         หนังสือ ไม่ผ่าน อ่านไม่ได้"). A solid band behind the caption, full
+         width of the safe box, fixes it regardless of what is under it. Only
+         applied to captions over a real-footage plate — avatar/S## captions
+         already read fine against the vignette and don't need the extra
+         weight. */
+      .cap.band { background: rgba(5,6,8,.90); padding: 20px 30px;
+                  border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="133.2"
+         data-width="1080" data-height="1920">
+
+      <!-- VIDEO TRACK — BL EP55. Offsets confirmed via bl_tools.py offsets:
+           A=0.00s B=58.72s C=115.44s (all r>=0.999, filenames matched true offset).
+           Real footage (real/REAL_MANIFEST.json) outranks catalogue/S## b-roll
+           per CEO ruling 2026-09-23 — every line a real still/clip covers uses
+           it instead of the generated scene plate. S32/S39 carry no scene clip
+           on purpose (rule 3) — both covered by avatar/kinetic below. -->
+      <video class="clip" id="v1" src="media/lip_a.mp4" muted playsinline data-start="0.00" data-duration="1.08" data-media-start="0.00" data-track-index="0"></video>
+      <video class="clip" id="v2" src="media/real-bingx-logo-a.mp4" muted playsinline data-start="1.08" data-duration="3.24" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v3" src="media/real-hook.mp4" muted playsinline data-start="4.32" data-duration="5.14" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v4" src="media/lip_a.mp4" muted playsinline data-start="9.46" data-duration="2.14" data-media-start="9.46" data-track-index="0"></video>
+      <video class="clip" id="v5" src="media/real-bingx-logo-b.mp4" muted playsinline data-start="11.60" data-duration="4.25" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v6" src="media/real-founded-hq.mp4" muted playsinline data-start="15.85" data-duration="3.49" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v7" src="media/real-min-deposit-a.mp4" muted playsinline data-start="23.36" data-duration="2.40" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v8" src="media/real-no-license.mp4" muted playsinline data-start="25.76" data-duration="3.74" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v9" src="media/real-no-regulation.mp4" muted playsinline data-start="29.50" data-duration="3.48" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v10" src="media/real-score.mp4" muted playsinline data-start="32.98" data-duration="2.84" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v11" src="media/real-score-reason.mp4" muted playsinline data-start="35.82" data-duration="3.22" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v12" src="media/s15.mp4" muted playsinline data-start="46.78" data-duration="3.00" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v13" src="media/real-complaint-amounts.mp4" muted playsinline data-start="49.78" data-duration="5.88" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v14" src="media/real-complaint-taiwan.mp4" muted playsinline data-start="55.66" data-duration="3.60" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v15" src="media/real-withdrawal.mp4" muted playsinline data-start="59.26" data-duration="7.60" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v16" src="media/real-leverage.mp4" muted playsinline data-start="66.86" data-duration="2.14" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v17" src="media/lip_b.mp4" muted playsinline data-start="69.00" data-duration="3.60" data-media-start="10.28" data-track-index="0"></video>
+      <video class="clip" id="v18" src="media/real-min-deposit-b.mp4" muted playsinline data-start="72.60" data-duration="4.98" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v19" src="media/real-bingx-scroll.mp4" muted playsinline data-start="77.58" data-duration="6.50" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v20" src="media/s27.mp4" muted playsinline data-start="87.78" data-duration="2.82" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v21" src="media/s28.mp4" muted playsinline data-start="90.60" data-duration="3.68" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v22" src="media/s29.mp4" muted playsinline data-start="94.28" data-duration="3.00" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v23" src="media/s31.mp4" muted playsinline data-start="100.76" data-duration="3.56" data-media-start="0" data-track-index="0"></video>
+      <video class="clip" id="v24" src="media/lip_c.mp4" muted playsinline data-start="122.46" data-duration="10.67" data-media-start="7.02" data-track-index="0"></video>
+
+      <audio id="va" src="media/audio-hq-v2.mp3" data-start="0" data-duration="133.13"
+             data-track-index="5" data-volume="1"></audio>
+
+      <div class="bl-bg" id="bg"><div class="grid"></div><div class="scan"></div></div>
+      <div class="bl-vignette"></div>
+    <!-- legal label: present on every frame, never animated, never moved -->
+    <div class="bl-legal">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</div>
+
+      <div class="stage" id="stage"></div>
+
+      <div class="bug" id="bug">
+        <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
+        <div class="rl"></div>
+        <div class="dt2">23 ก.ย. 69</div>
+      </div>
+
+      <div class="caplayer" id="caps"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var stage = document.getElementById("stage");
+      var tl = gsap.timeline({ paused: true });
+      var E = "expo.out";
+
+      function el(h) { var d = document.createElement("div"); d.innerHTML = h; return d.firstElementChild; }
+      function show(s, at) { tl.to(s, { opacity: 1, duration: 0.12, ease: "power1.out" }, at); }
+      function hide(s, at) { tl.to(s, { opacity: 0, duration: 0.18, ease: "power1.in" }, at); }
+      function wipe(s, at, d) {
+        tl.fromTo(s, { clipPath: "inset(0 100% 0 0)" },
+                     { clipPath: "inset(0 0% 0 0)", duration: d || 0.60, ease: E }, at); }
+      function sweep(s, at, d) { tl.fromTo(s, { scaleX: 0 }, { scaleX: 1, duration: d || 0.8, ease: E }, at); }
+      function grow(s, at, d)  { tl.fromTo(s, { scaleY: 0 }, { scaleY: 1, duration: d || 0.9, ease: E }, at); }
+      function slide(s, at, d) { tl.fromTo(s, { opacity: 0, x: -64 }, { opacity: 1, x: 0, duration: d || 0.7, ease: E }, at); }
+      function drop(s, at, d)  { tl.fromTo(s, { opacity: 0, y: 44 }, { opacity: 1, y: 0, duration: d || 0.6, ease: "power3.out" }, at); }
+
+      /* CONTENT: the background is only up where no video plate is underneath.
+         One [start, end] pair per uncovered stretch. If no plate returns before
+         the end of the cut, use a bare show() with no matching hide(). */
+      // #bg is always on and under the clips (z 0) - no window list, see the CSS note.
+
+      var B = 0;
+      function block(cls, top, at, out) {
+        var id = "b" + (++B);
+        var d = el('<div class="blk ' + (cls || "") + '" id="' + id + '" style="top:' + top + 'px"></div>');
+        stage.appendChild(d); show("#" + id, at); if (out) hide("#" + id, out);
+        return { id: id, node: d };
+      }
+
+      function kinetic(top, at, out, lines, ruleW) {
+        var b = block("", top, at, out), t = at + 0.05;
+        lines.forEach(function (ln, i) {
+          var w = b.id + "w" + i;
+          b.node.appendChild(el('<div class="' + ln.c + '" style="margin-top:' + (i ? 18 : 0) + 'px">' +
+            '<span class="wipe" id="' + w + '">' + ln.h + '</span></div>'));
+          wipe("#" + w, t, ln.d || 0.60); t += (ln.g || 0.62); });
+        if (ruleW) {
+          var r = b.id + "r";
+          b.node.appendChild(el('<div style="position:relative;height:8px;margin:24px auto 0;width:' +
+            ruleW + 'px"><span class="bl-rule" id="' + r + '"></span></div>'));
+          sweep("#" + r, t, 0.85); }
+        return b;
+      }
+
+      function cards(top, at, out, title, items, visible) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        /* the stack scrolls; without a clipped window the oldest cards ride up
+           over the brand bug, which the layout inspector catches as overlap */
+        var wrap = el('<div style="margin-top:30px;overflow:hidden"></div>');
+        var inner = el('<div id="' + b.id + 'i" style="display:flex;flex-direction:column;gap:18px"></div>');
+        wrap.appendChild(inner); b.node.appendChild(wrap);
+        items.forEach(function (it, i) {
+          var c = b.id + "c" + i;
+          inner.appendChild(el('<div class="bl-card" id="' + c + '"><div class="badge">อ้าง</div>' +
+            '<div class="nm">' + it.n + '</div><div class="cl">' + it.c + '</div></div>'));
+          tl.set("#" + c, { opacity: 0 }, 0);
+          slide("#" + c, it.t, 0.62);
+          if (i > 0) tl.to("#" + b.id + "c" + (i - 1), { opacity: 0.4, duration: 0.4, ease: "power2.inOut" }, it.t);
+        });
+        /* pitch has to come from the rendered card, not a guess - see the clipped
+           half-cards the layout pass caught when this was hard-coded */
+        var pitch = inner.children.length > 1
+          ? inner.children[1].offsetTop - inner.children[0].offsetTop
+          : inner.children[0].offsetHeight + 18;
+        wrap.style.height = (pitch * visible) + "px";
+        items.forEach(function (it, i) {
+          if (i >= visible) tl.to("#" + b.id + "i",
+            { y: -(i - visible + 1) * pitch, duration: 0.6, ease: E }, it.t); });
+        return b;
+      }
+
+      function check(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var box = el('<div style="margin-top:28px;display:flex;flex-direction:column;gap:16px"></div>');
+        b.node.appendChild(box);
+        items.forEach(function (it, i) {
+          var r = b.id + "r" + i;
+          box.appendChild(el('<div class="bl-row" id="' + r + '"><div class="tick">' +
+            (it.k || (i + 1)) + '</div><div class="tx">' + it.x + '</div></div>'));
+          tl.set("#" + r, { opacity: 0 }, 0); slide("#" + r, it.t, 0.55); });
+        return b;
+      }
+
+      function rules(top, items) {
+        items.forEach(function (it) {
+          var b = block("l", top, it.t - 0.10, it.o);
+          var i2 = b.id + "i", h2 = b.id + "h", d2 = b.id + "d", r2 = b.id + "u";
+          b.node.appendChild(el('<div class="bl-rulecard">' +
+            '<div class="idx" id="' + i2 + '">' + it.n + '</div>' +
+            '<div class="hd"><span class="wipe" id="' + h2 + '">' + it.h + '</span></div>' +
+            '<div class="dt"><span class="wipe" id="' + d2 + '">' + it.d + '</span></div>' +
+            '<div style="position:relative;height:8px;margin-top:26px;width:460px">' +
+            '<span class="bl-rule" id="' + r2 + '"></span></div></div>'));
+          tl.fromTo("#" + i2, { scale: 0.55, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)", transformOrigin: "50% 50%" }, it.t);
+          wipe("#" + h2, it.t + 0.22, 0.62);
+          wipe("#" + d2, it.t + 0.72, 0.60);
+          sweep("#" + r2, it.t + 1.10, 0.8); });
+      }
+
+      function stats(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var row = el('<div style="margin-top:44px;display:flex;justify-content:center;gap:54px"></div>');
+        b.node.appendChild(row);
+        items.forEach(function (it, i) {
+          var s = b.id + "s" + i;
+          row.appendChild(el('<div class="bl-stat" id="' + s + '"><div class="big">' + it.b +
+            '</div><div class="lb">' + it.l + '</div></div>'));
+          tl.set("#" + s, { opacity: 0 }, 0);
+          tl.fromTo("#" + s, { opacity: 0, y: 40, scale: 0.86 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)", transformOrigin: "50% 50%" }, it.t); });
+        return b;
+      }
+
+      /* ======================== THE CUT ========================
+         BL EP55 — ชื่อดังไม่ได้แปลว่ามีใบอนุญาต. 40 script lines, v2 audio
+         (133.13s), v2 lipsync (A/B/C, offsets confirmed r>=0.999).
+
+         Caption/kinetic text on 9 lines (4,5,13,14,26,27,28,38,40) carries
+         กู/มึง verbatim, matching the recorded v2 audio word for word. IRON
+         §37 carries a CEO-confirmed carve-out (2026-08-03/04) for this
+         channel's มึง/กู voice — approved on EP53/EP54 — so this is not a
+         §37 violation; CTO ruling 2026-09-23 15:10 overrode an earlier pass
+         that had paraphrased these lines clean. The em-dash rule (§39) still
+         applies throughout.
+
+         S32 and S39 carry no scene clip on purpose (rule 3): S32 is kinetic
+         (L32), S39 falls inside lipsync window C so it plays as avatar.
+         Real footage (real/REAL_MANIFEST.json) is on screen for every line
+         it covers, ahead of any S## plate — see the video track above. */
+
+      tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+
+      // ---- caption rail: plain text under every non-kinetic beat ----
+      // band=true gets a solid dark band behind it (real-footage plates only —
+      // see the .cap.band CSS note).
+      var CAPN = 0;
+      function caption(at, out, text, band) {
+        var id = "cap" + (++CAPN);
+        var cls = band ? "cap band" : "cap";
+        var d = el('<div class="' + cls + '" id="' + id + '">' + text + '</div>');
+        document.getElementById("caps").appendChild(d);
+        show("#" + id, at); hide("#" + id, out - 0.20);
+        return { id: id };
+      }
+
+      // L1 — avatar A
+      caption(0.10, 1.08, "เป็นเรื่องแล้วไง");
+      // L2 — real: BingX/WikiFX logo still
+      caption(1.15, 4.32, "โบรกชื่อดัง ก็ไม่ได้แปลว่าปลอดภัยเสมอไป", true);
+      // L3 — real: WikiFX article hook (no license + complaints)
+      caption(4.40, 9.46, "เปิดปมโบรกไร้ใบอนุญาตชัดเจน แถมมีเคสร้องเรียนจากผู้ใช้งานอีกเพียบ", true);
+      // L4 — avatar A. CTO ruling 2026-09-23 15:10: IRON §37 carries a
+      // CEO-confirmed carve-out (2026-08-03/04) for this channel's มึง/กู
+      // voice — captions follow the recorded audio verbatim, not paraphrased.
+      caption(9.55, 11.60, "เดี๋ยววันนี้กูจะมาแฉให้ฟัง");
+      // L5 — real: BingX logo still (verbatim)
+      caption(11.70, 15.85, "ที่กูเพิ่งพูดไปคือพาดหัวของวิกิเอฟเอ็กซ์เอง เขาพูดถึงบิงเอ็กซ์", true);
+      // L6 — real: WikiFX founded/HQ article
+      caption(15.95, 19.34, "บริษัทตั้งอยู่ที่เซเชลส์ เกาะเล็กกลางมหาสมุทรอินเดีย", true);
+      // L7 is kinetic — see below
+      // L8 — real: WikiFX min-deposit article
+      caption(23.45, 25.76, "ฝากแค่ดอลเดียวก็เข้าไปเล่นได้แล้ว", true);
+      // L9 — real: WikiFX no-license profile
+      caption(25.85, 29.50, "วิกิเอฟเอ็กซ์ค้นแล้ว ไม่เจอใบอนุญาตฟอเร็กซ์สักใบ", true);
+      // L10 — real: WikiFX no-regulation profile
+      caption(29.60, 32.98, "เขียนไว้ชัดๆเลยว่าไม่มีการกำกับดูแลที่ถูกต้อง", true);
+      // L11 — real: WikiFX score profile (1.69/10) — REQUIRED shot
+      caption(33.05, 35.82, "คะแนนความน่าเชื่อถือ ไม่ถึงสองเต็มสิบ", true);
+      // L12 — real: WikiFX score-reason article
+      caption(35.90, 39.04, "เหตุผลคือเรื่องร้องเรียนที่ค้างอยู่ ไม่มีใครแก้", true);
+      // L13, L14 kinetic — see below
+      // L15 — S15 scene plate (no real footage covers CONTEXT-5/MAIN-2)
+      caption(46.88, 49.78, "ไม่มีหน่วยงานไหนบังคับให้เขาคืนเงินได้สักบาท");
+      // L16+L17 — real: WikiFX complaint amounts ($48,994.87 / $53,451.43) — REQUIRED shot, held across both lines
+      caption(49.88, 53.02, "มีผู้ใช้ร้องเรียนว่าโดนขโมยกำไรไปเกือบห้าหมื่นดอล", true);
+      caption(53.10, 55.66, "อีกบัญชีก็อ้างว่าเสียหายไปห้าหมื่นกว่า", true);
+      // L18 — real: WikiFX Taiwan police complaint — REQUIRED shot
+      caption(55.75, 59.26, "มีเรื่องร้องเรียนไปถึงตำรวจไต้หวัน ว่ายักยอกเงินลูกค้า", true);
+      // L19+L20 — real: WikiFX withdrawal-restriction article, held across both
+      caption(59.35, 63.44, "แพทเทิร์นเดิมซ้ำๆ พอทำกำไรได้ บัญชีโดนจำกัดการถอน", true);
+      caption(63.53, 66.86, "ตามที่คนร้องเรียน กำไรมีแต่ในจอ ถอนจริงไม่ได้", true);
+      // L21 — real: WikiFX leverage article
+      caption(66.95, 69.00, "แล้วยังให้เลเวอเรจเป็นร้อยเท่า", true);
+      // L22 — avatar B
+      caption(69.10, 72.60, "เลเวอเรจสูงบวกไม่มีคนกำกับ คือพังได้ในคืนเดียว");
+      // L23 — real: WikiFX min-deposit article (reused, "ประตูเข้า" gateway framing)
+      caption(72.70, 77.58, "ประตูเข้ากว้างมาก แต่ก่อนใส่เงินก้อนใหญ่ ดูประตูออกให้ดี", true);
+      // L24+L25 — real: BingX homepage scroll — REQUIRED shot, held across both
+      caption(77.68, 81.04, "คนส่วนใหญ่เห็นแค่ชื่อดัง เห็นโฆษณาเยอะ ก็เชื่อไปแล้ว", true);
+      caption(81.12, 84.08, "แต่ดังในโลกคริปโต ไม่เท่ากับมีคนกำกับ", true);
+      // L26 kinetic — see below
+      // L27 — S27 scene plate (verbatim)
+      caption(87.88, 90.60, "มึงรู้ไหม ใบอนุญาตแต่ละที่ตรวจไม่เหมือนกัน");
+      // L28 — S28 scene plate (verbatim)
+      caption(90.70, 94.28, "บางใบตรวจแค่ว่ามีบริษัทจริง ไม่ได้ดูว่าเงินมึงปลอดภัย");
+      // L29 — S29 scene plate
+      caption(94.38, 97.28, "บางเกาะจ่ายค่าธรรมเนียมรายปีก็ได้ใบแล้ว");
+      // L30 kinetic — see below
+      // L31 — S31 scene plate
+      caption(100.86, 104.32, "เพราะงั้นโลโก้สวยบนหน้าเว็บ พิสูจน์อะไรไม่ได้เลย");
+      // L32,L33,L34 kinetic / L35-37 rules() — see below
+      // L38 — avatar C (verbatim)
+      caption(122.56, 127.06, "กูไม่ได้แนะนำให้ใช้หรือเลิกใช้เจ้าไหน แค่ชี้วิธีดูให้เป็น");
+      // L39 — avatar C (S39 mandatory avatar/kinetic per rule 3 — falls inside window C)
+      caption(127.16, 131.00, "คอมเมนต์คำว่า เช็กก่อนฝาก ถ้าอยากได้ลิสต์เว็บเช็กใบอนุญาต");
+      // L40 — avatar C (verbatim)
+      caption(131.10, 133.13, "อย่าให้ความดังหลอกเงินมึงไป");
+
+      // ---- kinetic beats: character lines with no real footage and outside
+      //      the three lipsync windows (A 0-14.01 / B 58.72-73.92 / C 115.44-132.68) ----
+
+      // L7 — "ที่แบบนี้ใบอนุญาตหาง่าย แต่คนกำกับจริงหายาก"
+      kinetic(700, 19.44, 23.36, [
+        { c: "bl-md", h: 'ใบอนุญาต<span class="y nb">หาง่าย</span>', d: 0.55, g: 0.75 },
+        { c: "bl-md", h: 'แต่คนกำกับ<span class="n nb">จริงหายาก</span>', d: 0.55, g: 0.6 }
+      ], 420);
+
+      // L13 — verbatim (CTO ruling 15:10: IRON §37 carve-out for this
+      // channel's มึง/กู voice, approved on EP53/EP54). Split into 3 short
+      // nb-wrapped lines rather than one long line: "วิกิเอฟเอ็กซ์" is the
+      // one compound in here that could break mid-word without it (trap 6b).
+      kinetic(660, 39.14, 43.26, [
+        { c: "bl-md", h: 'ไม่ใช่<span class="nb">กูพูดเอง</span>', d: 0.55, g: 0.62 },
+        { c: "bl-md", h: '<span class="nb">วิกิเอฟเอ็กซ์</span>เขียนไว้', d: 0.55, g: 0.6 },
+        { c: "bl-md", h: '<span class="n nb">มึงเข้าไปดูเองได้</span>', d: 0.55, g: 0.6 }
+      ]);
+
+      // L14 — verbatim
+      kinetic(680, 43.36, 46.78, [
+        { c: "bl-md", h: 'ไม่มีใบอนุญาต แปลว่าถ้า<span class="nb">เงินหาย</span>', d: 0.6, g: 0.7 },
+        { c: "bl-md", h: '<span class="n nb">ไม่มีใครตามให้มึง</span>', d: 0.55, g: 0.6 }
+      ]);
+
+      // L26 — verbatim. Split across 3 short lines: a single nb-wrapped
+      // "เช็กก่อนฝากเงินก้อนแรก" (22 chars) overflowed the 720px safe width
+      // at bl-md — nowrap prevents a mid-word break but does not shrink to
+      // fit, so an oversized nb chunk runs off-frame instead.
+      kinetic(660, 84.18, 87.78, [
+        { c: "bl-md", h: 'กูไม่ได้บอกว่า<span class="nb">ห้ามใช้</span>', d: 0.55, g: 0.62 },
+        { c: "bl-md", h: 'กูบอกว่า<span class="y nb">เช็กก่อน</span>', d: 0.55, g: 0.6 },
+        { c: "bl-md", h: '<span class="y nb">ฝากเงินก้อนแรก</span>', d: 0.55, g: 0.6 }
+      ]);
+
+      // L30 — "โบรกเลยชอบไปจดที่กฎหลวม ไม่ใช่ที่ลูกค้าปลอดภัย"
+      kinetic(700, 97.38, 100.76, [
+        { c: "bl-md", h: 'โบรกเลยชอบไปจด<span class="n nb">ที่กฎหลวม</span>', d: 0.6, g: 0.68 },
+        { c: "bl-md", h: 'ไม่ใช่ที่<span class="y nb">ลูกค้าปลอดภัย</span>', d: 0.55, g: 0.6 }
+      ]);
+
+      // L32 — SUMMARY-1, no scene clip on purpose (rule 3)
+      kinetic(780, 104.42, 106.04, [
+        { c: "bl-xl", h: '<span class="n nb">สรุป</span>แบบไม่โลกสวย', d: 0.6 }
+      ], 460);
+
+      // L33 — "ชื่อดังไม่ใช่หลักประกัน ใบอนุญาตจริงต่างหาก"
+      kinetic(700, 106.14, 109.46, [
+        { c: "bl-md", h: '<span class="nb">ชื่อดัง</span>ไม่ใช่<span class="nb">หลักประกัน</span>', d: 0.6, g: 0.7 },
+        { c: "bl-md", h: '<span class="y nb">ใบอนุญาตจริง</span><span class="nb">ต่างหาก</span>', d: 0.55, g: 0.6 }
+      ]);
+
+      // L34 — intro title for the rules() sequence below
+      kinetic(680, 109.56, 111.74, [
+        { c: "bl-md", h: 'ก่อนฝากเงินโบรกไหน', d: 0.55, g: 0.65 },
+        { c: "bl-xl", h: 'เช็ก<span class="n nb">3</span>อย่าง', d: 0.6 }
+      ]);
+
+      // ---- L35-37: numbered checklist. Kept on the clean kit background
+      // (rules() cards have no scrim, per trap 7 — text over a busy plate is
+      // unreadable; the three S## clips fetched for these lines are unused). ----
+      rules(680, [
+        { n: "1", t: 111.84, o: 116.20, h: "ใบอนุญาตจากใคร", d: "เข้าเว็บหน่วยงานนั้น ค้นเลขเอง" },
+        { n: "2", t: 116.30, o: 120.04, h: "จดทะเบียนที่ไหน", d: "ถ้าเป็นเกาะเล็ก ระวังไว้ก่อน" },
+        { n: "3", t: 120.14, o: 122.46, h: "ลองถอนก้อนเล็กก่อนเสมอ", d: "" }
+      ]);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
