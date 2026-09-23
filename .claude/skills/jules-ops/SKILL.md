@@ -87,7 +87,9 @@ cross-repo work · "make it better".
 2. FILES you may touch — the COMPLETE list, from a grep you ran today, + "no other file"
 3. FORBIDDEN: scratch/log/patch files · dependency or lockfile edits · editing or loosening
    existing tests or their mocks (unless the task IS tests) · unrelated refactors
-4. WHAT IS KNOWN — verified facts only, dated. Where you do not know the location,
+4. WHAT IS KNOWN — verified facts only, dated — including the ISSUE's claim (check it
+   against the data first: #159's path never existed) and the target function's own
+   comments (T04: they recorded why "append" was wrong). Where you do not know the location,
    give a REPRODUCTION and the pass condition, not a guessed file. Name every
    interface it cannot see (API field names, response shapes) verbatim.
 5. ENV NOTE: where tests go and how they run — read `testpaths` in pytest.ini on
@@ -177,7 +179,11 @@ bad one 1.1 MB). Then, on current main — every one of these caught something r
 - **Any client of an external API: one live, read-only call per subcommand.** T08-A's six mocked
   tests passed while `create` and `report` were wrong against the real API.
 - **Existing tests or mocks edited?** Red flag — check they were failing on main first (T11-B's
-  were not).
+  were not). **Count test functions per touched test file, base vs diff**: T12-R2 reached a green
+  pytest by deleting 56 tests, 47 of them unrelated, and did not say so. A drop needs a named
+  reason per test.
+- **Compare against a pinned base sha**, never `origin/main` by name: it is shared by every
+  worktree and moved three times during one review, turning every other comparison into noise.
 - **Base drift:** `git log --since=<session createTime> -- <touched files>`. Changed since → the
   diff may apply and still be wrong on the new code (T13-A). Hold hot files.
 - **The PR body's test output is not evidence** — #164 printed a placeholder. Only your run counts.
@@ -233,3 +239,5 @@ task (the API cannot choose).
 - 2026-09-23 [MISSING] §3 — `:archive` does not stop the comment-restart; with a "superseded — stop" comment the run pushed nothing but read IN_PROGRESS ~3 h · evidence: sessions 16219304773989610776, 9864990311807445479 · status: promoted
 - 2026-09-23 [MISSING] §1 — hot files break a correct diff within a day: T13-A applied cleanly and failed after `delegate.py` changed 5× in 20 h · evidence: git log tools/delegate.py since 2026-09-22 19:15 · status: promoted
 - 2026-09-23 [WRONG] §2 line 5 — the first rewrite (a8f54540) hard-coded "Agents-Core: `scripts/`, not `tests/`"; hours later bde67a10 (CTO 0e8d80b8) added `tests` to testpaths. A repo fact written into a skill goes stale; the durable rule is "read testpaths on current main when writing the brief" · evidence: pytest.ini on main after bde67a10 · status: promoted
+- 2026-09-23 [MISSING] §4 — round 2: a green pytest reached by deleting tests. T12-R2 removed 56 tests (47 unrelated: SomPong family rules, SSRF, OAuth) from test_secretary_server.py and left a scratch script; neither in its report · evidence: session 8771843428592242624, Agents-Core #167 commit 677d42ff · status: promoted
+- 2026-09-23 [MISSING] §2 line 4 — two re-briefed tasks were still wrong: T03 on an issue claim nobody verified (no status_done event → raw write), T04 against a design the function's own comment explains · evidence: #159 comment 5793917949, #167 commit 33b5c76f · status: promoted

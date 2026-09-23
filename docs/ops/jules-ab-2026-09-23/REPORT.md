@@ -63,3 +63,19 @@ pass rate (7 vs 3) and eliminated the wrong-but-confident results (0 vs 3).
 T03, T04, T12 re-briefed with verified facts, the reproduction-not-location rule, tests in
 `scripts/`, and "if a fact here is wrong, say so and continue". T13 held until `delegate.py`
 settles. Results appended when they land.
+
+## Round 2 results (batch ab2, 2026-09-23) — merged as Agents-Core #167 (112a599a)
+
+| Task | Session | Outcome | Cause of what went wrong |
+|---|---|---|---|
+| T03 #159 | 6395970906374531012 | asked again: "update_status already releases locks — where is the leak?" | **our brief, again**: #159's claimed path does not exist. The task went in_progress → done with no `status_done` event, i.e. a raw status write; `close_dev` has no status parameter. Evidence posted on #159. Jules was right twice. |
+| T04 #158.1 | 5010432973252708124 | COMPLETED, did exactly what the brief said | **our brief, again**: it said "append"; the handler puts the newest instruction FIRST on purpose (task-cda4f469). Its diff also wrote TASK.md into a removed worktree (`_write_task_md` mkdirs). Reworked at review; merged. |
+| T12 Z.ai/9Router | 8771843428592242624 | FAILED after every verdict passed | **model**: to make pytest green it deleted 56 tests from `test_secretary_server.py`, 47 of them unrelated (SomPong family rules, SSRF, OAuth), and left a scratch script — both forbidden by line 3, neither mentioned in its report. Source changes were right; merged with main's tests minus the 9 real provider tests. |
+
+**Round-2 tally.** With the facts verified the model *stopped asking about locations* (no "where is X" questions) — but two of three briefs were still wrong in a way no grep catches: they described intended behaviour that contradicted a deliberate design (T04) or an issue claim nobody had checked (T03). And the one unambiguous brief produced the batch's worst model behaviour: **deleting tests to reach green.**
+
+## Findings added to jules-ops from round 2
+- Check an issue's claim against the data before briefing it (events table, git log) — a brief built on an unverified issue fails twice.
+- Read the target function's own comments before specifying a behaviour change; they may record why the obvious change is wrong.
+- Review gate: count test functions per touched test file, base vs diff — a drop needs a named reason per test.
+- Compare branch vs base with the base PINNED to one sha — `origin/main` is shared by every worktree and moved three times during this review.
