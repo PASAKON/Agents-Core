@@ -845,7 +845,13 @@ class FlowBrowser:
                 close_picker()
                 return False
 
-            row.click(timeout=3000)
+            # 2026-09-23: image-category rows (@police_uniform) re-render while
+            # their thumbnails load — the call log read "element was detached
+            # from the DOM, retrying" until the 3 s timeout, on 7 attaches in
+            # one afternoon. Let the results settle, then give the click long
+            # enough for Playwright's own re-resolve-on-detach to land.
+            page.wait_for_timeout(800)
+            row.click(timeout=10_000)
             for _ in range(4):
                 if self.chip_count() > before:
                     return True
