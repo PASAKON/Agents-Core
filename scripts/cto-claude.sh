@@ -359,7 +359,7 @@ r = get_role('cto')
 print(r.get('model') or 'claude-opus-5-5[1m]', r.get('fallback_model') or 'claude-fable-5', r.get('effort') or 'xhigh')
 ")"
 
-MODEL_ARGS=(--model "$MODEL" --fallback-model 'claude-fable-5' --effort "$EFFORT")
+MODEL_ARGS=(--model "$CTO_MODEL" --fallback-model "$CTO_FALLBACK" --effort "$CTO_EFFORT")
 
 # Without --strict-mcp-config the session ALSO loads Agents/.mcp.json,
 # ~/.claude.json and every enabled plugin's servers — ~13 servers and
