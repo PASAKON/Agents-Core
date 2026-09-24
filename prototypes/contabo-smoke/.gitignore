@@ -1,0 +1,7 @@
+# Generated media — deliverable, not source (see repo-root .gitignore rationale
+# for output/**/*.mp4: committing renders has previously bloated the repo and
+# been refused by GitHub). Frame count / wall time / fps are recorded in
+# REPORT.md instead of the binary.
+renders/
+render.log
+free-during-render.log
