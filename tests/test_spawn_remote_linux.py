@@ -17,6 +17,9 @@ testpaths; run explicitly alongside the default `pytest` run.)
 from __future__ import annotations
 
 import asyncio
+import base64
+import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -92,6 +95,31 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
     # never the windows shape
     assert "powershell" not in log
     assert "spawn-worker.ps1" not in log
+
+
+def test_contabo_dry_run_renders_task_meta_b64_with_declared_touches(temp_db):
+    """GH #180 (task-378523bb): the hub hands the spoke its own declared
+    touches at spawn time — assert the flag is present and its decoded JSON
+    actually carries the task row's touches, not just that some base64
+    blob is there."""
+    tid = temp_db.create_task(
+        project="mooniex-agents", role="developer", title="t", description="d",
+        owner_cto="test-owner", host="contabo",
+        touches=["prototypes/contabo-smoke/**"],
+    )
+    result = asyncio.run(delegate.delegate_task(tid, host="contabo", dry_run=True))
+    log = result["delegate_log"]
+    assert "--task-meta-b64" in log
+
+    m = re.search(r"--task-meta-b64 ([A-Za-z0-9+/=]+)", log)
+    assert m, f"could not find --task-meta-b64 value in: {log}"
+    meta = json.loads(base64.b64decode(m.group(1)))
+    assert meta["task_id"] == tid
+    assert meta["project"] == "mooniex-agents"
+    assert meta["role"] == "developer"
+    assert meta["host"] == "contabo"
+    assert meta["owner_cto"] == "test-owner"
+    assert meta["touches"] == ["prototypes/contabo-smoke/**"]
 
 
 def test_contabo_dry_run_never_touches_network(temp_db, monkeypatch):
@@ -400,6 +428,31 @@ def test_script_dry_run_parses_every_flag():
         "session_name=CONTABO Developer #flagcheck (test)",
     ):
         assert expected in out, f"missing {expected!r} in dry-run output: {out}"
+
+
+def test_script_dry_run_mentions_sidecar_write_and_node_path_prepend():
+    """GH #180 (task-378523bb): --dry-run must describe the two new
+    pre-launch steps — decoding --task-meta-b64 into the worktree's
+    .org-task.json sidecar, and prepending .tools/node/bin onto PATH when
+    it exists — the same "prints the command, never runs it" contract as
+    every other --dry-run line."""
+    r = subprocess.run(
+        [BASH3, str(SCRIPT), "--dry-run",
+         "--task", "task-flagcheck", "--project", "proj1", "--role", "developer",
+         "--branch", "agent/developer-task-flagcheck", "--base", "main",
+         "--repo-url", "git@github.com:PASAKON/proj1.git",
+         "--repo-path", "/opt/proj1", "--worktree-root", "/opt/proj1/worktrees",
+         "--claude-args", "--model claude-sonnet-5 --effort high --allowed-tools Read,Write",
+         "--model", "claude-sonnet-5", "--effort", "high",
+         "--session-name", "CONTABO Developer #flagcheck (test)",
+         "--runner", "claude", "--task-meta-b64", "eyJhIjoxfQ=="],
+        capture_output=True, text=True,
+    )
+    assert r.returncode == 0, r.stderr
+    out = r.stdout
+    assert ".org-task.json" in out
+    assert ".tools/node/bin" in out
+    assert "hook-self-repo-guard.py" in out
 
 
 def test_script_dry_run_missing_required_flag_exits_nonzero():

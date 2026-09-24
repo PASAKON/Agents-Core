@@ -64,6 +64,9 @@ PROTECTED_PREFIXES = (
 )
 PROTECTED_EXACT = (
     ".claude/settings.json", "state/tasks.db",
+    # its own spawn-time grant (task-378523bb) — a worker must not edit the
+    # file that decides what it is allowed to write.
+    ".org-task.json",
 )
 PROTECTED_GLOBS = (
     "scripts/hook-*.py",
@@ -141,10 +144,62 @@ def db_path_for(root: Path) -> Path:
 
     `<checkout>/worktrees/<name>` -> `<checkout>/state/tasks.db`. On the Mac
     that resolves to /Users/gob/MoonieXHQ/Agents/Core/state/tasks.db and on Contabo
-    to /opt/mooniex-agents/state/tasks.db — never the worktree's own copy,
-    which the DEV can edit.
+    to /opt/MoonieXHQ/Agents/Core/state/tasks.db — never the worktree's own
+    copy, which the DEV can edit.
     """
     return root.parent.parent / "state" / "tasks.db"
+
+
+# GH #180 (task-378523bb): a spoke's own state/tasks.db (Contabo's included)
+# is an unsynced snapshot of the Mac hub — the hub's rows never reach it, so
+# db_path_for()'s lookup raises GuardError (no row) for every task on that
+# project, regardless of what the write actually targets. The sidecar is the
+# fix: the hub already knows the task's declared touches at spawn time
+# (tools/delegate.py::_spawn_remote), so it writes them straight into the
+# worktree it just created instead of relying on a copy of the registry ever
+# reaching the spoke.
+SIDECAR_NAME = ".org-task.json"
+
+
+def sidecar_path(root: Path) -> Path:
+    return root / SIDECAR_NAME
+
+
+def load_touches_from_sidecar(root: Path, task_id: str) -> list[str] | None:
+    """Touches declared in `<root>/.org-task.json`, or None when the file is
+    absent, unreadable, malformed, or names a different task id (a stale
+    leftover from a prior occupant of this worktree path — spawn-worker-
+    remote.sh reuses paths, GH #151-style hazard). None means "fall back to
+    the tasks.db lookup", not "no touches declared"."""
+    p = sidecar_path(root)
+    try:
+        raw = p.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict):
+        return None
+    if str(data.get("task_id") or "") != task_id:
+        return None
+    touches = data.get("touches")
+    if not isinstance(touches, list):
+        return None
+    return [str(t).strip().lstrip("/") for t in touches if str(t).strip()]
+
+
+def load_touches_for(root: Path, task_id: str) -> list[str]:
+    """Declared touches for `task_id`, preferring the worktree's own sidecar
+    (written at spawn time, task-378523bb) over `load_touches`'s tasks.db
+    lookup. The sidecar is what makes a spoke's write guard decidable at all
+    when its local tasks.db copy is stale — the Mac path (no sidecar) keeps
+    the exact behavior load_touches has always had."""
+    sidecar = load_touches_from_sidecar(root, task_id)
+    if sidecar is not None:
+        return sidecar
+    return load_touches(db_path_for(root), task_id)
 
 
 # --------------------------------------------------------------------------
@@ -458,7 +513,7 @@ def decide(event: dict | None, *, cwd: str | None = None,
 
     try:
         task_id = task_id_of(root)
-        touches = load_touches(db_path_for(root), task_id)
+        touches = load_touches_for(root, task_id)
     except HubUnreachable as exc:
         print(f"[self_repo_guard] hub unreachable within {HUB_TIMEOUT_S}s, "
               f"failing OPEN (allow): {exc}", file=sys.stderr)

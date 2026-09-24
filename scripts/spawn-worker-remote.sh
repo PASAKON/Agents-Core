@@ -35,6 +35,7 @@ set -uo pipefail
 DRY_RUN=0
 TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
+TASK_META_B64=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -51,6 +52,7 @@ while [ $# -gt 0 ]; do
     --effort) EFFORT="$2"; shift 2 ;;
     --session-name) SESSION_NAME="$2"; shift 2 ;;
     --runner) RUNNER="$2"; shift 2 ;;
+    --task-meta-b64) TASK_META_B64="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     *) echo "spawn-worker-remote.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -95,7 +97,10 @@ if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] claude_args=$CLAUDE_ARGS"
   echo "[dry-run] session_name=$SESSION_NAME"
   echo "[dry-run] roles_dir=$ROLES_DIR"
-  echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); write TASK.md from stdin; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
+  if [ -n "$TASK_META_B64" ]; then
+    echo "[dry-run] task_meta_b64=$TASK_META_B64"
+  fi
+  echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
   exit 0
 fi
 
@@ -158,6 +163,36 @@ touch "$EXCLUDE_FILE"
 for name in HEARTBEAT MAILBOX.md; do
   grep -qxF "$name" "$EXCLUDE_FILE" 2>/dev/null || echo "$name" >> "$EXCLUDE_FILE"
 done
+
+# --- 2b. Sidecar (GH #180, task-378523bb): the hub already knows this
+# task's declared touches at spawn time -- write them straight into the
+# worktree instead of relying on this box's own (possibly unsynced)
+# state/tasks.db. Mode 600: no secret in here, but no reason to leave it
+# group/world readable either. Never committed -- add it to info/exclude
+# the same way HEARTBEAT/MAILBOX.md are, so an accidental `git add -A`
+# can't sweep it onto the worker's own branch.
+grep -qxF ".org-task.json" "$EXCLUDE_FILE" 2>/dev/null || echo ".org-task.json" >> "$EXCLUDE_FILE"
+if [ -n "$TASK_META_B64" ]; then
+  if ! printf '%s' "$TASK_META_B64" | base64 -d > "$WT/.org-task.json" 2>/dev/null; then
+    echo "spawn-worker-remote.sh: --task-meta-b64 did not decode as base64" >&2
+    rm -f "$WT/.org-task.json"
+  else
+    chmod 600 "$WT/.org-task.json"
+  fi
+fi
+
+# --- 2c. Pre-merge guard fix (GH #180): a freshly checked-out worktree gets
+# whatever scripts/hook-self-repo-guard.py was on origin/$BASE at clone
+# time, which won't carry a fix until the PR that adds it is merged. This
+# box's own copy of the script (tools/delegate.py::_ensure_remote_deploy_linux
+# scp's it here ahead of any merge, same mechanism as this launcher script
+# itself) is authoritative -- copy it into the worktree so the guard a
+# spawned worker actually runs is never stale.
+GUARD_SRC="$SCRIPT_DIR/hook-self-repo-guard.py"
+if [ -f "$GUARD_SRC" ]; then
+  mkdir -p "$WT/scripts"
+  cp "$GUARD_SRC" "$WT/scripts/hook-self-repo-guard.py"
+fi
 
 # --- 3. TASK.md from stdin (the hub's rendered prompt) ---
 cat > "$WT/TASK.md"
@@ -241,12 +276,22 @@ TMUX_BIN=$(command -v tmux || echo tmux)
 # worker's Bash tool needs `$ORG_WORKER_FINISH` (or `eval "$ORG_WORKER_FINISH"`)
 # instead. The env var is exported correctly either way; only the doc's
 # literal instruction text is platform-specific.
+# Node 22 for workers only (task-378523bb): the box's system Node (20.20.2,
+# host services -- usage feeds, login relay -- depend on it) must not be
+# touched, but hyperframes@0.8.40 needs >=22 (EBADENGINE otherwise). Prepend
+# only, and only when the tarball is actually there -- installing it is a
+# separate, explicit step (config/machine-contract.yaml), not this script's
+# job, so a box that hasn't been set up yet just keeps using system Node.
+NODE22_BIN="$AGENTS_ROOT/.tools/node/bin"
+
 LAUNCH_SH="$LAUNCH_DIR/launch.sh"
 {
   echo '#!/bin/sh'
   printf 'export ORG_HOST=contabo\n'
   printf 'export ORG_WORKER_FINISH=%s\n' \
     "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+  printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+    "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
   printf 'exec %s "$(cat %s)" -n %s --append-system-prompt "$(cat %s)" %s\n' \
     "$(sh_quote "$CLAUDE_BIN")" \
     "$(sh_quote "$PROMPT_FILE")" \

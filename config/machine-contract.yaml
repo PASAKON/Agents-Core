@@ -99,6 +99,8 @@ entries:
      restore: "private keys: secrets bundle on another machine; public keys + config: blueprint"}
   - {machine: contabo, path: "{<hq>/Agents/Core/.venv,/root/idm-venv,/opt/node-v22,**/node_modules}", class: REBUILD, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "pip install -r / npm ci / node tarball; the freeze lists in the blueprint say which versions"}
+  - {machine: contabo, path: "<hq>/Agents/Core/.tools/node/**",          class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "Node 22 LTS for spoke WORKERS only (task-378523bb, hyperframes needs >=22) — the box's system Node stays 20.20.2 at /usr/bin, untouched, since host services (usage feeds, login relay) depend on it: curl -fsSL https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.xz | tar -xJ -C <hq>/Agents/Core/.tools/node --strip-components=1 (verify sha256 against that release's SHASUMS256.txt first). scripts/spawn-worker-remote.sh's generated launch.sh prepends its bin/ onto PATH only when the directory exists, so a box that hasn't run this yet just keeps using system Node"}
   - {machine: contabo, path: "/opt/claude-usage-monitor/**",               class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "code in git; usage.json/state.json regenerate on the next poll; its own .credentials.json = login again"}
   - {machine: contabo, path: "$HOME/.cache/**",                            class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,

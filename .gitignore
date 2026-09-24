@@ -75,6 +75,11 @@ state/fomo-scanner.db-shm
 .agents/*
 !.agents/README.md
 worktrees/
+# Per-machine tool installs a worker's launch.sh may prepend onto PATH
+# (task-378523bb: Node 22 for workers on Contabo, system Node untouched).
+# The tarball, not source — config/machine-contract.yaml carries the
+# rebuild command.
+.tools/
 # Cloned third-party skill sources — each carries its own .git, so they are
 # other repos living inside this tree, not content of it. Skills are consumed
 # via symlinks from ~/.claude/skills into here.
