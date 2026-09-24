@@ -41,7 +41,9 @@ Settings → System → Recovery → **Reset this PC** → **Remove everything**
 ## 4. เปิดทางให้ CTO (ประมาณ 10 นาที)
 
 1. เปิด **Edge** → drive.google.com → login pass.gob1 → โฟลเดอร์ **BACKUP / Winbox Reinstall 2026-09-24** → ดาวน์โหลด **winbox-bootstrap.ps1**
-2. คลิกขวาที่ไฟล์ → **Run with PowerShell** (ถ้าถาม Administrator → Yes)
+2. เปิด **Terminal (Admin)** (คลิกขวาปุ่ม Start → Terminal (Admin)) แล้วพิมพ์
+   `powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\winbox-bootstrap.ps1"`
+   — "Run with PowerShell" จากคลิกขวา**ไม่ได้สิทธิ์ Administrator** (พบตอนลงจริง 2026-09-24)
    - มันจะติดตั้ง SSH, ใส่กุญแจของ Contabo/Mac, เปิด firewall, ติดตั้ง Tailscale, ตั้งไม่ให้หลับ, เวลาไทย, และ **ถามรหัสผ่าน Windows 1 ครั้ง** เพื่อตั้ง login อัตโนมัติ
 3. ตอนท้ายจะเปิดเบราว์เซอร์ให้ **login Tailscale** (pass.gob1@gmail.com) → กด Connect
 4. หน้าต่างสคริปต์ขึ้นคำว่า **READY** พร้อม IP → **ส่งคำว่า READY + IP ให้ CTO ในแชท**
