@@ -64,6 +64,15 @@ from pathlib import Path
 
 import yaml
 
+# The report uses ✗ / → glyphs; a Windows console (cp1252) raised UnicodeEncodeError on the first
+# winbox `check` (2026-09-24, scheduled-task account passg). Force UTF-8 with replacement instead.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (ValueError, OSError):
+            pass
+
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
