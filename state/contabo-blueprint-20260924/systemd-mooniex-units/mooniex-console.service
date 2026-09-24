@@ -7,11 +7,11 @@ Requires=tailscaled.service
 [Service]
 Type=simple
 WorkingDirectory=/opt/MoonieXHQ/Projects/MoonieX/Console
-[LINE REDACTED BY CAPTURE FILTER]
+# Claude Code OAuth token (Phase B, claude setup-token) — read from its one
 # canonical file, never duplicated into console/.env. Leading '-' = optional
 # (service still starts if the file is briefly absent; session-spawn just
 # won't have a working Claude auth until it exists).
-[LINE REDACTED BY CAPTURE FILTER]
+EnvironmentFile=-/root/.claude_code_oauth_token
 ExecStart=/opt/node-v22/bin/node --experimental-sqlite src/server.js
 Restart=on-failure
 RestartSec=3

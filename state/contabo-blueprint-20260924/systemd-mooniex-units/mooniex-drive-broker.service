@@ -1,5 +1,5 @@
 [Unit]
-[LINE REDACTED BY CAPTURE FILTER]
+Description=MoonieX Drive upload broker -- sole holder of the Drive OAuth credential; secretary (SomPong) can only reach it over a group-gated unix socket to upload into one fixed folder (task-e713c4e2)
 After=network-online.target
 Wants=network-online.target
 

@@ -16,7 +16,7 @@ top-level keys:
   cachedUsageUtilization
   changelogLastFetched
   claudeAiMcpEverConnected
-[LINE REDACTED BY CAPTURE FILTER]
+  claudeCodeFirstTokenDate
   clientDataCacheSlots
   closedIssuesLastChecked
   firstStartTime

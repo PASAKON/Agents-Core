@@ -67,6 +67,7 @@ FOLDER_IDS = {
     "Work-Archive": "1xu8hXdUZGBino913lCr2zdUz8kTd8tqA",
     "Docker-Volumes": "1bODM090gcAhlusA8g_6Jp-w_bzsDINwC",
     "Machine-Blueprints": "12yjlX_MvhjmJlwuhqFEqVFcQkNR0M7r0",
+    "State-DB": "15xudjmiHK6MfSCxM48cqwjPOKOWgoNzO",  # CEO 2026-09-24 "อนุมัติ" — this box's tasks.db
 }
 
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
@@ -834,6 +835,70 @@ def blueprints(*, state_dir: Path, config_dir: Path, only_machine: str | None = 
 
 
 # =========================================================================== CLI
+# =========================================================================== 6. state-db
+def state_db_index_path(config_dir_: Path) -> Path:
+    return config_dir_ / "logs" / "state-db-archive-index.jsonl"
+
+
+def state_db(*, config_dir: Path, db_path: Path | None = None, dry_run: bool = False,
+             rclone: str | None = None, who: str | None = None, now: float | None = None) -> dict:
+    """state/tasks.db (this box's org task ledger: SQLite, gitignored, sole copy) ->
+    State-DB/contabo/tasks-<date>.sqlite.gz + manifest. The copy comes from sqlite3's online
+    backup API -- never a cp of a live database -- and is gzipped on the way into put().
+    Skips when the copy's sha256 equals the previous run's (state-db-archive-index.jsonl).
+    Never deletes. Registry row: <hq>/Agents/Core/state/tasks.db (config/machine-contract.yaml)."""
+    import gzip
+    import sqlite3
+    who = who or _default_who()
+    now = time.time() if now is None else now
+    src = Path(db_path) if db_path else ROOT / "state" / "tasks.db"
+    date = datetime.fromtimestamp(now).strftime("%Y-%m-%d")
+    if not src.is_file():
+        print(f"[1/1] state-db: {src} not found, skipping")
+        return dict(skipped=True, reason="missing", source=str(src))
+    with tempfile.TemporaryDirectory() as td:
+        snap = Path(td) / "tasks.db"
+        con = sqlite3.connect(f"file:{src}?mode=ro", uri=True)
+        try:
+            dst = sqlite3.connect(str(snap))
+            try:
+                con.backup(dst)
+            finally:
+                dst.close()
+        finally:
+            con.close()
+        size = snap.stat().st_size
+        sha = _sha256_file(snap)
+        idx_path = state_db_index_path(config_dir)
+        rows = _read_jsonl(idx_path)
+        last = rows[-1] if rows else None
+        print(f"[1/1] state-db tasks-{date}: {size} B, sha256 {sha[:12]}... (from {src})")
+        if last and last.get("sha256") == sha:
+            print(f"    unchanged since {last.get('date')}, skipping")
+            return dict(skipped=True, reason="unchanged", sha256=sha, bytes=size)
+        if dry_run:
+            return dict(dry_run=True, sha256=sha, bytes=size)
+        manifest = build_manifest(
+            name=f"tasks-{date}", machine="contabo", source=str(src),
+            files=[dict(path="tasks.db", size=size, mtime_ns=src.stat().st_mtime_ns, sha256=sha)],
+            restore=(f'rclone copy "gdrive:contabo/tasks-{date}.sqlite.gz" . --drive-root-folder-id '
+                     f'{FOLDER_IDS["State-DB"]} && gunzip tasks-{date}.sqlite.gz && '
+                     f"stop the org daemon, then mv tasks-{date}.sqlite {src}"),
+            extra={"backup_api": "sqlite3.Connection.backup", "gzip": True},
+        )
+        data = snap.read_bytes()
+
+    def _stream(sink, _data=data):
+        with gzip.GzipFile(fileobj=sink, mode="wb", mtime=0) as gz:
+            gz.write(_data)
+
+    result = put(_stream, FOLDER_IDS["State-DB"], "contabo", f"tasks-{date}", ".sqlite.gz",
+                 manifest, log_path_=log_path(config_dir), who=who, rclone=rclone)
+    _append_jsonl(idx_path, dict(date=date, sha256=sha, bytes_db=size, bytes=result["bytes"],
+                                 drive=result["drive"]))
+    return result
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="drive_leg.py",
                                  description="Contabo's Drive leg of the Machine Contract")
@@ -856,6 +921,10 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--pg-container", default="org-postgres")
     d.add_argument("--pg-user", default="org")  # POSTGRES_USER of org-postgres; there is no "postgres" role (measured 2026-09-24)
     d.add_argument("--dry-run", action="store_true")
+
+    s = sub.add_parser("state-db", help="back up state/tasks.db (sqlite online backup, gzip) to Drive State-DB")
+    s.add_argument("--db", help="path of the SQLite file (default state/tasks.db)")
+    s.add_argument("--dry-run", action="store_true")
 
     b = sub.add_parser("blueprints", help="archive state/<machine>-blueprint-<date>/ dirs to Drive")
     b.add_argument("--only-machine")
@@ -885,6 +954,11 @@ def main(argv: list[str] | None = None) -> int:
                                     pg_container=args.pg_container, pg_user=args.pg_user)
             failed = sum(1 for v in report["volumes"] if v.get("verified") is False)
             return 1 if failed else 0
+
+        if args.command == "state-db":
+            result = state_db(config_dir=cfg_dir, db_path=Path(args.db) if args.db else None,
+                              dry_run=args.dry_run)
+            return 1 if result.get("verified") is False else 0
 
         if args.command == "blueprints":
             report = blueprints(state_dir=ROOT / "state", config_dir=cfg_dir,

@@ -90,7 +90,7 @@ if [ -n "${FREE_KB:-}" ]; then
 fi
 
 cmd apt-get update
-cmd apt-get install -y git python3 python3-venv python3-pip
+cmd apt-get install -y git curl ca-certificates python3 python3-venv python3-pip python3-yaml
 if command -v docker >/dev/null 2>&1; then
   say "docker: present ($(command -v docker))"
 else
@@ -102,41 +102,99 @@ if command -v tailscale >/dev/null 2>&1; then
 else
   cmd_sh "curl -fsSL https://tailscale.com/install.sh | sh"
 fi
-# The captured `apt-mark showmanual` list is the package BOM (registry: REBUILD rows store the command,
-# never the bytes). It runs AFTER the docker/tailscale installers because those add the apt repos that
-# docker-ce / tailscale come from; already-installed names are a no-op for apt.
-if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
-  say "replaying $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages from $BLUEPRINT_DIR/apt-packages.txt"
-  cmd_sh "xargs -a '$BLUEPRINT_DIR/apt-packages.txt' apt-get install -y"
-else
-  say "WARN: no apt-packages.txt in the blueprint — only the base packages above were installed"
-fi
+say "the captured apt BOM is replayed in step 2, once the Agents-Core clone (which carries it) exists"
 human "'tailscale up' below prints a login URL — open it, sign in as pass.gob1@gmail.com and approve this machine. The script blocks until that happens."
 cmd tailscale up
 
 # ============================================= 2/9 — clone HQ + Agents-* repos
 hdr "clone PASAKON/MoonieX-HQ + Agents-* (HUMAN: Rules/Wikis rsync runs on the Mac)"
+# RESTORE_GIT_BASE lets a rehearsal (re-OS drill in a throwaway container/VM, ADR 0031) clone from
+# local bare mirrors — e.g. RESTORE_GIT_BASE=/hqmirror/ with MoonieX-HQ.git, Agents-Core.git,
+# Agents-Memory.git inside — instead of GitHub, which needs this box's deploy key. Default = GitHub.
+GIT_BASE="${RESTORE_GIT_BASE:-git@github.com:PASAKON/}"
 if [ -d "$HQ_ROOT/.git" ]; then
   say "$HQ_ROOT already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/MoonieX-HQ.git "$HQ_ROOT"
+  cmd git clone "${GIT_BASE}MoonieX-HQ.git" "$HQ_ROOT"
 fi
 if [ -d "$CORE/.git" ]; then
   say "$CORE already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/Agents-Core.git "$CORE"
+  cmd git clone "${GIT_BASE}Agents-Core.git" "$CORE"
 fi
 MEMORY_DIR="$HQ_ROOT/Agents/Memory"
 if [ -d "$MEMORY_DIR/.git" ]; then
   say "$MEMORY_DIR already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/Agents-Memory.git "$MEMORY_DIR"
+  cmd git clone "${GIT_BASE}Agents-Memory.git" "$MEMORY_DIR"
 fi
 say "Agents/Rules and Agents/Wikis are NOT cloned on Contabo — they are rsync snapshots"
 say "pulled FROM the Mac (CLAUDE.md § Wiki access), read-only here."
 human "run these two commands FROM THE MAC (not on this box) to (re-)populate them:"
 say '  rsync -aH --delete --exclude '"'"'.git/'"'"' /Users/gob/MoonieXHQ/Agents/Wikis/         mooniex-vps:'"$HQ_ROOT"'/Agents/Wikis/'
 say '  rsync -aH --delete --exclude '"'"'.git/'"'"' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-vps:'"$HQ_ROOT"'/Agents/Rules/'
+# The blueprint lives INSIDE Agents-Core, so it only exists from this point on: resolve it now
+# (the top-of-file lookup ran before the clone and was empty on a fresh box — found by the first
+# container drill, 2026-09-24) and replay the apt BOM here. It runs AFTER the docker/tailscale
+# installers of step 1 because those add the apt repos docker-ce / tailscale come from.
+BLUEPRINT_DIR=$(ls -d "$CORE"/state/contabo-blueprint-*/ 2>/dev/null | sort | tail -1)
+BLUEPRINT_DIR="${BLUEPRINT_DIR%/}"
+if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
+  say "blueprint on disk: $BLUEPRINT_DIR"
+  # captured OS vs this OS: the BOM is only exact on the same release (Ubuntu 24.04 on 2026-09-24)
+  CAPTURED_OS=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("os") or d.get("pretty_name") or "")' "$BLUEPRINT_DIR/machine.json" 2>/dev/null || true)
+  THIS_OS=$(. /etc/os-release 2>/dev/null && printf '%s' "${PRETTY_NAME:-}")
+  say "captured OS: ${CAPTURED_OS:-?}  |  this OS: ${THIS_OS:-?}"
+  [ -n "$CAPTURED_OS" ] && [ -n "$THIS_OS" ] && [ "$CAPTURED_OS" != "$THIS_OS" ] && say "WARN: different release — package names/versions may not match (drill run 2 on debian:12 lost 5 Ubuntu-only names + numpy for python 3.11)"
+  # foreign architectures first (wine32:i386 needs i386 enabled or apt cannot even locate it)
+  if [ -s "$BLUEPRINT_DIR/foreign-archs.txt" ]; then
+    while read -r arch; do [ -n "$arch" ] && cmd dpkg --add-architecture "$arch"; done < "$BLUEPRINT_DIR/foreign-archs.txt"
+    cmd apt-get update
+  fi
+  # replay only what THIS release can locate; a single unknown name makes `apt-get install` refuse the
+  # whole list (found by drill run 2), so split the BOM into available / missing and report the misses.
+  APT_AVAIL=""; APT_MISSING=""
+  while read -r pkg; do
+    [ -n "$pkg" ] || continue
+    if apt-cache show "$pkg" >/dev/null 2>&1; then APT_AVAIL="$APT_AVAIL $pkg"; else APT_MISSING="$APT_MISSING $pkg"; fi
+  done < "$BLUEPRINT_DIR/apt-packages.txt"
+  say "replaying $(echo $APT_AVAIL | wc -w) of $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages (captured apt-mark showmanual)"
+  [ -n "$APT_MISSING" ] && say "WARN: not available on this release, skipped:$APT_MISSING"
+  [ -n "$APT_AVAIL" ] && cmd_sh "apt-get install -y$APT_AVAIL"
+else
+  say "WARN: no state/contabo-blueprint-<date>/apt-packages.txt after the clone — only step 1's base packages are installed"
+fi
+# 2b. every other HQ repo that lives on this box: hq.yaml rows with `repo:` and a `machines.contabo`
+# path (2026-09-24: Projects/MoonieX/{ClaudeFlow,Console,AlphaTrader,Option,LineAutomation},
+# Projects/LungNote/Mcp). Agents/Rules + Wikis are rsync snapshots (above); Core + Memory are already
+# cloned. A contabo path string may carry a note in parentheses — its first token is the path. Found
+# missing by the first container drill (hq.py doctor listed every Projects/* row as absent).
+if [ -f "$HQ_ROOT/hq.yaml" ] && python3 -c 'import yaml' 2>/dev/null; then
+  HQ_REPO_LIST=$(python3 - "$HQ_ROOT/hq.yaml" <<'PY'
+import sys, yaml
+d = yaml.safe_load(open(sys.argv[1]))
+for r in d.get("folders") or []:
+    m = r.get("machines") or {}
+    raw = str(m.get("contabo") or "")
+    p = raw.split()[0] if raw else ""
+    if r.get("repo") and p and "snapshot" not in raw and r["path"] not in ("Agents/Core", "Agents/Memory", "Agents/Rules", "Agents/Wikis"):
+        print(r["repo"], p)
+PY
+)
+  while read -r repo dest; do
+    [ -n "$repo" ] || continue
+    if [ -d "$dest/.git" ]; then
+      say "$dest already a git checkout — skip clone (idempotent)"
+    elif [ -n "${RESTORE_GIT_BASE:-}" ] && [ -d "$RESTORE_GIT_BASE" ] && [ ! -d "${RESTORE_GIT_BASE}${repo##*/}.git" ]; then
+      say "rehearsal: no local mirror for $repo — skipped ($dest)"
+    else
+      cmd git clone "${GIT_BASE}${repo##*/}.git" "$dest"
+    fi
+  done <<< "$HQ_REPO_LIST"
+  say "each deployed project's .env comes from the secrets bundle (step 8), never from git"
+else
+  say "WARN: hq.yaml or python3-yaml missing — the Projects/* repos of this box were not cloned (hq.yaml rows with a contabo path)"
+fi
 
 # ==================================== 3/9 — Python venv, Node 22, npm globals
 hdr "Python venv, Node 22, npm globals"
@@ -156,7 +214,10 @@ fi
 
 if [ -n "$BLUEPRINT_DIR" ] && [ -f "$BLUEPRINT_DIR/pip-freeze-idm-venv.txt" ]; then
   cmd python3 -m venv /root/idm-venv
-  cmd /root/idm-venv/bin/pip install -r "$BLUEPRINT_DIR/pip-freeze-idm-venv.txt"
+  # torch==x.y.z+cpu (and friends) only exist on PyTorch's own index; pip on PyPI alone fails the whole
+  # file (drill run 2). numpy/torch pins are also python-version-bound: same release as the capture.
+  IDM_EXTRA=""; grep -q "+cpu" "$BLUEPRINT_DIR/pip-freeze-idm-venv.txt" && IDM_EXTRA=" --extra-index-url https://download.pytorch.org/whl/cpu"
+  cmd_sh "/root/idm-venv/bin/pip install -r '$BLUEPRINT_DIR/pip-freeze-idm-venv.txt'$IDM_EXTRA"
 else
   say "no pip-freeze-idm-venv.txt in the latest blueprint — /root/idm-venv skipped (brief: only if that file exists)"
 fi
@@ -298,7 +359,10 @@ human "fetch the bundle from another machine's Archive/ at 0600 — e.g. <mac-or
 # ====================================================== 9/9 — verify
 hdr "verify: machine_doctor, hq.py doctor, unit-files, PASS/FAIL + drill template"
 cmd "$CORE/.venv/bin/python3" "$CORE/tools/machine_doctor.py" --machine contabo check
-cmd "$CORE/.venv/bin/python3" "$HQ_ROOT/scripts/hq.py" doctor
+# hq.py doctor is written against the Mac's `current:` paths (44 findings on the LIVE Contabo box on
+# 2026-09-24, so a fresh one can only match that) — here it is information, never the gate.
+say "\$ $CORE/.venv/bin/python3 $HQ_ROOT/scripts/hq.py doctor   (informational on Contabo: the map is Mac-centric)"
+if [ "$DRY_RUN" -eq 0 ]; then "$CORE/.venv/bin/python3" "$HQ_ROOT/scripts/hq.py" doctor 2>&1 | tail -2 | sed 's/^/      /'; fi
 cmd systemctl list-unit-files "mooniex-*"
 
 if [ "$PASS" -eq 1 ]; then

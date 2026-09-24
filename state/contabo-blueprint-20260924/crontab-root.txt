@@ -1,3 +1,10 @@
 37 4,10,16,22 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null
 # cookierun teacher loop (cto-6ebacd0e, CEO go 2026-09-23): 05:30 Bangkok daily. Repoint when Agents/Core moves to /opt/MoonieXHQ.
 # PAUSED 2026-09-24 (CEO: "พัก Cookie run ก่อน") 30 22 * * * cd /opt/MoonieXHQ/Agents/Core && PATH=/usr/local/bin:/usr/bin:/bin HOME=/root timeout 1800 python3 tools/cookierun_teachers.py daily >> state/cookierun_teachers/daily.log 2>&1
+# machine contract weekly doctor (ADR 0031, cto-6ebacd0e 2026-09-24)
+0 4 * * 1 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/machine_doctor.py --machine contabo check >> state/machine-doctor.log 2>&1
+# Machine Contract Drive leg (ADR 0031, docs/ops/machine-contract-drive-leg.md) — installed 2026-09-24 by cto-6ebacd0e; staggered so only one relay stream runs at a time (UTC)
+30 2 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py docker-volumes >> state/drive-leg.log 2>&1
+0 3 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py uploads >> state/drive-leg.log 2>&1
+30 3 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py transcripts >> state/drive-leg.log 2>&1
+15 2 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py state-db >> state/drive-leg.log 2>&1

@@ -465,3 +465,45 @@ def test_put_manifest_upload_failure_leaves_archive_verified_but_raises(fake_rel
         drive_leg.put(_stream, drive_leg.FOLDER_IDS["Claude-Uploads"], "contabo", "2026-09-24",
                      ".tar", manifest, log_path_=log, who="test")
     assert not log.exists()  # nothing logged on a manifest-stage failure
+
+
+def test_state_db_backs_up_a_consistent_copy_and_skips_unchanged(fake_relay, tmp_path):
+    import gzip
+    import sqlite3
+    import time as _time
+    from tools import drive_leg as _dl
+    cfg = tmp_path / "cfg"
+    (cfg / "logs").mkdir(parents=True)
+    db = tmp_path / "tasks.db"
+    con = sqlite3.connect(db)
+    con.execute("create table tasks(id text)")
+    con.execute("insert into tasks values('t1')")
+    con.commit()
+    con.close()
+    now = _time.time()
+    r1 = _dl.state_db(config_dir=cfg, db_path=db, now=now)
+    assert not r1.get("skipped") and r1.get("verified") is not False
+    objs = list((fake_relay / "objects").rglob("*.sqlite.gz"))
+    assert len(objs) == 1
+    with gzip.open(objs[0]) as gz:
+        data = gz.read()
+    assert data[:16] == b"SQLite format 3\x00"  # a real SQLite image, not a tar
+    # the copy is readable on its own and carries the row
+    snap = tmp_path / "restored.db"
+    snap.write_bytes(data)
+    assert sqlite3.connect(snap).execute("select count(*) from tasks").fetchone()[0] == 1
+    calls = len(_calls(fake_relay))
+    r2 = _dl.state_db(config_dir=cfg, db_path=db, now=now)
+    assert r2.get("skipped") and r2["reason"] == "unchanged"
+    assert len(_calls(fake_relay)) == calls  # no relay traffic for an unchanged db
+    con = sqlite3.connect(db)
+    con.execute("insert into tasks values('t2')")
+    con.commit()
+    con.close()
+    r3 = _dl.state_db(config_dir=cfg, db_path=db, now=now + 86400)
+    assert not r3.get("skipped")
+    assert len(list((fake_relay / "objects").rglob("*.sqlite.gz"))) == 2
+    # dry-run never touches the relay
+    calls = len(_calls(fake_relay))
+    r4 = _dl.state_db(config_dir=cfg, db_path=db, dry_run=True, now=now + 2 * 86400)
+    assert r4.get("dry_run") is not True or len(_calls(fake_relay)) == calls

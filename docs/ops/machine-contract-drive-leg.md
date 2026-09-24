@@ -117,7 +117,7 @@ inside that tar.
 `uploads()` and `docker_volumes()` contain no delete calls at all, matching their "Never
 deletes" verb descriptions in the brief.
 
-## Contabo cron lines (INSTALLED 2026-09-24 by the CTO, staggered: docker-volumes Sun 02:30, uploads 03:00, transcripts 03:30 UTC — one relay stream at a time)
+## Contabo cron lines (INSTALLED 2026-09-24 by the CTO, staggered: state-db Sun 02:15, docker-volumes 02:30, uploads 03:00, transcripts 03:30 UTC — one relay stream at a time)
 
 Modeled on `docs/ops/machine-contract-schedules.md`'s existing `machine_doctor.py` cron line
 (same `.venv`, same log-redirection convention). All times UTC (Contabo's crontab convention).
@@ -173,3 +173,13 @@ and real `state/` dir, printed real counts (e.g. `blueprints` found the two real
 `contabo-blueprint-20260924` / `winbox-blueprint-20260924` dirs; `uploads` found the real 14
 files under `~/.claude/uploads`), exited 0, and — confirmed by `find /root/.claude
 -newermt '...'` before/after — wrote nothing and deleted nothing.
+
+## Verb 6: `state-db` (added 2026-09-24, CEO-approved folder `BACKUP/MoonieX HQ/State-DB/`)
+
+`state/tasks.db` is this box's org task ledger (SQLite, gitignored — the Postgres hub `org-pgdata` is
+still empty). `tools/drive_leg.py state-db [--db PATH] [--dry-run]` takes a consistent copy with
+sqlite3's online backup API (never `cp` of a live database), gzips it into
+`State-DB/contabo/tasks-<date>.sqlite.gz` + manifest through `put()`, and skips when the copy's sha256
+equals the previous run's (`$CLAUDE_CONFIG_DIR/logs/state-db-archive-index.jsonl`). Never deletes.
+Cron: `15 2 * * 0 … tools/drive_leg.py state-db`. First object 2026-09-24: id `1f-mR9YmHoDpm0zmHRc7sExoARJRJh-i3`
+(51,037 B gz of 229,376 B, md5 verified). Restore: download, gunzip, stop the org daemon, move into place.

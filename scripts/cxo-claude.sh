@@ -84,6 +84,17 @@ ROLE_PROMPT="$(cat "$ROLE_DOC")"
 # path and so broke on Contabo (ROOT=/opt/mooniex-agents) — the same bug
 # cto-claude.sh already worked around. Shared generator keeps the two
 # launchers from drifting.
+# lungnote-mcp needs Node's native WebSocket (added in 22) for
+# @supabase/realtime-js; Contabo's system `node` is 20, hence the dedicated
+# /opt/node-v22 build mooniex-console already uses. Mac's system node is 26+,
+# so this is a no-op there. See scripts/lib/cxo_mcp_config.py.
+if [ -z "${LUNGNOTE_MCP_NODE:-}" ] && [ -x /opt/node-v22/bin/node ]; then
+  export LUNGNOTE_MCP_NODE=/opt/node-v22/bin/node
+fi
+# (this block used to sit ~300 lines lower, AFTER the MCP config was generated — so every Contabo
+# session got `node` (v20, no WebSocket) for lungnote and the server died at boot: CONNECTION_CLOSED
+# on 2026-09-22/24 sessions. Exports must precede cxo_mcp_config.py. Fixed 2026-09-24.)
+
 MCP_CONFIG="$(mktemp "${TMPDIR:-/tmp}/cxo-mcp-XXXXXX")"
 mv "$MCP_CONFIG" "$MCP_CONFIG.json"
 MCP_CONFIG="$MCP_CONFIG.json"
@@ -373,13 +384,6 @@ if [ -z "${WIKI_ROOT_MOONIEX:-}" ]; then
   done
 fi
 
-# lungnote-mcp needs Node's native WebSocket (added in 22) for
-# @supabase/realtime-js; Contabo's system `node` is 20, hence the dedicated
-# /opt/node-v22 build mooniex-console already uses. Mac's system node is 26+,
-# so this is a no-op there. See scripts/lib/cxo_mcp_config.py.
-if [ -z "${LUNGNOTE_MCP_NODE:-}" ] && [ -x /opt/node-v22/bin/node ]; then
-  export LUNGNOTE_MCP_NODE=/opt/node-v22/bin/node
-fi
 
 # Title keeper: re-assert the saved title every 60s while this session
 # lives — survives zsh precmd resets + claude CLI title rewrites.

@@ -118,3 +118,24 @@ machine's own report). Both restore scripts print this template, pre-filled with
 `machine_doctor.py check` exits 0. Cadence: one real drill per quarter, rotating
 Mac → winbox → Contabo; Contabo's drill always uses a disposable VPS/VM, never the live box
 (ADR 0031).
+
+## Contabo — rehearsal in a throwaway container (the "VM" drill, ADR 0031 §6)
+
+The live box is never the drill target. A `debian:12` container on the same host stands in for a fresh VPS:
+
+```bash
+# bare mirrors of the three repos (so the container needs no GitHub key)
+for pair in "/opt/MoonieXHQ:MoonieX-HQ" "/opt/MoonieXHQ/Agents/Core:Agents-Core" "/opt/MoonieXHQ/Agents/Memory:Agents-Memory"; do
+  git clone -q --mirror "${pair%%:*}" "/tmp/hqmirror/${pair##*:}.git"; done
+docker run --rm -v /tmp/hqmirror:/hqmirror:ro -v "$PWD/scripts/contabo_restore.sh:/restore.sh:ro" \
+  -e RESTORE_GIT_BASE=/hqmirror/ -e HQ_ROOT=/opt/MoonieXHQ -e DEBIAN_FRONTEND=noninteractive debian:12 \
+  bash -c 'apt-get update -qq && apt-get install -y -qq git curl ca-certificates python3 python3-venv python3-pip procps; bash /restore.sh < /dev/null'
+```
+
+What a container cannot prove (they FAIL by design and are scored as host/HUMAN steps): `tailscale up`
+(no tailscaled), `systemctl daemon-reload/enable` (no systemd), `docker compose pull/build` (no daemon),
+the `claude` login and folder trust. Everything else — apt BOM, clones, venvs, Node, unit-file copy,
+crontab review, claude-home symlinks, doctor/hq.py checks — runs for real and is timed. Score it like any
+drill: minutes to org restore, bytes from git vs Drive, human steps, gaps → `state/re-os-drills.jsonl`.
+Run 1 on 2026-09-24 found that `BLUEPRINT_DIR` was resolved before the clone that carries it (fixed the
+same day) — the reason the drill exists.

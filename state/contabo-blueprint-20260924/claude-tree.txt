@@ -1,6 +1,10 @@
 d 4096 /root/.claude
 d 4096 /root/.claude/logs
-f 1307 /root/.claude/logs/drive-archive.log
+f 605 /root/.claude/logs/blueprint-archive-index.jsonl
+f 293 /root/.claude/logs/uploads-archive-index.jsonl
+f 1706584 /root/.claude/logs/transcript-archive-index.jsonl
+f 301 /root/.claude/logs/state-db-archive-index.jsonl
+f 12923 /root/.claude/logs/drive-archive.log
 d 4096 /root/.claude/session-data
 f 8367 /root/.claude/session-data/2026-09-10-c5bdcad2-session.tmp
 d 4096 /root/.claude/shell-snapshots
@@ -10,7 +14,7 @@ f 4045 /root/.claude/shell-snapshots/snapshot-bash-1790106250908-z4nzh8.sh
 f 4045 /root/.claude/shell-snapshots/snapshot-bash-1790106513887-g2tmwz.sh
 f 161 /root/.claude/.last-update-result.json
 d 4096 /root/.claude/state
-f 301 /root/.claude/state/mcp-discover-verdicts.json
+f 201 /root/.claude/state/mcp-discover-verdicts.json
 d 4096 /root/.claude/skills
 d 4096 /root/.claude/skills/synced
 d 4096 /root/.claude/plugins
@@ -33,11 +37,11 @@ f 141 /root/.claude/sessions/2282732.4d27905b10194e41553839f5924eb8170c2ada6f4f4
 f 141 /root/.claude/sessions/2278267.85917acde0ed0cc0cec2a952e0bcf5a76244331b7e3c11344e0a145b78fcc063.key
 f 1112 /root/.claude/sessions/2282732.json
 d 4096 /root/.claude/backups
-f 65677 /root/.claude/backups/.claude.json.backup.1790240613031
-f 65677 /root/.claude/backups/.claude.json.backup.1790240469314
-f 65677 /root/.claude/backups/.claude.json.backup.1790242768092
-f 65677 /root/.claude/backups/.claude.json.backup.1790241441218
-f 65677 /root/.claude/backups/.claude.json.backup.1790242598130
+f 65775 /root/.claude/backups/.claude.json.backup.1790260914051
+f 65775 /root/.claude/backups/.claude.json.backup.1790258875225
+f 65775 /root/.claude/backups/.claude.json.backup.1790261434643
+f 65677 /root/.claude/backups/.claude.json.backup.1790256784989
+f 65775 /root/.claude/backups/.claude.json.backup.1790257508670
 d 4096 /root/.claude/session-env
 d 4096 /root/.claude/session-env/d75e9a8d-e44f-4474-8112-cd656ebacd0e
 d 4096 /root/.claude/session-env/e819fde6-36f8-4308-8818-aa716ebacd0e

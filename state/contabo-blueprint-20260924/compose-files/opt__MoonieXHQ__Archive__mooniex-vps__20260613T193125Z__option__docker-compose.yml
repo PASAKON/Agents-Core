@@ -1,0 +1,51 @@
+services:
+  receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile.receiver
+    container_name: mooniex-option-receiver
+    restart: unless-stopped
+    env_file: .env
+    expose:
+      - "4001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  listener:
+    build:
+      context: .
+      dockerfile: Dockerfile.listener
+    container_name: mooniex-option-listener
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      receiver:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  channel:
+    build:
+      context: .
+      dockerfile: Dockerfile.channel
+    container_name: mooniex-option-channel
+    restart: unless-stopped
+    env_file: .env
+    stop_grace_period: 15s   # wait for gramjs to disconnect cleanly before killing
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

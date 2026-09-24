@@ -1,0 +1,43 @@
+# Two read-only JSON servers behind the existing traefik, same shape as
+# /opt/claude-usage-monitor/serve. One container per file so a broken feed can
+# never take the other endpoint down. USAGE_TOKEN comes from ./.env.
+services:
+  agy-usage-serve:
+    image: python:3.12-alpine
+    container_name: agy-usage-serve
+    restart: always
+    command: ["python", "/srv/serve.py"]
+    environment:
+      - USAGE_TOKEN=<redacted>
+      - USAGE_FILE=/srv/agy-usage.json
+    volumes:
+      - /opt/usage:/srv:ro
+    networks: [n8n_default]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.agy-usage.rule=Host(`webhook.mooniex.com`) && PathPrefix(`/agy-usage`)"
+      - "traefik.http.routers.agy-usage.entrypoints=websecure"
+      - "traefik.http.routers.agy-usage.tls=true"
+      - "traefik.http.routers.agy-usage.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.agy-usage.loadbalancer.server.port=8088"
+  codex-usage-serve:
+    image: python:3.12-alpine
+    container_name: codex-usage-serve
+    restart: always
+    command: ["python", "/srv/serve.py"]
+    environment:
+      - USAGE_TOKEN=<redacted>
+      - USAGE_FILE=/srv/codex-usage.json
+    volumes:
+      - /opt/usage:/srv:ro
+    networks: [n8n_default]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.codex-usage.rule=Host(`webhook.mooniex.com`) && PathPrefix(`/codex-usage`)"
+      - "traefik.http.routers.codex-usage.entrypoints=websecure"
+      - "traefik.http.routers.codex-usage.tls=true"
+      - "traefik.http.routers.codex-usage.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.codex-usage.loadbalancer.server.port=8088"
+networks:
+  n8n_default:
+    external: true
