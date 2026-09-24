@@ -1,0 +1,90 @@
+[
+  {
+    "tag": "HOOK-1",
+    "t0": 0.18,
+    "t1": 2.64,
+    "mode": "COMP",
+    "extra": {
+      "img": "real/wikifx-profile-score.png",
+      "box": [60, 415, 640, 350],
+      "cap": "ใครใช้โบรกนี้อยู่ รีบเข้าเว็บไปเช็กด่วนเลย"
+    }
+  },
+  {
+    "tag": "HOOK-2",
+    "t0": 3.08,
+    "t1": 5.54,
+    "mode": "FF",
+    "extra": {
+      "cap": "ตอนนี้แม่งปิดเว็บ เข้าไม่ได้แล้ว"
+    }
+  },
+  {
+    "tag": "HOOK-3",
+    "t0": 5.54,
+    "t1": 7.38,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/xxlmarkets-direct-visit-error.png",
+      "box": [90, 485, 900, 410],
+      "cap": "นี่คือหลักฐานตอนที่กูพยายามเข้าเว็บ"
+    }
+  },
+  {
+    "tag": "HOOK-4",
+    "t0": 7.82,
+    "t1": 10.86,
+    "mode": "EVID",
+    "extra": {
+      "img": "third-party/wikifx-xxlmarkets-review.jpg",
+      "native_h": 1350,
+      "box": [80, 230, 900, 180],
+      "cap": "โบรกตัวนี้ชื่อ XXLMARKETS มึงดูภาพเอาเอง",
+      "credit": "ขอบคุณภาพจาก WikiFX"
+    }
+  },
+  {
+    "tag": "PATTERN-1",
+    "t0": 11.4,
+    "t1": 17.86,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/wikifx-profile-website-inaccessible.png",
+      "box": [60, 790, 906, 295],
+      "cap": "เป็นโบรกฟอเร็กซ์ ที่ WikiFX บอกว่าเปิดที่อังกฤษตั้งแต่ปีสองพันยี่สิบเอ็ด ให้เทรดทั้งค่าเงิน หุ้น และสินค้า"
+    }
+  },
+  {
+    "tag": "PATTERN-2",
+    "t0": 18.48,
+    "t1": 22.42,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/xxlmarkets-direct-visit-error.png",
+      "box": [90, 485, 900, 410],
+      "cap": "กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆ หน้าเว็บขึ้นว่าเข้าไม่ได้"
+    }
+  },
+  {
+    "tag": "PATTERN-3",
+    "t0": 22.8,
+    "t1": 27.78,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/xxlmarkets-www-visit-error.png",
+      "box": [90, 485, 900, 410],
+      "cap": "ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง"
+    }
+  },
+  {
+    "tag": "PATTERN-4",
+    "t0": 28.26,
+    "t1": 30.78,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/xxlmarkets-www-visit-error.png",
+      "box": [90, 485, 900, 410],
+      "cap": "ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้"
+    }
+  }
+]
