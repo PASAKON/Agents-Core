@@ -638,3 +638,32 @@ def test_emit_pieces_rejects_check_mode(generator_dir):
     beats = [{"tag": "X", "t0": 0.0, "t1": 1.0, "mode": "CHECK", "extra": {}}]
     with pytest.raises(bc.ComposeError):
         bc.emit_pieces(beats, t_max=5.0, funcs=funcs)
+
+
+def test_redact_ground_truth_blanks_beats_but_keeps_functions(generator_dir):
+    # task-9ba58d91's own REPORT.md: an Arm-A editor has to open build_cut.py
+    # to understand img_placement/box_to_canvas, and the branch's copy still
+    # carries this exact window's real human-editor answer as a hardcoded
+    # BEATS list right there -- ground-truth contamination. Verify the
+    # redaction actually blanks it while every function load_generator_
+    # functions() needs still loads clean from the redacted source.
+    from tools.bl_ab_run import _redact_ground_truth
+
+    src = (generator_dir / "build_cut.py").read_text(encoding="utf-8")
+    src_with_answer = src.replace(
+        "PLATE_TRACK = 0",
+        'BEATS = [("HOOK-1", 0.0, 1.0, "EVID", dict(img="real/secret.png"))]\n'
+        'CHECK_ITEMS = [dict(t0=1.0, t1=2.0, x="secret checklist item")]\n'
+        "PLATE_TRACK = 0",
+    )
+    redacted = _redact_ground_truth(src_with_answer)
+
+    assert "real/secret.png" not in redacted
+    assert "secret checklist item" not in redacted
+    assert "BEATS = []" in redacted
+    assert "CHECK_ITEMS = []" in redacted
+
+    (generator_dir / "build_cut.py").write_text(redacted, encoding="utf-8")
+    funcs = bc.load_generator_functions(generator_dir)
+    assert funcs["pick_lip"](0.0) == "lip_a"
+    assert funcs["img_placement"]({}) == (1080, 1920, 0, 0, 1.0)
