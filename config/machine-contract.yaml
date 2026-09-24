@@ -72,9 +72,11 @@ entries:
 
   # ── Contabo (VPS vmi3371421) ──
   - {machine: contabo, path: "/var/lib/docker/volumes/n8n_data/_data",    class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
-     restore: "n8n workflows + credentials + executions — weekly tar → Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/n8n_data/<date>.tar; restore: docker volume create n8n_data && tar xf into it"}
+     restore: "n8n workflows + credentials + executions — weekly `tools/drive_leg.py docker-volumes` (cron Sun 02:30 UTC) → Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/n8n_data/<date>.tar (first copy 2026-09-24, 1.55 GB, md5 verified); the volume's `config` file (encryptionKey) is EXCLUDED from Drive and lives in the secrets bundle; restore: docker volume create n8n_data && docker run --rm -i -v n8n_data:/data alpine sh -c 'cd /data && tar xf -' < <date>.tar, then put config back (0600, uid 1000)"}
   - {machine: contabo, path: "/var/lib/docker/volumes/org-pgdata/_data",  class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
-     restore: "org coordination DB — weekly pg_dump → Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/org-pgdata/<date>.sql.gz; restore with psql"}
+     restore: "org coordination Postgres (container org-postgres, superuser `org`, no `postgres` role) — weekly `pg_dumpall -U org | gzip` → Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/org-pgdata/<date>.sql.gz; restore: gunzip -c | docker exec -i org-postgres psql -U org -d org. As of 2026-09-24 the cluster is EMPTY (0 user tables in postgres/org/org_test — the tasks hub is not live yet; first dump 1.1 KB gz)"}
+  - {machine: contabo, path: "<hq>/Agents/Core/state/tasks.db",          class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "the org task ledger of THIS box (SQLite, gitignored, 224 KB / 22 tasks on 2026-09-24; the Mac holds its own). No Drive copy yet — proposed home BACKUP/MoonieX HQ/State-DB/<machine>/tasks-<date>.sqlite.gz (CEO approval pending, gdrive-filing rule 3); take copies with `sqlite3 state/tasks.db '.backup <file>'`, never by cp while the daemon runs"}
   - {machine: contabo, path: "/var/lib/docker/{image,overlay2,buildkit}/**", class: REBUILD,    owner: CTO, review: 2026-12-23, discovered: false,
      restore: "docker compose pull/build from the compose files in git; docker builder prune is always safe"}
   - {machine: contabo, path: "/etc/systemd/system/mooniex-*.service",     class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
