@@ -1,0 +1,334 @@
+#!/usr/bin/env python3
+"""BLACK LIQUIDITY Editor A/B/C -- repeatable runner (task-aae4f843).
+
+Encapsulates the mechanical steps of the CEO's 2026-09-25 experiment (an
+Editor that decides by eye vs a Scripter's beats.json routed through a
+blind Editor vs the same beats.json with no Editor at all) so re-running it
+-- on a new episode window, or to re-measure variance -- never again needs
+a model to figure out the steps. What still genuinely needs a model is the
+EDITORIAL work inside Arm A/B (spawned `video_editor` tasks) -- this script
+only automates spawning them, deploying their shared fixture, running
+Arm C directly, collecting results, and scoring.
+
+Subcommands:
+    fixture     build the local generator dir (build_cut.py/assemble.py
+                from the branch + the clean template + episode media) and
+                scp it to Contabo as the shared fixture all 3 arms use.
+    spawn-a     create + delegate the Arm A video_editor task (brief =
+                docs/ops/bl-ab-2026-09-25/arms/A/README.md verbatim).
+    spawn-b     same for Arm B.
+    push-tool   scp tools/bl_compose.py into a spawned worker's remote
+                worktree -- needed only while this tool is unmerged to main
+                (spoke worktrees branch from origin/main, not this branch).
+    collect     fetch a finished arm's branch (REPORT.md, beats.json,
+                render-meta.json, checker-result.json) and scp its mp4 +
+                Claude Code transcript back to $WORK_DIR/out/.
+    run-c       Arm C: compose + render + check directly over ssh on
+                Contabo, no worker, no fix loop.
+    score       run tools/bl_score.py against every collected arm's
+                beats.json and write docs/ops/bl-ab-2026-09-25/arms/scores.md.
+
+Usage:
+    python3 tools/bl_ab_run.py fixture --episode-work-dir ~/MoonieXHQ/Work/task-501f1d89
+    python3 tools/bl_ab_run.py spawn-a --owner-cto 91a17eb2
+    python3 tools/bl_ab_run.py push-tool --worktree <remote worktree path>
+    python3 tools/bl_ab_run.py collect --arm A --branch agent/video_editor-task-XXXX \\
+        --worktree <remote worktree path> --work-dir ~/MoonieXHQ/Work/task-XXXX
+    python3 tools/bl_ab_run.py run-c --work-dir ~/MoonieXHQ/Work/task-XXXX
+    python3 tools/bl_ab_run.py score --work-dir ~/MoonieXHQ/Work/task-XXXX
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+SSH_ALIAS = "mooniex-vps"
+CONTABO_FIXTURE_DIR = "/opt/MoonieXHQ/Work/bl-ab-ep57"
+SKILL_TEMPLATE = ROOT / ".claude" / "skills" / "blackliquidity-cut" / "template"
+GENERATOR_BRANCH = "origin/agent/video_editor-task-501f1d89"
+GENERATOR_BRANCH_PATH = "prototypes/bl57-cut"
+SCRIPT_TSV = ROOT / "prototypes" / "bl57-script" / "SCRIPT.tsv"
+JEV_PATH = "prototypes/bl-jev-scoreboard/ep57"
+T_MAX = 30.78
+SCRIPTER_BEATS = ROOT / "docs" / "ops" / "bl-ab-2026-09-25" / "beats.json"
+GROUND_TRUTH = ROOT / "docs" / "ops" / "bl-ab-2026-09-25" / "ground_truth_beats.json"
+ARMS_DIR = ROOT / "docs" / "ops" / "bl-ab-2026-09-25" / "arms"
+
+
+def sh(cmd: list[str], **kw) -> subprocess.CompletedProcess:
+    print("+", " ".join(str(c) for c in cmd))
+    return subprocess.run(cmd, check=True, **kw)
+
+
+def ssh_cmd(remote_cmd: str, **kw) -> subprocess.CompletedProcess:
+    return sh(["ssh", SSH_ALIAS, remote_cmd], **kw)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# fixture
+# ═══════════════════════════════════════════════════════════════════════
+
+def build_local_generator(stage_dir: Path, episode_work_dir: Path) -> Path:
+    """build_cut.py/assemble.py (branch, read-only) + the clean template
+    (already in this repo) + the episode media (this Mac's Work dir) ->
+    one local generator dir, ready to scp to any host."""
+    gen = stage_dir / "generator"
+    if gen.exists():
+        import shutil
+        shutil.rmtree(gen)
+    (gen / "media").mkdir(parents=True)
+
+    for name in ("build_cut.py", "assemble.py"):
+        out = gen / name
+        content = sh(["git", "show", f"{GENERATOR_BRANCH}:{GENERATOR_BRANCH_PATH}/{name}"],
+                     cwd=ROOT, capture_output=True, text=True).stdout
+        out.write_text(content, encoding="utf-8")
+
+    import shutil
+    for name in ("index.html", "hyperframes.json", "package.json"):
+        shutil.copy2(SKILL_TEMPLATE / name, gen / name)
+    shutil.copytree(SKILL_TEMPLATE / "assets", gen / "assets")
+
+    media = episode_work_dir / "tmp" / "cut" / "media"
+    shutil.copytree(media / "real", gen / "media" / "real")
+    shutil.copytree(media / "third-party", gen / "media" / "third-party")
+    shutil.copy2(media / "lip_a.mp4", gen / "media" / "lip_a.mp4")
+    (gen / "media" / "matte").mkdir()
+    shutil.copy2(media / "matte" / "lip_a-matte.webm", gen / "media" / "matte" / "lip_a-matte.webm")
+
+    ep57_in = episode_work_dir / "in" / "ep57"
+    sh(["ffmpeg", "-y", "-v", "error", "-i", str(ep57_in / "audio-hq.mp3"),
+        "-t", "31", "-c", "copy", str(gen / "media" / "voice.mp3")])
+    return gen
+
+
+def cmd_fixture(args: argparse.Namespace) -> int:
+    stage = Path(args.stage_dir).expanduser()
+    stage.mkdir(parents=True, exist_ok=True)
+    episode_work_dir = Path(args.episode_work_dir).expanduser()
+
+    build_local_generator(stage, episode_work_dir)
+    (stage / "SCRIPT.tsv").write_text(SCRIPT_TSV.read_text(encoding="utf-8"), encoding="utf-8")
+    for name in ("timings.tsv", "decisions.jsonl"):
+        content = sh(["git", "show", f"{GENERATOR_BRANCH}:{JEV_PATH}/{name}"],
+                     cwd=ROOT, capture_output=True, text=True).stdout
+        (stage / name).write_text(content, encoding="utf-8")
+    sh(["ffmpeg", "-y", "-v", "error", "-i", str(episode_work_dir / "in" / "ep57" / "audio-hq.mp3"),
+        "-t", "32", "-c", "copy", str(stage / "audio-hq.mp3")])
+
+    ssh_cmd(f"mkdir -p {CONTABO_FIXTURE_DIR}")
+    sh(["scp", "-rq", *(str(p) for p in stage.glob("*")), f"{SSH_ALIAS}:{CONTABO_FIXTURE_DIR}/"])
+    r = ssh_cmd(f"du -sh {CONTABO_FIXTURE_DIR}", capture_output=True, text=True)
+    print(r.stdout.strip())
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# spawn-a / spawn-b
+# ═══════════════════════════════════════════════════════════════════════
+
+def _brief_from_readme(arm: str) -> str:
+    text = (ARMS_DIR / arm / "README.md").read_text(encoding="utf-8")
+    return text.split("## Brief given to the worker\n\n", 1)[1]
+
+
+def _spawn_arm(arm: str, title: str, touches: list[str], owner_cto: str) -> str:
+    from lib import db
+    from tools.delegate import delegate_task
+    import asyncio
+
+    task_id = db.create_task(
+        project="mooniex-agents", role="video_editor", title=title,
+        description=_brief_from_readme(arm), touches=touches,
+        owner_cto=owner_cto, owner_role="cto", host="contabo",
+    )
+    result = asyncio.run(delegate_task(task_id, host="contabo"))
+    print(f"arm {arm}: task={task_id} status={result.get('status')} "
+          f"pid={result.get('pid')} tmux={result.get('tmux_session')} "
+          f"worktree={result.get('worktree')} branch={result.get('branch')}")
+    return task_id
+
+
+def cmd_spawn_a(args: argparse.Namespace) -> int:
+    _spawn_arm("A", "BL A/B/C Arm A -- cut EP57 0-30.78s by eye",
+              ["prototypes/bl-ab-ep57/A/"], args.owner_cto)
+    return 0
+
+
+def cmd_spawn_b(args: argparse.Namespace) -> int:
+    _spawn_arm("B", "BL A/B/C Arm B -- blind build from Scripter beats.json",
+              ["prototypes/bl-ab-ep57/B/"], args.owner_cto)
+    return 0
+
+
+def cmd_push_tool(args: argparse.Namespace) -> int:
+    sh(["scp", "-q", str(ROOT / "tools" / "bl_compose.py"),
+        f"{SSH_ALIAS}:{args.worktree}/tools/bl_compose.py"])
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# collect
+# ═══════════════════════════════════════════════════════════════════════
+
+def cmd_collect(args: argparse.Namespace) -> int:
+    arm = args.arm
+    out_dir = Path(args.work_dir).expanduser() / "out"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    arm_dir = out_dir / arm
+    arm_dir.mkdir(exist_ok=True)
+
+    sh(["git", "fetch", "origin", args.branch], cwd=ROOT)
+    for name in ("REPORT.md", f"prototypes/bl-ab-ep57/{arm}/beats.json",
+                 f"prototypes/bl-ab-ep57/{arm}/render-meta.json",
+                 f"prototypes/bl-ab-ep57/{arm}/checker-result.json"):
+        r = subprocess.run(["git", "show", f"origin/{args.branch}:{name}"],
+                           cwd=ROOT, capture_output=True, text=True)
+        if r.returncode == 0:
+            dest = arm_dir / Path(name).name
+            dest.write_text(r.stdout, encoding="utf-8")
+            print(f"collected {name} -> {dest}")
+        else:
+            print(f"not on branch (ok if not applicable): {name}")
+
+    remote_mp4 = f"{CONTABO_FIXTURE_DIR}/{arm}/final-{arm}.mp4"
+    sh(["scp", "-q", f"{SSH_ALIAS}:{remote_mp4}", str(arm_dir / f"final-{arm}.mp4")])
+
+    if args.worktree:
+        slug = args.worktree.strip("/").replace("/", "-")
+        r2 = ssh_cmd(f"ls -t /root/.claude/projects/-{slug}/*.jsonl 2>/dev/null | head -1",
+                    capture_output=True, text=True)
+        session_file = r2.stdout.strip() or None
+        if session_file:
+            sh(["scp", "-q", f"{SSH_ALIAS}:{session_file}", str(arm_dir / "transcript.jsonl")])
+        else:
+            print("no transcript found automatically -- scp it by hand if needed for scoring")
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# run-c (no worker)
+# ═══════════════════════════════════════════════════════════════════════
+
+def cmd_run_c(args: argparse.Namespace) -> int:
+    out_dir = Path(args.work_dir).expanduser() / "out" / "C"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    remote_c = f"{CONTABO_FIXTURE_DIR}/C"
+    ssh_cmd(f"mkdir -p {remote_c}")
+    ssh_cmd(f"cp {args.repo_path}/docs/ops/bl-ab-2026-09-25/beats.json {remote_c}/beats.json")
+    sh(["scp", "-q", str(ROOT / "tools" / "bl_compose.py"), f"{SSH_ALIAS}:{args.repo_path}/tools/bl_compose.py"])
+
+    ssh_cmd(
+        f"cd {args.repo_path} && python3 tools/bl_compose.py "
+        f"--beats {remote_c}/beats.json --generator-dir {CONTABO_FIXTURE_DIR}/generator "
+        f"--t-max {T_MAX} --audio {CONTABO_FIXTURE_DIR}/audio-hq.mp3 "
+        f"--out-dir {remote_c}/build --out {remote_c}/final-C.mp4"
+    )
+    ssh_cmd(
+        f"cd {args.repo_path} && python3 tools/bl_checker.py "
+        f"--video {remote_c}/final-C.mp4 --beats {remote_c}/beats.json "
+        f"--out {remote_c}/checker-result.json"
+    )
+    for name in ("beats.json", "checker-result.json", "final-C.mp4"):
+        sh(["scp", "-q", f"{SSH_ALIAS}:{remote_c}/{name}", str(out_dir / name)])
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# score
+# ═══════════════════════════════════════════════════════════════════════
+
+def cmd_score(args: argparse.Namespace) -> int:
+    from tools import bl_score
+
+    out_dir = Path(args.work_dir).expanduser() / "out"
+    truth = json.loads(GROUND_TRUTH.read_text(encoding="utf-8"))
+    (ARMS_DIR / "scores.md").parent.mkdir(parents=True, exist_ok=True)
+
+    sections = []
+    for arm in ("A", "B", "C"):
+        beats_path = out_dir / arm / "beats.json"
+        if not beats_path.is_file():
+            sections.append(f"## Arm {arm}\n\n(not collected -- run `collect`/`run-c` first)\n")
+            continue
+        beats = json.loads(beats_path.read_text(encoding="utf-8"))
+        result = bl_score.score(beats, truth)
+        usage = None
+        usage_path = out_dir / arm / "scripter_usage.json"
+        transcript_path = out_dir / arm / "transcript.jsonl"
+        if usage_path.is_file():
+            usage = json.loads(usage_path.read_text(encoding="utf-8"))
+        elif transcript_path.is_file():
+            from tools.bl_scripter import usage_from_transcript, _cost_from_token_dict
+            t = usage_from_transcript(transcript_path)
+            usage = {"backend": "claude-p", "turns": t["turns"], "tokens": t["tokens"],
+                     "cost_usd_api_equivalent": round(_cost_from_token_dict(t["tokens"]), 6)}
+        md = bl_score.render_markdown(result, usage)
+        checker_path = out_dir / arm / "checker-result.json"
+        if checker_path.is_file():
+            checker = json.loads(checker_path.read_text(encoding="utf-8"))
+            md += f"\n\n## Checker verdict\n\n```json\n{json.dumps(checker, indent=2, ensure_ascii=False)}\n```\n"
+        sections.append(f"## Arm {arm}\n\n{md}\n")
+
+    out_md = "# BL Editor A/B/C -- per-arm scores (task-aae4f843)\n\n" + "\n".join(sections)
+    (ARMS_DIR / "scores.md").write_text(out_md, encoding="utf-8")
+    print(f"wrote {ARMS_DIR / 'scores.md'}")
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+
+def build_arg_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("fixture")
+    p.add_argument("--stage-dir", default="~/MoonieXHQ/Work/bl-ab-fixture-stage")
+    p.add_argument("--episode-work-dir", required=True, help="e.g. ~/MoonieXHQ/Work/task-501f1d89")
+    p.set_defaults(func=cmd_fixture)
+
+    p = sub.add_parser("spawn-a")
+    p.add_argument("--owner-cto", required=True)
+    p.set_defaults(func=cmd_spawn_a)
+
+    p = sub.add_parser("spawn-b")
+    p.add_argument("--owner-cto", required=True)
+    p.set_defaults(func=cmd_spawn_b)
+
+    p = sub.add_parser("push-tool")
+    p.add_argument("--worktree", required=True, help="remote worktree path on Contabo")
+    p.set_defaults(func=cmd_push_tool)
+
+    p = sub.add_parser("collect")
+    p.add_argument("--arm", required=True, choices=["A", "B"])
+    p.add_argument("--branch", required=True)
+    p.add_argument("--worktree", default=None, help="remote worktree path, for transcript collection")
+    p.add_argument("--work-dir", required=True)
+    p.set_defaults(func=cmd_collect)
+
+    p = sub.add_parser("run-c")
+    p.add_argument("--work-dir", required=True)
+    p.add_argument("--repo-path", default="/opt/mooniex-agents", help="Contabo's main checkout path")
+    p.set_defaults(func=cmd_run_c)
+
+    p = sub.add_parser("score")
+    p.add_argument("--work-dir", required=True)
+    p.set_defaults(func=cmd_score)
+
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_arg_parser().parse_args(argv)
+    return args.func(args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
