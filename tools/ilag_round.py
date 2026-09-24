@@ -45,7 +45,7 @@ def md5(p: Path) -> str:
 
 def contact_sheet(items, title, out: Path):
     from PIL import Image, ImageDraw, ImageFont
-    cols, tw, th, pad, lab, head = 4, 720, 480, 16, 44, 70
+    cols, tw, th, pad, lab, head = 4, 720, 480, 16, 84, 70
     bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
     font, hfont = ImageFont.truetype(bold, 28), ImageFont.truetype(bold, 36)
     rows = -(-len(items) // cols)
@@ -57,7 +57,8 @@ def contact_sheet(items, title, out: Path):
         im = Image.open(p).convert("RGB")
         im.thumbnail((tw, th))
         sheet.paste(im, (x0 + (tw - im.width) // 2, y0 + (th - im.height) // 2))
-        dr.text((x0, y0 + th + 6), f"{i + 1}. {p.stem}  ({tag})", font=font, fill=(235, 235, 235))
+        dr.text((x0, y0 + th + 6), f"{i + 1}. {p.stem}", font=font, fill=(235, 235, 235))
+        dr.text((x0, y0 + th + 44), tag[:44], font=font, fill=(170, 175, 190))
     sheet.save(out, quality=85)
 
 
