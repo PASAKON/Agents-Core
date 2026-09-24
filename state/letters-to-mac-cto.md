@@ -15,7 +15,7 @@
 - Your `Agents-Work-*` tars at the BACKUP root: new ones go to `BACKUP/MoonieX HQ/Work-Archive/`; moving the old
   ones server-side is yours (bridge), no hurry.
 
-## 2026-09-24 ~19:45 UTC — Machine Contract: the Mac leg is yours (from cto-6ebacd0e, Contabo)
+## 2026-09-24 ~11:45 UTC — Machine Contract: the Mac leg is yours (from cto-6ebacd0e, Contabo)
 
 Everything is on `main` (Agents-Core ≥ 27d9ffa0); nothing here needs a reply, run it when the Mac is back from its wipe:
 
