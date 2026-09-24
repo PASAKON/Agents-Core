@@ -493,3 +493,99 @@ smoke test — `npx hyperframes --version` + a 5s 1080x1920 render):**
   installed/verified on the box; `config/hosts.yaml` lists `runners:
   [claude]` only, matching what winbox went through in two steps
   (task-adbc6f43 added codex/agy there well after Phase 1 shipped).
+
+## 7c. Both Phase 2 gaps fixed + smoke render proven (developer, task-378523bb,
+GH PASAKON/Agents-Core#180, 2026-09-25)
+
+**Gap 1 fixed — touches sidecar.** `tools/delegate.py::_spawn_remote`'s linux
+branch now renders the task's declared `touches` as a base64 JSON blob
+(`--task-meta-b64`, shape `{task_id, project, role, host, owner_cto,
+touches:[...]}` — no secret in it). `scripts/spawn-worker-remote.sh` decodes
+it into `<worktree>/.org-task.json` (mode 600, added to the worktree's own
+`info/exclude` alongside HEARTBEAT/MAILBOX.md — never committed).
+`hook-self-repo-guard.py` gained `load_touches_for(root, task_id)`, which
+prefers a task-id-matching sidecar over the tasks.db lookup and falls back
+to the unchanged `load_touches(db_path_for(root), task_id)` when no sidecar
+exists (the Mac path — behavior-identical to before). `.org-task.json` was
+added to `PROTECTED_EXACT` so a worker can't edit its own grant. Fixed
+`db_path_for`'s docstring, which still named the pre-migration
+`/opt/mooniex-agents` path.
+
+**The pre-merge bootstrap problem, twice.** `_ensure_remote_deploy_linux`
+(renamed from a single-file to a `_REMOTE_DEPLOY_FILES_LINUX` list) now
+scp's *two* files onto the spoke ahead of any merge, sha256-compared like
+before: `scripts/spawn-worker-remote.sh` (existing) and
+`scripts/hook-self-repo-guard.py` (new). The second one matters because a
+freshly `git worktree add`-ed worktree checks out whatever's on
+`origin/<base>` — which doesn't carry this fix until the PR merges — so
+`spawn-worker-remote.sh` itself now copies its own box's (just-deployed)
+`scripts/hook-self-repo-guard.py` into every worktree it creates, right
+after the worktree exists. Verified locally end-to-end against a fake git
+repo (clone + worktree add + fake tmux) before touching the real box: the
+sidecar decoded correctly (mode 600, correct JSON), the worktree's guard
+copy carried the "fixed" content rather than the stale committed one, and
+`launch.sh`'s generated PATH line was correct.
+
+**Gap 2 fixed — Node 22 for workers only.** Official Node 22 LTS Linux x64
+tarball (`v22.23.3`, sha256-verified against that release's
+`SHASUMS256.txt`) installed under
+`/opt/MoonieXHQ/Agents/Core/.tools/node/` (gitignored;
+`config/machine-contract.yaml` row added, class REBUILD, one-line rebuild
+command). `spawn-worker-remote.sh`'s generated `launch.sh` prepends
+`<agents_root>/.tools/node/bin` onto `PATH` only when that directory
+exists. Confirmed after install: inside `.tools/node/bin/node --version` →
+`v22.23.3`; system `node --version` (still `/usr/bin/node`, unchanged) →
+`v20.20.2` — host services (usage feeds, login relay) untouched. An
+unrelated, untracked `/opt/node-v22` (v22.11.0) was found already present
+on the box during this task (`config/machine-contract.yaml`'s existing
+glob row for `.venv`/`idm-venv` mentions it) — left alone, not reused, per
+the task's explicit path instruction; flagged here so whoever owns it
+knows a second Node 22 exists.
+
+**Stale smoke worker cleaned up.** task-43b6514d's tmux session
+(`mooniex-task-43b6514d`, pid 3251641) killed over ssh, its worktree
+removed with `git worktree remove --force` on Contabo, then closed via
+`lib.db.update_status(..., actor="developer-task-378523bb", delegate_log=
+"superseded by task-c1645fe5")` — `close_dev`/`close_remote` exist but both
+refuse `blocked_human` by design (awaiting a human decision), so neither
+was the right tool here; `update_status` (never raw sqlite) is the org
+path for this case.
+
+**PROOF — smoke render on the real box, task-c1645fe5** (spawned via a
+direct `delegate.delegate_task(host="contabo")` call from this task's own
+worktree against the production hub db, same pattern task-a5c0549d used;
+dry-run first, then real — deploy log confirmed both files scp'd fresh).
+REPORT.md pulled from `origin/agent/developer-task-c1645fe5` (`git fetch` +
+`git show <branch>:REPORT.md`, pushed by the worker itself; task closed
+`done` directly per CTO instruction since the branch poller is off):
+
+- `npx hyperframes@0.8.40 --version` → `0.8.40`.
+- Composition: `prototypes/contabo-smoke/` — a minimal 5s 1080x1920
+  HyperFrames composition, one moving text block (GSAP `y:400→-400`,
+  opacity `0→1`). `lint`/`check` both fully green.
+- Render: `npx hyperframes@0.8.40 render` — **exit 0, 150/150 frames**,
+  ffprobe-verified output (h264, 1080x1920, 30/1 fps, `duration=5.000000s`).
+- **Wall seconds:** 25.5s for the render pipeline alone (compile → capture
+  → assemble, as the CLI itself reports); **40.72s** for the full command
+  including a one-time ~114MB chrome-headless-shell download (first
+  successful render on this box, nothing cached yet).
+- **Frames/second:** capture-phase only, 150 / 23.648s = **6.34 fps**;
+  whole pipeline (excludes the Chrome download), 150 / 25.5s ≈ **5.88
+  fps**. Capture ran in `screenshot` mode (software GL — no browser GPU on
+  this box), not the faster BeginFrame path; expected on a headless VPS,
+  not a defect.
+- **`free -m`, sampled every 2s through the render:** peak `used` 3598MB of
+  7941MB total (`available` never dropped below ~4.3GB); swap `used` held
+  flat at 19MB throughout — no swap pressure, no low-memory fallback
+  triggered (that only forces below the box's ~8GB boundary).
+- One real dependency gap found and fixed along the way: `unzip` was
+  missing on this box, so the CLI's first-run chrome-headless-shell
+  download couldn't be extracted (`no zip archiver is available`) and the
+  first render attempt failed before the fix (`apt-get install -y unzip`,
+  ~174KB, reversible). Worth baking into the box's base provisioning
+  rather than being a per-session discovery — flagged in the smoke task's
+  own skill-learning section (`hyperframes-cli`, missing prereq check).
+
+**Both Phase 2 gaps from §7b are now closed.** The `mooniex-agents`
+project's own repo can be worked on from a Contabo-spawned DEV, and a
+HyperFrames render runs there end-to-end with real numbers on record.

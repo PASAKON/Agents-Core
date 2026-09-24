@@ -8,6 +8,7 @@ the CTO chat. The CTO blocks on a DB poll until the DEV calls the
 from __future__ import annotations
 
 import asyncio
+import base64
 import hashlib
 import json
 import os
@@ -1042,19 +1043,29 @@ def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
     return actions
 
 
-# Linux/Contabo deploy (Phase 2, task-a5c0549d). Separate from
-# _ensure_remote_deploy/_remote_sha256 above (which stay windows-only and
-# untouched) rather than branching those on os= -- keeps the winbox path
-# byte-identical with zero risk, and the linux side is genuinely simpler:
-# only ONE file needs pushing ahead of a merge (scripts/spawn-worker-remote.sh
-# itself). Role docs (roles/_worker_shared.md, roles/_worker_remote.md,
-# roles/<role>.md) are NOT deployed here — unlike winbox's dedicated
-# non-git deploy folder, Contabo's agents_root IS a live git checkout of
-# this same repo (two CTO sessions run out of it today), so the launcher
-# script reads those files directly from its own already-cloned location
-# instead of a second copy that could drift or dirty that checkout's
-# working tree.
-_REMOTE_DEPLOY_FILE_LINUX = ("scripts/spawn-worker-remote.sh", "scripts/spawn-worker-remote.sh")
+# Linux/Contabo deploy (Phase 2, task-a5c0549d; extended task-378523bb).
+# Separate from _ensure_remote_deploy/_remote_sha256 above (which stay
+# windows-only and untouched) rather than branching those on os= -- keeps
+# the winbox path byte-identical with zero risk. Role docs
+# (roles/_worker_shared.md, roles/_worker_remote.md, roles/<role>.md) are
+# NOT deployed here — unlike winbox's dedicated non-git deploy folder,
+# Contabo's agents_root IS a live git checkout of this same repo (two CTO
+# sessions run out of it today), so the launcher script reads those files
+# directly from its own already-cloned location instead of a second copy
+# that could drift or dirty that checkout's working tree.
+#
+# scripts/hook-self-repo-guard.py (task-378523bb, GH #180) rides the same
+# pre-merge bootstrap mechanism as spawn-worker-remote.sh itself: the guard
+# script a freshly spawned worktree runs comes from whatever's checked out
+# at `origin/<base>` at `git worktree add` time, which won't carry this
+# fix until the PR that adds it is merged. spawn-worker-remote.sh copies
+# this deployed copy into every worktree it creates (see its own step 2),
+# so the sidecar-aware guard is live on a spoke before the merge that would
+# otherwise be the only way to get it there.
+_REMOTE_DEPLOY_FILES_LINUX = (
+    ("scripts/spawn-worker-remote.sh", "scripts/spawn-worker-remote.sh"),
+    ("scripts/hook-self-repo-guard.py", "scripts/hook-self-repo-guard.py"),
+)
 
 
 def _remote_sha256_posix(ssh_alias: str, remote_path: str) -> str | None:
@@ -1082,38 +1093,42 @@ def _remote_sha256_posix(ssh_alias: str, remote_path: str) -> str | None:
 
 
 def _ensure_remote_deploy_linux(host_cfg: dict, *, dry_run: bool = False) -> list[str]:
-    """scp scripts/spawn-worker-remote.sh onto a Linux spoke, only when
+    """scp each of _REMOTE_DEPLOY_FILES_LINUX onto a Linux spoke, only when
     missing or changed (sha256 compare) — the pre-merge bootstrap problem:
-    this task's own script can't reach Contabo through `git pull` until the
-    PR that adds it is merged to main. Once merged, a `git pull` on the box
-    picks it up as a normal tracked file and this becomes a permanent no-op."""
+    a task's own script/hook edits can't reach Contabo through `git pull`
+    until the PR that adds them is merged to main. Once merged, a `git pull`
+    on the box picks each up as a normal tracked file and this becomes a
+    permanent no-op (still sha256-compared, but nothing left to copy)."""
     ssh_alias = host_cfg["ssh"]
     agents_root = host_cfg["agents_root"]
-    local_rel, remote_rel = _REMOTE_DEPLOY_FILE_LINUX
-    local = ROOT / local_rel
-    remote_abs = f"{agents_root}/{remote_rel}"
+    actions: list[str] = []
+    for local_rel, remote_rel in _REMOTE_DEPLOY_FILES_LINUX:
+        local = ROOT / local_rel
+        remote_abs = f"{agents_root}/{remote_rel}"
 
-    if dry_run:
-        return [f"[dry-run] would check/deploy {local_rel} -> {ssh_alias}:{remote_abs}"]
-    if not local.is_file():
-        return []
-    if _remote_sha256_posix(ssh_alias, remote_abs) == _local_sha256(local):
-        return []
+        if dry_run:
+            actions.append(f"[dry-run] would check/deploy {local_rel} -> {ssh_alias}:{remote_abs}")
+            continue
+        if not local.is_file():
+            continue
+        if _remote_sha256_posix(ssh_alias, remote_abs) == _local_sha256(local):
+            continue
 
-    remote_dir = remote_abs.rsplit("/", 1)[0]
-    r = subprocess.run(["ssh", ssh_alias, f"mkdir -p {shlex.quote(remote_dir)}"],
-                       capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
-    if r.returncode != 0:
-        raise RuntimeError(f"remote mkdir failed: {(r.stderr or r.stdout or '').strip()}")
-    r = subprocess.run(["scp", str(local), f"{ssh_alias}:{remote_abs}"],
-                       capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
-    if r.returncode != 0:
-        raise RuntimeError(f"deploy scp failed for {local.name}: {r.stderr}")
-    r = subprocess.run(["ssh", ssh_alias, f"chmod +x {shlex.quote(remote_abs)}"],
-                       capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
-    if r.returncode != 0:
-        raise RuntimeError(f"chmod +x failed for {remote_abs}: {(r.stderr or r.stdout or '').strip()}")
-    return [f"deployed {local.name} -> {remote_abs}"]
+        remote_dir = remote_abs.rsplit("/", 1)[0]
+        r = subprocess.run(["ssh", ssh_alias, f"mkdir -p {shlex.quote(remote_dir)}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        if r.returncode != 0:
+            raise RuntimeError(f"remote mkdir failed: {(r.stderr or r.stdout or '').strip()}")
+        r = subprocess.run(["scp", str(local), f"{ssh_alias}:{remote_abs}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        if r.returncode != 0:
+            raise RuntimeError(f"deploy scp failed for {local.name}: {r.stderr}")
+        r = subprocess.run(["ssh", ssh_alias, f"chmod +x {shlex.quote(remote_abs)}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        if r.returncode != 0:
+            raise RuntimeError(f"chmod +x failed for {remote_abs}: {(r.stderr or r.stdout or '').strip()}")
+        actions.append(f"deployed {local.name} -> {remote_abs}")
+    return actions
 
 
 def _ssh_remote_url(remote: str) -> str:
@@ -1375,12 +1390,38 @@ async def _spawn_remote(task: dict, host_name: str, *,
     prompt = _build_prompt(task, proj, remote_worktree)
     remote_script = f"{host_cfg['agents_root']}/scripts/spawn-worker-remote.sh"
 
+    # GH #180 (task-378523bb): the hub already knows this task's declared
+    # touches — hand them to the spoke at spawn time instead of leaving the
+    # spawned worktree to depend on its own (possibly unsynced) tasks.db
+    # copy. Base64 so no quoting ever breaks crossing two shells (this
+    # process's ssh argv, then spawn-worker-remote.sh's own re-quoting into
+    # launch.sh). No secret in here — task_id/project/role/host/owner_cto
+    # and repo-relative paths only.
+    try:
+        task_touches = json.loads(task.get("touches") or "[]")
+    except (TypeError, ValueError):
+        task_touches = []
+    if not isinstance(task_touches, list):
+        task_touches = []
+    task_meta = {
+        "task_id": task_id,
+        "project": project_key,
+        "role": role_name,
+        "host": host_name,
+        "owner_cto": task.get("owner_cto"),
+        "touches": task_touches,
+    }
+    task_meta_b64 = base64.b64encode(
+        json.dumps(task_meta).encode("utf-8")
+    ).decode("ascii")
+
     script_args = [
         "--task", task_id, "--project", project_key, "--role", role_name,
         "--branch", branch, "--base", base, "--repo-url", repo_url,
         "--repo-path", repo_path, "--worktree-root", worktree_root,
         "--claude-args", claude_args, "--model", model, "--effort", effort,
         "--session-name", session_name, "--runner", runner,
+        "--task-meta-b64", task_meta_b64,
     ]
     remote_cmd = "bash " + shlex.quote(remote_script) + " " + " ".join(
         shlex.quote(a) for a in script_args
