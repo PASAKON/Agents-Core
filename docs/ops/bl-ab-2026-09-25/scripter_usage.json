@@ -1,0 +1,22 @@
+{
+  "backend": "claude-p",
+  "model": "claude-sonnet-5",
+  "session_id": "440ba051-2e79-426f-88c4-2fcf17b901d6",
+  "transcript": "/Users/gob/.claude/projects/-Users-gob-MoonieXHQ-Agents-Core-worktrees-mooniex-agents--developer--task-67bb7a11/440ba051-2e79-426f-88c4-2fcf17b901d6.jsonl",
+  "turns": 10,
+  "tokens": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 306175,
+    "cache_read_input_tokens": 373114,
+    "output_tokens": 26068
+  },
+  "cost_usd_reported_max_plan": 0.3417894,
+  "cost_usd_api_equivalent": 1.10078,
+  "wall_seconds": 88.54,
+  "pricing_table_per_mtok": {
+    "input": 2.0,
+    "cache_creation_input_tokens": 2.5,
+    "cache_read_input_tokens": 0.2,
+    "output": 10.0
+  }
+}
