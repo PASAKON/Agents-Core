@@ -307,6 +307,37 @@ def _free_gb(path: str = "/") -> float:
     return shutil.disk_usage(path).free / (1024 ** 3)
 
 
+def _remote_free_gb(ssh_alias: str) -> float | None:
+    """Free space (GB) on a spoke's `/` via `df`, or None if the probe
+    itself fails — unreachable host, no `df`, unparseable output. Never
+    raises. Mirrors `runners/branch_poller.remote_pid_alive`'s fail-OPEN
+    contract on purpose (task-a5c0549d, disk-floor host-awareness fix):
+    a broken probe must never become a false floor that silently queues
+    every remote spawn to a host this check couldn't even reach. `-Pk`
+    (POSIX output format, 1024-byte blocks) keeps the column layout stable
+    across whatever `df` a spoke ships (GNU coreutils or BusyBox)."""
+    try:
+        r = subprocess.run(
+            ["ssh", ssh_alias, "df", "-Pk", "/"],
+            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    lines = (r.stdout or "").strip().splitlines()
+    if len(lines) < 2:
+        return None
+    fields = lines[1].split()
+    if len(fields) < 4:
+        return None
+    try:
+        avail_kb = float(fields[3])
+    except ValueError:
+        return None
+    return avail_kb / (1024 ** 2)
+
+
 # How a worker is started, held as a STABLE path rather than as the command
 # itself. This is the root-cause fix for a failure that recurred across
 # several sessions: the MCP server runs in-process with a C-level session and
@@ -1454,6 +1485,15 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"merged work (use reopen_task if a redo is intended)"
         )
 
+    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
+    # here, ahead of storage reclaim/disk-floor below (task-a5c0549d,
+    # CTO 2026-09-24: a spawn bound for contabo was refused/queued for the
+    # MAC's disk, even though its worktree, git clone and worker process all
+    # live on the spoke — task-43b6514d, "queued for disk — 3.9 GB free"
+    # while Contabo itself had plenty). resolved_host is also what the
+    # browser cap check right after needs.
+    resolved_host = host if host is not None else (task.get("host") or "mac")
+
     # Storage reclaim (ADR 0030 §2, task-44963fee): below the orange band,
     # REBUILD-tier directories inside a scoped owner's OWN task worktrees
     # (node_modules, .venv, __pycache__, ...) are deleted automatically,
@@ -1463,8 +1503,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # session's worktree, never a project under ~/MoonieXHQ/Projects, unless
     # scope[reclaim] is "all". Out-of-scope tasks skip this block entirely.
     # A reclaim failure never blocks the spawn beyond what the floor check
-    # below already decides.
-    reclaim_applies = _scope_applies("reclaim", task.get("owner_cto"))
+    # below already decides. Mac-only (unaffected by the host-aware floor
+    # below) — a remote task has no Mac-side worktree of its own to reclaim
+    # from, and freeing Mac disk opportunistically is harmless either way.
+    reclaim_applies = resolved_host == "mac" and _scope_applies("reclaim", task.get("owner_cto"))
     if reclaim_applies:
         pre_free_gb = _free_gb()
         try:
@@ -1493,13 +1535,39 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
     # `disk_floor` scope: only tasks whose owner_cto scope[disk_floor]
     # covers — other sessions' work is never refused by this gate until the
-    # CEO widens it. free_gb is re-measured here (not reused from
-    # pre_free_gb above) so the floor check sees the post-reclaim reading
-    # when reclaim ran.
+    # CEO widens it.
+    #
+    # Gates the disk that will actually HOLD this spawn's worktree
+    # (task-a5c0549d, CTO 2026-09-24 review): resolved_host == 'mac' reads
+    # the Mac's own free space (re-measured here, not reused from
+    # pre_free_gb above, so it sees the post-reclaim reading when reclaim
+    # ran); any other host probes THAT box over ssh instead — its worktree,
+    # git clone and worker process live there, not on the Mac, so the Mac's
+    # disk is not what will run out. `_remote_free_gb` fails OPEN (None) on
+    # an unreachable host or missing `df` — same shape as
+    # runners/branch_poller.remote_pid_alive's liveness probe — so a broken
+    # probe can never become a false floor that blocks every remote spawn.
     disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
-    free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
-    if disk_floor_applies and free_gb < orange_gb:
+    free_gb: float | None
+    if resolved_host == "mac":
+        free_gb = _free_gb()
+    elif dry_run:
+        # `dry_run`'s own contract (this function's docstring): "print the
+        # exact ssh command instead of running it" — a real ssh probe here
+        # would be exactly the real network call dry_run promises not to
+        # make, even though it's only a disk check. Skipped (never
+        # refuses/queues a dry-run), not faked, so a dry-run's log/db writes
+        # stay identical to before this host-awareness fix existed.
+        free_gb = None
+    else:
+        try:
+            host_cfg_for_disk = get_host(resolved_host)
+        except ValueError:
+            host_cfg_for_disk = None
+        free_gb = (_remote_free_gb(host_cfg_for_disk["ssh"])
+                  if host_cfg_for_disk and host_cfg_for_disk.get("ssh") else None)
+    if disk_floor_applies and free_gb is not None and free_gb < orange_gb:
         # ADR 0030 §D / task-dbe47b9b (CEO 2026-09-23: "สั่งเป็นกฎอย่างเดียว
         # ไม่ได้ ต้องทำระบบเข้าคิวไว้ด้วย รันตามคิว"): a refused spawn no
         # longer just dies here — it joins tools/disk_queue.py's FIFO queue
@@ -1507,15 +1575,27 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # it, oldest first, one per tick, once free space clears
         # gauge.orange + 1 GB. Status is left exactly as it was (pending),
         # matching the pre-queue behaviour this branch already had.
+        #
+        # KNOWN GAP (task-a5c0549d, not fixed here — runners/watchdog.py is
+        # not a declared touches path for this task): _drain_disk_queue()'s
+        # own resume check (runners/watchdog.py DISK_QUEUE_RESUME_MARGIN_GB)
+        # still gates EVERY queued entry on the Mac's free space alone,
+        # regardless of which host it was queued for. A task queued here for
+        # a spoke whose own disk is fine will still wait on the Mac's disk
+        # clearing before the watchdog even attempts to drain it — this
+        # function's re-resolution of `resolved_host` fixes the INITIAL
+        # refusal to gate on the right box, but the drain's resume gate
+        # needs the same per-entry host awareness to fully close the loop.
+        host_note = "" if resolved_host == "mac" else f" on {resolved_host}"
         ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
-        msg = (f"disk red: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
+        msg = (f"disk red{host_note}: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
                f"— spawn refused (ADR 0030) — queued for disk ({ahead} ahead)")
         warn(f"disk floor blocked task={task_id}: {msg}")
         db.set_fields(task_id, delegate_log=msg, actor="cto")
         try:
             send_to_cto.send(
                 task_id,
-                f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free, "
+                f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free{host_note}, "
                 f"needs {orange_gb:.1f} GB. Will spawn automatically once "
                 f"space clears.",
                 role=task.get("role"), cto_id=task.get("owner_cto"),
@@ -1531,12 +1611,6 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     proj = get_project(project_key)
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
-
-    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
-    # here (not just at the spawn branch below) because the browser cap
-    # check right after this needs to know the TARGET host, not just
-    # whether it's remote.
-    resolved_host = host if host is not None else (task.get("host") or "mac")
 
     # Runner pre-flight (task-adbc6f43): reject an unknown/unavailable runner
     # loudly, here, before any worktree/ssh/iTerm work starts — not discovered

@@ -170,11 +170,23 @@ def no_deploy(monkeypatch):
     monkeypatch.setattr(delegate, "_ensure_remote_deploy_linux", lambda *a, **k: [])
 
 
+def _fake_disk_probe_ok(cmd) -> bool:
+    """True if `cmd` is the disk-floor's `df -Pk /` probe (task-a5c0549d
+    host-awareness fix) — distinct from the main spawn ssh call, which
+    carries the rendered `bash .../spawn-worker-remote.sh ...` command."""
+    return len(cmd) >= 3 and cmd[2] == "df"
+
+
 def test_linux_spawn_success_parses_pid_and_tmux_session(temp_db, no_deploy, monkeypatch):
     def fake_run(cmd, **kwargs):
         if cmd[0] == "osascript":
             return _Result(0)
         assert cmd[0] == "ssh" and cmd[1] == "mooniex-vps"
+        if _fake_disk_probe_ok(cmd):
+            # POSIX `df -Pk /` shape: header line + one data line, avail
+            # (4th field) comfortably above the 5 GB orange floor.
+            return _Result(0, "Filesystem 1024-blocks Used Available Capacity Mounted\n"
+                              "/dev/sda1 10000000 1000000 8000000 12% /\n")
         assert kwargs.get("input")  # the prompt travels over stdin
         return _Result(0, "SPAWNED pid=4242 session=mooniex-task-lx01 "
                           "worktree=/opt/MoonieXHQ/Agents/Core/worktrees/x\n")
@@ -197,6 +209,9 @@ def test_linux_spawn_refused_sets_conflict(temp_db, no_deploy, monkeypatch):
     def fake_run(cmd, **kwargs):
         if cmd[0] == "osascript":
             return _Result(0)
+        if _fake_disk_probe_ok(cmd):
+            return _Result(0, "Filesystem 1024-blocks Used Available Capacity Mounted\n"
+                              "/dev/sda1 10000000 1000000 8000000 12% /\n")
         return _Result(1, "SPAWN_REFUSED=dirty-worktree /opt/x/wt\n")
     monkeypatch.setattr(delegate.subprocess, "run", fake_run)
     tid = temp_db.create_task(
@@ -212,6 +227,9 @@ def test_linux_spawn_unparseable_output_sets_failed(temp_db, no_deploy, monkeypa
     def fake_run(cmd, **kwargs):
         if cmd[0] == "osascript":
             return _Result(0)
+        if _fake_disk_probe_ok(cmd):
+            return _Result(0, "Filesystem 1024-blocks Used Available Capacity Mounted\n"
+                              "/dev/sda1 10000000 1000000 8000000 12% /\n")
         return _Result(0, "some unexpected line with no SPAWNED marker\n")
     monkeypatch.setattr(delegate.subprocess, "run", fake_run)
     tid = temp_db.create_task(
@@ -220,6 +238,121 @@ def test_linux_spawn_unparseable_output_sets_failed(temp_db, no_deploy, monkeypa
     )
     result = asyncio.run(delegate.delegate_task(tid, host="contabo"))
     assert result["status"] == "failed"
+
+
+# ---------------------------------------------------------------------------
+# 5b. Disk-floor host-awareness (CTO 2026-09-24 review, task-a5c0549d): the
+#     gate must check the disk that will actually hold the worktree — a
+#     contabo-bound spawn was refused/queued for the MAC's disk although
+#     Contabo's own disk was fine (task-43b6514d, live on the real box:
+#     "queued for disk — 3.9 GB free" while the Mac, not Contabo, was low).
+# ---------------------------------------------------------------------------
+
+def test_disk_floor_checks_the_spoke_not_the_mac_when_spoke_is_healthy(temp_db, no_deploy, monkeypatch):
+    """Mac critically low, Contabo fine -- the spawn must still proceed."""
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 1.0)
+    monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh_alias: 50.0)
+
+    def fake_run(cmd, **kwargs):
+        if cmd[0] == "osascript":
+            return _Result(0)
+        return _Result(0, "SPAWNED pid=9001 session=mooniex-task-df01 "
+                          "worktree=/opt/MoonieXHQ/Agents/Core/worktrees/y\n")
+    monkeypatch.setattr(delegate.subprocess, "run", fake_run)
+
+    tid = temp_db.create_task(
+        project="mooniex-agents", role="developer", title="t", description="d",
+        owner_cto="test-owner", host="contabo",
+    )
+    result = asyncio.run(delegate.delegate_task(tid, host="contabo"))
+    assert result["status"] == "in_progress"
+    assert "disk" not in (result.get("delegate_log") or "")
+
+
+def test_disk_floor_queues_when_the_spoke_itself_is_low(temp_db, no_deploy, monkeypatch):
+    """Mac fine, Contabo critically low -- the spawn must be queued, and the
+    message must name contabo, not the Mac."""
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 50.0)
+    monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh_alias: 1.0)
+
+    def _boom(*a, **k):
+        raise AssertionError("must not reach ssh once the floor refuses")
+    monkeypatch.setattr(delegate.subprocess, "run", _boom)
+
+    tid = temp_db.create_task(
+        project="mooniex-agents", role="developer", title="t", description="d",
+        owner_cto="test-owner", host="contabo",
+    )
+    result = asyncio.run(delegate.delegate_task(tid, host="contabo"))
+    assert result["status"] == "pending"  # unchanged, per ADR 0030
+    assert "disk red on contabo" in result["delegate_log"]
+    assert "1.0" in result["delegate_log"]
+
+
+def test_disk_floor_fails_open_when_spoke_probe_unreachable(temp_db, no_deploy, monkeypatch):
+    """An unreachable/broken disk probe must never become a false floor
+    that blocks every remote spawn (fail-open, same shape as
+    runners/branch_poller.remote_pid_alive)."""
+    monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh_alias: None)
+
+    def fake_run(cmd, **kwargs):
+        if cmd[0] == "osascript":
+            return _Result(0)
+        return _Result(0, "SPAWNED pid=9002 session=mooniex-task-df02 "
+                          "worktree=/opt/MoonieXHQ/Agents/Core/worktrees/z\n")
+    monkeypatch.setattr(delegate.subprocess, "run", fake_run)
+
+    tid = temp_db.create_task(
+        project="mooniex-agents", role="developer", title="t", description="d",
+        owner_cto="test-owner", host="contabo",
+    )
+    result = asyncio.run(delegate.delegate_task(tid, host="contabo"))
+    assert result["status"] == "in_progress"
+
+
+def test_disk_floor_skips_remote_probe_during_dry_run(temp_db, monkeypatch):
+    """dry_run's own contract ('print the exact ssh command instead of
+    running it') must hold even for the disk-floor gate -- a real ssh probe
+    during dry-run would be exactly the network call dry_run promises not
+    to make."""
+    def _boom(ssh_alias):
+        raise AssertionError("dry-run must never probe a spoke's disk over ssh")
+    monkeypatch.setattr(delegate, "_remote_free_gb", _boom)
+
+    tid = temp_db.create_task(
+        project="mooniex-agents", role="developer", title="t", description="d",
+        owner_cto="test-owner", host="contabo",
+    )
+    result = asyncio.run(delegate.delegate_task(tid, host="contabo", dry_run=True))
+    assert result["status"] == "pending"
+    assert "[dry-run]" in (result.get("delegate_log") or "")
+
+
+def test_remote_free_gb_parses_df_output():
+    def fake_run(cmd, **kwargs):
+        assert cmd == ["ssh", "some-host", "df", "-Pk", "/"]
+        return _Result(0, "Filesystem 1024-blocks Used Available Capacity Mounted\n"
+                          "/dev/sda1 10000000 1000000 8388608 12% /\n")
+    import unittest.mock as mock
+    with mock.patch.object(delegate.subprocess, "run", fake_run):
+        free_gb = delegate._remote_free_gb("some-host")
+    assert free_gb == pytest.approx(8.0, abs=0.01)
+
+
+def test_remote_free_gb_returns_none_on_unreachable_host():
+    def fake_run(cmd, **kwargs):
+        return _Result(255, "", "ssh: connect to host some-host port 22: timed out")
+    import unittest.mock as mock
+    with mock.patch.object(delegate.subprocess, "run", fake_run):
+        assert delegate._remote_free_gb("some-host") is None
+
+
+def test_remote_free_gb_returns_none_on_unparseable_output():
+    def fake_run(cmd, **kwargs):
+        return _Result(0, "not df output at all\n")
+    import unittest.mock as mock
+    with mock.patch.object(delegate.subprocess, "run", fake_run):
+        assert delegate._remote_free_gb("some-host") is None
 
 
 # ---------------------------------------------------------------------------

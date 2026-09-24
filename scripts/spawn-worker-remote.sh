@@ -228,9 +228,25 @@ sh_quote() {
   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
 }
 
+TMUX_BIN=$(command -v tmux || echo tmux)
+
+# ORG_HOST parity with runners/worker_init.py's current_host() (winbox sets
+# the same via $env:ORG_HOST). ORG_WORKER_FINISH: roles/_worker_remote.md
+# tells every remote worker to run it when done/blocked -- windows sets it
+# to a generated .cmd; here it's a plain kill-session (this session's own
+# controlling process), the whole point of tmux new-session -d being the
+# worker in the first place. NOTE (not fixed here, roles/_worker_remote.md
+# is a shared file outside this task's touches): that doc's own wording,
+# "run `%ORG_WORKER_FINISH%`", is Windows batch %VAR% syntax -- a Linux
+# worker's Bash tool needs `$ORG_WORKER_FINISH` (or `eval "$ORG_WORKER_FINISH"`)
+# instead. The env var is exported correctly either way; only the doc's
+# literal instruction text is platform-specific.
 LAUNCH_SH="$LAUNCH_DIR/launch.sh"
 {
   echo '#!/bin/sh'
+  printf 'export ORG_HOST=contabo\n'
+  printf 'export ORG_WORKER_FINISH=%s\n' \
+    "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
   printf 'exec %s "$(cat %s)" -n %s --append-system-prompt "$(cat %s)" %s\n' \
     "$(sh_quote "$CLAUDE_BIN")" \
     "$(sh_quote "$PROMPT_FILE")" \
@@ -240,7 +256,6 @@ LAUNCH_SH="$LAUNCH_DIR/launch.sh"
 } > "$LAUNCH_SH"
 chmod +x "$LAUNCH_SH"
 
-TMUX_BIN=$(command -v tmux || echo tmux)
 "$TMUX_BIN" new-session -d -s "$TMUX_SESSION" -c "$WT" bash "$LAUNCH_SH"
 
 if ! "$TMUX_BIN" has-session -t "$TMUX_SESSION" 2>/dev/null; then
