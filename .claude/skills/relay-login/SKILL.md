@@ -100,5 +100,6 @@ never a value, cookie or QR payload.
   next seed pattern comes from.
 
 ## Field notes
+- 2026-09-25 [MISSING] rollout test: two live sessions (Mac cto-95cbbb28, Contabo cto-e1e3d3ef) got the letter cold and both answered in the §0 one-line format within 2 min (one real request — Facebook Dorsine Gobb on mac:9230 — one "not blocked"); the format needs no further explanation in the letter · evidence: GH MoonieX-Console#9 comment 2026-09-25 05:1x · status: pending
 - 2026-09-25 [MISSING] after a Google login Chrome's own "Sign in to Chrome" intercept (`chrome://signin-dice-web-intercept.top-chrome`) shows up as the first page target, so `relay-inspect` and the pill list can pick it before the real tab; skip `chrome://` / `*.top-chrome` targets · evidence: winbox:9225 04:4x, GH MoonieX-Console#9 · status: pending
 - 2026-09-25 [MISSING] the mirror's first real-site login (Google on winbox:9225) is still unverified; the fake form on Contabo:9250 passed the CEO's test and winbox:9224 ChatGPT came up signed in after his phone flow · evidence: MoonieX-Console 62ea287, GH MoonieX-Console#9 · status: pending
