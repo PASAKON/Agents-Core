@@ -1,6 +1,6 @@
 # Two read-only JSON servers behind the existing traefik, same shape as
 # /opt/claude-usage-monitor/serve. One container per file so a broken feed can
-[LINE REDACTED BY CAPTURE FILTER]
+# never take the other endpoint down. USAGE_TOKEN comes from ./.env.
 services:
   agy-usage-serve:
     image: python:3.12-alpine
@@ -8,7 +8,7 @@ services:
     restart: always
     command: ["python", "/srv/serve.py"]
     environment:
-[LINE REDACTED BY CAPTURE FILTER]
+      - USAGE_TOKEN=<redacted>
       - USAGE_FILE=/srv/agy-usage.json
     volumes:
       - /opt/usage:/srv:ro
@@ -26,7 +26,7 @@ services:
     restart: always
     command: ["python", "/srv/serve.py"]
     environment:
-[LINE REDACTED BY CAPTURE FILTER]
+      - USAGE_TOKEN=<redacted>
       - USAGE_FILE=/srv/codex-usage.json
     volumes:
       - /opt/usage:/srv:ro

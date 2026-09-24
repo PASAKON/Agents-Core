@@ -7,3 +7,4 @@
 30 2 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py docker-volumes >> state/drive-leg.log 2>&1
 0 3 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py uploads >> state/drive-leg.log 2>&1
 30 3 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py transcripts >> state/drive-leg.log 2>&1
+15 2 * * 0 cd /opt/MoonieXHQ/Agents/Core && /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py state-db >> state/drive-leg.log 2>&1

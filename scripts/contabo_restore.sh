@@ -141,8 +141,26 @@ BLUEPRINT_DIR=$(ls -d "$CORE"/state/contabo-blueprint-*/ 2>/dev/null | sort | ta
 BLUEPRINT_DIR="${BLUEPRINT_DIR%/}"
 if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
   say "blueprint on disk: $BLUEPRINT_DIR"
-  say "replaying $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages (the captured apt-mark showmanual list)"
-  cmd_sh "xargs -a '$BLUEPRINT_DIR/apt-packages.txt' apt-get install -y"
+  # captured OS vs this OS: the BOM is only exact on the same release (Ubuntu 24.04 on 2026-09-24)
+  CAPTURED_OS=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("os") or d.get("pretty_name") or "")' "$BLUEPRINT_DIR/machine.json" 2>/dev/null || true)
+  THIS_OS=$(. /etc/os-release 2>/dev/null && printf '%s' "${PRETTY_NAME:-}")
+  say "captured OS: ${CAPTURED_OS:-?}  |  this OS: ${THIS_OS:-?}"
+  [ -n "$CAPTURED_OS" ] && [ -n "$THIS_OS" ] && [ "$CAPTURED_OS" != "$THIS_OS" ] && say "WARN: different release — package names/versions may not match (drill run 2 on debian:12 lost 5 Ubuntu-only names + numpy for python 3.11)"
+  # foreign architectures first (wine32:i386 needs i386 enabled or apt cannot even locate it)
+  if [ -s "$BLUEPRINT_DIR/foreign-archs.txt" ]; then
+    while read -r arch; do [ -n "$arch" ] && cmd dpkg --add-architecture "$arch"; done < "$BLUEPRINT_DIR/foreign-archs.txt"
+    cmd apt-get update
+  fi
+  # replay only what THIS release can locate; a single unknown name makes `apt-get install` refuse the
+  # whole list (found by drill run 2), so split the BOM into available / missing and report the misses.
+  APT_AVAIL=""; APT_MISSING=""
+  while read -r pkg; do
+    [ -n "$pkg" ] || continue
+    if apt-cache show "$pkg" >/dev/null 2>&1; then APT_AVAIL="$APT_AVAIL $pkg"; else APT_MISSING="$APT_MISSING $pkg"; fi
+  done < "$BLUEPRINT_DIR/apt-packages.txt"
+  say "replaying $(echo $APT_AVAIL | wc -w) of $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages (captured apt-mark showmanual)"
+  [ -n "$APT_MISSING" ] && say "WARN: not available on this release, skipped:$APT_MISSING"
+  [ -n "$APT_AVAIL" ] && cmd_sh "apt-get install -y$APT_AVAIL"
 else
   say "WARN: no state/contabo-blueprint-<date>/apt-packages.txt after the clone — only step 1's base packages are installed"
 fi
@@ -196,7 +214,10 @@ fi
 
 if [ -n "$BLUEPRINT_DIR" ] && [ -f "$BLUEPRINT_DIR/pip-freeze-idm-venv.txt" ]; then
   cmd python3 -m venv /root/idm-venv
-  cmd /root/idm-venv/bin/pip install -r "$BLUEPRINT_DIR/pip-freeze-idm-venv.txt"
+  # torch==x.y.z+cpu (and friends) only exist on PyTorch's own index; pip on PyPI alone fails the whole
+  # file (drill run 2). numpy/torch pins are also python-version-bound: same release as the capture.
+  IDM_EXTRA=""; grep -q "+cpu" "$BLUEPRINT_DIR/pip-freeze-idm-venv.txt" && IDM_EXTRA=" --extra-index-url https://download.pytorch.org/whl/cpu"
+  cmd_sh "/root/idm-venv/bin/pip install -r '$BLUEPRINT_DIR/pip-freeze-idm-venv.txt'$IDM_EXTRA"
 else
   say "no pip-freeze-idm-venv.txt in the latest blueprint — /root/idm-venv skipped (brief: only if that file exists)"
 fi

@@ -28,6 +28,7 @@ mkdir -p "$B/systemd-mooniex-units" "$B/ssh-public-keys"
 
 # 1. apt packages explicitly installed (not pulled in as a dependency)
 apt-mark showmanual > "$B/apt-packages.txt" 2>&1 || true
+dpkg --print-foreign-architectures > "$B/foreign-archs.txt" 2>/dev/null || true   # e.g. i386 for wine32 — replayed before the BOM
 
 # 2. pip freeze for the two known venvs (brief item 1: Agents/Core/.venv, /root/idm-venv)
 if [ -x "$ROOT/.venv/bin/pip" ]; then
@@ -148,36 +149,53 @@ info = {
 print(json.dumps(info, indent=2))
 PYEOF
 
-# 10. Final safety pass: redact any line anywhere in the capture that matches
-# a secret-shaped pattern (same pattern the brief's own verification grep
-# uses), so that grep always comes back empty regardless of what a package
-# name, unit-file comment or username happened to contain.
+# 10. Final safety pass — shape-aware (2026-09-24). The first version blanked any line containing
+# "token|secret|password", which destroyed a package line in the pip freeze, a claude.json key line
+# and the username "secretary" inside machine.json (invalid JSON, so the restore verb could not read
+# the captured OS). Now: (a) a line that ASSIGNS a value to a secret-named key keeps the key and gets
+# its value replaced by <redacted>; (b) a file holding private-key material is replaced whole;
+# (c) list-style files whose words are NAMES, not values (package lists, machine.json, trees) are
+# left alone — a name is not a secret. The brief's verification grep must be read with this in mind:
+# `grep -riE 'token|secret|password'` now matches redacted KEY names, never live values.
 python3 - "$B" <<'PYEOF'
 import pathlib, re, sys
 
 root = pathlib.Path(sys.argv[1])
-pattern = re.compile(r"token|secret|password|BEGIN .*PRIVATE", re.IGNORECASE)
+SKIP = {"apt-packages.txt", "npm-global.txt", "node-version.txt", "docker-images.txt",
+        "docker-volumes.txt", "docker-compose-files.txt", "claude-tree.txt", "machine.json",
+        "foreign-archs.txt"}
+assign = re.compile(
+    r'^(?P<lead>\s*[-"\']?[A-Za-z0-9_.\-]*(?:token|secret|passw(?:or)?d|api[_-]?key|private[_-]?key|client[_-]?secret|access[_-]?key)[A-Za-z0-9_.\-]*["\']?\s*[:=]\s*)(?P<val>\S.*)$',
+    re.IGNORECASE)
+keymat = re.compile(r"BEGIN [A-Z ]*PRIVATE KEY")
 redacted = []
 for path in sorted(root.rglob("*")):
-    if not path.is_file():
+    if not path.is_file() or path.name in SKIP or path.name.startswith("pip-freeze-"):
         continue
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         continue
+    if keymat.search(text):
+        path.write_text("[FILE REDACTED BY CAPTURE FILTER: private key material]\n", encoding="utf-8")
+        redacted.append(str(path.relative_to(root)) + " (whole file)")
+        continue
     changed = False
-    out_lines = []
+    out = []
     for line in text.splitlines(keepends=True):
-        if pattern.search(line):
-            out_lines.append("[LINE REDACTED BY CAPTURE FILTER]\n")
+        m = assign.match(line.rstrip("\n"))
+        val = m.group("val").strip() if m else ""
+        if m and val not in ("<redacted>", '"<redacted>"', "'<redacted>'", "''", '""'):
+            quote = val[0] if val[:1] in ("'", '"') else ""
+            out.append(m.group("lead") + quote + "<redacted>" + quote + ("," if val.endswith(",") else "") + "\n")
             changed = True
         else:
-            out_lines.append(line)
+            out.append(line)
     if changed:
-        path.write_text("".join(out_lines), encoding="utf-8")
+        path.write_text("".join(out), encoding="utf-8")
         redacted.append(str(path.relative_to(root)))
 if redacted:
-    print("contabo_blueprint.sh: redacted line(s) in: " + ", ".join(redacted), file=sys.stderr)
+    print("contabo_blueprint.sh: redacted value(s) in: " + ", ".join(redacted), file=sys.stderr)
 PYEOF
 
 echo "$B"

@@ -10,3 +10,4 @@ mooniex-option-receiver:latest                 4976a990e0dd        633MB        
 postgres:16                                    f1c3376c26f2        642MB          166MB   U    
 python:3.12-alpine                             6d43704baacd       74.6MB         18.7MB   U    
 traefik:3.6.8                                  90099f8948c8        241MB         53.1MB   U    
+ubuntu:24.04                                   008173c23f95        119MB         31.7MB   U    
