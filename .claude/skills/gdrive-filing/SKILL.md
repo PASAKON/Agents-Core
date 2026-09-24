@@ -313,6 +313,29 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │                             or redundant copies the CEO wants kept in
 │   │                             2-3 places — temporary or permanent, either
 │   │                             is fine.
+│   ├── MoonieX HQ/               NEW 2026-09-24 (CEO: "ใส่ไว้ใน BACKUP/MoonieX HQ/{สิ่งที่จะเก็บ}
+│   │   │                         ได้เลย เพิ่มนิยามให้ด้วย"). The org's Machine Contract store
+│   │   │                         (ADR 0031, IRON §58): everything a machine keeps that is not
+│   │   │                         in git, one sub-folder per KIND of thing, each defined here so
+│   │   │                         an agent cleaning up or searching knows where it lives. Every
+│   │   │                         item = tar (or .jsonl.gz) + manifest, md5 verified before the
+│   │   │                         local copy goes. Ids: PENDING — created on the first upload
+│   │   │                         (rclone on winbox after the CEO's re-consent, or the Mac bridge);
+│   │   │                         fill the ID table the same turn. Registry rows point here:
+│   │   │                         Agents-Core config/machine-contract.yaml.
+│   │   ├── Claude-Transcripts/<machine>/<project-slug>/   every Claude Code session .jsonl,
+│   │   │                         all machines, archived after 7 days on the box, KEPT FOREVER
+│   │   │                         (CEO 2026-09-24); restore prune_transcripts.py --restore <uuid>
+│   │   ├── Claude-Uploads/<machine>/<date>.tar   files people attached in chat (~/.claude/uploads)
+│   │   ├── Work-Archive/         Agents-Work-<task-id>-<date>.tar + manifest from
+│   │   │                         `workdir.py close --archive` — NEW tars go here; the ones at the
+│   │   │                         BACKUP root (2026-09-23) move here server-side once
+│   │   ├── Docker-Volumes/<machine>/<volume>/<date>.tar|.sql.gz   sole-copy Docker data:
+│   │   │                         contabo n8n_data (n8n workflows+creds), org-pgdata (pg_dump), weekly
+│   │   └── Machine-Blueprints/<machine>/<date>/   copy of each capture (installed software,
+│   │                             scheduled jobs, unit files, settings, public keys; NO secrets);
+│   │                             the primary copy is git Agents-Core state/<machine>-blueprint-<date>/
+│   │                             Secrets are never on Drive: another machine's HQ Archive/ at 0600.
 │   ├── FaceBook Backup/          Meta "Download Your Information" auto-export
 │       ├── meta-2025-Jun.../     bundles — rarely actually used. Moved here
 │       ├── ... (10 total)        from root 2026-08-04. New meta-* exports

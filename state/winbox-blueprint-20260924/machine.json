@@ -1,0 +1,21 @@
+﻿{
+    "computer":  "DESKTOP-3NQB2QO",
+    "user":  "user",
+    "profile":  "C:\\Users\\UsEr",
+    "os":  "Microsoft Windows 11 Home 10.0.26200 build 26200",
+    "local_user":  "[{\"Name\":\"CodexSandboxOffline\",\"PrincipalSource\":1},{\"Name\":\"CodexSandboxOnline\",\"PrincipalSource\":1},{\"Name\":\"UsEr\",\"PrincipalSource\":1}]",
+    "admins":  "DESKTOP-3NQB2QO\\Administrator, DESKTOP-3NQB2QO\\UsEr",
+    "display":  "USB Mobile Monitor Virtual Display x | AMD Radeon RX 6500 XT 1920x1080",
+    "dpi_scale":  96,
+    "power_ac_standby_min":  "    Current AC Power Setting Index: 0x00000000",
+    "power_ac_display_min":  "    Current AC Power Setting Index: 0x00000000",
+    "defender_exclusions":  "",
+    "tailscale":  "100.123.83.75  desktop-3nqb2qo  pass.gob1@  windows  -",
+    "tailscale_prefs":  "\"RunSSH\": false,\r\n\t\"ShieldsUp\": false,\r\n\t\"Hostname\": \"\",",
+    "firewall_rules":  "OpenSSH SSH Server (sshd); Tailscale-Process; Tailscale-In; Tailscale-In",
+    "env_user":  "Path, TEMP, OneDrive, TMP",
+    "path_user":  "C:\\Users\\UsEr\\.cargo\\bin;C:\\Users\\UsEr\\AppData\\Local\\agy\\bin;C:\\Users\\UsEr\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\UsEr\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\UsEr\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\UsEr\\AppData\\Roaming\\npm;C:\\Users\\UsEr\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;;C:\\Users\\UsEr\\.local\\bin;C:\\Users\\UsEr\\AppData\\Local\\Microsoft\\WinGet\\Links;C:\\Users\\UsEr\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Rclone.Rclone_Microsoft.Winget.Source_8wekyb3d8bbwe\\rclone-v1.75.1-windows-amd64;C:\\Users\\UsEr\\AppData\\Local\\Microsoft\\WinGet\\Packages\\yt-dlp.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-N-125875-g5d4d3bdc61-win64-gpl\\bin;;C:\\Users\\UsEr\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin",
+    "git_config":  "user.name=winbox-worker\r\nuser.email=winbox-worker@mooniex.local\r\ncore.autocrlf=false",
+    "gh_auth":  "You are not logged into any GitHub hosts. To log in, run: gh auth login",
+    "python":  "-V:3.11 *        C:\\Users\\UsEr\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
+}

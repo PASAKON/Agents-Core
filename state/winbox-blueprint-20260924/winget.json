@@ -1,0 +1,261 @@
+{
+	"$schema" : "https://aka.ms/winget-packages.schema.2.0.json",
+	"CreationDate" : "2026-09-24T03:37:20.430-00:00",
+	"Sources" : 
+	[
+		{
+			"Packages" : 
+			[
+				{
+					"PackageIdentifier" : "BlueStack.BlueStacks",
+					"Version" : "5.22.260.1026"
+				},
+				{
+					"PackageIdentifier" : "CPUID.CPU-Z",
+					"Version" : "2.16"
+				},
+				{
+					"PackageIdentifier" : "Git.Git",
+					"Version" : "2.53.0.3"
+				},
+				{
+					"PackageIdentifier" : "RARLab.WinRAR",
+					"Version" : "7.13.0"
+				},
+				{
+					"PackageIdentifier" : "ALCPU.CoreTemp",
+					"Version" : "1.18.1"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCRedist.2010.x64",
+					"Version" : "10.0.40219"
+				},
+				{
+					"PackageIdentifier" : "Apple.Bonjour",
+					"Version" : "3.1.0.1"
+				},
+				{
+					"PackageIdentifier" : "BlenderFoundation.Blender",
+					"Version" : "5.2.1"
+				},
+				{
+					"PackageIdentifier" : "GlavSoft.TightVNC",
+					"Version" : "2.8.88.0"
+				},
+				{
+					"PackageIdentifier" : "OpenJS.NodeJS.LTS",
+					"Version" : "24.15.0"
+				},
+				{
+					"PackageIdentifier" : "GitHub.cli",
+					"Version" : "2.90.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.Edge",
+					"Version" : "153.0.4234.48"
+				},
+				{
+					"PackageIdentifier" : "Guru3D.RTSS",
+					"Version" : "7.3.7"
+				},
+				{
+					"PackageIdentifier" : "Valve.Steam",
+					"Version" : "2.10.91.91"
+				},
+				{
+					"InitialOverrideArguments" : "--wait --quiet --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended",
+					"PackageIdentifier" : "Microsoft.VisualStudio.2022.BuildTools",
+					"Version" : "> 17.14.41"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCRedist.2013.x64",
+					"Version" : "12.0.40664.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCRedist.2015+.x64",
+					"Version" : "14.51.36247.0"
+				},
+				{
+					"PackageIdentifier" : "Tailscale.Tailscale",
+					"Version" : "1.102.2"
+				},
+				{
+					"PackageIdentifier" : "TechPowerUp.GPU-Z",
+					"Version" : "2.68.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCRedist.2015+.x86",
+					"Version" : "14.51.36247.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCRedist.2013.x86",
+					"Version" : "12.0.40664.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCRedist.2010.x86",
+					"Version" : "10.0.40219"
+				},
+				{
+					"PackageIdentifier" : "Python.Launcher",
+					"Version" : "3.11.9"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsSDK.10.0.26100",
+					"Version" : "10.0.26100.7705"
+				},
+				{
+					"PackageIdentifier" : "Google.Antigravity",
+					"Version" : "2.15.1"
+				},
+				{
+					"PackageIdentifier" : "DenoLand.Deno",
+					"Version" : "2.9.6"
+				},
+				{
+					"PackageIdentifier" : "Gyan.FFmpeg",
+					"Version" : "9.0.1"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.OneDrive",
+					"Version" : "26.163.0823.0004"
+				},
+				{
+					"PackageIdentifier" : "Rclone.Rclone",
+					"Version" : "1.75.1"
+				},
+				{
+					"PackageIdentifier" : "Rustlang.Rustup",
+					"Version" : "1.29.1"
+				},
+				{
+					"PackageIdentifier" : "Overwolf.CurseForge",
+					"Version" : "1.321.1-39714"
+				},
+				{
+					"PackageIdentifier" : "yt-dlp.FFmpeg",
+					"Version" : "N-125875-g5d4d3bdc61-20260731"
+				},
+				{
+					"PackageIdentifier" : "yt-dlp.yt-dlp",
+					"Version" : "2026.08.19"
+				},
+				{
+					"PackageIdentifier" : "Python.Python.3.11",
+					"Version" : "3.11.9"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VisualStudioCode",
+					"Version" : "1.138.0"
+				},
+				{
+					"PackageIdentifier" : "Nvidia.GeForceNow",
+					"Version" : "2.0.87.131"
+				},
+				{
+					"PackageIdentifier" : "Anthropic.Claude",
+					"Version" : "2.7032.0.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.Teams",
+					"Version" : "25255.703.3978.7153"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.AppInstaller",
+					"Version" : "1.29.379.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.365Copilot",
+					"Version" : "19.2609.52011.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.DotNet.Native.Runtime",
+					"Version" : "2.2.28604.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.Outlook",
+					"Version" : "1.2025.1027.200"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.UI.Xaml.2.7",
+					"Version" : "7.2409.9001.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.UI.Xaml.2.8",
+					"Version" : "8.2511.26001.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCLibs.Desktop.14",
+					"Version" : "14.0.33728.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.VCLibs.14",
+					"Version" : "14.0.33519.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsAppRuntime.1.4",
+					"Version" : "1.4.7"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsAppRuntime.1.5",
+					"Version" : "1.5.9"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsAppRuntime.1.6",
+					"Version" : "1.6.9"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsAppRuntime.1.7",
+					"Version" : "1.7.9"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsAppRuntime.1.8",
+					"Version" : "> 1.8.10"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsAppRuntime.2",
+					"Version" : "2.5.1.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WindowsTerminal",
+					"Version" : "1.24.11911.0"
+				},
+				{
+					"PackageIdentifier" : "Microsoft.WSL",
+					"Version" : "2.7.14.0"
+				}
+			],
+			"SourceDetails" : 
+			{
+				"Argument" : "https://cdn.winget.microsoft.com/cache",
+				"Identifier" : "Microsoft.Winget.Source_8wekyb3d8bbwe",
+				"Name" : "winget",
+				"Type" : "Microsoft.PreIndexed.Package"
+			}
+		},
+		{
+			"Packages" : 
+			[
+				{
+					"PackageIdentifier" : "XPDBVSS44R0L9H",
+					"Version" : "7.11.0"
+				},
+				{
+					"PackageIdentifier" : "XPFCC4CD725961",
+					"Version" : "9.14.0.3764"
+				},
+				{
+					"PackageIdentifier" : "9NT1R1C2HH7J",
+					"Version" : "1.2026.190.0"
+				}
+			],
+			"SourceDetails" : 
+			{
+				"Argument" : "https://storeedgefd.dsx.mp.microsoft.com/v9.0",
+				"Identifier" : "StoreEdgeFD",
+				"Name" : "msstore",
+				"Type" : "Microsoft.Rest"
+			}
+		}
+	],
+	"WinGetVersion" : "1.29.380"
+}
