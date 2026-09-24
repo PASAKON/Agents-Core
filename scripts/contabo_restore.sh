@@ -90,7 +90,7 @@ if [ -n "${FREE_KB:-}" ]; then
 fi
 
 cmd apt-get update
-cmd apt-get install -y git python3 python3-venv python3-pip
+cmd apt-get install -y git curl ca-certificates python3 python3-venv python3-pip python3-yaml
 if command -v docker >/dev/null 2>&1; then
   say "docker: present ($(command -v docker))"
 else
@@ -145,6 +145,37 @@ if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
   cmd_sh "xargs -a '$BLUEPRINT_DIR/apt-packages.txt' apt-get install -y"
 else
   say "WARN: no state/contabo-blueprint-<date>/apt-packages.txt after the clone — only step 1's base packages are installed"
+fi
+# 2b. every other HQ repo that lives on this box: hq.yaml rows with `repo:` and a `machines.contabo`
+# path (2026-09-24: Projects/MoonieX/{ClaudeFlow,Console,AlphaTrader,Option,LineAutomation},
+# Projects/LungNote/Mcp). Agents/Rules + Wikis are rsync snapshots (above); Core + Memory are already
+# cloned. A contabo path string may carry a note in parentheses — its first token is the path. Found
+# missing by the first container drill (hq.py doctor listed every Projects/* row as absent).
+if [ -f "$HQ_ROOT/hq.yaml" ] && python3 -c 'import yaml' 2>/dev/null; then
+  HQ_REPO_LIST=$(python3 - "$HQ_ROOT/hq.yaml" <<'PY'
+import sys, yaml
+d = yaml.safe_load(open(sys.argv[1]))
+for r in d.get("folders") or []:
+    m = r.get("machines") or {}
+    raw = str(m.get("contabo") or "")
+    p = raw.split()[0] if raw else ""
+    if r.get("repo") and p and "snapshot" not in raw and r["path"] not in ("Agents/Core", "Agents/Memory", "Agents/Rules", "Agents/Wikis"):
+        print(r["repo"], p)
+PY
+)
+  while read -r repo dest; do
+    [ -n "$repo" ] || continue
+    if [ -d "$dest/.git" ]; then
+      say "$dest already a git checkout — skip clone (idempotent)"
+    elif [ -n "${RESTORE_GIT_BASE:-}" ] && [ -d "$RESTORE_GIT_BASE" ] && [ ! -d "${RESTORE_GIT_BASE}${repo##*/}.git" ]; then
+      say "rehearsal: no local mirror for $repo — skipped ($dest)"
+    else
+      cmd git clone "${GIT_BASE}${repo##*/}.git" "$dest"
+    fi
+  done <<< "$HQ_REPO_LIST"
+  say "each deployed project's .env comes from the secrets bundle (step 8), never from git"
+else
+  say "WARN: hq.yaml or python3-yaml missing — the Projects/* repos of this box were not cloned (hq.yaml rows with a contabo path)"
 fi
 
 # ==================================== 3/9 — Python venv, Node 22, npm globals
@@ -307,7 +338,10 @@ human "fetch the bundle from another machine's Archive/ at 0600 — e.g. <mac-or
 # ====================================================== 9/9 — verify
 hdr "verify: machine_doctor, hq.py doctor, unit-files, PASS/FAIL + drill template"
 cmd "$CORE/.venv/bin/python3" "$CORE/tools/machine_doctor.py" --machine contabo check
-cmd "$CORE/.venv/bin/python3" "$HQ_ROOT/scripts/hq.py" doctor
+# hq.py doctor is written against the Mac's `current:` paths (44 findings on the LIVE Contabo box on
+# 2026-09-24, so a fresh one can only match that) — here it is information, never the gate.
+say "\$ $CORE/.venv/bin/python3 $HQ_ROOT/scripts/hq.py doctor   (informational on Contabo: the map is Mac-centric)"
+if [ "$DRY_RUN" -eq 0 ]; then "$CORE/.venv/bin/python3" "$HQ_ROOT/scripts/hq.py" doctor 2>&1 | tail -2 | sed 's/^/      /'; fi
 cmd systemctl list-unit-files "mooniex-*"
 
 if [ "$PASS" -eq 1 ]; then
