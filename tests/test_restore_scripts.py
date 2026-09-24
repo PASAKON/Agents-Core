@@ -10,6 +10,7 @@ state, not just that it prints something plausible.
 from __future__ import annotations
 
 import os
+import platform
 import re
 import subprocess
 from pathlib import Path
@@ -154,7 +155,13 @@ def test_contabo_restore_never_touches_drive_docker_up_or_secrets_paths():
 @pytest.fixture
 def mac_env(tmp_path):
     home_hq = tmp_path / "homehq"
-    return {"HOME_HQ": str(home_hq), "CORE": str(home_hq / "Agents" / "Core")}
+    # HOME and CLAUDE_CONFIG_DIR too: on the Mac itself a real (non --dry-run) run is NOT
+    # refused, and the script's `ln -sfn … "$HOME/.claude/…"` repointed the REAL
+    # ~/.claude/{CLAUDE.md,commands,hooks,settings.json,tools} into this tmp dir
+    # (2026-09-25 03:02, every Mac session lost its settings, hooks and /spawn-cto).
+    fake_home = tmp_path / "home"
+    return {"HOME_HQ": str(home_hq), "CORE": str(home_hq / "Agents" / "Core"),
+            "HOME": str(fake_home), "CLAUDE_CONFIG_DIR": str(fake_home / ".claude")}
 
 
 def test_mac_dry_run_exits_zero(mac_env):
@@ -196,6 +203,10 @@ def test_mac_dry_run_allowed_on_this_non_darwin_box(mac_env):
     assert "refusing" not in r.stderr.lower()
 
 
+@pytest.mark.skipif(platform.system() == "Darwin",
+                    reason="on macOS a real run is not refused: it would execute the restore "
+                           "(brew, launchctl, tailscale, ~/.claude links). This test only proves "
+                           "the non-Darwin refusal.")
 def test_mac_restore_refuses_a_real_run_on_non_darwin(mac_env):
     # Safe to invoke without --dry-run: the Darwin check runs before any command that
     # could change state (see the script — the guard is the first thing after arg
