@@ -153,7 +153,15 @@ class FBReelBrowser:
         last_err = None
         for i in range(attempts):
             try:
-                self.browser = self._pw.chromium.connect_over_cdp(self.cdp_url, timeout=timeout_ms)
+                # is_local=True: the CDP Chrome and this script run on the
+                # same Mac. Without it Playwright assumes a remote browser
+                # and refuses any file upload over 50MB (measured live,
+                # task-c6bd5ba6: "Cannot transfer files larger than 50Mb to
+                # a browser not co-located with the server") — the 845MB
+                # banchi video needs this.
+                self.browser = self._pw.chromium.connect_over_cdp(
+                    self.cdp_url, timeout=timeout_ms, is_local=True
+                )
                 return
             except Exception as e:  # noqa: BLE001
                 last_err = e
