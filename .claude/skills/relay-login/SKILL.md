@@ -38,6 +38,19 @@ right port, name the pill, and get out of the way. Console docs: `docs/relay.md`
 
 ## 1. Expose the Chrome (one per account, a dedicated profile)
 
+**Preferred since 2026-09-25: a Browser Home** — a headless Chrome the Console
+on that box launches and owns, with every out-of-page prompt disabled, so the
+relay sees 100% of what the site shows (Console docs/relay.md §8):
+
+```bash
+node scripts/relay-home.mjs create <id> --label "<account>" --url <login url>   # once
+node scripts/relay-home.mjs launch <id>      # prints http://127.0.0.1:92xx — your CDP URL
+```
+
+It appears on the CEO's phone as "<machine> · <label>", and a stopped home is
+an "เปิด" button there. The hand-launched table below is the exception (a site
+that refuses headless).
+
 | machine | port | how |
 |---|---|---|
 | Contabo | 9222–9299 on 127.0.0.1 | `chrome --headless=new --remote-debugging-port=92xx --user-data-dir=<profile> --window-size=390,844 --user-agent="<a normal Chrome UA>"` — Google refuses the HeadlessChrome UA (E_BLOCKED, measured 2026-09-24) |
