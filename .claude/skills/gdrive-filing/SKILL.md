@@ -368,6 +368,7 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │                             The broken `…MoonieXHQ-code.PARTIAL-DO-NOT-USE-truncated-859MB.tar` was trashed on CEO OK.
 │   │                             + `Mac-Reinstall-2026-09-24-Photos-p00-library…p19.tar` (20 tars, 52.76 GB): the Mac Photos
 │   │                             library (iPhone camera roll 2021-01…2026-07-09; iCloud Photos was OFF on this Mac).
+│   │                             + `…-final-delta-0837.tar` (changes 06:47→08:37) and `…-home-media.tar` (Movies/Music/Desktop/…, 1.18 GB).
 │   ├── Contabo-mooniex-agents-pre-20260807.tar (+ .manifest.json)   NEW 2026-09-23, CEO-approved
 │   │                             in chat ("ถ้าไม่ชัวร์ สำรองก่อน"). Two 2026-08-07 self-backups of
 │   │                             Contabo's /opt/mooniex-agents (pre git swap/sync), deleted from the
