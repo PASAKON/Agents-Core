@@ -354,3 +354,142 @@ use") isolated to stderr — stdout is clean JSONL.
 across any repo cloned on the box) right after `worktree add`, once per
 clone. `REPORT.md`/`BLOCKER.md` are unaffected — they ARE the hub's channel
 and are meant to be committed+pushed.
+
+## 7b. Phase 2 — status (developer, task-a5c0549d, 2026-09-25)
+
+**Shipped:**
+
+- `scripts/spawn-worker-remote.sh` — the Contabo/Linux spoke launcher,
+  parameter-compatible with `windows/spawn-worker.ps1` (same 12 flags, one
+  runner today: `claude`). Bash + tmux instead of PowerShell + a scheduled
+  task: no session-0/session-1 boundary to cross on Linux, so
+  `tmux new-session -d` IS the detached worker, and its `pane_pid` stays the
+  worker's own pid once `launch.sh`'s last line `exec`s into `claude` (no
+  fork in between — verified live). Idempotent worktree reuse, the same
+  stale-file/`info/exclude` handling as the winbox launcher, and its own
+  `--dry-run` mode (for local testing under the Mac's real bash 3.2, since
+  the script only ever *executes* on Contabo's newer bash — see its header).
+  Resolves `claude`'s absolute path itself (`command -v` + known install
+  locations) rather than trusting a login shell's `PATH` — measured live: a
+  plain `ssh alias 'bash script'` is a non-interactive, non-login
+  invocation that sources neither `~/.bashrc` nor `~/.zshrc`, so a
+  `bash -l "$LAUNCH_SH"` launch could not see a PATH entry the ssh session's
+  own environment already had.
+- `tools/delegate.py::_spawn_remote` gained a `linux` branch (`windows`
+  branch untouched, only re-indented under an `os_name` check): renders the
+  same `worker_tool_grants`-based claude flags winbox already gets via the
+  existing, already-host-agnostic `_render_remote_claude_args`, pipes the
+  rendered `TASK.md` prompt over ssh's own stdin (`subprocess.run(...,
+  input=prompt)`) instead of scp — plain OpenSSH forwards it, no
+  PowerShell console-encoding hazard to work around — and parses the
+  launcher's own `SPAWNED pid=<n> session=<name> worktree=<path>` /
+  `SPAWN_REFUSED=<reason>` stdout contract (regex, not the bare
+  `int(lines[-1])` the windows branch uses — deliberately different, more
+  structured shapes for two different launchers).
+- `_ensure_remote_deploy_linux` / `_remote_sha256_posix`: scp's just
+  `scripts/spawn-worker-remote.sh` onto the spoke (sha256-compared, only
+  when changed) — the pre-merge bootstrap problem, since this task's own
+  script can't reach Contabo through `git pull` until the PR that adds it
+  is merged to main. Unlike winbox's dedicated non-git deploy folder,
+  Contabo's `agents_root` **is** a live git checkout of this same repo (two
+  CTO sessions run out of it today), so role docs (`roles/*.md`) are read
+  by the launcher directly from that checkout instead of being deployed a
+  second time.
+- `config/hosts.yaml` contabo: `agents_root`/`worktrees` now point at the
+  real MoonieXHQ checkout (`/opt/MoonieXHQ/Agents/Core`) — `/opt/mooniex-agents`
+  was a compat symlink from the 2026-09-23 migration, still valid today but
+  due for removal; `provides` widened to `[always_on, api, ffmpeg,
+  playwright_chromium, node20]` (measured present on the box).
+  `config/projects.yaml`'s `paths.contabo` for `mooniex-agents` was
+  **left** on the old `/opt/mooniex-agents` value — updating it wasn't a
+  declared `touches` path for this task, and the compat symlink resolves
+  correctly today; flagged for whoever removes the symlink.
+- **Disk-floor host-awareness fix** (CTO review mid-task, 2026-09-24): the
+  disk-floor gate (§ADR 0030) ran unconditionally against the **Mac's**
+  free space for every spawn, including one bound for a spoke —
+  `delegate_task`'s own host resolution happened *after* the gate. Caught
+  live: task-43b6514d ("queued for disk — 3.9 GB free, needs 5.0 GB")
+  while Contabo itself had plenty. Fixed: `resolved_host` is now computed
+  before the gate; a `mac`-bound spawn still reads local disk
+  (`_free_gb()`), any other host is probed over ssh (`_remote_free_gb`,
+  `df -Pk /`) instead. Fails **open** (never refuses) on an unreachable
+  probe, and is skipped entirely during `dry_run` (a real ssh probe there
+  would violate `dry_run`'s own "prints the command, never runs it"
+  contract). **Known remaining gap, not fixed here:**
+  `runners/watchdog.py`'s `_drain_disk_queue()` still gates every queued
+  entry's resume purely on the Mac's free space (`DISK_QUEUE_RESUME_MARGIN_GB`
+  check), regardless of which host it was queued for — a spoke-bound task
+  queued by a low Mac disk reading will still wait on the *Mac's* disk
+  clearing before the watchdog even attempts to drain it.
+  `runners/watchdog.py` was not a declared `touches` path for this task.
+- `tests/test_spawn_remote_linux.py` — 19 tests: linux dry-run renders the
+  exact ssh command (every flag asserted), the winbox dry-run shape is
+  byte-for-byte unchanged (regression guard), an `os: freebsd` host still
+  raises `NotImplementedError`, the `SPAWNED`/`SPAWN_REFUSED` output
+  contract is parsed correctly (success/refused/unparseable), the
+  disk-floor host-awareness fix (spoke-healthy-Mac-low proceeds,
+  spoke-low-Mac-healthy queues naming the spoke, fail-open on an
+  unreachable probe, skipped during dry-run), `_remote_free_gb`'s `df`
+  parsing, and the shell script itself under `bash -n` + its own
+  `--dry-run` (real bash 3.2, per the script's header).
+
+**Measured live on Contabo (task-43b6514d, the brief's own acceptance
+smoke test — `npx hyperframes --version` + a 5s 1080x1920 render):**
+
+- Real `delegate_task(host="contabo")` (dry-run then real) against the
+  **production** `state/tasks.db`: dry-run rendered the exact ssh command;
+  the real call auto-deployed `spawn-worker-remote.sh` (sha256 mismatch —
+  first use), then reported `SPAWNED pid=3251641 session=mooniex-task-43b6514d
+  worktree=/opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-43b6514d`.
+  `ssh mooniex-vps tmux ls` confirmed the session alive; `tmux capture-pane`
+  showed a live, thinking Claude Code session under the correct cwd —
+  the pid/tmux/worktree/pipe mechanics of this task's own new code are
+  fully proven working end to end against the real box.
+- **New finding, not fixed here (`scripts/hook-self-repo-guard.py` not a
+  declared `touches` path):** spawning the **`mooniex-agents` project
+  itself** (the org's own self-modifying repo) onto a spoke trips
+  `hook-self-repo-guard.py`. That hook resolves the task's declared
+  `touches` from `<worktree>/../../state/tasks.db` — the checkout's *own*
+  local copy — which on the Mac is the live hub but on Contabo is a
+  near-empty, unsynced copy (confirmed live by the spawned worker itself:
+  `sqlite3 .../state/tasks.db "SELECT count(*) FROM tasks"` → 22 rows, none
+  matching its own task id). A missing row raises `GuardError` (not the
+  hook's `HubUnreachable`/`ArchivedHub` fail-**open** paths — the sqlite
+  file opens fine, it's just missing the row), so `decide()` fails
+  **closed**: every `Edit`/`Write` call, and every `Bash` command
+  containing a `>` redirect or another write-pattern `bash_targets()`
+  recognizes, is refused as "undecidable" — regardless of whether the
+  actual target path is even one of the protected prefixes
+  (`lib/ runners/ tools/ policies/ config/ state/locks/`), because the
+  touches lookup happens before path classification. This is narrow — the
+  hook only activates for a worktree literally named `mooniex-agents__*`
+  (`WORKTREE_PREFIX`), so it is inert for every other project spawned on a
+  spoke — but it means **this specific smoke task, on this specific
+  project, could not write its HyperFrames test file** the ordinary way.
+  Live evidence (`tmux capture-pane`, task-43b6514d): the spawned worker
+  independently diagnosed the exact same root cause on its own (reading
+  the hook's source, querying the local db) before this report was
+  written. Fixing this needs either (a) `hook-self-repo-guard.py` reading
+  the **hub's** tasks.db over ssh/API on a spoke the way `HubUnreachable`'s
+  Postgres path already anticipates, or (b) not spawning the org's own
+  repo onto a spoke that lacks a synced task registry — a decision for
+  whoever owns that hook, out of this task's scope.
+- fps/RAM numbers: not obtained — the smoke task never reached the
+  `npx hyperframes render` step because of the guard finding above. Left
+  for a re-run once the guard question above is resolved, or for a smoke
+  task on a project the guard doesn't watch.
+
+**Not done / open:**
+
+- `config/projects.yaml`'s `paths.contabo` left on the compat-symlink path
+  (see above) — cheap follow-up once it's a declared touches path.
+- `runners/watchdog.py`'s disk-queue drain is still Mac-disk-only (see
+  above).
+- `hook-self-repo-guard.py`'s spoke/hub tasks.db mismatch for the
+  `mooniex-agents` project (see above) — the more consequential of the two
+  gaps, since it blocks real DEV work on this repo from Contabo, not just
+  disk-queue timing.
+- Runner support beyond `claude` on Contabo (`codex`/`agy`) — not
+  installed/verified on the box; `config/hosts.yaml` lists `runners:
+  [claude]` only, matching what winbox went through in two steps
+  (task-adbc6f43 added codex/agy there well after Phase 1 shipped).

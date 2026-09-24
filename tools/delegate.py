@@ -307,6 +307,37 @@ def _free_gb(path: str = "/") -> float:
     return shutil.disk_usage(path).free / (1024 ** 3)
 
 
+def _remote_free_gb(ssh_alias: str) -> float | None:
+    """Free space (GB) on a spoke's `/` via `df`, or None if the probe
+    itself fails — unreachable host, no `df`, unparseable output. Never
+    raises. Mirrors `runners/branch_poller.remote_pid_alive`'s fail-OPEN
+    contract on purpose (task-a5c0549d, disk-floor host-awareness fix):
+    a broken probe must never become a false floor that silently queues
+    every remote spawn to a host this check couldn't even reach. `-Pk`
+    (POSIX output format, 1024-byte blocks) keeps the column layout stable
+    across whatever `df` a spoke ships (GNU coreutils or BusyBox)."""
+    try:
+        r = subprocess.run(
+            ["ssh", ssh_alias, "df", "-Pk", "/"],
+            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    lines = (r.stdout or "").strip().splitlines()
+    if len(lines) < 2:
+        return None
+    fields = lines[1].split()
+    if len(fields) < 4:
+        return None
+    try:
+        avail_kb = float(fields[3])
+    except ValueError:
+        return None
+    return avail_kb / (1024 ** 2)
+
+
 # How a worker is started, held as a STABLE path rather than as the command
 # itself. This is the root-cause fix for a failure that recurred across
 # several sessions: the MCP server runs in-process with a C-level session and
@@ -1011,6 +1042,80 @@ def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
     return actions
 
 
+# Linux/Contabo deploy (Phase 2, task-a5c0549d). Separate from
+# _ensure_remote_deploy/_remote_sha256 above (which stay windows-only and
+# untouched) rather than branching those on os= -- keeps the winbox path
+# byte-identical with zero risk, and the linux side is genuinely simpler:
+# only ONE file needs pushing ahead of a merge (scripts/spawn-worker-remote.sh
+# itself). Role docs (roles/_worker_shared.md, roles/_worker_remote.md,
+# roles/<role>.md) are NOT deployed here — unlike winbox's dedicated
+# non-git deploy folder, Contabo's agents_root IS a live git checkout of
+# this same repo (two CTO sessions run out of it today), so the launcher
+# script reads those files directly from its own already-cloned location
+# instead of a second copy that could drift or dirty that checkout's
+# working tree.
+_REMOTE_DEPLOY_FILE_LINUX = ("scripts/spawn-worker-remote.sh", "scripts/spawn-worker-remote.sh")
+
+
+def _remote_sha256_posix(ssh_alias: str, remote_path: str) -> str | None:
+    """SHA256 of a file already on a POSIX box (uppercase hex, matching
+    `_local_sha256`'s case), or None if absent/unreachable — never raises,
+    mirrors `_remote_sha256`'s contract for the windows side. Tries
+    `sha256sum` (coreutils, the Debian/Ubuntu default) then falls back to
+    `shasum -a 256` (macOS/BSD) in case a spoke's userland differs."""
+    check = (
+        f"if [ -f {shlex.quote(remote_path)} ]; then "
+        f"sha256sum {shlex.quote(remote_path)} 2>/dev/null | cut -d' ' -f1 "
+        f"|| shasum -a 256 {shlex.quote(remote_path)} 2>/dev/null | cut -d' ' -f1; fi"
+    )
+    try:
+        r = subprocess.run(
+            ["ssh", ssh_alias, check],
+            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    out = (r.stdout or "").strip().upper()
+    return out or None
+
+
+def _ensure_remote_deploy_linux(host_cfg: dict, *, dry_run: bool = False) -> list[str]:
+    """scp scripts/spawn-worker-remote.sh onto a Linux spoke, only when
+    missing or changed (sha256 compare) — the pre-merge bootstrap problem:
+    this task's own script can't reach Contabo through `git pull` until the
+    PR that adds it is merged to main. Once merged, a `git pull` on the box
+    picks it up as a normal tracked file and this becomes a permanent no-op."""
+    ssh_alias = host_cfg["ssh"]
+    agents_root = host_cfg["agents_root"]
+    local_rel, remote_rel = _REMOTE_DEPLOY_FILE_LINUX
+    local = ROOT / local_rel
+    remote_abs = f"{agents_root}/{remote_rel}"
+
+    if dry_run:
+        return [f"[dry-run] would check/deploy {local_rel} -> {ssh_alias}:{remote_abs}"]
+    if not local.is_file():
+        return []
+    if _remote_sha256_posix(ssh_alias, remote_abs) == _local_sha256(local):
+        return []
+
+    remote_dir = remote_abs.rsplit("/", 1)[0]
+    r = subprocess.run(["ssh", ssh_alias, f"mkdir -p {shlex.quote(remote_dir)}"],
+                       capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+    if r.returncode != 0:
+        raise RuntimeError(f"remote mkdir failed: {(r.stderr or r.stdout or '').strip()}")
+    r = subprocess.run(["scp", str(local), f"{ssh_alias}:{remote_abs}"],
+                       capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+    if r.returncode != 0:
+        raise RuntimeError(f"deploy scp failed for {local.name}: {r.stderr}")
+    r = subprocess.run(["ssh", ssh_alias, f"chmod +x {shlex.quote(remote_abs)}"],
+                       capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+    if r.returncode != 0:
+        raise RuntimeError(f"chmod +x failed for {remote_abs}: {(r.stderr or r.stdout or '').strip()}")
+    return [f"deployed {local.name} -> {remote_abs}"]
+
+
 def _ssh_remote_url(remote: str) -> str:
     """Normalize a project's `remote:` (HTTPS or SSH in config/projects.yaml
     — the file mixes both today) to the SSH form a remote spoke can clone
@@ -1092,11 +1197,12 @@ async def _spawn_remote(task: dict, host_name: str, *,
     project_key = task["project"]
 
     host_cfg = get_host(host_name)  # raises ValueError if host_name is unknown
-    if host_cfg.get("os") != "windows":
+    os_name = host_cfg.get("os")
+    if os_name not in ("windows", "linux"):
         raise NotImplementedError(
-            f"host {host_name!r} (os={host_cfg.get('os')}) has no remote "
-            f"launcher yet — only winbox is wired in Phase 1; a Contabo "
-            f"launcher is Phase 2 (non-goal of this task)"
+            f"host {host_name!r} (os={os_name}) has no remote launcher yet — "
+            f"only winbox (Phase 1) and contabo (Phase 2, task-a5c0549d) are "
+            f"wired; docs/design/multi-host-workers.md §4"
         )
     ssh_alias = host_cfg.get("ssh")
     if not ssh_alias:
@@ -1118,7 +1224,9 @@ async def _spawn_remote(task: dict, host_name: str, *,
     worktree_root = host_cfg["worktrees"]
     branch = _runner_branch_name(runner, role_name, task_id)
     base = proj["default_branch"]
-    remote_worktree = f"{worktree_root}\\{project_key}__{role_name}__{task_id}"
+    # Windows paths join with '\\'; linux (contabo, task-a5c0549d) with '/'.
+    sep = "\\" if os_name == "windows" else "/"
+    remote_worktree = f"{worktree_root}{sep}{project_key}__{role_name}__{task_id}"
 
     claude_args = _render_remote_runner_args(role_name, host_name, runner)
     role_cfg = get_role(role_name)
@@ -1130,21 +1238,152 @@ async def _spawn_remote(task: dict, host_name: str, *,
     session_name = get_worker_session_name(host_name, role_name, task_id,
                                            task.get("title") or "")
 
-    deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
+    if os_name == "windows":
+        deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
+
+        prompt = _build_prompt(task, proj, remote_worktree)
+        remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
+        remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+
+        remote_cmd = (
+            f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "
+            f"-Task {_ps_quote(task_id)} -Project {_ps_quote(project_key)} "
+            f"-Role {_ps_quote(role_name)} -Branch {_ps_quote(branch)} "
+            f"-Base {_ps_quote(base)} -RepoUrl {_ps_quote(repo_url)} "
+            f"-RepoPath {_ps_quote(repo_path)} -WorktreeRoot {_ps_quote(worktree_root)} "
+            f"-ClaudeArgs {_ps_quote(claude_args)} -Model {_ps_quote(model)} "
+            f"-Effort {_ps_quote(effort)} -TaskFile {_ps_quote(remote_task_file)} "
+            f"-SessionName {_ps_quote(session_name)} -Runner {_ps_quote(runner)}"
+        )
+        cmd = ["ssh", ssh_alias, remote_cmd]
+
+        if dry_run:
+            printable = " ".join(shlex.quote(c) for c in cmd)
+            info(f"[dry-run] task={task_id} host={host_name} deploy: {deploy_actions}")
+            info(f"[dry-run] task={task_id} ssh command: {printable}")
+            db.set_fields(
+                task_id,
+                delegate_log=f"[dry-run] host={host_name} ssh_cmd={printable}",
+                actor="cto",
+            )
+            return db.get_task(task_id)
+
+        # Local temp copy of the rendered prompt, scp'd to the box rather than
+        # crossing the wire as ssh command-line text — it can be thousands of
+        # words and contain quotes/non-ASCII the remote shell would re-mangle.
+        tmp_task_md = ROOT / "state" / f".remote-task-{task_id}.md"
+        tmp_task_md.parent.mkdir(parents=True, exist_ok=True)
+        tmp_task_md.write_text(prompt, encoding="utf-8")
+        try:
+            r = subprocess.run(["scp", str(tmp_task_md), f"{ssh_alias}:{remote_task_file}"],
+                               capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+            if r.returncode != 0:
+                raise RuntimeError(f"scp of TASK.md failed: {r.stderr}")
+        finally:
+            tmp_task_md.unlink(missing_ok=True)
+
+        info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           timeout=REMOTE_LAUNCH_TIMEOUT_S)
+        lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
+
+        for ln in lines:
+            if ln.startswith("GITHUB_SSH_ROUTE="):
+                info(f"task={task_id} host={host_name} {ln}")
+
+        # GH #153: the probe's own verdict must GATE success, not just get
+        # logged. spawn-worker.ps1's current version never exits early on
+        # GITHUB_SSH_ROUTE=unreachable (the probe there is advisory-only) — it
+        # can keep going and still print a valid pid on the last line, which
+        # would otherwise read as a clean spawn. Checked before the returncode
+        # branch below so it also wins when the dead route later makes git
+        # itself fail (non-zero exit) — "unreachable" is the more specific,
+        # more actionable diagnosis either way.
+        route_line = next(
+            (ln for ln in lines if ln.startswith("GITHUB_SSH_ROUTE=unreachable")), None,
+        )
+        if route_line is not None:
+            kill_note = ""
+            maybe_pid = lines[-1].strip() if lines else ""
+            if maybe_pid.isdigit():
+                # ps1 launched a worker despite the dead route (current
+                # version) — coordination note in the task brief: since ps1 is
+                # the paired task's file (not touched here), the hub kills
+                # what it launched instead of relying on ps1 to refuse first.
+                try:
+                    kr = subprocess.run(
+                        ["ssh", ssh_alias, "taskkill", "/PID", maybe_pid, "/T", "/F"],
+                        capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+                    )
+                    kill_ok = kr.returncode == 0
+                    kill_detail = "ok" if kill_ok else (kr.stderr or kr.stdout or "").strip()[:200]
+                except (OSError, subprocess.SubprocessError) as e:
+                    kill_ok, kill_detail = False, str(e)[:200]
+                kill_note = f"; killed leaked pid {maybe_pid} on {host_name} ({kill_detail})"
+                info(f"task={task_id} host={host_name} killed leaked pid={maybe_pid} "
+                    f"(route unreachable) ok={kill_ok}")
+            detail = (
+                f"{route_line} — git route from {host_name} dead — fix "
+                f"network/keys, then delegate again{kill_note}"
+            )
+            error(f"remote spawn blocked task={task_id} host={host_name}: {detail}")
+            db.update_status(task_id, "blocked_host", delegate_log=detail, actor="cto")
+            return db.get_task(task_id)
+
+        refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
+        if refused_line is not None:
+            reason = refused_line[len("SPAWN_REFUSED="):]
+            warn(f"remote spawn refused task={task_id} host={host_name}: {reason}")
+            db.update_status(
+                task_id, "conflict",
+                delegate_log=f"remote spawn refused ({host_name}): {reason}",
+                actor="cto",
+            )
+            return db.get_task(task_id)
+
+        if r.returncode != 0 or not lines:
+            detail = (r.stderr or r.stdout or "").strip()[:1000]
+            error(f"remote spawn failed task={task_id} host={host_name}: {detail}")
+            db.update_status(task_id, "failed",
+                             delegate_log=f"remote spawn ({host_name}) failed: {detail}",
+                             actor="cto")
+            return db.get_task(task_id)
+
+        try:
+            pid = int(lines[-1].strip())
+        except ValueError:
+            error(f"remote spawn task={task_id}: could not parse pid from last line: {lines[-1]!r}")
+            db.update_status(task_id, "failed",
+                             delegate_log=f"remote spawn ({host_name}): unparseable pid line {lines[-1]!r}",
+                             actor="cto")
+            return db.get_task(task_id)
+
+        db.update_status(
+            task_id, "in_progress",
+            pid=pid, host=host_name, worktree=remote_worktree, branch=branch,
+            assigned_agent=role_name, runner=runner, actor="cto",
+        )
+        success(f"remote DEV spawned task={task_id} host={host_name} runner={runner} pid={pid}")
+        return db.get_task(task_id)
+
+    # os_name == "linux" (contabo, Phase 2, task-a5c0549d). Bash + tmux
+    # instead of powershell + a scheduled task — no session-0/session-1 GUI
+    # boundary to cross, so tmux new-session -d IS the detached worker;
+    # see scripts/spawn-worker-remote.sh for the launcher itself.
+    deploy_actions = _ensure_remote_deploy_linux(host_cfg, dry_run=dry_run)
 
     prompt = _build_prompt(task, proj, remote_worktree)
-    remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
-    remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+    remote_script = f"{host_cfg['agents_root']}/scripts/spawn-worker-remote.sh"
 
-    remote_cmd = (
-        f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "
-        f"-Task {_ps_quote(task_id)} -Project {_ps_quote(project_key)} "
-        f"-Role {_ps_quote(role_name)} -Branch {_ps_quote(branch)} "
-        f"-Base {_ps_quote(base)} -RepoUrl {_ps_quote(repo_url)} "
-        f"-RepoPath {_ps_quote(repo_path)} -WorktreeRoot {_ps_quote(worktree_root)} "
-        f"-ClaudeArgs {_ps_quote(claude_args)} -Model {_ps_quote(model)} "
-        f"-Effort {_ps_quote(effort)} -TaskFile {_ps_quote(remote_task_file)} "
-        f"-SessionName {_ps_quote(session_name)} -Runner {_ps_quote(runner)}"
+    script_args = [
+        "--task", task_id, "--project", project_key, "--role", role_name,
+        "--branch", branch, "--base", base, "--repo-url", repo_url,
+        "--repo-path", repo_path, "--worktree-root", worktree_root,
+        "--claude-args", claude_args, "--model", model, "--effort", effort,
+        "--session-name", session_name, "--runner", runner,
+    ]
+    remote_cmd = "bash " + shlex.quote(remote_script) + " " + " ".join(
+        shlex.quote(a) for a in script_args
     )
     cmd = ["ssh", ssh_alias, remote_cmd]
 
@@ -1159,67 +1398,16 @@ async def _spawn_remote(task: dict, host_name: str, *,
         )
         return db.get_task(task_id)
 
-    # Local temp copy of the rendered prompt, scp'd to the box rather than
-    # crossing the wire as ssh command-line text — it can be thousands of
-    # words and contain quotes/non-ASCII the remote shell would re-mangle.
-    tmp_task_md = ROOT / "state" / f".remote-task-{task_id}.md"
-    tmp_task_md.parent.mkdir(parents=True, exist_ok=True)
-    tmp_task_md.write_text(prompt, encoding="utf-8")
-    try:
-        r = subprocess.run(["scp", str(tmp_task_md), f"{ssh_alias}:{remote_task_file}"],
-                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
-        if r.returncode != 0:
-            raise RuntimeError(f"scp of TASK.md failed: {r.stderr}")
-    finally:
-        tmp_task_md.unlink(missing_ok=True)
-
+    # The prompt travels over ssh's own stdin (input=) rather than a scp'd
+    # file first — plain OpenSSH forwards local stdin to the remote command
+    # by default, with none of the console-encoding hazards that made
+    # winbox's PowerShell path scp a file instead (see spawn-worker.ps1's own
+    # TaskFile comment). spawn-worker-remote.sh's TASK.md write is the last
+    # thing on the box that reads stdin.
     info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
-    r = subprocess.run(cmd, capture_output=True, text=True,
+    r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
                        timeout=REMOTE_LAUNCH_TIMEOUT_S)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
-
-    for ln in lines:
-        if ln.startswith("GITHUB_SSH_ROUTE="):
-            info(f"task={task_id} host={host_name} {ln}")
-
-    # GH #153: the probe's own verdict must GATE success, not just get
-    # logged. spawn-worker.ps1's current version never exits early on
-    # GITHUB_SSH_ROUTE=unreachable (the probe there is advisory-only) — it
-    # can keep going and still print a valid pid on the last line, which
-    # would otherwise read as a clean spawn. Checked before the returncode
-    # branch below so it also wins when the dead route later makes git
-    # itself fail (non-zero exit) — "unreachable" is the more specific,
-    # more actionable diagnosis either way.
-    route_line = next(
-        (ln for ln in lines if ln.startswith("GITHUB_SSH_ROUTE=unreachable")), None,
-    )
-    if route_line is not None:
-        kill_note = ""
-        maybe_pid = lines[-1].strip() if lines else ""
-        if maybe_pid.isdigit():
-            # ps1 launched a worker despite the dead route (current
-            # version) — coordination note in the task brief: since ps1 is
-            # the paired task's file (not touched here), the hub kills
-            # what it launched instead of relying on ps1 to refuse first.
-            try:
-                kr = subprocess.run(
-                    ["ssh", ssh_alias, "taskkill", "/PID", maybe_pid, "/T", "/F"],
-                    capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
-                )
-                kill_ok = kr.returncode == 0
-                kill_detail = "ok" if kill_ok else (kr.stderr or kr.stdout or "").strip()[:200]
-            except (OSError, subprocess.SubprocessError) as e:
-                kill_ok, kill_detail = False, str(e)[:200]
-            kill_note = f"; killed leaked pid {maybe_pid} on {host_name} ({kill_detail})"
-            info(f"task={task_id} host={host_name} killed leaked pid={maybe_pid} "
-                f"(route unreachable) ok={kill_ok}")
-        detail = (
-            f"{route_line} — git route from {host_name} dead — fix "
-            f"network/keys, then delegate again{kill_note}"
-        )
-        error(f"remote spawn blocked task={task_id} host={host_name}: {detail}")
-        db.update_status(task_id, "blocked_host", delegate_log=detail, actor="cto")
-        return db.get_task(task_id)
 
     refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
     if refused_line is not None:
@@ -1232,7 +1420,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
         )
         return db.get_task(task_id)
 
-    if r.returncode != 0 or not lines:
+    spawned_line = next((ln for ln in lines if ln.startswith("SPAWNED ")), None)
+    if r.returncode != 0 or spawned_line is None:
         detail = (r.stderr or r.stdout or "").strip()[:1000]
         error(f"remote spawn failed task={task_id} host={host_name}: {detail}")
         db.update_status(task_id, "failed",
@@ -1240,21 +1429,26 @@ async def _spawn_remote(task: dict, host_name: str, *,
                          actor="cto")
         return db.get_task(task_id)
 
-    try:
-        pid = int(lines[-1].strip())
-    except ValueError:
-        error(f"remote spawn task={task_id}: could not parse pid from last line: {lines[-1]!r}")
+    m = re.match(r"^SPAWNED pid=(\d+) session=(\S+) worktree=(.+)$", spawned_line)
+    if not m:
+        error(f"remote spawn task={task_id}: could not parse SPAWNED line: {spawned_line!r}")
         db.update_status(task_id, "failed",
-                         delegate_log=f"remote spawn ({host_name}): unparseable pid line {lines[-1]!r}",
+                         delegate_log=f"remote spawn ({host_name}): unparseable SPAWNED line {spawned_line!r}",
                          actor="cto")
         return db.get_task(task_id)
 
+    pid = int(m.group(1))
+    tmux_session_id = m.group(2)
+    reported_worktree = m.group(3)
+
     db.update_status(
         task_id, "in_progress",
-        pid=pid, host=host_name, worktree=remote_worktree, branch=branch,
-        assigned_agent=role_name, runner=runner, actor="cto",
+        pid=pid, host=host_name, worktree=reported_worktree, branch=branch,
+        assigned_agent=role_name, runner=runner, tmux_session=tmux_session_id,
+        actor="cto",
     )
-    success(f"remote DEV spawned task={task_id} host={host_name} runner={runner} pid={pid}")
+    success(f"remote DEV spawned task={task_id} host={host_name} runner={runner} "
+           f"pid={pid} tmux={tmux_session_id}")
     return db.get_task(task_id)
 
 
@@ -1291,6 +1485,15 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"merged work (use reopen_task if a redo is intended)"
         )
 
+    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
+    # here, ahead of storage reclaim/disk-floor below (task-a5c0549d,
+    # CTO 2026-09-24: a spawn bound for contabo was refused/queued for the
+    # MAC's disk, even though its worktree, git clone and worker process all
+    # live on the spoke — task-43b6514d, "queued for disk — 3.9 GB free"
+    # while Contabo itself had plenty). resolved_host is also what the
+    # browser cap check right after needs.
+    resolved_host = host if host is not None else (task.get("host") or "mac")
+
     # Storage reclaim (ADR 0030 §2, task-44963fee): below the orange band,
     # REBUILD-tier directories inside a scoped owner's OWN task worktrees
     # (node_modules, .venv, __pycache__, ...) are deleted automatically,
@@ -1300,8 +1503,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # session's worktree, never a project under ~/MoonieXHQ/Projects, unless
     # scope[reclaim] is "all". Out-of-scope tasks skip this block entirely.
     # A reclaim failure never blocks the spawn beyond what the floor check
-    # below already decides.
-    reclaim_applies = _scope_applies("reclaim", task.get("owner_cto"))
+    # below already decides. Mac-only (unaffected by the host-aware floor
+    # below) — a remote task has no Mac-side worktree of its own to reclaim
+    # from, and freeing Mac disk opportunistically is harmless either way.
+    reclaim_applies = resolved_host == "mac" and _scope_applies("reclaim", task.get("owner_cto"))
     if reclaim_applies:
         pre_free_gb = _free_gb()
         try:
@@ -1330,13 +1535,39 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # task-bfa778ab iter1: a str return broke the MCP tool on a low-disk spawn).
     # `disk_floor` scope: only tasks whose owner_cto scope[disk_floor]
     # covers — other sessions' work is never refused by this gate until the
-    # CEO widens it. free_gb is re-measured here (not reused from
-    # pre_free_gb above) so the floor check sees the post-reclaim reading
-    # when reclaim ran.
+    # CEO widens it.
+    #
+    # Gates the disk that will actually HOLD this spawn's worktree
+    # (task-a5c0549d, CTO 2026-09-24 review): resolved_host == 'mac' reads
+    # the Mac's own free space (re-measured here, not reused from
+    # pre_free_gb above, so it sees the post-reclaim reading when reclaim
+    # ran); any other host probes THAT box over ssh instead — its worktree,
+    # git clone and worker process live there, not on the Mac, so the Mac's
+    # disk is not what will run out. `_remote_free_gb` fails OPEN (None) on
+    # an unreachable host or missing `df` — same shape as
+    # runners/branch_poller.remote_pid_alive's liveness probe — so a broken
+    # probe can never become a false floor that blocks every remote spawn.
     disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
-    free_gb = _free_gb()
     orange_gb = _disk_orange_floor_gb()
-    if disk_floor_applies and free_gb < orange_gb:
+    free_gb: float | None
+    if resolved_host == "mac":
+        free_gb = _free_gb()
+    elif dry_run:
+        # `dry_run`'s own contract (this function's docstring): "print the
+        # exact ssh command instead of running it" — a real ssh probe here
+        # would be exactly the real network call dry_run promises not to
+        # make, even though it's only a disk check. Skipped (never
+        # refuses/queues a dry-run), not faked, so a dry-run's log/db writes
+        # stay identical to before this host-awareness fix existed.
+        free_gb = None
+    else:
+        try:
+            host_cfg_for_disk = get_host(resolved_host)
+        except ValueError:
+            host_cfg_for_disk = None
+        free_gb = (_remote_free_gb(host_cfg_for_disk["ssh"])
+                  if host_cfg_for_disk and host_cfg_for_disk.get("ssh") else None)
+    if disk_floor_applies and free_gb is not None and free_gb < orange_gb:
         # ADR 0030 §D / task-dbe47b9b (CEO 2026-09-23: "สั่งเป็นกฎอย่างเดียว
         # ไม่ได้ ต้องทำระบบเข้าคิวไว้ด้วย รันตามคิว"): a refused spawn no
         # longer just dies here — it joins tools/disk_queue.py's FIFO queue
@@ -1344,15 +1575,27 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # it, oldest first, one per tick, once free space clears
         # gauge.orange + 1 GB. Status is left exactly as it was (pending),
         # matching the pre-queue behaviour this branch already had.
+        #
+        # KNOWN GAP (task-a5c0549d, not fixed here — runners/watchdog.py is
+        # not a declared touches path for this task): _drain_disk_queue()'s
+        # own resume check (runners/watchdog.py DISK_QUEUE_RESUME_MARGIN_GB)
+        # still gates EVERY queued entry on the Mac's free space alone,
+        # regardless of which host it was queued for. A task queued here for
+        # a spoke whose own disk is fine will still wait on the Mac's disk
+        # clearing before the watchdog even attempts to drain it — this
+        # function's re-resolution of `resolved_host` fixes the INITIAL
+        # refusal to gate on the right box, but the drain's resume gate
+        # needs the same per-entry host awareness to fully close the loop.
+        host_note = "" if resolved_host == "mac" else f" on {resolved_host}"
         ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
-        msg = (f"disk red: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
+        msg = (f"disk red{host_note}: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
                f"— spawn refused (ADR 0030) — queued for disk ({ahead} ahead)")
         warn(f"disk floor blocked task={task_id}: {msg}")
         db.set_fields(task_id, delegate_log=msg, actor="cto")
         try:
             send_to_cto.send(
                 task_id,
-                f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free, "
+                f"queued for disk ({ahead} ahead) — {free_gb:.1f} GB free{host_note}, "
                 f"needs {orange_gb:.1f} GB. Will spawn automatically once "
                 f"space clears.",
                 role=task.get("role"), cto_id=task.get("owner_cto"),
@@ -1368,12 +1611,6 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     proj = get_project(project_key)
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
-
-    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
-    # here (not just at the spawn branch below) because the browser cap
-    # check right after this needs to know the TARGET host, not just
-    # whether it's remote.
-    resolved_host = host if host is not None else (task.get("host") or "mac")
 
     # Runner pre-flight (task-adbc6f43): reject an unknown/unavailable runner
     # loudly, here, before any worktree/ssh/iTerm work starts — not discovered
