@@ -1,5 +1,26 @@
 # TopView Wan3 Challenge: trailer story
 
+## Draft 4 (2026-09-25): Draft 3 + the CEO's two fixes. Five lines; the CEO is still editing the text.
+
+The CEO asked two questions of Draft 3: why take a child to the deep sea, and if the monster is real, how has
+nobody ever seen it. His fix for the second, in his words: "มีเขตน้ำตื้นและน้ำลึก เส้นแบ่งชัดเจนด้วยสีของน้ำ ->
+ไม่เคยมีใครออกไปจากเขตนี้มานานกว่าชั่วอายุคน จนกระทั่งเกิดปัญหาปลาน้อยลง ทำให้ชาวบ้านต้องออกไปจับปลาไกลขึ้น
+แต่ยิ่งออกไปไกลเท่าไหร่ ธรรมชาติก็ไม่ปกติมากขึ้นเท่านั้น". For the first he chose, from two CTO options: **only a
+child can see the faint glow of fish in the water** (a gift the adults of this species lose as they grow up).
+Water has only two states on screen, "เรามีเวลาเล่าน้อย": the clearest shallow water and pitch-black deep water
+under a purple storm, with a sharp line between them.
+
+1. A planet with no land. A village on giant trees stands in the shallow zone; a line of colour divides it from the
+   deep water, and nobody has crossed that line for generations.
+2. The fish grow scarce and the villagers must fish further out. They take the child, the only one who can see the
+   fish glow, with the elder who knows the old stories of the deep, and the big green one who fishes and protects.
+3. The further out, the less natural the world: impossible glass-clear creatures, storm pillars up to the sky, until
+   the line where the clearest water meets pitch black.
+4. Across the line every fish streams past them the other way, waves rise as tall as mountains, and on the horizon
+   stands a mountain where no land can be. The mountain opens its eyes: this is why the fish left.
+5. Pull out to space: a planet split in two, bright blue-white and purple-black storm, its moon beside it.
+   "How will they get past it?" Cut.
+
 ## Draft 3 (2026-09-23): THE CEO'S STORY. This is the film.
 
 Verbatim:
