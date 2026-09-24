@@ -62,6 +62,16 @@ ask the CEO what he saw.
 
 ## 3. Traps that are not the relay's fault
 
+- **Chrome's own bubbles and OS prompts are outside the page.** A permission
+  bubble ("facebook.com wants to show notifications"), a save-password bubble,
+  a sign-in intercept, a macOS Keychain prompt: the screencast never shows them
+  and a tap never reaches them. Prevent most of them at launch —
+  `--disable-notifications --use-mock-keychain --no-first-run --no-default-browser-check`
+  (macOS: `--use-mock-keychain` is what stops the Keychain dialog) — the relay
+  pre-denies web notifications for the login origin on its own, and the phone's
+  **จอเครื่อง** button shows an OS-level capture of the Chrome window (macOS
+  only; Screen Recording must be granted to the Console once on that Mac).
+
 - **OS windows are invisible**: Windows Hello / passkey sheets / Chrome's
   save-password bubble. Google's passkey step is already patterned (Continue
   disabled, "Try another way" preferred). If a page freezes, the CEO's Reload
