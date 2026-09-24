@@ -144,3 +144,6 @@ state/hq-step4a-yaml-backup-*.yaml
 # SQLite memory and login QR. Holds commenters' handles and DM text, which are
 # personal data and must never be committed.
 state/bl-tiktok/
+
+# run logs of the Drive leg / doctor on this box (never committed; the ledger is ~/.claude/logs/drive-archive.log)
+state/*.log
