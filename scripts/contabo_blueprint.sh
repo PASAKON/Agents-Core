@@ -53,6 +53,15 @@ rm -f "$B/.docker-df-v.tmp"
     -iname 'docker-compose*.yml' -o -iname 'docker-compose*.yaml' \
     -o -iname 'compose.yml' -o -iname 'compose.yaml' \) 2>/dev/null
 } | sort > "$B/docker-compose-files.txt"
+# 4b. the compose files themselves — CONFIG that lives outside git (/docker/n8n, /opt/usage, ...):
+# copied with the VALUE of any secret-looking key redacted, so the capture never carries a token.
+# The .env beside each compose file is the secrets bundle's job and is never copied here.
+mkdir -p "$B/compose-files"
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  sed -E 's/^([[:space:]]*-?[[:space:]]*[A-Za-z_]*(TOKEN|SECRET|PASSWORD|PASSWD|KEY|API|AUTH)[A-Za-z_]*[[:space:]]*[:=][[:space:]]*).+$/\1<redacted>/I' "$f" \
+    > "$B/compose-files/$(printf '%s' "$f" | sed 's#^/##; s#/#__#g')"
+done < "$B/docker-compose-files.txt"
 
 # 5. systemd mooniex units — the unit files themselves (text; EnvironmentFile=
 # lines point AT secret files, they never embed a secret value inline)

@@ -10,6 +10,10 @@ Host winbox
     IdentitiesOnly yes
     ServerAliveInterval 30
     StrictHostKeyChecking accept-new
+    # multiplex: every rclone_via_winbox.sh call reuses one TCP+auth session (drive_leg.py makes 4+ calls per object; measured ~2 min per day-tar without it, 2026-09-24)
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%r@%h-%p
+    ControlPersist 10m
 
 Host github.com-agents-memory
   HostName github.com

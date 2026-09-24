@@ -1,0 +1,23 @@
+services:
+  disk-serve:
+    image: python:3.12-alpine
+    container_name: disk-serve
+    restart: always
+    command: ["python", "/srv/app/disk-hub.py"]
+    env_file: [/opt/usage/.env]
+    environment:
+      - DISK_DIR=/srv/disk
+    volumes:
+      - /opt/disk-monitor:/srv/app:ro
+      - /opt/usage/disk:/srv/disk
+    networks: [n8n_default]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.disk-hub.rule=Host(`webhook.mooniex.com`) && PathPrefix(`/disk`)"
+      - "traefik.http.routers.disk-hub.entrypoints=websecure"
+      - "traefik.http.routers.disk-hub.tls=true"
+      - "traefik.http.routers.disk-hub.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.disk-hub.loadbalancer.server.port=8088"
+networks:
+  n8n_default:
+    external: true

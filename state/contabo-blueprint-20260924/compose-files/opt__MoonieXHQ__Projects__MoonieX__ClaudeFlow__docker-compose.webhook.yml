@@ -1,0 +1,21 @@
+services:
+  claudeflow-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile.webhook
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    networks:
+      - n8n_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.claudeflow-webhook.rule=Host(`webhook.mooniex.com`)"
+      - "traefik.http.routers.claudeflow-webhook.entrypoints=websecure"
+      - "traefik.http.routers.claudeflow-webhook.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.claudeflow-webhook.loadbalancer.server.port=3001"
+
+networks:
+  n8n_default:
+    external: true

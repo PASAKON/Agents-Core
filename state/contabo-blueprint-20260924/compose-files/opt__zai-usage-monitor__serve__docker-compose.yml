@@ -1,0 +1,30 @@
+# Serves the Z.ai usage cache over HTTPS (behind the existing traefik) so the
+# iPhone widget can fetch live data even when the Mac is off. Mirrors the
+# claude-usage serve stack: joins the existing `n8n_default` network and adds an
+# additive, more-specific path router on the already-certificated
+[LINE REDACTED BY CAPTURE FILTER]
+# read from ./.env (NOT committed). Distinct port (8089) + router name to avoid
+# clashing with the claude-usage-serve stack on the same host.
+services:
+  zai-usage-serve:
+    image: python:3.12-alpine
+    container_name: zai-usage-serve
+    restart: always
+    command: ["python", "/srv/serve.py"]
+    environment:
+[LINE REDACTED BY CAPTURE FILTER]
+    volumes:
+      - /opt/zai-usage-monitor:/srv:ro   # usage.json + serve.py live here
+    networks:
+      - n8n_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zai-usage.rule=Host(`webhook.mooniex.com`) && PathPrefix(`/zai-usage`)"
+      - "traefik.http.routers.zai-usage.entrypoints=websecure"
+      - "traefik.http.routers.zai-usage.tls=true"
+      - "traefik.http.routers.zai-usage.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.zai-usage.loadbalancer.server.port=8089"
+
+networks:
+  n8n_default:
+    external: true

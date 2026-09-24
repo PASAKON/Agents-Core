@@ -116,21 +116,25 @@ cmd tailscale up
 
 # ============================================= 2/9 — clone HQ + Agents-* repos
 hdr "clone PASAKON/MoonieX-HQ + Agents-* (HUMAN: Rules/Wikis rsync runs on the Mac)"
+# RESTORE_GIT_BASE lets a rehearsal (re-OS drill in a throwaway container/VM, ADR 0031) clone from
+# local bare mirrors — e.g. RESTORE_GIT_BASE=/hqmirror/ with MoonieX-HQ.git, Agents-Core.git,
+# Agents-Memory.git inside — instead of GitHub, which needs this box's deploy key. Default = GitHub.
+GIT_BASE="${RESTORE_GIT_BASE:-git@github.com:PASAKON/}"
 if [ -d "$HQ_ROOT/.git" ]; then
   say "$HQ_ROOT already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/MoonieX-HQ.git "$HQ_ROOT"
+  cmd git clone "${GIT_BASE}MoonieX-HQ.git" "$HQ_ROOT"
 fi
 if [ -d "$CORE/.git" ]; then
   say "$CORE already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/Agents-Core.git "$CORE"
+  cmd git clone "${GIT_BASE}Agents-Core.git" "$CORE"
 fi
 MEMORY_DIR="$HQ_ROOT/Agents/Memory"
 if [ -d "$MEMORY_DIR/.git" ]; then
   say "$MEMORY_DIR already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/Agents-Memory.git "$MEMORY_DIR"
+  cmd git clone "${GIT_BASE}Agents-Memory.git" "$MEMORY_DIR"
 fi
 say "Agents/Rules and Agents/Wikis are NOT cloned on Contabo — they are rsync snapshots"
 say "pulled FROM the Mac (CLAUDE.md § Wiki access), read-only here."

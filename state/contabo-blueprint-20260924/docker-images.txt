@@ -1,6 +1,7 @@
 IMAGE                                          ID             DISK USAGE   CONTENT SIZE   EXTRA
 alpine:latest                                  a2d49ea686c2       13.1MB         3.95MB        
 cf-webhook:test                                12cc5703da7d        410MB          115MB        
+debian:12                                      f37a335e82bc        185MB         52.2MB        
 docker.n8n.io/n8nio/n8n:2.8.3                  53004142b0e9       1.73GB          247MB   U    
 mooniex-claudeflow-claudeflow-webhook:latest   fda17237ff93        778MB          201MB   U    
 mooniex-option-channel:latest                  670ac6a10b28        643MB          157MB   U    
