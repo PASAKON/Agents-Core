@@ -392,6 +392,16 @@ whether.
   route around: report it and let the C-level supply the file another way.
 - **Do not click a file input.** It opens a native picker you cannot see and
   cannot escape. Locate the input with `read_page`/`find` and pass its `ref`.
+- **A file `file_upload` cannot carry (over 10 MB, e.g. a 845 MB film) → ask the
+  CEO for permission to use computer-use on the native picker; do not ask him to
+  click it himself** (CEO 2026-09-24: "next time worker ask for permission to use
+  the computer use for upload"). Ask once, naming the file, its size and the
+  page. Two measured facts: the page's CSP blocks fetching the file from a
+  localhost server (0 requests reached it, Meta Business Suite), so there is no
+  in-page route; and computer-use grants browsers the "read" tier (no clicks or
+  typing while Chrome is frontmost). The macOS open panel is a Chrome sheet, so
+  try it once after the grant. If the tier refuses, say so and only then ask the
+  CEO to pick the file.
 - **Downloads land outside your worktree** (usually `~/Downloads`). Read what
   you need, copy into the worktree only what the task asked you to keep, and
   report exactly what arrived and where.
