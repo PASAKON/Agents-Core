@@ -89,8 +89,12 @@ entries:
      restore: "pip install -r / npm ci / node tarball; the freeze lists in the blueprint say which versions"}
   - {machine: contabo, path: "/opt/claude-usage-monitor/**",               class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "code in git; usage.json/state.json regenerate on the next poll; its own .credentials.json = login again"}
-  - {machine: contabo, path: "/root/restore/**",                           class: UNCLASSIFIED,  owner: null, review: null, discovered: true,
-     restore: null}
+  - {machine: contabo, path: "$HOME/.cache/**",                            class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "tool/model caches (huggingface 2.1 GB is the bulk, pip, node-gyp) — re-download on next use; found by machine_doctor 2026-09-24"}
+  - {machine: contabo, path: "$HOME/.local/**",                            class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "Claude Code's native install + old version cache (~0.8 GB) and .local/bin — the CLI's own updater manages it; found by machine_doctor 2026-09-24"}
+  # /root/restore (disk-hygiene's Contabo never-touch list) did not exist on 2026-09-24; the weekly
+  # doctor re-discovers it if it ever appears — no row until then.
 
   # ── winbox (Windows, account passg since 2026-09-24) ──
   - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/play_rec/**", class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
