@@ -119,12 +119,22 @@ entries:
      restore: "instance Tiramisu64 (Android 13 64-bit): cpus=4 ram=4096 fb 1600x900 dpi 240 — captured by blueprint.ps1; BlueStacks itself = winget BlueStack.BlueStacks; the game + Google login = the CEO"}
   - {machine: winbox,  path: "C:/mooniex/pclease/**",                      class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "deployed from Agents-Core windows/ (pc-lease.sh redeploys pc_lease.py; rebuild_r2.ps1 copies the rest); its ledgers (backup_ledger.jsonl, pc_lease.log) are small DATA → keep in the blueprint"}
-  - {machine: winbox,  path: "C:/mooniex/{agents,line,codex-probe,yt-auth,desktop,sub,worker-worktrees,workspaces}/**", class: UNCLASSIFIED, owner: "Mac CTO", review: null, discovered: true,
-     restore: "lost in the 2026-09-24 reset; the Mac CTO's tools — classify when restored (agents = Agents-Core clone → REBUILD; yt-auth = CONFIG)"}
+  - {machine: winbox,  path: "C:/mooniex/{agents,worker-worktrees,workspaces}/**", class: REBUILD, owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "worker clone of Agents-Core + per-task checkouts — spawn-worker.sh / tools/worktree.py recreate them; unpushed branches were bundled once into BACKUP/Winbox Reinstall 2026-09-24/code-agents.tar"}
+  - {machine: winbox,  path: "C:/mooniex/yt-auth/**",                      class: CONFIG,        owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "YouTube OAuth client + token (ILAG Studio) — secrets bundle on another machine, never Drive; re-consent in the browser if lost"}
+  - {machine: winbox,  path: "C:/mooniex/{line,sub,desktop}/**",           class: IRREPLACEABLE, owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "LINE automation state, subtitle renders, desktop-automation outputs — the 2026-09-24 copy is BACKUP/Winbox Reinstall 2026-09-24/mooniex-data.tar; from now on each task closes with workdir.py close --archive → BACKUP/MoonieX HQ/Work-Archive/"}
+  - {machine: winbox,  path: "C:/mooniex/codex-probe/**",                  class: DISPOSABLE,    owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "one-off Codex CLI probe — nothing to restore"}
+  - {machine: winbox,  path: "C:/mooniex/Agents/Core/**",                  class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "sparse shallow clone for the weekly MachineContractDoctor task — windows/winbox-reinstall/rebuild/doctor_setup.cmd recreates it"}
   - {machine: winbox,  path: "scheduled tasks (schtasks) CookieRun*/Mooniex*", class: CONFIG,    owner: CTO, review: 2026-12-23, discovered: false,
      restore: "XML export by blueprint.ps1 → state/winbox-blueprint-<date>/tasks/; re-create with schtasks /Create /XML (rebuild_r2.ps1 rewrites the account)"}
   - {machine: winbox,  path: "%LOCALAPPDATA%/Google/Chrome/User Data/**",   class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "re-login each site by hand — a browser profile is never exported (credentials)"}
+  - {machine: winbox,  path: "%USERPROFILE%/AppData/**",                   class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "app caches + profiles (Chrome 5 GB, Microsoft 2.5 GB, Programs 1.7 GB measured 2026-09-24) — reinstall + re-login recreates them; the only kept items inside have their own rows (rclone.conf, Chrome profile). Legacy junctions (Local Settings, Application Data) loop back here and are skipped by the doctor"}
   - {machine: winbox,  path: "%USERPROFILE%/.ssh/**",                       class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
      restore: "private keys from the secrets bundle (contabo <hq>/Archive/winbox-keys-<date>), public keys + config from the blueprint"}
   - {machine: winbox,  path: "%APPDATA%/rclone/rclone.conf",                class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,

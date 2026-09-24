@@ -117,7 +117,7 @@ inside that tar.
 `uploads()` and `docker_volumes()` contain no delete calls at all, matching their "Never
 deletes" verb descriptions in the brief.
 
-## Proposed Contabo cron lines (NOT installed — the CTO installs these)
+## Contabo cron lines (INSTALLED 2026-09-24 by the CTO, staggered: docker-volumes Sun 02:30, uploads 03:00, transcripts 03:30 UTC — one relay stream at a time)
 
 Modeled on `docs/ops/machine-contract-schedules.md`'s existing `machine_doctor.py` cron line
 (same `.venv`, same log-redirection convention). All times UTC (Contabo's crontab convention).
@@ -141,7 +141,7 @@ Modeled on `docs/ops/machine-contract-schedules.md`'s existing `machine_doctor.p
 `state/drive-leg.log` is not tracked in git (matches `machine-doctor.log`'s CONFIG-class
 treatment) — add a `.gitignore` line if it grows. `docker-volumes` and `blueprints` both need
 `docker` CLI access and (for `org-pgdata`) a running `org-postgres` container reachable from
-the box that installs the cron line — verify `docker exec org-postgres pg_dumpall -U postgres
+the box that installs the cron line — verify `docker exec org-postgres pg_dumpall -U org
 | head -1` succeeds by hand before relying on the scheduled job.
 
 ## Before the first real (non-dry-run) run

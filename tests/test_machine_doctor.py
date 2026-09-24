@@ -376,3 +376,39 @@ def test_cli_check_exits_1_on_a_problem(tmp_path):
                   "--opt-dir", str(tmp_path / "no-opt"), "--docker-volumes-dir", str(tmp_path / "no-docker"),
                   "check"])
     assert rc == 1
+
+
+# ---- Windows rows (first winbox run 2026-09-24): %VAR% expansion, separators, junction-safe walk
+
+
+def test_windows_vars_expand_on_windows_only():
+    env = {"USERPROFILE": "C:\\Users\\passg", "LocalAppData": "C:\\Users\\passg\\AppData\\Local"}
+    ctx = {"HOME": "C:\\Users\\passg", "CLAUDE_CONFIG_DIR": "C:\\Users\\passg\\.claude", "hq": "",
+           "_os": "windows", "_env": env}
+    assert md._substitute("%USERPROFILE%/cookierun-bot/**", ctx) == "C:\\Users\\passg/cookierun-bot/**"
+    # case-insensitive lookup, like cmd.exe
+    assert md._substitute("%LOCALAPPDATA%/Google/**", ctx) == "C:\\Users\\passg\\AppData\\Local/Google/**"
+    # an unset name stays literal so the row never matches, instead of matching everything
+    assert md._substitute("%NOPE%/x", ctx) == "%NOPE%/x"
+    # the same row on a non-Windows machine is "not applicable"
+    assert md._substitute("%USERPROFILE%/cookierun-bot/**", dict(ctx, _os="linux")) is None
+
+
+def test_segments_are_normcased(monkeypatch):
+    # normcase is a no-op on POSIX; emulate Windows' folding to prove _covered uses it
+    monkeypatch.setattr(md.os.path, "normcase", lambda s: s.replace("\\", "/").lower())
+    assert md._covered(Path("C:/Users/PASSG/cookierun-bot"),
+                       ["C:/Users/passg/cookierun-bot/**"])
+
+
+def test_is_link_skips_symlinks_and_walk_prunes_them(tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / "f.bin").write_bytes(b"x" * 1000)
+    link = tmp_path / "loop"
+    link.symlink_to(real, target_is_directory=True)
+    assert md._is_link(link) is True
+    assert md._is_link(real) is False
+    # the link contributes nothing, and a walk from tmp_path counts the real bytes once
+    assert md._path_bytes(link) == 0
+    assert md._path_bytes(tmp_path) == 1000

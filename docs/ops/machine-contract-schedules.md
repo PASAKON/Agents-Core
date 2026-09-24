@@ -87,3 +87,12 @@ machine-contract-phase-1 Mac deliverable set). The Mac CTO installs it:
 cp scripts/com.gob.machine-doctor.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.gob.machine-doctor.plist
 ```
+
+## Installed state (2026-09-24, cto-6ebacd0e)
+
+| Machine | Job | When (local scheduler) | Installed | Evidence |
+|---|---|---|---|---|
+| Contabo | `tools/machine_doctor.py --machine contabo check` | cron Mon 04:00 UTC | yes | `crontab -l`; first live check clean after `/root/.cache`+`/root/.local` were classified REBUILD |
+| Contabo | `tools/drive_leg.py docker-volumes` / `uploads` / `transcripts` | cron Sun 02:30 / 03:00 / 03:30 UTC (staggered: one winbox relay stream at a time) | yes | `crontab -l`; first real runs 2026-09-24 in `~/.claude/logs/drive-archive.log` |
+| winbox | `MachineContractDoctor` (`py -3 C:\mooniex\Agents\Core\tools\machine_doctor.py --machine winbox check`) | schtasks Mon 04:00, account passg | yes | `windows/winbox-reinstall/rebuild/doctor_setup.cmd` (sparse clone + PyYAML + task); check clean after commit 1c9a525a |
+| Mac | `com.gob.machine-doctor.plist` + `scripts/mac_blueprint.sh` | launchd weekly | **no — Mac CTO** | hand-off letter in `state/letters-to-mac-cto.md`; the Mac is mid-wipe (drill #2) |
