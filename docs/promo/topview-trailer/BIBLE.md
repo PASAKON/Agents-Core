@@ -6,6 +6,30 @@ Rules carried from `ai-film-production`: one character per reference plate,
 location plates contain no characters, this file is the single source of truth
 for every look (a shot may not describe a character in words that disagree with it).
 
+## Locked plates (CEO-approved, 2026-09-25)
+
+These 16 images are the ONLY references for the previz and the Wan3 shots. Each has a
+1024-px copy in `refs/<name>.jpg`; the full PNG is on Drive, `YT: ILAG/รอตั้งชื่อ (Topview
+Wan3 Challenge 2026)/Element/`. Everything else there is generation history, kept but never
+attached. `creature_v2` was REJECTED (too close to the CEO's web references). The CEO's
+rulings, round by round, are the DECIDE lines in that project's `logs.txt`.
+
+| Kind | Plate | What it fixes |
+|---|---|---|
+| Character | `char_young`, `char_elder`, `char_strong` | the three riders (young one, elder, the big green driver) |
+| Character | `villagers` | six more of the same species |
+| Character | `char_mount_v3` | the manta mount with the hand-built driftwood howdah |
+| Prop | `props` | seed lantern full/empty, glow-seed pod, steering pole, seed-husk necklace |
+| Location | `loc_village_above_A_v2`, `loc_village_above_B_v2` | the village with ladders, rope bridges and the manta dock (no boats) |
+| Location | `loc_village_roots` | under the village |
+| Location | `loc_open_sea` | the calm open ocean, blue-white day, the close moon |
+| Location | `loc_storm_pillars_A_v3` | the thin cylinder storm pillars up to the sky, TURNING palette, riders for scale |
+| Location | `loc_giant_waves_v2` | colossal waves with a rider speck for scale |
+| Location | `planet_from_space_v2` | the all-ocean planet, the moon half its size (the zoom-out) |
+| Creature | `crt_mountain_horizon_v3` | the shape on the horizon, no eyes: island or not? |
+| Creature | `crt_eye_v4a` | the face and both eyes, dark natural skin, a touch of violet |
+| Look | `colour_script` | DAY → TURNING → DARK |
+
 ## Colour script (CEO, 2026-09-23)
 
 > ช่วงต้นจะเป็นสีแบบ Colorful ช่วงฟ้ามืด อันตรายมาถึง จะเป็นแบบ Dark with colorful
