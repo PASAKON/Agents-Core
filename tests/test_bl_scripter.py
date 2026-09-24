@@ -322,6 +322,57 @@ def test_run_scripter_claude_p_raises_on_schema_mismatch(monkeypatch, tmp_path):
         sc.run_scripter_claude_p(lines, frames, tmp_path)
 
 
+def test_enrich_beats_with_still_metadata_rescales_box_to_native_pixels():
+    # The model measures a box in the SCALED (frame_w x frame_h) image it
+    # was shown; the tool must rescale it to the still's true native pixels
+    # and fill in img/native_w/native_h itself rather than trust the model
+    # to invent a correct file path (measured wrong in the live run).
+    lines = [{"tag": "HOOK-1", "shot": "shot-a"}, {"tag": "HOOK-2", "shot": ""}]
+    frames = {"stills": {"shot-a": {"path": Path("/tmp/x.jpg"), "frame_w": 441, "frame_h": 784,
+                                     "native_w": 882, "native_h": 1568, "rel_source": "real/shot-a.png",
+                                     "source": "/orig/real/shot-a.png"}},
+              "avatars": {}, "missing": []}
+    beats = [
+        {"tag": "HOOK-1", "t0": 0, "t1": 1, "mode": "COMP", "extra": {"box": [50, 60, 100, 80], "cap": "x"}},
+        {"tag": "HOOK-2", "t0": 1, "t1": 2, "mode": "FF", "extra": {"cap": "y"}},
+    ]
+    out = sc.enrich_beats_with_still_metadata(beats, lines, frames)
+    assert out[0]["extra"]["img"] == "real/shot-a.png"
+    assert out[0]["extra"]["native_w"] == 882
+    assert out[0]["extra"]["native_h"] == 1568
+    # frame is exactly half native resolution here -> box doubles
+    assert out[0]["extra"]["box"] == [100.0, 120.0, 200.0, 160.0]
+    # avatar-only line (no shot) is untouched
+    assert "img" not in out[1]["extra"]
+
+
+def test_enrich_beats_with_still_metadata_leaves_beats_without_a_still_unchanged():
+    lines = [{"tag": "HOOK-2", "shot": ""}]
+    beats = [{"tag": "HOOK-2", "t0": 0, "t1": 1, "mode": "FF", "extra": {"cap": "y"}}]
+    out = sc.enrich_beats_with_still_metadata(beats, lines, {"stills": {}, "avatars": {}, "missing": []})
+    assert out == [{"tag": "HOOK-2", "t0": 0, "t1": 1, "mode": "FF", "extra": {"cap": "y"}}]
+
+
+def test_build_claude_p_prompt_lists_still_and_avatar_frame_paths(tmp_path):
+    lines = [
+        {"tag": "HOOK-1", "t0": 0.1, "t1": 1.0, "spoken": "s1", "screen": "sc1", "shot": "shot-a", "jev_decision": None},
+        {"tag": "HOOK-2", "t0": 1.0, "t1": 2.0, "spoken": "s2", "screen": "", "shot": "", "jev_decision": "hook"},
+    ]
+    frames = {
+        "stills": {"shot-a": {"path": tmp_path / "shot-a.jpg", "frame_w": 441, "frame_h": 784,
+                               "native_w": 882, "native_h": 1568, "rel_source": "real/shot-a.png",
+                               "source": str(tmp_path / "real" / "shot-a.png")}},
+        "avatars": {"HOOK-2": {"path": tmp_path / "HOOK-2.jpg", "w": 882, "h": 1568,
+                                "source": "lipsync_part_a.mp4", "media_start": 1.0}},
+        "missing": [],
+    }
+    prompt = sc.build_claude_p_prompt(lines, frames)
+    assert str(tmp_path / "shot-a.jpg") in prompt
+    assert str(tmp_path / "HOOK-2.jpg") in prompt
+    assert "HOOK-1" in prompt and "HOOK-2" in prompt
+    assert "jev_decision='hook'" in prompt
+
+
 def test_backend_flag_only_accepts_claude_p():
     ap = sc.build_arg_parser()
     args = ap.parse_args(["--script", "s.tsv", "--timings", "t.tsv", "--media-dir", "m"])

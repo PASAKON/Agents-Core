@@ -3,21 +3,19 @@
     "tag": "HOOK-1",
     "t0": 0.18,
     "t1": 2.64,
-    "mode": "COMP",
+    "mode": "EVID",
     "extra": {
-      "img": "third-party/wikifx-profile-score.jpg",
       "box": [
-        0,
-        335,
-        882,
-        555
+        0.0,
+        0.0,
+        1080.0,
+        1114.3
       ],
-      "native_w": 882,
-      "native_h": 1568,
       "cap": "ใครใช้โบรกนี้อยู่ รีบเข้าเว็บไปเช็กด่วนเลย",
-      "avatar_src": "lip",
-      "media0": 0.18,
-      "credit": "ขอบคุณภาพจาก WikiFX"
+      "credit": "ขอบคุณภาพจาก WikiFX",
+      "img": "real/wikifx-profile-score.png",
+      "native_w": 1080,
+      "native_h": 1920
     }
   },
   {
@@ -35,102 +33,92 @@
     "tag": "HOOK-3",
     "t0": 5.54,
     "t1": 7.38,
-    "mode": "COMP",
+    "mode": "EVID",
     "extra": {
-      "img": "real/xxlmarkets-direct-visit-error.jpg",
       "box": [
-        90,
-        260,
-        680,
-        610
+        0.0,
+        0.0,
+        1080.0,
+        1920.0
       ],
-      "native_w": 882,
-      "native_h": 1568,
       "cap": "นี่คือหลักฐานตอนที่กูพยายามเข้าเว็บ",
-      "avatar_src": "lip",
-      "media0": 5.54
+      "img": "real/xxlmarkets-direct-visit-error.png",
+      "native_w": 1080,
+      "native_h": 1920
     }
   },
   {
     "tag": "HOOK-4",
     "t0": 7.82,
     "t1": 10.86,
-    "mode": "COMP",
+    "mode": "EVID",
     "extra": {
-      "img": "third-party/wikifx-xxlmarkets-review.jpg",
       "box": [
-        18,
-        441,
-        546,
-        286
+        0.0,
+        0.0,
+        1080.0,
+        1350.0
       ],
-      "native_w": 882,
-      "native_h": 1102,
       "cap": "โบรกตัวนี้ชื่อ เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์ มึงดูภาพเอาเอง",
-      "avatar_src": "lip",
-      "media0": 7.82,
-      "credit": "ขอบคุณภาพจาก WikiFX"
+      "credit": "ขอบคุณภาพจาก WikiFX",
+      "img": "third-party/wikifx-xxlmarkets-review.jpg",
+      "native_w": 1080,
+      "native_h": 1350
     }
   },
   {
     "tag": "PATTERN-1",
     "t0": 11.4,
     "t1": 17.86,
-    "mode": "COMP",
+    "mode": "EVID",
     "extra": {
-      "img": "third-party/wikifx-profile-website-inaccessible.jpg",
       "box": [
-        120,
-        690,
-        745,
-        300
+        95.5,
+        857.1,
+        984.5,
+        318.4
       ],
-      "native_w": 882,
-      "native_h": 1568,
       "cap": "เป็นโบรกฟอเร็กซ์ ที่วิกิเอฟเอ็กซ์บอกว่าเปิดที่อังกฤษตั้งแต่ปีสองพันยี่สิบเอ็ด ให้เทรดทั้งค่าเงิน หุ้น และสินค้า",
-      "avatar_src": "lip",
-      "media0": 11.4,
-      "credit": "ขอบคุณภาพจาก WikiFX"
+      "credit": "ขอบคุณภาพจาก WikiFX",
+      "img": "real/wikifx-profile-website-inaccessible.png",
+      "native_w": 1080,
+      "native_h": 1920
     }
   },
   {
     "tag": "PATTERN-2",
     "t0": 18.48,
     "t1": 22.42,
-    "mode": "COMP",
+    "mode": "EVID",
     "extra": {
-      "img": "real/xxlmarkets-direct-visit-error.jpg",
       "box": [
-        90,
-        260,
-        680,
-        610
+        0.0,
+        0.0,
+        1080.0,
+        1920.0
       ],
-      "native_w": 882,
-      "native_h": 1568,
       "cap": "กูลองพิมพ์ชื่อเว็บนี้ใส่เบราว์เซอร์ตรงๆ หน้าเว็บขึ้นว่าเข้าไม่ได้",
-      "avatar_src": "lip",
-      "media0": 18.48
+      "img": "real/xxlmarkets-direct-visit-error.png",
+      "native_w": 1080,
+      "native_h": 1920
     }
   },
   {
     "tag": "PATTERN-3",
     "t0": 22.8,
     "t1": 27.78,
-    "mode": "COMP",
+    "mode": "EVID",
     "extra": {
-      "img": "real/xxlmarkets-www-visit-error.jpg",
       "box": [
-        90,
-        260,
-        680,
-        610
+        0.0,
+        0.0,
+        1080.0,
+        1920.0
       ],
-      "native_w": 882,
-      "native_h": 1568,
       "cap": "ลองอีกทาง ใส่ www นำหน้าบ้าง ใส่ https ตรงๆบ้าง",
-      "avatar_src": "lip",
-      "media0": 22.8
+      "img": "real/xxlmarkets-www-visit-error.png",
+      "native_w": 1080,
+      "native_h": 1920
     }
   },
   {
@@ -139,16 +127,16 @@
     "t1": 30.78,
     "mode": "EVID",
     "extra": {
-      "img": "real/xxlmarkets-www-visit-error.jpg",
       "box": [
-        90,
-        260,
-        680,
-        610
+        0.0,
+        0.0,
+        1080.0,
+        1920.0
       ],
-      "native_w": 882,
-      "native_h": 1568,
-      "cap": "ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้"
+      "cap": "ผลเหมือนเดิมทุกครั้ง เข้าไม่ได้",
+      "img": "real/xxlmarkets-www-visit-error.png",
+      "native_w": 1080,
+      "native_h": 1920
     }
   }
 ]

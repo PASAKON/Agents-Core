@@ -193,11 +193,21 @@ def extract_video_frame(video_path: Path, at_sec: float, dst: Path, max_w: int =
 
 
 def prepare_frames(lines: list[dict], media_dir: Path, workdir: Path) -> dict[str, Any]:
-    """Returns {"stills": {shot: {"path":..., "w":..., "h":...}}, "avatars":
-    {tag: {"path":..., "w":..., "h":..., "source":..., "media_start":...}},
-    "missing": [tag,...]}. Each real still is prepared ONCE and reused across
-    every line that names it; every avatar-only line gets its own frame at
-    its own t0 (TASK.md deliverable 1)."""
+    """Returns {"stills": {shot: {"path":..., "frame_w":..., "frame_h":...,
+    "native_w":..., "native_h":..., "rel_source":..., "source":...}},
+    "avatars": {tag: {"path":..., "w":..., "h":..., "source":...,
+    "media_start":...}}, "missing": [tag,...]}. Each real still is prepared
+    ONCE and reused across every line that names it; every avatar-only line
+    gets its own frame at its own t0 (TASK.md deliverable 1).
+
+    frame_w/frame_h are the SCALED (<=882px) frame the model actually sees;
+    native_w/native_h are the still's true original pixel size. The model
+    only ever measures a box in the frame it was shown, so
+    enrich_beats_with_still_metadata() rescales that box to native pixels
+    afterwards -- asking the model to reason in a resolution it never saw
+    is unreliable and was measured to produce a self-consistent but
+    mislabeled "native" size (the scaled frame's own dimensions) in an
+    earlier version of this tool."""
     stills: dict[str, dict] = {}
     avatars: dict[str, dict] = {}
     missing: list[str] = []
@@ -211,9 +221,16 @@ def prepare_frames(lines: list[dict], media_dir: Path, workdir: Path) -> dict[st
             if src is None:
                 missing.append(tag)
                 continue
+            native_w, native_h = image_native_size(src)
             dst = frames_dir / "stills" / f"{shot}.jpg"
-            w, h = scale_still_to(src, dst)
-            stills[shot] = {"path": dst, "w": w, "h": h, "source": str(src)}
+            frame_w, frame_h = scale_still_to(src, dst)
+            try:
+                rel_source = str(src.relative_to(media_dir))
+            except ValueError:
+                rel_source = str(src)
+            stills[shot] = {"path": dst, "frame_w": frame_w, "frame_h": frame_h,
+                             "native_w": native_w, "native_h": native_h,
+                             "rel_source": rel_source, "source": str(src)}
         else:
             part = find_lipsync_part(media_dir, line["t0"])
             if part is None:
@@ -262,14 +279,15 @@ Rules for picking mode, in order:
 
 extra fields by mode:
   FF:   cap (the line's spoken text, verbatim), avatar_src="lip", media0=t0.
-  COMP: img (the still's file, "real/<shot>.ext" or "third-party/<shot>.ext"),
-        box=[x,y,w,h] in the STILL's own native pixels (the region the evidence sits in -- read
-        it from the frame you were shown, do not guess a box you cannot see), native_w, native_h
-        (the still's native pixel dimensions, given to you per still),
-        cap (verbatim spoken/screen text), avatar_src="lip", media0=t0,
+  COMP: box=[x,y,w,h] IN THE PIXELS OF THE FRAME IMAGE YOU WERE SHOWN for that still (not its
+        original resolution -- the tool rescales your box to the still's true native pixels
+        itself, using the native size printed next to that still in the line table; just measure
+        what you see in the frame), cap (verbatim spoken/screen text), avatar_src="lip", media0=t0,
         credit (only if the still is a third-party screenshot, e.g. "ขอบคุณภาพจาก WikiFX" --
         never for a real/ still, those are our own captures and need no credit).
-  EVID: img, box, native_w, native_h, cap, credit (same rules as COMP, no avatar_src/media0).
+        (img/native_w/native_h are filled in for you automatically from the still's own file --
+        you do not need to write them.)
+  EVID: box, cap, credit (same rules as COMP, no avatar_src/media0, img/native_w/native_h auto-filled).
   KIN:  lines=[[css_class, html], ...] (1-3 short Thai lines built from the spoken/screen text;
         css_class one of "bl-lg", "bl-md", "bl-sm", "bl-xl n", "bl-lg n" -- match line length to
         class: bl-xl n for a single big word/phrase, bl-lg for a headline, bl-md for body text).
@@ -293,7 +311,8 @@ def render_line_table_text(lines: list[dict], frames: dict[str, Any]) -> str:
         if l["shot"]:
             s = frames["stills"].get(l["shot"])
             if s:
-                still_info = f' | still="{l["shot"]}" native={s["w"]}x{s["h"]}'
+                still_info = (f' | still="{l["shot"]}" frame={s["frame_w"]}x{s["frame_h"]} '
+                              f'(native {s["native_w"]}x{s["native_h"]})')
             else:
                 still_info = f' | still="{l["shot"]}" (MISSING -- no frame provided, treat as KIN)'
         jev = f' | jev_decision={l["jev_decision"]!r}' if l["jev_decision"] else ""
@@ -308,7 +327,7 @@ def build_claude_p_prompt(lines: list[dict], frames: dict[str, Any]) -> str:
     parts = [SYSTEM_INSTRUCTIONS, "", render_line_table_text(lines, frames), ""]
     parts.append("FRAMES -- Read each file EXACTLY ONCE before writing your answer:")
     for shot, info in frames["stills"].items():
-        parts.append(f'  - {info["path"]}  (real still "{shot}", native {info["w"]}x{info["h"]})')
+        parts.append(f'  - {info["path"]}  (real still "{shot}", frame {info["frame_w"]}x{info["frame_h"]})')
     for tag, info in frames["avatars"].items():
         parts.append(f'  - {info["path"]}  (avatar frame for line {tag} at t0)')
     parts.append("")
@@ -424,6 +443,31 @@ def _cost_from_token_dict(tokens: dict) -> float:
     )
 
 
+def enrich_beats_with_still_metadata(beats: list[dict], lines: list[dict], frames: dict[str, Any]) -> list[dict]:
+    """The model measures a box in the SCALED frame it was shown; rescale it
+    to the still's true native pixels and fill in img/native_w/native_h from
+    our own deterministic line->shot mapping (the model never has to invent
+    a file path or extension, which it was measured to get wrong)."""
+    shot_by_tag = {l["tag"]: l["shot"] for l in lines}
+    for b in beats:
+        shot = shot_by_tag.get(b.get("tag"))
+        info = frames["stills"].get(shot) if shot else None
+        if not info:
+            continue
+        extra = dict(b.get("extra") or {})
+        extra["img"] = info["rel_source"]
+        extra["native_w"] = info["native_w"]
+        extra["native_h"] = info["native_h"]
+        box = extra.get("box")
+        if box and info["frame_w"] and info["frame_h"]:
+            sx = info["native_w"] / info["frame_w"]
+            sy = info["native_h"] / info["frame_h"]
+            x, y, w, h = box
+            extra["box"] = [round(x * sx, 1), round(y * sy, 1), round(w * sx, 1), round(h * sy, 1)]
+        b["extra"] = extra
+    return beats
+
+
 def run_scripter_claude_p(lines: list[dict], frames: dict[str, Any], workdir: Path) -> tuple[list[dict], dict]:
     prompt = build_claude_p_prompt(lines, frames)
     t_start = time.monotonic()
@@ -434,6 +478,7 @@ def run_scripter_claude_p(lines: list[dict], frames: dict[str, Any], workdir: Pa
     parsed = json.loads(extract_json_text(result_text))
     beats = parsed["beats"] if isinstance(parsed, dict) and "beats" in parsed else parsed
     beats = validate_beats(beats, [l["tag"] for l in lines])
+    beats = enrich_beats_with_still_metadata(beats, lines, frames)
 
     session_id = wrapper.get("session_id")
     transcript = find_transcript(session_id, Path.cwd()) if session_id else None

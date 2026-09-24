@@ -157,6 +157,18 @@ split it into two beats at the mid-sentence pause. The Scripter, working
 from the same input the human had, produced one row for it -- the Scorer
 correctly reports `PATTERN-1b` as *missing*, not a bug.
 
+**A first run surfaced a real bug** (fixed before the number below, not
+after -- see the tools' git history): `img`/`native_w`/`native_h` on the
+COMP/EVID beats came back naming the wrong subfolder/extension and the
+*scaled* (882px) frame's own size labelled as "native", because the tool
+only told the model a generic still label with no true source path or
+native resolution. Fixed by having the tool fill `img`/`native_w`/
+`native_h` in itself from its own deterministic line->shot mapping, and
+rescaling the model's box (measured in the frame it was actually shown)
+to the still's true native pixels afterwards -- the model no longer has to
+invent a file path or do unseen-resolution arithmetic. The run below is
+with that fix in place.
+
 ### Measured result (`bl_score.py`, `docs/ops/bl-ab-2026-09-25/score_claude-p.md`)
 
 | | |
@@ -164,39 +176,47 @@ correctly reports `PATTERN-1b` as *missing*, not a bug.
 | common beats | 8 |
 | missing | `PATTERN-1b` (see above) |
 | extra | none |
-| mode agreement | **75.0%** (6/8) |
-| mean IoU (6 beats with a box on both sides) | **0.402** |
+| mode agreement | **50.0%** (4/8) |
+| mean IoU (6 beats with a box on both sides) | **0.189** |
 
 | tag | truth mode | scripter mode | match | IoU |
 |---|---|---|---|---|
-| HOOK-1 | COMP | COMP | yes | - (truth has no box for this beat) |
+| HOOK-1 | COMP | EVID | no | - (truth has no box for this beat) |
 | HOOK-2 | FF | FF | yes | - |
-| HOOK-3 | COMP | COMP | yes | 0.526 |
-| HOOK-4 | COMP | COMP | yes | 0.000 |
-| PATTERN-1 | COMP | COMP | yes | 0.312 |
-| PATTERN-2 | EVID | COMP | no | 0.526 |
-| PATTERN-3 | EVID | COMP | no | 0.526 |
-| PATTERN-4 | EVID | EVID | yes | 0.526 |
+| HOOK-3 | COMP | EVID | no | 0.178 |
+| HOOK-4 | COMP | EVID | no | 0.084 |
+| PATTERN-1 | COMP | EVID | no | 0.337 |
+| PATTERN-2 | EVID | EVID | yes | 0.178 |
+| PATTERN-3 | EVID | EVID | yes | 0.178 |
+| PATTERN-4 | EVID | EVID | yes | 0.178 |
 
-Read plainly: the Scripter got the FF/avatar lines and the opening COMP
-lines right, and consistently over-used COMP (kept the avatar composited)
-on PATTERN-2/3 where the human editor cut to a pure EVID hold on the same
-still once the avatar had already been established -- a real, measured
-mode disagreement, not tuned away. HOOK-4's IoU is 0 despite a mode match:
-the model's evidence box for that still sits on a different region of the
-card than the human's (0.526 IoU is this run's median when the two boxes
-at least overlap).
+Read plainly: this run picked EVID for every still-backed beat, including
+the four (HOOK-1/3/4, PATTERN-1) the human editor kept the avatar
+composited over -- it never chose COMP at all, and every box came out
+close to the full frame (little to no cropping onto the actual evidence
+region), which is why IoU against the human's tighter boxes is low.
+**A pre-fix run of the same window (identical inputs, only the img/native
+bug present) chose COMP correctly on 6/8 beats (75% mode agreement, 0.402
+mean IoU)** -- the two `claude -p` runs are independent sessions with no
+seed control, and this spread (50-75% mode agreement, 0.19-0.40 IoU) is
+itself a measured finding: a single one-shot Scripter call has real
+run-to-run variance on this kind of judgment call, not just on formatting
+bugs. Both numbers are reported here rather than only the better one.
 
-### Cost / time (Sonnet 5 pricing table)
+### Cost / time (Sonnet 5 pricing table, this run)
 
 | | |
 |---|---|
 | backend | claude-p |
-| turns | 11 |
-| tokens | input=22, cache_write=424,118, cache_read=451,428, output=24,247 |
-| API-equivalent $ | **$1.3931** |
-| Max-plan reported $ (claude -p's own `total_cost_usd`) | $0.4274 |
-| wall time | 103.14s |
+| turns | 10 |
+| tokens | input=20, cache_write=306,175, cache_read=373,114, output=26,068 |
+| API-equivalent $ | **$1.1008** |
+| Max-plan reported $ (claude -p's own `total_cost_usd`) | $0.3418 |
+| wall time | 88.54s |
+
+(Pre-fix run: 11 turns, $1.3931 API-equivalent / $0.4274 Max-plan, 103.14s --
+same order of magnitude, both well under the earlier Editor session's ~$189
+API-equivalent bill over 4h/1,418 turns for the *whole* episode.)
 
 No `api` backend leg to report (dropped per the CEO ruling; the key file
 was absent anyway).
