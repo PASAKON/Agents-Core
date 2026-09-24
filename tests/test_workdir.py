@@ -167,12 +167,53 @@ def test_empty_close_removes_folder_and_writes_one_ledger_line(tmp_path):
     assert entry["task"] == TASK
     assert entry["by"] == "test-actor"
     assert entry["bytes"] == 15  # 10 (tmp) + 5 (sourced.jpg)
-    assert set(entry) == {"ts", "task", "bytes", "dest", "md5", "by"}
+    assert set(entry) == {"ts", "task", "bytes", "added_bytes", "dest", "md5", "by"}
 
 
 def test_close_missing_folder_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         workdir.close(TASK, root=tmp_path)
+
+
+# ------------------------------------------------------- added_bytes ledger
+
+def test_close_writes_added_bytes_next_to_bytes(tmp_path):
+    """added_bytes (net growth since create) and bytes (what THIS close
+    reclaims) are independent measurements — SOURCES.txt's own bytes count
+    toward growth but were never counted as reclaimed (pre-existing
+    behaviour), so the two numbers genuinely differ here, proving added_bytes
+    is not just `bytes` under a new name."""
+    workdir.create(TASK, root=tmp_path)
+    sources_line = "sourced.jpg\thttps://example.com/sourced.jpg\tabc123\n"
+    (tmp_path / TASK / "in" / "sourced.jpg").write_bytes(b"y" * 5)
+    (tmp_path / TASK / "in" / "SOURCES.txt").write_text(sources_line)
+
+    result = workdir.close(TASK, root=tmp_path, by="test-actor")
+
+    assert result["closed"] is True
+    entry = json.loads((tmp_path / "_ledger.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    assert entry["bytes"] == 5  # only sourced.jpg — pre-existing reclaim accounting
+    assert entry["added_bytes"] == 5 + len(sources_line)  # + SOURCES.txt's own bytes
+    assert entry["added_bytes"] > entry["bytes"]
+
+
+def test_create_stamps_marker_only_once_across_idempotent_calls(tmp_path):
+    """A respawn's second create() call must not reset the added_bytes
+    clock: bytes added BEFORE the respawn must still count at close(). A
+    buggy re-baseline on the second create() would silently subtract
+    early.bin's 40 bytes back out of added_bytes."""
+    folder = workdir.create(TASK, root=tmp_path)
+    (folder / "in" / "early.bin").write_bytes(b"a" * 40)  # grows the folder pre-respawn
+    workdir.create(TASK, root=tmp_path)  # idempotent respawn — must not re-baseline to 40
+
+    sources_line = "early.bin\tlocal:early.bin\tdeadbeef\n"
+    (folder / "in" / "SOURCES.txt").write_text(sources_line)
+
+    result = workdir.close(TASK, root=tmp_path)
+
+    assert result["closed"] is True
+    entry = json.loads((tmp_path / "_ledger.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    assert entry["added_bytes"] == 40 + len(sources_line)
 
 
 # ---------------------------------------------------------- close(archive=True)
@@ -203,9 +244,10 @@ def test_close_archive_true_verified_deletes_and_fills_ledger(tmp_path, monkeypa
     ledger = tmp_path / "_ledger.jsonl"
     entry = json.loads(ledger.read_text(encoding="utf-8").splitlines()[0])
     assert entry["bytes"] == 12  # 5 + 7, both archived-then-deleted
+    assert entry["added_bytes"] == 12  # same 12 bytes were the folder's only growth
     assert entry["dest"].startswith(f"Agents-Work-{TASK}-")
     assert entry["md5"]  # local md5 of the tar, non-empty
-    assert set(entry) == {"ts", "task", "bytes", "dest", "md5", "by"}
+    assert set(entry) == {"ts", "task", "bytes", "added_bytes", "dest", "md5", "by"}
 
 
 def test_close_archive_true_mismatch_keeps_folder_and_files(tmp_path, monkeypatch):

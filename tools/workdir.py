@@ -50,6 +50,13 @@ TASK_ID_RE = re.compile(r"^task-[0-9a-f]{8}$")
 LEDGER_NAME = "_ledger.jsonl"
 SOURCES_NAME = "SOURCES.txt"
 LAYOUT = ("in", "tmp", "out")
+# Bookkeeping marker for the `added_bytes` ledger field (machine-contract
+# phase 1, task docs/ops/briefs/machine-contract-phase1.md item 4). Lives
+# inside tmp/ so it is invisible to check()'s rule-1 root-entries scan and
+# is always gone (with the rest of tmp/) by the time close() computes
+# `remaining` — every size sum below excludes it explicitly so its own
+# handful of bytes never leaks into `bytes` or `added_bytes`.
+ADDED_BYTES_MARKER = ".added_bytes_start"
 
 # Statuses whose Work folder is an orphan once the task lands there (rule
 # 8). A task id absent from tasks.db entirely ("unknown") is handled
@@ -97,13 +104,26 @@ def folder_path(task_id: str, *, root: str | Path | None = None) -> Path:
 
 # --------------------------------------------------------------------- create
 
+def _marker_path(folder: Path) -> Path:
+    return folder / "tmp" / ADDED_BYTES_MARKER
+
+
 def create(task_id: str, *, root: str | Path | None = None) -> Path:
     """Work/<task_id>/{in,tmp,out} — rule 1. Idempotent: safe to call again
     on an already-created folder (a respawn after an unclaimed spawn hits
-    this)."""
+    this).
+
+    Also stamps `added_bytes_start` (task machine-contract phase 1): the
+    folder's total byte size right now, so close() can later report how
+    many bytes the task added since create(). Written only once — a
+    respawn's idempotent re-call must not reset the clock on bytes a prior
+    run already added."""
     folder = _task_folder(task_id, root)
     for sub in LAYOUT:
         (folder / sub).mkdir(parents=True, exist_ok=True)
+    marker = _marker_path(folder)
+    if not marker.exists():
+        marker.write_text(str(_dir_size(folder, exclude=marker)), encoding="utf-8")
     return folder
 
 
@@ -176,10 +196,10 @@ def check(task_id: str, *, root: str | Path | None = None) -> list[str]:
 
 # ---------------------------------------------------------------------- close
 
-def _dir_size(path: Path) -> int:
+def _dir_size(path: Path, *, exclude: Path | None = None) -> int:
     total = 0
     for p in path.rglob("*"):
-        if p.is_file() and not p.is_symlink():
+        if p.is_file() and not p.is_symlink() and p != exclude:
             total += p.stat().st_size
     return total
 
@@ -206,6 +226,12 @@ def close(task_id: str, *, dry_run: bool = False,
     dry_run=True previews with zero filesystem changes: nothing deleted,
     no ledger write, no archive attempt.
 
+    The ledger line also carries `added_bytes` (machine-contract phase 1)
+    next to `bytes`: net folder growth since create() stamped its marker,
+    vs. `bytes` = what THIS close reclaimed/archived — "+X added, -X
+    archived" is one row, and the two can legitimately differ (e.g. an
+    out/ deliverable a human already filed elsewhere before close ran).
+
     Returns `{"closed": True, "ledger": {...}}` on success, or
     `{"closed": False, "unfiled": [...]}` — the folder is left in place
     (with tmp/ and filed in/ files already gone on a real run)."""
@@ -214,13 +240,27 @@ def close(task_id: str, *, dry_run: bool = False,
         raise FileNotFoundError(f"no such Work folder: {folder}")
 
     tmp_dir, in_dir = folder / "tmp", folder / "in"
+    marker = _marker_path(folder)
+    added_bytes_start = 0
+    if marker.exists():
+        try:
+            added_bytes_start = int(marker.read_text(encoding="utf-8").strip() or 0)
+        except (OSError, ValueError):
+            added_bytes_start = 0
+    # Net growth since create(): the folder's current total (marker excluded)
+    # minus its size when create() stamped the marker. Measured before any
+    # deletion below, so it reflects everything the task ever left behind —
+    # independent of `bytes` (what THIS close reclaims/archives), which is
+    # why the two numbers can legitimately differ (task-machine-contract-p1).
+    added_bytes = _dir_size(folder, exclude=marker) - added_bytes_start
+
     sources_path = in_dir / SOURCES_NAME
     covered = _parse_sources(sources_path)
     in_files = _in_files(in_dir)
     filed = [f for f in in_files if f.relative_to(in_dir).as_posix() in covered]
     filed_set = set(filed)
 
-    tmp_bytes = _dir_size(tmp_dir) if tmp_dir.exists() else 0
+    tmp_bytes = _dir_size(tmp_dir, exclude=marker) if tmp_dir.exists() else 0
     reclaimed = tmp_bytes + sum(f.stat().st_size for f in filed)
 
     if dry_run:
@@ -236,6 +276,7 @@ def close(task_id: str, *, dry_run: bool = False,
             "would_delete_in": [str(f) for f in filed],
             "unfiled": [str(p) for p in unfiled],
             "bytes": reclaimed,
+            "added_bytes": added_bytes,
         }
 
     if tmp_dir.exists():
@@ -271,6 +312,7 @@ def close(task_id: str, *, dry_run: bool = False,
         "ts": datetime.now().astimezone().isoformat(timespec="seconds"),
         "task": task_id,
         "bytes": reclaimed,
+        "added_bytes": added_bytes,
         # Populated from a verified work_archive.archive() above; otherwise
         # nothing archived by this close (only tmp/, discarded, and
         # re-downloadable in/ files already covered by SOURCES.txt were
