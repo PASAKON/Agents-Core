@@ -102,6 +102,15 @@ if command -v tailscale >/dev/null 2>&1; then
 else
   cmd_sh "curl -fsSL https://tailscale.com/install.sh | sh"
 fi
+# The captured `apt-mark showmanual` list is the package BOM (registry: REBUILD rows store the command,
+# never the bytes). It runs AFTER the docker/tailscale installers because those add the apt repos that
+# docker-ce / tailscale come from; already-installed names are a no-op for apt.
+if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
+  say "replaying $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages from $BLUEPRINT_DIR/apt-packages.txt"
+  cmd_sh "xargs -a '$BLUEPRINT_DIR/apt-packages.txt' apt-get install -y"
+else
+  say "WARN: no apt-packages.txt in the blueprint — only the base packages above were installed"
+fi
 human "'tailscale up' below prints a login URL — open it, sign in as pass.gob1@gmail.com and approve this machine. The script blocks until that happens."
 cmd tailscale up
 
@@ -240,11 +249,12 @@ fi
 human "the volume tars/dumps below come from Drive via winbox's rclone or the Mac bridge — this script never fetches them."
 say "n8n_data (IRREPLACEABLE — workflows/creds/executions), from Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/n8n_data/<date>.tar:"
 say '  $ docker volume create n8n_data'
-say '  $ docker run --rm -i -v n8n_data:/data alpine sh -c "cd /data && tar xzf -" < n8n_data-<date>.tar.gz'
+say '  $ docker run --rm -i -v n8n_data:/data alpine sh -c "cd /data && tar xf -" < n8n_data-<date>.tar   # plain tar, as tools/drive_leg.py docker-volumes writes it'
+say '  $ # the tar EXCLUDES /data/config (n8n encryptionKey = a secret): restore that one file from the secrets bundle (step 8), chmod 600, owner uid 1000'
 say '  $ docker run --rm -v n8n_data:/data alpine cat /data/config   # sanity: encryptionKey must be present'
 say "org-pgdata (IRREPLACEABLE — org coordination DB), from Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/org-pgdata/<date>.sql.gz:"
 say '  $ docker volume create org-pgdata'
-say '  $ gunzip -c org-pgdata-<date>.sql.gz | docker exec -i <postgres-container-on-org-pgdata> psql -U <user> -d <db>'
+say '  $ gunzip -c org-pgdata-<date>.sql.gz | docker exec -i org-postgres psql -U postgres -d postgres   # pg_dumpall output; container org-postgres (postgres:16) as of 2026-09-24'
 
 # ====================================================== 7/9 — Claude Code
 hdr "Claude Code: install, claude-home symlinks (HUMAN: login + re-trust)"

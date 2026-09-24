@@ -83,6 +83,12 @@ entries:
      restore: "account key + certs — reissuable, but keep (Let's Encrypt rate limits); part of the secrets bundle, never Drive"}
   - {machine: contabo, path: "/home/secretary/.secretary.env",            class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
      restore: "secrets (OpenRouter key etc.) — Infisical is the intended home (project memory 09-19); until then the secrets bundle on another machine, never Drive"}
+  - {machine: contabo, path: "/home/driveup/.drive.env",                  class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "EnvironmentFile of mooniex-drive-broker.service (Drive OAuth for the upload broker) — secrets bundle, never Drive; surfaced 2026-09-24 by contabo_restore.sh reading the captured unit files"}
+  - {machine: contabo, path: "/home/photoup/.drive-photo.env",            class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "optional EnvironmentFile of mooniex-drive-photo-broker.service — secrets bundle, never Drive"}
+  - {machine: contabo, path: "<hq>/Projects/MoonieX/LineAutomation/.env", class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "EnvironmentFile of mooniex-line-queue.service; gitignored, so the Projects/** REBUILD row does NOT bring it back — secrets bundle, never Drive"}
   - {machine: contabo, path: "/root/.ssh/**",                              class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
      restore: "private keys: secrets bundle on another machine; public keys + config: blueprint"}
   - {machine: contabo, path: "{<hq>/Agents/Core/.venv,/root/idm-venv,/opt/node-v22,**/node_modules}", class: REBUILD, owner: CTO, review: 2026-12-23, discovered: false,
