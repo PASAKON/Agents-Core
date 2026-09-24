@@ -47,7 +47,7 @@ right port, name the pill, and get out of the way. Console docs: `docs/relay.md`
 Never `--remote-debugging-address=0.0.0.0`, never the CEO's everyday profile,
 never touch another CTO's automation Chrome without a letter first (IRON §33).
 Ports already taken: Mac 9223 ChatGPT (8c06958c), Mac 9224 BL TikTok
-(3d312dd6), winbox 9224 ChatGPT (8c06958c), winbox 9225 Google home, Contabo
+(3d312dd6), Mac 9230 Facebook Dorsine Gobb / ILAG Page (95cbbb28, profile ~/.fb-automation/chrome-profile), winbox 9224 ChatGPT (8c06958c), winbox 9225 Google home, Contabo
 9250 fake login test page, 9251 layout render rig.
 
 ## 2. Tell the CEO which pill
@@ -103,3 +103,4 @@ never a value, cookie or QR payload.
 - 2026-09-25 [MISSING] rollout test: two live sessions (Mac cto-95cbbb28, Contabo cto-e1e3d3ef) got the letter cold and both answered in the §0 one-line format within 2 min (one real request — Facebook Dorsine Gobb on mac:9230 — one "not blocked"); the format needs no further explanation in the letter · evidence: GH MoonieX-Console#9 comment 2026-09-25 05:1x · status: pending
 - 2026-09-25 [MISSING] after a Google login Chrome's own "Sign in to Chrome" intercept (`chrome://signin-dice-web-intercept.top-chrome`) shows up as the first page target, so `relay-inspect` and the pill list can pick it before the real tab; skip `chrome://` / `*.top-chrome` targets · evidence: winbox:9225 04:4x, GH MoonieX-Console#9 · status: pending
 - 2026-09-25 [MISSING] the mirror's first real-site login (Google on winbox:9225) is still unverified; the fake form on Contabo:9250 passed the CEO's test and winbox:9224 ChatGPT came up signed in after his phone flow · evidence: MoonieX-Console 62ea287, GH MoonieX-Console#9 · status: pending
+- 2026-09-25 [MISSING] §1 Mac — the first Facebook login through the relay (mac:9230) raised a native macOS Keychain dialog the relay cannot show; start Mac automation Chromes with `--use-mock-keychain` (plus --no-first-run --no-default-browser-check). After the login the tab sat on facebook.com/two_factor/remember_browser/ with the session already valid (c_user + xs present) · evidence: CTO d7dca03f letter 05:24, CTO 95cbbb28 verified Business Suite for asset 1319535331240503 opens · status: pending
