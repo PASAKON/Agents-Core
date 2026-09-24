@@ -16,8 +16,12 @@ under a purple storm, with a sharp line between them.
    fish glow, with the elder who knows the old stories of the deep, and the big green one who fishes and protects.
 3. The further out, the less natural the world: impossible glass-clear creatures, storm pillars up to the sky, until
    the line where the clearest water meets pitch black.
-4. Across the line every fish streams past them the other way, waves rise as tall as mountains, and on the horizon
-   stands a mountain where no land can be. The mountain opens its eyes: this is why the fish left.
+4. Across the line the black sea is silent and EMPTY, not one fish; waves rise as tall as mountains, and on the
+   horizon stands a mountain where no land can be. The mountain opens its eyes: it has eaten every fish.
+
+CEO 2026-09-25 on line 4 and on the glowing-fish shot: "ฉากใต้น้ำปลาเรืองแสงไม่มี เพราะน้ำใสไม่มีปลาอีกต่อไปแล้ว
+ปลาหายไปหมด · น้ำลึกก็ไม่มี ไปไหน อสุรกายกินไปหมดเลย". There is no fish on screen anywhere; the child's gift is the
+reason to go, not a shot. (The earlier line 4, "every fish streams past them the other way", is superseded.)
 5. Pull out to space: a planet split in two, bright blue-white and purple-black storm, its moon beside it.
    "How will they get past it?" Cut.
 
