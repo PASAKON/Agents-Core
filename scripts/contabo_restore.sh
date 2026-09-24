@@ -156,7 +156,9 @@ if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
   APT_AVAIL=""; APT_MISSING=""
   while read -r pkg; do
     [ -n "$pkg" ] || continue
-    if apt-cache show "$pkg" >/dev/null 2>&1; then APT_AVAIL="$APT_AVAIL $pkg"; else APT_MISSING="$APT_MISSING $pkg"; fi
+    # apt-cache show does not take the "name:arch" form (wine32:i386 was reported missing on run 3
+    # although the i386 index was there) — check the bare name, install the captured form.
+    if apt-cache show "${pkg%%:*}" >/dev/null 2>&1; then APT_AVAIL="$APT_AVAIL $pkg"; else APT_MISSING="$APT_MISSING $pkg"; fi
   done < "$BLUEPRINT_DIR/apt-packages.txt"
   say "replaying $(echo $APT_AVAIL | wc -w) of $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages (captured apt-mark showmanual)"
   [ -n "$APT_MISSING" ] && say "WARN: not available on this release, skipped:$APT_MISSING"

@@ -16,6 +16,13 @@ scoring" below. Where a number below is not yet measured on a real drill, it is 
 
 ## Contabo
 
+**Measured 2026-09-24 (3 container runs, see § rehearsal below):** on `ubuntu:24.04` (the live release) the
+verb restores the org leg in **25 min** wall (+1.3 min image prep): 63/64 apt packages, Agents-Core venv, the
+IDM venv (1.1 GB, PyTorch index), Node 22 + npm globals, 9 unit files copied, claude-home symlinks, doctor
+clean. Only the host-only steps fail in a container (`tailscale up`, `systemctl daemon-reload`, `docker compose`).
+Bytes from git: 1.4 GB; from Drive: 0 for the org leg (volumes + secrets are the HUMAN steps). The earlier
+Debian 12 runs (20 min / 6 min) failed on release drift — same-release rehearsal only.
+
 Script: `scripts/contabo_restore.sh` (`bash scripts/contabo_restore.sh --dry-run` to preview
 anywhere; a real run needs root on a fresh Debian/Ubuntu VPS). Run by: Contabo CTO.
 
