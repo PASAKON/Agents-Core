@@ -254,7 +254,7 @@ say '  $ # the tar EXCLUDES /data/config (n8n encryptionKey = a secret): restore
 say '  $ docker run --rm -v n8n_data:/data alpine cat /data/config   # sanity: encryptionKey must be present'
 say "org-pgdata (IRREPLACEABLE — org coordination DB), from Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/org-pgdata/<date>.sql.gz:"
 say '  $ docker volume create org-pgdata'
-say '  $ gunzip -c org-pgdata-<date>.sql.gz | docker exec -i org-postgres psql -U postgres -d postgres   # pg_dumpall output; container org-postgres (postgres:16) as of 2026-09-24'
+say '  $ gunzip -c org-pgdata-<date>.sql.gz | docker exec -i org-postgres psql -U org -d org   # pg_dumpall output; container org-postgres (postgres:16), superuser org (POSTGRES_USER), no "postgres" role — measured 2026-09-24'
 
 # ====================================================== 7/9 — Claude Code
 hdr "Claude Code: install, claude-home symlinks (HUMAN: login + re-trust)"

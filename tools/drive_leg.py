@@ -681,7 +681,7 @@ def _copy_pgdump_gzip(cmd: list[str], sink: _Sink) -> None:
 
 
 def docker_volumes(*, config_dir: Path, volumes: list[str] | None = None, dry_run: bool = False,
-                   pg_container: str = "org-postgres", pg_user: str = "postgres",
+                   pg_container: str = "org-postgres", pg_user: str = "org",
                    rclone: str | None = None, who: str | None = None,
                    now: float | None = None) -> dict:
     """n8n_data -> `docker run --rm -v n8n_data:/v:ro alpine tar cf - --exclude=./config -C /v .`
@@ -854,7 +854,7 @@ def main(argv: list[str] | None = None) -> int:
     d = sub.add_parser("docker-volumes", help="back up n8n_data + org-pgdata to Drive")
     d.add_argument("--volumes", default="n8n_data,org-pgdata")
     d.add_argument("--pg-container", default="org-postgres")
-    d.add_argument("--pg-user", default="postgres")
+    d.add_argument("--pg-user", default="org")  # POSTGRES_USER of org-postgres; there is no "postgres" role (measured 2026-09-24)
     d.add_argument("--dry-run", action="store_true")
 
     b = sub.add_parser("blueprints", help="archive state/<machine>-blueprint-<date>/ dirs to Drive")
