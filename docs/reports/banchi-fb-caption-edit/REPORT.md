@@ -1,4 +1,68 @@
-# Banchi FB caption edit — STOPPED, post already has text
+# Banchi FB caption edit — DONE (updated after CTO ruling)
+
+## UPDATE 2026-09-24 (second pass, CTO-authorized) — caption saved and confirmed live
+
+CTO investigated (og:description of the public reel was empty via link-preview UA) and
+ruled the text I found in the Edit Post box was the CEO's own **unsaved** edit (he'd
+pasted the Reels caption into the composer and it never got saved) — not a competing
+draft. CEO's own instruction stands ("You add for me"). CTO authorized a second pass:
+re-open the same Edit Post composer, confirm the box still holds exactly the text
+quoted below (no character changed, no swap to the FINAL file), click save, verify
+publicly.
+
+**Re-confirmed text in the composer (`element.innerText`, unchanged from first pass):**
+```
+พ่อจ่ายหนี้ทุกวันพฤหัส สองพันบาท… มาแล้ว 208 งวด
+หนี้ที่ควรจบไปตั้งแต่ปีที่แล้ว ทำไมยังไม่จบ?
+
+
+ดูจนจบ แล้วคุณจะรู้ว่าทำไมบัญชีเล่มแรกของบ้านนี้ อยู่ที่ขอบเตียงของย่า
+«จุดจบของเจ้าหนี้นอกระบบ» | ละครสั้นคุณธรรม
+
+
+เจอหนี้นอกระบบ อย่าอยู่คนเดียว แจ้งสายด่วน 1359
+(ละครสร้างด้วย AI)
+
+
+#ละครสั้น #ละครสั้นคุณธรรม #หนี้นอกระบบ #เจ้าหนี้นอกระบบ #ข้อคิดดีดี #ละครไทย #reels #ILAGStudio
+```
+Byte-for-byte identical to what was captured in the first pass below — nothing typed,
+nothing changed.
+
+**Where edited:** Meta Business Suite → same composer as before —
+`https://business.facebook.com/latest/composer/?asset_id=1319535331240503&business_content_id=122115848307470545`.
+Dialog header read "แก้ไขโพสต์ที่เผยแพร่แล้ว" (**Edit the already-published post**),
+confirming this saves an edit to the existing post, not a new post. Clicked "เผยแพร่"
+(the only save/publish action in this dialog). After the click the tab navigated away
+from the composer URL to the insights overview with no error — the edit saved cleanly.
+
+**Public verification:** `curl -sL -A 'facebookexternalhit/1.1' https://www.facebook.com/reel/1104791208680559`
+did NOT work as a verification method in this environment — the crawler UA hit a
+generic Facebook shell page (title "Facebook", no og: meta tags at all, page text
+contained "login"/"checkpoint" markers), not the real page content. Used the logged-in
+browser instead: navigated to the public reel URL (Facebook resolved the permalink to
+`facebook.com/reel/4642029459410475` this time — a different reel-id path than the
+first pass's `.../reel/1104791208680559`, but same Page, same video, same view/like/share
+counts region, i.e. the same post — Facebook's reel URLs are not stable/canonical
+across visits). First load hit a transient "ไม่สามารถดูหน้านี้ได้ในขณะนี้" (page unavailable)
+error; reload cleared it. Confirmed on the live page:
+- Right-panel caption preview and the video-overlay caption both show the text,
+  truncated with "ดูเพิ่มเติม" (see more).
+- Clicked "ดูเพิ่มเติม" and read the full expanded caption via `body.innerText` — it
+  matches the composer text above **exactly**, all 8 hashtags present, ending
+  `#ILAGStudio`.
+- Screenshot: `docs/reports/banchi-fb-caption-edit/live-caption-published-2026-09-24.jpg`
+  (right panel and video overlay both showing the full caption).
+
+**Changed nothing else:** did not touch video, cover/thumbnail, audience, date, or any
+toggle. Did not post/comment/message anywhere else.
+
+Tab claimed (`task-c3d4fbeb`) and released cleanly via `tab_registry.py` for this
+second pass.
+
+---
+
+# Original report (first pass) — STOPPED, post already has text
 
 ## Summary
 Task assumed the live post had NO caption. It does not — the post already carries a
@@ -98,14 +162,16 @@ learning below) and worth capturing in a script rather than re-discovering by ha
 
 ## Files Changed
 - docs/reports/banchi-fb-caption-edit/REPORT.md — this report
-- docs/reports/banchi-fb-caption-edit/existing-caption-2026-09-24.jpg — evidence screenshot
+- docs/reports/banchi-fb-caption-edit/existing-caption-2026-09-24.jpg — evidence screenshot (before save)
+- docs/reports/banchi-fb-caption-edit/live-caption-published-2026-09-24.jpg — evidence screenshot (after save, public page)
 
 ## Commits
-- (pending — see below)
+- see git log; this file was committed twice (STOP report, then the save+verify update)
 
 ## Issues / Blockers
-- Live post already has a caption that differs from `docs/scripts/banchi-fb-caption-FINAL.txt`.
-  Cannot proceed without CEO/CTO confirmation on which text should end up live.
+- None remaining. CTO ruled the existing composer text was the CEO's own unsaved edit
+  (not a competing draft); authorized saving it as-is. Saved and publicly confirmed —
+  see "UPDATE 2026-09-24" section above.
 
 ## Notes for Reviewer
 - The task brief's premise ("currently NO text") was wrong at the moment I checked it —
@@ -132,3 +198,14 @@ learning below) and worth capturing in a script rather than re-discovering by ha
   prevented by: after clicking the toggle, `find` the target menuitem by text before
   screenshotting; if `find` errors "not found", the menu closed — reopen and retry
   immediately rather than re-screenshotting.
+- WRONG [no owner: curl-as-crawler public-post verification] : `curl -sL -A
+  'facebookexternalhit/1.1' <reel url>` does NOT reliably fetch Facebook's real
+  rendered page from this environment — it returned a generic shell (empty title,
+  no og: tags, login/checkpoint markers), not the actual post. A logged-in browser
+  reload was the only verification that worked · evidence: task-c3d4fbeb, /tmp/reel.html
+  (83 lines, no og:description, `<title>Facebook</title>`).
+- MISSING [browser-operator §verifying a public FB post] : a Facebook Reels
+  permalink/reel URL is not stable across visits — the same post resolved to
+  `/reel/1104791208680559` on one navigation and `/reel/4642029459410475` on a later
+  one (same page, same video, same content). Verify identity by content/page/counts,
+  not by the reel-id path matching a previously seen one · evidence: task-c3d4fbeb.
