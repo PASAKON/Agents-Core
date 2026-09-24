@@ -74,6 +74,27 @@ def ssh_cmd(remote_cmd: str, **kw) -> subprocess.CompletedProcess:
 # fixture
 # ═══════════════════════════════════════════════════════════════════════
 
+def _redact_ground_truth(build_cut_py_source: str) -> str:
+    """Blank out build_cut.py's hardcoded BEATS/CHECK_ITEMS (the human
+    editor's own answer for this exact window) before staging it into an
+    Arm-A fixture. task-9ba58d91's own REPORT.md flagged this: the Arm A
+    editor has to open build_cut.py to understand the img_placement/
+    box_to_canvas coordinate contract (bl_compose.py's docstring points
+    straight at it), and doing so hands them the ground truth before they
+    make their own call. The two list literals are the only thing that
+    matters here -- blanking them leaves every function
+    load_generator_functions() actually needs untouched."""
+    import ast
+    tree = ast.parse(build_cut_py_source)
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            names = {t.id for t in node.targets if isinstance(t, ast.Name)}
+            if names & {"BEATS", "CHECK_ITEMS"}:
+                node.value = ast.List(elts=[], ctx=ast.Load())
+    ast.fix_missing_locations(tree)
+    return ast.unparse(tree)
+
+
 def build_local_generator(stage_dir: Path, episode_work_dir: Path) -> Path:
     """build_cut.py/assemble.py (branch, read-only) + the clean template
     (already in this repo) + the episode media (this Mac's Work dir) ->
@@ -88,6 +109,8 @@ def build_local_generator(stage_dir: Path, episode_work_dir: Path) -> Path:
         out = gen / name
         content = sh(["git", "show", f"{GENERATOR_BRANCH}:{GENERATOR_BRANCH_PATH}/{name}"],
                      cwd=ROOT, capture_output=True, text=True).stdout
+        if name == "build_cut.py":
+            content = _redact_ground_truth(content)
         out.write_text(content, encoding="utf-8")
 
     import shutil
@@ -201,7 +224,10 @@ def cmd_collect(args: argparse.Namespace) -> int:
     sh(["scp", "-q", f"{SSH_ALIAS}:{remote_mp4}", str(arm_dir / f"final-{arm}.mp4")])
 
     if args.worktree:
-        slug = args.worktree.strip("/").replace("/", "-")
+        # Claude Code's project slug replaces BOTH "/" and "_" with "-"
+        # (a worktree path with a double underscore like
+        # ..._video_editor__task-X becomes ...-video-editor--task-X).
+        slug = args.worktree.strip("/").replace("/", "-").replace("_", "-")
         r2 = ssh_cmd(f"ls -t /root/.claude/projects/-{slug}/*.jsonl 2>/dev/null | head -1",
                     capture_output=True, text=True)
         session_file = r2.stdout.strip() or None
