@@ -53,6 +53,9 @@ state/decisions/
 # Runtime state; state/*.db already covers the search index beside it.
 state/session-nudge-counters.json
 state/watchdog.log
+# machine_doctor.py's weekly cron/launchd/schtasks log (machine-contract phase 1,
+# docs/ops/machine-contract-schedules.md) -- runtime output, not committed.
+state/machine-doctor.log
 state/*.db
 state/fomo-scanner.db-journal
 state/fomo-scanner.db-wal

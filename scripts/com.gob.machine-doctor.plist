@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Weekly machine-contract doctor for the Mac (ADR 0031, IRON §58, task
+       docs/ops/briefs/machine-contract-phase1.md item 5): registry vs disk,
+       reports discovered/unclassified paths. Never deletes anything.
+       Install (Mac CTO, on the Mac):
+         cp scripts/com.gob.machine-doctor.plist ~/Library/LaunchAgents/
+         launchctl load ~/Library/LaunchAgents/com.gob.machine-doctor.plist
+       Sibling of scripts/mac_blueprint.sh; not installed by this repo. -->
+  <key>Label</key><string>com.gob.machine-doctor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/tools/machine_doctor.py</string>
+    <string>--machine</string>
+    <string>mac</string>
+    <string>check</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key><integer>1</integer>
+    <key>Hour</key><integer>4</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key><string>/Users/gob/MoonieXHQ/Agents/Core/state/machine-doctor.log</string>
+  <key>StandardErrorPath</key><string>/Users/gob/MoonieXHQ/Agents/Core/state/machine-doctor.log</string>
+  <key>ProcessType</key><string>Background</string>
+  <key>LowPriorityIO</key><true/>
+  <key>Nice</key><integer>10</integer>
+</dict>
+</plist>
