@@ -363,10 +363,33 @@ class FBReelBrowser:
         return True
 
     def _find_publish_button(self):
+        # BUG FOUND LIVE 2026-09-25 (task-c6bd5ba6): a plain
+        # "button/[role=button] with exact text แชร์ and width > 50" also
+        # matches the wizard's own "แชร์" BREADCRUMB step-tab at the top of
+        # the page (it renders as a real <button>, ~100px wide) — and that
+        # element comes FIRST in document order, so `.find()` picked it
+        # every time. Clicking it while already on that step is a no-op:
+        # the real publish click never fired, twice, with no error and no
+        # visible change, which is exactly the failure mode that makes this
+        # worth a comment. Anchor on the "ย้อนกลับ" (Back) button instead —
+        # it exists only once, in the footer, always as a sibling of the
+        # real publish button — rather than trusting text+size alone.
         return self.page.evaluate_handle(
             """
-            () => [...document.querySelectorAll('button, [role="button"]')]
-              .find(e => e.textContent.trim() === 'แชร์' && e.getBoundingClientRect().width > 50)
+            () => {
+              const backBtns = [...document.querySelectorAll('button, [role="button"]')]
+                .filter(e => e.textContent.trim() === 'ย้อนกลับ');
+              for (const back of backBtns) {
+                let container = back.parentElement;
+                for (let i = 0; i < 4 && container; i++) {
+                  const share = [...container.querySelectorAll('button, [role="button"]')]
+                    .find(e => e.textContent.trim() === 'แชร์');
+                  if (share) return share;
+                  container = container.parentElement;
+                }
+              }
+              return null;
+            }
             """
         )
 
