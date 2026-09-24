@@ -10,7 +10,8 @@ scope: >-
   Not for driving a browser yourself (that is browser-operator) and not for
   deciding whether a login is needed.
 description: Get a login done by the CEO from his phone via the Console login relay. Trigger on /relay-login, "login relay", "ให้ CEO login", "ขอ login", "session หมดอายุ", "cookie หมดอายุ", "ต้อง login ใหม่", "QR login", or whenever a task is blocked on a browser login on any machine. Use instead of asking the CEO to type a code into chat, and instead of taking the CEO's desk browser.
-created_by: cto-d7dca03f
+created_by: agent
+author: CTO
 audience: [cto, cxo, browser_operator, devops_engineer]
 ---
 
@@ -87,6 +88,4 @@ never a value, cookie or QR payload.
   next seed pattern comes from.
 
 ## Field notes
-- 2026-09-25 (cto-d7dca03f): first real form login through the mirror pending;
-  fake form on Contabo:9250 passed the CEO's test; winbox:9224 ChatGPT came up
-  signed in after the CEO's phone flow the night before.
+- 2026-09-25 [MISSING] the mirror's first real-site login (Google on winbox:9225) is still unverified; the fake form on Contabo:9250 passed the CEO's test and winbox:9224 ChatGPT came up signed in after his phone flow · evidence: MoonieX-Console 62ea287, GH MoonieX-Console#9 · status: pending
