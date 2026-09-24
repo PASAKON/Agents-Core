@@ -1,0 +1,23 @@
+# state/machine-discovered-<machine>.yaml — proposals from tools/machine_doctor.py's
+# unknown-growth scan (ADR 0031, IRON §58). NEVER the registry itself: a human reviews
+# each row and either promotes it into config/machine-contract.yaml with a real class,
+# or removes it here once handled. Safe to hand-edit.
+entries:
+- path: /root/.cache
+  machine: contabo
+  class: UNCLASSIFIED
+  discovered: true
+  owner: null
+  review: null
+  restore: null
+  first_seen: '2026-09-24'
+  mb_at_discovery: 2114
+- path: /root/.local
+  machine: contabo
+  class: UNCLASSIFIED
+  discovered: true
+  owner: null
+  review: null
+  restore: null
+  first_seen: '2026-09-24'
+  mb_at_discovery: 997

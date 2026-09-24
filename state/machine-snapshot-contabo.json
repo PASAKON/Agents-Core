@@ -1,0 +1,207 @@
+{
+  "machine": "contabo",
+  "ts": "2026-09-24T12:18:45+02:00",
+  "claude_version": "2.1.226",
+  "entries": [
+    {
+      "path": "$CLAUDE_CONFIG_DIR/projects/*/*.jsonl",
+      "resolved": "/root/.claude/projects/*/*.jsonl",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 1147528977
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/uploads/**",
+      "resolved": "/root/.claude/uploads/**",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 11485881
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/projects/*/memory/**",
+      "resolved": "/root/.claude/projects/*/memory/**",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 0
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/settings.json",
+      "resolved": "/root/.claude/settings.json",
+      "class": "CONFIG",
+      "applicable": true,
+      "exists": true,
+      "bytes": 55
+    },
+    {
+      "path": "$HOME/.claude.json",
+      "resolved": "/root/.claude.json",
+      "class": "CONFIG",
+      "applicable": true,
+      "exists": true,
+      "bytes": 65677
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/.credentials.json",
+      "resolved": "/root/.claude/.credentials.json",
+      "class": "DISPOSABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 524
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/{plugins,skills/synced}/**",
+      "resolved": "/root/.claude/{plugins,skills/synced}/**",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 9373130
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/{file-history,cache,session-data,session-env,sessions,state,logs,backups,downloads,shell-snapshots,todos,debug}/**",
+      "resolved": "/root/.claude/{file-history,cache,session-data,session-env,sessions,state,logs,backups,downloads,shell-snapshots,todos,debug}/**",
+      "class": "DISPOSABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 8082928
+    },
+    {
+      "path": "$CLAUDE_CONFIG_DIR/history.jsonl",
+      "resolved": "/root/.claude/history.jsonl",
+      "class": "DISPOSABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 10302
+    },
+    {
+      "path": "<hq>/Agents/{Core,Rules,Wikis,Memory}",
+      "resolved": "/opt/MoonieXHQ/Agents/{Core,Rules,Wikis,Memory}",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 3971708775
+    },
+    {
+      "path": "<hq>/Projects/**",
+      "resolved": "/opt/MoonieXHQ/Projects/**",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 1962825754
+    },
+    {
+      "path": "<hq>/Work/<task-id>/**",
+      "resolved": "/opt/MoonieXHQ/Work/*/**",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 4520
+    },
+    {
+      "path": "<hq>/Assets/**",
+      "resolved": "/opt/MoonieXHQ/Assets/**",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 147618728
+    },
+    {
+      "path": "<hq>/Archive/**",
+      "resolved": "/opt/MoonieXHQ/Archive/**",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 2769832193
+    },
+    {
+      "path": "<hq>/Agents/Core/worktrees/**",
+      "resolved": "/opt/MoonieXHQ/Agents/Core/worktrees/**",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 0
+    },
+    {
+      "path": "/var/lib/docker/volumes/n8n_data/_data",
+      "resolved": "/var/lib/docker/volumes/n8n_data/_data",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 1548368413
+    },
+    {
+      "path": "/var/lib/docker/volumes/org-pgdata/_data",
+      "resolved": "/var/lib/docker/volumes/org-pgdata/_data",
+      "class": "IRREPLACEABLE",
+      "applicable": true,
+      "exists": true,
+      "bytes": 72940417
+    },
+    {
+      "path": "/var/lib/docker/{image,overlay2,buildkit}/**",
+      "resolved": "/var/lib/docker/{image,overlay2,buildkit}/**",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 11075716
+    },
+    {
+      "path": "/etc/systemd/system/mooniex-*.service",
+      "resolved": "/etc/systemd/system/mooniex-*.service",
+      "class": "CONFIG",
+      "applicable": true,
+      "exists": true,
+      "bytes": 6841
+    },
+    {
+      "path": "/root/.acme.sh/**",
+      "resolved": "/root/.acme.sh/**",
+      "class": "CONFIG",
+      "applicable": true,
+      "exists": true,
+      "bytes": 1861397
+    },
+    {
+      "path": "/home/secretary/.secretary.env",
+      "resolved": "/home/secretary/.secretary.env",
+      "class": "CONFIG",
+      "applicable": true,
+      "exists": true,
+      "bytes": 870
+    },
+    {
+      "path": "/root/.ssh/**",
+      "resolved": "/root/.ssh/**",
+      "class": "CONFIG",
+      "applicable": true,
+      "exists": true,
+      "bytes": 6409
+    },
+    {
+      "path": "{<hq>/Agents/Core/.venv,/root/idm-venv,/opt/node-v22,**/node_modules}",
+      "resolved": "{/opt/MoonieXHQ/Agents/Core/.venv,/root/idm-venv,/opt/node-v22,**/node_modules}",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 2072475225
+    },
+    {
+      "path": "/opt/claude-usage-monitor/**",
+      "resolved": "/opt/claude-usage-monitor/**",
+      "class": "REBUILD",
+      "applicable": true,
+      "exists": true,
+      "bytes": 43030
+    },
+    {
+      "path": "/root/restore/**",
+      "resolved": "/root/restore/**",
+      "class": "UNCLASSIFIED",
+      "applicable": true,
+      "exists": false,
+      "bytes": 0
+    }
+  ]
+}

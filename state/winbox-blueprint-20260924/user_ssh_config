@@ -1,0 +1,29 @@
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile C:\Users\UsEr\.ssh\id_ed25519
+  IdentitiesOnly yes
+
+Host github-cookierun
+  HostName github.com
+  User git
+  IdentityFile C:\Users\UsEr\.ssh\id_ed25519_cookierun
+  IdentitiesOnly yes
+
+# Contabo VPS. PUBLIC IP on purpose - the tailnet address answers with
+# Tailscale SSH, which ignores authorized_keys and blocks on a browser
+# check, so it hangs a non-interactive run instead of failing. Measured
+# 2026-09-16.
+Host contabo mooniex-vps
+  HostName 194.233.80.26
+  User root
+  IdentityFile C:\Users\UsEr\.ssh\id_ed25519
+  IdentitiesOnly yes
+
+# Same box over the tailnet. Works since Tailscale SSH was turned off on
+# Contabo 2026-09-16 - before that this address was intercepted and hung.
+Host contabo-ts
+  HostName 100.118.171.23
+  User root
+  IdentityFile C:\Users\UsEr\.ssh\id_ed25519
+  IdentitiesOnly yes

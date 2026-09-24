@@ -1,0 +1,30 @@
+[Unit]
+Description=SomPong family-photo outbox drain -- reads claudeflow's shared-volume outbox and uploads through the Drive photo broker's socket (task-a1c618db, feature F2; runs as root as of task-4307c02c so it can traverse /root/projects -- see docs/design/sompong-photos.md). Never touches the Drive credential directly.
+After=network-online.target mooniex-drive-photo-broker.service
+Wants=network-online.target
+Requires=mooniex-drive-photo-broker.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=SOMPONG_PHOTO_OUTBOX=/root/projects/mooniex-claudeflow/data/sompong/photos-outbox
+Environment=SOMPONG_PHOTO_STAGING_ROOT=/var/lib/photoup/staging
+Environment=SOMPONG_PHOTO_MIN_FREE_MB=2048
+Environment=DRIVE_PHOTO_BROKER_SOCKET_PATH=/run/photoup/photo-broker.sock
+Environment=SOMPONG_PHOTO_FILER_POLL_SECONDS=60
+Environment=SOMPONG_PHOTO_FILER_MAX_RETRIES=5
+Environment=SOMPONG_PHOTO_FILER_STATE_DIR=/var/lib/mooniex-sompong-photo-filer
+Environment=ORG_LOG_DIR=/var/log/mooniex-sompong-photo-filer
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m runners.sompong_photo_filer
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/root/projects/mooniex-claudeflow/data/sompong/photos-outbox /var/lib/photoup/staging /var/log/mooniex-sompong-photo-filer /var/lib/mooniex-sompong-photo-filer
+
+[Install]
+WantedBy=multi-user.target

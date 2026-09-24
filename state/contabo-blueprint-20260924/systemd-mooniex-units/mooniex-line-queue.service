@@ -1,0 +1,15 @@
+[Unit]
+Description=Mooniex LINE Queue API (FastAPI/uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Projects/MoonieX/LineAutomation
+EnvironmentFile=/opt/MoonieXHQ/Projects/MoonieX/LineAutomation/.env
+ExecStart=/opt/MoonieXHQ/Projects/MoonieX/LineAutomation/venv/bin/uvicorn vps.api:app --host 127.0.0.1 --port 8090
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

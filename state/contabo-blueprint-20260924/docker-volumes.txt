@@ -1,0 +1,7 @@
+Local Volumes space usage:
+
+VOLUME NAME    LINKS     SIZE
+n8n_data       1         1.548GB
+traefik_data   1         50.8kB
+org-pgdata     1         72.94MB
+

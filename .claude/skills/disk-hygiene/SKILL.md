@@ -39,6 +39,19 @@ Read this page for the law, then the one file for the box you are on.
 the command which rebuilds it. If you cannot name that command, it is not
 regenerable — back it up.
 
+## The registry decides the class (ADR 0031, IRON §58 — since 2026-09-24)
+
+Before judging a path, look it up in Agents-Core `config/machine-contract.yaml`: one row per
+path per machine with a class — **IRREPLACEABLE** (Drive copy verified by checksum before it may
+leave a machine), **CONFIG** (restored from git / the machine's blueprint), **REBUILD** (the row
+stores the command; the bytes are Green), **DISPOSABLE** (never stored, never archived),
+**UNCLASSIFIED** (`discovered: true` — the weekly doctor found it; classify within 14 days; never
+delete without a human go). The Green / back-up-first / never-touch lists below and in
+`references/*.md` are the same law spelled out per machine; when they disagree with the registry,
+the registry wins and the list gets fixed the same turn. Kept bytes land under Drive
+`BACKUP/MoonieX HQ/<what-is-kept>/` (gdrive-filing has the definitions). The 2026-09-24 winbox
+reset lost 84 GB that no list had a row for — that is why the registry exists.
+
 ## The worker contract — every agent, every machine
 
 1. **Measure first.** `df -h /` plus `du -sh` of the suspects. Never delete on a

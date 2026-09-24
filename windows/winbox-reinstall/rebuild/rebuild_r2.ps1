@@ -31,7 +31,10 @@ New-Item -ItemType Directory -Force -Path C:\mooniex\pclease | Out-Null
 Copy-Item C:\mooniex\rebuild\pclease\* C:\mooniex\pclease\ -Force
 L ("pclease: " + ((Get-ChildItem C:\mooniex\pclease -File).Name -join ', '))
 # 5. core scheduled tasks from the old box's XML, paths + principal rewritten
-$core = 'CookieRunAppSrc','CookieRunAsk','CookieRun-DiskSense','CookieRunStreamRetry','MooniexPCLease','MooniexPCLeaseClear','MooniexCookieRunProbe','MooniexCookieRunRevive','MooniexCtoRun'
+# MachineContractDoctor (ADR 0031, IRON §58, task docs/ops/briefs/machine-contract-phase1.md
+# item 5): authored fresh for the passg account (not a captured pre-reset XML), so the
+# UsEr->passg / UserId / Author rewrite below is a no-op for it -- harmless either way.
+$core = 'CookieRunAppSrc','CookieRunAsk','CookieRun-DiskSense','CookieRunStreamRetry','MooniexPCLease','MooniexPCLeaseClear','MooniexCookieRunProbe','MooniexCookieRunRevive','MooniexCtoRun','MachineContractDoctor'
 foreach ($t in $core) {
   $src = "C:\mooniex\rebuild\tasks\$t.xml"
   if (-not (Test-Path $src)) { L "task $t : no xml"; continue }

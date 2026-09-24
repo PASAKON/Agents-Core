@@ -1,0 +1,6 @@
+/usr/lib
+├── @openai/codex@0.155.1
+├── corepack@0.34.6
+├── npm@10.8.2
+└── pm2@7.0.1
+

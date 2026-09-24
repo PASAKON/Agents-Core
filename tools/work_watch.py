@@ -158,9 +158,14 @@ def _pid_dead_in_progress(task: dict) -> bool:
 def _folder_stats(task_id: str, root=None) -> tuple[int, list[str]]:
     """(total bytes, unfiled relative paths) for Work/<task_id>/. Reuses
     `tools.workdir.close(dry_run=True)` for the unfiled list rather than
-    re-walking SOURCES.txt coverage a second time."""
+    re-walking SOURCES.txt coverage a second time.
+
+    Excludes workdir's own added_bytes_start bookkeeping marker (lives in
+    tmp/, a handful of bytes) — this is a report of what the TASK put there,
+    not of workdir.py's internals."""
     folder = workdir.folder_path(task_id, root=root)
-    total = sum(p.stat().st_size for p in folder.rglob("*") if p.is_file())
+    marker = folder / "tmp" / workdir.ADDED_BYTES_MARKER
+    total = sum(p.stat().st_size for p in folder.rglob("*") if p.is_file() and p != marker)
     try:
         dry = workdir.close(task_id, dry_run=True, root=root)
         unfiled = dry.get("unfiled", [])
