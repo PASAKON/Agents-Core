@@ -1,0 +1,33 @@
+[Unit]
+Description=MoonieX Drive PHOTO broker -- sole holder of the Drive OAuth credential for SomPong's family-photo backup (task-a1c618db, feature F2). Separate from mooniex-drive-broker/Desktop Cloud -- never touch that unit from here.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=photoup
+Group=photoup
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+RuntimeDirectory=photoup
+RuntimeDirectoryMode=0750
+EnvironmentFile=-/home/photoup/.drive-photo.env
+Environment=DRIVE_PHOTO_BROKER_ENV=/home/photoup/.drive-photo.env
+Environment=DRIVE_PHOTO_BROKER_SOCKET_PATH=/run/photoup/photo-broker.sock
+Environment=DRIVE_PHOTO_BROKER_STAGING_ROOT=/var/lib/photoup/staging
+Environment=DRIVE_PHOTO_BROKER_ALLOWED_UIDS=0
+Environment=DRIVE_PHOTO_BROKER_FOLDER_ID=1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy
+Environment=DRIVE_PHOTO_BROKER_MAX_UPLOAD_BYTES=209715200
+Environment=DRIVE_PHOTO_BROKER_MAX_REQUEST_BYTES=65536
+Environment=DRIVE_PHOTO_BROKER_SOCKET_TIMEOUT=30
+Environment=ORG_LOG_DIR=/home/photoup/logs
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m runners.drive_photo_broker
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/photoup/staging /home/photoup/logs
+
+[Install]
+WantedBy=multi-user.target

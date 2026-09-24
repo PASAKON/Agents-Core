@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew MoonieX Console tailscale TLS cert and restart the service
+After=network-online.target tailscaled.service
+Requires=tailscaled.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/MoonieXHQ/Projects/MoonieX/Console/certs
+ExecStart=/usr/bin/tailscale cert --cert-file /opt/MoonieXHQ/Projects/MoonieX/Console/certs/mooniex-contabo.tail400676.ts.net.crt --key-file /opt/MoonieXHQ/Projects/MoonieX/Console/certs/mooniex-contabo.tail400676.ts.net.key mooniex-contabo.tail400676.ts.net
+ExecStartPost=/usr/bin/systemctl restart mooniex-console.service

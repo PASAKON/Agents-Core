@@ -1,0 +1,33 @@
+[Unit]
+[LINE REDACTED BY CAPTURE FILTER]
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=driveup
+Group=driveup
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+RuntimeDirectory=driveup
+RuntimeDirectoryMode=0750
+EnvironmentFile=/home/driveup/.drive.env
+Environment=DRIVE_BROKER_ENV=/home/driveup/.drive.env
+Environment=DRIVE_BROKER_SOCKET_PATH=/run/driveup/drive-broker.sock
+Environment=DRIVE_BROKER_STAGING_ROOT=/srv/driveup-staging
+Environment=DRIVE_BROKER_ALLOWED_UIDS=1001
+Environment=DRIVE_BROKER_FOLDER_ID=115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR
+Environment=DRIVE_BROKER_MAX_UPLOAD_BYTES=524288000
+Environment=DRIVE_BROKER_MAX_REQUEST_BYTES=65536
+Environment=DRIVE_BROKER_SOCKET_TIMEOUT=30
+Environment=ORG_LOG_DIR=/home/driveup/logs
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m runners.drive_upload_broker
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/srv/driveup-staging /home/driveup/logs
+
+[Install]
+WantedBy=multi-user.target

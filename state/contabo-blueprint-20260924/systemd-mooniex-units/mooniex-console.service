@@ -1,0 +1,23 @@
+[Unit]
+Description=MoonieX Console (mobile iTerm2 web console, tailnet-only)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+Requires=tailscaled.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/MoonieXHQ/Projects/MoonieX/Console
+[LINE REDACTED BY CAPTURE FILTER]
+# canonical file, never duplicated into console/.env. Leading '-' = optional
+# (service still starts if the file is briefly absent; session-spawn just
+# won't have a working Claude auth until it exists).
+[LINE REDACTED BY CAPTURE FILTER]
+ExecStart=/opt/node-v22/bin/node --experimental-sqlite src/server.js
+Restart=on-failure
+RestartSec=3
+ExecStartPre=/bin/sh -c 'until /usr/bin/tailscale ip -4 >/dev/null 2>&1; do sleep 1; done'
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

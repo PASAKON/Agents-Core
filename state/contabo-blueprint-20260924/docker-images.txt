@@ -1,0 +1,11 @@
+IMAGE                                          ID             DISK USAGE   CONTENT SIZE   EXTRA
+alpine:latest                                  a2d49ea686c2       13.1MB         3.95MB        
+cf-webhook:test                                12cc5703da7d        410MB          115MB        
+docker.n8n.io/n8nio/n8n:2.8.3                  53004142b0e9       1.73GB          247MB   U    
+mooniex-claudeflow-claudeflow-webhook:latest   fda17237ff93        778MB          201MB   U    
+mooniex-option-channel:latest                  670ac6a10b28        643MB          157MB   U    
+mooniex-option-listener:latest                 d32899b2efe3        628MB          150MB   U    
+mooniex-option-receiver:latest                 4976a990e0dd        633MB          152MB   U    
+postgres:16                                    f1c3376c26f2        642MB          166MB   U    
+python:3.12-alpine                             6d43704baacd       74.6MB         18.7MB   U    
+traefik:3.6.8                                  90099f8948c8        241MB         53.1MB   U    

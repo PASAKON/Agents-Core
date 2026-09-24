@@ -1,0 +1,14 @@
+{
+  "hostname": "vmi3371421",
+  "os": "Ubuntu 24.04.4 LTS",
+  "kernel": "6.8.0-139-generic",
+  "python_version": "3.12.3",
+  "node_version": "v20.20.2",
+  "docker_version": "Docker version 29.5.3, build d1c06ef",
+  "tailscale_ip": "100.118.171.23",
+  "disk_free_gb_root": 40.0,
+  "users_uid_ge_1000": [
+    "nobody",
+[LINE REDACTED BY CAPTURE FILTER]
+  ]
+}

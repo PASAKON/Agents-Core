@@ -1,0 +1,18 @@
+
+Host github.com
+  IdentityFile ~/.ssh/id_github
+  IdentitiesOnly yes
+
+Host winbox
+    HostName 100.124.196.11   # window-gob.tail400676.ts.net, reset 2026-09-24 (was 100.123.83.75 desktop-3nqb2qo)
+    User passg
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    ServerAliveInterval 30
+    StrictHostKeyChecking accept-new
+
+Host github.com-agents-memory
+  HostName github.com
+  User git
+  IdentityFile /root/.ssh/agents_memory_deploy
+  IdentitiesOnly yes
