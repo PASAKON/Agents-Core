@@ -57,8 +57,8 @@ ROOT = Path(__file__).resolve().parent.parent
 # claude-home/tools/prune_transcripts.py:52 — same log, same append-only shape.
 LOG_PATH = os.path.expanduser("~/.claude/logs/drive-archive.log")
 
-# gdrive-filing skill: Drive `BACKUP` root, where this precedent's tars land
-# directly (no sub-folder), per task-abc20690's brief.
+# gdrive-filing skill: the first Work/ archive (task-abc20690.s brief) landed at the Drive `BACKUP` root;
+# since 2026-09-24 the family below is the home (ADR 0031 Machine Contract).
 # BACKUP/MoonieX HQ/Work-Archive (gdrive-filing ID table, created 2026-09-24) — new Agents-Work-<task>-<date>.tar land here;
 # the 2026-09-23 one at the BACKUP root (1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq) moves server-side on the CEO's yes.
 BACKUP_FOLDER_ID = "1xu8hXdUZGBino913lCr2zdUz8kTd8tqA"
