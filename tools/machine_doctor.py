@@ -141,8 +141,25 @@ def _substitute(raw: str, ctx: dict) -> str | None:
     out = raw.replace("$CLAUDE_CONFIG_DIR", str(ctx["CLAUDE_CONFIG_DIR"]))
     out = out.replace("$HOME", str(ctx["HOME"]))
     out = out.replace("<hq>", str(ctx["hq"]))
+    if ctx.get("_os") == "windows":
+        out = _expand_windows_vars(out, ctx.get("_env"))
     out = _ANGLE_PLACEHOLDER_RE.sub("*", out)  # <task-id> etc. -> wildcard
     return out
+
+
+def _expand_windows_vars(s: str, env: dict | None = None) -> str:
+    """%USERPROFILE% / %LOCALAPPDATA% / %APPDATA% ... -> their values, looked up
+    case-insensitively in `env` (default os.environ). An unset name is left as
+    written so the row simply never matches instead of matching everything.
+    First winbox run (2026-09-24) proved the gap: the raw "%USERPROFILE%/cookierun-bot/**"
+    was compared literally, so the bot's own clone was reported DISCOVERED."""
+    src = env if env is not None else os.environ
+    lookup = {k.upper(): v for k, v in src.items()}
+
+    def _one(m: re.Match) -> str:
+        return lookup.get(m.group(1).upper(), m.group(0))
+
+    return re.sub(r"%([A-Za-z_][A-Za-z0-9_()]*)%", _one, s)
 
 
 def _expand_braces(s: str) -> list[str]:
@@ -159,11 +176,35 @@ def _expand_braces(s: str) -> list[str]:
     return out
 
 
+_REPARSE_POINT = 0x400  # FILE_ATTRIBUTE_REPARSE_POINT — junctions and symlinks alike on NTFS
+
+
+def _is_link(p: Path) -> bool:
+    """A symlink anywhere, or a junction / any other reparse point on Windows.
+    Python < 3.12 reports a junction as neither symlink nor link, so
+    os.walk(followlinks=False) walks straight into it: on the first winbox
+    run (2026-09-24) `AppData\\Local\\Application Data` → `AppData\\Local` and
+    `Local Settings` → `AppData\\Local` looped until the doctor measured
+    98.7 GB for a 10 GB tree. Same guard as scripts/stream_backup_to_drive.py."""
+    try:
+        if p.is_symlink():
+            return True
+        st = os.lstat(p)
+    except OSError:
+        return False
+    return bool(getattr(st, "st_file_attributes", 0) & _REPARSE_POINT)
+
+
+def _prune_links(dirpath: str, dirnames: list[str]) -> None:
+    """Drop reparse-point children in place so os.walk never descends into them."""
+    dirnames[:] = [d for d in dirnames if not _is_link(Path(dirpath) / d)]
+
+
 def _path_bytes(p: Path) -> int:
-    """Total file bytes under `p` (0 for a symlink or a missing path).
-    os.walk(followlinks=False), matching workdir.py/hq.py's convention —
-    never follows a symlink into a loop."""
-    if p.is_symlink():
+    """Total file bytes under `p` (0 for a symlink/junction or a missing path).
+    os.walk(followlinks=False) plus a reparse-point prune, matching
+    workdir.py/hq.py's convention — never follows a link into a loop."""
+    if _is_link(p):
         return 0
     if p.is_file():
         try:
@@ -173,7 +214,8 @@ def _path_bytes(p: Path) -> int:
     if not p.is_dir():
         return 0
     total = 0
-    for dirpath, _dirnames, filenames in os.walk(p, followlinks=False):
+    for dirpath, dirnames, filenames in os.walk(p, followlinks=False):
+        _prune_links(dirpath, dirnames)
         for name in filenames:
             fp = Path(dirpath) / name
             if fp.is_symlink():
@@ -244,6 +286,7 @@ def _starstar_anywhere(head: str) -> list[Path]:
         return []
     matches: list[Path] = []
     for dirpath, dirnames, _filenames in os.walk(anchor, followlinks=False):
+        _prune_links(dirpath, dirnames)
         found = [d for d in dirnames if d == target_name]
         matches.extend(Path(dirpath) / d for d in found)
         dirnames[:] = [d for d in dirnames if d != target_name]
@@ -314,7 +357,9 @@ def resolve_rows(registry: dict, machine: str, ctx: dict) -> list[dict]:
 
 
 def _segments(path_str: str) -> list[str]:
-    return [seg for seg in Path(path_str).parts if seg != "/"]
+    # normcase: a no-op on POSIX; on Windows it lower-cases and unifies the
+    # separators, so "C:/Users/passg/x" and "C:\\Users\\PASSG\\x" compare equal.
+    return [os.path.normcase(seg) for seg in Path(path_str).parts if seg != "/"]
 
 
 def _is_prefix(a: list[str], b: list[str]) -> bool:
@@ -459,7 +504,7 @@ def check(machine: str, *, registry: dict | None = None,
         if not root.is_dir():
             continue
         for child in sorted(root.iterdir()):
-            if child.is_symlink() or not child.is_dir():
+            if _is_link(child) or not child.is_dir():
                 continue
             size_mb = _path_bytes(child) / (1024 * 1024)
             if size_mb < min_mb or _covered(child, all_templates):
