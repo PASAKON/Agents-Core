@@ -1,0 +1,137 @@
+# machine-contract.yaml — the per-machine keep-manifest (ADR 0031, IRON-RULES §58).
+#
+# One row = one PATH's promise: what class of asset it is, who owns the call, and the
+# one line that brings it back. Path level only — a toolkit's internals (functions,
+# config keys, package versions) are never a row; only where it lives and how to get
+# it back. Placeholders ($CLAUDE_CONFIG_DIR, $HOME, %USERPROFILE%, %LOCALAPPDATA%)
+# keep a row true when Claude Code or a toolkit moves: a move is a one-row edit.
+#
+# Classes (asset replaceability; orthogonal to storage-policy.yaml's activity tiers):
+#   IRREPLACEABLE  sole copy, nothing regenerates it. Needs a Drive copy verified by
+#                  checksum before the machine is wiped, moved or the path deleted.
+#   CONFIG         small, hand-set, restorable from a captured value (git or blueprint).
+#   REBUILD        one command recreates it. The command is stored, never the bytes.
+#   DISPOSABLE     adds nothing once the task/session ends. Never stored, never archived.
+#   UNCLASSIFIED   sentinel for rows the weekly scan discovered and nobody classified yet
+#                  (discovered: true). Never left blank, so nothing reads as DISPOSABLE
+#                  by omission. Past classify_within_days it is a DISPOSABLE *candidate*:
+#                  reported, never deleted without a human go (§58 rule 2).
+#
+# Written 2026-09-24, the day winbox was reset with 84 GB of Cookie Run data still only
+# on its disk. hq.yaml maps HQ project folders (CEO-approved, §54); this file maps the
+# OS / Claude-profile / toolkit paths outside that tree and is CTO-maintained. A path
+# belongs in exactly one of the two files.
+#
+# Drive home for everything kept: BACKUP/MoonieX HQ/<what-is-kept>/ (CEO 2026-09-24), each
+# subfolder defined in the gdrive-filing skill. Cookie Run data keeps its own family,
+# BACKUP/CookieRun Backup/. Secrets never go to Drive: a second machine's Archive/ at 0600
+# with a sha256 list, and the row says which one.
+version: 0
+review_cycle_days: 90
+unknown_growth: {min_mb: 500, classify_within_days: 14, report: weekly}
+drive_root: "BACKUP/MoonieX HQ"
+machines:
+  mac:     {os: macos,   home: "/Users/gob",     claude_config_dir: "/Users/gob/.claude",     hq: "/Users/gob/MoonieXHQ",  scheduler: launchd,  capture: "scripts/mac_blueprint.sh",     restore: "scripts/mac_restore.sh",     run_by: "Mac CTO (Contabo cannot reach the Mac)"}
+  contabo: {os: linux,   home: "/root",          claude_config_dir: "/root/.claude",          hq: "/opt/MoonieXHQ",        scheduler: cron,     capture: "scripts/contabo_blueprint.sh", restore: "scripts/contabo_restore.sh", run_by: "Contabo CTO"}
+  winbox:  {os: windows, home: "C:/Users/passg", claude_config_dir: "C:/Users/passg/.claude", hq: "C:/mooniex",            scheduler: schtasks, capture: "windows/winbox-reinstall/rebuild/blueprint.ps1", restore: "windows/winbox-reinstall/winbox-bootstrap.ps1 + rebuild/rebuild_r1.ps1 + rebuild_r2.ps1", run_by: "Contabo CTO over ssh; logins by the CEO", note: "account passg since the 2026-09-24 reset; junction C:/Users/UsEr -> passg keeps old paths alive"}
+
+entries:
+  # ── Claude Code profile (same shape on every machine; $CLAUDE_CONFIG_DIR = ~/.claude unless relocated) ──
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/projects/*/*.jsonl",     class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "sole copy of every session — archived after 7 d to Drive BACKUP/MoonieX HQ/Claude-Transcripts/<machine>/<slug>/; restore with claude-home/tools/prune_transcripts.py --restore <uuid>"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/uploads/**",             class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "files people attached in chat — Drive BACKUP/MoonieX HQ/Claude-Uploads/<machine>/<date>.tar"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/projects/*/memory/**",   class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone PASAKON/Agents-Memory and symlink it back (claude_home_migrate.py pattern)"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/settings.json",          class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "in git: Agents-Core claude-home/settings.json (symlinked by scripts/claude_home_migrate.py)"}
+  - {machine: all,     path: "$HOME/.claude.json",                        class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "only its projects{} map matters (trusted folders + allowedTools) — captured by each blueprint verb; the rest is feature cache. Re-accept the trust dialog per project if lost"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/.credentials.json",      class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "never copied anywhere — `claude` login again (gdrive-filing: tokens stay on the machine that uses them)"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/{plugins,skills/synced}/**", class: REBUILD,   owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "marketplace re-sync / plugin reinstall; org skills live in git Agents-Core .claude/skills"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/{file-history,cache,session-data,session-env,sessions,state,logs,backups,downloads,shell-snapshots,todos,debug}/**", class: DISPOSABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "Claude Code regenerates them next session"}
+  - {machine: all,     path: "$CLAUDE_CONFIG_DIR/history.jsonl",          class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "prompt history only"}
+
+  # ── the org itself ──
+  - {machine: all,     path: "<hq>/Agents/{Core,Rules,Wikis,Memory}",     class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone PASAKON/MoonieX-HQ then each Agents-* repo (hq.yaml rows); Contabo's Rules/Wikis are rsync snapshots from the Mac"}
+  - {machine: all,     path: "<hq>/Projects/**",                          class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone per hq.yaml row; anything uncommitted is the owner's risk (blueprint lists dirty repos)"}
+  - {machine: all,     path: "<hq>/Work/<task-id>/**",                    class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "closed with tools/workdir.py close --archive → Drive BACKUP/MoonieX HQ/Work-Archive/Agents-Work-<task>-<date>.tar (md5 verified before delete)"}
+  - {machine: all,     path: "<hq>/Assets/**",                            class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "per-asset Drive copy (gdrive-filing rows); Cookie Run gold set + blueprint copies: BACKUP/MoonieX HQ/Machine-Blueprints and BACKUP/CookieRun Backup"}
+  - {machine: all,     path: "<hq>/Archive/**",                           class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "one-off backups incl. other machines' secrets at 0600 (winbox-keys-*, mac-secrets-*) — never on Drive; the row for each lives here"}
+  - {machine: all,     path: "<hq>/Agents/Core/worktrees/**",             class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git worktree per task; dirty/unmerged ones are bundled by disk-hygiene's back-up-first rule before removal"}
+
+  # ── Contabo (VPS vmi3371421) ──
+  - {machine: contabo, path: "/var/lib/docker/volumes/n8n_data/_data",    class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "n8n workflows + credentials + executions — weekly tar → Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/n8n_data/<date>.tar; restore: docker volume create n8n_data && tar xf into it"}
+  - {machine: contabo, path: "/var/lib/docker/volumes/org-pgdata/_data",  class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "org coordination DB — weekly pg_dump → Drive BACKUP/MoonieX HQ/Docker-Volumes/contabo/org-pgdata/<date>.sql.gz; restore with psql"}
+  - {machine: contabo, path: "/var/lib/docker/{image,overlay2,buildkit}/**", class: REBUILD,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "docker compose pull/build from the compose files in git; docker builder prune is always safe"}
+  - {machine: contabo, path: "/etc/systemd/system/mooniex-*.service",     class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "unit files captured by scripts/contabo_blueprint.sh into state/contabo-blueprint-<date>/; copy back + systemctl daemon-reload + enable"}
+  - {machine: contabo, path: "/root/.acme.sh/**",                          class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "account key + certs — reissuable, but keep (Let's Encrypt rate limits); part of the secrets bundle, never Drive"}
+  - {machine: contabo, path: "/home/secretary/.secretary.env",            class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "secrets (OpenRouter key etc.) — Infisical is the intended home (project memory 09-19); until then the secrets bundle on another machine, never Drive"}
+  - {machine: contabo, path: "/root/.ssh/**",                              class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "private keys: secrets bundle on another machine; public keys + config: blueprint"}
+  - {machine: contabo, path: "{<hq>/Agents/Core/.venv,/root/idm-venv,/opt/node-v22,**/node_modules}", class: REBUILD, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "pip install -r / npm ci / node tarball; the freeze lists in the blueprint say which versions"}
+  - {machine: contabo, path: "/opt/claude-usage-monitor/**",               class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "code in git; usage.json/state.json regenerate on the next poll; its own .credentials.json = login again"}
+  - {machine: contabo, path: "/root/restore/**",                           class: UNCLASSIFIED,  owner: null, review: null, discovered: true,
+     restore: null}
+
+  # ── winbox (Windows, account passg since 2026-09-24) ──
+  - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/play_rec/**", class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "the CEO's recorded takes + bot sessions — Drive BACKUP/CookieRun Backup/{play_rec,bot_sessions,jumpsweeps}/ (tar + manifest per item); pull with rclone copy"}
+  - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/modelplay/session-*/**", class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "rounds.jsonl + manifests always; hit frames only up to 500 MB/day on the box (CEO 2026-09-24), the rest streamed by CookieRunStreamRetry to BACKUP/CookieRun Backup/modelplay/ and deleted after md5"}
+  - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/{playset,ledger,archive}/**", class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "playset rebuildable from the takes (build_playset.py) but cheap to keep; ledger + archive manifests tiny → BACKUP/CookieRun Backup/playsets/ and box-extras/"}
+  - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/{unknown,jellydebug,ringbuf,frames,scoredebug,eye,vis}/**", class: DISPOSABLE, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "debug dumps (DATA-STEWARD tier D) — nothing to restore"}
+  - {machine: winbox,  path: "%USERPROFILE%/cookierun-bot/**",             class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone PASAKON/MoonieX-CookierunBot (deploy key id_ed25519_cookierun) + .venv from the blueprint freeze; label_review/ and vision/from_pod/ inside it are DATA → BACKUP/CookieRun Backup/box-extras/"}
+  - {machine: winbox,  path: "%USERPROFILE%/cookierun-bot/templates/**",   class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "77 templates, some never committed — copy kept at contabo <hq>/Assets/MoonieX/CookierunBot/cookierun-gold/templates; commit them to the bot repo (open item)"}
+  - {machine: winbox,  path: "C:/ProgramData/BlueStacks_nxt/bluestacks.conf", class: CONFIG,     owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "instance Tiramisu64 (Android 13 64-bit): cpus=4 ram=4096 fb 1600x900 dpi 240 — captured by blueprint.ps1; BlueStacks itself = winget BlueStack.BlueStacks; the game + Google login = the CEO"}
+  - {machine: winbox,  path: "C:/mooniex/pclease/**",                      class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "deployed from Agents-Core windows/ (pc-lease.sh redeploys pc_lease.py; rebuild_r2.ps1 copies the rest); its ledgers (backup_ledger.jsonl, pc_lease.log) are small DATA → keep in the blueprint"}
+  - {machine: winbox,  path: "C:/mooniex/{agents,line,codex-probe,yt-auth,desktop,sub,worker-worktrees,workspaces}/**", class: UNCLASSIFIED, owner: "Mac CTO", review: null, discovered: true,
+     restore: "lost in the 2026-09-24 reset; the Mac CTO's tools — classify when restored (agents = Agents-Core clone → REBUILD; yt-auth = CONFIG)"}
+  - {machine: winbox,  path: "scheduled tasks (schtasks) CookieRun*/Mooniex*", class: CONFIG,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "XML export by blueprint.ps1 → state/winbox-blueprint-<date>/tasks/; re-create with schtasks /Create /XML (rebuild_r2.ps1 rewrites the account)"}
+  - {machine: winbox,  path: "%LOCALAPPDATA%/Google/Chrome/User Data/**",   class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "re-login each site by hand — a browser profile is never exported (credentials)"}
+  - {machine: winbox,  path: "%USERPROFILE%/.ssh/**",                       class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "private keys from the secrets bundle (contabo <hq>/Archive/winbox-keys-<date>), public keys + config from the blueprint"}
+  - {machine: winbox,  path: "%APPDATA%/rclone/rclone.conf",                class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "Drive token — never copied; `rclone config reconnect gdrive:` with the CEO's click (gdrive-filing § re-consent)"}
+  - {machine: winbox,  path: "C:/pagefile.sys",                             class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "Windows manages it (18.5 GB on the old box) — never backed up"}
+  - {machine: winbox,  path: "%USERPROFILE%/Downloads/**",                  class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "installers/APKs re-download on demand"}
+
+  # ── Mac (owner: Mac CTO runs the verbs; CEO-personal paths stay OUT — disk-hygiene never-touch) ──
+  - {machine: mac,     path: "$HOME/Library/LaunchAgents/com.gob.*.plist",  class: CONFIG,        owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "captured by scripts/mac_blueprint.sh; secrets inside plists go to the secrets bundle"}
+  - {machine: mac,     path: "$HOME/.config/mooniex/**",                    class: CONFIG,        owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "secrets bundle (contabo <hq>/Archive/mac-secrets-<date>), never Drive"}
+  - {machine: mac,     path: "$HOME/Library/Caches/**",                     class: REBUILD,       owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "storage-policy.yaml REBUILD tier — apps refill it"}
+  - {machine: mac,     path: "$HOME/Library/Application Support/Google/Chrome/**", class: REBUILD, owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "re-login by hand; each live Chrome also holds a 1.4 GB code-sign clone under /private/var/folders (quit it)"}
+  - {machine: mac,     path: "brew formulae/casks (Brewfile)",              class: REBUILD,       owner: "Mac CTO", review: 2026-12-23, discovered: false,
+     restore: "brew bundle --file state/mac-blueprint-<date>/Brewfile"}
