@@ -378,6 +378,38 @@ class FBReelBrowser:
         el.click()
         return True
 
+    def capture_post_publish_link(self, timeout_s: int = 60) -> dict:
+        """Best-effort, read-only: polls the URL and DOM for a permalink or
+        reel id right after publish. Never edits anything. Returns
+        {"url": str, "reel_id": str|None, "anchors": [...]} — any field may
+        be empty if nothing showed up in time; the caller must still verify
+        in Business Suite before trusting this.
+        """
+        page = self.page
+        deadline = time.time() + timeout_s
+        reel_id = None
+        anchors: list[str] = []
+        while time.time() < deadline:
+            page.wait_for_timeout(2000)
+            url = page.url
+            m = re.search(r"/reel/(\d+)", url)
+            if m:
+                reel_id = m.group(1)
+                break
+            found = page.evaluate(
+                """
+                () => [...document.querySelectorAll('a[href*="/reel/"]')]
+                  .map(a => a.href).slice(0, 5)
+                """
+            )
+            if found:
+                anchors = found
+                m2 = re.search(r"/reel/(\d+)", found[0])
+                if m2:
+                    reel_id = m2.group(1)
+                break
+        return {"url": page.url, "reel_id": reel_id, "anchors": anchors}
+
     def screenshot(self, path: str):
         self.page.screenshot(path=path, full_page=False)
 
@@ -437,6 +469,11 @@ def run(args: argparse.Namespace) -> int:
 
         fb.publish()
         print("PUBLISHED — clicked the real 'แชร์' button exactly once.")
+        link_info = fb.capture_post_publish_link()
+        print(f"post-publish URL: {link_info['url']}")
+        print(f"reel_id (best-effort): {link_info['reel_id']}")
+        print(f"anchors seen: {link_info['anchors']}")
+        print("This is a best-effort capture, not the verification the task requires.")
         print("Verify manually in Business Suite → Content before deleting the old post:")
         print("  status must read เผยแพร่แล้ว with no ไม่สำเร็จ / ไม่ได้บันทึกไว้อย่างถูกต้อง")
         return 0
