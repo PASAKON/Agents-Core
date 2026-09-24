@@ -12,7 +12,7 @@ scope: >-
 description: Get a login done by the CEO from his phone via the Console login relay. Trigger on /relay-login, "login relay", "ให้ CEO login", "ขอ login", "session หมดอายุ", "cookie หมดอายุ", "ต้อง login ใหม่", "QR login", or whenever a task is blocked on a browser login on any machine. Use instead of asking the CEO to type a code into chat, and instead of taking the CEO's desk browser.
 created_by: agent
 author: CTO
-audience: [cto, cxo, browser_operator, devops_engineer]
+audience: [cto, cxo, browser_operator, devops_engineer, developer, qa]
 ---
 
 # relay-login — a login the CEO does from his phone
@@ -23,6 +23,18 @@ fields and buttons drawn as phone controls) or taps the live screen; the vault
 saves the account behind Face ID. Your job is to put the right Chrome on the
 right port, name the pill, and get out of the way. Console docs: `docs/relay.md`
 (§1 targets, §6 vault, §7 form mirror + patterns).
+
+## 0. Who does what
+
+- **Worker (any role) blocked on a login:** do §1 on the machine you run on,
+  then put ONE line in your report or in a letter to your CTO —
+  `relay-login: <machine>:<port> — <tab title> · account: <which> · why: <one clause>` —
+  and carry on with whatever does not need the login. You never contact the
+  CEO yourself and never wait at a prompt for him.
+- **CTO:** forward that line to the CEO in chat (or answer the SomPong order),
+  read the relay's result, and tell the worker via its mailbox when the
+  session is live. If the mirror showed the page badly, you write the pattern (§4).
+- **CEO:** taps the pill on https://terminal.mooniex.com/relay and logs in.
 
 ## 1. Expose the Chrome (one per account, a dedicated profile)
 
@@ -88,4 +100,5 @@ never a value, cookie or QR payload.
   next seed pattern comes from.
 
 ## Field notes
+- 2026-09-25 [MISSING] after a Google login Chrome's own "Sign in to Chrome" intercept (`chrome://signin-dice-web-intercept.top-chrome`) shows up as the first page target, so `relay-inspect` and the pill list can pick it before the real tab; skip `chrome://` / `*.top-chrome` targets · evidence: winbox:9225 04:4x, GH MoonieX-Console#9 · status: pending
 - 2026-09-25 [MISSING] the mirror's first real-site login (Google on winbox:9225) is still unverified; the fake form on Contabo:9250 passed the CEO's test and winbox:9224 ChatGPT came up signed in after his phone flow · evidence: MoonieX-Console 62ea287, GH MoonieX-Console#9 · status: pending
