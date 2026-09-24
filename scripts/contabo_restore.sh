@@ -102,15 +102,7 @@ if command -v tailscale >/dev/null 2>&1; then
 else
   cmd_sh "curl -fsSL https://tailscale.com/install.sh | sh"
 fi
-# The captured `apt-mark showmanual` list is the package BOM (registry: REBUILD rows store the command,
-# never the bytes). It runs AFTER the docker/tailscale installers because those add the apt repos that
-# docker-ce / tailscale come from; already-installed names are a no-op for apt.
-if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
-  say "replaying $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages from $BLUEPRINT_DIR/apt-packages.txt"
-  cmd_sh "xargs -a '$BLUEPRINT_DIR/apt-packages.txt' apt-get install -y"
-else
-  say "WARN: no apt-packages.txt in the blueprint — only the base packages above were installed"
-fi
+say "the captured apt BOM is replayed in step 2, once the Agents-Core clone (which carries it) exists"
 human "'tailscale up' below prints a login URL — open it, sign in as pass.gob1@gmail.com and approve this machine. The script blocks until that happens."
 cmd tailscale up
 
@@ -141,6 +133,19 @@ say "pulled FROM the Mac (CLAUDE.md § Wiki access), read-only here."
 human "run these two commands FROM THE MAC (not on this box) to (re-)populate them:"
 say '  rsync -aH --delete --exclude '"'"'.git/'"'"' /Users/gob/MoonieXHQ/Agents/Wikis/         mooniex-vps:'"$HQ_ROOT"'/Agents/Wikis/'
 say '  rsync -aH --delete --exclude '"'"'.git/'"'"' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-vps:'"$HQ_ROOT"'/Agents/Rules/'
+# The blueprint lives INSIDE Agents-Core, so it only exists from this point on: resolve it now
+# (the top-of-file lookup ran before the clone and was empty on a fresh box — found by the first
+# container drill, 2026-09-24) and replay the apt BOM here. It runs AFTER the docker/tailscale
+# installers of step 1 because those add the apt repos docker-ce / tailscale come from.
+BLUEPRINT_DIR=$(ls -d "$CORE"/state/contabo-blueprint-*/ 2>/dev/null | sort | tail -1)
+BLUEPRINT_DIR="${BLUEPRINT_DIR%/}"
+if [ -n "$BLUEPRINT_DIR" ] && [ -s "$BLUEPRINT_DIR/apt-packages.txt" ]; then
+  say "blueprint on disk: $BLUEPRINT_DIR"
+  say "replaying $(grep -c . "$BLUEPRINT_DIR/apt-packages.txt") manually-installed apt packages (the captured apt-mark showmanual list)"
+  cmd_sh "xargs -a '$BLUEPRINT_DIR/apt-packages.txt' apt-get install -y"
+else
+  say "WARN: no state/contabo-blueprint-<date>/apt-packages.txt after the clone — only step 1's base packages are installed"
+fi
 
 # ==================================== 3/9 — Python venv, Node 22, npm globals
 hdr "Python venv, Node 22, npm globals"
