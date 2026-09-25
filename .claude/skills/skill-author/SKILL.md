@@ -235,3 +235,7 @@ tier its own rules teaches the opposite of what it says.
 5. Log a new skill to project memory (`reference_<name>.md`) when it carries
    cross-session importance — otherwise the next session has no way to know
    it exists outside of grepping `.claude/skills/`.
+
+## Field notes
+
+- 2026-09-25 [MISSING] §Description discipline — `tools/decide.py` builds the skill.route rules from the "Trigger on …." clause, split on commas and " and ". Until 72357fc8 the clause ended at the FIRST dot, so every engine-named skill with a version in its name (/CTO_Flow_Omni1.1_…, Seedance 2.5, Wan 3.0) routed on a fragment only; it now ends at a sentence stop. Side effect to write around: every comma-separated item becomes a standalone route, so a generic word in the list ("cache", "worktree" in disk-hygiene) routes any prompt that contains it; keep trigger items as phrases a user would type, not a list of nouns · evidence: both skill-split workers (task-c3e07fb1, task-e7cc2d83), fix 72357fc8 · status: pending

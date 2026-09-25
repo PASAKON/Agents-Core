@@ -1949,3 +1949,5 @@ browser_operator:
   redirect stubs). Hard rules 1-7 keep their numbers.
 
 ## Field notes
+- 2026-09-25 [MISSING] §Reading the credit ledger — the section has a heading and the 339.2-credit example but no rule body (it never had one in higgsfield-unlimited-gen either); the screen-by-magnitude method still has to be written from the 2026-08-13 read · evidence: task-c3e07fb1 report, inventory HF6 · status: pending
+- 2026-09-25 [MISSING] §Reference caps — the tools disagree with this table: `scripts/sheet_inject_prompts.py:28` has `MAX_ELEMENTS = 10  # Seedance 2.0 cap` against the measured 9, and `scripts/audit_prompts.py` dates the 50-reference statement 2026-08-14 while this skill dates it 2026-08-27 (CEO); fix the tools, the table is the measured source · evidence: task-c3e07fb1 report · status: pending
