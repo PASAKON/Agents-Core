@@ -65,18 +65,32 @@ ChatGPT จะแก้จากภาพที่อยู่ในแชตแ
 - ทุกคนเป็นคนธรรมดาที่แต่งขึ้น ไม่ใช่ดารา
 - ผิวจริง มีรูขุมขนและริ้วรอย
 
-## Prop + Location (รอบถัดไป หลัง CEO ผ่านลุคตัวละคร ใช้ระบบ state เดียวกัน)
+## Prop + Location (round 1 — CEO "สร้าง Prop + Location ในแต่ละ State ได้เลย" 2026-09-25)
 
-| id | state |
-|---|---|
-| `jar` โหลแก้วใส่หิน | `__third` (หินหนึ่งในสาม S6) · `__full` (เกือบเต็ม S21, S36) · (เทหินเป็นกองบนเสื่อ เขียนในพรอมต์ S57) |
-| `yard_scale` ตาชั่งแท่นเก่า | หน้าปัดหันออก หรือเบลอ |
-| `needle_scale` ตาชั่งเข็มใหม่ | หน้าปัดเบลอ (EP6) |
-| `sack` กระสอบขวด | กระสอบสานขาว **ไม่มีตัวพิมพ์** ยัดขวดใส |
-| `cart` รถเข็นของยาย | — |
-| `pickup` ปิกอัพเสี่ย | `__empty` · `__loaded` (มัดขวดเต็มกระบะ) |
-| `money` แบงก์ปลอม | ใช้บล็อกเงินปลอมใน skill (สีพาสเทล ไม่มีรูปคน) |
-| **LAN** ลานรับซื้อ | `__busy` (EP1–2) · `__halfempty` (S32) · `__needle` (มีตาชั่งเข็มหน้าร้าน EP6) |
-| **BAAN** บ้านยาย | `__inside` (เสื่อ โหล) · `__outside` (บ้านไม้ในซอย กลางวัน) |
-| **SOI** ทางริมคลอง | กลางวันแดดบ่าย |
-| **FAC** ลานชั่งโรงงาน | กลางวัน |
+Prompts: `docs/ops/briefs/taachang-props-locations-round1.json`. A prop that belongs to a location is cropped out in
+**the same chat as that location**, so it matches the one in the scene exactly: the yard scale comes from the yard
+picture and the jar from the room picture.
+
+| id | state / what it is | used in shots | chat |
+|---|---|---|---|
+| `lan__busy` | the yard in full swing, with the old platform scale | EP1–EP3 (S1–S31) | LAN |
+| `yard_scale` | the old platform scale cropped out of the yard; dial has tick marks only, no numbers | S1–S28 | LAN |
+| `lan__halfempty` | same yard with the goods mostly gone | S32–S34 | LAN |
+| `lan__needle` | same yard, tidy again, with the new needle scale out front | EP6 (S69–S72) | LAN |
+| `needle_scale` | the new needle scale cropped out; dial has no numbers | S69–S71 | LAN |
+| `baan__outside` | ยาย's wooden house on low stilts in the soi by the canal | S35, S54 | BAAN |
+| `baan__inside` | room with a woven mat, low cabinet, jar | S6–S7, S19–S21, S30, S36–S38, S55–S68, S73–S74 | BAAN |
+| `jar__third` | glass jar one third full of pebbles | S6 | BAAN |
+| `jar__full` | the same jar, nearly full | S21, S36–S38, S53–S57 (poured into piles on the mat at S57 is written in the prompt) | BAAN |
+| `soi__canal` | canal-side path with a row of electricity poles (ยาย counts the poles) | S15, S29, S75 | — |
+| `fac__weigh` | factory weigh yard, truck scale, bale stacks | EP4 (S40–S53) | — |
+| `sack` | white woven sack of clear bottles, no printing | throughout | — |
+| `cart` | ยาย's steel push-cart | S9, S15, S27–S29, S31, S71 | — |
+| `pickup__empty` | เสี่ย's white pickup, empty bed, no plates | S33 | PICKUP |
+| `pickup__loaded` | the same pickup piled with bales | S40, S49–S51, S54 | PICKUP |
+| `money` | pastel fake banknotes (the skill's prop-money block) | S2, S4, S7, S13–S14, S19–S22, S30, S50, S62–S63 | — |
+| `wallet` | old brown leather wallet | S3–S5 | — |
+| `envelope` | plain envelope with nothing written on it | S73 | — |
+| `notebook` | light-blue school notebook, cover blank | S74 | — |
+
+19 images in all: 7 location + 12 prop.
