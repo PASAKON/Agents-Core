@@ -44,6 +44,8 @@ steps and the two Docker-volume Drive pulls take** (not yet measured on a real d
 
 ## Mac
 
+CEO one-pager (Thai, the commands before the script exists on the box): `docs/ops/mac-reinstall-README-th.md`.
+
 Script: `scripts/mac_restore.sh` (`bash scripts/mac_restore.sh --dry-run` — the only mode
 this repo can verify, since there is no macOS on Contabo; refuses a real run when `uname -s`
 is not `Darwin`). Run by: Mac CTO — hand-off is a file in the repo + a mailbox letter, not
