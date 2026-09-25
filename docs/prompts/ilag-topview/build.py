@@ -108,6 +108,9 @@ REF = {
     "@OpenSea": ("Location/loc_open_sea.png",
                  "THE OPEN SEA: calm open ocean on a planet with no land, glass-clear turquoise water, a bright "
                  "blue-white sky with faint stars, the huge close moon over the horizon."),
+    "@Turning": ("Location/ref-Turning.png",
+                 "THE TURNING LIGHT, a colour and light reference only: a violet-grey bruised evening sky, deep indigo "
+                 "water, cool silver light. Take only its colour and light, nothing of its composition."),
     "@Planet": ("Location/planet_from_space_v3.png",
                 "THE PLANET, the only reference: an ocean world with no land, split into two hemispheres, one bright "
                 "blue-white with turquoise sea and white cloud, one purple-black under a storm with violet lightning, "
@@ -212,19 +215,24 @@ SCENES = [
                  "The water shifts towards violet-grey."],
          end="On the mount, heading on."),
     dict(n=6, slug="the-storm-pillars", title="THE STORM PILLARS", s=6, grade="TURNING",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. Low near the water, a slow tilt up; no cut, no zoom.",
-         refs=["@Manta", "@Strong", "@Young", "@Elder", "@Pillars"],
-         heading="BETWEEN THE STORM PILLARS. Silent columns of cloud stand on the sea, taller than anything they know.",
-         frame="Low near the water: THE MOUNT with THE THREE RIDERS in the middle distance between two pillars.",
-         beats=["[0s] THE MOUNT glides between thin, perfectly straight pillars of swirling cloud; small whirlpools "
-                "turn at their bases. The air is still.",
-                "[2.5s] THE THREE RIDERS tip their heads back and look up.",
-                "[4s] The camera tilts up with them along one pillar as it rises beyond the top of the sky."],
-         audio="a low soft whirl of wind around the pillars, calm water. No dialogue. No music.",
-         crit="no tornado, no funnel, no cone shape, no strong wind, no debris, no rain, no dialogue",
-         review=["Pillars thin and straight, reaching past the frame top.", "Riders tiny against them.",
-                 "Calm, not violent."],
-         end="Riders still in the fixed seat order."),
+         series="P1 take 2 (CEO round 2, 1:05: moving away from camera toward what lies ahead; Turning)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. From behind THE MOUNT, following it as it moves away from the camera "
+              "into the pillars ahead; the camera never gets in front of it; no cut, no zoom.",
+         refs=["@Manta", "@Strong", "@Young", "@Elder", "@Pillars", "@Turning"],
+         heading="BETWEEN THE STORM PILLARS. THE MOUNT heads away from us, into silent columns of cloud taller than "
+                 "anything they know.",
+         frame="Behind THE MOUNT: we see its back, its tail and the backs of THE THREE RIDERS; ahead of them the thin "
+               "straight pillars stand on the sea and rise beyond the top of the frame. Evening turning light.",
+         particles="spray from the wings, whirlpool mist at the pillar bases, a few drifting specks.",
+         beats=["[0s] From behind, THE MOUNT glides away from the camera toward the pillars ahead; small whirlpools "
+                "turn at their bases.",
+                "[2.5s] THE THREE RIDERS, still facing away from us, tip their heads back to look up at the pillars.",
+                "[4s] THE MOUNT passes between the first two pillars, heading deeper in, away from us."],
+         audio="-", sound="silence; nobody speaks",
+         crit="no one facing the camera, no mount turning toward the camera, no faces to camera, no tornado, no funnel, "
+              "no cone shape, no debris, no dialogue, no bright midday light",
+         review=["Moving away from camera, never facing it.", "Evening turning light.", "Pillars thin and straight."],
+         end="Deeper among the pillars, heading on."),
     dict(n=7, slug="the-line", title="THE LINE", s=6, grade="TURNING",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A slow crane down from a high angle; no cut, no zoom.",
          refs=["@Line", "@Manta", "@Elder", "@Young", "@Strong"],
@@ -410,102 +418,173 @@ SCENES = [
          crit="no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon, no close-up",
          review=["Wide lens, extreme wide.", "THE THREE RIDERS in the fixed seat order.", "THE CHIEF raises the staff."],
          end="Seat order fixed; they head for open sea."),
-    # ---- CEO 2026-09-25 review of the assembly: new shots between the farewell and the dark ----
+    # ---- CEO notes round 2 (MAC CTO letter ...-ceo-notes-round2.md): N1-N5 take 2 + the new ending N6-N9 ----
     dict(prefix="n", n=1, slug="leaving-the-village-high", title="LEAVING THE VILLAGE, FROM HIGH ABOVE", s=6, grade="DAY",
-         series="CEO review 2026-09-25: after M4 (23 s)",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A high aerial shot, slowly rising and drifting back; no cut, no zoom.",
-         refs=["@Manta", "@Strong", "@Young", "@Elder", "@Village", "@OpenSea"],
-         heading="FROM HIGH ABOVE, THE THREE RIDERS LEAVE HOME. The dark line is still far beyond the horizon.",
-         frame="Looking down from high above: THE MOUNT small in the lower middle, its wake trailing back to the village "
-               "of giant trees; ahead, only endless glass-clear turquoise sea to the horizon.",
-         particles="sea spray glinting in the light, a few glowing specks drifting in the air, the wake sparkling.",
-         beats=["[0s] From high above, THE MOUNT glides away from the village with THE THREE RIDERS on its seat, a "
-                "long wake behind it.",
-                "[2s] The camera rises slowly; the village of giant trees shrinks behind them.",
-                "[4s] Ahead there is only open sea to the horizon, bright and calm, under the huge close moon."],
-         audio="wind high above the sea, the faint swish of the wings. No dialogue. No music.",
-         crit="no dialogue, no black water, no dark line on the sea, no storm, no land, no boat",
-         review=["No dark line visible yet.", "The village shrinks behind; riders tiny."],
-         end="THE MOUNT out on the open sea, heading away."),
+         series="round 2: take 2 (0:43, the model got confused: character pictures removed, aerial only)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A high aerial shot looking down for the whole six seconds, slowly rising; "
+              "the camera never comes down to the riders; no cut, no zoom.",
+         refs=["@Manta", "@Village"],
+         heading="FROM HIGH ABOVE, THE MOUNT LEAVES THE VILLAGE with three tiny riders on its back.",
+         frame="Straight down from high above: THE MOUNT small in the lower middle of the frame, a long wake trailing "
+               "back to the village of giant trees at the bottom edge; the rest of the frame is open glass-clear sea.",
+         particles="sea spray glinting in the light, the wake sparkling.",
+         beats=["[0s] From high above, THE MOUNT glides away from the village with three tiny riders on its seat.",
+                "[2s] The camera keeps rising; the village shrinks at the bottom of the frame.",
+                "[4s] Only open sea ahead, bright and calm, all the way to the horizon."],
+         audio="-", sound="silence; nobody speaks",
+         crit="no dialogue, no close-up, no medium shot, no people standing, no faces, no black water, no dark line, no "
+              "storm, no land, no boat",
+         review=["Aerial from start to end; never comes down to the riders.", "No dark line yet."],
+         end="THE MOUNT out on the open sea."),
     dict(prefix="n", n=2, slug="the-dive", title="THE DIVE", s=6, grade="DAY",
-         series="CEO review 2026-09-25: the missing surface-to-underwater transition",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A split-level camera on the waterline that follows THE MOUNT down "
-              "under the surface; no cut.",
-         refs=["@Manta", "@Strong", "@Young", "@Elder", "@Lantern", "@OpenSea"],
-         heading="THE DIVE. From the surface into the sea: THE THREE RIDERS go under with THE MOUNT.",
-         frame="Half above and half below the waterline at first, THE MOUNT side on; then fully underwater with them.",
-         particles="a burst of silver bubbles as they go under, then small bubbles rising, drifting specks in the "
-                   "water, shafts of light from the surface.",
-         beats=["[0s] On the surface, THE THREE RIDERS draw a breath; their gill frills flare open.",
-                "[1.5s] THE MOUNT tips its wings and slides smoothly under the surface, carrying all three down with it.",
-                "[3s] The camera sinks through the waterline with them: bubbles burst upward, the glowing lantern "
-                "trails a ribbon of light.",
-                "[4.5s] Underwater now, in clear blue water, they glide down and away."],
-         audio="a deep breath, the plunge, then the muffled hush of underwater. No dialogue. No music.",
-         crit="no dialogue, no rider left behind, no one falling off, no black water yet",
-         review=["A clear surface-to-underwater transition.", "All three stay on the seat.", "Bubbles on the plunge."],
-         end="Underwater, heading on."),
+         series="round 2: take 2 (0:49: left to right, parallel tracking, no tilt)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A parallel side-on tracking shot that moves left to right with THE MOUNT "
+              "and follows it down under the surface; the camera stays level the whole time, no tilt, no cut.",
+         refs=["@Manta", "@Strong", "@Young", "@Elder", "@OpenSea"],
+         heading="THE DIVE. THE MOUNT carries THE THREE RIDERS from the surface down into the sea, travelling left to "
+                 "right.",
+         frame="Side on and level, THE MOUNT moving from the left of frame to the right; first half above the "
+               "waterline, then below it, the camera sinking with it and staying level.",
+         particles="a burst of silver bubbles as they go under, small bubbles rising, drifting specks in the water, "
+                   "shafts of light from the surface.",
+         beats=["[0s] On the surface, THE MOUNT glides from left to right; THE THREE RIDERS draw a breath, gill frills "
+                "flaring open.",
+                "[2s] THE MOUNT tips its wings and slides under the surface, still moving left to right; the camera "
+                "follows it down, level, side on.",
+                "[4s] Underwater in clear blue water, THE MOUNT glides on to the right with all three on its seat."],
+         audio="-", sound="THE THREE RIDERS' deep breath before the dive, then silence underwater",
+         crit="no dialogue, no camera tilt, no dutch angle, no movement right to left, no rider left behind",
+         review=["Left to right, parallel, level.", "Surface to underwater in one move."],
+         end="Underwater, heading right."),
     dict(prefix="n", n=3, slug="the-glass-sea-wide", title="THE GLASS SEA, WIDE", s=10, grade="TURNING",
-         series="CEO review 2026-09-25: replaces M5 (wide, long, left to right)",
+         series="round 2: take 2 (0:57: the child says wow underwater, bubbles from the mouth)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens, a slow lateral track from left to "
               "right keeping pace with THE MOUNT; no cut, no zoom.",
          refs=["@Manta", "@Young", "@Strong", "@Elder", "@GlassSpiral", "@GlassCathedral", "@GlassHalo", "@GlassBloom"],
-         heading="THE GLASS SEA, LATE IN THE DAY. A vast underwater space: THE THREE RIDERS cross it, tiny, among "
-                 "giant glass creatures, as the day above begins to turn toward evening.",
-         frame="Extreme wide: THE MOUNT small in the middle band moving from the left of frame to the right; below them "
-               "the sea falls away into deep blue then indigo, showing how deep it is; the glass creatures drift at "
-               "different depths and distances.",
-         particles="countless drifting plankton specks catching the light, small bubbles, long shafts of dimming "
-                   "violet-grey light slanting down from the surface.",
+         heading="THE GLASS SEA, LATE IN THE DAY. THE THREE RIDERS cross a vast underwater space, tiny, among giant glass "
+                 "creatures.",
+         frame="Extreme wide: THE MOUNT small in the middle band moving from left to right; below them the sea falls "
+               "away into deep blue then indigo; the glass creatures drift at different depths.",
+         particles="countless drifting plankton specks, small bubbles, long shafts of dimming violet-grey light from the "
+                   "surface.",
          beats=["[0s] Wide and deep: THE MOUNT glides in from the left carrying THE THREE RIDERS, small in the vastness.",
-                "[3s] Around them and far below, THE SPIRAL, THE DOME, THE RINGS and THE BLOOM drift, each bigger than "
-                "a house, rainbow light moving through their clear bodies.",
-                "[6s] THE YOUNG ONE reaches a hand toward THE BLOOM as they pass it.",
-                "[8s] THE MOUNT keeps on toward the right of frame, the deep blue opening beneath them."],
-         audio="the deep hum of open water, a soft chime from the creatures. No dialogue. No music.",
-         crit="no jellyfish, no squid, no octopus, no fish, no dialogue, no movement right to left, no bright "
-              "noon light underwater",
-         review=["Wide lens, extreme wide; the depth reads.", "Movement strictly left to right.",
-                 "All four glass creatures; THE THREE RIDERS all on the seat."],
-         end="THE MOUNT heading right, toward the open sea."),
+                "[3s] Around them and far below, THE SPIRAL, THE DOME, THE RINGS and THE BLOOM drift, each bigger than a "
+                "house, rainbow light moving through their clear bodies.",
+                "[6s] THE YOUNG ONE stares at THE BLOOM, mouth open; a burst of bubbles pours out as the child says it. "
+                "Amazed, underwater: \"Wowww.\"",
+                "[8.5s] THE MOUNT keeps on toward the right of frame, the deep blue opening beneath them."],
+         audio="-",
+         sound="THE YOUNG ONE's muffled, bubbling underwater \"Wowww\", sounding truly underwater, and nothing else",
+         crit=DIALOGUE_NEG + ", no jellyfish, no squid, no octopus, no fish, no movement right to left, no bright noon "
+              "light underwater",
+         review=["Bubbles from the child's mouth with the Wowww.", "Left to right, wide."],
+         end="THE MOUNT heading right."),
     dict(prefix="n", n=4, slug="the-line-they-stop", title="THE LINE: THEY STOP", s=8, grade="TURNING",
-         series="CEO review 2026-09-25: replaces M7",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A high angle, then a slow crane down toward the riders; no cut, no zoom.",
-         refs=["@Line", "@Manta", "@Elder", "@Strong", "@Young"],
-         heading="THE LINE, AT EVENING. THE MOUNT turns to face it and stops as the day fades toward night. The two "
-                 "men know what it means.",
-         frame="From high above: the razor-sharp line across the frame; THE MOUNT turns until it faces the line "
-               "head on and stops on the clear side. Take the line and the two waters from the location picture, but "
-               "NOT its daylight: it is evening, the bright day draining into a violet-grey dusk on the clear side, the "
-               "moon dim behind thin cloud, and night coming in with the storm on the black side.",
-         particles="spray blowing off the line, fine rain falling on the black side, glints on the clear side.",
-         beats=["[0s] From high above, THE MOUNT swings round until it faces the line head on, and stops at its edge.",
-                "[2s] The camera cranes down toward THE THREE RIDERS as the last of the daylight fades.",
+         series="round 2: take 2 (1:13: never face the camera; they face the line; Turning reference)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. From high behind THE MOUNT, then a slow crane down behind THE THREE RIDERS; "
+              "the camera stays behind them the whole time; no cut, no zoom.",
+         refs=["@Line", "@Turning", "@Manta", "@Elder", "@Strong", "@Young"],
+         heading="THE LINE, AT EVENING. THE MOUNT stops in front of it. We see it through their eyes, from behind them.",
+         frame="Behind and above THE MOUNT: THE THREE RIDERS and THE MOUNT all face away from the camera, toward the "
+               "razor-sharp line ahead; clear water under them, pitch-black water and a storm beyond the line. The "
+               "light and colour are the evening turning: violet-grey sky, dimming light.",
+         particles="spray blowing off the line, fine rain falling on the black side.",
+         beats=["[0s] From high behind, THE MOUNT glides up to the line and stops at its edge, facing the black water.",
+                "[2s] The camera cranes down behind THE THREE RIDERS; we see the backs of their heads and what they face.",
                 "[3s] THE ELDER, low: \"So this is it. The line of death.\"",
-                "[5.5s] THE STRONG ONE turns to THE YOUNG ONE. Steady: \"From here on, it's up to you.\""],
-         audio="wind, rain hissing on the black side, the two lines above and nothing else. No music.",
-         crit=DIALOGUE_NEG + ", no crossing yet, no blurred line, no gradient between the waters, no bright midday "
-              "sky, no blue-white daylight, no sunset orange",
-         review=["THE MOUNT faces the line and stops.", "Two lines, in order: THE ELDER, then THE STRONG ONE; transcribe."],
-         end="Stopped on the clear side, facing the line."),
+                "[5.5s] THE STRONG ONE, still facing the line. Steady: \"From here on, it's up to you.\""],
+         audio="-", sound="the two lines above and nothing else",
+         crit=DIALOGUE_NEG + ", no one facing the camera, no mount turning toward the camera, no faces to camera, no "
+              "crossing yet, no bright midday sky, no sunset orange",
+         review=["Nobody faces the camera; all face the line.", "Evening turning light.", "Two lines; transcribe."],
+         end="Stopped at the line, facing it."),
     dict(prefix="n", n=5, slug="the-light", title="THE LIGHT", s=8, grade="DARK",
-         series="CEO review 2026-09-25: the child's gift is light",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A high top-down shot that slowly rises; no cut, no zoom.",
-         refs=["@Young", "@Manta", "@BlackSea", "@Strong", "@Elder"],
-         heading="THE LIGHT. This is why they brought THE YOUNG ONE: the only light that can do it is the child.",
-         frame="Top-down from above THE MOUNT on pitch-black water, THE THREE RIDERS on the seat.",
-         particles="rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE, faint "
-                   "specks drifting in the lit water.",
-         beats=["[0s] On the black water past the line, THE YOUNG ONE stands up on the seat and closes both eyes.",
-                "[2s] A warm golden light pours out of the whole body of THE YOUNG ONE, gill frills blazing gold.",
-                "[3.5s] Around THE MOUNT the black water turns glass-clear, but only in a narrow circle just wider "
-                "than its wings, a small ring of clear water lit from within; beyond the ring the sea stays black.",
-                "[6s] THE MOUNT glides on inside its circle of light, the ring moving with it."],
-         audio="rain, a low warm hum as the light blooms. No dialogue. No music.",
-         crit="no dialogue, no light beam into the sky, no clear water outside the ring, no fire, no lightning on the child",
-         review=["The light comes from THE YOUNG ONE.", "Clear water only in a NARROW ring around the mount.",
-                 "Black beyond the ring."],
-         end="THE MOUNT inside the moving ring of clear water."),
+         series="round 2: take 2 (1:18: a line, then the child glows; radius only 1-2 m)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A three-quarter view from behind THE MOUNT, slowly rising; no cut, no zoom.",
+         refs=["@Young", "@Manta", "@BlackSea", "@Turning", "@Strong", "@Elder"],
+         heading="THE LIGHT. Past the line, in the black sea, THE YOUNG ONE becomes their lantern.",
+         frame="Behind and a little above THE MOUNT on pitch-black water under rain; THE THREE RIDERS face ahead.",
+         particles="rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE.",
+         beats=["[0s] On the black water past the line, THE ELDER puts a hand on the shoulder of THE YOUNG ONE. Gently: "
+                "\"We need your help from here on.\"",
+                "[3s] THE YOUNG ONE closes both eyes; " + "GLOW",
+                "[5.5s] THE MOUNT glides on into the dark, carrying its small moving pool of light."],
+         audio="-", sound="the line above, then THE YOUNG ONE's slow breath as the light blooms",
+         crit=DIALOGUE_NEG + ", no wide ring of light, no light reaching more than two metres, no beam into the sky, no "
+              "lightning on the child",
+         review=["One line from THE ELDER, then the glow.", "Glow radius about 1-2 m only; Turning-coloured water inside it."],
+         end="THE YOUNG ONE glowing, the moving lantern, from here to the end."),
+    dict(prefix="n", n=6, slug="the-school", title="THE SCHOOL", s=6, grade="DARK",
+         series="round 2: new ending 1/4 (a huge school of fish)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A side-on shot moving with THE MOUNT; no cut, no zoom.",
+         refs=["@Strong", "@Young", "@Manta", "@Elder", "@BlackSea", "@Turning"],
+         heading="FISH. In the black sea, inside the child's small light, a huge school of fish sweeps past them.",
+         frame="Side on to THE MOUNT gliding in the dark, THE YOUNG ONE glowing on the seat.",
+         particles="rain on the surface above, bubbles, the glint of fish scales in the light.",
+         beats=["[0s] GLOW",
+                "[2s] Out of the dark a huge school of fish streams past through the light, hundreds of them, dark "
+                "glossy silver-black fish, flashing.",
+                "[4s] THE STRONG ONE grins and raises a hand; THE MOUNT slows to a stop."],
+         audio="-", sound="THE STRONG ONE's delighted laugh of surprise, nothing else",
+         crit="no dialogue, no colourful fish, no big fish, no creature, no light wider than two metres",
+         review=["Dark glossy silver-black fish, many.", "The glow stays 1-2 m."],
+         end="THE MOUNT stopped among the fish."),
+    dict(prefix="n", n=7, slug="one-fish", title="ONE FISH", s=8, grade="DARK",
+         series="round 2: new ending 2/4 (cast the net, catch ONE fish, overjoyed)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A medium shot on THE STRONG ONE standing on the seat; no cut, no zoom.",
+         refs=["@Strong", "@Young", "@Elder", "@Manta", "@BlackSea"],
+         heading="THE NET. This is why they came: THE STRONG ONE casts the net, and catches one fish.",
+         frame="Medium on THE STRONG ONE standing on the seat of THE MOUNT, the net in his hands, THE YOUNG ONE glowing "
+               "beside him, THE ELDER behind.",
+         particles="rain, water spraying off the net, golden motes around THE YOUNG ONE.",
+         beats=["[0s] GLOW",
+                "[1s] THE STRONG ONE swings a wide knotted kelp net and casts it; it spreads and splashes onto the water.",
+                "[4s] THE STRONG ONE hauls it back in: inside, one single dark glossy silver-black fish, flapping.",
+                "[6s] THE STRONG ONE lifts it high, overjoyed, laughing. Delighted: \"One! We got one!\""],
+         audio="-", sound="the splash of the net, THE STRONG ONE's effort and his joyful laugh, the line above",
+         crit=DIALOGUE_NEG + ", no second fish in the net, no weapon, no spear, no hook",
+         review=["Net cast on camera.", "Exactly one fish.", "Joy on THE STRONG ONE; one line; transcribe."],
+         end="THE STRONG ONE holding one fish."),
+    dict(prefix="n", n=8, slug="the-shadow", title="THE SHADOW", s=8, grade="DARK",
+         series="round 2: new ending 3/4 (addendum 3: from high above, a giant shadow passes beneath; the fish flee)",
+         spec="ONE LOCKED SHOT, NO CUTS. Straight down from high above THE MOUNT; the camera never moves.",
+         refs=["@Manta", "@Young", "@Strong", "@Elder", "@BlackSea"],
+         heading="THE SHADOW. From high above: something enormous glides slowly beneath them, and every fish runs.",
+         frame="Top-down from high above: THE MOUNT small in the centre, its small pool of the child's light around it, "
+               "the school of fish scattered around the edge of the light, black water everywhere else.",
+         particles="rain dimpling the surface, a storm of bubbles as the fish bolt.",
+         beats=["[0s] GLOW From high above, THE STRONG ONE holds up the one fish; the school circles at the edge of "
+                "the light.",
+                "[2s] Beneath them, deep down, an enormous dark shadow slides slowly past, far bigger than THE MOUNT, "
+                "bigger than the whole village, its edges lost in the dark.",
+                "[4s] The small fish scatter in fright, streaking away in every direction, and vanish.",
+                "[6s] The shadow is gone. The water lies dead still. THE THREE RIDERS look around, puzzled."],
+         audio="-", sound="the riders' startled breath, then complete silence",
+         crit="no dialogue, no camera move, no creature surfacing yet, no eye, no fish left at the end, no light wider "
+              "than two metres around the child",
+         review=["Top-down.", "A giant shadow passes beneath, slowly.", "The fish scatter and vanish.",
+                 "Water ends dead still."],
+         end="Dead-still black water, THE THREE RIDERS on THE MOUNT."),
+    dict(prefix="n", n=9, slug="the-mountain-rises", title="THE MOUNTAIN RISES", s=12, grade="DARK",
+         series="round 2: new ending 4/4 (the mountain rises unnoticed, then opens its eye; cut to space after)",
+         spec="ONE LOCKED SHOT, NO CUTS. A wide shot from behind and above THE MOUNT; the camera never moves.",
+         refs=["@Mountain", "@Eye", "@Manta", "@Strong", "@Young", "@Elder"],
+         heading="THE MOUNTAIN RISES. Behind them, where no land can be, a mountain comes up out of the still sea.",
+         frame="THE MOUNT small in the lower third on dead-still black water, lit only by THE YOUNG ONE; the far water "
+               "behind them fills the upper frame.",
+         particles="a thin mist over the still water, water pouring off the rising shape.",
+         beats=["[0s] GLOW THE THREE RIDERS are bent over the one fish, laughing quietly, their backs to the far water.",
+                "[3s] Far behind them the still water bulges; a vast smooth dark shape slowly rises out of the sea like a "
+                "mountain, water pouring off it. Nobody on THE MOUNT notices.",
+                "[8s] High on the dark mountain, an enormous eye opens: pale yellow-green, a thin vertical slit pupil, "
+                "bigger than their whole village.",
+                "[10.5s] The eye stays open, looking down at them. Hold."],
+         audio="-", sound="the riders' quiet happy laughter, then total silence as the eye opens",
+         crit="no dialogue, no riders turning around, no roar, no teeth, no second eye opening, no camera move, no light "
+              "wider than two metres around the child",
+         review=["The mountain rises slowly behind them.", "They never notice.", "One eye opens at the end."],
+         end="The eye open; cut to space (M13)."),
+
 ]
 
 
@@ -539,6 +618,11 @@ SOUND = {
 }
 
 
+GLOW = ("THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing "
+        "gold, lighting only about one to two metres around the child; inside that small circle the black water "
+        "turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black.")
+
+
 def tag(sc):
     return f"{sc.get('prefix', 'm').upper()}{sc['n']}"
 
@@ -547,6 +631,7 @@ def paste_block(sc):
     lines = [f"{sc['s']}s · 360p · 16:9 · {sc['spec']}", "", sc["heading"], "", "REFERENCES, each with a job:"]
     for h in sc["refs"]:
         lines.append(f"{h}: {REF[h][1]}")
+    sc = dict(sc, beats=[b.replace("GLOW", GLOW) for b in sc["beats"]])
     lines += ["", "THE FRAME: " + sc["frame"]]
     if sc.get("particles"):
         lines += ["", "PARTICLES: " + sc["particles"]]
