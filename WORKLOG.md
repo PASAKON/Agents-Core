@@ -1,0 +1,5 @@
+- read TASK.md, IRON-RULES.md (org), wiki playbooks/research index — no cached research on autocompact; developer role cannot write wiki (hard rule), so quotes recorded in REPORT.md instead
+- fetched code.claude.com/docs/en/model-config — confirmed key `autoCompactWindow`, env `CLAUDE_CODE_AUTO_COMPACT_WINDOW`, `/autocompact`, `DISABLE_COMPACT`, ~967K default sentence
+- step1: claude-home/settings.json — added top-level `"autoCompactWindow": 300000`, valid JSON, all existing keys untouched
+- step2: added guarded `: "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:=300000}"; export CLAUDE_CODE_AUTO_COMPACT_WINDOW` to all 6 launchers (cto-claude.sh, cxo-claude.sh, spawn-cto.sh, spawn-cxo.sh, spawn-worker.sh, spawn-worker-remote.sh)
+- step3 done: CLAUDE.md compact instructions section added
