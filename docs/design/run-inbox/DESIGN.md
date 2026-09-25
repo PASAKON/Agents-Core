@@ -143,11 +143,20 @@ turns the winbox re-OS runbook's human steps into phone taps (Machine Contract, 
 $0 to build (org agents), no new services, no new secrets (the org token for `ask_run` is the one
 the org MCP already carries; peers use their existing peer auth).
 
-## 11. Decisions the CEO owns before P1 starts
+## 11. CEO decisions (answered 2026-09-25 in chat)
 
-1. **Freeform commands:** C-level sessions only, workers = repo scripts only? *(recommended: yes)*
-2. **Notify channel** for "new card": Telegram via SomPong, or LINE? *(open since 2026-09-23)*
-3. **Approval strength:** passkey session for green/amber + fresh Face ID for red? *(recommended)*
-4. **Output retention** on the hub: 30 days, tail only, redacted? *(recommended)*
-5. **Order:** P1 now on Contabo, P2 as soon as the winbox relay-mode Console is up? *(recommended)*
-6. **The tab's name** on the phone: "คำสั่ง" / "Run"?
+1. **Freeform commands: C-level sessions only; workers submit repo scripts only.** ("ตามนั้น")
+2. **Notify channel = EMAIL**, not Telegram (CEO: Telegram notifications are muted; email tags and
+   searches back in time far better). Implementation: the hub sends from the CEO's Gmail
+   (pass.gob1@gmail.com) — one-time consent is a human step (can go through the login relay), the
+   credential lives in the secrets bundle, never in the repo. One thread per card: subject
+   `[RUN][<host>][<risk>] <first line> — RUN-<id>`; the result is sent as a reply in the same
+   thread so Gmail groups them and labels/filters apply retroactively. The new-card mail carries
+   one link straight to the card on `/run`. P3's "SomPong push" is replaced by this.
+3. **Approval strength: passkey session for green/amber, fresh Face ID for red.** ("ตามนั้น")
+4. **Output retention: 30 days, tail only, secrets redacted.** ("ตามนั้น")
+5. **Order approved:** P1 on Contabo now; P2 the moment the winbox relay-mode Console lands. ("OK")
+6. **Tab name: pending** — the CEO asked for a mockup first. Canvas (5 screens, tappable flow):
+   https://claude.ai/artifact/GCmexryuJbybMGX2jKg2Gr — source backup in
+   `docs/design/run-inbox/mockup/` (Main / Card / Running / ResultOK / ResultFail `.dc.html`).
+   P1 build starts after the CEO approves the mockup (or orders changes).

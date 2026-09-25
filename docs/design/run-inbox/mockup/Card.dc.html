@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>การ์ดคำสั่ง — ตรวจก่อนรัน</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#0d1419;font-family:"IBM Plex Sans Thai",system-ui,sans-serif;color:#e3eaef}
+a{color:inherit;text-decoration:none}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: #0d1419; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="padding: 22px 16px 12px 16px; display: flex; align-items: center; gap: 10px">
+    <a href="Main.dc.html" aria-label="กลับ" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; background: #152029; border: 1px solid #2a3a47">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e3eaef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <div>
+      <div style="font-family: 'Chakra Petch', 'IBM Plex Sans Thai', sans-serif; font-weight: 600; font-size: 17px">การ์ดคำสั่ง</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #56646f">RUN-20260925-1005-7c1d</div>
+    </div>
+    <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #e3a74d">หมดอายุ 24:18</span>
+  </div>
+
+  <div style="flex-grow: 1; padding: 4px 16px 16px 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span style="display: inline-flex; align-items: center; gap: 5px; background: #1b2833; border-radius: 999px; padding: 3px 10px; font-size: 13px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#97a6b2" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1"></rect><path d="M8 20h8M12 16v4"></path></svg>
+        winbox
+      </span>
+      <span style="background: #3a2b14; color: #e3a74d; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600">เหลือง — แตะสถานะเครื่อง</span>
+      <span style="background: #16343a; color: #5cc3cf; border-radius: 999px; padding: 3px 10px; font-size: 12px">โต้ตอบได้</span>
+    </div>
+
+    <div style="background: #152029; border: 1px solid #2a3a47; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; gap: 8px; font-size: 13px">
+        <span style="color: #97a6b2; min-width: 64px">ผู้ขอ</span>
+        <span>CTO สื่อ ILAG (e1e3d3ef) · task-a63b4cba</span>
+      </div>
+      <div style="display: flex; gap: 8px; font-size: 13px">
+        <span style="color: #97a6b2; min-width: 64px">เหตุผล</span>
+        <span>login Claude ให้ worker ทำ trailer ส่ง 28 ก.ย. 06:59</span>
+      </div>
+      <div style="display: flex; gap: 8px; font-size: 13px">
+        <span style="color: #97a6b2; min-width: 64px">ผลที่ควรเห็น</span>
+        <span>claude เปิดใน terminal แล้วรอคำสั่ง /login</span>
+      </div>
+      <div style="display: flex; gap: 8px; font-size: 13px">
+        <span style="color: #97a6b2; min-width: 64px">เวลารันสูงสุด</span>
+        <span>15 นาที (เลยแล้วระบบหยุดให้เอง)</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #97a6b2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#97a6b2" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 8l-4 4 4 4M17 8l4 4-4 4M14 5l-4 14"></path></svg>
+        <span>คำสั่งที่จะรันจริง (byte ต่อ byte ตามนี้)</span>
+        <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #56646f">sha256 ตรวจแล้ว</span>
+      </div>
+      <div style="background: #0a1014; border: 1px solid #2a3a47; border-radius: 12px; padding: 12px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #79c897">
+        <span style="color: #56646f">PS C:\Users\passg&gt; </span>claude
+      </div>
+      <div style="font-size: 11px; color: #56646f">คำสั่งพิมพ์อิสระ — อนุญาตเฉพาะ session ระดับ C · worker ต้องยื่นเป็นสคริปต์บน GitHub เท่านั้น</div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+      <a href="Running.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #5cc3cf; color: #0d1419; border-radius: 14px; padding: 14px 0; font-size: 16px; font-weight: 600">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#0d1419" stroke="none" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+        <span>รันบน winbox</span>
+      </a>
+      <div style="display: flex; gap: 10px">
+        <a href="Main.dc.html" style="flex-grow: 1; text-align: center; border: 1px solid #f08a80; color: #f08a80; border-radius: 14px; padding: 12px 0; font-size: 14px; font-weight: 600">ปฏิเสธ + เหตุผล</a>
+        <a href="Main.dc.html" style="flex-grow: 1; text-align: center; border: 1px solid #2a3a47; color: #97a6b2; border-radius: 14px; padding: 12px 0; font-size: 14px">ถามกลับผู้ขอ</a>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #56646f">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#56646f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 4v5c0 4.4-3 8.4-7 9-4-.6-7-4.6-7-9V7z"></path></svg>
+        <span>เขียว/เหลือง = passkey ที่ล็อกอินอยู่ · แดง (ลบไฟล์ / secrets / เงิน / prod) = สแกน Face ID ใหม่ทุกครั้ง</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

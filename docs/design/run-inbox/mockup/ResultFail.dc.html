@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ผลลัพธ์ — ล้มเหลว + Error ID</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#0d1419;font-family:"IBM Plex Sans Thai",system-ui,sans-serif;color:#e3eaef}
+a{color:inherit;text-decoration:none}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: #0d1419; display: flex; flex-direction: column; overflow: hidden; padding: 22px 16px 20px 16px">
+
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #56646f">RUN-20260925-0912-4f2a</div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 56px">
+    <div style="width: 88px; height: 88px; border-radius: 999px; background: #3d1c1a; border: 2px solid #f08a80; display: flex; align-items: center; justify-content: center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f08a80" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </div>
+    <div style="font-family: 'Chakra Petch', 'IBM Plex Sans Thai', sans-serif; font-weight: 700; font-size: 22px; color: #f08a80">ล้มเหลว</div>
+    <div style="font-size: 14px; color: #97a6b2">contabo · exit 1 · ใช้เวลา 4 วิ</div>
+  </div>
+
+  <div style="margin-top: 26px; background: #3d1c1a; border: 1px solid #f08a80; border-radius: 14px; padding: 14px">
+    <div style="font-size: 14px; font-weight: 600; color: #f08a80">โปรแกรมหยุดเอง: ฐานข้อมูลไม่รู้จักผู้ใช้ "postgres"</div>
+    <div style="font-size: 12px; color: #e3eaef; margin-top: 6px">ไม่มีอะไรถูกลบหรือแก้ — คำสั่งอ่านอย่างเดียว · ผู้ขอได้รับรายละเอียดเต็มแล้ว</div>
+  </div>
+
+  <div style="margin-top: 12px; display: flex; align-items: center; gap: 10px; background: #152029; border: 1px solid #2a3a47; border-radius: 14px; padding: 12px 14px">
+    <div style="flex-grow: 1">
+      <div style="font-size: 11px; color: #97a6b2">Error ID (ส่งให้ทีมดูได้เลย)</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 2px">RUN-20260925-0912-4f2a</div>
+    </div>
+    <a href="Main.dc.html" aria-label="คัดลอก Error ID" style="display: inline-flex; align-items: center; gap: 6px; background: #16343a; color: #5cc3cf; border-radius: 10px; padding: 9px 12px; font-size: 13px; font-weight: 600">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5cc3cf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+      <span>คัดลอก</span>
+    </a>
+  </div>
+
+  <div style="margin-top: 12px; background: #0a1014; border: 1px solid #2a3a47; border-radius: 12px; padding: 10px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #56646f; line-height: 1.7">
+    <div>$ docker exec org-postgres pg_dumpall -U postgres</div>
+    <div style="color: #f08a80">FATAL: role "postgres" does not exist</div>
+  </div>
+
+  <div style="margin-top: 12px; font-size: 12px; color: #56646f; line-height: 1.7">ทุกการรันมีบันทึก 2 ชุด (บนมือถือชุดนี้ + ในเครื่องเป้าหมาย) ตรวจย้อนกลับได้เสมอ · เก็บ 30 วัน เฉพาะท้าย output และซ่อนค่า secret</div>
+
+  <a href="Main.dc.html" style="margin-top: auto; display: block; text-align: center; background: #152029; border: 1px solid #2a3a47; border-radius: 14px; padding: 13px 0; font-size: 15px; color: #e3eaef">กลับไปกล่องคำสั่ง</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
