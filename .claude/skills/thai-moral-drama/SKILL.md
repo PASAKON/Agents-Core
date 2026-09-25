@@ -37,6 +37,10 @@ must lose nothing. This is the whole reason the format works on a Facebook feed:
 every clip stands alone, so every clip can be promoted alone, and one weak
 episode does not poison the next three.
 
+CEO 2026-09-25: cliffhangers **inside** the film are wanted. See Structure gate 2, where
+mini-EPs are stitched together like Chinese vertical series. The CEO has not yet ruled on
+whether a film may end on a hook into the NEXT film. Ask before writing one.
+
 ### 2. The wrongdoer may be plainly evil (CEO 2026-09-25)
 > "คนร้ายที่ชั่วแบบการ์ตูน ก็ทำได้นะ"
 
