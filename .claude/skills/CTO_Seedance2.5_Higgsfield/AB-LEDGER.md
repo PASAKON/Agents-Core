@@ -807,7 +807,7 @@ to "prefer prose for her in this scene; if a future sheet needs the Element, exp
 ## 2026-09-10 16:50 — MODEL LAB fire 2: Seedance 2.0 Mini 15 s — works, but it is the draft tier
 - Fired 16:12, **38 credits**, landed in **under 4 min**. `hf_20260910_091234_c6f16959-….mp4`, 8,140,097 B, md5 b9571603e39b9b8c536bf6dc92cc6ddc. Model switch preserved the pasted prompt and all 3 chips — no re-paste needed. **Mini has no High/Medium/Low quality control at all**; that row is simply absent from its settings.
 - **CTO verification** (cut sweep + true mid-points + whisper, same method as Fast; cut timings in SKILL.md "Model tiers"). Audio clean: "10 million | 15 | 20 million | 25 | 50", five bids, right order, better separated than Fast's. Both faces identical across every cut; 3/3 chips bound.
-- **Measured against Fast on the identical prompt** (bitrate, file size, saturation, sharpening, skin, framing) with the CEO's 16:40 eye-read: SKILL.md "Model tiers". Raw saturation values: Mini 0.408/0.484, Fast 0.475/0.571.
+- **Measured against Fast on the identical prompt** (bitrate, file size, saturation, sharpening, skin, framing) with the CEO's 16:40 eye-read: SKILL.md "Model tiers". Raw values: bitrate Mini 4.31 vs Fast 16.97 Mbps (3.9×); saturation Mini 0.408/0.484, Fast 0.475/0.571.
 - **Lab total: 91 credits (~$3.8).**
 ## 2026-09-10 17:10 — lab closed · S20 landed after 193 min · S2PT take 3 hit the viewport lock-up twice
 - Model lab **task-ce0d3be7 closed and merged** (3f0967e); the verdict is SKILL.md "Model tiers".
