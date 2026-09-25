@@ -15,6 +15,7 @@ Run via: pytest tests/test_bl_compose.py -q
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -610,11 +611,15 @@ def test_emit_pieces_ff_and_evid_timings_and_captions(generator_dir, beats_2):
     assert 'data-start="2.0"' in evid_plate
     assert 'data-duration="3.0"' in evid_plate
 
+    # one caption style, every mode (SKILL.md §6f, task-99f3d2e8 item 2) --
+    # both captions call the template's single caption(at, out, text)
+    # generator, never addCap(..., kind, ...) or a per-mode chip/rail.
     caps_text = "\n".join(pieces["caps_js"])
     assert "Hello world" in caps_text
     assert "Evidence caption" in caps_text
-    assert "chip-ff" in caps_text
-    assert "rail" in caps_text
+    assert caps_text.count("caption(") == 2
+    assert "addCap" not in caps_text
+    assert "chip-ff" not in caps_text and "chip-comp" not in caps_text and "rail" not in caps_text
 
 
 def test_compose_writes_html_with_both_captions_and_timings(generator_dir, beats_2, tmp_path):
@@ -667,3 +672,239 @@ def test_redact_ground_truth_blanks_beats_but_keeps_functions(generator_dir):
     funcs = bc.load_generator_functions(generator_dir)
     assert funcs["pick_lip"](0.0) == "lip_a"
     assert funcs["img_placement"]({}) == (1080, 1920, 0, 0, 1.0)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# task-99f3d2e8 item 2 -- one caption style, integration level: a real
+# compose() covering all four modes must pass bl_checker's gate; the old
+# addCap-shaped output (task-1678d38e's own regression fixture, kept here
+# too since this is the tool that used to emit it) must still fail it.
+# ═══════════════════════════════════════════════════════════════════
+
+def test_composed_html_covering_all_modes_passes_one_caption_style_gate(generator_dir, tmp_path):
+    from tools import bl_checker as ck
+
+    beats = [
+        {"tag": "HOOK-1", "t0": 0.0, "t1": 2.0, "mode": "FF", "extra": {"cap": "hook line"}},
+        {"tag": "CONTEXT-1", "t0": 2.0, "t1": 5.0, "mode": "COMP",
+         "extra": {"img": "real/score.png", "cap": "comp line", "box": [0, 0, 1080, 1920]}},
+        {"tag": "MAIN-8", "t0": 5.0, "t1": 8.0, "mode": "EVID",
+         "extra": {"img": "real/warn.png", "cap": "evid line", "box": [0, 0, 1080, 1920]}},
+        {"tag": "SUMMARY-1", "t0": 8.0, "t1": 10.0, "mode": "KIN",
+         "extra": {"lines": [["hl", "kinetic line"]]}},
+    ]
+    out_dir = tmp_path / "out"
+    index_path = bc.compose(beats, generator_dir, t_max=10.0, out_dir=out_dir)
+    html = index_path.read_text(encoding="utf-8")
+
+    assert "hook line" in html and "comp line" in html and "evid line" in html and "kinetic line" in html
+    assert ck.caption_style_signatures(html) == {"caption"}
+    assert ck.check_one_caption_style(html) == []
+
+
+def test_old_addcap_shaped_output_still_fails_the_same_gate():
+    # The exact shape this tool's OWN emit_pieces used to write before this
+    # task's fix (addCap with a "kind" per mode) -- kept as a regression
+    # test per the task brief ("must fail on the old EP57 generator").
+    from tools import bl_checker as ck
+
+    old_style_html = (
+        'addCap(0.10, 2.00, "hook line", "chip-ff", null);'
+        'addCap(2.00, 5.00, "comp line", "chip-comp", 700);'
+        'addCap(5.00, 8.00, "evid line", "rail", null);'
+    )
+    assert ck.caption_style_signatures(old_style_html) == {"chip-ff", "chip-comp", "rail"}
+    assert ck.check_one_caption_style(old_style_html) != []
+
+
+# ═══════════════════════════════════════════════════════════════════
+# task-99f3d2e8 item 3 -- plates hold by construction: a beat's plate
+# duration is whatever ext_end computed (hold until the next plate),
+# never capped by the underlying media's own remaining length.
+# ═══════════════════════════════════════════════════════════════════
+
+_BUILD_CUT_PY_SHORT_LIP = _BUILD_CUT_PY.replace('LIP_DUR = {"lip_a": 999.0}', 'LIP_DUR = {"lip_a": 1.0}')
+
+
+@pytest.fixture
+def generator_dir_short_lip(tmp_path):
+    d = tmp_path / "generator_short_lip"
+    d.mkdir()
+    (d / "build_cut.py").write_text(_BUILD_CUT_PY_SHORT_LIP, encoding="utf-8")
+    (d / "assemble.py").write_text(_ASSEMBLE_PY, encoding="utf-8")
+    (d / "index.html").write_text(_TEMPLATE_HTML, encoding="utf-8")
+    return d
+
+
+def test_emit_pieces_ff_plate_holds_past_short_lip_media(generator_dir_short_lip):
+    # lip_a.mp4 is only 1.0s long (LIP_DUR) but this beat's plate must
+    # still hold the FULL 4.0s until the next beat starts (SKILL.md §6g).
+    # The old capped code (`min(dur, LIP_DUR[lipname]-media_start)`) would
+    # have truncated data-duration to ~1.0s here, leaving a 3.0s gap.
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    beats = [
+        {"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "FF", "extra": {"cap": "hi"}},
+        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "FF", "extra": {"cap": "bye"}},
+    ]
+    pieces = bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
+    ff_plate = next(p for p in pieces["plates"] if "v_a1" in p)
+    assert 'data-duration="4.0"' in ff_plate
+
+
+def test_emit_pieces_comp_avatar_holds_past_short_lip_media(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    beats = [
+        {"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "COMP", "extra": {"img": "real/x.png", "cap": "hi"}},
+        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "FF", "extra": {"cap": "bye"}},
+    ]
+    pieces = bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
+    avatar_plate = next(p for p in pieces["plates"] if "av_a1" in p)
+    assert 'data-duration="4.0"' in avatar_plate  # not capped to LIP_DUR's 1.0
+    img_plate = next(p for p in pieces["plates"] if p.startswith("<img") and "v_a1" in p)
+    assert 'data-duration="4.0"' in img_plate
+
+
+def test_emit_pieces_comp_avatar_until_still_shortens_avatar_on_purpose(generator_dir):
+    # an editor CAN end the avatar composite early (the base plate still
+    # holds full duration) -- that is a deliberate call, distinct from the
+    # LIP_DUR truncation bug above, and must still work.
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [
+        {"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "COMP",
+         "extra": {"img": "real/x.png", "cap": "hi", "avatar_until": 2.0}},
+        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "FF", "extra": {"cap": "bye"}},
+    ]
+    pieces = bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
+    avatar_plate = next(p for p in pieces["plates"] if "av_a1" in p)
+    img_plate = next(p for p in pieces["plates"] if p.startswith("<img") and "v_a1" in p)
+    assert 'data-duration="2.0"' in avatar_plate  # avatar_until ends it early, on purpose
+    assert 'data-duration="4.0"' in img_plate     # the base plate still holds the full window
+
+
+# ═══════════════════════════════════════════════════════════════════
+# task-99f3d2e8 item 4 -- range render: emit_pieces()'s t0_window shift
+# (placement is relative, media seek stays absolute) + trim_range()'s
+# frame-exact, video-only, fixed-encoder normalization pass.
+# ═══════════════════════════════════════════════════════════════════
+
+def test_emit_pieces_t0_window_shifts_placement_not_media_seek(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [
+        {"tag": "S1", "t0": 10.0, "t1": 12.0, "mode": "FF", "extra": {"cap": "seg line 1"}},
+        {"tag": "S2", "t0": 12.0, "t1": 14.0, "mode": "FF", "extra": {"cap": "seg line 2"}},
+    ]
+    pieces = bc.emit_pieces(beats, t_max=15.0, funcs=funcs, t0_window=10.0)
+
+    plate = next(p for p in pieces["plates"] if "v_s1" in p)
+    assert 'data-start="0.0"' in plate            # placement is RELATIVE to the window
+    assert 'data-media-start="10.0"' in plate     # media seek stays ABSOLUTE (lip_offset=0.0)
+    caps_text = "\n".join(pieces["caps_js"])
+    assert "caption(0.0, 2.0, " in caps_text      # caption timing shifts with placement
+
+    last_plate = next(p for p in pieces["plates"] if "v_s2" in p)
+    assert 'data-start="2.0"' in last_plate
+    assert 'data-duration="3.0"' in last_plate    # holds to t_max(15.0)-t0_window(10.0) = 5.0
+
+
+def test_emit_pieces_t0_window_excludes_beats_before_the_window(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [
+        {"tag": "BEFORE", "t0": 5.0, "t1": 8.0, "mode": "FF", "extra": {"cap": "x"}},
+        {"tag": "IN", "t0": 10.0, "t1": 12.0, "mode": "FF", "extra": {"cap": "y"}},
+    ]
+    pieces = bc.emit_pieces(beats, t_max=15.0, funcs=funcs, t0_window=10.0)
+    assert not any("v_before" in p for p in pieces["plates"])
+    assert any("v_in" in p for p in pieces["plates"])
+
+
+def test_emit_pieces_total_dur_uses_window_duration_not_t_max(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "S1", "t0": 10.0, "t1": 12.0, "mode": "FF", "extra": {"cap": "x"}}]
+    pieces = bc.emit_pieces(beats, t_max=15.0, funcs=funcs, t0_window=10.0)
+    assert pieces["total_dur"] == pytest.approx(4.9997)  # window is 15.0-10.0 = 5.0s, not 15.0s
+
+
+def test_compose_with_t0_window_writes_relative_placement_to_disk(generator_dir, tmp_path):
+    beats = [{"tag": "S1", "t0": 39.3, "t1": 41.3, "mode": "FF", "extra": {"cap": "seg2 opening line"}}]
+    out_dir = tmp_path / "out"
+    index_path = bc.compose(beats, generator_dir, t_max=65.8333, out_dir=out_dir, t0=39.3)
+    html = index_path.read_text(encoding="utf-8")
+    assert 'data-start="0.0"' in html
+    assert "seg2 opening line" in html
+
+
+# ─────────────────────────── trim_range (real ffmpeg, synthetic fixtures) ──
+
+def _ffmpeg(cmd: list[str]) -> None:
+    subprocess.run(cmd, check=True, capture_output=True)
+
+
+def _testsrc(path: Path, duration: float, rate: int = 30, w: int = 64, h: int = 64) -> None:
+    _ffmpeg(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", f"-i", f"testsrc=size={w}x{h}:rate={rate}",
+             "-t", str(duration), "-pix_fmt", "yuv420p", str(path)])
+
+
+def _count_frames(path: Path) -> int:
+    r = subprocess.run(
+        ["ffprobe", "-v", "error", "-count_frames", "-select_streams", "v:0",
+         "-show_entries", "stream=nb_read_frames", "-of", "default=nk=1:nw=1", str(path)],
+        capture_output=True, text=True, check=True)
+    return int(r.stdout.strip())
+
+
+def test_trim_range_two_adjacent_ranges_concat_to_same_frame_count_as_the_union(tmp_path):
+    # task-99f3d2e8 item 4's own test criterion, verbatim: two adjacent
+    # ranges, concatenated the way bl_merge.py does (-c copy), must have
+    # the same total frame count as one full render of the union.
+    full = tmp_path / "full10.mp4"
+    _testsrc(full, duration=10.0)
+
+    out_a = tmp_path / "a.mp4"
+    out_b = tmp_path / "b.mp4"
+    out_union = tmp_path / "union.mp4"
+    bc.trim_range(full, dur=5.0, out_path=out_a)
+    bc.trim_range(full, dur=5.0, out_path=out_b)
+    bc.trim_range(full, dur=10.0, out_path=out_union)
+    assert _count_frames(out_a) == 150 and _count_frames(out_b) == 150 and _count_frames(out_union) == 300
+
+    concat_list = tmp_path / "concat.txt"
+    concat_list.write_text(f"file '{out_a.resolve()}'\nfile '{out_b.resolve()}'\n", encoding="utf-8")
+    concatenated = tmp_path / "concatenated.mp4"
+    _ffmpeg(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
+             "-i", str(concat_list), "-c", "copy", str(concatenated)])
+
+    assert _count_frames(concatenated) == _count_frames(out_union)
+
+
+def test_trim_range_drops_audio_and_forces_exact_frame_count(tmp_path):
+    src = tmp_path / "src.mp4"
+    _ffmpeg(["ffmpeg", "-y", "-v", "error",
+             "-f", "lavfi", "-i", "testsrc=size=64x64:rate=30",
+             "-f", "lavfi", "-i", "sine=frequency=440",
+             "-t", "3.0", "-pix_fmt", "yuv420p", "-shortest", str(src)])
+    out = tmp_path / "trimmed.mp4"
+    bc.trim_range(src, dur=2.0, out_path=out)
+
+    assert _count_frames(out) == 60
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a", "-show_entries",
+                        "stream=codec_type", "-of", "csv=p=0", str(out)],
+                       capture_output=True, text=True)
+    assert r.stdout.strip() == ""  # no audio stream, per the segment contract
+
+
+def test_trim_range_uses_consistent_encoder_settings_every_call(tmp_path):
+    # bl_merge.py's verify_same_codec() requires identical codec/resolution/
+    # pix_fmt/frame-rate across every part -- prove two independently
+    # trimmed ranges (different source lengths) still probe identically.
+    from tools import bl_merge as mg
+
+    src_a = tmp_path / "src_a.mp4"
+    src_b = tmp_path / "src_b.mp4"
+    _testsrc(src_a, duration=4.0)
+    _testsrc(src_b, duration=7.0)
+    out_a = tmp_path / "range_a.mp4"
+    out_b = tmp_path / "range_b.mp4"
+    bc.trim_range(src_a, dur=3.0, out_path=out_a)
+    bc.trim_range(src_b, dur=6.0, out_path=out_b)
+
+    assert mg.verify_same_codec([out_a, out_b]) == []
