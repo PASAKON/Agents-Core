@@ -140,8 +140,9 @@ _META = {
      "the heavy man's sandalled foot hooks the corner of the old woman's sack of bottles off "
      "the edge of the platform scale so it rests on the ground, and he keeps it there while he "
      "calls the weight with a sly, falsely jolly grin; the old woman stands opposite him "
-     "smiling trustingly and nodding; behind them the schoolboy, carrying a sack, freezes and "
-     "stares at the man's foot with a frown", ["dial", "nosubs"]),
+     "smiling trustingly and nodding; behind them the schoolboy, in his white short-sleeved "
+     "school shirt and black trousers, carrying a sack, freezes and stares at the man's foot "
+     "with a frown. One continuous shot with no cuts", ["dial", "nosubs"]),
  2: (8, "Medium two-shot, the schoolboy sharp in the background",
      ["yai_c", "sia_b", "kla_s"], "lan", "hot afternoon, bright daylight",
      "the old woman takes the money from the heavy man with a humble little bow while she "
@@ -215,8 +216,9 @@ _META = {
  15: (8, "Two-shot walking, the two women pushing their carts along the canal path",
      ["pa", "yai_c"], "soi", "the next afternoon, bright daylight",
      "the woman in the straw hat walks the old woman away along the canal path, leaning in "
-     "to her and speaking low and urgently; the old woman answers, hoarse and defeated, her "
-     "eyes wet", ["nosubs"]),
+     "to her and speaking low and urgently; the old woman, still wearing her wide-brimmed "
+     "cloth sun hat and the towel around her neck the whole time, answers, hoarse and "
+     "defeated, her eyes wet", ["nosubs"]),
  16: (8, "Medium two-shot, son facing father across the scale",
      ["kla_s", "sia_b"], "lan", "the next afternoon, bright daylight",
      "the schoolboy slams a sack down and confronts his father, eyes red, voice shaking with "

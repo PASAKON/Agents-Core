@@ -228,7 +228,8 @@
 ### SHOT 23 · 2:56–3:04 · 8s · Medium close-up, the owner swinging round to his son · LAN · **HOOK @3:00**
 **ACTION** เสี่ยกำแบงก์ใบนั้นไว้ในมือ หันขวับไปหาลูก **ขณะที่**ตะคอก
 **อารมณ์** เสี่ย 5/5 ระแวงแล้วระเบิด หันขวับ ตะคอกเสียงแหบ ชี้หน้าลูก · กล้า (เงียบ) หน้าซีด
-**บทพูด** เสี่ย `"ข้าไม่เคยให้ใครเกินสักบาท… กล้า! แกเอาเงินข้าไปให้ยายใช่ไหม!"` — suspicion turning to explosive rage, whipping round, bellowing hoarsely, pointing at his son
+**บทพูด** เสี่ย `"ยี่สิบบาท? ข้าไม่เคยให้ใครเกินสักบาท"` — suspicious, low, staring at the note in his hand
+**บทพูด** เสี่ย `"กล้า! แกเอาเงินข้าไปให้ยายใช่ไหม!"` — exploding into rage, whipping round, bellowing, pointing at his son
 
 ## EP3 «ปลายคลอง» · 3:04–5:04 · S24–38
 
