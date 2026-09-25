@@ -1,0 +1,86 @@
+[
+ {
+  "name": "lan__busy",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, bright natural afternoon daylight. A small neighbourhood recycling yard in a Bangkok side street: an open concrete yard under a rusty corrugated-metal roof on steel posts; in the front centre a low flat steel platform scale with a round dial on a short post (the dial shows only plain tick marks and a needle, no numbers); piles of white woven sacks stuffed with clear plastic bottles; stacks of flattened cardboard tied with twine; a heap of crushed aluminium cans; a battered wooden desk with one drawer beside the scale; a red plastic chair; a corrugated metal fence at the back; busy and full. Wide establishing view at eye level, deep focus, everything sharp. No people at all, no animals. Vertical 2:3 image. Realistic, lived-in, slightly worn, contemporary Thailand. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "yard_scale",
+  "continue": "lan__busy",
+  "prompt": "From the first yard picture in this chat, show ONLY the low flat steel platform scale with its round dial on a short post, isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame. Keep its exact look, materials, wear and colours. The dial shows only plain tick marks and one needle, no numbers. Vertical 2:3 image. Nothing else in the image. No text, no numbers, no logos."
+ },
+ {
+  "name": "lan__halfempty",
+  "continue": "yard_scale",
+  "prompt": "Go back to the FIRST image in this chat, the full recycling yard. Show that same yard from the same camera position, with the same roof, posts, fence, platform scale, desk and chair, but now mostly empty and quiet: only three or four sacks left, bare dusty concrete floor showing, one empty crumpled sack lying on the ground, the cardboard stacks and can heap gone. No people. Vertical 2:3. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "lan__needle",
+  "continue": "lan__halfempty",
+  "prompt": "Again the SAME recycling yard as the first image in this chat, same camera position, roof, posts, fence, desk and chair, busy and tidy again with sacks of bottles. The old platform scale is gone. In its place at the front, by the entrance, stands a new large round needle scale on a sturdy stand, its big round dial facing the camera, showing only plain tick marks and one needle, NO numbers. No people. Vertical 2:3. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "needle_scale",
+  "continue": "lan__needle",
+  "prompt": "From the new needle scale in the last yard picture in this chat, show ONLY that new large round needle scale on its stand, isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame. Keep its exact look, materials, wear and colours. The big dial shows only plain tick marks and one needle, no numbers. Vertical 2:3 image. Nothing else in the image. No text, no numbers, no logos."
+ },
+ {
+  "name": "baan__outside",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, bright natural afternoon daylight. A small old one-storey Thai wooden house on low stilts in a narrow residential soi beside a canal: weathered dark teak planks, a rusty corrugated tin roof, a small wooden front porch with a wooden folding door, potted plants in old tins, laundry on a line, a cracked concrete path in front. Wide establishing view at eye level, deep focus, everything sharp. No people at all, no animals. Vertical 2:3 image. Realistic, lived-in, slightly worn, contemporary Thailand. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "baan__inside",
+  "continue": "baan__outside",
+  "prompt": "Now the INSIDE of this same wooden house, same materials and age: one simple room with a worn polished wooden plank floor, a woven reed mat on the floor in the middle, a low wooden cabinet against the wall with a clear glass jar of small pebbles on top of it, a small electric fan, bare wooden walls, soft daylight through open wooden window shutters. Wide view at eye level. No people. Vertical 2:3. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "jar__third",
+  "continue": "baan__inside",
+  "prompt": "From the room in this chat, show ONLY the clear glass jar with its metal screw lid, about ONE THIRD full of small smooth grey and brown river pebbles, isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame. Keep its exact look, materials, wear and colours. No label on the jar. Vertical 2:3 image. Nothing else in the image. No text, no numbers, no logos."
+ },
+ {
+  "name": "jar__full",
+  "continue": "jar__third",
+  "prompt": "The same jar, same glass, same metal lid and the same kind of small smooth grey and brown pebbles, but now filled ALMOST TO THE TOP with pebbles. Same plain light-grey backdrop, same framing and light. No label, no text. Vertical 2:3."
+ },
+ {
+  "name": "soi__canal",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, bright natural afternoon daylight. A narrow concrete footpath running along a small canal in an old Bangkok neighbourhood: old wooden houses and corrugated-roof sheds on one side, the canal with murky green water on the other, a long row of concrete electricity poles with tangled cables marching into the distance along the path, banana plants and weeds, hot bright afternoon sun. Wide establishing view at eye level, deep focus, everything sharp. No people at all, no animals. Vertical 2:3 image. Realistic, lived-in, slightly worn, contemporary Thailand. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "fac__weigh",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, bright natural afternoon daylight. The weighing area of a large recycling factory on the outskirts of Bangkok: a big open concrete yard, a large flat steel truck platform scale set into the ground with a small booth beside it, tall stacks of compressed bales of crushed clear plastic bottles bound with wire, a forklift parked in the background, a high corrugated steel warehouse wall, harsh midday sun. Wide establishing view at eye level, deep focus, everything sharp. No people at all, no animals. Vertical 2:3 image. Realistic, lived-in, slightly worn, contemporary Thailand. No readable text anywhere: no signs, no shop names, no printed labels, no numbers, no license plates, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "sack",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama. A single large white woven polypropylene sack stuffed full of empty clear plastic drinking bottles with no labels, tied at the top with a length of rope, standing upright, slightly dusty. Isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame, sharp focus. Vertical 2:3 image. Nothing else in the image. No logos, no brand marks, no text, no numbers. No watermark."
+ },
+ {
+  "name": "cart",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama. An old hand-pushed two-wheeled metal cart used by a Thai street bottle collector: a rectangular welded steel frame basket, rusty in places, two bicycle-style wheels, a long handle wrapped with worn cloth, one white woven sack of clear bottles sitting in it. Isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame, sharp focus. Vertical 2:3 image. Nothing else in the image. No logos, no brand marks, no text, no numbers. No watermark."
+ },
+ {
+  "name": "pickup__empty",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama. An old, dusty white single-cab pickup truck with an empty open cargo bed and dented side rails, three-quarter front view, standing on a plain light-grey studio floor. No license plate at all, no badges, no brand emblem. Isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame, sharp focus. Vertical 2:3 image. Nothing else in the image. No logos, no brand marks, no text, no numbers. No watermark."
+ },
+ {
+  "name": "pickup__loaded",
+  "continue": "pickup__empty",
+  "prompt": "The same pickup truck from the same angle, same paint, dents and dust, now with its cargo bed piled high with large compressed bales of crushed clear plastic bottles tied with rope, stacked above the cab roof. Same plain light-grey backdrop. No license plate, no emblem, no logos, no text. Vertical 2:3."
+ },
+ {
+  "name": "money",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama: a small loose fanned stack of prop banknotes lying on a plain light-grey surface, seen from above at a slight angle, soft even light. The banknotes are plain fictional prop money, not the currency of any real country: soft pastel paper in even tones, a simple printed numeral in one corner, a plain abstract line pattern at the edges, and nothing else. No portrait or face of any kind on the notes. No national emblem, crest, seal, flag or country name. No real-world currency symbol, no serial numbers, no signatures, no microtext, no watermark. Worn and soft with handling. Vertical 2:3 image."
+ },
+ {
+  "name": "wallet",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama. An old, worn brown leather bi-fold men's wallet, closed, the leather creased, darkened and scuffed at the corners, nothing sticking out of it. Isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame, sharp focus. Vertical 2:3 image. Nothing else in the image. No logos, no brand marks, no text, no numbers. No watermark."
+ },
+ {
+  "name": "envelope",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama. A plain white paper envelope, sealed, slightly thick with something inside, completely blank on both sides: no writing, no printing, no stamps. Isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame, sharp focus. Vertical 2:3 image. Nothing else in the image. No logos, no brand marks, no text, no numbers. No watermark."
+ },
+ {
+  "name": "notebook",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama. A Thai primary-school exercise notebook, closed, with a plain solid light-blue cover and no printing, no labels and no writing, slightly dog-eared corners, a cheap wooden pencil lying on top. Isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole object in frame, sharp focus. Vertical 2:3 image. Nothing else in the image. No logos, no brand marks, no text, no numbers. No watermark."
+ }
+]
