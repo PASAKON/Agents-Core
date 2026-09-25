@@ -428,6 +428,13 @@ done
 # binary's own strings for the var name rather than assuming it.
 export DISABLE_AUTOUPDATER=1
 
+# Belt-and-braces auto-compact window (task-9f6fec26): claude-home/settings.json
+# carries the same 300000 at its documented `autoCompactWindow` key, but the
+# env var wins on priority and is the only form that reaches a box where
+# settings.json is a stale copy rather than the Mac's live symlink.
+: "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:=300000}"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW
+
 # INITIAL_PROMPT (ephemeral --spawn from tools/send_to_cxo.py) rides in as
 # claude's final positional argv, same as ARGS above -- a `claude` process
 # started with a positional prompt auto-submits it instantly, zero

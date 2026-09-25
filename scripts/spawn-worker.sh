@@ -29,6 +29,13 @@ TASK_ID="${2:?usage: spawn-worker.sh <role> <task_id>}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Belt-and-braces auto-compact window (task-9f6fec26): claude-home/settings.json
+# carries the same 300000 at its documented `autoCompactWindow` key. Exported
+# here because runners/worker_init.py copies os.environ into the env it hands
+# os.execvpe("claude", ...) -- this reaches the actual worker process.
+: "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:=300000}"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW
+
 # The module that actually runs a worker. If this is ever renamed again, this
 # single line is the only thing that changes -- and no session needs a restart.
 WORKER_MODULE="runners.worker_init"

@@ -107,6 +107,12 @@ fi
 export GIT_TERMINAL_PROMPT=0
 export GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
 
+# Belt-and-braces auto-compact window (task-9f6fec26): claude-home/settings.json
+# carries the same 300000 at its documented `autoCompactWindow` key, but on
+# Contabo that file is a copy, not a live symlink, so it can drift stale.
+: "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:=300000}"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW
+
 # --- 1. Clone (first use) or fetch (repeat use) ---
 if [ ! -d "$REPO_PATH/.git" ]; then
   mkdir -p "$(dirname "$REPO_PATH")"
