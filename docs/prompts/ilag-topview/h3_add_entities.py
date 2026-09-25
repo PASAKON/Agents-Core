@@ -2,7 +2,7 @@
 
 API as briefed by CTO cto-6bfdc084 (2026-09-25): POST /api/upload (multipart, correct MIME) -> {"file"},
 POST /api/entities {kind,name,atId,notes,refs:[{id,kind,file,label}]}; atId is made unique server-side.
-WARNING: the POST response is the WHOLE entity list; it is discarded unread (-o /dev/null).
+WARNING: the POST response is the WHOLE entity list; it is discarded unread. Only a 409 (duplicate name, ComfyRunpod 662d9b8) body is read, for the clashing id. New entities carry "group": GROUP.
 CEO: "ห้ามยุ่งหรือดูรูปอื่นๆ ที่แอดไว้นะ อันนั้นงานของคนอื่น" -> this script never prints, opens or edits
 anybody else's entity: it reads the existing atIds into memory only to refuse a collision, and it
 touches nothing but the rows it creates. One request at a time (the API has no lock).
@@ -14,6 +14,9 @@ from pathlib import Path
 
 BASE = "http://100.64.2.37:4100"
 HERE = Path(__file__).parent
+# Every entity of this film goes in one studio group (ComfyRunpod 662d9b8); the CEO's own
+# entities sit in other groups and are never touched.
+GROUP = "ILAG TopView"
 
 
 def curl(*args):
@@ -57,10 +60,27 @@ def main():
     done = []
     for e, p in plan:
         up = json.loads(curl("-F", f"file=@{p};type=image/png", f"{BASE}/api/upload"))
-        body = {"kind": e["kind"], "name": e["name"], "atId": e["atId"], "notes": e["description"],
+        body = {"kind": e["kind"], "name": e["name"], "atId": e["atId"], "notes": e["description"], "group": GROUP,
                 "refs": [{"id": "r1", "kind": "image", "file": up["file"], "label": "identity"}]}
-        curl("-o", "/dev/null", "-H", "Content-Type: application/json", "-d", json.dumps(body), f"{BASE}/api/entities?return=saved")
-        # Even with ?return=saved (live since da6116c) the body is discarded; the POST without it answers with EVERY entity (other people's included): never print or keep that body.
+        resp = HERE / ".entity-post.json"
+        code = curl("-o", str(resp), "-w", "%{http_code}", "-H", "Content-Type: application/json",
+                    "-d", json.dumps(body), f"{BASE}/api/entities?return=saved").strip()
+        try:
+            if code == "409":
+                # Duplicate name (ComfyRunpod 662d9b8): the body names the entity that already has it.
+                # Treat it as "already exists, use that id"; never retry with a suffix.
+                err = json.loads(resp.read_text(encoding="utf-8") or "{}")
+                cid = next((v for k, v in err.items() if "id" in k.lower() and isinstance(v, str)), None)
+                done.append({"atId": e["atId"], "server_atId": None, "id": cid, "upload": up["file"],
+                             "md5": e["md5"], "status": "exists-409"})
+                print(f"@{e['atId']:15} -> 409 name already exists, id {cid}; not created")
+                continue
+            if code not in ("200", "201"):
+                raise SystemExit(f"POST /api/entities for @{e['atId']} answered HTTP {code}")
+        finally:
+            # Even with ?return=saved the success body is discarded unread; without it the POST
+            # answers with EVERY entity (other people's included). Only a 409 error body is read.
+            resp.unlink(missing_ok=True)
         # Find our row by the upload filename, which only this run knows.
         rows = json.loads(curl(f"{BASE}/api/entities"))
         ent = next((r for r in rows if any(isinstance(x, dict) and x.get("file") == up["file"] for x in r.get("refs", []))), {})
