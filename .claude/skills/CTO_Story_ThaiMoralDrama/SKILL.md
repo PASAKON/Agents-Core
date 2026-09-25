@@ -127,96 +127,6 @@ has no medicine is the reason the ending is allowed to happen.
 
 ---
 
-## ⛔ Money on screen is invented prop money (CEO 2026-09-18)
-
-A prop plate asked for "worn folded Thai banknotes, no readable text" came back
-as a fully legible 20-baht note — `รัฐบาลไทย` readable, the denomination
-readable, serial numbers readable, and a recognisable portrait of King Rama IX.
-Four of four money shots in the first Act 1 shoot did the same thing: the model
-draws a real Thai note whenever a prompt says "banknotes", whether or not a money
-chip is attached.
-
-My first fix was to hide the money — closed hands, sealed envelopes, the edge of
-a fold. The CEO replaced it with a better one:
-
-> "เราไม่ต้องทำเหมือนของจริงก็ได้ มันเหมือนเกินไป ... ให้เป็นเงินกาโม้แทนได้เลย"
-
-**Change what the notes ARE, and the scene can be shot openly.** A father
-counting money at his counter is good drama; hiding it in every shot was solving
-a legal problem by amputating a storytelling one.
-
-The block, pasted into every shot where money appears:
-
-```
-The banknotes are plain fictional prop money, not the currency of any real
-country: soft pastel paper in even tones, a simple printed numeral in one corner,
-a plain abstract line pattern at the edges, and nothing else. No portrait or face
-of any kind on the notes. No national emblem, crest, seal, flag or country name.
-No real-world currency symbol, no serial numbers, no signatures, no microtext, no
-watermark. Worn and soft with handling.
-```
-
-**Foreign currency is not the safer option.** Dollars, euro, yen and yuan all
-carry portraits, landmarks and protected security designs; swapping one country's
-note for another's trades a Thai problem for someone else's. Invented money
-belongs to nobody.
-
-Two things this does not change: the amount is still **spoken**, never read off a
-note — a spoken number cannot warp and cannot be missed. And a man whose whole
-story is that he never writes anything down still gets `no notebook, no pen, no
-paper` in the same block, because the model reaches for a ledger whenever someone
-counts.
-
-## ⛔ Look at every plate before writing a shot sheet (CEO 2026-09-18)
-
-> "คุณเขียนบทหนัง แต่คุณไม่เคยดูภาพจริงของตัวละครและสถานที่นั้นๆ เลย"
-
-Act 1 was written twice — 48 shots, then 34 — from appearance blocks I had typed
-myself. Those blocks were my memory of the plates, not the plates. Opening one
-montage afterwards found three errors in ninety seconds:
-
-- the grandmother's hair was written "cropped very short and thinning"; the plate
-  has a thick short white bob
-- the lender was written "going soft at the waist" with "slicked-back" hair; the
-  plate is a lean man with ordinary short hair
-- **the shop's staircase was written "at the back"; in the plate it is in the
-  middle of the room** — and the plate's loudest features, a central pillar and
-  bright red, blue and green plastic stools, appear nowhere in any prompt
-
-The last one is the dangerous kind: every prompt was describing a room that does
-not exist, and the model was filling the gap by inventing one. That is exactly
-the bedroom-drift we spent the day chasing.
-
-**The rule: before writing or revising any shot sheet, look at every plate the
-episode uses — characters, locations, props — at least once.**
-
-### How to look, without burning the context
-
-Do NOT open plates one at a time. An image costs context whether or not it
-earned it, and fifteen separate looks cost fifteen times one look.
-
-```bash
-python3 tools/plate_montage.py <out.jpg> docs/reports/<plate-dir>/ [more dirs...]
-```
-
-It tiles everything into one labelled sheet, sized so faces stay readable — it
-picks the column count from the plate count and targets ~1600px wide. Look at
-that single image, write the appearance blocks **from what you see**, then write
-the sheet.
-
-If the montage has fallen out of context by the time you are revising, build it
-and look again. Once per writing session is the cost, and it is cheap.
-
-### Where the plates live
-
-Plates are downloaded **once** and kept — the repo for now, Drive under the ILAG
-rules once the folder is approved. Do not send an operator to re-download them
-for every script; that is a paid browser run to fetch files we already have.
-
-**When a character or location plate is regenerated, the stored copy must be
-replaced in the same turn.** A stale plate is worse than none: it will be
-believed, and every later script inherits the error.
-
 ## The spoken lines carry everything (CEO, and this is the hard one)
 
 > "ตัวละครขับเนื้อเรื่อง คนดูเข้าใจแม้ไม่ได้ดูภาพ บทพูดต้องสมเหตุสมผล
@@ -499,24 +409,22 @@ format working as intended, not waste.
 
 ---
 
-## Production constraints that shape the writing (Google Flow)
+## Shooting it in Google Flow: what changes what you may write
 
-The full operating manual is `google-flow-ops`. Three things belong here because
-they change what you are allowed to write:
+The engine skills own this; the story side only needs to know where to look:
+- what Flow silently deletes (handcuffs; a uniform beside police lights; the word "police" on a uniform
+  plate), night on a day plate, nobody healthy on a sickbed, wardrobe, and money or any prop with a strong
+  local prior: `CTO_Flow_Omni1.1_Continuity` (Structure gate 7 runs it).
+- text and signs in frame, the prompt overriding the reference image, and voices, which bind to the
+  character (so three people can argue in one shot): `CTO_Flow_Omni1.1_Ops`.
+- two sections that lived here until 2026-09-25 and are production, not story: money on screen is
+  invented prop money (CEO 2026-09-18), and look at every plate before writing a shot sheet (CEO
+  2026-09-18). Both are in `CTO_Flow_Omni1.1_Continuity` (§Money on screen is invented prop money,
+  §Write it from the plates, never from memory).
 
-1. **Text and numbers render as garbage.** The model cannot write Thai script or
-   digits legibly. Never write a shot that requires reading a screen, a sign, a
-   receipt or a document. Our own dialogue rule already solves this — the numbers
-   are spoken — so design around it deliberately: the phone is face down, the
-   sign is out of focus, the ledger is scratches rather than writing.
-2. **The prompt overrides the reference image, silently.** A detail a prompt does
-   not mention is not preserved, it is surrendered. So every character, location
-   and prop gets an **asset sheet** entry written by looking at the plate once,
-   and every later prompt is assembled by quoting that sheet.
-3. **A voice binds to the character, not the shot** — which is why this format
-   can have three people arguing in one shot at all. Cast every speaking part
-   before the first frame is generated, and never reuse a preset inside one
-   story.
+This section used to restate three Flow rules (inventory item 8). Two were duplicates and now only point;
+the third, "text and numbers render as garbage", was superseded by Flow's own measurement and is kept, with
+its evidence, in `CTO_Flow_Omni1.1_Ops` §Thai text.
 
 ---
 
@@ -573,11 +481,11 @@ Flow's free stills.
    shot on a new place; a jump in time ("หนึ่งปีต่อมา") gets a card or an unmistakable
    visual marker. `continuity_sheet.py` prints every such TRANSITION.
 7. **The story is checked against what the generator refuses before it is locked.** On
-   Flow: no handcuffs, no uniform next to police lights, no real currency, a night
-   plate for every night scene, nobody healthy on a sickbed (see
-   `CTO_Flow_Omni1.1_Continuity`). A beat the generator deletes is a beat to rewrite
-   on paper, not after the credits are spent.
-8. **One free still per scene before any video** (Flow's image model costs 0 credits).
+   Flow, that list is `CTO_Flow_Omni1.1_Continuity` (its rules and flags: what Flow
+   deletes, night plates, sickbeds, props). A beat the generator deletes is a beat to
+   rewrite on paper, not after the credits are spent.
+8. **One free still per scene before any video** (stills are free on Flow:
+   `CTO_Flow_Omni1.1_Ops` §Money).
    Staging, wardrobe, who is in frame and day/night are visible in a still; seeing
    them there is free, seeing them in a 720p clip costs ~12 credits a take.
 

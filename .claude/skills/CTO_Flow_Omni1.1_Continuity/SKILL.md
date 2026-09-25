@@ -257,6 +257,52 @@ are re-arguing with the model's prior on every single shot.
 
 A time of day behaves the same way: rule 2.
 
+### Money on screen is invented prop money (CEO 2026-09-18; moved from the story skill)
+
+A prop plate asked for "worn folded Thai banknotes, no readable text" came back
+as a fully legible 20-baht note — `รัฐบาลไทย` readable, the denomination
+readable, serial numbers readable, and a recognisable portrait of King Rama IX.
+Four of four money shots in the first Act 1 shoot did the same thing: the model
+draws a real Thai note whenever a prompt says "banknotes", whether or not a money
+chip is attached.
+
+My first fix was to hide the money — closed hands, sealed envelopes, the edge of
+a fold. The CEO replaced it with a better one:
+
+> "เราไม่ต้องทำเหมือนของจริงก็ได้ มันเหมือนเกินไป ... ให้เป็นเงินกาโม้แทนได้เลย"
+
+**Change what the notes ARE, and the scene can be shot openly.** A father
+counting money at his counter is good drama; hiding it in every shot was solving
+a legal problem by amputating a storytelling one.
+
+**Foreign currency is not the safer option.** Dollars, euro, yen and yuan all
+carry portraits, landmarks and protected security designs; swapping one country's
+note for another's trades a Thai problem for someone else's. Invented money
+belongs to nobody.
+
+The invented money the CEO ruled for:
+
+```
+The banknotes are plain fictional prop money, not the currency of any real
+country: soft pastel paper in even tones, a simple printed numeral in one corner,
+a plain abstract line pattern at the edges, and nothing else. No portrait or face
+of any kind on the notes. No national emblem, crest, seal, flag or country name.
+No real-world currency symbol, no serial numbers, no signatures, no microtext, no
+watermark. Worn and soft with handling.
+```
+
+**What carries it into the shot is an Element, not these words** (decision 2026-09-25, inventory item 7:
+the 2026-09-22 measurement above is later and contradicts the words-only fix). Make the invented money
+the prop, bind the prop in every money shot, and check the plate itself before binding it; on banchi the
+plate that held was a plain envelope (rule 7). [SUPERSEDED 2026-09-22 by §Anything that must look a
+specific way needs an Element, 6 clips lost with the words alone (task-e960f3ca): the story skill's
+2026-09-18 fix, "The block, pasted into every shot where money appears".]
+
+Two things this does not change: the amount is still spoken, never read off a note
+(`CTO_Story_ThaiMoralDrama`, "Every number is spoken"); and a man whose whole story is that he never
+writes anything down still gets `no notebook, no pen, no paper` wherever money is counted, because the
+model reaches for a ledger whenever someone counts (the NOT-LIST, below).
+
 ## The look of every character, set and prop — one sheet, quoted in every shot
 
 The principle (one written look per character, quoted into every shot) is `CTO_Film_Production` §2. On
@@ -264,6 +310,57 @@ Flow it carries more weight than anywhere, because the prompt wins over the chip
 (`CTO_Flow_Omni1.1_Ops` §Prompt grammar): a detail you do not mention is not "left as the image" — it is
 left to the model, and the model will change it. The sheet must therefore be complete enough that a
 prompt built from it has nothing to invent.
+
+### Write it from the plates, never from memory (CEO 2026-09-18; moved from the story skill) [ANY]
+
+> "คุณเขียนบทหนัง แต่คุณไม่เคยดูภาพจริงของตัวละครและสถานที่นั้นๆ เลย"
+
+Act 1 was written twice — 48 shots, then 34 — from appearance blocks I had typed
+myself. Those blocks were my memory of the plates, not the plates. Opening one
+montage afterwards found three errors in ninety seconds:
+
+- the grandmother's hair was written "cropped very short and thinning"; the plate
+  has a thick short white bob
+- the lender was written "going soft at the waist" with "slicked-back" hair; the
+  plate is a lean man with ordinary short hair
+- **the shop's staircase was written "at the back"; in the plate it is in the
+  middle of the room** — and the plate's loudest features, a central pillar and
+  bright red, blue and green plastic stools, appear nowhere in any prompt
+
+The last one is the dangerous kind: every prompt was describing a room that does
+not exist, and the model was filling the gap by inventing one. That is exactly
+the bedroom-drift we spent the day chasing.
+
+**The rule: before writing or revising any shot sheet, look at every plate the
+episode uses — characters, locations, props — at least once.** (Binding a plate is the same rule at the
+other end: `CTO_Film_Production` §3.)
+
+#### How to look, without burning the context
+
+Do NOT open plates one at a time. An image costs context whether or not it
+earned it, and fifteen separate looks cost fifteen times one look.
+
+```bash
+python3 tools/plate_montage.py <out.jpg> docs/reports/<plate-dir>/ [more dirs...]
+```
+
+It tiles everything into one labelled sheet, sized so faces stay readable — it
+picks the column count from the plate count and targets ~1600px wide. Look at
+that single image, write the appearance blocks **from what you see**, then write
+the sheet.
+
+If the montage has fallen out of context by the time you are revising, build it
+and look again. Once per writing session is the cost, and it is cheap.
+
+#### Where the plates live
+
+Plates are downloaded **once** and kept — the repo for now, Drive under the ILAG
+rules once the folder is approved. Do not send an operator to re-download them
+for every script; that is a paid browser run to fetch files we already have.
+
+**When a character or location plate is regenerated, the stored copy must be
+replaced in the same turn.** A stale plate is worse than none: it will be
+believed, and every later script inherits the error.
 
 ### The ASSET SHEET (Flow format)
 
@@ -331,7 +428,8 @@ possible, and it is cheap — it is written once and read forever.
 
 ## Reference
 
-- Tool: `tools/continuity_sheet.py` · builder: `tools/build_shotsheet.py` (`WARDROBE`, `PROPS_BY_SHOT`)
+- Tool: `tools/continuity_sheet.py` · builder: `tools/build_shotsheet.py` (`WARDROBE`, `PROPS_BY_SHOT`) ·
+  plates: `tools/plate_montage.py`
 - Evidence: `docs/scripts/banchi-RETRO.md`
 - Platform: `CTO_Flow_Omni1.1_Ops` · clip review: `CTO_Flow_Omni1.1_FilmQC` · story side:
   `CTO_Story_ThaiMoralDrama` (Structure gate)
