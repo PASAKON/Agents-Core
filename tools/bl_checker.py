@@ -2,17 +2,18 @@
 """BLACK LIQUIDITY Checker -- judge a rendered cut by machine (task-67bb7a11).
 
 No images loop, no judgment calls at render-review time: given the finished
-MP4 and the beats table the Scripter wrote, run four mechanical checks and
+MP4 and the beats table the Scripter wrote, run five mechanical checks and
 exit 1 if any fails.
 
 Usage:
     python3 tools/bl_checker.py --video final.mp4 --beats beats.json \
-        [--face-box x,y,w,h]
+        [--face-box x,y,w,h] [--composition cut/index.html]
 """
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -21,35 +22,84 @@ from typing import Any
 CANVAS_W, CANVAS_H = 1080, 1920
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 1. Empty frames -- EXACTLY the CTO's detector from
+# 1. Empty frames -- the CTO's original detector from
 #    worktrees/mooniex-agents__video_editor__task-501f1d89/CTO-FEEDBACK.md
-#    (fps=4, 270x480 gray, mask the bug + legal-label zones, std<12).
-#    Target per that review: none after the first 0.25s.
+#    (fps=4, 270x480 gray, mask the bug + legal-label zones, std<12), UPGRADED
+#    2026-09-25 (task-1678d38e, blackliquidity-cut SKILL.md field note
+#    "2026-09-25 [MISSING] §gate"): that 4fps grid samples every 0.25s, so a
+#    single dropped/black frame (1/30s = 0.033s) only gets caught if it
+#    happens to land on a sampled instant -- it missed exactly this at
+#    EP57 76.37s (whole-frame mean 13 vs 147 on both neighbouring frames).
+#    Now sampled at the render's real 30fps, plus a per-frame MEAN dip check
+#    that catches a single dark frame between two normal ones even when its
+#    own std is high (a dark but non-uniform frame would slip the std<12
+#    test alone). Target per the CTO review: none after the first 0.25s.
 # ═══════════════════════════════════════════════════════════════════════════
 
-EMPTY_FRAME_W, EMPTY_FRAME_H, EMPTY_FRAME_FPS = 270, 480, 4
+EMPTY_FRAME_W, EMPTY_FRAME_H, EMPTY_FRAME_FPS = 270, 480, 30
 EMPTY_FRAME_STD_THRESHOLD = 12
 EMPTY_FRAME_IGNORE_BEFORE = 0.25  # seconds -- an opening black frame is tolerated
 
+# Single-frame dip: a frame whose whole-frame mean drops well below BOTH its
+# immediate neighbours, even if the frame itself isn't perfectly flat (so a
+# std<12 check alone can miss it). EP57 76.37s measured mean 13 vs 147/147 --
+# ratio ~0.09, gap ~134. These thresholds catch that with wide margin while
+# leaving ordinary cut-to-cut brightness changes (a bright plate following a
+# dark one) alone, because a real cut only differs from ONE neighbour, not
+# both -- a dip is dark on both sides.
+DIP_MIN_GAP = 40          # neighbour mean must exceed this frame's mean by >= this many levels (0-255)
+DIP_MAX_RATIO = 0.5       # and this frame's mean must be <= this fraction of the DARKER neighbour's mean
 
-def detect_empty_frames(video_path: Path, ignore_before: float = EMPTY_FRAME_IGNORE_BEFORE) -> list[float]:
+
+def _frame_stats(video_path: Path, fps: int, w: int, h: int) -> tuple["np.ndarray", "np.ndarray"] | None:
+    """(means, stds) per sampled frame, each masked to exclude the standing
+    brand-bug and legal-label zones (they are never empty, so including them
+    would hide a genuinely empty frame behind their own contrast)."""
     import numpy as np
 
-    W, H = EMPTY_FRAME_W, EMPTY_FRAME_H
     raw = subprocess.run(
         ["ffmpeg", "-v", "error", "-i", str(video_path),
-         "-vf", f"fps={EMPTY_FRAME_FPS},scale={W}:{H},format=gray", "-f", "rawvideo", "-"],
+         "-vf", f"fps={fps},scale={w}:{h},format=gray", "-f", "rawvideo", "-"],
         capture_output=True,
     ).stdout
     if not raw:
+        return None
+    a = np.frombuffer(raw, np.uint8).reshape(-1, h, w).astype(np.float32)
+    m = np.ones((h, w), bool)
+    m[int(h * .12):int(h * .24), int(w * .55):] = False  # brand bug, top-right
+    m[int(h * .66):int(h * .74), :] = False               # legal label band
+    means = np.array([frame[m].mean() for frame in a])
+    stds = np.array([frame[m].std() for frame in a])
+    return means, stds
+
+
+def detect_empty_frames(video_path: Path, ignore_before: float = EMPTY_FRAME_IGNORE_BEFORE,
+                         fps: int = EMPTY_FRAME_FPS) -> list[float]:
+    stats = _frame_stats(video_path, fps, EMPTY_FRAME_W, EMPTY_FRAME_H)
+    if stats is None:
         return []
-    a = np.frombuffer(raw, np.uint8).reshape(-1, H, W).astype(np.float32)
-    m = np.ones((H, W), bool)
-    m[int(H * .12):int(H * .24), int(W * .55):] = False  # brand bug, top-right
-    m[int(H * .66):int(H * .74), :] = False               # legal label band
-    std = np.array([frame[m].std() for frame in a])
-    times = [round(i / EMPTY_FRAME_FPS, 2) for i in range(len(std))]
-    return [t for t, s in zip(times, std) if s < EMPTY_FRAME_STD_THRESHOLD and t >= ignore_before]
+    means, stds = stats
+    times = [round(i / fps, 3) for i in range(len(stds))]
+
+    flagged: set[float] = set()
+
+    # flat/dark stretch (std<12 over the masked frame) -- catches a held
+    # black/empty plate of any length.
+    for t, s in zip(times, stds):
+        if t >= ignore_before and s < EMPTY_FRAME_STD_THRESHOLD:
+            flagged.add(t)
+
+    # single-frame dip -- dark on BOTH sides, regardless of its own std, so a
+    # one-frame drop between two busy (high-std) frames is still caught.
+    for i in range(1, len(means) - 1):
+        if times[i] < ignore_before:
+            continue
+        left, cur, right = means[i - 1], means[i], means[i + 1]
+        darker_neighbour = min(left, right)
+        if darker_neighbour - cur >= DIP_MIN_GAP and (darker_neighbour <= 0 or cur <= darker_neighbour * DIP_MAX_RATIO):
+            flagged.add(times[i])
+
+    return sorted(flagged)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -168,16 +218,23 @@ def check_credit_missing(beats: list[dict]) -> list[str]:
 # 3. Text over face -- a caption/kinetic slot intersecting --face-box on
 #    FF/COMP beats. beats.json carries no rendered caption position (that's
 #    the HyperFrames generator's job downstream), so this is a documented
-#    approximation of where the kit conventionally puts the spoken-caption
-#    chip (SKILL.md §6d): "chest height" in full-frame, "~37-40% of the
-#    height, just above the head" when composited. No --face-box -> skipped.
+#    approximation of where the caption band actually sits.
+#
+#    UPDATED 2026-09-25 (task-1678d38e): SKILL.md §6d's old per-mode chip
+#    position ("chest height" in full-frame, "~37-40% of the height, just
+#    above the head" when composited) is [SUPERSEDED] -- the CEO rejected
+#    that three-look caption scheme (see SKILL.md §6d and §6f). The template's
+#    single `caption()` generator now puts every caption at the SAME fixed
+#    band regardless of mode (EP55's `.caplayer { top: 1300px }`, a
+#    single/double line of 48px/600 text plus its 20px band padding spans
+#    roughly y 1210-1390 on the 1920 canvas). That range is numerically the
+#    same as the old FF-only band below, so the FF numbers are kept and now
+#    apply to every mode with a caption, not just FF.
 # ═══════════════════════════════════════════════════════════════════════════
 
 def caption_band(mode: str, canvas_h: int = CANVAS_H) -> tuple[float, float] | None:
-    if mode == "FF":
+    if mode in ("FF", "COMP"):
         return 0.62 * canvas_h, 0.72 * canvas_h
-    if mode == "COMP":
-        return 0.37 * canvas_h, 0.42 * canvas_h
     return None
 
 
@@ -201,20 +258,71 @@ def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float,
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 4. One caption style per episode -- CEO 2026-09-25: EP57 shipped three
+#    different caption looks (a 38px chip that changed height every line, a
+#    flat full-width strip, and plain outlined text with no backing at all)
+#    because its generator (`assemble.py`'s `addCap`, on
+#    origin/agent/video_editor-task-501f1d89) branched its visual treatment
+#    on a `kind` argument ("chip-ff" / "chip-comp" / "rail"). The template's
+#    fix (SKILL.md §6f) is a single `caption(at, out, text)` generator with
+#    no such branch -- a compliant composition's script only ever calls it
+#    one way, so it can only ever produce one caption look.
+#
+#    Detector: read the distinct "style signatures" a composition's
+#    <script> actually uses for its captions --
+#      1. any `addCap(..., "<kind>", ...)` calls (the old, now-forbidden
+#         shape) -- one signature per distinct `kind` literal;
+#      2. else, if the new `caption(...)` generator is called at all, that
+#         is one signature ("caption") regardless of call count -- it has
+#         no style parameter to vary;
+#      3. else, a hand-rolled `class="cap..."` div with its own inline
+#         `style="..."` -- one signature per distinct inline style string
+#         (covers a composition that bypasses both generators).
+#    More than one distinct signature -- fail.
+# ═══════════════════════════════════════════════════════════════════════════
+
+_ADDCAP_KIND_RE = re.compile(
+    r'addCap\(\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*"(?:[^"\\]|\\.)*"\s*,\s*"([a-zA-Z0-9_-]+)"')
+_CAPTION_CALL_RE = re.compile(r'(?<![A-Za-z0-9_])caption\(')
+_CAP_CLASS_STYLE_RE = re.compile(r'class="cap[^"]*"[^>]*?style="([^"]*)"')
+
+
+def caption_style_signatures(html_text: str) -> set[str]:
+    kinds = set(_ADDCAP_KIND_RE.findall(html_text))
+    if kinds:
+        return kinds
+    if _CAPTION_CALL_RE.search(html_text):
+        return {"caption"}
+    return set(_CAP_CLASS_STYLE_RE.findall(html_text))
+
+
+def check_one_caption_style(html_text: str | None) -> list[str]:
+    """Returns the extra (2nd, 3rd, ...) style signatures found beyond the
+    first -- empty means the composition passes (0 or 1 distinct style)."""
+    if not html_text:
+        return []
+    styles = sorted(caption_style_signatures(html_text))
+    return styles[1:] if len(styles) > 1 else []
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Runner
 # ═══════════════════════════════════════════════════════════════════════════
 
-def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, float, float, float] | None = None) -> dict:
+def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, float, float, float] | None = None,
+                 composition_html: str | None = None) -> dict:
     empty = detect_empty_frames(video_path)
     unsafe = check_out_of_safe_area(beats)
     text_over = check_text_over_face(beats, face_box)
     credit_bad = check_credit_missing(beats)
+    caption_styles_bad = check_one_caption_style(composition_html)
     return {
-        "pass": not (empty or unsafe or text_over or credit_bad),
+        "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad),
         "empty_frames": empty,
         "out_of_safe_area": unsafe,
         "text_over_face": text_over,
         "credit_missing": credit_bad,
+        "extra_caption_styles": caption_styles_bad,
     }
 
 
@@ -230,6 +338,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--video", required=True)
     ap.add_argument("--beats", required=True)
     ap.add_argument("--face-box", default=None, help="x,y,w,h in canvas px")
+    ap.add_argument("--composition", default=None, help="the composed index.html (for the one-caption-style gate)")
     ap.add_argument("--out", default=None, help="write the result JSON here too")
     return ap
 
@@ -237,7 +346,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
     beats = json.loads(Path(args.beats).read_text(encoding="utf-8"))
-    result = run_checker(Path(args.video), beats, parse_box(args.face_box))
+    composition_html = Path(args.composition).read_text(encoding="utf-8") if args.composition else None
+    result = run_checker(Path(args.video), beats, parse_box(args.face_box), composition_html)
     text = json.dumps(result, indent=2, ensure_ascii=False)
     print(text)
     if args.out:

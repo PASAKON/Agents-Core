@@ -40,6 +40,28 @@ def _video_with_black_gap(path: Path, seg: float = 0.6) -> None:
     ])
 
 
+def _video_with_single_frame_dip(path: Path, content_frames: int = 16, rate: int = 30) -> None:
+    """testsrc -> EXACTLY one black frame -> testsrc, frame-accurate (trim by
+    frame count, not by duration, so the dip is guaranteed to be one frame
+    long regardless of `rate`). `content_frames` is deliberately NOT a
+    multiple of the old 4fps grid's sample spacing (rate/4 frames) so the
+    regression this reproduces -- EP57 76.37s, a single dropped frame the old
+    4fps sampling never landed on -- is faithfully modelled at 30fps too."""
+    W, H = ck.EMPTY_FRAME_W, ck.EMPTY_FRAME_H
+    _run([
+        "ffmpeg", "-y", "-v", "error",
+        "-f", "lavfi", "-i", f"testsrc=size={W}x{H}:rate={rate}",
+        "-f", "lavfi", "-i", f"color=black:size={W}x{H}:rate={rate}",
+        "-f", "lavfi", "-i", f"testsrc=size={W}x{H}:rate={rate}",
+        "-filter_complex",
+        f"[0:v]trim=start_frame=0:end_frame={content_frames},setpts=PTS-STARTPTS[a];"
+        f"[1:v]trim=start_frame=0:end_frame=1,setpts=PTS-STARTPTS[b];"
+        f"[2:v]trim=start_frame=0:end_frame={content_frames},setpts=PTS-STARTPTS[c];"
+        "[a][b][c]concat=n=3:v=1:a=0[v]",
+        "-map", "[v]", "-r", str(rate), "-pix_fmt", "yuv420p", str(path),
+    ])
+
+
 # ─────────────────────────── 1. empty frames ─────────────────────────────
 
 def test_detect_empty_frames_continuous_video_passes(tmp_path):
@@ -70,6 +92,49 @@ def test_detect_empty_frames_ignores_before_grace_window(tmp_path):
         "-pix_fmt", "yuv420p", str(video),
     ])
     assert ck.detect_empty_frames(video) == []
+
+
+def test_detect_empty_frames_catches_single_frame_dip_at_30fps_but_not_4fps(tmp_path):
+    # Reproduces the exact field note: EP57 76.37s, a single dropped/black
+    # frame between two normal ones, sitting at a time the old 4fps sample
+    # grid (0, 0.25, 0.5, 0.75s...) never lands on.
+    video = tmp_path / "dip.mp4"
+    _video_with_single_frame_dip(video, content_frames=16, rate=30)
+    at_30 = ck.detect_empty_frames(video, fps=30)
+    assert at_30, "expected the single black frame to be caught sampling at 30fps"
+    assert all(0.5 <= t <= 0.6 for t in at_30)
+
+    at_4 = ck.detect_empty_frames(video, fps=4)
+    assert at_4 == [], "a coarse 4fps grid should miss a single 1/30s-long dip -- this is the bug being fixed"
+
+
+def test_detect_empty_frames_dip_caught_even_when_frame_is_not_flat(monkeypatch, tmp_path):
+    # Isolates the MEAN-dip logic from the std<12 flat/black test: a frame
+    # whose own std stays well above 12 (it isn't a uniform black frame) but
+    # whose mean drops far below both neighbours must still be flagged --
+    # "whole-frame mean drops far below both neighbours", not "is flat".
+    import numpy as np
+
+    means = np.array([140.0, 142.0, 20.0, 141.0, 139.0])
+    stds = np.array([50.0, 48.0, 30.0, 49.0, 47.0])
+    monkeypatch.setattr(ck, "_frame_stats", lambda *a, **kw: (means, stds))
+    video = tmp_path / "irrelevant.mp4"
+    video.write_bytes(b"")
+    flagged = ck.detect_empty_frames(video, ignore_before=0.0, fps=30)
+    assert flagged == [round(2 / 30, 3)]
+
+
+def test_detect_empty_frames_no_dip_when_only_one_neighbour_is_darker(monkeypatch, tmp_path):
+    # A real cut from a bright plate to a dark one differs from only ONE
+    # neighbour, not both -- must not be flagged as a dip.
+    import numpy as np
+
+    means = np.array([140.0, 138.0, 30.0, 28.0, 25.0])
+    stds = np.array([50.0, 48.0, 40.0, 38.0, 35.0])
+    monkeypatch.setattr(ck, "_frame_stats", lambda *a, **kw: (means, stds))
+    video = tmp_path / "irrelevant.mp4"
+    video.write_bytes(b"")
+    assert ck.detect_empty_frames(video, ignore_before=0.0, fps=30) == []
 
 
 # ─────────────────────────── 2. safe area / credit ───────────────────────
@@ -143,6 +208,56 @@ def test_check_text_over_face_no_overlap_when_face_box_elsewhere():
     assert ck.check_text_over_face(beats, face_box) == []
 
 
+# ─────────────────────── 4. one caption style per episode ────────────────
+
+def test_caption_style_signatures_new_generator_is_always_one_style():
+    html = 'caption(0.1, 1.08, "hi"); caption(1.15, 4.32, "another line");'
+    assert ck.caption_style_signatures(html) == {"caption"}
+    assert ck.check_one_caption_style(html) == []
+
+
+def test_caption_style_signatures_flags_the_ep57_three_kind_bug():
+    # Exactly the EP57 defect: assemble.py's addCap() branching its inline
+    # look on a `kind` argument -- three different caption looks in one
+    # episode, the CEO's own complaint 2026-09-25.
+    html = (
+        'addCap(0.10, 1.08, "hi", "chip-ff", null);'
+        'addCap(1.15, 4.32, "another", "chip-comp", 700);'
+        'addCap(4.40, 9.46, "third", "rail", null);'
+    )
+    assert ck.caption_style_signatures(html) == {"chip-ff", "chip-comp", "rail"}
+    assert ck.check_one_caption_style(html) == ["chip-ff", "rail"]
+
+
+def test_caption_style_signatures_single_addcap_kind_passes():
+    html = 'addCap(0.1, 1.0, "a", "rail", null); addCap(1.2, 2.0, "b", "rail", null);'
+    assert ck.caption_style_signatures(html) == {"rail"}
+    assert ck.check_one_caption_style(html) == []
+
+
+def test_caption_style_signatures_fallback_to_hand_rolled_inline_style():
+    html = ('<div class="cap" id="c1" style="background:red">hi</div>'
+            '<div class="cap" id="c2" style="background:blue">yo</div>')
+    assert ck.caption_style_signatures(html) == {"background:red", "background:blue"}
+    assert ck.check_one_caption_style(html) != []
+
+
+def test_check_one_caption_style_none_when_no_composition_given():
+    assert ck.check_one_caption_style(None) == []
+    assert ck.check_one_caption_style("") == []
+
+
+def test_run_checker_fails_when_composition_has_multiple_caption_styles(tmp_path):
+    video = tmp_path / "clean.mp4"
+    _continuous_video(video, dur=1.0)
+    beats = [_beat("EVID-1", "EVID", {"img": "real/x.png", "box": [200, 300, 400, 500]})]
+    html = 'addCap(0.1,1.0,"a","chip-ff",null); addCap(1.2,2.0,"b","rail",null);'
+    result = ck.run_checker(video, beats, composition_html=html)
+    assert result["pass"] is False
+    assert result["extra_caption_styles"] == ["rail"]
+    assert result["empty_frames"] == []
+
+
 # ─────────────────────────── runner / CLI ────────────────────────────────
 
 def test_run_checker_pass_true_when_everything_clean(tmp_path):
@@ -151,7 +266,8 @@ def test_run_checker_pass_true_when_everything_clean(tmp_path):
     beats = [_beat("EVID-1", "EVID", {"img": "real/x.png", "box": [200, 300, 400, 500]})]
     result = ck.run_checker(video, beats)
     assert result["pass"] is True
-    assert result == {"pass": True, "empty_frames": [], "out_of_safe_area": [], "text_over_face": [], "credit_missing": []}
+    assert result == {"pass": True, "empty_frames": [], "out_of_safe_area": [], "text_over_face": [],
+                       "credit_missing": [], "extra_caption_styles": []}
 
 
 def test_run_checker_pass_false_when_safe_area_fails(tmp_path):
