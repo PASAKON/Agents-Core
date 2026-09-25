@@ -1,0 +1,6 @@
+- 2026-09-25T00:00:00Z start: task-fcd2b95d, seg04 of BL EP57 split-editor A/B (Arm 2). Brief printed via bl_ab_run.py spawn-seg. Window [104.5333, 153.0333)s.
+- 2026-09-25T16:05:00Z read SCRIPT.tsv/timings.tsv/segments.json/PLAN.md/BRIEF-seg.md; confirmed my window covers CURIOSITY-3..5, SUMMARY-1..9 (12 lines, all shot-basename empty).
+- 2026-09-25T16:07:00Z checked avatar windows (lip_a [0,14.9) lip_b [68.3,82.95) lip_c [137.16,152.51)) against my 12 lines' t0: only SUMMARY-7/8/9 (141.48/146.08/150.8) fall inside lip_c -- FF; the other 9 are outside every window -- KIN (matches the prior Arm1 pilot's independently-reached same conclusion, commit 0034f4d7, reviewed only after deriving my own).
+- 2026-09-25T16:08:00Z reviewed media/broll/S29-S37.mp4 thumbnails (contact sheet) -- generic brand b-roll (RICH-beanie host, neon corridor, magnifying glass, files/keys, skyline), safe as darkened KIN default plates, no baked-in text.
+- 2026-09-25T16:09:00Z copied decisions.base.jsonl, ran jev_edit.py final --tsv for all 55 question rows across my 12 lines (32 agree / 11 disagree / 0 jev_wrong_at_gate), filtered decisions.jsonl down to my window's lines only.
+- 2026-09-25T16:10:02Z start: wrote beats.json (9 KIN + 3 FF), dry-run compose (--no-render) succeeded, no ComposeError (avatar-window check passed for the 3 FF beats).
