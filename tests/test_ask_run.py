@@ -1,5 +1,5 @@
-"""tools/ask_run.py and the ask_run / ask_run_wait tools in
-claude-home/mcp/mooniex-coord/index.mjs (Run Inbox P1b,
+"""tools/ask_run.py and the org MCP tools ask_run / ask_run_wait
+(lib/org_tools_registry.py -> runners/cto_mcp_server.py) (Run Inbox P1b,
 docs/design/run-inbox/DESIGN.md §6 + §13, brief run-inbox-p1b-core.md).
 
 Every networked test talks to a FAKE hub: a ThreadingHTTPServer on
@@ -12,34 +12,33 @@ Token-shaped fixtures are ASSEMBLED AT RUNTIME (_val / _shape): CI runs
 gitleaks over the full history, and a literal token-shaped string in this
 file would fail that job for good.
 
-The MCP half runs the real index.mjs under node (skipped when no node >= 18
-is found) and feeds one table of cases through both implementations, so a
-refusal cannot hold on one side and not the other.
+The MCP half calls the real FastMCP server object in-process
+(srv.mcp.call_tool, the prod path of every C-level session) and feeds one
+table of cases through it and the CLI, so a refusal cannot hold on one side
+and not the other. The C-level role list comes from policies/agents.yaml
+here too, never from a copy.
 
-Run: .venv/bin/python -m pytest tests/test_ask_run.py -q
+Run: .venv/bin/python -m pytest tests/test_ask_run.py
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
-import queue
-import shutil
-import subprocess
 import sys
 import threading
-import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import tools.ask_run as ask_run  # noqa: E402
 
-INDEX_MJS = ROOT / "claude-home" / "mcp" / "mooniex-coord" / "index.mjs"
 BLUEPRINT = ROOT / "scripts" / "contabo_blueprint.sh"
 ASK_ID = "RUN-20260925-1612-ab12"
 SCRIPT_SPEC = "Agents-Core@9df4e185:scripts/contabo_blueprint.sh"
@@ -224,13 +223,52 @@ def test_create_sends_every_optional_field_in_contract_order(hub, capsys):
 
 
 # ---------------------------------------------------------------- role gate
-@pytest.mark.parametrize("role", ["cto", "cfo", "cxo", "ceo"])
+# The C-level list is the org's own: `c_level` in policies/agents.yaml, read
+# here with PyYAML so the tool's stdlib reader is checked against a real parser.
+POLICY = ROOT / "policies" / "agents.yaml"
+POLICY_C_LEVEL = [str(r) for r in yaml.safe_load(POLICY.read_text(encoding="utf-8"))["c_level"]]
+NOT_C_LEVEL = [r for r in ("dev", "designer", "browser_operator", "cxo") if r not in POLICY_C_LEVEL]
+
+
+def test_c_level_roles_come_from_policies_agents_yaml():
+    from lib import config as org_config
+
+    assert ask_run.c_level_roles() == tuple(POLICY_C_LEVEL)
+    assert ask_run.c_level_roles() == tuple(org_config.agents()["c_level"])
+    assert "cxo" not in ask_run.c_level_roles()  # not a role key anywhere in the org
+
+
+@pytest.mark.parametrize("text", [
+    "roles: {}\nc_level: [ceo, cto, cmo, cgo, cfo]\nother: 1\n",
+    "c_level: ['ceo', \"cto\"]   # trailing comment\n",
+    "c_level:\n  - ceo\n  # a comment line\n  - cto   # why\n  - cfo\nnext_key: x\n",
+])
+def test_c_level_reader_agrees_with_yaml(tmp_path, text):
+    path = tmp_path / "agents.yaml"
+    path.write_text(text, encoding="utf-8")
+    assert ask_run.c_level_roles(path) == tuple(yaml.safe_load(text)["c_level"])
+
+
+@pytest.mark.parametrize("text", [None, "roles: {}\n", "c_level: []\n", "c_level: ceo\n"])
+def test_role_gate_fails_closed_without_a_readable_list(tmp_path, monkeypatch, capsys, text):
+    path = tmp_path / "agents.yaml"
+    if text is not None:
+        path.write_text(text, encoding="utf-8")
+    monkeypatch.setattr(ask_run, "AGENTS_POLICY", path)
+    rc = ask_run.main(["create", "--dry-run", "--host", "contabo", "--command", "uptime", "--why", "load",
+                       "--session", "cto-x", "--role", "cto"])
+    assert rc == 2
+    assert "C-level" in capsys.readouterr().err
+    assert ask_run.main(_create("--dry-run")) == 0  # a script ask never needs the list
+
+
+@pytest.mark.parametrize("role", POLICY_C_LEVEL)
 def test_command_allowed_for_c_level(role, capsys):
     assert ask_run.main(["create", "--dry-run", "--host", "contabo", "--command", "uptime",
                          "--why", "load", "--session", f"{role}-x", "--role", role]) == 0
 
 
-@pytest.mark.parametrize("role", ["dev", "designer", "cmo", "browser_operator"])
+@pytest.mark.parametrize("role", NOT_C_LEVEL)
 def test_command_refused_for_other_roles_before_any_call(hub, role, capsys):
     rc = ask_run.main(["create", "--host", "contabo", "--command", "uptime", "--why", "load",
                        "--session", f"{role}-x", "--role", role])
@@ -375,14 +413,11 @@ def test_clean_values_pass(label, build, capsys):
 
 
 def test_secret_family_is_the_blueprints():
-    """Put the rule in one family: the CLI, the MCP tool and the blueprint's
-    final pass must carry the same key alternation and key-material marker."""
+    """One family: the tool (CLI and MCP run the same code) and the
+    blueprint's final pass carry the same key alternation and key marker."""
     blueprint = BLUEPRINT.read_text(encoding="utf-8")
-    index = INDEX_MJS.read_text(encoding="utf-8")
     assert ask_run.SECRET_KEY_WORDS in blueprint
     assert ask_run.PRIVATE_KEY_MARKER in blueprint
-    assert ask_run.SECRET_KEY_WORDS in index
-    assert ask_run.PRIVATE_KEY_MARKER in index
 
 
 # --------------------------------------------------------------------- token
@@ -417,6 +452,15 @@ def test_no_token_fails_before_any_call(hub, monkeypatch, capsys):
     rc = ask_run.main(_create())
     assert rc == 3
     assert "no token" in capsys.readouterr().err
+    assert hub.requests == []
+
+
+def test_wait_without_a_token_fails_at_once_instead_of_retrying(hub, monkeypatch, capsys):
+    """A missing token is not transient: no retry loop, no request."""
+    monkeypatch.delenv("RUN_INBOX_TOKEN")
+    assert ask_run.main(["wait", ASK_ID]) == 3
+    err = capsys.readouterr().err
+    assert "no token" in err and "retry" not in err
     assert hub.requests == []
 
 
@@ -598,133 +642,87 @@ def test_bad_arguments_are_refused(argv, capsys):
     assert ask_run.main(argv) == 2
 
 
-# ======================================================== the MCP tools (node)
-def _node() -> str | None:
-    for cand in ("/opt/node-v22/bin/node", shutil.which("node")):
-        if not cand or not Path(cand).exists():
-            continue
-        try:
-            ver = subprocess.run([cand, "--version"], capture_output=True, text=True, timeout=10).stdout
-            if int(ver.strip().lstrip("v").split(".")[0]) >= 18:  # global fetch
-                return cand
-        except (OSError, ValueError, subprocess.SubprocessError):
-            continue
-    return None
+# ================================= the org MCP tools (FastMCP, in-process)
+@pytest.fixture(scope="module")
+def srv():
+    """runners/cto_mcp_server.py: the `org` server every C-level session loads."""
+    from runners import cto_mcp_server
+    return cto_mcp_server
 
 
-class McpClient:
-    """The real index.mjs over stdio, one JSON-RPC request at a time (stdin
-    stays open: the server exits on stdin close, before async tools finish)."""
-
-    def __init__(self, node: str, env: dict, workdir: Path) -> None:
-        self._stderr = open(workdir / "mcp-stderr.log", "w", encoding="utf-8")
-        self.proc = subprocess.Popen([node, str(INDEX_MJS)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                     stderr=self._stderr, env=env, cwd=str(workdir), text=True,
-                                     encoding="utf-8")
-        self.lines: queue.Queue = queue.Queue()
-        threading.Thread(target=self._pump, daemon=True).start()
-        self.next_id = 0
-
-    def _pump(self) -> None:
-        for line in self.proc.stdout:
-            self.lines.put(line)
-        self.lines.put(None)
-
-    def request(self, method: str, params: dict | None = None, timeout: float = 30.0) -> dict:
-        self.next_id += 1
-        rid = self.next_id
-        self.proc.stdin.write(json.dumps({"jsonrpc": "2.0", "id": rid, "method": method,
-                                          "params": params or {}}) + "\n")
-        self.proc.stdin.flush()
-        deadline = time.monotonic() + timeout
-        while True:
-            line = self.lines.get(timeout=max(0.1, deadline - time.monotonic()))
-            if line is None:
-                raise AssertionError("mcp server exited early")
-            msg = json.loads(line)
-            if msg.get("id") == rid:
-                return msg
-
-    def tool(self, name: str, arguments: dict) -> tuple[dict, str]:
-        result = self.request("tools/call", {"name": name, "arguments": arguments})["result"]
-        return result, result["content"][0]["text"]
-
-    def close(self) -> None:
-        try:
-            self.proc.stdin.close()
-            self.proc.wait(timeout=10)
-        except (OSError, subprocess.TimeoutExpired):
-            self.proc.kill()
-        self._stderr.close()
+def _org(srv, name: str, arguments: dict) -> str:
+    """Call a tool through FastMCP's own call_tool (schema validation included)."""
+    result = asyncio.run(srv.mcp.call_tool(name, arguments))
+    content = result[0] if isinstance(result, tuple) else result
+    return content[0].text
 
 
-@pytest.fixture
-def mcp(tmp_path):
-    node = _node()
-    if not node:
-        pytest.skip("node >= 18 not found")
-    clients: list[McpClient] = []
-
-    def start(**env_extra: str) -> McpClient:
-        home = tmp_path / "mcp-home"
-        home.mkdir(exist_ok=True)
-        env = {"PATH": os.environ.get("PATH", ""), "HOME": str(home), "RUN_INBOX_URL": "http://127.0.0.1:9",
-               **env_extra}
-        client = McpClient(node, env, tmp_path)
-        clients.append(client)
-        client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {},
-                                      "clientInfo": {"name": "pytest", "version": "0"}})
-        return client
-
-    yield start
-    for c in clients:
-        c.close()
-
-
-def test_mcp_lists_both_tools_with_the_one_rule(mcp):
-    tools = {t["name"]: t for t in mcp().request("tools/list")["result"]["tools"]}
+def test_org_server_exposes_both_tools_with_the_one_rule(srv):
+    tools = {t.name: t for t in asyncio.run(srv.mcp.list_tools())}
     for name in ("ask_run", "ask_run_wait"):
-        assert "the ceo's tap is the only authority; the tool never approves" in tools[name]["description"].lower()
-    assert tools["ask_run"]["inputSchema"]["required"] == ["host", "why"]
-    assert tools["ask_run_wait"]["inputSchema"]["required"] == ["id"]
+        assert "the ceo's tap is the only authority; the tool never approves" in tools[name].description.lower()
+    assert tools["ask_run"].inputSchema["required"] == ["host", "why"]
+    assert tools["ask_run_wait"].inputSchema["required"] == ["id"]
+    args_schema = json.dumps(tools["ask_run"].inputSchema["properties"]["args"])
+    assert '"array"' in args_schema and '"string"' in args_schema
 
 
-def test_mcp_dry_run_body_equals_the_cli_body(mcp, capsys):
+def test_the_org_tools_are_on_the_c_level_allowlist():
+    """scripts/lib/cxo_mcp_config.py fills org's --allowed-tools from the
+    registry, so registering the tools is what keeps them from prompting."""
+    sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+    import cxo_mcp_config
+
+    allowed = cxo_mcp_config._allowed_for(["org"], str(ROOT), builtins=False)
+    assert {"mcp__org__ask_run", "mcp__org__ask_run_wait"} <= set(allowed)
+
+
+def test_org_dry_run_body_equals_the_cli_body(srv, capsys):
     case = {"script": SCRIPT_SPEC, "args": ["--quick", "two words"], "expected": "a dir path",
             "cwd": "/opt/MoonieXHQ/Agents/Core", "env_keys": ["GITHUB_TOKEN"], "shell": "bash"}
     assert ask_run.main(_argv(case)) == 0
     cli_body = json.loads(capsys.readouterr().out)
-    result, text = mcp().tool("ask_run", _mcp_args(case))
-    assert not result.get("isError"), text
+    text = _org(srv, "ask_run", _mcp_args(case))
+    assert not text.startswith("ERROR"), text
     assert json.loads(text)["payload"] == cli_body
 
 
-def test_mcp_refusals_match_the_cli_case_for_case(mcp, capsys):
-    client = mcp()
+def test_org_refusals_match_the_cli_case_for_case(srv, capsys):
     for label, build in SECRET_CASES + CLEAN_CASES:
         case = build()
         rc = ask_run.main(_argv(case))
         cli_hits = _hits(capsys.readouterr().err)
-        result, text = client.tool("ask_run", _mcp_args(case))
-        assert bool(result.get("isError")) == (rc == 2), label
+        text = _org(srv, "ask_run", _mcp_args(case))
+        assert text.startswith("ERROR: refused:") == (rc == 2), label
         if rc == 2:
             assert _hits(text) == cli_hits and cli_hits, label
 
 
-def test_mcp_role_gate_and_worker_guard(mcp):
-    _, text = mcp().tool("ask_run", {"host": "contabo", "command": "uptime", "why": "x", "role": "dev",
-                                     "session": "dev-x", "dry_run": True})
-    assert "freeform_needs_c_level" in text
-    _, text = mcp(WORKER_TASK_ID="task-1").tool("ask_run", {"host": "contabo", "command": "uptime", "why": "x",
-                                                            "role": "cto", "dry_run": True})
+def test_org_role_gate_follows_the_policy_and_guards_workers(srv, monkeypatch):
+    for role in POLICY_C_LEVEL:
+        text = _org(srv, "ask_run", {"host": "contabo", "command": "uptime", "why": "x", "role": role,
+                                     "session": f"{role}-x", "dry_run": True})
+        assert not text.startswith("ERROR"), (role, text)
+    for role in NOT_C_LEVEL:
+        text = _org(srv, "ask_run", {"host": "contabo", "command": "uptime", "why": "x", "role": role,
+                                     "session": f"{role}-x", "dry_run": True})
+        assert "freeform_needs_c_level" in text, role
+    monkeypatch.setenv("WORKER_TASK_ID", "task-1")
+    text = _org(srv, "ask_run", {"host": "contabo", "command": "uptime", "why": "x", "role": "cto",
+                                 "dry_run": True})
     assert "a worker cannot claim role 'cto'" in text
 
 
-def test_mcp_ask_run_posts_and_returns_id_url_risk_expiry(mcp, hub, capsys):
+def test_org_ask_run_takes_requester_from_the_session_env(srv, monkeypatch):
+    monkeypatch.setenv("CXO_ROLE", "cto")
+    monkeypatch.setenv("CTO_SESSION_ID", "6ebacd0e")
+    text = _org(srv, "ask_run", {"host": "contabo", "command": "uptime", "why": "x", "dry_run": True})
+    assert json.loads(text)["payload"]["requester"] == {"session": "cto-6ebacd0e", "role": "cto"}
+
+
+def test_org_ask_run_posts_and_returns_id_url_risk_expiry(srv, hub, capsys):
     hub.on("POST", "/api/run/asks", (201, CREATED))
-    result, text = mcp(RUN_INBOX_URL=hub.url, RUN_INBOX_TOKEN=hub.token).tool(
-        "ask_run", {**_mcp_args({"script": SCRIPT_SPEC}), "dry_run": False})
-    assert not result.get("isError"), text
+    text = _org(srv, "ask_run", {**_mcp_args({"script": SCRIPT_SPEC}), "dry_run": False})
     assert json.loads(text) == {"id": ASK_ID, "url": f"{hub.url}/run#{ASK_ID}", "risk": "amber",
                                 "expires_at": "2026-09-25T16:42:00Z"}
     assert hub.requests[0]["auth"] == f"Bearer {hub.token}"
@@ -733,39 +731,41 @@ def test_mcp_ask_run_posts_and_returns_id_url_risk_expiry(mcp, hub, capsys):
     assert hub.token not in text
 
 
-def test_mcp_reads_the_token_file_and_refuses_a_loose_one(mcp, hub, tmp_path):
-    token_file = tmp_path / "mcp-home" / ".config" / "mooniex" / "run-inbox.token"
-    token_file.parent.mkdir(parents=True)
-    file_token = "mcp-file-" + "token"
+def test_org_ask_run_reads_the_token_file_and_refuses_a_loose_one(srv, hub, monkeypatch):
+    monkeypatch.delenv("RUN_INBOX_TOKEN")
+    file_token = "org-file-" + "token"
     hub.accepted = {file_token}
-    token_file.write_text(file_token + "\n", encoding="utf-8")
-    token_file.chmod(0o600)
+    path = _token_file(0o600, file_token)
     hub.on("POST", "/api/run/asks", (201, CREATED))
-    client = mcp(RUN_INBOX_URL=hub.url)
     args = {**_mcp_args({"script": SCRIPT_SPEC}), "dry_run": False}
-    result, text = client.tool("ask_run", args)
-    assert not result.get("isError"), text
+    assert not _org(srv, "ask_run", args).startswith("ERROR")
     assert hub.requests[-1]["auth"] == f"Bearer {file_token}"
     if os.name == "posix":
-        token_file.chmod(0o644)
-        result, text = client.tool("ask_run", args)
-        assert result.get("isError") and "chmod 600" in text and file_token not in text
+        path.chmod(0o644)
+        text = _org(srv, "ask_run", args)
+        assert text.startswith("ERROR") and "chmod 600" in text and file_token not in text
         assert len(hub.requests) == 1
 
 
-def test_mcp_ask_run_wait_returns_the_terminal_record(mcp, hub):
+def test_org_hub_refusal_is_reported_not_raised(srv, hub):
+    hub.on("POST", "/api/run/asks", (403, {"error": "freeform_needs_c_level"}))
+    text = _org(srv, "ask_run", {**_mcp_args({"script": SCRIPT_SPEC}), "dry_run": False})
+    assert text.startswith("ERROR: hub refused (403: freeform_needs_c_level)")
+
+
+def test_org_ask_run_wait_returns_the_terminal_record(srv, hub):
     tail = "\n".join(f"line {i}" for i in range(1, 51))
     hub.on("GET", f"/api/run/asks/{ASK_ID}", _card("running"),
            _card("done", exit_code=0, output_tail=tail))
-    client = mcp(RUN_INBOX_URL=hub.url, RUN_INBOX_TOKEN=hub.token)
-    result, text = client.tool("ask_run_wait", {"id": f"{hub.url}/run#{ASK_ID}", "interval_s": 1})
-    assert not result.get("isError"), text
+    text = _org(srv, "ask_run_wait", {"id": f"{hub.url}/run#{ASK_ID}", "interval_s": 0.01})
     rec = json.loads(text)
     assert (rec["terminal"], rec["status"], rec["exit_code"]) == (True, "done", 0)
     assert rec["output_tail"].splitlines()[0] == "line 11" and rec["output_tail_shown"] == "last 40 of 50 lines"
     hub.on("GET", f"/api/run/asks/{ASK_ID}", _card("pending"))
-    _, text = client.tool("ask_run_wait", {"id": ASK_ID, "interval_s": 1, "max_wait_s": 1})
-    assert json.loads(text)["terminal"] is False
+    # max_wait_s has a 1 s floor in the tool; poll every 0.2 s so it takes ~5 GETs
+    rec = json.loads(_org(srv, "ask_run_wait", {"id": ASK_ID, "interval_s": 0.2, "max_wait_s": 0.01}))
+    assert rec["terminal"] is False and rec["status"] == "pending" and "call ask_run_wait again" in rec["note"]
     hub.on("GET", f"/api/run/asks/{ASK_ID}", (404, {"error": "not_found"}))
-    result, text = client.tool("ask_run_wait", {"id": ASK_ID})
-    assert result.get("isError") and "404" in text
+    text = _org(srv, "ask_run_wait", {"id": ASK_ID})
+    assert text.startswith("ERROR: hub refused (404")
+    assert _org(srv, "ask_run_wait", {"id": "../etc"}).startswith("ERROR: refused: not a Run Inbox id")

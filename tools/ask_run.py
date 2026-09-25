@@ -21,6 +21,10 @@ Verbs:
 `create --dry-run` prints the JSON body and calls nothing (no token needed).
 `<id>` is RUN-YYYYMMDD-HHMM-xxxx, or the phone URL that ends in #RUN-...
 
+The org MCP tools `ask_run` / `ask_run_wait` (lib/org_tools_registry.py,
+served by runners/cto_mcp_server.py in every C-level session) call
+`mcp_ask()` / `wait_result()` below: one implementation, same checks.
+
 Refused here, BEFORE any network call (exit 2):
   - a secret-shaped value anywhere in the ask: the key family of
     scripts/contabo_blueprint.sh's final pass (a token/secret/password/
@@ -28,8 +32,9 @@ Refused here, BEFORE any network call (exit 2):
     a BEGIN ... PRIVATE KEY block) plus well-known token shapes (GitHub,
     sk-..., Slack, AWS, Google, GitLab, JWT, Bearer). Reference an env var by
     name ($NAME, --env-key NAME) or an Infisical path instead;
-  - --command from a role other than cto/cfo/cxo/ceo (CEO decision 1,
-    DESIGN §11). The hub enforces the same gate (403 freeform_needs_c_level).
+  - --command from a role that is not C-level: `c_level` in
+    policies/agents.yaml, the list lib/config.is_c_level reads (CEO decision
+    1, DESIGN §11). The hub runs the same gate (403 freeform_needs_c_level).
 
 Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com
 Token: RUN_INBOX_TOKEN, else ~/.config/mooniex/run-inbox.token (mode 0600).
@@ -64,16 +69,17 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
+ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_URL = "https://terminal.mooniex.com"
 URL_ENV = "RUN_INBOX_URL"
 TOKEN_ENV = "RUN_INBOX_TOKEN"
 TOKEN_FILE = Path(".config") / "mooniex" / "run-inbox.token"  # under the user's home
 
-# CEO decision 1 (DESIGN §11): freeform commands are for these roles only; the
-# hub checks the same list and answers 403 freeform_needs_c_level.
-C_LEVEL_ROLES = ("cto", "cfo", "cxo", "ceo")
+# CEO decision 1 (DESIGN §11): freeform commands are for C-level roles only.
+# The list is the org's own `c_level` key (see c_level_roles), never a copy here.
+AGENTS_POLICY = ROOT / "policies" / "agents.yaml"
 RISKS = ("green", "amber", "red")
 SHELLS = ("bash", "powershell", "cmd")
 TERMINAL_STATES = ("done", "failed", "denied", "expired", "cancelled")
@@ -107,12 +113,16 @@ class Refused(Exception):
 
 
 class HubError(Exception):
-    """No token, the hub is unreachable, or it answered with an error (exit 3)."""
+    """No token, the hub is unreachable, or it answered with an error (exit 3).
+    `transient` marks what waiting can fix (unreachable, 5xx, 429); a missing
+    token, a 4xx or a redirect never is."""
 
-    def __init__(self, message: str, status: int | None = None, code: str | None = None):
+    def __init__(self, message: str, status: int | None = None, code: str | None = None,
+                 transient: bool = False):
         super().__init__(message)
         self.status = status
         self.code = code
+        self.transient = transient
 
 
 def _say(msg: str) -> None:
@@ -203,13 +213,54 @@ def find_secret_shapes(payload: Any) -> list[str]:
     return list(dict.fromkeys(hits))
 
 
+_C_LEVEL_LINE = re.compile(r"^c_level:[ \t]*(?P<rest>[^#]*?)[ \t]*(?:#.*)?$")
+_BLOCK_ITEM = re.compile(r"^[ \t]+-[ \t]*(?P<item>[^#\s]+)[ \t]*(?:#.*)?$")
+
+
+def c_level_roles(path: Path | None = None) -> tuple[str, ...]:
+    """The org's C-level roles: the top-level `c_level` list in
+    policies/agents.yaml, the same key lib/config.is_c_level reads. Parsed
+    with the stdlib (flow `[a, b]` or block `- a` form) so this tool needs no
+    PyYAML; tests check it against yaml.safe_load. Fails closed: an unreadable
+    file or a missing/empty key refuses the ask instead of guessing a list."""
+    path = AGENTS_POLICY if path is None else path
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as e:
+        raise Refused(f"cannot read the C-level roles from {path}: {e.strerror or e}") from None
+    for i, line in enumerate(lines):
+        m = _C_LEVEL_LINE.match(line)
+        if not m:
+            continue
+        rest = m.group("rest")
+        items: list[str] = []
+        if rest.startswith("[") and rest.endswith("]"):
+            items = [x.strip().strip("'\"") for x in rest[1:-1].split(",")]
+        elif not rest:
+            for nxt in lines[i + 1:]:
+                if not nxt.strip() or nxt.lstrip().startswith("#"):
+                    continue
+                item = _BLOCK_ITEM.match(nxt)
+                if not item:
+                    break
+                items.append(item.group("item").strip("'\""))
+        roles = tuple(r.lower() for r in items if r)
+        if roles:
+            return roles
+        break
+    raise Refused(f"no readable `c_level:` list in {path}; refusing rather than guessing who is C-level")
+
+
 def check_role_gate(payload: dict) -> None:
+    if payload["kind"] != "command":
+        return
+    roles = c_level_roles()
     role = payload["requester"]["role"]
-    if payload["kind"] == "command" and role not in C_LEVEL_ROLES:
+    if role not in roles:
         raise Refused(
-            f"freeform_needs_c_level: --command is for C-level sessions ({'/'.join(C_LEVEL_ROLES)}); "
-            f"this requester is role {role!r}. Commit the script, push it, and ask with "
-            "--script repo@sha:path (DESIGN §6, CEO decision 1).")
+            f"freeform_needs_c_level: --command is for C-level sessions ({'/'.join(roles)}, "
+            f"policies/agents.yaml c_level); this requester is role {role!r}. Commit the script, "
+            "push it, and ask with --script repo@sha:path (DESIGN §6, CEO decision 1).")
 
 
 # --------------------------------------------------------------- the ask
@@ -253,9 +304,9 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
     role = (role or env_role or "").strip().lower()
     if not role:
         raise Refused("cannot tell this session's role: pass --role "
-                      "(cto/cfo/cxo/ceo for a C-level session, dev for a worker)")
+                      "(your C-level role, or dev for a worker)")
     worker = env.get("WORKER_TASK_ID")
-    if worker and not env.get("CXO_ROLE") and role in C_LEVEL_ROLES:
+    if worker and not env.get("CXO_ROLE") and role in c_level_roles():
         raise Refused(f"this process is worker {worker} (WORKER_TASK_ID is set); "
                       f"a worker cannot claim role {role!r}")
     session = (session or "").strip()
@@ -302,7 +353,8 @@ def build_payload(args: argparse.Namespace, script_args: list[str],
         payload["script"] = {"repo": repo, "sha": sha, "path": path, "args": list(script_args)}
     else:
         if script_args:
-            raise Refused("`-- args...` go with --script; with --command put the whole line in --command")
+            raise Refused("script arguments go with a script ask; with a command, put the whole line "
+                          "in the command")
         if not (args.command or "").strip():
             raise Refused("--command is empty")
         payload["kind"] = "command"
@@ -419,7 +471,7 @@ def _hub_error(e: urllib.error.HTTPError) -> HubError:
     hint = _HINTS.get(code) or _HINTS.get(e.code)
     if hint:
         msg += f": {hint}"
-    return HubError(msg, status=e.code, code=code)
+    return HubError(msg, status=e.code, code=code, transient=e.code >= 500 or e.code == 429)
 
 
 def _request(method: str, path: str, *, body: Any = None, query: dict | None = None,
@@ -439,7 +491,8 @@ def _request(method: str, path: str, *, body: Any = None, query: dict | None = N
     except urllib.error.HTTPError as e:
         raise _hub_error(e) from None
     except (urllib.error.URLError, OSError) as e:  # refused, DNS, TLS, timeout
-        raise HubError(f"hub unreachable at {base_url()}: {getattr(e, 'reason', e)}") from None
+        raise HubError(f"hub unreachable at {base_url()}: {getattr(e, 'reason', e)}",
+                       transient=True) from None
 
 
 def _call(method: str, path: str, *, body: Any = None, query: dict | None = None) -> Any:
@@ -448,7 +501,7 @@ def _call(method: str, path: str, *, body: Any = None, query: dict | None = None
         with resp:
             raw = resp.read()
     except OSError as e:
-        raise HubError(f"hub connection dropped mid-answer: {e}") from None
+        raise HubError(f"hub connection dropped mid-answer: {e}", transient=True) from None
     if not raw.strip():
         return {}
     parsed = _maybe_json(raw)
@@ -539,38 +592,182 @@ def print_result(rec: dict, *, lines: int = TAIL_LINES, as_json: bool = False) -
         print(f"Error ID {rec['error_id']} (full record on the hub: node scripts/run-error.js {rec['error_id']})")
     if rec.get("deny_reason"):
         print(f"denied: {rec['deny_reason']}")
-    tail = rec.get("output_tail")
-    if isinstance(tail, str) and tail:
-        all_lines = tail.splitlines()
-        shown = all_lines[-lines:] if lines > 0 else all_lines
-        print(f"--- output tail ({len(shown)} of {len(all_lines)} lines) ---")
+    shown, total = tail_lines(rec, lines)
+    if total:
+        print(f"--- output tail ({len(shown)} of {total} lines) ---")
         print("\n".join(shown))
 
 
-# ------------------------------------------------------------------ verbs
-def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
-    payload = build_payload(args, script_args)
+def tail_lines(rec: dict, lines: int = TAIL_LINES) -> tuple[list[str], int]:
+    """(the last `lines` lines of the record's output tail, how many it has); 0 = all."""
+    tail = rec.get("output_tail")
+    if not isinstance(tail, str) or not tail:
+        return [], 0
+    all_lines = tail.splitlines()
+    return (all_lines[-lines:] if lines and lines > 0 else all_lines), len(all_lines)
+
+
+# ------------------------------------------------- shared by the CLI and MCP
+def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | None = None) -> dict:
+    """The POST body with both local refusals already run: secret shapes
+    first, then the C-level gate. `create` and the MCP tool both come here."""
+    payload = build_payload(args, script_args, env)
     hits = find_secret_shapes(payload)
     if hits:
         raise Refused("secret_shaped_value; nothing was sent:\n  " + "\n  ".join(hits)
                       + "\nReference an env var by name ($NAME, --env-key NAME) or an Infisical path "
                         "instead (DESIGN §6).")
     check_role_gate(payload)
+    return payload
+
+
+def submit(payload: dict) -> dict:
+    """POST the ask; the hub's answer plus the phone URL of the card."""
+    resp = _unwrap(_call("POST", "/api/run/asks", body=payload))
+    ask_id = resp.get("id")
+    if not isinstance(ask_id, str) or not ask_id:
+        raise HubError(f"hub accepted the ask but returned no id: {json.dumps(resp)[:200]}")
+    return {**resp, "url": card_url(ask_id)}
+
+
+def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: float = 0,
+                   on_status: Callable[[str, dict], None] | None = None,
+                   on_retry: Callable[[HubError, int], None] | None = None,
+                   ) -> tuple[dict | None, bool]:
+    """GET the ask every `interval` s (never faster than MIN_INTERVAL_S) until
+    it reaches a terminal state -> (record, True), or until `max_wait` s have
+    passed (0 = no limit) -> (last record or None, False). Rides out
+    MAX_POLL_FAILURES transient errors in a row; anything else raises at once."""
+    interval = max(interval, MIN_INTERVAL_S)
+    deadline = time.monotonic() + max_wait if max_wait and max_wait > 0 else None
+    last_rec: dict | None = None
+    last_status = None
+    failures = 0
+    while True:
+        rec = None
+        try:
+            rec = _unwrap(_call("GET", _ask_path(ask_id)))
+            failures = 0
+        except HubError as e:
+            failures += 1
+            if not e.transient or failures > MAX_POLL_FAILURES:
+                raise
+            if on_retry:
+                on_retry(e, failures)
+        if rec is not None:
+            rec.setdefault("id", ask_id)
+            last_rec = rec
+            status = str(rec.get("status") or "?")
+            if status != last_status:
+                last_status = status
+                if on_status:
+                    on_status(status, rec)
+            if status in TERMINAL_STATES:
+                return rec, True
+        pause = interval
+        if deadline is not None:
+            left = deadline - time.monotonic()
+            if left <= 0:
+                return last_rec, False
+            pause = min(interval, left)
+        time.sleep(pause)
+
+
+# ------------------------------------------------------------ the MCP tools
+# lib/org_tools_registry.py `ask_run` / `ask_run_wait` call these (in a worker
+# thread, so the org server's event loop never blocks). Nothing here prints:
+# that server's stdout is its JSON-RPC channel.
+WAIT_DEFAULT_S = 600.0
+WAIT_MAX_S = 3600.0
+
+
+def _mcp_namespace(a: dict) -> tuple[argparse.Namespace, list[str]]:
+    """MCP arguments -> the Namespace `create` parses, so both run one path.
+    An empty string means "not given" (FastMCP stubs default to "")."""
+    script, command = (a.get("script") or "").strip(), a.get("command") or ""
+    if bool(script) == bool(command):
+        raise Refused("give exactly one of script (repo@sha:path) or command")
+    risk = a.get("risk") or DEFAULT_RISK
+    if risk not in RISKS:
+        raise Refused(f"risk must be one of {'/'.join(RISKS)} (got {risk!r})")
+    shell = a.get("shell") or None
+    if shell is not None and shell not in SHELLS:
+        raise Refused(f"shell must be one of {'/'.join(SHELLS)} (got {shell!r})")
+    timeout = a.get("timeout_s", DEFAULT_TIMEOUT_S)
+    if isinstance(timeout, float) and timeout.is_integer():
+        timeout = int(timeout)
+    if isinstance(timeout, bool) or not isinstance(timeout, int):
+        raise Refused("timeout_s must be a whole number of seconds")
+    script_args = a.get("args") or []
+    if not isinstance(script_args, list) or not all(isinstance(x, str) for x in script_args):
+        raise Refused("args must be a list of strings")
+    env_keys = a.get("env_keys") or None
+    if env_keys is not None and (not isinstance(env_keys, list)
+                                 or not all(isinstance(k, str) for k in env_keys)):
+        raise Refused("env_keys must be a list of variable names")
+    ns = argparse.Namespace(
+        host=a.get("host") or "", script=script or None, command=None if script else command,
+        why=a.get("why") or "", expected=a.get("expected") or None, risk=risk, timeout=timeout,
+        expects_input=bool(a.get("expects_input")), shell=shell, cwd=a.get("cwd") or None,
+        env_key=env_keys, task=a.get("task") or None, session=a.get("session") or None,
+        role=a.get("role") or None, dry_run=bool(a.get("dry_run")), json=False)
+    return ns, list(script_args)
+
+
+def mcp_ask(arguments: dict, env: dict | None = None) -> dict:
+    """MCP `ask_run`: the same checks and the same POST as `create`. Returns
+    {id, url, risk, expires_at}, or {dry_run, would_post, payload}."""
+    try:
+        ns, script_args = _mcp_namespace(arguments)
+        payload = prepare_ask(ns, script_args, env)
+    except Refused as e:
+        raise Refused(f"refused: {e}") from None
+    if ns.dry_run:
+        return {"dry_run": True, "would_post": f"{base_url()}/api/run/asks", "payload": payload}
+    resp = submit(payload)
+    return {"id": resp["id"], "url": resp["url"], "risk": resp.get("risk"),
+            "expires_at": resp.get("expires_at")}
+
+
+def wait_result(ask_id: str, *, max_wait_s: float = WAIT_DEFAULT_S,
+                interval_s: float = POLL_INTERVAL_S, tail_lines_n: int = TAIL_LINES) -> dict:
+    """MCP `ask_run_wait`: `wait`, bounded so one tool call never outlives the
+    client (max_wait_s, default 600, at most 3600). terminal=False = call again.
+    The output tail is cut to its last `tail_lines_n` lines (0 = all)."""
+    try:
+        ask_id = normalize_id(ask_id)
+    except Refused as e:
+        raise Refused(f"refused: {e}") from None
+    max_wait = min(max(float(max_wait_s or WAIT_DEFAULT_S), 1.0), WAIT_MAX_S)
+    rec, ended = poll_until_end(ask_id, interval=float(interval_s or POLL_INTERVAL_S),
+                                max_wait=max_wait)
+    rec = dict(rec or {"id": ask_id})
+    out: dict[str, Any] = {"terminal": ended}
+    if not ended:
+        out["note"] = f"still {rec.get('status', 'unknown')} after {max_wait:g} s; call ask_run_wait again"
+    shown, total = tail_lines(rec, tail_lines_n)
+    if total and len(shown) < total:
+        rec["output_tail"] = "\n".join(shown)
+        rec["output_tail_shown"] = f"last {len(shown)} of {total} lines"
+    out.update(rec)
+    return out
+
+
+# ------------------------------------------------------------------ verbs
+def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
+    payload = prepare_ask(args, script_args)
     if args.dry_run:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         sys.stdout.flush()
         _say(f"dry run: nothing sent (would POST {base_url()}/api/run/asks)")
         return EXIT_OK
-    resp = _unwrap(_call("POST", "/api/run/asks", body=payload))
-    ask_id = resp.get("id")
-    if not isinstance(ask_id, str) or not ask_id:
-        raise HubError(f"hub accepted the ask but returned no id: {json.dumps(resp)[:200]}")
-    url = card_url(ask_id)
+    resp = submit(payload)
+    ask_id = resp["id"]
     if args.json:
-        print(json.dumps({**resp, "url": url}, indent=2, ensure_ascii=False))
+        print(json.dumps(resp, indent=2, ensure_ascii=False))
     else:
         print(ask_id)
-        print(url)
+        print(resp["url"])
     _say(f"{resp.get('status', 'pending')} · risk {resp.get('risk', '?')} · expires "
          f"{resp.get('expires_at', '?')}. Only the CEO's tap runs it. "
          f"Next: python3 tools/ask_run.py wait {ask_id}")
@@ -579,39 +776,16 @@ def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
 
 def cmd_wait(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
-    interval = max(args.interval, MIN_INTERVAL_S)
-    deadline = time.monotonic() + args.max_wait if args.max_wait and args.max_wait > 0 else None
-    last = None
-    failures = 0
-    while True:
-        rec = None
-        try:
-            rec = _unwrap(_call("GET", _ask_path(ask_id)))
-            failures = 0
-        except HubError as e:
-            if e.status is not None and e.status < 500 and e.status != 429:
-                raise  # 4xx will not fix itself by waiting
-            failures += 1
-            if failures > MAX_POLL_FAILURES:
-                raise
-            _say(f"{ask_id}: {e} (retry {failures}/{MAX_POLL_FAILURES})")
-        if rec is not None:
-            rec.setdefault("id", ask_id)
-            status = str(rec.get("status") or "?")
-            if status != last:
-                _say(f"{datetime.now().strftime('%H:%M:%S')} {ask_id} {status}")
-                last = status
-            if status in TERMINAL_STATES:
-                print_result(rec, lines=args.lines, as_json=args.json)
-                return EXIT_OK if status == "done" else EXIT_ENDED_BADLY
-        pause = interval
-        if deadline is not None:
-            left = deadline - time.monotonic()
-            if left <= 0:
-                _say(f"{ask_id} still {last or 'unknown'} after {args.max_wait:g} s; run wait again later")
-                return EXIT_STILL_WAITING
-            pause = min(interval, left)
-        time.sleep(pause)
+    rec, ended = poll_until_end(
+        ask_id, interval=args.interval, max_wait=args.max_wait,
+        on_status=lambda status, _rec: _say(f"{datetime.now().strftime('%H:%M:%S')} {ask_id} {status}"),
+        on_retry=lambda e, n: _say(f"{ask_id}: {e} (retry {n}/{MAX_POLL_FAILURES})"))
+    if not ended or rec is None:
+        last = (rec or {}).get("status") or "unknown"
+        _say(f"{ask_id} still {last} after {args.max_wait:g} s; run wait again later")
+        return EXIT_STILL_WAITING
+    print_result(rec, lines=args.lines, as_json=args.json)
+    return EXIT_OK if rec.get("status") == "done" else EXIT_ENDED_BADLY
 
 
 def cmd_list(args: argparse.Namespace) -> int:

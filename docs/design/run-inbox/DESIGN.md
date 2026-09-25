@@ -187,12 +187,14 @@ that is not needed, terse copy only.
 
 ## 13. Requester CLI
 
-`tools/ask_run.py` (stdlib only, runs on any box's `python3`). The same calls exist as MCP tools
-`ask_run` / `ask_run_wait` in `claude-home/mcp/mooniex-coord/index.mjs`, an opt-in server
-(`CXO_EXTRA_MCP=mooniex-coord`). Hub = `RUN_INBOX_URL` (default `https://terminal.mooniex.com`).
-Token = `RUN_INBOX_TOKEN`, else `~/.config/mooniex/run-inbox.token`. The file must be 0600 and is
-refused if other users can read it. The token is never printed, and redirects are refused, so it
-only goes to the hub. Nothing here approves: the CEO's tap is the only authority.
+`tools/ask_run.py` (stdlib only, runs on any box's `python3`). Every C-level session also has
+`mcp__org__ask_run` / `mcp__org__ask_run_wait` from the org MCP server (`lib/org_tools_registry.py`,
+served by `runners/cto_mcp_server.py`). They run the same code, and the launchers pre-approve them
+because the org allowlist is built from that registry. Hub = `RUN_INBOX_URL` (default
+`https://terminal.mooniex.com`). Token = `RUN_INBOX_TOKEN`, else `~/.config/mooniex/run-inbox.token`.
+The file must be 0600 and is refused if other users can read it. The token is never printed, and
+redirects are refused, so it only goes to the hub. Nothing here approves: the CEO's tap is the
+only authority.
 
 **A worker asks to run a committed script.** Workers can only ask for scripts:
 
@@ -206,8 +208,10 @@ only goes to the hub. Nothing here approves: the CEO's tap is the only authority
 
 Script arguments go last, after `--`, for example `--script repo@sha:path -- --quick "two words"`.
 
-**A C-level session asks for a freeform command.** `--command` is refused for any role other than
-cto/cfo/cxo/ceo, first by the CLI and then by the hub (403 `freeform_needs_c_level`):
+**A C-level session asks for a freeform command.** `--command` is refused for any role outside
+`c_level` in `policies/agents.yaml` (today ceo, cto, cmo, cgo, cfo). The CLI and MCP tools refuse
+first, then the hub (403 `freeform_needs_c_level`). A process with `WORKER_TASK_ID` set cannot
+claim a C-level role:
 
     python3 tools/ask_run.py create --host contabo --command "systemctl restart mooniex-console" \
         --why "pick up the new env key" --expected "active (running)"
