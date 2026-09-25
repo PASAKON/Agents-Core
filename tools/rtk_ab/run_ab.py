@@ -9,6 +9,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -22,15 +23,18 @@ PROMPT_TEXT = (HERE / 'PROMPT.md').read_text()
 CLAUDE_BIN = 'claude'
 MODEL = 'claude-sonnet-5'
 TIMEOUT_S = 20 * 60
+RTK_BIN_DIR = str(HERE / 'bin')  # rtk's own rewrite hardcodes bare "rtk" -> must be on PATH
 
 
 def run_one(arm, index):
     cwd = ARMS[arm]
     cmd = [CLAUDE_BIN, '-p', PROMPT_TEXT, '--model', MODEL,
            '--output-format', 'json', '--permission-mode', 'bypassPermissions']
+    env = dict(os.environ)
+    env['PATH'] = RTK_BIN_DIR + os.pathsep + env.get('PATH', '')
     t0 = time.time()
     try:
-        proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=TIMEOUT_S)
+        proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=TIMEOUT_S, env=env)
         wall = time.time() - t0
         timed_out = False
     except subprocess.TimeoutExpired as e:

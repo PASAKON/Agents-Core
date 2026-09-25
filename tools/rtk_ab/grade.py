@@ -30,8 +30,15 @@ def find_last_json_object(text):
 def grade(got):
     score = 0
     rows = []
+
+    q1_ok = all(got.get(k) == KEY[k] for k in
+                ('q1_pytest_passed', 'q1_pytest_failed', 'q1_pytest_skipped'))
+    score += q1_ok
+    rows.append(('q1_pytest', q1_ok,
+                 {k: KEY[k] for k in ('q1_pytest_passed', 'q1_pytest_failed', 'q1_pytest_skipped')},
+                 {k: got.get(k) for k in ('q1_pytest_passed', 'q1_pytest_failed', 'q1_pytest_skipped')}))
+
     simple_keys = [
-        'q1_pytest_passed', 'q1_pytest_failed', 'q1_pytest_skipped',
         'q2_skill_commits', 'q4_scripts_py_count', 'q5_lib_py_count',
         'q6_tools_def_main_count', 'q7_scripts_lsR_dir_count',
         'q9_token_profile_lines', 'q10_tools_import_argparse_count',
