@@ -96,7 +96,7 @@ _META = {
       "clear", ["nosubs"]),
  25: (8, "Medium three-shot, the heavy man pointing at the old woman for the onlooker",
       ["sia_b", "yai_c", "pa"], "lan", LANAFT,
-      "the heavy man points at the old woman's face and shouts his accusation for everyone to hear, "
+      "the heavy man points toward the old woman from a step away and shouts his accusation for everyone to hear, "
       "vicious and loud, turning to the woman in the straw hat; the old woman flinches, her hands "
       "trembling", ["dial", "nosubs"]),
  26: (8, "Two-shot, the old woman standing straight, both faces three-quarters to camera",
@@ -118,10 +118,12 @@ _META = {
       "the little boy helps the old woman push her loaded cart along the canal "
       "path, cheerful and sweating; she pants but smiles as she answers, the row of electricity "
       "poles running ahead of them", ["nosubs"]),
- 30: (8, "Close two-shot on the mat, both faces three-quarters to camera", ["yai_h", "tor_h"], "baan", HOME,
-      "the old woman sits holding a small cloth pouch in her lap, stunned, hands trembling, voice "
-      "cracking and tears welling as she speaks; the little boy beside her is outraged on her behalf "
-      "and says it loudly", ["nomoney", "nosubs"]),
+ # v2.3 (2026-09-26): the two-shot with the little boy and the day's money (notes, then a closed
+ # pouch) vanished from Flow three times with no card. Now the old woman alone, no money at all.
+ 30: (8, "Close-up on the old woman alone on the mat, her face three-quarters to camera", ["yai_h"],
+      "baan", HOME,
+      "the old woman sits alone on the mat with her empty hands in her lap, stunned, hands trembling, "
+      "voice cracking and tears welling, slowly realising it as she speaks to herself", ["nosubs"]),
  31: (8, "Medium shot, the woman in the straw hat pushing her cart past the yard gate",
       ["pa", "sia_b"], "lan", LANAFT,
       "the woman in the straw hat pushes her cart past the yard gate, pleased, calling out with a "
@@ -144,9 +146,10 @@ _META = {
       ["tor_h", "kla_w", "yai_h"], "baan", HOME,
       "the little boy proudly holds up the glass jar full of small pebbles to show the older boy, "
       "whose face falls as the meaning dawns on him; the old woman sits beside them", ["nosubs"]),
- 37: (8, "Close-up on the older boy looking into the jar", ["kla_w", "yai_h"], "baan", HOME,
-      "the boy takes a single pebble out of the jar and stares at it, horrified, voice hoarse; the "
-      "old woman answers plainly, without complaint", ["nosubs"]),
+ 37: (8, "Close two-shot, the older boy beside the old woman, looking into the jar", ["yai_h", "kla_w"],
+      "baan", HOME,
+      "the old woman speaks first, plainly, without complaint; only after she has finished, the boy "
+      "takes a single pebble out of the jar and stares at it, horrified, voice hoarse", ["nosubs"]),
  38: (8, "Close two-shot, her hand on his wrist, both faces three-quarters to camera",
       ["kla_w", "yai_h"], "baan", HOME,
       "the boy lifts the jar with a determined face and glistening eyes; the old woman, frightened "
@@ -186,9 +189,10 @@ _META = {
  49: (8, "Close-up on the heavy man, cornered, the loaded pickup behind him", ["sia_f"], "fac", FACT,
       "the heavy man looks at his truck heaped with bales, beaten, shoulders sagging, voice hoarse "
       "and hollow", ["nosubs"]),
- 50: (8, "Two-shot, pastel prop notes handed over", ["scale", "sia_f"], "fac", FACT,
-      "the scale-man holds out a small stack of pastel prop notes, cold, take it or leave it; the "
-      "heavy man takes them, choking on it, voice shaking with humiliation", ["money", "nosubs"]),
+ # v2.3 (2026-09-26): the stack of prop notes vanished from Flow with no card. A sealed envelope.
+ 50: (8, "Two-shot, a sealed brown envelope handed over", ["scale", "sia_f"], "fac", FACT,
+      "the scale-man holds out a thin sealed brown paper envelope, cold, take it or leave it; the "
+      "heavy man takes it, choking on it, voice shaking with humiliation", ["nosubs"]),
  51: (8, "Medium two-shot, the heavy man slumped on the truck's step", ["sia_f", "kla_w"], "fac", FACT,
       "the heavy man sits down heavily on the step of the pickup, collapsed, voice breaking and "
       "bitter; the boy standing beside him answers gently but pointedly", ["nosubs"]),

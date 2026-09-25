@@ -239,7 +239,7 @@
 **บทพูด** กล้า `"เงินค่าข้าวของผมเองครับพ่อ ไม่ใช่เงินพ่อสักบาท ผมให้ยายเอง"` — scared but defiant, chin up, voice trembling but clear
 
 ### SHOT 25 · 3:12–3:20 · 8s · Medium three-shot, the owner pointing at the grandmother for the onlooker · LAN
-**ACTION** เสี่ยชี้หน้ายาย **ขณะที่**ตะโกนให้ป้าได้ยิน
+**ACTION** เสี่ยชี้ไปทางยายจากระยะก้าวหนึ่ง **ขณะที่**ตะโกนให้ป้าได้ยิน (v2.3: ไม่จ่อหน้า — ช็อตนี้หายจาก Flow 2026-09-26)
 **อารมณ์** เสี่ย 5/5 ใส่ร้าย ตะโกนประจาน ชี้หน้ายาย · ยาย (เงียบ) ตกใจ มือสั่น
 **บทพูด** เสี่ย `"เห็นไหม! คนแก่ขี้โกง หลอกใช้ลูกข้าให้เอาเงินมาให้! ป้าดูไว้เลยนะ"` — vicious, shouting the accusation for everyone to hear, pointing at the old woman
 
@@ -265,11 +265,10 @@
 **บทพูด** ต่อ `"อีกไกลไหมยาย ต่อช่วยเข็นนะ"` — cheerful, sweating, puffing
 **บทพูด** ยาย `"อีกสิบเสาไฟจ้ะ ยายอ่านหนังสือไม่เป็น แต่นับเสาไฟเป็นนะ"` — panting but smiling through it
 
-### SHOT 30 · 3:52–4:00 · 8s · Close two-shot over the notes on the mat · BAAN · turn @4:00
-**ACTION** ยายถือถุงผ้าเงินจากร้านปลายคลองไว้บนตัก **ขณะที่**พูด มือสั่น (v2.2: ไม่ให้เห็นแบงก์ในช็อตที่มีต่อ)
-**อารมณ์** ยาย 4/5 ตกตะลึง มือสั่น เสียงแตก น้ำตาคลอ · ต่อ 4/5 โกรธแทนยาย เสียงดัง
-**บทพูด** ยาย `"สองกระสอบเท่าเดิม แต่ปลายคลองให้มากกว่าเสี่ยตั้งเยอะ"` — stunned, hands trembling, voice cracking, tears welling
-**บทพูด** ต่อ `"แปลว่าเสี่ยโกงยายมาตลอด!"` — outraged on her behalf, loud
+### SHOT 30 · 3:52–4:00 · 8s · Close-up on the grandmother alone on the mat · BAAN · turn @4:00
+**ACTION** ยายนั่งบนเสื่อคนเดียว มือวางบนตัก **ขณะที่**พูด มือสั่น (v2.3: ต่อออกนอกเฟรม ไม่มีถุงเงิน — ช็อตนี้หายจาก Flow 3 ครั้งติด 2026-09-26 ทั้งแบบมีแบงก์และมีถุงเงิน)
+**อารมณ์** ยาย 4/5 ตกตะลึง มือสั่น เสียงแตก น้ำตาคลอ พูดกับตัวเอง
+**บทพูด** ยาย `"สองกระสอบเท่าเดิม แต่ปลายคลองให้มากกว่าเสี่ยตั้งเยอะ… แปลว่าเสี่ยโกงยายมาตลอดเหรอ"` — stunned, hands trembling, voice cracking, tears welling, slowly realising it as she speaks
 
 ### SHOT 31 · 4:00–4:08 · 8s · Medium shot, the other collector pushing her cart past the yard gate · LAN
 **ACTION** ป้าเข็นรถผ่านหน้าลาน **ขณะที่**ตะโกนบอก
@@ -379,8 +378,8 @@
 **อารมณ์** เสี่ย 4/5 หมดท่า ไหล่ตก เสียงแหบพร่า
 **บทพูด** เสี่ย `"คนขายหนีไปหมด ร้านใหญ่ก็กดราคา ขนกลับไปก็ไม่มีใครรับแล้ว ขายก็ขาย"` — beaten, shoulders sagging, voice hoarse and hollow
 
-### SHOT 50 · 6:32–6:40 · 8s · Two-shot, prop notes handed over · FAC
-**ACTION** คนชั่งยื่นปึกแบงก์ **ขณะที่**พูด
+### SHOT 50 · 6:32–6:40 · 8s · Two-shot, a sealed brown envelope handed over · FAC
+**ACTION** คนชั่งยื่นซองกระดาษสีน้ำตาลปิดผนึก **ขณะที่**พูด (v2.3: ไม่ให้เห็นแบงก์ — ช็อตปึกแบงก์หายจาก Flow 2026-09-26)
 **อารมณ์** คนชั่ง 2/5 เย็นชา · เสี่ย 4/5 กลืนน้ำลาย เสียงสั่น เจ็บใจ
 **บทพูด** คนชั่ง `"เจ็ดพันบาทเสี่ย เอาไม่เอา"` — cold, take it or leave it
 **บทพูด** เสี่ย `"เอา… ขาดไปตั้งสามพันบาท ทั้งคันรถเลยนะ"` — choking on it, voice shaking with humiliation
