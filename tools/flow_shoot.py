@@ -362,6 +362,39 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def earlier_takes(ledger_path: Path, n: int) -> dict[str, str]:
+    """sha256 -> ledger file name, for every take of shot `n` already recorded
+    in any ledger beside this one (this ledger's own row included).
+
+    Why: a re-shoot keeps its dialogue and the old take's card is still on the
+    feed. 2026-09-26, taachang ACT2 S32 re-fired onto ACT2-reshoot.tsv read
+    "verified" 9 s after Submit, and the file was byte-identical to the take
+    already in ACT2.tsv — the runner had fetched the OLD clip while the paid
+    new one was still rendering (banchi 149/151 did the same through `pull`,
+    2026-09-23). A duration/resolution check cannot see that; a hash can. Shot
+    numbers run across a whole film, so a sibling ledger's row `n` is the same
+    shot. A file that is not a ledger is skipped, not fatal."""
+    seen: dict[str, str] = {}
+    for p in sorted(ledger_path.parent.glob("*.tsv")):
+        try:
+            row = flow_ledger.load_ledger(p).get(n)
+        except Exception:
+            continue
+        if row and row.get("sha256"):
+            seen[row["sha256"]] = p.name
+    return seen
+
+
+def duplicate_take_reason(sha: str, earlier: dict[str, str]) -> str | None:
+    """The refusal text when `sha` is a take we already have, else None."""
+    where = earlier.get(sha)
+    if not where:
+        return None
+    return (f"DUPLICATE: byte-identical to the take already recorded in {where} — "
+            "the runner fetched an OLD card. The new clip may still be in Flow: "
+            "`pull --search` a phrase only it has, do not re-fire")
+
+
 def probe_video_dimensions(path: Path) -> tuple[int, int]:
     """Return the first video stream's width/height via ffprobe."""
     result = subprocess.run(
@@ -1605,6 +1638,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     _log(f"shot {n}: failed — timeout")
                     continue
 
+                earlier = earlier_takes(ledger_path, n)
                 row["status"] = "generated"
                 flow_ledger.save_ledger(ledger_path, rows)
 
@@ -1620,7 +1654,12 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     expected_resolution=browser.download_resolution)
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
-                if ok:
+                dup = duplicate_take_reason(row["sha256"], earlier)
+                if dup:
+                    # Not renamed: the file IS a take we already have, and on a
+                    # same-dest re-fire it may be the very path of that take.
+                    row["status"], row["note"], reason = "failed", dup, dup
+                elif ok:
                     row["status"] = "verified"
                 else:
                     bad_path = clip_path.with_name("bad-" + clip_path.name)
@@ -1729,6 +1768,7 @@ def cmd_pull(args: argparse.Namespace) -> int:
                 flow_ledger.save_ledger(ledger_path, rows)
                 _log(f"shot {n}: REFUSED (space) — stopping the whole pull: {e!r}")
                 break
+            earlier = earlier_takes(ledger_path, n)
             downloaded = browser.download_card(card)
             time.sleep(DOWNLOAD_GAP_S)
             clip_path = extract_clip(downloaded, dest, n)
@@ -1738,7 +1778,10 @@ def cmd_pull(args: argparse.Namespace) -> int:
             row["file"] = str(clip_path)
             row["sha256"] = sha256_file(clip_path)
             row["got_dur"] = reason
-            if ok:
+            dup = duplicate_take_reason(row["sha256"], earlier)
+            if dup:
+                row["status"], row["note"], reason = "failed", dup, dup
+            elif ok:
                 row["status"] = "verified"
             else:
                 bad_path = clip_path.with_name("bad-" + clip_path.name)
