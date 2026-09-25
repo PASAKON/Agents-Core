@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-M10 · THE GIANT WAVE · 6s · DARK · P1 main scenes (SCRIPT.md draft 2)
+N7 · THE GIANT WAVE · 8s · DARK · round 3 (CEO answer C3: after the light, the giant wave, before the fish)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -17,9 +17,9 @@ References (6):
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low, looking up, with camera shake; no cut, no zoom.
+8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low behind THE MOUNT, looking past it at the wave rising ahead; camera shake; no cut, no zoom.
 
-THE WAVE. A wall of water as tall as a mountain rises against the wind. The small action of the film.
+THE WAVE. Ahead of them, in the black rain, a wall of water as tall as a mountain rises.
 
 REFERENCES, each with a job:
 @Waves: THE WAVE, the only location reference: a colossal curling wall of dark water hundreds of metres tall, glowing faintly cyan and magenta inside, violet lightning, the moon behind storm cloud.
@@ -29,19 +29,22 @@ REFERENCES, each with a job:
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 
-THE FRAME: Low and looking up: THE MOUNT small at the bottom of the frame, the wave filling everything above it.
+THE FRAME: Low behind THE MOUNT, small in the lower frame with THE YOUNG ONE glowing on it; the wave rises ahead and fills everything above.
+
+PARTICLES: heavy rain, spray torn off the wave crest, bubbles as they go under.
 
 WHAT HAPPENS:
-[0s] THE WAVE rises against the wind, curling over THE MOUNT, glowing faintly cyan and magenta inside.
-[2s] THE STRONG ONE drives THE POLE down. A shout: "Hold on!"
-[3.5s] THE MOUNT dives; THE THREE RIDERS cling on as the wave crashes over the place they just were.
+[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. Ahead of THE MOUNT a colossal wave rises against the wind, black water glowing faintly cyan and magenta inside, curling over them.
+[2.5s] THE STRONG ONE drives THE POLE down. A shout: "Hold on!"
+[4s] THE MOUNT dives straight into the base of the wave, away from us; THE THREE RIDERS cling on.
+[6s] The wave crashes over the place where they were; beyond it, a small glow keeps moving.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the shout above and the riders' gasps. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the shout above, the riders' gasps and effort, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no rider falling off, no surfing, no second wave in front.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no rider falling off, no one facing the camera, no movement toward the camera, no light wider than two metres around the child.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -50,13 +53,13 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. The wave is colossal against the riders.
-2. One shouted line.
-3. They dive under, nobody falls.
-File the take whatever the verdict, as M10-H3-take<N>.mp4 in the
+1. The wave is colossal against them.
+2. One shout; transcribe.
+3. They go through, away from us.
+File the take whatever the verdict, as N7-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE MOUNT surfaces past the wave, all three on it.
+- Past the wave, THE MOUNT glides on in the rain.
 
 === END NOTES ===
