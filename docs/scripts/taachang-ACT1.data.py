@@ -170,7 +170,7 @@ _META = {
      "the old woman drops one small pebble into a clear glass jar with a soft click while "
      "she answers the little boy, who sits beside her on the mat watching with his head "
      "tilted, curious; she smiles at him tenderly", ["nosubs"]),
- 7: (8, "Close two-shot over the notes on the mat, both faces three-quarters to camera",
+ 7: (8, "Close two-shot on the mat, both faces three-quarters to camera",
      ["yai_h", "tor_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
      # 2026-09-25: first take vanished (no card). Hands stay on the notes: no touching the child.
      "the little boy speaks with a worried frown; the old woman sits with a small closed cloth "

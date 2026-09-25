@@ -115,7 +115,7 @@ No subtitles, no captions and no on-screen text of any kind appear anywhere in t
 Medium close-up, grandmother and grandson sitting on the mat. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
 ```
 
-### SHOT 7 · 0:48–0:56 · 8s · Close two-shot over the notes on the mat, both faces three-quarters to camera
+### SHOT 7 · 0:48–0:56 · 8s · Close two-shot on the mat, both faces three-quarters to camera
 **ATTACH** 1) `@yai__face`→REF_0 · 2) `@tor__face`→REF_1 · 3) `@baan__inside`→REF_2 · 4) `@yai__home`→REF_3 · 5) `@tor__home`→REF_4
 **บทพูด** tor__face `"ค่าเทอมสามพันบาทนะยาย ครูให้จ่ายภายในสิ้นเดือน"` — worried, frowning, a small anxious voice
 **บทพูด** yai__face `"วันนี้ได้ร้อยยี่สิบ ยังขาดอีกเยอะเลยลูก"` — forcing a smile, eyes glistening, voice wavering
@@ -129,7 +129,7 @@ The old woman in the purple sarong <IMAGE_REF_0> speaks Thai in the thin, soft, 
 
 The face of whoever is speaking stays in frame for the whole line.
 No banknotes, coins or money of any kind are visible anywhere in the frame: the day's money stays inside the small closed cloth pouch the whole time. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
-Close two-shot over the notes on the mat, both faces three-quarters to camera. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
+Close two-shot on the mat, both faces three-quarters to camera. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
 ```
 
 ### SHOT 8 · 0:56–1:04 · 8s · Medium close-up, the heavy man jabbing a finger at his son
