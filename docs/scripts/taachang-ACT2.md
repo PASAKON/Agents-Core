@@ -34,13 +34,13 @@ Close-up on the schoolboy, his father at the edge of frame. Contemporary Thai re
 
 ### SHOT 25 · 0:08–0:16 · 8s · Close-up on the heavy man alone, pointing off-frame, his face three-quarters to camera
 **ATTACH** 1) `@sia__face`→REF_0 · 2) `@lan__busy`→REF_1 · 3) `@yard_scale`→REF_2 · 4) `@sia__boss`→REF_3
-**บทพูด** sia__face `"เห็นไหม! คนแก่ขี้โกง หลอกใช้ลูกข้าให้เอาเงินมาให้! ป้าดูไว้เลยนะ"` — vicious, shouting the accusation for everyone to hear, pointing at the old woman
+**บทพูด** sia__face `"เห็นไหม! คนแก่ขี้โกง มาหลอกเอาของข้า! ป้าดูไว้เลยนะ"` — vicious, shouting the accusation for everyone to hear, pointing at the old woman
 ```
 Use <IMAGE_REF_0> as the character reference for sia__face. Use <IMAGE_REF_1> as the location reference for lan__busy. Use <IMAGE_REF_2> as the character reference for yard_scale. Use <IMAGE_REF_3> as the wardrobe reference: The heavy man in the dragon-print shirt wears exactly this outfit.
 
 In a small open recycling yard in a Bangkok side street under a rusty corrugated-metal roof on steel posts: a low rusty blue steel platform scale with a round cream dial on a short post stands in the front centre, piles of white woven sacks stuffed with clear plastic bottles, stacks of flattened cardboard, a heap of crushed cans, a battered wooden desk with one drawer beside the scale and a red plastic chair, a corrugated metal fence at the back <IMAGE_REF_1>, hot afternoon, bright daylight. a heavy-set Thai-Chinese man of fifty with a round fleshy face, small narrow eyes, black hair slicked straight back with grey at the temples and a thin moustache, wearing a loud red, black and gold dragon-print short-sleeved shirt open over a white vest, a thick gold chain, a gold wristwatch, khaki shorts and brown leather sandals <IMAGE_REF_0> — the heavy man stands alone in frame, points off-frame toward someone and shouts his accusation for everyone in the yard to hear, vicious and loud, glancing sideways at an onlooker off-frame.
 
-The heavy man in the dragon-print shirt <IMAGE_REF_0> speaks Thai in the thick, deep, gravelly voice of a heavy-set Thai-Chinese man of fifty, vicious, shouting the accusation for everyone to hear, pointing at the old woman, and says: "เห็นไหม! คนแก่ขี้โกง หลอกใช้ลูกข้าให้เอาเงินมาให้! ป้าดูไว้เลยนะ"
+The heavy man in the dragon-print shirt <IMAGE_REF_0> speaks Thai in the thick, deep, gravelly voice of a heavy-set Thai-Chinese man of fifty, vicious, shouting the accusation for everyone to hear, pointing at the old woman, and says: "เห็นไหม! คนแก่ขี้โกง มาหลอกเอาของข้า! ป้าดูไว้เลยนะ"
 
 The face of whoever is speaking stays in frame for the whole line.
 The scale is the large, low, rusty blue steel platform scale standing on the ground from the reference, big enough for a sack to lie on, with a round cream dial on a short post at the back edge: never a small hanging scale, a kitchen scale or a tabletop scale. Its dial shows only plain black tick marks and one needle: no numbers, no letters, no text on it at all, and it is never in sharp close-up. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
