@@ -156,7 +156,31 @@ the org MCP already carries; peers use their existing peer auth).
 3. **Approval strength: passkey session for green/amber, fresh Face ID for red.** ("ตามนั้น")
 4. **Output retention: 30 days, tail only, secrets redacted.** ("ตามนั้น")
 5. **Order approved:** P1 on Contabo now; P2 the moment the winbox relay-mode Console lands. ("OK")
-6. **Tab name: pending** — the CEO asked for a mockup first. Canvas (5 screens, tappable flow):
-   https://claude.ai/artifact/GCmexryuJbybMGX2jKg2Gr — source backup in
-   `docs/design/run-inbox/mockup/` (Main / Card / Running / ResultOK / ResultFail `.dc.html`).
-   P1 build starts after the CEO approves the mockup (or orders changes).
+6. **Mockup approved ("ผ่าน", 2026-09-25)** — tab name as drawn: **"คำสั่ง"**. Canvas (6 screens, tappable
+   flow): https://claude.ai/artifact/GCmexryuJbybMGX2jKg2Gr — source backup in
+   `docs/design/run-inbox/mockup/` (Terminal / Main / Card / Running / ResultOK / ResultFail `.dc.html`).
+   P1 build is GO.
+
+## 12. Navigation between the three surfaces (CEO 2026-09-25, added after the mockup)
+
+The CEO asked for buttons between `terminal.mooniex.com` (sessions), `/relay` (login) and `/run`
+(commands) and a way back, with no URL editing — and warned: thumbs, no small buttons, nothing
+that is not needed, terse copy only.
+
+- **One bottom bar, 3 equal cells, 56 px tall, on the three top-level pages only** (`index.html`,
+  `relay.html`, `run.html`). The whole cell is the button (≈130×56 px, well over the 44 px minimum).
+  Icon 20 px + one word: **Terminal · เข้าระบบ · คำสั่ง**. Active cell in the accent colour; the
+  `คำสั่ง` cell carries the pending-card count as a small badge (from `GET /api/run/asks?status=pending`,
+  polled every 30 s; hidden when 0). Bottom placement = the thumb zone on a phone; `env(safe-area-inset-bottom)`
+  padding like the relay page already uses.
+- **Back inside a surface = the page's own top-left 44 px arrow** (card → inbox, relay flow → target
+  list). Between surfaces there is no separate back button: tapping another cell IS the way back, so
+  nothing extra is added.
+- **Shared partial, not three copies:** `public/js/nav.js` + a block in `public/css/console.css`
+  render the bar from one place; each page includes one `<script src="/js/nav.js" data-active="run">`
+  line. No new dependencies, no framework.
+- The terminal page keeps its full screen; the bar takes 56 px and sits above the phone keyboard
+  when it is open. If the CEO finds it in the way there, the fallback is a bar that hides while the
+  terminal has focus — not in P1 unless asked.
+- Words on the bar and on cards stay one or two words; no explanatory text anywhere on the phone
+  pages except the plain-Thai failure reason and the Error ID line (§5).

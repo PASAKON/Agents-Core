@@ -8,18 +8,20 @@
   "title": "Run Inbox — มือถือ (mockup)",
   "launch": {"view": "canvas"},
   "boards": {
-    "Main.dc.html":       {"x": 0,    "y": 0, "w": 390, "h": 844, "title": "1 · กล่องคำสั่ง", "is_interactive": true},
-    "Card.dc.html":       {"x": 470,  "y": 0, "w": 390, "h": 844, "title": "2 · การ์ด — ตรวจแล้วกดรัน", "is_interactive": true},
-    "Running.dc.html":    {"x": 940,  "y": 0, "w": 390, "h": 844, "title": "3 · กำลังรัน + ช่องพิมพ์ (claude /login)", "is_interactive": true},
-    "ResultOK.dc.html":   {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "4a · สำเร็จ", "is_interactive": true},
-    "ResultFail.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "4b · ล้มเหลว + Error ID", "is_interactive": true}
+    "Terminal.dc.html":   {"x": 0,    "y": 0, "w": 390, "h": 844, "title": "0 · Terminal (จอหลัก) + แถบสลับหน้า", "is_interactive": true},
+    "Main.dc.html":       {"x": 470,  "y": 0, "w": 390, "h": 844, "title": "1 · กล่องคำสั่ง", "is_interactive": true},
+    "Card.dc.html":       {"x": 940,  "y": 0, "w": 390, "h": 844, "title": "2 · การ์ด — ตรวจแล้วกดรัน", "is_interactive": true},
+    "Running.dc.html":    {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "3 · กำลังรัน + ช่องพิมพ์ (claude /login)", "is_interactive": true},
+    "ResultOK.dc.html":   {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "4a · สำเร็จ", "is_interactive": true},
+    "ResultFail.dc.html": {"x": 2350, "y": 0, "w": 390, "h": 844, "title": "4b · ล้มเหลว + Error ID", "is_interactive": true}
   },
-  "order": ["Main.dc.html", "Card.dc.html", "Running.dc.html", "ResultOK.dc.html", "ResultFail.dc.html"],
+  "order": ["Terminal.dc.html", "Main.dc.html", "Card.dc.html", "Running.dc.html", "ResultOK.dc.html", "ResultFail.dc.html"],
   "notes": {
-    "t1": {"kind": "title1", "x": 0, "y": -300, "maxW": 2270, "text": "Run Inbox — กดรันคำสั่ง ! จากมือถือ (terminal.mooniex.com/run)"},
-    "s1": {"x": 0, "y": 900, "w": 390, "text": "แตะการ์ดในจอ 1 เพื่อเดินตาม flow: การ์ด → รัน → ผลลัพธ์ (ปุ่ม Play ที่กรอบจอ)", "fill": "teal"},
-    "s2": {"x": 940, "y": 900, "w": 390, "text": "ช่องพิมพ์โผล่เฉพาะตอนโปรแกรมรอ input — นี่คือวิธีทำ claude /login จากมือถือโดยไม่ต้องเปิดจอเครื่อง", "fill": "blue"},
-    "s3": {"x": 1880, "y": 900, "w": 390, "text": "ล้มเหลว = เหตุผลภาษาคน + Error ID กดคัดลอกส่งให้ทีมตามต่อได้ทันที (แบบเดียวกับ RLY- ของหน้า login)", "fill": "red"}
+    "t1": {"kind": "title1", "x": 0, "y": -300, "maxW": 2740, "text": "Run Inbox — กดรันคำสั่ง ! จากมือถือ · แถบล่าง 3 ปุ่มสลับ Terminal / เข้าระบบ / คำสั่ง"},
+    "s0": {"x": 0, "y": 900, "w": 390, "text": "แถบล่าง 3 ช่องเท่ากัน สูง 56 px — ทั้งช่องคือปุ่ม (นิ้วโป้งกดง่าย) · อยู่ทุกหน้าหลัก 3 หน้า · หน้าย่อยใช้ปุ่มกลับมุมซ้ายบน 44 px", "fill": "teal"},
+    "s1": {"x": 470, "y": 900, "w": 390, "text": "แตะการ์ดเพื่อเดินตาม flow: การ์ด → รัน → ผลลัพธ์ (ปุ่ม Play ที่กรอบจอ)", "fill": "teal"},
+    "s2": {"x": 1410, "y": 900, "w": 390, "text": "ช่องพิมพ์โผล่เฉพาะตอนโปรแกรมรอ input — นี่คือวิธีทำ claude /login จากมือถือโดยไม่ต้องเปิดจอเครื่อง", "fill": "blue"},
+    "s3": {"x": 2350, "y": 900, "w": 390, "text": "ล้มเหลว = เหตุผลภาษาคน + Error ID กดคัดลอกส่งให้ทีมตามต่อได้ทันที (แบบเดียวกับ RLY- ของหน้า login)", "fill": "red"}
   },
   "pages": [],
   "designSystems": []
