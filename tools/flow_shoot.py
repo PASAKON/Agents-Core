@@ -830,6 +830,14 @@ class FlowBrowser:
         name = handle.lstrip("@")
         before = self.chip_count()
 
+        # 2026-09-25 (flow.google.com project UI): the picker is no longer a
+        # [role=dialog]; it opens as a CDK overlay pane (tabs ทั้งหมด/รูปภาพ/
+        # วิดีโอ/เสียง/ตัวละคร, search "ค้นหาเนื้อหา", .asset-item rows) with a dark
+        # backdrop that swallows clicks until it is closed. Accept either shape.
+        # Scope to the whole overlay container: anchoring on a pane that
+        # :has(.asset-item) lost the locator the moment the search emptied the list.
+        PICKER = '[role="dialog"]:visible, .cdk-overlay-container:has(input[aria-label="ค้นหาเนื้อหา"])'
+
         def close_picker() -> None:
             try:
                 dialog = page.locator('[role="dialog"]:visible').last
@@ -837,16 +845,19 @@ class FlowBrowser:
                     dialog.locator('button[aria-label="ปิด"]').first.click(
                         timeout=3000, force=True)
                     dialog.wait_for(state="hidden", timeout=3000)
+                if page.locator(".cdk-overlay-backdrop-showing").count():
+                    page.keyboard.press("Escape")
                 page.wait_for_timeout(200)
             except Exception:
                 pass
 
         try:
+            close_picker()  # a half-open picker's backdrop blocks the button
             page.locator(
                 'button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]'
             ).first.click(timeout=3000)
-            dialog = page.locator('[role="dialog"]').last
-            dialog.wait_for(state="visible", timeout=3000)
+            dialog = page.locator(PICKER).last
+            dialog.wait_for(state="visible", timeout=4000)
             # Current mobile layout labels the picker search "ค้นหาเนื้อหา";
             # older desktop builds used "ค้นหา". Scope both the search and
             # result rows to the dialog so the project-feed search cannot be

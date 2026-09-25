@@ -1403,8 +1403,13 @@ class _PickerPage:
     def locator(self, selector):
         if selector == 'button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]':
             return _PickerLocator(self.dom, "opener")
-        if selector in ('[role="dialog"]', '[role="dialog"]:visible'):
+        if selector in ('[role="dialog"]', '[role="dialog"]:visible') or (
+                selector.startswith('[role="dialog"]:visible, .cdk-overlay-container')):
+            # 2026-09-25: the live picker became a CDK overlay; the runner accepts
+            # either shape, still scoped to the picker, never the page feed.
             return _PickerLocator(self.dom, "dialog")
+        if selector == ".cdk-overlay-backdrop-showing":
+            return _PickerLocator(self.dom, "rows")   # count() == 0: no stray backdrop
         raise AssertionError(
             f"picker assets/search must be scoped to the dialog, got: {selector}")
 
