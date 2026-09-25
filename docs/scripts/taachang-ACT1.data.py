@@ -102,8 +102,13 @@ NOT = {
            "in the frame.",
  # The scale's dial must never be read: the grandmother cannot read it, and Flow garbles
  # digits. Said as what the dial IS, not only what it is not.
- "dial": "The scale's round cream dial shows only plain black tick marks and one needle: "
-         "no numbers, no letters, no text on it at all, and it is never in sharp close-up.",
+ # Smoke 2026-09-25 (S11, S13): without a scale chip, and even with one in S11, Veo drew a
+ # small hanging/kitchen dial scale. Say what the scale IS, every time it is in frame.
+ "dial": "The scale is the large, low, rusty blue steel platform scale standing on the ground "
+         "from the reference, big enough for a sack to lie on, with a round cream dial on a "
+         "short post at the back edge: never a small hanging scale, a kitchen scale or a "
+         "tabletop scale. Its dial shows only plain black tick marks and one needle: no "
+         "numbers, no letters, no text on it at all, and it is never in sharp close-up.",
  # Describes the actual @money plate: pastel fake notes, a corner numeral only.
  "money": "Any banknotes in this shot are the fictional prop money from the reference: "
           "soft pastel paper notes with a plain abstract line pattern and a simple numeral "
@@ -117,8 +122,9 @@ PROPS_BY_SHOT = {
     1: ["@sack", "@yard_scale"], 2: ["@sack", "@yard_scale"],
     3: ["@wallet"], 4: ["@wallet"],
     6: ["@jar__third"],
-    9: ["@cart", "@sack"], 10: ["@sack", "@yard_scale"], 11: ["@yard_scale"],
-    15: ["@cart"], 18: ["@sack"],
+    9: ["@cart", "@sack", "@yard_scale"], 10: ["@sack", "@yard_scale"], 11: ["@yard_scale"],
+    12: ["@yard_scale"], 13: ["@yard_scale"], 14: ["@yard_scale"],
+    15: ["@cart"], 16: ["@yard_scale"], 17: ["@yard_scale"], 18: ["@sack"],
     21: ["@jar__full"],
 }
 
@@ -184,19 +190,19 @@ _META = {
      ["sia_b", "yai_c", "pa"], "lan", "the next afternoon, bright daylight",
      "the heavy man points in the old woman's face and shouts with contempt, laughing loudly "
      "and turning to the woman in the straw hat as if for applause; the old woman's face "
-     "falls and her eyes redden", ["nosubs"]),
+     "falls and her eyes redden", ["nosubs", "dial"]),
  13: (8, "Medium shot, pastel notes fluttering down into the dirt",
      ["sia_b", "yai_c"], "lan", "the next afternoon, bright daylight",
      "the heavy man flicks a few pastel notes into the dusty ground with contempt while he "
      "speaks; the old woman, fighting back tears with her eyes brimming, slowly lowers "
      "herself to her knees to pick them up and answers politely, her voice trembling",
-     ["money", "nosubs"]),
+     ["money", "nosubs", "dial"]),
  14: (8, "Close two-shot, the schoolboy kneeling beside her, his body hiding his hand, both faces three-quarters to camera",
      ["kla_s", "yai_c"], "lan", "the next afternoon, bright daylight",
      "the schoolboy kneels beside the old woman to help gather the notes and, hidden by his "
      "own body, slips a folded pastel note of his own into her pile, speaking quickly and low and "
      "glancing guiltily toward his father; a tear rolls down her cheek as she smiles her "
-     "thanks", ["money", "nosubs"]),
+     "thanks", ["money", "nosubs", "dial"]),
  15: (8, "Two-shot walking, the two women pushing their carts along the canal path",
      ["pa", "yai_c"], "soi", "the next afternoon, bright daylight",
      "the woman in the straw hat walks the old woman away along the canal path, leaning in "

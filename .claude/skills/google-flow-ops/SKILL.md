@@ -999,6 +999,23 @@ A contradiction backed by a screenshot or a DOM read wins over anything written
 here. A contradiction backed by a memory does not.
 
 
+## ⛔ A test is spend too — cap every test round (CEO 2026-09-25)
+
+> "ทดสอบด้วย 360p ถูกแล้ว แต่ถ้าทดสอบเยอะ ก็ไม่ต่างอะไรกับการพลาด Credit ควรมี Limit ในการทดสอบด้วย"
+
+**HARD — one test round costs at most 20 credits or 3 shots, whichever comes first, counted
+inside the approved budget. A second round needs the CEO's OK.**
+**Why hard:** money. A 360p shot is cheap (6 credits at 8 s), and that is how "just one more
+test" adds up to a real shot's worth. The taachang smoke (S8/S11/S13, 18 credits) sits
+within the cap and then stopped.
+
+- A dry run (`flow_shoot.py run --dry-run`) is free: it attaches chips, reads the settings
+  and the credit estimate, then stops before Submit. Use it for everything that doesn't
+  need a rendered frame.
+- Write down what the round must answer *before* firing: voice, emotion, a prop, or a face.
+  A test with no question is spend.
+- Report the exact credits spent on the test next to the result.
+
 ## Voices — lock one per character BEFORE shooting any dialogue (CEO 2026-09-08)
 
 A drama dies if the father sounds like a different man each scene. Flow can fix
