@@ -1,0 +1,55 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+O3 · THE HUT · 8s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (3):
+  @Hut -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_hut_PICK.png
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 360p · 16:9 · ONE LOCKED SHOT, NO CUTS. The camera sits inside the hut at the child's height and never moves.
+
+INSIDE THE CHILD'S HUT. THE CHIEF comes for THE YOUNG ONE.
+
+REFERENCES, each with a job:
+@Hut: THE HUT, the only interior reference: the inside of the child's small hut, built like the inside of a camping tent, lamps of glowing seed pods, woven walls. Take the room and its light from it.
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
+
+THE FRAME: Inside the hut looking toward the door flap; THE YOUNG ONE on the floor in the foreground, the doorway in the back of the frame.
+
+WHAT HAPPENS:
+[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells, the door flap closed.
+[2.5s] The flap is pulled open; bright blue-white light floods in, and THE CHIEF stoops through the doorway, the crown glinting.
+[5s] THE YOUNG ONE looks up, gill frills glowing faint gold. THE CHIEF, softly: "It's time."
+
+AUDIO: the quiet hum of the lamps, the door flap swishing open, sea outside, the line above and nothing else. No music.
+
+Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
+
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no camera move, no second child, no fish, no crying.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. The hut matches the chosen picture.
+2. THE CHIEF enters through the door; one line; transcribe.
+3. The child's gills glow gold.
+File the take whatever the verdict, as O3-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE YOUNG ONE stands to go with THE CHIEF.
+
+=== END NOTES ===

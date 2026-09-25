@@ -50,9 +50,9 @@ def save(led):
     LEDGER.write_text(json.dumps(led, indent=1, ensure_ascii=False))
 
 
-def shots(only):
+def shots(only, series="m"):
     out = []
-    for p in sorted(HERE.glob("m[0-9][0-9]-*.txt")):
+    for p in sorted(HERE.glob(f"{series}[0-9][0-9]-*.txt")):
         key = p.name[:3]
         if only and key not in only:
             continue
@@ -65,7 +65,7 @@ def shots(only):
 
 def enqueue(a):
     led = load()
-    todo = [s for s in shots(a.only) if s["key"] not in led]
+    todo = [s for s in shots(a.only, a.series) if s["key"] not in led]
     for s in todo:
         handles = re.findall(r"@\w+", s["prompt"])
         print(f"{s['key']} {s['duration_s']}s {RESOLUTION} {len(s['prompt'].split())} words refs={handles}")
@@ -105,8 +105,9 @@ def collect(a):
         if j.get("error"):
             row["error"] = j["error"]
         if row["status"] == "done" and j.get("download_url"):
-            take = 1 + sum(1 for f in d.ls(previz) if f["name"].startswith(f"M{int(key[1:])}-H3-take"))
-            name = f"M{int(key[1:])}-H3-take{take}.mp4"
+            tagk = f"{key[0].upper()}{int(key[1:])}"
+            take = 1 + sum(1 for f in d.ls(previz) if f["name"].startswith(f"{tagk}-H3-take"))
+            name = f"{tagk}-H3-take{take}.mp4"
             dst = out / name
             url = j["download_url"]
             url = BASE + url if url.startswith("/") else url
@@ -195,6 +196,7 @@ def run_all(a):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", type=lambda s: set(s.split(",")), default=None)
+    ap.add_argument("--series", default="m", help="m = P1 main scenes, o = the new opening (O1-O4)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--collect", action="store_true")
     ap.add_argument("--run-all", action="store_true", help="wait for a READY pod, queue all at once, collect, confirm the pod is off")
