@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O2 · THE CHIEF DECIDES · 6s · DAY · new opening take 2 (CEO: the time has truly come, fear and despair on his face)
+O2 · THE CHIEF DECIDES · 9s · DAY · new opening take 3 (CEO 2026-09-25 cut 3: THE STRONG ONE backs the runner up, worried; everyone truly afraid)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -15,9 +15,9 @@ References (4):
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.
+9s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in from a three-shot to a close-up of THE CHIEF; no cut.
 
-THE CHIEF understands what the empty sea means. THE CHIEF is afraid, and decides anyway.
+THE EMPTY NET. THE STRONG ONE backs THE RUNNER up, and THE CHIEF, afraid, decides.
 
 REFERENCES, each with a job:
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
@@ -25,21 +25,26 @@ REFERENCES, each with a job:
 @RunnerY: THE RUNNER, a tall thin young man of the same people: mustard-yellow skin with faint darker golden-brown freckles, dark chocolate-brown gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
 
-THE FRAME: Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the edges of frame.
+THE FRAME: Medium three-shot on the platform: THE RUNNER on the left, THE CHIEF in the middle, THE STRONG ONE on the right holding the empty, dripping net; the empty sea behind them.
 
-PARTICLES: sea spray drifting, a few glowing specks in the air.
+PARTICLES: sea spray drifting, water dripping from the net, a few glowing specks in the air.
+
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE: holds the empty net up toward THE CHIEF and shakes it once so the water runs out, grim and worried; after he speaks he searches THE CHIEF's face; at the last line he swallows and gives one tense nod.
+- THE RUNNER: hugs his own arms, shaking, eyes darting between the other two; nods hard when THE STRONG ONE backs him up; flinches at THE CHIEF's last words.
+- THE CHIEF: grips his staff with both hands, looks from the net to the empty sea, jaw trembling, gill frills fading pale; after the last line he closes his eyes for a moment.
 
 WHAT HAPPENS:
-[0s] THE CHIEF stares at the empty trap, then out at the empty sea; fear rises in his face, his jaw trembles, his gill frills fade pale.
-[2s] Heavy with dread: "So... the day has come."
-[4s] Barely a whisper, eyes wet: "We need the child with the gift." THE STRONG ONE turns to look at him.
+[0s] THE STRONG ONE holds the empty dripping net up toward THE CHIEF. Grim, to THE CHIEF: "He's right. Not one fish, all week." THE RUNNER nods hard, shaking.
+[3s] THE CHIEF looks from the net to the empty sea; fear rises in his face, his jaw trembles. Heavy with dread: "So... the day has come."
+[6s] The camera has pushed in close on THE CHIEF. Barely a whisper, eyes wet: "We need the child with the gift." THE STRONG ONE and THE RUNNER stare at THE CHIEF, frightened; THE STRONG ONE gives one tense nod.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the two lines above, THE CHIEF's voice shaking with fear and despair, and his unsteady breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): THE STRONG ONE's grim line, then THE CHIEF's two lines, his voice shaking with fear and despair; THE RUNNER's shaky breathing. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no calm face, no smile, no second chief, no crowd close.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no calm face, no smile, no second chief, no crowd close, no fish in the net.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -48,8 +53,9 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Fear and despair clearly on THE CHIEF's face.
-2. Two lines, in order; transcribe.
+1. Three lines in order: THE STRONG ONE once, then THE CHIEF twice; transcribe.
+2. Everyone afraid; nobody smiles.
+3. THE STRONG ONE holds the empty net.
 File the take whatever the verdict, as O2-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

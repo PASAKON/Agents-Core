@@ -189,20 +189,34 @@ SCENES = [
                  "THE NECKLACE is tied on and stays on the child in every later scene.",
                  "The child's gills glow gold.", "THE ELDER has one torn violet frill."],
          end="THE YOUNG ONE wears THE NECKLACE."),
-    dict(n=4, slug="leaving", title="LEAVING", s=6, grade="DAY",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A wide tracking shot from behind, moving with them; no cut, no zoom.",
+    dict(n=4, slug="leaving", title="LEAVING", s=8, grade="DAY",
+         series="cut 4 (CEO 2026-09-25: every rider acts; left to right as take 1)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A wide side-on tracking shot moving with THE MOUNT from the left of frame "
+              "to the right; no cut, no zoom.",
          refs=["@Manta", "@Strong", "@Young", "@Elder", "@Pole", "@Lantern", "@Dock"],
-         heading="THE THREE LEAVE THE VILLAGE on THE MOUNT, out over the clearest water.",
-         frame="From behind and a little above THE MOUNT and THE THREE RIDERS; the seat order from front to back is THE STRONG ONE on the "
-               "front perch, THE YOUNG ONE in the middle, THE ELDER at the back, and it never changes in this film.",
-         beats=["[0s] THE MOUNT glides away from the dock over glass-clear turquoise water, wings rippling. THE STRONG ONE "
-                "steers with THE POLE; THE LANTERN glows gold, hanging from the seat.",
-                "[3s] THE YOUNG ONE turns to look back at the village.",
-                "[4s] The village of giant trees shrinks behind them under the huge close moon."],
-         audio="the swish of the wings, water, wind. No dialogue. Music is added later, none here.",
-         crit="no dialogue, no fourth rider, no boat, no oars, no second mount beside them",
-         review=["Three riders in the fixed seat order.", "THE LANTERN is glowing.", "Clear water, village behind.",
-                 "The mount matches its picture: driftwood seat, lime glow under the wings."],
+         heading="THE THREE LEAVE THE VILLAGE on THE MOUNT, out over the clearest water, each busy with the start of the "
+                 "journey.",
+         frame="Wide, side on: THE MOUNT moving from the left of frame to the right across glass-clear turquoise water, "
+               "the village of giant trees behind them on the left; the seat order is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back, and it never changes in "
+               "this film.",
+         particles="spray from the wing tips, the wake sparkling, a few glowing specks drifting in the air.",
+         actions=["THE STRONG ONE, front perch: works THE POLE in long strong strokes, steering, then glances back over "
+                  "his shoulder and grins at the other two.",
+                  "THE YOUNG ONE, middle: kneels up to look back at the village and waves one last time, then turns "
+                  "forward, leans over the edge and trails one hand through the water, delighted.",
+                  "THE ELDER, back: reaches up and straightens THE LANTERN on its hook so it hangs steady, then sits on "
+                  "the edge of the seat and lets both feet dangle so his toes skim the water, eyes half closed."],
+         beats=["[0s] THE MOUNT glides from left to right over glass-clear turquoise water, wings rippling; THE LANTERN "
+                "glows gold, hanging from the seat. THE STRONG ONE steers with THE POLE.",
+                "[2.5s] THE YOUNG ONE waves back at the village one last time; THE ELDER straightens THE LANTERN on its "
+                "hook.",
+                "[5s] THE YOUNG ONE trails a hand through the water, laughing; THE STRONG ONE grins back at the child; "
+                "THE ELDER sits on the edge of the seat, toes skimming the water."],
+         audio="-",
+         sound="THE YOUNG ONE's delighted laugh and the splash of the child's hand and THE ELDER's toes in the water, "
+               "nothing else",
+         crit="no dialogue, no fourth rider, no boat, no oars, no second mount beside them, no movement right to left",
+         review=["Left to right, side on.", "Each rider doing their own action.", "THE LANTERN is glowing."],
          end="Seat order fixed: THE STRONG ONE front, THE YOUNG ONE middle, THE ELDER back; THE LANTERN lit."),
     dict(n=5, slug="the-glass-creatures", title="THE GLASS CREATURES", s=6, grade="TURNING",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A slow underwater drift alongside them; no cut, no zoom.",
@@ -219,24 +233,41 @@ SCENES = [
          review=["All four glass creatures present and NOT like Earth jellyfish.", "Scale: each as big as a house.",
                  "The water shifts towards violet-grey."],
          end="On the mount, heading on."),
-    dict(n=6, slug="the-storm-pillars", title="THE STORM PILLARS", s=6, grade="TURNING",
-         series="P1 take 2 (CEO round 2, 1:05: moving away from camera toward what lies ahead; Turning)",
+    dict(n=6, slug="the-storm-pillars", title="THE STORM PILLARS", s=8, grade="TURNING",
+         series="cut 4 (CEO 2026-09-25: every rider acts; still moving away from the camera, Turning)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. From behind THE MOUNT, following it as it moves away from the camera "
               "into the pillars ahead; the camera never gets in front of it; no cut, no zoom.",
          refs=["@Manta", "@Strong", "@Young", "@Elder", "@Pillars", "@Turning"],
-         heading="BETWEEN THE STORM PILLARS. THE MOUNT heads away from us, into silent columns of cloud taller than "
-                 "anything they know.",
+         heading="BETWEEN THE STORM PILLARS. THE MOUNT bursts up from the dive, drops back onto the sea and swims away "
+                 "from us, into silent columns of cloud taller than anything they know.",
          frame="Behind THE MOUNT: we see its back, its tail and the backs of THE THREE RIDERS; ahead of them the thin "
-               "straight pillars stand on the sea and rise beyond the top of the frame. Evening turning light.",
-         particles="spray from the wings, whirlpool mist at the pillar bases, a few drifting specks.",
-         beats=["[0s] THE MOUNT bursts up through the surface from below, water pouring off its wings, and glides away "
-                "from the camera toward the pillars ahead; small whirlpools turn at their bases.",
-                "[2.5s] THE THREE RIDERS, still facing away from us, tip their heads back to look up at the pillars.",
-                "[4s] THE MOUNT passes between the first two pillars, heading deeper in, away from us."],
-         audio="-", sound="silence; nobody speaks",
-         crit="no one facing the camera, no mount turning toward the camera, no tornado, no funnel, no cone shape, no "
-              "debris, no dialogue, no storm, no lightning, no rain",
-         review=["Moving away from camera, never facing it.", "Evening turning light.", "Pillars thin and straight."],
+               "straight pillars stand on the sea and rise beyond the top of the frame. After the burst, THE MOUNT is "
+               "IN the water: its body half under the surface, its wing tips slicing the water, a wake churning behind "
+               "it. Evening turning light.",
+         particles="spray from the wings, water streaming off the riders, whirlpool mist at the pillar bases.",
+         actions=["THE STRONG ONE, front perch: as they burst up he shakes his head hard so water flies off his gills, "
+                  "spits out a mouthful of sea, grips the steering pole and steers between the pillars, leaning left, "
+                  "then right.",
+                  "THE YOUNG ONE, middle: laughs and slaps the surface of the water beside the seat with one hand, "
+                  "splashing, then stops, looks up at the tallest pillar and tugs THE ELDER's arm, pointing.",
+                  "THE ELDER, back: squeezes the water out of his long gill frills with both hands, then follows the "
+                  "child's pointing arm and scans the pillars left and right, wary."],
+         beats=["[0s] THE MOUNT bursts up through the surface from below, water pouring off its wings and off THE THREE "
+                "RIDERS, then drops back down onto the sea with a splash and swims on at the surface, wing tips slicing "
+                "the water, away from the camera toward the pillars ahead; small whirlpools turn at their bases.",
+                "[2.5s] THE STRONG ONE shakes his head hard, spits out sea water and grips the steering pole; THE YOUNG "
+                "ONE laughs and slaps the water beside the seat; THE ELDER wrings the water out of his gill frills.",
+                "[5s] THE YOUNG ONE looks up, tugs THE ELDER's arm and points at the tallest pillar; THE ELDER follows the "
+                "arm, wary; THE STRONG ONE steers between the first two pillars, leaning into the turn, heading deeper "
+                "in, away from us, wake churning behind."],
+         audio="-", sound="the riders' sharp breaths as they burst up, THE STRONG ONE spitting water, THE YOUNG ONE's "
+                          "laugh and splash; nobody speaks",
+         crit="no one facing the camera, no mount turning toward the camera, no mount floating above the water, no mount "
+              "flying, no gap between the mount and the sea, no tornado, no funnel, no cone shape, no debris, no "
+              "dialogue, no storm, no lightning, no rain",
+         review=["Burst up as take 2 (approved), then IN the water, never hovering above it.",
+                 "Each rider reacts in their own way: head shake and spit, splash, wring the gills.",
+                 "Moving away from camera, never facing it."],
          end="Deeper among the pillars, heading on."),
     dict(n=7, slug="the-line", title="THE LINE", s=6, grade="TURNING",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A slow crane down from a high angle; no cut, no zoom.",
@@ -335,51 +366,68 @@ SCENES = [
          end="End of the film's picture; the question card follows in the edit."),
     # ---- the new opening, CEO 2026-09-25, take 2 after his notes (letter ...-ceo-notes-p1-round1.md) ----
     dict(prefix="o", n=1, slug="the-runner", title="THE RUNNER", s=15, grade="DAY",
-         series="new opening take 3 (CEO 2026-09-25: runner mustard-yellow, not blue, not orange; camera approved; "
-                "chief busy; real emotion)",
+         series="new opening take 4 (CEO 2026-09-25 cut 3: the run is approved; at the end THE STRONG ONE is worried "
+                "too, the net is empty, everyone truly afraid)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A long lateral tracking shot that runs alongside THE RUNNER the whole "
               "way; no cut, no zoom, no slow motion.",
          refs=["@RunnerY", "@Chief", "@Strong", "@Village", "@Villagers"],
          heading="MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF, who is out "
-                 "working with THE STRONG ONE.",
+                 "hauling the fishing net with THE STRONG ONE.",
          frame="Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, "
                "rope bridges, glowing grass, glass-clear water below; villagers only far off and soft.",
          particles="water flicking up from his feet, sea spray glinting, a few glowing specks drifting in the air.",
+         actions=["THE RUNNER: runs flat out in panic the whole way, then stops doubled over, gasping, pleading with "
+                  "both open hands.",
+                  "THE STRONG ONE: hauls the net hand over hand, sees it come up empty and stares into it, brow knotted, "
+                  "jaw clenched, worried; then looks from THE RUNNER to THE CHIEF with fear in his eyes. THE STRONG ONE never smiles.",
+                  "THE CHIEF: hauls the net beside THE STRONG ONE, then lets go of it and turns to THE RUNNER, his face falling."],
          beats=["[0s] THE RUNNER bursts onto a wooden walkway running flat out from the left of frame to the right, "
                 "face twisted with fear, panting hard, gill frills flared pale, then leaps the gap between two "
                 "platforms and races across a swaying rope bridge while far-off villagers turn to watch.",
                 "[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF and "
-                "THE STRONG ONE are busy together, hauling a woven fish trap up out of the water: it comes up empty.",
+                "THE STRONG ONE are hauling a woven kelp fishing net up out of the water: it comes up empty and "
+                "dripping. THE STRONG ONE stares into the empty net, brow knotted, jaw clenched, gill frills fading pale.",
                 "[10s] THE RUNNER stumbles to a stop, chest heaving. Out of breath: \"Chief! There are no fish. None "
-                "left.\"",
-                "[12.5s] Then, desperate: \"We're starving. Please, do something.\" THE CHIEF and THE STRONG ONE let the "
-                "empty trap drop and turn to him."],
+                "left.\" THE STRONG ONE's eyes snap to THE RUNNER; THE CHIEF lets go of the net.",
+                "[12.5s] Then, desperate: \"We're starving. Please, do something.\" THE STRONG ONE lets the empty net "
+                "sag and looks at THE CHIEF, afraid; all three faces are frightened."],
          audio="-",
          sound="THE RUNNER's loud, ragged panting, clearly heard all through the run, then the two lines above, "
-               "gasped out between breaths; the strain of the two men hauling",
+               "gasped out between breaths; THE STRONG ONE's heavy, worried breath",
          crit=DIALOGUE_NEG + ", no cut, no slow motion, no second runner, no one falling into the water, no weapon, no "
-              "orange skin on the runner, no blue skin on the runner, no calm faces",
-         review=["Camera as take 1 (approved).", "THE RUNNER is mustard-yellow with dark brown gills, not orange, "
-                 "not blue.",
-                 "THE CHIEF and THE STRONG ONE are working, not standing still.", "Panting clearly audible; two lines."],
-         end="THE RUNNER, THE CHIEF and THE STRONG ONE on the platform by the empty trap."),
-    dict(prefix="o", n=2, slug="the-chief-decides", title="THE CHIEF DECIDES", s=6, grade="DAY",
-         series="new opening take 2 (CEO: the time has truly come, fear and despair on his face)",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.",
+              "orange skin on the runner, no blue skin on the runner, no calm faces, no smile, no grin, no fish in the "
+              "net, no fish trap, no basket",
+         review=["Camera as take 2 (approved).", "THE RUNNER mustard-yellow, not orange, not blue.",
+                 "At the end THE STRONG ONE is worried, never smiling; the net is empty.", "Panting clearly audible; two lines."],
+         end="THE RUNNER, THE CHIEF and THE STRONG ONE on the platform, the empty net between them."),
+    dict(prefix="o", n=2, slug="the-chief-decides", title="THE CHIEF DECIDES", s=9, grade="DAY",
+         series="new opening take 3 (CEO 2026-09-25 cut 3: THE STRONG ONE backs the runner up, worried; everyone "
+                "truly afraid)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A slow push-in from a three-shot to a close-up of THE CHIEF; no cut.",
          refs=["@Chief", "@Strong", "@RunnerY", "@Village"],
-         heading="THE CHIEF understands what the empty sea means. THE CHIEF is afraid, and decides anyway.",
-         frame="Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the "
-               "edges of frame.",
-         particles="sea spray drifting, a few glowing specks in the air.",
-         beats=["[0s] THE CHIEF stares at the empty trap, then out at the empty sea; fear rises in his face, his jaw "
-                "trembles, his gill frills fade pale.",
-                "[2s] Heavy with dread: \"So... the day has come.\"",
-                "[4s] Barely a whisper, eyes wet: \"We need the child with the gift.\" THE STRONG ONE turns to look "
-                "at him."],
+         heading="THE EMPTY NET. THE STRONG ONE backs THE RUNNER up, and THE CHIEF, afraid, decides.",
+         frame="Medium three-shot on the platform: THE RUNNER on the left, THE CHIEF in the middle, THE STRONG ONE on "
+               "the right holding the empty, dripping net; the empty sea behind them.",
+         particles="sea spray drifting, water dripping from the net, a few glowing specks in the air.",
+         actions=["THE STRONG ONE: holds the empty net up toward THE CHIEF and shakes it once so the water runs out, grim "
+                  "and worried; after he speaks he searches THE CHIEF's face; at the last line he swallows and gives "
+                  "one tense nod.",
+                  "THE RUNNER: hugs his own arms, shaking, eyes darting between the other two; nods hard when THE STRONG "
+                  "ONE backs him up; flinches at THE CHIEF's last words.",
+                  "THE CHIEF: grips his staff with both hands, looks from the net to the empty sea, jaw trembling, gill "
+                  "frills fading pale; after the last line he closes his eyes for a moment."],
+         beats=["[0s] THE STRONG ONE holds the empty dripping net up toward THE CHIEF. Grim, to THE CHIEF: \"He's right. "
+                "Not one fish, all week.\" THE RUNNER nods hard, shaking.",
+                "[3s] THE CHIEF looks from the net to the empty sea; fear rises in his face, his jaw trembles. Heavy "
+                "with dread: \"So... the day has come.\"",
+                "[6s] The camera has pushed in close on THE CHIEF. Barely a whisper, eyes wet: \"We need the child with "
+                "the gift.\" THE STRONG ONE and THE RUNNER stare at THE CHIEF, frightened; THE STRONG ONE gives one tense nod."],
          audio="-",
-         sound="the two lines above, THE CHIEF's voice shaking with fear and despair, and his unsteady breath",
-         crit=DIALOGUE_NEG + ", no calm face, no smile, no second chief, no crowd close",
-         review=["Fear and despair clearly on THE CHIEF's face.", "Two lines, in order; transcribe."],
+         sound="THE STRONG ONE's grim line, then THE CHIEF's two lines, his voice shaking with fear and despair; THE "
+               "RUNNER's shaky breathing",
+         crit=DIALOGUE_NEG + ", no calm face, no smile, no second chief, no crowd close, no fish in the net",
+         review=["Three lines in order: THE STRONG ONE once, then THE CHIEF twice; transcribe.",
+                 "Everyone afraid; nobody smiles.", "THE STRONG ONE holds the empty net."],
          end="THE CHIEF turns to go to the child's hut; THE STRONG ONE follows."),
     dict(prefix="o", n=3, slug="the-hut", title="THE HUT", s=10, grade="DAY",
          series="round 3 (CEO answers 1, 4, C7: the elder waits outside too; gills flash; You two will go)",
@@ -406,25 +454,39 @@ SCENES = [
                  "Three lines, in order; transcribe."],
          end="THE YOUNG ONE stands to go; the two men wait at the door."),
     dict(prefix="o", n=4, slug="the-farewell", title="THE FAREWELL", s=8, grade="DAY",
-         series="new opening take 2 (CEO: wide angle, wide lens)",
+         series="new opening take 3 (CEO 2026-09-25 cut 3, 0:32: THE STRONG ONE appeared twice, on the mount and on "
+                "the dock; now the riders are on the mount from the first frame, 7 references, no pole push off the dock)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens from the far end of the dock, a slow "
               "crane up as THE MOUNT pulls away; no cut, no zoom.",
-         refs=["@Manta", "@Strong", "@Young", "@Elder", "@Pole", "@Dock", "@Chief", "@Villagers", "@Villagers2"],
-         heading="THE FAREWELL AT THE MANTA DOCK, WIDE. The whole village sees THE THREE RIDERS off.",
-         frame="Extreme wide: the whole dock and the crowd small in the foreground, THE MOUNT in the water beyond, the "
-               "village of giant trees and the open sea filling the frame; the seat order is THE STRONG ONE on the "
-               "front perch, THE YOUNG ONE in the middle, THE ELDER at the back.",
+         refs=["@Manta", "@Strong", "@Young", "@Elder", "@Dock", "@Chief", "@Villagers"],
+         heading="THE FAREWELL AT THE MANTA DOCK, WIDE. THE THREE RIDERS are already on THE MOUNT; the whole village sees "
+                 "them off from the dock.",
+         frame="Extreme wide: the dock and the crowd small in the left foreground, THE MOUNT in the water to the right of "
+               "the dock with THE THREE RIDERS already on its seat, the village of giant trees and the open sea filling "
+               "the frame; the seat order is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back. THE STRONG ONE is on THE MOUNT from the first frame to the last; the "
+               "only people on the dock are THE CHIEF and the villagers.",
          particles="sea spray glinting, glowing specks drifting in the air, the wake sparkling.",
-         beats=["[0s] THE MOUNT waits at the dock with THE THREE RIDERS on its seat, a glowing shell lantern hanging "
-                "from it; villagers crowd the edge of the dock.",
-                "[2s] THE STRONG ONE pushes off with THE POLE and THE MOUNT glides out over the glass-clear water.",
-                "[4s] The villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal staff.",
-                "[6s] THE YOUNG ONE turns on the seat and waves back as THE MOUNT pulls away over the clearest water, "
-                "heading for the open sea."],
+         actions=["THE STRONG ONE, front perch: plants his long pale bone steering pole on the sea floor beside the dock "
+                  "and shoves off with his whole body, then steers, leaning into the pole, eyes on the open sea.",
+                  "THE YOUNG ONE, middle: kneels up on the seat facing the dock and waves both arms at the crowd, "
+                  "bouncing, then grabs the backrest as THE MOUNT surges forward.",
+                  "THE ELDER, back: raises one open hand to THE CHIEF in a slow farewell, then rests that hand on the "
+                  "child's shoulder to steady the child."],
+         beats=["[0s] THE MOUNT floats beside the dock with THE THREE RIDERS already on its seat; the villagers crowd the "
+                "edge of the dock, calling out.",
+                "[2s] THE STRONG ONE shoves off with the pole and THE MOUNT glides away from the dock over the "
+                "glass-clear water; THE YOUNG ONE waves both arms.",
+                "[4s] On the dock the villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal "
+                "staff high; THE ELDER raises a hand back to him.",
+                "[6s] THE MOUNT pulls away toward the open sea, THE YOUNG ONE still waving, THE ELDER's hand on the "
+                "child's shoulder, THE STRONG ONE steering."],
          audio="-",
-         sound="the villagers' wordless calls of goodbye, nothing else",
-         crit="no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon, no close-up",
-         review=["Wide lens, extreme wide.", "THE THREE RIDERS in the fixed seat order.", "THE CHIEF raises the staff."],
+         sound="the villagers' wordless calls of goodbye and THE YOUNG ONE's excited breath, nothing else",
+         crit="no dialogue, no second STRONG ONE, nobody green or muscular on the dock, nobody on the dock holding a "
+              "pole, no rider stepping onto the dock, no boat, no fourth rider, no one crying, no crowd lined up in a "
+              "row, no weapon, no close-up",
+         review=["Only ONE STRONG ONE, on the mount the whole time.", "Riders on the mount from the first frame.",
+                 "Each rider doing their own action.", "Wide lens, extreme wide."],
          end="Seat order fixed; they head for open sea."),
     # ---- CEO notes round 2 (MAC CTO letter ...-ceo-notes-round2.md): N1-N5 take 2 + the new ending N6-N9 ----
     dict(prefix="n", n=1, slug="leaving-the-village-high", title="LEAVING THE VILLAGE, FROM HIGH ABOVE", s=6, grade="DAY",
@@ -445,7 +507,7 @@ SCENES = [
          review=["Aerial from start to end; never comes down to the riders.", "No dark line yet."],
          end="THE MOUNT out on the open sea."),
     dict(prefix="n", n=2, slug="the-dive", title="THE DIVE", s=6, grade="DAY",
-         series="round 2: take 2 (0:49: left to right, parallel tracking, no tilt)",
+         series="cut 4 (CEO 2026-09-25: every rider acts; left to right, parallel tracking, no tilt)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A parallel side-on tracking shot that moves left to right with THE MOUNT "
               "and follows it down under the surface; the camera stays level the whole time, no tilt, no cut.",
          refs=["@Manta", "@Strong", "@Young", "@Elder", "@OpenSea"],
@@ -455,17 +517,26 @@ SCENES = [
                "waterline, then below it, the camera sinking with it and staying level.",
          particles="a burst of silver bubbles as they go under, small bubbles rising, drifting specks in the water, "
                    "shafts of light from the surface.",
-         beats=["[0s] On the surface, THE MOUNT glides from left to right; THE THREE RIDERS draw a breath, gill frills "
-                "flaring open.",
+         actions=["THE STRONG ONE, front perch: looks back at the other two and lifts one fist, the signal to dive, then "
+                  "crouches low over the perch as they go under.",
+                  "THE YOUNG ONE, middle: sucks in a huge breath, cheeks puffed, grinning, and grabs the backrest; "
+                  "underwater the child's eyes go wide, looking all around.",
+                  "THE ELDER, back: nods at the signal, takes one slow calm breath and wraps an arm round the child; "
+                  "underwater his gill frills fan out and he points ahead."],
+         beats=["[0s] On the surface, THE MOUNT glides from left to right. THE STRONG ONE looks back and lifts a fist; THE "
+                "ELDER nods; THE YOUNG ONE sucks in a huge breath, cheeks puffed, gill frills flaring open.",
                 "[2s] THE MOUNT tips its wings and slides under the surface, still moving left to right; the camera "
-                "follows it down, level, side on.",
-                "[4s] Underwater in clear blue water, THE MOUNT glides on to the right with all three on its seat."],
-         audio="-", sound="THE THREE RIDERS' deep breath before the dive, then silence underwater",
+                "follows it down, level, side on; THE STRONG ONE crouches low.",
+                "[4s] Underwater in clear blue water: THE YOUNG ONE's eyes go wide, looking all around; THE ELDER points "
+                "ahead; THE MOUNT glides on to the right."],
+         audio="-", sound="THE THREE RIDERS' deep breath before the dive, THE YOUNG ONE's excited squeak as they go "
+                          "under, then silence underwater",
          crit="no dialogue, no camera tilt, no dutch angle, no movement right to left, no rider left behind",
-         review=["Left to right, parallel, level.", "Surface to underwater in one move."],
+         review=["Left to right, parallel, level.", "Surface to underwater in one move.",
+                 "Each rider doing their own action."],
          end="Underwater, heading right."),
     dict(prefix="n", n=3, slug="the-glass-sea-wide", title="THE GLASS SEA, WIDE", s=10, grade="TURNING",
-         series="round 2: take 2 (0:57: the child says wow underwater, bubbles from the mouth)",
+         series="cut 4 (CEO 2026-09-25: every rider acts; the child says wow underwater, bubbles from the mouth)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens, a slow lateral track from left to "
               "right keeping pace with THE MOUNT; no cut, no zoom.",
          refs=["@Manta", "@Young", "@Strong", "@Elder", "@GlassSpiral", "@GlassCathedral", "@GlassHalo", "@GlassBloom"],
@@ -475,42 +546,63 @@ SCENES = [
                "away into deep blue then indigo; the glass creatures drift at different depths.",
          particles="countless drifting plankton specks, small bubbles, long shafts of dimming violet-grey light from the "
                    "surface.",
-         beats=["[0s] Wide and deep: THE MOUNT glides in from the left carrying THE THREE RIDERS, small in the vastness.",
+         actions=["THE STRONG ONE, front perch: steers THE MOUNT in a slow curve around THE SPIRAL, then turns and points "
+                  "out THE BLOOM to the child.",
+                  "THE YOUNG ONE, middle: follows the pointing arm, gasps and stretches one hand toward THE BLOOM as it "
+                  "passes; bubbles pour from the child's mouth.",
+                  "THE ELDER, back: turns his head slowly to follow THE DOME drifting overhead, then looks down at the "
+                  "child and smiles."],
+         beats=["[0s] Wide and deep: THE MOUNT glides in from the left carrying THE THREE RIDERS, small in the vastness; "
+                "THE STRONG ONE steers it in a slow curve around THE SPIRAL.",
                 "[3s] Around them and far below, THE SPIRAL, THE DOME, THE RINGS and THE BLOOM drift, each bigger than a "
-                "house, rainbow light moving through their clear bodies.",
-                "[6s] THE YOUNG ONE stares at THE BLOOM, mouth open; a burst of bubbles pours out as the child says it. "
-                "Amazed, underwater: \"Wowww.\"",
+                "house, rainbow light moving through their clear bodies. THE STRONG ONE points at THE BLOOM; THE ELDER "
+                "turns his head to follow THE DOME.",
+                "[6s] THE YOUNG ONE stretches a hand toward THE BLOOM, mouth open; a burst of bubbles pours out. Amazed, "
+                "underwater: \"Wowww.\" THE ELDER smiles at the child.",
                 "[8.5s] THE MOUNT keeps on toward the right of frame, the deep blue opening beneath them."],
          audio="-",
          sound="THE YOUNG ONE's muffled, bubbling underwater \"Wowww\", sounding truly underwater, and nothing else",
          crit=DIALOGUE_NEG + ", no jellyfish, no squid, no octopus, no fish, no movement right to left, no bright noon "
               "light underwater",
-         review=["Bubbles from the child's mouth with the Wowww.", "Left to right, wide."],
+         review=["Bubbles from the child's mouth with the Wowww.", "Left to right, wide.",
+                 "Each rider doing their own action."],
          end="THE MOUNT heading right."),
-    dict(prefix="n", n=4, slug="the-line-they-stop", title="THE LINE: THEY STOP", s=8, grade="TURNING",
-         series="round 3 (CEO answers: only the elder speaks; thunder and moving clouds before the crossing)",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. From high behind THE MOUNT, then a slow crane down behind THE THREE RIDERS; "
-              "the camera stays behind them the whole time; no cut, no zoom.",
-         refs=["@Line", "@Turning", "@Manta", "@Elder", "@Strong", "@Young"],
-         heading="THE LINE, AT EVENING. THE MOUNT stops in front of it. We see it through their eyes, from behind them, "
-                 "and the sky ahead is already moving.",
-         frame="Behind and above THE MOUNT: THE THREE RIDERS and THE MOUNT all face away from the camera, toward the "
-               "razor-sharp line ahead; clear water under them, pitch-black water beyond the line, where dark storm "
-               "clouds roll and churn visibly across the sky. The light and colour are the evening turning.",
-         particles="spray blowing off the line, wind-blown mist, the air heavy before the storm.",
-         beats=["[0s] From high behind, THE MOUNT glides up to the line and stops at its edge, facing the black water.",
-                "[2s] The camera cranes down behind THE THREE RIDERS; beyond the line the storm clouds churn and roll "
-                "toward them, and thunder rumbles.",
-                "[4s] THE ELDER, low: \"So this is it. The line of death.\"",
-                "[6s] Nobody moves. A flash of violet lightning far beyond the line lights the black water."],
-         audio="-", sound="the line above and nothing else; the riders' held breath",
-         crit=DIALOGUE_NEG + ", no one facing the camera, no mount turning toward the camera, no crossing yet, no second "
-              "line spoken, no bright midday sky, no sunset orange, no rain on the clear side yet",
-         review=["Nobody faces the camera; all face the line.", "Clouds visibly moving; thunder.",
-                 "One line, THE ELDER; transcribe."],
-         end="Stopped at the line, facing it; storm rolling beyond."),
+    dict(prefix="n", n=4, slug="the-line-they-stop", title="THE LINE: THEY STOP", s=7, grade="TURNING",
+         series="cut 4 (CEO 2026-09-25, 1:11: from left to right, stopping exactly at the line; the talk is its own shot, "
+                "N12)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A wide side-on tracking shot moving with THE MOUNT from the left of frame "
+              "to the right, then holding as it stops; no cut, no zoom.",
+         refs=["@Line", "@Turning", "@Manta", "@Strong", "@Young", "@Elder"],
+         ref_override={"@Line": "THE LINE, the only picture of it: take its two waters and their exact colours, "
+                                "glass-clear turquoise on one side and pitch-black under a purple-black storm on the "
+                                "other, and the razor-sharp edge between them; not its camera angle."},
+         heading="THE LINE, AT EVENING. THE MOUNT arrives from the left and stops exactly at the edge of the black water.",
+         frame="Wide, side on: clear turquoise water fills the left half of the frame, pitch-black water under a "
+               "churning purple-black storm fills the right half, and the razor-sharp line between them runs straight "
+               "away from the camera to the horizon. The seat order is THE STRONG ONE on the front perch, THE YOUNG ONE "
+               "in the middle, THE ELDER at the back.",
+         particles="spray off the wing tips, wind-blown mist along the line, the air heavy before the storm.",
+         actions=["THE STRONG ONE, front perch: steers in from the left in long pole strokes, sees the black water ahead, "
+                  "hauls back on the steering pole with his whole weight to stop, and holds THE MOUNT there, braced.",
+                  "THE YOUNG ONE, middle: kneels up to see past THE STRONG ONE, grips the edge of the seat with both hands "
+                  "as they slow, then leans forward, staring at the black water with round eyes.",
+                  "THE ELDER, back: reaches forward and rests one hand on THE STRONG ONE's shoulder as they stop, his gill "
+                  "frills lifting in the storm wind."],
+         beats=["[0s] THE MOUNT glides in from the left of frame over the clear turquoise water, THE STRONG ONE working "
+                "the steering pole in long strokes.",
+                "[2.5s] Ahead, the pitch-black water; THE STRONG ONE hauls back hard on the pole; THE MOUNT slows, water "
+                "piling up at its wing edges; THE YOUNG ONE grips the edge of the seat with both hands.",
+                "[4.5s] THE MOUNT stops exactly at the line, its nose at the edge of the black water; THE ELDER rests a "
+                "hand on THE STRONG ONE's shoulder; THE YOUNG ONE leans forward, staring; thunder rolls beyond the line."],
+         audio="-", sound="THE STRONG ONE's grunt as he hauls on the pole and THE YOUNG ONE's sharp breath at the "
+                          "thunder; nobody speaks",
+         crit="no dialogue, no crossing, no part of THE MOUNT over the line, no movement right to left, no mount facing "
+              "the camera, no blurred line, no gradient between the waters, no rain on the clear side",
+         review=["Left to right; stops exactly at the line.", "The line razor sharp, running away from the camera.",
+                 "Each rider doing their own action."],
+         end="Stopped with its nose at the line, facing right, toward the black water."),
     dict(prefix="n", n=5, slug="the-crossing", title="THE CROSSING", s=6, grade="DARK",
-         series="round 3 (CEO answers 10, 12: cross a little; EVERY light flickers and dies, very clearly; darkness)",
+         series="cut 4 (CEO 2026-09-25: every rider acts; EVERY light flickers and dies, very clearly; darkness)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. From behind THE MOUNT, moving with it as it crosses away from the camera; "
               "no cut, no zoom.",
          refs=["@Manta", "@Lantern", "@LanternDark", "@BlackSea", "@Strong", "@Elder", "@Young"],
@@ -518,85 +610,128 @@ SCENES = [
          frame="Behind THE MOUNT: THE THREE RIDERS with their backs to us; THE LANTERN hangs lit from the seat and the "
                "small seed-pod lamps glow along the seat; ahead, pitch-black water under the storm.",
          particles="rain beginning to fall as they cross, drops streaking through the last of the lamp light.",
-         beats=["[0s] THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain "
-                "falls on them.",
-                "[2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again.",
-                "[3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone.",
-                "[4.5s] Darkness. Only a faint grey outline of THE THREE RIDERS in the rain."],
+         actions=["THE STRONG ONE, front perch: drives the steering pole down and pushes THE MOUNT over the line, then "
+                  "keeps steering through the dark, never stopping.",
+                  "THE YOUNG ONE, middle: looks up in alarm at the flickering lantern and reaches toward it, then huddles "
+                  "against THE ELDER when the last light dies.",
+                  "THE ELDER, back: cups one hand around the nearest seed-pod lamp as if to shield it; when it dies he "
+                  "wraps both arms around the child."],
+         beats=["[0s] THE STRONG ONE drives the steering pole down and THE MOUNT glides forward over the razor-sharp line, "
+                "away from us, into the pitch-black water; rain falls on them.",
+                "[2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again; THE YOUNG ONE "
+                "looks up in alarm and reaches toward THE LANTERN; THE ELDER cups a hand around the nearest lamp.",
+                "[3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone. THE YOUNG ONE "
+                "huddles against THE ELDER, who wraps both arms around the child.",
+                "[4.5s] Darkness: only faint grey outlines in the rain, THE STRONG ONE still steering."],
          audio="-", sound="the riders' sharp, frightened breaths as the lights die, nothing else",
          crit="no dialogue, no light left burning, no glow from the child yet, no one facing the camera, no fire, no "
               "flames, no explosion",
-         review=["All lights flicker and die, very clearly.", "Ends in darkness.", "Moving away from the camera."],
+         review=["All lights flicker and die, very clearly.", "Ends in darkness.", "Moving away from the camera.",
+                 "Each rider doing their own action."],
          end="THE MOUNT in darkness just past the line; every light dead."),
     dict(prefix="n", n=6, grade_override="DARK_GLOW", slug="the-light", title="THE LIGHT", s=8, grade="DARK",
-         series="round 3 (CEO answers 2, 12: in the dark, the strong one's line, then the light from the child)",
+         series="cut 4 (CEO 2026-09-25: every rider acts and reacts; the dark mount picture, no lamps lit)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A three-quarter view from behind THE MOUNT, slowly rising; no cut, no zoom.",
-         refs=["@Young", "@Manta", "@BlackSea", "@Turning", "@Strong", "@Elder"],
+         refs=["@Young", "@BlackSea", "@Turning", "@Strong", "@Elder"],
          heading="THE LIGHT. In the black rain, THE YOUNG ONE lights up as their lantern.",
-         frame="Behind and a little above THE MOUNT on pitch-black water in the rain; THE THREE RIDERS face ahead, "
-               "barely visible in the dark.",
+         frame="Behind and a little above THE MOUNT on pitch-black water in the rain; THE THREE RIDERS barely visible "
+               "in the dark until the child's light comes.",
          particles="rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE.",
-         beats=["[0s] Darkness and rain. THE STRONG ONE turns his head to THE YOUNG ONE. Quietly: \"We need your light "
-                "now.\"",
-                "[3s] THE YOUNG ONE closes both eyes; GLOW",
-                "[5.5s] THE MOUNT glides on into the dark, away from us, carrying its small moving pool of light."],
+         actions=["THE STRONG ONE, front perch: turns round on the perch toward the child and speaks; when the light "
+                  "comes, grins with relief, turns forward and steers on.",
+                  "THE YOUNG ONE, middle: looks from one to the other, nods, takes a deep breath, closes both eyes and "
+                  "lights up.",
+                  "THE ELDER, back: lays a hand on the child's back, encouraging; when the light blooms he leans back, "
+                  "face lit gold, in awe."],
+         beats=["[0s] Darkness and rain. THE STRONG ONE turns round on the perch toward THE YOUNG ONE. Quietly: \"We need "
+                "your light now.\" THE ELDER lays a hand on the child's back.",
+                "[3s] THE YOUNG ONE looks from one to the other, nods, takes a deep breath and closes both eyes; GLOW",
+                "[5.5s] THE STRONG ONE grins with relief and turns forward to steer; THE ELDER leans back, face lit gold, "
+                "in awe; THE MOUNT glides on into the dark, away from us, carrying its small moving pool of light."],
          audio="-", sound="the line above, then THE YOUNG ONE's slow breath as the light blooms",
          crit=DIALOGUE_NEG + ", no wide ring of light, no light reaching more than two metres, no beam into the sky, no "
               "other light source, no lantern light, no lamps",
-         review=["One line, THE STRONG ONE; transcribe.", "Glow radius about 1-2 m; Turning-coloured water inside it."],
+         review=["One line, THE STRONG ONE; transcribe.", "Glow radius about 1-2 m; no lamp lit on the seat.",
+                 "Each rider reacts to the line and to the light."],
          end="THE YOUNG ONE glowing, the moving lantern, from here to the end."),
     dict(prefix="n", n=7, grade_override="DARK_GLOW", slug="the-giant-wave", title="THE GIANT WAVE", s=8, grade="DARK",
-         series="round 3 (CEO answer C3: after the light, the giant wave, before the fish)",
+         series="cut 4 (CEO 2026-09-25: every rider acts; the dark mount picture)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. Low behind THE MOUNT, looking past it at the wave rising ahead; camera "
               "shake; no cut, no zoom.",
-         refs=["@Waves", "@Manta", "@Strong", "@Pole", "@Elder", "@Young"],
+         refs=["@Waves", "@Strong", "@Pole", "@Elder", "@Young"],
          heading="THE WAVE. Ahead of them, in the black rain, a wall of water as tall as a mountain rises.",
          frame="Low behind THE MOUNT, small in the lower frame with THE YOUNG ONE glowing on it; the wave rises ahead "
                "and fills everything above.",
          particles="heavy rain, spray torn off the wave crest, bubbles as they go under.",
+         actions=["THE STRONG ONE, front perch: drives THE POLE down, shouts, and bends low over the perch as they dive.",
+                  "THE YOUNG ONE, middle, glowing: stares up at the wave, then throws both arms around the bone-rib "
+                  "backrest and squeezes both eyes shut.",
+                  "THE ELDER, back: wraps his arms around the child from behind and ducks his head down over the child."],
          beats=["[0s] GLOW Ahead of THE MOUNT a colossal wave rises against the wind, black water glowing faintly cyan "
-                "and magenta inside, curling over them.",
-                "[2.5s] THE STRONG ONE drives THE POLE down. A shout: \"Hold on!\"",
-                "[4s] THE MOUNT dives straight into the base of the wave, away from us; THE THREE RIDERS cling on.",
+                "and magenta inside, curling over them. THE YOUNG ONE stares up at it, mouth open.",
+                "[2.5s] THE STRONG ONE drives THE POLE down. A shout: \"Hold on!\" THE YOUNG ONE throws both arms round "
+                "the backrest; THE ELDER wraps his arms around the child.",
+                "[4s] THE MOUNT dives straight into the base of the wave, away from us; THE STRONG ONE bends low; THE "
+                "ELDER ducks his head over the child.",
                 "[6s] The wave crashes over the place where they were; beyond it, a small glow keeps moving."],
-         audio="-", sound="the shout above, the riders' gasps and effort, nothing else",
+         audio="-", sound="the shout above, spoken once, the riders' gasps and effort, nothing else",
          crit=DIALOGUE_NEG + ", no rider falling off, no one facing the camera, no movement toward the camera, no light "
-              "wider than two metres around the child",
-         review=["The wave is colossal against them.", "One shout; transcribe.", "They go through, away from us."],
+              "wider than two metres around the child, no lamps lit on the seat",
+         review=["The wave is colossal against them.", "One shout, \"Hold on!\"; transcribe.",
+                 "Each rider doing their own action."],
          end="Past the wave, THE MOUNT glides on in the rain."),
     dict(prefix="n", n=8, grade_override="DARK_GLOW", slug="the-school", title="THE SCHOOL", s=8, grade="DARK",
-         series="round 3 (CEO answers 13, C3: excitement at the school; the sea goes still; the mount stops)",
+         series="cut 4 (CEO 2026-09-25: every rider acts; excitement at the school; the mount stops)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. Side on at the surface, moving left to right with THE MOUNT, then "
               "settling as it stops; no cut, no zoom.",
-         refs=["@Strong", "@Young", "@Manta", "@Elder", "@BlackSea", "@Turning"],
+         refs=["@Strong", "@Young", "@Elder", "@BlackSea", "@Turning"],
          heading="FISH. At the surface, inside the child's small light, the water under them is suddenly full of fish.",
          frame="Side on at the surface: THE MOUNT moving left to right, THE YOUNG ONE glowing on the seat; the lit "
                "circle of water around them is the only thing visible; beyond it, black.",
          particles="rain dimpling the flat surface, the glint of fish passing just below it.",
+         actions=["THE YOUNG ONE, middle, glowing: spots the fish first, gasps, bounces on the seat and points down with "
+                  "both hands.",
+                  "THE STRONG ONE, front perch: leans over the edge to look, sees them, laughs out loud and slaps his "
+                  "thigh, then raises a hand to slow THE MOUNT.",
+                  "THE ELDER, back: leans out beside the child, eyes wide, then grips the child's shoulder and laughs, "
+                  "shaking his head in disbelief."],
          beats=["[0s] GLOW THE MOUNT glides from left to right on water that is growing flat and calm in the rain.",
-                "[2s] In the lit circle below the surface, many small dark fish shadows dart past, dozens of them.",
-                "[4s] THE THREE RIDERS lean over the edge, thrilled, pointing; THE STRONG ONE laughs.",
-                "[6s] THE STRONG ONE raises a hand; THE MOUNT slows and stops on the flat water."],
-         audio="-", sound="the riders' excited gasps and THE STRONG ONE's laugh, nothing else",
-         crit="no dialogue, no colourful fish, no big fish, no underwater camera, no waves, no light wider than two metres",
-         review=["Surface only; fish as small dark shadows in the lit circle.", "Water flat and calm, rain falling.",
+                "[2s] In the lit circle below the surface, many small dark fish shadows dart past, dozens of them; THE "
+                "YOUNG ONE gasps, bounces on the seat and points down with both hands.",
+                "[4s] THE STRONG ONE and THE ELDER lean over the edge; THE STRONG ONE laughs out loud and slaps his "
+                "thigh; THE ELDER grips the child's shoulder, laughing.",
+                "[6s] THE STRONG ONE raises a hand; THE MOUNT slows and stops on the flat water; THE STRONG ONE winks at the "
+                "child; THE YOUNG ONE giggles and hugs THE ELDER's arm; THE ELDER shakes his head, smiling."],
+         audio="-", sound="the riders' excited gasps, THE STRONG ONE's big laugh and THE ELDER's soft laugh, nothing else",
+         crit="no dialogue, no colourful fish, no big fish, no underwater camera, no waves, no light wider than two "
+              "metres, no lamps lit on the seat",
+         review=["Surface only; fish as small dark shadows in the lit circle.", "Each rider reacts: point, laugh, grip.",
                  "Left to right, then the mount stops."],
          end="THE MOUNT stopped on flat water among the fish."),
-    dict(prefix="n", n=9, grade_override="DARK_GLOW", slug="one-fish", title="ONE FISH", s=7, grade="DARK",
-         series="round 3 (CEO answers 13, C1: no net; a quick chase and a grab by hand; everyone cheers)",
+    dict(prefix="n", n=9, grade_override="DARK_GLOW", slug="one-fish", title="ONE FISH", s=8, grade="DARK",
+         series="cut 4 (CEO 2026-09-25: every rider acts; no net; a quick chase and a grab by hand; everyone cheers)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A medium shot beside THE MOUNT at the surface; no cut, no zoom.",
-         refs=["@Strong", "@Young", "@Elder", "@Manta", "@BlackSea"],
+         refs=["@Strong", "@Young", "@Elder", "@BlackSea"],
          heading="ONE FISH. This is why they came: THE STRONG ONE catches a fish with his bare hands.",
          frame="Medium, beside THE MOUNT at the surface: THE STRONG ONE leaning over the edge of the seat, THE YOUNG ONE "
                "glowing beside him, THE ELDER behind.",
          particles="rain, water splashing up as the hands go in, golden motes around THE YOUNG ONE.",
-         beats=["[0s] GLOW THE STRONG ONE leans far over the edge, eyes locked on a fish shadow darting along the side.",
-                "[2s] Quick: his hands chase it through the water, once, twice.",
-                "[3.5s] THE STRONG ONE lunges and snatches it out: one dark glossy silver-black fish, flapping in his hands.",
-                "[5s] All three cheer; THE STRONG ONE holds it up, laughing."],
+         actions=["THE STRONG ONE, front perch: leans far over the edge, chases a fish shadow with both hands, lunges and "
+                  "snatches it out, then holds it up, laughing.",
+                  "THE YOUNG ONE, middle, glowing: leans out beside THE STRONG ONE, holding the light low over the water so "
+                  "THE STRONG ONE can see, pointing where the fish goes; at the catch, jumps up and down on the seat, cheering.",
+                  "THE ELDER, back: grips THE STRONG ONE's kelp belt with both hands so THE STRONG ONE cannot fall in; at "
+                  "the catch, claps THE STRONG ONE on the back and cheers."],
+         beats=["[0s] GLOW THE STRONG ONE leans far over the edge, eyes on a fish shadow darting along the side; THE ELDER "
+                "grabs THE STRONG ONE's kelp belt with both hands; THE YOUNG ONE leans out beside THE STRONG ONE, glowing, and points.",
+                "[2s] Quick: THE STRONG ONE's hands chase it through the water, once, twice; THE YOUNG ONE points again, "
+                "urgent.",
+                "[4s] THE STRONG ONE lunges and snatches it out: one dark glossy silver-black fish, flapping in his hands.",
+                "[5.5s] They cheer, each in their own way: THE YOUNG ONE jumps up and down on the seat; THE ELDER claps THE STRONG ONE on "
+                "the back; THE STRONG ONE holds the fish up, laughing."],
          audio="-", sound="splashes of the hands, THE STRONG ONE's effort, then all three cheering and laughing",
-         crit="no dialogue, no net, no spear, no hook, no second fish, no one falling in",
-         review=["Caught by hand, no net.", "Fast chase, then the grab.", "Everyone cheers."],
+         crit="no dialogue, no net, no spear, no hook, no second fish, no one falling in, no lamps lit on the seat",
+         review=["Caught by hand, no net.", "THE ELDER holds the belt; the child points.", "Everyone cheers."],
          end="THE STRONG ONE holding one fish, all three happy."),
     dict(prefix="n", n=10, grade_override="DARK_GLOW", slug="the-shadow", title="THE SHADOW", s=8, grade="DARK",
          series="round 3 (CEO answers 22, C2: from very high, the mount a tiny speck; the shadow only; flat water, rain)",
@@ -615,27 +750,69 @@ SCENES = [
          crit="no dialogue, no camera move, no creature shape, no eye, no fin, no surfacing, no waves, only a shadow",
          review=["Top-down from very high; the mount a speck.", "A shadow only, enormous.", "The fish vanish."],
          end="Flat black sea, rain, THE MOUNT alone."),
-    dict(prefix="n", n=11, grade_override="DARK_GLOW", slug="the-mountain-rises", title="THE MOUNTAIN RISES", s=12, grade="DARK",
-         series="round 3 (CEO answers 6, 14, C2: they turn back to their fish; the mountain rises; TWO eyes open)",
+    dict(prefix="n", n=11, grade_override="DARK_GLOW", slug="the-mountain-rises", title="THE MOUNTAIN RISES", s=14, grade="DARK",
+         series="cut 4 (CEO 2026-09-25: busy catching fish; one of them sees it and stares; another notices the stare and "
+                "shakes the one still fishing; then TWO eyes open)",
          spec="ONE LOCKED SHOT, NO CUTS. A wide shot from behind and above THE MOUNT; the camera never moves.",
-         refs=["@Mountain", "@Eye", "@Manta", "@Strong", "@Young", "@Elder"],
-         heading="THE MOUNTAIN RISES. Behind them, where no land can be, a mountain comes up out of the flat sea.",
-         frame="THE MOUNT small in the lower third on flat black water in the rain, lit only by THE YOUNG ONE; the far "
-               "water behind them fills the upper frame.",
+         refs=["@Mountain", "@Eye", "@Strong", "@Young", "@Elder"],
+         heading="THE MOUNTAIN RISES. Ahead of them, where no land can be, a mountain comes up out of the flat sea while "
+                 "they are busy fishing.",
+         frame="Wide from behind and above: THE MOUNT small in the lower third on flat black water in the rain, lit only "
+               "by THE YOUNG ONE; the far black water ahead of it fills the upper frame.",
          particles="rain, a thin mist over the flat water, water pouring off the rising shape.",
-         beats=["[0s] GLOW THE THREE RIDERS glance around, shrug, and turn back to their one fish, laughing quietly, "
-                "their backs to the far water.",
-                "[3s] Far behind them the flat water bulges; a vast smooth dark shape slowly rises out of the sea like a "
-                "mountain until it fills the whole upper half of the frame, water pouring off it. Nobody on THE MOUNT "
-                "notices.",
-                "[8s] High on the dark mountain, two enormous eyes open: pale yellow-green, thin vertical slit pupils, "
-                "each bigger than their whole village.",
-                "[10.5s] Both eyes stay open, looking down at them. Hold."],
-         audio="-", sound="the riders' quiet happy laughter, then total silence as the eyes open",
-         crit="no dialogue, no rider looking back at the mountain, no roar, no teeth, no third eye, no camera move, no "
-              "waves, no light wider than two metres around the child",
-         review=["They turn back to the fish, unaware.", "The mountain rises slowly behind them.", "Two eyes open."],
-         end="Both eyes open; cut to space (M13, take 1)."),
+         actions=["THE STRONG ONE, front perch: lies on his belly across the front of the seat with both arms in the water "
+                  "to the elbows, grabbing at the fish in the lit circle, completely absorbed and splashing; he only "
+                  "looks up when THE YOUNG ONE shakes his shoulder, and his hands stop in the water.",
+                  "THE YOUNG ONE, middle, glowing: sits on the edge and kicks both feet in the water to herd the fish "
+                  "toward THE STRONG ONE, giggling; notices THE ELDER staring for a long time, follows his gaze, goes "
+                  "still, then shakes THE STRONG ONE's shoulder hard.",
+                  "THE ELDER, back: rinses their one fish over the side, then stops, slowly lifts his head and stares "
+                  "ahead at the far water, the fish forgotten in his hands."],
+         beats=["[0s] GLOW On the flat black water THE THREE RIDERS are busy fishing: THE STRONG ONE lies across the front "
+                "of the seat grabbing at fish with both arms in the water; THE YOUNG ONE kicks both feet in the water, "
+                "giggling; THE ELDER rinses their one fish over the side.",
+                "[3s] Far ahead the flat water bulges; a vast smooth dark shape slowly rises out of the sea like a "
+                "mountain until it fills the whole upper half of the frame, water pouring off it. THE ELDER stops, lifts "
+                "his head and stares at it; the other two keep fishing.",
+                "[7s] THE YOUNG ONE notices THE ELDER staring for a long time, follows his gaze, goes still, then shakes "
+                "THE STRONG ONE's shoulder hard; THE STRONG ONE, still splashing, looks up.",
+                "[10s] High on the dark mountain, two enormous eyes open: pale yellow-green, thin vertical slit pupils, "
+                "each bigger than their whole village, looking down at them. THE STRONG ONE's hands stop in the water."],
+         audio="-", sound="splashing hands and feet and THE YOUNG ONE's giggle, then THE YOUNG ONE's sharp gasp, then "
+                          "total silence as the eyes open",
+         crit="no dialogue, no roar, no teeth, no third eye, no camera move, no waves, no light wider than two metres "
+              "around the child, no lamps lit on the seat, no eyes before the last beat",
+         review=["Busy fishing, each in a different way.", "THE ELDER sees it first and stares; the child notices and "
+                 "shakes THE STRONG ONE.", "Two eyes open only at the end."],
+         end="Both eyes open, all three looking up at them; cut to space (M13, take 1)."),
+    dict(prefix="n", n=12, slug="the-elder-speaks", title="AT THE LINE: THE ELDER SPEAKS", s=8, grade="TURNING",
+         series="cut 4, new (CEO 2026-09-25, 1:11: they stop at the line, then a talk before they really cross; plays "
+                "after N4)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A medium three-shot from the front and a little to the side, low over the "
+              "black water, looking back at THE THREE RIDERS on the seat; a slow push-in; no cut.",
+         refs=["@Manta", "@Elder", "@Strong", "@Young", "@Turning"],
+         heading="AT THE LINE. Before they cross, THE ELDER says what everyone is thinking, and they decide.",
+         frame="Medium three-shot from the front: THE THREE RIDERS on the seat, THE STRONG ONE on the front perch turned "
+               "half round toward the others, THE YOUNG ONE in the middle, THE ELDER at the back; their faces in cool "
+               "evening light with the flicker of far lightning; behind them, the clear turquoise water they came from.",
+         particles="wind-blown mist, spray drifting across, the first cold drops in the air.",
+         actions=["THE ELDER, back: looks past the camera at the black water, then rises slowly on the back seat and "
+                  "speaks, low; afterwards he looks each of the others in the eye.",
+                  "THE STRONG ONE, front perch: listens with his jaw tight, meets THE ELDER's eyes, then looks at the "
+                  "child, nods once and turns to grip the steering pole, ready.",
+                  "THE YOUNG ONE, middle: looks up at THE ELDER while THE ELDER speaks and swallows; then takes a breath and "
+                  "nods, small and brave, both hands tight on the satchel strap."],
+         beats=["[0s] THE ELDER looks past the camera at the black water, then rises slowly on the back seat. Low: \"So "
+                "this is it. The line of death.\"",
+                "[3.5s] THE STRONG ONE meets THE ELDER's eyes, jaw tight; THE YOUNG ONE looks up at THE ELDER and "
+                "swallows, both hands tight on the satchel strap.",
+                "[5.5s] THE ELDER looks each of them in the eye; THE YOUNG ONE takes a breath and nods, small and brave; "
+                "THE STRONG ONE nods once and turns to grip the steering pole. Lightning flickers on their faces."],
+         audio="-", sound="the line above, spoken once, and THE YOUNG ONE's small nervous breath",
+         crit=DIALOGUE_NEG + ", no second line spoken, no line spoken twice, no crossing yet, no rain yet, no smiling",
+         review=["One line, THE ELDER, once; transcribe.", "Eye contact, then the two nods: the decision to cross.",
+                 "Each rider reacts in their own way."],
+         end="Ready to cross; THE STRONG ONE's hands on the pole."),
 ]
 
 
@@ -672,8 +849,23 @@ SOUND = {
 DEAD_LAMPS = ("Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is "
               "THE YOUNG ONE.")
 WET = "Their skin, the seat and the back of THE MOUNT are wet and glistening with rain."
+# Cut 3 (2026-09-25): the @Manta picture has its lamps lit, and the picture beat "dead and dark" in N6-N11. A dark
+# picture (round 12) failed to generate twice, so after the crossing THE MOUNT is described in words, with no picture.
+MOUNT_DARK = ("THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea "
+              "creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of "
+              "weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; every "
+              "seed-pod lamp on the seat is a dead dark husk, the grass tufts on it are dull and dark, and nothing on THE "
+              "MOUNT glows.")
 STATE = {("m", 6): "THE MOUNT and THE THREE RIDERS stream with water from the dive, skin wet and glistening.",
-         ("n", 5): WET, **{("n", k): DEAD_LAMPS + " " + WET for k in range(6, 12)}}
+         ("n", 5): WET, ("n", 10): DEAD_LAMPS + " " + WET,
+         **{("n", k): MOUNT_DARK + " " + DEAD_LAMPS + " " + WET for k in (6, 7, 8, 9, 11)}}
+# CEO 2026-09-25 (cut 3): "ตัวละคร 3 ตัวไม่มีสิ่งที่เขากระทำเลย ทุกตัวอยู่นิ่งหมดเลย" and "ห้ามเหมือนกันทุกคน มันจะดูปลอม".
+# Every shot with the three riders on THE MOUNT carries one action line per rider, and no line that freezes them.
+ON_MOUNT = {("m", 4), ("m", 6), ("o", 4), ("n", 2), ("n", 3), ("n", 4), ("n", 5), ("n", 6), ("n", 7), ("n", 8),
+            ("n", 9), ("n", 11), ("n", 12)}
+RIDERS = ("THE STRONG ONE", "THE YOUNG ONE", "THE ELDER")
+STATIC = ("nobody moves", "without moving", "stand still", "stands still", "sit still", "sits still", "motionless",
+          "stare at it without", "the three look at each other")
 HOUSE_NEG_MOUNTAIN = HOUSE_NEG.replace("no land, no island, no beach, no rocks above the water; ", "no beach, no shore; ")
 
 
@@ -689,13 +881,17 @@ def tag(sc):
 def paste_block(sc):
     lines = [f"{sc['s']}s · 360p · 16:9 · {sc['spec']}", "", sc["heading"], "", "REFERENCES, each with a job:"]
     for h in sc["refs"]:
-        lines.append(f"{h}: {REF[h][1]}")
+        lines.append(f"{h}: {sc.get('ref_override', {}).get(h, REF[h][1])}")
     sc = dict(sc, beats=[b.replace("GLOW", GLOW) for b in sc["beats"]])
     lines += ["", "THE FRAME: " + sc["frame"]]
     if STATE.get((sc.get("prefix", "m"), sc["n"])):
         lines += ["", "STATE: " + STATE[(sc.get("prefix", "m"), sc["n"])]]
     if sc.get("particles"):
         lines += ["", "PARTICLES: " + sc["particles"]]
+    if sc.get("actions"):
+        lines += ["", "EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, "
+                      "reacting to what is said and done):"]
+        lines += ["- " + a for a in sc["actions"]]
     lines += ["", "WHAT HAPPENS:"]
     lines += sc["beats"]
     snd = sc.get("sound") or SOUND.get((sc.get("prefix", "m"), sc["n"]), "silence; nobody speaks")
@@ -732,6 +928,13 @@ def main():
             assert k in REF[h][1], f"{h} reference text lacks CAST key {k!r}"
     for sc in SCENES:
         body = paste_block(sc)
+        if (sc.get("prefix", "m"), sc["n"]) in ON_MOUNT:
+            acts = sc.get("actions") or []
+            for r in RIDERS:
+                assert sum(a.startswith(r) for a in acts) == 1, (tag(sc), "needs one action line for", r)
+            assert len(set(acts)) == len(acts), (tag(sc), "two riders given the same action")
+            bad = [w for w in STATIC if w in body.lower()]
+            assert not bad, (tag(sc), "a line freezes the riders", bad)
         for h in sc["refs"]:
             k = len(re.findall(re.escape(h) + r"\b", body))
             assert k == 1, (sc["n"], h, k)

@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-M6 · THE STORM PILLARS · 6s · TURNING · P1 take 2 (CEO round 2, 1:05: moving away from camera toward what lies ahead; Turning)
+M6 · THE STORM PILLARS · 8s · TURNING · cut 4 (CEO 2026-09-25: every rider acts; still moving away from the camera, Turning)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -17,9 +17,9 @@ References (6):
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. From behind THE MOUNT, following it as it moves away from the camera into the pillars ahead; the camera never gets in front of it; no cut, no zoom.
+8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. From behind THE MOUNT, following it as it moves away from the camera into the pillars ahead; the camera never gets in front of it; no cut, no zoom.
 
-BETWEEN THE STORM PILLARS. THE MOUNT heads away from us, into silent columns of cloud taller than anything they know.
+BETWEEN THE STORM PILLARS. THE MOUNT bursts up from the dive, drops back onto the sea and swims away from us, into silent columns of cloud taller than anything they know.
 
 REFERENCES, each with a job:
 @Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
@@ -29,23 +29,28 @@ REFERENCES, each with a job:
 @Pillars: THE PILLARS, the only location reference: thin, perfectly straight columns of slowly swirling cloud standing on a violet-grey sea and rising beyond the top of the sky, a small whirlpool at each base, the dim moon. Take the place and its light.
 @Turning: THE TURNING LIGHT, a colour and light reference only: a violet-grey bruised evening sky, deep indigo water, cool silver light. Take only its colour and light, nothing of its composition.
 
-THE FRAME: Behind THE MOUNT: we see its back, its tail and the backs of THE THREE RIDERS; ahead of them the thin straight pillars stand on the sea and rise beyond the top of the frame. Evening turning light.
+THE FRAME: Behind THE MOUNT: we see its back, its tail and the backs of THE THREE RIDERS; ahead of them the thin straight pillars stand on the sea and rise beyond the top of the frame. After the burst, THE MOUNT is IN the water: its body half under the surface, its wing tips slicing the water, a wake churning behind it. Evening turning light.
 
 STATE: THE MOUNT and THE THREE RIDERS stream with water from the dive, skin wet and glistening.
 
-PARTICLES: spray from the wings, whirlpool mist at the pillar bases, a few drifting specks.
+PARTICLES: spray from the wings, water streaming off the riders, whirlpool mist at the pillar bases.
+
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE, front perch: as they burst up he shakes his head hard so water flies off his gills, spits out a mouthful of sea, grips the steering pole and steers between the pillars, leaning left, then right.
+- THE YOUNG ONE, middle: laughs and slaps the surface of the water beside the seat with one hand, splashing, then stops, looks up at the tallest pillar and tugs THE ELDER's arm, pointing.
+- THE ELDER, back: squeezes the water out of his long gill frills with both hands, then follows the child's pointing arm and scans the pillars left and right, wary.
 
 WHAT HAPPENS:
-[0s] THE MOUNT bursts up through the surface from below, water pouring off its wings, and glides away from the camera toward the pillars ahead; small whirlpools turn at their bases.
-[2.5s] THE THREE RIDERS, still facing away from us, tip their heads back to look up at the pillars.
-[4s] THE MOUNT passes between the first two pillars, heading deeper in, away from us.
+[0s] THE MOUNT bursts up through the surface from below, water pouring off its wings and off THE THREE RIDERS, then drops back down onto the sea with a splash and swims on at the surface, wing tips slicing the water, away from the camera toward the pillars ahead; small whirlpools turn at their bases.
+[2.5s] THE STRONG ONE shakes his head hard, spits out sea water and grips the steering pole; THE YOUNG ONE laughs and slaps the water beside the seat; THE ELDER wrings the water out of his gill frills.
+[5s] THE YOUNG ONE looks up, tugs THE ELDER's arm and points at the tallest pillar; THE ELDER follows the arm, wary; THE STRONG ONE steers between the first two pillars, leaning into the turn, heading deeper in, away from us, wake churning behind.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' sharp breaths as they burst up, THE STRONG ONE spitting water, THE YOUNG ONE's laugh and splash; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no one facing the camera, no mount turning toward the camera, no tornado, no funnel, no cone shape, no debris, no dialogue, no storm, no lightning, no rain.
+CRITICAL NEGATIVES: no one facing the camera, no mount turning toward the camera, no mount floating above the water, no mount flying, no gap between the mount and the sea, no tornado, no funnel, no cone shape, no debris, no dialogue, no storm, no lightning, no rain.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -54,9 +59,9 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Moving away from camera, never facing it.
-2. Evening turning light.
-3. Pillars thin and straight.
+1. Burst up as take 2 (approved), then IN the water, never hovering above it.
+2. Each rider reacts in their own way: head shake and spit, splash, wring the gills.
+3. Moving away from camera, never facing it.
 File the take whatever the verdict, as M6-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

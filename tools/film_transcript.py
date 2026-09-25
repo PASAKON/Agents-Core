@@ -78,6 +78,8 @@ def main() -> int:
     ap.add_argument("--out", type=Path, help="write a TSV here as well as printing")
     ap.add_argument("--shot", type=int, action="append",
                     help="only this shot number (repeatable)")
+    ap.add_argument("--lang", default="th",
+                    help="spoken language (default th); an English film read as th comes back as garbage")
     ap.add_argument("--model", default="small",
                     help="faster-whisper model size (default: small)")
     args = ap.parse_args()
@@ -108,7 +110,7 @@ def main() -> int:
     model = WhisperModel(args.model, device="cpu", compute_type="int8")
     rows = []
     for n, f in clips:
-        segs, _info = model.transcribe(str(f), language="th", vad_filter=True)
+        segs, _info = model.transcribe(str(f), language=args.lang, vad_filter=True)
         heard = [(s.start, s.end, s.text.strip()) for s in segs]
         want = script.get(n, [])
         for i, (t0, t1, text) in enumerate(heard):

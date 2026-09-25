@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N3 · THE GLASS SEA, WIDE · 10s · TURNING · round 2: take 2 (0:57: the child says wow underwater, bubbles from the mouth)
+N3 · THE GLASS SEA, WIDE · 10s · TURNING · cut 4 (CEO 2026-09-25: every rider acts; the child says wow underwater, bubbles from the mouth)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -37,10 +37,15 @@ THE FRAME: Extreme wide: THE MOUNT small in the middle band moving from left to 
 
 PARTICLES: countless drifting plankton specks, small bubbles, long shafts of dimming violet-grey light from the surface.
 
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE, front perch: steers THE MOUNT in a slow curve around THE SPIRAL, then turns and points out THE BLOOM to the child.
+- THE YOUNG ONE, middle: follows the pointing arm, gasps and stretches one hand toward THE BLOOM as it passes; bubbles pour from the child's mouth.
+- THE ELDER, back: turns his head slowly to follow THE DOME drifting overhead, then looks down at the child and smiles.
+
 WHAT HAPPENS:
-[0s] Wide and deep: THE MOUNT glides in from the left carrying THE THREE RIDERS, small in the vastness.
-[3s] Around them and far below, THE SPIRAL, THE DOME, THE RINGS and THE BLOOM drift, each bigger than a house, rainbow light moving through their clear bodies.
-[6s] THE YOUNG ONE stares at THE BLOOM, mouth open; a burst of bubbles pours out as the child says it. Amazed, underwater: "Wowww."
+[0s] Wide and deep: THE MOUNT glides in from the left carrying THE THREE RIDERS, small in the vastness; THE STRONG ONE steers it in a slow curve around THE SPIRAL.
+[3s] Around them and far below, THE SPIRAL, THE DOME, THE RINGS and THE BLOOM drift, each bigger than a house, rainbow light moving through their clear bodies. THE STRONG ONE points at THE BLOOM; THE ELDER turns his head to follow THE DOME.
+[6s] THE YOUNG ONE stretches a hand toward THE BLOOM, mouth open; a burst of bubbles pours out. Amazed, underwater: "Wowww." THE ELDER smiles at the child.
 [8.5s] THE MOUNT keeps on toward the right of frame, the deep blue opening beneath them.
 
 overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): THE YOUNG ONE's muffled, bubbling underwater "Wowww", sounding truly underwater, and nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
@@ -59,6 +64,7 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 REVIEW ORDER:
 1. Bubbles from the child's mouth with the Wowww.
 2. Left to right, wide.
+3. Each rider doing their own action.
 File the take whatever the verdict, as N3-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
