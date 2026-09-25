@@ -1,0 +1,26 @@
+[
+  {
+    "name": "profile-a-khon",
+    "prompt": "Square 1:1 image, designed to still read clearly as a tiny circle avatar at ~170px. One face split exactly down the middle: the left half a serene golden Thai khon deva mask (calm closed-lidded eyes, gold leaf, warm light), the right half a fierce Thai khon yaksha mask (green and deep red, fangs, glaring wide eye). Pure black background. The face is centred and fills about 80% of the frame. No text, no letters, no numbers, no watermark, no logo. No Buddha image, no monk, no temple interior, no religious statue. No banknotes, no coins, no police. Photoreal, cinematic lighting, Thai aesthetic, rich detail, high contrast."
+  },
+  {
+    "name": "profile-b-lotus",
+    "prompt": "Square 1:1 image, designed to still read clearly as a tiny circle avatar at ~170px. A single white-gold lotus flower in the centre: its left half glowing in warm dawn light, its right half turning into black thorny vines dripping into dark water. Pure black background. Bold, centred silhouette composition. No text, no letters, no numbers, no watermark, no logo. No Buddha image, no monk, no temple interior, no religious statue. No banknotes, no coins, no police. Photoreal, cinematic lighting, Thai aesthetic, rich detail, high contrast."
+  },
+  {
+    "name": "profile-c-scales",
+    "prompt": "Square 1:1 image, designed to still read clearly as a tiny circle avatar at ~170px. A minimal emblem: traditional Thai-style golden balance scales decorated with kanok ornament. The left pan holds a small glowing lotus, the right pan holds a tangle of black chains. The beam tips toward the lotus side. Pure black background, centred composition. No text, no letters, no numbers, no watermark, no logo. No Buddha image, no monk, no temple interior, no religious statue. No banknotes, no coins, no police. Photoreal, cinematic lighting, Thai aesthetic, rich detail, high contrast."
+  },
+  {
+    "name": "cover-a-two-worlds",
+    "prompt": "Landscape 3:2 image. A wide cinematic street split down the middle: the left side a warm golden-hour Thai village home with lanterns and a lotus pond, peaceful. The right side the same street at night in heavy rain with red neon and a faceless shadow figure under a black umbrella. The seam between the two halves is a soft beam of light. No faces visible. Keep every important subject inside a horizontal band through the middle 40% of the frame height and within the central 70% of the frame width, since the sides get cropped on mobile. No text, no letters, no numbers, no watermark, no logo. No Buddha image, no monk, no temple interior, no religious statue. No banknotes, no coins, no police. Photoreal, cinematic lighting, Thai aesthetic, rich detail, high contrast."
+  },
+  {
+    "name": "cover-b-khon-duel",
+    "prompt": "Landscape 3:2 image. Two Thai khon masks facing each other across a dark wide frame: the left a serene golden deva mask lit with warm light, the right a fierce green-and-red yaksha mask lit with cold light. Between them, swirling smoke drawn in the shape of Thai kanok patterns dividing light from dark. Keep every important subject inside a horizontal band through the middle 40% of the frame height and within the central 70% of the frame width, since the sides get cropped on mobile. No text, no letters, no numbers, no watermark, no logo. No Buddha image, no monk, no temple interior, no religious statue. No banknotes, no coins, no police. Photoreal, cinematic lighting, Thai aesthetic, rich detail, high contrast."
+  },
+  {
+    "name": "cover-c-lotus-storm",
+    "prompt": "Landscape 3:2 image. A wide lotus pond: the left third is calm sunrise water with blooming white-and-pink lotuses under gold light, the right third is dark stormy water with black thorny stems and wilted flowers under lightning, and the middle is a gradient where the light meets the dark. Keep every important subject inside a horizontal band through the middle 40% of the frame height and within the central 70% of the frame width, since the sides get cropped on mobile. No text, no letters, no numbers, no watermark, no logo. No Buddha image, no monk, no temple interior, no religious statue. No banknotes, no coins, no police. Photoreal, cinematic lighting, Thai aesthetic, rich detail, high contrast."
+  }
+]
