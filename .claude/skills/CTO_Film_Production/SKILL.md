@@ -94,6 +94,13 @@ How to word a ban is `CTO_Film_PromptFormat` rule 6.
   per-number table of what failed against the brief. Mechanical checks (transcripts, burned text) are
   there to FIND audio and text defects that frames cannot show; frames CONFIRM.
 - Transcribe every dialogue clip before calling it a keeper.
+- **Every character in a shot has their own action, different from the others, and reacts to what is said
+  (CEO 2026-09-25: "ตัวละคร 3 ตัวไม่มีสิ่งที่เขากระทำเลย ทุกตัวอยู่นิ่งหมดเลย" · "ห้ามเหมือนกันทุกคน มันจะดูปลอม").** Describing
+  only the place and the camera leaves the cast standing still. Write one action line per character (who steers,
+  who trails a hand in the water, who dips their feet) and put the reactions in the beats: eye contact, a nod, a
+  grab of the hand, a jump for joy. Never "nobody moves" or a group frozen to watch something; when the story
+  needs one person to notice first, the others are still busy, and someone has to nudge them. The ILAG
+  generator enforces it (`docs/prompts/ilag-topview/build.py`, ON_MOUNT guard).
 
 ## 9 · The continuity check before any paid round
 
@@ -136,3 +143,4 @@ frames, and why B held; written by the reviewer, never the operator. The ledger 
 - Any paid generation: the director gets the exact $ first.
 
 ## Field notes
+- 2026-09-25 [MISSING] §3 — a STATE change of a referenced thing needs its own picture or no picture: the @Manta plate has its lamps lit, and in N6-N11 of the ILAG cut 3 the plate beat "every lamp dead and dark" in the words on six shots. @LanternDark already solved it for the lantern; for the mount the dark plate failed to generate, so the picture was dropped and the mount described in words · evidence: docs/reports/ilag-cut3/contact-sheet.jpg, e1b6dd16 · status: pending
