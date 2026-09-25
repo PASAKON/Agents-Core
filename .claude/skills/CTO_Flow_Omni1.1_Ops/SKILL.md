@@ -29,6 +29,31 @@ Where a number is unmeasured it says so.
 This file is the Flow equivalent of `higgsfield-unlimited-gen`. It exists so the
 second worker does not have to rediscover what the first one paid to learn.
 
+## Model scope — read this first (shared by the three Flow skills; CEO 2026-09-23)
+
+> "ต้อง Scope ให้ดีเพราะ ที่เราทำคือ Model อะไร … Seedance 2.5 อาจไม่ต้องใช้ Skill
+> เหล่านี้เลย เพราะมันคนละส่วนกัน"
+
+**Proven on:** Google Flow (`flow.google.com`) · model **Omni 1.1 Flash** (Veo 3.1
+family) · mode **องค์ประกอบ** (Ingredients — up to 10 image references, each named in
+the prompt as `<IMAGE_REF_n>` in attach order) · 720p · 9:16 · Thai dialogue generated
+in-clip · stills for plates by **Nano Banana 2** (free in Flow). One film: «จุดจบของเจ้าหนี้นอกระบบ»,
+186 shots, 2026-09-18..23, shot by `tools/flow_shoot.py` from sheets built by
+`tools/build_shotsheet.py`.
+
+Every rule in `CTO_Flow_Omni1.1_Continuity` and `CTO_Flow_Omni1.1_FilmQC` is tagged:
+
+| tag | meaning | on another model |
+|---|---|---|
+| **[ANY]** | about the story, the sheet or the review loop and its tools, not the generator | applies as written |
+| **[FLOW]** | measured on Omni 1.1 Flash in องค์ประกอบ mode: a rule, or a failure mode a check looks for | a hypothesis — test it (one 360p arm) before relying on it; on Seedance/Kling/Grok the failure may not exist, or look different |
+
+**Not these skills:** Higgsfield Seedance 2.5 / 2.0 (`CTO_Seedance2.5_Higgsfield`) binds
+references differently (`@Element` plates, no per-chip `<IMAGE_REF_n>` order), has
+its own content filter and its own night behaviour; Kling, Grok, fal.ai likewise. On
+those, keep the [ANY] parts — the continuity table, the QC loop — and drop the [FLOW]
+flags until measured there.
+
 ## ⛔ Mute the page before you do anything else
 
 `browser-operator` carries the rule and the paste-once snippet. Short version:
@@ -185,45 +210,7 @@ notes on those live in docs/ops/ (antigravity-cli-test.md, the benefits audit).
 | Veo 3.1 Quality | 100 (published; visible in the panel, never selected) |
 | Download / re-export a clip | 0 |
 
-## Anything that must look a specific way needs an Element, not a sentence
-
-**Measured 2026-09-22, «จุดจบของเจ้าหนี้นอกระบบ», 6 clips lost.** Every money
-shot in Act 3 rendered a **recognisable Thai 500-baht note carrying the royal
-portrait** — in a drama about illegal moneylending. The prompt had asked for the
-opposite, positively *and* negatively, in 40 careful words:
-
-> The banknotes are obvious theatrical prop money of an invented place: soft
-> pastel paper in even tones, one plain printed numeral in a corner, a simple
-> abstract line pattern at the edges, and nothing else on them. No portrait or
-> face of any kind, and no national emblem, crest, flag or country name — this is
-> not the currency of any real country.
-
-That wording is not the problem. What it was up against is: a Bangkok shophouse,
-Thai dialogue, a Thai cast, Thai signage. The model's prior for "banknotes in a
-Thai noodle shop" is Thai banknotes, and no amount of description outweighs it.
-
-**The same film proves the fix.** Its three characters and six locations render
-correctly across all 74 clips, because each is bound to an `@chip` and attached
-as `<IMAGE_REF_N>`. The money was words only — shot 75 attached exactly two
-chips, both of them people and places. Cast and sets got references; the prop got
-a paragraph; only the prop went wrong.
-
-**So, before any shoot:** list everything the prompt merely *describes*, and ask
-which of those the scene's own context would pull toward a default — currency,
-signage, uniforms, food, vehicles, documents, anything with a strong local prior.
-Each one needs an Element.
-
-**And the Elements are free.** A still costs nothing (see below), so there is no
-budget argument for describing a prop instead of binding it. Generate the plate,
-make it an Element, attach it. The CEO's rule, 2026-09-22: *"ต้องแก้ตั้งแต่ Prop
-Element เลย — ถ้าแก้ที่ต้นตอ ต่อให้ Generate Video ยังไง ก็จะได้ตาม Prop ใหม่"*
-— fix the source and every later generation inherits it; fix the prompt and you
-are re-arguing with the model's prior on every single shot.
-
-Generalises beyond props: a **time of day** behaves the same way. The word
-`night` appended to a 60-word description of a lit, open, busy shop produced
-daylight in all 71 clips of the same film. A cue that contradicts the paragraph
-around it loses to the paragraph.
+Anything with a strong local prior (money, uniforms, signage) needs an Element, not a sentence, and night needs a night plate: `CTO_Flow_Omni1.1_Continuity`.
 
 The mechanical audit after every shoot (transcript, pixel caption scan, duration) and reading dialogue back before any claim about it: `CTO_Flow_Omni1.1_FilmQC`.
 
@@ -250,18 +237,7 @@ different shop every time, and across 97 shots that reads as fake immediately. A
 prop seen for a second in someone's hand survives being described. **Characters
 are never the thing you drop:** a wrong face is the one error no viewer forgives.
 
-### A prohibition is not an inventory
-
-Do not automate "this shot declares X, therefore attach X's Element". Tried and
-reverted the same day: `NOT["money"]` looks like a marker for shots containing
-banknotes and is carried by 22 of them, but it is a **prohibition** — its text
-ends *"also no notebook, no pen, no paper, no ledger of any kind"* — and most of
-those 22 have no money in frame at all. Shot 133 is two people looking at empty
-tables. Attaching the money Element to all 22 would have put banknotes into
-scenes written to be empty of them: worse than the bug it was meant to fix.
-
-**Which shots actually hold a prop is a reading of the action line, and belongs
-to a human.**
+A prohibition is not an inventory (`NOT["money"]` is a ban, not a marker): `CTO_Flow_Omni1.1_Continuity` rule 6.
 
 **Image generation being free is the most valuable fact in this file.** Make
 every character, prop and location plate in Flow, download them, and spend
@@ -814,57 +790,7 @@ Nothing errors. Nothing warns. The chip is attached, the face is broadly right,
 and one detail after another quietly drifts away from the character we built —
 which is exactly the "drift" this project has been chasing for two weeks.
 
-### What follows: the ASSET SHEET, and the rule that every prompt quotes it
-
-> **Look at each asset once. Write down what is in it. From then on, every
-> prompt describes that asset by quoting the sheet — never from memory, never
-> from imagination, never by omission.**
-
-**Omission is the trap.** A detail you do not mention is not "left as the
-image" — it is left to the model, and the model will change it. The sheet must
-therefore be complete enough that a prompt built from it has nothing to invent.
-
-One sheet per production, holding, for every character, location and prop:
-
-```
-@lung_somchai
-  face / build   : <exactly what the reference image shows>
-  hair           : <length, colour, how it sits>
-  carried items  : <glasses on head? watch? apron ties?>
-  default outfit : <the wardrobe item, by name>
-```
-
-Then a prompt for that character is assembled from the sheet, not written fresh.
-The sheet is the single source of truth about how anyone looks, the same way the
-script's APPEARANCE LOCK is the ground truth about which shot is wrong.
-
-### Wardrobe — a character needs several outfits, and the model must never guess
-
-One character appears in different places, at different times, in different
-roles. Clothing changes with all three, and **an unspecified outfit is an
-invented outfit**.
-
-The obvious fix — generate a second character image wearing the other clothes —
-**does not work: a regenerated character comes back with a different face.**
-Faces are the one thing we cannot afford to lose.
-
-So build the wardrobe as its own assets instead:
-
-- Make each outfit a **prop / image asset** in Flow, generated once.
-- Keep the character asset untouched, so the face stays fixed.
-- In the prompt, name the character AND describe the outfit from the sheet —
-  and where the outfit matters, attach it as one of the (now 10) references.
-
-Every shot in the script therefore carries an explicit costume. "He is wearing
-the same as before" is not a costume; the model has no "before".
-
-### Why this is the difference between AI slop and a real short film
-
-Everything above is bookkeeping, and bookkeeping is the entire gap. A drama
-where the father's hair length changes between two shots of the same
-conversation reads as AI slop no matter how good any single frame is. A drama
-where it never changes reads as a film. The sheet is what makes the second one
-possible, and it is cheap — it is written once and read forever.
+The ASSET SHEET every prompt quotes, wardrobe as separate assets, and why the bookkeeping is the film: `CTO_Flow_Omni1.1_Continuity` §The look of every character, set and prop.
 
 ## Mid-session Google sign-out — it looks exactly like Flow being flaky
 
@@ -1276,67 +1202,7 @@ also matches the neighbouring shots' colour and grade, and a plate generated fro
 a prompt that does not pin the look will drift. Say the look in the plate prompt,
 and compare frame 0 against a neighbouring shot before calling a re-fire good.
 
-## ⛔ A clip that vanishes after Submit — police uniform plate + the word "police" (2026-09-23)
-
-**The symptom.** Submit is accepted, a new batch appears at the top of the feed
-with the prompt on it, and then it is gone: no clip, no error tile, no toast.
-The old runner read this as "completed card found but download not ready" for
-eight minutes and logged `failed — timeout`; a later `pull` by dialogue then
-fetched an OLDER take with the same line. Measured on «บัญชี»: shot 179 twice,
-149 and 151 once each.
-
-**The A/B that found it** (CEO-ordered, 360p/4s, 3 arms, one variable each):
-
-| arm | reference plate | the word "police" in the text | result |
-|---|---|---|---|
-| A — 179 as written | `@cop_wit_uniform_A` (uniform) | yes (character block, action, label) | **card vanished** |
-| B | `@cop_wit` (plainclothes) | yes | clip made |
-| C | `@cop_wit_uniform_A` (uniform) | **none** | clip made — Flow's own auto-title still read "Police officer enters noodle shop" |
-
-**What to do:** when a plate already shows a uniform (police, military, any
-authority), **describe the clothes, never name the institution** — "an everyday
-khaki duty uniform, a metal badge", not "Royal Thai Police uniform, police
-badge". The plate carries the look; the word is what trips the filter.
-
-**Honest scope.** One A/B, n=1 per arm, plus four field failures. It is not
-deterministic: 150, 181 and 182 carried the same plate AND the word and came
-back. Treat the rule as the cheap default, not a proven law; if a clip still
-vanishes without the word, A/B the next variable (framing, the plate alone in
-frame) before paying for 720p again.
-
-**Test it cheap.** `flow_shoot.py run --resolution 360p --force-duration 4` on a
-scratch sheet with one variable per shot number (4 credits an arm). The feed
-listing, not the runner's exit code, is the verdict: read the newest batches
-and count which arms left a card. Known gap: a 360p clip has no 1080p upscale
-menu, so the runner's download step fails on it with "1080p submenu did not
-appear" — that is the test harness, not the arm failing.
-
-## ⛔ What Flow silently deletes in an arrest scene — handcuffs, and a uniform next to police lights (2026-09-23)
-
-Same symptom as the section above: the batch appears, then the card is gone from
-the feed — no clip, no error. The runner reports "new card found but download not
-ready" / "card opened but no new flow-content.google/video/ URL", then `timeout`.
-**Check the feed before assuming a harness bug**: list the newest batches; a
-deleted arm is simply absent. Measured on «บัญชี»'s arrest, 3 shots at 720p plus 8
-arms at 360p/4s (4 credits each), one variable per arm:
-
-| arm | uniform (face plate + wardrobe plate) | handcuffs | police lights | result |
-|---|---|---|---|---|
-| 156 | yes | – | – | **kept** |
-| 187 | – (father alone) | – | pickup + red-blue bar, in frame | **kept** |
-| 9207 V1 | yes, walking him out, charges spoken | – | – | **kept** (real night, 40 s) |
-| 184/185/186 | yes | yes | pickup in frame | deleted |
-| 9202 | yes | – | pickup + light bar in frame | deleted |
-| 9203, 9205, 9206 | yes | yes | – | deleted (dialogue varied: irrelevant) |
-| 9204 | yes | yes | red-blue from off frame | deleted |
-| 9209 V3 | yes | – | red-blue from off frame | deleted |
-| 9208 V2 | – (plainclothes) | yes | – | deleted |
-
-**The rule that fits every arm:** handcuffs are deleted on anyone; a uniformed
-officer is deleted when police lights are in or thrown into the frame. Dialogue
-(charges, prison, threats) changed nothing. So an arrest in Flow is: the uniform,
-the charges in words, him walked out with hands free — and the patrol lights only
-in a shot without the officer (a bystander watching the car leave).
+What Flow silently deletes (a uniform plate + the word "police"; handcuffs; a uniform next to police lights): `CTO_Flow_Omni1.1_Continuity` §What Flow silently deletes.
 
 ## ⛔ Chrome itself can block downloads, and it looks exactly like Flow being broken (2026-09-18, task-75926848)
 
@@ -1784,36 +1650,7 @@ matters when a viewer is meant to *read* something.
 12 credits across two runs. The first proved an unnamed sign is invented; the
 second proved a named one is written correctly. Rule 4 above carries both.
 
-## The set drifts exactly as much as the face does, and for the same reason (2026-09-18, Act 1 shoot)
-
-First 15 shots of «บัญชี» Act 1, checked frame by frame:
-
-| what drifted | count | why |
-|---|---|---|
-| a character's face | **0** | every prompt carried the full appearance block |
-| the **set**, same location chip, adjacent shots | 1 (bedroom: plaster+lamp+grey blanket → concrete+beams+bulb+red plaid) | the location got 5–6 words, different ones each shot |
-| a character's **posture** | 1 (bedridden grandmother sat up on the bed edge) | the shot never restated "lying propped on pillows" |
-| an accessory the plate does not have | 1 (glasses) | nothing said "no glasses" |
-| a prop the story forbids | 1 (a ledger and pen under the hands of a man who never writes anything down) | "counting money" let the model add what counting usually needs |
-
-Same rule every time — **what the prompt does not say, the model decides** — but
-the shoot proved it applies with equal force to the set, the posture and the
-props, not only to the face. Writing the face out in full every shot worked
-perfectly. Writing the location out in six words did not.
-
-### So: three fixed blocks, pasted verbatim into every shot that uses them
-
-- **SET BLOCK** per location — walls, light source, bedding, furniture, window.
-  Identical text in every shot in that room. Not paraphrased, not shortened.
-- **POSTURE BLOCK** per character whose body state is part of the story —
-  "lying propped on two pillows, nasal cannula over her ears" in every
-  grandmother shot until the episode's epilogue changes it.
-- **NOT-LIST** per scene — the things the model reaches for and must not:
-  `no glasses` on the grandmother, `no notebook, no pen, no paper` wherever
-  money is counted, `no readable text` on anything the audience must not read.
-
-A shot sheet whose location line is shorter than its character line is a shot
-sheet that will drift.
+The set, posture and NOT-LIST blocks: `CTO_Flow_Omni1.1_Continuity` §The look of every character, set and prop.
 
 ## ⛔ Verify a chip by its THUMBNAIL, never by its row label (2026-09-18, task-8ea0576a)
 
@@ -1856,18 +1693,11 @@ Neither replaces the other. Both are free.
 ## Field notes
 
 - 2026-09-22 [WRONG] §Which things get a chip — `build_shotsheet.py` refused a 4th chip with the comment "the 4th is silently disabled". Never sourced, and contradicted by this file's own Ultra audit (task-68653632, 2026-09-18) recording a reference-chip cap of 10. A dry run against the live UI returned `chips=['@jae_muay','@lung_somchai','@noodle_shop','@money_fold'] prompt_verified=True`. On the strength of that comment I had already proposed dropping a location chip to fit the money in — a real loss of quality to satisfy a limit that did not exist. Cap raised to 10, with the audit cited beside it. · evidence: task-68653632 / f563c707 / tools/build_shotsheet.py · status: promoted
-- 2026-09-22 [COSTLY] §A prohibition is not an inventory — automated "shot declares X therefore attach X's Element", keyed off `NOT["money"]`. That key is a prohibition ("…also no notebook, no pen, no paper, no ledger of any kind") carried by 22 shots, most with no money in frame. Caught by shooting shot 133 at 360p (4 credits): two people looking at empty tables. Reverted the same day. Cost would have been banknotes inserted into 22 scenes written to be empty of them. · evidence: f563c707 / tools/build_shotsheet.py · status: rejected
-- 2026-09-22 [MISSING] §Anything that must look a specific way needs an Element — six Act 3 clips rendered a real Thai 500-baht note with the royal portrait, in a drama about illegal moneylending, against 40 words of prompt forbidding exactly that. The project's 3 characters and 6 locations were correct across 148 clips because each is chip-bound; the money was the one thing described rather than referenced. Five of the six prop Elements in the project had never been attached to any shot. · evidence: task-e960f3ca / 3f57cd1e / docs/scripts/banchi-ACT1.data.py · status: promoted
-- 2026-09-22 [MISSING] §time of day — the word `night` appended to a 60-word description of a lit, open, busy shop produced daylight in all 71 clips shot to that point. Every automated check passed; a frame-0 look found it in seconds. CEO ruled the film stays daylight rather than re-shoot. · evidence: LungNote 87c9507d / docs/scripts/banchi-ACT5.md · status: pending
 - 2026-09-23 [COSTLY] §zero-model runner — on the Mac, bare `python3` has no playwright: `tools/flow_shoot.py run` logs "cannot attach … ModuleNotFoundError('No module named playwright')" and returns 1, which reads like Chrome being down. Run it as `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python tools/flow_shoot.py …`. Also: a wrapper ending in `; echo EXIT=$?` makes the background task report exit 0 — read the EXIT line, not the task status. · evidence: session cto-8c06958c refire 106/122 02:46 · status: pending
 - 2026-09-23 [WRONG] §Chrome itself can block downloads — task-f78ca70e measured the block as a per-tab allowance (one silent download per fresh tab, >20 files, no human click) and rewrote scripts/browser/banchi-plates-download.js to open one fresh tab per file. CTO: NOT promoted — it conflicts with this section's own "do not build a workaround" rule for a browser security permission; the CEO rules whether one-tab-per-file is acceptable or whether the one-time "Always allow" click stays the method. Until then the section stands. · evidence: task-f78ca70e, merge 381687ba · status: pending
 - 2026-09-23 [MISSING] §assets — a plain Flow image generation can be renamed (tile right-click → เปลี่ยนชื่อ) into a named asset the + picker finds by search; it lands in the รูปภาพ category, never ตัวละคร, and there is no convert action. Picker rows for such assets show the name without "@", so flow_shoot's row match must not require it (fixed cdb27f9f). · evidence: task-f78ca70e, @cop_wit_uniform_A · status: pending
 - 2026-09-23 [WRONG] §zero-model runner — attach_chip matched picker rows by substring, so "@cop_wit" also matched "@cop_wit_uniform_A" and "@noodle_shop" matched "@noodle_shop_thriving"; .first picked either, and the chip-COUNT gate cannot see a wrong-but-present chip. Now word-bounded (picker_row_pattern). Whether any Act 1–6 shop shot got the thriving-shop plate is unchecked. · evidence: cdb27f9f on agent/codex-winbox-runner · status: pending
-- 2026-09-23 [MISSING] §references — shot 106 drifted ต้น's hair (longer, fringe forward) in BOTH takes, on two different runners, with prompt text identical to 105 except framing. Pattern: close-up + ต้น as REF_1 + his face in profile. 107 (same close-up framing, same room, same two men) held the plate with ต้น as REF_0 facing camera; shot 22 (the only other close-up with him as REF_1) pushed him to the frame edge. Hypothesis n=3: in a close-up the second reference holds weaker, and a face seen only in profile has its hair invented from a frontal plate. Test: 106 take 3 with ต้น REF_0 facing camera. · evidence: session cto-8c06958c, ACT4 106 · status: pending
-- 2026-09-23 [MISSING] §A clip that vanishes after Submit — uniform plate + the word "police" made Flow drop the clip silently (179 x2, 149, 151, A/B arm A); without the word (arm C) or with the plainclothes plate (arm B) it came back. Section added; n=1 per arm, so the rule is a default, not a law. · evidence: session cto-8c06958c, scratchpad/ab179, runner 2df21691 · status: pending
-- 2026-09-23 [MISSING] §Wardrobe — measured, not just argued: the uniformed วิทย์ as ONE full-body still (@cop_wit_uniform_A) came back older and greying in a two-shot with the father (149, 151, and A/B arm A) — the stronger close-up face in the frame leaked in. His FACE plate (@cop_wit) + a wardrobe plate with no person in it (@police_uniform), labelled "wardrobe reference: <who> wears exactly this outfit", held his face and the uniform (arm B). build_shotsheet now has WARDROBE per character. n=1 per arm, 360p. · evidence: session cto-8c06958c, scratchpad/abface, 51a3c4e1 · status: pending
 - 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv · status: pending
-- 2026-09-23 [MISSING] §What Flow silently deletes in an arrest scene — handcuffs deleted on anyone (incl. plainclothes); uniform + police lights (even thrown in from off frame) deleted; uniform + walked out + spoken charges kept. 11 arms, one variable each. Section added. · evidence: session cto-8c06958c, scratchpad/abarrest (9202-9209), ACT6 184-186 · status: pending
 - 2026-09-23 [MISSING] §(whole skill) — the first full story's retrospective (characters, props, Flow's silent deletions, night, sound, the per-act review loop, what the audit still cannot see) is docs/scripts/banchi-RETRO.md; read it before writing the next story's sheet. · evidence: banchi shipped 2026-09-23, cut5 on Drive Final Draft · status: pending
 - 2026-09-25 [MISSING] rename on Mac — in Flow's `input.editable-text-input`, `Control+A` moves the caret to line start (an emacs binding) and does not select all; `Meta+A` does. The first rename produced `ตาชั่งของเสี่ยก.ย. 25 - 17:15` · evidence: task-c2723478, memory reference_cdp_select_all_needs_commands_on_mac (same trap, CDP) · status: pending
 - 2026-09-25 [MISSING] chips are per-prompt — right after the upload script bound `pa__face`, a later read of the same tab found 0 `img[alt="รูปภาพองค์ประกอบ"]` chips while the named asset was still in the media grid. The persistent thing is the named asset. The shoot runner must attach it by name for every shot, which is how @handles already work in flow_shoot · evidence: CTO read-only check 2026-09-25 ~17:45 · status: pending
