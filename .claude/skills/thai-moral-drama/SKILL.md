@@ -365,6 +365,32 @@ already carry. If it costs shots, it is the first thing cut.
 
 ---
 
+## ⛔ Emotion is written into every shot, loudly (CEO 2026-09-25)
+
+> "ตัวละครดูไร้อารมณ์ โทนเสียงเป็นเรียบๆ ไม่มี ประจบประแจง โกรธ โมโห ร้องไห้ และการแสดงสีหน้า และการกระทำ เลย"
+
+**Measured on «จุดจบของเจ้าหนี้นอกระบบ».** Of 417 spoken lines in the ACT1–7 data files, 4 (1%) carried a
+strong emotion direction. The most common directions were quiet ×25, steady ×16, even ×14, flat ×13 and
+quieter ×11. The voice blocks pasted into every line also carried mood: "tired man", "calm man", "who never
+has to raise it". The script asked for flat, and it got flat. How far Veo goes when asked for more is not
+yet measured.
+
+The rule:
+1. **Every shot has an emotion line.** It gives face · voice · body for EVERYONE in frame, including whoever
+   is silent, with an intensity from 1 to 5. The emotion curve across the film follows 虐→爽 (see the 短剧
+   research note): the victim is pushed down to real tears before the turn, the villain's rage peaks before
+   his fall.
+2. **Directions are physical and loud.** Write "shouting, face red, veins on his neck", "sobbing, tears
+   streaming, voice breaking" or "wheedling, palms pressed together, too-wide smile". Never "quiet" or
+   "steady" unless the scene genuinely is.
+3. **A voice block says timbre, pitch and age only.** No mood and no pace. It is repeated on every line, so
+   any mood inside it flattens every line.
+4. **The emotion goes early in the prompt**, in the scene sentence. It is not one trailing adjective.
+5. **Before a shoot, A/B three emotions at 360p:** rage, crying, pleading (~12 credits, CEO's go). Scale
+   the directions by what came back.
+
+First script under this rule: `docs/scripts/taachang-SCRIPT-v2.md`.
+
 ## ⛔ The character acts WHILE speaking, never before speaking (measured 2026-09-19)
 
 Dead air does not come from short dialogue. It comes from the **action line**.

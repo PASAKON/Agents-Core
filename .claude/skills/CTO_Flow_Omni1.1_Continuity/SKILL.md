@@ -131,6 +131,33 @@ sheet, not a verdict.
 7. Say where a prop IS, not what it is not. [FLOW] "No banknote with a portrait" lost
    to the Thai-shop context six times; binding a plain envelope prop plate fixed it.
 
+8. Every character, prop and location carries named STATES. [ANY] (CEO ruling 2026-09-25)
+   *"หนึ่ง Charactor อาจจะมี 1 หรือหลาย State … ถ้าเรามีครบ เราจะ Keep Charactor ได้ดีมากๆ → ใช้กับ Prop
+   และ Location ด้วย เพื่อ Continue Scene ให้ไปข้างหน้าแบบควบคุมได้ ตั้งแต่ต้นน้ำจนปลายน้ำ"*
+
+   **What a state is.** One look at one point in the story: face, hair, beard, clothes, physical condition,
+   age. Examples:
+   - a role change: the vendor before arrest → after arrest, stressed, different clothes
+   - an injury ladder: bruise 1 → 2 → 3 → bandaged → bandage off with a faint mark → healed (back to base)
+   - hair: short / medium / long
+   - beard: short / long
+   - age: child / early 20s / working age. A new age needs a new FACE plate.
+
+   **How it is used.**
+   - Each state gets its own plate, `<who>__<state>`, next to one identity plate, `<who>__face`.
+   - Every shot names its state.
+   - The data file maps shot → state, so no prompt ever leaves the model to guess a look.
+   - Facial emotion is NOT a state. It changes every shot, and a plate would freeze it. Physical conditions
+     that last across shots ARE states: red swollen eyes after a night of crying, a soaked crumpled shirt.
+
+   **How to make one.**
+   - Generate in ChatGPT Plus through `tools/chatgpt_images.py`, face first. Make every state as a
+     same-chat `--continue` edit of that face (a new chat makes a new person).
+   - Upload to Flow as an Element. The upload route is being probed (task-c2723478).
+   - Rule 4 still applies: if a full-body state plate loses the face in a two-shot, fall back to face +
+     wardrobe plate.
+   - First registry: `docs/scripts/taachang-CAST-STATES.md`.
+
 ## Output format
 
 ```
