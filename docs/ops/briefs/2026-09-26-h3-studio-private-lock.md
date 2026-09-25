@@ -78,3 +78,21 @@ Everything the CEO creates (the "private" owner) is readable ONLY in a browser o
 - Never read the MAIN tree's `studio/data/`. Build and test on fake data only.
 - Never call :4100. Never open images.
 - The CTO runs the real migration himself after the merge, with the CEO present to set the password.
+
+## Addendum 2026-09-26: Touch ID / passkey (CEO: "Can use passkey or touch ID ... Apple only -> make sure you can restore if it crack")
+- **The Mac:** MacBook Pro M1, macOS 14.3.1 (Sonoma), Touch ID enrolled (`bioutil`: biometrics on).
+- **Unlock methods, in order:**
+  1. **Touch ID (primary).**
+  2. **Password (backup).**
+  3. **Recovery key** (shown once at setup).
+
+  Each method wraps the same `ceoDataKey` independently, so losing one never loses the data.
+- **Touch ID mechanism: verify on THIS Mac before building; do not assume.**
+  - (a) A WebAuthn passkey with the **PRF extension**: the PRF output derives the wrapping key. On localhost, a secure context, in the CEO's Chrome and Safari versions. PRF on platform passkeys may need macOS 15+, so test it with a tiny local page first.
+  - (b) If PRF is unavailable: a small Swift helper using LocalAuthentication (Touch ID prompt on the Mac) that releases the wrapping key from the macOS Keychain. The server calls it, and the CEO sees the system Touch ID sheet.
+  - Report which one works with evidence, and why. A Touch ID prompt the CEO did not start is visible to him; note that as the tamper signal.
+- **Restore ("if it cracks"):**
+  - Everything needed to decrypt = `~/.mooniex/studio-lock.json` (wrapped keys only; useless without the password, Touch ID or the recovery key) + `studio/data/`.
+  - Add both to the Mac machine-contract backup as IRREPLACEABLE-encrypted, and to the Drive `BACKUP/` flow. They are safe to upload because they are ciphertext.
+  - Ship `scripts/lock_restore_drill.py`: on a copy, re-derive with the recovery key, unwrap, decrypt one ceo field and one file, compare sha256. The CEO runs it once after setup.
+- **Passkeys and iCloud Keychain:** a Touch ID passkey stored in iCloud Keychain survives a Mac reinstall. A Keychain-helper secret does NOT (it is device-bound), so option (b) relies on the password or the recovery key for restore. Say so on the setup screen.
