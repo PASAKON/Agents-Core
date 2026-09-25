@@ -1,0 +1,85 @@
+[
+ {
+  "name": "yai__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai woman, 70 years old, small and thin, sun-darkened deeply wrinkled skin, kind deep-set eyes, short cropped grey hair. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity and not glamorous: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "yai__collect",
+  "continue": "yai__face",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a faded floral long-sleeved cotton blouse, loose black cotton trousers, a wide-brimmed cloth sun hat, white cotton work gloves, a small towel draped around her neck, rubber flip-flops, a little dust on her clothes. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "yai__home",
+  "continue": "yai__collect",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair (no hat now). Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a faded pastel short-sleeved round-neck blouse, a Thai patterned sarong (pha thung) tied at the waist, barefoot, grey hair combed neatly. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "sia__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai-Chinese man, 50 years old, heavy-set with a round belly, round fleshy face, small narrow eyes, black hair slicked straight back with grey at the temples, a thin moustache. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity and not glamorous: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "sia__boss",
+  "continue": "sia__face",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a loud, brightly patterned short-sleeved shirt worn open over a white sleeveless undershirt, a thick gold chain necklace, a gold wristwatch, khaki shorts, leather sandals. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "sia__factory",
+  "continue": "sia__boss",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a cream-coloured polo shirt with no logo tucked into dark slacks, a leather belt, the thick gold chain necklace, black sunglasses pushed up on top of his head, leather shoes. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "sia__humbled",
+  "continue": "sia__factory",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair (hair now falling messily over his forehead). Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: the same cream polo shirt but crumpled, sweat-stained and untucked, dark slacks, no sunglasses, NO gold chain any more, a drained tired face with red-rimmed eyes. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "sia__reformed",
+  "continue": "sia__humbled",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair (hair now cut short and neat). Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a plain grey button-up work shirt with a tan canvas work apron over it, dark trousers, sandals, no jewellery at all. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "kla__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai teenage boy, 16 years old, slim, neat short black hair, earnest serious eyes, a clean youthful face. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity and not glamorous: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "kla__school",
+  "continue": "kla__face",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a Thai upper-secondary school uniform: a plain white short-sleeved button shirt with absolutely no embroidery, badge or name on it, long black trousers, a black belt, black leather school shoes. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "kla__work",
+  "continue": "kla__school",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a plain grey T-shirt, faded old jeans, white cotton work gloves, worn canvas sneakers. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "tor__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai boy, 11 years old, small for his age, round cheeks, straight black bowl-cut hair, bright curious eyes. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity and not glamorous: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "tor__school",
+  "continue": "tor__face",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a Thai primary school uniform: a plain white short-sleeved shirt with absolutely no embroidery, badge or name, navy-blue shorts, white socks, black school shoes, a small plain dark backpack with no print. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "tor__home",
+  "continue": "tor__school",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show his FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a faded oversized plain T-shirt with no print, cotton shorts, barefoot. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "pa__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai woman, 60 years old, stocky, sharp alert eyes, greying hair tied back, reading glasses hanging on a cord around her neck. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity and not glamorous: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "pa__collect",
+  "continue": "pa__face",
+  "prompt": "Keep this exact same person as in the portrait above: identical face, features, age, skin and hair. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit and condition: a wide woven straw hat, a long-sleeved checked cotton shirt, cloth arm sleeves, dark trousers, rubber sandals, the reading glasses on a cord around her neck. No text, no letters, no logos, no brand marks, no badges, no embroidery and no name tags anywhere on the clothing. Nothing in the hands."
+ },
+ {
+  "name": "scaleman__work",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai man, 45 years old, lean, with a hard weathered face and short black hair. FULL BODY from head to toe, standing, three-quarter view facing the camera, face clearly visible, arms relaxed at the sides, a natural neutral expression. Plain light-grey studio backdrop, soft even daylight, sharp focus. Vertical 2:3 image. An ordinary real-looking person, not a celebrity: natural skin texture. Outfit: a faded light-blue work shirt with no logo, dark work trousers, a plain cap with no logo, black rubber boots, a pencil tucked behind one ear. No text, no letters, no logos, no brand marks, no badges and no name tags anywhere on the clothing. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "worker__work",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai man, 30 years old, sturdy and sunburnt, short black hair. FULL BODY from head to toe, standing, three-quarter view facing the camera, face clearly visible, arms relaxed at the sides, a natural neutral expression. Plain light-grey studio backdrop, soft even daylight, sharp focus. Vertical 2:3 image. An ordinary real-looking person, not a celebrity: natural skin texture. Outfit: a plain grey work shirt and grey work trousers, cotton work gloves, black rubber boots. No text, no letters, no logos, no brand marks, no badges and no name tags anywhere on the clothing. Nothing in the hands. No watermark."
+ }
+]
