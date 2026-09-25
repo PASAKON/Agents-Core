@@ -266,7 +266,7 @@
 **บทพูด** ยาย `"อีกสิบเสาไฟจ้ะ ยายอ่านหนังสือไม่เป็น แต่นับเสาไฟเป็นนะ"` — panting but smiling through it
 
 ### SHOT 30 · 3:52–4:00 · 8s · Close two-shot over the notes on the mat · BAAN · turn @4:00
-**ACTION** ยายนับแบงก์จากร้านปลายคลอง **ขณะที่**พูด มือสั่น
+**ACTION** ยายถือถุงผ้าเงินจากร้านปลายคลองไว้บนตัก **ขณะที่**พูด มือสั่น (v2.2: ไม่ให้เห็นแบงก์ในช็อตที่มีต่อ)
 **อารมณ์** ยาย 4/5 ตกตะลึง มือสั่น เสียงแตก น้ำตาคลอ · ต่อ 4/5 โกรธแทนยาย เสียงดัง
 **บทพูด** ยาย `"สองกระสอบเท่าเดิม แต่ปลายคลองให้มากกว่าเสี่ยตั้งเยอะ"` — stunned, hands trembling, voice cracking, tears welling
 **บทพูด** ต่อ `"แปลว่าเสี่ยโกงยายมาตลอด!"` — outraged on her behalf, loud
@@ -339,7 +339,7 @@
 ### SHOT 42 · 5:28–5:36 · 8s · Close-up low: the scale-man's boot nudging a bale corner off the platform (same framing as SHOT 1) · FAC
 **ACTION** รองเท้าบู๊ตคนชั่งเขี่ยมุมกระสอบลงพื้น **ขณะที่**กล้าสะกิดพ่อ
 **อารมณ์** กล้า 4/5 ตกใจ กระซิบเร่ง ดึงแขนพ่อ · เสี่ย 3/5 รำคาญ ปัดมือ
-**บทพูด** กล้า `"พ่อครับ พ่อดูเท้าคนชั่งสิ เขาเขี่ยมุมกระสอบลงพื้นอยู่"` — alarmed, an urgent whisper, tugging his father's arm
+**บทพูด** กล้า `"พ่อครับ พ่อดูเท้าคนชั่งสิ เขาเขี่ยมุมกระสอบลงพื้นอยู่"` — alarmed, urgent, low but clearly spoken aloud, tugging his father's arm
 **บทพูด** เสี่ย `"เงียบน่า พ่ออ่านเลขเองได้"` — annoyed, brushing him off
 
 ### SHOT 43 · 5:36–5:44 · 8s · Two-shot · FAC
