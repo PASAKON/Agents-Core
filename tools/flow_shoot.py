@@ -61,9 +61,10 @@ LOG_PATH = Path("state/banchi/flow_shoot.log")
 POLICY_PATH = Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"
 DOWNLOAD_GAP_S = 8  # brief's rule: never fire two downloads closer than this
 POLL_S = 8
-# Overridable because Flow's render time is not constant: on 2026-09-25 evening two taachang
-# shots "timed out" at 8 min and their clips were found by `pull` minutes later — slow, not
-# deleted. FLOW_COMPLETION_TIMEOUT_S=900 on a slow night stops those false failures.
+# Overridable because Flow's render time is not constant. Note what a "timeout" was on
+# 2026-09-25: for taachang S29 `pull` later found the card but no video URL on it (a failed
+# card, not a slow render). A longer wait does not rescue that case; it only avoids giving up
+# on a genuinely slow one. FLOW_COMPLETION_TIMEOUT_S=900 when Flow is known to be slow.
 COMPLETION_TIMEOUT_S = int(os.environ.get("FLOW_COMPLETION_TIMEOUT_S", 8 * 60))
 NO_CARD_S = 120  # a submit that has changed nothing in the feed by now made no card
 UPSCALE_TIMEOUT_S = 3 * 60
