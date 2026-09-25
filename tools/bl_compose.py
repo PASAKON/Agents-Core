@@ -42,6 +42,24 @@ hyperframes.json, package.json, assets/, and media/ (the stills/avatar
 clips the beats' `extra.img` / mode reference, flat under media/ exactly
 as build_cut.py's f'media/{img}' expects). Every caption this tool emits
 calls that template's `caption()` -- see emit_pieces()'s own docstring.
+Optionally SCRIPT.tsv at the generator-dir's own root (tag -> 1-based
+script line number) -- when present, a KIN beat with no plate named
+defaults to that line's own `media/broll/S{n:02d}.mp4` (task-9a4f1029,
+see default_kin_broll()); its absence is not an error, it just means no
+default is available.
+
+task-9a4f1029 fixed three gaps every editor using this tool would hit
+again (found by task-1a5eb073's Arm 1 pilot, the first real end-to-end
+render against the actual EP57 fixture):
+  - a KIN beat with no plate named now defaults to its own line's broll
+    (darkened), never the bare kit background (see default_kin_broll());
+  - COMP/EVID's spotlight() now exits exactly when its own plate does --
+    a deliberate, documented divergence from build_cut.py's own mirrored
+    call (see SPOTLIGHT_EXIT_LEAD below), because assemble.py itself
+    (where spotlight() is actually defined) stays off-limits;
+  - an FF/COMP beat outside every recorded avatar window now fails fast
+    with a clear message (see check_avatar_window()) instead of burning a
+    60s+ render before hyperframes' own media_start_out_of_range surfaces.
 
 Usage:
     python3 tools/bl_compose.py \\
@@ -90,6 +108,83 @@ class ComposeError(RuntimeError):
     pass
 
 
+# assemble.py's own spotlight() (defined in its `helpers` string, off-limits
+# per this module's docstring) calls `hide(id, out-0.1)`, and index.html's
+# shared `hide()` has a hard-coded 0.18s duration -- so the fade actually
+# FINISHES at out-0.1+0.18 = out+0.08, i.e. 0.08s AFTER the beat's own plate
+# hard-cuts to the next beat. Measured on task-1a5eb073's pilot: 5 empty-
+# frame clusters, every one an EVID/COMP->KIN cut, each ~0.06-0.08s (the
+# 30fps sampling grid's own granularity accounts for the small spread).
+# Never edit assemble.py -- tune the ARGUMENT instead: pass `t1 -
+# SPOTLIGHT_EXIT_LEAD` as spotlight()'s own `out` so its unmodified formula
+# finishes exactly when the plate does (SKILL.md §6d: "exits hard cut").
+SPOTLIGHT_EXIT_LEAD = 0.08
+
+
+def load_script_line_map(generator_dir: Path) -> dict[str, int]:
+    """tag -> 1-based script line number, from the generator-dir's own
+    SCRIPT.tsv (fixture-full stages one; the older 30.78s fixture does not
+    -- an empty map there just means default_kin_broll() has nothing to
+    default from, never an error)."""
+    script_path = generator_dir / "SCRIPT.tsv"
+    if not script_path.is_file():
+        return {}
+    mapping: dict[str, int] = {}
+    for line in script_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        cols = line.split("\t")
+        if len(cols) < 2:
+            continue
+        try:
+            n = int(cols[0])
+        except ValueError:
+            continue
+        mapping[cols[1]] = n
+    return mapping
+
+
+def default_kin_broll(tag: str, script_line_map: dict[str, int]) -> str | None:
+    """SKILL.md §6d plate table: a KIN beat never shows the bare kit
+    background. This episode's own scene clip (line n <-> media/broll/
+    S{n:02d}.mp4, task-9a4f1029, one clip per SCRIPT.tsv line) is the
+    default plate whenever the beat's own `extra` names none. Returns None
+    (no default) when the tag isn't in the map -- the caller then falls
+    back to the old bare-background behaviour rather than guessing a path
+    that doesn't exist."""
+    n = script_line_map.get(tag)
+    return f"broll/S{n:02d}.mp4" if n else None
+
+
+def check_avatar_window(tag: str, mode: str, abs_t0: float, lipname: str, funcs: dict[str, Any]) -> None:
+    """FF/COMP can only render where a recorded lipsync take actually
+    covers `abs_t0` -- outside that, hyperframes refuses at render time
+    (media_start_out_of_range / VIDEO_SOURCE_UNRENDERABLE) after a full
+    60s+ render attempt (task-1a5eb073's pilot hit this on its first
+    draft, 12 beats). Catch it here instead: fast, in Python, before any
+    render is attempted, naming every valid window so the caller can move
+    the beat to EVID or KIN. A generator whose build_cut.py exposes no
+    LIP_DUR (older fixtures) skips this check entirely -- there is nothing
+    to validate against."""
+    lip_offset = funcs["lip_offset"]
+    lip_dur: dict[str, float] = funcs.get("LIP_DUR") or {}
+    if not lip_dur:
+        return
+    start = lip_offset(lipname)
+    dur = lip_dur.get(lipname)
+    media_start = abs_t0 - start
+    if dur is not None and -1e-6 <= media_start < dur - 1e-6:
+        return
+    windows = ", ".join(
+        f"{name} [{lip_offset(name):g}, {lip_offset(name) + d:g})"
+        for name, d in sorted(lip_dur.items(), key=lambda kv: lip_offset(kv[0])))
+    raise ComposeError(
+        f"beat {tag!r} ({mode}) at t0={abs_t0:g}s has no avatar footage there -- "
+        f"pick_lip() maps it to {lipname!r}, "
+        f"{'which this generator exposes no LIP_DUR for' if dur is None else f'valid only in [{start:g}, {start + dur:g})'}. "
+        f"Valid avatar windows: {windows}. Use EVID or KIN for this beat instead of FF/COMP.")
+
+
 def load_generator_functions(generator_dir: Path) -> dict[str, Any]:
     """AST-selective exec of build_cut.py: only the pure helper functions and
     constants named above run. The file's own hardcoded BEATS/CHECK_ITEMS,
@@ -132,7 +227,8 @@ def compute_ext_end(beats: list[dict], t_max: float) -> dict[str, float]:
     return ext_end
 
 
-def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_window: float = 0.0) -> dict:
+def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_window: float = 0.0,
+                 script_line_map: dict[str, int] | None = None) -> dict:
     """Beats -> the same cut_pieces.json shape build_cut.py writes (plates,
     script_lines, check_call, check_override_js, caps_js, total_dur).
 
@@ -162,6 +258,11 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
     the next one starts) is the actual defect, not a frozen frame -- the
     30fps empty-frame gate (tools/bl_checker.py) is the backstop that would
     catch a source so short it decodes to nothing.
+
+    `script_line_map` (task-9a4f1029, from load_script_line_map()) is the
+    generator-dir's own SCRIPT.tsv tag -> line-number map, used only to
+    default a bare KIN beat's plate (see default_kin_broll()); every other
+    mode ignores it.
     """
     img_placement = funcs["img_placement"]
     box_to_canvas = funcs["box_to_canvas"]
@@ -170,6 +271,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
     esc = funcs["esc"]
     PLATE_TRACK = funcs.get("PLATE_TRACK", 0)
     AVATAR_TRACK = funcs.get("AVATAR_TRACK", 1)
+    script_line_map = script_line_map or {}
 
     ext_end = compute_ext_end(beats, t_max)
     plates: list[str] = []
@@ -188,6 +290,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
 
         if mode == "FF":
             lipname = pick_lip(abs_t0)
+            check_avatar_window(tag, mode, abs_t0, lipname, funcs)
             media_start = round(abs_t0 - lip_offset(lipname), 3)
             plates.append(
                 f'<video class="clip" id="v_{safe_id}" src="media/{lipname}.mp4" muted playsinline '
@@ -206,6 +309,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
             if "avatar_until" in ex:
                 avatar_dur = round(ex["avatar_until"] - abs_t0, 3)
             lipname = pick_lip(abs_t0)
+            check_avatar_window(tag, mode, abs_t0, lipname, funcs)
             media_start = round(abs_t0 - lip_offset(lipname), 3)
             style = (f'top:{top - shift}px;left:{left}px;right:auto;bottom:auto;'
                      f'width:{dw}px;height:{dh}px;transform:none')
@@ -222,7 +326,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
                 bx, by, bw, bh = box_c
                 by -= shift
                 script_lines.append(
-                    f'spotlight("sp_{safe_id}", {t0 + 0.15}, {t1}, '
+                    f'spotlight("sp_{safe_id}", {t0 + 0.15}, {round(t1 - SPOTLIGHT_EXIT_LEAD, 3)}, '
                     f'{round(bx)}, {round(by)}, {round(bw)}, {round(bh)});')
             if ex.get("cap"):
                 caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
@@ -242,7 +346,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
             if box_c:
                 bx, by, bw, bh = box_c
                 script_lines.append(
-                    f'spotlight("sp_{safe_id}", {t0 + 0.25}, {t1}, '
+                    f'spotlight("sp_{safe_id}", {t0 + 0.25}, {round(t1 - SPOTLIGHT_EXIT_LEAD, 3)}, '
                     f'{round(bx)}, {round(by)}, {round(bw)}, {round(bh)});')
             if ex.get("credit"):
                 script_lines.append(f'credit("cr_{safe_id}", {t0 + 0.1}, {t1}, "{esc(ex["credit"])}");')
@@ -250,14 +354,21 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
                 caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
 
         elif mode == "KIN":
-            if ex.get("broll"):
+            # SKILL.md §6d plate table: never a bare kit background. An
+            # editor can still name their own plate (`extra["broll"]`,
+            # including an explicit falsy value to opt out of one entirely)
+            # -- only a beat that names NONE falls back to its own line's
+            # scene clip, darkened (task-9a4f1029; task-1a5eb073's pilot put
+            # 15 of 40 KIN lines on bare background for lack of this).
+            broll = ex["broll"] if "broll" in ex else default_kin_broll(tag, script_line_map)
+            if broll:
                 plates.append(
-                    f'<video class="clip plate-darkened" id="v_{safe_id}" src="media/{ex["broll"]}" '
+                    f'<video class="clip plate-darkened" id="v_{safe_id}" src="media/{broll}" '
                     f'muted playsinline data-start="{t0}" data-duration="{dur}" data-media-start="0" '
                     f'data-track-index="{PLATE_TRACK}"></video>')
             lines_js = ", ".join(
                 '{c:"%s", h:%s}' % (c, json.dumps(h, ensure_ascii=False)) for c, h in ex["lines"])
-            script_lines.append(f'kinetic(760, {t0 + 0.05}, {t1}, [{lines_js}], 0);')
+            script_lines.append(f'kinetic(760, {t0 + 0.05}, {t1}, [{lines_js}], 0); // {tag}')
 
         else:
             raise ComposeError(
@@ -300,7 +411,8 @@ def compose(beats: list[dict], generator_dir: Path, t_max: float, out_dir: Path,
     the composition covers only [t0, t_max) of ABSOLUTE episode time,
     starting at composition-local t=0 -- see emit_pieces()'s own docstring."""
     funcs = load_generator_functions(generator_dir)
-    pieces = emit_pieces(beats, t_max, funcs, t0_window=t0)
+    script_line_map = load_script_line_map(generator_dir)
+    pieces = emit_pieces(beats, t_max, funcs, t0_window=t0, script_line_map=script_line_map)
     build_render_workdir(generator_dir, out_dir)
     pieces_path = out_dir / "cut_pieces.json"
     pieces_path.write_text(json.dumps(pieces, ensure_ascii=False, indent=2), encoding="utf-8")

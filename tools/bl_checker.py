@@ -2,7 +2,7 @@
 """BLACK LIQUIDITY Checker -- judge a rendered cut by machine (task-67bb7a11).
 
 No images loop, no judgment calls at render-review time: given the finished
-MP4 and the beats table the Scripter wrote, run five mechanical checks and
+MP4 and the beats table the Scripter wrote, run six mechanical checks and
 exit 1 if any fails.
 
 Usage:
@@ -16,6 +16,7 @@ import json
 import re
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -306,6 +307,85 @@ def check_one_caption_style(html_text: str | None) -> list[str]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 5. Kinetic text overflow -- task-9a4f1029: task-1a5eb073's Arm 1 pilot fed
+#    kinetic() whole, unsplit sentences (one long string per `lines[]`
+#    entry, instead of several short ones) and the render's Chrome wrapped
+#    them wherever it ran out of room -- mid-word, no ICU Thai dictionary
+#    (SKILL.md §6b) -- e.g. "วิกิ"/"เอฟเอ็กซ์" split across a line break at
+#    56s, "เช็"/"ก" at 67s. index.html's kinetic() now forces nowrap and
+#    shrinks to fit at render time (see its own comment); this gate catches
+#    the same defect earlier, straight from the composed HTML's own
+#    kinetic() calls, so a bad beats.json never even reaches a render.
+#
+#    Width is an ESTIMATE (character count * a measured px/char ratio), not
+#    a real browser layout -- calibrated off two independent single-font
+#    samples pulled from final-arm1.mp4 itself (Kanit ExtraBold 800, 82px,
+#    ffmpeg frame grabs measured with PIL):
+#      "สรุปแบบไม่โลกสวย" (14 visual chars, one line, no wrap) -> 660px
+#      "เช็กต่อว่ามีใบ" / "อนุญาตซื้อขาย" / "ฟอเร็กซ์ไหม" (10/10/9 visual
+#        chars -- the SAME sentence Chrome itself wrapped, three lines) ->
+#        445/510/411px
+#    -> 44.5-51.0 px/visual-char at 82px (mean ~47.1). KINETIC_CHAR_WIDTH_
+#    RATIO below (0.58, i.e. ~47.6px @82px) sits a hair over that mean, so
+#    the estimate over-calls a close line rather than under-calling a real
+#    one -- a false alarm here just fails a check; a miss would ship a
+#    defect. "Visual" chars exclude Unicode category Mn (Thai vowel/tone
+#    marks such as ั ิ ี ึ ื ุ ู ่ ้ ๊ ๋ ์, which stack on the preceding
+#    consonant and add no horizontal advance) -- both calibration samples
+#    matched this exactly (16 codepoints -> 14 visual, etc).
+# ═══════════════════════════════════════════════════════════════════════════
+
+KINETIC_FONT_PX = {"bl-xl": 104, "bl-lg": 82, "bl-md": 62, "bl-sm": 44, "bl-xs": 34}
+KINETIC_CHAR_WIDTH_RATIO = 0.58  # px of width per px of font-size, per visual char
+KINETIC_SAFE_WIDTH = CANVAS_W - 120 - 240  # kinetic()'s block() never applies .wide -- index.html's --safe-left/--safe-right
+
+_KINETIC_CALL_RE = re.compile(
+    r'kinetic\(\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*\[(.*?)\]\s*,\s*[-\d.]+\s*\)\s*;'
+    r'(?:[ \t]*//[ \t]*([^\r\n]*))?',
+    re.DOTALL)
+_KINETIC_ENTRY_RE = re.compile(r'\{c:"([a-zA-Z0-9_ -]*)"\s*,\s*h:("(?:[^"\\]|\\.)*")')
+_HTML_TAG_RE = re.compile(r'<[^>]+>')
+
+
+def _visual_len(text: str) -> int:
+    """Spacing characters only -- see this section's own header comment."""
+    return sum(1 for ch in text if unicodedata.category(ch) != "Mn")
+
+
+def estimate_kinetic_line_width(html_fragment: str, css_class: str) -> int:
+    plain = _HTML_TAG_RE.sub("", html_fragment)
+    font_px = KINETIC_FONT_PX.get(css_class, KINETIC_FONT_PX["bl-lg"])
+    return round(_visual_len(plain) * KINETIC_CHAR_WIDTH_RATIO * font_px)
+
+
+def check_kinetic_overflow(html_text: str | None) -> list[str]:
+    """Every kinetic() line whose estimated width exceeds the safe box --
+    each entry identified by the beat's own tag when bl_compose.py's
+    trailing `// TAG` comment is present (task-9a4f1029), else by its own
+    (truncated) text. Empty means every kinetic line estimates as fitting
+    on one line at its own font-size or smaller (down to no floor here --
+    the render-time shrink-then-throw in kinetic() itself is the real
+    floor; this gate only estimates the UNSHRUNK, as-authored width, since
+    a beats.json author should split a too-long line rather than lean on
+    the render-time shrink)."""
+    if not html_text:
+        return []
+    bad: list[str] = []
+    for call in _KINETIC_CALL_RE.finditer(html_text):
+        lines_blob, tag_comment = call.group(1), call.group(2)
+        label = (tag_comment or "").strip()
+        for entry in _KINETIC_ENTRY_RE.finditer(lines_blob):
+            css_class, h_json = entry.group(1), entry.group(2)
+            text = json.loads(h_json)
+            width = estimate_kinetic_line_width(text, css_class)
+            if width > KINETIC_SAFE_WIDTH:
+                plain = _HTML_TAG_RE.sub("", text)
+                ident = label or plain[:24]
+                bad.append(f"{ident}: ~{width}px > {KINETIC_SAFE_WIDTH}px safe width ({plain[:40]!r})")
+    return bad
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Runner
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -316,13 +396,15 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
     text_over = check_text_over_face(beats, face_box)
     credit_bad = check_credit_missing(beats)
     caption_styles_bad = check_one_caption_style(composition_html)
+    kinetic_overflow_bad = check_kinetic_overflow(composition_html)
     return {
-        "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad),
+        "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad or kinetic_overflow_bad),
         "empty_frames": empty,
         "out_of_safe_area": unsafe,
         "text_over_face": text_over,
         "credit_missing": credit_bad,
         "extra_caption_styles": caption_styles_bad,
+        "kinetic_overflow": kinetic_overflow_bad,
     }
 
 

@@ -395,12 +395,42 @@
         return { id: id, node: d };
       }
 
+      // Never wrap mid-word (SKILL.md §6b: the render's Chrome has no ICU
+      // Thai dictionary, so a line that's allowed to wrap breaks wherever
+      // it runs out of room, mid-syllable -- "วิกิ"/"เอฟเอ็กซ์",
+      // "เช็"/"ก", task-9a4f1029's own pilot). Each `lines[]` entry is
+      // meant to be ONE line by design ("1-3 lines of headline text") --
+      // force that with nowrap so it can never silently re-wrap, then
+      // shrink the line's own font-size to fit the safe box, down to a
+      // floor. A line that still doesn't fit at the floor throws instead
+      // of shipping a clipped or overflowing frame.
+      var KINETIC_FONT_FLOOR = 32; // px -- .bl-xs (34px) is the kit's own smallest readable size
+      function fitKineticLine(span, safeW) {
+        span.style.whiteSpace = "nowrap";
+        var size = parseFloat(window.getComputedStyle(span).fontSize);
+        for (var i = 0; i < 8; i++) {
+          var w = span.getBoundingClientRect().width;
+          if (w <= safeW) return;
+          if (size <= KINETIC_FONT_FLOOR) break;
+          size = Math.max(KINETIC_FONT_FLOOR, Math.floor(size * (safeW / w) * 0.97));
+          span.style.fontSize = size + "px";
+        }
+        var finalW = span.getBoundingClientRect().width;
+        if (finalW > safeW) {
+          throw new Error('kinetic(): line "' + span.textContent + '" is ' + Math.round(finalW) +
+            'px wide, still over the ' + Math.round(safeW) + 'px safe box at the ' +
+            KINETIC_FONT_FLOOR + 'px floor -- split it into more kinetic lines.');
+        }
+      }
+
       function kinetic(top, at, out, lines, ruleW) {
         var b = block("", top, at, out), t = at + 0.05;
+        var safeW = b.node.getBoundingClientRect().width;
         lines.forEach(function (ln, i) {
           var w = b.id + "w" + i;
           b.node.appendChild(el('<div class="' + ln.c + '" style="margin-top:' + (i ? 18 : 0) + 'px">' +
             '<span class="wipe" id="' + w + '">' + ln.h + '</span></div>'));
+          fitKineticLine(document.getElementById(w), safeW);
           wipe("#" + w, t, ln.d || 0.60); t += (ln.g || 0.62); });
         if (ruleW) {
           var r = b.id + "r";

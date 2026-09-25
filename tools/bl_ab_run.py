@@ -221,6 +221,14 @@ def build_full_generator(episode_work_dir: Path, dest: Path) -> Path:
             shutil.copy2(src, dest / "media" / name)
 
     shutil.copy2(episode_work_dir / "audio-hq.mp3", dest / "audio-hq.mp3")
+    # assemble.py (off-limits, never edited) hardcodes the composed <audio>
+    # element's src to "media/voice.mp3" regardless of what's actually in
+    # the fixture -- this was never staged here (the CTO copied it by hand
+    # for task-1a5eb073's pilot, which then had to work around the missing
+    # file per-render instead). audio-hq.mp3 IS the episode's real
+    # narration track (SKILL.md: "this is the clock"), so it's the correct
+    # source for the placeholder assemble.py expects.
+    shutil.copy2(episode_work_dir / "audio-hq.mp3", dest / "media" / "voice.mp3")
     shutil.copy2(episode_work_dir / "SCRIPT.tsv", dest / "SCRIPT.tsv")
     shutil.copy2(episode_work_dir / "timings.tsv", dest / "timings.tsv")
     return dest
