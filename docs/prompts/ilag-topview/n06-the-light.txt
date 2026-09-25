@@ -19,7 +19,7 @@ References (6):
 
 8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A three-quarter view from behind THE MOUNT, slowly rising; no cut, no zoom.
 
-THE LIGHT. In the black rain, THE YOUNG ONE becomes their lantern.
+THE LIGHT. In the black rain, THE YOUNG ONE lights up as their lantern.
 
 REFERENCES, each with a job:
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
@@ -31,6 +31,8 @@ REFERENCES, each with a job:
 
 THE FRAME: Behind and a little above THE MOUNT on pitch-black water in the rain; THE THREE RIDERS face ahead, barely visible in the dark.
 
+STATE: Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
 PARTICLES: rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE.
 
 WHAT HAPPENS:
@@ -38,10 +40,10 @@ WHAT HAPPENS:
 [3s] THE YOUNG ONE closes both eyes; THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black.
 [5.5s] THE MOUNT glides on into the dark, away from us, carrying its small moving pool of light.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the line above, then THE YOUNG ONE's slow breath as the light blooms. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the line above, then THE YOUNG ONE's slow breath as the light blooms. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
 
 CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no wide ring of light, no light reaching more than two metres, no beam into the sky, no other light source, no lantern light, no lamps.
 

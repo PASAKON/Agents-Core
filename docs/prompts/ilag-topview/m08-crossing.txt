@@ -38,7 +38,7 @@ WHAT HAPPENS:
 [2s] THE LANTERN flickers, gutters and goes dark, and hangs there as the dead lantern.
 [3.5s] THE STRONG ONE grips the pole; THE ELDER and THE YOUNG ONE hold on.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the riders' sharp breaths as the lightning cracks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' sharp breaths as the lightning cracks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.

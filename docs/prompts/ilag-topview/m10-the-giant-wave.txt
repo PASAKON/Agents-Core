@@ -36,7 +36,7 @@ WHAT HAPPENS:
 [2s] THE STRONG ONE drives THE POLE down. A shout: "Hold on!"
 [3.5s] THE MOUNT dives; THE THREE RIDERS cling on as the wave crashes over the place they just were.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the shout above and the riders' gasps. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the shout above and the riders' gasps. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.

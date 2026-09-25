@@ -33,15 +33,17 @@ REFERENCES, each with a job:
 
 THE FRAME: Behind THE MOUNT: THE THREE RIDERS with their backs to us; THE LANTERN hangs lit from the seat and the small seed-pod lamps glow along the seat; ahead, pitch-black water under the storm.
 
+STATE: Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
 PARTICLES: rain beginning to fall as they cross, drops streaking through the last of the lamp light.
 
 WHAT HAPPENS:
-[0s] THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain starts to fall.
+[0s] THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain falls on them.
 [2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again.
 [3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone.
 [4.5s] Darkness. Only a faint grey outline of THE THREE RIDERS in the rain.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the riders' sharp, frightened breaths as the lights die, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' sharp, frightened breaths as the lights die, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.

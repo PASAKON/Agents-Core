@@ -34,14 +34,14 @@ WHAT HAPPENS:
 [2s] THE THREE RIDERS stare at it without moving.
 [3.5s] THE YOUNG ONE, a whisper: "I can see them... inside it." For a moment a faint gold glow shows deep under the dark surface of THE MOUNTAIN, then fades.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the whisper above. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the whisper above. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 
 CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no eyes on the mountain, no face on the mountain, no second mountain, no camera move.
 
-House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+House negatives: no humans, no human faces, no human hands; no beach, no shore; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
 === ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
 

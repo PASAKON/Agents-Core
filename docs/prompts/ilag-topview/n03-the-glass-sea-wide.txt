@@ -43,7 +43,7 @@ WHAT HAPPENS:
 [6s] THE YOUNG ONE stares at THE BLOOM, mouth open; a burst of bubbles pours out as the child says it. Amazed, underwater: "Wowww."
 [8.5s] THE MOUNT keeps on toward the right of frame, the deep blue opening beneath them.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: THE YOUNG ONE's muffled, bubbling underwater "Wowww", sounding truly underwater, and nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): THE YOUNG ONE's muffled, bubbling underwater "Wowww", sounding truly underwater, and nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.

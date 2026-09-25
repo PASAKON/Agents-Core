@@ -36,7 +36,7 @@ WHAT HAPPENS:
 [2s] Around them drift THE SPIRAL, THE DOME, THE RINGS and THE BLOOM, each as big as a house, rainbow light moving through their clear bodies.
 [4s] THE YOUNG ONE reaches out a hand towards THE BLOOM as it passes, eyes wide.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.

@@ -38,7 +38,7 @@ WHAT HAPPENS:
 [3s] THE YOUNG ONE turns to look back at the village.
 [4s] The village of giant trees shrinks behind them under the huge close moon.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.

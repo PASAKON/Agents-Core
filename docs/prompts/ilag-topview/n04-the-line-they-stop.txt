@@ -31,7 +31,7 @@ REFERENCES, each with a job:
 
 THE FRAME: Behind and above THE MOUNT: THE THREE RIDERS and THE MOUNT all face away from the camera, toward the razor-sharp line ahead; clear water under them, pitch-black water beyond the line, where dark storm clouds roll and churn visibly across the sky. The light and colour are the evening turning.
 
-PARTICLES: spray blowing off the line, the first drops of rain carried on the wind.
+PARTICLES: spray blowing off the line, wind-blown mist, the air heavy before the storm.
 
 WHAT HAPPENS:
 [0s] From high behind, THE MOUNT glides up to the line and stops at its edge, facing the black water.
@@ -39,7 +39,7 @@ WHAT HAPPENS:
 [4s] THE ELDER, low: "So this is it. The line of death."
 [6s] Nobody moves. A flash of violet lightning far beyond the line lights the black water.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the line above and nothing else; the riders' held breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the line above and nothing else; the riders' held breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
