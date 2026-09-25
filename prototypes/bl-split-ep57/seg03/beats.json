@@ -1,0 +1,161 @@
+[
+  {
+    "tag": "MAIN-4",
+    "t0": 66.12,
+    "t1": 68.32,
+    "mode": "KIN",
+    "extra": {
+      "broll": "broll/S17.mp4",
+      "lines": [
+        ["bl-md", "เช็กต่อว่า"],
+        ["bl-lg", "มี <span class=\"y\">ใบอนุญาต</span>"],
+        ["bl-md", "ซื้อขายฟอเร็กซ์ไหม"]
+      ]
+    }
+  },
+  {
+    "tag": "MAIN-5",
+    "t0": 69.04,
+    "t1": 70.88,
+    "mode": "COMP",
+    "extra": {
+      "img": "real/wikifx-profile-no-license.png",
+      "native_w": 1080,
+      "native_h": 1920,
+      "shift": 380,
+      "box": [145, 655, 745, 500],
+      "cap": "ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์เลย"
+    }
+  },
+  {
+    "tag": "MAIN-6",
+    "t0": 71.44,
+    "t1": 73.08,
+    "mode": "FF",
+    "extra": {
+      "cap": "เช็กเรื่องหน่วยงานกำกับดูแลต่อ"
+    }
+  },
+  {
+    "tag": "MAIN-7",
+    "t0": 73.32,
+    "t1": 76.06,
+    "mode": "COMP",
+    "extra": {
+      "img": "real/wikifx-profile-no-regulation.png",
+      "native_w": 1080,
+      "native_h": 1920,
+      "shift": 380,
+      "box": [200, 630, 770, 390],
+      "cap": "เจอคำเตือนว่ายังไม่มีการกำกับดูแลที่ถูกต้องจริงๆ"
+    }
+  },
+  {
+    "tag": "MAIN-8",
+    "t0": 76.36,
+    "t1": 79.92,
+    "mode": "COMP",
+    "extra": {
+      "img": "real/wikifx-profile-score.png",
+      "native_w": 1080,
+      "native_h": 1920,
+      "shift": 380,
+      "box": [155, 780, 500, 290],
+      "cap": "คะแนนความน่าเชื่อถือที่วิกิเอฟเอ็กซ์ให้ อยู่ที่หนึ่งจุดเก้าเก้าจากสิบ"
+    }
+  },
+  {
+    "tag": "MAIN-9",
+    "t0": 80.26,
+    "t1": 83.08,
+    "mode": "COMP",
+    "extra": {
+      "img": "real/wikifx-profile-score.png",
+      "native_w": 1080,
+      "native_h": 1920,
+      "shift": 380,
+      "box": [705, 570, 372, 60],
+      "cap": "จดทะเบียนที่สหราชอาณาจักร เปิดมาแค่สองถึงห้าปี"
+    }
+  },
+  {
+    "tag": "MAIN-10",
+    "t0": 83.4,
+    "t1": 86.58,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/wikifx-profile-warning-banner.png",
+      "native_w": 1080,
+      "native_h": 1920,
+      "box": [330, 440, 750, 45],
+      "cap": "แล้วเจอคำเตือนอีกอัน ใบอนุญาตกำลังถูกตั้งข้อสงสัย"
+    }
+  },
+  {
+    "tag": "MAIN-11",
+    "t0": 86.84,
+    "t1": 88.86,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/wikifx-profile-warning-banner.png",
+      "native_w": 1080,
+      "native_h": 1920,
+      "box": [330, 485, 560, 45],
+      "cap": "กลุ่มธุรกิจก็ถูกจัดว่าน่าสงสัยเหมือนกัน"
+    }
+  },
+  {
+    "tag": "MAIN-12",
+    "t0": 89.32,
+    "t1": 93.24,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/fca-register-search-spinner.jpg",
+      "native_w": 1374,
+      "native_h": 868,
+      "box": [0, 0, 1374, 520],
+      "cap": "กูลองเช็กหน่วยงานการเงินของอังกฤษเองด้วย แต่หน้าเว็บโหลดผลไม่ขึ้นเลย"
+    }
+  },
+  {
+    "tag": "MAIN-13",
+    "t0": 93.64,
+    "t1": 97.2,
+    "mode": "KIN",
+    "extra": {
+      "broll": "broll/S26.mp4",
+      "lines": [
+        ["bl-sm", "กูไม่ได้บอกว่าเจ้านี้โกงแน่นอน"],
+        ["bl-md", "กูแค่พา<span class=\"y\">ไปดูของจริง</span>ที่เช็กเจอ"]
+      ]
+    }
+  },
+  {
+    "tag": "CURIOSITY-1",
+    "t0": 97.64,
+    "t1": 100.16,
+    "mode": "EVID",
+    "extra": {
+      "img": "third-party/wikifx-xxlmarkets-review.jpg",
+      "native_w": 1080,
+      "native_h": 1350,
+      "box": [90, 150, 920, 250],
+      "cap": "นี่คือการ์ดที่วิกิเอฟเอ็กซ์เขาสรุปเรื่องนี้ไว้เองเลย",
+      "credit": "ขอบคุณภาพจาก WikiFX"
+    }
+  },
+  {
+    "tag": "CURIOSITY-2",
+    "t0": 100.6,
+    "t1": 104.28,
+    "mode": "EVID",
+    "extra": {
+      "img": "third-party/wikifx-xxlmarkets-review.jpg",
+      "native_w": 1080,
+      "native_h": 1350,
+      "box": [440, 665, 300, 195],
+      "cap": "คะแนนย่อยแทบทุกด้านก็แย่เหมือนกัน ทั้งกำกับดูแลและความเสี่ยง",
+      "credit": "ขอบคุณภาพจาก WikiFX"
+    }
+  }
+]
