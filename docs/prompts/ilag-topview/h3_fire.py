@@ -10,7 +10,10 @@ Rules this script enforces:
 - 360p ONLY (CEO 2026-09-25: "ให้ยิงที่ 360p เท่านั้นนะ"); the resolution is not a flag.
 - Enqueue ALL shots back to back: the studio stops the pod the moment its queue is empty, so firing one at
   a time would close the pod after the first clip (MAC CTO, measured in queueRunner.ts).
-- Never start or stop a pod, never touch /api/pod/* or /api/queue: a 409 stops the run.
+- Plain enqueue never starts or stops a pod: a 409 stops the run. Only --run-all touches /api/pod/*, and only
+  because the CEO ordered it (2026-09-25 "ยิงได้" twice with the pod off; "ยิงเสร็จอย่าลืมปิด pod"):
+  POST /api/pod/start, watch GET /api/pod/status, queue the moment it is ready (an idle ready pod may be
+  stopped by the queue runner), collect, then make sure the pod is off. COST CAP: pod costSoFar > $3 = stop it.
 - The prompt is ONLY the text between the PASTE markers of each m*.txt.
 
     python3 h3_fire.py [--only m01,m03] [--dry-run]          # enqueue
@@ -129,15 +132,80 @@ def wait(a):
         time.sleep(45)
 
 
+COST_CAP_USD = 3.0
+
+
+def pod_status():
+    code, body = curl(f"{BASE}/api/pod/status")
+    return json.loads(body) if code == 200 else {"state": f"http {code}"}
+
+
+def pod_stop(reason):
+    code, body = curl("-X", "POST", f"{BASE}/api/pod/stop")
+    print(f"{time.strftime('%H:%M:%S')} POD STOP ({reason}): {code} {body[:200]}")
+
+
+def run_all(a):
+    st = pod_status()
+    print(f"{time.strftime('%H:%M:%S')} before: {st}")
+    if a.start_pod and st.get("state") in (None, "off"):
+        code, body = curl("-X", "POST", f"{BASE}/api/pod/start")
+        print(f"{time.strftime('%H:%M:%S')} POD START: {code} {body[:300]}")
+        if code not in (200, 201, 202):
+            raise SystemExit("the studio refused to start the pod; nothing queued")
+    last, t0 = None, time.time()
+    while True:
+        st = pod_status()
+        view = (st.get("state"), st.get("stockStatus"), st.get("gpu"))
+        if view != last:
+            print(f"{time.strftime('%H:%M:%S')} pod {view} cost ${st.get('costSoFar')}")
+            last = view
+        if (st.get("costSoFar") or 0) > COST_CAP_USD:
+            pod_stop(f"cost cap ${COST_CAP_USD} passed during boot"); return
+        if st.get("state") == "ready":
+            break
+        if a.start_pod and st.get("state") in ("off", "error", "failed") and time.time() - t0 > 60:
+            raise SystemExit(f"pod did not come up: {st}")
+        if a.start_pod and time.time() - t0 > 25 * 60:
+            pod_stop("not ready after 25 min"); return
+        if not a.start_pod and time.time() - t0 > a.max_wait_min * 60:
+            raise SystemExit(f"no pod after {a.max_wait_min} min; nothing queued")
+        time.sleep(5)
+    enqueue(a)
+    while True:
+        collect(a)
+        st = pod_status()
+        left = [k for k, r in load().items() if r.get("status") not in ("filed", "error", "skipped")]
+        print(f"{time.strftime('%H:%M:%S')} pod {st.get('state')} cost ${st.get('costSoFar')} waiting on {left}")
+        if (st.get("costSoFar") or 0) > COST_CAP_USD:
+            pod_stop(f"cost cap ${COST_CAP_USD} passed"); collect(a); return
+        if not left:
+            break
+        time.sleep(30)
+    for _ in range(20):  # the queue runner should switch the pod off by itself; confirm, else stop it
+        st = pod_status()
+        if st.get("state") == "off":
+            print(f"{time.strftime('%H:%M:%S')} ALL FINISHED, pod is OFF by itself, cost ${st.get('costSoFar')}")
+            return
+        time.sleep(15)
+    pod_stop("queue done but the pod was still on after 5 min")
+    print("final:", pod_status())
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", type=lambda s: set(s.split(",")), default=None)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--collect", action="store_true")
+    ap.add_argument("--run-all", action="store_true", help="wait for a READY pod, queue all at once, collect, confirm the pod is off")
+    ap.add_argument("--start-pod", action="store_true", help="with --run-all: also POST /api/pod/start (needs the CEO's OK + a permission rule)")
+    ap.add_argument("--max-wait-min", type=int, default=240)
     ap.add_argument("--wait", action="store_true", help="collect every 45 s until every shot is filed or failed")
     ap.add_argument("--out", default="/tmp/ilag-h3-previz")
     a = ap.parse_args()
-    if a.wait:
+    if a.run_all:
+        run_all(a)
+    elif a.wait:
         wait(a)
     elif a.collect:
         collect(a)
