@@ -69,7 +69,9 @@ hosts:
     worktrees: /opt/MoonieXHQ/Agents/Core/worktrees
     provides: [always_on, api, ffmpeg, playwright_chromium, node20]
     max_workers: 3
-    max_browser_operators: 0
+    # 0 until 2026-09-25: Contabo had no Chrome. The Console's Browser Homes (headless Chrome per
+    # account, relay-login §1) give it one, so one operator at a time (cto-885ae930, Infisical P1).
+    max_browser_operators: 1
     # Phase 2 (task-a5c0549d, docs/design/multi-host-workers.md §4): wired via
     # scripts/spawn-worker-remote.sh + tools.delegate._spawn_remote's linux
     # branch. codex/agy are not installed/verified on this box -- claude only.

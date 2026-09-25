@@ -8,6 +8,8 @@ it cannot import anything else from Agents-Core.
                            (the CEO types them into a Run Inbox card or a real terminal, never
                            into chat), check that they log in, and save them to
                            /etc/infisical/<identity>.env (root, 0600).
+                           --stdin reads the two values as two lines from a pipe instead, for a
+                           script that captures them from the web page so no model sees them.
     plan                   Show what `apply` would create or change. Read-only.
     apply [--mint HOST]    Create what is missing: the projects, their environments, the Org-Infra
                            folders, the machine identities with read-only project memberships and
@@ -148,12 +150,16 @@ def require_root() -> None:
 
 # --- save -----------------------------------------------------------------------------------
 
-def cmd_save(name: str) -> None:
+def cmd_save(name: str, from_stdin: bool = False) -> None:
     if not NAME_RE.match(name):
         sys.exit(f"bad identity name: {name!r}")
     require_root()
-    client_id = input("Client ID: ").strip()
-    client_secret = getpass.getpass("Client Secret: ").strip()
+    if from_stdin:
+        client_id = sys.stdin.readline().strip()
+        client_secret = sys.stdin.readline().strip()
+    else:
+        client_id = input("Client ID: ").strip()
+        client_secret = getpass.getpass("Client Secret: ").strip()
     if not client_id or not client_secret:
         sys.exit("empty input, nothing saved")
     try:
@@ -347,6 +353,7 @@ def main(argv: list[str] | None = None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("save")
     s.add_argument("identity")
+    s.add_argument("--stdin", action="store_true", help="read id and secret as two lines from stdin")
     sub.add_parser("plan")
     a = sub.add_parser("apply")
     a.add_argument("--mint", metavar="HOST")
@@ -355,7 +362,7 @@ def main(argv: list[str] | None = None) -> None:
     args = ap.parse_args(argv)
     try:
         if args.cmd == "save":
-            cmd_save(args.identity)
+            cmd_save(args.identity, from_stdin=args.stdin)
         elif args.cmd == "plan":
             reconcile(Org(), dry=True, mint=None)
         elif args.cmd == "apply":
