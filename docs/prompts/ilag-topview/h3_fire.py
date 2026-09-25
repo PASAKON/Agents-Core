@@ -10,6 +10,7 @@ Rules this script enforces:
 - 360p ONLY (CEO 2026-09-25: "ให้ยิงที่ 360p เท่านั้นนะ"); the resolution is not a flag.
 - Enqueue ALL shots back to back: the studio stops the pod the moment its queue is empty, so firing one at
   a time would close the pod after the first clip (MAC CTO, measured in queueRunner.ts).
+- --cancel deletes only my own pending items (ledger id + ILAG- name + pending), one at a time, count-checked.
 - Plain enqueue never starts or stops a pod: a 409 stops the run. Only --run-all touches /api/pod/*, and only
   because the CEO ordered it (2026-09-25 "ยิงได้" twice with the pod off; "ยิงเสร็จอย่าลืมปิด pod"):
   POST /api/pod/start, watch GET /api/pod/status, queue the moment it is ready (an idle ready pod may be
@@ -95,6 +96,34 @@ def enqueue(a):
                          "position": j.get("position"), "refs": j.get("refs"), "status": "queued"}
         save(led)
         print(f"queued {s['key']} job {j['job_id']} position {j.get('position')} refs {j.get('refs')}")
+
+
+def cancel(a):
+    """Delete MY OWN pending queue items, one at a time (CEO 2026-09-25: "จัดการ Queue ได้เลย เพราะงานเป็นของคุณทั้งหมด
+    ... อย่าลบของคนอื่น"). An item is deleted only if its id is in this ledger, its name starts with ILAG-, and it is
+    still pending; after each DELETE the queue must shrink by exactly that one id, otherwise stop."""
+    led = load()
+    mine = {r["job_id"]: k for k, r in led.items() if r.get("job_id")}
+    wanted = {r["job_id"] for k, r in led.items() if r.get("job_id") and k.split("_t")[0] in (a.only or set())}
+
+    def items():
+        return json.loads(curl(f"{BASE}/api/queue")[1])["items"]
+
+    for jid in sorted(wanted):
+        before = items()
+        it = next((i for i in before if i["id"] == jid), None)
+        if it is None:
+            continue
+        if jid not in mine or not it["name"].startswith("ILAG-") or it["status"] != "pending":
+            raise SystemExit(f"STOP: {jid} is not a pending item of mine ({it['name']}, {it['status']})")
+        if a.dry_run:
+            print(f"would delete {jid} {it['name']}")
+            continue
+        curl("-o", "/dev/null", "-X", "DELETE", f"{BASE}/api/queue?id={jid}")
+        gone = {i["id"] for i in before} - {i["id"] for i in items()}
+        if gone != {jid}:
+            raise SystemExit(f"STOP: deleting {jid} removed {gone}")
+        print(f"deleted {jid} {it['name']}")
 
 
 def collect(a):
@@ -207,6 +236,7 @@ def main():
     ap.add_argument("--series", default="m", help="m = P1 main scenes, o = the new opening (O1-O4)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--retake", action="store_true", help="queue the selected shots again as a new take")
+    ap.add_argument("--cancel", action="store_true", help="delete my own PENDING items for --only keys (verified one by one)")
     ap.add_argument("--collect", action="store_true")
     ap.add_argument("--run-all", action="store_true", help="wait for a READY pod, queue all at once, collect, confirm the pod is off")
     ap.add_argument("--start-pod", action="store_true", help="with --run-all: also POST /api/pod/start (needs the CEO's OK + a permission rule)")
@@ -214,7 +244,9 @@ def main():
     ap.add_argument("--wait", action="store_true", help="collect every 45 s until every shot is filed or failed")
     ap.add_argument("--out", default="/tmp/ilag-h3-previz")
     a = ap.parse_args()
-    if a.run_all:
+    if a.cancel:
+        cancel(a)
+    elif a.run_all:
         run_all(a)
     elif a.wait:
         wait(a)
