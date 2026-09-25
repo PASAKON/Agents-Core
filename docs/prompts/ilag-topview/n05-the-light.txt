@@ -1,0 +1,62 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+N5 · THE LIGHT · 8s · DARK · CEO review 2026-09-25: the child's gift is light
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (5):
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
+  @BlackSea -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-BlackSea.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A high top-down shot that slowly rises; no cut, no zoom.
+
+THE LIGHT. This is why they brought THE YOUNG ONE: the only light that can do it is the child.
+
+REFERENCES, each with a job:
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
+@BlackSea: THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
+
+THE FRAME: Top-down from above THE MOUNT on pitch-black water, THE THREE RIDERS on the seat.
+
+PARTICLES: rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE, faint specks drifting in the lit water.
+
+WHAT HAPPENS:
+[0s] On the black water past the line, THE YOUNG ONE stands up on the seat and closes both eyes.
+[2s] A warm golden light pours out of the whole body of THE YOUNG ONE, gill frills blazing gold.
+[3.5s] Around THE MOUNT the black water turns glass-clear, but only in a narrow circle just wider than its wings, a small ring of clear water lit from within; beyond the ring the sea stays black.
+[6s] THE MOUNT glides on inside its circle of light, the ring moving with it.
+
+AUDIO: rain, a low warm hum as the light blooms. No dialogue. No music.
+
+Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no dialogue, no light beam into the sky, no clear water outside the ring, no fire, no lightning on the child.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. The light comes from THE YOUNG ONE.
+2. Clear water only in a NARROW ring around the mount.
+3. Black beyond the ring.
+File the take whatever the verdict, as N5-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE MOUNT inside the moving ring of clear water.
+
+=== END NOTES ===

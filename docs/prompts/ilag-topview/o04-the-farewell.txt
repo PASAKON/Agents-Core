@@ -41,7 +41,7 @@ WHAT HAPPENS:
 [0s] THE MOUNT waits at the dock with THE THREE RIDERS on its seat, a glowing shell lantern hanging from it; villagers crowd the edge of the dock.
 [2s] THE STRONG ONE pushes off with THE POLE and THE MOUNT glides out over the glass-clear water.
 [4s] The villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal staff.
-[6s] THE YOUNG ONE turns on the seat and waves back as they pull away toward the open sea.
+[6s] THE YOUNG ONE turns on the seat and waves back as THE MOUNT pulls away over the clearest water, the glowing shell lantern swinging from the seat, heading for the open sea.
 
 AUDIO: the swish of the wings, water, the villagers calling out without words, wind. No dialogue. No music.
 

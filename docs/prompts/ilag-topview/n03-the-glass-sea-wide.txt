@@ -1,0 +1,68 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+N3 · THE GLASS SEA, WIDE · 10s · TURNING · CEO review 2026-09-25: replaces M5 (wide, long, left to right)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (8):
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
+  @GlassSpiral -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassSpiral.png
+  @GlassCathedral -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassCathedral.png
+  @GlassHalo -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassHalo.png
+  @GlassBloom -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassBloom.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+10s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens, a slow lateral track from left to right keeping pace with THE MOUNT; no cut, no zoom.
+
+THE GLASS SEA, LATE IN THE DAY. A vast underwater space: THE THREE RIDERS cross it, tiny, among giant glass creatures, as the day above begins to turn toward evening.
+
+REFERENCES, each with a job:
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
+@GlassSpiral: THE SPIRAL: a giant turning corkscrew of glass-clear membrane with rainbow light running along it.
+@GlassCathedral: THE DOME: a giant drifting dome of layered transparent veils with a rainbow core.
+@GlassHalo: THE RINGS: giant floating rings of clear membrane, one inside another, trailing threads of light.
+@GlassBloom: THE BLOOM: a vast floating flower of transparent petals, seeds of light drifting from it.
+
+THE FRAME: Extreme wide: THE MOUNT small in the middle band moving from the left of frame to the right; below them the sea falls away into deep blue then indigo, showing how deep it is; the glass creatures drift at different depths and distances.
+
+PARTICLES: countless drifting plankton specks catching the light, small bubbles, long shafts of dimming violet-grey light slanting down from the surface.
+
+WHAT HAPPENS:
+[0s] Wide and deep: THE MOUNT glides in from the left carrying THE THREE RIDERS, small in the vastness.
+[3s] Around them and far below, THE SPIRAL, THE DOME, THE RINGS and THE BLOOM drift, each bigger than a house, rainbow light moving through their clear bodies.
+[6s] THE YOUNG ONE reaches a hand toward THE BLOOM as they pass it.
+[8s] THE MOUNT keeps on toward the right of frame, the deep blue opening beneath them.
+
+AUDIO: the deep hum of open water, a soft chime from the creatures. No dialogue. No music.
+
+Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no jellyfish, no squid, no octopus, no fish, no dialogue, no movement right to left, no bright noon light underwater.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Wide lens, extreme wide; the depth reads.
+2. Movement strictly left to right.
+3. All four glass creatures; THE THREE RIDERS all on the seat.
+File the take whatever the verdict, as N3-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE MOUNT heading right, toward the open sea.
+
+=== END NOTES ===
