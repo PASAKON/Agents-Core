@@ -44,7 +44,7 @@ just at start/finish:
    the new ones and act on them immediately — don't wait for a natural
    stopping point in your current work. If a new line's message is exactly
    `STOP`: write `BLOCKER.md` with body `stopped by CTO`, `git push`, then
-   run `%ORG_WORKER_FINISH%` and end your session — do not keep working.
+   run the finish command (step 4) and end your session — do not keep working.
 
 **HEARTBEAT and MAILBOX.md are git-excluded** (spawn-worker.ps1 adds them to
 this clone's `info/exclude` when your worktree is created) — `git add -A`
@@ -89,8 +89,11 @@ Claude Code session transcript directly (`tools/remote_worker_log.py`) for
 
 2. `git add -A && git commit` any final changes.
 3. `git push -u origin <your branch>`.
-4. Run `%ORG_WORKER_FINISH%`. This ends your own session and closes your
-   window — nothing else on the box does that for you.
+4. Run the finish command. On Windows (winbox) that is `%ORG_WORKER_FINISH%`;
+   on Linux (Contabo) it is `eval "$ORG_WORKER_FINISH"` in your Bash tool. This
+   ends your own session and closes your window — nothing else on the box does
+   that for you. (Typing the Windows form on Linux does nothing: the session
+   stays open and the CTO's watcher cannot tell you finished.)
 
 The hub's branch poller (`runners/branch_poller.py`) sees the pushed
 branch, reads `REPORT.md` back via `git show`, and flips the task to
@@ -104,7 +107,7 @@ GH #151) — after that, the same idea: what's blocking you, what you tried,
 what you need. Push it on your branch. The poller opens a GitHub issue from
 the first line AFTER the header and marks the task blocked. Do not wait
 idle for a reply in this session — a remote worker has no way to receive
-one; push the blocker, run `%ORG_WORKER_FINISH%`, and stop.
+one; push the blocker, run the finish command (step 4), and stop.
 
 ## Hard limits
 

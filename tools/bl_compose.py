@@ -480,12 +480,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--beats", required=True)
     ap.add_argument("--generator-dir", required=True)
     ap.add_argument("--t-max", type=float, required=True, help="absolute episode end time this call composes to")
-    ap.add_argument("--t0", type=float, default=0.0,
+    ap.add_argument("--t0", type=float, default=None,
                      help="range render (PLAN.md segment contract): absolute episode start time "
                           "of this call's own window -- composes/renders ONLY [t0, t-max), video-only, "
-                          "frame-exact, no audio mux even if --audio is given")
+                          "frame-exact, no audio mux even if --audio is given. Passing --t0 0 is a "
+                          "range render too (the first segment); omit --t0 for a full render")
     ap.add_argument("--audio", default=None, help="narration mp3 to mux onto the render (-c:v copy); "
-                                                    "ignored when --t0 > 0 (range render is video-only)")
+                                                    "ignored when --t0 is given (a range render is video-only)")
     ap.add_argument("--out-dir", required=True, help="scratch dir to build the composition + render into")
     ap.add_argument("--out", default=None, help="final muxed mp4 path (default: <out-dir>/final.mp4)")
     ap.add_argument("--no-render", action="store_true",
@@ -499,17 +500,22 @@ def main(argv: list[str] | None = None) -> int:
     generator_dir = Path(args.generator_dir)
     out_dir = Path(args.out_dir)
 
-    index_path = compose(beats, generator_dir, args.t_max, out_dir, t0=args.t0)
+    # --t0 given at all (even 0.0) = range render. The first version keyed on
+    # `t0 > 0`, so seg01 (t0 = 0) never got the video-only frame-exact path
+    # and its editor trimmed by hand (task-5d9ecc9e, 2026-09-25).
+    range_render = args.t0 is not None
+    t0 = args.t0 if range_render else 0.0
+    index_path = compose(beats, generator_dir, args.t_max, out_dir, t0=t0)
     print(f"wrote {index_path}")
     if args.no_render:
         return 0
 
     rendered = render(out_dir)
     final_path = Path(args.out) if args.out else out_dir / "final.mp4"
-    if args.t0 > 0.0:
+    if range_render:
         if args.audio:
-            print("note: --audio ignored -- range render (--t0 > 0) is always video-only", file=sys.stderr)
-        trim_range(rendered, args.t_max - args.t0, final_path)
+            print("note: --audio ignored -- a range render (--t0 given) is always video-only", file=sys.stderr)
+        trim_range(rendered, args.t_max - t0, final_path)
     elif args.audio:
         mux_audio(rendered, Path(args.audio), args.t_max, final_path)
     else:

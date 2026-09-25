@@ -1099,3 +1099,37 @@ def test_trim_range_uses_consistent_encoder_settings_every_call(tmp_path):
     bc.trim_range(src_b, dur=6.0, out_path=out_b)
 
     assert mg.verify_same_codec([out_a, out_b]) == []
+
+
+# ─────────────── CTO 2026-09-26 -- `--t0 0` is a range render (seg01) ────
+
+def _stub_main_io(monkeypatch, tmp_path, calls):
+    from tools import bl_compose as bc
+    monkeypatch.setattr(bc, "compose", lambda beats, gen, t_max, out, t0=0.0: calls.append(("compose", t0)) or out / "index.html")
+    monkeypatch.setattr(bc, "render", lambda out: tmp_path / "rendered.mp4")
+    monkeypatch.setattr(bc, "trim_range", lambda src, dur, dst: calls.append(("trim", round(dur, 3))))
+    monkeypatch.setattr(bc, "mux_audio", lambda src, audio, t_max, dst: calls.append(("mux", t_max)))
+    beats = tmp_path / "beats.json"
+    beats.write_text("[]", encoding="utf-8")
+    return bc, beats
+
+
+def test_main_t0_zero_is_a_video_only_range_render(monkeypatch, tmp_path):
+    # task-5d9ecc9e: seg01 starts at t=0; `--t0 0` fell through to the
+    # full-render path and the editor had to trim by hand.
+    calls = []
+    bc, beats = _stub_main_io(monkeypatch, tmp_path, calls)
+    rc = bc.main(["--beats", str(beats), "--generator-dir", str(tmp_path), "--t0", "0",
+                  "--t-max", "39.3", "--audio", "a.mp3", "--out-dir", str(tmp_path)])
+    assert rc == 0
+    assert ("compose", 0.0) in calls and ("trim", 39.3) in calls
+    assert not any(c[0] == "mux" for c in calls)
+
+
+def test_main_without_t0_is_a_full_render_with_audio(monkeypatch, tmp_path):
+    calls = []
+    bc, beats = _stub_main_io(monkeypatch, tmp_path, calls)
+    rc = bc.main(["--beats", str(beats), "--generator-dir", str(tmp_path),
+                  "--t-max", "153.0333", "--audio", "a.mp3", "--out-dir", str(tmp_path)])
+    assert rc == 0
+    assert ("mux", 153.0333) in calls and not any(c[0] == "trim" for c in calls)

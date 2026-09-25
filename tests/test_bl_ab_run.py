@@ -205,3 +205,44 @@ def test_cmd_fixture_full_end_to_end_stages_voice_mp3(tmp_path, capsys):
     rc = run.cmd_fixture_full(_NS())
     assert rc == 0
     assert (dest_dir / "media" / "voice.mp3").is_file()
+
+
+# ─────────────── CTO 2026-09-26 -- fixture-full never deletes staged files ────
+
+@pytest.mark.skipif(not _generator_branch_available(),
+                     reason=f"{run.GENERATOR_BRANCH} not fetched in this clone")
+def test_build_full_generator_refuses_to_drop_files_it_does_not_recreate(tmp_path):
+    # task-9a4f1029 incident: a rebuild rmtree'd 37 scene clips staged
+    # straight into generator/media/broll. The rebuild must refuse instead.
+    episode_dir = _episode_work_dir(tmp_path)
+    dest = tmp_path / "generator"
+    run.build_full_generator(episode_dir, dest)
+    staged = dest / "media" / "broll" / "S01.mp4"
+    staged.parent.mkdir(parents=True, exist_ok=True)
+    staged.write_bytes(b"scene-clip")
+
+    with pytest.raises(SystemExit) as exc:
+        run.build_full_generator(episode_dir, dest)
+    assert "media/broll/S01.mp4" in str(exc.value)
+    assert staged.read_bytes() == b"scene-clip"          # untouched
+    assert not (tmp_path / "generator.staging").exists()  # no leftovers
+
+    run.build_full_generator(episode_dir, dest, force=True)
+    assert not staged.exists()
+
+
+@pytest.mark.skipif(not _generator_branch_available(),
+                     reason=f"{run.GENERATOR_BRANCH} not fetched in this clone")
+def test_build_full_generator_keeps_files_that_live_in_the_source(tmp_path):
+    episode_dir = _episode_work_dir(tmp_path)
+    (episode_dir / "media" / "broll").mkdir()
+    (episode_dir / "media" / "broll" / "S01.mp4").write_bytes(b"scene-clip")
+    (episode_dir / "jev").mkdir()
+    (episode_dir / "jev" / "decisions.base.jsonl").write_text("{}\n", encoding="utf-8")
+    dest = tmp_path / "generator"
+
+    run.build_full_generator(episode_dir, dest)
+    run.build_full_generator(episode_dir, dest)   # a second rebuild is safe
+
+    assert (dest / "media" / "broll" / "S01.mp4").read_bytes() == b"scene-clip"
+    assert (dest / "jev" / "decisions.base.jsonl").is_file()

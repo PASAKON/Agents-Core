@@ -193,10 +193,37 @@ def cmd_fixture(args: argparse.Namespace) -> int:
 # a segment editor gets the same coordinate-math functions, never the human
 # editor's own answer for this episode.
 
-def build_full_generator(episode_work_dir: Path, dest: Path) -> Path:
+def build_full_generator(episode_work_dir: Path, dest: Path, force: bool = False) -> Path:
+    """Build the generator into a staging dir, then swap it in.
+
+    task-9a4f1029 incident: the old version rmtree'd `dest` first and rebuilt
+    from `episode_work_dir`, silently deleting 37 scene clips the CTO had
+    staged straight into dest/media/broll. Now nothing in `dest` is deleted
+    unless the rebuild recreates it; otherwise it refuses and names the files
+    (put them under `episode_work_dir`, the source, or pass force=True).
+    """
     import shutil
+    stage = dest.parent / (dest.name + ".staging")
+    if stage.exists():
+        shutil.rmtree(stage)
+    _build_generator_into(episode_work_dir, stage)
     if dest.exists():
+        old = {p.relative_to(dest) for p in dest.rglob("*") if p.is_file()}
+        new = {p.relative_to(stage) for p in stage.rglob("*") if p.is_file()}
+        lost = sorted(str(p) for p in old - new)
+        if lost and not force:
+            shutil.rmtree(stage)
+            raise SystemExit(
+                f"fixture-full refused: rebuilding {dest} would delete {len(lost)} file(s) "
+                f"the rebuild does not recreate, e.g. {lost[:8]}. Move them under "
+                f"{episode_work_dir} (the source) or re-run with --force.")
         shutil.rmtree(dest)
+    stage.rename(dest)
+    return dest
+
+
+def _build_generator_into(episode_work_dir: Path, dest: Path) -> Path:
+    import shutil
     (dest / "media").mkdir(parents=True)
 
     for name in ("build_cut.py", "assemble.py"):
@@ -231,13 +258,17 @@ def build_full_generator(episode_work_dir: Path, dest: Path) -> Path:
     shutil.copy2(episode_work_dir / "audio-hq.mp3", dest / "media" / "voice.mp3")
     shutil.copy2(episode_work_dir / "SCRIPT.tsv", dest / "SCRIPT.tsv")
     shutil.copy2(episode_work_dir / "timings.tsv", dest / "timings.tsv")
+    # Jev's frozen answers (decisions.base.jsonl / .frozen.json) live in the
+    # source's jev/ -- stage them too, so a rebuild never drops them.
+    if (episode_work_dir / "jev").is_dir():
+        shutil.copytree(episode_work_dir / "jev", dest / "jev")
     return dest
 
 
 def cmd_fixture_full(args: argparse.Namespace) -> int:
     episode_work_dir = Path(args.episode_work_dir).expanduser()
     dest = Path(args.dest).expanduser()
-    build_full_generator(episode_work_dir, dest)
+    build_full_generator(episode_work_dir, dest, force=getattr(args, "force", False))
 
     expected_mattes = {"lip_a-matte.webm", "lip_b-matte.webm", "lip_c-matte.webm"}
     matte_dir = dest / "media" / "matte"
@@ -482,6 +513,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
                     help="dir holding audio-hq.mp3/SCRIPT.tsv/timings.tsv/media/ (default: the real box path)")
     p.add_argument("--dest", default=str(FULL_EPISODE_WORK_DIR / FULL_FIXTURE_DIR_NAME),
                     help="where to stage the generator (default: <episode-work-dir>/generator)")
+    p.add_argument("--force", action="store_true",
+                    help="allow the rebuild to delete files in --dest that it does not recreate")
     p.set_defaults(func=cmd_fixture_full)
 
     p = sub.add_parser("spawn-full", help="print (never spawn) Arm 1's whole-episode brief (BRIEF-arm1.md)")
