@@ -1,49 +1,49 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-M6 · THE STORM PILLARS · 6s · TURNING · P1 take 2 (CEO round 2, 1:05: moving away from camera toward what lies ahead; Turning)
+N6 · THE SCHOOL · 6s · DARK · round 2: new ending 1/4 (a huge school of fish)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
 References (6):
-  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
-  @Pillars -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_storm_pillars_A_v3.png
+  @BlackSea -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-BlackSea.png
   @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
 
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. From behind THE MOUNT, following it as it moves away from the camera into the pillars ahead; the camera never gets in front of it; no cut, no zoom.
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A side-on shot moving with THE MOUNT; no cut, no zoom.
 
-BETWEEN THE STORM PILLARS. THE MOUNT heads away from us, into silent columns of cloud taller than anything they know.
+FISH. In the black sea, inside the child's small light, a huge school of fish sweeps past them.
 
 REFERENCES, each with a job:
-@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
-@Pillars: THE PILLARS, the only location reference: thin, perfectly straight columns of slowly swirling cloud standing on a violet-grey sea and rising beyond the top of the sky, a small whirlpool at each base, the dim moon. Take the place and its light.
+@BlackSea: THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it.
 @Turning: THE TURNING LIGHT, a colour and light reference only: a violet-grey bruised evening sky, deep indigo water, cool silver light. Take only its colour and light, nothing of its composition.
 
-THE FRAME: Behind THE MOUNT: we see its back, its tail and the backs of THE THREE RIDERS; ahead of them the thin straight pillars stand on the sea and rise beyond the top of the frame. Evening turning light.
+THE FRAME: Side on to THE MOUNT gliding in the dark, THE YOUNG ONE glowing on the seat.
 
-PARTICLES: spray from the wings, whirlpool mist at the pillar bases, a few drifting specks.
+PARTICLES: rain on the surface above, bubbles, the glint of fish scales in the light.
 
 WHAT HAPPENS:
-[0s] From behind, THE MOUNT glides away from the camera toward the pillars ahead; small whirlpools turn at their bases.
-[2.5s] THE THREE RIDERS, still facing away from us, tip their heads back to look up at the pillars.
-[4s] THE MOUNT passes between the first two pillars, heading deeper in, away from us.
+[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black.
+[2s] Out of the dark a huge school of fish streams past through the light, hundreds of them, dark glossy silver-black fish, flashing.
+[4s] THE STRONG ONE grins and raises a hand; THE MOUNT slows to a stop.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: THE STRONG ONE's delighted laugh of surprise, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
+Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no one facing the camera, no mount turning toward the camera, no faces to camera, no tornado, no funnel, no cone shape, no debris, no dialogue, no bright midday light.
+CRITICAL NEGATIVES: no dialogue, no colourful fish, no big fish, no creature, no light wider than two metres.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -52,13 +52,12 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Moving away from camera, never facing it.
-2. Evening turning light.
-3. Pillars thin and straight.
-File the take whatever the verdict, as M6-H3-take<N>.mp4 in the
+1. Dark glossy silver-black fish, many.
+2. The glow stays 1-2 m.
+File the take whatever the verdict, as N6-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- Deeper among the pillars, heading on.
+- THE MOUNT stopped among the fish.
 
 === END NOTES ===
