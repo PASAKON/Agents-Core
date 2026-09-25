@@ -96,3 +96,6 @@ Everything the CEO creates (the "private" owner) is readable ONLY in a browser o
   - Add both to the Mac machine-contract backup as IRREPLACEABLE-encrypted, and to the Drive `BACKUP/` flow. They are safe to upload because they are ciphertext.
   - Ship `scripts/lock_restore_drill.py`: on a copy, re-derive with the recovery key, unwrap, decrypt one ceo field and one file, compare sha256. The CEO runs it once after setup.
 - **Passkeys and iCloud Keychain:** a Touch ID passkey stored in iCloud Keychain survives a Mac reinstall. A Keychain-helper secret does NOT (it is device-bound), so option (b) relies on the password or the recovery key for restore. Say so on the setup screen.
+
+## HOLD (CEO 2026-09-26)
+"ค่อยทำหลังจาก ระบบ {} เสร็จ เพราะฉันจะเข้าไปทดสอบ Generate จริงและ playground จริงก่อน". Start this task only after (1) task-baee4ed0 is merged AND (2) the CEO has tested the real generate + playground and says go.
