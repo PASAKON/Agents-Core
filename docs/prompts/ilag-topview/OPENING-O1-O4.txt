@@ -3,15 +3,16 @@
 ################################################################
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O1 · THE RUNNER · 15s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+O1 · THE RUNNER · 15s · DAY · new opening take 2 (CEO notes 2026-09-25: camera approved; runner blue; chief busy; real emotion)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (4):
-  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner.png
-  @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
+References (5):
+  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner-blue.png
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
   @Villagers -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Villagers.png
 
 === END NOTES ===
@@ -20,28 +21,32 @@ References (4):
 
 15s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A long lateral tracking shot that runs alongside THE RUNNER the whole way; no cut, no zoom, no slow motion.
 
-MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF.
+MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF, who is out working with THE STRONG ONE.
 
 REFERENCES, each with a job:
-@Runner: THE RUNNER, a young fisherman of the same people: soft orange skin with glowing gold freckles, yellow-orange gill frills, a small knotted kelp fishing net over one shoulder. Face, body and colours only; take nothing of the white background.
-@Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
+@Runner: THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
 @Villagers: THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up.
 
-THE FRAME: Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, rope bridges, glowing grass, glass-clear water below.
+THE FRAME: Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, rope bridges, glowing grass, glass-clear water below; villagers only far off and soft.
+
+PARTICLES: water flicking up from his feet, sea spray glinting, a few glowing specks drifting in the air.
 
 WHAT HAPPENS:
-[0s] THE RUNNER bursts onto a wooden walkway running flat out, the empty net flapping on his shoulder, his gill frills flared pale with fear.
-[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope bridge; villagers step aside and turn to watch THE RUNNER pass.
-[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF stands under the huge moon.
-[10s] THE RUNNER stops, chest heaving. Out of breath: "Chief! There are no fish. None left."
-[12.5s] Then, desperate: "We're starving. Please, do something."
+[0s] THE RUNNER bursts onto a wooden walkway running flat out, face twisted with fear, mouth open, panting hard, gill frills flared pale.
+[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope bridge; far-off villagers turn to watch.
+[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF and THE STRONG ONE are busy together, hauling a woven fish trap up out of the water: it comes up empty.
+[10s] THE RUNNER stumbles to a stop, chest heaving. Out of breath: "Chief! There are no fish. None left."
+[12.5s] Then, desperate: "We're starving. Please, do something." THE CHIEF and THE STRONG ONE let the empty trap drop and turn to him.
 
-AUDIO: webbed feet slapping on wood, a creaking rope bridge, water below, his panting, the two lines above and nothing else. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: THE RUNNER's loud, ragged panting, clearly heard the whole time he runs, then the two lines above, gasped out between breaths; the strain of the two men hauling. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no cut, no slow motion, no second runner, no one falling into the water, no weapon.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no cut, no slow motion, no second runner, no one falling into the water, no weapon, no orange skin on the runner, no calm faces.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -50,14 +55,15 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. One long take, no cut; the running body reads clearly and fast.
-2. THE RUNNER is orange with yellow-orange gills and the net; THE CHIEF is the only one with gems and a cloak.
-3. Two lines, in order; transcribe.
+1. Camera as take 1 (approved).
+2. THE RUNNER is turquoise-blue with navy gills, not orange.
+3. THE CHIEF and THE STRONG ONE are working, not standing still.
+4. Panting clearly audible; two lines.
 File the take whatever the verdict, as O1-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE RUNNER in front of THE CHIEF on the platform.
+- THE RUNNER, THE CHIEF and THE STRONG ONE on the platform by the empty trap.
 
 === END NOTES ===
 
@@ -66,41 +72,46 @@ END POSITIONS, inherited by the next scene:
 ################################################################
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O2 · THE CHIEF DECIDES · 6s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+O2 · THE CHIEF DECIDES · 6s · DAY · new opening take 2 (CEO: the time has truly come, fear and despair on his face)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (3):
+References (4):
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
-  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner-blue.png
   @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
 
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a medium close-up of THE CHIEF; no cut.
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.
 
-THE CHIEF HEARS IT, and makes the decision the village has avoided for a hundred years.
+THE CHIEF understands what the empty sea means. He is afraid, and he decides anyway.
 
 REFERENCES, each with a job:
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
-@Runner: THE RUNNER, a young fisherman of the same people: soft orange skin with glowing gold freckles, yellow-orange gill frills, a small knotted kelp fishing net over one shoulder. Face, body and colours only; take nothing of the white background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Runner: THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
 
-THE FRAME: Medium on THE CHIEF, the empty sea and the moon behind him, THE RUNNER soft in the foreground.
+THE FRAME: Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the edges of frame.
+
+PARTICLES: sea spray drifting, a few glowing specks in the air.
 
 WHAT HAPPENS:
-[0s] THE CHIEF looks past THE RUNNER, out over the empty sea; the raw gems in his crown catch the light.
-[2s] Gravely: "So... it is time."
-[4s] Then, quietly: "We need the child with the gift."
+[0s] THE CHIEF stares at the empty trap, then out at the empty sea; fear rises in his face, his jaw trembles, his gill frills fade pale.
+[2s] Heavy with dread: "So... it is time."
+[4s] Barely a whisper, eyes wet: "We need the child with the gift." THE STRONG ONE turns to look at him.
 
-AUDIO: wind, the sea, the two lines above and nothing else. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the two lines above, THE CHIEF's voice shaking with fear and despair, and his unsteady breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no second chief, no crowd close, no raised voice.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no calm face, no smile, no second chief, no crowd close.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -109,13 +120,13 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. The crown of raw gemstones and the shell cloak read clearly.
+1. Fear and despair clearly on THE CHIEF's face.
 2. Two lines, in order; transcribe.
 File the take whatever the verdict, as O2-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE CHIEF turns to go.
+- THE CHIEF turns to go to the child's hut; THE STRONG ONE follows.
 
 === END NOTES ===
 
@@ -124,41 +135,48 @@ END POSITIONS, inherited by the next scene:
 ################################################################
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O3 · THE HUT · 8s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+O3 · THE HUT · 10s · DAY · new opening take 2 (CEO: add the chosen-one line; the man waits outside; the chief turns to him)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (3):
-  @Hut -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_hut_PICK.png
+References (4):
+  @Hut -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_hut_A.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
 
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-8s · 360p · 16:9 · ONE LOCKED SHOT, NO CUTS. The camera sits inside the hut at the child's height and never moves.
+10s · 360p · 16:9 · ONE LOCKED SHOT, NO CUTS. The camera sits inside the hut at the child's height and never moves.
 
-INSIDE THE CHILD'S HUT. THE CHIEF comes for THE YOUNG ONE.
+INSIDE THE CHILD'S HUT. THE CHIEF comes in for THE YOUNG ONE; THE STRONG ONE waits outside the door.
 
 REFERENCES, each with a job:
-@Hut: THE HUT, the only interior reference: the inside of the child's small hut, built like the inside of a camping tent, lamps of glowing seed pods, woven walls. Take the room and its light from it.
+@Hut: THE HUT, the only interior reference: the inside of the child's small hut, built like the inside of a camping tent, a low sloping roof of woven leaves on a ridge pole, a hammock of knotted kelp net, a rolled sleeping mat, glowing golden seed-pod lamps hanging from the ridge, shells and small toys on the woven floor, a round doorway flap. Take the room and its light from it.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 
-THE FRAME: Inside the hut looking toward the door flap; THE YOUNG ONE on the floor in the foreground, the doorway in the back of the frame.
+THE FRAME: Inside the hut looking toward the doorway; THE YOUNG ONE seated on the floor in the foreground, the doorway in the back of the frame. Only two are inside: THE YOUNG ONE and THE CHIEF.
+
+PARTICLES: dust motes floating in the lamp light and in the beam of daylight from the doorway.
 
 WHAT HAPPENS:
-[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells, the door flap closed.
-[2.5s] The flap is pulled open; bright blue-white light floods in, and THE CHIEF stoops through the doorway, the crown glinting.
-[5s] THE YOUNG ONE looks up, gill frills glowing faint gold. THE CHIEF, softly: "It's time."
+[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells.
+[2s] The door flap is pulled open; daylight floods in; THE CHIEF stoops inside. Behind him THE STRONG ONE stays standing just outside the open doorway and does not come in.
+[4s] THE CHIEF kneels in front of THE YOUNG ONE. Softly: "It's time."
+[5.5s] Then, gently: "You are the chosen one."
+[7.5s] THE CHIEF turns his head toward THE STRONG ONE in the doorway. Firmly: "You will go with the child." THE STRONG ONE nods once.
 
-AUDIO: the quiet hum of the lamps, the door flap swishing open, sea outside, the line above and nothing else. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the three lines above, THE YOUNG ONE's small surprised breath, the flap swishing open. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no camera move, no second child, no fish, no crying.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no camera move, no second child, no fish, no crying, THE STRONG ONE never inside the hut, no third person inside, no land or island seen through the doorway, only sea and sky outside.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -167,14 +185,13 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. The hut matches the chosen picture.
-2. THE CHIEF enters through the door; one line; transcribe.
-3. The child's gills glow gold.
+1. Two inside (the child seated, THE CHIEF); THE STRONG ONE seen outside the doorway.
+2. Three lines, in order; the last one said toward the doorway; transcribe.
 File the take whatever the verdict, as O3-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE YOUNG ONE stands to go with THE CHIEF.
+- THE YOUNG ONE stands to go; THE STRONG ONE waits at the door.
 
 === END NOTES ===
 
@@ -183,7 +200,7 @@ END POSITIONS, inherited by the next scene:
 ################################################################
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O4 · THE FAREWELL · 8s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+O4 · THE FAREWELL · 8s · DAY · new opening take 2 (CEO: wide angle, wide lens)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -203,9 +220,9 @@ References (9):
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. From behind the villagers on the dock, a slow crane up as THE MOUNT pulls away; no cut, no zoom.
+8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens from the far end of the dock, a slow crane up as THE MOUNT pulls away; no cut, no zoom.
 
-THE FAREWELL AT THE MANTA DOCK. The whole village sees THE THREE RIDERS off.
+THE FAREWELL AT THE MANTA DOCK, WIDE. The whole village sees THE THREE RIDERS off.
 
 REFERENCES, each with a job:
 @Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
@@ -218,19 +235,22 @@ REFERENCES, each with a job:
 @Villagers: THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up.
 @Villagers2: MORE VILLAGERS, six others of the same people: a stooped old man with slate-grey skin, a plump woman in peach-coral, a tall thin young man in turquoise, a small girl in lilac, a stocky man in olive-brown, a young mother in mint-green with a baby. Their look only; never lined up in a row.
 
-THE FRAME: Behind the crowd on the dock, THE MOUNT in the water beyond them; the seat order is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back.
+THE FRAME: Extreme wide: the whole dock and the crowd small in the foreground, THE MOUNT in the water beyond, the village of giant trees and the open sea filling the frame; the seat order is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back.
+
+PARTICLES: sea spray glinting, glowing specks drifting in the air, the wake sparkling.
 
 WHAT HAPPENS:
 [0s] THE MOUNT waits at the dock with THE THREE RIDERS on its seat, a glowing shell lantern hanging from it; villagers crowd the edge of the dock.
 [2s] THE STRONG ONE pushes off with THE POLE and THE MOUNT glides out over the glass-clear water.
 [4s] The villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal staff.
-[6s] THE YOUNG ONE turns on the seat and waves back as they pull away toward the open sea.
+[6s] THE YOUNG ONE turns on the seat and waves back as THE MOUNT pulls away over the clearest water, heading for the open sea.
 
-AUDIO: the swish of the wings, water, the villagers calling out without words, wind. No dialogue. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the villagers' wordless calls of goodbye, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon.
+CRITICAL NEGATIVES: no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon, no close-up.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -239,14 +259,14 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Nine references bound; THE THREE RIDERS in the fixed seat order.
-2. Villagers of both groups, several colours, waving.
+1. Wide lens, extreme wide.
+2. THE THREE RIDERS in the fixed seat order.
 3. THE CHIEF raises the staff.
 File the take whatever the verdict, as O4-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- Seat order fixed: THE STRONG ONE front, THE YOUNG ONE middle, THE ELDER back; they head for open sea.
+- Seat order fixed; they head for open sea.
 
 === END NOTES ===
 

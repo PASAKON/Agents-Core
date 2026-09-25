@@ -39,7 +39,8 @@ WHAT HAPPENS:
 [3s] The camera sinks through the waterline with them: bubbles burst upward, the glowing lantern trails a ribbon of light.
 [4.5s] Underwater now, in clear blue water, they glide down and away.
 
-AUDIO: a deep breath, the plunge, then the muffled hush of underwater. No dialogue. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: THE THREE RIDERS' deep breath before the dive. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 

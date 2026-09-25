@@ -32,7 +32,8 @@ WHAT HAPPENS:
 [3s] The net comes up out of the water completely empty, streaming water. Below it the sandy seabed is bare and still.
 [4.5s] THE STRONG ONE stands holding the empty net. Two villagers behind look at it; their gill frills fade pale.
 
-AUDIO: water pouring off the net, creak of the dock, a quiet breath. No dialogue. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: THE STRONG ONE's effort breaths as he hauls the net. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
