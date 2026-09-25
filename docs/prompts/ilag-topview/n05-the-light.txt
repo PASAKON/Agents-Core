@@ -37,7 +37,8 @@ WHAT HAPPENS:
 [3.5s] Around THE MOUNT the black water turns glass-clear, but only in a narrow circle just wider than its wings, a small ring of clear water lit from within; beyond the ring the sea stays black.
 [6s] THE MOUNT glides on inside its circle of light, the ring moving with it.
 
-AUDIO: rain, a low warm hum as the light blooms. No dialogue. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: THE YOUNG ONE's slow breath as the light blooms. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 

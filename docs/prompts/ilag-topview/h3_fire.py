@@ -65,6 +65,14 @@ def shots(only, series="m"):
 
 def enqueue(a):
     led = load()
+    if a.retake:  # keep the old take's row under <key>_t<N>, then queue the key again
+        for s0 in shots(a.only, a.series):
+            k = s0["key"]
+            if k in led:
+                n = 1 + sum(1 for x in led if x.startswith(k + "_t"))
+                led[f"{k}_t{n}"] = led.pop(k)
+        if not a.dry_run:
+            save(led)
     todo = [s for s in shots(a.only, a.series) if s["key"] not in led]
     for s in todo:
         handles = re.findall(r"@\w+", s["prompt"])
@@ -97,7 +105,7 @@ def collect(a):
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     for key, row in sorted(led.items()):
-        if row.get("status") == "filed":
+        if "_t" in key or row.get("status") == "filed":
             continue
         code, resp = curl(f"{BASE}/api/shots/render?id={row['job_id']}")
         j = json.loads(resp) if code == 200 else {}
@@ -125,7 +133,7 @@ def collect(a):
 def wait(a):
     while True:
         collect(a)
-        left = [k for k, r in load().items() if r.get("status") not in ("filed", "error", "skipped")]
+        left = [k for k, r in load().items() if "_t" not in k and r.get("status") not in ("filed", "error", "skipped")]
         if not left:
             print("ALL FINISHED")
             return
@@ -176,7 +184,7 @@ def run_all(a):
     while True:
         collect(a)
         st = pod_status()
-        left = [k for k, r in load().items() if r.get("status") not in ("filed", "error", "skipped")]
+        left = [k for k, r in load().items() if "_t" not in k and r.get("status") not in ("filed", "error", "skipped")]
         print(f"{time.strftime('%H:%M:%S')} pod {st.get('state')} cost ${st.get('costSoFar')} waiting on {left}")
         if (st.get("costSoFar") or 0) > COST_CAP_USD:
             pod_stop(f"cost cap ${COST_CAP_USD} passed"); collect(a); return
@@ -198,6 +206,7 @@ def main():
     ap.add_argument("--only", type=lambda s: set(s.split(",")), default=None)
     ap.add_argument("--series", default="m", help="m = P1 main scenes, o = the new opening (O1-O4)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--retake", action="store_true", help="queue the selected shots again as a new take")
     ap.add_argument("--collect", action="store_true")
     ap.add_argument("--run-all", action="store_true", help="wait for a READY pod, queue all at once, collect, confirm the pod is off")
     ap.add_argument("--start-pod", action="store_true", help="with --run-all: also POST /api/pod/start (needs the CEO's OK + a permission rule)")

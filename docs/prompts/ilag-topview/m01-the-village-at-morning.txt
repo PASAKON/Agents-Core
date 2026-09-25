@@ -28,7 +28,8 @@ WHAT HAPPENS:
 [2s] THE VILLAGERS go about the morning: one climbs a rope ladder up a root, two cross a rope bridge, one sits at the dock with a foot in the water.
 [4s] The camera keeps its slow push towards the dock. Small ripples, calm.
 
-AUDIO: gentle lapping water, wind in the grass, far voices of the villagers without words. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 

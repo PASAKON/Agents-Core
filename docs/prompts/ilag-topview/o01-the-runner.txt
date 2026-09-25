@@ -1,14 +1,15 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O1 · THE RUNNER · 15s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+O1 · THE RUNNER · 15s · DAY · new opening take 2 (CEO notes 2026-09-25: camera approved; runner blue; chief busy; real emotion)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (4):
-  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner.png
-  @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
+References (5):
+  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner-blue.png
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
   @Villagers -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Villagers.png
 
 === END NOTES ===
@@ -17,28 +18,32 @@ References (4):
 
 15s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A long lateral tracking shot that runs alongside THE RUNNER the whole way; no cut, no zoom, no slow motion.
 
-MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF.
+MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF, who is out working with THE STRONG ONE.
 
 REFERENCES, each with a job:
-@Runner: THE RUNNER, a young fisherman of the same people: soft orange skin with glowing gold freckles, yellow-orange gill frills, a small knotted kelp fishing net over one shoulder. Face, body and colours only; take nothing of the white background.
-@Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
+@Runner: THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
 @Villagers: THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up.
 
-THE FRAME: Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, rope bridges, glowing grass, glass-clear water below.
+THE FRAME: Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, rope bridges, glowing grass, glass-clear water below; villagers only far off and soft.
+
+PARTICLES: water flicking up from his feet, sea spray glinting, a few glowing specks drifting in the air.
 
 WHAT HAPPENS:
-[0s] THE RUNNER bursts onto a wooden walkway running flat out, the empty net flapping on his shoulder, his gill frills flared pale with fear.
-[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope bridge; villagers step aside and turn to watch THE RUNNER pass.
-[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF stands under the huge moon.
-[10s] THE RUNNER stops, chest heaving. Out of breath: "Chief! There are no fish. None left."
-[12.5s] Then, desperate: "We're starving. Please, do something."
+[0s] THE RUNNER bursts onto a wooden walkway running flat out, face twisted with fear, mouth open, panting hard, gill frills flared pale.
+[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope bridge; far-off villagers turn to watch.
+[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF and THE STRONG ONE are busy together, hauling a woven fish trap up out of the water: it comes up empty.
+[10s] THE RUNNER stumbles to a stop, chest heaving. Out of breath: "Chief! There are no fish. None left."
+[12.5s] Then, desperate: "We're starving. Please, do something." THE CHIEF and THE STRONG ONE let the empty trap drop and turn to him.
 
-AUDIO: webbed feet slapping on wood, a creaking rope bridge, water below, his panting, the two lines above and nothing else. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: THE RUNNER's loud, ragged panting, clearly heard the whole time he runs, then the two lines above, gasped out between breaths; the strain of the two men hauling. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no cut, no slow motion, no second runner, no one falling into the water, no weapon.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no cut, no slow motion, no second runner, no one falling into the water, no weapon, no orange skin on the runner, no calm faces.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -47,13 +52,14 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. One long take, no cut; the running body reads clearly and fast.
-2. THE RUNNER is orange with yellow-orange gills and the net; THE CHIEF is the only one with gems and a cloak.
-3. Two lines, in order; transcribe.
+1. Camera as take 1 (approved).
+2. THE RUNNER is turquoise-blue with navy gills, not orange.
+3. THE CHIEF and THE STRONG ONE are working, not standing still.
+4. Panting clearly audible; two lines.
 File the take whatever the verdict, as O1-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE RUNNER in front of THE CHIEF on the platform.
+- THE RUNNER, THE CHIEF and THE STRONG ONE on the platform by the empty trap.
 
 === END NOTES ===

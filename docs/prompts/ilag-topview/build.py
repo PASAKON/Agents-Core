@@ -92,10 +92,10 @@ REF = {
                "of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff "
                "topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; "
                "take nothing of the grey background."),
-    "@Runner": ("Character/ref-Runner.png",
-                "THE RUNNER, a young fisherman of the same people: soft orange skin with glowing gold freckles, "
-                "yellow-orange gill frills, a small knotted kelp fishing net over one shoulder. Face, body and colours "
-                "only; take nothing of the white background."),
+    "@Runner": ("Character/ref-Runner-blue.png",
+                "THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, "
+                "dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven "
+                "kelp belt. Face, body and colours only; take nothing of the white background."),
     "@Villagers2": ("Character/villagers_2.png",
                     "MORE VILLAGERS, six others of the same people: a stooped old man with slate-grey skin, a plump "
                     "woman in peach-coral, a tall thin young man in turquoise, a small girl in lilac, a stocky man in "
@@ -320,81 +320,96 @@ SCENES = [
          crit="no dialogue, no land, no continents, no rings around the planet, no second moon, no text",
          review=["Two hemispheres, sharp line.", "Moon half the planet's size.", "One continuous pull-out."],
          end="End of the film's picture; the question card follows in the edit."),
-    # ---- the new opening, CEO 2026-09-25 (replaces M1-M4 on screen; m-files stay as the record) ----
+    # ---- the new opening, CEO 2026-09-25, take 2 after his notes (letter ...-ceo-notes-p1-round1.md) ----
     dict(prefix="o", n=1, slug="the-runner", title="THE RUNNER", s=15, grade="DAY",
-         series="new opening, CEO 2026-09-25 (replaces M1-M4)",
+         series="new opening take 2 (CEO notes 2026-09-25: camera approved; runner blue; chief busy; real emotion)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A long lateral tracking shot that runs alongside THE RUNNER the whole "
               "way; no cut, no zoom, no slow motion.",
-         refs=["@Runner", "@Village", "@Chief", "@Villagers"],
-         heading="MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF.",
+         refs=["@Runner", "@Chief", "@Strong", "@Village", "@Villagers"],
+         heading="MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF, who is out "
+                 "working with THE STRONG ONE.",
          frame="Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, "
-               "rope bridges, glowing grass, glass-clear water below.",
-         beats=["[0s] THE RUNNER bursts onto a wooden walkway running flat out, the empty net flapping on his shoulder, "
-                "his gill frills flared pale with fear.",
-                "[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope bridge; "
-                "villagers step aside and turn to watch THE RUNNER pass.",
-                "[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF stands under "
-                "the huge moon.",
-                "[10s] THE RUNNER stops, chest heaving. Out of breath: \"Chief! There are no fish. None left.\"",
-                "[12.5s] Then, desperate: \"We're starving. Please, do something.\""],
-         audio="webbed feet slapping on wood, a creaking rope bridge, water below, his panting, the two lines above and "
-               "nothing else. No music.",
-         crit=DIALOGUE_NEG + ", no cut, no slow motion, no second runner, no one falling into the water, no weapon",
-         review=["One long take, no cut; the running body reads clearly and fast.",
-                 "THE RUNNER is orange with yellow-orange gills and the net; THE CHIEF is the only one with gems and a cloak.",
-                 "Two lines, in order; transcribe."],
-         end="THE RUNNER in front of THE CHIEF on the platform."),
+               "rope bridges, glowing grass, glass-clear water below; villagers only far off and soft.",
+         particles="water flicking up from his feet, sea spray glinting, a few glowing specks drifting in the air.",
+         beats=["[0s] THE RUNNER bursts onto a wooden walkway running flat out, face twisted with fear, mouth open, "
+                "panting hard, gill frills flared pale.",
+                "[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope "
+                "bridge; far-off villagers turn to watch.",
+                "[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF and "
+                "THE STRONG ONE are busy together, hauling a woven fish trap up out of the water: it comes up empty.",
+                "[10s] THE RUNNER stumbles to a stop, chest heaving. Out of breath: \"Chief! There are no fish. None "
+                "left.\"",
+                "[12.5s] Then, desperate: \"We're starving. Please, do something.\" THE CHIEF and THE STRONG ONE let the "
+                "empty trap drop and turn to him."],
+         audio="-",
+         sound="THE RUNNER's loud, ragged panting, clearly heard the whole time he runs, then the two lines above, "
+               "gasped out between breaths; the strain of the two men hauling",
+         crit=DIALOGUE_NEG + ", no cut, no slow motion, no second runner, no one falling into the water, no weapon, no "
+              "orange skin on the runner, no calm faces",
+         review=["Camera as take 1 (approved).", "THE RUNNER is turquoise-blue with navy gills, not orange.",
+                 "THE CHIEF and THE STRONG ONE are working, not standing still.", "Panting clearly audible; two lines."],
+         end="THE RUNNER, THE CHIEF and THE STRONG ONE on the platform by the empty trap."),
     dict(prefix="o", n=2, slug="the-chief-decides", title="THE CHIEF DECIDES", s=6, grade="DAY",
-         series="new opening, CEO 2026-09-25 (replaces M1-M4)",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a medium close-up of THE CHIEF; no cut.",
-         refs=["@Chief", "@Runner", "@Village"],
-         heading="THE CHIEF HEARS IT, and makes the decision the village has avoided for a hundred years.",
-         frame="Medium on THE CHIEF, the empty sea and the moon behind him, THE RUNNER soft in the foreground.",
-         beats=["[0s] THE CHIEF looks past THE RUNNER, out over the empty sea; the raw gems in his crown catch the light.",
-                "[2s] Gravely: \"So... it is time.\"",
-                "[4s] Then, quietly: \"We need the child with the gift.\""],
-         audio="wind, the sea, the two lines above and nothing else. No music.",
-         crit=DIALOGUE_NEG + ", no second chief, no crowd close, no raised voice",
-         review=["The crown of raw gemstones and the shell cloak read clearly.", "Two lines, in order; transcribe."],
-         end="THE CHIEF turns to go."),
-    dict(prefix="o", n=3, slug="the-hut", title="THE HUT", s=8, grade="DAY",
-         series="new opening, CEO 2026-09-25 (replaces M1-M4)",
+         series="new opening take 2 (CEO: the time has truly come, fear and despair on his face)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.",
+         refs=["@Chief", "@Strong", "@Runner", "@Village"],
+         heading="THE CHIEF understands what the empty sea means. He is afraid, and he decides anyway.",
+         frame="Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the "
+               "edges of frame.",
+         particles="sea spray drifting, a few glowing specks in the air.",
+         beats=["[0s] THE CHIEF stares at the empty trap, then out at the empty sea; fear rises in his face, his jaw "
+                "trembles, his gill frills fade pale.",
+                "[2s] Heavy with dread: \"So... it is time.\"",
+                "[4s] Barely a whisper, eyes wet: \"We need the child with the gift.\" THE STRONG ONE turns to look "
+                "at him."],
+         audio="-",
+         sound="the two lines above, THE CHIEF's voice shaking with fear and despair, and his unsteady breath",
+         crit=DIALOGUE_NEG + ", no calm face, no smile, no second chief, no crowd close",
+         review=["Fear and despair clearly on THE CHIEF's face.", "Two lines, in order; transcribe."],
+         end="THE CHIEF turns to go to the child's hut; THE STRONG ONE follows."),
+    dict(prefix="o", n=3, slug="the-hut", title="THE HUT", s=10, grade="DAY",
+         series="new opening take 2 (CEO: add the chosen-one line; the man waits outside; the chief turns to him)",
          spec="ONE LOCKED SHOT, NO CUTS. The camera sits inside the hut at the child's height and never moves.",
-         refs=["@Hut", "@Young", "@Chief"],
-         heading="INSIDE THE CHILD'S HUT. THE CHIEF comes for THE YOUNG ONE.",
-         frame="Inside the hut looking toward the door flap; THE YOUNG ONE on the floor in the foreground, the doorway "
-               "in the back of the frame.",
-         beats=["[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells, the door "
-                "flap closed.",
-                "[2.5s] The flap is pulled open; bright blue-white light floods in, and THE CHIEF stoops through the "
-                "doorway, the crown glinting.",
-                "[5s] THE YOUNG ONE looks up, gill frills glowing faint gold. THE CHIEF, softly: \"It's time.\""],
-         audio="the quiet hum of the lamps, the door flap swishing open, sea outside, the line above and nothing else. "
-               "No music.",
-         crit=DIALOGUE_NEG + ", no camera move, no second child, no fish, no crying, no land or island seen "
-              "through the doorway, only sea and sky outside",
-         review=["The hut matches the chosen picture.", "THE CHIEF enters through the door; one line; transcribe.",
-                 "The child's gills glow gold."],
-         end="THE YOUNG ONE stands to go with THE CHIEF."),
+         refs=["@Hut", "@Young", "@Chief", "@Strong"],
+         heading="INSIDE THE CHILD'S HUT. THE CHIEF comes in for THE YOUNG ONE; THE STRONG ONE waits outside the door.",
+         frame="Inside the hut looking toward the doorway; THE YOUNG ONE seated on the floor in the foreground, the "
+               "doorway in the back of the frame. Only two are inside: THE YOUNG ONE and THE CHIEF.",
+         particles="dust motes floating in the lamp light and in the beam of daylight from the doorway.",
+         beats=["[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells.",
+                "[2s] The door flap is pulled open; daylight floods in; THE CHIEF stoops inside. Behind him THE STRONG "
+                "ONE stays standing just outside the open doorway and does not come in.",
+                "[4s] THE CHIEF kneels in front of THE YOUNG ONE. Softly: \"It's time.\"",
+                "[5.5s] Then, gently: \"You are the chosen one.\"",
+                "[7.5s] THE CHIEF turns his head toward THE STRONG ONE in the doorway. Firmly: \"You will go with the "
+                "child.\" THE STRONG ONE nods once."],
+         audio="-",
+         sound="the three lines above, THE YOUNG ONE's small surprised breath, the flap swishing open",
+         crit=DIALOGUE_NEG + ", no camera move, no second child, no fish, no crying, THE STRONG ONE never inside the "
+              "hut, no third person inside, no land or island seen through the doorway, only sea and sky outside",
+         review=["Two inside (the child seated, THE CHIEF); THE STRONG ONE seen outside the doorway.",
+                 "Three lines, in order; the last one said toward the doorway; transcribe."],
+         end="THE YOUNG ONE stands to go; THE STRONG ONE waits at the door."),
     dict(prefix="o", n=4, slug="the-farewell", title="THE FAREWELL", s=8, grade="DAY",
-         series="new opening, CEO 2026-09-25 (replaces M1-M4)",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. From behind the villagers on the dock, a slow crane up as THE MOUNT "
-              "pulls away; no cut, no zoom.",
+         series="new opening take 2 (CEO: wide angle, wide lens)",
+         spec="ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens from the far end of the dock, a slow "
+              "crane up as THE MOUNT pulls away; no cut, no zoom.",
          refs=["@Manta", "@Strong", "@Young", "@Elder", "@Pole", "@Dock", "@Chief", "@Villagers", "@Villagers2"],
-         heading="THE FAREWELL AT THE MANTA DOCK. The whole village sees THE THREE RIDERS off.",
-         frame="Behind the crowd on the dock, THE MOUNT in the water beyond them; the seat order is THE STRONG ONE on "
-               "the front perch, THE YOUNG ONE in the middle, THE ELDER at the back.",
-         beats=["[0s] THE MOUNT waits at the dock with THE THREE RIDERS on its seat, a glowing shell lantern hanging from "
-                "it; villagers crowd the edge of the dock.",
+         heading="THE FAREWELL AT THE MANTA DOCK, WIDE. The whole village sees THE THREE RIDERS off.",
+         frame="Extreme wide: the whole dock and the crowd small in the foreground, THE MOUNT in the water beyond, the "
+               "village of giant trees and the open sea filling the frame; the seat order is THE STRONG ONE on the "
+               "front perch, THE YOUNG ONE in the middle, THE ELDER at the back.",
+         particles="sea spray glinting, glowing specks drifting in the air, the wake sparkling.",
+         beats=["[0s] THE MOUNT waits at the dock with THE THREE RIDERS on its seat, a glowing shell lantern hanging "
+                "from it; villagers crowd the edge of the dock.",
                 "[2s] THE STRONG ONE pushes off with THE POLE and THE MOUNT glides out over the glass-clear water.",
                 "[4s] The villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal staff.",
-                "[6s] THE YOUNG ONE turns on the seat and waves back as THE MOUNT pulls away over the clearest "
-                "water, the glowing shell lantern swinging from the seat, heading for the open sea."],
-         audio="the swish of the wings, water, the villagers calling out without words, wind. No dialogue. No music.",
-         crit="no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon",
-         review=["Nine references bound; THE THREE RIDERS in the fixed seat order.",
-                 "Villagers of both groups, several colours, waving.", "THE CHIEF raises the staff."],
-         end="Seat order fixed: THE STRONG ONE front, THE YOUNG ONE middle, THE ELDER back; they head for open sea."),
+                "[6s] THE YOUNG ONE turns on the seat and waves back as THE MOUNT pulls away over the clearest water, "
+                "heading for the open sea."],
+         audio="-",
+         sound="the villagers' wordless calls of goodbye, nothing else",
+         crit="no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon, no close-up",
+         review=["Wide lens, extreme wide.", "THE THREE RIDERS in the fixed seat order.", "THE CHIEF raises the staff."],
+         end="Seat order fixed; they head for open sea."),
     # ---- CEO 2026-09-25 review of the assembly: new shots between the farewell and the dark ----
     dict(prefix="n", n=1, slug="leaving-the-village-high", title="LEAVING THE VILLAGE, FROM HIGH ABOVE", s=6, grade="DAY",
          series="CEO review 2026-09-25: after M4 (23 s)",
@@ -503,9 +518,25 @@ CAST_KEYS = {
     "@Villagers": ["mint", "lavender", "pale blue", "sand-yellow", "orange", "rose"],
     "@Eye": ["pale yellow-green", "slit pupils"],
     "@Chief": ["pearl-white", "sapphire-blue", "raw uncut gemstones", "shell scales", "quartz"],
-    "@Runner": ["soft orange", "yellow-orange", "fishing net"],
+    "@Runner": ["turquoise-blue", "navy-blue", "kelp rope"],
 }
 SEAT_ORDER = "THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back"
+
+
+# CEO 2026-09-25: "Audio เราไม่เอาเสียง Background นะ". Our own block carries the Studio's marker
+# `non_diegetic_music: none`, so the Studio does not append its standing "wind and room tone" block (MAC CTO letter).
+SOUND = {
+    ("m", 1): "silence; nobody speaks", ("m", 2): "THE STRONG ONE's effort breaths as he hauls the net",
+    ("m", 3): "the two lines above and THE ELDER's quiet breath", ("m", 4): "silence; nobody speaks",
+    ("m", 5): "silence; nobody speaks", ("m", 6): "silence; nobody speaks", ("m", 7): "the two lines above",
+    ("m", 8): "the riders' sharp breaths as the lightning cracks",
+    ("m", 9): "the whisper above and THE YOUNG ONE's shaky breathing",
+    ("m", 10): "the shout above and the riders' gasps", ("m", 11): "the whisper above",
+    ("m", 12): "silence", ("m", 13): "silence",
+    ("n", 1): "silence; nobody speaks", ("n", 2): "THE THREE RIDERS' deep breath before the dive",
+    ("n", 3): "silence; nobody speaks", ("n", 4): "the two lines above",
+    ("n", 5): "THE YOUNG ONE's slow breath as the light blooms",
+}
 
 
 def tag(sc):
@@ -521,7 +552,10 @@ def paste_block(sc):
         lines += ["", "PARTICLES: " + sc["particles"]]
     lines += ["", "WHAT HAPPENS:"]
     lines += sc["beats"]
-    lines += ["", "AUDIO: " + sc["audio"], "", GRADE[sc["grade"]], "",
+    snd = sc.get("sound") or SOUND.get((sc.get("prefix", "m"), sc["n"]), "silence; nobody speaks")
+    lines += ["", "overall_soundscape: only the characters' own voices, breathing and effort sounds: " + snd +
+              ". No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.",
+              "non_diegetic_music: none.", "", GRADE[sc["grade"]], "",
               "CRITICAL NEGATIVES: " + sc["crit"] + ".", "", HOUSE_NEG]
     return "\n".join(lines)
 

@@ -1,40 +1,45 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O2 · THE CHIEF DECIDES · 6s · DAY · new opening, CEO 2026-09-25 (replaces M1-M4)
+O2 · THE CHIEF DECIDES · 6s · DAY · new opening take 2 (CEO: the time has truly come, fear and despair on his face)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (3):
+References (4):
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
-  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner-blue.png
   @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
 
 === END NOTES ===
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a medium close-up of THE CHIEF; no cut.
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.
 
-THE CHIEF HEARS IT, and makes the decision the village has avoided for a hundred years.
+THE CHIEF understands what the empty sea means. He is afraid, and he decides anyway.
 
 REFERENCES, each with a job:
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
-@Runner: THE RUNNER, a young fisherman of the same people: soft orange skin with glowing gold freckles, yellow-orange gill frills, a small knotted kelp fishing net over one shoulder. Face, body and colours only; take nothing of the white background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Runner: THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
 
-THE FRAME: Medium on THE CHIEF, the empty sea and the moon behind him, THE RUNNER soft in the foreground.
+THE FRAME: Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the edges of frame.
+
+PARTICLES: sea spray drifting, a few glowing specks in the air.
 
 WHAT HAPPENS:
-[0s] THE CHIEF looks past THE RUNNER, out over the empty sea; the raw gems in his crown catch the light.
-[2s] Gravely: "So... it is time."
-[4s] Then, quietly: "We need the child with the gift."
+[0s] THE CHIEF stares at the empty trap, then out at the empty sea; fear rises in his face, his jaw trembles, his gill frills fade pale.
+[2s] Heavy with dread: "So... it is time."
+[4s] Barely a whisper, eyes wet: "We need the child with the gift." THE STRONG ONE turns to look at him.
 
-AUDIO: wind, the sea, the two lines above and nothing else. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the two lines above, THE CHIEF's voice shaking with fear and despair, and his unsteady breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no second chief, no crowd close, no raised voice.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no calm face, no smile, no second chief, no crowd close.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -43,12 +48,12 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. The crown of raw gemstones and the shell cloak read clearly.
+1. Fear and despair clearly on THE CHIEF's face.
 2. Two lines, in order; transcribe.
 File the take whatever the verdict, as O2-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE CHIEF turns to go.
+- THE CHIEF turns to go to the child's hut; THE STRONG ONE follows.
 
 === END NOTES ===

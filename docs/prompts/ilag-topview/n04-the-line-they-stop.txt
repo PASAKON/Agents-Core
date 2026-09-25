@@ -37,7 +37,8 @@ WHAT HAPPENS:
 [3s] THE ELDER, low: "So this is it. The line of death."
 [5.5s] THE STRONG ONE turns to THE YOUNG ONE. Steady: "From here on, it's up to you."
 
-AUDIO: wind, rain hissing on the black side, the two lines above and nothing else. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the two lines above. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
 

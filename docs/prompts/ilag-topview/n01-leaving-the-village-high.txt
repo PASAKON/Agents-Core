@@ -38,7 +38,8 @@ WHAT HAPPENS:
 [2s] The camera rises slowly; the village of giant trees shrinks behind them.
 [4s] Ahead there is only open sea to the horizon, bright and calm, under the huge close moon.
 
-AUDIO: wind high above the sea, the faint swish of the wings. No dialogue. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: silence; nobody speaks. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
