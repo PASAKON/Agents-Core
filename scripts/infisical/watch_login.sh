@@ -11,12 +11,28 @@ MAX_H=${2:-12}
 LOG=$ROOT/state/logs/infisical-p1.log
 mkdir -p "$(dirname "$LOG")"
 deadline=$(( $(date +%s) + MAX_H * 3600 ))
+CONSOLE=/opt/MoonieXHQ/Projects/MoonieX/Console
+HOME_ID=${HOME_ID:-infisical}
+down=0
 echo "$(date -u +%FT%TZ) watch: start, up to ${MAX_H}h, pid $$" >>"$LOG"
 while [ "$(date +%s)" -lt "$deadline" ]; do
   if "$NODE" "$ROOT/scripts/infisical/wait_login.mjs" "$CDP" 15 1 --once >>"$LOG" 2>&1; then
     echo "$(date -u +%FT%TZ) watch: login detected" >>"$LOG"
     sleep 5   # let the relay finish its own success handling first
     exec bash "$ROOT/scripts/infisical/after_login.sh" "$CDP"
+  fi
+  # The Browser Home died twice on 2026-09-25/26 (a Console restart kills every home in its
+  # cgroup; one death is unexplained). Two minutes down -> relaunch it in its own systemd scope,
+  # outside the Console, with one tab on the start URL. The CEO's phone can also tap เปิด.
+  if curl -s -m 3 -o /dev/null "$CDP/json/version"; then
+    down=0
+  else
+    down=$((down + 1))
+    if [ "$down" -ge 6 ]; then
+      echo "$(date -u +%FT%TZ) watch: home down 2 min, relaunching $HOME_ID in a scope" >>"$LOG"
+      (cd "$CONSOLE" && systemd-run --quiet --scope --unit="relay-home-$HOME_ID-$(date +%H%M%S)" node scripts/relay-home.mjs launch "$HOME_ID" >>"$LOG" 2>&1)
+      down=0
+    fi
   fi
   sleep 20
 done
