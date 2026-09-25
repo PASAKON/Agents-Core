@@ -815,6 +815,16 @@ SCENES = [
                 "THE STRONG ONE's shoulder hard; THE STRONG ONE, still splashing, looks up.",
                 "[10s] High on the dark mountain, two enormous eyes open: pale yellow-green, thin vertical slit pupils, "
                 "each bigger than their whole village, looking down at them. THE STRONG ONE's hands stop in the water."],
+         # Wan 3.0 caps the Direction box at 3,500 characters: the same four beats, fewer words (wan3_prompt.py).
+         wan3_beats=["[0s] GLOW All three are busy fishing: THE STRONG ONE lies across the front grabbing at fish with "
+                     "both arms in the water; THE YOUNG ONE kicks both feet in the water, giggling; THE ELDER rinses "
+                     "their one fish.",
+                     "[3s] Far ahead the flat sea bulges and a vast dark shape rises like a mountain until it fills the "
+                     "upper half of the frame. THE ELDER stops and stares at it; the other two keep fishing.",
+                     "[7s] THE YOUNG ONE notices THE ELDER staring, follows the gaze, goes still, then shakes THE STRONG "
+                     "ONE's shoulder; THE STRONG ONE looks up.",
+                     "[10s] High on the mountain two enormous pale yellow-green eyes with thin slit pupils open, each "
+                     "bigger than their village, looking down at them. THE STRONG ONE's hands stop in the water."],
          audio="-", sound="splashing hands and feet and THE YOUNG ONE's giggle, then THE YOUNG ONE's sharp gasp, then "
                           "total silence as the eyes open; no words",
          crit=NO_WORDS + ", no roar, no teeth, no third eye, no camera move, no waves, no light wider than 2 metres "
