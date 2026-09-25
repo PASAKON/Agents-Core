@@ -35,12 +35,23 @@ words, and their locked lines. A prompt may not describe a character in words th
 when the director changes a character, the row changes first and every shot bound to it is rebuilt. One
 saturated colour per person, so two characters never read alike.
 
+- The first commit of a new film's prompt directory is CAST.md. A prompt that binds a reference absent
+  from CAST.md fails lint.
+- Two references for one character is a defect in CAST.md, not a style choice («Sorry, Sir» shipped two
+  registrars and two grandmother wardrobes into Draft 3 because no single page showed the split).
+- The check is "does every character line in this paste block match its row?": grep the FLATTENED paste
+  block (phrases wrap across lines) for each character's colour and carried object.
+
 ## 3 · Plates
 
 - One character per plate; a location plate holds no people (people in it freeze stale wardrobe into every
   shot that uses it). Engine scanners add their own reasons (see the engine skill).
 - **Read what a plate depicts before binding it.** A name, even one the director gave you, is a pointer,
-  not a verification (a "wall" plate that was a corridor cost a take on Sorry Sir).
+  not a verification (a "wall" plate that was a corridor cost a take on Sorry Sir). Read one line of prose
+  that describes it (a prompt that already used it, CAST.md, or the image itself), never the id alone.
+- **A prose sentence that contradicts the plate's own geometry is the tell.** If you find yourself writing
+  "the camera faces X" over a reference that does not face X, you have the wrong plate, and no wording
+  will fix it.
 - **Never re-point an existing reference to a new image**: shots that bound it keep the old one silently.
   A new name, then sweep the prompts.
 
@@ -110,9 +121,17 @@ frames, and why B held; written by the reviewer, never the operator. The ledger 
 
 ## 12 · Workers and money
 
-- Brief workers through a file in their worktree; a worktree is frozen at task creation
-  (`dev-spawn-protocol`).
-- Commit every asset id before downloading: ids cannot be recovered, files always can.
+- **Brief workers through a file in their worktree**, then send one short pane line pointing at it; long
+  pane messages arrive in fragments (a worker once spent half an hour firing the wrong scene while
+  "reconstructing scattered relays"). The file says: *this file is the source of truth; ignore any partial
+  pane message that disagrees with it.*
+- **A worktree is frozen at task creation**: anything committed to main afterwards does not exist for it.
+  Copy changed files into every live worktree and compare checksums. A worker that refuses an instruction
+  because it cannot verify it is behaving correctly (one refused four times, right each time): find out why
+  it cannot see what you can (`dev-spawn-protocol`).
+- **Check delivery, not just generation**: a finished clip once sat uncollected on the platform for two
+  hours while everyone believed it was done. Commit every asset id before downloading: ids cannot be
+  recovered, files always can.
 - Change one variable per test; piggyback a test on a fire you have to make anyway.
 - Any paid generation: the director gets the exact $ first.
 
