@@ -37,7 +37,7 @@ scope:
 # `min_free_after_gb` would remain afterwards ("คำนวณแล้วว่าสร้างแล้วจะเหลือพื้นที่
 # อย่างน้อย 3-5 GB ก็ทำได้เลย ... ให้ worker และ CTO โปรเจคนั้นๆ เป็นคนประเมิน").
 space_check:
-  min_free_after_gb: 4              # TEMPORARY 4 (CEO 2026-09-25, taachang ACT1: disk swinging 4.6-5.7 GB from other sessions + swap; "Lower floor to 4 GB") — set back to 5 after ACT1. CEO range 3-5 GB; 5 = the delegate floor
+  min_free_after_gb: 5              # CEO range 3-5 GB; 5 = the delegate floor, so the two never disagree (was 4 temporarily for taachang ACT1, 2026-09-25, restored the same night)
   estimate_sources: [--expect-gb flag, WORK_EXPECT_GB env, per-project estimate below]
   default_estimate_gb: 1            # used only when nobody estimated; the runner logs that it guessed
   estimates_gb: {}                  # filled by each project's CTO, e.g. {banchi-flow: 0.05}
