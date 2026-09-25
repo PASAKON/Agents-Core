@@ -9,6 +9,9 @@ register. Brevity (including caveman mode) still applies; brevity is not
 crudeness. Code, commits, and PRs keep their normal professional register.
 Mirrors IRON-RULES §37.
 
+**Language lock (CEO 2026-09-25, caveman `ultra`):** answer in the language the CEO wrote in — a Thai prompt gets a Thai reply (technical terms may stay English). caveman shortens; it never switches language. Measured 2026-09-25: under `ultra`, 2 of 3 Thai technical prompts came back in English (task-9c6daaf7).
+
+
 ## Spawning the virtual org
 
 On "spawn cto", "spawn agent", "เปิด CTO", "เรียก CTO", "open the org", "fire up

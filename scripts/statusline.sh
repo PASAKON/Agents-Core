@@ -39,9 +39,17 @@ fi
 # --- render the caveman badge (plugin script; reads its flag file, ignores stdin) ---
 # Capture it so we can join badge + SID with a space (avoid [CAVEMAN][SID] touching).
 CAVEMAN_SCRIPT="$CONFIG_DIR/hooks/caveman-statusline.sh"
+# 2026-09-25 (task-9c6daaf7): the standalone hooks are gone — the plugin ships the
+# same script under plugins/cache; fall back to it, else render from the flag file.
+if [ ! -f "$CAVEMAN_SCRIPT" ]; then
+  CAVEMAN_SCRIPT="$(ls "$CONFIG_DIR"/plugins/cache/*/caveman/*/hooks/caveman-statusline.sh 2>/dev/null | head -1)"
+fi
 BADGE=""
-if [ -f "$CAVEMAN_SCRIPT" ]; then
+if [ -n "$CAVEMAN_SCRIPT" ] && [ -f "$CAVEMAN_SCRIPT" ]; then
   BADGE="$(bash "$CAVEMAN_SCRIPT" 2>/dev/null || true)"
+elif [ -f "$CONFIG_DIR/.caveman-active" ]; then
+  MODE="$(head -c 16 "$CONFIG_DIR/.caveman-active" | tr -cd 'a-z-' | tr '[:lower:]' '[:upper:]')"
+  [ -n "$MODE" ] && BADGE="$(printf '\033[38;5;172m[CAVEMAN:%s]\033[0m' "$MODE")"
 fi
 
 # --- join non-empty badge + short session-id tag with a single space ---
