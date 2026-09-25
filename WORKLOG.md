@@ -4,3 +4,4 @@
 - step2: added guarded `: "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:=300000}"; export CLAUDE_CODE_AUTO_COMPACT_WINDOW` to all 6 launchers (cto-claude.sh, cxo-claude.sh, spawn-cto.sh, spawn-cxo.sh, spawn-worker.sh, spawn-worker-remote.sh)
 - step3 done: CLAUDE.md compact instructions section added
 - step4 done: docs/ops/token-saving-2026-09-25.md written
+- step5 done: tests/test_token_saving_config.py written, 4/4 pass standalone
