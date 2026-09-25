@@ -8,7 +8,7 @@ sheet renders as a grid video on H3.
 References (4):
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
-  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner-blue.png
+  @RunnerY -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_runner_yellow_A.png
   @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
 
 === END NOTES ===
@@ -22,7 +22,7 @@ THE CHIEF understands what the empty sea means. THE CHIEF is afraid, and decides
 REFERENCES, each with a job:
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
-@Runner: THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
+@RunnerY: THE RUNNER, a tall thin young man of the same people: mustard-yellow skin with faint darker golden-brown freckles, dark chocolate-brown gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
 
 THE FRAME: Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the edges of frame.

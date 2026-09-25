@@ -30,8 +30,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--files", required=True, help="dir holding <drive_name> or ref-<atId>.png files")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--only", type=lambda s: set(s.split(",")), default=None,
+                    help="add only these atIds (a later addition; the rest already exist)")
     a = ap.parse_args()
     man = json.loads((HERE / "h3-entities.json").read_text(encoding="utf-8"))["entities"]
+    if a.only:
+        man = [e for e in man if e["atId"] in a.only]
+        if {e["atId"] for e in man} != a.only:
+            raise SystemExit(f"not in h3-entities.json: {a.only - {e['atId'] for e in man}}")
     src = Path(a.files)
 
     # 1. local files, md5 against the manifest (= Drive's md5)
@@ -90,7 +96,10 @@ def main():
         if got != e["atId"]:
             print(f"  WARNING: server gave the handle {got!r}")
         time.sleep(0.3)
-    (HERE / "h3-entities-created.json").write_text(json.dumps(done, indent=1, ensure_ascii=False), encoding="utf-8")
+    # Append: an --only run must not wipe the record of the entities created before it.
+    rec = HERE / "h3-entities-created.json"
+    prior = json.loads(rec.read_text(encoding="utf-8")) if rec.exists() else []
+    rec.write_text(json.dumps(prior + done, indent=1, ensure_ascii=False), encoding="utf-8")
     print("created", len(done))
 
 

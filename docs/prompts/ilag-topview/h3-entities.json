@@ -217,6 +217,15 @@
    "drive_name": "loc_open_sea.png",
    "md5": "a07666777fdcc5446a0cccf695294d93",
    "description": "THE OPEN SEA: calm open ocean on a planet with no land, bright blue-white day, the huge close moon over the horizon."
+  },
+  {
+   "atId": "RunnerY",
+   "kind": "character",
+   "name": "THE RUNNER",
+   "drive_file_id": "1RljKbM0B2uKxTQOMO3v7KV-gj4sseOGu",
+   "drive_name": "char_runner_yellow_A.png",
+   "md5": "1a1eb3c72695a07d680097462b484a91",
+   "description": "THE RUNNER, a tall thin young man of the amphibious alien people: mustard-yellow skin with faint darker golden-brown freckles, dark chocolate-brown feathery gill frills, a coiled kelp rope over one shoulder, a shell necklace, a woven kelp belt with shells. Not orange, not blue. Replaces the retired blue @Runner (CEO 2026-09-25: the runner and THE ELDER were both blue)."
   }
  ]
 }

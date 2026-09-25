@@ -1,12 +1,12 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O1 · THE RUNNER · 15s · DAY · new opening take 2 (CEO notes 2026-09-25: camera approved; runner blue; chief busy; real emotion)
+O1 · THE RUNNER · 15s · DAY · new opening take 3 (CEO 2026-09-25: runner mustard-yellow, not blue, not orange; camera approved; chief busy; real emotion)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
 References (5):
-  @Runner -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Runner-blue.png
+  @RunnerY -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_runner_yellow_A.png
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
@@ -21,7 +21,7 @@ References (5):
 MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF, who is out working with THE STRONG ONE.
 
 REFERENCES, each with a job:
-@Runner: THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
+@RunnerY: THE RUNNER, a tall thin young man of the same people: mustard-yellow skin with faint darker golden-brown freckles, dark chocolate-brown gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white background.
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
@@ -42,7 +42,7 @@ non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no cut, no slow motion, no second runner, no one falling into the water, no weapon, no orange skin on the runner, no calm faces.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no cut, no slow motion, no second runner, no one falling into the water, no weapon, no orange skin on the runner, no blue skin on the runner, no calm faces.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -52,7 +52,7 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 
 REVIEW ORDER:
 1. Camera as take 1 (approved).
-2. THE RUNNER is turquoise-blue with navy gills, not orange.
+2. THE RUNNER is mustard-yellow with dark brown gills, not orange, not blue.
 3. THE CHIEF and THE STRONG ONE are working, not standing still.
 4. Panting clearly audible; two lines.
 File the take whatever the verdict, as O1-H3-take<N>.mp4 in the

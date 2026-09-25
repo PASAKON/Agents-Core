@@ -92,10 +92,12 @@ REF = {
                "of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff "
                "topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; "
                "take nothing of the grey background."),
-    "@Runner": ("Character/ref-Runner-blue.png",
-                "THE RUNNER, a tall thin young man of the same people: turquoise-blue skin with faint gold freckles, "
-                "dark navy-blue gill frills, a coiled kelp rope over one shoulder, a necklace of small shells, a woven "
-                "kelp belt. Face, body and colours only; take nothing of the white background."),
+    # @Runner (turquoise, ref-Runner-blue.png) is retired: THE ELDER is blue too (CEO 2026-09-25, round 11 #1).
+    "@RunnerY": ("Character/char_runner_yellow_A.png",
+                 "THE RUNNER, a tall thin young man of the same people: mustard-yellow skin with faint darker "
+                 "golden-brown freckles, dark chocolate-brown gill frills, a coiled kelp rope over one shoulder, a "
+                 "necklace of small shells, a woven kelp belt. Face, body and colours only; take nothing of the white "
+                 "background."),
     "@Villagers2": ("Character/villagers_2.png",
                     "MORE VILLAGERS, six others of the same people: a stooped old man with slate-grey skin, a plump "
                     "woman in peach-coral, a tall thin young man in turquoise, a small girl in lilac, a stocky man in "
@@ -333,10 +335,11 @@ SCENES = [
          end="End of the film's picture; the question card follows in the edit."),
     # ---- the new opening, CEO 2026-09-25, take 2 after his notes (letter ...-ceo-notes-p1-round1.md) ----
     dict(prefix="o", n=1, slug="the-runner", title="THE RUNNER", s=15, grade="DAY",
-         series="new opening take 2 (CEO notes 2026-09-25: camera approved; runner blue; chief busy; real emotion)",
+         series="new opening take 3 (CEO 2026-09-25: runner mustard-yellow, not blue, not orange; camera approved; "
+                "chief busy; real emotion)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A long lateral tracking shot that runs alongside THE RUNNER the whole "
               "way; no cut, no zoom, no slow motion.",
-         refs=["@Runner", "@Chief", "@Strong", "@Village", "@Villagers"],
+         refs=["@RunnerY", "@Chief", "@Strong", "@Village", "@Villagers"],
          heading="MORNING IN THE VILLAGE. A young fisherman runs in panic across the village to THE CHIEF, who is out "
                  "working with THE STRONG ONE.",
          frame="Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, "
@@ -355,14 +358,15 @@ SCENES = [
          sound="THE RUNNER's loud, ragged panting, clearly heard all through the run, then the two lines above, "
                "gasped out between breaths; the strain of the two men hauling",
          crit=DIALOGUE_NEG + ", no cut, no slow motion, no second runner, no one falling into the water, no weapon, no "
-              "orange skin on the runner, no calm faces",
-         review=["Camera as take 1 (approved).", "THE RUNNER is turquoise-blue with navy gills, not orange.",
+              "orange skin on the runner, no blue skin on the runner, no calm faces",
+         review=["Camera as take 1 (approved).", "THE RUNNER is mustard-yellow with dark brown gills, not orange, "
+                 "not blue.",
                  "THE CHIEF and THE STRONG ONE are working, not standing still.", "Panting clearly audible; two lines."],
          end="THE RUNNER, THE CHIEF and THE STRONG ONE on the platform by the empty trap."),
     dict(prefix="o", n=2, slug="the-chief-decides", title="THE CHIEF DECIDES", s=6, grade="DAY",
          series="new opening take 2 (CEO: the time has truly come, fear and despair on his face)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.",
-         refs=["@Chief", "@Strong", "@Runner", "@Village"],
+         refs=["@Chief", "@Strong", "@RunnerY", "@Village"],
          heading="THE CHIEF understands what the empty sea means. THE CHIEF is afraid, and decides anyway.",
          frame="Close on THE CHIEF, the empty trap and the sea behind him, THE STRONG ONE and THE RUNNER soft at the "
                "edges of frame.",
@@ -644,7 +648,7 @@ CAST_KEYS = {
     "@Villagers": ["mint", "lavender", "pale blue", "sand-yellow", "orange", "rose"],
     "@Eye": ["pale yellow-green", "slit pupils"],
     "@Chief": ["pearl-white", "sapphire-blue", "raw uncut gemstones", "shell scales", "quartz"],
-    "@Runner": ["turquoise-blue", "navy-blue", "kelp rope"],
+    "@RunnerY": ["mustard-yellow", "chocolate-brown", "kelp rope"],
 }
 SEAT_ORDER = "THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back"
 
