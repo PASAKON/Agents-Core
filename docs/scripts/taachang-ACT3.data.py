@@ -92,16 +92,18 @@ _META = {
       "the heavy man looks down at the glass jar of pebbles the old woman holds close to her chest; "
       "he asks quietly for the first time, polite, unable to meet her eyes; she answers warily, "
       "hugging the jar", ["nosubs"]),
+ # take 1 (with the 11-year-old kneeling beside them) was deleted by Flow, 2026-09-26. Without him.
  57: (8, "Medium shot from a little above, pebbles poured out onto the woven mat in small piles of ten",
-      ["kla_w", "sia_hum", "tor_h"], "baan", HOME,
-      "the pebbles from the jar are poured out onto the mat; the boy in the grey T-shirt and the "
-      "little boy kneel and sort them into small piles of ten while the heavy man, heavy-voiced and "
-      "holding back his feelings, asks his son to count; his son counts out loud, concentrating",
+      ["kla_w", "sia_hum"], "baan", HOME,
+      "the pebbles from the jar are poured out onto the mat; the boy in the grey T-shirt kneels and "
+      "sorts them into small piles of ten while the heavy man, heavy-voiced and holding back his "
+      "feelings, asks his son to count; his son counts out loud, concentrating", ["nosubs"]),
+ # take 1 (the 11-year-old in frame with the heavy man, as in S57) was deleted by Flow. Without him.
+ 58: (8, "Medium two-shot around the piles of pebbles on the mat, both faces three-quarters to camera",
+      ["kla_w", "sia_hum"], "baan", HOME,
+      "the boy in the grey T-shirt sets down the last pile of pebbles, looks up at his father and "
+      "states the total in a hard voice, staring at him; the heavy man stares at the piles",
       ["nosubs"]),
- 58: (8, "Medium three-shot around the piles of pebbles on the mat",
-      ["tor_h", "kla_w", "sia_hum"], "baan", HOME,
-      "the little boy sets down the last pile, excited; the boy in the grey T-shirt looks up at his "
-      "father and states the total in a hard voice, staring at him", ["nosubs"]),
  59: (8, "Medium two-shot, the woman in the straw hat gasping beside the boy in the grey T-shirt",
       ["kla_w", "pa"], "baan", HOME,
       "the boy in the grey T-shirt works the sum out carefully and says it to the old woman; the "
