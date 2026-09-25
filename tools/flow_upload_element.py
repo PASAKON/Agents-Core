@@ -97,6 +97,9 @@ class FlowUploader:
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
         ctx = self._browser.contexts[0]
         page = ctx.new_page()  # never reuse a tab another task may be driving
+        # A fresh CDP tab comes up ~1114x662; at that size Flow's layout never shows the
+        # อัปโหลด item as clickable and the click times out (CTO, 2026-09-25).
+        page.set_viewport_size({"width": 1600, "height": 1000})
         self.page = page
         return page
 
@@ -111,6 +114,11 @@ class FlowUploader:
                 self._pw.stop()
         except Exception:
             pass
+
+    def menuitem(self, text: str):
+        """The visible menu item carrying this text. Plain get_by_text(...).first also
+        matches filter tabs and tile captions elsewhere on the page."""
+        return self.page.get_by_role("menuitem").filter(has_text=text).first
 
     def mute_all_media(self) -> None:
         self.page.evaluate(MUTE_JS)
@@ -162,23 +170,25 @@ class FlowUploader:
         self.page.get_by_label("เมนูเพิ่มสื่อ").click()
         self.page.wait_for_timeout(800)
         self.scan_for_price("add-media menu")
-        with self.page.expect_file_chooser(timeout=6000) as fc_info:
-            self.page.get_by_text("อัปโหลด", exact=False).first.click()
+        # get_by_text("อัปโหลด").first is WRONG once the project holds uploads: the filter
+        # tabs "รายการที่อัปโหลด" / "รูปภาพที่อัปโหลด" appear and match first (CTO, 2026-09-25).
+        with self.page.expect_file_chooser(timeout=8000) as fc_info:
+            self.menuitem("อัปโหลด").click()
         fc_info.value.set_files(str(file_path))
-        for _ in range(30):
-            body = self.page.evaluate("document.body.innerText")
-            if file_path.name in body and "download" in body:
+        for _ in range(45):
+            if self.page.get_by_label(file_path.name).count() > 0:
                 break
             self.page.wait_for_timeout(1000)
         else:
-            raise FlowUploadError("upload did not finish within 30s")
+            raise FlowUploadError("uploaded tile did not appear within 45s")
+        self.page.wait_for_timeout(1500)  # let the upload progress % clear
 
     def rename_asset(self, old_label: str, new_name: str) -> None:
         tile = self.page.get_by_label(old_label)
         tile.click(button="right")
         self.page.wait_for_timeout(700)
         self.scan_for_price("asset context menu")
-        self.page.get_by_text("เปลี่ยนชื่อ", exact=False).first.click()
+        self.menuitem("เปลี่ยนชื่อ").click()
         self.page.wait_for_timeout(600)
         self.page.keyboard.press("Meta+A")
         self.page.keyboard.type(new_name, delay=30)
@@ -192,7 +202,7 @@ class FlowUploader:
         tile.click(button="right")
         self.page.wait_for_timeout(700)
         self.scan_for_price("asset context menu")
-        self.page.get_by_text("เพิ่มไปยังพรอมต์", exact=False).first.click()
+        self.menuitem("เพิ่มไปยังพรอมต์").click()
         self.page.wait_for_timeout(1200)
         chip_count = self.page.evaluate(
             "document.querySelectorAll('img[alt=\"รูปภาพองค์ประกอบ\"]').length"
