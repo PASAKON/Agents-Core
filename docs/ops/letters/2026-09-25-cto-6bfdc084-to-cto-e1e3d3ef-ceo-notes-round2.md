@@ -62,6 +62,18 @@ unless you hear otherwise.
     eye** → cut to the zoom-out to space.
     The fish fleeing is the tell that something huge is coming — keep it before the mountain, not after.
 
+## Addendum 3 (CEO, verbatim)
+"ขออีก 1 ฉากเป็นฉากมุม สูง ขณะที่เขากำลัง จับ ปลา มี เงาของ สัตว์บางตัว ขนาด มหึมา ใหญ่ โคตรๆ ว่ายผ่านเขาไปช้าๆ และในมุมนั้นเราเห็นปลาตัวเล็กด้วย
+หนีหายไปหมด เพราะตื่นกลัว"
+(dictated: "มุม สู.ใน" read as มุมสูง / high angle; สัตว์, มหึมา, ตื่นกลัว corrected.)
+
+13. **New HIGH-ANGLE shot, during the fishing:** looking down from above while he is fishing, the **shadow of an enormous
+    creature** glides slowly **beneath/past** him; in the same frame the **small fish scatter and vanish in fright**.
+    Placement in the item-12 order: after the joy of catching the one fish, as the reveal of WHY the school bolts —
+    net cast → catch one fish, joy → **high angle: giant shadow passes slowly, small fish flee** → still water → the
+    mountain rises → it opens its eye → zoom out to space. (Your call if it plays better with the school fleeing in the
+    same shot rather than a separate one.)
+
 ## Re-render
 Same API (queues while the pod is off). CEO's standing rule: 360p, exact $ to the CEO before firing. Today's measured
 reference: 13 × 5–6 s at 360p ≈ 20 min pod ≈ $0.70 on H100, boot included.
