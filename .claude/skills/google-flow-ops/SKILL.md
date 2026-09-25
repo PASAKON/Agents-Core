@@ -699,9 +699,26 @@ Uploading from disk: the project's `เมนูเพิ่มสื่อ` (Ad
 `อัปโหลด` item, but a trusted click on it opens an **OS-native file dialog**
 (`document.hasFocus()` goes false, no `<input type="file">` ever enters the
 DOM — consistent with `showOpenFilePicker()`). Neither the extension's
-`file_upload` tool nor a synthetic JS click can drive it. Whether an uploaded
-file then appears in the frame picker is **plausible but unverified**. Do not
-plan around disk upload until someone proves it.
+`file_upload` tool nor a synthetic JS click can drive it.
+
+**UPDATE 2026-09-25 — disk upload WORKS from Playwright, with no human click.** Wrap
+the อัปโหลด click in `page.expect_file_chooser()` and call `set_files()`. The input
+is created lazily, and Playwright intercepts it. It cost 0 credits. Replay script:
+`tools/flow_upload_element.py`. Pass `--project-url`, `--file` and `--name`; the
+script uploads, renames the tile, and adds it to the prompt.
+
+- The uploaded image is a plain, named asset in the project media, verified by
+  the CTO on the live project.
+- It attaches as a reference chip through the tile's right-click menu
+  **เพิ่มไปยังพรอมต์**. There is no "convert to Character" item, and the
+  generative สร้างตัวละคร flow re-renders the face, so do not use that.
+- A chip lives only in the current prompt. It must be attached again for each shot.
+- Evidence: task-c2723478, commit 13283c00.
+
+[SUPERSEDED 2026-09-25 by the update above] ~~Whether an uploaded file then
+appears in the frame picker is plausible but unverified. Do not plan around disk
+upload until someone proves it.~~ (Still unmeasured: whether a plain uploaded
+image also shows in the เฟรม picker. By the untagged-image rule above, it should.)
 
 ### Cost in เฟรม mode
 
@@ -1939,3 +1956,5 @@ Neither replaces the other. Both are free.
 - 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv · status: pending
 - 2026-09-23 [MISSING] §What Flow silently deletes in an arrest scene — handcuffs deleted on anyone (incl. plainclothes); uniform + police lights (even thrown in from off frame) deleted; uniform + walked out + spoken charges kept. 11 arms, one variable each. Section added. · evidence: session cto-8c06958c, scratchpad/abarrest (9202-9209), ACT6 184-186 · status: pending
 - 2026-09-23 [MISSING] §(whole skill) — the first full story's retrospective (characters, props, Flow's silent deletions, night, sound, the per-act review loop, what the audit still cannot see) is docs/scripts/banchi-RETRO.md; read it before writing the next story's sheet. · evidence: banchi shipped 2026-09-23, cut5 on Drive Final Draft · status: pending
+- 2026-09-25 [MISSING] rename on Mac — in Flow's `input.editable-text-input`, `Control+A` moves the caret to line start (an emacs binding) and does not select all; `Meta+A` does. The first rename produced `ตาชั่งของเสี่ยก.ย. 25 - 17:15` · evidence: task-c2723478, memory reference_cdp_select_all_needs_commands_on_mac (same trap, CDP) · status: pending
+- 2026-09-25 [MISSING] chips are per-prompt — right after the upload script bound `pa__face`, a later read of the same tab found 0 `img[alt="รูปภาพองค์ประกอบ"]` chips while the named asset was still in the media grid. The persistent thing is the named asset. The shoot runner must attach it by name for every shot, which is how @handles already work in flow_shoot · evidence: CTO read-only check 2026-09-25 ~17:45 · status: pending
