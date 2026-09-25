@@ -217,6 +217,12 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertIn("login OK", text)
         self.assertIn(SETUP_SECRET, Path(path).read_text())
 
+    def test_save_from_stdin_pipe(self):
+        with mock.patch("sys.stdin", io.StringIO(f"{SETUP_ID}\n{SETUP_SECRET}\n")):
+            text = self.run_cli("save", "setup", "--stdin")
+        self.assertIn("login OK", text)
+        self.assertEqual(os.stat(os.path.join(self.cred_dir, "setup.env")).st_mode & 0o777, 0o600)
+
     def test_save_refuses_a_wrong_secret_and_writes_nothing(self):
         with self.assertRaises(SystemExit) as cm:
             self.run_cli("save", "setup", stdin=(SETUP_ID, "wrong"))
