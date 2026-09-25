@@ -238,8 +238,8 @@
 **อารมณ์** กล้า 4/5 กลัวแต่สู้ เงยหน้า เสียงสั่นแต่ชัด
 **บทพูด** กล้า `"เงินค่าข้าวของผมเองครับพ่อ ไม่ใช่เงินพ่อสักบาท ผมให้ยายเอง"` — scared but defiant, chin up, voice trembling but clear
 
-### SHOT 25 · 3:12–3:20 · 8s · Medium three-shot, the owner pointing at the grandmother for the onlooker · LAN
-**ACTION** เสี่ยชี้ไปทางยายจากระยะก้าวหนึ่ง **ขณะที่**ตะโกนให้ป้าได้ยิน (v2.3: ไม่จ่อหน้า — ช็อตนี้หายจาก Flow 2026-09-26)
+### SHOT 25 · 3:12–3:20 · 8s · Close-up on the owner alone, pointing off-frame · LAN
+**ACTION** โคลสอัพเสี่ยคนเดียว ชี้ไปทางยายนอกเฟรม **ขณะที่**ตะโกนให้ป้าได้ยิน (v2.4: ช็อตเดี่ยว — สามคนในเฟรมหายจาก Flow 2 ครั้ง 2026-09-26, CEO เลือกช็อตเดี่ยว)
 **อารมณ์** เสี่ย 5/5 ใส่ร้าย ตะโกนประจาน ชี้หน้ายาย · ยาย (เงียบ) ตกใจ มือสั่น
 **บทพูด** เสี่ย `"เห็นไหม! คนแก่ขี้โกง หลอกใช้ลูกข้าให้เอาเงินมาให้! ป้าดูไว้เลยนะ"` — vicious, shouting the accusation for everyone to hear, pointing at the old woman
 
@@ -378,11 +378,10 @@
 **อารมณ์** เสี่ย 4/5 หมดท่า ไหล่ตก เสียงแหบพร่า
 **บทพูด** เสี่ย `"คนขายหนีไปหมด ร้านใหญ่ก็กดราคา ขนกลับไปก็ไม่มีใครรับแล้ว ขายก็ขาย"` — beaten, shoulders sagging, voice hoarse and hollow
 
-### SHOT 50 · 6:32–6:40 · 8s · Two-shot, a sealed brown envelope handed over · FAC
-**ACTION** คนชั่งยื่นซองกระดาษสีน้ำตาลปิดผนึก **ขณะที่**พูด (v2.3: ไม่ให้เห็นแบงก์ — ช็อตปึกแบงก์หายจาก Flow 2026-09-26)
+### SHOT 50 · 6:32–6:40 · 8s · Close-up on the owner alone with the envelope · FAC
+**ACTION** โคลสอัพเสี่ยคนเดียว ถือซองกระดาษสีน้ำตาลปิดผนึกที่เพิ่งได้มา **ขณะที่**พูด (v2.4: ช็อตเดี่ยว ตัดบทคนชั่ง — สองคนในเฟรมหายจาก Flow 2 ครั้งแม้ไม่มีแบงก์ 2026-09-26, CEO เลือกช็อตเดี่ยว)
 **อารมณ์** คนชั่ง 2/5 เย็นชา · เสี่ย 4/5 กลืนน้ำลาย เสียงสั่น เจ็บใจ
-**บทพูด** คนชั่ง `"เจ็ดพันบาทเสี่ย เอาไม่เอา"` — cold, take it or leave it
-**บทพูด** เสี่ย `"เอา… ขาดไปตั้งสามพันบาท ทั้งคันรถเลยนะ"` — choking on it, voice shaking with humiliation
+**บทพูด** เสี่ย `"เจ็ดพันบาท… ขาดไปตั้งสามพันบาท ทั้งคันรถเลยนะ"` — choking on it, voice shaking with humiliation, staring at the envelope
 
 ### SHOT 51 · 6:40–6:48 · 8s · Medium two-shot, the owner slumped on the truck's step · FAC
 **ACTION** เสี่ยนั่งทรุดลงบนบันไดรถ **ขณะที่**พูด

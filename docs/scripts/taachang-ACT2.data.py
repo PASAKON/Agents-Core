@@ -94,11 +94,13 @@ _META = {
  24: (8, "Close-up on the schoolboy, his father at the edge of frame", ["kla_s", "sia_b"], "lan", LANAFT,
       "the schoolboy lifts his chin and answers his father, scared but defiant, voice trembling but "
       "clear", ["nosubs"]),
- 25: (8, "Medium three-shot, the heavy man pointing at the old woman for the onlooker",
-      ["sia_b", "yai_c", "pa"], "lan", LANAFT,
-      "the heavy man points toward the old woman from a step away and shouts his accusation for everyone to hear, "
-      "vicious and loud, turning to the woman in the straw hat; the old woman flinches, her hands "
-      "trembling", ["dial", "nosubs"]),
+ # v2.4 (2026-09-26): the three-shot vanished from Flow twice (once with him pointing at her face,
+ # once from a step away). CEO chose a solo shot, as S19/S30 passed when solo.
+ 25: (8, "Close-up on the heavy man alone, pointing off-frame, his face three-quarters to camera",
+      ["sia_b"], "lan", LANAFT,
+      "the heavy man stands alone in frame, points off-frame toward someone and shouts his accusation "
+      "for everyone in the yard to hear, vicious and loud, glancing sideways at an onlooker off-frame",
+      ["dial", "nosubs"]),
  26: (8, "Two-shot, the old woman standing straight, both faces three-quarters to camera",
       ["yai_c", "sia_b"], "lan", LANAFT,
       "the old woman straightens her back and speaks while crying openly, tears streaming down her "
@@ -190,9 +192,11 @@ _META = {
       "the heavy man looks at his truck heaped with bales, beaten, shoulders sagging, voice hoarse "
       "and hollow", ["nosubs"]),
  # v2.3 (2026-09-26): the stack of prop notes vanished from Flow with no card. A sealed envelope.
- 50: (8, "Two-shot, a sealed brown envelope handed over", ["scale", "sia_f"], "fac", FACT,
-      "the scale-man holds out a thin sealed brown paper envelope, cold, take it or leave it; the "
-      "heavy man takes it, choking on it, voice shaking with humiliation", ["nosubs"]),
+ # v2.4: the envelope two-shot vanished too. CEO chose a solo shot; the scale-man's line is cut and
+ # the heavy man says the amount himself.
+ 50: (8, "Close-up on the heavy man alone, holding a sealed brown envelope", ["sia_f"], "fac", FACT,
+      "the heavy man stands alone in frame holding a thin sealed brown paper envelope he has just been "
+      "handed, staring down at it, choking on it, voice shaking with humiliation", ["nosubs"]),
  51: (8, "Medium two-shot, the heavy man slumped on the truck's step", ["sia_f", "kla_w"], "fac", FACT,
       "the heavy man sits down heavily on the step of the pickup, collapsed, voice breaking and "
       "bitter; the boy standing beside him answers gently but pointedly", ["nosubs"]),
