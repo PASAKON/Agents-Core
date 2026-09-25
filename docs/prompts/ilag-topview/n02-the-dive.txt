@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N2 · THE DIVE · 6s · DAY · round 2: take 2 (0:49: left to right, parallel tracking, no tilt)
+N2 · THE DIVE · 6s · DAY · cut 4 (CEO 2026-09-25: every rider acts; left to right, parallel tracking, no tilt)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -31,12 +31,17 @@ THE FRAME: Side on and level, THE MOUNT moving from the left of frame to the rig
 
 PARTICLES: a burst of silver bubbles as they go under, small bubbles rising, drifting specks in the water, shafts of light from the surface.
 
-WHAT HAPPENS:
-[0s] On the surface, THE MOUNT glides from left to right; THE THREE RIDERS draw a breath, gill frills flaring open.
-[2s] THE MOUNT tips its wings and slides under the surface, still moving left to right; the camera follows it down, level, side on.
-[4s] Underwater in clear blue water, THE MOUNT glides on to the right with all three on its seat.
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE, front perch: looks back at the other two and lifts one fist, the signal to dive, then crouches low over the perch as they go under.
+- THE YOUNG ONE, middle: sucks in a huge breath, cheeks puffed, grinning, and grabs the backrest; underwater the child's eyes go wide, looking all around.
+- THE ELDER, back: nods at the signal, takes one slow calm breath and wraps an arm round the child; underwater his gill frills fan out and he points ahead.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): THE THREE RIDERS' deep breath before the dive, then silence underwater. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+WHAT HAPPENS:
+[0s] On the surface, THE MOUNT glides from left to right. THE STRONG ONE looks back and lifts a fist; THE ELDER nods; THE YOUNG ONE sucks in a huge breath, cheeks puffed, gill frills flaring open.
+[2s] THE MOUNT tips its wings and slides under the surface, still moving left to right; the camera follows it down, level, side on; THE STRONG ONE crouches low.
+[4s] Underwater in clear blue water: THE YOUNG ONE's eyes go wide, looking all around; THE ELDER points ahead; THE MOUNT glides on to the right.
+
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): THE THREE RIDERS' deep breath before the dive, THE YOUNG ONE's excited squeak as they go under, then silence underwater. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
@@ -52,6 +57,7 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 REVIEW ORDER:
 1. Left to right, parallel, level.
 2. Surface to underwater in one move.
+3. Each rider doing their own action.
 File the take whatever the verdict, as N2-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

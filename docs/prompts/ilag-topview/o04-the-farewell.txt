@@ -1,20 +1,18 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-O4 · THE FAREWELL · 8s · DAY · new opening take 2 (CEO: wide angle, wide lens)
+O4 · THE FAREWELL · 8s · DAY · new opening take 3 (CEO 2026-09-25 cut 3, 0:32: THE STRONG ONE appeared twice, on the mount and on the dock; now the riders are on the mount from the first frame, 7 references, no pole push off the dock)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (9):
+References (7):
   @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
-  @Pole -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-Pole.png
   @Dock -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_B_v2.png
   @Chief -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/char_chief.png
   @Villagers -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Villagers.png
-  @Villagers2 -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/villagers_2.png
 
 === END NOTES ===
 
@@ -22,35 +20,38 @@ References (9):
 
 8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. An extreme wide shot on a wide lens from the far end of the dock, a slow crane up as THE MOUNT pulls away; no cut, no zoom.
 
-THE FAREWELL AT THE MANTA DOCK, WIDE. The whole village sees THE THREE RIDERS off.
+THE FAREWELL AT THE MANTA DOCK, WIDE. THE THREE RIDERS are already on THE MOUNT; the whole village sees them off from the dock.
 
 REFERENCES, each with a job:
 @Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
-@Pole: THE POLE: a long pale bone steering pole carved with wave patterns, a kelp grip near the top.
 @Dock: THE DOCK: the floating driftwood landing at the foot of the village where glowing mantas are moored with kelp ropes, glass-clear water around it.
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
 @Villagers: THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up.
-@Villagers2: MORE VILLAGERS, six others of the same people: a stooped old man with slate-grey skin, a plump woman in peach-coral, a tall thin young man in turquoise, a small girl in lilac, a stocky man in olive-brown, a young mother in mint-green with a baby. Their look only; never lined up in a row.
 
-THE FRAME: Extreme wide: the whole dock and the crowd small in the foreground, THE MOUNT in the water beyond, the village of giant trees and the open sea filling the frame; the seat order is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back.
+THE FRAME: Extreme wide: the dock and the crowd small in the left foreground, THE MOUNT in the water to the right of the dock with THE THREE RIDERS already on its seat, the village of giant trees and the open sea filling the frame; the seat order is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back. THE STRONG ONE is on THE MOUNT from the first frame to the last; the only people on the dock are THE CHIEF and the villagers.
 
 PARTICLES: sea spray glinting, glowing specks drifting in the air, the wake sparkling.
 
-WHAT HAPPENS:
-[0s] THE MOUNT waits at the dock with THE THREE RIDERS on its seat, a glowing shell lantern hanging from it; villagers crowd the edge of the dock.
-[2s] THE STRONG ONE pushes off with THE POLE and THE MOUNT glides out over the glass-clear water.
-[4s] The villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal staff.
-[6s] THE YOUNG ONE turns on the seat and waves back as THE MOUNT pulls away over the clearest water, heading for the open sea.
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE, front perch: plants his long pale bone steering pole on the sea floor beside the dock and shoves off with his whole body, then steers, leaning into the pole, eyes on the open sea.
+- THE YOUNG ONE, middle: kneels up on the seat facing the dock and waves both arms at the crowd, bouncing, then grabs the backrest as THE MOUNT surges forward.
+- THE ELDER, back: raises one open hand to THE CHIEF in a slow farewell, then rests that hand on the child's shoulder to steady the child.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the villagers' wordless calls of goodbye, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+WHAT HAPPENS:
+[0s] THE MOUNT floats beside the dock with THE THREE RIDERS already on its seat; the villagers crowd the edge of the dock, calling out.
+[2s] THE STRONG ONE shoves off with the pole and THE MOUNT glides away from the dock over the glass-clear water; THE YOUNG ONE waves both arms.
+[4s] On the dock the villagers wave; a small girl waves with both hands; THE CHIEF raises his crystal staff high; THE ELDER raises a hand back to him.
+[6s] THE MOUNT pulls away toward the open sea, THE YOUNG ONE still waving, THE ELDER's hand on the child's shoulder, THE STRONG ONE steering.
+
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the villagers' wordless calls of goodbye and THE YOUNG ONE's excited breath, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no dialogue, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon, no close-up.
+CRITICAL NEGATIVES: no dialogue, no second STRONG ONE, nobody green or muscular on the dock, nobody on the dock holding a pole, no rider stepping onto the dock, no boat, no fourth rider, no one crying, no crowd lined up in a row, no weapon, no close-up.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -59,9 +60,10 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Wide lens, extreme wide.
-2. THE THREE RIDERS in the fixed seat order.
-3. THE CHIEF raises the staff.
+1. Only ONE STRONG ONE, on the mount the whole time.
+2. Riders on the mount from the first frame.
+3. Each rider doing their own action.
+4. Wide lens, extreme wide.
 File the take whatever the verdict, as O4-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

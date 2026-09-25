@@ -1,13 +1,12 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N7 · THE GIANT WAVE · 8s · DARK · round 3 (CEO answer C3: after the light, the giant wave, before the fish)
+N7 · THE GIANT WAVE · 8s · DARK · cut 4 (CEO 2026-09-25: every rider acts; the dark mount picture)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (6):
+References (5):
   @Waves -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_giant_waves_v2.png
-  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Pole -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-Pole.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
@@ -23,7 +22,6 @@ THE WAVE. Ahead of them, in the black rain, a wall of water as tall as a mountai
 
 REFERENCES, each with a job:
 @Waves: THE WAVE, the only location reference: a colossal curling wall of dark water hundreds of metres tall, glowing faintly cyan and magenta inside, violet lightning, the moon behind storm cloud.
-@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Pole: THE POLE: a long pale bone steering pole carved with wave patterns, a kelp grip near the top.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
@@ -31,22 +29,27 @@ REFERENCES, each with a job:
 
 THE FRAME: Low behind THE MOUNT, small in the lower frame with THE YOUNG ONE glowing on it; the wave rises ahead and fills everything above.
 
-STATE: Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; every seed-pod lamp on the seat is a dead dark husk, the grass tufts on it are dull and dark, and nothing on THE MOUNT glows. Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
 
 PARTICLES: heavy rain, spray torn off the wave crest, bubbles as they go under.
 
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE, front perch: drives THE POLE down, shouts, and bends low over the perch as they dive.
+- THE YOUNG ONE, middle, glowing: stares up at the wave, then throws both arms around the bone-rib backrest and squeezes both eyes shut.
+- THE ELDER, back: wraps his arms around the child from behind and ducks his head down over the child.
+
 WHAT HAPPENS:
-[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. Ahead of THE MOUNT a colossal wave rises against the wind, black water glowing faintly cyan and magenta inside, curling over them.
-[2.5s] THE STRONG ONE drives THE POLE down. A shout: "Hold on!"
-[4s] THE MOUNT dives straight into the base of the wave, away from us; THE THREE RIDERS cling on.
+[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. Ahead of THE MOUNT a colossal wave rises against the wind, black water glowing faintly cyan and magenta inside, curling over them. THE YOUNG ONE stares up at it, mouth open.
+[2.5s] THE STRONG ONE drives THE POLE down. A shout: "Hold on!" THE YOUNG ONE throws both arms round the backrest; THE ELDER wraps his arms around the child.
+[4s] THE MOUNT dives straight into the base of the wave, away from us; THE STRONG ONE bends low; THE ELDER ducks his head over the child.
 [6s] The wave crashes over the place where they were; beyond it, a small glow keeps moving.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the shout above, the riders' gasps and effort, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the shout above, spoken once, the riders' gasps and effort, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no rider falling off, no one facing the camera, no movement toward the camera, no light wider than two metres around the child.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no rider falling off, no one facing the camera, no movement toward the camera, no light wider than two metres around the child, no lamps lit on the seat.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -56,8 +59,8 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 
 REVIEW ORDER:
 1. The wave is colossal against them.
-2. One shout; transcribe.
-3. They go through, away from us.
+2. One shout, "Hold on!"; transcribe.
+3. Each rider doing their own action.
 File the take whatever the verdict, as N7-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

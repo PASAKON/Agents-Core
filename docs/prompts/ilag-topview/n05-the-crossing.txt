@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N5 · THE CROSSING · 6s · DARK · round 3 (CEO answers 10, 12: cross a little; EVERY light flickers and dies, very clearly; darkness)
+N5 · THE CROSSING · 6s · DARK · cut 4 (CEO 2026-09-25: every rider acts; EVERY light flickers and dies, very clearly; darkness)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -37,11 +37,16 @@ STATE: Their skin, the seat and the back of THE MOUNT are wet and glistening wit
 
 PARTICLES: rain beginning to fall as they cross, drops streaking through the last of the lamp light.
 
+EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
+- THE STRONG ONE, front perch: drives the steering pole down and pushes THE MOUNT over the line, then keeps steering through the dark, never stopping.
+- THE YOUNG ONE, middle: looks up in alarm at the flickering lantern and reaches toward it, then huddles against THE ELDER when the last light dies.
+- THE ELDER, back: cups one hand around the nearest seed-pod lamp as if to shield it; when it dies he wraps both arms around the child.
+
 WHAT HAPPENS:
-[0s] THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain falls on them.
-[2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again.
-[3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone.
-[4.5s] Darkness. Only a faint grey outline of THE THREE RIDERS in the rain.
+[0s] THE STRONG ONE drives the steering pole down and THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain falls on them.
+[2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again; THE YOUNG ONE looks up in alarm and reaches toward THE LANTERN; THE ELDER cups a hand around the nearest lamp.
+[3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone. THE YOUNG ONE huddles against THE ELDER, who wraps both arms around the child.
+[4.5s] Darkness: only faint grey outlines in the rain, THE STRONG ONE still steering.
 
 overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' sharp, frightened breaths as the lights die, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
@@ -60,6 +65,7 @@ REVIEW ORDER:
 1. All lights flicker and die, very clearly.
 2. Ends in darkness.
 3. Moving away from the camera.
+4. Each rider doing their own action.
 File the take whatever the verdict, as N5-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
