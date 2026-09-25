@@ -72,7 +72,9 @@ PENDING_MARKERS = [
 
 COMPOSER_OPENER_TEXTS = [
     "เขียนโพสต์อะไรสักอย่าง",
+    "เขียนอะไรสักหน่อย",
     "สร้างโพสต์",
+    "What's on your mind",
 ]
 
 
