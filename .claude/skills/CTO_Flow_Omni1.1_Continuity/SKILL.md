@@ -175,3 +175,4 @@ sheet, not a verdict.
 - Story side: `thai-moral-drama` (Structure gate) · clip review: `CTO_Flow_Omni1.1_FilmQC`
 
 ## Field notes
+- 2026-09-25 [MISSING] rule 1 (what Flow deletes) — **a young child + banknotes in frame vanishes.** On taachang ACT1, S7 and S19 (grandmother + the 11-year-old + pastel prop notes) both came back with no card after a 9-min timeout, and 12 credits each were spent. S6 (the same two, a pebble jar, no money) rendered. Banknotes with the 16-year-old (S2, S14, S23) rendered. The probe S20 (same pair, money kept inside a closed cloth pouch, `nomoney` block, no touching) rendered first time. Rewrite: the child and the money are never in one frame, and money talk is fine in the dialogue. n=2 vanished + 1 probe held; S5 (father + 16-year-old, no notes shown) also vanished once and is unexplained · evidence: state/taachang/ACT1.tsv, docs/scripts/taachang-ACT1.data.py · status: pending
