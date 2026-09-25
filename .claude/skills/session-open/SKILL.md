@@ -63,6 +63,13 @@ never blocks the charter).
 
 1. **LungNote todos** — call `mcp__lungnote__list_todos` → the CEO's open
    action items (incl. anything parked by past `/session-close`).
+   **Looking for one topic** ("เช็คเรื่อง X ที่ park ไว้"): `list_todos` cannot
+   filter and `search_notes` never searches todo text. Query PostgREST instead:
+   `lungnote_todos?user_id=eq.<uid>&or=(text.ilike.*X*,text.ilike.*Y*)`, with the
+   creds from `load_env(ENV_PATH)` in `scripts/session-deadline-check.py`, then
+   run `search_notes` for the same words (parked GitHub issues live in the
+   "GitHub roadmap → LungNote" notes). On Contabo, `c_level_sessions` only holds
+   Contabo sessions. For a Mac session, use the `[SID:…]` tag on the todo.
 2. **GitHub issue deadlines** — scan OPEN issues across every CEO repo and
    flag any with a deadline, soonest first:
    ```bash
@@ -199,6 +206,6 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 ## Field notes
 
 - 2026-09-22 [MISSING] §0 Pre-flight — when the CEO opens the session with the problem already stated, the A/B/C menu adds nothing: the SessionStart hook has already surfaced the deadlines, and `list_todos` returned 80 rows (60 KB) that were never read; charter from the CEO's sentence and skip to step 1 · evidence: session cto-0e8d80b8; second run cto-b4ed592c agreed, promoted to the §0 rule 2026-09-23 · status: promoted
-- 2026-09-23 [MISSING] §0.1 — `mcp__lungnote__list_todos` has no offset or text filter, and `search_notes` does not search todo text: limit≥80 overflows the inline cap and the spill-to-disk is refused through the symlinked project dir, so a specific parked todo is unfindable through MCP. What worked: PostgREST `lungnote_todos?or=(text.ilike.*login*,…)` using the creds loader in `scripts/session-deadline-check.py` · evidence: session cto-b4ed592c, todo dab5aedb found only this way · status: pending
+- 2026-09-23 [MISSING] §0.1 — `mcp__lungnote__list_todos` has no offset or text filter, and `search_notes` does not search todo text: limit≥80 overflows the inline cap and the spill-to-disk is refused through the symlinked project dir, so a specific parked todo is unfindable through MCP. What worked: PostgREST `lungnote_todos?or=(text.ilike.*login*,…)` using the creds loader in `scripts/session-deadline-check.py` · evidence: session cto-b4ed592c, todo dab5aedb found only this way; second run cto-885ae930 2026-09-25 (Infisical todos + roadmap note 177b1658) agreed, promoted to the §0.1 rule · status: promoted
 - 2026-09-23 [WRONG] §3 — `scripts/session-rename.sh` does not always land: after a `/terminal-restart` its typed `/rename …` arrived in the pane as `//rename …` (an ordinary prompt, not a command) and the session kept its old name; the script had already recorded the name as set, so a re-run could no-op. Verify the name in the app/`/status` after the turn; if it did not change, the CEO types `/rename <name>` once · evidence: session cto-0e8d80b8 03:0x, CEO's manual /rename succeeded · status: pending
 - 2026-09-25 [MISSING] §0 — `python3 -m tools.memory_sync pull` exits with "Please commit your changes or stash them before you merge. Aborting" whenever the memory repo has uncommitted edits (it does a git merge); the charter continues fine (best-effort), but the pull silently did nothing · evidence: session cto-ce3535eb 21:2x · status: pending
