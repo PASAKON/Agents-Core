@@ -93,6 +93,15 @@
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-cwd-guard.py"
           }
         ]
+      },
+      {
+        "matcher": "Read|mcp__claude-in-chrome__computer|mcp__claude-in-chrome__browser_batch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-image-budget.py"
+          }
+        ]
       }
     ],
     "PostToolUse": [],
