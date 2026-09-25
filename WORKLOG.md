@@ -1,0 +1,12 @@
+- Confirmed UserPromptSubmit stdin fields (session_id/transcript_path/prompt/cwd) and exit-2 semantics against real transcript be1db289-...jsonl and code.claude.com/docs/en/hooks.
+- Found worker exemption marker: `WORKER_TASK_ID` (runners/worker_init.py, also used by lib/notify.py, scripts/hook-inbox.py).
+- Found mailbox wake prompt prefix: `"[New message from {label}]"` (tools/agent_transport.py `_WAKE_MARKER_TEMPLATE`).
+- Wrote scripts/hook-cache-cold-warn.py (fail-open, tail-read transcript, idle/ctx thresholds, grace window, state file).
+- Discovered via WebFetch (code.claude.com/docs/en/hooks) that UserPromptSubmit hooks in the same array run in PARALLEL, not sequentially -- array order gives no protection against hook-inbox.py's mailbox drain racing a block. Added `_has_pending_mail()` (lib.mailbox.peek, non-destructive) as an extra exemption beyond the literal wake-marker text.
+- Created state/cache-cold/.gitignore (`*`).
+- Wired hook into .claude/settings.json UserPromptSubmit array (kept every existing hook).
+- Wrote tests/test_hook_cache_cold_warn.py (9 cases): stale-blocks-once-then-grace, idle-below-threshold, worker-cwd, WORKER_TASK_ID env, wake-marker prompt, slash command, pending-mail, malformed transcript, malformed stdin. All pass.
+- Updated .claude/skills/session-save/SKILL.md: added "When to park" paragraph in rule body, promoted the 2026-09-25 field note status to `promoted (CEO ruling 2026-09-25)`.
+- Wrote docs/ops/cache-cold-guard-2026-09-25.md (thresholds, exemptions, manual test, rollback).
+- Ran full suite: `.venv/bin/python -m pytest tests -q -x` -> exit 1 (pre-existing unrelated failure test_machine_doctor.py, macOS vs assumed-Linux hostname). Full run without -x: exit 1, 2 failed (test_machine_doctor.py os-detect, test_multihost.py disk-floor conflict) both pre-existing/unrelated to this task, 1125 passed, 16 skipped.
+- Manual proof against real (read-only) transcript be1db289-...jsonl: exit 2 with warning on first call, exit 0 on immediate resend (grace window).

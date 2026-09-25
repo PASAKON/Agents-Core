@@ -23,6 +23,17 @@ the memory*. `/session-save` is the org-standard name that lines up with the
 rest of the `/session-*` family ([[session-open]], [[session-close]],
 [[session-list]], [[session-worktree]]).
 
+**When to park:** a session idle past 1 hour loses its 1-hour prompt
+cache — the next turn re-writes the whole context as a fresh cache-creation
+charge, roughly 2x the normal price (CEO ruling 2026-09-25, measured: 108
+re-write spikes / 51M tokens over 7 days, ~14% of the week's bill). Leaving
+the desk for **more than 1h → run `/session-save` (or `/clear`) first**, and
+never `/model`-switch mid-session at large context either — a model switch
+forces the same full re-write. Since task-a40d2d8e this is also enforced by
+`scripts/hook-cache-cold-warn.py`, a UserPromptSubmit hook that fires ONE
+blocking warning per stale window (never twice in a row) — see
+`docs/ops/cache-cold-guard-2026-09-25.md`.
+
 The session ends as **`saved`** — parked on purpose, resumable. That is
 distinct from [[session-close]]'s 🏁 (`closed`, work finished) and from its
 force-close (`force_saved`, closed while unfinished by mistake — flagged loud).
@@ -160,4 +171,4 @@ distinguishable from a 🏁-closed one or a mistake `force_saved` one.
   status — that is how the three end-states stay distinguishable months later.
 
 ## Field notes
-- 2026-09-25 [MISSING] §when to park — an open session idle >1 h loses its 1-hour prompt cache; the next turn re-writes the whole context at 2× input price (Fable 5.1 $20/MTok ≈ $18 API-equiv at 900k, Opus 5.5 ≈ $7). Measured over 7 days: 70 idle gaps >1 h, 108 re-write spikes = 51M tokens ≈ 14 % of the week's bill. Park with /session-save (or /clear) before leaving >1 h, and never `/model`-switch mid-session at large context — a switch is a full re-write too · evidence: session cto-ce3535eb, `tools/token_profile.py`, Wikis/research/2026-09-25-token-saving-techniques-caveman-survey.md · status: pending
+- 2026-09-25 [MISSING] §when to park — an open session idle >1 h loses its 1-hour prompt cache; the next turn re-writes the whole context at 2× input price (Fable 5.1 $20/MTok ≈ $18 API-equiv at 900k, Opus 5.5 ≈ $7). Measured over 7 days: 70 idle gaps >1 h, 108 re-write spikes = 51M tokens ≈ 14 % of the week's bill. Park with /session-save (or /clear) before leaving >1 h, and never `/model`-switch mid-session at large context — a switch is a full re-write too · evidence: session cto-ce3535eb, `tools/token_profile.py`, Wikis/research/2026-09-25-token-saving-techniques-caveman-survey.md · status: promoted (CEO ruling 2026-09-25)
