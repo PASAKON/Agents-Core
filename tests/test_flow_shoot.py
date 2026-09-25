@@ -1560,3 +1560,76 @@ def test_card_fragment_falls_back_to_the_action_not_the_location():
 ])
 def test_feed_changed(before, after, expected):
     assert flow_shoot.feed_changed(before, after) is expected
+
+
+# ── duplicate-take guard (2026-09-26, taachang ACT2 S32): a re-shoot onto a
+#    second ledger read "verified" 9 s after Submit with a file byte-identical
+#    to the take already in the first ledger — the runner had fetched the OLD
+#    card. These enter through cmd_run, the door a real run uses, so they prove
+#    the guard is on the path, not merely that the helper works. ─
+
+class _DownloadStubBrowser(_GateStubBrowser):
+    """Chips match, submit happens, the result is a download of `payload`."""
+
+    download_resolution = "720p"
+
+    def __init__(self, payload: bytes, tmp_path: Path):
+        super().__init__(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+        self._payload, self._tmp = payload, tmp_path
+
+    def poll_result(self, timeout_s: int = 0) -> dict:
+        return {"status": "download", "text": ""}
+
+    def download(self):
+        self.download_called = True
+        p = self._tmp / "downloaded.mp4"
+        p.write_bytes(self._payload)
+        return p
+
+
+def _ledger_with_take(tmp_path: Path, name: str, shot: int, payload: bytes) -> Path:
+    import hashlib
+    p = tmp_path / name
+    flow_ledger.init_ledger(FIXTURE_SHEET, p)
+    rows = flow_ledger.load_ledger(p)
+    rows[shot]["status"], rows[shot]["sha256"] = "verified", hashlib.sha256(payload).hexdigest()
+    flow_ledger.save_ledger(p, rows)
+    return p
+
+
+@pytest.fixture
+def _clip_checks_pass(monkeypatch):
+    monkeypatch.setattr(flow_shoot, "verify_clip", lambda *a, **k: (True, "8.0s 720x1280"))
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+
+
+def test_rerun_that_downloads_an_earlier_take_is_refused(tmp_path, _clip_checks_pass):
+    old = b"the take already in the first ledger"
+    _ledger_with_take(tmp_path, "ACT2.tsv", 35, old)
+    args = _run_args(tmp_path, "ACT2-reshoot.tsv")
+    stub = _DownloadStubBrowser(old, tmp_path)
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    rows = flow_ledger.load_ledger(tmp_path / "ACT2-reshoot.tsv")
+    assert stub.submit_called is True and stub.download_called is True
+    assert rows[35]["status"] == "failed"
+    assert rows[35]["note"].startswith("DUPLICATE") and "ACT2.tsv" in rows[35]["note"]
+    assert rc == 1
+
+
+def test_rerun_with_a_new_take_is_verified(tmp_path, _clip_checks_pass):
+    # Positive control: a different file on the same shot passes.
+    _ledger_with_take(tmp_path, "ACT2.tsv", 35, b"old take")
+    args = _run_args(tmp_path, "ACT2-reshoot.tsv")
+    stub = _DownloadStubBrowser(b"a genuinely new take", tmp_path)
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    rows = flow_ledger.load_ledger(tmp_path / "ACT2-reshoot.tsv")
+    assert rows[35]["status"] == "verified"
+
+
+def test_earlier_takes_skips_files_that_are_not_ledgers(tmp_path):
+    (tmp_path / "notes.tsv").write_text("a\tb\nx\ty\n", encoding="utf-8")
+    p = _ledger_with_take(tmp_path, "ACT2.tsv", 35, b"x")
+    seen = flow_shoot.earlier_takes(p, 35)
+    assert list(seen.values()) == ["ACT2.tsv"]
