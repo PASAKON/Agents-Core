@@ -53,6 +53,15 @@ unless you hear otherwise.
 11. **Add a shot of them casting a fishing net** — fishing is the reason they came out, so it has to be seen on screen
     (fits naturally before/at the "about to stop and start fishing" beat of item 8).
 
+## Addendum 2 (CEO, verbatim)
+"มีฉากได้ปลาด้วย 1 ตัวเขาดีใจมาก แล้ว จากนั้นที่อยู่ในน้ำ จากเยอะๆ ก็ว่ายอย่างรวดเร็ว หนีหายไปหมดเลย แล้ว ภูเขาก็ค่อยๆ มา"
+
+12. **Beat order for the fishing sequence** (items 8 + 11 + this):
+    net cast → **they catch ONE fish and he is overjoyed** → the big school around them **suddenly bolts, swimming fast,
+    and vanishes completely** → the still water → the **"mountain" slowly rises** (they have not noticed) → **it opens its
+    eye** → cut to the zoom-out to space.
+    The fish fleeing is the tell that something huge is coming — keep it before the mountain, not after.
+
 ## Re-render
 Same API (queues while the pod is off). CEO's standing rule: 360p, exact $ to the CEO before firing. Today's measured
 reference: 13 × 5–6 s at 360p ≈ 20 min pod ≈ $0.70 on H100, boot included.
