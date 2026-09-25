@@ -28,6 +28,18 @@ Subcommands:
     score       run tools/bl_score.py against every collected arm's
                 beats.json and write docs/ops/bl-ab-2026-09-25/arms/scores.md.
 
+    -- split-editor A/B (docs/ops/bl-split-ab-2026-09-25/PLAN.md, task-1678d38e) --
+    fixture-full  stage the FULL 153.0s EP57 fixture (every lipsync part,
+                every real/third-party/broll asset, the whole
+                SCRIPT.tsv/timings.tsv/audio-hq.mp3, ground-truth redacted)
+                straight into a local dir on this box -- no ssh/scp, this
+                box IS Contabo. Arm 1 and every Arm 2 segment editor reads
+                from the same fixture-full.
+    spawn-seg   print (NEVER spawn) one segment editor's brief -- the
+                segment contract from PLAN.md plus that segment's own
+                [t0,t1) window, layered onto the standard blackliquidity-cut
+                pipeline. Requires a segments.json from tools/bl_split.py.
+
 Usage:
     python3 tools/bl_ab_run.py fixture --episode-work-dir ~/MoonieXHQ/Work/task-501f1d89
     python3 tools/bl_ab_run.py spawn-a --owner-cto 91a17eb2
@@ -36,6 +48,8 @@ Usage:
         --worktree <remote worktree path> --work-dir ~/MoonieXHQ/Work/task-XXXX
     python3 tools/bl_ab_run.py run-c --work-dir ~/MoonieXHQ/Work/task-XXXX
     python3 tools/bl_ab_run.py score --work-dir ~/MoonieXHQ/Work/task-XXXX
+    python3 tools/bl_ab_run.py fixture-full
+    python3 tools/bl_ab_run.py spawn-seg --segments segments.json --seg seg01
 """
 from __future__ import annotations
 
@@ -59,6 +73,12 @@ T_MAX = 30.78
 SCRIPTER_BEATS = ROOT / "docs" / "ops" / "bl-ab-2026-09-25" / "beats.json"
 GROUND_TRUTH = ROOT / "docs" / "ops" / "bl-ab-2026-09-25" / "ground_truth_beats.json"
 ARMS_DIR = ROOT / "docs" / "ops" / "bl-ab-2026-09-25" / "arms"
+
+# ── split-editor A/B (docs/ops/bl-split-ab-2026-09-25/PLAN.md, task-1678d38e) ──
+SPLIT_AB_PLAN = ROOT / "docs" / "ops" / "bl-split-ab-2026-09-25" / "PLAN.md"
+FULL_EPISODE_WORK_DIR = Path("/opt/MoonieXHQ/Work/bl-split-ep57")
+FULL_FIXTURE_DIR_NAME = "generator"
+RENDER_LOCK_PATH = "/tmp/bl-render.lock"
 
 
 def sh(cmd: list[str], **kw) -> subprocess.CompletedProcess:
@@ -149,6 +169,192 @@ def cmd_fixture(args: argparse.Namespace) -> int:
     sh(["scp", "-rq", *(str(p) for p in stage.glob("*")), f"{SSH_ALIAS}:{CONTABO_FIXTURE_DIR}/"])
     r = ssh_cmd(f"du -sh {CONTABO_FIXTURE_DIR}", capture_output=True, text=True)
     print(r.stdout.strip())
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# fixture-full (the split-editor A/B's own fixture, task-1678d38e)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# `fixture` above builds a 30.78s WINDOW for the older 3-arm experiment
+# (task-aae4f843) and scp's it Mac -> Contabo. This box IS Contabo already
+# (CLAUDE.md: the task's own worktree lives under /opt/MoonieXHQ/Agents/Core
+# on this machine) and the FULL EP57 media is already local at
+# FULL_EPISODE_WORK_DIR -- so fixture-full builds straight into a local
+# directory, no ssh/scp round-trip. It stages the WHOLE 153.0s episode
+# (every lipsync part, every real/third-party/broll asset, the full
+# SCRIPT.tsv/timings.tsv/audio-hq.mp3), unlike `fixture`'s 30.78s slice, and
+# ground-truth-redacts build_cut.py exactly the same way `fixture` does --
+# a segment editor gets the same coordinate-math functions, never the human
+# editor's own answer for this episode.
+
+def build_full_generator(episode_work_dir: Path, dest: Path) -> Path:
+    import shutil
+    if dest.exists():
+        shutil.rmtree(dest)
+    (dest / "media").mkdir(parents=True)
+
+    for name in ("build_cut.py", "assemble.py"):
+        content = sh(["git", "show", f"{GENERATOR_BRANCH}:{GENERATOR_BRANCH_PATH}/{name}"],
+                     cwd=ROOT, capture_output=True, text=True).stdout
+        if name == "build_cut.py":
+            content = _redact_ground_truth(content)
+        (dest / name).write_text(content, encoding="utf-8")
+
+    for name in ("index.html", "hyperframes.json", "package.json"):
+        shutil.copy2(SKILL_TEMPLATE / name, dest / name)
+    shutil.copytree(SKILL_TEMPLATE / "assets", dest / "assets")
+
+    media_src = episode_work_dir / "media"
+    for sub in ("real", "third-party", "broll", "matte"):
+        src = media_src / sub
+        if src.is_dir():
+            shutil.copytree(src, dest / "media" / sub)
+    for name in ("lip_a.mp4", "lip_b.mp4", "lip_c.mp4"):
+        src = media_src / name
+        if src.is_file():
+            shutil.copy2(src, dest / "media" / name)
+
+    shutil.copy2(episode_work_dir / "audio-hq.mp3", dest / "audio-hq.mp3")
+    shutil.copy2(episode_work_dir / "SCRIPT.tsv", dest / "SCRIPT.tsv")
+    shutil.copy2(episode_work_dir / "timings.tsv", dest / "timings.tsv")
+    return dest
+
+
+def cmd_fixture_full(args: argparse.Namespace) -> int:
+    episode_work_dir = Path(args.episode_work_dir).expanduser()
+    dest = Path(args.dest).expanduser()
+    build_full_generator(episode_work_dir, dest)
+
+    expected_mattes = {"lip_a-matte.webm", "lip_b-matte.webm", "lip_c-matte.webm"}
+    matte_dir = dest / "media" / "matte"
+    have = {p.name for p in matte_dir.glob("*.webm")} if matte_dir.is_dir() else set()
+    missing = sorted(expected_mattes - have)
+    if missing:
+        print(f"WARNING: fixture-full is missing matte(s) {missing} -- a COMP-mode beat on that "
+              f"lipsync part needs a fresh `bl_tools.py matte` run before it can render (§6d)")
+
+    r = sh(["du", "-sh", str(dest)], capture_output=True, text=True)
+    print(r.stdout.strip())
+    print(f"fixture-full staged at {dest}")
+    return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# spawn-seg (task-1678d38e) -- brief generation ONLY, never spawns
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Task rule: "Do not spawn anything; show the generated brief text in
+# TOOLING.md." Unlike _spawn_arm() above (which really calls delegate_task),
+# cmd_spawn_seg() only builds and prints the brief text -- it is a dry-run by
+# construction, not by a flag that could be forgotten.
+
+SEGMENT_CONTRACT_TEMPLATE = """\
+**Segment contract** (PLAN.md §"Segment contract (what makes the joins invisible)") --
+this is what makes your part concat cleanly with every other segment:
+- Your segment covers EXACTLY [{t0}, {t1}) seconds of EP57 -- a plate must be
+  on screen every frame in that range. The FIRST plate starts at {t0}. The
+  LAST plate holds all the way to {t1} -- do not let it end early just
+  because its own spoken line ends before {t1}; SKILL.md §6g ("a plate's
+  end is the next plate's start") applies at your segment's own edges too.
+  No fade in or out at either edge -- it has to cut hard into whatever comes
+  before/after your segment.
+- Same template, same caption style (SKILL.md §6f -- use the template's
+  own `caption()` generator, never a hand-rolled style or a mode-based
+  chip/rail/strip -- that is the exact bug this fix exists to prevent), same
+  encoder settings (1080x1920, 30fps) as every other segment, so every
+  segment concats with `ffmpeg -c copy`, no re-encode.
+- **Render VIDEO ONLY -- no audio track.** The master narration audio is
+  muxed once, across the WHOLE episode, by the CTO's `tools/bl_merge.py` at
+  merge time. An audio track baked into your segment would only be discarded
+  -- do not spend time syncing/exporting one.
+- Before you render (`npm run render` / `npx hyperframes render`), take the
+  render lock so your render never overlaps another segment editor's on this
+  4-core/7GB box: `flock {render_lock} npm run render`. Hold the SAME lock
+  for `npm run check`/`hyperframes snapshot` too if you run them concurrently
+  with another segment's render -- the lock, not a schedule, is what keeps
+  renders serialized.
+"""
+
+
+def _segment_brief(seg: dict, fixture_dir: str, seg_index: int, seg_count: int) -> str:
+    tags = ", ".join(l["tag"] for l in seg["lines"]) or "(no script lines fall in this window)"
+    lines_desc = "\n".join(
+        f"  - `{l['tag']}` [{l['t0']}, {l['t1']}]: {l.get('text', '')}" for l in seg["lines"]
+    )
+    return f"""You are cutting BLACK LIQUIDITY EP57, segment {seg['id']} ({seg_index} of {seg_count}
+segments) -- seconds {seg['t0']} to {seg['t1']} ({seg['frame_count']} frames at 30fps). This is Arm 2
+("ช่วยกัน") of the split-editor A/B (docs/ops/bl-split-ab-2026-09-25/PLAN.md, CEO 2026-09-25): N editors
+each cut one segment in parallel from the SAME fixed skill + template, and the CTO
+concats/merges the parts afterward with `tools/bl_merge.py` -- you never see or touch any
+other segment. Follow the `blackliquidity-cut` skill's normal pipeline (SKILL.md) end to
+end, scoped to your segment only -- steps 1-9 apply exactly as written (transcribe/measure/
+normalise/write the cut/gate/look/render/verify), except step 10 (delivery) is replaced by
+the push instructions below, and there is no step 5 lipsync-offset search: this fixture's
+`SCRIPT.tsv`/`timings.tsv` already carry every line's true wording and exact timing.
+
+**Source material** (all under `{fixture_dir}`, already staged on this box):
+- `SCRIPT.tsv` / `timings.tsv` -- every script line's tag, Thai text, shot name, Jev verb
+  and exact [t0,t1], for the WHOLE episode (read only the rows inside your window, listed
+  below for convenience).
+- `media/real/*`, `media/third-party/*`, `media/broll/*.mp4` -- every real-footage still,
+  third-party credit image and B-roll clip the full episode uses.
+- `media/lip_a.mp4`, `lip_b.mp4`, `lip_c.mp4` + `media/matte/*-matte.webm` -- the avatar's
+  real lipsync footage and its pre-matted overlay (SKILL.md §6d). If your window needs a
+  matte that is missing from this fixture, say so in REPORT.md rather than skipping the
+  composite -- do not fall back to full-frame avatar just because the matte isn't there.
+- `index.html` -- the FIXED template (task-1678d38e): one `.cap` style everywhere (§6f),
+  `caption(at, out, text)` generator, plates-hold-until-next-plate is now the rule (§6g).
+  Copy it into your own workdir per SKILL.md step 6 -- do not hand-roll captions.
+- `build_cut.py`/`assemble.py` (read-only, ground-truth redacted) -- for the pure coordinate
+  math ONLY (`img_placement`/`box_to_canvas`/`pick_lip`/`lip_offset`) if you want it; their
+  own `BEATS`/`CHECK_ITEMS` lists are blanked out on purpose -- make your own editorial
+  calls, the same as any BL editor would.
+
+**Your window's script lines:**
+{lines_desc if seg['lines'] else '  (none -- this segment is pure B-roll/kinetic, no spoken line starts inside it)'}
+
+{SEGMENT_CONTRACT_TEMPLATE.format(t0=seg['t0'], t1=seg['t1'], render_lock=RENDER_LOCK_PATH)}
+**Write** your composition to `prototypes/bl-split-ep57/{seg['id']}/index.html` (in your own
+worktree) and render `prototypes/bl-split-ep57/{seg['id']}/{seg['id']}.mp4`.
+
+**Render** (inside your composition's own workdir):
+```
+flock {RENDER_LOCK_PATH} npx hyperframes@0.8.40 render -o {seg['id']}.mp4
+```
+
+**Verify by eye**: pull frames at a few representative timestamps inside [{seg['t0']},
+{seg['t1']}) and actually look at them -- caption readable and in the one approved style,
+no empty/black frames, nothing on screen ends before the NEXT plate in your window starts.
+Then run `python3 tools/bl_checker.py --video {seg['id']}.mp4 --beats <your beats/description>
+--composition index.html` and report its verdict.
+
+**Push** (git add/commit/push on your task branch): your composition's `index.html`, a small
+`render-meta.json` (path/size/duration/fps via `ffprobe`) -- **not the mp4 itself, media never
+goes in git.** Copy `{seg['id']}.mp4` to `/opt/MoonieXHQ/Work/bl-split-ep57/parts/{seg['id']}.mp4`
+and your composed `index.html` to `/opt/MoonieXHQ/Work/bl-split-ep57/compositions/{seg['id']}.html`
+(outside your worktree -- `merge_task` deletes it, and `tools/bl_merge.py --parts .../parts
+--compositions .../compositions` reads directly from there).
+
+Report in REPORT.md: which lines you called COMP/EVID/FF/KIN and why, whether your window's
+first/last plate lands exactly on {seg['t0']}/{seg['t1']} with no fade, and the checker verdict.
+"""
+
+
+def cmd_spawn_seg(args: argparse.Namespace) -> int:
+    data = json.loads(Path(args.segments).read_text(encoding="utf-8"))
+    segments = data["segments"] if isinstance(data, dict) else data
+    matches = [s for s in segments if s["id"] == args.seg]
+    if not matches:
+        ids = [s["id"] for s in segments]
+        print(f"error: segment {args.seg!r} not found in {args.segments} (have: {ids})", file=sys.stderr)
+        return 1
+    seg = matches[0]
+    seg_index = segments.index(seg) + 1
+    brief = _segment_brief(seg, args.fixture_dir, seg_index, len(segments))
+    print(brief)
+    print(f"--- DRY RUN: brief generated for {seg['id']} ({seg['t0']}-{seg['t1']}s), "
+          f"NOT spawned. Task rule: spawn-seg never calls delegate_task. ---")
     return 0
 
 
@@ -319,6 +525,20 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--stage-dir", default="~/MoonieXHQ/Work/bl-ab-fixture-stage")
     p.add_argument("--episode-work-dir", required=True, help="e.g. ~/MoonieXHQ/Work/task-501f1d89")
     p.set_defaults(func=cmd_fixture)
+
+    p = sub.add_parser("fixture-full", help="stage the FULL 153s EP57 fixture, local to this box")
+    p.add_argument("--episode-work-dir", default=str(FULL_EPISODE_WORK_DIR),
+                    help="dir holding audio-hq.mp3/SCRIPT.tsv/timings.tsv/media/ (default: the real box path)")
+    p.add_argument("--dest", default=str(FULL_EPISODE_WORK_DIR / FULL_FIXTURE_DIR_NAME),
+                    help="where to stage the generator (default: <episode-work-dir>/generator)")
+    p.set_defaults(func=cmd_fixture_full)
+
+    p = sub.add_parser("spawn-seg", help="print (never spawn) one segment editor's brief")
+    p.add_argument("--segments", required=True, help="segments.json from tools/bl_split.py")
+    p.add_argument("--seg", required=True, help="segment id, e.g. seg01")
+    p.add_argument("--fixture-dir", default=str(FULL_EPISODE_WORK_DIR / FULL_FIXTURE_DIR_NAME),
+                    help="path a spawned editor would read the fixture-full from")
+    p.set_defaults(func=cmd_spawn_seg)
 
     p = sub.add_parser("spawn-a")
     p.add_argument("--owner-cto", required=True)
