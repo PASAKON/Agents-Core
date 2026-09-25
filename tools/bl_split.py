@@ -36,6 +36,7 @@ DETECT_NOISE_DB = -35.0    # silencedetect n=
 DETECT_MIN_DUR = 0.3       # silencedetect d= -- the RAW detection floor
 WALK_MIN_GAP = 25.0        # seconds after the previous cut
 WALK_MAX_GAP = 50.0
+MIN_SEG_TAIL = 20.0        # seconds -- task-99f3d2e8: no short final segment
 
 
 class SplitError(RuntimeError):
@@ -147,6 +148,20 @@ def select_cut_points(candidates: list[tuple[float, float]], blocks: list[tuple[
     return cuts
 
 
+def enforce_min_tail(cuts: list[float], total_dur: float, min_seg: float = MIN_SEG_TAIL,
+                      fps: int = FPS) -> list[float]:
+    """The walk above only guarantees WALK_MIN_GAP (25s) between interior
+    cuts -- the FINAL segment's length is whatever is left after the last
+    cut to the episode end, which can be short (EP57's un-merged plan left
+    a 7.1s seg05). Drop trailing cut points until the tail is long enough,
+    or none remain (a single short episode stays one segment)."""
+    end = frame_floor(total_dur, fps)
+    cuts = list(cuts)
+    while cuts and (end - cuts[-1]) < min_seg - 1e-9:
+        cuts.pop()
+    return cuts
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # SCRIPT.tsv / timings.tsv
 # ═══════════════════════════════════════════════════════════════════════════
@@ -216,11 +231,13 @@ def split_episode(audio_path: Path, timings: dict[str, tuple[float, float]],
                    script: dict[str, dict[str, str]] | None = None,
                    blocks: list[tuple[float, float]] | None = None,
                    fps: int = FPS, min_gap: float = WALK_MIN_GAP, max_gap: float = WALK_MAX_GAP,
-                   candidate_min_dur: float = CANDIDATE_MIN_DUR) -> dict[str, Any]:
+                   candidate_min_dur: float = CANDIDATE_MIN_DUR,
+                   min_seg: float = MIN_SEG_TAIL) -> dict[str, Any]:
     pauses = detect_pauses(audio_path)
     total_dur = audio_duration(audio_path)
     cands = candidate_pauses(pauses, candidate_min_dur)
     cuts = select_cut_points(cands, blocks or [], fps, min_gap, max_gap)
+    cuts = enforce_min_tail(cuts, total_dur, min_seg, fps)
     segments = build_segments(cuts, total_dur, timings, script, fps)
     return {
         "audio": str(audio_path),
@@ -229,6 +246,7 @@ def split_episode(audio_path: Path, timings: dict[str, tuple[float, float]],
         "candidate_pause_min_s": candidate_min_dur,
         "walk_min_gap_s": min_gap,
         "walk_max_gap_s": max_gap,
+        "min_seg_tail_s": min_seg,
         "pauses_detected": len(pauses),
         "candidates": len(cands),
         "cuts": cuts,
@@ -265,6 +283,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--min-gap", type=float, default=WALK_MIN_GAP)
     ap.add_argument("--max-gap", type=float, default=WALK_MAX_GAP)
     ap.add_argument("--candidate-min-dur", type=float, default=CANDIDATE_MIN_DUR)
+    ap.add_argument("--min-seg", type=float, default=MIN_SEG_TAIL,
+                     help="merge a final segment shorter than this (seconds) into the one before it")
     return ap
 
 
@@ -276,7 +296,7 @@ def main(argv: list[str] | None = None) -> int:
 
     plan = split_episode(Path(args.audio), timings, script, blocks,
                           fps=args.fps, min_gap=args.min_gap, max_gap=args.max_gap,
-                          candidate_min_dur=args.candidate_min_dur)
+                          candidate_min_dur=args.candidate_min_dur, min_seg=args.min_seg)
     Path(args.out).write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
     print(format_plan(plan))
     print(f"wrote {args.out}")

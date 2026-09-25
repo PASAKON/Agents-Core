@@ -138,6 +138,64 @@ def test_select_cut_points_stops_when_nothing_past_min_gap():
     assert sp.select_cut_points(candidates, []) == []
 
 
+# ─────────────────────────── enforce_min_tail (task-99f3d2e8) ─────────────
+
+def test_enforce_min_tail_drops_a_short_final_cut():
+    # cuts at 39.3/65.83/104.53/145.9, episode ends 153.0333 -- the last
+    # segment (145.9-153.0333 = 7.13s) is short of the 20s default and must
+    # merge into the one before it (104.53-153.0333).
+    cuts = [39.3, 65.8333, 104.5333, 145.9]
+    out = sp.enforce_min_tail(cuts, 153.0514, min_seg=20.0)
+    assert out == [39.3, 65.8333, 104.5333]
+
+
+def test_enforce_min_tail_keeps_cuts_when_tail_already_long_enough():
+    cuts = [30.0, 60.0]
+    out = sp.enforce_min_tail(cuts, 90.0, min_seg=20.0)
+    assert out == [30.0, 60.0]  # tail is 30.0s, well over 20s
+
+
+def test_enforce_min_tail_can_cascade_past_multiple_cuts():
+    # a pathological case: every cut sits within min_seg of the end -- must
+    # keep popping until the tail clears the bar or no cuts remain.
+    cuts = [10.0, 15.0, 18.0]
+    out = sp.enforce_min_tail(cuts, 20.0, min_seg=20.0)
+    assert out == []  # even the first cut leaves only a 10.0s tail
+
+
+def test_enforce_min_tail_no_cuts_is_a_noop():
+    assert sp.enforce_min_tail([], 15.0, min_seg=20.0) == []
+
+
+def test_enforce_min_tail_default_matches_plan_min_seg_constant():
+    assert sp.MIN_SEG_TAIL == 20.0
+
+
+def test_split_episode_merges_short_tail_end_to_end(tmp_path):
+    # same synthetic shape as test_split_episode_end_to_end_with_real_audio
+    # but with a SECOND, later silence placed so the walk would otherwise
+    # produce a short final segment -- split_episode() must merge it away
+    # by default (min_seg=20.0).
+    audio = tmp_path / "audio.mp3"
+    _run([
+        "ffmpeg", "-y", "-v", "error",
+        "-f", "lavfi", "-i", "sine=frequency=440:duration=30",
+        "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono:d=0.6",
+        "-f", "lavfi", "-i", "sine=frequency=440:duration=25",
+        "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono:d=0.6",
+        "-f", "lavfi", "-i", "sine=frequency=440:duration=10",
+        "-filter_complex", "[0:a][1:a][2:a][3:a][4:a]concat=n=5:v=0:a=1[a]", "-map", "[a]",
+        str(audio),
+    ])
+    # silences at ~30.0s and ~55.6s -- the second one is only 10s from the
+    # episode's own end (~66.2s), well short of the 20s default tail.
+    timings = {"L1": (5.0, 6.0), "L2": (50.0, 51.0), "L3": (60.0, 61.0)}
+    plan = sp.split_episode(audio, timings)
+    assert len(plan["cuts"]) == 1  # the second candidate's cut was dropped
+    assert len(plan["segments"]) == 2
+    assert plan["min_seg_tail_s"] == 20.0
+
+
 # ─────────────────────────── SCRIPT.tsv / timings.tsv ─────────────────────
 
 def test_load_timings_parses_header_and_rows(tmp_path):
@@ -229,7 +287,12 @@ def test_main_writes_segments_json(tmp_path):
         str(audio),
     ])
     out_p = tmp_path / "segments.json"
-    rc = sp.main([str(audio), "--script", str(script_p), "--timings", str(timings_p), "-o", str(out_p)])
+    # --min-seg 0 disables the short-tail merge (its own default behaviour
+    # is covered by the enforce_min_tail tests above) -- this test is only
+    # about the CLI plumbing, and the ~15.3s tail here is deliberately
+    # shorter than the 20s default so it stays a useful regression case.
+    rc = sp.main([str(audio), "--script", str(script_p), "--timings", str(timings_p),
+                  "-o", str(out_p), "--min-seg", "0"])
     assert rc == 0
     data = json.loads(out_p.read_text(encoding="utf-8"))
     assert len(data["segments"]) == 2
