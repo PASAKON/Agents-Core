@@ -1,0 +1,25 @@
+{
+  "seg": "seg04",
+  "path": "/opt/MoonieXHQ/Work/bl-split-ep57/seg04/seg04.mp4",
+  "delivered_parts_path": "/opt/MoonieXHQ/Work/bl-split-ep57/parts/seg04.mp4",
+  "delivered_composition_path": "/opt/MoonieXHQ/Work/bl-split-ep57/compositions/seg04.html",
+  "size_bytes": 18673835,
+  "duration_s": 48.5,
+  "fps": 30,
+  "nb_frames": 1455,
+  "width": 1080,
+  "height": 1920,
+  "codec": "h264",
+  "audio_streams": 0,
+  "window_t0": 104.5333,
+  "window_t1": 153.0333,
+  "checker": {
+    "pass": true,
+    "empty_frames": [],
+    "out_of_safe_area": [],
+    "text_over_face": [],
+    "credit_missing": [],
+    "extra_caption_styles": [],
+    "kinetic_overflow": []
+  }
+}
