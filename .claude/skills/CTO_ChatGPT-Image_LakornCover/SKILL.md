@@ -112,8 +112,8 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
    (2026-09-23: "ดีกว่าเสียเครดิต API ChatGPT เพราะฉันจ่าย GPT PLUS อยู่แล้ว"). Any API
    call is spend he did not approve.
 
-2. **HARD: Nothing from the ending on the cover.** Characters wear everyday clothes;
-   no uniform, badge, handcuffs, police car, or whatever the story reveals last.
+2. **HARD: Nothing from the ending on the cover.** Characters wear everyday clothes,
+   and whatever the story reveals last stays off it.
 
    **Why hard:** scope. CEO ruling 2026-09-23: "ตำรวจใส่ชุดธรรมดา ไม่งั้นปกคลิปจะเฉลยตอนจบ".
    A published cover cannot be un-seen.
@@ -159,7 +159,10 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 ## Reference
 
 - Tools: `tools/chatgpt_images.py` (runner, `--continue`, `--recover`), `tools/lakorn_poster.py`
-- Story and format: `thai-moral-drama` · filing: `gdrive-filing` · browser rules: `browser-operator`
+- Story and format: `CTO_Story_ThaiMoralDrama` · filing: `gdrive-filing` · browser rules: `browser-operator`
 - Memory: `feedback_study_genre_references_for_identity.md`
 
 ## Field notes
+
+- 2026-09-24 [MISSING] cover (moved from thai-moral-drama 2026-09-25) — the story skill said nothing about the episode cover. First try (ChatGPT, title in the prompt) put the title across the TOP; CEO: "คนแบบนี้ถูกแล้ว ติดแค่ข้อความ … มันจะมีจุดที่อยู่ประจำของมัน". Real Ch3 lakorn posters (ลายกินรี, คลื่นชีวิต, ลดา, เลือดเจ้าพระยา, 18 มงกุฎ) share one layout. The layout itself is §The layout, generating the people only and lettering with `tools/lakorn_poster.py` is §Workflow 1 and 4, and no face-changing cop clothes on a cover is rule 2 (text removed here on 2026-09-25 so the layout is written once) · evidence: task-d206afca, b5296b42 · status: promoted
+- 2026-09-24 [MISSING] cover (moved from thai-moral-drama 2026-09-25) — the whole cover workflow now lives in its own skill, `CTO_ChatGPT-Image_LakornCover`; the 09-24 cover note above is its first draft. What the CEO approved: the title is a LOGO made for this story (ledger + red strike on banchi), not a typed font; people and logo come from ChatGPT separately; three options, CEO picks · evidence: task-d206afca, CEO picked A 2026-09-24 · status: promoted
