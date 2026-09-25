@@ -410,10 +410,25 @@ def find_transcript(session_id: str, cwd: Path) -> Path | None:
 
 
 def usage_from_transcript(transcript_path: Path) -> dict:
-    """Sums message.usage across every assistant turn in the transcript --
-    'tokens by type' from the transcript, per TASK.md deliverable 1."""
-    totals = {"input_tokens": 0, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0, "output_tokens": 0}
-    turns = 0
+    """Token usage of one Claude Code session, read from its JSONL transcript.
+
+    Deduplicated by ``message.id``. Claude Code writes one assistant API
+    response as one transcript line per content block (text, tool_use,
+    thinking ...), and every one of those lines repeats the same
+    ``message.id`` with the same cumulative ``usage``. Summing every line
+    therefore over-counts by the blocks-per-message ratio -- measured
+    2026-09-25: the EP57 cut worker 1,418 lines / 760 ids ($188.60 raw vs
+    $99.79 deduplicated), the A/B/C arms 2.0-4.3x. Same rule as
+    ``jev_edit_lib.sum_transcript_usage``: keep the last write per id (every
+    repeat seen so far was byte-identical); a line without an id counts once.
+
+    Returns ``{"turns": <unique message ids>, "lines": <assistant lines
+    carrying usage>, "tokens": {<the four usage components>}}``.
+    """
+    keys = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
+    by_id: dict[str, dict[str, int]] = {}
+    unkeyed: list[dict[str, int]] = []
+    lines = 0
     with open(transcript_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -425,13 +440,20 @@ def usage_from_transcript(transcript_path: Path) -> dict:
                 continue
             if rec.get("type") != "assistant":
                 continue
-            usage = (rec.get("message") or {}).get("usage")
+            msg = rec.get("message") or {}
+            usage = msg.get("usage")
             if not usage:
                 continue
-            turns += 1
-            for k in totals:
-                totals[k] += int(usage.get(k, 0) or 0)
-    return {"turns": turns, "tokens": totals}
+            lines += 1
+            row = {k: int(usage.get(k, 0) or 0) for k in keys}
+            mid = msg.get("id")
+            if mid:
+                by_id[mid] = row
+            else:
+                unkeyed.append(row)
+    rows = list(by_id.values()) + unkeyed
+    totals = {k: sum(r[k] for r in rows) for k in keys}
+    return {"turns": len(rows), "lines": lines, "tokens": totals}
 
 
 def _cost_from_token_dict(tokens: dict) -> float:
@@ -485,11 +507,13 @@ def run_scripter_claude_p(lines: list[dict], frames: dict[str, Any], workdir: Pa
     if transcript:
         t_usage = usage_from_transcript(transcript)
         tokens, turns = t_usage["tokens"], t_usage["turns"]
+        transcript_lines = t_usage["lines"]
     else:
         usage = wrapper.get("usage", {})
         tokens = {k: usage.get(k, 0) for k in
                   ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")}
         turns = wrapper.get("num_turns", 1)
+        transcript_lines = None
 
     usage_out = {
         "backend": "claude-p",
@@ -497,6 +521,7 @@ def run_scripter_claude_p(lines: list[dict], frames: dict[str, Any], workdir: Pa
         "session_id": session_id,
         "transcript": str(transcript) if transcript else None,
         "turns": turns,
+        "transcript_lines": transcript_lines,
         "tokens": tokens,
         "cost_usd_reported_max_plan": wrapper.get("total_cost_usd"),
         "cost_usd_api_equivalent": round(_cost_from_token_dict(tokens), 6),

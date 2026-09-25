@@ -5,7 +5,7 @@ task-67bb7a11) already made every editorial call for this exact 0-30.78s
 window, one-shot, looking at the stills itself -- its output is
 `docs/ops/bl-ab-2026-09-25/beats.json` (already on `main`, see that
 directory's own `README.md`/`score_claude-p.md` for the run that produced
-it: `claude-p` backend, 10 turns, $1.10 API-equivalent, 88.5s wall). Reusing
+it: `claude-p` backend, 3 turns, $0.26 API-equivalent, 88.5s wall). Reusing
 that measured run rather than re-running the Scripter -- identical inputs
 (same media, same `--t-max 30.78`), so a second run would only add noise,
 not a different number worth paying for.

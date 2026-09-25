@@ -208,15 +208,15 @@ bugs. Both numbers are reported here rather than only the better one.
 | | |
 |---|---|
 | backend | claude-p |
-| turns | 10 |
-| tokens | input=20, cache_write=306,175, cache_read=373,114, output=26,068 |
-| API-equivalent $ | **$1.1008** |
+| turns (API calls; 10 transcript lines) | 3 |
+| tokens (deduplicated by message.id) | input=6, cache_write=56,979, cache_read=164,157, output=8,103 |
+| API-equivalent $ | **$0.2563** (first published as $1.1008 -- a raw line sum, corrected 2026-09-25; see `REPORT.md` §Correction) |
 | Max-plan reported $ (claude -p's own `total_cost_usd`) | $0.3418 |
 | wall time | 88.54s |
 
-(Pre-fix run: 11 turns, $1.3931 API-equivalent / $0.4274 Max-plan, 103.14s --
-same order of magnitude, both well under the earlier Editor session's ~$189
-API-equivalent bill over 4h/1,418 turns for the *whole* episode.)
+(Pre-fix run: 11 transcript lines, $1.3931 raw-line-sum API-equivalent / $0.4274 Max-plan,
+103.14s -- same order of magnitude, both well under the earlier Editor session's ~$100
+API-equivalent bill (deduplicated) over 4h/760 turns for the *whole* episode.)
 
 No `api` backend leg to report (dropped per the CEO ruling; the key file
 was absent anyway).

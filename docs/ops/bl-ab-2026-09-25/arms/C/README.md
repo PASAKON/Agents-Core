@@ -2,7 +2,7 @@
 
 CEO 2026-09-25 A/B/C experiment: the cheapest possible path -- the same
 Scripter output Arm B uses (`docs/ops/bl-ab-2026-09-25/beats.json`,
-task-67bb7a11: `claude-p`, 10 turns, $1.10 API-equivalent, 88.5s wall),
+task-67bb7a11: `claude-p`, 3 turns, $0.26 API-equivalent, 88.5s wall),
 straight through `tools/bl_compose.py` and `tools/bl_checker.py`, with NO
 Editor session in between -- run directly by the developer (task-aae4f843)
 over ssh on Contabo. Whatever the Checker finds here is the finding: this

@@ -288,6 +288,26 @@ def test_usage_from_transcript_sums_assistant_turns(tmp_path):
                                  "cache_read_input_tokens": 100, "output_tokens": 28}
 
 
+def test_usage_from_transcript_dedups_repeated_message_ids(tmp_path):
+    # Claude Code writes one assistant API response as one line per content
+    # block, each repeating the same message.id and the same usage; only one
+    # copy may be counted (measured 2026-09-25: EP57 1,418 lines / 760 ids).
+    u1 = {"input_tokens": 5, "cache_creation_input_tokens": 100, "cache_read_input_tokens": 0, "output_tokens": 20}
+    u2 = {"input_tokens": 2, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 100, "output_tokens": 8}
+    transcript = tmp_path / "session.jsonl"
+    transcript.write_text(
+        json.dumps({"type": "assistant", "message": {"id": "msg_1", "usage": u1}}) + "\n"
+        + json.dumps({"type": "assistant", "message": {"id": "msg_1", "usage": u1}}) + "\n"
+        + json.dumps({"type": "assistant", "message": {"id": "msg_2", "usage": u2}}) + "\n",
+        encoding="utf-8",
+    )
+    result = sc.usage_from_transcript(transcript)
+    assert result["turns"] == 2
+    assert result["lines"] == 3
+    assert result["tokens"] == {"input_tokens": 7, "cache_creation_input_tokens": 100,
+                                 "cache_read_input_tokens": 100, "output_tokens": 28}
+
+
 def test_run_scripter_claude_p_end_to_end_mocked(monkeypatch, tmp_path):
     lines = [{"tag": "HOOK-1", "t0": 0.1, "t1": 1.0, "spoken": "x", "screen": "", "shot": "", "jev_decision": None}]
     frames = {"stills": {}, "avatars": {}, "missing": []}

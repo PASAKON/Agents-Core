@@ -12,6 +12,13 @@ Every arm's own inputs, outputs and transcript are archived under
 in git); each arm's `beats.json`/`render-meta.json`/`checker-result.json`
 are additionally committed at `prototypes/bl-ab-ep57/<arm>/`.
 
+## Correction 2026-09-25 (later the same day)
+
+Every turn count and $ below was recounted deduplicated by `message.id`; the
+first publication summed raw transcript lines (one line per content block,
+same id and usage repeated) and was ~2x high (the Scripter 4.3x). Raw line
+counts stay in brackets. Ranking unchanged. Detail: `../REPORT.md` §Correction.
+
 ## Side-by-side
 
 | | Arm A -- today's Editor | Arm B -- Scripter -> blind Editor | Arm C -- Scripter, no Editor |
@@ -22,12 +29,12 @@ are additionally committed at `prototypes/bl-ab-ep57/<arm>/`.
 | Checker verdict | **PASS** (1 fix round, self-driven) | **PASS** (1 fix round, brief-mandated) | **FAIL** (uncorrected by design) |
 | Render | 2x on Contabo (own report: ~2.5-3 min each) | 2x on Contabo (own report: ~2.5-3 min each) | 1x on Contabo, measured: **164.9s** for 923 frames @ 1080x1920/30fps = **5.6 fps** |
 | Wall time, editor session only | **18 min** (spawn -> branch push) | **11 min** (spawn -> branch push) | 0 (no editor session) |
-| Editor turns | **161** | **73** | 0 |
-| Editor tokens (in/cache-w/cache-r/out) | 322 / 467,143 / 26,119,330 / 114,719 | 146 / 145,423 / 7,699,039 / 59,008 | -- |
-| Editor cost, API-equivalent | **$7.5396** | **$2.4937** | -- |
-| Scripter cost (reused, task-67bb7a11) | -- (Arm A never uses the Scripter) | $1.1008 (10 turns, 88.5s) | $1.1008 (10 turns, 88.5s) |
-| **Total pipeline cost, API-equivalent** | **$7.5396** | **$3.5945** | **$1.1008** |
-| **Total pipeline turns** | **161** | **83** | **10** |
+| Editor turns (API calls; transcript lines in brackets) | **82** (161) | **43** (73) | 0 |
+| Editor tokens (in/cache-w/cache-r/out) | 164 / 192,041 / 13,553,401 / 54,017 | 86 / 81,991 / 4,588,634 / 28,068 | -- |
+| Editor cost, API-equivalent | **$3.7313** | **$1.4036** | -- |
+| Scripter cost (reused, task-67bb7a11) | -- (Arm A never uses the Scripter) | $0.2563 (3 turns, 88.5s) | $0.2563 (3 turns, 88.5s) |
+| **Total pipeline cost, API-equivalent** | **$3.7313** | **$1.6599** | **$0.2563** |
+| **Total pipeline turns** | **82** | **46** | **3** |
 | **Total pipeline wall time** | **~18 min** | **~12.5 min** | **~1.5 min** (Scripter 88.5s + compose/render/check ~170s -- Scripter's own wall is a separate, reused, prior run) |
 
 Costs are Sonnet 5 API-equivalent, from each session's own Claude Code
@@ -55,8 +62,8 @@ brief: `$0`, no key, no Hetzner).
 | PATTERN-3 | EVID | EVID | yes | 0.955 |
 | PATTERN-4 | EVID | EVID | yes | 0.955 |
 
-Cost (own transcript): 161 turns; tokens input=322 cache_write=467,143
-cache_read=26,119,330 output=114,719; **$7.5396** API-equivalent.
+Cost (own transcript, deduplicated by message.id): 82 turns (161 lines); tokens input=164
+cache_write=192,041 cache_read=13,553,401 output=54,017; **$3.7313** API-equivalent.
 
 ## Arm B -- Scripter -> blind Editor -> Checker
 
@@ -80,9 +87,9 @@ cache_read=26,119,330 output=114,719; **$7.5396** API-equivalent.
 | PATTERN-4 | EVID | EVID | yes | 0.281 |
 
 Editor session cost (own transcript, the blind build+checker+fix cycle
-only): 73 turns; tokens input=146 cache_write=145,423 cache_read=7,699,039
-output=59,008; **$2.4937** API-equivalent. Plus the reused Scripter run:
-10 turns, **$1.1008**, 88.5s. **Total: 83 turns, $3.5945.**
+only, deduplicated by message.id): 43 turns (73 lines); tokens input=86 cache_write=81,991
+cache_read=4,588,634 output=28,068; **$1.4036** API-equivalent. Plus the reused Scripter run:
+3 turns, **$0.2563**, 88.5s. **Total: 46 turns, $1.6599.**
 
 First checker run: **FAIL** (`out_of_safe_area`: HOOK-1, HOOK-3, HOOK-4,
 PATTERN-1..4; `credit_missing`: HOOK-1, HOOK-4). Second run (after the one
@@ -107,9 +114,9 @@ checker's own safe-rectangle/credit-clearance formulas, no image opened):
 | PATTERN-3 | EVID | EVID | yes | 0.178 |
 | PATTERN-4 | EVID | EVID | yes | 0.178 |
 
-Cost: the Scripter's own run only (task-67bb7a11, reused): 10 turns;
-tokens input=20 cache_write=306,175 cache_read=373,114 output=26,068;
-**$1.1008** API-equivalent (**$0.3418** Max-plan-reported); 88.54s wall.
+Cost: the Scripter's own run only (task-67bb7a11, reused): 3 turns (10 lines, deduplicated by message.id);
+tokens input=6 cache_write=56,979 cache_read=164,157 output=8,103;
+**$0.2563** API-equivalent (**$0.3418** Max-plan-reported); 88.54s wall.
 
 Checker (run directly by the developer over ssh, no fix): **FAIL**, same
 signature as Arm B's first (uncorrected) run -- `out_of_safe_area`:

@@ -19,8 +19,8 @@ clips: `$WORK_DIR/out/{A,B,C}/final-{A,B,C}.mp4`.
 | Checker verdict | **PASS** | **PASS** (1 fix round) | **FAIL** |
 | Mode agreement vs human truth | **62.5%** | 50.0% | 50.0% |
 | Mean box IoU vs human truth | **0.822**\* | 0.265 | 0.189 |
-| Total pipeline turns | **161** | 83 (10 Scripter + 73 Editor) | **10** |
-| Total pipeline cost (API-equiv) | **$7.54** | $3.59 | **$1.10** |
+| Total pipeline turns (API calls) | **82** | 46 (3 Scripter + 43 Editor) | **3** |
+| Total pipeline cost (API-equiv) | **$3.73** | $1.66 | **$0.26** |
 | Total pipeline wall time | **~18 min** | ~12.5 min | **~1.5 min** |
 
 \* Arm A's fixture leaked the human answer key (see Caveat below) --
@@ -28,8 +28,8 @@ read this number as an upper bound, not a clean measurement.
 
 ## Plain-language verdict
 
-**The Scripter alone is not enough to ship.** Its raw output -- one $1.10,
-88-second, 10-turn model call -- fails the mechanical safety checker every
+**The Scripter alone is not enough to ship.** Its raw output -- one $0.26,
+88-second, 3-call model run -- fails the mechanical safety checker every
 single time it has been run (this task and the prior one, task-67bb7a11,
 both): evidence boxes sit outside the safe margin, and required WikiFX
 photo credits are missing. That is not a matter of taste, it is the kind of
@@ -39,11 +39,11 @@ is what kind, and the two arms that had one show the answer costs very
 differently depending on what you ask it to do:
 
 - **A cheap, blind fix pass (Arm B) turns a failing Scripter output into a
-  passing one for about $2.50 and 73 turns**, without ever looking at an
+  passing one for about $1.40 and 43 turns**, without ever looking at an
   image -- it reasons entirely from the checker's own numbers. This is the
   smallest "Editor" that clears the bar the CEO's checklist actually
   enforces today.
-- **A full independent Editor (Arm A) costs about 3x more ($7.54, 161
+- **A full independent Editor (Arm A) costs about 2.7x more ($3.73, 82
   turns) and re-decides everything from scratch**, including which lines
   get the avatar composited over evidence (COMP) versus a full-screen
   still (EVID) -- a content/brand judgment the mechanical checker cannot
@@ -56,17 +56,17 @@ differently depending on what you ask it to do:
 whether avatar-visible-over-evidence versus full-screen-evidence looks
 right for a given line -- because the checker has no way to grade that
 today.** For pure geometry/safety compliance, a cheap blind pass is
-~3x cheaper than a full independent edit and gets the same PASS. If the
+~2.7x cheaper than a full independent edit and gets the same PASS. If the
 CEO is comfortable with the Scripter's own mode choices (it never chose
 COMP once, in either measured run), Arm B's cost is the floor for a
 shippable cut; if mode/composition quality matters as much as safety
 compliance, Arm A's cost is closer to what a real editorial pass runs.
 
-**Compared to the whole-episode baseline** (EP57 in full: 4h, 1,418 turns,
-~$189 API-equivalent, `mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md`):
-this 30.78s opening (20% of the 153s episode) cost Arm A $7.54 -- roughly
+**Compared to the whole-episode baseline** (EP57 in full: 4h, 760 turns,
+~$100 API-equivalent, `mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md`):
+this 30.78s opening (20% of the 153s episode) cost Arm A $3.73 -- roughly
 5x cheaper than a naive duration-proportional share of that full-episode
-number (~$38). Read with real caution: an opening hook and a mid-episode
+number (~$20). Read with real caution: an opening hook and a mid-episode
 stretch are not interchangeable editorial work, and the two sessions used
 different tooling (`tools/bl_compose.py` did not exist for the original
 EP57 edit). It is a real efficiency signal, not a clean controlled result.
@@ -77,8 +77,26 @@ Every number above is copied verbatim from `arms/scores.md`, which is
 copied verbatim from `tools/bl_score.py`'s own output against each arm's
 collected `beats.json` and Claude Code transcript -- no rounding, no
 estimation. Where a cost figure is reused rather than freshly measured
-(the Scripter's $1.10/10-turn/88.5s run, shared by Arm B and Arm C), that
+(the Scripter's $0.26/3-turn/88.5s run, shared by Arm B and Arm C), that
 is stated explicitly both here and in `arms/scores.md`.
+
+## Correction 2026-09-25 (later the same day): every $ and turn count was ~2x too high
+
+The numbers first published here summed `message.usage` over raw transcript
+lines. Claude Code writes one assistant API response as one line per content
+block, each repeating the same `message.id` and the same usage, so the sum
+counted most messages twice and the Scripter's three times. Found by CTO
+211633a8; recounted deduplicated by `message.id` (every repeat byte-identical)
+and `tools/bl_scripter.py::usage_from_transcript` fixed in the same commit as
+this note. The tables above carry the corrected numbers; the ranking, the
+checker verdicts and the ~5x ratio to the whole-episode baseline do not change.
+
+| | first published | corrected |
+|---|---|---|
+| Arm A (today's Editor) | 161 turns, $7.54 | 82 turns, $3.73 |
+| Arm B (Scripter + blind Editor) | 83 turns, $3.59 | 46 turns, $1.66 (Scripter $0.26 + Editor $1.40) |
+| Arm C (Scripter only) | 10 turns, $1.10 | 3 turns, $0.26 (claude -p itself reported $0.34) |
+| EP57 whole-episode baseline | 1,418 turns, $189 | 760 turns, $99.79 |
 
 ## Caveat: read Arm A's numbers with this in mind
 

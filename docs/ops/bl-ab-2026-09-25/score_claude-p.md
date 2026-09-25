@@ -19,8 +19,8 @@
 
 ## Scripter run cost
 - backend: claude-p
-- turns: 10
-- tokens: input=20 cache_write=306175 cache_read=373114 output=26068
-- API-equivalent $ (Sonnet 5 pricing table): $1.1008
+- turns: 3 (API calls; 10 transcript lines -- deduplicated by message.id, corrected 2026-09-25)
+- tokens: input=6 cache_write=56979 cache_read=164157 output=8103
+- API-equivalent $ (Sonnet 5 pricing table): $0.2563 (first published $1.1008 = raw line sum)
 - Max-plan reported $ (claude -p's own total_cost_usd): $0.3418
 - wall seconds: 88.54

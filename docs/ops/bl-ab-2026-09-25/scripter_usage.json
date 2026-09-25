@@ -3,20 +3,22 @@
   "model": "claude-sonnet-5",
   "session_id": "440ba051-2e79-426f-88c4-2fcf17b901d6",
   "transcript": "/Users/gob/.claude/projects/-Users-gob-MoonieXHQ-Agents-Core-worktrees-mooniex-agents--developer--task-67bb7a11/440ba051-2e79-426f-88c4-2fcf17b901d6.jsonl",
-  "turns": 10,
+  "turns": 3,
+  "transcript_lines": 10,
   "tokens": {
-    "input_tokens": 20,
-    "cache_creation_input_tokens": 306175,
-    "cache_read_input_tokens": 373114,
-    "output_tokens": 26068
+    "input_tokens": 6,
+    "cache_creation_input_tokens": 56979,
+    "cache_read_input_tokens": 164157,
+    "output_tokens": 8103
   },
   "cost_usd_reported_max_plan": 0.3417894,
-  "cost_usd_api_equivalent": 1.10078,
+  "cost_usd_api_equivalent": 0.25632,
   "wall_seconds": 88.54,
   "pricing_table_per_mtok": {
     "input": 2.0,
     "cache_creation_input_tokens": 2.5,
     "cache_read_input_tokens": 0.2,
     "output": 10.0
-  }
+  },
+  "correction_2026_09_25": "first published turns=10 / cost_usd_api_equivalent=1.10078 summed raw transcript lines; Claude Code writes each assistant message.id once per content block with identical usage; recounted deduplicated by message.id (3 messages on 10 lines)"
 }
