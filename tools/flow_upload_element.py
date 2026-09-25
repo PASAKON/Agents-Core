@@ -183,26 +183,65 @@ class FlowUploader:
             raise FlowUploadError("uploaded tile did not appear within 45s")
         self.page.wait_for_timeout(1500)  # let the upload progress % clear
 
+    def find_tile(self, label: str, timeout_s: int = 12):
+        """The grid tile whose aria-label is exactly `label`, or None.
+
+        Flow's media grid is virtualised: only the newest few tiles are in the DOM, so a
+        plain get_by_label misses older assets (measured 2026-09-25: 6 of 23 rendered).
+        Filter with the project search box first so the tile is forced to render."""
+        tile = self.page.get_by_label(label, exact=True)
+        if tile.count():
+            return tile.first
+        search = self.page.locator('input[aria-label="ค้นหา"]').first
+        try:
+            search.fill(label)
+        except Exception:
+            return None
+        for _ in range(timeout_s * 2):
+            if tile.count():
+                return tile.first
+            self.page.wait_for_timeout(500)
+        return None
+
+    def clear_search(self) -> None:
+        try:
+            self.page.locator('input[aria-label="ค้นหา"]').first.fill("")
+            self.page.wait_for_timeout(800)
+        except Exception:
+            pass
+
+    def open_context_item(self, label: str, item: str, tries: int = 15) -> None:
+        """Right-click the tile until its menu offers `item`. A freshly uploaded tile
+        shows a reduced menu (no เปลี่ยนชื่อ) until the upload has settled; one fixed
+        wait after upload lost 21 of 21 renames in one batch (2026-09-25)."""
+        for _ in range(tries):
+            tile = self.find_tile(label)
+            if tile is None:
+                raise FlowUploadError(f"tile {label!r} not found in the project")
+            tile.click(button="right")
+            self.page.wait_for_timeout(700)
+            self.scan_for_price("asset context menu")
+            mi = self.menuitem(item)
+            if mi.count() and mi.is_visible():
+                mi.click()
+                return
+            self.page.keyboard.press("Escape")
+            self.page.wait_for_timeout(2000)
+        raise FlowUploadError(f"context menu of {label!r} never offered {item!r}")
+
     def rename_asset(self, old_label: str, new_name: str) -> None:
-        tile = self.page.get_by_label(old_label)
-        tile.click(button="right")
-        self.page.wait_for_timeout(700)
-        self.scan_for_price("asset context menu")
-        self.menuitem("เปลี่ยนชื่อ").click()
+        self.open_context_item(old_label, "เปลี่ยนชื่อ")
         self.page.wait_for_timeout(600)
         self.page.keyboard.press("Meta+A")
         self.page.keyboard.type(new_name, delay=30)
         self.page.keyboard.press("Enter")
         self.page.wait_for_timeout(1000)
+        self.clear_search()
 
     def attach_as_element(self, label: str) -> bool:
         """Right-click -> เพิ่มไปยังพรอมต์. Returns True if a chip
         (alt="รูปภาพองค์ประกอบ") is now present in the composer."""
-        tile = self.page.get_by_label(label)
-        tile.click(button="right")
-        self.page.wait_for_timeout(700)
-        self.scan_for_price("asset context menu")
-        self.menuitem("เพิ่มไปยังพรอมต์").click()
+        self.open_context_item(label, "เพิ่มไปยังพรอมต์")
         self.page.wait_for_timeout(1200)
         chip_count = self.page.evaluate(
             "document.querySelectorAll('img[alt=\"รูปภาพองค์ประกอบ\"]').length"
