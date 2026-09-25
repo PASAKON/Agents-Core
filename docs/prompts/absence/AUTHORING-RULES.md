@@ -1,3 +1,7 @@
+> **HISTORY since 2026-09-25 — edit the skills, not this file.** The working copy of these rules is
+> `.claude/skills/CTO_Film_PromptFormat/SKILL.md` (every engine) and `.claude/skills/CTO_Seedance2.5_Higgsfield/SKILL.md`
+> (Seedance-only: `@Video 1` once, previz ≥ output resolution, the open chip-per-mention question). This file stays as the original evidence.
+
 # AUTHORING-RULES.md — กฎการเขียน prompt ของ «Sorry, Sir»
 
 เขียน 2026-09-03 หลัง S1C fail 3 ครั้งติด กิน operator ไป 2 session
@@ -62,12 +66,12 @@
 
 ### A4 · ข้อความรั่วเข้าเครื่องหมายคำพูด — คลาสความพังที่ **วัดมาแล้ว**
 
-`PROMPT-STYLE.md:61-91` บันทึกไว้ว่า S15a take 1 (`35b4edd4`) โมเดล **พูด stage direction ออกมาดัง ๆ**
+`PROMPT-STYLE.md:65-95` บันทึกไว้ว่า S15a take 1 (`35b4edd4`) โมเดล **พูด stage direction ออกมาดัง ๆ**
 และ visual review ผ่านหมด จับได้ด้วยการ transcribe เท่านั้น สามรายการนี้ยังอยู่:
 
 | # | ไฟล์ / บรรทัด | ทำอะไร |
 |---|---|---|
-| 18 | `s7-s9.txt:309` | `[12s] This is the line the film turns on. Softest of all: "I have been...` — วลี `and this is the line the film turns on:` อยู่ในรายการ **UNSAFE ตรงตัว** ที่ `PROMPT-STYLE.md:78` แก้เป็น: `[12s] Softest of all: "I have been collecting..."` และย้ายเหตุผลออก ที่เดียวกัน L271-272 (`This silence is the most important beat in the scene; hold it.`) และ L313 (`By this line he believes it himself. Cut.`) ก็เอาออก |
+| 18 | `s7-s9.txt:309` | `[12s] This is the line the film turns on. Softest of all: "I have been...` — วลี `and this is the line the film turns on:` อยู่ในรายการ **UNSAFE ตรงตัว** ที่ `PROMPT-STYLE.md:82` แก้เป็น: `[12s] Softest of all: "I have been collecting..."` และย้ายเหตุผลออก ที่เดียวกัน L271-272 (`This silence is the most important beat in the scene; hold it.`) และ L313 (`By this line he believes it himself. Cut.`) ก็เอาออก |
 | 19 | `s6-s18.txt:617-619` | โน้ตอนุมัติเชื่อมติดท้ายบทพูดของยาย: `"One hundred million. For the artist." (CTO-drafted lines — CEO confirmed the mechanism: the money goes to DUPE, not Valder. She bid on an artwork; the maker just confessed; she pays the maker.)` ลบวงเล็บทั้งก้อน — negative ของฉากเดียวกัน (L635) ห้าม `no speaking anything outside the quotation marks` อยู่แล้ว |
 | 20 | `s4-s5.txt:161-165` | `⚠️ CTO casting call, flagged:` เป็นคำถามค้างถึง CEO + คำสั่ง operator (`swap the reference`) และ **ลากบทของฉากอื่นเข้ามา**: `(A5: "That is the thing itself.")` ในช็อตที่บทที่อนุญาตมีแค่ `"I understand it."` กับ `"Five million."` ย้ายทั้งบล็อกไป QUEUE.md เป็นคำถามค้าง |
 
@@ -240,13 +244,13 @@ override คือหลักฐานว่าข้อความต้น�
 
 ### 10. Dialogue: อะไรที่ติดกับ `: "` ต้องเป็น manner tag ≤ 5 คำ
 
-กฎเต็มอยู่ที่ `PROMPT-STYLE.md:61-91` **ไม่ใช่ทฤษฎี วัดมาแล้ว**: S15a take 1 (`35b4edd4`)
+กฎเต็มอยู่ที่ `PROMPT-STYLE.md:65-95` **ไม่ใช่ทฤษฎี วัดมาแล้ว**: S15a take 1 (`35b4edd4`)
 โมเดลพูด stage direction ออกมาดัง ๆ และ visual review ผ่านหมด
 
 - ห้ามมีวงเล็บ/โน้ต/เครดิตอยู่ท้ายบรรทัดที่มีคำพูด (`s6-s18.txt:617-619`)
 - ห้าม quote บทของฉากอื่นเข้ามาในช็อต (`s4-s5.txt:163` · `s-dupe-inserts.txt:28-38` · `s-arrivals.txt:58`)
 - ห้ามใส่คำวิจารณ์ความสำคัญของบทลงใน beat (`s7-s9.txt:271-272,309,313`) — L309 ใช้วลีที่
-  `PROMPT-STYLE.md:78` ระบุว่า UNSAFE ตรงตัว
+  `PROMPT-STYLE.md:82` ระบุว่า UNSAFE ตรงตัว
 - **transcribe ทุก dialogue clip ก่อนเก็บเป็น keeper** ดูภาพอย่างเดียวจับคลาสนี้ไม่ได้
 
 ### 11. หนึ่งบล็อก = หนึ่งช็อตที่ยิงได้จริง

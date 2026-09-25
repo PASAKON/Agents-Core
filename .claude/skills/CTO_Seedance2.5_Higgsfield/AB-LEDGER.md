@@ -1,8 +1,30 @@
-# A/B LEDGER — «Sorry, Sir» prompt fixes, failing prose vs passing prose
+# A/B LEDGER — «Sorry, Sir» prompt fixes on Seedance, failing prose vs passing prose
 
-Kept per §12 of SKILL.md. Quotes are from git; the clip verdicts are the
-CTO's own frame reviews. PENDING entries carry their Prompt A now and get
-their Prompt B on the day the fixed take passes.
+Kept per `CTO_Film_Production` §11 (who writes an entry and what it quotes).
+Moved here from `ai-film-production/` on 2026-09-25: the ledger belongs to the
+engine. Quotes are from git; the clip verdicts are the CTO's own frame reviews.
+PENDING entries (end of file) carry their Prompt A now and get their Prompt B on
+the day the fixed take passes. Creative restages ordered by the director are not
+defects and do not go in.
+
+Entry shape:
+
+    ### <scene> · takes N → M · <date passed>
+    DEFECT SEEN: what the clip did (from frames, not from the report)
+    PROMPT A:   "…the exact lines…"           (commit <sha>)
+    PROMPT B:   "…the exact lines…"           (commit <sha>)
+    WHY B HELD: the mechanism, one or two sentences
+    LESSON:     one line, general enough to reuse; cite the § it belongs to
+
+**Old § numbers.** Entries written before 2026-09-25 cite the old
+`ai-film-production/SKILL.md`. Where each now lives: §7 → `CTO_Film_Production`
+§6 · §7a → `CTO_Film_Production` §3 · §7b → `CTO_Film_PromptFormat` rule 5 +
+SKILL.md "Size and gaze" · §8 → `CTO_Film_Production` §10 · §9 →
+`CTO_Film_Production` §8 + SKILL.md "The review loop" · §10 → SKILL.md "A
+rejection: find the trigger" · §11 → `CTO_Film_Production` §7 · §11b →
+`CTO_Film_Production` §8 + SKILL.md "Measuring motion" · §12 → this header +
+`CTO_Film_Production` §11 · §13 → `CTO_Film_Production` §2 · §14 / "rule 14" →
+SKILL.md "Model tiers".
 
 ---
 
@@ -263,10 +285,13 @@ LESSON: when a chip shows the warning triangle, do not click twice hoping —
   move that object into prose in the same sentence position and re-verify the
   chip count before firing.
 
-### S15a-1 · an unnamed side of frame gets filled by mirroring the chip beside it · CONFIRMED by take 2 · 2026-09-08
+### S15a-1 · an unnamed side of frame gets filled by mirroring the chip beside it · take 1 → take 2 · anchoring both sides · free lane · PASSED 2026-09-08 02:10
 DEFECT SEEN: twice in one night, on two unrelated sheets, in the same shape.
-  1. S15a-1 t1 (52 credits): the Registrar — one man, one chip — appeared at
-     BOTH frame edges, black suit, white gloves, gold V, ledger, twice.
+  1. S15a-1 t1 (52 credits, fired 22:31): (e) the Registrar — one man, one chip —
+     appeared at BOTH frame edges, black suit, white gloves, gold V and ledger,
+     twice; (b) the three bodyguards did not group — Valder's two navy guards
+     stayed at the left edge while Carrington's man in black stood alone at the
+     right edge.
   2. S2S-B t2 (free lane): @project_absence_char_guard_valder_two, whose whole
      text is "VALDER'S TWO GUARDS … ONE TALL AND THIN, ONE SHORT AND HEAVY.
      This one picture is both of them", rendered as FOUR navy uniforms — the
@@ -281,44 +306,6 @@ WHAT THE TWO FAILING SHEETS HAD IN COMMON: one side of the frame had nothing
   chip it had. It is not a counting failure, it is a composition failure — an
   unoccupied region is an instruction to invent an occupant, and the cheapest
   occupant is the one already on screen.
-FIX APPLIED (S15a-1, d0d19f9): anchor BOTH sides by name. The three bodyguards
-  are placed one by one at the LEFT edge with shoulders touching; the Registrar
-  is stated as exactly one man on the RIGHT, "the only person in the entire
-  frame wearing a black suit with white gloves and a gold V". Neither side is
-  left for the model to fill.
-LESSON: a count is not a placement. For any chip that depicts more than one
-  person, or any chip whose costume is visually distinctive, say WHERE its
-  people stand and say what stands on the opposite side of frame. If a region
-  of the frame has no named occupant, expect the nearest distinctive costume to
-  be copied into it.
-
-### S15a-2 vs S2G · the mark rendered as an insect when the sheet only named it · 2026-09-08
-DEFECT SEEN: S15a-2 t1 put the mark on the wall as fine GREY hairlines with thin
-  legs radiating from a dark dot. At the scale it rendered it reads as a mosquito
-  or a spider sitting on the plaster, not as masonry damage. Size was arguably
-  right (about a head wide); weight and colour were not.
-PROMPT A (S15a-2, failed): the mark appears once, inside the location chip's
-  description, as a shorthand — "the brass plaque and the small black mark on the
-  axis". Four words, no shape, no weight, no negatives.
-PROMPT B (S2G, the insert whose entire subject is the mark): the full canon —
-  "IT IS A CRACK, NOT A STAR: a BLACK crack in the plaster… COPY THAT MARK EXACTLY
-  AS THE PICTURE SHOWS IT… It is IN the wall, a break in the surface, not a thing
-  in front of it and not a drawn shape… no spiderweb, no thick heavy arms, no pale
-  or grey mark, no glowing mark — solid black only."
-LESSON: the mark has a canon and the canon has to travel with it. A sheet that
-  merely NAMES the mark while describing something else will get whatever the
-  model imagines a small black mark to be, and what it imagines is an insect.
-  Every sheet in which the mark is visible carries the full description, even when
-  the mark is background and the scene is about people.
-WATCH: S2G says "thin short lines" in the same breath as "solid black only" and
-  "no thick heavy arms". If S2G comes back spidery too, "thin" is the word doing
-  the damage and the canon needs rewriting to lead with weight, not with size.
-
-### S15a-1 take 1 → take 2 · anchoring both sides of frame · free lane · PASSED 2026-09-08 02:10
-DEFECT SEEN (t1, 52 credits, fired 22:31): (b) the three bodyguards did not group —
-  Valder's two navy guards stayed at the left edge while Carrington's man in black
-  stood alone at the right edge; (e) the Registrar appeared at BOTH frame edges,
-  black suit, white gloves, gold V and ledger, twice.
 PROMPT A (t1), the guards: "THE THREE BODYGUARDS STAND TOGETHER, shoulder to shoulder
   in one small group at the frame edge nearest their masters — Valder's two navy
   guards and Carrington's man in black side by side, close enough to touch, all three
@@ -347,21 +334,38 @@ WHY IT WORKS: take 1's prose already said "TOGETHER", "one small group", "close 
   left, registrar right — so there is no empty region for the model to fill by copying
   the nearest distinctive costume.
 LESSON: a count is not a placement, and "together" is not a location. Name the side of
-  frame each group stands on, and name who holds the opposite side. Confirmed three
-  times over as a defect (S15a-1 t1 registrar, S2S-B t2 guard pair, S15a-2 t1 fourth
-  guard) and once as a fix.
+  frame each group stands on, and name who holds the opposite side. For any chip that
+  depicts more than one person, or any chip whose costume is visually distinctive, say
+  WHERE its people stand; if a region of the frame has no named occupant, expect the
+  nearest distinctive costume to be copied into it. Confirmed three times over as a
+  defect (S15a-1 t1 registrar, S2S-B t2 guard pair, S15a-2 t1 fourth guard) and once
+  as a fix.
 STILL OPEN on this take: the wall mark renders as spidery hairlines and reads as an
   insect. Canon rules 6 and 7 (weight before size; the canon travels with the mark)
   were added at 01:32, eight minutes before this fired, and were not yet in this
   sheet. Not a counter-example to the fix above — a separate defect with its own fix.
 
-### S15a-2 take 1 → take 2 · weight before size on the mark · PASSED ONCE, THEN FAILED — see the correction at the end of this entry · 2026-09-08
+### S15a-2 · the mark rendered as an insect when the sheet only named it · take 1 → take 2 · weight before size · PASSED ONCE, THEN FAILED — see the correction at the end of this entry · 2026-09-08
 DEFECT SEEN (t1, 52 credits, fired 00:33): the wall mark rendered as fine GREY
   hairlines with thin legs radiating from a dark dot. At the rendered scale it reads
-  as a mosquito or spider sitting on the plaster, not as masonry damage.
+  as a mosquito or spider sitting on the plaster, not as masonry damage. Size was
+  arguably right (about a head wide); weight and colour were not.
 PROMPT A (t1) — the mark is NAMED and never described, four words inside the location
   chip: "@project_absence_loc_hall_big_d — THE HALL … white plinths, the brass plaque
-  and the small black mark on the axis."
+  and the small black mark on the axis." No shape, no weight, no negatives.
+THE CANON IT LACKED (S2G, the insert whose entire subject is the mark):
+  "IT IS A CRACK, NOT A STAR: a BLACK crack in the plaster… COPY THAT MARK EXACTLY
+  AS THE PICTURE SHOWS IT… It is IN the wall, a break in the surface, not a thing
+  in front of it and not a drawn shape… no spiderweb, no thick heavy arms, no pale
+  or grey mark, no glowing mark — solid black only."
+  The mark has a canon and the canon has to travel with it. A sheet that
+  merely NAMES the mark while describing something else will get whatever the
+  model imagines a small black mark to be, and what it imagines is an insect.
+  Every sheet in which the mark is visible carries the full description, even when
+  the mark is background and the scene is about people.
+  WATCH (written before S2G landed): S2G says "thin short lines" in the same breath as "solid black only" and
+  "no thick heavy arms". If S2G comes back spidery too, "thin" is the word doing
+  the damage and the canon needs rewriting to lead with weight, not with size.
 PROMPT B (a80e193) — the mark gets its own sentences, weight stated BEFORE size:
   "THE MARK ABOVE THE PLAQUE IS A CRACK IN PLASTER AND IT IS DRAWN IN SOLID BLACK:
   one short thick black line about as wide as a man's hand, with three or four shorter
@@ -388,6 +392,22 @@ ALSO FIXED on this take: exactly TWO navy uniforms across the full frame width, 
   take 1's mirrored fourth guard is gone.
 STILL OPEN: the three bodyguards are not one group — the two navy are together at the
   left edge but Carrington's man in black stands across the frame on the right.
+CORRECTION 2026-09-08 07:00, after S15a-2 take 3. This entry was written from a
+single take and it overclaimed. Take 3 fired from the SAME sheet with the mark
+description untouched — only the shot-two guard line changed between them — and the
+mark came back GREY and wire-thin again, reading as an insect exactly as take 1 did.
+Measured on the opening frames:
+  take 2: registers as dark at threshold <80, bbox 96 x 125 px, 7.5% of frame width,
+          fill 0.12 — solid black, thick, angular.
+  take 3: does NOT register at <80 at all; only appears at 150-190 against a
+          background of 220. Bbox 59 x 56 px, 4.6% of frame width, fill 0.091.
+Take 3's mark is SMALLER than take 2's and still failed, so the causal story in canon
+rule 8 — bigger in frame means thinner — does not survive this data point. What
+actually differs is blackness, and it differed with no change to the words.
+WHAT THIS MEANS IN PRACTICE: the mark is not deterministic from the prompt. Two takes
+of one sheet give opposite results, so the remedy is not another rewrite. Fire, MEASURE
+against the rule 8 numbers, and keep the take that passes. Rule 8 remains a good
+acceptance TEST; it is not a reliable recipe.
 
 ### SC5 take 2 → take 3 · the wide shot was copying the plate's sky · free lane · PASSED 2026-09-08 04:05
 DEFECT SEEN (t1 credits, t2 free): shot one's sky came back flat blue-grey while shots
@@ -431,58 +451,6 @@ STILL OPEN: shot two broke location a third time — an open horizon with trees 
   looking down, the building is at your back. Turning the camera to look ALONG the
   facade makes both true at once. LESSON: before adding words to fix a background,
   check that the camera position you asked for can physically see it.
-
-CORRECTION 2026-09-08 07:00, after S15a-2 take 3. The entry above was written from a
-single take and it overclaimed. Take 3 fired from the SAME sheet with the mark
-description untouched — only the shot-two guard line changed between them — and the
-mark came back GREY and wire-thin again, reading as an insect exactly as take 1 did.
-Measured on the opening frames:
-  take 2: registers as dark at threshold <80, bbox 96 x 125 px, 7.5% of frame width,
-          fill 0.12 — solid black, thick, angular.
-  take 3: does NOT register at <80 at all; only appears at 150-190 against a
-          background of 220. Bbox 59 x 56 px, 4.6% of frame width, fill 0.091.
-Take 3's mark is SMALLER than take 2's and still failed, so the causal story in canon
-rule 8 — bigger in frame means thinner — does not survive this data point. What
-actually differs is blackness, and it differed with no change to the words.
-WHAT THIS MEANS IN PRACTICE: the mark is not deterministic from the prompt. Two takes
-of one sheet give opposite results, so the remedy is not another rewrite. Fire, MEASURE
-against the rule 8 numbers, and keep the take that passes. Rule 8 remains a good
-acceptance TEST; it is not a reliable recipe.
-
-### S2R-JC · nothing can change ACROSS a cut — the model has no cut · FAILED TWICE, diagnosed 2026-09-08
-DEFECT SEEN: the scene's own core beat, "THE HEADS SWING", has not rendered in three
-  takes. Take 2 was flagged for it; take 3, after a full rewrite aimed at exactly that
-  beat, failed identically.
-MEASURED, take 3, greyscale mean absolute difference between frames:
-  WITHIN one shot, as a baseline:   2.0s vs 2.9s  = 6.74
-  ACROSS the cut at 3s:             2.9s vs 3.2s  = 3.31
-  ACROSS the cut at 9s:             8.9s vs 9.2s  = 5.64
-  ACROSS the cut at 15s:           14.9s vs 15.2s = 1.76
-  Every cut is LESS different than two frames inside the same uncut shot. Nothing
-  happens at any cut. This is the cheap test for any "jump cut" sheet and it takes
-  thirty seconds: if the across-cut diff does not beat the within-shot diff, the cut
-  is not doing anything.
-PROMPT A (take 2): "EVERY HEAD IN THE ROOM SWINGS TO THE LEFT… a ragged wave of them."
-PROMPT B (take 3, d0d19f9) — MY REWRITE, AND IT MADE IT WORSE: "THE HEADS ARE THE
-  WHOLE POINT OF THIS CUT… not an animated movement but a DIFFERENCE between the frame
-  before the cut and the frame after it… Put a frame from 2s beside a frame from 4s
-  and you see the same twelve people with their heads pointing the opposite way."
-WHY B FAILED, and it is a general fact about the tool, not about this scene:
-  Seedance generates twenty CONTINUOUS seconds. It has no concept of a cut. A "hard
-  cut" in the prompt buys, at best, a small discontinuity that the model then smooths
-  over. So asking twelve people to flip head direction instantly at a cut boundary is
-  asking for a teleport — precisely the artefact a video model is trained to erase.
-  Worse, prompt B explicitly told it NOT to animate the turn, which is the one thing
-  it can do well. I steered it away from the only available mechanism.
-PROMPT C (take 4, f67e866): every swing moved INSIDE its shot — "WE WATCH THEM DO IT.
-  It takes about half a second and every part of it is on screen: the necks rotate,
-  the chins travel, the faces sweep across." The cuts stay, but they only jump the
-  clock between bids; the 15s beat becomes the one where nobody turns, so that after
-  four visible sweeps the stillness is the event.
-LESSON, and it applies to every multi-cut sheet in this film: A CUT CANNOT CARRY A
-  CHANGE. Anything that must happen has to be a movement the camera sees happen inside
-  a shot. Use cuts for what they can do — jump the clock, change the angle — and never
-  to hold the difference between two states.
 
 ---
 
@@ -539,13 +507,6 @@ WHY B HELD: both men were given a place, and the place was tied to the wardrobe 
   model can see. Naming who owns the slot beats describing the slot.
 LESSON: a bound character with props and no position will take the most salient
   slot in the frame. Every chip that is a person gets a WHERE, not only a WHAT.
-
-
-Only entries whose take has NOT yet been fired or judged belong under this
-header. Ten finished entries had drifted below it because new material was
-appended to the end of the file, which made the section read as though the
-crack, the van and the copyright gate were still open questions. Moved back
-up on 2026-09-08; append new PASSED entries ABOVE this header from now on.
 
 ---
 
@@ -630,18 +591,47 @@ characters sharing one reference picture need two POSITIONS, not a count:
 tunics whole" gave each man his own place. Same family as the S15b "every
 person-chip gets a WHERE" entry.
 
-## S2R-JC THE BATTLE — take 3 → take 4 (2026-09-09, PARTIAL PASS, best of four)
+## S2R-JC THE BATTLE — nothing can change ACROSS a cut, the model has no cut · takes 2-3 FAILED (diagnosed 2026-09-08) → take 4 PARTIAL PASS, best of four (2026-09-09)
 
-**Defects seen (takes 2 and 3):** the "heads swing" core beat scored 0/12 across
-every jump cut; take 3 also rendered ELEVEN people — the registrar merged into
-Carrington (one figure holding the cane AND the ledger).
+**Defects seen (takes 2 and 3):** the scene's own core beat, "THE HEADS SWING",
+scored 0/12 across every jump cut. Take 2 was flagged for it; take 3, after a full
+rewrite aimed at exactly that beat, failed identically — and also rendered ELEVEN
+people: the registrar merged into Carrington (one figure holding the cane AND the
+ledger).
 
-**Prompt A (474b653, take 3):** the head swing was written as a DIFFERENCE across
-a hard jump cut ("put a frame from 2s beside a frame from 4s and see the same
-twelve people with their heads pointing the opposite way"); the registrar was
-"@char_registrar, near left, writing".
+**Measured, take 3**, greyscale mean absolute difference between frames:
+  WITHIN one shot, as a baseline:   2.0s vs 2.9s  = 6.74
+  ACROSS the cut at 3s:             2.9s vs 3.2s  = 3.31
+  ACROSS the cut at 9s:             8.9s vs 9.2s  = 5.64
+  ACROSS the cut at 15s:           14.9s vs 15.2s = 1.76
+  Every cut is LESS different than two frames inside the same uncut shot. Nothing
+  happens at any cut. This is the cheap test for any "jump cut" sheet and it takes
+  thirty seconds: if the across-cut diff does not beat the within-shot diff, the cut
+  is not doing anything.
 
-**Prompt B (f67e866 + d27064f, take 4):**
+**Prompt A (take 2):** "EVERY HEAD IN THE ROOM SWINGS TO THE LEFT… a ragged wave of them."
+
+**Prompt B (take 3; d0d19f9 per the 2026-09-08 entry, 474b653 per the 2026-09-09
+entry) — my rewrite, and it made it worse:** the head swing written as a DIFFERENCE
+across a hard jump cut: "THE HEADS ARE THE WHOLE POINT OF THIS CUT… not an animated
+movement but a DIFFERENCE between the frame before the cut and the frame after it…
+Put a frame from 2s beside a frame from 4s and you see the same twelve people with
+their heads pointing the opposite way." The registrar was "@char_registrar, near
+left, writing".
+
+**Why B failed**, and it is a general fact about the tool, not about this scene:
+  Seedance generates twenty CONTINUOUS seconds. It has no concept of a cut. A "hard
+  cut" in the prompt buys, at best, a small discontinuity that the model then smooths
+  over. So asking twelve people to flip head direction instantly at a cut boundary is
+  asking for a teleport — precisely the artefact a video model is trained to erase.
+  Worse, prompt B explicitly told it NOT to animate the turn, which is the one thing
+  it can do well. I steered it away from the only available mechanism.
+
+**Prompt C (f67e866 + d27064f, take 4):** every swing moved INSIDE its shot — "WE
+  WATCH THEM DO IT. It takes about half a second and every part of it is on screen: the necks rotate,
+  the chins travel, the faces sweep across." The cuts stay, but they only jump the
+  clock between bids; the 15s beat becomes the one where nobody turns, so that after
+  four visible sweeps the stillness is the event.
 > [6s] AND WE WATCH THEM ALL TURN BACK, right there in the shot: every head sweeps …
 > - @char_registrar, near left — a SEPARATE man from Carrington, standing two
 >   paces nearer the lens than him and a pace further left, on his own, writing
@@ -658,57 +648,16 @@ not the full twelve-head sweep.
 **What did not hold:** the three "HARD JUMP CUT, same frame" beats rendered as
 NO cut at all (0.2s sweep: no spike above 15x; only raised runs at ~3/6/9.5/12.5s).
 
-**Lessons:** (1) a cut described as "same frame, the clock jumps" gives Seedance
-nothing to cut TO — it renders continuous motion; a cut needs a visible change
-of framing or subject. (2) Separating two characters is done with distance and
-ownership ("two paces nearer the lens … the ledger is his alone"), the same
-rule as S16's guards and S15b's workman. (3) Head turns rendered as motion only
-once they were written as motion inside the shot, never as a before/after.
-
-## PENDING — Prompt A quoted now, Prompt B on the day the take passes
-
-### S2R-F · THE BATTLE, FACES · take 1 rejected by moderation 2026-09-09 16:30 → take 2 PENDING
-DEFECT SEEN: take 1 (fired 13:19, 20s, 13 chips = the S2R-JC t4 set that rendered on
-  this lane on 2026-09-08) sat queued 185 min, went in_progress at 16:24 and came
-  back "NSFW · Credits refunded · Rejected due to copyright restrictions" with no
-  frames. Chips ruled out by the S2R lesson (identical set rendered) → the new TEXT.
-PROMPT A (2b8c3ab): "he says it quietly, the way a man throws a punch he has been
-  saving" · "Carrington is smiling again, gold teeth bared" · "a single flinch
-  that runs through everybody at once: mouths open, a hand flies to a mouth".
-PROMPT B (bf00af7 / 12c6431 for the SPLIT twin): "the way a man lays down the card
-  he has been holding all night" · "the gold teeth showing" · "a single start …
-  a hand rises to a mouth". Nothing else changed.
-WHY B SHOULD HOLD: the gate has twice been an image (croc bag) and once a random
-  output-filter hit (S2M t3 → identical 3b rendered); this is the first case where
-  the only new variable is violence-adjacent prose. Verdict on take 2 not yet
-  recorded — if take 2 also rejects with the same chips, the prose theory is wrong
-  and the next diff is the previz-less close-up framing itself.
-
-
-### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
-PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
-  Valder's position given once among thirteen references.
-PROMPT B (db41c9b): numbered line order with Valder in front, "the cart WITH
-  Dupe — separation banned", review order 1b/1c added.
-VERDICT: awaiting t3.
-
-### The projector plate (image) · take 1 not Dupe (prose-only), take 2 not Dupe (image reference attached)
-PROMPT A: prose-only face description, no image reference.
-PROMPT B: the same prose with ELEMENT-dupe-interview-house.png attached — still
-  rejected by the CEO 2026-09-06. No Prompt C from us: the CEO supplies the
-  next plate. Recorded so nobody fires a third.
-
-### IV2c · the crew reveal · takes 1 → 4 → 5, verdict on take 5 not recorded
-PROMPT A (t4, 6ec846e): the man who knocked the stand over "STANDING FROZEN
-  and STARING at the floor… ARMS COMPLETELY STILL. He is not gesturing, not
-  explaining, not shrugging, not talking" (a stillness written as a list of
-  bans).
-PROMPT B (t5, 4f04928): "CROUCHED DOWN ON ONE KNEE… picking his light stand
-  back up" — an action in place of a stillness. Also from t4: the fallen
-  stand made visible ("unmistakably DOWN and on the floor") and two of Dupe's
-  furnishings required in frame so the room reads as his house.
-VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
-  the projector (IVR1/2/3), so this entry closes only if IV2c t5 is used.
+**Lessons:** (1) A CUT CANNOT CARRY A CHANGE, and it applies to every multi-cut
+sheet in this film. Anything that must happen has to be a movement the camera sees
+happen inside a shot: head turns rendered as motion only once they were written as
+motion inside the shot, never as a before/after. Use cuts for what they can do —
+jump the clock, change the angle — and never to hold the difference between two
+states; a cut described as "same frame, the clock jumps" gives Seedance nothing to
+cut TO — it renders continuous motion; a cut needs a visible change of framing or
+subject. (2) Separating two characters is done with distance and ownership ("two
+paces nearer the lens … the ledger is his alone"), the same rule as S16's guards
+and S15b's workman.
 
 ## 2026-09-09 21:15 — S2AJ take 1 PASS · S2R-F take 2 REJECTED (moderation)
 - **S2AJ "THE INTERPRETATIONS, JUMP CUT" t1** (task-b69ade88, free lane, fired 20:28:30, asset count 754→755, rendered ~21:05): CTO review PASS — 20.04s 720p, jump cuts land (critic in by 4s, student by 8s, cobalt at ~16s), black from 19s, camera locked, six lines in order, quarrel = fur (crying) / critic / student, husband silent with the tissue, row cobalt·student·fur+maroon·critic as Draft 5 @1:52. Filed Fix-2 `S2AJ-InterpretationsJumpCut-Fix1.MP4` (id 1m7joCqg5uotB94o-jr5ZluqBCAAcgx2T, md5 21251fe0e7548eac6882b56ad04cb03c). Replaces Draft 5 1:31–1:42.
@@ -790,7 +739,7 @@ VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
 - Ladder worker task-1755ef77 killed on winbox (pid 26544), tab claim released, task cancelled, branch merged. **L3 (asset 380b3f37…, fired 12:49, both bidder Elements) was still in flight** — it will land on its own in the grid; nobody harvests it. If it shows `NSFW / Credits refunded` the refund is automatic and the ladder's answer is complete (Madame's Element = the trigger); if it PASSES, 130 more credits were spent and the trigger is the *pair* of bidder Elements together. Read the card later, do not re-fire either way.
 - **Credits spent today: 260** (L1 + L2, 130 each; L0 refunded). No further credit-lane fires without a new CEO order.
 - Standing rule restored: FREE lane (Unlimited) only.
-## 2026-09-10 13:20 — CAUSE FOUND: `@project_absence_char_woman_c` (Madame's Element) is the moderation trigger
+## 2026-09-10 13:20 — CAUSE FOUND: `@project_absence_char_woman_c` (Madame's Element) is the moderation trigger · [SUPERSEDED in part by the 13:40 correction below]
 Two more cards landed and closed the question — five data points, one variable:
 
 | fire | chips | Madame's Element | framing | result |
@@ -802,7 +751,7 @@ Two more cards landed and closed the question — five data points, one variable
 | S2R-W (10:02) | 13 | **bound** | **WIDE, no close-ups** | **REJECTED** (asset d58ee0c0…, `NSFW / Credits refunded / Rejected due to copyright restrictions.`) |
 
 - Every rejection has her Element bound; every pass has it absent. **Framing is not the variable** — S2R-W was the wide test and it was rejected anyway. Carrington's Element (`gentleman_e`) is cleared by L2. This also explains the three earlier auction rejections (07-09 Sep), all of which bound her.
-- **Rule from here: never bind `@project_absence_char_woman_c` again.** Madame is written as prose — the exact L1/L2 wording, which renders her consistently (green leather gown, pompadour, cat-eye sunglasses) shot to shot. Her Element should be treated as dead; do not re-create it from the same plate.
+- [SUPERSEDED 13:40: downgraded to "prefer prose for her in this scene; if a future sheet needs the Element, expect a coin flip".] **Rule from here: never bind `@project_absence_char_woman_c` again.** Madame is written as prose — the exact L1/L2 wording, which renders her consistently (green leather gown, pompadour, cat-eye sunglasses) shot to shot. Her Element should be treated as dead; do not re-create it from the same plate.
 - Credits: **260 total** (L1 + L2). L0, L3 and S2R-W were all refunded. No credit-lane fire since the CEO's 13:15 stop order.
 - `s2rq-fix2-the-bids-quick.txt` patched to v2 the same minute: Madame's chip removed, prose in, 3 chips (loc_hall_big_e, gentleman_e, project_absence_char_valder). The CEO's clipboard was re-copied before he fired it.
 - **Free lane**: S2R-W's rejection freed the slot; harvester task-3b2070ff fired **S20** at 13:1x (asset 7a1c376d-5bc6-477e-9173-340be87c0663, 4/4 chips), S0b next.
@@ -842,27 +791,26 @@ to "prefer prose for her in this scene; if a future sheet needs the Element, exp
 - The take-3 review order now leads with **count the carts in every frame, and crop the right third at 7/15/19 s** — the exact check that would have caught the defect on take 2.
 ## 2026-09-10 16:10 — MODEL LAB: Seedance 2.0 Fast + Mini at 15 s (CEO authorized the credit spend)
 - CEO 16:05: "ทดสอบยิงจริง 15s เลย … ทดสอบด้วย Mini ได้เลย … Mini 15s แค่ 38 credit … ลองจริงได้เลย" then "ลองฉากประมูลนะ แบบ Jump Cut นะ".
-- Measured prices already on file (composer, 720p, credit lane): **2.5** 5s 33 · 10s 65 · 15s 98 · 20s 130 · **2.0** 5s 23 · 10s 45 · 15s 68 · **20s not offered, the model caps at 15s** · **2.0 Fast** ~17/5s. Unlimited does NOT cover 2.0 — toggling it opens a purchase modal, so 2.0 costs credits while the 2.5 grant is still free until 11 ก.ย. 06:59.
+- Prices on file that afternoon, and what the Unlimited grant covers: SKILL.md "What a fire costs" and "Model tiers". The 2.5 grant was free until 11 ก.ย. 06:59.
 - Test payload `s2rq15-lab-the-bids-jumpcut-15s.txt` (213506c): the auction jump cut compressed 20 s → 15 s with all five bids kept (2.5 s each); only the 20 s version's full-shot ending was dropped, and the editor can take that beat from the 2.5 footage. 3 chips (loc_hall_big_e, gentleman_e, valder); Madame stays prose.
 - Worker **task-ce0d3be7** on winbox, credit lane, TWO fires only: 2.0 Fast then Mini. Caps written into the brief — abort above 70 credits (Fast) or 55 (Mini). Runs alongside task-fc063e0e, which owns the free lane; the two lanes do not share a slot.
 - **The finding that matters most is not the picture:** whether the cheap models accept `@Element` chips at all. If they refuse or drop them, the cheap models are ruled out for this film no matter the price, because the whole film depends on the same faces across 40+ clips. The brief tells the worker to stop and report rather than fire if that happens.
 - Review order is built around likeness drift across hard cuts (Carrington's three close-ups at 0/5/10 s), not general prettiness.
 ## 2026-09-10 16:35 — MODEL LAB fire 1: Seedance 2.0 Fast 15 s — PASS, and it is not a downgrade
-- Exact model names in the picker: **"Seedance 2.0 Fast"** and **"Seedance 2.0 Mini"**, both capped at 15 s. **Both accept `@Element` chips normally** — 3/3 bound, 0 error chips. That was the gating question and it is answered: the cheap tiers are not ruled out.
+- Exact model names in the picker: **"Seedance 2.0 Fast"** and **"Seedance 2.0 Mini"**. Chips: 3/3 bound, 0 error chips (the verdict is in SKILL.md "Model tiers").
 - Fired 16:01, **53 credits** (predicted ~51), landed **~4.5 min later**. `hf_20260910_090100_37476944-….mp4`, 32,031,067 B, md5 92eda84b43fb5ce5d5a414ae3eba5820, 1280×720, 15.0 s.
 - **CTO verification (I did not trust the worker's frame mapping and was right to check, then wrong about what I found).** The worker sampled at 1.2/3.7/6.2/8.7/11.2/14 s; two of those land exactly on cut boundaries, and the 6.2 s frame showed Madame where the sheet wants Carrington, which looked like a swapped alternation. Cut sweep (fps 10, grey 64×36, diff > 15) gives the real cuts at **2.0 / 4.0 / 6.2 / 8.7 / 11.4 s**; re-sampling each shot's true mid-point (1.0 / 3.0 / 5.1 / 7.4 / 10.0 / 13.2) shows **C · M · C · M · C · Valder — the alternation is exactly right.** My suspicion was a sampling artefact, not a model defect.
 - Review: six shots, five hard cuts, no dissolve · Carrington identical across his three shots (Element) · **Madame identical across her two from PROSE alone** · one face per shot, no intruding shoulder · Valder deadpan, correct blazer/scarf/round tinted glasses, does not speak · whisper: "10 million, 15, 20 million, 25, 50" — five bids, right order · detail (skin, hair, leather sheen) reads as high, not cheap.
-- **The one real deviation from the sheet: the background.** The sheet asks for "a plain warm cream gallery wall softly out of focus, nothing else in frame"; the model rendered the full hall with chromium columns receding, noticeably sharper and more symmetrical than either 2.5 take. It looks good — arguably more Wes Anderson — but it does **not match the 2.5 L1/L2 footage**, so 2.0 Fast and 2.5 clips cannot be intercut inside the same scene without a visible jump. Pick one model per scene.
-- **Numbers that matter more than the picture:** 53 vs 98 credits at 15 s (**-46%**) and **~4.5 min vs 11-19 min render**. With the free lane jammed all day (0 usable clips since morning, S20 queued 162 min), the render speed may be worth more than the discount for finishing before the 11 ก.ย. 06:59 cutoff.
+- [SUPERSEDED as a model tell by the 2026-09-11 00:15 S2R-Q entry below; "one model per scene" stands on colour and bitrate — SKILL.md "Model tiers".] **The one real deviation from the sheet: the background.** The sheet asks for "a plain warm cream gallery wall softly out of focus, nothing else in frame"; the model rendered the full hall with chromium columns receding, noticeably sharper and more symmetrical than either 2.5 take. It looks good — arguably more Wes Anderson — but it does **not match the 2.5 L1/L2 footage**, so 2.0 Fast and 2.5 clips cannot be intercut inside the same scene without a visible jump. Pick one model per scene.
+- Price and render time against 2.5: SKILL.md "Model tiers". The free lane was jammed all day (0 usable clips since morning, S20 queued 162 min).
 - Fire 2 (Mini, 38 credits) next. Running total for the lab: 53 credits.
 ## 2026-09-10 16:50 — MODEL LAB fire 2: Seedance 2.0 Mini 15 s — works, but it is the draft tier
 - Fired 16:12, **38 credits**, landed in **under 4 min**. `hf_20260910_091234_c6f16959-….mp4`, 8,140,097 B, md5 b9571603e39b9b8c536bf6dc92cc6ddc. Model switch preserved the pasted prompt and all 3 chips — no re-paste needed. **Mini has no High/Medium/Low quality control at all**; that row is simply absent from its settings.
-- **CTO verification** (cut sweep + true mid-points + whisper, same method as Fast): cuts at **1.7 / 3.5 / 5.4 / 7.5 / 10.4 s** — furthest drift of the three, leaving a 4.6 s final Valder shot. Audio clean: "10 million | 15 | 20 million | 25 | 50", five bids, right order, better separated than Fast's. Both faces identical across every cut; 3/3 chips bound.
-- **Measured against Fast on the identical prompt** — bitrate **4.31 vs 16.97 Mbps** (Fast is 3.9×), file 8 MB vs 32 MB, saturation **0.408/0.484 vs 0.475/0.571** (Fast +16-18%), edge energy slightly HIGHER on Mini at a quarter the bitrate = over-sharpening and compression, not detail. Skin reads waxy on a large face. **Mini also ignored the framing spec**, pulling back to ~45% face height where the sheet asked for 60%.
-- This confirms the CEO's eye-read at 16:40 ("Fast ดีกว่า Mini มาก … เห็นได้ชัดว่าถูก Upscale มา สีสันสดใสกว่าต้นฉบับมาก") with numbers: Fast is both more saturated and genuinely higher-bitrate; Mini is cheap-looking in the literal sense.
-- **Lab total: 91 credits (~$3.8).** Both cheap tiers bind Elements and hold identity across hard cuts — the question that could have ruled them out is settled. Rule 14 in the skill now carries the full table.
+- **CTO verification** (cut sweep + true mid-points + whisper, same method as Fast; cut timings in SKILL.md "Model tiers"). Audio clean: "10 million | 15 | 20 million | 25 | 50", five bids, right order, better separated than Fast's. Both faces identical across every cut; 3/3 chips bound.
+- **Measured against Fast on the identical prompt** (bitrate, file size, saturation, sharpening, skin, framing) with the CEO's 16:40 eye-read: SKILL.md "Model tiers". Raw values: bitrate Mini 4.31 vs Fast 16.97 Mbps (3.9×); saturation Mini 0.408/0.484, Fast 0.475/0.571.
+- **Lab total: 91 credits (~$3.8).**
 ## 2026-09-10 17:10 — lab closed · S20 landed after 193 min · S2PT take 3 hit the viewport lock-up twice
-- Model lab **task-ce0d3be7 closed and merged** (3f0967e). Verdict on the branch: both cheap tiers usable, Fast is the one to reach for. Lab cost 91 credits total.
+- Model lab **task-ce0d3be7 closed and merged** (3f0967e); the verdict is SKILL.md "Model tiers".
 - **S20 left the queue at ~193 min and COMPLETED** — the free lane's first delivery since morning. Worker is harvesting; CTO review at full res still to come.
 - **S2PT take 3 could not be staged: the composer tab hit the documented ~126×67 "MOBILE ACCESS COMING SOON" viewport collapse TWICE**, on two different fresh tabs. The worker recovered correctly each time (fresh tab, never resize) and has pivoted to harvesting S20 first, leaving S2PT to a later attempt — the right call, harvest needs no composer.
 - Load check on winbox at the time: **15 claude.exe processes totalling ~1.2 GB and 18 Chrome processes.** Cross-referenced every pid against tasks.db: none of them are orphans from this session's terminal tasks (all of those are dead), so they belong to other sessions or are children of the live worker — **not mine to kill (IRON §33)**. Killing the finished lab worker did free one session's worth of tabs and memory, which is the only lever this session had.
@@ -890,8 +838,7 @@ to "prefer prose for her in this scene; if a future sheet needs the Element, exp
 - **S0b**: fired 21:00 free lane, landed ~21:38. `hf_20260910_133841_798fc88b-….mp4`, md5 86644c6f40edc3f288330abc86c2ef97, 8 s. CTO verification: no cut, one continuous shot; **camera locked** — first-vs-last on fixed architecture reads 1.65 / 1.43 / 1.03 out of 255; whisper finds **no speech**, as the sheet demanded. Castors clearly visible under the cart, ONE cleaner, ONE cart, camera low. Minor deviation: the rack carries towels rather than being empty — realistic, not worth a re-fire. **PASS**, filed Fix-2 `S0b-TheCartRollsIn-Fix1.MP4` (id 1mFdZxKI0gWAyLNgeNrtF2ZhUtq3VOW96). Editor row [1], replaces 0:10–0:16.
 - **Measurement note worth keeping:** my usual corner-lock check (max drift of every sampled frame against the first) returned **14.33** here and looked like a moving camera. It was not — a passing object and its reflected light entered the crop. **Comparing the FIRST and LAST frames on architecture-only regions is the honest test**; the max-against-first form gives false positives whenever anything crosses the corner.
 - **S2PT take 3 FAILS** (CEO caught it, and the operator flagged it independently): the second-cart defect is gone, but **Dupe walks AHEAD of his cart**, so he cannot be pushing it. Six cast, one cart, cane correctly on Carrington, six lines in order, continuous track — everything else passes. Filed as `-take3` on Drive but **not sent to the editor**.
-- **Root cause, and it is mine: the previz.** `s2pt_previz.py` placed DUPE at dy -2.90 with the cart at -3.60 and the party walking +Y, putting him 0.7 m in front of it. Takes 1-3 all inherited that blocking from the video reference; no prose could have overridden it.
-- **Three previz iterations to actually fix it**, each one teaching something: (1) swapping the two dy values pushed Dupe to -3.60 and **off the frame edge** — only his label rendered; (2) moving the cart forward to -2.20 instead kept Dupe at his known in-frame mark, but he still did not render; (3) querying the blend directly showed why — **DUPE sat at depth 6.00 directly behind the cart at 5.25 on nearly the same screen x, so the cart hid him in every previz this project has ever made.** Fixed by putting him at the cart's own depth (x -0.15). Lesson: **verify a previz proxy is actually VISIBLE, not merely present** — `world_to_camera_view` plus a look at the render, every time.
+- **Root cause, and it is mine: the previz**, not the prose — how it was found and fixed is the A/B entry "S2PT · takes 1-3 → 4" below.
 - Sheet at **v4**: the cart-ahead relationship stated three ways plus eleven new negatives. Take 4 is queued behind S22 and S2R-Q on the CEO's instruction ("ยังก่อน เอา Take อื่นก่อน อันนี้ต่อคิวไว้").
 - Worker **task-41684e16** on winbox: S0b harvest (done by its predecessor) → S22 → S2R-Q → S2PT take 4.
 ## 2026-09-10 22:00 — session cto-c5bdcad2 PARKED (CEO ran /session-save)
@@ -933,6 +880,16 @@ WHY B HELD: `@Video 1` carries blocking, and blocking beats prose every time (§
   inherited "Dupe in front" from the video reference, so no wording could win. Worse, at x 0.60 he
   sat 0.75 m deeper than the cart and was **completely occluded by it** from the side-on camera —
   the previz had never once shown him, so nobody could see the blocking was wrong by looking.
+HOW IT WAS FOUND (log 2026-09-10 21:45): `s2pt_previz.py` placed DUPE at dy -2.90 with
+  the cart at -3.60 and the party walking +Y, putting him 0.7 m in front of it. Three
+  previz iterations to actually fix it, each one teaching something: (1) swapping the
+  two dy values pushed Dupe to -3.60 and off the frame edge — only his label rendered;
+  (2) moving the cart forward to -2.20 instead kept Dupe at his known in-frame mark,
+  but he still did not render; (3) querying the blend directly showed why — DUPE sat
+  at depth 6.00 directly behind the cart at 5.25 on nearly the same screen x, so the
+  cart hid him in every previz this project has ever made. Fixed by putting him at
+  the cart's own depth (x -0.15). Lesson: verify a previz proxy is actually VISIBLE,
+  not merely present — `world_to_camera_view` plus a look at the render, every time.
 LESSON: when a defect survives three rounds of prose hardening, stop writing prose — the reference
   is overriding you. §11's closing line ("check the reference before you rewrite the words at all")
   is the rule, and this is what ignoring it costs: three free-lane slots, ~9 hours.
@@ -953,3 +910,60 @@ LESSON: when a defect survives three rounds of prose hardening, stop writing pro
 - **The fix, in v2 (a82fe68): four COUNTABLE crossings with timings** — student crosses the full width by 5 s; magenta and cobalt **swap sides** by 8 s, passing each other mid-frame; Dupe mops from one end to the other through the middle by 12 s; student crosses back by 15 s. Plus a review test that is falsifiable: **if the arrangement at 15 s matches the arrangement at 1 s, the shot failed** no matter how busy the hands are.
 - **LESSON, general: "chaotic", "restless", "never settles" are not directions.** For any multi-person scene, state the number of position changes, who swaps with whom, and by when. Motion the reviewer cannot COUNT is motion the model will not render. Belongs beside §11.
 - Same night, same sheet, the CEO then reversed his own 13:50 brief: camera turns to face the cracked wall (`loc_hall_big_d`, the crack carried by the reference and never described), Dupe's cart put away, the door moved BEHIND the camera so every head turns to the lens at the freeze, and the weeping woman now cries for the full 20 s while her husband dabs her tears. Chips drop 9 → 7. Recorded in the sheet's notes as a reversal, with take 1's version preserved in git — §8: follow the new answer, never edit the old record.
+
+---
+
+## PENDING — Prompt A quoted now, Prompt B on the day the take passes
+
+Only entries whose take has NOT yet been fired or judged belong under this
+header. Ten finished entries had drifted below it because new material was
+appended to the end of the file, which made the section read as though the
+crack, the van and the copyright gate were still open questions. Moved back
+up on 2026-09-08; append new PASSED entries ABOVE this header from now on.
+(2026-09-25: the header itself had since drifted up among the log entries;
+moved to the end of the file.)
+
+### S2R-F · THE BATTLE, FACES · take 1 rejected by moderation 2026-09-09 16:30 → take 2 PENDING
+DEFECT SEEN: take 1 (fired 13:19, 20s, 13 chips = the S2R-JC t4 set that rendered on
+  this lane on 2026-09-08) sat queued 185 min, went in_progress at 16:24 and came
+  back "NSFW · Credits refunded · Rejected due to copyright restrictions" with no
+  frames. Chips ruled out by the S2R lesson (identical set rendered) → the new TEXT.
+PROMPT A (2b8c3ab): "he says it quietly, the way a man throws a punch he has been
+  saving" · "Carrington is smiling again, gold teeth bared" · "a single flinch
+  that runs through everybody at once: mouths open, a hand flies to a mouth".
+PROMPT B (bf00af7 / 12c6431 for the SPLIT twin): "the way a man lays down the card
+  he has been holding all night" · "the gold teeth showing" · "a single start …
+  a hand rises to a mouth". Nothing else changed.
+WHY B SHOULD HOLD: the gate has twice been an image (croc bag) and once a random
+  output-filter hit (S2M t3 → identical 3b rendered); this is the first case where
+  the only new variable is violence-adjacent prose. Verdict on take 2 not yet
+  recorded — if take 2 also rejects with the same chips, the prose theory is wrong
+  and the next diff is the previz-less close-up framing itself.
+STATUS 2026-09-25: take 2 was judged — rejected by moderation (log 2026-09-09
+  21:15); the cause was chased on the credit lane in the 2026-09-10 ladder
+  (11:45 → the 13:40 correction).
+
+### S2P · Valder's tour · t1 no Valder, t2 cart separated from Dupe and Valder at the back
+PROMPT A (t2, 10ba858 era): the cart and Dupe described in separate lines;
+  Valder's position given once among thirteen references.
+PROMPT B (db41c9b): numbered line order with Valder in front, "the cart WITH
+  Dupe — separation banned", review order 1b/1c added.
+VERDICT: awaiting t3.
+
+### The projector plate (image) · take 1 not Dupe (prose-only), take 2 not Dupe (image reference attached)
+PROMPT A: prose-only face description, no image reference.
+PROMPT B: the same prose with ELEMENT-dupe-interview-house.png attached — still
+  rejected by the CEO 2026-09-06. No Prompt C from us: the CEO supplies the
+  next plate. Recorded so nobody fires a third.
+
+### IV2c · the crew reveal · takes 1 → 4 → 5, verdict on take 5 not recorded
+PROMPT A (t4, 6ec846e): the man who knocked the stand over "STANDING FROZEN
+  and STARING at the floor… ARMS COMPLETELY STILL. He is not gesturing, not
+  explaining, not shrugging, not talking" (a stillness written as a list of
+  bans).
+PROMPT B (t5, 4f04928): "CROUCHED DOWN ON ONE KNEE… picking his light stand
+  back up" — an action in place of a stillness. Also from t4: the fallen
+  stand made visible ("unmistakably DOWN and on the floor") and two of Dupe's
+  furnishings required in frame so the room reads as his house.
+VERDICT: take 5 landed 2026-09-05 04:39; the interview is being re-shot with
+  the projector (IVR1/2/3), so this entry closes only if IV2c t5 is used.

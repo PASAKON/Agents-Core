@@ -1,3 +1,7 @@
+> **HISTORY since 2026-09-25 — edit the skills, not this file.** The working copy of these rules is
+> `.claude/skills/CTO_Film_PromptFormat/SKILL.md` (every engine) and `.claude/skills/CTO_Seedance2.5_Higgsfield/SKILL.md`
+> (Seedance-only: the sound line, camera words, short lines, `@Video 1` once, previz). This file stays as the original evidence.
+
 # HOUSE PROMPT TEMPLATE — researched 2026-08-28 · applies to every video prompt
 
 Sources: Higgsfield's own Seedance guide, fal.ai's guide, ChatCut's formulas,

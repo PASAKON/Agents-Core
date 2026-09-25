@@ -96,7 +96,7 @@ DESCRIBES_FORBIDDEN_RE = re.compile(
 # a bare cross-scene pointer sitting in prose (rule 9 -- "as S12a" is already
 # in the CTO grep above; this catches the "in S14" / "from S12" shape too)
 SCENE_CROSS_REF_RE = re.compile(r"\b(?:in|from|brings.{0,20}in) S\d+\b")
-# rule 10 / PROMPT-STYLE.md:75-79 -- meta-commentary phrases measured to get
+# rule 10 / PROMPT-STYLE.md:79-83 -- meta-commentary phrases measured to get
 # spoken aloud even when visual review passes clean
 UNSAFE_PHRASE_RE = re.compile(
     r"with no idea what he is doing"
@@ -438,7 +438,7 @@ def lint_file(path: Path, shot: str | None = None) -> list[Finding]:
                         + " and ".join(missing)
                         + ". A prompt that gives the model two reasons to draw the same "
                           "person renders a twin, and the take is unusable. See "
-                          "higgsfield-unlimited-gen SKILL.md.")
+                          "CTO_Seedance2.5_Higgsfield SKILL.md, IRON RULE OF PROMPT WRITING.")
             )
 
     return findings
