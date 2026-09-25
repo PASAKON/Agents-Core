@@ -1,0 +1,24 @@
+shot	act	dur_s	chips	prompt_sha	status	flow_clip_id	file	sha256	got_dur	attempts	note
+1	1	8	@sia__face,@yai__face,@kla__face,@lan__busy,@sack,@yard_scale,@sia__boss,@yai__collect,@kla__school	6cbc178083fb06ee6f4ce890c8cee7cb6f16d1e72417063b3d470f818f339398	todo					0	
+2	1	8	@yai__face,@sia__face,@kla__face,@lan__busy,@sack,@yard_scale,@yai__collect,@sia__boss,@kla__school	7220058dbb4726f1d1c8f6a94060c499460350697522761f1ebe1a948c0dd136	todo					0	
+3	1	8	@yai__face,@sia__face,@lan__busy,@wallet,@yai__collect,@sia__boss	f485e054523ea30447016560dceb199a1cb4eda459f229fdc932fe1f2e9e3c69	todo					0	
+4	1	8	@sia__face,@yai__face,@lan__busy,@wallet,@sia__boss,@yai__collect	3ea7ee8d2513e5343074705655010601be688843d5ac2edf25dcd3542c4f224c	todo					0	
+5	1	8	@sia__face,@kla__face,@lan__busy,@sia__boss,@kla__school	e7f7e172cb7620112d38d1da7167103db774e001bed4b540fddebff9af6dc680	todo					0	
+6	1	8	@tor__face,@yai__face,@baan__inside,@jar__third,@tor__home,@yai__home	dde336bad205aede661b7a9d7ad5def247c2c5dfefaf5885f0cd4ff764109775	todo					0	
+7	1	8	@yai__face,@tor__face,@baan__inside,@yai__home,@tor__home	cb045159d91f5e85012841a36e5e6cf895fced190e5237b1ecda2d417813d959	todo					0	
+8	1	8	@sia__face,@kla__face,@lan__busy,@sia__boss,@kla__school	a6aeddadb7a4eb8177ec39f72ee8f0b00cf86d8a8202099d4e971e32ae27fe40	failed		/Users/gob/MoonieXHQ/Work/task-c2723478/out/ACT1-smoke/bad-shot-08.mp4	a947c18ff11357a51342223543bf99892b675d5e89e3b32645263b4f225fe6b8	RESOLUTION got 360x640 want 720x1280	1	RESOLUTION got 360x640 want 720x1280
+9	1	8	@yai__face,@sia__face,@kla__face,@lan__busy,@cart,@sack,@yai__collect,@sia__boss,@kla__school	f411bfbec801a3f7ee44228b60500b853678776add3542fee2fa4031e4d9156c	todo					0	
+10	1	8	@sia__face,@pa__face,@yai__face,@lan__busy,@sack,@yard_scale,@sia__boss,@pa__collect,@yai__collect	fdbc8fa5015bab5b1fcb3ac9b32b390669b9492f0047c2e0068ac6c43f319859	todo					0	
+11	1	8	@yai__face,@sia__face,@lan__busy,@yard_scale,@yai__collect,@sia__boss	4e2b11748e5ea86c8cfe2e24d436075046b6300c28f5d2faeae62d74b6820ad8	failed		/Users/gob/MoonieXHQ/Work/task-c2723478/out/ACT1-smoke/bad-shot-11.mp4	b20281c8e48c88af525d53c25ee54434c812afb96b313ad22ca182ab7b7eb56f	RESOLUTION got 360x640 want 720x1280	1	RESOLUTION got 360x640 want 720x1280
+12	1	8	@sia__face,@yai__face,@pa__face,@lan__busy,@sia__boss,@yai__collect,@pa__collect	d3323612a9f981ebe2e489d836c3c967ae17a8f2df6988e97226b6d9337404d6	todo					0	
+13	1	8	@sia__face,@yai__face,@lan__busy,@sia__boss,@yai__collect	02891b090f3d78d2779e5aeb3218b0f51cab3b39b66033d988d4361760c07d1e	failed		/Users/gob/MoonieXHQ/Work/task-c2723478/out/ACT1-smoke/bad-shot-13.mp4	161269ef0bddbec383f33515c417a3e27d9a855674d852a1521eba58f3268da7	RESOLUTION got 360x640 want 720x1280	1	RESOLUTION got 360x640 want 720x1280
+14	1	8	@kla__face,@yai__face,@lan__busy,@kla__school,@yai__collect	e0ae6ece0572067bb618356dfce32b4649fceec3152ed6006f0b842c717edd92	todo					0	
+15	1	8	@pa__face,@yai__face,@soi__canal,@cart,@pa__collect,@yai__collect	9089f313017ac3888dfba862b35f623107a165ad5f5d69c892718ed4fa39dc59	todo					0	
+16	1	8	@kla__face,@sia__face,@lan__busy,@kla__school,@sia__boss	227b544ffbe5e817757dbc8a7d456c4f7456c19b41d920a14eb71fa7d8459c90	todo					0	
+17	1	8	@sia__face,@lan__busy,@sia__boss	9aae8307e3be9c8fba28ff1906a51c5e5b3926c22a0ea4b4f3692f4b3ad694b2	todo					0	
+18	1	8	@kla__face,@sia__face,@lan__busy,@sack,@kla__school,@sia__boss	29e3f162fe0c7bc9d5d881e3922cafe7eee081dfa60aa1b8673f958afc7f9fef	todo					0	
+19	1	8	@yai__face,@tor__face,@baan__inside,@yai__home,@tor__home	5c35a7a0d6fb3ce3b7dc31511ed754bbeda351846d3e25152baefb0f99a2f329	todo					0	
+20	1	10	@tor__face,@yai__face,@baan__inside,@tor__home,@yai__home	7b9d8a7e848e1ebe736b4a3cea74c0a5724e8d52504b791e720e1e6e11c48402	todo					0	
+21	1	8	@yai__face,@tor__face,@baan__inside,@jar__full,@yai__home,@tor__home	894763ad90cc8c35d99fe68e365bc59d291299a9ef8dcd1a2eb101a00410b843	todo					0	
+22	1	8	@yai__face,@sia__face,@pa__face,@lan__busy,@yai__collect,@sia__boss,@pa__collect	680f705bd5425a415bba2b029038355aa673f28a351c6567d85e58fcc2cdce81	todo					0	
+23	1	8	@sia__face,@kla__face,@lan__busy,@sia__boss,@kla__school	487d12207148a8650ea03d691eeeeec21c9bf7fc5e1b8efdde34e2432aecf4b6	todo					0	

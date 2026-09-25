@@ -1,0 +1,24 @@
+shot	act	dur_s	chips	prompt_sha	status	flow_clip_id	file	sha256	got_dur	attempts	note
+1	1	8	@sia__face,@yai__face,@kla__face,@lan__busy,@sack,@yard_scale,@sia__boss,@yai__collect,@kla__school	eaf99d078143226b193a05f114d1d59c36d1b50832db3a3cbcbe0915b24ff3f3	verified		/Users/gob/MoonieXHQ/Work/task-c2723478/out/ACT1-reshoot/shot-01.mp4	02c12c354818538b096c0e034f057f47cb5d00a80f892f0ad65971ace2f30204	8.0s 720x1280	1	
+2	1	8	@yai__face,@sia__face,@kla__face,@lan__busy,@sack,@yard_scale,@yai__collect,@sia__boss,@kla__school	10c1443625b4ef1bb0be4e04f79a8bfbfa0c87c36ba87f33a1afd2c77bd91671	todo					0	
+3	1	8	@yai__face,@sia__face,@lan__busy,@wallet,@yai__collect,@sia__boss	f485e054523ea30447016560dceb199a1cb4eda459f229fdc932fe1f2e9e3c69	todo					0	
+4	1	8	@sia__face,@yai__face,@lan__busy,@wallet,@sia__boss,@yai__collect	3ea7ee8d2513e5343074705655010601be688843d5ac2edf25dcd3542c4f224c	todo					0	
+5	1	8	@sia__face,@kla__face,@lan__busy,@sia__boss,@kla__school	309b20007d4e7cdc5cb3ae2723a7a714dd5121f96125ab9ec7dda11fb393f28c	todo					0	
+6	1	8	@tor__face,@yai__face,@baan__inside,@jar__third,@tor__home,@yai__home	dde336bad205aede661b7a9d7ad5def247c2c5dfefaf5885f0cd4ff764109775	todo					0	
+7	1	8	@yai__face,@tor__face,@baan__inside,@yai__home,@tor__home	e17035484a4e92ea5c2393fd937b4f071275862ef9b81ce67061d1cc5f6e0a9d	todo					0	
+8	1	8	@sia__face,@kla__face,@lan__busy,@sia__boss,@kla__school	a6aeddadb7a4eb8177ec39f72ee8f0b00cf86d8a8202099d4e971e32ae27fe40	todo					0	
+9	1	8	@yai__face,@sia__face,@kla__face,@lan__busy,@cart,@sack,@yard_scale,@yai__collect,@sia__boss,@kla__school	1b617bbb545bc56642994cf442580940a80d485ecc095b5d3e852267671e37d3	todo					0	
+10	1	8	@sia__face,@pa__face,@yai__face,@lan__busy,@sack,@yard_scale,@sia__boss,@pa__collect,@yai__collect	5fec72b2496bc36bcf472e88f7252e21146288e548053433e37089485b3aae3e	todo					0	
+11	1	8	@yai__face,@sia__face,@lan__busy,@yard_scale,@yai__collect,@sia__boss	b2bf18d4875c9a1a83ec1027a1e188748256745d7ff656105a392e1b7e13db40	todo					0	
+12	1	8	@sia__face,@yai__face,@pa__face,@lan__busy,@yard_scale,@sia__boss,@yai__collect,@pa__collect	3f29b46a71f9bb28208e2210cd956120c6c7f4465a931bdfbde5f49f7968e0ae	todo					0	
+13	1	8	@sia__face,@yai__face,@lan__busy,@yard_scale,@sia__boss,@yai__collect	fb862c63ed423738be88ef006182b31b6af274315c36e1efc72c649b61277840	todo					0	
+14	1	8	@kla__face,@yai__face,@lan__busy,@yard_scale,@kla__school,@yai__collect	9b68d7fa9239bb5794884677ce87ca707986eee46c659203f5d31be79ce94ae6	todo					0	
+15	1	8	@pa__face,@yai__face,@soi__canal,@cart,@pa__collect,@yai__collect	2aa92ebd7846bc2b0fbc9c4922ccf0a8b9a257159454746009148f25ec674477	verified		/Users/gob/MoonieXHQ/Work/task-c2723478/out/ACT1-reshoot/shot-15.mp4	a657319630f9ab71667b07bb8db1f804579610c42c5dabb62ef76ddd063ab94f	8.0s 720x1280	1	
+16	1	8	@kla__face,@sia__face,@lan__busy,@yard_scale,@kla__school,@sia__boss	c4648d7f909bfcf230eab7d8a346312a1e14d2ee277450b911a6b5bc88c251b1	todo					0	
+17	1	8	@sia__face,@lan__busy,@yard_scale,@sia__boss	0ebec5173cc48f697d201bcbfea68f0d0b359a1a706c6f9a1e933ed7a7a74574	todo					0	
+18	1	8	@kla__face,@sia__face,@lan__busy,@sack,@kla__school,@sia__boss	29e3f162fe0c7bc9d5d881e3922cafe7eee081dfa60aa1b8673f958afc7f9fef	todo					0	
+19	1	8	@yai__face,@baan__inside,@yai__home	f5f3090ae1de13ba9097ce988ac44db69213f0abf5e97d7c1e6b9098ea744f36	todo					0	
+20	1	10	@tor__face,@yai__face,@baan__inside,@tor__home,@yai__home	25d1a5e4b3fcdb816572170343fee736409280a960e240b7a31419f59b397646	todo					0	
+21	1	8	@yai__face,@tor__face,@baan__inside,@jar__full,@yai__home,@tor__home	894763ad90cc8c35d99fe68e365bc59d291299a9ef8dcd1a2eb101a00410b843	todo					0	
+22	1	8	@yai__face,@sia__face,@pa__face,@lan__busy,@yai__collect,@sia__boss,@pa__collect	680f705bd5425a415bba2b029038355aa673f28a351c6567d85e58fcc2cdce81	todo					0	
+23	1	8	@sia__face,@kla__face,@lan__busy,@sia__boss,@kla__school	960a6df636130bd14bbad9d483ac10691aec0a073028c446b7c706ccde91c9f5	verified		/Users/gob/MoonieXHQ/Work/task-c2723478/out/ACT1-reshoot/shot-23.mp4	15b9b065ccfcb58597f98c6338219bff179bf410be2a5abe6d1b7081f11c28a4	8.0s 720x1280	1	

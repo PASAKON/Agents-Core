@@ -1,0 +1,98 @@
+2026-09-22T17:55:47  attached + muted, 1 row(s) to attempt
+2026-09-22T17:55:47  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-22T17:55:47  attached + muted, 1 row(s) to attempt
+2026-09-22T17:55:47  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-22T17:55:47  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-22T17:55:47  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-22T17:55:47    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-22T17:55:57  attached + muted, 1 row(s) to attempt
+2026-09-22T17:55:57  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-22T17:55:57  attached + muted, 1 row(s) to attempt
+2026-09-22T17:55:57  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-22T17:55:57  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-22T17:55:57  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-22T17:55:57    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-22T17:56:04  attached + muted, 1 row(s) to attempt
+2026-09-22T17:56:04  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-22T17:56:04  attached + muted, 1 row(s) to attempt
+2026-09-22T17:56:04  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-22T17:56:04  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-22T17:56:04  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-22T17:56:04    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-22T17:56:10  attached + muted, 1 row(s) to attempt
+2026-09-22T17:56:10  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-22T17:56:10  attached + muted, 1 row(s) to attempt
+2026-09-22T17:56:10  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-22T17:56:10  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-22T17:56:10  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-22T17:56:10    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-22T20:03:46  attached + muted, 1 row(s) to attempt
+2026-09-22T20:03:46  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-22T20:03:46  attached + muted, 1 row(s) to attempt
+2026-09-22T20:03:46  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-22T20:03:46  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-22T20:03:46  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-22T20:03:46    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T03:36:08  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:08  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T03:36:08  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:08  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T03:36:08  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T03:36:08  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T03:36:08    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T03:36:23  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:23  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T03:36:23  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:23  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T03:36:23  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T03:36:23  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T03:36:23    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T03:36:31  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:31  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T03:36:31  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:31  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T03:36:31  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T03:36:31  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T03:36:31    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T03:36:39  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:39  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T03:36:39  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:39  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T03:36:39  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T03:36:39  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T03:36:39    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T03:36:40  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:40  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T03:36:40  attached + muted, 1 row(s) to attempt
+2026-09-23T03:36:40  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T03:36:40  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T03:36:40  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T03:36:40    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T04:37:01  attached + muted, 1 row(s) to attempt
+2026-09-23T04:37:01  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T04:37:01  attached + muted, 1 row(s) to attempt
+2026-09-23T04:37:01  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T04:37:01  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T04:37:01  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T04:37:01    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T05:05:44  attached + muted, 1 row(s) to attempt
+2026-09-23T05:05:44  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T05:05:44  attached + muted, 1 row(s) to attempt
+2026-09-23T05:05:44  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T05:05:44  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T05:05:44  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T05:05:44    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T05:29:29  attached + muted, 1 row(s) to attempt
+2026-09-23T05:29:29  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T05:29:29  attached + muted, 1 row(s) to attempt
+2026-09-23T05:29:29  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T05:29:29  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T05:29:29  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T05:29:29    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
+2026-09-23T13:07:37  attached + muted, 1 row(s) to attempt
+2026-09-23T13:07:37  shot 35: needs_model — chip count mismatch after attach: expected 3, found 2
+2026-09-23T13:07:37  attached + muted, 1 row(s) to attempt
+2026-09-23T13:07:37  shot 35: submitted (attempt 1, est 4 credits)
+2026-09-23T13:07:37  shot 35: refused — re-firing identical prompt once (refunded)
+2026-09-23T13:07:37  shot 35: refused — 'ล้มเหลว (stub, positive-control test)'
+2026-09-23T13:07:37    attach_chip(@missing_asset): no matching row after picker queries=['@missing_asset', 'missing_asset'] value='missing_asset' rows=[]
