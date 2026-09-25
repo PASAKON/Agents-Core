@@ -1432,7 +1432,7 @@ def test_attach_chip_searches_full_picker_dataset_and_verifies_chip_count():
     browser, dom = _picker_browser(row_found=True)
 
     assert browser.attach_chip("@nong_daeng") is True
-    assert dom.fills == ["", "@nong_daeng"]
+    assert dom.fills == ["", "nong_daeng"]   # bare name first (uploads carry no "@")
     assert (
         'input[aria-label="ค้นหาเนื้อหา"], input[aria-label="ค้นหา"]'
         in dom.dialog_selectors
@@ -1445,7 +1445,7 @@ def test_attach_chip_closes_picker_when_search_has_no_result():
     browser, dom = _picker_browser(row_found=False)
 
     assert browser.attach_chip("@missing_asset") is False
-    assert dom.fills == ["", "@missing_asset", "", "missing_asset"]
+    assert dom.fills == ["", "missing_asset", "", "@missing_asset"]
     assert dom.close_clicked is True
 
 

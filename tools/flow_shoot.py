@@ -870,9 +870,15 @@ class FlowBrowser:
             row = dialog.locator(".asset-item").filter(
                 has_text=picker_row_pattern(handle)).first
             matched_query = None
-            for query in (handle, name):
+            # 2026-09-25: uploaded images carry no "@" in their names, so "@x"
+            # returns nothing — but the unfiltered list is still on screen for a
+            # moment, the row "matches", then the debounced search empties the
+            # list and the click times out on a vanished row. Bare name first,
+            # and let the search settle before looking for the row.
+            for query in (name, handle):
                 search.fill("")
                 search.fill(query)
+                page.wait_for_timeout(1200)
                 try:
                     row.wait_for(state="visible", timeout=4000)
                     matched_query = query
