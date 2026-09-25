@@ -1,0 +1,61 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M5 · THE GLASS CREATURES · 6s · TURNING · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (6):
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @GlassSpiral -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassSpiral.png
+  @GlassCathedral -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassCathedral.png
+  @GlassHalo -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassHalo.png
+  @GlassBloom -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-GlassBloom.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow underwater drift alongside them; no cut, no zoom.
+
+UNDERWATER, FURTHER OUT. The world is starting to be strange: giant creatures made of something like glass.
+
+REFERENCES, each with a job:
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@GlassSpiral: THE SPIRAL: a giant turning corkscrew of glass-clear membrane with rainbow light running along it.
+@GlassCathedral: THE DOME: a giant drifting dome of layered transparent veils with a rainbow core.
+@GlassHalo: THE RINGS: giant floating rings of clear membrane, one inside another, trailing threads of light.
+@GlassBloom: THE BLOOM: a vast floating flower of transparent petals, seeds of light drifting from it.
+
+THE FRAME: Wide underwater: THE MOUNT small in the lower middle with THE YOUNG ONE on its back, the four glass creatures drifting around them at different distances, light from the surface above.
+
+WHAT HAPPENS:
+[0s] THE MOUNT glides through open blue water that is turning violet-grey, THE YOUNG ONE on its back.
+[2s] Around them drift THE SPIRAL, THE DOME, THE RINGS and THE BLOOM, each as big as a house, rainbow light moving through their clear bodies.
+[4s] THE YOUNG ONE reaches out a hand towards THE BLOOM as it passes, eyes wide.
+
+AUDIO: muffled underwater hush, a soft chime-like hum from the creatures. No dialogue. No music.
+
+Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no jellyfish, no squid, no octopus, no fish, no dialogue.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. All four glass creatures present and NOT like Earth jellyfish.
+2. Scale: each as big as a house.
+3. The water shifts towards violet-grey.
+File the take whatever the verdict, as M5-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- On the mount, heading on.
+
+=== END NOTES ===

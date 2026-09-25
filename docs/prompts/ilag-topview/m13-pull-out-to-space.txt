@@ -1,0 +1,51 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M13 · PULL OUT TO SPACE · 6s · DARK · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (1):
+  @Planet -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/planet_from_space_v3.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. One continuous pull-out upward; no cut, no dissolve.
+
+THE LAST IMAGE. We leave them and see the whole world they live on.
+
+REFERENCES, each with a job:
+@Planet: THE PLANET, the only reference: an ocean world with no land, split into two hemispheres, one bright blue-white with turquoise sea and white cloud, one purple-black under a storm with violet lightning, a sharp line between them, a moon half its size beside it in black space.
+
+THE FRAME: Ends on THE PLANET centred, its moon beside it.
+
+WHAT HAPPENS:
+[0s] From the black stormy sea the camera pulls back and rises, up through the storm clouds.
+[2.5s] Out into space: the curve of the planet appears, then the whole globe.
+[4.5s] THE PLANET hangs in black space, split between its bright half and its storm half, the moon beside it. Hold.
+
+AUDIO: the storm fading into deep silence. No dialogue. No music.
+
+Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no dialogue, no land, no continents, no rings around the planet, no second moon, no text.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Two hemispheres, sharp line.
+2. Moon half the planet's size.
+3. One continuous pull-out.
+File the take whatever the verdict, as M13-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- End of the film's picture; the question card follows in the edit.
+
+=== END NOTES ===

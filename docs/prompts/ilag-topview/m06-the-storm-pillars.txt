@@ -1,0 +1,59 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M6 · THE STORM PILLARS · 6s · TURNING · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (5):
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
+  @Pillars -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_storm_pillars_A_v3.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low near the water, a slow tilt up; no cut, no zoom.
+
+BETWEEN THE STORM PILLARS. Silent columns of cloud stand on the sea, taller than anything they know.
+
+REFERENCES, each with a job:
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
+@Pillars: THE PILLARS, the only location reference: thin, perfectly straight columns of slowly swirling cloud standing on a violet-grey sea and rising beyond the top of the sky, a small whirlpool at each base, the dim moon. Take the place and its light.
+
+THE FRAME: Low near the water: THE MOUNT with THE THREE RIDERS in the middle distance between two pillars.
+
+WHAT HAPPENS:
+[0s] THE MOUNT glides between thin, perfectly straight pillars of swirling cloud; small whirlpools turn at their bases. The air is still.
+[2.5s] THE THREE RIDERS tip their heads back and look up.
+[4s] The camera tilts up with them along one pillar as it rises beyond the top of the sky.
+
+AUDIO: a low soft whirl of wind around the pillars, calm water. No dialogue. No music.
+
+Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no tornado, no funnel, no cone shape, no strong wind, no debris, no rain, no dialogue.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Pillars thin and straight, reaching past the frame top.
+2. Riders tiny against them.
+3. Calm, not violent.
+File the take whatever the verdict, as M6-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- Riders still in the fixed seat order.
+
+=== END NOTES ===

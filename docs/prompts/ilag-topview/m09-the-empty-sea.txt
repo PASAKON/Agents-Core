@@ -1,0 +1,55 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M9 · THE EMPTY SEA · 5s · DARK · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (3):
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @BlackSea -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-BlackSea.png
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+5s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A close handheld shot; no cut, no zoom.
+
+IN THE BLACK SEA. THE YOUNG ONE, who alone can see fish, looks and finds nothing.
+
+REFERENCES, each with a job:
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@BlackSea: THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it.
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
+
+THE FRAME: Close on THE YOUNG ONE leaning over the edge of the seat, the black water below.
+
+WHAT HAPPENS:
+[0s] THE YOUNG ONE leans over the edge of the seat and stares down into the black water. Nothing moves in it.
+[2s] The gill frills of THE YOUNG ONE drain from gold to pale white.
+[3s] A whisper: "There's nothing here... not one."
+
+AUDIO: rain, the creak of the seat, the whisper above and nothing else. No music.
+
+Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no fish, no glow in the water, no creature in the water, no tears.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Gills go gold to pale.
+2. One whispered line; transcribe.
+3. Water is black and empty.
+File the take whatever the verdict, as M9-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE YOUNG ONE pale, still on the seat.
+
+=== END NOTES ===

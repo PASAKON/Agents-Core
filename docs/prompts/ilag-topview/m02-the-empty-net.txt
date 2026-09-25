@@ -1,0 +1,58 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M2 · THE EMPTY NET · 6s · DAY · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (4):
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Dock -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_B_v2.png
+  @ClearWater -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-ClearWater.png
+  @Villagers -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Villagers.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A locked medium side shot; no pan, no zoom.
+
+AT THE DOCK, THE SAME MORNING. THE STRONG ONE hauls in the village's net and the fish are gone.
+
+REFERENCES, each with a job:
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Dock: THE DOCK: the floating driftwood landing at the foot of the village where glowing mantas are moored with kelp ropes, glass-clear water around it.
+@ClearWater: THE CLEAR WATER: glass-clear turquoise shallow water over a pale sandy seabed with coral.
+@Villagers: THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up.
+
+THE FRAME: Side on to THE STRONG ONE at the edge of the dock, the net line running down into the water; two villagers a few paces behind him.
+
+WHAT HAPPENS:
+[0s] THE STRONG ONE braces his feet at the edge of the dock and hauls a woven kelp net up hand over hand out of the glass-clear water.
+[3s] The net comes up out of the water completely empty, streaming water. Below it the sandy seabed is bare and still.
+[4.5s] THE STRONG ONE stands holding the empty net. Two villagers behind look at it; their gill frills fade pale.
+
+AUDIO: water pouring off the net, creak of the dock, a quiet breath. No dialogue. No music.
+
+Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
+
+CRITICAL NEGATIVES: no fish anywhere, no fish in the net, no fish in the water, no dialogue, no second net, no boat.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. The net is EMPTY and the seabed is bare.
+2. THE STRONG ONE matches his picture: moss-green, huge, gold-tipped gills.
+3. Gills of the villagers fade pale.
+4. Locked camera.
+File the take whatever the verdict, as M2-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE STRONG ONE on the dock with the empty net.
+
+=== END NOTES ===

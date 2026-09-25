@@ -1,0 +1,58 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M3 · THE ELDER CHOOSES THE CHILD · 6s · DAY · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (4):
+  @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Necklace -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-Necklace.png
+  @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A close two-shot, gentle handheld drift; no zoom.
+
+ON A PLATFORM HIGH IN THE VILLAGE. THE ELDER tells THE YOUNG ONE why this journey needs a child's eyes.
+
+REFERENCES, each with a job:
+@Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Necklace: THE NECKLACE: dry brown seed husks strung on kelp twine.
+@Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
+
+THE FRAME: Close two-shot on a wooden platform: THE ELDER kneeling on the left, THE YOUNG ONE standing on the right, the glowing grass and the sea soft behind them.
+
+WHAT HAPPENS:
+[0s] THE ELDER kneels low and ties THE NECKLACE around the neck of THE YOUNG ONE.
+[2s] THE ELDER looks at THE YOUNG ONE. Quietly: "The fish went past the line."
+[4s] The gill frills of THE YOUNG ONE glow faint gold. Then, softer: "Only a child's eyes can still find them."
+
+AUDIO: wind, the grass rustling, the two lines above and nothing else. No music.
+
+Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
+
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no fish, no third person close, no crying.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Two lines, in order, spoken by THE ELDER; transcribe before keeping.
+2. THE NECKLACE is tied on and stays on the child in every later scene.
+3. The child's gills glow gold.
+4. THE ELDER has one torn violet frill.
+File the take whatever the verdict, as M3-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE YOUNG ONE wears THE NECKLACE.
+
+=== END NOTES ===

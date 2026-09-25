@@ -1,0 +1,64 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M4 · LEAVING · 6s · DAY · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (7):
+  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
+  @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
+  @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
+  @Pole -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-Pole.png
+  @Lantern -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-Lantern.png
+  @Dock -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_B_v2.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A wide tracking shot from behind, moving with them; no cut, no zoom.
+
+THE THREE LEAVE THE VILLAGE on THE MOUNT, out over the clearest water.
+
+REFERENCES, each with a job:
+@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
+@Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
+@Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
+@Pole: THE POLE: a long pale bone steering pole carved with wave patterns, a kelp grip near the top.
+@Lantern: THE LANTERN: a large pearly seashell with a woven kelp handle, three glowing golden seed pods inside it, hanging from the seat.
+@Dock: THE DOCK: the floating driftwood landing at the foot of the village where glowing mantas are moored with kelp ropes, glass-clear water around it.
+
+THE FRAME: From behind and a little above THE MOUNT and THE THREE RIDERS; the seat order from front to back is THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back, and it never changes in this film.
+
+WHAT HAPPENS:
+[0s] THE MOUNT glides away from the dock over glass-clear turquoise water, wings rippling. THE STRONG ONE steers with THE POLE; THE LANTERN glows gold, hanging from the seat.
+[3s] THE YOUNG ONE turns to look back at the village.
+[4s] The village of giant trees shrinks behind them under the huge close moon.
+
+AUDIO: the swish of the wings, water, wind. No dialogue. Music is added later, none here.
+
+Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
+
+CRITICAL NEGATIVES: no dialogue, no fourth rider, no boat, no oars, no second mount beside them.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Three riders in the fixed seat order.
+2. THE LANTERN is glowing.
+3. Clear water, village behind.
+4. The mount matches its picture: driftwood seat, lime glow under the wings.
+File the take whatever the verdict, as M4-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- Seat order fixed: THE STRONG ONE front, THE YOUNG ONE middle, THE ELDER back; THE LANTERN lit.
+
+=== END NOTES ===

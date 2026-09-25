@@ -1,0 +1,54 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M1 · THE VILLAGE AT MORNING · 6s · DAY · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (2):
+  @Village -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_village_above_A_v2.png
+  @Villagers -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Villagers.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in from water level; no pan, no tilt, no zoom.
+
+MORNING IN THE VILLAGE, the first image of the film. Nobody here knows yet that anything is wrong.
+
+REFERENCES, each with a job:
+@Village: THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it.
+@Villagers: THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up.
+
+THE FRAME: Water level, wide: the trees fill the frame, the moon high on the right, the dock in the lower middle, mantas resting at it.
+
+WHAT HAPPENS:
+[0s] Wide shot from just above the water. The village stands in glass-clear water, the glowing grass bright on every roof, the huge moon close and sharp in the blue-white sky.
+[2s] THE VILLAGERS go about the morning: one climbs a rope ladder up a root, two cross a rope bridge, one sits at the dock with a foot in the water.
+[4s] The camera keeps its slow push towards the dock. Small ripples, calm.
+
+AUDIO: gentle lapping water, wind in the grass, far voices of the villagers without words. No music.
+
+Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
+
+CRITICAL NEGATIVES: no dialogue, no crowd in a row, no one looking at the lens, no night, no orange or red sky, no sunset, no sun, no second moon.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. The village matches the picture: trees in water, glowing grass, the close moon.
+2. Villagers are the alien species, several colours, busy, never lined up.
+3. Blue-white daylight, never orange.
+4. One continuous push-in, no cut.
+File the take whatever the verdict, as M1-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE VILLAGE unchanged; mantas at the dock.
+
+=== END NOTES ===

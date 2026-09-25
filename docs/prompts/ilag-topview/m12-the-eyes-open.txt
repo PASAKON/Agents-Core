@@ -1,0 +1,51 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+M12 · THE EYES OPEN · 5s · DARK · P1 main scenes (SCRIPT.md draft 2)
+
+Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
+the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
+sheet renders as a grid video on H3.
+References (1):
+  @Eye -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/crt_eye_v4a.png
+
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+5s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A very slow push-in; no cut, no pan.
+
+THE MOUNTAIN IS A HEAD. It opens its eyes.
+
+REFERENCES, each with a job:
+@Eye: THE CREATURE, the only picture of it: a broad flat smooth dark head rising out of the black sea, two enormous pale yellow-green eyes with thin vertical slit pupils, water pouring off it, faint violet lightning behind. Take its face, its eyes and its scale exactly.
+
+THE FRAME: Extreme close, square on to the face; the eyes fill the upper half of the frame.
+
+WHAT HAPPENS:
+[0s] Darkness, the wet dark skin of THE CREATURE, water streaming down it.
+[1.5s] Both eyes open, slowly: pale yellow-green, thin vertical slit pupils, each bigger than a whole village.
+[3.5s] The pupils narrow and fix on the camera. Violet lightning flickers behind.
+
+AUDIO: near silence, water running off stone-like skin, then one deep low rumble. No dialogue. No music.
+
+Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+
+CRITICAL NEGATIVES: no dialogue, no roar, no mouth opening, no teeth, no third eye, no purple skin, no neon, no cartoon look.
+
+House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
+
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+
+REVIEW ORDER:
+1. Two eyes, pale yellow-green, slit pupils.
+2. Skin dark and natural, a touch of violet only in the light.
+3. Slow and silent.
+File the take whatever the verdict, as M12-H3-take<N>.mp4 in the
+project's Previz/ folder, and tell the CTO which take.
+
+END POSITIONS, inherited by the next scene:
+- THE CREATURE's eyes open.
+
+=== END NOTES ===

@@ -1,3 +1,8 @@
+# [SUPERSEDED 2026-09-25] P1 first draft
+
+CEO: "คุณไม่ได้เขียน Prompt ตามโครงสร้างของงาน Sorry Sir เลย". Replaced by `docs/prompts/ilag-topview/`
+(one file per shot in the «Sorry, Sir» format). Kept for the record only; do not paste from here.
+
 # P1: the 13 main scenes, prompts for our MiniMax H3 studio (360p previz)
 
 Script: `SCRIPT.md` draft 2. CEO 2026-09-25: "ใช้ @ตามด้วยชื่อ Element แบบเดียวกับ Higgsfield ใส่ใน Prompt ได้เลย
