@@ -44,7 +44,7 @@ def test_settings_json_keeps_existing_keys():
     data = json.loads(SETTINGS.read_text(encoding="utf-8"))
     # A handful of pre-existing keys from the CEO's live config -- proves
     # the edit only added a key rather than replacing the file.
-    assert data["model"] == "opus[1m]"
+    assert "model" in data  # value is the CEO's live choice (changes via /model); presence is the invariant
     assert "hooks" in data
     assert "permissions" in data
 
