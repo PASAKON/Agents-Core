@@ -198,6 +198,13 @@ for v in CXO_EXTRA_MCP CXO_SKIP_MCP CXO_STRICT_MCP CXO_SUPABASE_PROJECT_REF \
   [ -n "${!v:-}" ] || continue
   ENV_PREFIX="${ENV_PREFIX}export $v=$(printf '%q' "${!v}") && "
 done
+
+# Belt-and-braces auto-compact window (task-9f6fec26): the real fix lives in
+# claude-home/settings.json's `autoCompactWindow` key and in cxo-claude.sh's
+# own export (which runs inside the shell that actually execs claude), so
+# this line is defense-in-depth only if unset.
+: "${CLAUDE_CODE_AUTO_COMPACT_WINDOW:=300000}"
+export CLAUDE_CODE_AUTO_COMPACT_WINDOW
 # Same tmux wrapping as spawn-cto.sh, for the same reason: the CEO's phone has
 # to be able to attach the very session this tab is showing. `<role>-<slug>` is
 # the shape MoonieX Console's list filter requires, and cmo/cfo/cxo are all
