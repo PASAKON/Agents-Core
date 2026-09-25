@@ -520,7 +520,10 @@
   "queued": "2026-09-25T22:23:37+0200",
   "position": 9,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "O1-H3-take3.mp4",
+  "drive_id": "1vl35cJWlkwgEySn_6JKEXSZWgdWZ6FSk",
+  "local": "/tmp/ilag-h3-previz/O1-H3-take3.mp4"
  },
  "o02": {
   "job_id": "zg6r9fih",
@@ -528,7 +531,10 @@
   "queued": "2026-09-25T22:23:38+0200",
   "position": 10,
   "refs": 4,
-  "status": "queued"
+  "status": "filed",
+  "file": "O2-H3-take3.mp4",
+  "drive_id": "18BrjCDNPuuk5vzQL2NUa8I6laavchaDv",
+  "local": "/tmp/ilag-h3-previz/O2-H3-take3.mp4"
  },
  "o04": {
   "job_id": "vev8phc8",
@@ -536,7 +542,10 @@
   "queued": "2026-09-25T22:23:39+0200",
   "position": 11,
   "refs": 7,
-  "status": "queued"
+  "status": "filed",
+  "file": "O4-H3-take3.mp4",
+  "drive_id": "1ydFDwdleZVYAW67COIvG45E3E2SDy-D4",
+  "local": "/tmp/ilag-h3-previz/O4-H3-take3.mp4"
  },
  "m04_t1": {
   "job_id": "4kcr43xp",
@@ -566,7 +575,10 @@
   "queued": "2026-09-25T22:23:41+0200",
   "position": 12,
   "refs": 7,
-  "status": "queued"
+  "status": "filed",
+  "file": "M4-H3-take2.mp4",
+  "drive_id": "1lDwDg6HmWkEXA-JoU2oA5HVUlY7dAwTo",
+  "local": "/tmp/ilag-h3-previz/M4-H3-take2.mp4"
  },
  "m06": {
   "job_id": "mbhllsuj",
@@ -574,7 +586,10 @@
   "queued": "2026-09-25T22:23:42+0200",
   "position": 13,
   "refs": 6,
-  "status": "queued"
+  "status": "filed",
+  "file": "M6-H3-take3.mp4",
+  "drive_id": "11B_XArxif0d3n1XTfGnFasqhXti5qorW",
+  "local": "/tmp/ilag-h3-previz/M6-H3-take3.mp4"
  },
  "n02_t3": {
   "job_id": "h96lharo",
@@ -681,7 +696,10 @@
   "queued": "2026-09-25T22:23:44+0200",
   "position": 14,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "N2-H3-take3.mp4",
+  "drive_id": "1Nh54G0rS4k2xvUjcEqxUdXtDF3imNH8g",
+  "local": "/tmp/ilag-h3-previz/N2-H3-take3.mp4"
  },
  "n03": {
   "job_id": "bxww512z",
@@ -689,7 +707,10 @@
   "queued": "2026-09-25T22:23:45+0200",
   "position": 15,
   "refs": 8,
-  "status": "queued"
+  "status": "filed",
+  "file": "N3-H3-take3.mp4",
+  "drive_id": "113nXjY5K4xi13qlbqboWlg7uajDDls-g",
+  "local": "/tmp/ilag-h3-previz/N3-H3-take3.mp4"
  },
  "n04": {
   "job_id": "80wrlved",
@@ -697,7 +718,10 @@
   "queued": "2026-09-25T22:23:46+0200",
   "position": 16,
   "refs": 6,
-  "status": "queued"
+  "status": "filed",
+  "file": "N4-H3-take3.mp4",
+  "drive_id": "1ROT67koE9_qlhfNVlEK1neS5YLDY9L8G",
+  "local": "/tmp/ilag-h3-previz/N4-H3-take3.mp4"
  },
  "n05": {
   "job_id": "2q3wo5tk",
@@ -705,7 +729,10 @@
   "queued": "2026-09-25T22:23:48+0200",
   "position": 17,
   "refs": 7,
-  "status": "queued"
+  "status": "filed",
+  "file": "N5-H3-take3.mp4",
+  "drive_id": "1QGdKFZ5JbvarhgqRkzL_XgpWfP6tU4Uv",
+  "local": "/tmp/ilag-h3-previz/N5-H3-take3.mp4"
  },
  "n06": {
   "job_id": "7dn7ko3k",
@@ -713,7 +740,10 @@
   "queued": "2026-09-25T22:23:49+0200",
   "position": 18,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "N6-H3-take2.mp4",
+  "drive_id": "1pcxcPLJ44Np6GX3q0SAJ945OCiDUoKQv",
+  "local": "/tmp/ilag-h3-previz/N6-H3-take2.mp4"
  },
  "n07": {
   "job_id": "j0ygxdl1",
@@ -721,7 +751,10 @@
   "queued": "2026-09-25T22:23:50+0200",
   "position": 19,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "N7-H3-take2.mp4",
+  "drive_id": "1YriFKMjqd-qjtpecPVIT_79KGiPpPn-I",
+  "local": "/tmp/ilag-h3-previz/N7-H3-take2.mp4"
  },
  "n08": {
   "job_id": "j4ctxpia",
@@ -729,7 +762,10 @@
   "queued": "2026-09-25T22:23:52+0200",
   "position": 20,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "N8-H3-take2.mp4",
+  "drive_id": "1ABLKjDGMnt1g0TRQcItCCL_lb0jsAA77",
+  "local": "/tmp/ilag-h3-previz/N8-H3-take2.mp4"
  },
  "n09": {
   "job_id": "7agxt3at",
@@ -737,7 +773,10 @@
   "queued": "2026-09-25T22:23:53+0200",
   "position": 21,
   "refs": 4,
-  "status": "queued"
+  "status": "filed",
+  "file": "N9-H3-take2.mp4",
+  "drive_id": "1qZqQTD6UtG1g7lstUt-uiUJbcTHGVgx0",
+  "local": "/tmp/ilag-h3-previz/N9-H3-take2.mp4"
  },
  "n11": {
   "job_id": "hty1ougz",
@@ -745,7 +784,10 @@
   "queued": "2026-09-25T22:23:55+0200",
   "position": 22,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "N11-H3-take2.mp4",
+  "drive_id": "1SCAP57NkUu1T-fpY12f1wszw_ylNuzUm",
+  "local": "/tmp/ilag-h3-previz/N11-H3-take2.mp4"
  },
  "n12": {
   "job_id": "y9sqqwsg",
@@ -753,6 +795,9 @@
   "queued": "2026-09-25T22:23:56+0200",
   "position": 23,
   "refs": 5,
-  "status": "queued"
+  "status": "filed",
+  "file": "N12-H3-take1.mp4",
+  "drive_id": "1nsAjO_emtyTRVFex4Whsc2O-dJl9eHVt",
+  "local": "/tmp/ilag-h3-previz/N12-H3-take1.mp4"
  }
 }
