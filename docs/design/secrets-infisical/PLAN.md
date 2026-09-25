@@ -1,7 +1,7 @@
 # Infisical: one online home for every secret
 
-**Status:** plan for CEO decision (2026-09-25, cto-885ae930). Nothing created yet: no account,
-no project, no identity.
+**Status:** APPROVED by the CEO 2026-09-25 ("ok ทั้ง 5", plus: write the Org-Infra writing and
+naming rules → §3b). Phase 1 next. Owner: CTO (cto-885ae930).
 **Lineage:** GH Agents-Core#16 (2026-06-13, "Centralize secrets → Infisical self-host", closed
 into the LungNote roadmap note 177b1658 on 2026-09-23) · CEO ruling 2026-09-19 ("ศูนย์กลางของ
 .env โดยไม่เก็บไว้ที่เครื่องใดเครื่องนึงอีกต่อไป", Vercel included; backend Contabo, frontend
@@ -53,9 +53,9 @@ limits). So the split follows `hq.yaml`: **Infisical project name = the GitHub r
 
 - `Agents-Core` — the org runtime on all three machines: SomPong/secretary, org Postgres,
   Run Inbox tokens, Jules, Jev/OpenRouter, LungNote MCP client creds.
-- `Org-Infra` — keys that belong to no single project and can break everything: Cloudflare DNS,
-  Vercel team token, GitHub PATs/deploy keys, Tailscale auth keys, the Drive token, Contabo
-  Postgres superuser. Readable by the Mac identity and the CEO only.
+- `Org-Infra` — keys whose job is to change an account rather than run a service, and whose
+  leak can break everything: DNS, deploys, repo admin, the tailnet, the Drive app, the Postgres
+  superuser. Rules of its own in §3b.
 
 Environments: `prod` and `dev` (Free allows 3). `prod` = touches real customers, money or public
 channels. Machine is never an environment. No folders until a project needs two access levels.
@@ -86,6 +86,73 @@ keys, fal, Anthropic, OpenAI and Deepgram can all issue several named keys. A se
 issues only once (a bot token, an app secret) lives in the project that owns it; another project
 that needs it calls that project's API (ADR 0028). Where that cannot happen yet, the value is
 copied into the second project with tag `shared` and `also_in` metadata naming every copy.
+
+## 3b. Org-Infra: what goes in, who writes, how it is named (CEO, 2026-09-25)
+
+**Goes in.** A key that changes an account: Cloudflare DNS, Vercel deploy/project settings,
+GitHub repo administration, Tailscale API and auth keys (adding a machine), the Postgres
+superuser, Infisical's own app connections (Vercel sync).
+
+**Stays out.**
+- A key a service needs at runtime goes into that service's project, even when it touches
+  infrastructure: ClaudeFlow's R2 key → `MoonieX-ClaudeFlow`; the Drive OAuth client and each
+  machine's Drive token (used while the upload job runs) → `Agents-Core`.
+- A credential that *is* a machine (SSH private key, Tailscale node key, a repo deploy key) stays
+  on that machine and is re-made when the machine is rebuilt (ADR 0031). Org-Infra keeps only a
+  record of it: value = the public fingerprint, KIND `ID`, with `expires` so the radar sees it.
+
+**Readers.** The CEO and the `mac` identity. Adding a reader is a CEO decision written into this
+section. A Contabo or winbox session that needs an infra action asks for it (Run Inbox card);
+it does not read the key.
+
+**Write rules.**
+1. Only the CEO writes to Org-Infra, in the Infisical web page, copying the value straight from
+   the provider's page. No machine identity gets write here, not even on an import day, and no
+   agent types, pastes or sees an Org-Infra value. The CTO prepares everything else: the name,
+   the metadata, the scope to choose at the provider.
+2. Smallest scope the provider offers: one zone, one repo, one project, one bucket. A wider key
+   carries tag `wide` and metadata `why_wide`.
+3. Expiry is mandatory. `admin` ≤ 90 days; `rw` and `ro` ≤ 1 year. Set it at the provider when
+   the provider can; the radar (phase 5) enforces the rest.
+4. One key per job × machine. The same key never sits on two machines, so a lost machine means
+   revoking exactly its keys and nothing else.
+5. The §4c metadata plus three infra fields: `blast_radius` (one line: what a thief could do),
+   `revoke_url` (the exact page), `used_by` (host + script path).
+6. Every create / rotate / revoke adds a line to the registry Changelog (IRON §34 rule 2: date ·
+   name · action · who · why · old-last4 → new-last4). On the Free tier that line is the only
+   history there is.
+7. Rotate forward only (§2): new key at the provider → Infisical → verify the consumer → revoke
+   the old one.
+8. Never: in chat, in git, in a screenshot, in a second place (notes app, `.env` backup), or an
+   account-wide key where a scoped one exists.
+9. The CEO's Infisical login uses 2FA. Its recovery codes stay offline with the CEO, never in
+   Infisical, a repo or a chat. If Infisical is unreachable, services run from the CLI cache and
+   infra work waits.
+
+**Naming.**
+- Infisical: project `Org-Infra`, environment `prod` only (infra has no test copy), one folder
+  per job from a closed list: `/dns` `/deploy` `/repo` `/net` `/db` `/vault`. A new job
+  is a plan edit the CEO approves.
+- Variable: JOB and HOST are mandatory here because every Org-Infra key is per job × machine.
+  ```
+  <PROVIDER>_<JOB>_<HOST>_<KIND>[_<ACCESS>]
+  CLOUDFLARE_DNS_MAC_TOKEN_RW · VERCEL_DEPLOY_MAC_TOKEN_RW · GITHUB_REPO_MAC_TOKEN_ADMIN
+  TAILSCALE_NET_MAC_API_KEY_ADMIN · POSTGRES_DB_CONTABO_PASSWORD_ADMIN
+  ```
+- Provider page:
+  ```
+  infra-<job>-<host>-<access>-exp<YYYY-MM-DD>
+  infra-dns-mac-rw-exp2026-12-24               (30 characters)
+  infra-deploy-contabo-admin-exp2026-12-24     (40, the longest possible)
+  ```
+  Jobs ≤ 6 characters and hosts ≤ 7 keep every name within GitHub's 40.
+- Hosts (closed list): `mac` `contabo` `winbox` `ci` (GitHub Actions) `ceo` (the CEO's own manual
+  use).
+
+**Known Org-Infra items to bring in (phase 3/4):** the Cloudflare DNS token (leaked 08-07, rotate),
+the Vercel `mooniexofficials` token (Mac), the Mac `gh` token, Contabo's dead GitHub PAT (replace
+with per-repo deploy keys that stay on Contabo; record fingerprints), the Postgres superuser,
+the Tailscale keys if any exist.
 
 ## 4. Naming: four places, four rules
 
@@ -144,7 +211,7 @@ The provider page shows nothing of ours except this string, so it carries the mo
 mx-claudeflow-prod-rw-exp2027-03-31          (35 characters)
 ```
 - brand: `mx` MoonieX · `ln` LungNote · `wc` WarpClip · `lr` LinkReed · `ag` Agents
-  (`ag-core`, `ag-infra`).
+  (`ag-core`). Org-Infra has its own pattern (§3b).
 - project: the repo suffix, lowercase (`claudeflow`, `webapp`, `lineautomation`).
 - env `prod|dev`, access `ro|rw|admin`, as in 4b.
 - `exp`: the provider-enforced expiry when the provider has one (Cloudflare, GitHub PAT, Vercel,
@@ -178,14 +245,14 @@ mx-claudeflow-prod-rw-exp2027-03-31          (35 characters)
 | Phase | What | Who | Cost |
 |---|---|---|---|
 | 0 | CEO approves §2–§4 | CEO | $0 |
-| 1 | Sign up (Cloud, org "MoonieX"), create the projects in §3 and the 3 machine identities; the client secret goes into each machine's root-only file via `!`, never chat | CEO ~15 min + CTO | $0 |
+| 1 | CEO: sign up (Cloud US, pass.gob1, org `MoonieX`, 2FA on, recovery codes offline), create one temporary identity `setup` (org Admin, Universal Auth), then tap Run on a Run Inbox card that runs `scripts/infisical-save-secret.sh setup` on Contabo and type its Client ID + Secret into the card's input (never stored, echo masked). CTO: `tools/infisical_setup.py` creates the projects, environments, Org-Infra folders and the `contabo` / `mac` / `winbox` identities with their Viewer memberships, then deletes `setup` and its file | CEO ~15 min + CTO | $0 |
 | 2 | Pilot: MoonieX-LineAutomation (2 secrets) on Contabo, 1:1 import, restart from Infisical, delete its `.env` | CTO | $0 |
 | 3 | Cut over project by project (ClaudeFlow 123 lines, Option, AlphaTrader, Console, LungNote-MCP, Agents-Core incl. secretary + org-db, Mac, winbox, Vercel sync). Each `.env` deleted 7 days after its service runs green from Infisical. `_env-bundle` imported, then deleted with CEO OK (GH #177) | CTO | $0 |
 | 4 | Rotation sweep with the new provider names: the 7 leaked keys, the shared values (one new key per project), the FAL duplicate | CEO logs in (phone relay) + CTO | $0 |
 | 5 | Expiry radar: a tool reads `expires` from Infisical and files a LungNote to-do 14 days before (the SessionStart hook then surfaces it). `api-key-registry.md` becomes a generated view; IRON §34 points at Infisical | CTO | $0 |
 | 6 | Renames to the §4b grammar, one code PR per project | CTO/DEV | $0 |
 
-## 7. Decisions for the CEO
+## 7. Decisions (CEO: "ok ทั้ง 5", 2026-09-25)
 
 1. Cloud Free to start (Pro only if we want the audit log or version history: ≈ $80–92/month).
 2. One Infisical project per repo + `Agents-Core` + `Org-Infra`, access by machine.

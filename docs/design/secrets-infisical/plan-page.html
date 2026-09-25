@@ -1,0 +1,346 @@
+<title>แผน Infisical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F5F7F9; --surface:#FFFFFF; --ink:#14202B; --muted:#56657A; --line:#DCE3EA;
+  --accent:#0B6E82; --accent-soft:#E2F1F4;
+  --seg-brand:#4338CA; --seg-proj:#0F766E; --seg-env:#A16207; --seg-acc:#BE123C; --seg-exp:#475569; --seg-which:#7E22CE;
+  --good:#15803D; --warn:#B45309; --bad:#B91C1C;
+  --chip-bg:#EEF2F6;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F161D; --surface:#16202A; --ink:#E6EDF3; --muted:#9AA9BA; --line:#27333F;
+    --accent:#5CC4D6; --accent-soft:#12303A;
+    --seg-brand:#A5B4FC; --seg-proj:#5EEAD4; --seg-env:#FCD34D; --seg-acc:#FDA4AF; --seg-exp:#CBD5E1; --seg-which:#D8B4FE;
+    --good:#4ADE80; --warn:#FBBF24; --bad:#F87171;
+    --chip-bg:#1E2A36;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F161D; --surface:#16202A; --ink:#E6EDF3; --muted:#9AA9BA; --line:#27333F;
+  --accent:#5CC4D6; --accent-soft:#12303A;
+  --seg-brand:#A5B4FC; --seg-proj:#5EEAD4; --seg-env:#FCD34D; --seg-acc:#FDA4AF; --seg-exp:#CBD5E1; --seg-which:#D8B4FE;
+  --good:#4ADE80; --warn:#FBBF24; --bad:#F87171;
+  --chip-bg:#1E2A36;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",system-ui,-apple-system,"Noto Sans Thai",sans-serif;font-size:15.5px;line-height:1.7;padding-inline:16px;padding-block:24px 56px}
+.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{text-wrap:balance;line-height:1.3;margin:0}
+h1{font-size:30px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:21px;font-weight:700}
+h3{font-size:16.5px;font-weight:600}
+p{margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+header{display:flex;flex-direction:column;gap:10px}
+.lede{color:var(--muted);max-width:62ch}
+.status{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--warn);background:var(--chip-bg);border-radius:999px;padding:4px 12px;width:fit-content}
+.status svg{flex:none}
+.status.ok{color:var(--good)}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+section{display:flex;flex-direction:column;gap:14px}
+.sub{color:var(--muted);font-size:14px;max-width:64ch}
+
+/* decisions */
+.decisions{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.decisions li{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:14px 16px;border-top:1px solid var(--line)}
+.decisions li:first-child{border-top:0}
+.num{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--accent);font-size:15px;padding-top:1px}
+.decisions .rec{font-weight:600}
+.decisions .why{color:var(--muted);font-size:14px}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-top:1px solid var(--line)}
+thead th{border-top:0;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);background:var(--chip-bg)}
+td.c,th.c{text-align:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.dot.sync{background:transparent;border:2px solid var(--accent)}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--chip-bg)}
+.tag.good{color:var(--good)} .tag.bad{color:var(--bad)} .tag.warn{color:var(--warn)}
+.recrow td{background:var(--accent-soft)}
+
+/* findings */
+.findings{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:10px}
+.findings li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.findings b{font-weight:600}
+.findings .ev{font-size:13.5px;color:var(--muted)}
+code,.code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.88em;background:var(--chip-bg);padding:1px 5px;border-radius:5px;word-break:break-word}
+
+/* anatomy */
+.layer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.layer-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.layer-head .where{font-size:13px;color:var(--muted)}
+.anat{overflow-x:auto;padding-bottom:2px}
+.anat-row{display:inline-flex;align-items:flex-start;font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600;white-space:nowrap}
+.seg{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.seg .t{padding:2px 0;border-bottom:3px solid currentColor}
+.seg .l{font-family:"IBM Plex Sans Thai",sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.02em}
+.sep{color:var(--muted);padding:2px 1px}
+.s-brand{color:var(--seg-brand)} .s-proj{color:var(--seg-proj)} .s-env{color:var(--seg-env)} .s-acc{color:var(--seg-acc)} .s-exp{color:var(--seg-exp)} .s-which{color:var(--seg-which)}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.ex{display:grid;grid-template-columns:1fr;gap:6px;font-size:14px}
+.ex-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.ex-row .from{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.ex-row .arrow{color:var(--muted)}
+.not{font-size:14px;color:var(--muted)}
+.not b{color:var(--ink)}
+
+/* phases */
+.phases{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.phases li{position:relative;padding:0 0 18px 20px;display:flex;flex-direction:column;gap:2px}
+.phases li::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.phases li.now::before{background:var(--accent)}
+.phases .ph{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;color:var(--accent)}
+.phases .who{font-size:13px;color:var(--muted)}
+.foot{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:4px}
+@media (max-width:520px){ h1{font-size:25px} .anat-row{font-size:15px} }
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">MoonieX · secrets · CTO #885ae930 · 25 ก.ย. 2026</span>
+  <h1>แผน Infisical</h1>
+  <p class="lede">ย้าย API key, token และ .env ทุกตัวไปไว้ที่เดียวบนเว็บ Infisical เครื่องไหนจะใช้ก็ดึงตอนเปิดโปรแกรม ไม่มีไฟล์ .env ค้างบนเครื่องไหนอีก ตามที่พี่สั่งไว้เมื่อ 19 ก.ย.</p>
+  <span class="status ok"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 8.2l2 2 4-4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>พี่อนุมัติแล้ว 25 ก.ย. · ขั้นต่อไป P1 สมัคร Infisical</span>
+</header>
+
+<section id="decide">
+  <h2>สิ่งที่พี่อนุมัติแล้ว</h2>
+  <ol class="decisions">
+    <li><span class="num">1</span><div><p class="rec">ใช้ Infisical Cloud แบบฟรีก่อน</p><p class="why">$0 ใช้ได้ 5 identity (พี่ + Contabo + Mac + winbox + สำรอง 1) ถ้าวันหลังอยากได้ประวัติค่าเก่ากับ log ว่าใครอ่าน ค่อยขึ้น Pro ประมาณ $80–92/เดือน</p></div></li>
+    <li><span class="num">2</span><div><p class="rec">1 repo = 1 โปรเจคใน Infisical</p><p class="why">ชื่อตรงกับ repo เลย เช่น <code>MoonieX-ClaudeFlow</code> และมีเพิ่มอีก 2 อัน: <code>Agents-Core</code> (ระบบ org) กับ <code>Org-Infra</code> (key ที่พังแล้วกระทบทั้งหมด) แต่ละเครื่องอ่านได้เฉพาะโปรเจคที่รันอยู่บนเครื่องนั้น</p></div></li>
+    <li><span class="num">3</span><div><p class="rec">กฎตั้งชื่อ 4 ที่ (ดูข้างล่าง)</p><p class="why">ชื่อตัวแปรบอกว่าเป็น key อะไรและสิทธิ์ระดับไหน, ชื่อบนหน้าเว็บ provider บอกโปรเจค สิทธิ์ และวันหมดอายุ, ส่วนรายละเอียดที่เหลือเก็บเป็น metadata ใน Infisical</p></div></li>
+    <li><span class="num">4</span><div><p class="rec">ย้ายชื่อเดิมไปตรง ๆ ก่อน แล้วค่อยเปลี่ยนชื่อทีหลัง</p><p class="why">วันย้ายจะได้ไม่ต้องแก้โค้ดและไม่มี downtime ส่วนการเปลี่ยนชื่อให้ตรงกฎ ทำเป็น PR ของแต่ละโปรเจคภายหลัง</p></div></li>
+    <li><span class="num">5</span><div><p class="rec">นำร่องที่ MoonieX-LineAutomation</p><p class="why">มีแค่ 2 key รันบน Contabo ถ้าพังก็กระทบน้อยที่สุด</p></div></li>
+  </ol>
+</section>
+
+<section id="why">
+  <h2>ทำไมต้องมี: สิ่งที่วัดได้บน Contabo วันนี้</h2>
+  <p class="sub">ดูแค่ชื่อ key และเทียบ hash ของค่า ไม่ได้เปิดค่าจริงสักตัว ส่วน Mac, winbox และ Vercel ยังไม่ได้นับ</p>
+  <ul class="findings">
+    <li><b>ชื่อเดียวกัน แต่เป็นคนละ key</b><span class="ev"><code>TELEGRAM_BOT_TOKEN</code> อยู่ 3 ไฟล์ และเป็น 3 บอทคนละตัว ดูจากชื่อไม่ออกเลยว่าตัวไหนเป็นบอทไหน</span></li>
+    <li><b>key ตัวเดียวถูกใช้หลายโปรเจค</b><span class="ev">Supabase service key, OpenRouter, Notion, Google OAuth, Z.ai และ LungNote ค่าเดียวกันอยู่ 2 โปรเจคขึ้นไป ถ้า key หลุดทีเดียวก็พังทุกโปรเจค และแยกไม่ได้ว่าโปรเจคไหนใช้เงินไปเท่าไร</span></li>
+    <li><b>key ซ้ำในไฟล์เดียว</b><span class="ev">ใน .env ของ ClaudeFlow มี <code>FAL_API_KEY</code> 2 บรรทัด ค่าไม่เหมือนกัน ตัวหลังชนะเงียบ ๆ</span></li>
+    <li><b>สำเนาเต็มดิสก์</b><span class="ev">มีไฟล์ .env ที่ใช้งานอยู่ 9 ไฟล์ และสำเนาใน Archive อีก 10 ไฟล์ (GH #177)</span></li>
+    <li><b>หลุดแล้วยังไม่ได้เปลี่ยน 7 ตัว</b><span class="ev">Cloudflare, Jules, 9Router, R2, Meta CAPI, Google Translate ตัวแรก และ Z.ai ซึ่งยังค้างอยู่ใน 2 ไฟล์ทั้งที่เลิกใช้ไปแล้ว</span></li>
+    <li><b>หมดอายุโดยไม่มีใครรู้</b><span class="ev">GitHub token บน Contabo (วันนี้ gh ตอบ 401), Claude ของ SomPong (หมดตั้งแต่ 16 ส.ค.) และ Meta Ads token</span></li>
+  </ul>
+</section>
+
+<section id="host">
+  <h2>จะวางไว้ที่ไหน</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>ทางเลือก</th><th>ค่าใช้จ่าย</th><th>ได้</th><th>เสีย</th></tr></thead>
+    <tbody>
+      <tr class="recrow"><td><b>Cloud ฟรี</b><br><span class="tag good">แนะนำ</span></td><td class="mono">$0</td><td>ไม่ต้องดูแลเซิร์ฟเวอร์ ใช้ได้แม้ Contabo ล่ม และ sync ไป Vercel ได้ 10 ชุด</td><td>ได้แค่ 5 identity, ไม่มีประวัติค่าเก่า, ไม่มี log ว่าใครอ่าน และล็อก IP ไม่ได้</td></tr>
+      <tr><td><b>Cloud Pro</b></td><td class="mono">$20/identity/เดือน (จ่ายรายปี)<br>$23 ถ้าจ่ายรายเดือน</td><td>มีประวัติค่าเก่า ย้อนเวลาได้, log เก็บ 30 วัน และล็อก IP ได้</td><td>4 identity ตกประมาณ $80–92/เดือน ต้องให้พี่อนุมัติก่อน</td></tr>
+      <tr><td><b>ตั้งเองบน Contabo</b></td><td class="mono">$0</td><td>ค่า key ไม่ออกจากเครื่องเรา</td><td>Contabo มี RAM 7.8 GB ว่างอยู่แค่ 3.0 GB แต่ Infisical แนะนำ 4 GB สำหรับแอป + 4 GB สำหรับ Redis ถ้า Contabo ล่ม ทุกเครื่องจะเปิดโปรแกรมไม่ได้ และถ้ากุญแจเข้ารหัสหายก็เสีย key ทั้งหมด</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">ราคาจาก infisical.com/pricing วันที่ 25 ก.ย. เนื่องจากแบบฟรีไม่มีประวัติค่าเก่า จึงใช้กฎ<b>เปลี่ยนไปข้างหน้าเท่านั้น</b>: สร้าง key ใหม่ที่ provider → ใส่ Infisical → ตรวจว่าบริการใช้ได้ → แล้วค่อยลบ key เก่า</p>
+</section>
+
+<section id="projects">
+  <h2>แยกโปรเจคยังไง</h2>
+  <p class="sub">แบบฟรีกั้นสิทธิ์ได้ละเอียดที่สุดแค่ระดับโปรเจค จึงให้ 1 repo = 1 โปรเจค แต่ละโปรเจคมี env <code>prod</code> กับ <code>dev</code> และแต่ละเครื่องอ่านได้อย่างเดียว (Viewer) เฉพาะโปรเจคที่มีจุดในคอลัมน์ของเครื่องนั้น</p>
+  <div class="tbl"><table>
+    <thead><tr><th>โปรเจคใน Infisical</th><th class="c">Contabo</th><th class="c">Mac</th><th class="c">winbox</th><th class="c">Vercel</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Agents-Core</td><td class="c"><span class="dot"></span></td><td class="c"><span class="dot"></span></td><td class="c"><span class="dot"></span></td><td></td></tr>
+      <tr><td class="mono">Org-Infra</td><td></td><td class="c"><span class="dot"></span></td><td></td><td></td></tr>
+      <tr><td class="mono">MoonieX-ClaudeFlow</td><td class="c"><span class="dot"></span></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">MoonieX-Option</td><td class="c"><span class="dot"></span></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">MoonieX-AlphaTrader</td><td class="c"><span class="dot"></span></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">MoonieX-LineAutomation</td><td class="c"><span class="dot"></span></td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">MoonieX-Console</td><td class="c"><span class="dot"></span></td><td class="c"><span class="dot"></span></td><td class="c"><span class="dot"></span></td><td></td></tr>
+      <tr><td class="mono">MoonieX-ComfyRunpod</td><td></td><td class="c"><span class="dot"></span></td><td></td><td></td></tr>
+      <tr><td class="mono">MoonieX-CookierunBot</td><td></td><td></td><td class="c"><span class="dot"></span></td><td></td></tr>
+      <tr><td class="mono">MoonieX-WebApp</td><td></td><td class="c"><span class="dot"></span></td><td></td><td class="c"><span class="dot sync"></span></td></tr>
+      <tr><td class="mono">LungNote-MCP</td><td class="c"><span class="dot"></span></td><td class="c"><span class="dot"></span></td><td></td><td></td></tr>
+      <tr><td class="mono">LungNote / WarpClip / LinkReed Webapp</td><td></td><td></td><td></td><td class="c"><span class="dot sync"></span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub">จุดทึบ = เครื่องนั้นอ่านได้ · จุดโปร่ง = Infisical ส่งค่าไป Vercel ทางเดียว ห้ามแก้ใน Vercel อีก ส่วน key ที่ใช้ร่วมกันอยู่ตอนนี้ จะแยกเป็น 1 key ต่อ 1 โปรเจค (OpenRouter, Supabase, fal, Anthropic, OpenAI, Deepgram ออก key หลายตัวได้อยู่แล้ว) ถ้าเป็น key ที่ออกได้ตัวเดียว เช่น token บอท ให้อยู่กับโปรเจคที่เป็นเจ้าของบอท</p>
+</section>
+
+<section id="naming">
+  <h2>กฎตั้งชื่อ</h2>
+  <p class="sub">ชื่อแต่ละที่มีคนอ่านต่างกัน ข้อมูลเลยใส่ต่างกันด้วย ชื่อที่เปลี่ยนตามวันหมดอายุห้ามอยู่ในโค้ด ไม่อย่างนั้นทุกครั้งที่เปลี่ยน key ต้องแก้โค้ดตาม</p>
+
+  <div class="layer">
+    <div class="layer-head"><h3>ก. ชื่อบนหน้า API Key ของเว็บ provider</h3><span class="where">OpenRouter, Cloudflare, GitHub, Vercel, Anthropic …</span></div>
+    <p class="not">หน้านี้เห็นแค่ชื่อ ไม่มีข้อมูลอื่นของเราเลย จึงต้องใส่ข้อมูลให้ครบที่สุด</p>
+    <div class="anat"><div class="anat-row">
+      <span class="seg s-brand"><span class="t">mx</span><span class="l">แบรนด์</span></span><span class="sep">-</span>
+      <span class="seg s-proj"><span class="t">claudeflow</span><span class="l">โปรเจค</span></span><span class="sep">-</span>
+      <span class="seg s-env"><span class="t">prod</span><span class="l">env</span></span><span class="sep">-</span>
+      <span class="seg s-acc"><span class="t">rw</span><span class="l">สิทธิ์</span></span><span class="sep">-</span>
+      <span class="seg s-exp"><span class="t">exp2027-03-31</span><span class="l">หมดอายุ</span></span>
+    </div></div>
+    <ul class="rules">
+      <li>แบรนด์: <code>mx</code> MoonieX · <code>ln</code> LungNote · <code>wc</code> WarpClip · <code>lr</code> LinkReed · <code>ag</code> Agents (<code>ag-core</code>) · ส่วน Org-Infra มีแบบของตัวเอง ดูหัวข้อถัดไป</li>
+      <li>สิทธิ์: <code>ro</code> อ่านอย่างเดียว · <code>rw</code> ใช้งานและเขียนได้ (อาจใช้เงิน) · <code>admin</code> สร้าง/ลบ key และจัดการบิลได้</li>
+      <li>วันหมดอายุ: ถ้า provider ตั้งวันหมดอายุได้ ให้ตั้งวันเดียวกันด้วย ถ้าตั้งไม่ได้ ใช้วันที่เรากำหนดว่าต้องเปลี่ยน (ค่าเริ่มต้นคือ 1 ปี)</li>
+      <li>ยาวไม่เกิน 40 ตัวอักษร เพราะ GitHub จำกัดไว้ 40 (ชื่อที่ยาวที่สุดของเรา <code>mx-lineautomation-prod-rw-exp2027-03-31</code> = 39)</li>
+      <li>ถ้า key ผูกกับเครื่องเดียว ต่อชื่อเครื่องท้ายสุด เช่น <code>-contabo</code></li>
+    </ul>
+  </div>
+
+  <div class="layer">
+    <div class="layer-head"><h3>ข. ชื่อตัวแปรที่โค้ดอ่าน (= ชื่อ secret ใน Infisical)</h3><span class="where">.env, process.env, os.environ</span></div>
+    <div class="anat"><div class="anat-row">
+      <span class="seg s-brand"><span class="t">TELEGRAM</span><span class="l">provider</span></span><span class="sep">_</span>
+      <span class="seg s-which"><span class="t">SOMPONG</span><span class="l">ตัวไหน</span></span><span class="sep">_</span>
+      <span class="seg s-proj"><span class="t">BOT_TOKEN</span><span class="l">ชนิด</span></span>
+    </div></div>
+    <div class="anat"><div class="anat-row">
+      <span class="seg s-brand"><span class="t">FAL</span><span class="l">provider</span></span><span class="sep">_</span>
+      <span class="seg s-proj"><span class="t">API_KEY</span><span class="l">ชนิด</span></span><span class="sep">_</span>
+      <span class="seg s-acc"><span class="t">ADMIN</span><span class="l">สิทธิ์</span></span>
+    </div></div>
+    <ul class="rules">
+      <li><b>ตัวไหน</b> ใส่ก็ต่อเมื่อ provider เดียวกันเรามีหลายตัว เช่น บอท, bucket หรือ channel</li>
+      <li><b>ชนิด</b> เลือกจากรายการเท่านั้น: API_KEY · TOKEN · BOT_TOKEN · SECRET · CLIENT_ID · CLIENT_SECRET · REFRESH_TOKEN · PASSWORD · PRIVATE_KEY · WEBHOOK_SECRET · URL · ID</li>
+      <li><b>สิทธิ์</b> RO · RW · ADMIN ใส่เฉพาะ provider ที่มีหลายระดับ</li>
+      <li><code>NEXT_PUBLIC_</code> คือค่าที่ส่งไปถึง browser ห้ามเป็น secret เด็ดขาด เครื่องตรวจจะไม่ยอมให้ผ่าน</li>
+    </ul>
+    <p class="not"><b>สิ่งที่ห้ามใส่ในชื่อตัวแปร:</b> ชื่อโปรเจค (ตัวโปรเจคใน Infisical บอกอยู่แล้ว), env, วันหมดอายุ และชื่อเครื่อง เพราะทุกครั้งที่เปลี่ยน key ต้องไปแก้โค้ดตาม เจ้าอื่นเช่น 12-factor, Doppler, AWS และ GitLab ก็ทำแบบเดียวกัน</p>
+    <div class="ex">
+      <div class="ex-row"><span class="mono from">TELEGRAM_BOT_TOKEN ×3</span><span class="arrow">→</span><span class="mono">TELEGRAM_SOMPONG_BOT_TOKEN</span>, <span class="mono">TELEGRAM_ALPHATRADER_BOT_TOKEN</span> …</div>
+      <div class="ex-row"><span class="mono from">SENTRY_API_TOKEN / _RW / SENTRY_AUTH_TOKEN</span><span class="arrow">→</span><span class="mono">SENTRY_TOKEN_RO</span>, <span class="mono">SENTRY_TOKEN_RW</span>, <span class="mono">SENTRY_SOURCEMAP_TOKEN</span></div>
+      <div class="ex-row"><span class="mono from">SUPABASE_SERVICE_KEY ≠ SUPABASE_SERVICE_ROLE_KEY</span><span class="arrow">→</span><span class="mono">SUPABASE_SECRET_KEY</span> ชื่อเดียวกันทุกโปรเจค</div>
+    </div>
+  </div>
+
+  <div class="layer">
+    <div class="layer-head"><h3>ค. ข้อมูลที่ต้องกรอกทุก secret ใน Infisical</h3><span class="where">comment + tag + metadata</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th>ช่อง</th><th>ตัวอย่าง</th></tr></thead>
+      <tbody>
+        <tr><td>ใช้ทำอะไร</td><td>ClaudeFlow gen วิดีโอ (fal queue)</td></tr>
+        <tr><td>ชื่อบนเว็บ provider</td><td class="mono">mx-claudeflow-prod-rw-exp2027-03-31</td></tr>
+        <tr><td>ลิงก์ไปหน้าเปลี่ยน/ลบ</td><td>หน้า API keys ของ provider</td></tr>
+        <tr><td>ขอบเขต</td><td>bucket mooniex-media, Object R/W</td></tr>
+        <tr><td>หมดอายุ</td><td class="mono">2027-03-31</td></tr>
+        <tr><td>เจ้าของ · สร้างเมื่อ</td><td>CTO · 2026-09-25 cto-885ae930</td></tr>
+        <tr><td>เพดานเงิน</td><td>$20/เดือน (ถ้า provider ตั้งได้)</td></tr>
+        <tr><td>สถานะ</td><td><span class="tag good">active</span> <span class="tag bad">leaked</span> <span class="tag warn">retiring</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="not">วันหมดอายุจะถูกดึงไปสร้าง to-do ใน LungNote ล่วงหน้า 14 วัน แล้ว hook ตอนเปิด session จะเตือนเหมือน deadline อื่น ๆ</p>
+  </div>
+
+  <div class="layer">
+    <div class="layer-head"><h3>ง. ชื่อโปรเจคและเครื่องใน Infisical</h3></div>
+    <ul class="rules">
+      <li>โปรเจค = ชื่อ repo ตรงตัว (<code>MoonieX-ClaudeFlow</code>) · env = <code>prod</code> หรือ <code>dev</code></li>
+      <li>identity ของเครื่อง = ชื่อเครื่อง: <code>contabo</code> <code>mac</code> <code>winbox</code> · รหัสของแต่ละเครื่องตั้งชื่อ <code>contabo-2026-09-25</code></li>
+      <li>provider ที่ไม่มีช่องตั้งชื่อ (Telegram, LINE token, Omise, SerpApi, Twelve Data, Pexels, Jules) บันทึกไว้ในข้อ ค. อย่างเดียว ส่วน Telegram ใช้ @username ของบอทเป็นส่วน "ตัวไหน"</li>
+    </ul>
+  </div>
+</section>
+
+<section id="org-infra">
+  <h2>Org-Infra: กฎการเขียนและกฎการตั้งชื่อ</h2>
+  <p class="sub">โปรเจคนี้เก็บ key ที่เปลี่ยนแปลงบัญชีได้ ถ้าหลุดจะพังทั้งระบบ กฎจึงเข้มกว่าโปรเจคอื่น</p>
+
+  <div class="box">
+    <h3>อะไรเข้า อะไรไม่เข้า</h3>
+    <ul class="rules">
+      <li><b>เข้า:</b> DNS (Cloudflare), deploy และตั้งค่าโปรเจค (Vercel), สิทธิ์ admin ของ repo (GitHub), การเพิ่มเครื่องเข้า Tailscale, Postgres superuser และช่องทางที่ Infisical ใช้ส่งค่าไป Vercel</li>
+      <li><b>ไม่เข้า:</b> key ที่บริการต้องใช้ตอนรัน ให้ไปอยู่โปรเจคของบริการนั้น เช่น R2 อยู่กับ ClaudeFlow, Drive อยู่กับ Agents-Core</li>
+      <li><b>ไม่เข้า:</b> key ที่เป็นตัวเครื่องเอง (SSH key, Tailscale ของเครื่อง, deploy key) ให้อยู่บนเครื่องนั้น Org-Infra เก็บแค่ลายนิ้วมือ (fingerprint) กับวันหมดอายุ ระบบจะได้เตือนได้</li>
+      <li><b>ใครอ่านได้:</b> พี่กับ Mac เท่านั้น ถ้าจะเพิ่มเครื่องต้องให้พี่อนุมัติ ถ้า Contabo หรือ winbox ต้องใช้ ให้ส่งคำขอผ่าน Run Inbox แทนการอ่าน key เอง</li>
+    </ul>
+  </div>
+
+  <div class="box">
+    <h3>กฎการเขียน</h3>
+    <ol class="steps">
+      <li>พี่เป็นคนเดียวที่ใส่ค่า โดยใส่ในเว็บ Infisical และก๊อปจากหน้า provider ตรง ๆ CTO เตรียมชื่อ, metadata และขอบเขตให้ ส่วน agent ไม่มีวันได้เห็นค่า</li>
+      <li>ขอบเขตแคบที่สุดที่ provider มีให้ เช่น 1 zone, 1 repo หรือ 1 โปรเจค ถ้าต้องกว้างกว่านั้นให้ติด tag <code>wide</code> พร้อมเขียนเหตุผล</li>
+      <li>ต้องมีวันหมดอายุทุกตัว: <code>admin</code> ไม่เกิน 90 วัน ส่วน <code>rw</code> และ <code>ro</code> ไม่เกิน 1 ปี</li>
+      <li>1 key ต่อ 1 งานต่อ 1 เครื่อง ห้ามใช้ key เดียวกันสองเครื่อง ถ้าเครื่องหาย จะได้ลบเฉพาะ key ของเครื่องนั้น</li>
+      <li>กรอก metadata ครบ และเพิ่มอีก 3 ช่อง: หลุดแล้วโจรทำอะไรได้ (<code>blast_radius</code>), ลิงก์หน้ายกเลิก key (<code>revoke_url</code>) และเครื่องกับ script ที่ใช้ (<code>used_by</code>)</li>
+      <li>ทุกครั้งที่สร้าง เปลี่ยน หรือลบ ให้จดหนึ่งบรรทัดในทะเบียน key (แบบฟรีไม่เก็บประวัติ บรรทัดนี้จึงเป็นประวัติเดียวที่มี)</li>
+      <li>เปลี่ยนไปข้างหน้าเท่านั้น: สร้าง key ใหม่ → ใส่ Infisical → ตรวจว่าใช้ได้ → แล้วค่อยลบ key เก่า</li>
+      <li>ห้ามวางในแชท, ห้าม commit ลง git, ห้าม screenshot, ห้ามเก็บสำรองที่อื่น และห้ามใช้ key ทั้งบัญชีถ้ามีแบบแคบให้เลือก</li>
+      <li>บัญชี Infisical ของพี่ต้องเปิด 2FA และ recovery code พี่เก็บเองแบบ offline ห้ามเก็บใน Infisical ใน repo หรือในแชท</li>
+    </ol>
+  </div>
+
+  <div class="layer">
+    <div class="layer-head"><h3>กฎการตั้งชื่อ</h3><span class="where">env <code>prod</code> อย่างเดียว · โฟลเดอร์ตามงาน <code>/dns</code> <code>/deploy</code> <code>/repo</code> <code>/net</code> <code>/db</code> <code>/vault</code></span></div>
+    <p class="not">ชื่อบนหน้าเว็บ provider</p>
+    <div class="anat"><div class="anat-row">
+      <span class="seg s-brand"><span class="t">infra</span><span class="l">Org-Infra</span></span><span class="sep">-</span>
+      <span class="seg s-which"><span class="t">dns</span><span class="l">งาน</span></span><span class="sep">-</span>
+      <span class="seg s-env"><span class="t">mac</span><span class="l">เครื่อง</span></span><span class="sep">-</span>
+      <span class="seg s-acc"><span class="t">rw</span><span class="l">สิทธิ์</span></span><span class="sep">-</span>
+      <span class="seg s-exp"><span class="t">exp2026-12-24</span><span class="l">หมดอายุ</span></span>
+    </div></div>
+    <p class="not">ชื่อตัวแปร (งานกับเครื่องต้องใส่ทุกครั้ง)</p>
+    <div class="anat"><div class="anat-row">
+      <span class="seg s-brand"><span class="t">CLOUDFLARE</span><span class="l">provider</span></span><span class="sep">_</span>
+      <span class="seg s-which"><span class="t">DNS</span><span class="l">งาน</span></span><span class="sep">_</span>
+      <span class="seg s-env"><span class="t">MAC</span><span class="l">เครื่อง</span></span><span class="sep">_</span>
+      <span class="seg s-proj"><span class="t">TOKEN</span><span class="l">ชนิด</span></span><span class="sep">_</span>
+      <span class="seg s-acc"><span class="t">RW</span><span class="l">สิทธิ์</span></span>
+    </div></div>
+    <ul class="rules">
+      <li>งาน: <code>dns</code> <code>deploy</code> <code>repo</code> <code>net</code> <code>db</code> <code>vault</code> · เครื่อง: <code>mac</code> <code>contabo</code> <code>winbox</code> <code>ci</code> (GitHub Actions) <code>ceo</code> (พี่ใช้เอง) ถ้าจะเพิ่มงานใหม่ต้องให้พี่อนุมัติ</li>
+      <li>ชื่อที่ยาวที่สุดที่เป็นไปได้คือ <code>infra-deploy-contabo-admin-exp2026-12-24</code> = 40 ตัวอักษร พอดีกับที่ GitHub รับได้</li>
+      <li>ตัวอย่างอื่น: <code>VERCEL_DEPLOY_MAC_TOKEN_RW</code> · <code>GITHUB_REPO_MAC_TOKEN_ADMIN</code> · <code>POSTGRES_DB_CONTABO_PASSWORD_ADMIN</code></li>
+    </ul>
+    <p class="not"><b>ของที่จะย้ายเข้า:</b> Cloudflare DNS (หลุดไปแล้ว ต้องเปลี่ยน), Vercel token, gh บน Mac, GitHub token ของ Contabo ที่ตายแล้ว (เปลี่ยนเป็น deploy key), Postgres superuser และ Tailscale ถ้ามี</p>
+  </div>
+</section>
+
+<section id="phases">
+  <h2>ขั้นตอน</h2>
+  <ol class="phases">
+    <li><span class="ph">P0 · เสร็จ</span><b>พี่อนุมัติ 5 ข้อ + ขอกฎของ Org-Infra</b><span class="who">25 ก.ย.</span></li>
+    <li class="now"><span class="ph">P1 · ต่อไป</span><b>สมัคร Infisical แล้วสร้างโปรเจคกับ identity ของ 3 เครื่อง</b><span class="who">พี่ประมาณ 15 นาที + CTO · $0</span>
+      <ol class="steps" style="margin-top:6px">
+        <li>สมัครที่ app.infisical.com ด้วย pass.gob1@gmail.com ตั้งชื่อ org ว่า <code>MoonieX</code> เปิด 2FA แล้วเก็บ recovery code ไว้เอง</li>
+        <li>ในหน้า Organization › Identities สร้าง identity ชื่อ <code>setup</code> ให้ role Admin เลือก Universal Auth แล้วสร้าง Client Secret (description <code>setup-2026-09-25</code>)</li>
+        <li>บอก CTO ว่า "สมัครแล้ว" CTO จะส่งการ์ดเข้าแท็บ "คำสั่ง" พี่กด Run แล้วพิมพ์ Client ID กับ Client Secret ลงช่องพิมพ์ของการ์ด (ค่าไม่ถูกเก็บ และบนจอขึ้นเป็น •••)</li>
+        <li>CTO รัน script สร้างโปรเจคทั้งหมด, env, โฟลเดอร์ของ Org-Infra และ identity ของ 3 เครื่อง แล้วลบ <code>setup</code> ทิ้ง</li>
+      </ol>
+    </li>
+    <li><span class="ph">P2</span><b>นำร่องที่ LineAutomation</b><span class="who">CTO · import จากไฟล์บนเครื่องเองตรง ๆ, restart ให้ดึงจาก Infisical แล้วลบ .env</span></li>
+    <li><span class="ph">P3</span><b>ย้ายทีละโปรเจค</b><span class="who">CTO · ลบ .env ของแต่ละโปรเจคหลังรันจาก Infisical ได้ปกติครบ 7 วัน ส่วน Archive ลบหลังพี่ OK (#177)</span></li>
+    <li><span class="ph">P4</span><b>เปลี่ยน key ที่หลุด 7 ตัว + แยก key ที่ใช้ร่วมกัน ตั้งชื่อตามกฎใหม่</b><span class="who">พี่ login ผ่าน relay บนมือถือ + CTO</span></li>
+    <li><span class="ph">P5</span><b>ระบบเตือนวันหมดอายุ</b><span class="who">CTO · สร้างหน้าทะเบียน key อัตโนมัติ และแก้ IRON §34 ให้ชี้มาที่ Infisical</span></li>
+    <li><span class="ph">P6</span><b>เปลี่ยนชื่อตัวแปรให้ตรงกฎ ข.</b><span class="who">CTO/DEV · ทำเป็น PR ทีละโปรเจค</span></li>
+  </ol>
+</section>
+
+<section id="unverified">
+  <h2>ที่ยังไม่ได้ยืนยัน</h2>
+  <ul class="rules">
+    <li>ตัวพี่เอง (คน) นับเป็น 1 ใน 5 identity ของแบบฟรีด้วยหรือเปล่า แผนนี้คิดไว้ก่อนว่านับ</li>
+    <li>แบบฟรีสร้างโปรเจคได้กี่อัน หน้าราคาไม่ได้เขียนไว้</li>
+    <li>การเตือนให้เปลี่ยน key ใน Infisical ต้องใช้แพ็กเกจไหน (แต่ระบบเตือนของเราทำงานได้โดยไม่ต้องพึ่งอันนี้)</li>
+    <li>Supabase, Gemini AI Studio และ R2 มีช่องตั้งชื่อ key หรือเปล่า และความยาวสูงสุดของ provider ส่วนใหญ่ (มีแค่ GitHub ที่เขียนไว้ว่า 40)</li>
+  </ul>
+</section>
+
+<div class="foot">
+  <span>แผนฉบับเต็มสำหรับ agent: <span class="mono">Agents-Core/docs/design/secrets-infisical/PLAN.md</span></span>
+  <span>ที่มา: GH Agents-Core#16 (13 มิ.ย.) · พี่สั่ง 19 ก.ย. · แผน Ask Inbox ขั้นที่ 4 · IRON §34</span>
+</div>
+
+</div>
