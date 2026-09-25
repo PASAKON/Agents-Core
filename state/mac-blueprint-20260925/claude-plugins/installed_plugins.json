@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "plugins": {
+    "ecc@ecc": [
+      {
+        "scope": "user",
+        "installPath": "/Users/gob/.claude/plugins/cache/ecc/ecc/2.0.0-rc.1",
+        "version": "2.0.0-rc.1",
+        "installedAt": "2026-05-15T19:22:41.625Z",
+        "lastUpdated": "2026-05-15T19:22:41.625Z",
+        "gitCommitSha": "c0f8c3bc813360f29e9f2b66bcae7e977cd03327"
+      }
+    ],
+    "finance@knowledge-work-plugins": [
+      {
+        "scope": "user",
+        "installPath": "/Users/gob/.claude/plugins/cache/knowledge-work-plugins/finance/1.3.0",
+        "version": "1.3.0",
+        "installedAt": "2026-06-11T14:01:41.820Z",
+        "lastUpdated": "2026-06-11T14:01:41.820Z",
+        "gitCommitSha": "3b007684f5095f5a4f36d31c720d1283ce3b3170"
+      }
+    ],
+    "cost-guardian@cost-guardian-marketplace": [
+      {
+        "scope": "user",
+        "installPath": "/Users/gob/.claude/plugins/cache/cost-guardian-marketplace/cost-guardian/2.0.0",
+        "version": "2.0.0",
+        "installedAt": "2026-06-11T14:03:29.679Z",
+        "lastUpdated": "2026-06-11T14:03:29.679Z",
+        "gitCommitSha": "c71e623368d599d68135c06d73ce6259de9c53ed"
+      }
+    ],
+    "meigen@meigen-marketplace": [
+      {
+        "scope": "user",
+        "installPath": "/Users/gob/.claude/plugins/cache/meigen-marketplace/meigen/1.3.3",
+        "version": "1.3.3",
+        "installedAt": "2026-07-13T17:16:53.157Z",
+        "lastUpdated": "2026-07-13T17:16:53.157Z",
+        "gitCommitSha": "68cddce2970f58656ea0878c1d07ff1ba91cda28"
+      }
+    ]
+  }
+}

@@ -29,8 +29,10 @@ MAC_TOTAL = 8
 # tars, claude login + re-trust, secrets fetch) — see each script's hdr() names.
 CONTABO_HUMAN_STEPS = {1, 2, 4, 5, 6, 7, 8}
 CONTABO_NON_HUMAN_STEPS = {3, 9}
-MAC_HUMAN_STEPS = {4, 5, 6, 7}
-MAC_NON_HUMAN_STEPS = {1, 2, 3, 8}
+# step 2 became HUMAN on 2026-09-25: a fresh Mac has no SSH key until step 7, so cloning the
+# private repos needs `gh auth login` (HTTPS) first.
+MAC_HUMAN_STEPS = {2, 4, 5, 6, 7}
+MAC_NON_HUMAN_STEPS = {1, 3, 8}
 
 
 def _run(args: list[str], env: dict[str, str] | None = None) -> subprocess.CompletedProcess:

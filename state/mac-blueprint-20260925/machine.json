@@ -1,0 +1,11 @@
+{
+  "hostname": "MacBook-Pro-khxng-GoB.local",
+  "os": "14.3.1",
+  "build": "23D60",
+  "kernel": "23.3.0",
+  "python_version": "3.14.7",
+  "node_version": "v26.0.0",
+  "tailscale_ip": "100.64.2.37",
+  "disk_free_gb_root": 5.6,
+  "users_uid_ge_500": []
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.mooniex.disk-push</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/bash</string><string>/Users/gob/.local/share/mooniex/disk-push.sh</string><string>mac</string>
+  </array>
+  <key>StartInterval</key><integer>600</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/Users/gob/Library/Logs/mooniex/disk-push.log</string>
+  <key>StandardErrorPath</key><string>/Users/gob/Library/Logs/mooniex/disk-push.log</string>
+</dict></plist>

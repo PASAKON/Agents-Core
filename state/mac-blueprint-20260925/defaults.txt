@@ -1,0 +1,6 @@
+com.apple.dock autohide: 1
+com.apple.dock autohide-delay: 2026-09-25 18:11:15.594 defaults[90605:20422657] 
+The domain/default pair of (com.apple.dock, autohide-delay) does not exist
+com.apple.finder AppleShowAllFiles: 2026-09-25 18:11:15.601 defaults[90607:20422661] 
+The domain/default pair of (com.apple.finder, AppleShowAllFiles) does not exist
+com.apple.screensaver idleTime: 0

@@ -1,0 +1,42 @@
+{
+  "ecc": {
+    "source": {
+      "source": "git",
+      "url": "https://github.com/affaan-m/everything-claude-code.git"
+    },
+    "installLocation": "/Users/gob/.claude/plugins/marketplaces/ecc",
+    "lastUpdated": "2026-05-15T19:22:31.627Z"
+  },
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/Users/gob/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-09-22T10:28:08.591Z"
+  },
+  "knowledge-work-plugins": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/knowledge-work-plugins"
+    },
+    "installLocation": "/Users/gob/.claude/plugins/marketplaces/knowledge-work-plugins",
+    "lastUpdated": "2026-06-11T14:01:41.278Z"
+  },
+  "cost-guardian-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "Manavarya09/cost-guardian"
+    },
+    "installLocation": "/Users/gob/.claude/plugins/marketplaces/cost-guardian-marketplace",
+    "lastUpdated": "2026-06-11T14:03:29.255Z"
+  },
+  "meigen-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "jau123/MeiGen-AI-Design-MCP"
+    },
+    "installLocation": "/Users/gob/.claude/plugins/marketplaces/meigen-marketplace",
+    "lastUpdated": "2026-07-13T17:16:49.464Z"
+  }
+}

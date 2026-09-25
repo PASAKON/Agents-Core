@@ -1,0 +1,86 @@
+tap "homebrew-ffmpeg/ffmpeg"
+tap "hudochenkov/sshpass"
+tap "ngrok/ngrok"
+tap "supabase/tap"
+# ACME client
+brew "acme.sh"
+# Vector graphics library with cross-device output support
+brew "cairo"
+# Tool for emulating mouse and keyboard events
+brew "cliclick"
+# Cloudflare Tunnel client (formerly Argo Tunnel)
+brew "cloudflared"
+# Library and utilities for processing GIFs
+brew "giflib"
+# Play, record, convert, and stream select audio and video codecs
+brew "ffmpeg"
+# Fast and simple Node.js version manager
+brew "fnm"
+# GitHub command-line tool
+brew "gh"
+# Quickly rewrite git repository history
+brew "git-filter-repo"
+[LINE REDACTED BY CAPTURE FILTER]
+brew "gitleaks"
+# Image manipulation library
+brew "jpeg"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# Library to communicate with iOS devices natively
+brew "libimobiledevice"
+# Postgres C API library
+brew "libpq"
+# Framework for layout and rendering of i18n text
+brew "pango"
+# Library to render SVG files using Cairo
+brew "librsvg"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node@24"
+# Package compiler and linker metadata toolkit
+brew "pkgconf"
+# PDF rendering library (based on the xpdf-3.0 code base)
+brew "poppler"
+# Object-relational database system
+brew "postgresql@16", link: true
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.12"
+# Interpreted, interactive, object-oriented programming language
+brew "python@3.14"
+# Static analysis and lint tool, for (ba)sh scripts
+brew "shellcheck"
+# Easiest, most secure way to use WireGuard and 2FA
+brew "tailscale"
+# OCR (Optical Character Recognition) engine
+brew "tesseract"
+# Enables extra languages support for Tesseract
+brew "tesseract-lang"
+# Terminal multiplexer
+brew "tmux"
+# Command-line tool for sharing terminal over the web
+brew "ttyd"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
+# Port of OpenAI's Whisper model in C/C++
+brew "whisper.cpp"
+# Feature-rich command-line audio/video downloader
+brew "yt-dlp"
+# Video editing and image design platform
+cask "capcut"
+# App to build and share containerised applications and microservices
+cask "docker-desktop"
+# 2D and 3D game engine
+cask "godot"
+# Terminal emulator as alternative to Apple's Terminal app
+cask "iterm2"
+cask "ngrok"
+npm "@mikusnuz/meta-ads-mcp"
+npm "@openai/codex"
+npm "@supabase/mcp-server-supabase"
+npm "9router"
+npm "better-sqlite3"
+npm "pnpm"
+npm "sql.js"
+npm "systray2"
+npm "vercel"

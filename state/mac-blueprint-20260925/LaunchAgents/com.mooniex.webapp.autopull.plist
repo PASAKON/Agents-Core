@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.webapp.autopull</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/gob/.local/bin/mooniex-webapp-autopull.sh</string>
+  </array>
+
+  <!-- Poll cadence: every 120s. Raise to 300 if you see rate-limiting. -->
+  <key>StartInterval</key>
+  <integer>120</integer>
+
+  <!-- Run once on load so there's no 2-minute delay on first boot. -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- launchd gives a minimal env; the script re-exports PATH itself. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/gob</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-webapp-autopull.stdout.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-webapp-autopull.stderr.log</string>
+</dict>
+</plist>

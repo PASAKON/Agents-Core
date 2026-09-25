@@ -52,11 +52,11 @@ chat (CEO 2026-09-24 decision, `docs/ops/machine-contract-plan-2026-09-24.md`).
 | # | Step | HUMAN | Estimate |
 |---|---|---|---|
 | 1 | preflight: confirm Darwin, disk free, Homebrew, git | no | 2 min |
-| 2 | clone `~/MoonieXHQ` + `Agents-{Core,Rules,Wikis,Memory}` — the Mac IS the source of truth for Rules/Wikis (unlike Contabo), so all four are cloned, not rsync'd | no | 3–5 min |
+| 2 | `gh auth login` (HTTPS — the SSH keys only return in step 7), clone `~/MoonieXHQ` + `Agents-{Core,Rules,Wikis,Memory}` (the Mac IS the source of truth for Rules/Wikis, so all four are cloned, not rsync'd), then **every repo in the blueprint's `repos.tsv`** (projects, External skill repos, `~/Developer`) with their extra remotes, then the Core `.venv` | **yes** — the GitHub browser login | 3–5 min + clone time |
 | 3 | `brew bundle --file` the captured `Brewfile` | no | 10–30 min (cask downloads vary) |
 | 4 | LaunchAgents: copy captured `com.gob.*.plist`, `launchctl load` | **yes** — any plist with a `<redacted>` value must be hand-filled with the real secret before it is loaded | 5–10 min |
 | 5 | Tailscale install + `tailscale up` | **yes** — open the login prompt, sign in, approve the machine | 3–5 min |
-| 6 | Claude Code: native install, claude-home symlinks | **yes** — `claude` login and re-trusting `Agents/Core` are both interactive | 5 min + login time |
+| 6 | Claude Code: native install, then `scripts/install-claude-home.sh` (claude-home links, every skill in `claude-home/skills.txt`, `plugins.txt`, launchd), the blueprint's `links.tsv` (**memory** → `Agents/Memory`, `~/Projects` hub), `memory_sync pull` | **yes** — `claude` login and re-trusting `Agents/Core` are both interactive | 5 min + login time |
 | 7 | secrets: print the paths needing the mac-secrets bundle (`~/.config/mooniex/**`, redacted LaunchAgent values) | **yes** — fetched by hand from Contabo's `Archive/` at 0600; never Drive, never automatic | however long the bundle transfer takes |
 | 8 | verify: `machine_doctor.py --machine mac check`, `hq.py doctor`; print PASS/FAIL + the drill-line template | no | 1–2 min |
 

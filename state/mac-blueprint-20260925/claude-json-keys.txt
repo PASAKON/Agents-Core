@@ -1,0 +1,134 @@
+top-level keys:
+  additionalModelCostsCache
+  additionalModelOptionsAnsweredAt
+  additionalModelOptionsCache
+  agentLastUsed
+  announcementImpressions
+  appleTerminalBackupPath
+  appleTerminalSetupInProgress
+  autoCompactWindowsCache
+  autoModeClassifierBillingNoticeAcknowledgedAt
+  autoModeEnvSetup
+  autoPermissionsNotificationCount
+  autoUpdates
+  autoUpdatesProtectedForNative
+  btwUseCount
+  cachedArtifactRoster
+  cachedChromeExtensionInstalled
+  cachedExperimentData
+  cachedExperimentFeatures
+  cachedExtraUsageDisabledReason
+  cachedGrowthBookFeatures
+  cachedGrowthBookFeaturesAt
+  cachedUsageUtilization
+  changelogLastFetched
+  chromeExtension
+  claudeAiMcpEverConnected
+[LINE REDACTED BY CAPTURE FILTER]
+  claudeCodeHints
+  claudeInChromeDefaultEnabled
+  clientDataCacheSlots
+  closedIssuesLastChecked
+  customApiKeyResponses
+  deepLinkTerminal
+  diffSidebarOpen
+  effortCalloutV2Dismissed
+  feedbackSurveyState
+  firstStartTime
+  fotwUpsellFulfilled
+  fullscreenUpsellSeenCount
+  githubRepoPaths
+  githubWebConnectionStatusCache
+  groveConfigCache
+  hasAvailableSubscription
+  hasCompletedClaudeInChromeOnboarding
+  hasCompletedOnboarding
+  hasOpenedAgentsView
+  hasResetAutoModeOptInForDefaultOffer
+  hasSeenAutoModeOutsideReadPrompt
+  hasSeenTasksHint
+  hasUsedBackslashReturn
+  hasUsedRemoteControl
+  hasVisitedPasses
+  installMethod
+  lastClawdEntranceVersion
+  lastOnboardingVersion
+  lastPlanModeUse
+  lastReleaseNotesSeen
+  lastShownEmergencyTip
+  machineID
+  mcpNeedsAuthNoticed
+  mcpServers
+  metricsStatusCache
+  migrationVersion
+  modelAccessCache
+  numStartups
+  oauthAccount
+  officialMarketplaceAutoInstallAttempted
+  officialMarketplaceAutoInstalled
+  optionAsMetaKeyInstalled
+  opusProMigrationComplete
+  orgModelDefaultCache
+  passesEligibilityCache
+  passesLastSeenRemaining
+  passesUpsellSeenCount
+  penguinModeOrgEnabled
+  pluginUsage
+  projects
+  promptQueueUseCount
+  pushNotifUpsellSeenCount
+  rcLongTurnNudgeSeenCount
+  rcLongTurnNudgeSeenKey
+  remoteControlReadyPushCount
+  remoteControlReadyPushKey
+  remoteControlSurfacesSeen
+  remoteControlUpsellSeenCount
+  remoteDialogSeen
+  replBridgePlaceholders
+  seenNotifications
+  showSpinnerTree
+  skillUsage
+  sonnet1m45MigrationComplete
+  subscriptionNoticeCount
+  tipLifetimeShownCounts
+  tipsHistory
+  tipsHistoryByCommand
+  transcriptShareDismissed
+  unpinFable5LaunchEffort
+  unpinOpus47LaunchEffort
+  unpinOpus48LaunchEffort
+  userID
+
+projects{} (path, allowedTools, hasTrustDialogAccepted):
+  /Users/gob	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Desktop	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Desktop/MoonieX Dashboard	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/LungNote Projects	allowedTools=None	hasTrustDialogAccepted=None
+  /Users/gob/LungNote Projects/.claude/worktrees/fervent-noether-9ebf32	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/LungNote Projects/webapp	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/MoonieXHQ/Agents/Core	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/MoonieXHQ/Projects/MoonieX/ComfyRunpod	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/MoonieXHQ/Projects/MoonieX/Console	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Projects	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/Projects/Agents	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Projects/LinkReed-Webapp	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/Projects/comfy-runpod-worker	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Projects/cookierun-bot	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Projects/mooniex-claudeflow	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Projects/mooniex-claudesign	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/Projects/mooniex-console	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/Projects/mooniex-moonx	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/Projects/mooniex-video-engine	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/Projects/mooniex-webapp	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/Projects/mooniex-webapp (Desk-A)	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/WarpClip Projects/webapp	allowedTools=[]	hasTrustDialogAccepted=False
+  /Users/gob/arna-ai	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/mooniex-wa-system	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/my-gather-bot	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/projects	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/projects/mooniex-genui	allowedTools=[]	hasTrustDialogAccepted=True
+  /Users/gob/projects/nohuman-company	allowedTools=[]	hasTrustDialogAccepted=True
+  /private/tmp	allowedTools=[]	hasTrustDialogAccepted=True
+  /private/tmp/claude-501/-Users-gob-Projects-Agents/9b73770c-87a8-4b64-be1a-98654a904905/scratchpad/teetest	allowedTools=[]	hasTrustDialogAccepted=False
+  /private/tmp/claude-501/-Users-gob-Projects-Agents/b5c84e80-5a04-4f5a-b391-95c31301c02d/scratchpad	allowedTools=[]	hasTrustDialogAccepted=False

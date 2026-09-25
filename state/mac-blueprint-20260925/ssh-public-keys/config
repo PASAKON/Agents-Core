@@ -1,0 +1,31 @@
+
+# mooniex-claudeflow PROD = Contabo since the 2026-06-16 migration (Hostinger retired).
+# 'mooniex-vps' repointed to Contabo 2026-06-17 so legacy scripts/playbook/deploy.sh
+# that say `ssh mooniex-vps` hit the LIVE box. Identical target to 'mooniex-contabo'.
+Host mooniex-vps
+    HostName 194.233.80.26
+    User root
+    IdentityFile /Users/gob/.ssh/mooniex_contabo_claudeflow
+    IdentitiesOnly yes
+
+# OLD Hostinger box — decommissioned at the 2026-06-16 cutover, billing ends after
+# 2026-06-18. Kept ONLY for final teardown/backup. DO NOT deploy or start services here.
+Host mooniex-hostinger-old
+    HostName 72.61.118.1
+    User root
+    IdentityFile ~/.ssh/mooniex_vps
+    IdentitiesOnly yes
+
+
+Host mooniex-contabo
+    HostName 194.233.80.26
+    User root
+    IdentityFile /Users/gob/.ssh/mooniex_contabo_claudeflow
+
+Host winbox
+    # reset 2026-09-24: window-gob on the tailnet (was 100.123.83.75 desktop-3nqb2qo)
+    HostName 100.124.196.11
+    User passg
+    IdentityFile ~/.ssh/desktop_win
+    IdentitiesOnly yes
+    ServerAliveInterval 30

@@ -87,12 +87,26 @@ else
   cmd brew install git
 fi
 
-# ============================== 2/8 — clone MoonieXHQ + Agents-{Core,Rules,Wikis,Memory}
-hdr "clone MoonieXHQ + Agents-{Core,Rules,Wikis,Memory}"
+# ============================== 2/8 — clone MoonieXHQ + Agents-{Core,Rules,Wikis,Memory} + every repo
+hdr "clone MoonieXHQ + Agents-{Core,Rules,Wikis,Memory} + every repo in the blueprint (HUMAN: GitHub login)"
+# HTTPS + gh, not git@: on a fresh Mac the SSH keys only come back in step 7 (secrets), so an
+# SSH clone here cannot work. The org's remotes are https:// already (2026-09-25 capture).
+if command -v gh >/dev/null 2>&1; then
+  say "gh: present ($(command -v gh))"
+else
+  cmd brew install gh
+fi
+if [ "$DRY_RUN" -eq 0 ] && gh auth status >/dev/null 2>&1; then
+  say "gh: already logged in"
+else
+  human "'gh auth login' below opens a browser — sign in to GitHub as PASAKON (HTTPS). Private repos cannot be cloned before this."
+  cmd gh auth login --web --git-protocol https
+fi
+cmd gh auth setup-git
 if [ -d "$HOME_HQ/.git" ]; then
   say "$HOME_HQ already a git checkout — skip clone (idempotent)"
 else
-  cmd git clone git@github.com:PASAKON/MoonieX-HQ.git "$HOME_HQ"
+  cmd git clone https://github.com/PASAKON/MoonieX-HQ.git "$HOME_HQ"
 fi
 for pair in "Agents/Core:Agents-Core" "Agents/Rules:Agents-Rules" "Agents/Wikis:Agents-Wikis" "Agents/Memory:Agents-Memory"; do
   sub="${pair%%:*}"
@@ -101,11 +115,39 @@ for pair in "Agents/Core:Agents-Core" "Agents/Rules:Agents-Rules" "Agents/Wikis:
   if [ -d "$dst/.git" ]; then
     say "$dst already a git checkout — skip clone (idempotent)"
   else
-    cmd git clone "git@github.com:PASAKON/$repo.git" "$dst"
+    cmd git clone "https://github.com/PASAKON/$repo.git" "$dst"
   fi
 done
 say "unlike Contabo, the Mac IS the source of truth for Agents/Rules + Agents/Wikis (hq.yaml"
 say "current: paths) — they are cloned here, not rsync'd."
+
+# The blueprint lives INSIDE Agents-Core, so it can only be found after that clone. Resolving it
+# at the top (as this script did until 2026-09-25) found nothing on a fresh Mac and silently
+# skipped the Brewfile + LaunchAgents — the bug contabo_restore.sh fixed on 2026-09-24.
+BLUEPRINT_DIR=$(ls -d "$CORE"/state/mac-blueprint-*/ 2>/dev/null | sort | tail -1)
+BLUEPRINT_DIR="${BLUEPRINT_DIR%/}"
+if [ -n "$BLUEPRINT_DIR" ] && [ -f "$BLUEPRINT_DIR/repos.tsv" ]; then
+  say "every other repo from $BLUEPRINT_DIR/repos.tsv (projects, External skill repos, ~/Developer):"
+  while IFS="$(printf '\t')" read -r rpath rbranch rname rurl; do
+    [ "$rpath" = "path" ] && continue
+    [ -n "$rurl" ] || continue
+    dst="$HOME/$rpath"
+    if [ ! -d "$dst/.git" ]; then
+      cmd git clone -o "$rname" "$rurl" "$dst"
+      say "  (was on branch $rbranch — switch by hand if it was not the default)"
+    elif ! git -C "$dst" remote 2>/dev/null | grep -qx "$rname"; then
+      cmd git -C "$dst" remote add "$rname" "$rurl"
+    fi
+  done < "$BLUEPRINT_DIR/repos.tsv"
+else
+  say "WARN: no repos.tsv in the latest blueprint — only the five repos above were cloned"
+fi
+if [ -x "$CORE/.venv/bin/python3" ]; then
+  say "Agents-Core venv: present"
+else
+  cmd python3 -m venv "$CORE/.venv"
+  cmd "$CORE/.venv/bin/pip" install -q -r "$CORE/requirements.txt"
+fi
 
 # ==================================================== 3/8 — Homebrew bundle
 hdr "Homebrew bundle from the captured Brewfile"
@@ -162,29 +204,39 @@ fi
 human "run 'claude' and complete login interactively — this script does not automate it."
 
 CCD="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-say "claude-home symlinks (scripts/claude_home_migrate.py pattern — repo is the source, \$CLAUDE_CONFIG_DIR gets the links):"
-for entry in CLAUDE.md settings.json hooks commands mcp/mooniex-coord tools; do
-  cmd mkdir -p "$(dirname "$CCD/$entry")"
-  cmd ln -sfn "$CORE/claude-home/$entry" "$CCD/$entry"
-done
-if [ -d "$CORE/.claude/skills" ]; then
-  cmd mkdir -p "$CCD/skills"
-  for d in "$CORE/.claude/skills"/*/; do
-    [ -d "$d" ] || continue
-    skill_name=$(basename "$d")
-    cmd ln -sfn "$CORE/.claude/skills/$skill_name" "$CCD/skills/$skill_name"
-  done
+# scripts/install-claude-home.sh is the one tool that knows the whole ~/.claude map: claude-home
+# links, EVERY skill in claude-home/skills.txt (org + Agents/Skills + External repos — the old
+# loop here linked only Core's own skills), plugins.txt (ecc, finance, cost-guardian, meigen),
+# claude-home/launchd, and the reel-editor venv. It needs `claude` logged in for the plugins.
+say "~/.claude from the repo: scripts/install-claude-home.sh (links + skills.txt + plugins + launchd)"
+cmd env CLAUDE_HOME="$CCD" bash "$CORE/scripts/install-claude-home.sh"
+# Memory and the ~/Projects compat hub are symlinks too, recorded by the blueprint (links.tsv):
+# without the memory link a restored session starts with NO memory.
+if [ -n "$BLUEPRINT_DIR" ] && [ -f "$BLUEPRINT_DIR/links.tsv" ]; then
+  while IFS="$(printf '\t')" read -r lpath ltarget; do
+    [ "$lpath" = "link" ] && continue
+    [ -n "$ltarget" ] || continue
+    cmd mkdir -p "$(dirname "$HOME/$lpath")"
+    cmd ln -sfn "$ltarget" "$HOME/$lpath"
+  done < "$BLUEPRINT_DIR/links.tsv"
 else
-  say "no $CORE/.claude/skills yet (step 2 must complete first) — skills symlinks skipped"
+  say "WARN: no links.tsv — link memory by hand: ln -sfn $HOME_HQ/Agents/Memory $CCD/projects/-Users-gob-MoonieXHQ-Agents-Core/memory"
 fi
+cmd_sh "cd '$CORE' && .venv/bin/python3 -m tools.memory_sync pull"
+human "skills.txt rows pointing at \$HOME/.agents/skills (gsap, hyperframes*, website-to-hyperframes) are NOT git repos — restore ~/.agents from mac-home-extras-<date>.tar (step 7) or re-add them with 'npx skills add' per ~/.agents/.skill-lock.json, then re-run install-claude-home.sh --check."
 human "re-trust $CORE in Claude Code (accept the folder-trust dialog / hasTrustDialogAccepted) — required before hooks/skills run; cannot be automated."
 
 # ============================ 7/8 — secrets
 hdr "secrets: print locations only (HUMAN: fetch the bundle by hand)"
 say "config/machine-contract.yaml CONFIG rows this machine cannot self-restore (secrets bundle):"
 say '  $HOME/.config/mooniex/**                    (app secrets — never Drive)'
-say '  $HOME/Library/LaunchAgents/com.gob.*.plist  (secret <string> values flagged in step 4)'
-human "fetch the mac-secrets bundle from Contabo's Archive/ at 0600 (e.g. mooniex-vps:/opt/MoonieXHQ/Archive/mac-secrets-<date>/), then copy each file into place by hand. Never put secrets on Drive; never let this script fetch them."
+say '  $HOME/Library/LaunchAgents/com.{gob,mooniex}.*.plist  (secret <string> values flagged in step 4)'
+say '  every repo .env* / certs, $HOME/.ssh, $HOME/.claude.json (MCP servers), $HOME/.config/{gh,mooniex}'
+human "fetch the mac-secrets bundle from Contabo's Archive/ at 0600 (e.g. mooniex-vps:/opt/MoonieXHQ/Archive/mac-secrets-<date>/: mac-secrets-<date>.tar = .env*/certs/.ssh/.claude.json, mac-home-extras-<date>.tar = unredacted LaunchAgents, dotfiles, crontab), then copy each file into place by hand. Never put secrets on Drive; never let this script fetch them."
+say "gitignored org STATE is not a secret and not in git — it comes back from Drive (gdrive-filing BACKUP rows):"
+say '  Agents/Core/state/tasks.db + session-search.db  <- the newest BACKUP/Mac-Reinstall-<date>-final-delta-*.tar (_extra/*sqlite/)'
+say '  Agents/Core/state, output, Work/, UNKNOWN/, ComfyRunpod studio/data <- BACKUP/Mac-Reinstall-<date>-MoonieXHQ-data.tar'
+say '  unpushed branches / stashes / dirty work <- BACKUP/Mac-Reinstall-<date>-MoonieXHQ-code.tar (git fetch <bundle>)'
 
 # ============================ 8/8 — verify
 hdr "verify: machine_doctor, hq.py doctor, PASS/FAIL + drill template"

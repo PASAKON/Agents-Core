@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.console-mac</string>
+
+  <!-- The wrapper waits for Tailscale, refreshes the TLS cert, then execs
+       node. Pointing launchd straight at src/server.js would race the tailnet
+       coming up and fail to bind. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/gob/MoonieXHQ/Projects/MoonieX/Console/scripts/mac-console.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Projects/MoonieX/Console</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- The point of the whole thing: the Mac has to still be serving while the
+       CEO is out of the house, so a crash must come back on its own.
+       ThrottleInterval keeps a boot-time bind failure from spinning. -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <!-- launchd hands over a minimal environment; node, tmux and tailscale all
+       live outside the default PATH.
+
+       LANG is not decoration. With no UTF-8 locale, tmux sanitises its own
+       output: `list-sessions -F '...\t...'` comes back with the TAB replaced
+       by an underscore, the session list parses as one field, and the slug
+       the phone links to ends up as `testmirror_1786075027_0`. The WS route
+       only accepts [a-z0-9-], so the upgrade is refused and tapping a session
+       does nothing at all, silently. Thai output renders as underscores for
+       the same reason. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/gob</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>LANG</key>
+    <string>en_US.UTF-8</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-console-mac.stdout.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-console-mac.stderr.log</string>
+</dict>
+</plist>

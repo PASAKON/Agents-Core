@@ -39,13 +39,15 @@ $B/ with:
 
  1. brew bundle dump --force --file="$B/Brewfile"
  2. launchctl list | grep -v com.apple > "$B/launchctl-list.txt"
- 3. copy ~/Library/LaunchAgents/com.gob.*.plist into "$B/LaunchAgents/",
-    redacting any secret-looking <string> value to <redacted>
+ 3. copy ~/Library/LaunchAgents/com.gob.*.plist + com.mooniex.*.plist into
+    "$B/LaunchAgents/", redacting any secret-looking <string> value to <redacted>
  4. defaults read com.apple.dock autohide / autohide-delay;
     com.apple.finder AppleShowAllFiles;
     defaults -currentHost read com.apple.screensaver idleTime
     -> "$B/defaults.txt"
- 5. find "$CLAUDE_CONFIG_DIR" -maxdepth 2 -printf '%y %s %p\n' -> "$B/claude-tree.txt"
+ 5. walk "$CLAUDE_CONFIG_DIR" to depth 2 (type, size, path, link target) -> "$B/claude-tree.txt"
+ 5b. repos.tsv (every git repo under ~/MoonieXHQ + ~/Developer, with remotes), links.tsv
+    (~/.claude/projects/*/memory + ~/Projects/* symlinks), claude-plugins/*.json, npm-globals.txt
  6. ~/.claude.json top-level keys + projects{} (allowedTools,
     hasTrustDialogAccepted only, same shape as contabo_blueprint.sh)
     -> "$B/claude-json-keys.txt"
@@ -69,8 +71,11 @@ rm -f "$B/.brew-bundle.log"
 # 2. launchctl list, excluding Apple's own
 launchctl list 2>/dev/null | grep -v com.apple > "$B/launchctl-list.txt" || true
 
-# 3. com.gob.*.plist LaunchAgents, secret-looking <string> values redacted
+# 3. org LaunchAgents (com.gob.* AND com.mooniex.* -- the org daemons are com.mooniex.*;
+# the first real run on 2026-09-25 captured only the one com.gob plist and missed all 8),
+# secret-looking <string> values redacted
 cp -p "$HOME"/Library/LaunchAgents/com.gob.*.plist "$B/LaunchAgents/" 2>/dev/null || true
+cp -p "$HOME"/Library/LaunchAgents/com.mooniex.*.plist "$B/LaunchAgents/" 2>/dev/null || true
 python3 - "$B/LaunchAgents" <<'PYEOF'
 import pathlib, re, sys
 
@@ -81,7 +86,10 @@ import pathlib, re, sys
 KEY_RE = re.compile(r"<key>([^<]*)</key>", re.IGNORECASE)
 SECRET_KEY_RE = re.compile(r"token|secret|password|apikey|api_key|credential", re.IGNORECASE)
 STRING_RE = re.compile(r"(<string>)([^<]*)(</string>)")
-OPAQUE_VALUE_RE = re.compile(r"^[A-Za-z0-9+/_=\-.]{20,}$")
+# No '/' or '.': with them, every absolute path and reverse-DNS Label looked "opaque" and the
+# first real run redacted Label/WorkingDirectory/StandardOutPath in all 8 com.mooniex plists.
+# Secrets under a secret-named <key> are still caught by SECRET_KEY_RE above.
+OPAQUE_VALUE_RE = re.compile(r"^[A-Za-z0-9+_=\-]{24,}$")
 
 root = pathlib.Path(sys.argv[1])
 for path in sorted(root.glob("*.plist")):
@@ -110,8 +118,69 @@ PYEOF
   echo "com.apple.screensaver idleTime: $(defaults -currentHost read com.apple.screensaver idleTime 2>&1)"
 } > "$B/defaults.txt"
 
-# 5. Claude Code tree (no file contents)
-find "$CLAUDE_CONFIG_DIR" -maxdepth 2 -printf '%y %s %p\n' > "$B/claude-tree.txt" 2>&1 || true
+# 5. Claude Code tree (no file contents). BSD find has no -printf (the first real run wrote a
+# one-line error here), so walk it in Python: "<type> <size> <path>[ -> <link target>]".
+python3 - "$CLAUDE_CONFIG_DIR" > "$B/claude-tree.txt" <<'PYEOF'
+import os, sys
+root = sys.argv[1]
+for dp, dn, fn in os.walk(root):
+    depth = dp[len(root):].count(os.sep)
+    if depth >= 2:
+        dn[:] = []
+    for name in sorted(dn) + sorted(fn):
+        p = os.path.join(dp, name)
+        if os.path.islink(p):
+            print(f"l 0 {p} -> {os.readlink(p)}")
+        elif os.path.isdir(p):
+            print(f"d 0 {p}")
+        else:
+            try:
+                print(f"f {os.path.getsize(p)} {p}")
+            except OSError:
+                print(f"f ? {p}")
+PYEOF
+
+# 5b. What a fresh Mac must re-clone and re-link (added 2026-09-25, first real wipe prep):
+#   repos.tsv          every git repo under ~/MoonieXHQ and ~/Developer: path, branch, each remote + url
+#   links.tsv          symlinks that tie the org together: ~/.claude/projects/*/memory, ~/Projects/*
+#   claude-plugins/    installed_plugins.json + known_marketplaces.json (plugin names, no secrets)
+#   npm-globals.txt    `npm ls -g --depth=0`
+python3 - "$HOME" "$B" <<'PYEOF'
+import os, subprocess, sys
+home, out = sys.argv[1], sys.argv[2]
+SKIP = {"node_modules", ".venv", "venv", "worktrees", ".next", "__pycache__", ".git"}
+rows = []
+for top in (os.path.join(home, "MoonieXHQ"), os.path.join(home, "Developer")):
+    for dp, dn, fn in os.walk(top):
+        if os.path.isdir(os.path.join(dp, ".git")):  # a real clone (worktrees have a .git FILE)
+            rel = os.path.relpath(dp, home)
+            git = lambda *a: subprocess.run(["git", "-C", dp, *a], capture_output=True, text=True).stdout.strip()
+            branch = git("rev-parse", "--abbrev-ref", "HEAD")
+            remotes = git("remote").split()
+            # origin first: mac_restore.sh clones from the first row of a path, adds the rest as remotes
+            for r in sorted(remotes, key=lambda x: (x != "origin", x)) or [""]:
+                rows.append((rel, r != "origin", f"{rel}\t{branch}\t{r}\t{git('remote', 'get-url', r) if r else ''}"))
+        dn[:] = [d for d in dn if d not in SKIP and not os.path.islink(os.path.join(dp, d))]
+        if dp.count(os.sep) - top.count(os.sep) >= 4:
+            dn[:] = []
+rows.sort(key=lambda t: (t[0], t[1]))  # stable: origin row stays first within each path
+open(os.path.join(out, "repos.tsv"), "w").write("path\tbranch\tremote\turl\n" + "\n".join(t[2] for t in rows) + "\n")
+links = []
+pj = os.path.join(home, ".claude", "projects")
+for slug in sorted(os.listdir(pj)) if os.path.isdir(pj) else []:
+    m = os.path.join(pj, slug, "memory")
+    if os.path.islink(m):
+        links.append(f"{os.path.relpath(m, home)}\t{os.readlink(m)}")
+hub = os.path.join(home, "Projects")
+for name in sorted(os.listdir(hub)) if os.path.isdir(hub) else []:
+    p = os.path.join(hub, name)
+    if os.path.islink(p):
+        links.append(f"{os.path.relpath(p, home)}\t{os.readlink(p)}")
+open(os.path.join(out, "links.tsv"), "w").write("link\ttarget\n" + "\n".join(links) + "\n")
+PYEOF
+mkdir -p "$B/claude-plugins"
+cp -p "$CLAUDE_CONFIG_DIR/plugins/installed_plugins.json" "$CLAUDE_CONFIG_DIR/plugins/known_marketplaces.json" "$B/claude-plugins/" 2>/dev/null || true
+npm ls -g --depth=0 > "$B/npm-globals.txt" 2>/dev/null || true
 
 # 6. .claude.json top-level keys + projects{} map (allowedTools, hasTrustDialogAccepted only)
 python3 - "$HOME/.claude.json" > "$B/claude-json-keys.txt" <<'PYEOF'

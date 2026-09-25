@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.acme-renew</string>
+
+  <!-- Renews console.mooniex.com's Let's Encrypt cert (DNS-01 via Cloudflare).
+       acme.sh decides for itself whether anything is actually due, so a daily
+       run is a no-op on all but ~4 days a year; the point is that the one day
+       it matters cannot be missed. Without this nothing ever calls acme.sh and
+       the cert simply expires — silently, because the console keeps serving the
+       dead cert until a browser refuses it.
+
+[LINE REDACTED BY CAPTURE FILTER]
+       com.mooniex.console-mac) are both already stored in ~/.acme.sh, so this
+[LINE REDACTED BY CAPTURE FILTER]
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/acme.sh</string>
+    <string>--cron</string>
+  </array>
+
+  <!-- 03:20 local: far from the working day, so a cert swap and the console
+       restart that follows it never land mid-session. launchd runs a missed
+       calendar job once the Mac wakes, so sleeping through it is safe. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>3</integer>
+    <key>Minute</key><integer>20</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/gob</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>LE_WORKING_DIR</key>
+    <string>/Users/gob/.acme.sh</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-acme-renew.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-acme-renew.log</string>
+</dict>
+</plist>
