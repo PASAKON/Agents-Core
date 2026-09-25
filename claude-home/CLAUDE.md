@@ -115,3 +115,14 @@ plainly rather than guessing at an `ecc:*` whose name merely sounds close.
 Only what is true and needed in **every** session regardless of task. Anything
 task-specific belongs in a skill, which loads on demand — this file is paid for
 on every turn, a skill body is not.
+
+## Compact instructions (CEO 2026-09-25, task-9f6fec26)
+
+When `/compact` (or auto-compact) summarizes this session, KEEP:
+session charter / entry problem + its Definition of Done; every task-id
+mentioned with its current status and branch; file paths already touched;
+open questions still waiting on the CEO; the last CTO-FEEDBACK verbatim;
+any number already measured (cost, tokens, latency, counts) — never
+re-measure something already captured. DROP: raw tool output (file
+contents, command stdout, search results) once its finding is already
+acted on or recorded above — keep the conclusion, not the transcript.
