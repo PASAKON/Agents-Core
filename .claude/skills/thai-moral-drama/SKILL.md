@@ -2,7 +2,7 @@
 name: thai-moral-drama
 description: >
   The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai
-  stand-alone moral short films in the ฟ้ามีตา tradition, 18–24 minutes, one
+  stand-alone moral short films in the ฟ้ามีตา tradition, 8–12 minutes, one
   complete story per episode, made with AI video. Covers the beat structure, the
   rules about who the wrongdoer is and how karma lands, the requirement that the
   spoken lines alone carry the whole story, and the production constraints that
@@ -37,7 +37,15 @@ must lose nothing. This is the whole reason the format works on a Facebook feed:
 every clip stands alone, so every clip can be promoted alone, and one weak
 episode does not poison the next three.
 
-### 2. The wrongdoer has a reason, and it is almost acceptable
+### 2. The wrongdoer may be plainly evil (CEO 2026-09-25)
+> "คนร้ายที่ชั่วแบบการ์ตูน ก็ทำได้นะ"
+
+A villain the audience hates early and fast is fuel for the payoff. That is how Chinese
+vertical dramas work (短剧, research note pending). Choose per story between an outright
+villain and a sympathetic one, and offer the CEO both when unsure.
+
+[SUPERSEDED 2026-09-25 by the CEO ruling above; kept for its reasoning] The wrongdoer
+has a reason, and it is almost acceptable.
 พี่จี๋ pressures a junior to steal because she is in trouble herself. พิม abuses
 her own mother while sincerely believing she is a good person. **Nobody is evil
 because they are evil.** A villain the audience cannot argue with in their own
@@ -411,10 +419,16 @@ re-shoot when it fires.
 
 ## Length, and where the money is
 
-**18–24 minutes** (CEO: *"คนดูระหว่างกินข้าวไปด้วยได้"*). At 8-second shots:
+**8–12 minutes (CEO 2026-09-25: "Scope อยู่ที่ 8 - 12 mins … 20 min อาจจะนานไป").**
+Keep ≤4 named characters and 2–3 locations, so every name still gets an ending.
+
+[SUPERSEDED 2026-09-25 by the ruling above] **18–24 minutes** (CEO: *"คนดูระหว่างกินข้าวไปด้วยได้"*).
+The first episode ran 24:00. At 8-second shots:
 
 | runtime | shots | mid-roll marks | Flow credits @12/shot |
 |---|---|---|---|
+| **8:00** | **60** | **4** | **~720** |
+| **12:00** | **90** | **6** | **~1,080** |
 | 18:24 | 138 | 9 | ~1,656 |
 | 20:00 | 150 | 10 | ~1,800 |
 | 24:00 | 180 | 11 | ~2,160 |
@@ -504,6 +518,11 @@ Flow's free stills.
    Facebook viewer decides again every few minutes; the last line of an act is a
    reason to keep watching. This is not a cliffhanger into the next episode (rule 1
    still holds: the episode itself always closes).
+   **CEO 2026-09-25 goes further:** build the film out of stitched mini-episodes of
+   ~1–2 min, each ending on a hook, in the way Chinese vertical series are cut EP by EP
+   and then compiled. The CEO: *"ฉันเคยหยุดดูซีรี่จีนกว่า 22 นาที เพราะมันมีการค้างเรื่อง
+   แบบนี้เป็นช่วงๆ … เอามารวมกัน ทำให้คนดูตลอดเวลา แบบติดงอมแงมเลย"*. Put the hooks
+   on the mid-roll marks where possible.
 3. **Every named character has want · turn · ending written down before shot 1** —
    the conclusion table (step 6) extended to every name. เชิด had no on-screen ending
    until the CEO asked for one; วิทย์'s reveal had no uniform.
@@ -529,4 +548,4 @@ Flow's free stills.
 - 2026-09-23 [MISSING] §Structure gate — four threads (hook, police line, lender's ending, happy ending) were ordered by the CEO after a full cut existed; each cost an insert + re-shoot + re-cut. Gate of 8 items added on the CEO's explicit approval ("OK เพิ่ม SKill ได้", 2026-09-23). · evidence: docs/scripts/banchi-RETRO.md, banchi shots 1-2, 174-190 · status: promoted
 - 2026-09-24 [MISSING] cover — the skill says nothing about the episode cover. First try (ChatGPT, title in the prompt) put the title across the TOP; CEO: "คนแบบนี้ถูกแล้ว ติดแค่ข้อความ … มันจะมีจุดที่อยู่ประจำของมัน". Real Ch3 lakorn posters (ลายกินรี, คลื่นชีวิต, ลดา, เลือดเจ้าพระยา, 18 มงกุฎ) share one layout: channel logo top-left, producer top-right, faces in the upper 2/3, title logo big and centred in the lower third (small line over big gold line), English title under it, tagline near it, tiny billing at the very bottom. Generate the people only, then letter it with `tools/lakorn_poster.py` ($0, exact Thai, keeps the title inside Facebook's 4:5 feed crop, `--scale` when a low face would sit under the title). No face-changing cop clothes on a cover — it spoils the ending · evidence: task-d206afca, b5296b42 · status: pending
 - 2026-09-24 [MISSING] cover — the whole cover workflow now lives in its own skill, `CTO_ChatGPT-Image_LakornCover`; the 09-24 cover note above is its first draft. What the CEO approved: the title is a LOGO made for this story (ledger + red strike on banchi), not a typed font; people and logo come from ChatGPT separately; three options, CEO picks · evidence: task-d206afca, CEO picked A 2026-09-24 · status: promoted
-- 2026-09-25 [MISSING] §Length — CEO set episode 2 to 8:00 ("รอบนี้ขอ 8 นาทีพอ"); the table starts at 18:24. 8:00 = 60 shots, 3 acts, 4 mid-roll marks (shots 8/23/38/53), ≤4 named characters so every name still gets an ending, ~720 raw credits. Fits the research note that completion rate is a Reels ranking input. One episode's ruling, not yet the format · evidence: docs/scripts/ep2-plan-DRAFT.md (cd0d14b9) · status: pending
+- 2026-09-25 [MISSING] §Length — CEO set episode 2 to 8:00 ("รอบนี้ขอ 8 นาทีพอ"); the table starts at 18:24. 8:00 = 60 shots, 3 acts, 4 mid-roll marks (shots 8/23/38/53), ≤4 named characters so every name still gets an ending, ~720 raw credits. Fits the research note that completion rate is a Reels ranking input. Promoted the same day: CEO widened it to the format, 8–12 min ("20 min อาจจะนานไป"); also ruled cartoon villains OK (rule 2) and mini-EP hooks (gate 2) · evidence: docs/scripts/ep2-plan-DRAFT.md (cd0d14b9), CEO chat 2026-09-25 · status: promoted
