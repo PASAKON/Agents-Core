@@ -41,3 +41,49 @@
 3.  tools/bl_ab_run.py: fixture-full + spawn-seg (brief text only, never spawns).
 4.  docs/ops/bl-split-ab-2026-09-25/TOOLING.md.
 5.  pytest, commit, push, REPORT.md.
+
+## Done (commits 56a7a103, f10c0711, 71150ab4)
+
+Step 0: `.claude/skills/blackliquidity-cut/template/index.html` now carries a single
+`caption(at, out, text)` generator baking in EP55's approved `.cap` band CSS, used in
+every mode. SKILL.md §6d's old per-mode chip rule marked `[SUPERSEDED 2026-09-25]`; new
+§6f (one caption style) and §6g (plates hold until next plate, promoted from the
+2026-09-24 field note) added; five field notes flipped pending -> promoted.
+`reference/caption-ep55.jpg` rendered for real via `hyperframes snapshot` (a sample Thai
+caption over an actual EP57 `media/real/` screenshot). `tools/bl_checker.py`'s
+`detect_empty_frames` now samples at 30fps (was 4fps) with a whole-frame-mean
+single-frame-dip check layered on the std<12 flat check; new
+`check_one_caption_style()`/`caption_style_signatures()` gate. 25/25 tests green
+(`tests/test_bl_checker.py`), including a real ffmpeg regression test that reproduces
+the exact "4fps missed it, 30fps catches it" bug.
+
+Step 1: `tools/bl_split.py` implements PLAN.md's dead-air split rule exactly (candidates
+>=0.45s from silencedetect, forbidden spans from --blocks, walk-forward window
+[+25s,+50s] else longest-past-+25s, cut = midpoint floored to the 30fps grid). Dry run
+against the REAL EP57 audio/script/timings (checklist card 129.38-141.48s as the one
+forbidden span) produces 5 segments -- inside PLAN.md's own "estimate 3-5". 21/21 tests
+green (`tests/test_bl_split.py`), incl. one real-ffmpeg end-to-end test.
+
+`tools/bl_merge.py` concats video-only parts with `-c copy` after verifying identical
+codec params (refuses otherwise), muxes the master audio once, then runs every PLAN.md
+merge gate (frame count, empty/black frames incl. dips, seam window +/-3 frames, one
+caption style across every segment, audio offset <40ms), naming every failed gate.
+16/16 tests green (`tests/test_bl_merge.py`), incl. an end-to-end test with a
+deliberately injected single black frame AT a seam that the seam gate catches.
+
+`tools/bl_ab_run.py` gained `fixture-full` (stages the full 153s EP57 fixture locally,
+ground-truth redacted -- verified manually, correctly flags the missing
+`lip_c-matte.webm`) and `spawn-seg` (prints, never spawns, a segment editor's brief --
+verified manually for all 5 real EP57 segments). `docs/ops/bl-split-ab-2026-09-25/
+{ep57-blocks.json,segments.json,TOOLING.md}` written -- TOOLING.md carries the commands
+in order for both arms, the real EP57 segment plan, and all 5 generated briefs verbatim,
+plus a flagged interpretation note on "the same editor brief as Arm A" (no literal Arm A
+brief exists for THIS plan; the only one on disk belongs to a different, already-finished
+experiment with an incompatible beats.json/bl_compose.py shape -- see TOOLING.md).
+
+Full test suite collection (`pytest --collect-only`) still succeeds repo-wide -- no
+import errors introduced. 62/62 tests green across the three touched test files.
+
+Did NOT: cut EP57, run Arm 1, run Arm 2, or spawn any editor -- out of scope per the task
+brief ("You build steps 0 and 1 of that plan. You do NOT cut the episode and you do NOT
+spawn editors").
