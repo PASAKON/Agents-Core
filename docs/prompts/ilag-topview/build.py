@@ -300,6 +300,18 @@ SCENES = [
 ]
 
 
+# ai-film-production §13: each character's reference text must carry its CAST.md row's key colours.
+CAST_KEYS = {
+    "@Young": ["coral-pink", "gold freckles", "orange-gold", "satchel"],
+    "@Elder": ["teal-blue", "violet", "torn"],
+    "@Strong": ["moss-green", "lime-green", "tipped gold", "kelp belt", "kelp rope"],
+    "@Manta": ["sea-green", "lime-green", "driftwood", "bone ribs"],
+    "@Villagers": ["mint", "lavender", "pale blue", "sand-yellow", "orange", "rose"],
+    "@Eye": ["pale yellow-green", "slit pupils"],
+}
+SEAT_ORDER = "THE STRONG ONE on the front perch, THE YOUNG ONE in the middle, THE ELDER at the back"
+
+
 def paste_block(sc):
     lines = [f"{sc['s']}s · 360p · 16:9 · {sc['spec']}", "", sc["heading"], "", "REFERENCES, each with a job:"]
     for h in sc["refs"]:
@@ -327,6 +339,12 @@ def notes_bottom(sc):
 
 
 def main():
+    cast = " ".join((HERE / "CAST.md").read_text(encoding="utf-8").split())  # flattened: phrases wrap
+    assert SEAT_ORDER in cast, "seat order in CAST.md changed: update SEAT_ORDER and the scenes"
+    for h, keys in CAST_KEYS.items():
+        assert h in cast, h
+        for k in keys:
+            assert k in REF[h][1], f"{h} reference text lacks CAST key {k!r}"
     for sc in SCENES:
         body = paste_block(sc)
         for h in sc["refs"]:
