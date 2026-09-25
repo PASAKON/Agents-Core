@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The two rclone verbs stream_backup_to_drive.py uses (rcat, lsjson), done with the Mac's own Drive REST
-resumable uploader (tools/work_archive.py) -- for when winbox's rclone is unreachable. BACKUP root only."""
+resumable uploader (tools/work_archive.py) -- for when winbox's rclone is unreachable. Uploads into the folder --drive-root-folder-id names."""
 import http.client, json, os, sys, tempfile, time, urllib.parse
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
@@ -15,7 +15,14 @@ def upload(path, name):
     """work_archive's resumable protocol, plus what it lacks: on a 5xx or a dropped connection, ask Drive
     where the upload stopped (PUT bytes */size) and resume from there instead of failing the whole file."""
     token, size = wa._access_token(), os.path.getsize(path)
-    session = wa._init_resumable_session(wa._http, token, name, "application/x-tar", size)
+    st0, rh0, _ = wa._http("POST", wa.DRIVE_UPLOAD + "?" + urllib.parse.urlencode(
+        {"uploadType": "resumable", "fields": "id,name,size,md5Checksum,parents"}),
+        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json; charset=UTF-8",
+                 "X-Upload-Content-Type": "application/x-tar", "X-Upload-Content-Length": str(size)},
+        body=json.dumps({"name": name, "parents": [root]}).encode())
+    session = wa._header(rh0, "Location")
+    if st0 not in (200, 201) or not session:
+        raise RuntimeError(f"resumable session init failed: status={st0}")
     sent, fails = 0, 0
     with open(path, "rb") as fh:
         while True:
@@ -53,8 +60,11 @@ def upload(path, name):
 
 a = sys.argv[1:]
 root = a[a.index("--drive-root-folder-id") + 1]
-if root != wa.BACKUP_FOLDER_ID:
-    sys.exit(f"shim uploads to BACKUP root only, got {root}")
+# The parent is whatever the caller passed. It used to be pinned to work_archive.BACKUP_FOLDER_ID,
+# but that constant moved to BACKUP/MoonieX HQ/Work-Archive on 2026-09-24 (936fb0ad) and would have
+# filed every upload there silently; the guard caught it by refusing the real BACKUP root.
+if not root or len(root) < 20:
+    sys.exit(f"shim: need a Drive folder id in --drive-root-folder-id, got {root!r}")
 if a[0] == "rcat":
     name = a[1].split(":", 1)[1]
     fd, p = tempfile.mkstemp(dir=os.environ.get("SHIM_TMP"), suffix=".part")
