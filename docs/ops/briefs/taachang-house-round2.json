@@ -1,0 +1,11 @@
+[
+ {
+  "name": "baan__outside",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, bright natural afternoon daylight. A small, poor rural Thai house beside a canal: a single-storey shack built from rusty, dented corrugated zinc sheets nailed onto a rough wooden frame, patched in places with old plywood and a faded tarpaulin, a low lean-to zinc roof held down with a couple of old tyres, raised a little on concrete blocks, one rickety wooden step to a low doorway with a curtain for a door, plastic buckets and basins, a few plants in old tins, laundry on a wire, junk and bundled plastic bags stacked against the wall, a dirt path in front and the canal beside it. Humble and a little cluttered, clearly the home of someone very poor, but not filthy. Wide establishing view at eye level, deep focus. No people, no animals. Vertical 2:3 image. No readable text anywhere: no signs, no printed labels, no brand prints on buckets or bags, no numbers, no posters, no calendars. No watermark."
+ },
+ {
+  "name": "baan__inside",
+  "continue": "baan__outside",
+  "prompt": "Now the INSIDE of this same zinc shack, same materials: one small cramped room, walls of bare rusty corrugated zinc and rough unpainted planks, a bare cracked concrete floor with a thin worn woven plastic mat on it, NO real furniture at all: two stacked plastic crates used as a shelf with a clear glass jar of small pebbles on top, clothes hanging on nails, a thin rolled-up mattress and pillow in the corner, plastic bags of belongings on the floor, a small old electric fan on the floor, a single bare bulb hanging from a wire, daylight coming through gaps in the zinc and a small open window. A little messy and cramped but swept clean. Wide view at eye level. No people. Vertical 2:3 image. No readable text anywhere: no signs, no printed labels, no brand prints on buckets or bags, no numbers, no posters, no calendars. No watermark."
+ }
+]

@@ -73,13 +73,13 @@ picture and the jar from the room picture.
 
 | id | state / what it is | used in shots | chat |
 |---|---|---|---|
-| `lan__busy` | the yard in full swing, with the old platform scale | EP1–EP3 (S1–S31) | LAN |
+| `lan__busy` | the yard in full swing, with the old platform scale | EP1–EP3 (S1–S31) · EP6 (S69–S72: the same scale moved out to the entrance, written in the prompt) | LAN |
 | `yard_scale` | the old platform scale cropped out of the yard; dial has tick marks only, no numbers | S1–S28 | LAN |
 | `lan__halfempty` | same yard with the goods mostly gone | S32–S34 | LAN |
-| `lan__needle` | same yard, tidy again, with the new needle scale out front | EP6 (S69–S72) | LAN |
-| `needle_scale` | the new needle scale cropped out; dial has no numbers | S69–S71 | LAN |
-| `baan__outside` | ยาย's wooden house on low stilts in the soi by the canal | S35, S54 | BAAN |
-| `baan__inside` | room with a woven mat, low cabinet, jar | S6–S7, S19–S21, S30, S36–S38, S55–S68, S73–S74 | BAAN |
+| ~~`lan__needle`~~ | **dropped (CEO 2026-09-25: "ไม่เอา")**; there is no new scale | — | — |
+| ~~`needle_scale`~~ | **dropped** as above | — | — |
+| `baan__outside` | **v2 (CEO 2026-09-25): a rural corrugated-tin shack by the canal, patched, a little cluttered.** v1 was a teak house, which read as too expensive | S35, S54 | BAAN2 |
+| `baan__inside` | **v2: inside the tin shack.** Bare concrete floor, thin plastic mat, no real furniture, the jar sitting on stacked plastic crates, clothes hung on nails. v1 was a polished teak Thai-house room: "เป็นบ้านเรือนไทยที่ราคาสูง" | S6–S7, S19–S21, S30, S36–S38, S55–S68, S73–S74 | BAAN2 |
 | `jar__third` | glass jar one third full of pebbles | S6 | BAAN |
 | `jar__full` | the same jar, nearly full | S21, S36–S38, S53–S57 (poured into piles on the mat at S57 is written in the prompt) | BAAN |
 | `soi__canal` | canal-side path with a row of electricity poles (ยาย counts the poles) | S15, S29, S75 | — |
@@ -93,4 +93,4 @@ picture and the jar from the room picture.
 | `envelope` | plain envelope with nothing written on it | S73 | — |
 | `notebook` | light-blue school notebook, cover blank | S74 | — |
 
-19 images in all: 7 location + 12 prop.
+19 images in all: 7 location + 12 prop. Round 1 dropped 2 of them (needle yard, needle scale), and round 2 redoes the house (2 images).
