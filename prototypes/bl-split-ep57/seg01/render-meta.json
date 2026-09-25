@@ -1,0 +1,15 @@
+{
+  "path": "/opt/MoonieXHQ/Work/bl-split-ep57/parts/seg01.mp4",
+  "size_bytes": 6180522,
+  "duration_s": 39.3,
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "codec": "h264",
+  "nb_frames": 1179,
+  "audio": null,
+  "segment": "seg01",
+  "window": [0.0, 39.3],
+  "tags": ["HOOK-1", "HOOK-2", "HOOK-3", "HOOK-4", "PATTERN-1", "PATTERN-2", "PATTERN-3", "PATTERN-4", "CONTEXT-1", "CONTEXT-2"],
+  "checker_verdict": "pass"
+}
