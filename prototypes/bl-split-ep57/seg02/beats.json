@@ -1,0 +1,74 @@
+[
+  {
+    "tag": "CONTEXT-3",
+    "t0": 39.3,
+    "t1": 43.16,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/whois-no-match.png",
+      "cap": "เจอเลย ไม่มีใครเป็นเจ้าของชื่อเว็บนี้แล้วตอนนี้",
+      "box": [54, 830, 972, 150]
+    }
+  },
+  {
+    "tag": "CONTEXT-4",
+    "t0": 43.9,
+    "t1": 47.72,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/whois-domain-history.jpg",
+      "native_w": 1374,
+      "native_h": 868,
+      "cap": "แต่เจอประวัติว่าเคยมีเจ้าของ ย้อนไปถึงปีสองพันยี่สิบสอง",
+      "box": [100, 405, 1150, 300]
+    }
+  },
+  {
+    "tag": "CONTEXT-5",
+    "t0": 48.5,
+    "t1": 54.22,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/whois-domain-history.jpg",
+      "native_w": 1374,
+      "native_h": 868,
+      "box": [130, 806, 610, 42]
+    }
+  },
+  {
+    "tag": "MAIN-1",
+    "t0": 54.84,
+    "t1": 58.3,
+    "mode": "KIN",
+    "extra": {
+      "lines": [
+        ["bl-md", "กูเลยลองไปดูที่ <span class=\"y\">WikiFX</span>"],
+        ["bl-sm", "เว็บที่เช็กโบรกทั่วโลก"]
+      ]
+    }
+  },
+  {
+    "tag": "MAIN-2",
+    "t0": 58.3,
+    "t1": 61.84,
+    "mode": "EVID",
+    "extra": {
+      "img": "real/wikifx-profile-website-inaccessible.png",
+      "cap": "วิกิเอฟเอ็กซ์เขียนไว้เองเหมือนกันว่าเว็บนี้เข้าไม่ได้ตามปกติ",
+      "box": [130, 903, 850, 82]
+    }
+  },
+  {
+    "tag": "MAIN-3",
+    "t0": 62.32,
+    "t1": 65.44,
+    "mode": "KIN",
+    "extra": {
+      "lines": [
+        ["bl-md", "แปลว่าไม่ใช่กูคนเดียว"],
+        ["bl-lg n", "WikiFX"],
+        ["bl-md n", "ก็เจอเหมือนกัน"]
+      ]
+    }
+  }
+]

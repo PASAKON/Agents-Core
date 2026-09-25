@@ -1,0 +1,20 @@
+{
+  "path": "/opt/MoonieXHQ/Work/bl-split-ep57/parts/seg02.mp4",
+  "size_bytes": 4668056,
+  "duration_s": 26.5,
+  "fps": 30,
+  "nb_frames": 795,
+  "width": 1080,
+  "height": 1920,
+  "codec": "h264",
+  "audio": "none (video-only range render, per segment contract)",
+  "segment": {
+    "id": "seg02",
+    "t0": 39.3,
+    "t1": 65.8333333333,
+    "expected_frame_count": 796,
+    "actual_frame_count": 795,
+    "note": "off by 1 frame from the exact 26.5333s*30fps math, within PLAN.md's merge gate #1 (+/-1 frame) tolerance"
+  },
+  "checker_verdict": "pass (bl_checker.py: empty_frames=[], out_of_safe_area=[], text_over_face=[], credit_missing=[], extra_caption_styles=[], kinetic_overflow=[])"
+}
