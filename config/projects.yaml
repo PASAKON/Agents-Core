@@ -326,12 +326,15 @@ projects:
     default_branch: main
     stack: [python, typescript, next]
     agents_allowed: *default_workers
-    # LOCAL-ONLY ON PURPOSE: no `remote:` key, and auto_push must stay false.
-    # This repo is deliberately isolated from every MoonieX repo and must never
-    # gain a GitHub remote. Infra for a self-hosted MiniMax H3 pipeline; the
-    # network volume is the seam, so no model weights and no generated content
-    # are ever committed here (`studio/data/` is gitignored).
-    auto_push: false
+    # PRIVATE GitHub repo (PASAKON/MoonieX-ComfyRunpod, hq.yaml row). The CEO
+    # ruled on 2026-09-25 "Push ได้เลยตามความเห็นของคุณ", which replaces the
+    # earlier local-only rule. auto_push is on because a stale origin made
+    # worktree.py cut workers 38 commits behind (task-78c03f7b). Still isolated
+    # from every other MoonieX repo; the network volume is the seam, so no model
+    # weights and no generated content are ever committed (`studio/data/` is
+    # gitignored). Run gitleaks before any manual push.
+    remote: https://github.com/PASAKON/MoonieX-ComfyRunpod.git
+    auto_push: true
     review_required: true
     # tmux-backed so send_to_worker's mailbox+wake can reach a spawned worker.
     spawn_backend: tmux
