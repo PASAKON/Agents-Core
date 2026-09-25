@@ -131,8 +131,15 @@ def provision_worktree(repo: Path, wt: Path) -> list[str]:
     silently skips whatever the canonical repo does not have.
     """
     names = ("node_modules", ".env")
+    # Opt-out for repos whose .env holds keys that spend money on their own
+    # (RunPod, image/LLM APIs): a marker file in the canonical repo keeps the
+    # real .env out of every worktree. Measured 2026-09-26 on ComfyRunpod: a
+    # worker's "offline" test reached the live key through this symlink and
+    # made 2 paid calls, and the app lets .env override the fake keys a test
+    # sets in its environment (task-e59b65e3).
+    link_names = names if not (repo / ".worktree-no-env").exists() else ("node_modules",)
     linked: list[str] = []
-    for name in names:
+    for name in link_names:
         src = repo / name
         dst = wt / name
         if src.exists() and not dst.exists():
