@@ -1,0 +1,14 @@
+composer opened; Page name shown: '\u200b'
+upload_video: 100% confirmed, snippet='จุดจบของเจ้าหนี้นอกระบบ-FINAL.mp4\n1080 x 1920\n100%\nลบ\n\u200b\nเพิ่มวิดีโอ\nเพิ่มรูปภาพ\n'
+caption readback matches: True
+cover set: True
+AI label: no AI-content-disclosure control found in this composer
+audience set to Public: True
+screenshot saved: docs/reports/banchi-fb-repost3/real-run-2-final.png
+PUBLISHED — clicked the real 'แชร์' button exactly once.
+post-publish URL: https://business.facebook.com/latest/reels_composer/?ref=biz_web_home_create_reel&asset_id=1319535331240503
+reel_id (best-effort): None
+anchors seen: []
+This is a best-effort capture, not the verification the task requires.
+Verify manually in Business Suite → Content before deleting the old post:
+  status must read เผยแพร่แล้ว with no ไม่สำเร็จ / ไม่ได้บันทึกไว้อย่างถูกต้อง
