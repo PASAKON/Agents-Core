@@ -157,6 +157,15 @@ def default_kin_broll(tag: str, script_line_map: dict[str, int]) -> str | None:
     return f"broll/S{n:02d}.mp4" if n else None
 
 
+def _avatar_covers(abs_t: float, pick_lip, funcs: dict[str, Any]) -> bool:
+    """True when some lipsync take covers absolute time `abs_t`."""
+    try:
+        check_avatar_window("probe", "FF", abs_t, pick_lip(abs_t), funcs)
+    except ComposeError:
+        return False
+    return True
+
+
 def check_avatar_window(tag: str, mode: str, abs_t0: float, lipname: str, funcs: dict[str, Any]) -> None:
     """FF/COMP can only render where a recorded lipsync take actually
     covers `abs_t0` -- outside that, hyperframes refuses at render time
@@ -279,11 +288,22 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
     script_lines: list[str] = []
     caps_js: list[str] = []
 
+    first_in_window = True
     for b in sorted(beats, key=lambda b: b["t0"]):
         tag, abs_t0, mode = b["tag"], b["t0"], b["mode"]
         ex = b.get("extra") or {}
         if abs_t0 < t0_window - 0.001 or abs_t0 >= t_max - 0.001:
             continue
+        # The window's first plate starts at the window start, not at its
+        # line's first word: a segment beginning in a TTS pause otherwise
+        # opens on empty frames, which the merge seam gate caught at 104.53 s
+        # (seg04, 2026-09-26). FF/COMP move their media start with it, so the
+        # lips stay in sync, and only when the take covers the window start.
+        if first_in_window:
+            first_in_window = False
+            lead = abs_t0 - t0_window
+            if 0.001 < lead < 1.0 and (mode not in ("FF", "COMP") or _avatar_covers(t0_window, pick_lip, funcs)):
+                abs_t0 = t0_window
         t0 = round(abs_t0 - t0_window, 3)
         t1 = round(min(ext_end[tag], t_max) - t0_window, 3)
         dur = round(t1 - t0, 3)
@@ -466,10 +486,16 @@ def trim_range(video_path: Path, dur: float, out_path: Path, fps: int = FPS) -> 
     `fps`, hard-capped to `round(dur*fps)` frames (frame-exact on the grid,
     never rounding up past what the range actually covers), same encoder
     settings on every call so `ffmpeg -c copy` concat never re-encodes."""
-    frame_count = int(round(frame_floor(dur, fps) * fps))
+    # round, not floor: range ends are already on the frame grid, and
+    # segments.json stores 4 decimals (65.8333 - 39.3 = 26.5333 s -> 795.999
+    # frames), so flooring dropped seg02 to 795 frames and shifted every
+    # later segment one frame early (2026-09-26). tpad clones the last frame
+    # when the render comes up a frame short, so the count is always exact.
+    frame_count = int(round(dur * fps))
     subprocess.run([
         "ffmpeg", "-y", "-v", "error", "-i", str(video_path),
-        "-an", "-r", str(fps), "-vsync", "cfr", "-frames:v", str(frame_count),
+        "-an", "-vf", "tpad=stop_mode=clone:stop=3",
+        "-r", str(fps), "-vsync", "cfr", "-frames:v", str(frame_count),
         *TRIM_ENCODER_ARGS, str(out_path),
     ], check=True)
     return out_path

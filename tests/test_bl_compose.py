@@ -1133,3 +1133,38 @@ def test_main_without_t0_is_a_full_render_with_audio(monkeypatch, tmp_path):
                   "--t-max", "153.0333", "--audio", "a.mp3", "--out-dir", str(tmp_path)])
     assert rc == 0
     assert ("mux", 153.0333) in calls and not any(c[0] == "trim" for c in calls)
+
+
+# ─────────────── CTO 2026-09-26 -- the window's first plate starts at the window start ────
+
+def test_first_kin_plate_starts_at_window_start(generator_dir):
+    # seg04 began at 104.533 but its first line (KIN) at 104.74: six empty
+    # frames at the seam, caught by bl_merge's seam gate.
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "C3", "t0": 104.74, "t1": 108.2, "mode": "KIN",
+              "extra": {"lines": [["bl-lg", "x"]]}}]
+    pieces = bc.emit_pieces(beats, t_max=110.0, funcs=funcs, t0_window=104.5333,
+                            script_line_map={"C3": 31})
+    joined = "\n".join(pieces["plates"] + pieces["script_lines"])
+    assert "104.74" not in joined
+    assert pieces["plates"], "a KIN beat gets a plate"
+    assert 'data-start="0.0"' in pieces["plates"][0]
+
+
+def test_first_ff_plate_moves_its_media_start_with_it(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "S8", "t0": 146.08, "t1": 150.5, "mode": "FF", "extra": {"cap": "x"}}]
+    pieces = bc.emit_pieces(beats, t_max=150.5, funcs=funcs, t0_window=145.9)
+    ff = pieces["plates"][0]
+    assert 'data-start="0.0"' in ff
+    want = round(145.9 - funcs["lip_offset"](funcs["pick_lip"](145.9)), 3)
+    assert f'data-media-start="{want}"' in ff
+
+
+def test_trim_range_frame_count_rounds_not_floors(monkeypatch, tmp_path):
+    # 65.8333 - 39.3 = 26.5333 s = 795.999 frames; flooring gave seg02 795.
+    seen = {}
+    monkeypatch.setattr(bc.subprocess, "run", lambda cmd, check=True: seen.setdefault("cmd", cmd))
+    bc.trim_range(tmp_path / "in.mp4", 65.8333 - 39.3, tmp_path / "out.mp4")
+    cmd = seen["cmd"]
+    assert cmd[cmd.index("-frames:v") + 1] == "796"
