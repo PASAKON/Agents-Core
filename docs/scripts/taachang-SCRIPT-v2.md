@@ -176,7 +176,7 @@
 ### SHOT 14 · 1:44–1:52 · 8s · Close two-shot, the son kneeling beside her, his body hiding his hand · LAN
 **ACTION** กล้าคุกเข่าช่วยเก็บ และแอบสอดแบงก์พับของตัวเองใส่กองเงินยาย **ขณะที่**พูด
 **อารมณ์** กล้า 3/5 สงสารจนเจ็บ กระซิบเร็ว ลอบมองพ่อ · ยาย 4/5 น้ำตาไหลหนึ่งหยด ยิ้มขอบคุณ
-**บทพูด** กล้า `"ตรงนี้ยังมีอีกใบครับยาย ปลิวไปอยู่ใต้ตาชั่งโน่น"` — a quick guilty whisper, glancing at his father, pained
+**บทพูด** กล้า `"ตรงนี้ยังมีอีกใบครับยาย ปลิวไปอยู่ใต้ตาชั่งโน่น"` — quick and low, spoken aloud, glancing guiltily at his father, pained
 **บทพูด** ยาย `"ขอบใจนะหนูกล้า"` — a tear rolling down her cheek, a grateful trembling smile
 
 ### SHOT 15 · 1:52–2:00 · 8s · Two-shot walking, the two women pushing their carts out of the yard · LAN→SOI · turn @2:00
