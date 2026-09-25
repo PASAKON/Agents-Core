@@ -1,0 +1,21 @@
+# WORKLOG — task-17f60167
+
+- Read `org:IRON-RULES.md` and searched for §42 (browser-is-a-C-level-decision) and ADR 0020 (runtime self-protection guards) — confirmed `.claude/settings.json` and `scripts/hook-*.py` are protected paths under ADR 0020, edit allowed because task's declared `touches` covers them.
+- No `playbooks/developer.md` exists in the wiki; TASK.md carried the full brief, no further wiki reads needed.
+- Grepped `runners/worker_init.py` — confirmed the exported marker is `WORKER_TASK_ID` (line 492), matching the task brief's assumption.
+- Read `scripts/hook-browser-guard.py` and `scripts/hook-cwd-guard.py` for hook conventions (stdin JSON shape, fail-open pattern, state-dir env override, matcher syntax) — reused directly rather than re-deriving.
+- Scanned all 9 transcript files under `~/.claude/projects/-Users-gob-MoonieXHQ-Agents-Core/*.jsonl` (read-only) with a Python script pairing `tool_use` → `tool_result` by id, filtering for an `image` content block:
+  - `Read` of `.png` paths → always an image.
+  - `mcp__claude-in-chrome__computer` action=`screenshot` → 4/4 image; action=`left_click` → 0/5 image.
+  - `mcp__claude-in-chrome__computer` action=`scroll` → 1/1 sampled call returned an image (undocumented, anomalous — decided not to gate it, see ops doc).
+  - `mcp__claude-in-chrome__browser_batch` → images appear nested inside its `actions` array.
+  - `upload_image` / `gif_creator` never appeared as image-producing tool_use in the sample; confirmed by tool description (upload_image sends, gif_creator records/exports — neither returns image bytes to the model).
+  - Cross-checked `zoom` against the `computer` tool's own schema (loaded via ToolSearch) — same `scale`/`save_to_disk` params as `screenshot`, description says "take a screenshot of a specific region" — gated on description evidence even though 0 sampled calls.
+- Wrote `scripts/hook-image-budget.py`: FAIL-OPEN, stdlib-only, threshold env `ORG_IMAGE_BUDGET` (default 8), state dir env `ORG_IMAGE_STATE_DIR`, exemptions for worktree cwd and `WORKER_TASK_ID`, per-call sha1 hash so a blocked call's identical retry passes exactly once.
+- Created `state/image-budget/.gitignore` (`*`) — matched existing convention from `state/cache-cold/.gitignore` (also bare `*`); confirmed via `git check-ignore` that a bare `*` self-ignores the file while untracked but stops applying once the file is committed (`git add -f` needed once).
+- Edited `.claude/settings.json`: added one `PreToolUse` entry, matcher `Read|mcp__claude-in-chrome__computer|mcp__claude-in-chrome__browser_batch`; validated with `python3 -m json.load`.
+- Wrote `tests/test_hook_image_budget.py` (in-process importlib pattern, mirrors `test_hook_cwd_guard.py`): 12 tests, ran green.
+- Manually smoke-tested the hook via subprocess with `env -u WORKER_TASK_ID` (my own session env has `WORKER_TASK_ID=task-17f60167`, which exempts every Bash call I make — had to explicitly unset it to observe non-exempt behavior). Confirmed: 8 images pass, 9th blocks once with the Thai nudge, identical retry passes, state file shows `count: 9`.
+- Wrote `docs/ops/image-budget-hook-2026-09-25.md`.
+- Ran full suite: `.venv/bin/python -m pytest tests -p no:warnings` → 1142 passed, 16 skipped, 1 failed (the pre-existing `test_machine_doctor.py::test_detect_machine_by_unique_os_when_hostname_does_not_match` named in the task brief). The other two named pre-existing failures (`test_multihost.py::test_browser_operator_cap_reached_sets_conflict`, `test_worktree_sparse.py` ERROR) did not reproduce today — ran them in isolation, both pass.
+- Committed in 4 steps: hook script, settings.json+gitignore wiring, tests, docs.
