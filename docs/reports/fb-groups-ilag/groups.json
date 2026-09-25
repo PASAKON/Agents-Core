@@ -8,7 +8,13 @@
     "status": "Joined instantly",
     "asked": [],
     "requested_at": "2026-09-24",
-    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page"
+    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page",
+    "shared": {
+      "posted_at": "2026-09-25",
+      "identity": "Dorsine Gobb (default/personal)",
+      "status": "unconfirmed — composer reported PUBLISHED with permalink, but the group and the permalink both show \"เนื้อหานี้ไม่พร้อมใช้งานในขณะนี้\" on reload/fresh tab, and the group is absent from the joined-groups list (no welcome notification either). Likely the 2026-09-24 false-join bug (ref-click no-op) never actually completed. Not retried; flagged to CTO.",
+      "post_url": "https://www.facebook.com/groups/1128465650898382/posts/2542835299461403/"
+    }
   },
   {
     "name": "ละครสั้น AI",
@@ -104,7 +110,13 @@
     "status": "Joined instantly",
     "asked": [],
     "requested_at": "2026-09-24",
-    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page"
+    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page",
+    "shared": {
+      "posted_at": null,
+      "identity": null,
+      "status": "not attempted — the group page shows a \"เข้าร่วมกลุ่ม\" (Join) button, not \"เข้าร่วมแล้ว\", so this account is not actually a member despite the 2026-09-24 \"Joined instantly\" status above. Skipped rather than posting or auto-rejoining; flagged to CTO.",
+      "post_url": null
+    }
   },
   {
     "name": "AI-ART CREATIVE",
