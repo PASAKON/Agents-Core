@@ -35,7 +35,7 @@ is `CTO_Film_Production`; how a prompt file is laid out is `CTO_Film_PromptForma
 `dev-spawn-protocol`'s spawn steps first — this skill adds the Higgsfield layer on top. The
 «Sorry, Sir» A/B ledger lives beside this file: `AB-LEDGER.md`.
 
-What it gives a C-level (CTO, CMO, CFO, CGO) driving or delegating Higgsfield video generation:
+What it gives any C-level (CTO, CMO, CFO, CGO) driving or delegating Higgsfield video generation:
 the exact button-level rules, editor gotchas, and wait pattern that prevent (a) accidentally
 spending real credits when the task must run Unlimited-only, and (b) a spawned worker silently
 dying during a long render wait.
