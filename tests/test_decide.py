@@ -457,7 +457,9 @@ def test_skill_route_resolves_real_org_skills():
     options = decide_mod._resolve_options(cfg)
     ids = {o["id"] for o in options}
     assert "browser-operator" in ids
-    assert "google-flow-ops" in ids
+    # google-flow-ops was renamed by engine (CEO 2026-09-25); its old path is a
+    # MOVED stub with no trigger clause, so Flow prompts route to the new name.
+    assert "CTO_Flow_Omni1.1_Ops" in ids
 
 
 def test_extract_trigger_patterns_pulls_comma_clause():

@@ -1,16 +1,23 @@
 ---
-name: google-flow-ops
+name: CTO_Flow_Omni1.1_Ops
 description: >-
-  Operating rules for driving Google Flow (labs.google / flow.google.com, Veo
-  3.1) — the measured click path, the credit costs, the traps that silently
-  waste a generation, and what the product simply does not have. Trigger on
-  /google-flow-ops and proactively whenever a C-level is about to delegate or
-  drive browser work on Google Flow, or the request mentions "Google Flow",
-  "Veo", "Ingredients to Video", "Scenebuilder", "Flow credits", or generating
-  video on the CEO's Google AI subscription. Supplements — does not replace —
-  `browser-operator` (generic browser cost discipline) and
-  `dev-spawn-protocol`. Do NOT fire for Higgsfield/Seedance work
-  (`higgsfield-unlimited-gen` owns that) or for fal.ai / Grok / Kling.
+  Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra
+  account: the model-scope block the three Flow skills share, money and measured credit costs, which
+  model, test-fire size, the settings panel, reference chips (how many bind, add order, thumbnails),
+  Omni prompt grammar, voices, sound, Thai text, frames vs องค์ประกอบ, uploading an Element, getting the
+  clip file, the zero-model runner, and the traps that silently waste a generation. Trigger on
+  "Google Flow", "Omni Flash", "Veo", "Ingredients to Video", "Scenebuilder", "Flow credits",
+  "flow_shoot", "ยิง Flow", "เสียงตัวละคร", and whenever a C-level is about to delegate or drive browser
+  work on Google Flow or generate video on the CEO's Google AI subscription (slash command
+  /CTO_Flow_Omni1.1_Ops). Before a shoot (what Flow deletes, night, wardrobe, REF_1, the asset sheet,
+  props that need an Element) read CTO_Flow_Omni1.1_Continuity; after a shoot (mechanical audit,
+  transcripts, contact sheets) CTO_Flow_Omni1.1_FilmQC; running a film is CTO_Film_Production; the
+  prompt file is CTO_Film_PromptFormat. Supplements browser-operator and dev-spawn-protocol. Do NOT
+  fire for Higgsfield/Seedance (CTO_Seedance2.5_Higgsfield), MiniMax H3 (CTO_MiniMax_H3), Wan3 on
+  TopView (CTO_Wan3.0_TopView), fal.ai, Grok or Kling.
+created_by: agent
+author: {role: developer, date: "2026-09-25"}
+audience: [cto, browser_operator, developer, script_writer]
 ---
 
 # Google Flow — operating rules
