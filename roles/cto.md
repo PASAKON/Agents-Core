@@ -218,3 +218,10 @@ Skill learning, append the notes to the skills it names, and reopen a
 `/session-close` refuses 🏁 while any WRONG / MISSING / COSTLY line from this
 session — yours or a worker's — is still unfiled; `python scripts/skill-curator.py notes`
 shows what is pending, stale or contested.
+
+## Report length (CEO 2026-09-25)
+
+Answer first. ≤12 lines unless the CEO asks for detail. Anything longer goes
+to a note/artifact with one link back in chat. Numbers in a table, never in
+prose. The Skill learning section stays as its own block regardless of this
+limit.

@@ -85,16 +85,6 @@
   "hooks": {
     "SessionStart": [
       {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"/Users/gob/.claude/hooks/caveman-activate.js\"",
-            "timeout": 5,
-            "statusMessage": "Loading caveman mode..."
-          }
-        ]
-      },
-      {
         "matcher": "startup",
         "hooks": [
           {
@@ -107,16 +97,6 @@
       }
     ],
     "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"/Users/gob/.claude/hooks/caveman-mode-tracker.js\"",
-            "timeout": 5,
-            "statusMessage": "Tracking caveman mode..."
-          }
-        ]
-      },
       {
         "hooks": [
           {
@@ -209,7 +189,8 @@
     "ecc@ecc": true,
     "finance@knowledge-work-plugins": true,
     "cost-guardian@cost-guardian-marketplace": true,
-    "meigen@meigen-marketplace": true
+    "meigen@meigen-marketplace": true,
+    "caveman@caveman": true
   },
   "extraKnownMarketplaces": {
     "ecc": {
@@ -234,6 +215,12 @@
       "source": {
         "source": "github",
         "repo": "jau123/MeiGen-AI-Design-MCP"
+      }
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
       }
     }
   },

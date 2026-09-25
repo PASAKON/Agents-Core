@@ -4,7 +4,9 @@ marketplace	claude-plugins-official=anthropics/claude-plugins-official
 marketplace	knowledge-work-plugins=anthropics/knowledge-work-plugins
 marketplace	cost-guardian-marketplace=Manavarya09/cost-guardian
 marketplace	meigen-marketplace=jau123/MeiGen-AI-Design-MCP
+marketplace	caveman=JuliusBrussee/caveman
 plugin	ecc@ecc
 plugin	finance@knowledge-work-plugins
 plugin	cost-guardian@cost-guardian-marketplace
 plugin	meigen@meigen-marketplace
+plugin	caveman@caveman
