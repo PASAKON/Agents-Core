@@ -249,10 +249,10 @@
 **บทพูด** ยาย `"ยายไม่เคยโกงใครนะเสี่ย กระเป๋าตังค์เสี่ย ยายยังเอามาคืนครบทุกบาท"` — crying openly, tears streaming, voice breaking with sobs but standing her ground
 **บทพูด** เสี่ย `"ไม่พอใจก็ไปขายที่อื่น!"` — barking, cutting her off
 
-### SHOT 27 · 3:28–3:36 · 8s · Medium shot, she lifts her own sacks off the scale · LAN · **the turn (an act)**
-**ACTION** ยายยกกระสอบของตัวเองออกจากตาชั่งขึ้นรถเข็น **ขณะที่**พูด
+### SHOT 27 · 3:28–3:36 · 8s · Medium shot, she wheels her own loaded cart away · LAN · **the turn (an act)**
+**ACTION** ยายจับด้ามรถเข็นของตัวเองที่มีกระสอบอยู่แล้ว หันรถออกไป **ขณะที่**พูด (v2.6: เทคแรก model เข็นตาชั่งไปแทนรถเข็น — CEO 2026-09-26 ตาชั่งอยู่กับที่ ไม่แตะ)
 **อารมณ์** ยาย 4/5 เช็ดน้ำตา สงบแต่เด็ดขาด เสียงนิ่ง น้ำตายังคลอ ยกกระสอบเอง
-**บทพูด** ยาย `"ได้จ้ะเสี่ย เสี่ยบอกเองนะ ไม่พอใจก็ไปขายที่อื่น งั้นยายไปนะจ๊ะ"` — wiping her tears, suddenly calm and resolute, a quiet steady voice, eyes still wet, lifting her own sacks
+**บทพูด** ยาย `"ได้จ้ะเสี่ย เสี่ยบอกเองนะ ไม่พอใจก็ไปขายที่อื่น งั้นยายไปนะจ๊ะ"` — wiping her tears, suddenly calm and resolute, a quiet steady voice, eyes still wet, gripping the handles of her own cart
 
 ### SHOT 28 · 3:36–3:44 · 8s · Medium close-up, the owner shouting after her · LAN
 **ACTION** เสี่ยตะโกนไล่หลัง **ขณะที่**ยายเข็นรถออกไป
@@ -323,8 +323,8 @@
 **อารมณ์** กล้า 3/5 สงบ แน่วแน่
 **บทพูด** กล้า `"ครับยาย ผมยังไม่นับ แต่พรุ่งนี้ผมจะไปโรงงานกับพ่อ ผมอยากเห็นกับตาตัวเอง"` — quiet, steady, resolved
 
-### SHOT 40 · 5:12–5:20 · 8s · Wide establishing, factory weigh station, a pickup heaped with bottle bales · FAC
-**ACTION** รถปิกอัพเลี้ยวเข้าลานโรงงาน **ขณะที่**เสี่ยพูดจากที่คนขับ
+### SHOT 40 · 5:12–5:20 · 8s · Medium two-shot through the driver's window of the parked pickup · FAC
+**ACTION** รถปิกอัพจอดนิ่งในลานโรงงานแล้ว เสี่ยนั่งหลังพวงมาลัย กล้านั่งข้างคนขับ ไม่มีใครลงรถ **ขณะที่**เสี่ยพูด (v2.6: เทคแรกเสี่ยลงรถทะลุประตู — CEO 2026-09-26 ไม่ต้องลงรถ)
 **อารมณ์** เสี่ย 4/5 ตื่นเต้น ยิ้มหน้าบาน · กล้า 1/5 เฉยชา
 **บทพูด** เสี่ย `"ถึงโรงงานแล้วลูก ของเต็มคันรถ วันนี้ได้เงินก้อนใหญ่แน่"` — excited, grinning broadly, almost singing
 **บทพูด** กล้า `"ครับพ่อ"` — flat, unsmiling

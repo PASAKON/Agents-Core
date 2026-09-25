@@ -106,10 +106,14 @@ _META = {
       "the old woman straightens her back and speaks while crying openly, tears streaming down her "
       "face, voice breaking with sobs but standing her ground; the heavy man barks back, cutting her "
       "off", ["dial", "nosubs"]),
- 27: (8, "Medium shot, she lifts her own sacks off the scale", ["yai_c", "sia_b"], "lan", LANAFT,
+ # v2.6 (CEO 2026-09-26): take 1 had her wheel the SCALE away as if it were her cart. The action no
+ # longer mentions the scale at all; her sacks are already on her own cart.
+ 27: (8, "Medium shot, she wheels her own loaded push-cart away", ["yai_c", "sia_b"], "lan", LANAFT,
       "the old woman wipes her tears with the back of a gloved hand and, suddenly calm and resolute, "
-      "lifts her own sacks off the platform scale onto her push-cart while she speaks, her eyes still "
-      "wet; the heavy man stares at her", ["dial", "nosubs"]),
+      "grips the handles of her own small rusty push-cart, already loaded with her two sacks of "
+      "bottles, and turns it toward the gate while she speaks, her eyes still wet; the heavy man "
+      "stares at her. The low platform scale stays fixed on the ground behind them and nobody "
+      "touches it", ["dial", "nosubs"]),
  28: (8, "Medium close-up on the heavy man shouting after her", ["sia_b"], "lan", LANAFT,
       "the heavy man jeers and laughs, shouting after the old woman as she pushes her cart away out "
       "of frame, his mouth twisted in a sneer", ["nosubs"]),
@@ -158,11 +162,13 @@ _META = {
       "and pleading, grips his wrist to stop him", ["nosubs"]),
  39: (8, "Close-up, the boy setting the jar down", ["kla_w", "yai_h"], "baan", HOME,
       "the boy sets the jar gently back down and speaks quietly, steady and resolved", ["nosubs"]),
- 40: (8, "Wide establishing shot of the factory weigh yard, the white pickup heaped with bottle bales",
+ # v2.6 (CEO 2026-09-26): take 1 had him climb out THROUGH the closed door. Parked, both stay seated.
+ 40: (8, "Medium two-shot through the open driver's window of the parked white pickup, the factory weigh yard behind",
       ["sia_f", "kla_w"], "fac", FACT,
-      "the old white pickup piled high with bales pulls into the factory weigh yard; the heavy man in "
-      "a cream polo leans out of the driver's window grinning broadly, excited; his son in the "
-      "passenger seat answers flatly", ["nosubs"]),
+      "the old white pickup piled high with bales is already parked, engine off, in the factory weigh "
+      "yard; the heavy man in a cream polo sits behind the wheel with the door closed and turns to "
+      "his son, grinning broadly, excited; his son in the passenger seat answers flatly. Both stay "
+      "seated inside the cab the whole time; nobody opens a door or gets out", ["nosubs"]),
  41: (8, "Medium shot, the heavy man and the factory scale-man", ["sia_f", "scale"], "fac", FACT,
       "the heavy man swaggers up and claps the scale-man on the shoulder, cocky; the scale-man "
       "answers bored and flat", ["nosubs"]),
