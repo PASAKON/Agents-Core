@@ -71,14 +71,19 @@ channels. Machine is never an environment. No folders until a project needs two 
 | MoonieX-Console | read | read | read | |
 | MoonieX-ComfyRunpod | | read | | |
 | MoonieX-CookierunBot | | | read | |
-| MoonieX-WebApp | | read (dev) | | prod |
+| MoonieX-WebApp | | (later) | | prod |
 | LungNote-MCP | read | read | | |
 | LungNote-Webapp, WarpClip-Webapp, LinkReed-Webapp | | | | prod |
 
-Identities (5 on Free): `ceo` (human, org admin) · `contabo` · `mac` · `winbox` · one spare.
-Each machine identity is a **Viewer** (read-only) on exactly the projects in its column. Import
-day only: the machine that holds a `.env` gets write on that one project, imports straight from
-its own file (the value never crosses a chat or another machine), then drops back to Viewer.
+Identities (5 on Free; the pricing page counts the human user as one): `ceo` (human, org
+admin) · `contabo` · `mac` · `winbox` · the fifth slot is the temporary `setup` identity during
+the migration. Each machine identity is a **Viewer** (read-only) on exactly the projects in its
+column; on Free a Viewer sees every environment of the project, so the Mac gets
+`MoonieX-WebApp` only when local development needs it. Imports are done by `setup` on the
+machine that holds the `.env`, straight from that file (the value never crosses a chat or
+another machine). `setup` never writes an Org-Infra value (§3b rule 1) and is retired
+(`tools/infisical_setup.py retire-setup`) when Contabo's cutover ends, at most 14 days after it
+was created.
 Vercel syncs use an app connection, not an identity; 4 web apps × prod = 4 of the 10 syncs.
 
 Shared values (finding 2) end: **one provider key per project** — OpenRouter, Supabase secret
@@ -245,7 +250,7 @@ mx-claudeflow-prod-rw-exp2027-03-31          (35 characters)
 | Phase | What | Who | Cost |
 |---|---|---|---|
 | 0 | CEO approves §2–§4 | CEO | $0 |
-| 1 | CEO: sign up (Cloud US, pass.gob1, org `MoonieX`, 2FA on, recovery codes offline), create one temporary identity `setup` (org Admin, Universal Auth), then tap Run on a Run Inbox card that runs `scripts/infisical-save-secret.sh setup` on Contabo and type its Client ID + Secret into the card's input (never stored, echo masked). CTO: `tools/infisical_setup.py` creates the projects, environments, Org-Infra folders and the `contabo` / `mac` / `winbox` identities with their Viewer memberships, then deletes `setup` and its file | CEO ~15 min + CTO | $0 |
+| 1 | CEO: sign up (Cloud US, pass.gob1, org `MoonieX`, 2FA on, recovery codes offline), create one temporary identity `setup` (org Admin, Universal Auth), then tap Run on a Run Inbox card that runs `scripts/infisical-save-secret.sh setup` on Contabo and type its Client ID + Secret into the card's input (never stored, echo masked). CTO: `tools/infisical_setup.py apply --mint contabo` creates the projects, environments, Org-Infra folders, the `contabo` / `mac` / `winbox` identities with their Viewer memberships and the CEO as admin of every project, and saves Contabo's own client secret (0600). Mac and winbox secrets are minted at their cutover | CEO ~15 min + CTO | $0 |
 | 2 | Pilot: MoonieX-LineAutomation (2 secrets) on Contabo, 1:1 import, restart from Infisical, delete its `.env` | CTO | $0 |
 | 3 | Cut over project by project (ClaudeFlow 123 lines, Option, AlphaTrader, Console, LungNote-MCP, Agents-Core incl. secretary + org-db, Mac, winbox, Vercel sync). Each `.env` deleted 7 days after its service runs green from Infisical. `_env-bundle` imported, then deleted with CEO OK (GH #177) | CTO | $0 |
 | 4 | Rotation sweep with the new provider names: the 7 leaked keys, the shared values (one new key per project), the FAL duplicate | CEO logs in (phone relay) + CTO | $0 |
