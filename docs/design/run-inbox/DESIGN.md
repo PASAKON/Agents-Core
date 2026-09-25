@@ -184,3 +184,56 @@ that is not needed, terse copy only.
   terminal has focus — not in P1 unless asked.
 - Words on the bar and on cards stay one or two words; no explanatory text anywhere on the phone
   pages except the plain-Thai failure reason and the Error ID line (§5).
+
+## 13. Requester CLI
+
+`tools/ask_run.py` (stdlib only, runs on any box's `python3`). The same calls exist as MCP tools
+`ask_run` / `ask_run_wait` in `claude-home/mcp/mooniex-coord/index.mjs`, an opt-in server
+(`CXO_EXTRA_MCP=mooniex-coord`). Hub = `RUN_INBOX_URL` (default `https://terminal.mooniex.com`).
+Token = `RUN_INBOX_TOKEN`, else `~/.config/mooniex/run-inbox.token`. The file must be 0600 and is
+refused if other users can read it. The token is never printed, and redirects are refused, so it
+only goes to the hub. Nothing here approves: the CEO's tap is the only authority.
+
+**A worker asks to run a committed script.** Workers can only ask for scripts:
+
+    git push origin HEAD            # the executor fetches that sha from origin
+    python3 tools/ask_run.py create --host contabo \
+        --script Agents-Core@9df4e185:scripts/contabo_blueprint.sh \
+        --why "weekly capture" --expected "prints state/contabo-blueprint-<date>/" --risk green
+    RUN-20260925-1612-ab12
+    https://terminal.mooniex.com/run#RUN-20260925-1612-ab12
+    python3 tools/ask_run.py wait RUN-20260925-1612-ab12
+
+Script arguments go last, after `--`, for example `--script repo@sha:path -- --quick "two words"`.
+
+**A C-level session asks for a freeform command.** `--command` is refused for any role other than
+cto/cfo/cxo/ceo, first by the CLI and then by the hub (403 `freeform_needs_c_level`):
+
+    python3 tools/ask_run.py create --host contabo --command "systemctl restart mooniex-console" \
+        --why "pick up the new env key" --expected "active (running)"
+
+`--dry-run` prints the JSON body and sends nothing. It needs no token. Other flags: `--timeout`
+(run seconds, default 300), `--expects-input`, `--shell`, `--cwd`, `--env-key NAME` (repeatable,
+names only), `--task`, `--session`, `--role`.
+
+**Refused before anything is sent (exit 2).** The CLI refuses an ask with a secret-shaped value in
+any field. That covers the key family of `scripts/contabo_blueprint.sh`'s final pass (a
+token/secret/password/api_key/private_key/client_secret/access_key key given a literal value, or a
+`BEGIN … PRIVATE KEY` block) and known token shapes (GitHub, `sk-…`, Slack, AWS, Google, GitLab,
+JWT, `Bearer <literal>`). Name the variable instead. `GH_TOKEN="$GH_TOKEN" ./x.sh` and
+`--env-key GH_TOKEN` both pass. A literal value does not.
+
+**How the requester learns the result:**
+
+1. `wait <id>` polls every 5 s, then prints a status line and the last 40 output lines. Exit codes:
+   0 done · 1 failed, denied, expired or cancelled · 2 refused here · 3 no token or hub error · 4
+   `--max-wait` ran out. The MCP tool `ask_run_wait {id}` returns the same record, with
+   `terminal: false` if `max_wait_s` (default 600) runs out first.
+2. When the card ends, the hub writes `RUN-<id>.json` into `state/inbox/<requester.session>/` on
+   the hub's own machine. `requester.session` is the mailbox name `<role>-<id>` (`cto-6ebacd0e`,
+   `dev-task-8669cf28`). The CLI works it out from the session env the same way
+   `scripts/hook-inbox.py` finds its own mailbox, so that hook picks the letter up on the
+   session's next prompt.
+3. `tail <id>` streams the live output (SSE `state|output|end`) while it runs.
+
+`list [--status pending]` shows only your own asks. `cancel <id>` withdraws your own pending ask.
