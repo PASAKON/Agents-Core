@@ -5,3 +5,6 @@
 - step3 done: CLAUDE.md compact instructions section added
 - step4 done: docs/ops/token-saving-2026-09-25.md written
 - step5 done: tests/test_token_saving_config.py written, 4/4 pass standalone
+- step6 done: pytest tests -> 2 failed (pre-existing, verified same on main), 1120 passed, 16 skipped, exit 1
+- step7 done: claude -p smoke test replied "ok"
+- REPORT.md written; submitting report
