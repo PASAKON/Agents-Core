@@ -1,0 +1,222 @@
+{
+ "project": "ILAG TopView trailer (รอตั้งชื่อ)",
+ "created": "2026-09-25",
+ "entities": [
+  {
+   "atId": "Young",
+   "kind": "character",
+   "name": "THE YOUNG ONE",
+   "drive_file_id": "1oP_9bKNH9E3_3FpOuTSiJA02gL7MBfDh",
+   "drive_name": "ref-Young.png",
+   "md5": "5a368977b447527a4cb5ce8e8d8a14c4",
+   "description": "THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background."
+  },
+  {
+   "atId": "Elder",
+   "kind": "character",
+   "name": "THE ELDER",
+   "drive_file_id": "1Rl7W8fBknVU67pE4FlTBsm50CpTQ1NIC",
+   "drive_name": "ref-Elder.png",
+   "md5": "06bf2f979de9e7362b2809f2bd0449f5",
+   "description": "THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background."
+  },
+  {
+   "atId": "Strong",
+   "kind": "character",
+   "name": "THE STRONG ONE",
+   "drive_file_id": "1Gy48tZfd6V-PjhTr5I38gp3EE9rhHsYH",
+   "drive_name": "ref-Strong.png",
+   "md5": "f71b0c46827172cda15d18466a555bdd",
+   "description": "THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background."
+  },
+  {
+   "atId": "Villagers",
+   "kind": "character",
+   "name": "THE VILLAGERS",
+   "drive_file_id": "1fSeDeGt0ZZuUGmO3b5TzILMtaHjUaUfw",
+   "drive_name": "ref-Villagers.png",
+   "md5": "2b6ad2c5010623c4cc62041512a8b7bc",
+   "description": "THE VILLAGERS, more of the same people in other soft colours: mint, lavender, pale blue, sand-yellow, orange, rose. Their look only; they are spread through the place, never lined up."
+  },
+  {
+   "atId": "Manta",
+   "kind": "character",
+   "name": "THE MOUNT",
+   "drive_file_id": "1RSSnwC5YNCYWAiywzLks1hGpKhydYW0v",
+   "drive_name": "ref-Manta.png",
+   "md5": "f9f0363fd7d05519d0cabcfba7fef0e5",
+   "description": "THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background."
+  },
+  {
+   "atId": "Lantern",
+   "kind": "prop",
+   "name": "THE LANTERN",
+   "drive_file_id": "1f2yQBtzrnIyaBd_ncS9v-NxDESpsX6J3",
+   "drive_name": "ref-Lantern.png",
+   "md5": "a5b1d6177fab743bc11cd98fe81a41c2",
+   "description": "THE LANTERN: a large pearly seashell with a woven kelp handle, three glowing golden seed pods inside it, hanging from the seat."
+  },
+  {
+   "atId": "LanternDark",
+   "kind": "prop",
+   "name": "THE LANTERN",
+   "drive_file_id": "1NKn0qO6tI0ytigVRHhVzGtN30GGEdN4G",
+   "drive_name": "ref-LanternDark.png",
+   "md5": "f520a2a7240be37241b85867871cd8fb",
+   "description": "THE LANTERN once its light has died: the same shell, empty and dark."
+  },
+  {
+   "atId": "Pole",
+   "kind": "prop",
+   "name": "THE POLE",
+   "drive_file_id": "1zIGm04yv8YOnWL3fr-m-5VNat5TyaL8F",
+   "drive_name": "ref-Pole.png",
+   "md5": "8b03f3ebd3db540ad2dc18238ed01407",
+   "description": "THE POLE: a long pale bone steering pole carved with wave patterns, a kelp grip near the top."
+  },
+  {
+   "atId": "Necklace",
+   "kind": "prop",
+   "name": "THE NECKLACE",
+   "drive_file_id": "17PuceJ4KDFVKB4lzkRjQqapVGqHwhJ2y",
+   "drive_name": "ref-Necklace.png",
+   "md5": "892ad6485e4b20a12a622033146b12a5",
+   "description": "THE NECKLACE: dry brown seed husks strung on kelp twine."
+  },
+  {
+   "atId": "GlassSpiral",
+   "kind": "character",
+   "name": "THE SPIRAL",
+   "drive_file_id": "13_Un3EfmDEsXbCx7eyVlSiZuzDNmbOrW",
+   "drive_name": "ref-GlassSpiral.png",
+   "md5": "80a630fe48113708711e32c2cc5afc4d",
+   "description": "THE SPIRAL: a giant turning corkscrew of glass-clear membrane with rainbow light running along it."
+  },
+  {
+   "atId": "GlassCathedral",
+   "kind": "character",
+   "name": "THE DOME",
+   "drive_file_id": "1s84OeS7FUbImq2aWWp4tsIIAFMWir0uE",
+   "drive_name": "ref-GlassCathedral.png",
+   "md5": "5ee7e889d4cf860a294ed1c484215cd6",
+   "description": "THE DOME: a giant drifting dome of layered transparent veils with a rainbow core."
+  },
+  {
+   "atId": "GlassHalo",
+   "kind": "character",
+   "name": "THE RINGS",
+   "drive_file_id": "1ALU0_K90qrMNL23u7WKF8llkrgYIk7It",
+   "drive_name": "ref-GlassHalo.png",
+   "md5": "7111484e5d5aefd8cfbc3674fbf8fa13",
+   "description": "THE RINGS: giant floating rings of clear membrane, one inside another, trailing threads of light."
+  },
+  {
+   "atId": "GlassBloom",
+   "kind": "character",
+   "name": "THE BLOOM",
+   "drive_file_id": "10S_yJyCdj7-pZAoKPur0kWyCz6TuTEz2",
+   "drive_name": "ref-GlassBloom.png",
+   "md5": "d40b77418093ab237350569d1da793b9",
+   "description": "THE BLOOM: a vast floating flower of transparent petals, seeds of light drifting from it."
+  },
+  {
+   "atId": "Mountain",
+   "kind": "character",
+   "name": "THE MOUNTAIN",
+   "drive_file_id": "1W13WaXPIM1gQMxxOxY-40pjTZrgYUcul",
+   "drive_name": "crt_mountain_horizon_v3.png",
+   "md5": "760f484361a367b6d942e3923825a522",
+   "description": "THE MOUNTAIN, the only picture of the thing on the horizon: a vast smooth dark shape rising from the black sea where no land can exist, water pouring off its flanks. Take its shape, its size in the frame and its darkness exactly."
+  },
+  {
+   "atId": "Eye",
+   "kind": "character",
+   "name": "THE CREATURE",
+   "drive_file_id": "1STEd7Dmomdg4LXA-N33OxSRUhMa2ONjV",
+   "drive_name": "crt_eye_v4a.png",
+   "md5": "5d4c578849ad360813dc2712ef0a0d32",
+   "description": "THE CREATURE, the only picture of it: a broad flat smooth dark head rising out of the black sea, two enormous pale yellow-green eyes with thin vertical slit pupils, water pouring off it, faint violet lightning behind. Take its face, its eyes and its scale exactly."
+  },
+  {
+   "atId": "Village",
+   "kind": "location",
+   "name": "THE VILLAGE",
+   "drive_file_id": "1Dp4z-Lz_HloczvvYci6wBLXFib7sCE_r",
+   "drive_name": "loc_village_above_A_v2.png",
+   "md5": "c2e813ba4a7c786413f95179191c51ce",
+   "description": "THE VILLAGE: giant mangrove-like trees standing in glass-clear turquoise water with no land anywhere, long arching stilt roots, wooden houses lashed among the branches and grown over with glowing neon-green grass, ladders and rope bridges, a huge close moon in a bright blue-white sky. Take the whole place and its light from it."
+  },
+  {
+   "atId": "Dock",
+   "kind": "location",
+   "name": "THE DOCK",
+   "drive_file_id": "1FbPxjzo95FRtWlcn2OYXx-6lU7Tiy2wu",
+   "drive_name": "loc_village_above_B_v2.png",
+   "md5": "421cf60d1fe1665588daf781d9d5f8c8",
+   "description": "THE DOCK: the floating driftwood landing at the foot of the village where glowing mantas are moored with kelp ropes, glass-clear water around it."
+  },
+  {
+   "atId": "ClearWater",
+   "kind": "location",
+   "name": "THE CLEAR WATER",
+   "drive_file_id": "147VLx39ZclEn2CH9TJNg8KfObzsLQKfB",
+   "drive_name": "ref-ClearWater.png",
+   "md5": "7cb265176bf80671f2892b21a0d8f9d9",
+   "description": "THE CLEAR WATER: glass-clear turquoise shallow water over a pale sandy seabed with coral."
+  },
+  {
+   "atId": "Pillars",
+   "kind": "location",
+   "name": "THE PILLARS",
+   "drive_file_id": "1yz6Y4mPk3vw6KHVUUFX71GgSo2-N3K26",
+   "drive_name": "loc_storm_pillars_A_v3.png",
+   "md5": "27fee254b7cef9578814f1a320ef279b",
+   "description": "THE PILLARS, the only location reference: thin, perfectly straight columns of slowly swirling cloud standing on a violet-grey sea and rising beyond the top of the sky, a small whirlpool at each base, the dim moon. Take the place and its light."
+  },
+  {
+   "atId": "Line",
+   "kind": "location",
+   "name": "THE LINE",
+   "drive_file_id": "1w2ymERQXJvTyvWyg0WJdu3DTFruKa73N",
+   "drive_name": "loc_deep_line_v2.png",
+   "md5": "91e2e369f971664f4a30c33101b04337",
+   "description": "THE LINE, the only location reference: a razor-sharp line across the sea from horizon to horizon. Near side: glass-clear turquoise water, a bright blue-white sky, the huge moon. Far side: pitch-black water under a purple-black storm with violet lightning. Take both sides and the line exactly."
+  },
+  {
+   "atId": "BlackSea",
+   "kind": "location",
+   "name": "THE BLACK SEA",
+   "drive_file_id": "1mURYXL0P3Xin0fqolgSSpkJef4olUFix",
+   "drive_name": "ref-BlackSea.png",
+   "md5": "1b5af70c56ff662b96776ba8aab54ed2",
+   "description": "THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it."
+  },
+  {
+   "atId": "Waves",
+   "kind": "location",
+   "name": "THE WAVE",
+   "drive_file_id": "1mPhklWhGKdaDBq_mKBu9enwKg61kRF_y",
+   "drive_name": "loc_giant_waves_v2.png",
+   "md5": "99eb1bdda70791bd8b9bc54bb7e1b137",
+   "description": "THE WAVE, the only location reference: a colossal curling wall of dark water hundreds of metres tall, glowing faintly cyan and magenta inside, violet lightning, the moon behind storm cloud."
+  },
+  {
+   "atId": "Planet",
+   "kind": "location",
+   "name": "THE PLANET",
+   "drive_file_id": "17P_wFCaQ_F5J5OJMzoVlXDtMpG9PcMq_",
+   "drive_name": "planet_from_space_v3.png",
+   "md5": "310f8db6898ff28d3713f4678ef4e7b0",
+   "description": "THE PLANET, the only reference: an ocean world with no land, split into two hemispheres, one bright blue-white with turquoise sea and white cloud, one purple-black under a storm with violet lightning, a sharp line between them, a moon half its size beside it in black space."
+  },
+  {
+   "atId": "OpenSea",
+   "kind": "location",
+   "name": "THE OPEN SEA",
+   "drive_file_id": "1hIYAkMyBN7HF8iMAbzEL6uz0goxHF17J",
+   "drive_name": "loc_open_sea.png",
+   "md5": "a07666777fdcc5446a0cccf695294d93",
+   "description": "THE OPEN SEA: calm open ocean on a planet with no land, bright blue-white day, the huge close moon over the horizon."
+  }
+ ]
+}
