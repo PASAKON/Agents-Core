@@ -110,6 +110,11 @@ NOT = {
          "tabletop scale. Its dial shows only plain black tick marks and one needle: no "
          "numbers, no letters, no text on it at all, and it is never in sharp close-up.",
  # Describes the actual @money plate: pastel fake notes, a corner numeral only.
+ # 2026-09-25: S7 and S19 (grandmother + the 11-year-old + banknotes in frame) both vanished
+ # with no card; S6 (same two, no money) rendered. n=2. Those shots now keep the money
+ # inside a closed cloth pouch and say so.
+ "nomoney": "No banknotes, coins or money of any kind are visible anywhere in the frame: the "
+            "day's money stays inside the small closed cloth pouch the whole time.",
  "money": "Any banknotes in this shot are the fictional prop money from the reference: "
           "soft pastel paper notes with a plain abstract line pattern and a simple numeral "
           "in one corner, nothing else. No portrait or face of any kind, no crest, seal, "
@@ -152,11 +157,13 @@ _META = {
      "the heavy man counts the notes in the wallet with narrowed, suspicious eyes while he "
      "talks, snorts, and with his other hand pushes a few pastel notes at the old woman "
      "without looking at her", ["money", "nosubs"]),
- 5: (8, "Two-shot of father and son, the old woman small and far in the background",
+ 5: (8, "Two-shot of father and son beside the scale",
      ["sia_b", "kla_s"], "lan", "hot afternoon, bright daylight",
-     "the heavy man tosses the wallet into the desk drawer and leans in to his son, chuckling "
-     "with nasty glee, while far behind them a small old woman pushes her cart away out of "
-     "earshot; the schoolboy stares at his father, shocked, eyes wide", ["nosubs"]),
+     # 2026-09-25: first take vanished (no card, 9-min timeout). Softened "nasty glee" and
+     # removed the un-chipped old woman in the background; she is simply gone from the yard.
+     "the heavy man tosses the wallet into the desk drawer and turns to his son beside the "
+     "scale, chuckling smugly; the schoolboy stares back at his father, shocked, eyes wide",
+     ["nosubs"]),
  6: (8, "Medium close-up, grandmother and grandson sitting on the mat",
      ["tor_h", "yai_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
      "the old woman drops one small pebble into a clear glass jar with a soft click while "
@@ -164,9 +171,11 @@ _META = {
      "tilted, curious; she smiles at him tenderly", ["nosubs"]),
  7: (8, "Close two-shot over the notes on the mat, both faces three-quarters to camera",
      ["yai_h", "tor_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
-     "the little boy speaks with a worried frown; the old woman counts a few pastel notes on "
-     "the mat, forces a smile with glistening eyes and strokes his head while she answers",
-     ["money", "nosubs"]),
+     # 2026-09-25: first take vanished (no card). Hands stay on the notes: no touching the child.
+     "the little boy speaks with a worried frown; the old woman sits with a small closed cloth "
+     "pouch in her lap and, while she answers, looks up at him and forces a smile with "
+     "glistening eyes",
+     ["nomoney", "nosubs"]),
  8: (8, "Medium close-up, the heavy man jabbing a finger at his son",
      ["sia_b", "kla_s"], "lan", "late afternoon, bright daylight",
      "the heavy man, furious, face flushed red and the veins standing out on his neck, jabs "
@@ -222,12 +231,13 @@ _META = {
      "full volume, and shoves an empty sack into the boy's chest", ["nosubs"]),
  19: (8, "Medium close-up on the mat, notes in her hands",
      ["yai_h", "tor_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
-     "the old woman counts the pastel notes again, puzzled, murmuring; the little boy leans "
-     "in wide-eyed", ["money", "nosubs"]),
+     "the old woman peers into a small cloth pouch in her lap, puzzled, murmuring as she "
+     "feels inside it without taking anything out; the little boy leans in wide-eyed",
+     ["nomoney", "nosubs"]),
  20: (10, "Close two-shot, both faces three-quarters to camera",
      ["tor_h", "yai_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
-     "the little boy tugs her sleeve, hopeful and wheedling; the old woman folds one note "
-     "apart from the others and shakes her head, firm but loving", ["money", "nosubs"]),
+     "the little boy leans toward her, hopeful and wheedling; the old woman pulls the cloth "
+     "pouch shut and shakes her head, firm but loving", ["nomoney", "nosubs"]),
  21: (8, "Close-up on the glass jar, the pebble dropping",
      ["yai_h", "tor_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
      "the old woman drops a pebble into the nearly full glass jar with a tired, fond smile "

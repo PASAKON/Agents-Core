@@ -123,7 +123,7 @@
 ### SHOT 5 · 0:32–0:40 · 8s · Two-shot father and son, the grandmother small and far in the background pushing her cart away · LAN
 **ACTION** เสี่ยโยนกระเป๋าเข้าลิ้นชัก **ขณะที่**คุยโอ้อวดกับลูก ยายอยู่ไกลจนไม่ได้ยิน
 **อารมณ์** เสี่ย 4/5 หัวเราะหึๆ สะใจ กระซิบข่มลูก · กล้า 3/5 ตกใจ ตาเบิก เสียงสั่น
-**บทพูด** เสี่ย `"เห็นไหมกล้า คืนกระเป๋าครบ แต่ก็ยังโดนกดเที่ยวละสามโลอยู่ดี"` — chuckling with nasty glee, low, leaning in to his son
+**บทพูด** เสี่ย `"เห็นไหมกล้า คืนกระเป๋าครบ แต่ก็ยังโดนกดเที่ยวละสามโลอยู่ดี"` — chuckling smugly, low, turning toward his son
 **บทพูด** กล้า `"ยายเพิ่งคืนเงินพ่อครบนะพ่อ"` — shocked, eyes wide, voice shaking
 
 ### SHOT 6 · 0:40–0:48 · 8s · Medium close-up, grandmother and grandson on the floor of a small wooden house · BAAN
@@ -136,7 +136,7 @@
 **ACTION** ยายนับแบงก์บนเสื่อ **ขณะที่**หลานพูด
 **อารมณ์** ต่อ 3/5 กังวล หน้าเศร้า · ยาย 3/5 ฝืนยิ้ม ตาแดงๆ เสียงสั่น ลูบหัวหลาน
 **บทพูด** ต่อ `"ค่าเทอมสามพันบาทนะยาย ครูให้จ่ายภายในสิ้นเดือน"` — worried, frowning, a small anxious voice
-**บทพูด** ยาย `"วันนี้ได้ร้อยยี่สิบ ยังขาดอีกเยอะเลยลูก"` — forcing a smile, eyes glistening, voice wavering, stroking his head
+**บทพูด** ยาย `"วันนี้ได้ร้อยยี่สิบ ยังขาดอีกเยอะเลยลูก"` — forcing a smile, eyes glistening, voice wavering
 
 ### SHOT 8 · 0:56–1:04 · 8s · Medium close-up, the owner jabbing a finger at his son · LAN · **HOOK @1:00**
 **ACTION** เสี่ยจิ้มนิ้วใส่อกกล้า **ขณะที่**สั่ง
@@ -211,7 +211,7 @@
 ### SHOT 20 · 2:32–2:40 · 8s · Close two-shot · BAAN
 **ACTION** ยายพับแบงก์ใบนั้นแยกไว้ **ขณะที่**สอนหลาน
 **อารมณ์** ต่อ 3/5 ดีใจ อ้อนยาย ดึงแขนเสื้อ · ยาย 3/5 หนักแน่นแต่อ่อนโยน ส่ายหน้า
-**บทพูด** ต่อ `"ก็ดีแล้วยาย ค่าเทอมยังขาดอยู่ตั้งเยอะ"` — hopeful, wheedling like a child, tugging her sleeve
+**บทพูด** ต่อ `"ก็ดีแล้วยาย ค่าเทอมยังขาดอยู่ตั้งเยอะ"` — hopeful, wheedling like a child, leaning toward her
 **บทพูด** ยาย `"ไม่ใช่เงินของเรา ยายไม่เอาหรอกลูก พรุ่งนี้ยายจะเอาไปคืนเขา"` — firm but loving, shaking her head
 
 ### SHOT 21 · 2:40–2:48 · 8s · Close-up on the glass jar, the pebble dropping · BAAN
