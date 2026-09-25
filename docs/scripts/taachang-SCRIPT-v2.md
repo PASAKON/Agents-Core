@@ -420,10 +420,10 @@
 **บทพูด** ยาย `"จ้ะ ยายเขียนหนังสือไม่เป็น"` — wary, holding the jar close
 
 ### SHOT 57 · 7:28–7:36 · 8s · Overhead-ish medium shot, pebbles poured onto the mat in piles of ten · BAAN
-**ACTION** ต่อจัดหินเป็นกองละสิบ **ขณะที่**นับดังๆ
-**อารมณ์** เสี่ย 4/5 เสียงหนัก กลั้นอารมณ์ · ต่อ 3/5 นับดัง ตั้งใจ
+**ACTION** กล้ากับต่อช่วยกันจัดหินเป็นกองละสิบ กล้า**นับดังๆ** (v2.6: เสี่ยสั่ง 'กล้า นับให้พ่อหน่อย' คนนับจึงเป็นกล้า)
+**อารมณ์** เสี่ย 4/5 เสียงหนัก กลั้นอารมณ์ · กล้า 3/5 นับดัง ตั้งใจ
 **บทพูด** เสี่ย `"กล้า นับให้พ่อหน่อย นับดังๆ ให้ทุกคนได้ยิน"` — heavy, holding back emotion
-**บทพูด** ต่อ `"หนึ่งร้อยก้อน… สองร้อยก้อน…"` — counting out loud, concentrating
+**บทพูด** กล้า `"หนึ่งร้อยก้อน… สองร้อยก้อน…"` — counting out loud, concentrating
 
 ### SHOT 58 · 7:36–7:44 · 8s · Medium three-shot around the piles · BAAN
 **ACTION** ต่อวางกองสุดท้าย **ขณะที่**ประกาศ
@@ -433,8 +433,8 @@
 
 ### SHOT 59 · 7:44–7:52 · 8s · Medium shot, the onlooker gasping · BAAN
 **ACTION** ป้าเอามือทาบอก **ขณะที่**พูด
-**อารมณ์** ต่อ 3/5 ระวัง คิดเลข · ป้า 5/5 ตกใจ อุทานลั่น มือทาบอก
-**บทพูด** ต่อ `"โลละสิบบาท เก้าร้อยโลก็เก้าพันบาทครับยาย"` — careful, working it out
+**อารมณ์** กล้า 3/5 ระวัง คิดเลข · ป้า 5/5 ตกใจ อุทานลั่น มือทาบอก (v2.6, 2026-09-26: Continuity rule — a child and money in one prompt is deleted by Flow)
+**บทพูด** กล้า `"โลละสิบบาท เก้าร้อยโลก็เก้าพันบาทครับยาย"` — careful, working it out
 **บทพูด** ป้า `"เก้าพัน! ยายบุญเก็บขวดแทบตาย"` — gasping, shocked, loud, hand on her chest
 
 ### SHOT 60 · 7:52–8:00 · 8s · Close-up on the owner · BAAN
@@ -447,15 +447,15 @@
 **อารมณ์** เสี่ย 5/5 ร้องไห้ ก้มกราบถึงพื้น เสียงสั่นเครือ จริงใจ
 **บทพูด** เสี่ย `"ผมผิดเองครับยาย ผมขอกราบขอขมายายต่อหน้าทุกคนเลยครับ"` — weeping, bowing his forehead to the floor, voice quavering, sincere
 
-### SHOT 62 · 8:08–8:16 · 8s · Close two-shot, prop notes placed in her hands · BAAN
-**ACTION** เสี่ยวางปึกแบงก์ลงในมือยาย **ขณะที่**พูด
-**อารมณ์** เสี่ย 4/5 น้ำตาคลอ ถ่อมตัว ยื่นเงินสองมือ
-**บทพูด** เสี่ย `"เก้าพันบาท ผมคืนยายครบทุกบาทครับ เหมือนที่ยายเคยคืนกระเป๋าให้ผม"` — tearful, humble, offering the money with both hands
+### SHOT 62 · 8:08–8:16 · 8s · Close-up on the owner alone, offering a sealed envelope with both hands · BAAN
+**ACTION** โคลสอัพเสี่ยคนเดียว ยื่นซองกระดาษสีน้ำตาลปิดผนึกด้วยสองมือไปทางยายนอกเฟรม **ขณะที่**พูด (v2.6: ปึกแบงก์ส่งกันสองคน = แบบ S50 ที่โดนลบ)
+**อารมณ์** เสี่ย 4/5 น้ำตาคลอ ถ่อมตัว ยื่นซองสองมือ
+**บทพูด** เสี่ย `"เก้าพันบาท ผมคืนยายครบทุกบาทครับ เหมือนที่ยายเคยคืนกระเป๋าให้ผม"` — tearful, humble, offering the envelope with both hands
 
 ### SHOT 63 · 8:16–8:24 · 8s · Close-up on the grandmother · BAAN
-**ACTION** ยายรับเงินด้วยสองมือ **ขณะที่**พูด (กฎ 8: ไม่ปฏิเสธเงิน)
+**ACTION** โคลสอัพยายคนเดียว รับซองด้วยสองมือ **ขณะที่**พูด (กฎ 8: ไม่ปฏิเสธเงิน) (v2.6, 2026-09-26: Continuity rule — a child and money in one prompt is deleted by Flow)
 **อารมณ์** ยาย 5/5 ร้องไห้ปนยิ้ม รับเงินสองมือ เสียงสั่น
-**บทพูด** ยาย `"ยายรับไว้นะเสี่ย ค่าเทอมของต่อ ยายหามาไม่ทันจริงๆ จ้ะ"` — crying and smiling at once, taking it with both hands, voice trembling
+**บทพูด** ยาย `"ยายรับไว้นะเสี่ย ยายหามาไม่ทันจริงๆ จ้ะ ต่อจะได้เรียนต่อแล้ว"` — crying and smiling at once, taking it with both hands, voice trembling
 
 ### SHOT 64 · 8:24–8:32 · 8s · Two-shot, the grandson hugging her · BAAN
 **ACTION** ต่อกอดยาย **ขณะที่**ถาม
@@ -510,16 +510,16 @@
 **บทพูด** เสี่ย `"ขอบใจนะลูก ที่พูดวันนั้น ถ้าแกไม่พูด พ่อคงโกงคนไปจนแก่"` — moved, eyes wet, squeezing his son's shoulder
 **บทพูด** กล้า `"ผมแค่พูดสิ่งที่เห็นครับพ่อ"` — a shy smile
 
-### SHOT 73 · 9:36–9:44 · 8s · Close two-shot, a plain envelope with nothing written on it · BAAN
-**ACTION** ยายยื่นซองให้ต่อ **ขณะที่**พูด
+### SHOT 73 · 9:36–9:44 · 8s · Close two-shot, she straightens his shirt collar · BAAN
+**ACTION** ยายจัดคอเสื้อนักเรียนให้ต่อ **ขณะที่**พูด (v2.6, 2026-09-26: Continuity rule — a child and money in one prompt is deleted by Flow)
 **อารมณ์** ยาย 3/5 อิ่มใจ อบอุ่น · ต่อ 3/5 ไหว้ขอบคุณ ยิ้มกว้าง
-**บทพูด** ยาย `"ค่าเทอมของต่อ ครบแล้วนะลูก เอาไปจ่ายครูเลยจ้ะ"` — content, warm
+**บทพูด** ยาย `"พรุ่งนี้ไปโรงเรียนแล้วนะลูก ตั้งใจเรียนนะจ๊ะ"` — content, warm, straightening his collar
 **บทพูด** ต่อ `"ขอบคุณครับยาย"` — a wai, beaming
 
 ### SHOT 74 · 9:44–9:52 · 8s · Medium two-shot, a school notebook held angled away from camera · BAAN
 **ACTION** ต่อชูสมุดโดยหันหน้ากระดาษออกจากกล้อง **ขณะที่**พูด
 **อารมณ์** ต่อ 4/5 ภูมิใจ อวดสมุด · ยาย 4/5 ตื้นตัน น้ำตาซึม
-**บทพูด** ต่อ `"ยายไม่ต้องหยอดหินแล้วนะครับ ต่อจะจดให้ยายเอง ต่อเขียนเป็นแล้ว"` — proud, showing off
+**บทพูด** ต่อ `"ยายไม่ต้องหยอดหินแล้วนะครับ ต่อจดให้ยายเอง ต่อเขียนเป็นแล้ว"` — proud, showing off
 **บทพูด** ยาย `"จ้ะ หลานยายเขียนเป็นแล้ว"` — moved, eyes misting
 
 ### SHOT 75 · 9:52–10:00 · 8s · Wide, grandmother and grandson walking away down the soi, the canal path stretching ahead · SOI
