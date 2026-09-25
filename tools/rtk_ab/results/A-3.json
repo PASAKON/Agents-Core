@@ -1,0 +1,115 @@
+{
+  "arm": "A",
+  "run_index": 3,
+  "wall_seconds": 92.4,
+  "timed_out": false,
+  "returncode": 0,
+  "stdout_raw": "{\"duration_api_ms\":60134,\"stop_reason\":\"end_turn\",\"session_id\":\"a3894233-5c0b-423c-a7b8-94bc9f47d938\",\"total_cost_usd\":0.5017778,\"usage\":{\"input_tokens\":24,\"cache_creation_input_tokens\":66558,\"cache_read_input_tokens\":963389,\"output_tokens\":4282,\"output_tokens_details\":{\"thinking_tokens\":1463},\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":66558,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"not_available\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":691,\"cache_read_input_tokens\":90336,\"cache_creation_input_tokens\":441,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":441},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-5\":{\"inputTokens\":24,\"outputTokens\":4282,\"cacheReadInputTokens\":963389,\"cacheCreationInputTokens\":66558,\"webSearchRequests\":0,\"costUSD\":0.5017778,\"contextWindow\":1000000,\"maxOutputTokens\":64000,\"thinkingTokens\":1463,\"canonicalModel\":\"claude-sonnet-5\",\"provider\":\"firstParty\",\"costBasis\":\"list\"}},\"permission_denials\":[{\"tool_name\":\"Bash\",\"tool_use_id\":\"toolu_01SifUwvpJWZakH1Tjz1KyMr\",\"tool_input\":{\"command\":\"pwd && ls -la .venv/bin/python 2>&1 | head -5\",\"description\":\"Check repo root and venv presence\"}}],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subagent_stats\":{\"spawned\":0,\"requested\":{\"background\":0,\"foreground\":0,\"unset\":0},\"started_in_background\":0,\"max_depth\":0,\"spawned_by_subagents\":0,\"completed\":0,\"failed\":0,\"killed\":{\"parent\":0,\"user\":0,\"system\":0},\"refused\":{\"depth_limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"is_error\":false,\"num_turns\":12,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"Q1: 19 passed, 0 failed, 1 skipped (Core repo's .venv python, arms/A has no own .venv).\\nQ2: 5 of 30 subjects start with `skill(`.\\nQ3: delegate.py 95200, flow_shoot.py 91632, session_diagram.py 78314, bl_realfootage.py 51902, drive_leg.py 46260.\\nQ4: 245. Q5: 24. Q6: 62. Q7: 14. Q8: 1 file, +11/-0. Q9: 168. Q10: 51.\\n\\n{\\\"q1_pytest_passed\\\": 19, \\\"q1_pytest_failed\\\": 0, \\\"q1_pytest_skipped\\\": 1, \\\"q2_skill_commits\\\": 5, \\\"q3_largest_tools_files\\\": [[\\\"tools/delegate.py\\\", 95200], [\\\"tools/flow_shoot.py\\\", 91632], [\\\"tools/session_diagram.py\\\", 78314], [\\\"tools/bl_realfootage.py\\\", 51902], [\\\"tools/drive_leg.py\\\", 46260]], \\\"q4_scripts_py_count\\\": 245, \\\"q5_lib_py_count\\\": 24, \\\"q6_tools_def_main_count\\\": 62, \\\"q7_scripts_lsR_dir_count\\\": 14, \\\"q8_head_stat\\\": {\\\"files_changed\\\": 1, \\\"insertions\\\": 11, \\\"deletions\\\": 0}, \\\"q9_token_profile_lines\\\": 168, \\\"q10_tools_import_argparse_count\\\": 51}\",\"ttft_ms\":6072,\"type\":\"result\",\"duration_ms\":86338,\"uuid\":\"2d6b44fc-aff9-42a2-a61f-08c2ae893d9e\",\"ttft_stream_ms\":4860,\"time_to_request_ms\":1144,\"first_content_frame_ms\":4862,\"queued_turn_count\":0,\"result_index\":0}\n",
+  "stderr_raw": "",
+  "claude_result": {
+    "duration_api_ms": 60134,
+    "stop_reason": "end_turn",
+    "session_id": "a3894233-5c0b-423c-a7b8-94bc9f47d938",
+    "total_cost_usd": 0.5017778,
+    "usage": {
+      "input_tokens": 24,
+      "cache_creation_input_tokens": 66558,
+      "cache_read_input_tokens": 963389,
+      "output_tokens": 4282,
+      "output_tokens_details": {
+        "thinking_tokens": 1463
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 66558,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 691,
+          "cache_read_input_tokens": 90336,
+          "cache_creation_input_tokens": 441,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 441
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 24,
+        "outputTokens": 4282,
+        "cacheReadInputTokens": 963389,
+        "cacheCreationInputTokens": 66558,
+        "webSearchRequests": 0,
+        "costUSD": 0.5017778,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 1463,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [
+      {
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_01SifUwvpJWZakH1Tjz1KyMr",
+        "tool_input": {
+          "command": "pwd && ls -la .venv/bin/python 2>&1 | head -5",
+          "description": "Check repo root and venv presence"
+        }
+      }
+    ],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 12,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Q1: 19 passed, 0 failed, 1 skipped (Core repo's .venv python, arms/A has no own .venv).\nQ2: 5 of 30 subjects start with `skill(`.\nQ3: delegate.py 95200, flow_shoot.py 91632, session_diagram.py 78314, bl_realfootage.py 51902, drive_leg.py 46260.\nQ4: 245. Q5: 24. Q6: 62. Q7: 14. Q8: 1 file, +11/-0. Q9: 168. Q10: 51.\n\n{\"q1_pytest_passed\": 19, \"q1_pytest_failed\": 0, \"q1_pytest_skipped\": 1, \"q2_skill_commits\": 5, \"q3_largest_tools_files\": [[\"tools/delegate.py\", 95200], [\"tools/flow_shoot.py\", 91632], [\"tools/session_diagram.py\", 78314], [\"tools/bl_realfootage.py\", 51902], [\"tools/drive_leg.py\", 46260]], \"q4_scripts_py_count\": 245, \"q5_lib_py_count\": 24, \"q6_tools_def_main_count\": 62, \"q7_scripts_lsR_dir_count\": 14, \"q8_head_stat\": {\"files_changed\": 1, \"insertions\": 11, \"deletions\": 0}, \"q9_token_profile_lines\": 168, \"q10_tools_import_argparse_count\": 51}",
+    "ttft_ms": 6072,
+    "type": "result",
+    "duration_ms": 86338,
+    "uuid": "2d6b44fc-aff9-42a2-a61f-08c2ae893d9e",
+    "ttft_stream_ms": 4860,
+    "time_to_request_ms": 1144,
+    "first_content_frame_ms": 4862,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

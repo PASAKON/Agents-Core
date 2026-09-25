@@ -1,0 +1,115 @@
+{
+  "arm": "B",
+  "run_index": 0,
+  "wall_seconds": 187.7,
+  "timed_out": false,
+  "returncode": 0,
+  "stdout_raw": "{\"duration_api_ms\":142780,\"stop_reason\":\"end_turn\",\"session_id\":\"4c8c9e68-437b-4e88-a739-b4481fcef687\",\"total_cost_usd\":1.2008156,\"usage\":{\"input_tokens\":84,\"cache_creation_input_tokens\":77903,\"cache_read_input_tokens\":3824828,\"output_tokens\":12407,\"output_tokens_details\":{\"thinking_tokens\":5966},\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":77903,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"not_available\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":565,\"cache_read_input_tokens\":101897,\"cache_creation_input_tokens\":225,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":225},\"type\":\"message\"}],\"speed\":\"standard\"},\"modelUsage\":{\"claude-sonnet-5\":{\"inputTokens\":84,\"outputTokens\":12407,\"cacheReadInputTokens\":3824828,\"cacheCreationInputTokens\":77903,\"webSearchRequests\":0,\"costUSD\":1.2008156,\"contextWindow\":1000000,\"maxOutputTokens\":64000,\"thinkingTokens\":5966,\"canonicalModel\":\"claude-sonnet-5\",\"provider\":\"firstParty\",\"costBasis\":\"list\"}},\"permission_denials\":[{\"tool_name\":\"Bash\",\"tool_use_id\":\"toolu_01BXcPRcwPPBksGXwuv8i8ft\",\"tool_input\":{\"command\":\"pwd && ls .venv/bin/python 2>&1 | head -5\",\"description\":\"Check repo root and venv presence\"}}],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subagent_stats\":{\"spawned\":0,\"requested\":{\"background\":0,\"foreground\":0,\"unset\":0},\"started_in_background\":0,\"max_depth\":0,\"spawned_by_subagents\":0,\"completed\":0,\"failed\":0,\"killed\":{\"parent\":0,\"user\":0,\"system\":0},\"refused\":{\"depth_limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"is_error\":false,\"num_turns\":42,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"Confirmed: 168 lines. q9 = 168.\\n\\nAll 10 answered. Summary:\\n\\n1. pytest: 19 passed, 0 failed, 1 skipped\\n2. `skill(` commits in last 30: 5\\n3. largest 5 files under tools/: delegate.py 95200, flow_shoot.py 91632, session_diagram.py 78314, bl_realfootage.py 51902, drive_leg.py 46260\\n4. scripts/ .py count: 245\\n5. lib/ .py count: 24\\n6. tools/*.py with `def main(`: 62\\n7. scripts ls -R directory headers: 14\\n8. HEAD stat: 1 file changed, 11 insertions, 0 deletions\\n9. token_profile.py: 168 lines\\n10. tools/*.py with `import argparse`: 51\\n\\n```\\n{\\\"q1_pytest_passed\\\": 19, \\\"q1_pytest_failed\\\": 0, \\\"q1_pytest_skipped\\\": 1, \\\"q2_skill_commits\\\": 5, \\\"q3_largest_tools_files\\\": [[\\\"tools/delegate.py\\\", 95200], [\\\"tools/flow_shoot.py\\\", 91632], [\\\"tools/session_diagram.py\\\", 78314], [\\\"tools/bl_realfootage.py\\\", 51902], [\\\"tools/drive_leg.py\\\", 46260]], \\\"q4_scripts_py_count\\\": 245, \\\"q5_lib_py_count\\\": 24, \\\"q6_tools_def_main_count\\\": 62, \\\"q7_scripts_lsR_dir_count\\\": 14, \\\"q8_head_stat\\\": {\\\"files_changed\\\": 1, \\\"insertions\\\": 11, \\\"deletions\\\": 0}, \\\"q9_token_profile_lines\\\": 168, \\\"q10_tools_import_argparse_count\\\": 51}\\n```\",\"ttft_ms\":1705,\"type\":\"result\",\"duration_ms\":183575,\"uuid\":\"61b37b50-b6d5-49c5-b858-9fbed714e8e6\",\"ttft_stream_ms\":1386,\"time_to_request_ms\":214,\"first_content_frame_ms\":1387,\"queued_turn_count\":0,\"result_index\":0}\n",
+  "stderr_raw": "",
+  "claude_result": {
+    "duration_api_ms": 142780,
+    "stop_reason": "end_turn",
+    "session_id": "4c8c9e68-437b-4e88-a739-b4481fcef687",
+    "total_cost_usd": 1.2008156,
+    "usage": {
+      "input_tokens": 84,
+      "cache_creation_input_tokens": 77903,
+      "cache_read_input_tokens": 3824828,
+      "output_tokens": 12407,
+      "output_tokens_details": {
+        "thinking_tokens": 5966
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 77903,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 565,
+          "cache_read_input_tokens": 101897,
+          "cache_creation_input_tokens": 225,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 225
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-sonnet-5": {
+        "inputTokens": 84,
+        "outputTokens": 12407,
+        "cacheReadInputTokens": 3824828,
+        "cacheCreationInputTokens": 77903,
+        "webSearchRequests": 0,
+        "costUSD": 1.2008156,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 5966,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [
+      {
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_01BXcPRcwPPBksGXwuv8i8ft",
+        "tool_input": {
+          "command": "pwd && ls .venv/bin/python 2>&1 | head -5",
+          "description": "Check repo root and venv presence"
+        }
+      }
+    ],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 42,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Confirmed: 168 lines. q9 = 168.\n\nAll 10 answered. Summary:\n\n1. pytest: 19 passed, 0 failed, 1 skipped\n2. `skill(` commits in last 30: 5\n3. largest 5 files under tools/: delegate.py 95200, flow_shoot.py 91632, session_diagram.py 78314, bl_realfootage.py 51902, drive_leg.py 46260\n4. scripts/ .py count: 245\n5. lib/ .py count: 24\n6. tools/*.py with `def main(`: 62\n7. scripts ls -R directory headers: 14\n8. HEAD stat: 1 file changed, 11 insertions, 0 deletions\n9. token_profile.py: 168 lines\n10. tools/*.py with `import argparse`: 51\n\n```\n{\"q1_pytest_passed\": 19, \"q1_pytest_failed\": 0, \"q1_pytest_skipped\": 1, \"q2_skill_commits\": 5, \"q3_largest_tools_files\": [[\"tools/delegate.py\", 95200], [\"tools/flow_shoot.py\", 91632], [\"tools/session_diagram.py\", 78314], [\"tools/bl_realfootage.py\", 51902], [\"tools/drive_leg.py\", 46260]], \"q4_scripts_py_count\": 245, \"q5_lib_py_count\": 24, \"q6_tools_def_main_count\": 62, \"q7_scripts_lsR_dir_count\": 14, \"q8_head_stat\": {\"files_changed\": 1, \"insertions\": 11, \"deletions\": 0}, \"q9_token_profile_lines\": 168, \"q10_tools_import_argparse_count\": 51}\n```",
+    "ttft_ms": 1705,
+    "type": "result",
+    "duration_ms": 183575,
+    "uuid": "61b37b50-b6d5-49c5-b858-9fbed714e8e6",
+    "ttft_stream_ms": 1386,
+    "time_to_request_ms": 214,
+    "first_content_frame_ms": 1387,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
