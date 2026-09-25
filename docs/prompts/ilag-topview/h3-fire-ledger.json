@@ -185,22 +185,6 @@
   "refs": 5,
   "status": "queued"
  },
- "o02": {
-  "job_id": "7njyt24k",
-  "name": "ILAG-O02-the-chief-decides",
-  "queued": "2026-09-25T12:47:48+0200",
-  "position": 27,
-  "refs": 4,
-  "status": "queued"
- },
- "o03": {
-  "job_id": "r7uhofer",
-  "name": "ILAG-O03-the-hut",
-  "queued": "2026-09-25T12:47:50+0200",
-  "position": 28,
-  "refs": 4,
-  "status": "queued"
- },
  "o04": {
   "job_id": "0sne6jk1",
   "name": "ILAG-O04-the-farewell",
@@ -219,14 +203,6 @@
   "file": "M6-H3-take1.mp4",
   "drive_id": "1xmLH3EW6n5LY07-i8Pi139CDWrEIiIxp",
   "local": "/tmp/ilag-h3-previz/M6-H3-take1.mp4"
- },
- "m06": {
-  "job_id": "sc04kygw",
-  "name": "ILAG-M06-the-storm-pillars",
-  "queued": "2026-09-25T12:56:47+0200",
-  "position": 30,
-  "refs": 6,
-  "status": "queued"
  },
  "n01_t1": {
   "job_id": "wuhdmogh",
@@ -307,7 +283,55 @@
   "refs": 8,
   "status": "queued"
  },
- "n04": {
+ "o02_t2": {
+  "job_id": "7njyt24k",
+  "name": "ILAG-O02-the-chief-decides",
+  "queued": "2026-09-25T12:47:48+0200",
+  "position": 27,
+  "refs": 4,
+  "status": "queued"
+ },
+ "o03_t2": {
+  "job_id": "r7uhofer",
+  "name": "ILAG-O03-the-hut",
+  "queued": "2026-09-25T12:47:50+0200",
+  "position": 28,
+  "refs": 4,
+  "status": "queued"
+ },
+ "o02": {
+  "job_id": "5556jamr",
+  "name": "ILAG-O02-the-chief-decides",
+  "queued": "2026-09-25T14:01:43+0200",
+  "position": 6,
+  "refs": 4,
+  "status": "queued"
+ },
+ "o03": {
+  "job_id": "sm5v6oj6",
+  "name": "ILAG-O03-the-hut",
+  "queued": "2026-09-25T14:01:44+0200",
+  "position": 7,
+  "refs": 5,
+  "status": "queued"
+ },
+ "m06_t2": {
+  "job_id": "sc04kygw",
+  "name": "ILAG-M06-the-storm-pillars",
+  "queued": "2026-09-25T12:56:47+0200",
+  "position": 30,
+  "refs": 6,
+  "status": "queued"
+ },
+ "m06": {
+  "job_id": "psjmhrt5",
+  "name": "ILAG-M06-the-storm-pillars",
+  "queued": "2026-09-25T14:01:46+0200",
+  "position": 8,
+  "refs": 6,
+  "status": "queued"
+ },
+ "n04_t2": {
   "job_id": "opg37yn9",
   "name": "ILAG-N04-the-line-they-stop",
   "queued": "2026-09-25T12:56:53+0200",
@@ -315,7 +339,7 @@
   "refs": 6,
   "status": "queued"
  },
- "n05": {
+ "n05_t2": {
   "job_id": "fi8jf8ba",
   "name": "ILAG-N05-the-light",
   "queued": "2026-09-25T12:56:54+0200",
@@ -323,7 +347,7 @@
   "refs": 6,
   "status": "queued"
  },
- "n06": {
+ "n06_t1": {
   "job_id": "kmv7hz9y",
   "name": "ILAG-N06-the-school",
   "queued": "2026-09-25T12:56:55+0200",
@@ -331,7 +355,7 @@
   "refs": 6,
   "status": "queued"
  },
- "n07": {
+ "n07_t1": {
   "job_id": "11r4rcq3",
   "name": "ILAG-N07-one-fish",
   "queued": "2026-09-25T12:56:57+0200",
@@ -339,7 +363,7 @@
   "refs": 5,
   "status": "queued"
  },
- "n08": {
+ "n08_t1": {
   "job_id": "r4s7b3hm",
   "name": "ILAG-N08-the-shadow",
   "queued": "2026-09-25T12:56:58+0200",
@@ -347,11 +371,75 @@
   "refs": 5,
   "status": "queued"
  },
- "n09": {
+ "n09_t1": {
   "job_id": "f88kxn1d",
   "name": "ILAG-N09-the-mountain-rises",
   "queued": "2026-09-25T12:57:00+0200",
   "position": 39,
+  "refs": 6,
+  "status": "queued"
+ },
+ "n04": {
+  "job_id": "s8xuti19",
+  "name": "ILAG-N04-the-line-they-stop",
+  "queued": "2026-09-25T14:01:47+0200",
+  "position": 9,
+  "refs": 6,
+  "status": "queued"
+ },
+ "n05": {
+  "job_id": "08zqk233",
+  "name": "ILAG-N05-the-crossing",
+  "queued": "2026-09-25T14:01:48+0200",
+  "position": 10,
+  "refs": 7,
+  "status": "queued"
+ },
+ "n06": {
+  "job_id": "lffnjtfj",
+  "name": "ILAG-N06-the-light",
+  "queued": "2026-09-25T14:01:50+0200",
+  "position": 11,
+  "refs": 6,
+  "status": "queued"
+ },
+ "n07": {
+  "job_id": "nta7wfv3",
+  "name": "ILAG-N07-the-giant-wave",
+  "queued": "2026-09-25T14:01:51+0200",
+  "position": 12,
+  "refs": 6,
+  "status": "queued"
+ },
+ "n08": {
+  "job_id": "8b1iciv1",
+  "name": "ILAG-N08-the-school",
+  "queued": "2026-09-25T14:01:53+0200",
+  "position": 13,
+  "refs": 6,
+  "status": "queued"
+ },
+ "n09": {
+  "job_id": "sl157j48",
+  "name": "ILAG-N09-one-fish",
+  "queued": "2026-09-25T14:01:54+0200",
+  "position": 14,
+  "refs": 5,
+  "status": "queued"
+ },
+ "n10": {
+  "job_id": "kfge8ixe",
+  "name": "ILAG-N10-the-shadow",
+  "queued": "2026-09-25T14:01:56+0200",
+  "position": 15,
+  "refs": 3,
+  "status": "queued"
+ },
+ "n11": {
+  "job_id": "x8hgvr0s",
+  "name": "ILAG-N11-the-mountain-rises",
+  "queued": "2026-09-25T14:01:57+0200",
+  "position": 16,
   "refs": 6,
   "status": "queued"
  }

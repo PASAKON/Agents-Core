@@ -32,18 +32,17 @@ THE FRAME: Inside the hut looking toward the doorway; THE YOUNG ONE seated on th
 PARTICLES: dust motes floating in the lamp light and in the beam of daylight from the doorway.
 
 WHAT HAPPENS:
-[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells.
-[2s] The door flap is pulled open; daylight floods in; THE CHIEF stoops inside. Behind THE CHIEF, THE STRONG ONE and THE ELDER stay standing just outside the open doorway and do not come in.
+[0s] Soft lamp light; THE YOUNG ONE sits on the floor arranging small shells. The door flap is pulled open; daylight floods in; THE CHIEF stoops inside. Behind THE CHIEF, THE STRONG ONE and THE ELDER stay standing just outside the open doorway and do not come in.
 [4s] THE CHIEF kneels in front of THE YOUNG ONE. Softly: "It's time."
-[5.5s] Then, gently: "You are the chosen one." The gill frills of THE YOUNG ONE flash gold, once.
+[5.5s] Gently: "You are the chosen one." The gill frills of THE YOUNG ONE flash gold, once.
 [7.5s] THE CHIEF turns his head toward the doorway. Firmly: "You two will go with the child." THE STRONG ONE and THE ELDER nod.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the three lines above, THE YOUNG ONE's small surprised breath, the flap swishing open. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the three lines above, THE YOUNG ONE's small surprised breath, the flap swishing open. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no camera move, no second child, no fish, no crying, THE STRONG ONE and THE ELDER never inside the hut, no third person inside, no land or island seen through the doorway, only sea and sky.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no camera move, no second child, no crying, THE STRONG ONE and THE ELDER never inside the hut, no third person inside, no land or island seen through the doorway, only sea and sky.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 

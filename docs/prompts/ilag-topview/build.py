@@ -123,6 +123,9 @@ GRADE = {
            "grain, gentle anamorphic softness at the edges.",
     "TURNING": "Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon "
                "dim behind thin cloud. Photographed, not rendered: fine film grain.",
+    "DARK_GLOW": "Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow "
+                 "of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning "
+                 "far away, deep true blacks. Photographed, not rendered: fine film grain.",
     "DARK": "Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, "
             "cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.",
 }
@@ -229,8 +232,8 @@ SCENES = [
                 "[2.5s] THE THREE RIDERS, still facing away from us, tip their heads back to look up at the pillars.",
                 "[4s] THE MOUNT passes between the first two pillars, heading deeper in, away from us."],
          audio="-", sound="silence; nobody speaks",
-         crit="no one facing the camera, no mount turning toward the camera, no faces to camera, no tornado, no funnel, "
-              "no cone shape, no debris, no dialogue, no bright midday light, no storm, no lightning, no rain, calm air",
+         crit="no one facing the camera, no mount turning toward the camera, no tornado, no funnel, no cone shape, no "
+              "debris, no dialogue, no storm, no lightning, no rain",
          review=["Moving away from camera, never facing it.", "Evening turning light.", "Pillars thin and straight."],
          end="Deeper among the pillars, heading on."),
     dict(n=7, slug="the-line", title="THE LINE", s=6, grade="TURNING",
@@ -339,10 +342,9 @@ SCENES = [
          frame="Tracking beside THE RUNNER at his height, the village streaming past behind him: wooden walkways, "
                "rope bridges, glowing grass, glass-clear water below; villagers only far off and soft.",
          particles="water flicking up from his feet, sea spray glinting, a few glowing specks drifting in the air.",
-         beats=["[0s] THE RUNNER bursts onto a wooden walkway running flat out, face twisted with fear, mouth open, "
-                "panting hard, gill frills flared pale.",
-                "[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope "
-                "bridge; far-off villagers turn to watch.",
+         beats=["[0s] THE RUNNER bursts onto a wooden walkway running flat out from the left of frame to the right, "
+                "face twisted with fear, panting hard, gill frills flared pale, then leaps the gap between two "
+                "platforms and races across a swaying rope bridge while far-off villagers turn to watch.",
                 "[7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF and "
                 "THE STRONG ONE are busy together, hauling a woven fish trap up out of the water: it comes up empty.",
                 "[10s] THE RUNNER stumbles to a stop, chest heaving. Out of breath: \"Chief! There are no fish. None "
@@ -350,7 +352,7 @@ SCENES = [
                 "[12.5s] Then, desperate: \"We're starving. Please, do something.\" THE CHIEF and THE STRONG ONE let the "
                 "empty trap drop and turn to him."],
          audio="-",
-         sound="THE RUNNER's loud, ragged panting, clearly heard the whole time he runs, then the two lines above, "
+         sound="THE RUNNER's loud, ragged panting, clearly heard all through the run, then the two lines above, "
                "gasped out between breaths; the strain of the two men hauling",
          crit=DIALOGUE_NEG + ", no cut, no slow motion, no second runner, no one falling into the water, no weapon, no "
               "orange skin on the runner, no calm faces",
@@ -385,16 +387,16 @@ SCENES = [
                "doorway in the back of the frame. Only two are inside: THE YOUNG ONE and THE CHIEF. Outside the doorway "
                "stand THE STRONG ONE and THE ELDER.",
          particles="dust motes floating in the lamp light and in the beam of daylight from the doorway.",
-         beats=["[0s] Inside the hut, soft lamp light. THE YOUNG ONE sits on the floor arranging small shells.",
-                "[2s] The door flap is pulled open; daylight floods in; THE CHIEF stoops inside. Behind THE CHIEF, THE STRONG "
+         beats=["[0s] Soft lamp light; THE YOUNG ONE sits on the floor arranging small shells. The door flap is "
+                "pulled open; daylight floods in; THE CHIEF stoops inside. Behind THE CHIEF, THE STRONG "
                 "ONE and THE ELDER stay standing just outside the open doorway and do not come in.",
                 "[4s] THE CHIEF kneels in front of THE YOUNG ONE. Softly: \"It's time.\"",
-                "[5.5s] Then, gently: \"You are the chosen one.\" The gill frills of THE YOUNG ONE flash gold, once.",
+                "[5.5s] Gently: \"You are the chosen one.\" The gill frills of THE YOUNG ONE flash gold, once.",
                 "[7.5s] THE CHIEF turns his head toward the doorway. Firmly: \"You two will go with the child.\" "
                 "THE STRONG ONE and THE ELDER nod."],
          audio="-",
          sound="the three lines above, THE YOUNG ONE's small surprised breath, the flap swishing open",
-         crit=DIALOGUE_NEG + ", no camera move, no second child, no fish, no crying, THE STRONG ONE and THE ELDER never "
+         crit=DIALOGUE_NEG + ", no camera move, no second child, no crying, THE STRONG ONE and THE ELDER never "
               "inside the hut, no third person inside, no land or island seen through the doorway, only sea and sky",
          review=["Two inside; THE STRONG ONE and THE ELDER outside the doorway.", "Gills flash gold once.",
                  "Three lines, in order; transcribe."],
@@ -491,7 +493,7 @@ SCENES = [
          frame="Behind and above THE MOUNT: THE THREE RIDERS and THE MOUNT all face away from the camera, toward the "
                "razor-sharp line ahead; clear water under them, pitch-black water beyond the line, where dark storm "
                "clouds roll and churn visibly across the sky. The light and colour are the evening turning.",
-         particles="spray blowing off the line, the first drops of rain carried on the wind.",
+         particles="spray blowing off the line, wind-blown mist, the air heavy before the storm.",
          beats=["[0s] From high behind, THE MOUNT glides up to the line and stops at its edge, facing the black water.",
                 "[2s] The camera cranes down behind THE THREE RIDERS; beyond the line the storm clouds churn and roll "
                 "toward them, and thunder rumbles.",
@@ -513,7 +515,7 @@ SCENES = [
                "small seed-pod lamps glow along the seat; ahead, pitch-black water under the storm.",
          particles="rain beginning to fall as they cross, drops streaking through the last of the lamp light.",
          beats=["[0s] THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain "
-                "starts to fall.",
+                "falls on them.",
                 "[2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again.",
                 "[3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone.",
                 "[4.5s] Darkness. Only a faint grey outline of THE THREE RIDERS in the rain."],
@@ -522,11 +524,11 @@ SCENES = [
               "flames, no explosion",
          review=["All lights flicker and die, very clearly.", "Ends in darkness.", "Moving away from the camera."],
          end="THE MOUNT in darkness just past the line; every light dead."),
-    dict(prefix="n", n=6, slug="the-light", title="THE LIGHT", s=8, grade="DARK",
+    dict(prefix="n", n=6, grade_override="DARK_GLOW", slug="the-light", title="THE LIGHT", s=8, grade="DARK",
          series="round 3 (CEO answers 2, 12: in the dark, the strong one's line, then the light from the child)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A three-quarter view from behind THE MOUNT, slowly rising; no cut, no zoom.",
          refs=["@Young", "@Manta", "@BlackSea", "@Turning", "@Strong", "@Elder"],
-         heading="THE LIGHT. In the black rain, THE YOUNG ONE becomes their lantern.",
+         heading="THE LIGHT. In the black rain, THE YOUNG ONE lights up as their lantern.",
          frame="Behind and a little above THE MOUNT on pitch-black water in the rain; THE THREE RIDERS face ahead, "
                "barely visible in the dark.",
          particles="rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE.",
@@ -539,7 +541,7 @@ SCENES = [
               "other light source, no lantern light, no lamps",
          review=["One line, THE STRONG ONE; transcribe.", "Glow radius about 1-2 m; Turning-coloured water inside it."],
          end="THE YOUNG ONE glowing, the moving lantern, from here to the end."),
-    dict(prefix="n", n=7, slug="the-giant-wave", title="THE GIANT WAVE", s=8, grade="DARK",
+    dict(prefix="n", n=7, grade_override="DARK_GLOW", slug="the-giant-wave", title="THE GIANT WAVE", s=8, grade="DARK",
          series="round 3 (CEO answer C3: after the light, the giant wave, before the fish)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. Low behind THE MOUNT, looking past it at the wave rising ahead; camera "
               "shake; no cut, no zoom.",
@@ -558,7 +560,7 @@ SCENES = [
               "wider than two metres around the child",
          review=["The wave is colossal against them.", "One shout; transcribe.", "They go through, away from us."],
          end="Past the wave, THE MOUNT glides on in the rain."),
-    dict(prefix="n", n=8, slug="the-school", title="THE SCHOOL", s=8, grade="DARK",
+    dict(prefix="n", n=8, grade_override="DARK_GLOW", slug="the-school", title="THE SCHOOL", s=8, grade="DARK",
          series="round 3 (CEO answers 13, C3: excitement at the school; the sea goes still; the mount stops)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. Side on at the surface, moving left to right with THE MOUNT, then "
               "settling as it stops; no cut, no zoom.",
@@ -576,7 +578,7 @@ SCENES = [
          review=["Surface only; fish as small dark shadows in the lit circle.", "Water flat and calm, rain falling.",
                  "Left to right, then the mount stops."],
          end="THE MOUNT stopped on flat water among the fish."),
-    dict(prefix="n", n=9, slug="one-fish", title="ONE FISH", s=7, grade="DARK",
+    dict(prefix="n", n=9, grade_override="DARK_GLOW", slug="one-fish", title="ONE FISH", s=7, grade="DARK",
          series="round 3 (CEO answers 13, C1: no net; a quick chase and a grab by hand; everyone cheers)",
          spec="ONE CONTINUOUS TAKE, NO CUTS. A medium shot beside THE MOUNT at the surface; no cut, no zoom.",
          refs=["@Strong", "@Young", "@Elder", "@Manta", "@BlackSea"],
@@ -592,7 +594,7 @@ SCENES = [
          crit="no dialogue, no net, no spear, no hook, no second fish, no one falling in",
          review=["Caught by hand, no net.", "Fast chase, then the grab.", "Everyone cheers."],
          end="THE STRONG ONE holding one fish, all three happy."),
-    dict(prefix="n", n=10, slug="the-shadow", title="THE SHADOW", s=8, grade="DARK",
+    dict(prefix="n", n=10, grade_override="DARK_GLOW", slug="the-shadow", title="THE SHADOW", s=8, grade="DARK",
          series="round 3 (CEO answers 22, C2: from very high, the mount a tiny speck; the shadow only; flat water, rain)",
          spec="ONE LOCKED SHOT, NO CUTS. Straight down from very high above; the camera never moves.",
          refs=["@Manta", "@BlackSea", "@Young"],
@@ -602,14 +604,14 @@ SCENES = [
          particles="rain falling toward the flat water, a faint shimmer across the surface.",
          beats=["[0s] GLOW Seen from very high, THE MOUNT is a tiny glowing speck on a flat black sea in the rain.",
                 "[2s] Beneath it, deep down, an enormous dark shadow slides slowly past, hundreds of times bigger than THE "
-                "MOUNT, its edges lost in the dark.",
+                "MOUNT, covering most of the frame, its edges lost in the dark.",
                 "[4s] The tiny fish shadows around the speck of light scatter in every direction and vanish.",
                 "[6s] The shadow is gone. The flat sea is empty. Only the tiny speck of light remains."],
          audio="-", sound="silence; nobody speaks; the faintest startled gasp",
          crit="no dialogue, no camera move, no creature shape, no eye, no fin, no surfacing, no waves, only a shadow",
          review=["Top-down from very high; the mount a speck.", "A shadow only, enormous.", "The fish vanish."],
          end="Flat black sea, rain, THE MOUNT alone."),
-    dict(prefix="n", n=11, slug="the-mountain-rises", title="THE MOUNTAIN RISES", s=12, grade="DARK",
+    dict(prefix="n", n=11, grade_override="DARK_GLOW", slug="the-mountain-rises", title="THE MOUNTAIN RISES", s=12, grade="DARK",
          series="round 3 (CEO answers 6, 14, C2: they turn back to their fish; the mountain rises; TWO eyes open)",
          spec="ONE LOCKED SHOT, NO CUTS. A wide shot from behind and above THE MOUNT; the camera never moves.",
          refs=["@Mountain", "@Eye", "@Manta", "@Strong", "@Young", "@Elder"],
@@ -620,13 +622,14 @@ SCENES = [
          beats=["[0s] GLOW THE THREE RIDERS glance around, shrug, and turn back to their one fish, laughing quietly, "
                 "their backs to the far water.",
                 "[3s] Far behind them the flat water bulges; a vast smooth dark shape slowly rises out of the sea like a "
-                "mountain, water pouring off it. Nobody on THE MOUNT notices.",
+                "mountain until it fills the whole upper half of the frame, water pouring off it. Nobody on THE MOUNT "
+                "notices.",
                 "[8s] High on the dark mountain, two enormous eyes open: pale yellow-green, thin vertical slit pupils, "
                 "each bigger than their whole village.",
                 "[10.5s] Both eyes stay open, looking down at them. Hold."],
          audio="-", sound="the riders' quiet happy laughter, then total silence as the eyes open",
-         crit="no dialogue, no riders turning around, no roar, no teeth, no third eye, no camera move, no waves, no light "
-              "wider than two metres around the child",
+         crit="no dialogue, no rider looking back at the mountain, no roar, no teeth, no third eye, no camera move, no "
+              "waves, no light wider than two metres around the child",
          review=["They turn back to the fish, unaware.", "The mountain rises slowly behind them.", "Two eyes open."],
          end="Both eyes open; cut to space (M13, take 1)."),
 ]
@@ -662,6 +665,14 @@ SOUND = {
 }
 
 
+DEAD_LAMPS = ("Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is "
+              "THE YOUNG ONE.")
+WET = "Their skin, the seat and the back of THE MOUNT are wet and glistening with rain."
+STATE = {("m", 6): "THE MOUNT and THE THREE RIDERS stream with water from the dive, skin wet and glistening.",
+         ("n", 5): WET, **{("n", k): DEAD_LAMPS + " " + WET for k in range(6, 12)}}
+HOUSE_NEG_MOUNTAIN = HOUSE_NEG.replace("no land, no island, no beach, no rocks above the water; ", "no beach, no shore; ")
+
+
 GLOW = ("THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing "
         "gold, lighting only about one to two metres around the child; inside that small circle the black water "
         "turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black.")
@@ -677,15 +688,19 @@ def paste_block(sc):
         lines.append(f"{h}: {REF[h][1]}")
     sc = dict(sc, beats=[b.replace("GLOW", GLOW) for b in sc["beats"]])
     lines += ["", "THE FRAME: " + sc["frame"]]
+    if STATE.get((sc.get("prefix", "m"), sc["n"])):
+        lines += ["", "STATE: " + STATE[(sc.get("prefix", "m"), sc["n"])]]
     if sc.get("particles"):
         lines += ["", "PARTICLES: " + sc["particles"]]
     lines += ["", "WHAT HAPPENS:"]
     lines += sc["beats"]
     snd = sc.get("sound") or SOUND.get((sc.get("prefix", "m"), sc["n"]), "silence; nobody speaks")
-    lines += ["", "overall_soundscape: only the characters' own voices, breathing and effort sounds: " + snd +
+    lines += ["", "overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch "
+              "and splash of their own hands and bodies): " + snd +
               ". No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.",
-              "non_diegetic_music: none.", "", GRADE[sc["grade"]], "",
-              "CRITICAL NEGATIVES: " + sc["crit"] + ".", "", HOUSE_NEG]
+              "non_diegetic_music: none.", "", GRADE[sc.get("grade_override", sc["grade"])], "",
+              "CRITICAL NEGATIVES: " + sc["crit"] + ".", "",
+              HOUSE_NEG_MOUNTAIN if (sc.get("prefix", "m"), sc["n"]) in (("n", 11), ("m", 11)) else HOUSE_NEG]
     return "\n".join(lines)
 
 

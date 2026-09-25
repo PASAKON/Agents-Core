@@ -31,6 +31,8 @@ REFERENCES, each with a job:
 
 THE FRAME: Side on at the surface: THE MOUNT moving left to right, THE YOUNG ONE glowing on the seat; the lit circle of water around them is the only thing visible; beyond it, black.
 
+STATE: Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
 PARTICLES: rain dimpling the flat surface, the glint of fish passing just below it.
 
 WHAT HAPPENS:
@@ -39,10 +41,10 @@ WHAT HAPPENS:
 [4s] THE THREE RIDERS lean over the edge, thrilled, pointing; THE STRONG ONE laughs.
 [6s] THE STRONG ONE raises a hand; THE MOUNT slows and stops on the flat water.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the riders' excited gasps and THE STRONG ONE's laugh, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' excited gasps and THE STRONG ONE's laugh, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
 
 CRITICAL NEGATIVES: no dialogue, no colourful fish, no big fish, no underwater camera, no waves, no light wider than two metres.
 

@@ -26,7 +26,7 @@ WHAT HAPPENS:
 [1.5s] Both eyes open, slowly: pale yellow-green, thin vertical slit pupils, each bigger than a whole village.
 [3.5s] The pupils narrow and fix on the camera. Violet lightning flickers behind.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: silence. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): silence. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.

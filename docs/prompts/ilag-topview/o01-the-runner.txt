@@ -32,13 +32,12 @@ THE FRAME: Tracking beside THE RUNNER at his height, the village streaming past 
 PARTICLES: water flicking up from his feet, sea spray glinting, a few glowing specks drifting in the air.
 
 WHAT HAPPENS:
-[0s] THE RUNNER bursts onto a wooden walkway running flat out, face twisted with fear, mouth open, panting hard, gill frills flared pale.
-[3s] THE RUNNER leaps the gap between two platforms, lands hard and keeps running across a swaying rope bridge; far-off villagers turn to watch.
+[0s] THE RUNNER bursts onto a wooden walkway running flat out from the left of frame to the right, face twisted with fear, panting hard, gill frills flared pale, then leaps the gap between two platforms and races across a swaying rope bridge while far-off villagers turn to watch.
 [7s] The camera keeps pace as THE RUNNER sprints up a short ramp to a wide platform where THE CHIEF and THE STRONG ONE are busy together, hauling a woven fish trap up out of the water: it comes up empty.
 [10s] THE RUNNER stumbles to a stop, chest heaving. Out of breath: "Chief! There are no fish. None left."
 [12.5s] Then, desperate: "We're starving. Please, do something." THE CHIEF and THE STRONG ONE let the empty trap drop and turn to him.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: THE RUNNER's loud, ragged panting, clearly heard the whole time he runs, then the two lines above, gasped out between breaths; the strain of the two men hauling. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): THE RUNNER's loud, ragged panting, clearly heard all through the run, then the two lines above, gasped out between breaths; the strain of the two men hauling. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.

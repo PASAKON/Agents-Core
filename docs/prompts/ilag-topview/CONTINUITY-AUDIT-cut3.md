@@ -42,3 +42,14 @@ frightening · 15 "explained in 14" · 16 always left to right; never move towar
 camera toward what is ahead · 17 keep M4 as an option · 18 "พายุควรอยู่ในฉาก Turning หลังจากหมดตรงนั้น ก็จะถึงฉากข้ามเส้น และ
 คลื่นสูงตรงหน้าแล้ว" · 19 O1 stays: the whole village is affected · 20 indigo, correct · 21 correct · 22 shadow only,
 enormous; from high above the mount is a tiny speck · 23 wet, yes · 24 no trim, the edit will shorten it · 25 correct.
+
+## House-rule audit of the 16 queued prompts (PROMPT-STYLE, AUTHORING-RULES, CHECKLIST, ai-film-production), same day
+Found and fixed in build.py: O1 and O3 had 5 beats (max 4; merged, O1 now states left to right) · weak verbs "becomes",
+"starts to" · the @Manta picture shows lit seed-pod lamps but no dark scene said they were dead (new STATE line in N5-N11:
+every lamp and THE LANTERN dead, only the child lights) · wet skin (CEO answer 23) in no rain scene (STATE line) · the
+DARK grade named lightning as the key light where the child's glow is (new DARK_GLOW grade for N6-N11) · N4 had rain
+before the line (CEO: thunder only before) · N11: the house wall's "no island, no rocks above the water" fought the
+rising mountain (mountain-safe wall for N11) and "no riders turning around" contradicted "glance around" · sizes stated
+in the frame (7b): the shadow covers most of the frame, the mountain fills the upper half · the audio block now allows
+the sounds of the characters' own hands and bodies (the flap in O3, the splashes in N9) · O3 over 12 negatives.
+After: every file passes (beats <= 4, no weak verbs, 0 pronouns, pre-fire grep = markers only, lead-ins <= 5 words).

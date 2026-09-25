@@ -30,7 +30,7 @@ WHAT HAPPENS:
 [2s] The gill frills of THE YOUNG ONE drain from gold to pale white.
 [3s] A whisper: "There's nothing here... not one."
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the whisper above and THE YOUNG ONE's shaky breathing. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the whisper above and THE YOUNG ONE's shaky breathing. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.

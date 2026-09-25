@@ -32,7 +32,7 @@ WHAT HAPPENS:
 [2s] THE ELDER looks at THE YOUNG ONE. Quietly: "The fish went past the line."
 [4s] The gill frills of THE YOUNG ONE glow faint gold. Then, softer: "Only a child's eyes can still find them."
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the two lines above and THE ELDER's quiet breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the two lines above and THE ELDER's quiet breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, their daylight: bright blue-white, faint stars still visible in the bright sky, never orange, cool turquoise water, the neon-green grass as the one warm accent. Photographed, not rendered: fine film grain, gentle anamorphic softness at the edges.

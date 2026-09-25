@@ -29,6 +29,8 @@ REFERENCES, each with a job:
 
 THE FRAME: Medium, beside THE MOUNT at the surface: THE STRONG ONE leaning over the edge of the seat, THE YOUNG ONE glowing beside him, THE ELDER behind.
 
+STATE: Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
 PARTICLES: rain, water splashing up as the hands go in, golden motes around THE YOUNG ONE.
 
 WHAT HAPPENS:
@@ -37,10 +39,10 @@ WHAT HAPPENS:
 [3.5s] THE STRONG ONE lunges and snatches it out: one dark glossy silver-black fish, flapping in his hands.
 [5s] All three cheer; THE STRONG ONE holds it up, laughing.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: splashes of the hands, THE STRONG ONE's effort, then all three cheering and laughing. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): splashes of the hands, THE STRONG ONE's effort, then all three cheering and laughing. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
 
 CRITICAL NEGATIVES: no dialogue, no net, no spear, no hook, no second fish, no one falling in.
 
