@@ -225,101 +225,7 @@ Generalises beyond props: a **time of day** behaves the same way. The word
 daylight in all 71 clips of the same film. A cue that contradicts the paragraph
 around it loses to the paragraph.
 
-### ⛔ Every shoot ends with a mechanical audit. Look at frames to CONFIRM, never to FIND.
-
-**Standing rule, CEO 2026-09-23:** *"ต้องเชคตลอด Audit แบบไม่ต้องดูภาพ หรือดูให้
-น้อยที่สุด"* — after every batch, before anything is assembled or uploaded as
-final, run the three free local checks below. Frames are opened only for the
-shots a check has already named.
-
-| check | tool | catches | cost |
-|---|---|---|---|
-| what the clip **says** | `tools/film_transcript.py` | line said twice, line dropped, script repeating itself | ~3 s/clip |
-| text **burned into the picture** | `tools/burned_text_scan.py` | Veo writing its own Thai captions, mangled (pixel gate, not OCR) | ~0.4 s/clip |
-| duration / audio present | `tools/clip_review.py` | wrong length, silent clip | fast |
-
-```bash
-python3 tools/burned_text_scan.py <act dirs...> --out audit/burned.tsv
-python3 tools/film_transcript.py  <act dirs...> --out audit/transcript.tsv
-```
-
-**Why this is not optional.** On 2026-09-23 the finished film had **3 of 173
-shots (29, 43, 115) carrying mangled Thai subtitles Veo invented** — «ไม่ใส่ถั่วทอกใช่ไห
-เวิทย์», «แล้วมูลนนั่ติกินหู้ร้กาอกิทย์» — and nobody had asked for subtitles.
-The CEO found them by watching. **It survives a re-shoot**: shot 43 was re-fired
-for this exact defect and came back with different garbage in the same place, so
-a re-fire alone is not a fix and every re-fire has to be re-scanned.
-
-**The free fix comes before the paid one.** Veo puts the caption in the bottom
-~81–90% of the height, below every face. Crop the top 80% of the frame, centred,
-and scale back up (`crop=trunc(iw*0.8/2)*2:trunc(ih*0.8/2)*2:trunc(iw*0.1/2)*2:0,scale=<w>:<h>:flags=lanczos`):
-the shot becomes a slightly tighter close-up, the caption is gone, 0 credits.
-Re-fire only a shot whose action lives in that bottom band (hands on a counter,
-a phone held low) — and re-scan it after.
-
-**⛔ OCR is not a caption detector.** The first version of the scan called
-"tesseract read ≥ 8 Thai characters in the band" a caption and reported **14**.
-Eleven were a floral nightgown, table grain, an apron and stair treads —
-tesseract reads Thai out of any texture — and it missed shot 115 because four
-samples a clip fell between two lines. That number went to the CEO before
-anyone looked. A caption is a **pixel** fact: near-white glyphs beside a
-near-black outline or box, which texture almost never has. The tool now counts
-exactly that (white > 225 with black < 90 three pixels away, band scaled to
-360×80); real captions scored 160–326, the worst texture 38, the gate is 80.
-tesseract only prints what the caption says.
-
-**How the scan stays cheap — keep these when changing it:**
-- **crop first**: captions live in the bottom 18%; the other 82% is never read.
-- **2 fps, not 4 samples a clip**: the pixel test is cheap enough to sample
-  every half second, and a caption lasts as long as a line — 173 clips in ~1 min.
-- **no model in the filter**: a pixel count decides. A model is only for the
-  shortlist, and usually the shortlist is obvious enough without one.
-- **a new detector is calibrated on known positives AND known negatives** before
-  its count is reported. One contact sheet of the hit strips is the calibration;
-  a count off an uncalibrated detector is an estimate, and is labelled one.
-
-**What none of these can see:** the wrong person in frame, wrong wardrobe, a
-prop that should not be there, a character lying down who should be sitting.
-Those still need eyes. Keep the eyes for exactly those questions.
-
-### ⛔ Never diagnose audio you have not read back. Transcribe it.
-
-**The rule: if a claim is about what a clip SAYS, produce the transcript first.**
-`tools/film_transcript.py` does it — faster-whisper, already installed, on the
-CPU, ~3 seconds a clip, no credits, no network. The whole 173-shot film reads
-back in ten minutes. There is no budget excuse for guessing.
-
-**What guessing cost, 2026-09-23.** The only audio signal in use was
-`silencedetect` — where sound is, never what it is. Every conclusion built on it
-was an inference presented as a measurement:
-
-| claim | reality |
-|---|---|
-| "shot 139 probably repeats a line" | the CEO listened: it is clean |
-| "shot 122's repeated number is deliberate, good writing" | it is a man saying "208 งวด" then "208" in four seconds — **the actual defect** |
-| "111 shots repeat the speaker block, that is the cause" | the community documents the opposite: the speaker description *should* be restated per line |
-
-On the strength of that reading I rewrote `build_shotsheet.py`, fired five paid
-proof shots, and picked all five from a text analysis rather than from anything
-anyone had heard. The proof shots landed on scenes that did not have the problem.
-One transcript of one clip settled it afterwards in three seconds.
-
-**So, before any claim about dialogue:**
-
-1. `python3 tools/film_transcript.py <clip-dir> --out transcript.tsv` — gives
-   `shot · t_start · t_end · heard · scripted · match` for every line.
-2. **Read the `heard` column against the `scripted` column.** Three different
-   defects fall out, and they have three different fixes:
-   - heard ≈ scripted, and the script itself says it twice → **the script is
-     wrong**, fix the writing, do not touch the prompt.
-   - heard repeats something the script says once → **the render is wrong**,
-     re-fire, then look at the prompt.
-   - a scripted line has nothing heard for it → **a line was dropped**, which no
-     silence-based check can see at all.
-3. Only then reach for a prompt change, and say which of the three you are fixing.
-
-A script can read beautifully on the page and land as a stutter in four seconds
-of audio. Reading it is not hearing it. Related: [[judge-craft-by-eye-not-metrics]].
+The mechanical audit after every shoot (transcript, pixel caption scan, duration) and reading dialogue back before any claim about it: `CTO_Flow_Omni1.1_FilmQC`.
 
 ### Which things get a chip when slots are scarce
 
@@ -1775,16 +1681,6 @@ and re-read the thumbnail row against the prompt before Submit.**
 The thumbnail row is the only evidence of the mapping. Reading the prompt back
 proves nothing: the prompt is what you *believe*, the row is what is *true*.
 
-## The APPEARANCE LOCK is the ground truth, not the neighbouring shot
-
-When three shots disagree, "which one is wrong" is unanswerable by comparing them
-to each other — there is no reference among them. The script's `APPEARANCE LOCK`
-line for that character IS the reference. Check each shot against that text, item
-by item (apron colour, whether it is over or under the shirt, hair, stubble,
-watch, which wrist), and the answer is a count, not an opinion.
-
-This costs nothing and can be run retroactively on every clip ever shot.
-
 ## Voice: the API cannot do it at all, so Flow's UI is the only path
 
 `gemini-omni-1.1-flash` went GA on 2026-08-27 and its documentation states
@@ -1963,19 +1859,12 @@ Neither replaces the other. Both are free.
 - 2026-09-22 [COSTLY] §A prohibition is not an inventory — automated "shot declares X therefore attach X's Element", keyed off `NOT["money"]`. That key is a prohibition ("…also no notebook, no pen, no paper, no ledger of any kind") carried by 22 shots, most with no money in frame. Caught by shooting shot 133 at 360p (4 credits): two people looking at empty tables. Reverted the same day. Cost would have been banknotes inserted into 22 scenes written to be empty of them. · evidence: f563c707 / tools/build_shotsheet.py · status: rejected
 - 2026-09-22 [MISSING] §Anything that must look a specific way needs an Element — six Act 3 clips rendered a real Thai 500-baht note with the royal portrait, in a drama about illegal moneylending, against 40 words of prompt forbidding exactly that. The project's 3 characters and 6 locations were correct across 148 clips because each is chip-bound; the money was the one thing described rather than referenced. Five of the six prop Elements in the project had never been attached to any shot. · evidence: task-e960f3ca / 3f57cd1e / docs/scripts/banchi-ACT1.data.py · status: promoted
 - 2026-09-22 [MISSING] §time of day — the word `night` appended to a 60-word description of a lit, open, busy shop produced daylight in all 71 clips shot to that point. Every automated check passed; a frame-0 look found it in seconds. CEO ruled the film stays daylight rather than re-shoot. · evidence: LungNote 87c9507d / docs/scripts/banchi-ACT5.md · status: pending
-- 2026-09-23 [WRONG] §Never diagnose audio you have not read back — spent an evening attributing a dialogue defect to prompt structure using `silencedetect` (where sound is, not what it is). Rewrote the sheet builder, fired five paid proof shots chosen from a text analysis, and contradicted the published Veo guidance, all before transcribing a single clip. faster-whisper was already installed: 3s per clip settled it. The real defect was the script telling a character to say "208 งวด" then "208" in a four-second shot. · evidence: research/veo-dialogue-repeats.md / tools/film_transcript.py · status: promoted
-- 2026-09-23 [SUPERSEDED] §Every shoot ends with a mechanical audit — (was MISSING; the count was 3 not 14, see the WRONG note below) 14 of 173 finished shots carried Thai captions Veo invented and mangled; found by the CEO watching, not by any check. A crop-and-OCR scan (bottom 18%, 4 frames a clip, tesseract) found all 14 in two minutes. Shot 43 had already been re-fired for this defect and came back with different garbage, so re-fires need re-scanning. · evidence: tools/burned_text_scan.py · status: promoted
-- 2026-09-23 [WRONG] §Every shoot ends with a mechanical audit — the OCR scan's "14 of 173" was 3 of 173 (29, 43, 115): 11 hits were texture (floral nightgown, table grain, apron, stair treads) and 115 was missed by 4-samples-a-clip. Replaced by a pixel gate (white glyph beside black outline, 360×80 band, 2 fps; real 160–326 vs texture ≤38, gate 80), calibrated on one contact sheet of known hits. Free fix: crop top 80% and scale back — 0 credits instead of ~180 for re-fires. · evidence: session cto-8c06958c, tools/burned_text_scan.py · status: promoted
 - 2026-09-23 [COSTLY] §zero-model runner — on the Mac, bare `python3` has no playwright: `tools/flow_shoot.py run` logs "cannot attach … ModuleNotFoundError('No module named playwright')" and returns 1, which reads like Chrome being down. Run it as `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python tools/flow_shoot.py …`. Also: a wrapper ending in `; echo EXIT=$?` makes the background task report exit 0 — read the EXIT line, not the task status. · evidence: session cto-8c06958c refire 106/122 02:46 · status: pending
 - 2026-09-23 [WRONG] §Chrome itself can block downloads — task-f78ca70e measured the block as a per-tab allowance (one silent download per fresh tab, >20 files, no human click) and rewrote scripts/browser/banchi-plates-download.js to open one fresh tab per file. CTO: NOT promoted — it conflicts with this section's own "do not build a workaround" rule for a browser security permission; the CEO rules whether one-tab-per-file is acceptable or whether the one-time "Always allow" click stays the method. Until then the section stands. · evidence: task-f78ca70e, merge 381687ba · status: pending
 - 2026-09-23 [MISSING] §assets — a plain Flow image generation can be renamed (tile right-click → เปลี่ยนชื่อ) into a named asset the + picker finds by search; it lands in the รูปภาพ category, never ตัวละคร, and there is no convert action. Picker rows for such assets show the name without "@", so flow_shoot's row match must not require it (fixed cdb27f9f). · evidence: task-f78ca70e, @cop_wit_uniform_A · status: pending
 - 2026-09-23 [WRONG] §zero-model runner — attach_chip matched picker rows by substring, so "@cop_wit" also matched "@cop_wit_uniform_A" and "@noodle_shop" matched "@noodle_shop_thriving"; .first picked either, and the chip-COUNT gate cannot see a wrong-but-present chip. Now word-bounded (picker_row_pattern). Whether any Act 1–6 shop shot got the thriving-shop plate is unchecked. · evidence: cdb27f9f on agent/codex-winbox-runner · status: pending
 - 2026-09-23 [MISSING] §references — shot 106 drifted ต้น's hair (longer, fringe forward) in BOTH takes, on two different runners, with prompt text identical to 105 except framing. Pattern: close-up + ต้น as REF_1 + his face in profile. 107 (same close-up framing, same room, same two men) held the plate with ต้น as REF_0 facing camera; shot 22 (the only other close-up with him as REF_1) pushed him to the frame edge. Hypothesis n=3: in a close-up the second reference holds weaker, and a face seen only in profile has its hair invented from a frontal plate. Test: 106 take 3 with ต้น REF_0 facing camera. · evidence: session cto-8c06958c, ACT4 106 · status: pending
-- 2026-09-23 [WRONG] §Every shoot ends with a mechanical audit — NOT["nosubs"] ("No subtitles, no captions…") + rewriting the line as spoken aloud did NOT stop shot 43 captioning: 3 of 3 takes captioned. It held on 29 and 115 (n=2 clean), so the negative is not a fix for a shot that keeps doing it — crop it (0 cr) after the second captioned take instead of paying for a third. · evidence: session cto-8c06958c, ACT2 43 take 3 04:0x, burned_text_scan score 286 · status: pending
-- 2026-09-23 [WRONG] §zero-model runner — `pull` finds a clip by its dialogue, but a re-shoot keeps its dialogue: 149 and 151 came down as the OLD plainclothes takes and the ledger marked them verified. Caught only by a frame check (uniform vs polo). Every pull of a re-shot scene needs --search <a phrase only the new prompt has> (added on agent/codex-winbox-runner), and every pulled clip gets one frame looked at before it counts. · evidence: session cto-8c06958c, ACT6 149/151 05:12/05:27 · status: pending
-- 2026-09-23 [WRONG] §zero-model runner — "completed card found but download not ready" ×7 then "failed — timeout" meant NO new clip existed: 149 (re-shoot), 151 and 179 ×2 left no card in the feed at all (read-only feed listing 05:45). The completion check takes the FIRST element carrying the shot's dialogue, which for a re-shot scene is the OLD finished card, and for a shot whose submit silently produced nothing is whatever else matches — so a submit that failed reads as done-but-undownloadable. Fix owed in flow_shoot: count batches before Submit and only accept a card in a batch that did not exist before. Until then: a 'timeout' is not evidence of a paid clip; list the newest feed batches before pulling or re-firing. · evidence: session cto-8c06958c, ACT6 149/151/179 04:38–05:36 · status: pending
 - 2026-09-23 [MISSING] §A clip that vanishes after Submit — uniform plate + the word "police" made Flow drop the clip silently (179 x2, 149, 151, A/B arm A); without the word (arm C) or with the plainclothes plate (arm B) it came back. Section added; n=1 per arm, so the rule is a default, not a law. · evidence: session cto-8c06958c, scratchpad/ab179, runner 2df21691 · status: pending
-- 2026-09-23 [MISSING] §Every shoot ends with a mechanical audit — shot 43 captioned on 3 of 3 takes at 6s (10.5 Thai chars/s, 2nd-fastest line in the film); lengthened to 8s with nothing else changed, take 4 came back clean on the pixel scan. n=1, and shot 16 is as fast and was always clean, so this is a lever to try before a crop, not a rule. · evidence: session cto-8c06958c, ACT2 43 take 4 (e29dc06e) · status: pending
 - 2026-09-23 [MISSING] §Wardrobe — measured, not just argued: the uniformed วิทย์ as ONE full-body still (@cop_wit_uniform_A) came back older and greying in a two-shot with the father (149, 151, and A/B arm A) — the stronger close-up face in the frame leaked in. His FACE plate (@cop_wit) + a wardrobe plate with no person in it (@police_uniform), labelled "wardrobe reference: <who> wears exactly this outfit", held his face and the uniform (arm B). build_shotsheet now has WARDROBE per character. n=1 per arm, 360p. · evidence: session cto-8c06958c, scratchpad/abface, 51a3c4e1 · status: pending
 - 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv · status: pending
 - 2026-09-23 [MISSING] §What Flow silently deletes in an arrest scene — handcuffs deleted on anyone (incl. plainclothes); uniform + police lights (even thrown in from off frame) deleted; uniform + walked out + spoken charges kept. 11 arms, one variable each. Section added. · evidence: session cto-8c06958c, scratchpad/abarrest (9202-9209), ACT6 184-186 · status: pending
