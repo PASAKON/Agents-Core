@@ -192,13 +192,16 @@ def run_all(a):
         if code not in (200, 201, 202):
             raise SystemExit("the studio refused to start the pod; nothing queued")
     last, t0 = None, time.time()
+    # The pod is shared: costSoFar counts every user's renders since the pod started, so the cap is on what the
+    # cost grows by while this run waits (measured 2026-09-25: $3.44 on the meter from other people's work).
+    base = st.get("costSoFar") or 0
     while True:
         st = pod_status()
         view = (st.get("state"), st.get("stockStatus"), st.get("gpu"))
         if view != last:
             print(f"{time.strftime('%H:%M:%S')} pod {view} cost ${st.get('costSoFar')}")
             last = view
-        if (st.get("costSoFar") or 0) > COST_CAP_USD:
+        if (st.get("costSoFar") or 0) - base > COST_CAP_USD:
             pod_stop(f"cost cap ${COST_CAP_USD} passed during boot"); return
         if st.get("state") == "ready":
             break
@@ -215,7 +218,10 @@ def run_all(a):
         st = pod_status()
         left = [k for k, r in load().items() if "_t" not in k and r.get("status") not in ("filed", "error", "skipped")]
         print(f"{time.strftime('%H:%M:%S')} pod {st.get('state')} cost ${st.get('costSoFar')} waiting on {left}")
-        if (st.get("costSoFar") or 0) > COST_CAP_USD:
+        if (st.get("costSoFar") or 0) - base > COST_CAP_USD:
+            if others_waiting():
+                print(f"{time.strftime('%H:%M:%S')} cost cap passed but other people's renders are queued: NOT "
+                      "stopping their pod"); collect(a); return
             pod_stop(f"cost cap ${COST_CAP_USD} passed"); collect(a); return
         if not left:
             break
@@ -225,9 +231,21 @@ def run_all(a):
         if st.get("state") == "off":
             print(f"{time.strftime('%H:%M:%S')} ALL FINISHED, pod is OFF by itself, cost ${st.get('costSoFar')}")
             return
+        n = others_waiting()
+        if n:
+            print(f"{time.strftime('%H:%M:%S')} ALL FINISHED (mine); the pod is serving {n} other queued render(s), "
+                  f"left on, it stops itself when the queue is empty; cost ${st.get('costSoFar')}")
+            return
         time.sleep(15)
     pod_stop("queue done but the pod was still on after 5 min")
     print("final:", pod_status())
+
+
+def others_waiting():
+    """How many queue items that are not mine are pending or running (read in memory, names never printed)."""
+    mine = {r["job_id"] for r in load().values() if r.get("job_id")}
+    items = json.loads(curl(f"{BASE}/api/queue")[1]).get("items", [])
+    return sum(1 for i in items if i.get("id") not in mine and i.get("status") in ("pending", "running"))
 
 
 def main():

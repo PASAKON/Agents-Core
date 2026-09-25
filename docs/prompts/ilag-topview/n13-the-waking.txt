@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N8 · THE SCHOOL · 8s · DARK · cut 4 (CEO 2026-09-25: every rider acts; excitement at the school; the mount stops)
+N13 · THE WAKING · 10s · DARK · cut 5, new (CEO 2026-09-25: after the black screen they lie on THE MOUNT's back as if saved from drowning; fish come; the child wakes first, sees them and wakes the others; plays after N7)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -15,41 +15,41 @@ References (4):
 
 === ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
 
-8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Side on at the surface, moving left to right with THE MOUNT, then settling as it stops; no cut, no zoom.
+10s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A high angle looking down on THE MOUNT, slowly lowering to a medium shot; no cut, no zoom.
 
-FISH. At the surface, inside the child's small light, the water under them is suddenly full of fish.
+AFTER THE WAVE. The storm has passed; THE THREE RIDERS lie on the back of THE MOUNT like survivors pulled from the sea.
 
 REFERENCES, each with a job:
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
-@Turning: THE TURNING LIGHT, a colour and light reference only: a violet-grey bruised evening sky, deep indigo water, cool silver light. Take only its colour and light, nothing of its composition.
+@Turning: THE TURNING LIGHT, a colour reference only: the deep indigo of the water INSIDE the child's circle of light; nothing of its sky, its light or its composition.
 
-THE FRAME: Side on at the surface: THE MOUNT moving left to right, THE YOUNG ONE glowing on the seat; the lit circle of water around them is the only thing visible; beyond it, black.
+THE FRAME: High angle, looking down on THE MOUNT floating on flat black water in light rain: THE THREE RIDERS sprawled across its back and the seat, soaked, eyes closed; the child's light faint at first.
 
 STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; nothing on THE MOUNT gives off any light. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
 
 THE LIGHT: Once THE YOUNG ONE is glowing, the only light in the whole frame comes from the child: a warm golden glow from the child's whole body, gill frills blazing gold. It lights a circle exactly 2 metres in radius around the child and nothing beyond it. Inside the circle the black water turns to the deep indigo water of the turning, and the riders and THE MOUNT are lit gold; outside the circle everything is pitch black. Nothing else in the frame gives off light.
 
-PARTICLES: rain dimpling the flat surface, the glint of fish passing just below it.
+PARTICLES: light rain dimpling the flat water, water trickling off their bodies, golden motes once the child wakes.
 
 EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
-- THE YOUNG ONE, middle, glowing: spots the fish first, gasps, bounces on the seat and points down with both hands.
-- THE STRONG ONE, front perch: leans over the edge to look, sees them, laughs out loud and slaps his thigh, then raises a hand to slow THE MOUNT.
-- THE ELDER, back: leans out beside the child, eyes wide, then grips the child's shoulder and laughs, shaking his head in disbelief.
+- THE YOUNG ONE, middle: lies curled on the seat, the glow faint and flickering; the first to stir: coughs up water, opens both eyes, sees the fish, and the glow swells back to the full circle; scrambles over and shakes the other two awake.
+- THE STRONG ONE, front: lies face down across the front of THE MOUNT, one arm hanging in the water; when shaken he coughs, rolls over and pushes himself up on one elbow, blinking.
+- THE ELDER, back: lies on his back beside the seat, chest rising slowly; when the child shakes his shoulder he coughs, lifts his head and sees the child pointing at the water.
 
 WHAT HAPPENS:
-[0s] THE YOUNG ONE glows warm gold from the whole body, lighting the circle of water 2 metres around the child, indigo inside, pitch black outside. THE MOUNT glides from left to right on water that is growing flat and calm in the rain.
-[2s] In the lit circle below the surface, many small dark fish shadows dart past, dozens of them; THE YOUNG ONE gasps, bounces on the seat and points down with both hands.
-[4s] THE STRONG ONE and THE ELDER lean over the edge; THE STRONG ONE laughs out loud and slaps his thigh; THE ELDER grips the child's shoulder, laughing.
-[6s] THE STRONG ONE raises a hand; THE MOUNT slows and stops on the flat water; THE STRONG ONE winks at the child; THE YOUNG ONE giggles and hugs THE ELDER's arm; THE ELDER shakes his head, smiling.
+[0s] Flat black water, light rain. THE THREE RIDERS lie sprawled on the back of THE MOUNT, soaked, breathing slowly; THE YOUNG ONE's glow is faint and flickering.
+[2.5s] Beneath the surface, small dark fish shadows slide in toward the faint light. THE YOUNG ONE coughs up water and opens both eyes.
+[4.5s] THE YOUNG ONE sees the fish and the glow swells: THE YOUNG ONE glows warm gold from the whole body, lighting the circle of water 2 metres around the child, indigo inside, pitch black outside. THE YOUNG ONE scrambles over and shakes THE STRONG ONE and THE ELDER. Urgent, hoarse: "Wake up... look!"
+[7.5s] THE STRONG ONE coughs, rolls over and pushes up on one elbow; THE ELDER lifts his head; both see the fish darting through the lit water around them.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' excited gasps, THE STRONG ONE's big laugh and THE ELDER's soft laugh, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): coughing and ragged breaths, the line above, spoken once, then THE STRONG ONE's surprised gasp. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only light, deep indigo water inside its 2-metre circle, deep true blacks everywhere else. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no dialogue, no colourful fish, no big fish, no underwater camera, no waves, no light wider than two metres, no lamps lit on the seat.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no second line, no one in the water, no storm, no waves, no other light source, no light wider than 2 metres around the child.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -58,13 +58,13 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Surface only; fish as small dark shadows in the lit circle.
-2. Each rider reacts: point, laugh, grip.
-3. Left to right, then the mount stops.
-File the take whatever the verdict, as N8-H3-take<N>.mp4 in the
+1. They lie on THE MOUNT's back, not in the water.
+2. The child wakes first, the glow swells, one line; transcribe.
+3. Fish shadows in the lit circle.
+File the take whatever the verdict, as N13-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE MOUNT stopped on flat water among the fish.
+- All three awake on THE MOUNT, fish all around them in the light.
 
 === END NOTES ===

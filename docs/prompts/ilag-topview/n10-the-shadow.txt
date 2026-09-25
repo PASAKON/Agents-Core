@@ -1,14 +1,13 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N10 · THE SHADOW · 8s · DARK · round 3 (CEO answers 22, C2: from very high, the mount a tiny speck; the shadow only; flat water, rain)
+N10 · THE SHADOW · 8s · DARK · cut 5 (CEO 2026-09-25: the tiny speck is the child's 2-metre circle, the only light; the mount picture dropped, its lamps are lit)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (3):
-  @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
-  @BlackSea -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-BlackSea.png
+References (2):
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
 
 === END NOTES ===
 
@@ -19,28 +18,29 @@ References (3):
 THE SHADOW. From very high: the mount is a tiny speck of light, and something enormous passes beneath.
 
 REFERENCES, each with a job:
-@Manta: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.
-@BlackSea: THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Turning: THE TURNING LIGHT, a colour reference only: the deep indigo of the water INSIDE the child's circle of light; nothing of its sky, its light or its composition.
 
 THE FRAME: Top-down from very high: THE MOUNT a tiny speck with its tiny circle of light in the centre of a vast black sea; the sea surface flat and calm under the rain.
 
-STATE: Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; nothing on THE MOUNT gives off any light. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
+THE LIGHT: Once THE YOUNG ONE is glowing, the only light in the whole frame comes from the child: a warm golden glow from the child's whole body, gill frills blazing gold. It lights a circle exactly 2 metres in radius around the child and nothing beyond it. Inside the circle the black water turns to the deep indigo water of the turning, and the riders and THE MOUNT are lit gold; outside the circle everything is pitch black. Nothing else in the frame gives off light.
 
 PARTICLES: rain falling toward the flat water, a faint shimmer across the surface.
 
 WHAT HAPPENS:
-[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. Seen from very high, THE MOUNT is a tiny glowing speck on a flat black sea in the rain.
+[0s] THE YOUNG ONE glows warm gold from the whole body, lighting the circle of water 2 metres around the child, indigo inside, pitch black outside. Seen from very high, THE MOUNT is a tiny glowing speck on a flat black sea in the rain.
 [2s] Beneath it, deep down, an enormous dark shadow slides slowly past, hundreds of times bigger than THE MOUNT, covering most of the frame, its edges lost in the dark.
 [4s] The tiny fish shadows around the speck of light scatter in every direction and vanish.
 [6s] The shadow is gone. The flat sea is empty. Only the tiny speck of light remains.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): silence; nobody speaks; the faintest startled gasp. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the faintest startled gasp; no words. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only light, deep indigo water inside its 2-metre circle, deep true blacks everywhere else. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no dialogue, no camera move, no creature shape, no eye, no fin, no surfacing, no waves, only a shadow.
+CRITICAL NEGATIVES: no words spoken by anyone, no talking, no shouted words, no voiceover, no camera move, no creature shape, no eye, no fin, no surfacing, no waves, only a shadow, no other light source.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -49,7 +49,7 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. Top-down from very high; the mount a speck.
+1. Top-down from very high; the speck is the child's circle.
 2. A shadow only, enormous.
 3. The fish vanish.
 File the take whatever the verdict, as N10-H3-take<N>.mp4 in the

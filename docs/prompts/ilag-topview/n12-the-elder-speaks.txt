@@ -1,16 +1,17 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N12 · AT THE LINE: THE ELDER SPEAKS · 8s · TURNING · cut 4, new (CEO 2026-09-25, 1:11: they stop at the line, then a talk before they really cross; plays after N4)
+N12 · AT THE LINE: THE ELDER SPEAKS · 8s · TURNING · cut 5 (CEO 2026-09-25: behind them the turning and the storm pillars, not clear water; plays after N4)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (5):
+References (6):
   @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
   @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
+  @Pillars -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/loc_storm_pillars_A_v3.png
 
 === END NOTES ===
 
@@ -26,8 +27,9 @@ REFERENCES, each with a job:
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Turning: THE TURNING LIGHT, a colour and light reference only: a violet-grey bruised evening sky, deep indigo water, cool silver light. Take only its colour and light, nothing of its composition.
+@Pillars: THE PILLARS: the storm pillars standing on the violet-grey sea far behind THE THREE RIDERS; take the pillars and their light.
 
-THE FRAME: Medium three-shot from the front: THE THREE RIDERS on the seat, THE STRONG ONE on the front perch turned half round toward the others, THE YOUNG ONE in the middle, THE ELDER at the back; their faces in cool evening light with the flicker of far lightning; behind them, the clear turquoise water they came from.
+THE FRAME: Medium three-shot from the front: THE THREE RIDERS on the seat, THE STRONG ONE on the front perch turned half round toward the others, THE YOUNG ONE in the middle, THE ELDER at the back; their faces in cool violet-grey evening light with the flicker of far lightning; behind them, the deep indigo water of the turning and the tall storm pillars they came through.
 
 PARTICLES: wind-blown mist, spray drifting across, the first cold drops in the air.
 
@@ -46,7 +48,7 @@ non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no second line spoken, no line spoken twice, no crossing yet, no rain yet, no smiling.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no words before or after the line, no second line spoken, no line spoken twice, no crossing yet, no rain yet, no smiling, no turquoise water, no bright daylight.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -55,9 +57,9 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. One line, THE ELDER, once; transcribe.
-2. Eye contact, then the two nods: the decision to cross.
-3. Each rider reacts in their own way.
+1. One line, THE ELDER, once, nothing added; transcribe.
+2. The turning and the pillars behind them.
+3. Eye contact, then the two nods: the decision to cross.
 File the take whatever the verdict, as N12-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

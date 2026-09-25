@@ -1,16 +1,17 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N11 · THE MOUNTAIN RISES · 14s · DARK · cut 4 (CEO 2026-09-25: busy catching fish; one of them sees it and stares; another notices the stare and shakes the one still fishing; then TWO eyes open)
+N11 · THE MOUNTAIN RISES · 14s · DARK · cut 5 (CEO 2026-09-25: busy fishing; one sees it and stares; another notices and shakes the one still fishing; TWO eyes open; the light only from the child)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (5):
+References (6):
   @Mountain -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/crt_mountain_horizon_v3.png
   @Eye -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/crt_eye_v4a.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
+  @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
 
 === END NOTES ===
 
@@ -22,34 +23,37 @@ THE MOUNTAIN RISES. Ahead of them, where no land can be, a mountain comes up out
 
 REFERENCES, each with a job:
 @Mountain: THE MOUNTAIN, the only picture of the thing on the horizon: a vast smooth dark shape rising from the black sea where no land can exist, water pouring off its flanks. Take its shape, its size in the frame and its darkness exactly.
-@Eye: THE CREATURE, the only picture of it: a broad flat smooth dark head rising out of the black sea, two enormous pale yellow-green eyes with thin vertical slit pupils, water pouring off it, faint violet lightning behind. Take its face, its eyes and its scale exactly.
+@Eye: THE CREATURE, the only picture of it: take its broad flat smooth dark head, its two enormous pale yellow-green eyes with thin vertical slit pupils and its scale exactly; nothing of the light around it.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
+@Turning: THE TURNING LIGHT, a colour reference only: the deep indigo of the water INSIDE the child's circle of light; nothing of its sky, its light or its composition.
 
 THE FRAME: Wide from behind and above: THE MOUNT small in the lower third on flat black water in the rain, lit only by THE YOUNG ONE; the far black water ahead of it fills the upper frame.
 
-STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; every seed-pod lamp on the seat is a dead dark husk, the grass tufts on it are dull and dark, and nothing on THE MOUNT glows. Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; nothing on THE MOUNT gives off any light. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
+THE LIGHT: Once THE YOUNG ONE is glowing, the only light in the whole frame comes from the child: a warm golden glow from the child's whole body, gill frills blazing gold. It lights a circle exactly 2 metres in radius around the child and nothing beyond it. Inside the circle the black water turns to the deep indigo water of the turning, and the riders and THE MOUNT are lit gold; outside the circle everything is pitch black. Nothing else in the frame gives off light. Far beyond the circle the rising mountain is only a vast blacker shape against the dark; its two eyes, when they open, glow pale yellow-green on their own, the only other light in this shot.
 
 PARTICLES: rain, a thin mist over the flat water, water pouring off the rising shape.
 
 EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same, reacting to what is said and done):
 - THE STRONG ONE, front perch: lies on his belly across the front of the seat with both arms in the water to the elbows, grabbing at the fish in the lit circle, completely absorbed and splashing; he only looks up when THE YOUNG ONE shakes his shoulder, and his hands stop in the water.
-- THE YOUNG ONE, middle, glowing: sits on the edge and kicks both feet in the water to herd the fish toward THE STRONG ONE, giggling; notices THE ELDER staring for a long time, follows his gaze, goes still, then shakes THE STRONG ONE's shoulder hard.
+- THE YOUNG ONE, middle, glowing: sits on the edge and kicks both feet in the water to herd the fish toward THE STRONG ONE, giggling; notices THE ELDER staring for a long time, follows THE ELDER's gaze, goes still, then shakes THE STRONG ONE's shoulder hard.
 - THE ELDER, back: rinses their one fish over the side, then stops, slowly lifts his head and stares ahead at the far water, the fish forgotten in his hands.
 
 WHAT HAPPENS:
-[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. On the flat black water THE THREE RIDERS are busy fishing: THE STRONG ONE lies across the front of the seat grabbing at fish with both arms in the water; THE YOUNG ONE kicks both feet in the water, giggling; THE ELDER rinses their one fish over the side.
+[0s] THE YOUNG ONE glows warm gold from the whole body, lighting the circle of water 2 metres around the child, indigo inside, pitch black outside. On the flat black water THE THREE RIDERS are busy fishing: THE STRONG ONE lies across the front of the seat grabbing at fish with both arms in the water; THE YOUNG ONE kicks both feet in the water, giggling; THE ELDER rinses their one fish over the side.
 [3s] Far ahead the flat water bulges; a vast smooth dark shape slowly rises out of the sea like a mountain until it fills the whole upper half of the frame, water pouring off it. THE ELDER stops, lifts his head and stares at it; the other two keep fishing.
-[7s] THE YOUNG ONE notices THE ELDER staring for a long time, follows his gaze, goes still, then shakes THE STRONG ONE's shoulder hard; THE STRONG ONE, still splashing, looks up.
+[7s] THE YOUNG ONE notices THE ELDER staring for a long time, follows THE ELDER's gaze, goes still, then shakes THE STRONG ONE's shoulder hard; THE STRONG ONE, still splashing, looks up.
 [10s] High on the dark mountain, two enormous eyes open: pale yellow-green, thin vertical slit pupils, each bigger than their whole village, looking down at them. THE STRONG ONE's hands stop in the water.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): splashing hands and feet and THE YOUNG ONE's giggle, then THE YOUNG ONE's sharp gasp, then total silence as the eyes open. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): splashing hands and feet and THE YOUNG ONE's giggle, then THE YOUNG ONE's sharp gasp, then total silence as the eyes open; no words. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only light, deep indigo water inside its 2-metre circle, deep true blacks everywhere else. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no dialogue, no roar, no teeth, no third eye, no camera move, no waves, no light wider than two metres around the child, no lamps lit on the seat, no eyes before the last beat.
+CRITICAL NEGATIVES: no words spoken by anyone, no talking, no shouted words, no voiceover, no roar, no teeth, no third eye, no camera move, no waves, no light wider than 2 metres around the child, no eyes before the last beat.
 
 House negatives: no humans, no human faces, no human hands; no beach, no shore; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -60,7 +64,7 @@ House negatives: no humans, no human faces, no human hands; no beach, no shore; 
 REVIEW ORDER:
 1. Busy fishing, each in a different way.
 2. THE ELDER sees it first and stares; the child notices and shakes THE STRONG ONE.
-3. Two eyes open only at the end.
+3. Two eyes open only at the end; the child the only other light.
 File the take whatever the verdict, as N11-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 

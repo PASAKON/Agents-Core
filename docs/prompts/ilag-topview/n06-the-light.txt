@@ -1,13 +1,12 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N6 · THE LIGHT · 8s · DARK · cut 4 (CEO 2026-09-25: every rider acts and reacts; the dark mount picture, no lamps lit)
+N6 · THE LIGHT · 8s · DARK · cut 5 (CEO 2026-09-25: the light comes only from the child, a 2-metre circle that turns the water from black to the turning)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (5):
+References (4):
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
-  @BlackSea -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-BlackSea.png
   @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
@@ -18,18 +17,19 @@ References (5):
 
 8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A three-quarter view from behind THE MOUNT, slowly rising; no cut, no zoom.
 
-THE LIGHT. In the black rain, THE YOUNG ONE lights up as their lantern.
+THE LIGHT. In the black rain, THE YOUNG ONE lights up, the only light they have.
 
 REFERENCES, each with a job:
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
-@BlackSea: THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it.
-@Turning: THE TURNING LIGHT, a colour and light reference only: a violet-grey bruised evening sky, deep indigo water, cool silver light. Take only its colour and light, nothing of its composition.
+@Turning: THE TURNING LIGHT, a colour reference only: the deep indigo of the water INSIDE the child's circle of light; nothing of its sky, its light or its composition.
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
 
 THE FRAME: Behind and a little above THE MOUNT on pitch-black water in the rain; THE THREE RIDERS barely visible in the dark until the child's light comes.
 
-STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; every seed-pod lamp on the seat is a dead dark husk, the grass tufts on it are dull and dark, and nothing on THE MOUNT glows. Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; nothing on THE MOUNT gives off any light. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
+THE LIGHT: Once THE YOUNG ONE is glowing, the only light in the whole frame comes from the child: a warm golden glow from the child's whole body, gill frills blazing gold. It lights a circle exactly 2 metres in radius around the child and nothing beyond it. Inside the circle the black water turns to the deep indigo water of the turning, and the riders and THE MOUNT are lit gold; outside the circle everything is pitch black. Nothing else in the frame gives off light.
 
 PARTICLES: rain streaks falling through the light, warm golden motes rising from THE YOUNG ONE.
 
@@ -40,15 +40,15 @@ EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all
 
 WHAT HAPPENS:
 [0s] Darkness and rain. THE STRONG ONE turns round on the perch toward THE YOUNG ONE. Quietly: "We need your light now." THE ELDER lays a hand on the child's back.
-[3s] THE YOUNG ONE looks from one to the other, nods, takes a deep breath and closes both eyes; THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black.
-[5.5s] THE STRONG ONE grins with relief and turns forward to steer; THE ELDER leans back, face lit gold, in awe; THE MOUNT glides on into the dark, away from us, carrying its small moving pool of light.
+[3s] THE YOUNG ONE looks from one to the other, nods, takes a deep breath and closes both eyes; THE YOUNG ONE glows warm gold from the whole body, lighting the circle of water 2 metres around the child, indigo inside, pitch black outside.
+[5.5s] THE STRONG ONE grins with relief and turns forward to steer; THE ELDER leans back, face lit gold, in awe; THE MOUNT glides on into the dark, away from us, carrying its small moving circle of light.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the line above, then THE YOUNG ONE's slow breath as the light blooms. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the line above, spoken once, then THE YOUNG ONE's slow breath as the light blooms. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only light, deep indigo water inside its 2-metre circle, deep true blacks everywhere else. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no wide ring of light, no light reaching more than two metres, no beam into the sky, no other light source, no lantern light, no lamps.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no words before or after the line, no light wider than 2 metres around the child, no beam into the sky, no other light source.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -57,13 +57,13 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. One line, THE STRONG ONE; transcribe.
-2. Glow radius about 1-2 m; no lamp lit on the seat.
+1. One line, THE STRONG ONE, nothing added; transcribe.
+2. The 2-metre circle; indigo water inside, black outside.
 3. Each rider reacts to the line and to the light.
 File the take whatever the verdict, as N6-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- THE YOUNG ONE glowing, the moving lantern, from here to the end.
+- THE YOUNG ONE glowing, the moving circle of light, from here to the end.
 
 === END NOTES ===

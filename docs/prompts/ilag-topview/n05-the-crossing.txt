@@ -1,11 +1,11 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N5 · THE CROSSING · 6s · DARK · cut 4 (CEO 2026-09-25: every rider acts; EVERY light flickers and dies, very clearly; darkness)
+N5 · THE CROSSING · 6s · DARK · cut 5 (CEO 2026-09-25: they cross from the turning, not clear water; EVERY light flickers and dies; darkness)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
 sheet renders as a grid video on H3.
-References (7):
+References (8):
   @Manta -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Manta.png
   @Lantern -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-Lantern.png
   @LanternDark -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Prop/ref-LanternDark.png
@@ -13,6 +13,7 @@ References (7):
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
+  @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
 
 === END NOTES ===
 
@@ -30,8 +31,9 @@ REFERENCES, each with a job:
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
+@Turning: THE TURNING LIGHT, a colour reference only: the deep indigo water under THE MOUNT before the line; nothing of its composition.
 
-THE FRAME: Behind THE MOUNT: THE THREE RIDERS with their backs to us; THE LANTERN hangs lit from the seat and the small seed-pod lamps glow along the seat; ahead, pitch-black water under the storm.
+THE FRAME: Behind THE MOUNT: THE THREE RIDERS with their backs to us; THE LANTERN hangs lit from the seat and the small seed-pod lamps glow along the seat; under them the deep indigo water of the turning; ahead, beyond the razor-sharp line, pitch-black water under the storm.
 
 STATE: Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
 
@@ -43,17 +45,17 @@ EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all
 - THE ELDER, back: cups one hand around the nearest seed-pod lamp as if to shield it; when it dies he wraps both arms around the child.
 
 WHAT HAPPENS:
-[0s] THE STRONG ONE drives the steering pole down and THE MOUNT glides forward over the razor-sharp line, away from us, into the pitch-black water; rain falls on them.
+[0s] THE STRONG ONE drives the steering pole down and THE MOUNT glides forward from the deep indigo water over the razor-sharp line, away from us, into the pitch-black water; rain falls on them.
 [2s] THE LANTERN and every seed-pod lamp on the seat flicker hard, stutter, flicker again; THE YOUNG ONE looks up in alarm and reaches toward THE LANTERN; THE ELDER cups a hand around the nearest lamp.
 [3.5s] One by one they all go out. THE LANTERN is dead and dark. Every light is gone. THE YOUNG ONE huddles against THE ELDER, who wraps both arms around the child.
 [4.5s] Darkness: only faint grey outlines in the rain, THE STRONG ONE still steering.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' sharp, frightened breaths as the lights die, nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): the riders' sharp, frightened breaths as the lights die; no words. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no dialogue, no light left burning, no glow from the child yet, no one facing the camera, no fire, no flames, no explosion.
+CRITICAL NEGATIVES: no words spoken by anyone, no talking, no shouted words, no voiceover, no light left burning, no glow from the child yet, no one facing the camera, no fire, no flames, no explosion, no turquoise water.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 

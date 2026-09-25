@@ -17,7 +17,11 @@ ORDER = {
     "3": "O1 O2 O3 O4 M4 N1 N2 N3 M6 N4 N5 N6 N7 N8 N9 N10 N11 M13",
     # CEO 2026-09-25: N4 stops at the line, then the talk (N12), then the crossing.
     "4": "O1 O2 O3 O4 M4 N1 N2 N3 M6 N4 N12 N5 N6 N7 N8 N9 N10 N11 M13",
+    # CEO 2026-09-25: the wave throws them off and goes black, they wake on THE MOUNT (N13), then the catch; N8 cut.
+    "5": "O1 O2 O3 O4 M4 N1 N2 N3 M6 N4 N12 N5 N6 N7 N13 N9 N10 N11 M13",
 }
+# Mirrored in the edit (CEO OK 2026-09-25): M4 take 2 has the rider actions but travels right to left.
+FLIP = {"5": {"M4"}}
 
 
 def newest(tag):
@@ -38,6 +42,12 @@ def main():
     ap.add_argument("--no-drive", action="store_true")
     a = ap.parse_args()
     shots = [(t, newest(t)) for t in ORDER[a.cut].split()]
+    for i, (tag, p) in enumerate(shots):
+        if tag in FLIP.get(a.cut, ()):
+            flipped = CLIPS / f"{p.stem}-mirrored.mp4"
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(p), "-vf", "hflip", "-c:v", "libx264", "-crf", "18",
+                            "-c:a", "copy", str(flipped)], check=True)
+            shots[i] = (tag, flipped)
     t = 0.0
     for tag, p in shots:
         print(f"{tag:4} {int(t // 60)}:{t % 60:05.2f}  {p.name}")

@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N9 · ONE FISH · 8s · DARK · cut 4 (CEO 2026-09-25: every rider acts; no net; a quick chase and a grab by hand; everyone cheers)
+N9 · ONE FISH · 8s · DARK · cut 5 (CEO 2026-09-25: plays straight after the waking; no net, a quick chase and a grab by hand; everyone cheers; the light only from the child)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -9,7 +9,7 @@ References (4):
   @Strong -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Strong.png
   @Young -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Young.png
   @Elder -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Character/ref-Elder.png
-  @BlackSea -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-BlackSea.png
+  @Turning -> Drive YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)/Element/Location/ref-Turning.png
 
 === END NOTES ===
 
@@ -17,17 +17,19 @@ References (4):
 
 8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A medium shot beside THE MOUNT at the surface; no cut, no zoom.
 
-ONE FISH. This is why they came: THE STRONG ONE catches a fish with his bare hands.
+ONE FISH, CAUGHT BY HAND.
 
 REFERENCES, each with a job:
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
-@BlackSea: THE BLACK SEA: pitch-black water under a purple-black storm, violet lightning reflected on it.
+@Turning: THE TURNING LIGHT, a colour reference only: the deep indigo of the water INSIDE the child's circle of light; nothing of its sky, its light or its composition.
 
 THE FRAME: Medium, beside THE MOUNT at the surface: THE STRONG ONE leaning over the edge of the seat, THE YOUNG ONE glowing beside him, THE ELDER behind.
 
-STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; every seed-pod lamp on the seat is a dead dark husk, the grass tufts on it are dull and dark, and nothing on THE MOUNT glows. Every seed-pod lamp on the seat and THE LANTERN are dead and dark; the only light anywhere is THE YOUNG ONE. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+STATE: THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; nothing on THE MOUNT gives off any light. Their skin, the seat and the back of THE MOUNT are wet and glistening with rain.
+
+THE LIGHT: Once THE YOUNG ONE is glowing, the only light in the whole frame comes from the child: a warm golden glow from the child's whole body, gill frills blazing gold. It lights a circle exactly 2 metres in radius around the child and nothing beyond it. Inside the circle the black water turns to the deep indigo water of the turning, and the riders and THE MOUNT are lit gold; outside the circle everything is pitch black. Nothing else in the frame gives off light.
 
 PARTICLES: rain, water splashing up as the hands go in, golden motes around THE YOUNG ONE.
 
@@ -37,17 +39,17 @@ EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all
 - THE ELDER, back: grips THE STRONG ONE's kelp belt with both hands so THE STRONG ONE cannot fall in; at the catch, claps THE STRONG ONE on the back and cheers.
 
 WHAT HAPPENS:
-[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. THE STRONG ONE leans far over the edge, eyes on a fish shadow darting along the side; THE ELDER grabs THE STRONG ONE's kelp belt with both hands; THE YOUNG ONE leans out beside THE STRONG ONE, glowing, and points.
+[0s] THE YOUNG ONE glows warm gold from the whole body, lighting the circle of water 2 metres around the child, indigo inside, pitch black outside. THE STRONG ONE leans far over the edge, eyes on a fish shadow darting along the side; THE ELDER grabs THE STRONG ONE's kelp belt with both hands; THE YOUNG ONE leans out beside THE STRONG ONE and points.
 [2s] Quick: THE STRONG ONE's hands chase it through the water, once, twice; THE YOUNG ONE points again, urgent.
 [4s] THE STRONG ONE lunges and snatches it out: one dark glossy silver-black fish, flapping in his hands.
 [5.5s] They cheer, each in their own way: THE YOUNG ONE jumps up and down on the seat; THE ELDER claps THE STRONG ONE on the back; THE STRONG ONE holds the fish up, laughing.
 
-overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): splashes of the hands, THE STRONG ONE's effort, then all three cheering and laughing. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the sounds the characters themselves make (voices, breathing, effort, the touch and splash of their own hands and bodies): splashes of the hands, THE STRONG ONE's effort, then wordless cheering and laughter. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
-Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only key light, deep indigo water inside its small circle, faint violet lightning far away, deep true blacks. Photographed, not rendered: fine film grain.
+Colour grade, the dark with the child's light: pitch-black water in steady rain, the warm golden glow of THE YOUNG ONE the only light, deep indigo water inside its 2-metre circle, deep true blacks everywhere else. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no dialogue, no net, no spear, no hook, no second fish, no one falling in, no lamps lit on the seat.
+CRITICAL NEGATIVES: no words spoken by anyone, no talking, no shouted words, no voiceover, no net, no spear, no hook, no second fish, no one falling in, no other light source, no light wider than 2 metres around the child.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -57,8 +59,8 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 
 REVIEW ORDER:
 1. Caught by hand, no net.
-2. THE ELDER holds the belt; the child points.
-3. Everyone cheers.
+2. No words, only cheering.
+3. Only the child's light; indigo water inside.
 File the take whatever the verdict, as N9-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
