@@ -163,16 +163,20 @@ B-roll rendered invisible behind the grid while `npm run check` stayed green).
 ```bash
 cp -r <skill>/template <workdir> && cd <workdir>
 ```
-`index.html` already holds the kit, the fonts and five block generators.
+`index.html` already holds the kit, the fonts, five block generators and one
+caption generator.
 **Copy it from the skill, never from a sibling `prototypes/bl51-*` project** —
 a sibling carries another episode's video track, timings and copy, and you will
 spend longer deleting them than writing your own.
 
-**The kit is the CSS and the five generator functions. Everything else is
-content and you are expected to replace it:** the `<video>` plates, the
-`<audio>` element, the composition's `data-duration`, the `#bg` windows, and
-every block call below the `THE CUT` banner. Do not rewrite the generators
-themselves, and do not invent a sixth block type without a reason.
+**The kit is the CSS, the five block generators and the one caption generator.
+Everything else is content and you are expected to replace it:** the
+`<video>` plates, the `<audio>` element, the composition's `data-duration`,
+the `#bg` windows, and every block/caption call below the `THE CUT` banner.
+Do not rewrite the generators themselves, do not invent a sixth block type
+without a reason, and never give `caption()` a mode/kind parameter or an
+inline style override (§6f — that is exactly how EP57's three-caption-look
+bug happened).
 
 | generator | use it for |
 |---|---|
@@ -181,10 +185,13 @@ themselves, and do not invent a sixth block type without a reason.
 | `check(top, in, out, title, items)` | a numbered or ticked checklist |
 | `rules(top, items)` | one big numbered rule at a time |
 | `stats(top, in, out, title, items)` | one or two large figures |
+| `caption(at, out, text)` | the spoken-line caption band — same look in every mode, §6f |
 
 Video plates are `<video class="clip" muted playsinline data-start data-duration
 data-media-start>`; the audio is one separate `<audio>`. Put `#bg` up only over
-the stretches where no plate is underneath.
+the stretches where no plate is underneath. Every plate's `data-duration` (and
+every block/caption's `out` argument) must reach to the START of the next
+plate, not stop at its own line's end — see §6g.
 
 A worked cut with all five types and real timings lives in the Agents repo at
 `prototypes/bl51-first30/index.html`. **It is there to read, not to copy.** On the
@@ -574,10 +581,17 @@ so that the viewer's eye lands on one spot at the moment the voice names it:
   34.47 vs 34.40 · Exness row 57.20 vs 57.18 · logo pop 0.60 vs 0.60. **Land the
   highlight on the word, ±0.15 s, never late.** The only yellow is the kit's
   `--yellow` #F4DF14.
-- **In composite mode the spoken caption is a small dark chip just above the
-  head** (≈37-40% of the height), directly under the focus spot. In full-frame
-  mode it sits at chest height. The chip reads as a label on the evidence, not
-  as a subtitle.
+- [SUPERSEDED 2026-09-25] "In composite mode the spoken caption is a small
+  dark chip just above the head (≈37-40% of the height), directly under the
+  focus spot. In full-frame mode it sits at chest height. The chip reads as a
+  label on the evidence, not as a subtitle." Beaten by the CEO rejecting the
+  episode built on this rule: "sub title style ที่ขึ้น มันไม่ใช่แบบเดียวกับที่
+  EP ก่อนหน้าทำไว้ … Skill issue แน่นอน" — EP57's per-mode chip produced three
+  different caption looks in one episode (a 38px chip whose height changed
+  per line and collided with the page text and the brand bug, a flat
+  full-width strip, and plain outlined text with no backing on plain avatar
+  lines). There is now exactly ONE caption look in every mode — see §6f and
+  the `caption(at, out, text)` generator in `template/index.html`.
 
 **Why the switch happens (script → mode), from the transcript:** the avatar
 is full frame for **verdict and emotion** lines ("ผมบอกความจริงที่ไม่มีใครบอกมึง",
@@ -700,6 +714,59 @@ Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
 sound wrong.
 
+### 6f. One caption style, every mode (CEO ruling 2026-09-25)
+
+**The template's `caption(at, out, text)` generator is the only way any
+episode writes a spoken-line caption, full stop.** It takes no mode/kind
+argument and produces exactly one look every time — EP55's approved band
+(`.cap`: `rgba(5,6,8,.90)` background, `padding: 20px 30px`, `border-radius:
+18px`, `48px`/weight 600 text, max two lines, sitting in the standing
+`.caplayer` at `top: 1300px`, the same safe-box width every other overlay
+uses). Call it for a full-frame avatar line, a composited line, and a line
+over a real-footage screenshot alike — the caption never changes shape
+because of what's behind it.
+
+This replaces the §6d rule above (now [SUPERSEDED]) and the per-episode
+`addCap(t0, t1, text, kind, y)` pattern some episodes hand-rolled (EP57's
+`kind` took `"chip-ff"` / `"chip-comp"` / `"rail"`, each its own inline style
+— that is precisely the bug). **Do not reintroduce a kind/mode parameter or
+an inline `style=` override on a `.cap` element** — if a caption needs to
+move because it collides with something, move the *evidence plate* instead
+(§6d's own fix for the score-box collision is the pattern: shift the still,
+never restyle the caption). `tools/bl_checker.py`'s one-caption-style gate
+(`--composition <index.html>`) fails a render that violates this — it reads
+every `addCap()`/`caption()` call in the composed script and counts distinct
+style signatures; more than one is a hard fail, same as an empty frame.
+
+Reference frame: `reference/caption-ep55.jpg` — a full-res still rendered
+from the template with a sample Thai caption over a white real-footage
+screenshot (EP55's own final render is on Drive and not reachable from a
+worker session, so this is the template's `caption()` output on a
+representative background, not a frame pulled from the delivered EP55 file).
+
+### 6g. Plates hold until the next plate
+
+**A plate's end is the next plate's start.** Nothing on screen — a video
+clip, a still, a kinetic block, the avatar composite — may end at its own
+spoken line's `t1`; it holds until whatever comes next actually begins.
+Promoted from the 2026-09-24 field note below: EP57's first render went
+empty (only the dark kit background, the bug and the legal label — no
+plate, no avatar, no text) for 0.25-1.0 s at almost every line boundary, 35
+stretches totalling 16.8 s (11% of the episode), because every plate/block
+stopped exactly at the end of its own line and the TTS pause before the next
+line was left uncovered. The reference edit the CEO paid for never goes
+empty — a shot is always still or already changing to the next one.
+
+Build every composition's timing this way: compute each entry's *effective*
+end as `min(next entry's t0, total duration)`, not its own line's `t1`, and
+drive every `data-duration` / block `out` argument from that extended value.
+`prototypes/bl57-cut/build_cut.py`'s `EXT_END` map (origin/agent/video_editor
+-task-501f1d89, read-only reference, do not copy its caption code) is a
+worked example of this exact computation. `tools/bl_checker.py`'s empty-frame
+gate (§ below) now checks for this mechanically at 30fps, including a
+single-frame dip — it is not a substitute for building the timing right in
+the first place, but it will catch it if you don't.
+
 ## Field notes
 - 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted
 - 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s · status: pending
@@ -709,13 +776,13 @@ sound wrong.
 - 2026-09-23 [COSTLY] no owner — `hyperframes render` stalled twice at the identical frame (353/466) with the exact same composition, both times with the Mac down to ~110-150 MB free RAM (`top -l 1`, PhysMem). Not a composition bug — a clean retry on the third attempt, unchanged, completed in 5m29s (vs ~2m30s when memory is free). If a render stalls ("no frame progress for 60000ms"), check system memory before touching the composition · evidence: task-4bce29e5, render_v2.log timestamps 17:47-17:57, renderJobIds be0a6e61/ca6082c3 · status: pending
 - 2026-09-23 [WRONG] §6d — "composite mode is a hard cut, don't tween scale/position" was false. Frame-by-frame head tracking of the reference shows 3 of 4 entries into composite are 21-27-frame sine.out shrinks after the plate swaps behind the full avatar; only exits (and one section-change entry) are hard cuts. Rule flipped to the measured motion; the old line is kept [SUPERSEDED] in §6d · evidence: CEO ruling 2026-09-23 ("เอาลงแบบ smooth ด้วย มี Animation") + reference/avatar-shrink-motion.jpg, commit 1eb280fa · status: promoted
 - 2026-09-23 [MISSING] §6e — no rule for a brand's on-screen spelling (captions showed the TTS transliteration) or for crediting a third-party image; both set by the CEO for EP57 (WikiFX XXLMARKETS review card) · evidence: CEO ruling 2026-09-23 · status: promoted
-- 2026-09-24 [MISSING] §9 verify — no gate catches EMPTY frames between shots. EP57's first render went bare (only the dark plate, bug and legal label) for 0.25-1.0 s at almost every line boundary: 35 stretches, 16.8 s = 11 % of the episode, because plates ended with their line and the TTS pauses between lines were left uncovered. The reference never goes through empty. Hold each plate until the next begins. Check it mechanically: fps=4 gray frames, mask the bug (y 12-24 %, x > 55 %) and the legal band (y 66-74 %), flag std < 12; the target is 0 stretches after 0.25 s. It belongs in `bl_tools.py verify` as a gate · evidence: task-501f1d89 render #4, the CTO's detector, frames 31 s / 80 s · status: pending
+- 2026-09-24 [MISSING] §9 verify — no gate catches EMPTY frames between shots. EP57's first render went bare (only the dark plate, bug and legal label) for 0.25-1.0 s at almost every line boundary: 35 stretches, 16.8 s = 11 % of the episode, because plates ended with their line and the TTS pauses between lines were left uncovered. The reference never goes through empty. Hold each plate until the next begins. Check it mechanically: fps=4 gray frames, mask the bug (y 12-24 %, x > 55 %) and the legal band (y 66-74 %), flag std < 12; the target is 0 stretches after 0.25 s. It belongs in `bl_tools.py verify` as a gate · evidence: task-501f1d89 render #4, the CTO's detector, frames 31 s / 80 s · status: promoted (§6g rule text; gate moved from `bl_tools.py verify` into `tools/bl_checker.py`'s `detect_empty_frames`, task-1678d38e)
 - 2026-09-24 [MISSING] §9 render — on this 8 GB Mac, with several Claude sessions live, a HyperFrames render of EP57 died at ~frame 400 five times, whatever the window length and even when it started at 38 % memory_pressure: memory grows during a render. The editor's `vm_stat` free ≥ 500 MB gate never clears (macOS keeps free pages low). Gate on `memory_pressure` ≥ 25 %, render windows of ≤ 9 s cut at line boundaries with a fresh process each, concat with -c copy, and mux the audio once at the end · evidence: task-501f1d89 renders #1-#5 · status: pending
 - 2026-09-25 [MISSING] §budget — the EP57 cut worker (task-501f1d89, Sonnet 5) ran 1,418 turns while its context grew 316k → 844k tokens/turn (max 913k); 873M cache-read tokens = $175 of a ≈$189 API-equivalent bill, machine time is cents (render 15 min on the Mac, ≈€0.05 on hourly Hetzner). Split a cut into plan → render → verify tasks or compact near 200k; never trust cost-guardian's per-session $ (ignores cache reads, 5.6× under) · evidence: transcript 5b6517b0, mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md · status: pending
 - 2026-09-25 [MISSING] §gate/§render — why EP57 took 4 h (measured): first cut submitted at 1 h 46; the other 2 h 14 were rework. Chain: the Mac (8 GB, six Claude sessions) killed the headless browser near frame ~400 → 13 full-render launches, ~5 deaths → the render was re-engineered mid-task into 24 windows (12 launches) → two new bugs (per-window frame rounding = 300 ms lipsync drift; GSAP negative-position tween = 3.1 s empty window). The review defects (35 empty stretches = 11 % of the episode; clipped credit) had no pre-submit detector — the CTO wrote one at review time. 122 poll-only turns (ReadNotifications/Monitor) at ~740k context = 90M cache-read tokens ≈ $18 spent waiting. Thinking was not the cost: median 243 output tokens/turn. Fix candidates: render on a box with free RAM (Contabo/Hetzner), a `bl_gate` detector required before submit_report, one synchronous render call instead of polling, split plan → render → verify into fresh tasks · evidence: transcript 5b6517b0 (task-501f1d89), worktree CTO-FEEDBACK.md, mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md · status: pending
 - 2026-09-25 [WRONG] §budget — the note above quotes 1,418 turns / 873M cache read; that is a raw line sum. Claude Code writes each assistant message.id on ~2 lines; deduped the EP57 cut worker is **760 turns, 467.7M tokens (466M cache read), $99.79**, not $189. Count with `jev_edit_lib.sum_transcript_usage` · evidence: session 5b6517b0 (1,418 lines / 760 ids) · status: pending
 - 2026-09-25 [WRONG] §budget — the A/B/C numbers first reported (arm A $7.54/161 turns, B $3.59/83, C $1.10/10) came from `tools/bl_scripter.py::usage_from_transcript`, which summed raw transcript lines; deduplicated by message.id they are A $3.73/82, B $1.66/46 (Scripter $0.26/3 + Editor $1.40/43), C $0.26/3 — ranking unchanged, checker verdicts unchanged. Tool fixed (dedup; returns `lines` beside `turns`), docs corrected · evidence: docs/ops/bl-ab-2026-09-25/REPORT.md §Correction; transcripts task-9ba58d91 / task-4ccc2495 (Contabo), 440ba051 (Mac), every repeat byte-identical · status: pending
-- 2026-09-25 [MISSING] §gate — the 4 fps std<12 empty-frame check misses a ONE-frame black flash: BL-EP57-final.mp4 has an empty dark frame at 76.37 s between two identical WikiFX plates (whole-frame mean 13 vs 147 either side). Also check per-frame mean drop at 30 fps; and the final still shows 7 empty 0.25-0.75 s moments (0:00, 0:31, 0:55, 1:02, 1:45, 1:48, 2:00) the worker had called "fade frames" · evidence: task-501f1d89 final 03:49 +07 09-24 · status: pending
-- 2026-09-25 [WRONG] §6d composite caption — "in composite mode the spoken caption is a small dark chip just above the head (≈37-40 % of the height)" came from the ฿1300 reference, not from this channel. EP57's worker followed it: 38 px chips whose height changes every line, up where they collide with the page text and the BLACK bug (t=13 s, 78 s), while full-frame lines got plain outlined text with no chip, and screenshot lines got a flat full-width strip: three caption looks in one episode. CEO 2026-09-25: "sub title style ที่ขึ้น มันไม่ใช่แบบเดียวกับที่ EP ก่อนหน้าทำไว้ … Skill issue แน่นอน" · evidence: BL-EP57-final.mp4 t=4.2/13/78 s vs EP55-NoLicense-FINAL-v2.mp4 t=12 s; rule change proposed to the CEO · status: pending
-- 2026-09-25 [MISSING] template — the caption the CEO approved on EP55 (`.cap.band`: rgba(5,6,8,.90), padding 20px 30px, radius 18px, 48 px/600, two lines, fixed at chest height top 1300 px, safe-box width) was a CTO-review fix written only into `prototypes/bl55-cut/index.html:291`. It never went back into `template/index.html`, whose `.cap` (line 306) is plain outlined text, so the next worker started without it and re-invented a backing per line kind · evidence: the two files · status: pending
+- 2026-09-25 [MISSING] §gate — the 4 fps std<12 empty-frame check misses a ONE-frame black flash: BL-EP57-final.mp4 has an empty dark frame at 76.37 s between two identical WikiFX plates (whole-frame mean 13 vs 147 either side). Also check per-frame mean drop at 30 fps; and the final still shows 7 empty 0.25-0.75 s moments (0:00, 0:31, 0:55, 1:02, 1:45, 1:48, 2:00) the worker had called "fade frames" · evidence: task-501f1d89 final 03:49 +07 09-24 · status: promoted (`tools/bl_checker.py::detect_empty_frames` now samples at 30fps with a whole-frame-mean single-frame-dip check on top of std<12, task-1678d38e)
+- 2026-09-25 [WRONG] §6d composite caption — "in composite mode the spoken caption is a small dark chip just above the head (≈37-40 % of the height)" came from the ฿1300 reference, not from this channel. EP57's worker followed it: 38 px chips whose height changes every line, up where they collide with the page text and the BLACK bug (t=13 s, 78 s), while full-frame lines got plain outlined text with no chip, and screenshot lines got a flat full-width strip: three caption looks in one episode. CEO 2026-09-25: "sub title style ที่ขึ้น มันไม่ใช่แบบเดียวกับที่ EP ก่อนหน้าทำไว้ … Skill issue แน่นอน" · evidence: BL-EP57-final.mp4 t=4.2/13/78 s vs EP55-NoLicense-FINAL-v2.mp4 t=12 s; rule change proposed to the CEO · status: promoted (§6d marked [SUPERSEDED], §6f written, task-1678d38e)
+- 2026-09-25 [MISSING] template — the caption the CEO approved on EP55 (`.cap.band`: rgba(5,6,8,.90), padding 20px 30px, radius 18px, 48 px/600, two lines, fixed at chest height top 1300 px, safe-box width) was a CTO-review fix written only into `prototypes/bl55-cut/index.html:291`. It never went back into `template/index.html`, whose `.cap` (line 306) is plain outlined text, so the next worker started without it and re-invented a backing per line kind · evidence: the two files · status: promoted (`.cap` in `template/index.html` now IS the EP55 band, plus a `caption()` generator so no worker has to hand-roll one again, task-1678d38e)
 - 2026-09-25 [COSTLY] CTO review — the 09-24 review note about a watermark left uncovered at 98 s was read as a rule for EVERY screenshot caption: the worker made the whole "rail" kind full-bleed (`left:0;right:0`), which is the flat strip the CEO saw. A review fix must say its scope (this one line) · evidence: task-501f1d89 index.html addCap() comment "CTO review 2026-09-24" · status: pending

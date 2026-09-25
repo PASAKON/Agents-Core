@@ -303,10 +303,21 @@
          (measured y 1550-1700 on a real post, 2026-09-18), so the subtitle was
          being read through the app's text. 1300 keeps it low in frame and clear. */
       .caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+      /* ONE caption look, every mode -- SKILL.md §6f, CEO ruling 2026-09-25.
+         EP55's approved `.cap.band` (prototypes/bl55-cut/index.html:291-292),
+         now the template's only `.cap`: EP57 shipped three different looks
+         (a 38px chip whose height changed per line, a flat full-width strip,
+         plain outlined text with no backing) because its generator branched
+         style on the beat's mode. The `caption()` generator below has no such
+         branch, so every call produces exactly this. Do not add a modifier
+         class or an inline style override back in -- that is how the bug
+         happened the first time. */
       .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
              top: 0; transform: translateY(-50%);
              text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
-             line-height: 1.28; text-shadow: var(--outline); }
+             line-height: 1.28; text-shadow: var(--outline);
+             background: rgba(5,6,8,.90); padding: 20px 30px;
+             border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
     </style>
   </head>
   <body>
@@ -475,6 +486,27 @@
         return b;
       }
 
+      /* One caption look, every mode -- SKILL.md §6f, CEO ruling 2026-09-25
+         ("sub title style ที่ขึ้น มันไม่ใช่แบบเดียวกับที่ EP ก่อนหน้าทำไว้").
+         EP57's generator took a `kind` argument and picked a different
+         inline style per mode (a 38px chip for composite, a flat full-width
+         strip for a real-footage screenshot, no backing at all for a plain
+         avatar line) -- three looks in one episode. This generator has no
+         such parameter: it always builds the same `.cap` div (EP55's
+         approved band, now baked into the CSS above), whatever mode the
+         beat is. Call it for EVERY spoken line that needs an on-screen
+         caption -- full-frame avatar, composite, or over a screenshot. Keep
+         the text to at most two lines; a `caplayer` line-height + two-line
+         .cap already fits inside the standing safe box (§6c) at this size. */
+      var CAPN = 0;
+      function caption(at, out, text) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        document.getElementById("caps").appendChild(d);
+        show("#" + id, at); hide("#" + id, out - 0.20);
+        return { id: id };
+      }
+
       /* ======================== THE CUT ========================
          Everything above is the kit and stays as it is. Everything below is
          this clip's content: video plates, background windows and blocks.
@@ -491,6 +523,7 @@
       // check  (top, in, out, title, [{k,x,t}])
       // rules  (top, [{n,t,o,h,d}])
       // stats  (top, in, out, title, [{b,l,t}])
+      // caption(at, out, text) -- the spoken-line caption band, EVERY mode (§6f)
 
       window.__timelines["main"] = tl;
       tl.seek(0);
