@@ -8,7 +8,13 @@
     "status": "Joined instantly",
     "asked": [],
     "requested_at": "2026-09-24",
-    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page"
+    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page",
+    "shared": {
+      "posted_at": "2026-09-25",
+      "identity": "Dorsine Gobb (default/personal)",
+      "status": "posted (confirmed real) but content now unreachable — Dorsine Gobb's Activity Log has a genuine entry 'Dorsine Gobb ได้โพสต์ใน [this group]' at 07:45, so the post action really happened. But since ~08:00 the group URL, the post permalink, and a name search all return \"เนื้อหานี้ไม่พร้อมใช้งานในขณะนี้\"/no results, and the group is gone from the joined-groups list, under BOTH the Dorsine Gobb and Page identity. Group looks removed/inaccessible independent of us. Cannot confirm the post is currently visible to anyone. Flagged to CTO.",
+      "post_url": "https://www.facebook.com/groups/1128465650898382/posts/2542835299461403/"
+    }
   },
   {
     "name": "ละครสั้น AI",
@@ -19,7 +25,13 @@
     "status": "Joined instantly",
     "asked": [],
     "requested_at": "2026-09-24",
-    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page"
+    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page",
+    "shared": {
+      "posted_at": "2026-09-25",
+      "identity": "Dorsine Gobb (default/personal)",
+      "status": "NOT posted, despite composer readback matching and the publish button click firing with no visible error. No pending-approval badge on the group, no post in the feed sorted newest, and NO entry at all in Dorsine Gobb's Activity Log for this group today. Ground truth (Activity Log) says this attempt silently failed. Not retried; flagged to CTO. Possibly related to the browser's active identity silently flipping to the Page around this time (see group 1128465650898382's note and REPORT.md) — the click may have landed mid-flip.",
+      "post_url": null
+    }
   },
   {
     "name": "คลิป AI | ละครสั้น AI • หนังสั้น AI • ละคร AI ไทย •",
@@ -40,7 +52,13 @@
     "status": "Joined instantly",
     "asked": [],
     "requested_at": "2026-09-24",
-    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page"
+    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page",
+    "shared": {
+      "posted_at": "2026-09-25",
+      "identity": "Dorsine Gobb (default/personal)",
+      "status": "pending admin approval — confirmed via the group's own \"รออนุมัติจากผู้ดูแล / 1 โพสต์\" badge AND a matching full-text entry in Dorsine Gobb's Activity Log at 08:21. Counts as done per the task brief's pending-approval rule. This was posted as a live-verification test after the group1/group2 anomaly, ahead of the CTO's HOLD instruction which arrived right after.",
+      "post_url": null
+    }
   },
   {
     "name": "Seedance 2.0 Community Thailand – พูดคุย ทำหนังด้วย AI",
@@ -104,7 +122,13 @@
     "status": "Joined instantly",
     "asked": [],
     "requested_at": "2026-09-24",
-    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page"
+    "page_can_post": "Untested — joined as personal profile Dorsine Gobb, not the Page",
+    "shared": {
+      "posted_at": null,
+      "identity": null,
+      "status": "not posted. Per CTO instruction, rejoined with one real coordinate-click (ref-click had no-op'd, matching the 2026-09-24 field note); state flipped to \"เข้าร่วมแล้ว\" immediately, no admin-approval/questions modal. But on a re-check ~40 minutes later, before any post was attempted, the group again shows \"เข้าร่วมกลุ่ม\" (Join) — the join itself silently reverted. Did not attempt to post or rejoin a second time; flagged to CTO as part of a wider pattern (see REPORT.md).",
+      "post_url": null
+    }
   },
   {
     "name": "AI-ART CREATIVE",
