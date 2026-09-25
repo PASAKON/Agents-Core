@@ -1,0 +1,10 @@
+{
+ "key": "m13",
+ "title": "PULL OUT TO SPACE",
+ "seconds": 6,
+ "images": [
+  "Location/planet_from_space_v3.png"
+ ],
+ "prompt": "6 seconds, 16:9. ONE CONTINUOUS TAKE, NO CUTS. One continuous pull-out upward; no cut, no dissolve.\n\nTHE LAST IMAGE. We leave them and see the whole world they live on.\n\nREFERENCES, each with a job:\n@Image 1: THE PLANET, the only reference: an ocean world with no land, split into two hemispheres, one bright blue-white with turquoise sea and white cloud, one purple-black under a storm with violet lightning, a sharp line between them, a moon half its size beside it in black space.\n\nTHE FRAME: Ends on THE PLANET centred, its moon beside it.\n\nWHAT HAPPENS:\n[0s] From the black stormy sea the camera pulls back and rises, up through the storm clouds.\n[2.5s] Out into space: the curve of the planet appears, then the whole globe.\n[4.5s] THE PLANET hangs in black space, split between its bright half and its storm half, the moon beside it. Hold.\n\nSound: only the sounds the characters make themselves: silence. No music, no ambient sound.\n\nColour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.\n\nAvoid: no dialogue, no land, no continents, no rings around the planet, no second moon, no text.",
+ "chars": 1228
+}

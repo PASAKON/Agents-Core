@@ -496,7 +496,7 @@ SCENES = [
     # ---- CEO notes round 2 (MAC CTO letter ...-ceo-notes-round2.md): N1-N5 take 2 + the new ending N6-N9 ----
     dict(prefix="n", n=1, slug="leaving-the-village-high", title="LEAVING THE VILLAGE, FROM HIGH ABOVE", s=6, grade="DAY",
          series="round 2: take 2 (0:43, the model got confused: character pictures removed, aerial only)",
-         spec="ONE CONTINUOUS TAKE, NO CUTS. A high aerial shot looking down for the whole six seconds, slowly rising; "
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A high aerial shot looking down for the whole shot, slowly rising; "
               "the camera never comes down to the riders; no cut, no zoom.",
          refs=["@Manta", "@Village"],
          heading="FROM HIGH ABOVE, THE MOUNT LEAVES THE VILLAGE with three tiny riders on its back.",
