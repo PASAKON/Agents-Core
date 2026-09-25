@@ -474,6 +474,13 @@ def test_extract_trigger_patterns_empty_when_no_trigger_clause():
     assert decide_mod.extract_trigger_patterns("No trigger clause here.") == []
 
 
+def test_extract_trigger_patterns_keeps_a_version_dot_inside_a_name():
+    desc = ('Engine skill. Trigger on /CTO_Flow_Omni1.1_Ops, Seedance 2.5 and "ยิง Flow". '
+            "Do NOT fire for Wan 3.0.")
+    patterns = decide_mod.extract_trigger_patterns(desc)
+    assert patterns == ["/CTO_Flow_Omni1.1_Ops", "Seedance 2.5", "ยิง Flow"]
+
+
 # ── max_state_chars truncation ───────────────────────────────────────────
 
 def test_state_is_truncated_to_max_state_chars(tmp_path, monkeypatch):
