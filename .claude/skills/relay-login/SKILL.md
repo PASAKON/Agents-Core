@@ -55,7 +55,7 @@ that refuses headless).
 |---|---|---|
 | Contabo | 9222–9299 on 127.0.0.1 | `chrome --headless=new --remote-debugging-port=92xx --user-data-dir=<profile> --window-size=390,844 --user-agent="<a normal Chrome UA>"` — Google refuses the HeadlessChrome UA (E_BLOCKED, measured 2026-09-24) |
 | Mac | 9222–9299 on 127.0.0.1 | `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=92xx --user-data-dir=<profile>`; each running Chrome costs a ~1.4 GB code-sign clone — quit it after the login |
-| winbox | **9220–9229** on 127.0.0.1 | Contabo holds the tunnel (systemd `mooniex-relay-tunnel-winbox`, Contabo 9270–9279 → winbox 9220–9229). ssh lands in session 0, so open Chrome on the desktop through an interactive scheduled task; recipe + two registered tasks (`MooniexRelayChrome9224` ChatGPT, `MooniexRelayChrome9225` Google home) in memory `reference_winbox_desktop_chrome_relaunch` |
+| winbox | 9222–9299 on 127.0.0.1 | winbox runs a relay-only Console (task `MooniexConsole`, peer `winbox-4a7c2e91`) since 2026-09-25 — the ssh tunnel is gone. Preferred: a Browser Home — `cd C:\Users\passg\MoonieXHQ\Projects\MoonieX\Console && node scripts\relay-home.mjs launch <id>` (or the phone's เปิด button). A HEADED Chrome still needs the desktop scheduled-task recipe in memory `reference_winbox_desktop_chrome_relaunch` |
 
 Never `--remote-debugging-address=0.0.0.0`, never the CEO's everyday profile,
 never touch another CTO's automation Chrome without a letter first (IRON §33).
