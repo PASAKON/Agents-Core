@@ -26,7 +26,8 @@ WHAT HAPPENS:
 [2.5s] Out into space: the curve of the planet appears, then the whole globe.
 [4.5s] THE PLANET hangs in black space, split between its bright half and its storm half, the moon beside it. Hold.
 
-AUDIO: the storm fading into deep silence. No dialogue. No music.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: silence. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 

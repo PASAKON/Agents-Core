@@ -17,7 +17,7 @@ References (4):
 
 6s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. A slow push-in to a close-up of THE CHIEF; no cut.
 
-THE CHIEF understands what the empty sea means. He is afraid, and he decides anyway.
+THE CHIEF understands what the empty sea means. THE CHIEF is afraid, and decides anyway.
 
 REFERENCES, each with a job:
 @Chief: THE CHIEF, head of the village, older, tall and dignified, of the same people: pearl-white skin with faint silver freckles, deep sapphire-blue gill frills, a crown of raw uncut gemstones (amethyst, turquoise, opal, rose quartz) bound in pale driftwood, necklaces of polished natural stones, a long cloak of dark woven kelp covered in pearly shell scales, shell bands on both arms, a tall driftwood staff topped with a raw quartz crystal. Dressed unlike anyone else in the film. Face, body and costume only; take nothing of the grey background.
@@ -31,7 +31,7 @@ PARTICLES: sea spray drifting, a few glowing specks in the air.
 
 WHAT HAPPENS:
 [0s] THE CHIEF stares at the empty trap, then out at the empty sea; fear rises in his face, his jaw trembles, his gill frills fade pale.
-[2s] Heavy with dread: "So... it is time."
+[2s] Heavy with dread: "So... the day has come."
 [4s] Barely a whisper, eyes wet: "We need the child with the gift." THE STRONG ONE turns to look at him.
 
 overall_soundscape: only the characters' own voices, breathing and effort sounds: the two lines above, THE CHIEF's voice shaking with fear and despair, and his unsteady breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.

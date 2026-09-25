@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N4 · THE LINE: THEY STOP · 8s · TURNING · round 2: take 2 (1:13: never face the camera; they face the line; Turning reference)
+N4 · THE LINE: THEY STOP · 8s · TURNING · round 3 (CEO answers: only the elder speaks; thunder and moving clouds before the crossing)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -19,7 +19,7 @@ References (6):
 
 8s · 360p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. From high behind THE MOUNT, then a slow crane down behind THE THREE RIDERS; the camera stays behind them the whole time; no cut, no zoom.
 
-THE LINE, AT EVENING. THE MOUNT stops in front of it. We see it through their eyes, from behind them.
+THE LINE, AT EVENING. THE MOUNT stops in front of it. We see it through their eyes, from behind them, and the sky ahead is already moving.
 
 REFERENCES, each with a job:
 @Line: THE LINE, the only location reference: a razor-sharp line across the sea from horizon to horizon. Near side: glass-clear turquoise water, a bright blue-white sky, the huge moon. Far side: pitch-black water under a purple-black storm with violet lightning. Take both sides and the line exactly.
@@ -29,22 +29,22 @@ REFERENCES, each with a job:
 @Strong: THE STRONG ONE, the biggest man of the same people, about 1.9 m, broad and heavily muscled: deep moss-green skin with darker mottling on the shoulders and back, lime-green glowing freckles along the arms, emerald gill frills tipped gold, a woven kelp belt, a coiled kelp rope over one shoulder. Face, body and colours only; take nothing of the white background.
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 
-THE FRAME: Behind and above THE MOUNT: THE THREE RIDERS and THE MOUNT all face away from the camera, toward the razor-sharp line ahead; clear water under them, pitch-black water and a storm beyond the line. The light and colour are the evening turning: violet-grey sky, dimming light.
+THE FRAME: Behind and above THE MOUNT: THE THREE RIDERS and THE MOUNT all face away from the camera, toward the razor-sharp line ahead; clear water under them, pitch-black water beyond the line, where dark storm clouds roll and churn visibly across the sky. The light and colour are the evening turning.
 
-PARTICLES: spray blowing off the line, fine rain falling on the black side.
+PARTICLES: spray blowing off the line, the first drops of rain carried on the wind.
 
 WHAT HAPPENS:
 [0s] From high behind, THE MOUNT glides up to the line and stops at its edge, facing the black water.
-[2s] The camera cranes down behind THE THREE RIDERS; we see the backs of their heads and what they face.
-[3s] THE ELDER, low: "So this is it. The line of death."
-[5.5s] THE STRONG ONE, still facing the line. Steady: "From here on, it's up to you."
+[2s] The camera cranes down behind THE THREE RIDERS; beyond the line the storm clouds churn and roll toward them, and thunder rumbles.
+[4s] THE ELDER, low: "So this is it. The line of death."
+[6s] Nobody moves. A flash of violet lightning far beyond the line lights the black water.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the two lines above and nothing else. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the line above and nothing else; the riders' held breath. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no one facing the camera, no mount turning toward the camera, no faces to camera, no crossing yet, no bright midday sky, no sunset orange.
+CRITICAL NEGATIVES: no stage directions spoken aloud, no narration of anyone's feelings, no speaking anything outside the quotation marks, no extra lines, no voiceover, no one facing the camera, no mount turning toward the camera, no crossing yet, no second line spoken, no bright midday sky, no sunset orange, no rain on the clear side yet.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -54,12 +54,12 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 
 REVIEW ORDER:
 1. Nobody faces the camera; all face the line.
-2. Evening turning light.
-3. Two lines; transcribe.
+2. Clouds visibly moving; thunder.
+3. One line, THE ELDER; transcribe.
 File the take whatever the verdict, as N4-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- Stopped at the line, facing it.
+- Stopped at the line, facing it; storm rolling beyond.
 
 === END NOTES ===

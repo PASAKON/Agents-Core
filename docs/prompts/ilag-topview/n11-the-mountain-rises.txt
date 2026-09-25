@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
-N9 · THE MOUNTAIN RISES · 12s · DARK · round 2: new ending 4/4 (the mountain rises unnoticed, then opens its eye; cut to space after)
+N11 · THE MOUNTAIN RISES · 12s · DARK · round 3 (CEO answers 6, 14, C2: they turn back to their fish; the mountain rises; TWO eyes open)
 
 Engine: our MiniMax H3 studio, 360p previz, 16:9. Type each @handle once (it already appears once in
 the paste block); the studio attaches its picture. Every picture is a SINGLE panel: a multi-panel
@@ -19,7 +19,7 @@ References (6):
 
 12s · 360p · 16:9 · ONE LOCKED SHOT, NO CUTS. A wide shot from behind and above THE MOUNT; the camera never moves.
 
-THE MOUNTAIN RISES. Behind them, where no land can be, a mountain comes up out of the still sea.
+THE MOUNTAIN RISES. Behind them, where no land can be, a mountain comes up out of the flat sea.
 
 REFERENCES, each with a job:
 @Mountain: THE MOUNTAIN, the only picture of the thing on the horizon: a vast smooth dark shape rising from the black sea where no land can exist, water pouring off its flanks. Take its shape, its size in the frame and its darkness exactly.
@@ -29,22 +29,22 @@ REFERENCES, each with a job:
 @Young: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.
 @Elder: THE ELDER, an old man of the same people, taller and thinner: deep teal-blue skin, violet gill frills with one frill torn, a small bead necklace, an upright, unhurried stance. Face, body and colours only; take nothing of the white background.
 
-THE FRAME: THE MOUNT small in the lower third on dead-still black water, lit only by THE YOUNG ONE; the far water behind them fills the upper frame.
+THE FRAME: THE MOUNT small in the lower third on flat black water in the rain, lit only by THE YOUNG ONE; the far water behind them fills the upper frame.
 
-PARTICLES: a thin mist over the still water, water pouring off the rising shape.
+PARTICLES: rain, a thin mist over the flat water, water pouring off the rising shape.
 
 WHAT HAPPENS:
-[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. THE THREE RIDERS are bent over the one fish, laughing quietly, their backs to the far water.
-[3s] Far behind them the still water bulges; a vast smooth dark shape slowly rises out of the sea like a mountain, water pouring off it. Nobody on THE MOUNT notices.
-[8s] High on the dark mountain, an enormous eye opens: pale yellow-green, a thin vertical slit pupil, bigger than their whole village.
-[10.5s] The eye stays open, looking down at them. Hold.
+[0s] THE YOUNG ONE glows like a living lantern: a warm golden light from the whole body, gill frills blazing gold, lighting only about one to two metres around the child; inside that small circle the black water turns to the lit deep-indigo water of the turning light, and beyond it everything stays pitch black. THE THREE RIDERS glance around, shrug, and turn back to their one fish, laughing quietly, their backs to the far water.
+[3s] Far behind them the flat water bulges; a vast smooth dark shape slowly rises out of the sea like a mountain, water pouring off it. Nobody on THE MOUNT notices.
+[8s] High on the dark mountain, two enormous eyes open: pale yellow-green, thin vertical slit pupils, each bigger than their whole village.
+[10.5s] Both eyes stay open, looking down at them. Hold.
 
-overall_soundscape: only the characters' own voices, breathing and effort sounds: the riders' quiet happy laughter, then total silence as the eye opens. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
+overall_soundscape: only the characters' own voices, breathing and effort sounds: the riders' quiet happy laughter, then total silence as the eyes open. No ambient bed: no wind, no water, no rain, no birds, no crowd murmur, no room tone.
 non_diegetic_music: none.
 
 Colour grade, the dark: pitch-black water and a purple-black storm, violet lightning as the key light, cyan and magenta glints, deep true blacks. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no dialogue, no riders turning around, no roar, no teeth, no second eye opening, no camera move, no light wider than two metres around the child.
+CRITICAL NEGATIVES: no dialogue, no riders turning around, no roar, no teeth, no third eye, no camera move, no waves, no light wider than two metres around the child.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
@@ -53,13 +53,13 @@ House negatives: no humans, no human faces, no human hands; no land, no island, 
 === NOTES · DO NOT PASTE ANY OF THIS ===
 
 REVIEW ORDER:
-1. The mountain rises slowly behind them.
-2. They never notice.
-3. One eye opens at the end.
-File the take whatever the verdict, as N9-H3-take<N>.mp4 in the
+1. They turn back to the fish, unaware.
+2. The mountain rises slowly behind them.
+3. Two eyes open.
+File the take whatever the verdict, as N11-H3-take<N>.mp4 in the
 project's Previz/ folder, and tell the CTO which take.
 
 END POSITIONS, inherited by the next scene:
-- The eye open; cut to space (M13).
+- Both eyes open; cut to space (M13, take 1).
 
 === END NOTES ===

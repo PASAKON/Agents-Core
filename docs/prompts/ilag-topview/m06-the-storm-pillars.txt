@@ -34,7 +34,7 @@ THE FRAME: Behind THE MOUNT: we see its back, its tail and the backs of THE THRE
 PARTICLES: spray from the wings, whirlpool mist at the pillar bases, a few drifting specks.
 
 WHAT HAPPENS:
-[0s] From behind, THE MOUNT glides away from the camera toward the pillars ahead; small whirlpools turn at their bases.
+[0s] THE MOUNT bursts up through the surface from below, water pouring off its wings, and glides away from the camera toward the pillars ahead; small whirlpools turn at their bases.
 [2.5s] THE THREE RIDERS, still facing away from us, tip their heads back to look up at the pillars.
 [4s] THE MOUNT passes between the first two pillars, heading deeper in, away from us.
 
@@ -43,7 +43,7 @@ non_diegetic_music: none.
 
 Colour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.
 
-CRITICAL NEGATIVES: no one facing the camera, no mount turning toward the camera, no faces to camera, no tornado, no funnel, no cone shape, no debris, no dialogue, no bright midday light.
+CRITICAL NEGATIVES: no one facing the camera, no mount turning toward the camera, no faces to camera, no tornado, no funnel, no cone shape, no debris, no dialogue, no bright midday light, no storm, no lightning, no rain, calm air.
 
 House negatives: no humans, no human faces, no human hands; no land, no island, no beach, no rocks above the water; no boats, no ships, no oars, no sails; no metal, no plastic, no modern objects; no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no white studio background; no cartoon, no anime, no plastic skin; no music, no score; no dutch angle, no lens flare.
 
