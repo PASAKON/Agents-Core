@@ -81,3 +81,18 @@ ssh winbox "schtasks /Run /TN MooniexCtoBackupB"     # ชุด B (รันห
 **หยุดชั่วคราว:** `powershell -File C:\mooniex\pclease\pause_backup.ps1` (ฆ่า rclone ของงานนี้ก่อน แล้วค่อยฆ่า python ไฟล์บน Drive จะไม่ค้างครึ่งเดียว) แล้วรันคำสั่งข้างบนเพื่อทำต่อ
 
 **เสร็จเมื่อ:** `backup_stream.log` มีบรรทัด `plan finished: 14/14` (A) และ `21/21` (B) และ CTO ตอบว่า "ลงได้"
+
+## หลังเครื่องเข้า tailnet แล้ว: ติดตั้ง MoonieX Console (relay-only) — 2026-09-25
+
+Console ตัวนี้คือที่ยืนของ "login relay จากมือถือ" บนเครื่องนี้ (Browser Home = Chrome headless ที่ Console เปิดเอง)
+ไม่มี tmux ไม่มี node-pty ทำงานเป็น scheduled task `MooniexConsole` ตอน logon และเปิดผ่าน `tailscale serve` พอร์ต 443
+
+1. clone repo `PASAKON/MoonieX-Console` ไว้ที่ `C:\Users\<user>\MoonieXHQ\Projects\MoonieX\Console` (ถ้า GitHub ยังไม่ผูกคีย์ ใช้ bundle จาก Contabo)
+2. ใน PowerShell (ผู้ใช้ปกติ ไม่ต้อง Admin):
+   ```powershell
+   $env:MX_SESSION_SECRET = '<SESSION_SECRET ของ Contabo จาก password manager>'
+   powershell -ExecutionPolicy Bypass -File scripts\winbox-console-install.ps1
+   ```
+3. บน Contabo เพิ่ม peer ใน `.env` ของ Console: `PEERS=...,winbox-<id>=https://window-gob.tail400676.ts.net|winbox` แล้ว restart `mooniex-console`
+4. โปรไฟล์ browser ทั้งหมดอยู่ที่ `data\browser-homes\<id>\profile` — สำรองโฟลเดอร์นี้ (เข้ารหัส) ก่อน reinstall ครั้งถัดไป แล้ววางกลับหลังข้อ 2
+

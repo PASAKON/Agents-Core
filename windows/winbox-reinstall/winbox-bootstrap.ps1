@@ -75,6 +75,16 @@ Step 'auto-logon for UsEr' {
     $plain = $null
 } { (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -ErrorAction SilentlyContinue).AutoAdminLogon -eq '1' }
 
+# 6b. MoonieX Console (relay-only) -- printed here, run AFTER the tailnet is up (step 7) and the
+#     Console repo is on the box. It is the phone login relay's foothold on this machine
+#     (Browser Homes = headless Chromes the Console owns, docs/relay.md section 8). The one
+#     input it needs is the front door's SESSION_SECRET, from the CEO's password manager --
+#     never typed into a command line, always $env:MX_SESSION_SECRET.
+Say "NEXT (after step 7): clone PASAKON/MoonieX-Console to C:\Users\$env:USERNAME\MoonieXHQ\Projects\MoonieX\Console"
+Say "      then:  `$env:MX_SESSION_SECRET = '<front door SESSION_SECRET>'"
+Say "             powershell -ExecutionPolicy Bypass -File scripts\winbox-console-install.ps1"
+Say "      (idempotent; registers task MooniexConsole + tailscale serve 443; see Console docs/relay.md section 8)"
+
 # 7. join the tailnet -- the ONE click the CEO makes: a browser opens, press "Connect"/"Sign in"
 if (-not $Check) {
     Say 'Tailscale login: a browser window opens now. Sign in as pass.gob1@gmail.com and approve this machine.'
