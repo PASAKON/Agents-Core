@@ -583,12 +583,19 @@ When slots genuinely run out, the CEO's rule (2026-09-22) is to spend them on
 | `@noodle_shop` | **97 of 173** | fills it | chip, always |
 | `@upstairs_bedroom` | 36 | fills it | chip |
 | a location used **once** | 1 | fills it | prose is fine |
-| a banknote | — | centimetres, in a hand | prose is fine |
+| a banknote, or any prop with a strong local prior | — | centimetres, in a hand | **chip**: size does not save it (`CTO_Flow_Omni1.1_Continuity` §Anything that must look a specific way) |
 
 His reasoning, and it is right: *"ใช้ซ้ำจะดูปลอมทันที"* — prose gives a slightly
 different shop every time, and across 97 shots that reads as fake immediately. A
-prop seen for a second in someone's hand survives being described. **Characters
-are never the thing you drop:** a wrong face is the one error no viewer forgives.
+prop seen for a second in someone's hand survives being described **unless the
+scene pulls it toward a real-world default** (currency, signage, uniforms,
+documents). **Characters are never the thing you drop:** a wrong face is the one
+error no viewer forgives.
+
+[SUPERSEDED 2026-09-25, CTO ruling] "a banknote: prose is fine" (this table,
+2026-09-22). Beaten by the same day's measurement: 40 careful words of prose
+produced a real 500-baht note with the royal portrait on 6 Act 3 clips; the
+bound cast and sets held on all 74 (Continuity, task-e960f3ca).
 
 Which *shots* hold a prop at all is a reading of the action line, never a key in the sheet: `CTO_Flow_Omni1.1_Continuity` rule 6.
 
