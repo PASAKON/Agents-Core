@@ -311,21 +311,19 @@ No subtitles, no captions and no on-screen text of any kind appear anywhere in t
 Medium two-shot. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
 ```
 
-### SHOT 19 · 2:24–2:32 · 8s · Medium close-up on the mat, notes in her hands
-**ATTACH** 1) `@yai__face`→REF_0 · 2) `@tor__face`→REF_1 · 3) `@baan__inside`→REF_2 · 4) `@yai__home`→REF_3 · 5) `@tor__home`→REF_4
-**บทพูด** yai__face `"แปลกจัง วันนี้เงินเกินมายี่สิบบาทนะต่อ เสี่ยคงนับผิดแน่ๆ"` — puzzled, counting again, murmuring
-**บทพูด** tor__face `"จริงเหรอยาย"` — surprised, wide-eyed
+### SHOT 19 · 2:24–2:32 · 8s · Medium close-up on the old woman alone on the mat
+**ATTACH** 1) `@yai__face`→REF_0 · 2) `@baan__inside`→REF_1 · 3) `@yai__home`→REF_2
+**บทพูด** yai__face `"แปลกจัง วันนี้เงินเกินมายี่สิบบาทนะต่อ เสี่ยคงนับผิดแน่ๆ"` — puzzled, thinking aloud, clearly spoken
 ```
-Use <IMAGE_REF_0> as the character reference for yai__face. Use <IMAGE_REF_1> as the character reference for tor__face. Use <IMAGE_REF_2> as the location reference for baan__inside. Use <IMAGE_REF_3> as the wardrobe reference: The old woman in the purple sarong wears exactly this outfit. Use <IMAGE_REF_4> as the wardrobe reference: The little boy in the navy T-shirt wears exactly this outfit.
+Use <IMAGE_REF_0> as the character reference for yai__face. Use <IMAGE_REF_1> as the location reference for baan__inside. Use <IMAGE_REF_2> as the wardrobe reference: The old woman in the purple sarong wears exactly this outfit.
 
-In the inside of a small, poor corrugated-zinc shack: walls of rusty zinc sheets and rough planks, a bare cracked concrete floor with a thin striped woven plastic mat, no furniture at all, two stacked plastic crates (green on red) used as a shelf, clothes hanging on nails, a rolled-up thin mattress and pillow in the corner, plastic bags of belongings, a small electric fan on the floor, a bare bulb hanging on a wire, daylight coming through gaps in the zinc and a small window over a canal <IMAGE_REF_2>, late afternoon, daylight through the gaps in the zinc. a small, thin Thai woman of seventy with sun-darkened, deeply wrinkled skin, kind deep-set eyes and short cropped grey hair, bare-headed, in a faded pink floral short-sleeved blouse and a purple woven Thai sarong, barefoot <IMAGE_REF_0>, a small Thai boy of eleven with round cheeks and a straight black bowl-cut, in a faded navy T-shirt and khaki shorts, barefoot <IMAGE_REF_1> — the old woman peers into a small cloth pouch in her lap, puzzled, murmuring as she feels inside it without taking anything out; the little boy leans in wide-eyed.
+In the inside of a small, poor corrugated-zinc shack: walls of rusty zinc sheets and rough planks, a bare cracked concrete floor with a thin striped woven plastic mat, no furniture at all, two stacked plastic crates (green on red) used as a shelf, clothes hanging on nails, a rolled-up thin mattress and pillow in the corner, plastic bags of belongings, a small electric fan on the floor, a bare bulb hanging on a wire, daylight coming through gaps in the zinc and a small window over a canal <IMAGE_REF_1>, late afternoon, daylight through the gaps in the zinc. a small, thin Thai woman of seventy with sun-darkened, deeply wrinkled skin, kind deep-set eyes and short cropped grey hair, bare-headed, in a faded pink floral short-sleeved blouse and a purple woven Thai sarong, barefoot <IMAGE_REF_0> — the old woman sits alone on the mat peering into a small cloth pouch in her lap, puzzled, feeling inside it without taking anything out, and says her thought out loud over her shoulder toward the boy out of frame.
 
-The old woman in the purple sarong <IMAGE_REF_0> speaks Thai in the thin, soft, slightly husky voice of a Thai woman of seventy, puzzled, counting again, murmuring, and says: "แปลกจัง วันนี้เงินเกินมายี่สิบบาทนะต่อ เสี่ยคงนับผิดแน่ๆ"
-The little boy in the navy T-shirt <IMAGE_REF_1> speaks Thai in the high, bright voice of an eleven-year-old Thai boy, surprised, wide-eyed, and says: "จริงเหรอยาย"
+The old woman in the purple sarong <IMAGE_REF_0> speaks Thai in the thin, soft, slightly husky voice of a Thai woman of seventy, puzzled, thinking aloud, clearly spoken, and says: "แปลกจัง วันนี้เงินเกินมายี่สิบบาทนะต่อ เสี่ยคงนับผิดแน่ๆ"
 
 The face of whoever is speaking stays in frame for the whole line.
 No banknotes, coins or money of any kind are visible anywhere in the frame: the day's money stays inside the small closed cloth pouch the whole time. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
-Medium close-up on the mat, notes in her hands. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
+Medium close-up on the old woman alone on the mat. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
 ```
 
 ### SHOT 20 · 2:32–2:42 · 10s · Close two-shot, both faces three-quarters to camera

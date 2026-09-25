@@ -229,11 +229,13 @@ _META = {
      ["kla_s", "sia_b"], "lan", "the next afternoon, bright daylight",
      "the schoolboy shouts back at his father in disgust; the heavy man explodes, roaring at "
      "full volume, and shoves an empty sack into the boy's chest", ["nosubs"]),
- 19: (8, "Medium close-up on the mat, notes in her hands",
-     ["yai_h", "tor_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
-     "the old woman peers into a small cloth pouch in her lap, puzzled, murmuring as she "
-     "feels inside it without taking anything out; the little boy leans in wide-eyed",
-     ["nomoney", "nosubs"]),
+ 19: (8, "Medium close-up on the old woman alone on the mat",
+     # 2026-09-25: vanished twice with the 11-year-old in frame (notes shown, then a pouch).
+     # Now she is alone; the boy is off screen and his short reply is cut from the script.
+     ["yai_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
+     "the old woman sits alone on the mat peering into a small cloth pouch in her lap, "
+     "puzzled, feeling inside it without taking anything out, and says her thought out loud "
+     "over her shoulder toward the boy out of frame", ["nomoney", "nosubs"]),
  20: (10, "Close two-shot, both faces three-quarters to camera",
      ["tor_h", "yai_h"], "baan", "late afternoon, daylight through the gaps in the zinc",
      "the little boy leans toward her, hopeful and wheedling; the old woman pulls the cloth "
