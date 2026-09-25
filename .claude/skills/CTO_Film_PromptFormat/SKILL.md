@@ -79,8 +79,13 @@ One file = one shot that can actually be fired; never two timelines in one block
 8. **Change the body and the negatives together** [ANY]. After any edit, reread the whole CRITICAL
    NEGATIVES: a negative left from the old version forbids what the new one asks for. Never "add-only".
 9. **A declaration is not a fix** [ANY]: a note saying "camera changed" does not change the beat that
-   still describes the old camera.
+   still describes the old camera. When a shared block is wrong for one shot, **split the shared block**;
+   never write an override on top of it (an override is proof the source text is still wrong, and on
+   «Sorry, Sir» the override itself was the only place the banned words appeared).
 10. **Numbers must count** [ANY]: "the three riders" names three; after any edit, recount.
+11. **Only the CTO edits prompt files** [ANY]. An operator who hits a problem while firing stops and
+    reports; it never writes a warning into the prompt file (that is how the S1C override accident
+    happened).
 
 ## 4 · Before handing a block over: 60 seconds
 

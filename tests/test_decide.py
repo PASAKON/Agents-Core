@@ -457,7 +457,9 @@ def test_skill_route_resolves_real_org_skills():
     options = decide_mod._resolve_options(cfg)
     ids = {o["id"] for o in options}
     assert "browser-operator" in ids
-    assert "google-flow-ops" in ids
+    # google-flow-ops was renamed by engine (CEO 2026-09-25); its old path is a
+    # MOVED stub with no trigger clause, so Flow prompts route to the new name.
+    assert "CTO_Flow_Omni1.1_Ops" in ids
 
 
 def test_extract_trigger_patterns_pulls_comma_clause():
@@ -470,6 +472,13 @@ def test_extract_trigger_patterns_pulls_comma_clause():
 
 def test_extract_trigger_patterns_empty_when_no_trigger_clause():
     assert decide_mod.extract_trigger_patterns("No trigger clause here.") == []
+
+
+def test_extract_trigger_patterns_keeps_a_version_dot_inside_a_name():
+    desc = ('Engine skill. Trigger on /CTO_Flow_Omni1.1_Ops, Seedance 2.5 and "ยิง Flow". '
+            "Do NOT fire for Wan 3.0.")
+    patterns = decide_mod.extract_trigger_patterns(desc)
+    assert patterns == ["/CTO_Flow_Omni1.1_Ops", "Seedance 2.5", "ยิง Flow"]
 
 
 # ── max_state_chars truncation ───────────────────────────────────────────

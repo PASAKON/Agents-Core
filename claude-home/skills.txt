@@ -1,5 +1,5 @@
 # name	target   ($PROJECTS=/Users/gob/Projects, $HOME, $SRC=claude-home/). This is the MAP: no row = no link; a real dir with no row = UNMAPPED drift.
-# rows 1-33 = the symlinks that already existed 2026-09-22; the rest = what scripts/claude_home_migrate.py moves into the repo.
+# rows 1-33 = the symlinks that already existed 2026-09-22 (plus CTO_Story_ThaiMoralDrama, added 2026-09-25 beside thai-moral-drama, its new name); the rest = what scripts/claude_home_migrate.py moves into the repo.
 blackliquidity-cut	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/blackliquidity-cut
 blue-ocean-strategy	/Users/gob/MoonieXHQ/External/wondelai-skills/blue-ocean-strategy
 browser-operator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/browser-operator
@@ -30,6 +30,7 @@ remotion-to-hyperframes	$HOME/.agents/skills/remotion-to-hyperframes
 scrutinize	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/scrutinize
 seedance-scene-prompt	/Users/gob/MoonieXHQ/Agents/Skills/seedance-scene-prompt
 thai-moral-drama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/thai-moral-drama
+CTO_Story_ThaiMoralDrama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CTO_Story_ThaiMoralDrama
 tig-scene-engine	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/tig-scene-engine
 video-use	$HOME/Developer/video-use
 website-to-hyperframes	$HOME/.agents/skills/website-to-hyperframes

@@ -38,6 +38,7 @@ the `owner_cto` stamp. See the task's final report for the itemized list.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from dataclasses import dataclass
@@ -52,6 +53,7 @@ from lib import toon
 from lib.config import get_project, projects
 from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
+from tools import ask_run as ask_run_tool
 from tools import decide as decide_tool
 from tools import wiki as wiki_tools
 from tools.inject_prompt import _build_task_md, _write_task_md
@@ -299,6 +301,32 @@ def _h_send_media_batch_to_ceo(*, paths: str, caption: str = "") -> dict:
 def _h_decide(*, site: str, state: str, provider: str = "") -> dict:
     d = decide_tool.decide(site, state, provider=(provider.strip() or None))
     return d.to_dict()
+
+
+# Run Inbox (docs/design/run-inbox/DESIGN.md §6, §13). The checks, the token
+# and the HTTP calls all live in tools/ask_run.py, the same code the CLI runs;
+# these handlers only move the blocking call off the server's event loop.
+async def _h_ask_run(*, host: str, why: str, script: str = "", args: list[str] | None = None,
+                     command: str = "", expected: str = "", risk: str = "amber",
+                     timeout_s: int = 300, expects_input: bool = False, shell: str = "",
+                     cwd: str = "", env_keys: list[str] | None = None, session: str = "",
+                     role: str = "", task: str = "", dry_run: bool = False) -> str:
+    arguments = {
+        "host": host, "why": why, "script": script, "args": args, "command": command,
+        "expected": expected, "risk": risk, "timeout_s": timeout_s,
+        "expects_input": expects_input, "shell": shell, "cwd": cwd, "env_keys": env_keys,
+        "session": session, "role": role, "task": task, "dry_run": dry_run,
+    }
+    result = await asyncio.to_thread(ask_run_tool.mcp_ask, arguments)
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
+async def _h_ask_run_wait(*, id: str, max_wait_s: float = 600.0, interval_s: float = 5.0,
+                          tail_lines: int = 40) -> str:
+    result = await asyncio.to_thread(
+        ask_run_tool.wait_result, id, max_wait_s=max_wait_s, interval_s=interval_s,
+        tail_lines_n=tail_lines)
+    return json.dumps(result, indent=2, ensure_ascii=False)
 
 
 REGISTRY: tuple[ToolSpec, ...] = (
@@ -653,6 +681,51 @@ REGISTRY: tuple[ToolSpec, ...] = (
         ),
         handler=_h_decide,
         response_format="toon",
+    ),
+    ToolSpec(
+        name="ask_run",
+        description=(
+            "Ask the CEO to run one command on a host via the Run Inbox (a card on "
+            "his phone). The CEO's tap is the only authority; the tool never "
+            "approves.\n\n"
+            "Workers send script='repo@sha:path' at a pushed commit (+ args); "
+            "command='...' is for C-level roles only (policies/agents.yaml "
+            "c_level). A secret-shaped value anywhere in the ask is refused before "
+            "anything is sent; name an env var instead ($NAME, env_keys). "
+            "session/role/task default to this session's env. Returns {id, url, "
+            "risk, expires_at} at once; dry_run=True returns the JSON body and "
+            "sends nothing. Same code as tools/ask_run.py "
+            "(docs/design/run-inbox/DESIGN.md §13)."
+        ),
+        params=(
+            Param("host", str), Param("why", str), Param("script", str, ""),
+            Param("args", list[str], None), Param("command", str, ""),
+            Param("expected", str, ""), Param("risk", str, "amber"),
+            Param("timeout_s", int, 300), Param("expects_input", bool, False),
+            Param("shell", str, ""), Param("cwd", str, ""),
+            Param("env_keys", list[str], None), Param("session", str, ""),
+            Param("role", str, ""), Param("task", str, ""), Param("dry_run", bool, False),
+        ),
+        handler=_h_ask_run,
+        is_async=True,
+        response_format="text",
+    ),
+    ToolSpec(
+        name="ask_run_wait",
+        description=(
+            "Wait for a Run Inbox ask to end (polls every 5 s) and return its "
+            "record: terminal=true once it is done/failed/denied/expired/"
+            "cancelled, terminal=false if max_wait_s (default 600, max 3600) "
+            "ran out first; then call again. The CEO's tap is the only "
+            "authority; the tool never approves."
+        ),
+        params=(
+            Param("id", str), Param("max_wait_s", float, 600.0),
+            Param("interval_s", float, 5.0), Param("tail_lines", int, 40),
+        ),
+        handler=_h_ask_run_wait,
+        is_async=True,
+        response_format="text",
     ),
 )
 

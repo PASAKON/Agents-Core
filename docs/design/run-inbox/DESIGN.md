@@ -143,11 +143,101 @@ turns the winbox re-OS runbook's human steps into phone taps (Machine Contract, 
 $0 to build (org agents), no new services, no new secrets (the org token for `ask_run` is the one
 the org MCP already carries; peers use their existing peer auth).
 
-## 11. Decisions the CEO owns before P1 starts
+## 11. CEO decisions (answered 2026-09-25 in chat)
 
-1. **Freeform commands:** C-level sessions only, workers = repo scripts only? *(recommended: yes)*
-2. **Notify channel** for "new card": Telegram via SomPong, or LINE? *(open since 2026-09-23)*
-3. **Approval strength:** passkey session for green/amber + fresh Face ID for red? *(recommended)*
-4. **Output retention** on the hub: 30 days, tail only, redacted? *(recommended)*
-5. **Order:** P1 now on Contabo, P2 as soon as the winbox relay-mode Console is up? *(recommended)*
-6. **The tab's name** on the phone: "คำสั่ง" / "Run"?
+1. **Freeform commands: C-level sessions only; workers submit repo scripts only.** ("ตามนั้น")
+2. **Notify channel = EMAIL**, not Telegram (CEO: Telegram notifications are muted; email tags and
+   searches back in time far better). Implementation: the hub sends from the CEO's Gmail
+   (pass.gob1@gmail.com) — one-time consent is a human step (can go through the login relay), the
+   credential lives in the secrets bundle, never in the repo. One thread per card: subject
+   `[RUN][<host>][<risk>] <first line> — RUN-<id>`; the result is sent as a reply in the same
+   thread so Gmail groups them and labels/filters apply retroactively. The new-card mail carries
+   one link straight to the card on `/run`. P3's "SomPong push" is replaced by this.
+3. **Approval strength: passkey session for green/amber, fresh Face ID for red.** ("ตามนั้น")
+4. **Output retention: 30 days, tail only, secrets redacted.** ("ตามนั้น")
+5. **Order approved:** P1 on Contabo now; P2 the moment the winbox relay-mode Console lands. ("OK")
+6. **Mockup approved ("ผ่าน", 2026-09-25)** — tab name as drawn: **"คำสั่ง"**. Canvas (6 screens, tappable
+   flow): https://claude.ai/artifact/GCmexryuJbybMGX2jKg2Gr — source backup in
+   `docs/design/run-inbox/mockup/` (Terminal / Main / Card / Running / ResultOK / ResultFail `.dc.html`).
+   P1 build is GO.
+
+## 12. Navigation between the three surfaces (CEO 2026-09-25, added after the mockup)
+
+The CEO asked for buttons between `terminal.mooniex.com` (sessions), `/relay` (login) and `/run`
+(commands) and a way back, with no URL editing — and warned: thumbs, no small buttons, nothing
+that is not needed, terse copy only.
+
+- **One bottom bar, 3 equal cells, 56 px tall, on the three top-level pages only** (`index.html`,
+  `relay.html`, `run.html`). The whole cell is the button (≈130×56 px, well over the 44 px minimum).
+  Icon 20 px + one word: **Terminal · เข้าระบบ · คำสั่ง**. Active cell in the accent colour; the
+  `คำสั่ง` cell carries the pending-card count as a small badge (from `GET /api/run/asks?status=pending`,
+  polled every 30 s; hidden when 0). Bottom placement = the thumb zone on a phone; `env(safe-area-inset-bottom)`
+  padding like the relay page already uses.
+- **Back inside a surface = the page's own top-left 44 px arrow** (card → inbox, relay flow → target
+  list). Between surfaces there is no separate back button: tapping another cell IS the way back, so
+  nothing extra is added.
+- **Shared partial, not three copies:** `public/js/nav.js` + a block in `public/css/console.css`
+  render the bar from one place; each page includes one `<script src="/js/nav.js" data-active="run">`
+  line. No new dependencies, no framework.
+- The terminal page keeps its full screen; the bar takes 56 px and sits above the phone keyboard
+  when it is open. If the CEO finds it in the way there, the fallback is a bar that hides while the
+  terminal has focus — not in P1 unless asked.
+- Words on the bar and on cards stay one or two words; no explanatory text anywhere on the phone
+  pages except the plain-Thai failure reason and the Error ID line (§5).
+
+## 13. Requester CLI
+
+`tools/ask_run.py` (stdlib only, runs on any box's `python3`). Every C-level session also has
+`mcp__org__ask_run` / `mcp__org__ask_run_wait` from the org MCP server (`lib/org_tools_registry.py`,
+served by `runners/cto_mcp_server.py`). They run the same code, and the launchers pre-approve them
+because the org allowlist is built from that registry. Hub = `RUN_INBOX_URL` (default
+`https://terminal.mooniex.com`). Token = `RUN_INBOX_TOKEN`, else `~/.config/mooniex/run-inbox.token`.
+The file must be 0600 and is refused if other users can read it. The token is never printed, and
+redirects are refused, so it only goes to the hub. Nothing here approves: the CEO's tap is the
+only authority.
+
+**A worker asks to run a committed script.** Workers can only ask for scripts:
+
+    git push origin HEAD            # the executor fetches that sha from origin
+    python3 tools/ask_run.py create --host contabo \
+        --script Agents-Core@9df4e185:scripts/contabo_blueprint.sh \
+        --why "weekly capture" --expected "prints state/contabo-blueprint-<date>/" --risk green
+    RUN-20260925-1612-ab12
+    https://terminal.mooniex.com/run#RUN-20260925-1612-ab12
+    python3 tools/ask_run.py wait RUN-20260925-1612-ab12
+
+Script arguments go last, after `--`, for example `--script repo@sha:path -- --quick "two words"`.
+
+**A C-level session asks for a freeform command.** `--command` is refused for any role outside
+`c_level` in `policies/agents.yaml` (today ceo, cto, cmo, cgo, cfo). The CLI and MCP tools refuse
+first, then the hub (403 `freeform_needs_c_level`). A process with `WORKER_TASK_ID` set cannot
+claim a C-level role:
+
+    python3 tools/ask_run.py create --host contabo --command "systemctl restart mooniex-console" \
+        --why "pick up the new env key" --expected "active (running)"
+
+`--dry-run` prints the JSON body and sends nothing. It needs no token. Other flags: `--timeout`
+(run seconds, default 300), `--expects-input`, `--shell`, `--cwd`, `--env-key NAME` (repeatable,
+names only), `--task`, `--session`, `--role`.
+
+**Refused before anything is sent (exit 2).** The CLI refuses an ask with a secret-shaped value in
+any field. That covers the key family of `scripts/contabo_blueprint.sh`'s final pass (a
+token/secret/password/api_key/private_key/client_secret/access_key key given a literal value, or a
+`BEGIN … PRIVATE KEY` block) and known token shapes (GitHub, `sk-…`, Slack, AWS, Google, GitLab,
+JWT, `Bearer <literal>`). Name the variable instead. `GH_TOKEN="$GH_TOKEN" ./x.sh` and
+`--env-key GH_TOKEN` both pass. A literal value does not.
+
+**How the requester learns the result:**
+
+1. `wait <id>` polls every 5 s, then prints a status line and the last 40 output lines. Exit codes:
+   0 done · 1 failed, denied, expired or cancelled · 2 refused here · 3 no token or hub error · 4
+   `--max-wait` ran out. The MCP tool `ask_run_wait {id}` returns the same record, with
+   `terminal: false` if `max_wait_s` (default 600) runs out first.
+2. When the card ends, the hub writes `RUN-<id>.json` into `state/inbox/<requester.session>/` on
+   the hub's own machine. `requester.session` is the mailbox name `<role>-<id>` (`cto-6ebacd0e`,
+   `dev-task-8669cf28`). The CLI works it out from the session env the same way
+   `scripts/hook-inbox.py` finds its own mailbox, so that hook picks the letter up on the
+   session's next prompt.
+3. `tail <id>` streams the live output (SSE `state|output|end`) while it runs.
+
+`list [--status pending]` shows only your own asks. `cancel <id>` withdraws your own pending ask.

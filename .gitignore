@@ -85,6 +85,9 @@ worktrees/
 # via symlinks from ~/.claude/skills into here.
 external/
 .env
+# Run Inbox org token (tools/ask_run.py reads ~/.config/mooniex/run-inbox.token):
+# a *.token file is never committed, wherever in the tree it lands.
+*.token
 .DS_Store
 demo-api/
 utils/

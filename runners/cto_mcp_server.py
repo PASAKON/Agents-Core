@@ -219,6 +219,43 @@ def decide(site: str, state: str, provider: str = "") -> str:
     return reg.dispatch_sync("decide", site=site, state=state, provider=provider)
 
 
+@mcp.tool(description=reg.BY_NAME["ask_run"].description)
+async def ask_run(
+    host: str,
+    why: str,
+    script: str = "",
+    args: list[str] | None = None,
+    command: str = "",
+    expected: str = "",
+    risk: str = "amber",
+    timeout_s: int = 300,
+    expects_input: bool = False,
+    shell: str = "",
+    cwd: str = "",
+    env_keys: list[str] | None = None,
+    session: str = "",
+    role: str = "",
+    task: str = "",
+    dry_run: bool = False,
+) -> str:
+    return await reg.dispatch(
+        "ask_run", host=host, why=why, script=script, args=args, command=command,
+        expected=expected, risk=risk, timeout_s=timeout_s, expects_input=expects_input,
+        shell=shell, cwd=cwd, env_keys=env_keys, session=session, role=role, task=task,
+        dry_run=dry_run,
+    )
+
+
+@mcp.tool(description=reg.BY_NAME["ask_run_wait"].description)
+async def ask_run_wait(
+    id: str, max_wait_s: float = 600.0, interval_s: float = 5.0, tail_lines: int = 40,
+) -> str:
+    return await reg.dispatch(
+        "ask_run_wait", id=id, max_wait_s=max_wait_s, interval_s=interval_s,
+        tail_lines=tail_lines,
+    )
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()
