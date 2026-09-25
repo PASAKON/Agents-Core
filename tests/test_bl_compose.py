@@ -848,8 +848,11 @@ def test_emit_pieces_ff_beat_inside_avatar_window_renders_clean(generator_dir_sh
 # ═══════════════════════════════════════════════════════════════════
 
 _SCRIPT_TSV = (
-    "1\tHOOK-1\tline one text\t\tshow\tnote one\n"
-    "2\tSUMMARY-1\tline two text\t\tshow\tnote two\n"
+    # real shape (verified against the actual fixture, task-9a4f1029): NO
+    # leading line-number column -- tag is column 0, and "line n" is the
+    # row's own 1-based position, counting non-blank rows.
+    "HOOK-1\tline one text\t\tshow\tnote one\n"
+    "SUMMARY-1\tline two text\t\tshow\tnote two\n"
 )
 
 

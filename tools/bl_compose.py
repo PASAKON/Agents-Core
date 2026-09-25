@@ -125,22 +125,23 @@ def load_script_line_map(generator_dir: Path) -> dict[str, int]:
     """tag -> 1-based script line number, from the generator-dir's own
     SCRIPT.tsv (fixture-full stages one; the older 30.78s fixture does not
     -- an empty map there just means default_kin_broll() has nothing to
-    default from, never an error)."""
+    default from, never an error). SCRIPT.tsv has NO line-number column of
+    its own (confirmed against the real fixture, task-9a4f1029): each row
+    is `tag \t Thai caption \t shot basename \t category \t note`, and
+    "line n" (SKILL.md, the brief's "line n <-> S{n:02d}.mp4") means the
+    row's own 1-based POSITION in the file, counting only non-blank rows."""
     script_path = generator_dir / "SCRIPT.tsv"
     if not script_path.is_file():
         return {}
     mapping: dict[str, int] = {}
+    n = 0
     for line in script_path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
-        cols = line.split("\t")
-        if len(cols) < 2:
-            continue
-        try:
-            n = int(cols[0])
-        except ValueError:
-            continue
-        mapping[cols[1]] = n
+        n += 1
+        tag = line.split("\t", 1)[0]
+        if tag:
+            mapping[tag] = n
     return mapping
 
 
