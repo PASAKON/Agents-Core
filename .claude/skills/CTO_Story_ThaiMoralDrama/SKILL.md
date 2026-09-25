@@ -343,8 +343,11 @@ Consequences that bite in practice:
   covered in tally marks "carrying the whole turn with no line of exposition" was
   written into «บัญชี» and had to be thrown out. The marks stayed; the words that
   introduce them are what do the work.
-- **Every number is spoken.** Not shown on a screen, not read off a phone. This
-  is both a story rule and a production rule — see the Flow constraints below.
+- **Every number is spoken.** Amounts, dates, counts: not shown on a screen, not
+  read off a phone or a note. Not because the model cannot draw them (on Flow it
+  can: `CTO_Flow_Omni1.1_Ops` §Thai text) but because a spoken number cannot warp,
+  cannot be missed by a viewer scrolling with sound on and no attention, and costs
+  nothing to re-fire.
 - **Every step follows from the one before, out loud.** If a character knows
   something, the audience heard how.
 
