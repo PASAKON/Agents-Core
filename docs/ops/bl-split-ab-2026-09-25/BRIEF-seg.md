@@ -53,6 +53,16 @@ what is actually there; the timings do not change between versions):
   (`fixture-full` prints a WARNING naming which), say so in REPORT.md
   rather than falling back to full-frame avatar just because the matte
   isn't there.
+- **FF/COMP avatar windows -- outside these, `bl_compose.py` refuses.**
+  The 3 recorded lipsync takes only cover 3 narrow spans of the
+  153.0333s episode: `lip_a` only for a beat whose `t0` falls in
+  **[0, 14.9)**, `lip_b` only for **[68.3, 82.95)**, `lip_c` only for
+  **[137.16, 152.51)**. An FF or COMP beat whose `t0` falls outside all
+  three has no matching avatar footage -- `bl_compose.py` now refuses it
+  before rendering (naming the beat and the three valid windows) instead
+  of burning a render on it. Plan FF/COMP beats to land inside a window;
+  everywhere else, use EVID (a still, avatar off-screen) or KIN (kinetic
+  text, optionally over a darkened B-roll plate) instead.
 - `index.html` -- the FIXED template (task-1678d38e): one
   `caption(at, out, text)` generator, no per-mode chip/rail/strip, plates
   hold until the next plate starts. `tools/bl_compose.py` builds from this

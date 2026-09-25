@@ -258,6 +258,90 @@ def test_run_checker_fails_when_composition_has_multiple_caption_styles(tmp_path
     assert result["empty_frames"] == []
 
 
+# ────────────────────── 5. kinetic text overflow (task-9a4f1029) ─────────
+
+def _kinetic_call(text, css_class="bl-lg", tag=None):
+    import json as _json
+    call = 'kinetic(760, 0.05, 3.0, [{c:"%s", h:%s}], 0);' % (css_class, _json.dumps(text, ensure_ascii=False))
+    return call + f" // {tag}" if tag else call
+
+
+def test_check_kinetic_overflow_passes_a_short_single_line():
+    # measured off final-arm1.mp4 itself (see this check's own header
+    # comment): "สรุปแบบไม่โลกสวย" rendered at 660px, well under the 720px
+    # safe box, at 82px (.bl-lg).
+    html = _kinetic_call("สรุปแบบไม่โลกสวย")
+    assert ck.check_kinetic_overflow(html) == []
+
+
+def test_check_kinetic_overflow_flags_a_long_unsplit_sentence():
+    # the exact MAIN-4 line from the pilot (task-1a5eb073): fed as ONE
+    # lines[] entry instead of being split, Chrome wrapped it mid-word
+    # ("เช็"/"ก") -- this is the defect the gate exists to catch before a
+    # render ever runs.
+    html = _kinetic_call("เช็กต่อว่ามีใบอนุญาตซื้อขายฟอเร็กซ์ไหม", tag="MAIN-4")
+    bad = ck.check_kinetic_overflow(html)
+    assert len(bad) == 1
+    assert "MAIN-4" in bad[0]
+
+
+def test_check_kinetic_overflow_ignores_html_tags_when_measuring():
+    # the highlighted-word wrapper (<span class="n">...</span>) adds no
+    # visible characters -- only the text inside it should count.
+    short = ck.check_kinetic_overflow(_kinetic_call('<span class="n">สั้น</span>'))
+    assert short == []
+
+
+def test_check_kinetic_overflow_prefers_the_trailing_tag_comment():
+    html = _kinetic_call("เช็กต่อว่ามีใบอนุญาตซื้อขายฟอเร็กซ์ไหม", tag="CURIOSITY-3")
+    bad = ck.check_kinetic_overflow(html)
+    assert bad == [b for b in bad if b.startswith("CURIOSITY-3:")]
+
+
+def test_check_kinetic_overflow_falls_back_to_the_line_text_with_no_tag_comment():
+    html = _kinetic_call("เช็กต่อว่ามีใบอนุญาตซื้อขายฟอเร็กซ์ไหม")  # no // TAG
+    bad = ck.check_kinetic_overflow(html)
+    assert len(bad) == 1 and "เช็กต่อ" in bad[0]
+
+
+def test_check_kinetic_overflow_none_when_no_composition_given():
+    assert ck.check_kinetic_overflow(None) == []
+    assert ck.check_kinetic_overflow("") == []
+
+
+def test_check_kinetic_overflow_multiple_lines_in_one_call_each_checked():
+    import json as _json
+    html = ('kinetic(760, 0.05, 3.0, ['
+            '{c:"bl-lg", h:%s}, {c:"bl-lg", h:%s}], 0); // SPLIT-OK'
+            % (_json.dumps("สรุปแบบไม่โลกสวย", ensure_ascii=False),
+               _json.dumps("เช็กต่อว่ามีใบอนุญาตซื้อขายฟอเร็กซ์ไหม", ensure_ascii=False)))
+    bad = ck.check_kinetic_overflow(html)
+    assert len(bad) == 1  # only the second (long) entry overflows
+
+
+def test_run_checker_fails_when_kinetic_line_overflows(tmp_path):
+    video = tmp_path / "clean.mp4"
+    _continuous_video(video, dur=1.0)
+    beats = [_beat("SUMMARY-1", "KIN", {"lines": [["bl-lg", "hi"]]})]
+    html = _kinetic_call("เช็กต่อว่ามีใบอนุญาตซื้อขายฟอเร็กซ์ไหม", tag="SUMMARY-1")
+    result = ck.run_checker(video, beats, composition_html=html)
+    assert result["pass"] is False
+    assert result["kinetic_overflow"]
+
+
+def test_check_kinetic_overflow_flags_the_real_pilot_composition():
+    # task-9a4f1029's own gate criterion, verbatim: this exact file (task-
+    # 1a5eb073's Arm 1 pilot render) must fail. Skips outside Contabo,
+    # where this box-specific media fixture (never in git) doesn't exist.
+    pilot = Path("/opt/MoonieXHQ/Work/bl-split-ep57/arm1/build/index.html")
+    if not pilot.is_file():
+        pytest.skip(f"pilot composition not staged on this box: {pilot}")
+    html = pilot.read_text(encoding="utf-8")
+    bad = ck.check_kinetic_overflow(html)
+    assert bad, "expected the pilot's unsplit kinetic lines to overflow the safe box"
+    assert len(bad) >= 10  # 14 of its 15 kinetic lines measure over -- see RUNLOG.md
+
+
 # ─────────────────────────── runner / CLI ────────────────────────────────
 
 def test_run_checker_pass_true_when_everything_clean(tmp_path):
@@ -267,7 +351,7 @@ def test_run_checker_pass_true_when_everything_clean(tmp_path):
     result = ck.run_checker(video, beats)
     assert result["pass"] is True
     assert result == {"pass": True, "empty_frames": [], "out_of_safe_area": [], "text_over_face": [],
-                       "credit_missing": [], "extra_caption_styles": []}
+                       "credit_missing": [], "extra_caption_styles": [], "kinetic_overflow": []}
 
 
 def test_run_checker_pass_false_when_safe_area_fails(tmp_path):

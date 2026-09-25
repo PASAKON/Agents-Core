@@ -25,6 +25,51 @@ merges, report to the CEO) are separate, future work.
   kind), and its plates hold for their full computed duration regardless
   of the underlying media's own length (SKILL.md §6g, by construction).
 
+**task-9a4f1029 changes** (fixes found by task-1a5eb073's Arm 1 pilot cut of
+EP57 — the first real end-to-end render of `bl_compose.py` against the
+actual fixture, $9.22/45min, "a big win over the old route" but every gap
+below would hit any editor running Arm 2 or a re-run of Arm 1 too):
+- `tools/bl_compose.py`'s KIN mode now defaults a beat with no plate named
+  to its OWN line's scene clip, darkened (`media/broll/S{n:02d}.mp4`, from
+  the generator-dir's own `SCRIPT.tsv` tag→line map) — never the bare kit
+  background. The pilot put 15 of 40 lines on bare background for lack of
+  this (the fixture only had 3 catalogue clips at the time); the CTO has
+  since staged all 40 scene clips. An editor can still name a different
+  plate, or opt out explicitly with a falsy `broll`.
+- `.claude/skills/blackliquidity-cut/template/index.html`'s `kinetic()`
+  now forces `white-space: nowrap` per line (never a mid-word wrap — the
+  render's Chrome has no ICU Thai dictionary, SKILL.md §6b) and shrinks
+  that line's own font-size to fit the safe box, down to a 32px floor,
+  then throws instead of shipping an overflowing or clipped frame. The
+  pilot fed whole unsplit sentences into single `lines[]` entries and
+  Chrome wrapped them mid-syllable ("วิกิ"/"เอฟเอ็กซ์" at 56s, "เช็"/"ก" at
+  67s). `tools/bl_checker.py` gained `check_kinetic_overflow` (an
+  estimate, not a real browser layout — see its own header comment for
+  the calibration) so a beats.json that would overflow fails the checker
+  before a render is even attempted.
+- `tools/bl_compose.py`'s COMP/EVID `spotlight()` call now passes
+  `t1 - SPOTLIGHT_EXIT_LEAD` (0.08s) as its own `out` argument instead of
+  `t1` — assemble.py's own `hide(id, out-0.1)` (off-limits, never edited)
+  combined with `hide()`'s hard-coded 0.18s fade otherwise finishes the
+  fade 0.08s AFTER the plate's own hard cut, leaving a ghost box hanging
+  over the next beat. The pilot's checker found exactly this: 5 empty-
+  frame clusters of ~0.1s, every one an EVID/COMP→KIN cut.
+- `tools/bl_compose.py` now validates an FF/COMP beat's `t0` against the
+  generator's own recorded avatar windows (`lip_offset`/`LIP_DUR` from
+  `build_cut.py`) BEFORE composing, and raises naming the beat and every
+  valid window instead of letting hyperframes fail after a 60s+ render.
+  For EP57's fixture the three windows are `lip_a` **[0, 14.9)**, `lip_b`
+  **[68.3, 82.95)**, `lip_c` **[137.16, 152.51)** — now also spelled out
+  in `BRIEF-arm1.md`/`BRIEF-seg.md`'s own "Source material" list, so an
+  editor plans around them instead of discovering them by a failed render
+  (the pilot's own first draft lost a render this way, 12 beats).
+- `tools/bl_ab_run.py`'s `fixture-full` now stages `media/voice.mp3` from
+  the fixture's own `audio-hq.mp3` — `assemble.py` (off-limits) hardcodes
+  the composed `<audio>` element's `src` to that path regardless of what
+  actually exists, and `fixture-full` never created it (the CTO copied it
+  by hand for the pilot, which then had to patch around the omission
+  per-render instead of once at the fixture).
+
 ## Step 0 recap — what changed before either arm can run
 
 - `.claude/skills/blackliquidity-cut/template/index.html`: one `caption(at,

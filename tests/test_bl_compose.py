@@ -741,10 +741,15 @@ def test_emit_pieces_ff_plate_holds_past_short_lip_media(generator_dir_short_lip
     # still hold the FULL 4.0s until the next beat starts (SKILL.md §6g).
     # The old capped code (`min(dur, LIP_DUR[lipname]-media_start)`) would
     # have truncated data-duration to ~1.0s here, leaving a 3.0s gap.
+    # A2 is KIN, not FF -- it only exists to give A1 an end boundary, and
+    # (task-9a4f1029) an FF/COMP beat at t0=4.0 would itself fall outside
+    # this fixture's own [0, 1.0) avatar window (pick_lip always returns
+    # "lip_a" here, unconditionally) and correctly raise ComposeError; that
+    # check is exercised on its own below, not conflated with this test.
     funcs = bc.load_generator_functions(generator_dir_short_lip)
     beats = [
         {"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "FF", "extra": {"cap": "hi"}},
-        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "FF", "extra": {"cap": "bye"}},
+        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "KIN", "extra": {"lines": [["bl-lg", "bye"]]}},
     ]
     pieces = bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
     ff_plate = next(p for p in pieces["plates"] if "v_a1" in p)
@@ -752,10 +757,11 @@ def test_emit_pieces_ff_plate_holds_past_short_lip_media(generator_dir_short_lip
 
 
 def test_emit_pieces_comp_avatar_holds_past_short_lip_media(generator_dir_short_lip):
+    # A2 is KIN for the same reason as the FF test above -- see its comment.
     funcs = bc.load_generator_functions(generator_dir_short_lip)
     beats = [
         {"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "COMP", "extra": {"img": "real/x.png", "cap": "hi"}},
-        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "FF", "extra": {"cap": "bye"}},
+        {"tag": "A2", "t0": 4.0, "t1": 6.0, "mode": "KIN", "extra": {"lines": [["bl-lg", "bye"]]}},
     ]
     pieces = bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
     avatar_plate = next(p for p in pieces["plates"] if "av_a1" in p)
@@ -779,6 +785,191 @@ def test_emit_pieces_comp_avatar_until_still_shortens_avatar_on_purpose(generato
     img_plate = next(p for p in pieces["plates"] if p.startswith("<img") and "v_a1" in p)
     assert 'data-duration="2.0"' in avatar_plate  # avatar_until ends it early, on purpose
     assert 'data-duration="4.0"' in img_plate     # the base plate still holds the full window
+
+
+# ═══════════════════════════════════════════════════════════════════
+# task-9a4f1029 item 4 -- avatar windows: an FF/COMP beat outside every
+# recorded lipsync window must fail fast and clearly, before any render is
+# attempted, instead of hyperframes' own media_start_out_of_range surfacing
+# after a 60s+ render (task-1a5eb073's pilot). generator_dir_short_lip's
+# own fake pick_lip() always returns "lip_a" with LIP_DUR 1.0s -- a beat at
+# t0=0.5 is inside [0, 1.0), a beat at t0=4.0 is not.
+# ═══════════════════════════════════════════════════════════════════
+
+def test_check_avatar_window_passes_inside_the_window(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    bc.check_avatar_window("A1", "FF", 0.5, "lip_a", funcs)  # must not raise
+
+
+def test_check_avatar_window_raises_outside_the_window(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    with pytest.raises(bc.ComposeError, match=r"lip_a"):
+        bc.check_avatar_window("A1", "FF", 4.0, "lip_a", funcs)
+
+
+def test_check_avatar_window_message_names_the_valid_window(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    with pytest.raises(bc.ComposeError, match=r"\[0, 1\)"):
+        bc.check_avatar_window("A1", "FF", 4.0, "lip_a", funcs)
+
+
+def test_check_avatar_window_skips_when_generator_has_no_lip_dur(generator_dir):
+    # the default fixture's LIP_DUR is 999.0 -- effectively unrestricted --
+    # so nothing outside it here should ever raise for a realistic t0.
+    funcs = bc.load_generator_functions(generator_dir)
+    bc.check_avatar_window("A1", "FF", 500.0, "lip_a", funcs)  # must not raise
+
+
+def test_emit_pieces_ff_beat_outside_avatar_window_raises(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    beats = [{"tag": "DEAD-ZONE", "t0": 4.0, "t1": 6.0, "mode": "FF", "extra": {"cap": "hi"}}]
+    with pytest.raises(bc.ComposeError, match="DEAD-ZONE"):
+        bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
+
+
+def test_emit_pieces_comp_beat_outside_avatar_window_raises(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    beats = [{"tag": "DEAD-ZONE", "t0": 4.0, "t1": 6.0, "mode": "COMP",
+              "extra": {"img": "real/x.png", "cap": "hi"}}]
+    with pytest.raises(bc.ComposeError, match="DEAD-ZONE"):
+        bc.emit_pieces(beats, t_max=6.0, funcs=funcs)
+
+
+def test_emit_pieces_ff_beat_inside_avatar_window_renders_clean(generator_dir_short_lip):
+    funcs = bc.load_generator_functions(generator_dir_short_lip)
+    beats = [{"tag": "A1", "t0": 0.5, "t1": 1.0, "mode": "FF", "extra": {"cap": "hi"}}]
+    pieces = bc.emit_pieces(beats, t_max=1.0, funcs=funcs)  # must not raise
+    assert any("v_a1" in p for p in pieces["plates"])
+
+
+# ═══════════════════════════════════════════════════════════════════
+# task-9a4f1029 item 1 -- a KIN beat with no plate named defaults to its
+# own line's S{n:02d} broll (darkened), never the bare kit background.
+# ═══════════════════════════════════════════════════════════════════
+
+_SCRIPT_TSV = (
+    # real shape (verified against the actual fixture, task-9a4f1029): NO
+    # leading line-number column -- tag is column 0, and "line n" is the
+    # row's own 1-based position, counting non-blank rows.
+    "HOOK-1\tline one text\t\tshow\tnote one\n"
+    "SUMMARY-1\tline two text\t\tshow\tnote two\n"
+)
+
+
+def test_load_script_line_map_reads_tag_to_line_number(generator_dir):
+    (generator_dir / "SCRIPT.tsv").write_text(_SCRIPT_TSV, encoding="utf-8")
+    assert bc.load_script_line_map(generator_dir) == {"HOOK-1": 1, "SUMMARY-1": 2}
+
+
+def test_load_script_line_map_empty_when_no_script_tsv(generator_dir):
+    assert bc.load_script_line_map(generator_dir) == {}
+
+
+def test_default_kin_broll_pads_the_line_number():
+    assert bc.default_kin_broll("SUMMARY-1", {"SUMMARY-1": 2}) == "broll/S02.mp4"
+    assert bc.default_kin_broll("SUMMARY-1", {"SUMMARY-1": 40}) == "broll/S40.mp4"
+
+
+def test_default_kin_broll_none_for_unknown_tag():
+    assert bc.default_kin_broll("NOT-IN-SCRIPT", {"SUMMARY-1": 2}) is None
+
+
+def test_emit_pieces_kin_defaults_to_own_line_broll(generator_dir):
+    (generator_dir / "SCRIPT.tsv").write_text(_SCRIPT_TSV, encoding="utf-8")
+    funcs = bc.load_generator_functions(generator_dir)
+    script_line_map = bc.load_script_line_map(generator_dir)
+    beats = [{"tag": "SUMMARY-1", "t0": 0.0, "t1": 2.0, "mode": "KIN",
+              "extra": {"lines": [["bl-lg", "hi"]]}}]
+    pieces = bc.emit_pieces(beats, t_max=2.0, funcs=funcs, script_line_map=script_line_map)
+    plate = next(p for p in pieces["plates"] if "v_summary1" in p)
+    assert 'src="media/broll/S02.mp4"' in plate
+    assert "plate-darkened" in plate
+
+
+def test_emit_pieces_kin_editor_named_broll_overrides_the_default(generator_dir):
+    (generator_dir / "SCRIPT.tsv").write_text(_SCRIPT_TSV, encoding="utf-8")
+    funcs = bc.load_generator_functions(generator_dir)
+    script_line_map = bc.load_script_line_map(generator_dir)
+    beats = [{"tag": "SUMMARY-1", "t0": 0.0, "t1": 2.0, "mode": "KIN",
+              "extra": {"broll": "S14.mp4", "lines": [["bl-lg", "hi"]]}}]
+    pieces = bc.emit_pieces(beats, t_max=2.0, funcs=funcs, script_line_map=script_line_map)
+    plate = next(p for p in pieces["plates"] if "v_summary1" in p)
+    assert 'src="media/S14.mp4"' in plate  # editor's own choice, not the default S02.mp4
+
+
+def test_emit_pieces_kin_explicit_falsy_broll_opts_out(generator_dir):
+    (generator_dir / "SCRIPT.tsv").write_text(_SCRIPT_TSV, encoding="utf-8")
+    funcs = bc.load_generator_functions(generator_dir)
+    script_line_map = bc.load_script_line_map(generator_dir)
+    beats = [{"tag": "SUMMARY-1", "t0": 0.0, "t1": 2.0, "mode": "KIN",
+              "extra": {"broll": "", "lines": [["bl-lg", "hi"]]}}]
+    pieces = bc.emit_pieces(beats, t_max=2.0, funcs=funcs, script_line_map=script_line_map)
+    assert not any("v_summary1" in p for p in pieces["plates"])  # no plate at all, by choice
+
+
+def test_emit_pieces_kin_no_default_without_script_tsv(generator_dir):
+    # no SCRIPT.tsv staged -> old behaviour: no plate, no crash.
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "SUMMARY-1", "t0": 0.0, "t1": 2.0, "mode": "KIN",
+              "extra": {"lines": [["bl-lg", "hi"]]}}]
+    pieces = bc.emit_pieces(beats, t_max=2.0, funcs=funcs)  # script_line_map omitted entirely
+    assert not any("v_summary1" in p for p in pieces["plates"])
+
+
+def test_compose_wires_script_line_map_automatically(generator_dir, tmp_path):
+    (generator_dir / "SCRIPT.tsv").write_text(_SCRIPT_TSV, encoding="utf-8")
+    beats = [{"tag": "SUMMARY-1", "t0": 0.0, "t1": 2.0, "mode": "KIN",
+              "extra": {"lines": [["bl-lg", "hi"]]}}]
+    out_dir = tmp_path / "out"
+    index_path = bc.compose(beats, generator_dir, t_max=2.0, out_dir=out_dir)
+    html = index_path.read_text(encoding="utf-8")
+    assert 'src="media/broll/S02.mp4"' in html
+
+
+def test_emit_pieces_kin_script_line_comment_names_the_tag(generator_dir):
+    # the trailing `// TAG` comment (task-9a4f1029) lets tools/bl_checker.py
+    # identify which beat a kinetic() call belongs to.
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "SUMMARY-1", "t0": 0.0, "t1": 2.0, "mode": "KIN",
+              "extra": {"lines": [["bl-lg", "hi"]]}}]
+    pieces = bc.emit_pieces(beats, t_max=2.0, funcs=funcs)
+    assert any(line.endswith("// SUMMARY-1") for line in pieces["script_lines"])
+
+
+# ═══════════════════════════════════════════════════════════════════
+# task-9a4f1029 item 3 -- spotlight exits exactly when its plate does.
+# assemble.py's own spotlight() (off-limits) calls hide(id, out-0.1) and
+# hide()'s duration is a hard-coded 0.18s, so the fade actually finishes
+# 0.08s AFTER whatever `out` this tool passes -- SPOTLIGHT_EXIT_LEAD tunes
+# the ARGUMENT so the unmodified formula lands exactly on t1.
+# ═══════════════════════════════════════════════════════════════════
+
+def test_spotlight_exit_lead_is_the_measured_overshoot():
+    # hide()'s own formula (index.html, off-limits): starts at out-0.1,
+    # duration 0.18 -> finishes at out+0.08. Passing t1-LEAD as `out` must
+    # make that finish land exactly on t1.
+    assert bc.SPOTLIGHT_EXIT_LEAD == pytest.approx(0.18 - 0.1)
+
+
+def test_emit_pieces_comp_spotlight_out_arg_leads_t1_by_the_exit_lead(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "COMP",
+              "extra": {"img": "real/x.png", "cap": "hi", "box": [0, 0, 1080, 1920]}}]
+    pieces = bc.emit_pieces(beats, t_max=4.0, funcs=funcs)
+    spotlight_call = next(s for s in pieces["script_lines"] if s.startswith('spotlight("sp_a1"'))
+    # spotlight("sp_a1", <at>, <out>, ...) -- out is the 3rd argument
+    out_arg = float(spotlight_call.split(",")[2].strip())
+    assert out_arg == pytest.approx(4.0 - bc.SPOTLIGHT_EXIT_LEAD)
+
+
+def test_emit_pieces_evid_spotlight_out_arg_leads_t1_by_the_exit_lead(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "A1", "t0": 0.0, "t1": 4.0, "mode": "EVID",
+              "extra": {"img": "real/x.png", "cap": "hi", "box": [0, 0, 1080, 1920]}}]
+    pieces = bc.emit_pieces(beats, t_max=4.0, funcs=funcs)
+    spotlight_call = next(s for s in pieces["script_lines"] if s.startswith('spotlight("sp_a1"'))
+    out_arg = float(spotlight_call.split(",")[2].strip())
+    assert out_arg == pytest.approx(4.0 - bc.SPOTLIGHT_EXIT_LEAD)
 
 
 # ═══════════════════════════════════════════════════════════════════
