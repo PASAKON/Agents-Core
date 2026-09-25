@@ -111,9 +111,11 @@ _META = {
  28: (8, "Medium close-up on the heavy man shouting after her", ["sia_b"], "lan", LANAFT,
       "the heavy man jeers and laughs, shouting after the old woman as she pushes her cart away out "
       "of frame, his mouth twisted in a sneer", ["nosubs"]),
- 29: (8, "Tracking two-shot along the canal path", ["tor_s", "yai_c"], "soi",
+ # 2026-09-25: the first take (the 11-year-old in his school-uniform plate) vanished; every shot with
+ # him in home clothes rendered. Hypothesis n=1: child + school uniform. Home clothes here.
+ 29: (8, "Tracking two-shot along the canal path", ["tor_h", "yai_c"], "soi",
       "hot afternoon, bright sun",
-      "the little boy in his school uniform helps the old woman push her loaded cart along the canal "
+      "the little boy helps the old woman push her loaded cart along the canal "
       "path, cheerful and sweating; she pants but smiles as she answers, the row of electricity "
       "poles running ahead of them", ["nosubs"]),
  30: (8, "Close two-shot on the mat, both faces three-quarters to camera", ["yai_h", "tor_h"], "baan", HOME,
