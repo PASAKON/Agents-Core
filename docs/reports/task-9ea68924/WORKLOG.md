@@ -1,1 +1,5 @@
 2026-09-25T15:47:00Z task started: RTK A/B eval
+2026-09-25T16:14:26Z fixture: arms A/B checked out at 472466a9, sparse (tools scripts tests lib .claude), rtk 0.50.0 installed to tools/rtk_ab/bin/, hook wired in arm B .claude/settings.local.json only
+2026-09-25T16:29:24Z smoke run done: A-0 turns=20 tok=1.76M score=10/10; B-0 turns=42 tok=3.92M score=10/10 but RTK rewrote to bare 'rtk' -> exit 127 on every simple command (not on PATH), agent worked around it via redirection; fixed by prepending tools/rtk_ab/bin to child PATH in run_ab.py; proceeding straight to 3x2 measured (budget: 2 smoke used + 6 measured = 8 cap)
+2026-09-25T16:37:59Z measured pair 1 (i=1, A,B): A-1 tok=1.79M turns=20 score=10/10; B-1 tok=1.22M turns=14 score=10/10 (ratio B/A=0.68, PASS <=0.8)
+2026-09-25T16:37:59Z measured pair 2 (i=2, B,A): B-2 tok=2.10M turns=24 score=10/10; A-2 tok=1.05M turns=12 score=10/10 (ratio B/A=2.00, FAIL, model went down a pytest-discovery rabbit hole in B-2, not an exit-127 issue this time)
