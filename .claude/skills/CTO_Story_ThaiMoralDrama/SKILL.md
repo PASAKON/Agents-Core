@@ -1,19 +1,24 @@
 ---
-name: thai-moral-drama
+name: CTO_Story_ThaiMoralDrama
 description: >
   The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai
   stand-alone moral short films in the ฟ้ามีตา tradition, 8–12 minutes, one
   complete story per episode, made with AI video. Covers the beat structure, the
   rules about who the wrongdoer is and how karma lands, the requirement that the
-  spoken lines alone carry the whole story, and the production constraints that
-  follow from shooting it in Google Flow. Trigger on /thai-moral-drama and
+  spoken lines alone carry the whole story, how dialogue and action lines are
+  written, length, and the Structure gate. Trigger on /CTO_Story_ThaiMoralDrama and
   whenever anyone writes, audits, expands or briefs a story for that page, or
   mentions ฟ้ามีตา, ละครสั้นคุณธรรม, «บัญชี», «เงินที่พ่อตั้งใจหา», or a new
   episode for the ILAG drama channel. Use ALONGSIDE `tig-scene-engine`, which
   owns scene-level structure (Goal/Obstacle/Tactic/Reversal/Value Shift) and is
   never replaced by this file — this one owns the episode shape and the format's
-  promises to the audience. Not for the ILAG festival films (Do Not Disturb,
-  Sorry Sir) — those are a different product with a different channel.
+  promises to the audience. Shooting it in Google Flow is CTO_Flow_Omni1.1_Ops,
+  _Continuity and _FilmQC; the cover is CTO_ChatGPT-Image_LakornCover. Not for the
+  ILAG festival films (Do Not Disturb, Sorry Sir) — those are a different product
+  with a different channel.
+created_by: agent
+author: {role: developer, date: "2026-09-25"}
+audience: [cto, script_writer]
 ---
 
 # ละครสั้นคุณธรรม — the format
