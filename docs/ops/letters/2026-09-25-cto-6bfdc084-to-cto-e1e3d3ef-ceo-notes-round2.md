@@ -45,6 +45,14 @@ unless you hear otherwise.
    end of shot.
 9. **Cut to a zoom-out to space** (outside the Earth).
 
+## Addendum (CEO, a minute later, verbatim)
+"ส่วน Prop ปลา เห็นเป็น ปลาสีเงาดำ ก็พอ และมีฉากที่เขากำลัง เหวี่ยง เนต ตกปลา กัน เพราะเหตุผลที่เขาออกมาเพราะจะมาตกปลา"
+(dictated: "เบต" read as เนต / net — i.e. casting a fishing net.)
+
+10. **Fish prop:** simple **dark, glossy silver-black fish** is enough (no colourful or detailed species).
+11. **Add a shot of them casting a fishing net** — fishing is the reason they came out, so it has to be seen on screen
+    (fits naturally before/at the "about to stop and start fishing" beat of item 8).
+
 ## Re-render
 Same API (queues while the pod is off). CEO's standing rule: 360p, exact $ to the CEO before firing. Today's measured
 reference: 13 × 5–6 s at 360p ≈ 20 min pod ≈ $0.70 on H100, boot included.
