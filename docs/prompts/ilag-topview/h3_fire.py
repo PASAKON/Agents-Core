@@ -1,8 +1,10 @@
 """Fire the P1 main scenes on the MiniMax H3 studio (Mac, over the tailnet) and bring the clips home.
 
 API (MAC CTO 6bfdc084, docs/ops/letters/2026-09-25-cto-6bfdc084-to-cto-e1e3d3ef-h3-render-api.md):
-POST /api/shots/render {name, prompt, duration_s, resolution, aspect} -> {job_id,...}; 409 = no pod ready;
-GET /api/shots/render?id=<job_id> -> {status, error?, files, download_url}.
+POST /api/shots/render {name, prompt, duration_s (4-15), resolution, aspect} -> {job_id, refs, tags, position};
+409 = no pod running (nothing queued); 400 = bad input / unknown @handle / over the 9-image cap.
+GET /api/shots/render?id=<job_id> -> {status: pending|running|done|error|skipped, error?, files, download_url}
+(download_url is RELATIVE to BASE). Live since ComfyRunpod da6116c; docs in the ...-render-api-ready.md letter.
 
 Rules this script enforces:
 - 360p ONLY (CEO 2026-09-25: "ให้ยิงที่ 360p เท่านั้นนะ"); the resolution is not a flag.
@@ -73,12 +75,15 @@ def enqueue(a):
         if code == 409:
             raise SystemExit(f"409 at {s['key']}: no pod ready. Nothing more fired; ask the CEO to open the pod.")
         if code != 200:
-            raise SystemExit(f"{code} at {s['key']}: {resp[:300]}")
+            # a 400 is this shot's own input (unknown @handle, cap, seconds): log it and keep queuing the rest,
+            # or the pod would render a partial batch and switch itself off
+            print(f"REJECTED {s['key']} ({code}): {resp[:300]}")
+            continue
         j = json.loads(resp)
         led[s["key"]] = {"job_id": j["job_id"], "name": s["name"], "queued": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                         "position": j.get("position"), "status": "queued"}
+                         "position": j.get("position"), "refs": j.get("refs"), "status": "queued"}
         save(led)
-        print(f"queued {s['key']} job {j['job_id']} position {j.get('position')}")
+        print(f"queued {s['key']} job {j['job_id']} position {j.get('position')} refs {j.get('refs')}")
 
 
 def collect(a):
@@ -100,7 +105,9 @@ def collect(a):
             take = 1 + sum(1 for f in d.ls(previz) if f["name"].startswith(f"M{int(key[1:])}-H3-take"))
             name = f"M{int(key[1:])}-H3-take{take}.mp4"
             dst = out / name
-            subprocess.run(["curl", "-s", "-m", "600", "-o", str(dst), j["download_url"]], check=True)
+            url = j["download_url"]
+            url = BASE + url if url.startswith("/") else url
+            subprocess.run(["curl", "-s", "-f", "-m", "600", "-o", str(dst), url], check=True)
             info, made = d.upload(dst, name, previz)
             if made:
                 d.append_log("1asL3Woa5f1Lz3qhdHHTRrB-krpSRXDBY", [d.line(
@@ -111,14 +118,31 @@ def collect(a):
         save(led)
 
 
+def wait(a):
+    while True:
+        collect(a)
+        left = [k for k, r in load().items() if r.get("status") not in ("filed", "error", "skipped")]
+        if not left:
+            print("ALL FINISHED")
+            return
+        print(f"waiting on {left}")
+        time.sleep(45)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", type=lambda s: set(s.split(",")), default=None)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--collect", action="store_true")
+    ap.add_argument("--wait", action="store_true", help="collect every 45 s until every shot is filed or failed")
     ap.add_argument("--out", default="/tmp/ilag-h3-previz")
     a = ap.parse_args()
-    collect(a) if a.collect else enqueue(a)
+    if a.wait:
+        wait(a)
+    elif a.collect:
+        collect(a)
+    else:
+        enqueue(a)
 
 
 if __name__ == "__main__":

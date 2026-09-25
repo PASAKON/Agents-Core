@@ -59,8 +59,8 @@ def main():
         up = json.loads(curl("-F", f"file=@{p};type=image/png", f"{BASE}/api/upload"))
         body = {"kind": e["kind"], "name": e["name"], "atId": e["atId"], "notes": e["description"],
                 "refs": [{"id": "r1", "kind": "image", "file": up["file"], "label": "identity"}]}
-        curl("-o", "/dev/null", "-H", "Content-Type: application/json", "-d", json.dumps(body), f"{BASE}/api/entities")
-        # The POST answers with EVERY entity (other people's included): never print or keep that body.
+        curl("-o", "/dev/null", "-H", "Content-Type: application/json", "-d", json.dumps(body), f"{BASE}/api/entities?return=saved")
+        # Even with ?return=saved (live since da6116c) the body is discarded; the POST without it answers with EVERY entity (other people's included): never print or keep that body.
         # Find our row by the upload filename, which only this run knows.
         rows = json.loads(curl(f"{BASE}/api/entities"))
         ent = next((r for r in rows if any(isinstance(x, dict) and x.get("file") == up["file"] for x in r.get("refs", []))), {})
