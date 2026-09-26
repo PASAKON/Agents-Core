@@ -241,17 +241,22 @@ def reconcile(org: Org, dry: bool, mint: str | None) -> list[str]:
         else:
             created = act(f"+ project {name}", lambda n=name, s=slug: org.send(
                 "POST", "/api/v2/workspace",
-                {"projectName": n, "slug": s, "type": "secret-manager"}))
+                {"projectName": n, "slug": s, "type": "secret-manager",
+                 "shouldCreateDefaultEnvs": False}))
             if created:
                 project_ids[name] = created["project"]["id"]
             else:
                 continue  # dry run: nothing more to inspect for a project that does not exist
         pid = project_ids[name]
         have = org.environments(pid)
-        for env_slug, env_id in have.items():
+        for env_slug in have:
             if env_slug not in envs:
-                act(f"- {name}: environment {env_slug}", lambda p=pid, e=env_id: org.send(
-                    "DELETE", f"/api/v1/projects/{p}/environments/{e}", hardDelete="true"))
+                # Never deleted: on 2026-09-26 every DELETE by the setup identity (environment,
+                # hard or soft, even an empty project) answered HTTP 500 on Infisical Cloud.
+                # Projects are created without default environments instead; an extra one
+                # (Agents-Core's `staging`, from the first run) is the CEO's one click in the UI.
+                log.append(f"! {name}: environment {env_slug} is not in the plan, left in place")
+                print(log[-1])
         for env_slug in envs:
             if env_slug not in have:
                 act(f"+ {name}: environment {env_slug}", lambda p=pid, e=env_slug: org.send(

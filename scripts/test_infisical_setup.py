@@ -83,8 +83,9 @@ def make_handler(fake: Fake):
                     for i, x in fake.projects.items()]})
             if method == "POST" and p == "/api/v2/workspace":
                 i = fake.nid("proj")
+                defaults = () if b.get("shouldCreateDefaultEnvs") is False else ("dev", "staging", "prod")
                 fake.projects[i] = {"name": b["projectName"], "slug": b["slug"],
-                                    "envs": {e: fake.nid("env") for e in ("dev", "staging", "prod")},
+                                    "envs": {e: fake.nid("env") for e in defaults},
                                     "folders": {}, "users": set(), "idents": {"setup": ["admin"]}}
                 return self.reply(200, {"project": {"id": i, "slug": b["slug"]}})
             m = re.fullmatch(r"/api/v1/projects/([^/]+)", p)
@@ -94,8 +95,9 @@ def make_handler(fake: Fake):
                     {"slug": s, "name": s, "id": e} for s, e in x["envs"].items()]}})
             m = re.fullmatch(r"/api/v1/projects/([^/]+)/environments/([^/]+)", p)
             if method == "DELETE" and m:
-                assert q.get("hardDelete") == "true"
-                envs = fake.projects[m[1]]["envs"]
+                # the real API answered 500 to every delete on 2026-09-26; the tool must never call it
+                return self.reply(500, {"message": "Something went wrong"})
+                envs = fake.projects[m[1]]["envs"]  # unreachable, kept for the record
                 slug = next(s for s, e in envs.items() if e == m[2])
                 del envs[slug]
                 return self.reply(200, {"message": "ok"})
