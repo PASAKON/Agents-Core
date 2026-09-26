@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import signal
 import socket
 import sys
 import tempfile
@@ -175,7 +176,7 @@ def test_path_outside_staging_root_is_refused(tmp_path):
     outside = tmp_path / "outside.pdf"
     outside.write_bytes(b"x" * 100)
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(outside), "name": "outside.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(outside), "name": "outside.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
     assert "staging root" in result["error"]
     assert outside.exists()  # never staged, never touched
@@ -189,28 +190,38 @@ def test_dotdot_path_is_refused(tmp_path):
     secret.write_bytes(b"x" * 100)
     dotdot_path = str(cfg.staging_root / ".." / ".." / secret_dir.name / "not-yours.pdf")
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": dotdot_path, "name": "x.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": dotdot_path, "name": "x.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
     assert "staging root" in result["error"]
 
 
-def test_symlink_inside_staging_root_resolving_outside_it_is_refused(tmp_path):
+def test_symlink_inside_staging_root_resolving_outside_it_is_refused(monkeypatch, tmp_path):
+    """A symlink AT a valid bare-name location (direct child of the staging
+    root) must still be refused -- the dir_fd + O_NOFOLLOW open fails with
+    ELOOP, so the string-shape check in _validate_bare_child_name() passing
+    is not enough on its own (task-1c07d46b iteration 2 fix)."""
     cfg = _cfg(tmp_path)
     secret = tmp_path / "sompong-env-like-file"
     secret.write_bytes(b"GOOGLE_OAUTH_REFRESH_TOKEN=totally-real-secret")
     link = cfg.staging_root / "looks-like-a-report.pdf"
     link.symlink_to(secret)
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("a symlink's target must never be read/uploaded")
+    monkeypatch.setattr(ilag_sync, "upload", fail_upload)
+
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(link), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(link), "name": "report.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
-    assert "staging root" in result["error"]
+    assert "open" in result["error"]
     assert secret.exists()  # never touched, let alone deleted
+    assert secret.read_bytes() == b"GOOGLE_OAUTH_REFRESH_TOKEN=totally-real-secret"  # untouched
 
 
 def test_relative_path_is_refused(tmp_path):
     cfg = _cfg(tmp_path)
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": "relative/report.pdf", "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": "relative/report.pdf", "name": "report.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
     assert "absolute" in result["error"]
 
@@ -219,8 +230,143 @@ def test_nonexistent_path_is_refused(tmp_path):
     cfg = _cfg(tmp_path)
     missing = cfg.staging_root / "never-written.pdf"
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(missing), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(missing), "name": "report.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
+
+
+def test_subdir_path_is_refused(tmp_path):
+    """`path` naming a file inside a SUBDIRECTORY of the staging root (not
+    a direct child) must be refused -- task-1c07d46b iteration 2 fix point
+    1: only a bare filename directly in the staging root is accepted."""
+    cfg = _cfg(tmp_path)
+    nested_dir = cfg.staging_root / "nested"
+    nested_dir.mkdir()
+    nested = nested_dir / "report.pdf"
+    nested.write_bytes(b"x" * 64)
+    result = broker.handle_request(
+        json.dumps({"op": "share", "path": str(nested), "name": "report.pdf"}).encode(), cfg, os.getuid())
+    assert result["ok"] is False
+    assert "direct child" in result["error"] or "subdirector" in result["error"]
+    assert nested.exists()
+
+
+# --------------------------------------------------------------------------- TOCTOU fix (task-1c07d46b iteration 2, CTO-FEEDBACK.md)
+#
+# These 5 tests each fail against the pre-fix code (resolve-then-later-
+# reopen-by-name): drive_share_broker.py's staging directory is owned by
+# `sompong`, the caller itself, which by CEO ruling may edit its own EA
+# runner -- so a race between checking a path and later re-opening it by
+# name is a real attacker-reachable path to leaking this broker's own Drive
+# OAuth credential (or any other file `shareup` can read). The fix makes
+# the "check" and the "open" the same atomic dir_fd + O_NOFOLLOW syscall.
+
+def test_symlink_swapped_in_between_validate_and_open_is_refused_target_never_read(monkeypatch, tmp_path):
+    """Simulates the actual race: patches os.open() so that, at the exact
+    moment the broker is about to open the staged name (dir_fd-relative,
+    post string-validation), the real staged file is replaced with a
+    symlink to a credential-like file -- exactly what an attacker
+    controlling the staging directory could do in the real race window.
+    The atomic O_NOFOLLOW open must fail (ELOOP), and the secret's content
+    must never be read into an upload."""
+    cfg = _cfg(tmp_path)
+    real_name = "report.pdf"
+    staged = _staged_file(cfg, name=real_name, size=64)
+    secret = tmp_path / "credential-like-file"
+    secret.write_bytes(b"GOOGLE_OAUTH_REFRESH_TOKEN=totally-real-secret")
+
+    real_os_open = os.open
+    swapped = {"done": False}
+
+    def race_open(path, flags, *args, **kwargs):
+        if (not swapped["done"] and path == real_name and kwargs.get("dir_fd") is not None
+                and not (flags & os.O_DIRECTORY)):
+            swapped["done"] = True
+            staged.unlink()
+            staged.symlink_to(secret)
+        return real_os_open(path, flags, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", race_open)
+
+    def fail_upload(*a, **kw):
+        raise AssertionError("the swapped-in symlink's target must never be read/uploaded")
+    monkeypatch.setattr(ilag_sync, "upload", fail_upload)
+
+    result = broker.handle_request(
+        json.dumps({"op": "share", "path": str(staged), "name": real_name}).encode(), cfg, os.getuid())
+
+    assert result["ok"] is False
+    assert swapped["done"], "the race window was never actually exercised by this test"
+    assert secret.read_bytes() == b"GOOGLE_OAUTH_REFRESH_TOKEN=totally-real-secret"
+
+
+def test_hardlinked_staged_file_is_refused(tmp_path):
+    """st_nlink > 1 means the staged name is not the only path to this
+    inode -- another (possibly attacker-created) name could point at the
+    same data. Refused via fstat() on the opened fd (fix point 3)."""
+    cfg = _cfg(tmp_path)
+    staged = _staged_file(cfg, name="report.pdf")
+    os.link(staged, cfg.staging_root / "second-name-same-inode.pdf")
+
+    result = broker.handle_request(
+        json.dumps({"op": "share", "path": str(staged), "name": "report.pdf"}).encode(), cfg, os.getuid())
+
+    assert result["ok"] is False
+    assert "hard link" in result["error"]
+
+
+def test_fifo_staged_path_is_refused_without_hanging(tmp_path):
+    """A FIFO opened for read (without O_NONBLOCK) blocks until a writer
+    shows up -- an attacker could hang the broker's single-threaded accept
+    loop forever. The open must use O_NONBLOCK (fix point 2) so this
+    returns promptly with a refusal instead of hanging; bounded by a
+    SIGALRM so the test fails loudly, not silently, if that regresses."""
+    cfg = _cfg(tmp_path)
+    fifo_path = cfg.staging_root / "sneaky.pdf"
+    os.mkfifo(fifo_path)
+
+    def _on_timeout(signum, frame):  # noqa: ARG001
+        raise TimeoutError("opening the FIFO hung -- O_NONBLOCK is required")
+
+    previous = signal.signal(signal.SIGALRM, _on_timeout)
+    signal.alarm(5)
+    try:
+        result = broker.handle_request(
+            json.dumps({"op": "share", "path": str(fifo_path), "name": "sneaky.pdf"}).encode(), cfg, os.getuid())
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous)
+
+    assert result["ok"] is False
+    assert "regular file" in result["error"]
+
+
+def test_staged_file_owned_by_a_different_uid_is_refused(tmp_path):
+    """The opened fd's st_uid must match the uid that connected over the
+    socket (fix point 3) -- not just "some uid in the allowlist". A file
+    owned by anyone else is refused even though its path/shape are fine."""
+    cfg = _cfg(tmp_path)
+    staged = _staged_file(cfg, name="report.pdf")
+    impersonated_uid = os.getuid() + 999999  # guaranteed not this file's real owner
+
+    result = broker.handle_request(
+        json.dumps({"op": "share", "path": str(staged), "name": "report.pdf"}).encode(),
+        cfg, impersonated_uid)
+
+    assert result["ok"] is False
+    assert "owned" in result["error"]
+    assert staged.exists()  # refused before any upload/delete
+
+
+def test_name_with_slash_is_refused_even_when_path_looks_like_a_direct_child(tmp_path):
+    """The display `name` field with an embedded `/` is refused independent
+    of `path` -- fix point 1 covers `path`'s shape, this covers the
+    separate `name` field the caller also controls."""
+    cfg = _cfg(tmp_path)
+    staged = _staged_file(cfg, name="report.pdf")
+    result = broker.handle_request(
+        json.dumps({"op": "share", "path": str(staged), "name": "nested/report.pdf"}).encode(), cfg, os.getuid())
+    assert result["ok"] is False
+    assert staged.exists()
 
 
 # --------------------------------------------------------------------------- 3. unknown op refused
@@ -235,7 +381,7 @@ def test_op_other_than_share_is_refused(monkeypatch, tmp_path, op):
     monkeypatch.setattr(ilag_sync, "upload", fail_upload)
 
     req = json.dumps({"op": op, "path": str(local), "name": "report.pdf"}).encode()
-    result = broker.handle_request(req, cfg)
+    result = broker.handle_request(req, cfg, os.getuid())
 
     assert result["ok"] is False
     assert "error" in result
@@ -251,7 +397,7 @@ def test_missing_name_is_refused(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "upload", fail_upload)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local)}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local)}).encode(), cfg, os.getuid())
     assert result["ok"] is False
     assert "name" in result["error"]
 
@@ -265,7 +411,7 @@ def test_name_with_path_separator_is_refused(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "upload", fail_upload)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "../escape.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "../escape.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
 
 
@@ -333,7 +479,7 @@ def test_client_supplied_folder_id_in_any_field_is_ignored_not_used(monkeypatch,
         "destination": "STILL-ATTACKER-CONTROLLED",
     }).encode()
 
-    result = broker.handle_request(req, cfg)
+    result = broker.handle_request(req, cfg, os.getuid())
 
     assert result["ok"] is True
     assert seen_folder_ids == [cfg.folder_id]
@@ -353,7 +499,7 @@ def test_upload_always_targets_the_fixed_folder_id(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "upload", fake_upload)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is True
     assert seen_folder_ids == ["THE-ONE-FIXED-FOLDER"]
@@ -368,7 +514,7 @@ def test_permission_body_is_exactly_anyone_reader(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, size=local.stat().st_size, permission_calls=permission_calls)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is True
     assert permission_calls == [{"type": "anyone", "role": "reader"}]
@@ -381,7 +527,7 @@ def test_exactly_one_permission_call_is_made(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, size=local.stat().st_size, permission_calls=permission_calls)
 
     broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert len(permission_calls) == 1
 
@@ -396,7 +542,7 @@ def test_permission_failure_gives_ok_false_and_never_reports_a_link(monkeypatch,
     monkeypatch.setattr(ilag_sync, "api", raise_on_permission)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert "link" not in result
@@ -410,7 +556,7 @@ def test_staged_file_is_deleted_after_a_successful_share(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, size=local.stat().st_size)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is True
     assert not local.exists()
@@ -425,7 +571,7 @@ def test_staged_file_is_deleted_after_upload_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "upload", fail_upload)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert not local.exists()
@@ -441,7 +587,7 @@ def test_staged_file_is_deleted_after_permission_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "api", raise_on_permission)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert not local.exists()
@@ -453,7 +599,7 @@ def test_staged_file_is_deleted_after_verify_failure(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, size=999999999)  # wrong size -> verify fails
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert not local.exists()
@@ -471,7 +617,7 @@ def test_refused_request_before_a_path_is_resolved_never_touches_any_file(monkey
     monkeypatch.setattr(ilag_sync, "upload", fail_upload)
 
     result = broker.handle_request(
-        json.dumps({"op": "list", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "list", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert local.exists()
@@ -485,7 +631,7 @@ def test_verify_fails_on_size_mismatch(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, size=local.stat().st_size + 1)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert "size" in result["error"].lower()
@@ -497,7 +643,7 @@ def test_verify_fails_on_wrong_parent(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, folder_id="SOME-OTHER-FOLDER-ENTIRELY", size=local.stat().st_size)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert "parent" in result["error"].lower()
@@ -509,7 +655,7 @@ def test_verify_fails_when_webviewlink_missing(monkeypatch, tmp_path):
     _ok_drive(monkeypatch, size=local.stat().st_size, link=None)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
 
@@ -529,7 +675,7 @@ def test_verify_fails_when_reread_raises(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "api", flaky_api)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
 
     assert result["ok"] is False
     assert "verif" in result["error"].lower()
@@ -545,7 +691,7 @@ def test_upload_response_missing_id_is_a_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(ilag_sync, "api", fail_api)
 
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(local), "name": "report.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
 
 
@@ -555,7 +701,7 @@ def test_file_over_size_cap_is_refused(tmp_path):
     cfg = _cfg(tmp_path, max_upload_bytes=100)
     big = _staged_file(cfg, size=200)
     result = broker.handle_request(
-        json.dumps({"op": "share", "path": str(big), "name": "big.pdf"}).encode(), cfg)
+        json.dumps({"op": "share", "path": str(big), "name": "big.pdf"}).encode(), cfg, os.getuid())
     assert result["ok"] is False
     assert "too large" in result["error"]
 

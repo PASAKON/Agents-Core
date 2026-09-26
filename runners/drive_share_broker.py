@@ -38,12 +38,41 @@ drive_photo_broker.py's own fixed folders) because its folder id is a
 compile-time-adjacent constant, exactly like theirs, never a request field.
 
 Order of operations for one request, all of it or none of it:
-    upload -> set the anyone/reader permission -> re-read the file fresh
-    (parents AND size) to verify it actually landed, public, in the right
-    place -> return its webViewLink -> delete the staged copy.
+    open (atomically, see below) -> upload -> set the anyone/reader
+    permission -> re-read the file fresh (parents AND size) to verify it
+    actually landed, public, in the right place -> return its webViewLink ->
+    delete the staged copy.
 The staged copy is removed in a `finally` -- on ok:true AND on ok:false --
 so a share request never leaves a second copy of a CEO file sitting on disk
 after the socket round-trip ends, win or lose.
+
+TOCTOU FIX (task-1c07d46b iteration 2, CTO-FEEDBACK.md): the staging
+directory is owned by `sompong` -- the CALLER, not a trusted root process
+(unlike drive_upload_broker.py's root filer or drive_photo_broker.py's
+container outbox) -- and by CEO ruling `sompong` may edit its own runner
+code. A "resolve the path, stat it, then later re-open it by name" flow (the
+sibling brokers' pattern) has a race window between the check and the open:
+the caller can swap the staged file for a symlink to any `shareup`-readable
+file (e.g. this broker's own OAuth credential) in that window, and the
+broker would upload and PUBLICLY share whatever the symlink now points to.
+Closed by making the "check" and the "open" the same atomic syscall:
+    1. `path` must name a bare file directly inside the staging root -- no
+       `/`, no subdirs, no `..`. Checked as a string, before anything is
+       opened.
+    2. Hold a `dir_fd` on the staging root (`os.open(root, O_DIRECTORY)`)
+       and open the file with `os.open(name, O_NOFOLLOW|O_NONBLOCK,
+       dir_fd=root_fd)`. If `name` is (or has become, by the time of this
+       call) a symlink, the open itself fails with ELOOP -- its target is
+       NEVER read. O_NONBLOCK means a FIFO can't hang the broker either.
+    3. Every safety check (`S_ISREG`, `st_nlink == 1` i.e. no hardlink to
+       another file, `st_uid` matches the uid that connected over the
+       socket, size <= cap) is `fstat()` on that OPENED fd, never `stat()`
+       on the path -- nothing can be swapped out from under an already-open
+       fd.
+    4. The upload itself reads from that same fd (copied into a
+       broker-private PrivateTmp file, since ilag_sync.upload() takes a
+       path) -- the attacker-writable staging name is never opened by path
+       a second time. The staged name is unlinked via the same `dir_fd`.
 
 Protocol -- one JSON line in, one JSON line out, over
 DRIVE_SHARE_BROKER_SOCKET_PATH (fixed by contract: /run/mooniex-share-broker/broker.sock):
@@ -112,6 +141,7 @@ import socket
 import stat
 import struct
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
@@ -256,43 +286,72 @@ def redact_result(result: dict, secrets: frozenset[str]) -> dict:
 
 # --------------------------------------------------------------------------- path safety
 
-def resolve_staged_path(path_str: str, staging_root: Path, max_bytes: int) -> tuple[Path | None, str | None]:
-    """(resolved_path, None) if `path_str` is a regular file, at or under
-    `max_bytes`, whose FULLY RESOLVED (symlinks followed) location is inside
-    `staging_root` -- otherwise (None, reason). Identical discipline to the
-    sibling brokers' function of the same name: resolve first, then check,
-    so a symlink inside staging_root pointing outside it (or a `..` segment)
-    is rejected, not followed."""
+def _valid_name(name: object) -> bool:
+    return isinstance(name, str) and bool(name) and "/" not in name and name not in (".", "..")
+
+
+def _validate_bare_child_name(path_str: str, staging_root: Path) -> tuple[str | None, str | None]:
+    """String-shape check only -- no resolve(), no stat(), nothing that
+    could itself become a race window. `path_str`'s directory must equal
+    `staging_root` EXACTLY (as text) and its final component must be a bare
+    filename (no `/`, not `.`/`..`). The actual containment guarantee comes
+    from the dir_fd + O_NOFOLLOW open in _open_and_verify_staged_fd() below,
+    not from this comparison -- this just rejects an obviously wrong shape
+    (a subdirectory, a `..` segment, a relative path) before anything is
+    opened. Returns (bare_name, None) or (None, reason)."""
     if not path_str.startswith("/"):
         return None, "path must be absolute"
 
+    p = Path(path_str)
+    name = p.name
+    if not _valid_name(name):
+        return None, "path must name a plain file, not a directory or '.'/'..'"
+    if str(p.parent) != str(staging_root):
+        return None, "path must be a direct child of the staging root, no subdirectories"
+
+    return name, None
+
+
+def _open_and_verify_staged_fd(name: str, root_fd: int, expected_uid: int,
+                                max_bytes: int) -> tuple[int | None, os.stat_result | None, str | None]:
+    """Atomically open `name` as a direct child of the staging root (via
+    `root_fd`) with O_NOFOLLOW -- the open() call IS the security check, so
+    nothing between "checked" and "used" can swap what gets read. A symlink
+    at `name` (planted before this call, or swapped in during the request)
+    fails the open with ELOOP -- its target is never read. O_NONBLOCK means
+    a FIFO opens immediately (never hangs the broker) and is then rejected
+    by the S_ISREG check below, unread.
+
+    Every check past the open is `fstat()` on the OPENED fd, never `stat()`
+    on the path or name -- what fstat() reports cannot be swapped out from
+    under an already-open fd. Returns (fd, stat, None) on success (caller
+    must close fd) or (None, None, reason) on any rejection (fd already
+    closed)."""
     try:
-        resolved = Path(path_str).resolve(strict=True)
-    except FileNotFoundError:
-        return None, "path does not exist"
+        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=root_fd)
     except OSError as e:
-        return None, f"could not resolve path: {e}"
+        return None, None, f"could not open staged file: {e}"
 
     try:
-        resolved.relative_to(staging_root)
-    except ValueError:
-        return None, "path is outside the staging root"
-
-    try:
-        st = resolved.stat()
+        st = os.fstat(fd)
     except OSError as e:
-        return None, f"could not stat path: {e}"
+        os.close(fd)
+        return None, None, f"could not stat staged file: {e}"
 
     if not stat.S_ISREG(st.st_mode):
-        return None, "path is not a regular file"
+        os.close(fd)
+        return None, None, "staged path is not a regular file"
+    if st.st_nlink != 1:
+        os.close(fd)
+        return None, None, "staged file has more than one hard link"
+    if st.st_uid != expected_uid:
+        os.close(fd)
+        return None, None, "staged file is not owned by the allowed caller"
     if st.st_size > max_bytes:
-        return None, f"file too large ({st.st_size} bytes, cap is {max_bytes})"
+        os.close(fd)
+        return None, None, f"file too large ({st.st_size} bytes, cap is {max_bytes})"
 
-    return resolved, None
-
-
-def _valid_name(name: object) -> bool:
-    return isinstance(name, str) and bool(name) and "/" not in name and name not in (".", "..")
+    return fd, st, None
 
 
 # --------------------------------------------------------------------------- share (upload + permission + verify)
@@ -339,37 +398,69 @@ def verify_shared_file(file_id: str, folder_id: str, expected_size: int) -> tupl
     return info, None
 
 
-def do_share(local_path: Path, name: str, folder_id: str) -> dict:
+def do_share(fd: int, name: str, folder_id: str) -> dict:
+    """Uploads from the ALREADY-OPENED, already-fstat-verified `fd` --
+    never opens `name` by path again. Copies the fd's bytes into a
+    broker-private temp file (the systemd unit sets PrivateTmp=true)
+    because ilag_sync.upload() takes a path; the fd itself is what
+    _open_and_verify_staged_fd() checked, so this copy step touches nothing
+    the caller can still influence."""
+    tmp_path: Path | None = None
     try:
-        res = ilag_sync.upload(local_path, name, folder_id)
-    except Exception:
-        return {"ok": False, "error": "upload to Drive failed"}
+        os.lseek(fd, 0, os.SEEK_SET)
+        tmp_fd, tmp_name = tempfile.mkstemp(prefix="share-broker-")
+        tmp_path = Path(tmp_name)
+        with os.fdopen(tmp_fd, "wb") as tmp:
+            while True:
+                chunk = os.read(fd, 1024 * 1024)
+                if not chunk:
+                    break
+                tmp.write(chunk)
 
-    file_id = res.get("id")
-    if not file_id:
-        return {"ok": False, "error": "upload response was missing a file id"}
+        try:
+            res = ilag_sync.upload(tmp_path, name, folder_id)
+        except Exception:
+            return {"ok": False, "error": "upload to Drive failed"}
 
-    try:
-        set_public_reader_permission(file_id)
-    except Exception:
-        return {"ok": False, "error": "could not set the sharing permission"}
+        file_id = res.get("id")
+        if not file_id:
+            return {"ok": False, "error": "upload response was missing a file id"}
 
-    local_size = local_path.stat().st_size
-    info, err = verify_shared_file(file_id, folder_id, local_size)
-    if err:
-        return {"ok": False, "error": err}
+        try:
+            set_public_reader_permission(file_id)
+        except Exception:
+            return {"ok": False, "error": "could not set the sharing permission"}
 
-    return {"ok": True, "id": file_id, "link": info["webViewLink"]}
+        local_size = tmp_path.stat().st_size
+        info, err = verify_shared_file(file_id, folder_id, local_size)
+        if err:
+            return {"ok": False, "error": err}
+
+        return {"ok": True, "id": file_id, "link": info["webViewLink"]}
+    finally:
+        if tmp_path is not None:
+            try:
+                tmp_path.unlink()
+            except OSError:
+                pass
 
 
-def handle_request(raw: bytes, cfg: BrokerConfig) -> dict:
+def handle_request(raw: bytes, cfg: BrokerConfig, caller_uid: int) -> dict:
     """Pure(ish) dispatcher: parses the one supported request shape and
     calls do_share(). Deliberately reads ONLY "op"/"path"/"name" off the
     parsed object -- any other key (folder_id, parent, destination, ...) is
     never looked at, so a client can put whatever it wants there and it is
-    ignored, not refused-because-seen. The staged file is deleted in a
-    `finally`, on ok:true AND on ok:false alike, once we know which local
-    path (if any) was actually resolved."""
+    ignored, not refused-because-seen.
+
+    `caller_uid` is the uid SO_PEERCRED reported for THIS connection
+    (already checked against the allowlist by handle_connection) -- passed
+    through so the staged file's owner can be checked against the uid that
+    is actually asking for it, not just "some allowed uid" (task-1c07d46b
+    iteration 2 fix).
+
+    The path is opened via a dir_fd held on the staging root, never
+    re-opened by path; the staged name is unlinked via that same dir_fd in
+    a `finally`, on ok:true AND on ok:false alike."""
     try:
         req = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
@@ -384,21 +475,34 @@ def handle_request(raw: bytes, cfg: BrokerConfig) -> dict:
     if not isinstance(path_str, str) or not path_str:
         return {"ok": False, "error": "'path' is required and must be a string"}
 
-    name = req.get("name")
-    if not _valid_name(name):
+    display_name = req.get("name")
+    if not _valid_name(display_name):
         return {"ok": False, "error": "'name' is required and must be a plain filename with no path separators"}
 
-    resolved, err = resolve_staged_path(path_str, cfg.staging_root, cfg.max_upload_bytes)
+    bare_name, err = _validate_bare_child_name(path_str, cfg.staging_root)
     if err:
         return {"ok": False, "error": err}
 
     try:
-        return do_share(resolved, name, cfg.folder_id)
-    finally:
+        root_fd = os.open(str(cfg.staging_root), os.O_RDONLY | os.O_DIRECTORY)
+    except OSError as e:
+        return {"ok": False, "error": f"could not open the staging root: {e}"}
+
+    try:
+        fd, _st, err = _open_and_verify_staged_fd(bare_name, root_fd, caller_uid, cfg.max_upload_bytes)
+        if err:
+            return {"ok": False, "error": err}
+
         try:
-            resolved.unlink()
-        except OSError:
-            pass  # already gone, or never fully ours to remove -- never fail the response over cleanup
+            return do_share(fd, display_name, cfg.folder_id)
+        finally:
+            os.close(fd)
+            try:
+                os.unlink(bare_name, dir_fd=root_fd)
+            except OSError:
+                pass  # already gone, or never fully ours to remove -- never fail the response over cleanup
+    finally:
+        os.close(root_fd)
 
 
 # --------------------------------------------------------------------------- peer identity (SO_PEERCRED)
@@ -465,7 +569,7 @@ def handle_connection(conn: socket.socket, cfg: BrokerConfig, logger: logging.Lo
         _send_json(conn, {"ok": False, "error": str(e)})
         return
 
-    result = handle_request(raw, cfg)
+    result = handle_request(raw, cfg, uid)
     secrets = current_secrets(startup_secrets)
     safe_result = redact_result(result, secrets)
 
