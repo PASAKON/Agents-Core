@@ -55,7 +55,11 @@ import re
 import sys
 from pathlib import Path
 
-CDP_DEFAULT = "http://127.0.0.1:9223"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools import flow_cdp  # noqa: E402
+
+CDP_DEFAULT = flow_cdp.DEFAULT_CDP
 FLOW_HOME = "https://labs.google/fx/th/tools/flow"
 
 MUTE_JS = """
@@ -92,6 +96,7 @@ class FlowUploader:
         self.page = None
 
     def attach(self):
+        flow_cdp.enforce_platform()
         from playwright.sync_api import sync_playwright
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
@@ -252,7 +257,9 @@ class FlowUploader:
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__,
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--cdp-url", default=CDP_DEFAULT)
+    ap.add_argument("--cdp-url", default=None,
+                     help="Flow automation Chrome's CDP endpoint. Defaults to "
+                          "$FLOW_CDP, else the winbox default (tools/flow_cdp.py).")
     ap.add_argument("--project-url", default=None,
                      help="reuse an existing Flow project; omit to create one")
     ap.add_argument("--project-name", default="ตาชั่งของเสี่ย",
@@ -272,7 +279,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: file not found: {file_path}", file=sys.stderr)
         return 2
 
-    uploader = FlowUploader(args.cdp_url)
+    uploader = FlowUploader(flow_cdp.pick_cdp_url(args.cdp_url))
     try:
         uploader.attach()
         if args.dry_run:

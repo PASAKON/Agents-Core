@@ -64,7 +64,11 @@ from pathlib import Path
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-CDP_DEFAULT = "http://127.0.0.1:9224"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools import flow_cdp  # noqa: E402
+
+CDP_DEFAULT = flow_cdp.DEFAULT_CDP
 BASE = "https://www.flowmusic.app"
 COMPOSE_URL = BASE + "/session?t=true"      # "New session" with the Compose panel open
 LIBRARY_URL = BASE + "/library/my-songs"
@@ -291,6 +295,7 @@ class FlowMusicBrowser:
 
     # connection ---------------------------------------------------------------
     def attach(self):
+        flow_cdp.enforce_platform()
         from playwright.sync_api import sync_playwright
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
@@ -740,7 +745,9 @@ def main(argv: list[str] | None = None) -> int:
                          "charge (the old row is kept as ID:attempt-N)")
     ap.add_argument("--appear-timeout-s", type=int, default=240,
                     help="after the click, wait this long on the session page for the song card")
-    ap.add_argument("--cdp-url", default=CDP_DEFAULT)
+    ap.add_argument("--cdp-url", default=None,
+                    help="Flow automation Chrome's CDP endpoint. Defaults to "
+                         "$FLOW_CDP, else the winbox default (tools/flow_cdp.py).")
     ap.add_argument("--timeout-s", type=int, default=RESULT_TIMEOUT_S)
     ap.add_argument("--keep-tab", action="store_true", help="leave the runner's tab open (debugging)")
     ap.add_argument("--debug-net", action="store_true",
@@ -766,7 +773,7 @@ def main(argv: list[str] | None = None) -> int:
 
     ledger_path = Path(args.out) / "ledger.json"
     ledger = load_ledger(ledger_path)
-    browser = FlowMusicBrowser(args.cdp_url, debug_net=args.debug_net)
+    browser = FlowMusicBrowser(flow_cdp.pick_cdp_url(args.cdp_url), debug_net=args.debug_net)
     browser.attach()
     rc = 0
     try:

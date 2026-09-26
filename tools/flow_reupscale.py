@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tools import flow_ledger
+from tools import flow_cdp, flow_ledger
 from tools.flow_shoot import (
     DOWNLOAD_GAP_S,
     FlowBrowser,
@@ -234,6 +234,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--only", required=True)
     ap.add_argument("--max-clips", type=int, default=5)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--cdp-url", default=None,
+                     help="Flow automation Chrome's CDP endpoint. Defaults to "
+                          "$FLOW_CDP, else the winbox default (tools/flow_cdp.py).")
     args = ap.parse_args(argv)
 
     sheet = Path(args.sheet)
@@ -244,7 +247,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest = load_manifest(manifest_path)
     manifest.update({"sheet": str(sheet), "ledger": str(ledger), "dest": str(dest)})
 
-    browser = FlowBrowser()
+    browser = FlowBrowser(cdp_url=flow_cdp.pick_cdp_url(args.cdp_url))
     browser.download_resolution = "1080p"
     # Structural retrieval-only guard: even an accidental future call fails.
     browser.submit = lambda *a, **k: (_ for _ in ()).throw(

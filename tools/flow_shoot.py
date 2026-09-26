@@ -52,11 +52,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from tools import clip_review, flow_ledger  # noqa: E402
+from tools import clip_review, flow_cdp, flow_ledger  # noqa: E402
 from tools import decide as decide_tool  # noqa: E402
 from tools import storage_policy  # noqa: E402
 
-CDP = "http://127.0.0.1:9223"
+CDP = flow_cdp.DEFAULT_CDP
 LOG_PATH = Path("state/banchi/flow_shoot.log")
 POLICY_PATH = Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"
 DOWNLOAD_GAP_S = 8  # brief's rule: never fire two downloads closer than this
@@ -588,6 +588,13 @@ def check_free_space(policy_path: Path = POLICY_PATH, free_bytes_fn=None,
             f"CEO ruling 2026-09-23 / Work/RULES.md rule 9)")
 
 
+def resolve_log_path(ledger_path: Path, log_arg: str | None) -> Path:
+    """--log override, else <ledger dir>/flow_shoot.log — the log sits next
+    to the ledger it describes instead of a hardcoded state/banchi/ path that
+    does not exist for a different production's ledger."""
+    return Path(log_arg) if log_arg else ledger_path.parent / "flow_shoot.log"
+
+
 def _log(msg: str) -> None:
     line = f"{datetime.now().isoformat(timespec='seconds')}  {msg}"
     # The log file is UTF-8, but stdout on Windows defaults to cp1252 and every
@@ -644,6 +651,7 @@ class FlowBrowser:
             self._captured_video_urls.append(response.url)
 
     def attach(self):
+        flow_cdp.enforce_platform()
         from playwright.sync_api import sync_playwright
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
@@ -1522,6 +1530,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     Playwright/CDP connection — nothing else about the CLI changes."""
     sheet_path = Path(args.sheet)
     ledger_path = Path(args.ledger)
+    global LOG_PATH
+    LOG_PATH = resolve_log_path(ledger_path, getattr(args, "log", None))
     try:
         dest = resolve_dest(args.dest)
     except DestForbidden as e:
@@ -1552,14 +1562,16 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     # (structural, not "the control flow happens not to call it").
     browser.dry_run = args.dry_run
     browser.download_resolution = getattr(args, "download_resolution", "1080p")
+    cdp_url = flow_cdp.pick_cdp_url(getattr(args, "cdp_url", None))
+    browser.cdp_url = cdp_url
     spent_this_run = 0
     try:
         try:
             browser.attach()
             browser.mute_all_media()
         except Exception as e:
-            _log(f"cannot attach to Chrome at {CDP}: {e!r}")
-            _log("is scripts/flow/launch-chrome-debug.sh running, "
+            _log(f"cannot attach to Chrome at {cdp_url}: {e!r}")
+            _log("is windows/flow-chrome-debug.cmd running on winbox, "
                  "logged in, with the project tab open?")
             return 1
         _log(f"attached + muted, {len(todo)} row(s) to attempt")
@@ -1780,6 +1792,8 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
 def cmd_pull(args: argparse.Namespace) -> int:
     sheet_path = Path(args.sheet)
     ledger_path = Path(args.ledger)
+    global LOG_PATH
+    LOG_PATH = resolve_log_path(ledger_path, getattr(args, "log", None))
     try:
         dest = resolve_dest(args.dest)
     except DestForbidden as e:
@@ -1797,15 +1811,16 @@ def cmd_pull(args: argparse.Namespace) -> int:
         _log("nothing to pull")
         return 0
 
-    browser = FlowBrowser()
+    cdp_url = flow_cdp.pick_cdp_url(getattr(args, "cdp_url", None))
+    browser = FlowBrowser(cdp_url=cdp_url)
     browser.download_resolution = getattr(args, "download_resolution", "1080p")
     try:
         try:
             browser.attach()
             browser.mute_all_media()
         except Exception as e:
-            _log(f"cannot attach to Chrome at {CDP}: {e!r}")
-            _log("is scripts/flow/launch-chrome-debug.sh running, "
+            _log(f"cannot attach to Chrome at {cdp_url}: {e!r}")
+            _log("is windows/flow-chrome-debug.cmd running on winbox, "
                  "logged in, with the project tab open?")
             return 1
         for n in targets:
@@ -1926,6 +1941,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--project", default=None,
                         help="Project key into config space_check.estimates_gb. "
                              "Falls back to $WORK_PROJECT.")
+    p_run.add_argument("--cdp-url", dest="cdp_url", default=None,
+                        help="Flow automation Chrome's CDP endpoint. Defaults to "
+                             "$FLOW_CDP, else the winbox default (tools/flow_cdp.py).")
+    p_run.add_argument("--log", default=None,
+                        help="Override the log path. Defaults to <ledger dir>/flow_shoot.log.")
     p_run.set_defaults(func=cmd_run)
 
     p_pull = sub.add_parser("pull")
@@ -1951,6 +1971,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_pull.add_argument("--project", default=None,
                          help="Project key into config space_check.estimates_gb. "
                               "Falls back to $WORK_PROJECT.")
+    p_pull.add_argument("--cdp-url", dest="cdp_url", default=None,
+                         help="Flow automation Chrome's CDP endpoint. Defaults to "
+                              "$FLOW_CDP, else the winbox default (tools/flow_cdp.py).")
+    p_pull.add_argument("--log", default=None,
+                         help="Override the log path. Defaults to <ledger dir>/flow_shoot.log.")
     p_pull.set_defaults(func=cmd_pull)
 
     p_status = sub.add_parser("status")
