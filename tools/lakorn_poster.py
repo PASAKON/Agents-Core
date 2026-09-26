@@ -202,6 +202,13 @@ def main() -> int:
     y = args.title_top
     if args.logo:
         logo = logo_from_black(args.logo, 1000, args.logo_h)  # 260 keeps logo+English+airtime inside the 4:5 crop at --title-top 1215
+        # CEO 2026-09-26: the title fills the space it has — not cramped, not too big, not too small.
+        # Approved on taachang: 733x400 at --title-top 1095; the 476x260 default read as too small.
+        if logo.height < 340 and logo.width < 0.6 * W:
+            print(f"WARN: title logo {logo.width}x{logo.height} is small for the biggest element — raise --logo-h "
+                  f"(~400) and lower --title-top so the block still ends above {FEED_BOTTOM}")
+        if logo.width > W - 2 * 60:
+            print(f"WARN: title logo {logo.width} px wide leaves under 60 px each side — lower --logo-h")
         x = (W - logo.width) // 2
         shadow = Image.new("L", canvas.size)
         shadow.paste(logo.getchannel("A"), (x, y + 6))

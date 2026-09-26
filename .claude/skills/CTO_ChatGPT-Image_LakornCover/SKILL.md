@@ -84,9 +84,10 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
    Fix with a same-chat edit, no re-attach:
    `… --out <Work>/logos --name logo-b2 --continue logo-b --prompt "Keep everything the same; remove …"`
 4. **Compose all three** on the same people picture, so the CEO compares logos only:
-   `.venv/bin/python tools/lakorn_poster.py people.png out/poster-logo-a.png --logo logos/logo-a.png --english "…" --tagline "…" --tagline-top --cta "ดูจบในตอนเดียว" --title-top 1215`
-   Add `--scale 0.88–0.94` when a low face would sit under the title. The tool warns when
-   the block leaves the 4:5 feed crop. Look at each poster once, small, before sending.
+   `.venv/bin/python tools/lakorn_poster.py people.png out/poster-logo-a.png --logo logos/logo-a.png --english "…" --tagline "…" --tagline-top --cta "ดูจบในตอนเดียว" --logo-h 400 --title-top 1095`
+   Then size the title to its space (rule 9). Add `--scale 0.88–0.94` when a low face would
+   sit under the title. The tool warns when the block leaves the 4:5 feed crop, when the logo
+   is small, and when it is too wide. Look at each poster once, small, before sending.
 5. **Send the three to the CEO** and file the chosen one (gdrive-filing decides where).
 
 ### Logo prompt template (worked on banchi, 3 of 3 spelled right)
@@ -135,6 +136,23 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 8. The runner's traps (image turn is `section[data-turn]`, first paste can land nothing,
    never click Send twice in a live chat) are fixed in the tool. If it misbehaves, read
    `ledger.json` and use `--recover <name>` before generating again.
+9. **Size the title to the space it has: not cramped, not too big, not too small**
+   (CEO ruling 2026-09-26: "ปรับ ขยาย text ตามพื้นที่ที่มีความเหมาะสมได้ ไม่ชิดขอบเกินไป
+   ไม่ใหญ่เกินไปและไม่เล็กเกินไป"). The logo is the biggest element on the poster, so
+   grow it into the empty space. Do not keep the tool's default size.
+   - **Space:** from where the people fade out down to the 4:5 feed-crop bottom (y 1635).
+     The block may overlap hands, waists and clothes, because the dark halo keeps the
+     letters readable. It never covers a face.
+   - **Not too small:** on 1080×1920 a two-line logo is about 400 px high (`--logo-h 400`).
+     The 260 px default, 476×260 on taachang, left dead space, and the CEO asked for it bigger.
+   - **Not too big:** keep 60 px or more free on each side, and end the block 10–40 px
+     above 1635. The English line and the airtime pill stay whole inside the feed crop.
+   - **How:** raise `--logo-h` and lower `--title-top` by the same amount. Render 2 sizes
+     and put them side by side, small. Pick the largest one that covers no face and
+     triggers no tool WARN.
+   - **Approved:** taachang, `--logo-h 400 --title-top 1095`, logo 733×400, block
+     1095..1624 (`Work/task-c2723478/out/cover/poster-BIG-feedsafe.png`). The variant that
+     filled the space below the feed crop (440 px, ending at 1784) lost to it.
 
 ## Output format (to the CEO)
 
