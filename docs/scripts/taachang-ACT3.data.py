@@ -106,11 +106,11 @@ _META = {
       "sorts them into small piles of ten while the heavy man, heavy-voiced and holding back his "
       "feelings, asks his son to count; his son counts out loud, concentrating", ["nosubs"]),
  # take 1 (the 11-year-old in frame with the heavy man, as in S57) was deleted by Flow. Without him.
- 58: (8, "Medium two-shot around the piles of pebbles on the mat, both faces three-quarters to camera",
-      ["kla_w", "sia_hum"], "baan", HOME,
-      "the boy in the grey T-shirt sets down the last pile of pebbles, looks up at his father and "
-      "states the total in a hard voice, staring at him; the heavy man stares at the piles",
-      ["nosubs"]),
+ # take 2 (the boy + the heavy man, no child) was deleted too. Solo, as every solo shot has passed.
+ 58: (8, "Close-up on the boy in the grey T-shirt alone, kneeling by the piles of pebbles, his face three-quarters to camera",
+      ["kla_w"], "baan", HOME,
+      "the boy in the grey T-shirt sets down the last pile of pebbles on the mat, then looks up at his "
+      "father off-frame and states the total in a hard voice, staring at him", ["nosubs"]),
  59: (8, "Medium two-shot, the woman in the straw hat gasping beside the boy in the grey T-shirt",
       ["kla_w", "pa"], "baan", HOME,
       "the boy in the grey T-shirt works the sum out carefully and says it to the old woman; the "
