@@ -13,7 +13,7 @@ mark keeps its official colours (a challenge requirement), unlike the «Sorry, S
 """
 import argparse, importlib.util
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = 1920, 1080
 HERE = Path(__file__).resolve().parent
@@ -51,6 +51,10 @@ def main():
     ap.add_argument("--subtitle", default="ILAG STUDIO")
     ap.add_argument("--label", default="AI SHORT FILM")
     ap.add_argument("--wm-centre-y", type=float, default=0.61, help="watermark centre as a fraction of the height")
+    # Layouts for the A/B thumbnails (CEO 2026-09-27: three more of the CTO's own design). Fractions of the frame.
+    ap.add_argument("--title-box", default="0.5,0.0875,0.56,0.30", help="title centre x, top, max width, max height")
+    ap.add_argument("--wm-centre-x", type=float, help="watermark centre x; default: 11%% in from the right edge")
+    ap.add_argument("--halo", type=int, default=0, help="dark glow behind the title, px (for a bright picture)")
     ap.add_argument("--out", default="cover.png")
     a = ap.parse_args()
 
@@ -60,14 +64,20 @@ def main():
     img = img.crop(((img.width - W) // 2, (img.height - H) // 2, (img.width - W) // 2 + W, (img.height - H) // 2 + H))
     img = img.convert("RGBA")
 
-    logo = logo_from_black(a.logo, 0.56 * W, 0.30 * H)
-    lx, ly = (W - logo.width) // 2, round(0.0875 * H)
+    tcx, ttop, tw, th = (float(v) for v in a.title_box.split(","))
+    logo = logo_from_black(a.logo, tw * W, th * H)
+    lx, ly = round(tcx * W - logo.width / 2), round(ttop * H)
+    if a.halo:
+        glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        glow.paste((0, 0, 0, 255), (lx, ly), logo.getchannel("A").point(lambda v: min(255, v * 2)))
+        img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(a.halo)))
+        img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(a.halo // 3)))
     img.alpha_composite(logo, (lx, ly))
 
     d = ImageDraw.Draw(img)
     sub = ImageFont.truetype(BOOK, round(0.028 * H))
-    spaced(d, (W / 2, ly + logo.height + round(0.035 * H)), a.subtitle, sub, (200, 208, 210, 255),
-           tracking=round(0.012 * W), anchor_centre=True)
+    spaced(d, (tcx * W, ly + logo.height + round(0.035 * H)), a.subtitle, sub, (200, 208, 210, 255),
+           tracking=round(0.012 * W), anchor_centre=True, shadow=(0, 0, 0, 255) if a.halo else None)
 
     lab = ImageFont.truetype(BOLD, round(0.022 * H * 1.35))
     spaced(d, (round(0.055 * W), round(0.0375 * H)), a.label, lab, (234, 246, 244, 255),
@@ -76,7 +86,8 @@ def main():
     wm = Image.open(a.watermark).convert("RGBA")
     ww = round(0.20 * W)
     wm = wm.resize((ww, round(wm.height * ww / wm.width)), Image.LANCZOS)
-    img.alpha_composite(wm, (W - round(0.11 * W) - ww, round(a.wm_centre_y * H - wm.height / 2)))
+    wx = W - round(0.11 * W) - ww if a.wm_centre_x is None else round(a.wm_centre_x * W - ww / 2)
+    img.alpha_composite(wm, (wx, round(a.wm_centre_y * H - wm.height / 2)))
 
     img.convert("RGB").save(a.out)
     print(a.out, img.size)
