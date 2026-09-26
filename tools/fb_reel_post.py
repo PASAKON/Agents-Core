@@ -619,6 +619,18 @@ class FBReelBrowser:
         """Best-effort read: returns the Page name text shown in the
         "โพสต์ไปยัง" picker, or "" if not found. The caller is what turns this
         into a hard gate (CTO-FEEDBACK-2.md) — this method itself never raises.
+
+        BUG FOUND LIVE 2026-09-26 (task-cfdc75a8, first test-post run): the
+        composer renders the "โพสต์ไปยัง" label TWICE (an outer section
+        heading, then a second inner label right above the actual picker),
+        each followed by a U+200B zero-width space text node before the real
+        Page name. Filtering only the exact string 'โพสต์ไปยัง' left that
+        zero-width space as the first surviving "line", so this returned
+        '\\u200b' instead of the Page name and the hard gate refused a
+        perfectly good composer. Fix: strip U+200B from every line before
+        checking for emptiness, so the blank line is dropped along with both
+        headings and the real name (measured: 'ละครสั้นคุณธรรม by ILAG Studio')
+        is what's left.
         """
         try:
             txt = self.page.evaluate(
@@ -628,11 +640,12 @@ class FBReelBrowser:
                     .find(e => e.children.length === 0 && e.textContent.trim() === 'โพสต์ไปยัง');
                   if (!heading) return '';
                   let node = heading.parentElement;
-                  for (let i = 0; i < 5 && node; i++) {
+                  for (let i = 0; i < 6 && node; i++) {
                     const t = node.innerText || '';
-                    const lines = t.split('\\n').map(s => s.trim()).filter(Boolean);
-                    const cand = lines.find(l => l !== 'โพสต์ไปยัง');
-                    if (cand) return cand;
+                    const lines = t.split('\\n')
+                      .map(s => s.split('\\u200b').join('').trim())
+                      .filter(s => s !== '' && s !== 'โพสต์ไปยัง');
+                    if (lines.length) return lines[0];
                     node = node.parentElement;
                   }
                   return '';
@@ -920,10 +933,21 @@ class FBReelBrowser:
         return "ปักหมุดไว้" in text or "Pinned" in text
 
     def find_more_options_in(self, container):
+        # BUG FOUND LIVE 2026-09-26 (task-cfdc75a8): on a comment posted by
+        # the Page itself, the per-comment menu button is labelled
+        # "แก้ไข หรือ ลบนี้" (Edit or delete this), not a generic
+        # "...เพิ่มเติม" (more options) — that label is only used on OTHER
+        # people's comments. Also search from the whole comment article
+        # (container.closest('[role="article"]')), not just `container`
+        # itself — find_comment_block can return an inner wrapper that does
+        # not include this button, which sits near the author line.
         return container.evaluate_handle(
             """
-            (node) => [...node.querySelectorAll('[aria-label]')]
-              .find(e => /เพิ่มเติม/.test(e.getAttribute('aria-label') || ''))
+            (node) => {
+              const root = (node.closest && node.closest('[role="article"]')) || node;
+              return [...root.querySelectorAll('[aria-label]')]
+                .find(e => /เพิ่มเติม|แก้ไข.*ลบ/.test(e.getAttribute('aria-label') || ''));
+            }
             """
         )
 
@@ -955,6 +979,19 @@ class FBReelBrowser:
                     self.log(f"confirm_dialog_if_present({text!r}) failed: {e}")
 
     def pin_comment(self, container) -> bool:
+        # LIVE FINDING 2026-09-26 (task-cfdc75a8, test post cycle): exhaustively
+        # enumerated every clickable control in the comment's [role="article"]
+        # (5 total: identity badge, this menu button, like, react, reply — no
+        # 6th hidden control) and every menu item this button opens for a
+        # Page-authored comment ("แก้ไข...", "ลบ" — exactly 2, no pin). Also
+        # scanned every aria-label on the film 2 permalink page (0 comments
+        # there) and on Business Suite's home surface: zero matches for
+        # /ปักหมุด/ anywhere. Facebook's Reels comment UI does not currently
+        # expose a pin control for the Page's own comment — this is a real
+        # platform limitation, not a lookup bug. This method still tries the
+        # real click path (in case Facebook adds it back / for a differently
+        # shaped comment), and always closes the menu it opened so a failed
+        # attempt never leaves stray UI state behind.
         more = self.find_more_options_in(container)
         el = more.as_element()
         if el is None:
@@ -962,7 +999,12 @@ class FBReelBrowser:
             return False
         el.click()
         self.page.wait_for_timeout(800)
-        return self.click_menu_item(["ปักหมุดความคิดเห็น", "ปักหมุด"])
+        pinned = self.click_menu_item(["ปักหมุดความคิดเห็น", "ปักหมุด"])
+        if not pinned:
+            self.log("pin_comment: no pin item in this comment's menu (Edit/Delete only) — closing menu")
+            self.page.keyboard.press("Escape")
+            self.page.wait_for_timeout(300)
+        return pinned
 
     def delete_comment(self, container) -> bool:
         more = self.find_more_options_in(container)
@@ -1018,7 +1060,17 @@ def do_first_comment(fb: "FBReelBrowser", permalink: str, comment_text: str, exp
     if not body_contains_text(body_after, comment_text):
         return {"ok": False, "pinned": False, "reason": "comment text not found after submit", "skipped_duplicate": False}
 
-    container = fb.find_comment_block(comment_text)
+    # BUG FOUND LIVE 2026-09-26 (task-cfdc75a8, test post cycle): the comment's
+    # "more options" aria-label control (what find_comment_block anchors on)
+    # is not yet in the DOM immediately after submit — a live recon of the
+    # SAME comment ~1 minute later found it fine. A single lookup right after
+    # posting is a race; retry for a few seconds before giving up.
+    container = None
+    for _attempt in range(4):
+        container = fb.find_comment_block(comment_text)
+        if container is not None:
+            break
+        fb.page.wait_for_timeout(1500)
     if container is None:
         return {
             "ok": False, "pinned": False, "skipped_duplicate": False,
