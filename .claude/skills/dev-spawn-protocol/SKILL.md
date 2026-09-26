@@ -53,6 +53,14 @@ hits them.
 - Call `check_collisions(project, touches)` **before** `create_task` if any other task is in-flight.
 - If overlap → either `depends_on` the blocker or shrink `touches` to be disjoint.
 
+### 2b. The worktree starts from `origin/main`, not local main (rule, 2 runs: ComfyRunpod 2026-09-25, Agents-Core 2026-09-27)
+`tools/worktree.py:create_worktree` branches from `origin/<base>` whenever an origin exists.
+Anything committed on local main but not pushed (a brief, a just-merged tool) is **not in the
+worker's tree**. Right after `delegate_task`, check the files the brief needs:
+`git -C <worktree> merge-base --is-ancestor <local main sha> HEAD`. If they are missing and
+you cannot push, copy only those files in: `git -C <worktree> checkout main -- <paths>`, then
+tell the worker in `CTO-FEEDBACK.md`. Otherwise the worker runs the old tool.
+
 ### 3. Serialize logical conflicts
 - Lock layer ignores `depends_on`. Never pre-queue dependent waves with overlapping touches.
 - One task at a time per overlapping path set.
@@ -327,3 +335,4 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-09-26 [MISSING] §3c — a developer building a Playwright tool on a shared CDP Chrome (:9230) hunted for a UI control with ~30 throwaway exploration scripts; each opened a new tab and none closed it (11 tabs open, CEO: "Worker วนลูป เปิด tab ไม่หยุด"), and it spent 12 screenshots against a budget of 10. A browser brief must say: reuse one tab or close every tab you open in a `finally`; explore by dumping text/aria-labels, not screenshots; exploration is time-boxed (20 min), then report what was tried · evidence: task-cfdc75a8, CDP /json/list 11 pages at 19:0x · status: pending
 - 2026-09-26 [MISSING] §3c.9 — a line sent to a worker pane can land with the footer "Removed 1 invisible character · review and press Enter to send" and sit unsubmitted; one more Enter (or C-m) submits it. Capture the pane after every send and look for that footer as well as text left on the `❯` line · evidence: task-5a0ed790 · status: pending
 - 2026-09-26 [COSTLY] §3c — the brief said "push your agent branch" while the worker's global rules say "never git push". The worker stopped at step 6 of 7 and asked the CTO which one wins, which cost a full round-trip. When a brief needs the worker to push, say so in the brief as an explicit exception to the push rule. Otherwise say "commit only, the CTO merges". · evidence: task-9a33b2a3 · status: pending
+- 2026-09-27 [WRONG] §2 (note 2026-09-22 'a worktree is cut from LOCAL main') — second independent run: task-811dfc2f's worktree HEAD was f2514e79 (origin/main) while local main was 0b27b062, so the brief, caption, comment and the merged tools/fb_reel_post.py (ee811ec0, with --first-comment-file) were all absent and the old tool was in place. Caught 20 s after spawn; fixed with `git -C <wt> checkout main -- <4 paths>` + CTO-FEEDBACK.md · evidence: task-811dfc2f · status: promoted to §2b (2 runs agree with the 2026-09-25 note)
