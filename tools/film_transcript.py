@@ -107,20 +107,43 @@ def main() -> int:
         print("no shot-N.mp4 found in those folders", file=sys.stderr)
         return 1
 
+    from faster_whisper.audio import decode_audio
     model = WhisperModel(args.model, device="cpu", compute_type="int8")
     rows = []
+    foreign = []
     for n, f in clips:
         segs, _info = model.transcribe(str(f), language=args.lang, vad_filter=True)
         heard = [(s.start, s.end, s.text.strip()) for s in segs]
+        # Forcing --lang hides a line spoken in ANOTHER language: whisper spells English
+        # in Thai letters and it reads as "slightly garbled Thai". 2026-09-26: taachang
+        # S75 said "Be careful not to slip, son." / "I won, Grandma!" and this tool showed
+        # «ระวังไม่ต้องสลิบสัน» — the CEO heard English. So every segment's language is
+        # detected on its own slice of audio, and a foreign one is transcribed in its own
+        # language and flagged.
+        audio = decode_audio(str(f), sampling_rate=16000)
+        langs = []
+        for i, (t0, t1, text) in enumerate(heard):
+            sl = audio[int(t0 * 16000): int(t1 * 16000)]
+            lang = args.lang
+            if len(sl) >= 16000 * 0.4:
+                lang, prob, _ = model.detect_language(sl)
+                if lang != args.lang and prob >= 0.5:
+                    real, _ = model.transcribe(sl, language=lang, vad_filter=False)
+                    text = " ".join(x.text.strip() for x in real)
+                    heard[i] = (t0, t1, text)
+                    foreign.append((n, round(t0, 2), lang, text))
+                else:
+                    lang = args.lang
+            langs.append(lang)
         want = script.get(n, [])
         for i, (t0, t1, text) in enumerate(heard):
             line = want[i][1] if i < len(want) else ""
             who = want[i][0] if i < len(want) else ""
             sim = similarity(text, line) if line else 0.0
-            rows.append((n, round(t0, 2), round(t1, 2), text, who, line, round(sim, 2)))
+            rows.append((n, round(t0, 2), round(t1, 2), text, who, line, round(sim, 2), langs[i]))
         # a scripted line with nothing heard for it is its own finding
         for i in range(len(heard), len(want)):
-            rows.append((n, "", "", "(ไม่ได้ยิน)", want[i][0], want[i][1], 0.0))
+            rows.append((n, "", "", "(ไม่ได้ยิน)", want[i][0], want[i][1], 0.0, ""))
         extra = len(heard) - len(want)
         flag = ""
         if extra > 0:
@@ -128,13 +151,21 @@ def main() -> int:
         elif extra < 0:
             flag = f"  ⚠️ ขาด {-extra} บรรทัด"
         print(f"ฉาก {n:>3}: {len(heard)} ช่วง / บท {len(want)} บรรทัด{flag}")
-        for t0, t1, text in heard:
-            print(f"        {t0:6.2f}–{t1:6.2f}  «{text}»")
+        for (t0, t1, text), lg in zip(heard, langs):
+            mark = "" if lg == args.lang else f"  ⚠️ ภาษา {lg}"
+            print(f"        {t0:6.2f}–{t1:6.2f}  «{text}»{mark}")
+
+    if foreign:
+        print(f"\n⚠️ พูดภาษาอื่นที่ไม่ใช่ {args.lang}: {len(foreign)} ช่วง")
+        for n, t0, lg, text in foreign:
+            print(f"   ฉาก {n} @{t0}s [{lg}] «{text}»")
+    else:
+        print(f"\nภาษา: ทุกช่วงเป็น {args.lang} (ตรวจทีละช่วงแล้ว)")
 
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         with open(args.out, "w", encoding="utf-8") as fh:
-            fh.write("shot\tt_start\tt_end\theard\tspeaker\tscripted\tmatch\n")
+            fh.write("shot\tt_start\tt_end\theard\tspeaker\tscripted\tmatch\tlang\n")
             for r in rows:
                 fh.write("\t".join(str(x) for x in r) + "\n")
         print(f"\nเขียน {args.out} ({len(rows)} แถว)")
