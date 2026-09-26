@@ -339,21 +339,19 @@ No subtitles, no captions and no on-screen text of any kind appear anywhere in t
 Medium two-shot, the old woman straightening the little boy's shirt collar, both faces three-quarters to camera. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
 ```
 
-### SHOT 74 · 2:40–2:48 · 8s · Medium two-shot, the little boy holding up a notebook with its pages angled away from camera
-**ATTACH** 1) `@yai__face`→REF_0 · 2) `@baan__inside`→REF_1 · 3) `@notebook`→REF_2 · 4) `@yai__home`→REF_3
+### SHOT 74 · 2:40–2:48 · 8s · Medium shot on the little boy alone, holding up a notebook with its pages angled away from camera
+**ATTACH** 1) `@baan__inside`→REF_0 · 2) `@notebook`→REF_1
 **บทพูด** tor__face `"ยายไม่ต้องหยอดหินแล้วนะครับ ต่อจดให้ยายเอง ต่อเขียนเป็นแล้ว"` — proud, showing off
-**บทพูด** yai__face `"จ้ะ หลานยายเขียนเป็นแล้ว"` — moved, eyes misting
 ```
-Use <IMAGE_REF_0> as the character reference for yai__face. Use <IMAGE_REF_1> as the location reference for baan__inside. Use <IMAGE_REF_2> as the character reference for notebook. Use <IMAGE_REF_3> as the wardrobe reference: The old woman in the purple sarong wears exactly this outfit.
+Use <IMAGE_REF_0> as the location reference for baan__inside. Use <IMAGE_REF_1> as the character reference for notebook.
 
-In the inside of a small, poor corrugated-zinc shack: walls of rusty zinc sheets and rough planks, a bare cracked concrete floor with a thin striped woven plastic mat, no furniture at all, two stacked plastic crates (green on red) used as a shelf, clothes hanging on nails, a rolled-up thin mattress and pillow in the corner, plastic bags of belongings, a small electric fan on the floor, a bare bulb hanging on a wire, daylight coming through gaps in the zinc and a small window over a canal <IMAGE_REF_1>, late afternoon, daylight through the gaps in the zinc. a small Thai boy of eleven with round cheeks and a straight black bowl-cut, in a faded navy T-shirt and khaki shorts, barefoot, a small, thin Thai woman of seventy with sun-darkened, deeply wrinkled skin, kind deep-set eyes and short cropped grey hair, bare-headed, in a faded pink floral short-sleeved blouse and a purple woven Thai sarong, barefoot <IMAGE_REF_0> — the little boy holds up his light-blue notebook to show her, the pages turned away from the camera, proud and showing off; the old woman is moved, her eyes misting.
+In the inside of a small, poor corrugated-zinc shack: walls of rusty zinc sheets and rough planks, a bare cracked concrete floor with a thin striped woven plastic mat, no furniture at all, two stacked plastic crates (green on red) used as a shelf, clothes hanging on nails, a rolled-up thin mattress and pillow in the corner, plastic bags of belongings, a small electric fan on the floor, a bare bulb hanging on a wire, daylight coming through gaps in the zinc and a small window over a canal <IMAGE_REF_0>, late afternoon, daylight through the gaps in the zinc. a small Thai boy of eleven with round cheeks and a straight black bowl-cut, in a faded navy T-shirt and khaki shorts, barefoot — the little boy stands alone in the shack and holds up his light-blue notebook toward someone off-frame, the pages turned away from the camera, proud and showing off.
 
 The little boy in the navy T-shirt speaks Thai in the high, bright voice of an eleven-year-old Thai boy, proud, showing off, and says: "ยายไม่ต้องหยอดหินแล้วนะครับ ต่อจดให้ยายเอง ต่อเขียนเป็นแล้ว"
-The old woman in the purple sarong <IMAGE_REF_0> speaks Thai in the thin, soft, slightly husky voice of a Thai woman of seventy, moved, eyes misting, and says: "จ้ะ หลานยายเขียนเป็นแล้ว"
 
 The face of whoever is speaking stays in frame for the whole line.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
-Medium two-shot, the little boy holding up a notebook with its pages angled away from camera. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
+Medium shot on the little boy alone, holding up a notebook with its pages angled away from camera. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, natural bright daylight, strong expressive acting, faces clearly readable.
 ```
 
 ### SHOT 75 · 2:48–2:56 · 8s · Wide, the old woman and the little boy walking away hand in hand down the canal path

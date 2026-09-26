@@ -173,10 +173,11 @@ _META = {
       ["yai_h", "tor_s"], "baan", HOME,
       "the old woman straightens the collar of the little boy's white shirt and smooths it down, "
       "content and warm; he presses his palms together in a wai to thank her, beaming", ["nosubs"]),
- 74: (8, "Medium two-shot, the little boy holding up a notebook with its pages angled away from camera",
-      ["tor_h", "yai_h"], "baan", HOME,
-      "the little boy holds up his light-blue notebook to show her, the pages turned away from the "
-      "camera, proud and showing off; the old woman is moved, her eyes misting", ["nosubs"]),
+ # deleted 3 times as a two-shot (incl. twice words-only at 720p). CEO: one more try, solo.
+ 74: (8, "Medium shot on the little boy alone, holding up a notebook with its pages angled away from camera",
+      ["tor_h"], "baan", HOME,
+      "the little boy stands alone in the shack and holds up his light-blue notebook toward someone "
+      "off-frame, the pages turned away from the camera, proud and showing off", ["nosubs"]),
  75: (8, "Wide, the old woman and the little boy walking away hand in hand down the canal path",
       ["yai_h", "tor_h"], "soi", SOI,
       # take 1 ("chatting and laughing") invented two ENGLISH lines ("Be careful not to slip, son.",
