@@ -1,0 +1,19 @@
+{
+  "path": "/opt/MoonieXHQ/Work/bl-split-ep57/arm1b/final-arm1b.mp4",
+  "size_bytes": 50159544,
+  "duration_s": 153.0,
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "video_codec": "h264",
+  "audio_codec": "aac",
+  "checker": {
+    "pass": true,
+    "empty_frames": [],
+    "out_of_safe_area": [],
+    "text_over_face": [],
+    "credit_missing": [],
+    "extra_caption_styles": [],
+    "kinetic_overflow": []
+  }
+}
