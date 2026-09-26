@@ -114,3 +114,7 @@ Verdict          : MERGED 🔗  /  REFUSED (<reason>)  /  HOLD (awaiting CEO con
 - **LungNote cross-check is optional and yours, not the script's.** The script has no MCP
   access; if the recap surfaces something LungNote-worthy (an open CEO action-item from A),
   that's a judgment call for you to make here, same discipline as [[session-close]] gate 4.
+
+## Field notes
+- 2026-09-26 [MISSING] §Gates 5 (live rename) — the rename is typed into A's input with `send-keys -l` + Enter, so anything already sitting in A's prompt gets the `/rename …` appended and SUBMITTED as one prompt. On #95cbbb28 the prompt showed "ลบโฟลเดอร์ --help ได้เลย" — a Drive delete — and it was only safe because `capture-pane -e` showed it wrapped in `ESC[2m` (dim): Claude Code's ghost prompt suggestion, not text anyone typed. `C-u`/`C-e C-u` did not change it. Before `--yes` on a live A, capture A's prompt line with `-e`: dim = suggestion, safe; normal weight = a real unsent draft, stop and ask · evidence: merge #95cbbb28→#83a61127 · status: pending
+- 2026-09-26 [MISSING] §1 — "session ค้าง ไม่ตอบ" was not a hang: the CEO's last prompt had been blocked by `scripts/hook-cache-cold-warn.py` (idle 5 h, 845k context), which only prints a notice and waits for the prompt to be re-sent. `tmux capture-pane` of A shows it in one call; do that before diagnosing a stuck session, and carry the blocked prompt forward as A's last unanswered order · evidence: merge #95cbbb28→#83a61127 · status: pending
