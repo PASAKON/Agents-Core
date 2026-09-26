@@ -63,6 +63,13 @@ LOC["baan_out"] = ("@baan__outside",
   "for a door, plastic buckets, plants in old tins, laundry on a wire, a dirt path in front and the "
   "canal beside it")
 
+# The 11-year-old is described in WORDS, with no reference chip (tools/build_shotsheet.py TEXT_ONLY).
+# From ~01:00 on 2026-09-26 Flow deleted every prompt carrying his plates with his face in frame:
+# 57a, 58a, 64 and 360p arms 9064/9164/9074 — 6 of 6. The same S74 and S69 with his chips removed
+# rendered (arms 9274, 9269); S75 with the chips but his back to camera rendered too (9275). Keep
+# him at medium/wide: without the plate his face is only close to the ACT1/ACT2 boy.
+TEXT_ONLY = {"tor_h", "tor_s"}
+
 PROPS_BY_SHOT = {
     54: ["@pickup__empty"], 56: ["@jar__full"], 57: ["@jar__full"],
     62: ["@envelope"], 63: ["@envelope"],
@@ -162,7 +169,7 @@ _META = {
       ["sia_ref", "kla_w"], "lan", LAN,
       "the heavy man puts his hand on his son's shoulder and squeezes it, moved, eyes wet; the boy "
       "answers with a shy smile", ["nosubs"]),
- 73: (8, "Close two-shot, the old woman straightening the little boy's shirt collar, both faces three-quarters to camera",
+ 73: (8, "Medium two-shot, the old woman straightening the little boy's shirt collar, both faces three-quarters to camera",
       ["yai_h", "tor_s"], "baan", HOME,
       "the old woman straightens the collar of the little boy's white shirt and smooths it down, "
       "content and warm; he presses his palms together in a wai to thank her, beaming", ["nosubs"]),

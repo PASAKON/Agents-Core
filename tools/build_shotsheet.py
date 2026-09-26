@@ -92,7 +92,21 @@ def build(d, act: str = "?") -> str:
             if c == "ton" and lockey == "shop":
                 desc += d.APRON
             return desc
-        chips = [(d.CHAR[c][0], full(c)) for c in chars] + [(lochandle, locdesc)]
+        # TEXT_ONLY: characters described in words with NO reference chip. Born
+        # 2026-09-26 (taachang ACT3): Flow started deleting every prompt carrying
+        # the 11-year-old's plates (6 of 6), while the same shots with his chips
+        # removed rendered (360p arms 9274/9269). The default is the empty set on
+        # purpose — a data file that never heard of this means "every character
+        # has a plate", which is exactly the old behaviour, byte for byte.
+        text_only = getattr(d, "TEXT_ONLY", set())
+        chips, charref = [], {}
+        for c in chars:
+            if c in text_only:
+                continue
+            charref[c] = len(chips)
+            chips.append((d.CHAR[c][0], full(c)))
+        locidx = len(chips)
+        chips.append((lochandle, locdesc))
         # Props ride on the shot's own declaration that it contains them: a shot
         # listing NOT["money"] is a shot with banknotes in frame, so it gets the
         # money Element rather than forty words hoping for one. Describing a prop
@@ -128,7 +142,7 @@ def build(d, act: str = "?") -> str:
         # wardrobe plate held his. d.WARDROBE, not getattr: same reason as above.
         worn_by = {}
         for c in chars:
-            if c in d.WARDROBE:
+            if c in d.WARDROBE and c not in text_only:
                 handle = d.WARDROBE[c]
                 worn_by[handle] = c
                 if handle not in [h for h, _ in chips]:
@@ -161,12 +175,12 @@ def build(d, act: str = "?") -> str:
         out.append(" ".join(refs))
         out.append("")
         # the scene, with every block inline
-        who = ", ".join(f"{full(c)} <IMAGE_REF_{i}>" for i, c in enumerate(chars))
-        locref = f"<IMAGE_REF_{len(chars)}>"
+        who = ", ".join(full(c) + (f" <IMAGE_REF_{charref[c]}>" if c in charref else "")
+                        for c in chars)
+        locref = f"<IMAGE_REF_{locidx}>"
         out.append(f"In {locdesc} {locref}, {tod}. {who} — {action}.")
         out.append("")
         for sp, direction, line in lines:
-            idx = chars.index(sp)
             # The voice description is restated on every single line on purpose.
             # A prompt governs only its own shot, so the voice is restated on
             # every line. (An earlier version of this comment claimed Flow cannot
@@ -181,7 +195,8 @@ def build(d, act: str = "?") -> str:
                 raise SystemExit(f"shot {n}: speaker {sp!r} has no VOICE block")
             voice = d.VOICE[sp][1]
             spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
-            out.append(f'{d.CHAR[sp][2]} <IMAGE_REF_{idx}> {spoken}, and says: "{line}"')
+            ref = f" <IMAGE_REF_{charref[sp]}>" if sp in charref else ""
+            out.append(f'{d.CHAR[sp][2]}{ref} {spoken}, and says: "{line}"')
         out.append("")
         out.append("The face of whoever is speaking stays in frame for the whole line.")
         if nots:
