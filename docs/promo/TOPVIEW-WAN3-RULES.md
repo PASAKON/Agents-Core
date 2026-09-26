@@ -78,6 +78,11 @@ licence to judge and promote the challenge; commercial ad use needs separate con
 
 Granted within 2 days of approval, **expire 7 days after grant.**
 
+**2026-09-26 result:** our standard-route application (23 Sep, YouTube ILAG Studio, follow only) was REJECTED by
+email from contest@topview.ai on 24 Sep 14:40: "You did not repost or share the official Topview Wan3 Challenge
+post." The reviewer checks the repost itself; a follow alone fails. On 26 Sep the challenge page read "Credit
+applications closed", so the route cannot be retried. The plugin (+5) is the only free route left.
+
 **CEO 2026-09-23: the 20k route is out.** His large TikTok is a trading
 channel, not ILAG. We are on the standard route (2) plus the plugin (5) at most.
 
