@@ -31,6 +31,10 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 
+# Languages whisper's detector confuses with spoken Thai (measured on taachang ACT1-3,
+# 2026-09-26: 6 Thai lines read vi/zh, none of them foreign).
+THAI_LOOKALIKES = {"vi", "zh", "yue", "lo", "km", "my"}
+
 
 def load_sheet_data(path: Path):
     spec = importlib.util.spec_from_file_location("sheetdata_" + path.stem, path)
@@ -127,7 +131,12 @@ def main() -> int:
             lang = args.lang
             if len(sl) >= 16000 * 0.4:
                 lang, prob, _ = model.detect_language(sl)
-                if lang != args.lang and prob >= 0.5:
+                # Tonal Thai is routinely mis-detected as a neighbour (a Thai line read vi 0.97
+                # on taachang S27; its forced-Thai transcript matched the script word for word),
+                # and transcribing it 'in' that language just TRANSLATES the Thai line into
+                # English. Only a language outside that confusion set counts as foreign.
+                if lang != args.lang and prob >= 0.5 and not (
+                        args.lang == "th" and lang in THAI_LOOKALIKES):
                     real, _ = model.transcribe(sl, language=lang, vad_filter=False)
                     text = " ".join(x.text.strip() for x in real)
                     heard[i] = (t0, t1, text)
