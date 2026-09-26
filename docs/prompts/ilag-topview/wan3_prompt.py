@@ -230,7 +230,9 @@ def render_group(scs, style, gkey=None):
         sec += ["WHAT HAPPENS:\n" + "\n".join(beats),
                 f"Sound in this shot: only the sounds the characters make themselves: {snd}. No music, no ambient sound.",
                 B.GRADE[sc.get("grade_override", sc["grade"])],
-                "Avoid in this shot: " + _inside_shot(sc["crit"]) + "."]
+                # CEO 2026-09-26 ("No Music แบบ Seedance"): the house-negatives wall is dropped for Wan3, so its music
+                # ban is repeated in every shot's own negatives, not only in the sound line.
+                "Avoid in this shot: " + _inside_shot(sc["crit"]) + ", no music, no score, no background music."]
         parts.append("\n".join(sec))
         t = end
     return "\n\n".join(parts), order, total
