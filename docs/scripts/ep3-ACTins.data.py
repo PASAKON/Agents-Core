@@ -16,6 +16,10 @@ Where each one goes in the cut:
                   says "ทุกบ้านช่วยกันเติม" - the two inserts show it instead of only claiming it
   79 after S38  - nobody in frame: floodwater seeps under เฮียกิจ's door toward the hoard he left
                   on the floor (the payoff of S14 and S16); S39 then opens waist-deep
+  80 after S54  - the queue the dialogue only talked about, shown: two neighbours with bowls in
+                  the water, เฮียกิจ wading up to the very end (CEO 2026-09-27: "ฉากที่ชาวบ้าน
+                  มาต่อแถว แล้วคุณพ่อต่อแถวท้ายสุดเลย ... ตัวประกอบ 2-3 คน"). Two extras, not
+                  three, so the frame stays at three people
 Extras never speak. Every Thai line keeps a space between phrases (CEO 2026-09-27).
 """
 import importlib.util
@@ -51,6 +55,9 @@ LOC["kij_seep"] = ("@kij__dry", _a1._KIJ_ROOM + ", the glossy white floor still 
 NOT = dict(_a1.NOT)
 NOT["extrasilent"] = ("Only the woman in the checked apron speaks in this shot. The other person "
    "never says a single word: no lines, no murmur, no reply; they only smile and nod.")
+NOT["kijonly"] = ("Only the stocky man speaks in this shot. The other two people never say a single "
+   "word: no lines, no murmur, no reply; the thin woman only glances back and nods. Exactly three "
+   "people in the whole frame, nobody on the porch, nobody else in the water.")
 NOT["nopeople"] = ("No people appear in this shot at all, not even in the distance or behind the "
    "glass. Nobody speaks: no dialogue, no words, no voices, no narrator; the only sounds are "
    "rain, trickling water and distant thunder.")
@@ -60,6 +67,7 @@ PROPS_BY_SHOT = {79: ["@water_pack"]}
 T2 = _a1.T2
 T3 = "the first day of the flood, afternoon, overcast daylight"
 T3R = "the first day of the flood, late afternoon, grey rainy daylight"
+T5 = "the same day around noon, grey overcast daylight"   # = ACT3 T5, the S54-S55 queue
 
 _NAME = dict(_a1._NAME)
 _NAME.update({"d1": "ชาวบ้านหญิง", "d2": "ชาวบ้านชาย"})
@@ -104,6 +112,17 @@ _META = {
       "flooded lane outside",
       [],
       ["nopeople", "nologo", "nosubs"]),
+ 80: (8, "Medium wide from the water at eye level, the porch steps and the steaming pot in the "
+         "background, the short queue in the foreground",
+      ["kij2", "nb", "d1"], "porch3", T5,
+      "the man in the orange T-shirt and the thin woman in the maroon blouse stand one behind the "
+      "other in waist-deep water in front of the porch steps, each holding an empty bowl in both "
+      "hands, waiting their turn; the stocky man, humbled, head bowed, wades up behind them with "
+      "his own empty bowl and stops at the very end of the queue while he speaks softly to the "
+      "thin woman in front of him; she glances back over her shoulder and nods without a word",
+      [("kij2", "humbled and quiet, eyes down",
+        "ขอต่อท้ายนะครับป้า ผมไม่แซงใครแล้ว ใครลำบากก่อน ได้กินก่อน ผมยืนตรงนี้แหละครับ")],
+      ["kijonly", "nologo", "nocash", "nosubs"]),
 }
 
 SHOTS = [(n, secs, framing, chars, loc, tod, action, spoken, nots)

@@ -10,7 +10,7 @@ The CTO has audited the film and written the caption.
 
 | what | path |
 |---|---|
-| video (1080×1920, ~10:18) | `/Users/gob/Desktop/ep3-FINAL/ep3-FINAL.mp4` |
+| video (1080×1920, ~10:26, 78 shots) | `/Users/gob/Desktop/ep3-FINAL/ep3-FINAL.mp4` |
 | cover | `/Users/gob/Desktop/ep3-cover/poster-c-rain.png` |
 | caption | `docs/scripts/ep3-reels-caption.txt` |
 | first comment | `docs/scripts/ep3-first-comment.txt` |

@@ -1,11 +1,10 @@
 # «บัญชี» — องก์ ins
-<!-- lint: min_spoken=0.70 max_silent_run=1 (CEO 2026-09-27: S79 ฉากเปลี่ยนผ่านน้ำซึมเข้าบ้าน ไม่มีคน ไม่มีบท อนุมัติ "อณุมติให้ยิง 4 ฉาก"; ในหนังเต็ม S79 ตามด้วย S39 ที่มีบท) -->
 
 **สร้างจาก `docs/scripts/banchi-ACTins.data.py` ด้วย `tools/build_shotsheet.py` — ห้ามแก้ไฟล์นี้ตรงๆ แก้ที่ data แล้ว build ใหม่**
 
 Omni 1.1 Flash · 9:16 · 720p (ทดสอบ 360p) · โหมด `องค์ประกอบ` · x1
 
-**4 ช็อต · 32 วินาที = 0:32 · ~48 เครดิต ที่ 720p**
+**5 ช็อต · 40 วินาที = 0:40 · ~60 เครดิต ที่ 720p**
 
 ## กฎที่ไฟล์นี้ถูกสร้างมาให้เชื่อฟัง
 
@@ -74,4 +73,19 @@ In the ground floor of a new two-storey modern townhouse: glossy white marble-lo
 The face of whoever is speaking stays in frame for the whole line.
 No people appear in this shot at all, not even in the distance or behind the glass. Nobody speaks: no dialogue, no words, no voices, no narrator; the only sounds are rain, trickling water and distant thunder. Every package, carton, bottle, sachet and shelf is plain and unprinted: no brand names, no logos, no store name, no price tags and no readable text anywhere. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
 Low static shot at floor level from inside the room toward the shut glass front door, the stacked water packs and cartons in the foreground. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, soft natural daylight in a flooded Bangkok neighbourhood, strong expressive acting, faces clearly readable.
+```
+
+### SHOT 80 · 0:32–0:40 · 8s · Medium wide from the water at eye level, the porch steps and the steaming pot in the background, the short queue in the foreground
+**ATTACH** 1) `@kij__face`→REF_0 · 2) `@neighbour__work`→REF_1 · 3) `@donor1__work`→REF_2 · 4) `@porch__kitchen`→REF_3 · 5) `@kij__day2`→REF_4
+**บทพูด** kij__face `"ขอต่อท้ายนะครับป้า ผมไม่แซงใครแล้ว ใครลำบากก่อน ได้กินก่อน ผมยืนตรงนี้แหละครับ"` — humbled and quiet, eyes down
+```
+Use <IMAGE_REF_0> as the character reference for kij__face. Use <IMAGE_REF_1> as the character reference for neighbour__work. Use <IMAGE_REF_2> as the character reference for donor1__work. Use <IMAGE_REF_3> as the location reference for porch__kitchen. Use <IMAGE_REF_4> as the wardrobe reference: The stocky man in the pale-blue vest wears exactly this outfit.
+
+In the raised wooden porch of an old wooden row-house in a Bangkok lane, set up as a shared community kitchen: a long wooden table with a two-burner gas stove on a hose to a plain unmarked grey gas cylinder, a very large dented aluminium cooking pot, stacks of plastic and enamel bowls, a ladle, a wooden bench, a high wooden shelf on the wall holding plain white rice sacks and plain unlabelled cans, potted plants along the porch edge and wooden steps going down to the lane, the porch still dry but the lane below now under waist-deep murky brown floodwater that covers the steps, the old wooden rowboat tied at the porch edge <IMAGE_REF_3>, the same day around noon, grey overcast daylight. a stocky, broad-shouldered Thai-Chinese man of fifty-five with a heavy build, a square jaw, thick black eyebrows, short buzz-cut black hair greying at the sides and a small mole on his left cheek, with grey stubble, messy flattened hair and puffy tired eyes, wearing a sweat-stained pale-blue sleeveless cotton vest and dark-navy knee-length shorts soaked dark, barefoot, no wristwatch <IMAGE_REF_0>, a wiry, sun-tanned Thai man of about forty-five with short black hair flecked with grey and a lined friendly face, wearing a faded orange T-shirt and dark knee-length shorts, barefoot <IMAGE_REF_1>, a thin Thai woman of about sixty-two with a narrow weathered face, deep smile lines and grey-streaked black hair tied back in a small low knot, wearing a faded maroon short-sleeved cotton blouse with no print and loose black cotton trousers rolled up to the knee, barefoot <IMAGE_REF_2> — the man in the orange T-shirt and the thin woman in the maroon blouse stand one behind the other in waist-deep water in front of the porch steps, each holding an empty bowl in both hands, waiting their turn; the stocky man, humbled, head bowed, wades up behind them with his own empty bowl and stops at the very end of the queue while he speaks softly to the thin woman in front of him; she glances back over her shoulder and nods without a word.
+
+The stocky man in the pale-blue vest <IMAGE_REF_0> speaks Thai in the nasal baritone voice of a Thai-Chinese man of fifty-five, humbled and quiet, eyes down, and says: "ขอต่อท้ายนะครับป้า ผมไม่แซงใครแล้ว ใครลำบากก่อน ได้กินก่อน ผมยืนตรงนี้แหละครับ"
+
+The face of whoever is speaking stays in frame for the whole line.
+Only the stocky man speaks in this shot. The other two people never say a single word: no lines, no murmur, no reply; the thin woman only glances back and nods. Exactly three people in the whole frame, nobody on the porch, nobody else in the water. Every package, carton, bottle, sachet and shelf is plain and unprinted: no brand names, no logos, no store name, no price tags and no readable text anywhere. Nobody holds, counts or hands over banknotes or coins; only water packs, food and bowls change hands. No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame.
+Medium wide from the water at eye level, the porch steps and the steaming pot in the background, the short queue in the foreground. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, soft natural daylight in a flooded Bangkok neighbourhood, strong expressive acting, faces clearly readable.
 ```
