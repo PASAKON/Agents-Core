@@ -85,9 +85,78 @@ def render(sc, style, shorten, level=0):
     return "\n\n".join(parts)
 
 
+# CEO 2026-09-26: a free generation is counted per generation, not per second, so each one carries up to 30 s:
+# several shots in cut order, joined by hard cuts (Wan3 shot-level direction), at most 10 pictures.
+GROUPS = {
+    "g1": ["o01", "o02"],
+    "g2": ["o03", "o04", "m04"],
+    "g3": ["n01", "n02", "n03"],
+    "g4": ["m06", "n04", "n12", "n05"],
+    "g5": ["n06", "n07", "n13"],
+    "g6": ["n09", "n10", "n11"],
+    "g7": ["m13"],
+}
+
+
+def _inside_shot(text):
+    """A shot's own 'no cut' rules apply inside that shot only; the group is joined by hard cuts."""
+    text = re.sub(r"ONE CONTINUOUS TAKE, NO CUTS\.", "Within this shot: one continuous take.", text)
+    text = re.sub(r"ONE LOCKED SHOT, NO CUTS\.", "Within this shot: one locked shot.", text)
+    return re.sub(r"\bno cuts?\b", "no cut inside this shot", text)
+
+
+def render_group(scs, style):
+    order, jobs = [], {}
+    for sc in scs:
+        for h in sc["refs"]:
+            if h not in order:
+                order.append(h)
+            jobs.setdefault(h, set()).add(sc.get("ref_override", {}).get(h, B.REF[h][1]))
+    if len(order) > 10:
+        raise SystemExit(f"{[tag(s) for s in scs]}: {len(order)} pictures, the Wan3 cap is 10")
+    refs = []
+    for i, h in enumerate(order, 1):
+        text = next(iter(jobs[h])) if len(jobs[h]) == 1 else B.REF[h][1]
+        refs.append(f"{token(i, style)}: {text}")
+    total = sum(sc["s"] for sc in scs)
+    head = (f"{total} seconds, 16:9. {len(scs)} SHOTS in one video, in this order, joined by hard cuts at the times "
+            "given; each shot keeps its own camera, place and light; never blend two shots.") if len(scs) > 1 else \
+        f"{total} seconds, 16:9."
+    parts = [head, "REFERENCES, each with a job:\n" + "\n".join(refs)]
+    t = 0
+    for i, sc in enumerate(scs, 1):
+        key = (sc.get("prefix", "m"), sc["n"])
+        start, end = t, t + sc["s"]
+        beats = [b.replace("GLOW", B.GLOW) for b in (sc.get("wan3_beats") or sc["beats"])]
+        beats = [re.sub(r"\[(\d+(?:\.\d+)?)s\]", lambda m: f"[{start + float(m.group(1)):g}s]", b) for b in beats]
+        snd = sc.get("sound") or B.SOUND.get(key, "silence; nobody speaks")
+        sec = [f"SHOT {i} of {len(scs)}, from {start}s to {end}s: {sc['title']}. {_inside_shot(sc['spec'])}",
+               sc["heading"], "THE FRAME: " + sc["frame"]]
+        if B.STATE.get(key):
+            sec.append("STATE: " + B.STATE[key])
+        if key in B.DARK_LIT:
+            sec.append("THE LIGHT: " + B.LIGHT + (" " + sc["light_extra"] if sc.get("light_extra") else ""))
+        if sc.get("particles"):
+            sec.append("PARTICLES: " + sc["particles"])
+        if sc.get("actions"):
+            sec.append("EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same):\n"
+                       + "\n".join("- " + a for a in sc["actions"]))
+        sec += ["WHAT HAPPENS:\n" + "\n".join(beats),
+                f"Sound in this shot: only the sounds the characters make themselves: {snd}. No music, no ambient sound.",
+                B.GRADE[sc.get("grade_override", sc["grade"])],
+                "Avoid in this shot: " + _inside_shot(sc["crit"]) + "."]
+        parts.append("\n".join(sec))
+        t = end
+    return "\n\n".join(parts), order, total
+
+
+def tag(sc):
+    return f"{sc.get('prefix', 'm')}{sc['n']:02d}"
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("keys", nargs="+")
+    ap.add_argument("keys", nargs="+", help="shot keys (o01, n13) or group keys (g1..g7)")
     ap.add_argument("--token", choices=["at", "angle"], default="at")
     ap.add_argument("--out", type=Path, default=HERE / "wan3")
     ap.add_argument("--seconds", type=float, help="a shorter test clip: drop the beats that start at or after it")
@@ -96,6 +165,15 @@ def main():
     a.out.mkdir(parents=True, exist_ok=True)
     by_key = {f"{s.get('prefix', 'm')}{s['n']:02d}": s for s in B.SCENES}
     for k in a.keys:
+        if k in GROUPS:
+            text, order, total = render_group([by_key[x] for x in GROUPS[k]], a.token)
+            if len(text) > CAP:
+                raise SystemExit(f"{k}: {len(text)} characters > {CAP}")
+            job = {"key": k, "title": " + ".join(by_key[x]["title"] for x in GROUPS[k]), "seconds": total,
+                   "shots": GROUPS[k], "images": [B.REF[h][0] for h in order], "prompt": text, "chars": len(text)}
+            (a.out / f"{k}{a.suffix}.wan3.json").write_text(json.dumps(job, indent=1, ensure_ascii=False), encoding="utf-8")
+            print(f"{k} {len(text):5d} chars {len(order)} images {total}s {GROUPS[k]}")
+            continue
         sc = by_key[k]
         if a.seconds:
             keep = [b for b in sc["beats"] if float(re.match(r"\[([\d.]+)s\]", b).group(1)) < a.seconds]
