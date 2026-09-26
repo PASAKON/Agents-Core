@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The two rclone verbs stream_backup_to_drive.py uses (rcat, lsjson), done with the Mac's own Drive REST
-resumable uploader (tools/work_archive.py) -- for when winbox's rclone is unreachable. Uploads into the folder --drive-root-folder-id names."""
-import http.client, json, os, sys, tempfile, time, urllib.parse
+resumable uploader (tools/work_archive.py) -- for when winbox's rclone is unreachable or on rclone's shared,
+throttled client_id. Uploads into the folder --drive-root-folder-id names; the MIME type comes from the file name."""
+import http.client, json, mimetypes, os, sys, tempfile, time, urllib.parse
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 VENV = ROOT / ".venv" / "bin" / "python"
@@ -18,7 +19,8 @@ def upload(path, name):
     st0, rh0, _ = wa._http("POST", wa.DRIVE_UPLOAD + "?" + urllib.parse.urlencode(
         {"uploadType": "resumable", "fields": "id,name,size,md5Checksum,parents"}),
         headers={"Authorization": "Bearer " + token, "Content-Type": "application/json; charset=UTF-8",
-                 "X-Upload-Content-Type": "application/x-tar", "X-Upload-Content-Length": str(size)},
+                 "X-Upload-Content-Type": mimetypes.guess_type(name)[0] or "application/x-tar",
+                 "X-Upload-Content-Length": str(size)},
         body=json.dumps({"name": name, "parents": [root]}).encode())
     session = wa._header(rh0, "Location")
     if st0 not in (200, 201) or not session:
