@@ -67,6 +67,20 @@ POLL_S = 8
 # on a genuinely slow one. FLOW_COMPLETION_TIMEOUT_S=900 when Flow is known to be slow.
 COMPLETION_TIMEOUT_S = int(os.environ.get("FLOW_COMPLETION_TIMEOUT_S", 8 * 60))
 NO_CARD_S = 120  # a submit that has changed nothing in the feed by now made no card
+# How long download_card() waits for a video URL after opening ONE card. It used to wait the whole
+# COMPLETION_TIMEOUT_S, and poll_result() opened the newest card ~30-60 s after Submit, while it was
+# still rendering: the opened view never produced a URL, the runner sat there for 5-15 min and
+# reported "timeout" — for clips Flow had in fact finished (taachang S58 and one S70, 2026-09-26,
+# both found later in the feed). Now a failed open returns to the feed and polls again.
+CARD_OPEN_WAIT_S = int(os.environ.get("FLOW_CARD_OPEN_WAIT_S", 45))
+CARD_RETRY_S = 30   # minimum gap between two attempts to open the same newest card
+
+
+def card_is_finished(batch_text: str) -> bool:
+    """A feed batch whose clip is done. Read live 2026-09-26: a finished card's text starts with
+    the tile controls 'play_circle download undo delete'; one still rendering shows a percentage
+    and no play control."""
+    return "play_circle" in batch_text and not re.search(r"\b\d{1,3}%", batch_text)
 UPSCALE_TIMEOUT_S = 3 * 60
 DURATION_TOLERANCE_S = 0.6
 MIN_AUDIO_DB = -60.0
@@ -410,6 +424,14 @@ def probe_video_dimensions(path: Path) -> tuple[int, int]:
 def validate_download_option(text: str, resolution: str) -> None:
     """Refuse any paid or mismatched export option before clicking it."""
     normalized = " ".join((text or "").split())
+    if resolution == "720p":
+        # new editor menu, read live 2026-09-26: "720p ขนาดดั้งเดิม" (original size)
+        if "720p" not in normalized or "ขนาดดั้งเดิม" not in normalized:
+            raise RuntimeError(
+                f"live Flow menu is not the expected original-size 720p: {normalized!r}")
+        if "เครดิต" in normalized:
+            raise RuntimeError(f"refusing a credit-bearing download option: {normalized!r}")
+        return
     if resolution != "1080p":
         raise ValueError(f"unsupported upscale resolution: {resolution!r}")
     if "1080p" not in normalized or "เพิ่มความละเอียดแล้ว" not in normalized:
@@ -1125,6 +1147,7 @@ class FlowBrowser:
         start = time.time()
         baseline = len(self._captured_video_urls)
         before = getattr(self, "_feed_before", None)
+        self._last_card_try = 0.0
         while time.time() - start < timeout_s:
             # CORRECTED 2026-09-23: only the NEWEST batch, and only once the
             # feed has actually changed since Submit, may count as this shot.
@@ -1197,14 +1220,25 @@ class FlowBrowser:
             # appears, identify it by the shot's unique dialogue, open it, and
             # capture/download its CDN URL using the same cache-safe path as
             # `pull`.
-            if newest is not None and "/edit/" not in page.url:
+            # Open the new card only once it is FINISHED, and never sit in it: a card opened
+            # while still rendering never yields a URL (see CARD_OPEN_WAIT_S). A failed open
+            # goes back to the feed and is retried after CARD_RETRY_S.
+            if (newest is not None and "/edit/" not in page.url
+                    and card_is_finished(result_text)
+                    and time.time() - getattr(self, "_last_card_try", 0) >= CARD_RETRY_S):
                 card = newest.locator("flow-grid-tile-container").first
                 if card.count():
+                    self._last_card_try = time.time()
                     try:
                         self._pending_download = self.download_card(card)
                         return {"status": "download", "text": ""}
                     except Exception as e:
-                        _log(f"  new card found but download not ready: {e!r}")
+                        _log(f"  finished card found but no video yet, back to the feed: {e!r}")
+                        try:
+                            page.goto(self._project_url, wait_until="domcontentloaded", timeout=60_000)
+                            self.mute_all_media()
+                        except Exception:
+                            pass
             try:
                 page.evaluate(
                     "() => { const v = document.querySelector('video'); "
@@ -1353,6 +1387,31 @@ class FlowBrowser:
         card = batch.locator("flow-grid-tile-container").first
         return card if card.count() else None
 
+    def _download_from_editor_button(self, resolution: str) -> Path:
+        """New clip-editor UI, read live 2026-09-26: a top-level button [aria-label="ดาวน์โหลดสื่อ"]
+        opens 270p GIF / 720p ขนาดดั้งเดิม / 1080p เพิ่มความละเอียดแล้ว / 4K · 50 เครดิต. The editor
+        now draws the clip into a canvas and creates no <video> until play is pressed — which the
+        CEO's never-press-play rule forbids — so the CDN-capture path found nothing for a clip opened
+        before it finished or opened a second time (taachang S58/S70/S73). This path needs no playback."""
+        page = self.page
+        btn = page.locator('button[aria-label="ดาวน์โหลดสื่อ"]').first
+        btn.wait_for(state="visible", timeout=20_000)
+        deadline = time.time() + 60
+        while not btn.is_enabled() and time.time() < deadline:
+            page.wait_for_timeout(1_000)
+        btn.click()
+        option = page.locator('[role="menuitem"]', has_text=resolution).first
+        option.wait_for(state="visible", timeout=10_000)
+        validate_download_option(option.inner_text(), resolution)
+        wait_s = UPSCALE_TIMEOUT_S if resolution == "1080p" else 120
+        with page.expect_download(timeout=wait_s * 1000) as info:
+            option.click()
+        download = info.value
+        suffix = Path(download.suggested_filename).suffix or ".mp4"
+        path = Path(tempfile.mkdtemp()) / f"flow-{resolution}{suffix}"
+        download.save_as(str(path))
+        return path
+
     def download_card(self, card) -> Path:
         """Open a feed card and download the configured export.
 
@@ -1366,10 +1425,19 @@ class FlowBrowser:
             self.page.evaluate(MUTE_JS)
         except Exception:
             pass
-        if self.download_resolution == "1080p":
+        # Current UI first: the editor's own download button (no playback, no CDN capture).
+        try:
             self.page.wait_for_url(re.compile(r"/edit/"), timeout=30_000)
+            return self._download_from_editor_button(self.download_resolution)
+        except Exception as e:
+            try:
+                self._close_download_menus()
+            except Exception:
+                pass
+            _log(f"  editor download button path failed, falling back: {e!r}")
+        if self.download_resolution == "1080p":
             return self._download_1080p_from_editor()
-        deadline = time.time() + COMPLETION_TIMEOUT_S
+        deadline = time.time() + min(COMPLETION_TIMEOUT_S, CARD_OPEN_WAIT_S)
         while time.time() < deadline and len(self._captured_video_urls) <= baseline:
             # A clip already played in this Chrome profile may come entirely
             # from disk cache, producing no response event. The signed CDN URL
@@ -1769,7 +1837,24 @@ def cmd_pull(args: argparse.Namespace) -> int:
                 _log(f"shot {n}: REFUSED (space) — stopping the whole pull: {e!r}")
                 break
             earlier = earlier_takes(ledger_path, n)
-            downloaded = browser.download_card(card)
+            # A finished card can still fail to hand over its URL on one open (taachang S73,
+            # 2026-09-26: found by search, open timed out). Re-find and re-open a few times.
+            downloaded, last_err = None, None
+            for attempt in range(4):
+                try:
+                    downloaded = browser.download_card(card)
+                    break
+                except RuntimeError as e:
+                    last_err = e
+                    _log(f"  shot {n}: open {attempt + 1} gave no video, re-finding the card")
+                    card = browser.find_card_by_dialogue(dialogue)
+                    if card is None:
+                        break
+            if downloaded is None:
+                row["status"], row["note"] = "needs_model", f"card found but no video after retries: {last_err!r}"
+                flow_ledger.save_ledger(ledger_path, rows)
+                _log(f"shot {n}: needs_model — {row['note']}")
+                continue
             time.sleep(DOWNLOAD_GAP_S)
             clip_path = extract_clip(downloaded, dest, n)
             ok, reason = verify_clip(
