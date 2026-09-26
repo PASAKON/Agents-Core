@@ -56,6 +56,14 @@ the evidence.
   unverified": the paste test and the chip read-back settled it.
 - Name the subject in prose right after the tag and give the reference its job, as TopView's FAQ asks:
   "Name each uploaded reference and explain its job, then list the details that must remain consistent."
+- **Every character, mount and prop that is in the shot needs its picture attached; a description in words does
+  not draw it** (*measured* twice, 2026-09-26): the long take without THE MOUNT's picture came back with a wooden
+  boat (G6 take 1, cdba365c), and G5, which described the mount in a full sentence (B.MOUNT_DARK), came back with the
+  riders on a dark rock in all three shots (eddf53b3). Both were free generations, lost. `wan3_prompt.py` now adds
+  the picture to every on-mount shot and refuses one without it (32179e07). If the picture carries something the
+  shot must not show (the mount's lit lamps), attach it anyway and give it a job that says so, plus a picture of the
+  wanted state beside it (@LanternDark) — words alone lost to a picture's detail on H3, and no picture lost worse
+  on Wan3.
 
 ## 3 · The Direction box
 
@@ -77,6 +85,10 @@ the evidence.
 | 1080p | 1 credit | *measured*: 2 s = 2 |
 | 720p | 0.5 credit | *measured*: 2 s = 1, 30 s = 15; 0.4 with the 20 % off on Business, Ultra or Team annual |
 | 480p | 0.3 credit | selectable (*measured*: 2 s = "Generate 0.6") |
+| + Auto Upscale 4K | +0.4 credit | *measured* 2026-09-26, the button shows the sum: 720p+4K = 0.9/s (7 s 6.3, 9 s 8.1, 10 s 9, 15 s 13.5, 20 s 18, 30 s 27). Charged on free plugin generations too (12 on a 30 s clip). The generation part leaves the balance at submit, the upscale part when the upscale starts, while the task still reads `running` |
+
+A paid fix costs by the second, so refire only the broken shot at the length the cut needs, one generation per
+shot, rather than a 30 s group (CEO 2026-09-26: "ทำเฉพาะจุด ไม่แก้ 30s").
 
 Pro $29/month = 80 credits (annual $16/month, 960 credits upfront) · Business $75 ($44 annual, 3,000/yr) ·
 Ultra $150 ($50 annual, 500/month) and Team list **"Wan 3.0 720P 365 Days Unlimited"** · top-up packs
@@ -112,8 +124,8 @@ The other TopView call (AI Film Screening, SSFF & ASIA, closes 23 Oct): `docs/pr
 
 ## Field notes
 - 2026-09-26 [MISSING] §2 — the generator lives at `https://www.topview.ai/board/my-first-board?tool-type=video-edit&model-id=qwen-wan3.0-video` (redirects to the account's board); "Continue with Google" as pass.gob1 in the winbox automation Chrome (CDP 9224) completed with no prompt; selectors and the cost read are in `tools/topview_wan3.py` · evidence: agent run 2026-09-26, commits 1bab51c4 20629212 · status: pending
-- 2026-09-26 [WRONG] §4 prices — a free plugin generation (button "27 0") covers the generation only; **Auto Upscale 4K is charged on top, every clip**: 12 for a 30-s clip, 8 for a 20-s clip (G7: 187 → 179). The CTO told the CEO "4K free" from a stale read; it was not · evidence: fresh balances 245 → 197 over 4 free-clip upscales; board 4252ab77 · status: pending
-- 2026-09-26 [MISSING] §4 prices — the upscale is deducted **when the upscale starts, while the task still reads `running`**, not when the clip arrives: 149 → 137 → 113 with G1/G2/G6r2 (a64739b7, 2546374a, 8e0a40b0) all `running`. Budget it at submit · evidence: fresh_balance.py reads 03:12–03:28 UTC · status: pending
+- 2026-09-26 [WRONG] §4 prices — a free plugin generation (button "27 0") covers the generation only; **Auto Upscale 4K is charged on top, every clip**: 12 for a 30-s clip, 8 for a 20-s clip (G7: 187 → 179). The CTO told the CEO "4K free" from a stale read; it was not · evidence: fresh balances 245 → 197 over 4 free-clip upscales; board 4252ab77 · status: promoted (§4 upscale row; measured on 8 more clips)
+- 2026-09-26 [MISSING] §4 prices — the upscale is deducted **when the upscale starts, while the task still reads `running`**, not when the clip arrives: 149 → 137 → 113 with G1/G2/G6r2 (a64739b7, 2546374a, 8e0a40b0) all `running`. Budget it at submit · evidence: fresh_balance.py reads 03:12–03:28 UTC · status: promoted (§4 upscale row; 113 -> 92.5 at four submits, same pattern)
 - 2026-09-26 [MISSING] §4 prices — read the balance only from a **freshly loaded** board tab (`button[aria-label="Credits"]`, wait for a digit); a tab left open kept showing 245 while the real balance was 197. At each submit the balance also dips by the generation price for ~1 min on a free clip, then returns (a hold) · evidence: stale read_balance.py vs fresh_balance.py, same minute · status: pending
 - 2026-09-26 [MISSING] §5 pipeline (collecting) — parallel runs on one board mix up when collected as "the newest video on the board". Collect by task id: tRPC `board.task.create` returns taskId, `board.task.getBatchDetail` gives status, creditsCost and the cloudfront mp4 URLs (winbox `C:\mooniex\ilag-runner\tools\collect_tasks.py`). A 30-s 4K clip took 25–60+ min, so a runner's own wait times out; submit with `--timeout-s 45` and collect separately · evidence: g1–g7 run 2026-09-26 · status: pending
-- 2026-09-26 [MISSING] §2 references — an on-mount shot with neither the mount's picture nor the words for it came back with **a wooden boat** under the riders (G6 take 1, cdba365c). Every on-mount shot carries `@Manta` or a mount state line; `wan3_prompt.py` now refuses to build one without it · evidence: 52eead0d, G6 retake 8e0a40b0 · status: pending
+- 2026-09-26 [MISSING] §2 references — an on-mount shot with neither the mount's picture nor the words for it came back with **a wooden boat** under the riders (G6 take 1, cdba365c). Every on-mount shot carries `@Manta` or a mount state line; `wan3_prompt.py` now refuses to build one without it · evidence: 52eead0d, G6 retake 8e0a40b0 · status: promoted (§2 rule; second sighting G5 eddf53b3 on 2026-09-26)
