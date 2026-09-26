@@ -33,8 +33,13 @@ STYLE = {  # name: (font file, 720p size, colour)
 ITEM, ROW, GROUP, AFTER_HEAD, GUTTER = 34, 78, 132, 54, 26  # 720p gaps between baselines-to-tops, as measured
 
 
+# The twelve Flow Music tracks (docs/promo/topview-trailer/MUSIC-LEDGER.json); CEO 2026-09-27: "คิดว่าใช้หมดเลย".
+TRACKS = ["Glass Bloom", "First Contact", "Deep Bloom", "Rising Light", "The Awakening", "Something Vast",
+          "Something Breathes", "The Deep Opens", "Wake and Ride", "Into the Current", "Momentum", "Through the Storm"]
+
+
 def blocks(a):
-    tracks = a.track or []
+    tracks = TRACKS if a.all_tracks else (a.track or [])
     music = ([("head", "ORIGINAL MUSIC"), ("list", tracks), ("role", "Generated with", ["Google Flow Music"])]
              if tracks else [("role", "Music generated with", ["Google Flow Music"])])
     return [
@@ -50,6 +55,7 @@ def blocks(a):
         ("group",),
         ("role", "Previsualisation", ["MiniMax H3"]),
         ("role", "Editing", ["CapCut"]),
+        *([("role", "Colour", a.colour)] if a.colour else []),  # CEO 2026-09-27: "รอ Grading สี"
         ("group",), ("head", "MADE FOR"), ("list", ["TOPVIEW WAN3 CHALLENGE"]), ("space", 6), ("center", "2026", "year"),
         ("group",), ("center", "Every frame was generated. Nothing was filmed.", "small"),
         ("group",), ("center", "ILAG STUDIO", "head"),
@@ -120,7 +126,9 @@ def main():
     ap.add_argument("--subtitle", default="")
     ap.add_argument("--editor", default="PASAKON")
     ap.add_argument("--track", action="append", help="a music title as it should read; repeat for each")
+    ap.add_argument("--all-tracks", action="store_true", help="list all twelve TRACKS")
     ap.add_argument("--out", type=Path, default=Path("/tmp/ilag-credits"))
+    ap.add_argument("--colour", action="append", help="what the grade was done with, one per line; repeat")
     ap.add_argument("--png-only", action="store_true")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
