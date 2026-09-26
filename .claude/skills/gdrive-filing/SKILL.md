@@ -519,7 +519,24 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
    created; set `root_folder_id` to the approved folder) — a full-scope token is a CEO decision,
    never a default. Use the org's own Google client_id (rclone's shared one is being throttled
    in 2026); never copy the token to the Mac, a repo, a chat, or a pod.
-   **State since 2026-09-09:** winbox's `gdrive:` runs on OUR client — Google Cloud project
+   **State 2026-09-26 (measured): winbox is on rclone's SHARED client again.**
+   `ssh winbox "rclone config redacted gdrive:"` prints `client_id = ` (empty). The 2026-09-24
+   reinstall (new account `passg`) re-created the remote without our client, and the box has no
+   `Projects\` folder, so `rclone_set_client.py` is not there either. On the shared client, big
+   uploads 403 `rateLimitExceeded` for hours: a 562 MB film failed 12 times in an hour on
+   2026-09-26, and three uploads died the same way on 2026-09-08/09. Until the CEO re-consents
+   (procedure below; the client JSON must come from the Cloud console or the secrets bundle):
+   - **Check before any winbox upload.** Run `rclone config redacted gdrive:` and read only the
+     `client_id` line. An empty value means the shared client.
+   - **On the shared client, one file over 100 MB goes by the Mac REST route**:
+     `scripts/drive_rest_rclone_shim.py rcat gdrive:<name> --drive-root-folder-id <parent> < <file>`.
+     It uses the Mac bridge's own OAuth client, not winbox's token. The MIME type comes from the
+     file name.
+   - **A retry loop prints the error of every failed attempt.** Never run the upload with
+     `capture_output=True` and log only "not yet". After two `rateLimitExceeded` in a row, stop
+     retrying that route and switch to the REST route. Never wait out a shared-client quota.
+   [SUPERSEDED 2026-09-26 by the measured state above; kept as the history of the 09-09 fix and as
+   the re-consent procedure.] **State since 2026-09-09:** winbox's `gdrive:` runs on OUR client — Google Cloud project
    `gen-lang-client-0516233449` ("Default Gemini Project", the CEO's), OAuth client
    `rclone-winbox` (Desktop app, id `997773077636-6sjdlu2lg1ggeh45l3dcd4g0mn7o2mdt…`), Drive
    API enabled; the token was re-issued at full `drive` scope by the CEO's own 2026-09-08
@@ -1086,4 +1103,4 @@ is the working copy, and both are correct.
 - 2026-09-24 [MISSING] §The bridge — Contabo has NO bridge config (`~/.config/mooniex/gdrive-bridge.json` absent), so `gdrive_move.py` dies there with FileNotFoundError. Create-folder / rename / upload / logs.txt append from Contabo go through Drive REST with the ClaudeFlow OAuth instead: `scripts/gdrive-bridge/ilag_rest.py` (create-if-absent, md5 checked by id, append = GET→PATCH→prefix check; set `ILAG_LOG_ACTOR`). A Google Doc can be made from markdown in one call: multipart upload, metadata mimeType `application/vnd.google-apps.document`, media `text/markdown` · evidence: 4b21f866, the TopView trailer project build (StoryBoard doc 1H9S-CG0…) · status: pending
 - 2026-09-25 [WRONG] §Bulk transfer — `tools/work_archive.BACKUP_FOLDER_ID` is NOT the BACKUP root any more: 936fb0ad (2026-09-24) repointed it to `BACKUP/MoonieX HQ/Work-Archive` (`1xu8hXdU…`), and the REST shim that reused `work_archive._init_resumable_session` inherited that parent, so every upload would have been filed there silently (its own guard caught it by refusing the real root). Never borrow a module constant as the parent; pass it explicitly (`--drive-root-folder-id`), fixed in the shim at e6039963 · evidence: session cto-46fb0d60 · status: pending
 - 2026-09-25 [COSTLY] §Bulk transfer — the REST shim spools the whole tar to local disk (needs part size + ~3 GB free); on a near-full Mac the last part, one 7.0 GB .mov, waited ~70 min for space. A part that is a single file needs no tar: upload it raw from its path with the shim's `upload()` (resumable, zero spool) and verify size + md5 by id (`Mac-Reinstall-2026-09-25-iCloudLeftovers-p09-f786.mov`) · evidence: session cto-46fb0d60 run.out 21:33→22:40 · prevented by: a runner that uploads single-file parts raw · status: pending
-- 2026-09-26 [COSTLY] §Bulk transfer — a 562 MB film upload through `scripts/rclone_via_winbox.sh` 403'd `rateLimitExceeded` 12 times over an hour (winbox `gdrive:` is back on rclone's shared client_id — see the 2026-09-24 note), and the retry loop ran `rcat` with `capture_output=True`, so its log only said "not yet" and never the 403. The Mac's own Drive REST client (`tools/work_archive` `_access_token` + `_upload_chunks`, raw from the path, `X-Upload-Content-Type: video/mp4`, parent passed explicitly) landed it first try with md5 verified. Until winbox gets its own client_id, send single large files that way, and never let a retry loop swallow the tool's stderr · evidence: Work/task-c2723478/out/drive-final-retry.log (GAVE UP) vs drive-final-rest.log (UPLOADED 17Gl1LqfUHiEK0cmVK05luhJlSjnS7vXv) · prevented by: a `--mime` flag on `scripts/drive_rest_rclone_shim.py` (it hard-codes application/x-tar) · status: pending
+- 2026-09-26 [COSTLY] §Bulk transfer — a 562 MB film upload through `scripts/rclone_via_winbox.sh` 403'd `rateLimitExceeded` 12 times over an hour (winbox `gdrive:` is back on rclone's shared client_id — see the 2026-09-24 note), and the retry loop ran `rcat` with `capture_output=True`, so its log only said "not yet" and never the 403. The Mac's own Drive REST client (`tools/work_archive` `_access_token` + `_upload_chunks`, raw from the path, `X-Upload-Content-Type: video/mp4`, parent passed explicitly) landed it first try with md5 verified. Until winbox gets its own client_id, send single large files that way, and never let a retry loop swallow the tool's stderr · evidence: Work/task-c2723478/out/drive-final-retry.log (GAVE UP) vs drive-final-rest.log (UPLOADED 17Gl1LqfUHiEK0cmVK05luhJlSjnS7vXv) · prevented by: a `--mime` flag on `scripts/drive_rest_rclone_shim.py` (it hard-codes application/x-tar) · status: promoted 2026-09-26 to Hard rule 6 "State 2026-09-26" — the artefact `rclone config redacted gdrive:` shows `client_id = ` empty, which proves the 09-09 state line false; the shim now takes the MIME type from the file name (video/mp4, x-tar kept for tars, checked with a fake HTTP layer, no live upload)

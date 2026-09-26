@@ -494,8 +494,12 @@ Flow's free stills.
 A post is **done** only when the report carries the post's **public link**, a
 `www.facebook.com/...` URL that anyone can open. A Business Suite `content_id` is an
 insights id and does not count. "ลงแล้วจริงๆ" is proved by that link, not by a status
-badge. `tools/fb_reel_post.py` exits non-zero when it cannot resolve the link
-(task-cfdc75a8).
+badge. A missing link does NOT mean the post failed (CEO 2026-09-26: "หาลิงก์ไม่เจอ
+ไม่ได้แปลว่าโพสต์ไม่ติด"). The run ends in one of three states: `VERIFIED <permalink>` (exit 0,
+the link passed a logged-out check), `PUBLISHED-UNVERIFIED` (exit 6: published, no checked link
+yet; find it, never re-post), or `FAILED <evidence>` (exit 8, only on positive evidence such as
+the Business Suite row reading ไม่สำเร็จ). Being built and live-tested in task-cfdc75a8; until
+that task is merged, treat this as the target, not as measured behaviour.
 
 Right after the link, the Page comments once on its own post and pins that comment.
 The comment invites people to follow. Write it next to the caption, as
