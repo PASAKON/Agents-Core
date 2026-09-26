@@ -1010,7 +1010,7 @@ class FlowBrowser:
         compare content, not exact newline counts."""
         box = self.page.locator('[contenteditable="true"]').first
         box.click()
-        self.page.keyboard.press("Meta+A")
+        self.page.keyboard.press("ControlOrMeta+A")
         self.page.keyboard.press("Backspace")
         box.evaluate("el => el.focus()")
         self.page.keyboard.insert_text(text)

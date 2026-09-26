@@ -157,15 +157,15 @@ class FlowUploader:
         self.mute_all_media()
         if not self.check_signed_in():
             raise FlowUploadError("not signed in to Google — hard stop, do not sign in")
-        self.page.get_by_text("โปรเจ็กต์ใหม่", exact=False).first.click()
+        self.page.get_by_text(re.compile(r"โปรเจ็กต์ใหม่|New project")).first.click()  # EN label on flow.google.com 2026-09-27
         self.page.wait_for_timeout(4000)
         new_url = self.page.url
 
         name_input = self.page.locator("input.editable-text-input").first
         name_input.click()
-        name_input.press("Meta+A")  # Ctrl+A on this Mac Chrome moves to line
-        name_input.type(project_name, delay=30)  # start (emacs binding), not
-        name_input.press("Enter")                # select-all — use Meta+A.
+        name_input.press("ControlOrMeta+A")  # Meta+A on the Mac, Ctrl+A on winbox: a bare
+        name_input.type(project_name, delay=30)  # Mac Ctrl+A moves to line start (emacs), a
+        name_input.press("Enter")                # bare Meta+A does nothing on Windows.
         self.page.wait_for_timeout(1000)
         return new_url
 
@@ -237,7 +237,7 @@ class FlowUploader:
     def rename_asset(self, old_label: str, new_name: str) -> None:
         self.open_context_item(old_label, "เปลี่ยนชื่อ")
         self.page.wait_for_timeout(600)
-        self.page.keyboard.press("Meta+A")
+        self.page.keyboard.press("ControlOrMeta+A")
         self.page.keyboard.type(new_name, delay=30)
         self.page.keyboard.press("Enter")
         self.page.wait_for_timeout(1000)
