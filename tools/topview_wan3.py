@@ -432,15 +432,33 @@ class TopViewBrowser:
             raise RuntimeError(f"{kind} reads {got!r}, wanted {item!r}")
         return got
 
-    def switches_off(self) -> list[dict]:
-        for i, sw in enumerate(self.state()["switches"]):
-            if sw["checked"] == "true":
-                self.page.locator("button[role=switch]").nth(i).click(timeout=5000)
-                self.page.wait_for_timeout(600)
+    def set_switches(self, want: dict) -> list[dict]:
+        """want = {"Auto Upscale": bool, "Internet Search": bool}; every other switch is turned off.
+        CEO 2026-09-26: Auto Upscale 4K + Internet Search on, and the free generation still reads 27 -> 0."""
+        def wanted(label):
+            return next((v for k, v in want.items() if label.startswith(k)), False)
+        for _ in range(2):  # switching Auto Upscale on can add rows, so read the list again once
+            for i, sw in enumerate(self.state()["switches"]):
+                if (sw["checked"] == "true") != wanted(sw["label"]):
+                    self.page.locator("button[role=switch]").nth(i).click(timeout=5000)
+                    self.page.wait_for_timeout(700)
         sws = self.state()["switches"]
-        if any(s["checked"] == "true" for s in sws):
-            raise RuntimeError(f"a switch stayed on: {sws}")
+        bad = [s for s in sws if (s["checked"] == "true") != wanted(s["label"])]
+        if bad:
+            raise RuntimeError(f"switches not as wanted {want}: {sws}")
         return sws
+
+    def set_upscale(self, value: str) -> str:
+        """The Upscale Resolution menu that appears once Auto Upscale is on ("4K" on 2026-09-26)."""
+        trig = self.page.locator("button[aria-haspopup=menu]", has_text=re.compile(r"^\s*\d+K\s*$")).first
+        if normalize_ws(trig.inner_text()) != value:
+            trig.click(timeout=5000)
+            self.page.wait_for_timeout(900)
+            self._pick(value)
+        got = normalize_ws(trig.inner_text())
+        if got != value:
+            raise RuntimeError(f"Upscale Resolution reads {got!r}, wanted {value!r}")
+        return got
 
     # generate + result -----------------------------------------------------------
     def click_generate(self, expected_cost: float) -> None:
@@ -486,7 +504,7 @@ class TopViewBrowser:
 # ── orchestration ──────────────────────────────────────────────────────────────
 
 def prepare(browser: TopViewBrowser, job: dict, images: list[Path], resolution: str | None,
-            probe_costs: bool) -> dict:
+            probe_costs: bool, upscale: str | None = None, internet_search: bool = False) -> dict:
     """Everything up to (not including) the Generate click. Returns what was read."""
     st = browser.open_generator()
     if not st["signedIn"] or st["loginButton"]:
@@ -512,7 +530,9 @@ def prepare(browser: TopViewBrowser, job: dict, images: list[Path], resolution: 
             browser.set_menu("resolution", r)
             info["costs"][f"{secs} {r}"] = browser.state()["genText"]
     info["resolution"] = browser.set_menu("resolution", res)
-    info["switches"] = browser.switches_off()
+    info["switches"] = browser.set_switches({"Auto Upscale": bool(upscale), "Internet Search": internet_search})
+    if upscale:
+        info["upscale"] = browser.set_upscale(upscale)
     st = browser.state()
     if st["generationCount"] != 1:
         raise RuntimeError(f"Generation Count reads {st['generationCount']}, the runner only fires 1")
@@ -597,7 +617,9 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
     images = resolve_images(job, refs)
 
     try:
-        info = prepare(browser, job, images, args.resolution, args.probe_costs)
+        info = prepare(browser, job, images, args.resolution, args.probe_costs,
+                       upscale=getattr(args, "upscale", None),
+                       internet_search=getattr(args, "internet_search", False))
     except HazardStop as h:
         return save("stopped", hazard_kind=h.kind, note=h.text)
     except Exception as e:
@@ -711,6 +733,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-credits", type=float, required=True,
                     help="fire only when the Generate button shows this many credits or fewer")
     ap.add_argument("--dry-run", action="store_true", help="everything except the Generate click")
+    ap.add_argument("--upscale", choices=["2K", "4K"], help="turn Auto Upscale on at this resolution (default off)")
+    ap.add_argument("--internet-search", action="store_true", help="turn Internet Search on (default off)")
     ap.add_argument("--probe-costs", action="store_true", help="with --dry-run: read the button at every resolution")
     ap.add_argument("--recover", metavar="KEY", help="collect KEY's finished clip from the board; fires nothing")
     ap.add_argument("--video-url", help="with --recover: the exact video URL to save")

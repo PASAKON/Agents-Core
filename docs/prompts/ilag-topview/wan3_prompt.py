@@ -105,7 +105,24 @@ def _inside_shot(text):
     return re.sub(r"\bno cuts?\b", "no cut inside this shot", text)
 
 
+GROUP_SECONDS = 30  # CEO 2026-09-26: fill every free generation to 30 s; the edit trims later
+
+
+def stretch(scs, target):
+    """Scale each shot's length (and so its beat times) so the group runs `target` seconds, in 0.5 s steps."""
+    total = sum(sc["s"] for sc in scs)
+    if len(scs) == 1 or total >= target:
+        return [dict(sc, _f=1.0) for sc in scs]
+    out, used = [], 0.0
+    for i, sc in enumerate(scs):
+        s_new = (target - used) if i == len(scs) - 1 else round(sc["s"] * target / total * 2) / 2
+        out.append(dict(sc, s=s_new, _f=s_new / sc["s"]))
+        used += s_new
+    return out
+
+
 def render_group(scs, style):
+    scs = stretch(scs, GROUP_SECONDS)
     order, jobs = [], {}
     for sc in scs:
         for h in sc["refs"]:
@@ -128,9 +145,11 @@ def render_group(scs, style):
         key = (sc.get("prefix", "m"), sc["n"])
         start, end = t, t + sc["s"]
         beats = [b.replace("GLOW", B.GLOW) for b in (sc.get("wan3_beats") or sc["beats"])]
-        beats = [re.sub(r"\[(\d+(?:\.\d+)?)s\]", lambda m: f"[{start + float(m.group(1)):g}s]", b) for b in beats]
+        f = sc.get("_f", 1.0)
+        beats = [re.sub(r"\[(\d+(?:\.\d+)?)s\]", lambda m: f"[{round(start + float(m.group(1)) * f, 1):g}s]", b)
+                 for b in beats]
         snd = sc.get("sound") or B.SOUND.get(key, "silence; nobody speaks")
-        sec = [f"SHOT {i} of {len(scs)}, from {start}s to {end}s: {sc['title']}. {_inside_shot(sc['spec'])}",
+        sec = [f"SHOT {i} of {len(scs)}, from {start:g}s to {end:g}s: {sc['title']}. {_inside_shot(sc['spec'])}",
                sc["heading"], "THE FRAME: " + sc["frame"]]
         if B.STATE.get(key):
             sec.append("STATE: " + B.STATE[key])
