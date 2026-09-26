@@ -11,14 +11,17 @@ its credits.py and render_smooth.sh died with a session scratchpad on 16 Sep:
     6 frames (a 1/24 s shutter) then 24 fps: v1 moved 2 and 4 px on alternate frames and the CEO called it not smooth;
   - DejaVu Sans Bold / Book, no letter-spacing; white #FAF9F6, grey #B4B3B1; roles right-aligned 26 px left of the
     centre, names and list items left-aligned 26 px right of it, headings centred (sizes below in 720p pixels).
-Here the canvas is the delivery size itself (3840x2160, so the text is sharp at 4K), 1 px per frame at 216 fps
-(still 10% of the height per second), tmix over 7 frames (a 1/30 s shutter), 30 fps out.
+Here the canvas is the delivery size itself (3840x2160, so the text is sharp at 4K), 1 px per frame at 210 fps
+(9.7% of the height per second), tmix over 7 frames (a 1/30 s shutter), 30 fps out: an even 7 px every frame.
+A 38-s roll took 22 min on Contabo's 4 cores (2026-09-27).
 """
 import argparse, subprocess
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-W, H, FPS_IN, FPS_OUT, BLUR = 3840, 2160, 216, 30, 7
+# 210 fps, not 216: 216/30 = 7.2 px per output frame came out as 7.3/6.7/8.0 steps (measured on the test roll,
+# 2026-09-27); 210/30 = 7 px every frame exactly, like «Sorry, Sir»'s 144/24 = 6. 9.7% of the height per second.
+W, H, FPS_IN, FPS_OUT, BLUR = 3840, 2160, 210, 30, 7
 K = H / 720  # sizes and gaps are «Sorry, Sir»'s 720p measurements
 BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 BOOK = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
