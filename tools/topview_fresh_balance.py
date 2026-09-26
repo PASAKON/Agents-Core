@@ -1,4 +1,4 @@
-"""(winbox copy: C:\mooniex\ilag-runner\probe\fresh_balance.py) Read-only: load the board in a NEW tab (so the number is fresh, not a stale tab's), read the credit balance,
+"""(winbox copy: C:/mooniex/ilag-runner/probe/fresh_balance.py) Read-only: load the board in a NEW tab (so the number is fresh, not a stale tab's), read the credit balance,
 close the tab."""
 import time
 from playwright.sync_api import sync_playwright

@@ -1,4 +1,4 @@
-"""(winbox copy: C:\mooniex\ilag-runner\tools\collect_tasks.py) Collect finished Wan3 clips by TopView board task id (read-only; clicks nothing).
+"""(winbox copy: C:/mooniex/ilag-runner/tools/collect_tasks.py) Collect finished Wan3 clips by TopView board task id (read-only; clicks nothing).
 
     python collect_tasks.py --out DIR g1=<taskId> g3=<taskId> ...
 
