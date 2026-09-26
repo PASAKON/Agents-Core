@@ -146,6 +146,8 @@ def main() -> int:
     ap.add_argument("--scale", type=float, default=1.0, help="shrink the picture (<1) when a low face would sit under the title")
     ap.add_argument("--img-top", type=int, default=130, help="canvas y where the cropped picture starts")
     ap.add_argument("--title-top", type=int, default=1250, help="canvas y where the title block starts")
+    ap.add_argument("--logo-h", type=int, default=260,
+                    help="max height of the --logo; raise it with a lower --title-top to fill the space under the title")
     args = ap.parse_args()
 
     if not features.check("raqm"):
@@ -199,7 +201,7 @@ def main() -> int:
 
     y = args.title_top
     if args.logo:
-        logo = logo_from_black(args.logo, 1000, 260)  # 260 keeps logo+English+airtime inside the 4:5 crop
+        logo = logo_from_black(args.logo, 1000, args.logo_h)  # 260 keeps logo+English+airtime inside the 4:5 crop at --title-top 1215
         x = (W - logo.width) // 2
         shadow = Image.new("L", canvas.size)
         shadow.paste(logo.getchannel("A"), (x, y + 6))
