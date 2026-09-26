@@ -32,7 +32,10 @@ Per job (measured live 2026-09-26, see the skill CTO_Wan3.0_TopView Field notes)
   4. aspect 16:9, duration = the job's seconds (2-30 s offered), resolution (--resolution, default the lowest
      offered), Generation Count 1, Auto Upscale and Internet Search off;
   5. read the cost off the visible Generate button ("Generate 0.6"), the balance off the sidebar Credits
-     button; click Generate only when cost <= --max-credits and cost <= balance; one click, never twice;
+     button; click Generate only when cost <= --max-credits and cost <= balance; one click, never twice.
+     On the Free plan (sidebar badge "Free") Generate opened the pricing modal "UPGRADE YOUR PLAN" and
+     generated nothing (2026-09-26, balance stayed 5), so the runner stops before the click on "Free"
+     (ledger "stopped", plan_required) and, if the modal appears after a click anyway, stops there too;
   6. wait for a new video (a new <video> src in the page, or an .mp4 URL in a JSON response after the click),
      fetch its bytes with page.request, write <out>/<key>.mp4, md5, balance after, ledger row "done".
 
@@ -140,11 +143,12 @@ def resolve_images(job: dict, refs_dir: Path) -> list[Path]:
     return paths
 
 
-MP4_RE = re.compile(r"https?://[^\"'\s\\]+?\.mp4(?:\?[^\"'\s\\]*)?")
+# a URL inside JSON may carry the escapes \/ and &; they are part of the URL, not its end
+MP4_RE = re.compile(r"https?:(?:\\?/){2}(?:[^\"'\s\\]|\\/|\\u0026)+?\.mp4(?:\?(?:[^\"'\s\\]|\\/|\\u0026)*)?")
 
 
 def mp4_urls(text: str) -> list[str]:
-    return list(dict.fromkeys(u.replace("\\u0026", "&") for u in MP4_RE.findall(text or "")))
+    return list(dict.fromkeys(u.replace("\\u0026", "&").replace("\\/", "/") for u in MP4_RE.findall(text or "")))
 
 
 def mp4_duration(data: bytes) -> float | None:
@@ -233,7 +237,15 @@ STATE_JS = """
   const gc = body.match(/Generation Count\\s*:\\s*(\\d+)/);
   const dialogs = [...document.querySelectorAll('[role=dialog], [role=alertdialog]')]
       .filter(d => d.getBoundingClientRect().width > 0).map(txt).filter(Boolean);
+  // the plan badge under the Credits number in the left sidebar ("Free" on 2026-09-26)
+  const plan = [...document.querySelectorAll('div,span,p')].find(e => e.childElementCount === 0
+      && /^(Free|Pro|Business|Ultra|Team|Enterprise)$/.test((e.innerText || '').trim())
+      && e.getBoundingClientRect().x < 100 && e.getBoundingClientRect().width > 0);
+  // what Generate opened on the Free plan: the pricing modal, "UPGRADE YOUR PLAN" (no generation, no charge)
+  const pm = [...document.querySelectorAll('[class*=pricing-modal]')].find(e => e.getBoundingClientRect().width > 0);
+  const pmHead = pm ? ((pm.innerText || '').match(/UPGRADE YOUR PLAN|Upgrade your plan|Buy Credits/) || [''])[0] : '';
   return {
+    plan: txt(plan), pricingModal: pm ? (pmHead || txt(pm).slice(0, 120)) : '',
     url: location.href,
     signedIn: !!credits,
     loginButton: [...document.querySelectorAll('button')].some(b => /^(Login|Log in)$/.test(txt(b))),
@@ -496,7 +508,8 @@ def prepare(browser: TopViewBrowser, job: dict, images: list[Path], resolution: 
     if st["generationCount"] != 1:
         raise RuntimeError(f"Generation Count reads {st['generationCount']}, the runner only fires 1")
     info.update(seconds=secs, gen_text=st["genText"], gen_disabled=st["genDisabled"], cost_aria=st["costAria"],
-                balance_text=st["balanceText"], model=st["model"], aspect=browser.menu_value("aspect"))
+                balance_text=st["balanceText"], plan=st["plan"], model=st["model"],
+                aspect=browser.menu_value("aspect"))
     return info
 
 
@@ -513,6 +526,8 @@ def wait_for_clip(browser: TopViewBrowser, seen: set, seconds: float, timeout_s:
         if notes:
             row["network"] = (row.get("network", []) + notes[:5])[-12:]
         st = browser.state()
+        if st["pricingModal"]:
+            raise HazardStop("plan_required", f"pricing modal {st['pricingModal']!r} while waiting")
         for d in st["dialogs"]:
             hz = classify_hazard(d)
             if hz:
@@ -534,7 +549,7 @@ def wait_for_clip(browser: TopViewBrowser, seen: set, seconds: float, timeout_s:
         hz = classify_hazard(body)
         if hz and re.search(r"fail|insufficient|not enough|violat|sensitive|policy", hz, re.I):
             raise HazardStop("page", hz)
-        prog = re.findall(r"(\d{1,3}%|Generating[^\n]{0,40}|In queue[^\n]{0,40}|Queu[^\n]{0,40})", body)
+        prog = re.findall(r"(Generating\b[^\n]{0,40}|In queue[^\n]{0,40}|Queu(?:ed|ing)[^\n]{0,40})", body)
         note = " / ".join(dict.fromkeys(prog))[:200]
         if note and note != last_note:
             browser.log(f"  [{int(time.time() - start)}s] {note}")
@@ -602,8 +617,15 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
                     note=f"balance {st['balanceText']!r} < cost {cost}; not clicked")
     if st["genDisabled"]:
         return save("stopped", hazard_kind="disabled", note=f"Generate is disabled: {st['genText']!r}")
-    if st["dialogs"]:
-        return save("stopped", hazard_kind="dialog", note=f"a dialog is open: {st['dialogs'][0][:300]}")
+    if st["dialogs"] or st["pricingModal"]:
+        return save("stopped", hazard_kind="dialog",
+                    note=f"a dialog is open: {(st['dialogs'] or [st['pricingModal']])[0][:300]}")
+    if st["plan"] == "Free" and not args.allow_free_plan:
+        # measured 2026-09-26: on the Free plan (5 credits, button "Generate 0.6") the click opened the
+        # pricing modal "UPGRADE YOUR PLAN" and generated nothing; the CEO buys the plan himself
+        return save("stopped", hazard_kind="plan_required", cost_read=cost, balance_before=balance,
+                    note="plan badge reads 'Free': Generate on the Free plan opens 'UPGRADE YOUR PLAN' and "
+                         "generates nothing (2026-09-26). Not clicked. Buy the plan, then re-run.")
 
     seen = set(browser.media_srcs())
     browser.drain_network(seen)  # every mp4 URL the page's JSON carried before the click is not ours
@@ -615,9 +637,20 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
     except Exception as e:
         # the click may or may not have landed; the row stays 'submitted' so nothing re-fires it
         return save("failed-after-submit", note=f"Generate click raised {e!r}; check the board, then --recover")
-    browser.page.wait_for_timeout(3000)
-    st = browser.state()
+    for _ in range(8):  # the pricing modal, if any, is up within a few seconds
+        browser.page.wait_for_timeout(1000)
+        st = browser.state()
+        if st["pricingModal"]:
+            break
     row["gen_text_after_click"] = st["genText"]
+    if st["pricingModal"]:
+        after = parse_balance(st["balanceText"])
+        if after == balance:  # nothing was charged: the click only opened the modal, so the job may run again
+            return save("stopped", hazard_kind="plan_required", balance_after=after,
+                        note=f"Generate opened the pricing modal {st['pricingModal']!r} (plan badge "
+                             f"{st['plan']!r}); balance unchanged {after}; nothing generated. Not clicked further.")
+        return save("failed-after-submit", hazard_kind="plan_required", balance_after=after,
+                    note=f"pricing modal {st['pricingModal']!r} after the click AND balance {balance} -> {after}")
     try:
         url, data = wait_for_clip(browser, seen, float(job["seconds"]), args.timeout_s, row)
         row["generation_s"] = round(time.time() - t0)
@@ -675,6 +708,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cdp-url", default=CDP_DEFAULT)
     ap.add_argument("--timeout-s", type=int, default=RESULT_TIMEOUT_S)
     ap.add_argument("--keep-tab", action="store_true", help="leave the runner's tab open (debugging)")
+    ap.add_argument("--allow-free-plan", action="store_true",
+                    help="click Generate even when the plan badge reads 'Free' (it opened the pricing modal "
+                         "on 2026-09-26; use only if TopView changes that)")
     args = ap.parse_args(argv)
     if args.probe_costs and not args.dry_run:
         ap.error("--probe-costs only with --dry-run")
