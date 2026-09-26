@@ -489,6 +489,38 @@ Flow's free stills.
    Staging, wardrobe, who is in frame and day/night are visible in a still; seeing
    them there is free, seeing them in a 720p clip costs ~12 credits a take.
 
+## After posting: the link, then the Page's first comment (CEO 2026-09-26)
+
+A post is **done** only when the report carries the post's **public link**, a
+`www.facebook.com/...` URL that anyone can open. A Business Suite `content_id` is an
+insights id and does not count. "ลงแล้วจริงๆ" is proved by that link, not by a status
+badge. `tools/fb_reel_post.py` exits non-zero when it cannot resolve the link
+(task-cfdc75a8).
+
+Right after the link, the Page comments once on its own post and pins that comment.
+The comment invites people to follow. Write it next to the caption, as
+`docs/scripts/<film>-first-comment.txt`, and pass it with `--first-comment-file`.
+
+It holds these parts. The order and the wording may change from film to film ("อาจจะไม่ต้องเรียงตาม pattern นี้เสมอไป"):
+- a question taken from **this** story's dilemma, asking the viewer what they would do,
+  plus an invitation to tell their own story;
+- what the page is: ละครสั้นคุณธรรม, each story complete in one clip;
+- the follow line, and an ask for the stories viewers want next.
+
+The approved example, film 2 (`docs/scripts/taachang-first-comment.txt`):
+
+```
+ถ้าเป็นคุณ เจอตาชั่งร้านเสี่ยแบบนี้ จะทำยังไง? 🤔
+เล่าให้ฟังหน่อยครับ
+เพจนี้ลงละครสั้นคุณธรรม จบในคลิปเดียวทุกเรื่อง
+กดติดตามไว้ เรื่องหน้าจะได้ไม่พลาด อยากให้แอดมินเล่าเรื่องแบบไหนอีกขอมาได้เลยนะครับ
+```
+
+- Nothing from the ending. The comment is read before the film is watched.
+- No engagement bait: no "พิมพ์ 1", "แท็กเพื่อน" or "แชร์เลย", because Facebook ranks those posts lower.
+- Promise only what is true. Do not write "ทุกสัปดาห์" while there is no schedule.
+- Run it through `scripts/check-post-text.sh` (docs/promo/WRITING-RULES.md).
+
 ## Field notes
 
 - 2026-09-23 [MISSING] §Structure gate — four threads (hook, police line, lender's ending, happy ending) were ordered by the CEO after a full cut existed; each cost an insert + re-shoot + re-cut. Gate of 8 items added on the CEO's explicit approval ("OK เพิ่ม SKill ได้", 2026-09-23). · evidence: docs/scripts/banchi-RETRO.md, banchi shots 1-2, 174-190 · status: promoted
