@@ -96,6 +96,7 @@ GROUPS = {
     "g4": ["m06", "n04", "n12", "n05"],   # free: the pillars, the line, the talk, the crossing
     "g5": ["n06", "n07", "n13"],          # free: the light, a long violent wave, the waking
     "g6": ["x_longtake"],                 # free: one long take, the catch until the creature's eyes open
+    "g6r2": ["x_longtake"],               # retake (CEO 2026-09-26): take 1 had a boat, no mount; all three look up at the end
     "g2": ["o03", "o04", "m04"],          # paid
     "g7": ["n01", "n10", "m13"],          # paid, natural length (the three wide/aerial shots)
 }
@@ -105,27 +106,37 @@ LONG_TAKE = dict(
     spec="ONE CONTINUOUS TAKE, NO CUTS. It starts as a medium shot beside THE MOUNT at the surface and, without any cut, "
          "slowly pulls back and rises until THE MOUNT is small in the lower third with the far black water filling "
          "the frame above; then it holds.",
-    refs=["@Strong", "@Young", "@Elder", "@Turning", "@Mountain", "@Eye"],
-    ref_override={"@Turning": B.TURNING_IN_CIRCLE,
+    refs=["@Manta", "@Strong", "@Young", "@Elder", "@Turning", "@Mountain", "@Eye"],
+    ref_override={"@Manta": "THE MOUNT, their ride: take its manta-like body about 4 m across the wings, the sea-green "
+                            "mottled back, the long thin whip tail and the hand-built driftwood seat with its bone-rib "
+                            "backrest exactly. In this shot every lamp and grass tuft on the seat is dead and dark and "
+                            "nothing on THE MOUNT glows.",
+                  "@Turning": B.TURNING_IN_CIRCLE,
                   "@Eye": "THE CREATURE, the only picture of it: take its broad flat smooth dark head, its two enormous "
                           "pale yellow-green eyes with thin vertical slit pupils and its scale exactly; nothing of the "
                           "light around it."},
     light_extra="Far beyond the circle the rising mountain is only a vast blacker shape against the dark; its two eyes, "
                 "when they open, glow pale yellow-green on their own, the only other light in this shot.",
-    heading="THE CATCH, AND WHAT WAS WATCHING. One unbroken take from their first fish to the creature's eyes.",
+    heading="THE CATCH, AND WHAT WAS WATCHING. One unbroken take from their first fish to the creature's eyes. THE "
+            "THREE RIDERS are on the seat on the back of THE MOUNT, the manta, the whole time; there is no boat.",
+    state="THE MOUNT is the manta in the first picture; every lamp and grass tuft on its seat is dead and dark and "
+          "nothing on it glows. " + B.WET,
     frame="Starts medium, beside THE MOUNT at the surface: THE STRONG ONE leaning over the edge of the seat, THE YOUNG "
           "ONE glowing beside him, THE ELDER behind; ends wide from behind and above, THE MOUNT small on flat black "
           "water in the rain.",
     particles="rain, water splashing up as hands go in, golden motes around THE YOUNG ONE, mist over the flat water.",
     actions=["THE STRONG ONE, front perch: chases a fish shadow with both hands and snatches it out, holds it up "
              "laughing, then lies across the front of the seat grabbing at more fish with both arms in the water, "
-             "completely absorbed; he only looks up when THE YOUNG ONE shakes his shoulder, and his hands stop.",
+             "completely absorbed; he only looks up when THE YOUNG ONE shakes his shoulder; when the eyes open he stops, "
+             "rises onto his knees, hands dripping, and stares up at THE CREATURE.",
              "THE YOUNG ONE, middle, glowing: points where the fish goes, jumps up and down cheering at the catch, "
              "then sits on the edge kicking both feet in the water to herd fish, giggling; notices THE ELDER staring "
-             "for a long time, follows THE ELDER's gaze, goes still, then shakes THE STRONG ONE's shoulder hard.",
+             "for a long time, follows THE ELDER's gaze, goes still, then shakes THE STRONG ONE's shoulder hard; when the "
+             "eyes open the child clutches THE ELDER's arm and stares up at THE CREATURE.",
              "THE ELDER, back: grips THE STRONG ONE's kelp belt so THE STRONG ONE cannot fall in, claps him on the back "
              "at the catch, rinses the fish over the side, then stops, slowly lifts his head and stares ahead at the "
-             "far water, the fish forgotten in his hands."],
+             "far water; when the eyes open he lets the fish slip from his hands into the water and stares up at THE "
+             "CREATURE."],
     beats=["[0s] GLOW THE STRONG ONE leans far over the edge chasing a fish shadow with both hands; THE ELDER grips "
            "THE STRONG ONE's kelp belt; THE YOUNG ONE leans out beside THE STRONG ONE and points.",
            "[4s] THE STRONG ONE lunges and snatches out one dark glossy silver-black fish; they cheer, each in their own "
@@ -139,11 +150,15 @@ LONG_TAKE = dict(
            "other two keep fishing.",
            "[22s] THE YOUNG ONE notices THE ELDER staring for a long time, follows the gaze, goes still, then shakes "
            "THE STRONG ONE's shoulder; THE STRONG ONE looks up, hands still in the water.",
-           "[26s] High on the mountain two enormous eyes open: pale yellow-green, thin vertical slit pupils, each "
-           "bigger than their whole village, looking down at them. Hold."],
+           "[25s] High on the mountain two enormous eyes open: pale yellow-green, thin vertical slit pupils, each "
+           "bigger than their whole village, looking down at them.",
+           "[27s] All three stop what they are doing and stare up at THE CREATURE: THE STRONG ONE rises onto his "
+           "knees, hands dripping; THE YOUNG ONE clutches THE ELDER's arm; THE ELDER lets the fish slip into the water. "
+           "They stay like that, looking up, until the shot ends."],
     sound="splashes, THE STRONG ONE's effort, wordless cheering and laughter, THE YOUNG ONE's giggle, then THE YOUNG "
           "ONE's sharp gasp, then total silence as the eyes open; no words",
-    crit=B.NO_WORDS + ", no cut, no net, no spear, no hook, no one falling in, no roar, no teeth, no third eye, no waves, "
+    crit=B.NO_WORDS + ", no boat, no raft, no canoe, no hull, no cut, no net, no spear, no hook, no one falling in, no "
+         "roar, no teeth, no third eye, no waves, "
          "no light wider than 2 metres around the child, no eyes before the last beat",
 )
 GROUP_LENGTHS = {"g5": {"n06": 7, "n07": 13, "n13": 10}}
@@ -216,8 +231,13 @@ def render_group(scs, style, gkey=None):
         snd = sc.get("sound") or B.SOUND.get(key, "silence; nobody speaks")
         sec = [f"SHOT {i} of {len(scs)}, from {start:g}s to {end:g}s: {sc['title']}. {_inside_shot(sc['spec'])}",
                sc["heading"], "THE FRAME: " + sc["frame"]]
-        if B.STATE.get(key):
-            sec.append("STATE: " + B.STATE[key])
+        state = sc.get("state") or B.STATE.get(key)
+        if state:
+            sec.append("STATE: " + state)
+        # CEO 2026-09-26 (G6 take 1 came back with a boat): THE MOUNT must be in every shot the riders sit on it.
+        on_mount = key in B.ON_MOUNT or sc.get("prefix") == "x"
+        if on_mount and "@Manta" not in sc["refs"] and B.MOUNT_DARK not in (state or "") and "THE MOUNT" not in (state or ""):
+            raise SystemExit(f"{sc['title']}: riders on THE MOUNT but neither @Manta nor THE MOUNT's description")
         if key in B.DARK_LIT:
             sec.append("THE LIGHT: " + B.LIGHT + (" " + sc["light_extra"] if sc.get("light_extra") else ""))
         if sc.get("particles"):
