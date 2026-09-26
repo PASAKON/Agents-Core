@@ -179,9 +179,12 @@ _META = {
       "camera, proud and showing off; the old woman is moved, her eyes misting", ["nosubs"]),
  75: (8, "Wide, the old woman and the little boy walking away hand in hand down the canal path",
       ["yai_h", "tor_h"], "soi", SOI,
+      # take 1 ("chatting and laughing") invented two ENGLISH lines ("Be careful not to slip, son.",
+      # "I won, Grandma!") — measured by per-segment language detection, 2026-09-26. Silent walk.
       "the old woman and the little boy walk away hand in hand along the canal path under the row of "
-      "electricity poles, chatting and laughing, their backs to the camera, the path stretching "
-      "ahead; no one speaks to the camera", ["nosubs"]),
+      "electricity poles in contented silence, their backs to the camera, the path stretching ahead. "
+      "Nobody speaks at all in this shot: no dialogue, no words, no voices; the only sounds are "
+      "their footsteps, birds and the canal", ["nosubs"]),
 }
 
 _NAME = dict(_a2._NAME)
