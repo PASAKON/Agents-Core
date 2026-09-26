@@ -87,14 +87,76 @@ def render(sc, style, shorten, level=0):
 
 # CEO 2026-09-26: a free generation is counted per generation, not per second, so each one carries up to 30 s:
 # several shots in cut order, joined by hard cuts (Wan3 shot-level direction), at most 10 pictures.
+# CEO 2026-09-26 on the free five: "ฉากแรกยาว 30s ... ต่อมาคือฉากยาวดำน้ำเจอแมงกะพรุน ... Fantasy มากที่สุด ... Slow motion ...
+# ฉากคลื่นซัดแบบรุนแรงเป็นฉากยาวได้เลย ... ฉากจับปลา Long Take จนอสุรกายโผล่ ... ที่เหลืออะไรก็ได้". The free five are g1, g3,
+# g4, g5, g6 (fired first); g2 and g7 are paid. A group need not follow cut order: the edit puts every shot back.
 GROUPS = {
-    "g1": ["o01", "o02"],
-    "g2": ["o03", "o04", "m04"],
-    "g3": ["n01", "n02", "n03"],
-    "g4": ["m06", "n04", "n12", "n05"],
-    "g5": ["n06", "n07", "n13"],
-    "g6": ["n09", "n10", "n11"],
-    "g7": ["m13"],
+    "g1": ["o01", "o02"],                 # free: the opening, no new story, stretched to 30 s
+    "g3": ["n02", "n03"],                 # free: the dive into the glass sea, a fairy tale in slow motion
+    "g4": ["m06", "n04", "n12", "n05"],   # free: the pillars, the line, the talk, the crossing
+    "g5": ["n06", "n07", "n13"],          # free: the light, a long violent wave, the waking
+    "g6": ["x_longtake"],                 # free: one long take, the catch until the creature's eyes open
+    "g2": ["o03", "o04", "m04"],          # paid
+    "g7": ["n01", "n10", "m13"],          # paid, natural length (the three wide/aerial shots)
+}
+LONG_TAKE = dict(
+    prefix="x", n=0, slug="the-catch-to-the-eyes", title="ONE LONG TAKE: THE CATCH UNTIL THE EYES OPEN", s=30,
+    grade="DARK", grade_override="DARK_GLOW",
+    spec="ONE CONTINUOUS TAKE, NO CUTS. It starts as a medium shot beside THE MOUNT at the surface and, without any cut, "
+         "slowly pulls back and rises until THE MOUNT is small in the lower third with the far black water filling "
+         "the frame above; then it holds.",
+    refs=["@Strong", "@Young", "@Elder", "@Turning", "@Mountain", "@Eye"],
+    ref_override={"@Turning": B.TURNING_IN_CIRCLE,
+                  "@Eye": "THE CREATURE, the only picture of it: take its broad flat smooth dark head, its two enormous "
+                          "pale yellow-green eyes with thin vertical slit pupils and its scale exactly; nothing of the "
+                          "light around it."},
+    light_extra="Far beyond the circle the rising mountain is only a vast blacker shape against the dark; its two eyes, "
+                "when they open, glow pale yellow-green on their own, the only other light in this shot.",
+    heading="THE CATCH, AND WHAT WAS WATCHING. One unbroken take from their first fish to the creature's eyes.",
+    frame="Starts medium, beside THE MOUNT at the surface: THE STRONG ONE leaning over the edge of the seat, THE YOUNG "
+          "ONE glowing beside him, THE ELDER behind; ends wide from behind and above, THE MOUNT small on flat black "
+          "water in the rain.",
+    particles="rain, water splashing up as hands go in, golden motes around THE YOUNG ONE, mist over the flat water.",
+    actions=["THE STRONG ONE, front perch: chases a fish shadow with both hands and snatches it out, holds it up "
+             "laughing, then lies across the front of the seat grabbing at more fish with both arms in the water, "
+             "completely absorbed; he only looks up when THE YOUNG ONE shakes his shoulder, and his hands stop.",
+             "THE YOUNG ONE, middle, glowing: points where the fish goes, jumps up and down cheering at the catch, "
+             "then sits on the edge kicking both feet in the water to herd fish, giggling; notices THE ELDER staring "
+             "for a long time, follows THE ELDER's gaze, goes still, then shakes THE STRONG ONE's shoulder hard.",
+             "THE ELDER, back: grips THE STRONG ONE's kelp belt so THE STRONG ONE cannot fall in, claps him on the back "
+             "at the catch, rinses the fish over the side, then stops, slowly lifts his head and stares ahead at the "
+             "far water, the fish forgotten in his hands."],
+    beats=["[0s] GLOW THE STRONG ONE leans far over the edge chasing a fish shadow with both hands; THE ELDER grips "
+           "THE STRONG ONE's kelp belt; THE YOUNG ONE leans out beside THE STRONG ONE and points.",
+           "[4s] THE STRONG ONE lunges and snatches out one dark glossy silver-black fish; they cheer, each in their own "
+           "way: THE YOUNG ONE jumps up and down, THE ELDER claps THE STRONG ONE on the back, THE STRONG ONE holds the "
+           "fish up, laughing.",
+           "[9s] Without a cut the camera slowly pulls back and rises. THE STRONG ONE lies across the front grabbing "
+           "at more fish with both arms in the water; THE YOUNG ONE kicks both feet in the water, giggling; THE ELDER "
+           "rinses the fish over the side.",
+           "[16s] Far ahead the flat sea bulges and a vast smooth dark shape slowly rises out of it like a mountain, "
+           "until it fills the upper half of the frame, water pouring off it. THE ELDER stops and stares at it; the "
+           "other two keep fishing.",
+           "[22s] THE YOUNG ONE notices THE ELDER staring for a long time, follows the gaze, goes still, then shakes "
+           "THE STRONG ONE's shoulder; THE STRONG ONE looks up, hands still in the water.",
+           "[26s] High on the mountain two enormous eyes open: pale yellow-green, thin vertical slit pupils, each "
+           "bigger than their whole village, looking down at them. Hold."],
+    sound="splashes, THE STRONG ONE's effort, wordless cheering and laughter, THE YOUNG ONE's giggle, then THE YOUNG "
+          "ONE's sharp gasp, then total silence as the eyes open; no words",
+    crit=B.NO_WORDS + ", no cut, no net, no spear, no hook, no one falling in, no roar, no teeth, no third eye, no waves, "
+         "no light wider than 2 metres around the child, no eyes before the last beat",
+)
+GROUP_LENGTHS = {"g5": {"n06": 7, "n07": 13, "n13": 10}}
+GROUP_NATURAL = {"g7"}  # paid: no stretch, fewer seconds, fewer credits
+MOOD = {
+    "n02": ("MOOD: the start of the most fantastical passage of the film, as if they slip into a fairy tale. From the "
+            "moment THE MOUNT passes under the surface the shot runs in slow motion, about half speed: silver bubbles, "
+            "gill frills and hands drift slowly; soft glowing motes and rainbow light ripple through the water."),
+    "n03": ("MOOD: the most fantastical moment of the film, a fairy tale under the sea, all in slow motion, about half "
+            "speed: the glass creatures shimmer like living stained glass, rainbow caustics sweep over THE THREE "
+            "RIDERS, glowing motes float everywhere, dreamlike and luminous."),
+    "n07": ("MOOD: violent and overwhelming. The wave is a brutal wall of water that slams down with crushing force; "
+            "spray and foam explode across the frame; the camera shakes hard; nobody could stay on."),
 }
 
 
@@ -108,9 +170,11 @@ def _inside_shot(text):
 GROUP_SECONDS = 30  # CEO 2026-09-26: fill every free generation to 30 s; the edit trims later
 
 
-def stretch(scs, target):
+def stretch(scs, target, lengths=None):
     """Scale each shot's length (and so its beat times) so the group runs `target` seconds, in 0.5 s steps."""
     total = sum(sc["s"] for sc in scs)
+    if lengths:
+        return [dict(sc, s=lengths[tag(sc)], _f=lengths[tag(sc)] / sc["s"]) for sc in scs]
     if len(scs) == 1 or total >= target:
         return [dict(sc, _f=1.0) for sc in scs]
     out, used = [], 0.0
@@ -121,8 +185,9 @@ def stretch(scs, target):
     return out
 
 
-def render_group(scs, style):
-    scs = stretch(scs, GROUP_SECONDS)
+def render_group(scs, style, gkey=None):
+    if gkey not in GROUP_NATURAL:
+        scs = stretch(scs, GROUP_SECONDS, GROUP_LENGTHS.get(gkey))
     order, jobs = [], {}
     for sc in scs:
         for h in sc["refs"]:
@@ -157,6 +222,8 @@ def render_group(scs, style):
             sec.append("THE LIGHT: " + B.LIGHT + (" " + sc["light_extra"] if sc.get("light_extra") else ""))
         if sc.get("particles"):
             sec.append("PARTICLES: " + sc["particles"])
+        if MOOD.get(tag(sc)):
+            sec.append(MOOD[tag(sc)])
         if sc.get("actions"):
             sec.append("EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same):\n"
                        + "\n".join("- " + a for a in sc["actions"]))
@@ -183,9 +250,10 @@ def main():
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     by_key = {f"{s.get('prefix', 'm')}{s['n']:02d}": s for s in B.SCENES}
+    by_key["x_longtake"] = LONG_TAKE
     for k in a.keys:
         if k in GROUPS:
-            text, order, total = render_group([by_key[x] for x in GROUPS[k]], a.token)
+            text, order, total = render_group([by_key[x] for x in GROUPS[k]], a.token, k)
             if len(text) > CAP:
                 raise SystemExit(f"{k}: {len(text)} characters > {CAP}")
             job = {"key": k, "title": " + ".join(by_key[x]["title"] for x in GROUPS[k]), "seconds": total,
