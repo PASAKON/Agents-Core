@@ -30,6 +30,15 @@ def test_cost_is_read_only_from_a_generate_button_with_a_number():
     assert tv.parse_cost("Get Free Unlimited Generations") is None
 
 
+def test_parse_cost_free_generation_reads_the_charge_not_the_list_price():
+    # measured 2026-09-26: a free Wan 3.0 generation on the account shows the list price, then the charge
+    assert tv.parse_cost("Generate 7.5 0") == 0.0
+    assert tv.parse_cost("Generate 7.5 0", ["Credits: 0"]) == 0.0
+    assert tv.parse_cost("Generate 15 0", ["Credits: 0"]) == 0.0
+    assert tv.parse_cost("Generate 7.5", ["Credits: 7.5"]) == 7.5
+    assert tv.parse_cost("Generate", ["something else"]) is None
+
+
 def test_menus_compare_by_last_token_not_suffix():
     assert tv._last("SD 480p") == "480p"
     assert tv._last("12s") == "12s" and tv._last("12s") != "2s"

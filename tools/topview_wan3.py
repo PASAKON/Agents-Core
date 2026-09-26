@@ -93,10 +93,19 @@ def normalize_ws(text: str) -> str:
 _NUM = r"(\d+(?:[.,]\d+)?)"
 
 
-def parse_cost(button_text: str) -> float | None:
-    """'Generate 0.6' -> 0.6 ; 'Generate' (no number) -> None: no number read means no click."""
-    m = re.fullmatch(r"\s*Generate\s*" + _NUM + r"\s*", button_text or "")
-    return float(m.group(1).replace(",", "")) if m else None
+def parse_cost(button_text: str, cost_aria=None) -> float | None:
+    """What the click will charge. 'Generate 0.6' -> 0.6; 'Generate' (no number) -> None: no number, no click.
+    With a free generation on the account the button reads 'Generate 7.5 0' (list price struck, then the charge)
+    and the aria label reads 'Credits: 0' (measured 2026-09-26, Pro plan + the plugin's 5 free Wan 3.0): the
+    aria label is the charge, else the LAST number on the button."""
+    for a in cost_aria or []:
+        m = re.fullmatch(r"\s*Credits:\s*" + _NUM + r"\s*", a or "")
+        if m:
+            return float(m.group(1).replace(",", ""))
+    m = re.fullmatch(r"\s*Generate\s*" + _NUM + r"(?:\s+" + _NUM + r")?\s*", button_text or "")
+    if not m:
+        return None
+    return float((m.group(2) or m.group(1)).replace(",", ""))
 
 
 def parse_balance(text: str) -> float | None:
@@ -595,7 +604,7 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
         return save("failed", note=f"prepare: {e!r}"[:500])
     row.update({k: v for k, v in info.items()})
 
-    cost = parse_cost(info["gen_text"])
+    cost = parse_cost(info["gen_text"], info.get("cost_aria"))
     balance = parse_balance(info["balance_text"])
     row.update(cost_read=cost, balance_before=balance)
     browser.log(f"{key}: {info['model']} {info['aspect']} {info['seconds']} {info['resolution']} · "
@@ -605,7 +614,7 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
 
     # the money gate: the number is read again, off the visible button, at the moment of the click
     st = browser.state()
-    cost = parse_cost(st["genText"])
+    cost = parse_cost(st["genText"], st.get("costAria"))
     balance = parse_balance(st["balanceText"])
     if cost is None:
         return save("stopped", hazard_kind="no_cost", note=f"no cost on the Generate button: {st['genText']!r}")
