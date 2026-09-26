@@ -1,0 +1,86 @@
+[
+  {
+    "id": "A1",
+    "mood": "Wonder",
+    "title": "Glass Bloom",
+    "prompt": "A slow, spacious instrumental piece built on a very quiet sustained analog synth drone. Above it, bright bell-like and glass-like tones ring and decay slowly, like struck glass underwater, while thin string harmonics glisten and swell without resolving. Free tempo, almost no pulse, around 55 BPM. A faint four-note descending figure, like a distant funeral chant, rises once from the low register and fades. The mood is luminous and wide-eyed, but a cold watching stillness lingers underneath. No vocals, no drums, no percussion, one continuous swell, under 60 seconds.",
+    "why": "Borrows the sustained low analog drone, near-pulseless free dynamics, and the Dies Irae four-note descending figure as an unsettling undertone beneath wonder."
+  },
+  {
+    "id": "A2",
+    "mood": "Wonder",
+    "title": "First Contact",
+    "prompt": "An instrumental cue led by a slow synthesizer glissando that slides and bends pitch like a voice sliding between notes, echoed by soft theremin-like tones. Underneath, a low analog pad drone holds steady while distant metallic chimes ring irregularly. Tempo around 65 BPM, dynamics rising in terraced steps: quiet, a swell, a held silence, then a brighter swell. High string harmonics enter late, thin and cold. The feeling is discovery and awe with a faint unease, as if something is looking back. No vocals, no drums, one instrumental build, under 60 seconds.",
+    "why": "Uses pitch-sliding synth glissandi and stepped terraced dynamic swells (Penderecki-derived technique) instead of a steady beat."
+  },
+  {
+    "id": "A3",
+    "mood": "Wonder",
+    "title": "Deep Bloom",
+    "prompt": "A hushed instrumental piece opening with very high, breathy string harmonics and slow wind-like glissandi that rise and fall like something vast exhaling. A low analog drone sits far beneath, almost inaudible at first. Very slow, around 50 BPM, mostly free of pulse. Midway, the texture suddenly opens into a bright, wide swell of layered strings and shimmering synth pads, held for several seconds before fading. A faint four-note descending figure echoes once in the bass under the climax. No vocals, no percussion, one hushed-to-bright arc, under 60 seconds.",
+    "why": "Recreates the wind-harp-style glissandi and breath-like swells plus a buried Dies Irae fragment placed under the climax."
+  },
+  {
+    "id": "A4",
+    "mood": "Wonder",
+    "title": "Rising Light",
+    "prompt": "An instrumental piece built from soft breathy textures and gentle bowed metal bowls, layering gradually like ripples spreading outward. A warm analog synth drone underpins everything, joined one layer at a time by soft mallet tones, high string harmonics, and a distant airy hum. Tempo around 70 BPM, gradual additive build with no drums, each new layer entering quietly until the texture is full and shimmering. The mood is tender wonder shadowed by a faint watchfulness. No vocals, no lyrics, no percussion hits, one continuous layering build, under 60 seconds.",
+    "why": "Mirrors the character-specific bowl and chime tone-painting and gradual additive layering, keeping the underlying dread understated."
+  },
+  {
+    "id": "B1",
+    "mood": "Something enormous",
+    "title": "The Awakening",
+    "prompt": "A dread-laden instrumental cue centered on a slow, heavy low-frequency pulse like a giant heartbeat, around 48 beats per minute, sitting beneath a cold analog synth drone. Very low sub-bass tones swell gradually, joined by distant metallic scrapes and a faint high string cluster that never resolves. The pulse never speeds up, only grows louder and more physical, filling more space each time. Near the end, a low brass-like synth intones a slow four-note descending figure once, then everything cuts to near silence. No vocals, no drums beyond the pulse, one long crescendo, under 60 seconds.",
+    "why": "Directly borrows the sound-not-music heartbeat cue and the Dies Irae descending figure stated in low synthesized brass."
+  },
+  {
+    "id": "B2",
+    "mood": "Something enormous",
+    "title": "Something Vast",
+    "prompt": "A tense instrumental piece built almost entirely from dense, dissonant string clusters that slide in tight glissandi against each other, creating a grinding, buzzing texture. Underneath, a very slow sub-bass pulse throbs irregularly, like an enormous heartbeat heard from far away. Free, rubato tempo, roughly 40 beats per minute, with sudden terraced dynamic jumps: near-silent, then a harsh loud cluster swell, then silence again. No steady rhythm, no vocals, no drums, three escalating stepped swells, under 60 seconds.",
+    "why": "Uses tight glissando string clusters and terraced dynamics from the avant-garde orchestral material, plus an irregular sub-bass heartbeat pulse."
+  },
+  {
+    "id": "B3",
+    "mood": "Something enormous",
+    "title": "Something Breathes",
+    "prompt": "A slow, ominous instrumental cue built on a sustained low analog synth drone and the sound of slow, heavy breathing, processed and distorted until it sounds inhuman. A distant heartbeat pulse sits underneath at around 52 beats per minute, barely audible at first. High, thin string harmonics hover above without melody. Dynamics build gradually and then cut hard to a single loud, sustained low synth swell before dropping to near silence. No vocals, no lyrics, no drums, one long swell with a hard dynamic cut, under 60 seconds.",
+    "why": "Reproduces the processed breath and low-drone texture that made the electronic score feel uncanny, paired with the sequel score's heartbeat pulse."
+  },
+  {
+    "id": "B4",
+    "mood": "Something enormous",
+    "title": "The Deep Opens",
+    "prompt": "A slow, physically heavy instrumental piece led by a sub-bass pulse like a colossal heartbeat, starting around 45 beats per minute and very gradually thickening in density without speeding up. Metallic scraping glissandi and low string clusters swirl above it, cold and dissonant. A faint four-note descending figure tolls once in deep synthesized brass near the climax. The dynamics grow from barely audible to overwhelming and then hold. No vocals, no conventional drums, one continuous slow-building crescendo, under 60 seconds.",
+    "why": "Combines the heartbeat pulse motif with a gradual thickening build and the low-brass Dies Irae figure at the peak, echoing the climactic reprise technique."
+  },
+  {
+    "id": "C1",
+    "mood": "Adventure",
+    "title": "Wake and Ride",
+    "prompt": "A driving instrumental piece led by a repeating arpeggiated analog synthesizer sequence, dark and metallic, moving at a steady 100 beats per minute. A low sub-bass pulse doubles as a heartbeat under the sequence, and thin dissonant string harmonics cut across the top. The energy builds steadily by adding layers: first the sequence alone, then the pulse, then strings, then a low synth drone beneath everything. No vocals, no melody in the traditional sense, one steady propulsive build, under 60 seconds.",
+    "why": "Keeps the dissonant, non-melodic harmony and heartbeat pulse but drives it forward with a rhythmic analog sequence for momentum."
+  },
+  {
+    "id": "C2",
+    "mood": "Adventure",
+    "title": "Into the Current",
+    "prompt": "An instrumental cue built on a rhythmic, urgent string ostinato playing short repeated notes with a slightly rough, scraping bow attack, layered over a dark analog synth drone. Tempo around 112 beats per minute, insistent and forward-moving. A low pulse rumbles underneath like a heartbeat kept in check. Every few bars a fast descending string glissando slices through the texture. Dynamics build by accelerating the layering, adding more string parts until the texture feels crowded and urgent. No vocals, no standard drum kit, one accelerating layered build, under 60 seconds.",
+    "why": "Turns the split-section, trading-lines string writing into a driving ostinato while keeping the heartbeat pulse and glissandi."
+  },
+  {
+    "id": "C3",
+    "mood": "Adventure",
+    "title": "Momentum",
+    "prompt": "A dark, propulsive instrumental piece combining a steady sub-bass heartbeat pulse with a pulsing analog synth bassline, around 96 beats per minute. Above them, cold string clusters answer each pulse in short call-and-response swells, and a distant processed breathing sound drifts through the mix. The energy is forward-driving and physical, never fully resolving into a clean melody. Dynamics swell and recede in waves rather than staying flat. No vocals, no lyrics, no conventional drum kit, one call-and-response driving build, under 60 seconds.",
+    "why": "Layers the heartbeat pulse directly against a synth bass groove and keeps unresolved string clusters and breath texture as the dread undertone."
+  },
+  {
+    "id": "C4",
+    "mood": "Adventure",
+    "title": "Through the Storm",
+    "prompt": "An instrumental piece driven by metallic, clanking percussion and a droning, grinding synth texture like a huge mechanical hand-crank instrument turning at a steady 108 beats per minute. A sub-bass heartbeat pulse anchors everything beneath fast string tremolos and sudden glissando stabs. The intensity arrives in surging waves: a loud driving section, a sudden drop to near silence, then a bigger surge. No vocals, no clean melody, waves of surge-and-drop dynamics, under 60 seconds.",
+    "why": "Reworks the cult's grinding drone-plus-heartbeat cue into a forward-driving adventure pulse with surge/drop dynamics."
+  }
+]
