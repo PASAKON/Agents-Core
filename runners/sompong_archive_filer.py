@@ -45,6 +45,26 @@ resolve()-then-relative_to() guard in sompong_photo_filer.py, because a
 month's log file can still be mid-append by another process while this
 filer is looking at the directory.
 
+The container that writes the outbox controls every directory under it,
+including its own name at every level, so the SAME dir_fd + O_NOFOLLOW
+discipline extends to two more places a path-based open would let a
+container-planted symlink redirect this root-run process anywhere its
+own ReadWritePaths allow:
+
+  - Opening the outbox itself. Only DATA_DIR (ClaudeFlow's `data` dir, the
+    host bind-mount source, which the container cannot replace) is opened
+    by path. The fixed relative walk to it -- "sompong", then
+    "archive-outbox" -- is each opened O_DIRECTORY | O_NOFOLLOW relative to
+    the previous fd. If either component is a symlink, the tick is
+    refused (logged, skipped) rather than resolved.
+  - Quarantining a repeatedly-failing entry into "failed/" (and
+    "failed/media/<month>/"). Each level is created with
+    os.mkdir(name, dir_fd=parent_fd) (EEXIST ignored) and then opened
+    O_DIRECTORY | O_NOFOLLOW relative to its parent; the rename itself uses
+    src_dir_fd= / dst_dir_fd=. A symlinked "failed" means no quarantine
+    happens at all -- the entry is logged and left exactly where it is,
+    never moved through the symlink.
+
 Logs never carry chat content -- only file/month/msgid names and reasons.
 """
 
@@ -68,12 +88,13 @@ from lib.logger import get_logger  # noqa: E402
 
 BANGKOK_TZ = timezone(timedelta(hours=7))
 
-DEFAULT_OUTBOX = "/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong/archive-outbox"
+DEFAULT_DATA_DIR = "/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data"
 DEFAULT_STAGING_ROOT = "/var/lib/archiveup/staging"
 DEFAULT_STATE_DIR = "/var/lib/archiveup/state"
 DEFAULT_SOCKET_PATH = "/run/archiveup/archive-broker.sock"
 
-OUTBOX = Path(os.environ.get("SOMPONG_ARCHIVE_OUTBOX", DEFAULT_OUTBOX))
+DATA_DIR = Path(os.environ.get("SOMPONG_ARCHIVE_DATA_DIR", DEFAULT_DATA_DIR))
+_OUTBOX_REL_PARTS = ("sompong", "archive-outbox")
 STAGING_ROOT = Path(os.environ.get("SOMPONG_ARCHIVE_STAGING_ROOT", DEFAULT_STAGING_ROOT))
 STATE_DIR = Path(os.environ.get("SOMPONG_ARCHIVE_FILER_STATE_DIR", DEFAULT_STATE_DIR))
 SOCKET_PATH = os.environ.get("SOMPONG_ARCHIVE_BROKER_SOCKET_PATH", DEFAULT_SOCKET_PATH)
@@ -226,6 +247,32 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+# --- outbox root (DATA_DIR opened by path, everything below it by dir_fd) --
+
+def _open_outbox_fd() -> int | None:
+    """DATA_DIR is ClaudeFlow's `data` dir, the host bind-mount source the
+    container cannot replace, so it alone is opened by path. Every
+    component below it -- "sompong", then "archive-outbox" -- is a name the
+    container fully controls, so each is opened O_DIRECTORY | O_NOFOLLOW
+    relative to its parent; a symlink at either level refuses the tick
+    instead of being followed."""
+    try:
+        fd = os.open(str(DATA_DIR), os.O_RDONLY | os.O_DIRECTORY)
+    except OSError as e:
+        log.warning("data dir unavailable: %s: %s", DATA_DIR, e)
+        return None
+    for part in _OUTBOX_REL_PARTS:
+        try:
+            next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+        except OSError as e:
+            os.close(fd)
+            log.warning("refusing tick: outbox path component %r is not a plain directory: %s", part, e)
+            return None
+        os.close(fd)
+        fd = next_fd
+    return fd
+
+
 # --- staging (filer -> broker handoff) ----------------------------------
 
 def _enough_free_space(root: Path, min_mb: int) -> bool:
@@ -238,12 +285,22 @@ def _enough_free_space(root: Path, min_mb: int) -> bool:
 
 
 def _stage_bytes(data: bytes, staged_name: str) -> Path:
+    """The staging dir's group is the broker user, so a plain open(..., "wb")
+    would follow a broker-planted symlink or truncate a broker-planted file
+    at this name -- create it exclusively instead, refusing to touch
+    anything already there."""
     STAGING_ROOT.mkdir(parents=True, exist_ok=True)
     dest = STAGING_ROOT / staged_name
-    tmp = STAGING_ROOT / f".tmp.{os.getpid()}.{staged_name}"
-    with open(tmp, "wb") as f:
-        f.write(data)
-    os.chmod(tmp, 0o640)
+    tmp_name = f".tmp.{os.getpid()}.{staged_name}"
+    tmp = STAGING_ROOT / tmp_name
+    fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o640)
+    try:
+        view = memoryview(data)
+        while view:
+            n = os.write(fd, view)
+            view = view[n:]
+    finally:
+        os.close(fd)
     os.replace(tmp, dest)
     return dest
 
@@ -316,15 +373,66 @@ def _clear_fail(failcounts: dict, key: str) -> None:
     failcounts.pop(key, None)
 
 
-def _quarantine_file(outbox_fd: int, name: str, subdir: str = "") -> None:
-    """Move a repeatedly-failing entry into OUTBOX/failed/<subdir>/name so a
-    human can inspect it; stops it from being retried forever."""
-    failed_root = OUTBOX / FAILED_DIRNAME / subdir if subdir else OUTBOX / FAILED_DIRNAME
-    failed_root.mkdir(parents=True, exist_ok=True)
+def _open_or_make_safe_subdir(parent_fd: int, name: str) -> int | None:
+    """mkdir-if-absent then open O_NOFOLLOW, all relative to parent_fd --
+    never resolves a path string for any part of the quarantine tree.
+    Refuses (returns None) if `name` already exists as anything other
+    than a plain directory, e.g. a symlink the container planted."""
     try:
-        os.rename(name, str(failed_root / name), src_dir_fd=outbox_fd)
+        os.mkdir(name, dir_fd=parent_fd)
+    except FileExistsError:
+        pass
+    except OSError as e:
+        log.error("could not create quarantine dir %r: %s", name, e)
+        return None
+    try:
+        return os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent_fd)
+    except OSError as e:
+        log.error("%r is not a plain directory, refusing to use it for quarantine: %s", name, e)
+        return None
+
+
+def _quarantine_log(outbox_fd: int, name: str) -> bool:
+    failed_fd = _open_or_make_safe_subdir(outbox_fd, FAILED_DIRNAME)
+    if failed_fd is None:
+        log.error("could not quarantine %s: %r is unsafe or unavailable, leaving file in place", name, FAILED_DIRNAME)
+        return False
+    try:
+        os.rename(name, name, src_dir_fd=outbox_fd, dst_dir_fd=failed_fd)
+        return True
     except OSError as e:
         log.error("could not quarantine %s: %s", name, e)
+        return False
+    finally:
+        os.close(failed_fd)
+
+
+def _quarantine_media(outbox_fd: int, month_fd: int, bin_name: str, json_name: str, month: str) -> bool:
+    failed_fd = _open_or_make_safe_subdir(outbox_fd, FAILED_DIRNAME)
+    if failed_fd is None:
+        log.error("could not quarantine media month=%s: %r is unsafe or unavailable, leaving files in place", month, FAILED_DIRNAME)
+        return False
+    try:
+        failed_media_fd = _open_or_make_safe_subdir(failed_fd, "media")
+        if failed_media_fd is None:
+            return False
+        try:
+            failed_month_fd = _open_or_make_safe_subdir(failed_media_fd, month)
+            if failed_month_fd is None:
+                return False
+            try:
+                os.rename(bin_name, bin_name, src_dir_fd=month_fd, dst_dir_fd=failed_month_fd)
+                os.rename(json_name, json_name, src_dir_fd=month_fd, dst_dir_fd=failed_month_fd)
+                return True
+            except OSError as e:
+                log.error("could not quarantine media month=%s: %s", month, e)
+                return False
+            finally:
+                os.close(failed_month_fd)
+        finally:
+            os.close(failed_media_fd)
+    finally:
+        os.close(failed_fd)
 
 
 # --- text log processing --------------------------------------------------
@@ -340,6 +448,13 @@ def _pending_logs(outbox_fd: int) -> list[str]:
 def _process_log(name: str, outbox_fd: int, log_ledger: dict, parts: dict, failcounts: dict) -> str:
     month = _LOG_NAME_RE.fullmatch(name).group(0)[4:-6]
     key = f"log:{name}"
+
+    if failcounts.get(key, 0) >= MAX_RETRIES:
+        if _quarantine_log(outbox_fd, name):
+            _clear_fail(failcounts, key)
+            log.error("log month=%s exceeded retry cap, quarantined", month)
+            return "log_quarantined"
+        return "log_quarantine_failed"
 
     try:
         fd, st = _open_safe_file(outbox_fd, name, max_bytes=LOG_MAX_UPLOAD_BYTES)
@@ -364,8 +479,9 @@ def _process_log(name: str, outbox_fd: int, log_ledger: dict, parts: dict, failc
             pass
 
     raw_sha256 = _sha256_bytes(raw)
+    ledger_key = f"{month}:{raw_sha256}"
 
-    if raw_sha256 in log_ledger:
+    if ledger_key in log_ledger:
         try:
             os.unlink(name, dir_fd=outbox_fd)
         except OSError as e:
@@ -392,33 +508,47 @@ def _process_log(name: str, outbox_fd: int, log_ledger: dict, parts: dict, failc
     finally:
         _remove_staged(staged_path)
 
-    if ok and md5 == gz_md5:
-        log_ledger[raw_sha256] = {"name": drive_name, "month": month}
-        parts[month] = part_count + 1
-        _save_log_ledger(log_ledger)
-        _save_json(STATE_DIR / "log_parts.json", parts)
-        try:
-            os.unlink(name, dir_fd=outbox_fd)
-        except OSError as e:
-            log.error("uploaded log month=%s but could not delete local: %s", month, e)
-            return "log_upload_delete_failed"
-        _clear_fail(failcounts, key)
-        log.info("log month=%s filed as %s", month, drive_name)
-        return "log_filed"
-
-    n = _bump_fail(failcounts, key)
-    if ok and md5 != gz_md5:
-        log.error("log month=%s md5 mismatch, keeping local (attempt %d)", month, n)
-        result = "log_md5_mismatch"
-    else:
+    if not (ok and md5 == gz_md5):
+        n = _bump_fail(failcounts, key)
+        if ok and md5 != gz_md5:
+            log.error("log month=%s md5 mismatch, keeping local (attempt %d)", month, n)
+            return "log_md5_mismatch"
         log.warning("log month=%s upload failed: %s (attempt %d)", month, detail, n)
-        result = "log_upload_failed"
-    if n >= MAX_RETRIES:
-        _quarantine_file(outbox_fd, name)
-        _clear_fail(failcounts, key)
-        log.error("log month=%s exceeded retry cap, quarantined", month)
-        return result + "_quarantined"
-    return result
+        return "log_upload_failed"
+
+    log_ledger[ledger_key] = {"name": drive_name, "month": month}
+    parts[month] = part_count + 1
+    _save_log_ledger(log_ledger)
+    _save_json(STATE_DIR / "log_parts.json", parts)
+
+    # A late append between the read above and the delete below (ClaudeFlow
+    # waking up and trimming a silent group) must never be silently lost --
+    # re-check identity right before unlinking, and keep the file if
+    # anything changed. The upload we just recorded in the ledger is still
+    # valid for the bytes it actually covered; the extra rows go out as the
+    # next part on a later tick.
+    try:
+        check_fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=outbox_fd)
+    except OSError:
+        check_fd = None
+    if check_fd is not None:
+        try:
+            check_st = os.fstat(check_fd)
+        finally:
+            os.close(check_fd)
+        if (check_st.st_ino, check_st.st_size, check_st.st_mtime_ns) != (st.st_ino, st.st_size, st.st_mtime_ns):
+            _clear_fail(failcounts, key)
+            log.warning("log month=%s changed after upload, keeping local for the next part", month)
+            return "log_filed_kept_late_append"
+
+    try:
+        os.unlink(name, dir_fd=outbox_fd)
+    except OSError as e:
+        log.error("uploaded log month=%s but could not delete local: %s", month, e)
+        return "log_upload_delete_failed"
+    _clear_fail(failcounts, key)
+    log.info("log month=%s filed as %s", month, drive_name)
+    return "log_filed"
 
 
 # --- media pair processing ------------------------------------------------
@@ -453,9 +583,17 @@ def _pending_media_pairs(month_fd: int) -> list[tuple[str, str, str]]:
 
 
 def _process_media_pair(
-    msgid: str, bin_name: str, json_name: str, month: str, month_fd: int, media_ledger: dict, failcounts: dict
+    msgid: str, bin_name: str, json_name: str, month: str, month_fd: int, outbox_fd: int,
+    media_ledger: dict, failcounts: dict
 ) -> str:
     key = f"media:{month}:{msgid}"
+
+    if failcounts.get(key, 0) >= MAX_RETRIES:
+        if _quarantine_media(outbox_fd, month_fd, bin_name, json_name, month):
+            _clear_fail(failcounts, key)
+            log.error("media msgid=%s exceeded retry cap, quarantined", msgid)
+            return "media_quarantined"
+        return "media_quarantine_failed"
 
     try:
         json_fd, _ = _open_safe_file(month_fd, json_name, max_bytes=1 << 20)
@@ -489,7 +627,16 @@ def _process_media_pair(
         log.error("media msgid=%s sha256 mismatch with sidecar", msgid)
         return "skipped_sha_mismatch"
 
-    if bin_sha256 in media_ledger:
+    # Keyed by (month, msgid) rather than content sha alone -- two distinct
+    # messages (e.g. the same photo forwarded twice in a family group) can
+    # share identical bytes, and a sha-only key would treat the second
+    # message's sidecar (who sent it, when) as "already filed" and delete
+    # it without ever uploading it.
+    ledger_key = f"{month}/{msgid}"
+    existing = media_ledger.get(ledger_key)
+    same_content = bool(existing) and existing.get("sha256") == bin_sha256
+
+    if same_content and existing.get("bin_uploaded") and existing.get("json_uploaded"):
         try:
             os.unlink(bin_name, dir_fd=month_fd)
             os.unlink(json_name, dir_fd=month_fd)
@@ -504,25 +651,41 @@ def _process_media_pair(
         log.warning("low free space, deferring media msgid=%s", msgid)
         return "skipped_low_space"
 
-    ext = bin_name[len(msgid):]
-    staged_bin = _stage_bytes(bin_bytes, f"{bin_sha256}{ext}")
-    staged_json = _stage_bytes(sidecar_raw, f"{bin_sha256}.json")
+    # Partial progress from a previous attempt (same msgid, same content):
+    # never re-upload a half Drive already has.
+    bin_already_done = same_content and bool(existing.get("bin_uploaded"))
+    json_already_done = same_content and bool(existing.get("json_uploaded"))
 
+    ext = bin_name[len(msgid):]
     bin_md5 = hashlib.md5(bin_bytes).hexdigest()
     json_md5 = hashlib.md5(sidecar_raw).hexdigest()
 
-    try:
-        bin_ok, bin_detail, bin_drive_md5 = _upload_via_broker(staged_bin, bin_name, month)
-        json_ok, json_detail, json_drive_md5 = _upload_via_broker(staged_json, json_name, month)
-    finally:
-        _remove_staged(staged_bin)
-        _remove_staged(staged_json)
+    bin_verified = bin_already_done
+    json_verified = json_already_done
+    bin_detail = "already uploaded"
+    json_detail = "already uploaded"
 
-    bin_verified = bin_ok and bin_drive_md5 == bin_md5
-    json_verified = json_ok and json_drive_md5 == json_md5
+    staged_bin = staged_json = None
+    try:
+        if not bin_already_done:
+            staged_bin = _stage_bytes(bin_bytes, f"{bin_sha256}{ext}")
+            bin_ok, bin_detail, bin_drive_md5 = _upload_via_broker(staged_bin, bin_name, month)
+            bin_verified = bin_ok and bin_drive_md5 == bin_md5
+        if not json_already_done:
+            staged_json = _stage_bytes(sidecar_raw, f"{bin_sha256}.json")
+            json_ok, json_detail, json_drive_md5 = _upload_via_broker(staged_json, json_name, month)
+            json_verified = json_ok and json_drive_md5 == json_md5
+    finally:
+        if staged_bin is not None:
+            _remove_staged(staged_bin)
+        if staged_json is not None:
+            _remove_staged(staged_json)
 
     if bin_verified and json_verified:
-        media_ledger[bin_sha256] = {"msgid": msgid, "month": month, "bin_name": bin_name}
+        media_ledger[ledger_key] = {
+            "sha256": bin_sha256, "bin_uploaded": True, "json_uploaded": True,
+            "msgid": msgid, "month": month, "bin_name": bin_name,
+        }
         _save_media_ledger(media_ledger)
         try:
             os.unlink(bin_name, dir_fd=month_fd)
@@ -534,27 +697,19 @@ def _process_media_pair(
         log.info("media msgid=%s filed", msgid)
         return "media_filed"
 
+    # Record whichever half succeeded this attempt so a retry only
+    # re-uploads the piece that is still missing -- Drive never collects a
+    # duplicate copy of the half that already verified.
+    media_ledger[ledger_key] = {
+        "sha256": bin_sha256, "bin_uploaded": bin_verified, "json_uploaded": json_verified,
+        "msgid": msgid, "month": month, "bin_name": bin_name,
+    }
+    _save_media_ledger(media_ledger)
+
     n = _bump_fail(failcounts, key)
-    if bin_ok and not bin_verified:
-        reason = "bin md5 mismatch"
-    elif json_ok and not json_verified:
-        reason = "sidecar md5 mismatch"
-    else:
-        reason = bin_detail if not bin_ok else json_detail
+    reason = bin_detail if not bin_verified else json_detail
     log.warning("media msgid=%s upload incomplete: %s (attempt %d)", msgid, reason, n)
-    result = "media_upload_failed"
-    if n >= MAX_RETRIES:
-        failed_root = OUTBOX / FAILED_DIRNAME / "media" / month
-        failed_root.mkdir(parents=True, exist_ok=True)
-        try:
-            os.rename(bin_name, str(failed_root / bin_name), src_dir_fd=month_fd)
-            os.rename(json_name, str(failed_root / json_name), src_dir_fd=month_fd)
-        except OSError as e:
-            log.error("could not quarantine media msgid=%s: %s", msgid, e)
-        _clear_fail(failcounts, key)
-        log.error("media msgid=%s exceeded retry cap, quarantined", msgid)
-        return result + "_quarantined"
-    return result
+    return "media_upload_failed"
 
 
 # --- tick / main -----------------------------------------------------------
@@ -565,8 +720,8 @@ def _tick_locked() -> dict:
     def bump(action: str) -> None:
         counts[action] = counts.get(action, 0) + 1
 
-    if not OUTBOX.is_dir():
-        log.warning("outbox does not exist: %s", OUTBOX)
+    outbox_fd = _open_outbox_fd()
+    if outbox_fd is None:
         return counts
 
     failcounts = _load_failcounts()
@@ -574,7 +729,6 @@ def _tick_locked() -> dict:
     media_ledger = _load_media_ledger()
     parts = _load_json(STATE_DIR / "log_parts.json", {})
 
-    outbox_fd = os.open(str(OUTBOX), os.O_RDONLY | os.O_DIRECTORY)
     try:
         for name in _pending_logs(outbox_fd):
             action = _process_log(name, outbox_fd, log_ledger, parts, failcounts)
@@ -596,7 +750,9 @@ def _tick_locked() -> dict:
                         continue
                     try:
                         for msgid, bin_name, json_name in _pending_media_pairs(month_fd):
-                            action = _process_media_pair(msgid, bin_name, json_name, month, month_fd, media_ledger, failcounts)
+                            action = _process_media_pair(
+                                msgid, bin_name, json_name, month, month_fd, outbox_fd, media_ledger, failcounts
+                            )
                             bump(action)
                     finally:
                         os.close(month_fd)
@@ -622,7 +778,7 @@ def tick() -> dict:
 
 def main() -> int:
     once = "--once" in sys.argv
-    log.info("sompong_archive_filer starting outbox=%s once=%s", OUTBOX, once)
+    log.info("sompong_archive_filer starting data_dir=%s once=%s", DATA_DIR, once)
     while True:
         counts = tick()
         if counts:

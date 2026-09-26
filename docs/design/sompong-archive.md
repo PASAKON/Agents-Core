@@ -68,7 +68,7 @@ happening first.
 |---|---|---|---|
 | filer | `root` | outbox read/delete, staged-copy write | `runners/sompong_archive_filer.py` |
 | broker | `archiveup` (new) | Drive OAuth credential | `/run/archiveup/archive-broker.sock` |
-| outbox | claudeflow-written, root-drained | `/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong/archive-outbox` |
+| outbox | claudeflow-written, root-drained | `/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong/archive-outbox` — reached via `SOMPONG_ARCHIVE_DATA_DIR` (the `data` dir, opened by path) then a fixed `sompong`/`archive-outbox` walk (each opened `O_DIRECTORY\|O_NOFOLLOW` by dir_fd), never the full path opened directly |
 | staging | filer writes, broker reads | `/var/lib/archiveup/staging` |
 | credential file | root-owned, mode `0640`, group `archiveup` | `/home/archiveup/.drive-archive.env` |
 
@@ -111,9 +111,25 @@ folder, its own local ledger (`filed_logs.json` keyed by raw content
 sha256 → `{name, month}`; `filed_media.json` keyed by the media file's
 sha256 → `{msgid, month, bin_name}`; both beside the filer's state, written
 only after a verified upload, before the local delete) is authoritative for
-both questions: a duplicate sha256 skips straight to "already done, delete
-local," and a per-month part counter (`log_parts.json`) picks the next free
-`-partN` without ever needing to list the Drive folder.
+both questions: a duplicate skips straight to "already done, delete local,"
+and a per-month part counter (`log_parts.json`) picks the next free `-partN`
+without ever needing to list the Drive folder.
+
+Keys are content sha256 plus the identifier the outbox already gives that
+sha no right to collapse: `filed_logs.json` is keyed by `<month>:<raw
+sha256>` → `{name, month}` (a second file for the same month with different
+bytes is simply a different key); `filed_media.json` is keyed by
+`<month>/<msgid>` → `{sha256, bin_uploaded, json_uploaded, msgid, month,
+bin_name}`, with the sha stored as a value rather than as the key itself.
+Two distinct messages that happen to carry identical bytes (the same photo
+forwarded twice in a family group) get two ledger entries, not one, so the
+second message's sidecar (who sent it, when) still reaches Drive instead of
+being silently deleted as "already filed." "Already filed" for media means
+same key AND same stored sha; a msgid that comes back with different bytes
+than what the ledger recorded is treated as new. The two booleans also
+survive a bin-succeeds/sidecar-fails split attempt: the next try only
+re-uploads whichever half is still `false`, so a flaky sidecar upload never
+gives Drive a second copy of the bin.
 
 ## 5. Failure behavior
 
@@ -126,7 +142,22 @@ local," and a per-month part counter (`log_parts.json`) picks the next free
 - **`MAX_RETRIES` (default 5) exceeded** — moved to `<outbox>/failed/`
   (logs) or `<outbox>/failed/media/<month>/` (media pairs, both bin and
   sidecar together) for a human to inspect; stops retrying forever against a
-  paid API.
+  paid API. Every directory on that quarantine path is created with
+  `os.mkdir(name, dir_fd=parent_fd)` (EEXIST ignored) and reopened
+  `O_DIRECTORY | O_NOFOLLOW` relative to its parent, and the move itself
+  uses `src_dir_fd=`/`dst_dir_fd=` — the outbox's own container controls
+  every name under it, so a path-built `mkdir`/`rename` could otherwise be
+  redirected through a planted symlink (e.g. `failed` → the filer's own
+  state dir) into overwriting files outside the outbox entirely. If
+  `failed` (or a level under it) turns out to be anything but a plain
+  directory, quarantine is refused: logged, and the entry is left exactly
+  where it was, never moved through the symlink.
+- **A symlinked outbox path component** — only `DATA_DIR` (ClaudeFlow's
+  `data` dir, the host bind-mount source the container cannot replace) is
+  opened by path; the fixed relative walk below it (`sompong`, then
+  `archive-outbox`) is opened `O_DIRECTORY | O_NOFOLLOW` relative to the
+  previous fd. If either component is a symlink, the whole tick is refused
+  (logged, skipped) rather than resolved.
 - **Symlink, hardlink (`st_nlink != 1`), FIFO, or any non-regular file** in
   the outbox — every name the filer reads comes from a directory listing
   (never JSON content or a client string), then opened with
@@ -137,6 +168,15 @@ local," and a per-month part counter (`log_parts.json`) picks the next free
   (main branch) uses, chosen over `sompong_photo_filer.py`'s older
   resolve-then-check guard because a month's log file can still be mid-append
   by another process while this filer is scanning the directory.
+- **A late append between the upload and the delete** — right before
+  unlinking an uploaded log, the filer re-opens the name `O_NOFOLLOW`,
+  `fstat`s it, and compares `(st_ino, st_size, st_mtime_ns)` against the
+  stat it read the content from. Any difference means ClaudeFlow appended
+  late rows in that window (e.g. a silent group waking up and triggering
+  its trim); the file is kept rather than deleted, and the rows it now
+  holds go out as the next `-partN` on a later tick. The upload that just
+  happened is still recorded in the ledger — it genuinely covers the bytes
+  it uploaded, just not the ones appended afterward.
 - **Duplicate content already in the ledger** — deleted locally without a
   second upload attempt (crash-recovery path: the process died after
   uploading but before deleting, or after deleting the outbox pair but a

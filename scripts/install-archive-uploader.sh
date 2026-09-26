@@ -76,7 +76,8 @@ REQUIRED_KEYS=(GOOGLE_OAUTH_CLIENT_ID GOOGLE_OAUTH_CLIENT_SECRET GOOGLE_OAUTH_RE
 FILER_SERVICE="mooniex-sompong-archive-filer"
 FILER_UNIT_PATH="/etc/systemd/system/${FILER_SERVICE}.service"
 FILER_LOG_DIR="/var/log/mooniex-sompong-archive-filer"
-OUTBOX_DIR="/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong/archive-outbox"   # org wiki mooniex:projects/sompong-ea.md section E
+DATA_DIR="/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data"   # ClaudeFlow's data dir -- the host bind-mount source, opened by path; org wiki mooniex:projects/sompong-ea.md section E
+OUTBOX_DIR="${DATA_DIR}/sompong/archive-outbox"              # derived, for display only -- ClaudeFlow creates and owns this, this script never mkdir/chown/chmod it
 FILER_STATE_DIR="/var/lib/mooniex-sompong-archive-filer"
 FILER_MIN_FREE_MB="2048"
 FILER_POLL_SECONDS="300"
@@ -150,14 +151,13 @@ do_install() {
   fi
   echo "OK 1-user"
 
-  echo "== 2. outbox dir (claudeflow writes, root-run filer drains -- ${BROKER_USER} never opens a path here) =="
+  echo "== 2. outbox dir (ClaudeFlow creates and owns this -- this script never touches it) =="
   if [ -d "$OUTBOX_DIR" ]; then
-    echo "  already exists: $OUTBOX_DIR -- leaving ownership/mode as-is (may hold live data)"
+    echo "  found: $OUTBOX_DIR -- leaving ownership/mode untouched (ClaudeFlow owns it, may hold live data)"
   else
-    mkdir -p "$OUTBOX_DIR"
-    chown "root:${BROKER_GROUP}" "$OUTBOX_DIR"
-    chmod 2770 "$OUTBOX_DIR"
-    echo "  created: $OUTBOX_DIR (owner root:${BROKER_GROUP}, mode 2770)"
+    echo "  NOTICE: $OUTBOX_DIR does not exist yet -- ClaudeFlow has not deployed the archive-outbox writer."
+    echo "  Not creating it: giving ${BROKER_USER} write access to a dir the design says the broker never"
+    echo "  touches would be a permission overgrant. The filer idles harmlessly until ClaudeFlow creates it."
   fi
   echo "OK 2-outbox-dir"
 
@@ -259,7 +259,7 @@ Type=simple
 User=root
 Group=root
 WorkingDirectory=${ROOT}
-Environment=SOMPONG_ARCHIVE_OUTBOX=${OUTBOX_DIR}
+Environment=SOMPONG_ARCHIVE_DATA_DIR=${DATA_DIR}
 Environment=SOMPONG_ARCHIVE_STAGING_ROOT=${STAGING_DIR}
 Environment=SOMPONG_ARCHIVE_MIN_FREE_MB=${FILER_MIN_FREE_MB}
 Environment=SOMPONG_ARCHIVE_BROKER_SOCKET_PATH=${BROKER_SOCKET_PATH}
@@ -274,7 +274,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=${OUTBOX_DIR} ${STAGING_DIR} ${FILER_LOG_DIR} ${FILER_STATE_DIR}
+ReadWritePaths=${DATA_DIR} ${STAGING_DIR} ${FILER_LOG_DIR} ${FILER_STATE_DIR}
 
 [Install]
 WantedBy=multi-user.target
