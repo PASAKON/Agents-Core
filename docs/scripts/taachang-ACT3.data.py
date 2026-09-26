@@ -74,7 +74,6 @@ PROPS_BY_SHOT = {
     54: ["@pickup__empty"], 56: ["@jar__full"], 57: ["@jar__full"],
     62: ["@envelope"], 63: ["@envelope"],
     69: ["@yard_scale"], 70: ["@yard_scale"], 71: ["@cart", "@yard_scale"],
-    74: ["@notebook"],
 }
 
 OUT = "late afternoon, warm daylight"
@@ -176,7 +175,7 @@ _META = {
  # deleted 3 times as a two-shot (incl. twice words-only at 720p). CEO: one more try, solo.
  74: (8, "Medium shot on the little boy alone, holding up a notebook with its pages angled away from camera",
       ["tor_h"], "baan", HOME,
-      "the little boy stands alone in the shack and holds up his light-blue notebook toward someone "
+      "the little boy stands alone in the shack and holds up a plain light-blue school exercise book with a blank cover toward someone "
       "off-frame, the pages turned away from the camera, proud and showing off", ["nosubs"]),
  75: (8, "Wide, the old woman and the little boy walking away hand in hand down the canal path",
       ["yai_h", "tor_h"], "soi", SOI,

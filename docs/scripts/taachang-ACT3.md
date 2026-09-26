@@ -340,12 +340,12 @@ Medium two-shot, the old woman straightening the little boy's shirt collar, both
 ```
 
 ### SHOT 74 · 2:40–2:48 · 8s · Medium shot on the little boy alone, holding up a notebook with its pages angled away from camera
-**ATTACH** 1) `@baan__inside`→REF_0 · 2) `@notebook`→REF_1
+**ATTACH** 1) `@baan__inside`→REF_0
 **บทพูด** tor__face `"ยายไม่ต้องหยอดหินแล้วนะครับ ต่อจดให้ยายเอง ต่อเขียนเป็นแล้ว"` — proud, showing off
 ```
-Use <IMAGE_REF_0> as the location reference for baan__inside. Use <IMAGE_REF_1> as the character reference for notebook.
+Use <IMAGE_REF_0> as the location reference for baan__inside.
 
-In the inside of a small, poor corrugated-zinc shack: walls of rusty zinc sheets and rough planks, a bare cracked concrete floor with a thin striped woven plastic mat, no furniture at all, two stacked plastic crates (green on red) used as a shelf, clothes hanging on nails, a rolled-up thin mattress and pillow in the corner, plastic bags of belongings, a small electric fan on the floor, a bare bulb hanging on a wire, daylight coming through gaps in the zinc and a small window over a canal <IMAGE_REF_0>, late afternoon, daylight through the gaps in the zinc. a small Thai boy of eleven with round cheeks and a straight black bowl-cut, in a faded navy T-shirt and khaki shorts, barefoot — the little boy stands alone in the shack and holds up his light-blue notebook toward someone off-frame, the pages turned away from the camera, proud and showing off.
+In the inside of a small, poor corrugated-zinc shack: walls of rusty zinc sheets and rough planks, a bare cracked concrete floor with a thin striped woven plastic mat, no furniture at all, two stacked plastic crates (green on red) used as a shelf, clothes hanging on nails, a rolled-up thin mattress and pillow in the corner, plastic bags of belongings, a small electric fan on the floor, a bare bulb hanging on a wire, daylight coming through gaps in the zinc and a small window over a canal <IMAGE_REF_0>, late afternoon, daylight through the gaps in the zinc. a small Thai boy of eleven with round cheeks and a straight black bowl-cut, in a faded navy T-shirt and khaki shorts, barefoot — the little boy stands alone in the shack and holds up a plain light-blue school exercise book with a blank cover toward someone off-frame, the pages turned away from the camera, proud and showing off.
 
 The little boy in the navy T-shirt speaks Thai in the high, bright voice of an eleven-year-old Thai boy, proud, showing off, and says: "ยายไม่ต้องหยอดหินแล้วนะครับ ต่อจดให้ยายเอง ต่อเขียนเป็นแล้ว"
 
