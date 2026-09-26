@@ -338,3 +338,22 @@ projects:
     review_required: true
     # tmux-backed so send_to_worker's mailbox+wake can reach a spawned worker.
     spawn_backend: tmux
+
+  - key: mooniex-sompong
+    name: SomPong EA (the CEO's Executive Assistant)
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
+    remote: https://github.com/PASAKON/MoonieX-SomPong.git
+    default_branch: main
+    stack: [python]
+    agents_allowed: *default_workers
+    # PRIVATE repo, hq.yaml row approved by the CEO 2026-09-26. Runs on
+    # Contabo as unix user sompong; reaches LINE only through ClaudeFlow's
+    # internal API, never through ClaudeFlow's files (IRON §54).
+    auto_push: true
+    review_required: true
+    test_command: python3 -m pytest -q
+    gate_tests: true
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/SomPong
+    spawn_backend: tmux
