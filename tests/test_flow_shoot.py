@@ -1633,3 +1633,31 @@ def test_earlier_takes_skips_files_that_are_not_ledgers(tmp_path):
     p = _ledger_with_take(tmp_path, "ACT2.tsv", 35, b"x")
     seen = flow_shoot.earlier_takes(p, 35)
     assert list(seen.values()) == ["ACT2.tsv"]
+
+
+# ── card_is_finished (2026-09-26): poll_result used to open the newest card ~30-60 s after
+#    Submit, while it was still rendering, and then sit in it for the whole timeout. Texts
+#    below are the live feed batch texts read that day. ──
+
+def test_card_is_finished_on_a_done_card():
+    txt = ("play_circle download undo delete Use <IMAGE_REF_0> as the character reference for "
+           "yai__face. สร้างเมื่อ 26 ก.ย. 2569 720p • 8 วินาที")
+    assert flow_shoot.card_is_finished(txt) is True
+
+
+def test_card_is_not_finished_while_rendering():
+    assert flow_shoot.card_is_finished("37% Use <IMAGE_REF_0> as the character reference") is False
+    assert flow_shoot.card_is_finished("Use <IMAGE_REF_0> as the character reference") is False
+
+
+def test_card_open_wait_is_short_not_the_whole_timeout():
+    assert flow_shoot.CARD_OPEN_WAIT_S < flow_shoot.COMPLETION_TIMEOUT_S
+
+
+def test_validate_download_option_accepts_original_720p_and_refuses_paid():
+    flow_shoot.validate_download_option("720p ขนาดดั้งเดิม", "720p")
+    flow_shoot.validate_download_option("1080p เพิ่มความละเอียดแล้ว", "1080p")
+    with pytest.raises(RuntimeError):
+        flow_shoot.validate_download_option("4K เพิ่มความละเอียดแล้ว · 50 เครดิต", "720p")
+    with pytest.raises(RuntimeError):
+        flow_shoot.validate_download_option("270p GIF ภาพเคลื่อนไหว", "720p")
