@@ -1,0 +1,37 @@
+{
+  "_comment": "neko's default Chromium policy (apps/chromium/policies.json, fetched 2026-09-26) with these changes: DefaultCookiesSetting 1 + RestoreOnStartup so logins persist (docs: 'browsers in Neko are set up to forget all cookies ... when they are closed'), DeveloperToolsAvailability 1 so a remote-debugging port can work later, no force-installed extensions. Everything else as upstream.",
+  "DefaultCookiesSetting": 1,
+  "RestoreOnStartup": 4,
+  "RestoreOnStartupURLs": ["https://app.infisical.com/login"],
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "BrowserSignin": 0,
+  "DefaultNotificationsSetting": 2,
+  "DeveloperToolsAvailability": 1,
+  "EditBookmarksEnabled": false,
+  "FullscreenAllowed": true,
+  "IncognitoModeAvailability": 1,
+  "SyncDisabled": true,
+  "AutoplayAllowed": true,
+  "BrowserAddPersonEnabled": false,
+  "BrowserGuestModeEnabled": false,
+  "DefaultPopupsSetting": 2,
+  "DownloadRestrictions": 3,
+  "VideoCaptureAllowed": true,
+  "AllowFileSelectionDialogs": false,
+  "PromptForDownloadLocation": false,
+  "BookmarkBarEnabled": false,
+  "PasswordManagerEnabled": false,
+  "BrowserLabsEnabled": false,
+  "CommandLineFlagSecurityWarningsEnabled": false,
+  "URLAllowlist": [
+    "file:///home/neko/Downloads"
+  ],
+  "URLBlocklist": [
+    "file://*",
+    "chrome://policy"
+  ],
+  "ExtensionInstallBlocklist": [
+    "*"
+  ]
+}

@@ -155,3 +155,6 @@ state/bl-tiktok/
 
 # run logs of the Drive leg / doctor on this box (never committed; the ledger is ~/.claude/logs/drive-archive.log)
 state/*.log
+
+# neko pilot: browser profiles (cookies) and image pull logs — never in git (2026-09-26)
+state/neko/

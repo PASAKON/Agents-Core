@@ -1,0 +1,46 @@
+# neko pilot — a real headed Chrome on Contabo, streamed to the CEO's phone over WebRTC.
+# CEO 2026-09-26 05:5x TH: "เริ่ม pilot neko ก่อนได้เลย replay ของเรา park ไว้ก่อน".
+# Evaluation + plan: docs/design/login-relay/NEKO-EVAL-2026-09-26.md.
+#
+# Tailnet only: every published port binds to Contabo's Tailscale IP, so only the CEO's devices
+# and our machines can reach it. That is also why the pilot uses neko's `noauth` member provider
+# (no password to hand around); the integration fronts it with the Console's passkey instead.
+#
+#   docker compose -f infra/neko-pilot/docker-compose.yml up -d
+#   phone: https://terminal.mooniex.com:8444/          (same cert as the Console)
+#   WebRTC media: UDP/TCP 59000 on 100.118.171.23 (NAT1TO1), no TURN, no public port.
+name: neko-pilot
+services:
+  neko:
+    image: ghcr.io/m1k1o/neko/chromium:latest
+    container_name: neko-pilot
+    restart: unless-stopped
+    shm_size: "2gb"
+    ports:
+      - "100.118.171.23:59000:59000/udp"
+      - "100.118.171.23:59000:59000/tcp"
+    environment:
+      NEKO_DESKTOP_SCREEN: "720x1280@30"        # portrait: reads like a phone on the phone
+      NEKO_MEMBER_PROVIDER: "noauth"            # pilot only, tailnet-bound (see header)
+      NEKO_WEBRTC_UDPMUX: "59000"
+      NEKO_WEBRTC_TCPMUX: "59000"
+      NEKO_WEBRTC_ICELITE: "true"
+      NEKO_WEBRTC_NAT1TO1: "100.118.171.23"
+      NEKO_FILETRANSFER_ENABLED: "false"
+      NEKO_SESSION_COOKIE_SECURE: "true"
+    volumes:
+      # the browser profile (cookies, sessions) lives outside the container; uid 1000 inside
+      - /opt/MoonieXHQ/Agents/Core/state/neko/infisical/chromium:/home/neko/.config/chromium
+      - ./policies.json:/etc/chromium/policies/managed/policies.json:ro
+
+  tls:
+    # HTTPS for the phone with the Console's existing terminal.mooniex.com certificate.
+    image: caddy:2
+    container_name: neko-pilot-tls
+    restart: unless-stopped
+    depends_on: [neko]
+    ports:
+      - "100.118.171.23:8444:8444"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/MoonieXHQ/Projects/MoonieX/Console/certs:/certs:ro

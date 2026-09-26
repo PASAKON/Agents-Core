@@ -1,0 +1,12 @@
+{
+	auto_https off
+	admin off
+}
+
+# The phone opens https://terminal.mooniex.com:8444/ — the name already resolves to Contabo's
+# tailnet IP and the certificate is the Console's. Caddy proxies HTTP + WebSocket to neko;
+# WebRTC media goes straight to neko's UDP/TCP 59000 (never through a proxy).
+https://terminal.mooniex.com:8444 {
+	tls /certs/terminal.mooniex.com.crt /certs/terminal.mooniex.com.key
+	reverse_proxy neko:8080
+}
