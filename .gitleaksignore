@@ -1,0 +1,4 @@
+# False positives only. Each line: <path>:<rule>:<line> (gitleaks fingerprint for staged scans).
+# tests/test_flow_music.py:109 is a 22-char fake "ya29." fixture inside a redaction test
+# (a real Google access token is ~200 chars); it has been on origin since 35b902a5. 2026-09-26, cto-aa2e4242.
+tests/test_flow_music.py:generic-api-key:109
