@@ -1,6 +1,6 @@
 ---
 name: CXO_Run_Inbox
-description: "Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /CXO_Run_Inbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run."
+description: "Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /CXO_Run_Inbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does."
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 audience: [cxo, worker]
@@ -23,7 +23,19 @@ approval. Design: `docs/design/run-inbox/DESIGN.md`; hub facts: Console `docs/ru
 | `mac` | no — same 501 | P2, after the Mac rebuild (its sshd is off) |
 
 A card for winbox or the Mac never reaches the phone — the hub refuses it before storing anything.
-Until P2, those steps go the old way (the CEO at that machine; browser logins via the login relay).
+There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2, a step on
+the Mac or winbox goes one of two ways, and never as a `!` line:
+
+- **Your own auto-mode classifier refused an action the CEO already ordered** (a delete, a post, a
+  paid call he approved): ask for ONE approval sentence in chat that names the exact target — he
+  types it on the phone — then run it yourself. Measured 2026-09-26: deleting the TEST post on the
+  Mac's FB Chrome (CDP bound to 127.0.0.1:9230, so no Contabo card can reach it).
+- **It truly needs a human at that box** (a login code, a secret into a file): say in one line
+  "card impossible on <host> until P2", park it to LungNote with P2 as the unblocker, move on.
+  Browser logins still go through the login relay (`terminal.mooniex.com/relay`).
+
+[SUPERSEDED 2026-09-26 by CEO ruling, kept as history] ~~Until P2, those steps go the old way (the CEO
+at that machine; browser logins via the login relay).~~
 
 ## Before the first card (facts you cannot derive)
 
@@ -86,6 +98,17 @@ card red).
 
 ## Rules
 
+0. **HARD — commands reach the CEO on the phone only.** Every command or script the CEO has to run
+   goes as a Run Inbox card. Never write a `!` command, a "พิมพ์คำสั่งนี้", or "run this on <box>"
+   in chat — not in a code block, not inline. For the Mac and winbox before P2, see §Hosts.
+   Enforced in the tool, not only here: `scripts/hook-phone-only-commands.py` (Stop hook) blocks a
+   reply that hands one and makes you rewrite it. Bypass `PHONE_ONLY_GUARD=off` only to repair the
+   hook itself.
+
+   **Why hard:** CEO ruling 2026-09-26 — "ส่งคำสั่งมาที่ terminal.mooniex.com/run … เขียน Skill
+   บังคับใช้ได้เลย … เพราะฉะนั้นจะรัน command ผ่านมือถือเท่านั้น". He is not at a keyboard; a `!`
+   line in chat is a step nobody can take.
+
 1. **HARD — the CEO's tap is the only authority.** Never approve, batch, retry until approved, or
    ask for a standing "always allow"; the org token cannot approve and the design forbids it.
 
@@ -118,7 +141,8 @@ card red).
 
 - A browser login (Google, Facebook, TikTok …) → the login relay at `terminal.mooniex.com/relay`.
 - A command your own sandbox can run → run it; the phone is for what only a human at the box may do.
-- winbox or the Mac until P2 lands — the hub refuses, so do not promise the CEO a card there.
+- winbox or the Mac until P2 lands — the hub refuses, so do not promise the CEO a card there; use
+  the two routes in §Hosts (approval sentence in chat, or park), never a `!` line.
 
 ## Reference
 
@@ -129,3 +153,4 @@ card red).
 
 - 2026-09-25 [COSTLY] §Rules.3 — first live card RUN-20260925-1632-0bfe expired unapproved after the 30-min TTL; the CEO was not at the phone · evidence: hub ledger pending→expired, result letter in state/inbox/cto-6ebacd0e/ · prevented by: issue only when the CEO says he is holding the phone; P1.1 = requester-chosen TTL · status: pending
 - 2026-09-25 [MISSING] §Before the first card — on Contabo, workers run as the same user as C-level sessions (root), so a worker can read the C-level token file; the hub classes by token, not by role · evidence: run-inbox-deploy.sh writes /root/.config/mooniex/run-inbox.token; workers spawn as root · fix: launcher exports the WORKER token as RUN_INBOX_TOKEN and the C-level file moves out of the worker's reach (P1.1) · status: pending
+- 2026-09-26 [MISSING] §Rules.0 — the CTO handed the CEO a `!` command for a Mac-only delete; the CEO ruled commands run from the phone only and ordered the rule enforced · evidence: CEO ruling 2026-09-26 (session cto-89aa4de2, TEST post 4116998775270501), hook scripts/hook-phone-only-commands.py · status: promoted
