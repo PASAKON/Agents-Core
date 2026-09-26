@@ -16,9 +16,9 @@ audience: [cto, browser_operator]
 
 # Wan 3.0 · TopView
 
-**Status: no Wan3 generation has been measured by this org yet.** Every fact below is TopView's own page,
-pricing table, FAQ or contest text (read 2026-09-23/25). The first real generation must record what it
-actually did here, in Field notes, before anything is built on these claims.
+**Status (2026-09-26): the generator UI, the costs and the reference tokens are measured (dry runs of
+`tools/topview_wan3.py`); no clip has been generated yet, because the account was on the Free plan.** Facts
+marked *measured* below come from that run; the rest is still TopView's own text.
 
 Sources, with URLs and verbatim quotes: `docs/promo/TOPVIEW-WAN3-REFERENCES.md` (model, references, prices)
 and `docs/promo/TOPVIEW-WAN3-RULES.md` (the challenge). This skill is the working summary; those files are
@@ -35,31 +35,48 @@ the evidence.
    **Why hard:** scope; an entry that breaks it is disqualified, and "the organizer may verify the creation
    process, Topview project, and material licenses".
 
+3. **Fair Use (TopView's pricing modal, read 2026-09-26):** "This feature is designed for personal, human use
+   only - automation tools, credential sharing, or reselling access are strictly prohibited" and "Unlimited models
+   and Free Generations on plans are accessible only via topview.ai and are not accessible on MCP/CLI, API or other
+   automation methods"; unusual activity can pause Unlimited access for review. The text sits in the Unlimited
+   terms and says nothing about paid credits. Before driving the site with `tools/topview_wan3.py`, the CEO chooses
+   how the Generate click is made (runner, or the runner fills the form and a person clicks).
+4. **The Free plan cannot generate** (*measured*): on Free (5 credits) "Generate 0.6" opened the pricing modal
+   "UPGRADE YOUR PLAN", generated nothing and charged nothing. The runner stops before the click on "Free".
+
 ## 2 · References: positional, not named
 
 - There is **no saved Element library** for Wan3. Each generation takes its own uploads: up to 10 images,
   5 videos, 5 audio (20 files), per TopView's page; the live caps are unverified.
-- A reference is cited by its **upload order**: `@Image 1` (inserted by the UI when you type `@`) or
-  `<<<Image1>>>` / `<<<Audio1>>>` (TopView's own example prompts). Which token the live box accepts is
-  unverified: check it on the first generation.
+- A reference is cited by its **upload order** (*measured*): uploads are labelled Image1, Image2... in the order
+  they are added; pasted **`@Image1`** or **`<<<Image1>>>`** becomes a reference chip; **`@Image 1` with a space
+  stays plain text and attaches nothing**; typing `@` opens an Image picker; each upload also inserts its own chip.
+  `wan3_prompt.py` writes `@Image1`.
+  [SUPERSEDED 2026-09-26] "`@Image 1` (inserted by the UI when you type `@`)... which token the live box accepts is
+  unverified": the paste test and the chip read-back settled it.
 - Name the subject in prose right after the tag and give the reference its job, as TopView's FAQ asks:
   "Name each uploaded reference and explain its job, then list the details that must remain consistent."
 
 ## 3 · The Direction box
 
-- **3,500 characters maximum** (the counter reads "Direction 513/3500").
+- **20,000 characters** on the board generator (*measured*: the counter reads "0 / 20000" at
+  `/board/...?tool-type=video-edit&model-id=qwen-wan3.0-video`). Our full H3-derived prompts (1,200-5,700) fit.
+  [SUPERSEDED 2026-09-26] "3,500 characters maximum (Direction 513/3500)": read from a different page, not the
+  generator we use.
 - Several shots in one generation are allowed ("shot-level direction"), written as prose, as `[0-4s] ...`
   brackets, or as `Timeline: 0.0-3.0s | ...`.
-- Up to 30 s per generation (2-30 s), 480p / 720p / 1080p, aspect 16:9, 9:16, 1:1, 4:3, 3:4.
+- *Measured*: 2-30 s in 1 s steps; 480p ("SD 480p"), 720p, 1080p; aspects 9:16, 3:4, 1:1, 4:3, 16:9; a fresh board
+  defaults to 9:16 / 30 s / 720p (set 16:9 every time); Generation Count 1-4; Auto Upscale and Internet Search off
+  by default. The model picker also lists a separate "Wan 3.0 Prime" (30 s, fast); the plugin benefit excludes Prime.
 - Whether Wan3 makes its own sound is unconfirmed.
 
 ## 4 · Prices and plans (topview.ai/pricing, 2026-09-25)
 
 | | per second | notes |
 |---|---|---|
-| 1080p | 1 credit | |
-| 720p | 0.5 credit | 0.4 with the 20 % off on Business, Ultra or Team annual |
-| 480p | 0.3 credit | may not be selectable for Wan3 |
+| 1080p | 1 credit | *measured*: 2 s = 2 |
+| 720p | 0.5 credit | *measured*: 2 s = 1, 30 s = 15; 0.4 with the 20 % off on Business, Ultra or Team annual |
+| 480p | 0.3 credit | selectable (*measured*: 2 s = "Generate 0.6") |
 
 Pro $29/month = 80 credits (annual $16/month, 960 credits upfront) · Business $75 ($44 annual, 3,000/yr) ·
 Ultra $150 ($50 annual, 500/month) and Team list **"Wan 3.0 720P 365 Days Unlimited"** · top-up packs
@@ -74,10 +91,8 @@ two engines are different, so check each step on the first generation and write 
    single-panel pictures (Drive `Element/`, `ref-*.png` and the location plates). 10 images at most.
 2. **Replace each `@Handle` with its position** (`@Image 1`...), keeping the fixed name after it:
    `@Image 2 THE YOUNG ONE, ...`.
-3. **Fit 3,500 characters.** Our H3 paste blocks run about 4,600. Cut in this order: the house negatives
-   wall first, then shorten the reference descriptions (the picture carries the look), then merge the
-   STATE, PARTICLES and grade lines into one sentence each. Never cut the beats, the dialogue or the camera
-   line.
+3. **Length:** the generator takes 20,000 characters, so the full prompt goes in (the house-negatives wall is
+   still dropped). `wan3_prompt.py` keeps its trim levels for a shorter box; they do not trigger at 20,000.
 4. **Remove the H3 studio markers** (`overall_soundscape:` and `non_diegetic_music: none.`) and state the
    sound in plain words ("Sound: only the characters' own voices and breathing; no music, no ambience").
 5. **Set** 720p (the challenge floor), 16:9, and the shot's seconds; one generation per H3 shot, unless
@@ -96,3 +111,4 @@ quality 10 (CEO: these weights are the film's design brief) · $15,000 over 16 p
 The other TopView call (AI Film Screening, SSFF & ASIA, closes 23 Oct): `docs/promo/TOPVIEW-FILMFEST-RULES.md`.
 
 ## Field notes
+- 2026-09-26 [MISSING] §2 — the generator lives at `https://www.topview.ai/board/my-first-board?tool-type=video-edit&model-id=qwen-wan3.0-video` (redirects to the account's board); "Continue with Google" as pass.gob1 in the winbox automation Chrome (CDP 9224) completed with no prompt; selectors and the cost read are in `tools/topview_wan3.py` · evidence: agent run 2026-09-26, commits 1bab51c4 20629212 · status: pending

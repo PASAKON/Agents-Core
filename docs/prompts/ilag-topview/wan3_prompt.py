@@ -14,7 +14,9 @@ import argparse, importlib.util, json, re
 from pathlib import Path
 
 HERE = Path(__file__).parent
-CAP = 3500
+# Measured 2026-09-26 on the board generator: the prompt counter reads "0 / 20000" (the 3,500 cap in the skill
+# was a claim, not a measurement). Full prompts fit, so the trim levels below never trigger at this cap.
+CAP = 20000
 
 spec = importlib.util.spec_from_file_location("build", HERE / "build.py")
 B = importlib.util.module_from_spec(spec)
@@ -22,7 +24,9 @@ spec.loader.exec_module(B)
 
 
 def token(i, style):
-    return f"@Image {i}" if style == "at" else f"<<<Image{i}>>>"
+    # Measured 2026-09-26: pasted "@Image1" and "<<<Image1>>>" become reference chips; "@Image 1" with a space
+    # stays plain text and attaches nothing.
+    return f"@Image{i}" if style == "at" else f"<<<Image{i}>>>"
 
 
 def short_ref(text):
