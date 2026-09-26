@@ -13,6 +13,8 @@ it at the end; never touches another tab (ChatGPT, TopView and Outlook run in th
     C:/mooniex/pwvenv/Scripts/python.exe tools/flow_music.py PROMPTS.json --out OUTDIR ^
         --max-credits-per-track 20 [--ids A1,A2] [--dry-run] [--length 1:00] [--format wav|m4a]
     ... --recover A1        collect A1's finished songs after the runner stopped waiting; fires nothing
+    ... --refire C3 [--debug-net]   fire a failed-after-submit id again, only when its failed click left no
+                            song and no charge (balance == balance_before minus later rows' measured charges)
 
 PROMPTS.json is a list of {id, title, prompt, ...}. Output: OUTDIR/<id>-<n>.<ext> (n = 1.. in creation order,
 one file per song the Generate click produced) and OUTDIR/ledger.json.
@@ -32,9 +34,16 @@ Per prompt (measured live 2026-09-26 on www.flowmusic.app, account tier "Member"
      exactly "Generate", no dialog/purchase text is up, and the balance is >= --max-credits-per-track; after the
      track the balance is read again and a charge above the cap stops the run before the next prompt;
   5. one click on Generate (the ledger row says "submitted" BEFORE the click, so nothing ever fires twice);
+     the click is POST /__api/producer/tool-call -> {"job_id": ...}; stay on the session page until the song
+     card shows (--appear-timeout-s), leaving earlier may drop the request;
   6. poll the library until every new song whose operation.sound_prompt (or conversation) is ours has
      duration.status "completed", then fetch each song's wav_url / audio_url (public storage.googleapis.com
      object) and write <id>-<n>.<ext>; the UI's own Download > WAV menu is the fallback.
+
+Measured on the ILAG run 2026-09-26 (12 prompts, Length 1:00): 5 credits per Generate (30610 -> 30555 for 13
+songs); one Generate = one song, except B2 = two songs for 0 charged; songs 53-63 s, WAV pcm_s16le 48 kHz
+stereo, ~55 s per generation. C3 failed silently twice (session created, tool-call 200, no song, no charge)
+and succeeded on the third fire with the same prompt: a silent failure is re-fired with --refire, not waited on.
 
 Money (HARD): the runner clicks only the controls named here. It never clicks Buy Credits, Get Credits, Pricing,
 Upgrade, Subscribe, Split stems, Get stems, Remix, Publish or anything in a dialog. A dialog or text that says
@@ -165,6 +174,14 @@ def classify_hazard(text: str) -> str | None:
     return normalize_ws(text[max(0, m.start() - 80):m.end() + 120])
 
 
+_SECRET_RE = re.compile(r"ya29\.[\w.\-]+|eyJ[\w\-]+\.[\w.\-]+|\"(?:access|refresh|id)_token\"\s*:\s*\"[^\"]*\"")
+
+
+def redact(text: str) -> str:
+    """Strip OAuth/JWT tokens from anything that goes into the ledger."""
+    return _SECRET_RE.sub("<redacted>", text or "")
+
+
 def wav_duration(data: bytes) -> float | None:
     """Seconds from a RIFF/WAVE header: data chunk size / fmt byte rate. None if not a WAV."""
     if len(data) < 44 or data[:4] != b"RIFF" or data[8:12] != b"WAVE":
@@ -265,11 +282,12 @@ SOUND_BOX = 'textarea[aria-label="Sound description"]'
 class FlowMusicBrowser:
     """Playwright-over-CDP adapter. The only class that touches Chrome; everything it clicks is named here."""
 
-    def __init__(self, cdp_url: str = CDP_DEFAULT, log=print):
-        self.cdp_url, self.log = cdp_url, log
+    def __init__(self, cdp_url: str = CDP_DEFAULT, log=print, debug_net: bool = False):
+        self.cdp_url, self.log, self.debug_net = cdp_url, log, debug_net
         self._pw = self._browser = self.page = None
         self.responses: list = []
         self.api_credits: float | None = None
+        self.ws_frames: list[str] = []
 
     # connection ---------------------------------------------------------------
     def attach(self):
@@ -277,8 +295,15 @@ class FlowMusicBrowser:
         self._pw = sync_playwright().start()
         self._browser = self._pw.chromium.connect_over_cdp(self.cdp_url)
         self.page = self._browser.contexts[0].new_page()  # our own tab, closed in close()
+        kinds = ("xhr", "fetch", "eventsource") if self.debug_net else ("xhr", "fetch")
         self.page.on("response", lambda r: self.responses.append(r)
-                     if "flowmusic.app/__api/" in r.url and r.request.resource_type in ("xhr", "fetch") else None)
+                     if "flowmusic.app/__api/" in r.url and r.request.resource_type in kinds else None)
+        if self.debug_net:
+            def on_ws(ws):
+                self.ws_frames.append(f"OPEN {ws.url[:120]}")
+                ws.on("framereceived", lambda p: self.ws_frames.append(
+                    "RECV " + redact(p if isinstance(p, str) else repr(p[:200]))[:400]) if len(self.ws_frames) < 60 else None)
+            self.page.on("websocket", on_ws)
         return self.page
 
     def close(self, keep_tab: bool = False) -> None:
@@ -298,16 +323,30 @@ class FlowMusicBrowser:
         return self.page.evaluate(STATE_JS)
 
     def drain(self) -> list[dict]:
-        """Read the bodies of the app's own API answers collected since the last drain (call before any
-        navigation): keeps the latest credits_remaining and returns a short log of POSTs."""
+        """Take the app's own API answers collected since the last drain (call before any navigation): keeps
+        the latest credits_remaining and returns a short log of POSTs as path + status ONLY.
+
+        Never a body: on 2026-09-26 a logged POST body of /__api/auth/google/save carried a Google OAuth
+        access token (ya29...) into the ledger. Only the credits answer's body is read, and only its number."""
         notes = []
         batch, self.responses = self.responses, []
         for r in batch:
             try:
                 if CREDITS_API in r.url:
                     self.api_credits = float(r.json()["data"]["credits_remaining"])
-                elif r.request.method in ("POST", "PUT"):
-                    notes.append({"url": r.url[:160], "status": r.status, "body": (r.text() or "")[:500]})
+                elif r.request.method in ("POST", "PUT") and "/auth/" not in r.url:
+                    note = {"path": r.url.split("?")[0].replace(BASE, "")[:100], "status": r.status}
+                    if "/producer/tool-call" in r.url:  # the Generate call: its answer says why no song came
+                        note["body"] = redact(r.text() or "")[:700]
+                    notes.append(note)
+                elif self.debug_net and "/auth/" not in r.url:
+                    # GETs too; an event stream's body is never read (it would block until the stream ends)
+                    note = {"m": r.request.method, "path": r.url.replace(BASE, "")[:140], "status": r.status,
+                            "type": r.request.resource_type}
+                    if r.request.resource_type != "eventsource" and re.search(r"job|producer|tool|operation|clip",
+                                                                              r.url):
+                        note["body"] = redact(r.text() or "")[:500]
+                    notes.append(note)
             except Exception:
                 continue
         return notes
@@ -487,13 +526,16 @@ def gate(st: dict, balance: float | None, cap: float) -> None:
 
 
 def wait_for_songs(browser: FlowMusicBrowser, item: dict, before_ids: set, session_id: str | None,
-                   timeout_s: int, row: dict) -> list[dict]:
+                   timeout_s: int, row: dict, appear_timeout_s: int | None = None) -> list[dict]:
     """Poll the library until the new songs for this prompt are all completed and their count held still for
-    one extra poll (a second variation may land after the first). Returns them oldest first."""
+    one extra poll (a second variation may land after the first; B2 got two songs from one click). Returns
+    them oldest first. No song at all after appear_timeout_s is a failure, not a 15-minute wait."""
     start, last, stable = time.time(), None, 0
     while time.time() - start < timeout_s:
         clips = browser.library_clips()
         mine = [c for c in clips if ours(c, before_ids, item["prompt"], session_id)]
+        if not mine and appear_timeout_s and time.time() - start > appear_timeout_s:
+            raise TimeoutError(f"no song for this prompt appeared in {appear_timeout_s}s (session {session_id})")
         stats = [clip_status(c) for c in mine]
         note = f"{len(mine)} song(s): {stats}"
         if note != last:
@@ -596,19 +638,28 @@ def run_item(browser: FlowMusicBrowser, item: dict, args, ledger: dict, ledger_p
         browser.click_generate()
     except Exception as e:
         return save("failed-after-submit", note=f"Generate click raised {e!r}; check the library, then --recover")
-    session_id = None
-    for _ in range(30):  # the click's POST and the session URL arrive within seconds; hazards too
-        browser.page.wait_for_timeout(1000)
+    # Stay on the session page until its song card shows. 2026-09-26: the runner left 8 s after the click
+    # (session URL present) and C3's session stayed empty for 15 min with no charge, while the 10 others
+    # worked: leaving before the generate request lands can drop it. The card appears in ~20-60 s.
+    session_id, cards = None, 0
+    while time.time() - t0 < args.appear_timeout_s:
+        browser.page.wait_for_timeout(2000)
         st = browser.state()
         session_id = session_id or session_id_from_url(st["url"])
         hz = classify_hazard(" ".join(st["dialogs"]))
         if hz:
             return save("failed-after-submit", hazard_kind="dialog", note=hz, session_url=st["url"])
-        if session_id and time.time() - t0 > 8:
+        cards = browser.page.evaluate("() => document.querySelectorAll('a[href^=\"/song/\"]').length")
+        if session_id and cards:
             break
-    row.update(session_url=browser.page.url, session_id=session_id, network=browser.drain()[:6])
+    row.update(session_url=browser.page.url, session_id=session_id, song_cards_on_session_page=cards,
+               card_wait_s=round(time.time() - t0),
+               network=browser.drain()[:60 if browser.debug_net else 8])
+    if browser.debug_net:
+        row["ws_frames"] = browser.ws_frames[:60]
     try:
-        songs = wait_for_songs(browser, item, before_ids, session_id, args.timeout_s, row)
+        songs = wait_for_songs(browser, item, before_ids, session_id, args.timeout_s, row,
+                               appear_timeout_s=args.appear_timeout_s + 120)
         row["generation_s"] = round(time.time() - t0)
         files = collect(browser, item, songs, out_dir, args.format)
     except HazardStop as h:
@@ -645,6 +696,33 @@ def recover(browser: FlowMusicBrowser, item: dict, args, ledger: dict, ledger_pa
     return row
 
 
+def expected_balance(row: dict, ledger: dict) -> float | None:
+    """The balance if `row`'s click charged nothing: its balance_before minus what every row fired after it
+    was measured to charge (a later id fired in between, like C4 after C3's failure)."""
+    if row.get("balance_before") is None:
+        return None
+    later = [r for r in ledger.values() if r is not row and (r.get("fired_at") or "") > (row.get("fired_at") or "")]
+    if any(r.get("charged") is None and r.get("status") in FIRED for r in later):
+        return None  # a later click with an unknown charge: cannot tell
+    return row["balance_before"] - sum(r.get("charged") or 0 for r in later)
+
+
+def refire_blocker(browser: FlowMusicBrowser, item: dict, row: dict, ledger: dict) -> str | None:
+    """None when firing a failed id again is safe, else why not. Safe = the first click left no song of this
+    prompt in the library AND the balance equals expected_balance() (so that click was not charged)."""
+    if row.get("status") != "failed-after-submit":
+        return f"status is {row.get('status')!r}; only a failed-after-submit row is re-fired"
+    clips = browser.library_clips()
+    if any(ours(c, set(), item["prompt"], row.get("session_id")) for c in clips):
+        return "a song of this prompt is in the library: collect it with --recover instead"
+    bal, text = browser.read_balance()
+    want = expected_balance(row, ledger)
+    if bal is None or want is None or bal != want:
+        return f"balance {text!r} is not the {want} expected if the failed click charged nothing " \
+               f"(balance_before {row.get('balance_before')} minus later rows' charges); check by eye"
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("prompts", help="JSON list of {id, title, prompt, ...}")
@@ -657,9 +735,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--format", choices=["wav", "m4a"], default="wav")
     ap.add_argument("--no-title", action="store_true", help="leave the song title to Flow Music")
     ap.add_argument("--recover", metavar="ID", help="collect ID's finished songs; fires nothing")
+    ap.add_argument("--refire", metavar="ID",
+                    help="fire a failed-after-submit ID again, only if its first click left no song and no "
+                         "charge (the old row is kept as ID:attempt-N)")
+    ap.add_argument("--appear-timeout-s", type=int, default=240,
+                    help="after the click, wait this long on the session page for the song card")
     ap.add_argument("--cdp-url", default=CDP_DEFAULT)
     ap.add_argument("--timeout-s", type=int, default=RESULT_TIMEOUT_S)
     ap.add_argument("--keep-tab", action="store_true", help="leave the runner's tab open (debugging)")
+    ap.add_argument("--debug-net", action="store_true",
+                    help="record the app's API answers after the click (redacted; for a silent failure)")
     args = ap.parse_args(argv)
     args.length = check_length(args.length)
 
@@ -671,12 +756,17 @@ def main(argv: list[str] | None = None) -> int:
         if unknown:
             ap.error(f"unknown ids {unknown}")
         items = [by_id[w] for w in wanted]
-    if args.recover and args.recover not in by_id:
-        ap.error(f"unknown id {args.recover}")
+    for opt in ("recover", "refire"):
+        if getattr(args, opt) and getattr(args, opt) not in by_id:
+            ap.error(f"unknown id {getattr(args, opt)}")
+    if args.refire and (args.dry_run or args.recover):
+        ap.error("--refire goes alone (no --dry-run / --recover)")
+    if args.refire:
+        items = [by_id[args.refire]]
 
     ledger_path = Path(args.out) / "ledger.json"
     ledger = load_ledger(ledger_path)
-    browser = FlowMusicBrowser(args.cdp_url)
+    browser = FlowMusicBrowser(args.cdp_url, debug_net=args.debug_net)
     browser.attach()
     rc = 0
     try:
@@ -684,6 +774,16 @@ def main(argv: list[str] | None = None) -> int:
             row = recover(browser, by_id[args.recover], args, ledger, ledger_path)
             print(json.dumps(row, indent=1, ensure_ascii=False)[:4000])
             return 0 if row.get("status") == "done" else 1
+        if args.refire:
+            key = args.refire
+            why = refire_blocker(browser, by_id[key], ledger.get(key) or {}, ledger)
+            if why:
+                print(f"NOT re-fired {key}: {why}")
+                return 1
+            n = 1 + sum(1 for k in ledger if k.startswith(f"{key}:attempt-"))
+            ledger[f"{key}:attempt-{n}"] = ledger.pop(key)
+            save_ledger(ledger_path, ledger)
+            print(f"{key}: first click left no song and no charge; old row kept as {key}:attempt-{n}")
         for it in items:
             row = run_item(browser, it, args, ledger, ledger_path)
             print(json.dumps({k: v for k, v in row.items() if k not in ("network", "before_ids")},

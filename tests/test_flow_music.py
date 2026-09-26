@@ -94,3 +94,18 @@ def test_prompts_file_is_validated(tmp_path):
     with pytest.raises(ValueError):
         fm.load_prompts(p)
     assert fm.song_title({"id": "A1", "title": "Glass Bloom"}) == "ILAG A1 Glass Bloom"
+
+
+def test_refire_expects_later_charges_to_be_subtracted():
+    c3 = {"status": "failed-after-submit", "fired_at": "2026-09-26T11:15:54+00:00", "balance_before": 30565.0}
+    c4 = {"status": "done", "fired_at": "2026-09-26T11:33:00+00:00", "charged": 5.0}
+    old = {"status": "done", "fired_at": "2026-09-26T10:54:26+00:00", "charged": 5.0}
+    assert fm.expected_balance(c3, {"C3": c3, "C4": c4, "C2": old}) == 30560.0
+    unknown = {"status": "submitted", "fired_at": "2026-09-26T11:40:00+00:00"}
+    assert fm.expected_balance(c3, {"C3": c3, "X": unknown}) is None
+
+
+def test_tokens_never_reach_the_ledger():
+    body = '{"data":{"access_token":"ya29.a0AX07Cmt-abc_def"}} Bearer eyJhbGciOi.eyJzdWIi.sig ya29.zzz'
+    out = fm.redact(body)
+    assert "ya29." not in out and "eyJ" not in out and "access_token\":\"ya" not in out
