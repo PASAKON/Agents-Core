@@ -365,6 +365,27 @@ every other line in that act found no second instance, so this is a trap to
 avoid rather than a common failure — but it is invisible on the page and costs a
 re-shoot when it fires.
 
+## ⛔ Put a space between phrases in every Thai line (CEO 2026-09-27)
+
+> "ของผมผมกินเอง -> ควรเว้นวรรคด้วยนะ -> ของผม ผมกินเอง -> แบบนี้เข้าใจกว่า ไม่งั้น Model จะพูดติดกัน"
+
+Thai is written without spaces between words, but the voice model reads a space as a
+breath. With no space, it runs the whole line together, and a line that repeats a word
+turns into mush: `ของผมผมกินเอง` has the same word twice with nothing between them.
+
+**The rule:** every spoken line puts a space at each phrase boundary, the places where a
+Thai speaker would take a breath:
+- between the topic and the comment: `ของผม ผมกินเอง`
+- before a vocative: `ไม่มีเหลือหรอก ป้า`
+- between two clauses: `ขอบคุณที่เอาออกมาฝากนะคะ ข้าวสารถุงนี้ หุงได้อีกหลายหม้อเลย`
+
+**Where it matters most:** a word followed straight away by the same word, or by its
+own echo (ผมผม, ของเขาเขา, ยายยาย). Split those every time.
+
+**Evidence:** the CEO heard it in «น้ำไม่เลือกบ้าน» S13
+(`docs/scripts/ep3-sabiang-SCRIPT-v1.md`). Check each line against the rule before
+writing it into a data file; a clip already shot is not re-shot for spacing alone.
+
 ## Length, and where the money is
 
 **8–12 minutes (CEO 2026-09-25: "Scope อยู่ที่ 8 - 12 mins … 20 min อาจจะนานไป").**
