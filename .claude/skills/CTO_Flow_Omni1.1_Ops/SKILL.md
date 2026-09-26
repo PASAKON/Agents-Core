@@ -63,6 +63,22 @@ its own content filter and its own night behaviour; Kling, Grok, fal.ai likewise
 those, keep the [ANY] parts — the continuity table, the QC loop — and drop the [FLOW]
 flags until measured there.
 
+## ⛔ Where Flow runs: winbox's Chrome, never the Mac (CEO 2026-09-26)
+
+> "การใช้งาน Chrome google flow ไปใช้ใน winbox นะ Mac ฉันจะใช้ในการตัดต่อ"
+
+**Every Flow session runs in winbox's Chrome**: stills, Elements, test fires, shoots and downloads.
+The Mac is the CEO's editing machine. Do not open Flow on the Mac or start `scripts/flow/launch-chrome-debug.sh` there.
+Do not point a runner at the Mac's 127.0.0.1:9223.
+
+- `tools/flow_shoot.py` still defaults to `CDP = "http://127.0.0.1:9223"`, the Mac. Until the runner
+  can reach winbox, a shoot needs a porting task first. Either run the runner on winbox, or connect over the
+  tailnet to a winbox debug Chrome and move the downloaded files to the Mac for the edit. Check first
+  whether the branch `agent/codex-winbox-runner` (cdb27f9f) already does this.
+- The winbox traps are in §winbox findings: no `resize_window`, no clicking at a `getBoundingClientRect()` point,
+  and unreadable virtualized lists. Read that section before the first winbox run.
+- Clips reach the Mac only as finished files for the edit, through Drive or scp. The Mac never renders.
+
 ## ⛔ Mute the page before you do anything else, and never press play
 
 `browser-operator` carries the rule and the paste-once snippet. Short version:
@@ -1794,3 +1810,4 @@ here. A contradiction backed by a memory does not.
 - 2026-09-26 [WRONG] §Getting the clip file — the clip editor `/edit/<id>` CHANGED: it draws into a canvas and creates no `<video>` until play is pressed (forbidden), and Download is a top-level button `[aria-label="ดาวน์โหลดสื่อ"]` → `270p GIF / 720p ขนาดดั้งเดิม / 1080p เพิ่มความละเอียดแล้ว / 4K · 50 เครดิต` (no longer under More). The CDN-capture path now yields nothing for a clip opened before it finished or a second time; the runner reported those as "failed — timeout" although Flow had the clip. Several "Flow deleted it" verdicts that night were partly this: of the timed-out ACT3 takes, S58 and one S70 were found finished in the feed. A per-line census (search the feed by dialogue, count batches vs submits) is the check that tells deletion from a missed download. Fixed in the tool: 55d34380 (download button first, open only finished cards, no long block) · evidence: Work/task-c2723478 tmp/debug-pull*, feed probe 09:3x, S73/S58 pulled in ~15 s after the fix · status: pending
 - 2026-09-26 [MISSING] §Google Flow Music — measured on the first real run: "Continue with Google" signs straight in as pass.gob1 (no credential asked; tier "Member"); Compose panel at `/session?t=true` has Sound 3,000 chars, Lyrics 3,000 chars with an Instrumental switch, Title 100; Advanced holds BPM, Length, Seed and Model (Lyria 3.5 / Lyria 3 Pro); one Generate = one song (once two) in ~55 s, **5 credits per Generate** (30,610 → 30,555 for 12 prompts), no price on the button; downloads M4A/MP3/WAV (runner takes the clip's `wav_url`, 48 kHz 16-bit stereo). Boxes are plain textareas: Playwright `fill()` reads back exactly, the ProseMirror first-keystroke trap does not apply. A generate can silently produce nothing and charge nothing (C3 twice); `tools/flow_music.py --refire` re-fires it guarded by the expected balance. Commercial-use terms for the tracks are still unread · evidence: tools/flow_music.py (cf99ccad), /tmp/ilag-music/tracks/ledger.json, Drive Soundtrack of the TopView film · status: pending
 - 2026-09-26 [WRONG] §Google Flow Music — "lengths of 60 s, half, or full ~3 min" (from blog.google) is not the control: Length is a free m:ss box under Advanced clamped to 1:00–3:00; "0:30" became 1:00 and "9:59" became 3:00, so nothing shorter than 60 s can be ordered · evidence: runner dry-runs 2026-09-26 · status: pending
+\n- 2026-09-26 [MISSING] §Where Flow runs — Flow sessions had run on the Mac (tools/flow_shoot.py CDP 127.0.0.1:9223, state/banchi/flow_shoot.log); the CEO ruled Flow moves to winbox and the Mac is for editing only · evidence: CEO ruling 2026-09-26 (session cto-89aa4de2) · status: promoted\n
