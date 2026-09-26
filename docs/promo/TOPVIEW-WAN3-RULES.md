@@ -78,6 +78,16 @@ licence to judge and promote the challenge; commercial ad use needs separate con
 
 Granted within 2 days of approval, **expire 7 days after grant.**
 
+**Correction 2026-09-26 (the rewards table the CEO pasted from the challenge page):** every reward is a
+"30-second Wan3 video generation" (the unit: one generation of up to 30 s), issued to the registered account by
+email. Validity differs by route: Creator Application = within two days of approval, **seven days**, "entry must be
+submitted within the validity period"; Invitation = after the invitee passes review and the challenge ends, one
+year; First 100 Submission = within two days of the entry passing review, one year; **Topview Plugin Installation =
+automatically after authorization, one year**; View Reward = after the cutoff and data verification, one year. The
+"30-second" is the reward's size, not a rule on the entry (the entry needs at least 30 s, 720p+). Cash prizes: contact
+within 15 business days of the announcement, paid within 30 business days of the winner's confirmation and claim.
+Our state: the plugin reward (5, one year) was granted 2026-09-26 07:45; two were used by 09:01 (G1, G3).
+
 **2026-09-26 result:** our standard-route application (23 Sep, YouTube ILAG Studio, follow only) was REJECTED by
 email from contest@topview.ai on 24 Sep 14:40: "You did not repost or share the official Topview Wan3 Challenge
 post." The reviewer checks the repost itself; a follow alone fails. On 26 Sep the challenge page read "Credit
