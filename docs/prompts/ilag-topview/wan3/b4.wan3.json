@@ -1,0 +1,17 @@
+{
+ "key": "b4",
+ "title": "B-ROLL: THE SEAT, IN DETAIL",
+ "seconds": 8,
+ "shots": [
+  "b04"
+ ],
+ "images": [
+  "Character/ref-Manta.png",
+  "Prop/ref-Lantern.png",
+  "Prop/ref-Pole.png",
+  "Prop/ref-Necklace.png",
+  "Character/ref-Young.png"
+ ],
+ "prompt": "8 seconds, 16:9.\n\nREFERENCES, each with a job:\n@Image1: THE MOUNT, their ride: a manta-like sea creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, small calm dark eyes on the front edge, a soft lime-green glow on its underside. Strapped to its back is a hand-built seat of weathered driftwood lashed with green kelp rope, pale bone ribs for a backrest, seashells and small glowing seed-pod lamps tied along it, tufts of glowing green grass at the corners. Take nothing of the white background.\n@Image2: THE LANTERN: a large pearly seashell with a woven kelp handle, three glowing golden seed pods inside it, hanging from the seat.\n@Image3: THE POLE: a long pale bone steering pole carved with wave patterns, a kelp grip near the top.\n@Image4: THE NECKLACE: dry brown seed husks strung on kelp twine.\n@Image5: THE YOUNG ONE, a child of an amphibious alien people, about 1.1 m tall: smooth coral-pink skin with tiny glowing gold freckles, large round glossy dark eyes with an orange ring, a wide mouth, a mane of feathery external gills around the head in orange-gold, webbed three-fingered hands, webbed feet, a short flat tail fin, a woven kelp satchel on a strap across the chest. Face, body and colours only; take nothing of the white background.\n\nTHE SHOT, from 0s to 8s: B-ROLL: THE SEAT, IN DETAIL. ONE CONTINUOUS TAKE, NO CUTS. Macro, very close, the camera sliding slowly along the seat on THE MOUNT's back while it swims at the surface; shallow depth of field; no cut, no zoom, no slow motion.\nTHE SEAT, in close detail, as THE MOUNT swims on at the surface in the evening.\nTHE FRAME: Macro along the driftwood seat on THE MOUNT's back: kelp-rope lashings, seashells, the pale bone-rib backrest, the sea rushing past below.\nPARTICLES: drops of spray, a fine mist off the water, the lamp's glow on the wet wood.\nWHAT HAPPENS:\n[0s] Macro on THE LANTERN hanging from the seat: the pearly seashell swings gently on its kelp handle, the three golden seed pods inside it glowing, drops of spray on the shell.\n[2.5s] The camera slides along the seat to THE POLE lying against it: water beads on the carved wave patterns of the pale bone, the kelp grip dark and wet.\n[5s] It slides on to THE YOUNG ONE's small webbed hand holding THE NECKLACE: dry brown seed husks on kelp twine turning between the fingers.\n[7s] Past the hand, out of focus, the sea rushes by under a violet-grey evening sky; the camera holds to the end.\nSound in this shot: only the sounds the characters make themselves: silence; no voices, nobody speaks. No music, no ambient sound.\nColour grade, the turning: a violet-grey bruised sky, cool silver light, deep indigo water, the moon dim behind thin cloud. Photographed, not rendered: fine film grain.\nAvoid in this shot: no words spoken by anyone, no talking, no shouted words, no voiceover, no cut, no slow motion, no text, no split screen, no metal, no plastic, no humans, no human faces, no human hair, no human skin; everyone is of the same gilled people, no music, no score, no background music.",
+ "chars": 3056
+}

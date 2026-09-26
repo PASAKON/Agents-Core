@@ -469,13 +469,103 @@ WAVE_MULTICUT = dict(
          "split screen, " + NO_HUMANS,
 )
 GROUPS["g5w"] = ["x03"]
+
+# CEO 2026-09-27: B-roll with the last ~35 credits — "B-roll + ตัวละคร + Prop + Location ไม่มีบทพูด ไม่มี Sound Music เน้นกิจกรรม
+# ธรรมชาติ ความแปลกใหม่ ความอลังการ หลายๆ มุม ... แบบ LongTake". Plan ก approved: four 8-s long takes, each a different
+# camera (low drone climb, deep water looking up, extreme wide flying, macro). All four sit before the crossing, so the
+# lamps on THE MOUNT's seat are still lit, as in its picture.
+B_SILENT = "silence; no voices, nobody speaks"
+B_CRIT = (B.NO_WORDS + ", no cut, no slow motion, no text, no split screen, no metal, no plastic, " + NO_HUMANS)
+BROLL = [
+    dict(prefix="b", n=1, slug="broll-village-morning", title="B-ROLL: THE VILLAGE WAKES", s=8, grade="DAY", longtake=True,
+         spec="ONE CONTINUOUS TAKE, NO CUTS. A drone skims low over the glass-clear water, glides under the arching stilt "
+              "roots of a giant mangrove tree, then climbs smoothly up past walkways and roofs until the whole village "
+              "and the huge moon fill the frame; no cut, no zoom, no slow motion.",
+         refs=["@Village", "@Dock", "@Villagers", "@Villagers2", "@Manta"],
+         ref_override={"@Manta": "THE MANTAS moored at the dock: take their manta bodies, colours and the driftwood "
+                                 "seats with their softly glowing seed-pod lamps from this picture; several rest at the "
+                                 "dock with nobody on them."},
+         heading="MORNING IN THE VILLAGE: the village waking up and going about its work, seen in one sweeping flight.",
+         frame="Starts a metre above the glass-clear turquoise water among the stilt roots; ends high above the village, "
+               "the giant mangrove trees, walkways, rope bridges and glowing grass roofs spread out below, the huge moon "
+               "over them.",
+         particles="sunlight sparkling on the water, spray from a diving child, glowing specks drifting in the air.",
+         beats=["[0s] Skimming low over the glass-clear water past the floating dock: several mantas are moored there with "
+                "kelp ropes, their seed-pod lamps glowing softly; a villager coils a rope on the dock.",
+                "[2s] The camera glides in under the arching stilt roots; above, two villagers sit on a walkway mending a "
+                "big kelp net, and a small child dives from the walkway into the water with a clean splash.",
+                "[4.5s] Climbing past a hut roof of glowing neon-green grass: a woman hangs strips of kelp to dry on a "
+                "line; a young man crosses a swaying rope bridge with a bundle on his shoulder.",
+                "[6.5s] Rising above the treetops: the whole village of giant mangrove trees standing in the glass-clear "
+                "sea, the huge moon close over the horizon; the camera keeps rising slowly to the end."],
+         sound=B_SILENT, crit=B_CRIT + ", no fish, no boat, no land, no island, no beach"),
+    dict(prefix="b", n=2, slug="broll-glass-sea-below", title="B-ROLL: THE GLASS SEA FROM BELOW", s=8, grade="TURNING",
+         longtake=True,
+         spec="ONE CONTINUOUS TAKE, NO CUTS. From deep below, looking up toward the bright surface, the camera rises very "
+              "slowly and turns a quarter circle; no cut, no zoom, no slow motion.",
+         refs=["@Manta", "@Strong", "@Young", "@Elder", "@GlassSpiral", "@GlassCathedral", "@GlassHalo", "@GlassBloom"],
+         heading="THE GLASS SEA, from far below: THE MOUNT swims through the water with THE THREE RIDERS holding on to its "
+                 "seat, tiny, while the glass creatures, each many times bigger, drift around it.",
+         frame="Looking up from deep water: the bright rippling surface fills the top of the frame; THE MOUNT is a small "
+               "manta shape swimming across the light with THE THREE RIDERS on its back, gill frills streaming; the four "
+               "glass creatures hang at different depths between it and the camera.",
+         particles="rainbow caustics sweeping through the water, silver bubbles and glowing motes rising, seeds of light "
+                   "drifting from THE BLOOM.",
+         beats=["[0s] Deep below, looking up: THE SPIRAL turns slowly in the foreground, rainbow light running along it; "
+                "far above, THE MOUNT swims into view against the bright surface.",
+                "[2.5s] THE DOME drifts across between the camera and the surface, its layered veils rippling; THE MOUNT "
+                "passes above it and its shadow slides over the veils.",
+                "[5s] THE RINGS float past, one inside another, trailing threads of light; THE BLOOM opens its petals and "
+                "releases seeds of light that rise toward THE MOUNT.",
+                "[7s] THE MOUNT swims on, small among the giants, as the camera keeps rising slowly to the end."],
+         sound=B_SILENT, crit=B_CRIT + ", no fish, no boat, no rider falling off, no stinging tentacles"),
+    dict(prefix="b", n=3, slug="broll-storm-pillars", title="B-ROLL: BETWEEN THE PILLARS", s=8, grade="TURNING",
+         longtake=True,
+         spec="ONE CONTINUOUS TAKE, NO CUTS. Extreme wide; the camera flies slowly forward and rises between the pillars; "
+              "no cut, no zoom, no slow motion.",
+         refs=["@Pillars", "@Manta", "@Strong", "@Young", "@Elder", "@Turning"],
+         heading="THE STORM PILLARS: thin, perfectly straight columns of slowly swirling cloud stand on the sea and rise "
+                 "beyond the top of the sky; THE MOUNT weaves between them, tiny.",
+         frame="Extreme wide from high behind: the violet-grey sea stretching away, the pillars standing on it at "
+               "different distances and rising out of the top of the frame; THE MOUNT a tiny shape on the water with THE "
+               "THREE RIDERS on its back.",
+         particles="fine spray, mist curling round the base of each pillar, the small whirlpools turning.",
+         beats=["[0s] From high behind: THE MOUNT glides across the violet-grey sea toward the nearest pillar, a column of "
+                "slowly swirling cloud thin as a thread against its height, a small whirlpool turning at its foot.",
+                "[3s] THE MOUNT curves around the whirlpool at the foot of the pillar, THE THREE RIDERS leaning into the "
+                "turn.",
+                "[5s] The camera rises and flies on between two more pillars; the columns stand in rows to the horizon, "
+                "each rising beyond the top of the sky.",
+                "[7s] THE MOUNT is a speck among the pillars as the camera keeps rising to the end."],
+         sound=B_SILENT, crit=B_CRIT + ", no tornado, no lightning, no boat"),
+    dict(prefix="b", n=4, slug="broll-the-seat", title="B-ROLL: THE SEAT, IN DETAIL", s=8, grade="TURNING",
+         longtake=True,
+         spec="ONE CONTINUOUS TAKE, NO CUTS. Macro, very close, the camera sliding slowly along the seat on THE MOUNT's "
+              "back while it swims at the surface; shallow depth of field; no cut, no zoom, no slow motion.",
+         refs=["@Manta", "@Lantern", "@Pole", "@Necklace", "@Young"],
+         heading="THE SEAT, in close detail, as THE MOUNT swims on at the surface in the evening.",
+         frame="Macro along the driftwood seat on THE MOUNT's back: kelp-rope lashings, seashells, the pale bone-rib "
+               "backrest, the sea rushing past below.",
+         particles="drops of spray, a fine mist off the water, the lamp's glow on the wet wood.",
+         beats=["[0s] Macro on THE LANTERN hanging from the seat: the pearly seashell swings gently on its kelp handle, "
+                "the three golden seed pods inside it glowing, drops of spray on the shell.",
+                "[2.5s] The camera slides along the seat to THE POLE lying against it: water beads on the carved wave "
+                "patterns of the pale bone, the kelp grip dark and wet.",
+                "[5s] It slides on to THE YOUNG ONE's small webbed hand holding THE NECKLACE: dry brown seed husks on "
+                "kelp twine turning between the fingers.",
+                "[7s] Past the hand, out of focus, the sea rushes by under a violet-grey evening sky; the camera holds "
+                "to the end."],
+         sound=B_SILENT, crit=B_CRIT),
+]
+for _i, _sc in enumerate(BROLL, 1):
+    GROUPS[f"b{_i}"] = [f"b{_i:02d}"]
 GROUPS["g9"] = ["r01"]
 GROUPS["g9c"] = ["r02"]
 GROUPS["g9p"] = ["r03"]
 GROUP_LENGTHS = {"g5": {"n06": 7, "n07": 13, "n13": 10},
                  # the spot refires: G5's own lengths, the wave cut to 10 s and the waking to 9 s
                  "g5a": {"n06": 7}, "g5b": {"n07": 10}, "g5c": {"n13": 9}}
-GROUP_NATURAL = {"g7", "g8", "g9", "g9c", "g9p", "g5w"}  # paid: no stretch, fewer seconds, fewer credits
+GROUP_NATURAL = {"g7", "g8", "g9", "g9c", "g9p", "g5w", "b1", "b2", "b3", "b4"}  # paid: no stretch, fewer seconds, fewer credits
 MOOD = {
     "n02": ("MOOD: the start of the most fantastical passage of the film, as if they slip into a fairy tale. From the "
             "moment THE MOUNT passes under the surface the shot runs in slow motion, about half speed: silver bubbles, "
@@ -543,7 +633,8 @@ def render_group(scs, style, gkey=None):
         beats = [re.sub(r"\[(\d+(?:\.\d+)?)s\]", lambda m: f"[{round(start + float(m.group(1)) * f, 1):g}s]", b)
                  for b in beats]
         snd = sc.get("sound") or B.SOUND.get(key, "silence; nobody speaks")
-        label = (f"THE MONTAGE, from {start:g}s to {end:g}s: {sc['title']}. {sc['spec']}" if sc.get("montage") else
+        label = (f"THE {'MONTAGE' if sc.get('montage') else 'SHOT'}, from {start:g}s to {end:g}s: {sc['title']}. "
+                 f"{sc['spec']}" if sc.get("montage") or sc.get("longtake") else
                  f"SHOT {i} of {len(scs)}, from {start:g}s to {end:g}s: {sc['title']}. {_inside_shot(sc['spec'])}")
         sec = [label,
                sc["heading"], "THE FRAME: " + sc["frame"]]
@@ -571,7 +662,7 @@ def render_group(scs, style, gkey=None):
                 B.GRADE[sc.get("grade_override", sc["grade"])],
                 # CEO 2026-09-26 ("No Music แบบ Seedance"): the house-negatives wall is dropped for Wan3, so its music
                 # ban is repeated in every shot's own negatives, not only in the sound line.
-                "Avoid in this shot: " + (sc["crit"] if sc.get("montage") else _inside_shot(sc["crit"]))
+                "Avoid in this shot: " + (sc["crit"] if sc.get("montage") or sc.get("longtake") else _inside_shot(sc["crit"]))
                 + ", no music, no score, no background music."]
         parts.append("\n".join(sec))
         t = end
@@ -598,6 +689,8 @@ def main():
     by_key["r02"] = RUN_COVER
     by_key["r03"] = RUN_PARKOUR
     by_key["x03"] = WAVE_MULTICUT
+    for sc in BROLL:
+        by_key[tag(sc)] = sc
     for k in a.keys:
         if k in GROUPS:
             text, order, total = render_group([by_key[x] for x in GROUPS[k]], a.token, k)
