@@ -28,7 +28,7 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
     down=0
   else
     down=$((down + 1))
-    if [ "$down" -ge 6 ]; then
+    if [ "${RELAUNCH:-1}" = 1 ] && [ "$down" -ge 6 ]; then   # RELAUNCH=0 for a browser we do not own (neko pilot)
       echo "$(date -u +%FT%TZ) watch: home down 2 min, relaunching $HOME_ID in a scope" >>"$LOG"
       (cd "$CONSOLE" && systemd-run --quiet --scope --unit="relay-home-$HOME_ID-$(date +%H%M%S)" node scripts/relay-home.mjs launch "$HOME_ID" >>"$LOG" 2>&1)
       down=0

@@ -19,6 +19,7 @@ services:
     ports:
       - "100.118.171.23:59000:59000/udp"
       - "100.118.171.23:59000:59000/tcp"
+      - "127.0.0.1:9223:9223"                  # CDP for our workers, this box only (see cdp below)
     environment:
       NEKO_DESKTOP_SCREEN: "720x1280@30"        # portrait: reads like a phone on the phone
       NEKO_MEMBER_PROVIDER: "noauth"            # pilot only, tailnet-bound (see header)
@@ -32,6 +33,17 @@ services:
       # the browser profile (cookies, sessions) lives outside the container; uid 1000 inside
       - /opt/MoonieXHQ/Agents/Core/state/neko/infisical/chromium:/home/neko/.config/chromium
       - ./policies.json:/etc/chromium/policies/managed/policies.json:ro
+      - ./chromium.d-cdp.sh:/etc/chromium.d/90-cdp:ro
+
+  cdp:
+    # Chrome binds its DevTools port to the container's loopback; this sidecar lives in the same
+    # network namespace and forwards 9223 -> 127.0.0.1:9222 so the published 127.0.0.1:9223 works.
+    image: alpine/socat
+    container_name: neko-pilot-cdp
+    restart: unless-stopped
+    network_mode: "service:neko"
+    depends_on: [neko]
+    command: ["TCP-LISTEN:9223,fork,reuseaddr", "TCP:127.0.0.1:9222"]
 
   tls:
     # HTTPS for the phone with the Console's existing terminal.mooniex.com certificate.
