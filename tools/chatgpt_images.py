@@ -111,7 +111,10 @@ MUTE_JS = """
 """.strip()
 
 COMPOSER_SEL = '#prompt-textarea, div[contenteditable="true"]'
-SEND_SEL = 'button#composer-submit-button, button[data-testid="send-button"]'
+# 2026-09-26: the Thai UI's send button lost both the id and the data-testid; what is left is
+# aria-label "ส่ง" (the runner failed 4 of 4 with "send did not register" until this was added).
+SEND_SEL = ('button#composer-submit-button, button[data-testid="send-button"], '
+            'button[aria-label="ส่ง"], button[aria-label="Send prompt"]')
 
 PASTE_JS = """
 (text) => {
@@ -136,7 +139,13 @@ READ_PARAGRAPHS_JS = """
 
 POLL_JS = """
 () => {
-  const stopBtn = document.querySelector('button[data-testid="stop-button"]');
+  const stopBtn = document.querySelector('button[data-testid="stop-button"], button[aria-label*="หยุด"], button[aria-label*="Stop" i]');
+  // 2026-09-26 UI: no section[data-turn] and no [data-message-author-role] at all; turns are
+  // only visible as the screen-reader headings "คุณพูดว่า:" / "ChatGPT พูดว่า:", and a picture
+  // sits in [data-testid="generated-image-gallery"] with a blob: src.
+  const bodyLines = (document.body.innerText || '').split('\\n').map(s => s.trim());
+  const userHeads = bodyLines.filter(s => s === 'คุณพูดว่า:' || s === 'You said:').length;
+  const botHeads = bodyLines.filter(s => s === 'ChatGPT พูดว่า:' || s === 'ChatGPT said:').length;
   const composer = document.querySelector('#prompt-textarea, div[contenteditable="true"]');
   // A turn is section[data-turn]; an IMAGE reply has no [data-message-author-role]
   // inside it at all (measured 2026-09-24 on a Thai-UI Plus account), so the
@@ -148,12 +157,17 @@ POLL_JS = """
   const lastAssistant = lastMsg ? lastMsg.innerText : '';
   // Only the newest assistant turn: an attached reference image sits in the
   // user turn above it and must never be taken for the result.
-  const imgs = lastMsg ? [...lastMsg.querySelectorAll('img[src*="oaiusercontent"], img[src*="estuary"], img[alt*="Generated" i], img[alt*="สร้าง" i]')] : [];
+  let imgs = lastMsg ? [...lastMsg.querySelectorAll('img[src*="oaiusercontent"], img[src*="estuary"], img[alt*="Generated" i], img[alt*="สร้าง" i]')] : [];
+  if (!imgs.length) {
+    const galleries = document.querySelectorAll('[data-testid="generated-image-gallery"]');
+    const g = galleries.length ? galleries[galleries.length - 1] : null;
+    imgs = g ? [...g.querySelectorAll('img')] : [];
+  }
   const img = imgs.length ? imgs.reduce((a, b) => (b.naturalWidth > a.naturalWidth ? b : a)) : null;
   return {
     stillGenerating: !!stopBtn,
-    assistantTurns: messages.length,
-    userTurns: userTurnEls.length || document.querySelectorAll('[data-message-author-role="user"]').length,
+    assistantTurns: messages.length || botHeads,
+    userTurns: userTurnEls.length || document.querySelectorAll('[data-message-author-role="user"]').length || userHeads,
     imgPresent: !!img,
     imgLoaded: img ? (img.complete && img.naturalWidth > 0) : false,
     naturalW: img ? img.naturalWidth : null,
@@ -508,6 +522,14 @@ class ChatGPTBrowser:
         return {"status": "timeout"}
 
     def fetch_image_bytes(self, url: str) -> bytes:
+        if url.startswith("blob:"):
+            # a blob: URL only exists inside the page; read it there (2026-09-26 UI)
+            import base64
+            b64 = self.page.evaluate(
+                "async (u) => { const r = await fetch(u); const b = new Uint8Array(await r.arrayBuffer());"
+                " let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));"
+                " return btoa(s); }", url)
+            return base64.b64decode(b64)
         resp = self.page.request.get(url)
         if resp.status != 200:
             raise RuntimeError(f"image fetch failed: HTTP {resp.status} for {url}")
