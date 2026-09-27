@@ -375,10 +375,10 @@ def failed_count(page):
 # |---------------------------------------------|-----------------------------|--------|
 # | button[type=submit]                          | 2026-09-19 (this file, ensure_config/type_prompt/main all click/read it) | the Generate/Unlimited button |
 # | .hfnav-auth-login                            | 2026-09-19 (this file, main()'s NOT_LOGGED_IN check) | signed-out indicator |
-# | "Rights verification required"/"Confirm Rights" | unverified 2026-09-22   | higgsfield-unlimited-gen SKILL.md § HARD rule 3 — no live browser session available this task |
-# | "1 unlimited generation at a time"           | unverified 2026-09-22       | higgsfield-unlimited-gen SKILL.md § HARD rule 4 concurrency toast |
-# | "NSFW"                                       | unverified 2026-09-22       | higgsfield-unlimited-gen SKILL.md stop-and-ask checklist |
-# | "Prompt is required"                         | unverified 2026-09-22       | higgsfield-unlimited-gen SKILL.md, measured composer error text |
+# | "Rights verification required"/"Confirm Rights" | unverified 2026-09-22   | CTO_Seedance2.5_Higgsfield SKILL.md § HARD rule 3 — no live browser session available this task |
+# | "1 unlimited generation at a time"           | unverified 2026-09-22       | CTO_Seedance2.5_Higgsfield SKILL.md § HARD rule 4 concurrency toast |
+# | "NSFW"                                       | unverified 2026-09-22       | CTO_Seedance2.5_Higgsfield SKILL.md stop-and-ask checklist |
+# | "Prompt is required"                         | unverified 2026-09-22       | CTO_Seedance2.5_Higgsfield SKILL.md, measured composer error text |
 # | bare "Failed" card text                      | unverified 2026-09-22 (carried over from this file's own pre-existing, previously-unused failed_count() heuristic above) | |
 # | generating/processing/queued/rendering/in progress | 2026-09-19 (this file's own pre-existing ad hoc regex, moved here) | |
 EXTRACT_STATE_JS = r"""

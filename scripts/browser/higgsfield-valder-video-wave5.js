@@ -77,7 +77,7 @@
  *
  * ============================================================
  * FINDING 3: confirmed firsthand — "long-lived tab lies about the
- * concurrency slot" (documented in the higgsfield-unlimited-gen skill,
+ * concurrency slot" (documented in the CTO_Seedance2.5_Higgsfield skill,
  * previously theoretical for this operator, now measured directly twice).
  * ============================================================
  *

@@ -2,8 +2,8 @@
 config/decisions/browser.page_state.yaml and
 config/decisions/browser.moderation_action.yaml.
 
-Covers: the measured strings from google-flow-ops SKILL.md,
-higgsfield-unlimited-gen SKILL.md and tools/flow_shoot.py's is_refusal_text
+Covers: the measured strings from CTO_Flow_Omni1.1_Ops SKILL.md,
+CTO_Seedance2.5_Higgsfield SKILL.md and tools/flow_shoot.py's is_refusal_text
 resolve to the expected `choice` via the free rules provider (no network,
 no paid call — same env-stripping convention as tests/test_decide.py); and
 the conservative action-mapping gate duplicated in tools/flow_shoot.py and
@@ -40,7 +40,7 @@ def _clean_decide_env(monkeypatch):
 
 # ── browser.page_state: measured strings -> expected choice ────────────────
 
-# Verbatim from google-flow-ops SKILL.md § "A policy refusal comes from the
+# Verbatim from CTO_Flow_Omni1.1_Ops SKILL.md § "A policy refusal comes from the
 # DIALOGUE" / tools/flow_shoot.py:149 is_refusal_text's own two patterns.
 FLOW_REFUSAL_CARD = (
     "ล้มเหลว\n"
@@ -57,7 +57,7 @@ def test_flow_refusal_card_is_moderated():
 
 
 def test_higgsfield_generate_button_enabled_is_idle():
-    # higgsfield-unlimited-gen SKILL.md § HARD rule 2's button-state table:
+    # CTO_Seedance2.5_Higgsfield SKILL.md § HARD rule 2's button-state table:
     # bare "Generate" or "Unlimited ... 0" (struck price), not disabled ->
     # nothing in flight, Unlimited correctly applied. This is the exact
     # framing gen_loop.extract_state()/flow_shoot.extract_state() produce.
@@ -77,7 +77,7 @@ def test_higgsfield_generating_text_is_generating():
 
 
 def test_sign_in_text_is_signed_out():
-    # google-flow-ops SKILL.md § "Mid-session Google sign-out": a bare
+    # CTO_Flow_Omni1.1_Ops SKILL.md § "Mid-session Google sign-out": a bare
     # "Sign in" control means the session is gone.
     d = decide_mod.decide("browser.page_state", "Sign in")
     assert d.choice == "signed_out"
@@ -89,7 +89,7 @@ def test_sign_in_text_is_signed_out():
 
 
 def test_higgsfield_rate_limit_toast_is_rate_limited():
-    # higgsfield-unlimited-gen SKILL.md § HARD rule 4's concurrency toast —
+    # CTO_Seedance2.5_Higgsfield SKILL.md § HARD rule 4's concurrency toast —
     # "not a real block", same bucket as an HTTP 429.
     d = decide_mod.decide("browser.page_state", "1 unlimited generation at a time")
     assert d.choice == "rate_limited"
@@ -109,7 +109,7 @@ def test_unknown_text_has_no_confident_rule_match():
 # ── browser.moderation_action: measured strings -> expected choice ─────────
 
 def test_face_ip_scanner_text_is_escalate_ceo():
-    # higgsfield-unlimited-gen SKILL.md: "the same automated Face/IP scanner
+    # CTO_Seedance2.5_Higgsfield SKILL.md: "the same automated Face/IP scanner
     # that terminally killed three healthy plates in one day" — human call
     # only, never auto-retry.
     d = decide_mod.decide("browser.moderation_action", "Face/IP scanner flagged this clip for resemblance")

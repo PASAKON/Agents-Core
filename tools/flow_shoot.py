@@ -32,7 +32,7 @@ runner makes (credit cap, refusal handling, zip vs. bare mp4, duration
 tolerance, sheet parsing) is unit-testable without a browser — see
 tests/test_flow_shoot.py. FlowBrowser itself is unverified against the live
 DOM: it was written from docs/scripts/BANCHI-SHOOT-BRIEF.md and the
-google-flow-ops skill, and the first live check is a human-run --dry-run
+CTO_Flow_Omni1.1_Ops skill, and the first live check is a human-run --dry-run
 after the CEO logs into the automation Chrome (a worker cannot).
 """
 from __future__ import annotations
@@ -229,7 +229,7 @@ def is_refusal_text(text: str) -> bool:
 # |--------------------------------------------------|-------------------------------|--------|
 # | button[aria-label="เริ่มสร้าง"]                   | 2026-09-19 (task-04851451)   | same selector FlowBrowser.submit() already clicks live |
 # | "ล้มเหลว" / "อาจละเมิดนโยบาย" body substrings     | 2026-09-19 (is_refusal_text) | refusal card text, moved into browser.page_state.yaml |
-# | "sign in" / accounts.google.com/ServiceLogin      | unverified 2026-09-22        | google-flow-ops SKILL.md §"Mid-session Google sign-out" — no live browser session available this task |
+# | "sign in" / accounts.google.com/ServiceLogin      | unverified 2026-09-22        | CTO_Flow_Omni1.1_Ops SKILL.md §"Mid-session Google sign-out" — no live browser session available this task |
 # | 429 / rate limit / slot-busy                      | unverified 2026-09-22        | memory: reference_rate_limited_false_positive_from_higgsfield_429.md (Higgsfield-observed wording, applied defensively here) |
 # | generating / in queue / queued / rendering        | unverified 2026-09-22        | heuristic wording, no confirmed Flow UI string |
 # | download / ready to download / generation complete | unverified 2026-09-22       | heuristic; the REAL completion signal stays the captured CDN URL (CDN_VIDEO_RE), checked first and separately in poll_result() |
@@ -329,7 +329,7 @@ def parse_credit_estimate(text: str) -> int | None:
 
 def first_dialogue_line(prompt: str) -> str | None:
     """The distinctive fragment `pull` searches the feed for — dialogue is
-    unique per shot, prompt openings are not (google-flow-ops skill)."""
+    unique per shot, prompt openings are not (CTO_Flow_Omni1.1_Ops skill)."""
     m = _DIALOGUE_RE.search(prompt)
     return m.group(1) if m else None
 
@@ -760,7 +760,7 @@ class FlowBrowser:
         self._close_settings_panel()
         panel = page.locator("flow-prompt-box-settings")
         # Opening the panel is racy in the same way chip-attach is
-        # documented as racy (google-flow-ops) — a single click does not
+        # documented as racy (CTO_Flow_Omni1.1_Ops) — a single click does not
         # reliably land. Poll instead of trusting one click+wait.
         for _ in range(5):
             if panel.count():
@@ -1143,7 +1143,7 @@ class FlowBrowser:
         on this account — a run polling for them times out after
         COMPLETION_TIMEOUT_S on every success, exactly as REPORT-iter2
         documented happening to its own proof shot. Submit navigates to the
-        clip's own /edit/<uuid> page (google-flow-ops, "capture each clip's
+        clip's own /edit/<uuid> page (CTO_Flow_Omni1.1_Ops, "capture each clip's
         id at SUBMIT"); Flow itself fetches the signed CDN URL to render
         that page's <video>, which _on_response captures. Nudging a muted
         play() every poll is what reliably triggers that fetch — proven

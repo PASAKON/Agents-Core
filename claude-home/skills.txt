@@ -29,7 +29,6 @@ post-mortem	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/post-mo
 remotion-to-hyperframes	$HOME/.agents/skills/remotion-to-hyperframes
 scrutinize	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/scrutinize
 seedance-scene-prompt	/Users/gob/MoonieXHQ/Agents/Skills/seedance-scene-prompt
-thai-moral-drama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/thai-moral-drama
 CTO_Story_ThaiMoralDrama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CTO_Story_ThaiMoralDrama
 tig-scene-engine	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/tig-scene-engine
 video-use	$HOME/Developer/video-use

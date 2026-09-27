@@ -22,7 +22,7 @@ Flags (each names the shot):
                       grandmother's nasal cannula every time he sat or lay on her bed.
   FLOW-DELETES        handcuffs anywhere; a uniformed character next to police lights;
                       the word "police" with a uniform — Flow deleted all of these
-                      silently (11-arm A/B, google-flow-ops).
+                      silently (11-arm A/B, CTO_Flow_Omni1.1_Ops).
   FAST-LINE           > 10 Thai characters a second — shot 43 (10.5/s) burned a caption
                       three times at 6 s and was clean at 8 s.
   INAUDIBLE-SPEECH    "to himself", "under his breath", "whispered", "barely audible" —

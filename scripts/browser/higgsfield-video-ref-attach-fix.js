@@ -4,7 +4,7 @@
 // S2K-Fix1 wave.
 //
 // Does NOT auto-click Generate — that stays under a model's live visual
-// confirmation on purpose (higgsfield-unlimited-gen skill).
+// confirmation on purpose (CTO_Seedance2.5_Higgsfield skill).
 
 /*
  * SETUP (Seedance 2.5 video composer):

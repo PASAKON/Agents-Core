@@ -23,7 +23,7 @@
  *    the account-wide Elements panel (tabs: All / Characters / Locations /
  *    Props, right sidebar: Active / Drafts status + Folders), NOT the
  *    per-scene generation folders. The folder-scoped view under-reports
- *    what exists (documented in higgsfield-unlimited-gen skill); this
+ *    what exists (documented in CTO_Seedance2.5_Higgsfield skill); this
  *    panel is the complete, authoritative list.
  * 2. Click the "Props" category tab. For a project this size (~14 prop
  *    items) the ENTIRE category fits in the accessibility tree without any

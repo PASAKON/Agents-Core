@@ -639,7 +639,7 @@ ROUTE_SET = [
     ("ส่งงานแก้ test เล็ก ๆ นี้ให้ Jules ทำแทน DEV", "jules-ops"),
     ("เขียนสคริปต์คลิป Black Liquidity ตอนใหม่เรื่องทองคำ", "blackliquidity-script"),
     ("restart the terminal so the updated Claude binary loads", "terminal-restart"),
-    ("generate 20 more takes on Higgsfield while the plan is unlimited", "higgsfield-unlimited-gen"),
+    ("generate 20 more takes on Higgsfield while the plan is unlimited", "CTO_Seedance2.5_Higgsfield"),
     ("ทำใบแจ้งหนี้ให้ลูกค้า MoonieX เดือนนี้", "mooniex-finance"),
 ]
 

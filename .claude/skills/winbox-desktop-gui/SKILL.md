@@ -13,8 +13,8 @@ took **three false "sent" reports** and four separate bugs to land it. None of
 that came from asking an agent what it saw — it came from a timestamped log and
 a screenshot after every step. That is the method, and it is the first rule.
 
-Tool-level rules for specific sites live elsewhere (`higgsfield-unlimited-gen`,
-`google-flow-ops`). This is the layer under all of them: **what it takes for a
+Tool-level rules for specific sites live elsewhere (`CTO_Seedance2.5_Higgsfield`,
+`CTO_Flow_Omni1.1_Ops`). This is the layer under all of them: **what it takes for a
 click on that machine to be real.**
 
 ---

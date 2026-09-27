@@ -1,6 +1,6 @@
 ---
 name: blender-previz
-description: "Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead, whip-pan, snap-zoom, locked-master), the exec-bridge protocol, the playblast-to-MP4 pipeline, and the verification discipline. Use for previz/blocking/camera-reference work BEFORE spending Higgsfield credits; every bpy operation here is free. Trigger on /blender-previz, 'previz', 'บล็อกฉาก', 'มุมกล้อง Blender', 'camera reference', or any task that renders a Blender camera move for use as a Higgsfield @Video ref. NOT for paid Higgsfield generation (higgsfield-unlimited-gen owns that) and NOT for beauty renders."
+description: "Drive Blender (on winbox) from a Claude session to build free camera-previz for AI film scenes — the proven camera rigs (retreat-lead, whip-pan, snap-zoom, locked-master), the exec-bridge protocol, the playblast-to-MP4 pipeline, and the verification discipline. Use for previz/blocking/camera-reference work BEFORE spending Higgsfield credits; every bpy operation here is free. Trigger on /blender-previz, 'previz', 'บล็อกฉาก', 'มุมกล้อง Blender', 'camera reference', or any task that renders a Blender camera move for use as a Higgsfield @Video ref. NOT for paid Higgsfield generation (CTO_Seedance2.5_Higgsfield owns that) and NOT for beauty renders."
 created_by: human
 audience: [cto]
 ---
@@ -402,7 +402,7 @@ do you playblast, mux, and deliver via `mcp__org__send_media_to_ceo`.
 The finished previz becomes a camera reference for generation: drag the MP4
 onto the Seedance prompt box and mention it as `@Video 1`, Elements as
 normal (CEO's method — full procedure and its verification live in
-`higgsfield-unlimited-gen`). Festival ruling, CEO 2026-08-30: Blender/AE are
+`CTO_Seedance2.5_Higgsfield`). Festival ruling, CEO 2026-08-30: Blender/AE are
 editing-class tools and exempt from platform-only — generation still happens
 on Higgsfield; the previz carries only the camera.
 

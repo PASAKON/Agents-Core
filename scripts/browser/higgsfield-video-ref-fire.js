@@ -2,7 +2,7 @@
 // Built from task-2da027d3 (S2E-Fix1 "The Fake Cleaning"), 2026-09-04.
 //
 // Does NOT auto-click Generate / Unlimited toggle / Recreate — those stay under
-// a model's live visual confirmation on purpose (see higgsfield-unlimited-gen
+// a model's live visual confirmation on purpose (see CTO_Seedance2.5_Higgsfield
 // skill). This script gets the composer INTO the state where a human/model can
 // safely make that final call.
 //
@@ -115,5 +115,5 @@ function verifyBeforeGenerate() {
   };
   // The Generate button's price MUST still be read by a zoomed screenshot,
   // never by DOM text scrape — a stale decoy button can read a false price
-  // (measured 2026-08-28, higgsfield-unlimited-gen skill).
+  // (measured 2026-08-28, CTO_Seedance2.5_Higgsfield skill).
 }

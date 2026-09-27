@@ -198,7 +198,7 @@
  *
  *   - Two mid-task chat notifications ("[New message from CEO]") arrived
  *     with literally no body text attached, matching the
- *     higgsfield-unlimited-gen skill's documented "mailbox delivers
+ *     CTO_Seedance2.5_Higgsfield skill's documented "mailbox delivers
  *     notifications with no body" issue. Checked the worktree's `TASK.md`
  *     both times per that skill's guidance (append-to-TASK.md is the
  *     channel that actually reaches the operator) -- file was unchanged
@@ -606,7 +606,7 @@
  * 1,974 -- first VIDEO generation in this file's history, not an image
  * plate; the price shown is a struck-through positive number resolving to
  * 0, e.g. "UNLIMITED / ~~440~~ / 0", NOT the zero-digit rule this file's
- * earlier waves use for GPT Image 2 -- see higgsfield-unlimited-gen skill's
+ * earlier waves use for GPT Image 2 -- see CTO_Seedance2.5_Higgsfield skill's
  * "video Generate button shows a struck-through price" table).
  *
  *   - The Duration pill (Seedance 2.5, range 4s-30s) is an ARIA
@@ -699,7 +699,7 @@
  *     later searching the media picker by alt text.
  *
  *   - Confirmed the known "Prompt: Prompt is required" paste-to-app-state
- *     desync (first documented in the higgsfield-unlimited-gen skill) can
+ *     desync (first documented in the CTO_Seedance2.5_Higgsfield skill) can
  *     hit a FIRST-EVER submission of a prompt, not only a resubmission of
  *     one that already generated once -- happened on Plate 1's very first
  *     Generate click this run. The general fix worked unchanged: click into
@@ -777,7 +777,7 @@
  * even one with no visible navigation, is now confirmed necessary, not
  * optional caution.
  *
- * Per hard rule 6 (skill: higgsfield-unlimited-gen), attempted exactly ONE
+ * Per hard rule 6 (skill: CTO_Seedance2.5_Higgsfield), attempted exactly ONE
  * clean ref-based click on the toggle via a fresh `find()` call taken
  * immediately beforehand. THE REF RESOLVED TO THE WRONG ELEMENT: the click
  * navigated the composer tab straight to `/auth/logout?rp=...` and it
