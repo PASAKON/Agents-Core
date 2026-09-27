@@ -147,11 +147,11 @@ _META = {
      'oranges roll across the red dirt, raises both palms and backs away step by step; the '
      'instant she finishes, he stumbles over an orange and stammers while he answers, both '
      'hands still raised', _N),
- 13: (8, 'Close-up on the son reading a letter, the paper edge-on to camera',
+ 13: (8, 'Close-up on the son reading the land-office notice about buying back the family rice field, the paper edge-on to camera',
      ['sa_c', 'kp1'], 'home', T1,
-     'the young man in the white T-shirt, face drained, eyes welling, reads a letter aloud '
+     'the young man in the white T-shirt, face drained, eyes welling, reads the land-office notice about the rice field aloud '
      'with both hands shaking so hard the paper rattles, lips quivering, and on the last words'
-     ' he crushes the letter against his chest as his face collapses into tears while he '
+     ' he presses the notice to his chest as his face collapses into tears while he '
      'speaks; the whole time he reads, behind him the woman in the indigo blouse, trembling, '
      'presses the red cloth to her mouth, shakes her head slowly and sways on her feet', _N + ['noletter', 'nocash']),
  14: (8, 'Medium, the son on his knees in the red dust',
@@ -172,7 +172,7 @@ _META = {
      ['sa_c', 'kp1'], 'home', T1,
      'the young man in the white T-shirt, still on his knees in the red dirt, sobbing, words '
      'breaking apart, lifts his wet face up to his mother and wrings his hands together while '
-     'he speaks; the whole time he talks the woman in the indigo blouse, shocked, mouth '
+     'he speaks; the whole time he talks the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her head like a turban, shocked, mouth '
      'falling open, lets go of his shoulders finger by finger, presses a hand over her mouth, '
      'staggers back two paces and bumps against a wooden house post', _N + ['noletter']),
  17: (8, 'Medium close-up on the mother, the tin trunk behind her',
@@ -189,13 +189,13 @@ _META = {
      'shaking, turns her face away and bites hard on her knuckle, one hand hovering over his '
      'head without touching it, and she does not pull her feet back; a hen wanders past behind'
      ' them', _N),
- 19: (8, 'Medium wide from behind, the mother at the edge of the golden paddy, the son following',
+ 19: (8, 'Medium wide, the mother and her grown son side by side at the edge of the golden paddy',
      ['kp1', 'sa_c'], 'na_ripe', T1,
      'the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her'
      ' head like a turban, steeling herself, jaw set, wipes her tears hard with the back of '
-     'her wrist, strides to the edge of the golden paddy and grabs a heavy rice ear, weighing '
-     'it in her palm while she speaks; the whole time she talks the young man in the white '
-     'T-shirt, eyes swollen, hopeless, trudges up behind her, wiping his nose on his wrist and'
+     'her wrist, walks to the edge of the golden paddy and cups a heavy rice ear, weighing '
+     'it in her palm while she speaks; the whole time she talks her son, the young man in the white '
+     'T-shirt, eyes swollen, hopeless, walks up and stands beside his mother, wiping his nose on his wrist and'
      ' scuffing his feet on the dyke; the instant she finishes, he spreads both open hands toward the field while he answers; the ripe rice ripples in the wind', _N + ['nocash']),
  20: (8, 'Close-up, her indigo-stained fingers on the thin gold chain at her neck',
      ['kp1', 'sa_c'], 'na_ripe', T1,
@@ -256,7 +256,7 @@ DIRECTION = {
  (11, 'sa_c'): 'cheerful and loud, grinning with dimples, waving the bag of oranges high, the grin sliding off his face at the end',
  (12, 'kp1'): 'furious and heartbroken, screaming through tears, shaking the empty cloth in his face',
  (12, 'sa_c'): 'panicked and stammering, palms raised, backing away, voice climbing',
- (13, 'sa_c'): 'reading aloud, voice cracking apart, tears spilling, crushing the letter to his chest on the apology',
+ (13, 'sa_c'): 'reading the notice aloud, voice cracking apart, tears spilling, pressing it to his chest on the apology',
  (14, 'sa_c'): 'confessing through heavy sobs, pounding the dirt with his fists, voice cracking',
  (15, 'kp1'): 'shouting in raw rage, eyes red, shaking him hard on every word',
  (16, 'sa_c'): 'sobbing so hard the words break apart, wringing his hands, forcing out the truth',

@@ -147,10 +147,10 @@ _META = {
       "empty plain white sack, the fan slipping from her fingers to the concrete, and presses "
       "the back of her wrist to her wet eyes while she speaks, her shoulders shaking; behind "
       "her the idle harvesters sit silent under a film of dust", _N + ["nologo", "nocash"]),
- 68: (8, "Two-shot under the house beside the tin trunk",
+ 68: (8, "Two-shot under the house beside the tin trunk, the son holding a small bundle wrapped in red cloth",
       ["sa_i", "kp2"], "home", T5,
-      "the young man in the indigo shirt, serious and unreadable, sits down on the bamboo "
-      "platform, rubs his palms slowly on his knees, turns to his mother and holds her eyes "
+      "the young man in the indigo shirt, a red-and-white checked cloth tied round his head, a small bundle wrapped in red cloth in both hands, serious and unreadable, sits down on the bamboo "
+      "platform, rests the red cloth bundle on his knees, turns to his mother and holds her eyes "
       "without blinking while he speaks; the whole time he talks the woman in the indigo "
       "blouse, her red-and-white checked cloth still wrapped around her head like a turban, frightened, freezes with a woven sticky-rice basket half lowered, her smile "
       "falling away, her free hand creeping to her chest; the instant he finishes she sets "
