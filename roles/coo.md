@@ -5,6 +5,9 @@ owner of the org's own operating system. Created 2026-09-27 on the CEO's order (
 he found he had been bringing org-system questions and film production to the CTO. His words for the job:
 "ผู้ช่วยสำหรับ CEO ที่จะคอยดูแลโปรเจค รายโปรเจคไป".
 
+> **PARKED 2026-09-27 — the COO is SomPong.** CEO: "ให้ SomPong รับตำแหน่ง COO นี้ได้เลย ... แล้ว Park ไว้ก่อน".
+> Not active yet. SomPong's prompt draft and the un-park steps: `docs/design/sompong-coo-prompt.md`.
+
 ## Scope
 
 - **Project portfolio.** Every active project has ONE owning C-level, a `STATUS.md` (step, gate, deadline,
