@@ -114,7 +114,7 @@ _HOME = ("the shaded open space under a traditional wooden Isan house raised hig
          "dented tin trunk against a stilt, lengths of hand-dyed indigo cloth drying on a bamboo "
          "line, a small wooden rice barn on stilts to one side and a packed red-dirt yard, with "
          "golden rice paddies and tall sugar palms beyond")
-_NA = ("a wide flat rice paddy in rural Northeast Thailand: narrow raised earth dykes, a small "
+_NA = ("a wide flat rice paddy in rural Northeast Thailand: narrow raised earth banks, a small "
        "thatched bamboo field hut on stilts at the edge, tall sugar palms across the fields and "
        "a dirt farm track")
 _MILL = ("the concrete yard of a small-town rice mill in Northeast Thailand: three large "

@@ -94,8 +94,8 @@ _META = {
       _N + ["nouniform", "nocash"]),
  61: (8, "Medium, the woman in pink at a desk just inside the open hot-pink office door",
       ["hong"], "mill_open", T4,
-      "the woman in hot pink, outraged, face flushed red, eyes bulging, reads a letter out loud with the page turned toward herself, its back to the "
-      "camera, jerks it closer to her face, drops it on the desk and throws up both hands while she speaks, shaking her head in "
+      "the woman in hot pink, outraged, face flushed red, eyes bulging, reads the land-office notice out loud with the page turned toward herself, its back to the "
+      "camera, brings it closer to her face, drops it on the desk and throws up both hands while she speaks, shaking her head in "
       "disbelief; outside the open door a sparrow hops across the sunlit concrete",
       _N + ["noletter", "nologo"]),
  62: (8, "Close-up, the woman in pink shouting into her phone",
@@ -112,7 +112,7 @@ _META = {
       "while she speaks; the whole time she talks the young man in the indigo shirt, calm and "
       "sure, keeps twisting a bundle of straw tight, sets it down on a stack, dusts his palms "
       "against each other and straightens up to his full height; the instant she finishes he "
-      "looks her dead in the eye, tilts his head and gives a small knowing smile while he "
+      "looks her straight in the eye, tilts his head and gives a small knowing smile while he "
       "answers; loose straw blows across the stubble", _N),
  64: (8, "Medium, the neighbour stepping up beside the son with a bundle of straw",
       ["hong", "pa", "sa_i"], "na_stub", T4,
@@ -216,8 +216,8 @@ DIRECTION = {
  (62, "hong"): "hysterical with rage, screaming into the phone, slamming the fan on the desk again and "
                "again",
  (63, "hong"): "furious, shrill, pointing her fan at him",
- (63, "sa_ic"): "coolly triumphant, in Central Thai, a slow knowing smile, looking her dead in the eye, "
-                "every word landing like a slap",
+ (63, "sa_ic"): "coolly triumphant, in Central Thai, a slow knowing smile, looking her straight in the eye, "
+                "every word calm and clear",
  (64, "hong"): "threatening, shouting and stamping, wagging her finger, face twisted in a scowl",
  (64, "pa"): "defiant and mocking, laughing out loud, hand on hip, waving her off",
  (65, "kp2"): "warm and generous, calling out loud and bright, smiling, holding out the basket",

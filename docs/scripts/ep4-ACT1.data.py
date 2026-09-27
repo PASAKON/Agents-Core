@@ -196,7 +196,7 @@ _META = {
      'her wrist, walks to the edge of the golden paddy and cups a heavy rice ear, weighing '
      'it in her palm while she speaks; the whole time she talks her son, the young man in the white '
      'T-shirt, eyes swollen, hopeless, walks up and stands beside his mother, wiping his nose on his wrist and'
-     ' scuffing his feet on the dyke; the instant she finishes, he spreads both open hands toward the field while he answers; the ripe rice ripples in the wind', _N + ['nocash']),
+     ' scuffing his feet on the paddy bank; the instant she finishes, he spreads both open hands toward the field while he answers; the ripe rice ripples in the wind', _N + ['nocash']),
  20: (8, 'Close-up, her indigo-stained fingers on the thin gold chain at her neck',
      ['kp1', 'sa_c'], 'na_ripe', T1,
      'the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her'

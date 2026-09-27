@@ -68,14 +68,15 @@ _META = {
       "faster, tossing each cut handful onto the pile behind her; the instant he finishes she "
       "jabs her sickle at the next row without looking at him while she answers; the whole "
       "golden field ripples in the hot wind around the two small figures", _N),
- 29: (8, "Medium, the neighbour striding down off the paddy dyke, a sickle at her side",
+ 29: (8, "Medium, the kind neighbour walking down off the paddy bank to help with the harvest, waving",
       ["pa", "kp2"], "na_ripe", T2,
-      "the woman in the green blouse, fierce and loud, strides down off the dyke into the rice, her sickle held low at her side, rolls up her sleeve with her free hand, stamps through "
-      "the stalks and thumps her own chest with her free hand and sweeps it over the field while she shouts; "
-      "the whole time she talks the woman in the indigo blouse, startled, turns with her "
-      "sickle frozen in her hand, her mouth falls open, her chin trembles and she bursts into "
-      "tears, pressing the back of her wrist to her mouth; the ripe rice parts and sways as "
-      "the neighbour pushes through it", _N),
+      "the woman in the green blouse, warm, loud and determined, walks briskly down off the "
+      "paddy bank into the rice with a big smile, rolls up her sleeve, pats her own chest with one "
+      "hand and sweeps it over the field while she calls out; the whole time she talks the "
+      "woman in the indigo blouse, her red-and-white checked cloth still wrapped around her "
+      "head like a turban, turns with a bundle of cut rice stalks in her hands, her mouth "
+      "falls open, her chin trembles and she bursts into grateful tears; the ripe rice parts "
+      "and sways as the neighbour pushes through it", _N),
  30: (8, "Two-shot, the mother and the neighbour face to face in the rice",
       ["kp2", "pa"], "na_ripe", T2,
       "the woman in the indigo blouse, worried and afraid for her friend, grips the "
@@ -85,20 +86,20 @@ _META = {
       "in the green blouse laughs right in her face, shakes her arm free, flaps a dismissive "
       "hand and bends straight down to grab a fistful of rice and cut it with one hard stroke "
       "while she answers; cut stalks fly and the paddy sways", _N),
- 31: (8, "Medium, a stocky man jogging into the rice, waving, the son turning",
+ 31: (8, "Medium, a friendly stocky neighbour hurrying into the rice to help with the harvest, waving, the son turning",
       ["ai", "sa_i", "pa"], "na_thr", T2,
-      "the man in the mustard-yellow T-shirt, cheerful, grinning wide, jogs down off the dyke "
-      "into the half-cut paddy, waving his free hand high over his head and thumping his own chest "
-      "with his fist while he calls out; the whole time he talks the young man in the indigo "
-      "shirt, astonished, straightens up with the sickle hanging from his hand, eyes wide, "
+      "the man in the mustard-yellow T-shirt, cheerful, grinning wide, jogs down off the paddy bank "
+      "into the half-cut paddy, waving both empty hands high over his head and laughing "
+      "while he calls out; the whole time he talks the young man in the indigo "
+      "shirt, astonished, straightens up with an armful of cut rice stalks, eyes wide, "
       "mouth open, and wipes his face in disbelief; the instant he finishes the young man "
-      "spins toward the dyke and points while he answers; behind them the woman in the green "
-      "blouse keeps cutting fast, laughing and tossing sheaves onto the stacks; chaff drifts "
+      "spins toward the paddy bank and points while he answers; behind them the woman in the green "
+      "blouse keeps gathering sheaves fast, laughing and stacking them; chaff drifts "
       "in the sun", _N),
- 32: (8, "Close-up on the son in the rice, cut sheaves stacked around him",
+ 32: (8, "Close-up on the grateful son in the rice, thanking the neighbours who came to help with the harvest, cut sheaves stacked around him",
       ["sa_i", "kp2"], "na_thr", T2,
-      "the young man in the indigo shirt, weeping, shaking with emotion, raises his pressed "
-      "palms high above his head toward the dyke in a deep wai, bows twice and turns to wai "
+      "the young man in the indigo shirt, overwhelmed with gratitude, happy tears, raises his pressed "
+      "palms high above his head toward the paddy bank in a deep wai, bows twice and turns to wai "
       "the other way, tears running down his face, while he speaks; the whole time he talks "
       "the woman in the indigo blouse behind him, her red-and-white checked cloth still wrapped around her head like a turban, wipes her tears with the back of her hand, "
       "nods again and again, presses her hand to her chest and smiles through her crying; "
@@ -132,7 +133,7 @@ _META = {
       "grain into the heap with her hands and flicking the straw away; the instant he "
       "finishes she sits back on her heels, laughs and slaps the heap while she answers; "
       "golden grain bounces across the blue tarp and chaff sparkles in the sun", _N),
- 36: (8, "Two-shot on the paddy dyke, the headman beside his old black bicycle",
+ 36: (8, "Two-shot on the paddy bank, the headman beside his old black bicycle",
       ["sa_i", "bm"], "na_thr", T2,
       "the young man in the indigo shirt, worried, hands pressed together in a polite wai, points back at the heaps of threshed rice, his "
       "voice cracking, while he speaks; the whole time he talks the headman in the "
@@ -145,7 +146,7 @@ _META = {
       "low while he speaks; the whole time he talks the young man in the indigo shirt leans "
       "in, hanging on every word, his eyes widening with hope; the instant he finishes the "
       "young man, relieved and grateful, laughs out loud, grabs his hand in both of his and shakes it hard while he answers; the headman nods, blinking fast, and pats his shoulder once; the old black "
-      "bicycle leans on the dyke behind them", _N),
+      "bicycle leans on the paddy bank behind them", _N),
  38: (8, "Medium at the mill building, the woman in pink pulling down the roll-up shutter",
       ["hong"], "mill_open", T2,
       "the woman in hot pink, cunning, eyes glinting, chuckling low, hauls the roll-up "
@@ -299,12 +300,12 @@ DIRECTION = {
  (27, "kp2"): "stern and hurt, voice thick with held-back tears, her hands gentle",
  (28, "sa_i"): "despairing, voice breaking, shoulders slumping, one arm flung at the field",
  (28, "kp2"): "stubborn and fierce, snapping the words without looking up, cutting faster",
- (29, "pa"): "fierce and very loud, calling across the paddy, one arm raised high",
+ (29, "pa"): "warm and very loud, calling across the paddy, big smile, one arm waving",
  (30, "kp2"): "frightened for her friend, voice urgent and shaking, gripping her arm",
  (30, "pa"): "defiant, laughing out loud in her face, already cutting",
  (31, "ai"): "booming and cheerful, grinning ear to ear, waving his hand",
  (31, "sa_i"): "astonished, voice cracking with disbelief, eyes wide, pointing",
- (32, "sa_i"): "weeping openly, voice breaking, palms pressed high above his head",
+ (32, "sa_i"): "grateful, weeping with happiness, voice breaking, palms pressed high above his head",
  (33, "pa"): "playful and teasing, cackling, cutting fast",
  (33, "ai"): "roaring with laughter, teasing loudly, waggling his sickle",
  (34, "sa_i"): "anxious, low and urgent but clearly audible, frowning hard, hand cupped to his mouth",
