@@ -166,6 +166,21 @@ sheet, not a verdict.
      wardrobe plate.
    - First registry: `docs/scripts/taachang-CAST-STATES.md`.
 
+9. Every dialogue shot says it is one continuous take. [FLOW] (CEO ruling 2026-09-28.) After the
+   face line, every shot with a spoken line carries, word for word: "This is one single continuous
+   take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same
+   framing for the whole clip." `tools/build_shotsheet.py` adds it (`CONTINUOUS_TAKE`, 98102e9a);
+   a hand-written sheet adds it by hand.
+
+   **Why:** Omni cuts inside the 8 s clip to a close-up of the listener and lip-syncs the line
+   onto the only face left in frame — the wrong-mouth defect (film 4: 45/72 clips had a cut;
+   lines spanning a cut 14% wrong vs 3% without). A/B task-c816fbc0, 360p, shots 21/31/45 x 3
+   takes: as shot, 8/9 clips had a cut and 4/18 lines were wrong-mouth by eye; with this
+   sentence 0/9 and 0/18. A second sentence ("only the person whose line it is moves their
+   lips … keeps her lips pressed closed") added nothing (0/10 cuts, 2/20 wrong) and is not used.
+   One A/B, small n: a no-cut wrong mouth can still happen, so the FilmQC wrong-mouth check
+   still runs on every take.
+
 ## What Flow silently deletes [FLOW]
 
 The evidence behind rule 1 and the FLOW-DELETES flag. The symptom is the same in every case: Submit is
