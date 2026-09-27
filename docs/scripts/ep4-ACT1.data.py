@@ -196,8 +196,7 @@ _META = {
      'her wrist, strides to the edge of the golden paddy and grabs a heavy rice ear, weighing '
      'it in her palm while she speaks; the whole time she talks the young man in the white '
      'T-shirt, eyes swollen, hopeless, trudges up behind her, wiping his nose on his wrist and'
-     ' kicking at the dyke; the instant she finishes, he flings both arms out at the field and'
-     ' lets them drop against his sides while he answers; the ripe rice ripples in the wind', _N + ['nocash']),
+     ' scuffing his feet on the dyke; the instant she finishes, he spreads both open hands toward the field while he answers; the ripe rice ripples in the wind', _N + ['nocash']),
  20: (8, 'Close-up, her indigo-stained fingers on the thin gold chain at her neck',
      ['kp1', 'sa_c'], 'na_ripe', T1,
      'the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her'
@@ -264,7 +263,7 @@ DIRECTION = {
  (17, 'kp1'): 'wailing, voice hoarse and cracking, beating her chest with her fist',
  (18, 'sa_c'): 'crying, forehead pressed to her feet, begging in a muffled, broken voice',
  (19, 'kp1'): 'steeling herself, voice hard and firm, wiping her tears, weighing a rice ear in her palm',
- (19, 'sa_c'): 'hopeless, voice thick with tears, arms flung out and dropping',
+ (19, 'sa_c'): 'hopeless, voice thick with tears, open hands toward the field',
  (20, 'kp1'): 'wistful, smiling through tears, kissing the chain, voice soft but trembling',
  (20, 'sa_c'): 'alarmed, almost shouting, grabbing her hand with both of his',
  (21, 'kp2'): 'firm, voice trembling but steady, squeezing his fist in both hands, nodding',

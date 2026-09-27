@@ -68,11 +68,10 @@ _META = {
       "faster, tossing each cut handful onto the pile behind her; the instant he finishes she "
       "jabs her sickle at the next row without looking at him while she answers; the whole "
       "golden field ripples in the hot wind around the two small figures", _N),
- 29: (8, "Medium, the neighbour striding down off the paddy dyke with a raised sickle",
+ 29: (8, "Medium, the neighbour striding down off the paddy dyke, a sickle at her side",
       ["pa", "kp2"], "na_ripe", T2,
-      "the woman in the green blouse, fierce and loud, strides down off the dyke into the "
-      "rice raising her sickle high, rolls up her sleeve with her free hand, stamps through "
-      "the stalks and points the sickle at her own chest and at the field while she shouts; "
+      "the woman in the green blouse, fierce and loud, strides down off the dyke into the rice, her sickle held low at her side, rolls up her sleeve with her free hand, stamps through "
+      "the stalks and thumps her own chest with her free hand and sweeps it over the field while she shouts; "
       "the whole time she talks the woman in the indigo blouse, startled, turns with her "
       "sickle frozen in her hand, her mouth falls open, her chin trembles and she bursts into "
       "tears, pressing the back of her wrist to her mouth; the ripe rice parts and sways as "
@@ -86,17 +85,17 @@ _META = {
       "in the green blouse laughs right in her face, shakes her arm free, flaps a dismissive "
       "hand and bends straight down to grab a fistful of rice and cut it with one hard stroke "
       "while she answers; cut stalks fly and the paddy sways", _N),
- 31: (8, "Medium, a stocky man jogging into the rice with a sickle, the son turning",
+ 31: (8, "Medium, a stocky man jogging into the rice, waving, the son turning",
       ["ai", "sa_i", "pa"], "na_thr", T2,
       "the man in the mustard-yellow T-shirt, cheerful, grinning wide, jogs down off the dyke "
-      "into the half-cut paddy, waving a sickle high over his head and thumping his own chest "
+      "into the half-cut paddy, waving his free hand high over his head and thumping his own chest "
       "with his fist while he calls out; the whole time he talks the young man in the indigo "
       "shirt, astonished, straightens up with the sickle hanging from his hand, eyes wide, "
       "mouth open, and wipes his face in disbelief; the instant he finishes the young man "
       "spins toward the dyke and points while he answers; behind them the woman in the green "
       "blouse keeps cutting fast, laughing and tossing sheaves onto the stacks; chaff drifts "
       "in the sun", _N),
- 32: (8, "Close-up on the son in the rice, the sickle in his blistered hand",
+ 32: (8, "Close-up on the son in the rice, cut sheaves stacked around him",
       ["sa_i", "kp2"], "na_thr", T2,
       "the young man in the indigo shirt, weeping, shaking with emotion, raises his pressed "
       "palms high above his head toward the dyke in a deep wai, bows twice and turns to wai "
@@ -135,12 +134,9 @@ _META = {
       "golden grain bounces across the blue tarp and chaff sparkles in the sun", _N),
  36: (8, "Two-shot on the paddy dyke, the headman beside his old black bicycle",
       ["sa_i", "bm"], "na_thr", T2,
-      "the young man in the indigo shirt, desperate, pleading, hands pressed together, steps "
-      "in close, bows again and again and points back at the heaps of threshed rice, his "
+      "the young man in the indigo shirt, worried, hands pressed together in a polite wai, points back at the heaps of threshed rice, his "
       "voice cracking, while he speaks; the whole time he talks the headman in the "
-      "light-blue shirt, tense and torn, grips the handlebar of his old black bicycle, stares "
-      "at the ground and rubs the back of his neck, and when a phone buzzes in his shirt "
-      "pocket he pulls it out and presses to reject the call without looking at it; the "
+      "light-blue shirt, uneasy, grips the handlebar of his old black bicycle, looks down and rubs the back of his neck, and when a phone buzzes in his shirt pocket he glances at it and silences it; the "
       "rice stubble around them rustles in the wind", _N),
  37: (8, "Close two-shot, the son hugging the stiff headman",
       ["bm", "sa_i"], "na_thr", T2,
@@ -148,9 +144,7 @@ _META = {
       "looks away across the field and pats the shirt pocket where his phone is, speaking "
       "low while he speaks; the whole time he talks the young man in the indigo shirt leans "
       "in, hanging on every word, his eyes widening with hope; the instant he finishes the "
-      "young man, relieved and grateful, laughs out loud, throws his arms around him and "
-      "hugs him tight, rocking him side to side, while he answers; the headman stands stiff "
-      "with his arms at his sides, blinking fast, and cannot hug him back; the old black "
+      "young man, relieved and grateful, laughs out loud, grabs his hand in both of his and shakes it hard while he answers; the headman nods, blinking fast, and pats his shoulder once; the old black "
       "bicycle leans on the dyke behind them", _N),
  38: (8, "Medium at the mill building, the woman in pink pulling down the roll-up shutter",
       ["hong"], "mill_open", T2,
@@ -216,10 +210,9 @@ _META = {
       "indigo blouse, laughing and crying at once, presses a hand to her chest, grabs his "
       "shoulders and shakes him, strokes his face and looks up at the sky mouthing thanks; "
       "the sticky-rice steamer puffs steam behind them", _N + ["nocash"]),
- 45: (8, "Medium, the chained steel gate in front of the shuttered mill",
+ 45: (8, "Medium, the locked steel gate in front of the closed mill",
       ["sa_i", "kp2"], "mill_closed", T3,
-      "the young man in the indigo shirt, frantic, shouting at the top of his voice, rattles "
-      "the chained steel gate with both hands, bangs the bars with his palm and presses his "
+      "the young man in the indigo shirt, frantic, calling out loudly, grips the locked steel gate with both hands and presses his "
       "face to the gap to peer inside while he speaks; the whole time he talks the woman in "
       "the indigo blouse behind him, anxious, hugs a plain cloth bag to her chest, cranes her "
       "neck left and right down the empty road and rises on tiptoe to look over the gate; the "
@@ -306,10 +299,10 @@ DIRECTION = {
  (27, "kp2"): "stern and hurt, voice thick with held-back tears, her hands gentle",
  (28, "sa_i"): "despairing, voice breaking, shoulders slumping, one arm flung at the field",
  (28, "kp2"): "stubborn and fierce, snapping the words without looking up, cutting faster",
- (29, "pa"): "fierce and very loud, shouting across the paddy, sickle raised high",
+ (29, "pa"): "fierce and very loud, calling across the paddy, one arm raised high",
  (30, "kp2"): "frightened for her friend, voice urgent and shaking, gripping her arm",
  (30, "pa"): "defiant, laughing out loud in her face, already cutting",
- (31, "ai"): "booming and cheerful, grinning ear to ear, waving his sickle",
+ (31, "ai"): "booming and cheerful, grinning ear to ear, waving his hand",
  (31, "sa_i"): "astonished, voice cracking with disbelief, eyes wide, pointing",
  (32, "sa_i"): "weeping openly, voice breaking, palms pressed high above his head",
  (33, "pa"): "playful and teasing, cackling, cutting fast",
@@ -318,9 +311,9 @@ DIRECTION = {
  (34, "kp2"): "warm and generous, laughing, pressing rice into their hands",
  (35, "sa_i"): "fired up and shouting, sweat pouring, whooping between strikes",
  (35, "kp2"): "proud and laughing, slapping the grain heap",
- (36, "sa_i"): "desperate and pleading, voice cracking, bowing again and again, palms pressed",
+ (36, "sa_i"): "worried and asking, voice cracking, palms pressed together",
  (37, "bm"): "low and guilty, voice hoarse, eyes red, rubbing his face",
- (37, "sa_i"): "overjoyed with relief, laughing and choking up, hugging him tight",
+ (37, "sa_i"): "overjoyed with relief, laughing and choking up, shaking his hand",
  (38, "hong"): "cunning and gloating, a low wicked chuckle, eyes glinting",
  (39, "sa_i"): "eager and breathless, beaming, slapping the sacks",
  (39, "ai"): "hearty and booming, thumping his chest",
@@ -333,8 +326,8 @@ DIRECTION = {
  (43, "bm"): "breathless and excited, shouting the news, waving his phone",
  (43, "kp2"): "overjoyed, voice shaking, clasped hands at her lips, bowing",
  (44, "sa_i"): "ecstatic, laughing and crying, voice shaking, counting on his fingers",
- (45, "sa_i"): "frantic, screaming at the top of his voice, rattling the chain",
- (45, "kp2"): "anxious and frightened, voice trembling, tugging his sleeve",
+ (45, "sa_i"): "frantic, calling out as loud as he can, gripping the gate",
+ (45, "kp2"): "anxious, voice trembling, tugging his sleeve",
  (46, "sa_i"): "despairing and furious, voice cracking, raking his hair",
  (46, "kp2"): "horrified realisation, going pale, voice breaking",
  (47, "kp2"): "exhausted to the bone, voice cracking and faint, lips trembling, close to tears",

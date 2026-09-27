@@ -94,10 +94,8 @@ _META = {
       _N + ["nouniform", "nocash"]),
  61: (8, "Medium, the woman in pink at a desk just inside the open hot-pink office door",
       ["hong"], "mill_open", T4,
-      "the woman in hot pink, outraged, face flushed red, eyes bulging, veins standing out on "
-      "her neck, reads a letter out loud with the page turned toward herself, its back to the "
-      "camera, jerks it closer to her face, slaps the desk with her free hand, crushes the "
-      "letter in her fist and flings it down while she speaks, shaking her head in "
+      "the woman in hot pink, outraged, face flushed red, eyes bulging, reads a letter out loud with the page turned toward herself, its back to the "
+      "camera, jerks it closer to her face, drops it on the desk and throws up both hands while she speaks, shaking her head in "
       "disbelief; outside the open door a sparrow hops across the sunlit concrete",
       _N + ["noletter", "nologo"]),
  62: (8, "Close-up, the woman in pink shouting into her phone",
@@ -109,8 +107,8 @@ _META = {
       "the open door the bright yard shimmers in the heat", _N + ["nologo"]),
  63: (8, "Medium in the harvested paddy of stubble and straw stacks",
       ["hong", "sa_ic"], "na_stub", T4,
-      "the woman in hot pink, furious, storms across the stubble under her open hot-pink "
-      "parasol, kicks at the loose straw and jabs her closed fan at the young man's chest "
+      "the woman in hot pink, furious, marches across the stubble under her open hot-pink "
+      "parasol, flicks the loose straw aside with her foot and points her closed fan at the young man "
       "while she speaks; the whole time she talks the young man in the indigo shirt, calm and "
       "sure, keeps twisting a bundle of straw tight, sets it down on a stack, dusts his palms "
       "against each other and straightens up to his full height; the instant she finishes he "
@@ -214,10 +212,10 @@ DIRECTION = {
               "receipt pressed to her chest",
  (59, "sa_i"): "crying openly, voice thick and trembling, holding her face in both hands",
  (60, "bm"): "repentant, voice rough and low but firm, eyes red, fist tapping his chest on the promise",
- (61, "hong"): "outraged, screeching, face red, eyes bulging, crushing the letter in her fist",
+ (61, "hong"): "outraged, shrill, face red, eyes wide, throwing up her hands",
  (62, "hong"): "hysterical with rage, screaming into the phone, slamming the fan on the desk again and "
                "again",
- (63, "hong"): "furious, shrill and shouting, jabbing her fan at his chest",
+ (63, "hong"): "furious, shrill, pointing her fan at him",
  (63, "sa_ic"): "coolly triumphant, in Central Thai, a slow knowing smile, looking her dead in the eye, "
                 "every word landing like a slap",
  (64, "hong"): "threatening, shouting and stamping, wagging her finger, face twisted in a scowl",
