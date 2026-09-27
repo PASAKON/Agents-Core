@@ -39,6 +39,13 @@ removed locally.
 3. **Never create a new sub-folder without asking first.** You may *propose*
    one when a file doesn't fit any existing definition — wait for approval,
    then create it.
+   **This covers every new story or project, however fixed its pattern (CEO
+   2026-09-27):** *"ถ้ามีเรื่องอื่น ต้องขออนุญาตในการสร้าง Folder + Path ที่คิดว่า
+   เหมาะสม รออนุมัติสร้าง และเก็บ backup ไว้เสมอ"*. The ask names the folder AND its
+   full Drive path (e.g. `ALL DRAFT/FB: ละครสั้นคุณธรรม/เรื่อง<ชื่อเรื่อง>/` with the
+   sub-folders it will get), then waits for the yes. Ask when the story starts, not
+   at clean-up: film 3 reached its Desktop clean-up with no Drive folder at all, so
+   nothing had been backed up and the clean-up had to stop for the ask.
 4. **Every folder must have a definition before you file into it.** Use the
    map (`CXO_Knowledge_GDrive_FolderMap`) to decide placement. If nothing fits, it goes to `UNKNOWN`.
 5. **`UNKNOWN`** (Drive root) is the fallback — anything you can't confidently
@@ -453,6 +460,23 @@ Reference implementation: `docs/ops/` and the `checkdrive`/`refresh` pattern use
 that day — list the folder, compare `name → size` against the local file, upload
 and trash only what differs, then re-list to prove the diff is empty.
 
+**When a film is finished, clear it off every machine it was made on (CEO 2026-09-27).**
+*"เก็บ backup ไว้เสมอ เมื่อจบงาน ให้เคลียร์ออกจากเครื่องที่ทำไว้ เพื่อประหยัด Disk ไว้ทำงานต่อไป"*.
+"Finished" means posted. Do it in the same session as the post, without being asked:
+
+1. Back up per the table above: clips to `All Scene/ACT<n>/`, plates to `Element/`,
+   the published cut and cover to `Final Draft/`.
+2. Verify by **md5** against the Drive listing, for every file. A name and size
+   match is not enough.
+3. Clear every working copy on **every** machine:
+   - the Mac: `~/Desktop/<ep>-*` and `Work/<task>/out`;
+   - winbox: `C:\mooniex\<ep>\clips|plates|cover`.
+   Rough cuts and phone-size cuts are not backed up; they are made again from the clips.
+   Keep the small text files (ledgers, sheets, runner scripts) until the CEO says otherwise.
+4. On the Mac, move files to the Trash; never `rm`. On winbox, use the Recycle Bin.
+   **The Trash frees no space until it is emptied, and emptying is the CEO's call.**
+   Report the exact GB in the Trash (disk-hygiene field note 2026-09-25).
+
 ### «บัญชี» — the download → verify → delete loop (CEO 2026-09-19)
 
 The CEO's words: *"ตรวจเสร็จแล้ว Upload ลง Drive แล้ว เชคแล้วว่า Upload แล้ว ให้ลบ
@@ -505,3 +529,4 @@ is the working copy, and both are correct.
 - 2026-09-25 [WRONG] §Bulk transfer — `tools/work_archive.BACKUP_FOLDER_ID` is NOT the BACKUP root any more: 936fb0ad (2026-09-24) repointed it to `BACKUP/MoonieX HQ/Work-Archive` (`1xu8hXdU…`), and the REST shim that reused `work_archive._init_resumable_session` inherited that parent, so every upload would have been filed there silently (its own guard caught it by refusing the real root). Never borrow a module constant as the parent; pass it explicitly (`--drive-root-folder-id`), fixed in the shim at e6039963 · evidence: session cto-46fb0d60 · status: pending
 - 2026-09-25 [COSTLY] §Bulk transfer — the REST shim spools the whole tar to local disk (needs part size + ~3 GB free); on a near-full Mac the last part, one 7.0 GB .mov, waited ~70 min for space. A part that is a single file needs no tar: upload it raw from its path with the shim's `upload()` (resumable, zero spool) and verify size + md5 by id (`Mac-Reinstall-2026-09-25-iCloudLeftovers-p09-f786.mov`) · evidence: session cto-46fb0d60 run.out 21:33→22:40 · prevented by: a runner that uploads single-file parts raw · status: pending
 - 2026-09-26 [COSTLY] §Bulk transfer — a 562 MB film upload through `scripts/rclone_via_winbox.sh` 403'd `rateLimitExceeded` 12 times over an hour (winbox `gdrive:` is back on rclone's shared client_id — see the 2026-09-24 note), and the retry loop ran `rcat` with `capture_output=True`, so its log only said "not yet" and never the 403. The Mac's own Drive REST client (`tools/work_archive` `_access_token` + `_upload_chunks`, raw from the path, `X-Upload-Content-Type: video/mp4`, parent passed explicitly) landed it first try with md5 verified. Until winbox gets its own client_id, send single large files that way, and never let a retry loop swallow the tool's stderr · evidence: Work/task-c2723478/out/drive-final-retry.log (GAVE UP) vs drive-final-rest.log (UPLOADED 17Gl1LqfUHiEK0cmVK05luhJlSjnS7vXv) · prevented by: a `--mime` flag on `scripts/drive_rest_rclone_shim.py` (it hard-codes application/x-tar) · promoted 2026-09-26 to Hard rule 6 "State 2026-09-26": the artefact `rclone config redacted gdrive:` shows `client_id = ` empty, which proves the 09-09 state line false; the shim now takes the MIME type from the file name (video/mp4, x-tar kept for tars, checked with a fake HTTP layer, no live upload) · status: promoted
+- 2026-09-27 [MISSING] §Hard rules 3 + §Film work — film 3 reached its Desktop clean-up with no Drive folder, so nothing was backed up; the CEO ruled: ask for the folder + full path when a story starts, always keep a backup, and clear every machine it was made on when the film is finished (winbox held a second 491 MB copy). Rule body changed on the CEO's ruling. The Mac Drive REST upload (ilag_sync helpers, 16 MB resumable chunks) moved 1.0 GB and 115 files in ~12 min with 0 retries · evidence: task-c816fbc0, Drive 15cGRMSGUdpn-K_PAw0823lQ-eTpLB8Ur, 369a6c92 · status: promoted
