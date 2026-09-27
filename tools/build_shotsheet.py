@@ -194,7 +194,15 @@ def build(d, act: str = "?") -> str:
             if sp not in getattr(d, "VOICE", {}):
                 raise SystemExit(f"shot {n}: speaker {sp!r} has no VOICE block")
             voice = d.VOICE[sp][1]
-            spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
+            # Optional per-character language/accent (film 4, CEO 2026-09-27):
+            # the Isan voice test passed only with Isan-spelled words AND an
+            # explicit accent direction, so a data file may set LANG[key] to a
+            # phrase that replaces the bare "Thai". No LANG entry = unchanged.
+            lang = getattr(d, "LANG", {}).get(sp)
+            if lang:
+                spoken = f"speaks {lang}, in {voice}, {direction}" if voice else f"speaks {lang}, {direction}"
+            else:
+                spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
             ref = f" <IMAGE_REF_{charref[sp]}>" if sp in charref else ""
             out.append(f'{d.CHAR[sp][2]}{ref} {spoken}, and says: "{line}"')
         out.append("")
