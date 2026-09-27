@@ -66,6 +66,41 @@ def upload(path, name, parent):
     return info, True
 
 
+def upload_stream(path, name, parent, chunk=64 * 1024 * 1024):
+    """upload() for big files: a resumable session fed 64 MB at a time, md5 computed while reading, checked by id.
+    upload() (ilag_sync.upload) holds the whole file in memory — 1.2 GB on Contabo's 7.9 GB, next to other jobs,
+    is how background jobs get reaped. Refuses a same-name file like upload()."""
+    got = child(parent, name)
+    if got:
+        return got, False
+    size = os.path.getsize(path)
+    req = urllib.request.Request(
+        s.DRIVE_UPLOAD + "?uploadType=resumable&fields=id,name,size,md5Checksum", method="POST",
+        data=json.dumps({"name": name, "parents": [parent]}).encode(),
+        headers={"Authorization": "Bearer " + s.access_token(), "Content-Type": "application/json; charset=UTF-8",
+                 "X-Upload-Content-Length": str(size)})
+    session = urllib.request.urlopen(req, timeout=60).headers["Location"]
+    md5, sent, meta = hashlib.md5(), 0, None
+    with open(path, "rb") as f:
+        while sent < size:
+            buf = f.read(chunk)
+            md5.update(buf)
+            end = sent + len(buf) - 1
+            put = urllib.request.Request(session, data=buf, method="PUT", headers={
+                "Authorization": "Bearer " + s.access_token(), "Content-Length": str(len(buf)),
+                "Content-Range": f"bytes {sent}-{end}/{size}"})
+            try:
+                meta = json.loads(urllib.request.urlopen(put, timeout=600).read() or b"{}")
+            except urllib.error.HTTPError as e:
+                if e.code != 308:  # 308 = chunk stored, send the next one
+                    raise
+            sent = end + 1
+            print(f"  {name}: {sent / size:.0%}", flush=True)
+    if not meta or meta.get("md5Checksum") != md5.hexdigest():
+        raise SystemExit(f"MD5 MISMATCH {name}: drive {meta and meta.get('md5Checksum')} local {md5.hexdigest()}")
+    return meta, True
+
+
 def read_text(fid):
     req = urllib.request.Request(s.DRIVE_FILES + "/" + fid + "?alt=media",
                                  headers={"Authorization": "Bearer " + s.access_token()})
