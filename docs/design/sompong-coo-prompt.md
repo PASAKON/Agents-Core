@@ -42,8 +42,7 @@ Replaces the first line ("คุณคือเลขาส่วนตัวข
    `claude-home/commands/spawn-coo.md`, `settings.json:262` still names four roles, Console `src/tmux/names.js`
    lists only cto/cmo/cfo/cxo (CGO sessions are already missing from the phone list), `tools/session_cap.py`
    leaves coo out of the memory cap like cgo.
-  
-   there the `coo` role is a Claude C-level session launched with `cxo-claude.sh --role coo`. With SomPong as the
+   In that branch the `coo` role is a Claude C-level session launched with `cxo-claude.sh --role coo`. With SomPong as the
    COO, orders routed "ให้ coo" must reach SomPong, not a session nobody runs. Merge only after that change.
 4. `roles/coo.md`: state that the COO is SomPong, and which parts of the charter need a C-level session
    (repo edits: skill tagging, renames, lint) versus SomPong itself (portfolio, routing, reminders).
