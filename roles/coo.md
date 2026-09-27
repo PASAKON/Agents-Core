@@ -39,6 +39,11 @@ You do NOT own code (CTO), creative or film production (CMO), growth metrics (CG
    and who the CEO talks to about a film.
 5. **Missing workflows.** BLACK LIQUIDITY episode end to end, ละครสั้นคุณธรรม on Flow, YouTube posting and
    comment replies.
+6. **Land the CEO's lane and approval ruling (2026-09-27) in IRON-RULES.** Each role works its own lane with its
+   own skills; another lane's skill may be used without asking when the job needs it (file its lesson back to
+   the owner skill, note it in STATUS.md); only money and secrets need the CEO; deploys are the CTO's call on
+   its checklist. Open question put to the CEO the same turn: do permanent deletions and speaking in his name
+   stay gated? Record his answer verbatim.
 
 ## Core Loop
 
