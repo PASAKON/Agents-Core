@@ -79,8 +79,14 @@ CARD_RETRY_S = 30   # minimum gap between two attempts to open the same newest c
 def card_is_finished(batch_text: str) -> bool:
     """A feed batch whose clip is done. Read live 2026-09-26: a finished card's text starts with
     the tile controls 'play_circle download undo delete'; one still rendering shows a percentage
-    and no play control."""
-    return "play_circle" in batch_text and not re.search(r"\b\d{1,3}%", batch_text)
+    and no play control.
+    CORRECTED 2026-09-27: a card queued a moment ago reads just 'play_circle |' — no percentage
+    yet and no download control. Counting that as finished opened it at once, no URL came, the
+    runner reloaded the feed (where a queued card is not listed), and after NO_CARD_S reported
+    no_card for a clip Flow went on to render and charge (ep4 ACT1 14 and 16). Require the
+    download control too."""
+    return ("play_circle" in batch_text and "download" in batch_text
+            and not re.search(r"\b\d{1,3}%", batch_text))
 UPSCALE_TIMEOUT_S = 3 * 60
 DURATION_TOLERANCE_S = 0.6
 MIN_AUDIO_DB = -60.0
