@@ -101,7 +101,7 @@ _META = {
       "the young man in the indigo shirt, weeping, shaking with emotion, raises his pressed "
       "palms high above his head toward the dyke in a deep wai, bows twice and turns to wai "
       "the other way, tears running down his face, while he speaks; the whole time he talks "
-      "the woman in the indigo blouse behind him wipes her tears with her checked cloth, "
+      "the woman in the indigo blouse behind him, her red-and-white checked cloth still wrapped around her head like a turban, wipes her tears with the back of her hand, "
       "nods again and again, presses her hand to her chest and smiles through her crying; "
       "rice sheaves stand stacked around them and chaff drifts in the sunlight", _N),
  33: (8, "Medium, three harvesters bent over the rice side by side, laughing",
@@ -266,10 +266,10 @@ _META = {
       "up behind the pickup's wheels", _N + ["nologo"]),
  50: (8, "Close-up on the headman, the mother behind him",
       ["bm", "kp2"], "mill_closed", T3,
-      "the headman, confessing, voice shaking, tears falling, pulls off his wire glasses, "
+      "the headman in the light-blue shirt and his woven bamboo sun hat, confessing, voice shaking, tears falling, pulls off his wire glasses, "
       "clenches them in his fist, presses the fist to his chest and bows his head, sobbing "
       "between the words, while he speaks; the whole time he talks the woman in the indigo "
-      "blouse behind him, rigid, slowly rises to her feet, her face turning from confusion to "
+      "blouse behind him, her red-and-white checked cloth still wrapped around her head like a turban, rigid, slowly rises to her feet, her face turning from confusion to "
       "horror, one hand covering her mouth, the other clutching the cloth bag tight to her "
       "chest; dust blows across the empty concrete yard", _N),
  51: (8, "Two-shot, the headman and the son",

@@ -35,8 +35,8 @@ _META = {
       "the old white pickup wide open, slaps its roof twice and jabs a finger toward the road "
       "while he speaks; the whole time he talks the young man in the indigo shirt, hope rising "
       "in his face, grabs his mother's arm, nods hard at every word and looks from the headman "
-      "to her, and the woman in the indigo blouse, hesitant, twists her checked cloth in both "
-      "hands, looks at her son and back at the headman, lips pressed tight; dust blows across "
+      "to her, and the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her head like a turban, hesitant, twists the strap of her cloth bag "
+      "in both hands, looks at her son and back at the headman, lips pressed tight; dust blows across "
       "the concrete yard in the hot wind", _N + ["nologo"]),
  55: (8, "Two-shot at the open pickup door, the mother deciding",
       ["bm", "kp2"], "mill_closed", T3,
@@ -51,7 +51,7 @@ _META = {
       ["sa_i", "bm"], "land", T3,
       "the young man in the indigo shirt, breathless and excited, jumps down from the old "
       "white pickup, jabs at the time on his phone screen and bounces on his toes while he "
-      "speaks; the whole time he talks the headman leans far out of the driver's window, drums "
+      "speaks; the whole time he talks the headman in the light-blue shirt leans far out of the driver's window, drums "
       "both hands on the door and keeps glancing at the building's glass doors; the instant he "
       "finishes the headman flaps both hands at him toward the steps while he answers; the "
       "leaves of the potted plants by the steps shiver in the hot wind",
@@ -70,7 +70,7 @@ _META = {
       "the young man in the indigo shirt, overjoyed, trembling, laughing through tears, bursts "
       "out through the glass doors waving a small paper receipt high, its back to the camera, "
       "presses his other fist to his mouth and stops for breath as his voice shakes while he "
-      "speaks; the whole time he talks the woman in the indigo blouse on the porch presses her "
+      "speaks; the whole time he talks the woman in the indigo blouse on the porch, her red-and-white checked cloth still wrapped around her head like a turban, presses her "
       "palms together at her lips, rises on her toes, gasps at each word, her eyes filling, "
       "and grabs the rail as her knees give way a little; a warm breeze lifts the hem of her "
       "skirt", _N + ["noletter", "nouniform", "nocash"]),
@@ -154,7 +154,7 @@ _META = {
       "the young man in the indigo shirt, serious and unreadable, sits down on the bamboo "
       "platform, rubs his palms slowly on his knees, turns to his mother and holds her eyes "
       "without blinking while he speaks; the whole time he talks the woman in the indigo "
-      "blouse, frightened, freezes with a woven sticky-rice basket half lowered, her smile "
+      "blouse, her red-and-white checked cloth still wrapped around her head like a turban, frightened, freezes with a woven sticky-rice basket half lowered, her smile "
       "falling away, her free hand creeping to her chest; the instant he finishes she sets "
       "the basket down on the bamboo platform with a thump, grabs his wrist and leans in close "
       "while she answers; a hen clucks and scurries under the platform", _N),
@@ -162,9 +162,9 @@ _META = {
       ["sa_i", "kp2"], "home", T5,
       "the young man in the indigo shirt, playful and warm, breaks into a wide grin that shows "
       "both dimples, spreads his arms wide, mimes swinging a sickle through rice and thumps "
-      "his own chest while he speaks; the whole time he talks the woman in the indigo blouse "
-      "gasps, clutches her chest, bursts into laughter through her tears, swats his arm again "
-      "and again with her checked cloth and pulls him into a rough hug; a hen struts across "
+      "his own chest while he speaks; the whole time he talks the woman in the indigo blouse, "
+      "her red-and-white checked cloth still wrapped around her head like a turban, gasps, clutches her chest, bursts into laughter through her tears, swats his arm again "
+      "and again with the flat of her hand and pulls him into a rough hug; a hen struts across "
       "the red dirt behind them", _N),
  70: (8, "Close-up on the bamboo platform, the mother wrapping a folded paper in the faded red cloth",
       ["kp2", "sa_i"], "home", T6,
@@ -187,7 +187,7 @@ _META = {
       "hand and bows while he answers; the golden rice sways in the wind around them", _N),
  72: (8, "Medium under the house, the mother handing the headman the sticky-rice basket",
       ["kp2", "bm"], "home", T6,
-      "the woman in the indigo blouse, warm and forgiving, smiling, lifts the lid of a woven "
+      "the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her head like a turban, warm and forgiving, smiling, lifts the lid of a woven "
       "sticky-rice basket, holds it out with both hands and pats the bamboo platform beside "
       "her, inviting him to sit, while she speaks; the whole time she talks the headman in the "
       "light-blue shirt, moved, eyes wet and red, twists his woven hat in his hands and takes "
