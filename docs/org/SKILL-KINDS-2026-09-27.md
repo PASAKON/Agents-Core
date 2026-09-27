@@ -94,3 +94,76 @@ rules is Knowledge, correctly. Split a skill in two only when (a) a rule is org-
 - Measured wrong picks (CTO session 14cc900f, 2026-09-27): 2 of 7 skills loaded were read and not used —
   `ai-video-storyboard` (a generic TikTok-ad template matched on "storyboard") and `higgsfield-unlimited-gen`
   (wrong engine, already a redirect). Both would have been avoided by a name that says role, kind and engine.
+
+## Rename plan — approved by the CEO 2026-09-27 ("OK ตามนั้น"); procedure: `skill-author` §6
+
+Format `<ROLE>_<Kind>_<Topic>`. One commit and one report per phase; the next phase starts after the report.
+File counts = files that name the old skill literally (2026-09-27), the size of each sweep.
+
+**Phase 0 — retire the four redirect stubs of 2026-09-25** (`skill-author` §7): ai-film-production (21 files),
+google-flow-ops (79), higgsfield-unlimited-gen (106), thai-moral-drama (12). Sweep live references, then archive.
+
+**Phase 1 — film and content move to CMO (19; ~260 file mentions)**
+
+| Old | New |
+|---|---|
+| CTO_Film_Workflow | CMO_Workflow_ShortFilm |
+| CTO_Film_Production | CMO_Knowledge_Film_Production |
+| CTO_Film_PromptFormat | CMO_Standard_Film_PromptFormat |
+| CTO_Story_ThaiMoralDrama | CMO_Standard_Story_ThaiMoralDrama |
+| tig-scene-engine | CMO_Gate_Story_SceneEngine |
+| CTO_Seedance2.5_Higgsfield | CMO_Knowledge_Seedance2.5_Higgsfield |
+| CTO_Wan3.0_TopView | CMO_Knowledge_Wan3.0_TopView |
+| CTO_MiniMax_H3 | CMO_Knowledge_MiniMax_H3 |
+| CTO_Flow_Omni1.1_Ops | CMO_Knowledge_Flow_Omni1.1 |
+| CTO_Flow_Omni1.1_Continuity | CMO_Gate_Flow_Omni1.1_Continuity |
+| CTO_Flow_Omni1.1_FilmQC | CMO_Gate_Flow_Omni1.1_FilmQC |
+| CTO_ChatGPT-Image_LakornCover | CMO_Procedure_ChatGPTImage_LakornCover |
+| character-reference-sheet | CMO_Procedure_CharacterSheet |
+| blender-previz | CMO_Procedure_Blender_Previz |
+| real-footage-capture | CMO_Procedure_RealFootageCapture |
+| reel-editor-th | CMO_Procedure_ReelEditor_TH |
+| blackliquidity-script | CMO_Standard_BlackLiquidity_Script |
+| blackliquidity-cut | CMO_Procedure_BlackLiquidity_Cut |
+| VIDEO_EDITOR_jev-editor-helper | CMO_Procedure_BlackLiquidity_JevEditor |
+
+Also in Phase 1: the `audience:` of these skills gains `cmo` as the owning lane, and `CMO_Workflow_ShortFilm`'s
+owner line changes from CTO to CMO.
+
+**Phase 2 — rules and knowledge of the other lanes (11 renamed + 1 new + 1 split; ~150 file mentions)**
+
+| Old | New |
+|---|---|
+| (new) | ALL_Rules_Approvals — the CEO's 2026-09-27 ruling (money and secrets need the CEO; deploy is the CTO's call; cross-lane skill use without asking); the ~9 copies of the money gate become pointers |
+| gdrive-filing | split: CXO_Rules_GDrive_Filing (rules + YT: ILAG rules) · CXO_Knowledge_GDrive_FolderMap (tree + IDs, generated from Drive where possible) · CXO_Procedure_GDrive_BulkTransfer; `scripts/hook-gdrive-skill-gate.py` changes in the same commit |
+| hq-filing | ALL_Rules_HQ_Filing |
+| disk-hygiene | ALL_Rules_DiskHygiene |
+| winbox-pc-lease | ALL_Rules_Winbox_PCLease |
+| mooniex-finance | CFO_Rules_Finance |
+| cto-merge-checklist | CTO_Gate_MergeChecklist |
+| cookierun-labeling | CTO_Knowledge_CookieRun_Labeling |
+| jules-ops | CTO_Knowledge_Jules |
+| winbox-desktop-gui | CTO_Knowledge_Winbox_DesktopGUI |
+| jev-ops | ALL_Knowledge_Jev |
+| line-messaging | CXO_Knowledge_LINE_Messaging |
+
+**Phase 3 — protocols and role playbooks (8; ~180 file mentions)**
+
+| Old | New |
+|---|---|
+| browser-operator | BROWSER_OPERATOR_Protocol_Playbook |
+| mooniex-video-editor | VIDEO_EDITOR_Protocol_Playbook |
+| dev-spawn-protocol | CXO_Protocol_DevSpawn |
+| delegate-external-agent | CXO_Protocol_DelegateExternal |
+| skill-author | ALL_Protocol_SkillAuthor |
+| skill-curator | COO_Protocol_SkillCurator |
+| spawn-web-designer | CTO_Protocol_SpawnWebDesigner |
+| CXO_Run_Inbox | ALL_Protocol_RunInbox |
+
+**Phase 4 — commands the CEO types himself (11): kept short (CTO recommendation; confirm with the CEO first).**
+session-open, session-close, session-save, session-list, session-merge, session-restart, session-worktree,
+session-change-model, terminal-open, terminal-restart, relay-login get `kind:` in the frontmatter and the kind
+word in the description, and keep their names. If the CEO wants them renamed: CXO_Protocol_SessionOpen,
+CXO_Gate_SessionClose, CXO_Protocol_SessionSave, CXO_Protocol_SessionList, CXO_Protocol_SessionMerge,
+CXO_Protocol_SessionRestart, CXO_Protocol_SessionWorktree, CXO_Protocol_ChangeModel, CXO_Protocol_TerminalOpen,
+CXO_Protocol_TerminalRestart, CXO_Protocol_RelayLogin.
