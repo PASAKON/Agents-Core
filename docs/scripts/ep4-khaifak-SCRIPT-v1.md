@@ -393,7 +393,8 @@
 ### SHOT 45 · 5:52–6:00 · Medium, a chained steel gate in front of the shuttered rice mill · MILL · D3
 **ACTION** แสนเขย่าประตูเหล็กตะโกน **ขณะที่**แม่ยืนกอดกระเป๋าผ้าอยู่ข้างหลัง
 **อารมณ์** แสน 5/5 ร้อนรน ตะโกนสุดเสียง · แม่ 4/5 ใจหาย มองซ้ายขวา
-**บทพูด** แสน `"เจ๊หงส์ ผมเอาค่าไถ่มาครบแล้ว เปิดประตูหน่อยครับ เจ๊หงส์"` — frantic, shouting at the gate, rattling the chain
+**บทพูด** แสน `"เจ๊หงส์ ผมเอาค่าไถ่ถอนนามาครบแล้ว เปิดประตูหน่อยครับ เจ๊หงส์"` — frantic, shouting at the gate, rattling the chain
+<!-- 2026-09-27 เดิม: "เจ๊หงส์ ผมเอาค่าไถ่มาครบแล้ว… — Google Flow ปฏิเสธ 3 ครั้ง (นโยบายเนื้อหาอันตราย) ค่าไถ่ + ตะโกนหน้าประตูล็อก อ่านเป็นค่าไถ่ตัวประกัน แก้ให้ชัดว่าไถ่ถอนนา · task-c816fbc0 -->
 **บทพูด** แม่คำปุน `"บ่มีไผอยู่เลยลูก"` — anxious, looking left and right
 
 ### SHOT 46 · 6:00–6:08 · Two-shot, the son holding the phone to his ear · MILL · D3
@@ -484,7 +485,8 @@
 ### SHOT 61 · 8:00–8:08 · Medium, the woman in pink at her mill office desk reading an official letter, the paper blank to camera · MILL · D4 · การ์ด "สามมื้อต่อมา"
 **ACTION** เจ๊อ่านจดหมาย พูดเสียงดัง **ขณะที่**ขยำกระดาษในมือ หน้าแดงก่ำ
 **อารมณ์** เจ๊ 5/5 เดือดดาล ตาถลน เส้นเลือดขึ้นคอ
-**บทพูด** เจ๊หงส์ `"สำนักงานที่ดินแจ้งว่าแม่คำปุนวางค่าไถ่ไว้ตั้งแต่วันศุกร์ เป็นไปไม่ได้"` — outraged, face red, crushing the letter
+**บทพูด** เจ๊หงส์ `"สำนักงานที่ดินแจ้งว่าแม่คำปุนวางค่าไถ่ถอนนาไว้ตั้งแต่วันศุกร์ เป็นไปไม่ได้"` — outraged, face red, crushing the letter
+<!-- 2026-09-27 เดิม: "…วางค่าไถ่ไว้ตั้งแต่วันศุกร์… — Google Flow ปฏิเสธ 3 ครั้ง (นโยบายเนื้อหาอันตราย) แก้ให้ชัดว่าไถ่ถอนนา ไม่ใช่ค่าไถ่ตัวประกัน · task-c816fbc0 -->
 
 ### SHOT 62 · 8:08–8:16 · Close-up, the woman in pink shouting into her phone · MILL · D4
 **ACTION** เจ๊ตะโกนใส่โทรศัพท์แนบหู **ขณะที่**กระทืบเท้า พัดฟาดโต๊ะ
@@ -494,7 +496,8 @@
 ### SHOT 63 · 8:16–8:24 · Medium, the harvested paddy of stubble and straw stacks, the woman in pink storming in under her parasol · NA · D4
 **ACTION** เจ๊ชี้พัดใส่แสน พูดก่อน **ขณะที่**แสนวางฟ่อนฟางลง ยืดตัวตอบนิ่งๆ
 **อารมณ์** เจ๊ 5/5 เกรี้ยวกราด · แสน 3/5 นิ่ง มั่นใจ ไม่หลบตา
-**บทพูด** เจ๊หงส์ `"ใครสอนพวกเธอไปวางค่าไถ่ที่สำนักงานที่ดิน"` — furious, jabbing her fan
+**บทพูด** เจ๊หงส์ `"ใครสอนพวกเธอไปวางค่าไถ่ถอนนาที่สำนักงานที่ดิน"` — furious, jabbing her fan
+<!-- 2026-09-27 เดิม: "ใครสอนพวกเธอไปวางค่าไถ่ที่สำนักงานที่ดิน" — Google Flow ปฏิเสธ 3 ครั้ง (นโยบายเนื้อหาอันตราย) แก้ให้ชัดว่าไถ่ถอนนา · task-c816fbc0 -->
 **บทพูด** แสน `"คนที่เจ๊จ่ายค่าหัวคิวให้นั่นแหละครับเจ๊"` — calm, in Central Thai, looking her in the eye
 
 ### SHOT 64 · 8:24–8:32 · Medium, the neighbour woman stepping up beside the son with a bundle of straw · NA · D4

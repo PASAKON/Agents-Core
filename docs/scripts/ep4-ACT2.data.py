@@ -213,8 +213,8 @@ _META = {
       "the sticky-rice steamer puffs steam behind them", _N + ["nocash"]),
  45: (8, "Medium, the locked steel gate in front of the closed mill",
       ["sa_i", "kp2"], "mill_closed", T3,
-      "the young man in the indigo shirt, frantic, calling out loudly, grips the locked steel gate with both hands and presses his "
-      "face to the gap to peer inside while he speaks; the whole time he talks the woman in "
+      "the young man in the indigo shirt, desperate, calling out loudly, holds the locked steel gate with both hands and looks "
+      "through the bars toward the empty mill office while he speaks; the whole time he talks the woman in "
       "the indigo blouse behind him, anxious, hugs a plain cloth bag to her chest, cranes her "
       "neck left and right down the empty road and rises on tiptoe to look over the gate; the "
       "instant he finishes she tugs his sleeve and shakes her head while she answers; the "
@@ -327,7 +327,7 @@ DIRECTION = {
  (43, "bm"): "breathless and excited, shouting the news, waving his phone",
  (43, "kp2"): "overjoyed, voice shaking, clasped hands at her lips, bowing",
  (44, "sa_i"): "ecstatic, laughing and crying, voice shaking, counting on his fingers",
- (45, "sa_i"): "frantic, calling out as loud as he can, gripping the gate",
+ (45, "sa_i"): "desperate, calling out as loud as he can toward the empty mill",
  (45, "kp2"): "anxious, voice trembling, tugging his sleeve",
  (46, "sa_i"): "despairing and furious, voice cracking, raking his hair",
  (46, "kp2"): "horrified realisation, going pale, voice breaking",
