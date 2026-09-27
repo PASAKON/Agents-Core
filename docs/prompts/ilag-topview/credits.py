@@ -51,7 +51,11 @@ def blocks(a):
         ("role", "AI Agent", ["Claude Code"]),
         ("group",), *music,
         ("group",), ("head", "GENERATED ON"), ("list", ["TOPVIEW"]),
-        ("group",), ("head", "MODELS"), ("list", ["Wan 3.0", "MiniMax H3", "GPT Image (ChatGPT)", "Google Flow Music"]),
+        # TopView Terms: the video must be made with Wan3 on TopView and "Content generated with other models does not
+        # count" — so MODELS names what each tool made, and MiniMax H3 appears only as the previz it was.
+        ("group",), ("head", "MODELS"),
+        ("role", "Every shot", ["Wan 3.0"]), ("role", "Reference plates", ["GPT Image (ChatGPT)"]),
+        ("role", "Music", ["Google Flow Music"]),
         ("group",),
         ("role", "Previsualisation", ["MiniMax H3"]),
         ("role", "Editing", ["CapCut"]),
