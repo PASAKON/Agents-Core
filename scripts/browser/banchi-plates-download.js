@@ -1,6 +1,6 @@
 // Replay notes for downloading every plate in a Google Flow "ตัวละคร" tab
 // (or any renamed image asset), once, to disk — via CDN blob-fetch, never
-// via Flow's own download button (documented dead in CTO_Flow_Omni1.1_Ops).
+// via Flow's own download button (documented dead in CMO_Knowledge_Flow_Omni1.1).
 //
 // UPDATED 2026-09-23 (task-f78ca70e) — the 2026-09-18 version of this file
 // claimed the "automatic downloads blocked" trip needs a ONE-TIME HUMAN

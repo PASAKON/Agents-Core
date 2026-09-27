@@ -36,7 +36,7 @@ type.
 
 `prototypes/bl55-cut/edl/` is the worked example (EP55's approved cut,
 P1 only — P2-P4 don't exist for that episode yet).
-`.claude/skills/blackliquidity-cut/edl/example/` is a tiny made-up 2-shot
+`.claude/skills/CMO_Procedure_BlackLiquidity_Cut/edl/example/` is a tiny made-up 2-shot
 episode ("epXX") showing all four files and how a later layer points back
 at an earlier one **by id**.
 
@@ -220,7 +220,7 @@ JSON itself never hard-codes an absolute path.
 
 ## Worked examples
 
-- `.claude/skills/blackliquidity-cut/edl/example/` — tiny 2-shot made-up
+- `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/edl/example/` — tiny 2-shot made-up
   episode, all four layers, shows an id being referenced across P1→P2→P4.
 - `prototypes/bl55-cut/edl/p1_layout.json` — EP55's real, approved cut's P1
   layer, reverse-derived from `prototypes/bl55-cut/index.html` (task-42e3b6af).

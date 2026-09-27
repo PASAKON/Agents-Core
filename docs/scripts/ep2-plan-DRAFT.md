@@ -25,7 +25,7 @@ CEO 2026-09-25: "วางแผนทำ หนังเรื่องถั�
 - ไม่มีตำรวจ ไม่มีเครื่องแบบ ไม่มีกุญแจมือ ไม่มีแบงก์จริง (ใช้บล็อกเงินปลอมใน skill) และไม่มีคนป่วยนอนติดเตียง
 - ตัวเลขทุกตัวต้องพูดออกมา ไม่มีตัวเลขบนจอ ป้าย หรือหน้าปัด
 - วนตรวจทีละองก์: ส่ง 540p เข้าแชตให้ CEO ผ่านทีละองก์ แล้วค่อยล็อก
-- ใช้ `thai-moral-drama` Structure gate 8 ข้อ ต่อด้วย `CTO_Flow_Omni1.1_Continuity` แล้ว `CTO_Flow_Omni1.1_FilmQC`
+- ใช้ `thai-moral-drama` Structure gate 8 ข้อ ต่อด้วย `CMO_Gate_Flow_Omni1.1_Continuity` แล้ว `CMO_Gate_Flow_Omni1.1_FilmQC`
 - output อยู่ใน `~/MoonieXHQ/Work/<task-id>/` · เพลตขึ้น Drive `Element/` ทันทีที่ทำเสร็จ (banchi เคยทำเพลตหาย)
 
 ## 2. เรื่องให้เลือก 3 เรื่อง
@@ -71,7 +71,7 @@ CEO 2026-09-25: "วางแผนทำ หนังเรื่องถั�
 | 4 | เพลตตัวละคร/สถานที่ + ภาพนิ่งฟรีฉากละ 1 ภาพ → CEO ดู | 0 (ภาพนิ่ง Flow ฟรี) |
 | 5 | `continuity_sheet.py` → ยิงองก์ 1 → ตรวจเชิงกล + contact sheet → 540p ส่ง CEO | ~180–250 |
 | 6 | องก์ 2 และ 3 วนแบบเดียวกัน → ประกอบ 1080p ครั้งเดียว | ~500–750 |
-| 7 | ปก 3 แบบ (`CTO_ChatGPT-Image_LakornCover`) → CEO เลือก | 0 (ChatGPT Plus) |
+| 7 | ปก 3 แบบ (`CMO_Procedure_ChatGPTImage_LakornCover`) → CEO เลือก | 0 (ChatGPT Plus) |
 | 8 | โพสต์ Reel ผ่าน `fb_reel_post.py`: ใส่ caption, ปก และแฮชแท็ก ≤5 **ก่อน**กดเผยแพร่ แจ้ง AI ใน caption และห้ามแก้หลังโพสต์ | 0 |
 
 ขอ CEO อนุมัติงบเครดิตเป็นรอบๆ เหมือน banchi (เช่น รอบละ 300) ยอดเครดิต Flow ตอนนี้ยังไม่ได้เช็ก

@@ -6,7 +6,7 @@ flow_upload_element.py, flow_music.py, flow_reupscale.py via FlowBrowser).
 Order: the tool's own --cdp/--cdp-url flag, then $FLOW_CDP, then the winbox
 Chrome default (see DEFAULT_CDP below).
 
-CEO ruling 2026-09-26 (skill CTO_Flow_Omni1.1_Ops, section "Where Flow runs"):
+CEO ruling 2026-09-26 (skill CMO_Knowledge_Flow_Omni1.1, section "Where Flow runs"):
 "Generate คลิป Google Flow ทำบน Window ... ฉันจะใช้ MAC ตัดต่อ Video" — Flow runs
 on winbox's Chrome, never the Mac; the Mac is for editing. That rule lives HERE,
 in code, not only in the skill: enforce_platform() refuses on darwin unless the

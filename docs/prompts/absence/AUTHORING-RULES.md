@@ -1,5 +1,5 @@
 > **HISTORY since 2026-09-25 — edit the skills, not this file.** The working copy of these rules is
-> `.claude/skills/CTO_Film_PromptFormat/SKILL.md` (every engine) and `.claude/skills/CTO_Seedance2.5_Higgsfield/SKILL.md`
+> `.claude/skills/CMO_Standard_Film_PromptFormat/SKILL.md` (every engine) and `.claude/skills/CMO_Knowledge_Seedance2.5_Higgsfield/SKILL.md`
 > (Seedance-only: `@Video 1` once, previz ≥ output resolution, the open chip-per-mention question). This file stays as the original evidence.
 
 # AUTHORING-RULES.md — กฎการเขียน prompt ของ «Sorry, Sir»

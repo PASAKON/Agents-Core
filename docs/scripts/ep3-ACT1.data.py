@@ -92,7 +92,7 @@ WARDROBE = {
  "mint_h": "@mint__home", "mint_f": "@mint__flood",
 }
 
-# Timbre, pitch and age ONLY (CTO_Story_ThaiMoralDrama §Emotion rule 3): any mood in here
+# Timbre, pitch and age ONLY (CMO_Standard_Story_ThaiMoralDrama §Emotion rule 3): any mood in here
 # is pasted into every line and flattens the whole film.
 _V = "(prompt only, no bound voice)"
 _VK = (_V, "the nasal baritone voice of a Thai-Chinese man of fifty-five")

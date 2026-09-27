@@ -13,7 +13,7 @@ day, the English action with its emotion, props and negatives.
 Plates (ChatGPT, approved by the CEO 2026-09-25) are uploaded to the Flow project
 «ตาชั่งของเสี่ย» under exactly these names. Each character is attached as FACE plate
 (identity) + STATE plate labelled as the wardrobe reference. That is the pairing that
-held a face in the banchi A/B (CTO_Flow_Omni1.1_Continuity rule 4).
+held a face in the banchi A/B (CMO_Gate_Flow_Omni1.1_Continuity rule 4).
 """
 import re
 from pathlib import Path

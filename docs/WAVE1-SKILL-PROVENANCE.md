@@ -205,7 +205,7 @@ only needed `audience:` added.
 **Also incorrect in the brief: "5 have no `owner`" — the real count is 4.**
 Measured directly (`grep -m1 '^owner:'` across all 21): 15 skills have
 `owner: CTO`, 2 have `owner: CFO` (`gdrive-filing`, `mooniex-finance`), and 4
-have no `owner` field at all (`ai-film-production`, `blender-previz`,
+have no `owner` field at all (`ai-film-production`, `CMO_Procedure_Blender_Previz`,
 `browser-operator`, `higgsfield-unlimited-gen`). 15 + 2 + 4 = 21.
 
 **One pre-existing YAML bug fixed as a side effect:**
@@ -231,7 +231,7 @@ mis-stamped nearly every skill in the repo).
 | Skill | `audience` | Reason |
 |---|---|---|
 | `ai-film-production` | `cxo` | Description: "whenever a C-level is directing" a film — generic, not restricted to one C-level |
-| `blender-previz` | `all` *(needs human decision — see below)* | No `owner:` field, no role named anywhere in the body; only "the CEO approves," which is approval, not driving |
+| `CMO_Procedure_Blender_Previz` | `all` *(needs human decision — see below)* | No `owner:` field, no role named anywhere in the body; only "the CEO approves," which is approval, not driving |
 | `browser-operator` | `browser_operator` | Description names "the org's `browser_operator` role" verbatim |
 | `cto-merge-checklist` | `cto` | `owner: CTO`; body titled "# CTO Merge Checklist"; gates `merge_task`, which CTO runs in this repo |
 | `dev-spawn-protocol` | `cto` | Description: "Required steps when CTO spawns a DEV agent" |
@@ -254,7 +254,7 @@ mis-stamped nearly every skill in the repo).
 
 ### Audience needs a human decision
 
-- **`blender-previz`** — genuinely unclear. Unlike every other skill in this
+- **`CMO_Procedure_Blender_Previz`** — genuinely unclear. Unlike every other skill in this
   repo, it has no `owner:` field *and* no role is named anywhere in its body
   — only "the CEO approves every generation," which is an approval gate, not
   a statement of who drives the Blender/SSH tooling itself. Set to `all` as

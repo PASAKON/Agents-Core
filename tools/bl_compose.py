@@ -35,7 +35,7 @@ So this tool:
      tools/bl_merge.py to concat with every other range's own output.
 
 --generator-dir must hold: build_cut.py, assemble.py, index.html (the
-FIXED template -- .claude/skills/blackliquidity-cut/template/index.html,
+FIXED template -- .claude/skills/CMO_Procedure_BlackLiquidity_Cut/template/index.html,
 task-1678d38e's one `caption(at, out, text)` generator, no per-mode
 `addCap` branch -- NOT a branch copy that has already been spliced),
 hyperframes.json, package.json, assets/, and media/ (the stills/avatar

@@ -118,7 +118,7 @@ def cover_terminal(face_path, out):
 # one clip's edits silently became the next clip's stale default). build.sh
 # already `cp -f`'s this file into your own per-clip workdir before running --
 # edit the WORKDIR COPY (e.g. ~/Desktop/ig/<clip>/render_cover.py), never this
-# path (~/.claude/skills/reel-editor-th/scripts/render_cover.py).
+# path (~/.claude/skills/CMO_Procedure_ReelEditor_TH/scripts/render_cover.py).
 def cover_clean(face_path, out):
     img=load_face(face_path,0.62)
     grad(img,150,235)

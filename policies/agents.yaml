@@ -134,7 +134,7 @@ roles:
     display: Video Editor
     level: w
     # Owned by CMO (content production execution) -- CTO keeps maintaining
-    # the underlying reel-editor-th tool itself (decided 2026-08-03).
+    # the underlying CMO_Procedure_ReelEditor_TH tool itself (decided 2026-08-03).
     model: "claude-sonnet-5"
     effort: "high"
     can_write_wiki: false

@@ -2,7 +2,7 @@
 """bl_compose.py — layers -> index.html, deterministically (task-42e3b6af).
 
 CEO ruling 2026-09-23: no single AI writes the whole cut's HTML any more.
-Different workers fill P1-P4 (.claude/skills/blackliquidity-cut/edl/SCHEMA.md);
+Different workers fill P1-P4 (.claude/skills/CMO_Procedure_BlackLiquidity_Cut/edl/SCHEMA.md);
 this script is the one place that turns them into `index.html`, built on
 `template/index.html`.
 

@@ -228,7 +228,7 @@ def _load_skill_options(skills_dir: Path) -> list[dict]:
 # re-typing trigger phrases by hand, which would drift from the skill.
 # The clause ends at a sentence stop (a period followed by whitespace or the
 # end), not at the first period: engine-named skills carry a version in the
-# name ("/CTO_Flow_Omni1.1_Ops", "Seedance 2.5"), and stopping at that dot
+# name ("/CMO_Knowledge_Flow_Omni1.1", "Seedance 2.5"), and stopping at that dot
 # left them routable on "/CTO_Flow_Omni1" only (found 2026-09-25 by both
 # skill-split workers).
 _TRIGGER_RE = re.compile(r"trigger on (.*?)\.(?:\s|$)", re.IGNORECASE)

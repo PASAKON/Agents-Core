@@ -70,7 +70,7 @@ sys.path.insert(0, str(ROOT))
 
 SSH_ALIAS = "mooniex-vps"
 CONTABO_FIXTURE_DIR = "/opt/MoonieXHQ/Work/bl-ab-ep57"
-SKILL_TEMPLATE = ROOT / ".claude" / "skills" / "blackliquidity-cut" / "template"
+SKILL_TEMPLATE = ROOT / ".claude" / "skills" / "CMO_Procedure_BlackLiquidity_Cut" / "template"
 GENERATOR_BRANCH = "origin/agent/video_editor-task-501f1d89"
 GENERATOR_BRANCH_PATH = "prototypes/bl57-cut"
 SCRIPT_TSV = ROOT / "prototypes" / "bl57-script" / "SCRIPT.tsv"

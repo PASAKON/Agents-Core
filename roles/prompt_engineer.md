@@ -76,9 +76,9 @@ Missing sections = automatic review failure.
 ## Scene structure gate — IRON-RULES §51 (CEO 2026-09-17)
 
 Before you write, audit, or order **any scene for a film, a branded short, or a
-narrative video**, run the `tig-scene-engine` skill. It is mandatory, not
+narrative video**, run the `CMO_Gate_Story_SceneEngine` skill. It is mandatory, not
 optional, and it runs **before** the prompt layer — the order is story →
-`tig-scene-engine` (structure) → `character-reference-sheet` →
+`CMO_Gate_Story_SceneEngine` (structure) → `CMO_Procedure_CharacterSheet` →
 `seedance-scene-prompt` (shot) → generation.
 
 For every scene you must be able to name: the Goal as a causal link to the story

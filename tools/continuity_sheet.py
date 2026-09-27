@@ -11,7 +11,7 @@ cost a re-shoot that a table would have caught for free. It reads the same
 place or the time changes, then flags what the film taught us to fear.
 
 Which flags are Flow-specific is said in the skill that owns this tool
-(`CTO_Flow_Omni1.1_Continuity`). Measured on Google Flow · Omni 1.1 Flash
+(`CMO_Gate_Flow_Omni1.1_Continuity`). Measured on Google Flow · Omni 1.1 Flash
 (องค์ประกอบ mode, 720p 9:16); on another generator they are hypotheses.
 
 Flags (each names the shot):
@@ -22,7 +22,7 @@ Flags (each names the shot):
                       grandmother's nasal cannula every time he sat or lay on her bed.
   FLOW-DELETES        handcuffs anywhere; a uniformed character next to police lights;
                       the word "police" with a uniform — Flow deleted all of these
-                      silently (11-arm A/B, CTO_Flow_Omni1.1_Ops).
+                      silently (11-arm A/B, CMO_Knowledge_Flow_Omni1.1).
   FAST-LINE           > 10 Thai characters a second — shot 43 (10.5/s) burned a caption
                       three times at 6 s and was clean at 8 s.
   INAUDIBLE-SPEECH    "to himself", "under his breath", "whispered", "barely audible" —

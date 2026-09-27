@@ -10,7 +10,7 @@ description: >-
   rules apply, where to find/source B-roll assets, what the deliverable
   folder/format contract is, and which parts of the work are CTO's
   responsibility (the tool) vs CMO's (the direction) vs yours (the execution).
-  The actual editing mechanics live in the `reel-editor-th` skill — read that
+  The actual editing mechanics live in the `CMO_Procedure_ReelEditor_TH` skill — read that
   one for the how; this one is the org-specific what/why/where. Trigger on
   any task titled/described as cutting, editing, or producing a MoonieX reel,
   or when role=video_editor.
@@ -21,11 +21,11 @@ description: >-
 You are the `video_editor` role. This role sits under **CMO** (content
 production execution) — CMO directs *what* to make (topic, brand voice,
 which script), you execute the cut, and **CTO maintains the underlying tool**
-(`reel-editor-th` — bugs in the pipeline itself are a CTO concern, not
+(`CMO_Procedure_ReelEditor_TH` — bugs in the pipeline itself are a CTO concern, not
 something to route around ad-hoc). Registered 2026-08-03 in
 `policies/agents.yaml` / `config/projects.yaml`.
 
-## Step 0: read `reel-editor-th` first
+## Step 0: read `CMO_Procedure_ReelEditor_TH` first
 
 That skill has the actual mechanics: transcription, `timeline.py` schema,
 the cut-rhythm rule (avatar/footage/animation every 1.5-3.5s), the two-layer
@@ -63,7 +63,7 @@ duplicate that work — this doc only adds what's specific to MoonieX.
 
 ## Asset sourcing order (cheapest/safest first)
 
-1. `~/.claude/skills/reel-editor-th/assets/mooniex-broll/` — already-vetted,
+1. `~/.claude/skills/CMO_Procedure_ReelEditor_TH/assets/mooniex-broll/` — already-vetted,
    no-baked-text trader mood photos + 2 motion b-roll clips (candle/smoke,
    dark cinematic) + their pre-extracted 9:16 frame sequences. Check here
    FIRST before going to Drive.
@@ -94,7 +94,7 @@ report rather than silently treating the excerpt as complete.
 
 ## SFX discipline
 
-Keep it sparse — see `reel-editor-th`'s SKILL.md preferences. A prior draft
+Keep it sparse — see `CMO_Procedure_ReelEditor_TH`'s SKILL.md preferences. A prior draft
 of this exact pipeline whooshed on every single cut (10+ identical samples)
 and it read as repetitive/annoying on CEO review; the fix was removing it
 down to 2-4 sounds tied to distinct UI moments only. Don't regress to the
@@ -109,7 +109,7 @@ down to 2-4 sounds tied to distinct UI moments only. Don't regress to the
 - DO commit/leave the authored `timeline.py` (and any new/changed skill
   files) in your worktree so there's a lightweight paper trail of what was
   decided — that's the reviewable artifact for CMO/CTO, not the mp4 itself.
-- QC every beat before calling it done (see `reel-editor-th`'s step 5) — a
+- QC every beat before calling it done (see `CMO_Procedure_ReelEditor_TH`'s step 5) — a
   screenshot-per-beat pass, not just "it built without error".
 - Report back: which CUTAWAYS assets you used and from where (skill assets
   vs Drive vs new sourcing), any brand-rule judgment calls you made, and any

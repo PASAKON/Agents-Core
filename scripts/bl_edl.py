@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """bl_edl.py — shared pure functions for the BLACK LIQUIDITY layered EDL.
 
-Schema: .claude/skills/blackliquidity-cut/edl/SCHEMA.md
+Schema: .claude/skills/CMO_Procedure_BlackLiquidity_Cut/edl/SCHEMA.md
 Used by both scripts/bl_compose.py (layers -> index.html, P1 only) and
 scripts/bl_check.py (the P1 gate). Kept in one place so the two tools can
 never disagree about what a valid P1 event looks like.
@@ -28,7 +28,7 @@ DARKEN_LEGAL_ROLES = {"scene", "broll"}
 AVATAR_MODES = {"full", "composite", "none"}
 PLATE_KINDS = {"video", "image"}
 
-SKILL_DIR = Path(__file__).resolve().parents[1] / ".claude/skills/blackliquidity-cut"
+SKILL_DIR = Path(__file__).resolve().parents[1] / ".claude/skills/CMO_Procedure_BlackLiquidity_Cut"
 DEFAULT_TEMPLATE = SKILL_DIR / "template" / "index.html"
 DEFAULT_REGISTRY = SKILL_DIR / "edl" / "event_types.json"
 

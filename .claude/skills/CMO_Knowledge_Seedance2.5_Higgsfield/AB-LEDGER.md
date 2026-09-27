@@ -1,6 +1,6 @@
 # A/B LEDGER — «Sorry, Sir» prompt fixes on Seedance, failing prose vs passing prose
 
-Kept per `CTO_Film_Production` §11 (who writes an entry and what it quotes).
+Kept per `CMO_Knowledge_Film_Production` §11 (who writes an entry and what it quotes).
 Moved here from `ai-film-production/` on 2026-09-25: the ledger belongs to the
 engine. Quotes are from git; the clip verdicts are the CTO's own frame reviews.
 PENDING entries (end of file) carry their Prompt A now and get their Prompt B on
@@ -17,13 +17,13 @@ Entry shape:
     LESSON:     one line, general enough to reuse; cite the § it belongs to
 
 **Old § numbers.** Entries written before 2026-09-25 cite the old
-`ai-film-production/SKILL.md`. Where each now lives: §7 → `CTO_Film_Production`
-§6 · §7a → `CTO_Film_Production` §3 · §7b → `CTO_Film_PromptFormat` rule 5 +
-SKILL.md "Size and gaze" · §8 → `CTO_Film_Production` §10 · §9 →
-`CTO_Film_Production` §8 + SKILL.md "The review loop" · §10 → SKILL.md "A
-rejection: find the trigger" · §11 → `CTO_Film_Production` §7 · §11b →
-`CTO_Film_Production` §8 + SKILL.md "Measuring motion" · §12 → this header +
-`CTO_Film_Production` §11 · §13 → `CTO_Film_Production` §2 · §14 / "rule 14" →
+`ai-film-production/SKILL.md`. Where each now lives: §7 → `CMO_Knowledge_Film_Production`
+§6 · §7a → `CMO_Knowledge_Film_Production` §3 · §7b → `CMO_Standard_Film_PromptFormat` rule 5 +
+SKILL.md "Size and gaze" · §8 → `CMO_Knowledge_Film_Production` §10 · §9 →
+`CMO_Knowledge_Film_Production` §8 + SKILL.md "The review loop" · §10 → SKILL.md "A
+rejection: find the trigger" · §11 → `CMO_Knowledge_Film_Production` §7 · §11b →
+`CMO_Knowledge_Film_Production` §8 + SKILL.md "Measuring motion" · §12 → this header +
+`CMO_Knowledge_Film_Production` §11 · §13 → `CMO_Knowledge_Film_Production` §2 · §14 / "rule 14" →
 SKILL.md "Model tiers".
 
 ---

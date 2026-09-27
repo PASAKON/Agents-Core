@@ -37,19 +37,19 @@ rules:
     option: moderated
   - pattern: 'อาจละเมิดนโยบาย'
     option: moderated
-  # English moderation strings — CTO_Flow_Omni1.1_Ops SKILL.md § "A policy refusal
-  # comes from the DIALOGUE" + CTO_Seedance2.5_Higgsfield SKILL.md's Face/IP
+  # English moderation strings — CMO_Knowledge_Flow_Omni1.1 SKILL.md § "A policy refusal
+  # comes from the DIALOGUE" + CMO_Knowledge_Seedance2.5_Higgsfield SKILL.md's Face/IP
   # scanner section ("the same automated Face/IP scanner that terminally
   # killed three healthy plates") + its NSFW stop-and-ask condition (§ "Rule
   # checklist", "any number on the Generate button, an NSFW ...").
   - pattern: 'content polic|violates? .*polic|flagged|face/ip scanner|resemblance|nsfw'
     option: moderated
-  # CTO_Seedance2.5_Higgsfield SKILL.md § HARD rule 3: "Rights verification
+  # CMO_Knowledge_Seedance2.5_Higgsfield SKILL.md § HARD rule 3: "Rights verification
   # required" banner, click-Confirm-Rights flow — "confirm rights" is the
   # button label extract_state() surfaces alongside the banner text.
   - pattern: 'rights verification required|confirm rights'
     option: moderated
-  # Sign-out — CTO_Flow_Omni1.1_Ops SKILL.md § "Mid-session Google sign-out":
+  # Sign-out — CMO_Knowledge_Flow_Omni1.1 SKILL.md § "Mid-session Google sign-out":
   # redirects to /about, or a bare "Sign in" control; accounts.google.com
   # ServiceLogin confirms it. Higgsfield's own signed-out indicator
   # (scripts/higgsfield/gen_loop.py's `.hfnav-auth-login` check, already
@@ -59,13 +59,13 @@ rules:
     option: signed_out
   # Rate limiting — HTTP 429 / slot-busy wording (memory:
   # reference_rate_limited_false_positive_from_higgsfield_429.md), plus
-  # Higgsfield's own concurrency toast (CTO_Seedance2.5_Higgsfield SKILL.md
+  # Higgsfield's own concurrency toast (CMO_Knowledge_Seedance2.5_Higgsfield SKILL.md
   # § HARD rule 4, "1 unlimited generation at a time") — not a real block,
   # same as a 429: wait, don't re-fire.
   - pattern: '\b429\b|too many requests|rate limit|slot.?busy|1 unlimited generation at a time'
     option: rate_limited
   # Idle/ready-to-submit — Higgsfield's own button-state table
-  # (CTO_Seedance2.5_Higgsfield SKILL.md § HARD rule 2, "the button's price
+  # (CMO_Knowledge_Seedance2.5_Higgsfield SKILL.md § HARD rule 2, "the button's price
   # is the money check"): bare "Generate" or "Unlimited ... 0" (struck
   # price) both mean nothing is in flight and Unlimited is correctly
   # applied. Only matches extract_state()'s own `button="..." disabled=...`

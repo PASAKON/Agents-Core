@@ -4,7 +4,7 @@
 
 For each shot key (o01, m04, n13, ...) writes <out>/<key>.wan3.json:
     {key, title, seconds, images: [Drive paths under Element/, in upload order], prompt, chars}
-CTO_Wan3.0_TopView §5 is the checklist this follows: uploads in first-mention order, each @Handle replaced by
+CMO_Knowledge_Wan3.0_TopView §5 is the checklist this follows: uploads in first-mention order, each @Handle replaced by
 its position with the fixed name kept, the H3 studio markers replaced by a plain sound line, the house-negatives
 wall dropped, and the reference descriptions shortened first if the prompt runs over 3,500 characters.
 Which reference token the live Direction box accepts is not measured yet: --token picks "@Image 1" (at, the
@@ -745,7 +745,7 @@ def main():
         if a.seconds:
             keep = [b for b in sc["beats"] if float(re.match(r"\[([\d.]+)s\]", b).group(1)) < a.seconds]
             sc = dict(sc, s=int(a.seconds) if a.seconds == int(a.seconds) else a.seconds, beats=keep)
-        # CTO_Wan3.0_TopView §5 step 3, in order: short references, the dialogue negatives and the grade tail, the mount
+        # CMO_Knowledge_Wan3.0_TopView §5 step 3, in order: short references, the dialogue negatives and the grade tail, the mount
         # description, the particles, then each action line to its first clause;
         # never the beats, the actions, the dialogue or the camera line.
         for level in range(8):

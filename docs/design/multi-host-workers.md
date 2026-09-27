@@ -119,7 +119,7 @@ winbox's Chrome, and lands on GitHub as a branch. Mac Chrome untouched.
 
 Acceptance: (1) the teaser task reports through GitHub, not through the Mac's
 MCP; (2) `ps` on the Mac shows zero new `claude` processes during the run;
-(3) the `CTO_Flow_Omni1.1_Ops` skill gains a Windows timing row.
+(3) the `CMO_Knowledge_Flow_Omni1.1` skill gains a Windows timing row.
 
 ### Phase 2 — the Contabo spoke for coding / API / 24×7
 `scripts/spawn-worker.sh` (bash + tmux — the same shape as today's tmux

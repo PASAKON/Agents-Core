@@ -937,7 +937,7 @@ WET = "Their skin, the seat and the back of THE MOUNT are wet and glistening wit
 # Cut 3 (2026-09-25): the @Manta picture has its lamps lit, and the picture beat "dead and dark" in N6-N11. A dark
 # picture (round 12) failed to generate twice, so after the crossing THE MOUNT is described in words, with no picture.
 # Cut 4: naming the dead lamps still drew a lit lantern on the seat in N8/N9, so the words name no lamp at all now
-# (CTO_Film_PromptFormat rule 6: never describe what must not be seen).
+# (CMO_Standard_Film_PromptFormat rule 6: never describe what must not be seen).
 MOUNT_DARK = ("THE MOUNT, described here because no picture of it is attached after the crossing: a manta-like sea "
               "creature about 4 m across the wings, a sea-green mottled back, a long thin whip tail, a hand-built seat of "
               "weathered driftwood lashed with kelp rope, pale bone ribs for a backrest, seashells tied along it; nothing "

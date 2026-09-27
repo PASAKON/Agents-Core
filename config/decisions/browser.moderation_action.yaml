@@ -20,7 +20,7 @@ options:
 max_state_chars: 1000
 provider_policy: rules-then-llm
 rules:
-  # CTO_Seedance2.5_Higgsfield SKILL.md: "the same automated Face/IP scanner
+  # CMO_Knowledge_Seedance2.5_Higgsfield SKILL.md: "the same automated Face/IP scanner
   # that terminally killed three healthy plates in one day" — fires on
   # resemblance, not real infringement; escalate, never auto-retry.
   - pattern: 'face/ip scanner|resemblance|rights verification required|confirm rights'
@@ -29,7 +29,7 @@ rules:
   # chip/reference, not the spoken line.
   - pattern: 'copyright|intellectual property|trademark'
     option: rewrite_chips
-  # Flow's own measured finding, CTO_Flow_Omni1.1_Ops SKILL.md § "A policy
+  # Flow's own measured finding, CMO_Knowledge_Flow_Omni1.1 SKILL.md § "A policy
   # refusal comes from the DIALOGUE, not from your reference chips":
   # Thai refusal text from tools/flow_shoot.py:149 is_refusal_text, plus the
   # generic English policy-violation wording — default action is to rewrite

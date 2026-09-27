@@ -202,7 +202,7 @@
  * suspiciously "free" for something fired only minutes ago, open a FRESH
  * tab, navigate to the same project URL, and re-check there — this
  * project's documented "long-lived tab lies about the concurrency slot"
- * issue (see CTO_Seedance2.5_Higgsfield skill) cuts both ways: it can also
+ * issue (see CMO_Knowledge_Seedance2.5_Higgsfield skill) cuts both ways: it can also
  * make a genuinely-still-rendering card look prematurely finished on a
  * tab that has been open a while.
  */

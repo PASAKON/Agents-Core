@@ -1485,9 +1485,9 @@ middle eleven minutes:
 
 ---
 
-## 8. tig-scene-engine re-audit (proof, per IRON-RULES §51)
+## 8. CMO_Gate_Story_SceneEngine re-audit (proof, per IRON-RULES §51)
 
-Full chain check ran per `.claude/skills/tig-scene-engine/SKILL.md` AUDIT
+Full chain check ran per `.claude/skills/CMO_Gate_Story_SceneEngine/SKILL.md` AUDIT
 mode against the expanded script. Only new or materially changed sequences
 are re-audited below; every sequence not listed here is unchanged from the
 structure audit at `research/ngoen-tee-por-EP1-structure-audit.md` and its

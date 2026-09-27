@@ -477,7 +477,7 @@ def cmd_matte(a):
     Needs torch (+ MPS). bl_tools.py's other commands stay numpy+Pillow-only
     on purpose; this one command is the exception. Run it with a Python that
     has torch, e.g. the venv this task built:
-      /Users/gob/.claude/skills/reel-editor-th/.venv/bin/python3 bl_tools.py matte ...
+      /Users/gob/.claude/skills/CMO_Procedure_ReelEditor_TH/.venv/bin/python3 bl_tools.py matte ...
     Compared 2026-09-23 against rembg(u2net) and attempted mediapipe on the
     EP55 real lipsync files: RVM mobilenetv3 on MPS won on both edge quality
     (rembg leaked alpha over ~15-17% of the frame on the red-lit set vs RVM's
@@ -487,7 +487,7 @@ def cmd_matte(a):
         import torch
     except ImportError:
         print("no torch in this interpreter. Run with a venv that has it, e.g.:")
-        print("  /Users/gob/.claude/skills/reel-editor-th/.venv/bin/python3 " + sys.argv[0] + " matte ...")
+        print("  /Users/gob/.claude/skills/CMO_Procedure_ReelEditor_TH/.venv/bin/python3 " + sys.argv[0] + " matte ...")
         return 1
     import numpy as np
 

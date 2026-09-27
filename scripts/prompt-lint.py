@@ -438,7 +438,7 @@ def lint_file(path: Path, shot: str | None = None) -> list[Finding]:
                         + " and ".join(missing)
                         + ". A prompt that gives the model two reasons to draw the same "
                           "person renders a twin, and the take is unusable. See "
-                          "CTO_Seedance2.5_Higgsfield SKILL.md, IRON RULE OF PROMPT WRITING.")
+                          "CMO_Knowledge_Seedance2.5_Higgsfield SKILL.md, IRON RULE OF PROMPT WRITING.")
             )
 
     return findings

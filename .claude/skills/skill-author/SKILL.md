@@ -194,7 +194,7 @@ Verified <date> at <source URL or task-id that measured it>.
 ## Step <n> · <name> — Do · Owner skill · Tool · Output · Gate
 ## STATUS.md template
 ```
-The model: `CTO_Film_Workflow` (to become `CMO_Workflow_ShortFilm`).
+The model: `CMO_Workflow_ShortFilm`.
 
 **Procedure**
 ```

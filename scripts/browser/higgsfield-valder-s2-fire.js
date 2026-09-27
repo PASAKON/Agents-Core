@@ -88,7 +88,7 @@
  * if this recurs: (a) have the prompt author use plain @name mentions
  * instead of @[name](uuid) for any tag that fails this check, or (b) fall
  * back to the Elements-panel right-click -> Use method for just the
- * failing tags (documented in CTO_Seedance2.5_Higgsfield skill's "Creating
+ * failing tags (documented in CMO_Knowledge_Seedance2.5_Higgsfield skill's "Creating
  * an Element" / "@ dropdown is folder-scoped" sections) -- NEITHER was
  * attempted this run since the task required using the given prompt file
  * unchanged.
@@ -339,7 +339,7 @@
  *
  * Per this project's hard rule ("If the Unlimited toggle will not flip:
  * ONE clean ref-based click, then STOP and report" -- task brief, and the
- * `CTO_Seedance2.5_Higgsfield` skill's stronger "one ref-based click
+ * `CMO_Knowledge_Seedance2.5_Higgsfield` skill's stronger "one ref-based click
  * attempt... if it doesn't flip, stop entirely, do not try a second
  * technique, do not try raw coordinates, do not try keyboard input near
  * the composer"), NO further click techniques were attempted after the

@@ -2,7 +2,7 @@
  * Higgsfield project History — survey a date range + download clips.
  * Built during task-cf982bd0 («Sorry, Sir» Drive reconciliation, 31 Aug/1 Sep).
  *
- * This is NOT a fire-and-forget script (per CTO_Seedance2.5_Higgsfield skill,
+ * This is NOT a fire-and-forget script (per CMO_Knowledge_Seedance2.5_Higgsfield skill,
  * Generate/Recreate/Unlimited-toggle stay under live model confirmation on
  * purpose). It documents the manual technique, all measured this session, so
  * the next operator doesn't re-derive it from scratch.

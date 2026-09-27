@@ -7,7 +7,7 @@ docs/scripts/taachang-ACT1.data.py, and adds only the states and places ACT2 nee
 เสี่ย's factory clothes, กล้า's work clothes, the factory scale-man and worker, the
 half-empty yard, the factory weigh yard. Dialogue is read from SCRIPT-v2 at import.
 
-Lessons from ACT1 already applied (CTO_Flow_Omni1.1_Continuity notes 2026-09-25):
+Lessons from ACT1 already applied (CMO_Gate_Flow_Omni1.1_Continuity notes 2026-09-25):
 - the 11-year-old and money are never in one prompt with positive money words (S30:
   the day's pay stays in a closed cloth pouch, the `nomoney` block);
 - nobody whispers or murmurs (burned captions); every scale shot carries the

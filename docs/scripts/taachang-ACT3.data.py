@@ -7,7 +7,7 @@ Loads ACT2 (which loads ACT1) for every shared block and adds the ACT3 states: �
 school clothes described WITHOUT the word "school" (see below). Dialogue is read from
 SCRIPT-v2 at import; the narrator's closing line (S75) is added in the edit, never by Flow.
 
-Applied before the first shot (CTO_Flow_Omni1.1_Continuity §What Flow silently deletes,
+Applied before the first shot (CMO_Gate_Flow_Omni1.1_Continuity §What Flow silently deletes,
 promoted 2026-09-26): a child and money never share a prompt — not in the picture, not in
 the words. S59's sum moved to กล้า (16), S62/S63 are solo shots with a sealed envelope,
 S73 is a collar, not school fees.

@@ -19,7 +19,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 LIB_PATH = (
-    ROOT / ".claude" / "skills" / "VIDEO_EDITOR_jev-editor-helper" / "scripts" / "jev_edit_lib.py"
+    ROOT / ".claude" / "skills" / "CMO_Procedure_BlackLiquidity_JevEditor" / "scripts" / "jev_edit_lib.py"
 )
 spec = importlib.util.spec_from_file_location("jev_edit_lib", LIB_PATH)
 lib = importlib.util.module_from_spec(spec)
@@ -316,10 +316,10 @@ def test_load_brand_map_reads_yaml_and_skips_comments(tmp_path):
 
 def test_load_brand_map_reads_the_real_shipped_file():
     real_path = (
-        ROOT / ".claude" / "skills" / "blackliquidity-cut" / "brand-display.yaml"
+        ROOT / ".claude" / "skills" / "CMO_Procedure_BlackLiquidity_Cut" / "brand-display.yaml"
     )
     if not real_path.exists():
-        pytest.skip("blackliquidity-cut brand-display.yaml not in this sparse checkout")
+        pytest.skip("CMO_Procedure_BlackLiquidity_Cut brand-display.yaml not in this sparse checkout")
     brand_map = lib.load_brand_map(real_path)
     assert brand_map.get("เอ็กซ์เอ็ม") == "XM"
 

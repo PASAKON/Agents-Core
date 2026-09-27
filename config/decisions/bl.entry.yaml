@@ -1,6 +1,6 @@
 # Decision site: how does the avatar/plate transition INTO this line?
 # (task-5cfe20b1). Measured motion grammar:
-# .claude/skills/blackliquidity-cut/SKILL.md §6d avatar-shrink table (3 of 4
+# .claude/skills/CMO_Procedure_BlackLiquidity_Cut/SKILL.md §6d avatar-shrink table (3 of 4
 # entries into composite are 21-27-frame sine.out shrinks; exits from
 # composite and section-change entries are hard cuts with 0 in-between
 # frames). State is jev_edit.py's own bl.beat answer for this line and the

@@ -143,19 +143,19 @@ if [ -d "$SRC/launchd" ]; then
   done
 fi
 
-echo "— reel-editor-th (venv from requirements.txt; assets are NOT in git)"
+echo "— CMO_Procedure_ReelEditor_TH (venv from requirements.txt; assets are NOT in git)"
 # Keyed off the repo that OWNS claude-home (SRC/..), not this script's repo: a tmp fixture
 # SRC then skips the section, and a worktree checks its own skill dir (assets are gitignored,
 # so a worktree legitimately reports them MISSING — install from the main checkout).
-RE="$(cd "$(dirname "$SRC")" && pwd)/.claude/skills/reel-editor-th"
+RE="$(cd "$(dirname "$SRC")" && pwd)/.claude/skills/CMO_Procedure_ReelEditor_TH"
 if [ -d "$RE" ]; then
-  if [ -x "$RE/.venv/bin/python" ]; then ok "venv     reel-editor-th/.venv"
+  if [ -x "$RE/.venv/bin/python" ]; then ok "venv     CMO_Procedure_ReelEditor_TH/.venv"
   elif [ -f "$RE/requirements.txt" ]; then
-    if [ "$MODE" = check ]; then bad "MISSING  reel-editor-th/.venv (install builds it from requirements.txt)"
-    else py="$(command -v python3.12 || command -v python3)"; "$py" -m venv "$RE/.venv" && "$RE/.venv/bin/pip" -q install -r "$RE/requirements.txt" && ok "built    reel-editor-th/.venv ($py)" || bad "FAILED   venv build"; fi
+    if [ "$MODE" = check ]; then bad "MISSING  CMO_Procedure_ReelEditor_TH/.venv (install builds it from requirements.txt)"
+    else py="$(command -v python3.12 || command -v python3)"; "$py" -m venv "$RE/.venv" && "$RE/.venv/bin/pip" -q install -r "$RE/requirements.txt" && ok "built    CMO_Procedure_ReelEditor_TH/.venv ($py)" || bad "FAILED   venv build"; fi
   fi
-  if [ -d "$RE/assets/mooniex-broll" ]; then ok "assets   reel-editor-th/assets/mooniex-broll"
-  else bad "MISSING  reel-editor-th/assets/mooniex-broll (210 MB, not in git — restore from Drive per gdrive-filing / Assets/)"; fi
+  if [ -d "$RE/assets/mooniex-broll" ]; then ok "assets   CMO_Procedure_ReelEditor_TH/assets/mooniex-broll"
+  else bad "MISSING  CMO_Procedure_ReelEditor_TH/assets/mooniex-broll (210 MB, not in git — restore from Drive per gdrive-filing / Assets/)"; fi
 fi
 
 echo

@@ -42,12 +42,12 @@ TOP_ENTRIES = ["CLAUDE.md", "settings.json", "hooks", "commands", "mcp/mooniex-c
 TOOLS_SKIP = {"output-untracked-2026-09-05.lst", "worktree-audit-2026-09-05.txt", "winbox.pub"}
 HOOKS_SKIP_SUFFIX = (".bak", ".bak.20260517")
 REAL_SKILLS = [
-    "character-reference-sheet", "content-idea-generator", "cookierun-labeling", "de-ai-ify",
+    "CMO_Procedure_CharacterSheet", "content-idea-generator", "cookierun-labeling", "de-ai-ify",
     "homepage-audit", "marketing-principles", "mooniex-video-editor", "positioning-basics",
-    "reel-editor-th", "social-card-gen", "video-ad-analysis", "voice-extractor",
+    "CMO_Procedure_ReelEditor_TH", "social-card-gen", "video-ad-analysis", "voice-extractor",
 ]
 ASSET_DIRS = ["hyperframes-media"]
-OWNER_STAMPS = {"cookierun-labeling": "CTO", "mooniex-video-editor": "CMO", "reel-editor-th": "CTO"}
+OWNER_STAMPS = {"cookierun-labeling": "CTO", "mooniex-video-editor": "CMO", "CMO_Procedure_ReelEditor_TH": "CTO"}
 
 
 def _park(path: Path, ts_backup: Path, manifest: list, why: str) -> None:
@@ -91,14 +91,14 @@ def _stamp_owner(skill_dir: Path, owner: str) -> None:
 
 
 def _freeze_reel_editor() -> None:
-    re_dir = SKILLS_DST / "reel-editor-th"
+    re_dir = SKILLS_DST / "CMO_Procedure_ReelEditor_TH"
     py = re_dir / ".venv" / "bin" / "python"
     if not py.exists():
         return
     out = subprocess.run([str(py), "-m", "pip", "freeze"], capture_output=True, text=True)
     if out.returncode == 0 and out.stdout.strip():
         (re_dir / "requirements.txt").write_text(out.stdout)
-        print(f"  froze reel-editor-th/requirements.txt ({len(out.stdout.splitlines())} pins)")
+        print(f"  froze CMO_Procedure_ReelEditor_TH/requirements.txt ({len(out.stdout.splitlines())} pins)")
 
 
 def _legacy_memory(manifest: list) -> None:

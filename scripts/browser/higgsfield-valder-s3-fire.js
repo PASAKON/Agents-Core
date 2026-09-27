@@ -70,7 +70,7 @@
  * Take 2's first Generate click produced the toast "You can generate 1
  * unlimited video, image & audio generation at a time." This LOOKS like it
  * could be the toggle-stuck failure mode documented elsewhere in this repo
- * (CTO_Seedance2.5_Higgsfield skill, hard rule 6), but it is a completely
+ * (CMO_Knowledge_Seedance2.5_Higgsfield skill, hard rule 6), but it is a completely
  * different, benign, self-resolving condition. Distinguish them like this
  * BEFORE assuming a stuck toggle and escalating:
  *

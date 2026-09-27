@@ -1,6 +1,6 @@
 # Decision site: which focus device (if any) draws the eye to the evidence
 # plate on a "show" line? (task-5cfe20b1). Measured devices:
-# .claude/skills/blackliquidity-cut/SKILL.md §6d "Focus devices on the
+# .claude/skills/CMO_Procedure_BlackLiquidity_Cut/SKILL.md §6d "Focus devices on the
 # evidence plate — measured". Only asked by jev_edit.py when bl.beat
 # answered "show" for this line. State is the line's shot/screen fields
 # (computed/structured), optionally the raw spoken text under

@@ -7,7 +7,7 @@ docs/ops/briefs/taachang-characters.md Part B asked for.
 Flow's "เมนูเพิ่มสื่อ → อัปโหลด" (Add media -> Upload) looks like a call to
 `showOpenFilePicker()`: no `<input type=file>` ever enters the DOM, so the
 claude-in-chrome extension's file_upload tool and a synthetic JS click both
-fail on it (see the CTO_Flow_Omni1.1_Ops skill, "What the frame picker will
+fail on it (see the CMO_Knowledge_Flow_Omni1.1 skill, "What the frame picker will
 actually show you"). Three methods were to be tried in order, and the first
 one worked, live, on 2026-09-25 (task-c2723478):
 
@@ -129,7 +129,7 @@ class FlowUploader:
         self.page.evaluate(MUTE_JS)
 
     def check_signed_in(self) -> bool:
-        """CTO_Flow_Omni1.1_Ops: signed-out redirects everything to /about with no
+        """CMO_Knowledge_Flow_Omni1.1: signed-out redirects everything to /about with no
         error text. An avatar/account aria-label means signed in."""
         labels = self.page.evaluate(
             "[...document.querySelectorAll('[aria-label]')]"

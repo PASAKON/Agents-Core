@@ -38,7 +38,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont, features
 ROOT = Path(__file__).resolve().parent.parent
 FONTS = {
     # Kanit ExtraBold, Thai subset (already in the repo for the BL cut template)
-    "kanit": ROOT / ".claude/skills/blackliquidity-cut/template/assets/fonts/kanit-800-aa86a0cb.woff2",
+    "kanit": ROOT / ".claude/skills/CMO_Procedure_BlackLiquidity_Cut/template/assets/fonts/kanit-800-aa86a0cb.woff2",
     "pridi": Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign/design-templates/chatudo/fonts/Pridi-Bold.ttf"),
 }
 LATIN = "/System/Library/Fonts/Supplemental/Georgia Bold.ttf"

@@ -32,7 +32,7 @@ Rollback: `python3 scripts/claude_home_migrate.py --rollback state/claude-home-m
 
 ## Verbs (every day after)
 ```bash
-bash scripts/install-claude-home.sh          # link, seed, plugins, launchd, reel-editor-th venv — idempotent
+bash scripts/install-claude-home.sh          # link, seed, plugins, launchd, CMO_Procedure_ReelEditor_TH venv — idempotent
 bash scripts/install-claude-home.sh --check  # doctor; exit 1 on DRIFT / MISSING / UNMAPPED; changes nothing
 ```
 A live edit to `settings.json` goes through the symlink into this repo — commit it.
@@ -44,5 +44,5 @@ and the next install CAPTURES the live copy into the repo before relinking.
 - `plugins/`, `cache/`, `file-history/`, `shell-snapshots/`, `telemetry/`, `logs/` — reinstallable / ephemeral.
 - `daemon/` — Claude Code's own cc-daemon state. `daemons/inbox-listener.mjs` — dead ClaudeFlow mesh listener (2026-05-18, not in launchd).
 - `skills/synced`, `skills/learned` — Claude's own.
-- `.claude/skills/reel-editor-th/{.venv,assets}` — venv rebuilt from `requirements.txt`; the 210 MB b-roll is media → Assets/ + Drive.
+- `.claude/skills/CMO_Procedure_ReelEditor_TH/{.venv,assets}` — venv rebuilt from `requirements.txt`; the 210 MB b-roll is media → Assets/ + Drive.
 - Credentials — macOS Keychain (`Claude Code-credentials`), survive a delete.

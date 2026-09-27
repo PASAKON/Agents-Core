@@ -49,7 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # for jev_edit_lib
 import jev_edit_lib as lib  # noqa: E402
 from tools import decide as decide_mod  # noqa: E402
 
-BRAND_MAP_PATH = ROOT / ".claude" / "skills" / "blackliquidity-cut" / "brand-display.yaml"
+BRAND_MAP_PATH = ROOT / ".claude" / "skills" / "CMO_Procedure_BlackLiquidity_Cut" / "brand-display.yaml"
 
 # jev-ops SKILL.md's own gate: "kept 80% of answers and let zero wrong ones
 # through" at 0.7, "replaced by what your eval measures" per the task brief.

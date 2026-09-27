@@ -17,7 +17,7 @@ import statistics
 from pathlib import Path
 from typing import Any
 
-# ── canvas + fixed boxes (blackliquidity-cut SKILL.md §6d, edl/SCHEMA.md) ──
+# ── canvas + fixed boxes (CMO_Procedure_BlackLiquidity_Cut SKILL.md §6d, edl/SCHEMA.md) ──
 
 CANVAS_W = 1080
 CANVAS_H = 1920
@@ -28,7 +28,7 @@ CANVAS_H = 1920
 # purpose, "a HARD safety check should err toward catching a real overlap").
 AVATAR_BOX = {"x": 0, "y": 845, "w": 480, "h": CANVAS_H - 845}
 
-# blackliquidity-cut SKILL.md §6c TikTok safe area, doubled onto this canvas.
+# CMO_Procedure_BlackLiquidity_Cut SKILL.md §6c TikTok safe area, doubled onto this canvas.
 SAFE_TOP = 252
 SAFE_BOTTOM = 1500
 SAFE_LEFT = 120
@@ -180,7 +180,7 @@ def dom_candidates_for_tag(manifest: list[dict] | None, tag: str) -> list[dict]:
     exploded to one candidate per `evidence_box` rect, sorted reading order
     (top to bottom, then left to right). The manifest format as
     tools/bl_realfootage.py writes it today carries no `evidence_box` field
-    yet (blackliquidity-cut edl/SCHEMA.md) — entries without one simply
+    yet (CMO_Procedure_BlackLiquidity_Cut edl/SCHEMA.md) — entries without one simply
     contribute no candidates, same as no manifest at all."""
     if not manifest:
         return []
@@ -206,7 +206,7 @@ _LATIN_RE = re.compile(r"[A-Za-z][A-Za-z0-9]*")
 
 def load_brand_map(path: Path) -> dict[str, str]:
     """brand-display.yaml: spoken (Thai) -> display (English) — the mapping
-    blackliquidity-cut SKILL.md §6e uses for on-screen brand spelling.
+    CMO_Procedure_BlackLiquidity_Cut SKILL.md §6e uses for on-screen brand spelling.
     Comment lines and non-string entries are skipped harmlessly."""
     import yaml  # local import: only jev_edit.py's CLI path touches disk/yaml
 
@@ -482,7 +482,7 @@ def parse_line_timings(path: Path) -> dict[str, tuple[float, float]]:
     time in the episode. **Where the editor gets it:** the episode's TTS
     transcript/word-timing export (the same lipsync render step already
     times each `lipsync_part_*` segment) or a hand-marked pass against the
-    finished render — whichever the episode's `blackliquidity-cut` step
+    finished render — whichever the episode's `CMO_Procedure_BlackLiquidity_Cut` step
     already produces; this tool does not generate timings itself. Header
     optional (auto-detected: first cell reads 'tag'). A malformed t0/t1
     (non-numeric) or a short row is skipped, not crashed on."""

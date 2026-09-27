@@ -21,7 +21,7 @@ chars}. `images` are Drive paths; each is found by BASENAME in --refs (default: 
 that order, so upload N is Image N. The ledger key is the job file's stem without ".wan3" (n01-rehearsal),
 so a rehearsal never collides with the real shot.
 
-Per job (measured live 2026-09-26, see the skill CTO_Wan3.0_TopView Field notes):
+Per job (measured live 2026-09-26, see the skill CMO_Knowledge_Wan3.0_TopView Field notes):
   1. open GENERATOR_URL (the Wan 3.0 card on topview.ai/home; it redirects to /board/<id>), check signed in,
      model "Wan 3.0" (not "Wan 3.0 Prime"), tab "Omni Reference";
   2. remove any leftover reference, upload the images through the multiple <input type=file>;

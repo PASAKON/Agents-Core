@@ -52,7 +52,7 @@
  *      before trusting it landed.
  *   3. Model defaulted to "Higgsfield Soul Cinema" -- opened the model
  *      picker pill, selected "GPT Image 2" from the list. Per the
- *      CTO_Seedance2.5_Higgsfield skill, Soul Cinema does NOT accept
+ *      CMO_Knowledge_Seedance2.5_Higgsfield skill, Soul Cinema does NOT accept
  *      reference images at all; this task needed the location reference
  *      attached, so GPT Image 2 was mandatory, not a preference.
  *   4. Quality defaulted to High (GENERATE showed 8.5) -- clicked the
@@ -89,7 +89,7 @@
  *      cadence here).
  *
  * STAGING THE SECOND PROMPT DURING THE FIRST RENDER (per the
- * CTO_Seedance2.5_Higgsfield skill's "pre-stage the next prompt" pattern --
+ * CMO_Knowledge_Seedance2.5_Higgsfield skill's "pre-stage the next prompt" pattern --
  * applies to paid image gen too, not just Unlimited video):
  *   Immediately after firing char_press_a, cleared the composer (real
  *   Cmd+A + Delete, left 1 stray newline -- acceptable, matches prior

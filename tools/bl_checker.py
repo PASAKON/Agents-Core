@@ -26,7 +26,7 @@ CANVAS_W, CANVAS_H = 1080, 1920
 # 1. Empty frames -- the CTO's original detector from
 #    worktrees/mooniex-agents__video_editor__task-501f1d89/CTO-FEEDBACK.md
 #    (fps=4, 270x480 gray, mask the bug + legal-label zones, std<12), UPGRADED
-#    2026-09-25 (task-1678d38e, blackliquidity-cut SKILL.md field note
+#    2026-09-25 (task-1678d38e, CMO_Procedure_BlackLiquidity_Cut SKILL.md field note
 #    "2026-09-25 [MISSING] §gate"): that 4fps grid samples every 0.25s, so a
 #    single dropped/black frame (1/30s = 0.033s) only gets caught if it
 #    happens to land on a sampled instant -- it missed exactly this at
@@ -107,7 +107,7 @@ def detect_empty_frames(video_path: Path, ignore_before: float = EMPTY_FRAME_IGN
 # 2. Safe area -- TASK.md: read SKILL.md §6e for the margins; if it gives
 #    none, use top 8%, bottom 20%, sides 5% and say so.
 #
-#    Checked 2026-09-25: .claude/skills/blackliquidity-cut/SKILL.md §6e
+#    Checked 2026-09-25: .claude/skills/CMO_Procedure_BlackLiquidity_Cut/SKILL.md §6e
 #    ("Brand names and image credits on screen") covers brand spelling +
 #    third-party credit wording only -- it states NO pixel margins. The
 #    margins in that skill (--safe-left 120px / --safe-top 252px / etc,

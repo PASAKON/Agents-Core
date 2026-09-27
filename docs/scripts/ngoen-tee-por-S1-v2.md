@@ -201,7 +201,7 @@ words already carry the tension.
 
 ---
 
-## 4. tig-scene-engine chain check
+## 4. CMO_Gate_Story_SceneEngine chain check
 
 **SCENE: Scene 1 — "เดี๋ยวโทรกลับ" (morning service, the first crack)**
 

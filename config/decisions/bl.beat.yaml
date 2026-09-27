@@ -1,7 +1,7 @@
 # Decision site: what editorial beat is this BLACK LIQUIDITY script line?
 # (task-5cfe20b1, CEO ruling 2026-09-23 — Jev decides per-line editorial
 # calls instead of a human editor.) Drives avatar mode per
-# .claude/skills/blackliquidity-cut/SKILL.md §6d: "show" -> composited
+# .claude/skills/CMO_Procedure_BlackLiquidity_Cut/SKILL.md §6d: "show" -> composited
 # avatar (something can be displayed alongside it), "hook"/"verdict"/"cta"
 # -> full-frame avatar. Fed only computed/structured fields (shot, screen,
 # position), never the raw Thai spoken line, unless --state-lang=th is

@@ -1,4 +1,4 @@
-# RUNLOG — VIDEO_EDITOR_jev-editor-helper (task-5cfe20b1)
+# RUNLOG — CMO_Procedure_BlackLiquidity_JevEditor (task-5cfe20b1)
 
 Progress log per the task's "Append progress ... as you go" rule.
 
@@ -6,8 +6,8 @@ Progress log per the task's "Append progress ... as you go" rule.
 
 - Read `.claude/skills/jev-ops/SKILL.md`, `tools/decide.py`,
   `config/decisions/{browser.page_state,skill.route,sompong.route}.yaml`,
-  `.claude/skills/blackliquidity-cut/SKILL.md` §6d/§6c/§6e/§5a, and the EDL
-  schema at `worktrees/mooniex-agents__developer__task-42e3b6af/.claude/skills/blackliquidity-cut/edl/{SCHEMA.md,event_types.json,example/p1_layout.json}`.
+  `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/SKILL.md` §6d/§6c/§6e/§5a, and the EDL
+  schema at `worktrees/mooniex-agents__developer__task-42e3b6af/.claude/skills/CMO_Procedure_BlackLiquidity_Cut/edl/{SCHEMA.md,event_types.json,example/p1_layout.json}`.
 - Checked the two upstream dependencies:
   - task-42e3b6af (EDL schema): **present**, read and used for the avatar
     box constant and the "mappable by stable line id" requirement.
@@ -19,7 +19,7 @@ Progress log per the task's "Append progress ... as you go" rule.
     made-up sample (`example/SCRIPT.tsv`) to the tag/spoken/shot/beat/screen
     column spec instead, per the task's stop condition.
 - Created the skill via `scripts/skill-curator.py create
-  VIDEO_EDITOR_jev-editor-helper --audience video_editor,cto`.
+  CMO_Procedure_BlackLiquidity_JevEditor --audience video_editor,cto`.
 - Built `scripts/jev_edit_lib.py` (pure functions: TSV parsing, candidate
   geometry, positional-slot labelling, DOM-box extraction from
   REAL_MANIFEST, content-word/number/brand extraction, the confidence gate)
@@ -104,7 +104,7 @@ criteria, a bad state shows up as low confidence").
 **EP57 full run (40 real script lines, `--manifest` = the real
 `bl57-realfootage/REAL_MANIFEST.json`, which DOES carry `evidence_box`
 already — task-82380776/`bl_realfootage.py`'s census work is ahead of what
-`blackliquidity-cut/edl/SCHEMA.md` assumed when it was written):**
+`CMO_Procedure_BlackLiquidity_Cut/edl/SCHEMA.md` assumed when it was written):**
 
 ```
 lines=40  rows=175  Jev calls=143  cost=$0.004573  flagged=112/175 (64%)
@@ -146,7 +146,7 @@ CTO caught it: the `verdict`/`cta`/`spotlight`/`highlight_sweep`/`zoom_only`
 examples in `bl.beat.yaml`, `bl.entry.yaml` and `bl.focus_device.yaml` were
 drawn from EP57 itself (`prototypes/bl57-script/`) and the reference
 transcript (`prototypes/bl-ref-census/`, quoted via
-`blackliquidity-cut/SKILL.md` §6d) — both of which are this pipeline's own
+`CMO_Procedure_BlackLiquidity_Cut/SKILL.md` §6d) — both of which are this pipeline's own
 test material, so the earlier 90% agreement check was measuring
 recall-of-its-own-examples, not generalisation (jev-ops SKILL.md lever 2:
 "examples must not reuse the test values").

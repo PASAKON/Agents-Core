@@ -83,7 +83,7 @@ A 40s trading-psychology talking-head clip, cut into 15 beats alternating
 avatar/footage/animation every ~2-3s:
 
 ```python
-_INS = os.path.expanduser("~/.claude/skills/reel-editor-th/assets/mooniex-broll")
+_INS = os.path.expanduser("~/.claude/skills/CMO_Procedure_ReelEditor_TH/assets/mooniex-broll")
 CUTAWAYS = [
     (4.60, 7.32, "video", (f"{_INS}/frames-candlestorm-2.72s", 30)),
     (10.30, 13.18, "video", (f"{_INS}/frames-candleglow-2.88s", 30)),
@@ -132,5 +132,5 @@ talking head.
   `render_*.py` into your own workdir before running
   (`cp -f "$SCRIPTS"/render_*.py ... "$WORK/"`) — make your per-clip edits
   to `$WORK/render_cover.py`, never to the path under
-  `~/.claude/skills/reel-editor-th/scripts/`. This bit a real test: one
+  `~/.claude/skills/CMO_Procedure_ReelEditor_TH/scripts/`. This bit a real test: one
   clip's 2-item checklist silently became the next run's default content.

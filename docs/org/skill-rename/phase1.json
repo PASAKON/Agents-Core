@@ -1,0 +1,21 @@
+[
+ {"old": "CTO_Film_Workflow", "new": "CMO_Workflow_ShortFilm", "kind": "workflow", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Film_Production", "new": "CMO_Knowledge_Film_Production", "kind": "knowledge", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Film_PromptFormat", "new": "CMO_Standard_Film_PromptFormat", "kind": "standard", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Story_ThaiMoralDrama", "new": "CMO_Standard_Story_ThaiMoralDrama", "kind": "standard", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "tig-scene-engine", "new": "CMO_Gate_Story_SceneEngine", "kind": "gate", "owner": "CMO", "audience_add": ["cmo", "script_writer"]},
+ {"old": "CTO_Seedance2.5_Higgsfield", "new": "CMO_Knowledge_Seedance2.5_Higgsfield", "kind": "knowledge", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Wan3.0_TopView", "new": "CMO_Knowledge_Wan3.0_TopView", "kind": "knowledge", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_MiniMax_H3", "new": "CMO_Knowledge_MiniMax_H3", "kind": "knowledge", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Flow_Omni1.1_Ops", "new": "CMO_Knowledge_Flow_Omni1.1", "kind": "knowledge", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Flow_Omni1.1_Continuity", "new": "CMO_Gate_Flow_Omni1.1_Continuity", "kind": "gate", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_Flow_Omni1.1_FilmQC", "new": "CMO_Gate_Flow_Omni1.1_FilmQC", "kind": "gate", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "CTO_ChatGPT-Image_LakornCover", "new": "CMO_Procedure_ChatGPTImage_LakornCover", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "character-reference-sheet", "new": "CMO_Procedure_CharacterSheet", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "blender-previz", "new": "CMO_Procedure_Blender_Previz", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "real-footage-capture", "new": "CMO_Procedure_RealFootageCapture", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "reel-editor-th", "new": "CMO_Procedure_ReelEditor_TH", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "blackliquidity-script", "new": "CMO_Standard_BlackLiquidity_Script", "kind": "standard", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "blackliquidity-cut", "new": "CMO_Procedure_BlackLiquidity_Cut", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]},
+ {"old": "VIDEO_EDITOR_jev-editor-helper", "new": "CMO_Procedure_BlackLiquidity_JevEditor", "kind": "procedure", "owner": "CMO", "audience_add": ["cmo"]}
+]

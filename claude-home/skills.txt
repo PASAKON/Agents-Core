@@ -1,6 +1,6 @@
 # name	target   ($PROJECTS=/Users/gob/Projects, $HOME, $SRC=claude-home/). This is the MAP: no row = no link; a real dir with no row = UNMAPPED drift.
-# rows 1-33 = the symlinks that already existed 2026-09-22 (plus CTO_Story_ThaiMoralDrama, added 2026-09-25 beside thai-moral-drama, its new name); the rest = what scripts/claude_home_migrate.py moves into the repo.
-blackliquidity-cut	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/blackliquidity-cut
+# rows 1-33 = the symlinks that already existed 2026-09-22 (plus CMO_Standard_Story_ThaiMoralDrama, added 2026-09-25 beside thai-moral-drama, its new name); the rest = what scripts/claude_home_migrate.py moves into the repo.
+CMO_Procedure_BlackLiquidity_Cut	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Procedure_BlackLiquidity_Cut
 blue-ocean-strategy	/Users/gob/MoonieXHQ/External/wondelai-skills/blue-ocean-strategy
 browser-operator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/browser-operator
 contagious	/Users/gob/MoonieXHQ/External/wondelai-skills/contagious
@@ -29,11 +29,11 @@ post-mortem	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/post-mo
 remotion-to-hyperframes	$HOME/.agents/skills/remotion-to-hyperframes
 scrutinize	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/scrutinize
 seedance-scene-prompt	/Users/gob/MoonieXHQ/Agents/Skills/seedance-scene-prompt
-CTO_Story_ThaiMoralDrama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CTO_Story_ThaiMoralDrama
-tig-scene-engine	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/tig-scene-engine
+CMO_Standard_Story_ThaiMoralDrama	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Standard_Story_ThaiMoralDrama
+CMO_Gate_Story_SceneEngine	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Gate_Story_SceneEngine
 video-use	$HOME/Developer/video-use
 website-to-hyperframes	$HOME/.agents/skills/website-to-hyperframes
-character-reference-sheet	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/character-reference-sheet
+CMO_Procedure_CharacterSheet	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Procedure_CharacterSheet
 content-idea-generator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/content-idea-generator
 cookierun-labeling	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/cookierun-labeling
 de-ai-ify	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/de-ai-ify
@@ -41,7 +41,7 @@ homepage-audit	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/homepage-audit
 marketing-principles	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/marketing-principles
 mooniex-video-editor	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/mooniex-video-editor
 positioning-basics	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/positioning-basics
-reel-editor-th	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/reel-editor-th
+CMO_Procedure_ReelEditor_TH	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Procedure_ReelEditor_TH
 social-card-gen	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/social-card-gen
 video-ad-analysis	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/video-ad-analysis
 voice-extractor	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/voice-extractor
