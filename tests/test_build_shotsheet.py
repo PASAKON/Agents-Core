@@ -79,3 +79,19 @@ def test_empty_lang_builds_exactly_like_no_lang():
     d = _data()
     d.LANG = {}
     assert build_shotsheet.build(d, "3") == build_shotsheet.build(_data(), "3")
+
+
+def test_dialogue_shot_says_one_continuous_take_once():
+    """Wrong-mouth fix (CEO 2026-09-28, A/B task-c816fbc0): every shot with a
+    spoken line carries the continuous-take sentence, right after the face line."""
+    p = _prompt(build_shotsheet.build(_data(), "3"))
+    assert p.count(build_shotsheet.CONTINUOUS_TAKE) == 1
+    face = "The face of whoever is speaking stays in frame for the whole line."
+    assert face + "\n" + build_shotsheet.CONTINUOUS_TAKE in p
+
+
+def test_silent_shot_has_no_continuous_take():
+    d = _data()
+    d.SHOTS = [d.SHOTS[0][:7] + ([],) + d.SHOTS[0][8:]]
+    p = _prompt(build_shotsheet.build(d, "3"))
+    assert build_shotsheet.CONTINUOUS_TAKE not in p

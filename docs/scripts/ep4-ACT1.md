@@ -30,6 +30,7 @@ The woman in hot pink <IMAGE_REF_0> speaks polished standard Central Thai with a
 The headman in the light-blue shirt <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the thin, slightly raspy tenor voice of a Thai man of sixty, uneasy and squirming, a nervous chuckle, voice dropped low, eyes darting to the road, and says: "เจ๊ แม่คำปุนเพิ่นยังบ่ฮู้เรื่องจักหน่อยเด้อ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Medium wide at the edge of the golden paddy, both faces three-quarters to camera. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -47,6 +48,7 @@ The woman in hot pink <IMAGE_REF_0> speaks polished standard Central Thai with a
 The headman in the light-blue shirt <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the thin, slightly raspy tenor voice of a Thai man of sixty, ashamed, face flushed red, bowing twice with a sick forced smile, palms pressed together, and says: "ขอบใจเด้อเจ๊ ขอบใจหลายๆ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Close two-shot, the fan tapping the headman's chest. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -62,6 +64,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, cheerful and very loud, beaming, waving her whole arm high over her head, and says: "ผู้ใหญ่เอ้ย มากินข้าวนำกันก่อน ข้าวเหนียวนึ่งใหม่ๆ ข้อยห่อไว้ให้แล้วเด้อ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium under the house on stilts, steam rising from the sticky-rice steamer. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -79,6 +82,7 @@ The headman in the light-blue shirt <IMAGE_REF_0> speaks in the Isan dialect of 
 The woman in the indigo blouse <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, cheerful and bustling, laughing, slapping his arm, and says: "มื้ออื่นบักแสนสิกลับมาเกี่ยวข้าวแล้วเด้อ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Two-shot at the bamboo platform, the sticky-rice basket between them. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -96,6 +100,7 @@ The woman in the green blouse <IMAGE_REF_0> speaks in the Isan dialect of Northe
 The woman in the indigo blouse <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, generous and laughing out loud, waving the refusal away, scooping more, and says: "เอาไปสองถังเลย บ่ต้องส่งคืนดอก"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium beside the big clay jar next to the rice barn. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -113,6 +118,7 @@ The woman in the green blouse <IMAGE_REF_0> speaks in the Isan dialect of Northe
 The woman in the indigo blouse <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, carefree and embarrassed, laughing shyly behind her hand, waving it away, and says: "ฉบับที่สามแล้ว ข้อยอ่านบ่ออก ถ่าบักแสนมาอ่านให้"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Any paper is seen from the back or edge-on: no readable writing, no printed form and no stamp ever faces the camera.
 Close-up on the old tin trunk, a plain envelope going in. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -130,6 +136,7 @@ The woman in hot pink <IMAGE_REF_0> speaks polished standard Central Thai with a
 The woman in the indigo blouse <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, puzzled turning indignant, laughing in disbelief, hands on hips, pointing at the ground, and says: "นาของเจ๊บ้อ นาผืนนี้นาของข้อยเด้อ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium in the red-dirt yard, the woman in hot pink arriving under her parasol. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -147,6 +154,7 @@ The woman in hot pink <IMAGE_REF_0> speaks polished standard Central Thai with a
 The woman in the indigo blouse <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, shocked, face drained white, shaking her head hard, almost shouting the denial, and says: "บ่แม่นดอก"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Close two-shot, the fan stopped, both faces in profile to each other. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -164,6 +172,7 @@ The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of North
 The woman in hot pink <IMAGE_REF_1> speaks polished standard Central Thai with a Bangkok accent, not the Isan dialect, in the high, bright, sing-song voice of a Thai woman of fifty-two, bored and sweet, yawning behind her fan, nudging an envelope with her shoe, and says: "จดหมายพวกนั้น ฉันแจ้งไปตั้งแต่สี่เดือนก่อนแล้วนะจ๊ะ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Any paper is seen from the back or edge-on: no readable writing, no printed form and no stamp ever faces the camera. Nobody holds, counts or hands over banknotes or coins.
 Medium, kneeling at the open tin trunk, envelopes spilling on the ground. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -179,6 +188,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The woman in hot pink <IMAGE_REF_0> speaks polished standard Central Thai with a Bangkok accent, not the Isan dialect, in the high, bright, sing-song voice of a Thai woman of fifty-two, gleeful and mocking, sing-song, calling over her shoulder, waggling her fan goodbye, and says: "วันศุกร์ก่อนสี่โมงเย็นนะจ๊ะ ไถ่ถอนนาสองแสนสามหมื่นที่โรงสี เลยเวลานั้นนาผืนนี้ก็เป็นของเจ๊แล้วจ้ะ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Medium, the woman in pink walking away, the mother collapsing onto the bamboo platform. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -194,6 +204,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The young man in the white T-shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, cheerful and loud, grinning with dimples, waving the bag of oranges high, the grin sliding off his face at the end, and says: "แม่ ข้อยกลับมาก่อนแล้วเด้อ ซื้อส้มมาฝากนำ มื้ออื่นสิเกี่ยวข้าวซ่อยแม่"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium wide, the son riding into the yard on a red-and-black motorbike. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -211,6 +222,7 @@ The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of North
 The young man in the white T-shirt <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, panicked and stammering, palms raised, backing away, voice climbing, and says: "แม่ ข้อยอธิบายได้เด้อ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Two-shot, the mother holding up the empty red cloth, oranges rolling in the dust. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -226,6 +238,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The young man in the white T-shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, voice cracking apart, tears spilling, holding her hands, bowing his head on the apology, and says: "ครบกำหนดซื้อนาคืนวันศุกร์นี้ สองแสนสามหมื่น… แม่ ข้อยขอโทษ ข้อยขอโทษเด้อแม่"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Close-up on the son turning to his mother under the house. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -241,6 +254,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The young man in the white T-shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, confessing through heavy sobs, pounding the dirt with his fists, voice cracking, and says: "หมู่ข้อยกู้หนี้ ข้อยเซ็นค้ำให้มัน แล้วมันหนีไป หนี้สองแสนตกมาที่ข้อยคนเดียว"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Medium, the son on his knees in the red dust. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -256,6 +270,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, shouting in raw rage, eyes red, shaking him hard on every word, and says: "แล้วลายเซ็นแม่มาจากไส แม่บ่เคยไปเซ็นขายฝากหยังเลย เว้ามาเดี๋ยวนี้"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Two-shot, the mother gripping her kneeling son's shoulders. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -271,6 +286,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The young man in the white T-shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, sobbing so hard the words break apart, wringing his hands, forcing out the truth, and says: "ใบที่ข้อยบอกแม่ว่าเป็นใบขึ้นทะเบียนเกษตรกร… มันคือใบมอบอำนาจขายฝากนา"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Any paper is seen from the back or edge-on: no readable writing, no printed form and no stamp ever faces the camera.
 Close-up on the son, the mother recoiling behind him. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -286,6 +302,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the strong, slightly hoarse alto voice of a Thai woman of fifty-five, wailing, voice hoarse and cracking, beating her chest with her fist, and says: "แม่อ่านหนังสือบ่ออก ลูกกะฮู้ ลูกเอาความบ่ฮู้ของแม่ มาหลอกแม่เอง"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium close-up on the mother, the tin trunk behind her. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -301,6 +318,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The young man in the white T-shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, crying, forehead pressed to her feet, begging in a muffled, broken voice, and says: "ข้อยคิดว่าสิหามาไถ่คืนได้ทัน ก่อนแม่ฮู้ ข้อยผิดไปแล้วแม่ ด่าข้อยเถาะ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium, the son prostrating at his mother's feet. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -318,6 +336,7 @@ The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of North
 The young man in the white T-shirt <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, hopeless, voice thick with tears, open hands toward the field, and says: "ยังขาดอีกแสนแปดเด้อแม่"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Medium wide, the mother and her grown son side by side at the edge of the golden paddy. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -335,6 +354,7 @@ The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of North
 The young man in the white T-shirt <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, alarmed, almost shouting, grabbing her hand with both of his, and says: "บ่ได้เด้อแม่ นั่นของพ่อ"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Close-up, her indigo-stained fingers on the thin gold chain at her neck. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -352,6 +372,7 @@ The woman in the indigo blouse <IMAGE_REF_0> speaks in the Isan dialect of North
 The young man in the white T-shirt <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, crying, nodding hard, voice choked with determination, and says: "ข้อยสิขายรถ ได้อีกห้าหมื่น"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Close two-shot, her hands closing his fingers over the gold chain. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -367,6 +388,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The headman in the light-blue shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the thin, slightly raspy tenor voice of a Thai man of sixty, over-eager and too friendly, voice loud, rubbing his hands, patting his back, eyes darting, and says: "ข้อยได้ยินว่าต้องไถ่สองแสนสามหมื่นแม่นบ่ บ่ต้องย่านเด้อ จ้างรถเกี่ยววันเดียวกะแล้ว"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children. Nobody holds, counts or hands over banknotes or coins.
 Medium under the house, the headman arriving on his bicycle, the son on the phone. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
@@ -382,6 +404,7 @@ In the shaded open space under a traditional wooden Isan house raised high on th
 The young man in the white T-shirt <IMAGE_REF_0> speaks in the Isan dialect of Northeast Thailand, with a thick Isan accent and Isan tones, not Bangkok Thai, in the clear, warm baritone voice of a Thai man of twenty-seven, stunned, voice hollow and shaking, the phone sliding down from his ear, and says: "เขาบอกว่าเจ๊หงส์สั่งแล้ว รถเกี่ยวทุกคันห้ามลงนาแม่ โรงสีกะบ่รับซื้อข้าวเฮาจักเม็ด"
 
 The face of whoever is speaking stays in frame for the whole line.
+This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
 No subtitles, no captions and no on-screen text of any kind appear anywhere in the frame. Nobody else is in the frame: no passers-by, no crowd, no children.
 Medium close-up on the son lowering the phone, the mother behind him. Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, strong expressive acting, faces clearly readable. Big, lively, theatrical Thai lakorn acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands still waiting for their turn.
 ```
