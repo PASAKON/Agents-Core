@@ -1,4 +1,7 @@
 .venv/
+# a SYMLINK named .venv is a file, not a directory: `.venv/` does not ignore it (2026-09-27: a worktree symlink got committed
+# and the pull replaced the Contabo checkout's real .venv with a self-link). Keep both lines.
+.venv
 __pycache__/
 *.pyc
 state/tasks.db
