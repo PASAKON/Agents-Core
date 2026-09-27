@@ -74,7 +74,7 @@
  *      position, and screenshot instead of assuming.
  *   6. Click the single result card at its on-screen position (this run:
  *      consistently ~(450, 317) in a 1024x768-requested / ~1374x868-screenshot
- *      window -- see the browser-operator skill for why those two numbers
+ *      window -- see the BROWSER_OPERATOR_Protocol_Playbook skill for why those two numbers
  *      differ; `computer` click coordinates are in the SCREENSHOT's pixel
  *      space, not `window.innerWidth`/`innerHeight`). If two elements share
  *      an ambiguous substring match (e.g. searching "guard" also matches

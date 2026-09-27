@@ -38,8 +38,8 @@ TRIGGERS: list[tuple[str, str, str]] = [
     ),
     (
         r"(?i)\b(spawn dev|delegate|kick.?off the dev|start the developer)\b",
-        "dev-spawn-protocol",
-        "DEV spawn detected — follow /dev-spawn-protocol (touches lock + kickoff ping).",
+        "CXO_Protocol_DevSpawn",
+        "DEV spawn detected — follow /CXO_Protocol_DevSpawn (touches lock + kickoff ping).",
     ),
 ]
 

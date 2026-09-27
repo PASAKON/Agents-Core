@@ -95,12 +95,12 @@ rules is Knowledge, correctly. Split a skill in two only when (a) a rule is org-
   `ai-video-storyboard` (a generic TikTok-ad template matched on "storyboard") and `higgsfield-unlimited-gen`
   (wrong engine, already a redirect). Both would have been avoided by a name that says role, kind and engine.
 
-## Rename plan — approved by the CEO 2026-09-27 ("OK ตามนั้น"); procedure: `skill-author` §6
+## Rename plan — approved by the CEO 2026-09-27 ("OK ตามนั้น"); procedure: `ALL_Protocol_SkillAuthor` §6 (was `skill-author`)
 
 Format `<ROLE>_<Kind>_<Topic>`. One commit and one report per phase; the next phase starts after the report.
 File counts = files that name the old skill literally (2026-09-27), the size of each sweep.
 
-**Phase 0 — retire the four redirect stubs of 2026-09-25** (`skill-author` §7): ai-film-production (21 files),
+**Phase 0 — retire the four redirect stubs of 2026-09-25** (`ALL_Protocol_SkillAuthor` §7): ai-film-production (21 files),
 google-flow-ops (79), higgsfield-unlimited-gen (106), thai-moral-drama (12). Sweep live references, then archive.
 
 **Phase 1 — film and content move to CMO (19; ~260 file mentions)**

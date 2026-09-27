@@ -456,7 +456,7 @@ def test_skill_route_resolves_real_org_skills():
     cfg = decide_mod.load_site("skill.route")
     options = decide_mod._resolve_options(cfg)
     ids = {o["id"] for o in options}
-    assert "browser-operator" in ids
+    assert "BROWSER_OPERATOR_Protocol_Playbook" in ids
     # google-flow-ops was renamed by engine (CEO 2026-09-25); its old path is a
     # MOVED stub with no trigger clause, so Flow prompts route to the new name.
     assert "CMO_Knowledge_Flow_Omni1.1" in ids

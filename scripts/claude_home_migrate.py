@@ -43,11 +43,11 @@ TOOLS_SKIP = {"output-untracked-2026-09-05.lst", "worktree-audit-2026-09-05.txt"
 HOOKS_SKIP_SUFFIX = (".bak", ".bak.20260517")
 REAL_SKILLS = [
     "CMO_Procedure_CharacterSheet", "content-idea-generator", "CTO_Knowledge_CookieRun_Labeling", "de-ai-ify",
-    "homepage-audit", "marketing-principles", "mooniex-video-editor", "positioning-basics",
+    "homepage-audit", "marketing-principles", "VIDEO_EDITOR_Protocol_Playbook", "positioning-basics",
     "CMO_Procedure_ReelEditor_TH", "social-card-gen", "video-ad-analysis", "voice-extractor",
 ]
 ASSET_DIRS = ["hyperframes-media"]
-OWNER_STAMPS = {"CTO_Knowledge_CookieRun_Labeling": "CTO", "mooniex-video-editor": "CMO", "CMO_Procedure_ReelEditor_TH": "CTO"}
+OWNER_STAMPS = {"CTO_Knowledge_CookieRun_Labeling": "CTO", "VIDEO_EDITOR_Protocol_Playbook": "CMO", "CMO_Procedure_ReelEditor_TH": "CTO"}
 
 
 def _park(path: Path, ts_backup: Path, manifest: list, why: str) -> None:

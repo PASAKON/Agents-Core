@@ -180,7 +180,7 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 ## Reference
 
 - Tools: `tools/chatgpt_images.py` (runner, `--continue`, `--recover`), `tools/lakorn_poster.py`
-- Story and format: `CMO_Standard_Story_ThaiMoralDrama` · filing: `CXO_Rules_GDrive_Filing` · browser rules: `browser-operator`
+- Story and format: `CMO_Standard_Story_ThaiMoralDrama` · filing: `CXO_Rules_GDrive_Filing` · browser rules: `BROWSER_OPERATOR_Protocol_Playbook`
 - Memory: `feedback_study_genre_references_for_identity.md`
 
 ## Field notes

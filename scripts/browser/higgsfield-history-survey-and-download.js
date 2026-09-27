@@ -137,7 +137,7 @@
  *     (`tabs_create_mcp`, not SPA-navigate the same tab) and retry there —
  *     measured this session: items stuck after repeated clicks on a
  *     long-lived tab succeeded on the very first click of a new tab, more
- *     than once. This matches the browser-operator skill's "a long-lived tab
+ *     than once. This matches the BROWSER_OPERATOR_Protocol_Playbook skill's "a long-lived tab
  *     lies about state" guidance, extended to the Download button.
  *   ⚠️ A click can also succeed with a LONG delay (~20s+) that lands only
  *     after you've already navigated on to the NEXT item. If a later item's

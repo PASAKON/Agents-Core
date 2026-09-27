@@ -1,0 +1,10 @@
+[
+ {"old": "browser-operator", "new": "BROWSER_OPERATOR_Protocol_Playbook", "kind": "protocol", "owner": "CTO", "audience_add": []},
+ {"old": "mooniex-video-editor", "new": "VIDEO_EDITOR_Protocol_Playbook", "kind": "protocol", "owner": "CMO", "audience_add": ["video_editor"]},
+ {"old": "dev-spawn-protocol", "new": "CXO_Protocol_DevSpawn", "kind": "protocol", "owner": "CTO", "audience_add": ["cxo"]},
+ {"old": "delegate-external-agent", "new": "CXO_Protocol_DelegateExternal", "kind": "protocol", "owner": "CTO", "audience_add": ["cxo"]},
+ {"old": "skill-author", "new": "ALL_Protocol_SkillAuthor", "kind": "protocol", "owner": "COO", "audience_add": []},
+ {"old": "skill-curator", "new": "COO_Protocol_SkillCurator", "kind": "protocol", "owner": "COO", "audience_add": []},
+ {"old": "spawn-web-designer", "new": "CTO_Protocol_SpawnWebDesigner", "kind": "protocol", "owner": "CTO", "audience_add": []},
+ {"old": "CXO_Run_Inbox", "new": "ALL_Protocol_RunInbox", "kind": "protocol", "owner": "CTO", "audience_add": []}
+]

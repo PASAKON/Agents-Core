@@ -2,7 +2,7 @@
 # rows 1-33 = the symlinks that already existed 2026-09-22 (plus CMO_Standard_Story_ThaiMoralDrama, added 2026-09-25 beside thai-moral-drama, its new name); the rest = what scripts/claude_home_migrate.py moves into the repo.
 CMO_Procedure_BlackLiquidity_Cut	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Procedure_BlackLiquidity_Cut
 blue-ocean-strategy	/Users/gob/MoonieXHQ/External/wondelai-skills/blue-ocean-strategy
-browser-operator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/browser-operator
+BROWSER_OPERATOR_Protocol_Playbook	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/BROWSER_OPERATOR_Protocol_Playbook
 contagious	/Users/gob/MoonieXHQ/External/wondelai-skills/contagious
 continuous-discovery	/Users/gob/MoonieXHQ/External/wondelai-skills/continuous-discovery
 debug-mantra	/Users/gob/MoonieXHQ/External/9arm-skills/skills/engineering/debug-mantra
@@ -39,7 +39,7 @@ CTO_Knowledge_CookieRun_Labeling	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills
 de-ai-ify	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/de-ai-ify
 homepage-audit	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/homepage-audit
 marketing-principles	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/marketing-principles
-mooniex-video-editor	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/mooniex-video-editor
+VIDEO_EDITOR_Protocol_Playbook	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/VIDEO_EDITOR_Protocol_Playbook
 positioning-basics	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/positioning-basics
 CMO_Procedure_ReelEditor_TH	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Procedure_ReelEditor_TH
 social-card-gen	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/social-card-gen

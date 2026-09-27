@@ -157,7 +157,7 @@ and `report`'s header explicitly labels `counterfactual_usd` an **ESTIMATE**
 2. **Anything answered inside a long session is re-sent every later turn.**
    A screenshot or a paragraph of reasoning that entered context at turn 3
    is billed again at every turn after it, for the rest of the session
-   (`browser-operator` SKILL.md § "The number that governs every decision").
+   (`BROWSER_OPERATOR_Protocol_Playbook` SKILL.md § "The number that governs every decision").
    A `decide()` call is a single external round-trip that leaves nothing
    in the agent's own context except the answer — it does not compound.
 

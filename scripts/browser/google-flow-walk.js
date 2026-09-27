@@ -9,7 +9,7 @@
 //   - clicking the composer's "x" close button
 // ALWAYS re-verify chip count via the "+" picker (a character excluded from the
 // list = still attached) immediately before firing. See skill note "Count the
-// reference chips before you fire" in browser-operator.
+// reference chips before you fire" in BROWSER_OPERATOR_Protocol_Playbook.
 
 const STEPS = [
   // 1. New project

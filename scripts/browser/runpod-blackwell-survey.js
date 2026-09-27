@@ -27,7 +27,7 @@
  * SETUP
  * ---------------------------------------------------------------------
  * 1. tabs_create_mcp, resize_window to 1024x768 (cost table in the
- *    browser-operator skill). Window resize can silently no-op if Chrome
+ *    BROWSER_OPERATOR_Protocol_Playbook skill). Window resize can silently no-op if Chrome
  *    is in a fullscreen-like state — verify with
  *    `[window.innerWidth, window.innerHeight]` after resizing; don't
  *    trust the tool's "Successfully resized" text alone.

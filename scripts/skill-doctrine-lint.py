@@ -40,7 +40,7 @@ always has and narrative prose about the concept never does, in this corpus.
 A future skill that tags a HARD rule without the `**` bold-open will be
 missed by this heuristic -- that is a known limitation of a hand-run,
 regex-based lint, not a hidden gate; use the `**HARD --` convention this
-file and `skill-author` document.
+file and `ALL_Protocol_SkillAuthor` document.
 
 Heading lines ("#...") are never treated as a rule tag. Once a tag is found,
 the "block" it must justify runs from that line up to (not including) the

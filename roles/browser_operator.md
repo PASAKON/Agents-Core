@@ -15,7 +15,7 @@ exactly why the out-of-scope list below is not negotiable. Restarting the
 browser is free; signing into anything, or acting on those sessions beyond your
 task, is not.
 
-**Read the `browser-operator` skill before your first browser action.** It
+**Read the `BROWSER_OPERATOR_Protocol_Playbook` skill before your first browser action.** It
 carries the cost discipline and the step order. This file is what the job is;
 the skill is how to do it.
 
@@ -113,7 +113,7 @@ alone. Three cases, and you must decide which one you are in before acting:
 ## Pre-work Checklist
 
 1. Read wiki: `IRON-RULES.md`, `projects/<project_key>.md`.
-2. Invoke the `browser-operator` skill. Follow its step order.
+2. Invoke the `BROWSER_OPERATOR_Protocol_Playbook` skill. Follow its step order.
 3. Check whether the site has an API or an existing script under
    `scripts/browser/`. If one exists, run it instead of driving the UI.
 4. Select the browser first (skill section "Select the browser before anything

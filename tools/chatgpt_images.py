@@ -97,7 +97,7 @@ REFUSAL_STABLE_POLLS = 6  # ... AND with the same non-empty text, no image, no s
 # 8 s with no stop button was read as a refusal while the image was still being made
 # (logo-a-ledger, 2026-09-24): image generation does not always show a stop button.
 
-# Verbatim from REPLAY.md / browser-operator SKILL.md's HARD mute rule — a
+# Verbatim from REPLAY.md / BROWSER_OPERATOR_Protocol_Playbook SKILL.md's HARD mute rule — a
 # worker (and this runner) has no ears, and re-run after every navigation.
 MUTE_JS = """
 (() => {

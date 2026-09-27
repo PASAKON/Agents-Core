@@ -10,7 +10,7 @@ approved rename phases (docs/org/SKILL-KINDS-2026-09-27.md, "Rename plan").
 
 Live references are rewritten in the directories below; dated history (reports, ops letters, research, state)
 keeps the old names, and the stub answers for them. A name matches only as a whole token, so
-`CMO_Knowledge_Film_Production` never touches `CMO_Standard_Film_PromptFormat`. Files in KEEP_OLD_NAMES record the mapping itself
+`CTO_Film_Production` never touched `CTO_Film_PromptFormat`. Files in KEEP_OLD_NAMES record the mapping itself
 and are never rewritten.
 """
 import argparse, datetime, json, re, subprocess, sys
@@ -22,15 +22,21 @@ KINDS = {"rules", "knowledge", "workflow", "procedure", "standard", "gate", "pro
 INCLUDE = [".claude/skills", ".claude/skills-archive", "roles", "scripts", "tools", "runners", "lib", "config",
            "policies", "claude-home", "tests", "CLAUDE.md", "docs"]
 EXCLUDE_PARTS = {".git", "node_modules", "worktrees", "__pycache__"}
-EXCLUDE_PREFIX = ("docs/reports", "docs/ops", "docs/research")
-KEEP_OLD_NAMES = {"docs/org/SKILL-KINDS-2026-09-27.md"}
+EXCLUDE_PREFIX = ("docs/reports", "docs/ops", "docs/research", "docs/WAVE")  # docs/WAVE*: governance history
+# Files that must keep the old names: the mapping record, this tool, and scripts whose own identity shares a
+# skill's old name (`skill-curator:` is the curator's commit prefix; `undo` and its tests search old commits by it).
+KEEP_OLD_NAMES = {"docs/org/SKILL-KINDS-2026-09-27.md", "tools/skill_rename.py",
+                  "scripts/skill-curator.py", "scripts/test_skill_curator.py"}
 TEXT_SUFFIX = {".md", ".py", ".sh", ".js", ".mjs", ".ts", ".json", ".yaml", ".yml", ".txt", ".toml", ".cmd", ""}
 NAME_RE = re.compile(r"^(CTO|CMO|CGO|CFO|COO|CXO|ALL|[A-Z]+(?:_[A-Z]+)*)_"
                      r"(Rules|Knowledge|Workflow|Procedure|Standard|Gate|Protocol)_[A-Za-z0-9.]+(?:_[A-Za-z0-9.]+)*$")
 
 
 def token_re(name):
-    return re.compile(r"(?<![A-Za-z0-9_.\-])" + re.escape(name) + r"(?![A-Za-z0-9_\-])")
+    # Not followed by ".<letter>": `scripts/skill-curator.py` is a FILE that shares the skill's name, and the
+    # file is not renamed (measured 2026-09-27 on the phase 3 dry run: skill-curator, spawn-web-designer).
+    # A sentence-ending dot ("… see skill-author.") still matches.
+    return re.compile(r"(?<![A-Za-z0-9_.\-])" + re.escape(name) + r"(?![A-Za-z0-9_\-]|\.[A-Za-z])")
 
 
 def live_files():

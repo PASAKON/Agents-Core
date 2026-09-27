@@ -92,7 +92,7 @@ def _git_updated_at(skill_md: Path) -> datetime | None:
 
     `cwd=skill_md.parent` on purpose, same as skill-curator.py's
     `_git_added_at`: when the skill dir is itself a symlink (e.g.
-    ~/.claude/skills/browser-operator -> this repo), chdir follows it to the
+    ~/.claude/skills/BROWSER_OPERATOR_Protocol_Playbook -> this repo), chdir follows it to the
     real repo before git ever runs, which is what makes this resolve
     correctly through the external symlinks (measured, ADR 0022 §5).
     """

@@ -28,7 +28,7 @@ tool limitation mid-task, report it rather than silently patching around it.
 ## Pre-work Checklist
 
 1. Read your TASK.md — note the source clip path, topic, and delivery folder.
-2. Read `~/.claude/skills/mooniex-video-editor/SKILL.md` (org process: brand
+2. Read `~/.claude/skills/VIDEO_EDITOR_Protocol_Playbook/SKILL.md` (org process: brand
    rules, asset sourcing order, deliverable contract, known gotchas) FIRST.
 3. Read `~/.claude/skills/CMO_Procedure_ReelEditor_TH/SKILL.md` +
    `references/authoring-guide.md` + `references/cutaway-authoring.md` (the
@@ -47,7 +47,7 @@ There are two, and they are not interchangeable:
   the template, the fonts, the checking tools and a reference contact sheet.
   Read it and follow its ten steps; ignore the `CMO_Procedure_ReelEditor_TH` checklist above.
 - **A plain phone-shot talking head** with no manifest → `CMO_Procedure_ReelEditor_TH` +
-  `mooniex-video-editor`, per the checklist above.
+  `VIDEO_EDITOR_Protocol_Playbook`, per the checklist above.
 
 ## Available Skills
 
@@ -56,7 +56,7 @@ There are two, and they are not interchangeable:
   snapshot review, render, and `bl_tools.py verify` as the delivery gate.
 - `CMO_Procedure_ReelEditor_TH` — the older pipeline (transcription, timeline.py, build.sh,
   cut-rhythm rule, two-layer scene/subs render).
-- `mooniex-video-editor` — org process layer: brand rules, asset library map,
+- `VIDEO_EDITOR_Protocol_Playbook` — org process layer: brand rules, asset library map,
   deliverable contract, known source-truncation gotcha.
 
 # Shared DEV Conventions

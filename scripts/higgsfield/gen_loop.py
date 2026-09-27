@@ -366,7 +366,7 @@ def failed_count(page):
 # result in timeout — skip (slow or failed)" for every one of those cases).
 # The JS below returns ONLY the Generate button's label/disabled state plus
 # small regex-matched excerpts — never a full innerText dump
-# (browser-operator SKILL.md §"What each way of looking costs") — bounded
+# (BROWSER_OPERATOR_Protocol_Playbook SKILL.md §"What each way of looking costs") — bounded
 # to <=1500 chars to match config/decisions/browser.page_state.yaml's
 # max_state_chars.
 #

@@ -16,7 +16,7 @@ run, one group at a time, with a human deciding the pacing between runs.
         [--dry-run] [--screenshot path.png]
 
 The dedicated Chrome (profile ~/.fb-automation/chrome-profile, port 9230,
-signed in as Dorsine Gobb — see the browser-operator skill) must already be
+signed in as Dorsine Gobb — see the BROWSER_OPERATOR_Protocol_Playbook skill) must already be
 running. If it has 0 tabs, open one first:
     curl -X PUT 'http://127.0.0.1:9230/json/new?about:blank'
 
@@ -44,7 +44,7 @@ Composer flow, one text box, no wizard steps:
 Caption paste is verified with the same paragraph-level diff as
 tools/fb_reel_post.py (`captions_match`) — a byte-for-byte compare on a
 contenteditable box false-fails because ProseMirror-style editors double
-blank lines in `innerText` (browser-operator skill, task-0250ccdf).
+blank lines in `innerText` (BROWSER_OPERATOR_Protocol_Playbook skill, task-0250ccdf).
 
 Everything except FBGroupBrowser (real Playwright/CDP calls) is pure and
 unit-tested without a browser (tests/test_fb_group_share.py). FBGroupBrowser

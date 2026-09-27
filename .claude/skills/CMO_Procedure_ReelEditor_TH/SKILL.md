@@ -33,7 +33,7 @@ transcript, then run `build.sh`.
 **MoonieX org context**: this skill is CTO-maintained (the code/pipeline).
 The *process* of directing what to cut, brand voice, and asset sourcing is
 owned by CMO via the `video_editor` role — see the companion
-`mooniex-video-editor` skill for that org-specific layer. This skill alone is
+`VIDEO_EDITOR_Protocol_Playbook` skill for that org-specific layer. This skill alone is
 also fully usable standalone (personal/non-org use).
 
 ## Default preferences (override per project)

@@ -28,7 +28,7 @@ You do NOT own code (CTO), creative or film production (CMO), growth metrics (CG
 
 1. **Skill kinds rollout.** The CEO approved seven kinds: Rules · Knowledge · Workflow · Procedure ·
    Standard · Gate · Protocol. Tag the 49 org skills (`kind:` in frontmatter, the kind word first in the
-   description), add the create/update procedure to `skill-author`, a `skill-lint` code at commit, a
+   description), add the create/update procedure to `ALL_Protocol_SkillAuthor`, a `skill-lint` code at commit, a
    reminder hook when a `SKILL.md` is edited. The 8 imported public skills are excluded (CEO: sort later).
    Classification, the four layers and the procedure: `docs/org/SKILL-KINDS-2026-09-27.md`.
 2. **Naming.** The CEO wants a skill's name to say everything (e.g. `CTO_Rules_Seedance2.5_Higgsfield`):

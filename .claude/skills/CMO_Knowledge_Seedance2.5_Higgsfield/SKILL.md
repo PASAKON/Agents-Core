@@ -34,8 +34,8 @@ Only what was measured on Seedance or Higgsfield lives here. How a multi-shot fi
 gate, CAST.md, plates, re-shoot on change, tolerance, prose against reference, prohibitions,
 judging by eye, the continuity check, what the director decides, the A/B entry, workers and money)
 is `CMO_Knowledge_Film_Production`; how a prompt file is laid out is `CMO_Standard_Film_PromptFormat`. Follow
-`browser-operator`'s general discipline (text-first, zoom over screenshots, replay scripts) and
-`dev-spawn-protocol`'s spawn steps first — this skill adds the Higgsfield layer on top. The
+`BROWSER_OPERATOR_Protocol_Playbook`'s general discipline (text-first, zoom over screenshots, replay scripts) and
+`CXO_Protocol_DevSpawn`'s spawn steps first — this skill adds the Higgsfield layer on top. The
 «Sorry, Sir» A/B ledger lives beside this file: `AB-LEDGER.md`.
 
 What it gives any C-level (CTO, CMO, CFO, CGO) driving or delegating Higgsfield video generation:
@@ -459,7 +459,7 @@ for longer than 5 s.
 LAYOUT, and the mobile layout is what you get when the viewport is too narrow. The cause was our
 own window size, not the account.**
 
-What happened: a worker shrank the window (the `browser-operator` skill teaches resizing to
+What happened: a worker shrank the window (the `BROWSER_OPERATOR_Protocol_Playbook` skill teaches resizing to
 1024x768 or smaller to cut screenshot tokens). Below Higgsfield's desktop breakpoint the composer
 re-renders as the mobile version, in which Unlimited does not exist — so React reports
 `freeGens: undefined`, `credits: 0`, the button carries `disabled=""`, and the price can still
@@ -913,7 +913,7 @@ Rules:
 - **If the toggle reads `aria-checked=false` after a click, go straight to a new tab** rather than
   clicking again.
 - Escalation order: hard reload → new tab → STOP and report. Quitting or restarting Chrome is a
-  CTO-only decision (browser-operator HARD rule, 2026-09-07): the window is shared and a restart
+  CTO-only decision (BROWSER_OPERATOR_Protocol_Playbook HARD rule, 2026-09-07): the window is shared and a restart
   wipes every other operator's staged composer. A frozen tab never loses a render — the job lives
   server-side.
 - A tab whose viewport collapsed to the mobile layout: "Desktop width" above.
@@ -1007,7 +1007,7 @@ Paste-only entry, the decoy editor and the three reads are hard rule 6. Beyond t
 
 ### Tab hygiene
 
-Lives in the `browser-operator` skill, under "Tabs — claim what you open, close what you claimed".
+Lives in the `BROWSER_OPERATOR_Protocol_Playbook` skill, under "Tabs — claim what you open, close what you claimed".
 It is not a Higgsfield rule; it was merely found here. The one Higgsfield-specific consequence: the
 stale-`@Video` binding failure ("Attaching a previz" below) only reproduces in a tab that has
 already touched more than one video asset, so a fresh tab per fire is a real defence and not just
@@ -1651,7 +1651,7 @@ nothing. This is purely throughput and scheduling.
 ## Workers, waves and the slot
 
 How to brief a worker, and why its checkout cannot see later commits: `CMO_Knowledge_Film_Production` §12
-and `dev-spawn-protocol`. The rest was measured on Higgsfield waves.
+and `CXO_Protocol_DevSpawn`. The rest was measured on Higgsfield waves.
 
 ### Never let the generation slot sit idle
 
@@ -1945,7 +1945,7 @@ browser_operator:
   task-7b4402d4 (keystroke-timeout auto-fire, Incident 2 above). GH issue #45, #47.
 - Valder wave findings (2026-08-19, `ai-film-festival-3`, project `project_valder_*`): five stalls
   on UI behaviour no brief anticipated; each fix is in the section it belongs to.
-- Related skills: `browser-operator` (generic browser cost-discipline), `dev-spawn-protocol`
+- Related skills: `BROWSER_OPERATOR_Protocol_Playbook` (generic browser cost-discipline), `CXO_Protocol_DevSpawn`
   (generic DEV spawn steps), `CMO_Procedure_Blender_Previz` (the `@Video 1` previz), `CMO_Knowledge_Film_Production` (the
   film), `CMO_Standard_Film_PromptFormat` (the prompt file).
 - Moved here on 2026-09-25 from `higgsfield-unlimited-gen` and `ai-film-production` (both now

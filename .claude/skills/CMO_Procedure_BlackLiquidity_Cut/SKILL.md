@@ -492,7 +492,7 @@ though the script says ten. Call it "2 ตัวแรก" instead.
 **A brand appears on screen in its real spelling, even when the voice reads a
 Thai transliteration.** The script spells `วิกิเอฟเอ็กซ์` so the TTS pronounces
 it right, but the caption shows `WikiFX`. The captions otherwise still follow
-the audio word for word (the BL carve-out in `mooniex-video-editor`); a
+the audio word for word (the BL carve-out in `VIDEO_EDITOR_Protocol_Playbook`); a
 brand's spelling is the one exception. Apply
 `brand-display.yaml` (spoken form → display form) to every caption and text
 block. When a script introduces a brand that has no row yet, add the row

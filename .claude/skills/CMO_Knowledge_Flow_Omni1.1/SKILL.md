@@ -15,7 +15,7 @@ description: >-
   /CMO_Knowledge_Flow_Omni1.1). Before a shoot (what Flow deletes, night, wardrobe, REF_1, the asset sheet,
   props that need an Element) read CMO_Gate_Flow_Omni1.1_Continuity; after a shoot (mechanical audit,
   transcripts, contact sheets) CMO_Gate_Flow_Omni1.1_FilmQC; running a film is CMO_Knowledge_Film_Production; the
-  prompt file is CMO_Standard_Film_PromptFormat. Supplements browser-operator and dev-spawn-protocol. Do NOT
+  prompt file is CMO_Standard_Film_PromptFormat. Supplements BROWSER_OPERATOR_Protocol_Playbook and CXO_Protocol_DevSpawn. Do NOT
   fire for Higgsfield/Seedance (CMO_Knowledge_Seedance2.5_Higgsfield), MiniMax H3 (CMO_Knowledge_MiniMax_H3), Wan3 on
   TopView (CMO_Knowledge_Wan3.0_TopView), fal.ai, Grok or Kling.
 created_by: agent
@@ -84,7 +84,7 @@ Do not point a runner at the Mac's 127.0.0.1:9223.
 
 ## ⛔ Mute the page before you do anything else, and never press play
 
-`browser-operator` carries the rule and the paste-once snippet. Short version:
+`BROWSER_OPERATOR_Protocol_Playbook` carries the rule and the paste-once snippet. Short version:
 **a worker has no ears, so audio is never information — it is only noise in the
 room where the CEO is working.** Silence every Flow page as the first action
 after it loads, not at the moment you press play, and re-run the snippet after

@@ -5,7 +5,7 @@
 #
 # Input state: the smallest sufficient page text — a button's innerText, a
 # refusal card's text, a URL — NOT a screenshot. Extracting that text is the
-# caller's job (javascript_tool per browser-operator skill); this site never
+# caller's job (javascript_tool per BROWSER_OPERATOR_Protocol_Playbook skill); this site never
 # takes an image.
 site: browser.page_state
 question: >-

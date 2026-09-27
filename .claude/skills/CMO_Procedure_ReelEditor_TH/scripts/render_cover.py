@@ -128,7 +128,7 @@ def cover_clean(face_path, out):
     outline_text(d,(W//2,560),"[headline line 2]",fit("[headline line 2]",980,110),WHITE,10)
     outline_text(d,(W//2,700),"[green punch line]",fit("[green punch line]",980,80),GREEN,10)
     # mini checklist card -- ROWS MUST MATCH ONLY WHAT THE SOURCE AUDIO ACTUALLY
-    # CONFIRMS (see mooniex-video-editor SKILL.md "don't invent structure the
+    # CONFIRMS (see VIDEO_EDITOR_Protocol_Playbook SKILL.md "don't invent structure the
     # source audio doesn't support"). Add/remove rows per clip in your workdir copy.
     box=[240,1250,840,1560]
     RC._shadow(img,box,26)

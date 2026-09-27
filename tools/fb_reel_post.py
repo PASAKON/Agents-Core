@@ -6,7 +6,7 @@
 STANDALONE — no Claude in the loop, zero token cost at runtime, same pattern
 as tools/flow_shoot.py: Playwright over CDP against a dedicated Chrome
 (profile ~/.fb-automation/chrome-profile, port 9230, signed in as Dorsine
-Gobb — see the browser-operator skill). Replaces the manual composer flow
+Gobb — see the BROWSER_OPERATOR_Protocol_Playbook skill). Replaces the manual composer flow
 that broke a Reel post twice (docs/reports/banchi-fb-unavailable/REPORT.md,
 banchi-fb-repost2/REPORT.md) by editing it after publish — this script NEVER
 edits a post once published; a fresh run is the only way to change one.
@@ -96,7 +96,7 @@ CAPTION_BOX_ARIA_LABEL = "เขียนในกล่องโต้ตอบ
 def normalize_caption(text: str) -> list[str]:
     """Paragraph-level normalisation: collapse runs of blank lines to one,
     strip leading/trailing blanks. A ProseMirror/contenteditable composer is
-    known to double blank lines in innerText (browser-operator skill, task
+    known to double blank lines in innerText (BROWSER_OPERATOR_Protocol_Playbook skill, task
     0250ccdf) — a byte-for-byte compare false-fails on any multi-paragraph
     caption, so this compares content lines, not raw bytes.
     """

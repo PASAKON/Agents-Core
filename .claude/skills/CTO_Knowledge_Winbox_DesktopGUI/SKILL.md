@@ -47,7 +47,7 @@ four specific traps on this machine.
   copies. Those never touch a window and none of this applies.
 - Browser work driven through a real automation API (CDP/Playwright), where the
   tool reports element state rather than guessing from pixels. Use
-  `browser-operator` for that.
+  `BROWSER_OPERATOR_Protocol_Playbook` for that.
 
 ---
 

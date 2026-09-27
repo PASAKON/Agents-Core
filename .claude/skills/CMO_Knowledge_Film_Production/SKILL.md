@@ -139,7 +139,7 @@ frames, and why B held; written by the reviewer, never the operator. The ledger 
 - **A worktree is frozen at task creation**: anything committed to main afterwards does not exist for it.
   Copy changed files into every live worktree and compare checksums. A worker that refuses an instruction
   because it cannot verify it is behaving correctly (one refused four times, right each time): find out why
-  it cannot see what you can (`dev-spawn-protocol`).
+  it cannot see what you can (`CXO_Protocol_DevSpawn`).
 - **Check delivery, not just generation**: a finished clip once sat uncollected on the platform for two
   hours while everyone believed it was done. Commit every asset id before downloading: ids cannot be
   recovered, files always can.

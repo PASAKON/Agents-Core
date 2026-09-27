@@ -33,7 +33,7 @@
  *    Chrome"`, ~8s to fully spawn helper processes before the extension
  *    reconnects) -- a new tab alone was not tried because the whole
  *    extension connection was down, not just one tab. This is a free,
- *    ordinary repair move per the browser-operator role doc, but it DOES
+ *    ordinary repair move per the BROWSER_OPERATOR_Protocol_Playbook role doc, but it DOES
  *    close every open Chrome tab, including any other task's tabs. If a
  *    task brief says "do not touch/close another task's tab", note that a
  *    full-Chrome-restart recovery unavoidably violates that even though it
@@ -172,7 +172,7 @@
  *     `location.href` unchanged). This is a CDP-screenshot-pipeline-only
  *     stall, not a frozen renderer in the Wave-1 keystroke-freeze sense --
  *     JS execution and DOM state stayed fully live and readable throughout.
- *     Per the browser-operator skill's restart ladder, opened a fresh tab
+ *     Per the BROWSER_OPERATOR_Protocol_Playbook skill's restart ladder, opened a fresh tab
  *     (`tabs_create_mcp`) and navigated it to the same folder URL rather
  *     than doing a full Chrome restart -- the fresh tab's screenshot worked
  *     on the very first try. Closed the stalled tab afterward. **Closing

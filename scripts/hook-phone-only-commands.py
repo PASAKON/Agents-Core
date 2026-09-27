@@ -4,7 +4,7 @@
 CEO ruling 2026-09-26: "ส่งคำสั่งมาที่ terminal.mooniex.com/run ... เขียน Skill
 บังคับใช้ได้เลย ... เพราะฉะนั้นจะรัน command ผ่านมือถือเท่านั้น". The CEO runs
 commands from the phone only, so a `! <command>` line in chat is a step nobody
-can take. Commands go as Run Inbox cards (skill CXO_Run_Inbox, Rule 0).
+can take. Commands go as Run Inbox cards (skill ALL_Protocol_RunInbox, Rule 0).
 
 Reads the transcript, takes every assistant text block written since the last
 real user message (tool results do not count as a user message), and looks for
@@ -30,7 +30,7 @@ INLINE_BANG = re.compile(r"`!\s*[A-Za-z0-9_./~$][^`\n]*`")
 PLAIN_BANG = re.compile(r"^\s*!\s+[A-Za-z./~$]")
 
 REASON = (
-    "Phone-only rule (CEO 2026-09-26, skill CXO_Run_Inbox Rule 0): your reply hands the CEO a "
+    "Phone-only rule (CEO 2026-09-26, skill ALL_Protocol_RunInbox Rule 0): your reply hands the CEO a "
     "`!` command: {hit!r}. The CEO runs commands from the phone only. Send your correction "
     "without any `!` command. On contabo, create a Run Inbox card (tools/ask_run.py create, or "
     "MCP ask_run) and give its id and the /run link. On the Mac or winbox there is no card "

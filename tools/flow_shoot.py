@@ -220,7 +220,7 @@ def is_refusal_text(text: str) -> bool:
 # tests — its two patterns now also live as rules in
 # config/decisions/browser.page_state.yaml). The JS below returns ONLY the
 # submit button's label/disabled state plus small regex-matched excerpts —
-# never a full innerText dump (browser-operator SKILL.md §"What each way of
+# never a full innerText dump (BROWSER_OPERATOR_Protocol_Playbook SKILL.md §"What each way of
 # looking costs") — bounded to <=1500 chars to match
 # config/decisions/browser.page_state.yaml's max_state_chars.
 #

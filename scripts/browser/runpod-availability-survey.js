@@ -22,7 +22,7 @@
  * SETUP
  * ---------------------------------------------------------------------
  * 1. tabs_create_mcp, resize_window to 1024x768 (or smaller — cost table
- *    in the browser-operator skill).
+ *    in the BROWSER_OPERATOR_Protocol_Playbook skill).
  * 2. navigate to https://console.runpod.io/deploy directly — this route
  *    loads fine on a fresh full navigation. `/storage` and `/templates`
  *    do NOT (they 404 / render blank on direct navigate) — the SPA only
