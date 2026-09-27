@@ -514,7 +514,7 @@
 ### SHOT 67 · 8:48–8:56 · Medium close-up, the woman in pink sinking onto an empty rice sack · MILL · D5
 **ACTION** เจ๊พูดใส่โทรศัพท์ **ขณะที่**ค่อยๆ ทรุดนั่งบนกระสอบเปล่า พัดหล่นจากมือ
 **อารมณ์** เจ๊ 4/5 ร้อนรนจนเสียงแตก แล้วหมดแรง
-**บทพูด** เจ๊หงส์ `"ลดให้ครึ่งราคาก็ได้ ฮัลโหล… ฮัลโหล… ทำไมไม่มีใครรับสายฉันเลย"` — pleading, voice cracking, then deflating
+**บทพูด** เจ๊หงส์ `"ลดให้ครึ่งราคาก็ได้ ฮัลโหล… ฮัลโหล… ทำไมไม่มีใครรับสายฉันเลย"` — pleading, voice cracking and deflating
 
 ### SHOT 68 · 8:56–9:04 · Two-shot under the house at the tin trunk, the son holding the red cloth · HOME · D5 · **HOOK @9:00**
 **ACTION** แสนหันไปหาแม่ พูดก่อน **ขณะที่**แม่วางกระติ๊บลง หน้าเริ่มกังวล
