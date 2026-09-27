@@ -2,14 +2,16 @@
 # Runs Claude Code with the Windows-outpost CTO role + Remote Control on,
 # named "WINDOWS CTO #<id>" so the mobile app list says which box this is.
 #
-# Lives in the Agents repo under windows\; deployed to winbox at
-#   C:\Users\UsEr\mooniex\win-cto.ps1   (+ roles\cto-windows.md beside it)
-# via scp from the Mac — re-deploy after edits, there is no git clone on
-# the box in Phase 1.
+# Lives in the Agents repo under windows\. Since 2026-09-27 winbox runs it
+# straight from its git clone (C:\Users\UsEr\mooniex\repo\MoonieX-Agents,
+# `git pull --ff-only` to update); the role is found via ..\roles.
 #
 # Usage:  powershell -ExecutionPolicy Bypass -File win-cto.ps1
-# The Desktop shortcut "WINDOWS CTO" wraps exactly that inside Windows
-# Terminal with a blue tab.
+# The Desktop shortcut "WINDOWS CTO" (OneDrive\Desktop) wraps exactly that
+# inside Windows Terminal with a blue tab, cwd C:\Users\UsEr\mooniex.
+# Never use the clone itself as cwd: its .claude\settings.json carries the
+# Mac hooks, which would fire on every tool call here.
+# First run needs a person at the desk: /login, then accept folder trust.
 
 $ErrorActionPreference = 'Stop'
 
