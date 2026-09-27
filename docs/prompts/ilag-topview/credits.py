@@ -114,12 +114,15 @@ def render_mp4(png, strip_h, path):
     frames = H + strip_h  # from the strip's top at the bottom edge to its bottom past the top edge, 1 px a frame
     seconds = frames / FPS_IN
     subprocess.run([
+        # The strip is decoded ONCE and repeated by the loop filter; "-loop 1" on the image input re-decoded a
+        # 3840x7800 PNG 210 times a second (22 min for 38 s), and with a second job running Contabo ran out of memory.
         "ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"color=c=black:s={W}x{H}:r={FPS_IN}",
-        "-loop", "1", "-framerate", str(FPS_IN), "-i", str(png),
-        "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
-        "-filter_complex", f"[0:v][1:v]overlay=x=(W-w)/2:y='H-n':shortest=0,tmix=frames={BLUR},fps={FPS_OUT},"
+        "-i", str(png), "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+        "-filter_complex", f"[1:v]format=rgb24,loop=loop=-1:size=1:start=0,setpts=N/({FPS_IN}*TB)[s];"
+                           f"[0:v][s]overlay=x=(W-w)/2:y='H-n':shortest=0,tmix=frames={BLUR},fps={FPS_OUT},"
                            "format=yuv420p[v]",
-        "-map", "[v]", "-map", "2:a", "-t", f"{seconds:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "16",
+        "-map", "[v]", "-map", "2:a", "-t", f"{seconds:.3f}", "-threads", "3",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "16",
         "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(path)], check=True)
     return seconds
 

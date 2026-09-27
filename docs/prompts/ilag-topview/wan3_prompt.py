@@ -470,6 +470,44 @@ WAVE_MULTICUT = dict(
 )
 GROUPS["g5w"] = ["x03"]
 
+# CEO 2026-09-27, the last credits (6.8 on a fresh tab; he thought 10): the bookend that opens AND closes the film —
+# black with rain and thunder, lightning reveals the storm sea from high above, a wave crashes over THE THREE RIDERS
+# on THE MOUNT in slow motion, back to black. "ไม่มีบทพูด ไม่มี Background music มีแค่เสียง ... ฟ้าร้อง และฟ้าผ่า".
+# 7 s at 720p + 4K = 6.3 credits, the most that fits. It is the one shot whose sound is not the characters' own.
+STORM_BOOKEND = dict(
+    prefix="x", n=4, slug="the-storm-bookend", title="THE STORM, FROM HIGH ABOVE, IN SLOW MOTION", s=7,
+    grade="DARK", grade_override="DARK_GLOW", lit=True, longtake=True,
+    spec="ONE CONTINUOUS TAKE, NO CUTS, ALL IN SLOW MOTION at about half speed. Straight down and steep from very high "
+         "above the sea, the camera sinks very slowly toward the water; no cut, no zoom.",
+    refs=["@Manta", "@LanternDark", "@Strong", "@Young", "@Elder", "@Waves", "@Turning"],
+    ref_override={"@Manta": MANTA_JOB, "@LanternDark": DEAD_LANTERN_JOB, "@Turning": B.TURNING_IN_CIRCLE,
+                  "@Waves": "THE WAVES: take the colossal walls of dark water, their size and shape, and the violet "
+                            "lightning; not the cyan and magenta glow inside them."},
+    heading="THE STORM. Out of total darkness, lightning shows a vast black storm sea from high above, and a wave as "
+            "big as a hill falls on THE THREE RIDERS on THE MOUNT, tiny inside the child's gold light.",
+    frame="From very high above, looking steeply down: black heaving water filling the frame, huge waves marching "
+          "across it; THE MOUNT a tiny shape near the centre with THE THREE RIDERS on its seat inside a small circle "
+          "of gold light.",
+    state=MOUNT_SEEN + " " + B.WET,
+    light_extra="The only other light: violet lightning, a few flashes, each lighting the whole sea for an instant.",
+    particles="sheets of rain falling toward the sea, spray torn off the crests, foam hanging in the air in slow motion.",
+    beats=["[0s] The frame is completely black; only rain and far thunder are heard.",
+           "[1s] A flash of violet lightning lights everything for an instant: from very high above, a vast black storm "
+                 "sea with huge waves marching across it, and near the centre THE MOUNT, tiny, THE THREE RIDERS "
+                 "holding on, THE YOUNG ONE's small gold glow around them. GLOW",
+           "[3s] In slow motion a colossal wave rears up beside them, taller than a hill, its crest curling over the "
+                 "small circle of gold light.",
+           "[4.5s] Another flash of lightning. The wave falls on THE MOUNT and THE THREE RIDERS in slow motion, spray "
+                   "and foam exploding up toward the camera; the gold light vanishes under the water.",
+           "[6s] Darkness returns; the frame goes completely black and stays black to the end."],
+    sound_line="Sound: only the storm — heavy rain, rolling thunder and the crack of each lightning strike. No voices, "
+               "no words, no music, no score.",
+    crit=B.NO_WORDS + ", no music, no score, no cut, no boat, no raft, no rock, no lit lamp, no cyan or magenta glow in "
+         "the water, no light wider than 2 metres around the child except the lightning, no text, no split screen, "
+         + NO_HUMANS,
+)
+GROUPS["g10"] = ["x04"]
+
 # CEO 2026-09-27: B-roll with the last ~35 credits — "B-roll + ตัวละคร + Prop + Location ไม่มีบทพูด ไม่มี Sound Music เน้นกิจกรรม
 # ธรรมชาติ ความแปลกใหม่ ความอลังการ หลายๆ มุม ... แบบ LongTake". Plan ก approved: four 8-s long takes, each a different
 # camera (low drone climb, deep water looking up, extreme wide flying, macro). All four sit before the crossing, so the
@@ -565,7 +603,7 @@ GROUPS["g9p"] = ["r03"]
 GROUP_LENGTHS = {"g5": {"n06": 7, "n07": 13, "n13": 10},
                  # the spot refires: G5's own lengths, the wave cut to 10 s and the waking to 9 s
                  "g5a": {"n06": 7}, "g5b": {"n07": 10}, "g5c": {"n13": 9}}
-GROUP_NATURAL = {"g7", "g8", "g9", "g9c", "g9p", "g5w", "b1", "b2", "b3", "b4"}  # paid: no stretch, fewer seconds, fewer credits
+GROUP_NATURAL = {"g7", "g8", "g9", "g9c", "g9p", "g5w", "b1", "b2", "b3", "b4", "g10"}  # paid: no stretch, fewer seconds, fewer credits
 MOOD = {
     "n02": ("MOOD: the start of the most fantastical passage of the film, as if they slip into a fairy tale. From the "
             "moment THE MOUNT passes under the surface the shot runs in slow motion, about half speed: silver bubbles, "
@@ -658,6 +696,7 @@ def render_group(scs, style, gkey=None):
             sec.append("EACH CHARACTER, ALL THROUGH THE SHOT (each busy with their own action, never all the same):\n"
                        + "\n".join("- " + a for a in sc["actions"]))
         sec += ["WHAT HAPPENS:\n" + "\n".join(beats),
+                sc.get("sound_line") or
                 f"Sound in this shot: only the sounds the characters make themselves: {snd}. No music, no ambient sound.",
                 B.GRADE[sc.get("grade_override", sc["grade"])],
                 # CEO 2026-09-26 ("No Music แบบ Seedance"): the house-negatives wall is dropped for Wan3, so its music
@@ -689,6 +728,7 @@ def main():
     by_key["r02"] = RUN_COVER
     by_key["r03"] = RUN_PARKOUR
     by_key["x03"] = WAVE_MULTICUT
+    by_key["x04"] = STORM_BOOKEND
     for sc in BROLL:
         by_key[tag(sc)] = sc
     for k in a.keys:
