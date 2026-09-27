@@ -147,12 +147,13 @@ _META = {
      'oranges roll across the red dirt, raises both palms and backs away step by step; the '
      'instant she finishes, he stumbles over an orange and stammers while he answers, both '
      'hands still raised', _N),
- 13: (8, 'Close-up on the son reading the land-office notice about buying back the family rice field, the paper edge-on to camera',
+ 13: (8, 'Close-up on the son turning to his mother, a folded paper in his hand',
      ['sa_c', 'kp1'], 'home', T1,
-     'the young man in the white T-shirt, face drained, eyes welling, reads the land-office notice about the rice field aloud '
-     'with both hands shaking so hard the paper rattles, lips quivering, and on the last words'
-     ' he presses the notice to his chest as his face collapses into tears while he '
-     'speaks; the whole time he reads, behind him the woman in the indigo blouse, trembling, '
+     'the young man in the white T-shirt, face drained, eyes welling, turns to his mother '
+     'holding a folded paper down at his side in a shaking hand, lips quivering, and on the '
+     'last words he presses the folded paper to his chest as his face collapses into tears '
+     'while he speaks; the whole time he talks the woman in the indigo blouse, her '
+     'red-and-white checked cloth still wrapped around her head like a turban, trembling, '
      'presses both hands over her mouth, shakes her head slowly and sways on her feet', _N + ['noletter', 'nocash']),
  14: (8, 'Medium, the son on his knees in the red dust',
      ['sa_c', 'kp1'], 'home', T1,
@@ -256,7 +257,7 @@ DIRECTION = {
  (11, 'sa_c'): 'cheerful and loud, grinning with dimples, waving the bag of oranges high, the grin sliding off his face at the end',
  (12, 'kp1'): 'furious and heartbroken, screaming through tears, shaking the empty cloth in his face',
  (12, 'sa_c'): 'panicked and stammering, palms raised, backing away, voice climbing',
- (13, 'sa_c'): 'reading the notice aloud, voice cracking apart, tears spilling, pressing it to his chest on the apology',
+ (13, 'sa_c'): 'voice cracking apart, tears spilling, pressing the paper to his chest on the apology',
  (14, 'sa_c'): 'confessing through heavy sobs, pounding the dirt with his fists, voice cracking',
  (15, 'kp1'): 'shouting in raw rage, eyes red, shaking him hard on every word',
  (16, 'sa_c'): 'sobbing so hard the words break apart, wringing his hands, forcing out the truth',
