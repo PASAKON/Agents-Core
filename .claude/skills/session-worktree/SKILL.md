@@ -1,5 +1,6 @@
 ---
 name: session-worktree
+kind: protocol
 owner: CTO
 origin: mooniex-org
 scope: >-
@@ -10,7 +11,7 @@ scope: >-
   tool republishes one link per session. Chat gets a short status block, a plain
   recap and the link — never the picture, never the full tree unless asked.
   Absorbed the former /session-summary. Enforces the §35 one-problem view.
-description: Show what this session has done, is doing, is blocked on, and has left — a session map (Artifact link) plus a short status block and a plain recap. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอแผนที่ session", "ขอ diagram session". Do NOT fire at /session-open or on your own — the map exists only once the CEO asks for a worktree.
+description: PROTOCOL — Show what this session has done, is doing, is blocked on, and has left — a session map (Artifact link) plus a short status block and a plain recap. Trigger on /session-worktree and when the CEO asks "ทำถึงไหนแล้ว", "เหลืออะไร", "ติด blocker ตรงไหน", "สรุป session", "อธิบายแบบบ้านๆ", "progress", "where are we", "recap", "ขอแผนที่ session", "ขอ diagram session". Do NOT fire at /session-open or on your own — the map exists only once the CEO asks for a worktree.
 created_by: human
 audience: [cxo]
 ---

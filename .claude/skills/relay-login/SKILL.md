@@ -1,5 +1,6 @@
 ---
 name: relay-login
+kind: protocol
 owner: CTO
 origin: mooniex-org
 scope: >-
@@ -9,7 +10,7 @@ scope: >-
   to tap, and recording a page pattern once so the next visit needs no one.
   Not for driving a browser yourself (that is BROWSER_OPERATOR_Protocol_Playbook) and not for
   deciding whether a login is needed.
-description: Get a login done by the CEO from his phone via the Console login relay. Trigger on /relay-login, "login relay", "ให้ CEO login", "ขอ login", "session หมดอายุ", "cookie หมดอายุ", "ต้อง login ใหม่", "QR login", or whenever a task is blocked on a browser login on any machine. Use instead of asking the CEO to type a code into chat, and instead of taking the CEO's desk browser.
+description: PROTOCOL — Get a login done by the CEO from his phone via the Console login relay. Trigger on /relay-login, "login relay", "ให้ CEO login", "ขอ login", "session หมดอายุ", "cookie หมดอายุ", "ต้อง login ใหม่", "QR login", or whenever a task is blocked on a browser login on any machine. Use instead of asking the CEO to type a code into chat, and instead of taking the CEO's desk browser.
 created_by: agent
 author: CTO
 audience: [cto, cxo, browser_operator, devops_engineer, developer, qa]

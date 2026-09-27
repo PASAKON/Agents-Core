@@ -1,5 +1,6 @@
 ---
 name: session-close
+kind: gate
 owner: CTO
 origin: mooniex-org
 scope: >-
@@ -8,7 +9,7 @@ scope: >-
   unmet DoD it records force_saved (closed unfinished, flagged loud) instead of
   refusing — STAY OPEN is the CEO's explicit "still working" choice. Enforces
   IRON-RULES §35. Companion to session-open.
-description: Verify a session's Entry Problem is actually solved before closing it 🏁. Trigger on /session-close and when the CEO says "ปิด session", "จบงาน", "พอแค่นี้", "close out", "done for now".
+description: GATE — Verify a session's Entry Problem is actually solved before closing it 🏁. Trigger on /session-close and when the CEO says "ปิด session", "จบงาน", "พอแค่นี้", "close out", "done for now".
 created_by: human
 audience: [cxo]
 ---

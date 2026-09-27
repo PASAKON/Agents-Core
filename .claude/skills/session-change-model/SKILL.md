@@ -1,5 +1,6 @@
 ---
 name: session-change-model
+kind: protocol
 owner: CTO
 origin: mooniex-org
 scope: >-
@@ -9,7 +10,7 @@ scope: >-
   the assistant switch its own model, and /model keeps the full session
   history. Shared by CTO/CFO/CGO/CMO. Tier table in
   decisions/0009-model-routing-policy.md.
-description: Put a C-level session back on the org standard model (Opus 5.5 1M @ xhigh) when it is running lighter, and wait for CEO confirmation. Trigger on /session-change-model, when a C-level notices it is on Sonnet/an older Opus/GLM (old launcher, restart onto a stale default, a /model downgrade), or when a new model ships and the CEO asks to move to it.
+description: PROTOCOL — Put a C-level session back on the org standard model (Opus 5.5 1M @ xhigh) when it is running lighter, and wait for CEO confirmation. Trigger on /session-change-model, when a C-level notices it is on Sonnet/an older Opus/GLM (old launcher, restart onto a stale default, a /model downgrade), or when a new model ships and the CEO asks to move to it.
 created_by: human
 audience: [cxo]
 ---
