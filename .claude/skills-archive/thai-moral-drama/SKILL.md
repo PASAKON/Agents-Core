@@ -7,6 +7,8 @@ description: >-
   CTO_Flow_Omni1.1_Continuity, text, voices and prompt-over-reference to CTO_Flow_Omni1.1_Ops; the
   episode cover notes to CTO_ChatGPT-Image_LakornCover. This stub only keeps the old name's links and
   the Mac symlink row alive; read the new skill, not this file.
+lifecycle: archived
+archived_at: "2026-09-27T14:40:36.983839+00:00"
 ---
 
 # thai-moral-drama → moved (CEO 2026-09-25: film skills are named by engine or subject)

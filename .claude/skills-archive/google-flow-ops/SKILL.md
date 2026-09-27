@@ -7,6 +7,8 @@ description: >-
   CTO_Flow_Omni1.1_Continuity (what Flow deletes, night, wardrobe, REF_1, the asset sheet, props that
   need an Element); after a shoot CTO_Flow_Omni1.1_FilmQC (mechanical audit, transcripts). This stub
   only keeps the old name's links alive; read the new skills, not this file.
+lifecycle: archived
+archived_at: "2026-09-27T14:40:36.983839+00:00"
 ---
 
 # google-flow-ops → moved (CEO 2026-09-25: film skills are named by engine)

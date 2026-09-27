@@ -7,6 +7,8 @@ description: >-
   links alive.
 created_by: human
 audience: [cxo]
+lifecycle: archived
+archived_at: "2026-09-27T14:40:36.983839+00:00"
 ---
 
 # MOVED — split by engine (2026-09-25)
