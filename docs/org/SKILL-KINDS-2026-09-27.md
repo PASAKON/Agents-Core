@@ -58,6 +58,34 @@ artefact proving the old rule cannot work (ADR 0026) · (2) edit the owner skill
 (3) Knowledge: bump `verified:` · (4) a superseded rule keeps its old line with the evidence · (5) a skill
 growing a second kind is split · (6) commit `skill(<name>): note|rule|flip — … — evidence …`.
 
+## A skill that mixes Rules and Knowledge (CEO question 2026-09-27; CTO recommendation, pending his OK)
+
+**Test for each rule inside a Knowledge skill: "if we stopped using this platform tomorrow, would the rule
+still be true?"**
+- **No** — the rule exists because of how that platform behaves (never click Rerun on Higgsfield: it fires at
+  once and bills). Keep it inside the Knowledge skill as a `HARD` line with `Why hard:` (ADR 0022 §7). Split
+  off, it loses the fact that explains it, and an agent who opens the platform skill must meet it there.
+- **Yes** — it is an org rule (ask the CEO with the exact amount before any paid generation). It moves to ONE
+  Rules skill and the Knowledge skills keep a one-line pointer.
+
+**The kind of a mixed skill is its main content — why an agent opens it.** Seedance with 14 platform-bound HARD
+rules is Knowledge, correctly. Split a skill in two only when (a) a rule is org-wide and repeated elsewhere,
+(b) the file is so large that its rules are buried, or (c) one part changes weekly and the other almost never.
+
+**Measured 2026-09-27:**
+- The money gate is written separately in about 9 skills (Seedance 4 places, Flow 3, gdrive-filing 2, Wan3,
+  H3, Film_Production, mooniex-finance, browser-operator, blender-previz). Proposal: one `ALL_Rules_Approvals`
+  holding the CEO's 2026-09-27 ruling (money and secrets need the CEO; deploy is the CTO's call; cross-lane
+  skill use without asking), and pointers where the copies are.
+- `gdrive-filing` (1,110 lines) is Rules on top, then ~420 lines of folder tree and ID table (data that changes
+  every week) and two procedures (bulk transfer, the bridge). Proposal: `CXO_Rules_GDrive_Filing` (the rules +
+  YT: ILAG rules), `CXO_Knowledge_GDrive_FolderMap` (tree and IDs, ideally generated from Drive),
+  `CXO_Procedure_GDrive_BulkTransfer`.
+- `CTO_Seedance2.5_Higgsfield` (1,953 lines, 14 HARD) and `CTO_Flow_Omni1.1_Ops` (1,814) are Knowledge with
+  platform-bound rules: right kind, but too big; if split, split by topic (money and plans / operating the UI /
+  the scanner), not by kind.
+- `browser-operator` (681 lines, 5 HARD) is a role playbook (Protocol); its rules are the role's discipline. Keep.
+
 ## Findings to act on
 
 - Only one Workflow exists: BLACK LIQUIDITY episode, ละครสั้นคุณธรรม on Flow and YouTube posting/replies have none.
