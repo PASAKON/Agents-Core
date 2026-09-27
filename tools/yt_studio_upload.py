@@ -18,6 +18,19 @@ def say(*a):
     print(time.strftime("%H:%M:%S"), *a, flush=True)
 
 
+def set_file_local(page, selector, path):
+    """Point a file input at a file on the BROWSER's disk. Playwright's set_input_files refuses files over 50 MB when
+    connected over CDP ("not co-located", measured 2026-09-27 with a 1.2 GB video on the same machine); CDP's
+    DOM.setFileInputFiles makes Chrome read the path itself, so nothing is transferred."""
+    cdp = page.context.new_cdp_session(page)
+    root = cdp.send("DOM.getDocument", {"depth": -1, "pierce": True})["root"]["nodeId"]
+    node = cdp.send("DOM.querySelector", {"nodeId": root, "selector": selector})["nodeId"]
+    if not node:
+        raise SystemExit(f"STOP: no {selector}")
+    cdp.send("DOM.setFileInputFiles", {"files": [path], "nodeId": node})
+    cdp.detach()
+
+
 def fill_box(page, sel, text):
     box = page.locator(sel).first
     box.click()
@@ -67,7 +80,7 @@ def main():
 
         page.locator("#upload-icon").first.click()
         time.sleep(4)
-        page.locator("input[type=file]").first.set_input_files(a.video)
+        set_file_local(page, "input[type=file]", a.video)
         say("file chosen:", a.video)
         page.wait_for_selector("#title-textarea #textbox", timeout=120000)
         time.sleep(3)
