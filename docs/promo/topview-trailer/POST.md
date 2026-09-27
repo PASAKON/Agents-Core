@@ -29,6 +29,13 @@ alien ocean, sci-fi, AI animation
 **Other fields:** not made for kids · altered/synthetic content: Yes (every frame is generated; disclosed, not
 hidden) · captions: THE-SHADOW-BELOW.en.srt (English) · thumbnail: cover A (TSB-Cover-A-Shadow-v2-1280x720.jpg) ·
 Test & Compare: A (his pick, dark mystery), C (a face), D (the one bright cover) — YouTube allows three, and B is the closest to A; needs the channel's advanced features.
+The first test (09-27 morning) came out A / C / A: slot 1 is pre-filled with the current thumbnail and A was added
+again. Replaced 09-27 18:06 with A / D / C, each variant matched to its file by pixels.
+
+**Video v2 (2026-09-27 evening):** the CEO's CapCut cut already ends with its own credits roll + music (the fade
+reaches digital silence on its last frame, 4:35:24); v1 appended our roll a second time, silent (4:35:24 → 5:23:10).
+YouTube: trimmed in the Studio editor (same URL, permanent). TopView: the entry's video replaced with
+THE-SHADOW-BELOW-4K-topview-v2.mp4 (8274 frames, 275.800 s, 350.5 MB).
 
 ## TopView form (https://www.topview.ai/activity/topview-wan3-challenge, form v7)
 
