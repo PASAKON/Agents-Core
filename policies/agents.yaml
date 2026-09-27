@@ -76,6 +76,23 @@ roles:
     can_delete_branch: true
     skills_profile: all
 
+  # Created 2026-09-27 (CEO: 'ตั้ง COO ให้เลย'); role doc roles/coo.md.
+  # Same powers as the other C-levels. Adding a C-level is this entry plus
+  # its key in `c_level` below -- the code reads the roster from there
+  # (lib/roles.py); tests/test_c_level_roles.py fails if any spot misses it.
+  coo:
+    display: COO
+    level: c
+    model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
+    fallback_model: "claude-fable-5"
+    effort: "xhigh"
+    can_write_wiki: true
+    can_create_task: true
+    can_merge: true
+    can_push: true
+    can_delete_branch: true
+    skills_profile: all
+
   developer:
     display: Developer
     level: w
@@ -231,4 +248,4 @@ roles:
     workspace_only: true
     skills_profile: worker-baseline
 
-c_level: [ceo, cto, cmo, cgo, cfo]
+c_level: [ceo, cto, cmo, cgo, cfo, coo]

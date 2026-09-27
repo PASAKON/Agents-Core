@@ -555,7 +555,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
     ToolSpec(
         name="send_to_cxo",
         description=(
-            "Send a message into another C-level's (cto/cmo/cgo/cfo) live "
+            "Send a message into another C-level's (cto/cmo/cgo/cfo/coo) live "
             "chat tab -- e.g. CTO asking CFO for a budget approval, or CMO "
             "asking CGO for an attribution check. Sender is auto-detected "
             "from this session's role; a role-mismatched call is rejected. "

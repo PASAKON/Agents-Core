@@ -19,18 +19,24 @@ The fix is structural: the lock basename and the tmux session name must be the
 SAME string. This module is the single derivation of that rule, so the two
 launchers (which name tmux), the GC tool (which classifies the halves), and the
 tests cannot drift to three different answers. ``tools/session_cap`` keeps its
-own narrower ROLES (it deliberately does not count ``cgo``); the wider set here
-covers every role the spawn machinery can produce, so a ``cgo`` orphan is still
-detectable by the GC even though it is invisible to the cap.
+own narrower ROLES (it deliberately does not count ``cgo`` or ``coo``); the
+wider set here covers every role the spawn machinery can produce, so a ``cgo``
+or ``coo`` orphan is still detectable by the GC even though it is invisible to
+the cap.
 """
 from __future__ import annotations
 
 import re
 
-# Every role scripts/spawn-cxo.sh + scripts/cxo-claude.sh can launch. Wider
-# than session_cap.ROLES on purpose: the cap counts cto/cmo/cfo/cxo only, but
-# the GC must still reconcile a cgo session whose halves have drifted.
-ROLES = ("cto", "cmo", "cgo", "cfo", "cxo")
+from lib.roles import c_level_roles
+
+# Every role scripts/spawn-cxo.sh + scripts/cxo-claude.sh can launch: the
+# C-level roster from policies/agents.yaml (lib/roles.py -- import-light, this
+# module is loaded by the system python3 via tools.session_gc) plus the generic
+# ``cxo`` prefix. Wider than session_cap.ROLES on purpose: the cap counts
+# cto/cmo/cfo/cxo only, but the GC must still reconcile a cgo or coo session
+# whose halves have drifted.
+ROLES = (*c_level_roles(), "cxo")
 
 ROLE_RE = re.compile(rf"^({'|'.join(ROLES)})-(.+)$")
 

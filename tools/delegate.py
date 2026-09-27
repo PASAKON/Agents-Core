@@ -413,7 +413,7 @@ def _owner_window_id(owner_cto: str | None,
     unreadable. Matching by id is immune to the session-name flicker
     that makes name-based AppleScript matches misroute DEV tabs, and
     (since the id is a unique uuid4-hex8 per session) works correctly
-    with multiple CTO — or multiple CFO/CMO/CGO — sessions open at once.
+    with multiple CTO — or multiple CFO/CMO/CGO/COO — sessions open at once.
     """
     if not owner_cto:
         return None
@@ -445,7 +445,7 @@ def _build_spawn_applescript(cmd: str, task_id: str,
          cto-claude.sh / cxo-claude.sh) → immune to title flicker.
       3. Window owning `<DISPLAY> Chat #<owner_cto>` / `<DISPLAY> #<owner_cto>`
          (legacy and live-summary title formats, IRON-RULES §32), where
-         `<DISPLAY>` is CTO/CFO/CMO/CGO per `owner_role` — every C-level's
+         `<DISPLAY>` is CTO/CFO/CMO/CGO/COO per `owner_role` — every C-level's
          spawns (any worker role: dev/qa/devops/designer/...) cluster
          under ITS OWN window, not just CTO's. The session id in the
          match is what keeps multiple concurrent sessions of the same
@@ -618,7 +618,7 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
     attach the same session simultaneously for two-way realtime sync.
 
     `owner_cto` + `owner_role`: stamped into env WORKER_CTO_ID and used to
-    pick the owning C-level's window (CTO/CFO/CMO/CGO, per `owner_role`)
+    pick the owning C-level's window (CTO/CFO/CMO/CGO/COO, per `owner_role`)
     so spawns of ANY worker role cluster under their spawning session,
     not just under CTO. With multiple sessions of the same role open
     (e.g. two CTOs), the session id prevents tabs landing in the wrong

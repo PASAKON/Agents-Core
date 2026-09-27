@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch Claude Code CLI with any C-level role (cto/cmo/cgo/cfo) + org MCP server.
+# Launch Claude Code CLI with any C-level role (cto/cmo/cgo/cfo/coo) + org MCP server.
 # Generalization of cto-claude.sh — all C-levels share the same MCP toolset
 # (powers granted in policies/agents.yaml) and only differ in role doc +
 # tab title + lock file prefix.
@@ -18,6 +18,14 @@
 #                             runners/worker_init.py's kickoff uses. Never typed.
 #   --tab-title <title>       Override the default tab title
 #                             ("$DISPLAY #$CXO_SESSION_ID").
+#
+# Check-only:
+#   --dry-run                 Validate the role (role doc, `c_level` in
+#                             policies/agents.yaml, model/effort) and build its
+#                             MCP set + tool allowlist, print them, and exit 0
+#                             -- before any lock, DB row, tmux or claude. For
+#                             proving a new role is wired without starting a
+#                             session (COO, 2026-09-27).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,6 +34,7 @@ ROLE=""
 SESSION_OVERRIDE=""
 INITIAL_PROMPT=""
 TAB_TITLE_OVERRIDE=""
+DRY_RUN=0
 ARGS=()
 prev=""
 for a in "$@"; do
@@ -46,12 +55,13 @@ for a in "$@"; do
     --session)        prev="--session" ;;
     --initial-prompt) prev="--initial-prompt" ;;
     --tab-title)      prev="--tab-title" ;;
+    --dry-run)        DRY_RUN=1 ;;
     *)                ARGS+=("$a") ;;
   esac
 done
 
 if [ -z "$ROLE" ]; then
-  echo "usage: cxo-claude.sh --role <cto|cmo|cgo|cfo> [claude args...]" >&2
+  echo "usage: cxo-claude.sh --role <cto|cmo|cgo|cfo|coo> [--dry-run] [claude args...]" >&2
   exit 2
 fi
 
@@ -103,9 +113,20 @@ python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "$ROOT" --ou
 # Tool whitelist for THIS role, derived from the same generator that emitted
 # the server set above. C-levels share org powers (agents.yaml) but not their
 # server sets — CMO has meigen/meta-ads where CFO has supabase — so one
-# hardcoded string could never be right for all four, and the one that used to
+# hardcoded string could never be right for every role, and the one that used to
 # live here covered org + lungnote only. See cto-claude.sh for the full note.
 ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "$ROOT" --print-allowed)"
+
+# --dry-run stops here: everything above only reads and validates (the temp MCP
+# config is its one file, removed now); everything below writes locks, rows in
+# c_level_sessions, tab state, and starts claude.
+if [ "$DRY_RUN" = "1" ]; then
+  rm -f "$MCP_CONFIG"
+  echo "dry-run: role=$ROLE display=$DISPLAY model=$MODEL effort=$EFFORT"
+  echo "dry-run: allowed-tools=$ALLOWED"
+  echo "dry-run: stopped before lock / session registration / claude"
+  exit 0
+fi
 
 cd "$ROOT"
 

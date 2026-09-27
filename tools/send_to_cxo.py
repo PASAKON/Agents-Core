@@ -1,6 +1,6 @@
 """C-level cross-talk: queue a message into another C-level's mailbox.
 
-The sender (typically CTO/CMO/CGO/CFO acting on a request from CEO)
+The sender (typically CTO/CMO/CGO/CFO/COO acting on a request from CEO)
 needs to ask a sibling C-level to do something (e.g. CTO → CFO for a
 budget approval, CMO → CGO for an attribution check). This mirrors
 `tools/send_to_worker.py` but targets C-level boxes identified by role +
@@ -39,7 +39,8 @@ Usage:
     python -m tools.send_to_cxo --from cgo cfo "ROAS hit 4.2 — request +$1k uplift"
     python -m tools.send_to_cxo --spawn cfo "budget review needed"
 
-`<role>` = target C-level (cto|cmo|cgo|cfo).
+`<role>` = target C-level (cto|cmo|cgo|cfo|coo -- the `c_level` roster in
+policies/agents.yaml, via lib/roles.py).
 Sender role auto-detected from $CXO_ROLE env when invoked from within a
 C-level chat tab; falls back to "CEO" when nothing is set.
 
@@ -83,6 +84,7 @@ from lib import db
 from lib import mailbox
 from lib import notify
 from lib.config import display_for, is_c_level
+from lib.roles import c_level_roles
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
@@ -454,7 +456,7 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
     """
     if not is_c_level(role):
         raise ValueError(
-            f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
+            f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
     sender_identity = current_identity()
     authorize(sender_identity, role, None, spawning=True)
@@ -564,7 +566,7 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     """
     if not is_c_level(role):
         raise ValueError(
-            f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
+            f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
     sid = _active_session_id(role)
     if not sid:
@@ -583,6 +585,13 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
 
 
+def _usage() -> str:
+    return (
+        'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] <target_role> "<message>"\n'
+        f"  <target_role>: {'|'.join(c_level_roles())}"
+    )
+
+
 def main() -> int:
     argv = sys.argv[1:]
     sender_override = None
@@ -592,6 +601,9 @@ def main() -> int:
     i = 0
     while i < len(argv):
         a = argv[i]
+        if a in ("-h", "--help"):
+            print(_usage())
+            return 0
         if a == "--spawn":
             do_spawn = True
         elif a == "--from":
@@ -607,10 +619,7 @@ def main() -> int:
     argv = remaining
 
     if len(argv) < 2:
-        print(
-            'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] <target_role> "<message>"',
-            file=sys.stderr,
-        )
+        print(_usage(), file=sys.stderr)
         return 1
     role, message = argv[0], argv[1]
     try:

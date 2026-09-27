@@ -84,7 +84,7 @@ class Identity:
     """A node in the ownership graph: a C-level session or a DEV task."""
 
     kind: str  # "cxo" | "dev" | "ceo" | "secretary"
-    role: str  # cto/cmo/cgo/cfo for "cxo"; the DEV role key for "dev"
+    role: str  # cto/cmo/cgo/cfo/coo for "cxo"; the DEV role key for "dev"
     session_id: str | None  # session id ("cxo") or task_id ("dev"); None for "ceo"
 
     def label(self) -> str:

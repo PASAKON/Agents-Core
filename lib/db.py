@@ -148,7 +148,7 @@ _MIGRATION_COLUMNS = [
     # of how costly a mistake would be, which is what this expresses
     # (CEO 2026-08-10).
     ("model_hint", "TEXT"),
-    # owning C-level role (cto/cfo/cmo/cgo) — picks which <role>-<id>.winid
+    # owning C-level role (cto/cfo/cmo/cgo/coo) — picks which <role>-<id>.winid
     # lock send_to_cto reads so CXO-spawned reports land in the CXO's tab,
     # not a CTO tab. NULL on pre-migration rows (routing falls back to cto).
     ("owner_role", "TEXT"),

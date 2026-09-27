@@ -99,6 +99,12 @@ ROLE_SERVERS: dict[str, tuple[str, ...]] = {
     "cfo": BASE_SERVERS + ("supabase",),
     "cgo": BASE_SERVERS + ("supabase", "meta-ads-135"),
     "cmo": BASE_SERVERS + ("meta-ads-135", "meigen"),
+    # COO (2026-09-27): portfolio + routing + the org's own operating system.
+    # BASE covers the whole job -- org (tasks, wiki, send_to_cxo, stats,
+    # recall) and lungnote (deadlines, todos). No supabase (data is the
+    # CTO/CFO lane), no meta-ads (CGO/CMO), no meigen (creative, CMO); and
+    # mooniex-coord stays opt-in as for everyone (CXO_EXTRA_MCP).
+    "coo": BASE_SERVERS,
 }
 
 # Tools each server contributes to --allowed-tools, WITHOUT the mcp__<server>__

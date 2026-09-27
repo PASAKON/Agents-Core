@@ -16,7 +16,7 @@ from tools.itermtab import close_session  # noqa: E402
 def _cli() -> int:
     import argparse
     p = argparse.ArgumentParser(description="Close an ID-locked CXO iTerm tab.")
-    p.add_argument("--role", required=True, help="C-level role (cto/cmo/cgo/cfo)")
+    p.add_argument("--role", required=True, help="C-level role (cto/cmo/cgo/cfo/coo)")
     p.add_argument("--session", required=True, help="Session ID (matches lock file name)")
     args = p.parse_args()
     ok = close_session(args.role, args.session)
