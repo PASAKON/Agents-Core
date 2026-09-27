@@ -23,10 +23,7 @@ _c = _a._c
 CHAR, WARDROBE, VOICE, LANG, LOC, NOT, PROP_FOR_NOT = (
     _a.CHAR, _a.WARDROBE, _a.VOICE, _a.LANG, _a.LOC, _a.NOT, _a.PROP_FOR_NOT)
 
-STYLE = (_a.STYLE + " Big, lively, theatrical Thai lakorn acting with no dead moments: from the "
-         "first frame to the last, every person in frame keeps moving and keeps doing their own "
-         "task; whoever is listening reacts with face, hands and body to every phrase and never "
-         "stands still waiting for their turn.")
+STYLE = _c.STYLE_ACTING  # identical text to what was shot 2026-09-27 (moved to ep4-common)
 
 PROPS_BY_SHOT = {n: h for n, h in _a.PROPS_BY_SHOT.items() if n <= 5}
 

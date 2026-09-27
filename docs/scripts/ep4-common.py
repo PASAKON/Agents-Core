@@ -20,6 +20,11 @@ from pathlib import Path
 STYLE = ("Contemporary Thai realist drama, vertical 9:16, shot on 35mm, bright natural "
          "daylight in a rice-farming village in Northeast Thailand (Isan) at harvest time, "
          "strong expressive acting, faces clearly readable.")
+# Overflow acting (CEO 2026-09-27, story skill §Overflow acting): the one ensemble rule for every shot.
+STYLE_ACTING = (STYLE + " Big, lively, theatrical Thai lakorn acting with no dead moments: from the "
+                "first frame to the last, every person in frame keeps moving and keeps doing their own "
+                "task; whoever is listening reacts with face, hands and body to every phrase and never "
+                "stands still waiting for their turn.")
 
 _KP = ("a strong, wiry Thai woman of fifty-five from Northeast Thailand with high cheekbones, a "
        "firm square jaw, deep laugh lines, very dark sun-baked skin and fingertips permanently "
@@ -201,3 +206,16 @@ def build_shots(meta):
             spoken.append((key, direction, line))
         shots.append((n, secs, framing, chars, loc, tod, action, spoken, nots))
     return shots
+
+
+def apply_directions(shots, direction):
+    """Overflow acting: replace every spoken direction with the (shot, speaker) entry in `direction`.
+    Strict: a spoken line with no entry stops the build, so no line is left at the script's flat reading."""
+    out = []
+    for (n, secs, framing, chars, loc, tod, action, spoken, nots) in shots:
+        missing = [k for k, _d, _l in spoken if (n, k) not in direction]
+        if missing:
+            raise SystemExit(f"shot {n}: no overflow-acting direction for {missing}")
+        spoken = [(k, direction[(n, k)], line) for k, _d, line in spoken]
+        out.append((n, secs, framing, chars, loc, tod, action, spoken, nots))
+    return out
