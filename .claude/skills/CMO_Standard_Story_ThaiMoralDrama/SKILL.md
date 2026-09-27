@@ -312,6 +312,37 @@ The rule:
 
 First script under this rule: `docs/scripts/taachang-SCRIPT-v2.md`.
 
+## ⛔ Overflow acting: nobody in frame stands still waiting for their line (CEO 2026-09-27)
+
+> "รอบนี้ขอ Acting แบบล้นๆ … อยากให้ AI ในฉาก ดูมีชีวิตชีวา ไม่แข็งทื่อ ยืนฟังคนอื่น ใครที่อยู่ในฉาก
+> จะต้องมีอะไร ทำตามบทของตัวเอง ไม่ยืนนิ่ง รอคนพูดจบ"
+
+Then, after watching the S1–S5 test in Flow: *"อนุมัติการเขียน Prompt ตัวละคร Acting ล้นๆ ได้เลย จดเป็น Skill ไว้"*.
+**Proven on Flow · Omni 1.1 Flash, 720p, film 4 «ขายฝากนาแม่» S1–S5.** Other engines are untested.
+
+Every shot is written this way from now on. Three changes to the shot prompt:
+
+1. **The action line is a timeline for EVERY person in frame, not only the speaker.**
+   - Write the speaker's business while they talk: 2–4 concrete physical beats (flicks the fan, straightens
+     his collar, scoops rice, blows on hot fingers).
+   - Then write "the whole time she talks, <the listener> …" and give the listener their own task plus
+     reactions: fidgets, glances away, mops sweat, bobs the head, flinches at each tap.
+   - Then write "the instant she finishes, he …" and give the listener's reply with its own gesture.
+   - Add one live background beat: rice swaying, a hen scurrying off, steam billowing, grains spilling.
+2. **Every spoken direction is 4–5 of 5 and physical.** Write "laughing out loud in the middle of the line",
+   "voice cracking, eyes wet", "bowing twice with a sick forced smile". Never write a bare mood word.
+3. **The STYLE sentence carries one ensemble rule for the whole shot:** *"Big, lively, theatrical Thai lakorn
+   acting with no dead moments: from the first frame to the last, every person in frame keeps moving and keeps
+   doing their own task; whoever is listening reacts with face, hands and body to every phrase and never stands
+   still waiting for their turn."*
+
+This does not replace the rule below ("acts WHILE speaking"). The listener's timeline runs **during** the
+line, so it never adds a silent beat. Keep "then" out of the speaker's own action. The only sequence is the
+hand-off between speakers.
+
+Reference implementation: `docs/scripts/ep4-ACTacting.data.py`. It keeps the lines, plates and voices of
+`ep4-ACT1.data.py` and replaces only `ACTION`, `DIRECTION` and `STYLE`.
+
 ## ⛔ The character acts WHILE speaking, never before speaking (measured 2026-09-19)
 
 Dead air does not come from short dialogue. It comes from the **action line**.
@@ -537,3 +568,4 @@ The approved example, film 2 (`docs/scripts/taachang-first-comment.txt`):
 - 2026-09-26 [WRONG] §After posting — the line "`tools/fb_reel_post.py` exits non-zero when it cannot resolve the link" was written before any test and treats a missing link as a failure; the CEO ruled a missing link is not a failed post ("หาลิงก์ไม่เจอ ไม่ได้แปลว่าโพสต์ไม่ติด", "อย่าด่วนสรุปถ้ายังไม่ได้ทดสอบ"), so the body now names three states · evidence: CEO ruling 2026-09-26, task-cfdc75a8 CTO-FEEDBACK.md · status: promoted
 - 2026-09-26 [WRONG] §After posting — task-cfdc75a8's report said a Reel post has no delete control (5 surfaces checked). Measured by the CTO: open `https://www.facebook.com/reel/<id>`, click the FIRST visible `[aria-label="เมนู"]` (index 0). Its menu lists "ลบ". The LAST matching button belongs to the preloaded next card, and its menu is the viewer menu (สนใจ / ไม่สนใจ / รายงาน). The `/videos/<id>` "more options" menu has only save / copy link. On the same page the comment is `article` "ความคิดเห็นจาก ละครสั้นคุณธรรม by ILAG Studio", so the first comment was posted as the Page, and exit 7 was a lookup miss, not a wrong author. Delete measured 2026-09-26 ~20:45 after the CEO approved in chat: เมนู#0, then "ลบ", then the dialog button "ลบ". Afterwards the logged-in page no longer shows the marker, the logged-out og:title is gone, and film 2 is still up · evidence: TEST post 4116998775270501, CTO probe 2026-09-26 19:55 (scratch fb_steps.py) · status: pending
 - 2026-09-27 [MISSING] §The spoken lines carry everything — a regional-dialect film (Isan) needs both halves: Isan-spelled words (เฮ็ดหยัง, นำกัน, เด้อ, บ่) AND an explicit accent direction in the prompt ("speaks in the Isan dialect of Northeast Thailand, with a thick, warm Isan accent and Isan tones, not Bangkok Thai"). In a 3-clip 360p test (Isan words + direction / Isan words only / Central words + direction), the CEO passed clip 1 only. A character who is meant to sound like an outsider (the rich mill owner) keeps Central Thai; `tools/build_shotsheet.py` now takes an optional `LANG[key]` for this. Also: the no-money word check must match substrings (ฟุตบาท contains บาท) · evidence: `C:\mooniex\isan\sheets\isan-ACTvoice.md`, docs/scripts/ep4-khaifak-SCRIPT-v1.md, commit 81eb2c8f · status: pending
+- 2026-09-27 [MISSING] §Overflow acting — the CEO asked for over-the-top ensemble acting (no one waiting still for their line), watched the S1–S5 test in Flow and approved it as the standard. Rule body added on the CEO ruling · evidence: task-c816fbc0, docs/scripts/ep4-ACTacting.data.py, winbox C:\mooniex\ep4\clips\acting · status: promoted
