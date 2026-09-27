@@ -211,14 +211,13 @@ _META = {
       "indigo blouse, laughing and crying at once, presses a hand to her chest, grabs his "
       "shoulders and shakes him, strokes his face and looks up at the sky mouthing thanks; "
       "the sticky-rice steamer puffs steam behind them", _N + ["nocash"]),
- 45: (8, "Medium, the locked steel gate in front of the closed mill",
+ 45: (8, "Medium, the closed front gate of the shut rice mill, the son and his mother outside it",
       ["sa_i", "kp2"], "mill_closed", T3,
-      "the young man in the indigo shirt, desperate, calling out loudly, holds the locked steel gate with both hands and looks "
-      "through the bars toward the empty mill office while he speaks; the whole time he talks the woman in "
-      "the indigo blouse behind him, anxious, hugs a plain cloth bag to her chest, cranes her "
-      "neck left and right down the empty road and rises on tiptoe to look over the gate; the "
-      "instant he finishes she tugs his sleeve and shakes her head while she answers; the "
-      "chain clanks against the bars and dust blows across the empty concrete yard",
+      "the young man in the indigo shirt, desperate, cups both hands around his mouth and calls "
+      "out loudly toward the empty mill office while he speaks; the whole time he talks the "
+      "woman in the indigo blouse beside him, anxious, hugs a plain cloth bag to her chest and "
+      "looks left and right down the empty road; the instant he finishes she touches his arm "
+      "and shakes her head while she answers; dust blows across the empty concrete yard",
       _N + ["nologo", "nocash"]),
  46: (8, "Two-shot at the gate, the son with a phone at his ear",
       ["sa_i", "kp2"], "mill_closed", T3,
@@ -328,7 +327,7 @@ DIRECTION = {
  (43, "kp2"): "overjoyed, voice shaking, clasped hands at her lips, bowing",
  (44, "sa_i"): "ecstatic, laughing and crying, voice shaking, counting on his fingers",
  (45, "sa_i"): "desperate, calling out as loud as he can toward the empty mill",
- (45, "kp2"): "anxious, voice trembling, tugging his sleeve",
+ (45, "kp2"): "anxious, voice trembling, touching his arm",
  (46, "sa_i"): "despairing and furious, voice cracking, raking his hair",
  (46, "kp2"): "horrified realisation, going pale, voice breaking",
  (47, "kp2"): "exhausted to the bone, voice cracking and faint, lips trembling, close to tears",

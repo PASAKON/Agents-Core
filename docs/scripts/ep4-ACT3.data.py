@@ -107,12 +107,12 @@ _META = {
       "the open door the bright yard shimmers in the heat", _N + ["nologo"]),
  63: (8, "Medium in the harvested paddy of stubble and straw stacks",
       ["hong", "sa_ic"], "na_stub", T4,
-      "the woman in hot pink, furious, marches across the stubble under her open hot-pink "
-      "parasol, flicks the loose straw aside with her foot and points her closed fan at the young man "
+      "the woman in hot pink, annoyed and loud, walks across the stubble under her open hot-pink "
+      "parasol, flicks the loose straw aside with her foot and waves her closed fan in the air "
       "while she speaks; the whole time she talks the young man in the indigo shirt, calm and "
       "sure, keeps twisting a bundle of straw tight, sets it down on a stack, dusts his palms "
-      "against each other and straightens up to his full height; the instant she finishes he "
-      "looks her straight in the eye, tilts his head and gives a small knowing smile while he "
+      "against each other and turns to her; the instant she finishes he "
+      "looks at her calmly and gives a small polite smile while he "
       "answers; loose straw blows across the stubble", _N),
  64: (8, "Medium, the neighbour stepping up beside the son with a bundle of straw",
       ["hong", "pa", "sa_i"], "na_stub", T4,
@@ -215,8 +215,8 @@ DIRECTION = {
  (61, "hong"): "outraged, shrill, face red, eyes wide, throwing up her hands",
  (62, "hong"): "hysterical with rage, screaming into the phone, slamming the fan on the desk again and "
                "again",
- (63, "hong"): "furious, shrill, pointing her fan at him",
- (63, "sa_ic"): "coolly triumphant, in Central Thai, a slow knowing smile, looking her straight in the eye, "
+ (63, "hong"): "annoyed, shrill, waving her fan",
+ (63, "sa_ic"): "calm and polite, in Central Thai, a small smile, "
                 "every word calm and clear",
  (64, "hong"): "threatening, shouting and stamping, wagging her finger, face twisted in a scowl",
  (64, "pa"): "defiant and mocking, laughing out loud, hand on hip, waving her off",

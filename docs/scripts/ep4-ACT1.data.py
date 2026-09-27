@@ -153,7 +153,7 @@ _META = {
      'with both hands shaking so hard the paper rattles, lips quivering, and on the last words'
      ' he presses the notice to his chest as his face collapses into tears while he '
      'speaks; the whole time he reads, behind him the woman in the indigo blouse, trembling, '
-     'presses the red cloth to her mouth, shakes her head slowly and sways on her feet', _N + ['noletter', 'nocash']),
+     'presses both hands over her mouth, shakes her head slowly and sways on her feet', _N + ['noletter', 'nocash']),
  14: (8, 'Medium, the son on his knees in the red dust',
      ['sa_c', 'kp1'], 'home', T1,
      'the young man in the white T-shirt, sobbing out a confession, drops to his knees in the '
