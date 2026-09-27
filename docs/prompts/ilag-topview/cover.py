@@ -43,6 +43,26 @@ def spaced(draw, xy, text, font, fill, tracking, anchor_centre=False, shadow=Non
     return total
 
 
+def badge(img, text, sub, pos):
+    """A framed resolution badge like the "4K / HDR" box on 4K showcase thumbnails (CEO 2026-09-27 reference): a
+    square with a white outline over half-black, the big line, a white rule, the small line. The small line says
+    ULTRA HD, not HDR: the clips are an SDR 4K upscale, and HDR would be a false claim."""
+    side, m, lw = round(0.115 * W), round(0.025 * W), max(3, round(0.0028 * W))
+    x = W - m - side if pos[1] == "r" else m
+    y = H - m - side if pos[0] == "b" else m
+    box = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(box)
+    d.rectangle((x, y, x + side, y + side), fill=(0, 0, 0, 120), outline=(255, 255, 255, 255), width=lw)
+    big = ImageFont.truetype(BOLD, round(side * 0.50))
+    small = ImageFont.truetype(BOLD, round(side * 0.155))
+    cx = x + side / 2
+    d.text((cx, y + side * 0.36), text, font=big, fill=(255, 255, 255, 255), anchor="mm")
+    ry = y + side * 0.66
+    d.line((x + side * 0.12, ry, x + side * 0.88, ry), fill=(255, 255, 255, 255), width=lw)
+    d.text((cx, y + side * 0.82), sub, font=small, fill=(255, 255, 255, 255), anchor="mm")
+    img.alpha_composite(box)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bg", required=True)
@@ -55,6 +75,7 @@ def main():
     ap.add_argument("--title-box", default="0.5,0.0875,0.56,0.30", help="title centre x, top, max width, max height")
     ap.add_argument("--wm-centre-x", type=float, help="watermark centre x; default: 11%% in from the right edge")
     ap.add_argument("--halo", type=int, default=0, help="dark glow behind the title, px (for a bright picture)")
+    ap.add_argument("--badge-pos", choices=["tr", "br", "tl", "bl"], help="add the 4K badge in this corner")
     ap.add_argument("--out", default="cover.png")
     a = ap.parse_args()
 
@@ -89,6 +110,8 @@ def main():
     wx = W - round(0.11 * W) - ww if a.wm_centre_x is None else round(a.wm_centre_x * W - ww / 2)
     img.alpha_composite(wm, (wx, round(a.wm_centre_y * H - wm.height / 2)))
 
+    if a.badge_pos:
+        badge(img, "4K", "ULTRA HD", a.badge_pos)
     img.convert("RGB").save(a.out)
     print(a.out, img.size)
 
