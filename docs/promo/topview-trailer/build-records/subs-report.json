@@ -1,0 +1,82 @@
+[
+ {
+  "start": 16.08,
+  "end": 16.74,
+  "heard": "Sorry.",
+  "text": "Sorry!",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 24.4,
+  "end": 26.96,
+  "heard": "Chief, there are no fish. None left.",
+  "text": "Chief! There are no fish. None left.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 28.18,
+  "end": 30.88,
+  "heard": "We're starving. Please, do something.",
+  "text": "We're starving. Please, do something.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 32.44,
+  "end": 35.28,
+  "heard": "He's right. Not one fish. All week.",
+  "text": "He's right. Not one fish, all week.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 38.32,
+  "end": 42.21,
+  "heard": "So the day has come.",
+  "text": "So... the day has come.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 43.33,
+  "end": 45.33,
+  "heard": "We need the child with the gift.",
+  "text": "We need the child with the gift.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 50.01,
+  "end": 50.67,
+  "heard": "It's time.",
+  "text": "It's time.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 51.15,
+  "end": 53.43,
+  "heard": "You are the chosen one.",
+  "text": "You are the chosen one.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 55.13,
+  "end": 56.59,
+  "heard": "You two will go with the child.",
+  "text": "You two will go with the child.",
+  "score": 1.0,
+  "matched": true
+ },
+ {
+  "start": 143.58,
+  "end": 146.04,
+  "heard": "So this is it. The line of death.",
+  "text": "So this is it. The line of death.",
+  "score": 1.0,
+  "matched": true
+ }
+]
