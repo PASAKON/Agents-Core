@@ -19,7 +19,8 @@ audience: [cto, cxo, script_writer]
 
 Paid for on «Sorry, Sir» (Seedance 2.5, Higgsfield), «จุดจบของเจ้าหนี้นอกระบบ» (Google Flow) and the ILAG
 trailer (MiniMax H3). These are the rules that did not depend on the engine. Engine facts are in the
-engine skills; this file never repeats them.
+engine skills; this file never repeats them. The ordered day-by-day pipeline (brief → idea → story → plates →
+previz → prompts → waves → QC → finish → posters → rules → publish → filing) is `CTO_Film_Workflow`.
 
 ## 1 · Story before shots
 
