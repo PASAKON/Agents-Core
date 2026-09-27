@@ -37,7 +37,12 @@ Replaces the first line ("คุณคือเลขาส่วนตัวข
 1. The CEO says go.
 2. Put the text into `SECRETARY_SYSTEM_PROMPT`; keep every existing rule after it; update
    `scripts/test_secretary_server.py` (it asserts on the prompt's text) and run it.
-3. Re-scope the COO wiring branch built 2026-09-27 (`org: COO role wired` in a subagent worktree, NOT merged):
+3. Re-scope the COO wiring branch built 2026-09-27: **`origin/parked/coo-wiring` @ 9617f9f9** (24 files, 18 tests,
+   suite 2609 passed / the same 2 unrelated failures as main; NOT merged). Its report also found: no
+   `claude-home/commands/spawn-coo.md`, `settings.json:262` still names four roles, Console `src/tmux/names.js`
+   lists only cto/cmo/cfo/cxo (CGO sessions are already missing from the phone list), `tools/session_cap.py`
+   leaves coo out of the memory cap like cgo.
+  
    there the `coo` role is a Claude C-level session launched with `cxo-claude.sh --role coo`. With SomPong as the
    COO, orders routed "ให้ coo" must reach SomPong, not a session nobody runs. Merge only after that change.
 4. `roles/coo.md`: state that the COO is SomPong, and which parts of the charter need a C-level session
