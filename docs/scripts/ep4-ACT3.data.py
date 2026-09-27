@@ -92,12 +92,12 @@ _META = {
       "at him, unsmiling, arms folded, jaw tight; at his promise her arms loosen and she gives "
       "one small slow nod; dust swirls across the empty car park behind him",
       _N + ["nouniform", "nocash"]),
- 61: (8, "Medium, the woman in pink at a desk just inside the open hot-pink office door",
+ 61: (8, "Medium, the woman in pink at a desk just inside the open hot-pink office door, reading a message on her phone",
       ["hong"], "mill_open", T4,
-      "the woman in hot pink, outraged, face flushed red, eyes bulging, reads the land-office notice out loud with the page turned toward herself, its back to the "
-      "camera, brings it closer to her face, drops it on the desk and throws up both hands while she speaks, shaking her head in "
+      "the woman in hot pink, outraged, face flushed red, eyes bulging, reads a message on her phone out loud, the back of the phone toward the "
+      "camera, brings it closer to her face, puts the phone face-down on the desk and throws up both hands while she speaks, shaking her head in "
       "disbelief; outside the open door a sparrow hops across the sunlit concrete",
-      _N + ["noletter", "nologo"]),
+      _N + ["nologo"]),
  62: (8, "Close-up, the woman in pink shouting into her phone",
       ["hong"], "mill_open", T4,
       "the woman in hot pink, beside herself with rage, face twisted, shouts into the phone "

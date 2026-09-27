@@ -198,7 +198,7 @@ _META = {
       ["bm", "kp2", "sa_i"], "home", T3,
       "the headman in the light-blue shirt, hurried and excited, out of breath and grinning, "
       "strides fast into the yard waving his phone high over his head while he speaks; the "
-      "whole time he talks the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her head like a turban, her neck bare with no necklace, and the young man in the indigo "
+      "whole time he talks the woman in the indigo blouse, her red-and-white checked cloth still wrapped around her head like a turban, in her long-sleeved indigo blouse, and the young man in the indigo "
       "shirt jump up together from the bamboo platform, clutching each other's hands, "
       "bouncing on their toes, their mouths falling open; the instant he finishes she presses "
       "her clasped hands to her lips and bows to him again and again while she answers; hens "
