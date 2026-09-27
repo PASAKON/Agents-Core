@@ -190,11 +190,12 @@ _META = {
       "motorbike's seat too while he answers; hens scatter across the red-dirt yard",
       _N + ["nocash"]),
  42: (8, "Close two-shot on the bamboo platform, the mother's hand on her bare neck",
-      ["sa_i", "kp2"], "home", T3,
+      ["kp2", "sa_i"], "home", T3,
       "the young man in the indigo shirt, hurting, eyes red, kneels beside his mother on the "
       "bamboo platform, grips her hand, stares at her bare neck and bites his lip hard, his "
       "voice breaking, while he speaks; the whole time he talks the woman in the indigo "
-      "blouse strokes his hair; the instant he finishes she touches her bare neck with her "
+      "blouse, her red-and-white checked cloth still wrapped around her head like a turban, "
+      "strokes his hair; the instant he finishes she touches her bare neck with her "
       "indigo-stained fingers, gives a little laugh, taps his nose and wipes his tears with "
       "her thumb, her own tears spilling, while she answers; steam drifts from the "
       "sticky-rice steamer behind them", _N + ["nocash"]),
@@ -229,7 +230,8 @@ _META = {
       ["sa_i", "kp2"], "mill_closed", T3,
       "the young man in the indigo shirt, despairing, holds a phone to his ear, pulls it away "
       "to glare at it and jabs at it again, raking his other hand through his hair, while he "
-      "speaks; the whole time he talks the woman in the indigo blouse, realising, going pale, "
+      "speaks; the whole time he talks the woman in the indigo blouse, her red-and-white "
+      "checked cloth still wrapped around her head like a turban, realising, going pale, "
       "stares at the chained gate, one hand rising slowly to her mouth, the other clutching "
       "the cloth bag; the instant he finishes she grips the gate bars with a shaking hand and "
       "turns to him wide-eyed while she answers; dry leaves skitter across the empty yard",
@@ -248,7 +250,8 @@ _META = {
       "the young man in the indigo shirt, sobbing hard, body shaking, slides down the chained "
       "steel gate to sit on the ground clutching a plain cloth bag of papers to his chest, "
       "beats his fist against his knee and rocks back and forth, tears running, while he "
-      "speaks; the whole time he talks the woman in the indigo blouse kneels behind him, "
+      "speaks; the whole time he talks the woman in the indigo blouse, her red-and-white "
+      "checked cloth still wrapped around her head like a turban, kneels behind him, "
       "strokes his head, pulls him against her shoulder and rocks with him, her own tears "
       "falling; the chain on the gate clinks and dust blows across the yard",
       _N + ["nologo", "nocash"]),
