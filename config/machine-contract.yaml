@@ -23,7 +23,7 @@
 # belongs in exactly one of the two files.
 #
 # Drive home for everything kept: BACKUP/MoonieX HQ/<what-is-kept>/ (CEO 2026-09-24), each
-# subfolder defined in the gdrive-filing skill. Cookie Run data keeps its own family,
+# subfolder defined in the CXO_Rules_GDrive_Filing skill. Cookie Run data keeps its own family,
 # BACKUP/CookieRun Backup/. Secrets never go to Drive: a second machine's Archive/ at 0600
 # with a sha256 list, and the row says which one.
 version: 0
@@ -48,7 +48,7 @@ entries:
   - {machine: all,     path: "$HOME/.claude.json",                        class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
      restore: "only its projects{} map matters (trusted folders + allowedTools) — captured by each blueprint verb; the rest is feature cache. Re-accept the trust dialog per project if lost"}
   - {machine: all,     path: "$CLAUDE_CONFIG_DIR/.credentials.json",      class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
-     restore: "never copied anywhere — `claude` login again (gdrive-filing: tokens stay on the machine that uses them)"}
+     restore: "never copied anywhere — `claude` login again (CXO_Rules_GDrive_Filing: tokens stay on the machine that uses them)"}
   - {machine: all,     path: "$CLAUDE_CONFIG_DIR/{plugins,skills/synced}/**", class: REBUILD,   owner: CTO, review: 2026-12-23, discovered: false,
      restore: "marketplace re-sync / plugin reinstall; org skills live in git Agents-Core .claude/skills"}
   - {machine: all,     path: "$CLAUDE_CONFIG_DIR/{file-history,cache,session-data,session-env,sessions,state,logs,backups,downloads,shell-snapshots,todos,debug}/**", class: DISPOSABLE, owner: CTO, review: 2026-12-23, discovered: false,
@@ -64,11 +64,11 @@ entries:
   - {machine: all,     path: "<hq>/Work/<task-id>/**",                    class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "closed with tools/workdir.py close --archive → Drive BACKUP/MoonieX HQ/Work-Archive/Agents-Work-<task>-<date>.tar (md5 verified before delete)"}
   - {machine: all,     path: "<hq>/Assets/**",                            class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
-     restore: "per-asset Drive copy (gdrive-filing rows); Cookie Run gold set + blueprint copies: BACKUP/MoonieX HQ/Machine-Blueprints and BACKUP/CookieRun Backup"}
+     restore: "per-asset Drive copy (CXO_Rules_GDrive_Filing rows); Cookie Run gold set + blueprint copies: BACKUP/MoonieX HQ/Machine-Blueprints and BACKUP/CookieRun Backup"}
   - {machine: all,     path: "<hq>/Archive/**",                           class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "one-off backups incl. other machines' secrets at 0600 (winbox-keys-*, mac-secrets-*) — never on Drive; the row for each lives here"}
   - {machine: all,     path: "<hq>/Agents/Core/worktrees/**",             class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
-     restore: "git worktree per task; dirty/unmerged ones are bundled by disk-hygiene's back-up-first rule before removal"}
+     restore: "git worktree per task; dirty/unmerged ones are bundled by ALL_Rules_DiskHygiene's back-up-first rule before removal"}
 
   # ── Contabo (VPS vmi3371421) ──
   - {machine: contabo, path: "/var/lib/docker/volumes/n8n_data/_data",    class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
@@ -107,7 +107,7 @@ entries:
      restore: "tool/model caches (huggingface 2.1 GB is the bulk, pip, node-gyp) — re-download on next use; found by machine_doctor 2026-09-24"}
   - {machine: contabo, path: "$HOME/.local/**",                            class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "Claude Code's native install + old version cache (~0.8 GB) and .local/bin — the CLI's own updater manages it; found by machine_doctor 2026-09-24"}
-  # /root/restore (disk-hygiene's Contabo never-touch list) did not exist on 2026-09-24; the weekly
+  # /root/restore (ALL_Rules_DiskHygiene's Contabo never-touch list) did not exist on 2026-09-24; the weekly
   # doctor re-discovers it if it ever appears — no row until then.
 
   # ── winbox (Windows, account passg since 2026-09-24) ──
@@ -146,13 +146,13 @@ entries:
   - {machine: winbox,  path: "%USERPROFILE%/.ssh/**",                       class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
      restore: "private keys from the secrets bundle (contabo <hq>/Archive/winbox-keys-<date>), public keys + config from the blueprint"}
   - {machine: winbox,  path: "%APPDATA%/rclone/rclone.conf",                class: CONFIG,        owner: CTO, review: 2026-12-23, discovered: false,
-     restore: "Drive token — never copied; `rclone config reconnect gdrive:` with the CEO's click (gdrive-filing § re-consent)"}
+     restore: "Drive token — never copied; `rclone config reconnect gdrive:` with the CEO's click (CXO_Rules_GDrive_Filing § re-consent)"}
   - {machine: winbox,  path: "C:/pagefile.sys",                             class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
      restore: "Windows manages it (18.5 GB on the old box) — never backed up"}
   - {machine: winbox,  path: "%USERPROFILE%/Downloads/**",                  class: DISPOSABLE,    owner: CTO, review: 2026-12-23, discovered: false,
      restore: "installers/APKs re-download on demand"}
 
-  # ── Mac (owner: Mac CTO runs the verbs; CEO-personal paths stay OUT — disk-hygiene never-touch) ──
+  # ── Mac (owner: Mac CTO runs the verbs; CEO-personal paths stay OUT — ALL_Rules_DiskHygiene never-touch) ──
   - {machine: mac,     path: "$HOME/Library/LaunchAgents/com.gob.*.plist",  class: CONFIG,        owner: "Mac CTO", review: 2026-12-23, discovered: false,
      restore: "captured by scripts/mac_blueprint.sh; secrets inside plists go to the secrets bundle"}
   - {machine: mac,     path: "$HOME/.config/mooniex/**",                    class: CONFIG,        owner: "Mac CTO", review: 2026-12-23, discovered: false,

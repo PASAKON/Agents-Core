@@ -745,7 +745,7 @@
  *     (5332262 bytes both sides).
  *   - The "Sorry, Sir" project's `Element/` folder was set up 2026-08-28
  *     with Character/Location/Prop sub-folders (mirroring the `Do Not
- *     Disturb` DND template per the gdrive-filing skill's YT:ILAG section),
+ *     Disturb` DND template per the CXO_Rules_GDrive_Filing skill's YT:ILAG section),
  *     but every one of the ~34 plates uploaded there before this run sits
  *     FLAT in `Element/` root, not sorted into the sub-folders -- the
  *     sub-folders are empty. This run matched the established flat

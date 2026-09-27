@@ -38,7 +38,7 @@ and say each thing once). Read the owner skill before doing a step.
 
 ## Rules that hold on every step
 
-1. **HARD — money.** Every paid generation, RunPod pod hour or paid image: the CEO sees the exact credits
+1. **HARD — money (org rule: `ALL_Rules_Approvals`).** Every paid generation, RunPod pod hour or paid image: the CEO sees the exact credits
    and $ first, one capped round at a time; a second round needs a second OK (CEO rules).
    Dry runs and prompt rendering are free and need no OK.
    **Why hard:** money; a fired generation cannot be taken back, and a pod bills by the hour.
@@ -96,7 +96,7 @@ and the CEO's own edit needs a day.
   post must be public and for how long, form fields, file limits, judging criteria. Where sources disagree,
   write both and plan on the earlier date. Example: `docs/promo/TOPVIEW-WAN3-RULES.md`.
 - Pick the engine from the rules; propose the budget ceiling (credits and $) and the deadline.
-- Ask the CEO for the Drive project folder (`gdrive-filing`, YT: ILAG layout: `logs.txt`, `All Scene/`,
+- Ask the CEO for the Drive project folder (`CXO_Rules_GDrive_Filing`, YT: ILAG layout: `logs.txt`, `All Scene/`,
   `Element/`, `Soundtrack/`, `Previz/`, `Poster/`, `Meta (<platform>)/`, `Final Draft/`).
 - **Output:** RULES.md, STATUS.md, Drive folder. **Gate:** the CEO confirms engine, budget and deadline.
 
@@ -165,7 +165,7 @@ and the CEO's own edit needs a day.
   `tools/topview_collect_tasks.py`, read the balance with `tools/topview_fresh_balance.py`), Seedance
   `scripts/higgsfield/gen_loop.py`, H3 `docs/prompts/ilag-topview/h3_fire.py`, Flow `tools/flow_shoot.py`.
 - Wave 1 fires every shot once. Commit the ids, download, file to `All Scene/S<n>/` with the names in
-  `gdrive-filing`, log each file.
+  `CXO_Rules_GDrive_Filing`, log each file.
 - A refire, even of a refunded server failure, is a new spend and needs a new OK.
 - **Gate:** every clip collected, ids committed, Drive logged.
 
@@ -223,11 +223,11 @@ and the CEO's own edit needs a day.
 - **Gate:** the public link plays anonymously, the form reads Submitted, the CEO has the report.
 
 ### Step 13 · File and clean (after every step, and once at the end)
-- **After each step:** file the outputs to the Drive project (`gdrive-filing`: 9-field `logs.txt`, scene
+- **After each step:** file the outputs to the Drive project (`CXO_Rules_GDrive_Filing`: 9-field `logs.txt`, scene
   naming, append-only, md5 checked by file id; big files with `ilag_rest.upload_stream`), and commit
   prompts, scripts, ledgers and ids to the repo.
 - **At the end:** list every temp folder (Contabo `/tmp/<film>-*`, winbox `C:\mooniex\<film>`), confirm each
-  file has a Drive copy with a matching md5, ask the CEO, then delete (`disk-hygiene`). Remind him to delete
+  file has a Drive copy with a matching md5, ask the CEO, then delete (`ALL_Rules_DiskHygiene`). Remind him to delete
   the Mac edit kit. Keep the post public and the platform project intact until the results.
 - Fold the session's Skill learning lines into the owner skills.
 

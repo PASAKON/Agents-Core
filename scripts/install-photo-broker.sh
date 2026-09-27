@@ -68,7 +68,7 @@ BROKER_SOCKET_PATH="/run/photoup/photo-broker.sock"      # RuntimeDirectory= rec
 # (owner <caller>:<broker group>, mode 2770/setgid), never the outbox.
 STAGING_DIR="/var/lib/photoup/staging"
 FILER_MIN_FREE_MB="2048"         # headroom the staging fs must keep free, on top of a file's own size
-FOLDER_ID="1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy"             # "My Picture & Videos." -- see .claude/skills/gdrive-filing/SKILL.md
+FOLDER_ID="1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy"             # "My Picture & Videos." -- see .claude/skills/CXO_Rules_GDrive_Filing/SKILL.md
 MAX_UPLOAD_BYTES="209715200"     # 200 MiB
 MAX_REQUEST_BYTES="65536"        # 64 KiB -- one JSON line naming a path + name + subfolder
 SOCKET_TIMEOUT="30"              # seconds, request-line read only

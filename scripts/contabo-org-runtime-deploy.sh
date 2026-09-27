@@ -68,7 +68,7 @@ EXCLUDES=(
   --exclude '*.pyc'
   --exclude '.DS_Store'
   # .claude/ is excluded wholesale EXCEPT .claude/skills/ — those are shared
-  # project skills (session-open, session-worktree, cto-merge-checklist, …),
+  # project skills (session-open, session-worktree, CTO_Gate_MergeChecklist, …),
   # not secrets, and a Console session on Contabo needs them same as Mac.
   # Order matters: these includes must precede the blanket exclude below.
   --include '.claude/'

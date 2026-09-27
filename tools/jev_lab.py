@@ -625,22 +625,22 @@ def cmd_batch(key: str, a) -> int:
 # Skill routing: the org's own 47 skills are a real option set with real,
 # overlapping descriptions. Truth is the skill a C-level would reach for.
 ROUTE_SET = [
-    ("อัปโหลดไฟล์นี้ขึ้น Google Drive ให้หน่อย จัดเข้าโฟลเดอร์ให้ถูก", "gdrive-filing"),
-    ("C: drive on winbox is almost full, what can we delete safely?", "disk-hygiene"),
+    ("อัปโหลดไฟล์นี้ขึ้น Google Drive ให้หน่อย จัดเข้าโฟลเดอร์ให้ถูก", "CXO_Rules_GDrive_Filing"),
+    ("C: drive on winbox is almost full, what can we delete safely?", "ALL_Rules_DiskHygiene"),
     ("เริ่มงานวันนี้ เปิด session ดูงานค้างกับ deadline ก่อน", "session-open"),
     ("wrap up this session and file what is still open", "session-close"),
-    ("review the DEV's branch for task-1234 before I merge it", "cto-merge-checklist"),
+    ("review the DEV's branch for task-1234 before I merge it", "CTO_Gate_MergeChecklist"),
     ("ทำภาพ reference ตัวละคร หน้าตรง ด้านข้าง ด้านหลัง", "CMO_Procedure_CharacterSheet"),
-    ("send this announcement to the family LINE group", "line-messaging"),
-    ("ขอจองเครื่อง winbox ใช้ 2 ชั่วโมง อย่าให้บอทแย่ง", "winbox-pc-lease"),
+    ("send this announcement to the family LINE group", "CXO_Knowledge_LINE_Messaging"),
+    ("ขอจองเครื่อง winbox ใช้ 2 ชั่วโมง อย่าให้บอทแย่ง", "ALL_Rules_Winbox_PCLease"),
     ("switch this session's model to Opus at xhigh effort", "session-change-model"),
     ("this caption reads like ChatGPT wrote it, make it sound human", "de-ai-ify"),
-    ("label the new Cookie Run frames for training", "cookierun-labeling"),
-    ("ส่งงานแก้ test เล็ก ๆ นี้ให้ Jules ทำแทน DEV", "jules-ops"),
+    ("label the new Cookie Run frames for training", "CTO_Knowledge_CookieRun_Labeling"),
+    ("ส่งงานแก้ test เล็ก ๆ นี้ให้ Jules ทำแทน DEV", "CTO_Knowledge_Jules"),
     ("เขียนสคริปต์คลิป Black Liquidity ตอนใหม่เรื่องทองคำ", "CMO_Standard_BlackLiquidity_Script"),
     ("restart the terminal so the updated Claude binary loads", "terminal-restart"),
     ("generate 20 more takes on Higgsfield while the plan is unlimited", "CMO_Knowledge_Seedance2.5_Higgsfield"),
-    ("ทำใบแจ้งหนี้ให้ลูกค้า MoonieX เดือนนี้", "mooniex-finance"),
+    ("ทำใบแจ้งหนี้ให้ลูกค้า MoonieX เดือนนี้", "CFO_Rules_Finance"),
 ]
 
 

@@ -15,7 +15,7 @@ in RAM. Two things it deliberately does NOT do, both rejected in review:
 
 - **Never writes into the Google-Drive-for-Desktop mount.** That mount
   (`claude-home/tools/prune_transcripts.py:54` DRIVE_ROOT) keeps a full LOCAL
-  copy of anything written under it — the disk-hygiene skill's own 2026-09-23
+  copy of anything written under it — the ALL_Rules_DiskHygiene skill's own 2026-09-23
   field note found this refills the Mac instead of freeing it, which defeats
   the entire point of this archive step.
 - **Never calls `scripts/gdrive-bridge/ilag_sync.py`'s `upload()`**
@@ -57,9 +57,9 @@ ROOT = Path(__file__).resolve().parent.parent
 # claude-home/tools/prune_transcripts.py:52 — same log, same append-only shape.
 LOG_PATH = os.path.expanduser("~/.claude/logs/drive-archive.log")
 
-# gdrive-filing skill: the first Work/ archive (task-abc20690's brief) landed at the Drive `BACKUP` root;
+# CXO_Rules_GDrive_Filing skill: the first Work/ archive (task-abc20690's brief) landed at the Drive `BACKUP` root;
 # since 2026-09-24 the family below is the home (ADR 0031 Machine Contract).
-# BACKUP/MoonieX HQ/Work-Archive (gdrive-filing ID table, created 2026-09-24) — new Agents-Work-<task>-<date>.tar land here;
+# BACKUP/MoonieX HQ/Work-Archive (CXO_Knowledge_GDrive_FolderMap ID table, created 2026-09-24) — new Agents-Work-<task>-<date>.tar land here;
 # the 2026-09-23 one at the BACKUP root (1vU9GvMZdMXUV60_kTIkMR1aTwZcEHdlq) moves server-side on the CEO's yes.
 BACKUP_FOLDER_ID = "1xu8hXdUZGBino913lCr2zdUz8kTd8tqA"
 

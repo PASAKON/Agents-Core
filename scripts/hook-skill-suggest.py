@@ -33,8 +33,8 @@ TRIGGERS: list[tuple[str, str, str]] = [
     ),
     (
         r"(?i)\b(merge|ship|land|approve)\b.*\b(task|pr|branch)\b",
-        "cto-merge-checklist",
-        "Merge intent detected — run /cto-merge-checklist gates before merge_task.",
+        "CTO_Gate_MergeChecklist",
+        "Merge intent detected — run /CTO_Gate_MergeChecklist gates before merge_task.",
     ),
     (
         r"(?i)\b(spawn dev|delegate|kick.?off the dev|start the developer)\b",

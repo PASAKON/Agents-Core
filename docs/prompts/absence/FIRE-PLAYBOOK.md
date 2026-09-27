@@ -130,7 +130,7 @@ Replace the ban with a positive statement of what occupies that place instead.
   does not exist. The verdict lives in the TAKE LOG, the report and the logs.txt
   line, never in the filename — the editor finds a clip by its scene, and a name
   that changes with the verdict cannot be found or overwritten by the next take.
-  Inventing a naming pattern also breaks the gdrive-filing skill, which forbids new
+  Inventing a naming pattern also breaks the CXO_Rules_GDrive_Filing skill, which forbids new
   structure without the CEO's approval. If you have already uploaded under a wrong
   name, report the exact name and file id and change NOTHING: renaming and deleting
   on Drive are the CTO's to authorise, with the CEO's say-so.

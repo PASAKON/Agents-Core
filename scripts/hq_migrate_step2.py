@@ -13,7 +13,7 @@ preflight (status/branch/sha/remote, push if ahead) -> duplicate-clone safety ch
 
 Validation (preflight + push + duplicate-safety check) runs for ALL step-2 rows
 BEFORE any move happens. If any row fails validation, the whole run stops before
-touching a single file — "nothing half-moved" (hq-filing skill rule 9 / this
+touching a single file — "nothing half-moved" (ALL_Rules_HQ_Filing skill rule 9 / this
 task's own instruction). A duplicate clone is "safe" when every local branch's
 sha is either an exact match of a live origin branch tip, or an ancestor of one
 (already merged/superseded) — checked live via `git ls-remote --heads origin`,

@@ -81,7 +81,7 @@ we do not own:
 
 - **Google Drive — any action at all** (upload, backup, move, rename, delete,
   create folder; via rclone, the gdrive-bridge, the Drive MCP, or a synced
-  folder) → read `gdrive-filing` FIRST, every session, before the first Drive
+  folder) → read `CXO_Rules_GDrive_Filing` FIRST, every session, before the first Drive
   call. It is the CEO's rule (2026-09-06) and a PreToolUse hook in the Agents
   repo (`scripts/hook-gdrive-skill-gate.py`) blocks Drive-touching calls until
   the skill has been read. Google's own limits are not the rules; the skill is.

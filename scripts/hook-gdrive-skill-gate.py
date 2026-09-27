@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse hook — no Google Drive action before the `gdrive-filing` skill is read.
+"""PreToolUse hook — no Google Drive action before the `CXO_Rules_GDrive_Filing` skill is read.
 
 CEO 2026-09-06: "ถ้าจะใช้งาน Gdrive อ่าน Skills นี้ก่อนเสมอ มันเป็นกฏ". The skill holds
 the folder map, the IDs and the ask-first rules; a session that has not read it
@@ -7,7 +7,7 @@ files things at the Drive root (which is exactly what happened that morning).
 Prose does not stop that. This does.
 
 Arms (creates ~/.gateguard/gdrive-skill-<session>.ok) when the session reads the
-skill: the Skill tool with `gdrive-filing`, a Read of its SKILL.md, or a Bash
+skill: the Skill tool with `CXO_Rules_GDrive_Filing`, a Read of its SKILL.md, or a Bash
 command that opens the SKILL.md. Stays armed 12 hours, then re-arms — the rules
 change and a stale reading is no reading.
 
@@ -28,7 +28,7 @@ import sys
 import time
 from pathlib import Path
 
-SKILL_FILE = "gdrive-filing/SKILL.md"
+SKILL_FILE = "CXO_Rules_GDrive_Filing/SKILL.md"
 ARMED_FOR_S = 12 * 3600
 DRIVE_RE = re.compile(
     r"\brclone\b|gdrive_move\.py|gdrive-bridge|GoogleDrive-|ไดรฟ์ของฉัน|CloudStorage/GoogleDrive|\bgdrive:",
@@ -50,7 +50,7 @@ def main() -> int:
 
     # Reading the skill arms the gate.
     read = (
-        (tool == "Skill" and str(inp.get("skill", "")).endswith("gdrive-filing"))
+        (tool == "Skill" and str(inp.get("skill", "")).endswith("CXO_Rules_GDrive_Filing"))
         or (tool == "Read" and SKILL_FILE in str(inp.get("file_path", "")))
         or (tool == "Bash" and SKILL_FILE in str(inp.get("command", "")))
     )
@@ -72,12 +72,12 @@ def main() -> int:
         if time.time() - armed_at < ARMED_FOR_S:
             return 0
     sys.stderr.write(
-        "BLOCKED — Google Drive rule (CEO 2026-09-06): read the `gdrive-filing` skill "
+        "BLOCKED — Google Drive rule (CEO 2026-09-06): read the `CXO_Rules_GDrive_Filing` skill "
         "before ANY Drive action in this session.\n\n"
         "This call touches Drive (rclone / gdrive-bridge / Drive MCP / the synced Drive folder) "
         "and the skill has not been read in the last 12 hours of this session.\n\n"
-        "Do this first: invoke the Skill tool with `gdrive-filing` (or Read "
-        ".claude/skills/gdrive-filing/SKILL.md in the Agents repo). Then follow it: ask before "
+        "Do this first: invoke the Skill tool with `CXO_Rules_GDrive_Filing` (or Read "
+        ".claude/skills/CXO_Rules_GDrive_Filing/SKILL.md in the Agents repo). Then follow it: ask before "
         "creating/moving/deleting, file only into defined folders (else UNKNOWN), keep the tree "
         "and ID table in sync, and use the drive-archive-gate row for anything moved off a machine. "
         "Then retry this exact call.\n"

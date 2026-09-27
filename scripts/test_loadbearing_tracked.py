@@ -1,7 +1,7 @@
 """Regression guard for the ".claude/ blanket gitignore" incident.
 
 .gitignore used to have a bare `.claude/` line, which silently swallowed
-every skill/hook added after the initial 11 tracked skills (gdrive-filing,
+every skill/hook added after the initial 11 tracked skills (CXO_Rules_GDrive_Filing,
 seedance-scene-prompt, the repo-local .claude/settings.json, and the two
 hook scripts it wires up all went untracked with no error). Narrowing the
 ignore rule fixes today's snapshot but does nothing to stop it recurring

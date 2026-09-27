@@ -91,7 +91,7 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
    Then size the title to its space (rule 9). Add `--scale 0.88–0.94` when a low face would
    sit under the title. The tool warns when the block leaves the 4:5 feed crop, when the logo
    is small, and when it is too wide. Look at each poster once, small, before sending.
-5. **Send the three to the CEO** and file the chosen one (gdrive-filing decides where).
+5. **Send the three to the CEO** and file the chosen one (CXO_Rules_GDrive_Filing decides where).
 
 ### Logo prompt template (worked on banchi, 3 of 3 spelled right)
 
@@ -180,7 +180,7 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 ## Reference
 
 - Tools: `tools/chatgpt_images.py` (runner, `--continue`, `--recover`), `tools/lakorn_poster.py`
-- Story and format: `CMO_Standard_Story_ThaiMoralDrama` · filing: `gdrive-filing` · browser rules: `browser-operator`
+- Story and format: `CMO_Standard_Story_ThaiMoralDrama` · filing: `CXO_Rules_GDrive_Filing` · browser rules: `browser-operator`
 - Memory: `feedback_study_genre_references_for_identity.md`
 
 ## Field notes

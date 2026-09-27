@@ -49,7 +49,7 @@ tiers:
     - "~/MoonieXHQ/Agents/**"
     - "~/Projects/Agents/**"            # Agents-Core until HQ step 4b moves it
     - "~/.claude/projects/*/*.jsonl"    # transcripts < 7 days (older = COLD, see below)
-  # Rebuilds itself from a named command. Delete without asking (disk-hygiene Green list).
+  # Rebuilds itself from a named command. Delete without asking (ALL_Rules_DiskHygiene Green list).
   REBUILD:
     - {glob: "~/Library/Caches/Google/Chrome/*/Cache",      rebuild: "Chrome refills it"}
     - {glob: "~/Library/Caches/Google/Chrome/*/Code Cache", rebuild: "Chrome refills it"}
@@ -64,12 +64,12 @@ tiers:
     - {glob: "**/.venv",         rebuild: "uv sync / pip -r", dormancy: true}
     - {glob: "**/.next",         rebuild: "next build",       dormancy: true}
     - {glob: "/private/tmp/runner-review/**", rebuild: "git checkout of docs/"}
-  # Not regenerable, not in use. Tar + manifest → Drive BACKUP/ (gdrive-filing), md5 verified, then deleted.
+  # Not regenerable, not in use. Tar + manifest → Drive BACKUP/ (CXO_Rules_GDrive_Filing), md5 verified, then deleted.
   COLD:
     - {glob: "~/.claude/projects/*/*.jsonl", older_than_days: 7,
        dest: "BACKUP/Claude-Transcripts/<project>/", tool: "prune_transcripts.py --archive"}
     - {glob: "<work_root>/<task-id>/in/**", when: "task closed",
-       dest: "proposed — CEO picks the Drive folder (gdrive-filing)"}
+       dest: "proposed — CEO picks the Drive folder (CXO_Rules_GDrive_Filing)"}
   # The CEO's own. No agent deletes, moves or archives these. Ever.
   NEVER:
     - "~/Pictures/**"
@@ -90,12 +90,12 @@ work_dir:
   rules: "~/MoonieXHQ/Work/RULES.md"
   big_download_gb: 1                # rule 9: before pulling more than this…
   keep_free_gb: 10                  # …leave at least this much free, else stop and report
-  abandon_days: 14                  # D watcher: a folder whose task ended this long ago, owner alerted + LungNote Critical open, counts as Green for disk-hygiene (archive out/ + unsourced in/ first)
+  abandon_days: 14                  # D watcher: a folder whose task ended this long ago, owner alerted + LungNote Critical open, counts as Green for ALL_Rules_DiskHygiene (archive out/ + unsourced in/ first)
   layout: {in: "downloads + references", tmp: "intermediates", out: "deliverables"}
   on_close:
     tmp: delete
     in:  "delete if every file is re-downloadable from a URL in in/SOURCES.txt, else COLD"
-    out: "move to the project's Assets folder (hq-filing), else COLD"
+    out: "move to the project's Assets folder (ALL_Rules_HQ_Filing), else COLD"
 
 # Runners (flow_shoot, gen_loop, …) must not default their output under a NEVER path.
 runner_dest:

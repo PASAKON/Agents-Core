@@ -269,7 +269,7 @@ TAKE LOG:
   Drive: All Scene/Fix-1/S16-CuttingTheWall-Fix1.MP4
   https://drive.google.com/file/d/1hhE-YHXjuEfxgj5BunQ-SMpz_WaMBF0I/view
   (Note added 2026-09-09 by take 2: this file is now IN Fix-2, per the
-  Fix-2 seeding move recorded in the gdrive-filing skill — the path above
+  Fix-2 seeding move recorded in the CXO_Rules_GDrive_Filing skill — the path above
   is stale, not an error in this log.)
 
 2026-09-09 · take 2 · FREE (Unlimited) lane · task-5670068e ·

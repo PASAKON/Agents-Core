@@ -4,7 +4,7 @@ Progress log per the task's "Append progress ... as you go" rule.
 
 ## 2026-09-23
 
-- Read `.claude/skills/jev-ops/SKILL.md`, `tools/decide.py`,
+- Read `.claude/skills/ALL_Knowledge_Jev/SKILL.md`, `tools/decide.py`,
   `config/decisions/{browser.page_state,skill.route,sompong.route}.yaml`,
   `.claude/skills/CMO_Procedure_BlackLiquidity_Cut/SKILL.md` §6d/§6c/§6e/§5a, and the EDL
   schema at `worktrees/mooniex-agents__developer__task-42e3b6af/.claude/skills/CMO_Procedure_BlackLiquidity_Cut/edl/{SCHEMA.md,event_types.json,example/p1_layout.json}`.
@@ -46,7 +46,7 @@ Progress log per the task's "Append progress ... as you go" rule.
 Per the task's stop condition: **groundtruth.tsv does not exist yet**
 (task-82380776). `eval` is fully implemented (reads a `tag/question/
 expected/state` TSV, runs `--reps` repetitions per case, reports accuracy
-per site and jev-ops' own confidence-bucket shape, enforces the $0.05/2000-
+per site and ALL_Knowledge_Jev' own confidence-bucket shape, enforces the $0.05/2000-
 call ceiling) but has not been run against real labelled data — there is
 none to run it against. Stopping here per the brief: "If it does not exist
 when your build and tests are done, stop and report. The CTO will reopen
@@ -55,8 +55,8 @@ you for the eval."
 Also pending the eval (task explicitly calls for measuring this, not
 assuming it): the Thai-vs-English-gloss state comparison for `bl.beat`/
 `bl.focus_device` (`--state-lang th|en`, implemented, `en` is the
-provisional default per jev-ops' general advice) and the confidence gate
-itself (ships at jev-ops' measured 0.7, "replaced by what your eval
+provisional default per ALL_Knowledge_Jev' general advice) and the confidence gate
+itself (ships at ALL_Knowledge_Jev' measured 0.7, "replaced by what your eval
 measures" per the brief).
 
 ## Sample run (plan + storyboard on `example/`) — real Jev, not mocked
@@ -98,7 +98,7 @@ avatar-mode signal (`mode_for_beat` maps hook/verdict/cta all to `"full"`,
 `other` to `None`). Broadened the criterion with a real example from the
 script. **Re-ran: 36/40 (90%) agreement**, and all 4 remaining
 disagreements sit at confidence 0.37-0.58 — below the 0.7 gate, correctly
-flagged rather than confidently wrong (matches jev-ops SKILL.md: "with good
+flagged rather than confidently wrong (matches ALL_Knowledge_Jev SKILL.md: "with good
 criteria, a bad state shows up as low confidence").
 
 **EP57 full run (40 real script lines, `--manifest` = the real
@@ -148,7 +148,7 @@ drawn from EP57 itself (`prototypes/bl57-script/`) and the reference
 transcript (`prototypes/bl-ref-census/`, quoted via
 `CMO_Procedure_BlackLiquidity_Cut/SKILL.md` §6d) — both of which are this pipeline's own
 test material, so the earlier 90% agreement check was measuring
-recall-of-its-own-examples, not generalisation (jev-ops SKILL.md lever 2:
+recall-of-its-own-examples, not generalisation (ALL_Knowledge_Jev SKILL.md lever 2:
 "examples must not reuse the test values").
 
 Replaced every example across all three sites with held-out lines from
@@ -174,7 +174,7 @@ site itself needs real iteration, which is exactly what the formal `eval`
 hand-tune the criteria again against EP57** to chase a higher number —
 that is the same contamination trap in a smaller size. Further criteria
 work waits for the real `eval` loop against real (corrected) groundtruth,
-per jev-ops' own methodology (build ≥12 labelled cases incl. borderline,
+per ALL_Knowledge_Jev' own methodology (build ≥12 labelled cases incl. borderline,
 run ≥2 reps, read accuracy, only then rewrite criteria).
 
 ### 2. Eval — still waiting, now for a different reason
@@ -250,7 +250,7 @@ site: bl.entry             cases 32     right 20/32 (62.5%)
   recommended gate: NONE — even the highest-confidence case was wrong
 
 bl.focus_device: SKIPPED — only 3 census rows share this site's vocabulary
-(below the jev-ops ≥12-case minimum to trust an accuracy number).
+(below the ALL_Knowledge_Jev ≥12-case minimum to trust an accuracy number).
 
 total eval spend: $0.007685 over 212 calls
 ```
@@ -258,7 +258,7 @@ total eval spend: $0.007685 over 212 calls
 **The state-lang comparison the task asked for has a clear, if unwelcome,
 answer: 42% (th) beats 20% (en) by a wide margin — the line's actual
 meaning, not structural position/screen-hint flags, is what decides its
-beat.** This contradicts jev-ops' general cost advice ("write state in
+beat.** This contradicts ALL_Knowledge_Jev' general cost advice ("write state in
 English, Thai costs ~3.4x") for this specific site — cost is not the
 deciding factor at these volumes (CEO/task brief), and the `en` variant
 isn't just more expensive, it's categorically worse (20% vs 42%, `recommend_gate`
@@ -267,12 +267,12 @@ default `--state-lang` for `bl.beat` to `th` is the right call** — not yet
 done, since it changes the tool's default behavior and deserves a separate,
 visible commit rather than folding it into this measurement pass.
 
-**Neither number clears jev-ops' own "stop and rewrite criteria if accuracy
+**Neither number clears ALL_Knowledge_Jev' own "stop and rewrite criteria if accuracy
 < 90%" bar.** 42% is real progress over the unusable 20%, but this site is
 NOT production-ready. `bl.entry` is more concerning: its confident
 (0.85-1.00) answers are only 57% accurate — a maximally-confident (1.00)
 wrong answer (`t1.90`: truth `hard_cut`, got `shrink`) is exactly the
-"confident-and-wrong" failure jev-ops HARD rule 2 exists to catch. Its
+"confident-and-wrong" failure ALL_Knowledge_Jev HARD rule 2 exists to catch. Its
 current criteria (framed around `mode_change`) don't match how the census
 actually assigns `cut` vs `shrink` — real redesign work, not a tuning pass.
 

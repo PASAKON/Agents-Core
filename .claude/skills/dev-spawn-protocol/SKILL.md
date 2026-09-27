@@ -239,7 +239,7 @@ re-introducing heartbeats.
 - Failed tasks keep their tab open for inspection.
 
 ### 8. Hand off to merge gate
-- Move to `cto-merge-checklist` before `merge_task`.
+- Move to `CTO_Gate_MergeChecklist` before `merge_task`.
 - Do not skip the checklist even on "obvious" merges.
 
 ## Failure modes to refuse

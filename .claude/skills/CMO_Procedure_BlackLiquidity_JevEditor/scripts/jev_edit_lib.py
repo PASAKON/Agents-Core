@@ -255,7 +255,7 @@ def needs_review(choice: str | None, confidence_value: float, gate: float) -> bo
 
 def recommend_gate(rows: list[tuple[float, bool]]) -> float | None:
     """The smallest OBSERVED confidence value T such that every case with
-    confidence >= T was correct — jev-ops SKILL.md's own methodology ("Gate
+    confidence >= T was correct — ALL_Knowledge_Jev SKILL.md's own methodology ("Gate
     at 0.7 kept 80% of answers and let zero wrong ones through"), but
     derived from this site's actual eval data rather than borrowed as a
     constant. None if no threshold achieves zero wrong answers above it
@@ -273,7 +273,7 @@ CONFIDENCE_BUCKETS = ((0.0, 0.5), (0.5, 0.7), (0.7, 0.85), (0.85, 1.0 + 1e-9))
 
 
 def bucket_confidence(rows: list[tuple[float, bool]]) -> dict[str, dict[str, Any]]:
-    """rows: (confidence, correct) pairs. Same bucket edges as jev-ops
+    """rows: (confidence, correct) pairs. Same bucket edges as ALL_Knowledge_Jev
     SKILL.md's pooled table (<0.50, 0.50-0.70, 0.70-0.85, >=0.85)."""
     out: dict[str, dict[str, Any]] = {}
     for lo, hi in CONFIDENCE_BUCKETS:

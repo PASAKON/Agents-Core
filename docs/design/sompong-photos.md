@@ -13,7 +13,7 @@ every photo/video/file the family sends into the LINE group SomPong sits in
 should be quietly backed up to the CEO's Drive, automatically, no per-file
 confirmation. The CEO approved a fixed destination, `My Picture & Videos.`
 (Drive id `1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy`), split into month folders. This
-is an explicit, narrow carve-out from the `gdrive-filing` skill's hard rules
+is an explicit, narrow carve-out from the `CXO_Rules_GDrive_Filing` skill's hard rules
 1 ("ask before doing anything") and 3 ("never create a folder without
 asking") — it applies to this one feature and this one folder only. Nothing
 else about that skill changes.
@@ -305,7 +305,7 @@ Per pair, oldest `ts` first:
    everywhere else in this org (LungNote deadlines, `logs.txt` timestamps,
    etc.) — a photo sent at 23:40 UTC on the 31st is already the 1st in
    Bangkok, and files under the Bangkok month, not the UTC one.
-4. **Filename** — `gdrive-filing`'s parenthesised-fields style:
+4. **Filename** — `CXO_Rules_GDrive_Filing`'s parenthesised-fields style:
    `(<sender name>) (D-M-YYYY) (<HHMM>) <messageId><ext>`. The sender name
    comes from the JSON's `name` field, stripped of anything outside
    `[\w฀-๿ .()-]` (word characters — already Unicode-aware, so this covers

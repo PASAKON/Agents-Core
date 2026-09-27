@@ -1,0 +1,12 @@
+[
+ {"old": "hq-filing", "new": "ALL_Rules_HQ_Filing", "kind": "rules", "owner": "COO", "audience_add": []},
+ {"old": "disk-hygiene", "new": "ALL_Rules_DiskHygiene", "kind": "rules", "owner": "CTO", "audience_add": []},
+ {"old": "winbox-pc-lease", "new": "ALL_Rules_Winbox_PCLease", "kind": "rules", "owner": "CTO", "audience_add": []},
+ {"old": "mooniex-finance", "new": "CFO_Rules_Finance", "kind": "rules", "owner": "CFO", "audience_add": []},
+ {"old": "cto-merge-checklist", "new": "CTO_Gate_MergeChecklist", "kind": "gate", "owner": "CTO", "audience_add": []},
+ {"old": "cookierun-labeling", "new": "CTO_Knowledge_CookieRun_Labeling", "kind": "knowledge", "owner": "CTO", "audience_add": ["cto"]},
+ {"old": "jules-ops", "new": "CTO_Knowledge_Jules", "kind": "knowledge", "owner": "CTO", "audience_add": ["cto"]},
+ {"old": "winbox-desktop-gui", "new": "CTO_Knowledge_Winbox_DesktopGUI", "kind": "knowledge", "owner": "CTO", "audience_add": []},
+ {"old": "jev-ops", "new": "ALL_Knowledge_Jev", "kind": "knowledge", "owner": "CTO", "audience_add": []},
+ {"old": "line-messaging", "new": "CXO_Knowledge_LINE_Messaging", "kind": "knowledge", "owner": "COO", "audience_add": ["cxo"]}
+]

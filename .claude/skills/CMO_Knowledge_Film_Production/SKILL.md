@@ -144,7 +144,7 @@ frames, and why B held; written by the reviewer, never the operator. The ledger 
   hours while everyone believed it was done. Commit every asset id before downloading: ids cannot be
   recovered, files always can.
 - Change one variable per test; piggyback a test on a fire you have to make anyway.
-- Any paid generation: the director gets the exact $ first.
+- Any paid generation: the director gets the exact $ first. (org rule: `ALL_Rules_Approvals`)
 
 ## Field notes
 - 2026-09-25 [MISSING] §3 — a STATE change of a referenced thing needs its own picture or no picture: the @Manta plate has its lamps lit, and in N6-N11 of the ILAG cut 3 the plate beat "every lamp dead and dark" in the words on six shots. @LanternDark already solved it for the lantern; for the mount the dark plate failed to generate, so the picture was dropped and the mount described in words · evidence: docs/reports/ilag-cut3/contact-sheet.jpg, e1b6dd16 · status: pending

@@ -212,7 +212,7 @@ def watch(*, root=None, db_path=None, state_path: Path | None = None,
             continue
 
         if cand.get("green"):
-            info(f"work_watch: Work/{task_id} is a disk-hygiene Green "
+            info(f"work_watch: Work/{task_id} is a ALL_Rules_DiskHygiene Green "
                  f"candidate (work_dir.abandon_days elapsed) — archive via "
                  f"`workdir.py close --archive`, never auto-deleted")
             green.append(task_id)

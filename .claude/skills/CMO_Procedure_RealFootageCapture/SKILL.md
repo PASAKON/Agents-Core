@@ -68,7 +68,7 @@ The CEO approved the approach and its censor rules on 2026-09-23, after reviewin
    *Stop if* anything in rules 1–2 shows uncensored. Fix it and re-run; never hand it on.
 5. **Deliver.**
    - Clips, stills and `REAL_MANIFEST.json` go to the episode's Drive project folder under
-     `real/`. Read `gdrive-filing` before the first Drive call.
+     `real/`. Read `CXO_Rules_GDrive_Filing` before the first Drive call.
    - Commit the shot list, the manifest and the small stills.
    - Never commit MP4s.
 
@@ -174,7 +174,7 @@ The editor looks footage up by `covers`. A script tag with no entry falls back t
   flags.
 - Where it goes in the cut: `CMO_Procedure_BlackLiquidity_Cut` §5a. Real footage outranks B-roll.
 - Compliance background: `CMO_Standard_BlackLiquidity_Script` §Compliance.
-- Drive: `gdrive-filing`.
+- Drive: `CXO_Rules_GDrive_Filing`.
 
 ## Field notes
 - 2026-09-23 [MISSING] §Censor rules — the whole skill is a CEO ruling after reviewing EP55's draft stills: approach approved, censor personal data / minors' and uninvolved faces / ads and unrelated banners, partially and by position. Written as rules directly because it is a CEO ruling · evidence: CEO message 2026-09-23, task-67f82679, commit fb85d135 · status: promoted

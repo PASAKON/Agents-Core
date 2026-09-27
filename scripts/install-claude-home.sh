@@ -10,7 +10,7 @@
 #
 #     bash scripts/install-claude-home.sh --check  # doctor: report drift, change nothing (exit 1 on drift)
 #
-# Rules it enforces (same shape as gdrive-filing / the HQ map):
+# Rules it enforces (same shape as CXO_Rules_GDrive_Filing / the HQ map):
 #   * every org-owned entry in ~/.claude is a symlink into this repo — a REAL
 #     file/dir where a link should be is DRIFT. On install, a differing real
 #     settings.json/CLAUDE.md is CAPTURED into the repo first (your /config edits
@@ -155,7 +155,7 @@ if [ -d "$RE" ]; then
     else py="$(command -v python3.12 || command -v python3)"; "$py" -m venv "$RE/.venv" && "$RE/.venv/bin/pip" -q install -r "$RE/requirements.txt" && ok "built    CMO_Procedure_ReelEditor_TH/.venv ($py)" || bad "FAILED   venv build"; fi
   fi
   if [ -d "$RE/assets/mooniex-broll" ]; then ok "assets   CMO_Procedure_ReelEditor_TH/assets/mooniex-broll"
-  else bad "MISSING  CMO_Procedure_ReelEditor_TH/assets/mooniex-broll (210 MB, not in git — restore from Drive per gdrive-filing / Assets/)"; fi
+  else bad "MISSING  CMO_Procedure_ReelEditor_TH/assets/mooniex-broll (210 MB, not in git — restore from Drive per CXO_Rules_GDrive_Filing / Assets/)"; fi
 fi
 
 echo

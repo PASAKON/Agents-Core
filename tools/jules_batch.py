@@ -121,7 +121,7 @@ def cmd_diff(a) -> None:
         sys.stdout.write(patch)
 
 
-# Review gate — the script half of jules-ops §4. Applied to BOTH arms of the A/B
+# Review gate — the script half of CTO_Knowledge_Jules §4. Applied to BOTH arms of the A/B
 # with the allowlist taken from the disciplined brief, so the loose arm is
 # measured against the same scope it was never told about.
 FORBIDDEN_BASENAMES = ("*.log", "patch_*", "*.patch", "package.json", "package-lock.json",

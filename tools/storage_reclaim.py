@@ -7,8 +7,8 @@ under ~/MoonieXHQ/Projects).
 `plan()` walks every in-scope task's `worktree` (from tasks.db) looking
 for directories `tools/storage_policy.classify()` puts in REBUILD. A
 REBUILD entry tagged `dormancy: true` (node_modules, .venv, .next) is only
-included when the whole worktree passes the disk-hygiene "dormancy test"
-(.claude/skills/disk-hygiene/SKILL.md §"The dormancy test, exactly") — no
+included when the whole worktree passes the ALL_Rules_DiskHygiene "dormancy test"
+(.claude/skills/ALL_Rules_DiskHygiene/SKILL.md §"The dormancy test, exactly") — no
 file anywhere under the worktree (excluding node_modules/.venv/.git)
 modified in the last 14 days, AND no `next dev|next-server|vite|uvicorn`
 process whose cwd is inside it. Entries with no `dormancy` flag (caches,

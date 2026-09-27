@@ -2,13 +2,13 @@
 """tools/drive_leg.py -- Contabo's Drive leg of the Machine Contract (ADR 0031, IRON Sec58).
 
 Brief: docs/ops/briefs/machine-contract-drive-leg.md. Contabo holds no rclone and no Drive
-token on purpose (gdrive-filing rule 6: the token stays on winbox), so every byte this module
+token on purpose (CXO_Rules_GDrive_Filing rule 6: the token stays on winbox), so every byte this module
 sends to Drive goes through `scripts/rclone_via_winbox.sh <rclone args...>`, which runs
 winbox's rclone over ssh with THIS machine's stdin/stdout -- overridable with env
 DRIVE_LEG_RCLONE (the tests point it at a fake relay script). The wrapper refuses any arg
 with a space/quote/&|<>^ (cmd.exe), so every remote path used here is `gdrive:<folder>/<name>`
 with no spaces, addressed by `--drive-root-folder-id <id>` (the six BACKUP/MoonieX HQ family
-ids below, from the gdrive-filing skill's ID table -- never re-created here).
+ids below, from the CXO_Knowledge_GDrive_FolderMap skill's ID table -- never re-created here).
 
 Precedents reused, not reinvented:
   - scripts/stream_backup_to_drive.py  -- freeze -> tar -> rcat -> verify (size+md5) -> manifest
@@ -57,7 +57,7 @@ from typing import Callable
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_RCLONE = ROOT / "scripts" / "rclone_via_winbox.sh"
 
-# Drive ids for the BACKUP/MoonieX HQ family (gdrive-filing SKILL.md ID table, CEO 2026-09-24).
+# Drive ids for the BACKUP/MoonieX HQ family (CXO_Knowledge_GDrive_FolderMap SKILL.md ID table, CEO 2026-09-24).
 # "family" and "Work-Archive" are listed for a single source of truth alongside the rest, even
 # though no verb here uses them directly -- Work-Archive is tools/work_archive.py's job.
 FOLDER_IDS = {

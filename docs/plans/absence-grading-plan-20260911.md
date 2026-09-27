@@ -27,7 +27,7 @@
 **ของที่กินที่ (จากคำเตือน disksense ตอนเปิด session):**
 `play_rec 25.59 GB` · `modelplay 19.3 GB` · `playset 4.31 GB` — **เป็นข้อมูล Cookie Run ไม่ใช่ของหนัง**
 
-`play_rec` **สำรองขึ้น Drive แล้ว** (`BACKUP/CookieRun Backup/play_rec`) ตามบันทึกใน gdrive-filing
+`play_rec` **สำรองขึ้น Drive แล้ว** (`BACKUP/CookieRun Backup/play_rec`) ตามบันทึกใน CXO_Rules_GDrive_Filing
 
 ⚠️ **ผมไม่แตะข้อมูลโปรเจกต์อื่นโดยไม่มีคำสั่ง** ต้องอ่าน `cookierun-bot/docs/DATA-STEWARD.md` ก่อนว่าอะไรลบได้ และต้องให้ CEO อนุมัติ
 **ทางเลือกอื่นถ้าไม่อยากแตะ Cookie Run:** ลง Resolve บน Mac แทน (มีเวอร์ชัน Mac ฟรีเหมือนกัน) — แต่ CEO เดินทางอยู่กับ Mac

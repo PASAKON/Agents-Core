@@ -377,7 +377,7 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                 unfiled = close_result.get("unfiled", [])
                 msg = (f"Work/{task_id}/ still holds {len(unfiled)} unfiled "
                        f"file(s) — refusing to merge until they are filed "
-                       f"(Assets via hq-filing, or Drive via gdrive-filing): "
+                       f"(Assets via ALL_Rules_HQ_Filing, or Drive via CXO_Rules_GDrive_Filing): "
                        f"{unfiled[:20]}")
                 warn(f"close gate blocked {task_id}: {msg}")
                 db.update_status(

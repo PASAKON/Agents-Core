@@ -25,7 +25,7 @@ LIQUIDITY` and is load-bearing for mooniex-claudeflow/src/video/videodrive.js
 and scripts/higgsfield/gen_loop.py. This module never reads that variable at
 all (see the guard test in scripts/test_video_to_drive.py) -- repointing or
 widening it here would silently break those two other production paths.
-Per the CEO's exception (recorded in .claude/skills/gdrive-filing/SKILL.md,
+Per the CEO's exception (recorded in .claude/skills/CXO_Rules_GDrive_Filing/SKILL.md,
 "Desktop Cloud... AI never auto-files here"): uploads only, no deletes, no
 reorganising, and never anywhere else on Drive.
 

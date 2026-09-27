@@ -72,10 +72,10 @@ Per complete pair, oldest (`ts`) first:
      before (e.g. a retried webhook delivery) -- delete the local pair
      without uploading again.
   3. Month folder from `ts`, converted to Asia/Bangkok (+07:00, no DST) --
-     `YYYY-MM`, matching the gdrive-filing skill's "file by month" rule for
+     `YYYY-MM`, matching the CXO_Rules_GDrive_Filing skill's "file by month" rule for
      `My Picture & Videos.`.
   4. Filename: `(<sender name>) (D-M-YYYY) (<HHMM>) <messageId><ext>` --
-     gdrive-filing's parenthesised-fields naming style; the messageId
+     CXO_Rules_GDrive_Filing's parenthesised-fields naming style; the messageId
      disambiguates two photos sent in the same minute. The sender name is
      stripped of anything outside `[\\w฀-๿ .()-]` first.
   5. Upload through drive_photo_broker.py's socket (never Drive directly --

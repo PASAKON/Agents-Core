@@ -8,8 +8,8 @@ outside the pilot scope never touches this module at all.
 Layout: `Work/<task_id>/{in,tmp,out}` — `in/` = downloads/references (each
 covered by a line in `in/SOURCES.txt`: `<file>\\t<url|local:path>\\t<sha256>`),
 `tmp/` = intermediates (discarded at close, no questions asked), `out/` =
-deliverables (filed to their home — Assets via hq-filing, or Drive via
-gdrive-filing — by a human/CTO step outside this tool before close() can
+deliverables (filed to their home — Assets via ALL_Rules_HQ_Filing, or Drive via
+CXO_Rules_GDrive_Filing — by a human/CTO step outside this tool before close() can
 succeed).
 
 CLI:
@@ -212,7 +212,7 @@ def close(task_id: str, *, dry_run: bool = False,
     covered by in/SOURCES.txt is always deleted (re-downloadable — nothing
     to keep), regardless of whether the close can complete. Filing an
     unfiled in/ file or an out/ deliverable to its home (Assets via
-    hq-filing, or Drive via gdrive-filing) is a human/CTO step outside this
+    ALL_Rules_HQ_Filing, or Drive via CXO_Rules_GDrive_Filing) is a human/CTO step outside this
     tool — close() only removes the folder + appends the ledger line once
     nothing but tmp/(gone) and filed in/ files were ever in it.
 
@@ -334,7 +334,7 @@ def close(task_id: str, *, dry_run: bool = False,
 def _abandon_days() -> float:
     """`work_dir.abandon_days` from config/storage-policy.yaml (ADR 0030 §D,
     task-dbe47b9b) — how long an orphaned folder sits with its alert/LungNote
-    to-do open before it counts as a disk-hygiene Green candidate. Same
+    to-do open before it counts as a ALL_Rules_DiskHygiene Green candidate. Same
     minimal direct-YAML-read pattern as `_default_root()` above, for the same
     reason (a test fixture's minimal policy file may declare only `work_dir`,
     which the full `tools.storage_policy` loader would reject)."""
@@ -358,7 +358,7 @@ def orphans(db: str | Path, *, root: str | Path | None = None,
 
     Each result also carries `green` (task-dbe47b9b, ADR 0030 §D): True once
     `age_hours` clears `work_dir.abandon_days` (default 14) worth of hours —
-    a disk-hygiene Green *candidate* only (`tools/work_watch.py` logs it,
+    a ALL_Rules_DiskHygiene Green *candidate* only (`tools/work_watch.py` logs it,
     `workdir.py orphans --green` lists it); this function never deletes
     anything, and a folder with no measurable age (task id absent from `db`)
     is conservatively never Green — there is no timestamp to judge it by."""
@@ -446,7 +446,7 @@ def _cli(argv: list[str]) -> int:
                            help="tasks.db path (default state/tasks.db)")
     p_orphans.add_argument("--root", default=None)
     p_orphans.add_argument("--green", action="store_true",
-                           help="only list disk-hygiene Green candidates "
+                           help="only list ALL_Rules_DiskHygiene Green candidates "
                                 "(work_dir.abandon_days elapsed) — never "
                                 "deletes; archive via `workdir.py close --archive`")
 

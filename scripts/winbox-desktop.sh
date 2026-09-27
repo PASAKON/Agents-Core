@@ -68,7 +68,7 @@ esac
 # Enforcement, not etiquette. A session drove this desktop for three hours with
 # Cookie Run live underneath (2026-09-14): every call returned OK, the tenant's
 # notifications stacked in its own screenshots, and it read them as noise. The
-# rule was written down in winbox-pc-lease and the document did not stop it.
+# rule was written down in ALL_Rules_Winbox_PCLease and the document did not stop it.
 # So the script asks. ~3-4 s (an ssh round trip), on every screen-touching call.
 if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
   "$HERE/scripts/pc-lease.sh" gate || exit 3

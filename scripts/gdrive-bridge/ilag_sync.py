@@ -213,7 +213,7 @@ def ensure_folder(rel_dir: str, folders: dict[str, str], *, create: bool) -> str
     """Resolve a relative folder path to a Drive id, creating it only if asked.
 
     Returns None when the folder is absent and creation was not authorised —
-    the gdrive-filing skill forbids inventing folders without the CEO's say-so.
+    the CXO_Rules_GDrive_Filing skill forbids inventing folders without the CEO's say-so.
     """
     if rel_dir in folders:
         return folders[rel_dir]

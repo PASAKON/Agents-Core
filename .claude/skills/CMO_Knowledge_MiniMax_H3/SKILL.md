@@ -36,7 +36,7 @@ prompts go to Wan 3.0 on TopView for the real footage (`CMO_Knowledge_Wan3.0_Top
 
 ## 2 · Rules
 
-1. **HARD: the CEO opens and pays for the pod; ask him with the exact $ before any run.**
+1. **HARD: the CEO opens and pays for the pod; ask him with the exact $ before any run.** (org rule: `ALL_Rules_Approvals`)
    **Why hard:** money. RunPod bills by the hour; the permission layer also refuses `POST /api/pod/start`
    from an agent as a real-money transaction (2026-09-25).
 2. **HARD: never open, print, edit or delete anyone else's Entity, upload or queue item.**

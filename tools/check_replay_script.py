@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gate 8 of cto-merge-checklist, as a check instead of a glance.
+"""Gate 8 of CTO_Gate_MergeChecklist, as a check instead of a glance.
 
     python3 tools/check_replay_script.py <path> [<path> ...]
 

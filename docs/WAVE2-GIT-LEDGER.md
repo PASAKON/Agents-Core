@@ -149,7 +149,7 @@ mirror for humans browsing the directory.
 **No existing skill directory was renamed, and no `git mv` was run.** The
 21 pre-ADR skills are grandfathered permanently, called out explicitly in
 the skill text: `~/.claude/skills` holds symlinks into this repo
-(`browser-operator`, `mooniex-finance`, …), and renaming the target dangles
+(`browser-operator`, `CFO_Rules_Finance`, …), and renaming the target dangles
 the link — the skill vanishes with no error, and 39+ files reference skill
 names as literal strings.
 

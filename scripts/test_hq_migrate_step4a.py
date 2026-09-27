@@ -259,7 +259,7 @@ def test_apply_moves_external_clones_then_one_parent_symlink(tmp_path: Path) -> 
 def test_symlink_into_moved_external_clone_still_resolves(tmp_path: Path) -> None:
     """Stands in for a `~/.claude/skills/*` link: it still points at the OLD
     literal path, but resolves correctly once the parent (`external`) is a
-    compat symlink (hq-filing field note, 2026-09-23)."""
+    compat symlink (ALL_Rules_HQ_Filing field note, 2026-09-23)."""
     f = _build_fixture(tmp_path)
     content_before = (f["skills_link"] / "SKILL.md").read_text()
     r = _run_cli(tmp_path, f, "--apply")

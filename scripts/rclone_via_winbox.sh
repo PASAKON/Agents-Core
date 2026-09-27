@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run winbox's rclone with this machine's stdin/stdout: the Drive token never leaves winbox (gdrive-filing rule 6).
+# Run winbox's rclone with this machine's stdin/stdout: the Drive token never leaves winbox (CXO_Rules_GDrive_Filing rule 6).
 # Works from the Mac and from Contabo (both carry `Host winbox` in ~/.ssh/config). Since the 2026-09-24 reinstall
 # the account is passg and rclone resolves through PATH via the WinGet Links shim
 # (C:\Users\passg\AppData\Local\Microsoft\WinGet\Links\rclone.exe); the old UsEr package path no longer exists.

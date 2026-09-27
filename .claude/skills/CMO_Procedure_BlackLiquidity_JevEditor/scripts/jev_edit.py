@@ -18,8 +18,8 @@ Six sites (config/decisions/bl.*.yaml), asked per line in order:
                                                               — only when candidates exist
   bl.text_slot     A-F / other (free text rectangles)         — only when candidates exist
 
-See SKILL.md for the full design and jev-ops SKILL.md for what a Jev call
-costs and why. State passed to every site is DATA (jev-ops HARD rule 3) —
+See SKILL.md for the full design and ALL_Knowledge_Jev SKILL.md for what a Jev call
+costs and why. State passed to every site is DATA (ALL_Knowledge_Jev HARD rule 3) —
 script/web text never becomes an option; the options are always the ones
 declared in config/decisions/bl.*.yaml.
 
@@ -51,11 +51,11 @@ from tools import decide as decide_mod  # noqa: E402
 
 BRAND_MAP_PATH = ROOT / ".claude" / "skills" / "CMO_Procedure_BlackLiquidity_Cut" / "brand-display.yaml"
 
-# jev-ops SKILL.md's own gate: "kept 80% of answers and let zero wrong ones
+# ALL_Knowledge_Jev SKILL.md's own gate: "kept 80% of answers and let zero wrong ones
 # through" at 0.7, "replaced by what your eval measures" per the task brief.
 DEFAULT_GATE = 0.7
 
-# HARD (jev-ops rule 1 / task brief): every loop that calls Jev carries its
+# HARD (ALL_Knowledge_Jev rule 1 / task brief): every loop that calls Jev carries its
 # own call ceiling and dollar cap, on top of tools/decide.py's monthly
 # DECIDE_BUDGET_USD. TASK_BUDGET_CAP_USD is the task's own hard number —
 # $0.05 for EVERYTHING this task spends, not per invocation (CTO review
@@ -102,7 +102,7 @@ class BudgetExceeded(RuntimeError):
 
 class SpendTracker:
     """Local call-ceiling + dollar-cap, independent of tools/decide.py's
-    monthly DECIDE_BUDGET_USD gate — jev-ops SKILL.md rule 1 is explicit
+    monthly DECIDE_BUDGET_USD gate — ALL_Knowledge_Jev SKILL.md rule 1 is explicit
     that ad-hoc scripts need their own ceiling on top of that one."""
 
     def __init__(self, max_calls: int, max_usd: float):
@@ -904,7 +904,7 @@ def cmd_eval(args: argparse.Namespace) -> int:
             "site's vocabulary with the census (highlighter_sweep/pan+zoom); "
             "avatar_shrink/avatar_slide/plate_dissolve/pop*/scroll are real P2 "
             "events but not evidence-focus devices this site models. Below the "
-            "jev-ops ≥12-case minimum to trust an accuracy number."
+            "ALL_Knowledge_Jev ≥12-case minimum to trust an accuracy number."
         )
 
     variants = [

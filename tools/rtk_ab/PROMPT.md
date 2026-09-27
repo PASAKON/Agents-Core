@@ -17,7 +17,7 @@ line** containing a single JSON object with these keys and nothing else on that 
    `pytest` installed is on PATH). Report how many tests passed, failed, and were skipped.
 
 2. **Commit style.** Run `git log --oneline -30`. Of those 30 subject lines, how many start
-   with `skill(` (immediately after the short hash + space, e.g. `skill(gdrive-filing): ...`)?
+   with `skill(` (immediately after the short hash + space, e.g. `skill(CXO_Rules_GDrive_Filing): ...`)?
 
 3. **Biggest tool scripts.** Under `tools/` (not recursing into any `__pycache__` directory),
    find the 5 largest files by byte size. Report each as `[path, bytes]`, largest first, path

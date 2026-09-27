@@ -1588,7 +1588,7 @@ stop immediately.
 
 48 clips at 720p is ~120 MB. Two shoots landed 49 MB of mp4 in the repo under
 `docs/reports/` before anyone said otherwise. Video goes to Drive under the
-ILAG rules in `gdrive-filing`; the repo keeps the report, the shot table and
+ILAG rules in `CXO_Rules_GDrive_Filing`; the repo keeps the report, the shot table and
 the review ledger. A worker's `clips/` directory is a staging area that the
 C-level files and then removes from the branch before merge.
 

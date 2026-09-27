@@ -39,7 +39,7 @@ ENV_FILE="${BROKER_HOME}/.drive.env"
 LOG_DIR="${BROKER_HOME}/logs"
 STAGING_DIR="/srv/driveup-staging"
 SOCKET_PATH="/run/driveup/drive-broker.sock"     # RuntimeDirectory= recreates the parent dir every boot
-FOLDER_ID="115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR"    # CEO's Desktop Cloud root -- see .claude/skills/gdrive-filing/SKILL.md
+FOLDER_ID="115w-UxOvdmPIc5X8nq_oV42EEsrVMRtR"    # CEO's Desktop Cloud root -- see .claude/skills/CXO_Rules_GDrive_Filing/SKILL.md
 MAX_UPLOAD_BYTES="524288000"     # 500 MiB
 MAX_REQUEST_BYTES="65536"        # 64 KiB -- one JSON line naming a path, plenty
 SOCKET_TIMEOUT="30"              # seconds, request-line read only (ilag_sync's own upload timeouts are separate: 60s init / 1800s PUT)

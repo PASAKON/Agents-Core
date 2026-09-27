@@ -14,7 +14,7 @@ What moves, in one --apply:
      Unlike (1), these get ONE compat symlink for the whole directory
      (/Users/gob/Projects/external -> ~/MoonieXHQ/External), not one per clone —
      a symlink that points INTO a moved repo (the ~/.claude/skills/* links, and
-     `paperclip` below) resolves fine through it (hq-filing field note,
+     `paperclip` below) resolves fine through it (ALL_Rules_HQ_Filing field note,
      2026-09-23, task-b5f61b47).
   3. `paperclip` (nested inside mooniex-nohuman as its own git clone, gitignored
      by the parent) -> ~/MoonieXHQ/External/paperclip. No compat symlink: its
@@ -497,7 +497,7 @@ def cmd_apply(hq_root: Path) -> int:
             move_and_verify(src, target, info["sha"], info["remotes"])
             m.add(op="move", from_=str(src), to=str(target), sha=info["sha"])
             m.note(f"moved: {src} -> {target}")
-            create_compat_symlink(src, target)  # immediately after mv (hq-filing field note)
+            create_compat_symlink(src, target)  # immediately after mv (ALL_Rules_HQ_Filing field note)
             m.add(op="symlink", path=str(src), target=str(target))
             m.note(f"compat symlink: {src} -> {target}")
             for wt in worktrees[r["path"]]:

@@ -212,7 +212,7 @@ Verdict        : CLOSE 🏁 (status=closed)
   `STAY OPEN` keeps it running, and only when the CEO means "I'm still working."
   A live session burning RAM is exactly the cost this avoids.
 - **Verify, don't assume, external effects** — same discipline as
-  cto-merge-checklist gate 7 (born from the 2026-06-10 double-post near-miss).
+  CTO_Gate_MergeChecklist gate 7 (born from the 2026-06-10 double-post near-miss).
 - **🏁 is a promise** (§32): every DoD met, nothing waiting. If unsure, it's
   force_saved (closed unfinished), not 🏁.
 - **Parking is mandatory, not optional.** An off-topic idea that's only in the

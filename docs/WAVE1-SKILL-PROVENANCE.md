@@ -204,7 +204,7 @@ only needed `audience:` added.
 
 **Also incorrect in the brief: "5 have no `owner`" — the real count is 4.**
 Measured directly (`grep -m1 '^owner:'` across all 21): 15 skills have
-`owner: CTO`, 2 have `owner: CFO` (`gdrive-filing`, `mooniex-finance`), and 4
+`owner: CTO`, 2 have `owner: CFO` (`CXO_Rules_GDrive_Filing`, `CFO_Rules_Finance`), and 4
 have no `owner` field at all (`ai-film-production`, `CMO_Procedure_Blender_Previz`,
 `browser-operator`, `higgsfield-unlimited-gen`). 15 + 2 + 4 = 21.
 
@@ -233,11 +233,11 @@ mis-stamped nearly every skill in the repo).
 | `ai-film-production` | `cxo` | Description: "whenever a C-level is directing" a film — generic, not restricted to one C-level |
 | `CMO_Procedure_Blender_Previz` | `all` *(needs human decision — see below)* | No `owner:` field, no role named anywhere in the body; only "the CEO approves," which is approval, not driving |
 | `browser-operator` | `browser_operator` | Description names "the org's `browser_operator` role" verbatim |
-| `cto-merge-checklist` | `cto` | `owner: CTO`; body titled "# CTO Merge Checklist"; gates `merge_task`, which CTO runs in this repo |
+| `CTO_Gate_MergeChecklist` | `cto` | `owner: CTO`; body titled "# CTO Merge Checklist"; gates `merge_task`, which CTO runs in this repo |
 | `dev-spawn-protocol` | `cto` | Description: "Required steps when CTO spawns a DEV agent" |
-| `gdrive-filing` | `cxo` | `owner: CFO`, but rules apply to whichever C-level session the CEO asks to file something — not restricted to CFO in the trigger phrases |
+| `CXO_Rules_GDrive_Filing` | `cxo` | `owner: CFO`, but rules apply to whichever C-level session the CEO asks to file something — not restricted to CFO in the trigger phrases |
 | `higgsfield-unlimited-gen` | `cto, cmo, cfo, cgo` | Body states verbatim: "Gives any C-level (CTO, CMO, CFO, CGO)" |
-| `mooniex-finance` | `cfo` | `owner: CFO`; description names "CFO" explicitly; org finance authority |
+| `CFO_Rules_Finance` | `cfo` | `owner: CFO`; description names "CFO" explicitly; org finance authority |
 | `session-change-model` | `cxo` | Scope states verbatim: "Shared by CTO/CFO/CGO/CMO" |
 | `session-close` | `cxo` | Generic C-level session exit gate (IRON §35); same `/session-*` family as `session-change-model`'s explicit sharing |
 | `session-list` | `cxo` | Description: "List past CTO/CXO sessions" |

@@ -10,7 +10,7 @@ sheet into the repo. IRON §53: rounds 4-6 were done by hand with per-round scri
         --item crt_eye_v4="was #2, a touch of violet" --item loc_storm_pillars_A_v2="was #4, taller"
 
 Needs ILAG_LOG_ACTOR=AI:<role>-<sid>. Drive ids: the project built 2026-09-24
-(gdrive-filing: YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)).
+(CXO_Rules_GDrive_Filing: YT: ILAG/รอตั้งชื่อ (Topview Wan3 Challenge 2026)).
 """
 import argparse, hashlib, json, os, subprocess, sys
 from pathlib import Path

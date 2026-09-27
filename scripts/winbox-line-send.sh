@@ -34,7 +34,7 @@ ok()  { printf '\033[32m✓\033[0m %s\n' "$*"; }
 
 # --- the screen may already be in use. Same gate as winbox-desktop.sh: a
 # session drove this desktop for three hours with the tenant live underneath
-# because the rule lived only in a document (2026-09-14). See winbox-pc-lease.
+# because the rule lived only in a document (2026-09-14). See ALL_Rules_Winbox_PCLease.
 if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
   "$HERE/scripts/pc-lease.sh" gate || exit 3
 fi

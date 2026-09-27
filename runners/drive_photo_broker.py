@@ -53,7 +53,7 @@ nothing about the filer's uid changes that.
 
 THE ONE NEW ATTACK SURFACE -- the "subfolder" request field:
     SomPong's photos are filed by month ("My Picture & Videos." / YYYY-MM/,
-    per the gdrive-filing skill's carve-out for this one folder). The broker
+    per the CXO_Rules_GDrive_Filing skill's carve-out for this one folder). The broker
     -- not the caller -- must be able to create that month folder the first
     time it's needed, since the caller (sompong_photo_filer.py, running as a
     host process with no Drive access of its own) has no other way to get
@@ -111,7 +111,7 @@ systemd unit, never by this code):
                                         /run/photoup/photo-broker.sock)
     DRIVE_PHOTO_BROKER_FOLDER_ID       the fixed destination folder (default:
                                         "My Picture & Videos.", CEO-approved
-                                        2026-09-10 -- see the gdrive-filing
+                                        2026-09-10 -- see the CXO_Rules_GDrive_Filing
                                         skill's folder table)
     DRIVE_PHOTO_BROKER_MAX_UPLOAD_BYTES    per-file cap (default 200 MiB)
     DRIVE_PHOTO_BROKER_MAX_REQUEST_BYTES   request-line cap (default 64 KiB)
@@ -143,7 +143,7 @@ from ilag_mirror import list_folder  # noqa: E402 -- the ONLY arbitrary-scope-fr
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.logger import get_logger  # noqa: E402
 
-# CEO 2026-09-10 carve-out, gdrive-filing skill's "My Picture & Videos." row.
+# CEO 2026-09-10 carve-out, CXO_Rules_GDrive_Filing skill's "My Picture & Videos." row.
 DEFAULT_FOLDER_ID = "1Fwir7lXpgRmMjU6hbynI-4BsQH92L6wy"
 DEFAULT_SOCKET_PATH = "/run/photoup/photo-broker.sock"
 DEFAULT_MAX_UPLOAD_BYTES = 200 * 1024 * 1024   # 200 MiB

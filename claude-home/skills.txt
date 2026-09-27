@@ -18,7 +18,7 @@ inspired-product	/Users/gob/MoonieXHQ/External/wondelai-skills/inspired-product
 jobs-to-be-done	/Users/gob/MoonieXHQ/External/wondelai-skills/jobs-to-be-done
 mom-test	/Users/gob/MoonieXHQ/External/wondelai-skills/mom-test
 mooniex-content	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-content
-mooniex-finance	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/mooniex-finance
+CFO_Rules_Finance	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CFO_Rules_Finance
 mooniex-growth	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-growth
 mooniex-kpi	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-kpi
 mooniex-retention	/Users/gob/MoonieXHQ/Agents/Skills/mooniex-retention
@@ -35,7 +35,7 @@ video-use	$HOME/Developer/video-use
 website-to-hyperframes	$HOME/.agents/skills/website-to-hyperframes
 CMO_Procedure_CharacterSheet	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CMO_Procedure_CharacterSheet
 content-idea-generator	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/content-idea-generator
-cookierun-labeling	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/cookierun-labeling
+CTO_Knowledge_CookieRun_Labeling	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/CTO_Knowledge_CookieRun_Labeling
 de-ai-ify	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/de-ai-ify
 homepage-audit	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/homepage-audit
 marketing-principles	/Users/gob/MoonieXHQ/Agents/Core/.claude/skills/marketing-principles

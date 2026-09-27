@@ -233,7 +233,7 @@ say '  $HOME/.config/mooniex/**                    (app secrets — never Drive)
 say '  $HOME/Library/LaunchAgents/com.{gob,mooniex}.*.plist  (secret <string> values flagged in step 4)'
 say '  every repo .env* / certs, $HOME/.ssh, $HOME/.claude.json (MCP servers), $HOME/.config/{gh,mooniex}'
 human "fetch the mac-secrets bundle from Contabo's Archive/ at 0600 (e.g. mooniex-vps:/opt/MoonieXHQ/Archive/mac-secrets-<date>/: mac-secrets-<date>.tar = .env*/certs/.ssh/.claude.json, mac-home-extras-<date>.tar = unredacted LaunchAgents, dotfiles, crontab), then copy each file into place by hand. Never put secrets on Drive; never let this script fetch them."
-say "gitignored org STATE is not a secret and not in git — it comes back from Drive (gdrive-filing BACKUP rows):"
+say "gitignored org STATE is not a secret and not in git — it comes back from Drive (CXO_Rules_GDrive_Filing BACKUP rows):"
 say '  Agents/Core/state/tasks.db + session-search.db  <- the newest BACKUP/Mac-Reinstall-<date>-final-delta-*.tar (_extra/*sqlite/)'
 say '  Agents/Core/state, output, Work/, UNKNOWN/, ComfyRunpod studio/data <- BACKUP/Mac-Reinstall-<date>-MoonieXHQ-data.tar'
 say '  unpushed branches / stashes / dirty work <- BACKUP/Mac-Reinstall-<date>-MoonieXHQ-code.tar (git fetch <bundle>)'

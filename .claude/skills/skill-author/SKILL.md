@@ -129,7 +129,7 @@ The CEO approved the rename table and its phases on 2026-09-27 (`docs/org/SKILL-
 2. Find every literal reference: `grep -rlF "<old>" --exclude-dir=.git --exclude-dir=worktrees --exclude-dir=node_modules .`
    Live files change (other skills, `roles/`, `scripts/`, `tools/`, `runners/`, `lib/`, `config/`, hooks,
    `CLAUDE.md`); dated history (reports, old briefs, research) may keep the old name. **A hook keyed on the
-   name** (for example `scripts/hook-gdrive-skill-gate.py` on `gdrive-filing`) changes in the same commit, or
+   name** (for example `scripts/hook-gdrive-skill-gate.py` on `CXO_Rules_GDrive_Filing`) changes in the same commit, or
    it goes silent.
 3. Leave a redirect stub at the old name for 30 days (§9, Redirect stub).
 4. The slash command changes with the name, and `tools/decide.py` routes on the "Trigger on /<name>"
@@ -157,7 +157,7 @@ still be true?"**
   skill (`ALL_Rules_Approvals`); the Knowledge skills keep a one-line pointer.
 
 Split a skill in two only when (a) an org rule is repeated across skills, (b) the file is so large its rules
-are buried, or (c) one part changes weekly and the other almost never (gdrive-filing: rules vs the folder map).
+are buried, or (c) one part changes weekly and the other almost never (gdrive-filing: rules vs the folder map — split on 2026-09-27).
 Split a too-large skill of one kind by topic, not by kind.
 
 ## 9 · Body templates — copy the one for the kind, then fill
@@ -276,7 +276,7 @@ nobody meant or leaves the real phrase out, and the skill stays dead.
 6. Optional: a worked example (input → output) and references (skills, code, memory).
 
 A good skill **refuses** when its preconditions are missing: *"If X is missing, list what's missing and stop.
-Do not draft."* (`cto-merge-checklist` refuses a merge when a gate fails.)
+Do not draft."* (`CTO_Gate_MergeChecklist` refuses a merge when a gate fails.)
 
 ## Rules, tiered (ADR 0022 §7 — a skill must not cage the model)
 
@@ -347,5 +347,5 @@ there.
 
 ## Field notes
 
-- 2026-09-25 [MISSING] §Description discipline — `tools/decide.py` builds the skill.route rules from the "Trigger on …." clause, split on commas and " and ". Until 72357fc8 the clause ended at the FIRST dot, so every engine-named skill with a version in its name (/CTO_Flow_Omni1.1_…, Seedance 2.5, Wan 3.0) routed on a fragment only; it now ends at a sentence stop. Side effect to write around: every comma-separated item becomes a standalone route, so a generic word in the list ("cache", "worktree" in disk-hygiene) routes any prompt that contains it; keep trigger items as phrases a user would type, not a list of nouns · evidence: both skill-split workers (task-c3e07fb1, task-e7cc2d83), fix 72357fc8 · status: pending
+- 2026-09-25 [MISSING] §Description discipline — `tools/decide.py` builds the skill.route rules from the "Trigger on …." clause, split on commas and " and ". Until 72357fc8 the clause ended at the FIRST dot, so every engine-named skill with a version in its name (/CTO_Flow_Omni1.1_…, Seedance 2.5, Wan 3.0) routed on a fragment only; it now ends at a sentence stop. Side effect to write around: every comma-separated item becomes a standalone route, so a generic word in the list ("cache", "worktree" in ALL_Rules_DiskHygiene) routes any prompt that contains it; keep trigger items as phrases a user would type, not a list of nouns · evidence: both skill-split workers (task-c3e07fb1, task-e7cc2d83), fix 72357fc8 · status: pending
 - 2026-09-27 [SUPERSEDED] §1 §2 §6 §Rules 2 — rewritten on the CEO's rulings of 2026-09-27: seven kinds ("เห็นด้วยทั้ง 7 หมวดหมู่"), names that say role, kind and topic, the rename table and its phases ("OK ตามนั้น"), the mixed-skill rule, and the COO as owner of this process ("เขียน skill สำหรับการสร้าง skill ... เวลาที่ COO หยิบไปใช้จะได้ใช้งานได้ทันที"). The "never rename" rule is kept above as SUPERSEDED · evidence: docs/org/SKILL-KINDS-2026-09-27.md, CTO session 14cc900f · status: promoted

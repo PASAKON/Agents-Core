@@ -5,7 +5,7 @@
 # avatar (something can be displayed alongside it), "hook"/"verdict"/"cta"
 # -> full-frame avatar. Fed only computed/structured fields (shot, screen,
 # position), never the raw Thai spoken line, unless --state-lang=th is
-# passed to jev_edit.py plan/eval — see jev-ops SKILL.md lever 1
+# passed to jev_edit.py plan/eval — see ALL_Knowledge_Jev SKILL.md lever 1
 # ("compute the state upstream") and the task's own instruction to measure
 # a Thai-line state against an English-gloss state on the eval set.
 #
@@ -18,7 +18,7 @@
 # 2026-09-23: the first draft's examples were drawn from EP57
 # (prototypes/bl57-script/) and the reference transcript
 # (prototypes/bl-ref-census/), both of which are this pipeline's own test
-# sets, which inflated the informal agreement check (jev-ops SKILL.md lever
+# sets, which inflated the informal agreement check (ALL_Knowledge_Jev SKILL.md lever
 # 2: "examples must not reuse the test values"). Never draw an example from
 # bl57-script/ or bl-ref-census/ again.
 site: bl.beat

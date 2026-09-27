@@ -3,7 +3,7 @@
 verify the size on Drive, log the ADD line, then delete the local copy.
 
 This is the "download to staging, upload, verify, log, delete" loop from the
-gdrive-filing skill's YT: ILAG section, generalised beyond the one-time
+CXO_Rules_GDrive_Filing skill's YT: ILAG section, generalised beyond the one-time
 `ilag_sync.py` Desktop-mirror sweep so it can run against whatever a browser
 operator just downloaded to ~/Downloads (or any other staging path).
 

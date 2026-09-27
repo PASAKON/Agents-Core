@@ -11,7 +11,7 @@
 # this says there is something to look at.
 #
 # PARKED is not a fault. Cookie Run is supposed to be off while another agent
-# holds the screen lease — see winbox-pc-lease.
+# holds the screen lease — see ALL_Rules_Winbox_PCLease.
 set -euo pipefail
 
 HOST="${WINBOX_HOST:-winbox}"

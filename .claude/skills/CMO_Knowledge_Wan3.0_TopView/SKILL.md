@@ -29,7 +29,7 @@ the evidence.
 
 ## 1 · Rules
 
-1. **HARD: every paid generation needs the CEO's OK with the exact credits and $ first.**
+1. **HARD: every paid generation needs the CEO's OK with the exact credits and $ first.** (org rule: `ALL_Rules_Approvals`)
    **Why hard:** money. On Pro, 720p costs 0.5 credit per second (80 credits = 160 s).
 2. **HARD (challenge entries): the primary video must be generated with Wan3 on TopView, in our TopView
    project.** Other tools may make reference images (our ChatGPT plates are allowed if we hold the rights;

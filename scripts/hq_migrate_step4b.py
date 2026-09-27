@@ -43,7 +43,7 @@ Every unit of work below is independently resumable: a phase whose target
 state already holds (row already migrated, plist already rewritten, slug
 alias already a symlink to the right place, trust entry already present) is
 skipped, not re-attempted or treated as an error — including after a crash
-mid-`--apply` (hq-filing field notes, 2026-09-23).
+mid-`--apply` (ALL_Rules_HQ_Filing field notes, 2026-09-23).
 """
 from __future__ import annotations
 
