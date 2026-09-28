@@ -30,7 +30,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra account: the model-scope block the three… |
 | `CMO_Knowledge_MiniMax_H3` | CMO | cmo, cto, browser_operator, developer | Everything measured about generating video with MiniMax H3 through our own ComfyRunpod studio (the Mac, reached over the tailnet): adding… |
 | `CMO_Knowledge_Seedance2.5_Higgsfield` | CMO | cto, cmo, cfo, cgo, browser_operator | Everything measured about generating with Seedance on Higgsfield.ai: Seedance 2.5 (Unlimited and credit lanes), the 2.0 / 2.0 Fast / 2.0… |
-| `CMO_Knowledge_Wan3.0_TopView` | CMO | cmo, cto, browser_operator | Generating with Wan 3.0 on TopView (topview.ai): how references are written (positional, no Element library), the 3,500-character… |
+| `CMO_Knowledge_Wan3.0_TopView` | CMO | cmo, cto, browser_operator | Generating with Wan 3.0 on TopView (topview.ai): how references are written (positional, no Element library), the 20,000-character… |
 | `CTO_Knowledge_CookieRun_Labeling` | CTO | cto, worker | How to label frames and train the Cookie Run obstacle detector without repeating the mistakes of 2026-09-02 (owned by CTO). Read this… |
 | `CTO_Knowledge_Jules` | CTO | cto, cxo | How the org uses Jules — what to give it (a task menu, so the 300/day quota is used), the 8-line brief that measured 7 clean passes vs 3… |
 | `CTO_Knowledge_Winbox_DesktopGUI` | CTO | cto, browser_operator | Driving a real desktop app (LINE, Resolve, Chrome) on the winbox Windows machine from a C-level or operator session: how to reach session… |
