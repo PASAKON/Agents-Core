@@ -181,6 +181,30 @@ sheet, not a verdict.
    One A/B, small n: a no-cut wrong mouth can still happen, so the FilmQC wrong-mouth check
    still runs on every take.
 
+10. **A line in the wrong voice or mouth: split the shot by speaker at once — do not re-fire it.**
+    [FLOW] (CEO ruling 2026-09-28: *"ใช้ 21a ก่อนเสมอ เมื่อเจอปัญหา แล้ว แก้ด้วย 21b ทันที
+    จะได้ไม่ต้องยิงซ้ำหลายรอบ"*.) When a shot where one character speaks and another replies comes
+    back with the first speaker's line, or its last phrase, in the other character's voice or mouth,
+    the first fix is the split. Do not re-fire the same shot, and do not rewrite the direction words.
+    Fire each half once:
+
+    - **Na** (the kept version, fired first): the first speaker's full line alone, word for word. The
+      listener stays in frame and reacts, "saying nothing the whole clip". Same framing and length.
+    - **Nb**: the reply alone, as its own shot. 4 s is enough for a short reply. The first speaker's
+      "lips pressed together, nodding slowly, saying nothing the whole clip".
+
+    Keep the CEO's words: do not shorten a line, and do not add time. In the cut, Nb follows Na.
+    A cold look at the sheet can spot the pattern before any fire: a long first line (about 5 s or
+    more) with the other character's reply in the same 8 s clip.
+
+    **Why:** ep4 shot 21 (the mother's 6 s line, then the son's 1.5 s reply, in 8 s) failed 3
+    production re-fires the same way. The root-cause A/B (task-c816fbc0, 360p, 3 takes an arm) put
+    her closing phrase in the son's voice: as written 4/6 wrong by eye; son's lips pressed 2/3; son
+    not crying 1/3; the house listener-reacts line removed 2/3; the same two lines at 10 s 2/3. Her
+    line alone 0/3, and her line shortened 0/3. Split at 720p: 21a and 21b clean 4/4 on voice pitch,
+    the face checker and the cut count, and the CEO picked 21a. The search cost 36 cr of production
+    re-fires plus 129 cr of A/B tests. The split up front would have cost 19 cr (12 + 7).
+
 ## What Flow silently deletes [FLOW]
 
 The evidence behind rule 1 and the FLOW-DELETES flag. The symptom is the same in every case: Submit is
@@ -499,4 +523,4 @@ possible, and it is cheap — it is written once and read forever.
 - 2026-09-27 [MISSING] §wardrobe — **"her neck bare with no necklace" gave the mother a strapless top.** ep4 shot 43, reshoot2: the action said "neck bare" twice (once in the plate line, once in the action), and the model bared her shoulders as well, in a strapless indigo wrap. Fix that rendered right in reshoot4: drop "neck bare" from the action and NAME the garment next to her description ("in her long-sleeved indigo blouse"). Describe what she wears, never what skin shows · evidence: task-c816fbc0 clips/ACT2-reshoot2/shot-43 (QC FAIL) vs ACT2-reshoot4/shot-43, commit 1b415806 · status: pending
 - 2026-09-27 [MISSING] §props — **a paper held toward the camera gets a Thai state emblem.** ep4 shot 61, reshoot2: Hong reading a land-office letter aloud, the letter facing the lens, came back with a Garuda crest printed on it (a legal risk on a public film). The same beat with "reads a message on her phone, the back of the phone toward the camera" rendered clean in reshoot4. For any official document in frame, turn it away from the lens or replace it with a phone back-on · evidence: task-c816fbc0 clips/ACT3-reshoot2/shot-61 vs ACT3-reshoot4/shot-61, commit 1b415806 · status: pending
 - 2026-09-27 [MISSING] §REF_1 drift, result of the turban fix above — **restating the headwear in the action held it.** The re-fires that carried "her red-and-white checked cloth still wrapped around her head like a turban" beside her action kept the turban in 13, 43 and 45 (QC stage 2, reshoot4/6). Two things did NOT hold: (1) her "very dark sun-baked skin" came back medium-tan and her hands grey in close-ups (13, 43, 45 and batch 2), and (2) the son's red-and-white head cloth, which lives only in his state plate and not in the action, drifts in and out between shots (none in 43, a headband in 45 and 63). Restate the son's head cloth in the action the same way, or accept it as a costume change · evidence: task-c816fbc0 tmp/qcr6, tmp/qcr8, subagent QC 2026-09-27 16:2x · status: pending
-- 2026-09-28 [MISSING] §Rules 9 (continuous take), first production run — **the sentence fixed 6 of 7 wrong-mouth shots at 720p; the 7th is a no-cut wrong mouth that re-rolls do not fix.** Film 4 reshoot, 10 fires x 12 cr: 0/10 clips had a cut; shots 3, 8, 31, 35, 45 fixed by eye, 28 unsure (faces ~25 px). Shot 21 failed the same way in 3 takes plus A/B arm C: the mother's 6 s line ends on "คุ้มอยู่ลูก" with her lips shut while the crying son's mouth moves, no cut anywhere. A shot-specific sentence ("he cries silently with his lips pressed together; he opens his mouth only after she has said her last word") did not help (n=1). Suspected trigger: a long line running to the end of the clip with a crying listener in frame. Next test, not yet run: split or shorten the line, or drop "crying" from the listener's direction · evidence: task-c816fbc0 wm1/wm2/wm3, Drive เรื่องขายฝากนาแม่ ACT1 shot-21-take3..5 · status: pending
+- 2026-09-28 [MISSING] §Rules 9 (continuous take), first production run — **the sentence fixed 6 of 7 wrong-mouth shots at 720p; the 7th is a no-cut wrong mouth that re-rolls do not fix.** Film 4 reshoot, 10 fires x 12 cr: 0/10 clips had a cut; shots 3, 8, 31, 35, 45 fixed by eye, 28 unsure (faces ~25 px). Shot 21 failed the same way in 3 takes plus A/B arm C: the mother's 6 s line ends on "คุ้มอยู่ลูก" with her lips shut while the crying son's mouth moves, no cut anywhere. A shot-specific sentence ("he cries silently with his lips pressed together; he opens his mouth only after she has said her last word") did not help (n=1). Suspected trigger: a long line running to the end of the clip with a crying listener in frame. Next test, not yet run: split or shorten the line, or drop "crying" from the listener's direction · evidence: task-c816fbc0 wm1/wm2/wm3, Drive เรื่องขายฝากนาแม่ ACT1 shot-21-take3..5 · rule 10 (CEO ruling 2026-09-28) · status: promoted
