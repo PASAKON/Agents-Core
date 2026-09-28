@@ -28,13 +28,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import platform
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from lib.config import self_host  # noqa: E402
 from lib.db import get_conn, now_iso  # noqa: E402
 from scripts.session_list import tmux_lock_live  # noqa: E402
 
@@ -42,23 +42,11 @@ from scripts.session_list import tmux_lock_live  # noqa: E402
 def _this_host() -> str:
     """config/hosts.yaml key for the machine running THIS process.
 
-    Mirrors the MACHINE_LABEL/HOST_KEY case statement in scripts/cto-claude.sh
-    and scripts/cxo-claude.sh verbatim so the two can't disagree. There is no
-    shared Python helper for a C-level session's own host key today —
-    runners.worker_init.current_host() answers the analogous question for a
-    spawned DEV worker via the ORG_HOST env var, which the C-level launchers
-    never set for themselves (they only pass --host to register_cxo).
+    Delegates to lib.config.self_host() (docs/design/org-mesh.md C1) — the
+    single resolver every "which host am I" answer in the org runtime now
+    shares, so this and runners.worker_init.current_host() can't disagree.
     """
-    system = platform.system()
-    if system == "Darwin":
-        return "mac"
-    if system == "Linux":
-        if Path("/opt/MoonieXHQ/Agents/Core").is_dir():
-            return "contabo"
-        return (platform.node().split(".")[0] or "linux").lower()
-    if system == "Windows":
-        return "winbox"
-    return system.lower()
+    return self_host()
 
 
 def reconcile(apply: bool = False) -> dict:

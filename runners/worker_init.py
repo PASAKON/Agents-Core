@@ -46,6 +46,7 @@ from lib.config import (
     get_project,
     host as get_host,
     role as get_role,
+    self_host,
     worker_session_name,
 )
 
@@ -122,12 +123,12 @@ def clean_title(title: str | None) -> str:
 def current_host() -> str:
     """Host key (config/hosts.yaml) this runtime is on.
 
-    Defaults to 'mac' -- this launcher was Mac-only through task-af5268b3.
-    ORG_HOST lets the identical code run unchanged on Contabo later (ADDENDUM
-    1, CTO 2026-09-07): the CEO only ever talks to a session from the Claude
-    app, so every worker's name has to say which machine spawned it.
+    Delegates to lib.config.self_host() (docs/design/org-mesh.md C1) --
+    ORG_HOST env, then ~/.config/mooniex/node.yaml, then ROOT matched
+    against a host's agents_root, then platform. Raises instead of
+    defaulting to 'mac' on a host it can't identify.
     """
-    return (os.environ.get("ORG_HOST") or "mac").strip().lower() or "mac"
+    return self_host()
 
 
 def remote_control_args(host_name: str) -> list[str]:
