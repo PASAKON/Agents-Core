@@ -170,10 +170,4 @@ IRON-RULES §53 (repeated browser work is a script, not a model).
 
 ## Field notes
 
-- `pending` 2026-09-29 (cto, GoVibe readiness check): the codex/agy lanes are winbox-only
-  (`config/hosts.yaml` mac `runners: [claude]`), and after the winbox reset `where codex` on
-  winbox returned "Could not find files" — the lane was silently gone while the code and this
-  skill still described it as available. Before promising the CEO a Codex hand-off, run
-  `ssh winbox "codex --version"` (and `agy --version`) first. Mac has `codex-cli 0.154.0` in
-  `/opt/homebrew/bin` but no runner lane uses it. Evidence: wiki research
-  `2026-09-29-govibe-genesisblock-multi-agent.md`.
+- 2026-09-29 [MISSING] codex/agy lanes are winbox-only (`config/hosts.yaml` mac `runners: [claude]`); after the winbox reset `where codex` on winbox returned "Could not find files", so the lane was silently gone while code and this skill still described it. Before promising the CEO a Codex hand-off, run `ssh winbox "codex --version"` (and `agy --version`). Mac has `codex-cli 0.154.0` but no lane uses it · evidence: mooniex:research/2026-09-29-govibe-genesisblock-multi-agent.md · status: pending
