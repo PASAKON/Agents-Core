@@ -142,11 +142,5 @@ Comment 2: `อยากฟังเรื่องไหนต่อ คอม�
 
 ## Field notes
 
-- 2026-09-28 [MISSING] §Rules 6 — EP4's Reel published and VERIFIED (videos/1973008630041783), but the
-  first comment was refused before typing: the comment box read `Dorsine Gobb`. The Mac Chrome :9230 session
-  had been left as the person after the groups work. The fix is the Page's own "สลับเลย" (switch now) button
-  before any comment. A daily posting tool must do that switch itself and read the identity back · evidence:
-  scratchpad `know/ep4_publish.log` EXIT 7 · status: pending
-- 2026-09-28 [MISSING] §Poster layout — the approved prompt never asked for the dusk rice-field footer strip,
-  the rice-ear ornaments or the gold number discs; ChatGPT added them. They are now written into the prompt so
-  a second run keeps them. Untested (n=0) · evidence: `approved-poster-chatgpt-raw.png` · status: pending
+- 2026-09-28 [MISSING] §Rules 6 — EP4 Reel published and VERIFIED (videos/1973008630041783) but the first comment was refused before typing: the comment box read `Dorsine Gobb`, because the Mac Chrome :9230 session was left as the person after the groups work; the fix is the Page's own "สลับเลย" button before any comment, and a daily posting tool must do that switch itself and read the identity back · evidence: docs/reports/cto-cb63de3a-ep4-post/REPORT.md · status: pending
+- 2026-09-28 [MISSING] §Poster layout — the approved prompt never asked for the dusk rice-field footer, the rice-ear ornaments or the gold number discs (ChatGPT added them); they are now in the prompt so a second run keeps them, untested (n=0) · evidence: Assets/Agents/Core/ilag-theme/approved-poster-chatgpt-raw.png · status: pending
