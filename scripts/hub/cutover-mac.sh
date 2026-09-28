@@ -120,29 +120,7 @@ say "would run: $PYTHON scripts/migrate_tasks_db.py --from state/tasks.db --to <
 say "would then require: sqlite count == postgres count, every table (refuse otherwise)"
 if [ "$APPLY" -eq 1 ]; then
   "$PYTHON" scripts/migrate_tasks_db.py --from state/tasks.db --to "$ORG_DB_URL" --apply
-  ORG_DB_URL="$ORG_DB_URL" "$PYTHON" - <<'PYEOF'
-import os
-import sys
-sys.path.insert(0, ".")
-from lib import db as db_mod
-from lib import db_pg
-
-url = os.environ["ORG_DB_URL"]
-sconn = db_mod.sqlite_connect("state/tasks.db", readonly=True)
-pconn = db_pg.connect(url, timeout=10)
-mismatched = []
-for table in ("tasks", "c_level_sessions", "events", "locks"):
-    s = sconn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"]
-    p = pconn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"]
-    print(f"  {table:20s} sqlite={s} postgres={p}")
-    if s != p:
-        mismatched.append(table)
-sconn.close()
-pconn.close()
-if mismatched:
-    print(f"REFUSING: count mismatch after migrate: {mismatched}", file=sys.stderr)
-    sys.exit(1)
-PYEOF
+  "$PYTHON" scripts/hub/verify_migration_counts.py --sqlite state/tasks.db --pg "$ORG_DB_URL"
 fi
 
 # --- step 4: flip config to route ORG_DB_URL through the wrapper --------
@@ -161,8 +139,8 @@ else
   "$PYTHON" scripts/hub/cutover_flip.py
 fi
 
-# --- step 5: verify round-trip, then archive ----------------------------
-step 5 "verify a create_task round trip via lib.db, then archive state/tasks.db"
+# --- step 5: verify round-trip, then checkpoint + archive ---------------
+step 5 "verify a create_task round trip via lib.db, then checkpoint + archive state/tasks.db"
 if [ "$APPLY" -eq 1 ]; then
   ORG_DB_URL="$ORG_DB_URL" "$PYTHON" - <<'PYEOF'
 import sys
@@ -176,8 +154,12 @@ got = db.get_task(tid)
 assert got and got["id"] == tid, "round trip failed"
 print(f"round trip ok: {tid}")
 PYEOF
-  mv state/tasks.db "$ARCHIVE_PATH"
-  ls -la "$ARCHIVE_PATH"
+  # Checkpoints tasks.db's WAL (a recent commit can live only in
+  # tasks.db-wal until then) and moves tasks.db + -wal + -shm together --
+  # a plain `mv state/tasks.db ...` alone would silently drop rows still
+  # sitting in the WAL (Org Mesh W1.1).
+  "$ROOT/scripts/hub/wal-checkpoint-archive.sh" state/tasks.db "$ARCHIVE_PATH"
+  ls -la "${ARCHIVE_PATH}"*
   # Loud tombstone: a directory at this path makes sqlite3.connect() raise
   # instead of silently creating a fresh empty tasks.db -- the exact split
   # brain this cutover removes, for any process still on the SQLite backend
@@ -185,11 +167,15 @@ PYEOF
   # _connect() and the self-repo-guard/log-prompt hooks recognise this
   # directory and fail loud/open respectively instead of crashing blind.
   mkdir "$ROOT/state/tasks.db"
-  say "tombstoned: state/tasks.db is now a directory (was archived to $ARCHIVE_PATH)."
+  say "tombstoned: state/tasks.db is now a directory (was archived to $ARCHIVE_PATH,"
+  say "  along with -wal/-shm if either existed)."
   say "to undo: rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db"
 else
   say "would run: create_task()+get_task() round trip via lib.db with ORG_DB_URL set"
-  say "would then run: mv state/tasks.db $ARCHIVE_PATH && ls -la $ARCHIVE_PATH"
+  say "would then run: sqlite3 state/tasks.db 'PRAGMA wal_checkpoint(TRUNCATE);'"
+  say "  (retry up to 5x on busy, then refuse -- never move a WAL with pending data)"
+  say "would then run: mv state/tasks.db{,-wal,-shm} (whichever exist) to"
+  say "  ${ARCHIVE_PATH}{,-wal,-shm} && ls -la ${ARCHIVE_PATH}*"
   say "would then run: mkdir $ROOT/state/tasks.db (tombstone -- makes a"
   say "  pre-cutover session's sqlite connect attempt fail loudly instead of"
   say "  silently recreating an empty tasks.db)"
@@ -206,5 +192,7 @@ say "                (no writer can silently recreate an empty one)."
 say "how to roll back: git checkout -- config/cto.mcp.json config/worker.mcp.json"
 say "                scripts/cto-claude.sh; restore the two plists (git-untracked --"
 say "                Time Machine, or re-run cutover_flip.py's logic in reverse);"
-say "                rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db."
+say "                rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db"
+say "                (and ${ARCHIVE_PATH}-wal/-shm back to state/tasks.db-wal/-shm,"
+say "                if either was archived)."
 say "watchdog:       restarts automatically when this script exits (see step 2 cleanup)."
