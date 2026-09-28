@@ -9,7 +9,7 @@ scope: >-
   well and cheaply: when it fits, the three question types, what a call costs and
   why, the levers that moved accuracy in our own tests, what confidence is worth,
   and where it breaks. Every number here was measured 2026-09-22/23 (515 calls,
-  $0.0204) unless it is labelled VENDOR.
+  $0.0204) unless it names another run or is labelled VENDOR.
 description: >-
   KNOWLEDGE — How to get the most out of Jev for the least money — the decisions it fits,
   the choice/score/noul question types, the cost formula, batching, writing
@@ -104,7 +104,7 @@ billed — good to ~7%, enough to price a site before building it.
 
 - **Thai costs ~3.4× English for the same meaning** (≈1 token per Thai char vs ≈4
   English chars per token). Write state and criteria in English even when the
-  user speaks Thai.
+  user speaks Thai, unless the Thai text is itself what is being judged (lever 1).
 - 16 questions over one 800-char state = 1,282 tokens; 16 separate calls = 7,936.
 - Options dominate big sites: the 47 org skills with 160-char descriptions = 2,781
   tokens/call; with full descriptions 7,090.
@@ -119,12 +119,18 @@ billed — good to ~7%, enough to price a site before building it.
    raw scores (`frame_diff 0.27`, `mystery 0.94 (thr 0.95)`) **17/32**. On the
    control site (09-22): irrelevant extra detail made it worse (8/12 → 6/12),
    relevant detail with the arithmetic done upstream made it better (10/12).
-   Jev reads meaning, not thresholds: hand it the comparison's *result*.
+   Jev reads meaning, not thresholds: hand it the comparison's *result*. When the
+   judgement is what a text means, the text is the state: bl.beat scored 42 % with
+   the Thai line in state and 20 % on computed flags alone (§Measured weak spots).
 2. **Write options as situations, one example each, plus an explicit `other`.**
    09-22: vague degree-style options → 57% right at 0.948 mean confidence;
    situation-style + example + `other` → 14/14 on a held-out set whose values the
-   examples never showed. Examples must not reuse the test values (that run first
-   scored 12/12 because the answer key sat inside the criteria).
+   examples never showed. Examples must not reuse the test values: that run first
+   scored 12/12 because the answer key sat inside the criteria, and 09-23's bl.beat
+   read 36/40 until its examples, taken from the episode being planned and the
+   reference transcript, were swapped for held-out lines: 17/40, where it started
+   (task-5cfe20b1). Before any eval, grep every criterion's example text against
+   the labelled set and the material being planned.
 3. **Batch.** All questions about one state go in one call (control + danger +
    urgency: 600 tokens vs 1,200 split, identical answers). Many items can share one
    call too: 16 navigator decisions in one request → 16/16 right, 6,924 tokens vs
@@ -158,8 +164,10 @@ Pooled over 280 labelled `choice` answers from format/nav/options/batch:
 Gate at 0.7 kept 80% of answers and let **zero** wrong ones through. Why that held:
 with **good criteria**, a bad state shows up as *low* confidence — every raw-score
 navigator miss sat at 0.22–0.54. With **bad criteria** it does not: 09-22's vague
-options were wrong 43% of the time at 0.948. So confidence is a gate only after
-the site has been checked on a labelled set; never use it to *validate* a site.
+options were wrong 43% of the time at 0.948, and 09-23's bl.entry was right on 57 %
+of its 28 answers at ≥ 0.85, one wrong at 1.00 (task-5cfe20b1). So confidence is a
+gate only after the site has been checked on a labelled set; never use it to
+*validate* a site.
 The one independent public benchmark agrees in shape (VENDOR-adjacent, webofmike.com:
 91.7% on 60 tool-risk cases, every miss below 1.000).
 
@@ -179,6 +187,7 @@ low-confidence answers to code or a person instead of re-asking until it agrees.
 | "did any round earn > 10,000?" (find one salient item) | 4/4 at n=5, 20, 60, **150** |
 | small compares, negation, "every value > 9,000" over 5 | 24/24 (noul bare, noul+criteria, choice all equal) |
 | ISO date/time order, pairs | 8/8 (VENDOR says dates are unreliable — only pairs were tested) |
+| what kind of line a Thai script line is (BLACK LIQUIDITY `bl.beat`: hook/show/verdict/cta; `bl.entry`: shrink/hard_cut), task-5cfe20b1, 2 reps, 212 calls $0.0077 | bl.beat 38/90 (42 %) with the Thai line, 18/90 (20 %) on flags; bl.entry 20/32 (62.5 %), a wrong answer at 1.00. At bl.beat's only safe gate, 0.95, 38 of EP57's 40 lines went to the editor (CMO_Procedure_BlackLiquidity_JevEditor) |
 
 Search-for-one survives scale; tally does not. Count in code and hand Jev the tally.
 
@@ -217,8 +226,8 @@ Search-for-one survives scale; tally does not. Count in code and hand Jev the ta
    count over ~20 items, or an answer faster than ~0.5 s.
 2. Decide what code/vision computes first; write the state as the *results*
    (flags, named items, OCR text), not the raw measurements.
-3. Write criteria as situations + one example each (values not in the test set) +
-   `other`.
+3. Write criteria as situations + one example each (values not in the test set or
+   the material being planned; grep to prove it) + `other`.
 4. Build ≥ 12 labelled cases incl. borderline ones; run ≥ 2 reps; read accuracy
    and the confidence table. **Stop** and rewrite criteria if accuracy < 90%.
 5. Pick the gate; batch every question you can per call; add the site yaml to
@@ -258,9 +267,9 @@ misses: <id truth said conf>   spend: $0.00179 (sum of usage.cost)
 
 ## Field notes
 
-- 2026-09-23 [MISSING] §Weak spots — date order was tested on pairs only; the vendor says dates are unreliable, so a longer date list is untested · evidence: docs/ops/jev-lab-2026-09-23/count.json · status: pending
+- 2026-09-23 [MISSING] §Weak spots — date order was tested on pairs only; the vendor says dates are unreliable, so a longer date list is untested · evidence: docs/ops/jev-lab-2026-09-23/count.json → §Measured weak spots (the date row already says only pairs were tested) · status: promoted
 - 2026-09-23 [MISSING] §What a call costs — a 12,800-char state took 1,554 ms (n=1; 3,200 chars took 325 ms), so whether latency grows with state size is not established · evidence: docs/ops/jev-lab-2026-09-23/anatomy.json · status: pending
-- 2026-09-23 [MISSING] §levers 2 — criteria examples drawn from the eval set inflate the score and hide it: bl.beat read 90 % agreement until the examples were swapped for held-out lines, after which it read 42 %. Before any eval, grep every criterion's example text against the labelled set and the episode being planned · evidence: task-5cfe20b1 (config/decisions/bl.beat.yaml) · status: pending
-- 2026-09-23 [MISSING] §when it fits — editorial judgement over a script line (BLACK LIQUIDITY beat: show/verdict/hook/cta) scored 20 % with computed flags and 42 % with the Thai line in state, against a mechanically derived 45-line answer key. bl.entry scored 62.5 % with a 1.00-confidence wrong answer, and there is no safe gate at the 90 % bar. Treat "what kind of line is this" as outside Jev's fit until a site proves otherwise. Rules or the writer's own tags decide it; keep Jev for closed picks over computed candidates · evidence: task-5cfe20b1 eval, $0.027 / 797 calls, prototypes/bl-ref-census/groundtruth.tsv · status: pending
+- 2026-09-23 [MISSING] §levers 2 — criteria examples drawn from the eval set inflate the score and hide it: bl.beat read 90 % agreement until the examples were swapped for held-out lines, after which it read 42 %. Before any eval, grep every criterion's example text against the labelled set and the episode being planned · evidence: task-5cfe20b1 (config/decisions/bl.beat.yaml; CMO_Procedure_BlackLiquidity_JevEditor/RUNLOG.md 22:35: 36/40 → 17/40); agrees with the 09-22 control run already in lever 2 → §levers 2, §Steps 3 · status: promoted
+- 2026-09-23 [MISSING] §when it fits — editorial judgement over a script line (BLACK LIQUIDITY beat: show/verdict/hook/cta) scored 20 % with computed flags and 42 % with the Thai line in state, against a mechanically derived 45-line answer key. bl.entry scored 62.5 % with a 1.00-confidence wrong answer, and there is no safe gate at the 90 % bar. Treat "what kind of line is this" as outside Jev's fit until a site proves otherwise. Rules or the writer's own tags decide it; keep Jev for closed picks over computed candidates · evidence: task-5cfe20b1 eval, $0.027 / 797 calls, prototypes/bl-ref-census/groundtruth.tsv; 2026-09-28: the measured numbers are folded into §Measured weak spots, §Confidence and lever 1; the "outside Jev's fit" verdict is not: the CEO's 2026-09-23 ruling keeps Jev on bl.beat at ≥ 0.95 and the BL site's IRON §57 test (EP57-60) decides · status: pending
 - 2026-09-23 [MISSING] §purpose — Jev had no stated success measure; IRON §57 now makes measured AI-work saved the goal, with a pre-registered kill test per site · evidence: CEO ruling 2026-09-23, Agents-Rules 8a9cfc2 · status: promoted
-- 2026-09-25 [MISSING] §evaluation sets — film skills were renamed by engine (CMO_Knowledge_Seedance2.5_Higgsfield, CMO_Knowledge_Flow_Omni1.1, CMO_Standard_Story_ThaiMoralDrama; the old names are `MOVED:` stubs with no trigger clause), but `tools/jev_lab.py:642` still scores "generate 20 more takes on Higgsfield…" against `higgsfield-unlimited-gen`, so a model that picks the new skill is marked wrong; a one-line truth change, left to this skill's owner · evidence: task-c3e07fb1 report, origin/main 9cc1f17f · status: pending
+- 2026-09-25 [MISSING] §evaluation sets — film skills were renamed by engine (CMO_Knowledge_Seedance2.5_Higgsfield, CMO_Knowledge_Flow_Omni1.1, CMO_Standard_Story_ThaiMoralDrama; the old names are `MOVED:` stubs with no trigger clause), but `tools/jev_lab.py:642` still scores "generate 20 more takes on Higgsfield…" against `higgsfield-unlimited-gen`, so a model that picks the new skill is marked wrong; a one-line truth change, left to this skill's owner · evidence: task-c3e07fb1 report, origin/main 9cc1f17f — rejected: fixed by the rename, tools/jev_lab.py:642 now scores against CMO_Knowledge_Seedance2.5_Higgsfield (260a41dc, f39faa93) · status: rejected
