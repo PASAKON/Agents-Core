@@ -222,3 +222,38 @@ def test_never_glob_covers_its_own_root():
     assert sp.classify("/private/tmp/claude-501/other-session/x", policy, home) == "NEVER"
     policy["tiers"]["NEVER"].append("~/.claude/projects/*/memory/**")
     assert sp.classify("/Users/test/.claude/projects/-p/memory", policy, home) == "NEVER"
+
+
+REAL_POLICY = Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"
+
+
+@pytest.mark.parametrize("home, path, tier", [
+    # Login state is never Green on any machine (CEO 2026-09-28 ruling 4) ...
+    ("/Users/gob", "/Users/gob/Library/Application Support/Google/Chrome", "NEVER"),
+    ("/Users/gob", "/Users/gob/Library/Application Support/Google/Chrome/Default/Cookies", "NEVER"),
+    ("/Users/gob", "/Users/gob/Library/Application Support/Google/Chrome/Default/Local Storage/leveldb", "NEVER"),
+    ("/Users/gob", "/Users/gob/.flow-automation/chrome-profile", "NEVER"),
+    ("/Users/gob", "/Users/gob/.flow-automation/chrome-profile/Default/Login Data", "NEVER"),
+    ("/root", "/opt/MoonieXHQ/Projects/MoonieX/Console/data/browser-homes/google-home/profile", "NEVER"),
+    ("/root", "/opt/MoonieXHQ/Projects/MoonieX/Console/data/browser-homes/google-home/profile/Default/IndexedDB", "NEVER"),
+    ("/root", "/root/.claude/.credentials.json", "NEVER"),
+    ("/root", "/root/.config/gh/hosts.yml", "NEVER"),
+    ("/root", "/root/.config/mooniex/run-inbox.token", "NEVER"),
+    # ... while a profile's HTTP caches stay REBUILD (Green).
+    ("/Users/gob", "/Users/gob/Library/Application Support/Google/Chrome/Default/GPUCache", "REBUILD"),
+    ("/Users/gob", "/Users/gob/.flow-automation/chrome-profile/Default/Code Cache", "REBUILD"),
+    ("/root", "/opt/MoonieXHQ/Projects/MoonieX/Console/data/browser-homes/google-home/profile/Default/GPUCache", "REBUILD"),
+    ("/Users/gob", "/Users/gob/Library/Caches/Google/Chrome/Default/Cache", "REBUILD"),
+    # npx beside npm's cache; Contabo's caches, HQ and session scratch.
+    ("/Users/gob", "/Users/gob/.npm/_npx", "REBUILD"),
+    ("/root", "/root/.npm/_cacache", "REBUILD"),
+    ("/root", "/root/.cache/pip", "REBUILD"),
+    ("/root", "/var/cache/apt/archives", "REBUILD"),
+    ("/root", "/opt/MoonieXHQ/Agents/Core/tools", "HOT"),
+    ("/root", "/tmp/claude-0/-opt-mooniex-agents/some-session", "NEVER"),
+    # CloudDocs stays NEVER (CEO 2026-09-28 ruling 5).
+    ("/Users/gob", "/Users/gob/Library/Application Support/CloudDocs/session/i", "NEVER"),
+])
+def test_real_policy_classes(home, path, tier):
+    policy = sp.load(REAL_POLICY)
+    assert sp.classify(path, policy, Path(home)) == tier

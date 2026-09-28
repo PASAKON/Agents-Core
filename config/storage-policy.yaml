@@ -48,13 +48,21 @@ tiers:
     - "~/MoonieXHQ/Projects/**"
     - "~/MoonieXHQ/Agents/**"
     - "~/Projects/Agents/**"            # Agents-Core until HQ step 4b moves it
+    - "/opt/MoonieXHQ/Projects/**"      # Contabo's HQ (/root/MoonieXHQ links here)
+    - "/opt/MoonieXHQ/Agents/**"
     - "~/.claude/projects/*/*.jsonl"    # transcripts < 7 days (older = COLD, see below)
-  # Rebuilds itself from a named command. Delete without asking (ALL_Rules_DiskHygiene Green list).
+  # Rebuilds itself from a named command. Delete without asking (ALL_Rules_DiskHygiene Green list) —
+  # on every machine, Contabo included (CEO 2026-09-28 ruling 4). Docker build cache is Green too,
+  # but by command (`docker builder prune`), never by path: images and volumes are not.
   REBUILD:
     - {glob: "~/Library/Caches/Google/Chrome/*/Cache",      rebuild: "Chrome refills it"}
-    - {glob: "~/Library/Caches/Google/Chrome/*/Code Cache", rebuild: "Chrome refills it"}
+    - {glob: "**/Code Cache",                               rebuild: "the browser / Electron app refills it"}
+    - {glob: "**/GPUCache",                                 rebuild: "the browser / Electron app refills it"}
     - {glob: "~/Library/Caches/pip",                        rebuild: "pip install"}
+    - {glob: "~/.cache/pip",                                rebuild: "pip install"}            # Linux (Contabo)
     - {glob: "~/.npm/_cacache",                             rebuild: "npm install"}
+    - {glob: "~/.npm/_npx",                                 rebuild: "npx re-downloads on demand"}
+    - {glob: "/var/cache/apt/archives",                     rebuild: "apt-get clean; apt re-downloads"}  # Contabo
     - {glob: "~/Library/Caches/Homebrew",                   rebuild: "brew fetch"}
     - {glob: "~/.cache/huggingface",                        rebuild: "model re-download"}
     - {glob: "~/.cache/torch",                              rebuild: "model re-download"}
@@ -67,19 +75,42 @@ tiers:
   # Not regenerable, not in use. Tar + manifest → Drive BACKUP/ (CXO_Rules_GDrive_Filing), md5 verified, then deleted.
   COLD:
     - {glob: "~/.claude/projects/*/*.jsonl", older_than_days: 7,
-       dest: "BACKUP/Claude-Transcripts/<project>/", tool: "prune_transcripts.py --archive"}
+       dest: "BACKUP/MoonieX HQ/Claude-Transcripts/<machine>/<slug>/",
+       tool: "prune_transcripts.py --archive (Mac) / tools/drive_leg.py transcripts (Contabo)"}
     - {glob: "<work_root>/<task-id>/in/**", when: "task closed",
        dest: "proposed — CEO picks the Drive folder (CXO_Rules_GDrive_Filing)"}
   # The CEO's own. No agent deletes, moves or archives these. Ever.
   NEVER:
     - "~/Pictures/**"
-    - "~/Library/Application Support/CloudDocs/**"
+    - "~/Library/Application Support/CloudDocs/**"   # an orphaned store too: no standing wipe step, ask him each time (CEO 2026-09-28 ruling 5)
     - "~/Library/Mobile Documents/**"
     - "~/Desktop/**"
     - "~/Downloads/**"
     - "~/Movies/**"
     - "~/.claude/projects/*/memory/**"
     - "/private/tmp/claude-501/**"          # every session's scratch; a session cleans only its own, by hand
+    - "/tmp/claude-0/**"                    # the same on Contabo (sessions run as root)
+    # Login state — never Green on any machine (CEO 2026-09-28 ruling 4): no agent deletes it on its
+    # own; only when truly necessary, and only after asking him. Profile ROOTS are exact paths (no
+    # /**), so the HTTP caches inside a profile (Code Cache, GPUCache above) still class REBUILD.
+    - "**/Cookies"
+    - "**/Login Data"
+    - "**/Local State"                      # Windows: holds the key that decrypts Cookies
+    - "**/Local Storage/**"
+    - "**/LocalStorage"
+    - "**/IndexedDB/**"
+    - "**/Session Storage/**"
+    - "**/SessionStorage"
+    - "~/Library/Application Support/Google/Chrome"                          # Mac: the CEO's Chrome, every profile
+    - "~/.*-automation/chrome-profile"                                         # CDP profiles (Flow, Higgsfield, BL TikTok, ChatGPT)
+    - "~/AppData/Local/Google/Chrome/User Data"                               # winbox
+    - "/opt/MoonieXHQ/Projects/MoonieX/Console/data/browser-homes/*/profile"  # Contabo Browser Home
+    - "**/.credentials.json"                # Claude Code logins (~/.claude, /opt/claude-usage-monitor)
+    - "~/.config/gh/hosts.yml"
+    - "**/rclone.conf"
+    - "~/.config/mooniex/**"                # org tokens + OAuth (Run Inbox, YouTube)
+    - "/home/driveup/.drive.env"            # Contabo Drive brokers' OAuth
+    - "/home/photoup/.drive-photo.env"
 
 # Per-task work dir. Every download, intermediate and output of a task lives
 # under one folder named by the task id, and the task cannot close while it

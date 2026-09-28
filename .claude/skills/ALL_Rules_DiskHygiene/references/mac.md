@@ -63,7 +63,14 @@ The fix is to stop committing media there, not to rewrite history on a shared re
   evicted, not empty. It can hold an orphaned store: 1,050 files / 43.3 GB on
   2026-09-25 that `client.db` no longer referenced, invisible in Finder and in iCloud's figure.
   For the wipe the CEO said "สำรองด้วย ระหว่างสำรองลบ ข้อมูลที่ยืนยันได้ว่าสำรองแล้ว"
-  (`Mac-Reinstall-2026-09-25-iCloudLeftovers-*`); that word covered that case.
+  (`Mac-Reinstall-2026-09-25-iCloudLeftovers-*`); that word covered that case only.
+  There is no standing step: before any later wipe or clean-up, ask him again each
+  time (CEO 2026-09-28: "Yes").
+- Login state (parent SKILL, "Never Green") — ask the CEO first: `~/Library/Application Support/Google/Chrome/`
+  (his own Chrome), the CDP profiles `~/.flow-automation/chrome-profile`,
+  `~/.higgsfield-automation/chrome-profile`, `~/.bl-tiktok-automation/chrome-profile`,
+  `~/.config/mooniex/`, `~/.config/gh/hosts.yml`, any `rclone.conf`,
+  `~/.claude/.credentials.json`. Their `Cache` / `Code Cache` / `GPUCache` stay Green.
 - `~/Desktop`, `~/Downloads`, `~/Movies`
 - `~/.claude/projects/*/memory/`
 - `/private/tmp/claude-501/<other session uuid>` — another session's scratch

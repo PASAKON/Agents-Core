@@ -1,8 +1,8 @@
 # Contabo VPS (`mooniex-vps`) — 72 GB disk, production
 
-Runs claudeflow, the secretary, the LINE bots and the Console. **Production**:
-read-only diagnostics over ssh are pre-approved, every write is not. Propose the
-command, get the CEO's go, then run it.
+Runs claudeflow, the secretary, the LINE bots and the Console. **Production.**
+The Green list runs here without asking, as on every machine (CEO 2026-09-28:
+"ตามนั้น"). Anything else deleted here: propose the command, get the CEO's go.
 
 ## State (`/dev/sda1`, 72 GB)
 
@@ -31,27 +31,39 @@ Docker on this box, unlike the Mac's, is **live production**:
 | Volumes | 2, 1.548 GB, both in use — **these hold real data** |
 | Build cache | 131 entries, 14.82 GB, **12.95 GB reclaimable** |
 
-## The easy wins — safe, but ask first
+## Green here — no asking
 
 ```bash
-docker builder prune -f                 # ~12.9 GB — build cache only, never images or volumes
-journalctl --vacuum-size=500M           # ~3.3 GB — keeps the most recent logs
+docker builder prune -f                 # 12.9 GB on 2026-09-23 — build cache only, never images or volumes
 apt-get clean                           # ~123 MB
+pip cache purge                         # 287 MB on 2026-09-28
+npm cache clean --force                 # ~/.npm/_cacache; ~/.npm/_npx is its own rm -rf
 ```
 
-They ran on 2026-09-23; re-measure before proposing them again. None of it
-touches a running container, an image in use, or a volume.
+None of it touches a running container, an image in use, or a volume. Not Green,
+so still his go: `journalctl --vacuum-size=500M` (~3.3 GB on 2026-09-10) — old logs
+do not rebuild.
+
+**Worktrees are the big consumer, and they are full checkouts here.** On 2026-09-28
+none of the 22 worktrees had a sparse-checkout: developer ones ~0.93 GB each,
+`worktrees/` 11 GB, the harness's `.claude/worktrees/` 6.5 GB. A merged, clean one
+is Green for its own session; another session's goes to its owner (contract step 6).
 
 ## Never touch here
 
 - The 2 Docker **volumes** — they are the live databases and state of running services.
 - Any **image that is active**; `docker image prune -a` would pull them all again
   on the next deploy. Use `docker builder prune`, which is a different thing.
-- `/root/restore` (2.4 GB) — unidentified; ask the CEO what it is before assuming
-  it is a leftover.
-- Contabo's wiki copies `/opt/agents-wikis` and `/opt/mooniex-wikis` are **rsync
+- Login state (parent SKILL, "Never Green") — ask the CEO first: the Console's
+  Browser Home profiles `/opt/MoonieXHQ/Projects/MoonieX/Console/data/browser-homes/<id>/profile/`,
+  `/root/.claude/.credentials.json` and the one under `/opt/claude-usage-monitor/`,
+  `/root/.config/gh/hosts.yml`, `/root/.config/mooniex/` (Run Inbox token, YouTube OAuth),
+  the Drive brokers' `/home/driveup/.drive.env` and `/home/photoup/.drive-photo.env`.
+- Contabo's wiki copies `/opt/MoonieXHQ/Agents/Rules` and `/opt/MoonieXHQ/Agents/Wikis`
+  (old `/opt/agents-wikis`, `/opt/mooniex-wikis` are links to them) are **rsync
   snapshots, not git checkouts** — nothing to pull, nothing to push, and a write
   there is silently overwritten by the next sync. Treat as read-only.
+- `/tmp/claude-0/<slug>/<other session uuid>/` — another session's scratch.
 - Anything under a service's data directory while that service is running.
 
 ## Backups from this box

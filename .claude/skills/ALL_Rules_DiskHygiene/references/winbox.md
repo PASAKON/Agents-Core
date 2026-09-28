@@ -24,6 +24,10 @@ in `ledger/housekeeping.jsonl` and stop.
 `Documents\CookieRunScript\`, `cookierun-bot\`, the RunPod volume, and the Drive
 folder. Nothing else. Not `AppData\Local\Temp` (2.71 GB), not `Windows\Temp`
 (0.92 GB), not `$Recycle.Bin` (0.62 GB) — report those to the CEO, never clear them.
+Login state is never Green here either (parent SKILL, "Never Green"): ask the CEO
+before touching `%LOCALAPPDATA%\Google\Chrome\User Data`, the CDP profiles
+`%USERPROFILE%\.flow-automation\chrome-profile` and `.chatgpt-automation\chrome-profile`,
+`%APPDATA%\rclone\rclone.conf`, `C:\mooniex\yt-auth\` or `%USERPROFILE%\.claude\.credentials.json`.
 
 ## Tiers (summary — the brief has the full table)
 

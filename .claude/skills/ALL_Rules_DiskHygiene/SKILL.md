@@ -30,7 +30,7 @@ Read this page for the law, then the one file for the box you are on.
 |---|---|---|
 | Mac (M1, 256 GB) | `references/mac.md` | chronically full, no Time Machine, orchestrates everything |
 | winbox (Windows, 512 GB) | `references/winbox.md` | the CEO's game PC; a bot fills it 2-4 GB/day; steward tier only |
-| Contabo VPS (72 GB) | `references/contabo.md` | production; 7.9 GB free on 2026-09-28; every write needs the CEO's go |
+| Contabo VPS (72 GB) | `references/contabo.md` | production; 7.8 GB free on 2026-09-28; the Green list runs without asking, any other delete needs the CEO's go |
 
 ## The one law
 
@@ -50,7 +50,9 @@ stores the command; the bytes are Green), **DISPOSABLE** (never stored, never ar
 **UNCLASSIFIED** (`discovered: true` — the weekly doctor found it; classify within 14 days; never
 delete without a human go). The Green / back-up-first / never-touch lists below and in
 `references/*.md` are the same law spelled out per machine; when they disagree with the registry,
-the registry wins and the list gets fixed the same turn. Kept bytes land under Drive
+the registry wins and the list gets fixed the same turn — except login state, which is never Green
+whatever its row says (a Chrome profile's REBUILD or `.credentials.json`'s DISPOSABLE means "never
+backed up", not "delete freely"; see "Never Green" below). Kept bytes land under Drive
 `BACKUP/MoonieX HQ/<what-is-kept>/` (CXO_Rules_GDrive_Filing has the definitions). The 2026-09-24 winbox
 reset lost 84 GB that no list had a row for — that is why the registry exists.
 
@@ -81,9 +83,11 @@ reset lost 84 GB that no list had a row for — that is why the registry exists.
 
 ## Green — delete without asking, on any machine
 
-Everything here rebuilds itself. No backup, no ledger line, no question.
+Everything here rebuilds itself. No backup, no ledger line, no question. Contabo included (CEO
+2026-09-28: "ตามนั้น").
 
-- Browser and Electron caches (`Cache`, `Code Cache`, `GPUCache`)
+- Browser and Electron caches (`Cache`, `Code Cache`, `GPUCache`) — those three folders only; the
+  profile around them is login state, never Green (next section)
 - Package-manager download caches — pip, npm (`~/.npm/_cacache` and npx's
   `~/.npm/_npx`), Homebrew, apt, huggingface, torch
 - `__pycache__/`, `.pytest_cache/`, `*.pyc`
@@ -115,6 +119,22 @@ difference was knowable only by running `docker system df -v` on each.
 **A skill can hide a gigabyte.** `~/.claude/skills/CMO_Procedure_ReelEditor_TH/.venv` held
 1.1 GB of torch + mlx. Check `du -sh ~/.claude/skills/*` when hunting.
 
+## Never Green: login state, on any machine
+
+**HARD — login state is deleted only when truly necessary, and only after asking the CEO**, whatever
+the disk says and whatever class the registry gives the path:
+- a browser or Electron profile's `Cookies`, `Login Data`, `Local Storage` / `LocalStorage`,
+  `IndexedDB`, `Session Storage` / `SessionStorage`, `Local State` (on Windows it holds the key that
+  decrypts `Cookies`) — and any whole profile directory
+- OAuth token files and credentials under `~/.config/`, `gh`'s `hosts.yml`, `rclone.conf`, Claude
+  Code's `.credentials.json`
+
+A browser's HTTP caches inside a profile (`Cache`, `Code Cache`, `GPUCache`) stay Green. Each
+machine's paths are in its `references/*.md` never-touch list; `config/storage-policy.yaml` classes
+them NEVER.
+**Why hard:** scope — the CEO drew the line (2026-09-28): "ไม่อยากให้ลบ ... เพราะ ไม่อยาก login บ่อยไป
+ยกเว้นแต่ มันจำเป็นมากๆ"; and only he can put a login back (his password, 2FA, a QR on his phone).
+
 ## Back up first, then delete
 
 Not regenerable, or regenerable only from something that no longer exists locally.
@@ -141,7 +161,7 @@ root-level folder for a backup.
 
 | What | Drive path | Restore |
 |---|---|---|
-| Session transcripts older than 7 days | `BACKUP/Claude-Transcripts/<project>/<uuid>.tar.gz` | `python3 ~/.claude/tools/prune_transcripts.py --restore <uuid>` |
+| Session transcripts older than 7 days | `BACKUP/MoonieX HQ/Claude-Transcripts/<machine>/<slug>/` — the Mac `<uuid>.tar.gz`, Contabo `<day>.tar.gz` + `<day>.manifest.json` | Mac `python3 ~/.claude/tools/prune_transcripts.py --restore <uuid>`; any machine `tools/drive_leg.py restore-transcript <uuid>` |
 | Agents task worktrees removed to reclaim space | `BACKUP/Agents-worktrees-<YYYY-MM-DD>.tar` + `.manifest.json` | `git worktree add <path> <branch>`, then `git apply dirty.patch` and `tar xf untracked.tar` from the package |
 | Retired local clones' gitignored data | `BACKUP/PARKED-<repo>-ignored.tar.gz` + manifest | `git clone <github url>`, then `tar xzf` the tar |
 | Cookie Run recorded takes | `BACKUP/CookieRun Backup/play_rec/<take>.tar` + manifest | download, untar on the box |
@@ -149,9 +169,10 @@ root-level folder for a backup.
 | Cookie Run jump sweeps | `BACKUP/CookieRun Backup/jumpsweeps/<sweep>.tar` | same |
 | VPS backups staged on the Mac | `Archive/Backups/<same relative path>` | copy back to the original path |
 
-`<project>` in the transcript path is the working directory with `/` turned into
-`-`, e.g. `-Users-gob-Projects-Agents`. To find a session again: list that folder
-on Drive, or grep `~/.claude/logs/prune-transcripts.log` for the uuid.
+`<slug>` in the transcript path is the working directory with `/` turned into
+`-`, e.g. `-Users-gob-Projects-Agents`. The old `BACKUP/Claude-Transcripts` folder is now
+`…/Claude-Transcripts/mac/` (moved whole 2026-09-24, same id). To find a session again: list that
+folder on Drive, or grep `~/.claude/logs/prune-transcripts.log` for the uuid.
 
 Drive filing rules live in **`CXO_Rules_GDrive_Filing`**; the folder map and Drive IDs in **`CXO_Knowledge_GDrive_FolderMap`**. A new
 destination needs a row there AND in `org:playbooks/drive-archive-gate.md` before
@@ -173,7 +194,10 @@ anything is uploaded.
 - **Spawn floor** (ADR 0030, CEO 2026-09-23): below `gauge.orange` (5 GB) free on
   the box that will hold the worktree, `tools/delegate.py` refuses a new worker and
   queues it (`tools/disk_queue.py`; the watchdog spawns it once space is back).
-  Worker worktrees are sparse (`tools/worktree.py`). Bands: `config/storage-policy.yaml`.
+  Worker worktrees are sparse on the Mac (`tools/worktree.py`, ~78 MB). On Contabo they are not:
+  on 2026-09-28 none of its worktrees had a sparse-checkout (developer ones ~0.93 GB each), and the
+  harness's own `.claude/worktrees/` never pass through that tool — count them first when that box
+  runs low. Bands: `config/storage-policy.yaml`.
 - **winbox archive loop**, every 30 min — see `references/winbox.md`.
 - **Training staging** (`playset/merged_*` and its `.tgz`) is deleted once a model
   in `vision/from_pod` is newer than it.
@@ -200,8 +224,9 @@ never from a tool's verdict about its own queue.
   `rm -rf` of one cache tree.
 - **So put the deletion in a tool, not a shell one-liner.** It passes the
   classifier, it logs, it is reviewable, and it fixes the problem for next time
-  instead of only for today. If a delete is refused twice, stop and hand the CEO
-  the exact one-line command to run themselves with `!`.
+  instead of only for today. If a delete is refused twice, stop and put the exact
+  command on the CEO's phone through Run Inbox (`ALL_Protocol_RunInbox`) — never a
+  `!` in chat (CEO 2026-09-26).
 
 ## Baseline measured 2026-09-10 (so the next session can see drift)
 
@@ -232,6 +257,10 @@ never from a tool's verdict about its own queue.
 - 2026-09-25 [MISSING] §mac — moving to `~/.Trash` frees NOTHING on APFS (a same-volume rename): with 76 GB of verified-backed-up data sitting in the Trash the Mac fell to 1.8 GB free and a peer's film shoot paused; free space came back (73 GB) only when the CEO emptied it. Emptying is permanent, so it is the CEO's; state the exact size and that it is the only lever the moment anything big goes to the Trash · evidence: df 22:39 1.8 GB → 22:49 73 GB, session cto-46fb0d60; the taachang shoot session saw the same (76 GB Trash → 75 GB free, `config/storage-policy.yaml` space_check comment) → references/mac.md (Trash trap; emptying = ALL_Rules_Approvals rule 3) · status: promoted
 - 2026-09-27 [MISSING] §Back up first — "it's all on Drive" is a belief to check, not a fact: the CEO approved deleting the ILAG temp folders (Contabo `/tmp/ilag-*` 6.8 GB, winbox `C:\mooniex\ilag-final` 4.4 GB) as backed up, and an md5 match of every file against the project's Drive tree (then a Drive-wide name search) found 67 not there — an H3 previz cut, a mirrored take, the grade LUT the render needs, the YouTube description, the channel avatar, the edit kit's shot list. Most of the rest was derivative (a zip of on-Drive clips, concat temp re-encodes, public web page snapshots, test renders). Match by md5, file the few real ones (Drive with a logs.txt line, or the repo), then delete · evidence: session 14cc900f, Drive logs.txt 14-17; a second session (cto-0e8d80b8, 2026-09-23, `/root/idm-packs` 47/47) settled "already on Drive?" the same way → §The worker contract step 4 · status: promoted
 - 2026-09-28 [SUPERSEDED] §Back up first — old line: "Loop `git for-each-ref refs/heads` and confirm each exists on origin with `git rev-list --count origin/<b>..<b>` equal to 0." It cannot answer for a repo whose remote is not called `origin` (ClaudeSign: `mooniex` + `upstream`), and before a fetch it reads stale refs (winbox `C:\mooniex\agents`: 112 ahead, 0 after `git fetch`); replaced by `rev-list --branches --not --remotes` after `git fetch --all` · evidence: the two 2026-09-24 notes above (session cto-46fb0d60), thin bundle 1.1 MB vs `--all` 3.4 GB · status: superseded
-- 2026-09-28 [MISSING] §Standing rules — Contabo worktrees are full checkouts (~0.9 GB each): 12 task worktrees took 11 GB and 7 agent worktrees 6.5 GB, the sparse policy does not reach them, and the box was at 7.9 GB free · evidence: df/du 2026-09-28, fold worker, session 14cc900f · status: pending
-- 2026-09-28 [WRONG] §Where every backup lives — the transcripts path says `BACKUP/Claude-Transcripts/<project>/`; the registry says `BACKUP/MoonieX HQ/Claude-Transcripts/<machine>/<slug>/` · evidence: config/machine-contract.yaml:41, 7d3a4b49 · status: pending
-- 2026-09-28 [WRONG] references/contabo.md §Never touch — `/root/restore` is gone; the wiki copies live at `/opt/MoonieXHQ/Agents/{Rules,Wikis}` · evidence: config/machine-contract.yaml:110, CLAUDE.md · status: pending
+- 2026-09-28 [MISSING] §Standing rules — Contabo worktrees are full checkouts (~0.9 GB each): 12 task worktrees took 11 GB and 7 agent worktrees 6.5 GB, the sparse policy does not reach them, and the box was at 7.9 GB free · evidence: df/du 2026-09-28, fold worker, session 14cc900f; re-measured by the next fold worker the same day (df 7.8 GB free, `worktrees/` 11 G, `.claude/worktrees/` 6.5 G, 0 of 22 `.git/worktrees/*` with `info/sparse-checkout`, developer worktrees 0.90–0.94 GB, created 09-24/25 after sparse shipped) → §Standing rules (spawn floor) + references/contabo.md (worktrees trap); why tools/worktree.py leaves them full is not diagnosed · status: promoted
+- 2026-09-28 [WRONG] §Where every backup lives — the transcripts path says `BACKUP/Claude-Transcripts/<project>/`; the registry says `BACKUP/MoonieX HQ/Claude-Transcripts/<machine>/<slug>/` · evidence: config/machine-contract.yaml:41, 7d3a4b49; CXO_Knowledge_GDrive_FolderMap records the old folder moved whole into `…/Claude-Transcripts/mac/` on 2026-09-24; tools/drive_leg.py writes `contabo/<slug>/<day>.tar.gz` → §Where every backup lives + `config/storage-policy.yaml` COLD dest · status: promoted
+- 2026-09-28 [WRONG] references/contabo.md §Never touch — `/root/restore` is gone; the wiki copies live at `/opt/MoonieXHQ/Agents/{Rules,Wikis}` · evidence: config/machine-contract.yaml:110, CLAUDE.md; `ls /root/restore` → no such file, `/opt/{agents,mooniex}-wikis` are symlinks to `/opt/MoonieXHQ/Agents/{Rules,Wikis}` (2026-09-28) → references/contabo.md (Never touch) · status: promoted
+- 2026-09-28 [SUPERSEDED] references/contabo.md — old lines: "every write is not [pre-approved]. Propose the command, get the CEO's go, then run it" and "The easy wins — safe, but ask first" (build cache, apt). Beaten by CEO 2026-09-28 ruling 4, "ตามนั้น" to "Contabo follows the same Green list"; the journal vacuum is not on the Green list and still asks · evidence: CEO-RULINGS 2026-09-28 (session 14cc900f) → §Green, references/contabo.md (Green here) · status: superseded
+- 2026-09-28 [MISSING] §Green — login state was on no list, so a cache sweep could take a browser profile (Chrome profiles are REBUILD in the registry). CEO 2026-09-28 ruling 4: "รวมถึงข้อมูลการ login ด้วยไหม ถ้าใช่ก็ไม่อยากให้ลบ ... ยกเว้นแต่ มันจำเป็นมากๆ" — never Green on any machine, deleted only when truly necessary and after asking him; HTTP caches stay Green · evidence: CEO-RULINGS 2026-09-28 (session 14cc900f); config/machine-contract.yaml Chrome-profile rows (REBUILD) and `.credentials.json` (DISPOSABLE) → §Never Green (HARD), references/*.md never-touch lists, `config/storage-policy.yaml` NEVER (+ tests/test_storage_policy.py) · status: promoted
+- 2026-09-28 [MISSING] references/mac.md §Never touch — the orphaned CloudDocs store: no standing "md5 → Trash before a wipe" step; it stays NEVER and he is asked each time. CEO 2026-09-28 ruling 5: "Yes" · evidence: CEO-RULINGS 2026-09-28 (session 14cc900f) → references/mac.md (CloudDocs) · status: promoted
+- 2026-09-28 [WRONG] §What will block you — "hand the CEO the exact one-line command to run themselves with `!`" contradicts the CEO's 2026-09-26 ruling that he runs commands from the phone only (ALL_Protocol_RunInbox; `scripts/hook-phone-only-commands.py` blocks a reply carrying a `!` command) · evidence: .claude/skills/ALL_Protocol_RunInbox/SKILL.md description → §What will block you · status: promoted
