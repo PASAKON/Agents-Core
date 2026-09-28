@@ -157,6 +157,12 @@ def make_handler(fake: Fake):
             if method == "POST" and m:
                 fake.projects[m[1]]["idents"][fake.identities[m[2]]["name"]] = [b["role"]]
                 return self.reply(200, {"identityMembership": {}})
+            if method == "GET" and p == "/api/v3/secrets/raw":
+                pid, env = q.get("workspaceId"), q.get("environment")
+                if pid not in fake.projects or env not in fake.projects[pid]["envs"]:
+                    return self.reply(400, {"message": "fake: unknown project or environment"})
+                return self.reply(200, {"secrets": [rec for (i, e, _), rec in fake.store.items()
+                                                    if i == pid and e == env]})
             m = re.fullmatch(r"/api/v3/secrets/raw/([^/]+)", p)
             if m:
                 # phase-2 `put` / `last4`: shapes as observed on Infisical Cloud 2026-09-28
@@ -230,7 +236,10 @@ class InfisicalSetupTest(unittest.TestCase):
             else:
                 self.mod.main(list(argv))
         text = out.getvalue()
-        self.assertNotIn("SECRET", text, "a secret value reached stdout")
+        # every secret VALUE in these tests carries "SECRET-" or ".SECRET."; the KIND list a lint
+        # message prints ("... SECRET CLIENT_ID ...") is not a value
+        self.assertNotIn(SETUP_SECRET, text, "the setup client secret reached stdout")
+        self.assertNotRegex(text, r"SECRET[-.][A-Za-z0-9]", "a secret value reached stdout")
         return text
 
     def save_setup(self):
@@ -336,6 +345,54 @@ class InfisicalSetupTest(unittest.TestCase):
                 self.run_cli(*argv)
             self.assertIn(needle, str(cm.exception), argv[3])
         self.assertFalse(self.fake.store, "a refused put must write nothing")
+
+    def test_import_env_moves_a_file_1_to_1_and_marks_legacy_names(self):
+        self.save_setup()
+        self.run_cli("apply")
+        env_file = os.path.join(self.tmp.name, "pilot.env")
+        Path(env_file).write_text("# pilot\nexport VPS_QUEUE_TOKEN='SECRET-tok-1234'\n"
+                                  "VPS_QUEUE_DB=\"/var/lib/q.SECRET.db\"\n\nNOT_A_LINE\n")
+        meta = ["--meta", "provider_name=internal", "--meta", "console_url=n/a", "--meta", "scope=queue",
+                "--meta", "expires=2027-09-28", "--meta", "owner=CTO"]
+        text = self.run_cli("import-env", "MoonieX-LineAutomation", "prod", env_file,
+                            "--comment", "pilot", *meta)
+        self.assertIn("created MoonieX-LineAutomation/prod VPS_QUEUE_TOKEN · last4=1234", text)
+        self.assertIn("skip    VPS_QUEUE_DB", text)                       # DB is not a §4b KIND
+        text = self.run_cli("import-env", "MoonieX-LineAutomation", "prod", env_file,
+                            "--legacy", "--comment", "pilot", *meta)
+        self.assertIn("updated MoonieX-LineAutomation/prod VPS_QUEUE_TOKEN", text)
+        self.assertIn("created MoonieX-LineAutomation/prod VPS_QUEUE_DB · last4=T.db", text)
+        db = self._stored("VPS_QUEUE_DB")
+        self.assertEqual(db["secretValue"], "/var/lib/q.SECRET.db")
+        self.assertEqual({m["key"]: m["value"] for m in db["secretMetadata"]}["naming"], "legacy")
+        self.assertNotIn("naming", {m["key"] for m in self._stored("VPS_QUEUE_TOKEN")["secretMetadata"]})
+        with self.assertRaises(SystemExit) as cm:
+            self.run_cli("import-env", "MoonieX-LineAutomation", "prod", env_file, "--only", "MISSING_TOKEN")
+        self.assertIn("MISSING_TOKEN", str(cm.exception))
+
+    def test_run_execs_the_command_with_secrets_in_its_environment_only(self):
+        self.save_setup()
+        self.run_cli("apply")
+        with mock.patch("sys.stdin", io.StringIO("SECRET-run-9999\n")):
+            self.run_cli("put", "MoonieX-LineAutomation", "prod", "VPS_QUEUE_TOKEN", "--stdin",
+                         "--comment", "pilot", "--meta", "provider_name=internal", "--meta", "console_url=n/a",
+                         "--meta", "scope=queue", "--meta", "expires=2027-09-28", "--meta", "owner=CTO")
+        # the contabo identity reads with its own credential file
+        Path(os.path.join(self.cred_dir, "contabo.env")).write_text(
+            f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={SETUP_ID}\nINFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={SETUP_SECRET}\n")
+        seen = {}
+        def fake_exec(file, args, env):
+            seen.update(file=file, args=args, env=env)
+        err = io.StringIO()
+        with mock.patch("os.execvpe", fake_exec), contextlib.redirect_stderr(err):
+            self.run_cli("run", "MoonieX-LineAutomation", "prod", "--as", "contabo", "--", "uvicorn", "app")
+        self.assertEqual(seen["args"], ["uvicorn", "app"])
+        self.assertEqual(seen["env"]["VPS_QUEUE_TOKEN"], "SECRET-run-9999")
+        self.assertNotIn("SECRET", err.getvalue())          # stderr names the keys, never a value
+        self.assertIn("VPS_QUEUE_TOKEN", err.getvalue())
+        with self.assertRaises(SystemExit) as cm:
+            self.run_cli("run", "MoonieX-LineAutomation", "dev", "--as", "contabo", "--", "uvicorn")
+        self.assertIn("holds no secrets", str(cm.exception))
 
 
 if __name__ == "__main__":

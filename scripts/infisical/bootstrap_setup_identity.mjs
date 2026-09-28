@@ -15,12 +15,31 @@ import { spawn } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const [cdpUrl = 'http://127.0.0.1:9281', flag = ''] = process.argv.slice(2);
-const DRY = flag === '--dry';
+// Usage: node bootstrap_setup_identity.mjs [<cdp-url>] [--identity <name>] [--ttl-days <n>] [--dry]
+//   --identity setup (default)  creates `setup` if missing (org admin), 14-day secret — phase 1.
+//   --identity mac|winbox|...   NEVER creates: the identity must already exist (apply made it, PLAN
+//                               §3); mints a 365-day client secret and saves it on THIS box as the
+//                               machine's read-only credential. Run it on the machine that will use
+//                               it, after the CEO's relay login there (skill CTO_Procedure_KeyFetch).
+const argv = process.argv.slice(2);
+const opt = { identity: 'setup', ttl: null, dry: false, cdp: 'http://127.0.0.1:9281' };
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  if (a === '--dry') opt.dry = true;
+  else if (a === '--identity') opt.identity = argv[++i] || '';
+  else if (a === '--ttl-days') opt.ttl = Number(argv[++i]);
+  else if (!a.startsWith('--')) opt.cdp = a;
+  else { console.error(`[bootstrap] unknown flag ${a}`); process.exit(64); }
+}
+if (!/^[a-z][a-z0-9-]{1,30}$/.test(opt.identity)) { console.error(`[bootstrap] bad identity name ${opt.identity}`); process.exit(64); }
+const cdpUrl = opt.cdp;
+const DRY = opt.dry;
 const API = 'https://app.infisical.com';
-const IDENTITY = 'setup';
-const SECRET_TTL = 14 * 86_400; // the admin identity lives only for the migration (PLAN §3)
+const IDENTITY = opt.identity;
+const IS_SETUP = IDENTITY === 'setup';
+const SECRET_TTL = (opt.ttl || (IS_SETUP ? 14 : 365)) * 86_400; // setup lives only for the migration (PLAN §3); machines rotate yearly (§5)
 const TOOL = process.env.INFISICAL_SETUP_PY || resolve(dirname(fileURLToPath(import.meta.url)), '../../tools/infisical_setup.py');
+const PYTHON = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
 const AUTH_PATH = /^\/(login|signup|signin|verify-email|verify|mfa|password-reset|reset-password|email-not-verified|cli-redirect)(\/|$)/i;
 const log = (...a) => console.log('[bootstrap]', ...a);
 const die = (code, msg) => { console.error('[bootstrap]', msg); process.exit(code); };
@@ -72,6 +91,7 @@ if (listed.status !== 200) die(7, `cannot list identities (HTTP ${listed.status}
 let ident = (listed.json?.identities || []).map((m) => m.identity).find((i) => i && i.name === IDENTITY);
 log(ident ? `identity ${IDENTITY} exists (${ident.id.slice(0, 8)})` : `identity ${IDENTITY} missing`);
 if (DRY) { log('dry run: stopping before any change'); process.exit(0); }
+if (!ident && !IS_SETUP) die(7, `identity ${IDENTITY} does not exist — run \`infisical_setup.py apply\` first; this script never creates a machine identity`);
 if (!ident) {
   const made = await api('POST', '/api/v1/identities', { name: IDENTITY, organizationId: orgId, role: 'admin' });
   if (made.status !== 200 || !made.json?.identity?.id) die(7, `create identity failed (HTTP ${made.status})`);
@@ -95,7 +115,7 @@ token = null;
 log(`client secret created (${desc}, ${SECRET_TTL / 86_400} days) · handing the pair to the save tool`);
 
 // --- 4. save it on this box, unseen ----------------------------------------------------------------
-const child = spawn('python3', [TOOL, 'save', IDENTITY, '--stdin'], { stdio: ['pipe', 'inherit', 'inherit'] });
+const child = spawn(PYTHON, [TOOL, 'save', IDENTITY, '--stdin'], { stdio: ['pipe', 'inherit', 'inherit'] });
 child.stdin.end(`${clientId}\n${secret}\n`);
 secret = null;
 const code = await new Promise((r) => { child.on('exit', (c) => r(c ?? 1)); child.on('error', () => r(127)); });

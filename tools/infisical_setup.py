@@ -24,6 +24,14 @@ it cannot import anything else from Agents-Core.
     last4 <project> <env> <NAME> [--as ID]
                            Print the last 4 characters of a stored value, to compare with what
                            the provider's page shows. Never the value.
+    import-env <project> <env> <path> [--only A,B] [--legacy] [--comment ..] [--meta k=v ..]
+                           Phase 2 cutover: move a whole .env into Infisical 1:1 (names printed,
+                           values never). Names that fail §4b are skipped unless --legacy, which
+                           imports them with metadata naming=legacy for the phase-6 rename.
+    run <project> <env> [--as HOST] -- <command...>
+                           PLAN §5: exec the command with the project's secrets in its
+                           environment, read with this machine's identity; nothing touches disk.
+                           This is how a service or a launcher starts once its .env is gone.
 
 The layout below is PLAN.md §3 / §3b as the CEO approved it on 2026-09-25; changing it is a plan
 change. Rules this tool enforces itself:
@@ -48,7 +56,9 @@ import urllib.parse
 import urllib.request
 
 API = os.environ.get("INFISICAL_API_URL", "https://app.infisical.com")
-CRED_DIR = os.environ.get("INFISICAL_CRED_DIR", "/etc/infisical")  # override only in tests
+_DEFAULT_CRED_DIR = (os.path.join(os.environ.get("ProgramData", r"C:\ProgramData"), "Infisical")
+                     if os.name == "nt" else "/etc/infisical")   # PLAN §5: root-only, one file per host
+CRED_DIR = os.environ.get("INFISICAL_CRED_DIR", _DEFAULT_CRED_DIR)  # override only in tests
 SETUP = "setup"
 SETUP_MAX_DAYS = 14  # the admin identity lives only for the migration (PLAN §6)
 
@@ -130,6 +140,7 @@ def read_cred(name: str) -> tuple[str, str]:
 
 
 def write_cred(name: str, client_id: str, client_secret: str) -> str:
+    require_root()
     os.makedirs(CRED_DIR, mode=0o700, exist_ok=True)
     os.chmod(CRED_DIR, 0o700)
     path = cred_path(name)
@@ -152,8 +163,15 @@ def login(client_id: str, client_secret: str) -> tuple[str, dict, int]:
 
 
 def require_root() -> None:
-    if os.geteuid() != 0:
-        sys.exit("run as root: the credentials file lives in /etc/infisical (0700)")
+    if os.name != "nt" and os.geteuid() != 0:
+        sys.exit(f"run as root: the credentials file lives in {CRED_DIR} (0700)")
+
+
+def self_host() -> str:
+    """The machine identity this box should use (PLAN §3): winbox / mac / contabo."""
+    if os.name == "nt":
+        return "winbox"
+    return "mac" if sys.platform == "darwin" else "contabo"
 
 
 # --- save -----------------------------------------------------------------------------------
@@ -186,7 +204,7 @@ def cmd_save(name: str, from_stdin: bool = False) -> None:
 
 class Org:
     def __init__(self, identity: str = SETUP) -> None:
-        require_root()
+        self.identity = identity
         self.token, claims, _ = login(*read_cred(identity))
         self.org_id = claims["orgId"]
         self.setup_identity = claims.get("identityId")
@@ -432,24 +450,36 @@ def parse_meta(items: list[str]) -> dict[str, str]:
     return out
 
 
-def cmd_put(org: Org, project: str, env: str, name: str, comment: str | None,
-            meta: list[str], multiline: bool) -> None:
+def _target(org: Org, project: str, env: str) -> dict:
     if project.lower() == ORG_INFRA.lower():
         sys.exit("refused: Org-Infra values are entered by the CEO in the web UI (PLAN §3b rule 1)")
-    problem = lint_name(name)
-    if problem:
-        sys.exit(f"refused: {name}: {problem} (PLAN §4b)")
     p = _project(org, project)
     if env not in org.environments(p["id"]):
         sys.exit(f"project {p['name']} has no environment {env!r}")
-    metadata = parse_meta(meta)
-    existing = _get_secret(org, p["id"], env, name)
+    return p
+
+
+def _check_name(name: str, legacy: bool) -> bool:
+    """Return True when the name is a §4b name, False when it is a tolerated legacy name."""
+    problem = lint_name(name)
+    if problem and not legacy:
+        sys.exit(f"refused: {name}: {problem} (PLAN §4b; --legacy imports an old name 1:1)")
+    return problem is None
+
+
+def _require_meta_for_new(existing: dict | None, comment: str | None, metadata: dict) -> None:
     if existing is None:
         missing = [k for k in REQUIRED_META if k not in metadata]
         if missing or not comment:
             sys.exit("refused: a new secret needs --comment <purpose> and --meta "
                      + " ".join(f"{k}=…" for k in missing) + " (PLAN §4c)")
-    else:
+
+
+def _write_secret(org: Org, p: dict, env: str, name: str, value: str, comment: str | None,
+                  metadata: dict, existing: dict | None, multiline: bool = False) -> str:
+    """POST or PATCH one secret; the value never leaves this process except in the request."""
+    metadata = dict(metadata)
+    if existing is not None:
         old = {m["key"]: m["value"] for m in existing.get("secretMetadata") or [] if m.get("key")}
         metadata = {**old, **metadata}
         comment = comment or existing.get("secretComment") or ""
@@ -458,14 +488,70 @@ def cmd_put(org: Org, project: str, env: str, name: str, comment: str | None,
     metadata.setdefault("created", stamp)
     metadata["updated"] = stamp
     metadata.setdefault("status", "active")
-    value = read_stdin_value(multiline)   # read last: every refusal above happens before it exists
     body = {"workspaceId": p["id"], "environment": env, "secretPath": "/", "secretValue": value,
-            "secretComment": comment, "skipMultilineEncoding": multiline,
+            "secretComment": comment or "", "skipMultilineEncoding": multiline,
             "secretMetadata": [{"key": k, "value": v} for k, v in metadata.items()]}
     org.send("PATCH" if existing else "POST", f"/api/v3/secrets/raw/{name}", body)
-    print(f"{'updated' if existing else 'created'} {p['name']}/{env} {name}"
-          f" · last4={value.strip()[-4:]} · expires={metadata.get('expires', '?')}"
-          f" · owner={metadata.get('owner', '?')}")
+    return (f"{'updated' if existing else 'created'} {p['name']}/{env} {name}"
+            f" · last4={value.strip()[-4:]} · expires={metadata.get('expires', '?')}"
+            f" · owner={metadata.get('owner', '?')}")
+
+
+def cmd_put(org: Org, project: str, env: str, name: str, comment: str | None,
+            meta: list[str], multiline: bool, legacy: bool = False) -> None:
+    clean = _check_name(name, legacy)
+    p = _target(org, project, env)
+    metadata = parse_meta(meta)
+    if not clean:
+        metadata["naming"] = "legacy"
+    existing = _get_secret(org, p["id"], env, name)
+    _require_meta_for_new(existing, comment, metadata)
+    value = read_stdin_value(multiline)   # read last: every refusal above happens before it exists
+    print(_write_secret(org, p, env, name, value, comment, metadata, existing, multiline))
+
+
+def parse_env_file(path: str) -> dict[str, str]:
+    """KEY=value lines of a .env file (quotes stripped, `export` tolerated). Values stay in memory."""
+    values: dict[str, str] = {}
+    with open(path, encoding="utf-8") as fh:
+        for raw in fh:
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            if line.startswith("export "):
+                line = line[7:].lstrip()
+            key, _, val = line.partition("=")
+            key, val = key.strip(), val.strip()
+            if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+                val = val[1:-1]
+            if key:
+                values[key] = val
+    return values
+
+
+def cmd_import_env(org: Org, project: str, env: str, path: str, only: list[str],
+                   comment: str | None, meta: list[str], legacy: bool) -> None:
+    """Phase 2: move a whole .env into Infisical 1:1 — names are printed, values never."""
+    values = parse_env_file(path)
+    names = [n for n in values if not only or n in only]
+    absent = [n for n in only if n not in values]
+    if absent:
+        sys.exit(f"{path} has no {', '.join(absent)}")
+    if not names:
+        sys.exit(f"{path}: no KEY=value lines to import")
+    p = _target(org, project, env)
+    metadata = parse_meta(meta)
+    for name in names:
+        problem = lint_name(name)
+        if problem and not legacy:
+            print(f"skip    {name}: {problem} (use --legacy to import it 1:1)")
+            continue
+        md = dict(metadata)
+        if problem:
+            md["naming"] = "legacy"
+        existing = _get_secret(org, p["id"], env, name)
+        _require_meta_for_new(existing, comment, md)
+        print(_write_secret(org, p, env, name, values[name], comment, md, existing))
 
 
 def cmd_last4(org: Org, project: str, env: str, name: str) -> None:
@@ -476,7 +562,27 @@ def cmd_last4(org: Org, project: str, env: str, name: str) -> None:
     print(f"{p['name']}/{env} {name} · last4={(s.get('secretValue') or '').strip()[-4:]}")
 
 
+def cmd_run(identity: str, project: str, env: str, argv: list[str]) -> None:
+    """Exec a command with the project's secrets in its environment (PLAN §5), nothing on disk."""
+    if not argv:
+        sys.exit("run: give the command after `--`")
+    org = Org(identity)
+    p = _project(org, project)
+    out = org.get("/api/v3/secrets/raw", workspaceId=p["id"], environment=env, secretPath="/")
+    secrets = {s["secretKey"]: s["secretValue"] for s in out.get("secrets", []) if s.get("secretKey")}
+    if not secrets:
+        sys.exit(f"{p['name']}/{env} holds no secrets at / — refusing to start {argv[0]} without them")
+    print(f"[infisical run] {p['name']}/{env} as {identity}: {', '.join(sorted(secrets))} -> {argv[0]}",
+          file=sys.stderr)
+    os.execvpe(argv[0], argv, {**os.environ, **secrets})
+
+
 def main(argv: list[str] | None = None) -> None:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    command: list[str] = []
+    if "--" in argv:                       # `run ... -- <command>`: everything after -- is the command
+        cut = argv.index("--")
+        argv, command = argv[:cut], argv[cut + 1:]
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("save")
@@ -487,19 +593,29 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--mint", metavar="HOST")
     sub.add_parser("status")
     sub.add_parser("retire-setup")
-    for cmd in ("put", "last4"):
+    for cmd in ("put", "last4", "import-env", "run"):
         c = sub.add_parser(cmd)
         c.add_argument("project")
         c.add_argument("env")
-        c.add_argument("name")
-        c.add_argument("--as", dest="identity", default=SETUP,
-                       help="identity whose file under /etc/infisical logs in (default: setup)")
-        if cmd == "put":
-            c.add_argument("--stdin", action="store_true", required=True,
-                           help="the value comes on stdin — the only way in")
+        if cmd in ("put", "last4"):
+            c.add_argument("name")
+        if cmd == "import-env":
+            c.add_argument("path", help=".env file to move 1:1 (names printed, values never)")
+            c.add_argument("--only", default="", metavar="A,B", help="import only these names")
+        if cmd == "run":
+            c.usage = "%(prog)s project env [--as HOST] -- <command> [args...]"
+        c.add_argument("--as", dest="identity", default=self_host() if cmd == "run" else SETUP,
+                       help=f"identity whose file under {CRED_DIR} logs in "
+                            f"(default: {'this machine' if cmd == 'run' else SETUP})")
+        if cmd in ("put", "import-env"):
             c.add_argument("--comment", help="purpose (PLAN §4c); required when creating")
             c.add_argument("--meta", action="append", default=[], metavar="k=v",
                            help="provider_name, console_url, scope, expires, owner, spend_cap, ...")
+            c.add_argument("--legacy", action="store_true",
+                           help="import an existing name that fails §4b, 1:1 (renamed in phase 6)")
+        if cmd == "put":
+            c.add_argument("--stdin", action="store_true", required=True,
+                           help="the value comes on stdin — the only way in")
             c.add_argument("--multiline", action="store_true", help="PEM / JSON spanning lines")
     args = ap.parse_args(argv)
     try:
@@ -515,9 +631,15 @@ def main(argv: list[str] | None = None) -> None:
             cmd_retire_setup(Org())
         elif args.cmd == "put":
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
-                    args.meta, args.multiline)
+                    args.meta, args.multiline, legacy=args.legacy)
+        elif args.cmd == "import-env":
+            only = [n for n in args.only.split(",") if n]
+            cmd_import_env(Org(args.identity), args.project, args.env, args.path, only,
+                           args.comment, args.meta, args.legacy)
         elif args.cmd == "last4":
             cmd_last4(Org(args.identity), args.project, args.env, args.name)
+        elif args.cmd == "run":
+            cmd_run(args.identity, args.project, args.env, command)
     except ApiError as exc:
         sys.exit(f"Infisical API error: {exc}")
     except FileNotFoundError as exc:
