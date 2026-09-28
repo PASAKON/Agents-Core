@@ -402,7 +402,7 @@ Fix it on the master, never by touching the mix:
 ffmpeg -i in.mp4 -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:v copy out.mp4
 ```
 ```bash
-npm run render
+npm run render          # a full episode renders in windows, see below
 python3 <skill>/scripts/bl_tools.py verify <render.mp4> \
   --audio audio-hq.mp3 --duration <track length> \
   --seat A=<ORIGINAL lipsync_a>=0.00 B=<ORIGINAL lipsync_b>=62.71
@@ -412,6 +412,43 @@ one frame, and a lipsync part seated more than a frame out. Seating is checked
 by audio because frame differencing waves a 9-frame error through — a talking
 head barely moves in 9 frames. Pass the ORIGINAL lipsync files here; the
 normalised copies were made with `-an` and have no audio to compare.
+
+Then the checker: empty frames at 30 fps (§6g), a second caption style (§6f),
+kinetic lines wider than the safe box. A hand cut has no `beats.json`; an
+empty list skips only the beat-geometry checks. Exit 1 is a failed cut.
+```bash
+echo '[]' > no-beats.json
+python3 tools/bl_checker.py --video <render.mp4> --beats no-beats.json --composition cut/index.html
+```
+
+**Render in windows of ≤ 9 s, not in one pass.** A long render stalls ("no
+frame progress for 60000ms") near the same frame on every retry: 353/466 on
+the avatar-composite demo (task-4bce29e5); ~400 on EP57 whatever the window
+length (task-501f1d89, an 8 GB Mac shared with six Claude sessions, memory
+growing during the render); ~390-400 on EP57 seg03 with repeated avatar-matte
+seeks, 7 retries (task-99f3d2e8). The cause is not settled. What worked in
+both EP57 tasks: windows of ≤ 9 s (270 frames) cut at line boundaries, a
+fresh render process for each, the video joined with `-c copy` and
+`audio-hq.mp3` muxed once at the end. All 24 EP57 windows rendered first
+time. On the Mac, gate each window on `memory_pressure | tail -1` ≥ 25 % free;
+`vm_stat` free pages stay low by design and never clear a gate. Driver:
+`prototypes/bl57-cut/render_windows.sh` on origin/agent/video_editor-task-501f1d89
+(read it, its paths are that task's). A beats.json cut renders each segment
+with `tools/bl_compose.py --t0 … --t-max …` and joins them with
+`tools/bl_merge.py`, which gates the result.
+
+The seams break, and no single window shows it:
+- **Frame-exact windows.** Every boundary on the 1/30 s grid, frames counted
+  as `round(dur × 30)`. The renderer rounds a declared duration up to the next
+  frame, and a floor on float noise drops one (795 vs 796, task-99f3d2e8); one
+  frame per window across EP57's 24 windows drifted the lipsync ~300 ms and
+  `verify` failed part B at r=0.807 (task-501f1d89).
+- **A window's first frame shows what the full render shows at that time.**
+  The first plate starts AT the window start (a 0.2 s lead left 6 empty frames
+  at the 104.5 s seam, task-99f3d2e8). Whatever is already on screen is placed
+  with `tl.set` at 0: a GSAP tween at a negative position never runs (EP57's
+  CHECK block rendered 3.1 s of empty frame), and a replayed entrance blinks
+  the brand bug out and back (task-501f1d89).
 
 ### 10. Deliver — outside the worktree, before you report
 `merge_task` deletes the worktree and `renders/` is gitignored, so an MP4 left
@@ -425,6 +462,13 @@ python3 <skill>/scripts/bl_tools.py sheet ~/Projects/Agents/output/bl/<episode>/
 ```
 Never `git add` anything under `output/`. Name both paths in your report so the
 reviewer reads one image and opens one file.
+
+**What a cut costs.** EP57, cut in one worker session: 4 h, 760 turns, $99.79
+API-equivalent, and 466M of its 467.7M tokens were cache reads, the context
+re-read on every turn (session 5b6517b0; `docs/ops/bl-ab-2026-09-25/REPORT.md`
+§Correction). Count a transcript by `message.id` (`tools/token_profile.py`):
+Claude Code writes one line per content block, so a raw line sum reads about
+double (EP57: 1,418 lines for 760 turns).
 
 ## The constants — measured, not chosen
 
@@ -710,8 +754,11 @@ Model: `rvm_mobilenetv3.pth`, **14.5 MB**, lives at
   What actually works, verified (`check` went from 9 errors to 9/9 pass): a
   real opaque backing, `background: rgba(7,8,10,.72)` behind the text — the
   same technique `.bl-card`/`.bl-row` already use. Both `.bl-legal` and
-  `.bug .dt2` now carry it. A kinetic caption over a bright plate needs the
-  same treatment on its own block — see the field note below.
+  `.bug .dt2` now carry it, and §6f's caption band is the same backing. Any
+  other text over a real page needs its own, or a still placed so the text
+  lands on empty page space: on EP55 a top/bottom vignette passed `npm run
+  check` while the captions sat on the page's own tab row, paragraph and
+  heading, text over text (task-52c669bb).
 
 Sound effects are deliberately out of scope until the channel has a licensed,
 human-annotated library. An AI placing SFX blind is what made earlier attempts
@@ -766,28 +813,28 @@ drive every `data-duration` / block `out` argument from that extended value.
 `prototypes/bl57-cut/build_cut.py`'s `EXT_END` map (origin/agent/video_editor
 -task-501f1d89, read-only reference, do not copy its caption code) is a
 worked example of this exact computation. `tools/bl_checker.py`'s empty-frame
-gate (§ below) now checks for this mechanically at 30fps, including a
+gate (§9) now checks for this mechanically at 30fps, including a
 single-frame dip — it is not a substitute for building the timing right in
 the first place, but it will catch it if you don't.
 
 ## Field notes
 - 2026-09-23 [MISSING] §5a — CEO ruling: real footage (broker logo, real site, real WikiFX page with real numbers, partly censored) outranks B-roll; the runner is task-67f82679 (tools/bl_realfootage.py). Written into the rule body directly because it is a CEO ruling, not an n=1 sighting · evidence: CEO message 2026-09-23 "Realfootage สำคัญกว่า B-Roll", commit 6f4a7658 · status: promoted
-- 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s · status: pending
+- 2026-09-23 [MISSING] §5a — real footage is usually a LIGHT web page, and the kit's captions were tuned for dark AI plates. On EP55 a standing top/bottom vignette passed `npm run check` contrast, but captions still sat on the page's own text: a tab row, an article paragraph, a heading. Unreadable text-over-text; the same defect the CEO rejected a clip for that day. On a real-page plate put the caption on a solid, near-opaque band, or place the still so the caption lands on empty page space · evidence: task-52c669bb frames t=34.5/52.5/57.5/63 s → §6d traps (bright plate), §6f · status: promoted
 - 2026-09-23 [WRONG] §5a/§6d — confirms the pending note above on a second, independent task, and extends it two ways. First: it isn't only kinetic captions that lose contrast over a bright real-footage plate — the STANDING legal label and brand-bug date do too (`.bl-legal` measured 1.1:1, need 3:1). Second, and the real trap: a text-shadow does NOT fix this, not even the kit's own `--outline` 4-way stroke — tried it, `hyperframes check` still failed at the same 1.6-2.1:1 numbers, because the checker reads the text's flat `color` against the background and gives a shadow no credit. Only an actual opaque `background` band (same trick `.bl-card`/`.bl-row` already use) passed — verified 9 errors → 9/9 · evidence: task-4bce29e5, `hyperframes check` on a white-plate fixture, before (9 errors incl. `.bl-legal`/`.bug .dt2` at t=0.833-2.833s) and after (9/9 pass) · status: promoted
-- 2026-09-23 [MISSING] §6d — n=1, flag for confirmation: `bl_tools.py matte` on RVM mobilenetv3+MPS runs at ~1.4s/frame steady state (~8 min for a 14s/25fps lipsync part), so mattes all 3 parts of one episode before render eats 25-40 min. Budget for it; don't start it as the last step before a deadline · evidence: task-4bce29e5, full `lipsync_part_a_0s-14s.mp4` matte run, 481.8s/350 frames · status: pending
+- 2026-09-23 [MISSING] §6d — n=1, flag for confirmation: `bl_tools.py matte` on RVM mobilenetv3+MPS runs at ~1.4s/frame steady state (~8 min for a 14s/25fps lipsync part), so mattes all 3 parts of one episode before render eats 25-40 min. Budget for it; don't start it as the last step before a deadline · evidence: task-4bce29e5, full `lipsync_part_a_0s-14s.mp4` matte run, 481.8s/350 frames; 2026-09-28: the 2026-09-25 voice-fix note measured 2.4 fps on the same matte code (unchanged since 74dd4159), ~3x faster, so the budget is unsettled · status: pending
 - 2026-09-23 [MISSING] §6d — CTO caught the avatar covering a WikiFX 1.69/10 score on the first cut of the demo by reading 6 frames; the HARD evidence-overlap rule above and `reference/avatar-composite-evidence-clear.jpg` came from fixing it. Fixing it by shifting the still up then re-introduced the exact same bug one level up — a kinetic caption placed in the newly-freed space landed on the relocated score box · evidence: task-4bce29e5, CTO-FEEDBACK.md 17:40 review; fix verified `hyperframes check` 10/10 contrast, DEMO-avatar-composite-v2.mp4 (Drive, EP55 folder) read at 9 timestamps full-res · status: promoted
-- 2026-09-23 [COSTLY] no owner — `hyperframes render` stalled twice at the identical frame (353/466) with the exact same composition, both times with the Mac down to ~110-150 MB free RAM (`top -l 1`, PhysMem). Not a composition bug — a clean retry on the third attempt, unchanged, completed in 5m29s (vs ~2m30s when memory is free). If a render stalls ("no frame progress for 60000ms"), check system memory before touching the composition · evidence: task-4bce29e5, render_v2.log timestamps 17:47-17:57, renderJobIds be0a6e61/ca6082c3 · status: pending
+- 2026-09-23 [COSTLY] no owner — `hyperframes render` stalled twice at the identical frame (353/466) with the exact same composition, both times with the Mac down to ~110-150 MB free RAM (`top -l 1`, PhysMem). Not a composition bug — a clean retry on the third attempt, unchanged, completed in 5m29s (vs ~2m30s when memory is free). If a render stalls ("no frame progress for 60000ms"), check system memory before touching the composition · evidence: task-4bce29e5, render_v2.log timestamps 17:47-17:57, renderJobIds be0a6e61/ca6082c3 → §9 render in windows (merged with 2026-09-24 §9 render, 2026-09-26 §render) · status: promoted
 - 2026-09-23 [WRONG] §6d — "composite mode is a hard cut, don't tween scale/position" was false. Frame-by-frame head tracking of the reference shows 3 of 4 entries into composite are 21-27-frame sine.out shrinks after the plate swaps behind the full avatar; only exits (and one section-change entry) are hard cuts. Rule flipped to the measured motion; the old line is kept [SUPERSEDED] in §6d · evidence: CEO ruling 2026-09-23 ("เอาลงแบบ smooth ด้วย มี Animation") + reference/avatar-shrink-motion.jpg, commit 1eb280fa · status: promoted
 - 2026-09-23 [MISSING] §6e — no rule for a brand's on-screen spelling (captions showed the TTS transliteration) or for crediting a third-party image; both set by the CEO for EP57 (WikiFX XXLMARKETS review card) · evidence: CEO ruling 2026-09-23 · status: promoted
 - 2026-09-24 [MISSING] §9 verify — no gate catches EMPTY frames between shots. EP57's first render went bare (only the dark plate, bug and legal label) for 0.25-1.0 s at almost every line boundary: 35 stretches, 16.8 s = 11 % of the episode, because plates ended with their line and the TTS pauses between lines were left uncovered. The reference never goes through empty. Hold each plate until the next begins. Check it mechanically: fps=4 gray frames, mask the bug (y 12-24 %, x > 55 %) and the legal band (y 66-74 %), flag std < 12; the target is 0 stretches after 0.25 s. It belongs in `bl_tools.py verify` as a gate · evidence: task-501f1d89 render #4, the CTO's detector, frames 31 s / 80 s; §6g rule text; gate moved from `bl_tools.py verify` into `tools/bl_checker.py`'s `detect_empty_frames`, task-1678d38e · status: promoted
-- 2026-09-24 [MISSING] §9 render — on this 8 GB Mac, with several Claude sessions live, a HyperFrames render of EP57 died at ~frame 400 five times, whatever the window length and even when it started at 38 % memory_pressure: memory grows during a render. The editor's `vm_stat` free ≥ 500 MB gate never clears (macOS keeps free pages low). Gate on `memory_pressure` ≥ 25 %, render windows of ≤ 9 s cut at line boundaries with a fresh process each, concat with -c copy, and mux the audio once at the end · evidence: task-501f1d89 renders #1-#5 · status: pending
-- 2026-09-25 [MISSING] §budget — the EP57 cut worker (task-501f1d89, Sonnet 5) ran 1,418 turns while its context grew 316k → 844k tokens/turn (max 913k); 873M cache-read tokens = $175 of a ≈$189 API-equivalent bill, machine time is cents (render 15 min on the Mac, ≈€0.05 on hourly Hetzner). Split a cut into plan → render → verify tasks or compact near 200k; never trust cost-guardian's per-session $ (ignores cache reads, 5.6× under) · evidence: transcript 5b6517b0, mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md · status: pending
-- 2026-09-25 [MISSING] §gate/§render — why EP57 took 4 h (measured): first cut submitted at 1 h 46; the other 2 h 14 were rework. Chain: the Mac (8 GB, six Claude sessions) killed the headless browser near frame ~400 → 13 full-render launches, ~5 deaths → the render was re-engineered mid-task into 24 windows (12 launches) → two new bugs (per-window frame rounding = 300 ms lipsync drift; GSAP negative-position tween = 3.1 s empty window). The review defects (35 empty stretches = 11 % of the episode; clipped credit) had no pre-submit detector — the CTO wrote one at review time. 122 poll-only turns (ReadNotifications/Monitor) at ~740k context = 90M cache-read tokens ≈ $18 spent waiting. Thinking was not the cost: median 243 output tokens/turn. Fix candidates: render on a box with free RAM (Contabo/Hetzner), a `bl_gate` detector required before submit_report, one synchronous render call instead of polling, split plan → render → verify into fresh tasks · evidence: transcript 5b6517b0 (task-501f1d89), worktree CTO-FEEDBACK.md, mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md · status: pending
-- 2026-09-25 [WRONG] §budget — the note above quotes 1,418 turns / 873M cache read; that is a raw line sum. Claude Code writes each assistant message.id on ~2 lines; deduped the EP57 cut worker is **760 turns, 467.7M tokens (466M cache read), $99.79**, not $189. Count with `jev_edit_lib.sum_transcript_usage` · evidence: session 5b6517b0 (1,418 lines / 760 ids) · status: pending
-- 2026-09-25 [WRONG] §budget — the A/B/C numbers first reported (arm A $7.54/161 turns, B $3.59/83, C $1.10/10) came from `tools/bl_scripter.py::usage_from_transcript`, which summed raw transcript lines; deduplicated by message.id they are A $3.73/82, B $1.66/46 (Scripter $0.26/3 + Editor $1.40/43), C $0.26/3 — ranking unchanged, checker verdicts unchanged. Tool fixed (dedup; returns `lines` beside `turns`), docs corrected · evidence: docs/ops/bl-ab-2026-09-25/REPORT.md §Correction; transcripts task-9ba58d91 / task-4ccc2495 (Contabo), 440ba051 (Mac), every repeat byte-identical · status: pending
+- 2026-09-24 [MISSING] §9 render — on this 8 GB Mac, with several Claude sessions live, a HyperFrames render of EP57 died at ~frame 400 five times, whatever the window length and even when it started at 38 % memory_pressure: memory grows during a render. The editor's `vm_stat` free ≥ 500 MB gate never clears (macOS keeps free pages low). Gate on `memory_pressure` ≥ 25 %, render windows of ≤ 9 s cut at line boundaries with a fresh process each, concat with -c copy, and mux the audio once at the end · evidence: task-501f1d89 renders #1-#5, prototypes/bl57-cut/RUNLOG.md + render_windows.sh on origin/agent/video_editor-task-501f1d89 → §9 render in windows · status: promoted
+- 2026-09-25 [MISSING] §budget — the EP57 cut worker (task-501f1d89, Sonnet 5) ran 1,418 turns while its context grew 316k → 844k tokens/turn (max 913k); 873M cache-read tokens = $175 of a ≈$189 API-equivalent bill, machine time is cents (render 15 min on the Mac, ≈€0.05 on hourly Hetzner). Split a cut into plan → render → verify tasks or compact near 200k; never trust cost-guardian's per-session $ (ignores cache reads, 5.6× under) · evidence: transcript 5b6517b0, mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md — superseded: a raw line sum; deduplicated it is 760 turns / $99.79 (the 2026-09-25 [WRONG] §budget note below), and the split/compact advice is n=1 · status: superseded
+- 2026-09-25 [MISSING] §gate/§render — why EP57 took 4 h (measured): first cut submitted at 1 h 46; the other 2 h 14 were rework. Chain: the Mac (8 GB, six Claude sessions) killed the headless browser near frame ~400 → 13 full-render launches, ~5 deaths → the render was re-engineered mid-task into 24 windows (12 launches) → two new bugs (per-window frame rounding = 300 ms lipsync drift; GSAP negative-position tween = 3.1 s empty window). The review defects (35 empty stretches = 11 % of the episode; clipped credit) had no pre-submit detector — the CTO wrote one at review time. 122 poll-only turns (ReadNotifications/Monitor) at ~740k context = 90M cache-read tokens ≈ $18 spent waiting. Thinking was not the cost: median 243 output tokens/turn. Fix candidates: render on a box with free RAM (Contabo/Hetzner), a `bl_gate` detector required before submit_report, one synchronous render call instead of polling, split plan → render → verify into fresh tasks · evidence: transcript 5b6517b0 (task-501f1d89), worktree CTO-FEEDBACK.md, mooniex:research/2026-09-25-cost-per-bl-episode-cut-ep57.md → §9 (windows, seams, the checker before submit); its token/$ figures are raw line sums and its other fix candidates (another box, one synchronous render, plan → render → verify) n=1, not folded · status: promoted
+- 2026-09-25 [WRONG] §budget — the note above quotes 1,418 turns / 873M cache read; that is a raw line sum. Claude Code writes each assistant message.id on ~2 lines; deduped the EP57 cut worker is **760 turns, 467.7M tokens (466M cache read), $99.79**, not $189. Count with `jev_edit_lib.sum_transcript_usage` · evidence: session 5b6517b0 (1,418 lines / 760 ids) → §10 What a cut costs · status: promoted
+- 2026-09-25 [WRONG] §budget — the A/B/C numbers first reported (arm A $7.54/161 turns, B $3.59/83, C $1.10/10) came from `tools/bl_scripter.py::usage_from_transcript`, which summed raw transcript lines; deduplicated by message.id they are A $3.73/82, B $1.66/46 (Scripter $0.26/3 + Editor $1.40/43), C $0.26/3 — ranking unchanged, checker verdicts unchanged. Tool fixed (dedup; returns `lines` beside `turns`), docs corrected · evidence: docs/ops/bl-ab-2026-09-25/REPORT.md §Correction; transcripts task-9ba58d91 / task-4ccc2495 (Contabo), 440ba051 (Mac), every repeat byte-identical → §10 What a cut costs (merged: the count-by-message.id method; the A/B figures stay in REPORT.md) · status: promoted
 - 2026-09-25 [MISSING] §gate — the 4 fps std<12 empty-frame check misses a ONE-frame black flash: BL-EP57-final.mp4 has an empty dark frame at 76.37 s between two identical WikiFX plates (whole-frame mean 13 vs 147 either side). Also check per-frame mean drop at 30 fps; and the final still shows 7 empty 0.25-0.75 s moments (0:00, 0:31, 0:55, 1:02, 1:45, 1:48, 2:00) the worker had called "fade frames" · evidence: task-501f1d89 final 03:49 +07 09-24; `tools/bl_checker.py::detect_empty_frames` now samples at 30fps with a whole-frame-mean single-frame-dip check on top of std<12, task-1678d38e · status: promoted
 - 2026-09-25 [WRONG] §6d composite caption — "in composite mode the spoken caption is a small dark chip just above the head (≈37-40 % of the height)" came from the ฿1300 reference, not from this channel. EP57's worker followed it: 38 px chips whose height changes every line, up where they collide with the page text and the BLACK bug (t=13 s, 78 s), while full-frame lines got plain outlined text with no chip, and screenshot lines got a flat full-width strip: three caption looks in one episode. CEO 2026-09-25: "sub title style ที่ขึ้น มันไม่ใช่แบบเดียวกับที่ EP ก่อนหน้าทำไว้ … Skill issue แน่นอน" · evidence: BL-EP57-final.mp4 t=4.2/13/78 s vs EP55-NoLicense-FINAL-v2.mp4 t=12 s; rule change proposed to the CEO; §6d marked [SUPERSEDED], §6f written, task-1678d38e · status: promoted
 - 2026-09-25 [MISSING] template — the caption the CEO approved on EP55 (`.cap.band`: rgba(5,6,8,.90), padding 20px 30px, radius 18px, 48 px/600, two lines, fixed at chest height top 1300 px, safe-box width) was a CTO-review fix written only into `prototypes/bl55-cut/index.html:291`. It never went back into `template/index.html`, whose `.cap` (line 306) is plain outlined text, so the next worker started without it and re-invented a backing per line kind · evidence: the two files; `.cap` in `template/index.html` now IS the EP55 band, plus a `caption()` generator so no worker has to hand-roll one again, task-1678d38e · status: promoted
 - 2026-09-25 [COSTLY] CTO review — the 09-24 review note about a watermark left uncovered at 98 s was read as a rule for EVERY screenshot caption: the worker made the whole "rail" kind full-bleed (`left:0;right:0`), which is the flat strip the CEO saw. A review fix must say its scope (this one line) · evidence: task-501f1d89 index.html addCap() comment "CTO review 2026-09-24" · status: pending
 - 2026-09-25 [MISSING] §voice fix — how to fix one word's pronunciation without re-cutting: re-TTS only the lines that carry it (voice spelling only, e.g. โบร๊ก; captions keep the display spelling โบรก), trim silence, atempo 1.15 (the pipeline's own speed-up, videogen.js) then atempo the residual so each line lands exactly on its old [t0,t1] (EP57 residuals 0.91-1.10), match the old line's RMS, 8 ms edge fades, splice → the master stays 153.00 s and no timing moves. Re-lipsync only the parts whose lines show the avatar's mouth (EP57: A 0-14.97 and C 137.16-152.56; B-roll/KIN lines need nothing), cut the audio at the parts' true_s from offsets.json, normalise to 30 fps h264 no audio, re-matte (bl_tools.py matte, 2.4 fps on MPS, ~2.5 min per 15 s part). Cost ≈ $0.38 (TTS ~$0.02 + Sync Labs 30.4 s ~$0.36, ledger prices) · evidence: EP57 v2, Work/task-501f1d89/in/ep57-v2/, Drive Audio 18uRNZOkn3jJyi0ljaORlyPHmN-1VfI-3 · status: pending
-- 2026-09-26 [MISSING] §render — a HyperFrames range render with repeated avatar-matte seeks stalls deterministically around frame 390–400 (EP57 seg03, 7 retries, same frame each time); the fix that worked is ≤9 s windows, each a fresh process, then concat. Also: a range render's first beat must start AT the window start (a 0.2 s lead left 6 empty frames at the 104.5 s seam) and a range length must round, not floor (795 vs 796 frames) — both now in tools/bl_compose.py · evidence: task-99f3d2e8 RUNLOG, rerender seg02=796 / seg04=1455 frames · status: pending
+- 2026-09-26 [MISSING] §render — a HyperFrames range render with repeated avatar-matte seeks stalls deterministically around frame 390–400 (EP57 seg03, 7 retries, same frame each time); the fix that worked is ≤9 s windows, each a fresh process, then concat. Also: a range render's first beat must start AT the window start (a 0.2 s lead left 6 empty frames at the 104.5 s seam) and a range length must round, not floor (795 vs 796 frames) — both now in tools/bl_compose.py · evidence: task-99f3d2e8 RUNLOG, rerender seg02=796 / seg04=1455 frames (docs/ops/bl-split-ab-2026-09-25/TOOLING.md) → §9 render in windows, seams · status: promoted
