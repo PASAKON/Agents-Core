@@ -358,3 +358,25 @@ projects:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
       contabo: /opt/MoonieXHQ/Projects/MoonieX/SomPong
     spawn_backend: tmux
+
+  - key: mooniex-option
+    name: MoonieX Option (IQ Option trading bot + SALA VIP signal listener)
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
+    remote: https://github.com/PASAKON/MoonieX-Option.git
+    # All live work is on windows-iqoption-port (60 commits ahead of main, which is
+    # only the April POC). Workers branch from it until main is fast-forwarded.
+    default_branch: windows-iqoption-port
+    stack: [node]
+    agents_allowed: *default_workers
+    # The trader must run on a residential IP (winbox), never on Contabo (broker bans
+    # datacenter IPs). Contabo only runs listener/receiver/channel in Docker.
+    auto_push: false
+    review_required: true
+    # NEVER bare `node --test`: its default glob picks up test-trade.js, which opens
+    # the broker and can place a trade. Tests live under test/ only.
+    test_command: node --test test/
+    gate_tests: true
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Option
+    spawn_backend: tmux
