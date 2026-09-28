@@ -66,6 +66,19 @@ O3 and O4 are disjoint from them and can run in parallel from day 1.
   Chatudo-specific variable names). Run `chatudo-api`/`chatudo-cron` under `infisical run`, adapting
   `scripts/chatudo/compose.sh`. `.env.chatudo.example` stays as the list of names. The CEO enters the values;
   a value never goes in chat or a Run Inbox card.
+  - **Location (ruled by the Infisical owner cto-885ae930, 2026-09-28):** project `MoonieX-ClaudeFlow`, env
+    `prod`, folder **`/chatudo`**, with the same variable names as MoonieX (MoonieX stays at `/`). Create the folder
+    in the Infisical UI. Run with
+    `python3 tools/infisical_setup.py run MoonieX-ClaudeFlow prod --path /chatudo -- <compose command>`.
+    `put`, `import-env` and `last4` also take `--path`.
+  - **Pattern:** follow `docs/ops/infisical-p2-pilot-2026-09-28.md` (the LINE queue already runs this way).
+  - **Keys we mint ourselves** (O7b `CLAUDEFLOW_CREDENTIAL_ENCRYPTION_SECRET`):
+    - KIND `SECRET`; metadata `provider_name=self`, `console_url=n/a`, `scope` = what it encrypts, `expires` =
+      the rotation date.
+    - Made by a zero-model Run Inbox card:
+      `openssl rand -base64 32 | infisical_setup.py put … --stdin --path /chatudo`.
+- **O7b design (security_engineer, task-f50d0c4c):** `docs/briefs/chatudo-o7b-security-design.md` is the O7b
+  build brief. Its §8 is the DoD-4 sign-off checklist.
 - **Every date and time you report is Thai time (Asia/Bangkok)** (CEO 2026-09-28). The outreach Sheet
   (`1kqCYwXOJ2rdnOwAtitICTtoZ3WW01aBuz1cMP6Ta7e0`) may keep Google's US Pacific clock, so before 14:00 Thai time its
   TODAY() shows yesterday and "ต้องทำต่อ" lags a day. The CEO said not to chase the Sheet's
