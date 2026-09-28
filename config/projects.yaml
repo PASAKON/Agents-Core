@@ -288,6 +288,23 @@ projects:
     # comment above for why.
     spawn_backend: tmux
 
+  - key: chatudo-webapp
+    name: Chatudo.com public site
+    path: /Users/gob/MoonieXHQ/Projects/Chatudo/Webapp
+    remote: git@github.com:PASAKON/Chatudo-Webapp.git
+    default_branch: main
+    stack: [static]
+    agents_allowed: *default_workers
+    # CEO D2 2026-09-28: the public site only (home, pricing, privacy, terms,
+    # data deletion). Never bot code or customer data; the bot stays in
+    # mooniex-claudeflow (D1). HQ row 8b24b45. Plan work package O3.
+    auto_push: true
+    review_required: true
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/Chatudo/Webapp
+      contabo: /opt/MoonieXHQ/Projects/Chatudo/Webapp
+    spawn_backend: tmux
+
   - key: cookierun-bot
     name: Cookie Run bot (image->button model + planner, winbox game box)
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/CookierunBot
