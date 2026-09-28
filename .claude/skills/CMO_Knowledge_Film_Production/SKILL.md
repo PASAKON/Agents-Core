@@ -58,6 +58,11 @@ saturated colour per person, so two characters never read alike.
   will fix it.
 - **Never re-point an existing reference to a new image**: shots that bound it keep the old one silently.
   A new name, then sweep the prompts.
+- **A changed state needs its own plate, or no plate.** The reference beats the words (§7.4): the ILAG
+  `@Manta` plate has its lamps lit, and on six shots of cut 3 it beat "every lamp dead and dark";
+  `@LanternDark`, a plate of its own, held. The CEO made it standing on 2026-09-25: every character, prop
+  and location carries named states, each its own plate (`CMO_Gate_Flow_Omni1.1_Continuity` rule 8).
+  When the state plate cannot be made, drop the picture and describe the thing in words.
 
 ## 4 · Change a reference or a prompt → re-shoot everything bound to it
 
@@ -147,5 +152,5 @@ frames, and why B held; written by the reviewer, never the operator. The ledger 
 - Any paid generation: the director gets the exact $ first. (org rule: `ALL_Rules_Approvals`)
 
 ## Field notes
-- 2026-09-25 [MISSING] §3 — a STATE change of a referenced thing needs its own picture or no picture: the @Manta plate has its lamps lit, and in N6-N11 of the ILAG cut 3 the plate beat "every lamp dead and dark" in the words on six shots. @LanternDark already solved it for the lantern; for the mount the dark plate failed to generate, so the picture was dropped and the mount described in words · evidence: docs/reports/ilag-cut3/contact-sheet.jpg, e1b6dd16 · status: pending
+- 2026-09-25 [MISSING] §3 — a STATE change of a referenced thing needs its own picture or no picture: the @Manta plate has its lamps lit, and in N6-N11 of the ILAG cut 3 the plate beat "every lamp dead and dark" in the words on six shots. @LanternDark already solved it for the lantern; for the mount the dark plate failed to generate, so the picture was dropped and the mount described in words · evidence: docs/reports/ilag-cut3/contact-sheet.jpg, e1b6dd16 → §3 (the CEO's STATES ruling of 2026-09-25, `CMO_Gate_Flow_Omni1.1_Continuity` rule 8, makes the same point standing) · status: promoted
 - 2026-09-27 [MISSING] finishing — when the director edits the cut himself, read the cut's LAST MINUTE (a frame strip every ~7 s + per-second audio RMS) before appending anything to it. THE SHADOW BELOW's finish appended our credits roll to a CapCut cut that already ended with that same roll under music; the film went public on YouTube and into the TopView entry with the credits twice (the second silent) until the CEO saw it. Cost: a frame-exact re-render, a permanent Studio trim, a TopView re-upload. The check is free and takes one ffmpeg call; "the brief said add credits" is not evidence the cut lacks them · evidence: f2a1e816, docs/promo/topview-trailer/POST.md "Video v2" · status: pending
