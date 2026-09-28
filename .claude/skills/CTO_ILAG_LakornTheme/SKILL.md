@@ -130,6 +130,11 @@ Comment 2: `อยากฟังเรื่องไหนต่อ คอม�
    `--allow-repost`, exit 6 = never re-publish, exit 7 = stop.
 6. **Comments go out as the Page, never as a person.** The comment box must read
    `แสดงความคิดเห็นในชื่อ ละครสั้นคุณธรรม by ILAG Studio`. `fb_reel_post.py` refuses anything else with exit 7.
+   Switching to the Page is approved (CEO 2026-09-29: "สามารถสลับได้เลยไม่ว่ากัน อณุญาติ … เพจมีเยอะมากและอาจจะไม่มี
+   ช่องค้นหา วางระบบให้ดี อย่าให้สลับผิดได้"). Switch only by opening `https://www.facebook.com/<profile_id>` and
+   clicking that Page's own "สลับเลย" button, never from the account's profile list. Before the click: the URL holds
+   the id, the first `h2` is the Page name (the `h1` reads "จัดการเพจ"), there is exactly one "สลับเลย", and its banner
+   reads "สลับไปใช้เพจ <name> เพื่อเริ่มจัดการ". After the click: cookie `i_user` equals the id. Anything else: stop.
 7. **Posting times live in a LungNote note until a Cron system exists** (CEO: "เก็บเป็น Note ไว้ก่อน ค่อยมาสร้าง
    ระบบ Cron ทีหลัง"): 12:00 poster + comment 1 + comment 2 · 19:00 Story · 20:00 a new EP on its day.
 8. **A recurring browser job is not a loop in a C-level tab** (IRON §42). Delegate it with a replay script.
@@ -144,3 +149,4 @@ Comment 2: `อยากฟังเรื่องไหนต่อ คอม�
 
 - 2026-09-28 [MISSING] §Rules 6 — EP4 Reel published and VERIFIED (videos/1973008630041783) but the first comment was refused before typing: the comment box read `Dorsine Gobb`, because the Mac Chrome :9230 session was left as the person after the groups work; the fix is the Page's own "สลับเลย" button before any comment, and a daily posting tool must do that switch itself and read the identity back · evidence: docs/reports/cto-cb63de3a-ep4-post/REPORT.md · status: pending
 - 2026-09-28 [MISSING] §Poster layout — the approved prompt never asked for the dusk rice-field footer, the rice-ear ornaments or the gold number discs (ChatGPT added them); they are now in the prompt so a second run keeps them, untested (n=0) · evidence: Assets/Agents/Core/ilag-theme/approved-poster-chatgpt-raw.png · status: pending
+- 2026-09-29 [WRONG] §Rules 6 (fb_reel_post comment readback) — the EP4 first comment posted as the Page, but fb_reel_post printed "REFUSED: comment text not found after submit" and never pinned: Facebook collapses a long comment to "… ดูเพิ่มเติม", so the full-text readback misses it, and is_duplicate_comment can miss it the same way, so a re-run could post it twice. Never re-run comments on a post that already has one; fix sent to task-e4482d34 · evidence: live check 2026-09-29, one comment by the Page on videos/1973008630041783 · status: pending
