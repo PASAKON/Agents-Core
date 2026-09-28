@@ -189,9 +189,9 @@ def test_find_mismatches_reports_every_differing_table():
 
 
 def test_find_mismatches_missing_table_counts_as_mismatch():
-    before = {"tasks": 10, "c_level_sessions": 3, "events": 50, "locks": 0}
-    after = {"tasks": 10, "c_level_sessions": 3, "events": 50}  # locks missing
-    assert vmc.find_mismatches(before, after) == ["locks"]
+    before = {"tasks": 10, "c_level_sessions": 3, "events": 50}
+    after = {"tasks": 10, "c_level_sessions": 3}  # events missing
+    assert vmc.find_mismatches(before, after) == ["events"]
 
 
 def test_main_mismatch_exits_nonzero_and_prints_both_sets(monkeypatch, capsys):
@@ -234,7 +234,7 @@ def test_sqlite_counts_reads_wal_resident_rows_for_real(tmp_path):
     conn.commit()  # WAL-resident; connection stays open, not checkpointed
     try:
         counts = vmc.sqlite_counts(str(db))
-        assert counts == {"tasks": 2, "c_level_sessions": 0, "events": 1, "locks": 0}
+        assert counts == {"tasks": 2, "c_level_sessions": 0, "events": 1}
     finally:
         conn.close()
 
