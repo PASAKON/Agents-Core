@@ -30,7 +30,6 @@ import json
 import os
 import re
 import shutil
-import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,6 +42,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # raised ModuleNotFoundError — found on the first live archive, 2026-09-23.
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from lib import db as db_lib  # noqa: E402
 STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
 DEFAULT_ROOT = "~/MoonieXHQ/Work"
 
@@ -369,17 +369,14 @@ def orphans(db: str | Path, *, root: str | Path | None = None,
     status_by_id: dict[str, str] = {}
     updated_by_id: dict[str, str] = {}
     try:
-        conn = sqlite3.connect(str(db))
-        try:
+        with db_lib.get_conn(path=Path(db), readonly=True) as conn:
             for tid, status, updated_at in conn.execute(
                 "SELECT id, status, updated_at FROM tasks"
             ):
                 status_by_id[tid] = status
                 updated_by_id[tid] = updated_at
-        finally:
-            conn.close()
-    except sqlite3.Error:
-        pass  # unreadable/missing db -> every folder below reads as unknown
+    except Exception:
+        pass  # unreadable/missing db (or, under ORG_DB_URL, an unreachable hub) -> every folder below reads as unknown
 
     results: list[dict] = []
     if not root_dir.is_dir():
