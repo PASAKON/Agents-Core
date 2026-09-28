@@ -57,7 +57,10 @@ to proceed) happens here, in the skill.
 - Turn that into a done/doing/blocked/left recap in the same shape as [[session-worktree]]'s
   tree (✅ done · 🔄 doing · 🔴 blocked · ⬜ left), headed "carried forward from #A". Use
   judgment — the raw Tasks list is often a flat log of slash-commands and pasted skill output,
-  not a clean task list; read through it, don't paste it verbatim.
+  not a clean task list; read through it, don't paste it verbatim. When it holds nothing but
+  such lines, A's transcript is the better source once A is dead: `state/locks/<role>-<A_id>.uuid`
+  names `~/.claude/projects/<proj>/<uuid>.jsonl`; its last `"isCompactSummary":true` row plus the
+  user/assistant text after it is the recap.
 - **A's last blocked prompt is A's last order.** When the CEO's final prompt to A was blocked by
   `scripts/hook-cache-cold-warn.py` (idle notice, prompt never re-sent), it never reached A — carry it
   forward as the first open item and act on it in B. Find it in one `tmux capture-pane` of A before
@@ -77,6 +80,12 @@ into a separate session B.
 - Show the recap and the exact title-rewrite preview (`title_update.before` →
   `title_update.after` from the dry-run JSON). **Wait for explicit confirmation** before
   mutating anything — same bar as [[session-close]] gate 4c, never mutate on a hunch.
+- **A still live in tmux: read its input box first.** The stamp is typed into A's input with
+  `send-keys -l` + Enter, so whatever already sits there is submitted with it as one prompt (the
+  same mechanism mangled `/session-open`'s rename twice). Run `tmux capture-pane -e -p -t <role>-<A_id>`:
+  a dim prompt line (`ESC[2m`) is Claude Code's ghost suggestion, safe; normal weight is a real
+  unsent draft — stop and ask the CEO. (#95cbbb28 showed "ลบโฟลเดอร์ --help ได้เลย", a Drive
+  delete, safe only because it was dim.)
 - Once confirmed, re-run without `--dry-run`, adding `--yes`:
   `python3 scripts/session_merge.py <role> <A_id> [B_id] --yes`. This writes A's
   `.title` to `<A's .base> 🔗 merged→#<B_id>` (truncated to 60 chars, same rule as
@@ -121,7 +130,7 @@ Verdict          : MERGED 🔗  /  REFUSED (<reason>)  /  HOLD (awaiting CEO con
   that's a judgment call for you to make here, same discipline as [[session-close]] gate 4.
 
 ## Field notes
-- 2026-09-26 [MISSING] §Gates 5 (live rename) — the rename is typed into A's input with `send-keys -l` + Enter, so anything already sitting in A's prompt gets the `/rename …` appended and SUBMITTED as one prompt. On #95cbbb28 the prompt showed "ลบโฟลเดอร์ --help ได้เลย" — a Drive delete — and it was only safe because `capture-pane -e` showed it wrapped in `ESC[2m` (dim): Claude Code's ghost prompt suggestion, not text anyone typed. `C-u`/`C-e C-u` did not change it. Before `--yes` on a live A, capture A's prompt line with `-e`: dim = suggestion, safe; normal weight = a real unsent draft, stop and ask · evidence: merge #95cbbb28→#83a61127 · status: pending
+- 2026-09-26 [MISSING] §Gates 5 (live rename) — the rename is typed into A's input with `send-keys -l` + Enter, so anything already sitting in A's prompt gets the `/rename …` appended and SUBMITTED as one prompt. On #95cbbb28 the prompt showed "ลบโฟลเดอร์ --help ได้เลย" — a Drive delete — and it was only safe because `capture-pane -e` showed it wrapped in `ESC[2m` (dim): Claude Code's ghost prompt suggestion, not text anyone typed. `C-u`/`C-e C-u` did not change it. Before `--yes` on a live A, capture A's prompt line with `-e`: dim = suggestion, safe; normal weight = a real unsent draft, stop and ask · evidence: merge #95cbbb28→#83a61127; the same typed-onto-the-draft failure hit session-rename.sh twice (session-open notes, cto-0e8d80b8, cto-3156a56c), code tools/tmux_session.py send_keys → §5 · status: promoted
 - 2026-09-26 [MISSING] §1 — "session ค้าง ไม่ตอบ" was not a hang: the CEO's last prompt had been blocked by `scripts/hook-cache-cold-warn.py` (idle 5 h, 845k context), which only prints a notice and waits for the prompt to be re-sent. `tmux capture-pane` of A shows it in one call; do that before diagnosing a stuck session, and carry the blocked prompt forward as A's last unanswered order · evidence: merge #95cbbb28→#83a61127; second run #6bfdc084→#a27c4702 (blocked "Negative Prompt ภาษาจีน" order) agreed, promoted to §3 rule · status: promoted
 - 2026-09-26 [MISSING] §2 live-guard — when the CEO asks to merge AND kill A, the order that works is `bash scripts/session-kill.sh --status saved --note "merged into <B>" <role>-<A>` first (resumable, records why), then the dry-run passes the live-guard. Capture A's pane before the kill, it is the last cheap look at an unsent/blocked prompt · evidence: merge #6bfdc084→#a27c4702 · status: pending
-- 2026-09-26 [COSTLY] §3 — `context.source: session-data` returned 10 "tasks" that were raw slash-command and task-notification lines, no real work items. The usable recap was the LAST `isCompactSummary` row of A's transcript (`~/.claude/projects/<proj>/<uuid>.jsonl`, uuid ends in A's id) plus the user/assistant text after it — read it only once A is dead · evidence: merge #6bfdc084→#a27c4702 · status: pending
+- 2026-09-26 [COSTLY] §3 — `context.source: session-data` returned 10 "tasks" that were raw slash-command and task-notification lines, no real work items. The usable recap was the LAST `isCompactSummary` row of A's transcript (`~/.claude/projects/<proj>/<uuid>.jsonl`, uuid ends in A's id) plus the user/assistant text after it — read it only once A is dead · evidence: merge #6bfdc084→#a27c4702; the junk-Tasks half was already in §3; the transcript fact checked 2026-09-28 (`isCompactSummary` rows in 4 of the 50 newest Contabo transcripts, `state/locks/<role>-<id>.uuid` holds the uuid) → §3 · status: promoted
