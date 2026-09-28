@@ -37,6 +37,22 @@ def _resolve_root() -> Path:
 ROOT = _resolve_root()
 DB_PATH = ROOT / "state" / "tasks.db"
 
+# Org Mesh W1.7 (docs/design/org-mesh.md, docs/design/tasks-db-hub.md §5 risk
+# "read-only fallback to local SQLite"): a periodic export of the Postgres
+# hub (scripts/hub/export_to_sqlite.py, every 15 min via the plist/systemd
+# units beside it). get_conn() reads from this file when ORG_DB_URL is set
+# but the hub cannot be reached -- see HubUnavailable below.
+SNAPSHOT_PATH = ROOT / "state" / "tasks.snapshot.db"
+
+# Ceiling used for the hub-connect attempt that decides whether to fall back
+# to SNAPSHOT_PATH, for any get_conn() caller that doesn't pass its own
+# `timeout` -- docs/design/org-mesh.md W1.7 ("connect timeout of 3s or
+# less"). Measured Mac<->Contabo RTT is ~127ms (docs/design/tasks-db-hub.md
+# §1), so 3s is generous for a live hub and short enough that a down hub
+# fails over quickly instead of hanging every write for psycopg's own 10s
+# default.
+HUB_CONNECT_TIMEOUT_S = 3.0
+
 # scripts/hub/cutover-mac.sh step 5 (docs/design/tasks-db-hub.md §3.3)
 # replaces state/tasks.db with a directory once the hub cutover is done and
 # the file has been archived -- a directory makes sqlite3.connect() raise
@@ -52,6 +68,22 @@ ARCHIVED_TASKS_DB_MSG = (
 
 class ArchivedDB(RuntimeError):
     """Raised by _connect() when the resolved sqlite path is a directory."""
+
+
+class HubUnavailable(RuntimeError):
+    """ORG_DB_URL is set, the Postgres hub could not be reached, and either
+
+      (a) there is no usable snapshot at SNAPSHOT_PATH to fall back to
+          (run scripts/hub/export_to_sqlite.py once the hub is reachable), or
+      (b) the caller just attempted a WRITE through the read-only snapshot
+          fallback.
+
+    A snapshot is read-only by construction (Org Mesh W1.7): a silent write
+    to a local file the hub never sees would recreate exactly the split
+    brain the hub cutover removed (docs/design/tasks-db-hub.md). Reads keep
+    working off the snapshot; get_conn() never raises this for a read that
+    the snapshot can actually answer.
+    """
 
 
 SCHEMA = """
@@ -281,6 +313,156 @@ def _connect(*, timeout: float | None = None, readonly: bool = False,
     return conn
 
 
+# ---------------------------------------------------------------------------
+# Snapshot fallback (Org Mesh W1.7) -- reads keep working off SNAPSHOT_PATH
+# when ORG_DB_URL is set but the hub can't be reached; writes fail loudly.
+# ---------------------------------------------------------------------------
+
+SNAPSHOT_META_SCHEMA = """
+CREATE TABLE IF NOT EXISTS snapshot_meta (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    exported_at TEXT NOT NULL
+);
+"""
+
+
+def init_snapshot_meta(conn) -> None:
+    """Create the one-row snapshot_meta table on an already-open sqlite3
+    connection. Separate from SCHEMA/init_schema -- this table exists only
+    in a hub *export* (scripts/hub/export_to_sqlite.py), never in the
+    canonical tasks.db or the Postgres hub itself."""
+    conn.executescript(SNAPSHOT_META_SCHEMA)
+
+
+def write_snapshot_meta(conn, exported_at: str) -> None:
+    conn.execute(
+        "INSERT INTO snapshot_meta (id, exported_at) VALUES (1, ?) "
+        "ON CONFLICT(id) DO UPDATE SET exported_at=excluded.exported_at",
+        (exported_at,),
+    )
+
+
+def read_snapshot_meta(path: Path) -> str | None:
+    """`exported_at` from a snapshot file's meta table, or None if the file
+    doesn't exist, has no meta row, or can't be read for any reason. Never
+    raises -- callers treat None as "no usable snapshot"."""
+    if not path.exists():
+        return None
+    try:
+        conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=5)
+        try:
+            row = conn.execute(
+                "SELECT exported_at FROM snapshot_meta WHERE id=1"
+            ).fetchone()
+        finally:
+            conn.close()
+    except Exception:
+        return None
+    return row[0] if row else None
+
+
+def _snapshot_age_desc(exported_at: str) -> str:
+    """Short human-readable age ('42s', '7m', '3h'), or 'unknown age' if
+    `exported_at` can't be parsed -- used only for the fallback warning."""
+    try:
+        exported = datetime.fromisoformat(exported_at)
+        secs = int((datetime.now(timezone.utc) - exported).total_seconds())
+    except Exception:
+        return "unknown age"
+    if secs < 120:
+        return f"{secs}s"
+    mins = secs // 60
+    if mins < 120:
+        return f"{mins}m"
+    return f"{mins // 60}h"
+
+
+# Warn once per (process, url) -- a module-level set rather than a bool so
+# tests can reset it (monkeypatch.setattr(db, "_SNAPSHOT_FALLBACK_WARNED",
+# set())) without it leaking across test functions in the same process.
+_SNAPSHOT_FALLBACK_WARNED: set[str] = set()
+
+
+class _SnapshotConnection:
+    """Wraps a read-only sqlite3 connection to SNAPSHOT_PATH so it can stand
+    in for the live hub connection get_conn() would otherwise hand back.
+
+    Reads pass straight through. A write attempt hits sqlite3's own
+    'attempt to write a readonly database' OperationalError -- translated
+    here into a clear HubUnavailable naming the snapshot's age, instead of
+    a caller having to recognise a raw sqlite error string.
+    """
+
+    def __init__(self, conn: sqlite3.Connection, exported_at: str):
+        self._conn = conn
+        self._exported_at = exported_at
+
+    def _unavailable(self, exc: Exception) -> HubUnavailable:
+        return HubUnavailable(
+            f"hub unreachable; read-only snapshot from {self._exported_at}"
+        )
+
+    def execute(self, sql, params=()):
+        try:
+            return self._conn.execute(sql, params)
+        except sqlite3.OperationalError as exc:
+            if "readonly database" in str(exc):
+                raise self._unavailable(exc) from exc
+            raise
+
+    def executemany(self, sql, seq_of_params):
+        try:
+            return self._conn.executemany(sql, seq_of_params)
+        except sqlite3.OperationalError as exc:
+            if "readonly database" in str(exc):
+                raise self._unavailable(exc) from exc
+            raise
+
+    def executescript(self, script):
+        try:
+            return self._conn.executescript(script)
+        except sqlite3.OperationalError as exc:
+            if "readonly database" in str(exc):
+                raise self._unavailable(exc) from exc
+            raise
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+
+def _open_snapshot_fallback(url: str, cause: Exception,
+                            timeout: float | None) -> _SnapshotConnection:
+    """The hub connect just failed for `url` -- open SNAPSHOT_PATH read-only,
+    or raise HubUnavailable if there's nothing usable to fall back to."""
+    exported_at = read_snapshot_meta(SNAPSHOT_PATH)
+    if exported_at is None:
+        raise HubUnavailable(
+            f"hub unreachable ({cause}) and no read-only snapshot at "
+            f"{SNAPSHOT_PATH} -- run scripts/hub/export_to_sqlite.py once "
+            f"the hub is reachable"
+        ) from cause
+    if url not in _SNAPSHOT_FALLBACK_WARNED:
+        _SNAPSHOT_FALLBACK_WARNED.add(url)
+        print(
+            f"[db] WARNING: ORG_DB_URL hub unreachable ({cause}) -- falling "
+            f"back to read-only snapshot {SNAPSHOT_PATH}, exported "
+            f"{exported_at} ({_snapshot_age_desc(exported_at)} old)",
+            file=sys.stderr,
+        )
+    conn = sqlite3.connect(
+        f"file:{SNAPSHOT_PATH}?mode=ro", uri=True,
+        timeout=timeout if timeout is not None else HUB_CONNECT_TIMEOUT_S,
+    )
+    conn.row_factory = sqlite3.Row
+    return _SnapshotConnection(conn, exported_at)
+
+
 @contextmanager
 def get_conn(*, timeout: float | None = None, readonly: bool = False,
              path: str | Path | None = None):
@@ -294,27 +476,41 @@ def get_conn(*, timeout: float | None = None, readonly: bool = False,
     evicted instead (db_pg.evict) so the next call opens fresh.
 
     timeout/readonly/path: see _connect's docstring for the SQLite meaning.
-    Under Postgres (ORG_DB_URL set) `readonly`/`path` are no-ops -- a single
-    global registry has no per-checkout path to distinguish -- and `timeout`
-    becomes psycopg's connect_timeout (default 10s; pass a small value, e.g.
-    3, for a caller that must fail open rather than block on a slow/
-    unreachable hub -- see scripts/hook-self-repo-guard.py and
-    scripts/hook-log-prompt.py).
+    Under Postgres (ORG_DB_URL set) `readonly`/`path` are no-ops when the hub
+    itself answers -- a single global registry has no per-checkout path to
+    distinguish -- and `timeout` becomes psycopg's connect_timeout, defaulting
+    to HUB_CONNECT_TIMEOUT_S (3s) rather than psycopg's own 10s when the
+    caller doesn't pass one, so a down hub fails over quickly.
+
+    Snapshot fallback (Org Mesh W1.7, docs/design/org-mesh.md): if the hub
+    connect itself fails (HubConnectError -- psycopg OperationalError or the
+    connect timeout), this opens SNAPSHOT_PATH read-only instead and hands
+    back a connection reads work against transparently. `readonly`/`path`
+    are no-ops here too -- the snapshot is always opened read-only regardless
+    of what the caller asked for, because a write cannot land anywhere real.
+    Any write attempted against it raises HubUnavailable. No snapshot file
+    (or one with no meta row) raises HubUnavailable immediately instead.
     """
     url = pg_url()
+    is_snapshot = False
     if url:
         # One pooled connection per (process, thread, url) -- see
         # db_pg.get_pooled's docstring. Never closed in `finally` below (that
         # would defeat the pool); evicted instead when it turns out to be
         # dead, so the *next* acquisition opens fresh.
-        conn = db_pg.get_pooled(url, timeout=timeout)
+        pg_timeout = timeout if timeout is not None else HUB_CONNECT_TIMEOUT_S
+        try:
+            conn = db_pg.get_pooled(url, timeout=pg_timeout)
+        except db_pg.HubConnectError as exc:
+            conn = _open_snapshot_fallback(url, exc, timeout)
+            is_snapshot = True
     else:
         conn = _connect(timeout=timeout, readonly=readonly, path=path)
     try:
         yield conn
         conn.commit()
     except Exception as exc:
-        if url and db_pg.is_operational_error(exc):
+        if url and not is_snapshot and db_pg.is_operational_error(exc):
             # Connection is dead (dropped/closed) -- rollback would just
             # raise the same error again. Evict so the next get_conn() call
             # opens a fresh one instead of reusing a broken connection.
@@ -323,7 +519,7 @@ def get_conn(*, timeout: float | None = None, readonly: bool = False,
             conn.rollback()
         raise
     finally:
-        if not url:
+        if not url or is_snapshot:
             conn.close()
 
 
