@@ -160,6 +160,16 @@ Measured on the account, 2026-09-08 (task-e3bf2fa9, read-only, 0 credits):
 - **Read the balance before you start and after every action that might cost.**
   The balance lives in the account menu as `เครดิต Google Flow N เครดิต`.
   Record the delta. The deltas are a deliverable, not a formality.
+- **HARD: every credit spend writes one row to the shared credit ledger** (CEO 2026-09-28:
+  "ใครใช้เครดิตเท่าไหร่ มาบันทึกไว้ ลงชื่อว่าใครใช้ทำอะไร เท่าไหร่ เมื่อไหร่ ใช้กับช่องไหน").
+  Several sessions share one Ultra pool (ILAG films and the animal series ran side by side on
+  2026-09-28), so the balance delta alone cannot say whose spend it was.
+  `python3 tools/credit_ledger.py add --who <session> --engine flow --credits N --channel "<page>"
+  --purpose "<one line>" --kind test|production|reshoot|setup --task <id> --before B --after A`,
+  then commit `docs/ops/credit-ledger.jsonl`. One row per batch is fine; a missing row is not.
+  `sum --by channel|who|task --month YYYY-MM` back-calculates. Same rule for every paid engine
+  (Higgsfield, TopView, H3 pod $), not only Flow.
+  **Why hard:** money, and the CEO asked for it by name.
 - **Read the live credit estimate in the settings panel immediately before
   clicking Submit.** It updates as model / resolution / duration / quantity
   change, and those settings are not sticky (see Traps).
