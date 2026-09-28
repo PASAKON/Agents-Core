@@ -5,7 +5,7 @@ snapshot into questline/state.json for the grid renderer.
 Run: python3 export_state.py
 """
 import json
-import sqlite3
+import sys
 import urllib.error
 import urllib.request
 from collections import Counter
@@ -13,6 +13,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+if str(ROOT.parent) not in sys.path:
+    sys.path.insert(0, str(ROOT.parent))
+from lib import db as db_lib  # noqa: E402
+
 TASKS_DB = ROOT.parent / "state" / "tasks.db"
 LIFE_SNAPSHOT = ROOT / "data" / "personal_todos_snapshot.json"
 ENV_PATH = ROOT / ".env"
@@ -42,11 +46,8 @@ def tier_for(completed: int) -> int:
 
 
 def load_tasks():
-    con = sqlite3.connect(str(TASKS_DB))
-    con.row_factory = sqlite3.Row
-    rows = con.execute("SELECT role, status, updated_at FROM tasks").fetchall()
-    con.close()
-    return rows
+    with db_lib.get_conn(path=TASKS_DB, readonly=True) as con:
+        return con.execute("SELECT role, status, updated_at FROM tasks").fetchall()
 
 
 def district_stats(rows, roles):
