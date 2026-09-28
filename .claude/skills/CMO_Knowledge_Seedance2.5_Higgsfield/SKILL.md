@@ -638,8 +638,25 @@ is unchanged: a live, unstruck number is money about to leave the account.
 The account total is **cumulative and shared**, so it rises for reasons that have nothing to do
 with the video pipeline. Chasing it as a single number produces false alarms: on 2026-08-13 it
 read 339.2 credits / $13.568 against a 21.8 / $0.872 baseline confirmed the day before — a 15x jump
-that looked alarming and was entirely benign. (The rule body under this heading was never written;
-the heading is the rule.)
+that looked alarming and was entirely benign. Auditing Usage History (hard rule 7) is two filters and
+one check:
+
+1. **Size finds the video charges.** Model names in the ledger are ambiguous and paging through it
+   is expensive; the size is not. Image creates on file cost 0.2–6.5 credits; video charges on file
+   start at 17 (2.0 Fast, 5 s), and a 720p 2.5 clip costs 33–130 ("What a fire costs").
+2. **The date decides whether a charge is yours.** The ledger keeps every past video charge for
+   good: 130 on 2026-08-10 22:18 (Incident 1), two 72s on 2026-08-05 (one refunded +72 at 15:49),
+   the two 135s of 2026-08-14 (hard rule 5), and every deliberate credit-lane fire. A charge is an
+   incident only if its timestamp falls inside a window when an operator clicked Generate. Give the
+   operator the wave's start time so it clears older hits itself: on 2026-08-13 the size filter
+   alone halted a wave that had spent nothing.
+3. **Compare the same view.** The 21.8 "baseline" was a period or page subtotal (a 130 charge two
+   days earlier already exceeded it); set against the cumulative 339.2 it made the phantom 15x.
+   Re-baseline freely: a baseline is a reference point, not a budget.
+
+[SUPERSEDED 2026-09-28] "(The rule body under this heading was never written; the heading is the
+rule.)": it was written on 2026-08-13 (a1694c75) and dropped with the 2026-09-06 rewrite (5ac9b584);
+restored above with the prices on file instead of that day's "image 0.2–2, scan for 5 or more".
 
 ## Model tiers — choose the model by what the shot has to carry (CEO 2026-09-10)
 
@@ -1952,5 +1969,5 @@ browser_operator:
   redirect stubs). Hard rules 1-7 keep their numbers.
 
 ## Field notes
-- 2026-09-25 [MISSING] §Reading the credit ledger — the section has a heading and the 339.2-credit example but no rule body (it never had one in higgsfield-unlimited-gen either); the screen-by-magnitude method still has to be written from the 2026-08-13 read · evidence: task-c3e07fb1 report, inventory HF6 · status: pending
+- 2026-09-25 [MISSING] §Reading the credit ledger — the section has a heading and the 339.2-credit example but no rule body (it never had one in higgsfield-unlimited-gen either); the screen-by-magnitude method still has to be written from the 2026-08-13 read · evidence: task-c3e07fb1 report, inventory HF6 → §Reading the credit ledger (the body existed: a1694c75, dropped by 5ac9b584; restored with the prices on file) · status: promoted
 - 2026-09-25 [MISSING] §Reference caps — the tools disagree with this table: `scripts/sheet_inject_prompts.py:28` has `MAX_ELEMENTS = 10  # Seedance 2.0 cap` against the measured 9, and `scripts/audit_prompts.py` dates the 50-reference statement 2026-08-14 while this skill dates it 2026-08-27 (CEO); fix the tools, the table is the measured source · evidence: task-c3e07fb1 report · status: pending
