@@ -60,3 +60,7 @@ O3 and O4 are disjoint from them and can run in parallel from day 1.
 - MoonieX's own bot must keep working: every ClaudeFlow change ships with the MoonieX path unchanged and the suite green (~1,355 cases).
 - Money, secrets, and speaking in the CEO's name need the CEO (ALL_Rules_Approvals). Deploys are the CTO's call.
 - Report to the CEO every Monday 10:00 (with the CMO review). Report the work done vs this table and the $ spent against $20.
+- **Every date and time you report is Thai time (Asia/Bangkok)** (CEO 2026-09-28). The outreach Sheet
+  (`1kqCYwXOJ2rdnOwAtitICTtoZ3WW01aBuz1cMP6Ta7e0`) may keep Google's US Pacific clock, so before 14:00 Thai time its
+  TODAY() shows yesterday and "ต้องทำต่อ" lags a day. The CEO said not to chase the Sheet's
+  setting: an agent summarising the Sheet works out "today", due follow-ups and weekly buckets in Thai time itself.

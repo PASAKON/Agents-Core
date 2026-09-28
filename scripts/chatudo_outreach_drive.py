@@ -9,9 +9,9 @@
 Live Sheet (2026-09-28): 1kqCYwXOJ2rdnOwAtitICTtoZ3WW01aBuz1cMP6Ta7e0 in PROJECT/CHATUDO/Sales & Outreach.
 
 A converted Sheet starts on America/Los_Angeles, so TODAY() lags Bangkok until 14:00 and day-3/day-7 follow-ups
-show a day late. The Sheets API is off on the org OAuth project, so only File > Settings (time zone Bangkok,
-locale United Kingdom so 01/10/2026 parses as 1 Oct) fixes it. `verify` can tell only between 00:00 and 14:00
-Bangkok, when the two dates differ; outside that window it says INCONCLUSIVE. The locale cannot be read back at all.
+can show a day late. CEO 2026-09-28: do not chase the Sheet's time zone or locale. Any agent that summarises the
+Sheet reports in Thai time (Asia/Bangkok) and works out "today" itself. `verify` still reports the clock, but it
+can tell only between 00:00 and 14:00 Bangkok, when the two dates differ; outside that window it says INCONCLUSIVE.
 
 Auth: the Drive OAuth in ClaudeFlow's .env, through scripts/gdrive-bridge/ilag_sync.py (values never printed).
 Needs openpyxl. Work files go to $CHATUDO_O1_DIR (default: the system temp dir).
