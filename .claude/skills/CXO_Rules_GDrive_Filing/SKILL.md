@@ -30,6 +30,7 @@ removed locally.
 ## Hard rules — apply to every action, no exceptions
 
 1. **Ask before doing anything.** No silent create/move/rename/delete. (Bulk uploads: `CXO_Procedure_GDrive_BulkTransfer` — same rules, plus verification and a gate row.)
+   Two standing exceptions: the UNKNOWN protocol below, and renaming a broken upload (rule 10).
 2. **Never delete without being told, and always confirm first.** Before any
    `trash` call: state which file/folder, why you believe it's safe (e.g.
    "confirmed empty via search"), and wait for an explicit yes. **Re-verify
@@ -71,11 +72,36 @@ removed locally.
    change on rename/move; titles do. Always resolve against the map's ID
    table (or a fresh search) before calling the bridge — never act on a
    name match alone.
+10. **HARD — A broken upload is renamed `BROKEN-<name>` at once, without asking, and never trashed
+    (CEO 2026-09-28).** Broken = the source died mid-stream, or the md5 read back by id does not match
+    the source. His words: *"ได้เลย แล้วมีวิธีในการ กลับมา backup เพิ่มไหม ป้องกันเวลา เสีย เมื่อเสียปล้ง
+    ใส่ชื่อไว้ พอเห็นข้อ กลับมา backup อีกครั้งเหมือนผ่านแล้ว ก็เปลื่ยนขื่อกลับ"* — so it is recorded and
+    comes back: the retry uploads the source as a new revision of the same file id and renames it back
+    only when Drive's md5 matches; a source that is gone leaves it `BROKEN-` and is reported to him.
+    Tool `scripts/gdrive-bridge/drive_broken.py`; steps in `CXO_Procedure_GDrive_BulkTransfer` §Broken uploads.
+    **Why hard:** irreversible — a dead stream finalises a short object under the real name that looks
+    exactly like a backup (859 MB of a 915 MB tar, 2026-09-24); trusting it or trashing it loses data.
+11. **HARD — A re-upload never deletes the version before it (CEO 2026-09-28).** A changed file (a
+    re-shot clip, a new cut) goes up under the next free suffix — `shot-07_v2.mp4`, then `_v3` — and
+    in a branch with a `logs.txt` the log says which is current. When Drive space runs low,
+    superseded versions and failed/test takes are the FIRST rows of the clean-up proposal; each
+    deletion still waits for his yes
+    (`ALL_Rules_Approvals` rule 3). His words: *"โอเคร ฉันพึ่งเขียนไป V.1 ได้ลยไา่มีปัญหา แต่ ถ้า Disk
+    เริ่มน้อยลง อันนี้จะถูกกนับให้ เครียนเป็นสิ่งแรก ๆ"*. The one replacement in place is rule 10's retry,
+    which puts the source's own bytes onto a `BROKEN-` object.
+    **Why hard:** irreversible — the old version is the generation history these branches keep.
+12. **HARD — Proof that a file is on Drive is its md5, never name + size (CEO 2026-09-28).** Read
+    Drive's `md5Checksum` (by id, or from the folder listing) and compare it with the local file's md5
+    before a local copy is deleted; size is only the cheap pre-check. The CEO answered "md5 everywhere,
+    and fix `ilag_sync`'s diff to compare md5" with *"ตามนั้น"* — this file now agrees with
+    `ALL_Rules_DiskHygiene` rule 4, which owns local deletion.
+    **Why hard:** irreversible — deleting on a false proof destroys the only good copy (2026-09-23:
+    13 clips on Drive still held the pre-fix take after a re-shoot).
 
 ### UNKNOWN — filing protocol (exception to Rule 1)
 When the CEO sends a batch of files that are clearly the same group (sent
 together, one request): file them directly into `UNKNOWN` **without asking
-first** — this is the one standing exception to Rule 1. After filing, report
+first** — a standing exception to Rule 1 (the other is rule 10). After filing, report
 back how many you filed and how many you couldn't place (with why). Every
 filed item gets renamed to:
 ```
@@ -133,8 +159,8 @@ settings again.
 
 - **The folder tree and the ID table** — `CXO_Knowledge_GDrive_FolderMap`. Every rule here that says "the map",
   "the tree" or "the ID table" means that skill; rule 6 keeps both in sync in the same turn.
-- **Moving gigabytes in, and the bridge** (moves, renames, deletes; the Contabo path without it) —
-  `CXO_Procedure_GDrive_BulkTransfer`.
+- **Moving gigabytes in, broken uploads, and the bridge** (moves, renames, deletes; the Contabo path
+  without it) — `CXO_Procedure_GDrive_BulkTransfer`.
 - This file keeps the rules: the hard rules, the per-branch rules (UNKNOWN, PROJECT, AI Assets, YT: ILAG, the
   lakorn films), what stays on disk and what goes to Drive, and how a new folder or rule is recorded.
 
@@ -214,7 +240,7 @@ every batch of new renders:
 2. Upload to the right `S<n>` folder under
    `ALL DRAFT/YT: ILAG/<film>/All Scene/`.
 3. Append the `logs.txt` line for each file, in the same turn as the upload.
-4. **Verify the file is on Drive**, then delete the local copy to reclaim space.
+4. **Verify the file is on Drive by md5** (rule 12), then delete the local copy to reclaim space.
 
 **The delete is narrow, and it is the one dangerous step here.** Only files this
 loop itself downloaded, only after Drive has confirmed them. Never a glob, never
@@ -226,9 +252,13 @@ rule governs the Drive branch. Removing a redundant local staging copy is not
 deleting from the branch; deleting anything *in Drive* remains forbidden.
 
 `ilag_sync.py diff` is how you prove a file landed before removing it. A clean
-run — `ONLY LOCAL (0)`, `size-mismatch: 0` — means every local file exists on
-Drive at a matching size, so the local copies are safe to drop. Verified in that
-state 2026-08-12 22:20: 61 local files / 513.8 MB, all present on Drive.
+run — `ONLY LOCAL (0)` and `size-mismatch: 0   md5-mismatch: 0   unverified: 0` —
+means every local file is on Drive with the same md5, so the local copies are safe
+to drop. A mismatch prints the `drive_broken.py mark` line for that file (rule 10).
+[SUPERSEDED 2026-09-28] "A clean run — `ONLY LOCAL (0)`, `size-mismatch: 0` — means
+every local file exists on Drive at a matching size" — size is not proof (rule 12,
+CEO ruling 3); the diff compares Drive's `md5Checksum` since commit 752efb33. The
+2026-08-12 22:20 run (61 local files / 513.8 MB, all present) was checked by size only.
 
 ### The old local mirror and `ilag_sync.py`
 
@@ -237,7 +267,7 @@ because a mirror may still exist on disk from before this change. Reconcile with
 `scripts/gdrive-bridge/ilag_sync.py` — never by eye:
 
 ```bash
-python3 scripts/gdrive-bridge/ilag_sync.py diff          # read-only report
+python3 scripts/gdrive-bridge/ilag_sync.py diff          # read-only report (md5 of every file in both)
 python3 scripts/gdrive-bridge/ilag_sync.py diff --log    # report + append to logs.txt
 python3 scripts/gdrive-bridge/ilag_sync.py upload        # upload what is only-local
 ```
@@ -435,16 +465,23 @@ So decide, do not ask:
 | **One working folder of the current clips** | **Keep on disk in the task's Work folder** (`~/MoonieXHQ/Work/<task-id>/out/`, IRON §55) while it waits for the CEO's review; after review it goes up to Drive and the Work folder is closed. Never ~/Desktop (CEO 2026-09-23: "ให้เขาเก็บไว้ที่ Work แล้วส่งขึ้น Drive เมื่อตรวจเสร็จแล้ว หรือรอตรวจไว้ที่ Disk ได้"). |
 | **Staging folders** the runner wrote into (`banchi-ACT<n>/`, `banchi-FIX/`, `banchi-TEST/`, comparison folders) | **Delete** once their clips are copied into the working folder AND verified on Drive. They are duplicates by construction. |
 | **The assembled full cut** (~1.3 GB) | **Do NOT back up every version.** Re-assembling from the clips is a two-minute ffmpeg run, so an old cut is a cheap thing to recreate and an expensive thing to store. Upload a cut to `Final Draft/` only when it is one the CEO has signed off, or the last one of the day. |
-| **A superseded cut** (`-v1` when `-v2` exists) | **Delete it as soon as the new one verifies.** Do not keep both. |
+| **A superseded cut** (`-v1` when `-v2` exists) | **On disk: delete it as soon as the new one verifies.** Do not keep both locally. **On Drive: it stays** (rule 11). |
+
+[SUPERSEDED 2026-09-28 for Drive] the row read "Delete it as soon as the new one verifies. Do not keep
+both." with no place named — on Drive a superseded version is kept and listed first when space runs
+low (rule 11, CEO ruling 2).
 
 **The order never changes, and step 3 is not optional:**
 
 1. Copy the new clips into the working folder.
-2. Upload to `All Scene/ACT<n>/`; if a clip of that name already exists and the
-   bytes differ, **trash the old one first** — Drive will otherwise keep two
-   files with the same name and the next reader cannot tell which is current.
-3. **Verify from Drive's own listing**: name present AND size equal, for every
-   file. Not the upload call's return value.
+2. Upload to `All Scene/ACT<n>/`; if a clip of that name already exists and its
+   md5 differs, **never trash or overwrite it**: the new clip takes the next free
+   `_vN` (rule 11) and `logs.txt` says which is current.
+   [SUPERSEDED 2026-09-28] "trash the old one first — Drive will otherwise keep two
+   files with the same name" — it contradicted «บัญชี» "never deleted"; CEO ruling 2.
+3. **Verify from Drive's own listing**: name present AND md5 equal (rule 12), for
+   every file. Not the upload call's return value.
+   [SUPERSEDED 2026-09-28] "name present AND size equal" — CEO ruling 3.
 4. Only then delete the staging copy.
 
 **Verify before deleting means verify, every time.** On 2026-09-23 a check found
@@ -453,8 +490,9 @@ the local copies at that moment would have destroyed the only good take of nine
 scenes. The check is two minutes; the loss is unrecoverable.
 
 Reference implementation: `docs/ops/` and the `checkdrive`/`refresh` pattern used
-that day — list the folder, compare `name → size` against the local file, upload
-and trash only what differs, then re-list to prove the diff is empty.
+that day — list the folder, compare `name → md5` against the local file, upload
+only what differs (under the next free `_vN`, never trashing the old one), then
+re-list to prove the diff is empty.
 
 ### «บัญชี» — the download → verify → delete loop (CEO 2026-09-19)
 
@@ -466,8 +504,9 @@ The order is fixed and the third step is not optional:
 
 1. **Review it locally** — the CTO watches the clip and runs `tools/clip_review.py`.
 2. **Upload to Drive**, into this story's `All Scene/ACT<n>/` (this branch splits by act, not by scene).
-3. **Verify it is actually there** — list the folder and match the size. Drive's
-   own listing, not the upload call's return value.
+3. **Verify it is actually there** — list the folder and match the md5 (rule 12).
+   Drive's own listing, not the upload call's return value.
+   [SUPERSEDED 2026-09-28] "match the size" — CEO ruling 3.
 4. **Only then delete the local copy.** Not before, not on faith.
 5. Append the `logs.txt` line in the same turn as the upload, per the branch rule.
 
@@ -475,7 +514,8 @@ The order is fixed and the third step is not optional:
 superseded takes as generation history, and a take that came out wrong is the
 most useful thing to compare the fix against. A stuttered line, a wrong voice, a
 drifted face — those go to Drive beside the good take, and `logs.txt`'s `note`
-says what was wrong with it.
+says what was wrong with it. When Drive space runs low they are the first rows of
+the clean-up proposal, and each deletion waits for the CEO's yes (rule 11).
 
 **The one local copy that stays: `Element/` plates.** `tools/build_shotsheet.py`
 refuses to render a sheet whose handles have no local plate (`BANCHI_PLATES`,
@@ -504,7 +544,7 @@ deleted it and it came back from the iCloud Trash, 23/23 by md5.
 - 2026-09-24 [WRONG] FB drama branch — the earlier "plates never on Drive" note stayed `pending` and nothing acted on it: at the CEO's Mac clean-out `Element/Character|Location|Prop` of «จุดจบของเจ้าหนี้นอกระบบ» were still EMPTY while the only copy (`~/Desktop/banchi-plates`, 23 files) had already gone to the iCloud Trash — a Desktop delete on this Mac lands in `~/Library/Mobile Documents/.Trash/`, recoverable (copied back 23/23 by md5). The check that caught it: md5 of every local file against the md5 set of the whole Drive branch (not names, not sizes). A film is not "backed up" until Element/ holds its plates; run that md5 check before telling the CEO a Mac folder is safe to delete · evidence: CTO 8c06958c 2026-09-24 02:48, CEO then declined the upload ("โปรเจคเราจบแล้ว") → §«บัญชี» loop · status: promoted
 - 2026-09-24 [MISSING] §Bulk transfer — the reference implementation names only Cookie Run tools; a generic one now exists: `scripts/stream_backup_to_drive.py` (freeze list → tar into `rclone rcat --drive-root-folder-id` → md5+size read back → manifest → delete only files whose size+mtime are unchanged; never follows junctions; refuses to overwrite an existing tar). 8 groups / 15.9 GB of winbox moved with it, 0 skipped files · evidence: session cto-46fb0d60, drive-archive.log 2026-09-23T20:39Z — belongs in CXO_Procedure_GDrive_BulkTransfer, carried over there · status: superseded
 - 2026-09-24 [MISSING] §Hard rules — the root is not always forbidden: the CEO put two loose files there himself for a reinstall ("เอาไว้ที่ Root ได้เลย"), because a fresh Windows has only Edge and drive.google.com; a folder path is one more thing to get wrong on a bare machine · evidence: winbox-bootstrap.ps1 + winbox-reinstall-README-th.md at the Drive root, Agents-Core windows/winbox-reinstall/ → §Hard rules 5 · status: promoted
-- 2026-09-24 [MISSING] §Bulk transfer rule 3 — a stream whose SOURCE dies does not leave "nothing" on Drive: winbox went offline mid-`tar | ssh | rclone rcat`, the ssh drop gave rclone EOF, and rclone FINALIZED an 859 MB object of a 915 MB tar under the real name. It looked exactly like a backup. Only the size+md5 read-back exposed it. Always verify by md5 before trusting a name, and rename/trash any unverified object at once · evidence: session cto-46fb0d60, id 1vaZ9ywNjgjxs_VCUyEAGzLnx7-lL5C-E · status: pending
+- 2026-09-24 [MISSING] §Bulk transfer rule 3 — a stream whose SOURCE dies does not leave "nothing" on Drive: winbox went offline mid-`tar | ssh | rclone rcat`, the ssh drop gave rclone EOF, and rclone FINALIZED an 859 MB object of a 915 MB tar under the real name. It looked exactly like a backup. Only the size+md5 read-back exposed it. Always verify by md5 before trusting a name, and rename/trash any unverified object at once · evidence: session cto-46fb0d60, id 1vaZ9ywNjgjxs_VCUyEAGzLnx7-lL5C-E → §Hard rules 10 + BulkTransfer §Broken uploads (CEO 2026-09-28 ruling 1: rename `BROKEN-` at once, never trash — the note's "trash" is overruled; tool drive_broken.py, 752efb33) · status: promoted
 - 2026-09-24 [MISSING] §Bulk transfer — the Mac has no rclone token (rule 6), so Mac data has two routes: pipe into winbox's rclone over ssh (byte-exact, ~13 MB/s, token stays on winbox), or `tools/work_archive.py`'s resumable REST (needs a local spool file). Both plug into `stream_backup_to_drive.py --rclone`: `scripts/rclone_via_winbox.sh` / `scripts/drive_rest_rclone_shim.py` (run it with the venv python). The second is the fallback when winbox is down · evidence: session cto-46fb0d60 Mac-Reinstall-2026-09-24 tars — belongs in CXO_Procedure_GDrive_BulkTransfer, carried over there · status: superseded
 - 2026-09-24 [COSTLY] §Bulk transfer — with ProtonVPN connected (default route utun9, RTT 343 ms to Google), every Mac REST upload got 502s and connection resets; a 201 MB tar never landed in 25 min and `tools/work_archive.py` gives up on the first non-308. Check `route -n get default` before a big upload, and resume (PUT `bytes */size`) instead of failing — `scripts/drive_rest_rclone_shim.py` does. VPN off: 52.8 GB went up at ~7 MB/s, 0 failures · evidence: session cto-46fb0d60, shim commit 8aa52611 — belongs in CXO_Procedure_GDrive_BulkTransfer, carried over there · status: superseded
 - 2026-09-24 [COSTLY] §Bulk transfer — every rclone call on the rebuilt winbox costs 4–8 s (token refresh + the shared-client_id NOTICE), so seven calls chained in one ssh (`for %d … rclone mkdir` ×5 + 2 `lsjson`) blew a 90 s Bash timeout and the last mkdir never ran (`Machine-Blueprints` had to be created in a second call). Prevented by: one rclone call per ssh, or `run_in_background` for anything over three calls; `rclone mkdir` of the deepest path creates its parents, so a family with sub-folders is one call per leaf, not per level · evidence: bkhf5in6p 17:46–17:48, ids read back in commit 258b4217 — belongs in CXO_Procedure_GDrive_BulkTransfer, carried over there · status: superseded
@@ -514,4 +554,4 @@ deleted it and it came back from the iCloud Trash, 23/23 by md5.
 - 2026-09-25 [WRONG] §Bulk transfer — `tools/work_archive.BACKUP_FOLDER_ID` is NOT the BACKUP root any more: 936fb0ad (2026-09-24) repointed it to `BACKUP/MoonieX HQ/Work-Archive` (`1xu8hXdU…`), and the REST shim that reused `work_archive._init_resumable_session` inherited that parent, so every upload would have been filed there silently (its own guard caught it by refusing the real root). Never borrow a module constant as the parent; pass it explicitly (`--drive-root-folder-id`), fixed in the shim at e6039963 · evidence: session cto-46fb0d60 — belongs in CXO_Procedure_GDrive_BulkTransfer, carried over there · status: superseded
 - 2026-09-25 [COSTLY] §Bulk transfer — the REST shim spools the whole tar to local disk (needs part size + ~3 GB free); on a near-full Mac the last part, one 7.0 GB .mov, waited ~70 min for space. A part that is a single file needs no tar: upload it raw from its path with the shim's `upload()` (resumable, zero spool) and verify size + md5 by id (`Mac-Reinstall-2026-09-25-iCloudLeftovers-p09-f786.mov`) · evidence: session cto-46fb0d60 run.out 21:33→22:40 · prevented by: a runner that uploads single-file parts raw — belongs in CXO_Procedure_GDrive_BulkTransfer, carried over there · status: superseded
 - 2026-09-26 [COSTLY] §Bulk transfer — a 562 MB film upload through `scripts/rclone_via_winbox.sh` 403'd `rateLimitExceeded` 12 times over an hour (winbox `gdrive:` is back on rclone's shared client_id — see the 2026-09-24 note), and the retry loop ran `rcat` with `capture_output=True`, so its log only said "not yet" and never the 403. The Mac's own Drive REST client (`tools/work_archive` `_access_token` + `_upload_chunks`, raw from the path, `X-Upload-Content-Type: video/mp4`, parent passed explicitly) landed it first try with md5 verified. Until winbox gets its own client_id, send single large files that way, and never let a retry loop swallow the tool's stderr · evidence: Work/task-c2723478/out/drive-final-retry.log (GAVE UP) vs drive-final-rest.log (UPLOADED 17Gl1LqfUHiEK0cmVK05luhJlSjnS7vXv) · prevented by: a `--mime` flag on `scripts/drive_rest_rclone_shim.py` (it hard-codes application/x-tar) · promoted 2026-09-26 to Hard rule 6 "State 2026-09-26": the artefact `rclone config redacted gdrive:` shows `client_id = ` empty, which proves the 09-09 state line false; the shim now takes the MIME type from the file name (video/mp4, x-tar kept for tars, checked with a fake HTTP layer, no live upload) · status: promoted
-- 2026-09-28 [WRONG] §Film work step 3, §«บัญชี» step 3, §ilag_sync — these accept name + size as proof before the local copy is deleted, while ALL_Rules_DiskHygiene rule 4 (the owner of local deletion) says checksum, never size, and `ilag_sync.py diff` compares size only; a Rules change, so the CEO rules · evidence: scripts/gdrive-bridge/ilag_sync.py:276, ALL_Rules_DiskHygiene rule 4, fold worker, session 14cc900f · status: pending
+- 2026-09-28 [WRONG] §Film work step 3, §«บัญชี» step 3, §ilag_sync — these accept name + size as proof before the local copy is deleted, while ALL_Rules_DiskHygiene rule 4 (the owner of local deletion) says checksum, never size, and `ilag_sync.py diff` compares size only; a Rules change, so the CEO rules · evidence: scripts/gdrive-bridge/ilag_sync.py:276, ALL_Rules_DiskHygiene rule 4, fold worker, session 14cc900f → §Hard rules 12, §Film work step 3, §«บัญชี» step 3, §ilag_sync (CEO 2026-09-28 ruling 3 "ตามนั้น"; the diff compares md5 since 752efb33) · status: promoted
