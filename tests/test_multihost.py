@@ -32,6 +32,12 @@ import runners.worker_init as worker_init  # noqa: E402
 import tools.delegate as delegate  # noqa: E402
 
 
+
+@pytest.fixture(autouse=True)
+def pin_disk_space(monkeypatch):
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
+    monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh_alias: 100.0)
+
 # ---------------------------------------------------------------------------
 # 1. Remote argv rendering per role — reuses worker_tool_grants, never a
 #    second hand-maintained flag list.
