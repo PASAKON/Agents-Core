@@ -1,0 +1,271 @@
+<title>แผนสร้าง Chatudo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pridi:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f1;--surface:#ffffff;--surface-2:#eaece5;--ink:#1b211e;--ink-2:#4b544f;--ink-3:#7d857f;
+  --line:#d9dcd3;--accent:#0d6e53;--accent-bg:#dcefe7;
+  --go:#1b7f49;--go-bg:#e0f2e7;--wait:#9a5c00;--wait-bg:#f8ecd6;--stop:#b53427;--stop-bg:#f9e2de;
+  --cmo:#3b4bb0;--cmo-bg:#e4e7f8;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111412;--surface:#191d1a;--surface-2:#222723;--ink:#e9ede8;--ink-2:#b0b8b2;--ink-3:#7f8882;
+    --line:#2f3530;--accent:#5fcfa6;--accent-bg:#15302550;
+    --go:#5fd394;--go-bg:#16301f;--wait:#f0b451;--wait-bg:#33270f;--stop:#ff8474;--stop-bg:#3a1915;
+    --cmo:#9fabff;--cmo-bg:#1f2446;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111412;--surface:#191d1a;--surface-2:#222723;--ink:#e9ede8;--ink-2:#b0b8b2;--ink-3:#7f8882;
+  --line:#2f3530;--accent:#5fcfa6;--accent-bg:#15302550;
+  --go:#5fd394;--go-bg:#16301f;--wait:#f0b451;--wait-bg:#33270f;--stop:#ff8474;--stop-bg:#3a1915;
+  --cmo:#9fabff;--cmo-bg:#1f2446;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.65 "IBM Plex Sans Thai",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:1060px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+h1{font:600 30px/1.25 "Pridi",Georgia,serif;margin:0 0 6px;text-wrap:balance}
+h2{font:600 21px/1.3 "Pridi",Georgia,serif;margin:44px 0 10px;text-wrap:balance}
+h3{font-size:16px;margin:0 0 6px;font-weight:600}
+p{margin:0 0 10px;max-width:72ch}
+.meta{color:var(--ink-3);font-size:13px}
+.lede{color:var(--ink-2);max-width:72ch}
+.mono,.code,.when{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.answer{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px}
+.answer ul{margin:6px 0 10px;padding-left:20px}
+.answer li{margin:4px 0}
+.gates{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 6px}
+.gate{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface)}
+.gate b{display:block;font:600 13px/1.3 "IBM Plex Mono",monospace;color:var(--ink-3);letter-spacing:.03em}
+.gate .d{font-weight:700;font-size:16px}
+.gate span{display:block;font-size:13.5px;color:var(--ink-2)}
+.gate.first{border:2px solid var(--accent);background:var(--accent-bg)}
+.tag{display:inline-block;font:600 11.5px/1.5 "IBM Plex Sans Thai",sans-serif;padding:0 8px;border-radius:999px;white-space:nowrap}
+.tag.go{background:var(--go-bg);color:var(--go)}.tag.wait{background:var(--wait-bg);color:var(--wait)}.tag.stop{background:var(--stop-bg);color:var(--stop)}
+.tag.cmo{background:var(--cmo-bg);color:var(--cmo)}.tag.add{background:var(--surface-2);color:var(--ink-2)}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface-2);white-space:nowrap}
+table.wp{min-width:780px}
+table.wp td.code{font-weight:600;white-space:nowrap;color:var(--accent)}
+table.wp td.when{white-space:nowrap;font-size:13px}
+table.wp td.who{font-size:13px;color:var(--ink-2);white-space:nowrap}
+table.wp td.dep{font-size:13px;color:var(--ink-2)}
+table.wp td small{display:block;color:var(--ink-3);font-size:12.5px;line-height:1.45;margin-top:2px}
+tr.week td{background:var(--surface-2);font-weight:600;font-size:13px;color:var(--ink-2)}
+tr.gaterow td{background:var(--accent-bg);font-weight:600}
+table.have{min-width:560px}
+.dec{display:grid;gap:10px;margin-top:10px}
+.dcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.dcard h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dcard h3 .code{color:var(--accent);font-size:14px}
+.dcard p{font-size:14px;margin:4px 0}
+.dcard .rec{border-left:3px solid var(--go);padding-left:10px;margin-top:8px}
+.dcard .alt{color:var(--ink-2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.two>*{min-width:0}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.box ul,.box ol{margin:4px 0 0;padding-left:20px}
+.box li{margin:4px 0}
+.note{font-size:13.5px;color:var(--ink-2);padding:10px 12px;border-left:3px solid var(--wait);background:var(--surface-2);border-radius:0 8px 8px 0;margin-top:10px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--ink-2);margin-top:8px;align-items:center}
+footer{margin-top:40px;color:var(--ink-3);font-size:13px}
+code{font:500 12.5px "IBM Plex Mono",monospace;background:var(--surface-2);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){
+  .gates,.two{grid-template-columns:1fr}
+  h1{font-size:25px}
+}
+</style>
+
+<div class="wrap">
+  <div class="meta">MoonieX · CTO (Contabo) · จ. 28 ก.ย. 2026 · อิงแผน CMO "แผน Chatudo → $1M/เดือน" (28 ก.ย.) · ตรวจโค้ด ClaudeFlow <span class="mono">42590d5</span></div>
+  <h1>แผนสร้าง Chatudo</h1>
+  <p class="lede">งานฝั่งเทคนิคทุกชิ้นที่แผน CMO ต้องใช้ เรียงตามวันที่ที่ CMO กำหนด ตั้งแต่ ต.ค. 2026 ถึง มิ.ย. 2029 วันที่ที่มาจาก CMO ใช้ตามเดิมทุกวัน ส่วนงานที่ CTO เพิ่มเข้ามาเป็นงานที่ต้องเสร็จก่อนงานของ CMO จึงจะทำได้</p>
+
+  <div class="answer">
+    <h3>สรุป</h3>
+    <ul>
+      <li><b>Goal แรก คือ G1 วันเสาร์ 31 ต.ค. 18:00 มีร้านนำร่องติดตั้งแล้วอย่างน้อย 7 ร้าน</b> (ทักร้านอย่างน้อย 400 ร้าน และคุยถึงเจ้าของอย่างน้อย 10%) ก่อนถึง G1 ต้องผ่าน G0 วันศุกร์ 16 ต.ค. ซึ่งเป็นด่านคุณภาพของบอท</li>
+      <li><b>ต.ค. เป็นเดือนที่หนักที่สุด</b> เพราะโค้ดตอนนี้ยังรับร้านที่ 2 ไม่ได้ บอทเขียนมาเฉพาะงาน forex ของ MoonieX, หน้าอนุมัติคำตอบเห็นแชทของทุกร้านปนกัน และบอทส่งคำตอบเองทันที ไม่ได้ร่างให้แอดมินกดส่งแบบที่เราขาย</li>
+      <li>งาน CTO ทั้งหมดมี <b>12 งานจากตาราง CMO</b> บวกกับ <b>27 งานที่ CTO เพิ่ม</b> เพราะงานของ CMO ต้องใช้ ในจำนวนนี้ 15 งานต้องเสร็จภายใน ต.ค.</li>
+      <li><b>ต้องการให้ CEO ตัดสินใจ 5 ข้อภายในวันพุธ 30 ก.ย.</b> ถ้าช้ากว่านี้ งานยื่น Meta วันที่ 9 ต.ค. จะไม่ทัน</li>
+      <li>หลักที่ใช้คุมงาน: สร้างเฉพาะสิ่งที่ประตูถัดไปต้องใช้ งานตั้งแต่ ก.ค. 2027 เป็นต้นไปจะเริ่มก็ต่อเมื่อผ่านประตูก่อนหน้าแล้ว <b>สิ่งที่ชี้ขาดเดือน ต.ค. คือจำนวนร้านที่ CEO ทัก ไม่ใช่โค้ด</b></li>
+    </ul>
+    <div class="gates">
+      <div class="gate"><b>G0</b><span class="d when">ศ. 16 ต.ค. 18:00</span><span>บอทร่างคำตอบแชทเก่า 200 แชท: ส่งได้ไม่ต้องแก้ ≥ 70% · ราคาผิด 0 · ส่งต่อคนครบ 100%</span></div>
+      <div class="gate first"><b>G1 · GOAL แรก</b><span class="d when">ส. 31 ต.ค. 18:00</span><span>ทัก ≥ 400 ร้าน · ถึงเจ้าของ ≥ 10% · ร้านนำร่องติดตั้ง ≥ 7 · เลือก 2 กลุ่ม</span></div>
+      <div class="gate"><b>เงินก้อนแรก</b><span class="d when">จ. 30 พ.ย. 18:00</span><span>ร้านจ่ายเงิน 8 ร้าน (ขั้นต่ำ 6) · MRR ฿12,000 (ขั้นต่ำ ฿8,000)</span></div>
+    </div>
+  </div>
+
+  <h2 id="decide">ต้องการ CEO ตัดสินใจ 5 ข้อ (ภายใน พ. 30 ก.ย.)</h2>
+  <div class="dec">
+    <div class="dcard">
+      <h3><span class="code mono">D1</span>ข้อมูลของร้านลูกค้าเก็บที่ไหน</h3>
+      <p>ตอนนี้บอทใช้ Supabase ร่วมกับ MoonieX ซึ่งเก็บข้อมูลลูกค้า forex อยู่ด้วย token LINE ของร้านเก็บไว้โดยไม่เข้ารหัส และหน้าอนุมัติคำตอบยังไม่กรองตามร้าน</p>
+      <p class="rec"><b>แนะนำ:</b> ใช้โค้ด ClaudeFlow ชุดเดิม แต่รันเป็นระบบที่ 2 แยกต่างหาก คือ container ของ Chatudo ต่อกับ Supabase ของ Chatudo ที่เปิดไว้แล้ว (<code>gcjdirrtvybhvghjtscf</code>, บัญชี pass.gob2) และใช้โดเมน <code>api.chatudo.com</code> เริ่มตั้งแต่ร้านนอกร้านแรก วิธีนี้ยังใช้ repo เดียวตามกฎ 31 ก.ค. และถ้า MoonieX โดนตรวจเรื่อง forex ข้อมูลของร้านลูกค้าจะไม่ได้อยู่ในฐานข้อมูลเดียวกัน ค่าใช้จ่ายช่วงแรก $0 เพราะ Supabase แพ็กฟรีพอใช้ (ประมาณการ)</p>
+      <p class="alt">อีกทาง: ใช้ฐานข้อมูล MoonieX ต่อไปจนกว่าจะแยก repo ตอน มิ.ย. 2028 วิธีนี้เร็วกว่าประมาณ 3 วันทำงาน แต่ข้อมูลร้านจะอยู่ปนกับข้อมูล forex ประมาณ 20 เดือน</p>
+    </div>
+    <div class="dcard">
+      <h3><span class="code mono">D2</span>เว็บ chatudo.com ทำที่ไหน</h3>
+      <p>Meta ต้องการเว็บที่มีหน้านโยบายความเป็นส่วนตัวกับหน้าขอลบข้อมูลก่อนยื่นรีวิว ส่วนลิงก์ demo ในข้อความทักร้านก็ต้องมีบ้านอยู่ ตอนนี้ chatudo.com จดไว้ที่ Namecheap ตั้งแต่ 2 ส.ค. 2026 และยังเป็นหน้า parking</p>
+      <p class="rec"><b>แนะนำ:</b> ทำใน repo <code>Chatudo-Webapp</code> ที่สร้างไว้แล้วตั้งแต่ 3 ส.ค. (ADR 0012) โดยใช้เฉพาะหน้าเว็บสาธารณะกับ demo ส่วนโค้ดบอทยังอยู่ใน ClaudeFlow และ host ที่ Vercel บัญชีของ Chatudo ข้อนี้ต้องให้ CEO อนุมัติแถว HQ <code>Projects/Chatudo/Webapp</code> ยืนยันว่า chatudo.com เป็นของ CEO และให้สิทธิ์แก้ DNS ที่ Namecheap</p>
+    </div>
+    <div class="dcard">
+      <h3><span class="code mono">D3</span>ยื่น Meta ในนามใคร</h3>
+      <p>Business Verification ต้องใช้ชื่อธุรกิจตามกฎหมาย และเอกสารที่มีชื่อกับที่อยู่ตรงกัน เพจ Chatudo อยู่ในบัญชี Dorsine Gobb บน winbox ซึ่งยังยิงโฆษณาได้ ส่วนบัญชี PASAKON บน Mac โดนแบนโฆษณาอยู่ ถ้าใช้บัญชีนี้ จะยิงโฆษณา Click-to-Messenger ในเดือน ม.ค. ไม่ได้</p>
+      <p class="rec"><b>แนะนำ:</b> ยื่นผ่าน Business Manager ที่ถือเพจ Chatudo (Dorsine Gobb) CEO แจ้งว่าจะยื่นในนามบริษัทไหนหรือในนามบุคคล และส่งเอกสารมา CTO เตรียมแอป วิดีโอสาธิต และคำอธิบายให้ครบ ส่วนปุ่มยื่นสุดท้าย CEO เป็นคนกด เพราะเป็นการยื่นในนามของ CEO</p>
+    </div>
+    <div class="dcard">
+      <h3><span class="code mono">D4</span>งบค่า AI เดือน ต.ค.</h3>
+      <p>ตัวเลขทั้งหมดเป็นประมาณการ ยังไม่ได้วัด: รัน G0 ใช้ประมาณ 1,000 รอบตอบ × $0.01–0.04 ≈ <b>$30</b> และสร้าง demo ให้ร้านที่ทัก 450 ร้านใช้ประมาณ <b>$50</b> ส่วนโฮสติ้ง $0 (Vercel แพ็กฟรี, เครื่อง Contabo ที่มีอยู่, Supabase แพ็กฟรี) ค่าแรง DEV ใช้โควตา Claude ที่จ่ายอยู่แล้ว</p>
+      <p class="rec"><b>ขออนุมัติเพดาน $100 สำหรับเดือน ต.ค.</b> ระบบจะหยุดเองเมื่อถึงเพดาน และจะรายงานยอดจริงทุกวันจันทร์</p>
+    </div>
+    <div class="dcard">
+      <h3><span class="code mono">D5</span>ลิงก์ demo ในข้อความทักแรก</h3>
+      <p>แผน CMO เริ่มทักร้านวันที่ 1 ต.ค. โดยใส่ลิงก์ demo ที่สอนจากข้อมูลหน้าเพจของร้านนั้นแล้ว แต่ตาราง CTO ของ CMO ให้ demo เสร็จวันที่ 23 ต.ค.</p>
+      <p class="rec"><b>แนะนำ:</b> สัปดาห์แรก (1–6 ต.ค.) ทดสอบข้อความทัก 3 แบบโดยยังไม่ต้องมี demo จากนั้นวันพุธ 7 ต.ค. จะมี demo ร้านตัวอย่าง 4 ร้าน คือกลุ่มละ 1 ร้าน วันศุกร์ 16 ต.ค. เริ่มมี demo เฉพาะร้าน และวันศุกร์ 23 ต.ค. ครบทุกร้านที่ทัก ตามวันที่ของ CMO</p>
+    </div>
+  </div>
+
+  <h2 id="now">ตอนนี้มีอะไรแล้ว (ตรวจจากโค้ดจริง 28 ก.ย.)</h2>
+  <div class="tbl"><table class="have"><thead><tr><th>ของ</th><th>สถานะ</th><th>ขาดอะไร</th></tr></thead><tbody>
+    <tr><td>ตอบ LINE</td><td><span class="tag go">มีแล้ว</span></td><td>ส่งคำตอบแบบ push เพราะตอบช้ากว่า 29 วินาที จึงใช้โควตาข้อความ LINE OA ของร้าน</td></tr>
+    <tr><td>ตอบ Messenger / IG</td><td><span class="tag wait">ครึ่งทาง</span></td><td>ตอนนี้วิ่งผ่าน SendPulse ซึ่ง CEO ไม่ต่ออายุแล้ว ส่วนทางตรงกับ Meta ยังไม่เคยรับข้อความจริง และยังไม่มีเอกสาร App Review</td></tr>
+    <tr><td>แยกร้าน (tenant)</td><td><span class="tag wait">ครึ่งทาง</span></td><td>ไม่มีตารางร้าน, 7 ตารางยังไม่แยกตามร้าน และการเพิ่มร้านใหม่ต้องแก้ฐานข้อมูลเองกับแก้โค้ด</td></tr>
+    <tr><td>หน้าอนุมัติคำตอบ</td><td><span class="tag wait">ครึ่งทาง</span></td><td>พักไว้ให้อนุมัติเฉพาะคำตอบที่บอทไม่มั่นใจ และทำได้แค่บัญชีเดียว ใช้กุญแจร่วมอันเดียว <b>ไม่กรองตามร้าน</b> ร้านจึงล็อกอินเข้าหน้าของตัวเองไม่ได้</td></tr>
+    <tr><td>บอทสำหรับร้านทั่วไป</td><td><span class="tag stop">ยังไม่มี</span></td><td>บอทตอนนี้เขียนเฉพาะ forex มีจุดที่อ้างถึงโบรกเกอร์ประมาณ 190 จุด และลิงก์ mooniex.com ถูกเขียนตายไว้ในโค้ด</td></tr>
+    <tr><td>ความรู้ของร้าน (KB)</td><td><span class="tag wait">ครึ่งทาง</span></td><td>ค้นหาได้และแยกตามร้านแล้ว แต่ยังดึงข้อมูลจากเว็บหรือเพจของร้านมาเองไม่ได้</td></tr>
+    <tr><td>ส่งต่อให้คน</td><td><span class="tag wait">ครึ่งทาง</span></td><td>แจ้งเตือนเข้าอีเมล pass.gob1 กับ Telegram ของ CEO เท่านั้น ยังแจ้งแอดมินของแต่ละร้านไม่ได้</td></tr>
+    <tr><td>ทดสอบย้อนหลัง (replay)</td><td><span class="tag wait">ครึ่งทาง</span></td><td>รันซ้ำได้ทีละแชท และมีชุดทดสอบ 8 ชุดที่เป็นเรื่อง forex ทั้งหมด ยังรันทีละ 200 แชทไม่ได้ และยังไม่มีตัวตรวจราคาผิด</td></tr>
+    <tr><td>วัดว่าส่งได้โดยไม่ต้องแก้</td><td><span class="tag wait">ครึ่งทาง</span></td><td>เก็บร่างเทียบกับข้อความที่ส่งจริงเฉพาะข้อความที่ถูกพักไว้ ข้อความที่บอทส่งเองไม่ได้เก็บ</td></tr>
+    <tr><td>นับค่าใช้จ่ายต่อร้าน / ใบแจ้งหนี้</td><td><span class="tag stop">ยังไม่มี</span></td><td>มีบันทึกค่า AI รายรอบ แต่ยังไม่รวมเป็นยอดต่อร้าน ไม่มีแพ็กเกจ และไม่มีใบแจ้งหนี้ PromptPay</td></tr>
+    <tr><td>รายงานเจ้าของร้าน · ตามลูกค้าที่เงียบ · ตรวจสลิป · นัดหมาย · สมัครเอง</td><td><span class="tag stop">ยังไม่มี</span></td><td>ยังไม่มีโค้ดของเรื่องเหล่านี้เลย</td></tr>
+    <tr><td>ระบบที่รันอยู่</td><td><span class="tag go">มีแล้ว</span></td><td>Docker บน Contabo ที่ <code>webhook.mooniex.com</code> · หน้าแอดมินอยู่ที่ mooniex.com บน Vercel · มีเทสประมาณ 1,355 เคสรันใน CI</td></tr>
+  </tbody></table></div>
+
+  <h2 id="oct">ตุลาคม 2026 รายสัปดาห์ (เดือนที่ 1 · G0 + G1)</h2>
+  <div class="legend"><span><span class="tag cmo">CMO</span> วันที่มาจากตาราง CTO ของ CMO</span><span><span class="tag add">เพิ่ม</span> งานที่ CTO เพิ่ม เพราะงาน CMO ต้องใช้</span></div>
+  <div class="tbl"><table class="wp"><thead><tr><th>รหัส</th><th>งาน</th><th>เสร็จภายใน</th><th>ใครทำ</th><th>ต้องรอ</th><th>ที่มา</th></tr></thead><tbody>
+    <tr class="week"><td colspan="6">ก่อนเริ่ม · จ. 28 – พ. 30 ก.ย.</td></tr>
+    <tr><td class="code">O0</td><td>CEO ตอบ D1–D5 · CTO เขียน brief ของทุกงานเดือน ต.ค.<small>brief อยู่ในไฟล์เดียวกับแผนนี้ ถ้าตอบครบ เริ่มงานได้วันพฤหัส</small></td><td class="when">พ. 30 ก.ย.</td><td class="who">CEO · CTO</td><td class="dep">-</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">O1</td><td>ตารางติดตามการทักร้าน: รายชื่อ 450 ร้าน · กลุ่ม · ชื่อเจ้าของ · วันที่ทัก · วันตามซ้ำครั้งที่ 3 และ 7 · ตอบไหม · เปิด demo ไหม · เป็นร้านนำร่องไหม พร้อมให้ AI ร่างข้อความทักต่อร้าน<small>นับตัวเลขให้อัตโนมัติสำหรับการทบทวนทุกวันจันทร์ 10:00 · เริ่มจาก Google Sheet ก่อน ยังไม่ต้องสร้างระบบ</small></td><td class="when">พ. 30 ก.ย.</td><td class="who">CTO</td><td class="dep">-</td><td><span class="tag add">เพิ่ม</span></td></tr>
+
+    <tr class="week"><td colspan="6">สัปดาห์ 1 · พฤ. 1 – อา. 4 ต.ค. · CEO เริ่มทักวันละ 20–30 ร้าน</td></tr>
+    <tr><td class="code">O2</td><td>บอทสำหรับร้านทั่วไป: ตั้งค่าต่อร้านได้ ทั้งบุคลิก ขอบเขต เวลาทำการ และคนที่รับเรื่องต่อ โดยไม่มีเครื่องมือ forex ติดมา<small>ทุกงานถัดไปต้องใช้ตัวนี้</small></td><td class="when">พ. 7 ต.ค.</td><td class="who">backend_dev</td><td class="dep">O0</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">O3</td><td>เว็บ chatudo.com v0: หน้าแรก · ราคา (ข้อความจาก CMO) · นโยบายความเป็นส่วนตัว · ข้อตกลงการใช้ · หน้าขอลบข้อมูล</td><td class="when">อ. 6 ต.ค.</td><td class="who">frontend_dev</td><td class="dep">D2 · ข้อความจาก CMO</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">O4</td><td>ระบบ Chatudo แยกต่างหาก: container · Supabase Chatudo · <code>api.chatudo.com</code> · migration ทั้งชุด</td><td class="when">อ. 13 ต.ค.</td><td class="who">devops</td><td class="dep">D1</td><td><span class="tag add">เพิ่ม</span></td></tr>
+
+    <tr class="week"><td colspan="6">สัปดาห์ 2 · จ. 5 – อา. 11 ต.ค.</td></tr>
+    <tr><td class="code">O5</td><td>demo ร้านตัวอย่าง 4 ร้าน (คอร์ส · ร้านจองคิว · ร้านขายของในแชท · คลินิก) ที่ <code>chatudo.com/demo/…</code> และนับจำนวนคนที่เปิดดู</td><td class="when">พ. 7 ต.ค.</td><td class="who">frontend + backend</td><td class="dep">O2 · O3</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">O6</td><td>โหมด "ร่างทุกข้อความ": ทุกคำตอบเป็นร่างให้แอดมินกด และเก็บร่างเทียบกับข้อความที่ส่งจริงทุกข้อความ แยกตามร้าน<small>ใช้วัดเกณฑ์ข้อ 1 และตัวเลข % ที่ส่งได้โดยไม่ต้องแก้ ซึ่ง CMO วัดทุกวันจันทร์ตั้งแต่ พ.ย.</small></td><td class="when">ศ. 9 ต.ค.</td><td class="who">backend_dev</td><td class="dep">O2</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C1</td><td><b>ยื่น Meta Business Verification + App Review (Messenger + IG) ของแอป Chatudo</b><small>ก่อนยื่นต้องทำ Messenger ทางตรงให้ใช้ได้บนเพจ Chatudo ของเราเองก่อน (เพจของเราเองน่าจะไม่ต้องรอรีวิว แต่ยังไม่ได้ยืนยัน) แล้วอัดวิดีโอสาธิตส่งไปกับคำขอ</small></td><td class="when">ศ. 9 ต.ค. 18:00</td><td class="who">backend · browser_operator (winbox) · CEO กดยื่น</td><td class="dep">D3 · O3</td><td><span class="tag cmo">CMO</span></td></tr>
+
+    <tr class="week"><td colspan="6">สัปดาห์ 3 · จ. 12 – อา. 18 ต.ค.</td></tr>
+    <tr><td class="code">O7</td><td>แยกร้านให้ขาดจากกัน: หน้าอนุมัติ API และ SSE กรองตามร้าน · 7 ตารางที่เหลือแยกตามร้าน · เข้ารหัส token ของร้าน · แอดมินร้านล็อกอินเข้าหน้าของตัวเองได้<small>ถ้ายังไม่ผ่านการตรวจความปลอดภัย จะยังไม่รับร้านนอกเข้าระบบ</small></td><td class="when">ศ. 16 ต.ค.</td><td class="who">backend · security_engineer ตรวจ</td><td class="dep">O4</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C2</td><td><b>Replay test: บอทร่างคำตอบของแชทเก่า MoonieX 200 แชท แล้วให้คะแนนตามเกณฑ์ 1–3</b><small>อ. 13 ต.ค. ชุดทดสอบเสร็จ · พ. 14 ต.ค. รัน · พฤ. 15 ต.ค. แก้ · ศ. 16 ต.ค. รายงาน · CEO สุ่มตรวจเองด้วยตา 30 แชท</small></td><td class="when">ศ. 16 ต.ค. 18:00</td><td class="who">qa · backend_dev</td><td class="dep">O2 · O6 · D4</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr class="gaterow"><td class="code">G0</td><td colspan="5">ศ. 16 ต.ค. 18:00 · ถ้าไม่ผ่าน เลื่อนนำร่องออกไป 2 สัปดาห์เพื่อแก้บอทก่อน (ตามแผน CMO)</td></tr>
+
+    <tr class="week"><td colspan="6">สัปดาห์ 4 · จ. 19 – อา. 25 ต.ค.</td></tr>
+    <tr><td class="code">C3</td><td><b>ติดตั้งร้านนอกบน LINE: เพิ่มร้านใหม่ + ดึงความรู้จากหน้าเพจหรือเว็บของร้าน + หน้าอนุมัติคำตอบให้แอดมินร้าน</b><small>พร้อมคู่มือติดตั้งที่จับเวลาทุกขั้น เป้าคือไม่เกิน 1 ชั่วโมง</small></td><td class="when">ศ. 23 ต.ค. 18:00</td><td class="who">backend + frontend</td><td class="dep">O7</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">C4</td><td><b>demo bot ต่อร้าน: สอนจากข้อมูลสาธารณะของร้าน ร้านละ 1 ลิงก์</b><small>ศ. 16 ต.ค. เริ่มสร้างได้ · ศ. 23 ต.ค. ครบทุกร้านที่ทัก</small></td><td class="when">ศ. 23 ต.ค. 18:00</td><td class="who">backend</td><td class="dep">O5</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">O8</td><td>ส่งต่อให้คนแยกตามร้าน: แจ้งเตือนแอดมินของร้านนั้นทาง LINE แทนอีเมลของ CEO</td><td class="when">ศ. 23 ต.ค.</td><td class="who">backend_dev</td><td class="dep">O7</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">O9</td><td>PDPA: ร่างสัญญาประมวลผลข้อมูลให้ร้านเซ็น · กำหนดระยะเก็บข้อมูลและลบอัตโนมัติ (ตอนนี้ยังไม่มีการลบ)</td><td class="when">ศ. 23 ต.ค.</td><td class="who">CTO ร่าง · CEO อนุมัติ</td><td class="dep">O3</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">O10</td><td>พร้อมรับร้านจริง: ตัวเช็กว่าระบบยังทำงาน · แจ้งเตือนเมื่อบอทล่ม · สำรองฐานข้อมูล · คู่มือรับมือเมื่อบอทล่ม</td><td class="when">ศ. 23 ต.ค.</td><td class="who">devops</td><td class="dep">O4</td><td><span class="tag add">เพิ่ม</span></td></tr>
+
+    <tr class="week"><td colspan="6">สัปดาห์ 5 · จ. 26 – ส. 31 ต.ค.</td></tr>
+    <tr><td class="code">O11</td><td>ติดตั้งร้านนำร่องให้ได้อย่างน้อย 7 ร้าน · จับเวลาทุกร้าน · แก้บั๊กภายในวันเดียวกัน</td><td class="when">ส. 31 ต.ค.</td><td class="who">CTO + DEV ที่ดูแลระบบ</td><td class="dep">C3 · O8 · O9 · O10</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr class="gaterow"><td class="code">G1</td><td colspan="5">ส. 31 ต.ค. 18:00 · Goal แรก</td></tr>
+  </tbody></table></div>
+
+  <h2 id="q4">พ.ย. – ธ.ค. 2026 (นำร่อง · เก็บเงิน · G2)</h2>
+  <div class="tbl"><table class="wp"><thead><tr><th>รหัส</th><th>งาน</th><th>เสร็จภายใน</th><th>ใครทำ</th><th>ต้องรอ</th><th>ที่มา</th></tr></thead><tbody>
+    <tr><td class="code">N1</td><td>รายงานทุกวันจันทร์: % ที่ส่งได้โดยไม่ต้องแก้ แยกตามร้าน</td><td class="when">จ. 9 พ.ย. (ครั้งแรก)</td><td class="who">backend_dev</td><td class="dep">O6</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C5</td><td><b>นับการใช้งานและค่า AI ต่อร้าน · ใบแจ้งหนี้ PromptPay</b><small>ใบแจ้งหนี้เป็น QR PromptPay ที่ส่งทาง LINE และให้ CEO ยืนยันยอดเงินเข้าด้วยตัวเอง ระบบตรวจสลิปอัตโนมัติมีในเดือน มิ.ย. 2027 · ตั้งสัญญาณเตือนถ้าค่า AI ของร้านใดเกิน 30% ของราคาที่ร้านจ่าย</small></td><td class="when">ศ. 13 พ.ย. 18:00</td><td class="who">backend_dev</td><td class="dep">O4</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">N2</td><td>วัดจำนวนข้อความ push ต่อร้านต่อเดือน เพื่อดูว่าร้านใช้โควตา LINE OA ไปเท่าไร แล้วส่งตัวเลขให้ CMO ใช้คิดราคา</td><td class="when">ศ. 27 พ.ย.</td><td class="who">backend_dev</td><td class="dep">C3</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C6</td><td><b>รายงานเจ้าของร้าน: แอดมินคนไหนปิดการขายได้ แชทไหนหลุด</b></td><td class="when">ศ. 18 ธ.ค. 18:00</td><td class="who">backend + frontend</td><td class="dep">O6</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">N3</td><td>Meta ให้สิทธิ์ Messenger + IG สำหรับเพจของร้านอื่น (Advanced Access) เพื่อให้แพ็ก Pro เดือน ม.ค. มี Messenger<small>ถ้ายังไม่ได้สิทธิ์ แพ็ก Pro ขายได้แค่ LINE ไปก่อน</small></td><td class="when">ศ. 18 ธ.ค. (เป้า)</td><td class="who">CTO ติดตาม</td><td class="dep">C1</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">N4</td><td>ดึงตัวเลขจริงของ 3 ร้านสำหรับทำ case study</td><td class="when">ศ. 25 ธ.ค.</td><td class="who">backend_dev</td><td class="dep">C6</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">N5</td><td>แพ็ก Starter / Pro / Business ในระบบ: จำกัดช่องทางและฟีเจอร์ตามแพ็ก และออกใบแจ้งหนี้ตามแพ็ก</td><td class="when">พฤ. 31 ธ.ค.</td><td class="who">backend_dev</td><td class="dep">C5 · G2</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">N6</td><td>ตามลูกค้าที่เงียบไป (ฟีเจอร์ของแพ็ก Pro)</td><td class="when">พฤ. 31 ธ.ค.</td><td class="who">backend_dev</td><td class="dep">O7</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">N7</td><td>เพจ Chatudo ใช้ Chatudo ตอบแชทจากโฆษณา Click-to-Messenger ของตัวเอง เพื่อให้ร้านเห็นของจริงก่อนซื้อ</td><td class="when">พฤ. 31 ธ.ค.</td><td class="who">backend_dev</td><td class="dep">C1</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr class="gaterow"><td class="code">G2</td><td colspan="5">พฤ. 31 ธ.ค. 18:00 · ร้าน ≥ 14 · MRR ≥ ฿20,000 · ร้านนำร่องต่อสัญญา ≥ 2 ใน 3 ถ้าผ่าน เดือน ม.ค. เปิดราคาเต็มและเริ่มยิงโฆษณา</td></tr>
+  </tbody></table></div>
+
+  <h2 id="y2027">2027 รายเดือน (G3 · G4 · G5)</h2>
+  <div class="tbl"><table class="wp"><thead><tr><th>รหัส</th><th>งาน</th><th>เสร็จภายใน</th><th>ใครทำ</th><th>ต้องรอ</th><th>ที่มา</th></tr></thead><tbody>
+    <tr><td class="code">Y1</td><td>วัด churn: เก็บสถานะสมาชิก วันเริ่ม วันเลิก และเหตุผลที่เลิก</td><td class="when">อา. 31 ม.ค.</td><td class="who">backend_dev</td><td class="dep">N5</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">Y2</td><td>เครื่องมือของ Sale คนแรก: ขยายตารางติดตามการทักให้ Sale ใช้ และวัดผลต่อคน (1 คนต่อ 1 ตำแหน่ง วัดผลได้)</td><td class="when">ศ. 29 ม.ค.</td><td class="who">CTO</td><td class="dep">O1</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C7</td><td><b>Messenger ทางตรงผ่านแอปของเรา แทน SendPulse</b><small>ขึ้นกับวันที่รีวิวผ่าน</small></td><td class="when">พ. 31 มี.ค. 18:00</td><td class="who">backend_dev</td><td class="dep">N3</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">Y3</td><td>ร้านแนะนำร้าน: โค้ดแนะนำ และเครดิตใช้ฟรี 1 เดือน (ไม่มีค่าคอม)</td><td class="when">พ. 31 มี.ค.</td><td class="who">backend_dev</td><td class="dep">N5</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr class="gaterow"><td class="code">G3</td><td colspan="5">พ. 31 มี.ค. 2027 18:00 · ประตู PMF · ร้าน ≥ 56 · MRR ≥ ฿138,000 · churn ≤ 6% ต่อเดือน · งานข้างล่างทั้งหมดเริ่มเมื่อผ่านประตูนี้แล้วเท่านั้น</td></tr>
+    <tr><td class="code">C8</td><td><b>สมัครเอง และต่อ LINE เองได้ใน 1 ชั่วโมง</b></td><td class="when">จ. 31 พ.ค. 18:00</td><td class="who">frontend + backend</td><td class="dep">G3 · C3</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">C9</td><td><b>ตรวจสลิป (สแกน QR เทียบกับธนาคาร) + IG DM</b><small>บริการตรวจสลิปมีค่าใช้จ่าย จะเสนอราคาให้ CEO อนุมัติก่อนใช้</small></td><td class="when">พ. 30 มิ.ย. 18:00</td><td class="who">backend_dev</td><td class="dep">C7</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr class="gaterow"><td class="code">G4</td><td colspan="5">พ. 30 มิ.ย. 2027 18:00 · ร้าน ≥ 124 · MRR ≥ ฿307,000 · ร้านสมัครเองได้แล้ว ถ้าผ่าน เดือน ก.ค. เปิด Autopilot</td></tr>
+    <tr><td class="code">C10</td><td><b>Autopilot beta: บอทตอบเอง และนับผลจากหลักฐาน (สลิป · นัด · lead)</b><small>รวมถึงคิดเงินแบบค่าฐานบวกค่าต่อผล และต่อปฏิทินนัดสำหรับร้านจองคิว</small></td><td class="when">ส. 31 ก.ค. 18:00</td><td class="who">backend_dev</td><td class="dep">G4 · C9</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">Y4</td><td>แพ็ก Business ครบชุด: หลายเพจ · หลายสาขา · API (ก่อนหน้านี้ขาย Business แบบเราติดตั้งให้เอง)</td><td class="when">ส. 31 ก.ค.</td><td class="who">backend_dev</td><td class="dep">G4</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">Y5</td><td>ตัวเลขจริงรายเดือน ARPU · churn · CAC ส่งให้ CMO คำนวณแผนใหม่</td><td class="when">พฤ. 30 ก.ย.</td><td class="who">CTO</td><td class="dep">Y1</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">Y6</td><td>ข้อมูลจริง 12 เดือนสำหรับ pitch deck ของ seed</td><td class="when">ศ. 29 ต.ค.</td><td class="who">CTO</td><td class="dep">Y5</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr class="gaterow"><td class="code">G5</td><td colspan="5">ศ. 31 ธ.ค. 2027 18:00 · ร้าน ≥ 300 · MRR ≥ ฿898,000 · เริ่มระดมทุน seed</td></tr>
+  </tbody></table></div>
+
+  <h2 id="later">2028 – 2029 (G6 – G8)</h2>
+  <div class="tbl"><table class="wp"><thead><tr><th>รหัส</th><th>งาน</th><th>เสร็จภายใน</th><th>ใครทำ</th><th>ต้องรอ</th><th>ที่มา</th></tr></thead><tbody>
+    <tr><td class="code">L1</td><td>ขยายระบบให้รับได้ประมาณ 1,000 ร้าน (เป้า มิ.ย. 2028 คือ 924 ร้าน): ทดสอบโหลด · คิวงาน · หลายเครื่อง · ไม่พึ่งเครื่องเดียว</td><td class="when">ศ. 31 มี.ค. 2028</td><td class="who">devops</td><td class="dep">G5</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C11</td><td><b>แยก Chatudo ออกจาก ClaudeFlow ไปอยู่ repo ของตัวเอง (หลังได้ seed)</b><small>ชื่อ repo ยังขัดกันอยู่: CMO ใช้ MoonieX-LunarAgent แต่ ADR 0012 ใช้ Chatudo-* ค่อยตัดสินตอนนั้น ถ้า D1 เลือกแยกระบบแล้ว งานนี้จะเหลือแค่ย้ายโค้ด</small></td><td class="when">ศ. 30 มิ.ย. 2028 18:00</td><td class="who">backend + devops</td><td class="dep">seed ปิด</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">L2</td><td>เครื่องมือของทีมดูแลลูกค้า: คะแนนสุขภาพของแต่ละร้าน และแจ้งเตือนร้านที่กำลังจะเลิก เพื่อช่วยลด churn ลงเหลือ 4%</td><td class="when">ศ. 29 ก.ย. 2028</td><td class="who">backend_dev</td><td class="dep">Y1</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">L3</td><td>ความปลอดภัยระดับที่นักลงทุนตรวจได้: บันทึกการเข้าถึง · สิทธิ์ผู้ใช้ · เอกสาร PDPA ครบ</td><td class="when">ศ. 29 ธ.ค. 2028</td><td class="who">security_engineer</td><td class="dep">C11</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr><td class="code">C12</td><td><b>ฟิลิปปินส์: ภาษาอังกฤษ / Taglish · เขตเวลา · ช่องทางจ่ายเงิน</b></td><td class="when">ส. 30 มิ.ย. 2029 18:00</td><td class="who">backend_dev</td><td class="dep">Series A</td><td><span class="tag cmo">CMO</span></td></tr>
+  </tbody></table></div>
+  <p class="meta" style="margin-top:8px">หลังจากนี้เป็นงานขยายระบบรอบที่ 2 สำหรับร้าน 3,000 ร้านขึ้นไป (ก.ย. 2029) จะวางแผนใหม่ตอน G7 ด้วยตัวเลขจริง</p>
+
+  <h2 id="risk">ความเสี่ยงที่กระทบงานเทคนิค</h2>
+  <div class="two">
+    <div class="box">
+      <ol>
+        <li><b>โค้ดยังรับร้านที่ 2 ไม่ได้</b> งาน ต.ค. จึงเริ่มจากแยกร้านกับสร้างบอทสำหรับร้านทั่วไปก่อน ยังไม่ทำฟีเจอร์ใหม่</li>
+        <li><b>Meta รีวิวไม่ผ่านหรือช้า</b> ถ้าเป็นแบบนั้น แพ็ก Pro เดือน ม.ค. อาจมีแค่ LINE ทางเลี่ยงคือเพิ่มเจ้าของเพจเป็นผู้ทดสอบของแอปเรา ซึ่งใช้ได้กับร้านจำนวนน้อยเท่านั้น และยังไม่ได้ยืนยัน</li>
+        <li><b>SendPulse ไม่ต่ออายุ</b> เมื่อหมดอายุ FB/IG ของ MoonieX เองจะหยุดทำงาน เรื่องนี้เป็นงานคนละส่วนกับ Chatudo แต่โค้ด Messenger ทางตรงที่ทำในงาน C1 นำไปใช้แก้ได้</li>
+      </ol>
+    </div>
+    <div class="box">
+      <ol start="4">
+        <li><b>ข้อความที่แอดมินอนุมัติจะส่งแบบ push และใช้โควตา LINE OA ของร้าน</b> ร้านที่ใช้แพ็กฟรีอาจใช้โควตาหมดเร็ว ราคาแพ็ก LINE OA ไทยตอนนี้ยังไม่ได้เช็ก งาน N2 จะวัดจำนวนจริงแล้วส่งให้ CMO</li>
+        <li><b>ทักเพจวันละ 20–30 เพจจาก FB ส่วนตัว อาจโดน Facebook จำกัดการส่ง</b> ไม่ควรใช้บัญชี Dorsine Gobb ในการทัก เพราะบัญชีนี้ถือเพจ Chatudo และจะใช้ยิงโฆษณา</li>
+        <li><b>ตัวเลขของ CMO มาจากแบบจำลองทั้งหมด</b> งานตั้งแต่ G3 ไปจะเริ่มเมื่อผ่านประตูแล้วเท่านั้น</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 id="run">วิธีเดินงาน</h2>
+  <div class="two">
+    <div class="box">
+      <h3>ใครทำ</h3>
+      <ul>
+        <li>งาน ต.ค. จะเปิดเป็น CTO session ใหม่ 1 session ชื่อ "Chatudo ต.ค." ส่วน session นี้จบเมื่อแผนได้อนุมัติ</li>
+        <li>ใช้ DEV ทำพร้อมกันได้สัปดาห์ละไม่เกิน 3 คน ถ้างานไหนแก้ไฟล์เดียวกัน เช่น <code>approvalGate.js</code> หรือ <code>adminInboxApi.js</code> ให้ทำต่อกันทีละงาน</li>
+        <li>CTO ตรวจทุกงานก่อน merge และ deploy ขึ้น Contabo เอง</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>รายงาน</h3>
+      <ul>
+        <li>ทุกวันจันทร์ 10:00 รายงานพร้อมกับการทบทวนของ CMO: งานไหนเสร็จ งานไหนเลยกำหนด และใช้ค่า AI ไปเท่าไร</li>
+        <li>ทุกวันสุดท้ายของเดือน 18:00 เทียบกับตารางนี้ งานไหนจะเลยกำหนดจะบอกล่วงหน้าอย่างน้อย 1 สัปดาห์</li>
+        <li>ใช้เงินจ่าย ใช้ secret หรือทำอะไรในนาม CEO ต้องขอ CEO ก่อนทุกครั้ง ส่วนการ deploy CTO ตัดสินใจเองได้</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note"><b>สิ่งที่ CTO จะยังไม่ทำ:</b> ระบบสมัครเองก่อน พ.ค. 2027 · Autopilot ก่อนผ่าน G4 · แยก repo ก่อนได้ seed · แอปมือถือ · dashboard ที่ไม่ได้ช่วยตัดสินประตูใด</div>
+
+  <footer>จำนวนงาน: จากตาราง CMO 12 งาน (C1–C12) · CTO เพิ่ม 27 งาน (O1–O11, N1–N7, Y1–Y6, L1–L3) · ภายใน ต.ค. 15 งาน (O1–O11 และ C1–C4) · O0 คือการตัดสินใจของ CEO ไม่นับเป็นงาน · แหล่งที่มา: แผน CMO 28 ก.ย. 2026 และการตรวจโค้ด ClaudeFlow <span class="mono">42590d5</span> · ไฟล์ <code>Agents/Core/docs/plans/chatudo-build-plan-2026-09-28.html</code></footer>
+</div>
