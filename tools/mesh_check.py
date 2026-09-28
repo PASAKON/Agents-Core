@@ -49,7 +49,22 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+# Under a normal `python -m tools.mesh_check` / `python tools/mesh_check.py`
+# invocation, __file__ is the real script path and ROOT is two dirs up. But
+# the peer-collection fallback pipes this file over ssh stdin
+# (`ssh <alias> python3 - --local --json < tools/mesh_check.py`) so it runs
+# on a box that hasn't pulled this branch yet — there, __file__ is the
+# literal string "<stdin>", and Path(__file__).resolve() silently resolves
+# it as a file named "<stdin>" *inside* the caller's cwd, landing ROOT one
+# directory above the real repo root (confirmed empirically: cwd is set
+# correctly via the ssh command's `cd "<agents_root>" &&`, but the stray
+# ".resolve().parent.parent" then walks past it). Detect that case and use
+# cwd directly instead — the ssh command already cd'd into agents_root.
+_this_file = Path(__file__).resolve()
+if _this_file.name == "<stdin>":
+    ROOT = Path.cwd()
+else:
+    ROOT = _this_file.parent.parent
 sys.path.insert(0, str(ROOT))
 
 try:

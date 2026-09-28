@@ -187,3 +187,12 @@ its own level to the same matrix, without touching what's already here:
 - **L1 timeout / ssh failed** — check the alias resolves
   (`ssh -G <alias>`), and that BatchMode auth (a working key, no password
   prompt) is set up for it.
+- **A peer's L0/L2 cells read `no repo access` or a surprising `mcp package
+  unavailable` reason, but that host looks fine in person** — the piped
+  fallback (`ssh <alias> python3 - --local --json < tools/mesh_check.py`)
+  runs that host's *system* `python3`, not its `.venv/bin/python`, because
+  the branch hasn't been deployed there yet for `-m tools.mesh_check` to
+  work. Whatever's importable system-wide on that box (a missing `pyyaml`,
+  or a same-named but different `mcp` package with no `ClientSession`)
+  leaks into the result. This clears itself once the peer has this branch
+  merged and its own `.venv` — no fix needed in the tool itself.
