@@ -64,6 +64,7 @@ LUNGNOTE_MCP_JS = os.environ.get("LUNGNOTE_MCP_JS") or _first_existing(
     "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp/index.js",
     "/opt/MoonieXHQ/Projects/LungNote/Mcp/index.js",
     "/opt/lungnote-mcp/index.js",   # compat link until the HQ move settles
+    str(Path.home() / "MoonieXHQ" / "Projects" / "LungNote" / "Mcp" / "index.js"),  # winbox
 )
 # @supabase/realtime-js needs a native `WebSocket` global, which Node gained in
 # 22. The Mac's system `node` is already 26+ (Homebrew), so this is invisible
@@ -157,6 +158,16 @@ SERVER_TOOLS: dict[str, tuple[str, ...]] = {
 BUILTIN_TOOLS = ("Read", "Grep", "Glob", "Bash")
 
 
+def _venv_python(root: str) -> Path:
+    """The repo venv's interpreter: bin/python on Mac/Linux, Scripts\\python.exe
+    on winbox (a Windows venv has no bin/ at all)."""
+    posix = Path(root) / ".venv" / "bin" / "python"
+    if posix.exists():
+        return posix
+    windows = Path(root) / ".venv" / "Scripts" / "python.exe"
+    return windows if windows.exists() else posix
+
+
 def _org_tool_names(root: str) -> tuple[str, ...]:
     """org's tool names, straight from the registry that defines them.
 
@@ -167,7 +178,7 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     matters. Guessing the names instead is not an option — a wrong list is
     a session whose org tools silently prompt — so this raises on failure.
     """
-    venv = Path(root) / ".venv" / "bin" / "python"
+    venv = _venv_python(root)
     code = (
         "import sys; sys.path.insert(0, %r);"
         "from lib.org_tools_registry import REGISTRY;"
@@ -191,7 +202,7 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
 def _build(name: str, root: str) -> dict | None:
     """Return the MCP entry for `name`, or None when it isn't installed here."""
     if name == "org":
-        python = Path(root) / ".venv" / "bin" / "python"
+        python = _venv_python(root)
         if not python.exists():
             return None
         return {
@@ -331,7 +342,7 @@ def main() -> int:
     if not args.servers and "org" not in servers:
         print(
             f"cxo_mcp_config: org MCP server unavailable "
-            f"({args.root}/.venv/bin/python missing) — refusing to launch",
+            f"({_venv_python(args.root)} missing) — refusing to launch",
             file=sys.stderr,
         )
         return 1
