@@ -10,6 +10,7 @@ Project dict optional fields (beyond the required key/name/path/remote/default_b
 from __future__ import annotations
 
 import os
+import platform
 from functools import lru_cache
 from pathlib import Path
 
@@ -178,6 +179,130 @@ def host(name: str) -> dict:
     if not h:
         raise ValueError(f"unknown host: {name}. Known: {list(hosts())}")
     return h
+
+
+# node.yaml is the C1 host-identity file (docs/design/org-mesh.md): a new
+# machine writes its own host key here once, so a session on it never has to
+# guess from a path or hostname. Absent = this source has nothing to say,
+# not an error.
+NODE_CONFIG_PATH = Path.home() / ".config" / "mooniex" / "node.yaml"
+
+_PLATFORM_TO_OS = {"Darwin": "darwin", "Linux": "linux", "Windows": "windows"}
+
+
+def _env_host() -> str | None:
+    raw = os.environ.get("ORG_HOST")
+    if raw is None or not raw.strip():
+        return None
+    key = raw.strip().lower()
+    if key not in hosts():
+        raise ValueError(
+            f"ORG_HOST={raw!r} is not a known host (config/hosts.yaml). "
+            f"Known: {sorted(hosts())}"
+        )
+    return key
+
+
+def _node_yaml_host() -> str | None:
+    if not NODE_CONFIG_PATH.exists():
+        return None
+    data = yaml.safe_load(NODE_CONFIG_PATH.read_text()) or {}
+    raw = data.get("host")
+    if raw is None or not str(raw).strip():
+        return None
+    key = str(raw).strip().lower()
+    if key not in hosts():
+        raise ValueError(
+            f"{NODE_CONFIG_PATH}: host: {raw!r} is not a known host "
+            f"(config/hosts.yaml). Known: {sorted(hosts())}"
+        )
+    return key
+
+
+def _root_match_host() -> str | None:
+    """ROOT matched against each host's `agents_root`.
+
+    Compares resolved real paths so a compat symlink (Contabo's, and any
+    the Mac path is reached through) can't defeat the match. A worktree
+    under `<agents_root>/worktrees/...` counts as that host too — this is
+    how a DEV worker resolves its own host, not just a C-level session at
+    the repo root.
+    """
+    root_real = ROOT.resolve()
+    for name, h in hosts().items():
+        agents_root = h.get("agents_root")
+        if not agents_root:
+            continue
+        try:
+            host_root = Path(agents_root).resolve()
+        except OSError:
+            continue
+        if root_real == host_root:
+            return name
+        try:
+            root_real.relative_to(host_root / "worktrees")
+            return name
+        except ValueError:
+            pass
+    return None
+
+
+def _platform_host() -> str | None:
+    os_key = _PLATFORM_TO_OS.get(platform.system())
+    if os_key is None:
+        return None
+    matches = [name for name, h in hosts().items() if h.get("os") == os_key]
+    return matches[0] if len(matches) == 1 else None
+
+
+# Resolution order for self_host() (docs/design/org-mesh.md C1): the first
+# source that gives a key wins. Shared with self_host_sources() so the two
+# can never drift apart.
+_SELF_HOST_SOURCES = (
+    ("env", _env_host),
+    ("node_yaml", _node_yaml_host),
+    ("root", _root_match_host),
+    ("platform", _platform_host),
+)
+
+
+@lru_cache(maxsize=1)
+def self_host() -> str:
+    """This process's config/hosts.yaml key. Cached per process.
+
+    Never guesses: a host that resolves to nothing through any of the four
+    sources below raises RuntimeError instead of silently defaulting to
+    'mac' — that default is what sent Contabo/winbox local spawns and
+    reconciliation to act on the wrong host (docs/design/org-mesh.md §2.2).
+    A bad ORG_HOST or an unknown node.yaml host: key also raises, rather
+    than falling through to a weaker source.
+    """
+    sources: dict[str, str | None] = {}
+    for name, fn in _SELF_HOST_SOURCES:
+        sources[name] = fn()
+        if sources[name]:
+            return sources[name]
+    raise RuntimeError(
+        "cannot resolve self_host: "
+        + ", ".join(f"{k}={v!r}" for k, v in sources.items())
+    )
+
+
+def self_host_sources() -> dict[str, str | None]:
+    """What each self_host() source says, on its own, right now.
+
+    Never raises (a source that would raise in self_host() — bad ORG_HOST,
+    bad node.yaml key — reports its error message as the value instead) and
+    never caches, so a health check (tools/mesh_check.py L0) always sees the
+    current state. No network, no filesystem writes.
+    """
+    out: dict[str, str | None] = {}
+    for name, fn in _SELF_HOST_SOURCES:
+        try:
+            out[name] = fn()
+        except Exception as exc:
+            out[name] = f"error: {exc}"
+    return out
 
 
 def project_path_for_host(project_key: str, host_name: str) -> str:
