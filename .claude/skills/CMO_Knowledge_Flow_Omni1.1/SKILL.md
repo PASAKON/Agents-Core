@@ -163,6 +163,17 @@ Measured on the account, 2026-09-08 (task-e3bf2fa9, read-only, 0 credits):
 - **Read the balance before you start and after every action that might cost.**
   The balance lives in the account menu as `เครดิต Google Flow N เครดิต`.
   Record the delta. The deltas are a deliverable, not a formality.
+- **HARD: every credit spend writes one row to the shared credit ledger** (CEO 2026-09-28:
+  "ใครใช้เครดิตเท่าไหร่ มาบันทึกไว้ ลงชื่อว่าใครใช้ทำอะไร เท่าไหร่ เมื่อไหร่ ใช้กับช่องไหน").
+  Several sessions share one Ultra pool (ILAG films and the animal series ran side by side on
+  2026-09-28), so the balance delta alone cannot say whose spend it was.
+  `python3 tools/credit_ledger.py add --who <session> --engine flow --credits N --channel "<page>"
+  --purpose "<one line>" --kind test|production|reshoot|setup --task <id> --before B --after A`,
+  then commit `docs/ops/credit-ledger.jsonl`. One row per batch is fine; a missing row is not.
+  `sum --by channel|who|task --month YYYY-MM` back-calculates. Same rule for every paid engine
+  (Higgsfield, TopView, H3 pod $), not only Flow. A row whose before/after is per shot at 720p also
+  settles the 12-vs-20 question below.
+  **Why hard:** money, and the CEO asked for it by name.
 - **Read the live credit estimate in the settings panel immediately before
   clicking Submit.** It updates as model / resolution / duration / quantity
   change, and those settings are not sticky (see Traps).
@@ -1825,3 +1836,5 @@ here. A contradiction backed by a memory does not.
 
 - 2026-09-26 [MISSING] §Where Flow runs — Flow sessions had run on the Mac (tools/flow_shoot.py CDP 127.0.0.1:9223, state/banchi/flow_shoot.log); the CEO ruled Flow moves to winbox and the Mac is for editing only · evidence: CEO ruling 2026-09-26 (session cto-89aa4de2) · status: promoted
 - 2026-09-28 [WRONG] §Where Flow runs — "`tools/flow_shoot.py` still defaults to the Mac's 9223; a shoot needs a porting task first" was false once fa5e3c19 landed (2026-09-26): `tools/flow_cdp.py` resolves every Flow tool to winbox's 9226 and exits 2 on the Mac unless FLOW_ALLOW_MAC=1. Found while folding the 2026-09-23 Mac-python note · evidence: fa5e3c19, tools/flow_cdp.py → §Where Flow runs · status: promoted
+- 2026-09-28 [MISSING] §voices — animal speech has never been measured on Flow: a talking animal on screen, and an animal's inner voice with a closed mouth. The only record is "off-frame V.O. not available". The animal-series plan needs both. An 18-credit smoke test (3 shots at 360p) was OK'd by the CEO 2026-09-28; record its result here · evidence: docs/plans/animal-series-channel-plan-2026-09-28.md §7/§11 · status: pending
+- 2026-09-28 [MISSING] §Money — no record said whose spend a balance delta was when two sessions shared the Ultra pool (Mac CTO cb63de3a film-4 A/B + CMO c7879552 dog smoke test, same afternoon); the CEO ruled a signed ledger row per spend, now a HARD rule in §Money. First written into the CTO_Flow_Omni1.1_Ops stub on a diverged local main (e6f74d73), moved here · evidence: tools/credit_ledger.py, docs/ops/credit-ledger.jsonl · status: promoted
