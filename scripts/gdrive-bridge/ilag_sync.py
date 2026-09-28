@@ -19,10 +19,16 @@ routine drift: the CEO does not delete files except true duplicates or broken
 generations, and keeps every superseded take as generation history. So a
 disappearance is a signal that something went wrong, and it is never resolved
 by deleting the Drive copy — this tool never deletes anything, anywhere.
+
+A file in both places is proven by md5, not by size (CEO 2026-09-28: md5
+everywhere). Size is only the cheap pre-check; Drive's `md5Checksum` is compared
+with the local file's md5, read in chunks. A clean run is `ONLY LOCAL (0)`,
+`size-mismatch: 0`, `md5-mismatch: 0`, `unverified: 0`.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import mimetypes
 import sys
@@ -157,7 +163,7 @@ def walk_drive(folder_id: str) -> tuple[dict[str, dict], dict[str, str]]:
         while True:
             params = {
                 "q": f"'{fid}' in parents and trashed = false",
-                "fields": "nextPageToken, files(id,name,mimeType,size,modifiedTime)",
+                "fields": "nextPageToken, files(id,name,mimeType,size,md5Checksum,modifiedTime)",
                 "pageSize": "200",
             }
             if page:
@@ -170,11 +176,55 @@ def walk_drive(folder_id: str) -> tuple[dict[str, dict], dict[str, str]]:
                     stack.append((f["id"], rel + "/"))
                 else:
                     files[rel] = {"id": f["id"], "size": int(f.get("size") or 0),
-                                  "mime": f["mimeType"]}
+                                  "mime": f["mimeType"], "md5": f.get("md5Checksum")}
             page = res.get("nextPageToken")
             if not page:
                 break
     return files, folders
+
+
+def md5_file(path: Path, chunk: int = 8 * 1024 * 1024) -> str:
+    """md5 of a local file, read in chunks so a 1 GB render never sits in memory whole."""
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for buf in iter(lambda: f.read(chunk), b""):
+            h.update(buf)
+    return h.hexdigest()
+
+
+def compare(local: dict[str, dict], drive: dict[str, dict]) -> dict:
+    """Sort the two trees into only-local / only-drive / both, then prove `both` by md5.
+
+    Size is the cheap pre-check: a size mismatch is reported without hashing. A same-size
+    file is hashed locally and compared with Drive's md5Checksum; a Drive file with no
+    md5 (a Google-native file) cannot be proven and is reported as unverified.
+    """
+    only_local = sorted(set(local) - set(drive))
+    # Drive-native files were never in the mirror and never will be: the log
+    # itself, and anything Google owns the format of (Docs/Sheets/Slides have
+    # no local bytes to compare). Alerting on them every run would train the
+    # reader to skim past the alerts that do matter.
+    only_drive = sorted(p for p in set(drive) - set(local)
+                        if not drive[p]["mime"].startswith("application/vnd.google-apps")
+                        and p.rpartition("/")[2] != "logs.txt")
+    both = sorted(set(local) & set(drive))
+    size_mismatch = [p for p in both if drive[p]["size"] and local[p]["size"] != drive[p]["size"]]
+    md5_mismatch: list[str] = []
+    unverified: list[str] = []
+    local_md5: dict[str, str] = {}
+    for p in both:
+        if p in size_mismatch:
+            continue
+        want = drive[p].get("md5")
+        if not want:
+            unverified.append(p)
+            continue
+        local_md5[p] = md5_file(local[p]["abs"])
+        if local_md5[p] != want:
+            md5_mismatch.append(p)
+    return {"only_local": only_local, "only_drive": only_drive, "both": both,
+            "size_mismatch": size_mismatch, "md5_mismatch": md5_mismatch,
+            "unverified": unverified, "local_md5": local_md5}
 
 
 # --------------------------------------------------------------------------- upload
@@ -264,20 +314,15 @@ def main() -> int:
     local = walk_local(LOCAL_ROOT)
     drive, folders = walk_drive(DRIVE_ROOT_ID)
 
-    only_local = sorted(set(local) - set(drive))
-    # Drive-native files were never in the mirror and never will be: the log
-    # itself, and anything Google owns the format of (Docs/Sheets/Slides have
-    # no local bytes to compare). Alerting on them every run would train the
-    # reader to skim past the alerts that do matter.
-    only_drive = sorted(p for p in set(drive) - set(local)
-                        if not drive[p]["mime"].startswith("application/vnd.google-apps")
-                        and p.rpartition("/")[2] != "logs.txt")
-    both = sorted(set(local) & set(drive))
-    size_mismatch = [p for p in both if drive[p]["size"] and local[p]["size"] != drive[p]["size"]]
+    cmp = compare(local, drive)
+    only_local, only_drive, both = cmp["only_local"], cmp["only_drive"], cmp["both"]
+    size_mismatch, md5_mismatch, unverified = (cmp["size_mismatch"], cmp["md5_mismatch"],
+                                               cmp["unverified"])
 
     print(f"local  : {len(local)} file(s), {mb(sum(f['size'] for f in local.values()))}")
     print(f"drive  : {len(drive)} file(s)")
-    print(f"in both: {len(both)}   size-mismatch: {len(size_mismatch)}")
+    print(f"in both: {len(both)}   size-mismatch: {len(size_mismatch)}   "
+          f"md5-mismatch: {len(md5_mismatch)}   unverified: {len(unverified)}")
     print()
 
     print(f"== ONLY LOCAL - not on Drive yet ({len(only_local)}) ==")
@@ -309,11 +354,32 @@ def main() -> int:
             print(f"  {p}  local {mb(local[p]['size'])} vs drive {mb(drive[p]['size'])}")
         print()
 
+    if md5_mismatch:
+        print(f"== SAME NAME AND SIZE, DIFFERENT MD5 ({len(md5_mismatch)}) ==")
+        for p in md5_mismatch:
+            print(f"  {p}  local {cmp['local_md5'][p]} vs drive {drive[p]['md5']}")
+        print()
+
+    if size_mismatch or md5_mismatch:
+        print("  If the Drive copy is the broken one (CEO 2026-09-28: rename BROKEN- at once,")
+        print("  never trash), mark it and retry later:")
+        for p in size_mismatch + md5_mismatch:
+            print(f"    scripts/gdrive-bridge/drive_broken.py mark {drive[p]['id']} "
+                  f"--source '{local[p]['abs']}' --why 'ilag_sync diff mismatch'")
+        print()
+
+    if unverified:
+        print(f"== IN BOTH, NO MD5 ON DRIVE - cannot be proven ({len(unverified)}) ==")
+        for p in unverified:
+            print(f"  {p}")
+        print()
+
     if args.mode == "diff":
         if args.log:
             lines = [f"# DIFF {ts()} by {args.actor} - local mirror vs Drive: "
                      f"{len(only_local)} only-local, {len(only_drive)} only-drive, "
-                     f"{len(size_mismatch)} size-mismatch"]
+                     f"{len(size_mismatch)} size-mismatch, {len(md5_mismatch)} md5-mismatch, "
+                     f"{len(unverified)} unverified"]
             for p in only_drive:
                 lines.append(" | ".join([ts(), args.actor, "ALERT", "FILE",
                                          p.rpartition("/")[2],
