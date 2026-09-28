@@ -50,7 +50,10 @@ The CEO approved the approach and its censor rules on 2026-09-23, after reviewin
    capturing something near it.
 2. **Write the shot list.** Use YAML, one entry per shot:
    - `url`
-   - `action`: `still`, `scroll`, or zoom-on-text (crop to the element that contains `1.69`)
+   - `action`: `still`, `scroll`, or a zoom (`crop` on one element). Anchor the crop on the element's own
+     `selector` (WikiFX's score badge is `.head-l-score`), never on a bare number: on EP55 the text "1.69"
+     matched the Q&A prose first and framed the wrong region, and the badge's digits have no text node
+     (f4fb6d1c). [SUPERSEDED 2026-09-23] "zoom-on-text (crop to the element that contains `1.69`)".
    - `seconds`
    - `covers`
    - `censor`: named profiles
@@ -61,10 +64,18 @@ The CEO approved the approach and its censor rules on 2026-09-23, after reviewin
    It is resumable: a re-run skips shots whose outputs already exist and match the list.
    It drives Playwright. If a site blocks headless, it attaches to a dedicated Chrome profile
    over CDP, the same pattern as `scripts/higgsfield/gen_loop.py`.
+   A dead site is evidence too, and the runner cannot take it: Playwright's `page.goto()` throws on
+   NXDOMAIN and the Claude-in-Chrome screenshot errors on a chrome-error page. Chrome's own headless
+   screenshot renders the error page ("ไม่สามารถเข้าถึงเว็บไซต์นี้ได้ … ERR_NAME_NOT_RESOLVED") at 1080x1920:
+   `<chrome> --headless=new --user-data-dir=<fresh tmp> --lang=th --window-size=540,960
+   --force-device-scale-factor=2 --screenshot=out.png https://<site>/`. It does not exit: wait for the
+   file, then kill that profile's processes (EP57, task-f80f98ff).
 4. **Look at the frames yourself.** Build ONE contact sheet: every still plus a mid-frame of
-   every clip, about 270 px per tile. Read it by eye against the censor rules.
+   every clip, about 270 px per tile, and scan it by eye against the censor rules.
    Check a mid-scroll frame in particular, because lazy-loaded content shifts the layout and
-   a censor box can end up on the wrong element.
+   a censor box can end up on the wrong element. Then open every still at full size and check
+   both its claim and its PII: EP55's final 270-px sheet passed a reviewer ID in sharp text
+   beside a pixelated avatar, and a still framed on the news column instead of the score badge.
    *Stop if* anything in rules 1–2 shows uncensored. Fix it and re-run; never hand it on.
 5. **Deliver.**
    - Clips, stills and `REAL_MANIFEST.json` go to the episode's Drive project folder under
@@ -109,11 +120,14 @@ recorded. On WikiFX the related-brokers grid is `class="advertisement-list"`.
    EP55's first render showed IUX, ATFX, TMGM, QRS GLOBAL and InterStellar under that badge,
    and BingX's `$5,000,000!` prize.
 
-3. **HARD — The runner reporting `ok` is not a check. A human-readable contact sheet, read by
-   eye, is.**
+3. **HARD — The runner reporting `ok` is not a check. Reading the frames by eye is: the contact
+   sheet to scan, then every still at full size (Steps 4).**
 
    **Why hard:** safety. It is the only thing that enforces rules 1–2. On EP55 every shot
-   logged `ok` while four censor defects were plainly visible in the frames.
+   logged `ok` while four censor defects were plainly visible in the frames, and the 270-px
+   sheet alone then passed two more.
+   [SUPERSEDED 2026-09-23] "A human-readable contact sheet, read by eye, is.": the CTO's
+   full-size review found the two defects the sheet passed (task-67f82679).
 
 4. **HARD — Capture only public pages: no login, no signup click, no form submission, no
    scraping beyond the shot list.**
@@ -132,7 +146,10 @@ recorded. On WikiFX the related-brokers grid is `class="advertisement-list"`.
 
 7. Place censors from DOM boxes, and prefer page-wide sweeps to per-shot rules. EP55's first
    pass anchored the avatar rule to each shot's crop target and missed the "featured reviews"
-   carousel above the fold. A page-wide sweep for every avatar-and-name row caught all of them.
+   carousel above the fold. A page-wide sweep for every avatar-and-name row caught the rows, but
+   first pixelated only the avatar image and left the name/ID line beside it sharp
+   (`FX3090996564`): `personal_data` covers the whole identity line, and the sweep now stops at
+   it (f4fb6d1c). [SUPERSEDED 2026-09-23] "caught all of them".
 
 ## Output format
 
@@ -151,6 +168,15 @@ Each file is 1080x1920, 30 fps, H.264, no audio. Clips run 3–8 s; stills are P
 
 The editor looks footage up by `covers`. A script tag with no entry falls back to B-roll.
 
+- `real/` and the manifest hold censored files only. An uncensored reference copy (`also_clean: true`)
+  stays on local disk with no manifest entry: on EP55 one reached `real/` tagged
+  `covers: HOOK-2, PATTERN-1`, full logo and `$5,000,000!` prize, one step from the cut (f4fb6d1c).
+- The runner does not write `evidence_box` (the evidence's px boxes on the 1080x1920 frame), and
+  BLACK LIQUIDITY's P1 check refuses an avatar composite over a real plate without it
+  (`CMO_Procedure_BlackLiquidity_Cut` §6d). Add it by hand off the full-size still, and add
+  `captured_at` too for a still made outside the runner, as EP57 did
+  (`prototypes/bl57-realfootage/REAL_MANIFEST.json`).
+
 ## Worked example — BL EP55, BingX (2026-09-23)
 
 - **Sources:** the WikiFX Thai article of 2026-09-21, BingX's WikiFX profile, and bingx.com.
@@ -164,7 +190,9 @@ The editor looks footage up by `covers`. A script tag with no entry falls back t
   - the other-brokers grid visible
   - the `$5,000,000!` prize visible
   - a Chinese language bar and an extension popup in frame
-- **Fix:** named profiles plus a page-wide avatar sweep, in task-67f82679. At the time of
+- **Fix:** named profiles plus a page-wide avatar sweep, in task-67f82679; after the CTO's
+  full-size review, a second round for the ID line, the score-badge anchor and the clean copy
+  (f4fb6d1c). At the time of
   writing, the re-verified contact sheet is still pending. Update this line with its path
   once it exists.
 
@@ -178,9 +206,9 @@ The editor looks footage up by `covers`. A script tag with no entry falls back t
 
 ## Field notes
 - 2026-09-23 [MISSING] §Censor rules — the whole skill is a CEO ruling after reviewing EP55's draft stills: approach approved, censor personal data / minors' and uninvolved faces / ads and unrelated banners, partially and by position. Written as rules directly because it is a CEO ruling · evidence: CEO message 2026-09-23, task-67f82679, commit fb85d135 · status: promoted
-- 2026-09-23 [WRONG] §Steps 4 — a 270 px contact sheet is not enough to verify. Two defects passed the worker's final sheet and were visible only at full resolution: a reviewer ID in sharp text (`FX3090996564`; the avatar next to it was pixelated), and a CONTEXT-3 still that showed the news column instead of the 1.69 score badge. Use the sheet to scan, then open every still at full size and check both its claim and its PII · evidence: task-67f82679, CTO review 13:40 · status: pending
-- 2026-09-23 [MISSING] §Censor rules — `personal_data` must cover the reviewer's name/ID TEXT line, not only the avatar image. The page-wide avatar sweep pixelated the image and left the ID beside it sharp · evidence: task-67f82679 wikifx-profile-score.png · status: pending
-- 2026-09-23 [MISSING] §Output format — never put an uncensored reference copy in `real/` or in REAL_MANIFEST.json. The CTO's brief asked for a "clean copy for reference"; it landed in `real/` with `covers: HOOK-2, PATTERN-1`, showing the full logo and a $5,000,000 promo, one step from the cut · evidence: task-67f82679 bingx-logo-still-clean.png · status: pending
-- 2026-09-23 [MISSING] §Steps 2 — a zoom-on-text anchor can match the same text elsewhere first: "1.69" hit the Wiki Q&A body text before the score badge, so the shot framed the wrong region. Anchor on the element (a badge or container selector), not on a bare number · evidence: task-67f82679 · status: pending
-- 2026-09-23 [MISSING] §capture — a dead site's browser error page ("ไม่สามารถเข้าถึงเว็บไซต์นี้ได้ … ERR_NAME_NOT_RESOLVED") IS capturable, and it is often the episode's key evidence. Playwright `page.goto()` throws on NXDOMAIN and the Claude-in-Chrome screenshot errors on chrome-error pages. Headless Chrome's own `--screenshot` renders it: `Google Chrome --headless=new --user-data-dir=<fresh tmp> --lang=th --window-size=540,960 --force-device-scale-factor=2 --screenshot=out.png https://<site>/`. The process does not exit: wait for the file, then pkill that profile · evidence: task-f80f98ff reported it "un-capturable"; the CTO captured both attempts at 22:50/22:52 (72 KB each, 1080x1920) · status: pending
-- 2026-09-23 [MISSING] §manifest — `tools/bl_realfootage.py` does not write `evidence_box` (the §6d P1 gate refuses composites without it) or `captured_at`. Both were added by hand for EP57; the tool should export the DOM box it already computes for its crop anchor · evidence: task-80d18826, task-f80f98ff · status: pending
+- 2026-09-23 [WRONG] §Steps 4 — a 270 px contact sheet is not enough to verify. Two defects passed the worker's final sheet and were visible only at full resolution: a reviewer ID in sharp text (`FX3090996564`; the avatar next to it was pixelated), and a CONTEXT-3 still that showed the news column instead of the 1.69 score badge. Use the sheet to scan, then open every still at full size and check both its claim and its PII · evidence: task-67f82679, CTO review 13:40 → §Steps 4, §Rules 3 (old line kept [SUPERSEDED 2026-09-23]) · status: promoted
+- 2026-09-23 [MISSING] §Censor rules — `personal_data` must cover the reviewer's name/ID TEXT line, not only the avatar image. The page-wide avatar sweep pixelated the image and left the ID beside it sharp · evidence: task-67f82679 wikifx-profile-score.png → §Rules 7 (fix f4fb6d1c) · status: promoted
+- 2026-09-23 [MISSING] §Output format — never put an uncensored reference copy in `real/` or in REAL_MANIFEST.json. The CTO's brief asked for a "clean copy for reference"; it landed in `real/` with `covers: HOOK-2, PATTERN-1`, showing the full logo and a $5,000,000 promo, one step from the cut · evidence: task-67f82679 bingx-logo-still-clean.png → §Output format (fix f4fb6d1c: also_clean gets no manifest entry) · status: promoted
+- 2026-09-23 [MISSING] §Steps 2 — a zoom-on-text anchor can match the same text elsewhere first: "1.69" hit the Wiki Q&A body text before the score badge, so the shot framed the wrong region. Anchor on the element (a badge or container selector), not on a bare number · evidence: task-67f82679 → §Steps 2 (fix f4fb6d1c: selector .head-l-score) · status: promoted
+- 2026-09-23 [MISSING] §capture — a dead site's browser error page ("ไม่สามารถเข้าถึงเว็บไซต์นี้ได้ … ERR_NAME_NOT_RESOLVED") IS capturable, and it is often the episode's key evidence. Playwright `page.goto()` throws on NXDOMAIN and the Claude-in-Chrome screenshot errors on chrome-error pages. Headless Chrome's own `--screenshot` renders it: `Google Chrome --headless=new --user-data-dir=<fresh tmp> --lang=th --window-size=540,960 --force-device-scale-factor=2 --screenshot=out.png https://<site>/`. The process does not exit: wait for the file, then pkill that profile · evidence: task-f80f98ff reported it "un-capturable"; the CTO captured both attempts at 22:50/22:52 (72 KB each, 1080x1920) → §Steps 3 · status: promoted
+- 2026-09-23 [MISSING] §manifest — `tools/bl_realfootage.py` does not write `evidence_box` (the §6d P1 gate refuses composites without it) or `captured_at`. Both were added by hand for EP57; the tool should export the DOM box it already computes for its crop anchor · evidence: task-80d18826, task-f80f98ff → §Output format (evidence_box; the runner does write captured_at, tools/bl_realfootage.py — only stills made outside it lacked it) · status: promoted
