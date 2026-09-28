@@ -94,22 +94,29 @@ a second `## Field notes` heading — the tools read only the first, so keep one
    duplication the CEO ruled out on 2026-09-25.
 2. **Pick one kind** with the test questions in §1. If the content spans two kinds, plan two skills or apply §8.
 3. **Name it** by §2 and check for a collision: `ls .claude/skills | grep -i "<topic>"`.
-4. **Scaffold** with `python scripts/skill-curator.py create <name> --description "<…>" --audience <tokens>`;
-   it stamps `created_by` and `author` and commits. Add `kind:` (and `verified:` for Knowledge) by hand.
+4. **Scaffold** with `.venv/bin/python scripts/skill-curator.py create <name> --kind <kind> --owner <C-level>
+   --description "<…>" --audience <tokens>`; it writes `kind:`, `owner:`, the `<KIND> — ` description prefix,
+   `created_by` and `author` (lint codes 11, 13, 14 pass from the start) and commits. Knowledge: add
+   `verified:` and `refresh_after:` by hand.
 5. **Write the body** from the kind's template in §9. Every fact carries its source and date; every rule is
    either HARD with `Why hard:` or advice (see "Rules, tiered" below).
 6. **Write the description** (see "Description discipline" below): the kind word first, the "Trigger on"
    clause with phrases the CEO actually typed, a "Do NOT" clause when a sibling skill competes.
 7. **Check it:** `.venv/bin/python scripts/skill-lint.py check` shows nothing for this skill;
    `.venv/bin/python scripts/skill-curator.py index` regenerates `docs/org/SKILL-INDEX.md` (commit it with the
-   skill, or code 16 reports it stale); every path, tool and skill name it mentions exists:
+   skill, or code 16 reports it stale); every path, tool and skill name the BODY mentions exists — the check
+   stops at the real `## Field notes` (fenced templates skipped), because ledger lines name deleted files
+   and other repos on purpose:
    ```bash
    F=.claude/skills/<name>/SKILL.md
-   grep -oE '`(tools|docs|scripts|runners|lib|config|roles)/[^` ]+`' $F | tr -d '`' | sort -u | while read p; do [ -e "${p%%<*}" ] || echo "MISSING $p"; done
+   awk '/^[[:space:]]*(```|~~~)/{f=!f} !f && /^## Field notes/{exit} 1' $F |
+     grep -oE '`(tools|docs|scripts|runners|lib|config|roles)/[^` ]+`' | tr -d '`' | sort -u |
+     while read p; do [ -e "${p%%<*}" ] || echo "MISSING $p"; done
    ```
    and any script it tells an agent to run has been run once.
-8. **Commit** `skill(<name>): new — <what> — evidence <task-id / sha / the CEO's words>`, push, tell the CEO
-   in one line, and add a pointer in the matching memory index when it matters across sessions.
+8. **Commit** (named paths only, §6 step 6) `skill(<name>): new — <what> — evidence <task-id / sha / the CEO's
+   words>`, push, tell the CEO in one line, and add a pointer in the matching memory index when it matters
+   across sessions.
 
 ## 5 · Update — six steps
 
@@ -117,6 +124,9 @@ a second `## Field notes` heading — the tools read only the first, so keep one
    `- <date> [WRONG|MISSING|COSTLY] §<section> — <what> · evidence: <task-id / sha / path> · status: pending`.
    The rule body changes only on ≥2 independent runs agreeing, a CEO ruling, or an artefact proving the old
    rule cannot work. A rule flipped twice in 30 days is CONTESTED: frozen until the CEO rules.
+   Close a note by changing only the status word (`promoted`, `rejected`, `superseded`) and putting the
+   pointer or reason just before `· status:` (` → §<section>`, ` — rejected: <reason>`); lint code 8 rejects
+   anything after the word, such as `status: promoted (CEO ruling …)` — a ruling goes in the note text.
 2. **Edit the owner skill only.** When the same rule sits in two skills, keep it in the owner and leave a
    one-line pointer in the other.
 3. **A replaced rule keeps its old line** as `[SUPERSEDED <date>]` with the evidence that beat it.
@@ -144,12 +154,15 @@ The CEO approved the rename table and its phases on 2026-09-27 (`docs/org/SKILL-
    error and the skill disappears. After the pull, list them (`ls -la ~/.claude/skills | grep -- '->'`) and
    re-point. Contabo has none.
 6. `skill-lint` and the full test suite; commit `skill(<new>): rename — from <old> — phase <n>, CEO approval
-   2026-09-27`; report the phase before starting the next.
+   2026-09-27`; report the phase before starting the next. Stage named paths only, never `git add -A` /
+   `git add .`: a worktree holds untracked links and files that are not the phase's (phase 2's `-A` committed
+   a `.venv` symlink, 1e818147, and the pull broke the shared Contabo checkout's venv; fixed e90df583).
+   Before the push, `git show --stat HEAD` lists only the phase's paths.
 
 ## 7 · Retire — redirect stubs and archive
 
 A stub stays 30 days, or until `grep` of live files finds no reference, then goes through
-`python scripts/skill-curator.py archive <old>` (ADR 0018), never `rm`. The four stubs from the 2026-09-25
+`.venv/bin/python scripts/skill-curator.py archive <old>` (ADR 0018), never `rm`. The four stubs from the 2026-09-25
 split (ai-film-production, google-flow-ops, higgsfield-unlimited-gen, thai-moral-drama) are rename Phase 0.
 
 ## 8 · A skill that mixes Rules and Knowledge
@@ -259,8 +272,8 @@ The `description:` line is the **only** thing Claude reads when deciding whether
 2. **One-sentence purpose.** What the skill does, plain language.
 3. **Explicit slash trigger:** `Trigger on /<name> and …`.
 4. **Phrases the user actually types**, verbs not categories, the CEO's own words where they exist (Thai and
-   English). Every comma-separated item becomes a route, so a bare noun ("cache") routes any prompt that
-   contains it.
+   English). The clause runs to the first sentence stop and is split on commas and on " and "; every piece
+   becomes a route, so a bare noun ("cache") routes any prompt that contains it.
 5. **When NOT to fire**, if a sibling skill competes.
 6. ≤350 characters (ADR 0022): the description is the only body text that costs context in every session.
 
@@ -353,10 +366,10 @@ there.
 
 ## Field notes
 
-- 2026-09-25 [MISSING] §Description discipline — `tools/decide.py` builds the skill.route rules from the "Trigger on …." clause, split on commas and " and ". Until 72357fc8 the clause ended at the FIRST dot, so every engine-named skill with a version in its name (/CTO_Flow_Omni1.1_…, Seedance 2.5, Wan 3.0) routed on a fragment only; it now ends at a sentence stop. Side effect to write around: every comma-separated item becomes a standalone route, so a generic word in the list ("cache", "worktree" in ALL_Rules_DiskHygiene) routes any prompt that contains it; keep trigger items as phrases a user would type, not a list of nouns · evidence: both skill-split workers (task-c3e07fb1, task-e7cc2d83), fix 72357fc8 · status: pending
+- 2026-09-25 [MISSING] §Description discipline — `tools/decide.py` builds the skill.route rules from the "Trigger on …." clause, split on commas and " and ". Until 72357fc8 the clause ended at the FIRST dot, so every engine-named skill with a version in its name (/CTO_Flow_Omni1.1_…, Seedance 2.5, Wan 3.0) routed on a fragment only; it now ends at a sentence stop. Side effect to write around: every comma-separated item becomes a standalone route, so a generic word in the list ("cache", "worktree" in ALL_Rules_DiskHygiene) routes any prompt that contains it; keep trigger items as phrases a user would type, not a list of nouns · evidence: both skill-split workers (task-c3e07fb1, task-e7cc2d83), fix 72357fc8 → §Description discipline item 4 (sentence stop, commas and " and ", checked in tools/decide.py 2026-09-28) · status: promoted
 - 2026-09-27 [SUPERSEDED] §1 §2 §6 §Rules 2 — rewritten on the CEO's rulings of 2026-09-27: seven kinds ("เห็นด้วยทั้ง 7 หมวดหมู่"), names that say role, kind and topic, the rename table and its phases ("OK ตามนั้น"), the mixed-skill rule, and the COO as owner of this process ("เขียน skill สำหรับการสร้าง skill ... เวลาที่ COO หยิบไปใช้จะได้ใช้งานได้ทันที"). The "never rename" rule is kept above as SUPERSEDED · evidence: docs/org/SKILL-KINDS-2026-09-27.md, CTO session 14cc900f · status: promoted
-- 2026-09-27 [MISSING] §6 step 6 — commit a rename phase by staging NAMED paths (or `git add -A -- . ':!.venv'`), never plain `git add -A`: phase 2's `-A` in a scratch worktree committed a `.venv` symlink (`.venv/` in .gitignore matches a directory, not a link); the ff-pull on the shared Contabo checkout then replaced its real, ignored .venv with a self-link and every venv service lost its packages until the venv was rebuilt. Before each push: `git show --stat HEAD | grep -E '\.venv|node_modules'` must print nothing · evidence: 1e818147 (the bad commit), e90df583 (the fix), memory feedback_git_add_all_in_worktree_with_symlinks · status: pending
+- 2026-09-27 [MISSING] §6 step 6 — commit a rename phase by staging NAMED paths (or `git add -A -- . ':!.venv'`), never plain `git add -A`: phase 2's `-A` in a scratch worktree committed a `.venv` symlink (`.venv/` in .gitignore matches a directory, not a link); the ff-pull on the shared Contabo checkout then replaced its real, ignored .venv with a self-link and every venv service lost its packages until the venv was rebuilt. Before each push: `git show --stat HEAD | grep -E '\.venv|node_modules'` must print nothing · evidence: 1e818147 (the bad commit), e90df583 (the fix), memory feedback_git_add_all_in_worktree_with_symlinks → §6 step 6, pointer in §4 step 8 (e90df583 now ignores a `.venv` link too, so the lasting point is named paths) · status: promoted
 - 2026-09-28 [MISSING] §3 — kind/name/owner/prefix/stub-expiry lint codes 11–16 + write hook + index built (CEO "Ok ลุย") · evidence: commit "skill guards: lint codes 11-16 …" (scripts/skill-lint.py, config/skill-kinds.yaml, scripts/hook-skill-write-reminder.py, docs/org/SKILL-INDEX.md) · status: promoted
 - 2026-09-28 [MISSING] §3 — lint code 17: more than one `## Field notes` heading (CXO_Protocol_DevSpawn hid 32 pending notes under a second one); the section finder also skips headings inside fenced code, so this file's §9 templates no longer stand in for its real Field notes · evidence: 2c039826 (the sighting), scripts/skill-curator.py field_notes_headings · status: promoted
-- 2026-09-28 [COSTLY] §4 step 7 — the path check also scans `## Field notes`, whose ledger lines name deleted files and other repos, so it reports false MISSING paths; run it on the body only (`head -n <Field notes line>`) · evidence: CTO_Gate_MergeChecklist fold flagged 4 ledger-only paths, session 14cc900f · status: pending
-- 2026-09-28 [MISSING] §4 step 4 — `skill-curator.py create` writes no `kind:` / `owner:` / description prefix, so a fresh scaffold gets lint findings 11, 13, 14 until they are added by hand; `--kind` / `--owner` flags would close it · evidence: 07a64247, scripts/test_skill_curator.py::test_create_skill_stamps_identity_and_passes_lint · status: pending
+- 2026-09-28 [COSTLY] §4 step 7 — the path check also scans `## Field notes`, whose ledger lines name deleted files and other repos, so it reports false MISSING paths; run it on the body only (`head -n <Field notes line>`) · evidence: CTO_Gate_MergeChecklist fold flagged 4 ledger-only paths, session 14cc900f; re-run 2026-09-28: whole file 3 MISSING, body-only 0 → §4 step 7 (awk stops at the first `## Field notes` outside a fence, so §9's templates do not cut it short) · status: promoted
+- 2026-09-28 [MISSING] §4 step 4 — `skill-curator.py create` writes no `kind:` / `owner:` / description prefix, so a fresh scaffold gets lint findings 11, 13, 14 until they are added by hand; `--kind` / `--owner` flags would close it · evidence: 07a64247, scripts/test_skill_curator.py::test_create_skill_stamps_identity_and_passes_lint; flags added in fa93b382 (the test now expects a clean lint) → §4 step 4 · status: promoted
