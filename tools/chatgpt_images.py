@@ -132,8 +132,12 @@ READ_PARAGRAPHS_JS = """
 () => {
   const el = document.querySelector('#prompt-textarea, div[contenteditable="true"]');
   if (!el) return [];
+  // innerText, not textContent: a pasted single newline lands as a <br> inside
+  // the <p>, and textContent drops it, gluing the two lines together; every
+  // multi-line prompt then "fails" the paste check by one char per line break
+  // (task-964eddeb: 11 breaks, want-got = 11 on all 10 items).
   const ps = [...el.querySelectorAll('p')];
-  return ps.length ? ps.map(p => p.textContent) : [el.textContent || ''];
+  return ps.length ? ps.map(p => p.innerText) : [el.innerText || ''];
 }
 """.strip()
 
