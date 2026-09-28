@@ -18,7 +18,9 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from lib import config, db_pg
+# lib.config is imported lazily (in create_task): it pulls in PyYAML, and the
+# PreToolUse hooks import lib.db under the system python3, which may not have it.
+from lib import db_pg
 
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
@@ -600,6 +602,7 @@ def create_task(
     # this session is filing the task from. Never caught -- a self_host()
     # failure here must fail the create loudly, not silently write a wrong
     # or guessed dispatcher_host (task brief rule 7).
+    from lib import config
     dispatcher_host = config.self_host()
     ts = now_iso()
     with get_conn() as conn:
