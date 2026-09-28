@@ -46,7 +46,8 @@ moment the session ends (measured 2026-09-22).
       skill it names (`skill(<name>): note — …`), a rule change carrying its
       evidence (`skill(<name>): rule|flip — …`), a memory file, or a new-skill
       proposal. Quote the sha(s) / memory path.
-- [ ] `python scripts/skill-curator.py notes` — nothing MALFORMED; anything
+- [ ] `.venv/bin/python scripts/skill-curator.py notes` (not `python` — why:
+      COO_Protocol_SkillCurator §Verbs) — nothing MALFORMED; anything
       CONTESTED is named in the report for the CEO to rule on.
 - [ ] Unfiled lines → no 🏁. The session force-saves with the unfiled lines
       named in the note.
@@ -69,6 +70,13 @@ Walk the WHOLE session for anything **the CEO personally must do** — not just
 code: reply to an email, send a doc, decide A/B, pay an invoice, migrate X→Y,
 follow up with a person, renew a key. For EACH:
 - `mcp__lungnote__add_todo` with a clear one-line `text`.
+  **LungNote MCP down** (`CONNECTION_CLOSED` at start; it reconnects only at the
+  next launch): insert through PostgREST with the creds loader of
+  `scripts/session-deadline-check.py` — `POST {SUPABASE_URL}/rest/v1/lungnote_todos`,
+  `Prefer: return=representation`, the body mirroring the newest row (`user_id`,
+  its `note_id`, `position` = max+1, `text` with the `[SID:…]` tag, `done: false`,
+  `status: "open"`, `source: "web"`, `due_at` + `due_text` when dated). The next
+  `/session-open`'s deadline hook reads these rows.
 - **If it has a date/deadline → set `due_at` (ISO-8601, e.g. `2026-06-18T00:00:00Z`)**
   so LungNote shows the countdown ("ขึ้นแจ้งเตือนกี่วัน / ลงวันไหน"). Convert
   relative dates ("ก่อนศุกร์", "ภายใน 3 วัน", "พรุ่งนี้") to an absolute ISO date
@@ -222,5 +230,5 @@ Verdict        : CLOSE 🏁 (status=closed)
 ## Field notes
 
 - 2026-09-22 [MISSING] §2b — no gate caught a C-level's own `## Skill learning` lines; they stayed in chat and were lost at session end, so gate 2b was added · evidence: session cto-0e8d80b8, CEO OK 2026-09-22, ADR 0026 · status: promoted
-- 2026-09-23 [MISSING] §2b — `python scripts/skill-curator.py notes` as written cannot run in a C-level Bash shell: `python` is not on PATH (`command not found`) and system `python3` dies on `import yaml` (ModuleNotFoundError, exit 1, output looks like "no findings" if grepped). Works as `.venv/bin/python scripts/skill-curator.py notes` · evidence: session cto-01c3a0e8, VIRTUAL_ENV unset · status: pending
-- 2026-09-25 [MISSING] §4 — when the LungNote MCP is down for the whole session (lungnote CONNECTION_CLOSED at start, fixed only for the NEXT launch), `add_todo` has no route and the parks would die with the tab. What worked: INSERT through PostgREST with the creds loader of `scripts/session-deadline-check.py` — `POST {SUPABASE_URL}/rest/v1/lungnote_todos` with `Prefer: return=representation`, body mirroring the newest row (`user_id`, its `note_id`, `position` = max+1, `text` with the `[SID:…]` tag, `done: false`, `status: "open"`, `source: "web"`, `due_at` + `due_text` when dated); 11 rows landed and `/session-open`'s deadline hook reads them · evidence: session cto-6ebacd0e, todo ids in the close report · status: pending
+- 2026-09-23 [MISSING] §2b — `python scripts/skill-curator.py notes` as written cannot run in a C-level Bash shell: `python` is not on PATH (`command not found`) and system `python3` dies on `import yaml` (ModuleNotFoundError, exit 1, output looks like "no findings" if grepped). Works as `.venv/bin/python scripts/skill-curator.py notes` · evidence: session cto-01c3a0e8, VIRTUAL_ENV unset; re-measured 2026-09-28 on Contabo (`command -v python` → none) → §2b, the why in COO_Protocol_SkillCurator §Verbs · status: promoted
+- 2026-09-25 [MISSING] §4 — when the LungNote MCP is down for the whole session (lungnote CONNECTION_CLOSED at start, fixed only for the NEXT launch), `add_todo` has no route and the parks would die with the tab. What worked: INSERT through PostgREST with the creds loader of `scripts/session-deadline-check.py` — `POST {SUPABASE_URL}/rest/v1/lungnote_todos` with `Prefer: return=representation`, body mirroring the newest row (`user_id`, its `note_id`, `position` = max+1, `text` with the `[SID:…]` tag, `done: false`, `status: "open"`, `source: "web"`, `due_at` + `due_text` when dated); 11 rows landed and `/session-open`'s deadline hook reads them · evidence: session cto-6ebacd0e, todo ids in the close report; the MCP was down again at the start of fold session 14cc900f (2026-09-28, CONNECTION_CLOSED), so `add_todo` alone cannot work → §4a · status: promoted
