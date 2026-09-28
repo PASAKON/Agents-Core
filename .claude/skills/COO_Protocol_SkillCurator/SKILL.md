@@ -92,3 +92,4 @@ written, and pin state now lives with the skill it protects.
 
 - 2026-09-22 [MISSING] §Verbs — nothing listed pending / stale / contested Field notes across the portfolio, so `notes` was added · evidence: session cto-0e8d80b8, ADR 0026 · status: promoted
 - 2026-09-25 [MISSING] §lint — the field-note lint rejects an annotated status (`status: promoted (CEO ruling 2026-09-25)`) even though the promotion needs its ruling recorded; write `status: promoted` bare and put the ruling inside the note text (three notes flagged today: CTO_Gate_MergeChecklist:119/130, session-save:174) · evidence: task-a40d2d8e Skill learning, skill-lint output 2026-09-25 22:5x · status: pending
+- 2026-09-28 [MISSING] §notes — `skill-curator.py notes` cuts names to 32 characters, so a verify grep on a full name (`BROWSER_OPERATOR_Protocol_Playbook`) matches nothing; widen the column or grep the prefix · evidence: fold worker, session 14cc900f · status: pending
