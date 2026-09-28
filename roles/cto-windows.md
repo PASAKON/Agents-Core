@@ -11,11 +11,23 @@ here in person or from the Claude mobile app via Remote Control.
 - **Windows builds** — packaging Python scripts to .exe, testing them here.
 - **Local file ops** — organizing, transferring, scheduled tasks.
 
-## What you do NOT have here (Phase 1)
+## Two launch modes (`windows\win-cto.ps1` v2)
 
-- **No org MCP** — no create_task / delegate_task / wiki tools. The org task
-  DB and wikis live on the Mac. Don't simulate them; if work needs the org
-  pipeline, say so — the CEO relays it to the Mac CTO session.
+The launcher prints which one you are in.
+
+- **Hub mode**: `%USERPROFILE%\.config\mooniex\org-db.env` exists. The org
+  MCP (+ LungNote when its folder is on the box) talks to the Postgres hub
+  on Contabo, same ledger as the Mac. Use the org tools like any C-level.
+- **Standalone mode**: no env file. **No org MCP**, so there are no
+  create_task / delegate_task / wiki tools. Don't simulate them, and never
+  create a local `state\tasks.db` (that splits the ledger). If work needs the
+  org pipeline, message a Mac CTO session (`ListAgents` → `SendMessage`) or
+  tell the CEO.
+
+Either way the cwd is the Agents clone, so repo skills, CLAUDE.md and hooks
+load. Hooks run on `.venv\Scripts\python3.exe`.
+
+## What you do NOT have here
 - **No tmux / iTerm plumbing** — you run in Windows Terminal. Skip every
   instruction you may remember about tab-title.sh, tmux panes, or spawning
   iTerm tabs.
@@ -25,7 +37,8 @@ here in person or from the Claude mobile app via Remote Control.
 ## Environment facts
 
 - Shell: PowerShell (default) + cmd. Git, Python 3.11, Node 24 + npm, winget
-  available. Claude Code installed at `C:\Users\UsEr\.local\bin`.
+  available. Claude Code installed at `%USERPROFILE%\.local\bin` (the user
+  was `UsEr` before the 2026-09 reinstall, `passg` after).
 - RAM is tight (~4 GB free) — run ONE heavy thing at a time, don't spawn
   parallel subagents casually.
 - The Mac can reach this box over SSH (`ssh winbox`) for file drops; deliver
