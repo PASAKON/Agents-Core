@@ -430,10 +430,10 @@ def _project(org: Org, name: str) -> dict:
     return p
 
 
-def _get_secret(org: Org, project_id: str, env: str, name: str) -> dict | None:
+def _get_secret(org: Org, project_id: str, env: str, name: str, path: str = "/") -> dict | None:
     try:
         return org.get(f"/api/v3/secrets/raw/{name}", workspaceId=project_id, environment=env,
-                       secretPath="/")["secret"]
+                       secretPath=path)["secret"]
     except ApiError as exc:
         if "HTTP 404" in str(exc) or "not found" in str(exc).lower():
             return None
@@ -476,7 +476,8 @@ def _require_meta_for_new(existing: dict | None, comment: str | None, metadata: 
 
 
 def _write_secret(org: Org, p: dict, env: str, name: str, value: str, comment: str | None,
-                  metadata: dict, existing: dict | None, multiline: bool = False) -> str:
+                  metadata: dict, existing: dict | None, multiline: bool = False,
+                  path: str = "/") -> str:
     """POST or PATCH one secret; the value never leaves this process except in the request."""
     metadata = dict(metadata)
     if existing is not None:
@@ -488,26 +489,27 @@ def _write_secret(org: Org, p: dict, env: str, name: str, value: str, comment: s
     metadata.setdefault("created", stamp)
     metadata["updated"] = stamp
     metadata.setdefault("status", "active")
-    body = {"workspaceId": p["id"], "environment": env, "secretPath": "/", "secretValue": value,
+    body = {"workspaceId": p["id"], "environment": env, "secretPath": path, "secretValue": value,
             "secretComment": comment or "", "skipMultilineEncoding": multiline,
             "secretMetadata": [{"key": k, "value": v} for k, v in metadata.items()]}
     org.send("PATCH" if existing else "POST", f"/api/v3/secrets/raw/{name}", body)
-    return (f"{'updated' if existing else 'created'} {p['name']}/{env} {name}"
+    where = f"{p['name']}/{env}" + ("" if path == "/" else path.rstrip("/"))
+    return (f"{'updated' if existing else 'created'} {where} {name}"
             f" · last4={value.strip()[-4:]} · expires={metadata.get('expires', '?')}"
             f" · owner={metadata.get('owner', '?')}")
 
 
 def cmd_put(org: Org, project: str, env: str, name: str, comment: str | None,
-            meta: list[str], multiline: bool, legacy: bool = False) -> None:
+            meta: list[str], multiline: bool, legacy: bool = False, path: str = "/") -> None:
     clean = _check_name(name, legacy)
     p = _target(org, project, env)
     metadata = parse_meta(meta)
     if not clean:
         metadata["naming"] = "legacy"
-    existing = _get_secret(org, p["id"], env, name)
+    existing = _get_secret(org, p["id"], env, name, path)
     _require_meta_for_new(existing, comment, metadata)
     value = read_stdin_value(multiline)   # read last: every refusal above happens before it exists
-    print(_write_secret(org, p, env, name, value, comment, metadata, existing, multiline))
+    print(_write_secret(org, p, env, name, value, comment, metadata, existing, multiline, path))
 
 
 def parse_env_file(path: str) -> dict[str, str]:
@@ -529,16 +531,16 @@ def parse_env_file(path: str) -> dict[str, str]:
     return values
 
 
-def cmd_import_env(org: Org, project: str, env: str, path: str, only: list[str],
-                   comment: str | None, meta: list[str], legacy: bool) -> None:
+def cmd_import_env(org: Org, project: str, env: str, file: str, only: list[str],
+                   comment: str | None, meta: list[str], legacy: bool, path: str = "/") -> None:
     """Phase 2: move a whole .env into Infisical 1:1 — names are printed, values never."""
-    values = parse_env_file(path)
+    values = parse_env_file(file)
     names = [n for n in values if not only or n in only]
     absent = [n for n in only if n not in values]
     if absent:
-        sys.exit(f"{path} has no {', '.join(absent)}")
+        sys.exit(f"{file} has no {', '.join(absent)}")
     if not names:
-        sys.exit(f"{path}: no KEY=value lines to import")
+        sys.exit(f"{file}: no KEY=value lines to import")
     p = _target(org, project, env)
     metadata = parse_meta(meta)
     for name in names:
@@ -549,30 +551,36 @@ def cmd_import_env(org: Org, project: str, env: str, path: str, only: list[str],
         md = dict(metadata)
         if problem:
             md["naming"] = "legacy"
-        existing = _get_secret(org, p["id"], env, name)
+        existing = _get_secret(org, p["id"], env, name, path)
         _require_meta_for_new(existing, comment, md)
-        print(_write_secret(org, p, env, name, values[name], comment, md, existing))
+        print(_write_secret(org, p, env, name, values[name], comment, md, existing, path=path))
 
 
-def cmd_last4(org: Org, project: str, env: str, name: str) -> None:
+def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> None:
     p = _project(org, project)
-    s = _get_secret(org, p["id"], env, name)
+    s = _get_secret(org, p["id"], env, name, path)
     if s is None:
-        sys.exit(f"{p['name']}/{env} has no secret {name}")
-    print(f"{p['name']}/{env} {name} · last4={(s.get('secretValue') or '').strip()[-4:]}")
+        sys.exit(f"{p['name']}/{env}{'' if path == '/' else path} has no secret {name}")
+    print(f"{p['name']}/{env}{'' if path == '/' else path.rstrip('/')} {name}"
+          f" · last4={(s.get('secretValue') or '').strip()[-4:]}")
 
 
-def cmd_run(identity: str, project: str, env: str, argv: list[str]) -> None:
-    """Exec a command with the project's secrets in its environment (PLAN §5), nothing on disk."""
+def cmd_run(identity: str, project: str, env: str, argv: list[str], path: str = "/") -> None:
+    """Exec a command with the project's secrets in its environment (PLAN §5), nothing on disk.
+
+    `--path /<instance>` picks a folder: two prod instances of one repo (MoonieX and Chatudo both
+    run MoonieX-ClaudeFlow) keep different values under the same names, one folder each
+    (ruling 2026-09-28, PLAN §3)."""
     if not argv:
         sys.exit("run: give the command after `--`")
     org = Org(identity)
     p = _project(org, project)
-    out = org.get("/api/v3/secrets/raw", workspaceId=p["id"], environment=env, secretPath="/")
+    out = org.get("/api/v3/secrets/raw", workspaceId=p["id"], environment=env, secretPath=path)
     secrets = {s["secretKey"]: s["secretValue"] for s in out.get("secrets", []) if s.get("secretKey")}
+    where = f"{p['name']}/{env}" + ("" if path == "/" else path.rstrip("/"))
     if not secrets:
-        sys.exit(f"{p['name']}/{env} holds no secrets at / — refusing to start {argv[0]} without them")
-    print(f"[infisical run] {p['name']}/{env} as {identity}: {', '.join(sorted(secrets))} -> {argv[0]}",
+        sys.exit(f"{where} holds no secrets — refusing to start {argv[0]} without them")
+    print(f"[infisical run] {where} as {identity}: {', '.join(sorted(secrets))} -> {argv[0]}",
           file=sys.stderr)
     os.execvpe(argv[0], argv, {**os.environ, **secrets})
 
@@ -600,13 +608,16 @@ def main(argv: list[str] | None = None) -> None:
         if cmd in ("put", "last4"):
             c.add_argument("name")
         if cmd == "import-env":
-            c.add_argument("path", help=".env file to move 1:1 (names printed, values never)")
+            c.add_argument("file", help=".env file to move 1:1 (names printed, values never)")
             c.add_argument("--only", default="", metavar="A,B", help="import only these names")
         if cmd == "run":
-            c.usage = "%(prog)s project env [--as HOST] -- <command> [args...]"
+            c.usage = "%(prog)s project env [--as HOST] [--path /folder] -- <command> [args...]"
         c.add_argument("--as", dest="identity", default=self_host() if cmd == "run" else SETUP,
                        help=f"identity whose file under {CRED_DIR} logs in "
                             f"(default: {'this machine' if cmd == 'run' else SETUP})")
+        c.add_argument("--path", default="/", metavar="/folder",
+                       help="folder inside the environment; one per instance when two prod "
+                            "instances of one repo need different values (PLAN §3, 2026-09-28)")
         if cmd in ("put", "import-env"):
             c.add_argument("--comment", help="purpose (PLAN §4c); required when creating")
             c.add_argument("--meta", action="append", default=[], metavar="k=v",
@@ -631,15 +642,15 @@ def main(argv: list[str] | None = None) -> None:
             cmd_retire_setup(Org())
         elif args.cmd == "put":
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
-                    args.meta, args.multiline, legacy=args.legacy)
+                    args.meta, args.multiline, legacy=args.legacy, path=args.path)
         elif args.cmd == "import-env":
             only = [n for n in args.only.split(",") if n]
-            cmd_import_env(Org(args.identity), args.project, args.env, args.path, only,
-                           args.comment, args.meta, args.legacy)
+            cmd_import_env(Org(args.identity), args.project, args.env, args.file, only,
+                           args.comment, args.meta, args.legacy, path=args.path)
         elif args.cmd == "last4":
-            cmd_last4(Org(args.identity), args.project, args.env, args.name)
+            cmd_last4(Org(args.identity), args.project, args.env, args.name, path=args.path)
         elif args.cmd == "run":
-            cmd_run(args.identity, args.project, args.env, command)
+            cmd_run(args.identity, args.project, args.env, command, path=args.path)
     except ApiError as exc:
         sys.exit(f"Infisical API error: {exc}")
     except FileNotFoundError as exc:

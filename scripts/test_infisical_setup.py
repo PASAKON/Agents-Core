@@ -158,17 +158,17 @@ def make_handler(fake: Fake):
                 fake.projects[m[1]]["idents"][fake.identities[m[2]]["name"]] = [b["role"]]
                 return self.reply(200, {"identityMembership": {}})
             if method == "GET" and p == "/api/v3/secrets/raw":
-                pid, env = q.get("workspaceId"), q.get("environment")
+                pid, env, sp = q.get("workspaceId"), q.get("environment"), q.get("secretPath", "/")
                 if pid not in fake.projects or env not in fake.projects[pid]["envs"]:
                     return self.reply(400, {"message": "fake: unknown project or environment"})
-                return self.reply(200, {"secrets": [rec for (i, e, _), rec in fake.store.items()
-                                                    if i == pid and e == env]})
+                return self.reply(200, {"secrets": [rec for (i, e, f, _), rec in fake.store.items()
+                                                    if i == pid and e == env and f == sp]})
             m = re.fullmatch(r"/api/v3/secrets/raw/([^/]+)", p)
             if m:
                 # phase-2 `put` / `last4`: shapes as observed on Infisical Cloud 2026-09-28
                 name = m[1]
                 src = b if method in ("POST", "PATCH") else q
-                key = (src.get("workspaceId"), src.get("environment"), name)
+                key = (src.get("workspaceId"), src.get("environment"), src.get("secretPath", "/"), name)
                 if key[0] not in fake.projects or key[1] not in fake.projects[key[0]]["envs"]:
                     return self.reply(400, {"message": "fake: unknown project or environment"})
                 if method == "GET":
@@ -303,8 +303,33 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.cred_dir, "setup.env")))
 
 
-    def _stored(self, name):
-        return next(v for k, v in self.fake.store.items() if k[2] == name)
+    def _stored(self, name, path="/"):
+        return next(v for k, v in self.fake.store.items() if k[3] == name and k[2] == path)
+
+    def test_path_keeps_two_instances_of_one_repo_apart(self):
+        # ruling 2026-09-28 (Chatudo, task-f50d0c4c): same names, different values, one folder each
+        self.save_setup()
+        self.run_cli("apply")
+        meta = ["--comment", "chatudo", "--meta", "provider_name=supabase", "--meta", "console_url=n/a",
+                "--meta", "scope=db", "--meta", "expires=2027-09-28", "--meta", "owner=CTO"]
+        with mock.patch("sys.stdin", io.StringIO("SECRET-root-aaaa\n")):
+            self.run_cli("put", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL", "--stdin", *meta)
+        with mock.patch("sys.stdin", io.StringIO("SECRET-chatudo-bbbb\n")):
+            text = self.run_cli("put", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL", "--stdin",
+                                "--path", "/chatudo", *meta)
+        self.assertIn("created MoonieX-ClaudeFlow/prod/chatudo SUPABASE_URL · last4=bbbb", text)
+        self.assertEqual(self._stored("SUPABASE_URL")["secretValue"], "SECRET-root-aaaa")
+        self.assertEqual(self._stored("SUPABASE_URL", "/chatudo")["secretValue"], "SECRET-chatudo-bbbb")
+        self.assertIn("last4=bbbb", self.run_cli("last4", "MoonieX-ClaudeFlow", "prod", "SUPABASE_URL",
+                                                 "--path", "/chatudo"))
+        Path(os.path.join(self.cred_dir, "contabo.env")).write_text(
+            f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={SETUP_ID}\nINFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={SETUP_SECRET}\n")
+        seen = {}
+        with mock.patch("os.execvpe", lambda f, a, e: seen.update(env=e)), \
+                contextlib.redirect_stderr(io.StringIO()):
+            self.run_cli("run", "MoonieX-ClaudeFlow", "prod", "--as", "contabo", "--path", "/chatudo",
+                         "--", "docker", "compose", "up")
+        self.assertEqual(seen["env"]["SUPABASE_URL"], "SECRET-chatudo-bbbb")
 
     def test_put_creates_then_updates_and_last4_never_prints_the_value(self):
         self.save_setup()
