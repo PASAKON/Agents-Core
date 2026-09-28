@@ -231,4 +231,20 @@ roles:
     workspace_only: true
     skills_profile: worker-baseline
 
+  probe:
+    display: Probe
+    level: w
+    # Org Mesh L3 acceptance-test worker (tools/mesh_check.py, docs/ops/
+    # mesh-check.md, CEO decision 2026-09-28). Proves create -> delegate ->
+    # worker -> merge across hosts -- must stay cheap: smallest model, lowest
+    # effort. Never touches anything outside docs/ops/mesh-probe/.
+    model: "claude-haiku-4-5-20251001"
+    effort: "low"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+    skills_profile: worker-baseline
+
 c_level: [ceo, cto, cmo, cgo, cfo]
