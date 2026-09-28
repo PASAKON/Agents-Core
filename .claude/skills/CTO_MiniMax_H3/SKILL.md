@@ -44,6 +44,12 @@ prompts go to Wan 3.0 on TopView for the real footage (`CTO_Wan3.0_TopView`, con
 4. **Every reference picture is ONE photograph.** A multi-panel sheet in = a grid video out, for the whole
    clip; no prompt wording prevents it (measured on a live H100, 2026-09-03). Crop single panels from
    design sheets, and remove labels and numbers from the crop.
+5. **HARD: no red face and no red ears, on any character, in any shot.** H3 renders a blush as an
+   unnatural red patch. Never write blush, flushed, red cheeks, red ears, หน้าแดง or หูแดง in a prompt, a
+   story beat or an entity note, not even for embarrassment, heat or arousal; show those through action
+   (looks away, bites the lip, rubs the back of the neck). Close every prompt with the negation
+   `no blush, no red cheeks, no red ears, even natural skin tone` (H3 follows negations, §5).
+   **Why hard:** CEO ruling 2026-09-28: "ห้ามหน้าแดงหูแดงนะ อันนี้เป็น Rules เลย ใน MiniMax H3 ทำหน้าแดงออกมาได้ผิดธรรมชาติมากๆ".
 
 ## 3 · Elements (the @handle library)
 
