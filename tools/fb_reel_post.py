@@ -195,6 +195,15 @@ LOGIN_WALL_MARKERS = (
 COMMENT_IDENTITY_RE = re.compile(r"^แสดงความคิดเห็นใน(?:ชื่อ|นาม)\s*(.+)$")
 TEST_MARKER_RE = re.compile(r"\[TEST-([0-9a-fA-F]{8})\]")
 
+# BUG FOUND LIVE 2026-09-29 (EP4 first-comment run, CEO/CTO addendum to
+# task-e4482d34): the comment posted fine as the Page, but Facebook's own
+# innerText collapses a long comment to "<prefix>... ดูเพิ่มเติม" — so the
+# post-submit body_contains_text check reported "comment text not found
+# after submit" and the comment was never pinned. A re-run's idempotency
+# check (also body_contains_text) has the same blind spot: it would not
+# recognize the collapsed comment as already posted and could post it TWICE.
+SEE_MORE_MARKER = "ดูเพิ่มเติม"
+
 THAI_MONTHS = {
     "ม.ค.": 1, "ก.พ.": 2, "มี.ค.": 3, "เม.ย.": 4, "พ.ค.": 5, "มิ.ย.": 6,
     "ก.ค.": 7, "ส.ค.": 8, "ก.ย.": 9, "ต.ค.": 10, "พ.ย.": 11, "ธ.ค.": 12,
@@ -268,11 +277,34 @@ def captions_match(expected: str, actual: str) -> tuple[bool, list[str]]:
     return False, diff
 
 
+def _collapse_tolerant_line_match(expected_line: str, body_line: str) -> bool:
+    """Pure. True if body_line looks like Facebook's own collapsed rendering
+    of expected_line: body_line carries the SEE_MORE_MARKER and the text
+    before that marker is a left-truncation of expected_line (Facebook only
+    ever truncates from the right, never rewrites or reorders text before the
+    cut). Deliberately does NOT match on plain equality — a bare first-line
+    match with no collapse marker is not evidence of anything (a caller's own
+    exact/contiguous check already covers that case), and treating it as one
+    was a real regression caught by test_body_contains_text_false_wrong_order."""
+    if SEE_MORE_MARKER not in body_line:
+        return False
+    prefix = body_line.split(SEE_MORE_MARKER, 1)[0].rstrip(" .…")
+    return bool(prefix) and expected_line.startswith(prefix)
+
+
 def body_contains_text(body_text: str, expected_text: str) -> bool:
     """Pure. True iff every non-blank normalized line of expected_text appears
     as a contiguous, in-order run within body_text's own non-blank lines.
     Used to spot an already-posted comment (or, more loosely, any block of
-    text) inside a page's full innerText without needing a DOM handle."""
+    text) inside a page's full innerText without needing a DOM handle.
+
+    FIX 2026-09-29 (see SEE_MORE_MARKER note above): if the strict multi-line
+    match fails, falls back to matching just the expected text's first
+    non-blank line against a body line that carries Facebook's own
+    "ดูเพิ่มเติม" collapse marker — a collapsed excerpt is always a
+    left-truncation of the real text, so that is sufficient evidence the
+    comment is actually there, just rendered collapsed.
+    """
     exp_lines = [ln for ln in normalize_caption(expected_text) if ln != ""]
     if not exp_lines:
         return False
@@ -281,7 +313,8 @@ def body_contains_text(body_text: str, expected_text: str) -> bool:
     for i in range(len(body_lines) - n + 1):
         if body_lines[i:i + n] == exp_lines:
             return True
-    return False
+    first_line = exp_lines[0]
+    return any(_collapse_tolerant_line_match(first_line, ln) for ln in body_lines)
 
 
 def _meta_content(html_text: str, attr_name: str, attr_value: str) -> str | None:
@@ -426,10 +459,26 @@ def parse_comment_identity(aria_label: str) -> str | None:
 
 def is_duplicate_comment(expected_text: str, existing_texts: list[str]) -> bool:
     """Pure. True iff one of existing_texts already normalizes to expected_text
-    — the idempotency check the brief requires before posting the first comment.
+    — the idempotency check the brief requires before posting the first
+    comment. FIX 2026-09-29 (see SEE_MORE_MARKER note above): also true if an
+    existing text carries a line that is a collapsed ("...ดูเพิ่มเติม")
+    rendering of expected_text's first line — same blind spot as
+    body_contains_text, fixed the same way, so a re-run never double-posts a
+    comment Facebook is currently displaying collapsed.
     """
     exp = normalize_caption(expected_text)
-    return any(normalize_caption(t) == exp for t in existing_texts)
+    if any(normalize_caption(t) == exp for t in existing_texts):
+        return True
+    exp_lines = [ln for ln in exp if ln != ""]
+    if not exp_lines:
+        return False
+    first_line = exp_lines[0]
+    for t in existing_texts:
+        for ln in t.replace("\r\n", "\n").split("\n"):
+            ln = ln.strip()
+            if ln and _collapse_tolerant_line_match(first_line, ln):
+                return True
+    return False
 
 
 def extract_test_marker(text: str) -> str | None:
