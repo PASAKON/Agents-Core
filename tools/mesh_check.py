@@ -265,11 +265,16 @@ def check_l0(root: Path) -> tuple[bool, str | None]:
         return False, "no repo access"
     sources: dict[str, str] = {}
     try:
-        sh = config.self_host()  # type: ignore[attr-defined]
+        sh = config.self_host()
         if sh:
             sources["self_host"] = sh
-    except AttributeError:
-        pass  # self_host() lands in W0.1 — source simply absent, not a disagreement
+    except (AttributeError, ValueError, RuntimeError):
+        # AttributeError: pre-W0.1 config.py (self_host() didn't exist yet).
+        # ValueError/RuntimeError: self_host() itself can't resolve (bad
+        # ORG_HOST/node.yaml, unregistered box) — check_l0 is a diagnostic
+        # and must degrade to "source absent", never crash or false-flag a
+        # disagreement just because self_host() had nothing to say.
+        pass
     ts = _tailscale_guess_host()
     if ts is not None:
         sources["tailscale"] = ts

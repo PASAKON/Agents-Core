@@ -50,12 +50,17 @@ def test_check_l0_red_when_sources_disagree(monkeypatch):
     assert "root_match=(unregistered)" in reason
 
 
-def test_check_l0_self_host_missing_is_not_a_disagreement(monkeypatch):
-    """self_host() lands in a later wave (W0.1) — AttributeError from it must
-    be silently excluded, not treated as a third conflicting source."""
+def test_check_l0_self_host_failure_is_not_a_disagreement(monkeypatch):
+    """self_host() landed in W0.1 (task-1bfb0389) and can itself raise
+    (bad ORG_HOST/node.yaml, unregistered box) — that failure must be
+    silently excluded, not treated as a third conflicting source."""
     monkeypatch.setattr(m, "_tailscale_guess_host", lambda: "contabo")
     monkeypatch.setattr(m, "_root_match_host", lambda root: "contabo")
-    assert not hasattr(m.config, "self_host")
+
+    def _boom():
+        raise RuntimeError("cannot resolve self_host: env=None, ...")
+
+    monkeypatch.setattr(m.config, "self_host", _boom)
     ok, reason = m.check_l0(Path("/opt/MoonieXHQ/Agents/Core"))
     assert ok is True
     assert reason is None

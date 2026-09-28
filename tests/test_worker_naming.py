@@ -27,6 +27,17 @@ import lib.config as config  # noqa: E402
 import runners.worker_init as worker_init  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def _clear_self_host_cache():
+    """current_host() now delegates to lib.config.self_host(), cached per
+    process (functools.lru_cache) -- without clearing it, the section-3
+    tests below (which flip ORG_HOST between calls) would see a stale
+    answer from whichever ran first."""
+    config.self_host.cache_clear()
+    yield
+    config.self_host.cache_clear()
+
+
 # ---------------------------------------------------------------------------
 # 1. worker_session_name shape per host/role + truncation
 # ---------------------------------------------------------------------------
