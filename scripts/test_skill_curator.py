@@ -486,7 +486,7 @@ def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatc
     dest = curator.create_skill(
         paths, "CTO_Gate_NewThing",
         description="A brand new org skill created by an agent.",
-        audience=["cto"],
+        audience=["cto"], kind="gate", owner="CTO",
     )
 
     fm = curator._read_frontmatter(dest)
@@ -494,6 +494,8 @@ def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatc
     assert fm["author"]["role"] == "browser_operator"
     assert fm["audience"] == ["cto"]
     assert fm["name"] == "CTO_Gate_NewThing"
+    assert fm["kind"] == "gate" and fm["owner"] == "CTO"
+    assert fm["description"] == "GATE — A brand new org skill created by an agent."
 
     # Acceptance criterion (ADR 0022 Wave 2): the frontmatter contract --
     # skill-lint codes 1-10 -- passes on the first try.
@@ -507,11 +509,34 @@ def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatc
     findings, refused = skill_lint.run_check(owned_dir=paths.owned_skills_dir, kinds_yaml=None)
     assert findings == []
     assert refused == []
-    # The naming contract (codes 11-16, 2026-09-28): `create` does not stamp a
-    # kind or an owner, so the scaffold is reported for exactly the three
-    # things ALL_Protocol_SkillAuthor §4 step 4 says to add by hand.
+    # The naming contract (codes 11-16, 2026-09-28): with --kind and --owner the
+    # scaffold passes it too (ALL_Protocol_SkillAuthor §4 step 4).
+    findings, _ = skill_lint.run_check(owned_dir=paths.owned_skills_dir)
+    assert findings == []
+
+    # Without them it is reported for exactly the three things they stamp.
+    curator.create_skill(paths, "CTO_Gate_Bare", description="d", audience=["cto"])
     findings, _ = skill_lint.run_check(owned_dir=paths.owned_skills_dir)
     assert sorted(f.code for f in findings) == [11, 13, 14]
+    assert {f.skill for f in findings} == {"CTO_Gate_Bare"}
+
+
+def test_create_skill_refuses_an_unknown_kind_or_owner_and_writes_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-x")
+    paths = _make_paths(tmp_path)
+    with pytest.raises(curator.CuratorError, match="--kind 'recipe'"):
+        curator.create_skill(paths, "CTO_Gate_A", description="d", audience=["all"], kind="recipe")
+    with pytest.raises(curator.CuratorError, match="--owner 'CEO'"):
+        curator.create_skill(paths, "CTO_Gate_B", description="d", audience=["all"], kind="gate", owner="CEO")
+    with pytest.raises(curator.CuratorError, match="starts 'RULES'"):
+        curator.create_skill(paths, "CTO_Gate_C", description="RULES — d", audience=["all"], kind="gate")
+    assert not any((paths.owned_skills_dir / n).exists() for n in ("CTO_Gate_A", "CTO_Gate_B", "CTO_Gate_C"))
+
+    # A description that already carries the right prefix is not prefixed twice.
+    dest = curator.create_skill(paths, "CTO_Gate_D", description="GATE — d", audience=["all"], kind="Gate")
+    assert curator._read_frontmatter(dest)["description"] == "GATE — d"
 
 
 def test_create_skill_commits_with_skill_actor_trailer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -800,6 +825,21 @@ def test_notes_verb_flags_promote_stale_contested_and_malformed(tmp_path: Path, 
     out = capsys.readouterr().out
     assert "CONTESTED" in out and "contested" in out and "1 contested: contested" in out
     assert "quiet" not in out
+
+
+def test_notes_verb_prints_long_skill_names_whole(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture) -> None:
+    _set_worker_identity(monkeypatch, role="developer", task_id="task-notes")
+    paths = _make_paths(tmp_path)
+    long_name = "CMO_Gate_Flow_Omni1.1_Continuity_And_More"  # > 32 characters
+    for name in (long_name, "short"):
+        dest = curator.create_skill(paths, name, description="d", audience=["all"])
+        md = dest / "SKILL.md"
+        md.write_text(md.read_text() + "\n## Field notes\n\n- 2026-09-20 [WRONG] a · evidence: t1 · status: pending\n")
+    assert curator.cmd_notes(paths) == 0
+    lines = capsys.readouterr().out.splitlines()
+    row = next(line for line in lines if long_name in line)
+    short_row = next(line for line in lines if line.strip().startswith("short "))
+    assert row.index(" 1 ") == short_row.index(" 1 ")  # the columns still line up
 
 
 def test_notes_verb_on_an_empty_portfolio_says_so(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:

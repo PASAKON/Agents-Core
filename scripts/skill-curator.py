@@ -14,7 +14,8 @@ Verbs:
   pin <name>              exempt a skill from every future transition.
   unpin <name>            undo pin.
   create <name>           author a brand-new org skill (ADR 0022 Wave 2 —
-                           reverses ADR 0018 §6).
+                           reverses ADR 0018 §6); --kind / --owner stamp the
+                           naming contract (skill-lint codes 11, 13, 14).
   history [--skill NAME]  git log --follow for one skill, or the whole
                            owned-skills tree. Read-only.
   undo <sha>               git revert a skill-curator commit.
@@ -684,7 +685,10 @@ def unpin_skill(paths: CuratorPaths, name: str) -> dict:
     return _set_pinned(paths, name, False)
 
 
-def create_skill(paths: CuratorPaths, name: str, *, description: str, audience: list[str]) -> Path:
+def create_skill(
+    paths: CuratorPaths, name: str, *, description: str, audience: list[str],
+    kind: Optional[str] = None, owner: Optional[str] = None,
+) -> Path:
     """Author a brand-new org skill (ADR 0022 Wave 2 — reverses ADR 0018
     §6, which put agent-authored skill creation out of scope). Stamps
     `created_by: agent` and `author: {role, date}` from the calling
@@ -692,15 +696,30 @@ def create_skill(paths: CuratorPaths, name: str, *, description: str, audience: 
     Wave 1 legacy skills, which needed a lazy backfill. Commits the new dir
     with a Skill-Actor trailer, same as every other mutating verb here.
 
-    Deliberately does not apply the audience-prefix naming convention (ADR
-    0022 §4 / the `skill-author` skill) itself — that is the caller's job
-    when it picks `name`; this verb only validates the name is safe and
-    non-colliding, then writes a frontmatter that passes skill-lint.py on
-    the first try.
+    `kind` / `owner` (checked against config/skill-kinds.yaml before anything
+    is written) stamp `kind:`, `owner:` and the `<KIND> — ` description
+    prefix, so the scaffold also passes the naming contract (skill-lint codes
+    11, 13, 14). Picking a `<ROLE>_<Kind>_<Topic>` name (code 12) stays the
+    caller's job (ALL_Protocol_SkillAuthor §2); this verb only validates the
+    name is safe and non-colliding.
     """
     safe_path = _resolve_within(name, paths.owned_skills_dir)
     if safe_path.exists():
         raise CuratorError(f"{name!r} already exists under {paths.owned_skills_dir}")
+    if kind is not None or owner is not None:
+        sk = load_skill_kinds()
+        if kind is not None:
+            kind = kind.strip().lower()
+            if kind not in sk.kinds:
+                raise CuratorError(f"--kind {kind!r} is not one of {'|'.join(sk.kinds)}")
+            prefix = f"{kind.upper()} — "
+            other = next((k for k in sk.kinds if description.startswith(f"{k.upper()} — ")), None)
+            if other is not None and other != kind:
+                raise CuratorError(f"description starts {other.upper()!r} but --kind is {kind!r}")
+            if other is None:
+                description = prefix + description
+        if owner is not None and owner not in sk.c_levels:
+            raise CuratorError(f"--owner {owner!r} is not one of {', '.join(sk.c_levels)}")
 
     identity = _current_identity_safe()  # resolved before any mutation; never raises
     actor = f"{identity.role}/{identity.session_id or '-'}"
@@ -711,7 +730,9 @@ def create_skill(paths: CuratorPaths, name: str, *, description: str, audience: 
     frontmatter = "\n".join([
         "---",
         f"name: {name}",
-        f"description: {json.dumps(description)}",
+        *([f"kind: {kind}"] if kind is not None else []),
+        f"description: {json.dumps(description, ensure_ascii=False)}",
+        *([f"owner: {owner}"] if owner is not None else []),
         "created_by: agent",
         f'author: {{role: {identity.role}, date: "{today}"}}',
         f"audience: [{', '.join(audience)}]",
@@ -957,11 +978,12 @@ def cmd_notes(paths: CuratorPaths, today: Optional[datetime] = None) -> int:
         print("  (no field notes and no flip commits anywhere yet)")
         print()
         return 0
-    print(f"  {'skill':<32} {'pending':>7} {'malformed':>9} {'oldest':>7} {'flips30d':>8}  flags")
-    print(f"  {'-'*32} {'-'*7} {'-'*9} {'-'*7} {'-'*8}  -----")
+    w = max(len("skill"), *(len(r["skill"]) for r in rows))  # never cut a name: the rename made them long
+    print(f"  {'skill':<{w}} {'pending':>7} {'malformed':>9} {'oldest':>7} {'flips30d':>8}  flags")
+    print(f"  {'-'*w} {'-'*7} {'-'*9} {'-'*7} {'-'*8}  -----")
     for r in rows:
         print(
-            f"  {r['skill'][:32]:<32} {r['pending']:>7} {r['malformed']:>9} {r['oldest_days']:>6}d {r['flips']:>8}  "
+            f"  {r['skill']:<{w}} {r['pending']:>7} {r['malformed']:>9} {r['oldest_days']:>6}d {r['flips']:>8}  "
             f"{' '.join(r['flags'])}"
         )
     print()
@@ -1282,6 +1304,9 @@ def main(argv: Optional[list[str]] = None) -> int:
         "--audience", required=True,
         help="comma-separated audience tokens, e.g. cto,browser_operator or all",
     )
+    p_create.add_argument("--kind", default=None,
+                          help="one of the seven kinds (config/skill-kinds.yaml); also prefixes the description")
+    p_create.add_argument("--owner", default=None, help="the owning C-level, e.g. CTO")
     p_history = sub.add_parser("history", help="git log --follow for one skill, or the whole tree")
     p_history.add_argument("--skill", default=None)
     p_undo = sub.add_parser("undo", help="git revert a skill-curator commit")
@@ -1317,7 +1342,8 @@ def main(argv: Optional[list[str]] = None) -> int:
             return 0
         if args.verb == "create":
             audience = [tok.strip() for tok in args.audience.split(",") if tok.strip()]
-            dest = create_skill(paths, args.name, description=args.description, audience=audience)
+            dest = create_skill(paths, args.name, description=args.description, audience=audience,
+                                kind=args.kind, owner=args.owner)
             print(f"created {args.name!r} -> {dest}")
             return 0
         if args.verb == "history":
