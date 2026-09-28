@@ -525,6 +525,32 @@ def test_malformed_field_note_is_code_8_and_names_the_problem(tmp_path: Path, ba
     assert "SKILL.md:" in findings[0].message  # line number, so the author can find it
 
 
+def test_two_field_notes_headings_is_code_17(tmp_path: Path) -> None:
+    """CXO_Protocol_DevSpawn, 2026-09-28: a second heading hid 32 pending notes
+    from code 8 and from `skill-curator.py notes`."""
+    body = "rule\n\n## Field notes\n\n" + _GOOD_NOTE + "\n\n## Later\n\nx\n\n## Field notes\n\n" + _GOOD_NOTE + "\n"
+    d = _write_skill(tmp_path, "noted", body=body)
+    findings = skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE)
+    assert [f.code for f in findings] == [17]
+    assert "merge them, the tools read only the first" in findings[0].message
+
+
+def test_one_field_notes_heading_is_not_code_17(tmp_path: Path) -> None:
+    d = _write_skill(tmp_path, "noted", body="rule\n\n## Field notes\n\n" + _GOOD_NOTE + "\n")
+    assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []
+
+
+def test_field_notes_heading_inside_a_code_fence_is_neither_code_17_nor_the_section(tmp_path: Path) -> None:
+    """ALL_Protocol_SkillAuthor §9 shows `## Field notes` inside two body
+    templates; those are examples. The real section below them is the one
+    code 8 must read -- a malformed note there is still caught."""
+    body = ("**Rules**\n```\n# <What>\n## Rules\n## Field notes\n```\n\n~~~\n## Field notes\n~~~\n\n"
+            "## Field notes\n\n- no date, no evidence\n")
+    d = _write_skill(tmp_path, "templated", body=body)
+    findings = skill_lint.lint_skill("templated", d, _KNOWN_AUDIENCE)
+    assert [f.code for f in findings] == [8]
+
+
 def test_notes_outside_the_field_notes_section_are_not_linted(tmp_path: Path) -> None:
     d = _write_skill(tmp_path, "noted", body="- not a field note, just a bullet\n\n## Other\n- 2026-09-22 [WEIRD] x")
     assert skill_lint.lint_skill("noted", d, _KNOWN_AUDIENCE) == []

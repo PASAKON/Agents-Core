@@ -7,8 +7,8 @@ contract (ADR 0022 section 3: `audience`, `created_by`, `author`,
 `pinned`, `lifecycle`, `archived_at` — moved out of the deleted
 state/skill-usage.json sidecar into each skill's own frontmatter), the
 ADR 0026 learning loop (8-10) and the skill naming contract the CEO approved
-on 2026-09-27 and guarded on 2026-09-28 (11-16, "Ok ลุย"). Sixteen finding
-codes:
+on 2026-09-27 and guarded on 2026-09-28 (11-16, "Ok ลุย"). Seventeen
+finding codes:
 
   1. missing SKILL.md
   2. unparseable frontmatter
@@ -28,6 +28,9 @@ codes:
  15. a redirect stub whose "removed after YYYY-MM-DD" date has passed
  16. docs/org/SKILL-INDEX.md differs from a fresh `skill-curator.py index`
      render (one finding for the file, not one per skill)
+ 17. more than one `## Field notes` heading outside fenced code -- code 8 and
+     `skill-curator.py notes` read only the first, so the rest are invisible
+     (CXO_Protocol_DevSpawn hid 32 pending notes that way, 2026-09-28)
 
 Codes 11-14 skip imported public skills, redirect stubs
 (`disable-model-invocation: true` + a description starting `MOVED`) and
@@ -103,6 +106,7 @@ CODES = {
     14: "description-kind-prefix",
     15: "stub-expired",
     16: "index-stale",
+    17: "duplicate-field-notes-heading",
 }
 
 # The ROLE that means everyone, workers included -- part of the naming grammar
@@ -459,6 +463,13 @@ def lint_skill(
             ))
 
     # --- ADR 0026: the learning loop's field notes -------------------------
+    headings = _cur().field_notes_headings(skill_md.read_text(encoding="utf-8"))
+    if len(headings) > 1:
+        findings.append(Finding(
+            name, 17, CODES[17],
+            f"more than one `## Field notes` heading (SKILL.md lines {', '.join(map(str, headings))}) "
+            "— merge them, the tools read only the first",
+        ))
     for note in _cur().parse_field_notes(name, skill_md.read_text(encoding="utf-8")):
         if note.problems:
             findings.append(Finding(

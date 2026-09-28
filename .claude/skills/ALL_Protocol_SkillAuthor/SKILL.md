@@ -84,7 +84,8 @@ and 10 (no approval gate in any form), so the pre-commit hook ignores its exit c
 report is the COO's job. The naming contract is codes 11–16 (lists in `config/skill-kinds.yaml`): 11 `kind:`
 missing or not one of the seven · 12 name not `<ROLE>_<Kind>_<Topic>` or Kind ≠ `kind:` (CEO commands exempt) ·
 13 `owner:` not a C-level · 14 description not `<KIND> — ` · 15 redirect stub past its removal date · 16
-`docs/org/SKILL-INDEX.md` stale. Imported skills, stubs (except 15) and archived skills are skipped.
+`docs/org/SKILL-INDEX.md` stale. Imported skills, stubs (except 15) and archived skills are skipped. Code 17:
+a second `## Field notes` heading — the tools read only the first, so keep one section at the bottom.
 
 ## 4 · Create — eight steps
 
@@ -356,3 +357,4 @@ there.
 - 2026-09-27 [SUPERSEDED] §1 §2 §6 §Rules 2 — rewritten on the CEO's rulings of 2026-09-27: seven kinds ("เห็นด้วยทั้ง 7 หมวดหมู่"), names that say role, kind and topic, the rename table and its phases ("OK ตามนั้น"), the mixed-skill rule, and the COO as owner of this process ("เขียน skill สำหรับการสร้าง skill ... เวลาที่ COO หยิบไปใช้จะได้ใช้งานได้ทันที"). The "never rename" rule is kept above as SUPERSEDED · evidence: docs/org/SKILL-KINDS-2026-09-27.md, CTO session 14cc900f · status: promoted
 - 2026-09-27 [MISSING] §6 step 6 — commit a rename phase by staging NAMED paths (or `git add -A -- . ':!.venv'`), never plain `git add -A`: phase 2's `-A` in a scratch worktree committed a `.venv` symlink (`.venv/` in .gitignore matches a directory, not a link); the ff-pull on the shared Contabo checkout then replaced its real, ignored .venv with a self-link and every venv service lost its packages until the venv was rebuilt. Before each push: `git show --stat HEAD | grep -E '\.venv|node_modules'` must print nothing · evidence: 1e818147 (the bad commit), e90df583 (the fix), memory feedback_git_add_all_in_worktree_with_symlinks · status: pending
 - 2026-09-28 [MISSING] §3 — kind/name/owner/prefix/stub-expiry lint codes 11–16 + write hook + index built (CEO "Ok ลุย") · evidence: commit "skill guards: lint codes 11-16 …" (scripts/skill-lint.py, config/skill-kinds.yaml, scripts/hook-skill-write-reminder.py, docs/org/SKILL-INDEX.md) · status: promoted
+- 2026-09-28 [MISSING] §3 — lint code 17: more than one `## Field notes` heading (CXO_Protocol_DevSpawn hid 32 pending notes under a second one); the section finder also skips headings inside fenced code, so this file's §9 templates no longer stand in for its real Field notes · evidence: 2c039826 (the sighting), scripts/skill-curator.py field_notes_headings · status: promoted

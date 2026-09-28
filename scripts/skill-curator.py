@@ -797,17 +797,51 @@ class FieldNote:
     problems: list        # [] when well-formed
 
 
-def field_notes_section(text: str) -> tuple[int, list[str]]:
-    """(1-based line number of the `## Field notes` heading, lines after it up
-    to the next `## ` heading). (0, []) when the skill has no such section."""
+_FENCE_RE = re.compile(r"^ {0,3}(```|~~~)")
+
+
+def _outside_fences(lines: list[str]) -> list[bool]:
+    """Per line: True when it is outside a fenced code block. A body template
+    that shows `## Field notes` inside ``` (ALL_Protocol_SkillAuthor §9 has two)
+    is an example, not the skill's own section."""
+    out: list[bool] = []
+    fence: Optional[str] = None
+    for line in lines:
+        m = _FENCE_RE.match(line)
+        if fence is None and m:
+            fence = m.group(1)
+            out.append(False)
+        elif fence is not None:
+            out.append(False)
+            if m and m.group(1) == fence:
+                fence = None
+        else:
+            out.append(True)
+    return out
+
+
+def field_notes_headings(text: str) -> list[int]:
+    """1-based line numbers of every `## Field notes` heading outside fenced
+    code. More than one = notes under the later ones are invisible to
+    `notes` and to skill-lint code 8 (skill-lint code 17)."""
     lines = text.splitlines()
+    outside = _outside_fences(lines)
+    return [i + 1 for i, line in enumerate(lines) if outside[i] and line.rstrip() == FIELD_NOTES_HEADING]
+
+
+def field_notes_section(text: str) -> tuple[int, list[str]]:
+    """(1-based line number of the first `## Field notes` heading outside
+    fenced code, lines after it up to the next `## ` heading outside fenced
+    code). (0, []) when the skill has no such section."""
+    lines = text.splitlines()
+    outside = _outside_fences(lines)
     for i, line in enumerate(lines):
-        if line.rstrip() == FIELD_NOTES_HEADING:
+        if outside[i] and line.rstrip() == FIELD_NOTES_HEADING:
             body = []
-            for later in lines[i + 1:]:
-                if later.startswith("## "):
+            for j in range(i + 1, len(lines)):
+                if outside[j] and lines[j].startswith("## "):
                     break
-                body.append(later)
+                body.append(lines[j])
             return i + 1, body
     return 0, []
 

@@ -925,6 +925,19 @@ def test_index_cli_verb_is_registered() -> None:
     assert r.returncode == 0 and "--out" in r.stdout
 
 
+def test_field_notes_section_skips_headings_inside_code_fences() -> None:
+    text = ("---\nname: x\n---\n# x\n```\n## Field notes\n- 2026-09-01 [WRONG] template · evidence: t · status: pending\n"
+            "```\n\n## Field notes\n\n- 2026-09-22 [MISSING] real · evidence: t2 · status: pending\n"
+            "```\n## not a heading, fenced\n```\n- 2026-09-23 [COSTLY] after the fence · evidence: t3 · status: pending\n"
+            "\n## Next\n")
+    start, _body = curator.field_notes_section(text)
+    assert start == 10
+    notes = curator.parse_field_notes("x", text)
+    assert [n.text.split(" ·")[0] for n in notes] == ["real", "after the fence"]
+    assert curator.field_notes_headings(text) == [10]
+    assert curator.field_notes_headings(text + "\n## Field notes\n") == [10, 20]
+
+
 def test_stub_helpers() -> None:
     fm = {"disable-model-invocation": True,
           "description": "MOVED to CMO_Knowledge_Flow_Omni1.1 on 2026-09-27. Read that skill; "
