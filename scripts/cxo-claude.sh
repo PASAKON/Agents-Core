@@ -81,7 +81,7 @@ ROLE_PROMPT="$(cat "$ROLE_DOC")"
 
 # Per-role MCP set, generated fresh per launch (removed in cleanup below).
 # Replaces the committed config/cto.mcp.json, which hardcoded the Mac dev
-# path and so broke on Contabo (ROOT=/opt/mooniex-agents) — the same bug
+# path and so broke on Contabo (ROOT=/opt/MoonieXHQ/Agents/Core) — the same bug
 # cto-claude.sh already worked around. Shared generator keeps the two
 # launchers from drifting.
 # lungnote-mcp needs Node's native WebSocket (added in 22) for
@@ -261,7 +261,7 @@ fi
 # both need to know which machine this is before they touch c_level_sessions.
 case "$(uname -s)" in
   Darwin) MACHINE_LABEL="MAC" ;;
-  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
+  Linux)  if [ -d /opt/MoonieXHQ/Agents/Core ]; then MACHINE_LABEL="CONTABO"
           else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
   MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
   *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;

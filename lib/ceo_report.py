@@ -67,7 +67,7 @@ SSH_TIMEOUT = int(os.environ.get("MAC_AGENT_SSH_TIMEOUT", "20"))
 # Contabo's own checkout root -- needed only for the Mac branch of the
 # mailbox write below (SomPong's inbox is a real path under it, not a DB
 # row). Same default this repo's own CLAUDE.md documents.
-REMOTE_ROOT = os.environ.get("MAC_AGENT_REMOTE_ROOT", "/opt/mooniex-agents")
+REMOTE_ROOT = os.environ.get("MAC_AGENT_REMOTE_ROOT", "/opt/MoonieXHQ/Agents/Core")
 
 # Cap on the reply_detail text shipped over SSH in one SQL statement --
 # mirrors runners/mac_agent.py's MAX_RESULT_CHARS discipline (bound what

@@ -123,7 +123,7 @@ fi
 # Same machine-label logic as cto-claude.sh / cxo-claude.sh — keep in sync.
 case "$(uname -s)" in
   Darwin) MACHINE_LABEL="MAC" ;;
-  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
+  Linux)  if [ -d /opt/MoonieXHQ/Agents/Core ]; then MACHINE_LABEL="CONTABO"
           else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
   MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
   *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;

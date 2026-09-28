@@ -75,7 +75,7 @@ projects:
       # Corrected 2026-06-01 after the P1 LINE-fix deploy: pm2 reload never
       # touched the webhook container. Rebuild the image so new code lands.
       command: |
-        ssh mooniex-vps 'cd /root/projects/mooniex-claudeflow \
+        ssh mooniex-vps 'cd /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow \
           && git fetch origin --quiet \
           && git reset --hard origin/main \
           && docker compose -f docker-compose.webhook.yml up -d --build'
@@ -193,7 +193,7 @@ projects:
     paths:
       mac: /Users/gob/MoonieXHQ/Agents/Core
       winbox: 'C:\Users\UsEr\mooniex\repo\MoonieX-Agents'
-      contabo: /opt/mooniex-agents
+      contabo: /opt/MoonieXHQ/Agents/Core
     wiki_refs:
       - playbooks/backend.md
 
@@ -241,7 +241,7 @@ projects:
     # Drives this repo one-way: it spawns scripts/cto-claude.sh from whatever
     # ORG_ROOT points at, and nothing here depends on the console. ORG_ROOT is
     # required — the console refuses to boot without it.
-    # Deploy: scripts/console-deploy.sh in ITS repo, rsync -> /opt/mooniex-console
+    # Deploy: scripts/console-deploy.sh in ITS repo, rsync -> /opt/MoonieXHQ/Projects/MoonieX/Console
     # on Contabo, tailnet-only. Deploy is NOT automatic on merge.
     auto_push: false
     review_required: true

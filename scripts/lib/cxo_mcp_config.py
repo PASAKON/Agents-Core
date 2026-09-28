@@ -63,7 +63,6 @@ def _first_existing(*paths: str) -> str:
 LUNGNOTE_MCP_JS = os.environ.get("LUNGNOTE_MCP_JS") or _first_existing(
     "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp/index.js",
     "/opt/MoonieXHQ/Projects/LungNote/Mcp/index.js",
-    "/opt/lungnote-mcp/index.js",   # compat link until the HQ move settles
 )
 # @supabase/realtime-js needs a native `WebSocket` global, which Node gained in
 # 22. The Mac's system `node` is already 26+ (Homebrew), so this is invisible

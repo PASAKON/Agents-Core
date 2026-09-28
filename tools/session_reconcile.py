@@ -53,7 +53,7 @@ def _this_host() -> str:
     if system == "Darwin":
         return "mac"
     if system == "Linux":
-        if Path("/opt/mooniex-agents").is_dir():
+        if Path("/opt/MoonieXHQ/Agents/Core").is_dir():
             return "contabo"
         return (platform.node().split(".")[0] or "linux").lower()
     if system == "Windows":
