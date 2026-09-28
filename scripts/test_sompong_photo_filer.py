@@ -563,10 +563,7 @@ def test_concurrent_tick_is_skipped_not_double_processed(filer_env, monkeypatch)
 
 # --------------------------------------------------------------------------- real socket, stub server -- never Drive
 
-def _run_stub_broker_once(socket_path: Path, response: dict, captured: list):
-    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    server.bind(str(socket_path))
-    server.listen(1)
+def _run_stub_broker_once(server: socket.socket, response: dict, captured: list):
     server.settimeout(5.0)
     conn, _ = server.accept()
     try:
@@ -590,9 +587,13 @@ def test_upload_via_broker_sends_the_expected_wire_request_over_a_real_socket(fi
     socket_path = Path(tempfile.mkdtemp(dir="/tmp")) / "stub.sock"
     monkeypatch.setattr(filer, "SOCKET_PATH", socket_path)
 
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.bind(str(socket_path))
+    server.listen(1)
+
     captured: list = []
     response = {"ok": True, "id": "fake-id", "name": "(x) (1-1-2026) (0000) m.jpg", "link": None, "size": 5}
-    t = threading.Thread(target=_run_stub_broker_once, args=(socket_path, response, captured), daemon=True)
+    t = threading.Thread(target=_run_stub_broker_once, args=(server, response, captured), daemon=True)
     t.start()
 
     local = tmp_path / "photo.bin"
@@ -611,9 +612,13 @@ def test_upload_via_broker_reports_a_refused_upload_as_failure(filer_env, monkey
     socket_path = Path(tempfile.mkdtemp(dir="/tmp")) / "stub2.sock"
     monkeypatch.setattr(filer, "SOCKET_PATH", socket_path)
 
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    server.bind(str(socket_path))
+    server.listen(1)
+
     captured: list = []
     response = {"ok": False, "error": "caller not authorized"}
-    t = threading.Thread(target=_run_stub_broker_once, args=(socket_path, response, captured), daemon=True)
+    t = threading.Thread(target=_run_stub_broker_once, args=(server, response, captured), daemon=True)
     t.start()
 
     local = tmp_path / "photo2.bin"
