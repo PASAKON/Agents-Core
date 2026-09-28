@@ -19,10 +19,11 @@ Cadence, 16–28 Sep (13 days), 58 posts ≈ 4.5/day (MEASURED):
 
 | Post type | Count | Reactions per post |
 |---|---|---|
-| Drama reels | 24 (≈1.8/day) | 3.4k–63k |
-| Teaser / follow-the-episode (quote a line + "ติดตามตอนใหม่") | ~17 | 190–570 |
-| Ordinary posts (good night, good morning, thanks, "taking 2–3 days off", flood encouragement, YouTube launch, admin's real dog and cat) | ~12 | 118–829 |
-| Untitled / other | ~5 | 170–1.7k |
+| Drama episodes | ~26 (≈2/day) | 1.1k–63k |
+| Teasers (short clip + a quoted line + "ติดตามตอนใหม่") | ~18 | 170–770 |
+| Ordinary posts (good night, good morning, thanks, "taking 2–3 days off", flood encouragement, YouTube launch, admin's real dog and cat) | 14 (24%) | 118–829 |
+
+Count corrected 2026-09-28 22:20: the first pass said 24 episodes because it set the episode floor at 3.4k reactions; fresh episodes (the newest, 2:16 long, had 2.4k at under a day old) sit below that. The worker's typed log (`comments/seriescat-postlog.json`) has 44 video posts = ~26 episodes + ~18 teasers. «กาฟิว'ซีรี่ย์» is the same owner's official backup page, not a second rival.
 
 Reels post at 05:00 and 16:00–20:30. Shares: reels 26–663, ordinary posts 1–36 (MEASURED). Newer captions end with "ตัวละครสมมติ เนื้อหาสร้างด้วย AI ไม่มีสัตว์หรือบุคคลจริงได้รับอันตราย".
 
@@ -30,7 +31,7 @@ Why self-contained short clips get big views:
 - Reels are served to non-followers; a self-contained episode needs no prior context, so any episode can break out (Meta ranks Reels by skip likelihood, MEASURED).
 - The title asks "why did the cat do that?", which holds the first seconds.
 - The warm ending gets shared to family (shares above).
-- Volume: 24 episodes produced 3 above 30k reactions; the rest 3–16k.
+- Volume: ~26 episodes produced 3 above 30k reactions; the rest 1–21k.
 - The same character in every episode turns viewers into followers.
 
 Comments — «กาฟิว แมวร้ายผู้เสียสละ» (29 Aug; 1M views, 47k reactions, 1,219 comments), top 32 fan comments + 5 admin comments (MEASURED; one comment can fall in several groups):
@@ -46,7 +47,13 @@ Comments — «กาฟิว แมวร้ายผู้เสียสล�
 | "รู้ว่าเป็น AI แต่ทำไมเราอิน" | 1–2 | The AI label does not stop them |
 | "ภาษาเพี้ยน" | 2 | They forgive AI voice errors once the admin apologises |
 
-The admin comments first (5 times): behind-the-scenes, an apology for voice errors, an apology for the tears (70 likes). Comments of 7 more videos are pending from browser_operator task-9c001dbf; update this section when they land.
+The admin comments first (5 times): behind-the-scenes, an apology for voice errors, an apology for the tears (70 likes).
+
+Second clip «กาแฟ» (970k views, 70k reactions, 1.4k comments; adapted from a fan's true story), top 32 (worker tally, MEASURED): 14 cried/touched; 7 told their own cat story — the most-liked comment (136) is one; 4 criticisms incl. "เอาเรื่องจริงมาทำเล่นอีก"; 1 calls herself ป้า. A true-story episode makes viewers volunteer their own pet stories: free story intake (LINE OA), but get the owner's consent and say so on every such episode.
+
+The other 6 clips were capped at 2 comments each by a Facebook throttle (task-9c001dbf), so they are not counted.
+
+The page also asks fans in a pinned comment to "สมัครสมาชิก 19 บาท" to fund credits (Facebook Subscriptions, MEASURED). Thai eligibility and uptake unchecked; check before CP2.
 
 Copy: good dog misjudged → a human who misjudges him (verbal only; no harm to the animal on screen — TikTok bans animal cruelty) → reveal of love; admin comments first on every episode; teaser and ordinary posts every day (0 credits).
 
@@ -88,7 +95,7 @@ CP1 numbers were set in the base plan before any result: GUESS with reasons (wea
 | When | Facebook | TikTok | YouTube |
 |---|---|---|---|
 | Daily 19:30 | Episode 2:00–2:30, AI label | Same episode 20:30, AI label | — |
-| Daily morning/afternoon | Teaser: 1 line + still + "คืนนี้ 19:30" (0 cr) | — | — |
+| Daily morning/afternoon | Teaser: 10–15 s cut from the episode + 1 line + "คืนนี้ 19:30" (0 cr, as the cat page does) | — | — |
 | Daily 1 post | Ordinary: good morning/night as ข้าวเหนียว, a question to fans, thanks (0 cr) | From 1k followers: ≤1 «ของในบ้านยายคำ» product clip/day | — |
 | Sunday | Invite real dog stories via LINE | — | ~15-min weekly compilation (watch hours for YPP) |
 | Monthly | «ฝากร้าน» post (copied from the cat page) | — | — |
@@ -97,7 +104,7 @@ Test weeks W3–W4 stay at 4 episodes, Mon–Thu 19:30, to change one variable a
 
 ## 6. Growth (ESTIMATE — targets, not forecasts)
 
-Growth is a staircase: ordinary episodes hold the base, one breakout lifts followers in a jump (the cat page: 3 breakouts in 24 episodes, MEASURED).
+Growth is a staircase: ordinary episodes hold the base, one breakout lifts followers in a jump (the cat page: 3 breakouts in ~26 episodes, MEASURED).
 
 | Period | Episodes | Median views | Breakout | Total views | New followers (2–4 per 1k) |
 |---|---|---|---|---|---|
