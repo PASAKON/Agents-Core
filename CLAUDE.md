@@ -93,3 +93,19 @@ rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-
 Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
 1. The table above.
 2. Wiki `projects/mooniex-console.md` §"Project availability" (Mac session only).
+
+## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
+
+- Every secret lives in Infisical (org `MoonieX`, one project per repo, envs `dev`/`prod`; org-wide
+  credentials in `Org-Infra`, whose values only the CEO enters). Do not create or extend a `.env`.
+  A service reads its secrets through `infisical run` with its machine identity
+  (`/etc/infisical/<host>.env`, root-only) — never read, copy or echo that file.
+- A secret value never appears in chat, a screenshot, a log, a commit or a Run Inbox card. One that
+  did is `leaked`: tag it in Infisical and rotate it (new key at the provider → Infisical → verify →
+  revoke the old one).
+- New key: provider-page name `<brand>-<project>-<env>-<access>-exp<YYYY-MM-DD>` (≤40 chars),
+  variable `<PROVIDER>_[<WHICH>_]<KIND>[_<ACCESS>]` (no project/env/date/machine in it), required
+  metadata (purpose, console_url, scope, expires, owner, created). Full rules, permissions and
+  phases: `docs/design/secrets-infisical/PLAN.md` §3b–§6.
+- Migration runs project by project starting on Contabo (P2 = MoonieX-LineAutomation). The owner of
+  a service is told before its process is restarted under `infisical run`.
