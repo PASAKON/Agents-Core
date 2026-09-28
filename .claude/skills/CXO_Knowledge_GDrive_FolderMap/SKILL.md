@@ -88,7 +88,9 @@ Google Drive (root) — pass.gob1@gmail.com
 │   ├── LUNGNOTE/
 │   ├── BRAND PROMPT/
 │   ├── WARPCLIP/
-│   └── LINKREED/
+│   ├── LINKREED/
+│   └── CHATUDO/                  created 2026-09-28 (CEO approved)
+│       └── Sales & Outreach/     Chatudo sales + shop outreach (tracker Sheet)
 ├── ALL DRAFT/                    video projects, per channel
 │   ├── ASSETS/                   shared across every channel
 │   │   ├── ALL Assets/           cross-project general assets (image or
@@ -388,6 +390,8 @@ Google Drive (root) — pass.gob1@gmail.com
 | `PROJECT/BRAND PROMPT` | `1A306O59m-X20MrqCsT_bZocAJ73RNAWT` | Empty, awaiting first files. |
 | `PROJECT/WARPCLIP` | `1K4d6daPrWr_IGiqMYM8KIEE4X8lOMueF` | Empty, awaiting first files. |
 | `PROJECT/LINKREED` | `1bHC9Zmtg3M_M8I-cwV8Dvmlxl17FVPjh` | Empty, awaiting first files. |
+| `PROJECT/CHATUDO` | `1Vwqr-D2tXd2Y0k2IT0Wm4v6SmA5Bv9lA` | Created 2026-09-28 by CTO session cto-4bb20df8. The CEO picked the path `PROJECT/CHATUDO/Sales & Outreach` from the options offered in chat. Chatudo.com's non-video material. |
+| `PROJECT/CHATUDO/Sales & Outreach` | `1iRfg8ZQjJnNTPUSR_jBblBEZVAdLCrRL` | Created 2026-09-28 with the same approval. The option the CEO picked read "เก็บงานขายและทักร้านของ Chatudo". Holds the Google Sheet `Chatudo ตารางทักร้าน` (`1kqCYwXOJ2rdnOwAtitICTtoZ3WW01aBuz1cMP6Ta7e0`, plan O1): ~450 shops, day-3/day-7 follow-ups and the Monday 10:00 funnel, built by `scripts/chatudo_outreach_sheet.py` and checked by `scripts/chatudo_outreach_drive.py verify`. |
 | `ALL DRAFT` (root) | `138qB8fRfv6Yo_2mBY2aObDcw1A1IRZ7q` | Video projects for every channel: AI-generated footage + b-roll. **Video lives here, never in `PROJECT`.** |
 | `ALL DRAFT/ASSETS` | `1LJreOD8H3jUNzypxTnPwvq-pS7jkQNRd` | Shared assets usable across every channel. `ALL Assets` = general cross-project media, named for subject, image or video. `AI Assets` = AI-generated B-roll, VIDEO ONLY, sub-folders named `<CHANNEL> (ratio)` e.g. `BLACK LIQUIDITY (9:16)` (always both ratios per channel), files named `(scene/purpose) (D-M-YYYY) (AI model)` — see "AI Assets footage naming" above. `XM Assets` / `Exness Assets` = one sub-folder per real-world event (e.g. "XM GALA DINER 2024"), holding every photo/video shot during that event — both already matched this pattern before any fix was needed. | **Drift found 2026-09-18 (recorded per Rule 6, definitions NOT invented — ask the CEO):** six more broker folders exist here that this map never listed — `FXGT Assets` `1ZrNp0P-0oCBF549KrLtuP46hLgAnTFEC`, `FXPro Assets` `1ra1DDwzMEOi1EyvLoW6hLB0jeFjHzgFa`, `IQ Option Assets` `10x4nDVx0nkBkT92ReU_l4Ho_mRE3cJQs`, `Infinox Assets` `1xz0GZfT0VxxeD0-0Loz0i8o81q_4nd--`, `KCMTrade Assets` `1kKJkiTlKcCHyWF4Nmpzb9qYSccoWDAcP`, `OANDA Assets` `15b0xPW_e8gFMK4W-3Xvutp_Z8MRgNsgq`, plus `Cover Example.` `19lXq1c40za6V3A8E5PcHoJrdvuqvQ1_I`. They look like the same per-broker pattern as XM/Exness but nobody has said so — no definition is written here until the CEO gives one. Also note: **there is no audio folder anywhere under ASSETS**, which is why a shared TTS voice library has nowhere to live yet.
 | `ALL DRAFT/ASSETS/AI Assets` | `14uc0nxq0ZmaS0GZuCq7hZOl1ROeUYRbV` | The parent of the four `<CHANNEL> (ratio)` folders. Id recorded 2026-09-18 — it had been missing from this table, and the CEO pointed at it by link when asked where B-roll belongs ("ในนี้มีอยู่แล้ว"). Definition is on the `ALL DRAFT/ASSETS` row above. |
