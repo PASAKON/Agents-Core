@@ -1,0 +1,48 @@
+# The skill naming contract, read by three guards (CEO "Ok ลุย" 2026-09-28):
+#   - scripts/skill-lint.py codes 11-16 (kind, name, owner, description prefix,
+#     expired stubs, stale index) -- a lint, never a gate
+#   - scripts/hook-skill-write-reminder.py (PostToolUse on a SKILL.md write)
+#   - scripts/skill-curator.py index -> docs/org/SKILL-INDEX.md
+# Decisions: docs/org/SKILL-KINDS-2026-09-27.md (the CEO approved the seven kinds
+# and <ROLE>_<Kind>_<Topic> on 2026-09-27). Procedure: .claude/skills/ALL_Protocol_SkillAuthor.
+#
+# Worker roles are NOT listed here: a name's ROLE may also be any worker role
+# of policies/agents.yaml in capitals (BROWSER_OPERATOR, VIDEO_EDITOR, ...),
+# derived at run time. `ALL` (everyone, workers included) is part of the grammar.
+
+# The seven kinds, lower case as written in `kind:`. The order is the section
+# order of docs/org/SKILL-INDEX.md.
+kinds: [rules, knowledge, workflow, procedure, standard, gate, protocol]
+
+# Valid ROLE prefixes of a name and valid `owner:` values. CXO = every C-level.
+c_levels: [CTO, CMO, CGO, CFO, COO, CXO]
+
+# Imported public skills: not ours, out of scope until the CEO sorts them
+# (CEO 2026-09-27). No kind, no rename, no edit; every guard skips them.
+# ai-video-storyboard is a symlink into external/ -- skill-lint refuses it anyway.
+imported:
+  - content-idea-generator
+  - de-ai-ify
+  - homepage-audit
+  - marketing-principles
+  - positioning-basics
+  - social-card-gen
+  - video-ad-analysis
+  - voice-extractor
+  - ai-video-storyboard
+
+# Commands the CEO types himself keep their short names (CEO confirmed
+# 2026-09-27): exempt from the name check (code 12) only -- kind, owner and
+# the description prefix still apply.
+ceo_commands:
+  - session-open
+  - session-close
+  - session-save
+  - session-list
+  - session-merge
+  - session-restart
+  - session-worktree
+  - session-change-model
+  - terminal-open
+  - terminal-restart
+  - relay-login

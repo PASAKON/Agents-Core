@@ -13,7 +13,7 @@ scope: >-
 description: PROTOCOL — Get a login done by the CEO from his phone via the Console login relay. Trigger on /relay-login, "login relay", "ให้ CEO login", "ขอ login", "session หมดอายุ", "cookie หมดอายุ", "ต้อง login ใหม่", "QR login", or whenever a task is blocked on a browser login on any machine. Use instead of asking the CEO to type a code into chat, and instead of taking the CEO's desk browser.
 created_by: agent
 author: CTO
-audience: [cto, cxo, browser_operator, devops_engineer, developer, qa]
+audience: [cto, cxo, browser_operator, devops_engineer, developer, tester]
 ---
 
 # relay-login — a login the CEO does from his phone

@@ -5,8 +5,10 @@ Checks every skill under `.claude/skills/` against the Wave 1 frontmatter
 contract (ADR 0022 section 3: `audience`, `created_by`, `author`,
 `improved_by`, `aka`) plus the Wave 2 lifecycle keys (ADR 0022 section 4.3:
 `pinned`, `lifecycle`, `archived_at` — moved out of the deleted
-state/skill-usage.json sidecar into each skill's own frontmatter). Seven
-finding codes:
+state/skill-usage.json sidecar into each skill's own frontmatter), the
+ADR 0026 learning loop (8-10) and the skill naming contract the CEO approved
+on 2026-09-27 and guarded on 2026-09-28 (11-16, "Ok ลุย"). Sixteen finding
+codes:
 
   1. missing SKILL.md
   2. unparseable frontmatter
@@ -18,12 +20,29 @@ finding codes:
   8. a `## Field notes` bullet is malformed (ADR 0026: date, [KIND], evidence, status)
   9. `--staged` only: the rule body changed but no Field note was added in the same diff
  10. ≥2 `skill(<name>): flip` commits on one skill inside 30 days — CONTESTED, CEO rules
+ 11. org skill without `kind:`, or a kind that is not one of the seven
+ 12. name is not `<ROLE>_<Kind>_<Topic>`, or its Kind segment != `kind:`
+     (case-insensitive); the commands the CEO types are exempt from 12 only
+ 13. `owner:` missing or not a C-level
+ 14. description does not start with the kind word in capitals + ` — `
+ 15. a redirect stub whose "removed after YYYY-MM-DD" date has passed
+ 16. docs/org/SKILL-INDEX.md differs from a fresh `skill-curator.py index`
+     render (one finding for the file, not one per skill)
+
+Codes 11-14 skip imported public skills, redirect stubs
+(`disable-model-invocation: true` + a description starting `MOVED`) and
+`lifecycle: archived`; code 15 looks only at the stubs. The lists (seven
+kinds, C-levels, imported skills, CEO commands) live in
+config/skill-kinds.yaml, the procedure in
+.claude/skills/ALL_Protocol_SkillAuthor/SKILL.md.
 
 `archived_at` is not format-checked — it is a free-form timestamp stamped
 by skill-curator.py itself, never hand-typed.
 
 Role tokens are derived at runtime from `policies/agents.yaml` -- never
-hardcoded, so this does not drift when a role is added or removed.
+hardcoded, so this does not drift when a role is added or removed. The
+same goes for the worker ROLE prefixes code 12 accepts (BROWSER_OPERATOR,
+VIDEO_EDITOR, ...): every runnable level-w role, in capitals.
 
 **This is a lint, not a gate.** Exit non-zero on findings is fine (that's
 what makes `check` useful standalone and in CI); it must never refuse to
@@ -54,6 +73,7 @@ import re
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
+from datetime import date, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -61,6 +81,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 AGENTS_YAML = ROOT / "policies" / "agents.yaml"
+KINDS_YAML = ROOT / "config" / "skill-kinds.yaml"
+INDEX_MD = ROOT / "docs" / "org" / "SKILL-INDEX.md"
 
 _CURATOR_PATH = Path(__file__).resolve().parent / "skill-curator.py"
 
@@ -75,7 +97,20 @@ CODES = {
     8: "field-note-malformed",
     9: "body-edit-without-field-note",
     10: "contested-rule",
+    11: "bad-kind",
+    12: "bad-name",
+    13: "bad-owner",
+    14: "description-kind-prefix",
+    15: "stub-expired",
+    16: "index-stale",
 }
+
+# The ROLE that means everyone, workers included -- part of the naming grammar
+# itself (ALL_Protocol_SkillAuthor §2), like the `_` separator.
+EVERYONE_ROLE = "ALL"
+# One `_`-separated word of a Topic: starts with a capital or a digit; an
+# engine keeps its version (`Omni1.1`, `Seedance2.5`, `Wan3.0`).
+_TOPIC_WORD_RE = re.compile(r"^[A-Z0-9][A-Za-z0-9.]*$")
 
 # The two additional group tokens `audience:` may use besides a real role key.
 # "all" is added at read time from the roles derived below.
@@ -243,7 +278,134 @@ def _parse_frontmatter(skill_md: Path) -> tuple[Optional[dict], Optional[str]]:
     return data, None
 
 
-def lint_skill(name: str, skill_dir: Path, known_audience: set[str], *, staged: bool = False) -> list[Finding]:
+# --- the naming contract: codes 11-16 (CEO 2026-09-27, guarded 2026-09-28) ---
+
+@dataclass(frozen=True)
+class NamingRules:
+    kinds: object   # skill-curator.py SkillKinds: kinds, c_levels, imported, ceo_commands
+    roles: tuple    # every valid ROLE prefix, longest first so BROWSER_OPERATOR wins over a shorter match
+
+
+def load_naming_rules(kinds_yaml: Path = KINDS_YAML, agents_yaml: Path = AGENTS_YAML) -> NamingRules:
+    """config/skill-kinds.yaml + the worker roles of policies/agents.yaml.
+    ROLE = ALL, a C-level, or a runnable level-w role in capitals -- derived,
+    so a worker role added tomorrow is a valid prefix without an edit here."""
+    kinds = _cur().load_skill_kinds(kinds_yaml)
+    _all, _cxo, workers = load_role_groups(agents_yaml)
+    roles = {EVERYONE_ROLE} | set(kinds.c_levels) | {w.upper() for w in workers}
+    return NamingRules(kinds=kinds, roles=tuple(sorted(roles, key=lambda r: (-len(r), r))))
+
+
+def split_name(name: str, roles: tuple) -> Optional[tuple[str, str, str]]:
+    """(ROLE, Kind, Topic) of `<ROLE>_<Kind>_<Topic>`, or None when no known ROLE
+    prefixes the name. Kind / Topic come back empty when missing."""
+    for role in roles:
+        if name.startswith(role + "_"):
+            kind, _sep, topic = name[len(role) + 1:].partition("_")
+            return role, kind, topic
+    return None
+
+
+def kind_findings(name: str, data: dict, rules: NamingRules, today: Optional[date] = None) -> list[Finding]:
+    """Codes 11-15 for one skill whose frontmatter parsed."""
+    cur = _cur()
+    sk = rules.kinds
+    if name in sk.imported or cur.is_archived(data):
+        return []
+    if cur.is_redirect_stub(data):
+        removal = cur.stub_removal_date(data)
+        if removal is None:
+            return []
+        try:
+            removal_day = datetime.strptime(removal, "%Y-%m-%d").date()
+        except ValueError:
+            return []
+        if (today or date.today()) > removal_day:
+            return [Finding(
+                name, 15, CODES[15],
+                f"stub expired, delete it -- its removal date {removal} has passed "
+                f"(`python scripts/skill-curator.py archive {name}`, ALL_Protocol_SkillAuthor §7; "
+                "first sweep live files that still name it)",
+            )]
+        return []
+
+    findings: list[Finding] = []
+    seven = "|".join(sk.kinds)
+    raw_kind = data.get("kind")
+    kind = raw_kind.strip().lower() if isinstance(raw_kind, str) else None
+    valid_kind = kind in sk.kinds
+    if raw_kind is None:
+        findings.append(Finding(name, 11, CODES[11], f"no `kind:` -- every org skill has exactly one of {seven}"))
+    elif not valid_kind:
+        findings.append(Finding(name, 11, CODES[11], f"kind={raw_kind!r} is not one of {seven}"))
+
+    if name not in sk.ceo_commands:
+        parts = split_name(name, rules.roles)
+        if parts is None:
+            findings.append(Finding(
+                name, 12, CODES[12],
+                f"name {name!r} is not <ROLE>_<Kind>_<Topic> -- ROLE is one of {', '.join(sorted(rules.roles))}",
+            ))
+        else:
+            role, kind_seg, topic = parts
+            if kind_seg.lower() not in sk.kinds:
+                findings.append(Finding(
+                    name, 12, CODES[12],
+                    f"name {name!r}: segment after {role}_ is {kind_seg!r}, not one of the seven kinds "
+                    f"({', '.join(k.capitalize() for k in sk.kinds)})",
+                ))
+            elif valid_kind and kind_seg.lower() != kind:
+                findings.append(Finding(
+                    name, 12, CODES[12],
+                    f"name {name!r}: Kind segment {kind_seg!r} != kind: {kind}",
+                ))
+            if not topic or not all(_TOPIC_WORD_RE.match(w) for w in topic.split("_")):
+                findings.append(Finding(
+                    name, 12, CODES[12],
+                    f"name {name!r}: Topic {topic!r} must be words that start with a capital or a digit, "
+                    "joined by `_` (e.g. Seedance2.5_Higgsfield)",
+                ))
+
+    owner = data.get("owner")
+    if owner not in sk.c_levels:
+        what = "no `owner:`" if owner is None else f"owner={owner!r} is not a C-level"
+        findings.append(Finding(name, 13, CODES[13], f"{what} -- one of {', '.join(sk.c_levels)}"))
+
+    desc = cur.one_line(data.get("description"))
+    words = [kind.upper()] if valid_kind else [k.upper() for k in sk.kinds]
+    if not any(desc.startswith(w + " — ") for w in words):
+        want = f"`{words[0]} — `" if valid_kind else "the kind word in capitals + ` — `"
+        findings.append(Finding(
+            name, 14, CODES[14],
+            f"description must start with {want} (starts {desc[:30]!r})",
+        ))
+    return findings
+
+
+def index_finding(owned_dir: Path, index_path: Path, rules: NamingRules) -> Optional[Finding]:
+    """Code 16: the committed docs/org/SKILL-INDEX.md vs a fresh render of the
+    same skills -- one finding for the file, never one per skill."""
+    fresh = _cur().render_skill_index(owned_dir, rules.kinds)
+    try:
+        current = index_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        current = None
+    if current == fresh:
+        return None
+    state = "stale (missing)" if current is None else "stale"
+    return Finding(
+        "SKILL-INDEX.md", 16, CODES[16],
+        f"SKILL-INDEX.md is {state} — run skill-curator.py index "
+        "(`.venv/bin/python scripts/skill-curator.py index`) and commit docs/org/SKILL-INDEX.md",
+    )
+
+
+def lint_skill(
+    name: str, skill_dir: Path, known_audience: set[str], *, staged: bool = False,
+    rules: Optional[NamingRules] = None, today: Optional[date] = None,
+) -> list[Finding]:
+    """Codes 1-10 always; codes 11-15 only when `rules` is given (run_check
+    loads them from config/skill-kinds.yaml)."""
     findings: list[Finding] = []
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.is_file():
@@ -317,6 +479,9 @@ def lint_skill(name: str, skill_dir: Path, known_audience: set[str], *, staged: 
             "-- CONTESTED: the rule is frozen until the CEO rules (ADR 0026 section 3)",
         ))
 
+    if rules is not None:
+        findings.extend(kind_findings(name, data, rules, today))
+
     return findings
 
 
@@ -340,18 +505,37 @@ def discover_skills(owned_dir: Path, curator) -> tuple[list[str], list[str]]:
     return names, refused
 
 
+_UNSET = object()
+
+
 def run_check(
     owned_dir: Optional[Path] = None, agents_yaml: Path = AGENTS_YAML,
-    staged: bool = False,
+    staged: bool = False, kinds_yaml: Optional[Path] = KINDS_YAML,
+    index_path=_UNSET, today: Optional[date] = None,
 ) -> tuple[list[Finding], list[str]]:
+    """Lint every skill under `owned_dir` (default: this repo's .claude/skills).
+
+    Codes 11-15 run whenever `kinds_yaml` exists (None or a missing file turns
+    them off -- a checkout that predates the config). Code 16 compares
+    `index_path` with a fresh render; by default that is docs/org/SKILL-INDEX.md
+    for the real corpus and nothing for an overridden `owned_dir` (a fixture
+    dir has no committed index to be stale against)."""
     curator = _load_curator()
+    real_corpus = owned_dir is None
     if owned_dir is None:
         owned_dir = curator.CuratorPaths.default().owned_skills_dir
+    if index_path is _UNSET:
+        index_path = INDEX_MD if real_corpus else None
+    rules = load_naming_rules(kinds_yaml, agents_yaml) if kinds_yaml is not None and kinds_yaml.is_file() else None
     known_audience = _known_audience_tokens(agents_yaml)
     names, refused = discover_skills(owned_dir, curator)
     findings: list[Finding] = []
     for name in names:
-        findings.extend(lint_skill(name, owned_dir / name, known_audience, staged=staged))
+        findings.extend(lint_skill(name, owned_dir / name, known_audience, staged=staged, rules=rules, today=today))
+    if rules is not None and index_path is not None:
+        stale = index_finding(owned_dir, index_path, rules)
+        if stale is not None:
+            findings.append(stale)
     return findings, refused
 
 

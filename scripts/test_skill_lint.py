@@ -7,6 +7,10 @@ Five finding codes, checked independently:
   4. created_by outside {human, agent}
   5. audience token not a known role or group
 
+Codes 6-10 (lifecycle keys, ADR 0026 field notes) and 11-16 (the naming
+contract of 2026-09-27: kind, name, owner, description prefix, expired
+stubs, stale docs/org/SKILL-INDEX.md) have their own sections below.
+
 Plus the two structural guarantees the task brief calls out by name:
   - root/role-token derivation is never hardcoded to a machine-specific path
     (this repo lives at /Users/gob/MoonieXHQ/Agents/Core on the Mac and
@@ -27,6 +31,7 @@ Or under pytest:  pytest scripts/test_skill_lint.py
 from __future__ import annotations
 
 import importlib.util
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -371,25 +376,51 @@ def test_root_is_derived_from_file_location_not_hardcoded(tmp_path: Path) -> Non
 # run_check / main -- end-to-end over a fixture directory (never real state)
 # --------------------------------------------------------------------------
 
+def _write_org_skill(base: Path, name: str, *, kind: "str | None" = "protocol", owner: "str | None" = "CTO",
+                    created_by: "str | None" = "human", audience: "list[str] | None" = None,
+                    description: "str | None" = None, extra_frontmatter: "str | None" = None,
+                    body: str = "content") -> Path:
+    """A skill that meets the whole contract, codes 11-14 included (the
+    run_check / main tests below lint with the real config/skill-kinds.yaml).
+    kind=None / owner=None leave that key out."""
+    fm_lines = []
+    if kind is not None:
+        fm_lines.append(f"kind: {kind}")
+    if owner is not None:
+        fm_lines.append(f"owner: {owner}")
+    if extra_frontmatter:
+        fm_lines.append(extra_frontmatter)
+    d = _write_skill(base, name, created_by=created_by, audience=audience,
+                     extra_frontmatter="\n".join(fm_lines) or None, body=body)
+    md = d / "SKILL.md"
+    desc = description if description is not None else f"{(kind or 'protocol').upper()} — fixture skill. Trigger on /{name}."
+    md.write_text(
+        md.read_text(encoding="utf-8").replace(
+            "description: fixture skill for skill-lint tests", f"description: {json.dumps(desc)}"),
+        encoding="utf-8",
+    )
+    return d
+
+
 def test_run_check_end_to_end_over_fixture_dir(tmp_path: Path) -> None:
     owned_dir = tmp_path / ".claude" / "skills"
     owned_dir.mkdir(parents=True)
-    _write_skill(owned_dir, "clean-one", created_by="human", audience=["cto"])
-    _write_skill(owned_dir, "clean-two", created_by="agent", audience=["all"])
-    _write_skill(owned_dir, "dirty", created_by="cto")  # code 4
+    _write_org_skill(owned_dir, "CTO_Protocol_CleanOne", created_by="human", audience=["cto"])
+    _write_org_skill(owned_dir, "ALL_Rules_CleanTwo", kind="rules", owner="COO", created_by="agent", audience=["all"])
+    _write_org_skill(owned_dir, "CTO_Gate_Dirty", kind="gate", created_by="cto")  # code 4
 
     findings, refused = skill_lint.run_check(owned_dir=owned_dir)
 
     assert refused == []
     codes = _findings_by_code(findings)
     assert set(codes.keys()) == {4}
-    assert codes[4][0].skill == "dirty"
+    assert codes[4][0].skill == "CTO_Gate_Dirty"
 
 
 def test_main_exit_code_reflects_findings_only_not_refused(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
     owned_dir = tmp_path / ".claude" / "skills"
     owned_dir.mkdir(parents=True)
-    _write_skill(owned_dir, "clean", created_by="human", audience=["cto"])
+    _write_org_skill(owned_dir, "CTO_Protocol_Clean", created_by="human", audience=["cto"])
     external = tmp_path / "external"
     real = _write_skill(external, "real-elsewhere")
     (owned_dir / "sym").symlink_to(real, target_is_directory=True)
@@ -411,11 +442,9 @@ def test_main_exit_code_is_nonzero_on_a_real_finding(tmp_path: Path) -> None:
 
 
 def test_main_json_output_is_valid_json(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
-    import json
-
     owned_dir = tmp_path / ".claude" / "skills"
     owned_dir.mkdir(parents=True)
-    _write_skill(owned_dir, "dirty", created_by="cto")
+    _write_org_skill(owned_dir, "CTO_Gate_Dirty", kind="gate", created_by="cto")
 
     rc = skill_lint.main(["check", "--json", "--skills-dir", str(owned_dir)])
     out = capsys.readouterr().out
@@ -598,3 +627,253 @@ def test_cli_has_staged_flag_and_it_is_off_by_default() -> None:
     assert ns is argparse.ArgumentParser
     out = _sp.run([sys.executable, str(ROOT / "scripts" / "skill-lint.py"), "check", "--help"], capture_output=True, text=True)
     assert "--staged" in out.stdout
+
+
+# --------------------------------------------------------------------------
+# codes 11-16 -- the naming contract (CEO 2026-09-27; guards "Ok ลุย" 2026-09-28)
+#
+# Rules come from a synthetic config + agents.yaml under tmp_path, so these
+# tests prove the lists are READ (not hardcoded) and do not move when the real
+# config does. One test at the end reads the real config/skill-kinds.yaml.
+# --------------------------------------------------------------------------
+
+from datetime import date as _date
+
+_KINDS_FIXTURE = (
+    "kinds: [rules, knowledge, workflow, procedure, standard, gate, protocol]\n"
+    "c_levels: [CTO, CMO, CGO, CFO, COO, CXO]\n"
+    "imported:\n"
+    "  - imported-thing\n"
+    "ceo_commands: [session-open]\n"
+)
+_AGENTS_FIXTURE = (
+    "roles:\n"
+    "  ceo: {level: c, model: null}\n"
+    "  cto: {level: c, model: m}\n"
+    "  browser_operator: {level: w, model: m}\n"
+    "  retired_role: {level: w, model: null}\n"
+)
+_STUB_DESC = ("MOVED to CTO_Gate_NewHome on 2026-09-27. Read that skill; "
+              "this stub is removed after 2026-10-27.")
+
+
+def _fixture_config(tmp_path: Path) -> tuple[Path, Path]:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    kinds_yaml = tmp_path / "skill-kinds.yaml"
+    kinds_yaml.write_text(_KINDS_FIXTURE, encoding="utf-8")
+    agents_yaml = tmp_path / "agents.yaml"
+    agents_yaml.write_text(_AGENTS_FIXTURE, encoding="utf-8")
+    return kinds_yaml, agents_yaml
+
+
+def _rules(tmp_path: Path):
+    return skill_lint.load_naming_rules(*_fixture_config(tmp_path))
+
+
+def _kind_codes(tmp_path: Path, name: str, *, today: "_date | None" = None, **kw) -> list[int]:
+    d = _write_org_skill(tmp_path / "skills", name, **kw)
+    findings = skill_lint.lint_skill(name, d, _KNOWN_AUDIENCE, rules=_rules(tmp_path), today=today)
+    return [f.code for f in findings]
+
+
+def _write_stub(base: Path, name: str, *, description: str = _STUB_DESC, hidden: bool = True) -> Path:
+    extra = "disable-model-invocation: true\nlifecycle: active" if hidden else "lifecycle: active"
+    return _write_org_skill(base, name, kind="gate", owner=None, created_by="agent",
+                            description=description, extra_frontmatter=extra)
+
+
+def test_compliant_org_skill_is_clean(tmp_path: Path) -> None:
+    assert _kind_codes(tmp_path, "CTO_Gate_MergeCheck", kind="gate", owner="CTO") == []
+
+
+@pytest.mark.parametrize("name, kind", [
+    ("CMO_Knowledge_Seedance2.5_Higgsfield", "knowledge"),
+    ("CXO_Knowledge_LINE_Messaging", "knowledge"),
+    ("ALL_Rules_HQ_Filing", "rules"),
+    ("CTO_gate_Thing", "gate"),            # the Kind segment compares case-insensitively
+])
+def test_well_formed_names_pass_code_12(tmp_path: Path, name: str, kind: str) -> None:
+    assert _kind_codes(tmp_path, name, kind=kind) == []
+
+
+def test_worker_role_prefixes_are_derived_from_agents_yaml(tmp_path: Path) -> None:
+    """BROWSER_OPERATOR is a runnable worker in the fixture; VIDEO_EDITOR is not
+    in it at all and RETIRED_ROLE has no model -- so neither is a ROLE here."""
+    assert _kind_codes(tmp_path, "BROWSER_OPERATOR_Protocol_Playbook") == []
+    assert _kind_codes(tmp_path, "VIDEO_EDITOR_Protocol_Playbook") == [12]
+    assert _kind_codes(tmp_path, "RETIRED_ROLE_Protocol_Playbook") == [12]
+
+
+def test_missing_kind_is_code_11(tmp_path: Path) -> None:
+    assert _kind_codes(tmp_path, "CTO_Gate_Thing", kind=None, description="GATE — x") == [11]
+
+
+def test_kind_outside_the_seven_is_code_11(tmp_path: Path) -> None:
+    assert _kind_codes(tmp_path, "CTO_Gate_Thing", kind="recipe", description="GATE — x") == [11]
+
+
+def test_kind_value_is_case_insensitive(tmp_path: Path) -> None:
+    assert _kind_codes(tmp_path, "CTO_Gate_Thing", kind="Gate", description="GATE — x") == []
+
+
+@pytest.mark.parametrize("name", [
+    "merge-checklist",          # no ROLE at all
+    "DEV_Gate_Thing",           # DEV is not a role
+    "CTO_Recipe_Thing",         # Kind segment not one of the seven
+    "CTO_Gate",                 # no Topic
+    "CTO_Gate_lower_case",      # Topic words start with a capital or a digit
+    "CTO_Gate_Chat-GPT",        # no hyphen inside a Topic word
+])
+def test_malformed_name_is_code_12(tmp_path: Path, name: str) -> None:
+    assert _kind_codes(tmp_path, name, kind="gate") == [12]
+
+
+def test_kind_segment_not_matching_kind_field_is_code_12(tmp_path: Path) -> None:
+    d = _write_org_skill(tmp_path / "skills", "CTO_Rules_MergeCheck", kind="gate")
+    findings = skill_lint.lint_skill("CTO_Rules_MergeCheck", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path))
+    assert [f.code for f in findings] == [12]
+    assert "'Rules' != kind: gate" in findings[0].message
+
+
+def test_ceo_command_is_exempt_from_code_12_only(tmp_path: Path) -> None:
+    assert _kind_codes(tmp_path, "session-open", kind="protocol") == []
+    assert _kind_codes(tmp_path / "a", "session-open", kind="protocol", owner=None) == [13]
+    assert _kind_codes(tmp_path / "b", "session-open", kind="protocol", description="Charter a session") == [14]
+    assert _kind_codes(tmp_path / "c", "session-open", kind=None, description="PROTOCOL — x") == [11]
+    # a short name that is NOT on the ceo_commands list gets no such exemption
+    assert _kind_codes(tmp_path / "d", "session-close", kind="gate") == [12]
+
+
+@pytest.mark.parametrize("owner, codes", [
+    (None, [13]), ("cto", [13]), ("CEO", [13]), ("developer", [13]), ("CXO", []), ("COO", []),
+])
+def test_owner_must_be_a_c_level_is_code_13(tmp_path: Path, owner: "str | None", codes: list) -> None:
+    assert _kind_codes(tmp_path, "CTO_Gate_Thing", kind="gate", owner=owner) == codes
+
+
+@pytest.mark.parametrize("description, codes", [
+    ("GATE — Pre-merge check. Trigger on /x.", []),
+    ("Pre-merge check. Trigger on /x.", [14]),
+    ("RULES — the wrong kind word", [14]),
+    ("GATE - a hyphen, not the em dash", [14]),
+    ("Gate — not in capitals", [14]),
+    ("GATE—no spaces", [14]),
+])
+def test_description_kind_prefix_is_code_14(tmp_path: Path, description: str, codes: list) -> None:
+    assert _kind_codes(tmp_path, "CTO_Gate_Thing", kind="gate", description=description) == codes
+
+
+def test_redirect_stub_skips_codes_11_to_14(tmp_path: Path) -> None:
+    """Old name, no owner, MOVED description: all of 11-14 would fire on an org skill."""
+    d = _write_stub(tmp_path / "skills", "old-name")
+    findings = skill_lint.lint_skill("old-name", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path), today=_date(2026, 10, 1))
+    assert findings == []
+
+
+def test_expired_stub_is_code_15(tmp_path: Path) -> None:
+    d = _write_stub(tmp_path / "skills", "old-name")
+    rules = _rules(tmp_path)
+    on_the_day = skill_lint.lint_skill("old-name", d, _KNOWN_AUDIENCE, rules=rules, today=_date(2026, 10, 27))
+    assert on_the_day == []
+    after = skill_lint.lint_skill("old-name", d, _KNOWN_AUDIENCE, rules=rules, today=_date(2026, 10, 28))
+    assert [f.code for f in after] == [15]
+    assert "stub expired, delete it" in after[0].message
+    assert "2026-10-27" in after[0].message
+
+
+def test_stub_without_a_removal_date_is_not_code_15(tmp_path: Path) -> None:
+    d = _write_stub(tmp_path / "skills", "old-name", description="MOVED to CTO_Gate_NewHome.")
+    assert skill_lint.lint_skill("old-name", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path), today=_date(2099, 1, 1)) == []
+
+
+def test_moved_description_without_disable_model_invocation_is_not_a_stub(tmp_path: Path) -> None:
+    d = _write_stub(tmp_path / "skills", "old-name", hidden=False)
+    codes = [f.code for f in skill_lint.lint_skill("old-name", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path))]
+    assert codes == [12, 13, 14]
+
+
+def test_imported_skill_is_skipped_entirely(tmp_path: Path) -> None:
+    d = _write_skill(tmp_path / "skills", "imported-thing")  # no kind, no owner, no prefix, short name
+    assert skill_lint.lint_skill("imported-thing", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path)) == []
+
+
+def test_archived_skill_is_skipped(tmp_path: Path) -> None:
+    d = _write_skill(tmp_path / "skills", "old-thing", extra_frontmatter="lifecycle: archived")
+    assert skill_lint.lint_skill("old-thing", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path)) == []
+
+
+def test_codes_11_to_15_are_off_without_rules(tmp_path: Path) -> None:
+    """lint_skill's old call shape (no rules) keeps codes 1-10 only."""
+    d = _write_skill(tmp_path / "skills", "short-name")
+    assert skill_lint.lint_skill("short-name", d, _KNOWN_AUDIENCE) == []
+
+
+def _index_fixture(tmp_path: Path):
+    owned = tmp_path / ".claude" / "skills"
+    owned.mkdir(parents=True)
+    _write_org_skill(owned, "CTO_Gate_One", kind="gate", audience=["cto"])
+    _write_org_skill(owned, "ALL_Rules_Two", kind="rules", owner="COO", audience=["all"])
+    _write_org_skill(owned, "session-open", kind="protocol", audience=["cxo"])
+    _write_stub(owned, "old-name")
+    kinds_yaml, agents_yaml = _fixture_config(tmp_path)
+    return owned, kinds_yaml, agents_yaml
+
+
+def test_fresh_index_is_not_code_16(tmp_path: Path) -> None:
+    owned, kinds_yaml, agents_yaml = _index_fixture(tmp_path)
+    index = tmp_path / "SKILL-INDEX.md"
+    rules = skill_lint.load_naming_rules(kinds_yaml, agents_yaml)
+    index.write_text(skill_lint._cur().render_skill_index(owned, rules.kinds), encoding="utf-8")
+    findings, _ = skill_lint.run_check(owned_dir=owned, agents_yaml=agents_yaml, kinds_yaml=kinds_yaml,
+                                       index_path=index, today=_date(2026, 10, 1))
+    assert findings == []
+
+
+def test_stale_index_is_one_code_16_finding(tmp_path: Path) -> None:
+    owned, kinds_yaml, agents_yaml = _index_fixture(tmp_path)
+    index = tmp_path / "SKILL-INDEX.md"
+    rules = skill_lint.load_naming_rules(kinds_yaml, agents_yaml)
+    index.write_text(skill_lint._cur().render_skill_index(owned, rules.kinds), encoding="utf-8")
+    _write_org_skill(owned, "CMO_Standard_Three", kind="standard", owner="CMO")  # added after the render
+    findings, _ = skill_lint.run_check(owned_dir=owned, agents_yaml=agents_yaml, kinds_yaml=kinds_yaml,
+                                       index_path=index, today=_date(2026, 10, 1))
+    assert [f.code for f in findings] == [16]
+    assert findings[0].skill == "SKILL-INDEX.md"
+    assert "SKILL-INDEX.md is stale — run skill-curator.py index" in findings[0].message
+
+
+def test_missing_index_is_code_16(tmp_path: Path) -> None:
+    owned, kinds_yaml, agents_yaml = _index_fixture(tmp_path)
+    findings, _ = skill_lint.run_check(owned_dir=owned, agents_yaml=agents_yaml, kinds_yaml=kinds_yaml,
+                                       index_path=tmp_path / "nope.md", today=_date(2026, 10, 1))
+    assert [f.code for f in findings] == [16]
+
+
+def test_fixture_dir_has_no_index_check_by_default(tmp_path: Path) -> None:
+    owned, kinds_yaml, agents_yaml = _index_fixture(tmp_path)
+    findings, _ = skill_lint.run_check(owned_dir=owned, agents_yaml=agents_yaml, kinds_yaml=kinds_yaml,
+                                       today=_date(2026, 10, 1))
+    assert findings == []
+
+
+def test_missing_kinds_config_turns_codes_11_to_16_off(tmp_path: Path) -> None:
+    owned = tmp_path / ".claude" / "skills"
+    owned.mkdir(parents=True)
+    _write_skill(owned, "short-name")
+    findings, _ = skill_lint.run_check(owned_dir=owned, kinds_yaml=tmp_path / "absent.yaml",
+                                       index_path=tmp_path / "absent.md")
+    assert findings == []
+
+
+def test_real_skill_kinds_config_is_well_formed() -> None:
+    """Reads the real config/skill-kinds.yaml + policies/agents.yaml (read-only)."""
+    rules = skill_lint.load_naming_rules()
+    sk = rules.kinds
+    assert sk.kinds == ("rules", "knowledge", "workflow", "procedure", "standard", "gate", "protocol")
+    assert set(sk.c_levels) == {"CTO", "CMO", "CGO", "CFO", "COO", "CXO"}
+    assert "ai-video-storyboard" in sk.imported and len(sk.imported) == 9
+    assert "relay-login" in sk.ceo_commands and len(sk.ceo_commands) == 11
+    assert {"ALL", "COO", "BROWSER_OPERATOR", "VIDEO_EDITOR"} <= set(rules.roles)
+    assert "CEO" not in rules.roles  # no model: never a skill's lane
+    assert skill_lint.KINDS_YAML == ROOT / "config" / "skill-kinds.yaml"
+    assert skill_lint.INDEX_MD == ROOT / "docs" / "org" / "SKILL-INDEX.md"

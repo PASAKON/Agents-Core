@@ -26,7 +26,7 @@ evidence tiers), ADR 0018 (lifecycle and the curator). The owner of this process
 
 - **Imported public skills are out of scope** until the CEO sorts them (CEO 2026-09-27): content-idea-generator,
   de-ai-ify, homepage-audit, marketing-principles, positioning-basics, social-card-gen, video-ad-analysis,
-  voice-extractor. Do not tag, rename or edit them. They carry no `created_by`.
+  voice-extractor, ai-video-storyboard. Do not tag, rename or edit them. They carry no `created_by`.
 - Everything else under `.claude/skills/` is an org skill and follows this file.
 
 ## 1 · The seven kinds — every org skill has exactly one
@@ -58,7 +58,7 @@ content genuinely serves two kinds is two skills, or falls under §8.
 - **Exception — commands the CEO types himself** keep their short names (`session-open`, `session-close`,
   `session-save`, `session-list`, `session-merge`, `session-restart`, `session-worktree`,
   `session-change-model`, `terminal-open`, `terminal-restart`, `relay-login`); their kind lives in the
-  frontmatter only. This is the CTO's recommendation; confirm it with the CEO before rename Phase 4.
+  frontmatter only. Confirmed by the CEO 2026-09-27.
 - Existing skills are renamed only through §6, in the approved phases. Never rename one on the side.
 
 ## 3 · Frontmatter — the contract
@@ -81,7 +81,10 @@ refresh_after: "<YYYY-MM-DD>"  # Knowledge only: when they must be checked again
 
 `skill-lint` checks this contract and **reports; it never blocks** — ADR 0022 records the CEO's decisions 4
 and 10 (no approval gate in any form), so the pre-commit hook ignores its exit code on purpose. Reading the
-report is the COO's job. A lint code for `kind:` is part of the COO's rollout and does not exist yet.
+report is the COO's job. The naming contract is codes 11–16 (lists in `config/skill-kinds.yaml`): 11 `kind:`
+missing or not one of the seven · 12 name not `<ROLE>_<Kind>_<Topic>` or Kind ≠ `kind:` (CEO commands exempt) ·
+13 `owner:` not a C-level · 14 description not `<KIND> — ` · 15 redirect stub past its removal date · 16
+`docs/org/SKILL-INDEX.md` stale. Imported skills, stubs (except 15) and archived skills are skipped.
 
 ## 4 · Create — eight steps
 
@@ -96,8 +99,9 @@ report is the COO's job. A lint code for `kind:` is part of the COO's rollout an
    either HARD with `Why hard:` or advice (see "Rules, tiered" below).
 6. **Write the description** (see "Description discipline" below): the kind word first, the "Trigger on"
    clause with phrases the CEO actually typed, a "Do NOT" clause when a sibling skill competes.
-7. **Check it:** `.venv/bin/python scripts/skill-lint.py check` shows nothing for this skill; every path,
-   tool and skill name it mentions exists:
+7. **Check it:** `.venv/bin/python scripts/skill-lint.py check` shows nothing for this skill;
+   `.venv/bin/python scripts/skill-curator.py index` regenerates `docs/org/SKILL-INDEX.md` (commit it with the
+   skill, or code 16 reports it stale); every path, tool and skill name it mentions exists:
    ```bash
    F=.claude/skills/<name>/SKILL.md
    grep -oE '`(tools|docs|scripts|runners|lib|config|roles)/[^` ]+`' $F | tr -d '`' | sort -u | while read p; do [ -e "${p%%<*}" ] || echo "MISSING $p"; done
@@ -351,3 +355,4 @@ there.
 - 2026-09-25 [MISSING] §Description discipline — `tools/decide.py` builds the skill.route rules from the "Trigger on …." clause, split on commas and " and ". Until 72357fc8 the clause ended at the FIRST dot, so every engine-named skill with a version in its name (/CTO_Flow_Omni1.1_…, Seedance 2.5, Wan 3.0) routed on a fragment only; it now ends at a sentence stop. Side effect to write around: every comma-separated item becomes a standalone route, so a generic word in the list ("cache", "worktree" in ALL_Rules_DiskHygiene) routes any prompt that contains it; keep trigger items as phrases a user would type, not a list of nouns · evidence: both skill-split workers (task-c3e07fb1, task-e7cc2d83), fix 72357fc8 · status: pending
 - 2026-09-27 [SUPERSEDED] §1 §2 §6 §Rules 2 — rewritten on the CEO's rulings of 2026-09-27: seven kinds ("เห็นด้วยทั้ง 7 หมวดหมู่"), names that say role, kind and topic, the rename table and its phases ("OK ตามนั้น"), the mixed-skill rule, and the COO as owner of this process ("เขียน skill สำหรับการสร้าง skill ... เวลาที่ COO หยิบไปใช้จะได้ใช้งานได้ทันที"). The "never rename" rule is kept above as SUPERSEDED · evidence: docs/org/SKILL-KINDS-2026-09-27.md, CTO session 14cc900f · status: promoted
 - 2026-09-27 [MISSING] §6 step 6 — commit a rename phase by staging NAMED paths (or `git add -A -- . ':!.venv'`), never plain `git add -A`: phase 2's `-A` in a scratch worktree committed a `.venv` symlink (`.venv/` in .gitignore matches a directory, not a link); the ff-pull on the shared Contabo checkout then replaced its real, ignored .venv with a self-link and every venv service lost its packages until the venv was rebuilt. Before each push: `git show --stat HEAD | grep -E '\.venv|node_modules'` must print nothing · evidence: 1e818147 (the bad commit), e90df583 (the fix), memory feedback_git_add_all_in_worktree_with_symlinks · status: pending
+- 2026-09-28 [MISSING] §3 — kind/name/owner/prefix/stub-expiry lint codes 11–16 + write hook + index built (CEO "Ok ลุย") · evidence: commit "skill guards: lint codes 11-16 …" (scripts/skill-lint.py, config/skill-kinds.yaml, scripts/hook-skill-write-reminder.py, docs/org/SKILL-INDEX.md) · status: promoted

@@ -484,7 +484,7 @@ def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatc
     paths = _make_paths(tmp_path)
 
     dest = curator.create_skill(
-        paths, "cto-new-thing",
+        paths, "CTO_Gate_NewThing",
         description="A brand new org skill created by an agent.",
         audience=["cto"],
     )
@@ -493,9 +493,10 @@ def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatc
     assert fm["created_by"] == "agent"
     assert fm["author"]["role"] == "browser_operator"
     assert fm["audience"] == ["cto"]
-    assert fm["name"] == "cto-new-thing"
+    assert fm["name"] == "CTO_Gate_NewThing"
 
-    # Acceptance criterion: passes skill-lint.py on the first try.
+    # Acceptance criterion (ADR 0022 Wave 2): the frontmatter contract --
+    # skill-lint codes 1-10 -- passes on the first try.
     lint_spec = importlib.util.spec_from_file_location(
         "skill_lint_for_create_test", ROOT / "scripts" / "skill-lint.py"
     )
@@ -503,9 +504,14 @@ def test_create_skill_stamps_identity_and_passes_lint(tmp_path: Path, monkeypatc
     skill_lint = importlib.util.module_from_spec(lint_spec)
     sys.modules[lint_spec.name] = skill_lint
     lint_spec.loader.exec_module(skill_lint)
-    findings, refused = skill_lint.run_check(owned_dir=paths.owned_skills_dir)
+    findings, refused = skill_lint.run_check(owned_dir=paths.owned_skills_dir, kinds_yaml=None)
     assert findings == []
     assert refused == []
+    # The naming contract (codes 11-16, 2026-09-28): `create` does not stamp a
+    # kind or an owner, so the scaffold is reported for exactly the three
+    # things ALL_Protocol_SkillAuthor §4 step 4 says to add by hand.
+    findings, _ = skill_lint.run_check(owned_dir=paths.owned_skills_dir)
+    assert sorted(f.code for f in findings) == [11, 13, 14]
 
 
 def test_create_skill_commits_with_skill_actor_trailer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -800,3 +806,131 @@ def test_notes_verb_on_an_empty_portfolio_says_so(tmp_path: Path, capsys: pytest
     paths = _make_paths(tmp_path)
     assert curator.cmd_notes(paths) == 0
     assert "no field notes" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------
+# index -- docs/org/SKILL-INDEX.md grouped by kind (CEO "Ok ลุย" 2026-09-28)
+# --------------------------------------------------------------------------
+
+_INDEX_KINDS = (
+    "kinds: [rules, knowledge, workflow, procedure, standard, gate, protocol]\n"
+    "c_levels: [CTO, CMO, CGO, CFO, COO, CXO]\n"
+    "imported: [borrowed-skill, linked-skill]\n"
+    "ceo_commands: [session-open]\n"
+)
+
+
+def _index_skill(base: Path, name: str, frontmatter: str) -> Path:
+    d = base / name
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "SKILL.md").write_text(f"---\nname: {name}\n{frontmatter}\n---\n\n# {name}\n\nbody\n", encoding="utf-8")
+    return d
+
+
+def _index_corpus(tmp_path: Path) -> "tuple[curator.CuratorPaths, Path]":
+    paths = _make_paths(tmp_path)
+    owned = paths.owned_skills_dir
+    _index_skill(owned, "CTO_Gate_Merge", 'kind: gate\nowner: CTO\naudience: [cto]\n'
+                 'description: "GATE — Pre-merge gate | refuses on fail. Trigger on /CTO_Gate_Merge and on \\"merge\\"."')
+    _index_skill(owned, "ALL_Rules_Approvals", 'kind: rules\nowner: COO\naudience: [all]\n'
+                 'description: "RULES — What needs the CEO. Trigger on /ALL_Rules_Approvals."')
+    _index_skill(owned, "ALL_Rules_Disk", 'kind: rules\nowner: CTO\naudience: [cxo, worker]\n'
+                 'description: "RULES — Disk rules. Trigger on /ALL_Rules_Disk."')
+    _index_skill(owned, "session-open", 'kind: protocol\nowner: CTO\naudience: [cxo]\n'
+                 'description: "PROTOCOL — Charter a session. Trigger on /session-open."')
+    _index_skill(owned, "borrowed-skill", 'description: "Imported, not ours. Use when someone asks."')
+    _index_skill(owned, "old-merge", 'kind: gate\ndisable-model-invocation: true\nlifecycle: active\n'
+                 'description: "MOVED to CTO_Gate_Merge on 2026-09-27. Read that skill; this stub is removed after 2026-10-27."')
+    _index_skill(owned, "CTO_Knowledge_Gone", 'kind: knowledge\nowner: CTO\nlifecycle: archived\n'
+                 'description: "KNOWLEDGE — archived, never listed"')
+    _index_skill(owned, "loose-skill", 'owner: CMO\ndescription: "no kind yet"')
+    external = tmp_path / "external" / "linked-skill"
+    external.mkdir(parents=True)
+    (external / "SKILL.md").write_text("---\nname: linked-skill\ndescription: SECRET-INSIDE\n---\n", encoding="utf-8")
+    (owned / "linked-skill").symlink_to(external, target_is_directory=True)
+    kinds_path = tmp_path / "skill-kinds.yaml"
+    kinds_path.write_text(_INDEX_KINDS, encoding="utf-8")
+    return paths, kinds_path
+
+
+def test_index_groups_by_kind_in_the_fixed_order(tmp_path: Path) -> None:
+    paths, kinds_path = _index_corpus(tmp_path)
+    text = curator.render_skill_index(paths.owned_skills_dir, curator.load_skill_kinds(kinds_path))
+    headings = [line for line in text.splitlines() if line.startswith("## ")]
+    assert headings == [
+        "## Rules", "## Knowledge", "## Workflow", "## Procedure", "## Standard", "## Gate", "## Protocol",
+        "## Commands the CEO types", "## Imported (not ours)",
+        "## Redirect stubs (old name → new, remove after)", "## Not tagged (skill-lint code 11)",
+    ]
+    assert "| name | owner | audience | what it is |" in text
+    # sorted within a kind; kind prefix and the "Trigger on" tail removed; `|` escaped
+    assert text.index("`ALL_Rules_Approvals`") < text.index("`ALL_Rules_Disk`")
+    assert "| `ALL_Rules_Approvals` | COO | all | What needs the CEO. |" in text
+    assert "| `CTO_Gate_Merge` | CTO | cto | Pre-merge gate \\| refuses on fail. |" in text
+    assert "| `session-open` | Protocol | CTO | cxo | Charter a session. |" in text
+    assert "| `old-merge` | `CTO_Gate_Merge` | 2026-10-27 |" in text
+    assert "| `borrowed-skill` | Imported, not ours. Use when someone asks. |" in text
+    assert "`loose-skill`" in text.split("## Not tagged")[1]
+    assert "CTO_Knowledge_Gone" not in text          # archived
+    assert "Trigger on" not in text
+
+
+def test_index_never_reads_through_a_symlink(tmp_path: Path) -> None:
+    paths, kinds_path = _index_corpus(tmp_path)
+    text = curator.render_skill_index(paths.owned_skills_dir, curator.load_skill_kinds(kinds_path))
+    assert "| `linked-skill` | symlink to `" in text
+    assert "SECRET-INSIDE" not in text
+
+
+def test_index_is_deterministic_and_says_how_to_regenerate(tmp_path: Path) -> None:
+    import re as _re
+
+    paths, kinds_path = _index_corpus(tmp_path)
+    kinds = curator.load_skill_kinds(kinds_path)
+    first = curator.render_skill_index(paths.owned_skills_dir, kinds)
+    assert first == curator.render_skill_index(paths.owned_skills_dir, kinds)
+    assert "Generated by scripts/skill-curator.py index" in first
+    assert "scripts/skill-curator.py index` and commit" in first
+    assert not _re.search(r"\d{2}:\d{2}", first)  # no clock time anywhere
+    assert "Rules 2 · Knowledge 0" in first and "redirect stubs 1" in first
+
+
+def test_index_blurb_is_capped_at_140_chars() -> None:
+    kinds = ("rules", "gate")
+    long = "GATE — " + " ".join(["word"] * 60) + ". Trigger on /x."
+    blurb = curator.index_blurb(long, kinds)
+    assert len(blurb) <= 140 and blurb.endswith("…") and not blurb.startswith("GATE")
+    assert curator.index_blurb("GATE — Short. Trigger on /x and on \"y\".", kinds) == "Short."
+    assert curator.index_blurb("NOTAKIND — stays", kinds) == "NOTAKIND — stays"
+
+
+def test_index_verb_writes_the_file_and_leaves_skills_untouched(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    paths, kinds_path = _index_corpus(tmp_path)
+    before = {p: p.read_bytes() for p in paths.owned_skills_dir.rglob("SKILL.md")}
+    out = tmp_path / "docs" / "org" / "SKILL-INDEX.md"
+    assert curator.cmd_index(paths, out, kinds_path) == 0
+    assert "wrote" in capsys.readouterr().out
+    assert out.read_text(encoding="utf-8") == curator.render_skill_index(
+        paths.owned_skills_dir, curator.load_skill_kinds(kinds_path))
+    assert {p: p.read_bytes() for p in before} == before
+    # a second run changes nothing
+    assert curator.write_skill_index(paths, out, kinds_path) is False
+    assert curator.cmd_index(paths, out, kinds_path) == 0
+    assert "unchanged" in capsys.readouterr().out
+
+
+def test_index_cli_verb_is_registered() -> None:
+    r = subprocess.run([sys.executable, str(ROOT / "scripts" / "skill-curator.py"), "index", "--help"],
+                       capture_output=True, text=True)
+    assert r.returncode == 0 and "--out" in r.stdout
+
+
+def test_stub_helpers() -> None:
+    fm = {"disable-model-invocation": True,
+          "description": "MOVED to CMO_Knowledge_Flow_Omni1.1 on 2026-09-27. Read that skill; "
+                         "this stub is removed after 2026-10-27."}
+    assert curator.is_redirect_stub(fm)
+    assert curator.stub_target(fm) == "CMO_Knowledge_Flow_Omni1.1"
+    assert curator.stub_removal_date(fm) == "2026-10-27"
+    assert not curator.is_redirect_stub({"description": fm["description"]})
+    assert not curator.is_redirect_stub({"disable-model-invocation": True, "description": "GATE — x"})

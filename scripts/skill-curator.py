@@ -20,6 +20,10 @@ Verbs:
   undo <sha>               git revert a skill-curator commit.
   drift                   git status --porcelain over .claude/skills — a
                            skill hand-edited outside the curator. Read-only.
+  notes                   Field notes across the portfolio (ADR 0026). Read-only.
+  index [--out PATH]      write docs/org/SKILL-INDEX.md — every org skill
+                           grouped by kind (config/skill-kinds.yaml). Read-only
+                           on skills; skill-lint code 16 reports a stale copy.
 
 Five invariants (non-negotiable, ADR 0018 §4):
   1. Never deletes — archive is restorable via `restore`.
@@ -55,6 +59,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import shutil
 import re
 import subprocess
@@ -938,6 +943,244 @@ def cmd_notes(paths: CuratorPaths, today: Optional[datetime] = None) -> int:
 
 
 # --------------------------------------------------------------------------
+# Skill kinds + the index by kind (CEO "Ok ลุย" 2026-09-28)
+#
+# config/skill-kinds.yaml holds the lists (the seven kinds, the C-levels, the
+# imported public skills, the commands the CEO types). These helpers live here,
+# not in skill-lint.py, because the lint already loads this module: the index
+# verb below and lint codes 11-16 then share ONE reading of "what is a stub",
+# "what is imported" and "what the index says" and can never disagree.
+# --------------------------------------------------------------------------
+
+SKILL_KINDS_YAML = ROOT / "config" / "skill-kinds.yaml"
+SKILL_INDEX_MD = ROOT / "docs" / "org" / "SKILL-INDEX.md"
+INDEX_BLURB_MAX = 140
+_STUB_REMOVE_RE = re.compile(r"\bremoved? (?:after|on) (\d{4}-\d{2}-\d{2})", re.IGNORECASE)
+_STUB_TARGET_RE = re.compile(r"^MOVED to `?([^\s`]+)")
+
+
+@dataclass(frozen=True)
+class SkillKinds:
+    kinds: tuple            # lower case, in index section order
+    c_levels: tuple         # valid ROLE prefixes and `owner:` values besides ALL / worker roles
+    imported: frozenset     # public skills, not ours: every guard skips them
+    ceo_commands: frozenset  # short names the CEO types: exempt from the name check only
+
+
+def load_skill_kinds(path: Path = SKILL_KINDS_YAML) -> SkillKinds:
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(data, dict):
+        raise CuratorError(f"{path}: expected a mapping")
+
+    def _list(key: str) -> list[str]:
+        value = data.get(key) or []
+        if not isinstance(value, list):
+            raise CuratorError(f"{path}: `{key}` must be a list")
+        return [str(v) for v in value]
+
+    kinds = tuple(k.strip().lower() for k in _list("kinds"))
+    if not kinds:
+        raise CuratorError(f"{path}: `kinds` is empty")
+    return SkillKinds(
+        kinds=kinds,
+        c_levels=tuple(_list("c_levels")),
+        imported=frozenset(_list("imported")),
+        ceo_commands=frozenset(_list("ceo_commands")),
+    )
+
+
+def one_line(value) -> str:
+    """A frontmatter string on one line (folded scalars, stray newlines)."""
+    return " ".join(str(value or "").split())
+
+
+def is_redirect_stub(fm: dict) -> bool:
+    """A redirect stub left at an old name (ALL_Protocol_SkillAuthor §9):
+    hidden from the model and its description starts with MOVED."""
+    return fm.get("disable-model-invocation") is True and one_line(fm.get("description")).startswith("MOVED")
+
+
+def is_archived(fm: dict) -> bool:
+    return fm.get("lifecycle") == "archived"
+
+
+def stub_removal_date(fm: dict) -> Optional[str]:
+    """The YYYY-MM-DD of "removed after <date>" (or "removed on") in the description."""
+    m = _STUB_REMOVE_RE.search(one_line(fm.get("description")))
+    return m.group(1) if m else None
+
+
+def stub_target(fm: dict) -> Optional[str]:
+    m = _STUB_TARGET_RE.match(one_line(fm.get("description")))
+    return m.group(1).rstrip(".,;:") if m else None
+
+
+def index_blurb(description, kinds: tuple, limit: int = INDEX_BLURB_MAX) -> str:
+    """"What it is": the description minus its `KIND — ` prefix and minus the
+    "Trigger on …" tail (the routes, not the purpose), cut to `limit` chars."""
+    text = one_line(description)
+    m = re.match(r"^([A-Z]+) — ", text)
+    if m and m.group(1).lower() in kinds:
+        text = text[m.end():]
+    cut = re.search(r"\bTrigger on\b", text, re.IGNORECASE)
+    if cut:
+        text = text[:cut.start()]
+    text = text.strip().rstrip(" ,;:—-").strip()
+    if len(text) > limit:
+        head = text[: limit - 1]
+        space = head.rfind(" ")
+        if space > limit // 2:
+            head = head[:space]
+        text = head.rstrip(" ,;:.—-") + "…"
+    return text
+
+
+def _cell(value: str) -> str:
+    return value.replace("|", "\\|")
+
+
+def _audience_cell(value) -> str:
+    if value is None:
+        return "-"
+    if isinstance(value, list):
+        return ", ".join(str(v) for v in value) or "-"
+    return str(value)
+
+
+def classify_skills(owned_dir: Path, kinds: SkillKinds) -> dict:
+    """Every entry under `owned_dir`, sorted, sorted into the index's groups.
+    Never follows a symlink (invariant 3): an imported symlink is listed by its
+    link target, read with os.readlink, and nothing inside it is opened."""
+    groups: dict = {"kinds": {k: [] for k in kinds.kinds}, "commands": [], "imported": [],
+                    "stubs": [], "untagged": []}
+    if not owned_dir.is_dir():
+        return groups
+    for child in sorted(owned_dir.iterdir(), key=lambda p: p.name):
+        name = child.name
+        if child.is_symlink():
+            if name in kinds.imported:
+                groups["imported"].append({"name": name, "what": f"symlink to `{os.readlink(child)}` (not read)"})
+            continue
+        if not child.is_dir() or not (child / "SKILL.md").is_file():
+            continue
+        fm = _read_frontmatter(child)
+        if name in kinds.imported:
+            groups["imported"].append({"name": name, "what": index_blurb(fm.get("description"), kinds.kinds)})
+            continue
+        if is_archived(fm):
+            continue
+        if is_redirect_stub(fm):
+            groups["stubs"].append({"name": name, "target": stub_target(fm) or "?",
+                                    "remove_after": stub_removal_date(fm) or "?"})
+            continue
+        kind = fm.get("kind")
+        kind = kind.strip().lower() if isinstance(kind, str) else None
+        row = {
+            "name": name,
+            "kind": kind or "-",
+            "owner": str(fm.get("owner") or "-"),
+            "audience": _audience_cell(fm.get("audience")),
+            "what": index_blurb(fm.get("description"), kinds.kinds),
+        }
+        if name in kinds.ceo_commands:
+            groups["commands"].append(row)
+        elif kind in kinds.kinds:
+            groups["kinds"][kind].append(row)
+        else:
+            groups["untagged"].append(row)
+    return groups
+
+
+def render_skill_index(owned_dir: Path, kinds: SkillKinds) -> str:
+    """docs/org/SKILL-INDEX.md as text. Deterministic: sorted, no timestamps —
+    the same skills always render the same bytes, which is what lets skill-lint
+    code 16 compare the committed copy with a fresh render."""
+    g = classify_skills(owned_dir, kinds)
+    org_total = sum(len(rows) for rows in g["kinds"].values())
+    per_kind = " · ".join(f"{k.capitalize()} {len(g['kinds'][k])}" for k in kinds.kinds)
+    out = [
+        "# Skill index — by kind",
+        "",
+        "<!-- Generated by scripts/skill-curator.py index. Do not edit by hand. -->",
+        "",
+        "Generated from every `.claude/skills/*/SKILL.md` frontmatter and `config/skill-kinds.yaml`.",
+        "Do not edit by hand: when a skill's name, kind, owner, audience or description changes, run",
+        "`.venv/bin/python scripts/skill-curator.py index` and commit this file with the skill",
+        "(`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:",
+        "`ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.",
+        "",
+        f"{org_total} org skills by kind — {per_kind} · commands the CEO types {len(g['commands'])} · "
+        f"imported {len(g['imported'])} · redirect stubs {len(g['stubs'])}",
+        "",
+    ]
+    for kind in kinds.kinds:
+        out += [f"## {kind.capitalize()}", ""]
+        rows = g["kinds"][kind]
+        if not rows:
+            out += ["(none)", ""]
+            continue
+        out += ["| name | owner | audience | what it is |", "|---|---|---|---|"]
+        out += [f"| `{r['name']}` | {_cell(r['owner'])} | {_cell(r['audience'])} | {_cell(r['what'])} |" for r in rows]
+        out.append("")
+    out += ["## Commands the CEO types", "",
+            "Short names kept on purpose (CEO 2026-09-27); the kind lives in the frontmatter only.", ""]
+    if g["commands"]:
+        out += ["| name | kind | owner | audience | what it is |", "|---|---|---|---|---|"]
+        out += [f"| `{r['name']}` | {r['kind'].capitalize()} | {_cell(r['owner'])} | {_cell(r['audience'])} | "
+                f"{_cell(r['what'])} |" for r in g["commands"]]
+    else:
+        out.append("(none)")
+    out.append("")
+    out += ["## Imported (not ours)", "",
+            "Public skills, out of scope until the CEO sorts them: no kind, no rename, no edit.", ""]
+    if g["imported"]:
+        out += ["| name | what it is |", "|---|---|"]
+        out += [f"| `{r['name']}` | {_cell(r['what'])} |" for r in g["imported"]]
+    else:
+        out.append("(none)")
+    out.append("")
+    out += ["## Redirect stubs (old name → new, remove after)", "",
+            "Delete through `scripts/skill-curator.py archive <old>` once the date has passed "
+            "(skill-lint code 15).", ""]
+    if g["stubs"]:
+        out += ["| old name | new name | remove after |", "|---|---|---|"]
+        out += [f"| `{r['name']}` | `{r['target']}` | {r['remove_after']} |" for r in g["stubs"]]
+    else:
+        out.append("(none)")
+    out.append("")
+    if g["untagged"]:
+        out += ["## Not tagged (skill-lint code 11)", "", "| name | owner | audience | what it is |", "|---|---|---|---|"]
+        out += [f"| `{r['name']}` | {_cell(r['owner'])} | {_cell(r['audience'])} | {_cell(r['what'])} |"
+                for r in g["untagged"]]
+        out.append("")
+    return "\n".join(out)
+
+
+def write_skill_index(paths: CuratorPaths, out_path: Path = SKILL_INDEX_MD,
+                      kinds_path: Path = SKILL_KINDS_YAML) -> bool:
+    """Render and write the index. Returns True when the file changed.
+    Reads skills only — never touches anything under .claude/skills/."""
+    text = render_skill_index(paths.owned_skills_dir, load_skill_kinds(kinds_path))
+    old = out_path.read_text(encoding="utf-8") if out_path.is_file() else None
+    if old == text:
+        return False
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(text, encoding="utf-8")
+    return True
+
+
+def cmd_index(paths: CuratorPaths, out_path: Path = SKILL_INDEX_MD, kinds_path: Path = SKILL_KINDS_YAML) -> int:
+    changed = write_skill_index(paths, out_path, kinds_path)
+    try:
+        shown = out_path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        shown = str(out_path)
+    print(f"{'wrote' if changed else 'unchanged'}: {shown}"
+          + (" — commit it with the skill change" if changed else ""))
+    return 0
+
+
+# --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
 
@@ -1011,6 +1254,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_undo.add_argument("sha")
     sub.add_parser("drift", help="git status --porcelain over .claude/skills")
     sub.add_parser("notes", help="Field notes across the portfolio: pending / stale / contested (ADR 0026)")
+    p_index = sub.add_parser("index", help="write docs/org/SKILL-INDEX.md — org skills grouped by kind (read-only on skills)")
+    p_index.add_argument("--out", type=Path, default=None, help="write here instead of docs/org/SKILL-INDEX.md")
 
     args = parser.parse_args(argv)
     paths = CuratorPaths.default()
@@ -1052,6 +1297,8 @@ def main(argv: Optional[list[str]] = None) -> int:
             return 0
         if args.verb == "notes":
             return cmd_notes(paths)
+        if args.verb == "index":
+            return cmd_index(paths, args.out or SKILL_INDEX_MD)
     except CuratorError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1
