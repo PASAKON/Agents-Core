@@ -16,7 +16,13 @@ audience: [cmo, cto, browser_operator]
 **Proven on:** ChatGPT **Plus web UI** (gpt-image, Thai UI, Sep 2026) driven by
 `tools/chatgpt_images.py` on the Mac automation Chrome (`--cdp-url http://127.0.0.1:9223`,
 profile `~/.flow-automation/chrome-profile`, signed in by the CEO 2026-09-24), plus
-`tools/lakorn_poster.py` (Pillow with raqm for Thai shaping). One film: «จุดจบของเจ้าหนี้นอกระบบ».
+`tools/lakorn_poster.py` (Pillow with raqm for Thai shaping). Films: «จุดจบของเจ้าหนี้นอกระบบ» (banchi),
+«ตาชั่งของเสี่ย» (taachang).
+
+The ChatGPT UI changed on 2026-09-26 (send button aria-label ส่ง, no `section[data-turn]`, the image in a
+gallery with a `blob:` src) and the runner followed it (38898881). If every image fails with "send did not
+register" or "timed out waiting for the image" while the chat shows a picture, the UI moved again: read the
+live DOM before retrying.
 
 The lettering and layout half is model-agnostic. The picture half is gpt-image habits:
 it drops or misplaces requested text, and it flattens staged compositions into a
@@ -83,8 +89,8 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
    cracked antique gold, raw red-and-white brush. Use the prompt template below, one
    JSON item each, and run:
    `.venv/bin/python tools/chatgpt_images.py --cdp-url http://127.0.0.1:9223 --json <Work>/logos/round1.json --out <Work>/logos`
-3. **Spell-check every logo letter by letter** at full resolution, one line at a time.
-   Fix with a same-chat edit, no re-attach:
+3. **Spell-check every logo letter by letter** at full resolution, one line at a time, with a
+   crop of every vowel and tone mark (rule 6). Fix with a same-chat edit, no re-attach:
    `… --out <Work>/logos --name logo-b2 --continue logo-b --prompt "Keep everything the same; remove …"`
 4. **Compose all three** on the same people picture, so the CEO compares logos only:
    `.venv/bin/python tools/lakorn_poster.py people.png out/poster-logo-a.png --logo logos/logo-a.png --english "…" --tagline "…" --tagline-top --cta "ดูจบในตอนเดียว" --logo-h 400 --title-top 1095`
@@ -95,12 +101,15 @@ a picture reads as a news or YouTube thumbnail, whatever the layout. The CEO had
 
 ### Logo prompt template (worked on banchi, 3 of 3 spelled right)
 
+The lines are for reading. In the JSON the prompt is ONE line (join with spaces): the composer drops
+newlines, so a multi-line prompt fails the runner's paste check (38898881).
+
 ```
 Create a TITLE LOGO (lettering only) for a Thai prime-time TV drama (lakorn) poster.
 The Thai text must be exactly this, character for character, in two lines:
 line 1, smaller: <ส่วนเล็ก>
 line 2, much larger: <ส่วนใหญ่>
-Spell it exactly as written, every vowel and tone mark included (<name the tricky marks>).
+Spell it exactly as written, every vowel and tone mark included (<each tone mark by its Thai name and its shape>).
 No other words at all: no English, no subtitle, no signature, no watermark.
 Background: solid pure black (#000000) edge to edge, nothing else in the frame.
 Landscape 3:2 image; the lettering centred and filling about 85% of the width.
@@ -132,13 +141,18 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
    (Sukhumvit, Thonburi, Kanit) are for the tagline, airtime and billing only.
 5. Ask gpt-image for people with **no text**, and for the logo on its own. Asked for both
    at once, it dropped the title on the first pass 3 of 3 times and put it at the top.
-6. A mark under a consonant reads as a vowel. Debris hanging under ห, ร or บ looked like
-   ุ ("หุ", "บุ") on the cracked-gold logo; one same-chat edit removed it.
+6. gpt-image gets Thai marks wrong in ways only a crop at full resolution shows. Debris hanging
+   under ห, ร or บ looked like ุ ("หุ", "บุ") on banchi's cracked-gold logo; on taachang 2 of 3
+   logos drew the tone mark over ช in ตาชั่ง as mai tho ้ instead of mai ek ่ ("ชั้ง"), invisible at
+   poster scale. One same-chat edit fixed each with the design unchanged; name the mark by its
+   Thai name and its shape ("the tone mark above ช must be MAI EK ่ — one short straight vertical
+   stroke — not mai tho ้").
 7. A pale logo over a pale shirt needs the tool's dark halo (built in since 2026-09-24).
    Check the smallest line («จุดจบของ») at poster scale, not only the big one.
-8. The runner's traps (image turn is `section[data-turn]`, first paste can land nothing,
-   never click Send twice in a live chat) are fixed in the tool. If it misbehaves, read
-   `ledger.json` and use `--recover <name>` before generating again.
+8. The runner's traps (first paste can land nothing, never click Send twice in a live chat, the
+   2026-09-26 UI in §Model scope) are handled in the tool. If it misbehaves, read `ledger.json`
+   and use `--recover <name>` before generating again.
+   [SUPERSEDED 2026-09-26] "image turn is `section[data-turn]`": that UI has no turn attributes (38898881).
 9. **Size the title to the space it has: not cramped, not too big, not too small**
    (CEO ruling 2026-09-26: "ปรับ ขยาย text ตามพื้นที่ที่มีความเหมาะสมได้ ไม่ชิดขอบเกินไป
    ไม่ใหญ่เกินไปและไม่เล็กเกินไป"). The logo is the biggest element on the poster, so
@@ -187,5 +201,5 @@ Style concept: '<name>' — <the motif, how it touches the letters>. Every lette
 
 - 2026-09-24 [MISSING] cover (moved from thai-moral-drama 2026-09-25) — the story skill said nothing about the episode cover. First try (ChatGPT, title in the prompt) put the title across the TOP; CEO: "คนแบบนี้ถูกแล้ว ติดแค่ข้อความ … มันจะมีจุดที่อยู่ประจำของมัน". Real Ch3 lakorn posters (ลายกินรี, คลื่นชีวิต, ลดา, เลือดเจ้าพระยา, 18 มงกุฎ) share one layout. The layout itself is §The layout, generating the people only and lettering with `tools/lakorn_poster.py` is §Workflow 1 and 4, and no face-changing cop clothes on a cover is rule 2 (text removed here on 2026-09-25 so the layout is written once) · evidence: task-d206afca, b5296b42 · status: promoted
 - 2026-09-24 [MISSING] cover (moved from thai-moral-drama 2026-09-25) — the whole cover workflow now lives in its own skill, `CMO_Procedure_ChatGPTImage_LakornCover`; the 09-24 cover note above is its first draft. What the CEO approved: the title is a LOGO made for this story (ledger + red strike on banchi), not a typed font; people and logo come from ChatGPT separately; three options, CEO picks · evidence: task-d206afca, CEO picked A 2026-09-24 · status: promoted
-- 2026-09-26 [MISSING] §Workflow 3 — **2 of 3 logos misspelled the tone mark**: gpt-image drew the mark above ช in ตาชั่ง as a hook (mai tho ้ → "ชั้ง") on the rusted-scale and pebble concepts; only the gold one drew mai ek ่ as a clean vertical bar. Visible only in a crop of the mark at full resolution, not at poster scale. One same-chat edit ("the tone mark above ช must be MAI EK ่ — one short straight vertical stroke — not mai tho ้") fixed it with the design unchanged. Name the exact tone mark by its Thai name AND its shape in the first prompt · evidence: taachang Work/task-c2723478/out/cover/logo-a-scale vs logo-a2, CEO picked A → posted with A2 · status: pending
-- 2026-09-26 [MISSING] §Model scope — the ChatGPT web UI changed on 2026-09-26 (send button aria-label ส่ง, no section[data-turn], images in a gallery with blob: src) and a multi-line JSON prompt fails the runner's paste check; both fixed in tools/chatgpt_images.py 3c70e00b. If the runner fails every image with "send did not register" or "timed out waiting for the image" while the chat shows a picture, the UI moved again: read the live DOM before retrying · evidence: cover run1-run4 logs · status: pending
+- 2026-09-26 [MISSING] §Workflow 3 — **2 of 3 logos misspelled the tone mark**: gpt-image drew the mark above ช in ตาชั่ง as a hook (mai tho ้ → "ชั้ง") on the rusted-scale and pebble concepts; only the gold one drew mai ek ่ as a clean vertical bar. Visible only in a crop of the mark at full resolution, not at poster scale. One same-chat edit ("the tone mark above ช must be MAI EK ่ — one short straight vertical stroke — not mai tho ้") fixed it with the design unchanged. Name the exact tone mark by its Thai name AND its shape in the first prompt · evidence: taachang Work/task-c2723478/out/cover/logo-a-scale vs logo-a2, CEO picked A → posted with A2 → §Rules 6, §Workflow 3, the template (second film after banchi's debris marks) · status: promoted
+- 2026-09-26 [MISSING] §Model scope — the ChatGPT web UI changed on 2026-09-26 (send button aria-label ส่ง, no section[data-turn], images in a gallery with blob: src) and a multi-line JSON prompt fails the runner's paste check; both fixed in tools/chatgpt_images.py 3c70e00b. If the runner fails every image with "send did not register" or "timed out waiting for the image" while the chat shows a picture, the UI moved again: read the live DOM before retrying · evidence: cover run1-run4 logs → §Model scope, §Rules 8 (old line kept [SUPERSEDED 2026-09-26]), the template's one-line JSON (the fix landed as 38898881; newlines are not fixed in the tool) · status: promoted
