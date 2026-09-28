@@ -97,7 +97,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <li><b>Goal แรก คือ G1 วันเสาร์ 31 ต.ค. 18:00 มีร้านนำร่องติดตั้งแล้วอย่างน้อย 7 ร้าน</b> (ทักร้านอย่างน้อย 400 ร้าน และคุยถึงเจ้าของอย่างน้อย 10%) ก่อนถึง G1 ต้องผ่าน G0 วันศุกร์ 16 ต.ค. ซึ่งเป็นด่านคุณภาพของบอท</li>
       <li><b>ต.ค. เป็นเดือนที่หนักที่สุด</b> เพราะโค้ดตอนนี้ยังรับร้านที่ 2 ไม่ได้ บอทเขียนมาเฉพาะงาน forex ของ MoonieX, หน้าอนุมัติคำตอบเห็นแชทของทุกร้านปนกัน และบอทส่งคำตอบเองทันที ไม่ได้ร่างให้แอดมินกดส่งแบบที่เราขาย</li>
       <li>งาน CTO ทั้งหมดมี <b>12 งานจากตาราง CMO</b> บวกกับ <b>27 งานที่ CTO เพิ่ม</b> เพราะงานของ CMO ต้องใช้ ในจำนวนนี้ 15 งานต้องเสร็จภายใน ต.ค.</li>
-      <li><b>ต้องการให้ CEO ตัดสินใจ 5 ข้อภายในวันพุธ 30 ก.ย.</b> ถ้าช้ากว่านี้ งานยื่น Meta วันที่ 9 ต.ค. จะไม่ทัน</li>
+      <li><b>CEO ตัดสินครบ 5 ข้อแล้วเมื่อ 28 ก.ย.</b> แยกระบบไปใช้ Supabase ของ Chatudo · เว็บทำใน Chatudo-Webapp · ยื่น Meta ผ่านบัญชี Dorsine Gobb · เพดานค่า AI $20 โดยใช้ subscription ก่อน · ยังไม่ต้องทำ demo · ยังรอ CEO 3 อย่าง คือชื่อผู้ยื่นพร้อมเอกสาร Meta, สิทธิ์ Namecheap และยืนยันว่าแชทจริงของร้านใช้ API ได้</li>
       <li>หลักที่ใช้คุมงาน: สร้างเฉพาะสิ่งที่ประตูถัดไปต้องใช้ งานตั้งแต่ ก.ค. 2027 เป็นต้นไปจะเริ่มก็ต่อเมื่อผ่านประตูก่อนหน้าแล้ว <b>สิ่งที่ชี้ขาดเดือน ต.ค. คือจำนวนร้านที่ CEO ทัก ไม่ใช่โค้ด</b></li>
     </ul>
     <div class="gates">
@@ -107,33 +107,39 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     </div>
   </div>
 
-  <h2 id="decide">ต้องการ CEO ตัดสินใจ 5 ข้อ (ภายใน พ. 30 ก.ย.)</h2>
+  <h2 id="decide">การตัดสินใจของ CEO (จ. 28 ก.ย. 2026)</h2>
+  <p class="lede">CEO ตอบครบทั้ง 5 ข้อแล้ว และสั่งให้เริ่มงานได้ทันที ข้างล่างเก็บทั้งคำแนะนำเดิมและคำตัดสินไว้</p>
   <div class="dec">
     <div class="dcard">
       <h3><span class="code mono">D1</span>ข้อมูลของร้านลูกค้าเก็บที่ไหน</h3>
       <p>ตอนนี้บอทใช้ Supabase ร่วมกับ MoonieX ซึ่งเก็บข้อมูลลูกค้า forex อยู่ด้วย token LINE ของร้านเก็บไว้โดยไม่เข้ารหัส และหน้าอนุมัติคำตอบยังไม่กรองตามร้าน</p>
       <p class="rec"><b>แนะนำ:</b> ใช้โค้ด ClaudeFlow ชุดเดิม แต่รันเป็นระบบที่ 2 แยกต่างหาก คือ container ของ Chatudo ต่อกับ Supabase ของ Chatudo ที่เปิดไว้แล้ว (<code>gcjdirrtvybhvghjtscf</code>, บัญชี pass.gob2) และใช้โดเมน <code>api.chatudo.com</code> เริ่มตั้งแต่ร้านนอกร้านแรก วิธีนี้ยังใช้ repo เดียวตามกฎ 31 ก.ค. และถ้า MoonieX โดนตรวจเรื่อง forex ข้อมูลของร้านลูกค้าจะไม่ได้อยู่ในฐานข้อมูลเดียวกัน ค่าใช้จ่ายช่วงแรก $0 เพราะ Supabase แพ็กฟรีพอใช้ (ประมาณการ)</p>
+      <p class="rec" style="border-color:var(--accent)"><b>CEO ตัดสิน:</b> แยกระบบ Chatudo ไปใช้ Supabase ของ Chatudo โดยโค้ดยังอยู่ repo เดิม</p>
       <p class="alt">อีกทาง: ใช้ฐานข้อมูล MoonieX ต่อไปจนกว่าจะแยก repo ตอน มิ.ย. 2028 วิธีนี้เร็วกว่าประมาณ 3 วันทำงาน แต่ข้อมูลร้านจะอยู่ปนกับข้อมูล forex ประมาณ 20 เดือน</p>
     </div>
     <div class="dcard">
       <h3><span class="code mono">D2</span>เว็บ chatudo.com ทำที่ไหน</h3>
       <p>Meta ต้องการเว็บที่มีหน้านโยบายความเป็นส่วนตัวกับหน้าขอลบข้อมูลก่อนยื่นรีวิว ส่วนลิงก์ demo ในข้อความทักร้านก็ต้องมีบ้านอยู่ ตอนนี้ chatudo.com จดไว้ที่ Namecheap ตั้งแต่ 2 ส.ค. 2026 และยังเป็นหน้า parking</p>
       <p class="rec"><b>แนะนำ:</b> ทำใน repo <code>Chatudo-Webapp</code> ที่สร้างไว้แล้วตั้งแต่ 3 ส.ค. (ADR 0012) โดยใช้เฉพาะหน้าเว็บสาธารณะกับ demo ส่วนโค้ดบอทยังอยู่ใน ClaudeFlow และ host ที่ Vercel บัญชีของ Chatudo ข้อนี้ต้องให้ CEO อนุมัติแถว HQ <code>Projects/Chatudo/Webapp</code> ยืนยันว่า chatudo.com เป็นของ CEO และให้สิทธิ์แก้ DNS ที่ Namecheap</p>
+      <p class="rec" style="border-color:var(--accent)"><b>CEO ตัดสิน:</b> ทำใน Chatudo-Webapp และอนุมัติแถว HQ แล้ว (HQ <span class="mono">8b24b45</span>) · clone ลง Contabo แล้ว · ยังรอ CEO ยืนยันเรื่องโดเมนและสิทธิ์ Namecheap</p>
     </div>
     <div class="dcard">
       <h3><span class="code mono">D3</span>ยื่น Meta ในนามใคร</h3>
       <p>Business Verification ต้องใช้ชื่อธุรกิจตามกฎหมาย และเอกสารที่มีชื่อกับที่อยู่ตรงกัน เพจ Chatudo อยู่ในบัญชี Dorsine Gobb บน winbox ซึ่งยังยิงโฆษณาได้ ส่วนบัญชี PASAKON บน Mac โดนแบนโฆษณาอยู่ ถ้าใช้บัญชีนี้ จะยิงโฆษณา Click-to-Messenger ในเดือน ม.ค. ไม่ได้</p>
       <p class="rec"><b>แนะนำ:</b> ยื่นผ่าน Business Manager ที่ถือเพจ Chatudo (Dorsine Gobb) CEO แจ้งว่าจะยื่นในนามบริษัทไหนหรือในนามบุคคล และส่งเอกสารมา CTO เตรียมแอป วิดีโอสาธิต และคำอธิบายให้ครบ ส่วนปุ่มยื่นสุดท้าย CEO เป็นคนกด เพราะเป็นการยื่นในนามของ CEO</p>
+      <p class="rec" style="border-color:var(--accent)"><b>CEO ตัดสิน:</b> ยื่นผ่านบัญชี Dorsine Gobb ที่ถือเพจ Chatudo · ยังรอ CEO ส่งชื่อผู้ยื่น (บริษัทหรือบุคคล) พร้อมเอกสาร</p>
     </div>
     <div class="dcard">
       <h3><span class="code mono">D4</span>งบค่า AI เดือน ต.ค.</h3>
       <p>ตัวเลขทั้งหมดเป็นประมาณการ ยังไม่ได้วัด: รัน G0 ใช้ประมาณ 1,000 รอบตอบ × $0.01–0.04 ≈ <b>$30</b> และสร้าง demo ให้ร้านที่ทัก 450 ร้านใช้ประมาณ <b>$50</b> ส่วนโฮสติ้ง $0 (Vercel แพ็กฟรี, เครื่อง Contabo ที่มีอยู่, Supabase แพ็กฟรี) ค่าแรง DEV ใช้โควตา Claude ที่จ่ายอยู่แล้ว</p>
-      <p class="rec"><b>ขออนุมัติเพดาน $100 สำหรับเดือน ต.ค.</b> ระบบจะหยุดเองเมื่อถึงเพดาน และจะรายงานยอดจริงทุกวันจันทร์</p>
+      <p class="rec"><b>เดิมขอ:</b> เพดาน $100 สำหรับเดือน ต.ค.</p>
+      <p class="rec" style="border-color:var(--accent)"><b>CEO ตัดสิน:</b> เพดาน <b>$20</b> ช่วงแรกให้ใช้ Claude Code session, Gemini subscription และ ChatGPT subscription แทน API แล้วค่อยเปลี่ยนไปใช้ API เมื่อตลาดใหญ่ขึ้น · งานพัฒนาและ G0 รันบน Claude Code session ได้ ค่าใช้จ่าย $0 · แชทจริงของร้านนำร่อง (เริ่ม 23 ต.ค.) CTO ขอใช้ API ภายในเพดาน $20 เพราะข้อตกลงของ subscription ไม่ได้ให้เอาไปให้บริการลูกค้า รอ CEO ยืนยันข้อนี้</p>
     </div>
     <div class="dcard">
       <h3><span class="code mono">D5</span>ลิงก์ demo ในข้อความทักแรก</h3>
       <p>แผน CMO เริ่มทักร้านวันที่ 1 ต.ค. โดยใส่ลิงก์ demo ที่สอนจากข้อมูลหน้าเพจของร้านนั้นแล้ว แต่ตาราง CTO ของ CMO ให้ demo เสร็จวันที่ 23 ต.ค.</p>
       <p class="rec"><b>แนะนำ:</b> สัปดาห์แรก (1–6 ต.ค.) ทดสอบข้อความทัก 3 แบบโดยยังไม่ต้องมี demo จากนั้นวันพุธ 7 ต.ค. จะมี demo ร้านตัวอย่าง 4 ร้าน คือกลุ่มละ 1 ร้าน วันศุกร์ 16 ต.ค. เริ่มมี demo เฉพาะร้าน และวันศุกร์ 23 ต.ค. ครบทุกร้านที่ทัก ตามวันที่ของ CMO</p>
+      <p class="rec" style="border-color:var(--accent)"><b>CEO ตัดสิน:</b> <b>ยังไม่ต้องทำ demo</b> · งาน O5 และ C4 พักไว้จนกว่า CEO จะสั่ง</p>
     </div>
   </div>
 
@@ -166,18 +172,18 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <tr><td class="code">O4</td><td>ระบบ Chatudo แยกต่างหาก: container · Supabase Chatudo · <code>api.chatudo.com</code> · migration ทั้งชุด</td><td class="when">อ. 13 ต.ค.</td><td class="who">devops</td><td class="dep">D1</td><td><span class="tag add">เพิ่ม</span></td></tr>
 
     <tr class="week"><td colspan="6">สัปดาห์ 2 · จ. 5 – อา. 11 ต.ค.</td></tr>
-    <tr><td class="code">O5</td><td>demo ร้านตัวอย่าง 4 ร้าน (คอร์ส · ร้านจองคิว · ร้านขายของในแชท · คลินิก) ที่ <code>chatudo.com/demo/…</code> และนับจำนวนคนที่เปิดดู</td><td class="when">พ. 7 ต.ค.</td><td class="who">frontend + backend</td><td class="dep">O2 · O3</td><td><span class="tag add">เพิ่ม</span></td></tr>
+    <tr style="opacity:.55"><td class="code">O5</td><td><b>พักไว้ (CEO 28 ก.ย.: demo ยังไม่ต้องทำ)</b> demo ร้านตัวอย่าง 4 ร้าน (คอร์ส · ร้านจองคิว · ร้านขายของในแชท · คลินิก) ที่ <code>chatudo.com/demo/…</code> และนับจำนวนคนที่เปิดดู</td><td class="when">พ. 7 ต.ค.</td><td class="who">frontend + backend</td><td class="dep">O2 · O3</td><td><span class="tag add">เพิ่ม</span> <span class="tag wait">พัก</span></td></tr>
     <tr><td class="code">O6</td><td>โหมด "ร่างทุกข้อความ": ทุกคำตอบเป็นร่างให้แอดมินกด และเก็บร่างเทียบกับข้อความที่ส่งจริงทุกข้อความ แยกตามร้าน<small>ใช้วัดเกณฑ์ข้อ 1 และตัวเลข % ที่ส่งได้โดยไม่ต้องแก้ ซึ่ง CMO วัดทุกวันจันทร์ตั้งแต่ พ.ย.</small></td><td class="when">ศ. 9 ต.ค.</td><td class="who">backend_dev</td><td class="dep">O2</td><td><span class="tag add">เพิ่ม</span></td></tr>
     <tr><td class="code">C1</td><td><b>ยื่น Meta Business Verification + App Review (Messenger + IG) ของแอป Chatudo</b><small>ก่อนยื่นต้องทำ Messenger ทางตรงให้ใช้ได้บนเพจ Chatudo ของเราเองก่อน (เพจของเราเองน่าจะไม่ต้องรอรีวิว แต่ยังไม่ได้ยืนยัน) แล้วอัดวิดีโอสาธิตส่งไปกับคำขอ</small></td><td class="when">ศ. 9 ต.ค. 18:00</td><td class="who">backend · browser_operator (winbox) · CEO กดยื่น</td><td class="dep">D3 · O3</td><td><span class="tag cmo">CMO</span></td></tr>
 
     <tr class="week"><td colspan="6">สัปดาห์ 3 · จ. 12 – อา. 18 ต.ค.</td></tr>
     <tr><td class="code">O7</td><td>แยกร้านให้ขาดจากกัน: หน้าอนุมัติ API และ SSE กรองตามร้าน · 7 ตารางที่เหลือแยกตามร้าน · เข้ารหัส token ของร้าน · แอดมินร้านล็อกอินเข้าหน้าของตัวเองได้<small>ถ้ายังไม่ผ่านการตรวจความปลอดภัย จะยังไม่รับร้านนอกเข้าระบบ</small></td><td class="when">ศ. 16 ต.ค.</td><td class="who">backend · security_engineer ตรวจ</td><td class="dep">O4</td><td><span class="tag add">เพิ่ม</span></td></tr>
-    <tr><td class="code">C2</td><td><b>Replay test: บอทร่างคำตอบของแชทเก่า MoonieX 200 แชท แล้วให้คะแนนตามเกณฑ์ 1–3</b><small>อ. 13 ต.ค. ชุดทดสอบเสร็จ · พ. 14 ต.ค. รัน · พฤ. 15 ต.ค. แก้ · ศ. 16 ต.ค. รายงาน · CEO สุ่มตรวจเองด้วยตา 30 แชท</small></td><td class="when">ศ. 16 ต.ค. 18:00</td><td class="who">qa · backend_dev</td><td class="dep">O2 · O6 · D4</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr><td class="code">C2</td><td><b>Replay test: บอทร่างคำตอบของแชทเก่า MoonieX 200 แชท แล้วให้คะแนนตามเกณฑ์ 1–3</b><small>อ. 13 ต.ค. ชุดทดสอบเสร็จ · พ. 14 ต.ค. รัน · พฤ. 15 ต.ค. แก้ · ศ. 16 ต.ค. รายงาน · CEO สุ่มตรวจเองด้วยตา 30 แชท · ให้บอทร่างผ่าน Claude Code session ค่าใช้จ่าย $0 (CEO 28 ก.ย.)</small></td><td class="when">ศ. 16 ต.ค. 18:00</td><td class="who">qa · backend_dev</td><td class="dep">O2 · O6 · D4</td><td><span class="tag cmo">CMO</span></td></tr>
     <tr class="gaterow"><td class="code">G0</td><td colspan="5">ศ. 16 ต.ค. 18:00 · ถ้าไม่ผ่าน เลื่อนนำร่องออกไป 2 สัปดาห์เพื่อแก้บอทก่อน (ตามแผน CMO)</td></tr>
 
     <tr class="week"><td colspan="6">สัปดาห์ 4 · จ. 19 – อา. 25 ต.ค.</td></tr>
     <tr><td class="code">C3</td><td><b>ติดตั้งร้านนอกบน LINE: เพิ่มร้านใหม่ + ดึงความรู้จากหน้าเพจหรือเว็บของร้าน + หน้าอนุมัติคำตอบให้แอดมินร้าน</b><small>พร้อมคู่มือติดตั้งที่จับเวลาทุกขั้น เป้าคือไม่เกิน 1 ชั่วโมง</small></td><td class="when">ศ. 23 ต.ค. 18:00</td><td class="who">backend + frontend</td><td class="dep">O7</td><td><span class="tag cmo">CMO</span></td></tr>
-    <tr><td class="code">C4</td><td><b>demo bot ต่อร้าน: สอนจากข้อมูลสาธารณะของร้าน ร้านละ 1 ลิงก์</b><small>ศ. 16 ต.ค. เริ่มสร้างได้ · ศ. 23 ต.ค. ครบทุกร้านที่ทัก</small></td><td class="when">ศ. 23 ต.ค. 18:00</td><td class="who">backend</td><td class="dep">O5</td><td><span class="tag cmo">CMO</span></td></tr>
+    <tr style="opacity:.55"><td class="code">C4</td><td><b>พักไว้ (CEO 28 ก.ย.)</b> <b>demo bot ต่อร้าน: สอนจากข้อมูลสาธารณะของร้าน ร้านละ 1 ลิงก์</b><small>ศ. 16 ต.ค. เริ่มสร้างได้ · ศ. 23 ต.ค. ครบทุกร้านที่ทัก</small></td><td class="when">ศ. 23 ต.ค. 18:00</td><td class="who">backend</td><td class="dep">O5</td><td><span class="tag cmo">CMO</span> <span class="tag wait">พัก</span></td></tr>
     <tr><td class="code">O8</td><td>ส่งต่อให้คนแยกตามร้าน: แจ้งเตือนแอดมินของร้านนั้นทาง LINE แทนอีเมลของ CEO</td><td class="when">ศ. 23 ต.ค.</td><td class="who">backend_dev</td><td class="dep">O7</td><td><span class="tag add">เพิ่ม</span></td></tr>
     <tr><td class="code">O9</td><td>PDPA: ร่างสัญญาประมวลผลข้อมูลให้ร้านเซ็น · กำหนดระยะเก็บข้อมูลและลบอัตโนมัติ (ตอนนี้ยังไม่มีการลบ)</td><td class="when">ศ. 23 ต.ค.</td><td class="who">CTO ร่าง · CEO อนุมัติ</td><td class="dep">O3</td><td><span class="tag add">เพิ่ม</span></td></tr>
     <tr><td class="code">O10</td><td>พร้อมรับร้านจริง: ตัวเช็กว่าระบบยังทำงาน · แจ้งเตือนเมื่อบอทล่ม · สำรองฐานข้อมูล · คู่มือรับมือเมื่อบอทล่ม</td><td class="when">ศ. 23 ต.ค.</td><td class="who">devops</td><td class="dep">O4</td><td><span class="tag add">เพิ่ม</span></td></tr>
