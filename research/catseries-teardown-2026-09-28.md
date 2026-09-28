@@ -47,6 +47,10 @@ The CMO checked the two open gaps on the downloaded files. Media stayed in Asset
    read today) states the writing team invents the stories itself, and that
    some episodes are "loosely inspired" by real events in the actual cat's
    life — never crowd-sourced from fans.
+   **[SUPERSEDED 2026-09-28, CMO]** The page now does take fan stories: the
+   «กาแฟ» episode caption reads "ดัดแปลงจากเรื่องจริงที่แฟนเพจส่งมาให้เราร่วมจดจำ"
+   (adapted from a true story a fan sent in) — MEASURED, caption in
+   `comments/video-meta-ytdlp.json`. See `docs/plans/khaoniao-roadmap-90d-2026-09-28.md` §1.
 5. Revenue signals found: the page claims **70,000–80,000 daily
    visitors** (PAGE'S OWN CLAIM, pinned post dated 17 Sep); at least 1 of the
    5 sampled videos is a direct in-narrative product-placement/affiliate

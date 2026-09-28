@@ -119,6 +119,7 @@ Scores run 1–5 and are **all GUESSES**; the reason for each sits in the row be
 | **Raise** | Openness about ownership: "เรื่องแต่งโดยทีมงาน ภาพและเสียงสร้างด้วย AI" | Natthika's "AI is only my brush" is the one quality signal among 7 pages [P]. It also matches Meta's AI-info rule [A] B10 |
 | **Raise** | YouTube long-form from day 1 | The YPP entry bar doubles on 2027-02-01 (MEASURED [R]). They claim 110k YouTube subs (page's claim [T]), so this is Raise, not Create |
 | **Create** | **Real dog stories sent in by viewers, dramatised with consent** | **The axis they do not compete on.** Their pinned post says the team invents every story and never crowd-sources (MEASURED quote [T]). It also answers their authenticity edge: some of their episodes are "loosely inspired" by a real cat's life (MEASURED [T]) |
+| ~~Create~~ **[SUPERSEDED 2026-09-28]** | Fan stories are no longer uncontested | The cat page's «กาแฟ» caption says "ดัดแปลงจากเรื่องจริงที่แฟนเพจส่งมาให้เราร่วมจดจำ" (MEASURED). Keep fan stories as a feature, not a moat; what stays ours is the Isan setting and dialect, a dog, numbered seasons and the LINE OA. See `docs/plans/khaoniao-roadmap-90d-2026-09-28.md` |
 | **Create** | The LINE OA as both the episode alert and the story intake | Owned list plus story pipeline in one channel |
 | **Create** | A signature ritual shot: ยายคำ rolls a ball of sticky rice for him at the end of every episode | One reused outro saves a shot per episode. YouTube allows a "same intro and outro" when the bulk differs (MEASURED policy text [PR]) |
 
@@ -445,3 +446,7 @@ Category: "Film". It was an exact match on FB's create-page form; "TV Show" and 
 - [Lexicon: LINE in Thailand by the numbers](https://lexiconthai.com/blog/the-line-phenomenon-in-thailand-by-the-numbers/)
 - [Pollo AI: Veo 3 review (talking-animal anecdote; weak)](https://pollo.ai/hub/google-veo-3-review)
 - Searches that returned nothing usable: «น้องหมา เค้าบอกว่า», «บ้านนี้มีข้าวเหนียว» / «หมาชื่อข้าวเหนียว», "ละครสั้น AI หมา พูดได้".
+
+## 90-day roadmap
+
+Roadmap, checkpoints CP0–CP3, revenue ladder and TikTok Shop plan: `docs/plans/khaoniao-roadmap-90d-2026-09-28.md` (artifact https://claude.ai/artifact/MniZdYfV94qHKcucSQccib).
