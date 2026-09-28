@@ -26,6 +26,8 @@ approval. Design: `docs/design/run-inbox/DESIGN.md`; hub facts: Console `docs/ru
 | `mac` | no — same 501 | P2, after the Mac rebuild (its sshd is off) |
 
 A card for winbox or the Mac never reaches the phone — the hub refuses it before storing anything.
+winbox's Claude CLI is already logged in (CEO 2026-09-28: "Window Login Claude นานแล้ว"), so no desk
+login is waiting on P2 there.
 There is no "old way" any more (Rule 0): the CEO does not sit at a machine to type. Until P2, a step on
 the Mac or winbox goes one of two ways, and never as a `!` line:
 

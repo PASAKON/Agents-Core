@@ -83,8 +83,15 @@ reset lost 84 GB that no list had a row for — that is why the registry exists.
 
 ## Green — delete without asking, on any machine
 
-Everything here rebuilds itself. No backup, no ledger line, no question. Contabo included (CEO
-2026-09-28: "ตามนั้น").
+Everything here rebuilds itself, or comes back from Drive. No backup, no ledger line, no question.
+Contabo included (CEO 2026-09-28: "ตามนั้น").
+
+- **The local copy of finished work that is on Drive** — once the job is done and every file
+  md5-matches its Drive copy (never size — CXO_Rules_GDrive_Filing rule 12), delete the local copy
+  without asking. CEO 2026-09-28: "งานเสร็จจบ สำรองแล้ว = ลบได้ Green เพราะถ้า เราต้องการข้อมูลเมื่อไหร่ เข้า Drive มาสำรองเสมอ". Not Green: unfinished work, any file
+  without a Drive md5 match, and login state (next section). Deleting ON Drive still waits for him —
+  Drive is the backup.
+- The systemd journal above 500 MB: `journalctl --vacuum-size=500M` (CEO 2026-09-28: "log บน Contabo เอาออกได้เลย")
 
 - Browser and Electron caches (`Cache`, `Code Cache`, `GPUCache`) — those three folders only; the
   profile around them is login state, never Green (next section)

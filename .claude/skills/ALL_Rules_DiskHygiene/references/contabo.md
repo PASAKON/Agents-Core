@@ -40,9 +40,10 @@ pip cache purge                         # 287 MB on 2026-09-28
 npm cache clean --force                 # ~/.npm/_cacache; ~/.npm/_npx is its own rm -rf
 ```
 
-None of it touches a running container, an image in use, or a volume. Not Green,
-so still his go: `journalctl --vacuum-size=500M` (~3.3 GB on 2026-09-10) — old logs
-do not rebuild.
+None of it touches a running container, an image in use, or a volume. The journal is Green too
+since 2026-09-28 ("log บน Contabo เอาออกได้เลย"): `journalctl --vacuum-size=500M` (760.8 MB → 500 MB that day).
+[SUPERSEDED 2026-09-28] "Not Green, so still his go: `journalctl --vacuum-size=500M` (~3.3 GB on
+2026-09-10) — old logs do not rebuild."
 
 **Worktrees are the big consumer, and they are full checkouts here.** On 2026-09-28
 none of the 22 worktrees had a sparse-checkout: developer ones ~0.93 GB each,

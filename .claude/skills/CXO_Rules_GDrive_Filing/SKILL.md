@@ -384,10 +384,13 @@ one. What is **not** negotiable is that a departure leaves a trace:
 ### Nothing in here gets deleted (CEO 2026-08-12)
 
 The CEO does not delete files from this branch. The only exceptions are a true
-duplicate, or a generation that is genuinely broken or malformed. **A superseded
-take is not a candidate for deletion** — regenerating a shot never retires the
-old one, because the discarded takes *are* the generation history and the
-festival requires that history be producible on request.
+duplicate, or a generation that is genuinely broken or malformed. Regenerating a
+shot never retires the old one by itself. Superseded takes are kept, and when Drive
+space runs low they join the first rows of the clean-up proposal like every other
+channel's (rule 11) — each deletion still waits for the CEO's yes. CEO 2026-09-28,
+asked whether ILAG stays exempt: "คลิปเวอร์ชันเก่าของ ILAG … เอาออกได้เลย เพราะเราสำรองแล้วบน Drive".
+[SUPERSEDED 2026-09-28] "**A superseded take is not a candidate for deletion** — … the discarded takes
+*are* the generation history and the festival requires that history be producible on request."
 
 Consequences that bind every agent:
 

@@ -34,6 +34,9 @@ moment of spending; this file is the org rule they all point to.
 3. **HARD — Permanent deletion of data waits for his word.** Drive files, disk contents and datasets are
    deleted only after he says so for that deletion, with the backup shown (`CXO_Rules_GDrive_Filing`,
    `ALL_Rules_DiskHygiene`). Moving to an archive or a trash that can be restored is not deletion.
+   Standing exception (CEO 2026-09-28, "งานเสร็จจบ สำรองแล้ว = ลบได้ Green เพราะถ้า เราต้องการข้อมูลเมื่อไหร่ เข้า Drive มาสำรองเสมอ"): the local copy of finished work whose
+   every file md5-matches Drive, and Contabo's journal above 500 MB, are Green (`ALL_Rules_DiskHygiene`).
+   Deleting on Drive itself still waits for his word.
    **Why hard:** irreversible.
 4. **HARD — Speaking in his name to real people or in public needs a standing approval for that channel.**
    Replies to YouTube comments on his films are approved standing (`docs/promo/REPLY-VOICE.md`); a new
