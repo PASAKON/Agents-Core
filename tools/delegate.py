@@ -26,7 +26,7 @@ from lib import db
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
-    worker_session_name as get_worker_session_name,
+    self_host, worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
 from tools import disk_queue
@@ -1873,7 +1873,13 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # answer "how long ago was a DEV spawned", which `updated_at` never
     # could (GH #51, #53). Stamped before the spawn rather than after, so a
     # spawn that hangs partway still blocks a duplicate.
-    db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
+    #
+    # `host` is also written here (W0.1, docs/design/org-mesh.md C1): this
+    # branch is local-spawn only (the resolved_host != 'mac' branch above
+    # already returned), so the DEV about to be spawned runs on THIS host.
+    # A self_host() failure fails the spawn loudly rather than guessing.
+    db.set_fields(task_id, spawned_at=db.now_iso(), host=self_host(),
+                  actor="cto")
 
     backend = (proj.get("spawn_backend") or "iterm").lower()
     tmux_sess: str | None = None
