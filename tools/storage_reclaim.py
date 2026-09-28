@@ -29,7 +29,6 @@ import json
 import os
 import re
 import shutil
-import sqlite3
 import subprocess
 import sys
 import time
@@ -43,6 +42,8 @@ except ImportError:
     # sys.path, not the repo root the `tools` package lives under.
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from tools import storage_policy
+
+from lib import db as db_lib
 
 ROOT = Path(__file__).resolve().parent.parent
 STORAGE_POLICY = ROOT / "config" / "storage-policy.yaml"
@@ -63,23 +64,17 @@ def _pilot_tasks(db_path: str | Path, owners: str | list[str]) -> list[dict]:
     if owners != "all" and not owners:
         return []
     try:
-        conn = sqlite3.connect(str(db_path))
-    except sqlite3.Error:
-        return []
-    try:
-        conn.row_factory = sqlite3.Row
-        if owners == "all":
-            rows = conn.execute("SELECT id, worktree, owner_cto FROM tasks").fetchall()
-        else:
-            placeholders = ",".join("?" for _ in owners)
-            rows = conn.execute(
-                f"SELECT id, worktree, owner_cto FROM tasks WHERE owner_cto IN ({placeholders})",
-                list(owners),
-            ).fetchall()
-    except sqlite3.Error:
-        return []
-    finally:
-        conn.close()
+        with db_lib.get_conn(path=Path(db_path), readonly=True) as conn:
+            if owners == "all":
+                rows = conn.execute("SELECT id, worktree, owner_cto FROM tasks").fetchall()
+            else:
+                placeholders = ",".join("?" for _ in owners)
+                rows = conn.execute(
+                    f"SELECT id, worktree, owner_cto FROM tasks WHERE owner_cto IN ({placeholders})",
+                    list(owners),
+                ).fetchall()
+    except Exception:
+        return []  # unreadable/missing db (or, under ORG_DB_URL, an unreachable hub) -> no pilot tasks
     return [dict(r) for r in rows]
 
 
@@ -275,8 +270,7 @@ def apply(items: list[dict], ledger_path: str | Path | None = None) -> list[dict
 # ------------------------------------------------------------------------ CLI
 
 def _default_db_path() -> Path:
-    from lib import db as db_mod
-    return db_mod.DB_PATH
+    return db_lib.DB_PATH
 
 
 def main() -> None:
