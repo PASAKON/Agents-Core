@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-41 org skills by kind — Rules 6 · Knowledge 11 · Workflow 1 · Procedure 8 · Standard 3 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+42 org skills by kind — Rules 6 · Knowledge 11 · Workflow 1 · Procedure 9 · Standard 3 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -54,6 +54,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
+| `CTO_Procedure_KeyFetch` | CTO | cxo, browser_operator, developer | A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. |
 | `CXO_Procedure_GDrive_BulkTransfer` | COO | cxo, worker | Move gigabytes into the CEO's Google Drive and run moves / renames / deletes through the bridge: batches, md5 verification by file id, the… |
 
 ## Standard

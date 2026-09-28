@@ -17,12 +17,20 @@ it cannot import anything else from Agents-Core.
                            for HOST and saves it here as /etc/infisical/HOST.env. Safe to re-run.
     status                 Print what exists now.
     retire-setup           Delete the temporary `setup` identity and its file (end of migration).
+    put <project> <env> <NAME> --stdin [--as ID] [--comment ..] [--meta k=v ..] [--multiline]
+                           Create or update ONE secret whose value arrives on stdin (phase 2,
+                           skill CTO_Procedure_KeyFetch). Lints NAME against PLAN §4b, requires
+                           the §4c metadata on create, prints only name · last4 · expires.
+    last4 <project> <env> <NAME> [--as ID]
+                           Print the last 4 characters of a stored value, to compare with what
+                           the provider's page shows. Never the value.
 
 The layout below is PLAN.md §3 / §3b as the CEO approved it on 2026-09-25; changing it is a plan
 change. Rules this tool enforces itself:
-  - it never prints a secret value; secrets are written only to /etc/infisical/*.env (0600);
-  - it writes no secret values anywhere in Infisical (phase 1 is structure only), and Org-Infra
-    values are the CEO's to enter by hand (PLAN §3b write rule 1).
+  - it never prints a secret value; identity secrets are written only to /etc/infisical/*.env
+    (0600) and a project secret reaches Infisical only through `put --stdin` (never an argument,
+    never a file a model reads);
+  - Org-Infra values are the CEO's to enter by hand (PLAN §3b write rule 1): `put` refuses them.
 """
 from __future__ import annotations
 
@@ -177,9 +185,9 @@ def cmd_save(name: str, from_stdin: bool = False) -> None:
 # --- state ----------------------------------------------------------------------------------
 
 class Org:
-    def __init__(self) -> None:
+    def __init__(self, identity: str = SETUP) -> None:
         require_root()
-        self.token, claims, _ = login(*read_cred(SETUP))
+        self.token, claims, _ = login(*read_cred(identity))
         self.org_id = claims["orgId"]
         self.setup_identity = claims.get("identityId")
 
@@ -353,6 +361,121 @@ def cmd_retire_setup(org: Org) -> None:
     print(f"deleted identity setup and {cred_path(SETUP)}")
 
 
+# --- put / last4: one secret in, from stdin only (phase 2, skill CTO_Procedure_KeyFetch) ---------
+
+KINDS = ("API_KEY", "TOKEN", "BOT_TOKEN", "SECRET", "CLIENT_ID", "CLIENT_SECRET", "REFRESH_TOKEN",
+         "PASSWORD", "PRIVATE_KEY", "WEBHOOK_SECRET", "URL", "ID")  # PLAN §4b closed list
+ACCESS = ("RO", "RW", "ADMIN")
+PUBLIC_UNSAFE = ("API_KEY", "TOKEN", "BOT_TOKEN", "SECRET", "CLIENT_SECRET", "REFRESH_TOKEN",
+                 "PASSWORD", "PRIVATE_KEY", "WEBHOOK_SECRET")
+REQUIRED_META = ("provider_name", "console_url", "scope", "expires", "owner")  # PLAN §4c
+
+
+def lint_name(name: str) -> str | None:
+    """PLAN §4b: <PROVIDER>_[<WHICH>_]<KIND>[_<ACCESS>]. Return the problem, or None when fine."""
+    if not re.fullmatch(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+", name):
+        return "must be UPPER_SNAKE_CASE with at least two parts"
+    body = name
+    for access in ACCESS:
+        if body.endswith("_" + access):
+            body = body[: -len(access) - 1]
+            break
+    kind = next((k for k in sorted(KINDS, key=len, reverse=True)
+                 if body.endswith("_" + k) and len(body) > len(k) + 1), None)
+    if kind is None:
+        return "must end with a KIND (" + " ".join(KINDS) + "), then an optional _RO/_RW/_ADMIN"
+    if name.startswith("NEXT_PUBLIC_") and kind in PUBLIC_UNSAFE:
+        return "NEXT_PUBLIC_ is shipped to the browser; a secret KIND there is refused"
+    return None
+
+
+def read_stdin_value(multiline: bool) -> str:
+    if sys.stdin.isatty():
+        sys.exit("pipe the value on stdin (never as an argument, never in a file a model reads)")
+    data = sys.stdin.read()
+    if multiline:
+        data = data.strip("\r\n")
+        if not data.strip():
+            sys.exit("empty value on stdin")
+        return data + "\n"
+    data = data.rstrip("\r\n")
+    if not data or "\n" in data or "\r" in data or data != data.strip():
+        sys.exit("the value must be exactly one non-empty line with no surrounding spaces")
+    return data
+
+
+def _project(org: Org, name: str) -> dict:
+    projects = org.projects()
+    p = projects.get(name.lower()) or projects.get(name)
+    if not p:
+        sys.exit(f"no project {name!r}; have: {', '.join(sorted(projects))}")
+    return p
+
+
+def _get_secret(org: Org, project_id: str, env: str, name: str) -> dict | None:
+    try:
+        return org.get(f"/api/v3/secrets/raw/{name}", workspaceId=project_id, environment=env,
+                       secretPath="/")["secret"]
+    except ApiError as exc:
+        if "HTTP 404" in str(exc) or "not found" in str(exc).lower():
+            return None
+        raise
+
+
+def parse_meta(items: list[str]) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for item in items:
+        key, sep, val = item.partition("=")
+        if not sep or not key.strip() or not val.strip():
+            sys.exit(f"bad --meta {item!r}: use key=value")
+        out[key.strip()] = val.strip()
+    return out
+
+
+def cmd_put(org: Org, project: str, env: str, name: str, comment: str | None,
+            meta: list[str], multiline: bool) -> None:
+    if project.lower() == ORG_INFRA.lower():
+        sys.exit("refused: Org-Infra values are entered by the CEO in the web UI (PLAN §3b rule 1)")
+    problem = lint_name(name)
+    if problem:
+        sys.exit(f"refused: {name}: {problem} (PLAN §4b)")
+    p = _project(org, project)
+    if env not in org.environments(p["id"]):
+        sys.exit(f"project {p['name']} has no environment {env!r}")
+    metadata = parse_meta(meta)
+    existing = _get_secret(org, p["id"], env, name)
+    if existing is None:
+        missing = [k for k in REQUIRED_META if k not in metadata]
+        if missing or not comment:
+            sys.exit("refused: a new secret needs --comment <purpose> and --meta "
+                     + " ".join(f"{k}=…" for k in missing) + " (PLAN §4c)")
+    else:
+        old = {m["key"]: m["value"] for m in existing.get("secretMetadata") or [] if m.get("key")}
+        metadata = {**old, **metadata}
+        comment = comment or existing.get("secretComment") or ""
+    who = os.environ.get("CTO_SESSION_ID") or os.environ.get("CXO_SESSION_ID") or "cli"
+    stamp = f"{dt.date.today().isoformat()} {who}"
+    metadata.setdefault("created", stamp)
+    metadata["updated"] = stamp
+    metadata.setdefault("status", "active")
+    value = read_stdin_value(multiline)   # read last: every refusal above happens before it exists
+    body = {"workspaceId": p["id"], "environment": env, "secretPath": "/", "secretValue": value,
+            "secretComment": comment, "skipMultilineEncoding": multiline,
+            "secretMetadata": [{"key": k, "value": v} for k, v in metadata.items()]}
+    org.send("PATCH" if existing else "POST", f"/api/v3/secrets/raw/{name}", body)
+    print(f"{'updated' if existing else 'created'} {p['name']}/{env} {name}"
+          f" · last4={value.strip()[-4:]} · expires={metadata.get('expires', '?')}"
+          f" · owner={metadata.get('owner', '?')}")
+
+
+def cmd_last4(org: Org, project: str, env: str, name: str) -> None:
+    p = _project(org, project)
+    s = _get_secret(org, p["id"], env, name)
+    if s is None:
+        sys.exit(f"{p['name']}/{env} has no secret {name}")
+    print(f"{p['name']}/{env} {name} · last4={(s.get('secretValue') or '').strip()[-4:]}")
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -364,6 +487,20 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--mint", metavar="HOST")
     sub.add_parser("status")
     sub.add_parser("retire-setup")
+    for cmd in ("put", "last4"):
+        c = sub.add_parser(cmd)
+        c.add_argument("project")
+        c.add_argument("env")
+        c.add_argument("name")
+        c.add_argument("--as", dest="identity", default=SETUP,
+                       help="identity whose file under /etc/infisical logs in (default: setup)")
+        if cmd == "put":
+            c.add_argument("--stdin", action="store_true", required=True,
+                           help="the value comes on stdin — the only way in")
+            c.add_argument("--comment", help="purpose (PLAN §4c); required when creating")
+            c.add_argument("--meta", action="append", default=[], metavar="k=v",
+                           help="provider_name, console_url, scope, expires, owner, spend_cap, ...")
+            c.add_argument("--multiline", action="store_true", help="PEM / JSON spanning lines")
     args = ap.parse_args(argv)
     try:
         if args.cmd == "save":
@@ -376,6 +513,11 @@ def main(argv: list[str] | None = None) -> None:
             cmd_status(Org())
         elif args.cmd == "retire-setup":
             cmd_retire_setup(Org())
+        elif args.cmd == "put":
+            cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
+                    args.meta, args.multiline)
+        elif args.cmd == "last4":
+            cmd_last4(Org(args.identity), args.project, args.env, args.name)
     except ApiError as exc:
         sys.exit(f"Infisical API error: {exc}")
     except FileNotFoundError as exc:

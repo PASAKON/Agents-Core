@@ -34,6 +34,7 @@ class Fake:
         self.projects: dict[str, dict] = {}          # id -> {name, slug, envs{slug:id}, folders{env:set}, users set, idents{name:[roles]}}
         self.identities: dict[str, dict] = {"id-setup": {"name": "setup", "client": SETUP_ID}}
         self.secrets = {SETUP_ID: SETUP_SECRET}      # clientId -> clientSecret
+        self.store: dict[tuple, dict] = {}           # (project id, env, name) -> raw secret record
         self.writes = 0
 
     def nid(self, p):
@@ -156,6 +157,30 @@ def make_handler(fake: Fake):
             if method == "POST" and m:
                 fake.projects[m[1]]["idents"][fake.identities[m[2]]["name"]] = [b["role"]]
                 return self.reply(200, {"identityMembership": {}})
+            m = re.fullmatch(r"/api/v3/secrets/raw/([^/]+)", p)
+            if m:
+                # phase-2 `put` / `last4`: shapes as observed on Infisical Cloud 2026-09-28
+                name = m[1]
+                src = b if method in ("POST", "PATCH") else q
+                key = (src.get("workspaceId"), src.get("environment"), name)
+                if key[0] not in fake.projects or key[1] not in fake.projects[key[0]]["envs"]:
+                    return self.reply(400, {"message": "fake: unknown project or environment"})
+                if method == "GET":
+                    rec = fake.store.get(key)
+                    return self.reply(404, {"message": "Secret not found"}) if rec is None \
+                        else self.reply(200, {"secret": rec})
+                if method == "POST" and key in fake.store:
+                    return self.reply(400, {"message": "Secret already exist"})
+                if method == "PATCH" and key not in fake.store:
+                    return self.reply(404, {"message": "Secret not found"})
+                if method in ("POST", "PATCH"):
+                    fake.store[key] = {"secretKey": name, "secretValue": b["secretValue"],
+                                       "secretComment": b.get("secretComment", ""),
+                                       "secretMetadata": b.get("secretMetadata", [])}
+                    return self.reply(200, {"secret": {"secretKey": name}})
+                if method == "DELETE":
+                    fake.store.pop(key, None)
+                    return self.reply(200, {"secret": {"secretKey": name}})
             return self.reply(404, {"message": f"fake: no route {method} {p}"})
 
         def do_GET(self):
@@ -267,6 +292,50 @@ class InfisicalSetupTest(unittest.TestCase):
         self.run_cli("retire-setup")
         self.assertNotIn("setup", [x["name"] for x in self.fake.identities.values()])
         self.assertFalse(os.path.exists(os.path.join(self.cred_dir, "setup.env")))
+
+
+    def _stored(self, name):
+        return next(v for k, v in self.fake.store.items() if k[2] == name)
+
+    def test_put_creates_then_updates_and_last4_never_prints_the_value(self):
+        self.save_setup()
+        self.run_cli("apply")
+        meta = ["--meta", "provider_name=none", "--meta", "console_url=none", "--meta", "scope=none",
+                "--meta", "expires=2027-01-01", "--meta", "owner=CTO"]
+        with mock.patch("sys.stdin", io.StringIO("SECRET-value-one-abcd\n")):
+            text = self.run_cli("put", "Agents-Core", "dev", "SMOKE_API_KEY", "--stdin",
+                                "--comment", "test purpose", *meta)
+        self.assertIn("created Agents-Core/dev SMOKE_API_KEY · last4=abcd", text)
+        rec = self._stored("SMOKE_API_KEY")
+        self.assertEqual(rec["secretValue"], "SECRET-value-one-abcd")
+        self.assertTrue({"provider_name", "expires", "owner", "created", "status"}
+                        <= {m["key"] for m in rec["secretMetadata"]})
+        with mock.patch("sys.stdin", io.StringIO("SECRET-value-two-wxyz\n")):
+            text = self.run_cli("put", "Agents-Core", "dev", "SMOKE_API_KEY", "--stdin",
+                                "--meta", "status=retiring")
+        self.assertIn("updated Agents-Core/dev SMOKE_API_KEY · last4=wxyz", text)
+        rec = self._stored("SMOKE_API_KEY")
+        now = {m["key"]: m["value"] for m in rec["secretMetadata"]}
+        self.assertEqual(now["status"], "retiring")
+        self.assertEqual(now["owner"], "CTO")                  # old metadata survives an update
+        self.assertEqual(rec["secretComment"], "test purpose")  # so does the purpose
+        self.assertIn("last4=wxyz", self.run_cli("last4", "Agents-Core", "dev", "SMOKE_API_KEY"))
+
+    def test_put_refuses_bad_names_org_infra_and_missing_metadata(self):
+        self.save_setup()
+        self.run_cli("apply")
+        cases = [
+            (("put", "Agents-Core", "dev", "BAD_NAME_FOO", "--stdin", "--comment", "c"), "KIND"),
+            (("put", "Org-Infra", "prod", "CLOUDFLARE_DNS_TOKEN", "--stdin"), "CEO"),
+            (("put", "Agents-Core", "dev", "NEW_THING_API_KEY", "--stdin", "--comment", "c"), "provider_name"),
+            (("put", "Agents-Core", "dev", "NEXT_PUBLIC_SUPABASE_SECRET", "--stdin", "--comment", "c"),
+             "NEXT_PUBLIC_"),
+        ]
+        for argv, needle in cases:
+            with mock.patch("sys.stdin", io.StringIO("SECRET-x\n")), self.assertRaises(SystemExit) as cm:
+                self.run_cli(*argv)
+            self.assertIn(needle, str(cm.exception), argv[3])
+        self.assertFalse(self.fake.store, "a refused put must write nothing")
 
 
 if __name__ == "__main__":
