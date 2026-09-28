@@ -168,6 +168,15 @@ Measured on the account, 2026-09-08 (task-e3bf2fa9, read-only, 0 credits):
   change, and those settings are not sticky (see Traps).
 - Never select **Quality** unless the task names it. One Quality click is 100
   credits — five Fast shots.
+- **HARD — budget every 720p / 8 s Omni 1.1 Flash shot at 20 credits, not 12**, in any shoot budget put
+  to the CEO, until a before/after balance read on the next CEO-approved shoot settles 12 vs 20 (CEO
+  2026-09-28, ruling 7: "ตามนั้น").
+  **Why hard:** money — the account read 12 on 2026-09-08, but Flow's own settings panel read **20** on
+  four 8 s 720p shots on 2026-09-26 (taachang S4, S27, S29, S31; S20 at 10 s read 15) with nothing else
+  changed, and the cause is unknown; a budget at 12 asks the CEO for 40% too little. To settle it: read
+  the balance before the first fire and after the last, divide by the clips rendered (a failed
+  generation is not charged, §Concurrency), write the result into §Measured costs, and mark this line
+  `[SUPERSEDED]` with that delta.
 
 ### Google AI Ultra — what the CEO is actually paying for (2026-09-18)
 
@@ -188,11 +197,11 @@ so the org's real failure mode is forgetting Flow for three weeks, not
 overspending. **Pace: ~2,325 credits/week.** A week under ~1,500 means the
 month will expire credit.
 
-What 10,000 buys at the measured rates: Omni 1.1 Flash 720p 8 s = 12 → **833
-clips = 111 min raw**. Finished film is set by the keep rate, not the credits:
-1-in-3 keep = ~37 min/month (three 12-min episodes at ~3,240 credits each,
-฿1,167/EP); 1-in-2 = ~55 min. The keep rate is an estimate until someone logs
-it per shoot — the 12-credit figure is measured, the ratio is not.
+What 10,000 buys at the budget rate (20 per 720p/8 s Omni shot, §Money): **500 clips = ~67 min raw**.
+Finished film is set by the keep rate, not the credits: 1-in-3 keep = ~22 min/month (a 12-min episode
+≈ 5,400 credits, ฿1,890); 1-in-2 = ~33 min. If a balance delta confirms 12, the same pool is 833 clips:
+~37 and ~55 min, ~3,240 credits (฿1,167) an episode. The keep rate is an estimate until someone logs it
+per shoot.
 
 Ultra also lists "Google Flow with highest filmmaking tool limits". Measured
 2026-09-18 (task-68653632, docs/ops/google-flow-ultra-audit.md): it changed
@@ -225,7 +234,7 @@ plan and is obsolete. Credits still do not roll over, and every rule under
 | Navigate any tab (Scenes, Tools, Agent) | 0 |
 | **Veo 3.1 Fast — 8s, 720p, 9:16, x1** | **10** — live panel read on the Ultra account 2026-09-18 (task-68653632). Was **20** on 2026-09-07, measured twice. One read so far: confirm before re-planning budgets |
 | **Omni 1.1 Flash — 4s, 360p, 9:16, x1** | **4** — measured 2026-09-19 (task-a09ed18a) by balance delta 8,552 → 8,548, not by the panel's estimate. Five times cheaper than a 720p/8s fire: use this for every selector and plumbing test. |
-| **Omni 1.1 Flash — 8s, 720p** | **12** (10s: 15) — account read 2026-09-08 (task-e3bf2fa9) |
+| **Omni 1.1 Flash — 8s, 720p** | **12** (10s: 15) — account read 2026-09-08 (task-e3bf2fa9). The runner's panel read **20** on four 8 s shots on 2026-09-26 (10 s still 15): **budget 20** until a balance delta settles it (§Money) |
 | **Omni 1.1 Flash — 8s, 360p** | **6** (10s: 7) — the test size, §Test fires |
 | Veo 3.1 Lite | **5** — live panel read 2026-09-18 (task-68653632); the published table said 10 |
 | Veo 3.1 Quality | 100 (published; visible in the panel, never selected) |
@@ -248,6 +257,7 @@ whether Lite video is really 10" — the 2026-09-18 live read above says 5.]
 | Flow on Pro (฿750 / 1,000 credits) | ฿1.13 |
 | Gemini Omni API, 720p | $0.10 ≈ **฿3.50** |
 
+At the 20-credit budget rate (§Money) the two Flow rows are ฿0.88 and ฿1.88.
 **The subscription is several times cheaper than the API for the same model.**
 Going API-first is a capability decision (frame lock), never a cost one.
 
@@ -261,7 +271,7 @@ at **360p and the real 8 seconds**. Not 720p. Not a shortened 4 s.
 
 | | credits, Omni 1.1 Flash, 8 s | |
 |---|---|---|
-| 720p | **12** | production |
+| 720p | **12** (budget 20, §Money) | production |
 | 360p | **6** | every test |
 
 **Why 360p:** the only thing that changes is detail. Framing, motion, timing,
@@ -1456,7 +1466,7 @@ anything:
 | symptom | cause | what to do |
 |---|---|---|
 | the runner says "failed — timeout", yet the feed has the clip | the card was opened before it finished, or a second time (2026-09-26) | §The route, step 1; then `flow_shoot.py pull` |
-| several downloads worked, then every one stopped, images too, and a reload does not help | Chrome's per-site automatic-downloads block | one human click, below |
+| several downloads worked, then every one stopped, images too, and a reload does not help | Chrome's per-site automatic-downloads block | grant Chrome's "Always allow" once, below |
 
 ### Capture each clip's id at SUBMIT, not in a second pass (2026-09-18, Act 1 shoot)
 
@@ -1541,18 +1551,28 @@ task-75926848 it stopped an image harvest dead at 2 of 20.
 is finished. This one kills image downloads too, and no page-side
 method works, because the block is in the browser, not the page.
 
-**The fix is a one-time human click and there is no way around it.** A person
-clicks the blocked-downloads indicator in Chrome's address bar and chooses
-*"Always allow multiple automatic downloads from flow.google.com"*. No agent
-tool can reach it: `claude-in-chrome` only ever sees page content, and
-computer-use holds browsers at read tier, so it cannot click browser chrome
-either. **Do not build a workaround for this** — a local HTTP sink was tried on
-that task and is exactly the kind of route-around a security permission that
-does not get kept. Stop, say what click is needed, and hand it to the CEO.
+**The fix: grant Chrome's own "Always allow", once, and the agent may do it itself** (CEO 2026-09-28,
+ruling 6: "Yes -> ให้ Agent ใช้ Comutir use ทาเองได้นะ"). Either click the blocked-downloads indicator in
+the address bar → *"Always allow multiple automatic downloads from flow.google.com"* with computer-use,
+or allow `flow.google.com` in Chrome's automatic-downloads site setting
+(`chrome://settings/content/automaticDownloads`). It is a setting of that Chrome profile, so it is done
+once per profile, not per session; then re-download what failed. `claude-in-chrome` sees page content
+only and cannot reach the indicator. On winbox's Flow Chrome, claim the screen first
+(`ALL_Rules_Winbox_PCLease`; clicking that desktop: `CTO_Knowledge_Winbox_DesktopGUI`). Which of the
+two routes works there is unmeasured: record it here the first time.
+
+**Not a fresh tab per file.** task-f78ca70e measured the block as per tab (one silent download in each
+new tab) and `scripts/browser/banchi-plates-download.js` cycles one tab per file on that basis. The CEO
+chose the permission over that route: do not use or copy it.
+
+[SUPERSEDED 2026-09-28 by ruling 6 — the 2026-09-18 method: "The fix is a one-time human click and there
+is no way around it … No agent tool can reach it: `claude-in-chrome` only ever sees page content, and
+computer-use holds browsers at read tier … Do not build a workaround … Stop, say what click is needed,
+and hand it to the CEO."]
 
 Budget note: diagnosing this cost ~15 of that task's ~20 minutes. Recognise it
 from the symptom — *several downloads worked, then all of them stopped* — and
-stop immediately.
+grant the permission at once.
 
 ### Clips do not live in git (2026-09-18)
 
@@ -1760,10 +1780,10 @@ The runner drives this page with Playwright over winbox's debug Chrome (`tools/f
 runs), with no model in the loop; usage is `docs/ops/flow-runner-USAGE.md`, the design
 `docs/ops/flow-operator-design.md`. `run --dry-run` is free (§Test fires). Its measured traps:
 
-- **A 360p run fails its own download check while the clips are fine.** The default 1080p export has no
-  menu for a 360p clip ("1080p submenu did not appear", `CMO_Gate_Flow_Omni1.1_Continuity` §What Flow
-  silently deletes), and `verify_clip` checks the file against the download resolution, never the
-  generation's: a 2026-09-23 A/B at 360p marked every good clip "failed — RESOLUTION got 360x640 want
+- **A 360p run fails its own download check while the clips are fine.** The default 1080p export had no
+  menu for a 360p clip ("1080p submenu did not appear", 2026-09-23, on the path replaced by 99770187; the
+  `ดาวน์โหลดสื่อ` menu is unmeasured at 360p, so the error text may differ), and `verify_clip` checks the
+  file against the download resolution, never the generation's: a 2026-09-23 A/B at 360p marked every good clip "failed — RESOLUTION got 360x640 want
   720x1280" and renamed it `bad-shot-N.mp4`. Take the verdict from the feed or the `bad-*` file. Fix
   owed: verify a `--resolution 360p` run against 360x640.
 - Chips: exact names (§Verify a chip by its THUMBNAIL, rule 1) and the picker overlay (§How a chip is added).
@@ -1788,7 +1808,7 @@ here. A contradiction backed by a memory does not.
 
 - 2026-09-22 [WRONG] §References: how many bind (was §Which things get a chip) — `build_shotsheet.py` refused a 4th chip with the comment "the 4th is silently disabled". Never sourced, and contradicted by this file's own Ultra audit (task-68653632, 2026-09-18) recording a reference-chip cap of 10. A dry run against the live UI returned `chips=['@jae_muay','@lung_somchai','@noodle_shop','@money_fold'] prompt_verified=True`. On the strength of that comment I had already proposed dropping a location chip to fit the money in — a real loss of quality to satisfy a limit that did not exist. Cap raised to 10, with the audit cited beside it. · evidence: task-68653632 / f563c707 / tools/build_shotsheet.py · status: promoted
 - 2026-09-23 [COSTLY] §zero-model runner — on the Mac, bare `python3` has no playwright: `tools/flow_shoot.py run` logs "cannot attach … ModuleNotFoundError('No module named playwright')" and returns 1, which reads like Chrome being down. Run it as `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python tools/flow_shoot.py …`. Also: a wrapper ending in `; echo EXIT=$?` makes the background task report exit 0 — read the EXIT line, not the task status. · evidence: session cto-8c06958c refire 106/122 02:46 — rejected: moot, every Flow tool refuses the Mac since fa5e3c19 (tools/flow_cdp.py, CEO 2026-09-26); the `echo EXIT=$?` half is a shell trap, not Flow's · status: rejected
-- 2026-09-23 [WRONG] §Chrome itself can block downloads — task-f78ca70e measured the block as a per-tab allowance (one silent download per fresh tab, >20 files, no human click) and rewrote scripts/browser/banchi-plates-download.js to open one fresh tab per file. CTO: NOT promoted — it conflicts with this section's own "do not build a workaround" rule for a browser security permission; the CEO rules whether one-tab-per-file is acceptable or whether the one-time "Always allow" click stays the method. Until then the section stands. · evidence: task-f78ca70e, merge 381687ba · status: pending
+- 2026-09-23 [WRONG] §Chrome itself can block downloads — task-f78ca70e measured the block as a per-tab allowance (one silent download per fresh tab, >20 files, no human click) and rewrote scripts/browser/banchi-plates-download.js to open one fresh tab per file. CTO: NOT promoted — it conflicts with this section's own "do not build a workaround" rule for a browser security permission; the CEO rules whether one-tab-per-file is acceptable or whether the one-time "Always allow" click stays the method. Until then the section stands. · evidence: task-f78ca70e, merge 381687ba → §Chrome itself can block downloads (CEO 2026-09-28 ruling 6: "Always allow" once, an agent may grant it itself; the fresh-tab-per-file route is not used) · status: promoted
 - 2026-09-23 [MISSING] §Uploading an image from disk (was §assets) — a plain Flow image generation can be renamed (tile right-click → เปลี่ยนชื่อ) into a named asset the + picker finds by search; it lands in the รูปภาพ category, never ตัวละคร, and there is no convert action. Picker rows for such assets show the name without "@", so flow_shoot's row match must not require it (fixed cdb27f9f). · evidence: task-f78ca70e, @cop_wit_uniform_A → §Uploading an image from disk, §How a chip is added (2nd run: fb799c11, uploaded images carry no @) · status: promoted
 - 2026-09-23 [WRONG] §zero-model runner — attach_chip matched picker rows by substring, so "@cop_wit" also matched "@cop_wit_uniform_A" and "@noodle_shop" matched "@noodle_shop_thriving"; .first picked either, and the chip-COUNT gate cannot see a wrong-but-present chip. Now word-bounded (picker_row_pattern). Whether any Act 1–6 shop shot got the thriving-shop plate is unchecked. · evidence: cdb27f9f on agent/codex-winbox-runner → §Verify a chip by its THUMBNAIL rule 1 (fix on main, picker_row_pattern) · status: promoted
 - 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv → §zero-model runner (2nd run: Continuity §What Flow silently deletes, no 1080p menu at 360p; verify_clip still checks the download size) · status: promoted
@@ -1798,7 +1818,7 @@ here. A contradiction backed by a memory does not.
 - 2026-09-25 [WRONG] tools/flow_upload_element.py as first merged — `get_by_text("อัปโหลด").first` worked only while the project was empty. Once it holds uploads, the filter tabs `รายการที่อัปโหลด` / `รูปภาพที่อัปโหลด` match first, and the click timed out ('waiting for element to be visible, enabled and stable' ×58). Also a fresh CDP tab comes up 1114x662. Fixed: `get_by_role("menuitem").filter(has_text=…)`, viewport 1600x1000, and wait for the tile by aria-label instead of body text. Batch rule: one tab, check `get_by_label(<name>)` before uploading (a failed rename leaves `<file>.png` behind — rename it, don't re-upload) · evidence: CTO batch 2026-09-25 18:4x, kla__face → §Uploading an image from disk, batch bullet (2nd run: failed rename on winbox, 945391b5) · status: promoted
 - 2026-09-25 [WRONG] flow_shoot attach_chip on a flow.google.com project — the composer's `เพิ่มองค์ประกอบลงในช่องพรอมต์` picker is now a CDK overlay (tabs ทั้งหมด/รูปภาพ/วิดีโอ/**เสียง**/ตัวละคร, search `ค้นหาเนื้อหา`, `.asset-item` rows), not `[role=dialog]`. The runner waited for a dialog and failed every chip. Scope to `.cdk-overlay-container:has(input[aria-label="ค้นหาเนื้อหา"])`; anchoring on a pane `:has(.asset-item)` loses the locator once the search empties the list. Fixed 636aeafe; dry-run S8 attached 5/5 chips, 360p 8 s estimate = 6 credits. The **เสียง tab** means voices are attachable ingredients here — unexplored · evidence: taachang ACT1 dry-run 19:13–19:17 → §How a chip is added (fixes 636aeafe, fb799c11); the เสียง tab is the voice chip documented since 2026-09-08 · status: promoted
 - 2026-09-25 [WRONG] §What Flow does NOT have / §Getting the clip file — "No 1080p and no upscale control" (2026-09-18) and "the download button is dead" (2026-09-18) are contradicted by the runner's code since 3324f0da (2026-09-20): production exports open the clip editor `/edit/<id>` and use Download → `1080p / เพิ่มความละเอียดแล้ว` (free; 4K is labelled a 50-credit action and deliberately unsupported), and `[aria-label="Download"]` matches zero elements because the only feed-level download icon is the per-batch `ดาวน์โหลดแบบกลุ่ม` (task-04851451, 2026-09-19). Found while merging the four download write-ups for the 2026-09-25 split; not re-measured on the live UI, so the body is unchanged until the CTO confirms · evidence: 3324f0da, tools/flow_shoot.py:83-90 and 567-574 → §Getting the clip file, §What Flow does NOT have (merged with the 2026-09-26 editor note, whose live read confirms it) · status: promoted
-- 2026-09-26 [MISSING] §Money — the runner's per-shot estimate (read from Flow's own settings panel) was **20 credits, not 12**, on four 8 s 720p Omni 1.1 Flash shots (taachang S4, S31, S27, S29) with no change to duration or resolution; S20 at 10 s read 15. Cause not found — a read-only probe of the panel afterwards found the settings trigger button `hidden`. Budget a shoot at 20/shot worst case until this is explained · evidence: Work/task-c2723478/out/act2-shot-{27,29,31}.log, act1-shot-20.log · status: pending
+- 2026-09-26 [MISSING] §Money — the runner's per-shot estimate (read from Flow's own settings panel) was **20 credits, not 12**, on four 8 s 720p Omni 1.1 Flash shots (taachang S4, S31, S27, S29) with no change to duration or resolution; S20 at 10 s read 15. Cause not found — a read-only probe of the panel afterwards found the settings trigger button `hidden`. Budget a shoot at 20/shot worst case until this is explained · evidence: Work/task-c2723478/out/act2-shot-{27,29,31}.log, act1-shot-20.log → §Money (HARD budget line), §Measured costs, §Test fires, the Ultra pool arithmetic (CEO 2026-09-28 ruling 7: budget 20 until a balance delta on the next approved shoot settles 12 vs 20) · status: promoted
 - 2026-09-26 [WRONG] §Getting the clip file — the clip editor `/edit/<id>` CHANGED: it draws into a canvas and creates no `<video>` until play is pressed (forbidden), and Download is a top-level button `[aria-label="ดาวน์โหลดสื่อ"]` → `270p GIF / 720p ขนาดดั้งเดิม / 1080p เพิ่มความละเอียดแล้ว / 4K · 50 เครดิต` (no longer under More). The CDN-capture path now yields nothing for a clip opened before it finished or a second time; the runner reported those as "failed — timeout" although Flow had the clip. Several "Flow deleted it" verdicts that night were partly this: of the timed-out ACT3 takes, S58 and one S70 were found finished in the feed. A per-line census (search the feed by dialogue, count batches vs submits) is the check that tells deletion from a missed download. Fixed in the tool: 55d34380 (download button first, open only finished cards, no long block) · evidence: Work/task-c2723478 tmp/debug-pull*, feed probe 09:3x, S73/S58 pulled in ~15 s after the fix → §Getting the clip file (merged into the 2026-09-25 download note; the fix is on main as 99770187) · status: promoted
 - 2026-09-26 [MISSING] §Google Flow Music — measured on the first real run: "Continue with Google" signs straight in as pass.gob1 (no credential asked; tier "Member"); Compose panel at `/session?t=true` has Sound 3,000 chars, Lyrics 3,000 chars with an Instrumental switch, Title 100; Advanced holds BPM, Length, Seed and Model (Lyria 3.5 / Lyria 3 Pro); one Generate = one song (once two) in ~55 s, **5 credits per Generate** (30,610 → 30,555 for 12 prompts), no price on the button; downloads M4A/MP3/WAV (runner takes the clip's `wav_url`, 48 kHz 16-bit stereo). Boxes are plain textareas: Playwright `fill()` reads back exactly, the ProseMirror first-keystroke trap does not apply. A generate can silently produce nothing and charge nothing (C3 twice); `tools/flow_music.py --refire` re-fires it guarded by the expected balance. Commercial-use terms for the tracks are still unread · evidence: tools/flow_music.py (cf99ccad), /tmp/ilag-music/tracks/ledger.json, Drive Soundtrack of the TopView film → §Google Flow Music · status: promoted
 - 2026-09-26 [WRONG] §Google Flow Music — "lengths of 60 s, half, or full ~3 min" (from blog.google) is not the control: Length is a free m:ss box under Advanced clamped to 1:00–3:00; "0:30" became 1:00 and "9:59" became 3:00, so nothing shorter than 60 s can be ordered · evidence: runner dry-runs 2026-09-26 → §Google Flow Music, Length bullet · status: promoted
