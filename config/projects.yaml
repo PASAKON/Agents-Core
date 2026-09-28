@@ -178,7 +178,21 @@ projects:
     remote: https://github.com/PASAKON/mooniex-agents.git
     default_branch: main
     stack: [python]
-    agents_allowed: *default_workers
+    # Explicit list, not *default_workers: probe (Org Mesh T0.2) is scoped to this repo only.
+    agents_allowed:
+      - developer
+      - tester
+      - web_designer
+      - browser_operator
+      - devops_engineer
+      - security_engineer
+      - data_analyst
+      - prompt_engineer
+      - ads_manager
+      - content_strategist
+      - video_editor
+      - script_writer
+      - probe
     # Self-modifying repo — DEV works in worktree, never pushes direct;
     # CTO reviews before merge.
     auto_push: false
