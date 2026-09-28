@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from lib import db_pg
+from lib import config, db_pg
 
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
@@ -174,6 +174,13 @@ _MIGRATION_COLUMNS = [
     # resolves the effective host as: explicit delegate_task(host=...) arg >
     # this column > 'mac' (docs/design/multi-host-workers.md Phase 1).
     ("host", "TEXT"),
+    # Which host (config/hosts.yaml key) created this task row — the
+    # C-level session's own lib.config.self_host(), stamped by create_task()
+    # on every insert (docs/design/org-mesh.md C1, W0.1). Never NULL on a
+    # new row; NULL only on pre-migration rows. Distinct from `host` above:
+    # `dispatcher_host` is "who filed this task", `host` is "which host the
+    # DEV runs/ran on" (explicit target or filled at local-spawn time).
+    ("dispatcher_host", "TEXT"),
     # Which CLI drives this task's worker: claude|codex|agy (task-adbc6f43).
     # NULL means "claude" — every pre-migration row, and every row created
     # before runner selection existed, keeps working unchanged. Validated
@@ -589,15 +596,20 @@ def create_task(
             f"orphaned (no CTO_SESSION_ID/CXO_SESSION_ID in env, no explicit owner)",
             file=sys.stderr,
         )
+    # Stamped on every insert (docs/design/org-mesh.md C1, W0.1): which host
+    # this session is filing the task from. Never caught -- a self_host()
+    # failure here must fail the create loudly, not silently write a wrong
+    # or guessed dispatcher_host (task brief rule 7).
+    dispatcher_host = config.self_host()
     ts = now_iso()
     with get_conn() as conn:
         if owner_cto:
             _require_charter(owner_cto, owner_role, conn)
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,runner,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,dispatcher_host,runner,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, runner, ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, dispatcher_host, runner, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -624,7 +636,7 @@ VALID_COLUMNS = {
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
-    "delegate_log", "spawned_at", "host", "runner",
+    "delegate_log", "spawned_at", "host", "dispatcher_host", "runner",
 }
 
 
