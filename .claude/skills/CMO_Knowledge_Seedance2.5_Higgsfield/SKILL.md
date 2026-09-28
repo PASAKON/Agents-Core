@@ -614,6 +614,22 @@ Footer caveats worth carrying: unlimited/free grants work **only on higgsfield.a
 MCP/CLI, Canvas or Supercomputer; and "unlimited usage may be subject to dynamic speed adjustments
 during high-traffic periods."
 
+### HARD — Duration is a price: ask the director before writing a longer clip
+
+**CEO 2026-09-05: "ถามก่อนเขียน Prompt นะ เพราะ 30s ใช้เครดิตแพงมาก"** — ask before writing the prompt,
+because 30 seconds costs a great deal of credit. (Restored 2026-09-28: the 2026-09-06 rewrite 5ac9b584
+dropped this section and no skill carried it.)
+
+- 30 s is the ceiling on the Create (credit) lane; an overrun past 30 s is solved by trimming words or
+  splitting the scene, never by a longer clip.
+- Length is a spend decision, and spend decisions are the director's. When a scene will not fit its slot,
+  put the real choice in front of him — more seconds and more credit, or fewer words at the current
+  length — with the trim already drafted, and write the prompt only after he picks.
+- Do not invent the credit figure: if you have not read the price off the button, say so and ask.
+
+**Why hard:** money — the duration slider sets the price of a fire, and a fired generation cannot be taken
+back (`ALL_Rules_Approvals` rule 1).
+
 ### What a fire costs — the readings on file
 
 The click is governed by hard rule 2 (the strike-through and the `0`, never a remembered number).
@@ -1971,3 +1987,4 @@ browser_operator:
 ## Field notes
 - 2026-09-25 [MISSING] §Reading the credit ledger — the section has a heading and the 339.2-credit example but no rule body (it never had one in higgsfield-unlimited-gen either); the screen-by-magnitude method still has to be written from the 2026-08-13 read · evidence: task-c3e07fb1 report, inventory HF6 → §Reading the credit ledger (the body existed: a1694c75, dropped by 5ac9b584; restored with the prices on file) · status: promoted
 - 2026-09-25 [MISSING] §Reference caps — the tools disagree with this table: `scripts/sheet_inject_prompts.py:28` has `MAX_ELEMENTS = 10  # Seedance 2.0 cap` against the measured 9, and `scripts/audit_prompts.py` dates the 50-reference statement 2026-08-14 while this skill dates it 2026-08-27 (CEO); fix the tools, the table is the measured source · evidence: task-c3e07fb1 report · status: pending
+- 2026-09-28 [WRONG] §What a fire costs — the 2026-09-06 rewrite (5ac9b584) dropped the CEO's 2026-09-05 "DURATION IS A PRICE" section ("ถามก่อนเขียน Prompt นะ เพราะ 30s ใช้เครดิตแพงมาก"); no skill carried it → restored as a HARD subsection before "What a fire costs" · evidence: git show 5ac9b584 (higgsfield-unlimited-gen diff), engines fold worker 2026-09-28 · status: promoted
