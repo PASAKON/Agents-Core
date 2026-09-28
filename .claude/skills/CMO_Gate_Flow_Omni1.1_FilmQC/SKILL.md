@@ -61,7 +61,7 @@ where a cheaper check cannot see:
 
    | check | tool | catches | cost |
    |---|---|---|---|
-   | what the clip **says** | `tools/film_transcript.py` | line said twice, line dropped, script repeating itself | ~3 s/clip |
+   | what the clip **says** | `tools/film_transcript.py` | line said twice, line dropped (banchi sheets only: §Reading the dialogue back), script repeating itself | ~3 s/clip |
    | text **burned into the picture** | `tools/burned_text_scan.py` | Veo writing its own Thai captions, mangled (pixel gate, not OCR) | ~0.4 s/clip |
    | duration / audio present | `tools/clip_review.py` | wrong length, silent clip | fast |
 
@@ -78,8 +78,10 @@ where a cheaper check cannot see:
    **Why this is not optional.** On 2026-09-23 the finished film had **3 of 173 shots (29, 43, 115)
    carrying mangled Thai subtitles Veo invented** — «ไม่ใส่ถั่วทอกใช่ไห เวิทย์», «แล้วมูลนนั่ติกินหู้ร้กาอกิทย์» —
    and nobody had asked for subtitles. The CEO found them by watching. **It survives a re-shoot**: shot 43
-   was re-fired for this exact defect and came back with different garbage in the same place, so a
-   re-fire alone is not a fix and every re-fire has to be re-scanned.
+   was re-fired for this exact defect, with a no-subtitles negative (`NOT["nosubs"]`) and the line
+   rewritten as spoken, and captioned on 3 of 3 takes, different garbage in the same place each time
+   (scan score 286 on take 3). Neither a re-fire nor the negative is a fix, and every re-fire has to
+   be re-scanned.
 
    **The free fix comes before the paid one.** Veo puts the caption in the bottom ~81–90% of the height,
    below every face. Crop the top 80% of the frame, centred, and scale back up
@@ -91,6 +93,12 @@ where a cheaper check cannot see:
    who is in frame, time of day. Put the plate next to the frames when a face is in
    question.
 
+   **Keep the size; nothing in the tools enforces it.** «ตาชั่งของเสี่ย» ACT2 went to the CEO after one
+   sheet of 24 clips × 4 tiny frames: it caught S51 (the villain's cream polo turned dark with the
+   wardrobe chip attached, so a chip does not make the clothes check optional) but missed S27 wheeling
+   the platform scale away as her cart and S40 walking out through a closed car door, both plain on the
+   rule-sized sheets — 32 credits of re-shoots after a CEO round instead of before it.
+
    **The APPEARANCE LOCK is the ground truth, not the neighbouring shot.** When three shots disagree,
    "which one is wrong" is unanswerable by comparing them to each other — there is no reference among
    them. The script's `APPEARANCE LOCK` line for that character IS the reference. Check each shot against
@@ -100,7 +108,9 @@ where a cheaper check cannot see:
 3. **A pulled clip gets one frame looked at before it counts.** [FLOW] `pull` finds a
    card by its dialogue; a re-shot scene keeps its dialogue, so it fetched the OLD take
    of 149 and 151 and the ledger marked them verified. Use `pull --search <phrase only
-   the new prompt has>`.
+   the new prompt has>`. Since 51247830 `run` and `pull` refuse a download byte-identical
+   to a take of that shot in a sibling ledger ("DUPLICATE: … the runner fetched an OLD
+   card"; taachang S32 was the second case) — a take no ledger holds still needs the frame.
 4. **CEO review per act.** 540p (`scale=540:960`, crf 26) files of 8-14 MB go into the
    chat directly; the chat refuses files over 30 MB, so a full 24-min film goes as 4
    parts. Drive is slow to process long 1080p video — the CEO asked for per-act files
@@ -133,7 +143,11 @@ that did not have the problem. One transcript of one clip settled it afterwards 
 **So, before any claim about dialogue:**
 
 1. `python3 tools/film_transcript.py <clip-dir> --out transcript.tsv` — gives
-   `shot · t_start · t_end · heard · scripted · match` for every line.
+   `shot · t_start · t_end · heard · scripted · match` for every line. **The `scripted` column,
+   `match` and every "(ไม่ได้ยิน)" row come from the banchi data files whatever clips you point it
+   at** (it reads `docs/scripts/banchi-ACT*.data.py`): on taachang ACT2 every "(ไม่ได้ยิน)" row was a
+   banchi line. On any other film read `heard` against the current sheet's `**บทพูด**` lines yourself
+   until the tool takes a `--sheet`.
 2. **Read the `heard` column against the `scripted` column.** Three different defects fall out, and they
    have three different fixes:
    - heard ≈ scripted, and the script itself says it twice → **the script is wrong**, fix the writing, do
@@ -142,6 +156,8 @@ that did not have the problem. One transcript of one clip settled it afterwards 
      prompt.
    - a scripted line has nothing heard for it → **a line was dropped**, which no silence-based check can
      see at all.
+   - the lines come in a different order → **the action line named the speakers in that order**; fix
+     the action (`CMO_Standard_Story_ThaiMoralDrama` §The character acts WHILE speaking, rule 5).
 3. Only then reach for a prompt change, and say which of the three you are fixing.
 
 A script can read beautifully on the page and land as a stutter in four seconds of audio. Reading it is
@@ -176,10 +192,15 @@ prints what the caption says.
    (14 re-shoots ≈ 170 credits against 3 real ones); a wrong count is a wrong decision
    made on our word.
 
-2. A vanished clip is Flow deleting it, not the runner failing. [FLOW] "new card found
-   but download not ready" then `timeout`, and the batch is gone from the feed: read the
-   newest feed batches before re-firing. What Flow deletes is in `CMO_Gate_Flow_Omni1.1_Continuity`
-   §What Flow silently deletes.
+2. A runner `timeout` is not a verdict: take the census before pulling or re-firing. [FLOW]
+   "download not ready" then "failed — timeout" has meant three things: no new clip at all —
+   deleted, or a submit that produced nothing (149, 151, 179 on 2026-09-23: nothing to pull; what
+   Flow deletes is `CMO_Gate_Flow_Omni1.1_Continuity` §What Flow silently deletes); a finished clip
+   the runner opened too early (S58 and one S70 on 2026-09-26: `flow_shoot.py pull` it); or the OLD
+   take of a re-shot scene (Workflow 3). The census: search the feed for the shot's dialogue and
+   compare the batches found with the submits sent (`CMO_Knowledge_Flow_Omni1.1` §A clip that will
+   not come down). [SUPERSEDED 2026-09-28: "A vanished clip is Flow deleting it, not the runner
+   failing" — S58/S70 timed out and were finished in the feed (99770187).]
 
 3. Look to confirm, not to find (`CMO_Knowledge_Film_Production` §8). [ANY] On banchi, finding the 3 captioned
    shots took one strip image after the pixel scan; a frame-by-frame look at 186 clips would have cost
@@ -216,13 +237,13 @@ not checked mechanically: faces/clothes/posture outside the sampled frames
 - 2026-09-23 [WRONG] §Reading the dialogue back (was google-flow-ops §Never diagnose audio you have not read back) — spent an evening attributing a dialogue defect to prompt structure using `silencedetect` (where sound is, not what it is). Rewrote the sheet builder, fired five paid proof shots chosen from a text analysis, and contradicted the published Veo guidance, all before transcribing a single clip. faster-whisper was already installed: 3s per clip settled it. The real defect was the script telling a character to say "208 งวด" then "208" in a four-second shot. · evidence: research/veo-dialogue-repeats.md / tools/film_transcript.py · status: promoted
 - 2026-09-23 [SUPERSEDED] §Workflow 1 (was google-flow-ops §Every shoot ends with a mechanical audit) — (was MISSING; the count was 3 not 14, see the WRONG note below) 14 of 173 finished shots carried Thai captions Veo invented and mangled; found by the CEO watching, not by any check. A crop-and-OCR scan (bottom 18%, 4 frames a clip, tesseract) found all 14 in two minutes. Shot 43 had already been re-fired for this defect and came back with different garbage, so re-fires need re-scanning. · evidence: tools/burned_text_scan.py · status: promoted
 - 2026-09-23 [WRONG] §Workflow 1 / rule 1 (was google-flow-ops §Every shoot ends with a mechanical audit) — the OCR scan's "14 of 173" was 3 of 173 (29, 43, 115): 11 hits were texture (floral nightgown, table grain, apron, stair treads) and 115 was missed by 4-samples-a-clip. Replaced by a pixel gate (white glyph beside black outline, 360×80 band, 2 fps; real 160–326 vs texture ≤38, gate 80), calibrated on one contact sheet of known hits. Free fix: crop top 80% and scale back — 0 credits instead of ~180 for re-fires. · evidence: session cto-8c06958c, tools/burned_text_scan.py · status: promoted
-- 2026-09-23 [WRONG] §Workflow 1 (was google-flow-ops §Every shoot ends with a mechanical audit) — NOT["nosubs"] ("No subtitles, no captions…") + rewriting the line as spoken aloud did NOT stop shot 43 captioning: 3 of 3 takes captioned. It held on 29 and 115 (n=2 clean), so the negative is not a fix for a shot that keeps doing it — crop it (0 cr) after the second captioned take instead of paying for a third. · evidence: session cto-8c06958c, ACT2 43 take 3 04:0x, burned_text_scan score 286 · status: pending
-- 2026-09-23 [WRONG] §Workflow 3 (was google-flow-ops §zero-model runner) — `pull` finds a clip by its dialogue, but a re-shoot keeps its dialogue: 149 and 151 came down as the OLD plainclothes takes and the ledger marked them verified. Caught only by a frame check (uniform vs polo). Every pull of a re-shot scene needs --search <a phrase only the new prompt has> (added on agent/codex-winbox-runner), and every pulled clip gets one frame looked at before it counts. · evidence: session cto-8c06958c, ACT6 149/151 05:12/05:27 · status: pending
-- 2026-09-23 [WRONG] §Rules 2 (was google-flow-ops §zero-model runner) — "completed card found but download not ready" ×7 then "failed — timeout" meant NO new clip existed: 149 (re-shoot), 151 and 179 ×2 left no card in the feed at all (read-only feed listing 05:45). The completion check takes the FIRST element carrying the shot's dialogue, which for a re-shot scene is the OLD finished card, and for a shot whose submit silently produced nothing is whatever else matches — so a submit that failed reads as done-but-undownloadable. Fix owed in flow_shoot: count batches before Submit and only accept a card in a batch that did not exist before. Until then: a 'timeout' is not evidence of a paid clip; list the newest feed batches before pulling or re-firing. · evidence: session cto-8c06958c, ACT6 149/151/179 04:38–05:36 · status: pending
+- 2026-09-23 [WRONG] §Workflow 1 (was google-flow-ops §Every shoot ends with a mechanical audit) — NOT["nosubs"] ("No subtitles, no captions…") + rewriting the line as spoken aloud did NOT stop shot 43 captioning: 3 of 3 takes captioned. It held on 29 and 115 (n=2 clean), so the negative is not a fix for a shot that keeps doing it — crop it (0 cr) after the second captioned take instead of paying for a third. · evidence: session cto-8c06958c, ACT2 43 take 3 04:0x, burned_text_scan score 286 → §Workflow 1 "It survives a re-shoot" (the negative named; crop-before-re-fire was already the body's order) · status: promoted
+- 2026-09-23 [WRONG] §Workflow 3 (was google-flow-ops §zero-model runner) — `pull` finds a clip by its dialogue, but a re-shoot keeps its dialogue: 149 and 151 came down as the OLD plainclothes takes and the ledger marked them verified. Caught only by a frame check (uniform vs polo). Every pull of a re-shot scene needs --search <a phrase only the new prompt has> (added on agent/codex-winbox-runner), and every pulled clip gets one frame looked at before it counts. · evidence: session cto-8c06958c, ACT6 149/151 05:12/05:27 → §Workflow 3 (second run: taachang S32, 2026-09-26; the DUPLICATE guard 51247830 now named there) · status: promoted
+- 2026-09-23 [WRONG] §Rules 2 (was google-flow-ops §zero-model runner) — "completed card found but download not ready" ×7 then "failed — timeout" meant NO new clip existed: 149 (re-shoot), 151 and 179 ×2 left no card in the feed at all (read-only feed listing 05:45). The completion check takes the FIRST element carrying the shot's dialogue, which for a re-shot scene is the OLD finished card, and for a shot whose submit silently produced nothing is whatever else matches — so a submit that failed reads as done-but-undownloadable. Fix owed in flow_shoot: count batches before Submit and only accept a card in a batch that did not exist before. Until then: a 'timeout' is not evidence of a paid clip; list the newest feed batches before pulling or re-firing. · evidence: session cto-8c06958c, ACT6 149/151/179 04:38–05:36 → §Rules 2 (merged with the 2026-09-28 note: a timeout is not a verdict either way, take the census) · status: promoted
 - 2026-09-23 [MISSING] §Workflow 1 (was google-flow-ops §Every shoot ends with a mechanical audit) — shot 43 captioned on 3 of 3 takes at 6s (10.5 Thai chars/s, 2nd-fastest line in the film); lengthened to 8s with nothing else changed, take 4 came back clean on the pixel scan. n=1, and shot 16 is as fast and was always clean, so this is a lever to try before a crop, not a rule. · evidence: session cto-8c06958c, ACT2 43 take 4 (e29dc06e) · status: pending
-- 2026-09-26 [WRONG] §Reading the dialogue back — `tools/film_transcript.py`'s `scripted` column and its "(ไม่ได้ยิน)" rows come from the **banchi** sheet data, whatever clips you point it at: on taachang ACT2 every "(ไม่ได้ยิน)" row was a banchi line, not a missing taachang one. Compare `heard` against the current sheet's `**บทพูด**` lines yourself (one awk over the .md) until the tool takes `--sheet` · evidence: Work/task-c2723478/out/qc-act2-transcript.tsv · status: pending
-- 2026-09-26 [MISSING] §Reading the dialogue back — **Flow speaks in the ACTION line's order, not the dialogue block's.** S37's dialogue had the grandmother first, but the action said "the boy stares at the pebble …; the old woman answers" — the take had his line first (small and medium whisper agreed). Rewriting the action to "the old woman speaks first …; only after she has finished, the boy …" fixed it on the next take. Check that the action names speakers in the same order as the lines · evidence: ACT2 S37 take 1 vs ACT2-reshoot/shot-37.mp4, commit 558ed6fa · status: pending
-- 2026-09-26 [MISSING] §Workflow 1 — wardrobe drift with the wardrobe chip attached: S51 rendered the villain in a dark shirt while 50/52/53 (same chips) kept the cream polo; a plain re-fire fixed it. A 4-frame strip per clip tiled into one sheet (24 clips, one look) is what caught it; the transcript cannot · evidence: sheets-act2/_sheet.jpg, ACT2-reshoot/shot-51.mp4 · status: pending
+- 2026-09-26 [WRONG] §Reading the dialogue back — `tools/film_transcript.py`'s `scripted` column and its "(ไม่ได้ยิน)" rows come from the **banchi** sheet data, whatever clips you point it at: on taachang ACT2 every "(ไม่ได้ยิน)" row was a banchi line, not a missing taachang one. Compare `heard` against the current sheet's `**บทพูด**` lines yourself (one awk over the .md) until the tool takes `--sheet` · evidence: Work/task-c2723478/out/qc-act2-transcript.tsv, tools/film_transcript.py scripted_lines() (hard-coded banchi-ACT*.data.py) → §Reading the dialogue back step 1, §Workflow 1 table · status: promoted
+- 2026-09-26 [MISSING] §Reading the dialogue back — **Flow speaks in the ACTION line's order, not the dialogue block's.** S37's dialogue had the grandmother first, but the action said "the boy stares at the pebble …; the old woman answers" — the take had his line first (small and medium whisper agreed). Rewriting the action to "the old woman speaks first …; only after she has finished, the boy …" fixed it on the next take. Check that the action names speakers in the same order as the lines · evidence: ACT2 S37 take 1 vs ACT2-reshoot/shot-37.mp4, commit 558ed6fa → CMO_Standard_Story_ThaiMoralDrama §The character acts WHILE speaking rule 5 (the writing rule; that section's 2026-09-19 banchi measurement is the second run: the model plays the action line in its written order) + §Reading the dialogue back step 2 (the diagnosis) · status: promoted
+- 2026-09-26 [MISSING] §Workflow 1 — wardrobe drift with the wardrobe chip attached: S51 rendered the villain in a dark shirt while 50/52/53 (same chips) kept the cream polo; a plain re-fire fixed it. A 4-frame strip per clip tiled into one sheet (24 clips, one look) is what caught it; the transcript cannot · evidence: sheets-act2/_sheet.jpg, ACT2-reshoot/shot-51.mp4 → §Workflow 2 "Keep the size" (a wardrobe chip does not make the clothes check optional; stage 1 cannot see clothes was already rule 4) · status: promoted
 - 2026-09-26 [WRONG] §Rules 2 — the 2026-09-23 "pull fetches the OLD take of a re-shoot" hit `run` too: taachang S32 re-fired onto ACT2-reshoot.tsv read "verified" 9 s after Submit, byte-identical to ACT2/shot-32.mp4 (20 credits paid, the new clip left in Flow; `pull` into a fresh ledger fetched it). Second independent run, so the rule went into the tool, not this file: flow_shoot run/pull now refuse a download whose sha256 matches any take of that shot in a sibling *.tsv ("failed — DUPLICATE … pull --search, do not re-fire") · evidence: commit 51247830, tests test_rerun_that_downloads_an_earlier_take_is_refused / _with_a_new_take_is_verified (rule lives in the tool) · status: promoted
-- 2026-09-26 [COSTLY] §Workflow 2 — ACT2's review went to the CEO after ONE sheet of 24 clips × 4 tiny frames (1600×820 for the whole act) instead of the rule's 3 frames a shot, ~8 shots an image. It caught the wardrobe drift (S51) but not the two defects the CEO then found by watching: S27 wheeling the platform SCALE away as her cart, S40 walking out through a closed car door. On the rule-sized sheets (sheets-act2-qc/sheet-a.jpg) S27's scale-as-cart is plainly visible in frames 2-3. The cost: two paid re-shoots (32 credits) after a CEO review round instead of before it. Nothing in the tool enforces the sheet size · evidence: Work/task-c2723478/out/sheets-act2/_sheet.jpg vs sheets-act2-qc/sheet-a.jpg, re-shoots ACT2-reshoot/shot-27, shot-40 · status: pending
-- 2026-09-28 [WRONG] §Rules 2 — "a vanished clip is Flow deleting it" is not always true: on 2026-09-26 S58 and one S70 timed out but were finished in the feed (the runner opened the clip editor too early); tell a deletion from a missed download by searching the feed for the shot's dialogue and comparing batches found with submits sent · evidence: 99770187, CMO_Knowledge_Flow_Omni1.1 09-26 note · status: pending
+- 2026-09-26 [COSTLY] §Workflow 2 — ACT2's review went to the CEO after ONE sheet of 24 clips × 4 tiny frames (1600×820 for the whole act) instead of the rule's 3 frames a shot, ~8 shots an image. It caught the wardrobe drift (S51) but not the two defects the CEO then found by watching: S27 wheeling the platform SCALE away as her cart, S40 walking out through a closed car door. On the rule-sized sheets (sheets-act2-qc/sheet-a.jpg) S27's scale-as-cart is plainly visible in frames 2-3. The cost: two paid re-shoots (32 credits) after a CEO review round instead of before it. Nothing in the tool enforces the sheet size · evidence: Work/task-c2723478/out/sheets-act2/_sheet.jpg vs sheets-act2-qc/sheet-a.jpg, re-shoots ACT2-reshoot/shot-27, shot-40 → §Workflow 2 "Keep the size" (the two sheets of one act are the artefact: the rule's size shows what the small one missed) · status: promoted
+- 2026-09-28 [WRONG] §Rules 2 — "a vanished clip is Flow deleting it" is not always true: on 2026-09-26 S58 and one S70 timed out but were finished in the feed (the runner opened the clip editor too early); tell a deletion from a missed download by searching the feed for the shot's dialogue and comparing batches found with submits sent · evidence: 99770187, CMO_Knowledge_Flow_Omni1.1 09-26 note → §Rules 2 (rewritten; old line kept [SUPERSEDED]; the 2026-09-23 timeout note merged here) · status: promoted
