@@ -16,7 +16,7 @@
 #   1. refuse while any cto-*/cxo-* tmux session is alive (those keep the old
 #      sqlite backend until restarted). --sessions-closed overrides, only if you
 #      ended them yourself and tmux is merely stale.
-#   2. /opt/mooniex-agents: refuse on dirty tracked files; keep a backup branch of
+#   2. /opt/MoonieXHQ/Agents/Core: refuse on dirty tracked files; keep a backup branch of
 #      the current local main; move main to origin/main (that box's local commits
 #      were already merged into origin via contabo/main-2026-09-17).
 #   3. .venv: install psycopg[binary] only -- a full `pip install -r requirements.txt`
@@ -31,7 +31,7 @@
 #   7. read the hub back through lib.db and print the row counts.
 #
 # Rollback:
-#   ssh mooniex-vps 'cd /opt/mooniex-agents && rmdir state/tasks.db &&
+#   ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core && rmdir state/tasks.db &&
 #     mv state/tasks.db.archived-<date> state/tasks.db &&
 #     git checkout backup/main-before-hub-<date>'
 #   then delete the two ORG_*_URL lines from /root/.config/mooniex/org-db.env.
@@ -41,7 +41,7 @@ FLAG="${1:-}"
 echo "== [contabo] hub cutover (alias=$HOST_ALIAS) =="
 ssh -o ConnectTimeout=15 -o BatchMode=yes "$HOST_ALIAS" "FLAG='$FLAG' bash -s" <<'REMOTE'
 set -euo pipefail
-ROOT=/opt/mooniex-agents
+ROOT=/opt/MoonieXHQ/Agents/Core
 ENVF=/root/.config/mooniex/org-db.env
 TODAY=$(date +%F)
 cd "$ROOT"

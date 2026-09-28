@@ -4,8 +4,8 @@
 # rsync the repo + build a Python venv so runners.cto_chat CAN run there.
 # Staged + idempotent: run a stage, verify, run the next.
 #
-#   ./contabo-org-runtime-deploy.sh sync      # rsync working tree -> /opt/mooniex-agents (no secrets)
-#   ./contabo-org-runtime-deploy.sh venv      # python3 -m venv /opt/mooniex-agents/.venv
+#   ./contabo-org-runtime-deploy.sh sync      # rsync working tree -> /opt/MoonieXHQ/Agents/Core (no secrets)
+#   ./contabo-org-runtime-deploy.sh venv      # python3 -m venv /opt/MoonieXHQ/Agents/Core/.venv
 #   ./contabo-org-runtime-deploy.sh install   # pip install -r requirements.txt into the venv
 #   ./contabo-org-runtime-deploy.sh verify    # acceptance checks (files, imports, no secrets, size)
 #   ./contabo-org-runtime-deploy.sh all       # sync + venv + install + verify
@@ -23,7 +23,7 @@ set -euo pipefail
 
 IP="${IP:-194.233.80.26}"
 KEY="${KEY:-$HOME/.ssh/mooniex_contabo_claudeflow}"
-REMOTE="${REMOTE:-/opt/mooniex-agents}"
+REMOTE="${REMOTE:-/opt/MoonieXHQ/Agents/Core}"
 SSH_OPTS=(-o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new)
 
 # repo root = one level up from scripts/ (this file), resolved absolute.

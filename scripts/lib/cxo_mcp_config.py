@@ -4,7 +4,7 @@
 Single source of truth for cto-claude.sh and cxo-claude.sh, which used to
 carry two drifting copies: cto-claude.sh built a temp config inline, while
 cxo-claude.sh read the committed config/cto.mcp.json with Mac paths baked
-in (that file breaks on Contabo, ROOT=/opt/mooniex-agents).
+in (that file breaks on Contabo, ROOT=/opt/MoonieXHQ/Agents/Core).
 
 Why this exists at all: without --strict-mcp-config a CXO session inherits
 every MCP server it can see — Agents/.mcp.json, ~/.claude.json, and every

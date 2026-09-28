@@ -8,6 +8,6 @@ cp "$CF/.env" "$CF/.env.bak-gmail" 2>/dev/null || true
 # drop any half-applied lines from earlier attempts, then append fresh
 grep -vE '^(GMAIL_CLIENT_ID|GMAIL_CLIENT_SECRET|GMAIL_REFRESH_TOKEN|TM_APPROVAL_EMAIL)=' "$CF/.env" > "$CF/.env.tmp"
 mv "$CF/.env.tmp" "$CF/.env"
-ssh mooniex-vps "grep ^GMAIL_ /root/projects/mooniex-claudeflow/.env" >> "$CF/.env"
+ssh mooniex-vps "grep ^GMAIL_ /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env" >> "$CF/.env"
 echo 'TM_APPROVAL_EMAIL=pass.gob1@gmail.com' >> "$CF/.env"
 echo "OK-done ($(grep -cE '^GMAIL_' "$CF/.env") gmail keys in local .env)"

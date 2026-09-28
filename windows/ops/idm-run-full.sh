@@ -21,7 +21,7 @@ set -uo pipefail
 PACKS=/root/idm-packs
 LOG=/root/idm-full.log
 VENV=/root/idm-venv/bin/python
-SCRIPT=/opt/mooniex-agents/windows/cookierun_idm_train_colab.py
+SCRIPT=/opt/MoonieXHQ/Agents/Core/windows/cookierun_idm_train_colab.py
 EXPECT_TRAIN=40
 EXPECT_VAL=7
 

@@ -40,7 +40,7 @@ def _stage(tmp_path: Path) -> tuple[Path, Path]:
     tmp_path. `ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"` then
     resolves to this fake root purely from the script's own location — no
     line is patched out — which is what proves the root is derived, not the
-    literal `/Users/gob/Projects/Agents` (or `/opt/mooniex-agents`) path.
+    literal `/Users/gob/Projects/Agents` (or `/opt/MoonieXHQ/Agents/Core`) path.
     """
     fake_root = tmp_path / "fake-root"
     (fake_root / "scripts").mkdir(parents=True)

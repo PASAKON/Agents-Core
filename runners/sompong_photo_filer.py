@@ -8,12 +8,12 @@ compromise the CEO's Drive, which is exactly the containment property
 runners/drive_upload_broker.py (and its sibling runners/drive_photo_broker.py)
 exist to prevent. Instead the container only WRITES staged photo files onto
 the shared volume (claudeflow's compose already mounts `./data:/app/data`,
-host `/root/projects/mooniex-claudeflow/data`) and this HOST process --
+host `/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data`) and this HOST process --
 outside Docker, never touching the credential itself -- drains that outbox
 through the photo broker's socket.
 
 Runs as root (task-4307c02c, 2026-09-10): the outbox sits under
-/root/projects/mooniex-claudeflow/data/..., and /root is mode 0700 on
+/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/..., and /root is mode 0700 on
 Contabo -- no non-root uid can ever traverse into it, no matter what the
 leaf outbox directory's own permissions say (measured: `sudo -u
 sompongphoto test -r <outbox>` failed even though the leaf itself was
@@ -151,7 +151,7 @@ from runners.drive_photo_broker import DEFAULT_SOCKET_PATH as _BROKER_DEFAULT_SO
 # directly (see scripts/test_secretary_waker.py's `waker_env` fixture for the
 # idiom this file's own tests copy).
 # ---------------------------------------------------------------------------
-DEFAULT_OUTBOX = "/root/projects/mooniex-claudeflow/data/sompong/photos-outbox"
+DEFAULT_OUTBOX = "/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong/photos-outbox"
 # Matches scripts/install-photo-broker.sh's STAGING_DIR -- the one directory
 # tree both this root process and the unprivileged `photoup` broker can both
 # reach (`photoup` cannot traverse /root at all, see the module docstring).

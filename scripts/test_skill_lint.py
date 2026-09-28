@@ -14,7 +14,7 @@ stubs, stale docs/org/SKILL-INDEX.md) have their own sections below.
 Plus the two structural guarantees the task brief calls out by name:
   - root/role-token derivation is never hardcoded to a machine-specific path
     (this repo lives at /Users/gob/MoonieXHQ/Agents/Core on the Mac and
-    /opt/mooniex-agents on Contabo -- both must work).
+    /opt/MoonieXHQ/Agents/Core on Contabo -- both must work).
   - a skill reached through a symlink under .claude/skills/ is refused, not
     silently skipped and not linted -- consistent with
     skill-curator.py's own invariant 3, which this module reuses
@@ -340,7 +340,7 @@ def test_known_audience_tokens_includes_group_names(tmp_path: Path) -> None:
 
 def test_root_is_derived_from_file_location_not_hardcoded(tmp_path: Path) -> None:
     """Copies skill-curator.py + skill-lint.py into a throwaway tree that is
-    NOT /Users/gob/MoonieXHQ/Agents/Core and NOT /opt/mooniex-agents, executes the
+    NOT /Users/gob/MoonieXHQ/Agents/Core and NOT /opt/MoonieXHQ/Agents/Core, executes the
     copy, and asserts its ROOT tracks the copy's own location. If ROOT (or
     the module's default owned_skills_dir) were ever hardcoded to either
     machine's real path, this would be the only test to notice -- on the Mac
@@ -364,7 +364,7 @@ def test_root_is_derived_from_file_location_not_hardcoded(tmp_path: Path) -> Non
 
     assert module.ROOT == fake_repo
     assert module.ROOT != ROOT
-    assert str(module.ROOT) not in ("/Users/gob/MoonieXHQ/Agents/Core", "/opt/mooniex-agents")
+    assert str(module.ROOT) not in ("/Users/gob/MoonieXHQ/Agents/Core", "/opt/MoonieXHQ/Agents/Core")
     assert module.AGENTS_YAML == fake_repo / "policies" / "agents.yaml"
 
     # And the derived curator agrees on the same fake root for the owned dir.

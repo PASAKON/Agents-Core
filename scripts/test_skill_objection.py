@@ -222,5 +222,5 @@ def test_silence_alone_never_archives_a_skill(tmp_path: Path) -> None:
 
 def test_root_is_derived_from_file_location_not_hardcoded() -> None:
     """ROOT must be computed from this file's own location so the identical
-    module is correct unchanged on Contabo at /opt/mooniex-agents."""
+    module is correct unchanged on Contabo at /opt/MoonieXHQ/Agents/Core."""
     assert so.ROOT == Path(__file__).resolve().parent.parent

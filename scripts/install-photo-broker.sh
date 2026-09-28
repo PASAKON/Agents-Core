@@ -82,7 +82,7 @@ FILER_UNIT_PATH="/etc/systemd/system/${FILER_SERVICE}.service"
 # dedicated paths rather than a service user's ~, matching how the broker's
 # own paths are keyed off BROKER_USER/BROKER_HOME.
 FILER_LOG_DIR="/var/log/mooniex-sompong-photo-filer"
-OUTBOX_DIR="/root/projects/mooniex-claudeflow/data/sompong/photos-outbox"   # claudeflow's shared volume -- see docs/design/sompong-photos.md
+OUTBOX_DIR="/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong/photos-outbox"   # claudeflow's shared volume -- see docs/design/sompong-photos.md
 FILER_STATE_DIR="/var/lib/mooniex-sompong-photo-filer"
 FILER_POLL_SECONDS="60"
 FILER_MAX_RETRIES="5"

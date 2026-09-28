@@ -58,7 +58,7 @@ projects:
     # (project_path_for_host raises rather than guessing).
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow
-      contabo: /root/projects/mooniex-claudeflow
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow
     # task-2f04a8ca (CEO 2026-08-14): tmux-backed so send_to_dev's mailbox+
     # wake can actually reach a spawned DEV (a wake only lands via
     # `task["tmux_session"]`; iterm-backend DEVs never set it, so the
