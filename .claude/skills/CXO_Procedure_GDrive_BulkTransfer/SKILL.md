@@ -14,8 +14,8 @@ audience: [cxo, worker]
 
 Split out of `gdrive-filing` on 2026-09-27 (CEO-approved rename plan, Phase 2). The rules that govern every
 step here — ask before creating a folder, never delete without the CEO's word, the folder map — are in
-`CXO_Rules_GDrive_Filing` and `CXO_Knowledge_GDrive_FolderMap`. Streaming uploads for big files on Contabo:
-`scripts/gdrive-bridge/ilag_rest.py` `upload_stream` (64 MB chunks, md5 checked by id).
+`CXO_Rules_GDrive_Filing` and `CXO_Knowledge_GDrive_FolderMap`. An upload whose source died or whose md5
+does not match: §Broken uploads, tool `scripts/gdrive-bridge/drive_broken.py`.
 
 ## Bulk transfer — moving gigabytes INTO Drive (CEO 2026-09-06)
 
@@ -27,8 +27,10 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
 
 | Job | Tool | Notes |
 |---|---|---|
-| Upload GB–TB from a machine (Windows box, VPS) | `rclone` (remote `gdrive:` on that machine) | one tar per item + manifest; verify; log |
-| Move / rename / create folder / trash inside Drive | gdrive-bridge (`scripts/gdrive-bridge/gdrive_move.py`) | metadata only, IDs not names |
+| Upload GB–TB from a machine (Windows box, VPS) | `rclone` (remote `gdrive:` on that machine), driven by `scripts/stream_backup_to_drive.py` | one tar per item + manifest; verify; log |
+| Upload from the Mac (it has no rclone token, rule 6) | `stream_backup_to_drive.py --rclone scripts/rclone_via_winbox.sh` (winbox's rclone over ssh, ~13 MB/s, token stays there) or `--rclone scripts/drive_rest_rclone_shim.py` (Drive REST, venv python; the fallback when winbox is down) | measured 2026-09-24, Mac-Reinstall tars |
+| A broken upload (source died, md5 mismatch) | `scripts/gdrive-bridge/drive_broken.py` | §Broken uploads |
+| Move / rename / create folder / trash inside Drive | gdrive-bridge (`scripts/gdrive-bridge/gdrive_move.py`); on Contabo `scripts/gdrive-bridge/ilag_rest.py` | metadata only, IDs not names |
 | Search, read, verify a folder is empty | Drive MCP (`mcp__claude_ai_Google_Drive__*`) | read side |
 | The Mac's synced Drive folder (stream mode) | never for bulk | the Mac has no disk for the cache |
 
@@ -39,14 +41,24 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
    never invent a folder at the root (that is exactly what happened on 2026-09-06 and was undone).
    New folders are created ONCE with the CEO's OK — by the bridge, or by rclone when the token's
    scope must be able to see them later — and go into the tree + ID table the same turn.
+   **Pass the parent folder id explicitly** (`--root-id`, `--drive-root-folder-id`); never borrow a
+   module constant: `BACKUP_FOLDER_ID` in `tools/work_archive.py` moved to `BACKUP/MoonieX HQ/Work-Archive`
+   on 2026-09-24 (936fb0ad), and the REST shim that reused it would have filed every upload there
+   (its own root guard caught it; fixed e6039963).
 2. **One tar per item, never loose files.** A take is 14k–84k JPEGs; Drive allows 500,000 items
    per folder and flags "automated mass upload". Tar it (no gzip for JPEG/MP4), stream it if the
-   source disk is full (`tools/stream_take_to_drive.py` in cookierun-bot: tar → `rclone rcat`,
-   hashes on the fly, no local copy), and write `<item>.manifest.json` next to it: file count,
-   bytes, sha256 (and md5) of the tar, source path, date.
+   source disk is full (tar → `rclone rcat`, hashes on the fly, no local copy), and write
+   `<item>.manifest.json` next to it: file count, bytes, sha256 (and md5) of the tar, source path, date.
+   **A single file needs no tar and no spool:** upload it raw from its path and read size + md5
+   back by id — `ilag_rest.upload_stream(path, name, parent)` (64 MB chunks, md5 checked, no
+   resume), or on the Mac `tools/work_archive.py`'s `_access_token` + `_upload_chunks` with a session
+   that names the parent (2026-09-26, 562 MB film, first try). The shim's `rcat` spools stdin to a
+   temp file first (the file's size + ~3 GB free): a 7.0 GB .mov waited ~70 min for space on a
+   near-full Mac (2026-09-25).
 3. **Verify before anything is deleted.** `rclone check <src> <dst> --one-way` (md5 from Drive)
    or Drive size + `rclone md5sum` against the manifest. Size alone is not verification.
-   Then, and only then, delete the source — and log it.
+   Then, and only then, delete the source — and log it. An object that fails this check, or whose
+   source died mid-stream, is a broken upload: §Broken uploads, at once.
 4. **Log every item** in `~/.claude/logs/drive-archive.log` (one line: date, source, destination,
    files, bytes, sha256, drive md5, status) and in the machine's own housekeeping ledger.
 5. **Limits to respect (Google's own numbers, read 2026-09-06):** 750 GB upload per user per
@@ -62,12 +74,16 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
    reinstall (new account `passg`) re-created the remote without our client, and the box has no
    `Projects\` folder, so `rclone_set_client.py` is not there either. On the shared client, big
    uploads 403 `rateLimitExceeded` for hours: a 562 MB film failed 12 times in an hour on
-   2026-09-26, and three uploads died the same way on 2026-09-08/09. Until the CEO re-consents
-   (procedure below; the client JSON must come from the Cloud console or the secrets bundle):
+   2026-09-26, and three uploads died the same way on 2026-09-08/09. rclone itself prints "This
+   remote uses rclone's shared Google Drive client_id, which is being retired and will stop working
+   during 2026" on every call (winbox stderr 2026-09-24 17:46): the shared client is a dead end, not
+   only a slow one. Until the CEO re-consents (a HUMAN step, browser consent; procedure below; the
+   client JSON must come from the Cloud console or the secrets bundle):
    - **Check before any winbox upload.** Run `rclone config redacted gdrive:` and read only the
      `client_id` line. An empty value means the shared client.
    - **On the shared client, one file over 100 MB goes by the Mac REST route**:
-     `scripts/drive_rest_rclone_shim.py rcat gdrive:<name> --drive-root-folder-id <parent> < <file>`.
+     `scripts/drive_rest_rclone_shim.py rcat gdrive:<name> --drive-root-folder-id <parent> < <file>`,
+     or raw from its path (rule 2) when the disk cannot hold a spool copy.
      It uses the Mac bridge's own OAuth client, not winbox's token. The MIME type comes from the
      file name.
    - **A retry loop prints the error of every failed attempt.** Never run the upload with
@@ -100,11 +116,67 @@ through **rclone**, and rclone obeys this file exactly like every other hand.
 8. **Bandwidth manners:** `--transfers 1 --drive-chunk-size 64M` from the game box while the bot
    plays (the CPU/disk contention halved the recorder's frame rate on 2026-09-06); bigger
    parallelism only on an idle machine.
+   - **One rclone call per ssh to winbox.** Each costs 4–8 s there (token refresh + the
+     shared-client notice); seven chained in one ssh blew a 90 s Bash timeout and the last `mkdir`
+     never ran (2026-09-24). More than three calls → `run_in_background`. `rclone mkdir` of the
+     deepest path creates its parents: one call per leaf, not per level.
+   - **A Mac upload checks the route first** (`route -n get default`): with ProtonVPN up (utun9,
+     343 ms to Google) every REST upload got 502s and resets and a 201 MB tar never landed in
+     25 min; VPN off, 52.8 GB went up at ~7 MB/s with 0 failures (2026-09-24). An uploader
+     resumes (PUT `bytes */size`) instead of failing on the first non-308 — the shim does since
+     8aa52611, `drive_broken.py` does; `tools/work_archive.py` does not.
 9. **Same-turn bookkeeping:** after the first upload into a new folder, update the tree and the
    ID table here and paste the subtree back to the CEO (hard rule 6).
+10. **Every object is its own retry.** Uploaders treat each object as independent and idempotent —
+    skip one whose Drive md5 already matches — never as one all-or-nothing batch. Many small
+    `rcat`s trip Drive's per-minute write quota (`RATE_LIMIT_EXCEEDED`, `quota_unit 1/min/{project}`):
+    2 of 28 transcript day-tars failed from Contabo and both landed on a plain retry 10 min later
+    (2026-09-24). A failed object is a retry, not a loss.
 
-Reference implementation: cookierun-bot `docs/DATA-STEWARD.md` (lifecycle), `tools/archive_take.py`,
-`tools/stream_take_to_drive.py`, gate rows `winbox play_rec → BACKUP/CookieRun Backup/play_rec`.
+Reference implementation: `scripts/stream_backup_to_drive.py`, any machine — freeze the file list →
+tar straight into `rclone rcat --drive-root-folder-id` → size + md5 read back → manifest → with
+`--delete-after-verify`, delete only files whose size + mtime did not change; never follows junctions;
+refuses an existing tar (never pass `--overwrite`: a changed tar takes the next `_vN`,
+`CXO_Rules_GDrive_Filing` rule 11). 8 groups / 15.9 GB of winbox, 0 skipped files (2026-09-23).
+Cookie Run's own: `cookierun-bot/docs/DATA-STEWARD.md` (lifecycle), `cookierun-bot/tools/archive_take.py`,
+`cookierun-bot/tools/stream_take_to_drive.py`, gate rows `winbox play_rec → BACKUP/CookieRun Backup/play_rec`.
+
+## Broken uploads — mark, retry, rename back (CEO 2026-09-28)
+
+A broken upload sits on Drive under the real name but is not the source: the source died
+mid-stream, or the md5 read back by id does not match. `CXO_Rules_GDrive_Filing` rule 10 is the
+standing approval: rename it `BROKEN-<name>` at once, never trash it.
+
+Input: the Drive file id + the local source · Output: the same file id holding the source's bytes
+under its original name, or a `BROKEN-` object reported to the CEO · Tool:
+`scripts/gdrive-bridge/drive_broken.py` (Drive REST with the ClaudeFlow OAuth, so it runs on
+Contabo; it never trashes, deletes or creates a file) · Ledger: `state/drive-broken.jsonl` on the
+machine that ran it, append-only (mark / retry / resolved).
+
+1. **Mark it the moment it is seen:** `drive_broken.py mark <file_id> --source <path> --why "<what broke>"`.
+   It renames to `BROKEN-<name>` and records file id, original name, source path, source md5 +
+   size, why, when, host. Stop: it refuses (exit 2) when Drive's md5 already matches the source —
+   nothing is broken. In a YT: ILAG / FB drama branch, append the `RENAME` line to `logs.txt` in
+   the same turn. A tar streamed from a folder has no source file: mark it with the folder, then
+   re-run the stream under the original name; the `BROKEN-` object stays.
+2. **Retry when the source can be read again** (the box is back, the disk is mounted):
+   `drive_broken.py retry [--id <file_id>] [--dry-run]`. Per open entry it prints one of:
+   `SOURCE-MISSING` / `SOURCE-NOT-FILE` (stays `BROKEN-`), `SOURCE-CHANGED` (the source's md5
+   differs from the mark; skipped, `--allow-changed-source` uploads it anyway), `MD5-MISMATCH`
+   (uploaded, Drive's md5 still differs; stays `BROKEN-`), `NAME-TAKEN` (verified, but another file
+   holds the original name; ask the CEO), or `RESOLVED` — the source went up as a NEW REVISION of
+   the same file id (resumable PATCH; a dropped chunk resumes from Drive's offset), `md5Checksum`
+   read back by id matched, and only then was it renamed back. The broken bytes become an older
+   revision of that file.
+3. **Report** every entry still open after a retry to the CEO with its source state — a `BROKEN-`
+   object whose source is gone is not a backup of anything. `drive_broken.py list [--all]` shows them.
+
+Verify: the retry printed `RESOLVED <id> <name> md5 <…>` and `drive_broken.py list` no longer shows
+the id. Tests: `scripts/test_drive_broken.py` (HTTP layer faked; the tool has not yet run live).
+
+Failure mode seen: 2026-09-24, winbox went offline mid-`tar | ssh | rclone rcat`; rclone got EOF and
+finalised 859 MB of a 915 MB tar under the real name (id `1vaZ9ywNjgjxs_VCUyEAGzLnx7-lL5C-E`,
+session cto-46fb0d60). Only the size + md5 read-back exposed it.
 
 ## The bridge — how moves/renames/deletes actually happen
 
@@ -167,43 +239,48 @@ reach for the bridge when something needs to actually change.
 ### On Contabo the bridge is ABSENT, but uploading still works (measured 2026-09-10)
 
 `~/.config/mooniex/gdrive-bridge.json` does not exist on the VPS, so **every
-bridge action fails there** — `move`, `rename`, `trash`, `create_folder`,
-`create_doc` and, the one that matters most, `append_log`. `ilag_sync.py`'s own
-`append_log()` is built on the bridge, so it fails too.
+bridge action fails there** (`gdrive_move.py` dies with FileNotFoundError) —
+`move`, `rename`, `trash`, `create_folder`, `create_doc` and, the one that matters
+most, `append_log`. `ilag_sync.py`'s own `append_log()` is built on the bridge, so
+it fails too.
 
-**That does not mean a Contabo session cannot file a clip.** The upload path is
-separate and works: `ilag_sync.upload(local_path, name, parent_id)` talks to the
-Drive REST API directly using `GOOGLE_OAUTH_CLIENT_ID` / `_CLIENT_SECRET` /
-`_REFRESH_TOKEN` out of `/root/projects/mooniex-claudeflow/.env` (note the
-`GOOGLE_OAUTH_` prefix — grepping for `GOOGLE_REFRESH_TOKEN` finds nothing and
-wrongly reads as "no credentials"). The same token appends `logs.txt` fine with a
-plain `uploadType=media` PATCH, and reports `capabilities.canEdit: true`.
+**That does not mean a Contabo session cannot file a clip.** Drive REST works
+directly with `GOOGLE_OAUTH_CLIENT_ID` / `_CLIENT_SECRET` / `_REFRESH_TOKEN` out of
+ClaudeFlow's `.env` (note the `GOOGLE_OAUTH_` prefix — grepping for
+`GOOGLE_REFRESH_TOKEN` finds nothing and wrongly reads as "no credentials"); the
+token reports `capabilities.canEdit: true`. The helpers are
+`scripts/gdrive-bridge/ilag_rest.py` (4b21f866): `mkfolder` (create only if
+absent), `rename`, `upload` / `upload_stream` (refuse a same-name file, md5
+checked by id), `append_log` (GET → PATCH → the old text must survive as a
+prefix; set `ILAG_LOG_ACTOR`) and `line()` for the 9-field log. A Google Doc
+from markdown is one call: multipart upload, metadata mimeType
+`application/vnd.google-apps.document`, media `text/markdown` (the TopView
+trailer's StoryBoard, 2026-09-24). A broken upload: `drive_broken.py`, same auth.
 
-So on Contabo, filing a clip is: `upload()` → PATCH `logs.txt` → verify. **Both
+So on Contabo, filing a clip is: upload → append `logs.txt` → verify. **Both
 halves or neither** — ILAG rule 4 forbids leaving a file on Drive with no log
 line, and a session that can upload but cannot log must not upload.
 
-Two safety steps that are not optional when appending `logs.txt` by hand,
-because a `uploadType=media` PATCH replaces the whole file and the log is
-append-only:
+Two safety steps that are not optional when appending `logs.txt`, because a
+`uploadType=media` PATCH replaces the whole file and the log is append-only:
 
 1. **GET `?alt=media` and save the bytes locally before writing.** That copy is
-   the only undo.
+   the only undo — `ilag_rest.append_log` keeps it in memory only.
 2. **After writing, re-download and assert `new.startswith(old.rstrip())`** —
    proof no history was truncated — plus a byte-delta equal to the line you
-   added. Size alone is not verification.
+   added. Size alone is not verification. `ilag_rest.append_log` does this step.
 
 Measured clean this way filing `S22-TheCrate-Fix1.MP4` into `Fix-2`: 60,606 →
 61,011 bytes (+405), prefix intact, new line last.
 
 
 ## Field notes
-- 2026-09-24 [MISSING] §Bulk transfer — the reference implementation names only Cookie Run tools; a generic one now exists: `scripts/stream_backup_to_drive.py` (freeze list → tar into `rclone rcat --drive-root-folder-id` → md5+size read back → manifest → delete only files whose size+mtime are unchanged; never follows junctions; refuses to overwrite an existing tar). 8 groups / 15.9 GB of winbox moved with it, 0 skipped files (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60, drive-archive.log 2026-09-23T20:39Z · status: pending
-- 2026-09-24 [MISSING] §Bulk transfer — the Mac has no rclone token (rule 6), so Mac data has two routes: pipe into winbox's rclone over ssh (byte-exact, ~13 MB/s, token stays on winbox), or `tools/work_archive.py`'s resumable REST (needs a local spool file). Both plug into `stream_backup_to_drive.py --rclone`: `scripts/rclone_via_winbox.sh` / `scripts/drive_rest_rclone_shim.py` (run it with the venv python). The second is the fallback when winbox is down (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60 Mac-Reinstall-2026-09-24 tars · status: pending
-- 2026-09-24 [COSTLY] §Bulk transfer — with ProtonVPN connected (default route utun9, RTT 343 ms to Google), every Mac REST upload got 502s and connection resets; a 201 MB tar never landed in 25 min and `tools/work_archive.py` gives up on the first non-308. Check `route -n get default` before a big upload, and resume (PUT `bytes */size`) instead of failing — `scripts/drive_rest_rclone_shim.py` does. VPN off: 52.8 GB went up at ~7 MB/s, 0 failures (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60, shim commit 8aa52611 · status: pending
-- 2026-09-24 [COSTLY] §Bulk transfer — every rclone call on the rebuilt winbox costs 4–8 s (token refresh + the shared-client_id NOTICE), so seven calls chained in one ssh (`for %d … rclone mkdir` ×5 + 2 `lsjson`) blew a 90 s Bash timeout and the last mkdir never ran (`Machine-Blueprints` had to be created in a second call). Prevented by: one rclone call per ssh, or `run_in_background` for anything over three calls; `rclone mkdir` of the deepest path creates its parents, so a family with sub-folders is one call per leaf, not per level (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: bkhf5in6p 17:46–17:48, ids read back in commit 258b4217 · status: pending
-- 2026-09-24 [MISSING] §Hard rules — rclone printed "This remote uses rclone's shared Google Drive client_id, which is being retired and will stop working during 2026" on every call after the re-consent. The winbox remote needs its own OAuth client_id (Google Cloud console, the CEO's account) before that cut-off or every Drive route in this skill stops at once; the switch is `rclone config reconnect gdrive:` after setting client_id/secret, and it is a HUMAN step (browser consent) (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: winbox rclone stderr 2026-09-24 17:46 · status: pending
-- 2026-09-24 [MISSING] §Bulk transfer — a long series of small `rclone rcat` calls trips Drive's per-minute write quota on the shared client_id (`RATE_LIMIT_EXCEEDED`, `quota_unit 1/min/{project}`): 2 of 28 transcript day-tars failed mid-run from Contabo, both landed on a plain retry 10 min later. Design uploaders so every object is independent and idempotent (skip when the Drive object already has the right md5), never as one all-or-nothing batch; a failed object is a retry, not a loss (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: state/drive-leg-first-run-2026-09-24.log lines 19/38, ledger 13:44 vs 13:49 · status: pending
-- 2026-09-24 [MISSING] §The bridge — Contabo has NO bridge config (`~/.config/mooniex/gdrive-bridge.json` absent), so `gdrive_move.py` dies there with FileNotFoundError. Create-folder / rename / upload / logs.txt append from Contabo go through Drive REST with the ClaudeFlow OAuth instead: `scripts/gdrive-bridge/ilag_rest.py` (create-if-absent, md5 checked by id, append = GET→PATCH→prefix check; set `ILAG_LOG_ACTOR`). A Google Doc can be made from markdown in one call: multipart upload, metadata mimeType `application/vnd.google-apps.document`, media `text/markdown` (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: 4b21f866, the TopView trailer project build (StoryBoard doc 1H9S-CG0…) · status: pending
-- 2026-09-25 [WRONG] §Bulk transfer — `tools/work_archive.BACKUP_FOLDER_ID` is NOT the BACKUP root any more: 936fb0ad (2026-09-24) repointed it to `BACKUP/MoonieX HQ/Work-Archive` (`1xu8hXdU…`), and the REST shim that reused `work_archive._init_resumable_session` inherited that parent, so every upload would have been filed there silently (its own guard caught it by refusing the real root). Never borrow a module constant as the parent; pass it explicitly (`--drive-root-folder-id`), fixed in the shim at e6039963 (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60 · status: pending
-- 2026-09-25 [COSTLY] §Bulk transfer — the REST shim spools the whole tar to local disk (needs part size + ~3 GB free); on a near-full Mac the last part, one 7.0 GB .mov, waited ~70 min for space. A part that is a single file needs no tar: upload it raw from its path with the shim's `upload()` (resumable, zero spool) and verify size + md5 by id (`Mac-Reinstall-2026-09-25-iCloudLeftovers-p09-f786.mov`) (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60 run.out 21:33→22:40 · prevented by: a runner that uploads single-file parts raw · status: pending
+- 2026-09-24 [MISSING] §Bulk transfer — the reference implementation names only Cookie Run tools; a generic one now exists: `scripts/stream_backup_to_drive.py` (freeze list → tar into `rclone rcat --drive-root-folder-id` → md5+size read back → manifest → delete only files whose size+mtime are unchanged; never follows junctions; refuses to overwrite an existing tar). 8 groups / 15.9 GB of winbox moved with it, 0 skipped files (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60, drive-archive.log 2026-09-23T20:39Z → §Bulk transfer table + Reference implementation (artefact: the script, 15.9 GB run) · status: promoted
+- 2026-09-24 [MISSING] §Bulk transfer — the Mac has no rclone token (rule 6), so Mac data has two routes: pipe into winbox's rclone over ssh (byte-exact, ~13 MB/s, token stays on winbox), or `tools/work_archive.py`'s resumable REST (needs a local spool file). Both plug into `stream_backup_to_drive.py --rclone`: `scripts/rclone_via_winbox.sh` / `scripts/drive_rest_rclone_shim.py` (run it with the venv python). The second is the fallback when winbox is down (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60 Mac-Reinstall-2026-09-24 tars → §Bulk transfer table, row "Upload from the Mac" (artefact: both scripts, 52.8 GB run) · status: promoted
+- 2026-09-24 [COSTLY] §Bulk transfer — with ProtonVPN connected (default route utun9, RTT 343 ms to Google), every Mac REST upload got 502s and connection resets; a 201 MB tar never landed in 25 min and `tools/work_archive.py` gives up on the first non-308. Check `route -n get default` before a big upload, and resume (PUT `bytes */size`) instead of failing — `scripts/drive_rest_rclone_shim.py` does. VPN off: 52.8 GB went up at ~7 MB/s, 0 failures (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60, shim commit 8aa52611 → §Bulk transfer rule 8 (artefact: the fixing commit) · status: promoted
+- 2026-09-24 [COSTLY] §Bulk transfer — every rclone call on the rebuilt winbox costs 4–8 s (token refresh + the shared-client_id NOTICE), so seven calls chained in one ssh (`for %d … rclone mkdir` ×5 + 2 `lsjson`) blew a 90 s Bash timeout and the last mkdir never ran (`Machine-Blueprints` had to be created in a second call). Prevented by: one rclone call per ssh, or `run_in_background` for anything over three calls; `rclone mkdir` of the deepest path creates its parents, so a family with sub-folders is one call per leaf, not per level (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: bkhf5in6p 17:46–17:48, ids read back in commit 258b4217 → §Bulk transfer rule 8 (measured, artefact 258b4217) · status: promoted
+- 2026-09-24 [MISSING] §Hard rules — rclone printed "This remote uses rclone's shared Google Drive client_id, which is being retired and will stop working during 2026" on every call after the re-consent. The winbox remote needs its own OAuth client_id (Google Cloud console, the CEO's account) before that cut-off or every Drive route in this skill stops at once; the switch is `rclone config reconnect gdrive:` after setting client_id/secret, and it is a HUMAN step (browser consent) (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: winbox rclone stderr 2026-09-24 17:46 → §Bulk transfer rule 6, merged into the measured 2026-09-26 state (rclone's own notice quoted) · status: promoted
+- 2026-09-24 [MISSING] §Bulk transfer — a long series of small `rclone rcat` calls trips Drive's per-minute write quota on the shared client_id (`RATE_LIMIT_EXCEEDED`, `quota_unit 1/min/{project}`): 2 of 28 transcript day-tars failed mid-run from Contabo, both landed on a plain retry 10 min later. Design uploaders so every object is independent and idempotent (skip when the Drive object already has the right md5), never as one all-or-nothing batch; a failed object is a retry, not a loss (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: state/drive-leg-first-run-2026-09-24.log lines 19/38, ledger 13:44 vs 13:49 → §Bulk transfer rule 10 (artefact: the run log) · status: promoted
+- 2026-09-24 [MISSING] §The bridge — Contabo has NO bridge config (`~/.config/mooniex/gdrive-bridge.json` absent), so `gdrive_move.py` dies there with FileNotFoundError. Create-folder / rename / upload / logs.txt append from Contabo go through Drive REST with the ClaudeFlow OAuth instead: `scripts/gdrive-bridge/ilag_rest.py` (create-if-absent, md5 checked by id, append = GET→PATCH→prefix check; set `ILAG_LOG_ACTOR`). A Google Doc can be made from markdown in one call: multipart upload, metadata mimeType `application/vnd.google-apps.document`, media `text/markdown` (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: 4b21f866, the TopView trailer project build (StoryBoard doc 1H9S-CG0…) → §On Contabo, merged into the 2026-09-10 section (artefact: 4b21f866) · status: promoted
+- 2026-09-25 [WRONG] §Bulk transfer — `tools/work_archive.BACKUP_FOLDER_ID` is NOT the BACKUP root any more: 936fb0ad (2026-09-24) repointed it to `BACKUP/MoonieX HQ/Work-Archive` (`1xu8hXdU…`), and the REST shim that reused `work_archive._init_resumable_session` inherited that parent, so every upload would have been filed there silently (its own guard caught it by refusing the real root). Never borrow a module constant as the parent; pass it explicitly (`--drive-root-folder-id`), fixed in the shim at e6039963 (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60 → §Bulk transfer rule 1 (artefact: fix e6039963) · status: promoted
+- 2026-09-25 [COSTLY] §Bulk transfer — the REST shim spools the whole tar to local disk (needs part size + ~3 GB free); on a near-full Mac the last part, one 7.0 GB .mov, waited ~70 min for space. A part that is a single file needs no tar: upload it raw from its path with the shim's `upload()` (resumable, zero spool) and verify size + md5 by id (`Mac-Reinstall-2026-09-25-iCloudLeftovers-p09-f786.mov`) (moved here from CXO_Rules_GDrive_Filing 2026-09-28) · evidence: session cto-46fb0d60 run.out 21:33→22:40 · prevented by: a runner that uploads single-file parts raw → §Bulk transfer rule 2 (two runs agree: 2026-09-25 .mov raw via the shim, 2026-09-26 film raw via tools/work_archive) · status: promoted
