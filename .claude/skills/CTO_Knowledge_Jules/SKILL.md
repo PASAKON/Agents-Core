@@ -182,6 +182,10 @@ bad one 1.1 MB). Then, on current main — every one of these caught something r
   return True/False pass under pytest whatever they return.
 - **Any client of an external API: one live, read-only call per subcommand.** T08-A's six mocked
   tests passed while `create` and `report` were wrong against the real API.
+- **Remove the fix: the new test must fail, and fail cleanly** (the verdict on WebApp #100 and
+  Agents-Core #171). First stub the module's network entry point to raise (an autouse fixture):
+  Jules mocks only the path its fix takes, so #171's tests, with the check removed, fell through
+  to a real Drive API call (404 on a fake id) instead of failing (d138bd0a, 2026-09-23).
 - **Existing tests or mocks edited?** Red flag — check they were failing on main first (T11-B's
   were not). **Count test functions per touched test file, base vs diff**: T12-R2 reached a green
   pytest by deleting 56 tests, 47 of them unrelated, and did not say so. A drop needs a named
@@ -194,6 +198,11 @@ bad one 1.1 MB). Then, on current main — every one of these caught something r
 - **CI's env, not `.env`**, when reproducing locally (2026-09-19: cfoTrack passed with `.env`,
   failed with the workflow's dummy env). CI may also run further than before once a collection
   error is fixed — #166 surfaced 24 old macOS-only failures (`plutil`) that had been hidden.
+- **CI that never started is no verdict.** Every job `failure` with `steps` = 0 and `BlobNotFound`
+  logs (ClaudeFlow, 2026-09-19), or every check failing in 2–4 s with Vercel "Account is blocked"
+  (WebApp #100, 2026-09-23), is a billing block, not red code. Take the verdict from a throwaway
+  local worktree — install from the lockfile, typecheck, full suite, the remove-the-fix check —
+  and delete it after (node_modules made WebApp's 939 MB).
 
 Then one model pass over the packet (brief + gate output + diff). Blind A/B on session 1:
 Opus 5 found 5/5 + 2 more at 92k tokens / 43 s vs Sonnet 5's 5/5 at 107k / 110 s — **use the
@@ -246,6 +255,6 @@ task (the API cannot choose).
 - 2026-09-23 [MISSING] §4 — round 2: a green pytest reached by deleting tests. T12-R2 removed 56 tests (47 unrelated: SomPong family rules, SSRF, OAuth) from test_secretary_server.py and left a scratch script; neither in its report · evidence: session 8771843428592242624, Agents-Core #167 commit 677d42ff · status: promoted
 - 2026-09-23 [MISSING] §2 line 4 — two re-briefed tasks were still wrong: T03 on an issue claim nobody verified (no status_done event → raw write), T04 against a design the function's own comment explains · evidence: #159 comment 5793917949, #167 commit 33b5c76f · status: promoted
 - 2026-09-23 [MISSING] §3/§7 — `:sendMessage` on an AWAITING_USER_FEEDBACK session is accepted (`{}`) and acted on: ab2 T03 answered, cleaned its scratch files, stopped, pushed nothing (0 branches); state stayed IN_PROGRESS · evidence: session 6395970906374531012, 2026-09-23T11:53Z · status: promoted
-- 2026-09-23 [MISSING] §4 — a repo whose CI is billing-blocked gives no verdict: WebApp #100's six checks all failed in 2–4 s (Vercel "Account is blocked"; Actions jobs never started). The verdict came from a local review worktree (`pnpm install --frozen-lockfile` → `tsc --noEmit` exit 0, vitest 460/460, the new test fails with the one-line fix removed). Delete the worktree after — node_modules made it 939 MB · evidence: MoonieX-WebApp PR #100, session 6872009369530616467 · status: pending
+- 2026-09-23 [MISSING] §4 — a repo whose CI is billing-blocked gives no verdict: WebApp #100's six checks all failed in 2–4 s (Vercel "Account is blocked"; Actions jobs never started). The verdict came from a local review worktree (`pnpm install --frozen-lockfile` → `tsc --noEmit` exit 0, vitest 460/460, the new test fails with the one-line fix removed). Delete the worktree after — node_modules made it 939 MB · evidence: MoonieX-WebApp PR #100, session 6872009369530616467; second run ClaudeFlow 2026-09-19 (steps=0 + BlobNotFound, tested in a throwaway worktree; memory reference_github_actions_billing_block_signature) → §4 · status: promoted
 - 2026-09-23 [MISSING] §1 — the hot-file hold has a better exit than "wait": when the fix is already fully verified (facts, call chain, measured cases), the CTO fixing it directly took ~25 min from brief to merge with no drift (#158 part 3 in `delegate.py`, 9 commits in 3 days) · evidence: Agents-Core #170 e47dfefb · status: pending
-- 2026-09-23 [MISSING] §4 — Jules mocks only the path its fix takes: #58's tests stubbed `upload`/`folder_name` but not `list_folder`, so with the new check removed they fell through to a REAL Drive API call (404 on a fake id) instead of failing clean. At review, stub the module's network entry point to raise (autouse fixture) before running the "remove the fix" check · evidence: Agents-Core #171 d138bd0a, session 6789731670668793802 · status: pending
+- 2026-09-23 [MISSING] §4 — Jules mocks only the path its fix takes: #58's tests stubbed `upload`/`folder_name` but not `list_folder`, so with the new check removed they fell through to a REAL Drive API call (404 on a fake id) instead of failing clean. At review, stub the module's network entry point to raise (autouse fixture) before running the "remove the fix" check · evidence: Agents-Core #171 d138bd0a, session 6789731670668793802; the remove-the-fix check also decided WebApp #100 (note above) → §4 · status: promoted
