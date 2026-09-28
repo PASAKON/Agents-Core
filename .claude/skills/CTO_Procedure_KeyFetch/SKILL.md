@@ -116,3 +116,5 @@ model saw the value.
   two single-use codes expired (task-13bfcd4d): never route a value through a worker's keyboard.
 
 ## Field notes
+
+- 2026-09-28 [MISSING] §When to invoke / when not — no path for a secret that has no provider page (a random key we generate ourselves, e.g. an AES key ring). Step 5's last-4 check against the provider cannot apply. The design proposed a zero-model Run Inbox card (`openssl rand` → `infisical_setup.py put --stdin`) whose output shows only the name and kid · evidence: task-f50d0c4c §9 (`CLAUDEFLOW_CREDENTIAL_ENCRYPTION_SECRET`), docs/briefs/chatudo-o7b-security-design.md · status: pending
