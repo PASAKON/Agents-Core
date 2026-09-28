@@ -74,10 +74,10 @@ flags until measured there.
 The Mac is the CEO's editing machine. Do not open Flow on the Mac or start `scripts/flow/launch-chrome-debug.sh` there.
 Do not point a runner at the Mac's 127.0.0.1:9223.
 
-- `tools/flow_shoot.py` still defaults to `CDP = "http://127.0.0.1:9223"`, the Mac. Until the runner
-  can reach winbox, a shoot needs a porting task first. Either run the runner on winbox, or connect over the
-  tailnet to a winbox debug Chrome and move the downloaded files to the Mac for the edit. Check first
-  whether the branch `agent/codex-winbox-runner` (cdb27f9f) already does this.
+- The code enforces it (fa5e3c19, 2026-09-26): `tools/flow_cdp.py` is the one CDP resolver for every Flow
+  tool (`--cdp-url`, then `$FLOW_CDP`, then winbox's `http://127.0.0.1:9226`), and each tool exits 2 on the
+  Mac unless `FLOW_ALLOW_MAC=1`. [SUPERSEDED 2026-09-26 by fa5e3c19: "`tools/flow_shoot.py` still defaults
+  to the Mac's 9223; until the runner can reach winbox, a shoot needs a porting task first."]
 - The winbox traps are in §winbox findings: no `resize_window`, no clicking at a `getBoundingClientRect()` point,
   and unreadable virtualized lists. Read that section before the first winbox run.
 - Clips reach the Mac only as finished files for the edit, through Drive or scp. The Mac never renders.
@@ -196,7 +196,7 @@ it per shoot — the 12-credit figure is measured, the ratio is not.
 
 Ultra also lists "Google Flow with highest filmmaking tool limits". Measured
 2026-09-18 (task-68653632, docs/ops/google-flow-ultra-audit.md): it changed
-**nothing visible** — same 4 models, no 1080p, reference-chip cap 10, Omni
+**nothing visible** — same 4 models, no 1080p generation, reference-chip cap 10, Omni
 10 s / Veo 8 s ceilings unchanged. Balance read 9,413 that day after another
 session's 48 shots (48 x 12 = 576), which is the pacing arithmetic in practice.
 
@@ -439,7 +439,8 @@ Everything below was wrong in this file until a Playwright dry-run checked it.
 - **The submit button is `aria-label="เริ่มสร้าง"`**, never "Submit".
 - **`[aria-label="Download"]` / `[aria-label="ดาวน์โหลด"]` match ZERO elements.**
   A runner waiting on them reports a clip as failed while Google has generated it
-  and charged for it. Verify the real control before believing any "it failed"
+  and charged for it. The real control is the clip editor's `ดาวน์โหลดสื่อ`
+  (§Getting the clip file). Verify the real control before believing any "it failed"
   that came from automation.
 - **A stray `.cdk-overlay-backdrop` left open by an earlier script blocks every
   later click**, chip attach included, with Playwright reporting "element is
@@ -459,6 +460,7 @@ Everything below was wrong in this file until a Playwright dry-run checked it.
 | **The viewport reverts mid-session** | A correctly-resized tab silently went back to 2280x722 with no navigation in between. Screenshot pixels and `window.innerWidth` then disagreed by a ~0.688 scale factor (1568px shot for a 2280px CSS viewport). | Never click from raw `getBoundingClientRect()` coordinates. Click by element handle, or convert by the measured ratio. |
 | **Settings panel and ingredient picker are overlays that text reads miss** | `get_page_text` / `body.innerText` frequently return the page *underneath* the open panel, not the dropdown values. task-68653632 burned ~22 screenshots (budget 5) falling back to pixels to read four prices. | Read dropdown state by element handle (`find`/`read_page` on the overlay node) or take ONE screenshot per open panel and read everything from it; budget the screenshots up front. |
 | **The model dropdown closes after every pick** | Reading N model prices costs ~3N clicks (open, pick, read). | Read all prices from one open dropdown if it shows them; otherwise accept 3 clicks per model and budget for it. |
+| **Select-all depends on the OS** | In Flow's `input.editable-text-input` (project and asset names), `Control+A` on the Mac moves the caret to line start (the first rename produced `ตาชั่งของเสี่ยก.ย. 25 - 17:15`, task-c2723478); on winbox `Meta+A` is the Windows key (`kij__face.pngkij__face`). | Press `ControlOrMeta+A` (Playwright ≥1.45; 945391b5) and read the field back before Enter. |
 | **A focused contenteditable still drops the first keystroke** | A `.ProseMirror` composer confirmed as `document.activeElement` lost the next keystroke about half the time — text stayed as the placeholder, no error, no state change. | `el.focus()` via `javascript_tool` and the first keystroke via `computer` **in the same `browser_batch` call**, with no intervening tool call, not even a read. This single behaviour cost most of one task's budget. |
 
 ## References (chips): adding them, their order, how many bind, which get one, and checking them
@@ -469,6 +471,13 @@ Everything below was wrong in this file until a Playwright dry-run checked it.
 (`ทั้งหมด · รูปภาพ · วิดีโอ · เสียง · ตัวละคร · รูปโปรไฟล์ · การอัปโหลด`) →
 click the **row** → the preview pane fills on the right → press the white
 **`เพิ่มไปยังพรอมต์`** button at the bottom of that pane.
+
+For a script (2026-09-25, 636aeafe): the `+` is `button[aria-label="เพิ่มองค์ประกอบลงในช่องพรอมต์"]` and the
+picker is a CDK overlay, not `[role=dialog]`, whose backdrop swallows clicks until it is closed. Scope to
+`.cdk-overlay-container:has(input[aria-label="ค้นหาเนื้อหา"])` (a pane anchored on `:has(.asset-item)` loses
+its locator once a search empties the list) and reach a row through that search box. Type the bare name
+first and let the debounced search settle: a named plain image carries no `@`, and an `@name` query
+matched a row of the unfiltered list that vanished before the click (fb799c11).
 
 Added chips appear as small thumbnails in a row above the prompt text. **That
 row is the index.** Leftmost is `<IMAGE_REF_0>`.
@@ -641,7 +650,10 @@ type and count, not which character"* — and nobody acted on that sentence.
 #### The rule
 
 1. **Use the picker's search box**, not a label match or a natural-language row
-   reference. Type the handle.
+   reference. Type the handle. The search is a substring match: `cop_wit` also lists
+   `@cop_wit_uniform_A`, `noodle_shop` lists `@noodle_shop_thriving`, and a first-row pick
+   attached either while the chip count stayed right. Take the row whose whole name is the
+   handle (the runner matches word-bounded since cdb27f9f, `picker_row_pattern` in `tools/flow_shoot.py`).
 2. **Look at the preview image before you click add**, and at the chip's
    thumbnail after. Zoom if the thumbnail is small. A face must look like a face,
    a location like a location.
@@ -732,10 +744,17 @@ is created lazily, and Playwright intercepts it. It cost 0 credits. Replay scrip
 script uploads, renames the tile, and adds it to the prompt.
 
 - The uploaded image is a plain, named asset in the project media, verified by
-  the CTO on the live project.
+  the CTO on the live project. A plain image generated in Flow becomes one the same way,
+  tile right-click → `เปลี่ยนชื่อ` (task-f78ca70e, `@cop_wit_uniform_A`). Either sits under
+  `รูปภาพ`, never `ตัวละคร`, and its picker row shows the name without `@` (§How a chip is added).
 - It attaches as a reference chip through the tile's right-click menu
-  **เพิ่มไปยังพรอมต์**. There is no "convert to Character" item, and the
+  **เพิ่มไปยังพรอมต์**. There is no "convert to Character" item (both tasks), and the
   generative สร้างตัวละคร flow re-renders the face, so do not use that.
+- **A batch: one tab, and look before each upload.** A fresh tile's menu lacks `เปลี่ยนชื่อ`
+  until the upload settles (one fixed wait lost 21 of 21 renames, 2026-09-25), and a failed rename
+  leaves the tile named after the file (`<file>.png`; `kij__face.pngkij__face` on winbox, 945391b5).
+  Search the project (`input[aria-label="ค้นหา"]`; the grid is virtualised, 6 of 23 tiles rendered)
+  for the handle and the file name first: a file-named tile is renamed, never uploaded again.
 - Evidence: task-c2723478, commit 13283c00.
 
 [SUPERSEDED 2026-09-25 by the update above] ~~Whether an uploaded file then
@@ -1431,14 +1450,12 @@ second proved a named one is written correctly. Rule 4 above carries both.
 
 ## Getting the clip file
 
-Four different failures share one symptom — you asked for a file and none landed. Tell them apart before
-fixing anything (inventory item 39: the four write-ups, merged):
+Two failures share one symptom — you asked for a file and none landed. Tell them apart before fixing
+anything:
 
 | symptom | cause | what to do |
 |---|---|---|
-| click download, nothing at all, no toast; Chrome's downloads history empty | the toolbar download icon is a silent no-op on this account (2026-09-18) | the CDN pull, below |
-| the clip editor stays black, `document.querySelector('video')` is `null`; the filmstrip loads | the in-page player failed; the render is fine | the CDN pull, below |
-| the CDN sniff finds nothing for a clip someone already played | Chrome's disk cache: no network entry at all | the cache trap, below |
+| the runner says "failed — timeout", yet the feed has the clip | the card was opened before it finished, or a second time (2026-09-26) | §The route, step 1; then `flow_shoot.py pull` |
 | several downloads worked, then every one stopped, images too, and a reload does not help | Chrome's per-site automatic-downloads block | one human click, below |
 
 ### Capture each clip's id at SUBMIT, not in a second pass (2026-09-18, Act 1 shoot)
@@ -1460,105 +1477,58 @@ sequence, capture its `/edit/<uuid>` URL (the composer navigates to it) and
 write it to the report table next to the shot number. Download from that URL,
 by id, never by hunting the feed.
 
-### The file comes from the CDN, never the download button (2026-09-18)
+### The route: the clip editor's `ดาวน์โหลดสื่อ` button (2026-09-26)
 
-#### The download button is dead — go straight to the CDN URL (2026-09-18, task-860620fc)
+Two runs agree: the runner's 1080p export (3324f0da, 2026-09-20) and the live read of the changed clip
+editor that fixed the runner (99770187; S73 and S58 then came down in ~15 s each).
 
-**On this account the toolbar download icon is a silent no-op.** Across roughly
-six attempts in one session — ref-based clicks, DOM text-node clicks, and
-coordinate clicks, including the resolution flyout (270p/720p/1080p/4K) —
-**Chrome's own downloads history recorded zero entries.** No error, no toast, no
-feedback of any kind.
+1. **Wait until the feed card is finished**: its tile shows the play *and* the download control and no
+   percentage. A card queued a moment ago shows play only (45e63c07); a card opened before it finished,
+   or opened a second time, gave nothing.
+2. Open its `/edit/<id>`.
+3. Press the top-level `[aria-label="ดาวน์โหลดสื่อ"]` (no longer under More) → `270p GIF` ·
+   `720p ขนาดดั้งเดิม` · `1080p เพิ่มความละเอียดแล้ว` · `4K · 50 เครดิต`. Take the 1080p upscale — it
+   carries no credit label and Google's credit table prices "1080p upscale" at 0, though no balance delta
+   has confirmed it — or the 720p original. `tools/flow_shoot.py` defaults to 1080p
+   (`--download-resolution`).
+4. **HARD — never pick `4K · 50 เครดิต` unless the task names it.**
+   **Why hard:** money — a download-menu item that bills 50 credits, four 720p shots' worth; the
+   runner's `validate_download_option` refuses any option that carries เครดิต.
+5. `ffprobe` the file (duration, size, audio) and read frames with `ffmpeg`. Scrubbing Flow's timeline
+   is not frame-accurate, so "the last frame looks right" after scrubbing is not evidence.
 
-This is **not** the documented "export hangs, reload and retry" trap. That one
-at least shows `Exporting your scene…`. This shows nothing at all, which means
-an operator can spend ten minutes believing a download is in flight when nothing
-was ever started.
+**Why not the CDN pull any more:** the editor now draws the clip into a canvas and creates no `<video>`
+until play is pressed, and play is forbidden (§Never press play). The runner's CDN capture, kept only as
+its fallback, therefore reported "failed — timeout" for clips Flow had: of the ACT3 takes called deleted
+that night, S58 and one S70 were finished in the feed.
 
-**Do not use the download button. Do this instead:**
+### A clip that will not come down
 
-1. Play the clip. Flow's own player fetches a signed CDN URL
-   (`flow-content.google/video/<id>?...`).
-2. `read_network_requests` to capture that URL.
-3. `curl` it.
-4. `ffprobe` the result to confirm it is the clip you wanted.
+- **Deleted, or missed?** Take a census before calling a clip deleted: search the feed by a fragment of
+  the shot's Thai dialogue line (unique per shot; prompt openings are not) and compare the batches found
+  with the submits sent. Reading the feed after a timeout: `CMO_Gate_Flow_Omni1.1_FilmQC` rule 2.
+- **Two attempts, then stop.** A clip that will not come down after one reload and one fresh tab is stuck
+  for this session: report the ids and move on; a re-fire is the C-level's decision. Thirty tool calls
+  once went on five stuck clips because this file implied a retrieval always works eventually.
 
-Verified byte-identical to what the player streams. Three clips pulled this way
-on 2026-09-18 with no failures, against a download button that never produced a
-single file.
+[SUPERSEDED 2026-09-26 by §The route (99770187, 3324f0da) — the 2026-09-18 method and its traps, kept as
+the replaced rules:]
 
-#### The in-page video player can fail completely — the same CDN pull (2026-09-18)
-
-Distinct from the dead download button. On task-115ae41c the clip editor never
-rendered a frame: black box, and `document.querySelector('video')` returned
-`null` across seek, play and retry, while the timeline's filmstrip thumbnails
-loaded normally. The render itself was fine.
-
-**The CDN pull above is the workaround here too, and it is better than the UI anyway: it should be
-the default way to check a clip.** `read_network_requests` sees the `flow-content.google/video/<id>` URL
-even when the player never shows it; `ffprobe` confirms duration and `ffmpeg` extracts the exact frames
-you need.
-
-Reading frame 0 and the last frame locally with ffmpeg is frame-accurate.
-Scrubbing Flow's own timeline is not, and a report that says "the last frame
-looks right" after scrubbing a UI is not evidence. **Verify clips with ffmpeg.**
-
-#### The cache trap, and when to stop
-
-**The cache trap, which is the other half of the loss:** a clip that has been
-played once **in this Chrome profile** is served from disk cache on every later
-play, with **no network entry at all** — not in `read_network_requests`, not in
-`performance.getEntriesByType('resource')`. The CDN-sniff method then finds
-nothing and looks exactly like the "player never loads" trap from the opposite
-side.
-
-**A later "fresh session" does not fix it** (task-f93e0f84, 0/10 recovered).
-Chrome's disk cache is keyed by URL and shared by every tab and every operator
-in the profile; a new Claude session is not a new cache. The only fix is
-**capture the `flow-content.google/video/...` URL the first time the clip is
-ever fetched, by whoever fetches it first**, muted
-(`HTMLMediaElement.prototype.play` overridden to mute first), and keep it. A URL
-captured at first play still curls later.
-
-**If the first play was already missed, the clip is unrecoverable by an operator
-— and a C-level must not brief one to try.** That happened on 2026-09-19: the
-CTO sent an operator after seven clips that earlier operators had already
-played, which this very paragraph says cannot work, and the run returned 0/7.
-The rule existed; the brief was written without reading it.
-
-**The C-level escape hatch, which is a CTO action and never an operator's:**
-Chrome's disk cache is a directory. Quit Chrome, delete it, restart, then play
-the clip once — the fetch is real again and the URL is capturable.
-
-```bash
-# Nothing may be driving Chrome while this runs, or you kill that run.
-osascript -e 'tell application "Google Chrome" to quit'; sleep 4
-pkill -9 -f "Google Chrome"; sleep 2
-rm -rf ~/Library/Caches/Google/Chrome/Default/Cache
-open -a "Google Chrome"
-```
-
-This removes cached **assets only** — not cookies, not logins, not history, not
-site data — so the Flow session survives it. It is still the CEO's browser: do it
-when no operator is mid-run, and say afterwards that you did.
-
-**And some clips never surface at all:** five of operator A's shots showed zero
-`<video>` elements and zero requests on a direct `/edit/<id>` open, in three
-separate runs across an hour. That is Flow-side, not ours. Two attempts, then
-it is a re-fire decision for the C-level, not a retrieval problem.
-
-**Two attempts, then stop.** If a clip will not surface after one reload and one
-fresh tab, it is stuck for this session. Report the ids and move on — thirty
-tool calls were spent on five stuck clips because the skill implied the CDN
-pull always works eventually. It does not.
-
-**Finding your own clip when you must:** search the feed for a distinctive
-fragment of the shot's Thai dialogue line, not its prompt. Dialogue is unique
-per shot; prompt openings are not.
+> - "The download button is dead — go straight to the CDN URL": play the clip muted, capture
+>   `flow-content.google/video/<id>` with `read_network_requests`, `curl` it, `ffprobe` it (task-860620fc,
+>   three clips, when that day's toolbar icon was a silent no-op).
+> - "The in-page video player can fail completely" (black box, `document.querySelector('video')` is
+>   `null`, task-115ae41c) — "the CDN pull … should be the default way to check a clip". A `null` video is
+>   now the editor's normal state until play.
+> - "The cache trap": a clip played once in the Chrome profile is served from disk cache with no network
+>   entry, so the sniff finds nothing and a fresh session does not help (task-f93e0f84, 0/10; 0/7 on
+>   2026-09-19); only the CTO clearing the Mac Chrome's disk cache made the URL capturable again.
+> - "Some clips never surface at all" — five shots with zero `<video>` and zero requests on a direct
+>   `/edit/<id>` open, three runs, called Flow-side.
 
 ### ⛔ Chrome itself can block downloads, and it looks exactly like Flow being broken (2026-09-18, task-75926848)
 
-A *different* failure from the cache trap above, with an identical symptom: you
+A *different* failure from a card opened too early, with an identical symptom: you
 click download, nothing lands, no error anywhere.
 
 After a handful of files in one session, Chrome trips its per-site
@@ -1567,8 +1537,8 @@ trips, **every** download path dies at once — Flow's own per-tile button, a
 blob anchor, a burst of anchors — and it **survives a full page reload**. On
 task-75926848 it stopped an image harvest dead at 2 of 20.
 
-**How to tell it apart from the CDN trap:** the CDN trap is video-only and the
-CDN pull still works. This one kills image downloads too, and no page-side
+**How to tell them apart:** the early card is video-only and comes down once it
+is finished. This one kills image downloads too, and no page-side
 method works, because the block is in the browser, not the page.
 
 **The fix is a one-time human click and there is no way around it.** A person
@@ -1715,12 +1685,12 @@ player, model dropdown and filter panel:
   API-only, and the CEO found the control himself in about a minute. Do not
   repeat the mistake: an operator not mentioning a feature is not evidence the
   feature is absent.
-- **No 1080p and no upscale control** — re-verified on the **Ultra** account
-  2026-09-18 (task-68653632): composer resolution facet, asset filter facet,
-  clip toolbar and right-click menu all offer only 720p/360p; exports are
-  720x1280. Google's own credit table lists "1080p upscale = 0 credits" — it
-  cannot be reproduced on Pro or Ultra. 1080p+ means Topaz (or equivalent)
-  outside Flow.
+- **No generation above 720p** — the composer offers only 720p/360p (Ultra,
+  2026-09-18, task-68653632). Export is different: the clip editor's download menu
+  upscales to 1080p free and to 4K for 50 credits (§Getting the clip file).
+  [SUPERSEDED 2026-09-26 by 3324f0da and the live read behind 99770187: "No 1080p and
+  no upscale control … exports are 720x1280. Google's '1080p upscale = 0 credits'
+  cannot be reproduced on Pro or Ultra. 1080p+ means Topaz outside Flow."]
 - **No shot-list style storyboard.** There is still no way to type a shot list
   or order empty slots. But the Scenes ("ฉาก") tab is **not** the passive
   gallery the first recon called it — it is where the frames that feed the
@@ -1750,35 +1720,54 @@ player, model dropdown and filter panel:
 `flowmusic.app` a clone — that was an inference from a search-result page,
 never verified, and it was wrong. Verify a product domain by following the
 official link's redirect (`curl -sIL`), not by comparing domain names.
-It is a **separate sign-in** from Flow; the audit stopped at the login wall
-(credentials are a hard stop for a worker), so balance/price/download are
-still unmeasured.
+It is a **separate sign-in** from Flow: "Continue with Google" signs straight in on the CEO's Google
+account with no credential typed, tier "Member" (2026-09-26). [SUPERSEDED 2026-09-26 by the run below:
+"the audit stopped at the login wall …, so balance/price/download are still unmeasured."]
 
-From the official pages only (blog.google, deepmind.google/models/lyria),
-read 2026-09-18 — nothing below is measured on our account yet:
-- Model: Lyria 3 Pro / Lyria 3.5. Songs with vocals in many languages;
-  lengths of 60 s, half, or full ~3 min; section-level edits (highlight a
-  part, rewrite/translate lyrics, restyle the drop); style transform keeping
-  the melody; iOS app shipped, Android "coming soon".
-- **Every track carries a SynthID watermark.** Commercial-use rights are NOT
-  stated on the official pages — verify before putting a track on a
-  monetised page.
+Measured on the first real run, 2026-09-26 (`tools/flow_music.py`, cf99ccad: the 12 ILAG trailer cues):
+
+- **Compose** is `/session?t=true`: Sound (3,000 chars), Lyrics (3,000) with an Instrumental switch, Title
+  (100). **Advanced** holds BPM, Length, Seed and Model (`Lyria 3.5`, or `Lyria 3 Pro, Legacy`). The boxes
+  are plain textareas: Playwright `fill()` reads back exactly, and the composer's first-keystroke trap
+  (§Traps) does not apply.
+- **Length** is a free `m:ss` box clamped to 1:00–3:00: `0:30` became `1:00` and `9:59` became `3:00`, so
+  nothing shorter than 60 s can be ordered; cut it in the edit.
+- **5 credits per Generate** (30,610 → 30,555 for the 12 cues). The Generate button shows no price: read
+  the balance before and after; the runner's `--max-credits-per-track` stops a run on a larger charge.
+- One Generate = one song (once two), ~55 s to make, 53–63 s long at Length 1:00.
+- **A Generate can silently produce nothing and charge nothing** (C3, twice; the third fire of the same
+  prompt worked). Re-fire it with `tools/flow_music.py --refire <id>`, which fires only when the balance
+  shows the failed click was not charged; do not wait on it.
+- **Download:** M4A / MP3 / WAV; the runner takes the song's `wav_url` (48 kHz, 16-bit, stereo).
+
+From the official pages only (blog.google, deepmind.google/models/lyria), read 2026-09-18, not measured:
+- Songs with vocals in many languages; section-level edits (highlight a part, rewrite/translate lyrics,
+  restyle the drop); style transform keeping the melody; iOS app shipped, Android "coming soon".
+  [SUPERSEDED 2026-09-26 by the Length measurement above: "lengths of 60 s, half, or full ~3 min".]
+- **Every track carries a SynthID watermark.** Commercial-use rights are NOT stated on the official
+  pages, and the terms were still unread on 2026-09-26 — verify before putting a track on a monetised page.
 - **It does not do sound effects or foley.** Neither official page mentions
   SFX at all. Ambience/foley for a shot comes baked into Omni/Veo output;
   anything else is a free SFX library, not a model.
-- Ultra grants 30,000 Flow Music credits/month; per-track cost, download
-  format and stem export are unmeasured until the audit opens it.
+- Ultra grants 30,000 Flow Music credits/month; stem export is unmeasured.
 
 The org already has a Suno baseline to A/B against: task-f69d6442 (three
 horror cues, on Drive). Listening beats reading reviews.
 
 ## The zero-model runner (`tools/flow_shoot.py`)
 
-The runner drives this page with Playwright over the automation Chrome's CDP port, with no model in the
-loop; usage is `docs/ops/flow-runner-USAGE.md`, the design `docs/ops/flow-operator-design.md`. `run
---dry-run` is free (§Test fires). Its measured traps are the Field notes tagged §zero-model runner; the
-ones about reading the feed after a re-shoot or a vanished clip are `CMO_Gate_Flow_Omni1.1_FilmQC` Workflow 3
-and rule 2.
+The runner drives this page with Playwright over winbox's debug Chrome (`tools/flow_cdp.py`, §Where Flow
+runs), with no model in the loop; usage is `docs/ops/flow-runner-USAGE.md`, the design
+`docs/ops/flow-operator-design.md`. `run --dry-run` is free (§Test fires). Its measured traps:
+
+- **A 360p run fails its own download check while the clips are fine.** The default 1080p export has no
+  menu for a 360p clip ("1080p submenu did not appear", `CMO_Gate_Flow_Omni1.1_Continuity` §What Flow
+  silently deletes), and `verify_clip` checks the file against the download resolution, never the
+  generation's: a 2026-09-23 A/B at 360p marked every good clip "failed — RESOLUTION got 360x640 want
+  720x1280" and renamed it `bad-shot-N.mp4`. Take the verdict from the feed or the `bad-*` file. Fix
+  owed: verify a `--resolution 360p` run against 360x640.
+- Chips: exact names (§Verify a chip by its THUMBNAIL, rule 1) and the picker overlay (§How a chip is added).
+- Reading the feed after a re-shoot or a vanished clip: `CMO_Gate_Flow_Omni1.1_FilmQC` Workflow 3 and rule 2.
 
 ## How this file changes
 
@@ -1798,20 +1787,21 @@ here. A contradiction backed by a memory does not.
 ## Field notes
 
 - 2026-09-22 [WRONG] §References: how many bind (was §Which things get a chip) — `build_shotsheet.py` refused a 4th chip with the comment "the 4th is silently disabled". Never sourced, and contradicted by this file's own Ultra audit (task-68653632, 2026-09-18) recording a reference-chip cap of 10. A dry run against the live UI returned `chips=['@jae_muay','@lung_somchai','@noodle_shop','@money_fold'] prompt_verified=True`. On the strength of that comment I had already proposed dropping a location chip to fit the money in — a real loss of quality to satisfy a limit that did not exist. Cap raised to 10, with the audit cited beside it. · evidence: task-68653632 / f563c707 / tools/build_shotsheet.py · status: promoted
-- 2026-09-23 [COSTLY] §zero-model runner — on the Mac, bare `python3` has no playwright: `tools/flow_shoot.py run` logs "cannot attach … ModuleNotFoundError('No module named playwright')" and returns 1, which reads like Chrome being down. Run it as `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python tools/flow_shoot.py …`. Also: a wrapper ending in `; echo EXIT=$?` makes the background task report exit 0 — read the EXIT line, not the task status. · evidence: session cto-8c06958c refire 106/122 02:46 · status: pending
+- 2026-09-23 [COSTLY] §zero-model runner — on the Mac, bare `python3` has no playwright: `tools/flow_shoot.py run` logs "cannot attach … ModuleNotFoundError('No module named playwright')" and returns 1, which reads like Chrome being down. Run it as `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python tools/flow_shoot.py …`. Also: a wrapper ending in `; echo EXIT=$?` makes the background task report exit 0 — read the EXIT line, not the task status. · evidence: session cto-8c06958c refire 106/122 02:46 — rejected: moot, every Flow tool refuses the Mac since fa5e3c19 (tools/flow_cdp.py, CEO 2026-09-26); the `echo EXIT=$?` half is a shell trap, not Flow's · status: rejected
 - 2026-09-23 [WRONG] §Chrome itself can block downloads — task-f78ca70e measured the block as a per-tab allowance (one silent download per fresh tab, >20 files, no human click) and rewrote scripts/browser/banchi-plates-download.js to open one fresh tab per file. CTO: NOT promoted — it conflicts with this section's own "do not build a workaround" rule for a browser security permission; the CEO rules whether one-tab-per-file is acceptable or whether the one-time "Always allow" click stays the method. Until then the section stands. · evidence: task-f78ca70e, merge 381687ba · status: pending
-- 2026-09-23 [MISSING] §Uploading an image from disk (was §assets) — a plain Flow image generation can be renamed (tile right-click → เปลี่ยนชื่อ) into a named asset the + picker finds by search; it lands in the รูปภาพ category, never ตัวละคร, and there is no convert action. Picker rows for such assets show the name without "@", so flow_shoot's row match must not require it (fixed cdb27f9f). · evidence: task-f78ca70e, @cop_wit_uniform_A · status: pending
-- 2026-09-23 [WRONG] §zero-model runner — attach_chip matched picker rows by substring, so "@cop_wit" also matched "@cop_wit_uniform_A" and "@noodle_shop" matched "@noodle_shop_thriving"; .first picked either, and the chip-COUNT gate cannot see a wrong-but-present chip. Now word-bounded (picker_row_pattern). Whether any Act 1–6 shop shot got the thriving-shop plate is unchecked. · evidence: cdb27f9f on agent/codex-winbox-runner · status: pending
-- 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv · status: pending
-- 2026-09-23 [MISSING] §(whole skill) — the first full story's retrospective (characters, props, Flow's silent deletions, night, sound, the per-act review loop, what the audit still cannot see) is docs/scripts/banchi-RETRO.md; read it before writing the next story's sheet. · evidence: banchi shipped 2026-09-23, cut5 on Drive Final Draft · status: pending
-- 2026-09-25 [MISSING] rename on Mac — in Flow's `input.editable-text-input`, `Control+A` moves the caret to line start (an emacs binding) and does not select all; `Meta+A` does. The first rename produced `ตาชั่งของเสี่ยก.ย. 25 - 17:15` · evidence: task-c2723478, memory reference_cdp_select_all_needs_commands_on_mac (same trap, CDP) · status: pending
-- 2026-09-25 [MISSING] chips are per-prompt — right after the upload script bound `pa__face`, a later read of the same tab found 0 `img[alt="รูปภาพองค์ประกอบ"]` chips while the named asset was still in the media grid. The persistent thing is the named asset. The shoot runner must attach it by name for every shot, which is how @handles already work in flow_shoot · evidence: CTO read-only check 2026-09-25 ~17:45 · status: pending
-- 2026-09-25 [WRONG] tools/flow_upload_element.py as first merged — `get_by_text("อัปโหลด").first` worked only while the project was empty. Once it holds uploads, the filter tabs `รายการที่อัปโหลด` / `รูปภาพที่อัปโหลด` match first, and the click timed out ('waiting for element to be visible, enabled and stable' ×58). Also a fresh CDP tab comes up 1114x662. Fixed: `get_by_role("menuitem").filter(has_text=…)`, viewport 1600x1000, and wait for the tile by aria-label instead of body text. Batch rule: one tab, check `get_by_label(<name>)` before uploading (a failed rename leaves `<file>.png` behind — rename it, don't re-upload) · evidence: CTO batch 2026-09-25 18:4x, kla__face · status: pending
-- 2026-09-25 [WRONG] flow_shoot attach_chip on a flow.google.com project — the composer's `เพิ่มองค์ประกอบลงในช่องพรอมต์` picker is now a CDK overlay (tabs ทั้งหมด/รูปภาพ/วิดีโอ/**เสียง**/ตัวละคร, search `ค้นหาเนื้อหา`, `.asset-item` rows), not `[role=dialog]`. The runner waited for a dialog and failed every chip. Scope to `.cdk-overlay-container:has(input[aria-label="ค้นหาเนื้อหา"])`; anchoring on a pane `:has(.asset-item)` loses the locator once the search empties the list. Fixed 636aeafe; dry-run S8 attached 5/5 chips, 360p 8 s estimate = 6 credits. The **เสียง tab** means voices are attachable ingredients here — unexplored · evidence: taachang ACT1 dry-run 19:13–19:17 · status: pending
-- 2026-09-25 [WRONG] §What Flow does NOT have / §Getting the clip file — "No 1080p and no upscale control" (2026-09-18) and "the download button is dead" (2026-09-18) are contradicted by the runner's code since 3324f0da (2026-09-20): production exports open the clip editor `/edit/<id>` and use Download → `1080p / เพิ่มความละเอียดแล้ว` (free; 4K is labelled a 50-credit action and deliberately unsupported), and `[aria-label="Download"]` matches zero elements because the only feed-level download icon is the per-batch `ดาวน์โหลดแบบกลุ่ม` (task-04851451, 2026-09-19). Found while merging the four download write-ups for the 2026-09-25 split; not re-measured on the live UI, so the body is unchanged until the CTO confirms · evidence: 3324f0da, tools/flow_shoot.py:83-90 and 567-574 · status: pending
+- 2026-09-23 [MISSING] §Uploading an image from disk (was §assets) — a plain Flow image generation can be renamed (tile right-click → เปลี่ยนชื่อ) into a named asset the + picker finds by search; it lands in the รูปภาพ category, never ตัวละคร, and there is no convert action. Picker rows for such assets show the name without "@", so flow_shoot's row match must not require it (fixed cdb27f9f). · evidence: task-f78ca70e, @cop_wit_uniform_A → §Uploading an image from disk, §How a chip is added (2nd run: fb799c11, uploaded images carry no @) · status: promoted
+- 2026-09-23 [WRONG] §zero-model runner — attach_chip matched picker rows by substring, so "@cop_wit" also matched "@cop_wit_uniform_A" and "@noodle_shop" matched "@noodle_shop_thriving"; .first picked either, and the chip-COUNT gate cannot see a wrong-but-present chip. Now word-bounded (picker_row_pattern). Whether any Act 1–6 shop shot got the thriving-shop plate is unchecked. · evidence: cdb27f9f on agent/codex-winbox-runner → §Verify a chip by its THUMBNAIL rule 1 (fix on main, picker_row_pattern) · status: promoted
+- 2026-09-23 [COSTLY] §zero-model runner — a 360p/4s A/B run marks every good clip "failed — RESOLUTION got 360x640 want 720x1280" and names it bad-shot-N.mp4, because verify_clip checks the download resolution, not the generation resolution. The clips are fine; read them from bad-shot-*. Fix owed: with --resolution 360p, verify against 360x640. · evidence: scratchpad/abface/abface.tsv → §zero-model runner (2nd run: Continuity §What Flow silently deletes, no 1080p menu at 360p; verify_clip still checks the download size) · status: promoted
+- 2026-09-23 [MISSING] §(whole skill) — the first full story's retrospective (characters, props, Flow's silent deletions, night, sound, the per-act review loop, what the audit still cannot see) is docs/scripts/banchi-RETRO.md; read it before writing the next story's sheet. · evidence: banchi shipped 2026-09-23, cut5 on Drive Final Draft — rejected: owned elsewhere since the 2026-09-25 split, sheet-writing and review are CMO_Gate_Flow_Omni1.1_Continuity and _FilmQC, which both cite docs/scripts/banchi-RETRO.md · status: rejected
+- 2026-09-25 [MISSING] rename on Mac — in Flow's `input.editable-text-input`, `Control+A` moves the caret to line start (an emacs binding) and does not select all; `Meta+A` does. The first rename produced `ตาชั่งของเสี่ยก.ย. 25 - 17:15` · evidence: task-c2723478, memory reference_cdp_select_all_needs_commands_on_mac (same trap, CDP) → §Traps, select-all row (2nd run: Meta+A broke the rename on winbox, both fixed with ControlOrMeta+A in 945391b5) · status: promoted
+- 2026-09-25 [MISSING] chips are per-prompt — right after the upload script bound `pa__face`, a later read of the same tab found 0 `img[alt="รูปภาพองค์ประกอบ"]` chips while the named asset was still in the media grid. The persistent thing is the named asset. The shoot runner must attach it by name for every shot, which is how @handles already work in flow_shoot · evidence: CTO read-only check 2026-09-25 ~17:45 → §How a chip is added (folded at the 2026-09-25 split) · status: promoted
+- 2026-09-25 [WRONG] tools/flow_upload_element.py as first merged — `get_by_text("อัปโหลด").first` worked only while the project was empty. Once it holds uploads, the filter tabs `รายการที่อัปโหลด` / `รูปภาพที่อัปโหลด` match first, and the click timed out ('waiting for element to be visible, enabled and stable' ×58). Also a fresh CDP tab comes up 1114x662. Fixed: `get_by_role("menuitem").filter(has_text=…)`, viewport 1600x1000, and wait for the tile by aria-label instead of body text. Batch rule: one tab, check `get_by_label(<name>)` before uploading (a failed rename leaves `<file>.png` behind — rename it, don't re-upload) · evidence: CTO batch 2026-09-25 18:4x, kla__face → §Uploading an image from disk, batch bullet (2nd run: failed rename on winbox, 945391b5) · status: promoted
+- 2026-09-25 [WRONG] flow_shoot attach_chip on a flow.google.com project — the composer's `เพิ่มองค์ประกอบลงในช่องพรอมต์` picker is now a CDK overlay (tabs ทั้งหมด/รูปภาพ/วิดีโอ/**เสียง**/ตัวละคร, search `ค้นหาเนื้อหา`, `.asset-item` rows), not `[role=dialog]`. The runner waited for a dialog and failed every chip. Scope to `.cdk-overlay-container:has(input[aria-label="ค้นหาเนื้อหา"])`; anchoring on a pane `:has(.asset-item)` loses the locator once the search empties the list. Fixed 636aeafe; dry-run S8 attached 5/5 chips, 360p 8 s estimate = 6 credits. The **เสียง tab** means voices are attachable ingredients here — unexplored · evidence: taachang ACT1 dry-run 19:13–19:17 → §How a chip is added (fixes 636aeafe, fb799c11); the เสียง tab is the voice chip documented since 2026-09-08 · status: promoted
+- 2026-09-25 [WRONG] §What Flow does NOT have / §Getting the clip file — "No 1080p and no upscale control" (2026-09-18) and "the download button is dead" (2026-09-18) are contradicted by the runner's code since 3324f0da (2026-09-20): production exports open the clip editor `/edit/<id>` and use Download → `1080p / เพิ่มความละเอียดแล้ว` (free; 4K is labelled a 50-credit action and deliberately unsupported), and `[aria-label="Download"]` matches zero elements because the only feed-level download icon is the per-batch `ดาวน์โหลดแบบกลุ่ม` (task-04851451, 2026-09-19). Found while merging the four download write-ups for the 2026-09-25 split; not re-measured on the live UI, so the body is unchanged until the CTO confirms · evidence: 3324f0da, tools/flow_shoot.py:83-90 and 567-574 → §Getting the clip file, §What Flow does NOT have (merged with the 2026-09-26 editor note, whose live read confirms it) · status: promoted
 - 2026-09-26 [MISSING] §Money — the runner's per-shot estimate (read from Flow's own settings panel) was **20 credits, not 12**, on four 8 s 720p Omni 1.1 Flash shots (taachang S4, S31, S27, S29) with no change to duration or resolution; S20 at 10 s read 15. Cause not found — a read-only probe of the panel afterwards found the settings trigger button `hidden`. Budget a shoot at 20/shot worst case until this is explained · evidence: Work/task-c2723478/out/act2-shot-{27,29,31}.log, act1-shot-20.log · status: pending
-- 2026-09-26 [WRONG] §Getting the clip file — the clip editor `/edit/<id>` CHANGED: it draws into a canvas and creates no `<video>` until play is pressed (forbidden), and Download is a top-level button `[aria-label="ดาวน์โหลดสื่อ"]` → `270p GIF / 720p ขนาดดั้งเดิม / 1080p เพิ่มความละเอียดแล้ว / 4K · 50 เครดิต` (no longer under More). The CDN-capture path now yields nothing for a clip opened before it finished or a second time; the runner reported those as "failed — timeout" although Flow had the clip. Several "Flow deleted it" verdicts that night were partly this: of the timed-out ACT3 takes, S58 and one S70 were found finished in the feed. A per-line census (search the feed by dialogue, count batches vs submits) is the check that tells deletion from a missed download. Fixed in the tool: 55d34380 (download button first, open only finished cards, no long block) · evidence: Work/task-c2723478 tmp/debug-pull*, feed probe 09:3x, S73/S58 pulled in ~15 s after the fix · status: pending
-- 2026-09-26 [MISSING] §Google Flow Music — measured on the first real run: "Continue with Google" signs straight in as pass.gob1 (no credential asked; tier "Member"); Compose panel at `/session?t=true` has Sound 3,000 chars, Lyrics 3,000 chars with an Instrumental switch, Title 100; Advanced holds BPM, Length, Seed and Model (Lyria 3.5 / Lyria 3 Pro); one Generate = one song (once two) in ~55 s, **5 credits per Generate** (30,610 → 30,555 for 12 prompts), no price on the button; downloads M4A/MP3/WAV (runner takes the clip's `wav_url`, 48 kHz 16-bit stereo). Boxes are plain textareas: Playwright `fill()` reads back exactly, the ProseMirror first-keystroke trap does not apply. A generate can silently produce nothing and charge nothing (C3 twice); `tools/flow_music.py --refire` re-fires it guarded by the expected balance. Commercial-use terms for the tracks are still unread · evidence: tools/flow_music.py (cf99ccad), /tmp/ilag-music/tracks/ledger.json, Drive Soundtrack of the TopView film · status: pending
-- 2026-09-26 [WRONG] §Google Flow Music — "lengths of 60 s, half, or full ~3 min" (from blog.google) is not the control: Length is a free m:ss box under Advanced clamped to 1:00–3:00; "0:30" became 1:00 and "9:59" became 3:00, so nothing shorter than 60 s can be ordered · evidence: runner dry-runs 2026-09-26 · status: pending
+- 2026-09-26 [WRONG] §Getting the clip file — the clip editor `/edit/<id>` CHANGED: it draws into a canvas and creates no `<video>` until play is pressed (forbidden), and Download is a top-level button `[aria-label="ดาวน์โหลดสื่อ"]` → `270p GIF / 720p ขนาดดั้งเดิม / 1080p เพิ่มความละเอียดแล้ว / 4K · 50 เครดิต` (no longer under More). The CDN-capture path now yields nothing for a clip opened before it finished or a second time; the runner reported those as "failed — timeout" although Flow had the clip. Several "Flow deleted it" verdicts that night were partly this: of the timed-out ACT3 takes, S58 and one S70 were found finished in the feed. A per-line census (search the feed by dialogue, count batches vs submits) is the check that tells deletion from a missed download. Fixed in the tool: 55d34380 (download button first, open only finished cards, no long block) · evidence: Work/task-c2723478 tmp/debug-pull*, feed probe 09:3x, S73/S58 pulled in ~15 s after the fix → §Getting the clip file (merged into the 2026-09-25 download note; the fix is on main as 99770187) · status: promoted
+- 2026-09-26 [MISSING] §Google Flow Music — measured on the first real run: "Continue with Google" signs straight in as pass.gob1 (no credential asked; tier "Member"); Compose panel at `/session?t=true` has Sound 3,000 chars, Lyrics 3,000 chars with an Instrumental switch, Title 100; Advanced holds BPM, Length, Seed and Model (Lyria 3.5 / Lyria 3 Pro); one Generate = one song (once two) in ~55 s, **5 credits per Generate** (30,610 → 30,555 for 12 prompts), no price on the button; downloads M4A/MP3/WAV (runner takes the clip's `wav_url`, 48 kHz 16-bit stereo). Boxes are plain textareas: Playwright `fill()` reads back exactly, the ProseMirror first-keystroke trap does not apply. A generate can silently produce nothing and charge nothing (C3 twice); `tools/flow_music.py --refire` re-fires it guarded by the expected balance. Commercial-use terms for the tracks are still unread · evidence: tools/flow_music.py (cf99ccad), /tmp/ilag-music/tracks/ledger.json, Drive Soundtrack of the TopView film → §Google Flow Music · status: promoted
+- 2026-09-26 [WRONG] §Google Flow Music — "lengths of 60 s, half, or full ~3 min" (from blog.google) is not the control: Length is a free m:ss box under Advanced clamped to 1:00–3:00; "0:30" became 1:00 and "9:59" became 3:00, so nothing shorter than 60 s can be ordered · evidence: runner dry-runs 2026-09-26 → §Google Flow Music, Length bullet · status: promoted
 
 - 2026-09-26 [MISSING] §Where Flow runs — Flow sessions had run on the Mac (tools/flow_shoot.py CDP 127.0.0.1:9223, state/banchi/flow_shoot.log); the CEO ruled Flow moves to winbox and the Mac is for editing only · evidence: CEO ruling 2026-09-26 (session cto-89aa4de2) · status: promoted
+- 2026-09-28 [WRONG] §Where Flow runs — "`tools/flow_shoot.py` still defaults to the Mac's 9223; a shoot needs a porting task first" was false once fa5e3c19 landed (2026-09-26): `tools/flow_cdp.py` resolves every Flow tool to winbox's 9226 and exits 2 on the Mac unless FLOW_ALLOW_MAC=1. Found while folding the 2026-09-23 Mac-python note · evidence: fa5e3c19, tools/flow_cdp.py → §Where Flow runs · status: promoted
