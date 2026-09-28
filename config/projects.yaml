@@ -373,8 +373,10 @@ projects:
     auto_push: false
     review_required: true
     # NEVER bare `node --test`: its default glob picks up test-trade.js, which opens
-    # the broker and can place a trade. Tests live under test/ only.
-    test_command: node --test test/
+    # the broker and can place a trade. Tests live under test/ only. Node 26 treats
+    # `test/` as a file (fails), so the glob is quoted. No node_modules on the Mac:
+    # tested modules must not require npm packages.
+    test_command: node --test "test/**/*.test.js"
     gate_tests: true
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
