@@ -45,7 +45,12 @@ at that machine; browser logins via the login relay).~~
 - **Token.** A C-level session on Contabo reads `~/.config/mooniex/run-inbox.token` (0600, written by
   the Console's `scripts/run-inbox-deploy.sh`); `RUN_INBOX_TOKEN` in the env wins over the file.
   Never print it, never commit it (`*.token` is gitignored). The hub decides your class from the
-  token, never from `--role`; the worker token may create scripts only.
+  token, never from `--role`; the worker token may create scripts only. On Contabo that split is not
+  in force yet (checked 2026-09-28): workers run as root too and no launcher exports a worker token,
+  so a worker reads this same C-level file, and only the CLI still refuses `--command` when
+  `WORKER_TASK_ID` is set (fix = P1.1: the launcher exports the worker token, the file moves out of a
+  worker's reach). Workers still send pinned scripts only (CEO decision 1, 2026-09-25, DESIGN §11);
+  on Contabo the hub cannot stop a worker that goes around the CLI.
 - **The CLI is one stdlib file**, `tools/ask_run.py`, on origin/main since b2830b3c. On a checkout
   that is behind (the shared Contabo tree often is), take the file from origin instead of merging:
   `git -C /opt/MoonieXHQ/Agents/Core fetch -q origin && git show origin/main:tools/ask_run.py > "$S/ask_run.py"`
@@ -154,6 +159,6 @@ card red).
 
 ## Field notes
 
-- 2026-09-25 [COSTLY] §Rules.3 — first live card RUN-20260925-1632-0bfe expired unapproved after the 30-min TTL; the CEO was not at the phone · evidence: hub ledger pending→expired, result letter in state/inbox/cto-6ebacd0e/ · prevented by: issue only when the CEO says he is holding the phone; P1.1 = requester-chosen TTL · status: pending
-- 2026-09-25 [MISSING] §Before the first card — on Contabo, workers run as the same user as C-level sessions (root), so a worker can read the C-level token file; the hub classes by token, not by role · evidence: run-inbox-deploy.sh writes /root/.config/mooniex/run-inbox.token; workers spawn as root · fix: launcher exports the WORKER token as RUN_INBOX_TOKEN and the C-level file moves out of the worker's reach (P1.1) · status: pending
+- 2026-09-25 [COSTLY] §Rules.3 — first live card RUN-20260925-1632-0bfe expired unapproved after the 30-min TTL; the CEO was not at the phone · evidence: hub ledger pending→expired, result letter in state/inbox/cto-6ebacd0e/ · prevented by: issue only when the CEO says he is holding the phone; P1.1 = requester-chosen TTL (not in tools/ask_run.py yet) → §Rules.3 (already the body's text, incident included) · status: promoted
+- 2026-09-25 [MISSING] §Before the first card — on Contabo, workers run as the same user as C-level sessions (root), so a worker can read the C-level token file; the hub classes by token, not by role · evidence: run-inbox-deploy.sh writes /root/.config/mooniex/run-inbox.token; workers spawn as root · fix: launcher exports the WORKER token as RUN_INBOX_TOKEN and the C-level file moves out of the worker's reach (P1.1) → §Before the first card, Token (re-checked 2026-09-28: every claude process runs as root, no launcher sets RUN_INBOX_TOKEN, ask_run.py falls back to ~/.config/mooniex/run-inbox.token) · status: promoted
 - 2026-09-26 [MISSING] §Rules.0 — the CTO handed the CEO a `!` command for a Mac-only delete; the CEO ruled commands run from the phone only and ordered the rule enforced · evidence: CEO ruling 2026-09-26 (session cto-89aa4de2, TEST post 4116998775270501), hook scripts/hook-phone-only-commands.py · status: promoted
