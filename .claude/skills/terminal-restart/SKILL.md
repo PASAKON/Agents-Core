@@ -51,6 +51,12 @@ appended — the launcher's own logic already turns that into
 invocation — reusing the launcher is what keeps MCP config, tool whitelist,
 and tab-title machinery from drifting out of sync with a second copy.
 
+The model comes from the launcher too: it passes `--model` from
+`policies/agents.yaml` (the org standard, Opus 5.5 1M @ xhigh), which outranks
+settings. So a `/model` pick made in the session — or saved "as your default" —
+is dropped by the restart; re-type it once the pane is back
+([[session-change-model]]).
+
 ## Before acting — say both of these out loud
 
 - **Resume is not free.** `-r <uuid>` re-reads the whole prior transcript
@@ -113,5 +119,5 @@ found, or the loud failure + UUID).
 
 ## Field notes
 
-- 2026-09-23 [MISSING] §What this actually does — the resumed pane comes back on `policies/agents.yaml`'s model (`--model claude-sonnet-5` for cto), not on the model the session was running before. A `/model` pick is dropped by the restart, and `/model`'s "saved as your default" never reaches an org session at all, because the launcher's `--model` flag outranks settings. Restarting *to pick up a new model* (e.g. after `claude update` unlocks one) needs a `/model` once the pane is back · evidence: session cto-01c3a0e8, respawned pid 48009 cmdline `--model claude-sonnet-5`, CEO re-ran /model → Opus 5.5 after the restart · status: pending
-- 2026-09-23 [MISSING] §What this actually does — follow-up to the note above: `policies/agents.yaml` now puts every C-level on `claude-opus-5-5[1m]` @ xhigh (CEO standard, ADR 0009 addendum), so a restart lands on the model the CEO normally picks; a `/model` choice *other than* the standard is still dropped by a restart and must be re-typed · evidence: this session restarted on `--model claude-sonnet-5` at 02:36 and needed `/model` → Opus 5.5; yaml changed at ffafc863 the same hour · status: pending
+- 2026-09-23 [MISSING] §What this actually does — the resumed pane comes back on `policies/agents.yaml`'s model (`--model claude-sonnet-5` for cto), not on the model the session was running before. A `/model` pick is dropped by the restart, and `/model`'s "saved as your default" never reaches an org session at all, because the launcher's `--model` flag outranks settings. Restarting *to pick up a new model* (e.g. after `claude update` unlocks one) needs a `/model` once the pane is back · evidence: session cto-01c3a0e8, respawned pid 48009 cmdline `--model claude-sonnet-5`, CEO re-ran /model → Opus 5.5 after the restart; the Sonnet default is gone since ffafc863 (merged with the note below) → §What this actually does · status: promoted
+- 2026-09-23 [MISSING] §What this actually does — follow-up to the note above: `policies/agents.yaml` now puts every C-level on `claude-opus-5-5[1m]` @ xhigh (CEO standard, ADR 0009 addendum), so a restart lands on the model the CEO normally picks; a `/model` choice *other than* the standard is still dropped by a restart and must be re-typed · evidence: this session restarted on `--model claude-sonnet-5` at 02:36 and needed `/model` → Opus 5.5; yaml changed at ffafc863 the same hour; the launcher code proves it (`MODEL_ARGS=(--model …)` from policies/agents.yaml in scripts/cto-claude.sh and scripts/cxo-claude.sh, checked 2026-09-28) → §What this actually does · status: promoted
