@@ -277,9 +277,14 @@ def _connect(*, timeout: float | None = None, readonly: bool = False,
 @contextmanager
 def get_conn(*, timeout: float | None = None, readonly: bool = False,
              path: str | Path | None = None):
-    """Commit on clean exit, rollback on exception, close always -- same
+    """Commit on clean exit, rollback on exception -- same transactional
     contract regardless of backend (the reason Postgres was chosen over
     alternatives that couldn't keep it, per the design doc).
+
+    SQLite: a fresh connection per call, closed always (unchanged). Postgres:
+    a pooled connection reused across calls on this (process, thread) -- see
+    db_pg.get_pooled -- so it is NOT closed here; a connection found dead is
+    evicted instead (db_pg.evict) so the next call opens fresh.
 
     timeout/readonly/path: see _connect's docstring for the SQLite meaning.
     Under Postgres (ORG_DB_URL set) `readonly`/`path` are no-ops -- a single
@@ -291,17 +296,28 @@ def get_conn(*, timeout: float | None = None, readonly: bool = False,
     """
     url = pg_url()
     if url:
-        conn = db_pg.connect(url, timeout=timeout)
+        # One pooled connection per (process, thread, url) -- see
+        # db_pg.get_pooled's docstring. Never closed in `finally` below (that
+        # would defeat the pool); evicted instead when it turns out to be
+        # dead, so the *next* acquisition opens fresh.
+        conn = db_pg.get_pooled(url, timeout=timeout)
     else:
         conn = _connect(timeout=timeout, readonly=readonly, path=path)
     try:
         yield conn
         conn.commit()
-    except Exception:
-        conn.rollback()
+    except Exception as exc:
+        if url and db_pg.is_operational_error(exc):
+            # Connection is dead (dropped/closed) -- rollback would just
+            # raise the same error again. Evict so the next get_conn() call
+            # opens a fresh one instead of reusing a broken connection.
+            db_pg.evict(url)
+        else:
+            conn.rollback()
         raise
     finally:
-        conn.close()
+        if not url:
+            conn.close()
 
 
 def sqlite_connect(path: str | Path, *, row_factory: bool = True,
@@ -509,13 +525,22 @@ def _require_charter(owner_cto: str, owner_role: str | None,
             file=sys.stderr,
         )
         return
+    # sqlite3.OperationalError ("no such column") and its Postgres equivalent
+    # (psycopg.errors.UndefinedColumn, message "column ... does not exist")
+    # both mean the same thing here: a DB that predates the `charter` column.
+    # psycopg is imported lazily via db_pg.psycopg (may be None when
+    # ORG_DB_URL is unset) so this module never requires it to be installed.
+    _missing_column_errors = [sqlite3.OperationalError]
+    if db_pg.psycopg is not None:
+        _missing_column_errors.append(db_pg.psycopg.errors.UndefinedColumn)
     try:
         row = conn.execute(
             "SELECT charter FROM c_level_sessions WHERE role=? AND session_id=?",
             (owner_role, owner_cto),
         ).fetchone()
-    except sqlite3.OperationalError as e:
-        if "no such column" not in str(e):
+    except tuple(_missing_column_errors) as e:
+        msg = str(e)
+        if "no such column" not in msg and "does not exist" not in msg:
             raise
         # A box that pulled the code but whose DB predates the `charter`
         # column: the gate must still fail closed, but with the fix in the

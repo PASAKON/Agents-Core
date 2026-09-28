@@ -13,6 +13,7 @@ only `connect()` requires it, and raises a clear error if it's missing.
 from __future__ import annotations
 
 import re
+import threading
 from urllib.parse import urlsplit
 
 try:
@@ -201,13 +202,56 @@ def _split_statements(script: str) -> list[str]:
     return [s.strip() for s in script.split(";") if s.strip()]
 
 
-def _translate(sql: str):
+def _translate_placeholders(sql: str) -> str:
+    """Replace SQLite `?` placeholders with psycopg's `%s`, skipping any `?`
+    that appears inside a single-quoted SQL string literal (a literal `?` in
+    a value, e.g. `note = 'what?'`, must survive untouched — a blind
+    str.replace("?", "%s") would corrupt it and desync the placeholder count
+    from the params tuple). A doubled `''` inside a string is SQL's escaped
+    quote, not the string's end."""
+    out: list[str] = []
+    in_string = False
+    i, n = 0, len(sql)
+    while i < n:
+        c = sql[i]
+        if in_string:
+            out.append(c)
+            if c == "'":
+                if i + 1 < n and sql[i + 1] == "'":
+                    out.append(sql[i + 1])
+                    i += 2
+                    continue
+                in_string = False
+            i += 1
+            continue
+        if c == "'":
+            in_string = True
+            out.append(c)
+        elif c == "?":
+            out.append("%s")
+        else:
+            out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def _translate(sql: str, has_params: bool = False):
     """Return None for a no-op PRAGMA, else the Postgres-ready SQL text.
 
     PRAGMA table_info(<table>) is translated (not no-op'd) into a real
     information_schema query — lib.db.init()'s ALTER-TABLE-ADD-COLUMN loop
     reads its result to stay idempotent, so it can't become inert. Every
     other PRAGMA (journal_mode, foreign_keys) is a true SQLite-only no-op.
+
+    `has_params` (default False, so a no-params caller is unaffected by
+    default): psycopg parses the whole query text for `%s`/`%(name)s` style
+    placeholders whenever real params are supplied — a literal `%` anywhere
+    in the text (including inside a quoted string, e.g. `LIKE 'a%'`) must
+    then be doubled to `%%` or psycopg misreads it as a malformed
+    placeholder. When no params are supplied psycopg sends the text as-is,
+    so `%` must NOT be touched (a `%%` there would show up literally in the
+    query). Escaping runs BEFORE the `?`-to-`%s` pass, so the `%` it inserts
+    is never itself re-escaped.
     """
     stripped = sql.strip()
     m = _PRAGMA_TABLE_INFO_RE.search(stripped)
@@ -219,7 +263,10 @@ def _translate(sql: str):
         )
     if _PRAGMA_RE.match(stripped):
         return None
-    return _rewrite_insert_or_replace(stripped).replace("?", "%s")
+    rewritten = _rewrite_insert_or_replace(stripped)
+    if has_params:
+        rewritten = rewritten.replace("%", "%%")
+    return _translate_placeholders(rewritten)
 
 
 # ---------------------------------------------------------------------------
@@ -264,15 +311,16 @@ class Connection:
         self._raw = raw
 
     def execute(self, sql: str, params=()) -> Cursor | _EmptyCursor:
-        pg_sql = _translate(sql)
+        resolved = tuple(params) if params else None
+        pg_sql = _translate(sql, has_params=resolved is not None)
         if pg_sql is None:
             return _EmptyCursor()
         cur = self._raw.cursor()
-        cur.execute(pg_sql, tuple(params) if params else None)
+        cur.execute(pg_sql, resolved)
         return Cursor(cur)
 
     def executemany(self, sql: str, seq_of_params) -> Cursor:
-        pg_sql = _translate(sql)
+        pg_sql = _translate(sql, has_params=True)
         cur = self._raw.cursor()
         cur.executemany(pg_sql, [tuple(p) for p in seq_of_params])
         return Cursor(cur)
@@ -292,6 +340,14 @@ class Connection:
 
     def cursor(self):
         return Cursor(self._raw.cursor())
+
+    @property
+    def closed(self) -> bool:
+        """Local, no-round-trip check of whether the underlying psycopg
+        connection has been closed (explicitly, or by psycopg noticing a
+        dead socket on a prior operation). Used by get_pooled() to decide
+        whether a cached connection is still worth reusing."""
+        return bool(self._raw.closed)
 
 
 def _host_from_url(url: str) -> str:
@@ -320,3 +376,69 @@ def connect(url: str, timeout: float | None = None) -> Connection:
             f"ORG_DB_URL points at {host} but it is unreachable: {exc}"
         ) from exc
     return Connection(raw)
+
+
+# ---------------------------------------------------------------------------
+# connection pooling (task brief gap 3): one connection per (process,
+# thread, url), reused across lib.db.get_conn() calls instead of opening a
+# fresh Mac->Contabo connection (~127ms round trip) for every single query.
+# ---------------------------------------------------------------------------
+
+_pool = threading.local()
+
+
+def _pool_cache() -> dict:
+    cache = getattr(_pool, "conns", None)
+    if cache is None:
+        cache = {}
+        _pool.conns = cache
+    return cache
+
+
+def get_pooled(url: str, timeout: float | None = None) -> Connection:
+    """Return this thread's cached Connection for `url`, opening one if
+    there isn't a live one yet.
+
+    Scoped by threading.local, so two threads never see each other's
+    connection -- required because the MCP server runs background threads
+    (delegate kickoff, _verify_claimed) alongside its main thread, and
+    psycopg connections are not safe to share across threads.
+
+    Health check is `.closed` only (no network round trip -- a round trip
+    here, on every get_conn() call, would erase the latency win this pool
+    exists for: a single delegate_task makes ~20 get_conn() calls). A
+    connection that dies mid-use surfaces as psycopg.OperationalError from
+    inside the caller's `with get_conn()` block; lib.db.get_conn() calls
+    evict() in that case so the *next* acquisition opens fresh instead of
+    handing back the same broken connection.
+    """
+    cache = _pool_cache()
+    conn = cache.get(url)
+    if conn is not None and not conn.closed:
+        return conn
+    conn = connect(url, timeout=timeout)
+    cache[url] = conn
+    return conn
+
+
+def evict(url: str) -> None:
+    """Drop and close this thread's cached connection for `url`, if any.
+    Safe to call even when nothing is cached, or when the connection is
+    already dead (close() errors are swallowed -- there is nothing left to
+    clean up on a connection that's already gone)."""
+    conn = _pool_cache().pop(url, None)
+    if conn is not None:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+def is_operational_error(exc: BaseException) -> bool:
+    """True when `exc` means the psycopg connection itself is unusable
+    (dropped, closed, network failure) rather than a recoverable query-level
+    error a plain rollback can handle. lib.db.get_conn() uses this to decide
+    eviction vs. a normal rollback-and-reuse."""
+    if psycopg is None:
+        return False
+    return isinstance(exc, (psycopg.OperationalError, psycopg.InterfaceError))

@@ -19,9 +19,12 @@ ADR 0021: no test touches real state. Every test here drops and recreates
 its own schema in `org_test` (never `state/tasks.db`, never a production
 Postgres database) before and after running.
 
-Run via:  pytest tests/test_db_backend_pg.py
-(not in pytest.ini's default `testpaths` — run explicitly, same convention
-as tests/test_multihost.py.)
+This file IS in pytest.ini's default `testpaths` (`tests` is listed) and is
+not `--ignore`d, so a bare `pytest` run collects it -- it just self-skips
+every test via `pytestmark` above unless ORG_TEST_DB_URL is set. CI sets
+ORG_TEST_DB_URL against a `postgres:16` service container (.github/workflows
+/ci.yml) so these tests run there; locally, run explicitly against a
+throwaway Postgres:  ORG_TEST_DB_URL=... pytest tests/test_db_backend_pg.py
 """
 from __future__ import annotations
 
