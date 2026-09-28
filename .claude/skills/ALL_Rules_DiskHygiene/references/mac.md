@@ -17,20 +17,37 @@ proven to exist somewhere else.
 
 - `~/Library/Caches/Google/Chrome/*/{Cache,Code Cache,GPUCache}` (was 984 MB)
 - `~/Library/Caches/tradingview-desktop-updater`, `.../Application Support/TradingView/Code Cache`, `.../discord/{Cache,Code Cache}`
-- `~/Library/Caches/pip`, `~/.cache/huggingface`, `~/.cache/torch`
-- `brew cleanup -s --prune=all`
+- `~/Library/Caches/pip`, `~/.npm/_cacache`, `~/.npm/_npx` (1.1 GB), `~/.cache/huggingface`, `~/.cache/torch`
+- `brew cleanup -s --prune=all` (its cache alone was 3.1 GB; with `_npx`, 3.9 → 8.1 GB free on 2026-09-25)
 - `node_modules` / `.venv` / `.next` passing the dormancy test in the parent SKILL
 - a skill's own `.venv` when its SKILL.md documents the rebuild
 - `Docker.raw` **only** after `docker system df -v` shows 0 containers and 0 volumes
 
-## The two Mac-specific traps
+## Mac-specific traps
 
 **Worktrees look enormous and are almost entirely re-checkout.** 40 task
 worktrees held 15 GB, none had a `.venv`; the bulk was `docs/reports` and
 `docs/prompts` media that is already committed. The only unique bytes are
 unmerged commits, dirty files and untracked files — 48 MB across all 40. Back
 up **that**, not the tree. Recipe in the parent SKILL, packages in
-`BACKUP/Agents-worktrees-<date>.tar`.
+`BACKUP/Agents-worktrees-<date>.tar`. They also fill the disk fastest: at ~0.87 GB
+each, ~7 spawns in an hour took the Mac to 0 bytes on 2026-09-23. Worker worktrees
+have been sparse since (`tools/worktree.py` drops tracked media over 256 KiB by
+exact path — a directory exclude makes `git add -A` refuse new files there; ~78 MB
+each, `video_editor` still full), and the spawn floor queues below 5 GB.
+
+**Every live Chrome holds a ~1.4 GB code-sign clone** in
+`/private/var/folders/*/*/X/com.google.Chrome.code_sign_clone/` — the CEO's own
+and each CDP profile (Flow 9223, TikTok 9224, relay tests 9250 …), invisible to a
+`du` of our folders. Deleting a live one frees nothing and can break that Chrome;
+the space returns when it quits (9223 + 9226 quit: 3.5 → 7.5 GB, 2026-09-24).
+Count them first — `pgrep -fl 'Google Chrome.app/Contents/MacOS/Google Chrome' |
+grep -o 'remote-debugging-port=[0-9]*'` — and ask each owner to quit an idle one.
+
+**The Trash frees nothing.** `~/.Trash` is a rename on the same APFS volume: with
+76 GB of backed-up data in it the Mac sat at 1.8 GB free until the CEO emptied it
+(73 GB, 2026-09-25). Emptying is permanent deletion, his call (`ALL_Rules_Approvals`
+rule 3): the moment anything big goes in, tell him its size and that it is the lever.
 
 **`Agents/.git` is 3.5 GB and `git gc` will not help** (the pack grew 2.9 → 3.45 GiB
 after absorbing loose objects). The cause is mp4/png committed under `docs/`.
@@ -38,9 +55,15 @@ The fix is to stop committing media there, not to rewrite history on a shared re
 
 ## Never touch on this machine
 
-- `~/Pictures` — 51 GB, the Photos library
-- `~/Library/Application Support/CloudDocs/session/i` — 29 GB, the iCloud store
-  backing the CEO's Desktop. Desktop files showing 0 bytes are evicted, not empty.
+- `~/Pictures` — 51 GB, the Photos library (8,654 items). iCloud Photos was off,
+  so the Mac held the only copy until `Mac-Reinstall-2026-09-24-Photos-p00…p19`
+  (52.76 GB) went to Drive. Before any wipe re-check size, item count and iCloud Photos.
+- `~/Library/Application Support/CloudDocs/session/i` — the iCloud store backing
+  the CEO's Desktop (29 GB on 2026-09-10). Desktop files showing 0 bytes are
+  evicted, not empty. It can hold an orphaned store: 1,050 files / 43.3 GB on
+  2026-09-25 that `client.db` no longer referenced, invisible in Finder and in iCloud's figure.
+  For the wipe the CEO said "สำรองด้วย ระหว่างสำรองลบ ข้อมูลที่ยืนยันได้ว่าสำรองแล้ว"
+  (`Mac-Reinstall-2026-09-25-iCloudLeftovers-*`); that word covered that case.
 - `~/Desktop`, `~/Downloads`, `~/Movies`
 - `~/.claude/projects/*/memory/`
 - `/private/tmp/claude-501/<other session uuid>` — another session's scratch

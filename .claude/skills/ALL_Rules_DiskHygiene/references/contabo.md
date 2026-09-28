@@ -4,14 +4,15 @@ Runs claudeflow, the secretary, the LINE bots and the Console. **Production**:
 read-only diagnostics over ssh are pre-approved, every write is not. Propose the
 command, get the CEO's go, then run it.
 
-## State measured 2026-09-10
+## State (`/dev/sda1`, 72 GB)
 
-| | |
-|---|---|
-| `/dev/sda1` | 72 GB, 41 GB used, **31 GB free (58%)** |
-| Not critical | there is room; this is housekeeping, not a fire |
+| Date | Free | What moved it |
+|---|---|---|
+| 2026-09-10 | 31 GB | baseline; housekeeping, not a fire |
+| 2026-09-23 | 17 → 42 GB | the easy wins below on the CEO's go (build cache 10.31 GB, journal → 500 MB, pip 539 MB), then `/root/idm-packs` (12.29 GB, a 47/47 md5 copy of Drive `BACKUP/CookieRun Backup/colab_packs`) deleted — `docs/ops/contabo-hq-migration-plan-2026-09-23.md` |
+| 2026-09-28 | **7.9 GB** | Agents-Core worktrees ~17.5 GB (`worktrees/` 11 GB for 12, `.claude/worktrees/` 6.5 GB for 7), `/tmp/claude-0` 6.3 GB, `Work/` 3.2 GB; build cache back to only 0.8 GB |
 
-Where the 41 GB sits:
+Where the 41 GB sat on 2026-09-10:
 
 | Path | Size | What |
 |---|---|---|
@@ -38,7 +39,7 @@ journalctl --vacuum-size=500M           # ~3.3 GB — keeps the most recent logs
 apt-get clean                           # ~123 MB
 ```
 
-Roughly **16 GB back**, taking the box from 31 GB to ~47 GB free. None of it
+They ran on 2026-09-23; re-measure before proposing them again. None of it
 touches a running container, an image in use, or a volume.
 
 ## Never touch here

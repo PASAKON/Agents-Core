@@ -60,6 +60,20 @@ work the gaps between rounds. Budget ~3 minutes per bot session (20-30k small fi
 - **Never materialise an archive locally** when the disk is tight — stream it
   (`tar` into `rclone rcat`), hashing on the way.
 - **`schtasks /Run` on an already-running task returns SUCCESS and starts nothing.**
+- **A size scan must skip junctions.** `Local Settings` and `AppData\Local\Application Data`
+  loop back into `AppData\Local`, and Python < 3.12 `os.walk` follows them: the first
+  doctor run read AppData as 98.7 GB when ~10 GB was real. Prune reparse points
+  (`st_file_attributes & 0x400`, as `tools/machine_doctor.py` has since 92e9ae01);
+  PowerShell `Get-ChildItem -Recurse` already skips them.
+- **Remote survey scripts:** PowerShell variable names are case-insensitive
+  (`foreach($d …)` overwrote `$D`, the Downloads path), and the ssh console is cp1252,
+  so a Python `print` of a Thai file name crashes. scp a `.ps1` and run it with `-File`;
+  in Python write UTF-8 files and print with `backslashreplace`
+  (`scripts/stream_backup_to_drive.py` `log()`).
+- **A winbox clone looks dirty when it is not:** `C:\mooniex\agents` read 112 unpushed /
+  3,143 dirty — 0 ahead after `git fetch`, and 3,134 of the "dirty" were deletions
+  (2026-09-24). Diff with `--ignore-cr-at-eol` (CRLF) and split modified from deleted
+  before calling anything unique.
 - Deploy is `scp` into `winbox:cookierun-bot/` — that copy is **not** a git checkout.
 
 ## The ceiling this cannot fix
