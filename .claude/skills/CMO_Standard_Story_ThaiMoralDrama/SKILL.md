@@ -166,16 +166,20 @@ The measurement that explained it:
 **One short line per shot is dead air with a word in it.** The rule the CEO gave —
 *"ตัวละครทำอะไรอยู่ให้พูดไปด้วย"* — was about **time**, not shot count: a
 character talks for most of the shot, narrating what they do, replying, adding
-the second thought. Three or four short lines, or one long one, **20–34
-syllables per 8-second shot.**
+the second thought. Three or four short lines, or one long one, **14–30
+syllables per 8 seconds**, scaled to the shot's length — the band calibrated the
+same day on the 1.9M-view reference reel (~1.8 syllables a second, 9c4ae025).
 
 The ceiling is real too: shot 48 carried ~40 syllables in four lines and the
-model dropped the last two. Stay under ~34.
+model dropped the last two; shot 11 carried ~30 cleanly. Stay under ~30.
 
-`tools/shotsheet_lint.py` now fails a shot under 20 syllables and warns over 34,
-counted from the quoted Thai in the shot header. A sheet can pass the presence
-rule and the dead-air rule and still be unwatchable; this is the check that
-catches it.
+`tools/shotsheet_lint.py` fails a shot under 14 syllables and warns over 30 (per
+8 s, scaled), counted from the quoted Thai in the shot header. A sheet can pass
+the presence rule and the dead-air rule and still be unwatchable; this is the
+check that catches it. [SUPERSEDED 2026-09-28: "20–34 syllables per 8-second
+shot … fails under 20 and warns over 34" — the first figures, set before the lint
+was calibrated on the reference reel (9c4ae025); an author aiming at 34 got four
+WARNs at 31 on taachang-SCRIPT-v1 (7410dbf4).]
 
 ### Two more, from the same day, both about *what* the line says
 
@@ -347,7 +351,11 @@ worked. What differs is where the model puts the performance.
    second every time.
 4. **Every speaker change costs a beat.** Two speakers in a 6s shot is fine;
    three lines across two changes needs 10s, not 8.
-5. One more, from the same measurement: the reference reel runs music and
+5. **Name the speakers in the action line in the order they speak.** The model plays the action line's
+   order, not the dialogue block's: «ตาชั่งของเสี่ย» S37 had the grandmother's line first, the action named
+   the boy first, and the take gave his line first; "the old woman speaks first …; only after she has
+   finished, the boy …" fixed it on the next take (558ed6fa, 2026-09-26).
+6. One more, from the same measurement: the reference reel runs music and
    ambience under everything, so its gaps never sound empty. Ours are bare
    dialogue over room tone. **Some of the remaining difference is a score, not a
    script** — do not keep cutting the script to fix something the edit fixes.
@@ -376,13 +384,16 @@ Keep ≤4 named characters and 2–3 locations, so every name still gets an endi
 [SUPERSEDED 2026-09-25 by the ruling above] **18–24 minutes** (CEO: *"คนดูระหว่างกินข้าวไปด้วยได้"*).
 The first episode ran 24:00. At 8-second shots:
 
-| runtime | shots | mid-roll marks | Flow credits @12/shot |
+| runtime | shots | mid-roll marks | Flow credits @20/shot (budget: `CMO_Knowledge_Flow_Omni1.1` §Money) |
 |---|---|---|---|
-| **8:00** | **60** | **4** | **~720** |
-| **12:00** | **90** | **6** | **~1,080** |
-| 18:24 | 138 | 9 | ~1,656 |
-| 20:00 | 150 | 10 | ~1,800 |
-| 24:00 | 180 | 11 | ~2,160 |
+| **8:00** | **60** | **4** | **~1,200** |
+| **12:00** | **90** | **6** | **~1,800** |
+| 18:24 | 138 | 9 | ~2,760 |
+| 20:00 | 150 | 10 | ~3,000 |
+| 24:00 | 180 | 11 | ~3,600 |
+
+[SUPERSEDED 2026-09-28 by CEO ruling 7 ("ตามนั้น": budget 20 a 720p/8 s shot until a balance delta
+settles 12 vs 20): the column read @12/shot — ~720, ~1,080, ~1,656, ~1,800, ~2,160.]
 
 Facebook mid-rolls land at 1:00 and every two minutes after. **Every mark must
 fall on a live question, a threat, or a turn in progress — never on atmosphere.**
@@ -490,7 +501,7 @@ Flow's free stills.
 8. **One free still per scene before any video** (stills are free on Flow:
    `CMO_Knowledge_Flow_Omni1.1` §Money).
    Staging, wardrobe, who is in frame and day/night are visible in a still; seeing
-   them there is free, seeing them in a 720p clip costs ~12 credits a take.
+   them there is free, seeing them in a 720p clip costs a take (budgeted at 20 credits).
 
 ## After posting: the link, then the Page's first comment (CEO 2026-09-26)
 
@@ -532,7 +543,7 @@ The approved example, film 2 (`docs/scripts/taachang-first-comment.txt`):
 
 - 2026-09-23 [MISSING] §Structure gate — four threads (hook, police line, lender's ending, happy ending) were ordered by the CEO after a full cut existed; each cost an insert + re-shoot + re-cut. Gate of 8 items added on the CEO's explicit approval ("OK เพิ่ม SKill ได้", 2026-09-23). · evidence: docs/scripts/banchi-RETRO.md, banchi shots 1-2, 174-190 · status: promoted
 - 2026-09-25 [MISSING] §Length — CEO set episode 2 to 8:00 ("รอบนี้ขอ 8 นาทีพอ"); the table starts at 18:24. 8:00 = 60 shots, 3 acts, 4 mid-roll marks (shots 8/23/38/53), ≤4 named characters so every name still gets an ending, ~720 raw credits. Fits the research note that completion rate is a Reels ranking input. Promoted the same day: CEO widened it to the format, 8–12 min ("20 min อาจจะนานไป"); also ruled cartoon villains OK (rule 2) and mini-EP hooks (gate 2) · evidence: docs/scripts/ep2-plan-DRAFT.md (cd0d14b9), CEO chat 2026-09-25 · status: promoted
-- 2026-09-25 [WRONG] §DENSITY — the skill says 20–34 syllables per 8-s shot, but `tools/shotsheet_lint.py` fails under 14 and warns over 30 (MIN_SYLLABLES=14, MAX_SYLLABLES=30). The two disagree, so an author aiming for the skill's 34 gets WARNs. Pick one number and change the other · evidence: taachang-SCRIPT-v1 lint, 4 WARN at 31 (7410dbf4) · status: pending
+- 2026-09-25 [WRONG] §DENSITY — the skill says 20–34 syllables per 8-s shot, but `tools/shotsheet_lint.py` fails under 14 and warns over 30 (MIN_SYLLABLES=14, MAX_SYLLABLES=30). The two disagree, so an author aiming for the skill's 34 gets WARNs. Pick one number and change the other · evidence: taachang-SCRIPT-v1 lint, 4 WARN at 31 (7410dbf4) → §DENSITY now states the lint's 14–30 per 8 s, scaled (the lint was calibrated later the same day on the reference reel, 9c4ae025; this file's own 2026-09-19 measurement agrees our shots were already denser than the reference); 20–34 kept [SUPERSEDED] · status: promoted
 - 2026-09-25 [MISSING] §Structure gate 2 — how to do mini-EP hooks now has a researched recipe: a 2-min EP = 15 shots; shot 1 answers the last hook within 3 s; the even minute turns; the last shot is the spoken hook just before the ad mark. Joins are a hard cut plus a music sting, never a fade to black · evidence: Wikis research/2026-09-25-chinese-vertical-microdrama-formula.md (2cb9999), docs/scripts/taachang-SCRIPT-v1.md · status: pending
 - 2026-09-26 [WRONG] §After posting — the line "`tools/fb_reel_post.py` exits non-zero when it cannot resolve the link" was written before any test and treats a missing link as a failure; the CEO ruled a missing link is not a failed post ("หาลิงก์ไม่เจอ ไม่ได้แปลว่าโพสต์ไม่ติด", "อย่าด่วนสรุปถ้ายังไม่ได้ทดสอบ"), so the body now names three states · evidence: CEO ruling 2026-09-26, task-cfdc75a8 CTO-FEEDBACK.md · status: promoted
 - 2026-09-26 [WRONG] §After posting — task-cfdc75a8's report said a Reel post has no delete control (5 surfaces checked). Measured by the CTO: open `https://www.facebook.com/reel/<id>`, click the FIRST visible `[aria-label="เมนู"]` (index 0). Its menu lists "ลบ". The LAST matching button belongs to the preloaded next card, and its menu is the viewer menu (สนใจ / ไม่สนใจ / รายงาน). The `/videos/<id>` "more options" menu has only save / copy link. On the same page the comment is `article` "ความคิดเห็นจาก ละครสั้นคุณธรรม by ILAG Studio", so the first comment was posted as the Page, and exit 7 was a lookup miss, not a wrong author. Delete measured 2026-09-26 ~20:45 after the CEO approved in chat: เมนู#0, then "ลบ", then the dialog button "ลบ". Afterwards the logged-in page no longer shows the marker, the logged-out og:title is gone, and film 2 is still up · evidence: TEST post 4116998775270501, CTO probe 2026-09-26 19:55 (scratch fb_steps.py) · status: pending
