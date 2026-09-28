@@ -16,6 +16,16 @@ measured" = ห้ามเดา — I did not guess a number where none was vi
 
 ---
 
+## CMO review, 2026-09-28 — corrections (read before the sections below)
+
+The CMO checked the two open gaps on the downloaded files. Media stayed in Assets.
+
+1. **Shot count in §5 and "low cut rate" in §6.6 are wrong.** On video 1577233167381395, ffmpeg scene detection at 0.3 found 5 cuts, and at 0.12 it still found 5. A frame strip at one frame every 6 s over 4–148 s shows a new shot in almost every frame. The detector misses these cuts because the whole episode shares one warm grade and one location. On video 1077573248092017, scene detection at 0.12 found 23 cuts, a mean shot of 5.0 s. Real pattern (MEASURED on 2 of 5): **short AI video clips of about 5–8 s each, so roughly 25–45 shots per 3–6 min episode.** It is not long static coverage and not still images.
+2. **Audio is character dialogue in Thai, not narration** (MEASURED on 1 of 5, video 1577233167381395). faster-whisper `small` with the language set to th, VAD on and beam 1 ran on a 16 kHz mono WAV extracted first. It loaded in 1.3 s and transcribed 140 s of the 215 s clip before a 240 s timeout. 117 s of the 215 s is voiced. The lines are short spoken dialogue between the man, his wife and the cat's voice (for example "ผมขอน้ำนิดเดียวครับ", "ชื่อผมเหรอครับ"). The cat speaks in the first person. The worker's hang was most likely from feeding the 1440×2560 MP4 straight into the model. Extracting the WAV first works.
+3. **§8 revenue method.** The "daily visitors" figure is not a view count, so do not use it as one. A simpler check: the 20 most recent reels on both pages total about 5.1M displayed views (MEASURED, §4). At the Wikis benchmark for SEA Facebook of ~$10 per 1M views (PRACTITIONER), the ~$3,000/month claim would need ~300M monetised views a month per page. Episodes run 2–6 min, which makes them eligible for in-stream ads. The in-stream RPM for a Thai audience is unknown, so the claim stays **UNVERIFIED**, neither proven nor disproven. Brand deals are confirmed as a second income line.
+
+---
+
 ## 1. Answer first — 10 lines
 
 1. **แมวซีรี่ย์ (Seriescat.99)**: 210,000 FB followers MEASURED (live count).
