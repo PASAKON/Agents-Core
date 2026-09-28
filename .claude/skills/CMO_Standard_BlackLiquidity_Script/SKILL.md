@@ -40,6 +40,14 @@ One line per tag, one idea per line. The editor cuts on these boundaries and the
 lipsync parts are seated against them, so a line that carries two ideas becomes
 a cut that lands in the middle of a sentence.
 
+**How long it will run.** Forecast the TTS track from the whole-track rate,
+**13.2-14.7 spoken chars/s** on the channel's Gemini voice: EP55 v1 2,470 chars →
+167.66 s, v2 1,750 chars → 133.1 s (the shorter script sat at the low end). The
+speech-only rate is 16.6 chars/s (EP54 16.64, EP55 16.62, silencedetect on the
+real TTS files); the gap is the breath between the 40 lines. Forecasting from
+16.6 put v2 at 105 s against 133 s, and dividing a finished cut's length by the
+script's characters gave 22 chars/s, 52 % off (task-77a2e043).
+
 ## Compliance — the part that is not style
 
 Thailand's regulators aim at the **marketing layer**, and they describe conduct,
@@ -166,8 +174,8 @@ need to be hand-formatted, but a writer who knows the rules writes cleaner input
 - the caption carries the long disclaimer (`CMO_Procedure_BlackLiquidity_Cut` §6b)
 
 ## Field notes
-- 2026-09-23 [MISSING] §structure — how long a script will run: measured speech-only rate on the channel's Gemini voice is **16.6 chars/s** (EP54 16.64, EP55 16.62, silencedetect on the real TTS files). EP55: 2,470 spoken chars → a 167.66 s TTS track. Estimate from that, never from a finished cut's length divided by the script's characters. That shortcut gave the CTO 22 chars/s and a 110 s forecast that was 52 % off · evidence: task-77a2e043 RUNLOG.md · status: pending
-- 2026-09-23 [WRONG] §structure — correction to the note above: 16.6 chars/s is SPEECH-ONLY. The full TTS track also carries the breath gaps between the 40 lines, so the whole-track rate is lower. It is ~13.2–14.7 chars/s: EP55 v1 2,470 chars → 167.66 s, v2 1,750 chars → 133.1 s. Forecast track length from the whole-track rate. The CTO used 16.6 and forecast v2 at 105 s against 133 s · evidence: task-77a2e043 RUNLOG.md (tts v2 line) · status: pending
+- 2026-09-23 [MISSING] §structure — how long a script will run: measured speech-only rate on the channel's Gemini voice is **16.6 chars/s** (EP54 16.64, EP55 16.62, silencedetect on the real TTS files). EP55: 2,470 spoken chars → a 167.66 s TTS track. Estimate from that, never from a finished cut's length divided by the script's characters. That shortcut gave the CTO 22 chars/s and a 110 s forecast that was 52 % off · evidence: task-77a2e043 RUNLOG.md → §The section structure, How long it will run (merged with the correction below: 16.6 kept as the speech-only rate) · status: promoted
+- 2026-09-23 [WRONG] §structure — correction to the note above: 16.6 chars/s is SPEECH-ONLY. The full TTS track also carries the breath gaps between the 40 lines, so the whole-track rate is lower. It is ~13.2–14.7 chars/s: EP55 v1 2,470 chars → 167.66 s, v2 1,750 chars → 133.1 s. Forecast track length from the whole-track rate. The CTO used 16.6 and forecast v2 at 105 s against 133 s · evidence: task-77a2e043 RUNLOG.md (tts v2 line); v2's 1,750 chars re-counted from prototypes/bl55-script/SCRIPT-v2.tsv → §The section structure, How long it will run · status: promoted
 - 2026-09-23 [MISSING] §Writing Thai for TTS — a transliterated brand was also shown on screen in Thai; the CEO ruled the Thai spelling is for the voice only and the screen shows the real brand spelling · evidence: CEO ruling 2026-09-23 (WikiFX) · status: promoted
 - 2026-09-23 [MISSING] §plain words — the EP57 v1 script used โดเมน / ระบบทะเบียนโดเมนสาธารณะ / เออเรอร์; the CEO ruled plain words only and asked for the attempt to be shown step by step · evidence: CEO ruling 2026-09-23 on EP57 v1 · status: promoted
 - 2026-09-23 [MISSING] §name it early — EP57 v2 named the broker once, with no picture and no line on what it is; the CEO asked to reveal it with the picture carrying it · evidence: CEO review 2026-09-23 23:25, bl57-script v2.1 fdb44267 · status: promoted
