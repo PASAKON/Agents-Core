@@ -191,6 +191,13 @@ prints what the caption says.
    flag are the next tools to build; until then, a clean QC report is "no defect found
    by stages 1-2", not "no defect".
 
+5. A wrong voice or mouth on a two-speaker shot is fixed by splitting it, not by re-firing it.
+   [FLOW] (CEO ruling 2026-09-28.) A take whose first speaker's line lands in the listener's voice
+   or mouth goes straight to `CTO_Flow_Omni1.1_Continuity` rule 10: fire Na (that line alone) and Nb (the reply alone)
+   once each. Do not run another take of the combined shot to "see if it holds": ep4 shot 21 stayed
+   wrong in 3 production re-fires and in 11 of 18 test takes of the combined shot (as written, with
+   changed direction words, or at 10 s).
+
 ## Output format
 
 ```
