@@ -64,9 +64,10 @@ def test_detect_machine_by_hostname_substring():
     assert md.detect_machine(reg, hostname="myhost-01.local") == "myhost"
 
 
-def test_detect_machine_by_unique_os_when_hostname_does_not_match():
+def test_detect_machine_by_unique_os_when_hostname_does_not_match(monkeypatch):
     reg = {"machines": {"linuxbox": {"os": "linux"}, "macbox": {"os": "macos"}}}
     # This suite runs on Linux (Contabo, per the brief) — os-fallback picks it.
+    monkeypatch.setattr(md.platform, "system", lambda: "Linux")
     assert md.detect_machine(reg, hostname="unrelated-name") == "linuxbox"
 
 
