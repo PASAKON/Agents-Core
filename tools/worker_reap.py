@@ -608,6 +608,10 @@ def close_remote(task: dict, *,
     """End a remote (winbox/contabo) DEV's worker over SSH. See module note
     above and docs/design/multi-host-workers.md.
 
+    W1.5: also refuses a row another box dispatched (`dispatcher_host` names
+    a different host) -- on a shared ledger that box's watchdog owns the
+    remote close; two boxes ssh-killing one worker would race.
+
     ADDENDUM 2 (task-92118d4e, CEO rule 2026-09-07 — never close a surface
     under a worker that may be working): re-reads the task from the DB by
     id before doing anything else, so a caller (the branch poller) holding a

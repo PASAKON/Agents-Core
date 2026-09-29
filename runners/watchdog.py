@@ -11,6 +11,14 @@ Scans tasks WHERE status='in_progress'. For each:
 
 "Silent" = seconds since tasks.updated_at (Stop-hook relay touches this).
 
+W1.5 duty split (org-mesh): on a shared ledger every duty has exactly one
+owner per row. LOCAL duties (pid liveness, stall, tmux/tab close, finished-DEV
+reap) act only on rows this box runs (`is_local_row`). REMOTE duties (ssh
+stall, close_remote, branch poll, blocked_human escalation) act only on rows
+this box dispatched (`is_remote_row` / `is_dispatched_here`). A row neither is
+ours is skipped -- never stalled, never cancelled. Predicates:
+tools/worker_reap.py; the per-duty table: docs/reports/task-a137ecca/REPORT.md.
+
 Usage:
     python -m runners.watchdog                   # one-shot scan
     python -m runners.watchdog --loop            # forever, sleep INTERVAL_S

@@ -23,6 +23,13 @@ lock row whose owner isn't a task at all.
 
 Idempotent. Safe to run concurrently with other CTOs (uses a single UPDATE
 with a WHERE clause that re-checks the same predicates).
+
+W1.5 (shared ledger): each category acts only on rows this box owns. 1 (the
+disk_queue exemption and the pid check read THIS box's queue file and process
+table) takes `is_local_row` rows; 1b and 3 take local rows plus remote rows
+this box dispatched (`_alive_for_gc` asks over ssh, and reads None -- never
+act -- for any other row); 2 takes rows this box dispatched. A row that is
+not ours is skipped, never cancelled.
 """
 from __future__ import annotations
 
