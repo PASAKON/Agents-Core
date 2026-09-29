@@ -66,4 +66,6 @@ Right before the runner pre-flight (`resolved_runner = ...`):
 | Mac hub → Contabo agy | code in, not run live |
 | Mac hub → winbox codex/agy | CLIs lost in the 2026-09-29 reset |
 | any hub other than the Mac | mesh W0/W2 |
-| §2 `pick_runner` + §3 hook | building 2026-09-29 (agy + codex workers) |
+| §2 `pick_runner` + §3 hook | live on main 34dc648f (agy task-b2432e43, codex task-ae42c0a7); active in any process that imports delegate.py after that sha |
+| failed quota read | cached 60 s, not 300 s (agy `/usage` timed out 1 read in 3, 2026-09-29) |
+| the rule | IRON-RULES §59 + `org:playbooks/delegate-by-usage.md` |

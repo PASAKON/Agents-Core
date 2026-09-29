@@ -19,22 +19,30 @@ Required steps every time CTO spawns a DEV. Memory rule (CEO 2026-05-19, IRON-RU
 
 ## Pre-spawn
 
-### 0. Force Claude when a cheap miss is expensive (CEO 2026-08-10)
-`WORKER_MODEL_PROVIDER=auto` routes on **quota headroom alone** — it cannot see how
-costly a mistake on this particular task would be. Before delegating, set the
-per-task override when the work is any of:
+### 0. Leave the runner to the router; force Claude only when a cheap miss is expensive (CEO 2026-08-10, 2026-09-29)
+IRON-RULES §59 + `org:playbooks/delegate-by-usage.md`. Leave `tasks.runner` empty:
+`delegate_task` calls `tools/route.py pick_runner` (weekly quota > daily > skill >
+CEO order, `config/plans.yaml`) and logs `router: <runner> — <reason>`. The router
+sees quota only; it cannot see how costly a mistake on this task would be. Before
+delegating, force Claude when the work is any of:
 
 - **reviewing, finishing, or repairing someone else's code** (including a DEV
   that died mid-task)
 - **security-sensitive** — auth, secrets, tokens, permissions
 - **anything where a silent wrong answer ships**
+- **needs a Claude-only tool** — org MCP tools, Claude in Chrome, Artifact, skills
 
 ```bash
 sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' WHERE id='task-XXXX';"
 ```
 
-Everything else: leave it NULL and let the router pick on quota. An unrecognised
-value falls back to normal routing (`lib.config.worker_provider_overrides`).
+Write the reason in the task description (§59 rule 2, HARD). An explicit
+`tasks.runner` is never overridden; `ORG_ROUTER=off` is for router repair only.
+
+`[SUPERSEDED 2026-09-29]` "`WORKER_MODEL_PROVIDER=auto` routes on quota headroom
+alone … falls back to normal routing (`lib.config.worker_provider_overrides`)" —
+neither existed in code any more; the router is `tools/route.py`, called by
+`delegate_task` since Agents-Core 34dc648f (task-b2432e43, task-ae42c0a7).
 
 Why this exists: on 2026-08-10 a DEV finished a feature with all 96 existing
 tests green — and the feature did not work at all. It never wired the new data
@@ -410,6 +418,6 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-09-29 [MISSING] §remote — every `delegate_task(host='contabo')` from the Mac copies the Mac's WORKING-TREE `scripts/hook-self-repo-guard.py` and `scripts/spawn-worker-remote.sh` over Contabo's tracked checkout, and the launcher copies that guard into the new worktree. When the Mac's tree differs from origin, Contabo's checkout goes dirty and the worker holds a guard it could commit. Until W0.3 lands, after each Contabo spawn run `git checkout -- scripts/hook-self-repo-guard.py scripts/spawn-worker-remote.sh` in `/opt/MoonieXHQ/Agents/Core` and in the new worktree · evidence: tasks 0df38cb3, 350e4165, 9b209e15, 94c84ec0, fd32e033, 3d392ab3 (2026-09-29) · status: pending
 - 2026-09-29 [MISSING] §3c.9 — a brief kept only in the session scratchpad (`/private/tmp/claude-501/...`) is lost on a Mac reboot, together with any scratch worktree and backup kept there: `brief-w0.3.md`, `brief-w2.2.md`, `wt-w21` and an ep3 untracked-file backup were all gone after the ~14:12 reboot. Put the full brief in the `create_task` description (it lives in tasks.db) or in a committed `docs/ops/briefs/` file, never only in /tmp · evidence: session cto-e6754203, W0.3 rebuilt as task-40c57980 · status: pending
 - 2026-09-29 [COSTLY] §0 — a Claude worker that hits the WEEKLY limit ("resets 5pm (Asia/Bangkok)") stops mid-task with the pid alive and nothing committed; the row later reads `stalled`, and every Claude-routed task waits until the reset. Before a wave of Claude workers, check the weekly headroom; after a weekly-limit stall, reset the row (`status='pending', pid=NULL, assigned_agent=NULL`) and re-delegate after the reset time · evidence: task-02481939 stalled 08:12, W2.2 + W0.3 deferred to 17:00 · status: pending
-- 2026-09-29 [WRONG] §0 — "`WORKER_MODEL_PROVIDER=auto` routes on quota headroom … `lib.config.worker_provider_overrides`": neither exists in lib/, tools/ or runners/ any more (only a comment at `lib/db.py:219`); nothing routes a task by quota today unless the C-level sets `tasks.runner` by hand. The live router is `tools/route.py` (quota weekly > daily > skill, `config/plans.yaml`), not yet called by `delegate_task` · evidence: grep 2026-09-29, task-419e6c8c, task-8adeaa3c · status: pending
+- 2026-09-29 [WRONG] §0 — "`WORKER_MODEL_PROVIDER=auto` routes on quota headroom … `lib.config.worker_provider_overrides`": neither exists in lib/, tools/ or runners/ any more (only a comment at `lib/db.py:219`); nothing routes a task by quota today unless the C-level sets `tasks.runner` by hand. The live router is `tools/route.py` (quota weekly > daily > skill, `config/plans.yaml`), not yet called by `delegate_task` · evidence: grep 2026-09-29, task-419e6c8c, task-8adeaa3c; promoted 2026-09-29 by CEO ruling, IRON §59, §0 rewritten · status: promoted
 - 2026-09-29 [MISSING] §5 — the kickoff wake (`send_to_worker`) also fires for a Mac `runner=agy` task and types into `wd-<id>`, whose pane runs `runners/worker_init.py` → agy with stdin closed; harmless, but a non-claude runner has no one to read it · evidence: task-8adeaa3c CTO-event 14:42:47 · status: pending
 - 2026-09-29 [MISSING] §2 — `tools/gc_stale_tasks.py` cancels any `pending` row with no `assigned_agent` after 30 minutes ("gc: stale pending >30min without assignment"). A task created early to wait for a quota reset is gone before the spawn. Create the row right before `delegate_task`, or re-set it to `pending` with `lib.db.update_status` just before delegating; do not set `assigned_agent` to dodge it, since `claim_task` needs it NULL · evidence: task-40c57980 cancelled 08:13:51Z (events id 9831), re-created as task-6f6e5179 · status: pending
