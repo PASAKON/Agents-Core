@@ -347,3 +347,22 @@ def test_revert_diverged_runtime_skips_ff(fake_projects, temp_db):
     assert result["runtime_reason"]
     assert _git(runtime, "rev-parse", "HEAD") == local_sha
     assert (runtime / "local-only.txt").exists()
+
+
+# ------------------------------------------------------------- rollback: origin
+
+
+def test_rollback_origin_path_pushes_and_fast_forwards(fake_projects, temp_db):
+    from tools import rollback as rollback_mod
+
+    tid, merge_sha = _land_merge(fake_projects, temp_db)
+    runtime = fake_projects["runtime"]
+
+    result = rollback_mod.rollback(tid)
+
+    assert result["rolled_back"] is True
+    assert result["pushed"] is True
+    assert result["runtime_updated"] is True
+    assert result["runtime_reason"] is None
+    assert not (runtime / "feature.txt").exists()  # revert landed on runtime
+    assert db_mod.get_task(tid)["status"] == "cancelled"
