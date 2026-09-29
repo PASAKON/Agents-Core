@@ -1,0 +1,20 @@
+# Subscriptions. Append a new entry when a plan changes; never delete old ones (history).
+providers:
+  anthropic: {runner: claude, plans: [{usd: 200, from: "2026-08-29"}, {usd: 20, from: "2026-09-29T10:00:00Z"}]}
+  google:    {runner: agy,    plans: [{usd: 100, from: "2026-09-01"}]}
+  openai:    {runner: codex,  plans: [{usd: 20,  from: "2026-09-01"}]}
+# Free grants / surprise resets: {provider, from, to, note}. While active the provider is treated as weekly=1.0.
+bonuses: []
+# Candidate list per job class, in the CEO's order. "runner:model[:effort]".
+roles:
+  dev_general:    ["agy:gemini-3.8-flash-high", "claude:claude-sonnet-5"]
+  c_level:        ["claude:claude-opus-5-5:xhigh"]
+  c_level_openai: ["codex:sol:xhigh"]
+  complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]
+router:
+  tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
+  min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown
+quota_sources:           # where each reader looks; ssh host "" = local
+  claude: {ssh: mooniex-vps, path: /opt/claude-usage-monitor/usage.json}
+  codex:  {ssh: mooniex-vps, sessions_glob: "/root/.codex/sessions/*/*/*/rollout-*.jsonl"}
+  agy:    {ssh: "", cmd: ["~/.local/bin/agy", "-p", "/usage", "--output-format", "json"]}
