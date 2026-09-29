@@ -183,7 +183,9 @@ case "$EXCLUDE_FILE" in
 esac
 mkdir -p "$(dirname "$EXCLUDE_FILE")"
 touch "$EXCLUDE_FILE"
-for name in HEARTBEAT MAILBOX.md; do
+# .worker.pid too: the codex/agy launch.sh runs `git add -A` after the CLI
+# exits, and swept it into the branch commit (task-419e6c8c, 2026-09-29).
+for name in HEARTBEAT MAILBOX.md .worker.pid; do
   grep -qxF "$name" "$EXCLUDE_FILE" 2>/dev/null || echo "$name" >> "$EXCLUDE_FILE"
 done
 
