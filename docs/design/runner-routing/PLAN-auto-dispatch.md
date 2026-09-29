@@ -104,12 +104,13 @@ commit media extensions (gate in the tool, #e6754203).
 
 | id | what | owner | touches | after |
 |---|---|---|---|---|
-| Q1 | agy both groups → buckets; `plans.yaml buckets:`; router ranks by bucket; `agy:claude-sonnet-4-6` joins `dev_general` | 24ca1c0a → worker | tools/quota.py, tools/route.py, config/plans.yaml, their tests | — |
+| Q1 | agy both groups → buckets; `plans.yaml buckets:`; router ranks by bucket and returns it | 24ca1c0a → worker | tools/quota.py, tools/route.py, config/plans.yaml, their tests | — |
+| Q1b | the chosen model reaches the CLI: `tasks.runner_model` column, the router writes it, `agy_local` uses it (Mac); then `agy:claude-sonnet-4-6` joins `dev_general` | 24ca1c0a → worker | lib/db.py (tasks only), tools/delegate.py `_route_runner`, runners/agy_local.py, runners/worker_init.py, config/plans.yaml | Q1; lib/db.py serialized with H1 |
 | Q2 | snapshot writer + reader + timer files (launchd, systemd) | 24ca1c0a → worker | tools/quota.py, tools/route.py, scripts/com.mooniex.quota-snapshot.plist, deploy/systemd/quota-snapshot.{service,timer} | Q1 |
 | Q3 | `config/limits.yaml`, `tools/limits.py`, `tools/forecast.py`, `route.plan()` + `--plan` CLI | 24ca1c0a → worker | new files + tools/route.py | Q2 |
 | H1 | probe: CPU per core + runners; 60 s timers | e6754203 | tools/node_dispatch.py, lib/db.py | — |
 | H2 | `lib/router.py pick_host` + the delegate call site, flag `ORG_HOST_ROUTER` | e6754203 | lib/router.py, tools/delegate.py | Q3, H1 |
-| H3 | media gate in the W0.6 report step | e6754203 | scripts/spawn-worker-remote.sh, windows/spawn-worker.ps1 | — |
+| H3 | media gate in the W0.6 report step; the Contabo agy command takes `--model` from the row instead of the hardcoded `gemini-3.8-flash-high` | e6754203 | scripts/spawn-worker-remote.sh, windows/spawn-worker.ps1 | — |
 | R1 | the rule: IRON §59 as a short card, playbook, DevSpawn §0, role files | 24ca1c0a | Agents-Rules, skills | Q3, H2 |
 | ON | switch `ORG_HOST_ROUTER` on | e6754203 | env | W1.10 cutover |
 
