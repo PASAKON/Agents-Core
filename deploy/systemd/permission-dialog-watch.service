@@ -1,0 +1,16 @@
+[Unit]
+Description=Tell the CEO when a C-level session waits on a permission dialog (GH #182)
+# One pass of scripts/permission_dialog_watch.py: finds C-level tmux panes
+# stuck on a claude confirmation dialog for over 5 minutes and writes one
+# letter to SomPong's mailbox; the secretary waker sends it on to the CEO, so
+# this unit carries no secret. Runs as root because the C-level tmux sessions
+# are root's. Triggered by permission-dialog-watch.timer. Files only --
+# installing is a live step on Contabo:
+#   cp deploy/systemd/permission-dialog-watch.{service,timer} /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now permission-dialog-watch.timer
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/scripts/permission_dialog_watch.py

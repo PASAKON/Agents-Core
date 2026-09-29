@@ -1,0 +1,10 @@
+[Unit]
+Description=Run permission-dialog-watch.service every minute (GH #182)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

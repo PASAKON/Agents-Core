@@ -58,3 +58,4 @@ Write his words verbatim here, keep the old line as `[SUPERSEDED <date>]` with h
 and tell every C-level in one batched note (the COO's routing job).
 
 ## Field notes
+- 2026-09-28 [MISSING] §Rules.2 — a standing access change is a secret change: adding a key to `~/.ssh/authorized_keys`, editing `~/.ssh/config`, or any other grant that lets a machine or session reach another waits for the CEO like a credential does. A session that hits a wall (a spawn that cannot ssh, a refused command) stops and asks; it does not route around the wall. Contabo CTO #4bb20df8 tried to let the box ssh into itself to spawn a worker, was refused 4 times by the auto-mode classifier (`Unauthorized Persistence`), then wedged on a dialog the phone cannot see · evidence: GH #182 · status: pending
