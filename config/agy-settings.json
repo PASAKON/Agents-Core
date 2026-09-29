@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "command(regex:^(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/\\.venv/bin/python -m pytest( .*)?$)",
+      "command(git status)",
+      "command(git diff)",
+      "command(git log)",
+      "command(git show)",
+      "command(git rev-parse)",
+      "command(git ls-files)",
+      "command(ls)",
+      "command(cat)",
+      "command(head)",
+      "command(tail)",
+      "command(wc)",
+      "command(grep)",
+      "command(pwd)",
+      "command(hostname)",
+      "command(date)"
+    ],
+    "deny": [
+      "command(rm)",
+      "command(sudo)",
+      "command(curl)",
+      "command(wget)",
+      "command(ssh)",
+      "command(scp)",
+      "command(rsync)",
+      "command(git push)",
+      "command(git reset)",
+      "command(git checkout)",
+      "command(git clean)"
+    ]
+  }
+}
