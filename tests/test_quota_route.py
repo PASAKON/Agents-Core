@@ -316,13 +316,13 @@ def test_router_exhausted_last(mock_cfg):
 
 
 def test_router_host_without_runner_excludes_it(mock_cfg):
-    # mac only supports [claude] in config/hosts.yaml
+    # contabo only supports [claude] in config/hosts.yaml
     quotas = {
         "agy": Quota(provider="agy", weekly_remaining=0.95, daily_remaining=0.95),
         "claude": Quota(provider="claude", weekly_remaining=0.10, daily_remaining=0.10),
     }
-    choices = rank("dev_general", quotas, {}, "mac", mock_cfg)
-    # agy is excluded entirely from the mac host
+    choices = rank("dev_general", quotas, {}, "contabo", mock_cfg)
+    # agy is excluded entirely from the contabo host
     assert len(choices) == 1
     assert choices[0].candidate == "claude:claude-sonnet-5"
     assert choices[0].runner == "claude"
