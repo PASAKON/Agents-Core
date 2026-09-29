@@ -16,6 +16,9 @@ which layer on top of this fixture within the same test's monkeypatch stack.
 """
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 import pytest
 
 from tools import tmux_session
@@ -140,6 +143,66 @@ def _isolate_workdir_root(tmp_path, monkeypatch):
     on top within the same test's monkeypatch stack (same pattern as
     `_pin_tmux_bin` above)."""
     monkeypatch.setattr(_workdir, "_default_root", lambda: tmp_path / "Work")
+
+
+def _git(repo: Path, *args: str) -> str:
+    r = subprocess.run(["git", *args], cwd=str(repo), capture_output=True, text=True)
+    if r.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)} in {repo} failed: {r.stderr}")
+    return r.stdout.strip()
+
+
+@pytest.fixture
+def fake_projects(tmp_path, monkeypatch):
+    """A bare 'origin' repo + a clone standing in for a runtime checkout,
+    wired into lib.config's project registry (Org Mesh W0.2, ADR 0021 —
+    tmp_path only, never the real repo/origin/tasks.db).
+
+    tools/git_ops.py, tools/revert_task.py, tools/rollback.py and
+    lib/org_tools_registry.py all resolve a project via `get_project`,
+    which in turn calls the module-level `projects()` in lib.config —
+    patching that one function here covers every one of those modules
+    for a test, without a separate monkeypatch per module (the older
+    per-file `monkeypatch.setattr(git_ops, "get_project", ...)` pattern
+    only ever covered tools.git_ops's own namespace).
+
+    Returns a dict: `origin` (bare repo path), `runtime` (the clone
+    standing in for this host's runtime checkout — same repo
+    `_create_temp_worktree` will add its throwaway worktrees to), `proj`
+    (the fake project dict), and `git(*args)` (run git in `runtime`).
+    """
+    from lib import config as config_module
+
+    origin = tmp_path / "origin.git"
+    _git(tmp_path, "init", "-q", "--bare", "--initial-branch=main", str(origin))
+
+    seed = tmp_path / "seed"
+    _git(tmp_path, "clone", "-q", str(origin), str(seed))
+    _git(seed, "config", "user.email", "test@example.com")
+    _git(seed, "config", "user.name", "Test")
+    (seed / "README.md").write_text("seed\n")
+    _git(seed, "add", "README.md")
+    _git(seed, "commit", "-q", "-m", "initial")
+    _git(seed, "push", "-q", "origin", "main")
+
+    runtime = tmp_path / "runtime"
+    _git(tmp_path, "clone", "-q", str(origin), str(runtime))
+    _git(runtime, "config", "user.email", "test@example.com")
+    _git(runtime, "config", "user.name", "Test")
+
+    host = config_module.self_host()
+    proj = {
+        "key": "test-project",
+        "path": str(runtime),
+        "paths": {host: str(runtime)},
+        "default_branch": "main",
+        "remote": str(origin),
+        "auto_push": False,
+    }
+    monkeypatch.setattr(config_module, "projects", lambda: {"test-project": proj})
+
+    return {"origin": origin, "runtime": runtime, "proj": proj,
+            "git": lambda *args: _git(runtime, *args)}
 
 
 # --- .env seal for EVERY test (moved here from tests/conftest.py 2026-09-22, task-3de56f59 found
