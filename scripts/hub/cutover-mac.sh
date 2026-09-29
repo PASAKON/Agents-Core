@@ -116,10 +116,10 @@ trap _restore_watchdog EXIT
 
 # --- step 3: migrate, require equal counts -----------------------------
 step 3 "migrate state/tasks.db -> hub"
-say "would run: $PYTHON scripts/migrate_tasks_db.py --from state/tasks.db --to <ORG_DB_URL> --apply"
+say "would run: $PYTHON scripts/migrate_tasks_db.py --from state/tasks.db --to <ORG_DB_URL> --apply --default-host mac"
 say "would then require: sqlite count == postgres count, every table (refuse otherwise)"
 if [ "$APPLY" -eq 1 ]; then
-  "$PYTHON" scripts/migrate_tasks_db.py --from state/tasks.db --to "$ORG_DB_URL" --apply
+  "$PYTHON" scripts/migrate_tasks_db.py --from state/tasks.db --to "$ORG_DB_URL" --apply --default-host mac
   "$PYTHON" scripts/hub/verify_migration_counts.py --sqlite state/tasks.db --pg "$ORG_DB_URL"
 fi
 

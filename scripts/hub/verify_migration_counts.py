@@ -18,7 +18,10 @@ call order in the caller, not from anything done here.
 TABLES matches scripts/migrate_tasks_db.py's TABLES dict -- kept in sync by
 hand (that script owns the copy, this one owns the check; not imported from
 it, since migrate_tasks_db.py's TABLES also carries the primary-key columns
-this script has no use for).
+this script has no use for). `locks` is deliberately absent (Org Mesh
+W1.2): migrate_tasks_db.py never copies it -- those are live path locks,
+not history -- so comparing its count here would always "mismatch" against
+a target that legitimately never received it.
 """
 from __future__ import annotations
 
@@ -33,7 +36,7 @@ if str(ROOT) not in sys.path:
 from lib import db as db_mod  # noqa: E402
 from lib import db_pg  # noqa: E402
 
-TABLES: tuple[str, ...] = ("tasks", "c_level_sessions", "events", "locks")
+TABLES: tuple[str, ...] = ("tasks", "c_level_sessions", "events")
 
 
 def find_mismatches(before: dict[str, int], after: dict[str, int]) -> list[str]:

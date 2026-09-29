@@ -247,21 +247,25 @@ def test_migrate_round_trip_counts(tmp_path, monkeypatch):
 
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)  # target is the empty pg db
 
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 0
 
     with db_mod.get_conn() as conn:
         pg_tasks = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
         pg_sessions = conn.execute(
             "SELECT COUNT(*) AS c FROM c_level_sessions").fetchone()["c"]
+        # locks are live path locks, not history -- migrate_tasks_db.py
+        # never copies them (Org Mesh W1.2), even though the source has one.
         pg_locks = conn.execute("SELECT COUNT(*) AS c FROM locks").fetchone()["c"]
     assert pg_tasks == 2
     assert pg_sessions == 1
-    assert pg_locks == 1
+    assert pg_locks == 0
     assert {t1, t2} == {r["id"] for r in db_mod.list_tasks(limit=100)}
 
     # idempotent re-run: DO NOTHING means the counts don't move
-    rc2 = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc2 = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                         "--apply", "--default-host", "mac"])
     assert rc2 == 0
     with db_mod.get_conn() as conn:
         pg_tasks_again = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
@@ -284,7 +288,8 @@ def test_migrate_creates_schema_on_fresh_target(tmp_path, monkeypatch):
     tid = db_mod.create_task("projA", "developer", "s1", "d1")
 
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 0
 
     with db_mod.get_conn() as conn:
@@ -303,7 +308,8 @@ def test_migrate_advances_events_identity_sequence(tmp_path, monkeypatch):
         db_mod.update_status(tid, "in_progress", force=True)  # more events rows
 
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 0
 
     # Insert one more event through the *normal* lib.db API -- must not
@@ -336,7 +342,8 @@ def test_migrate_bad_row_default_aborts_and_reports_pk(tmp_path, monkeypatch, ca
 
     monkeypatch.setattr(db_pg.Connection, "execute", flaky_execute)
 
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 1
 
     captured = capsys.readouterr()
@@ -370,7 +377,7 @@ def test_migrate_skip_bad_rows_continues_and_lists_skipped(tmp_path, monkeypatch
     monkeypatch.setattr(db_pg.Connection, "execute", flaky_execute)
 
     rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
-                        "--apply", "--skip-bad-rows"])
+                        "--apply", "--default-host", "mac", "--skip-bad-rows"])
     assert rc == 0
 
     captured = capsys.readouterr()
