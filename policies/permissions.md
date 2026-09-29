@@ -18,18 +18,18 @@ job title — and pinned models two generations out of date.
 | cfo                 | C     | claude-sonnet-5   | yes        | yes         | yes   | yes  | yes           | no             |
 | cgo                 | C     | claude-sonnet-5   | yes        | yes         | yes   | yes  | yes           | no             |
 | cmo                 | C     | claude-sonnet-5   | yes        | yes         | yes   | yes  | yes           | no             |
-| developer           | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| tester              | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| web_designer        | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| browser_operator    | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| video_editor        | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
+| developer           | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| tester              | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| web_designer        | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| browser_operator    | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| video_editor        | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
 | devops_engineer     | W     | claude-opus-5     | no         | no          | no    | no   | no            | yes            |
 | security_engineer   | W     | claude-opus-5     | no         | no          | no    | no   | no            | yes            |
-| data_analyst        | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| prompt_engineer     | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| ads_manager         | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| content_strategist  | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
-| script_writer       | W     | claude-sonnet-5   | no         | no          | no    | no   | no            | yes            |
+| data_analyst        | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| prompt_engineer     | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| ads_manager         | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| content_strategist  | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
+| script_writer       | W     | claude-sonnet-5-5 | no         | no          | no    | no   | no            | yes            |
 
 Level: C = C-level (`config.agents()["c_level"]`), W = Worker.
 

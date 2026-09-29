@@ -19,7 +19,7 @@ audience: [cxo]
 
 **Standard since 2026-09-23 (CEO):** every C-level runs **Opus 5.5 with the 1M
 context window at effort xhigh** (`claude-opus-5-5[1m]`, `policies/agents.yaml`).
-Workers keep their own tiers — Sonnet 5 workers stay on Sonnet 5; the two
+Workers keep their own tiers — Sonnet workers run Sonnet 5.5 (since 2026-09-29); the two
 Opus workers (security_engineer, devops_engineer) run `claude-opus-5-5` @ xhigh.
 
 So there is nothing to escalate *to* any more. This skill exists for the

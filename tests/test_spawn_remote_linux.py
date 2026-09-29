@@ -82,7 +82,7 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
         ("--role", "developer"),
         ("--base", "main"),
         ("--worktree-root", "/opt/MoonieXHQ/Agents/Core/worktrees"),
-        ("--model", "claude-sonnet-5"),
+        ("--model", "claude-sonnet-5-5"),
         ("--effort", "xhigh"),
         ("--runner", "claude"),
     ]:

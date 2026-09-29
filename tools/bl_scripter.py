@@ -39,7 +39,7 @@ MAX_FRAME_W = 882  # task fact: a 1080-wide frame is downscaled by the API to ~8
 MODES = ("FF", "COMP", "EVID", "KIN", "CHECK")
 STILL_EXTS = (".png", ".jpg", ".jpeg")
 
-# Sonnet 5 pricing, read 2026-09-25 platform.claude.com/docs/en/about-claude/pricing
+# Sonnet 5 pricing, read 2026-09-25 (Sonnet 5.5 unchanged, 2026-09-29) platform.claude.com/docs/en/about-claude/pricing
 # (used only to report an API-equivalent $ for the claude-p run; claude-p itself
 # is billed on the Max plan, not per-call).
 PRICE_PER_MTOK = {
@@ -517,7 +517,7 @@ def run_scripter_claude_p(lines: list[dict], frames: dict[str, Any], workdir: Pa
 
     usage_out = {
         "backend": "claude-p",
-        "model": "claude-sonnet-5",
+        "model": "claude-sonnet-5-5",  # what the CLI alias "sonnet" resolves to on 2.1.284
         "session_id": session_id,
         "transcript": str(transcript) if transcript else None,
         "turns": turns,
