@@ -1253,13 +1253,20 @@ def _render_remote_runner_args(role_name: str, host_name: str, runner: str) -> s
 
 
 async def _spawn_remote(task: dict, host_name: str, *,
-                        dry_run: bool = False) -> dict:
+                        dry_run: bool = False, local: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
     is Phase 2, a non-goal of this task). No org MCP, no tmux, no iTerm —
     the worktree is cloned in from git by windows/spawn-worker.ps1, and the
     DEV reports back by pushing its branch + REPORT.md. This function's job
     ends at recording host/branch/worktree/pid on the task row;
-    runners/branch_poller.py takes it from there."""
+    runners/branch_poller.py takes it from there.
+
+    `local` (W0.3b, task-26988fe3): `host_name` is THIS machine (a Linux hub
+    delegating a codex/agy task to itself). The linux launcher is then run
+    with plain `bash <checkout>/scripts/spawn-worker-remote.sh <args>` — same
+    args, same prompt on stdin, same output parsing as over ssh, but no ssh
+    and no copy into `.launch/`: the checkout's own tracked script IS the
+    launcher. Linux only."""
     from runners.worker_init import _build_prompt
 
     task_id = task["id"]
@@ -1274,8 +1281,12 @@ async def _spawn_remote(task: dict, host_name: str, *,
             f"only winbox (Phase 1) and contabo (Phase 2, task-a5c0549d) are "
             f"wired; docs/design/multi-host-workers.md §4"
         )
+    if local and os_name != "linux":
+        raise NotImplementedError(
+            f"local launcher transport is linux-only (host {host_name!r} os={os_name})"
+        )
     ssh_alias = host_cfg.get("ssh")
-    if not ssh_alias:
+    if not ssh_alias and not local:
         raise ValueError(f"host {host_name!r} has no ssh alias configured")
 
     # Runner resolution + validation (task-adbc6f43). NULL on the task row
@@ -1440,10 +1451,14 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # instead of powershell + a scheduled task — no session-0/session-1 GUI
     # boundary to cross, so tmux new-session -d IS the detached worker;
     # see scripts/spawn-worker-remote.sh for the launcher itself.
-    deploy_actions = _ensure_remote_deploy_linux(host_cfg, dry_run=dry_run)
+    if local:
+        remote_script = str(ROOT / "scripts" / "spawn-worker-remote.sh")
+        deploy_actions = [f"local launcher {remote_script} (nothing to deploy)"]
+    else:
+        deploy_actions = _ensure_remote_deploy_linux(host_cfg, dry_run=dry_run)
+        remote_script = f"{host_cfg['agents_root']}/{_LINUX_LAUNCHER_REL}"
 
     prompt = _build_prompt(task, proj, remote_worktree)
-    remote_script = f"{host_cfg['agents_root']}/{_LINUX_LAUNCHER_REL}"
 
     # GH #180 (task-378523bb): the hub already knows this task's declared
     # touches — hand them to the spoke at spawn time instead of leaving the
@@ -1464,29 +1479,35 @@ async def _spawn_remote(task: dict, host_name: str, *,
         "--session-name", session_name, "--runner", runner,
         "--task-meta-b64", task_meta_b64,
     ]
-    remote_cmd = "bash " + shlex.quote(remote_script) + " " + " ".join(
-        shlex.quote(a) for a in script_args
-    )
-    cmd = ["ssh", ssh_alias, remote_cmd]
+    transport = "local" if local else "ssh"
+    if local:
+        cmd = ["bash", remote_script, *script_args]
+    else:
+        remote_cmd = "bash " + shlex.quote(remote_script) + " " + " ".join(
+            shlex.quote(a) for a in script_args
+        )
+        cmd = ["ssh", ssh_alias, remote_cmd]
 
     if dry_run:
         printable = " ".join(shlex.quote(c) for c in cmd)
         info(f"[dry-run] task={task_id} host={host_name} deploy: {deploy_actions}")
-        info(f"[dry-run] task={task_id} ssh command: {printable}")
+        info(f"[dry-run] task={task_id} {transport} command: {printable}")
         db.set_fields(
             task_id,
-            delegate_log=f"[dry-run] host={host_name} ssh_cmd={printable}",
+            delegate_log=f"[dry-run] host={host_name} {transport}_cmd={printable}",
             actor="cto",
         )
         return db.get_task(task_id)
 
-    # The prompt travels over ssh's own stdin (input=) rather than a scp'd
+    # The prompt travels over the transport's own stdin (input=; ssh forwards
+    # it, a local bash reads it directly) rather than a scp'd
     # file first — plain OpenSSH forwards local stdin to the remote command
     # by default, with none of the console-encoding hazards that made
     # winbox's PowerShell path scp a file instead (see spawn-worker.ps1's own
     # TaskFile comment). spawn-worker-remote.sh's TASK.md write is the last
     # thing on the box that reads stdin.
-    info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
+    info(f"spawn remote task={task_id} host={host_name} role={role_name} "
+         f"transport={transport} deploy={deploy_actions}")
     r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
                        timeout=REMOTE_LAUNCH_TIMEOUT_S)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
@@ -1736,7 +1757,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     hands off entirely to `_spawn_remote` — see
     docs/design/multi-host-workers.md Phase 1.
     `dry_run`: for a remote host only — print the exact ssh command instead
-    of running it. No-op when the resolved host is this machine."""
+    of running it. No-op when the resolved host is this machine, except a
+    codex/agy task on a Linux hub (W0.3b), which prints the local `bash
+    scripts/spawn-worker-remote.sh ...` command instead."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -1986,10 +2009,20 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # (worktree creation, iTerm/tmux, kickoff, the claim watchdog) runs on
     # THIS host — any other host hands off entirely to _spawn_remote, which
     # has its own worktree/spawn/report path over git.
-    if resolved_host != this_host:
+    #
+    # W0.3b (task-26988fe3): a Linux hub delegating a codex/agy task to ITSELF
+    # takes the same launcher path over a LOCAL transport (bash, no ssh).
+    # `_spawn_local` starts Claude only; codex and agy need the launcher's own
+    # runner blocks (tmux, launch.sh, commit + push of the branch). On the Mac
+    # a local agy task still goes to `_spawn_local`; claude always does.
+    local_launcher = (resolved_host == this_host
+                      and resolved_runner != "claude"
+                      and sys.platform.startswith("linux"))
+    if resolved_host != this_host or local_launcher:
         db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
         try:
-            return await _spawn_remote(task, resolved_host, dry_run=dry_run)
+            return await _spawn_remote(task, resolved_host, dry_run=dry_run,
+                                       local=local_launcher)
         except Exception as e:
             if touches:
                 db.release_task_locks(task_id, project_key)
