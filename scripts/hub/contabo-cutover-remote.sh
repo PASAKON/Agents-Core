@@ -86,10 +86,23 @@ set -a; . "$ENVF"; set +a
 
 echo "== step 5: import this box's registry rows into the hub =="
 if [ -f state/tasks.db ]; then
-  .venv/bin/python scripts/migrate_tasks_db.py --from state/tasks.db --to "$ORG_DB_URL" --apply
+  # This is the SECOND ledger (the hub already holds the Mac's ~1108 tasks
+  # from cutover-mac.sh's step 3) -- --default-host contabo backfills this
+  # box's rows instead of the Mac's, and --append-events drops the source
+  # events.id so it can never collide with the Mac's already-imported ids
+  # (module docstring, docs/design/tasks-db-hub.md §3.3). --on-collision is
+  # deliberately left unset: migrate_tasks_db.py refuses --apply by default
+  # when a task/c_level_sessions row's key exists on both sides with
+  # differing data, which is exactly what should stop this cutover for a
+  # human instead of silently picking a side.
+  .venv/bin/python scripts/migrate_tasks_db.py --from state/tasks.db --to "$ORG_DB_URL" --apply --default-host contabo --append-events
 
-  echo "== step 5b: verify row counts (sqlite before vs postgres after) =="
-  .venv/bin/python scripts/hub/verify_migration_counts.py --sqlite state/tasks.db --pg "$ORG_DB_URL"
+  echo "== step 5b: verify no data lost (sqlite is a SUBSET of postgres) =="
+  # Not --mode equal: the target already holds the Mac's rows too, so
+  # postgres = mac + contabo and a byte-for-byte count match can never hold
+  # for this second ledger (task brief). --mode subset instead checks every
+  # sqlite row is present in postgres, extra target rows and all.
+  .venv/bin/python scripts/hub/verify_migration_counts.py --sqlite state/tasks.db --pg "$ORG_DB_URL" --mode subset
 else
   echo "no state/tasks.db here (already archived?) -- skipping import"
 fi
