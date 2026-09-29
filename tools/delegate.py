@@ -1493,6 +1493,27 @@ async def _spawn_remote(task: dict, host_name: str, *,
     return db.get_task(task_id)
 
 
+def _route_runner(task: dict, role_name: str, host: str) -> str | None:
+    try:
+        if (task.get("runner")
+                or (task.get("model_hint") or "").strip().lower() == "claude"
+                or os.environ.get("ORG_ROUTER", "").strip().lower() == "off"):
+            return None
+        from tools import route
+
+        choice = route.pick_runner(role_name, host)
+        if choice is None:
+            return None
+        line = f"router: {choice.runner} — {choice.reason}"
+        db.update_status(task["id"], task["status"], runner=choice.runner,
+                         delegate_log=line, actor="cto")
+        info(line)
+        return choice.runner
+    except Exception as e:
+        warn(f"router skipped task={task.get('id')}: {e}")
+        return None
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
                          kickoff: str | None = None,
@@ -1652,6 +1673,10 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     proj = get_project(project_key)
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
+
+    routed = _route_runner(task, role_name, resolved_host)
+    if routed:
+        task["runner"] = routed
 
     # Runner pre-flight (task-adbc6f43): reject an unknown/unavailable runner
     # loudly, here, before any worktree/ssh/iTerm work starts — not discovered
