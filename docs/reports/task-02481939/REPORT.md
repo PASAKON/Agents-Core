@@ -37,7 +37,7 @@ re-implemented. `runners/mac_agent.py` is untouched.
    `host=<self>`, so the local launcher is chosen; the ssh path is not reachable from
    here. Not verified against a live Contabo (ADR 0021: no ssh in tests).
 4. **`probe` writes only probe fields** through `upsert_host` (version, running,
-   free_gb, probed_at). It leaves `os`, `agents_root`, `max_workers` and the join-state
+   free_gb, ram_free_gb, probed_at). It leaves `os`, `agents_root`, `max_workers` and the join-state
    `status` alone.
 5. **`deliver_letter` is idempotent by row status.** A second call returns
    `already_delivered` before touching the mailbox, the wake, or the attempts counter.
