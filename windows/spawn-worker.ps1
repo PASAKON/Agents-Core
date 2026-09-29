@@ -199,10 +199,21 @@ try {
     }
     $excludeLines = @()
     if (Test-Path $excludePath) { $excludeLines = @(Get-Content -Path $excludePath -Encoding ASCII) }
-    $toAdd = @('HEARTBEAT', 'MAILBOX.md') | Where-Object { $excludeLines -notcontains $_ }
+    # W0.6: plus every name a codex/agy run must never commit (note below).
+    $toAdd = @('HEARTBEAT', 'MAILBOX.md', '.worker.pid', '.worker.json', '/TASK.md',
+               '/.org-task.json', '/.org-worker.mcp.json', '/CTO-FEEDBACK.md', '/*.log') |
+        Where-Object { $excludeLines -notcontains $_ }
     if ($toAdd.Count -gt 0) {
         Add-Content -Path $excludePath -Value $toAdd -Encoding ASCII
     }
+    # W0.6 note: the codex/agy launcher below runs `git add -A` after the CLI
+    # exits, so the launcher's own .worker.pid/.worker.json, the CTO's scratch
+    # file and logs are excluded above. Root files are anchored with '/' -- an
+    # unanchored REPORT.md would also hide docs/reports/<task>/REPORT.md. Root
+    # REPORT.md/BLOCKER.md are NOT listed: info/exclude is shared by every
+    # worktree of this clone and claude workers commit those two through
+    # `git add -A`; the codex/agy launcher resets them itself instead (see
+    # New-ReportStepBody below).
 
     # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
     if ($TaskFile -and (Test-Path $TaskFile)) {
@@ -260,6 +271,77 @@ try {
     $stName = "mooniex-worker-" + $Task
     $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
+
+    # W0.6 (runner-routing contract): the tail every codex/agy launch.ps1 ends
+    # with, after the CLI has exited and `$cliExit is set. Returns the runtime
+    # code as text: (1) make sure docs/reports/<task>/REPORT.md exists with the
+    # '# REPORT <task>' first line -- kept when the worker wrote it, else a root
+    # REPORT.md is moved there (header prepended if missing), else it is built
+    # from the runner's final message; (2) `git add -A`, then `git reset` the
+    # never-commit files as a second guard behind info/exclude; (3) commit
+    # (the report alone is a commit) and push. $finalMsg = codex's -o file,
+    # $logTail = agy's events log; the other is ''. `$x below is runtime,
+    # $x is filled in now. Files are written as UTF-8 WITHOUT a BOM: Set-Content
+    # -Encoding UTF8 emits one on PS5.1 and branch_poller would then read
+    # '<BOM># REPORT task-...' as a header mismatch.
+    function New-ReportStepBody([string]$finalMsg, [string]$logTail) {
+        return @"
+`$noBom = New-Object System.Text.UTF8Encoding `$false
+`$hdr = '# REPORT $Task'
+`$nl = [string][char]10
+`$reportDir = Join-Path '$wt' 'docs\reports\$Task'
+`$reportPath = Join-Path `$reportDir 'REPORT.md'
+`$rootReport = Join-Path '$wt' 'REPORT.md'
+`$finalMsgPath = '$finalMsg'
+`$logTailPath = '$logTail'
+New-Item -ItemType Directory -Force -Path `$reportDir | Out-Null
+function Test-ReportHdr([string]`$p) {
+    if (-not (Test-Path -LiteralPath `$p)) { return `$false }
+    `$txt = [System.IO.File]::ReadAllText(`$p, `$noBom)
+    if (-not `$txt.Trim()) { return `$false }
+    return ((`$txt -split '\r?\n')[0].TrimEnd() -eq `$hdr)
+}
+function Test-NonEmpty([string]`$p) {
+    return ((Test-Path -LiteralPath `$p) -and ((Get-Item -LiteralPath `$p).Length -gt 0))
+}
+function Add-ReportHdr([string]`$p) {
+    `$body = [System.IO.File]::ReadAllText(`$p, `$noBom)
+    [System.IO.File]::WriteAllText(`$p, (`$hdr + `$nl + `$nl + `$body), `$noBom)
+}
+if (Test-ReportHdr `$reportPath) {
+    # the worker already wrote its report where it belongs
+}
+elseif (Test-NonEmpty `$rootReport) {
+    git -C '$wt' ls-files --error-unmatch REPORT.md *> `$null
+    if (`$LASTEXITCODE -eq 0) { git -C '$wt' mv -f REPORT.md 'docs/reports/$Task/REPORT.md' }
+    else { Move-Item -LiteralPath `$rootReport -Destination `$reportPath -Force }
+    if ((Test-NonEmpty `$reportPath) -and -not (Test-ReportHdr `$reportPath)) { Add-ReportHdr `$reportPath }
+}
+elseif (Test-NonEmpty `$reportPath) {
+    Add-ReportHdr `$reportPath
+}
+if (-not (Test-NonEmpty `$reportPath)) {
+    `$msg = ''
+    if (`$finalMsgPath -and (Test-Path -LiteralPath `$finalMsgPath)) {
+        `$msg = [System.IO.File]::ReadAllText(`$finalMsgPath, `$noBom)
+    }
+    elseif (`$logTailPath -and (Test-Path -LiteralPath `$logTailPath)) {
+        `$msg = (@(Get-Content -LiteralPath `$logTailPath -Tail 200) -join `$nl)
+    }
+    if (-not `$msg -or -not `$msg.Trim()) { `$msg = 'no final message; exit=' + `$cliExit }
+    `$text = `$hdr + `$nl + `$nl + 'Runner: $Runner' + `$nl + 'Exit code: ' + `$cliExit + `$nl + `$nl + `$msg + `$nl
+    [System.IO.File]::WriteAllText(`$reportPath, `$text, `$noBom)
+}
+
+git -C '$wt' add -A
+git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md ':(glob)*.log'
+git -C '$wt' diff --cached --quiet
+if (`$LASTEXITCODE -ne 0) {
+    git -C '$wt' commit -q -m "${Runner}: task $Task"
+}
+git -C '$wt' push -q origin $Branch
+"@
+    }
 
     if ($Runner -eq 'claude') {
         # Prompt goes first (positional), --allowed-tools (inside
@@ -392,13 +474,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
         # artefact lib/artefact_gate.py actually reads (turn.completed /
         # turn.failed events). The EXITCODE line is diagnostic only, same
         # convention windows/s1probe.ps1 already uses.
+        #
+        # W0.6: after codex exits, THE HUB (this launcher, not codex) puts the
+        # report at docs/reports/<task>/REPORT.md and commits + pushes -- the
+        # codex-final.txt message becomes the report when codex wrote none.
+        # A stale message from an earlier launch of this task is removed first.
+        $reportStepBody = New-ReportStepBody $codexFinalMsg ''
         $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$exe = '$codexExe'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
+Remove-Item -LiteralPath '$codexFinalMsg' -Force -ErrorAction SilentlyContinue
 & `$exe @argArray *> '$codexJsonLog'
-"EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$codexJsonLog'
+`$cliExit = `$LASTEXITCODE
+"EXITCODE=`$cliExit" | Add-Content -Path '$codexJsonLog'
+
+$reportStepBody
 exit 0
 "@
         Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
@@ -476,10 +568,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 
         # §6b: THE HUB commits and pushes here, in this generated launcher,
         # immediately after agy's own process exits -- agy itself never runs
-        # git. `$reportPath`/`$fallbackLines`/`$dirty` below are evaluated by
-        # THIS LAUNCHER at ITS OWN runtime (backtick-escaped so this outer
-        # script does not evaluate them now); `$wt`/`$Task`/`$Branch` are
-        # this outer script's own known-now values, interpolated directly.
+        # git. W0.6: the hub, not agy, also guarantees the report exists at
+        # docs/reports/<task>/REPORT.md with the header branch_poller
+        # requires -- agy is only ASKED for a REPORT.md (optional, best-effort,
+        # a root REPORT.md is accepted and moved), never relied on to get it
+        # right; with none written the report is built from the tail of
+        # agy-events.log. `$x inside the body below is evaluated by THIS
+        # LAUNCHER at ITS OWN runtime (backtick-escaped so this outer script
+        # does not evaluate it now); $wt/$Task/$Branch are known-now values.
+        $reportStepBody = New-ReportStepBody '' $agyLog
         $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
@@ -489,44 +586,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 # piping `$null` in is the equivalent of the proven `< /dev/null`
 # (docs/ops/agent-runners.md §6) that keeps agy from blocking on stdin.
 `$null | & `$exe @argArray *> '$agyLog'
-"EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$agyLog'
+`$cliExit = `$LASTEXITCODE
+"EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'
 
-# The hub, not agy, guarantees REPORT.md exists with the header
-# branch_poller._header_task_id requires -- agy was only ASKED to write one
-# (optional, best-effort), never relied on to get the header exactly right.
-`$reportPath = Join-Path '$wt' 'REPORT.md'
-`$hasValidReport = `$false
-if (Test-Path `$reportPath) {
-    `$firstLine = Get-Content -Path `$reportPath -Encoding UTF8 |
-        Where-Object { `$_.Trim() -ne '' } | Select-Object -First 1
-    if (`$firstLine -match '^#\s*REPORT\s+$Task\s*`$') { `$hasValidReport = `$true }
-}
-if (-not `$hasValidReport) {
-    `$fallbackLines = @(
-        '# REPORT $Task',
-        '',
-        '## Summary',
-        'agy (edit-only run) finished; no REPORT.md written by the agent -- see agy-events.log for detail.',
-        '',
-        '## Files Changed',
-        '- see git diff on this branch',
-        '',
-        '## Tests',
-        '- not run by agy (hub-only, by design) -- the artefact gate runs them separately',
-        '',
-        '## Issues / Blockers',
-        '- agy did not produce a valid REPORT.md itself; this is a hub-generated fallback'
-    )
-    Set-Content -Path `$reportPath -Value `$fallbackLines -Encoding UTF8
-}
-
-# The hub commits and pushes -- agy structurally cannot (§6b).
-`$dirty = git -C '$wt' status --porcelain
-if (`$dirty) {
-    git -C '$wt' add -A
-    git -C '$wt' commit -q -m "agy: task $Task"
-    git -C '$wt' push -q origin $Branch
-}
+$reportStepBody
 exit 0
 "@
         Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8

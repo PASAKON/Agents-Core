@@ -171,7 +171,7 @@ def test_script_source_checks_commit_logic():
     code = SCRIPT.read_text(encoding="utf-8")
 
     # Codex commit logic
-    assert "git status --porcelain" in code
+    assert "git diff --cached --quiet" in code
     assert "codex: task $TASK" in code
     assert "git push" in code
 

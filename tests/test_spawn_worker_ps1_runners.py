@@ -191,47 +191,135 @@ def test_agy_prompt_forbids_shell_and_names_the_edit_tool():
     assert "commit, push, run tests" in agy_branch
 
 
+def _report_step_body() -> str:
+    """The runtime text New-ReportStepBody (W0.6) hands to BOTH the codex and
+    the agy launch.ps1 -- everything between its definition and the runner
+    dispatch."""
+    text = _text()
+    start = text.index("function New-ReportStepBody")
+    return text[start:text.index("if ($Runner -eq 'claude')", start)]
+
+
 def test_agy_launcher_has_the_hub_commit_push_not_the_agent():
     """§6b's core fix: THE HUB commits and pushes agy's edits, in the
     generated launcher, after agy's own process exits -- agy structurally
-    cannot do this itself. Must appear AFTER the agy invocation line, not
-    before (agy has to finish editing first)."""
+    cannot do this itself. W0.6: the commit/push text lives in
+    New-ReportStepBody and the agy launcher embeds it AFTER the agy
+    invocation (agy has to finish editing first); staging comes first, then
+    the reset guard, then the commit, then the push."""
     text = _text()
     agy_start = text.index("else {\n        # agy")
     agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
     invoke_idx = agy_branch.index("$null | & `$exe @argArray")
-    commit_idx = agy_branch.index("git -C '$wt' commit")
-    push_idx = agy_branch.index("git -C '$wt' push")
-    assert invoke_idx < commit_idx < push_idx
-    assert "git -C '$wt' status --porcelain" in agy_branch
+    embed_idx = agy_branch.index("$reportStepBody\nexit 0")
+    assert invoke_idx < embed_idx
+    assert "New-ReportStepBody '' $agyLog" in agy_branch
+
+    body = _report_step_body()
+    add_idx = body.index("git -C '$wt' add -A")
+    reset_idx = body.index("git -C '$wt' reset -q --")
+    commit_idx = body.index("git -C '$wt' commit")
+    push_idx = body.index("git -C '$wt' push")
+    assert add_idx < reset_idx < commit_idx < push_idx
+    assert 'commit -q -m "${Runner}: task $Task"' in body
 
 
-def test_agy_launcher_only_commits_when_something_changed():
-    """A run where agy planned nothing (or its one shell-touching plan
-    abandoned every edit, per §6b) must not push an empty commit -- `git
-    commit` would itself fail noisily, and an empty branch is exactly the
-    'nothing to trust' case the artefact gate must see as never pushed."""
-    text = _text()
-    agy_start = text.index("else {\n        # agy")
-    agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
-    dirty_idx = agy_branch.index("$dirty = git -C '$wt' status --porcelain")
-    if_idx = agy_branch.index("if (`$dirty)", dirty_idx)
-    commit_idx = agy_branch.index("git -C '$wt' commit", if_idx)
-    assert dirty_idx < if_idx < commit_idx
+def test_agy_launcher_only_commits_when_something_staged():
+    """W0.6: the report alone is a commit, so the commit is gated on the
+    STAGED diff (git diff --cached), not on `git status` of the worktree --
+    a run that changed no code still commits its report; a run whose report
+    is already identical to HEAD does not make an empty commit."""
+    body = _report_step_body()
+    diff_idx = body.index("git -C '$wt' diff --cached --quiet")
+    if_idx = body.index("if (`$LASTEXITCODE -ne 0)", diff_idx)
+    commit_idx = body.index("git -C '$wt' commit", if_idx)
+    assert diff_idx < if_idx < commit_idx
+    assert "status --porcelain" not in body
 
 
 def test_agy_launcher_guarantees_a_valid_report_md_header():
-    """The hub, not agy, guarantees REPORT.md carries the exact header
+    """The hub, not agy, guarantees the report exists at
+    docs/reports/<task>/REPORT.md carrying the exact header
     branch_poller._header_task_id requires (`# REPORT <task_id>`) -- agy is
     only ever ASKED for one (optional, best-effort, via its file-editing
     tool), never relied on to get the header right."""
     text = _text()
     agy_start = text.index("else {\n        # agy")
     agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
-    assert "REPORT.md" in agy_branch
-    assert "hasValidReport" in agy_branch
-    assert "'# REPORT $Task'" in agy_branch
-    assert "fallbackLines" in agy_branch
+    assert "REPORT.md" in agy_branch  # the prompt still ASKS agy for one
+
+    body = _report_step_body()
+    assert "docs\\reports\\$Task" in body
+    assert "'# REPORT $Task'" in body
+    assert "Test-ReportHdr" in body and "Add-ReportHdr" in body
+    # a worker's own report is kept, a root one is moved (git mv when tracked)
+    assert "ls-files --error-unmatch REPORT.md" in body
+    assert "mv -f REPORT.md 'docs/reports/$Task/REPORT.md'" in body
+    assert "Move-Item -LiteralPath `$rootReport -Destination `$reportPath" in body
+    # built from the runner's final message when there is no report at all
+    assert "Runner: $Runner" in body
+    assert "no final message; exit=" in body
+    assert "-Tail 200" in body
+
+
+def test_report_step_writes_utf8_without_bom():
+    """Set-Content -Encoding UTF8 emits a BOM on PS5.1; branch_poller would
+    then read '<BOM># REPORT task-...' as a header mismatch. Every write of the
+    report goes through [System.IO.File]::WriteAllText + UTF8Encoding($false)."""
+    body = _report_step_body()
+    assert "UTF8Encoding `$false" in body
+    assert "WriteAllText" in body
+    assert "Set-Content" not in body
+
+
+def test_report_step_shared_by_codex_and_agy_launchers():
+    """W0.6: BOTH headless runners end with the report step (codex used to end
+    with no commit at all on winbox), each fed its own final-message source;
+    the exit status is captured right after the CLI, before anything else."""
+    text = _text()
+    codex_start = text.index("elseif ($Runner -eq 'codex')")
+    agy_start = text.index("else {\n        # agy")
+    codex_branch = text[codex_start:agy_start]
+    agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
+
+    assert "New-ReportStepBody $codexFinalMsg ''" in codex_branch
+    assert "$reportStepBody\nexit 0" in codex_branch
+    assert "`$cliExit = `$LASTEXITCODE" in codex_branch
+    assert codex_branch.index("& `$exe @argArray *> '$codexJsonLog'") < codex_branch.index("`$cliExit = `$LASTEXITCODE")
+    assert "Remove-Item -LiteralPath '$codexFinalMsg'" in codex_branch  # no stale message
+
+    assert "`$cliExit = `$LASTEXITCODE" in agy_branch
+    # claude's launcher is untouched by the report step
+    claude_branch = text[text.index("if ($Runner -eq 'claude')"):codex_start]
+    assert "ReportStepBody" not in claude_branch
+    assert "docs/reports" not in claude_branch
+
+
+def test_report_step_resets_the_never_commit_files():
+    """Second guard behind info/exclude: after `git add -A`, `git reset` every
+    file a run must never commit."""
+    body = _report_step_body()
+    reset_line = next(ln for ln in body.splitlines() if "reset -q --" in ln)
+    for name in (".worker.pid", ".worker.json", "TASK.md", ".org-task.json",
+                 ".org-worker.mcp.json", "CTO-FEEDBACK.md", "REPORT.md",
+                 "BLOCKER.md", ":(glob)*.log"):
+        assert name in reset_line, f"{name!r} missing from the git reset guard"
+
+
+def test_info_exclude_lists_never_commit_names_anchored_and_spares_root_reports():
+    """W0.6: the shared clone-level info/exclude gains the launcher's
+    bookkeeping names. Root files are anchored with '/' (an unanchored
+    REPORT.md would also hide docs/reports/<task>/REPORT.md), and root
+    REPORT.md/BLOCKER.md are NOT excluded there -- info/exclude is shared with
+    claude workers, who commit those two through `git add -A`."""
+    text = _text()
+    start = text.index("$toAdd = @(")
+    listing = text[start:text.index("Where-Object", start)]
+    for name in ("'.worker.pid'", "'.worker.json'", "'/TASK.md'", "'/.org-task.json'",
+                 "'/.org-worker.mcp.json'", "'/CTO-FEEDBACK.md'", "'/*.log'"):
+        assert name in listing, f"{name} not in the info/exclude list"
+    assert "REPORT.md" not in listing
+    assert "BLOCKER.md" not in listing
 
 
 def test_agy_uses_pipe_not_angle_bracket_for_stdin():

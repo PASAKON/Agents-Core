@@ -38,6 +38,10 @@ DRY_RUN=0
 TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
 TASK_META_B64=""
+# ORG_HOST the worker runs under (W0.6): `contabo` is what the only caller
+# passes today (no flag); a hub that spawns codex/agy on another Linux box
+# passes its own name here instead of inheriting a hard-coded one.
+ORG_HOST="contabo"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -55,6 +59,7 @@ while [ $# -gt 0 ]; do
     --session-name) SESSION_NAME="$2"; shift 2 ;;
     --runner) RUNNER="$2"; shift 2 ;;
     --task-meta-b64) TASK_META_B64="$2"; shift 2 ;;
+    --org-host) ORG_HOST="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     *) echo "spawn-worker-remote.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -70,6 +75,15 @@ if [ -z "$TASK" ] || [ -z "$PROJECT" ] || [ -z "$ROLE" ] || [ -z "$BRANCH" ] \
   echo "spawn-worker-remote.sh: missing required flag(s)" >&2
   exit 2
 fi
+
+# ORG_HOST lands unquoted in the generated launch.sh (`export ORG_HOST=<name>`),
+# so it is checked here at the trust boundary, not quoted later.
+case "$ORG_HOST" in
+  ''|*[!A-Za-z0-9._-]*)
+    echo "spawn-worker-remote.sh: --org-host '$ORG_HOST' must match [A-Za-z0-9._-]+" >&2
+    exit 2
+    ;;
+esac
 
 case "$RUNNER" in
   claude|codex|agy) ;;
@@ -97,6 +111,20 @@ CODEX_FINAL_MSG="$LAUNCH_DIR/codex-final.txt"
 CODEX_TRANSCRIPT="$LAUNCH_DIR/codex-events.jsonl"
 AGY_LOG="$LAUNCH_DIR/agy-events.log"
 
+# Files a codex/agy run must never put on the branch (W0.6): the launcher's own
+# bookkeeping, the CTO's scratch file, logs, and a ROOT REPORT.md/BLOCKER.md
+# (the report goes to docs/reports/<task-id>/REPORT.md instead). Two guards:
+# ANCHORED_EXCLUDES go into the clone's info/exclude, GIT_RESET_GUARD is
+# `git reset`-ed after `git add -A` in the generated launch.sh.
+#  - Every exclude line starts with '/' where it names a root file: an
+#    unanchored `REPORT.md` would also hide docs/reports/<id>/REPORT.md.
+#  - REPORT.md/BLOCKER.md are NOT in ANCHORED_EXCLUDES: info/exclude is shared
+#    by every worktree of the clone, and claude workers here commit a root
+#    REPORT.md/BLOCKER.md through `git add -A` (roles/_worker_remote.md). Only
+#    the codex/agy launch.sh, which runs solely for those runners, resets them.
+ANCHORED_EXCLUDES=".worker.pid /TASK.md /.org-task.json /.org-worker.mcp.json /CTO-FEEDBACK.md /*.log"
+GIT_RESET_GUARD=".worker.pid TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md :(glob)*.log"
+
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] task=$TASK project=$PROJECT role=$ROLE branch=$BRANCH base=$BASE"
   echo "[dry-run] repo_url=$REPO_URL repo_path=$REPO_PATH"
@@ -115,10 +143,16 @@ if [ "$DRY_RUN" -eq 1 ]; then
     CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
     echo "[dry-run] cmd=$CODEX_CMD"
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
+    echo "[dry-run] org_host=$ORG_HOST"
+    echo "[dry-run] report_step: after codex exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from $CODEX_FINAL_MSG (header, 'Runner: codex', exit code, text; 'no final message; exit=<n>' when empty)"
+    echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
   elif [ "$RUNNER" = "agy" ]; then
     AGY_CMD="/root/.local/bin/agy -p \"\$(cat TASK.md)\" --model gemini-3.8-flash-high --mode accept-edits --add-dir \"$WT\" < /dev/null >> $AGY_LOG 2>&1"
     echo "[dry-run] cmd=$AGY_CMD"
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running agy>"
+    echo "[dry-run] org_host=$ORG_HOST"
+    echo "[dry-run] report_step: after agy exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from the last 200 lines of $AGY_LOG (header, 'Runner: agy', exit code, text; 'no final message; exit=<n>' when empty)"
+    echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
   fi
   exit 0
 fi
@@ -187,9 +221,14 @@ mkdir -p "$(dirname "$EXCLUDE_FILE")"
 touch "$EXCLUDE_FILE"
 # .worker.pid too: the codex/agy launch.sh runs `git add -A` after the CLI
 # exits, and swept it into the branch commit (task-419e6c8c, 2026-09-29).
-for name in HEARTBEAT MAILBOX.md .worker.pid; do
+# W0.6: the rest of ANCHORED_EXCLUDES (see its comment above) -- launcher
+# bookkeeping, CTO scratch, logs. `set -f`: the '/*.log' entry must reach
+# the file as text, not be glob-expanded here.
+set -f
+for name in HEARTBEAT MAILBOX.md $ANCHORED_EXCLUDES; do
   grep -qxF "$name" "$EXCLUDE_FILE" 2>/dev/null || echo "$name" >> "$EXCLUDE_FILE"
 done
+set +f
 
 # --- 2b. Sidecar (GH #180, task-378523bb): the hub already knows this
 # task's declared touches at spawn time -- write them straight into the
@@ -332,11 +371,73 @@ TMUX_BIN=$(command -v tmux || echo tmux)
 # job, so a box that hasn't been set up yet just keeps using system Node.
 NODE22_BIN="$AGENTS_ROOT/.tools/node/bin"
 
+# W0.6 -- the tail every codex/agy launch.sh ends with, after the CLI exits
+# and its exit status is in $CLI_RC: make sure the run's report sits at
+# docs/reports/<task-id>/REPORT.md, stage everything except the never-commit
+# files, commit, push. $1 runner name, $2 codex final-message file (or ''),
+# $3 agy events log (or ''), $4 extra `git -c ...` identity args (or ''),
+# $5 commit message.
+# Task/branch/runner values are sh_quote-d assignments; the body is a quoted
+# heredoc, so nothing in it is expanded when launch.sh is WRITTEN.
+emit_report_commit_push() {
+  printf 'TASK_ID=%s\n' "$(sh_quote "$TASK")"
+  printf 'BRANCH_NAME=%s\n' "$(sh_quote "$BRANCH")"
+  printf 'RUNNER_NAME=%s\n' "$(sh_quote "$1")"
+  printf 'FINAL_MSG=%s\n' "$(sh_quote "$2")"
+  printf 'LOG_TAIL=%s\n' "$(sh_quote "$3")"
+  printf 'GIT_ID_ARGS=%s\n' "$(sh_quote "$4")"
+  printf 'COMMIT_MSG=%s\n' "$(sh_quote "$5")"
+  printf 'GIT_RESET_GUARD=%s\n' "$(sh_quote "$GIT_RESET_GUARD")"
+  cat <<'REPORT_STEP_EOF'
+R_DIR="docs/reports/$TASK_ID"
+R="$R_DIR/REPORT.md"
+HDR="# REPORT $TASK_ID"
+mkdir -p "$R_DIR"
+has_hdr() { [ -s "$1" ] && [ "$(head -n 1 "$1" | tr -d '\r')" = "$HDR" ]; }
+put_hdr() { { printf '%s\n\n' "$HDR"; cat "$1"; } > "$1.hdr" && mv -f "$1.hdr" "$1"; }
+build_report() {
+  {
+    printf '%s\n\n' "$HDR"
+    printf 'Runner: %s\n' "$RUNNER_NAME"
+    printf 'Exit code: %s\n\n' "$CLI_RC"
+    if [ -n "$FINAL_MSG" ] && [ -s "$FINAL_MSG" ]; then
+      cat "$FINAL_MSG"
+    elif [ -n "$LOG_TAIL" ] && [ -s "$LOG_TAIL" ]; then
+      tail -n 200 "$LOG_TAIL"
+    else
+      printf 'no final message; exit=%s\n' "$CLI_RC"
+    fi
+  } > "$R"
+}
+if has_hdr "$R"; then
+  :
+elif [ -s REPORT.md ]; then
+  if git ls-files --error-unmatch REPORT.md >/dev/null 2>&1; then
+    git mv -f REPORT.md "$R"
+  else
+    mv -f REPORT.md "$R"
+  fi
+  has_hdr "$R" || { [ -s "$R" ] && put_hdr "$R"; }
+elif [ -s "$R" ]; then
+  put_hdr "$R"
+fi
+[ -s "$R" ] || build_report
+git add -A
+set -f
+git reset -q -- $GIT_RESET_GUARD 2>/dev/null || true
+set +f
+if ! git diff --cached --quiet; then
+  git $GIT_ID_ARGS commit -q -m "$COMMIT_MSG"
+fi
+git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
+REPORT_STEP_EOF
+}
+
 LAUNCH_SH="$LAUNCH_DIR/launch.sh"
 if [ "$RUNNER" = "claude" ]; then
   {
     echo '#!/bin/sh'
-    printf 'export ORG_HOST=contabo\n'
+    printf 'export ORG_HOST=%s\n' "$ORG_HOST"
     printf 'export ORG_WORKER_FINISH=%s\n' \
       "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
     printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
@@ -351,44 +452,40 @@ if [ "$RUNNER" = "claude" ]; then
 elif [ "$RUNNER" = "codex" ]; then
   {
     echo '#!/bin/sh'
-    printf 'export ORG_HOST=contabo\n'
+    printf 'export ORG_HOST=%s\n' "$ORG_HOST"
     printf 'export ORG_WORKER_FINISH=%s\n' \
       "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
     printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
       "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
     printf 'cd %s || exit 1\n' "$(sh_quote "$WT")"
+    # A final message left by an earlier launch of this same task must not be
+    # read back as this run's message.
+    printf 'rm -f %s\n' "$(sh_quote "$CODEX_FINAL_MSG")"
     printf 'codex exec "$(cat TASK.md)" -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
       "$(sh_quote "$WT")" \
       "$(sh_quote "$CODEX_FINAL_MSG")" \
       "$(sh_quote "$CODEX_TRANSCRIPT")"
-    printf 'if [ -n "$(git status --porcelain)" ]; then\n'
-    printf '  git add -A\n'
-    printf '  git commit -m %s\n' "$(sh_quote "codex: task $TASK")"
-    printf 'fi\n'
-    printf 'git push -u origin %s || git push origin %s || true\n' \
-      "$(sh_quote "$BRANCH")" "$(sh_quote "$BRANCH")"
+    printf 'CLI_RC=$?\n'
+    emit_report_commit_push codex "$CODEX_FINAL_MSG" "" "" "codex: task $TASK"
   } > "$LAUNCH_SH"
 elif [ "$RUNNER" = "agy" ]; then
   {
     echo '#!/bin/sh'
-    printf 'export ORG_HOST=contabo\n'
+    printf 'export ORG_HOST=%s\n' "$ORG_HOST"
     printf 'export ORG_WORKER_FINISH=%s\n' \
       "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
     printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
       "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
     printf 'cd %s || exit 1\n' "$(sh_quote "$WT")"
-    printf '/root/.local/bin/agy -p "$(cat TASK.md)" --model gemini-3.8-flash-high --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
+    # $AGY_BIN is what the probe above resolved (/root/.local/bin/agy first, so
+    # Contabo runs the same binary as before); it used to be resolved and then
+    # ignored in favour of the literal path.
+    printf '%s -p "$(cat TASK.md)" --model gemini-3.8-flash-high --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
+      "$(sh_quote "$AGY_BIN")" \
       "$(sh_quote "$WT")" \
       "$(sh_quote "$AGY_LOG")"
-    printf 'git add -A\n'
-    printf 'git reset -q -- %s REPORT.md 2>/dev/null || git reset -q -- REPORT.md 2>/dev/null || true\n' \
-      "$(sh_quote "$AGY_LOG")"
-    printf 'if ! git diff --cached --quiet; then\n'
-    printf '  git -c user.name=agy-worker -c user.email=agy-worker@localhost commit -q -m %s\n' \
-      "$(sh_quote "agy: task $TASK")"
-    printf '  git push -u origin %s || git push origin %s || true\n' \
-      "$(sh_quote "$BRANCH")" "$(sh_quote "$BRANCH")"
-    printf 'fi\n'
+    printf 'CLI_RC=$?\n'
+    emit_report_commit_push agy "" "$AGY_LOG" "-c user.name=agy-worker -c user.email=agy-worker@localhost" "agy: task $TASK"
   } > "$LAUNCH_SH"
 fi
 chmod +x "$LAUNCH_SH"
