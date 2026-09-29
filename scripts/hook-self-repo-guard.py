@@ -98,20 +98,16 @@ class GuardError(Exception):
     """Raised when the guard cannot decide. Always becomes a refusal."""
 
 
-class HubUnreachable(Exception):
-    """ORG_DB_URL is set and the registry could not even be connected to
-    within HUB_TIMEOUT_S. Handled as fail-OPEN by decide() -- distinct from
-    GuardError (fail-CLOSED), which stays for every case where the hub
-    answered but something about the data was wrong (see load_touches)."""
-
-
 class ArchivedHub(Exception):
     """The canonical tasks.db is a directory (scripts/hub/cutover-mac.sh
     step 5 tombstones it there once the hub cutover is done). This session
     predates the cutover and hasn't been restarted onto ORG_DB_URL yet.
-    Handled as fail-OPEN by decide(), same shape as HubUnreachable --
-    refusing every Edit/Write/Bash until a human restarts the session is
-    not this guard's job."""
+    Handled as fail-OPEN by decide() -- refusing every Edit/Write/Bash until
+    a human restarts the session is not this guard's job. Distinct from
+    db_lib.HubUnavailable (Org Mesh W1.7): a hub that's merely unreachable
+    now falls back to a local read-only snapshot transparently (lib.db), so
+    it no longer needs -- or gets -- special fail-open treatment here; see
+    load_touches."""
 
 
 # --------------------------------------------------------------------------
@@ -208,11 +204,17 @@ def load_touches_for(root: Path, task_id: str) -> list[str]:
 
 def load_touches(db: Path, task_id: str) -> list[str]:
     """Declared touches for `task_id`. Raises GuardError on any doubt --
-    fails CLOSED, this hook's original contract -- once a connection to the
-    registry actually exists. Raises HubUnreachable instead when ORG_DB_URL
-    is set and the registry could not even be connected to within
-    HUB_TIMEOUT_S; the caller (decide()) treats that one case as fail-OPEN
-    (docs/design/tasks-db-hub.md #2) rather than a refusal.
+    fails CLOSED, this hook's original contract.
+
+    Org Mesh W1.7: db_lib.get_conn() itself now falls back to a local
+    read-only snapshot when ORG_DB_URL is set but the hub can't be reached
+    (docs/design/org-mesh.md), so a merely-unreachable hub no longer needs
+    special handling here -- it reads through exactly like a normal
+    connection. The only new case is db_lib.HubUnavailable: the hub is down
+    AND there is no usable snapshot either, i.e. the touches genuinely
+    cannot be read from either place -- that fails CLOSED like any other
+    GuardError, not open. (An ArchivedDB sentinel is a different, unrelated
+    situation -- see ArchivedHub above.)
 
     `db` is passed explicitly (db_path_for(root), this DEV worktree's own
     checkout) rather than trusting this process's ORG_ROOT/__file__
@@ -221,18 +223,19 @@ def load_touches(db: Path, task_id: str) -> list[str]:
     path); under Postgres it is ignored, since ORG_DB_URL names one global
     registry regardless of which checkout asks (see lib.db.get_conn).
     """
-    connected = False
     try:
         with db_lib.get_conn(path=db, readonly=True, timeout=HUB_TIMEOUT_S) as conn:
-            connected = True
             row = conn.execute(
                 "SELECT touches FROM tasks WHERE id=?", (task_id,)
             ).fetchone()
     except db_lib.ArchivedDB as exc:
         raise ArchivedHub(str(exc)) from exc
+    except db_lib.HubUnavailable as exc:
+        raise GuardError(
+            f"cannot read touches for {task_id} from the hub or its "
+            f"read-only snapshot: {exc}"
+        ) from exc
     except Exception as exc:              # noqa: BLE001 — any failure = refuse
-        if not connected and os.environ.get("ORG_DB_URL", "").strip():
-            raise HubUnreachable(str(exc)) from exc
         if not db.exists():
             raise GuardError(f"tasks.db not found at {db}") from exc
         raise GuardError(f"cannot read {db}: {exc}") from exc
@@ -514,10 +517,6 @@ def decide(event: dict | None, *, cwd: str | None = None,
     try:
         task_id = task_id_of(root)
         touches = load_touches_for(root, task_id)
-    except HubUnreachable as exc:
-        print(f"[self_repo_guard] hub unreachable within {HUB_TIMEOUT_S}s, "
-              f"failing OPEN (allow): {exc}", file=sys.stderr)
-        return 0, ""
     except ArchivedHub:
         print(f"[self_repo_guard] {db_lib.ARCHIVED_TASKS_DB_MSG}",
               file=sys.stderr)
