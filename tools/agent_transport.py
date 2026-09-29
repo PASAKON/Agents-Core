@@ -194,6 +194,15 @@ def attempt_wake(session: str | None, label: str, log_prefix: str, *,
             except Exception:
                 pass
             return
+        # GH #161: the Enter below would answer claude's folder-trust
+        # prompt with its default, "No, exit", and kill the recipient.
+        if tmux_session.shows_trust_dialog(session):
+            try:
+                notify.info(f"[{log_prefix}] wake skipped (folder-trust prompt "
+                            f"on screen; Enter would exit claude): {session}")
+            except Exception:
+                pass
+            return
         try:
             notify.info(f"[{log_prefix}] wake attempted: {session}")
         except Exception:

@@ -34,6 +34,15 @@ def _pin_tmux_bin(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _scratch_claude_json(monkeypatch, tmp_path):
+    """GH #161: delegate records worktree trust in Claude Code's global config.
+    Point that at a scratch path (absent unless a test creates it) so a test
+    run on the Mac never writes tmp worktree paths into the real
+    ~/.claude.json."""
+    monkeypatch.setenv("ORG_CLAUDE_JSON", str(tmp_path / "claude.json"))
+
+
+@pytest.fixture(autouse=True)
 def _clean_session_env(monkeypatch):
     """Strip C-level session identity out of every test's environment
     (task-78586938). pytest inherits whatever shell it was launched from --

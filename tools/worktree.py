@@ -300,6 +300,50 @@ def create_worktree(project_key: str, role: str, task_id: str, *,
     }
 
 
+def restore_worktree(project_key: str, role: str, task_id: str, *,
+                     branch: str | None = None, sparse: bool = False) -> dict:
+    """Bring back a task's worktree whose directory is gone (GH #83 ask 2).
+
+    gc_stale_tasks removes a stale task's worktree but keeps its branch, and
+    re-delegate used to trust the recorded path, so the worker died on
+    "worktree missing". `create_worktree` is NOT safe here: it runs
+    `git branch -D` first, which drops any commits the branch already has.
+    This re-attaches the EXISTING branch instead (full checkout), and only
+    falls back to `create_worktree` when the branch does not exist either,
+    in which case there is nothing to lose.
+    """
+    repo = _repo_path(project_key)
+    branch = branch or branch_name(role, task_id)
+    wt = worktree_path(project_key, role, task_id)
+    try:
+        _run(["git", "rev-parse", "--verify", f"refs/heads/{branch}"], cwd=repo)
+    except GitError:
+        return create_worktree(project_key, role, task_id, sparse=sparse)
+
+    WORKTREE_DIR.mkdir(parents=True, exist_ok=True)
+    # A worktree whose directory was deleted is still registered; prune it
+    # or `worktree add` refuses the branch as "already checked out".
+    try:
+        _run(["git", "worktree", "prune"], cwd=repo)
+    except GitError:
+        pass
+    if wt.exists():
+        shutil.rmtree(wt, ignore_errors=True)
+    _run(["git", "worktree", "add", str(wt), branch], cwd=repo)
+    provisioned = provision_worktree(repo, wt)
+    return {
+        "project": project_key,
+        "task_id": task_id,
+        "role": role,
+        "branch": branch,
+        "worktree": str(wt),
+        "base": get_project(project_key)["default_branch"],
+        "repo": str(repo),
+        "provisioned": provisioned,
+        "restored": True,
+    }
+
+
 def commit_worktree(worktree: str, message: str, author: str | None = None) -> dict:
     wt = Path(worktree)
     _run(["git", "add", "-A"], cwd=wt)

@@ -24,6 +24,7 @@ from pathlib import Path
 
 import yaml
 
+from lib import claude_trust
 from lib import db, mesh
 from lib import router as host_router
 from lib.config import (
@@ -38,7 +39,8 @@ from tools import send_to_cto
 from tools import storage_policy
 from tools import tmux_session as tmux
 from tools import workdir
-from tools.worktree import _exclude_in_worktree, branch_name, create_worktree
+from tools.worktree import (_exclude_in_worktree, branch_name, create_worktree,
+                            restore_worktree)
 
 # Every CLI the org knows how to drive a worker with (task-adbc6f43). Kept
 # local to this module rather than lib/config.py — that file is not a
@@ -452,7 +454,11 @@ def _build_spawn_applescript(cmd: str, task_id: str,
          other's window.
       4. Any tab whose title contains `<DISPLAY> Chat #` or `<DISPLAY> #`
          — keeps single-session setups working when owner_cto is unset.
-      5. Current window, or a fresh window if none exist.
+      5. A fresh window. Never the frontmost window: that belongs to
+         whichever session the CEO last touched (GH #124).
+
+    Step 1 skips a matching tab whose title ends in a bare shell's name,
+    e.g. `(-zsh)`: that is a dead spawn's leftover (GH #83 ask 3).
 
     Built in Python so tests can grep the literal strings without
     invoking osascript.
@@ -498,9 +504,19 @@ tell application "iTerm"
           set sessName to name of current session of t
         end try
         if (tabName contains "({task_id})") or (sessName contains "({task_id})") then
-          tell w to select
-          tell t to select
-          return "reused"
+          -- GH #83 ask 3: a tab whose title ends in a bare shell's job name
+          -- is a leftover from a spawn that died, not a running DEV.
+          -- Reusing it skipped the kickoff on every retry; open a new tab.
+          set bareShell to false
+          repeat with sh in {{"(-zsh)", "(zsh)", "(-bash)", "(bash)", "(-sh)", "(sh)"}}
+            set shName to contents of sh
+            if (tabName ends with shName) or (sessName ends with shName) then set bareShell to true
+          end repeat
+          if not bareShell then
+            tell w to select
+            tell t to select
+            return "reused"
+          end if
         end if
       end try
     end repeat
@@ -555,20 +571,21 @@ tell application "iTerm"
       if targetWin is not missing value then exit repeat
     end repeat
   end if
+  -- No owner window found: open a window of our own. This used to take
+  -- `current window`, i.e. whichever window was frontmost, and write the
+  -- worker's tab into another C-level session's window (GH #124). A stray
+  -- window is harmless; a tab in someone else's window is not.
+  set freshWin to false
   if targetWin is missing value then
-    if (count of windows) = 0 then
-      set targetWin to (create window with default profile)
-      tell current session of current tab of targetWin
-        write text (ASCII character 21) newline NO
-        write text "{cmd}"
-      end tell
-      return "spawned"
-    else
-      set targetWin to current window
-    end if
+    set targetWin to (create window with default profile)
+    set freshWin to true
   end if
   tell targetWin
-    set newTab to (create tab with default profile)
+    if freshWin then
+      set newTab to current tab
+    else
+      set newTab to (create tab with default profile)
+    end if
     tell current session of newTab
       -- Ctrl-U (ASCII 21) clears any stray keystrokes the CEO leaked into
       -- this tab while it briefly held focus, so the kickoff command runs
@@ -660,6 +677,15 @@ def _spawn_iterm_tab(role: str, task_id: str, *,
             f"{cto_env}{work_env}{WORKER_LAUNCHER} {role} {task_id}; exit $?"
         )
     owner_winid = _owner_window_id(owner_cto, owner_role)
+    if owner_cto and not owner_winid:
+        # GH #124: an owning session with no .winid was not started through
+        # spawn-cto.sh / cto-claude.sh, so it is outside tmux: the relay
+        # cannot reach it either. Say so while it is still cheap to fix.
+        warn(f"owner session {owner_role or 'cto'}-{owner_cto} has no "
+             f".winid lock: it was not started by the spawn script (likely "
+             f"outside tmux, so relays to it fail). Worker {task_id} opens "
+             f"in a new window. Relaunch it with scripts/spawn-cto.sh "
+             f"--id <id> --resume to fix both. GH #124")
     script = _build_spawn_applescript(cmd, task_id, owner_cto,
                                       owner_role=owner_role,
                                       owner_winid=owner_winid)
@@ -699,10 +725,39 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
 
     try:
         await asyncio.sleep(KICKOFF_DELAY_S)
+        if await asyncio.to_thread(_stuck_at_trust_prompt, task_id):
+            return
         result = await asyncio.to_thread(send_to_worker_send, task_id, message)
         info(f"kickoff task={task_id}: {result}")
     except Exception as e:
         warn(f"kickoff failed task={task_id}: {e}")
+
+
+def _stuck_at_trust_prompt(task_id: str) -> bool:
+    """GH #161: a worker whose claude is showing the folder-trust prompt.
+
+    The trust entry `_spawn_local` writes should prevent this; when it did
+    not (the write was skipped, claude keyed the cwd differently), the
+    kickoff must not type into the prompt, since its default is "No, exit".
+    Fails the task with the pane text instead, so the owner sees why at
+    once rather than finding a worker that died with no transcript."""
+    t = db.get_task(task_id) or {}
+    sess = t.get("tmux_session")
+    if not sess:
+        return False
+    try:
+        if not tmux.shows_trust_dialog(sess):
+            return False
+    except Exception:
+        return False
+    wt = t.get("worktree") or "?"
+    msg = (f"worker stopped at claude's folder-trust prompt (tmux {sess}); "
+           f"kickoff NOT sent, since Enter picks 'No, exit'. Trust {wt} "
+           f"(attach and choose 'Yes, I trust this folder', or add it to "
+           f"~/.claude.json) and re-delegate. GH #161")
+    error(f"task {task_id}: {msg}")
+    db.update_status(task_id, "failed", delegate_log=msg, actor="cto")
+    return True
 
 
 # How long a spawned DEV gets to claim its task before we treat the tab
@@ -1458,7 +1513,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
         lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
 
         for ln in lines:
-            if ln.startswith("GITHUB_SSH_ROUTE="):
+            if ln.startswith(("GITHUB_SSH_ROUTE=", "WT_WINDOW=")):
                 info(f"task={task_id} host={host_name} {ln}")
 
         # GH #153: the probe's own verdict must GATE success, not just get
@@ -1712,10 +1767,19 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
         error(f"{task_id}: {msg}")
         db.update_status(task_id, "failed", delegate_log=msg, actor="cto")
         return db.get_task(task_id)
+    worktree = (db.get_task(task_id) or task).get("worktree")
     # GH #180: the same `.org-task.json` sidecar a remote spawn writes, so the
     # self-repo guard reads this task's touches from the worktree itself.
-    _write_task_sidecar((db.get_task(task_id) or task).get("worktree"),
-                        _task_meta(task, self_host()))
+    _write_task_sidecar(worktree, _task_meta(task, self_host()))
+    # GH #161: trust the worktree before claude starts in it, or claude stops
+    # at its folder-trust prompt and the kickoff Enter picks "No, exit".
+    if worktree:
+        trust = claude_trust.trust_path(worktree)
+        if trust.startswith("skipped"):
+            warn(f"worktree trust not recorded for {task_id} ({trust}); "
+                 f"the kickoff guard will catch a trust prompt")
+        else:
+            info(f"worktree trust for {task_id}: {trust}")
     # iTerm, osascript and `open` exist on the Mac only (IRON-RULES §29: the
     # Mac keeps its visible iTerm tab). Every other platform runs the worker
     # detached in the tmux backend and never touches them (task-6f6e5179).
@@ -1744,8 +1808,13 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
         try:
             tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
             info(f"tmux session created: {tmux_sess}")
-        except subprocess.CalledProcessError as e:
-            error(f"tmux create failed for {task_id}: {e.stderr or e}")
+        except (subprocess.CalledProcessError, RuntimeError) as e:
+            # RuntimeError: the session was not alive right after
+            # new-session (its command exited at once). It used to escape
+            # delegate_task entirely (GH #83 ask 1); the dead pane's text is
+            # gone by now, so the message is what tmux_session reports.
+            error(f"tmux create failed for {task_id}: "
+                  f"{getattr(e, 'stderr', None) or e}")
             db.update_status(task_id, "failed",
                              delegate_log=f"tmux create failed: {e}", actor="cto")
             return db.get_task(task_id)
@@ -2212,6 +2281,26 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             )
             return db.get_task(task_id)
 
+    if task.get("worktree") and not Path(task["worktree"]).is_dir():
+        # GH #83 ask 2: the row names a worktree gc (or a person) removed.
+        # Re-attach the task's existing branch; never recreate it blind,
+        # since create_worktree drops the branch and any commits on it.
+        try:
+            wt_info = restore_worktree(project_key, role_name, task_id,
+                                       branch=task.get("branch"))
+        except Exception as e:
+            if touches:
+                db.release_task_locks(task_id, project_key)
+            error(f"worktree restore failed task={task_id}: {e}")
+            db.update_status(task_id, "failed",
+                             delegate_log=f"worktree missing and restore failed: {e}",
+                             actor="cto")
+            return db.get_task(task_id)
+        db.set_fields(task_id, worktree=wt_info["worktree"],
+                      branch=wt_info["branch"], actor="cto")
+        task = db.get_task(task_id) or task
+        info(f"worktree restored: {wt_info['worktree']} (branch {wt_info['branch']})")
+
     if not task.get("worktree"):
         sparse_applies = _scope_applies("sparse_worktree", task.get("owner_cto"))
         wt_info = create_worktree(project_key, role_name, task_id,
@@ -2272,10 +2361,13 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                 actor="cto",
             )
             return db.get_task(task_id)
-    elif task.get("status") != "pending":
+    elif task.get("status") != "pending" or task.get("assigned_agent"):
         # Re-delegate of a task whose worktree already exists and which is
         # NOT sitting unclaimed-pending (e.g. in_progress, conflict, failed,
-        # rate_limited). Before resetting — which would clear assigned_agent
+        # rate_limited), or is pending but still names an agent. The second
+        # case is a hand reset (status='pending', pid=NULL) that left
+        # assigned_agent set: claim_task needs it NULL, so every re-delegate
+        # then died with "could not claim task" (GH #161, second trap). Before resetting — which would clear assigned_agent
         # and spawn a brand-new tab — check whether the pid dev_init stamped
         # at claim time is still alive. A live pid means a DEV is genuinely
         # running right now; resetting would orphan it from the row it's
