@@ -50,9 +50,14 @@ class _CandidateItem:
         self.skill = skill
 
 
-def load_skill_scores() -> dict[tuple[str, str], float | None]:
-    """Load skill scores per (runner, model). Stub for Phase 2."""
-    return {}
+def load_skill_scores() -> dict[tuple[str, str], float | tuple[float, int] | None]:
+    """Load skill scores per (runner, model), tolerating unavailable stats."""
+    try:
+        from tools import model_stats
+
+        return model_stats.skill_scores(ROOT / "state" / "tasks.db", load_plans())
+    except Exception:
+        return {}
 
 
 def _make_reason(
