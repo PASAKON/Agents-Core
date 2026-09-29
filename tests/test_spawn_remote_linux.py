@@ -470,8 +470,8 @@ def test_script_rejects_unsupported_runner():
          "--branch", "b", "--base", "main", "--repo-url", "u",
          "--repo-path", "/tmp/p", "--worktree-root", "/tmp/wt",
          "--claude-args", "", "--model", "m", "--effort", "high",
-         "--session-name", "S", "--runner", "codex"],
+         "--session-name", "S", "--runner", "unsupported_runner"],
         capture_output=True, text=True,
     )
     assert r.returncode != 0
-    assert "codex" in r.stderr
+    assert "unsupported_runner" in r.stderr

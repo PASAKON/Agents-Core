@@ -69,10 +69,13 @@ if [ -z "$TASK" ] || [ -z "$PROJECT" ] || [ -z "$ROLE" ] || [ -z "$BRANCH" ] \
   exit 2
 fi
 
-if [ "$RUNNER" != "claude" ]; then
-  echo "spawn-worker-remote.sh: runner '$RUNNER' not supported by this launcher yet (claude only)" >&2
-  exit 2
-fi
+case "$RUNNER" in
+  claude|codex|agy) ;;
+  *)
+    echo "spawn-worker-remote.sh: runner '$RUNNER' not supported by this launcher (claude|codex|agy)" >&2
+    exit 2
+    ;;
+esac
 
 WT="${WORKTREE_ROOT}/${PROJECT}__${ROLE}__${TASK}"
 # tmux-safe identifier (no spaces/parens, unlike --session-name which is
@@ -87,6 +90,10 @@ TMUX_SESSION="mooniex-${TASK}"
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 AGENTS_ROOT=$(dirname "$SCRIPT_DIR")
 ROLES_DIR="$AGENTS_ROOT/roles"
+LAUNCH_DIR="$AGENTS_ROOT/.launch-${TASK}"
+CODEX_FINAL_MSG="$LAUNCH_DIR/codex-final.txt"
+CODEX_TRANSCRIPT="$LAUNCH_DIR/codex-events.jsonl"
+AGY_LOG="$LAUNCH_DIR/agy-events.log"
 
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] task=$TASK project=$PROJECT role=$ROLE branch=$BRANCH base=$BASE"
@@ -100,7 +107,17 @@ if [ "$DRY_RUN" -eq 1 ]; then
   if [ -n "$TASK_META_B64" ]; then
     echo "[dry-run] task_meta_b64=$TASK_META_B64"
   fi
-  echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
+  if [ "$RUNNER" = "claude" ]; then
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
+  elif [ "$RUNNER" = "codex" ]; then
+    CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
+    echo "[dry-run] cmd=$CODEX_CMD"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
+  elif [ "$RUNNER" = "agy" ]; then
+    AGY_CMD="/root/.local/bin/agy -p \"\$(cat TASK.md)\" --model gemini-3.8-flash-high --mode accept-edits --add-dir \"$WT\" < /dev/null >> $AGY_LOG 2>&1"
+    echo "[dry-run] cmd=$AGY_CMD"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running agy>"
+  fi
   exit 0
 fi
 
@@ -241,20 +258,54 @@ cp "$WT/TASK.md" "$PROMPT_FILE"
 # is however the box's two live CTO sessions themselves find it) then the
 # installer's default location keeps this independent of shell startup
 # files entirely. ---
-CLAUDE_BIN=""
-for candidate in "$(command -v claude 2>/dev/null)" \
-                 "$HOME/.local/bin/claude" \
-                 "$HOME/.npm-global/bin/claude" \
-                 "/usr/local/bin/claude" \
-                 "/usr/bin/claude"; do
-  if [ -n "$candidate" ] && [ -x "$candidate" ]; then
-    CLAUDE_BIN="$candidate"
-    break
+if [ "$RUNNER" = "claude" ]; then
+  CLAUDE_BIN=""
+  for candidate in "$(command -v claude 2>/dev/null)" \
+                   "$HOME/.local/bin/claude" \
+                   "$HOME/.npm-global/bin/claude" \
+                   "/usr/local/bin/claude" \
+                   "/usr/bin/claude"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      CLAUDE_BIN="$candidate"
+      break
+    fi
+  done
+  if [ -z "$CLAUDE_BIN" ]; then
+    echo "SPAWN_REFUSED=claude-not-found (checked PATH, ~/.local/bin, ~/.npm-global/bin, /usr/local/bin, /usr/bin)"
+    exit 1
   fi
-done
-if [ -z "$CLAUDE_BIN" ]; then
-  echo "SPAWN_REFUSED=claude-not-found (checked PATH, ~/.local/bin, ~/.npm-global/bin, /usr/local/bin, /usr/bin)"
-  exit 1
+elif [ "$RUNNER" = "codex" ]; then
+  CODEX_BIN=""
+  for candidate in "$(command -v codex 2>/dev/null)" \
+                   "/usr/bin/codex" \
+                   "/usr/local/bin/codex" \
+                   "$HOME/.local/bin/codex" \
+                   "$HOME/.npm-global/bin/codex"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      CODEX_BIN="$candidate"
+      break
+    fi
+  done
+  if [ -z "$CODEX_BIN" ]; then
+    echo "SPAWN_REFUSED=codex-not-found (checked PATH, /usr/bin, /usr/local/bin, ~/.local/bin, ~/.npm-global/bin)"
+    exit 1
+  fi
+elif [ "$RUNNER" = "agy" ]; then
+  AGY_BIN=""
+  for candidate in "/root/.local/bin/agy" \
+                   "$(command -v agy 2>/dev/null)" \
+                   "$HOME/.local/bin/agy" \
+                   "/usr/local/bin/agy" \
+                   "/usr/bin/agy"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      AGY_BIN="$candidate"
+      break
+    fi
+  done
+  if [ -z "$AGY_BIN" ]; then
+    echo "SPAWN_REFUSED=agy-not-found (checked /root/.local/bin/agy, PATH, ~/.local/bin)"
+    exit 1
+  fi
 fi
 
 # --- 7. Launch: a tiny generated launch.sh inside a detached tmux session.
@@ -291,20 +342,64 @@ TMUX_BIN=$(command -v tmux || echo tmux)
 NODE22_BIN="$AGENTS_ROOT/.tools/node/bin"
 
 LAUNCH_SH="$LAUNCH_DIR/launch.sh"
-{
-  echo '#!/bin/sh'
-  printf 'export ORG_HOST=contabo\n'
-  printf 'export ORG_WORKER_FINISH=%s\n' \
-    "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
-  printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
-    "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
-  printf 'exec %s "$(cat %s)" -n %s --append-system-prompt "$(cat %s)" %s\n' \
-    "$(sh_quote "$CLAUDE_BIN")" \
-    "$(sh_quote "$PROMPT_FILE")" \
-    "$(sh_quote "$SESSION_NAME")" \
-    "$(sh_quote "$SYSPROMPT_FILE")" \
-    "$CLAUDE_ARGS"
-} > "$LAUNCH_SH"
+if [ "$RUNNER" = "claude" ]; then
+  {
+    echo '#!/bin/sh'
+    printf 'export ORG_HOST=contabo\n'
+    printf 'export ORG_WORKER_FINISH=%s\n' \
+      "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+    printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+      "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
+    printf 'exec %s "$(cat %s)" -n %s --append-system-prompt "$(cat %s)" %s\n' \
+      "$(sh_quote "$CLAUDE_BIN")" \
+      "$(sh_quote "$PROMPT_FILE")" \
+      "$(sh_quote "$SESSION_NAME")" \
+      "$(sh_quote "$SYSPROMPT_FILE")" \
+      "$CLAUDE_ARGS"
+  } > "$LAUNCH_SH"
+elif [ "$RUNNER" = "codex" ]; then
+  {
+    echo '#!/bin/sh'
+    printf 'export ORG_HOST=contabo\n'
+    printf 'export ORG_WORKER_FINISH=%s\n' \
+      "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+    printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+      "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
+    printf 'cd %s || exit 1\n' "$(sh_quote "$WT")"
+    printf 'codex exec "$(cat TASK.md)" -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
+      "$(sh_quote "$WT")" \
+      "$(sh_quote "$CODEX_FINAL_MSG")" \
+      "$(sh_quote "$CODEX_TRANSCRIPT")"
+    printf 'if [ -n "$(git status --porcelain)" ]; then\n'
+    printf '  git add -A\n'
+    printf '  git commit -m %s\n' "$(sh_quote "codex: task $TASK")"
+    printf 'fi\n'
+    printf 'git push -u origin %s || git push origin %s || true\n' \
+      "$(sh_quote "$BRANCH")" "$(sh_quote "$BRANCH")"
+  } > "$LAUNCH_SH"
+elif [ "$RUNNER" = "agy" ]; then
+  {
+    echo '#!/bin/sh'
+    printf 'export ORG_HOST=contabo\n'
+    printf 'export ORG_WORKER_FINISH=%s\n' \
+      "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+    printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+      "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
+    printf 'cd %s || exit 1\n' "$(sh_quote "$WT")"
+    printf '/root/.local/bin/agy -p "$(cat TASK.md)" --model gemini-3.8-flash-high --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
+      "$(sh_quote "$WT")" \
+      "$(sh_quote "$AGY_LOG")"
+    printf 'git add -A\n'
+    printf 'git reset -q -- %s REPORT.md 2>/dev/null || git reset -q -- REPORT.md 2>/dev/null || true\n' \
+      "$(sh_quote "$AGY_LOG")"
+    printf 'if ! git diff --cached --quiet; then\n'
+    printf '  git -c user.name=agy-worker -c user.email=agy-worker@localhost commit -q -m %s\n' \
+      "$(sh_quote "agy: task $TASK")"
+    printf '  git push -u origin %s || git push origin %s || true\n' \
+      "$(sh_quote "$BRANCH")" "$(sh_quote "$BRANCH")"
+    printf 'fi\n'
+  } > "$LAUNCH_SH"
+fi
 chmod +x "$LAUNCH_SH"
 
 "$TMUX_BIN" new-session -d -s "$TMUX_SESSION" -c "$WT" bash "$LAUNCH_SH"

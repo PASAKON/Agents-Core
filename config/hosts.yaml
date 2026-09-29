@@ -72,5 +72,6 @@ hosts:
     max_browser_operators: 1
     # Phase 2 (task-a5c0549d, docs/design/multi-host-workers.md §4): wired via
     # scripts/spawn-worker-remote.sh + tools.delegate._spawn_remote's linux
-    # branch. codex/agy are not installed/verified on this box -- claude only.
-    runners: [claude]
+    # branch. codex (/usr/bin/codex) and agy (/root/.local/bin/agy) verified
+    # on the box (2026-09-29).
+    runners: [claude, codex, agy]

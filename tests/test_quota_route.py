@@ -315,8 +315,10 @@ def test_router_exhausted_last(mock_cfg):
     assert choices_d[-1].reason == "exhausted"
 
 
-def test_router_host_without_runner_excludes_it(mock_cfg):
-    # contabo only supports [claude] in config/hosts.yaml
+def test_router_host_without_runner_excludes_it(mock_cfg, monkeypatch):
+    # fake claude-only host; never read the live hosts.yaml (it changes)
+    import tools.route as route_mod
+    monkeypatch.setattr(route_mod, "_host_runners", lambda h: ["claude"])
     quotas = {
         "agy": Quota(provider="agy", weekly_remaining=0.95, daily_remaining=0.95),
         "claude": Quota(provider="claude", weekly_remaining=0.10, daily_remaining=0.10),
