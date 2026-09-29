@@ -7,11 +7,15 @@ Merged local `main` (~150 commits, mostly skill field notes) into `origin/main`
 16 conflicts landed, all in `.claude/skills/*/SKILL.md`: 12 were Kind A (origin renamed
 the skill and left a 30-day MOVED stub at the old path; `gdrive-filing` split 3 ways,
 so 12 old paths map to 14 new files); 4 were Kind B (not renamed, real same-line
-overlaps). Origin/main advanced three more times during the session (3 commits, then
-7 more, then 4 more) and needed three small catch-up merges, all verified clean. Full
-suite: 2995 passed, 0 failed, 25 skipped. `git merge-base --is-ancestor origin/main HEAD`
-is TRUE. `.venv` is untracked. 2 items need a CTO decision (see below) — genuinely
-conflicting rule-line edits on both sides, not guessed or merged per the task's rule.
+overlaps). Origin/main advanced four more times during the session (3, 7, 4, then 2
+more commits) and needed four small catch-up merges, all verified clean — the CTO then
+called a stop (CTO-FEEDBACK.md, not committed): Org Mesh merges (W1.2b, W0.2) keep
+landing on origin over the next hour, and the CTO merges the latest origin at
+integration and reruns the suite there. Full suite at the stop point: 3014 passed,
+0 failed, 26 skipped. `git merge-base --is-ancestor origin/main HEAD` is TRUE as of the
+final catch-up. `.venv` is untracked. 2 items need a CTO decision (see below) —
+genuinely conflicting rule-line edits on both sides, not guessed or merged per the
+task's rule.
 **One caveat on the `main` ancestor check** — see Notes for Reviewer: the shared local
 `main` ref advanced with two unrelated feature merges (agy-quota-router,
 agy-runner-lanes) from another session while this task was still running, so
@@ -51,13 +55,14 @@ directory in local main's diff — verified via `git diff --name-status`, nothin
 - `42feb362` — skill(CMO_Procedure_ChatGPTImage_LakornCover): port local main's 6 field notes + When-NOT-to-invoke line — finishes the LakornCover porting that was left uncommitted at compaction time; verified byte-for-byte against `git diff base..main` on the old path before committing
 - `8ec4d5b8` — merge: catch up 7 more commits pushed to origin/main during task-d103c087 — clean auto-merge (`CTO_Gate_MergeChecklist` again, another concurrent field-note append, no manual resolution needed)
 - `3459b85b` — merge: catch up 4 more commits pushed to origin/main during task-d103c087 — clean auto-merge, no conflicts (org ledger Postgres-hub migration work, unrelated to skills)
+- `df73af85` — merge: catch up 2 more commits pushed to origin/main during task-d103c087 — clean auto-merge, no conflicts (lib/db.py hosts+letters tables, Org Mesh W2.1). **This is the final commit on this branch** — CTO instructed (CTO-FEEDBACK.md) to stop chasing origin/main after this, since Org Mesh merges (W1.2b, then W0.2) keep landing on origin over the next hour; CTO merges the latest origin and reruns the suite at integration time.
 
 ## Tests
 
-- ran: `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest` (from worktree root, no `-q`, after all three catch-up merges)
-- passed: 2995
+- ran: `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest` (from worktree root, no `-q`, after all four catch-up merges, final run)
+- passed: 3014
 - failed: 0
-- skipped: 25
+- skipped: 26
 - `tests/test_machine_doctor.py::test_detect_machine_by_unique_os_when_hostname_does_not_match` — the task brief flagged this as a known unrelated failure to ignore; it is **not failing** in this run (passed standalone too, 0.31s). No exclusion needed.
 
 ## Issues / Blockers
@@ -99,8 +104,16 @@ origin version) in the corresponding new-named file, checked line-by-line agains
 skimmed.
 
 `git merge-base --is-ancestor main HEAD` → **FALSE at submission** — `main` advanced past this branch via two unrelated feature merges from another session (`agy-quota-router`, `agy-runner-lanes`) after this task's local-main snapshot (`c6b9f2a8`) was taken; that exact snapshot IS an ancestor of this branch (verified: `git merge-base --is-ancestor c6b9f2a8 HEAD` → TRUE). See Issues/Blockers.
-`git merge-base --is-ancestor origin/main HEAD` → **TRUE** (re-verified after all three catch-up merges; re-fetched once more just now, no further drift)
+`git merge-base --is-ancestor origin/main HEAD` → **TRUE** as of the final merge (`df73af85`)
 `git ls-files .venv` → empty (untracked, confirmed)
+
+**STOP POINT (CTO instruction, CTO-FEEDBACK.md, not committed):** origin/main moved a
+4th time mid-session (2 more commits, `lib/db.py` hosts+letters tables). Caught up once
+more (`df73af85`) and stopped there on the CTO's explicit order — Org Mesh merges
+(W1.2b, then W0.2) keep landing on origin over the next hour, so chasing further is the
+CTO's job at integration, not mine. **Final branch HEAD: `df73af85f8b496de003f92fe6d9ce27e29f9b1eb`.
+Last origin/main sha folded in: `da2d433cad0e78e0d123dc9a03bd7964f310a927`** — CTO's
+catch-up at integration starts from there.
 
 No skill linker was run. `~/.claude/skills`, the wikis, and the main checkout at
 `/Users/gob/MoonieXHQ/Agents/Core` were never touched. No rebase, no squash — all ~150
