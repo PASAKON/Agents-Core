@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from lib.config import get_project
+from lib.config import get_project, project_path_for_host, self_host
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKTREE_DIR = ROOT / "worktrees"
@@ -185,6 +185,14 @@ def _exclude_in_worktree(wt: Path, names: tuple[str, ...]) -> None:
         pass
 
 
+def _repo_path(project_key: str) -> Path:
+    """The project's checkout on THIS machine (`paths.<self_host()>`).
+
+    The top-level `path:` is the Mac checkout; on any other host it points at a
+    directory that does not exist, so it must never be used there."""
+    return Path(project_path_for_host(project_key, self_host()))
+
+
 def create_worktree(project_key: str, role: str, task_id: str, *,
                     sparse: bool = False) -> dict:
     """Create isolated worktree on new branch from default branch.
@@ -193,7 +201,7 @@ def create_worktree(project_key: str, role: str, task_id: str, *,
     delegate turns it on only for tasks in the storage pilot
     (`pilot_owner_cto`, CEO 2026-09-23 — own work first)."""
     proj = get_project(project_key)
-    repo = Path(proj["path"])
+    repo = _repo_path(project_key)
     base = proj["default_branch"]
     branch = branch_name(role, task_id)
     wt = worktree_path(project_key, role, task_id)
@@ -323,8 +331,7 @@ def diff_full(worktree: str, base: str, max_lines: int = 2000) -> str:
 
 
 def remove_worktree(project_key: str, role: str, task_id: str, *, delete_branch: bool = False) -> str:
-    proj = get_project(project_key)
-    repo = Path(proj["path"])
+    repo = _repo_path(project_key)
     wt = worktree_path(project_key, role, task_id)
     branch = branch_name(role, task_id)
     try:
@@ -341,6 +348,5 @@ def remove_worktree(project_key: str, role: str, task_id: str, *, delete_branch:
 
 
 def list_worktrees(project_key: str) -> list[str]:
-    proj = get_project(project_key)
-    out = _run(["git", "worktree", "list", "--porcelain"], cwd=proj["path"])
+    out = _run(["git", "worktree", "list", "--porcelain"], cwd=_repo_path(project_key))
     return out.splitlines()

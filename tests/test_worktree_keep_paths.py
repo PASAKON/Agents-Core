@@ -39,6 +39,7 @@ def test_keep_paths_keep_large_media_on_disk(tmp_path, monkeypatch):
     monkeypatch.setattr(worktree_mod, "WORKTREE_DIR", tmp_path / "worktrees")
     monkeypatch.setattr(worktree_mod, "get_project",
                         lambda key: {"path": str(repo), "default_branch": "main"})
+    monkeypatch.setattr(worktree_mod, "project_path_for_host", lambda key, host: str(repo))
 
     wt = Path(worktree_mod.create_worktree("p", "developer", "task-keep0001", sparse=True)["worktree"])
 
