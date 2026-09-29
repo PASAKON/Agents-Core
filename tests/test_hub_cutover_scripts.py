@@ -35,6 +35,15 @@ by construction, not just by omission:
     (this IS "stub psql/python" in spirit: it stubs the boundary that
     would otherwise hit a real Postgres, at the Python level since neither
     script actually shells out to the psql binary).
+
+Org Mesh W1.2b (second-ledger cutover, docs/design/tasks-db-hub.md §3.3)
+extends this the same way: `--mode subset`'s target side (`pg_rows`) is
+monkeypatched to read a tmp_path SQLite file standing in for the Postgres
+hub -- exactly the technique tests/test_migrate_tasks_db.py already uses
+for a "target" (a second SQLite file initialised via lib.db.init_schema
+plays a real Postgres connection's role: same `?`-placeholder SQL runs
+against it unchanged). The source side (`sqlite_rows`) is real I/O against
+a real SQLite file built through lib.db, same as sqlite_counts() above.
 """
 from __future__ import annotations
 
@@ -57,6 +66,8 @@ WAL_ARCHIVE = HUB / "wal-checkpoint-archive.sh"
 
 sys.path.insert(0, str(ROOT))
 from scripts.hub import verify_migration_counts as vmc  # noqa: E402
+import lib.db as db_mod  # noqa: E402
+import scripts.migrate_tasks_db as migrate_mod  # noqa: E402
 
 
 def _run(args: list[str], cwd: Path | None = None,
@@ -407,3 +418,205 @@ def test_non_ff_checkout_refuses_and_keeps_local_commit(repo):
     # back from (defence in depth, matches the old script's intent).
     branches = _git(work, "branch", "--list", "backup/main-before-hub-*").stdout
     assert "backup/main-before-hub-" in branches
+
+
+# ================================================ contabo-cutover-remote.sh:
+# step 5 imports the SECOND ledger (Org Mesh W1.2b)
+
+def test_contabo_remote_step5_carries_second_ledger_flags():
+    text = CONTABO_REMOTE.read_text(encoding="utf-8")
+    m = re.search(r"^\s*\.venv/bin/python scripts/migrate_tasks_db\.py.*$",
+                  text, re.MULTILINE)
+    assert m, "step 5's migrate_tasks_db.py invocation not found"
+    line = m.group(0)
+    assert "--apply" in line
+    assert "--default-host contabo" in line
+    assert "--append-events" in line
+    assert "--on-collision" not in line, \
+        "a collision must stop the cutover for a human, not be auto-resolved"
+
+
+def test_contabo_remote_step5b_uses_subset_mode():
+    text = CONTABO_REMOTE.read_text(encoding="utf-8")
+    m = re.search(r"^\s*\.venv/bin/python scripts/hub/verify_migration_counts\.py.*$",
+                  text, re.MULTILINE)
+    assert m, "step 5b's verify_migration_counts.py invocation not found"
+    assert "--mode subset" in m.group(0)
+
+
+# ============================================== verify_migration_counts.py:
+# --mode subset (Org Mesh W1.2b -- the SECOND ledger's "no data lost" check)
+
+def _rows(conn, table: str) -> list[dict]:
+    return [dict(r) for r in conn.execute(f"SELECT * FROM {table}").fetchall()]
+
+
+def _make_source_db(tmp_path, name, monkeypatch):
+    """A source ledger built through the real lib.db API, same helper
+    tests/test_migrate_tasks_db.py uses -- monkeypatches db_mod.DB_PATH so
+    create_task/register_cxo_session write to a fresh SQLite file under
+    tmp_path, never the real state/tasks.db (ADR 0021)."""
+    path = tmp_path / name
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    monkeypatch.setattr(db_mod, "DB_PATH", path)
+    db_mod.init()
+    return path
+
+
+def _make_target_conn(tmp_path, name="target.db"):
+    """A bare SQLite db with the same schema lib.db.init() would create --
+    stands in for the Postgres hub (module docstring)."""
+    path = tmp_path / name
+    conn = db_mod.sqlite_connect(path)
+    db_mod.init_schema(conn, is_pg=False)
+    conn.commit()
+    return conn
+
+
+def _mirror_into_target(src_path, target_conn):
+    """Copy every row of the source ledger at `src_path` into `target_conn`
+    via the real migrate_tasks_db copy paths (not hand-crafted rows) --
+    simulates an already-completed --apply run this test's --mode subset
+    call now has to verify."""
+    for table, pk in migrate_mod.TABLES.items():
+        sconn = migrate_mod._sqlite_conn(src_path)
+        if table == "events":
+            migrate_mod._copy_events_appending(
+                sconn, target_conn, apply=True, skip_bad_rows=False)
+        else:
+            migrate_mod._copy_table(
+                sconn, target_conn, table, pk, upsert=False, apply=True,
+                skip_bad_rows=False, default_host="contabo")
+        sconn.close()
+
+
+def test_subset_mode_passes_when_target_has_extra_rows(tmp_path, monkeypatch):
+    src_path = _make_source_db(tmp_path, "src.db", monkeypatch)
+    db_mod.create_task("projA", "developer", "s1", "d1")
+    db_mod.register_cxo_session("cto", "sessA")
+
+    target_conn = _make_target_conn(tmp_path)
+    _mirror_into_target(src_path, target_conn)
+
+    # The hub already holds the Mac's ~1108 tasks -- the target legitimately
+    # has MORE rows than this (Contabo) source. Must not be a mismatch.
+    target_conn.execute(
+        "INSERT INTO tasks (id,project,role,status,title,description,"
+        "created_at,updated_at) VALUES "
+        "('mac-only-task','projMac','developer','pending','t','d',"
+        "'2026-01-01T00:00:00Z','2026-01-01T00:00:00Z')")
+    target_conn.commit()
+    monkeypatch.setattr(vmc, "pg_rows", lambda url, table: _rows(target_conn, table))
+
+    rc = vmc.main(["--sqlite", str(src_path), "--pg", "postgresql://ignored/db",
+                   "--mode", "subset"])
+
+    assert rc == 0
+
+
+def test_subset_mode_fails_naming_table_when_task_missing(tmp_path, monkeypatch, capsys):
+    src_path = _make_source_db(tmp_path, "src.db", monkeypatch)
+    tid = db_mod.create_task("projA", "developer", "s1", "d1")
+    db_mod.create_task("projA", "developer", "s2", "d2")
+    db_mod.register_cxo_session("cto", "sessA")
+
+    target_conn = _make_target_conn(tmp_path)
+    _mirror_into_target(src_path, target_conn)
+    target_conn.execute("DELETE FROM tasks WHERE id = ?", (tid,))
+    target_conn.commit()
+    monkeypatch.setattr(vmc, "pg_rows", lambda url, table: _rows(target_conn, table))
+
+    rc = vmc.main(["--sqlite", str(src_path), "--pg", "postgresql://ignored/db",
+                   "--mode", "subset"])
+
+    assert rc == 1
+    out, err = capsys.readouterr()
+    assert "tasks" in err and "REFUSING" in err
+    assert "missing_from_postgres=1" in out
+    # The other tables' rows all made it across -- only tasks is at fault.
+    assert re.search(r"c_level_sessions\s+sqlite=1 missing_from_postgres=0", out)
+
+
+def test_subset_mode_fails_naming_table_when_session_missing(tmp_path, monkeypatch, capsys):
+    src_path = _make_source_db(tmp_path, "src.db", monkeypatch)
+    db_mod.create_task("projA", "developer", "s1", "d1")
+    db_mod.register_cxo_session("cto", "sessA")
+
+    target_conn = _make_target_conn(tmp_path)
+    _mirror_into_target(src_path, target_conn)
+    target_conn.execute(
+        "DELETE FROM c_level_sessions WHERE role = ? AND session_id = ?",
+        ("cto", "sessA"))
+    target_conn.commit()
+    monkeypatch.setattr(vmc, "pg_rows", lambda url, table: _rows(target_conn, table))
+
+    rc = vmc.main(["--sqlite", str(src_path), "--pg", "postgresql://ignored/db",
+                   "--mode", "subset"])
+
+    assert rc == 1
+    out, err = capsys.readouterr()
+    assert "c_level_sessions" in err and "REFUSING" in err
+    assert re.search(r"tasks\s+sqlite=1 missing_from_postgres=0", out)
+
+
+def test_subset_mode_fails_naming_table_when_event_missing(tmp_path, monkeypatch, capsys):
+    src_path = _make_source_db(tmp_path, "src.db", monkeypatch)
+    db_mod.create_task("projA", "developer", "s1", "d1")
+    db_mod.create_task("projA", "developer", "s2", "d2")
+
+    target_conn = _make_target_conn(tmp_path)
+    _mirror_into_target(src_path, target_conn)
+    victim = _rows(target_conn, "events")[0]
+    target_conn.execute("DELETE FROM events WHERE id = ?", (victim["id"],))
+    target_conn.commit()
+    monkeypatch.setattr(vmc, "pg_rows", lambda url, table: _rows(target_conn, table))
+
+    rc = vmc.main(["--sqlite", str(src_path), "--pg", "postgresql://ignored/db",
+                   "--mode", "subset"])
+
+    assert rc == 1
+    out, err = capsys.readouterr()
+    assert "events" in err and "REFUSING" in err
+    assert re.search(r"tasks\s+sqlite=2 missing_from_postgres=0", out)
+
+
+def test_subset_mode_reruns_cleanly_after_a_correct_import(tmp_path, monkeypatch):
+    """The exact shape of a real second-ledger cutover: mirror the source
+    into the target once, then verify -- must pass, with nothing missing
+    anywhere, exactly the "correct import" case the task brief says must
+    not be refused."""
+    src_path = _make_source_db(tmp_path, "src.db", monkeypatch)
+    db_mod.create_task("projA", "developer", "s1", "d1")
+    db_mod.register_cxo_session("cto", "sessA")
+
+    target_conn = _make_target_conn(tmp_path)
+    _mirror_into_target(src_path, target_conn)
+    monkeypatch.setattr(vmc, "pg_rows", lambda url, table: _rows(target_conn, table))
+
+    rc = vmc.main(["--sqlite", str(src_path), "--pg", "postgresql://ignored/db",
+                   "--mode", "subset"])
+
+    assert rc == 0
+
+
+def test_mode_defaults_to_equal_and_is_explicitly_selectable(monkeypatch, capsys):
+    """--mode equal behaviour is unchanged: same counts-must-match check,
+    reachable both by omitting --mode (default) and by passing it
+    explicitly."""
+    counts = {"tasks": 10, "c_level_sessions": 3, "events": 50}
+    monkeypatch.setattr(vmc, "sqlite_counts", lambda path: dict(counts))
+    monkeypatch.setattr(vmc, "pg_counts", lambda url: dict(counts))
+
+    rc_default = vmc.main(["--sqlite", "ignored.db", "--pg", "postgresql://ignored/db"])
+    rc_explicit = vmc.main(["--sqlite", "ignored.db", "--pg", "postgresql://ignored/db",
+                             "--mode", "equal"])
+
+    assert rc_default == 0
+    assert rc_explicit == 0
+
+
+def test_find_missing_pure_function():
+    identity = lambda row: (row["id"],)  # noqa: E731
+    source = [{"id": 1}, {"id": 2}]
+    target = [{"id": 1}, {"id": 3}]  # has an extra row, missing another
+    assert vmc.find_missing(source, target, identity) == [(2,)]
