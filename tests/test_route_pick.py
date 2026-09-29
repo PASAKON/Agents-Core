@@ -34,6 +34,12 @@ def mock_cfg():
             "google": {"runner": "agy"},
             "openai": {"runner": "codex"},
         },
+        "buckets": {
+            "claude": {"provider": "anthropic", "match": ["claude:"]},
+            "codex": {"provider": "openai", "match": ["codex:"]},
+            "agy-gemini": {"provider": "google", "match": ["agy:gemini-"]},
+            "agy-claude": {"provider": "google", "match": ["agy:claude-", "agy:gpt-"]},
+        },
         "roles": {
             "dev_general": ["agy:gemini-3.8-flash-high", "claude:claude-sonnet-5"],
         },
@@ -50,31 +56,33 @@ def mock_cfg():
 def test_pick_runner_agy_beats_claude(mock_cfg, monkeypatch):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy"])
     quotas = {
-        "agy": Quota(provider="agy", weekly_remaining=0.99, daily_remaining=0.90),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.99, daily_remaining=0.90),
         "claude": Quota(provider="claude", weekly_remaining=0.50, daily_remaining=0.50),
     }
     choice = pick_runner("developer", "mac", cfg=mock_cfg, quotas=quotas, skill={})
     assert choice is not None
     assert choice.runner == "agy"
     assert choice.model == "gemini-3.8-flash-high"
+    assert choice.bucket == "agy-gemini"
 
 
 def test_pick_runner_agy_exhausted_claude_selected(mock_cfg, monkeypatch):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy"])
     quotas = {
-        "agy": Quota(provider="agy", weekly_remaining=0.0, daily_remaining=0.50),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.0, daily_remaining=0.50),
         "claude": Quota(provider="claude", weekly_remaining=0.50, daily_remaining=0.50),
     }
     choice = pick_runner("developer", "mac", cfg=mock_cfg, quotas=quotas, skill={})
     assert choice is not None
     assert choice.runner == "claude"
     assert choice.model == "claude-sonnet-5"
+    assert choice.bucket == "claude"
 
 
 def test_pick_runner_both_exhausted_returns_none(mock_cfg, monkeypatch):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy"])
     quotas = {
-        "agy": Quota(provider="agy", weekly_remaining=0.0, daily_remaining=0.50),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.0, daily_remaining=0.50),
         "claude": Quota(provider="claude", weekly_remaining=0.0, daily_remaining=0.50),
     }
     choice = pick_runner("developer", "mac", cfg=mock_cfg, quotas=quotas, skill={})
@@ -106,13 +114,14 @@ def test_pick_runner_rank_exception_returns_none(mock_cfg, monkeypatch):
 def test_pick_runner_host_runners_claude_only(mock_cfg, monkeypatch):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude"])
     quotas = {
-        "agy": Quota(provider="agy", weekly_remaining=0.99, daily_remaining=0.90),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.99, daily_remaining=0.90),
         "claude": Quota(provider="claude", weekly_remaining=0.50, daily_remaining=0.50),
     }
     choice = pick_runner("developer", "mac", cfg=mock_cfg, quotas=quotas, skill={})
     assert choice is not None
     assert choice.runner == "claude"
     assert choice.model == "claude-sonnet-5"
+    assert choice.bucket == "claude"
 
 
 def test_cached_quotas_ttl(mock_cfg, monkeypatch):
@@ -124,7 +133,9 @@ def test_cached_quotas_ttl(mock_cfg, monkeypatch):
         fetch_count += 1
         return {
             "claude": Quota(provider="claude", weekly_remaining=0.50),
-            "agy": Quota(provider="agy", weekly_remaining=0.99),
+            "codex": Quota(provider="codex", weekly_remaining=0.70),
+            "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.99),
+            "agy-claude": Quota(provider="agy-claude", weekly_remaining=1.0),
         }
 
     monkeypatch.setattr(route, "fetch_all_quotas", mock_fetch)
@@ -132,7 +143,7 @@ def test_cached_quotas_ttl(mock_cfg, monkeypatch):
     # Initial fetch at now=100.0: should fetch once
     res1 = cached_quotas(mock_cfg, now=100.0)
     assert fetch_count == 1
-    assert res1["agy"].weekly_remaining == 0.99
+    assert res1["agy-gemini"].weekly_remaining == 0.99
 
     # Cache hit within TTL (300s): 399.0 - 100.0 = 299.0 < 300
     res2 = cached_quotas(mock_cfg, now=399.0)
@@ -153,7 +164,9 @@ def test_cached_quotas_failed_read_expires_in_retry_window(mock_cfg, monkeypatch
         fetch_count += 1
         return {
             "claude": Quota(provider="claude", weekly_remaining=0.50),
-            "agy": Quota(provider="agy", error="timed out after 30 seconds"),
+            "codex": Quota(provider="codex", weekly_remaining=0.70),
+            "agy-gemini": Quota(provider="agy-gemini", error="timed out after 30 seconds"),
+            "agy-claude": Quota(provider="agy-claude", error="timed out after 30 seconds"),
         }
 
     monkeypatch.setattr(route, "fetch_all_quotas", mock_fetch)
@@ -169,7 +182,7 @@ def test_cli_pick_success(mock_cfg, monkeypatch, capsys):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy"])
     monkeypatch.setattr(route, "load_plans", lambda path=None: mock_cfg)
     quotas = {
-        "agy": Quota(provider="agy", weekly_remaining=0.99, daily_remaining=0.90),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.99, daily_remaining=0.90),
         "claude": Quota(provider="claude", weekly_remaining=0.50, daily_remaining=0.50),
     }
     monkeypatch.setattr(route, "cached_quotas", lambda cfg: quotas)

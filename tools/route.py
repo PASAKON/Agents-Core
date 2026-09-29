@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools.delegate import _host_runners
-from tools.quota import Quota, fetch_all_quotas, load_plans, RUNNER_TO_PROVIDER
+from tools.quota import Quota, bucket_for, fetch_all_quotas, load_plans
 
 
 @dataclass
@@ -25,6 +25,7 @@ class Choice:
     candidate: str
     runner: str
     model: str
+    bucket: str | None
     weekly: float | None
     daily: float | None
     skill: float | None
@@ -38,6 +39,7 @@ class _CandidateItem:
         candidate: str,
         runner: str,
         model: str,
+        bucket: str | None,
         weekly: float | None,
         daily: float | None,
         skill: float | None,
@@ -46,6 +48,7 @@ class _CandidateItem:
         self.candidate = candidate
         self.runner = runner
         self.model = model
+        self.bucket = bucket
         self.weekly = weekly
         self.daily = daily
         self.skill = skill
@@ -75,6 +78,7 @@ def _make_reason(
 
     w_pct = item.weekly * 100
     d_pct = item.daily * 100 if item.daily is not None else None
+    item_b_str = f" {item.bucket}" if item.bucket else ""
 
     if len(all_active) <= 1:
         if d_pct is not None:
@@ -85,21 +89,22 @@ def _make_reason(
         other = all_active[1]
         other_w_pct = other.weekly * 100
         other_d_pct = other.daily * 100 if other.daily is not None else None
+        other_b_str = f" {other.bucket}" if other.bucket else ""
 
         diff_w = item.weekly - other.weekly
         if abs(diff_w) > tie_threshold:
-            return f"highest weekly remaining ({w_pct:.1f}% vs {other_w_pct:.1f}%)"
+            return f"highest weekly remaining ({w_pct:.1f}%{item_b_str} vs {other_w_pct:.1f}%{other_b_str})"
 
         # Weekly tied within tie_points/100 -> check daily
         if item.daily is not None and other.daily is not None:
             diff_d = item.daily - other.daily
             if abs(diff_d) > tie_threshold:
                 return (
-                    f"weekly tie within {tie_points}pp ({w_pct:.1f}% vs {other_w_pct:.1f}%), "
+                    f"weekly tie within {tie_points}pp ({w_pct:.1f}%{item_b_str} vs {other_w_pct:.1f}%{other_b_str}), "
                     f"higher daily ({d_pct:.1f}% vs {other_d_pct:.1f}%)"
                 )
         elif item.daily is not None and other.daily is None:
-            return f"weekly tie within {tie_points}pp ({w_pct:.1f}% vs {other_w_pct:.1f}%), daily remaining {d_pct:.1f}%"
+            return f"weekly tie within {tie_points}pp ({w_pct:.1f}%{item_b_str} vs {other_w_pct:.1f}%{other_b_str}), daily remaining {d_pct:.1f}%"
 
         # Daily tied or both None -> check skill
         if item.skill is not None and other.skill is not None and item.skill != other.skill:
@@ -112,20 +117,21 @@ def _make_reason(
         leader = all_active[0]
         leader_w_pct = leader.weekly * 100
         leader_d_pct = leader.daily * 100 if leader.daily is not None else None
+        leader_b_str = f" {leader.bucket}" if leader.bucket else ""
 
         diff_w = leader.weekly - item.weekly
         if abs(diff_w) > tie_threshold:
-            return f"lower weekly remaining ({w_pct:.1f}% vs {leader_w_pct:.1f}%)"
+            return f"lower weekly remaining ({w_pct:.1f}%{item_b_str} vs {leader_w_pct:.1f}%{leader_b_str})"
 
         if leader.daily is not None and item.daily is not None:
             diff_d = leader.daily - item.daily
             if abs(diff_d) > tie_threshold:
                 return (
-                    f"weekly tie within {tie_points}pp ({w_pct:.1f}% vs {leader_w_pct:.1f}%), "
+                    f"weekly tie within {tie_points}pp ({w_pct:.1f}%{item_b_str} vs {leader_w_pct:.1f}%{leader_b_str}), "
                     f"lower daily ({d_pct:.1f}% vs {leader_d_pct:.1f}%)"
                 )
         elif leader.daily is not None and item.daily is None:
-            return f"weekly tie within {tie_points}pp ({w_pct:.1f}% vs {leader_w_pct:.1f}%), no daily quota data"
+            return f"weekly tie within {tie_points}pp ({w_pct:.1f}%{item_b_str} vs {leader_w_pct:.1f}%{leader_b_str}), no daily quota data"
 
         if leader.skill is not None and item.skill is not None and leader.skill != item.skill:
             return f"quota tie within {tie_points}pp, lower skill score ({item.skill:.2f} vs {leader.skill:.2f})"
@@ -154,11 +160,6 @@ def rank(
     # Rule 1: Only candidates from roles[role] whose runner is in host's runners
     available_runners = set(_host_runners(host))
 
-    runner_to_provider = {
-        v["runner"]: k for k, v in cfg.get("providers", {}).items() if isinstance(v, dict) and "runner" in v
-    }
-    runner_to_provider.update(RUNNER_TO_PROVIDER)
-
     min_samples = cfg.get("router", {}).get("min_samples", 5)
     tie_points = cfg.get("router", {}).get("tie_points", 5)
     tie_threshold = tie_points / 100.0
@@ -173,16 +174,8 @@ def rank(
             continue
 
         # Look up quota
-        q = quotas.get(runner)
-        if q is None:
-            prov = runner_to_provider.get(runner)
-            if prov:
-                q = quotas.get(prov)
-        if q is None:
-            for cand_q in quotas.values():
-                if cand_q.provider in (runner, runner_to_provider.get(runner)):
-                    q = cand_q
-                    break
+        bucket = bucket_for(cand_str, cfg)
+        q = quotas.get(bucket) if bucket else None
 
         weekly = q.weekly_remaining if (q and q.error is None) else None
         daily = q.daily_remaining if (q and q.error is None) else None
@@ -206,6 +199,7 @@ def rank(
                 candidate=cand_str,
                 runner=runner,
                 model=model,
+                bucket=bucket,
                 weekly=weekly,
                 daily=daily,
                 skill=skill_score,
@@ -281,6 +275,7 @@ def rank(
                 candidate=item.candidate,
                 runner=item.runner,
                 model=item.model,
+                bucket=item.bucket,
                 weekly=item.weekly,
                 daily=item.daily,
                 skill=item.skill,
