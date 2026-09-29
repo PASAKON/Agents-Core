@@ -440,6 +440,33 @@ git -C '$wt' push -q origin $Branch
 "@
     }
 
+    # GH #160: finish-<Task>.ps1 used `taskkill /PID <worker> /T /F`, and after
+    # one such kill Windows Terminal was gone and every later spawn failed.
+    # The finish script now walks the worker's process tree itself, kills it
+    # leaf-first WITHOUT /T, never touches a terminal/desktop process even if
+    # one shows up in the tree, and logs what it killed beside itself.
+    $finishLogPath = Join-Path $launchDir "finish-$Task.log"
+    $finishKillTail = @"
+if (-not `$workerPid) { exit 0 }
+`$keep = @('WindowsTerminal.exe', 'OpenConsole.exe', 'explorer.exe', 'conhost.exe', 'sshd.exe', 'svchost.exe')
+function Get-Tree([int]`$id) {
+    foreach (`$k in @(Get-CimInstance Win32_Process -Filter "ParentProcessId = `$id")) {
+        Get-Tree `$k.ProcessId
+        `$k
+    }
+}
+`$tree = @(Get-Tree `$workerPid) + @(Get-CimInstance Win32_Process -Filter "ProcessId = `$workerPid")
+foreach (`$p in `$tree) {
+    if (-not `$p) { continue }
+    if (`$keep -contains `$p.Name) {
+        "`$(Get-Date -Format o) kept `$(`$p.Name) pid `$(`$p.ProcessId)" | Add-Content -Path '$finishLogPath'
+        continue
+    }
+    taskkill /PID `$p.ProcessId /F | Out-Null
+    "`$(Get-Date -Format o) killed `$(`$p.Name) pid `$(`$p.ProcessId)" | Add-Content -Path '$finishLogPath'
+}
+"@
+
     if ($Runner -eq 'claude') {
         # Prompt goes first (positional), --allowed-tools (inside
         # $ClaudeArgs, rendered on the Mac side via worker_tool_grants)
@@ -474,13 +501,13 @@ git -C '$wt' push -q origin $Branch
         # runs -- launch.ps1 is generated here, before that pid is known (step 7
         # polls for it further down), so there is nothing to bake in yet. ---
         $finishPs1Body = @"
+`$workerPid = `$null
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
     Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
 if (`$procs) {
     `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
-    taskkill /PID `$workerPid /T /F
 }
-"@
+"@ + "`n" + $finishKillTail
         Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
 
         $finishCmdBody = @"
@@ -527,9 +554,16 @@ exit 0
         # action is one bare path (PowerShell -> schtasks quoting is unreliable).
         $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
         $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
+        # GH #160: `-w 0` means "the most recently used window", and with no
+        # window open there was nothing to add the tab to. A NAMED window is
+        # created by wt when it does not exist and reused when it does, so a
+        # spawn never depends on some other window being open (and never
+        # lands in a window that is not the workers').
+        $wtWindows = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        Write-Output ("WT_WINDOW=" + $(if ($wtWindows -gt 0) { "existing ($wtWindows WindowsTerminal process)" } else { "none (wt creates window mooniex-workers)" }))
         @"
 @echo off
-start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+start "" "$wtExe" -w mooniex-workers nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
 "@ | Set-Content -Path $wrapper -Encoding ASCII
     }
     elseif ($Runner -eq 'codex') {
@@ -556,13 +590,13 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
                                        (New-Object System.Text.UTF8Encoding $false))
 
         $finishPs1Body = @"
+`$workerPid = `$null
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'node.exe' OR Name = 'codex.exe'" |
     Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
 if (`$procs) {
     `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
-    taskkill /PID `$workerPid /T /F
 }
-"@
+"@ + "`n" + $finishKillTail
         Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
         $finishCmdBody = @"
 @echo off
@@ -654,13 +688,13 @@ $taskContent
         # command), but the finish script is still generated for shape
         # parity with the other two runners and as a harmless safety net.
         $finishPs1Body = @"
+`$workerPid = `$null
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'agy.exe'" |
     Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
 if (`$procs) {
     `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
-    taskkill /PID `$workerPid /T /F
 }
-"@
+"@ + "`n" + $finishKillTail
         Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
         $finishCmdBody = @"
 @echo off
@@ -732,10 +766,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         }
     }
     if (-not $workerPid) {
-        throw ("$Runner did not appear within 60s for task $Task -- the " +
-               "interactive scheduled task may not have started (needs an " +
-               "interactive desktop session; verify one exists over this " +
-               "SSH connection type). See ADDENDUM 1 in the task brief.")
+        # GH #160: say what was observed, not a guess. The old message named
+        # one hypothesis (no interactive session) and it proved incomplete.
+        $stInfo = Get-ScheduledTaskInfo -TaskName $stName -ErrorAction SilentlyContinue
+        $stState = (Get-ScheduledTask -TaskName $stName -ErrorAction SilentlyContinue).State
+        $lastResult = if ($stInfo) { '0x{0:X}' -f $stInfo.LastTaskResult } else { 'unknown (task not found)' }
+        $wtNow = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        $desktop = @(Get-Process -Name explorer -ErrorAction SilentlyContinue).Count
+        throw ("$Runner did not appear within 60s for task $Task. Observed: " +
+               "scheduled task $stName state=$stState LastTaskResult=$lastResult; " +
+               "WindowsTerminal processes=$wtNow; explorer (desktop) processes=$desktop; " +
+               "wrapper $wrapper exists=$(Test-Path $wrapper).")
     }
 
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
