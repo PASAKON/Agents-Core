@@ -23,7 +23,7 @@
 #   --no-chrome                 the Chrome connector is built-in and survives
 #                               --strict-mcp-config, so it must be named to go
 #   --no-session-persistence    no transcript on disk for a one-shot
-#   --model sonnet-5 (default)  CEO call 2026-08-07 on the bench evidence below:
+#   --model sonnet-5-5 (default)  CEO call 2026-08-07 on the bench evidence below:
 #                               haiku's savings are not worth a wrong answer
 #
 # PREFER --raw FOR DATA. --raw skips the model entirely and speaks MCP over
@@ -47,7 +47,7 @@
 #
 #   # model-mediated, for judgment tasks
 #   scripts/mcp-borrow.sh --server meigen "find navy+gold poster references"
-#   scripts/mcp-borrow.sh --server meigen --model claude-sonnet-5 "pick the best 3"
+#   scripts/mcp-borrow.sh --server meigen --model claude-sonnet-5-5 "pick the best 3"
 #   scripts/mcp-borrow.sh --server lungnote --bench "count open todos"
 #
 # Flags:
@@ -56,7 +56,7 @@
 #   --list          list the tools that server exposes, then exit
 #   --tools LIST    space/comma list of mcp__ tool names the model may call;
 #                   default = every tool that server contributes per SERVER_TOOLS
-#   --model M       default claude-sonnet-5. Pass haiku only for a passthrough
+#   --model M       default claude-sonnet-5-5. Pass haiku only for a passthrough
 #                   you will eyeball — it cannot be trusted to count or
 #                   aggregate over a payload (see --bench).
 #   --json          emit the raw result JSON (usage + cost) instead of the answer
@@ -68,7 +68,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GEN="$ROOT/scripts/lib/cxo_mcp_config.py"
 
 HAIKU="claude-haiku-4-5-20251001"
-SONNET="claude-sonnet-5"
+SONNET="claude-sonnet-5-5"
 
 SERVER=""
 TOOLS=""

@@ -175,7 +175,7 @@ every C-level since 2026-09-23 (CEO), launched from `policies/agents.yaml`.
 There is no tier above it to escalate to. If a session comes up on anything
 lighter (an old launcher, a `/model` downgrade, a restart that picked up a
 stale default), `session-change-model` hands the CEO the command to put it
-back. Workers keep their own tiers: Sonnet 5 workers stay on Sonnet 5, the
+back. Workers keep their own tiers: Sonnet workers run Sonnet 5.5 (since 2026-09-29), the
 two Opus workers (security_engineer, devops_engineer) run Opus 5.5 @ xhigh.
 Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 

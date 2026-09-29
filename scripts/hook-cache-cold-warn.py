@@ -93,7 +93,7 @@ MODEL_PRICE_PER_MTOK = (
 MODEL_LABELS = (
     ("fable", "Fable 5.1"),
     ("opus", "Opus 5.5"),
-    ("sonnet", "Sonnet 5"),
+    ("sonnet", "Sonnet 5.5"),
 )
 DEFAULT_PRICE = 8.0  # org standard model (Opus 5.5) when the model string is unrecognized
 

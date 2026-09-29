@@ -1165,7 +1165,7 @@ def _render_remote_claude_args(role_name: str, host_name: str) -> str:
     from runners.worker_init import remote_control_args, worker_tool_grants
     allowed, extra_flags = worker_tool_grants(role_name)
     role_cfg = get_role(role_name)
-    model = role_cfg.get("model") or "claude-sonnet-5"
+    model = role_cfg.get("model") or "claude-sonnet-5-5"
     effort = role_cfg.get("effort") or "high"
     parts = [
         "--model", model,
@@ -1245,7 +1245,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
 
     claude_args = _render_remote_runner_args(role_name, host_name, runner)
     role_cfg = get_role(role_name)
-    model = role_cfg.get("model") or "claude-sonnet-5"
+    model = role_cfg.get("model") or "claude-sonnet-5-5"
     effort = role_cfg.get("effort") or "high"
     # ADDENDUM 1 (CTO 2026-09-07): machine-prefixed session name, rendered
     # once here (single source of truth) and handed to the launcher rather
