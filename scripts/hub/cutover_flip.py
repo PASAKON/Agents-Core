@@ -9,27 +9,38 @@ than writing the literal ORG_DB_URL value into the plists -- the connection
 string carries a password. Routing the plists through the same wrapper the
 MCP servers use means rotating the password later means editing one env file.
 
-Only the two launchd plists are edited here, and both are untracked. This
-script no longer edits git-tracked files (Org Mesh W1.6): config/cto.mcp.json,
-config/worker.mcp.json and scripts/cto-claude.sh used to be rewritten, and a
-tracked edit is dirty state on every checkout, a conflict on every pull, and
-absent on a host that never ran this script. The org MCP servers reach the
-hub through the generators instead -- scripts/lib/cxo_mcp_config.py (C-level
-sessions) and lib/worker_mcp_config.py (per-spawn worker config) start the
-org server through the wrapper whenever the env file exists.
+Only untracked files are edited here: the two launchd plists and the host's
+node file (~/.config/mooniex/node.yaml). This script no longer edits
+git-tracked files (Org Mesh W1.6): config/cto.mcp.json, config/worker.mcp.json
+and scripts/cto-claude.sh used to be rewritten, and a tracked edit is dirty
+state on every checkout, a conflict on every pull, and absent on a host that
+never ran this script. The org MCP servers reach the hub through the
+generators instead -- scripts/lib/cxo_mcp_config.py (C-level sessions) and
+lib/worker_mcp_config.py (per-spawn worker config) start the org server
+through the wrapper when the node file says `org_db: hub` and the env file
+exists. The env file alone is not the switch: it predates the cutover, so
+this script writes the node-file line, and only this script's --apply does.
+Sessions and workers already running keep their old config until restart.
 
 Modes:
-    (default)  print a unified diff of what WOULD change, write nothing
-    --apply    make the changes, print the same diff for the CTO to review
+    (default)   print a unified diff of what WOULD change, write nothing
+    --apply     make the changes, print the same diff for the CTO to review
+    --rollback  remove the `org_db:` line from the node file (with --apply;
+                without it, print what would be removed). The plists are not
+                touched: restoring them stays manual (cutover-mac.sh prints how).
 """
 from __future__ import annotations
 
 import argparse
 import difflib
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+from cxo_mcp_config import node_yaml_path, set_org_db  # noqa: E402
+
 WRAPPER = str(ROOT / "scripts" / "hub" / "with-org-db-env.sh")
 
 PLISTS = [
@@ -80,21 +91,48 @@ def _flip_plist(path: Path, apply: bool) -> str:
     return diff
 
 
+def _flip_node_yaml(path: Path, apply: bool, rollback: bool = False) -> str:
+    """Set (or, on rollback, remove) `org_db: hub` in the node file, keeping
+    every other line -- `host:` above all -- as is. A missing file is created
+    holding only the switch (lib.config treats a node file with no `host:` as
+    having nothing to say). Idempotent: a second run changes nothing."""
+    before = path.read_text() if path.exists() else ""
+    after = set_org_db(before, None if rollback else "hub")
+    if after == before:
+        print(f"OK   {path}: org_db already {'absent' if rollback else 'hub'}")
+        return ""
+    diff = _diff(path.name, before, after)
+    if apply:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(after)
+    return diff
+
+
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--apply", action="store_true",
                      help="write the changes (default: print the diff only)")
+    ap.add_argument("--rollback", action="store_true",
+                     help="remove org_db from the node file instead of setting it")
     args = ap.parse_args(argv)
 
-    print(f"wrapper: {WRAPPER}")
+    node = node_yaml_path()
+    print(f"wrapper:   {WRAPPER}")
+    print(f"node file: {node}")
     print()
 
     any_diff = False
-    for p in PLISTS:
+    for p in [] if args.rollback else PLISTS:
         d = _flip_plist(p, args.apply)
         if d:
             any_diff = True
             print(d)
+    # Last: the node-file line is the switch that makes new sessions use the hub.
+    d = _flip_node_yaml(node, args.apply, args.rollback)
+    if d:
+        any_diff = True
+        print(d)
 
     if not any_diff:
         print("no changes needed -- already flipped.")

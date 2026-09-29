@@ -498,7 +498,4 @@ def test_watchdog_unit_is_a_contabo_loop_service_with_no_secret_and_no_poller():
     assert "Restart=always" in live
     assert not any("ORG_WATCHDOG_BRANCH_POLL" in ln for ln in live)
     assert not any(k in ln.upper() for ln in live for k in ("TOKEN", "SECRET", "PASSWORD", "API_KEY"))
-    # W1.6: ORG_DB_URL arrives through ONE optional EnvironmentFile (leading "-",
-    # so a host without the hub env file still starts); the value is never in the unit.
-    assert [ln for ln in live if ln.startswith("EnvironmentFile")] == [
-        "EnvironmentFile=-/root/.config/mooniex/org-db.env"]
+    assert not any(ln.startswith("EnvironmentFile") for ln in live)

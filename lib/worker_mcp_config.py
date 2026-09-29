@@ -14,10 +14,11 @@ What is rewritten, and what is deliberately not:
     (`LUNGNOTE_MCP_JS`, then the Mac / Contabo / winbox locations); with no
     candidate the server is dropped and one line is logged;
   * the org server is routed through `scripts/hub/with-org-db-env.sh` when the
-    hub env file exists on this host (`cxo.wrap_org_entry`, the same rule the
-    C-level generator applies; the file is never read, only its existence
-    tested). A template whose org command already is the wrapper (a checkout
-    where the old `scripts/hub/cutover_flip.py` rewrote it) is left alone;
+    hub is live on this host (`org_db: hub` in node.yaml) and its env file
+    exists (`cxo.wrap_org_entry`, the same rule the C-level generator applies;
+    the env file is never read, only its existence tested). A template whose
+    org command already is the wrapper (a checkout where the old
+    `scripts/hub/cutover_flip.py` rewrote it) is left alone;
   * everything else — the org server's args/env — is passed through untouched.
     ORG_DB_URL never enters `env`; the wrapper sources it at spawn time.
 """

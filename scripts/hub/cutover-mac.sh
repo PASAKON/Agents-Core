@@ -124,15 +124,19 @@ if [ "$APPLY" -eq 1 ]; then
 fi
 
 # --- step 4: flip config to route ORG_DB_URL through the wrapper --------
-step 4 "flip the two launchd plists to read ORG_DB_URL from the env file"
+step 4 "flip the two launchd plists to the env wrapper, then write org_db: hub into the node file"
 say "approach chosen: reference scripts/hub/with-org-db-env.sh's path from both"
-say "launchd plists' ProgramArguments (both are untracked)."
+say "launchd plists' ProgramArguments (both are untracked), then add the line"
+say "'org_db: hub' to the node file (~/.config/mooniex/node.yaml, or \$MOONIEX_NODE_YAML;"
+say "an existing org_db: line is replaced, host: is kept)."
 say "the org MCP servers are NOT edited here: scripts/lib/cxo_mcp_config.py"
 say "(C-level sessions) and lib/worker_mcp_config.py (workers) start them through"
-say "the same wrapper whenever ~/.config/mooniex/org-db.env exists (W1.6), so no"
-say "git-tracked file is edited -- the connection string carries a password and"
+say "the same wrapper once that node-file line is present AND the env file exists"
+say "(W1.6). The env file alone is not the switch -- it predates this cutover. No"
+say "git-tracked file is edited: the connection string carries a password and"
 say "must never land in a commit, and rotating it means editing the env file once."
-say "sessions already running keep their old MCP config until they restart."
+say "IMPORTANT: sessions and workers already running keep their old MCP config"
+say "until they restart -- restart them after this step (see the step-1 reminder)."
 if [ "$APPLY" -eq 1 ]; then
   "$PYTHON" scripts/hub/cutover_flip.py --apply
 else
@@ -185,12 +189,15 @@ fi
 say ""
 say "== summary =="
 say "what changed:   ORG_DB_URL now flows through the watchdog + mac-agent launchd"
-say "                plists (and, via the MCP config generators, through the org"
-say "                MCP server of every session launched from now on);"
+say "                plists; 'org_db: hub' is in the node file, so the MCP config"
+say "                generators start the org MCP server of every session and"
+say "                worker launched from now on through the wrapper;"
 say "                state/tasks.db archived to"
 say "                $ARCHIVE_PATH and replaced with a tombstone directory"
 say "                (no writer can silently recreate an empty one)."
-say "how to roll back: restore the two plists (git-untracked --"
+say "how to roll back: \"$PYTHON\" scripts/hub/cutover_flip.py --rollback --apply"
+say "                (removes org_db: from the node file; new sessions go back to"
+say "                the plain org entry); restore the two plists (git-untracked --"
 say "                Time Machine, or re-run cutover_flip.py's logic in reverse);"
 say "                rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db"
 say "                (and ${ARCHIVE_PATH}-wal/-shm back to state/tasks.db-wal/-shm,"

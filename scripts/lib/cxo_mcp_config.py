@@ -35,9 +35,13 @@ Env overrides (no code edit needed):
     CXO_EXTRA_MCP=meigen,meta-ads-135   add servers to this role
     CXO_SKIP_MCP=supabase               drop servers from this role
     CXO_SUPABASE_WRITE=1                drop --read-only from the supabase server
-    MOONIEX_ORG_DB_ENV=/path/org-db.env hub env file (default ~/.config/mooniex/org-db.env);
-                                        when it exists, the org server starts through
-                                        scripts/hub/with-org-db-env.sh (never read here)
+    MOONIEX_ORG_DB_ENV=/path/org-db.env hub env file (default ~/.config/mooniex/org-db.env)
+    MOONIEX_NODE_YAML=/path/node.yaml   node file (default ~/.config/mooniex/node.yaml)
+
+The org server starts through scripts/hub/with-org-db-env.sh only when the node
+file has the line `org_db: hub` (scripts/hub/cutover-mac.sh --apply writes it)
+AND the env file exists (existence only, never read). The env file alone is not
+the switch: it predates the cutover.
 """
 
 from __future__ import annotations
@@ -45,6 +49,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -208,18 +213,82 @@ def _is_windows() -> bool:
     return sys.platform == "win32"
 
 
+def node_yaml_path() -> Path:
+    """The host's node file (~/.config/mooniex/node.yaml, docs/design/org-mesh.md
+    C1); $MOONIEX_NODE_YAML overrides it for tests."""
+    return Path(
+        os.environ.get("MOONIEX_NODE_YAML")
+        or Path.home() / ".config" / "mooniex" / "node.yaml"
+    )
+
+
+_ORG_DB_KEY = re.compile(r"^org_db\s*:")
+
+
+def _org_db_value(line: str) -> str:
+    """Value of a top-level `org_db:` line, trailing ` # comment` removed."""
+    value = line.split(":", 1)[1]
+    return re.sub(r"\s+#.*$", "", value).strip()
+
+
+def hub_is_live() -> bool:
+    """True only when this host's node file has a top-level `org_db: hub` line.
+
+    This is the per-host cutover switch. The env file alone is NOT the
+    cutover: it exists on the Mac and on Contabo before it (it is the
+    cutover's input), so keying on it would move every new session to the
+    hub while the watchdog, hooks and CLI writes stay on state/tasks.db -- a
+    split ledger, without the CEO's window. Any other value (`sqlite`,
+    `hubx`, quoted), a commented-out line, a missing key or a missing file
+    means "not live". stdlib line match, not yaml: this file runs under the
+    system python3, where PyYAML is absent. The last `org_db:` line wins.
+    """
+    try:
+        text = node_yaml_path().read_text(encoding="utf-8")
+    except OSError:
+        return False
+    value = None
+    for line in text.splitlines():
+        if _ORG_DB_KEY.match(line):
+            value = _org_db_value(line)
+    return value == "hub"
+
+
+def set_org_db(text: str, value: str | None) -> str:
+    """`text` (a node file) with its `org_db:` line set to `value`, or removed
+    when `value` is None. An existing line is replaced in place and further
+    `org_db:` lines are dropped, so the key never appears twice; every other
+    line (`host:` above all) is kept byte for byte. Idempotent."""
+    out: list[str] = []
+    placed = False
+    for line in text.splitlines(keepends=True):
+        if _ORG_DB_KEY.match(line):
+            if value is not None and not placed:
+                out.append(f"org_db: {value}\n")
+                placed = True
+            continue
+        out.append(line)
+    if value is not None and not placed:
+        if out and not out[-1].endswith("\n"):
+            out[-1] += "\n"
+        out.append(f"org_db: {value}\n")
+    return "".join(out)
+
+
 def org_db_wrapper(root: str) -> str | None:
     """Path of scripts/hub/with-org-db-env.sh when this host should start the
     org MCP server through it, else None (docs/design/tasks-db-hub.md §3.3).
 
+    Wrapped only when ALL hold: the host's node file says `org_db: hub`
+    (hub_is_live), the env file exists, the wrapper script exists, and the
+    platform is not Windows (the wrapper is bash; winbox is W3.4).
+
     The wrapper sources the hub env file (ORG_DB_URL) at spawn time, so the
     secret reaches the server without landing in this generated config or in
     any tracked file. Only the env file's EXISTENCE is tested here: it is
-    never opened, and nothing from it goes into `env`. A host that never ran
-    the hub setup has no file and keeps the plain entry. Windows keeps the
-    plain entry too: the wrapper is bash (winbox is W3.4).
+    never opened, and nothing from it goes into `env`.
     """
-    if _is_windows():
+    if _is_windows() or not hub_is_live():
         return None
     env_file = Path(
         os.environ.get("MOONIEX_ORG_DB_ENV")
