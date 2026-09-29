@@ -35,7 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import hosts as config_hosts
+from lib.config import hosts as config_hosts, self_host
 from lib.notify import info, warn
 from tools.itermtab import close_tab
 from tools import tmux_session
@@ -636,7 +636,7 @@ def close_remote(task: dict, *,
         result["refused"] = f"status {status} is not terminal"
         return result
 
-    if not host or host == "mac":
+    if not host or host == self_host():
         result["refused"] = f"host={host!r} — not a remote spoke"
         return result
 

@@ -63,6 +63,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from lib import db  # noqa: E402
+from lib.config import self_host  # noqa: E402
 from lib.notify import info, warn  # noqa: E402
 from tools import send_to_cto  # noqa: E402
 from tools import session_cap  # noqa: E402
@@ -149,8 +150,8 @@ def _pid_dead_in_progress(task: dict) -> bool:
     pid = task.get("pid")
     if not pid:
         return False
-    host = task.get("host") or "mac"
-    if host == "mac":
+    this_host = self_host()
+    if (task.get("host") or this_host) == this_host:
         return not _pid_alive(pid)
     return _alive_for_gc(task) is False
 

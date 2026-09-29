@@ -1,7 +1,7 @@
 """Branch poller — hub side, Phase 1 (docs/design/multi-host-workers.md).
 
 Every POLL_SECONDS: for each `in_progress` task whose `host` is a remote
-spoke (not NULL, not 'mac'), check whether its branch landed on GitHub yet.
+spoke (not NULL, not this box's `self_host()`), check whether its branch landed on GitHub yet.
 A pushed branch carrying REPORT.md flips the task to `review`; one carrying
 BLOCKER.md opens a GitHub issue and marks it `blocked_human`; and if the
 remote worker died before pushing either, the task fails with a clear
@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from lib import db  # noqa: E402
-from lib.config import get_project, host as get_host  # noqa: E402
+from lib.config import get_project, host as get_host, self_host  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
 from tools import delegate as delegate_mod  # noqa: E402
 from tools.git_ops import _run_shell  # noqa: E402
@@ -110,6 +110,20 @@ def read_remote_file(repo_path: str, branch: str, file_name: str) -> str | None:
     return r.stdout
 
 
+def read_task_file(repo_path: str, branch: str, task_id: str,
+                   file_name: str) -> str | None:
+    """A worker's REPORT.md / BLOCKER.md as pushed on `branch`:
+    `docs/reports/<task-id>/<file_name>` first, then `<file_name>` at the
+    repo root (the layout every worker used before W0.6 moved codex/agy
+    reports under docs/). The first path that exists wins outright -- a
+    docs-path file with the wrong header is refused by the caller, never
+    papered over by a root file that happens to carry the right one."""
+    text = read_remote_file(repo_path, branch, f"docs/reports/{task_id}/{file_name}")
+    if text is not None:
+        return text
+    return read_remote_file(repo_path, branch, file_name)
+
+
 def remote_commit_age_seconds(repo_path: str, branch: str) -> float | None:
     """Seconds since the newest commit on `origin/<branch>` — the branch
     must already be fetched by the caller (fetch_branch); this never fetches
@@ -162,11 +176,11 @@ def _maybe_close_finished_remote_worker(task_id: str, repo_path: str, branch: st
     if not task:
         return
     host = task.get("host")
-    if not host or host == "mac":
+    if not host or host == self_host():
         return
     if task.get("status") != "review":
         return
-    if read_remote_file(repo_path, branch, "REPORT.md") is None:
+    if read_task_file(repo_path, branch, task_id, "REPORT.md") is None:
         return
     age = remote_commit_age_seconds(repo_path, branch)
     if age is None or age < REVIEW_CLOSE_QUIET_S:
@@ -337,7 +351,7 @@ def check_task(task: dict) -> None:
     task_id = task["id"]
     branch = task.get("branch")
     host_name = task.get("host")
-    if not branch or not host_name or host_name == "mac":
+    if not branch or not host_name or host_name == self_host():
         return
 
     try:
@@ -354,7 +368,7 @@ def check_task(task: dict) -> None:
     if remote_branch_exists(repo_path, branch):
         fetch_branch(repo_path, branch)
 
-        report = read_remote_file(repo_path, branch, "REPORT.md")
+        report = read_task_file(repo_path, branch, task_id, "REPORT.md")
         if report is not None:
             header_id = _header_task_id(report, "REPORT")
             if header_id != task_id:
@@ -396,7 +410,7 @@ def check_task(task: dict) -> None:
             _maybe_close_finished_remote_worker(task_id, repo_path, branch)
             return
 
-        blocker = read_remote_file(repo_path, branch, "BLOCKER.md")
+        blocker = read_task_file(repo_path, branch, task_id, "BLOCKER.md")
         if blocker is not None:
             header_id = _header_task_id(blocker, "BLOCKER")
             if header_id != task_id:
@@ -455,9 +469,10 @@ def tick() -> int:
     """One poll pass over every in-progress remote task. Returns the count
     of tasks checked (not how many changed — 0 changes on a normal tick is
     the common case, not a problem)."""
+    this_host = self_host()
     tasks = [
         t for t in db.list_tasks(status="in_progress", limit=500)
-        if t.get("host") and t.get("host") != "mac"
+        if t.get("host") and t.get("host") != this_host
     ]
     for t in tasks:
         try:

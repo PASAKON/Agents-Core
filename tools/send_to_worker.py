@@ -77,7 +77,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib import mailbox
-from lib.config import display_for, host as get_host
+from lib.config import display_for, host as get_host, self_host
 from tools import agent_transport
 from tools.agent_transport import (
     _resolve_sender_role,
@@ -106,7 +106,8 @@ def _ps_quote(value: str) -> str:
 
 def _send_remote(task: dict, message: str, *, from_role: str, from_sid: str,
                  label: str) -> str:
-    """Deliver `message` to a non-mac host's DEV via its MAILBOX.md.
+    """Deliver `message` to a DEV on another host (not self_host())
+    via its MAILBOX.md.
 
     GH #150 (task task-e40fc5a1): a `tmux_session` only ever exists for a
     Mac-spawned DEV -- send()'s old mailbox+tmux-wake path silently no-op'd
@@ -244,7 +245,7 @@ def send(task_id: str, message: str) -> str:
     denied) raises whatever `lib.mailbox.send()` raises; there is no
     fallback transport to catch it and retry.
 
-    GH #150 (task task-e40fc5a1): for a task whose `host` is not mac/None,
+    GH #150 (task task-e40fc5a1): for a task whose `host` is not self_host()/None,
     `tmux_session` is never set (that column only exists for Mac-spawned
     DEVs), so the mailbox+tmux path below would silently no-op the wake
     while still returning "queued" -- delivered a message to nowhere,
@@ -280,8 +281,9 @@ def send(task_id: str, message: str) -> str:
     from_role = sender_identity.role.lower()
     from_sid = sender_identity.session_id or "ceo"
 
-    host_name = task.get("host") or "mac"
-    if host_name != "mac":
+    this_host = self_host()
+    host_name = task.get("host") or this_host
+    if host_name != this_host:
         return _send_remote(task, message, from_role=from_role,
                             from_sid=from_sid, label=label)
 

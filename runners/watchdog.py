@@ -33,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
-from lib.config import host as get_host
+from lib.config import host as get_host, self_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
                                close_remote, _chrome_running)
 from runners.branch_poller import remote_pid_alive
@@ -98,6 +98,15 @@ REAP_GRACE_S = 300
 # Cap on tasks actually reaped (close_dev called) per sweep tick — a runaway
 # state (many leaked tasks at once) must not stall the watchdog's main loop.
 SWEEP_CAP = 20
+
+
+def _mac_surfaces() -> bool:
+    """iTerm tabs, osascript and the Chrome tab-claim registry exist only on
+    the Mac. On any other platform the passes that close those surfaces
+    (stall tab-close, finished-DEV reap, the local half of the terminal
+    sweep) are skipped rather than left to raise on a missing `osascript`
+    (Org Mesh W0.4; W1.5 gives Linux its own local duties)."""
+    return sys.platform == "darwin"
 
 
 def _close_tab(task_id: str) -> bool:
@@ -321,8 +330,9 @@ def sweep_terminal_surfaces() -> list[dict]:
     remote spoke was skipped here entirely, so a winbox/contabo task that
     went terminal by any route other than close_remote's own callers — a
     direct sqlite edit, a cancel — was never reaped, unlike a mac one).
-    Local (host is None/"mac"): the existing pid/tmux/tab/Chrome-tab-claim
-    liveness probe below, gated on an actual live surface being found.
+    Local (host is None or self_host()): the existing pid/tmux/tab/Chrome-
+    tab-claim liveness probe below, gated on an actual live surface being
+    found. Darwin only -- see `_mac_surfaces`.
     Remote (host is a spoke): this machine cannot see winbox's/contabo's
     process table, tmux server or terminal, so there is no liveness probe to
     gate on — every terminal remote task past REAP_GRACE_S calls
@@ -352,14 +362,17 @@ def sweep_terminal_surfaces() -> list[dict]:
     normal close_dev caller to run before the sweep treats it as a leak.
     """
     reaped: list[dict] = []
+    mac = _mac_surfaces()
+    this_host = self_host()
 
-    try:
-        from scripts.browser.tab_registry import all_claims
-        claims = all_claims()
-    except Exception as e:
-        warn(f"sweep: tab_registry import failed: {e}")
-        claims = {}
-    _log_unclaimed_org_tabs(set(claims.keys()))
+    claims: dict = {}
+    if mac:
+        try:
+            from scripts.browser.tab_registry import all_claims
+            claims = all_claims()
+        except Exception as e:
+            warn(f"sweep: tab_registry import failed: {e}")
+        _log_unclaimed_org_tabs(set(claims.keys()))
     claimed_task_ids = set(claims.values())
 
     rows: list[dict] = []
@@ -369,7 +382,7 @@ def sweep_terminal_surfaces() -> list[dict]:
         return reaped
 
     live_tmux = _live_tmux_sessions()
-    live_tab_ids = _live_task_tab_ids()
+    live_tab_ids = _live_task_tab_ids() if mac else set()
 
     for t in rows:
         if len(reaped) >= SWEEP_CAP:
@@ -378,10 +391,12 @@ def sweep_terminal_surfaces() -> list[dict]:
         if _silent_seconds(t.get("updated_at")) < REAP_GRACE_S:
             continue
         host = t.get("host")
-        if host not in (None, "mac"):
+        if host and host != this_host:
             remote_reap = _sweep_remote_terminal_task(t, host)
             if remote_reap is not None:
                 reaped.append(remote_reap)
+            continue
+        if not mac:
             continue
         pid_alive = _pid_alive(t.get("pid"))
         tmux_alive = tmux_session.session_name_for(task_id) in live_tmux
@@ -480,7 +495,7 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     """GAP 3 (task-59780ac3): a remote in_progress task whose worker died
     mid-task used to be invisible forever — this box's own process table
     can't see winbox's/contabo's pids, so the local stall loop always
-    skipped host != mac entirely.
+    skipped host != self_host() entirely.
 
     Reuses `runners.branch_poller.remote_pid_alive` (do not reimplement) —
     True/False from a real remote query, or None when the ssh call itself
@@ -637,15 +652,16 @@ def scan_once() -> dict:
     pinged = []
     stalled = []
     rows = db.list_tasks(status="in_progress", limit=200)
+    this_host = self_host()
     for t in rows:
-        # Remote workers (host != mac) have pids that live on ANOTHER machine;
-        # _pid_alive() here checks the Mac's process table and would read every
-        # one of them as dead (a winbox browser_operator was flipped to
+        # Remote workers (host != self_host()) have pids that live on ANOTHER
+        # machine; _pid_alive() here checks this box's process table and would
+        # read every one of them as dead (a winbox browser_operator was flipped to
         # 'stalled' this way on 2026-09-07). _check_remote_stall asks the box
         # itself over ssh instead (GAP 3, task-59780ac3) — before that fix a
         # remote task whose worker actually died just sat in_progress forever.
-        host = t.get("host") or "mac"
-        if host != "mac":
+        host = t.get("host") or this_host
+        if host != this_host:
             remote_stall = _check_remote_stall(t, host)
             if remote_stall is not None:
                 stalled.append(remote_stall)
@@ -696,7 +712,9 @@ def scan_once() -> dict:
             # interactively (e.g. a `spawn Web Designer` REPL) have
             # `pid IS NULL` and are left alone — they may be live work.
             if pid:
-                tab_closed = _close_tab(t["id"])
+                # No iTerm tab off the Mac (`_mac_surfaces`); the tmux
+                # cleanup below is the surface on Linux.
+                tab_closed = _close_tab(t["id"]) if _mac_surfaces() else False
             else:
                 tab_closed = False
                 info(f"watchdog: skip tab close for {t['id']} (no pid; "
@@ -783,8 +801,12 @@ def scan_once() -> dict:
     # NOT touch task status — the task is already terminal, the reap is
     # recorded here and in the log, not in tasks.db.
     reaped = []
-    finished_rows = (db.list_tasks(status="review", limit=200)
-                     + db.list_tasks(status="done", limit=200))
+    # close_dev closes an iTerm tab and Chrome tabs via osascript, so this
+    # pass is Darwin-only (`_mac_surfaces`).
+    finished_rows = []
+    if _mac_surfaces():
+        finished_rows = (db.list_tasks(status="review", limit=200)
+                         + db.list_tasks(status="done", limit=200))
     for t in finished_rows:
         pid = t.get("pid")
         if not pid or not _pid_alive(pid):

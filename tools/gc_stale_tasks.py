@@ -38,7 +38,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import host as get_host
+from lib.config import host as get_host, self_host
 from runners.branch_poller import remote_pid_alive
 from tools import disk_queue
 from tools.worker_reap import _pid_alive
@@ -163,7 +163,7 @@ def _alive_for_gc(t: dict) -> bool | None:
     is False).
     """
     host_name = t.get("host")
-    if host_name in (None, "mac"):
+    if not host_name or host_name == self_host():
         return _pid_alive(t.get("pid"))
     pid = t.get("pid")
     if not pid:
@@ -279,7 +279,7 @@ def gc_stale_tasks(
                 t["id"], "cancelled", actor="gc_stale_tasks",
                 report=(f"gc: stale spawned pending "
                         f">{STALE_SPAWNED_PENDING_MINUTES}min, no live "
-                        f"process (host={t.get('host') or 'mac'})"),
+                        f"process (host={t.get('host') or self_host()})"),
             )
             # update_status already released these locks — 'cancelled' is
             # in lib/db.py's RELEASING_STATUSES. This call is a no-op safety
