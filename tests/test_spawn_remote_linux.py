@@ -34,6 +34,13 @@ import tools.delegate as delegate  # noqa: E402
 
 SCRIPT = ROOT / "scripts" / "spawn-worker-remote.sh"
 
+# Every test here plays "a Mac hub delegating to the contabo spoke". With
+# self_host()=contabo (ORG_HOST=contabo, or the suite run on Contabo itself)
+# delegate_task(host="contabo") is a LOCAL spawn and walks into
+# /opt/MoonieXHQ/Agents/Core instead of building the ssh command under test
+# (task-6f6e5179 W0.3), so pin the hub to the Mac.
+pytestmark = pytest.mark.usefixtures("pinned_mac_host")
+
 
 @pytest.fixture()
 def temp_db(monkeypatch, tmp_path):
