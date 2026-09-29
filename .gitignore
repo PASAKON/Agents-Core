@@ -129,6 +129,9 @@ docs/reports/previz-contacts/
 # winbox remote-worker runtime artifacts (written at the repo root by the spawn path;
 # not source, and they block merge_task for every session while they sit untracked)
 .launch/
+# per-task launch dirs (<agents_root>/.launch-<task>/) and the hub-deployed launcher
+# (<agents_root>/.launch/) written by scripts/spawn-worker-remote.sh on a spoke
+.launch-*/
 .worker.json
 WORKER.md
 
@@ -162,3 +165,8 @@ state/*.log
 
 # neko pilot: browser profiles (cookies) and image pull logs — never in git (2026-09-26)
 state/neko/
+
+# machine_doctor's unknown-growth proposals, per machine (Org Mesh W0.3): a weekly
+# cron rewrites it on each box, so a tracked copy is dirty on Contabo and blocks
+# every merge there. The file is written and read only on its own machine.
+state/machine-discovered-*.yaml
