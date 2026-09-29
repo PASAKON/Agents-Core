@@ -1,7 +1,9 @@
 """Branch poller — hub side, Phase 1 (docs/design/multi-host-workers.md).
 
 Every POLL_SECONDS: for each `in_progress` task whose `host` is a remote
-spoke (not NULL, not this box's `self_host()`), check whether its branch landed on GitHub yet.
+spoke (not NULL, not this box's `self_host()`), check whether its branch
+landed on GitHub yet. REPORT.md / BLOCKER.md are looked for at
+`docs/reports/<task-id>/` first, then at the repo root (`read_task_file`).
 A pushed branch carrying REPORT.md flips the task to `review`; one carrying
 BLOCKER.md opens a GitHub issue and marks it `blocked_human`; and if the
 remote worker died before pushing either, the task fails with a clear
