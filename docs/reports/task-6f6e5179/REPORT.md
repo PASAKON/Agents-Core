@@ -1,5 +1,18 @@
 # task-6f6e5179 — Org Mesh W0.3: delegate to self and to a spoke from any host
 
+## Iteration 2 (CTO-FEEDBACK, iteration 2) — test pins only, no production code
+The ORG_HOST=contabo suite had 21 failures, exactly the CTO's list (10 new from this branch, 11 pre-existing). All are tests that mean "a Mac hub"; each is now pinned to the Mac:
+- `tests/test_spawn_remote_linux.py` (10) — module-level `pytestmark = usefixtures("pinned_mac_host")`: with self_host()=contabo `delegate_task(host="contabo")` is a local spawn and hit `/opt/MoonieXHQ/Agents/Core`.
+- `tests/test_delegate_workdir.py` (4 `test_merge_*`), `tests/test_merge_push.py` (2) — `@pytest.mark.usefixtures("pinned_mac_host")`; their fake projects carry only the Mac `path`, so `merge_task` raised "has no path configured for host 'contabo'".
+- `scripts/test_revert_task.py` (5) — same cause, but it is a unittest class with its own runner, so it pins `tools.revert_task.self_host` in `setUp` instead of a pytest fixture; that keeps `python scripts/test_revert_task.py` pinned too.
+- Merged origin/main (9287ca2b) before the run; a second fetch/merge before the final commit: "Already up to date". `CTO-FEEDBACK.md` is git-excluded in this worktree, not in the branch.
+- **Done criteria, quoted:**
+  1. `.venv/bin/python -m pytest -p no:warnings` → `3268 passed, 27 skipped in 186.50s`, exit 0, **0 failed**
+  2. `ORG_HOST=contabo .venv/bin/python -m pytest -p no:warnings` → `3268 passed, 27 skipped in 185.68s`, exit 0, **0 failed**
+  3. `scripts/test_revert_task.py` standalone: default env → `Ran 6 tests ... OK`; `ORG_HOST=contabo` → `Ran 6 tests ... OK`
+- Before the pins the same contabo run was `21 failed, 3247 passed` (log kept in the scratchpad, not in the repo).
+- Commit: 1 more (tests: pin Mac-hub tests to the Mac so the suite passes under ORG_HOST=contabo). The figures in the Tests section below are from iteration 1 (before the origin/main merge); the two runs above supersede them.
+
 ## Summary
 A C-level on any host now delegates locally by default (`self_host()`, not a literal `mac`), the local spawn is its own function that touches iTerm/osascript/`open` on Darwin only, and remote deploys ship `git show origin/<base>:<path>` blobs instead of the Mac's working tree. `create_worktree` resolves the checkout per host, the worker MCP config is rendered per spawn for the host's own ROOT, and `state/machine-discovered-*.yaml` is untracked. Full suite: 3142 passed, 27 skipped, 0 failed.
 
@@ -24,8 +37,10 @@ A C-level on any host now delegates locally by default (`self_host()`, not a lit
 - c8a23214 — tests: W0.3 self_host spawn, origin-blob deploy, per-host worker MCP config
 - ce20536a — notify: desktop banner (osascript) on Darwin only, with a test
 - 5ee55722 — drop CTO-FEEDBACK.md from the branch (my `git add -A` had swept it in)
+- ea5358f9 — merge of origin/main (9287ca2b) into the branch (iteration 2)
+- 2c3c5b44 — tests: pin Mac-hub tests to the Mac so the suite passes under ORG_HOST=contabo (iteration 2)
 
-`git fetch origin && git merge origin/main` at the end: "Already up to date" (origin/main = cc812fa2, the base).
+`git fetch origin && git merge origin/main` at the end of iteration 2: "Already up to date" (origin/main = 9287ca2b). In iteration 1 the base was cc812fa2.
 
 ## Tests
 - ran: `ORG_ROUTER=off .venv/bin/python -m pytest` (full suite, background, no -q/-x/-n)
@@ -74,5 +89,7 @@ A C-level on any host now delegates locally by default (`self_host()`, not a lit
 - MISSING [CXO_Protocol_DevSpawn §touches] : a brief that says "never call osascript off Darwin" must list `lib/notify.py` in touches — `success()`/`error()` (mac=True) are the osascript callers on the spawn path; without it the DEV is blocked by self_repo_guard mid-task · evidence: task-6f6e5179, guard refusal, CTO-FEEDBACK.md 19:39
 - MISSING [CXO_Protocol_DevSpawn §worktree excludes] : `CTO-FEEDBACK.md` is not in the worktree's info/exclude, so the DEV's mandatory `git add -A` committed it into the branch · evidence: commit ce20536a → removed in 5ee55722 · fix: add it to the provisioning exclude names next to TASK.md
 - COSTLY [no owner] : `hook-secret-env-guard` blocks a command that merely uses a Python variable named `ps` (reads as `ps e`) — cost one retry and the paths.mac/path check · evidence: task-6f6e5179 session · prevented by: never name a shell/Python variable `ps`
+- MISSING [CXO_Protocol_DevSpawn §done criteria] : a brief that changes what `self_host()` means must say the suite runs under both `ORG_HOST` values (default and `contabo`); iteration 1 was submitted green on the Mac only and the Contabo run found 21 failures (10 from this branch, 11 tests that had always assumed a Mac hub) · evidence: task-6f6e5179 iteration 2, `contabo-suite-1.log` "21 failed, 3247 passed"
+- MISSING [no owner] : a test meaning "the Mac hub" needs a pin on `self_host`; the `pinned_mac_host` fixture in `conftest.py` is the one to use, and a unittest class with its own standalone runner (`scripts/test_revert_task.py`) must patch inside `setUp` because pytest marks do not apply to the standalone run · evidence: commit 2c3c5b44
 - COSTLY [no owner] : zsh does not word-split `$pre`/`$FILES`; `pytest $FILES` and `$pre cmd` failed with "no such file" twice despite the rule in the shared conventions · evidence: task-6f6e5179 · prevented by: write the file list out in full or use bash
 - COSTLY [no owner] : GateGuard armed once per new file (11 rounds this task), and `rm -rf` / `git checkout --` in a scratch rehearsal triggered its "destructive" gate; a cwd-guard also blocked `cd "$SP/..."`. Put scratch rehearsals in a script file under the scratchpad and run `/bin/bash file` · evidence: task-6f6e5179
