@@ -71,10 +71,9 @@ skipped.
 - `857e4286` — revert_task: host-aware revert via temp worktree (Org Mesh W0.2)
 - `6ceefb4c` — rollback: host-aware rollback via temp worktree (Org Mesh W0.2)
 - `5600f362` — tests: fake_projects fixture + Org Mesh W0.2 origin-path coverage
-- `33d00255` — docs: task-ae3f22e3 round-1 report
-- (round 2 commits: `lib/org_tools_registry.py` review_diff rewrite,
-  `tests/test_review_diff_origin.py`, rollback test, this report update —
-  see `git log` for exact SHAs at submission time)
+- `33d00255` — docs: task-ae3f22e3 final report (Org Mesh W0.2) (round 1)
+- `434d7fcf` — org_tools_registry: host-aware review_diff (Org Mesh W0.2, item 7)
+- `9f013768` — docs: task-ae3f22e3 round-2 report update (item 7 complete)
 
 ## Tests
 
