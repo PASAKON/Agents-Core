@@ -55,7 +55,7 @@ pytestmark = pytest.mark.skipif(
     ),
 )
 
-_TABLES = ("locks", "events", "tasks", "c_level_sessions")
+_TABLES = ("locks", "events", "tasks", "c_level_sessions", "hosts", "letters")
 
 
 def _drop_all(url: str) -> None:
@@ -387,3 +387,28 @@ def test_migrate_skip_bad_rows_continues_and_lists_skipped(tmp_path, monkeypatch
     with db_mod.get_conn() as conn:
         ids = {r["id"] for r in conn.execute("SELECT id FROM tasks").fetchall()}
     assert ids == {t1}
+
+
+# ---------------------------------------------------------------------------
+# hosts / letters (Org Mesh W2.1)
+# ---------------------------------------------------------------------------
+
+def test_hosts_and_letters_roundtrip_on_postgres():
+    db_mod.upsert_host("mac", os="darwin", agents_root="/x", provides=["chrome"],
+                        max_workers=4)
+    db_mod.upsert_host("mac", status="online", running=2)  # probe-only, preserves os
+    assert db_mod.get_host("mac")["os"] == "darwin"
+    assert db_mod.get_host("mac")["status"] == "online"
+
+    lid = db_mod.create_letter("contabo", "cto", "hi", from_role="cto")
+    assert isinstance(lid, int)
+    assert db_mod.pending_letters("contabo") == [db_mod.get_letter(lid)]
+    assert db_mod.mark_letter_delivered(lid) is True
+    assert db_mod.mark_letter_delivered(lid) is False
+
+    lid2 = db_mod.create_letter("contabo", "cto", "retry me")
+    for i in range(5):
+        db_mod.record_letter_attempt(lid2, f"e{i}")
+    failed = db_mod.get_letter(lid2)
+    assert failed["attempts"] == 5
+    assert failed["status"] == "failed"

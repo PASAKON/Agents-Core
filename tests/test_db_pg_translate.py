@@ -116,3 +116,47 @@ def test_pragma_table_info_translated_to_information_schema():
 ])
 def test_other_pragmas_are_skipped(sql):
     assert db_pg._translate(sql) is None
+
+
+# ---------------------------------------------------------------------------
+# Org Mesh W2.1 -- lib.db's hosts/letters SQL, offline sanity (task brief:
+# "the SQL you add must pass lib.db_pg's offline _translate"). Neither
+# statement is an `INSERT OR REPLACE` (upsert_host writes its own
+# `ON CONFLICT ... DO UPDATE SET col=excluded.col`, valid Postgres syntax
+# unchanged), so both should pass through _rewrite_insert_or_replace as a
+# no-op and only get `?` -> `%s` placeholder translation.
+# ---------------------------------------------------------------------------
+
+def test_upsert_host_on_conflict_sql_translates_placeholders_only():
+    sql = (
+        "INSERT INTO hosts (host,os,max_workers,updated_at) VALUES (?,?,?,?) "
+        "ON CONFLICT(host) DO UPDATE SET os=excluded.os, "
+        "max_workers=excluded.max_workers, updated_at=excluded.updated_at"
+    )
+    assert db_pg._translate(sql, has_params=True) == (
+        "INSERT INTO hosts (host,os,max_workers,updated_at) VALUES (%s,%s,%s,%s) "
+        "ON CONFLICT(host) DO UPDATE SET os=excluded.os, "
+        "max_workers=excluded.max_workers, updated_at=excluded.updated_at"
+    )
+
+
+def test_create_letter_returning_id_sql_translates_placeholders_only():
+    sql = (
+        "INSERT INTO letters "
+        "(to_host,to_role,to_session,from_role,from_session,body,status,created_at,attempts) "
+        "VALUES (?,?,?,?,?,?,?,?,?) RETURNING id"
+    )
+    got = db_pg._translate(sql, has_params=True)
+    assert got.count("%s") == 9
+    assert got.rstrip().endswith("RETURNING id")
+
+
+def test_record_letter_attempt_returning_sql_translates_placeholders_only():
+    sql = (
+        "UPDATE letters SET attempts = attempts + 1, last_error = ? "
+        "WHERE id = ? RETURNING attempts"
+    )
+    assert db_pg._translate(sql, has_params=True) == (
+        "UPDATE letters SET attempts = attempts + 1, last_error = %s "
+        "WHERE id = %s RETURNING attempts"
+    )
