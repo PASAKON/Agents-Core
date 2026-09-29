@@ -22,6 +22,8 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from lib import config
+
 PLANS_PATH = ROOT / "config" / "plans.yaml"
 DEFAULT_HISTORY = Path(__file__).resolve().parents[1] / "state" / "reports" / "quota-history.jsonl"
 
@@ -351,11 +353,25 @@ def apply_bonuses(quota: Quota, bonuses: list[dict], now: datetime | str | None 
 # Thin fetchers (subprocess/ssh, not tested by unit tests)
 # ---------------------------------------------------------------------------
 
+def _ssh_target(alias: str | None) -> str | None:
+    if not alias:
+        return None
+    try:
+        from lib import config
+
+        self_ssh = config.host(config.self_host()).get("ssh")
+        if alias == self_ssh:
+            return None
+    except Exception:
+        return alias
+    return alias
+
+
 def fetch_claude(cfg: dict | None = None) -> Quota:
     """Fetch Claude usage from configured source (default VPS usage.json)."""
     cfg = cfg or load_plans()
     source_cfg = cfg.get("quota_sources", {}).get("claude", {})
-    ssh = source_cfg.get("ssh")
+    ssh = _ssh_target(source_cfg.get("ssh"))
     path = source_cfg.get("path", "/opt/claude-usage-monitor/usage.json")
     src_label = f"{ssh}:{path}" if ssh else str(path)
 
@@ -385,7 +401,7 @@ def fetch_codex(cfg: dict | None = None) -> Quota:
     """Fetch Codex usage from configured source (newest rollout JSONL)."""
     cfg = cfg or load_plans()
     source_cfg = cfg.get("quota_sources", {}).get("codex", {})
-    ssh = source_cfg.get("ssh")
+    ssh = _ssh_target(source_cfg.get("ssh"))
     glob_pat = source_cfg.get("sessions_glob", "/root/.codex/sessions/*/*/*/rollout-*.jsonl")
     src_label = f"{ssh}:{glob_pat}" if ssh else str(glob_pat)
 
@@ -423,7 +439,7 @@ def fetch_agy(cfg: dict | None = None) -> Quota:
     """Fetch agy usage via `agy -p /usage --output-format json`."""
     cfg = cfg or load_plans()
     source_cfg = cfg.get("quota_sources", {}).get("agy", {})
-    ssh = source_cfg.get("ssh")
+    ssh = _ssh_target(source_cfg.get("ssh"))
     cmd_list = list(source_cfg.get("cmd") or ["~/.local/bin/agy", "-p", "/usage", "--output-format", "json"])
     cmd_list[0] = os.path.expanduser(cmd_list[0])
     src_label = f"{ssh}:{shlex.join(cmd_list)}" if ssh else shlex.join(cmd_list)
