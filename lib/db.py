@@ -152,6 +152,48 @@ CREATE TABLE IF NOT EXISTS c_level_sessions (
 CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
     ON c_level_sessions(active_task_id)
     WHERE active_task_id IS NOT NULL;
+
+-- Org Mesh W2.1 (docs/design/org-mesh.md C2/C3/C4): the host registry and
+-- cross-host mailbox. `hosts` is seeded from config/hosts.yaml
+-- (seed_hosts_from_config) and then kept live by each host's own node_agent
+-- heartbeat (W2.3, not built here) -- upsert_host never overwrites a field
+-- the caller didn't pass, so a heartbeat writer and the config seeder can
+-- both touch the same row without clobbering each other.
+CREATE TABLE IF NOT EXISTS hosts (
+    host         TEXT PRIMARY KEY,
+    os           TEXT,
+    hq_root      TEXT,
+    agents_root  TEXT,
+    provides     TEXT,   -- JSON array, e.g. ["chrome","gpu"]
+    max_workers  INTEGER,
+    status       TEXT,   -- online|offline|pending_identity|left
+    probed_at    TEXT,
+    free_gb      REAL,
+    ram_free_gb  REAL,
+    running      INTEGER,
+    version      TEXT,
+    updated_at   TEXT
+);
+
+-- Cross-host C-level mail (W2.4 delivers these, W2.2's `node_dispatch
+-- deliver_letter <id>` marks them delivered). to_session/from_role/
+-- from_session are optional -- a letter can target a role broadly (every
+-- open CTO tab on to_host) or one specific session.
+CREATE TABLE IF NOT EXISTS letters (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    to_host       TEXT,
+    to_role       TEXT,
+    to_session    TEXT,
+    from_role     TEXT,
+    from_session  TEXT,
+    body          TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'pending',  -- pending|delivered|failed
+    created_at    TEXT,
+    delivered_at  TEXT,
+    attempts      INTEGER NOT NULL DEFAULT 0,
+    last_error    TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status);
 """
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
@@ -1130,6 +1172,155 @@ def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> Non
             "UPDATE c_level_sessions SET active_task_id=? WHERE role=? AND session_id=?",
             (task_id, role, session_id),
         )
+
+
+# ---------------------------------------------------------------------------
+# hosts (Org Mesh W2.1, docs/design/org-mesh.md C2/C3)
+# ---------------------------------------------------------------------------
+
+_HOST_COLUMNS = {
+    "os", "hq_root", "agents_root", "provides", "max_workers", "status",
+    "probed_at", "free_gb", "ram_free_gb", "running", "version",
+}
+
+
+def upsert_host(host: str, **fields) -> None:
+    """Insert or update one `hosts` row, touching ONLY the columns passed.
+
+    A column left out of `fields` keeps its existing value -- this is what
+    lets seed_hosts_from_config() (identity fields only) and a future
+    node_agent heartbeat (probe fields only) both write the same row without
+    either one clobbering the other's data. `provides`, if given, is a list
+    and gets JSON-encoded for storage. `updated_at` is always stamped with
+    now_iso(), even on a no-op reseed -- it means "last touched", not "last
+    changed".
+    """
+    bad = set(fields) - _HOST_COLUMNS
+    if bad:
+        raise ValueError(f"unknown host column(s): {bad}")
+    cols = dict(fields)
+    if "provides" in cols and cols["provides"] is not None:
+        cols["provides"] = json.dumps(cols["provides"])
+    cols["updated_at"] = now_iso()
+    col_names = ["host", *cols.keys()]
+    placeholders = ",".join("?" * len(col_names))
+    updates = ", ".join(f"{c}=excluded.{c}" for c in cols)
+    sql = (
+        f"INSERT INTO hosts ({','.join(col_names)}) VALUES ({placeholders}) "
+        f"ON CONFLICT(host) DO UPDATE SET {updates}"
+    )
+    with get_conn() as conn:
+        conn.execute(sql, [host, *cols.values()])
+
+
+def get_host(host: str) -> dict | None:
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM hosts WHERE host=?", (host,)).fetchone()
+    return dict(row) if row else None
+
+
+def list_hosts() -> list[dict]:
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM hosts ORDER BY host").fetchall()
+    return [dict(r) for r in rows]
+
+
+def seed_hosts_from_config() -> None:
+    """One `hosts` row per config/hosts.yaml entry -- os, agents_root,
+    provides, max_workers only. Never touches probe fields (status,
+    probed_at, free_gb, ram_free_gb, running, version) -- upsert_host only
+    writes the columns it's given, so a live node's heartbeat data survives
+    a reseed untouched. Idempotent: rerunning with an unchanged hosts.yaml
+    leaves every seeded field the same.
+
+    Imports lib.config lazily (pulls in PyYAML) so lib.db itself stays
+    importable without it -- the PreToolUse hooks import lib.db under the
+    system python3, which may not have PyYAML installed.
+    """
+    from lib import config
+    for name, h in config.hosts().items():
+        upsert_host(
+            name,
+            os=h.get("os"),
+            agents_root=h.get("agents_root"),
+            provides=h.get("provides") or [],
+            max_workers=h.get("max_workers"),
+        )
+
+
+# ---------------------------------------------------------------------------
+# letters (Org Mesh W2.1 -- cross-host C-level mailbox, delivered by W2.2's
+# `node_dispatch deliver_letter <id>`)
+# ---------------------------------------------------------------------------
+
+def create_letter(
+    to_host: str,
+    to_role: str,
+    body: str,
+    *,
+    to_session: str | None = None,
+    from_role: str | None = None,
+    from_session: str | None = None,
+) -> int:
+    ts = now_iso()
+    with get_conn() as conn:
+        row = conn.execute(
+            """INSERT INTO letters
+                 (to_host,to_role,to_session,from_role,from_session,body,status,created_at,attempts)
+               VALUES (?,?,?,?,?,?,?,?,?)
+               RETURNING id""",
+            (to_host, to_role, to_session, from_role, from_session, body,
+             "pending", ts, 0),
+        ).fetchone()
+    return row["id"]
+
+
+def get_letter(letter_id: int) -> dict | None:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM letters WHERE id=?", (letter_id,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def pending_letters(to_host: str) -> list[dict]:
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM letters WHERE to_host=? AND status='pending' ORDER BY id",
+            (to_host,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def mark_letter_delivered(letter_id: int) -> bool:
+    """Flip a letter to delivered. Returns False (no error) when it was
+    already delivered -- the W2.2 `deliver_letter` caller must be idempotent
+    against a retried delivery, this is the primitive that makes it so."""
+    ts = now_iso()
+    with get_conn() as conn:
+        cur = conn.execute(
+            "UPDATE letters SET status='delivered', delivered_at=? "
+            "WHERE id=? AND status<>'delivered'",
+            (ts, letter_id),
+        )
+        return bool(cur.rowcount)
+
+
+def record_letter_attempt(letter_id: int, error: str) -> None:
+    """Bump attempts, record `error` as last_error, and flip to `failed`
+    once attempts reaches 5. Atomic per row (single UPDATE ... RETURNING) so
+    two racing delivery attempts can't both read the same pre-increment
+    count and under-count."""
+    with get_conn() as conn:
+        row = conn.execute(
+            "UPDATE letters SET attempts = attempts + 1, last_error = ? "
+            "WHERE id = ? RETURNING attempts",
+            (error, letter_id),
+        ).fetchone()
+        if row is not None and row["attempts"] >= 5:
+            conn.execute(
+                "UPDATE letters SET status='failed' WHERE id=?", (letter_id,)
+            )
 
 
 if __name__ == "__main__":
