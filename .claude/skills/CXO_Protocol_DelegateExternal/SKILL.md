@@ -171,3 +171,7 @@ Anything learned goes back into the brief's §10 so the next agent inherits it.
 `docs/ops/model-fallback.md` (which lane runs what when quota is gone),
 `docs/briefs/CODEX-winbox-shoot.md` (the first real example, 2026-09-19),
 IRON-RULES §53 (repeated browser work is a script, not a model).
+
+## Field notes
+
+- 2026-09-29 [MISSING] codex/agy lanes are winbox-only (`config/hosts.yaml` mac `runners: [claude]`); after the winbox reset `where codex` on winbox returned "Could not find files", so the lane was silently gone while code and this skill still described it. Before promising the CEO a Codex hand-off, run `ssh winbox "codex --version"` (and `agy --version`). Mac has `codex-cli 0.154.0` but no lane uses it · evidence: mooniex:research/2026-09-29-govibe-genesisblock-multi-agent.md · status: pending

@@ -369,3 +369,47 @@ projects:
     review_required: true
     # tmux-backed so send_to_worker's mailbox+wake can reach a spawned worker.
     spawn_backend: tmux
+
+  - key: mooniex-sompong
+    name: SomPong EA (the CEO's Executive Assistant)
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
+    remote: https://github.com/PASAKON/MoonieX-SomPong.git
+    default_branch: main
+    stack: [python]
+    agents_allowed: *default_workers
+    # PRIVATE repo, hq.yaml row approved by the CEO 2026-09-26. Runs on
+    # Contabo as unix user sompong; reaches LINE only through ClaudeFlow's
+    # internal API, never through ClaudeFlow's files (IRON §54).
+    auto_push: true
+    review_required: true
+    # stdlib-only project; uv supplies pytest so the gate needs no venv (Mac python3 has none).
+    test_command: uv run --no-project --python 3.12 --with pytest python -m pytest -q
+    gate_tests: true
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/SomPong
+    spawn_backend: tmux
+
+  - key: mooniex-option
+    name: MoonieX Option (IQ Option trading bot + SALA VIP signal listener)
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
+    remote: https://github.com/PASAKON/MoonieX-Option.git
+    # All live work is on windows-iqoption-port (60 commits ahead of main, which is
+    # only the April POC). Workers branch from it until main is fast-forwarded.
+    default_branch: windows-iqoption-port
+    stack: [node]
+    agents_allowed: *default_workers
+    # The trader must run on a residential IP (winbox), never on Contabo (broker bans
+    # datacenter IPs). Contabo only runs listener/receiver/channel in Docker.
+    auto_push: false
+    review_required: true
+    # NEVER bare `node --test`: its default glob picks up test-trade.js, which opens
+    # the broker and can place a trade. Tests live under test/ only. Node 26 treats
+    # `test/` as a file (fails), so the glob is quoted. No node_modules on the Mac:
+    # tested modules must not require npm packages.
+    test_command: node --test "test/**/*.test.js"
+    gate_tests: true
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Option
+    spawn_backend: tmux

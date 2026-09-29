@@ -1,0 +1,114 @@
+[
+ {
+  "name": "kampun__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai woman from Northeast Thailand (Isan), 55 years old, a strong, wiry rice farmer who has worked outdoors all her life: high cheekbones, a firm square jaw, deep laugh lines around the eyes, very dark sun-baked skin, short grey-streaked black hair mostly hidden under a red-and-white checked pha khao ma cloth wrapped around her head like a turban, a single thin gold chain necklace. One hand rests at her collarbone so her fingers are visible: her fingertips and fingernails are permanently stained deep indigo-blue from years of dyeing cloth. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity and not glamorous: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "kampun__chain",
+  "continue": "kampun__face",
+  "prompt": "Keep this exact same woman as in the portrait above: identical face, features, age, skin, head cloth and indigo-stained fingertips. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a hand-dyed deep indigo long-sleeved cotton blouse with no print, sleeves pushed to the elbow, a long indigo mudmee ikat tube skirt (pha sin) to the ankles, the red-and-white checked pha khao ma cloth still wrapped around her head, the thin gold chain necklace at her throat, worn black rubber flip-flops. No text, no letters, no logos, no brand marks anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "kampun__nochain",
+  "continue": "kampun__chain",
+  "prompt": "Keep this exact same woman in exactly the same outfit, same pose, same grey backdrop and light. The only change: the gold chain necklace is gone, her neck is bare. Vertical 2:3 image. No text, no letters, no logos anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "saen__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A handsome Thai man from Northeast Thailand (Isan), 27 years old, with rustic, down-to-earth good looks, like a good-looking village boy, not a model and not polished: golden-brown sun-tanned skin, thick straight black eyebrows, warm dark eyes, a strong square jaw with light stubble, short slightly overgrown black hair, a lean build from farm work, a small silver Buddha amulet on a black cord around his neck. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a slight warm closed-mouth smile that shows deep dimples in both cheeks. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. A real-looking person with natural skin texture and pores, not retouched. No text, no logos, no watermark."
+ },
+ {
+  "name": "saen__city",
+  "continue": "saen__face",
+  "prompt": "Keep this exact same man as in the portrait above: identical face, dimples, features, age, skin, hair and silver amulet. Now show him FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit, just arrived home from Bangkok: a plain white crew-neck T-shirt with no print, faded blue jeans, plain white canvas sneakers, a plain grey backpack on one shoulder, the silver amulet on its black cord. No text, no letters, no logos, no brand marks, no badges anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "saen__indigo",
+  "continue": "saen__city",
+  "prompt": "Keep this exact same man: identical face, dimples, features, age and build. Show him FULL BODY from head to toe again, same pose, same grey backdrop and light. Vertical 2:3 image. Now he is dressed to harvest rice: a hand-dyed deep indigo long-sleeved cotton work shirt with no print, sleeves rolled to the elbow, dark cotton trousers rolled up to mid-calf, a red-and-white checked pha khao ma cloth tied around his forehead as a headband, bare feet, the silver amulet on its black cord. No backpack. No text, no letters, no logos anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "hong__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai woman, 52 years old, a wealthy small-town rice-mill owner who loves to show it: plump, a round face with heavy powdered make-up, thin arched drawn-on eyebrows, glossy bright-red lipstick, jet-black hair lacquered into a tall shiny bun with a hot-pink silk flower clip, hot-pink sunglasses pushed up on top of the bun, three thick gold chain necklaces, gold earrings. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. A real-looking person with natural skin texture under the make-up, not a celebrity. No text, no logos, no watermark."
+ },
+ {
+  "name": "hong__pink",
+  "continue": "hong__face",
+  "prompt": "Keep this exact same woman as in the portrait above: identical face, make-up, hair bun, flower clip, pink sunglasses and gold chains. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a loose hot-pink silk blouse printed with large darker-pink peonies, cream wide-leg trousers, hot-pink heeled sandals, a green jade bangle, the three thick gold chains; in her right hand a closed carved sandalwood folding fan. No text, no letters, no logos, no brand marks anywhere. No handbag. No watermark."
+ },
+ {
+  "name": "boonma__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai village headman from Northeast Thailand (Isan), 60 years old, lean: a sun-darkened lined face, short grey hair, a thin grey moustache, round thin wire-rimmed glasses, a kind but tired face. He wears a faded light-blue short-sleeved cotton shirt with no print. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity: natural skin texture with pores, wrinkles and sun marks. No text, no logos, no badges, no watermark."
+ },
+ {
+  "name": "boonma__day",
+  "continue": "boonma__face",
+  "prompt": "Keep this exact same man as in the portrait above: identical face, moustache, glasses, age and build. Now show him FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: the same faded light-blue short-sleeved cotton shirt with no print, loose grey cotton trousers, a red-and-white checked pha khao ma cloth tied around his waist, worn black rubber sandals, a woven bamboo sun hat with a wide brim. This is NOT a uniform: no khaki, no badges, no insignia, no patches, no name tag. No text, no letters, no logos anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "pa__face",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai woman from Northeast Thailand (Isan), about 50 years old, a sturdy cheerful farmer: a round sunburnt face with full cheeks, lively eyes, short black hair with grey at the temples, a wide woven straw hat with a flat top. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not a celebrity: natural skin texture with pores and sun marks. No text, no logos, no watermark."
+ },
+ {
+  "name": "pa__work",
+  "continue": "pa__face",
+  "prompt": "Keep this exact same woman as in the portrait above: identical face, age, build and straw hat. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a leaf-green long-sleeved cotton blouse with a small white flower print, a dark-brown cotton tube skirt to mid-calf, black cloth arm sleeves against the sun, worn rubber flip-flops, the wide straw hat. No text, no letters, no logos anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "ai__work",
+  "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai man from Northeast Thailand (Isan), about 30 years old, stocky and cheerful: a round friendly face, a short buzz cut, sun-tanned skin, a red-and-white checked pha khao ma cloth tied around his forehead as a headband. FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight, sharp focus. Vertical 2:3 image. Outfit: a faded mustard-yellow T-shirt with no print, dark knee-length cotton shorts, worn black rubber flip-flops. An ordinary real-looking person, not a celebrity: natural skin texture. No text, no letters, no logos, no brand marks anywhere. Nothing in the hands. No watermark."
+ },
+ {
+  "name": "home__under",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, no people. The shaded open space under a traditional wooden Isan house raised high on thick wooden stilts in a village in Northeast Thailand: a low bamboo slat platform (khrae) to sit on, a small clay charcoal stove with a conical woven bamboo sticky-rice steamer on an aluminium pot, a round woven bamboo sticky-rice basket on the platform, an old dented tin trunk with a hinged lid against a stilt, a big brown glazed clay water jar, lengths of hand-dyed deep indigo cloth hanging to dry on a bamboo line, a small wooden rice barn on stilts to one side, a packed-dirt yard with a few chickens, and beyond it a golden ripe rice paddy with tall sugar palms under a bright midday sky. Eye level, wide view. Vertical 2:3 image. No readable text anywhere, no logos, no numbers. No watermark."
+ },
+ {
+  "name": "kratip",
+  "continue": "home__under",
+  "prompt": "From the picture above, show ONLY the round woven bamboo sticky-rice basket (kratip) with its lid and a woven carrying cord, isolated on a plain light-grey studio backdrop, three-quarter view, soft even light, the whole basket in frame. Vertical 2:3 image. Nothing else in the image. No text, no logos."
+ },
+ {
+  "name": "trunk_letters",
+  "continue": "home__under",
+  "prompt": "From the picture above, show ONLY the old dented tin trunk with its lid open: inside, a few plain white envelopes with no writing visible and, at the bottom, a folded bundle of faded red cloth. Isolated on a plain light-grey studio backdrop, three-quarter view from slightly above, soft even light. Vertical 2:3 image. Nothing else in the image. No readable text on anything, no stamps, no logos."
+ },
+ {
+  "name": "na__ripe",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, no people. A wide flat rice paddy in rural Northeast Thailand (Isan) at harvest time: waist-high golden ripe rice heavy with grain, narrow raised earth dykes dividing the plots, a small thatched bamboo field hut on stilts (thiang na) at the edge, tall sugar palms scattered across the fields, a dirt farm track along one side, bright clear midday sky with a few white clouds. Eye level from the dyke. Vertical 2:3 image. No vehicles, no machines, no animals. No readable text anywhere, no logos. No watermark."
+ },
+ {
+  "name": "na__threshing",
+  "continue": "na__ripe",
+  "prompt": "Show exactly the same paddy from the same camera position the next day, about half harvested by hand: the near half is cut stubble with bundled sheaves of rice stacked in neat piles, a large blue tarpaulin spread on the ground near the field hut with a slanted wooden threshing board on it and a heap of golden threshed grain, sickles lying on the tarp, the far half still standing golden rice. No people at all. Vertical 2:3 image. No readable text anywhere, no logos. No watermark."
+ },
+ {
+  "name": "na__stubble",
+  "continue": "na__threshing",
+  "prompt": "Show exactly the same paddy from the same camera position a few days later: the whole field is harvested, only short golden stubble left, round stacks of straw here and there, the tarp gone, the field hut and the sugar palms unchanged, bright midday sky. No people at all. Vertical 2:3 image. No readable text anywhere, no logos. No watermark."
+ },
+ {
+  "name": "mill__open",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, no people. The concrete yard of a small-town rice mill in Northeast Thailand: three large combine harvesters parked in a row, painted dark green and cream, with no logos, no brand names and no letters or numbers anywhere on them; a tall corrugated-metal mill building with a wide roll-up shutter half open; stacks of plain white woven rice sacks with no printing; a small office with a hot-pink painted door and potted plants; an open steel sliding gate at the front. Bright midday sun. Eye level, wide view. Vertical 2:3 image. No readable text anywhere: no signs, no labels, no logos, no numbers. No watermark."
+ },
+ {
+  "name": "mill__closed",
+  "continue": "mill__open",
+  "prompt": "Show exactly the same mill yard from just outside the front gate: the steel sliding gate is shut and wrapped with a heavy chain and padlock, the roll-up shutter of the mill building is pulled all the way down, the office door closed, the combine harvesters still parked inside, nobody there, a dusty kerb in the foreground. Bright afternoon sun. No people at all. Vertical 2:3 image. No readable text anywhere, no signs, no logos, no numbers. No watermark."
+ },
+ {
+  "name": "land__steps",
+  "prompt": "Photorealistic location reference photo for a Thai television drama, no people. The front of a plain single-storey white government office building in a Thai district town: a short flight of wide concrete steps up to a covered porch with square white pillars, glass double doors standing open, a few potted plants along the steps, a small paved car park in the foreground. Bright afternoon light. Eye level from the car park. Vertical 2:3 image. No flags, no emblems, no crests, no signs, no notice boards and no readable text of any kind. No uniforms, no people. No watermark."
+ },
+ {
+  "name": "parasol_pink",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama: an open hot-pink silk parasol with a scalloped edge and a carved wooden handle, next to a closed carved sandalwood folding fan, isolated on a plain light-grey studio backdrop, soft even light, both objects fully in frame. Vertical 2:3 image. Nothing else in the image. No text, no logos, no watermark."
+ },
+ {
+  "name": "pickup_old",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama: an old white single-cab pickup truck, sun-faded paint, a dented tailgate, dusty red-earth splashes along the sides, three-quarter front view, parked on a plain light-grey studio floor with a plain grey backdrop, soft even light, the whole truck in frame. No badges, no emblems, no brand names, no letters or numbers anywhere, a blank plain white licence plate. Vertical 2:3 image. No people. No watermark."
+ },
+ {
+  "name": "motorbike",
+  "prompt": "Photorealistic prop reference photo for a Thai television drama: a small red-and-black step-through motorbike of the kind common in Thai villages, a little dusty, a plain black seat, three-quarter side view, standing on its side stand on a plain light-grey studio floor with a plain grey backdrop, soft even light, the whole bike in frame. No badges, no emblems, no brand names, no letters or numbers anywhere, a blank plain white licence plate. Vertical 2:3 image. No people. No watermark."
+ }
+]

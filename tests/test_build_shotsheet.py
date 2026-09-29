@@ -62,3 +62,36 @@ def test_without_text_only_the_boy_keeps_his_chips():
 
 def test_empty_text_only_builds_exactly_like_no_text_only():
     assert build_shotsheet.build(_data(set()), "3") == build_shotsheet.build(_data(), "3")
+
+
+def test_lang_replaces_thai_only_for_listed_speaker():
+    """LANG (film 4, 2026-09-27): a listed speaker's line says the given
+    language/accent instead of the bare "Thai"; everyone else is unchanged."""
+    d = _data()
+    d.LANG = {"gran": "in the Isan dialect of Northeast Thailand, with a thick Isan accent, not Bangkok Thai"}
+    p = _prompt(build_shotsheet.build(d, "3"))
+    assert ("The old woman <IMAGE_REF_1> speaks in the Isan dialect of Northeast Thailand, "
+            "with a thick Isan accent, not Bangkok Thai, in a soft husky voice, moved") in p
+    assert "The little boy <IMAGE_REF_0> speaks Thai in a high bright voice, proud" in p
+
+
+def test_empty_lang_builds_exactly_like_no_lang():
+    d = _data()
+    d.LANG = {}
+    assert build_shotsheet.build(d, "3") == build_shotsheet.build(_data(), "3")
+
+
+def test_dialogue_shot_says_one_continuous_take_once():
+    """Wrong-mouth fix (CEO 2026-09-28, A/B task-c816fbc0): every shot with a
+    spoken line carries the continuous-take sentence, right after the face line."""
+    p = _prompt(build_shotsheet.build(_data(), "3"))
+    assert p.count(build_shotsheet.CONTINUOUS_TAKE) == 1
+    face = "The face of whoever is speaking stays in frame for the whole line."
+    assert face + "\n" + build_shotsheet.CONTINUOUS_TAKE in p
+
+
+def test_silent_shot_has_no_continuous_take():
+    d = _data()
+    d.SHOTS = [d.SHOTS[0][:7] + ([],) + d.SHOTS[0][8:]]
+    p = _prompt(build_shotsheet.build(d, "3"))
+    assert build_shotsheet.CONTINUOUS_TAKE not in p

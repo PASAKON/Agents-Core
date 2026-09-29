@@ -1,5 +1,7 @@
 # Facebook Thai AI Short-Drama Pages — Monetization Gate Measurement
 
+> **Correction 2026-09-28 (CMO):** the "10,000 followers + 600,000 watch-minutes in 60 days" gate below is stale. Facebook Content Monetization has been invite-only since 2 Oct 2024 and publishes no follower minimum; legacy In-stream ads ended 31 Aug 2025 (Wikis research/2026-09-28-ai-content-platform-policy-risk.md lines 80–83). Read 10k/600k below as a proxy only.
+
 Measured 2026-09-17, read-only, logged-in Chrome session (CEO's account, no
 interactions taken — no likes/follows/comments/shares). Goal: settle whether
 the Facebook Content Monetization gate (10,000 followers + 600,000
