@@ -115,8 +115,9 @@ def test_short_id_matches_task_id_suffix_for_every_host():
 # 3. current_host() -- default + ORG_HOST override.
 # ---------------------------------------------------------------------------
 
-def test_current_host_defaults_to_mac(monkeypatch):
-    monkeypatch.delenv("ORG_HOST", raising=False)
+def test_current_host_defaults_to_mac(pinned_mac_host):
+    # ORG_HOST unset, no node.yaml, ROOT + platform = the Mac's: pinned so the
+    # answer does not depend on the box (or ORG_HOST) running the suite.
     assert worker_init.current_host() == "mac"
 
 
@@ -125,7 +126,7 @@ def test_current_host_reads_org_host_override(monkeypatch):
     assert worker_init.current_host() == "contabo"
 
 
-def test_current_host_blank_org_host_falls_back_to_mac(monkeypatch):
+def test_current_host_blank_org_host_falls_back_to_mac(pinned_mac_host, monkeypatch):
     monkeypatch.setenv("ORG_HOST", "  ")
     assert worker_init.current_host() == "mac"
 

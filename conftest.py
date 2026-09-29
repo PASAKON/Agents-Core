@@ -241,3 +241,28 @@ def _no_dotenv_no_paid_calls(request, monkeypatch):
             monkeypatch.setattr(mod, "_read_dotenv_var", lambda name: None)
     yield
 
+
+@pytest.fixture
+def pinned_mac_host(monkeypatch, tmp_path):
+    """Make self_host() answer 'mac' from EVERY source, whatever box or env runs the suite.
+
+    A test that asserts "this is the Mac" must not depend on the machine it
+    runs on (Contabo, winbox) or on ORG_HOST / ~/.config/mooniex/node.yaml
+    being unset. The four sources of lib.config.self_host() are pinned in
+    resolution order: ORG_HOST unset, no node.yaml, ROOT = the Mac's
+    agents_root, platform = Darwin. self_host() is lru_cached, so the cache
+    is cleared on both sides of the test (task-6f6e5179).
+    """
+    from types import SimpleNamespace
+
+    from lib import config
+
+    mac_root = Path(config.hosts()["mac"]["agents_root"])
+    monkeypatch.delenv("ORG_HOST", raising=False)
+    monkeypatch.setattr(config, "NODE_CONFIG_PATH", tmp_path / "no-node.yaml")
+    monkeypatch.setattr(config, "ROOT", mac_root)
+    monkeypatch.setattr(config, "platform", SimpleNamespace(system=lambda: "Darwin"))
+    config.self_host.cache_clear()
+    yield "mac"
+    config.self_host.cache_clear()
+

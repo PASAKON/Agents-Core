@@ -32,7 +32,7 @@ import tools.mesh_check as m  # noqa: E402
 # L0 — identity
 # ---------------------------------------------------------------------------
 
-def test_check_l0_green_when_sources_agree(monkeypatch):
+def test_check_l0_green_when_sources_agree(pinned_mac_host, monkeypatch):
     monkeypatch.setattr(m, "_tailscale_guess_host", lambda: "mac")
     monkeypatch.setattr(m, "_root_match_host", lambda root: "mac")
     ok, reason = m.check_l0(Path("/whatever"))

@@ -1731,11 +1731,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     `host`: which host (config/hosts.yaml key) to spawn on. Resolution is
     explicit arg > `tasks.host` (set by a prior spawn or create_task) >
-    `'mac'`. A resolved host other than 'mac' skips every Mac-specific step
-    below (iTerm, tmux, local worktree) and hands off entirely to
-    `_spawn_remote` — see docs/design/multi-host-workers.md Phase 1.
+    `self_host()` (this machine, W0.3). A resolved host other than this
+    machine skips every local step below (iTerm/tmux, local worktree) and
+    hands off entirely to `_spawn_remote` — see
+    docs/design/multi-host-workers.md Phase 1.
     `dry_run`: for a remote host only — print the exact ssh command instead
-    of running it. No-op for host='mac'."""
+    of running it. No-op when the resolved host is this machine."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -1747,7 +1748,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"merged work (use reopen_task if a redo is intended)"
         )
 
-    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
+    # Host resolution (Phase 1): explicit arg > tasks.host > self_host(). Computed
     # here, ahead of storage reclaim/disk-floor below (task-a5c0549d,
     # CTO 2026-09-24: a spawn bound for contabo was refused/queued for the
     # MAC's disk, even though its worktree, git clone and worker process all

@@ -128,10 +128,12 @@ def _insert_task(db_mod_, *, task_id: str, role: str, status: str,
         conn.commit()
 
 
-def test_browser_operator_cap_reached_sets_conflict(temp_db):
+def test_browser_operator_cap_reached_sets_conflict(temp_db, pinned_mac_host):
     # mac's cap is 2 — two already live on mac.
+    # A NULL host means "this machine" (W0.3: self_host(), no longer a literal
+    # 'mac'), so the box is pinned to the Mac for the NULL row to count there.
     _insert_task(temp_db, task_id="task-bo01", role="browser_operator",
-                status="in_progress", host=None)  # NULL counts as mac
+                status="in_progress", host=None)  # NULL counts as this host (mac)
     _insert_task(temp_db, task_id="task-bo02", role="browser_operator",
                 status="rate_limited", host="mac")
     _insert_task(temp_db, task_id="task-bo03", role="browser_operator",
