@@ -203,6 +203,26 @@ def test_non_darwin_never_runs_osascript_or_open_and_uses_tmux(local_spawn, temp
     assert len(local_spawn.tmux_created) == 1
 
 
+@pytest.mark.parametrize("platform_name, expect_call", [("linux", False), ("win32", False), ("darwin", True)])
+def test_notify_desktop_banner_runs_osascript_on_darwin_only(monkeypatch, platform_name, expect_call):
+    """success()/error() ask for a macOS banner (mac=True); off Darwin the
+    osascript binary must never be reached for (task-6f6e5179)."""
+    import lib.notify as notify_mod
+
+    calls: list[list[str]] = []
+    monkeypatch.setattr(notify_mod.subprocess, "run",
+                        lambda argv, *a, **k: calls.append(list(argv)))
+    monkeypatch.setattr(notify_mod, "_append_cto_log", lambda level, msg: None)
+    monkeypatch.setattr(notify_mod.sys, "platform", platform_name)
+
+    notify_mod.success("DEV spawned")
+    notify_mod.error("boom")
+
+    osascript = [c for c in calls if c and c[0] == "osascript"]
+    assert bool(osascript) is expect_call
+    assert len(osascript) == (2 if expect_call else 0)
+
+
 def test_darwin_keeps_the_iterm_tab(local_spawn, temp_db, monkeypatch):
     """The Mac path must not change: the iTerm tab is spawned."""
     monkeypatch.setattr(delegate, "self_host", lambda: "mac")

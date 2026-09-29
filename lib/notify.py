@@ -108,7 +108,9 @@ def notify(level: str, msg: str, *, mac: bool = False, title: str = "Org") -> No
     print(line, file=sys.stderr)
     sys.stderr.flush()
     _append_cto_log(level, msg)
-    if mac:
+    # `mac=True` asks for a macOS desktop banner: osascript exists on Darwin only
+    # (task-6f6e5179 — a spawn on Contabo must never reach for it).
+    if mac and sys.platform == "darwin":
         try:
             subprocess.run(
                 ["osascript", "-e",
