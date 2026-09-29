@@ -2,7 +2,9 @@
 # CONTABO WORKER LAUNCHER — Phase 2 (docs/design/multi-host-workers.md §4,
 # task-a5c0549d). Runs ON the spoke (Linux), invoked by
 # tools/delegate.py::_spawn_remote's linux branch over:
-#   ssh mooniex-vps bash <agents_root>/scripts/spawn-worker-remote.sh --task ...
+#   ssh mooniex-vps bash <agents_root>/.launch/spawn-worker-remote.sh --task ...
+# The hub deploys this file into <agents_root>/.launch/ (git-ignored), never
+# into the spoke's tracked scripts/, so a deploy cannot dirty the spoke's checkout.
 # with the hub's rendered TASK.md prompt piped in on stdin.
 #
 # Mirrors windows/spawn-worker.ps1's parameters and behavior one-for-one,
@@ -108,15 +110,15 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] task_meta_b64=$TASK_META_B64"
   fi
   if [ "$RUNNER" = "claude" ]; then
-    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
   elif [ "$RUNNER" = "codex" ]; then
     CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
     echo "[dry-run] cmd=$CODEX_CMD"
-    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
   elif [ "$RUNNER" = "agy" ]; then
     AGY_CMD="/root/.local/bin/agy -p \"\$(cat TASK.md)\" --model gemini-3.8-flash-high --mode accept-edits --add-dir \"$WT\" < /dev/null >> $AGY_LOG 2>&1"
     echo "[dry-run] cmd=$AGY_CMD"
-    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running agy>"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running agy>"
   fi
   exit 0
 fi
@@ -204,19 +206,6 @@ if [ -n "$TASK_META_B64" ]; then
   else
     chmod 600 "$WT/.org-task.json"
   fi
-fi
-
-# --- 2c. Pre-merge guard fix (GH #180): a freshly checked-out worktree gets
-# whatever scripts/hook-self-repo-guard.py was on origin/$BASE at clone
-# time, which won't carry a fix until the PR that adds it is merged. This
-# box's own copy of the script (tools/delegate.py::_ensure_remote_deploy_linux
-# scp's it here ahead of any merge, same mechanism as this launcher script
-# itself) is authoritative -- copy it into the worktree so the guard a
-# spawned worker actually runs is never stale.
-GUARD_SRC="$SCRIPT_DIR/hook-self-repo-guard.py"
-if [ -f "$GUARD_SRC" ]; then
-  mkdir -p "$WT/scripts"
-  cp "$GUARD_SRC" "$WT/scripts/hook-self-repo-guard.py"
 fi
 
 # --- 3. TASK.md from stdin (the hub's rendered prompt) ---

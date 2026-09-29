@@ -74,7 +74,8 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
     log = result["delegate_log"]
     assert "[dry-run] host=contabo ssh_cmd=" in log
     assert "ssh mooniex-vps" in log
-    assert "bash /opt/MoonieXHQ/Agents/Core/scripts/spawn-worker-remote.sh" in log
+    # deployed under the git-ignored .launch/, never the spoke's tracked scripts/
+    assert "bash /opt/MoonieXHQ/Agents/Core/.launch/spawn-worker-remote.sh" in log
 
     for flag, value in [
         ("--task", tid),
@@ -452,7 +453,10 @@ def test_script_dry_run_mentions_sidecar_write_and_node_path_prepend():
     out = r.stdout
     assert ".org-task.json" in out
     assert ".tools/node/bin" in out
-    assert "hook-self-repo-guard.py" in out
+    # W0.3: the launcher no longer copies the Mac's guard into the worktree —
+    # the guard a worker runs is whatever its own origin/<base> carries.
+    assert "hook-self-repo-guard.py" not in out
+    assert "$WT/scripts/" not in out
 
 
 def test_script_dry_run_missing_required_flag_exits_nonzero():
