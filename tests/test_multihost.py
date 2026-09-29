@@ -673,7 +673,8 @@ def test_header_task_id_none_on_wrong_kind():
     assert poller._header_task_id("# BLOCKER task-abc123\n", "REPORT") is None
 
 
-def test_tick_only_polls_remote_in_progress_tasks(fake_origin, temp_db, monkeypatch):
+def test_tick_only_polls_remote_in_progress_tasks(fake_origin, temp_db, monkeypatch,
+                                                  pinned_mac_host):
     calls: list[str] = []
     monkeypatch.setattr(poller, "check_task", lambda t: calls.append(t["id"]))
     _insert_remote_task(temp_db, task_id="task-tick01", branch="b1", host="winbox",

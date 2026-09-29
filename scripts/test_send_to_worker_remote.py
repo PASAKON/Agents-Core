@@ -242,7 +242,8 @@ def test_remote_send_err_no_worktree_marker_raises(isolated_db, monkeypatch):
 # host=mac (or unset): unchanged mailbox+tmux path, "queued ..." string.
 # ---------------------------------------------------------------------------
 
-def test_mac_task_path_unchanged(isolated_db, isolated_mailbox_root, monkeypatch):
+def test_mac_task_path_unchanged(isolated_db, isolated_mailbox_root, monkeypatch,
+                                 pinned_mac_host):
     with isolated_db.get_conn() as conn:
         tid = _insert_task(conn, role="developer", host="mac")
 
