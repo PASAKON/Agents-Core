@@ -124,15 +124,15 @@ if [ "$APPLY" -eq 1 ]; then
 fi
 
 # --- step 4: flip config to route ORG_DB_URL through the wrapper --------
-step 4 "flip config/plists/cto-claude.sh to read ORG_DB_URL from the env file"
-say "approach chosen: reference scripts/hub/with-org-db-env.sh's path from"
-say "config/cto.mcp.json + config/worker.mcp.json's command/args and from both"
-say "launchd plists' ProgramArguments; scripts/cto-claude.sh (already a shell"
-say "script) gets a small block that sources the env file directly."
-say "why: two of these files (cto.mcp.json, worker.mcp.json) are git-tracked --"
-say "the connection string carries a password and must never land in a commit"
-say "-- and routing every consumer through one wrapper means rotating the"
-say "password later means editing the env file once, not four files."
+step 4 "flip the two launchd plists to read ORG_DB_URL from the env file"
+say "approach chosen: reference scripts/hub/with-org-db-env.sh's path from both"
+say "launchd plists' ProgramArguments (both are untracked)."
+say "the org MCP servers are NOT edited here: scripts/lib/cxo_mcp_config.py"
+say "(C-level sessions) and lib/worker_mcp_config.py (workers) start them through"
+say "the same wrapper whenever ~/.config/mooniex/org-db.env exists (W1.6), so no"
+say "git-tracked file is edited -- the connection string carries a password and"
+say "must never land in a commit, and rotating it means editing the env file once."
+say "sessions already running keep their old MCP config until they restart."
 if [ "$APPLY" -eq 1 ]; then
   "$PYTHON" scripts/hub/cutover_flip.py --apply
 else
@@ -184,13 +184,13 @@ fi
 
 say ""
 say "== summary =="
-say "what changed:   ORG_DB_URL now flows through config/{cto,worker}.mcp.json,"
-say "                the watchdog + mac-agent launchd plists, and"
-say "                scripts/cto-claude.sh; state/tasks.db archived to"
+say "what changed:   ORG_DB_URL now flows through the watchdog + mac-agent launchd"
+say "                plists (and, via the MCP config generators, through the org"
+say "                MCP server of every session launched from now on);"
+say "                state/tasks.db archived to"
 say "                $ARCHIVE_PATH and replaced with a tombstone directory"
 say "                (no writer can silently recreate an empty one)."
-say "how to roll back: git checkout -- config/cto.mcp.json config/worker.mcp.json"
-say "                scripts/cto-claude.sh; restore the two plists (git-untracked --"
+say "how to roll back: restore the two plists (git-untracked --"
 say "                Time Machine, or re-run cutover_flip.py's logic in reverse);"
 say "                rmdir state/tasks.db && mv $ARCHIVE_PATH state/tasks.db"
 say "                (and ${ARCHIVE_PATH}-wal/-shm back to state/tasks.db-wal/-shm,"
