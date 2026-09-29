@@ -78,8 +78,8 @@ def _make_reason(
 
     if len(all_active) <= 1:
         if d_pct is not None:
-            return f"only candidate on host with weekly {w_pct:.1f}%, daily {d_pct:.1f}%"
-        return f"only candidate on host with weekly {w_pct:.1f}%"
+            return f"only candidate with a known quota on host with weekly {w_pct:.1f}%, daily {d_pct:.1f}%"
+        return f"only candidate with a known quota on host with weekly {w_pct:.1f}%"
 
     if rank_idx == 0:
         other = all_active[1]
