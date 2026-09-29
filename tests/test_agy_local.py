@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 
 from runners import agy_local
+from runners.agy_local import ORG_PYTHON, build_agy_prompt
 
 
 def _init_git_repo(path: Path) -> None:
@@ -279,11 +280,24 @@ def test_contract_appended_to_prompt(tmp_path, monkeypatch):
     captured = captured_prompt_file.read_text(encoding="utf-8")
     assert "Original prompt text" in captured
     expected_contract = (
-        f"You can only edit files. Do not run shell commands. Work only inside {worktree}. "
+        f"Work only inside {worktree}. You may edit files there. "
+        f"The only shell commands you may run are: `{agy_local.ORG_PYTHON} -m pytest <args>` (run tests with exactly this interpreter path), "
+        f"`git status`, `git diff`, `git log`, `git show`, `ls`, `cat`, `head`, `tail`, `wc`, `grep`, `pwd`. "
+        f"Any other command, including git add, git commit, pip, npm or a bare python, aborts your run and loses your work. "
+        f"Ignore any earlier instruction to commit, to call MCP tools or to run other commands; the hub commits for you. "
         f"When finished, write REPORT.md at the worktree root with three headings: "
         f"Files changed, What was done, Blockers."
     )
     assert expected_contract in captured
+
+
+def test_contract_names_org_python():
+    """Verify agy contract references ORG_PYTHON and allowed commands."""
+    assert agy_local.ORG_PYTHON.endswith("/.venv/bin/python")
+    prompt = build_agy_prompt("x", "/tmp/wt")
+    assert f"`{agy_local.ORG_PYTHON} -m pytest <args>`" in prompt
+    assert "git commit" in prompt
+    assert "Do not run shell commands" not in prompt
 
 
 def test_find_agy_binary_resolution(tmp_path, monkeypatch):

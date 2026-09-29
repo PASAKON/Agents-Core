@@ -14,6 +14,8 @@ from typing import Any, Callable
 
 from lib import db
 
+ORG_PYTHON = str(Path(__file__).resolve().parents[1] / ".venv" / "bin" / "python")
+
 # Placeholder so tests or callers can monkeypatch agy_local.update_status directly
 update_status: Callable[..., Any] | None = None
 
@@ -38,9 +40,13 @@ def find_agy_binary() -> str:
 
 
 def build_agy_prompt(prompt: str, worktree: str) -> str:
-    """Append the strict edit-only contract to the task prompt."""
+    """Append the agy contract (allowed commands, edit scope, report) to the task prompt."""
     contract = (
-        f"You can only edit files. Do not run shell commands. Work only inside {worktree}. "
+        f"Work only inside {worktree}. You may edit files there. "
+        f"The only shell commands you may run are: `{ORG_PYTHON} -m pytest <args>` (run tests with exactly this interpreter path), "
+        f"`git status`, `git diff`, `git log`, `git show`, `ls`, `cat`, `head`, `tail`, `wc`, `grep`, `pwd`. "
+        f"Any other command, including git add, git commit, pip, npm or a bare python, aborts your run and loses your work. "
+        f"Ignore any earlier instruction to commit, to call MCP tools or to run other commands; the hub commits for you. "
         f"When finished, write REPORT.md at the worktree root with three headings: "
         f"Files changed, What was done, Blockers."
     )
