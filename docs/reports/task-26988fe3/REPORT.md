@@ -10,7 +10,7 @@ A Linux hub that delegates a codex or agy task to itself now runs `scripts/spawn
 
 ## Commits
 - 264703c5 — delegate: a Linux hub runs codex/agy on itself through the launcher over local bash (task-26988fe3)
-- (report commit follows — `git log` on the branch)
+- 7c47cd06 — docs: task-26988fe3 report (W0.3b local launcher transport)
 
 ## Tests
 - ran: `tests/test_w03b_local_launcher.py` (with `/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -p no:warnings`; the worktree has no `.venv` of its own)
