@@ -144,6 +144,27 @@ def test_cached_quotas_ttl(mock_cfg, monkeypatch):
     assert fetch_count == 2
 
 
+def test_cached_quotas_failed_read_expires_in_retry_window(mock_cfg, monkeypatch):
+    route._quota_cache.clear()
+    fetch_count = 0
+
+    def mock_fetch(cfg):
+        nonlocal fetch_count
+        fetch_count += 1
+        return {
+            "claude": Quota(provider="claude", weekly_remaining=0.50),
+            "agy": Quota(provider="agy", error="timed out after 30 seconds"),
+        }
+
+    monkeypatch.setattr(route, "fetch_all_quotas", mock_fetch)
+
+    cached_quotas(mock_cfg, now=100.0)
+    cached_quotas(mock_cfg, now=100.0 + route.QUOTA_RETRY_S - 1)
+    assert fetch_count == 1
+    cached_quotas(mock_cfg, now=100.0 + route.QUOTA_RETRY_S + 1)
+    assert fetch_count == 2
+
+
 def test_cli_pick_success(mock_cfg, monkeypatch, capsys):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy"])
     monkeypatch.setattr(route, "load_plans", lambda path=None: mock_cfg)

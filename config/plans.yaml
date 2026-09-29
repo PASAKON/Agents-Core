@@ -7,7 +7,7 @@ providers:
 bonuses: []
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
-  dev_general:    ["agy:gemini-3.8-flash-high", "claude:claude-sonnet-5"]
+  dev_general:    ["agy:gemini-3.8-flash-high", "claude:claude-sonnet-5-5"]
   c_level:        ["claude:claude-opus-5-5:xhigh"]
   c_level_openai: ["codex:sol:xhigh"]
   complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]

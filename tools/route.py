@@ -292,6 +292,7 @@ def rank(
 
 
 QUOTA_TTL_S = 300
+QUOTA_RETRY_S = 60
 
 _quota_cache: dict = {"at": 0.0, "quotas": {}}
 _QUOTA_CACHE = _quota_cache
@@ -312,6 +313,12 @@ def cached_quotas(
         return cached
 
     quotas = fetch_all_quotas(cfg)
+    # A failed read ranks its provider "quota unknown" (last). Keep it only
+    # QUOTA_RETRY_S, not the full TTL: the agy /usage call timed out 1 read
+    # in 3 on 2026-09-29, and a cached miss would send every delegate in the
+    # next 5 minutes to the fallback runner.
+    if any(q.error for q in quotas.values()):
+        current_time -= max(ttl - QUOTA_RETRY_S, 0)
     _quota_cache["at"] = current_time
     _quota_cache["quotas"] = quotas
     return quotas
