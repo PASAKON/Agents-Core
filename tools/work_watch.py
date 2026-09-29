@@ -63,14 +63,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from lib import db  # noqa: E402
-from lib.config import self_host  # noqa: E402
 from lib.notify import info, warn  # noqa: E402
 from tools import send_to_cto  # noqa: E402
 from tools import session_cap  # noqa: E402
 from tools import session_name  # noqa: E402
 from tools import workdir  # noqa: E402
-from tools.gc_stale_tasks import _alive_for_gc  # noqa: E402
-from tools.worker_reap import _pid_alive  # noqa: E402
+from tools.worker_reap import _pid_alive, is_local_row  # noqa: E402
 
 STATE_PATH = ROOT / "state" / "work_watch_state.json"
 MCP_CALL = ROOT / "scripts" / "lib" / "mcp_call.py"
@@ -145,15 +143,13 @@ def _add_lungnote_todo(text: str, due_at: str, *,
 
 def _pid_dead_in_progress(task: dict) -> bool:
     """True only when `task` is provably dead: a recorded pid that no longer
-    answers on its host. No pid, or an unreachable remote host
-    (`_alive_for_gc` returns None), must never read as dead."""
+    answers on THIS box (W1.5: a local duty -- Work/<id>/ and the pid both live
+    on the row's own host, so another box's row is never judged from here). No
+    pid must never read as dead."""
     pid = task.get("pid")
-    if not pid:
+    if not pid or not is_local_row(task):
         return False
-    this_host = self_host()
-    if (task.get("host") or this_host) == this_host:
-        return not _pid_alive(pid)
-    return _alive_for_gc(task) is False
+    return not _pid_alive(pid)
 
 
 def _folder_stats(task_id: str, root=None) -> tuple[int, list[str]]:

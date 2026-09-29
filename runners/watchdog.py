@@ -33,9 +33,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.notify import info, success, warn, error
-from lib.config import host as get_host, self_host
+from lib.config import host as get_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
-                               close_remote, _chrome_running)
+                               close_remote, _chrome_running, is_dispatched_here,
+                               is_local_row, is_remote_row, row_host)
 from runners.branch_poller import remote_pid_alive
 from runners import branch_poller
 from tools import delegate
@@ -330,15 +331,18 @@ def sweep_terminal_surfaces() -> list[dict]:
     remote spoke was skipped here entirely, so a winbox/contabo task that
     went terminal by any route other than close_remote's own callers — a
     direct sqlite edit, a cancel — was never reaped, unlike a mac one).
-    Local (host is None or self_host()): the existing pid/tmux/tab/Chrome-
-    tab-claim liveness probe below, gated on an actual live surface being
-    found. Darwin only -- see `_mac_surfaces`.
-    Remote (host is a spoke): this machine cannot see winbox's/contabo's
-    process table, tmux server or terminal, so there is no liveness probe to
-    gate on — every terminal remote task past REAP_GRACE_S calls
+    Local (`is_local_row`: host is None or self_host()): the existing pid/
+    tmux/tab/Chrome-tab-claim liveness probe below, gated on an actual live
+    surface being found. Darwin only -- see `_mac_surfaces`.
+    Remote (`is_remote_row`: host is another box AND this box dispatched it,
+    W1.5): this machine cannot see winbox's/contabo's process table, tmux
+    server or terminal, so there is no liveness probe to gate on — every
+    terminal remote task past REAP_GRACE_S calls
     `tools.worker_reap.close_remote` unconditionally and relies on
     close_remote's own re-read-and-refuse-unless-terminal check (ADDENDUM 2)
     as the safety gate instead. See `_sweep_remote_terminal_task`.
+    A row that is neither (another box's own or another box's dispatch) is
+    skipped: on a shared ledger each row has one owner per duty.
 
     Runs close_dev — already idempotent, never raises — on every terminal-
     status task that still shows a live pid, live `wd-<id>` tmux session, an
@@ -363,7 +367,6 @@ def sweep_terminal_surfaces() -> list[dict]:
     """
     reaped: list[dict] = []
     mac = _mac_surfaces()
-    this_host = self_host()
 
     claims: dict = {}
     if mac:
@@ -390,11 +393,13 @@ def sweep_terminal_surfaces() -> list[dict]:
         task_id = t["id"]
         if _silent_seconds(t.get("updated_at")) < REAP_GRACE_S:
             continue
-        host = t.get("host")
-        if host and host != this_host:
-            remote_reap = _sweep_remote_terminal_task(t, host)
-            if remote_reap is not None:
-                reaped.append(remote_reap)
+        if not is_local_row(t):
+            # W1.5: the box that dispatched a remote row reaps it; every other
+            # box sharing the ledger leaves it alone (no second ssh kill).
+            if is_remote_row(t):
+                remote_reap = _sweep_remote_terminal_task(t, row_host(t))
+                if remote_reap is not None:
+                    reaped.append(remote_reap)
             continue
         if not mac:
             continue
@@ -652,7 +657,6 @@ def scan_once() -> dict:
     pinged = []
     stalled = []
     rows = db.list_tasks(status="in_progress", limit=200)
-    this_host = self_host()
     for t in rows:
         # Remote workers (host != self_host()) have pids that live on ANOTHER
         # machine; _pid_alive() here checks this box's process table and would
@@ -660,11 +664,13 @@ def scan_once() -> dict:
         # 'stalled' this way on 2026-09-07). _check_remote_stall asks the box
         # itself over ssh instead (GAP 3, task-59780ac3) — before that fix a
         # remote task whose worker actually died just sat in_progress forever.
-        host = t.get("host") or this_host
-        if host != this_host:
-            remote_stall = _check_remote_stall(t, host)
-            if remote_stall is not None:
-                stalled.append(remote_stall)
+        # W1.5: only the box that dispatched the row asks; on a shared ledger a
+        # row dispatched elsewhere is not ours to stall (or to ssh about).
+        if not is_local_row(t):
+            if is_remote_row(t):
+                remote_stall = _check_remote_stall(t, row_host(t))
+                if remote_stall is not None:
+                    stalled.append(remote_stall)
             continue
         silent = _silent_seconds(t["updated_at"])
         if silent < PING_AFTER_S:
@@ -771,6 +777,10 @@ def scan_once() -> dict:
     # treat the CEO as unavailable and escalate to 'stalled' + GH issue.
     human_rows = db.list_tasks(status="blocked_human", limit=200)
     for t in human_rows:
+        # W1.5: a status flip plus a GH issue touches no local resource, so the
+        # one owner is the box that dispatched the row (else each box files one).
+        if not is_dispatched_here(t):
+            continue
         silent = _silent_seconds(t["updated_at"])
         if silent < HUMAN_TIMEOUT_S:
             continue
@@ -805,8 +815,11 @@ def scan_once() -> dict:
     # pass is Darwin-only (`_mac_surfaces`).
     finished_rows = []
     if _mac_surfaces():
-        finished_rows = (db.list_tasks(status="review", limit=200)
-                         + db.list_tasks(status="done", limit=200))
+        # W1.5: pid + tab are this box's own process table, so local rows only
+        # (before, another box's pid could match a stranger's process here).
+        finished_rows = [t for t in (db.list_tasks(status="review", limit=200)
+                                     + db.list_tasks(status="done", limit=200))
+                         if is_local_row(t)]
     for t in finished_rows:
         pid = t.get("pid")
         if not pid or not _pid_alive(pid):

@@ -66,6 +66,42 @@ _TERMINAL_SURFACE_STATUSES = frozenset(
 )
 
 
+# ---------------------------------------------------------------------------
+# Row ownership (Org Mesh W1.5). On one shared ledger every row must have
+# exactly one owner per duty, so "is this row mine?" is answered here, once,
+# from the row's `host` (where it runs) and `dispatcher_host` (who filed it):
+#
+#   LOCAL duty  (pid liveness, tmux/tab close, local stall, gc pid check,
+#                work_watch dead-pid):            host == self
+#   REMOTE duty (branch poller, ssh stall, close_remote, gc ssh liveness):
+#                                                 host != self AND dispatcher == self
+#   anything else is another box's row: skip it -- never cancel, stall or kill it.
+#
+# NULL dispatcher_host = this box. NULL host = the row is not on a box yet
+# (create_task writes only dispatcher_host; delegate writes host at spawn), so
+# it belongs to its dispatcher; a legacy row with both NULL is this box's own.
+# ---------------------------------------------------------------------------
+def row_host(task: dict) -> str:
+    """The host this row runs on (or, unspawned, will run on): `host`, else its dispatcher, else this box."""
+    return task.get("host") or task.get("dispatcher_host") or self_host()
+
+
+def row_dispatcher(task: dict) -> str:
+    return task.get("dispatcher_host") or self_host()
+
+
+def is_local_row(task: dict) -> bool:
+    return row_host(task) == self_host()
+
+
+def is_dispatched_here(task: dict) -> bool:
+    return row_dispatcher(task) == self_host()
+
+
+def is_remote_row(task: dict) -> bool:
+    return row_host(task) != self_host() and is_dispatched_here(task)
+
+
 def _pid_alive(pid: int | None) -> bool:
     """True if a process with this PID exists and is reachable.
 
@@ -638,6 +674,13 @@ def close_remote(task: dict, *,
 
     if not host or host == self_host():
         result["refused"] = f"host={host!r} — not a remote spoke"
+        return result
+
+    # W1.5: a remote worker is closed only by the box that dispatched it. On a
+    # shared ledger the other boxes see the same row and must not ssh a kill.
+    if not is_dispatched_here(task):
+        result["refused"] = (f"dispatcher_host={task.get('dispatcher_host')!r} "
+                             "— dispatched by another host")
         return result
 
     remote_hosts = _remote_hosts()

@@ -246,8 +246,11 @@ def test_gc_spawned_pending_report_names_this_host_for_a_null_host_row(
 def test_work_watch_dead_pid_check_is_local_only_for_this_host(
         this, local, remote, host_is, monkeypatch):
     host_is(this)
-    monkeypatch.setattr(work_watch, "_pid_alive", lambda pid: False)   # local: dead
-    monkeypatch.setattr(work_watch, "_alive_for_gc", lambda t: True)   # remote: alive
+    # W1.5: work_watch's dead-pid check is a LOCAL duty only. It used to ask
+    # gc's remote-liveness probe about a "host != self" row; now another box's
+    # row is never judged from here (its own box's work_watch owns it), so no
+    # remote probe is patched in and `_pid_alive` is never reached for one.
+    monkeypatch.setattr(work_watch, "_pid_alive", lambda pid: False)
 
     for h in local:
         assert work_watch._pid_dead_in_progress({"host": h, "pid": 5}) is True, h
