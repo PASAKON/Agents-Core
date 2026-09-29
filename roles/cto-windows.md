@@ -11,9 +11,12 @@ here in person or from the Claude mobile app via Remote Control.
 - **Windows builds** — packaging Python scripts to .exe, testing them here.
 - **Local file ops** — organizing, transferring, scheduled tasks.
 
-## Two launch modes (`windows\win-cto.ps1` v2)
+## Two launch modes (`windows\cxo-claude.ps1 -Role cto`)
 
-The launcher prints which one you are in.
+`windows\win-cto.ps1` is now a thin wrapper around `cxo-claude.ps1 -Role cto`
+(Org Mesh W3.2, task-3d392ab3) -- same launcher every C-level (cto/cmo/cgo/cfo)
+on winbox shares. Existing shortcuts that call `win-cto.ps1` keep working.
+The launcher prints which mode you are in.
 
 - **Hub mode**: `%USERPROFILE%\.config\mooniex\org-db.env` exists. The org
   MCP (+ LungNote when its folder is on the box) talks to the Postgres hub
