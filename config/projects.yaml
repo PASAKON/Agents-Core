@@ -104,11 +104,13 @@ projects:
     # 2026-05-19 (no auto ttyd browser) is unaffected.
     spawn_backend: tmux
     # Per-host checkout paths (Phase 1, docs/design/multi-host-workers.md).
-    # winbox is a real clone already (CLAUDE.md's Contabo/winbox tables) —
-    # spawn-worker.ps1 will `git fetch` it rather than clone from scratch.
+    # No winbox entry: measured 2026-09-29 (Org Mesh W3.0) that no checkout
+    # exists anywhere on winbox — its deploy key reaches Agents-Core only.
+    # project_path_for_host raises "not routable" for winbox rather than
+    # guessing a path, so a delegate there refuses cleanly instead of
+    # spawning into a missing folder.
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/WebApp
-      winbox: 'C:\Users\UsEr\Projects\mooniex-webapp'
     wiki_refs:
       - playbooks/frontend.md
       - playbooks/backend.md
@@ -201,12 +203,13 @@ projects:
     # comment above for why.
     spawn_backend: tmux
     # Per-host checkout paths (Phase 1, docs/design/multi-host-workers.md).
-    # winbox has no clone yet — spawn-worker.ps1 clones it there on first
-    # use (this task's acceptance run). contabo is a real clone (CLAUDE.md's
-    # Contabo availability table).
+    # winbox is a real clone, measured read-only 2026-09-29 (Org Mesh W3.0,
+    # after the winbox reinstall moved the profile to C:\Users\passg — the
+    # old C:\Users\UsEr path is now only a compat junction). contabo is a
+    # real clone too (CLAUDE.md's Contabo availability table).
     paths:
       mac: /Users/gob/MoonieXHQ/Agents/Core
-      winbox: 'C:\Users\UsEr\mooniex\repo\MoonieX-Agents'
+      winbox: 'C:\Users\passg\mooniex\repo\MoonieX-Agents'
       contabo: /opt/MoonieXHQ/Agents/Core
     wiki_refs:
       - playbooks/backend.md
@@ -324,7 +327,7 @@ projects:
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/CookierunBot
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/CookierunBot
-      winbox: 'C:\Users\UsEr\cookierun-bot'
+      winbox: 'C:\Users\passg\cookierun-bot'
     # SSH host alias, not github.com: a GitHub deploy key may only serve ONE repo,
     # and winbox's default key is already spoken for by MoonieX-Agents. winbox's
     # ~/.ssh/config maps `github-cookierun` -> github.com with its own

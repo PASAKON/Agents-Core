@@ -253,13 +253,21 @@ def test_project_path_for_host_mac_falls_back_to_top_level_path():
 
 def test_project_path_for_host_winbox_resolves():
     p = config.project_path_for_host("mooniex-agents", "winbox")
-    assert p == r"C:\Users\UsEr\mooniex\repo\MoonieX-Agents"
+    assert p == r"C:\Users\passg\mooniex\repo\MoonieX-Agents"
 
 
 def test_project_path_for_host_not_routable_raises_clear_error():
     # mooniex-console has no `paths:` entry at all.
     with pytest.raises(ValueError, match="not routable"):
         config.project_path_for_host("mooniex-console", "winbox")
+
+
+def test_project_path_for_host_webapp_winbox_not_routable():
+    # Org Mesh W3.0 (2026-09-29): no mooniex-webapp checkout exists on
+    # winbox, so its `paths:` block carries no `winbox` key — a delegate
+    # there must refuse cleanly rather than spawn into a missing folder.
+    with pytest.raises(ValueError, match="not routable"):
+        config.project_path_for_host("mooniex-webapp", "winbox")
 
 
 def test_worker_session_name_shape():

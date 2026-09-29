@@ -39,8 +39,8 @@ hosts:
     os: windows
     remote_control: true   # session shows in the CEO Claude app
     ssh: winbox
-    agents_root: 'C:\Users\UsEr\mooniex'
-    worktrees: 'C:\Users\UsEr\mooniex\worktrees'
+    agents_root: 'C:\Users\passg\mooniex'
+    worktrees: 'C:\Users\passg\mooniex\worktrees'
     provides: [chrome, blender, win_gui]
     # CEO 2026-09-09: "เปิดไม่เกิน 2 Worker ก็พอแล้ว" — two on winbox is inside
     # that rule; the second is a read-only tab (tab_registry keeps them apart).
