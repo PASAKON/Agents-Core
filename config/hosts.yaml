@@ -22,12 +22,10 @@ hosts:
     worktrees: /Users/gob/MoonieXHQ/Agents/Core/worktrees
     provides: [chrome, macos_cu, blender_bridge]
     max_workers: 4
-    # Worker CLI(s) this host can spawn (task-adbc6f43). runners/worker_init.py
-    # (the Mac-local launcher) only execs claude today — codex/agy on Mac is
-    # docs/ops/agent-runners.md's own future work, not wired into this repo
-    # yet. Defaults to [claude] when absent (lib.config.host_runners /
-    # tools.delegate._host_runners), so leaving this out changes nothing.
-    runners: [claude]
+    # Worker CLI(s) this host can spawn (task-adbc6f43). claude and agy are
+    # supported locally — agy is wired via runners/agy_local.py (2026-09-29).
+    # codex is not signed in on Mac (use contabo).
+    runners: [claude, agy]
     # ADDENDUM 3 (CTO 2026-09-07): CEO rule — one operator, one Chrome tab,
     # never a pile-up. Four operators sharing the Mac's Chrome produced a
     # destroyed tab group, a sign-out, and two blocked runs the same day.

@@ -48,6 +48,7 @@ from lib.config import (
     role as get_role,
     worker_session_name,
 )
+from runners import agy_local
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
@@ -408,14 +409,20 @@ def main() -> None:
         sys.exit(4)
 
     # Runner (task-adbc6f43): NULL on the row means "claude" (every
-    # pre-migration/local task, unchanged). This launcher only ever execs
-    # claude.exe/claude — codex and agy are winbox-only today
-    # (windows/spawn-worker.ps1's job), gated at config/hosts.yaml's `mac`
-    # entry (`runners: [claude]`) so tools.delegate._validate_runner already
-    # refuses a codex/agy task before it reaches this file. This is a second,
-    # local check — never trust a runner blind at exec time either.
+    # pre-migration/local task, unchanged). claude and agy can be spawned
+    # locally on Mac (config/hosts.yaml `runners: [claude, agy]`). codex is not
+    # signed in here (use host contabo). This is a second, local check — never
+    # trust a runner blind at exec time either.
     runner = (task.get("runner") or "claude").strip().lower()
-    if runner != "claude":
+    if runner == "codex":
+        db.update_status(
+            task_id, "failed",
+            report="runner='codex' not signed in on the Mac — use host contabo",
+            actor=role,
+        )
+        print("runner 'codex' not signed in on the Mac — use host contabo", file=sys.stderr)
+        sys.exit(5)
+    elif runner not in ("claude", "agy"):
         db.update_status(
             task_id, "failed",
             report=f"runner={runner!r} not supported by local Mac spawn "
@@ -475,6 +482,10 @@ def main() -> None:
     # brand/theme to match — the same context the CEO's Web UI flow has.
     if role == "web_designer":
         prompt += db.designer_kickoff_suffix(task.get("description") or "")
+
+    if runner == "agy":
+        sys.exit(agy_local.run_agy_task(task, worktree, prompt + "\n\n" + role_doc, role))
+
     try:
         model = get_role(role).get("model") or "claude-opus-5-5"
     except ValueError:
