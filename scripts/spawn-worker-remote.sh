@@ -22,6 +22,15 @@
 # refused/dirty worktree, prints `SPAWN_REFUSED=<reason> <path>` instead and
 # exits 1 (tools/delegate.py greps for this prefix, host-agnostically).
 #
+# codex/agy (W0.6, runner-routing contract): the generated launch.sh runs the
+# CLI, then guarantees the run's report is committed on its branch at
+# docs/reports/<task-id>/REPORT.md (a worker-written one is kept, a root
+# REPORT.md is moved there, else it is built from codex's final message / the
+# tail of agy's events log -- a run never ends without one), never commits its
+# own bookkeeping files (info/exclude + `git reset` after `git add -A`), and
+# pushes. `--org-host <name>` (default contabo) is the ORG_HOST the worker
+# runs under. The claude runner path is unchanged.
+#
 # POSIX/bash-3-compatible ON PURPOSE, even though it only ever EXECUTES on
 # Contabo's newer bash: tests run this under macOS's bash 3.2 via `bash -n`
 # and `--dry-run` (tests/test_spawn_remote_linux.py). No arrays, no
