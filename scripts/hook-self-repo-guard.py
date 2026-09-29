@@ -44,7 +44,12 @@ _SCRIPTS_DIR = Path(__file__).resolve().parent
 _REPO_ROOT = _SCRIPTS_DIR.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
-from lib import db as db_lib  # noqa: E402
+try:
+    from lib import db as db_lib  # noqa: E402
+    _DB_IMPORT_ERROR: Exception | None = None
+except Exception as _exc:  # noqa: BLE001 -- a guard that cannot load must refuse, not allow
+    db_lib = None  # type: ignore[assignment]
+    _DB_IMPORT_ERROR = _exc
 
 # Per-call fail-open budget for the (now possibly remote, tailnet-hop) hub --
 # docs/design/tasks-db-hub.md §2: blocking every Edit/Write/Bash because the
@@ -555,6 +560,15 @@ def main() -> int:
     except Exception:                     # noqa: BLE001
         event, payload_ok = {}, False
 
+    # An import failure used to crash the module before main() ran: exit 1,
+    # which Claude Code treats as non-blocking, so the guard allowed every
+    # write (Mac system python3 without PyYAML, 2026-09-29). Refuse instead.
+    if _DB_IMPORT_ERROR is not None:
+        if worktree_root(os.getcwd()) is None:
+            return 0
+        print(_refusal_undecidable(f"guard could not import lib.db: {_DB_IMPORT_ERROR!r}",
+                                   "tool call"), file=sys.stderr)
+        return 2
     try:
         code, message = decide(event, payload_ok=payload_ok)
     except Exception as exc:              # noqa: BLE001 — never allow by accident
