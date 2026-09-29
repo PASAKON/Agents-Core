@@ -1770,10 +1770,11 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     machine skips every local step below (iTerm/tmux, local worktree) and
     hands off entirely to `_spawn_remote` — see
     docs/design/multi-host-workers.md Phase 1.
-    `dry_run`: for a remote host only — print the exact ssh command instead
-    of running it. No-op when the resolved host is this machine, except a
-    codex/agy task on a Linux hub (W0.3b), which prints the local `bash
-    scripts/spawn-worker-remote.sh ...` command instead."""
+    `dry_run`: never starts a worker. A remote host prints the exact ssh
+    command; a codex/agy task on a Linux hub (W0.3b) prints the local `bash
+    scripts/spawn-worker-remote.sh ...` command; a same-host `_spawn_local`
+    task logs what it would have started and returns with its locks
+    released."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -2032,6 +2033,20 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     local_launcher = (resolved_host == this_host
                       and resolved_runner != "claude"
                       and sys.platform.startswith("linux"))
+    if dry_run and resolved_host == this_host and not local_launcher:
+        # A dry run starts nothing on any path. This one (a same-host
+        # `_spawn_local`) used to ignore the flag and spawn a real worker:
+        # a lane A smoke on Contabo, 2026-09-30, got a worktree and a live
+        # tmux session from `delegate_task(..., dry_run=True)`. Drop the
+        # locks taken above, say what would have run, touch nothing else.
+        if touches:
+            db.release_task_locks(task_id, project_key)
+        msg = (f"[dry-run] host={this_host} local {resolved_runner} spawn: "
+               f"would create the worktree and tmux "
+               f"{tmux.session_name_for(task_id)}; nothing started")
+        info(msg)
+        db.set_fields(task_id, delegate_log=msg, actor="cto")
+        return db.get_task(task_id)
     if resolved_host != this_host or local_launcher:
         db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
         try:

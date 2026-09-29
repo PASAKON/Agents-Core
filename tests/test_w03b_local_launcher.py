@@ -362,3 +362,34 @@ def test_launcher_output_is_parsed_the_same_over_both_transports(calls, temp_db,
         assert row["pid"] == 4242 and row["tmux_session"] == "mooniex-task-w03b"
     else:
         assert not row["pid"], "a refused/failed launch leaves no pid on the row"
+
+
+# ---------------------------------------------------------------------------
+# dry run on the same-host `_spawn_local` path: nothing starts
+# (2026-09-30: a lane A smoke on Contabo got a real worktree + tmux session
+#  from `delegate_task(..., dry_run=True)`)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("host, platform, runner", [
+    ("mac", "darwin", "claude"),
+    ("contabo", "linux", "claude"),
+    ("mac", "darwin", "agy"),
+])
+def test_dry_run_on_the_same_host_local_path_starts_nothing(calls, temp_db, monkeypatch,
+                                                            host, platform, runner):
+    _hub(monkeypatch, host=host, platform=platform)
+    tid = temp_db.create_task(project="mooniex-agents", role="developer", title="dry",
+                              description="d", owner_cto="test-owner", runner=runner,
+                              touches=["tools/x.py", f"docs/reports/dry/REPORT.md"])
+
+    row = asyncio.run(delegate.delegate_task(tid, dry_run=True))
+
+    assert calls.spawn_local == [], "a dry run must never reach _spawn_local"
+    assert _launcher_calls(calls) == [], calls.argv
+    assert not any(a[0] in ("ssh", "scp", "tmux") for a in calls.argv), calls.argv
+    assert row["delegate_log"].startswith("[dry-run]"), row["delegate_log"]
+    assert not row.get("spawned_at"), "a dry run stamps no spawn time"
+    assert row["status"] == "pending", row["status"]
+    with temp_db.get_conn() as conn:
+        held = conn.execute("SELECT key FROM locks WHERE owner=?", (tid,)).fetchall()
+    assert held == [], f"a dry run must release the locks it took: {held}"
