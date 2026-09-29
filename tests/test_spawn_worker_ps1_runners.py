@@ -306,7 +306,7 @@ def test_winbox_hosts_all_three_runners():
 
 
 def test_mac_hosts_only_claude():
-    assert delegate._host_runners("mac") == ["claude"]
+    assert delegate._host_runners("mac") == ["claude", "agy"]  # agy wired 2026-09-29 (runners/agy_local.py)
 
 
 def test_host_with_no_runners_key_defaults_to_claude_only(monkeypatch):
@@ -578,7 +578,7 @@ def test_hosts_yaml_winbox_lists_all_three_runners():
 
 
 def test_hosts_yaml_mac_lists_only_claude():
-    assert get_host("mac").get("runners", ["claude"]) == ["claude"]
+    assert get_host("mac").get("runners", ["claude"]) == ["claude", "agy"]
 
 
 # ---------------------------------------------------------------------------
