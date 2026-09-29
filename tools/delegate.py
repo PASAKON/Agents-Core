@@ -1505,8 +1505,10 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         if choice is None:
             return None
         line = f"router: {choice.runner} — {choice.reason}"
-        db.update_status(task["id"], task["status"], runner=choice.runner,
-                         delegate_log=line, actor="cto")
+        # set_fields, not update_status: the status must not be rewritten
+        # from this (possibly stale) dict or logged as a transition.
+        db.set_fields(task["id"], runner=choice.runner, delegate_log=line,
+                      actor="cto")
         info(line)
         return choice.runner
     except Exception as e:
@@ -1674,7 +1676,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
 
-    routed = _route_runner(task, role_name, resolved_host)
+    # Off the event loop: a cold quota read is an ssh + a CLI call.
+    routed = await asyncio.to_thread(_route_runner, task, role_name, resolved_host)
     if routed:
         task["runner"] = routed
 

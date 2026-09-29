@@ -66,6 +66,15 @@ def _clean_session_env(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _router_off(monkeypatch):
+    """delegate_task routes a NULL-runner row through tools.route, whose
+    quota read is an ssh to Contabo plus the agy CLI. No test may reach
+    those (task-ae42c0a7); tests/test_delegate_router.py re-enables it
+    against a mocked pick_runner."""
+    monkeypatch.setenv("ORG_ROUTER", "off")
+
+
+@pytest.fixture(autouse=True)
 def _isolate_org_root(tmp_path, monkeypatch):
     """ADR 0021 addendum (2026-09-18): a worker's own shell exports ORG_ROOT
     pointing at the real hub checkout (runners/worker_init.py, GH #154) so
