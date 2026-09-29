@@ -7,11 +7,17 @@ Merged local `main` (~150 commits, mostly skill field notes) into `origin/main`
 16 conflicts landed, all in `.claude/skills/*/SKILL.md`: 12 were Kind A (origin renamed
 the skill and left a 30-day MOVED stub at the old path; `gdrive-filing` split 3 ways,
 so 12 old paths map to 14 new files); 4 were Kind B (not renamed, real same-line
-overlaps). Origin/main advanced twice more during the session (3 commits, then 7 more)
-and needed two small catch-up merges, both verified clean. Full suite: 2967 passed,
-0 failed, 25 skipped. Both `git merge-base --is-ancestor` checks are TRUE. `.venv` is
-untracked. 2 items need a CTO decision (see below) — genuinely conflicting rule-line
-edits on both sides, not guessed or merged per the task's rule.
+overlaps). Origin/main advanced three more times during the session (3 commits, then
+7 more, then 4 more) and needed three small catch-up merges, all verified clean. Full
+suite: 2995 passed, 0 failed, 25 skipped. `git merge-base --is-ancestor origin/main HEAD`
+is TRUE. `.venv` is untracked. 2 items need a CTO decision (see below) — genuinely
+conflicting rule-line edits on both sides, not guessed or merged per the task's rule.
+**One caveat on the `main` ancestor check** — see Notes for Reviewer: the shared local
+`main` ref advanced with two unrelated feature merges (agy-quota-router,
+agy-runner-lanes) from another session while this task was still running, so
+`git merge-base --is-ancestor main HEAD` reads FALSE as of submission. This branch
+still fully contains the exact local-main state (`c6b9f2a8`, ~150 commits) the task
+described; folding in the newer, unrelated commits was out of this task's scope.
 
 ## Files Changed — conflict table (16 original conflicts)
 
@@ -44,11 +50,12 @@ directory in local main's diff — verified via `git diff --name-status`, nothin
 - `919f5a6e` — merge: catch up 3 commits pushed to origin/main during task-d103c087 — 1 re-conflict in `CTO_Gate_MergeChecklist` (concurrent field-note appends, simple union)
 - `42feb362` — skill(CMO_Procedure_ChatGPTImage_LakornCover): port local main's 6 field notes + When-NOT-to-invoke line — finishes the LakornCover porting that was left uncommitted at compaction time; verified byte-for-byte against `git diff base..main` on the old path before committing
 - `8ec4d5b8` — merge: catch up 7 more commits pushed to origin/main during task-d103c087 — clean auto-merge (`CTO_Gate_MergeChecklist` again, another concurrent field-note append, no manual resolution needed)
+- `3459b85b` — merge: catch up 4 more commits pushed to origin/main during task-d103c087 — clean auto-merge, no conflicts (org ledger Postgres-hub migration work, unrelated to skills)
 
 ## Tests
 
-- ran: `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest` (from worktree root, no `-q`, after both catch-up merges)
-- passed: 2967
+- ran: `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest` (from worktree root, no `-q`, after all three catch-up merges)
+- passed: 2995
 - failed: 0
 - skipped: 25
 - `tests/test_machine_doctor.py::test_detect_machine_by_unique_os_when_hostname_does_not_match` — the task brief flagged this as a known unrelated failure to ignore; it is **not failing** in this run (passed standalone too, 0.31s). No exclusion needed.
@@ -57,7 +64,8 @@ directory in local main's diff — verified via `git diff --name-status`, nothin
 
 - **1 pre-existing malformed field note carried through verbatim**: `CXO_Protocol_DevSpawn:405` fails `skill-curator.py notes` lint (`field-note-malformed` — no trailing canonical status marker). This line was ported byte-for-byte from local main's own diff (it already lacked the canonical `· status: …` suffix in local main before this merge touched it). Per task instructions I did not alter verbatim-ported content to fix pre-existing malformation; flagging per "report any NEW malformed notes I introduced" — technically this is newly *introduced into this file* by the merge, though the text itself pre-dates the merge on local main.
 - Two other skill-lint findings (`CTO_ILAG_LakornTheme` bad-kind/bad-name/bad-owner/description-kind-prefix, `SKILL-INDEX.md` index-stale) are pre-existing, from files local main added that this merge did not author or touch — not mine to fix.
-- Origin/main advanced twice during the session (3 commits mid-session, 7 more later) — both required a small catch-up merge. Both are documented as separate commits above rather than folded into the first merge, so the ~150 local commits stay untouched as instructed.
+- Origin/main advanced three times during the session (3 commits, then 7 more, then 4 more) — each required a small catch-up merge, all clean (no manual conflict resolution on the third; only `CTO_Gate_MergeChecklist` re-conflicted, on the first two, as a simple concurrent-append union). All three are documented as separate commits above rather than folded into the first merge, so the ~150 local commits stay untouched as instructed.
+- **Local `main` also advanced during the session**, but with two feature merges unrelated to this task (`agent/agy-quota-router`, `agent/agy-runner-lanes` — a runner/quota routing feature, not skill renames or Org Mesh R0). This is another session's concurrent work on the shared `main` ref. I did not fold these in: doing so would pull unrelated, possibly-still-in-flight work into this reconciliation branch, outside the task's stated scope ("the Mac's local main ~150 commits ahead of origin" — a fixed snapshot, `c6b9f2a8`, not a moving target). Practical effect: `git merge-base --is-ancestor main HEAD` reads FALSE at submission time, even though this branch fully contains the exact local-main state the task described. Flagging for the CTO to reconcile at final integration, since only the CTO merges/pushes `main`.
 - One pre-existing uncommitted change was present at session start on `.claude/skills/CMO_Procedure_ChatGPTImage_LakornCover/SKILL.md` (per the session's initial `git status`). On inspection this turned out to be my own unfinished note-porting work for the `CTO_ChatGPT-Image_LakornCover` conflict from before the context compaction, not unrelated work — verified against the source diff and committed as `42feb362`.
 
 ## Notes for Reviewer
@@ -90,8 +98,8 @@ origin version) in the corresponding new-named file, checked line-by-line agains
 `git diff <merge-base> <local-main-tip> -- <old-path>` for all 16 conflicts, not just
 skimmed.
 
-`git merge-base --is-ancestor main HEAD` → **TRUE**
-`git merge-base --is-ancestor origin/main HEAD` → **TRUE** (re-verified after both catch-up merges; re-fetched once more just now, no further drift)
+`git merge-base --is-ancestor main HEAD` → **FALSE at submission** — `main` advanced past this branch via two unrelated feature merges from another session (`agy-quota-router`, `agy-runner-lanes`) after this task's local-main snapshot (`c6b9f2a8`) was taken; that exact snapshot IS an ancestor of this branch (verified: `git merge-base --is-ancestor c6b9f2a8 HEAD` → TRUE). See Issues/Blockers.
+`git merge-base --is-ancestor origin/main HEAD` → **TRUE** (re-verified after all three catch-up merges; re-fetched once more just now, no further drift)
 `git ls-files .venv` → empty (untracked, confirmed)
 
 No skill linker was run. `~/.claude/skills`, the wikis, and the main checkout at
