@@ -189,6 +189,39 @@ def test_local_launcher_is_the_checkouts_own_script_never_a_deployed_copy(calls,
     assert argv[1] == LAUNCHER and ".launch/" not in " ".join(argv)
 
 
+def test_local_launcher_never_inherits_the_hubs_secrets(calls, temp_db, monkeypatch):
+    # Over ssh the launcher starts from a fresh sshd environment. Run locally
+    # it must not carry the hub's ORG_DB_URL / session ids into a codex/agy
+    # worker (a launcher that starts the first tmux server hands its env on).
+    # ORG_DB_URL itself would switch this test's own lib.db to Postgres, so
+    # a stand-in secret carries the check: anything off the allow-list goes.
+    _hub(monkeypatch, host="contabo", platform="linux")
+    monkeypatch.setenv("MOONIEX_TEST_SECRET", "REDACTED")
+    monkeypatch.setenv("CTO_SESSION_ID", "cto-00000000")
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setenv("HOME", "/root")
+    tid = _new_task(temp_db, "codex")
+
+    asyncio.run(delegate.delegate_task(tid))
+
+    env = calls.kwargs[0]["env"]
+    assert env is not None, "a local launcher run must get an explicit env"
+    assert "MOONIEX_TEST_SECRET" not in env and "CTO_SESSION_ID" not in env
+    assert "ORG_DB_URL" not in delegate._LOCAL_LAUNCHER_ENV_KEYS
+    assert env["PATH"] == "/usr/bin:/bin" and env["HOME"] == "/root"
+    assert set(env) <= set(delegate._LOCAL_LAUNCHER_ENV_KEYS)
+
+
+def test_ssh_transport_env_is_left_alone(calls, temp_db, monkeypatch):
+    _hub(monkeypatch, host="mac", platform="darwin")
+    tid = _new_task(temp_db, "codex")
+
+    asyncio.run(delegate.delegate_task(tid, host="contabo"))
+
+    assert _launcher_calls(calls)[0][0] == "ssh"
+    assert calls.kwargs[0].get("env") is None
+
+
 def test_dry_run_prints_the_local_bash_command_with_no_ssh(calls, temp_db, monkeypatch):
     _hub(monkeypatch, host="contabo", platform="linux")
     tid = _new_task(temp_db, "codex")

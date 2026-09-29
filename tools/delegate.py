@@ -1252,6 +1252,19 @@ def _render_remote_runner_args(role_name: str, host_name: str, runner: str) -> s
     return ""
 
 
+# W0.3b: the variables a local launcher run keeps. Over ssh the launcher gets
+# a fresh sshd environment; run locally it would inherit the hub's own
+# (ORG_DB_URL, session ids, tokens), and when it starts the first tmux server
+# the codex/agy worker would inherit that too. Keep only what bash, git and
+# tmux need to find binaries, HOME and a locale.
+_LOCAL_LAUNCHER_ENV_KEYS = ("PATH", "HOME", "USER", "LOGNAME", "LANG",
+                            "LC_ALL", "SHELL", "TERM", "TMPDIR")
+
+
+def _local_launcher_env() -> dict[str, str]:
+    return {k: os.environ[k] for k in _LOCAL_LAUNCHER_ENV_KEYS if k in os.environ}
+
+
 async def _spawn_remote(task: dict, host_name: str, *,
                         dry_run: bool = False, local: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
@@ -1509,7 +1522,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
     info(f"spawn remote task={task_id} host={host_name} role={role_name} "
          f"transport={transport} deploy={deploy_actions}")
     r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                       timeout=REMOTE_LAUNCH_TIMEOUT_S)
+                       timeout=REMOTE_LAUNCH_TIMEOUT_S,
+                       env=_local_launcher_env() if local else None)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
 
     refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
