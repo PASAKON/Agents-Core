@@ -49,6 +49,7 @@ from lib.config import (
     self_host,
     worker_session_name,
 )
+from lib.worker_mcp_config import write_for_worktree
 from runners import agy_local
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -533,9 +534,10 @@ def main() -> None:
     # left browser work with nowhere to run but a C-level tab; the
     # browser_operator role now carries it, and worker_tool_grants() decides
     # which roles get the Chrome surface + the --chrome flag. Still no
-    # per-role MCP config branch — all DEVs share worker.mcp.json.
+    # per-role MCP config branch — all DEVs share worker.mcp.json, which is a
+    # Mac-written TEMPLATE; each spawn renders it for THIS host into the worktree.
     allowed, chrome_args = worker_tool_grants(role)
-    mcp_config = ROOT / "config" / "worker.mcp.json"
+    mcp_config = write_for_worktree(worktree, ROOT)
 
     effort_args = ["--effort", get_role(role).get("effort") or "high"]
 
