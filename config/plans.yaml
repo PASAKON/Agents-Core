@@ -11,6 +11,11 @@ roles:
   c_level:        ["claude:claude-opus-5-5:xhigh"]
   c_level_openai: ["codex:sol:xhigh"]
   complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]
+# Worker role (tasks.role) -> router class above. A role not listed stays on claude, no routing.
+# Browser, video, design and security roles need Claude-only tools: never list them here.
+role_classes:
+  developer: dev_general
+  tester:    dev_general
 router:
   tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
   min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown

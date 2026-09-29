@@ -10,6 +10,7 @@ from dataclasses import dataclass
 import functools
 from pathlib import Path
 import sys
+import time
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -290,15 +291,75 @@ def rank(
     return choices
 
 
+QUOTA_TTL_S = 300
+
+_quota_cache: dict = {"at": 0.0, "quotas": {}}
+_QUOTA_CACHE = _quota_cache
+
+
+def cached_quotas(
+    cfg: dict,
+    *,
+    now: float | None = None,
+    ttl: int = QUOTA_TTL_S,
+) -> dict[str, Quota]:
+    global _quota_cache
+    current_time = time.monotonic() if now is None else now
+
+    at = _quota_cache.get("at", 0.0)
+    cached = _quota_cache.get("quotas")
+    if cached and (current_time - at < ttl):
+        return cached
+
+    quotas = fetch_all_quotas(cfg)
+    _quota_cache["at"] = current_time
+    _quota_cache["quotas"] = quotas
+    return quotas
+
+
+def pick_runner(
+    role: str,
+    host: str,
+    *,
+    cfg: dict | None = None,
+    quotas: dict | None = None,
+    skill: dict | None = None,
+) -> Choice | None:
+    try:
+        cfg = cfg or load_plans()
+        cls = (cfg.get("role_classes") or {}).get(role)
+        if not cls:
+            return None
+        quotas = quotas if quotas is not None else cached_quotas(cfg)
+        skill = skill if skill is not None else load_skill_scores()
+        choices = rank(cls, quotas, skill, host, cfg)
+        for choice in choices:
+            if "exhausted" not in choice.reason:
+                return choice
+        return None
+    except Exception:
+        return None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Rank runner candidates by quota and skill")
     parser.add_argument("--role", default="dev_general", help="Job role (e.g. dev_general)")
     parser.add_argument("--host", default="mac", help="Host name (e.g. mac, winbox, contabo)")
     parser.add_argument("--dry-run", action="store_true", help="Dry run routing")
     parser.add_argument("--config", help="Path to plans.yaml")
+    parser.add_argument("--pick", metavar="ROLE", help="Pick single runner for worker role (e.g. developer)")
     args = parser.parse_args()
 
     cfg = load_plans(args.config)
+
+    if args.pick:
+        choice = pick_runner(args.pick, args.host, cfg=cfg)
+        if choice is not None:
+            print(f"runner={choice.runner} model={choice.model} reason={choice.reason}")
+        else:
+            print("runner=none (stay on claude)")
+        return
+
     quotas = fetch_all_quotas(cfg)
     skill = load_skill_scores()
 
@@ -317,3 +378,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
