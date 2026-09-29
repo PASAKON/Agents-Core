@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 PLANS_PATH = ROOT / "config" / "plans.yaml"
+DEFAULT_HISTORY = Path(__file__).resolve().parents[1] / "state" / "reports" / "quota-history.jsonl"
 
 RUNNER_TO_PROVIDER = {
     "claude": "anthropic",
@@ -461,14 +462,57 @@ def fetch_all_quotas(cfg: dict | None = None, now: datetime | str | None = None)
     return quotas
 
 
+def record_snapshot(quotas: dict[str, Quota], path: Path | str, now: datetime | None = None) -> int:
+    """Append one JSON line per provider to path. Returns the number of lines written."""
+    if now is None:
+        now_dt = datetime.now(timezone.utc)
+    elif now.tzinfo is None:
+        now_dt = now.replace(tzinfo=timezone.utc)
+    else:
+        now_dt = now.astimezone(timezone.utc)
+
+    ts = now_dt.isoformat(timespec="seconds")
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+
+    lines_written = 0
+    with open(p, "a", encoding="utf-8") as f:
+        for provider, q in quotas.items():
+            line_data = {
+                "ts": ts,
+                "provider": provider,
+                "weekly_remaining": q.weekly_remaining,
+                "daily_remaining": q.daily_remaining,
+                "weekly_resets_at": q.weekly_resets_at,
+                "daily_resets_at": q.daily_resets_at,
+                "source": q.source,
+                "error": q.error,
+            }
+            f.write(json.dumps(line_data, ensure_ascii=False, sort_keys=True) + "\n")
+            lines_written += 1
+
+    return lines_written
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Read quota across AI providers")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     parser.add_argument("--config", help="Path to plans.yaml")
+    parser.add_argument(
+        "--record",
+        nargs="?",
+        const=str(DEFAULT_HISTORY),
+        default=None,
+        help="Record snapshot to history file (default: %(const)s)",
+    )
     args = parser.parse_args()
 
     cfg = load_plans(args.config)
     quotas = fetch_all_quotas(cfg)
+
+    if args.record is not None:
+        n = record_snapshot(quotas, args.record)
+        print(f"recorded {n} lines -> {args.record}", file=sys.stderr)
 
     if args.json:
         data = {k: asdict(v) for k, v in quotas.items()}
