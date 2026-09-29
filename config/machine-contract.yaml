@@ -61,6 +61,8 @@ entries:
      restore: "git clone PASAKON/MoonieX-HQ then each Agents-* repo (hq.yaml rows); Contabo's Rules/Wikis are rsync snapshots from the Mac"}
   - {machine: all,     path: "<hq>/Projects/**",                          class: REBUILD,       owner: CTO, review: 2026-12-23, discovered: false,
      restore: "git clone per hq.yaml row; anything uncommitted is the owner's risk (blueprint lists dirty repos)"}
+  - {machine: all,     path: "$HOME/.gemini/antigravity-cli/settings.json", class: CONFIG, owner: CTO, review: 2026-12-29, discovered: false,
+     restore: "cp <hq>/Agents/Core/config/agy-settings.json $HOME/.gemini/antigravity-cli/settings.json (chmod 600) — agy workers' narrow shell allow-list, CEO 2026-09-30, IRON §59; only on machines that run agy"}
   - {machine: all,     path: "<hq>/Work/<task-id>/**",                    class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "closed with tools/workdir.py close --archive → Drive BACKUP/MoonieX HQ/Work-Archive/Agents-Work-<task>-<date>.tar (md5 verified before delete)"}
   - {machine: all,     path: "<hq>/Assets/**",                            class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
