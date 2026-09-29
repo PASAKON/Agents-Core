@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.memory-sync</string>
+
+  <!-- GH #176: the owner of ~/MoonieXHQ/Agents/Memory's sync. Every 15 min it
+       commits whatever sessions left on disk, merges origin in (union merge
+       for *.md, so two sessions adding to MEMORY.md do not conflict), and
+       pushes anything ahead. `sync` exits 1 and logs when it cannot, which
+       the log below records; session-close still runs `push` itself.
+       One-shot per interval, like com.mooniex.org-snapshot.plist. Install on
+       the Mac:
+         cp scripts/com.mooniex.memory-sync.plist ~/Library/LaunchAgents/
+         launchctl load ~/Library/LaunchAgents/com.mooniex.memory-sync.plist
+       A box whose memory dir is not wired to the repo is a no-op (exit 0). -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
+    <string>-m</string>
+    <string>tools.memory_sync</string>
+    <string>sync</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
+
+  <key>StartInterval</key>
+  <integer>900</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/memory-sync.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/memory-sync.log</string>
+</dict>
+</plist>

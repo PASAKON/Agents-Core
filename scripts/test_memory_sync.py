@@ -210,6 +210,76 @@ def test_push_fails_loudly_when_remote_unreachable(tmp_path: Path) -> None:
 
 
 # --------------------------------------------------------------------------
+# GH #176: diverged / dirty / ahead-with-nothing-staged
+# --------------------------------------------------------------------------
+
+def _setup_diverged(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """origin and a local clone that both added a line to MEMORY.md."""
+    bare = _init_bare(tmp_path)
+    writer = _clone(bare, tmp_path, "writer")
+    _commit_file(writer, "MEMORY.md", "- base\n", "init")
+    _git(writer, "push", "-q", "origin", "HEAD")
+    local = _clone(bare, tmp_path, "local")
+    _commit_file(local, "MEMORY.md", "- base\n- lesson from this Mac\n", "local")
+    _commit_file(writer, "MEMORY.md", "- base\n- lesson from elsewhere\n", "remote")
+    _git(writer, "push", "-q", "origin", "HEAD")
+    return bare, writer, local
+
+
+def test_push_merges_a_diverged_memory_md_and_pushes(tmp_path: Path) -> None:
+    bare, _, local = _setup_diverged(tmp_path)
+    memory_dir = _symlink_memory_dir(tmp_path, local)
+
+    assert memory_sync.push(memory_dir) == 0
+
+    check = _clone(bare, tmp_path, "verify")
+    text = (check / "MEMORY.md").read_text()
+    assert "lesson from this Mac" in text and "lesson from elsewhere" in text
+
+
+def test_push_sends_old_unpushed_commits_when_nothing_is_staged(tmp_path: Path) -> None:
+    bare = _init_bare(tmp_path)
+    local = _clone(bare, tmp_path, "local")
+    _commit_file(local, "MEMORY.md", "v1\n", "init")
+    _git(local, "push", "-q", "origin", "HEAD")
+    _git(local, "branch", "--set-upstream-to", "origin/" +
+         _git(local, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip())
+    _commit_file(local, "note.md", "committed, never pushed\n", "orphan")
+    memory_dir = _symlink_memory_dir(tmp_path, local)
+
+    assert memory_sync.push(memory_dir) == 0
+
+    check = _clone(bare, tmp_path, "verify")
+    assert (check / "note.md").read_text() == "committed, never pushed\n"
+
+
+def test_pull_commits_dirty_edits_then_merges_origin(tmp_path: Path) -> None:
+    bare, _, local = _setup_diverged(tmp_path)
+    (local / "other-session.md").write_text("left uncommitted\n")
+    memory_dir = _symlink_memory_dir(tmp_path, local)
+
+    assert memory_sync.pull(memory_dir) == 0
+
+    text = (local / "MEMORY.md").read_text()
+    assert "lesson from elsewhere" in text and "lesson from this Mac" in text
+    assert _git(local, "status", "--porcelain").stdout.strip() == ""
+    assert (local / "other-session.md").read_text() == "left uncommitted\n"
+
+
+def test_sync_is_push(tmp_path: Path) -> None:
+    bare, _, local = _setup_diverged(tmp_path)
+    memory_dir = _symlink_memory_dir(tmp_path, local)
+    orig = memory_sync.default_memory_dir
+    memory_sync.default_memory_dir = lambda: memory_dir
+    try:
+        assert memory_sync.main(["sync"]) == 0
+    finally:
+        memory_sync.default_memory_dir = orig
+    check = _clone(bare, tmp_path, "verify")
+    assert "lesson from this Mac" in (check / "MEMORY.md").read_text()
+
+
+# --------------------------------------------------------------------------
 # standalone runner (no pytest required)
 # --------------------------------------------------------------------------
 
