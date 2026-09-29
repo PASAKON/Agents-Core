@@ -66,6 +66,19 @@ def _clean_session_env(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_real_org_db_env(tmp_path, monkeypatch):
+    """Org Mesh W1.6 (task-719e0c56): the MCP config generators
+    (scripts/lib/cxo_mcp_config.py, lib/worker_mcp_config.py) route the org
+    server through scripts/hub/with-org-db-env.sh whenever the hub env file
+    exists -- ~/.config/mooniex/org-db.env, present on the Mac and Contabo
+    after cutover. Left alone, a test asserting the plain org entry passes on a
+    box without the file and fails on the CEO's Mac. Point MOONIEX_ORG_DB_ENV
+    at a file that does not exist; tests/test_w16_org_db_injection.py (and any
+    other test that wants the wrapper) sets its own on top."""
+    monkeypatch.setenv("MOONIEX_ORG_DB_ENV", str(tmp_path / "no-such-org-db.env"))
+
+
+@pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
     quota read is an ssh to Contabo plus the agy CLI. No test may reach

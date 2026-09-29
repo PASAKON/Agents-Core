@@ -35,6 +35,9 @@ Env overrides (no code edit needed):
     CXO_EXTRA_MCP=meigen,meta-ads-135   add servers to this role
     CXO_SKIP_MCP=supabase               drop servers from this role
     CXO_SUPABASE_WRITE=1                drop --read-only from the supabase server
+    MOONIEX_ORG_DB_ENV=/path/org-db.env hub env file (default ~/.config/mooniex/org-db.env);
+                                        when it exists, the org server starts through
+                                        scripts/hub/with-org-db-env.sh (never read here)
 """
 
 from __future__ import annotations
@@ -198,18 +201,66 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     return names
 
 
+WRAPPER_NAME = "with-org-db-env.sh"
+
+
+def _is_windows() -> bool:
+    return sys.platform == "win32"
+
+
+def org_db_wrapper(root: str) -> str | None:
+    """Path of scripts/hub/with-org-db-env.sh when this host should start the
+    org MCP server through it, else None (docs/design/tasks-db-hub.md §3.3).
+
+    The wrapper sources the hub env file (ORG_DB_URL) at spawn time, so the
+    secret reaches the server without landing in this generated config or in
+    any tracked file. Only the env file's EXISTENCE is tested here: it is
+    never opened, and nothing from it goes into `env`. A host that never ran
+    the hub setup has no file and keeps the plain entry. Windows keeps the
+    plain entry too: the wrapper is bash (winbox is W3.4).
+    """
+    if _is_windows():
+        return None
+    env_file = Path(
+        os.environ.get("MOONIEX_ORG_DB_ENV")
+        or Path.home() / ".config" / "mooniex" / "org-db.env"
+    )
+    wrapper = Path(root) / "scripts" / "hub" / WRAPPER_NAME
+    if env_file.is_file() and wrapper.is_file():
+        return str(wrapper)
+    return None
+
+
+def wrap_org_entry(entry: dict, root: str) -> dict:
+    """`entry` routed through the env wrapper when org_db_wrapper() says so.
+
+    An entry whose command already is the wrapper (a checkout where
+    scripts/hub/cutover_flip.py once rewrote a template) is returned as is:
+    wrapping it twice would hand the wrapper itself to `exec`.
+    """
+    if Path(entry["command"]).name == WRAPPER_NAME:
+        return entry
+    wrapper = org_db_wrapper(root)
+    if wrapper is None:
+        return entry
+    return {**entry, "command": wrapper, "args": [entry["command"], *entry.get("args", [])]}
+
+
 def _build(name: str, root: str) -> dict | None:
     """Return the MCP entry for `name`, or None when it isn't installed here."""
     if name == "org":
         python = _venv_python(root)
         if not python.exists():
             return None
-        return {
-            "command": str(python),
-            "args": ["-m", "runners.cto_mcp_server"],
-            "cwd": root,
-            "env": {"PYTHONUNBUFFERED": "1"},
-        }
+        return wrap_org_entry(
+            {
+                "command": str(python),
+                "args": ["-m", "runners.cto_mcp_server"],
+                "cwd": root,
+                "env": {"PYTHONUNBUFFERED": "1"},
+            },
+            root,
+        )
 
     if name == "lungnote":
         if not Path(LUNGNOTE_MCP_JS).is_file():

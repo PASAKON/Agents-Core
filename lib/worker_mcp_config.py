@@ -13,10 +13,13 @@ What is rewritten, and what is deliberately not:
   * the LungNote index.js becomes the first candidate that exists on this box
     (`LUNGNOTE_MCP_JS`, then the Mac / Contabo / winbox locations); with no
     candidate the server is dropped and one line is logged;
-  * everything else — the org server's command/args/env — is passed through
-    untouched. `scripts/hub/cutover_flip.py` rewrites the org `command` to
-    `scripts/hub/with-org-db-env.sh` and puts ORG_DB_URL into `env`; a
-    generator that rebuilt those would undo the cutover.
+  * the org server is routed through `scripts/hub/with-org-db-env.sh` when the
+    hub env file exists on this host (`cxo.wrap_org_entry`, the same rule the
+    C-level generator applies; the file is never read, only its existence
+    tested). A template whose org command already is the wrapper (a checkout
+    where the old `scripts/hub/cutover_flip.py` rewrote it) is left alone;
+  * everything else — the org server's args/env — is passed through untouched.
+    ORG_DB_URL never enters `env`; the wrapper sources it at spawn time.
 """
 from __future__ import annotations
 
@@ -98,6 +101,8 @@ def generate(
             srv["args"] = [js if a == TEMPLATE_LUNGNOTE_JS else a for a in srv.get("args", [])]
             if srv.get("command") == "node":
                 srv["command"] = node
+    if "org" in servers:
+        servers["org"] = cxo.wrap_org_entry(servers["org"], root)
     return cfg
 
 
