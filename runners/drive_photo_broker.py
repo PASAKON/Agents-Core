@@ -398,6 +398,7 @@ def do_upload(local_path: Path, name: str, root_folder_id: str, subfolder: str |
         "name": name,
         "link": f"https://drive.google.com/file/d/{file_id}/view" if file_id else None,
         "size": local_size,
+        "md5Checksum": res.get("md5Checksum"),
     }
 
 
