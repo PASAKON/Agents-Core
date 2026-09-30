@@ -183,7 +183,7 @@ check_args() {
   if [ -z "$TOKEN" ] && [ -n "${ORG_JOIN_TOKEN:-}" ]; then TOKEN=$ORG_JOIN_TOKEN; fi
   unset ORG_JOIN_TOKEN   # do not hand it to every child process we start
   [ -n "$TOKEN" ] || read_token_tty \
-    || die "no token: there is no terminal to ask on. Pass --token <t> or set ORG_JOIN_TOKEN, or run this from a terminal and it asks (typing hidden)"
+    || die "no token: nothing was typed, or there is no terminal to ask on. Pass --token <t> or set ORG_JOIN_TOKEN, or run this from a terminal and it asks (typing hidden)"
   printf '%s' "$TOKEN" | grep -Eq '^hqj_[A-Za-z0-9_-]{43}$' \
     || die "the token is not in the expected shape (hqj_ and 43 more characters); copy it again"
   [ -n "$HOST" ] || die "no --host <name>"
