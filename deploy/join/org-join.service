@@ -1,11 +1,16 @@
 [Unit]
-Description=MoonieX hub join endpoint (Org Mesh W4.3, tools/join_api.py)
+Description=MoonieX hub join endpoint (Org Mesh W4.3 + W4.5, tools/join_api.py)
 # The public side of `hq join`: serves join.sh / join.ps1 and answers accept / sealed.
-# docs: tools/join_api.py (module docstring), deploy/join/README.md.
-# Files only -- NOT installed by W4.3. Installing it is a later live step, together with the
-# traefik route (W4.5) and after the W4.6 security review.
+# docs: tools/join_api.py (module docstring), deploy/join/README.md (install + rollback).
+# Installed by the CTO on Contabo after the W4.5 merge, in the order the README gives:
+# the proxy container first, then this unit.
 #
-# Binds 127.0.0.1:8791 and nothing else, on purpose. traefik (W4.5) is what faces the internet.
+# Where it listens: the docker0 address (172.17.0.1 by default), never a public one and never
+# 0.0.0.0. deploy/join/bind-docker0.sh reads it with `ip -4 -o addr show dev docker0` when the
+# service starts and exports JOIN_API_BIND; tools/join_api.py refuses anything outside
+# 127.0.0.0/8 and 172.16.0.0/12. The socat container org-join-proxy
+# (deploy/join/docker-compose.join-proxy.yml) forwards traefik's /org-join route to it.
+# So 194.233.80.26:8791 answers nothing.
 #
 # Secrets: none in this file. ORG_DB_URL (hub Postgres, role org) comes from Infisical the
 # same way the secretary gets it (deploy/systemd/mooniex-secretary.service.d/org-db.conf):
@@ -14,11 +19,11 @@ Description=MoonieX hub join endpoint (Org Mesh W4.3, tools/join_api.py)
 # setpriv execs, so systemd still supervises the endpoint's own pid. HOME is set because
 # setpriv does not reset it.
 #
-# W4.5 must add, once traefik routes to this port (an `Environment=` line, not a code change):
-#   JOIN_API_PUBLIC_URL=https://<the public hub name>    # what join.sh is told it came from
-#   JOIN_API_TRUST_FORWARDED=1                           # rate-limit on the caller, not on traefik
-After=network-online.target
-Wants=network-online.target
+# JOIN_API_PUBLIC_URL is what join.sh is told it came from. JOIN_API_TRUST_FORWARDED=1
+# rate-limits on the caller (the last X-Forwarded-For entry, which traefik appends), not on
+# the proxy container that is the TCP peer of every request.
+After=network-online.target docker.service
+Wants=network-online.target docker.service
 
 [Service]
 Type=simple
@@ -26,7 +31,9 @@ User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=PYTHONUNBUFFERED=1
 Environment=HOME=/home/secretary
-ExecStart=/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo -- /usr/bin/setpriv --reuid=secretary --regid=secretary --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.join_api --port 8791
+Environment=JOIN_API_PUBLIC_URL=https://webhook.mooniex.com
+Environment=JOIN_API_TRUST_FORWARDED=1
+ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/join/bind-docker0.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo -- /usr/bin/setpriv --reuid=secretary --regid=secretary --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.join_api --port 8791
 Restart=on-failure
 RestartSec=10
 

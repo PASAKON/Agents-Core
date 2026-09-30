@@ -1,0 +1,47 @@
+# Org Mesh W4.5: the one hop between traefik and the join endpoint.
+#
+# traefik (container n8n-traefik-1, docker provider only) cannot reach a host process on
+# 127.0.0.1, and tools/join_api.py must not listen on a public address. So: join_api binds
+# the docker0 address (deploy/join/org-join.service), and this container forwards its own
+# port 8080 to host.docker.internal:8791 (host-gateway = the docker0 address). traefik finds
+# the container by its labels, exactly like /opt/claude-usage-monitor/serve.
+#
+# A plain L4 forwarder: socat copies bytes, it reads no header and keeps no state, so the
+# X-Forwarded-For traefik appends reaches join_api untouched (JOIN_API_TRUST_FORWARDED=1).
+# Nothing is published on the host: no `ports:`. Only the labelled path /org-join is routed.
+#
+# Deploy and rollback: deploy/join/README.md. Image tag is pinned; replace it by the digest
+# (`docker image inspect --format '{{index .RepoDigests 0}}'`) once it has been pulled on the box.
+name: org-join-proxy
+
+services:
+  org-join-proxy:
+    image: alpine/socat:1.8.0.3
+    container_name: org-join-proxy
+    command:
+      - "TCP-LISTEN:8080,fork,reuseaddr"
+      - "TCP:host.docker.internal:8791"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_default
+    restart: always
+    read_only: true
+    user: "65534:65534"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 32m
+    pids_limit: 128
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.org-join.rule: "Host(`webhook.mooniex.com`) && PathPrefix(`/org-join`)"
+      traefik.http.routers.org-join.entrypoints: "websecure"
+      traefik.http.routers.org-join.tls: "true"
+      traefik.http.routers.org-join.tls.certresolver: "mytlschallenge"
+      traefik.http.services.org-join.loadbalancer.server.port: "8080"
+
+networks:
+  n8n_default:
+    external: true
