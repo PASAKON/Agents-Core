@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import platform
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -169,9 +170,20 @@ def hosts() -> dict[str, dict]:
     Phase 1 (docs/design/multi-host-workers.md): declares what each host
     provides and how to reach it (ssh alias, native paths). Nothing here
     reads `provides` for routing yet — that's Phase 3.
+
+    A joined node (tools/hq_join) is in the hub's `hosts` table and in its
+    own node.yaml, never in this repo's hosts.yaml: when node.yaml carries a
+    well-formed host + os + hq_root for a name hosts.yaml does not declare,
+    that entry is added here. hosts.yaml wins for every name it declares.
+    A bad node.yaml adds nothing and never raises from here: self_host() is
+    where it is reported.
     """
     data = yaml.safe_load(HOSTS_CONFIG.read_text(encoding="utf-8"))
-    return data["hosts"]
+    registry = data["hosts"]
+    node = _node_yaml_entry()
+    if node and node[0] not in registry:
+        registry = {**registry, node[0]: node[1]}
+    return registry
 
 
 def host(name: str) -> dict:
@@ -189,32 +201,111 @@ NODE_CONFIG_PATH = Path.home() / ".config" / "mooniex" / "node.yaml"
 
 _PLATFORM_TO_OS = {"Darwin": "darwin", "Linux": "linux", "Windows": "windows"}
 
+# The one rule for a host name: tools/hq_join mints it, node.yaml carries it and
+# `infisical_setup.py save` takes it as an identity name (NAME_RE there: 2-31
+# chars). 3-31 chars, so every name hq_join accepts is a name `save` accepts.
+HOST_NAME_RE = re.compile(r"[a-z][a-z0-9-]{1,29}[a-z0-9]")
+
+
+def _load_node_yaml() -> dict | None:
+    """node.yaml as a dict; None when the file is absent. Unparseable YAML, or a
+    document that is not a mapping, raises."""
+    if not NODE_CONFIG_PATH.exists():
+        return None
+    data = yaml.safe_load(NODE_CONFIG_PATH.read_text(encoding="utf-8")) or {}
+    if not isinstance(data, dict):
+        raise ValueError(f"{NODE_CONFIG_PATH}: expected a mapping, got {type(data).__name__}")
+    return data
+
+
+def _node_hq_root(os_name: str, raw: object) -> str | None:
+    """`raw` as tools/hq_join._check_hq_root accepts it (absolute for `os_name`,
+    no control characters, no '..', not a filesystem root), trailing separators
+    cut; None when it does not."""
+    if not isinstance(raw, str) or not raw or len(raw) > 240:
+        return None
+    if any(ord(c) < 32 or ord(c) == 127 for c in raw):
+        return None
+    if os_name == "windows":
+        absolute = re.fullmatch(r"[A-Za-z]:[\\/].*", raw) is not None
+    else:
+        absolute = raw.startswith("/")
+    if not absolute or ".." in re.split(r"[\\/]", raw):
+        return None
+    cleaned = raw.rstrip("\\/")
+    if not cleaned or re.fullmatch(r"[A-Za-z]:", cleaned):
+        return None
+    return cleaned
+
+
+def _node_entry(data: dict) -> tuple[str, dict] | None:
+    """(host, hosts.yaml-shaped entry) for a parsed node.yaml that carries host,
+    os and hq_root, all three well-formed; None otherwise. Never raises.
+
+    The entry has the keys tools/hq_join.accept gives a joined node (os,
+    hq_root, agents_root, worktrees, provides, max_workers, runners) with the
+    same layout and the same conservative defaults: nothing is claimed that the
+    probe has not measured. `ssh` is None, as for `mac` on the Mac: a node never
+    dials out to reach itself, and an alias here would make tools/worker_reap
+    treat this box as a remote one."""
+    raw, os_name = data.get("host"), data.get("os")
+    if not isinstance(raw, str) or os_name not in _PLATFORM_TO_OS.values():
+        return None
+    host = raw.strip().lower()
+    root = _node_hq_root(os_name, data.get("hq_root"))
+    if root is None or not HOST_NAME_RE.fullmatch(host):
+        return None
+    sep = "\\" if os_name == "windows" else "/"
+    agents_root = f"{root}{sep}Agents{sep}Core"
+    return host, {
+        "os": os_name, "hq_root": root, "ssh": None,
+        "agents_root": agents_root, "worktrees": f"{agents_root}{sep}worktrees",
+        "provides": [], "max_workers": 1, "runners": [],
+    }
+
+
+def _node_yaml_entry() -> tuple[str, dict] | None:
+    """_node_entry() of this machine's node.yaml; None when it is absent or bad.
+    Never raises, so hosts() cannot fail because of it."""
+    try:
+        data = _load_node_yaml()
+    except (OSError, ValueError, yaml.YAMLError):
+        return None
+    return _node_entry(data) if data else None
+
 
 def _env_host() -> str | None:
     raw = os.environ.get("ORG_HOST")
     if raw is None or not raw.strip():
         return None
     key = raw.strip().lower()
-    if key not in hosts():
+    # A joined node's own node.yaml may name it (deploy/join/join.sh runs the
+    # probe with ORG_HOST set). Any other unknown name still raises.
+    node = _node_yaml_entry()
+    if key not in hosts() and not (node and node[0] == key):
         raise ValueError(
-            f"ORG_HOST={raw!r} is not a known host (config/hosts.yaml). "
+            f"ORG_HOST={raw!r} is not a known host (config/hosts.yaml, or a "
+            f"well-formed host + os + hq_root in {NODE_CONFIG_PATH}). "
             f"Known: {sorted(hosts())}"
         )
     return key
 
 
 def _node_yaml_host() -> str | None:
-    if not NODE_CONFIG_PATH.exists():
+    data = _load_node_yaml()
+    if data is None:
         return None
-    data = yaml.safe_load(NODE_CONFIG_PATH.read_text(encoding="utf-8")) or {}
     raw = data.get("host")
     if raw is None or not str(raw).strip():
         return None
     key = str(raw).strip().lower()
-    if key not in hosts():
+    # hosts.yaml wins for a name it declares (hosts() is where node.yaml's os and
+    # hq_root are ignored); an unknown name is a joined node only with all three.
+    if key not in hosts() and _node_entry(data) is None:
         raise ValueError(
             f"{NODE_CONFIG_PATH}: host: {raw!r} is not a known host "
-            f"(config/hosts.yaml). Known: {sorted(hosts())}"
+            f"(config/hosts.yaml) and node.yaml has no well-formed os + hq_root "
+            f"to make it one. Known: {sorted(hosts())}"
         )
     return key
 
@@ -275,7 +366,8 @@ def self_host() -> str:
     'mac' — that default is what sent Contabo/winbox local spawns and
     reconciliation to act on the wrong host (docs/design/org-mesh.md §2.2).
     A bad ORG_HOST or an unknown node.yaml host: key also raises, rather
-    than falling through to a weaker source.
+    than falling through to a weaker source. "Unknown" means absent from
+    hosts.yaml AND not a joined node's own node.yaml (host + os + hq_root).
     """
     sources: dict[str, str | None] = {}
     for name, fn in _SELF_HOST_SOURCES:

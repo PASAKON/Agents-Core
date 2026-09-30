@@ -127,10 +127,28 @@ def test_mint_default_ttl_is_15_minutes_and_ttl_is_bounded():
         assert _refusal(hq_join.mint, "node-c", bad).code == "bad_arg"
 
 
-@pytest.mark.parametrize("name", ["", "a", "Node", "node_a", "node a", "-node", "node-",
-                                  "x" * 33, "../etc", "node\n", "n\u00f6de"])
+@pytest.mark.parametrize("name", ["", "a", "ab", "Node", "node_a", "node a", "-node", "node-",
+                                  "x" * 32, "x" * 33, "../etc", "node\n", "n\u00f6de"])
 def test_mint_refuses_bad_host_names(name):
     assert _refusal(hq_join.mint, name).code == "bad_arg"
+
+
+@pytest.mark.parametrize("name", ["abc", "a1b", "node-a", "x" * 31, "a-" * 15 + "b"])
+def test_mint_and_accept_take_host_names_of_3_to_31_chars(name):
+    # 31 is the most `infisical_setup.py save` (NAME_RE, 2-31 chars) takes as an identity name.
+    _, joined = _join(name)
+    assert joined["host"] == name
+    assert _host(name)["status"] == hq_join.STATUS_PENDING
+
+
+@pytest.mark.parametrize("name", ["x" * 32, "a" * 40])
+def test_accept_refuses_a_32_char_host_name_too(name):
+    # accept checks the name before it looks at the token, so a name mint would never
+    # have minted a token for is refused here with the same code and nothing written.
+    before = _dump()
+    err = _refusal(hq_join.accept, "hqj_" + "A" * 43, name, "linux", "/opt/MoonieXHQ", PUB)
+    assert err.code == "bad_arg" and "3-31" in err.message
+    assert _dump() == before
 
 
 @pytest.mark.parametrize("status", ["online", "pending_identity", "offline", None])
