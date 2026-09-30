@@ -26,14 +26,25 @@ The CEO's words, 2026-09-30 (kept verbatim, typos included):
 | Who | Facts the CEO gave | Source |
 |---|---|---|
 | **มีมี่ (Mimi)** | A **black** dog, **female**. Her habits shape every story. **The habits themselves are NOT recorded yet** — see §4. | CEO 2026-09-30 |
+| ↳ how she looks | Small, long-haired, fluffy; coat **black**, with grey-white eyebrows and muzzle, a white bib on the chest, tan on the chin and on the paws, long drop ears with grey tips, dark brown eyes, a little pink tongue showing. An older-looking face. (CMO reading of IMG_4405, not the CEO's words; the breed is not said — do not name one.) | photo IMG_4405, taken 2026-09-30 |
 | **แม่ (mother)** | Does not go out to work; is at home. | CEO 2026-09-30 |
 | **พี่ชาย (older brother)** | The CEO himself. Works from home all day; a CEO with a very heavy workload (Work From Home). | CEO 2026-09-30 |
 | **น้องสาว (younger sister)** | Full-time job as a team lead in a **debt-collection service**. Drives a Civic (CEO wrote "รถเก่ง Civic"; read as รถเก๋ง). Home at **19:00**. Works **Monday to Saturday**; Sunday is her only day off. | CEO 2026-09-30 |
 | **พ่อ (father)** | Lives upcountry (CEO wrote "ตวจ."; read as ตจว. = ต่างจังหวัด). Farms rice (ทำนา). | CEO 2026-09-30 |
 | **ยาย (grandmother)** | Lives upcountry, same spelling. | CEO 2026-09-30 |
+| **บ้าน (the house)** | Two-storey townhouse: cream / pale-pink stucco, terracotta tile roof, steel front gate, open carport (a blue tarp, bags, laundry racks), first-floor balcony with a wall air-conditioner, a bright green house next door. Inside (from IMG_4405): cream marble-look floor tiles, a white two-door fridge, open kitchen shelves with a rice cooker and an air fryer, a glass-front wooden cabinet full of things, a small Buddhist shelf high on the wall. In the 2026-09-30 photo the street in front of the gate is under brown water (looks like a flood — **to confirm with the CEO**). (CMO reading of the photos.) | photos IMG_4405 + IMG_4406, taken 2026-09-30 |
 
-Real photos of the family and of Mimi exist (the CEO named IMG_4405 and IMG_4406 on 2026-09-30; which person or
-dog each one shows is not recorded). They are the only identity reference for any illustration.
+Real photos exist (2026-09-30, both filed in `Assets/Agents/Core/khaoniao-family/refs/` as `_small.jpg`, long side
+1600 px; the originals stay on the Mac in `~/Downloads`):
+
+| File | Shows |
+|---|---|
+| `IMG_4405_small.jpg` | **Mimi**, sitting on the floor inside the house, facing the camera — the identity reference for the dog and the room |
+| `IMG_4406_small.jpg` | **The house front** from the street, flood water in the foreground — the identity reference for the exterior |
+
+**No photo of the mother, the brother or the sister is on file yet**, so no family member may be illustrated until
+one arrives. **Privacy:** a house-number plate is readable on the gatepost of IMG_4406 and a framed picture sits on
+the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur them in any reference that leaves the box.
 
 ### What follows from those facts (derived by the CMO, not said by the CEO)
 
@@ -76,7 +87,10 @@ dog each one shows is not recorded). They are the only identity reference for an
 4. **The sister's job on screen** — may the debt-collection job appear in a story? (The ILAG films are about
    loan sharks; a viewer could confuse the two.)
 5. **Where upcountry** — which province and dialect (needed for the father's and grandmother's lines).
-6. **Which of IMG_4405 / IMG_4406 shows whom.**
+6. ~~Which of IMG_4405 / IMG_4406 shows whom~~ — answered 2026-09-30 by looking: Mimi, and the house front (table in §1).
+7. **Photos of the mother, the brother and the sister** (one clear photo each, shrunk first) — needed before any person is drawn.
+8. **The flood** — is the water in front of the house a real flood on 2026-09-30? If yes it is the first true event for an episode; what did Mimi do?
+9. **Mimi's coat in pictures** — the photo shows grey-white and tan markings on black; keep them (recommended, they are what people will recognise) or simplify to an all-black dog?
 
 ## 5 · What this replaces
 
