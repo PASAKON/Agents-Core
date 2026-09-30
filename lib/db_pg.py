@@ -233,9 +233,12 @@ def _rewrite_insert_or_replace(sql: str) -> str:
 def _split_statements(script: str) -> list[str]:
     """executescript's SQLite semantics: run each `;`-terminated statement in
     turn. Safe for the controlled DDL/backfill text this is actually called
-    with (lib.db.SCHEMA-shaped scripts) — no semicolons inside comments or
-    string literals there."""
-    return [s.strip() for s in script.split(";") if s.strip()]
+    with (lib.db.SCHEMA-shaped scripts) — no semicolons inside string
+    literals there. Full-line `--` comments are dropped first, so a `;` in
+    prose (W1.9 F1: "...identical; only id's...") cannot cut a statement in
+    half and hand Postgres the rest of the sentence."""
+    body = "\n".join(ln for ln in script.splitlines() if not ln.lstrip().startswith("--"))
+    return [s.strip() for s in body.split(";") if s.strip()]
 
 
 def _translate_placeholders(sql: str) -> str:

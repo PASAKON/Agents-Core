@@ -160,3 +160,47 @@ def test_record_letter_attempt_returning_sql_translates_placeholders_only():
         "UPDATE letters SET attempts = attempts + 1, last_error = %s "
         "WHERE id = %s RETURNING attempts"
     )
+
+
+# ---------------------------------------------------------------------------
+# _split_statements -- W1.9 F1: a `;` in a `--` comment cut a CREATE TABLE in
+# half and Postgres got "only id's AUTOINCREMENT ..." as a statement.
+# ---------------------------------------------------------------------------
+
+SQL_VERBS = ("CREATE", "ALTER", "INSERT", "UPDATE", "DROP", "DO")
+
+
+def test_every_statement_of_pg_schema_starts_with_a_sql_verb():
+    """The only script lib.db sends through the Postgres executescript is PG_SCHEMA
+    (init_schema; the ADD COLUMN migrations and the backfill go through execute(), and
+    SNAPSHOT_META_SCHEMA goes to a sqlite3 connection). A stray fragment fails here
+    without a Postgres."""
+    stmts = db_pg._split_statements(db_pg.PG_SCHEMA)
+    assert len(stmts) > 10
+    bad = [s.splitlines()[0] for s in stmts if s.split(None, 1)[0].upper() not in SQL_VERBS]
+    assert bad == []
+
+
+def test_no_split_statement_of_pg_schema_carries_comment_prose():
+    for s in db_pg._split_statements(db_pg.PG_SCHEMA):
+        assert not any(ln.lstrip().startswith("--") for ln in s.splitlines()), s
+
+
+def test_semicolon_inside_a_comment_line_makes_no_stray_statement():
+    script = (
+        "CREATE TABLE a (x INTEGER);\n"
+        "-- Column shapes are identical; only id's AUTOINCREMENT -> IDENTITY changes,\n"
+        "CREATE TABLE b (\n"
+        "    -- a note; with a semicolon inside the column list\n"
+        "    y INTEGER\n"
+        ");\n"
+    )
+    assert db_pg._split_statements(script) == [
+        "CREATE TABLE a (x INTEGER)",
+        "CREATE TABLE b (\n    y INTEGER\n)",
+    ]
+
+
+def test_split_keeps_a_double_dash_that_is_not_a_full_line_comment():
+    """Only full-line comments are dropped; `--` inside a statement line stays."""
+    assert db_pg._split_statements("SELECT 1 -- one\n;\nSELECT 2;") == ["SELECT 1 -- one", "SELECT 2"]
