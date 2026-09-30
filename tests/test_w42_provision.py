@@ -202,9 +202,14 @@ def unseal(text):
 
 # ---------------------------------------------------------------- helpers
 
-def _join(host="node-a", deploy=DEPLOY):
+def _join(host="node-a", deploy=DEPLOY, approve=True):
+    """mint + accept, and (W4.6a F1) approve: provision skips a row nobody approved. Tests of the
+    gate itself pass approve=False (tests/test_w46a_hub_fixes.py)."""
     token = hq_join.mint(host)["token"]
-    return hq_join.accept(token, host, "linux", "/opt/MoonieXHQ", PUB, deploy_pubkey=deploy)
+    res = hq_join.accept(token, host, "linux", "/opt/MoonieXHQ", PUB, deploy_pubkey=deploy)
+    if approve:
+        hq_join.approve(host, PUB[-8:])
+    return res
 
 
 def _prov(host="node-a", org=None, gh=None, **kw):
@@ -337,13 +342,14 @@ def test_ensure_refuses_an_org_node_that_is_wider_than_viewer():
         infisical_setup.ensure_node_identity(org)
 
 
-def test_mint_returns_the_value_once_prints_nothing_and_sets_no_ttl(capsys):
+def test_mint_returns_the_value_once_prints_nothing_and_sets_a_90_day_ttl(capsys):
     org = FakeOrg()
     out = infisical_setup.mint_node_secret(org, "node-a")
     assert set(out) == {"client_id", "client_secret", "client_secret_id"}
     assert out["client_secret"] == org.minted_values[0] and out["client_id"] == "client-id-org-node"
+    # W4.6a F4: 90 days (7,776,000 s), uses still unlimited.
     assert org.secrets[out["client_secret_id"]] == {
-        "description": "org-node:node-a", "revoked": False, "ttl": 0, "uses": 0}
+        "description": "org-node:node-a", "revoked": False, "ttl": 7_776_000, "uses": 0}
     cap = capsys.readouterr()
     assert cap.out == "" and cap.err == ""
     assert out["client_secret"] not in json.dumps(org.calls)      # it was a response, never a request
@@ -643,7 +649,11 @@ def test_provision_twice_is_a_no_op():
 def test_provision_refuses_the_wrong_kind_of_row():
     assert _refusal(_prov, "ghost-node", org=FakeOrg(), gh=FakeGh()).code == "unknown_host"
     db.seed_hosts_from_config()
-    assert _refusal(_prov, "mac", org=FakeOrg(), gh=FakeGh()).code == "not_joined"
+    # mac is a reserved name (W4.6a F13), so it is refused at the name check; a seeded row
+    # under a name that is not reserved still gets not_joined.
+    assert _refusal(_prov, "mac", org=FakeOrg(), gh=FakeGh()).code == "bad_arg"
+    db.upsert_host("seeded-x", os="linux", status="online")
+    assert _refusal(_prov, "seeded-x", org=FakeOrg(), gh=FakeGh()).code == "not_joined"
     _join()
     for status in ("online", "left"):
         db.upsert_host("node-a", status=status)

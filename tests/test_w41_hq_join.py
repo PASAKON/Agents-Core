@@ -158,9 +158,14 @@ def test_mint_refuses_a_name_that_has_a_row(status):
     assert _dump()["join_tokens"] == []
 
 
-def test_mint_refuses_a_name_declared_in_hosts_yaml_even_without_a_row():
-    for name in config.hosts():
-        assert _refusal(hq_join.mint, name).code == "host_in_use"
+def test_mint_refuses_a_name_declared_in_hosts_yaml_even_without_a_row(monkeypatch):
+    # mac, winbox and contabo are reserved names now (W4.6a F13) and refused as bad_arg before
+    # this check; a declared name that is not reserved still reaches it.
+    real = config.hosts()
+    monkeypatch.setattr(config, "hosts", lambda: {**real, "declared-x": {"os": "linux"}})
+    assert _refusal(hq_join.mint, "declared-x").code == "host_in_use"
+    for name in ("mac", "winbox", "contabo"):
+        assert _refusal(hq_join.mint, name).code == "bad_arg"
 
 
 def test_mint_allows_a_name_that_left():
@@ -174,7 +179,8 @@ def test_accept_registers_a_pending_identity_row_with_the_pubkey():
     token, res = _join("node-a", "linux", "/opt/MoonieXHQ/")
     h = _host("node-a")
     assert res == {"host": "node-a", "status": "pending_identity",
-                   "agents_root": "/opt/MoonieXHQ/Agents/Core"}
+                   "agents_root": "/opt/MoonieXHQ/Agents/Core", "fingerprint": PUB[-8:]}
+    assert h["approved_at"] is None     # W4.6a F1: accept approves nothing
     assert h["status"] == "pending_identity" and h["pubkey"] == PUB
     assert h["os"] == "linux" and h["hq_root"] == "/opt/MoonieXHQ"
     assert h["agents_root"] == "/opt/MoonieXHQ/Agents/Core"
@@ -457,8 +463,12 @@ def test_leave_live_with_the_default_revokers_touches_nothing_outside(joined, ca
 
 
 def test_leave_refuses_a_host_that_never_joined_through_accept(joined):
+    # mac, contabo and winbox are reserved names (W4.6a F13): refused at the name check.
     for core in ("mac", "contabo", "winbox"):
-        assert _refusal(hq_join.leave, core, live=True, revokers=Fake().table()).code == "not_joined"
+        assert _refusal(hq_join.leave, core, live=True, revokers=Fake().table()).code == "bad_arg"
+    # A seeded row that never joined (no pubkey) under a name that is not reserved: not_joined.
+    db.upsert_host("seeded-x", os="linux", status="online")
+    assert _refusal(hq_join.leave, "seeded-x", live=True, revokers=Fake().table()).code == "not_joined"
     assert _refusal(hq_join.leave, "ghost-node").code == "unknown_host"
 
 

@@ -20,6 +20,8 @@ Run on the hub host, with the hub environment (`ORG_DB_URL`):
 python -m tools.hq_join mint --host <name> [--ttl-min 15]
 python -m tools.hq_join accept --token <t|-> --host <name> --os <darwin|linux|windows> \
                                --hq-root <abs path> --pubkey <age1...> [--deploy-pubkey "<ssh-ed25519 ...>"]
+python -m tools.hq_join status [--host <name>]       # W4.6a, lists joined nodes + the fingerprint to compare
+python -m tools.hq_join approve --host <name> --fingerprint <8 chars>   # W4.6a, the gate before provision
 python -m tools.hq_join provision --host <name>      # W4.2, Mac side, needs ORG_W42_PROVISION=1
 python -m tools.hq_join sealed --host <name>         # W4.2, prints the armored ciphertext
 python -m tools.hq_join leave --host <name> [--live]
@@ -32,6 +34,13 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
 ### mint
 
 - `<name>`: 3 to 31 chars, `a-z 0-9 -`, starts with a letter, does not end in `-`.
+- **Reserved names (W4.6a F13):** `setup`, `org-node` and every machine identity
+  (`mac`, `contabo`, `winbox`: the keys of `infisical_setup.MACHINES`) are refused by
+  every verb with `bad_arg`. A joined node named `setup` or `contabo` would have its
+  Infisical client secret description, its `authorized_keys` line and its dispatch
+  routing collide with the real one. A name that only contains one (`mac-mini`,
+  `setup-2`) is fine. `hq_join.reserved_hosts()` is the list; it reads the names from
+  `infisical_setup`, which `hq_join` already imported, so no import cycle is added.
 - TTL: 15 minutes by default, 1 to 60 allowed.
 - A name is free only if it has no `hosts` row or its row is `left`, and it is not
   a key in `config/hosts.yaml`. This is stricter than "online or pending_identity":
@@ -59,6 +68,17 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
   `agents_root` (`<hq-root>/Agents/Core`), `pubkey`, and `config_json` (the
   hosts.yaml entry: `ssh` is the host name, `provides: []`, `max_workers: 1`,
   `runners: []`, all conservative until the W4.4 probe fills them).
+- **`--hq-root` characters (W4.6a F14):** only `A-Za-z0-9`, space and `. _ / \ : -`,
+  on top of the existing rules (absolute for the `--os`, no `..`, not a filesystem
+  root, no control character, at most 240 chars). The path ends up in commands a
+  shell and PowerShell run on the node, so `$`, a backtick, `;`, quotes, `(`, `)`,
+  `&`, `|`, `~` and non-ASCII letters (Thai included) are refused. A Windows home
+  such as `C:\Users\x (2)\MoonieXHQ` or one with Thai letters does not pass: install
+  under a plain path. `lib.config._node_hq_root` applies the same rule to
+  `node.yaml` (a test pins the two together).
+- The result carries `fingerprint`, the last 8 characters of the node's age
+  recipient. The row starts **unapproved** (`hosts.approved_at` NULL): see
+  "The approval gate". A rejoin resets `approved_at` to NULL.
 - `--token -` reads the token from stdin so it stays out of `ps`.
 - `--deploy-pubkey` (W4.2, optional): the node's `ssh-ed25519 <base64>` public key,
   checked by shape (comment dropped, one line only). It is stored in its **own
@@ -105,9 +125,19 @@ Plans the revocation, in this order:
   without `revokers=`: the wired table with the flag, `UNWIRED_REVOKERS` without it.
   `tailscale_device` and `authorized_keys` stay `not wired yet`, so a real
   `leave --live` still ends `partial` (exit `1`) until G3 and W2.8 land.
-- `leave` refuses a host that has no `pubkey` (mac, contabo, winbox were never
-  joined through `accept`): revoking "their" keys on every other host would cut
-  the hub off.
+- `leave` refuses a host that has no `pubkey` (`not_joined`: a row seeded from
+  `hosts.yaml` was never joined through `accept`): revoking "their" keys on every
+  other host would cut the hub off. mac, contabo and winbox are refused even
+  earlier, as reserved names (`bad_arg`).
+- **`leave --live` ends with a rotate block (W4.6a F8).** Revoking the client secret
+  stops new logins; it does not recall what the node already read. The last lines of
+  the output name the secrets to rotate: the NAMES org-node can read (Infisical, read
+  just now; the list call returns values and they are dropped, never returned or
+  printed), or, when this box has no admin login (`ORG_W42_PROVISION` off, not the
+  admin host, or the lookup failed), the documented categories below, labelled as
+  such. The block is printed also when the leave ended partial, and never on a dry
+  run or for a host that had already left. Procedure: "After a leave: rotate what
+  the node could read".
 - When the Infisical leg succeeds, `node_secrets.revoked_at` is set and the
   ciphertext is nulled (the client secret id stays, as the audit trail). The
   deploy key id is nulled once the key is deleted. A leg that fails keeps its id
@@ -147,8 +177,18 @@ well-formed: `host` is 3 to 31 chars (the same rule as `mint`), `os` is one of
 with no `..` and not a filesystem root. The entry has `os`, `hq_root`,
 `agents_root` (`<hq_root>/Agents/Core`), `worktrees`, `ssh: None`,
 `provides: []`, `max_workers: 1` and `runners: []`: nothing is claimed that the
-probe has not measured. `config/hosts.yaml` wins for every name it declares, so
-a node.yaml that names `mac` adds nothing to `hosts()`. `self_host()` then resolves in this
+probe has not measured. `hq_root` here follows the same character rule as `accept`
+(W4.6a F14: `A-Za-z0-9`, space and `. _ / \ : -` only). `config/hosts.yaml` wins for every name it declares, so
+a node.yaml that names `mac` adds nothing to `hosts()`.
+
+**A node.yaml may not relabel a core box (W4.6a F12).** node.yaml is a file in the
+service user's home, so whoever can write it could make a core box act as another
+core host (reaping, routing). When node.yaml names a host that `config/hosts.yaml`
+declares, and this checkout's path is the `agents_root` of a *different* declared
+host, `self_host()` raises a `ValueError` that names both and says to remove
+node.yaml or correct its host. A checkout that matches no host says nothing, and a
+joined node (a name `hosts.yaml` does not declare) is not affected. `self_host()`
+then resolves in this
 order: `ORG_HOST`, node.yaml `host`, the checkout path, the OS. `ORG_HOST` and
 node.yaml resolve a name only if `hosts()` holds it, so a bare `ORG_HOST=<name>`
 with no node.yaml to back it raises. That is why join.sh step 9 runs the probe
@@ -185,12 +225,47 @@ should rule on it.
 
 ## W4.2: per-node identity
 
-A row in `pending_identity` becomes `identity_ready` through **one Mac-side call**:
+A row in `pending_identity` becomes `identity_ready` through **one approval and one
+Mac-side call**:
 
 ```bash
+python -m tools.hq_join status                                   # the fingerprint the hub holds
+python -m tools.hq_join approve --host <name> --fingerprint <8 chars from the node's screen>
 ORG_W42_PROVISION=1 python -m tools.hq_join provision --host <name>
 python -m tools.hq_join sealed --host <name>      # the armored ciphertext, for W4.3 to deliver
 ```
+
+### The approval gate (W4.6a F1)
+
+`accept` proves the caller held a token, not that the caller is the machine the
+operator meant: the first caller with the token wins the name and chooses the age
+key the client secret will be sealed to. So a row does not get an identity until a
+human says the key is the right one.
+
+- The **fingerprint** is the last 8 characters of the node's age recipient (2 key
+  characters and the 6-character bech32 checksum; public, no secret). The node
+  must show it on its own screen. **`join.sh` / `join.ps1` do not print it yet**
+  (`deploy/join/*` belongs to W4.6b); until they do, read it on the node with
+  `age-keygen -y <identity file> | tail -c 9`. `status` (and the `accept` result)
+  show the fingerprint the hub stored.
+- `approve --host <name> --fingerprint <8 chars>` sets `hosts.approved_at` only when
+  the row is `pending_identity` and the fingerprint equals the last 8 characters of
+  the stored key (constant-time compare). The fingerprint must be **read off the
+  node**, not copied from `status`: copying it from `status` compares the hub's
+  value with itself and proves nothing. A mismatch is `fingerprint_mismatch` and the
+  message does not echo the stored value; if the two still differ after a re-read,
+  someone else used the token: do not approve. Approving twice is a no-op; every
+  approval writes one `join_approve` event `{host, fingerprint}`.
+- `provision` refuses an unapproved row (`not_approved`) before any login, claim or
+  mint. `provision_pending` returns `{host, skipped: "not_approved"}` for it, which
+  is not a failure and does not start the one-hour back-off: the next pass after
+  `approve` provisions it.
+- A rejoin (`accept` over a `left` row) resets `approved_at` to NULL.
+- 8 characters are 40 bits. A racer who wants to be approved must *grind* a key
+  whose last 8 characters equal the node's, about 2^40 key generations, and cannot
+  start before the node has made its key, inside a 15-minute token. That stops a
+  racer who simply used the token first; it is not a signature and not a defence
+  against an attacker with a large GPU farm and a long token window.
 
 ### Why one shared identity, and no sixth
 
@@ -212,13 +287,16 @@ every other node's secret working.
 2. **Validate.** The row must exist (`unknown_host`), must have been joined
    (`not_joined`: mac, contabo and winbox have no `pubkey`), and must be
    `pending_identity` (`bad_status`). An `identity_ready` row returns
-   `changed: false` and does nothing: re-running is a no-op.
+   `changed: false` and does nothing: re-running is a no-op. A `pending_identity`
+   row with `approved_at` NULL is refused (`not_approved`, W4.6a F1).
 3. **Claim.** One atomic `INSERT ... ON CONFLICT ... RETURNING` puts a
    `node_secrets` row in place before anything is minted. A second run sees it and
    answers `busy` for 10 minutes (`CLAIM_STALE_S`); after that it revokes what the
    dead run left behind and starts again.
-4. **Mint** a client secret `org-node:<host>` (no ttl, unlimited uses). Its id is
-   written to the claim row **at once**, before anything else can fail.
+4. **Mint** a client secret `org-node:<host>` (**ttl 90 days**, 7,776,000 s, unlimited
+   uses; W4.6a F4). Its id is written to the claim row **at once**, before anything
+   else can fail. The identity's own access-token settings and `retire-setup` are
+   not touched.
 5. **Seal** `{"v":1,"host","client_id","client_secret"}` to `hosts.pubkey` with
    `lib/sealed.py` (age, plaintext on stdin, armored output).
 6. **Deploy key**, if `hosts.deploy_pubkey` is set: `gh api
@@ -248,7 +326,16 @@ value.
 `runners/watchdog.py::_provision_identities` (one call in `scan_once`, after the
 letter retry) calls `provision_pending()` for every `pending_identity` row. It
 does nothing unless the flag is on AND the host is the admin host. One bad row
-never stops the others.
+never stops the others. A row nobody approved is skipped (W4.6a F1) and the pass
+says so once per `PROVISION_BACKOFF_S` (an hour) per host, not on every scan; the
+line is kept apart from the failure back-off, so approving takes effect on the very
+next pass.
+
+**The 90-day secret expires, and nothing re-provisions it yet (W4.6a F4).** A node's
+client secret dies 90 days after `provision`. Until a renewal flow exists, the
+node's Infisical login starts failing then, and the fix is a manual one: `leave`,
+then `mint` / `accept` / `approve` / `provision` again. The date is
+`node_secrets.created_at + 90 days`. Put that on a calendar for every joined node.
 
 Caveat for going live: `/etc/infisical` is root-only on the Mac, so the watchdog's
 user must be able to **stat** the setup file for `is_admin_host()` to be true. If
@@ -260,11 +347,46 @@ it cannot, the pass is silently a no-op: check that before relying on it.
 node_secrets (host PK, ciphertext, infisical_client_secret_id, github_deploy_key_id,
               created_at, fetched_at, revoked_at)          -- lib.db.NODE_SECRETS_SCHEMA
 hosts.deploy_pubkey TEXT                                    -- _HOSTS_JOIN_MIGRATION
+hosts.approved_at   TEXT  (nullable, ISO-8601 UTC)          -- _HOSTS_JOIN_MIGRATION, W4.6a F1
 ```
 
 `sealed --host` stamps `fetched_at` the first time it is called (and logs
 `node_sealed_fetch`), so the hub can tell whether the ciphertext was ever handed
 over. It refuses a host that has no live ciphertext (`not_provisioned`).
+
+### After a leave: rotate what the node could read
+
+`leave --live` revokes the node's client secret, its deploy key and its
+`authorized_keys` lines. That stops the node from logging in again. It does **not**
+recall a value the node already read, and the shared identity `org-node` is a viewer
+on Agents-Core, on Free for `dev` and `prod` alike. So after every `leave --live`,
+treat what the node could read as seen by whoever holds the node, and rotate it.
+The command prints the list as its last lines (names only, never a value).
+
+Procedure, per name:
+
+1. Make a new key or password **at the provider** (never reuse the old value).
+2. Put it in Infisical (`infisical_setup.py`, the project and env the name is in).
+3. Restart what reads it, and check the service still works with the new value.
+4. Revoke the old one at the provider.
+5. If a value ever appeared in chat, a log or a card, tag it `leaked` in Infisical
+   first (CLAUDE.md, "Secrets").
+
+The documented set, used when this box cannot ask Infisical (no admin login; the
+block says so). It is categories, not exact names, and a name that is not on it can
+still be readable, so prefer the list Infisical gives:
+
+- `ORG_DB_URL`: the hub Postgres URL (role `org`).
+- `CLAUDE_CODE_OAUTH_TOKEN`: one token shared by every node.
+- Run Inbox tokens.
+- SomPong / secretary credentials.
+- Jules and Jev keys, and the OpenRouter key.
+- The Drive OAuth client, and each machine's Drive token.
+- LungNote MCP client credentials.
+
+Not covered: a secret that sits in a **folder** below `/` (the lookup reads `/`
+only; the plan holds no folders in Agents-Core), and anything the node copied out
+of the repo checkout itself.
 
 ### Left for W4.3 and for going live
 
@@ -297,13 +419,16 @@ decision; W4.1 gives it the in-process `accept()` and the CLI.
   three columns; the same loop covers Postgres).
 - W4.2 adds `node_secrets` (same pattern: one DDL string, `NODE_SECRETS_SCHEMA`,
   run on both backends) and `hosts.deploy_pubkey` (forward-only, same loop).
+- W4.6a adds `hosts.approved_at` (nullable, same loop and the same Postgres
+  translation of `PRAGMA table_info`; `lib/db_pg.py` is still not changed). It is in
+  `_HOST_COLUMNS`, so `upsert_host` can set it, and `accept` resets it on a rejoin.
 - `lib/db_pg.py` is not changed: the declared touches did not include it, and
   the shared DDL constant is run for both backends by `init_schema()`.
 
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py tests/test_w46a_hub_fixes.py
 ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54329/org_test \
     .venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py   # adds the pg param
 ```

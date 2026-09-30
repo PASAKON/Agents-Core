@@ -77,8 +77,10 @@ def test_node_yaml_wins_over_root_and_platform(monkeypatch, tmp_path):
     monkeypatch.delenv("ORG_HOST", raising=False)
     node_path = _patch_home(monkeypatch, tmp_path)
     node_path.write_text(yaml.safe_dump({"host": "contabo"}))
-    # ROOT matches mac's agents_root -- node.yaml must still win.
-    _patch_root(monkeypatch, Path(_HOSTS["mac"]["agents_root"]))
+    # W4.6a F12: for a name hosts.yaml declares, ROOT has to AGREE with node.yaml (a node.yaml
+    # that disagrees raises: tests/test_w46a_hub_fixes.py). Here ROOT is contabo's; the test box
+    # is darwin, so the platform source says mac and node.yaml must still beat it.
+    _patch_root(monkeypatch, Path(_HOSTS["contabo"]["agents_root"]))
     assert config.self_host() == "contabo"
 
 
