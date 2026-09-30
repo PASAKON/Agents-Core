@@ -791,6 +791,31 @@ def _drain_disk_queue() -> dict | None:
     return None
 
 
+# W4.2: a host whose provision failed is left alone this long, so a broken row does
+# not mint and revoke a client secret on every pass.
+PROVISION_BACKOFF_S = 3600
+_provision_retry_at: dict[str, float] = {}
+
+
+def _provision_identities() -> list[dict]:
+    """W4.2: give every `pending_identity` host its identity (tools.hq_join.provision:
+    Infisical client secret under org-node, sealed to the host's key, GitHub deploy
+    key). Off unless ORG_W42_PROVISION=1 AND this box holds the admin identity file;
+    hq_join.provision_pending checks both and does nothing otherwise. One bad row
+    never stops the others, and a failed one waits PROVISION_BACKOFF_S."""
+    from tools import hq_join  # lazy: keeps the watchdog's import list untouched
+    now = time.time()
+    results = hq_join.provision_pending(
+        skip={h for h, at in _provision_retry_at.items() if at > now})
+    for r in results:
+        if "error" in r:
+            _provision_retry_at[r["host"]] = now + PROVISION_BACKOFF_S
+            warn(f"watchdog: provision of {r['host']} failed: {r['error']}")
+        elif r.get("changed"):
+            info(f"watchdog: provisioned identity for {r['host']}")
+    return results
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
@@ -1033,6 +1058,13 @@ def scan_once() -> dict:
         _retry_letters()
     except Exception as e:
         warn(f"watchdog letter retry error: {e}")
+
+    # Sixth-d pass — identity for joined nodes (W4.2): provision every
+    # pending_identity host. No-op unless ORG_W42_PROVISION=1 on the admin host.
+    try:
+        _provision_identities()
+    except Exception as e:
+        warn(f"watchdog identity provision error: {e}")
 
     # Seventh pass — Work/ watcher (Work/RULES.md rules 7-8, ADR 0030 §D,
     # task-dbe47b9b): alert the owning CTO or raise a LungNote to-do for any

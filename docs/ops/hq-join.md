@@ -4,9 +4,13 @@
 mints a one-time join token, accepts a new node against it, plans the
 revocation when a node leaves, and exports the `hosts` table as `hosts.yaml`.
 
-**Status: built, not live.** Nothing in it calls Infisical, Tailscale, GitHub or
-ssh. The live revokers wait for W4.2 and CEO gate G3. Nothing reads the export.
-Plan: `~/.claude/plans/glimmering-shimmying-eagle.md` section W4.
+**Status: built, not live.** By default nothing in it calls Infisical, Tailscale,
+GitHub or ssh. W4.2 adds the calls (below), but they run only with
+`ORG_W42_PROVISION=1` on the admin host, and every outside call is injectable so
+the tests never reach a real service. The Tailscale and `authorized_keys` revokers
+wait for CEO gate G3 and W2.8. Nothing reads the export.
+Plan: `~/.claude/plans/glimmering-shimmying-eagle.md` section W4 (W4.2: "redesign
+for Infisical Free").
 
 ## Verbs
 
@@ -15,7 +19,9 @@ Run on the hub host, with the hub environment (`ORG_DB_URL`):
 ```bash
 python -m tools.hq_join mint --host <name> [--ttl-min 15]
 python -m tools.hq_join accept --token <t|-> --host <name> --os <darwin|linux|windows> \
-                               --hq-root <abs path> --pubkey <age1...>
+                               --hq-root <abs path> --pubkey <age1...> [--deploy-pubkey "<ssh-ed25519 ...>"]
+python -m tools.hq_join provision --host <name>      # W4.2, Mac side, needs ORG_W42_PROVISION=1
+python -m tools.hq_join sealed --host <name>         # W4.2, prints the armored ciphertext
 python -m tools.hq_join leave --host <name> [--live]
 python -m tools.hq_join export-hosts [--out PATH]
 ```
@@ -54,6 +60,13 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
   hosts.yaml entry: `ssh` is the host name, `provides: []`, `max_workers: 1`,
   `runners: []`, all conservative until the W4.4 probe fills them).
 - `--token -` reads the token from stdin so it stays out of `ps`.
+- `--deploy-pubkey` (W4.2, optional): the node's `ssh-ed25519 <base64>` public key,
+  checked by shape (comment dropped, one line only). It is stored in its **own
+  column `hosts.deploy_pubkey`**, not in `config_json`, because `config_json` is
+  what `export-hosts` writes out and a deploy key has no business in `hosts.yaml`.
+  Leaving it out is not an error: the node gets no GitHub deploy key, the CLI
+  says so on stderr, and `provision` skips that leg. A bad key is refused before
+  the token is touched, like `--pubkey`. A rejoin replaces it.
 
 **Why the node key is an age X25519 recipient (`age1...`), not `ssh-ed25519`.**
 W4.2 seals the Infisical client secret to this key, which needs an encryption
@@ -87,15 +100,24 @@ Plans the revocation, in this order:
   is `UNWIRED_REVOKERS`, so the exit code is `1` and the row stays. W4.2 replaces
   the first and third entries, G3 the second, W2.8 the fourth. The interface is
   `Revoker = Callable[[Step], Outcome]`, passed as `leave(..., revokers={...})`.
+- **W4.2 wires the first and third rows** when `ORG_W42_PROVISION=1` (see
+  "W4.2: per-node identity"). The default table is chosen when `leave` is called
+  without `revokers=`: the wired table with the flag, `UNWIRED_REVOKERS` without it.
+  `tailscale_device` and `authorized_keys` stay `not wired yet`, so a real
+  `leave --live` still ends `partial` (exit `1`) until G3 and W2.8 land.
 - `leave` refuses a host that has no `pubkey` (mac, contabo, winbox were never
   joined through `accept`): revoking "their" keys on every other host would cut
   the hub off.
-- W4.2 will also have to delete the node's sealed-secret ciphertext from the hub
-  when it adds that table. Not in this file, because the table does not exist yet.
+- When the Infisical leg succeeds, `node_secrets.revoked_at` is set and the
+  ciphertext is nulled (the client secret id stays, as the audit trail). The
+  deploy key id is nulled once the key is deleted. A leg that fails keeps its id
+  for the next run.
 
 ### export-hosts
 
-- Writes `hosts:` for every row whose status is not `left` or `pending_identity`,
+- Writes `hosts:` for every row whose status is not `left`, `pending_identity` or
+  `identity_ready` (W4.2: a provisioned node has no probe yet, so nothing can be
+  routed to it),
   from `hosts.config_json`. `lib.db.seed_hosts_from_config()` now fills
   `config_json` with the whole hosts.yaml entry, and `accept` fills it for a
   joined node.
@@ -139,6 +161,100 @@ requester's mailbox. CLAUDE.md says a secret value never appears in a Run Inbox
 card; a one-time, short-lived join token is not a long-lived secret, but W4.6
 should rule on it.
 
+## W4.2: per-node identity
+
+A row in `pending_identity` becomes `identity_ready` through **one Mac-side call**:
+
+```bash
+ORG_W42_PROVISION=1 python -m tools.hq_join provision --host <name>
+python -m tools.hq_join sealed --host <name>      # the armored ciphertext, for W4.3 to deliver
+```
+
+### Why one shared identity, and no sixth
+
+Infisical Free allows **5 machine identities**. `mac`, `contabo` and `winbox` are
+three of them, and `setup` (the admin identity) is the fourth until
+`retire-setup`. That leaves one. A new node therefore gets its own **client
+secret** under ONE shared identity `org-node` (Universal Auth, viewer on
+Agents-Core), never its own identity. `infisical_setup.ensure_node_identity`
+finds or creates `org-node` and **refuses to create a sixth identity**: it raises
+`IdentityCapError` naming the five that exist. Revoking one node's secret leaves
+every other node's secret working.
+
+### What `provision` does, in this order
+
+1. **Gate.** With a live org, `ORG_W42_PROVISION` must be exactly `1` and this
+   host must be the admin host (the setup credential file exists; it is checked
+   for existence only and never read). Otherwise `not_enabled` / `not_admin_host`,
+   exit `2`, and nothing is logged in.
+2. **Validate.** The row must exist (`unknown_host`), must have been joined
+   (`not_joined`: mac, contabo and winbox have no `pubkey`), and must be
+   `pending_identity` (`bad_status`). An `identity_ready` row returns
+   `changed: false` and does nothing: re-running is a no-op.
+3. **Claim.** One atomic `INSERT ... ON CONFLICT ... RETURNING` puts a
+   `node_secrets` row in place before anything is minted. A second run sees it and
+   answers `busy` for 10 minutes (`CLAIM_STALE_S`); after that it revokes what the
+   dead run left behind and starts again.
+4. **Mint** a client secret `org-node:<host>` (no ttl, unlimited uses). Its id is
+   written to the claim row **at once**, before anything else can fail.
+5. **Seal** `{"v":1,"host","client_id","client_secret"}` to `hosts.pubkey` with
+   `lib/sealed.py` (age, plaintext on stdin, armored output).
+6. **Deploy key**, if `hosts.deploy_pubkey` is set: `gh api
+   repos/PASAKON/Agents-Core/keys` POST, title `org-node:<host>`, `read_only: true`.
+   Its id is recorded.
+7. **Store** the ciphertext and flip the row to `identity_ready` in one
+   transaction; one `node_provisioned` event (host only, never a value).
+
+**A failure after step 4 revokes what was made** (the client secret, and the deploy
+key if step 6 got that far) and drops the claim, so the row stays
+`pending_identity` with no orphan. If the revoke itself fails, the error is
+`provision_orphans`, it names `kind:id` for each leftover, and the claim row keeps
+the ids so the next run can finish the job. The watchdog waits one hour before
+retrying a host that failed.
+
+### The secret value
+
+It exists in memory between step 4 and step 5, and afterwards only inside the age
+ciphertext. It is never in argv (age reads stdin), a temp file, a log line, an
+event, an exception message, the stdout of any verb, or any database column. Error
+text that happens to carry it is scrubbed. `node-secrets` (in
+`tools/infisical_setup.py`) lists description, id, created and revoked, never a
+value.
+
+### The watchdog pass
+
+`runners/watchdog.py::_provision_identities` (one call in `scan_once`, after the
+letter retry) calls `provision_pending()` for every `pending_identity` row. It
+does nothing unless the flag is on AND the host is the admin host. One bad row
+never stops the others.
+
+Caveat for going live: `/etc/infisical` is root-only on the Mac, so the watchdog's
+user must be able to **stat** the setup file for `is_admin_host()` to be true. If
+it cannot, the pass is silently a no-op: check that before relying on it.
+
+### Schema
+
+```
+node_secrets (host PK, ciphertext, infisical_client_secret_id, github_deploy_key_id,
+              created_at, fetched_at, revoked_at)          -- lib.db.NODE_SECRETS_SCHEMA
+hosts.deploy_pubkey TEXT                                    -- _HOSTS_JOIN_MIGRATION
+```
+
+`sealed --host` stamps `fetched_at` the first time it is called (and logs
+`node_sealed_fetch`), so the hub can tell whether the ciphertext was ever handed
+over. It refuses a host that has no live ciphertext (`not_provisioned`).
+
+### Left for W4.3 and for going live
+
+- **Delivery** of the ciphertext to the node, and the node opening it with its age
+  identity. `sealed.open()` exists for that; nothing calls it yet.
+- Setting `ORG_W42_PROVISION=1` on the Mac, plus the CEO's go for the first real
+  provision (it creates the `org-node` identity and a real client secret).
+- `tailscale_device` and `authorized_keys` revokers.
+- A real `age` run on the node side. On the Mac, `age` 1.3.2 is installed and the
+  real round trip is covered by `test_real_age_round_trip`; it skips where `age`
+  is not on PATH.
+
 ## Open for W4.3
 
 `accept` needs write access to the hub, and a joining node has no `ORG_DB_URL`
@@ -157,13 +273,15 @@ decision; W4.1 gives it the in-process `accept()` and the CLI.
   through `_HOSTS_JOIN_MIGRATION`, a list of its own next to the probe's
   `_HOSTS_MIGRATION`, which `tests/test_h1_node_probe.py` pins to exactly its
   three columns; the same loop covers Postgres).
+- W4.2 adds `node_secrets` (same pattern: one DDL string, `NODE_SECRETS_SCHEMA`,
+  run on both backends) and `hosts.deploy_pubkey` (forward-only, same loop).
 - `lib/db_pg.py` is not changed: the declared touches did not include it, and
   the shared DDL constant is run for both backends by `init_schema()`.
 
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py
 ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54329/org_test \
     .venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py   # adds the pg param
 ```
