@@ -1744,16 +1744,7 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
             touches = []
         brief = task.get("description")
 
-        try:
-            from unittest.mock import Mock
-            is_mock = isinstance(route.pick_runner, Mock)
-        except Exception:
-            is_mock = False
-
-        if is_mock:
-            choice = route.pick_runner(role_name, host)
-        else:
-            choice = route.pick_runner(role_name, host, touches=touches, brief=brief)
+        choice = route.pick_runner(role_name, host, touches=touches, brief=brief)
         if choice is None:
             return None
         line = f"router: {choice.runner} {choice.model} [{choice.bucket}] — {choice.reason}"
