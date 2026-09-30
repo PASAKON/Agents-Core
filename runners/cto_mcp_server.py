@@ -27,6 +27,7 @@ from mcp.server.fastmcp import FastMCP
 
 from lib import db
 from lib import org_tools_registry as reg
+from lib import router
 from lib import telegram_out
 from lib.logger import get_logger
 # Re-exported for scripts/test_org_tools_registry.py and
@@ -73,7 +74,15 @@ def create_task(
     depends_on: str = "",
     touches: str = "",
     host: str = "",
+    needs: str = "",
 ) -> str:
+    # `needs` (optional): host capabilities the job requires, JSON array or
+    # comma-separated (e.g. "win_gui, chrome"). No column exists, so it is added
+    # to the description as a `needs: a, b` line, which lib/router.pick_host
+    # reads when ORG_HOST_ROUTER is on and no host is named. Done here, not
+    # passed on: the registry's ToolSpec has no `needs` param and its
+    # _prepare() would silently drop the kwarg.
+    description = router.add_needs_line(description, needs)
     return reg.dispatch_sync(
         "create_task", project=project, role=role, title=title,
         description=description, depends_on=depends_on, touches=touches,

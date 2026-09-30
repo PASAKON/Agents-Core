@@ -25,6 +25,7 @@ from pathlib import Path
 import yaml
 
 from lib import db, mesh
+from lib import router as host_router
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
@@ -1852,6 +1853,31 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         return None
 
 
+async def _route_host(task: dict, host: str | None) -> tuple[str | None, str]:
+    """(host, delegate_log line) for a delegate with ORG_HOST_ROUTER on.
+
+    Only reached with the flag on. An explicit `host` argument or a non-NULL
+    `tasks.host` wins as before (line starts `manual:`); otherwise
+    lib/router.pick_host chooses, off the event loop because it may do a cold
+    quota read through tools.route. A None host means "no host fits"."""
+    if host is not None:
+        return host, host_router.manual_line(host, "host= argument")
+    if task.get("host"):
+        return task["host"], host_router.manual_line(task["host"], "tasks.host")
+    pick = await asyncio.to_thread(host_router.pick_host, task)
+    return pick.host, pick.line
+
+
+def _keep_host_line(task_id: str, line: str) -> None:
+    """_route_runner overwrites delegate_log with its own `router:` line; put
+    the host decision back in front of it so the row shows both. (The
+    overwritten value also survives in the events table.)"""
+    current = (db.get_task(task_id) or {}).get("delegate_log") or ""
+    if line not in current:
+        db.set_fields(task_id, delegate_log=f"{line}\n{current}" if current else line,
+                      actor="cto")
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
                          kickoff: str | None = None,
@@ -1872,7 +1898,9 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     `self_host()` (this machine, W0.3). A resolved host other than this
     machine skips every local step below (iTerm/tmux, local worktree) and
     hands off entirely to `_spawn_remote` — see
-    docs/design/multi-host-workers.md Phase 1.
+    docs/design/multi-host-workers.md Phase 1. With env ORG_HOST_ROUTER on
+    (default off) a task with neither an arg nor a `tasks.host` gets its host
+    from `lib/router.pick_host`; no fitting host leaves it pending.
     `dry_run`: never starts a worker. A remote host prints the exact ssh
     command; a codex/agy task on a Linux hub (W0.3b) prints the local `bash
     scripts/spawn-worker-remote.sh ...` command; a same-host `_spawn_local`
@@ -1896,7 +1924,22 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # live on the spoke — task-43b6514d, "queued for disk — 3.9 GB free"
     # while Contabo itself had plenty). resolved_host is also what the
     # browser cap check right after needs.
-    resolved_host = host if host is not None else (task.get("host") or self_host())
+    #
+    # W2.6/H2 (PLAN-auto-dispatch §4): with ORG_HOST_ROUTER on (default OFF),
+    # a task that names no host is given one by lib/router.pick_host, and no
+    # fitting host means the task stays pending with `no_host: <why>` in
+    # delegate_log and NO spawn. An explicit host= / tasks.host still wins and
+    # is logged as `manual:`. With the flag off the else-branch below is the
+    # resolution exactly as it was before.
+    host_line = None
+    if host_router.enabled():
+        resolved_host, host_line = await _route_host(task, host)
+        db.set_fields(task_id, delegate_log=host_line, actor="cto")
+        if resolved_host is None:
+            warn(f"{host_line} task={task_id}")
+            return db.get_task(task_id)
+    else:
+        resolved_host = host if host is not None else (task.get("host") or self_host())
     this_host = self_host()
 
     # Storage reclaim (ADR 0030 §2, task-44963fee): below the orange band,
@@ -2021,6 +2064,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     routed = await asyncio.to_thread(_route_runner, task, role_name, resolved_host)
     if routed:
         task["runner"] = routed
+    if host_line:
+        _keep_host_line(task_id, host_line)
 
     # Runner pre-flight (task-adbc6f43): reject an unknown/unavailable runner
     # loudly, here, before any worktree/ssh/iTerm work starts — not discovered
