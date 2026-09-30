@@ -113,6 +113,15 @@ free tier is full (5 of 5 identities).
 | C6 | `hq join` | Register a machine (below). | `contabo_restore.sh`, `winbox-bootstrap.ps1`, blueprints |
 | C7 | Router | `create_task(needs=[chrome, gpu, win_gui])` → hub picks a host whose `provides` covers `needs`, heartbeat fresh, running < `max_workers`, lowest load. Explicit `host=` still wins. | `hosts.yaml provides` (declared, unread today) |
 
+**Duty split on a shared ledger (W1.5, merged 1cf295b4).** Every row has one owner for each duty
+(`tools/worker_reap.py`). `row_host = host or dispatcher_host or self` and `row_dispatcher =
+dispatcher_host or self`. So a row with NULL `host` belongs to whoever dispatched it. That is
+accepted: rows from before W0 carry no host, and their dispatcher is the only box that ran them.
+LOCAL duties (reap, gc, work_watch) belong to the machine where `row_host == self`. REMOTE close
+belongs to the dispatcher, where `row_host != self` and `row_dispatcher == self`. The branch poller
+takes in_progress rows with `row_dispatcher == self`, and either `host != self` or a codex/agy runner.
+Invariant for the soak: each remote row has exactly one poller.
+
 ### Registry moves into the hub
 
 - `hosts` table in Postgres, seeded once from `config/hosts.yaml`; the YAML
