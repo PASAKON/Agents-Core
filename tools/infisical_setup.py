@@ -93,7 +93,7 @@ MACHINES: dict[str, list[str]] = {
     "contabo": ["Agents-Core", "MoonieX-ClaudeFlow", "MoonieX-Option", "MoonieX-AlphaTrader",
                 "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP"],
     "mac": ["Agents-Core", ORG_INFRA, "MoonieX-Console", "MoonieX-ComfyRunpod", "LungNote-MCP"],
-    "winbox": ["Agents-Core", "MoonieX-Console", "MoonieX-CookierunBot"],
+    "winbox": ["Agents-Core", "MoonieX-Console", "MoonieX-CookierunBot", "LungNote-MCP"],
 }
 TOKEN_TTL = 86_400            # an access token lives a day...
 TOKEN_MAX_TTL = 7 * 86_400    # ...and cannot be renewed past a week
