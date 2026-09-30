@@ -20,19 +20,26 @@
 # through `infisical_run` (tools/infisical_setup.py run ...), which puts it in
 # that one process's environment. Design: docs/design/org-mesh-w18-contabo-consumers.md
 #
-# Rollback of step 4 and step 8 (the full text, with the tasks.db half, is in
+# Rollback of steps 5-8 (the full text, with the tasks.db half, is in
 # scripts/hub/contabo-cutover.sh's header): remove the three drop-ins
 # /etc/systemd/system/<unit>.service.d/org-db.conf, remove the `org_db:` line
-# from /root/.config/mooniex/node.yaml (python3 scripts/hub/cutover_flip.py
-# --rollback --apply), `systemctl daemon-reload`, then restart the three units.
-# Step 4 installs the drop-ins; the `org_db:` line is written only in step 8,
-# after the migration and the tombstone, so a step 8 failure prints the same
-# rollback (print_rollback below) -- the line may already be in the file by then.
+# from /root/.config/mooniex/node.yaml (MOONIEX_NODE_YAML=<node.yaml> python3
+# scripts/hub/cutover_flip.py --rollback --apply), `systemctl daemon-reload`, then
+# restart the three units. Step 4 changes nothing; step 5 STOPS the three units
+# (W1.9 F3), and step 8 writes the `org_db:` line and installs the drop-ins (W1.9
+# F2: a unit restarted by systemd before step 8 must come back on its OLD unit
+# file, on sqlite, never on a half-migrated hub), then restarts them. A failure
+# after the stop prints the rollback (print_rollback below, also from the EXIT
+# trap) -- the line and the drop-ins may already be in place by then.
 set -euo pipefail
 
 ROOT="${ROOT:-/opt/MoonieXHQ/Agents/Core}"
 SYSTEMD_DIR="${SYSTEMD_DIR:-/etc/systemd/system}"
 NODE_YAML="${NODE_YAML:-/root/.config/mooniex/node.yaml}"
+# cutover_flip.py (printed in the rollback) reads MOONIEX_NODE_YAML, not NODE_YAML
+# (W1.9 F4): one variable for both, so a run pointed at a scratch node file can never
+# reach the live one through the other name.
+export MOONIEX_NODE_YAML="$NODE_YAML"
 FLAG="${FLAG:-}"
 TODAY=$(date +%F)
 UNITS="mooniex-watchdog mooniex-secretary mooniex-secretary-waker"
@@ -43,14 +50,34 @@ infisical_run() {
   python3 "$ROOT/tools/infisical_setup.py" run Agents-Core prod --as contabo -- "$@"
 }
 
-# Printed when step 8 fails after (or while) writing node.yaml: the switch line
-# must come out along with the drop-ins.
+# Printed when the cutover fails after step 5 stopped the three units (and from
+# step 8's own refusals): the switch line must come out along with the drop-ins,
+# and the units must be started again.
+UNITS_STOPPED=0
+ROLLBACK_PRINTED=0
 print_rollback() {
+  ROLLBACK_PRINTED=1
   echo "Rollback (Contabo half; the tasks.db half is in the header of scripts/hub/contabo-cutover.sh):"
-  echo "  1. rm -f $SYSTEMD_DIR/<unit>.service.d/org-db.conf for mooniex-watchdog, mooniex-secretary, mooniex-secretary-waker"
-  echo "  2. remove the org_db: line from $NODE_YAML (python3 scripts/hub/cutover_flip.py --rollback --apply)"
+  echo "  1. rm -f $SYSTEMD_DIR/<unit>.service.d/org-db.conf for mooniex-watchdog, mooniex-secretary, mooniex-secretary-waker,"
+  echo "     then rmdir --ignore-fail-on-non-empty $SYSTEMD_DIR/<unit>.service.d for the same three (the drop-ins exist only from step 8)"
+  echo "  2. remove the org_db: line from $NODE_YAML (MOONIEX_NODE_YAML=$NODE_YAML python3 scripts/hub/cutover_flip.py --rollback --apply)"
   echo "  3. systemctl daemon-reload, then systemctl restart the three units"
+  if [ "$UNITS_STOPPED" = 1 ]; then
+    echo "  Step 5 stopped (or tried to stop) the three units. Until step 8 installs the drop-ins they are on their OLD unit files (sqlite):"
+    echo "  if you stop here, bring them back on those with: systemctl start $UNITS"
+    echo "  (if step 6 already moved state/tasks.db, put it back first -- the tasks.db half of the rollback)."
+  fi
 }
+# A failure anywhere after the stop (migrate, verify, archive, read-back) is a set -e
+# exit with no message of its own: say what to do, once.
+on_exit() {
+  rc=$?
+  if [ "$rc" -ne 0 ] && [ "$UNITS_STOPPED" = 1 ] && [ "$ROLLBACK_PRINTED" != 1 ]; then
+    echo "FAILED (exit $rc) after step 5 stopped the three units."
+    print_rollback
+  fi
+}
+trap on_exit EXIT
 
 echo "== step 1: C-level sessions must be closed =="
 LIVE=$(tmux ls 2>/dev/null | cut -d: -f1 | grep -E '^(cto|cxo)-' || true)
@@ -96,13 +123,15 @@ echo "== step 3: psycopg into the venv =="
 .venv/bin/pip install -q "psycopg[binary]" 2>&1 | grep -viE 'notice|upgrade' || true
 .venv/bin/python -c "import psycopg; print('psycopg', psycopg.__version__)"
 
-echo "== step 4: ORG_DB_URL from Infisical, consumer drop-ins (values never printed) =="
-# Nothing is written before every refusal below has passed. No env file is read
-# or written here. ORG_TEST_DB_URL is no longer produced: nothing in this
-# cutover reads it (W1.9's rehearsal fetches its own org_test URL). node.yaml is
-# NOT touched here: it is the hub switch for the C-level/worker MCP servers, and
-# a session spawned before the migration (step 5) would open an empty hub. It is
-# written in step 8.
+echo "== step 4: ORG_DB_URL from Infisical, refusals only (values never printed) =="
+# This step changes nothing on the box: it only refuses. No env file is read or
+# written here. ORG_TEST_DB_URL is no longer produced: nothing in this cutover
+# reads it (W1.9's rehearsal fetches its own org_test URL). node.yaml is NOT
+# touched here: it is the hub switch for the C-level/worker MCP servers, and a
+# session spawned before the migration (step 5) would open an empty hub. The
+# drop-ins are NOT installed here either (W1.9 F2): any restart of a unit before
+# step 8 -- a crash, or a manual start after a refused step 5 -- would load the
+# drop-in and put the unit on a half-migrated hub. Both are written in step 8.
 for u in $UNITS; do
   [ -f "deploy/systemd/$u.service.d/org-db.conf" ] \
     || { echo "REFUSING: deploy/systemd/$u.service.d/org-db.conf is missing in $ROOT"; exit 1; }
@@ -126,16 +155,37 @@ print("Agents-Core/prod ORG_DB_URL reaches the hub")
   echo "Nothing was changed."
   exit 1
 fi
-for u in $UNITS; do
-  install -d -m 755 "$SYSTEMD_DIR/$u.service.d"
-  install -m 644 "deploy/systemd/$u.service.d/org-db.conf" "$SYSTEMD_DIR/$u.service.d/org-db.conf"
-  echo "installed $SYSTEMD_DIR/$u.service.d/org-db.conf"
-done
-systemctl daemon-reload
-echo "drop-ins installed; the three units keep running as they are until step 8"
+echo "checks passed; nothing changed. The drop-ins are installed in step 8, just before the restarts"
 
-echo "== step 5: import this box's registry rows into the hub =="
+echo "== step 5: stop the three units, import this box's registry rows into the hub =="
 if [ -f state/tasks.db ]; then
+  # W1.9 F3. (a) Refuse while any task is live: its worker still writes to
+  # state/tasks.db, and the watchdog is about to stop. Fail closed: a count that
+  # cannot be read is a refusal too.
+  if ! ACTIVE="$("${SQLITE3_BIN:-sqlite3}" -readonly state/tasks.db \
+      "select count(*) from tasks where status in ('pending','in_progress','queued_remote')" 2>&1)"; then
+    echo "REFUSING: could not count the live tasks in state/tasks.db: $ACTIVE"
+    echo "Nothing was changed."
+    exit 1
+  fi
+  if [ "$ACTIVE" != "0" ]; then
+    echo "REFUSING: $ACTIVE task(s) in state/tasks.db are pending, in_progress or queued_remote."
+    echo "Let them finish (or cancel them), then re-run. Nothing was changed."
+    exit 1
+  fi
+  # (b) Stop the writers (the watchdog, the secretary, its waker) so no row can land
+  # between the import and the archive: a row written in that window would sit only
+  # in the archive and never reach the hub. Step 8's restart brings them back. They
+  # are still on their OLD unit files here (the drop-ins arrive in step 8), so a
+  # `systemctl start` after a refused step 5 is safe (print_rollback says so).
+  UNITS_STOPPED=1
+  for u in $UNITS; do
+    if ! systemctl stop "$u.service"; then
+      echo "REFUSING: could not stop $u. Nothing was imported."
+      exit 1
+    fi
+    echo "stopped $u"
+  done
   # This is the SECOND ledger (the hub already holds the Mac's ~1108 tasks
   # from cutover-mac.sh's step 3) -- --default-host contabo backfills this
   # box's rows instead of the Mac's, and --append-events drops the source
@@ -180,7 +230,7 @@ with db.get_conn() as c:
         print(f"  hub {t:18s} {c.execute(f'select count(*) from {t}').fetchone()[0]}")
 PY
 
-echo "== step 8: hub switch in node.yaml, then restart the three consumers (after the migration and tombstone) =="
+echo "== step 8: hub switch in node.yaml, drop-ins, then restart the three consumers (after the migration and tombstone) =="
 # The switch for the C-level MCP servers and workers on this box (W1.6): the
 # same line grammar as cutover_flip.py; idempotent, every other line kept.
 # Written only now, right before the restarts: earlier, a session spawned
@@ -201,6 +251,22 @@ else:
 PY
 then
   echo "REFUSING: could not write org_db: hub to $NODE_YAML. No unit was restarted."
+  print_rollback
+  exit 1
+fi
+# W1.9 F2: only now do the units get the drop-ins (step 4 no longer installs them),
+# right before they are restarted, so no earlier restart can load a drop-in.
+for u in $UNITS; do
+  if ! { install -d -m 755 "$SYSTEMD_DIR/$u.service.d" \
+         && install -m 644 "deploy/systemd/$u.service.d/org-db.conf" "$SYSTEMD_DIR/$u.service.d/org-db.conf"; }; then
+    echo "REFUSING: could not install the drop-in for $u. No unit was restarted."
+    print_rollback
+    exit 1
+  fi
+  echo "installed $SYSTEMD_DIR/$u.service.d/org-db.conf"
+done
+if ! systemctl daemon-reload; then
+  echo "REFUSING: systemctl daemon-reload failed. No unit was restarted."
   print_rollback
   exit 1
 fi

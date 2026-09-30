@@ -7,8 +7,10 @@ Three groups:
      no ORG_DB_URL plus this host's identity file means the command runs through
      `tools/infisical_setup.py run Agents-Core prod`; neither means a plain exec.
   2. deploy/systemd/<unit>.service.d/org-db.conf -- parsed, not run.
-  3. scripts/hub/contabo-cutover-remote.sh step 4 (and 8) against a throwaway git
-     root, with fake `python3`, `systemctl` and `tmux` first on PATH.
+  3. scripts/hub/contabo-cutover-remote.sh steps 4, 5 and 8 against a throwaway git
+     root, with fake `python3`, `systemctl` and `tmux` first on PATH. (W1.9 follow-up,
+     task-a23e8873: step 4 only refuses; step 5 stops the units; step 8 installs the
+     drop-ins. tests/test_w19b_cutover_fixes.py pins that order.)
 
 Nothing here reaches a real file, service or database. Every child process gets a
 built env (no ORG_DB_URL, no ORG_HOST inherited from the developer's shell or from a
@@ -66,31 +68,41 @@ os.execv("@PY@", ["@PY@"] + argv)
 
 # .venv/bin/python and .venv/bin/pip of the throwaway root: log, never run anything.
 # node_hub = the node file already says `org_db: hub` at the moment of the call (NODE_YAML
-# reaches every child, as the remote script's own env). FAKE_MIGRATE_FAIL makes the
-# migration command exit 1.
+# reaches every child, as the remote script's own env). dropins = how many
+# <unit>.service.d/org-db.conf exist under SYSTEMD_DIR at that moment. FAKE_MIGRATE_FAIL
+# makes the migration command exit 1.
 _FAKE_VENV_TOOL = """#!@PY@
-import json, os, sys
+import glob, json, os, sys
 redact = lambda a: "<url>" if "postgresql://" in a else a
 node = os.environ.get("NODE_YAML", "")
 node_hub = os.path.exists(node) and "org_db: hub" in open(node).read()
+dropins = len(glob.glob(os.environ.get("SYSTEMD_DIR", "/nonexistent") + "/*/org-db.conf"))
 with open(os.environ["FAKE_LOG"], "a") as f:
     f.write(json.dumps({"tool": "@NAME@", "argv": [redact(a) for a in sys.argv[1:]],
                         "org_db_url": bool(os.environ.get("ORG_DB_URL")),
-                        "node_hub": node_hub}) + "\\n")
+                        "node_hub": node_hub, "dropins": dropins}) + "\\n")
 if os.environ.get("FAKE_MIGRATE_FAIL") and sys.argv[1:2] and sys.argv[1].endswith("migrate_tasks_db.py"):
     sys.exit(1)
 """
 
+# dropins as above; node_env = MOONIEX_NODE_YAML as the script exported it to this child.
+# FAKE_STOP_FAIL_UNIT / FAKE_RELOAD_FAIL make `stop <unit>` / `daemon-reload` exit 1.
 _FAKE_SYSTEMCTL = """#!@PY@
-import json, os, sys
+import glob, json, os, sys
 argv = sys.argv[1:]
 node = os.environ.get("NODE_YAML", "")
 node_hub = os.path.exists(node) and "org_db: hub" in open(node).read()
+dropins = len(glob.glob(os.environ.get("SYSTEMD_DIR", "/nonexistent") + "/*/org-db.conf"))
 with open(os.environ["FAKE_LOG"], "a") as f:
     f.write(json.dumps({"tool": "systemctl", "argv": argv, "node_hub": node_hub,
-                        "tombstone": os.path.isdir("state/tasks.db")}) + "\\n")
+                        "tombstone": os.path.isdir("state/tasks.db"), "dropins": dropins,
+                        "node_env": os.environ.get("MOONIEX_NODE_YAML")}) + "\\n")
 unit = (argv[-1] if argv else "").removesuffix(".service")
 if argv[:1] == ["cat"] and unit == os.environ.get("FAKE_MISSING_UNIT"):
+    sys.exit(1)
+if argv[:1] == ["stop"] and unit == os.environ.get("FAKE_STOP_FAIL_UNIT"):
+    sys.exit(1)
+if argv[:1] == ["daemon-reload"] and os.environ.get("FAKE_RELOAD_FAIL"):
     sys.exit(1)
 if argv[:1] == ["restart"] and unit == os.environ.get("FAKE_RESTART_FAIL_UNIT"):
     sys.exit(1)
@@ -530,10 +542,13 @@ def _run_remote(box, **extra: str) -> subprocess.CompletedProcess:
                           text=True, timeout=60)
 
 
-def _make_tasks_db(work: Path) -> None:
+def _make_tasks_db(work: Path, *statuses: str) -> None:
+    """state/tasks.db with one row per status (default: one finished task). Step 5 counts
+    the live statuses in it (W1.9 F3), so the table carries a status column."""
     (work / "state").mkdir(exist_ok=True)
+    rows = "".join(f"INSERT INTO tasks VALUES ({i}, '{st}');" for i, st in enumerate(statuses or ("done",), 1))
     subprocess.run(["sqlite3", str(work / "state" / "tasks.db"),
-                    "PRAGMA journal_mode=WAL; CREATE TABLE tasks (id INTEGER); INSERT INTO tasks VALUES (1);"],
+                    f"PRAGMA journal_mode=WAL; CREATE TABLE tasks (id INTEGER, status TEXT); {rows}"],
                    check=True, capture_output=True)
 
 
@@ -608,7 +623,7 @@ def test_step4_refuses_before_any_write_on_a_missing_source_or_unit(box, what):
     assert not any(t.startswith("infisical:") for t in _tools(box))  # refused before the network check
 
 
-def test_step4_installs_the_three_dropins_byte_for_byte_and_reloads(box):
+def test_step8_installs_the_three_dropins_byte_for_byte_and_reloads(box):
     r = _run_remote(box)
     assert r.returncode == 0, r.stdout + r.stderr
 
@@ -634,13 +649,14 @@ def test_node_yaml_is_written_after_the_migration_and_before_the_restarts(box):
     for c in _read_log(box.log):
         if c["tool"] == "systemctl" and c["argv"][:1] == ["restart"]:
             restarts.append(c)
-        elif (c["tool"] == "systemctl" and c["argv"][:1] == ["daemon-reload"]) \
-                or c["tool"] in ("venv-python", "venv-pip"):
+        elif c["tool"] in ("venv-python", "venv-pip"):
             before_switch.append(c)
     kinds = [c["argv"][0] if c["argv"] else "" for c in before_switch]
     assert any(k.endswith("migrate_tasks_db.py") for k in kinds)
     assert any(k.endswith("verify_migration_counts.py") for k in kinds)
-    assert "daemon-reload" in kinds and "-" in kinds            # step 4's reload, step 7's read-back
+    assert "-" in kinds                                         # step 7's read-back
+    reloads = [c for c in _read_log(box.log) if c["tool"] == "systemctl" and c["argv"][:1] == ["daemon-reload"]]
+    assert len(reloads) == 1 and reloads[0]["node_hub"] is True, "the reload is step 8's, after the node write (W1.9 F2)"
     assert all(c["node_hub"] is False for c in before_switch), \
         [(c["argv"][:1], c["node_hub"]) for c in before_switch if c["node_hub"]]
     assert len(restarts) == 3 and all(c["node_hub"] is True for c in restarts)
@@ -746,10 +762,13 @@ def test_restart_comes_last_after_the_migration_and_the_tombstone(box):
             labels.append("verify-counts")
         elif c["tool"] == "systemctl" and a[:1] == ["daemon-reload"]:
             labels.append("daemon-reload")
+        elif c["tool"] == "systemctl" and a[:1] == ["stop"]:
+            labels.append("stop:" + a[1].removesuffix(".service"))
         elif c["tool"] == "systemctl" and a[:1] == ["restart"]:
             labels.append("restart:" + a[1].removesuffix(".service"))
             assert c["tombstone"] is True, "a unit was restarted before state/tasks.db was tombstoned"
-    assert labels == ["daemon-reload", "migrate", "verify-counts", *[f"restart:{u}" for u in UNITS]]
+    assert labels == [*[f"stop:{u}" for u in UNITS], "migrate", "verify-counts", "daemon-reload",
+                      *[f"restart:{u}" for u in UNITS]]
     checks = [c["argv"] for c in calls if c["tool"] == "systemctl" and c["argv"][:1] == ["is-active"]]
     assert checks == [["is-active", "--quiet", f"{u}.service"] for u in UNITS]
     assert "== step 8:" in r.stdout and "active: mooniex-watchdog" in r.stdout

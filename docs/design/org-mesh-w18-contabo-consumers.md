@@ -56,27 +56,50 @@ installs nothing. The installer runs inside G1 (W1.10), next to `cutover-mac.sh`
   written in step 8 of the cutover, after the migration (see the installer section).
   The wrapper gets `ORG_DB_URL` from `infisical run` when the env file lacks it.
 
-## The installer: `scripts/hub/contabo-cutover-remote.sh` steps 4 and 8 (no new script)
+## The installer: `scripts/hub/contabo-cutover-remote.sh` steps 4, 5 and 8 (no new script)
 
 The Contabo half of the cutover already exists and runs inside G1 (W1.10), so the installer is its
-step 4 (plus step 8 below), not a new script (task-1670b1f8). Step 4 used to append `ORG_DB_URL` and
-`ORG_TEST_DB_URL` to the env file. It now does this, and refuses before any write if a check fails:
+steps 4, 5 and 8, not a new script (task-1670b1f8). Step 4 used to append `ORG_DB_URL` and
+`ORG_TEST_DB_URL` to the env file, and (W1.8) install the drop-ins. W1.9's rehearsal (task-a49a3f35, F2/F3)
+moved the installing out of it: **step 4 now only refuses and changes nothing on the box.**
+
+**Step 4 (refusals only):**
 
 1. Refuse unless all three drop-ins exist in the checkout and all three units are installed.
 2. Refuse unless `infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python -c <connect>`
    connects with `ORG_DB_URL`. The snippet prints no value.
-3. Copy the three drop-ins to `/etc/systemd/system/<unit>.service.d/org-db.conf`.
-4. `systemctl daemon-reload`. Nothing restarts yet, and `node.yaml` is not touched.
+
+**Step 5 (guard, then stop, then import).** Only when `state/tasks.db` exists:
+
+1. Refuse unless `select count(*) from tasks where status in ('pending','in_progress','queued_remote')` on
+   `state/tasks.db` is 0 (a count that cannot be read is a refusal too). Nothing has changed yet.
+2. `systemctl stop` `mooniex-watchdog`, `mooniex-secretary` and `mooniex-secretary-waker`. The rehearsal
+   measured a 9 s window between the import and the archive; a row written in it would sit only in the
+   archive and never reach the hub. The units are still on their OLD unit files here, because the drop-ins
+   are not installed yet (F2). A `systemctl start` after a refused cutover therefore brings them back on
+   sqlite, and `print_rollback` says so. Any failure after the stop (migrate, verify, archive, read-back)
+   prints that rollback from an EXIT trap.
+3. Migrate (`migrate_tasks_db.py`), then verify (`verify_migration_counts.py --mode subset`).
 
 Steps 5, 5b and 7 (migrate, verify, read-back) take `ORG_DB_URL` through the same `infisical_run`,
-not from a sourced file. A new step 8 runs after the migration and the tombstone. It writes
-`org_db: hub` into `/root/.config/mooniex/node.yaml` with `cutover_flip.set_org_db` (idempotent, every
-other line kept, a missing file created), and only then restarts the three units. It fails if any unit
-does not restart or is not active. The node file is written this late on purpose (CTO, iteration 2): it
-is the switch for the C-level and worker MCP servers, so a session spawned between step 4 and the
-migration would open the hub before it holds any rows. If step 8 fails after the write, it prints the
-rollback, which names removing the `org_db:` line. `ORG_TEST_DB_URL` is gone: nothing in the cutover
-reads it, so W1.9's rehearsal fetches its own `org_test` URL. No env file is read or written.
+not from a sourced file. Step 6 archives and tombstones `state/tasks.db`.
+
+**Step 8 (switch, drop-ins, restart).** Runs after the migration and the tombstone, in this order:
+
+1. Write `org_db: hub` into `/root/.config/mooniex/node.yaml` with `cutover_flip.set_org_db` (idempotent,
+   every other line kept, a missing file created). The node file is written this late on purpose (CTO,
+   iteration 2): it is the switch for the C-level and worker MCP servers, so a session spawned before
+   the migration would open the hub before it holds any rows.
+2. Copy the three drop-ins to `/etc/systemd/system/<unit>.service.d/org-db.conf`, then `systemctl
+   daemon-reload`. Only now, right before the restarts (F2): a unit that systemd restarts earlier (the
+   watchdog is `Restart=always`) would load the drop-in and start on a half-migrated hub.
+3. Restart the three units and require all three active.
+
+It fails if a write, the reload, a restart or an `is-active` check fails, and then prints the rollback,
+which names removing the `org_db:` line and the drop-in directories. `ORG_TEST_DB_URL` is gone: nothing in
+the cutover reads it, so W1.9's rehearsal fetches its own `org_test` URL. No env file is read or written.
+The script exports `MOONIEX_NODE_YAML="$NODE_YAML"`: `cutover_flip.py` reads `MOONIEX_NODE_YAML` only (F4),
+so the one path is used by the write, the rollback line it prints and any run pointed at a scratch file.
 
 **Wrapper (`scripts/hub/with-org-db-env.sh`).** Contabo's env file holds `POSTGRES_*` only, so a wrapper
 that only sourced it would leave the Contabo MCP servers on SQLite after the cutover. The order is now:
@@ -86,10 +109,25 @@ unset and `/etc/infisical/<host>.env` exists (`<host>` from `ORG_HOST`, else the
 `tools/infisical_setup.py run Agents-Core prod -- "$@"`; (c) else a plain exec. The identity file is
 tested for existence only, and the wrapper prints no value.
 
-**Rollback** (both `contabo-cutover*.sh` headers): remove the three drop-ins, remove the `org_db:` line
-(`cutover_flip.py --rollback --apply`), `systemctl daemon-reload`, restart the three units. Tests:
-`tests/test_w18_contabo_consumers.py`, against fakes and a throwaway root. W1.9 rehearses both
-directions against `org_test`.
+**Rollback** (both `contabo-cutover*.sh` headers): remove the three drop-ins and their now-empty
+`<unit>.service.d` directories (`rmdir --ignore-fail-on-non-empty`, F7), remove the `org_db:` line
+(`MOONIEX_NODE_YAML=<node.yaml> cutover_flip.py --rollback --apply`), `systemctl daemon-reload`, restart
+the three units. A cutover that stopped after step 5 and before step 8 has no drop-ins to remove: after the
+tasks.db half of the rollback, `systemctl start` the three units. Tests:
+`tests/test_w18_contabo_consumers.py` and `tests/test_w19b_cutover_fixes.py`, against fakes and a throwaway
+root. W1.9 rehearses both directions against `org_test`.
+
+## Runbook lines for the W1.10 window (W1.9 F5, F6)
+
+- **Order of the two legs.** Mac cutover first, or Contabo first: either order is safe. The rehearsal
+  measured 0 key overlap between the Mac ledger and Contabo's (tasks 0, c_level_sessions 0; `events` ids
+  overlap, which is what `--append-events` is for), and both legs are idempotent. The script's old comment
+  that the hub "already holds the Mac's ~1108 tasks" is not a precondition.
+- **Console shows a stale task list after the cutover.** `mooniex-console` (node) holds `state/tasks.db`
+  open read-only. After the archive it keeps answering from the archived file with no error: the list is
+  frozen at the cutover moment, stale but not lost. It stays that way until its `src/orgdb.js` hub reader
+  ships (the read-only `org_ro` role, below) and Console is restarted once. Until then, expect stale
+  Console tasks and do not read them as data loss.
 
 **Open item, not in this task.** `deploy/systemd/org-snapshot.service` still has
 `EnvironmentFile=/root/.config/mooniex/org-db.env`. That file has no `ORG_DB_URL`, so the snapshot export

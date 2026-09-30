@@ -33,12 +33,18 @@
 #   4. ORG_DB_URL comes from Infisical Agents-Core/prod, never from an env file
 #      (CLAUDE.md §Secrets; nothing is appended to /root/.config/mooniex/org-db.env,
 #      and ORG_TEST_DB_URL is gone: nothing here reads it). Refuse unless it
-#      connects (tools/infisical_setup.py run Agents-Core prod --as contabo).
-#      Then copy the three drop-ins deploy/systemd/<unit>.service.d/org-db.conf
-#      (watchdog, secretary, secretary-waker) into /etc/systemd/system/ and
-#      `systemctl daemon-reload`. node.yaml is not touched here (step 8).
+#      connects (tools/infisical_setup.py run Agents-Core prod --as contabo), and
+#      refuse unless the three drop-ins deploy/systemd/<unit>.service.d/org-db.conf
+#      and the three installed units exist. Step 4 changes nothing on the box:
+#      node.yaml and the drop-ins are not touched here (step 8) -- a unit restarted
+#      by systemd before step 8 must come back on its old unit file, never on a
+#      half-migrated hub (W1.9 F2).
 #      Design: docs/design/org-mesh-w18-contabo-consumers.md.
-#   5. import this box's own registry rows into the hub (ids never collide with
+#   5. refuse if state/tasks.db holds any pending / in_progress / queued_remote
+#      task, then `systemctl stop` mooniex-watchdog, mooniex-secretary and
+#      mooniex-secretary-waker so no row can land between the import and the
+#      archive (W1.9 F3; step 8 starts them again). Then import this box's own
+#      registry rows into the hub (ids never collide with
 #      the Mac's: checked 2026-09-18, 0 of 11 overlapped), then verify per-table
 #      row counts (sqlite before vs postgres after) match -- refuses on mismatch,
 #      before anything is archived. ORG_DB_URL reaches these commands through
@@ -52,10 +58,13 @@
 #   7. read the hub back through lib.db and print the row counts.
 #   8. write `org_db: hub` into /root/.config/mooniex/node.yaml (the switch for
 #      the C-level MCP servers and workers; only now, so nothing opens the hub
-#      before it is migrated), then restart mooniex-watchdog, mooniex-secretary
+#      before it is migrated), copy the three drop-ins into /etc/systemd/system/
+#      and `systemctl daemon-reload` (right before the restarts, W1.9 F2), then
+#      restart mooniex-watchdog, mooniex-secretary
 #      and mooniex-secretary-waker (last, after the migration and the tombstone)
-#      and require all three active. A failure here prints the rollback below,
-#      which includes removing the `org_db:` line.
+#      and require all three active. A failure here, or anywhere after step 5
+#      stopped the units, prints the rollback below, which includes removing the
+#      `org_db:` line and starting the units again.
 #
 # Rollback:
 #   ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core && rmdir state/tasks.db &&
@@ -66,12 +75,17 @@
 #   then remove the drop-ins and the switch, and restart the three units:
 #   ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core &&
 #     for u in mooniex-watchdog mooniex-secretary mooniex-secretary-waker;
-#       do rm -f /etc/systemd/system/$u.service.d/org-db.conf; done &&
-#     python3 scripts/hub/cutover_flip.py --rollback --apply &&
+#       do rm -f /etc/systemd/system/$u.service.d/org-db.conf;
+#          rmdir --ignore-fail-on-non-empty /etc/systemd/system/$u.service.d; done &&
+#     MOONIEX_NODE_YAML=/root/.config/mooniex/node.yaml python3 scripts/hub/cutover_flip.py --rollback --apply &&
 #     systemctl daemon-reload &&
 #     systemctl restart mooniex-watchdog mooniex-secretary mooniex-secretary-waker'
-#   (cutover_flip.py --rollback removes only the `org_db:` line of
-#   /root/.config/mooniex/node.yaml; it does not touch launchd plists.)
+#   (cutover_flip.py reads MOONIEX_NODE_YAML, not NODE_YAML; --rollback removes only
+#   the `org_db:` line of that file; it does not touch launchd plists.)
+#   If the cutover stopped after step 5 stopped the units and BEFORE step 8 installed
+#   the drop-ins, there is nothing to remove: the units are on their old unit files, so
+#   after the tasks.db half above `systemctl start mooniex-watchdog mooniex-secretary
+#   mooniex-secretary-waker` is all that is needed.
 #   Nothing was ever appended to org-db.env, so there is nothing to delete there.
 set -euo pipefail
 HOST_ALIAS="${HOST_ALIAS:-mooniex-vps}"
