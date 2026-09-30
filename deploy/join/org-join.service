@@ -1,0 +1,34 @@
+[Unit]
+Description=MoonieX hub join endpoint (Org Mesh W4.3, tools/join_api.py)
+# The public side of `hq join`: serves join.sh / join.ps1 and answers accept / sealed.
+# docs: tools/join_api.py (module docstring), deploy/join/README.md.
+# Files only -- NOT installed by W4.3. Installing it is a later live step, together with the
+# traefik route (W4.5) and after the W4.6 security review.
+#
+# Binds 127.0.0.1:8791 and nothing else, on purpose. traefik (W4.5) is what faces the internet.
+#
+# Secrets: none in this file. ORG_DB_URL (hub Postgres, role org) comes from Infisical the
+# same way the secretary gets it (deploy/systemd/mooniex-secretary.service.d/org-db.conf):
+# /etc/infisical/contabo.env is root 0600, so the fetch runs as root, then setpriv drops
+# to the `secretary` user before the endpoint starts. A public-facing process does not stay root.
+# setpriv execs, so systemd still supervises the endpoint's own pid. HOME is set because
+# setpriv does not reset it.
+#
+# W4.5 must add, once traefik routes to this port (an `Environment=` line, not a code change):
+#   JOIN_API_PUBLIC_URL=https://<the public hub name>    # what join.sh is told it came from
+#   JOIN_API_TRUST_FORWARDED=1                           # rate-limit on the caller, not on traefik
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=PYTHONUNBUFFERED=1
+Environment=HOME=/home/secretary
+ExecStart=/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo -- /usr/bin/setpriv --reuid=secretary --regid=secretary --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.join_api --port 8791
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
