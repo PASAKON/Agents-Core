@@ -149,7 +149,10 @@ def _h_create_task(*, project: str, role: str, title: str, description: str,
                     depends_on: str = "", touches: str = "",
                     host: str = "", needs: str = "") -> str:
     # `needs` has no column (lib/db.py is locked); lib.router.pick_host reads
-    # it back from a `needs: a, b` description line.
+    # it back from a `needs: a, b` line in the description's header (W2.11:
+    # only the first block counts), which add_needs_line writes there. A full
+    # header raises ValueError, which dispatch turns into an "ERROR: ..." reply
+    # before any task row exists.
     description = router.add_needs_line(description, needs)
     deps = _parse_list_arg(depends_on)
     paths = _parse_list_arg(touches)
@@ -404,8 +407,11 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "status='conflict'.\n"
             "needs (optional) accepts JSON array string or comma-separated host "
             "capabilities the job requires (e.g. 'win_gui, chrome'); it is added "
-            "to the description as a `needs: a, b` line, which the host router "
-            "reads when ORG_HOST_ROUTER is on and no host is named."
+            "to the end of the description's first block (the lines before the "
+            "first blank line, max 5) as a `needs: a, b` line, which the host "
+            "router reads when ORG_HOST_ROUTER is on and no host is named. A "
+            "`needs:` or `override:` line written anywhere after that block is "
+            "ignored, so put your own directive lines first."
         ),
         params=(
             Param("project", str), Param("role", str), Param("title", str),

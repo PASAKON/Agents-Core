@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from lib.router import header as _description_header
 from tools import forecast, limits as limits_mod, quota
 from tools.delegate import _host_runners
 from tools.quota import Quota, bucket_for, fetch_all_quotas, load_plans
@@ -586,11 +587,16 @@ if __name__ == "__main__":
     main()
 
 
-_OVERRIDE_RE = re.compile(r"^\s*override:\s*\S", re.IGNORECASE | re.MULTILINE)
+# Matched against the description's header only (lib.router.header: the lines
+# before the first blank line, max 5), so text pasted further down cannot satisfy
+# the gate (W2.7 review F11). The reason must sit on the same line: `[ \t]`, not
+# `\s`, which would let "override:" plus a pasted next line count as a reason.
+_OVERRIDE_RE = re.compile(r"^[ \t]*override:[ \t]*\S", re.IGNORECASE | re.MULTILINE)
 
 _IRON_59_MSG = (
     "IRON §59: runner/model_hint pinned by hand without a reason — add a line"
-    ' "override: <reason>" to the task description'
+    ' "override: <reason>" to the first lines of the task description'
+    " (the block before the first blank line, max 5 lines; one further down is ignored)"
     " (reasons: review/repair of another agent's code, security,"
     " silent-wrong-answer risk, Claude-only tool, CEO order, A/B test,"
     " box-bound job), or leave runner and model_hint empty and let the router pick."
@@ -604,7 +610,8 @@ def check_override(task: dict, cfg: dict | None = None) -> str | None:
     - The task's role is not in cfg["role_classes"] (router doesn't handle it).
     - ORG_ROUTER env var is "off" (repair mode).
     - No manual pin is detected.
-    - A manual pin is detected but the description contains a matching override line.
+    - A manual pin is detected but the description's header (the lines before
+      the first blank line, max 5) contains an override line with a reason on it.
 
     Returns the IRON §59 error string otherwise.
     Never raises: any internal error -> None.
@@ -635,8 +642,7 @@ def check_override(task: dict, cfg: dict | None = None) -> str | None:
         if not is_manual_pin:
             return None
 
-        description = task.get("description") or ""
-        if _OVERRIDE_RE.search(description):
+        if _OVERRIDE_RE.search(_description_header(task.get("description"))):
             return None
 
         return _IRON_59_MSG
