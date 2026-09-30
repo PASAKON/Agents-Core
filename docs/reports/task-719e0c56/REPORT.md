@@ -18,7 +18,7 @@ The env file exists on the Mac (since 2026-09-18) and on Contabo before any cuto
 - `deploy/systemd/mooniex-watchdog.service`: back to 9631849f except the comment's last sentence, which now reads "ORG_DB_URL for the Postgres hub reaches this unit at Contabo's own cutover (W1.8), through a systemd drop-in, not this file." No `EnvironmentFile`.
 - `tests/test_w04_self_host_sites.py`: back to 9631849f (`git diff 9631849f` is empty); it pins "no EnvironmentFile" again.
 - `conftest.py`: the autouse fixture now also pins `MOONIEX_NODE_YAML` to a nonexistent tmp file.
-- `tests/test_w16_org_db_injection.py`: rewritten, 51 tests (was 16). Fake env file and fake node file in `tmp_path` only; the real env file and real node file are never opened, and an autouse fixture points both overrides at missing files.
+- `tests/test_w16_org_db_injection.py`: rewritten, 57 tests (was 16; 51 for the switch, `set_org_db`, `cutover_flip`, plus 6 for mesh_check added in 2b). Fake env file and fake node file in `tmp_path` only; the real env file and real node file are never opened, and an autouse fixture points both overrides at missing files.
 
 ### Tests added (the CTO's list)
 - Env file present, switch absent: both generators return today's plain entry byte for byte (the case that matters most). Also a node file with only `host: mac`.
@@ -28,20 +28,19 @@ The env file exists on the Mac (since 2026-09-18) and on Contabo before any cuto
 - `cutover_flip` (tested on a tmp copy, never the real cutover, plists and node file in tmp): dry-run leaves the node file byte-identical and prints `+org_db: hub`. `--apply` is idempotent, never duplicates, keeps `host:` and `hq_root:`, and replaces an existing `org_db: sqlite`. `--rollback` dry-run is a no-op. `--rollback --apply` removes the line and leaves the plists. The line `--apply` writes is exactly the one `hub_is_live()` reads. The tracked files are never touched in any of the four modes.
 - `cutover-mac.sh` parses (`bash -n`) and carries the restart sentence and the rollback command.
 
-### Tests run (from the worktree, main checkout's interpreter, no `-q`)
-- `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -p no:warnings`, default host: **3427 passed, 27 skipped** in 271.40s, exit 0.
-- Same with `ORG_HOST=contabo`: **3427 passed, 27 skipped** in 251.12s, exit 0.
+### Tests run (from the worktree, main checkout's interpreter, no `-q`) — final, after iteration 2b
+- `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -p no:warnings`, default host: **3433 passed, 27 skipped** in 249.21s, exit 0.
+- Same with `ORG_HOST=contabo`: **3433 passed, 27 skipped** in 236.98s, exit 0.
 - `.venv/bin/python scripts/test_mcp_role_config.py` standalone: `OK — 0 failure(s)`, exit 0.
-- Baseline before any iteration-1 edit: 3376 passed, 27 skipped. 3376 + 51 (new file) = 3427; no other test changed.
+- Baseline before any iteration-1 edit: 3376 passed, 27 skipped. 3376 + 57 (new file) = 3433; no other test changed.
+- Before 2b (mesh_check blocked) the same runs gave 3427 passed, 27 skipped on both hosts (51 tests in the new file); 2b added 6.
 
-### NOT DONE: `tools/mesh_check.py:340` and `:436` (BLOCKED)
-`self_repo_guard` (ADR 0020) refuses every Edit of `tools/mesh_check.py`. The guard lists this task's declared touches as the original 7 paths; `tools/mesh_check.py` is not among them. I asked the CTO by `dev_message` to add it and have had no reply. I did not route around the guard. Final attempt after the suite run was refused the same way.
-Ready to apply as soon as the path is declared, then one more full-suite run:
-- add `import importlib.util`;
-- add `_org_server_launch(root, python)` after `_venv_python`: load `scripts/lib/cxo_mcp_config.py` by path, return `_build("org", str(root))`'s `command` and `args`, and fall back to the plain `python -m runners.cto_mcp_server` only when that file is missing;
-- in `check_l2` and `run_l3_probe`, move the `StdioServerParameters(...)` construction into the existing `try:` and build it from `_org_server_launch`, so a failure is a red result, never a silent probe of the wrong ledger;
-- tests in `tests/test_mesh_check.py` (or this task's file): switch on plus fake env file gives the wrapper, switch off gives plain.
-Until then `mesh_check` L2/L3 still spawn the plain server and reach the hub only if the caller's env carries `ORG_DB_URL`. After a host's cutover the probe therefore does not follow the same switch as real sessions; on this branch nothing else reads or writes through `mesh_check`'s launch params.
+### `tools/mesh_check.py:340` and `:436` (iteration 2b, DONE: was BLOCKED)
+`.org-task.json` in the worktree held the first 7 touches and `self_repo_guard` reads it before tasks.db; the CTO refreshed it and the edit went through (commit db72fc67).
+- `import importlib.util`; new `_org_server_launch(root, python)` after `_venv_python`. It loads `scripts/lib/cxo_mcp_config.py` by path (the same way `lib/worker_mcp_config.py` does, from mesh_check's own `ROOT`) and returns `_build("org", str(root))`'s `command` and `args`. The plain `python -m runners.cto_mcp_server` launch is used only when that generator file is MISSING (a peer box that has not pulled it, or the piped-over-ssh run) or `_build` returns `None`. Any error inside the generator propagates.
+- `check_l2` and `run_l3_probe` now build `StdioServerParameters(command, args, cwd, env)` inside their existing `try:`. A generator error is therefore a red cell (`RuntimeError: ...` in the reason), never a silent probe of the wrong ledger. `env` is unchanged (`os.environ` + `PYTHONUNBUFFERED`, plus `CTO_SESSION_ID` in L3); `ORG_DB_URL` is still never put into it by mesh_check.
+- 6 tests in `tests/test_w16_org_db_injection.py`, fake env file and fake node file only: `_org_server_launch` returns the wrapper with switch on + env file, plain with the env file and no switch; `check_l2` with a fake MCP client that records the params passes the wrapper (command, args, cwd, no secret) with the switch on and plain params with it off; a missing generator file falls back to plain; a generator that raises turns `check_l2` red and never starts the client. `tests/test_mesh_check.py` (32 tests) passes unchanged. L3 shares `_org_server_launch` and the same try-block shape; it is covered through the helper, not through a live probe (L3 creates real tasks and is `--live` only).
+- Files Changed adds: `tools/mesh_check.py` (helper + 2 call sites), `tests/test_w16_org_db_injection.py` (+6, now 57).
 
 ### For Contabo's own cutover (W1.8, not built here)
 Write `org_db: hub` into `/root/.config/mooniex/node.yaml` (the same line `cutover_flip.py` writes on the Mac) and give the watchdog unit `ORG_DB_URL` through a systemd drop-in (`EnvironmentFile=`), not through the tracked unit. Until both are done, Contabo sessions stay on SQLite by design.
@@ -93,7 +92,7 @@ The two MCP config generators now start the org server through `scripts/hub/with
 - The checkout never had the flip applied: neither launcher contains the SOURCE_BLOCK and neither JSON names the wrapper, so nothing to revert.
 
 **Direct, unwrapped launches of the org server that are NOT generated (named, not fixed — outside my file list):**
-- `tools/mesh_check.py:340` and `:436` spawn `python -m runners.cto_mcp_server` themselves with the caller's env. They reach the hub only if the caller already has `ORG_DB_URL`. Follow-up: build the params from `cxo_mcp_config._build("org", root)`.
+- `tools/mesh_check.py:340` and `:436` spawn `python -m runners.cto_mcp_server` themselves with the caller's env. They reach the hub only if the caller already has `ORG_DB_URL`. Follow-up: build the params from `cxo_mcp_config._build("org", root)`. **Done in iteration 2b** (see "`tools/mesh_check.py`" above).
 - `runners/cto_chat.py` runs the org tools in-process (`create_sdk_mcp_server`), so it needs `ORG_DB_URL` in its own process env.
 - `scripts/lib/mcp_call.py` uses `_build()`, so it picks up the wrapper automatically.
 
@@ -122,6 +121,6 @@ The wrapper sources the env file and `exec`s the command; it works for any `lib.
 
 Iteration 2:
 - WRONG [CXO_Protocol_DevSpawn §brief / cutover switch]: "wrap when the env file exists" was treated as the cutover signal, but the env file predates the cutover on every host (Mac since 2026-09-18, Contabo too). Existence of an input file is not a per-host switch; it splits the ledger · evidence: task-719e0c56 CTO-FEEDBACK iteration 2, commit e111d2b7 · fix: the brief must name the explicit switch (here `org_db: hub` in node.yaml) and say which files must NOT change behaviour when only the input exists.
-- MISSING [CXO_Protocol_DevSpawn §touch-list]: when a brief says "follow the same switch everywhere", the touch list must include every non-generated launch site found by the inventory. `tools/mesh_check.py` was named in the iteration-1 report and required in iteration 2, but was not in the declared `touches`, so `self_repo_guard` blocked it · evidence: task-719e0c56, `tools/mesh_check.py:340,436`, guard refusal · fix: add every inventory hit under `tools/` to `touches` at spawn.
+- MISSING [CXO_Protocol_DevSpawn §touch-list]: when a brief says "follow the same switch everywhere", the touch list must include every non-generated launch site found by the inventory. `tools/mesh_check.py` was named in the iteration-1 report and required in iteration 2, but was not in the declared `touches`, so `self_repo_guard` blocked it until the CTO refreshed the worktree's `.org-task.json` (the guard reads that sidecar before tasks.db, so a ledger-only touches update does not unblock a running worktree) · evidence: task-719e0c56, `tools/mesh_check.py:340,436`, guard refusal, CTO-FEEDBACK 2b · fix: add every inventory hit under `tools/` to `touches` at spawn.
 - MISSING [no owner]: the GateGuard Edit gate fires first and `self_repo_guard` second; a GateGuard-only error does NOT mean the path is cleared. Answer the gate and retry once to see the real verdict · evidence: task-719e0c56 (`tools/mesh_check.py`, 2 rounds).
 - COSTLY [no owner]: a mutation probe on a source file to prove a test can fail ("delete the gate, expect red") is refused by the auto-mode classifier as Security Weaken, and a scratch dir containing `.venv` is refused by `self_repo_guard` even in the scratchpad · evidence: task-719e0c56, two refused Bash calls · prevented by: prove the guard with a bad input inside a test (the switch-absent and non-live-value cases do), not by editing the source or building a fake `.venv` path.
