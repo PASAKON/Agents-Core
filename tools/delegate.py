@@ -1292,6 +1292,14 @@ def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
     try:
         reply = mesh.dispatch(host_name, "spawn_worker", task_id)
     except mesh.MeshUnreachable as e:
+        # No answer does not prove the verb did not run. On a shared ledger the far
+        # side may already have moved the row (in_progress, blocked_host, ...):
+        # only a row still `pending` is ours to queue, or the retry would spawn twice.
+        seen = db.get_task(task_id) or {}
+        if seen.get("status") != "pending":
+            warn(f"mesh spawn task={task_id} host={host_name}: no answer ({e}), but the row "
+                 f"is already {seen.get('status')}; not queued")
+            return seen
         attempt = _queued_remote_attempts(task_id) + 1
         warn(f"mesh spawn queued task={task_id} host={host_name} attempt={attempt}: {e}")
         db.update_status(

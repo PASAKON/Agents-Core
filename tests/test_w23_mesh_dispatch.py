@@ -330,6 +330,21 @@ def test_flag_on_unreachable_queues_the_row_and_returns(monkeypatch, flag_on):
     assert db_mod.find_conflicts(PROJECT, ["lib/x.py"], exclude_task="task-00000000")
 
 
+def test_flag_on_no_answer_after_the_far_side_moved_the_row_does_not_queue_it(monkeypatch, flag_on):
+    """Shared ledger: the verb may have run before the ssh call timed out. A row that is
+    no longer `pending` is left alone, or the watchdog retry would spawn a second worker."""
+    tid = _row()
+
+    def runs_then_times_out(host, verb, args):
+        db_mod.update_status(tid, "in_progress", pid=4242, host=host, actor="test")
+        raise mesh.MeshUnreachable("spawn_worker on contabo: no reply in 300s")
+
+    monkeypatch.setattr(mesh, "dispatch", FakeMesh(runs_then_times_out))
+    row = _spawn(tid)
+    assert row["status"] == "in_progress" and row["pid"] == 4242
+    assert db_mod.list_tasks(status="queued_remote") == []
+
+
 def test_flag_on_a_refusal_fails_the_task_like_a_failed_launcher(monkeypatch, flag_on):
     tid = _row()
     monkeypatch.setattr(mesh, "dispatch", FakeMesh(
