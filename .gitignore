@@ -174,3 +174,6 @@ state/machine-discovered-*.yaml
 agy-shots/
 state/agy-browse.jsonl
 state/agy-browse-fire-*.lock
+# router runtime files (quota snapshot every 10 min, learned cost table)
+state/quota-snapshot.json
+state/cost-table.json
