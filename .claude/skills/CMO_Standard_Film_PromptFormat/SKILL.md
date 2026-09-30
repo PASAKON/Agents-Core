@@ -90,6 +90,23 @@ One file = one shot that can actually be fired; never two timelines in one block
     reports; it never writes a warning into the prompt file (that is how the S1C override accident
     happened).
 
+12. **Every shot says who faces where, who the speaker talks to, and which way things move** [ANY] (CEO ruling
+    2026-10-01, after the flood-jump shot: the dog turned to the camera, spoke to the audience and jumped *backwards*
+    into the water; his words: *"ตัวละคร พูดกับใคร … ภาพต้องบอกได้ว่าตัวละคร หันเข้า หรือ หันออก หันซ้าย หรือ หันขวา
+    เพื่อให้มีความสมจริงกับตัวภาพด้วย"*). Write, in the shot's framing sentence and in camera terms:
+    (a) **facing** of every visible character: toward the camera, away from it (back to us), three-quarter or profile,
+    and screen-left or screen-right; (b) **the addressee and the eyeline**: who the speaker talks to, where that person is
+    (off-screen ahead, at screen-left…) and that the eyes go there, never "to the camera" unless the camera IS the
+    addressee; (c) **direction of movement**: toward or away from the lens, screen-left or screen-right (a leap
+    forward is "away from the camera"; "into the water" alone let the model jump backwards); (d) **the mouth must
+    stay visible**: a speaker with her back to us is written as a three-quarter rear view with the head turned to one
+    side, so the side of the muzzle/mouth shows. Keep one **screen-direction plan per set** (which side the door, the
+    truck, the desk are on) and repeat it in every shot of that set; an exit to the right is an entry from the left.
+    Measured on Flow Omni 1.1 (EP1 shot 1): with the dog "three-quarters to camera" it addressed the viewer and
+    jumped back; rewritten as "back and left flank to the camera, head turned toward screen-right, she never looks
+    at the camera, speaks to someone off-screen ahead, leaps FORWARD away from the camera" she faced out, spoke
+    over her shoulder and leapt forward (one frame still glanced at the camera).
+
 ## 4 · Before handing a block over: 60 seconds
 
 Read the block top to bottom once and ask: does any line describe what this block forbids? Is every
