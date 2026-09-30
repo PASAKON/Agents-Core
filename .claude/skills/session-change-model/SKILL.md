@@ -19,6 +19,10 @@ audience: [cxo]
 
 **Standard since 2026-09-23 (CEO):** every C-level runs **Opus 5.5 with the 1M
 context window at effort xhigh** (`claude-opus-5-5[1m]`, `policies/agents.yaml`).
+**Exception (CEO 2026-09-30): the CMO** runs `claude-sonnet-5-5[1m]` @ xhigh —
+it owns the automation lane. A CMO on Sonnet 5.5 is at its standard; never
+propose moving it to Opus. Always read the role's row in `policies/agents.yaml`
+before calling a session "below standard".
 Workers keep their own tiers — Sonnet workers run Sonnet 5.5 (since 2026-09-29); the two
 Opus workers (security_engineer, devops_engineer) run `claude-opus-5-5` @ xhigh.
 
