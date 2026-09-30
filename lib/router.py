@@ -25,7 +25,9 @@ caller leaves the task pending and does not spawn. There is no fallback host:
 a stale or missing probe means "unknown", and unknown is never "fine".
 
 `needs` has no column (lib/db.py is locked to other tasks); it is read from a
-description line, the same way route.check_override reads `override:`.
+description line, the same way route.check_override reads `override:`. Both
+read it from the description's HEADER only (see `header` below): a `needs:`
+pasted further down is text, not a directive (W2.7 review F11, W2.11).
 """
 from __future__ import annotations
 
@@ -46,6 +48,55 @@ _NOT_ONLINE = ("offline", "pending_identity", "left")
 
 _NEEDS_RE = re.compile(r"^[ \t]*needs:[ \t]*(.*)$", re.IGNORECASE | re.MULTILINE)
 
+# A directive line (`needs:` here, `override:` in tools/route.py) counts only in
+# the description's HEADER: the leading lines up to the first blank line, at most
+# this many. Text pasted into a description (a web page, a letter, a quoted worker
+# report) must not be able to pin a task to a host or satisfy the IRON §59 gate
+# (W2.7 review F11). A directive after the header is ignored, never an error.
+MAX_HEADER_LINES = 5
+
+
+def header(description: str | None) -> str:
+    """The header block of `description` as text; "" for None or an empty one.
+
+    Blank means empty after str.strip(), so a line of spaces, tabs, \\r or a
+    Unicode space ends the header too. Lines are split on \\n only, the same
+    boundary `^` has in a MULTILINE regex. The one definition of "header" that
+    parse_needs, tools.route.check_override and add_needs_line share.
+    """
+    out: list[str] = []
+    for line in (description or "").split("\n"):
+        if not line.strip() or len(out) >= MAX_HEADER_LINES:
+            break
+        out.append(line)
+    return "\n".join(out)
+
+
+def add_header_line(description: str | None, line: str) -> str:
+    """`description` with `line` added at the end of its header block.
+
+    No existing header line moves, so a directive already on line 1 stays on
+    line 1. Trailing whitespace of the description is dropped. Raises
+    ValueError when the header already holds MAX_HEADER_LINES lines: there is
+    no place left where the line would count, and adding it below the header
+    would be a silent no-op.
+    """
+    text = (description or "").rstrip()
+    lines = text.split("\n") if text else []
+    at = 0
+    while at < len(lines) and lines[at].strip():
+        at += 1
+    if at >= MAX_HEADER_LINES:
+        raise ValueError(
+            f"the description's first block already has {MAX_HEADER_LINES} lines "
+            f"(no blank line before line {MAX_HEADER_LINES + 1}): a directive "
+            f"counts only in that block, so there is no room for `{line}`. "
+            "Put a blank line after the opening lines, or write the line into "
+            "the block yourself."
+        )
+    lines.insert(at, line)
+    return "\n".join(lines)
+
 
 def enabled() -> bool:
     """ORG_HOST_ROUTER is 1/true/on. Default off (same switch shape as
@@ -61,10 +112,11 @@ class HostPick:
 
 
 def parse_needs(description: str | None) -> list[str]:
-    """Names from every `needs: a, b` line of a task description. Lowercased,
+    """Names from every `needs: a, b` line in the HEADER of a task description
+    (`header`; a `needs:` line further down is ignored). Lowercased,
     de-duplicated, in order. No such line (or an empty one) = no constraint."""
     out: list[str] = []
-    for m in _NEEDS_RE.finditer(description or ""):
+    for m in _NEEDS_RE.finditer(header(description)):
         for name in m.group(1).split(","):
             name = name.strip().lower()
             if name and name not in out:
@@ -77,6 +129,8 @@ def add_needs_line(description: str, needs: str | None) -> str:
 
     `needs` is a JSON array string or comma-separated names, the two shapes
     create_task already takes for `touches`. Empty leaves the text unchanged.
+    The line goes at the end of the header block (`add_header_line`), where
+    parse_needs reads it; ValueError if that block is already full.
     """
     raw = (needs or "").strip()
     if not raw:
@@ -90,7 +144,7 @@ def add_needs_line(description: str, needs: str | None) -> str:
     line = ", ".join(n for n in (str(x).strip() for x in names) if n)
     if not line:
         return description
-    return f"{description.rstrip()}\nneeds: {line}" if description.strip() else f"needs: {line}"
+    return add_header_line(description, f"needs: {line}")
 
 
 def manual_line(host: str, source: str) -> str:

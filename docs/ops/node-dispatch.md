@@ -12,7 +12,7 @@ Exactly these seven. Anything else is refused. Argument patterns are `fullmatch`
 
 | verb | args | does |
 |---|---|---|
-| `probe` | none | reports host, os, free GB, running workers, git version; writes the probe fields of this host's `hosts` row |
+| `probe` | none | reports host, os, free GB, running workers, git version, `provides_measured` and `probe_errors` (below); writes the probe fields of this host's `hosts` row |
 | `pid_alive` | `task-xxxxxxxx` | is the pid recorded on this host's task alive (`alive` true/false) |
 | `spawn_worker` | `task-xxxxxxxx` | starts the worker for a pending task whose `host` is this host (a NULL host is refused on every OS), through `delegate_task` |
 | `kill_worker` | `task-xxxxxxxx` | `worker_reap.close_dev`; keeps its own "only review/done" refusal rules |
@@ -22,6 +22,40 @@ Exactly these seven. Anything else is refused. Argument patterns are `fullmatch`
 
 Patterns: task id `task-[0-9a-f]{8}`, session id `[0-9a-f]{8}`, branch
 `agent/[a-z_]+-task-[0-9a-f]{8}`.
+
+### probe: `provides_measured` and `probe_errors` (W4.4)
+
+`probe` looks at the box and reports what it can do, instead of trusting
+`config/hosts.yaml`. `provides_measured` is a list of names, always starting with the
+OS family. It is reported in the reply only: it is **not** written to the `hosts` row,
+and `lib/router.py` does not read it yet.
+
+| name | true when |
+|---|---|
+| `macos` / `linux` / `windows` | the OS family (exactly one, always first) |
+| `chrome` | a Chrome or Chromium binary is a regular file at the usual place: `/Applications` and `~/Applications` (macOS); `google-chrome`, `chromium` and similar on PATH, `/opt/google/chrome/chrome`, `/snap/bin/chromium` (Linux); `%PROGRAMFILES%`, `%PROGRAMFILES(X86)%`, `%LOCALAPPDATA%` (Windows) |
+| `ffmpeg` | `ffmpeg` is on PATH and `ffmpeg -version` exits 0 within 5 s |
+| `gpu` | `nvidia-smi -L` exits 0 within 5 s and lists a `GPU ` line. NVIDIA only: macOS Metal is not reported |
+| `node20` | `node --version` exits 0 within 5 s and the major is 20 or more |
+| `playwright_chromium` | the Playwright browsers folder holds a `chromium*` folder. Folder: `$PLAYWRIGHT_BROWSERS_PATH` (`0` means none), else `~/Library/Caches/ms-playwright` (macOS), `~/.cache/ms-playwright` (Linux), `%LOCALAPPDATA%\ms-playwright` (Windows) |
+| `runner_claude` | `$CLAUDE_CONFIG_DIR/.credentials.json` (default `~/.claude/`) exists and is not empty |
+| `runner_codex` | `$CODEX_HOME/auth.json` (default `~/.codex/`) exists and is not empty |
+| `runner_agy` | `~/.gemini/antigravity-cli/antigravity-oauth-token` exists and is not empty |
+
+A runner name means "a credential file is there", read from `os.stat` (existence and
+size). The file is never opened, read, hashed or printed. It does not say the login is
+still valid, and it does not say the CLI is installed (`runners` lists the installed
+ones). On macOS the Claude Code login lives in the Keychain, not in a file, so
+`runner_claude` is absent on a Mac whose only login is the Keychain one.
+
+Every detector is bounded and cannot fail the probe. A child is an argv list (no
+shell), with stdin and stderr on /dev/null and a 5 s timeout (`PROBE_CHILD_TIMEOUT_S`),
+so the worst case is 3 children, 15 s. A detector that raises or times out is left out
+of `provides_measured` and adds one entry to `probe_errors`: `"<name>: <ExceptionType>"`,
+the type only, never the message.
+
+Names the node cannot measure (`macos_cu`, `blender_bridge`, `win_gui`, `always_on`,
+`api`) stay declared in `hosts.yaml`.
 
 ## authorized_keys line
 
@@ -173,12 +207,37 @@ runs `windows/spawn-worker.ps1` from the checkout (which makes its own interacti
 one-shot scheduled task), `start_clevel` registers one for `windows/cxo-claude.ps1`
 (the id is passed as `-Session`, so there is no `<role>-active` pointer and a letter
 names the session by `to_session`), and `deliver_letter` writes the inbox or
-`<worktree>\MAILBOX.md` without waking anything (`woke: false`). Every value that
+`<worktree>\MAILBOX.md`. Every value that
 reaches PowerShell is checked against an allow-list first; a refusal is exit 2 with
 no subprocess run. Since W2.7, `spawn_worker` on Windows needs the row's host to be
 this host and re-checks, read-only, what the hub's `delegate_task` gated
-(dependencies finished, no touches overlap with a task in flight), and the
-`MAILBOX.md` append refuses a symlink or hard link.
+(dependencies finished, no touches overlap with a task in flight, and the disk floor,
+below), and the `MAILBOX.md` append refuses a symlink or hard link.
+
+**Disk floor on Windows (W2.7 F3b).** Before any PowerShell, `spawn_worker` refuses
+(exit 2, `disk red on <host>: <free> GB free < <floor> GB floor`) when free space on the
+drive that holds the worktrees root is below the floor. It uses `tools/delegate.py`'s
+own pieces, not copies: the reading seam `delegate._free_gb`, the floor
+`delegate._disk_orange_floor_gb()` (key `gauge.orange` of `config/storage-policy.yaml`,
+a strict `<`), and the `scope.disk_floor` rule (an owner outside the scope is not
+gated). A worktrees root that does not exist yet is measured at its nearest existing
+parent. A free-space read that fails is a refusal. The row stays `pending`: queueing it
+for disk is the hub's job (`delegate_task` does it on the normal path). The
+browser-operator cap is still the hub's alone.
+
+**Waking a C-level tab on Windows (W3.5), off by default.** `deliver_letter` to a
+C-level session on Windows writes the mailbox and answers `"woke": false`, and
+`agent_transport.wake_windows_tab` is not called. With the environment variable
+`ORG_WIN_WAKE=1` (exactly `1`; `true`, `yes`, ` 1` and every other value stay off) it
+calls `wake_windows_tab("<role>-<sid>", "<FROM ROLE>")` after the letter is on disk and
+returns its answer as `woke` plus `why`. A wake that fails or raises is `"woke": false`
+with a `why`; the letter stays delivered. A worker letter (`MAILBOX.md`) is never woken.
+The flag is off because a wake raises a window on the desktop and presses Enter, and
+the CEO has not decided that is acceptable (`docs/ops/windows-wake.md`, "Decision for
+the CEO"). The variable must be in the environment of the process sshd starts for the
+forced command, so on winbox it is a machine-level variable plus an sshd restart
+(not tried here). A wake blocks the verb for up to about 30 s in the worst case
+(`schtasks` 15 s, then a 15 s wait for the result); typical is 4 s.
 
 ## Audit
 
@@ -193,4 +252,5 @@ such as `git push` can print its remote URL with a token in it.
 In-process use (W2.3): `dispatch(verb, args) -> dict`. It is synchronous; call it
 through `asyncio.to_thread` from async code.
 
-Tests: `.venv/bin/python -m pytest tests/test_node_dispatch.py tests/test_w27_security.py`
+Tests: `.venv/bin/python -m pytest tests/test_node_dispatch.py tests/test_w27_security.py
+tests/test_w44_probe_provides.py tests/test_w35_wire.py`

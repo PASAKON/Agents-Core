@@ -232,6 +232,7 @@ def test_unknown_verb_error_is_bounded(rec):
 
 def test_probe_reports_facts_and_writes_probe_fields_only(monkeypatch):
     monkeypatch.setattr(nd, "_git_version", lambda: "abc1234")
+    monkeypatch.setattr(nd, "_measure_provides", lambda: (["macos", "ffmpeg"], []))  # W4.4: no real ffmpeg
     db_mod.upsert_host("mac", os="darwin", agents_root="/x", status="online",
                        max_workers=4)
     _mk_task(host="mac", status="in_progress", pid=os.getpid())
@@ -247,6 +248,7 @@ def test_probe_reports_facts_and_writes_probe_fields_only(monkeypatch):
     assert r["host"] == "mac" and r["version"] == "abc1234"
     assert r["agents_root"] == str(ROOT)
     assert r["running"] == 1
+    assert r["provides_measured"] == ["macos", "ffmpeg"] and r["probe_errors"] == []
     assert isinstance(r["free_gb"], float)
     assert r["os"] in ("darwin", "linux", "windows")
     h = db_mod.get_host("mac")
