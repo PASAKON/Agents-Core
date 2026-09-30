@@ -39,7 +39,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib import db
+from lib import db, mesh
 from lib.notify import info, success, warn, error
 from lib.config import host as get_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
@@ -504,6 +504,46 @@ def read_remote_heartbeat(host_cfg: dict, task: dict) -> str | None:
     return r.stdout.strip() or None
 
 
+def _mesh_pid_alive(t: dict, host_name: str, host_cfg: dict, pid: int) -> bool | None:
+    """W2.3 (ORG_MESH_DISPATCH): ask the box itself, `pid_alive <task-id>`, in
+    place of the per-OS ssh query. Same True/False/None contract as
+    `remote_pid_alive`: no answer is None (unknown, never dead). A box that
+    answered "cannot say" (windows refuses pid_alive until W3.3; the row is not
+    on its ledger) gets today's ssh query, so it is no blinder than with the
+    flag off."""
+    try:
+        reply = mesh.dispatch(host_name, "pid_alive", t["id"])
+    except mesh.MeshUnreachable:
+        return None
+    if not reply.get("ok"):
+        return remote_pid_alive(host_cfg, pid)
+    alive = (reply.get("result") or {}).get("alive")
+    return alive if isinstance(alive, bool) else None
+
+
+def _retry_queued_remote() -> list[dict]:
+    """W2.3: one more spawn attempt for every `queued_remote` row this box
+    dispatched to another host (a mesh spawn that got no answer). Exactly one
+    attempt per row per pass: a pass that fails leaves the row queued, and
+    tools.delegate.mesh_spawn_worker counts the attempts in `delegate_log` and
+    the `status_queued_remote` events. Off unless ORG_MESH_DISPATCH is on."""
+    if not mesh.enabled():
+        return []
+    retried = []
+    for t in db.list_tasks(status="queued_remote", limit=200):
+        if not is_remote_row(t):  # another box's row, or no target host yet
+            continue
+        host_name = row_host(t)
+        try:
+            row = delegate.mesh_spawn_worker(t["id"], host_name)
+        except Exception as e:  # one bad row must not stop the others
+            warn(f"watchdog: queued_remote retry failed for {t['id']}: {e}")
+            continue
+        retried.append({"task": t["id"], "host": host_name, "status": row["status"]})
+        info(f"watchdog: queued_remote retry {t['id']} host={host_name} -> {row['status']}")
+    return retried
+
+
 def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     """GAP 3 (task-59780ac3): a remote in_progress task whose worker died
     mid-task used to be invisible forever — this box's own process table
@@ -539,7 +579,10 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
         host_cfg = get_host(host_name)
     except ValueError:
         return None
-    alive = remote_pid_alive(host_cfg, pid)
+    if mesh.enabled():
+        alive = _mesh_pid_alive(t, host_name, host_cfg, pid)
+    else:
+        alive = remote_pid_alive(host_cfg, pid)
     if alive is None:  # ssh unreachable — unknown, never treated as dead
         return None
 
@@ -889,6 +932,13 @@ def scan_once() -> dict:
     except Exception as e:
         warn(f"watchdog disk queue drain error: {e}")
         disk_queue_spawned = None
+
+    # Sixth-b pass — mesh spawns that got no answer (W2.3): one retry per
+    # queued_remote row this box dispatched. No-op unless ORG_MESH_DISPATCH is on.
+    try:
+        _retry_queued_remote()
+    except Exception as e:
+        warn(f"watchdog queued_remote retry error: {e}")
 
     # Seventh pass — Work/ watcher (Work/RULES.md rules 7-8, ADR 0030 §D,
     # task-dbe47b9b): alert the owning CTO or raise a LungNote to-do for any

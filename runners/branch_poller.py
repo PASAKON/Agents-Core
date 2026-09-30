@@ -44,7 +44,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import db  # noqa: E402
+from lib import db, mesh  # noqa: E402
 from lib.config import get_project, host as get_host, self_host  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
 from tools import delegate as delegate_mod  # noqa: E402
@@ -52,7 +52,7 @@ from tools import tmux_session  # noqa: E402
 from tools.git_ops import _run_shell  # noqa: E402
 from tools.worker_reap import (_cleanup_tmux_ttyd, close_remote,  # noqa: E402
                                is_dispatched_here, is_local_row, is_remote_row,
-                               row_host)
+                               row_dispatcher, row_host)
 from tools.worktree import provision_worktree  # noqa: E402
 
 POLL_SECONDS = 60
@@ -452,6 +452,30 @@ def _header_task_id(content: str, kind: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _publish_via_mesh(task: dict) -> None:
+    """W2.3 (ORG_MESH_DISPATCH): a worker never pushes. When the row was
+    dispatched by a different box than the one it runs on, ask the worker's
+    host to publish the branch (`publish_branch <task-id>`, node_dispatch's
+    `git push origin <agent branch>` from the worktree) before this tick looks
+    for it on origin. Never raises, never changes the row: an unreachable host
+    or a refusal only means "not published yet", and the branch check below
+    reads origin either way."""
+    if not mesh.enabled() or row_dispatcher(task) == row_host(task):
+        return
+    task_id, host_name = task["id"], row_host(task)
+    try:
+        reply = mesh.dispatch(host_name, "publish_branch", task_id)
+    except mesh.MeshUnreachable as e:
+        _log().warning("task %s: publish_branch on %s got no answer: %s",
+                       task_id, host_name, e)
+        return
+    if reply.get("ok"):
+        _log().info("task %s: published by %s: %s", task_id, host_name, reply.get("result"))
+    else:
+        _log().info("task %s: publish_branch on %s said no: %s",
+                    task_id, host_name, reply.get("error"))
+
+
 def check_task(task: dict) -> None:
     """One task's tick. Never raises — a bad/malformed row must not kill
     the loop for every other task. Acts only on the POLLER set
@@ -474,6 +498,8 @@ def check_task(task: dict) -> None:
         _log().warning("task %s: project %s has no checkout on %s to poll from",
                        task_id, task.get("project"), self_host())
         return
+
+    _publish_via_mesh(task)
 
     if remote_branch_exists(repo_path, branch):
         fetch_branch(repo_path, branch)

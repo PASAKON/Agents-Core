@@ -24,7 +24,7 @@ from pathlib import Path
 
 import yaml
 
-from lib import db
+from lib import db, mesh
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
@@ -1265,6 +1265,52 @@ def _local_launcher_env() -> dict[str, str]:
     return {k: os.environ[k] for k in _LOCAL_LAUNCHER_ENV_KEYS if k in os.environ}
 
 
+def _queued_remote_attempts(task_id: str) -> int:
+    """How many times this task has been put in `queued_remote`: one
+    `status_queued_remote` event per unreachable attempt (db.update_status)."""
+    return sum(1 for e in db.recent_events(limit=500, task_id=task_id)
+               if e["kind"] == "status_queued_remote")
+
+
+def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
+    """Ask `host_name` to spawn `task_id` through lib/mesh (W2.3,
+    ORG_MESH_DISPATCH). The whole remote spawn is one node_dispatch verb,
+    `spawn_worker <task_id>`: the far side reads the row by id and runs its own
+    delegate_task, so nothing rendered here (prompt, launcher args) crosses.
+    Returns the fresh task row. Never raises for an unreachable host.
+
+    The verb wants a `pending` row whose host is NULL or that box, so the row is
+    put there first. No answer from the host (MeshUnreachable) leaves the row
+    `queued_remote` with the host kept: the watchdog retries it, and path locks
+    stay held. An answer that says no (a refusal or a failed spawn) fails the
+    task, like a failed launcher run, unless the far side already moved the row."""
+    row = db.get_task(task_id)
+    if row["status"] != "pending":
+        db.update_status(task_id, "pending", host=host_name, actor="cto")
+    elif row.get("host") != host_name:
+        db.set_fields(task_id, host=host_name, actor="cto")
+    try:
+        reply = mesh.dispatch(host_name, "spawn_worker", task_id)
+    except mesh.MeshUnreachable as e:
+        attempt = _queued_remote_attempts(task_id) + 1
+        warn(f"mesh spawn queued task={task_id} host={host_name} attempt={attempt}: {e}")
+        db.update_status(
+            task_id, "queued_remote", host=host_name, actor="cto",
+            delegate_log=f"mesh spawn_worker on {host_name} unreachable "
+                         f"(attempt {attempt}): {e}"[:1000],
+        )
+        return db.get_task(task_id)
+    if reply.get("ok"):
+        success(f"mesh spawn task={task_id} host={host_name}: {reply.get('result')}")
+        return db.get_task(task_id)
+    detail = str(reply.get("error") or reply)[:1000]
+    warn(f"mesh spawn refused task={task_id} host={host_name}: {detail}")
+    if (db.get_task(task_id) or {}).get("status") == "pending":
+        db.update_status(task_id, "failed", actor="cto",
+                         delegate_log=f"mesh spawn_worker on {host_name} said no: {detail}")
+    return db.get_task(task_id)
+
+
 async def _spawn_remote(task: dict, host_name: str, *,
                         dry_run: bool = False, local: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
@@ -1287,6 +1333,24 @@ async def _spawn_remote(task: dict, host_name: str, *,
     project_key = task["project"]
 
     host_cfg = get_host(host_name)  # raises ValueError if host_name is unknown
+
+    # W2.3: with ORG_MESH_DISPATCH on, a remote spawn is one node_dispatch verb
+    # over the org_dispatch key (lib/mesh.py), not the launcher ssh below. Off
+    # (the default) this block is skipped and every line after it is unchanged.
+    if mesh.enabled() and not local and host_name != self_host():
+        if dry_run:
+            try:
+                printable = " ".join(shlex.quote(c) for c in
+                                     mesh.build_argv(host_name, "spawn_worker", (task_id,)))
+            except Exception as e:  # a dry run reports, it never fails the task
+                printable = f"<not dispatchable: {e}>"
+            info(f"[dry-run] task={task_id} host={host_name} mesh command: {printable}")
+            db.set_fields(task_id, delegate_log=f"[dry-run] host={host_name} mesh_cmd={printable}",
+                          actor="cto")
+            return db.get_task(task_id)
+        info(f"spawn remote task={task_id} host={host_name} role={role_name} transport=mesh")
+        return await asyncio.to_thread(mesh_spawn_worker, task_id, host_name)
+
     os_name = host_cfg.get("os")
     if os_name not in ("windows", "linux"):
         raise NotImplementedError(
