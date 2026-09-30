@@ -279,6 +279,250 @@ def test_the_task_script_builder_refuses_what_could_break_out(value):
 
 
 # ---------------------------------------------------------------------------
+# spawn_worker
+# ---------------------------------------------------------------------------
+
+_WORKTREE_ROOT = "C:\\Users\\passg\\mooniex\\worktrees"  # config/hosts.yaml winbox.worktrees
+
+
+class SpawnRuns(Runs):
+    """Runs that also keeps what was in the brief file while PowerShell ran."""
+
+    def __init__(self, repo: Path) -> None:
+        super().__init__()
+        self.repo = repo
+        self.brief: dict[str, str] = {}
+        self.out = "GITHUB_SSH_ROUTE=ok\r\nlaunched via interactive scheduled task x\r\n4321\r\n"
+
+    def __call__(self, argv, **kw):
+        for f in (self.repo / "state").glob(".remote-task-*.md"):
+            self.brief[f.name] = f.read_text(encoding="utf-8")
+        return super().__call__(argv, **kw)
+
+
+@pytest.fixture
+def spawn(monkeypatch, tmp_path):
+    """A Windows box with a repo checkout at tmp_path/repo. `delegate_task` and
+    tmux explode: the win32 path must reach neither."""
+    repo = tmp_path / "repo"
+    (repo / "windows").mkdir(parents=True)
+    (repo / "windows" / "spawn-worker.ps1").write_text("")
+    r = SpawnRuns(repo)
+    monkeypatch.setattr(subprocess, "run", r)
+    monkeypatch.setattr(subprocess, "Popen", _boom)
+    monkeypatch.setattr(nd, "_is_windows", lambda: True)
+    monkeypatch.setattr(nd, "ROOT", repo)
+    monkeypatch.setattr(tmux_session, "has_session", _boom)
+    monkeypatch.setattr(tmux_session, "create", _boom)
+    from tools import delegate
+    monkeypatch.setattr(delegate, "delegate_task", _boom)
+    return r
+
+
+def _spawn_task(**cols) -> str:
+    tid = db_mod.create_task("mooniex-agents", "developer", "Fix the thing", "do it")
+    _update(tid, **{"host": "winbox", **cols})
+    return tid
+
+
+def _row(tid: str) -> dict:
+    return db_mod.get_task(tid)
+
+
+def _launcher_call(spawn_runs: Runs) -> str:
+    (argv, kw), = spawn_runs.calls
+    assert argv[:6] == ["powershell.exe", "-NoProfile", "-NonInteractive",
+                        "-ExecutionPolicy", "Bypass", "-EncodedCommand"]
+    assert isinstance(argv, list) and kw.get("shell") is not True
+    return _script_of(argv)
+
+
+def test_spawn_worker_on_windows_runs_the_launcher_and_writes_the_row(spawn):
+    tid = _spawn_task()
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 0, out
+    assert out["result"] == {"id": tid, "status": "in_progress", "pid": 4321,
+                             "branch": f"agent/developer-{tid}"}
+    script = _launcher_call(spawn)
+    repo = spawn.repo
+    assert script.startswith(f"& '{repo / 'windows' / 'spawn-worker.ps1'}' -Task '{tid}' "
+                             "-Project 'mooniex-agents' -Role 'developer' ")
+    assert script.endswith("; exit $LASTEXITCODE")
+    for needle in (f"-Branch 'agent/developer-{tid}'", "-Base 'main'",
+                   "-RepoUrl 'git@github.com:PASAKON/mooniex-agents.git'",
+                   "-RepoPath 'C:\\Users\\passg\\mooniex\\repo\\MoonieX-Agents'",
+                   f"-WorktreeRoot '{_WORKTREE_ROOT}'", "-ClaudeArgs '--model ",
+                   "--allowed-tools ", "-SessionName 'WINDOWS Developer #", "(Fix the thing)",
+                   f"-TaskFile '{repo / 'state' / f'.remote-task-{tid}.md'}'",
+                   "-Runner 'claude'", f"-AgentsRoot '{repo}'"):
+        assert needle in script, needle
+    assert "-RunnerModel" not in script
+    row = _row(tid)
+    assert (row["status"], row["pid"], row["host"], row["assigned_agent"], row["runner"]) == (
+        "in_progress", 4321, "winbox", "developer", "claude")
+    assert row["worktree"] == f"{_WORKTREE_ROOT}\\mooniex-agents__developer__{tid}"
+    assert row["branch"] == f"agent/developer-{tid}"
+    assert row["spawned_at"]
+
+
+def test_spawn_worker_on_windows_writes_the_brief_for_the_launcher_and_removes_it(spawn):
+    tid = _spawn_task()
+    _, code = nd._run("spawn_worker", [tid])
+    assert code == 0
+    (name, text), = spawn.brief.items()
+    assert name == f".remote-task-{tid}.md"
+    assert tid in text and f"agent/developer-{tid}" in text and "do it" in text
+    assert list((spawn.repo / "state").glob(".remote-task-*.md")) == []
+
+
+def test_spawn_worker_on_windows_takes_a_codex_runner_and_its_model(spawn):
+    tid = _spawn_task(runner="codex", runner_model="gpt-5.2-codex")
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 0, out
+    script = _launcher_call(spawn)
+    assert f"-Branch 'agent/codex-{tid}'" in script and "-ClaudeArgs ''" in script
+    assert "-Runner 'codex'" in script and "-RunnerModel 'gpt-5.2-codex'" in script
+    assert _row(tid)["runner"] == "codex"
+
+
+def test_spawn_worker_on_windows_a_title_cannot_reach_the_script(spawn):
+    tid = _spawn_task(title="x'; calc; $(id) `k` & \n" + "y" * 80)
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 0, out
+    name = re.search(r"-SessionName '([^']*)'", _launcher_call(spawn)).group(1)
+    assert re.fullmatch(r"[A-Za-z0-9_.#() -]+", name), name
+    assert len(name) < 100
+
+
+def test_spawn_worker_on_windows_a_dead_github_route_blocks_the_host_and_kills_the_leaked_pid(spawn):
+    tid = _spawn_task()
+    spawn.out = "GITHUB_SSH_ROUTE=unreachable (both port 22 and 443 probes failed)\r\n555\r\n"
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 1 and out["ok"] is False
+    assert [c[0] for c in spawn.calls][1] == ["taskkill", "/PID", "555", "/T", "/F"]
+    row = _row(tid)
+    assert row["status"] == "blocked_host"
+    assert "unreachable" in row["delegate_log"] and "killed leaked pid 555" in row["delegate_log"]
+    assert list((spawn.repo / "state").glob(".remote-task-*.md")) == []
+
+
+def test_spawn_worker_on_windows_a_refusal_from_the_launcher_is_a_conflict(spawn):
+    tid = _spawn_task()
+    spawn.rc = 1
+    spawn.out = "SPAWN_REFUSED=dirty-worktree C:\\x\r\n"
+    _, code = nd._run("spawn_worker", [tid])
+    assert code == 1
+    row = _row(tid)
+    assert row["status"] == "conflict" and "dirty-worktree" in row["delegate_log"]
+
+
+@pytest.mark.parametrize("rc, out, err", [(1, "partial\r\n", "boom"), (0, "", ""),
+                                          (0, "no pid here\r\n", "")])
+def test_spawn_worker_on_windows_a_launcher_that_failed_fails_the_row(spawn, rc, out, err):
+    tid = _spawn_task()
+    spawn.rc, spawn.out, spawn.err = rc, out, err
+    _, code = nd._run("spawn_worker", [tid])
+    assert code == 1
+    assert _row(tid)["status"] == "failed"
+    assert list((spawn.repo / "state").glob(".remote-task-*.md")) == []
+
+
+def test_spawn_worker_on_windows_powershell_that_cannot_run_fails_the_row(spawn, monkeypatch):
+    def gone(*a, **kw):
+        raise FileNotFoundError("powershell.exe")
+
+    monkeypatch.setattr(subprocess, "run", gone)
+    tid = _spawn_task()
+    _, code = nd._run("spawn_worker", [tid])
+    assert code == 1 and _row(tid)["status"] == "failed"
+    assert list((spawn.repo / "state").glob(".remote-task-*.md")) == []
+
+
+def test_spawn_worker_on_windows_still_wants_a_pending_task_on_this_host(spawn):
+    for cols in ({"status": "in_progress"}, {"status": "review"}, {"host": "contabo"}):
+        tid = _spawn_task(**cols)
+        _, code = nd._run("spawn_worker", [tid])
+        assert code == 2, cols
+    assert spawn.calls == []
+
+
+@pytest.mark.parametrize("cols", [
+    {"project": "mooniex-agents;calc"}, {"project": "x'y"}, {"project": "no-such-project"},
+    {"role": "dev'eloper"}, {"role": "no_such_role"}, {"role": "developer&calc"},
+    {"runner": "codex; calc"}, {"runner": "nope"}, {"runner": "$(id)"},
+    {"runner_model": "gpt'; calc; '"}, {"runner_model": "a\nb"}, {"runner_model": "a`b"},
+])
+def test_spawn_worker_on_windows_a_hostile_row_is_refused_before_anything_runs(spawn, cols):
+    tid = _spawn_task(**cols)
+    _update(tid, status="pending")
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 2 and out["ok"] is False, (cols, out)
+    assert spawn.calls == [] and spawn.brief == {}
+    assert not (spawn.repo / "state").exists() or list((spawn.repo / "state").iterdir()) == []
+    row = _row(tid)
+    assert row["status"] == "pending" and not row["spawned_at"]
+
+
+_GOOD = {
+    "Task": _TID, "Project": "mooniex-agents", "Role": "developer",
+    "Branch": f"agent/developer-{_TID}", "Base": "main",
+    "RepoUrl": "git@github.com:PASAKON/mooniex-agents.git",
+    "RepoPath": "C:\\Users\\passg\\repo", "WorktreeRoot": "C:\\Users\\passg\\wt",
+    "ClaudeArgs": "--model claude-sonnet-5-5 --allowed-tools Read,Write,Bash",
+    "Model": "claude-sonnet-5-5", "Effort": "high", "SessionName": "WINDOWS Developer #1234abcd (t)",
+    "TaskFile": "C:\\r\\state\\.remote-task-x.md", "Runner": "claude", "RunnerModel": "",
+    "AgentsRoot": "C:\\r",
+}
+
+
+def test_the_spawn_script_builder_takes_a_good_set():
+    script = nd._spawn_worker_script("C:\\r\\windows\\spawn-worker.ps1", dict(_GOOD))
+    assert script.startswith("& 'C:\\r\\windows\\spawn-worker.ps1' -Task 'task-1234abcd' ")
+    # One quoted value: PowerShell cannot bind a leading `--model` as a parameter.
+    assert "-ClaudeArgs '--model claude-sonnet-5-5 --allowed-tools Read,Write,Bash' -Model " in script
+
+
+@pytest.mark.parametrize("hostile", ["'", ";", "&", "`", "$(id)", "\n", '"', "\u2018", "\u2019"])
+@pytest.mark.parametrize("name", sorted(_GOOD))
+def test_the_spawn_script_builder_refuses_a_hostile_value_in_every_parameter(name, hostile):
+    if name == "RunnerModel":
+        values = {**_GOOD, name: "gpt" + hostile}
+    else:
+        values = {**_GOOD, name: _GOOD[name] + hostile}
+    with pytest.raises(nd.Refusal):
+        nd._spawn_worker_script("C:\\r\\windows\\spawn-worker.ps1", values)
+
+
+@pytest.mark.parametrize("launcher", ["C:\\r'; calc; '\\x.ps1", "C:\\r\\$(id).ps1", "a\nb", ""])
+def test_the_spawn_script_builder_refuses_a_hostile_launcher_path(launcher):
+    with pytest.raises(nd.Refusal):
+        nd._spawn_worker_script(launcher, dict(_GOOD))
+
+
+@pytest.mark.parametrize("runner", ["", "CLAUDE", "gemini", None, 7])
+def test_the_spawn_script_builder_refuses_a_runner_that_is_not_known(runner):
+    with pytest.raises(nd.Refusal):
+        nd._spawn_worker_script("C:\\r\\x.ps1", {**_GOOD, "Runner": runner})
+
+
+def test_spawn_worker_off_windows_still_goes_through_delegate_task(monkeypatch):
+    seen = []
+
+    async def fake(task_id, host=None, **kw):
+        seen.append((task_id, host))
+        _update(task_id, status="in_progress", pid=7)
+
+    from tools import delegate
+    monkeypatch.setattr(delegate, "delegate_task", fake)
+    monkeypatch.setattr(nd, "_is_windows", lambda: False)
+    monkeypatch.setattr(nd, "_spawn_worker_windows", _boom)
+    tid = _spawn_task()
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 0, out
+    assert seen == [(tid, "winbox")]
+
+
+# ---------------------------------------------------------------------------
 # deliver_letter: a C-level session
 # ---------------------------------------------------------------------------
 

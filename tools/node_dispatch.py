@@ -263,8 +263,11 @@ def verb_spawn_worker(task_id: str) -> dict:
     task = _task_on_this_host(task_id, allow_null_host=True)
     if task["status"] != "pending":
         raise Refusal(f"task {task_id} is {task['status']}, spawn_worker needs pending")
-    from tools import delegate
-    asyncio.run(delegate.delegate_task(task_id, host=_self_host()))
+    if _is_windows():
+        _spawn_worker_windows(task)
+    else:
+        from tools import delegate
+        asyncio.run(delegate.delegate_task(task_id, host=_self_host()))
     row = _slim_task(task_id)
     # delegate_task returns normally for a spawn it queued or blocked
     # (disk floor, blocked_host, conflict); only in_progress means a worker.
@@ -389,14 +392,14 @@ def _ps_safe(label: str, value: object) -> str:
     return value
 
 
-def _run_powershell(script: str) -> subprocess.CompletedProcess:
+def _run_powershell(script: str, timeout: float = _SCHTASK_TIMEOUT_S) -> subprocess.CompletedProcess:
     """One powershell.exe call, argv list. The script travels as -EncodedCommand
     (base64 of UTF-16LE), so no shell or command line ever re-parses it."""
     encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
     return subprocess.run(
         ["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
          "-EncodedCommand", encoded],
-        capture_output=True, text=True, timeout=_SCHTASK_TIMEOUT_S,
+        capture_output=True, text=True, timeout=timeout,
         stdin=subprocess.DEVNULL,
     )
 
@@ -473,6 +476,170 @@ def _start_clevel_schtask(role: str, resume_sid: str | None) -> dict:
                       f"{(r.stderr or r.stdout).strip()[:200]}")
     return {"role": role, "via": "schtask", "session_id": sid, "task_name": task_name,
             "resumed_from": resume_sid}
+
+
+# ---------------------------------------------------------------------------
+# spawn_worker on Windows
+# ---------------------------------------------------------------------------
+#
+# delegate.delegate_task cannot start a worker on Windows: _spawn_local needs
+# tmux and fails the row, and the launcher transport is linux-only. The hub has
+# already done delegate_task's gating (dependencies, path locks, browser cap,
+# disk floor) before it sent this verb, so what is left here is what
+# delegate._spawn_remote does for a Windows host: render the launch arguments,
+# run windows/spawn-worker.ps1, read its output, write the row. That script makes
+# the one-shot interactive scheduled task itself (session 1), so nothing here
+# starts claude directly.
+#
+# Every value below reaches PowerShell as a single-quoted literal, and a
+# single-quoted literal is only ever ended by a quote. Each value is still held
+# to its own allow-list first (the same rule as _ps_safe): a refusal, never an
+# escape.
+_PS_TOKEN_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}")
+_PS_REF_RE = re.compile(r"[A-Za-z0-9._/-]{1,100}")
+_PS_REPO_URL_RE = re.compile(r"git@[A-Za-z0-9.-]{1,64}:[A-Za-z0-9._-]{1,64}/[A-Za-z0-9._-]{1,100}")
+_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,600}")
+_PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#() -]{1,120}")
+_PS_MODEL_RE = re.compile(r"[A-Za-z0-9_.:/-]{1,100}")
+_WORKER_RUNNERS = ("claude", "codex", "agy")
+_SPAWN_WORKER_TIMEOUT_S = 300  # delegate.REMOTE_LAUNCH_TIMEOUT_S: a clone can be slow
+
+# spawn-worker.ps1 parameter -> the pattern its value must fullmatch, in the
+# order they are passed. RunnerModel is added only when there is one.
+_SPAWN_PARAMS = (
+    ("Task", TASK_ID_RE), ("Project", _PS_TOKEN_RE), ("Role", _PS_TOKEN_RE),
+    ("Branch", BRANCH_RE), ("Base", _PS_REF_RE), ("RepoUrl", _PS_REPO_URL_RE),
+    ("RepoPath", _PS_SAFE_RE), ("WorktreeRoot", _PS_SAFE_RE),
+    ("ClaudeArgs", _PS_CLAUDE_ARGS_RE), ("Model", _PS_TOKEN_RE),
+    ("Effort", _PS_TOKEN_RE), ("SessionName", _PS_SESSION_NAME_RE),
+    ("TaskFile", _PS_SAFE_RE), ("Runner", _PS_TOKEN_RE),
+    ("RunnerModel", _PS_MODEL_RE), ("AgentsRoot", _PS_SAFE_RE),
+)
+
+
+def _spawn_worker_script(launcher: str, values: dict) -> str:
+    """The PowerShell that runs spawn-worker.ps1 with `values`. Refuses, before
+    it returns any text, a value that is not a string or is outside its pattern.
+    `exit $LASTEXITCODE` hands the launcher's own exit code to the caller."""
+    if not _PS_SAFE_RE.fullmatch(launcher):
+        raise Refusal(f"launcher path {_show(launcher)} is not safe to hand to PowerShell")
+    if values.get("Runner") not in _WORKER_RUNNERS:
+        raise Refusal(f"runner {_show(values.get('Runner'))} is not one of {list(_WORKER_RUNNERS)}")
+    parts = [f"& '{launcher}'"]
+    for name, pattern in _SPAWN_PARAMS:
+        if name == "RunnerModel" and not values.get(name):
+            continue
+        value = values.get(name)
+        if not isinstance(value, str) or not pattern.fullmatch(value):
+            raise Refusal(f"{name} {_show(value)} is not safe to hand to PowerShell")
+        parts.append(f"-{name} '{value}'")
+    return " ".join(parts) + "; exit $LASTEXITCODE"
+
+
+def _spawn_worker_values(task: dict) -> dict:
+    """What spawn-worker.ps1 needs for `task` on this Windows host, from the same
+    delegate helpers _spawn_remote uses (no second copy of the branch, argument
+    and URL rules). Nothing is run; a config problem is a refusal."""
+    from tools import delegate
+    host = _self_host()
+    role, project_key = task["role"], task["project"]
+    try:
+        host_cfg = config.host(host)
+        if host_cfg.get("os") != "windows":
+            raise ValueError(f"host {host!r} is os={host_cfg.get('os')!r}, not windows")
+        runner = (task.get("runner") or "claude").strip().lower()
+        delegate._validate_runner(runner, host)
+        proj = config.get_project(project_key)
+        role_cfg = config.role(role)
+        repo_url = delegate._ssh_remote_url(proj.get("remote") or "")
+        repo_path = config.project_path_for_host(project_key, host)
+        claude_args = delegate._render_remote_runner_args(role, host, runner)
+        branch = delegate._runner_branch_name(runner, role, task["id"])
+        worktree_root = host_cfg["worktrees"]
+    except (ValueError, KeyError) as e:
+        raise Refusal(f"spawn_worker: {e}")
+    # The title is free text a person typed. Keep the readable part and cut the
+    # rest; worker_session_name would only add "..." past 40 characters.
+    title = re.sub(r"[^A-Za-z0-9 ._-]", "", task.get("title") or "")[:40].strip()
+    return {
+        "Task": task["id"], "Project": project_key, "Role": role, "Branch": branch,
+        "Base": proj.get("default_branch"), "RepoUrl": repo_url, "RepoPath": repo_path,
+        "WorktreeRoot": worktree_root,
+        "ClaudeArgs": claude_args,
+        "Model": role_cfg.get("model") or "claude-sonnet-5-5",
+        "Effort": role_cfg.get("effort") or "high",
+        "SessionName": config.worker_session_name(host, role, task["id"], title),
+        "Runner": runner,
+        "RunnerModel": str(task.get("runner_model") or ""),
+        "AgentsRoot": str(ROOT),
+        "_project": proj,
+    }
+
+
+def _spawn_worker_windows(task: dict) -> None:
+    """Start `task`'s worker on this Windows host and write the row the way
+    delegate._spawn_remote writes it: in_progress with the pid, blocked_host
+    when the launcher says GitHub is unreachable, conflict when it refuses,
+    failed for anything else. The caller reads the row back."""
+    from runners.worker_init import _build_prompt
+    task_id = task["id"]
+    launcher = ROOT / "windows" / "spawn-worker.ps1"
+    if not launcher.exists():
+        raise Failure(f"missing {launcher.name}")
+    values = _spawn_worker_values(task)
+    proj = values.pop("_project")
+    worktree = f"{values['WorktreeRoot']}\\{values['Project']}__{values['Role']}__{task_id}"
+    task_file = ROOT / "state" / f".remote-task-{task_id}.md"
+    values["TaskFile"] = str(task_file)
+    # Built, and so validated, before the brief is written or anything runs.
+    script = _spawn_worker_script(str(launcher), values)
+    prompt = _build_prompt({**task, "branch": values["Branch"]}, proj, worktree)
+    task_file.parent.mkdir(parents=True, exist_ok=True)
+    task_file.write_text(prompt, encoding="utf-8")
+    db.set_fields(task_id, spawned_at=db.now_iso(), host=_self_host(), actor=ACTOR)
+    try:
+        r = _run_powershell(script, timeout=_SPAWN_WORKER_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        db.update_status(task_id, "failed", delegate_log=f"spawn failed: {e}", actor=ACTOR)
+        return
+    finally:
+        task_file.unlink(missing_ok=True)
+    lines = [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
+    route = next((ln for ln in lines if ln.startswith("GITHUB_SSH_ROUTE=unreachable")), None)
+    if route is not None:
+        # The launcher can print a pid even with a dead route: it must not stay.
+        note = ""
+        if lines and lines[-1].isdigit():
+            try:
+                k = subprocess.run(["taskkill", "/PID", lines[-1], "/T", "/F"],
+                                   capture_output=True, text=True, timeout=30,
+                                   stdin=subprocess.DEVNULL)
+                note = f"; killed leaked pid {lines[-1]} (exit {k.returncode})"
+            except (OSError, subprocess.SubprocessError) as e:
+                note = f"; could not kill leaked pid {lines[-1]}: {str(e)[:100]}"
+        db.update_status(task_id, "blocked_host", actor=ACTOR,
+                         delegate_log=f"{route} -- git route from {_self_host()} dead{note}")
+        return
+    refused = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
+    if refused is not None:
+        db.update_status(task_id, "conflict", actor=ACTOR,
+                         delegate_log=f"spawn refused ({_self_host()}): "
+                                      f"{refused[len('SPAWN_REFUSED='):]}")
+        return
+    if r.returncode != 0 or not lines:
+        detail = (r.stderr or r.stdout or "").strip()[:1000]
+        db.update_status(task_id, "failed", actor=ACTOR,
+                         delegate_log=f"spawn ({_self_host()}) failed: {detail}")
+        return
+    if not lines[-1].isdigit():
+        db.update_status(task_id, "failed", actor=ACTOR,
+                         delegate_log=f"spawn ({_self_host()}): unparseable pid line {lines[-1][:100]!r}")
+        return
+    db.update_status(
+        task_id, "in_progress", pid=int(lines[-1]), host=_self_host(), worktree=worktree,
+        branch=values["Branch"], assigned_agent=values["Role"], runner=values["Runner"],
+        actor=ACTOR,
+    )
 
 
 def verb_start_clevel(role: str, resume_sid: str | None) -> dict:

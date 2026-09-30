@@ -5,7 +5,7 @@ so what can be checked is the TEXT of the script. W3.3 adds `-AgentsRoot`:
 node_dispatch runs the script in place from the repo checkout (where it sits in
 windows\\ and roles\\ is one level up) instead of from a deploy copy.
 
-Run:  .venv/bin/python -m pytest tests/test_spawn_worker_ps1.py
+Run:  .venv/bin/python -m pytest tests/test_w33_spawn_worker_ps1.py
 """
 from __future__ import annotations
 
