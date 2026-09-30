@@ -118,6 +118,7 @@ function Initialize-Args($o) {
     if ($h.EndsWith('/org-join')) { $h = $h.Substring(0, $h.Length - 9) }
     $script:Hub = $h + '/org-join'
     if ($script:Hub -notmatch '^https?://[A-Za-z0-9.-]+(:[0-9]+)?/org-join$') { Die '--hub must look like https://<hub>' }
+    if ($script:Hub -notmatch '^(https://|http://(127\.0\.0\.1|localhost)[:/])') { Die 'the hub URL must be https (plain http is for localhost only): the token would cross the network in clear text' }
 
     $script:ConfDir = Join-Path $env:USERPROFILE '.config\mooniex'
     $script:SshDir = Join-Path $env:USERPROFILE '.ssh'

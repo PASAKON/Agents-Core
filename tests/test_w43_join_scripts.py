@@ -223,6 +223,8 @@ def test_help_prints_usage_and_exits_zero(tmp_path):
     (["--token", TOKEN, "--host", "node-a", "--hub", "http://h:1", "--hq-root", "rel/path"], "absolute"),
     (["--token", TOKEN, "--host", "node-a"], "no hub URL"),          # the raw file: placeholder unreplaced
     (["--token", TOKEN, "--host", "node-a", "--hub", "ftp://x"], "--hub must look like"),
+    (["--token", TOKEN, "--host", "node-a", "--hub", "http://hub.example.test"], "must be https"),
+    (["--token", TOKEN, "--host", "node-a", "--hub", "http://127.0.0.1.evil.test"], "must be https"),
     (["--token"], "--token needs a value"),
 ])
 def test_bad_arguments_stop_at_step_1_and_never_echo_the_token(tmp_path, args, message):

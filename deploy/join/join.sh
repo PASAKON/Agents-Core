@@ -147,6 +147,10 @@ check_args() {
   HUB=$(normalize_hub "$HUB")
   printf '%s' "$HUB" | grep -Eq '^https?://[A-Za-z0-9.-]+(:[0-9]+)?/org-join$' \
     || die "--hub must look like https://<hub>"
+  case "$HUB" in
+    https://*|http://127.0.0.1[:/]*|http://localhost[:/]*) ;;
+    *) die "the hub URL must be https (plain http is for localhost only): the token would cross the network in clear text" ;;
+  esac
   CONF_DIR=$HOME/.config/mooniex
   AGE_ID=$CONF_DIR/age-identity.txt
   DEPLOY_KEY=$CONF_DIR/deploy_key
