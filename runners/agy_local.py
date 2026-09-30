@@ -7,6 +7,7 @@ agy only edits files; the hub handles git add, verification, and commit.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -15,6 +16,9 @@ from typing import Any, Callable
 from lib import db
 
 ORG_PYTHON = str(Path(__file__).resolve().parents[1] / ".venv" / "bin" / "python")
+# Same pattern as tools/route._AGY_BROWSE_RE: the brief that routes a task to agy
+# is the brief that must be told agy_browse is allowed.
+_AGY_BROWSE_RE = re.compile(r"(?<![\w/])tools/agy_browse\.py\b")
 
 # Placeholder so tests or callers can monkeypatch agy_local.update_status directly
 update_status: Callable[..., Any] | None = None
@@ -50,6 +54,15 @@ def build_agy_prompt(prompt: str, worktree: str) -> str:
         f"When finished, write REPORT.md at the worktree root with three headings: "
         f"Files changed, What was done, Blockers."
     )
+    if _AGY_BROWSE_RE.search(prompt):
+        # GH #188: a browser brief routed here (tools/route.class_for) needs its one
+        # browser command named, or the list above tells agy it may not browse.
+        contract += (
+            f" Exception for this browser task: you may also run "
+            f"`{ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]` from the worktree root, "
+            f"with exactly this interpreter path. It is your only browser. Its arguments must be ASCII and must "
+            f"not contain ; & | ` $ \\ < > * ? ~ or a newline, or the call is refused."
+        )
     p = prompt.rstrip()
     if p:
         return f"{p}\n\n{contract}\n"
