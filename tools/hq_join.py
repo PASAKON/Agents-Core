@@ -854,18 +854,14 @@ def leave(host: str, *, live: bool = False,
 
 # ---------------------------------------------------------------- rotate after leave (F8)
 
-# Revoking a node's client secret does not recall what the node already read. The org-node
-# identity is a viewer on Agents-Core (dev and prod alike on Free), so the set below is what a
-# node could have copied. Scope, not exact names: PLAN.md §3 and the W4.6 review name the
-# categories. Used only when Infisical cannot be asked; docs/ops/hq-join.md carries the same list.
+# Revoking a node's client secret does not recall what the node already read. Since W4.6c F2 the
+# org-node identity is a viewer on the Org-Node project ONLY (dev and prod alike on Free, but that
+# project holds one prod secret), so the set below is what a node could have copied. Used only
+# when Infisical cannot be asked; docs/ops/hq-join.md carries the same list. A node that left
+# before org-node was moved off Agents-Core could also read that project: docs/ops/hq-join.md,
+# "Nodes that joined before Org-Node", says what to rotate for those.
 DOCUMENTED_READABLE = (
-    "ORG_DB_URL (hub Postgres, role `org`)",
     "CLAUDE_CODE_OAUTH_TOKEN (shared by every node)",
-    "Run Inbox tokens",
-    "SomPong / secretary credentials",
-    "Jules and Jev / OpenRouter keys",
-    "Drive OAuth client and each machine's Drive token",
-    "LungNote MCP client credentials",
 )
 ROTATE_DOC = 'docs/ops/hq-join.md, "After a leave: rotate what the node could read"'
 
@@ -883,7 +879,7 @@ def rotate_scope(org=None) -> dict:
         except Exception as exc:   # the leave already ran: a failed lookup must not hide the block
             why = f"the Infisical lookup failed ({type(exc).__name__})"
     return {"source": "documented", "why": why,
-            "names": {"Agents-Core (documented set)": list(DOCUMENTED_READABLE)}}
+            "names": {"Org-Node (documented set)": list(DOCUMENTED_READABLE)}}
 
 
 def _live_rotate_scope() -> dict:

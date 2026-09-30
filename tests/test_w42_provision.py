@@ -79,7 +79,10 @@ class FakeOrg(infisical_setup.Org):
         self.identity, self.token, self.org_id, self.setup_identity = "setup", "tok", "org-1", "id-setup"
         self.ids = {n: f"id-{n}" for n in idents}
         self.ua = {i: f"client-{n}" for n, i in self.ids.items()}
-        self.members = {n: ["viewer"] for n in idents if n != "setup"}
+        # W4.6c F2: two projects. proj-1 is Org-Node (what node_identity / node secrets use); the
+        # machine identities are viewers on proj-2, Agents-Core, where org-node must never be.
+        self.members = {n: ["viewer"] for n in idents if n == "org-node"}
+        self.core_members = {n: ["viewer"] for n in idents if n not in ("setup", "org-node")}
         self.secrets = {}           # client secret id -> {description, revoked, ttl, uses}
         self.minted_values = []     # every secret value this org ever handed out
         self.calls = []             # (method, route, body)
@@ -101,11 +104,14 @@ class FakeOrg(infisical_setup.Org):
         if route == "/api/v1/identities":
             return {"identities": [{"identity": {"name": n, "id": i}} for n, i in self.ids.items()]}
         if route == "/api/v2/organizations/org-1/workspaces":
-            return {"workspaces": [{"slug": "agents-core", "id": "proj-1"}]}
-        if route == "/api/v1/projects/proj-1/identity-memberships":
+            return {"workspaces": [{"slug": "org-node", "name": "Org-Node", "id": "proj-1"},
+                                   {"slug": "agents-core", "name": "Agents-Core", "id": "proj-2"}]}
+        m = re.fullmatch(r"/api/v1/projects/(proj-[12])/identity-memberships", route)
+        if m:
+            table = self.members if m[1] == "proj-1" else self.core_members
             return {"identityMemberships": [
                 {"identity": {"name": n}, "roles": [{"role": r} for r in roles]}
-                for n, roles in self.members.items()]}
+                for n, roles in table.items()]}
         m = re.fullmatch(UA + r"/identities/([^/]+)", route)
         if m:
             if m[1] not in self.ua:

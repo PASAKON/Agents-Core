@@ -692,7 +692,7 @@ print(d["client_secret"])' 2>/dev/null \
 # its identity is saved, and the probe's own message says what is left to fix.
 do_probe() {
   step 9 "probe: measure this node through its own identity"
-  say "$(root_prefix)env HOME=$HOME ORG_HOST=$HOST python3 -I -B tools/infisical_setup.py run Agents-Core prod --as $HOST -- .venv/bin/python -I -B tools/node_dispatch.py probe"
+  say "$(root_prefix)env HOME=$HOME ORG_HOST=$HOST python3 -I -B tools/infisical_setup.py run Org-Node prod --as $HOST -- .venv/bin/python -I -B tools/node_dispatch.py probe"
   say "HOME=$HOME is handed on explicitly: the probe reads $CONF_DIR/node.yaml, the file step 8 wrote"
   [ "$DRY_RUN" -eq 1 ] && return 0
   # node.yaml was written under this script's $HOME (CONF_DIR), and lib/config.py finds it through
@@ -706,7 +706,7 @@ do_probe() {
   # `-m tools.node_dispatch` found the `tools` package, so the probe is started by its path: the
   # file puts the checkout on sys.path itself (tools/node_dispatch.py, `sys.path.insert(0, ROOT)`).
   # The probe's stderr is left on the terminal; only its one JSON line is read.
-  _res=$(cd "$CORE" && as_root env HOME="$HOME" ORG_HOST="$HOST" "$PY" -I -B "$CORE/tools/infisical_setup.py" run Agents-Core prod --as "$HOST" \
+  _res=$(cd "$CORE" && as_root env HOME="$HOME" ORG_HOST="$HOST" "$PY" -I -B "$CORE/tools/infisical_setup.py" run Org-Node prod --as "$HOST" \
     -- "$CORE/.venv/bin/python" -I -B "$CORE/tools/node_dispatch.py" probe </dev/null) || true
   printf '%s\n' "$_res" | "$PY" -I -c 'import json, sys
 last = [l for l in sys.stdin.read().splitlines() if l.strip()][-1:]
@@ -738,7 +738,7 @@ finish() {
   fi
   say "dispatch public key (for the ssh mesh, W2.8): $DISPATCH_KEY.pub"
   say "claude: nothing to sign in to here. The node reads CLAUDE_CODE_OAUTH_TOKEN at run time through"
-  say "  infisical_setup.py run Agents-Core prod --as $HOST -- <command>   (once the CEO has put it there)"
+  say "  infisical_setup.py run Org-Node prod --as $HOST -- <command>   (once the CEO has put it there)"
 }
 
 main() {

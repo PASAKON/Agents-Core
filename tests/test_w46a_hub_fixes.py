@@ -473,13 +473,13 @@ class SecretsOrg(FakeOrg):
     """FakeOrg plus the project, environment and secret-list routes node_readable_secret_names
     uses. The list answers with VALUES too, as Infisical does: none may reach the output."""
 
-    VALUES = {"dev": {"OPENROUTER_API_KEY": "sk-or-LEAKME-dev", "ORG_DB_URL": "postgres://u:LEAKME@h/db"},
-              "prod": {"CLAUDE_CODE_OAUTH_TOKEN": "sk-ant-LEAKME-prod", "ORG_DB_URL": "postgres://u:LEAKME@h/db"}}
+    # W4.6c F2: proj-1 is Org-Node, prod only, one secret.
+    VALUES = {"prod": {"CLAUDE_CODE_OAUTH_TOKEN": "sk-ant-LEAKME-prod"}}
 
     def get(self, route, **query):
         if route == "/api/v1/projects/proj-1":
             self.calls.append(("GET", route, None))
-            return {"project": {"environments": [{"slug": "prod", "id": "e2"}, {"slug": "dev", "id": "e1"}]}}
+            return {"project": {"environments": [{"slug": "prod", "id": "e2"}]}}
         if route == "/api/v3/secrets/raw":
             self.calls.append(("GET", route, None))
             assert query["workspaceId"] == "proj-1" and query["secretPath"] == "/"
@@ -490,21 +490,20 @@ class SecretsOrg(FakeOrg):
 
 def test_node_readable_secret_names_returns_names_only():
     out = infisical_setup.node_readable_secret_names(SecretsOrg())
-    assert out == {"Agents-Core/dev": ["OPENROUTER_API_KEY", "ORG_DB_URL"],
-                   "Agents-Core/prod": ["CLAUDE_CODE_OAUTH_TOKEN", "ORG_DB_URL"]}
+    assert out == {"Org-Node/prod": ["CLAUDE_CODE_OAUTH_TOKEN"]}
     assert "LEAKME" not in json.dumps(out)
 
 
 def test_rotate_scope_with_an_org_lists_names_and_says_where_they_came_from():
     scope = hq_join.rotate_scope(SecretsOrg())
-    assert scope["source"] == "infisical" and "Agents-Core/prod" in scope["names"]
+    assert scope["source"] == "infisical" and "Org-Node/prod" in scope["names"]
 
 
 def test_rotate_scope_falls_back_to_the_documented_set_and_says_why():
     none = hq_join.rotate_scope(None)
     assert none["source"] == "documented" and "no admin login" in none["why"]
     (names,) = none["names"].values()
-    assert names == list(hq_join.DOCUMENTED_READABLE) and len(names) >= 6
+    assert names == list(hq_join.DOCUMENTED_READABLE) == ["CLAUDE_CODE_OAUTH_TOKEN (shared by every node)"]
 
     class Broken(SecretsOrg):
         def get(self, route, **query):
@@ -552,8 +551,8 @@ def test_leave_live_prints_secret_names_from_infisical_and_never_a_value(monkeyp
     captured = capsys.readouterr()
     out = captured.out
     assert "source: Infisical" in out
-    assert "Agents-Core/prod: CLAUDE_CODE_OAUTH_TOKEN, ORG_DB_URL" in out
-    assert "Agents-Core/dev: OPENROUTER_API_KEY, ORG_DB_URL" in out
+    assert "Org-Node/prod: CLAUDE_CODE_OAUTH_TOKEN" in out
+    assert "Agents-Core" not in out
     everything = out + captured.err
     assert "LEAKME" not in everything
     assert org.minted_values[0] not in everything

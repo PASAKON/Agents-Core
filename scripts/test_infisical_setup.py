@@ -282,6 +282,13 @@ class InfisicalSetupTest(unittest.TestCase):
             self.assertIn("ceo@example.com", projects[name]["users"], name)
         self.assertEqual(projects["Org-Infra"]["envs"].keys(), {"prod"})
         self.assertEqual(projects["Org-Infra"]["folders"]["prod"], set(self.mod.ORG_INFRA_FOLDERS))
+        # W4.6c: Org-Node is prod only with no folder; Agents-Core prod gets the /org-join folder
+        self.assertEqual(projects["Org-Node"]["envs"].keys(), {"prod"})
+        self.assertEqual(projects["Org-Node"]["folders"].get("prod", set()), set())
+        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join"})
+        for host in self.mod.MACHINES:
+            self.assertNotIn(host, projects["Org-Node"]["idents"])
+        self.assertNotIn("org-node", projects["Agents-Core"]["idents"])
         for host, allowed in self.mod.MACHINES.items():
             for name, x in projects.items():
                 self.assertEqual(x["idents"].get(host) == ["viewer"], name in allowed, (host, name))

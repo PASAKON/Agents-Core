@@ -616,7 +616,7 @@ def test_the_extractors_the_probe_and_save_run_isolated_and_the_probe_by_path():
     text = JOIN_SH.read_text()
     probe = _function(text, "do_probe")
     probe_code = "\n".join(ln for ln in probe.splitlines() if not ln.lstrip().startswith("#"))
-    assert '"$PY" -I -B "$CORE/tools/infisical_setup.py" run Agents-Core prod' in probe_code
+    assert '"$PY" -I -B "$CORE/tools/infisical_setup.py" run Org-Node prod' in probe_code
     assert '"$CORE/.venv/bin/python" -I -B "$CORE/tools/node_dispatch.py" probe' in probe_code
     assert "PYTHONDONTWRITEBYTECODE" not in probe_code and "-m tools.node_dispatch" not in probe_code
     assert ' env HOME="$HOME" ORG_HOST="$HOST" ' in probe                      # the w44c HOME pass-through stays
