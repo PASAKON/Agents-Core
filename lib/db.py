@@ -339,10 +339,14 @@ _HOSTS_MIGRATION = [
 #                deploy key, set by hq_join accept --deploy-pubkey. Its own
 #                column, not config_json, so it never leaks into the hosts.yaml
 #                export. NULL = the node gets no deploy key.
+#   approved_at  (W4.6a, F1) when an operator matched the node's key fingerprint
+#                (`hq_join approve`). NULL = not approved: provision skips the
+#                row. Reset to NULL when a `left` host joins again.
 _HOSTS_JOIN_MIGRATION = [
     ("pubkey", "TEXT"),
     ("config_json", "TEXT"),
     ("deploy_pubkey", "TEXT"),
+    ("approved_at", "TEXT"),
 ]
 
 # letters.from_host (W2.4): which host (config/hosts.yaml key) sent the letter.
@@ -1322,6 +1326,7 @@ _HOST_COLUMNS = {
     "os", "hq_root", "agents_root", "provides", "max_workers", "status",
     "probed_at", "free_gb", "ram_free_gb", "running", "version",
     "cpus", "load_per_core", "runners", "pubkey", "config_json", "deploy_pubkey",
+    "approved_at",
 }
 
 

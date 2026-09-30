@@ -7,6 +7,8 @@ docs/ops/hq-join.md has the operator view. Six verbs:
     python -m tools.hq_join accept --token <t|-> --host <name> --os <os> \\
                                    --hq-root <path> --pubkey <age1...>
                                    [--deploy-pubkey "ssh-ed25519 AAAA..."]
+    python -m tools.hq_join status [--host <name>]      # joined nodes + key fingerprint
+    python -m tools.hq_join approve --host <name> --fingerprint <8 chars>   # W4.6a
     python -m tools.hq_join provision --host <name>     # Mac side (W4.2)
     python -m tools.hq_join sealed --host <name>        # prints the ciphertext
     python -m tools.hq_join leave --host <name> [--live]
@@ -19,6 +21,13 @@ accept   Consumes the token and inserts the `hosts` row as pending_identity
          single UPDATE ... WHERE used_at IS NULL AND expires_at > now
          RETURNING, so two racing accepts cannot both win (SQLite serialises
          writers, Postgres re-checks the WHERE after the first commit).
+status   W4.6a. One line per joined node: status, whether it is approved, and the
+         FINGERPRINT of its age key (the last 8 chars of the public recipient, no
+         secret). The operator compares it with the one join.sh printed on the node.
+approve  W4.6a (F1). `--fingerprint` must equal the fingerprint of the stored key
+         (constant-time compare) on a pending_identity row; it sets hosts.approved_at.
+         `provision` does nothing for a row that is not approved, so whoever wins
+         the accept race with a leaked token still gets no identity.
 provision
          W4.2. A pending_identity row becomes identity_ready: mint a Universal
          Auth client secret for the host under the shared identity `org-node`,
@@ -52,6 +61,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import logging
 import os
@@ -87,6 +97,13 @@ OS_NAMES = ("darwin", "linux", "windows")
 # age X25519 recipient: bech32, hrp "age", 32 bytes -> 52 data chars + 6 checksum.
 AGE_RE = re.compile(r"age1[02-9ac-hj-np-z]{58}")
 _BECH32 = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+# W4.6a F1. What the operator compares by eye and types into `approve`: the last 8 chars of
+# the recipient (2 key chars + the 6-char checksum). The recipient is public, so is this.
+FINGERPRINT_LEN = 8
+FINGERPRINT_RE = re.compile(r"[02-9ac-hj-np-z]{8}")
+# W4.6a F14. hq_root flows into config_json agents_root/worktrees, and a shell may interpolate
+# it later: no `$`, backtick, `;`, quote, `(`, `&`, `|`. lib.config._node_hq_root has the same set.
+HQ_ROOT_CHARS_RE = re.compile(r"[A-Za-z0-9 ._/\\:-]+")
 
 # hosts.status values that keep a name taken. Only `left` frees it.
 STATUS_LEFT = "left"
@@ -153,10 +170,26 @@ def valid_age_recipient(key: str) -> bool:
     return _bech32_polymod(values) == 1
 
 
+def reserved_hosts() -> frozenset:
+    """Names no joined node may take (W4.6a F13): the admin identity `setup`, the shared
+    `org-node`, and every machine identity in infisical_setup.MACHINES. A node saves its
+    credentials as /etc/infisical/<host>.env, and `setup.env` is the file is_admin_host()
+    reads as the admin marker. Read at call time, so a new MACHINES entry is covered."""
+    return frozenset({infisical_setup.SETUP, infisical_setup.NODE_IDENTITY,
+                      *infisical_setup.MACHINES})
+
+
 def _check_host(host: str) -> None:
     if not isinstance(host, str) or not HOST_RE.fullmatch(host):
         raise JoinError("bad_arg", "host name must be 3-31 chars: a-z, 0-9, '-', "
                                    "starting with a letter, not ending in '-'")
+    if host in reserved_hosts():
+        raise JoinError("bad_arg", f"host name {host!r} is reserved (an Infisical identity name)")
+
+
+def fingerprint(pubkey: str) -> str:
+    """The short check string of an age recipient: its last FINGERPRINT_LEN chars."""
+    return pubkey[-FINGERPRINT_LEN:]
 
 
 def _check_hq_root(os_name: str, path: str) -> str:
@@ -164,6 +197,8 @@ def _check_hq_root(os_name: str, path: str) -> str:
         raise JoinError("bad_arg", "hq-root must be a non-empty path of at most 240 chars")
     if any(ord(c) < 32 or ord(c) == 127 for c in path):
         raise JoinError("bad_arg", "hq-root must not contain control characters")
+    if not HQ_ROOT_CHARS_RE.fullmatch(path):
+        raise JoinError("bad_arg", "hq-root may contain only letters, digits, space and . _ / \\ : -")
     if os_name == "windows":
         ok = re.fullmatch(r"[A-Za-z]:[\\/].*", path) is not None
     else:
@@ -243,7 +278,7 @@ _INSERT_HOST_SQL = (
     "agents_root=excluded.agents_root, provides=excluded.provides, "
     "max_workers=excluded.max_workers, status=excluded.status, "
     "pubkey=excluded.pubkey, config_json=excluded.config_json, "
-    "deploy_pubkey=excluded.deploy_pubkey, "
+    "deploy_pubkey=excluded.deploy_pubkey, approved_at=NULL, "
     "updated_at=excluded.updated_at, probed_at=NULL, free_gb=NULL, "
     "ram_free_gb=NULL, running=NULL, version=NULL, cpus=NULL, "
     "load_per_core=NULL, runners=NULL "
@@ -328,7 +363,71 @@ def accept(token: str, host: str, os_name: str, hq_root: str, pubkey: str,
             raise JoinError("host_in_use", f"host name {host!r} is already registered")
         db.log_event(conn, None, ACTOR, "join_accept",
                      {"host": host, "os": os_name, "deploy_key": deploy_key is not None})
-    return {"host": host, "status": STATUS_PENDING, "agents_root": agents_root}
+    return {"host": host, "status": STATUS_PENDING, "agents_root": agents_root,
+            "fingerprint": fingerprint(pubkey)}
+
+
+# ---------------------------------------------------------------- approve (W4.6a, F1)
+
+def approve(host: str, fp: str, *, now: datetime | None = None) -> dict:
+    """Mark a pending_identity host approved: `fp` must be the fingerprint (last 8 chars) of
+    the age key the hub stored for it. A human reads it off the node's screen, so a racer who
+    won /accept with their own key cannot be approved by mistake: their key has another
+    fingerprint. No provision happens without this (provision skips unapproved rows).
+
+    The compare is constant time. The error never echoes the stored fingerprint (that would
+    let a mismatch be fixed by copying it from the error). Approving twice is a no-op."""
+    _check_host(host)
+    want = fp.strip().lower() if isinstance(fp, str) else ""
+    if not FINGERPRINT_RE.fullmatch(want):
+        raise JoinError("bad_arg", f"fingerprint must be the last {FINGERPRINT_LEN} characters "
+                                   f"of the node's age recipient (a-z 0-9, no b i o 1)")
+    with db.get_conn() as conn:
+        row = conn.execute("SELECT status, pubkey, approved_at FROM hosts WHERE host = ?",
+                           (host,)).fetchone()
+    if row is None:
+        raise JoinError("unknown_host", f"host {host!r} is not registered")
+    if not row["pubkey"]:
+        raise JoinError("not_joined", f"host {host!r} was not joined through hq_join")
+    if row["status"] != STATUS_PENDING:
+        raise JoinError("bad_status", f"host {host!r} is {row['status']!r}; "
+                                      f"only {STATUS_PENDING} can be approved")
+    if not hmac.compare_digest(fingerprint(row["pubkey"]).encode("ascii"), want.encode("ascii")):
+        raise JoinError("fingerprint_mismatch",
+                        f"that is not the fingerprint of the key {host!r} registered; "
+                        f"re-read the one join.sh printed on the node's own screen. "
+                        f"If they still differ, someone else used the token: do not approve")
+    if row["approved_at"] is not None:
+        return {"host": host, "status": STATUS_PENDING, "approved_at": row["approved_at"],
+                "changed": False}
+    now_s = _iso(_utc(now))
+    with db.get_conn() as conn:
+        # pubkey and status are in the WHERE: the approval binds to the key that was compared.
+        done = conn.execute(
+            "UPDATE hosts SET approved_at = ?, updated_at = ? WHERE host = ? AND status = ? "
+            "AND pubkey = ? AND approved_at IS NULL RETURNING host",
+            (now_s, now_s, host, STATUS_PENDING, row["pubkey"])).fetchone()
+        if done is None:
+            raise JoinError("conflict", f"{host!r} changed while it was being approved, try again")
+        db.log_event(conn, None, ACTOR, "join_approve", {"host": host, "fingerprint": want})
+    return {"host": host, "status": STATUS_PENDING, "approved_at": now_s, "changed": True}
+
+
+def node_status(host: str | None = None) -> list[dict]:
+    """Every node that joined through accept (rows with a pubkey), or just `host`: name,
+    hosts.status, os, fingerprint and approved_at. Nothing here is secret."""
+    if host is not None:
+        _check_host(host)
+    with db.get_conn() as conn:
+        rows = conn.execute("SELECT host, status, os, pubkey, approved_at FROM hosts "
+                            "WHERE pubkey IS NOT NULL ORDER BY host").fetchall()
+    out = [{"host": r["host"], "status": r["status"], "os": r["os"],
+            "fingerprint": fingerprint(r["pubkey"]), "approved_at": r["approved_at"],
+            "awaiting_approval": r["status"] == STATUS_PENDING and r["approved_at"] is None}
+           for r in rows if host is None or r["host"] == host]
+    if host is not None and not out:
+        raise JoinError("unknown_host", f"host {host!r} did not join through hq_join")
+    return out
 
 
 # ---------------------------------------------------------------- leave
@@ -579,8 +678,8 @@ def provision(host: str, *, org=None, gh: GhRunner | None = None, sealer: Sealer
     and the admin identity on this host; an injected `org` (tests) needs neither."""
     _check_host(host)
     with db.get_conn() as conn:
-        row = conn.execute("SELECT status, pubkey, deploy_pubkey FROM hosts WHERE host = ?",
-                           (host,)).fetchone()
+        row = conn.execute("SELECT status, pubkey, deploy_pubkey, approved_at FROM hosts "
+                           "WHERE host = ?", (host,)).fetchone()
     if row is None:
         raise JoinError("unknown_host", f"host {host!r} is not registered")
     if not row["pubkey"]:
@@ -590,6 +689,10 @@ def provision(host: str, *, org=None, gh: GhRunner | None = None, sealer: Sealer
     if row["status"] != STATUS_PENDING:
         raise JoinError("bad_status", f"host {host!r} is {row['status']!r}; "
                                       f"only {STATUS_PENDING} can be provisioned")
+    if row["approved_at"] is None:   # W4.6a F1: checked before any login, claim or mint
+        raise JoinError("not_approved", f"host {host!r} is not approved: compare its key "
+                                        f"fingerprint, then `hq_join approve --host {host} "
+                                        f"--fingerprint <8 chars>`")
     if org is None:
         org = _live_org()
         gh = gh or _gh_subprocess
@@ -635,7 +738,11 @@ def provision_pending(*, org=None, gh: GhRunner | None = None, sealer: Sealer | 
                       skip=(), now: datetime | None = None) -> list[dict]:
     """provision() for every pending_identity row not in `skip`. One bad row never stops
     the others: it becomes {host, error}. With no `org` (the watchdog) it does nothing
-    unless ORG_W42_PROVISION=1 AND this host holds the admin identity file."""
+    unless ORG_W42_PROVISION=1 AND this host holds the admin identity file.
+
+    A row that is not approved (W4.6a F1) is not touched and does not count as a failure:
+    it becomes {host, skipped: "not_approved"}. The caller says so, at its own pace: this
+    function logs nothing for it, or every pass would."""
     if org is None:
         if not (w42_enabled() and is_admin_host()):
             return []
@@ -644,6 +751,9 @@ def provision_pending(*, org=None, gh: GhRunner | None = None, sealer: Sealer | 
     results = []
     for h in db.list_hosts():
         if h["status"] != STATUS_PENDING or not h["pubkey"] or h["host"] in skip:
+            continue
+        if h.get("approved_at") is None:
+            results.append({"host": h["host"], "skipped": "not_approved"})
             continue
         try:
             results.append(provision(h["host"], org=org, gh=gh, sealer=sealer, now=now))
@@ -742,6 +852,50 @@ def leave(host: str, *, live: bool = False,
             "left_behind": left_behind}
 
 
+# ---------------------------------------------------------------- rotate after leave (F8)
+
+# Revoking a node's client secret does not recall what the node already read. The org-node
+# identity is a viewer on Agents-Core (dev and prod alike on Free), so the set below is what a
+# node could have copied. Scope, not exact names: PLAN.md §3 and the W4.6 review name the
+# categories. Used only when Infisical cannot be asked; docs/ops/hq-join.md carries the same list.
+DOCUMENTED_READABLE = (
+    "ORG_DB_URL (hub Postgres, role `org`)",
+    "CLAUDE_CODE_OAUTH_TOKEN (shared by every node)",
+    "Run Inbox tokens",
+    "SomPong / secretary credentials",
+    "Jules and Jev / OpenRouter keys",
+    "Drive OAuth client and each machine's Drive token",
+    "LungNote MCP client credentials",
+)
+ROTATE_DOC = 'docs/ops/hq-join.md, "After a leave: rotate what the node could read"'
+
+
+def rotate_scope(org=None) -> dict:
+    """What `leave --live` tells the operator to rotate: {source, names, why}. With an
+    Infisical `org` it is the secret NAMES org-node can read (infisical_setup reads the list and
+    drops every value); without one, or when that call fails, the documented set. A name list
+    only: no value is ever returned."""
+    why = "no admin login on this host"
+    if org is not None:
+        try:
+            return {"source": "infisical", "why": "",
+                    "names": infisical_setup.node_readable_secret_names(org)}
+        except Exception as exc:   # the leave already ran: a failed lookup must not hide the block
+            why = f"the Infisical lookup failed ({type(exc).__name__})"
+    return {"source": "documented", "why": why,
+            "names": {"Agents-Core (documented set)": list(DOCUMENTED_READABLE)}}
+
+
+def _live_rotate_scope() -> dict:
+    org = None
+    if w42_enabled() and is_admin_host():
+        try:
+            org = infisical_setup.Org()
+        except Exception:
+            org = None
+    return rotate_scope(org)
+
+
 # ---------------------------------------------------------------- export
 
 EXPORT_HEADER = (
@@ -796,6 +950,14 @@ def _build_parser() -> argparse.ArgumentParser:
     a.add_argument("--deploy-pubkey", default=None,
                    help="the node's ssh-ed25519 public key line, for its GitHub deploy key "
                         "(without it the node gets none)")
+    st = sub.add_parser("status", help="joined nodes: status, approval and key fingerprint")
+    st.add_argument("--host", default=None)
+    ap = sub.add_parser("approve", help="approve a pending host after comparing its key "
+                                        "fingerprint with the one join.sh printed on the node")
+    ap.add_argument("--host", required=True)
+    ap.add_argument("--fingerprint", required=True,
+                    help=f"last {FINGERPRINT_LEN} chars of the node's age recipient, "
+                         f"as read on the node")
     pr = sub.add_parser("provision", help=f"mint, seal and store a pending host's identity "
                                           f"(needs {W42_FLAG}=1 and the admin identity)")
     pr.add_argument("--host", required=True)
@@ -827,6 +989,12 @@ def main(argv: list[str] | None = None) -> int:
                       file=sys.stderr)
             print(json.dumps({"ok": True, **res}))
             return 0
+        if args.verb == "status":
+            return _print_status(node_status(args.host))
+        if args.verb == "approve":
+            res = approve(args.host, args.fingerprint)
+            print(json.dumps({"ok": True, **res}))
+            return 0
         if args.verb == "provision":
             res = provision(args.host)
             print(json.dumps({"ok": True, **res}))
@@ -836,7 +1004,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.verb == "leave":
             res = leave(args.host, live=args.live)
-            return _print_leave(res)
+            return _print_leave(res, _live_rotate_scope() if args.live and not res.get("note")
+                                else None)
         text = export_hosts_text()
         if args.out == "-":
             sys.stdout.write(text)
@@ -854,7 +1023,36 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
 
-def _print_leave(res: dict) -> int:
+def _print_status(rows: list) -> int:
+    if not rows:
+        print("hq_join: no node has joined through hq_join")
+    for r in rows:
+        if r["awaiting_approval"]:
+            gate = "AWAITING APPROVAL"
+        else:
+            gate = f"approved {r['approved_at']}" if r["approved_at"] else "-"
+        print(f"{r['host']}  {r['status']}  {r['os']}  fingerprint {r['fingerprint']}  {gate}")
+    if any(r["awaiting_approval"] for r in rows):
+        print("hq_join: approve only when the fingerprint matches the one join.sh printed on the "
+              "node's own screen; `approve --host <name> --fingerprint <8 chars>`")
+    return 0
+
+
+def _print_rotate(host: str, rotate: dict) -> None:
+    """The closing block of `leave --live`: secret NAMES only, never a value."""
+    print(f"hq_join: ROTATE what {host} could read. Revoking its client secret does not recall "
+          f"the values it already read.")
+    if rotate["source"] == "infisical":
+        print("  source: Infisical, names read just now (values are never read out or printed)")
+    else:
+        print(f"  source: the DOCUMENTED set, not read from Infisical ({rotate['why']}); "
+              f"this list is categories, not exact names")
+    for where, names in rotate["names"].items():
+        print(f"  {where}: " + (", ".join(names) if names else "(none)"))
+    print(f"  procedure: {ROTATE_DOC}")
+
+
+def _print_leave(res: dict, rotate: dict | None = None) -> int:
     if res.get("note"):
         print(f"hq_join: {res['host']}: {res['note']}")
         return 0
@@ -868,9 +1066,14 @@ def _print_leave(res: dict) -> int:
         print(f"  [{mark}] {s['kind']} on {s['target']}" + ("" if s["ok"] else f": {s['detail']}"))
     if res["status"] == STATUS_LEFT:
         print(f"hq_join: {res['host']} is now `left`")
-        return 0
-    print(f"hq_join: {res['host']} NOT marked left; left behind: " + ", ".join(res["left_behind"]))
-    return 1
+        code = 0
+    else:
+        print(f"hq_join: {res['host']} NOT marked left; left behind: "
+              + ", ".join(res["left_behind"]))
+        code = 1
+    if rotate is not None:   # last on purpose: the output of a live leave ends with it
+        _print_rotate(res["host"], rotate)
+    return code
 
 
 if __name__ == "__main__":

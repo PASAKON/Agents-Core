@@ -53,6 +53,7 @@ import getpass
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -143,16 +144,51 @@ def read_cred(name: str) -> tuple[str, str]:
             values["INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET"])
 
 
-def write_cred(name: str, client_id: str, client_secret: str) -> str:
+class AclError(OSError):
+    """icacls refused, or could not run: the credentials were not saved."""
+
+
+def _is_nt() -> bool:
+    return os.name == "nt"
+
+
+def _run_icacls(argv: list) -> int:
+    """Return code of an icacls run. argv is a list and there is no shell."""
+    return subprocess.run(argv, capture_output=True, timeout=30, check=False).returncode
+
+
+def lock_acl(path: str, run=None) -> None:
+    """Windows only (W4.6a F5): drop the ACL entries `path` inherits (ProgramData gives
+    BUILTIN\\Users read and execute) and leave SYSTEM and Administrators. os.chmod and the
+    0o600 of os.open set no ACL on nt. Fails closed: a non-zero exit, or icacls missing,
+    raises AclError. `run(argv) -> returncode` is injectable for tests. A no-op elsewhere."""
+    if not _is_nt():
+        return
+    argv = ["icacls", path, "/inheritance:r", "/grant:r", "SYSTEM:F", "Administrators:F"]
+    try:
+        rc = (run or _run_icacls)(argv)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise AclError(f"icacls could not run on {path} ({type(exc).__name__})") from None
+    if rc != 0:
+        raise AclError(f"icacls exited {rc} on {path}")
+
+
+def write_cred(name: str, client_id: str, client_secret: str, *, run=None) -> str:
     require_root()
     os.makedirs(CRED_DIR, mode=0o700, exist_ok=True)
     os.chmod(CRED_DIR, 0o700)
+    lock_acl(CRED_DIR, run)    # the directory first, before a secret exists anywhere in it
     path = cred_path(name)
     fd = os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as fh:
         fh.write(f"INFISICAL_API_URL={API}\n"
                  f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={client_id}\n"
                  f"INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={client_secret}\n")
+    try:
+        lock_acl(path + ".tmp", run)
+    except AclError:
+        os.unlink(path + ".tmp")   # fail closed: no secret-bearing file is left behind
+        raise
     os.replace(path + ".tmp", path)
     return path
 
@@ -196,7 +232,10 @@ def cmd_save(name: str, from_stdin: bool = False) -> None:
         _, claims, ttl = login(client_id, client_secret)
     except ApiError as exc:
         sys.exit(f"login failed, nothing saved ({exc})")
-    path = write_cred(name, client_id, client_secret)
+    try:
+        path = write_cred(name, client_id, client_secret)
+    except AclError as exc:
+        sys.exit(f"{exc}; nothing saved")
     print(f"saved {path} (0600) · login OK · token lasts {ttl} s · "
           f"identity {str(claims.get('identityId', '?'))[:8]} · org {str(claims.get('orgId', '?'))[:8]}")
     if name == SETUP:
@@ -386,6 +425,7 @@ def cmd_retire_setup(org: Org) -> None:
 NODE_IDENTITY = "org-node"
 NODE_PROJECT = "Agents-Core"   # viewer membership; on Free a viewer sees dev and prod alike
 IDENTITY_CAP = 5
+NODE_SECRET_TTL = 90 * 86_400   # a node's client secret expires in 90 days (W4.6a F4); uses stay unlimited
 # The host-name rule, 3-31 chars: a copy of lib.config.HOST_NAME_RE (tools/hq_join.HOST_RE is that
 # same object). Not imported: this file stays stdlib-only, a Run Inbox card copies it alone.
 # tests/test_w44c_join_followups.py asserts the two patterns are the same string.
@@ -453,7 +493,8 @@ def list_node_secrets(org: Org) -> list[dict]:
 
 
 def mint_node_secret(org: Org, host: str) -> dict:
-    """A new client secret for `host` under org-node (no ttl, unlimited uses), as
+    """A new client secret for `host` under org-node (ttl NODE_SECRET_TTL = 90 days, unlimited
+    uses; the identity's access-token settings are not touched), as
     {client_id, client_secret, client_secret_id}. The value is in this return only: nothing is
     printed or logged, and no error message here carries it. Refuses when a live secret
     described `org-node:<host>` already exists, so a repeat never leaves one nobody can find."""
@@ -468,7 +509,7 @@ def mint_node_secret(org: Org, host: str) -> dict:
     client_id = org.get(f"/api/v1/auth/universal-auth/identities/{iid}")[
         "identityUniversalAuth"]["clientId"]
     out = org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}/client-secrets",
-                   {"description": desc, "ttl": 0, "numUsesLimit": 0})
+                   {"description": desc, "ttl": NODE_SECRET_TTL, "numUsesLimit": 0})
     secret = out.get("clientSecret") if isinstance(out, dict) else None
     data = out.get("clientSecretData") if isinstance(out, dict) else None
     sid = data.get("id") if isinstance(data, dict) else None
@@ -494,6 +535,24 @@ def revoke_node_secret(org: Org, client_secret_id: str) -> None:
         if "HTTP 404" in text or ("HTTP 400" in text and "revoked" in text.lower()):
             return
         raise
+
+
+def node_readable_secret_names(org: Org) -> dict[str, list[str]]:
+    """'<NODE_PROJECT>/<env>' -> sorted secret NAMES that org-node can read (W4.6a F8), for
+    `hq_join leave --live` to print as "rotate these". org-node is a viewer on NODE_PROJECT and
+    on Free a viewer sees every environment, so every environment the project has is listed.
+    Only the folder "/" is read: the plan holds no folders in Agents-Core. The list call
+    returns values too; they are dropped here and never returned, logged or printed."""
+    project = org.projects().get(NODE_PROJECT.lower())
+    if project is None:
+        raise ApiError(f"project {NODE_PROJECT} does not exist")
+    out: dict[str, list[str]] = {}
+    for env in sorted(org.environments(project["id"])):
+        listed = org.get("/api/v3/secrets/raw", workspaceId=project["id"], environment=env,
+                         secretPath="/")
+        out[f"{NODE_PROJECT}/{env}"] = sorted(
+            s["secretKey"] for s in listed.get("secrets", []) if s.get("secretKey"))
+    return out
 
 
 def cmd_node_secrets(org: Org) -> None:

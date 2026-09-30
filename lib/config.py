@@ -221,11 +221,14 @@ def _load_node_yaml() -> dict | None:
 
 def _node_hq_root(os_name: str, raw: object) -> str | None:
     """`raw` as tools/hq_join._check_hq_root accepts it (absolute for `os_name`,
-    no control characters, no '..', not a filesystem root), trailing separators
-    cut; None when it does not."""
+    no control characters, only [A-Za-z0-9 ._/\\:-] (W4.6a F14: nothing a shell would
+    interpolate), no '..', not a filesystem root), trailing separators cut; None when
+    it does not."""
     if not isinstance(raw, str) or not raw or len(raw) > 240:
         return None
     if any(ord(c) < 32 or ord(c) == 127 for c in raw):
+        return None
+    if re.fullmatch(r"[A-Za-z0-9 ._/\\:-]+", raw) is None:
         return None
     if os_name == "windows":
         absolute = re.fullmatch(r"[A-Za-z]:[\\/].*", raw) is not None
@@ -308,7 +311,24 @@ def _node_yaml_host() -> str | None:
             f"(config/hosts.yaml) and node.yaml has no well-formed os + hq_root "
             f"to make it one. Known: {sorted(hosts())}"
         )
+    # W4.6a F12. node.yaml is a file in the service user's home: whoever can write it must not be
+    # able to make a core box act as another host (reaping, routing). For a name hosts.yaml
+    # declares, the checkout path has to agree. A checkout that matches no host says nothing,
+    # and a joined node (a name hosts.yaml does not declare) is not affected.
+    if key in _declared_hosts():
+        at = _root_match_host()
+        if at is not None and at != key:
+            raise ValueError(
+                f"{NODE_CONFIG_PATH}: host: {raw!r} is declared in config/hosts.yaml, but this "
+                f"checkout ({ROOT}) is the agents_root of {at!r}. node.yaml would relabel this "
+                f"box as {key!r}: remove node.yaml, or correct its host."
+            )
     return key
+
+
+def _declared_hosts() -> set[str]:
+    """The names config/hosts.yaml itself declares (not the entry a node.yaml adds)."""
+    return set(yaml.safe_load(HOSTS_CONFIG.read_text(encoding="utf-8"))["hosts"])
 
 
 def _root_match_host() -> str | None:
