@@ -206,6 +206,61 @@ A worker learns its environment by hunting, and every step is paid. The brief ca
   in `~/.gemini/antigravity-cli/conversations/<id>.db`, table `steps`, column `error_details`. Runs:
   task-67bf83d1 (a plan under ~/.claude), task-4245497d + task-ed829cdc (its own agy_browse shots).
 
+### 3e. AGY on browser work — the CTO learns the page, AGY writes the code, machines judge it (CEO 2026-10-01)
+
+CEO 2026-10-01: browser replay scripts go to AGY (gemini-3.8-flash-high) to save Claude quota, and
+Claude does **not** read AGY's code line by line (token cost). Machine gates judge the work.
+
+Why this order: on the first test (session 671f688f) AGY driving the live page itself died in 7 of 8
+runs (champa 4/4, Higgsfield 3/4). An argument outside the agy_browse allow rule ends the run. A slow
+call left in the background ends it too. The order below delivered on the first run: task-03b721a0,
+2 iterations, ~0.36% of the Gemini weekly quota, merged 2489460d. Iteration 2 only fixed the CTO's
+own spec.
+
+1. **Check for a runner first** (§3c0). If one exists, fix it. Do not start over.
+2. **Check the Browser Home is up and signed in.** Run `(cd <Console repo> && node scripts/relay-home.mjs list | launch <id> | quit <id>)`.
+   On the Mac the Console repo is `/Users/gob/MoonieXHQ/Projects/MoonieX/Console`. `quit` keeps the profile and its login.
+   Judge sign-in from tab titles and host+path only (relay-login §3). If signed out, use relay-login.
+3. **Probe the page as text: 1–3 short Playwright scripts over CDP.** Each opens its own tab and closes it in `finally`.
+   Take no screenshots and never click submit. Collect:
+   - the deep link
+   - each control's selector and the text it reads back
+   - option lists (slider `aria-valuemin`/`max`, menu items)
+   - the submit label **before and after typing a prompt**. Higgsfield shows the price only after typing.
+   - the text of any modal a toggle opens. Higgsfield's "Unlimited mode" switch opens a purchase modal, not a free lane.
+   The brief calls this "verified selectors". Cost: a few CTO turns, zero screenshots.
+4. **Write the acceptance/money spec test yourself.** Put it in `tests/test_<site>_*.py`, with `pytest.importorskip` so main
+   stays green. Commit and **push before delegating**: the worktree is cut from origin (§2b). The brief says: do not edit it.
+5. **Create the task.** A hand-set `runner='agy'` needs `override: <reason>` on line 1 of the description (IRON §59).
+   `reopen_task` pushes that line down, so put it back before every re-delegate. Set exact `touches`. The brief carries:
+   - the job verb (CREATE) and the interpreter path
+   - "no browser, no CDP, offline fakes only", plus the verified selectors
+   - an adapter class around every Playwright call, so tests can pass a fake
+   - the money rules. Dry-run is the default. `--fire` needs both caps, checked before connecting. One submit call site,
+     never retried. Record the spend right after the click. Stop on any unknown outcome.
+   - a report file under `docs/reports/`, appended as it goes
+   - the gate list
+   - the agy lines: WaitMsBeforeAsync 30000, and never end the turn while a command runs
+   Do not name `tools/agy_browse.py`: naming it appends the live-browser contract (`runners/agy_local.py`).
+6. **Quit the Home of any paid account for the whole AGY run.** Then nothing can spend by accident.
+7. **Delegate and watch.** Call `tools.delegate.delegate_task` from a CLI python in the background (the MCP one can be stale).
+   Arm the §6b Monitor on status, pid and the size of `.agy-run.log`.
+8. **Run the gates. Machines only, no line-by-line reading.**
+   a. Both test files green in the worktree. Use `-o addopts=""`: this repo's addopts hide the per-test lines.
+   b. `git diff main...HEAD -- <spec> <files it must not touch>` is empty. Use three dots: two dots also shows main's newer commits.
+   c. grep finds one submit call site and none of the forbidden strings (`role=switch`, `drive_upload`, `.env`).
+   d. Relaunch the Home. Run `--dry-run` once, live. It must exit 0, read the price, refuse a cap that is too low, write no
+      ledger, and leave the tab count where it was.
+9. **Fire the cheapest paid job first (CEO 2026-10-01).** Use the lowest duration and resolution, one clip, caps set to that
+   price. State the exact credits. A pass is a pass: then run real work. Higgsfield Seedance 2.5: 4s 480p = 12 credits,
+   5s 1080p = 60.
+10. **A live miss after merge is a CTO fix, not another AGY round.** Example: a selector the probe did not cover. Fix the one
+    line and re-run the gates. On Higgsfield the "5s" label covers the duration thumb: focus the thumb, do not click it.
+
+If AGY must drive a page live because no probe is possible: name `tools/agy_browse.py` in the brief. The contract then carries
+the allow set (ASCII only, no `* ? ~`, reach a Thai label with `:nth-match(button, N)`), the 30 s wait, and "a denial ends
+the run". Expect deaths. Give it a read-only goal and a report file it appends to.
+
 ## Spawn
 
 ### 4. Visible iTerm tab
@@ -456,7 +511,7 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-10-01 [MISSING] §0 router — `tools/forecast.py` SHELL_PATTERNS contains `"make "`, so a browser brief that said "make sure" was marked needs-shell, agy became "cannot", `pick_runner` returned None and `tools/delegate.py _route_runner` fell back to Claude with no `router:` line. After delegating an agy-meant task, check `tasks.runner` / the pane, and reword the brief if it went to Claude · evidence: task-ed829cdc first spawn (Claude, killed), reworded brief spawned on agy · status: pending
 - 2026-10-01 [MISSING] §Spawn — `mcp__org__delegate_task` failed with "cannot import name 'header' from 'lib.router'": the long-lived MCP server holds modules from before a lib change. CLI delegate works: `ORG_SESSION_ID=<sid> .venv/bin/python -c "import asyncio; from tools.delegate import delegate_task; asyncio.run(delegate_task('<task>'))"` · evidence: session 671f688f, task-4245497d · status: pending
 - 2026-10-01 [MISSING] §3d agy — two more ways a headless agy run ends with nothing saved, both seen on the first real AGY browse test: (a) any agy_browse argument outside the allow rule is denied and the run ends — gemini-3.8-flash-high sent a Thai label, `[class*=...]`, `*:has-text(\"...\")` and `textarea ~ div button` across 4 runs, twice after the contract named those characters and said a denial is fatal; (b) a call slower than agy's default WaitMsBeforeAsync 5000 goes to the background and the model ends its turn "waiting" (goto, click, pytest). Contract now asks for WaitMsBeforeAsync 30000 (8eae6f34); (a) needs a harness that cannot deny, e.g. selectors passed in a file · evidence: task-4245497d runs 2–4, task-ed829cdc runs 1–3; conversation DBs in session 671f688f scratchpad · status: pending
-- 2026-10-01 [MISSING] §review — the one AGY run that delivered (task-ed829cdc run 4) ignored "append findings as you go", titled its report a live 2026-10-01 audit while half the rows came from a 09-06 doc, and its script closes the Browser Home's existing tab in `finally`, never applies --model/--duration/--resolution, and leaves --watch a stub while 47 tests pass. Review an agy deliverable line by line before any live run · evidence: task-ed829cdc 6e2b0204 · status: pending
+- 2026-10-01 [MISSING] §review — the one AGY run that delivered (task-ed829cdc run 4) ignored "append findings as you go", titled its report a live 2026-10-01 audit while half the rows came from a 09-06 doc, and its script closes the Browser Home's existing tab in `finally`, never applies --model/--duration/--resolution, and leaves --watch a stub while 47 tests pass. Review an agy deliverable line by line before any live run · evidence: task-ed829cdc 6e2b0204 → replaced by §3e (CEO 2026-10-01: no Claude line-by-line review; a CTO spec test and machine gates instead) · status: superseded
 - 2026-10-01 [MISSING] §0 — `reopen_task` prepends "## CTO Feedback (iter N)" to the top of the description, which pushes the `override: <reason>` line out of the first block, so re-delegating a task with a hand-pinned runner fails IRON §59 ("runner/model_hint pinned by hand without a reason"). After a reopen, put the override line back on line 1 before `delegate_task` · evidence: task-03b721a0 iter 1, 02:57 · status: pending
 - 2026-10-01 [MISSING] §3 brief — "plus the three scripts/test_*.py run as scripts" named no files; the worker guessed three other harness scripts (pytest.ini excludes 12) and one of those has a standing FAIL on main (`scripts/test_spawn_tab_routing.py`, 27 PASS + 1 FAIL at base). Name the files: `scripts/test_org_tools_registry.py`, `scripts/test_mcp_role_config.py`, `scripts/test_tool_parity.py` · evidence: task-c88d94ae REPORT.md · status: pending
 - 2026-10-01 [MISSING] §2b — a brief that cites a file from a task still in merge (here `deploy/join/join.sh` from task-e84797d7) sends the worker to an unmerged branch it has to `git show` from. Merge the parent first, or name the branch in the brief · evidence: task-3f8a31ae REPORT.md · status: pending

@@ -108,10 +108,12 @@ class ComposerPage:
             try:
                 self.page.locator('button[aria-label="Duration"]').first.click()
                 self.page.wait_for_timeout(800)
-                dur = self.page.locator('[role=slider][aria-valuemax="15"]')
+                # The "5s" value label sits on top of the thumb and eats a click
+                # (live 2026-10-01), so focus the thumb and drive it by keyboard.
+                dur = self.page.locator("[data-duration-slider-thumb]")
                 if dur.count() == 0:
                     dur = self.page.locator("[role=slider]").nth(1)
-                dur.first.click(timeout=3000)
+                dur.first.focus(timeout=3000)
                 self.page.wait_for_timeout(200)
                 self.page.keyboard.press("Home")
                 self.page.wait_for_timeout(250)
