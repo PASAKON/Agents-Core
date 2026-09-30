@@ -699,27 +699,118 @@ class FakeMesh:
         raise mesh.MeshUnreachable(f"{verb} on {host}: no route")
 
 
-def test_every_queued_row_is_retried_exactly_once_per_pass(monkeypatch):
-    monkeypatch.setenv(mesh.ENV_FLAG, "1")
-    queued = [db_mod.create_task("mooniex-agents", "developer", f"t{i}", "d") for i in range(4)]
-    for tid in queued:
+def _queue_rows(monkeypatch, host: str, n: int) -> list[str]:
+    tids = [db_mod.create_task("mooniex-agents", "developer", f"{host}{i}", "d") for i in range(n)]
+    for tid in tids:
         monkeypatch.setattr(mesh, "dispatch", FakeMesh())
-        delegate.mesh_spawn_worker(tid, "contabo")
+        delegate.mesh_spawn_worker(tid, host)
         assert db_mod.get_task(tid)["status"] == "queued_remote"
+    return tids
+
+
+def test_a_silent_host_is_dialled_once_per_pass_and_no_row_is_dialled_twice(monkeypatch):
+    """W2.7 F12: one attempt per row per pass at most, and a host that gives no
+    answer ends its own turn: 3 contabo rows and 2 winbox rows cost one dial
+    per host per pass, not five."""
+    monkeypatch.setenv(mesh.ENV_FLAG, "1")
+    rows = {"contabo": _queue_rows(monkeypatch, "contabo", 3),
+            "winbox": _queue_rows(monkeypatch, "winbox", 2)}
     foreign = _task("mooniex-agents", status="queued_remote", host="winbox",
                     dispatcher_host="contabo")
     fake = FakeMesh()
     monkeypatch.setattr(mesh, "dispatch", fake)
 
     for n in (1, 2, 3):
+        before = len(fake.calls)
         watchdog._retry_queued_remote()
-        per_row = collections.Counter(c[2][0] for c in fake.calls)
-        assert per_row == {tid: n for tid in queued}, per_row
-    assert all(c[:2] == ("contabo", "spawn_worker") for c in fake.calls)
+        this_pass = fake.calls[before:]
+        assert collections.Counter(c[0] for c in this_pass) == {"contabo": 1, "winbox": 1}
+        assert len({c[2][0] for c in this_pass}) == len(this_pass)   # no row twice
+    assert all(c[1] == "spawn_worker" for c in fake.calls)
     assert foreign not in {c[2][0] for c in fake.calls}
-    for tid in queued:
-        assert db_mod.get_task(tid)["status"] == "queued_remote"
-        assert delegate._queued_remote_attempts(tid) == 4
+    for host, tids in rows.items():
+        spent = sum(delegate._queued_remote_attempts(t) - 1 for t in tids)
+        assert spent == 3, (host, spent)                  # three passes, three dials
+        assert all(db_mod.get_task(t)["status"] == "queued_remote" for t in tids)
+
+
+def test_a_host_that_answers_keeps_its_turn(monkeypatch):
+    """Only no answer ends a host's turn: a host that says no to one row is
+    alive, so its other rows are still tried in the same pass."""
+    monkeypatch.setenv(mesh.ENV_FLAG, "1")
+    tids = _queue_rows(monkeypatch, "contabo", 3)
+    calls = []
+
+    def says_no(host, verb, *args, timeout=None):
+        calls.append(args[0])
+        return {"ok": False, "verb": verb, "error": "task is on another host"}
+
+    monkeypatch.setattr(mesh, "dispatch", says_no)
+    out = watchdog._retry_queued_remote()
+    assert sorted(calls) == sorted(tids)
+    assert {r["status"] for r in out} == {"failed"}
+
+
+# ---------------------------------------------------------------------------
+# 5b. watchdog remote heartbeat: nothing from the task row reaches a shell (F9)
+# ---------------------------------------------------------------------------
+
+HOSTILE_FIELDS = ["x & calc &", "a;b", "a|b", "$(id)", "`id`", "a b", 'a"b', "..\\x",
+                  "x%PATH%", "ok\n", "\u00e9", "", None, 7, "a" * 65, "a^b", "a<b", "a>b"]
+
+
+class RecordRun:
+    def __init__(self) -> None:
+        self.calls: list[list[str]] = []
+
+    def __call__(self, argv, **kw):
+        self.calls.append(list(argv))
+        return subprocess.CompletedProcess(argv, 0, "2026-09-30T00:00:00Z\n", "")
+
+
+WIN_CFG = {"ssh": "winbox", "os": "windows", "worktrees": r"C:\Users\x\mooniex\worktrees"}
+LINUX_CFG = {"ssh": "mooniex-vps", "os": "linux", "worktrees": "/opt/x/worktrees"}
+
+
+@pytest.mark.parametrize("field", ["project", "role", "id"])
+@pytest.mark.parametrize("cfg", [WIN_CFG, LINUX_CFG], ids=["windows", "linux"])
+def test_a_hostile_task_field_never_reaches_the_admin_ssh(monkeypatch, field, cfg):
+    run = RecordRun()
+    monkeypatch.setattr(subprocess, "run", run)
+    good = {"project": "mooniex-agents", "role": "developer", "id": "task-1234abcd"}
+    for value in HOSTILE_FIELDS:
+        assert watchdog.read_remote_heartbeat(cfg, {**good, field: value}) is None, value
+    assert run.calls == []
+
+
+def test_a_short_or_decorated_task_id_never_reaches_the_admin_ssh(monkeypatch):
+    run = RecordRun()
+    monkeypatch.setattr(subprocess, "run", run)
+    good = {"project": "mooniex-agents", "role": "developer"}
+    for tid in ("task-abc123", "task-1234ABCD", "task-1234abcd0", "Task-1234abcd", "1234abcd"):
+        assert watchdog.read_remote_heartbeat(WIN_CFG, {**good, "id": tid}) is None, tid
+    assert run.calls == []
+
+
+@pytest.mark.parametrize("cfg, want", [
+    (WIN_CFG, ["ssh", "winbox", "type",
+               "C:\\Users\\x\\mooniex\\worktrees\\mooniex-agents__developer__task-1234abcd\\HEARTBEAT"]),
+    (LINUX_CFG, ["ssh", "mooniex-vps", "cat",
+                 "/opt/x/worktrees/mooniex-agents__developer__task-1234abcd/HEARTBEAT"]),
+], ids=["windows", "linux"])
+def test_a_clean_row_still_reads_its_heartbeat(monkeypatch, cfg, want):
+    run = RecordRun()
+    monkeypatch.setattr(subprocess, "run", run)
+    task = {"project": "mooniex-agents", "role": "developer", "id": "task-1234abcd"}
+    assert watchdog.read_remote_heartbeat(cfg, task) == "2026-09-30T00:00:00Z"
+    assert run.calls == [want]
+
+
+def test_the_transcript_reader_gets_no_path_for_a_hostile_project(monkeypatch):
+    """tools/remote_worker_log puts the same slug inside a PowerShell string."""
+    for value in HOSTILE_FIELDS:
+        task = {"project": value, "role": "developer", "id": "task-1234abcd"}
+        assert watchdog._remote_worktree_dir(WIN_CFG, task) is None, value
 
 
 # ---------------------------------------------------------------------------
