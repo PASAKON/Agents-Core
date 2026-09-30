@@ -83,7 +83,8 @@ dog each one shows is not recorded). They are the only identity reference for an
 - [SUPERSEDED 2026-09-30] The 2026-09-28 plan's dog: a brown-eared dog called ข้าวเหนียว, with a
   neckerchief and ear-colour fixes queued. The dog is **Mimi, black, female** (CEO 2026-09-30). The plan's
   credit budget, calendar and checkpoints still stand.
-  Evidence: the CEO's message above; `docs/plans/animal-series-channel-plan-2026-09-28.md` (Mac branch
-  `cmo/c7879552-ledger-port`, not yet on origin).
+  Evidence: the CEO's message above; `docs/plans/animal-series-channel-plan-2026-09-28.md` (on main, commit
+  32decaca, still names «ข้าวเหนียว»). The 90-day roadmap md is only on the Mac branch
+  `cmo/c7879552-ledger-port`, not yet pushed.
 
 ## Field notes
