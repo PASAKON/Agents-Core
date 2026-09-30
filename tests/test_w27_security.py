@@ -584,9 +584,12 @@ def test_every_authorized_keys_line_pins_command_from_and_restrict():
     for ln in lines:
         opts = ln.split(" ssh-ed25519", 1)[0]
         assert re.search(r'(^|,)from="[^"]+"(,|$)', opts), ln
+        assert "100.64.0.0/10" not in opts, ln  # one dispatcher, not the whole tailnet
         assert re.search(r"(^|,)restrict(,|$)", opts), ln
-        assert "tools.node_dispatch" in opts, ln
+        assert "node_dispatch" in opts and " -E -s " in opts, ln
         assert "SSH_ORIGINAL_COMMAND" not in opts, ln  # the caller's text is never on it
+        if "C:\\" in opts:  # DefaultShell (cmd or PowerShell) parses this: no syntax for it
+            assert not re.search(r"&&|[;|%^]|cmd /c", opts), ln
 
 
 # ---------------------------------------------------------------------------
