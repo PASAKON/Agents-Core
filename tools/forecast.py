@@ -29,8 +29,10 @@ COST_TABLE_PATH = ROOT / "state" / "cost-table.json"
 SHELL_PATTERNS: list[str] = [
     "psql",
     "pg_dump",
-    "migrate",
-    "migration",
+    # not a bare "migrate"/"migration": edit-only briefs name migration lists (lib/db.py)
+    "db migrate",
+    "migrate up",
+    "migrate deploy",
     "alembic",
     "systemctl",
     "systemd-run",

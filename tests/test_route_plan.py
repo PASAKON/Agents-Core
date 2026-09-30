@@ -40,7 +40,7 @@ def mock_cfg():
         },
         "roles": {
             "dev_general": ["claude:claude-sonnet-5-5", "agy:gemini-3.8-flash-high"],
-            "dev_shell": ["codex:default", "claude:claude-sonnet-5-5"],
+            "dev_shell": ["codex:", "claude:claude-sonnet-5-5"],
         },
         "role_classes": {
             "developer": "dev_general",
