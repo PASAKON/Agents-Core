@@ -161,4 +161,5 @@ before the three unit restarts. Step 4 keeps the preflights, the Infisical conne
 - Note the earlier suite time-to-run: both full runs ~5 minutes.
 
 ## Skill learning
-- (none)
+- MISSING [no owner | worker test-running] : a worktree has no `.venv`, so `.venv/bin/python -m pytest` fails with "no such file"; the suite must run with the Core checkout's `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python`. And `A && B | tail || C` never reaches `C`: the pipeline's exit status is `tail`'s. · evidence: task-1670b1f8 iter 2, first targeted pytest call
+- COSTLY [no owner | worker test-running] : a Monitor wait script ending in `grep -c '[FAIL]'` reports "failed (exit 1)" when the count is 0 (grep -c exits 1 on zero matches), which reads like a failed run. · evidence: task-1670b1f8 iter 2, monitor bibohca2f · prevented by: append `|| true` to counting greps
