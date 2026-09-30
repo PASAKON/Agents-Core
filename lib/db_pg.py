@@ -31,7 +31,8 @@ class HubConnectError(RuntimeError):
 
 
 # Hand-written Postgres variant of lib.db.SCHEMA's *base* tables (the shape
-# before lib.db._MIGRATION_COLUMNS / _C_LEVEL_SESSION_MIGRATION are applied).
+# before lib.db._MIGRATION_COLUMNS / _C_LEVEL_SESSION_MIGRATION /
+# _HOSTS_MIGRATION are applied).
 # lib.db.init() runs its own ALTER TABLE ADD COLUMN loop for those on top of
 # this, same as it does for a pre-migration SQLite DB — that loop is already
 # plain ANSI SQL, so it needs no translation. Column names are identical to

@@ -271,6 +271,20 @@ _MIGRATION_COLUMNS = [
     ("runner_model", "TEXT"),
 ]
 
+# `hosts` probe columns added for PLAN-auto-dispatch H1 (task-25c272ce). Same
+# forward-only ALTER-TABLE pattern as _MIGRATION_COLUMNS, applied in
+# init_schema() on top of both SCHEMA (SQLite) and db_pg.PG_SCHEMA (Postgres),
+# so an old ledger gains them on its next init(). NULL = "never probed with
+# this field", never "zero". Read by the future lib/router.pick_host (H2).
+#   cpus           os.cpu_count() of the box
+#   load_per_core  1-minute loadavg divided by cpus, NULL on Windows
+#   runners        JSON array of the CLIs found on PATH, e.g. ["claude","codex"]
+_HOSTS_MIGRATION = [
+    ("cpus", "INTEGER"),
+    ("load_per_core", "REAL"),
+    ("runners", "TEXT"),
+]
+
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
 # ALTER-TABLE pattern as _MIGRATION_COLUMNS above, applied in init() so the
 # existing 76-row DB migrates without a migration framework. `status` carries
@@ -626,6 +640,11 @@ def init_schema(conn, *, is_pg: bool) -> None:
         if col not in cls_existing:
             conn.execute(
                 f"ALTER TABLE c_level_sessions ADD COLUMN {col} {coltype}")
+    hosts_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(hosts)").fetchall()}
+    for col, coltype in _HOSTS_MIGRATION:
+        if col not in hosts_existing:
+            conn.execute(f"ALTER TABLE hosts ADD COLUMN {col} {coltype}")
     # Backfill: move runner-generated messages out of report into
     # delegate_log so DEV completion reports are never overwritten.
     conn.execute("""
@@ -1187,6 +1206,7 @@ def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> Non
 _HOST_COLUMNS = {
     "os", "hq_root", "agents_root", "provides", "max_workers", "status",
     "probed_at", "free_gb", "ram_free_gb", "running", "version",
+    "cpus", "load_per_core", "runners",
 }
 
 
@@ -1196,17 +1216,18 @@ def upsert_host(host: str, **fields) -> None:
     A column left out of `fields` keeps its existing value -- this is what
     lets seed_hosts_from_config() (identity fields only) and a future
     node_agent heartbeat (probe fields only) both write the same row without
-    either one clobbering the other's data. `provides`, if given, is a list
-    and gets JSON-encoded for storage. `updated_at` is always stamped with
-    now_iso(), even on a no-op reseed -- it means "last touched", not "last
-    changed".
+    either one clobbering the other's data. `provides` and `runners`, if
+    given, are lists and get JSON-encoded for storage. `updated_at` is always
+    stamped with now_iso(), even on a no-op reseed -- it means "last touched",
+    not "last changed".
     """
     bad = set(fields) - _HOST_COLUMNS
     if bad:
         raise ValueError(f"unknown host column(s): {bad}")
     cols = dict(fields)
-    if "provides" in cols and cols["provides"] is not None:
-        cols["provides"] = json.dumps(cols["provides"])
+    for key in ("provides", "runners"):
+        if cols.get(key) is not None:
+            cols[key] = json.dumps(cols[key])
     cols["updated_at"] = now_iso()
     col_names = ["host", *cols.keys()]
     placeholders = ",".join("?" * len(col_names))

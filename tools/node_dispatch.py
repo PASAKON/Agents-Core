@@ -181,8 +181,33 @@ def _running_workers(host: str) -> int:
     return sum(1 for r in rows if _pid_is_alive(r["pid"]))
 
 
+def _cpu_facts() -> tuple[int | None, float | None]:
+    """(cpus, load_per_core) for the router (PLAN-auto-dispatch H1).
+
+    load_per_core is the 1-minute loadavg over the core count, 2 places. None
+    on Windows (no loadavg) or on any error; a probe never fails over a load
+    reading. Load per core, not raw load, so a 4-core and a 16-core box rank
+    on the same scale.
+    """
+    try:
+        cpus = os.cpu_count()
+    except Exception:
+        return None, None
+    if not cpus or _is_windows():
+        return cpus or None, None
+    try:
+        return cpus, round(os.getloadavg()[0] / cpus, 2)
+    except Exception:
+        return cpus, None
+
+
+def _installed_runners() -> list[str]:
+    return sorted(n for n in ("claude", "codex", "agy") if shutil.which(n))
+
+
 def verb_probe() -> dict:
     host = _self_host()
+    cpus, load_per_core = _cpu_facts()
     facts = {
         "host": host,
         "os": _os_name(),
@@ -191,13 +216,17 @@ def verb_probe() -> dict:
         "ram_free_gb": _ram_free_gb(),
         "running": _running_workers(host),
         "version": _git_version(),
+        "cpus": cpus,
+        "load_per_core": load_per_core,
+        "runners": _installed_runners(),
     }
     # Probe fields only. `status` is left alone on purpose: it is the join
     # state machine's (pending_identity -> online), not a measurement.
     db.upsert_host(
         host, probed_at=db.now_iso(), free_gb=facts["free_gb"],
         ram_free_gb=facts["ram_free_gb"], running=facts["running"],
-        version=facts["version"],
+        version=facts["version"], cpus=facts["cpus"],
+        load_per_core=facts["load_per_core"], runners=facts["runners"],
     )
     return facts
 
