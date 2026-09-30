@@ -481,7 +481,8 @@ def main() -> int:
         print(" ".join(_allowed_for(list(servers), args.root, not args.no_builtins)))
         return 0
 
-    Path(args.out).write_text(json.dumps({"mcpServers": servers}, indent=2) + "\n")
+    Path(args.out).write_text(
+        json.dumps({"mcpServers": servers}, indent=2) + "\n", encoding="utf-8")
     print(
         f"cxo_mcp_config: role={args.role or args.servers} servers={','.join(servers)}"
         + (f" skipped(not installed)={','.join(missing)}" if missing else ""),

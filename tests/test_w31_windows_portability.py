@@ -499,3 +499,43 @@ def test_missing_wiki_roots_degrade_instead_of_crashing(monkeypatch, tmp_path):
     finally:
         wiki._registry.cache_clear()
         wiki._roots.cache_clear()
+
+
+# --------------------------------------------------------------------------
+# text files: Windows reads with cp1252/cp874 unless told otherwise
+# --------------------------------------------------------------------------
+
+PORTABLE_FILES = FOUR_FILES + ("lib/proc.py", "lib/db.py", "lib/telegram_out.py", "lib/notify.py",
+                               "tools/tmux_session.py", "scripts/lib/cxo_mcp_config.py")
+
+
+@pytest.mark.parametrize("rel", PORTABLE_FILES)
+def test_no_text_read_or_write_without_an_encoding(rel):
+    # config/*.yaml and the state files carry Thai and typographic characters; a
+    # bare read_text() decodes them with the locale codec and dies on winbox.
+    tree = ast.parse((ROOT / rel).read_text(encoding="utf-8"))
+    bare = [n.lineno for n in ast.walk(tree)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+            and n.func.attr in ("read_text", "write_text")
+            and not any(k.arg == "encoding" for k in n.keywords)
+            and not (n.func.attr == "write_text" and len(n.args) > 1)]
+    assert bare == [], f"{rel}: read_text/write_text without encoding= at lines {bare}"
+
+
+def test_delegate_reads_its_policy_file_under_a_non_utf8_locale():
+    # storage-policy.yaml has non-ASCII bytes; _scope_owners used to let the
+    # UnicodeDecodeError escape (it only catches OSError and YAMLError).
+    code = ("import json, locale, sys; sys.path.insert(0, %r);"
+            "import tools.delegate as d;"
+            "print(json.dumps({'enc': locale.getpreferredencoding(False),"
+            " 'floor': d._disk_orange_floor_gb(), 'owners': d._scope_owners('__no_such_feature__')}))"
+            % str(ROOT))
+    env = {**os.environ, "LC_ALL": "C", "LANG": "C", "PYTHONCOERCECLOCALE": "0",
+           "PYTHONUTF8": "0", "ORG_NOTIFY_SILENT": "1"}
+    r = subprocess.run([sys.executable, "-X", "utf8=0", "-c", code], cwd=str(ROOT), env=env,
+                       capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stderr[-1500:]
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    assert out["enc"].lower().replace("-", "") in ("usascii", "ascii", "ansix3.41968"), out
+    assert out["floor"] == delegate._disk_orange_floor_gb()
+    assert out["owners"] is None

@@ -90,7 +90,7 @@ def live_sessions(locks_dir: Path | None = None) -> list[str]:
         if not _LOCK_RE.match(lock.stem):
             continue
         try:
-            pid = int(lock.read_text().strip())
+            pid = int(lock.read_text(encoding="utf-8").strip())
         except (OSError, ValueError):
             continue
         if _alive(pid):

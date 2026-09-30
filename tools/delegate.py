@@ -229,7 +229,7 @@ def _disk_orange_floor_gb() -> float:
     (GB) — ADR 0030. A shared tools/storage_policy.py loader is being built
     separately (task brief) — do not create/import it here."""
     try:
-        data = yaml.safe_load(STORAGE_POLICY.read_text())
+        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8"))
         return float((data or {}).get("gauge", {}).get("orange", DEFAULT_DISK_ORANGE_GB))
     except (OSError, ValueError, TypeError):
         return DEFAULT_DISK_ORANGE_GB
@@ -243,7 +243,7 @@ def _scope_owners(feature: str) -> str | list[str] | None:
     policy file → None (fail closed: a feature nobody scoped applies to
     nobody, same as before the scope map existed)."""
     try:
-        data = yaml.safe_load(STORAGE_POLICY.read_text()) or {}
+        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError):
         return None
     scope = data.get("scope")
@@ -425,7 +425,7 @@ def _owner_window_id(owner_cto: str | None,
         ident = ident[len(role_prefix) + 1:]
     p = ROOT / "state" / "locks" / f"{role_prefix}-{ident}.winid"
     try:
-        raw = p.read_text().strip()
+        raw = p.read_text(encoding="utf-8").strip()
     except OSError:
         return None
     return raw if raw.isdigit() else None
