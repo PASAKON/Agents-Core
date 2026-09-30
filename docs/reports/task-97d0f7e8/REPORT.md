@@ -17,7 +17,8 @@ Branch `agent/developer-task-97d0f7e8`, based on `7485c9c8`. Nothing pushed, not
 | `scripts/lib/cxo_mcp_config.py` | `_venv_python` falls back to `.venv\Scripts\python.exe` (and names the Windows path when no venv exists on Windows). Every call site already used it (`_org_tool_names`, `_build("org")`, `main`); pinned by an AST test. `write_text` got `encoding="utf-8"`. |
 | `config/wikis.yaml` | Comment only: winbox sets `WIKI_ROOT_ORG` / `WIKI_ROOT_MOONIEX` / `WIKI_ROOT_LUNGNOTE`. `tools/wiki.py` already resolves by env, skips missing roots in list/search, and raises `WikiError("... not available in this environment")` otherwise, so nothing crashes at import. `path:` keys unchanged. |
 | `lib/notify.py` | Verified, no edit: osascript is already behind `sys.platform == "darwin"`. |
-| `tests/test_w31_windows_portability.py` (new) | 58 tests, see below. |
+| `lib/config.py` | Iteration 2 (CTO-FEEDBACK): all 7 `read_text()` (lines 28, 40, 52, 147, 173, 209, 342) got `encoding="utf-8"`. |
+| `tests/test_w31_windows_portability.py` (new) | 61 tests, see below. |
 
 ## What was done
 
@@ -38,31 +39,32 @@ Branch `agent/developer-task-97d0f7e8`, based on `7485c9c8`. Nothing pushed, not
 - Import smoke in a subprocess: warm imports, drop `lib`/`tools`/`scripts`/`runners`, set `sys.platform="win32"`, block `fcntl termios pwd grp resource`, import the 12 touched modules; control `tools.credit_ledger` must fail on `fcntl`.
 - Guards: tmux helpers, `live_ids`, `notify` never reach subprocess; `_spawn_local` on win32 fails the row (driven with `coro.send(None)` against a fake db, never the real ledger/worktree/spawn).
 - Paths: `_od_root` (override, Mac, winbox with one warning), `resolve_od_project`/`designer_kickoff_suffix` degrade, claudeflow `.env` fallback (Mac, winbox, override wins), `_venv_python` (both OS layouts, POSIX wins when both exist), AST pin that no interpreter path is built outside `_venv_python`, missing wiki roots degrade.
-- Encoding: no bare `read_text`/`write_text` in the ten touched files (AST), and `delegate` policy reads under an ASCII locale in a subprocess.
+- Encoding: AST check that no `read_text`/`write_text`/text-mode `open()` lacks `encoding=` in the eleven touched files (including `lib/config.py`), with a self-test that the checker sees a bare read. Two subprocess tests under `LC_ALL=C LANG=C PYTHONCOERCECLOCALE=0 PYTHONUTF8=0 python -X utf8=0` (preferred encoding asserted to be ASCII): `delegate` policy reads, and `lib.config.projects()/agents()/hosts()` load with the same counts as under UTF-8.
 
 ## Tests (quoted)
 
-Final commit `9d5aca02`, interpreter `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python` (the worktree has no venv), run one after the other:
+Final commit `d2d49d73` (iteration 2), interpreter `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python` (the worktree has no venv), run once, one after the other:
 
 ```
-python -m pytest -p no:warnings                  -> 4017 passed, 27 skipped in 307.09s (0:05:07)   exit=0
-ORG_HOST=contabo python -m pytest -p no:warnings -> 4017 passed, 27 skipped in 306.16s (0:05:06)   exit=0
+python -m pytest -p no:warnings                  -> 4020 passed, 27 skipped in 399.94s (0:06:39)   exit=0
+ORG_HOST=contabo python -m pytest -p no:warnings -> 4020 passed, 27 skipped in 340.19s (0:05:40)   exit=0
 python scripts/test_org_tools_registry.py        -> ALL PASS   (29 [PASS], 0 [FAIL])                exit=0
 python scripts/test_mcp_role_config.py           -> OK — 0 failure(s)   (57 [PASS], 0 [FAIL])       exit=0
 ```
 
-New file alone: `tests/test_w31_windows_portability.py` 58 passed in 0.77s. Suites that pin the edited helpers (`scripts/test_tmux_session.py`, `scripts/test_session_list_liveness.py`, `scripts/test_telegram_out.py`, `tests/test_w03b_local_launcher.py`): 94 passed when run alone, and they are inside the 4017. The 27 skipped are identical on both hosts; I did not run a baseline at `7485c9c8`, so I cannot say how many of the 27 predate this change.
+Iteration 1 (commit `9d5aca02`) was 4017 passed, 27 skipped on both hosts; the +3 are the three tests added in iteration 2. New file alone: `tests/test_w31_windows_portability.py` 61 passed in 1.15s. Suites that pin the edited helpers (`scripts/test_tmux_session.py`, `scripts/test_session_list_liveness.py`, `scripts/test_telegram_out.py`, `tests/test_w03b_local_launcher.py`): 94 passed when run alone, and they are inside the 4017. The 27 skipped are identical on both hosts; I did not run a baseline at `7485c9c8`, so I cannot say how many of the 27 predate this change.
 
 Not run: anything on real Windows (W3.4). The Windows branch is proven against a fake kernel32 only, the win32 import against a faked `sys.platform` on a Mac.
 
 ## Blockers
 
-1. **`lib/config.py` is outside the declared touches and unreadable under a non-UTF-8 locale.** Measured on the worktree with `LC_ALL=C LANG=C PYTHONCOERCECLOCALE=0 PYTHONUTF8=0 python -X utf8=0`: `lib.config.projects()`, `agents()` and `hosts()` each raise `UnicodeDecodeError: 'ascii' codec can't decode byte 0xe2` (the yaml files hold Thai and typographic characters). Seven bare `.read_text()` at `lib/config.py` lines 28, 40, 52, 147, 173, 209, 342 need `encoding="utf-8"`. `self_repo_guard` refused my edit (ADR 0020) and I sent `dev_message` asking for the path to be added to `touches`; no answer yet, so I did not work around it. Consequence: unless the winbox launcher exports `PYTHONUTF8=1`, `delegate`, `db` and `router` on winbox fail as soon as they call `projects()`. Either declare `lib/config.py` for a follow-up, or have W3.3/W3.4's launcher set `PYTHONUTF8=1` (which also covers every other bare read in the repo I did not touch).
-2. Nothing else blocking.
+1. **RESOLVED in iteration 2.** `lib/config.py` was outside the declared touches and unreadable under a non-UTF-8 locale. Measured before the fix with `LC_ALL=C LANG=C PYTHONCOERCECLOCALE=0 PYTHONUTF8=0 python -X utf8=0`: `lib.config.projects()`, `agents()` and `hosts()` each raised `UnicodeDecodeError: 'ascii' codec can't decode byte 0xe2`. `self_repo_guard` refused my first edit; the CTO added the path to `touches`, and all 7 `read_text()` now carry `encoding="utf-8"` (commit `d2d49d73`). The same command now loads all three, asserted by a test.
+2. Still open, outside this task: bare text reads elsewhere in the repo that this task did not touch (only the eleven files in the encoding test are covered). `PYTHONUTF8=1` in the W3.3/W3.4 launcher would cover them all.
+3. Not run on real Windows (W3.4).
 
 ## Skill learning
 
-- MISSING [self_repo_guard / CXO_Protocol_DelegateExternal §touches]: a Windows-portability task needs `lib/config.py` in `touches` (7 bare `read_text()`); the W3.1 brief did not list it and the fix was refused mid-task · evidence: task-97d0f7e8, `lib/config.py` guard refusal
+- MISSING [self_repo_guard / CXO_Protocol_DelegateExternal §touches]: a Windows-portability task needs `lib/config.py` in `touches` (7 bare `read_text()`); the W3.1 brief did not list it and the fix was refused mid-task, costing a full iteration (CTO added it in iteration 2) · evidence: task-97d0f7e8, `lib/config.py` guard refusal
 - MISSING [CXO_Protocol_DelegateExternal §windows-worker-env]: every winbox worker launcher should export `PYTHONUTF8=1`; a locale-default read of any Thai-bearing yaml is a crash there · evidence: `LC_ALL=C ... python -X utf8=0` repro in Blockers 1
 - COSTLY [no owner]: proving a Windows branch on a Mac. Patch only `sys.platform` (not `os.name`), warm the stdlib imports first (patching before import breaks `subprocess`/`ssl`), patch a `_last_error()` helper because `ctypes.get_last_error` is Windows-only, and drive an `async def` with `coro.send(None)` instead of `asyncio.run` · evidence: `tests/test_w31_windows_portability.py` · prevented by: a short "faking win32 in pytest" note in the tester playbook
 - COSTLY [no owner]: a mid-run edit corrupts a full-suite run; the whole suite takes ~5 min here, so run it once after the last edit · evidence: first baseline run killed, re-run after final commit
