@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from tools import quota
 from tools.delegate import _host_runners
 from tools.quota import Quota, bucket_for, fetch_all_quotas, load_plans
 
@@ -306,6 +307,12 @@ def cached_quotas(
     cached = _quota_cache.get("quotas")
     if cached and (current_time - at < ttl):
         return cached
+
+    snapshot = quota.read_snapshot(quota.SNAPSHOT_PATH)
+    if isinstance(snapshot, dict) and not any(q.error for q in snapshot.values()):
+        _quota_cache["at"] = current_time
+        _quota_cache["quotas"] = snapshot
+        return snapshot
 
     quotas = fetch_all_quotas(cfg)
     # A failed read ranks its provider "quota unknown" (last). Keep it only

@@ -16,6 +16,7 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
+import tempfile
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,6 +27,7 @@ from lib import config
 
 PLANS_PATH = ROOT / "config" / "plans.yaml"
 DEFAULT_HISTORY = Path(__file__).resolve().parents[1] / "state" / "reports" / "quota-history.jsonl"
+SNAPSHOT_PATH = ROOT / "state" / "quota-snapshot.json"
 
 RUNNER_TO_PROVIDER = {
     "claude": "anthropic",
@@ -556,6 +558,108 @@ def record_snapshot(quotas: dict[str, Quota], path: Path | str, now: datetime | 
     return lines_written
 
 
+def write_snapshot(
+    quotas: dict[str, Quota],
+    path: Path | str | None = None,
+    now: datetime | None = None,
+) -> Path:
+    """Write quota snapshot to JSON file atomically."""
+    p = Path(path) if path is not None else SNAPSHOT_PATH
+    p.parent.mkdir(parents=True, exist_ok=True)
+
+    if now is None:
+        now_dt = datetime.now(timezone.utc)
+    elif now.tzinfo is None:
+        now_dt = now.replace(tzinfo=timezone.utc)
+    else:
+        now_dt = now.astimezone(timezone.utc)
+
+    ts = now_dt.isoformat(timespec="seconds")
+    payload = {
+        "ts": ts,
+        "buckets": {name: asdict(q) for name, q in quotas.items()},
+    }
+
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile("w", dir=p.parent, encoding="utf-8", delete=False) as f:
+            temp_path = Path(f.name)
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        os.replace(temp_path, p)
+    except Exception:
+        if temp_path and temp_path.exists():
+            try:
+                temp_path.unlink()
+            except OSError:
+                pass
+        raise
+
+    return p
+
+
+def read_snapshot(
+    path: Path | str | None = None,
+    *,
+    max_age_s: int = 900,
+    now: datetime | None = None,
+) -> dict[str, Quota] | None:
+    """Read quota snapshot from JSON file if valid and not older than max_age_s."""
+    p = Path(path) if path is not None else SNAPSHOT_PATH
+    if not p.is_file():
+        return None
+
+    try:
+        raw_text = p.read_text(encoding="utf-8")
+        data = json.loads(raw_text)
+    except Exception:
+        return None
+
+    if not isinstance(data, dict):
+        return None
+
+    if "ts" not in data or "buckets" not in data:
+        return None
+
+    ts_str = data["ts"]
+    if not isinstance(ts_str, str):
+        return None
+
+    try:
+        ts_dt = datetime.fromisoformat(ts_str)
+    except Exception:
+        return None
+
+    if ts_dt.tzinfo is None:
+        ts_dt = ts_dt.replace(tzinfo=timezone.utc)
+
+    if now is None:
+        now_dt = datetime.now(timezone.utc)
+    elif now.tzinfo is None:
+        now_dt = now.replace(tzinfo=timezone.utc)
+    else:
+        now_dt = now.astimezone(timezone.utc)
+
+    age_s = (now_dt - ts_dt).total_seconds()
+    if age_s > max_age_s:
+        return None
+
+    buckets_data = data["buckets"]
+    if not isinstance(buckets_data, dict):
+        return None
+
+    quotas: dict[str, Quota] = {}
+    try:
+        for name, b_dict in buckets_data.items():
+            if not isinstance(b_dict, dict):
+                return None
+            quotas[name] = Quota(**b_dict)
+    except Exception:
+        return None
+
+    return quotas
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Read quota across AI providers")
     parser.add_argument("--json", action="store_true", help="Output JSON")
@@ -567,10 +671,23 @@ def main() -> None:
         default=None,
         help="Record snapshot to history file (default: %(const)s)",
     )
+    parser.add_argument(
+        "--snapshot",
+        action="store_true",
+        help="Fetch quotas, write snapshot, append history",
+    )
     args = parser.parse_args()
 
     cfg = load_plans(args.config)
     quotas = fetch_all_quotas(cfg)
+
+    if args.snapshot:
+        now_dt = datetime.now(timezone.utc)
+        snap_path = write_snapshot(quotas, now=now_dt)
+        record_snapshot(quotas, DEFAULT_HISTORY, now=now_dt)
+        ts = now_dt.isoformat(timespec="seconds")
+        print(f"snapshot: {snap_path} {len(quotas)} buckets {ts}")
+        return
 
     if args.record is not None:
         n = record_snapshot(quotas, args.record)

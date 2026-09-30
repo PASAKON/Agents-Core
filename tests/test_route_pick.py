@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import tools.quota
 from tools.quota import Quota
 import tools.route as route
 from tools.route import Choice, cached_quotas, pick_runner
@@ -124,7 +125,8 @@ def test_pick_runner_host_runners_claude_only(mock_cfg, monkeypatch):
     assert choice.bucket == "claude"
 
 
-def test_cached_quotas_ttl(mock_cfg, monkeypatch):
+def test_cached_quotas_ttl(mock_cfg, monkeypatch, tmp_path):
+    monkeypatch.setattr(tools.quota, "SNAPSHOT_PATH", tmp_path / "nonexistent.json")
     route._quota_cache.clear()
     fetch_count = 0
 
@@ -155,7 +157,8 @@ def test_cached_quotas_ttl(mock_cfg, monkeypatch):
     assert fetch_count == 2
 
 
-def test_cached_quotas_failed_read_expires_in_retry_window(mock_cfg, monkeypatch):
+def test_cached_quotas_failed_read_expires_in_retry_window(mock_cfg, monkeypatch, tmp_path):
+    monkeypatch.setattr(tools.quota, "SNAPSHOT_PATH", tmp_path / "nonexistent.json")
     route._quota_cache.clear()
     fetch_count = 0
 

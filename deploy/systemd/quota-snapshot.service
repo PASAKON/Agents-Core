@@ -1,0 +1,12 @@
+[Unit]
+Description=MoonieX AI provider quota snapshot (docs/design/runner-routing/PLAN-auto-dispatch.md §3)
+# Refreshes state/quota-snapshot.json and appends state/reports/quota-history.jsonl
+# so router cached_quotas() reads precomputed quotas without live ssh/CLI calls.
+# Triggered by quota-snapshot.timer, not started directly.
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python tools/quota.py --snapshot
