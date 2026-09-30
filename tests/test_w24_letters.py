@@ -15,6 +15,7 @@ Run:  .venv/bin/python -m pytest tests/test_w24_letters.py
 """
 from __future__ import annotations
 
+import sqlite3
 import subprocess
 import sys
 import uuid
@@ -117,8 +118,16 @@ def _local_session(role: str = "cmo", sid: str = "bbbb2222") -> None:
 
 
 def _letter(host: str = "contabo", body: str = "hello", **kw) -> int:
+    """A pending letter sent by this test's self host ("mac") unless from_host says otherwise."""
     kw.setdefault("to_session", SID)
+    kw.setdefault("from_host", "mac")
     return db_mod.create_letter(host, "cmo", body, **kw)
+
+
+def _as_host(monkeypatch, host: str) -> None:
+    """Make this process host `host`: the watchdog of another box on the same ledger."""
+    monkeypatch.setenv("ORG_HOST", host)
+    config.self_host.cache_clear()
 
 
 def _letters() -> list[dict]:
@@ -138,6 +147,7 @@ def test_cross_host_writes_a_row_and_dispatches(monkeypatch, flag_on):
     assert (row["to_host"], row["to_role"], row["to_session"]) == ("contabo", "cmo", SID)
     assert row["body"] == "budget question"
     assert (row["from_role"], row["from_session"]) == ("ceo", "ceo")
+    assert row["from_host"] == "mac"  # the sender's host: only its watchdog retries the row
     assert fake.calls == [("contabo", "deliver_letter", (str(row["id"]),))]
 
 
@@ -384,6 +394,76 @@ def test_each_host_gets_its_own_letters(monkeypatch, flag_on):
     watchdog._retry_letters()
     assert sorted(fake.calls) == sorted([("contabo", "deliver_letter", (str(a),)),
                                          ("winbox", "deliver_letter", (str(b),))])
+
+
+def test_on_one_shared_ledger_only_the_sending_host_retries_a_letter(monkeypatch, flag_on):
+    """Host A ("mac") sent a letter to C ("contabo"). Host B ("winbox") reads the same
+    ledger: its watchdog must not dial; A's does. Otherwise the receiver gets it twice."""
+    fake = _install(monkeypatch, _down)
+    lid = _letter(host="contabo", from_host="mac")
+
+    _as_host(monkeypatch, "winbox")
+    assert watchdog._retry_letters() == []
+    assert fake.calls == [] and db_mod.get_letter(lid)["attempts"] == 0
+
+    _as_host(monkeypatch, "mac")
+    assert watchdog._retry_letters() == [{"letter": lid, "host": "contabo", "outcome": "unreachable"}]
+    assert fake.calls == [("contabo", "deliver_letter", (str(lid),))]
+    assert db_mod.get_letter(lid)["attempts"] == 1
+
+
+def test_a_letter_with_no_from_host_is_retried_by_nobody(monkeypatch, flag_on):
+    fake = _install(monkeypatch, _ok)
+    lid = _letter(host="contabo", from_host=None)
+    for host in ("mac", "winbox", "contabo"):
+        _as_host(monkeypatch, host)
+        assert watchdog._retry_letters() == []
+    assert fake.calls == []
+    row = db_mod.get_letter(lid)
+    assert row["status"] == "pending" and row["attempts"] == 0
+
+
+def test_pending_letters_filters_on_from_host_and_only_when_asked():
+    a = _letter(from_host="mac")
+    b = _letter(from_host="winbox")
+    c = _letter(from_host=None)
+    assert [l["id"] for l in db_mod.pending_letters("contabo")] == [a, b, c]
+    assert [l["id"] for l in db_mod.pending_letters("contabo", from_host="mac")] == [a]
+    assert [l["id"] for l in db_mod.pending_letters("contabo", from_host="winbox")] == [b]
+    assert db_mod.pending_letters("contabo", from_host="contabo") == []
+
+
+def test_an_old_letters_table_gains_from_host_and_its_old_row_belongs_to_nobody(monkeypatch, tmp_path, flag_on):
+    old = tmp_path / "old.db"
+    conn = sqlite3.connect(old)
+    conn.executescript(
+        "CREATE TABLE letters (id INTEGER PRIMARY KEY AUTOINCREMENT, to_host TEXT, to_role TEXT,"
+        " to_session TEXT, from_role TEXT, from_session TEXT, body TEXT NOT NULL,"
+        " status TEXT NOT NULL DEFAULT 'pending', created_at TEXT, delivered_at TEXT,"
+        " attempts INTEGER NOT NULL DEFAULT 0, last_error TEXT);"
+        "INSERT INTO letters (to_host, to_role, body) VALUES ('contabo', 'cmo', 'written before');"
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(db_mod, "DB_PATH", old)
+    db_mod.init()
+    db_mod.init()  # idempotent
+    [row] = _letters()
+    assert row["body"] == "written before" and row["from_host"] is None
+    fake = _install(monkeypatch, _ok)
+    assert watchdog._retry_letters() == [] and fake.calls == []
+    assert db_mod.create_letter("contabo", "cmo", "new", from_host="mac") > row["id"]
+
+
+def test_postgres_side_uses_the_same_from_host_migration_loop():
+    """No PG_SCHEMA change: init_schema() runs the ADD COLUMN loop on top of it for
+    both backends (PRAGMA table_info is translated, the ALTER needs no translation)."""
+    assert [c for c, _ in db_mod._LETTERS_MIGRATION] == ["from_host"]
+    sql = db_mod.db_pg._translate("PRAGMA table_info(letters)")
+    assert sql and "information_schema.columns" in sql and "'letters'" in sql
+    for col, coltype in db_mod._LETTERS_MIGRATION:
+        ddl = f"ALTER TABLE letters ADD COLUMN {col} {coltype}"
+        assert db_mod.db_pg._translate(ddl) == ddl
 
 
 def test_flag_off_the_retry_pass_does_nothing(monkeypatch):

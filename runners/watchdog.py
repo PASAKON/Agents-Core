@@ -546,12 +546,18 @@ def _retry_queued_remote() -> list[dict]:
 
 
 def _retry_letters() -> list[dict]:
-    """W2.4: one more `deliver_letter` attempt for every pending letter addressed
-    to another host (a cross-host send_to_cxo whose host did not answer). At most
-    one attempt per letter per pass; `send_to_cxo.dispatch_letter` counts it
+    """W2.4: one more `deliver_letter` attempt for every pending letter THIS host
+    sent to another host (a cross-host send_to_cxo whose host did not answer). At
+    most one attempt per letter per pass; `send_to_cxo.dispatch_letter` counts it
     (`letters.attempts`, `failed` at 5), never re-sends a delivered letter, and
     never counts a letter that is no longer pending. Off unless ORG_MESH_DISPATCH
     is on.
+
+    Only letters with `from_host` == this host are retried. On a shared ledger
+    every box's watchdog sees every pending letter; without this filter they would
+    all dial the same row, the receiver would get it twice and an outage would
+    spend its attempts several times per pass. A letter whose `from_host` is NULL
+    (written before that column existed) is retried by nobody: no owner is guessed.
 
     A host that gives no answer ends that host's turn for this pass: the rest of
     its queue is not dialled (each dial can wait ConnectTimeout) and, more to the
@@ -564,7 +570,7 @@ def _retry_letters() -> list[dict]:
     for host_name in all_hosts():
         if host_name == here:
             continue
-        for letter in db.pending_letters(host_name):
+        for letter in db.pending_letters(host_name, from_host=here):
             try:
                 outcome = send_to_cxo.dispatch_letter(letter["id"])
             except Exception as e:  # one bad letter must not stop the others

@@ -191,7 +191,8 @@ CREATE TABLE IF NOT EXISTS letters (
     created_at    TEXT,
     delivered_at  TEXT,
     attempts      INTEGER NOT NULL DEFAULT 0,
-    last_error    TEXT
+    last_error    TEXT,
+    from_host     TEXT    -- W2.4: the host that sent it; only that host's watchdog retries it
 );
 CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status);
 """
@@ -286,6 +287,16 @@ _HOSTS_MIGRATION = [
     ("cpus", "INTEGER"),
     ("load_per_core", "REAL"),
     ("runners", "TEXT"),
+]
+
+# letters.from_host (W2.4): which host (config/hosts.yaml key) sent the letter.
+# On a shared ledger every host's watchdog sees every pending letter; retrying
+# only the ones it sent keeps two boxes from both dialling deliver_letter for
+# the same row. Same forward-only ALTER pattern as _HOSTS_MIGRATION, on top of
+# both SCHEMA and db_pg.PG_SCHEMA (no PG_SCHEMA change: the loop covers it).
+# A row written before this column has from_host NULL and is retried by nobody.
+_LETTERS_MIGRATION = [
+    ("from_host", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -648,6 +659,11 @@ def init_schema(conn, *, is_pg: bool) -> None:
     for col, coltype in _HOSTS_MIGRATION:
         if col not in hosts_existing:
             conn.execute(f"ALTER TABLE hosts ADD COLUMN {col} {coltype}")
+    letters_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(letters)").fetchall()}
+    for col, coltype in _LETTERS_MIGRATION:
+        if col not in letters_existing:
+            conn.execute(f"ALTER TABLE letters ADD COLUMN {col} {coltype}")
     # Backfill: move runner-generated messages out of report into
     # delegate_log so DEV completion reports are never overwritten.
     conn.execute("""
@@ -1319,15 +1335,16 @@ def create_letter(
     to_session: str | None = None,
     from_role: str | None = None,
     from_session: str | None = None,
+    from_host: str | None = None,
 ) -> int:
     ts = now_iso()
     with get_conn() as conn:
         row = conn.execute(
             """INSERT INTO letters
-                 (to_host,to_role,to_session,from_role,from_session,body,status,created_at,attempts)
-               VALUES (?,?,?,?,?,?,?,?,?)
+                 (to_host,to_role,to_session,from_role,from_session,from_host,body,status,created_at,attempts)
+               VALUES (?,?,?,?,?,?,?,?,?,?)
                RETURNING id""",
-            (to_host, to_role, to_session, from_role, from_session, body,
+            (to_host, to_role, to_session, from_role, from_session, from_host, body,
              "pending", ts, 0),
         ).fetchone()
     return row["id"]
@@ -1341,12 +1358,16 @@ def get_letter(letter_id: int) -> dict | None:
     return dict(row) if row else None
 
 
-def pending_letters(to_host: str) -> list[dict]:
+def pending_letters(to_host: str, *, from_host: str | None = None) -> list[dict]:
+    """Pending letters addressed to `to_host`. With `from_host`, only the ones
+    that host sent (a row with from_host NULL matches nobody)."""
+    sql = "SELECT * FROM letters WHERE to_host=? AND status='pending'"
+    args: tuple = (to_host,)
+    if from_host is not None:
+        sql += " AND from_host=?"
+        args = (to_host, from_host)
     with get_conn() as conn:
-        rows = conn.execute(
-            "SELECT * FROM letters WHERE to_host=? AND status='pending' ORDER BY id",
-            (to_host,),
-        ).fetchall()
+        rows = conn.execute(sql + " ORDER BY id", args).fetchall()
     return [dict(r) for r in rows]
 
 

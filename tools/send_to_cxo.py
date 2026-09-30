@@ -673,7 +673,8 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     if remote is not None:
         host = remote[0]
         lid = db.create_letter(host, role, message, to_session=sid,
-                               from_role=from_role, from_session=from_sid)
+                               from_role=from_role, from_session=from_sid,
+                               from_host=self_host())
         target = f"{display_for(role)} #{sid}"
         if dispatch_letter(lid) == "delivered":
             return f"delivered to {target} on {host}: [{label}] : {message}"
