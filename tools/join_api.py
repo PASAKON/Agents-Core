@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """The hub's public join endpoint (Org Mesh W4.3): what `join.sh` / `join.ps1` talk to.
 
-    python -m tools.join_api --port 8791 [--public-url https://<hub>]
+    python -m tools.join_api --port 8791 [--bind ADDR] [--public-url https://<hub>]
 
 Runs on Contabo with the hub database in its environment (`infisical_setup.py run
 Agents-Core prod --as contabo -- ...`, see deploy/join/org-join.service). stdlib only,
-ThreadingHTTPServer, bound to 127.0.0.1 and nothing else: traefik in front of it is W4.5.
+ThreadingHTTPServer. It binds 127.0.0.1 unless told otherwise, and `--bind` (env
+JOIN_API_BIND) takes ONLY a loopback address or one inside 172.16.0.0/12 (a docker bridge):
+never 0.0.0.0, never a public or other private address (Org Mesh W4.5: traefik reaches it
+through a socat container on the bridge, deploy/join/docker-compose.join-proxy.yml).
 
 Routes, all under /org-join/ (every other path, and every other method on these, is 404):
 
@@ -54,7 +57,8 @@ from tools import hq_join  # noqa: E402
 
 _log = logging.getLogger("join_api")
 
-BIND_HOST = "127.0.0.1"  # not configurable on purpose: the public side is traefik's job (W4.5)
+BIND_HOST = "127.0.0.1"  # the default; `--bind` may move it onto a docker bridge, see check_bind
+DOCKER_NET = ipaddress.ip_network("172.16.0.0/12")  # every bridge docker hands out by default
 DEFAULT_PORT = 8791
 PREFIX = "/org-join/"
 SCRIPTS_DIR = ROOT / "deploy" / "join"
@@ -96,6 +100,22 @@ _REFUSED = (403, "refused")
 
 def _json(obj: dict) -> bytes:
     return json.dumps(obj, separators=(",", ":")).encode("utf-8")
+
+
+def check_bind(addr: str) -> str:
+    """`addr` if it is an IPv4 loopback or inside 172.16.0.0/12, else ValueError.
+
+    The join endpoint sits in front of join tokens and sealed secrets, so the address is an
+    allowlist and not a blocklist: a typo, a hostname, 0.0.0.0, :: (this server is AF_INET,
+    so no IPv6 at all), a public address or a LAN address are all refused rather than bound.
+    """
+    try:
+        ip = ipaddress.IPv4Address(addr)
+    except ValueError:
+        raise ValueError(f"bind address {addr!r} is not an IPv4 address (hostnames and IPv6 are refused)") from None
+    if not (ip.is_loopback or ip in DOCKER_NET):
+        raise ValueError(f"bind address {addr} refused: only 127.0.0.0/8 or 172.16.0.0/12 (a docker bridge) is allowed")
+    return addr
 
 
 # ---------------------------------------------------------------- rate limit
@@ -326,7 +346,8 @@ class JoinServer(ThreadingHTTPServer):
 
     def __init__(self, port: int = 0, *, minter: TailscaleMinter | None = None,
                  public_url: str | None = None, trust_forwarded: bool = False,
-                 limiter: RateLimiter | None = None):
+                 limiter: RateLimiter | None = None, bind: str = BIND_HOST):
+        check_bind(bind)
         if public_url is not None:
             public_url = public_url.rstrip("/")
             if not _ORIGIN_RE.fullmatch(public_url):
@@ -335,7 +356,7 @@ class JoinServer(ThreadingHTTPServer):
         self.public_url = public_url
         self.trust_forwarded = trust_forwarded
         self.limiter = limiter or RateLimiter()
-        super().__init__((BIND_HOST, port), _Handler)
+        super().__init__((bind, port), _Handler)
 
     def hub_url(self, host_header: str | None) -> str:
         """The URL join.sh is told it was fetched from. The configured public URL wins; else
@@ -362,24 +383,31 @@ def _preflight() -> None:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="join_api", description=__doc__.split("\n", 1)[0])
     p.add_argument("--port", type=int, default=DEFAULT_PORT)
+    p.add_argument("--bind", default=os.environ.get("JOIN_API_BIND") or BIND_HOST,
+                   help="IPv4 address to listen on: loopback or inside 172.16.0.0/12 only "
+                        f"(env JOIN_API_BIND, default {BIND_HOST})")
     p.add_argument("--public-url", default=os.environ.get("JOIN_API_PUBLIC_URL"),
                    help="https://<hub> as a joining machine sees it (env JOIN_API_PUBLIC_URL)")
     p.add_argument("--trust-forwarded-for", action="store_true",
                    default=os.environ.get("JOIN_API_TRUST_FORWARDED") == "1",
                    help="rate-limit on the last X-Forwarded-For entry (only behind our own proxy)")
     args = p.parse_args(argv)
+    try:
+        check_bind(args.bind)
+    except ValueError as exc:
+        p.error(str(exc))  # exit 2, before the database is touched
     logging.basicConfig(level=logging.INFO, format="%(asctime)s join_api %(levelname)s %(message)s")
     try:
         _preflight()
         srv = make_server(args.port, public_url=args.public_url,
-                          trust_forwarded=args.trust_forwarded_for)
+                          trust_forwarded=args.trust_forwarded_for, bind=args.bind)
     except (OSError, ValueError) as exc:
         print(f"join_api: cannot start ({type(exc).__name__}: {str(exc)[:200]})", file=sys.stderr)
         return 1
     except Exception as exc:  # the hub database: a class name, never the driver's message
         print(f"join_api: hub database not ready ({type(exc).__name__})", file=sys.stderr)
         return 1
-    _log.info("listening on %s:%d (minter %s)", BIND_HOST, srv.server_address[1],
+    _log.info("listening on %s:%d (minter %s)", srv.server_address[0], srv.server_address[1],
               "wired" if srv.minter else "not wired")
     try:
         srv.serve_forever()
