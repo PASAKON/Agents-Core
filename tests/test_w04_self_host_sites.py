@@ -487,7 +487,7 @@ def test_docs_path_report_triggers_the_review_close_of_a_quiet_worker(poller_on,
 # deploy/systemd/mooniex-watchdog.service
 # ---------------------------------------------------------------------------
 
-def test_watchdog_unit_is_a_contabo_loop_service_with_no_secret_and_no_poller():
+def test_watchdog_unit_is_a_contabo_loop_service_with_no_secret_and_the_poller_on():
     text = (ROOT / "deploy" / "systemd" / "mooniex-watchdog.service").read_text()
     live = [ln.strip() for ln in text.splitlines()
             if ln.strip() and not ln.lstrip().startswith("#")]
@@ -496,6 +496,7 @@ def test_watchdog_unit_is_a_contabo_loop_service_with_no_secret_and_no_poller():
     assert ("ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python "
             "-m runners.watchdog --loop") in live
     assert "Restart=always" in live
-    assert not any("ORG_WATCHDOG_BRANCH_POLL" in ln for ln in live)
+    # CEO ruling 2026-09-30: poller ON on Mac + Contabo.
+    assert "Environment=ORG_WATCHDOG_BRANCH_POLL=1" in live
     assert not any(k in ln.upper() for ln in live for k in ("TOKEN", "SECRET", "PASSWORD", "API_KEY"))
     assert not any(ln.startswith("EnvironmentFile") for ln in live)
