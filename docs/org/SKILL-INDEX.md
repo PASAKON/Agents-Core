@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-42 org skills by kind — Rules 6 · Knowledge 11 · Workflow 1 · Procedure 9 · Standard 3 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+43 org skills by kind — Rules 6 · Knowledge 11 · Workflow 1 · Procedure 9 · Standard 4 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -63,6 +63,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 |---|---|---|---|
 | `CMO_Standard_BlackLiquidity_Script` | CMO | cmo, cto, script_writer, developer | Write the Thai script for a BLACK LIQUIDITY episode — the AI-avatar TikTok channel that exposes Forex and Ponzi scams. Use this whenever… |
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
+| `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีข้าวเหนียว» — who Mimi the black dog is, the… |
 | `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
 
 ## Gate
@@ -165,3 +166,9 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 | `tig-scene-engine` | `CMO_Gate_Story_SceneEngine` | 2026-10-27 |
 | `winbox-desktop-gui` | `CTO_Knowledge_Winbox_DesktopGUI` | 2026-10-27 |
 | `winbox-pc-lease` | `ALL_Rules_Winbox_PCLease` | 2026-10-27 |
+
+## Not tagged (skill-lint code 11)
+
+| name | owner | audience | what it is |
+|---|---|---|---|
+| `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on… |
