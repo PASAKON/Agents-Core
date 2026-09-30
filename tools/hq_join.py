@@ -80,7 +80,9 @@ MAX_TTL_MIN = 60
 # fullmatch only. hqj_ + 43 url-safe base64 chars = token_urlsafe(32), 256 bits.
 TOKEN_RE = re.compile(r"hqj_[A-Za-z0-9_-]{43}")
 # host names end up in ssh aliases, node.yaml and authorized_keys comments.
-HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,30}[a-z0-9]")
+# 3-31 chars, `[a-z][a-z0-9-]{1,29}[a-z0-9]`: the one rule, owned by lib.config because
+# node.yaml is read there. 31 is the most `infisical_setup.py save` (NAME_RE) accepts.
+HOST_RE = config.HOST_NAME_RE
 OS_NAMES = ("darwin", "linux", "windows")
 # age X25519 recipient: bech32, hrp "age", 32 bytes -> 52 data chars + 6 checksum.
 AGE_RE = re.compile(r"age1[02-9ac-hj-np-z]{58}")
@@ -153,7 +155,7 @@ def valid_age_recipient(key: str) -> bool:
 
 def _check_host(host: str) -> None:
     if not isinstance(host, str) or not HOST_RE.fullmatch(host):
-        raise JoinError("bad_arg", "host name must be 3-32 chars: a-z, 0-9, '-', "
+        raise JoinError("bad_arg", "host name must be 3-31 chars: a-z, 0-9, '-', "
                                    "starting with a letter, not ending in '-'")
 
 
