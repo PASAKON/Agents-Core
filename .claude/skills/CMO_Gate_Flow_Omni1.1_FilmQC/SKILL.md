@@ -222,6 +222,13 @@ prints what the caption says.
    wrong in 3 production re-fires and in 11 of 18 test takes of the combined shot (as written, with
    changed direction words, or at 10 s).
 
+6. **Read facing and direction against the prompt, by eye, on the contact-sheet strip.** [ANY] (CEO 2026-10-01.) For each
+   sampled frame ask three things the prompt wrote down (`CMO_Standard_Film_PromptFormat` §3 rule 12): does the
+   speaker face the way it says (toward/away, left/right), do the eyes go to the addressee rather than the lens, and
+   does the movement go the way it says (a leap away from the camera, an exit to the right). The mechanical audit cannot
+   see any of this and a clean transcript proves nothing about it. A frame that glances at the camera once is a
+   note in the report, not a re-shoot, unless the CEO says so; a wrong direction is a re-shoot.
+
 ## Output format
 
 ```
