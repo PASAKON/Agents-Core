@@ -2,14 +2,15 @@
 
 Branch `agent/developer-task-10136806`, based on origin/main a4e999fd. Not pushed.
 
-**Status: code done, verification incomplete.** Two things are open and both need the CTO: (1) my own test file was not hermetic and left 7 worktrees and 7 branches behind (details under Blockers); (2) the fix for that is committed but not re-run, because the auto-mode classifier denied every further pytest run and the cleanup.
+**Status: code done. Not re-run since the last edits, by CTO order** (CTO-FEEDBACK.md item 3: the CTO runs the full suite twice and the standalones in a scratch worktree at review). Review history: my first `flow` fixture was not hermetic and left 7 worktrees and 7 branches behind; the CTO removed them; the fixture is fixed (see "Hermetic audit").
 
 ## Files changed
 
 - `lib/router.py` (new) — `pick_host(task, *, hosts_rows=None, now=None) -> HostPick`, `enabled()`, `parse_needs()`, `add_needs_line()`, `manual_line()`, `role_runners()`.
 - `tools/delegate.py` — host-resolution block (was one line, `resolved_host = host if host is not None else (task.get("host") or self_host())`), two small helpers `_route_host` and `_keep_host_line`, one import, and 2 lines after the `_route_runner` call. `_route_runner`, `pick_runner`, `check_override` and `tools/route.py` are untouched.
-- `runners/cto_mcp_server.py` — `create_task` gains an optional `needs: str = ""` that appends a `needs: a, b` line to the description (see Blockers for why it lives here and not in the registry).
-- `tests/test_w26_pick_host.py` (new) — 78 tests (77 verified green at 72903d58; the hermetic-fixture fix adds one test and is not re-run).
+- `lib/org_tools_registry.py` — `create_task` ToolSpec gets `Param("needs", str, "")` plus two description lines; `_h_create_task(..., needs="")` appends the `needs: a, b` line via `router.add_needs_line`; `from lib import router`. `cto.py` / `cto_chat.py` derive from the registry, so `needs` reaches them and the MCP tool schema too.
+- `runners/cto_mcp_server.py` — `create_task` stub gains `needs: str = ""` and forwards it (`needs=needs`) to the registry.
+- `tests/test_w26_pick_host.py` (new) — 78 tests (77 verified green at 72903d58; the later edits are not re-run, see Tests).
 - `docs/reports/task-10136806/REPORT.md` — this file.
 
 ## What was done
@@ -32,7 +33,7 @@ Branch `agent/developer-task-10136806`, based on origin/main a4e999fd. Not pushe
 - `_route_runner` overwrites `delegate_log` with its own `router:` line, so `_keep_host_line` puts the host line back in front after it runs (two lines, `\n`-separated). The overwritten value also stays in the events table.
 - The chosen host is what `_route_runner(task, role, resolved_host)`, the disk floor, the browser cap and `_spawn_remote` / the local spawn all receive.
 
-**needs.** No column (lib/db.py is locked). Read from a description line `needs: a, b` (case-insensitive, line must start with `needs:`, several lines merge, names are lowercased and de-duplicated). Empty = no constraint. `create_task(needs="win_gui, chrome")` or a JSON array appends that line.
+**needs.** No column (lib/db.py is locked). Read from a description line `needs: a, b` (case-insensitive, line must start with `needs:`, several lines merge, names are lowercased and de-duplicated). Empty = no constraint. `create_task(needs="win_gui, chrome")` or a JSON array appends that line. The parameter is in the registry ToolSpec (the single source), the stub only forwards it; `test_create_task_needs_param_is_appended_to_the_description` checks the ToolSpec, the description text, the stub signature, and the stored description through both the stub and `reg.dispatch_sync`.
 
 **Real ledger.** The `hosts` table on this Mac's sqlite ledger is empty (probe timers not installed). With the flag on, every host is therefore rejected with `no probe ≤60 s` and the task stays pending: `no_host: contabo(no probe ≤60 s) mac(no probe ≤60 s) winbox(no probe ≤60 s)`. There is no fallback, on purpose. I asserted this with an empty temp ledger (`test_flag_on_no_match_leaves_the_task_pending_and_never_spawns`); I did not read the real ledger, installed nothing, no ssh.
 
@@ -48,20 +49,28 @@ Interpreter: `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python` (the worktree h
   - `scripts/test_hq_migrate_step4b.py::test_rollback_restores_dir_symlink_plists_and_yaml_byte_for_byte` — a `.venv/bin/python` path mismatch inside a pytest tmp dir (`scripts/test_hq_migrate_step4b.py:430`). Not touched by this task. It passed in the earlier `ORG_HOST=mac` full run at 07ffd5d6 (`3950 passed, 27 skipped in 318.45s`). Probably the same parallel-run collision, but I did not prove that.
 - Earlier, before the load-ranking change (07ffd5d6): `ORG_HOST` unset `3950 passed, 27 skipped in 335.64s`.
 - At 72903d58: `scripts/test_org_tools_registry.py` -> `ALL PASS`; `scripts/test_mcp_role_config.py` -> `OK — 0 failure(s)`; `scripts/test_tool_parity.py` -> `ALL PASS` (tool names only; it does not compare parameters).
-- **Not run:** the hermetic-fixture fix (below) has not been executed. The auto-mode classifier denied `pytest tests/test_w26_pick_host.py` twice ("Interfere With Workloads"). I did not work around it. The `ORG_HOST=mac` full run has therefore not been re-done clean.
+- **Not re-run after 72903d58 (CTO order, CTO-FEEDBACK.md item 3: do not run pytest again; the CTO runs the full suite twice, default and `ORG_HOST=mac`, and the standalones in a scratch worktree).** Unrun edits since then: the hermetic `flow` fixture, 2 new/extended tests (`test_flag_on_pick_of_this_box_takes_the_local_spawn`, the registry half of `test_create_task_needs_param_is_appended_to_the_description`), and the registry `needs` param. Tool parity: `scripts/test_tool_parity.py` compares tool names only, so the new param cannot fail it; `scripts/test_org_tools_registry.py` builds create_task calls without `needs`, which is the default `""`.
 
 Before editing I grepped tests/ for pins on `resolved_host` / `self_host` defaults (130 hits in 16 files). All of them run with the flag off, so they exercise the untouched `else:` branch.
 
+## Hermetic audit (read, not run: CTO-FEEDBACK.md item 4)
+
+The first `flow` fixture let a task that resolves to this box reach the real `create_worktree` and `_spawn_local` (7 stray worktrees + branches, removed by the CTO). Read `tests/test_w26_pick_host.py` end to end for every path to a real side effect:
+
+- `create_worktree` — faked in `flow` (`delegate.create_worktree`), returns a dict with `/nowhere/<id>`.
+- `_spawn_local` — faked in `flow`; records `flow.local_spawns`. The flag-off "self_host()" case and `test_flag_on_pick_of_this_box_takes_the_local_spawn` assert it is the local path and nothing else ran.
+- `_spawn_remote` — faked in `flow`; records `flow.spawn_hosts`.
+- `_route_runner` — faked in `flow` (was already; no quota read, no ssh).
+- `_free_gb`, `_remote_free_gb` — faked (100 GB), so no `df`, no ssh. 100 GB is above the policy's green band (>= 20 GB), so the reclaim branch (tools/delegate.py:1966) is not entered; `_run_storage_reclaim` is additionally patched to raise, so a deleting reclaim could only fail the test, never run.
+- `_warn_if_stale_code`, `self_host` — faked in `flow`.
+- Ledger — `flow` and the create_task test point `db.DB_PATH` at `tmp_path`. `ORG_DB_URL` (Postgres hub) cannot leak in: the root `conftest.py` autouse `_clean_session_env` deletes it for every test. The unit tests never open a ledger: `pick_host(..., hosts_rows=rows)`; the one test without `hosts_rows` (`test_unreadable_table_is_no_host_not_a_crash`) patches `db.list_hosts` to raise.
+- `route` — the `role_runners` tests patch `route.load_plans`, `class_for` and `plan`; the hand-pin, `ORG_ROUTER=off` and `model_hint` cases return before `route` is imported. The `world` and `flow` fixtures patch `router.role_runners` itself. No test calls the real one.
+- `config` — the `world` fixture patches `config.hosts` / `config.projects`; the delegate flow reads the real read-only `config/hosts.yaml` and `config/storage-policy.yaml`.
+- Grepped the file for `create_worktree`, `_spawn`, `subprocess`, `ssh`, `db_pg`, `ORG_DB_URL`: the only hits are the fakes above and the docstring.
+
 ## Blockers
 
-1. **My tests were not hermetic, and left artefacts.** The `flow` fixture faked `_route_runner`, `_spawn_remote` and the disk probes, but not `create_worktree` or `_spawn_local`. Every run of the "resolves to this box" case (flag off, no host) therefore cut a real worktree and branch and called the real `_spawn_local`. Found because of the parallel-run collision above. Left behind, all from my own runs:
-   - 7 git worktrees under `/Users/gob/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__task-10136806/worktrees/mooniex-agents__developer__task-<id>` (this path is gitignored, inside my own worktree), for ids `139b2fec 391182e8 3d8e4fe4 58ba5860 5d256124 beef44d1 de40320e`. Each is clean and 0 commits ahead of main.
-   - 7 branches in the shared repo, `agent/developer-task-<same ids>`. Rule 2 says I do not delete branches.
-   - Checked afterwards: no process has its cwd in any of them, no tmux session and no `osascript` process exists for them. The spawn did not leave a live worker. I cannot rule out that an iTerm tab opened and closed.
-   - I tried `git worktree remove` on the 7 directories (after counting them and confirming each was clean and unadvanced); the classifier denied it. Left in place for the CTO: `git worktree remove <path>` for each, then `git branch -d agent/developer-task-<id>` (fully merged into main, so `-d` works).
-   - Fix, committed but not run: the `flow` fixture now fakes `create_worktree`, `_spawn_local` and `_warn_if_stale_code`, and records `local_spawns`. The flag-off case asserts the local spawn, and a new test `test_flag_on_pick_of_this_box_takes_the_local_spawn` covers a flag-on pick of this box.
-   - Also from those runs: `git config extensions.worktreeConfig true` ran on the shared repo, which `create_worktree` does for every task anyway.
-2. **`lib/org_tools_registry.py` is not in touches** and self_repo_guard refused the edit (sent to the CTO by `dev_message`, no answer). The registry's `_h_create_task` and `ToolSpec` own `create_task`'s real parameter list; `cto_mcp_server.py` is a stub over it, and the registry's `_prepare()` silently drops any kwarg not in `spec.params`. Forwarding `needs=` alone would have been a silent no-op, so the stub appends the line itself (`router.add_needs_line`). Consequences: `cto.py` / `cto_chat.py` (built from the registry) have no `needs`, and the MCP tool description text does not mention it. Registry patch if you add the path to touches: `_h_create_task(..., needs: str = "")` doing `description = router.add_needs_line(description, needs)`, `Param("needs", str, "")` in the `create_task` ToolSpec, and the stub forwards `needs=needs` instead of appending.
+None left for me. (Registry `needs` param: applied after the CTO added the path to touches. Stray worktrees/branches: removed by the CTO.)
 
 ## Notes for the reviewer
 

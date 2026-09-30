@@ -48,6 +48,7 @@ from lib import ceo_report
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
+from lib import router
 from lib import telegram_out
 from lib import toon
 from lib.config import get_project, projects, self_host
@@ -146,7 +147,10 @@ def _h_wiki_write(*, path: str, content: str, message: str = "") -> str:
 
 def _h_create_task(*, project: str, role: str, title: str, description: str,
                     depends_on: str = "", touches: str = "",
-                    host: str = "") -> str:
+                    host: str = "", needs: str = "") -> str:
+    # `needs` has no column (lib/db.py is locked); lib.router.pick_host reads
+    # it back from a `needs: a, b` description line.
+    description = router.add_needs_line(description, needs)
     deps = _parse_list_arg(depends_on)
     paths = _parse_list_arg(touches)
     # The regression this must not reintroduce (task-78ef13b0 point 1):
@@ -397,12 +401,17 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "paths that this task is expected to modify. Used for collision "
             "detection: a delegate_task call with overlapping touches against "
             "an in-flight task is blocked and the task is marked "
-            "status='conflict'."
+            "status='conflict'.\n"
+            "needs (optional) accepts JSON array string or comma-separated host "
+            "capabilities the job requires (e.g. 'win_gui, chrome'); it is added "
+            "to the description as a `needs: a, b` line, which the host router "
+            "reads when ORG_HOST_ROUTER is on and no host is named."
         ),
         params=(
             Param("project", str), Param("role", str), Param("title", str),
             Param("description", str), Param("depends_on", str, ""),
             Param("touches", str, ""), Param("host", str, ""),
+            Param("needs", str, ""),
         ),
         handler=_h_create_task,
         response_format="text",

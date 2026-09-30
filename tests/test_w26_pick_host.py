@@ -9,9 +9,12 @@ the host-resolution block in tools/delegate.py, behind env ORG_HOST_ROUTER.
   * no match -> task stays pending, `no_host: <reason per host>`, no spawn
   * the chosen host reaches `_route_runner` and the spawn
 
-Fakes only: a tmp_path ledger for `hosts` rows, config.hosts/projects patched for
-the unit tests, `_route_runner` / `_spawn_remote` / `_remote_free_gb` replaced in
-the delegate flow. No ssh, no real tasks.db, no quota read.
+Fakes only: `hosts_rows=` (or a patched db.list_hosts) for the unit tests with
+config.hosts/projects and router.role_runners patched; in the delegate flow a
+tmp_path tasks.db (root conftest clears ORG_DB_URL) and `_route_runner`,
+`create_worktree`, `_spawn_local`, `_spawn_remote`, `_warn_if_stale_code`,
+`_free_gb`, `_remote_free_gb`, `self_host` replaced, `_run_storage_reclaim`
+made to fail. No ssh, no worktree, no worker, no real ledger, no quota read.
 """
 from __future__ import annotations
 
@@ -104,23 +107,32 @@ def test_add_needs_line(desc, needs, want):
 
 
 def test_create_task_needs_param_is_appended_to_the_description(monkeypatch, tmp_path):
-    """The MCP stub is where `needs` is accepted (the registry's ToolSpec would
-    silently drop it), so the line must land in the stored description."""
+    """`needs` is a real ToolSpec param (the registry's _prepare() drops kwargs it
+    does not list), the MCP stub forwards it, and the line lands in the stored
+    description."""
     import inspect
+    from lib import org_tools_registry as reg
     from runners import cto_mcp_server as srv
 
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     db_mod.init()
+    spec = reg.BY_NAME["create_task"]
+    assert [p.default for p in spec.params if p.name == "needs"] == [""]
+    assert "needs" in spec.description
     assert inspect.signature(srv.create_task).parameters["needs"].default == ""
 
     with_needs = srv.create_task("mooniex-agents", "developer", "t", "body",
                                  needs="win_gui, chrome")
+    via_registry = reg.dispatch_sync("create_task", project="mooniex-agents",
+                                     role="developer", title="t", description="body",
+                                     needs='["win_gui", "chrome"]')
     without = srv.create_task("mooniex-agents", "developer", "t", "body")
 
     got = db_mod.get_task(with_needs)["description"]
     assert got == "body\nneeds: win_gui, chrome"
     assert router.parse_needs(got) == ["win_gui", "chrome"]
+    assert db_mod.get_task(via_registry)["description"] == got
     assert db_mod.get_task(without)["description"] == "body", "empty needs = unchanged"
 
 
@@ -418,6 +430,10 @@ def flow(monkeypatch, tmp_path):
     monkeypatch.setattr(delegate, "_spawn_local", spawn_local)
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
     monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh: 100.0)
+
+    def no_reclaim():
+        raise AssertionError("storage reclaim deletes files on this box; 100 GB free must not reach it")
+    monkeypatch.setattr(delegate, "_run_storage_reclaim", no_reclaim)
 
     def route_runner(t, role, host):
         rec.route_hosts.append(host)
