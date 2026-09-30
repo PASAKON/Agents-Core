@@ -41,7 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db, mesh
 from lib.notify import info, success, warn, error
-from lib.config import host as get_host
+from lib.config import host as get_host, hosts as all_hosts, self_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
                                close_remote, _chrome_running, is_dispatched_here,
                                is_local_row, is_remote_row, row_host)
@@ -50,6 +50,7 @@ from runners import branch_poller
 from tools import delegate
 from tools import disk_queue
 from tools import send_to_cto
+from tools import send_to_cxo
 from tools import work_watch
 from tools.gc_stale_tasks import gc_stale_tasks
 from tools import tmux_session
@@ -544,6 +545,38 @@ def _retry_queued_remote() -> list[dict]:
     return retried
 
 
+def _retry_letters() -> list[dict]:
+    """W2.4: one more `deliver_letter` attempt for every pending letter addressed
+    to another host (a cross-host send_to_cxo whose host did not answer). At most
+    one attempt per letter per pass; `send_to_cxo.dispatch_letter` counts it
+    (`letters.attempts`, `failed` at 5), never re-sends a delivered letter, and
+    never counts a letter that is no longer pending. Off unless ORG_MESH_DISPATCH
+    is on.
+
+    A host that gives no answer ends that host's turn for this pass: the rest of
+    its queue is not dialled (each dial can wait ConnectTimeout) and, more to the
+    point, does not each lose an attempt to one outage. Letters keep their order:
+    the head of the queue is the one that spends attempts."""
+    if not mesh.enabled():
+        return []
+    here = self_host()
+    tried = []
+    for host_name in all_hosts():
+        if host_name == here:
+            continue
+        for letter in db.pending_letters(host_name):
+            try:
+                outcome = send_to_cxo.dispatch_letter(letter["id"])
+            except Exception as e:  # one bad letter must not stop the others
+                warn(f"watchdog: letter {letter['id']} retry failed: {e}")
+                continue
+            tried.append({"letter": letter["id"], "host": host_name, "outcome": outcome})
+            info(f"watchdog: letter {letter['id']} -> {host_name}: {outcome}")
+            if outcome == "unreachable":
+                break
+    return tried
+
+
 def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     """GAP 3 (task-59780ac3): a remote in_progress task whose worker died
     mid-task used to be invisible forever — this box's own process table
@@ -939,6 +972,13 @@ def scan_once() -> dict:
         _retry_queued_remote()
     except Exception as e:
         warn(f"watchdog queued_remote retry error: {e}")
+
+    # Sixth-c pass — cross-host letters that got no answer (W2.4): one retry per
+    # pending letter addressed to another host. No-op unless ORG_MESH_DISPATCH is on.
+    try:
+        _retry_letters()
+    except Exception as e:
+        warn(f"watchdog letter retry error: {e}")
 
     # Seventh pass — Work/ watcher (Work/RULES.md rules 7-8, ADR 0030 §D,
     # task-dbe47b9b): alert the owning CTO or raise a LungNote to-do for any

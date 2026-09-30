@@ -81,8 +81,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib import mailbox
+from lib import mesh
 from lib import notify
-from lib.config import display_for, is_c_level
+from lib.config import display_for, is_c_level, self_host
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
@@ -541,6 +542,88 @@ def _chain_ids(identity: Identity) -> list[str]:
             for i in _chain(identity)]
 
 
+# ---------------------------------------------------------------------------
+# Cross-host letters (Org Mesh W2.4, behind ORG_MESH_DISPATCH, default off)
+# ---------------------------------------------------------------------------
+#
+# `send()` reaches a session on THIS host through lib.mailbox. When this host
+# has no such session and the ledger shows exactly one other host running one,
+# the message becomes a `letters` row and a `deliver_letter` verb is sent to
+# that host (lib.mesh; the far side writes the box and wakes the pane). A host
+# that cannot be reached leaves the row pending and the watchdog retries it
+# (runners/watchdog.py `_retry_letters`). Flag off, a target on this host, or a
+# target the ledger cannot place: today's path, unchanged.
+
+def _remote_target(role: str) -> tuple[str, str] | None:
+    """(host, session_id) of the open `role` session on another host, or None.
+
+    Read from the ledger: `c_level_sessions.host` (config/hosts.yaml key, set
+    by db.register_cxo_session at spawn) on rows with `status='open'`, newest
+    `spawned_at` first -- the same "most recent session" the local
+    `_active_session_id` picks. None when the flag is off, when no other host
+    has one, or when more than one other host does: with the answer unknown the
+    caller keeps today's path (no session found) rather than guess a host."""
+    if not mesh.enabled():
+        return None
+    try:
+        db.init()
+        with db.get_conn() as conn:
+            rows = conn.execute(
+                "SELECT session_id, host FROM c_level_sessions "
+                "WHERE role=? AND status='open' AND host IS NOT NULL AND host<>? "
+                "ORDER BY spawned_at DESC",
+                (role, self_host()),
+            ).fetchall()
+    except Exception as e:
+        try:
+            notify.warn(f"[send_to_cxo] cannot look up {role} sessions on other hosts: {e}")
+        except Exception:
+            pass
+        return None
+    if not rows or len({r["host"] for r in rows}) != 1:
+        return None
+    return rows[0]["host"], rows[0]["session_id"]
+
+
+def dispatch_letter(letter_id: int) -> str:
+    """One `deliver_letter` attempt for a `letters` row, and its bookkeeping.
+
+    The one place a cross-host letter is sent, shared by `send()` and the
+    watchdog retry so both count attempts the same way. Returns:
+
+      "delivered"    the host wrote it (or already had); the row is marked delivered.
+      "unreachable"  no reply (mesh.MeshUnreachable): an attempt is recorded.
+      "refused"      the host answered ok=False, or its name is not in
+                     config/hosts.yaml: an attempt is recorded.
+      "skipped"      the row is not pending (already delivered, failed, or
+                     gone): nothing is sent, nothing is counted. This is what
+                     keeps a delivered letter from being sent twice.
+
+    On a shared ledger the far-side verb counts its own failed delivery
+    (`record_letter_attempt` inside `verb_deliver_letter`); this side then adds
+    no second one, so the limit of 5 stays 5 real attempts. On per-host ledgers
+    the far side cannot see the row at all and this side is the only counter."""
+    letter = db.get_letter(letter_id)
+    if letter is None or letter["status"] != "pending":
+        return "skipped"
+    before = letter["attempts"]
+    try:
+        reply = mesh.dispatch(letter["to_host"], "deliver_letter", str(letter_id))
+    except mesh.MeshUnreachable as e:
+        outcome, reason = "unreachable", str(e)
+    except ValueError as e:  # a to_host that is not in config/hosts.yaml
+        outcome, reason = "refused", f"ValueError: {e}"
+    else:
+        if reply.get("ok"):
+            db.mark_letter_delivered(letter_id)
+            return "delivered"
+        outcome, reason = "refused", str(reply.get("error") or "refused")
+    now = db.get_letter(letter_id)
+    if now is not None and now["attempts"] == before:
+        db.record_letter_attempt(letter_id, reason[:500])
+    return outcome
+
+
 def send(role: str, message: str, sender: str | None = None) -> str:
     """Programmatic API (legacy path). Returns one-line summary string.
 
@@ -557,6 +640,13 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     -- the return string is byte-identical whether the wake succeeds,
     fails, or is skipped for lack of a live session.
 
+    W2.4 (ORG_MESH_DISPATCH on): with no session for `role` on this host and
+    exactly one other host running one (`_remote_target`), the message is a
+    `letters` row plus a `deliver_letter` verb to that host, and the return
+    string says "delivered to ... on <host>" or "queued for <host>" -- the
+    latter is not an error, the watchdog retries the row. Flag off: this
+    paragraph does not exist.
+
     Contract: queued or raised, never "probably". Raises ValueError when
     the target role has no registered session (unchanged failure mode --
     see `_active_session_id()`). Raises PermissionError when the routing
@@ -567,16 +657,29 @@ def send(role: str, message: str, sender: str | None = None) -> str:
             f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
         )
     sid = _active_session_id(role)
+    remote = None
     if not sid:
-        raise ValueError(
-            f"no active {display_for(role)} session found. "
-            f"Spawn one first: bash scripts/spawn-cxo.sh --role {role}"
-        )
+        remote = _remote_target(role)  # None unless ORG_MESH_DISPATCH names one other host
+        if remote is None:
+            raise ValueError(
+                f"no active {display_for(role)} session found. "
+                f"Spawn one first: bash scripts/spawn-cxo.sh --role {role}"
+            )
+        sid = remote[1]
     sender_identity = current_identity()
     authorize(sender_identity, role, sid, spawning=False)
     label = sender or _resolve_sender_role()
     _log_hop(sender_identity, role, sid)
     from_role, from_sid = _mailbox_identity(sender_identity)
+    if remote is not None:
+        host = remote[0]
+        lid = db.create_letter(host, role, message, to_session=sid,
+                               from_role=from_role, from_session=from_sid)
+        target = f"{display_for(role)} #{sid}"
+        if dispatch_letter(lid) == "delivered":
+            return f"delivered to {target} on {host}: [{label}] : {message}"
+        # Not an error: the row stays pending and the watchdog retries it.
+        return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}"
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
     mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
     _attempt_wake(role, sid, label)
