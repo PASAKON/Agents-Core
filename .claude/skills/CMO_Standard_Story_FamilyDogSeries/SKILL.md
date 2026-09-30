@@ -156,6 +156,12 @@ design, voice direction and prompts: `docs/reports/khaoniao-family-style/STYLE-C
 - **Mimi talks (CEO 2026-09-30: "มีมี่พูดด้วย เป็นเสียงหมา ผู้หญิง เสียงน่ารักเหมือนเด็ก")** — a cute, child-like girl's
   voice with a dog feel. The humans are written as not understanding her words (CMO design, [to confirm]). The earlier
   "sounds only" line in the STYLE-CARD is superseded.
+- **Page art (CEO 2026-09-30: "เอา P3 + C3"):** profile **P3** = wet Mimi, pink towel, sky-blue ground (`profile-3-wet.png`);
+  cover **C3** = Mimi at the rainy doorway, the family watching (`cover-3-doorway.png`). Files: `Assets/Agents/Core/khaoniao-family/page-art/`
+  and Drive `FB: บ้านนี้มีมีมี่/Page Art`. **Lettering is set in real Thai fonts by HTML → headless Chrome, never by an image model**
+  (it garbles Thai letters — Brand Truth Protocol): `docs/reports/khaoniao-family-style/logo/logo.html`. Three styles sent
+  (L1 gold serif · L2 sticker · L3 kid hand); the tagline «เรื่องจริงในบ้านเรา เล่าโดยมีมี่» is the CMO's proposal [to confirm].
+  **Logo style: waiting on the CEO's pick** — write it here the turn he answers.
 - Not decided: each human's voice (Flow presets, free 10-s samples), story names (§4).
 - The voice lines in the STYLE-CARD are **direction for the prompts**, not chosen voices: Flow binds a voice to the
   character (`CMO_Knowledge_Flow_Omni1.1` §Voices).
@@ -170,6 +176,7 @@ with the row that beat it, and re-check every script that cited it (`script` row
 
 | Date | Told by | What happened / what is true | Used in |
 |---|---|---|---|
+| 2026-09-30 | CEO | Page art chosen: profile **P3** (wet Mimi, pink towel) + cover **C3** (rainy doorway). He asked for a **logo lettering for the name in 3 styles** to choose from, and sent the cat page's cover (gold Thai serif-brush title + swash + paw + tagline) and profile (round badge + wooden nameplate) as the kind of thing he means — a reference for the *kind*, not to copy (§2 item 7 "Not copied"). | format |
 | 2026-09-30 | CEO | The page is named **«บ้านนี้มีมีมี่»** (chosen from three). | format |
 | 2026-09-30 | CEO | **Why Mimi jumped out on the flood day: to follow the mother.** The mother always buys food from the **vegetable truck (รถขายผัก) that drives around the village** — that is where she was going. So: Mimi, who is terrified of water, braved the flood to go with her. | seed EP1 (reveal known) |
 | 2026-09-30 | CEO | **Mimi talks**: a dog's voice, female, cute like a small child. The mother's 2D design is cut. The series starts as Option C (see the plan): a 3-shot test, then a stock of 3 finished episodes, then one post a day. TikTok and YouTube wait until the page has some interest. | format |
