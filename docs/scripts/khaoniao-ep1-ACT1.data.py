@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""«บ้านนี้มีมีมี่» EP1 «ทำไมมีมี่กลัวน้ำ แต่ยอมลุยน้ำท่วม?» — 15 shots x 10 s = 2:30. Source of
+"""«บ้านนี้มีมีมี่» EP1 «ทำไมมีมี่กลัวน้ำ แต่ยอมลุยน้ำท่วม?» — 18 shots x 10 s = 3:00. Source of
 truth for tools/build_shotsheet.py (pattern: docs/scripts/ep3-ACT1.data.py).
 
 CEO 2026-09-30: "เตรียมเนื้อหาเลยได้ อนุมัติ 300 credit ยิง EP แรก".
@@ -21,7 +21,8 @@ Rules carried in (CMO_Standard_Story_ThaiMoralDrama, CMO_Gate_Flow_Omni1.1_Conti
 - every character in frame has their own physical action and a loud, physical emotion;
 - one speaker per clip; the listener reacts only with the body;
 - no money in frame, no children, no uniforms, no night, no text in frame.
-Mimi talks to us, never to the humans: they do not understand her and only react to her whining.
+Mimi talks to the person or the flood in front of her, never to the viewer: the humans do not understand her and only react
+to her whining. Every shot states facing, addressee and direction of movement (CMO_Standard_Film_PromptFormat rule 12).
 """
 import re
 from pathlib import Path
@@ -137,89 +138,154 @@ _META = {
      "off-screen, while she edges one paw forward and snatches it back; on the very last words she "
      "squeezes her eyes shut and leaps FORWARD off the threshold, away from the camera, into the "
      "brown water with a big splash", _N),
- 2: (10, "Medium shot in the living room, her face three-quarters to camera",
+
+ 2: (10, "Medium shot in the living room from the front at chest height: she stands at screen-centre facing "
+     "screen-right in three-quarter profile, her eyes on the window at screen-right and never on the "
+     "camera, talking to the household at large",
      ["mom_h"], "living", T_AM,
-     "the woman with the wooden ladle in her bun, cheerful and beaming, cocks her head toward the "
-     "window at the faint jingle of a passing vegetable truck's loudspeaker and swings an empty "
-     "bamboo basket by its handle while she speaks, bouncing on her toes with delight", _N),
- 3: (10, "Medium shot at the desk, the dog at his feet looking up, his face above her",
+     "the woman with the wooden ladle in her bun, cheerful and beaming, turns her head toward the "
+     "window at screen-right at the faint jingle of a passing vegetable truck's loudspeaker and swings "
+     "an empty bamboo basket by its handle while she speaks, bouncing on her toes with delight", _N),
+ 3: (10, "Medium shot from the side at the desk: the desk and laptop are at screen-left, the stocky man sits "
+     "facing screen-left in three-quarter profile with his eyes on the laptop, and the small dog stands "
+     "at his knee at screen-right facing screen-left and looking UP at him, her muzzle in profile to the "
+     "camera so her mouth shows; she speaks to him",
      ["mimi_d", "bro"], "living", T_AM,
-     "the small dog, wheedling and sugar-sweet, rears up with both front paws on the seated "
-     "man's knee, tail wagging, huge shining eyes begging up at him while she speaks; the stocky "
-     "man, distracted, eyes glued to the laptop screen, pats her head without looking down, a white "
-     "mug in his other hand", _N),
- 4: (10, "Medium shot at the desk, the man's face to camera, the dog at his feet",
+     "the small dog, wheedling and sugar-sweet, rears up with both front paws on the seated man's knee, "
+     "tail wagging, huge shining eyes begging up at his face while she speaks to him; the stocky man, "
+     "distracted, eyes glued to the laptop screen at screen-left, pats her head without looking down, a "
+     "white mug in his other hand", _N),
+ 4: (10, "Medium shot from just behind the open laptop, so the man is three-quarters to the lens while he "
+     "looks at his screen, and the small dog sits at his feet at screen-right facing up and to the left "
+     "toward him; he answers the dog below him while he forces a smile at the laptop",
      ["bro", "mimi_d"], "living", T_AM,
-     "the stocky man in the navy blazer, hurried and strained, holds a tight fake smile toward the "
-     "laptop screen, one hand waving the dog away below the desk while he speaks, eyes darting "
-     "between the screen and the dog; the small dog, hopeful, sits upright at his feet and wags her "
-     "tail slowly, ears up", _N),
- 5: (10, "Wide shot across the living room floor",
+     "the stocky man in the navy blazer, hurried and strained, holds a tight fake smile at the laptop "
+     "screen, one hand waving the dog away below the desk at screen-right while he speaks to her, his "
+     "eyes darting between the screen and the dog; the small dog, hopeful, sits upright at his feet and "
+     "wags her tail slowly, ears up, looking up at him", _N),
+ 5: (10, "Wide shot from the sofa side across the living room floor: everyone runs from screen-right to "
+     "screen-left, the small dog in front with her head turned back over her shoulder toward the woman, "
+     "the woman close behind her facing screen-left and shouting at the dog",
      ["mom_h", "mimi_d"], "living", T_AM,
-     "the woman with the wooden ladle in her bun, laughing and shouting, chases the dog across "
-     "the marble floor flapping a pink towel while she speaks, cheeks puffed, waddling fast; the "
-     "small dog, panicked, bolts away from her with her ears flying and her claws skidding on the "
-     "tiles", _N),
- 6: (10, "Low medium shot under the coffee table, her face to camera",
+     "the woman with the wooden ladle in her bun, laughing and shouting, chases the dog across the "
+     "marble floor toward screen-left flapping a pink towel while she speaks to the dog, cheeks puffed, "
+     "waddling fast; the small dog, panicked, bolts away from her toward screen-left with her ears "
+     "flying and her claws skidding on the tiles", _N),
+ 6: (10, "Low shot at floor level from the front: the small dog crouches under the round coffee table at "
+     "screen-centre, three-quarters to the camera, with her head turned up and toward screen-right at "
+     "the pink towel dangling in from the top-right; she speaks up to the woman, who is off-screen "
+     "above her at screen-right",
      ["mimi_d"], "living", T_AM,
-     "the small dog, whimpering and trembling, crouches under the round coffee table with both "
-     "paws clamped over her nose, peeking out with enormous wet eyes at a pink towel that "
-     "dangles into the frame from above while she speaks, shivering", _N),
- 7: (10, "Medium shot from inside the doorway, the woman outside at the threshold",
+     "the small dog, whimpering and trembling, crouches under the round coffee table with both paws "
+     "clamped over her nose, peeking up and to the right with enormous wet eyes at a pink towel "
+     "dangling into the frame from the top-right while she pleads with the woman above her, shivering", _N),
+ 7: (10, "Medium shot from inside the doorway at dog's-eye height: the woman stands just outside the "
+     "threshold at screen-centre facing the house, toward the camera, her eyes down on the small dog "
+     "who stands just behind the camera (she talks to the dog, who is off-screen and low); at the end "
+     "she turns and wades away from the camera toward the gate at screen-right",
      ["mom_o"], "door", T_FLOOD,
      "the woman with the wooden ladle in her bun, bright and singsong, stands just outside the "
-     "threshold with the brown water over her ankles, facing the house, waving goodbye with one "
-     "hand and holding the empty basket on her other arm while she speaks, and starts wading "
-     "toward the gate as she finishes", _N + ["nocash"]),
- 8: (10, "Low medium shot at dog's-eye height on the threshold, her face to camera",
+     "threshold with the brown water over her ankles, waving goodbye with one hand and holding the "
+     "empty basket on her other arm while she speaks down to the dog, and on her last words turns and "
+     "wades away from the camera toward the gate at screen-right", _N + ["nocash"]),
+ 8: (10, "Low over-the-shoulder shot from INSIDE the house at dog's-eye height, the same set-up as the "
+     "opening leap: the camera just behind and a little to the left of the small dog, who stands on the "
+     "threshold with her BACK and left flank to the camera, facing OUT toward the flood, her head turned "
+     "in three-quarter rear profile toward screen-right so the side of her muzzle and moving mouth "
+     "show; she speaks to the woman who has just waded off, out of sight ahead at screen-right; she "
+     "never looks at the camera",
      ["mimi_d"], "door", T_FLOOD,
-     "the small dog, torn and trembling, stands on the threshold whining, dips one front paw "
-     "toward the brown water and snatches it back again and again while she speaks, ears "
-     "flattened, eyes darting between the water and the gate", _N),
- 9: (10, "Low medium shot on the flood water at her eye level, her face to camera",
+     "the small dog, torn and trembling, stands on the threshold with her back to the camera, whining "
+     "out over the brown water toward the right, dips one front paw toward the water and snatches it "
+     "back again and again while she speaks, ears flattened, eyes darting between the water and the "
+     "gate at screen-right; she stays on the threshold", _N),
+ 9: (10, "Low shot on the flood water at her eye level, from ahead of her and to the left: the small dog "
+     "paddles from screen-left to screen-right, in three-quarter profile to the camera facing "
+     "screen-right with her chin high, her eyes on the blue pickup truck far ahead at screen-right; "
+     "she talks to herself, never to the camera",
      ["mimi_w"], "street", T_FLOOD,
-     "the small dog, panicky and comic, paddles through the brown flood water with her chin "
-     "stretched high and her teeth chattering while she speaks, squeaking each word, water "
-     "lapping at her nose, the blue pickup truck with its baskets of vegetables ahead of her", _N),
- 10: (10, "Medium wide shot at the truck, the man in the middle, the woman beside him",
+     "the small dog, panicky and comic, paddles through the brown flood water toward screen-right with "
+     "her chin stretched high and her teeth chattering while she encourages herself, squeaking each "
+     "word, water lapping at her nose, the blue pickup truck with its baskets of vegetables ahead of "
+     "her at screen-right", _N),
+ 10: (10, "Medium wide shot across the flooded street at the truck: the blue pickup stands at screen-right "
+      "with the seller at its tailgate, the woman stands at screen-centre facing screen-right in "
+      "three-quarter profile with her eyes on the vegetables, and she talks to him; nobody else is in the frame",
+      ["mom_o", "man"], "street", T_FLOOD,
+      "the woman with the wooden ladle in her bun, cheerful and oblivious, stands in the brown water "
+      "holding her empty basket out toward the truck and pointing at the baskets of green morning glory "
+      "and bok choy with her free hand, bouncing on her toes while she speaks to the man; the lean man "
+      "in the straw hat faces screen-left toward her, grinning, and weighs a bunch of morning glory in "
+      "his hand", _N + ["nocash"]),
+ 11: (10, "Medium wide shot at the truck: the truck stands at screen-right, the man faces screen-left "
+      "toward the woman in three-quarter profile and points down and to screen-left at the water where "
+      "the small dog is arriving from screen-left, the woman stands at screen-centre spinning round to "
+      "face screen-left, and the man talks to the woman",
       ["man", "mom_o", "mimi_w"], "street", T_FLOOD,
-      "the lean man in the straw hat, amazed and laughing out loud, points down at the water "
-      "beside the truck while he speaks and holds out a bunch of green morning glory to the "
-      "woman with his other hand; the woman with the wooden ladle in her bun, startled, spins "
-      "around with her basket on her arm and her eyes wide; the small soaked dog paddles up "
-      "beside the truck's wheel, shivering", _N + ["nocash"]),
- 11: (10, "Medium shot at the truck, the woman and the dog in her arms",
+      "the lean man in the straw hat, amazed and laughing out loud, points down and to screen-left at "
+      "the water beside the truck while he speaks to the woman and holds out a bunch of green morning "
+      "glory to her with his other hand; the woman with the wooden ladle in her bun, startled, spins "
+      "around toward screen-left with her basket on her arm and her eyes wide; the small soaked dog "
+      "paddles up from screen-left to the truck's wheel, shivering, looking up at the woman", _N + ["nocash"]),
+ 12: (10, "Medium shot at the truck from in front of the woman: she faces the camera in three-quarters, her "
+      "eyes down on the small dog in her arms, and she talks to the dog, whose head rests over her forearm "
+      "toward screen-left, looking up at her face",
       ["mom_o", "mimi_w"], "street", T_FLOOD,
-      "the woman with the wooden ladle in her bun, surprised then delighted, laughing, bends "
-      "down and scoops the dripping dog out of the water into her arms while she speaks, "
-      "hugging her to her chest, the basket swinging on her forearm; the small soaked dog, "
-      "shaking, presses her trembling body against her and blinks up at her", _N + ["nocash"]),
- 12: (10, "Medium wide shot at the front door, the man inside, the woman on the threshold",
+      "the woman with the wooden ladle in her bun, surprised then delighted, laughing, bends down and "
+      "scoops the dripping dog out of the water into her arms while she speaks to the dog, hugging her "
+      "to her chest, the basket swinging on her forearm; the small soaked dog, shaking, presses her "
+      "trembling body against her and blinks up at her", _N + ["nocash"]),
+ 13: (10, "Medium wide shot from the dry floor inside at the front door: the stocky man stands inside at "
+      "screen-left in profile facing screen-right toward the door with his eyes down on the dog, the woman "
+      "stands on the threshold at screen-right facing into the house, toward screen-left, holding the "
+      "small dripping dog in her arms, and the man talks to the DOG",
       ["bro", "mom_o", "mimi_w"], "door", T_FLOOD,
-      "the stocky man in the navy blazer and elephant-print shorts, exasperated and theatrical, "
-      "stands inside the open front door with his palm pressed to his forehead, stamping one "
-      "flip-flop in a puddle of dripped water while he speaks; the woman with the wooden ladle in "
-      "her bun stands on the threshold holding the dripping dog in her arms, smiling "
-      "obliviously; the small soaked dog, shivering, looks down guiltily", _N),
- 13: (10, "Medium shot on the living room floor, the woman kneeling, the man at the desk behind",
+      "the stocky man in the navy blazer and elephant-print shorts, exasperated and theatrical, stands "
+      "inside the open front door at screen-left with his palm pressed to his forehead, stamping one "
+      "flip-flop in a puddle of dripped water while he scolds the dog at screen-right; the woman with "
+      "the wooden ladle in her bun stands on the threshold holding the dripping dog in her arms, "
+      "smiling obliviously at him; the small soaked dog, shivering, looks down guiltily", _N),
+ 14: (10, "Low shot at floor level from the front in the living room: the small dog sits on the marble floor "
+      "wrapped in a pink towel at screen-centre, her body in three-quarter profile facing screen-left, "
+      "her eyes on the doorway at screen-left where the man stood (off-screen), and she talks to him, "
+      "her muzzle in profile so her mouth shows; nobody else is in the frame",
+      ["mimi_w"], "living", T_DAY,
+      "the small dog, wounded and tearful, sits dripping inside a pink towel draped over her "
+      "shoulders, her ears low, tears welling in her big eyes, and pleads toward the doorway at "
+      "screen-left while she speaks, her chin trembling, shaking her head once", _N),
+ 15: (10, "Medium shot on the living room floor: the woman kneels in the foreground at screen-right facing "
+      "screen-left in profile, her eyes on the stocky man at the desk at screen-left in the background, "
+      "and she tells him what the seller said; the small dog in the towel sits between them at "
+      "screen-centre looking up at the woman, and the man faces screen-right toward her",
       ["mom_h", "bro", "mimi_w"], "living", T_DAY,
-      "the woman with the wooden ladle in her bun, gentle and puzzled, kneels on the marble "
-      "floor rubbing the small soaked dog with a pink towel while she speaks, stroking her own "
-      "cheek, her eyes a little teary; the stocky man in the navy blazer, sheepish, slowly stops "
-      "typing and lowers his gaze to the dog, his mug forgotten beside the laptop; the small "
-      "dog, wrapped in the towel, looks up at them shivering", _N),
- 14: (10, "Close medium shot on the floor, the dog's face to camera, the man kneeling beside her",
+      "the woman with the wooden ladle in her bun, gentle and puzzled, kneels on the marble floor "
+      "rubbing the small soaked dog with a pink towel while she speaks to the man at the desk, stroking "
+      "her own cheek, her eyes a little teary; the stocky man in the navy blazer, sheepish, slowly "
+      "stops typing, turns his face toward her and lowers his gaze to the dog, his mug forgotten beside "
+      "the laptop; the small dog, wrapped in the towel, looks up at the woman shivering", _N),
+ 16: (10, "Close medium shot on the floor from the front: the small dog, wrapped in the towel, looks up "
+      "and toward screen-right in three-quarters at the stocky man who kneels beside her at screen-right "
+      "facing screen-left with his eyes on her; she speaks to him",
       ["mimi_w", "bro"], "living", T_DAY,
-      "the small dog, crying, tears streaming down her face, nuzzles into a pink towel while "
-      "she speaks, her voice breaking; the stocky man in the navy blazer, guilty and moved, "
-      "kneels on the floor beside her and gently tucks the towel around her with both hands, "
-      "his eyes wet", _N),
- 15: (10, "Medium shot at the dining table, the woman kneeling with the dog",
+      "the small dog, crying, tears streaming down her face, nuzzles into a pink towel while she "
+      "speaks to him, her voice breaking; the stocky man in the navy blazer, guilty and moved, kneels "
+      "on the floor beside her and gently tucks the towel around her with both hands, his eyes wet", _N),
+ 17: (10, "Medium close shot on the floor from the side: the stocky man kneels at screen-right facing "
+      "screen-left in profile with his eyes on the small dog, the dog sits at screen-left facing "
+      "screen-right in three-quarters looking up at him, and he talks to her",
+      ["bro", "mimi_w"], "living", T_DAY,
+      "the stocky man in the navy blazer, remorseful and choked up, kneels on the marble floor and "
+      "cradles the small dog's face gently in both hands while he speaks to her, his glasses fogged, "
+      "his eyes wet and a small smile breaking through; the small dog, wrapped in the towel, looks up "
+      "at him and her tail starts to wag slowly", _N),
+ 18: (10, "Medium shot at the dining table: the slim woman kneels at screen-right facing screen-left in "
+      "three-quarters toward the small dog, her eyes on her, and talks to her; the dog stands at "
+      "screen-left facing screen-right toward her with her tongue out",
       ["sis", "mimi_d"], "dining", T_EVE,
-      "the slim woman in the white blouse, melting from stern to gooey, squealing with delight, "
-      "kicks off her black heels and kneels to hug the small fluffy dog while she speaks; the "
-      "small dog, dry and fluffy, wags her whole body with her tongue out beside a table of "
-      "steaming sticky rice and grilled chicken", _N),
+      "the slim woman in the white blouse, melting from stern to gooey, squealing with delight, kicks "
+      "off her black heels and kneels to hug the small fluffy dog while she speaks to her; the small "
+      "dog, dry and fluffy, wags her whole body with her tongue out beside a table of steaming sticky "
+      "rice and grilled chicken", _N),
 }
 
 _NAME = {"mimi_d": "มีมี่", "mimi_w": "มีมี่", "mom_h": "แม่", "mom_o": "แม่", "bro": "พี่ชาย",
