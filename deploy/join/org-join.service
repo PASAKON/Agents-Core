@@ -12,12 +12,23 @@ Description=MoonieX hub join endpoint (Org Mesh W4.3 + W4.5, tools/join_api.py)
 # (deploy/join/docker-compose.join-proxy.yml) forwards traefik's /org-join route to it.
 # So 194.233.80.26:8791 answers nothing.
 #
-# Secrets: none in this file. ORG_DB_URL (hub Postgres, role org) comes from Infisical the
-# same way the secretary gets it (deploy/systemd/mooniex-secretary.service.d/org-db.conf):
-# /etc/infisical/contabo.env is root 0600, so the fetch runs as root, then setpriv drops
-# to the `secretary` user before the endpoint starts. A public-facing process does not stay root.
-# setpriv execs, so systemd still supervises the endpoint's own pid. HOME is set because
-# setpriv does not reset it.
+# Who it runs as (W4.6c F3): the dedicated system user `org-join`, not `secretary`. The endpoint
+# is reachable from the internet, so it gets an account of its own that owns nothing, and a
+# database role of its own (org_join, deploy/join/org_join_role.sql) that can do what accept and
+# sealed do and nothing else.
+#
+# Secrets: none in this file. The endpoint gets ONE value, ORG_JOIN_DB_URL, from the /org-join
+# folder of Agents-Core prod in Infisical, and nothing else of Agents-Core (no ORG_DB_URL, no
+# token of any other service). /etc/infisical/contabo.env is root 0600 and stays that way: the
+# fetch runs as root, `infisical_setup.py run ... --path /org-join` puts only that folder's values
+# into the environment, then setpriv drops to `org-join` before the endpoint starts. The machine
+# credential never reaches the `org-join` user, and no permission on /etc/infisical changes.
+# A public-facing process does not stay root. setpriv execs, so systemd still supervises the
+# endpoint's own pid. HOME is set because setpriv does not reset it.
+#
+# The door (W4.6c): this unit is NOT enabled and has no [Install] section. It runs only while
+# deploy/join/door.sh has opened the door, and door.sh closes it again on a timer (default 30
+# minutes). `systemctl start` by hand works and leaves the door open until something stops it.
 #
 # JOIN_API_PUBLIC_URL is what join.sh is told it came from. JOIN_API_TRUST_FORWARDED=1
 # rate-limits on the caller (the last X-Forwarded-For entry, which traefik appends), not on
@@ -30,26 +41,27 @@ Type=simple
 User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=PYTHONUNBUFFERED=1
-Environment=HOME=/home/secretary
+Environment=HOME=/nonexistent
 Environment=JOIN_API_PUBLIC_URL=https://webhook.mooniex.com
 Environment=JOIN_API_TRUST_FORWARDED=1
-ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/join/bind-docker0.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo -- /usr/bin/setpriv --reuid=secretary --regid=secretary --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.join_api --port 8791
+ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/join/bind-docker0.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo --path /org-join -- /usr/bin/setpriv --reuid=org-join --regid=org-join --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.join_api --port 8791
 Restart=on-failure
 RestartSec=10
 
 # Sandbox (Org Mesh W4.6b, security review task-79219f24 F3, the part that changes no secret and
 # no database role). The service runs two legs: a root leg (bind-docker0.sh, then
 # infisical_setup.py reads /etc/infisical/contabo.env and execs setpriv) and, after setpriv drops
-# to `secretary`, the public endpoint. The directives below confine both. What the service
+# to `org-join`, the public endpoint. The directives below confine both. What the service
 # really writes, found in the code: nothing on disk. The hub is Postgres over the network
-# (lib/db.py takes the SQLite path only when ORG_DB_URL is unset, and the unit always has it),
+# (lib/db.py takes the SQLite path only when no database URL is set; the unit always has
+# ORG_JOIN_DB_URL, because `infisical_setup.py run` refuses to start on an empty /org-join folder),
 # logs go to stderr and so to journald, /etc/infisical and the checkout are only read, and
 # `ip -4 addr show` is a netlink read. Python's attempt to write .pyc files into the checkout
 # fails quietly, as it does for any read-only tree. So there is no ReadWritePaths= line on
 # purpose: add one only together with the code that needs it.
 #
 # NoNewPrivileges: no process of this unit can gain privilege through exec (setuid or setgid
-#   bit, file capabilities). setpriv only DROPS root to `secretary`, which this does not block.
+#   bit, file capabilities). setpriv only DROPS root to `org-join`, which this does not block.
 NoNewPrivileges=yes
 # ProtectSystem=strict: the whole file system is read-only for this unit, except /dev, /proc and
 #   /sys (which the next directives cover). A bug in the endpoint cannot rewrite the checkout
@@ -57,13 +69,14 @@ NoNewPrivileges=yes
 ProtectSystem=strict
 # ProtectHome: /home, /root and /run/user are empty and unreachable, so the endpoint cannot read
 #   another user's keys or shell history. Nothing needs them: the checkout is under /opt, and
-#   Environment=HOME above is only a value for setpriv to pass on. Before installing, check that
+#   Environment=HOME above names a directory that does not exist, for setpriv to pass on.
+#   Before installing, check that
 #   `readlink -f /opt/MoonieXHQ/Agents/Core/.venv/bin/python` does not resolve under /home or /root
 #   (an interpreter installed there would stop working). lib/config.py already treats an
 #   unreadable node.yaml as absent on the path join_api uses (config.hosts()).
 ProtectHome=yes
-# PrivateTmp: its own /tmp and /var/tmp, shared with no other service (the secretary runs as the
-#   same uid). The endpoint uses no temporary file.
+# PrivateTmp: its own /tmp and /var/tmp, shared with no other service. The endpoint uses no
+#   temporary file.
 PrivateTmp=yes
 # ProtectKernelTunables: /proc/sys, /sys and the like are read-only. `ip` only reads them.
 ProtectKernelTunables=yes
@@ -75,6 +88,3 @@ ProtectControlGroups=yes
 RestrictSUIDSGID=yes
 # LockPersonality: the execution domain (personality(2)) cannot be changed.
 LockPersonality=yes
-
-[Install]
-WantedBy=multi-user.target

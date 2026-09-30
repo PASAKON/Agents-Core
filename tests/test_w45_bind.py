@@ -186,7 +186,7 @@ def test_the_compose_file_publishes_no_port_and_mounts_and_passes_nothing(compos
 
 def test_the_container_is_locked_down(proxy):
     assert proxy["read_only"] is True
-    assert proxy["restart"] == "always"
+    assert proxy["restart"] == "no"     # W4.6c: the door is closed by default, a reboot must not reopen it
     assert proxy["cap_drop"] == ["ALL"]
     assert "no-new-privileges:true" in proxy["security_opt"]
     assert proxy["user"] not in ("0", "0:0", "root")
@@ -237,8 +237,8 @@ def test_the_unit_resolves_docker0_first_then_fetches_secrets_then_drops_root():
     (exec_start,) = [ln for ln in _unit_lines() if ln.startswith("ExecStart=")]
     assert exec_start.startswith("ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/join/bind-docker0.sh ")
     order = [exec_start.index(s) for s in (
-        "bind-docker0.sh", "infisical_setup.py run Agents-Core prod --as contabo --",
-        "setpriv --reuid=secretary", "-m tools.join_api --port 8791")]
+        "bind-docker0.sh", "infisical_setup.py run Agents-Core prod --as contabo --path /org-join --",
+        "setpriv --reuid=org-join", "-m tools.join_api --port 8791")]
     assert order == sorted(order)
     assert "--bind" not in exec_start and "0.0.0.0" not in exec_start
 
