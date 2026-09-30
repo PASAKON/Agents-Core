@@ -16,7 +16,7 @@ Exactly these seven. Anything else is refused. Argument patterns are `fullmatch`
 | `pid_alive` | `task-xxxxxxxx` | is the pid recorded on this host's task alive (`alive` true/false) |
 | `spawn_worker` | `task-xxxxxxxx` | starts the worker for a pending task whose `host` is this host (a NULL host is refused on every OS), through `delegate_task` |
 | `kill_worker` | `task-xxxxxxxx` | `worker_reap.close_dev`; keeps its own "only review/done" refusal rules |
-| `start_clevel` | `<role> [--resume <8 hex>]` | starts a C-level session; role must be in `policies/agents.yaml` `c_level`; refused (exit 2) when 3 sessions of that role are already live on this host or another start of that role is still running |
+| `start_clevel` | `<role> [--resume <8 hex>]` | starts a C-level session; role must be in `policies/agents.yaml` `c_level`; refused (exit 2) when 3 sessions of that role are already live on this host or another start of that role is still running or succeeded less than 60 s ago |
 | `deliver_letter` | `<digits, max 12>` | writes hub letter N into this host's mailbox, wakes the pane, marks it delivered; a call that overlaps one still writing is refused (exit 2) |
 | `publish_branch` | `task-xxxxxxxx` | `git push origin <the task's own branch>` from its worktree, never force |
 
@@ -157,9 +157,10 @@ letter; touch a letter twice (`deliver_letter` again returns `already_delivered`
 and writes nothing, and a call that overlaps one still writing is refused: each
 delivery holds a `locks` row `letter:<id>:delivery` for up to 120 s); open more
 than 3 live sessions of one C-level role on one host (W2.7 F10: `start_clevel`
-counts the live `state/locks/<role>-<sid>.lock` files, and holds a `locks` row
-`clevel:<host>:<role>:start` for up to 300 s so two overlapping starts cannot
-both pass the count).
+counts the live `state/locks/<role>-<sid>.lock` files under a `locks` row
+`clevel:<host>:<role>:start`, so two overlapping starts cannot both pass the
+count; a start that succeeds keeps the row 60 s, because the launcher writes its
+lock file only after the verb returns).
 
 The relay's `spawn_c_level` (runners/relay_mcp_server.py) also allows at most 3
 spawn attempts that pass its checks per 10 minutes per relay process (a call it
