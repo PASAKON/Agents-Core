@@ -31,7 +31,7 @@ reorganising, and never anywhere else on Drive.
 
 D4 -- the OAuth env-file location is configurable (SOMPONG_DRIVE_ENV), because
 SomPong runs on Contabo as user `secretary`, and
-/root/projects/mooniex-claudeflow/.env is not readable by that user
+/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env is not readable by that user
 (/root is drwx------). See resolve_oauth_env_candidates(). Falling back to
 today's claudeflow candidates unchanged keeps the Mac working with no new
 env var. Values are never printed.

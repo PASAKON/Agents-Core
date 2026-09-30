@@ -34,6 +34,13 @@ import tools.delegate as delegate  # noqa: E402
 
 SCRIPT = ROOT / "scripts" / "spawn-worker-remote.sh"
 
+# Every test here plays "a Mac hub delegating to the contabo spoke". With
+# self_host()=contabo (ORG_HOST=contabo, or the suite run on Contabo itself)
+# delegate_task(host="contabo") is a LOCAL spawn and walks into
+# /opt/MoonieXHQ/Agents/Core instead of building the ssh command under test
+# (task-6f6e5179 W0.3), so pin the hub to the Mac.
+pytestmark = pytest.mark.usefixtures("pinned_mac_host")
+
 
 @pytest.fixture()
 def temp_db(monkeypatch, tmp_path):
@@ -74,7 +81,8 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
     log = result["delegate_log"]
     assert "[dry-run] host=contabo ssh_cmd=" in log
     assert "ssh mooniex-vps" in log
-    assert "bash /opt/MoonieXHQ/Agents/Core/scripts/spawn-worker-remote.sh" in log
+    # deployed under the git-ignored .launch/, never the spoke's tracked scripts/
+    assert "bash /opt/MoonieXHQ/Agents/Core/.launch/spawn-worker-remote.sh" in log
 
     for flag, value in [
         ("--task", tid),
@@ -82,7 +90,7 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
         ("--role", "developer"),
         ("--base", "main"),
         ("--worktree-root", "/opt/MoonieXHQ/Agents/Core/worktrees"),
-        ("--model", "claude-sonnet-5"),
+        ("--model", "claude-sonnet-5-5"),
         ("--effort", "xhigh"),
         ("--runner", "claude"),
     ]:
@@ -452,7 +460,10 @@ def test_script_dry_run_mentions_sidecar_write_and_node_path_prepend():
     out = r.stdout
     assert ".org-task.json" in out
     assert ".tools/node/bin" in out
-    assert "hook-self-repo-guard.py" in out
+    # W0.3: the launcher no longer copies the Mac's guard into the worktree —
+    # the guard a worker runs is whatever its own origin/<base> carries.
+    assert "hook-self-repo-guard.py" not in out
+    assert "$WT/scripts/" not in out
 
 
 def test_script_dry_run_missing_required_flag_exits_nonzero():
@@ -470,8 +481,8 @@ def test_script_rejects_unsupported_runner():
          "--branch", "b", "--base", "main", "--repo-url", "u",
          "--repo-path", "/tmp/p", "--worktree-root", "/tmp/wt",
          "--claude-args", "", "--model", "m", "--effort", "high",
-         "--session-name", "S", "--runner", "codex"],
+         "--session-name", "S", "--runner", "unsupported_runner"],
         capture_output=True, text=True,
     )
     assert r.returncode != 0
-    assert "codex" in r.stderr
+    assert "unsupported_runner" in r.stderr

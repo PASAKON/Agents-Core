@@ -25,6 +25,7 @@ from datetime import datetime
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)   # so `from tools import session_status` resolves
+from lib.proc import pid_alive  # noqa: E402
 TAB_DIR = os.path.join(REPO, "state", "tab-titles")
 LOG_DIR = os.path.join(REPO, "state", "logs")
 CLAUDE_PROJECTS_DIR = os.path.expanduser("~/.claude/projects")
@@ -86,10 +87,11 @@ def tmux_lock_live(role: str, sid: str) -> bool:
     lock = os.path.join(REPO, "state", "locks", f"{name}.lock")
     try:
         pid = int(open(lock, encoding="utf-8").read().strip())
-        os.kill(pid, 0)
-        return True
     except Exception:
         return False
+    # A pid this user may not open is someone else's (a recycled number), not
+    # this session's process.
+    return pid_alive(pid, denied_is_alive=False)
 
 
 def live_ids():
@@ -98,6 +100,8 @@ def live_ids():
     Returns (set_of_ids, ok). ok=False if iTerm couldn't be queried, so the
     caller can warn instead of silently treating every session as not-live.
     """
+    if sys.platform != "darwin":  # iTerm2 and osascript exist on the Mac only
+        return set(), False
     script = (
         'tell application "iTerm2"\n'
         '  set out to ""\n'

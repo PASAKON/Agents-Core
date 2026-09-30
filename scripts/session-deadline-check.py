@@ -48,7 +48,6 @@ from datetime import datetime, timezone, timedelta
 _CANDIDATES = [
     "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp",   # Mac
     "/opt/MoonieXHQ/Projects/LungNote/Mcp",  # Contabo (HQ move 2026-09-23)
-    "/opt/lungnote-mcp",                  # Contabo compat link
 ]
 LUNGNOTE_MCP_DIR = os.environ.get("LUNGNOTE_MCP_DIR") or next(
     (d for d in _CANDIDATES if os.path.exists(os.path.join(d, ".env"))),

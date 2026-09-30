@@ -44,6 +44,7 @@ import io
 import json
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -55,6 +56,11 @@ from pathlib import Path
 from typing import Callable
 
 ROOT = Path(__file__).resolve().parent.parent
+# Run as a script (`python3 tools/drive_leg.py …`), the repo root is not on
+# sys.path and `from lib import db` (state_db's ORG_DB_URL check) would raise
+# ModuleNotFoundError -- same fix as tools/workdir.py.
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 DEFAULT_RCLONE = ROOT / "scripts" / "rclone_via_winbox.sh"
 
 # Drive ids for the BACKUP/MoonieX HQ family (CXO_Knowledge_GDrive_FolderMap SKILL.md ID table, CEO 2026-09-24).
@@ -840,19 +846,78 @@ def state_db_index_path(config_dir_: Path) -> Path:
     return config_dir_ / "logs" / "state-db-archive-index.jsonl"
 
 
+def _state_db_pg(*, url: str, idx_path: Path, date: str, dry_run: bool,
+                  rclone: str | None, who: str, config_dir: Path) -> dict:
+    """ORG_DB_URL branch (ADR 0025): the org ledger lives in the Postgres hub, so a
+    file copy of the (now stale/absent) local state/tasks.db would back up nothing.
+    `pg_dump "$ORG_DB_URL"` replaces the sqlite3 online-backup copy -- same
+    destination naming/skip-if-unchanged/manifest shape as the SQLite branch below,
+    ".sql.gz" instead of ".sqlite.gz". Fails loudly (DriveLegError) if pg_dump is
+    not on PATH -- a missing tool must never be mistaken for "nothing changed"."""
+    if not shutil.which("pg_dump"):
+        raise DriveLegError(
+            "ORG_DB_URL is set but pg_dump is not on PATH -- cannot back up the org ledger"
+        )
+    cmd = ["pg_dump", url]
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if proc.returncode != 0:
+        raise DriveLegError(
+            f"pg_dump failed rc={proc.returncode} ({' '.join(cmd)}): {proc.stderr[-400:]!r}"
+        )
+    dump = proc.stdout
+    size = len(dump)
+    sha = hashlib.sha256(dump).hexdigest()
+    rows = _read_jsonl(idx_path)
+    last = rows[-1] if rows else None
+    print(f"[1/1] state-db tasks-{date}: {size} B, sha256 {sha[:12]}... (pg_dump $ORG_DB_URL)")
+    if last and last.get("sha256") == sha:
+        print(f"    unchanged since {last.get('date')}, skipping")
+        return dict(skipped=True, reason="unchanged", sha256=sha, bytes=size)
+    if dry_run:
+        return dict(dry_run=True, sha256=sha, bytes=size)
+    manifest = build_manifest(
+        name=f"tasks-{date}", machine="contabo", source="pg_dump $ORG_DB_URL",
+        files=[dict(path="tasks.sql", size=size, mtime_ns=time.time_ns(), sha256=sha)],
+        restore=(f'rclone copy "gdrive:contabo/tasks-{date}.sql.gz" . --drive-root-folder-id '
+                 f'{FOLDER_IDS["State-DB"]} && gunzip tasks-{date}.sql.gz && '
+                 f'psql "$ORG_DB_URL" -f tasks-{date}.sql'),
+        extra={"backup_api": "pg_dump", "gzip": True},
+    )
+
+    def _stream(sink, _data=dump):
+        with gzip.GzipFile(fileobj=sink, mode="wb", mtime=0) as gz:
+            gz.write(_data)
+
+    result = put(_stream, FOLDER_IDS["State-DB"], "contabo", f"tasks-{date}", ".sql.gz",
+                 manifest, log_path_=log_path(config_dir), who=who, rclone=rclone)
+    _append_jsonl(idx_path, dict(date=date, sha256=sha, bytes_db=size, bytes=result["bytes"],
+                                 drive=result["drive"]))
+    return result
+
+
 def state_db(*, config_dir: Path, db_path: Path | None = None, dry_run: bool = False,
              rclone: str | None = None, who: str | None = None, now: float | None = None) -> dict:
     """state/tasks.db (this box's org task ledger: SQLite, gitignored, sole copy) ->
     State-DB/contabo/tasks-<date>.sqlite.gz + manifest. The copy comes from sqlite3's online
     backup API -- never a cp of a live database -- and is gzipped on the way into put().
     Skips when the copy's sha256 equals the previous run's (state-db-archive-index.jsonl).
-    Never deletes. Registry row: <hq>/Agents/Core/state/tasks.db (config/machine-contract.yaml)."""
-    import gzip
-    import sqlite3
+    Never deletes. Registry row: <hq>/Agents/Core/state/tasks.db (config/machine-contract.yaml).
+
+    ORG_DB_URL set (ADR 0025, lib.db.pg_url()): delegates to `_state_db_pg` -- a local
+    file copy backs up nothing once the ledger lives in the Postgres hub. ORG_DB_URL
+    unset: SQLite behaviour below, byte-for-byte unchanged."""
+    from lib import db as db_lib
     who = who or _default_who()
     now = time.time() if now is None else now
-    src = Path(db_path) if db_path else ROOT / "state" / "tasks.db"
     date = datetime.fromtimestamp(now).strftime("%Y-%m-%d")
+    idx_path = state_db_index_path(config_dir)
+    url = db_lib.pg_url()
+    if url:
+        return _state_db_pg(url=url, idx_path=idx_path, date=date, dry_run=dry_run,
+                            rclone=rclone, who=who, config_dir=config_dir)
+
+    import sqlite3
+    src = Path(db_path) if db_path else ROOT / "state" / "tasks.db"
     if not src.is_file():
         print(f"[1/1] state-db: {src} not found, skipping")
         return dict(skipped=True, reason="missing", source=str(src))
@@ -869,7 +934,6 @@ def state_db(*, config_dir: Path, db_path: Path | None = None, dry_run: bool = F
             con.close()
         size = snap.stat().st_size
         sha = _sha256_file(snap)
-        idx_path = state_db_index_path(config_dir)
         rows = _read_jsonl(idx_path)
         last = rows[-1] if rows else None
         print(f"[1/1] state-db tasks-{date}: {size} B, sha256 {sha[:12]}... (from {src})")

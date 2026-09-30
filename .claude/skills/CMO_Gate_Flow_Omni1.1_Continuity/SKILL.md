@@ -166,6 +166,45 @@ sheet, not a verdict.
      wardrobe plate.
    - First registry: `docs/scripts/taachang-CAST-STATES.md`.
 
+9. Every dialogue shot says it is one continuous take. [FLOW] (CEO ruling 2026-09-28.) After the
+   face line, every shot with a spoken line carries, word for word: "This is one single continuous
+   take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same
+   framing for the whole clip." `tools/build_shotsheet.py` adds it (`CONTINUOUS_TAKE`, 98102e9a);
+   a hand-written sheet adds it by hand.
+
+   **Why:** Omni cuts inside the 8 s clip to a close-up of the listener and lip-syncs the line
+   onto the only face left in frame — the wrong-mouth defect (film 4: 45/72 clips had a cut;
+   lines spanning a cut 14% wrong vs 3% without). A/B task-c816fbc0, 360p, shots 21/31/45 x 3
+   takes: as shot, 8/9 clips had a cut and 4/18 lines were wrong-mouth by eye; with this
+   sentence 0/9 and 0/18. A second sentence ("only the person whose line it is moves their
+   lips … keeps her lips pressed closed") added nothing (0/10 cuts, 2/20 wrong) and is not used.
+   One A/B, small n: a no-cut wrong mouth can still happen, so the FilmQC wrong-mouth check
+   still runs on every take.
+
+10. **A line in the wrong voice or mouth: split the shot by speaker at once — do not re-fire it.**
+    [FLOW] (CEO ruling 2026-09-28: *"ใช้ 21a ก่อนเสมอ เมื่อเจอปัญหา แล้ว แก้ด้วย 21b ทันที
+    จะได้ไม่ต้องยิงซ้ำหลายรอบ"*.) When a shot where one character speaks and another replies comes
+    back with the first speaker's line, or its last phrase, in the other character's voice or mouth,
+    the first fix is the split. Do not re-fire the same shot, and do not rewrite the direction words.
+    Fire each half once:
+
+    - **Na** (the kept version, fired first): the first speaker's full line alone, word for word. The
+      listener stays in frame and reacts, "saying nothing the whole clip". Same framing and length.
+    - **Nb**: the reply alone, as its own shot. 4 s is enough for a short reply. The first speaker's
+      "lips pressed together, nodding slowly, saying nothing the whole clip".
+
+    Keep the CEO's words: do not shorten a line, and do not add time. In the cut, Nb follows Na.
+    A cold look at the sheet can spot the pattern before any fire: a long first line (about 5 s or
+    more) with the other character's reply in the same 8 s clip.
+
+    **Why:** ep4 shot 21 (the mother's 6 s line, then the son's 1.5 s reply, in 8 s) failed 3
+    production re-fires the same way. The root-cause A/B (task-c816fbc0, 360p, 3 takes an arm) put
+    her closing phrase in the son's voice: as written 4/6 wrong by eye; son's lips pressed 2/3; son
+    not crying 1/3; the house listener-reacts line removed 2/3; the same two lines at 10 s 2/3. Her
+    line alone 0/3, and her line shortened 0/3. Split at 720p: 21a and 21b clean 4/4 on voice pitch,
+    the face checker and the cut count, and the CEO picked 21a. The search cost 36 cr of production
+    re-fires plus 129 cr of A/B tests. The split up front would have cost 19 cr (12 + 7).
+
 ## What Flow silently deletes [FLOW]
 
 The evidence behind rule 1 and the FLOW-DELETES flag. The symptom is the same in every case: Submit is
@@ -494,3 +533,10 @@ possible, and it is cheap — it is written once and read forever.
 - 2026-09-26 [MISSING] §What Flow silently deletes — **a character's PLATES can get flagged mid-film.** taachang's 11-year-old passed in ACT1/ACT2 up to 00:45; from ~01:00 every prompt carrying his @tor__face/@tor__home chips with his face in frame was deleted: ACT3 57a, 58a, 64, plus 360p arms 9064 (hug), 9164 (no touching), 9074 (just showing a notebook) — 6 of 6, no money, no other trigger. The same S74/S69 with his chips removed and the boy in words only rendered (9274, 9269); S75 with the chips but his back to camera rendered (9275). Fix in the tool: `TEXT_ONLY = {...}` in the data file (build_shotsheet cb70d4b6) — no chip, refs renumbered, keep him medium/wide. Unknown: whether a freshly generated plate of the same child would pass · evidence: Work/task-c2723478/tmp/tor-test*.md + .tsv, state/taachang/ACT3.tsv → §What Flow silently deletes › A child's own plates (6 of 6 deleted against 3 controls that rendered, and the fixing commit is 4fd5fcca, TEXT_ONLY) · status: promoted
 - 2026-09-28 [WRONG] §What Flow silently deletes — "1080p submenu did not appear" is the old download path's error; the runner now downloads through `ดาวน์โหลดสื่อ`, so a 360p clip fails with a different message · evidence: 99770187, tools/flow_shoot.py `_download_from_editor_button` → §What Flow silently deletes › Test it cheap (now points to CMO_Knowledge_Flow_Omni1.1 §The zero-model runner, which owns the fact; old text kept [SUPERSEDED]) · status: promoted
 - 2026-09-28 [WRONG] §Field notes — the 2026-09-26 child-plates note cites `cb70d4b6`, which is not on main; the TEXT_ONLY fix on main is `4fd5fcca` (the body already cites the right one) · evidence: `git cat-file -t cb70d4b6` fails, `git log -S TEXT_ONLY` (Flow fold worker 2026-09-28, session 14cc900f) · status: pending
+- 2026-09-27 [MISSING] §plates — a `<char>__face` prompt that names no clothing lets gpt-image choose one, and it chose the LEAD's signature colour: ป้าข้างบ้าน's face plate came back in an indigo blouse, the colour reserved for แม่คำปุน, while her full-body state plate was the green one asked for. The face chip is attached next to the wardrobe chip in every shot, so the stray colour competes with the wardrobe. Name the character's signature colour in the face prompt too · evidence: Work/task-c816fbc0/out/ep4-cast-sheet.jpg plate 11, docs/ops/briefs/ep4-plates-round1.json pa__face · status: pending
+- 2026-09-27 [MISSING] §REF_1 drift — **a headwear item in the face-plate lock is dropped by the model, and more often when the ACTION makes the character handle the same cloth.** ep4 kp (red-and-white checked cloth tied as a turban, in `_KP`): turban missing in 42, 46, 48, 68, 69 (kp at REF_1) and 72 (kp at REF_0), held in 44, 55, 57, 60 (REF_1). So REF position is only part of it. Shots whose action had her "wipe tears with her checked cloth" / "twist her checked cloth" / "swat him with her checked cloth" (ACT1 19, ACT2 32, ACT3 54, 69) take the cloth OFF her head to do it. Fix used: restate "her red-and-white checked cloth still wrapped around her head like a turban" in the action beside her description, and give her hands something else (back of her hand, cloth-bag strap, flat of her hand). Results of the re-fire pending · evidence: task-c816fbc0 commits 94aa7465, d7644080, 40be8831 · status: pending
+- 2026-09-27 [MISSING] §wardrobe — **"her neck bare with no necklace" gave the mother a strapless top.** ep4 shot 43, reshoot2: the action said "neck bare" twice (once in the plate line, once in the action), and the model bared her shoulders as well, in a strapless indigo wrap. Fix that rendered right in reshoot4: drop "neck bare" from the action and NAME the garment next to her description ("in her long-sleeved indigo blouse"). Describe what she wears, never what skin shows · evidence: task-c816fbc0 clips/ACT2-reshoot2/shot-43 (QC FAIL) vs ACT2-reshoot4/shot-43, commit 1b415806 · status: pending
+- 2026-09-27 [MISSING] §props — **a paper held toward the camera gets a Thai state emblem.** ep4 shot 61, reshoot2: Hong reading a land-office letter aloud, the letter facing the lens, came back with a Garuda crest printed on it (a legal risk on a public film). The same beat with "reads a message on her phone, the back of the phone toward the camera" rendered clean in reshoot4. For any official document in frame, turn it away from the lens or replace it with a phone back-on · evidence: task-c816fbc0 clips/ACT3-reshoot2/shot-61 vs ACT3-reshoot4/shot-61, commit 1b415806 · status: pending
+- 2026-09-27 [MISSING] §REF_1 drift, result of the turban fix above — **restating the headwear in the action held it.** The re-fires that carried "her red-and-white checked cloth still wrapped around her head like a turban" beside her action kept the turban in 13, 43 and 45 (QC stage 2, reshoot4/6). Two things did NOT hold: (1) her "very dark sun-baked skin" came back medium-tan and her hands grey in close-ups (13, 43, 45 and batch 2), and (2) the son's red-and-white head cloth, which lives only in his state plate and not in the action, drifts in and out between shots (none in 43, a headband in 45 and 63). Restate the son's head cloth in the action the same way, or accept it as a costume change · evidence: task-c816fbc0 tmp/qcr6, tmp/qcr8, subagent QC 2026-09-27 16:2x · status: pending
+- 2026-09-28 [MISSING] §dialogue in one shot — **too much speech for the clip moves the first speaker's last phrase into the second speaker's VOICE.** ep4 shot 21: mother 6 s + son 1.5 s in 8 s. Flow voiced her closing "คุ้มอยู่ลูก" in the son's baritone and synced his mouth to it. Single-variable A/B, 3 takes per arm, 360p: control 4/6 wrong (blind eye) · son "lips pressed" 2/3 · son not crying 1/3 · house listener-reacts line removed 2/3 · mother alone (son's line cut) 0/3 · mother's line shortened 0/3. Direction words are not the cause, and neither is time: the same two lines at 10 s were still wrong 2/3. The trigger is the second speaker's line following the long line inside the same clip; the mother's line alone, or shortened, stays in her mouth. Fix to test at 720p: split into two shots (her line alone, then his reply) · evidence: task-c816fbc0, scratchpad ab/S21_voice.tsv + eye21_verdict.tsv · rule 10 (CEO ruling 2026-09-28) · status: promoted
+- 2026-09-28 [MISSING] §dialogue in one shot — result of the split proposed in the note above: ep4 shot 21 fired as 21a (the mother's full line alone, 8 s) and 21b (the son's reply alone, 4 s, her lips pressed, "saying nothing the whole clip"), 720p ×2 each, 38 cr. Voice pitch, the face checker and the cut count are clean on 4/4: 21a's closing phrase is in her voice (182–218 Hz), 21b is in his (143–146 Hz), and nothing was cut. Keep the CEO's words and split the lines by speaker; do not cut the line and do not add time. n=1 shot. The CEO's eye has not signed off yet · evidence: task-c816fbc0, Work/task-c816fbc0/clips/S21/X{A,B}{1,2}, scratchpad ab/S21_voice.tsv, credit-ledger 42a04524 · rule 10 (CEO ruling 2026-09-28) · status: promoted

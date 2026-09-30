@@ -42,6 +42,10 @@ to proceed) happens here, in the skill.
   step 3 touches anything.
 
 ### 2. Preview before touching anything
+- **Merge AND kill:** when the CEO asks for both, kill A first with
+  `bash scripts/session-kill.sh --status saved --note "merged into <B>" <role>-<A>` (or the viewer session
+  that resumed A's conversation), after one `tmux capture-pane -e` of it for an unsent/blocked prompt.
+  Then the dry-run passes the live-guard. Promoted from two runs (#6bfdc084, #a27c4702, 2026-09-27).
 - Run `python3 scripts/session_merge.py <role> <A_id> --dry-run` (B_id auto-resolves from
   this session's `$CXO_SESSION_ID`/`$CTO_SESSION_ID` env — pass it explicitly only if
   merging into a session other than this one). This is read-only: it pulls A's context and
@@ -65,6 +69,10 @@ to proceed) happens here, in the skill.
   `scripts/hook-cache-cold-warn.py` (idle notice, prompt never re-sent), it never reached A — carry it
   forward as the first open item and act on it in B. Find it in one `tmux capture-pane` of A before
   killing A, or in A's transcript. Promoted from two runs (#95cbbb28, #6bfdc084, 2026-09-26).
+- **Read A's transcript, not the session-data task list.** `context.source: session-data` returns raw
+  slash-command and task-notification lines, not work items. Build the recap from the LAST
+  `isCompactSummary` row of `~/.claude/projects/<proj>/<uuid>.jsonl` (uuid ends in A's id) plus the
+  user/assistant text after it — only once A is dead. Promoted from two runs (#6bfdc084, #a27c4702, 2026-09-27).
 - If `context.source` is `"none"` (no session-data file, no log), say so plainly — don't
   fabricate a recap from nothing.
 
@@ -132,5 +140,5 @@ Verdict          : MERGED 🔗  /  REFUSED (<reason>)  /  HOLD (awaiting CEO con
 ## Field notes
 - 2026-09-26 [MISSING] §Gates 5 (live rename) — the rename is typed into A's input with `send-keys -l` + Enter, so anything already sitting in A's prompt gets the `/rename …` appended and SUBMITTED as one prompt. On #95cbbb28 the prompt showed "ลบโฟลเดอร์ --help ได้เลย" — a Drive delete — and it was only safe because `capture-pane -e` showed it wrapped in `ESC[2m` (dim): Claude Code's ghost prompt suggestion, not text anyone typed. `C-u`/`C-e C-u` did not change it. Before `--yes` on a live A, capture A's prompt line with `-e`: dim = suggestion, safe; normal weight = a real unsent draft, stop and ask · evidence: merge #95cbbb28→#83a61127; the same typed-onto-the-draft failure hit session-rename.sh twice (session-open notes, cto-0e8d80b8, cto-3156a56c), code tools/tmux_session.py send_keys → §5 · status: promoted
 - 2026-09-26 [MISSING] §1 — "session ค้าง ไม่ตอบ" was not a hang: the CEO's last prompt had been blocked by `scripts/hook-cache-cold-warn.py` (idle 5 h, 845k context), which only prints a notice and waits for the prompt to be re-sent. `tmux capture-pane` of A shows it in one call; do that before diagnosing a stuck session, and carry the blocked prompt forward as A's last unanswered order · evidence: merge #95cbbb28→#83a61127; second run #6bfdc084→#a27c4702 (blocked "Negative Prompt ภาษาจีน" order) agreed, promoted to §3 rule · status: promoted
-- 2026-09-26 [MISSING] §2 live-guard — when the CEO asks to merge AND kill A, the order that works is `bash scripts/session-kill.sh --status saved --note "merged into <B>" <role>-<A>` first (resumable, records why), then the dry-run passes the live-guard. Capture A's pane before the kill, it is the last cheap look at an unsent/blocked prompt · evidence: merge #6bfdc084→#a27c4702 · status: pending
-- 2026-09-26 [COSTLY] §3 — `context.source: session-data` returned 10 "tasks" that were raw slash-command and task-notification lines, no real work items. The usable recap was the LAST `isCompactSummary` row of A's transcript (`~/.claude/projects/<proj>/<uuid>.jsonl`, uuid ends in A's id) plus the user/assistant text after it — read it only once A is dead · evidence: merge #6bfdc084→#a27c4702; the junk-Tasks half was already in §3; the transcript fact checked 2026-09-28 (`isCompactSummary` rows in 4 of the 50 newest Contabo transcripts, `state/locks/<role>-<id>.uuid` holds the uuid) → §3 · status: promoted
+- 2026-09-26 [MISSING] §2 live-guard — when the CEO asks to merge AND kill A, the order that works is `bash scripts/session-kill.sh --status saved --note "merged into <B>" <role>-<A>` first (resumable, records why), then the dry-run passes the live-guard. Capture A's pane before the kill, it is the last cheap look at an unsent/blocked prompt · evidence: merge #6bfdc084→#a27c4702; second run #a27c4702→#addb58de agreed, promoted to §2 rule · status: promoted
+- 2026-09-26 [COSTLY] §3 — `context.source: session-data` returned 10 "tasks" that were raw slash-command and task-notification lines, no real work items. The usable recap was the LAST `isCompactSummary` row of A's transcript (`~/.claude/projects/<proj>/<uuid>.jsonl`, uuid ends in A's id) plus the user/assistant text after it — read it only once A is dead · evidence: merge #6bfdc084→#a27c4702; second run #a27c4702→#addb58de agreed; the junk-Tasks half was already in §3; the transcript fact checked 2026-09-28 (`isCompactSummary` rows in 4 of the 50 newest Contabo transcripts, `state/locks/<role>-<id>.uuid` holds the uuid) → §3 · status: promoted

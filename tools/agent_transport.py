@@ -23,15 +23,19 @@ it from here.
 """
 from __future__ import annotations
 
+import json
 import os
+import re
+import secrets
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
 from lib import notify
 from lib.config import display_for, is_c_level
-from tools import tmux_session
+from tools import session_name, tmux_session
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -159,6 +163,122 @@ def _wake_tmux_send(session: str, text: str) -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# Windows wake (W3.5) -- the tmux path above has no Windows equivalent, and ssh
+# lands in session 0, which has no desktop. So the sender only WRITES A REQUEST
+# FILE and runs `schtasks /run /tn MooniexOrgWake`; that task (registered once
+# by the CEO, windows/register-org-tasks.ps1) runs in the console session, and
+# windows/wake-request.ps1 -> windows/wake.ps1 types the marker into the target
+# Windows Terminal tab -- and refuses to send a key unless that tab is verifiably
+# in front with keyboard focus in it. docs/ops/windows-wake.md has the numbers.
+# ---------------------------------------------------------------------------
+
+WAKE_TASK_NAME = "MooniexOrgWake"
+WAKE_DIR = ROOT / "state" / "wake"
+_WAKE_WAIT_S = 15.0
+_WAKE_RUN_TIMEOUT_S = 15  # the `schtasks /run` call
+# The longest wake_windows_tab can block: the schtasks call, then the wait for
+# the result. lib/mesh.py sizes the deliver_letter timeout from it.
+WAKE_WORST_CASE_S = _WAKE_RUN_TIMEOUT_S + _WAKE_WAIT_S
+_WAKE_LABEL_RE = re.compile(r"[A-Za-z0-9_.#-]{1,40}")
+_WAKE_SID_RE = re.compile(r"[A-Za-z0-9_-]{6,40}")
+
+
+def _is_windows() -> bool:
+    return sys.platform == "win32"
+
+
+def wake_windows_tab(session: str, label: str, *, wait_s: float = _WAKE_WAIT_S,
+                     wake_dir: Path | None = None, run=subprocess.run,
+                     sleep=time.sleep) -> dict:
+    """Ask the Windows box to type the wake marker into C-level `session`'s tab.
+
+    `session` is `<role>-<sid>` (the same name the tmux path uses). A live
+    session's tab is titled `<Role> #<sid> (<topic>)`, and the topic changes,
+    so the request names the stable token `#<sid>` and wake.ps1 runs in
+    -Contains mode. Returns {"woke": bool, "why": str}; True only when
+    wake.ps1 reported that the keys went to the verified tab. Ordinary failures
+    (no task registered, tab not found, tab not in front) come back as
+    woke=False, they do not raise."""
+    m = session_name.ROLE_RE.match(session or "")
+    if not m or not _WAKE_SID_RE.fullmatch(m.group(2)):
+        return {"woke": False, "why": f"session name is not <role>-<sid>: {session!r}"}
+    if not _WAKE_LABEL_RE.fullmatch(label or ""):
+        return {"woke": False, "why": f"label outside the wake marker alphabet: {label!r}"}
+    base = wake_dir if wake_dir is not None else WAKE_DIR
+    req_dir, res_dir = base / "requests", base / "results"
+    req_dir.mkdir(parents=True, exist_ok=True)
+    res_dir.mkdir(parents=True, exist_ok=True)
+
+    req_id = f"{int(time.time() * 1000)}-{secrets.token_hex(4)}"
+    req_path = req_dir / f"{req_id}.json"
+    tmp = req_dir / f"{req_id}.tmp"
+    tmp.write_text(json.dumps({
+        "title": f"#{m.group(2)}",
+        "marker": _WAKE_MARKER_TEMPLATE.format(label=label),
+        "contains": True,
+    }), encoding="ascii")
+    os.replace(tmp, req_path)  # the runner only ever sees a complete *.json
+
+    def _withdraw() -> None:
+        try:
+            req_path.unlink()
+        except OSError:
+            pass
+
+    try:
+        r = run(["schtasks", "/run", "/tn", WAKE_TASK_NAME],
+                capture_output=True, text=True, timeout=_WAKE_RUN_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        _withdraw()
+        return {"woke": False, "why": f"schtasks /run failed: {e}"}
+    if r.returncode != 0:
+        _withdraw()  # never leave a request that fires whenever the task appears
+        detail = ((r.stderr or r.stdout or "").strip().replace("\n", " "))[:120]
+        return {"woke": False, "why": (f"task {WAKE_TASK_NAME} did not start (rc {r.returncode}: "
+                                       f"{detail}); has the CEO run windows/register-org-tasks.ps1?")}
+
+    res_path = res_dir / f"{req_id}.json"
+    deadline = time.monotonic() + wait_s
+    while True:
+        if res_path.is_file():
+            try:
+                res = json.loads(res_path.read_text(encoding="ascii", errors="replace"))
+            except ValueError:
+                res = None
+            if res is not None:
+                try:
+                    res_path.unlink()
+                except OSError:
+                    pass
+                if res.get("exit") == 0:
+                    return {"woke": True, "why": "keys sent to the verified tab"}
+                return {"woke": False, "why": f"wake.ps1 exit {res.get('exit')}: {str(res.get('output', ''))[:120]}"}
+        if time.monotonic() >= deadline:
+            _withdraw()
+            return {"woke": False, "why": f"no result from {WAKE_TASK_NAME} within {wait_s:g}s"}
+        sleep(0.25)
+
+
+def _attempt_wake_windows(session: str, label: str, log_prefix: str) -> None:
+    """attempt_wake's Windows body: same never-raise, same log lines."""
+    try:
+        try:
+            notify.info(f"[{log_prefix}] wake attempted: {session}")
+        except Exception:
+            pass
+        r = wake_windows_tab(session, label)
+        try:
+            notify.info(f"[{log_prefix}] wake {'succeeded' if r['woke'] else 'failed'}: {session}: {r['why']}")
+        except Exception:
+            pass
+    except Exception as e:
+        try:
+            notify.info(f"[{log_prefix}] wake failed: {session}: {e}")
+        except Exception:
+            pass
+
+
 def attempt_wake(session: str | None, label: str, log_prefix: str, *,
                   send_fn=_wake_tmux_send) -> None:
     """Best-effort attention nudge for a just-delivered letter's recipient.
@@ -187,6 +307,11 @@ def attempt_wake(session: str | None, label: str, log_prefix: str, *,
     """
     if not session:
         return
+    # W3.5 win32 branch -- additive; everything after the end marker is unchanged.
+    if _is_windows():
+        _attempt_wake_windows(session, label, log_prefix)
+        return
+    # end W3.5 win32 branch
     try:
         if not tmux_session.has_session(session):
             try:

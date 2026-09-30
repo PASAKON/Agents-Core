@@ -1,0 +1,28 @@
+[Unit]
+Description=MoonieX node probe (docs/design/runner-routing/PLAN-auto-dispatch.md section 4, row H1)
+# Measures this box (free disk, free RAM, running workers, cpus, load per core,
+# which of claude/codex/agy are installed) and writes one row of the `hosts`
+# table, so the router (H2 lib/router.pick_host) can pick the least loaded box.
+# Triggered by node-probe.timer, not started directly.
+#
+# The probe writes to whichever ledger lib.db resolves on this box (the local
+# state/tasks.db, or the hub when ORG_DB_URL is set). Until the shared ledger
+# exists (W1.10) that is a private ledger, so the row is only useful to OTHER
+# hosts after W1.10.
+#
+# PATH lists /root/.local/bin and /root/.npm-global/bin on purpose: claude and
+# agy live in the first, and the probe finds them with shutil.which. systemd's
+# default PATH omits both and would report no runners.
+#
+# No secrets in this unit. Files only -- installing it is a later live step. An
+# older ledger gains the cpus/load_per_core/runners columns on its next
+# db.init() (the watchdog runs it at start), so run one init before enabling.
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=ORG_HOST=contabo
+Environment=PATH=/root/.local/bin:/root/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_dispatch probe

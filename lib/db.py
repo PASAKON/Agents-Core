@@ -18,6 +18,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
+# lib.config is imported lazily (in create_task): it pulls in PyYAML, and the
+# PreToolUse hooks import lib.db under the system python3, which may not have it.
 from lib import db_pg
 
 def _resolve_root() -> Path:
@@ -37,6 +39,22 @@ def _resolve_root() -> Path:
 ROOT = _resolve_root()
 DB_PATH = ROOT / "state" / "tasks.db"
 
+# Org Mesh W1.7 (docs/design/org-mesh.md, docs/design/tasks-db-hub.md §5 risk
+# "read-only fallback to local SQLite"): a periodic export of the Postgres
+# hub (scripts/hub/export_to_sqlite.py, every 15 min via the plist/systemd
+# units beside it). get_conn() reads from this file when ORG_DB_URL is set
+# but the hub cannot be reached -- see HubUnavailable below.
+SNAPSHOT_PATH = ROOT / "state" / "tasks.snapshot.db"
+
+# Ceiling used for the hub-connect attempt that decides whether to fall back
+# to SNAPSHOT_PATH, for any get_conn() caller that doesn't pass its own
+# `timeout` -- docs/design/org-mesh.md W1.7 ("connect timeout of 3s or
+# less"). Measured Mac<->Contabo RTT is ~127ms (docs/design/tasks-db-hub.md
+# §1), so 3s is generous for a live hub and short enough that a down hub
+# fails over quickly instead of hanging every write for psycopg's own 10s
+# default.
+HUB_CONNECT_TIMEOUT_S = 3.0
+
 # scripts/hub/cutover-mac.sh step 5 (docs/design/tasks-db-hub.md §3.3)
 # replaces state/tasks.db with a directory once the hub cutover is done and
 # the file has been archived -- a directory makes sqlite3.connect() raise
@@ -52,6 +70,22 @@ ARCHIVED_TASKS_DB_MSG = (
 
 class ArchivedDB(RuntimeError):
     """Raised by _connect() when the resolved sqlite path is a directory."""
+
+
+class HubUnavailable(RuntimeError):
+    """ORG_DB_URL is set, the Postgres hub could not be reached, and either
+
+      (a) there is no usable snapshot at SNAPSHOT_PATH to fall back to
+          (run scripts/hub/export_to_sqlite.py once the hub is reachable), or
+      (b) the caller just attempted a WRITE through the read-only snapshot
+          fallback.
+
+    A snapshot is read-only by construction (Org Mesh W1.7): a silent write
+    to a local file the hub never sees would recreate exactly the split
+    brain the hub cutover removed (docs/design/tasks-db-hub.md). Reads keep
+    working off the snapshot; get_conn() never raises this for a read that
+    the snapshot can actually answer.
+    """
 
 
 SCHEMA = """
@@ -118,11 +152,94 @@ CREATE TABLE IF NOT EXISTS c_level_sessions (
 CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
     ON c_level_sessions(active_task_id)
     WHERE active_task_id IS NOT NULL;
+
+-- Org Mesh W2.1 (docs/design/org-mesh.md C2/C3/C4): the host registry and
+-- cross-host mailbox. `hosts` is seeded from config/hosts.yaml
+-- (seed_hosts_from_config) and then kept live by each host's own node_agent
+-- heartbeat (W2.3, not built here) -- upsert_host never overwrites a field
+-- the caller didn't pass, so a heartbeat writer and the config seeder can
+-- both touch the same row without clobbering each other.
+CREATE TABLE IF NOT EXISTS hosts (
+    host         TEXT PRIMARY KEY,
+    os           TEXT,
+    hq_root      TEXT,
+    agents_root  TEXT,
+    provides     TEXT,   -- JSON array, e.g. ["chrome","gpu"]
+    max_workers  INTEGER,
+    status       TEXT,   -- online|offline|pending_identity|left
+    probed_at    TEXT,
+    free_gb      REAL,
+    ram_free_gb  REAL,
+    running      INTEGER,
+    version      TEXT,
+    updated_at   TEXT
+);
+
+-- Cross-host C-level mail (W2.4 delivers these, W2.2's `node_dispatch
+-- deliver_letter <id>` marks them delivered). to_session/from_role/
+-- from_session are optional -- a letter can target a role broadly (every
+-- open CTO tab on to_host) or one specific session.
+CREATE TABLE IF NOT EXISTS letters (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    to_host       TEXT,
+    to_role       TEXT,
+    to_session    TEXT,
+    from_role     TEXT,
+    from_session  TEXT,
+    body          TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'pending',  -- pending|delivered|failed
+    created_at    TEXT,
+    delivered_at  TEXT,
+    attempts      INTEGER NOT NULL DEFAULT 0,
+    last_error    TEXT,
+    from_host     TEXT    -- W2.4: the host that sent it; only that host's watchdog retries it
+);
+CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status);
+"""
+
+# Org Mesh W4.1 (tools/hq_join.py): one-time join tokens. Only the sha256 of a
+# token is stored, never the token. `locks` cannot hold this: it has no used_at
+# and no host, and acquire_lock/_claim purge expired rows, which would turn
+# "expired" and "reused" into "unknown" for the operator. One DDL string for
+# both backends (TEXT columns only, valid SQLite and Postgres alike), run by
+# init_schema() after the backend's own schema, so the two cannot drift.
+JOIN_TOKENS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS join_tokens (
+    token_hash   TEXT PRIMARY KEY,
+    host         TEXT NOT NULL,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    used_at      TEXT
+);
+"""
+
+# Org Mesh W4.2 (tools/hq_join.py provision): one row per joined node holding
+# the Infisical client secret and GitHub deploy key made for it. `ciphertext` is
+# the node's client id and secret sealed to its age recipient (lib/sealed.py):
+# the plaintext never reaches this table, and only that node's key opens it.
+# `ciphertext` is NULL between the mint and the seal of a run, and again after
+# the secret is revoked. The two ids are what `leave` revokes by. Same one-DDL,
+# TEXT-only, both-backends pattern as JOIN_TOKENS_SCHEMA.
+#   fetched_at  first time `hq_join sealed` handed the ciphertext out
+#   revoked_at  when `leave` revoked the Infisical client secret
+NODE_SECRETS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS node_secrets (
+    host                        TEXT PRIMARY KEY,
+    ciphertext                  TEXT,
+    infisical_client_secret_id  TEXT,
+    github_deploy_key_id        TEXT,
+    created_at                  TEXT NOT NULL,
+    fetched_at                  TEXT,
+    revoked_at                  TEXT
+);
 """
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
-                "blocked_human", "blocked_host", "reverted", "merged"}
+                "blocked_human", "blocked_host", "reverted", "merged",
+                # W2.3: a remote spawn whose host did not answer (lib/mesh.py
+                # MeshUnreachable). Not failed: the watchdog retries it.
+                "queued_remote"}
 
 # Columns added after initial release. init() runs idempotent ALTER TABLE
 # ADD COLUMN for each so existing DBs migrate forward without losing data.
@@ -174,6 +291,13 @@ _MIGRATION_COLUMNS = [
     # resolves the effective host as: explicit delegate_task(host=...) arg >
     # this column > 'mac' (docs/design/multi-host-workers.md Phase 1).
     ("host", "TEXT"),
+    # Which host (config/hosts.yaml key) created this task row — the
+    # C-level session's own lib.config.self_host(), stamped by create_task()
+    # on every insert (docs/design/org-mesh.md C1, W0.1). Never NULL on a
+    # new row; NULL only on pre-migration rows. Distinct from `host` above:
+    # `dispatcher_host` is "who filed this task", `host` is "which host the
+    # DEV runs/ran on" (explicit target or filled at local-spawn time).
+    ("dispatcher_host", "TEXT"),
     # Which CLI drives this task's worker: claude|codex|agy (task-adbc6f43).
     # NULL means "claude" — every pre-migration row, and every row created
     # before runner selection existed, keeps working unchanged. Validated
@@ -181,6 +305,58 @@ _MIGRATION_COLUMNS = [
     # `runners:` list at delegate_task() time (the hub), not here — never
     # trust a runner blind at spawn time (docs/ops/agent-runners.md §4).
     ("runner", "TEXT"),
+    # Model the router picked for `runner` (the part after 'runner:' in a
+    # plans.yaml candidate, e.g. gemini-3.8-flash-high, claude-sonnet-4-6).
+    # NULL = the runner's own default. Written by tools/delegate.py
+    # _route_runner; read by runners/agy_local.py (PLAN-auto-dispatch Q1b).
+    ("runner_model", "TEXT"),
+]
+
+# `hosts` probe columns added for PLAN-auto-dispatch H1 (task-25c272ce). Same
+# forward-only ALTER-TABLE pattern as _MIGRATION_COLUMNS, applied in
+# init_schema() on top of both SCHEMA (SQLite) and db_pg.PG_SCHEMA (Postgres),
+# so an old ledger gains them on its next init(). NULL = "never probed with
+# this field", never "zero". Read by the future lib/router.pick_host (H2).
+#   cpus           os.cpu_count() of the box
+#   load_per_core  1-minute loadavg divided by cpus, NULL on Windows
+#   runners        JSON array of the CLIs found on PATH, e.g. ["claude","codex"]
+_HOSTS_MIGRATION = [
+    ("cpus", "INTEGER"),
+    ("load_per_core", "REAL"),
+    ("runners", "TEXT"),
+]
+
+# hosts columns for hq join (W4.1), a separate list so the probe migration
+# above keeps naming exactly its own columns (tests/test_h1_node_probe.py pins
+# that). Applied by the same loop in init_schema().
+#   pubkey       the node's age X25519 recipient, set only by tools/hq_join
+#                accept. The W4.2 Infisical client secret is sealed to it.
+#                NULL = not a joined node (mac/contabo/winbox).
+#   config_json  the hosts.yaml entry as JSON, written by seed_hosts_from_config
+#                and by hq_join accept. `hq_join export-hosts` rebuilds
+#                hosts.yaml from it.
+#   deploy_pubkey  (W4.2) the node's ssh-ed25519 public key line for its GitHub
+#                deploy key, set by hq_join accept --deploy-pubkey. Its own
+#                column, not config_json, so it never leaks into the hosts.yaml
+#                export. NULL = the node gets no deploy key.
+#   approved_at  (W4.6a, F1) when an operator matched the node's key fingerprint
+#                (`hq_join approve`). NULL = not approved: provision skips the
+#                row. Reset to NULL when a `left` host joins again.
+_HOSTS_JOIN_MIGRATION = [
+    ("pubkey", "TEXT"),
+    ("config_json", "TEXT"),
+    ("deploy_pubkey", "TEXT"),
+    ("approved_at", "TEXT"),
+]
+
+# letters.from_host (W2.4): which host (config/hosts.yaml key) sent the letter.
+# On a shared ledger every host's watchdog sees every pending letter; retrying
+# only the ones it sent keeps two boxes from both dialling deliver_letter for
+# the same row. Same forward-only ALTER pattern as _HOSTS_MIGRATION, on top of
+# both SCHEMA and db_pg.PG_SCHEMA (no PG_SCHEMA change: the loop covers it).
+# A row written before this column has from_host NULL and is retried by nobody.
+_LETTERS_MIGRATION = [
+    ("from_host", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -210,6 +386,16 @@ RELEASING_STATUSES = {"review", "done", "failed", "cancelled", "stalled",
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def redact_url(url: str | None) -> str | None:
+    """`url` with any password in its userinfo replaced by `***`, for printing.
+    `postgresql://org:<password>@host/db` -> `postgresql://org:***@host/db`.
+    Every place that prints or logs the hub URL goes through this: the init
+    banner once put the hub password into a session transcript (2026-10-01)."""
+    if not url:
+        return url
+    return re.sub(r"(://[^:/@]*):[^@/]*@", r"\1:***@", url)
 
 
 def pg_url() -> str | None:
@@ -274,34 +460,214 @@ def _connect(*, timeout: float | None = None, readonly: bool = False,
     return conn
 
 
+# ---------------------------------------------------------------------------
+# Snapshot fallback (Org Mesh W1.7) -- reads keep working off SNAPSHOT_PATH
+# when ORG_DB_URL is set but the hub can't be reached; writes fail loudly.
+# ---------------------------------------------------------------------------
+
+SNAPSHOT_META_SCHEMA = """
+CREATE TABLE IF NOT EXISTS snapshot_meta (
+    id          INTEGER PRIMARY KEY CHECK (id = 1),
+    exported_at TEXT NOT NULL
+);
+"""
+
+
+def init_snapshot_meta(conn) -> None:
+    """Create the one-row snapshot_meta table on an already-open sqlite3
+    connection. Separate from SCHEMA/init_schema -- this table exists only
+    in a hub *export* (scripts/hub/export_to_sqlite.py), never in the
+    canonical tasks.db or the Postgres hub itself."""
+    conn.executescript(SNAPSHOT_META_SCHEMA)
+
+
+def write_snapshot_meta(conn, exported_at: str) -> None:
+    conn.execute(
+        "INSERT INTO snapshot_meta (id, exported_at) VALUES (1, ?) "
+        "ON CONFLICT(id) DO UPDATE SET exported_at=excluded.exported_at",
+        (exported_at,),
+    )
+
+
+def read_snapshot_meta(path: Path) -> str | None:
+    """`exported_at` from a snapshot file's meta table, or None if the file
+    doesn't exist, has no meta row, or can't be read for any reason. Never
+    raises -- callers treat None as "no usable snapshot"."""
+    if not path.exists():
+        return None
+    try:
+        conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=5)
+        try:
+            row = conn.execute(
+                "SELECT exported_at FROM snapshot_meta WHERE id=1"
+            ).fetchone()
+        finally:
+            conn.close()
+    except Exception:
+        return None
+    return row[0] if row else None
+
+
+def _snapshot_age_desc(exported_at: str) -> str:
+    """Short human-readable age ('42s', '7m', '3h'), or 'unknown age' if
+    `exported_at` can't be parsed -- used only for the fallback warning."""
+    try:
+        exported = datetime.fromisoformat(exported_at)
+        secs = int((datetime.now(timezone.utc) - exported).total_seconds())
+    except Exception:
+        return "unknown age"
+    if secs < 120:
+        return f"{secs}s"
+    mins = secs // 60
+    if mins < 120:
+        return f"{mins}m"
+    return f"{mins // 60}h"
+
+
+# Warn once per (process, url) -- a module-level set rather than a bool so
+# tests can reset it (monkeypatch.setattr(db, "_SNAPSHOT_FALLBACK_WARNED",
+# set())) without it leaking across test functions in the same process.
+_SNAPSHOT_FALLBACK_WARNED: set[str] = set()
+
+
+class _SnapshotConnection:
+    """Wraps a read-only sqlite3 connection to SNAPSHOT_PATH so it can stand
+    in for the live hub connection get_conn() would otherwise hand back.
+
+    Reads pass straight through. A write attempt hits sqlite3's own
+    'attempt to write a readonly database' OperationalError -- translated
+    here into a clear HubUnavailable naming the snapshot's age, instead of
+    a caller having to recognise a raw sqlite error string.
+    """
+
+    def __init__(self, conn: sqlite3.Connection, exported_at: str):
+        self._conn = conn
+        self._exported_at = exported_at
+
+    def _unavailable(self, exc: Exception) -> HubUnavailable:
+        return HubUnavailable(
+            f"hub unreachable; read-only snapshot from {self._exported_at}"
+        )
+
+    def execute(self, sql, params=()):
+        try:
+            return self._conn.execute(sql, params)
+        except sqlite3.OperationalError as exc:
+            if "readonly database" in str(exc):
+                raise self._unavailable(exc) from exc
+            raise
+
+    def executemany(self, sql, seq_of_params):
+        try:
+            return self._conn.executemany(sql, seq_of_params)
+        except sqlite3.OperationalError as exc:
+            if "readonly database" in str(exc):
+                raise self._unavailable(exc) from exc
+            raise
+
+    def executescript(self, script):
+        try:
+            return self._conn.executescript(script)
+        except sqlite3.OperationalError as exc:
+            if "readonly database" in str(exc):
+                raise self._unavailable(exc) from exc
+            raise
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+
+def _open_snapshot_fallback(url: str, cause: Exception,
+                            timeout: float | None) -> _SnapshotConnection:
+    """The hub connect just failed for `url` -- open SNAPSHOT_PATH read-only,
+    or raise HubUnavailable if there's nothing usable to fall back to."""
+    exported_at = read_snapshot_meta(SNAPSHOT_PATH)
+    if exported_at is None:
+        raise HubUnavailable(
+            f"hub unreachable ({cause}) and no read-only snapshot at "
+            f"{SNAPSHOT_PATH} -- run scripts/hub/export_to_sqlite.py once "
+            f"the hub is reachable"
+        ) from cause
+    if url not in _SNAPSHOT_FALLBACK_WARNED:
+        _SNAPSHOT_FALLBACK_WARNED.add(url)
+        print(
+            f"[db] WARNING: ORG_DB_URL hub unreachable ({cause}) -- falling "
+            f"back to read-only snapshot {SNAPSHOT_PATH}, exported "
+            f"{exported_at} ({_snapshot_age_desc(exported_at)} old)",
+            file=sys.stderr,
+        )
+    conn = sqlite3.connect(
+        f"file:{SNAPSHOT_PATH}?mode=ro", uri=True,
+        timeout=timeout if timeout is not None else HUB_CONNECT_TIMEOUT_S,
+    )
+    conn.row_factory = sqlite3.Row
+    return _SnapshotConnection(conn, exported_at)
+
+
 @contextmanager
 def get_conn(*, timeout: float | None = None, readonly: bool = False,
              path: str | Path | None = None):
-    """Commit on clean exit, rollback on exception, close always -- same
+    """Commit on clean exit, rollback on exception -- same transactional
     contract regardless of backend (the reason Postgres was chosen over
     alternatives that couldn't keep it, per the design doc).
 
+    SQLite: a fresh connection per call, closed always (unchanged). Postgres:
+    a pooled connection reused across calls on this (process, thread) -- see
+    db_pg.get_pooled -- so it is NOT closed here; a connection found dead is
+    evicted instead (db_pg.evict) so the next call opens fresh.
+
     timeout/readonly/path: see _connect's docstring for the SQLite meaning.
-    Under Postgres (ORG_DB_URL set) `readonly`/`path` are no-ops -- a single
-    global registry has no per-checkout path to distinguish -- and `timeout`
-    becomes psycopg's connect_timeout (default 10s; pass a small value, e.g.
-    3, for a caller that must fail open rather than block on a slow/
-    unreachable hub -- see scripts/hook-self-repo-guard.py and
-    scripts/hook-log-prompt.py).
+    Under Postgres (ORG_DB_URL set) `readonly`/`path` are no-ops when the hub
+    itself answers -- a single global registry has no per-checkout path to
+    distinguish -- and `timeout` becomes psycopg's connect_timeout, defaulting
+    to HUB_CONNECT_TIMEOUT_S (3s) rather than psycopg's own 10s when the
+    caller doesn't pass one, so a down hub fails over quickly.
+
+    Snapshot fallback (Org Mesh W1.7, docs/design/org-mesh.md): if the hub
+    connect itself fails (HubConnectError -- psycopg OperationalError or the
+    connect timeout), this opens SNAPSHOT_PATH read-only instead and hands
+    back a connection reads work against transparently. `readonly`/`path`
+    are no-ops here too -- the snapshot is always opened read-only regardless
+    of what the caller asked for, because a write cannot land anywhere real.
+    Any write attempted against it raises HubUnavailable. No snapshot file
+    (or one with no meta row) raises HubUnavailable immediately instead.
     """
     url = pg_url()
+    is_snapshot = False
     if url:
-        conn = db_pg.connect(url, timeout=timeout)
+        # One pooled connection per (process, thread, url) -- see
+        # db_pg.get_pooled's docstring. Never closed in `finally` below (that
+        # would defeat the pool); evicted instead when it turns out to be
+        # dead, so the *next* acquisition opens fresh.
+        pg_timeout = timeout if timeout is not None else HUB_CONNECT_TIMEOUT_S
+        try:
+            conn = db_pg.get_pooled(url, timeout=pg_timeout)
+        except db_pg.HubConnectError as exc:
+            conn = _open_snapshot_fallback(url, exc, timeout)
+            is_snapshot = True
     else:
         conn = _connect(timeout=timeout, readonly=readonly, path=path)
     try:
         yield conn
         conn.commit()
-    except Exception:
-        conn.rollback()
+    except Exception as exc:
+        if url and not is_snapshot and db_pg.is_operational_error(exc):
+            # Connection is dead (dropped/closed) -- rollback would just
+            # raise the same error again. Evict so the next get_conn() call
+            # opens a fresh one instead of reusing a broken connection.
+            db_pg.evict(url)
+        else:
+            conn.rollback()
         raise
     finally:
-        conn.close()
+        if not url or is_snapshot:
+            conn.close()
 
 
 def sqlite_connect(path: str | Path, *, row_factory: bool = True,
@@ -333,6 +699,8 @@ def init_schema(conn, *, is_pg: bool) -> None:
     `get_conn()`/ORG_DB_URL may not point at, reusing this exact column list
     instead of hand-duplicating it."""
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
+    conn.executescript(JOIN_TOKENS_SCHEMA)
+    conn.executescript(NODE_SECRETS_SCHEMA)
     existing = {r["name"] for r in conn.execute(
         "PRAGMA table_info(tasks)").fetchall()}
     for col, coltype in _MIGRATION_COLUMNS:
@@ -358,6 +726,16 @@ def init_schema(conn, *, is_pg: bool) -> None:
         if col not in cls_existing:
             conn.execute(
                 f"ALTER TABLE c_level_sessions ADD COLUMN {col} {coltype}")
+    hosts_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(hosts)").fetchall()}
+    for col, coltype in _HOSTS_MIGRATION + _HOSTS_JOIN_MIGRATION:
+        if col not in hosts_existing:
+            conn.execute(f"ALTER TABLE hosts ADD COLUMN {col} {coltype}")
+    letters_existing = {r["name"] for r in conn.execute(
+        "PRAGMA table_info(letters)").fetchall()}
+    for col, coltype in _LETTERS_MIGRATION:
+        if col not in letters_existing:
+            conn.execute(f"ALTER TABLE letters ADD COLUMN {col} {coltype}")
     # Backfill: move runner-generated messages out of report into
     # delegate_log so DEV completion reports are never overwritten.
     conn.execute("""
@@ -381,7 +759,7 @@ def init():
     for tables that predate _MIGRATION_COLUMNS."""
     with get_conn() as conn:
         init_schema(conn, is_pg=bool(pg_url()))
-    print(f"[db] initialized at {pg_url() or DB_PATH}")
+    print(f"[db] initialized at {redact_url(pg_url()) or DB_PATH}")
 
 
 def new_task_id() -> str:
@@ -396,17 +774,42 @@ def new_task_id() -> str:
 # name/skill/path. See playbooks/web-designer.md §9 + memory
 # designer-spawn-inputs.
 _DESIGNER_ROLE = "web_designer"
-OD_ROOT = Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign/.od")
 UUID_RE = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
+_od_root_warned = False
+
+
+def _od_root() -> Path | None:
+    """claudesign's gitignored .od dir on THIS host: $CLAUDESIGN_OD_ROOT, else
+    the mooniex-claudesign checkout config/projects.yaml lists for this host.
+    None when the host has no checkout: designer context is then off, with one
+    stderr warning per process. Looked up per call, never at import (lib.config
+    needs PyYAML and a resolvable host)."""
+    global _od_root_warned
+    override = os.environ.get("CLAUDESIGN_OD_ROOT")
+    if override:
+        return Path(override)
+    try:
+        from lib.config import project_path_for_host, self_host
+        return Path(project_path_for_host("mooniex-claudesign", self_host())) / ".od"
+    except Exception as e:
+        if not _od_root_warned:
+            _od_root_warned = True
+            print(f"[db] claudesign .od root not resolvable here ({e}); "
+                  f"designer design refs are off", file=sys.stderr)
+        return None
 
 
 def resolve_od_project(project_id: str) -> dict | None:
     """Resolve a claudesign (open-design) project UUID to name/skill/paths by
     reading the local, gitignored .od/app.sqlite. Returns None if unavailable
-    (missing file, no matching row, or any read error) — never raises."""
-    db_file = OD_ROOT / "app.sqlite"
+    (no claudesign checkout on this host, missing file, no matching row, or any
+    read error) — never raises."""
+    od_root = _od_root()
+    if od_root is None:
+        return None
+    db_file = od_root / "app.sqlite"
     if not db_file.exists():
         return None
     try:
@@ -421,7 +824,7 @@ def resolve_od_project(project_id: str) -> dict | None:
         return None
     if not row:
         return None
-    pdir = OD_ROOT / "projects" / project_id
+    pdir = od_root / "projects" / project_id
     skill = row["skill_id"] or ""
     design = pdir / ".od-skills" / skill / "example.html"
     return {
@@ -509,13 +912,22 @@ def _require_charter(owner_cto: str, owner_role: str | None,
             file=sys.stderr,
         )
         return
+    # sqlite3.OperationalError ("no such column") and its Postgres equivalent
+    # (psycopg.errors.UndefinedColumn, message "column ... does not exist")
+    # both mean the same thing here: a DB that predates the `charter` column.
+    # psycopg is imported lazily via db_pg.psycopg (may be None when
+    # ORG_DB_URL is unset) so this module never requires it to be installed.
+    _missing_column_errors = [sqlite3.OperationalError]
+    if db_pg.psycopg is not None:
+        _missing_column_errors.append(db_pg.psycopg.errors.UndefinedColumn)
     try:
         row = conn.execute(
             "SELECT charter FROM c_level_sessions WHERE role=? AND session_id=?",
             (owner_role, owner_cto),
         ).fetchone()
-    except sqlite3.OperationalError as e:
-        if "no such column" not in str(e):
+    except tuple(_missing_column_errors) as e:
+        msg = str(e)
+        if "no such column" not in msg and "does not exist" not in msg:
             raise
         # A box that pulled the code but whose DB predates the `charter`
         # column: the gate must still fail closed, but with the fix in the
@@ -564,15 +976,21 @@ def create_task(
             f"orphaned (no CTO_SESSION_ID/CXO_SESSION_ID in env, no explicit owner)",
             file=sys.stderr,
         )
+    # Stamped on every insert (docs/design/org-mesh.md C1, W0.1): which host
+    # this session is filing the task from. Never caught -- a self_host()
+    # failure here must fail the create loudly, not silently write a wrong
+    # or guessed dispatcher_host (task brief rule 7).
+    from lib import config
+    dispatcher_host = config.self_host()
     ts = now_iso()
     with get_conn() as conn:
         if owner_cto:
             _require_charter(owner_cto, owner_role, conn)
         conn.execute(
-            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,runner,created_at,updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            """INSERT INTO tasks (id,project,role,status,title,description,parent_task,depends_on,touches,owner_cto,owner_role,host,dispatcher_host,runner,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (tid, project, role, "pending", title, description, parent_task,
-             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, runner, ts, ts),
+             json.dumps(depends_on or []), json.dumps(touches or []), owner_cto, owner_role, host, dispatcher_host, runner, ts, ts),
         )
         log_event(conn, tid, "system", "task_created",
                   {"role": role, "title": title, "touches": touches or []})
@@ -599,14 +1017,15 @@ VALID_COLUMNS = {
     "iteration", "description", "title",
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
-    "delegate_log", "spawned_at", "host", "runner",
+    "delegate_log", "spawned_at", "host", "dispatcher_host", "runner",
+    "runner_model",
 }
 
 
 # Terminal "work landed" statuses that must not be silently resurrected into
 # an active (lock-holding) status. Resurrecting one is what left phantom path
 # locks after a successful merge — see issue #13. The active set is
-# ACTIVE_STATUSES (pending/in_progress/rate_limited/conflict).
+# ACTIVE_STATUSES (pending/in_progress/rate_limited/conflict/queued_remote).
 _TERMINAL_MERGED = ("done", "merged")
 
 
@@ -789,7 +1208,10 @@ def _path_lock_key(project: str, path: str) -> str:
     return f"proj:{project}:path:{path.strip().lstrip('/')}"
 
 
-ACTIVE_STATUSES = ("pending", "in_progress", "rate_limited", "conflict")
+# queued_remote is active: its path locks stay held while it waits for the host,
+# and it must not join the terminal-surface sweep (VALID_STATUS - ACTIVE_STATUSES).
+ACTIVE_STATUSES = ("pending", "in_progress", "rate_limited", "conflict",
+                   "queued_remote")
 
 
 def find_conflicts(project: str, touches: list[str],
@@ -894,6 +1316,179 @@ def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> Non
             "UPDATE c_level_sessions SET active_task_id=? WHERE role=? AND session_id=?",
             (task_id, role, session_id),
         )
+
+
+# ---------------------------------------------------------------------------
+# hosts (Org Mesh W2.1, docs/design/org-mesh.md C2/C3)
+# ---------------------------------------------------------------------------
+
+_HOST_COLUMNS = {
+    "os", "hq_root", "agents_root", "provides", "max_workers", "status",
+    "probed_at", "free_gb", "ram_free_gb", "running", "version",
+    "cpus", "load_per_core", "runners", "pubkey", "config_json", "deploy_pubkey",
+    "approved_at",
+}
+
+
+def upsert_host(host: str, **fields) -> None:
+    """Insert or update one `hosts` row, touching ONLY the columns passed.
+
+    A column left out of `fields` keeps its existing value -- this is what
+    lets seed_hosts_from_config() (identity fields only) and a future
+    node_agent heartbeat (probe fields only) both write the same row without
+    either one clobbering the other's data. `provides` and `runners`, if
+    given, are lists and get JSON-encoded for storage. `updated_at` is always
+    stamped with now_iso(), even on a no-op reseed -- it means "last touched",
+    not "last changed".
+    """
+    bad = set(fields) - _HOST_COLUMNS
+    if bad:
+        raise ValueError(f"unknown host column(s): {bad}")
+    cols = dict(fields)
+    for key in ("provides", "runners"):
+        if cols.get(key) is not None:
+            cols[key] = json.dumps(cols[key])
+    cols["updated_at"] = now_iso()
+    col_names = ["host", *cols.keys()]
+    placeholders = ",".join("?" * len(col_names))
+    updates = ", ".join(f"{c}=excluded.{c}" for c in cols)
+    sql = (
+        f"INSERT INTO hosts ({','.join(col_names)}) VALUES ({placeholders}) "
+        f"ON CONFLICT(host) DO UPDATE SET {updates}"
+    )
+    with get_conn() as conn:
+        conn.execute(sql, [host, *cols.values()])
+
+
+def get_host(host: str) -> dict | None:
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM hosts WHERE host=?", (host,)).fetchone()
+    return dict(row) if row else None
+
+
+def list_hosts() -> list[dict]:
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM hosts ORDER BY host").fetchall()
+    return [dict(r) for r in rows]
+
+
+def seed_hosts_from_config() -> None:
+    """One `hosts` row per config/hosts.yaml entry -- os, agents_root,
+    provides, max_workers, plus the whole entry as config_json (what
+    `hq_join export-hosts` rebuilds hosts.yaml from). Never touches probe
+    fields (status, probed_at, free_gb, ram_free_gb, running, version) --
+    upsert_host only writes the columns it's given, so a live node's
+    heartbeat data survives a reseed untouched. Idempotent: rerunning with
+    an unchanged hosts.yaml leaves every seeded field the same.
+
+    Seeds only what config/hosts.yaml itself declares. On a joined node
+    lib.config.hosts() also carries an entry built from that node's own
+    node.yaml; the hub's row for that node comes from `hq_join accept` and
+    the node's own probe, and a reseed run there must never replace it.
+
+    Imports lib.config lazily (pulls in PyYAML) so lib.db itself stays
+    importable without it -- the PreToolUse hooks import lib.db under the
+    system python3, which may not have PyYAML installed.
+    """
+    import yaml
+    from lib import config
+    declared = yaml.safe_load(config.HOSTS_CONFIG.read_text(encoding="utf-8"))["hosts"]
+    for name, h in config.hosts().items():
+        if name not in declared:
+            continue
+        upsert_host(
+            name,
+            os=h.get("os"),
+            agents_root=h.get("agents_root"),
+            provides=h.get("provides") or [],
+            max_workers=h.get("max_workers"),
+            config_json=json.dumps(h),
+        )
+
+
+# ---------------------------------------------------------------------------
+# letters (Org Mesh W2.1 -- cross-host C-level mailbox, delivered by W2.2's
+# `node_dispatch deliver_letter <id>`)
+# ---------------------------------------------------------------------------
+
+def create_letter(
+    to_host: str,
+    to_role: str,
+    body: str,
+    *,
+    to_session: str | None = None,
+    from_role: str | None = None,
+    from_session: str | None = None,
+    from_host: str | None = None,
+) -> int:
+    ts = now_iso()
+    with get_conn() as conn:
+        row = conn.execute(
+            """INSERT INTO letters
+                 (to_host,to_role,to_session,from_role,from_session,from_host,body,status,created_at,attempts)
+               VALUES (?,?,?,?,?,?,?,?,?,?)
+               RETURNING id""",
+            (to_host, to_role, to_session, from_role, from_session, from_host, body,
+             "pending", ts, 0),
+        ).fetchone()
+    return row["id"]
+
+
+def get_letter(letter_id: int) -> dict | None:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM letters WHERE id=?", (letter_id,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def pending_letters(to_host: str, *, from_host: str | None = None) -> list[dict]:
+    """Pending letters addressed to `to_host`. With `from_host`, only the ones
+    that host sent (a row with from_host NULL matches nobody)."""
+    sql = "SELECT * FROM letters WHERE to_host=? AND status='pending'"
+    args: tuple = (to_host,)
+    if from_host is not None:
+        sql += " AND from_host=?"
+        args = (to_host, from_host)
+    with get_conn() as conn:
+        rows = conn.execute(sql + " ORDER BY id", args).fetchall()
+    return [dict(r) for r in rows]
+
+
+def mark_letter_delivered(letter_id: int) -> bool:
+    """Flip a letter to delivered. Returns False (no error) when it was
+    already delivered -- the W2.2 `deliver_letter` caller must be idempotent
+    against a retried delivery, this is the primitive that makes it so."""
+    ts = now_iso()
+    with get_conn() as conn:
+        cur = conn.execute(
+            "UPDATE letters SET status='delivered', delivered_at=? "
+            "WHERE id=? AND status<>'delivered'",
+            (ts, letter_id),
+        )
+        return bool(cur.rowcount)
+
+
+def record_letter_attempt(letter_id: int, error: str) -> None:
+    """Bump attempts, record `error` as last_error, and flip to `failed`
+    once attempts reaches 5. Atomic per row (single UPDATE ... RETURNING) so
+    two racing delivery attempts can't both read the same pre-increment
+    count and under-count.
+
+    Only a `pending` letter flips: a late count (a timeout while the far side
+    delivered) must not turn a `delivered` row into `failed` (W2.7 F14,
+    task-42fdcda7)."""
+    with get_conn() as conn:
+        row = conn.execute(
+            "UPDATE letters SET attempts = attempts + 1, last_error = ? "
+            "WHERE id = ? RETURNING attempts",
+            (error, letter_id),
+        ).fetchone()
+        if row is not None and row["attempts"] >= 5:
+            conn.execute(
+                "UPDATE letters SET status='failed' WHERE id=? AND status='pending'",
+                (letter_id,),
+            )
 
 
 if __name__ == "__main__":

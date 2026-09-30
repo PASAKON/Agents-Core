@@ -16,6 +16,25 @@ jobs:
   #    side-effect-free by construction).
   pytest:
     runs-on: ubuntu-latest
+    # tests/test_db_backend_pg.py (15 tests) self-skips without
+    # ORG_TEST_DB_URL -- this service + the env var on the pytest step below
+    # give it a real Postgres 16 so those tests actually run in CI instead of
+    # only ever running on a dev's local throwaway container (task brief
+    # gap 4, docs/design/tasks-db-hub.md).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: org_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,6 +56,7 @@ jobs:
           GIT_AUTHOR_EMAIL: ci@agents.local
           GIT_COMMITTER_NAME: ci
           GIT_COMMITTER_EMAIL: ci@agents.local
+          ORG_TEST_DB_URL: postgresql://postgres:postgres@localhost:5432/org_test
         run: pytest
 
   # 2. gitleaks — mirrors the repo's pre-commit guard

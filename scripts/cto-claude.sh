@@ -30,7 +30,7 @@ ROLE_PROMPT="$(cat "$ROOT/roles/cto.md")"
 # Generate the MCP config with THIS machine's real absolute paths instead of
 # reading the committed config/cto.mcp.json, which bakes in the Mac dev path
 # (/Users/gob/Projects/Agents) — that breaks when this same launcher runs on
-# a different box (e.g. Contabo, ROOT=/opt/mooniex-agents) via the MoonieX
+# a different box (e.g. Contabo, ROOT=/opt/MoonieXHQ/Agents/Core) via the MoonieX
 # Console tmux bridge. Regenerated fresh per launch; cleaned up in the EXIT
 # trap below. scripts/lib/cxo_mcp_config.py is shared with cxo-claude.sh so
 # the per-role server set cannot drift between the two launchers.
@@ -218,7 +218,7 @@ fi
 # both need to know which machine this is before they touch c_level_sessions.
 case "$(uname -s)" in
   Darwin) MACHINE_LABEL="MAC" ;;
-  Linux)  if [ -d /opt/mooniex-agents ]; then MACHINE_LABEL="CONTABO"
+  Linux)  if [ -d /opt/MoonieXHQ/Agents/Core ]; then MACHINE_LABEL="CONTABO"
           else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
   MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
   *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;

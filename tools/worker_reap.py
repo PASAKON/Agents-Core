@@ -35,8 +35,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import hosts as config_hosts
+from lib.config import hosts as config_hosts, self_host
 from lib.notify import info, warn
+from lib.proc import pid_alive
 from tools.itermtab import close_tab
 from tools import tmux_session
 
@@ -66,19 +67,50 @@ _TERMINAL_SURFACE_STATUSES = frozenset(
 )
 
 
+# ---------------------------------------------------------------------------
+# Row ownership (Org Mesh W1.5). On one shared ledger every row must have
+# exactly one owner per duty, so "is this row mine?" is answered here, once,
+# from the row's `host` (where it runs) and `dispatcher_host` (who filed it):
+#
+#   LOCAL duty  (pid liveness, tmux/tab close, local stall, gc pid check,
+#                work_watch dead-pid):            host == self
+#   REMOTE duty (branch poller, ssh stall, close_remote, gc ssh liveness):
+#                                                 host != self AND dispatcher == self
+#   anything else is another box's row: skip it -- never cancel, stall or kill it.
+#
+# NULL dispatcher_host = this box. NULL host = the row is not on a box yet
+# (create_task writes only dispatcher_host; delegate writes host at spawn), so
+# it belongs to its dispatcher; a legacy row with both NULL is this box's own.
+# ---------------------------------------------------------------------------
+def row_host(task: dict) -> str:
+    """The host this row runs on (or, unspawned, will run on): `host`, else its dispatcher, else this box."""
+    return task.get("host") or task.get("dispatcher_host") or self_host()
+
+
+def row_dispatcher(task: dict) -> str:
+    return task.get("dispatcher_host") or self_host()
+
+
+def is_local_row(task: dict) -> bool:
+    return row_host(task) == self_host()
+
+
+def is_dispatched_here(task: dict) -> bool:
+    return row_dispatcher(task) == self_host()
+
+
+def is_remote_row(task: dict) -> bool:
+    return row_host(task) != self_host() and is_dispatched_here(task)
+
+
 def _pid_alive(pid: int | None) -> bool:
     """True if a process with this PID exists and is reachable.
 
-    Uses kill(pid, 0) — sends no signal, just probes existence + permission.
-    Returns False for None, 0, or any error.
+    lib.proc probes existence without a signal. A pid we may not open (another
+    user's, or a recycled one) reads as dead: a reaper must never signal a
+    stranger. Returns False for None, 0, or any error.
     """
-    if not pid or pid <= 0:
-        return False
-    try:
-        os.kill(pid, 0)
-        return True
-    except (ProcessLookupError, PermissionError, OSError):
-        return False
+    return pid_alive(pid, denied_is_alive=False)
 
 
 def _pid_matches_task(pid: int, task_id: str) -> bool:
@@ -572,6 +604,10 @@ def close_remote(task: dict, *,
     """End a remote (winbox/contabo) DEV's worker over SSH. See module note
     above and docs/design/multi-host-workers.md.
 
+    W1.5: also refuses a row another box dispatched (`dispatcher_host` names
+    a different host) -- on a shared ledger that box's watchdog owns the
+    remote close; two boxes ssh-killing one worker would race.
+
     ADDENDUM 2 (task-92118d4e, CEO rule 2026-09-07 — never close a surface
     under a worker that may be working): re-reads the task from the DB by
     id before doing anything else, so a caller (the branch poller) holding a
@@ -636,8 +672,15 @@ def close_remote(task: dict, *,
         result["refused"] = f"status {status} is not terminal"
         return result
 
-    if not host or host == "mac":
+    if not host or host == self_host():
         result["refused"] = f"host={host!r} — not a remote spoke"
+        return result
+
+    # W1.5: a remote worker is closed only by the box that dispatched it. On a
+    # shared ledger the other boxes see the same row and must not ssh a kill.
+    if not is_dispatched_here(task):
+        result["refused"] = (f"dispatcher_host={task.get('dispatcher_host')!r} "
+                             "— dispatched by another host")
         return result
 
     remote_hosts = _remote_hosts()

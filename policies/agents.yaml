@@ -23,7 +23,9 @@ roles:
     # Org standard since 2026-09-23 (CEO): every C-level runs Opus 5.5 with
     # the 1M context window at xhigh — the same pick the CEO makes with
     # /model. Workers already on Sonnet stay on Sonnet. ADR 0009 addendum
-    # 2026-09-23 (decisions/0009-model-routing-policy.md).
+    # 2026-09-23 (decisions/0009-model-routing-policy.md). Sonnet workers
+    # moved Sonnet 5 -> Sonnet 5.5 on 2026-09-29 (CEO): same $2/$10 price,
+    # same tokenizer; smoke-tested on Claude Code 2.1.284 (1M context).
     model: "claude-opus-5-5[1m]"
     fallback_model: "claude-fable-5"
     effort: "xhigh"
@@ -66,7 +68,10 @@ roles:
   cmo:
     display: CMO
     level: c
-    model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
+    # CEO 2026-09-30: CMO leaves the Opus C-level standard for Sonnet 5.5
+    # (1M) @ xhigh — it runs the automation lane (browse work driven by AGY).
+    # Smoke-tested headless the same day: claude -p answered OK on this id.
+    model: "claude-sonnet-5-5[1m]"
     fallback_model: "claude-fable-5"
     effort: "xhigh"
     can_write_wiki: true
@@ -79,7 +84,7 @@ roles:
   developer:
     display: Developer
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "xhigh"
     can_write_wiki: false
     can_create_task: false
@@ -91,7 +96,7 @@ roles:
   tester:
     display: Tester
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "high"
     can_write_wiki: false
     can_create_task: false
@@ -103,7 +108,7 @@ roles:
   web_designer:
     display: Web Designer
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "high"
     can_write_wiki: false
     can_create_task: false
@@ -115,13 +120,13 @@ roles:
   browser_operator:
     display: Browser Operator
     level: w
-    # Drives a real browser for work that has no API. Sonnet 5 (CEO
-    # 2026-08-10) -- vision-capable and cheaper than C-level Opus, which is
-    # where every browser task used to run. Deliberately absent from
+    # Drives a real browser for work that has no API. Sonnet (CEO
+    # 2026-08-10; Sonnet 5.5 since 2026-09-29) -- vision-capable and
+    # cheaper than C-level Opus, which is where every browser task used to run. Deliberately absent from
     # WORKER_PROVIDER_ROLES (lib/config.py) so the quota router never swaps it
     # onto GLM: this role's work is screenshot-driven and needs vision.
     # Chrome access is gated on the --chrome flag in runners/worker_init.py.
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "high"
     can_write_wiki: false
     can_create_task: false
@@ -135,7 +140,7 @@ roles:
     level: w
     # Owned by CMO (content production execution) -- CTO keeps maintaining
     # the underlying CMO_Procedure_ReelEditor_TH tool itself (decided 2026-08-03).
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "high"
     can_write_wiki: false
     can_create_task: false
@@ -171,7 +176,7 @@ roles:
   data_analyst:
     display: Data Analytics
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "medium"
     can_write_wiki: false
     can_create_task: false
@@ -183,7 +188,7 @@ roles:
   prompt_engineer:
     display: Prompt Engineer
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "high"
     can_write_wiki: false
     can_create_task: false
@@ -195,7 +200,7 @@ roles:
   ads_manager:
     display: Ads Manager
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "medium"
     can_write_wiki: false
     can_create_task: false
@@ -207,7 +212,7 @@ roles:
   content_strategist:
     display: Content Strategist
     level: w
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "medium"
     can_write_wiki: false
     can_create_task: false
@@ -222,8 +227,24 @@ roles:
     # Owned by CMO (content production, same pipeline as content_strategist
     # + video_editor: script_writer -> voice actor -> video_editor) --
     # decided 2026-08-03.
-    model: "claude-sonnet-5"
+    model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
     effort: "high"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+    skills_profile: worker-baseline
+
+  probe:
+    display: Probe
+    level: w
+    # Org Mesh L3 acceptance-test worker (tools/mesh_check.py, docs/ops/
+    # mesh-check.md, CEO decision 2026-09-28). Proves create -> delegate ->
+    # worker -> merge across hosts -- must stay cheap: smallest model, lowest
+    # effort. Never touches anything outside docs/ops/mesh-probe/.
+    model: "claude-haiku-4-5-20251001"
+    effort: "low"
     can_write_wiki: false
     can_create_task: false
     can_merge: false

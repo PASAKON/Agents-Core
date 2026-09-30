@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.org-snapshot</string>
+
+  <!-- Org Mesh W1.7 (docs/design/org-mesh.md, docs/design/tasks-db-hub.md):
+       refreshes state/tasks.snapshot.db from the Postgres hub every 900s so
+       lib.db.get_conn() has a read-only fallback when ORG_DB_URL is set but
+       the hub can't be reached. One-shot script, not a --loop daemon like
+       com.mooniex.agents-watchdog.plist -- StartInterval instead of
+       RunAtLoad+KeepAlive. Install (on the Mac, the spoke that needs a local
+       fallback if the Contabo hub goes down):
+         cp scripts/com.mooniex.org-snapshot.plist ~/Library/LaunchAgents/
+         launchctl load ~/Library/LaunchAgents/com.mooniex.org-snapshot.plist
+       No-op (exit 0, "hub not configured") on a box where ORG_DB_URL isn't
+       set -- safe to install everywhere.
+
+       Like the watchdog/mac-agent plists this template intentionally does
+       NOT reference scripts/hub/with-org-db-env.sh directly -- ORG_DB_URL
+       reaches a live daemon by scripts/hub/cutover_flip.py inserting the
+       wrapper into the INSTALLED copy under ~/Library/LaunchAgents at
+       cutover time (docs/design/tasks-db-hub.md §3.3 step 3), never into
+       this git-tracked template. cutover_flip.py's PLISTS list does not
+       cover this file yet -- add it there when this scheduler is actually
+       installed (out of scope for this task, which is files-only). -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/scripts/hub/export_to_sqlite.py</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
+
+  <key>StartInterval</key>
+  <integer>900</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/org-snapshot.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/org-snapshot.log</string>
+</dict>
+</plist>

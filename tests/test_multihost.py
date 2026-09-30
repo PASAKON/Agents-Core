@@ -32,6 +32,12 @@ import runners.worker_init as worker_init  # noqa: E402
 import tools.delegate as delegate  # noqa: E402
 
 
+
+@pytest.fixture(autouse=True)
+def pin_disk_space(monkeypatch):
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
+    monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh_alias: 100.0)
+
 # ---------------------------------------------------------------------------
 # 1. Remote argv rendering per role — reuses worker_tool_grants, never a
 #    second hand-maintained flag list.
@@ -122,10 +128,12 @@ def _insert_task(db_mod_, *, task_id: str, role: str, status: str,
         conn.commit()
 
 
-def test_browser_operator_cap_reached_sets_conflict(temp_db):
+def test_browser_operator_cap_reached_sets_conflict(temp_db, pinned_mac_host):
     # mac's cap is 2 — two already live on mac.
+    # A NULL host means "this machine" (W0.3: self_host(), no longer a literal
+    # 'mac'), so the box is pinned to the Mac for the NULL row to count there.
     _insert_task(temp_db, task_id="task-bo01", role="browser_operator",
-                status="in_progress", host=None)  # NULL counts as mac
+                status="in_progress", host=None)  # NULL counts as this host (mac)
     _insert_task(temp_db, task_id="task-bo02", role="browser_operator",
                 status="rate_limited", host="mac")
     _insert_task(temp_db, task_id="task-bo03", role="browser_operator",
@@ -247,13 +255,21 @@ def test_project_path_for_host_mac_falls_back_to_top_level_path():
 
 def test_project_path_for_host_winbox_resolves():
     p = config.project_path_for_host("mooniex-agents", "winbox")
-    assert p == r"C:\Users\UsEr\mooniex\repo\MoonieX-Agents"
+    assert p == r"C:\Users\passg\mooniex\repo\MoonieX-Agents"
 
 
 def test_project_path_for_host_not_routable_raises_clear_error():
     # mooniex-console has no `paths:` entry at all.
     with pytest.raises(ValueError, match="not routable"):
         config.project_path_for_host("mooniex-console", "winbox")
+
+
+def test_project_path_for_host_webapp_winbox_not_routable():
+    # Org Mesh W3.0 (2026-09-29): no mooniex-webapp checkout exists on
+    # winbox, so its `paths:` block carries no `winbox` key — a delegate
+    # there must refuse cleanly rather than spawn into a missing folder.
+    with pytest.raises(ValueError, match="not routable"):
+        config.project_path_for_host("mooniex-webapp", "winbox")
 
 
 def test_worker_session_name_shape():
@@ -657,7 +673,8 @@ def test_header_task_id_none_on_wrong_kind():
     assert poller._header_task_id("# BLOCKER task-abc123\n", "REPORT") is None
 
 
-def test_tick_only_polls_remote_in_progress_tasks(fake_origin, temp_db, monkeypatch):
+def test_tick_only_polls_remote_in_progress_tasks(fake_origin, temp_db, monkeypatch,
+                                                  pinned_mac_host):
     calls: list[str] = []
     monkeypatch.setattr(poller, "check_task", lambda t: calls.append(t["id"]))
     _insert_remote_task(temp_db, task_id="task-tick01", branch="b1", host="winbox",

@@ -99,6 +99,9 @@ def test_low_disk_never_calls_the_spawn_step(temp_db, monkeypatch):
 # ---------------------------------------------------------------------------
 
 def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch, tmp_path):
+    # The iTerm spawn path runs only on darwin (tools/delegate._spawn_local);
+    # pin it so this passes on the Linux CI runner too.
+    monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 6.0)
 
     fake_project = {

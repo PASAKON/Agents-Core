@@ -16,25 +16,29 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
-from lib import db
+from lib import db, mesh
+from lib import router as host_router
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
-    worker_session_name as get_worker_session_name,
+    self_host, worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
+from lib.proc import pid_alive
 from tools import disk_queue
 from tools import send_to_cto
 from tools import storage_policy
 from tools import tmux_session as tmux
 from tools import workdir
-from tools.worktree import branch_name, create_worktree
+from tools.worktree import _exclude_in_worktree, branch_name, create_worktree
 
 # Every CLI the org knows how to drive a worker with (task-adbc6f43). Kept
 # local to this module rather than lib/config.py — that file is not a
@@ -225,7 +229,7 @@ def _disk_orange_floor_gb() -> float:
     (GB) — ADR 0030. A shared tools/storage_policy.py loader is being built
     separately (task brief) — do not create/import it here."""
     try:
-        data = yaml.safe_load(STORAGE_POLICY.read_text())
+        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8"))
         return float((data or {}).get("gauge", {}).get("orange", DEFAULT_DISK_ORANGE_GB))
     except (OSError, ValueError, TypeError):
         return DEFAULT_DISK_ORANGE_GB
@@ -239,7 +243,7 @@ def _scope_owners(feature: str) -> str | list[str] | None:
     policy file → None (fail closed: a feature nobody scoped applies to
     nobody, same as before the scope map existed)."""
     try:
-        data = yaml.safe_load(STORAGE_POLICY.read_text()) or {}
+        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError):
         return None
     scope = data.get("scope")
@@ -377,16 +381,11 @@ def _operator_counts_as_live(task: dict, resolved_host: str) -> bool:
     here, so their rows keep counting.
     """
     pid = task.get("pid")
-    if not pid or resolved_host != "mac":
+    if not pid or resolved_host != self_host():
         return True
     try:
-        os.kill(int(pid), 0)
-        return True
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except (TypeError, ValueError, OSError):
+        return pid_alive(int(pid))
+    except (TypeError, ValueError):
         return True
 
 # IRON-RULES §29: every spawn must ship a visible kickoff ping. Sleep
@@ -426,7 +425,7 @@ def _owner_window_id(owner_cto: str | None,
         ident = ident[len(role_prefix) + 1:]
     p = ROOT / "state" / "locks" / f"{role_prefix}-{ident}.winid"
     try:
-        raw = p.read_text().strip()
+        raw = p.read_text(encoding="utf-8").strip()
     except OSError:
         return None
     return raw if raw.isdigit() else None
@@ -769,16 +768,9 @@ def _pid_alive(pid: int | None) -> bool:
     pid the instant it claims a task (before os.execvpe replaces it with
     claude), so a live pid on an in_progress row means a DEV is genuinely
     running — used by the W4 re-delegate guard to avoid resetting/clobbering
-    it. os.kill(pid, 0) sends no signal, just probes existence."""
-    if not pid:
-        return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
-        return True  # exists but owned by another user — still alive
-    return True
+    it. lib.proc probes existence without a signal (os.kill(pid, 0) is
+    CTRL_C on Windows). A pid owned by another user is still alive."""
+    return pid_alive(pid)
 
 
 def _seconds_since(iso_ts: str | None) -> float | None:
@@ -968,6 +960,44 @@ def _local_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 
+def _bytes_sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest().upper()
+
+
+def _org_default_branch() -> str:
+    """Branch the org repo's deploy files are read from (the `mooniex-agents`
+    project's default branch)."""
+    try:
+        return get_project("mooniex-agents")["default_branch"]
+    except Exception:
+        return "main"
+
+
+def _fetch_origin(base: str) -> None:
+    """Refresh origin/<base> in the hub's own repo. A failed fetch only warns:
+    the ref left by the last fetch is still merged code, unlike a working
+    tree, and `_origin_blob` fails loudly when the ref is missing."""
+    try:
+        r = subprocess.run(["git", "-C", str(ROOT), "fetch", "origin", base],
+                           capture_output=True, text=True,
+                           timeout=REMOTE_SSH_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        warn(f"deploy: git fetch origin {base} failed ({e}) — using the last fetched ref")
+        return
+    if r.returncode != 0:
+        warn(f"deploy: git fetch origin {base} failed "
+             f"({(r.stderr or '').strip()[:200]}) — using the last fetched ref")
+
+
+def _origin_blob(base: str, rel: str) -> bytes | None:
+    """Bytes of `rel` at origin/<base> (`git show`), or None when origin has
+    no such file. Deploys never read the hub's working tree: a dirty or
+    unmerged local copy must not reach a spoke (task-6f6e5179)."""
+    r = subprocess.run(["git", "-C", str(ROOT), "show", f"origin/{base}:{rel}"],
+                       capture_output=True, timeout=REMOTE_SSH_TIMEOUT_S)
+    return r.stdout if r.returncode == 0 else None
+
+
 def _remote_sha256(ssh_alias: str, remote_path: str) -> str | None:
     """SHA256 of a file already on the box (uppercase hex), or None if the
     file is absent or the box is unreachable — never raises, a deploy check
@@ -990,30 +1020,37 @@ def _remote_sha256(ssh_alias: str, remote_path: str) -> str | None:
 
 
 def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
-                          dry_run: bool = False) -> list[str]:
+                          dry_run: bool = False,
+                          base: str | None = None) -> list[str]:
     """scp spawn-worker.ps1 + the role docs a remote DEV needs, but only
     the files missing or whose content changed (sha256 compare) — so a
     routine delegate call is a no-op scp-wise once the box is warm. Returns
-    the actions taken (or, in dry-run, that would be taken)."""
+    the actions taken (or, in dry-run, that would be taken).
+
+    The bytes come from `git show origin/<base>:<path>` after a fetch, never
+    from the hub's working tree (task-6f6e5179)."""
     ssh_alias = host_cfg["ssh"]
     agents_root = host_cfg["agents_root"]
     sep = "\\" if host_cfg.get("os") == "windows" else "/"
     files = list(_REMOTE_DEPLOY_FILES) + [(f"roles/{role_name}.md", f"roles/{role_name}.md")]
+    base = base or _org_default_branch()
 
     actions: list[str] = []
+    if not dry_run:
+        _fetch_origin(base)
     dirs_needed: set[str] = set()
-    to_copy: list[tuple[Path, str]] = []
+    to_copy: list[tuple[bytes, str, str]] = []
     for local_rel, remote_rel in files:
-        local = ROOT / local_rel
-        if not local.is_file():
-            continue
         remote_abs = f"{agents_root}{sep}{remote_rel.replace('/', sep)}"
         if dry_run:
-            actions.append(f"[dry-run] would check/deploy {local_rel} -> {ssh_alias}:{remote_abs}")
+            actions.append(f"[dry-run] would check/deploy origin/{base}:{local_rel} -> {ssh_alias}:{remote_abs}")
             continue
-        if _remote_sha256(ssh_alias, remote_abs) == _local_sha256(local):
+        blob = _origin_blob(base, local_rel)
+        if blob is None:
             continue
-        to_copy.append((local, remote_abs))
+        if _remote_sha256(ssh_alias, remote_abs) == _bytes_sha256(blob):
+            continue
+        to_copy.append((blob, local_rel, remote_abs))
         dirs_needed.add(remote_abs.rsplit(sep, 1)[0])
 
     if dry_run or not to_copy:
@@ -1034,12 +1071,15 @@ def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
                            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
         if r.returncode != 0:
             raise RuntimeError(f"remote mkdir failed: {(r.stderr or r.stdout or '').strip()}")
-    for local, remote_abs in to_copy:
-        r = subprocess.run(["scp", str(local), f"{ssh_alias}:{remote_abs}"],
-                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
-        if r.returncode != 0:
-            raise RuntimeError(f"deploy scp failed for {local.name}: {r.stderr}")
-        actions.append(f"deployed {local.name} -> {remote_abs}")
+    with tempfile.TemporaryDirectory() as td:
+        for blob, local_rel, remote_abs in to_copy:
+            staged = Path(td) / Path(local_rel).name
+            staged.write_bytes(blob)
+            r = subprocess.run(["scp", str(staged), f"{ssh_alias}:{remote_abs}"],
+                               capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+            if r.returncode != 0:
+                raise RuntimeError(f"deploy scp failed for {staged.name}: {r.stderr}")
+            actions.append(f"deployed {staged.name} -> {remote_abs}")
     return actions
 
 
@@ -1054,17 +1094,16 @@ def _ensure_remote_deploy(host_cfg: dict, role_name: str, *,
 # directly from its own already-cloned location instead of a second copy
 # that could drift or dirty that checkout's working tree.
 #
-# scripts/hook-self-repo-guard.py (task-378523bb, GH #180) rides the same
-# pre-merge bootstrap mechanism as spawn-worker-remote.sh itself: the guard
-# script a freshly spawned worktree runs comes from whatever's checked out
-# at `origin/<base>` at `git worktree add` time, which won't carry this
-# fix until the PR that adds it is merged. spawn-worker-remote.sh copies
-# this deployed copy into every worktree it creates (see its own step 2),
-# so the sidecar-aware guard is live on a spoke before the merge that would
-# otherwise be the only way to get it there.
+# (source path in the org repo at origin/<base>, path relative to the spoke's
+# agents_root). The launcher lands in the untracked `.launch/`, never in the
+# spoke's tracked `scripts/`: every spawn used to overwrite the spoke's
+# tracked scripts/spawn-worker-remote.sh (and hook-self-repo-guard.py) with
+# the Mac's working-tree copies and dirty /opt/MoonieXHQ/Agents/Core
+# (task-6f6e5179). A worktree carries origin's own guard, so the guard is no
+# longer deployed at all.
+_LINUX_LAUNCHER_REL = ".launch/spawn-worker-remote.sh"
 _REMOTE_DEPLOY_FILES_LINUX = (
-    ("scripts/spawn-worker-remote.sh", "scripts/spawn-worker-remote.sh"),
-    ("scripts/hook-self-repo-guard.py", "scripts/hook-self-repo-guard.py"),
+    ("scripts/spawn-worker-remote.sh", _LINUX_LAUNCHER_REL),
 )
 
 
@@ -1092,26 +1131,29 @@ def _remote_sha256_posix(ssh_alias: str, remote_path: str) -> str | None:
     return out or None
 
 
-def _ensure_remote_deploy_linux(host_cfg: dict, *, dry_run: bool = False) -> list[str]:
+def _ensure_remote_deploy_linux(host_cfg: dict, *, dry_run: bool = False,
+                                base: str | None = None) -> list[str]:
     """scp each of _REMOTE_DEPLOY_FILES_LINUX onto a Linux spoke, only when
-    missing or changed (sha256 compare) — the pre-merge bootstrap problem:
-    a task's own script/hook edits can't reach Contabo through `git pull`
-    until the PR that adds them is merged to main. Once merged, a `git pull`
-    on the box picks each up as a normal tracked file and this becomes a
-    permanent no-op (still sha256-compared, but nothing left to copy)."""
+    missing or changed (sha256 compare). The bytes are the `git show
+    origin/<base>:<path>` blob after a fetch — never the hub's working tree,
+    so a dirty or unmerged local edit cannot reach a spoke. Nothing is ever
+    written under the spoke's tracked `scripts/` (task-6f6e5179)."""
     ssh_alias = host_cfg["ssh"]
     agents_root = host_cfg["agents_root"]
+    base = base or _org_default_branch()
     actions: list[str] = []
+    if not dry_run:
+        _fetch_origin(base)
     for local_rel, remote_rel in _REMOTE_DEPLOY_FILES_LINUX:
-        local = ROOT / local_rel
         remote_abs = f"{agents_root}/{remote_rel}"
 
         if dry_run:
-            actions.append(f"[dry-run] would check/deploy {local_rel} -> {ssh_alias}:{remote_abs}")
+            actions.append(f"[dry-run] would check/deploy origin/{base}:{local_rel} -> {ssh_alias}:{remote_abs}")
             continue
-        if not local.is_file():
+        blob = _origin_blob(base, local_rel)
+        if blob is None:
             continue
-        if _remote_sha256_posix(ssh_alias, remote_abs) == _local_sha256(local):
+        if _remote_sha256_posix(ssh_alias, remote_abs) == _bytes_sha256(blob):
             continue
 
         remote_dir = remote_abs.rsplit("/", 1)[0]
@@ -1119,15 +1161,18 @@ def _ensure_remote_deploy_linux(host_cfg: dict, *, dry_run: bool = False) -> lis
                            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
         if r.returncode != 0:
             raise RuntimeError(f"remote mkdir failed: {(r.stderr or r.stdout or '').strip()}")
-        r = subprocess.run(["scp", str(local), f"{ssh_alias}:{remote_abs}"],
-                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+        with tempfile.TemporaryDirectory() as td:
+            staged = Path(td) / Path(local_rel).name
+            staged.write_bytes(blob)
+            r = subprocess.run(["scp", str(staged), f"{ssh_alias}:{remote_abs}"],
+                               capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
         if r.returncode != 0:
-            raise RuntimeError(f"deploy scp failed for {local.name}: {r.stderr}")
+            raise RuntimeError(f"deploy scp failed for {Path(local_rel).name}: {r.stderr}")
         r = subprocess.run(["ssh", ssh_alias, f"chmod +x {shlex.quote(remote_abs)}"],
                            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
         if r.returncode != 0:
             raise RuntimeError(f"chmod +x failed for {remote_abs}: {(r.stderr or r.stdout or '').strip()}")
-        actions.append(f"deployed {local.name} -> {remote_abs}")
+        actions.append(f"deployed {Path(local_rel).name} -> {remote_abs}")
     return actions
 
 
@@ -1165,7 +1210,7 @@ def _render_remote_claude_args(role_name: str, host_name: str) -> str:
     from runners.worker_init import remote_control_args, worker_tool_grants
     allowed, extra_flags = worker_tool_grants(role_name)
     role_cfg = get_role(role_name)
-    model = role_cfg.get("model") or "claude-sonnet-5"
+    model = role_cfg.get("model") or "claude-sonnet-5-5"
     effort = role_cfg.get("effort") or "high"
     parts = [
         "--model", model,
@@ -1197,14 +1242,119 @@ def _render_remote_runner_args(role_name: str, host_name: str, runner: str) -> s
     return ""
 
 
+# W0.3b: the variables a local launcher run keeps. Over ssh the launcher gets
+# a fresh sshd environment; run locally it would inherit the hub's own
+# (ORG_DB_URL, session ids, tokens), and when it starts the first tmux server
+# the codex/agy worker would inherit that too. Keep only what bash, git and
+# tmux need to find binaries, HOME and a locale.
+_LOCAL_LAUNCHER_ENV_KEYS = ("PATH", "HOME", "USER", "LOGNAME", "LANG",
+                            "LC_ALL", "SHELL", "TERM", "TMPDIR")
+
+
+def _local_launcher_env() -> dict[str, str]:
+    return {k: os.environ[k] for k in _LOCAL_LAUNCHER_ENV_KEYS if k in os.environ}
+
+
+def _queued_remote_attempts(task_id: str) -> int:
+    """How many times this task has been put in `queued_remote`: one
+    `status_queued_remote` event per unreachable attempt (db.update_status).
+    Counted in the ledger, not over a window of recent events: the retry cap
+    (lib/mesh.max_attempts) reads this, and a row that logs many other events
+    must not push its old attempts out of view and so never reach the cap."""
+    with db.get_conn(readonly=True) as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n FROM events WHERE task_id=? AND kind=?",
+            (task_id, "status_queued_remote"),
+        ).fetchone()
+    return int(row["n"])
+
+
+def give_up_queued_remote(task_id: str, host_name: str, attempts: int) -> dict:
+    """Fail a `queued_remote` row whose host never answered `attempts` times
+    (the cap, lib/mesh.max_attempts). `failed` releases the row's path locks
+    in db.update_status (RELEASING_STATUSES), the same way a failed launcher
+    run does. The owner is told once, through the error path and the owner's
+    mailbox; a row already moved off the wait (the far side took it, another
+    watchdog failed it) is returned untouched and not announced, so a repeat
+    call cannot notify twice. Returns the row."""
+    row = db.get_task(task_id) or {}
+    if row.get("status") != "queued_remote":
+        return row
+    cap = mesh.max_attempts()
+    msg = (f"mesh spawn_worker on {host_name} unreachable {attempts} times "
+           f"(cap {cap}, {mesh.ENV_MAX_ATTEMPTS}); giving up, task failed and its path locks released")
+    db.update_status(task_id, "failed", actor="cto", delegate_log=msg[:1000])
+    error(f"mesh spawn gave up task={task_id} host={host_name} attempts={attempts}")
+    try:
+        send_to_cto.send(task_id, msg, role=row.get("role"), cto_id=row.get("owner_cto"),
+                         owner_role=row.get("owner_role") or "cto")
+    except Exception as e:  # the row is already failed: a mailbox error must not undo that
+        warn(f"mesh spawn gave up task={task_id}: notify owner failed: {e}")
+    return db.get_task(task_id)
+
+
+def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
+    """Ask `host_name` to spawn `task_id` through lib/mesh (W2.3,
+    ORG_MESH_DISPATCH). The whole remote spawn is one node_dispatch verb,
+    `spawn_worker <task_id>`: the far side reads the row by id and runs its own
+    delegate_task, so nothing rendered here (prompt, launcher args) crosses.
+    Returns the fresh task row. Never raises for an unreachable host.
+
+    The verb wants a `pending` row whose host is NULL or that box, so the row is
+    put there first. No answer from the host (MeshUnreachable) leaves the row
+    `queued_remote` with the host kept: the watchdog retries it, and path locks
+    stay held. An answer that says no (a refusal or a failed spawn) fails the
+    task, like a failed launcher run, unless the far side already moved the row."""
+    row = db.get_task(task_id)
+    if row["status"] != "pending":
+        db.update_status(task_id, "pending", host=host_name, actor="cto")
+    elif row.get("host") != host_name:
+        db.set_fields(task_id, host=host_name, actor="cto")
+    try:
+        reply = mesh.dispatch(host_name, "spawn_worker", task_id)
+    except mesh.MeshUnreachable as e:
+        # No answer does not prove the verb did not run. On a shared ledger the far
+        # side may already have moved the row (in_progress, blocked_host, ...):
+        # only a row still `pending` is ours to queue, or the retry would spawn twice.
+        seen = db.get_task(task_id) or {}
+        if seen.get("status") != "pending":
+            warn(f"mesh spawn task={task_id} host={host_name}: no answer ({e}), but the row "
+                 f"is already {seen.get('status')}; not queued")
+            return seen
+        attempt = _queued_remote_attempts(task_id) + 1
+        warn(f"mesh spawn queued task={task_id} host={host_name} attempt={attempt}: {e}")
+        db.update_status(
+            task_id, "queued_remote", host=host_name, actor="cto",
+            delegate_log=f"mesh spawn_worker on {host_name} unreachable "
+                         f"(attempt {attempt}): {e}"[:1000],
+        )
+        return db.get_task(task_id)
+    if reply.get("ok"):
+        success(f"mesh spawn task={task_id} host={host_name}: {reply.get('result')}")
+        return db.get_task(task_id)
+    detail = str(reply.get("error") or reply)[:1000]
+    warn(f"mesh spawn refused task={task_id} host={host_name}: {detail}")
+    if (db.get_task(task_id) or {}).get("status") == "pending":
+        db.update_status(task_id, "failed", actor="cto",
+                         delegate_log=f"mesh spawn_worker on {host_name} said no: {detail}")
+    return db.get_task(task_id)
+
+
 async def _spawn_remote(task: dict, host_name: str, *,
-                        dry_run: bool = False) -> dict:
+                        dry_run: bool = False, local: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
     is Phase 2, a non-goal of this task). No org MCP, no tmux, no iTerm —
     the worktree is cloned in from git by windows/spawn-worker.ps1, and the
     DEV reports back by pushing its branch + REPORT.md. This function's job
     ends at recording host/branch/worktree/pid on the task row;
-    runners/branch_poller.py takes it from there."""
+    runners/branch_poller.py takes it from there.
+
+    `local` (W0.3b, task-26988fe3): `host_name` is THIS machine (a Linux hub
+    delegating a codex/agy task to itself). The linux launcher is then run
+    with plain `bash <checkout>/scripts/spawn-worker-remote.sh <args>` — same
+    args, same prompt on stdin, same output parsing as over ssh, but no ssh
+    and no copy into `.launch/`: the checkout's own tracked script IS the
+    launcher. Linux only."""
     from runners.worker_init import _build_prompt
 
     task_id = task["id"]
@@ -1212,6 +1362,24 @@ async def _spawn_remote(task: dict, host_name: str, *,
     project_key = task["project"]
 
     host_cfg = get_host(host_name)  # raises ValueError if host_name is unknown
+
+    # W2.3: with ORG_MESH_DISPATCH on, a remote spawn is one node_dispatch verb
+    # over the org_dispatch key (lib/mesh.py), not the launcher ssh below. Off
+    # (the default) this block is skipped and every line after it is unchanged.
+    if mesh.enabled() and not local and host_name != self_host():
+        if dry_run:
+            try:
+                printable = " ".join(shlex.quote(c) for c in
+                                     mesh.build_argv(host_name, "spawn_worker", (task_id,)))
+            except Exception as e:  # a dry run reports, it never fails the task
+                printable = f"<not dispatchable: {e}>"
+            info(f"[dry-run] task={task_id} host={host_name} mesh command: {printable}")
+            db.set_fields(task_id, delegate_log=f"[dry-run] host={host_name} mesh_cmd={printable}",
+                          actor="cto")
+            return db.get_task(task_id)
+        info(f"spawn remote task={task_id} host={host_name} role={role_name} transport=mesh")
+        return await asyncio.to_thread(mesh_spawn_worker, task_id, host_name)
+
     os_name = host_cfg.get("os")
     if os_name not in ("windows", "linux"):
         raise NotImplementedError(
@@ -1219,9 +1387,23 @@ async def _spawn_remote(task: dict, host_name: str, *,
             f"only winbox (Phase 1) and contabo (Phase 2, task-a5c0549d) are "
             f"wired; docs/design/multi-host-workers.md §4"
         )
+    if local and os_name != "linux":
+        raise NotImplementedError(
+            f"local launcher transport is linux-only (host {host_name!r} os={os_name})"
+        )
     ssh_alias = host_cfg.get("ssh")
-    if not ssh_alias:
+    if not ssh_alias and not local:
         raise ValueError(f"host {host_name!r} has no ssh alias configured")
+
+    # H3 (task-3cc9b119): _route_runner writes runner_model to the row with
+    # set_fields and does not refresh the caller's dict, so read that one
+    # field back fresh. Only that field: the rest of the dict is the caller's.
+    try:
+        fresh_task = db.get_task(task_id)
+    except Exception:
+        fresh_task = None
+    if fresh_task and fresh_task.get("runner_model") and not task.get("runner_model"):
+        task = {**task, "runner_model": fresh_task["runner_model"]}
 
     # Runner resolution + validation (task-adbc6f43). NULL on the task row
     # means "claude" (every pre-migration row, unchanged). Validated here —
@@ -1245,7 +1427,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
 
     claude_args = _render_remote_runner_args(role_name, host_name, runner)
     role_cfg = get_role(role_name)
-    model = role_cfg.get("model") or "claude-sonnet-5"
+    model = role_cfg.get("model") or "claude-sonnet-5-5"
     effort = role_cfg.get("effort") or "high"
     # ADDENDUM 1 (CTO 2026-09-07): machine-prefixed session name, rendered
     # once here (single source of truth) and handed to the launcher rather
@@ -1270,6 +1452,10 @@ async def _spawn_remote(task: dict, host_name: str, *,
             f"-Effort {_ps_quote(effort)} -TaskFile {_ps_quote(remote_task_file)} "
             f"-SessionName {_ps_quote(session_name)} -Runner {_ps_quote(runner)}"
         )
+        # H3: the model the router picked for codex/agy; spawn-worker.ps1
+        # validates it again and falls back when it is absent.
+        if runner != "claude" and task.get("runner_model"):
+            remote_cmd += f" -RunnerModel {_ps_quote(str(task['runner_model']))}"
         cmd = ["ssh", ssh_alias, remote_cmd]
 
         if dry_run:
@@ -1385,10 +1571,14 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # instead of powershell + a scheduled task — no session-0/session-1 GUI
     # boundary to cross, so tmux new-session -d IS the detached worker;
     # see scripts/spawn-worker-remote.sh for the launcher itself.
-    deploy_actions = _ensure_remote_deploy_linux(host_cfg, dry_run=dry_run)
+    if local:
+        remote_script = str(ROOT / "scripts" / "spawn-worker-remote.sh")
+        deploy_actions = [f"local launcher {remote_script} (nothing to deploy)"]
+    else:
+        deploy_actions = _ensure_remote_deploy_linux(host_cfg, dry_run=dry_run)
+        remote_script = f"{host_cfg['agents_root']}/{_LINUX_LAUNCHER_REL}"
 
     prompt = _build_prompt(task, proj, remote_worktree)
-    remote_script = f"{host_cfg['agents_root']}/scripts/spawn-worker-remote.sh"
 
     # GH #180 (task-378523bb): the hub already knows this task's declared
     # touches — hand them to the spoke at spawn time instead of leaving the
@@ -1397,22 +1587,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # process's ssh argv, then spawn-worker-remote.sh's own re-quoting into
     # launch.sh). No secret in here — task_id/project/role/host/owner_cto
     # and repo-relative paths only.
-    try:
-        task_touches = json.loads(task.get("touches") or "[]")
-    except (TypeError, ValueError):
-        task_touches = []
-    if not isinstance(task_touches, list):
-        task_touches = []
-    task_meta = {
-        "task_id": task_id,
-        "project": project_key,
-        "role": role_name,
-        "host": host_name,
-        "owner_cto": task.get("owner_cto"),
-        "touches": task_touches,
-    }
     task_meta_b64 = base64.b64encode(
-        json.dumps(task_meta).encode("utf-8")
+        json.dumps(_task_meta(task, host_name)).encode("utf-8")
     ).decode("ascii")
 
     script_args = [
@@ -1423,31 +1599,38 @@ async def _spawn_remote(task: dict, host_name: str, *,
         "--session-name", session_name, "--runner", runner,
         "--task-meta-b64", task_meta_b64,
     ]
-    remote_cmd = "bash " + shlex.quote(remote_script) + " " + " ".join(
-        shlex.quote(a) for a in script_args
-    )
-    cmd = ["ssh", ssh_alias, remote_cmd]
+    transport = "local" if local else "ssh"
+    if local:
+        cmd = ["bash", remote_script, *script_args]
+    else:
+        remote_cmd = "bash " + shlex.quote(remote_script) + " " + " ".join(
+            shlex.quote(a) for a in script_args
+        )
+        cmd = ["ssh", ssh_alias, remote_cmd]
 
     if dry_run:
         printable = " ".join(shlex.quote(c) for c in cmd)
         info(f"[dry-run] task={task_id} host={host_name} deploy: {deploy_actions}")
-        info(f"[dry-run] task={task_id} ssh command: {printable}")
+        info(f"[dry-run] task={task_id} {transport} command: {printable}")
         db.set_fields(
             task_id,
-            delegate_log=f"[dry-run] host={host_name} ssh_cmd={printable}",
+            delegate_log=f"[dry-run] host={host_name} {transport}_cmd={printable}",
             actor="cto",
         )
         return db.get_task(task_id)
 
-    # The prompt travels over ssh's own stdin (input=) rather than a scp'd
+    # The prompt travels over the transport's own stdin (input=; ssh forwards
+    # it, a local bash reads it directly) rather than a scp'd
     # file first — plain OpenSSH forwards local stdin to the remote command
     # by default, with none of the console-encoding hazards that made
     # winbox's PowerShell path scp a file instead (see spawn-worker.ps1's own
     # TaskFile comment). spawn-worker-remote.sh's TASK.md write is the last
     # thing on the box that reads stdin.
-    info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
+    info(f"spawn remote task={task_id} host={host_name} role={role_name} "
+         f"transport={transport} deploy={deploy_actions}")
     r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                       timeout=REMOTE_LAUNCH_TIMEOUT_S)
+                       timeout=REMOTE_LAUNCH_TIMEOUT_S,
+                       env=_local_launcher_env() if local else None)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
 
     refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
@@ -1493,6 +1676,240 @@ async def _spawn_remote(task: dict, host_name: str, *,
     return db.get_task(task_id)
 
 
+def _task_meta(task: dict, host_name: str) -> dict:
+    """The `.org-task.json` sidecar payload (GH #180, task-378523bb): the
+    hub already knows this task's declared touches, so the worktree gets them
+    at spawn time instead of depending on its own (possibly unsynced)
+    tasks.db copy. No secret in here — ids, role, host, owner and
+    repo-relative paths only."""
+    try:
+        touches = json.loads(task.get("touches") or "[]")
+    except (TypeError, ValueError):
+        touches = []
+    if not isinstance(touches, list):
+        touches = []
+    return {
+        "task_id": task["id"],
+        "project": task["project"],
+        "role": task["role"],
+        "host": host_name,
+        "owner_cto": task.get("owner_cto"),
+        "touches": touches,
+        "runner_model": task.get("runner_model"),
+    }
+
+
+def _write_task_sidecar(worktree: str | Path | None, meta: dict) -> Path | None:
+    """Write `<worktree>/.org-task.json` (mode 600) and keep it out of git,
+    the way spawn-worker-remote.sh does for a remote spawn. Best-effort: a
+    worktree that is not there yet or a write failure only warns — the guard
+    falls back to the ledger, exactly as before this sidecar existed."""
+    if not worktree or not Path(worktree).is_dir():
+        return None
+    path = Path(worktree) / ".org-task.json"
+    try:
+        _exclude_in_worktree(Path(worktree), (path.name,))
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(meta, f)
+        os.chmod(path, 0o600)
+    except OSError as e:
+        warn(f"task sidecar not written for {meta.get('task_id')}: {e}")
+        return None
+    return path
+
+
+async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
+                       touches: list | tuple = ()) -> dict:
+    """Start a DEV on THIS host and return the task row.
+
+    Mac (`sys.platform == "darwin"`): unchanged — the project's
+    `spawn_backend` decides between a plain iTerm tab and tmux + an attached
+    iTerm tab. Any other platform: tmux only, no iTerm/osascript/`open` at
+    all. A spawn that fails leaves the row `failed` (the caller returns it
+    as is); otherwise the claim watchdog is already scheduled."""
+    task_id = task["id"]
+    role_name = task["role"]
+    project_key = task["project"]
+    if sys.platform == "win32":
+        # Neither backend below exists here: no tmux, and WORKER_LAUNCHER is
+        # bash. Windows starts a worker as a one-shot scheduled task in session 1
+        # (windows/spawn-worker.ps1, wired in W3.3). Until then fail the row with
+        # the reason; tmux.create would die with a bare FileNotFoundError and
+        # leave a pending row that looks like a spawn in flight.
+        msg = ("local spawn is not available on Windows yet: no tmux and no bash "
+               "launcher here. Delegate from the Mac or Contabo with host='winbox' "
+               "(remote launcher), or wait for the scheduled-task spawn (W3.3).")
+        error(f"{task_id}: {msg}")
+        db.update_status(task_id, "failed", delegate_log=msg, actor="cto")
+        return db.get_task(task_id)
+    # GH #180: the same `.org-task.json` sidecar a remote spawn writes, so the
+    # self-repo guard reads this task's touches from the worktree itself.
+    _write_task_sidecar((db.get_task(task_id) or task).get("worktree"),
+                        _task_meta(task, self_host()))
+    # iTerm, osascript and `open` exist on the Mac only (IRON-RULES §29: the
+    # Mac keeps its visible iTerm tab). Every other platform runs the worker
+    # detached in the tmux backend and never touches them (task-6f6e5179).
+    on_darwin = sys.platform == "darwin"
+    backend = (proj.get("spawn_backend") or "iterm").lower() if on_darwin else "tmux"
+    tmux_sess: str | None = None
+    ttyd_port: int | None = None
+    ttyd_pid: int | None = None
+
+    owner_cto = task.get("owner_cto")
+    # Pre-migration rows have owner_cto but NULL owner_role → default "cto"
+    # (mirrors runners/worker_init.py's WORKER_CTO_ROLE fallback for the same rows).
+    owner_role = task.get("owner_role") or "cto"
+    # ADR 0030 / Work/RULES.md rule 1-2: pilot scope only.
+    work_dir_path = _work_dir_for(task_id, owner_cto)
+
+    if backend == "tmux":
+        tmux_sess = tmux.session_name_for(task_id)
+        # Record the tmux session BEFORE the DEV process exists. The DEV
+        # claims (pending → in_progress) within seconds of tmux.create; a
+        # status write after that point would silently regress the claim.
+        db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
+        cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
+        work_env = f"export WORK_DIR='{work_dir_path}' && " if work_dir_path else ""
+        dev_cmd = f"{cto_env}{work_env}{WORKER_LAUNCHER} {role_name} {task_id}"
+        try:
+            tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
+            info(f"tmux session created: {tmux_sess}")
+        except subprocess.CalledProcessError as e:
+            error(f"tmux create failed for {task_id}: {e.stderr or e}")
+            db.update_status(task_id, "failed",
+                             delegate_log=f"tmux create failed: {e}", actor="cto")
+            return db.get_task(task_id)
+
+        web_ui = (proj.get("web_ui") or "off").lower()
+        if web_ui in ("true", "auto", "on"):
+            try:
+                ttyd_port = tmux.pick_free_port()
+                ttyd_pid = tmux.start_ttyd(tmux_sess, ttyd_port, writable=True)
+                info(f"ttyd up pid={ttyd_pid} url={tmux.url_for(ttyd_port)}")
+                # Best-effort open in default browser (Mac only).
+                if on_darwin:
+                    subprocess.run(["open", tmux.url_for(ttyd_port)], check=False)
+            except Exception as e:
+                warn(f"ttyd start failed (continuing without web UI): {e}")
+                ttyd_port = None
+                ttyd_pid = None
+
+        if ttyd_port or ttyd_pid:
+            db.set_fields(task_id, ttyd_port=ttyd_port, ttyd_pid=ttyd_pid,
+                          actor="cto")
+
+    spawn_result = "spawned"
+    if on_darwin:
+        try:
+            spawn_result = _spawn_iterm_tab(role_name, task_id,
+                                            tmux_attach=tmux_sess,
+                                            owner_cto=owner_cto,
+                                            owner_role=owner_role,
+                                            work_dir=work_dir_path)
+        except subprocess.CalledProcessError as e:
+            error(f"failed to spawn iTerm tab for {task_id}: {e}")
+            db.update_status(task_id, "failed",
+                             delegate_log=f"iTerm spawn failed: {e}", actor="cto")
+            return db.get_task(task_id)
+        except Exception as e:
+            if touches:
+                db.release_task_locks(task_id, project_key)
+            raise
+
+    if spawn_result == "reused":
+        info(f"reused existing iTerm tab for task={task_id} "
+             f"(skipping kickoff to avoid disturbing a running DEV)")
+
+    kickoff_text = DEFAULT_KICKOFF if kickoff is None else kickoff
+    if kickoff_text and role_name == "web_designer":
+        # Worktree omits gitignored .od/; resolve the design ref from the
+        # task description so the agent gets the concrete path. §9 / db guard.
+        kickoff_text += db.designer_kickoff_suffix(task.get("description") or "")
+    if kickoff_text and spawn_result != "reused":
+        _spawn_background(_auto_kickoff(task_id, kickoff_text))
+
+    # Catch the silent-death modes (dead reused tab / a worker that never
+    # claimed). This used to be skipped for the tmux backend, on the theory
+    # that runners.watchdog covered it. It does not cover it in time: the
+    # watchdog reports minutes-to-half-an-hour later and to nobody in this
+    # session, so a 100%-reproducible spawn failure read as success here and
+    # stayed invisible for an hour (2026-08-15, `No module named
+    # runners.dev_init` after a rename the running session had not loaded).
+    # Verifying the CLAIM is what makes any spawn breakage self-reporting --
+    # stale in-process code, a bad venv, a renamed module, an exhausted
+    # quota all look identical from the outside and all surface here.
+    _spawn_background(_verify_claimed(task_id, role_name, owner_cto, owner_role,
+                                        kickoff_text=kickoff_text,
+                                        tmux_sess=tmux_sess))
+
+    return db.get_task(task_id)
+
+
+def _route_runner(task: dict, role_name: str, host: str) -> str | None:
+    from tools import route  # noqa: PLC0415 — outside try so PermissionError escapes
+    refusal = route.check_override(task)
+    if refusal:
+        db.set_fields(task["id"], delegate_log=refusal, actor="cto")
+        warn(refusal)
+        raise PermissionError(refusal)
+    try:
+        if (task.get("runner")
+                or (task.get("model_hint") or "").strip().lower() == "claude"
+                or os.environ.get("ORG_ROUTER", "").strip().lower() == "off"):
+            return None
+
+        touches = task.get("touches")
+        if isinstance(touches, str):
+            try:
+                touches = json.loads(touches)
+            except Exception:
+                touches = []
+        elif touches is None:
+            touches = []
+        brief = task.get("description")
+
+        choice = route.pick_runner(role_name, host, touches=touches, brief=brief)
+        if choice is None:
+            return None
+        line = f"router: {choice.runner} {choice.model} [{choice.bucket}] — {choice.reason}"
+        # set_fields, not update_status: the status must not be rewritten
+        # from this (possibly stale) dict or logged as a transition.
+        db.set_fields(task["id"], runner=choice.runner,
+                      runner_model=choice.model, delegate_log=line,
+                      actor="cto")
+        info(line)
+        return choice.runner
+    except Exception as e:
+        warn(f"router skipped task={task.get('id')}: {e}")
+        return None
+
+
+async def _route_host(task: dict, host: str | None) -> tuple[str | None, str]:
+    """(host, delegate_log line) for a delegate with ORG_HOST_ROUTER on.
+
+    Only reached with the flag on. An explicit `host` argument or a non-NULL
+    `tasks.host` wins as before (line starts `manual:`); otherwise
+    lib/router.pick_host chooses, off the event loop because it may do a cold
+    quota read through tools.route. A None host means "no host fits"."""
+    if host is not None:
+        return host, host_router.manual_line(host, "host= argument")
+    if task.get("host"):
+        return task["host"], host_router.manual_line(task["host"], "tasks.host")
+    pick = await asyncio.to_thread(host_router.pick_host, task)
+    return pick.host, pick.line
+
+
+def _keep_host_line(task_id: str, line: str) -> None:
+    """_route_runner overwrites delegate_log with its own `router:` line; put
+    the host decision back in front of it so the row shows both. (The
+    overwritten value also survives in the events table.)"""
+    current = (db.get_task(task_id) or {}).get("delegate_log") or ""
+    if line not in current:
+        db.set_fields(task_id, delegate_log=f"{line}\n{current}" if current else line,
+                      actor="cto")
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
                          kickoff: str | None = None,
@@ -1510,11 +1927,17 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     `host`: which host (config/hosts.yaml key) to spawn on. Resolution is
     explicit arg > `tasks.host` (set by a prior spawn or create_task) >
-    `'mac'`. A resolved host other than 'mac' skips every Mac-specific step
-    below (iTerm, tmux, local worktree) and hands off entirely to
-    `_spawn_remote` — see docs/design/multi-host-workers.md Phase 1.
-    `dry_run`: for a remote host only — print the exact ssh command instead
-    of running it. No-op for host='mac'."""
+    `self_host()` (this machine, W0.3). A resolved host other than this
+    machine skips every local step below (iTerm/tmux, local worktree) and
+    hands off entirely to `_spawn_remote` — see
+    docs/design/multi-host-workers.md Phase 1. With env ORG_HOST_ROUTER on
+    (default off) a task with neither an arg nor a `tasks.host` gets its host
+    from `lib/router.pick_host`; no fitting host leaves it pending.
+    `dry_run`: never starts a worker. A remote host prints the exact ssh
+    command; a codex/agy task on a Linux hub (W0.3b) prints the local `bash
+    scripts/spawn-worker-remote.sh ...` command; a same-host `_spawn_local`
+    task logs what it would have started and returns with its locks
+    released."""
     task = db.get_task(task_id)
     if not task:
         raise ValueError(f"task not found: {task_id}")
@@ -1526,14 +1949,30 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"merged work (use reopen_task if a redo is intended)"
         )
 
-    # Host resolution (Phase 1): explicit arg > tasks.host > 'mac'. Computed
+    # Host resolution (Phase 1): explicit arg > tasks.host > self_host(). Computed
     # here, ahead of storage reclaim/disk-floor below (task-a5c0549d,
     # CTO 2026-09-24: a spawn bound for contabo was refused/queued for the
     # MAC's disk, even though its worktree, git clone and worker process all
     # live on the spoke — task-43b6514d, "queued for disk — 3.9 GB free"
     # while Contabo itself had plenty). resolved_host is also what the
     # browser cap check right after needs.
-    resolved_host = host if host is not None else (task.get("host") or "mac")
+    #
+    # W2.6/H2 (PLAN-auto-dispatch §4): with ORG_HOST_ROUTER on (default OFF),
+    # a task that names no host is given one by lib/router.pick_host, and no
+    # fitting host means the task stays pending with `no_host: <why>` in
+    # delegate_log and NO spawn. An explicit host= / tasks.host still wins and
+    # is logged as `manual:`. With the flag off the else-branch below is the
+    # resolution exactly as it was before.
+    host_line = None
+    if host_router.enabled():
+        resolved_host, host_line = await _route_host(task, host)
+        db.set_fields(task_id, delegate_log=host_line, actor="cto")
+        if resolved_host is None:
+            warn(f"{host_line} task={task_id}")
+            return db.get_task(task_id)
+    else:
+        resolved_host = host if host is not None else (task.get("host") or self_host())
+    this_host = self_host()
 
     # Storage reclaim (ADR 0030 §2, task-44963fee): below the orange band,
     # REBUILD-tier directories inside a scoped owner's OWN task worktrees
@@ -1547,7 +1986,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # below already decides. Mac-only (unaffected by the host-aware floor
     # below) — a remote task has no Mac-side worktree of its own to reclaim
     # from, and freeing Mac disk opportunistically is harmless either way.
-    reclaim_applies = resolved_host == "mac" and _scope_applies("reclaim", task.get("owner_cto"))
+    reclaim_applies = resolved_host == this_host and _scope_applies("reclaim", task.get("owner_cto"))
     if reclaim_applies:
         pre_free_gb = _free_gb()
         try:
@@ -1591,7 +2030,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
     orange_gb = _disk_orange_floor_gb()
     free_gb: float | None
-    if resolved_host == "mac":
+    if resolved_host == this_host:
         free_gb = _free_gb()
     elif dry_run:
         # `dry_run`'s own contract (this function's docstring): "print the
@@ -1627,7 +2066,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # function's re-resolution of `resolved_host` fixes the INITIAL
         # refusal to gate on the right box, but the drain's resume gate
         # needs the same per-entry host awareness to fully close the loop.
-        host_note = "" if resolved_host == "mac" else f" on {resolved_host}"
+        host_note = "" if resolved_host == this_host else f" on {resolved_host}"
         ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
         msg = (f"disk red{host_note}: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
                f"— spawn refused (ADR 0030) — queued for disk ({ahead} ahead)")
@@ -1652,6 +2091,13 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     proj = get_project(project_key)
     if role_name not in proj["agents_allowed"]:
         raise PermissionError(f"role {role_name} not allowed on project {project_key}")
+
+    # Off the event loop: a cold quota read is an ssh + a CLI call.
+    routed = await asyncio.to_thread(_route_runner, task, role_name, resolved_host)
+    if routed:
+        task["runner"] = routed
+    if host_line:
+        _keep_host_line(task_id, host_line)
 
     # Runner pre-flight (task-adbc6f43): reject an unknown/unavailable runner
     # loudly, here, before any worktree/ssh/iTerm work starts — not discovered
@@ -1681,7 +2127,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                 1
                 for status in _BROWSER_OPERATOR_ACTIVE_STATUSES
                 for t in db.list_tasks(status=status, role="browser_operator", limit=500)
-                if (t.get("host") or "mac") == resolved_host
+                if (t.get("host") or this_host) == resolved_host
                 and _operator_counts_as_live(t, resolved_host)
             )
             if live >= cap:
@@ -1755,13 +2201,37 @@ async def delegate_task(task_id: str, *, wait: bool = False,
 
     # Host routing (Phase 1): resolved_host was already computed above (the
     # browser cap check needed it too). Everything below this point
-    # (worktree creation, iTerm/tmux, kickoff, the claim watchdog) is
-    # Mac-only — a non-mac host hands off entirely to _spawn_remote, which
+    # (worktree creation, iTerm/tmux, kickoff, the claim watchdog) runs on
+    # THIS host — any other host hands off entirely to _spawn_remote, which
     # has its own worktree/spawn/report path over git.
-    if resolved_host != "mac":
+    #
+    # W0.3b (task-26988fe3): a Linux hub delegating a codex/agy task to ITSELF
+    # takes the same launcher path over a LOCAL transport (bash, no ssh).
+    # `_spawn_local` starts Claude only; codex and agy need the launcher's own
+    # runner blocks (tmux, launch.sh, commit + push of the branch). On the Mac
+    # a local agy task still goes to `_spawn_local`; claude always does.
+    local_launcher = (resolved_host == this_host
+                      and resolved_runner != "claude"
+                      and sys.platform.startswith("linux"))
+    if dry_run and resolved_host == this_host and not local_launcher:
+        # A dry run starts nothing on any path. This one (a same-host
+        # `_spawn_local`) used to ignore the flag and spawn a real worker:
+        # a lane A smoke on Contabo, 2026-09-30, got a worktree and a live
+        # tmux session from `delegate_task(..., dry_run=True)`. Drop the
+        # locks taken above, say what would have run, touch nothing else.
+        if touches:
+            db.release_task_locks(task_id, project_key)
+        msg = (f"[dry-run] host={this_host} local {resolved_runner} spawn: "
+               f"would create the worktree and tmux "
+               f"{tmux.session_name_for(task_id)}; nothing started")
+        info(msg)
+        db.set_fields(task_id, delegate_log=msg, actor="cto")
+        return db.get_task(task_id)
+    if resolved_host != this_host or local_launcher:
         db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
         try:
-            return await _spawn_remote(task, resolved_host, dry_run=dry_run)
+            return await _spawn_remote(task, resolved_host, dry_run=dry_run,
+                                       local=local_launcher)
         except Exception as e:
             if touches:
                 db.release_task_locks(task_id, project_key)
@@ -1873,101 +2343,21 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # answer "how long ago was a DEV spawned", which `updated_at` never
     # could (GH #51, #53). Stamped before the spawn rather than after, so a
     # spawn that hangs partway still blocks a duplicate.
-    db.set_fields(task_id, spawned_at=db.now_iso(), actor="cto")
+    #
+    # `host` is also written here (W0.1, docs/design/org-mesh.md C1): this
+    # branch is local-spawn only (the resolved_host != this_host branch above
+    # already returned), so the DEV about to be spawned runs on THIS host.
+    # A self_host() failure fails the spawn loudly rather than guessing.
+    db.set_fields(task_id, spawned_at=db.now_iso(), host=this_host,
+                  actor="cto")
 
-    backend = (proj.get("spawn_backend") or "iterm").lower()
-    tmux_sess: str | None = None
-    ttyd_port: int | None = None
-    ttyd_pid: int | None = None
-
-    owner_cto = task.get("owner_cto")
-    # Pre-migration rows have owner_cto but NULL owner_role → default "cto"
-    # (mirrors runners/worker_init.py's WORKER_CTO_ROLE fallback for the same rows).
-    owner_role = task.get("owner_role") or "cto"
-    # ADR 0030 / Work/RULES.md rule 1-2: pilot scope only (host is already
-    # guaranteed 'mac' here — the resolved_host != 'mac' branch returned above).
-    work_dir_path = _work_dir_for(task_id, owner_cto)
-
-    if backend == "tmux":
-        tmux_sess = tmux.session_name_for(task_id)
-        # Record the tmux session BEFORE the DEV process exists. The DEV
-        # claims (pending → in_progress) within seconds of tmux.create; a
-        # status write after that point would silently regress the claim.
-        db.set_fields(task_id, tmux_session=tmux_sess, actor="cto")
-        cto_env = f"export WORKER_CTO_ID='{owner_cto}' && " if owner_cto else ""
-        work_env = f"export WORK_DIR='{work_dir_path}' && " if work_dir_path else ""
-        dev_cmd = f"{cto_env}{work_env}{WORKER_LAUNCHER} {role_name} {task_id}"
-        try:
-            tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
-            info(f"tmux session created: {tmux_sess}")
-        except subprocess.CalledProcessError as e:
-            error(f"tmux create failed for {task_id}: {e.stderr or e}")
-            db.update_status(task_id, "failed",
-                             delegate_log=f"tmux create failed: {e}", actor="cto")
-            return db.get_task(task_id)
-
-        web_ui = (proj.get("web_ui") or "off").lower()
-        if web_ui in ("true", "auto", "on"):
-            try:
-                ttyd_port = tmux.pick_free_port()
-                ttyd_pid = tmux.start_ttyd(tmux_sess, ttyd_port, writable=True)
-                info(f"ttyd up pid={ttyd_pid} url={tmux.url_for(ttyd_port)}")
-                # Best-effort open in default browser.
-                subprocess.run(["open", tmux.url_for(ttyd_port)], check=False)
-            except Exception as e:
-                warn(f"ttyd start failed (continuing without web UI): {e}")
-                ttyd_port = None
-                ttyd_pid = None
-
-        if ttyd_port or ttyd_pid:
-            db.set_fields(task_id, ttyd_port=ttyd_port, ttyd_pid=ttyd_pid,
-                          actor="cto")
-
-    try:
-        spawn_result = _spawn_iterm_tab(role_name, task_id,
-                                        tmux_attach=tmux_sess,
-                                        owner_cto=owner_cto,
-                                        owner_role=owner_role,
-                                        work_dir=work_dir_path)
-    except subprocess.CalledProcessError as e:
-        error(f"failed to spawn iTerm tab for {task_id}: {e}")
-        db.update_status(task_id, "failed",
-                         delegate_log=f"iTerm spawn failed: {e}", actor="cto")
-        return db.get_task(task_id)
-    except Exception as e:
-        if touches:
-            db.release_task_locks(task_id, project_key)
-        raise
-
-    if spawn_result == "reused":
-        info(f"reused existing iTerm tab for task={task_id} "
-             f"(skipping kickoff to avoid disturbing a running DEV)")
-
-    kickoff_text = DEFAULT_KICKOFF if kickoff is None else kickoff
-    if kickoff_text and role_name == "web_designer":
-        # Worktree omits gitignored .od/; resolve the design ref from the
-        # task description so the agent gets the concrete path. §9 / db guard.
-        kickoff_text += db.designer_kickoff_suffix(task.get("description") or "")
-    if kickoff_text and spawn_result != "reused":
-        _spawn_background(_auto_kickoff(task_id, kickoff_text))
-
-    # Catch the silent-death modes (dead reused tab / a worker that never
-    # claimed). This used to be skipped for the tmux backend, on the theory
-    # that runners.watchdog covered it. It does not cover it in time: the
-    # watchdog reports minutes-to-half-an-hour later and to nobody in this
-    # session, so a 100%-reproducible spawn failure read as success here and
-    # stayed invisible for an hour (2026-08-15, `No module named
-    # runners.dev_init` after a rename the running session had not loaded).
-    # Verifying the CLAIM is what makes any spawn breakage self-reporting --
-    # stale in-process code, a bad venv, a renamed module, an exhausted
-    # quota all look identical from the outside and all surface here.
-    _spawn_background(_verify_claimed(task_id, role_name, owner_cto, owner_role,
-                                        kickoff_text=kickoff_text,
-                                        tmux_sess=tmux_sess))
+    row = await _spawn_local(task, proj, kickoff=kickoff, touches=touches)
+    if row.get("status") == "failed":
+        return row
 
     if not wait:
         success(f"DEV spawned task={task_id} (fire-and-forget)")
-        return db.get_task(task_id)
+        return row
 
     final = await _wait_for_terminal(task_id, timeout_s)
     if final["status"] == "failed":

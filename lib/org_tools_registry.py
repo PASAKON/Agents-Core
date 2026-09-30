@@ -48,9 +48,10 @@ from lib import ceo_report
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
+from lib import router
 from lib import telegram_out
 from lib import toon
-from lib.config import get_project, projects
+from lib.config import get_project, projects, self_host
 from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
 from tools import ask_run as ask_run_tool
@@ -60,8 +61,8 @@ from tools.inject_prompt import _build_task_md, _write_task_md
 from pathlib import Path
 from tools.delegate import delegate_task as do_delegate, delegate_parallel
 from tools.worker_reap import close_dev as do_close_dev
-from tools.git_ops import merge_task as do_merge
-from tools.worktree import diff_summary, diff_full
+from tools.git_ops import merge_task as do_merge, _run, _resolve_merge_ref, _repo_path_for_host
+from tools.worktree import branch_name
 from tools import send_to_cxo as send_to_cxo_mod
 
 ROLE = "cto"
@@ -146,7 +147,13 @@ def _h_wiki_write(*, path: str, content: str, message: str = "") -> str:
 
 def _h_create_task(*, project: str, role: str, title: str, description: str,
                     depends_on: str = "", touches: str = "",
-                    host: str = "") -> str:
+                    host: str = "", needs: str = "") -> str:
+    # `needs` has no column (lib/db.py is locked); lib.router.pick_host reads
+    # it back from a `needs: a, b` line in the description's header (W2.11:
+    # only the first block counts), which add_needs_line writes there. A full
+    # header raises ValueError, which dispatch turns into an "ERROR: ..." reply
+    # before any task row exists.
+    description = router.add_needs_line(description, needs)
     deps = _parse_list_arg(depends_on)
     paths = _parse_list_arg(touches)
     # The regression this must not reintroduce (task-78ef13b0 point 1):
@@ -211,11 +218,34 @@ def _h_get_task(*, task_id: str, include_description: bool = False) -> dict | No
 
 
 def _h_review_diff(*, task_id: str, full: bool = False) -> str:
+    """Diff a task's branch vs the project default branch (Org Mesh W0.2).
+
+    Diffed from this host's runtime checkout (`_repo_path_for_host`), never
+    the task's own `worktree` path — that path only exists on the worker's
+    own host (winbox, Contabo), never on the hub. `_resolve_merge_ref`
+    prefers the local branch ref and falls back to `origin/<branch>` when
+    the worker pushed from elsewhere.
+    """
     t = db.get_task(task_id)
     if not t or not t.get("worktree"):
         return "no worktree"
-    base = get_project(t["project"])["default_branch"]
-    return diff_full(t["worktree"], base) if full else diff_summary(t["worktree"], base)
+    proj = get_project(t["project"])
+    base = proj["default_branch"]
+    branch = t.get("branch") or branch_name(t["role"], task_id)
+    host = self_host()
+    repo = Path(_repo_path_for_host(proj, host))
+    has_origin = bool(proj.get("remote"))
+    if has_origin:
+        _run(["git", "fetch", "origin", base], cwd=repo)
+    base_ref = f"origin/{base}" if has_origin else base
+    branch_ref = _resolve_merge_ref(repo, branch)
+    args = ["git", "diff"] + ([] if full else ["--stat"]) + [f"{base_ref}...{branch_ref}"]
+    out = _run(args, cwd=repo)
+    if full:
+        lines = out.splitlines()
+        if len(lines) > 2000:
+            out = "\n".join(lines[:2000]) + f"\n... ({len(lines) - 2000} more lines truncated)"
+    return out
 
 
 def _h_merge_task(*, task_id: str, override_touches_check: bool = False) -> dict:
@@ -374,12 +404,20 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "paths that this task is expected to modify. Used for collision "
             "detection: a delegate_task call with overlapping touches against "
             "an in-flight task is blocked and the task is marked "
-            "status='conflict'."
+            "status='conflict'.\n"
+            "needs (optional) accepts JSON array string or comma-separated host "
+            "capabilities the job requires (e.g. 'win_gui, chrome'); it is added "
+            "to the end of the description's first block (the lines before the "
+            "first blank line, max 5) as a `needs: a, b` line, which the host "
+            "router reads when ORG_HOST_ROUTER is on and no host is named. A "
+            "`needs:` or `override:` line written anywhere after that block is "
+            "ignored, so put your own directive lines first."
         ),
         params=(
             Param("project", str), Param("role", str), Param("title", str),
             Param("description", str), Param("depends_on", str, ""),
             Param("touches", str, ""), Param("host", str, ""),
+            Param("needs", str, ""),
         ),
         handler=_h_create_task,
         response_format="text",

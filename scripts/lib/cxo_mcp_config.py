@@ -4,7 +4,7 @@
 Single source of truth for cto-claude.sh and cxo-claude.sh, which used to
 carry two drifting copies: cto-claude.sh built a temp config inline, while
 cxo-claude.sh read the committed config/cto.mcp.json with Mac paths baked
-in (that file breaks on Contabo, ROOT=/opt/mooniex-agents).
+in (that file breaks on Contabo, ROOT=/opt/MoonieXHQ/Agents/Core).
 
 Why this exists at all: without --strict-mcp-config a CXO session inherits
 every MCP server it can see — Agents/.mcp.json, ~/.claude.json, and every
@@ -35,6 +35,13 @@ Env overrides (no code edit needed):
     CXO_EXTRA_MCP=meigen,meta-ads-135   add servers to this role
     CXO_SKIP_MCP=supabase               drop servers from this role
     CXO_SUPABASE_WRITE=1                drop --read-only from the supabase server
+    MOONIEX_ORG_DB_ENV=/path/org-db.env hub env file (default ~/.config/mooniex/org-db.env)
+    MOONIEX_NODE_YAML=/path/node.yaml   node file (default ~/.config/mooniex/node.yaml)
+
+The org server starts through scripts/hub/with-org-db-env.sh only when the node
+file has the line `org_db: hub` (scripts/hub/cutover-mac.sh --apply writes it)
+AND the env file exists (existence only, never read). The env file alone is not
+the switch: it predates the cutover.
 """
 
 from __future__ import annotations
@@ -42,6 +49,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -63,7 +71,7 @@ def _first_existing(*paths: str) -> str:
 LUNGNOTE_MCP_JS = os.environ.get("LUNGNOTE_MCP_JS") or _first_existing(
     "/Users/gob/MoonieXHQ/Projects/LungNote/Mcp/index.js",
     "/opt/MoonieXHQ/Projects/LungNote/Mcp/index.js",
-    "/opt/lungnote-mcp/index.js",   # compat link until the HQ move settles
+    str(Path.home() / "MoonieXHQ" / "Projects" / "LungNote" / "Mcp" / "index.js"),  # winbox
 )
 # @supabase/realtime-js needs a native `WebSocket` global, which Node gained in
 # 22. The Mac's system `node` is already 26+ (Homebrew), so this is invisible
@@ -157,6 +165,20 @@ SERVER_TOOLS: dict[str, tuple[str, ...]] = {
 BUILTIN_TOOLS = ("Read", "Grep", "Glob", "Bash")
 
 
+def _venv_python(root: str) -> Path:
+    """The repo venv's interpreter: bin/python on Mac/Linux, Scripts\\python.exe
+    on winbox (a Windows venv has no bin/ at all)."""
+    posix = Path(root) / ".venv" / "bin" / "python"
+    if posix.exists():
+        return posix
+    windows = Path(root) / ".venv" / "Scripts" / "python.exe"
+    if windows.exists():
+        return windows
+    # No venv yet: name the interpreter this OS would have, so the "missing"
+    # message in main() points at a path that could exist here.
+    return windows if _is_windows() else posix
+
+
 def _org_tool_names(root: str) -> tuple[str, ...]:
     """org's tool names, straight from the registry that defines them.
 
@@ -167,7 +189,7 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     matters. Guessing the names instead is not an option — a wrong list is
     a session whose org tools silently prompt — so this raises on failure.
     """
-    venv = Path(root) / ".venv" / "bin" / "python"
+    venv = _venv_python(root)
     code = (
         "import sys; sys.path.insert(0, %r);"
         "from lib.org_tools_registry import REGISTRY;"
@@ -188,18 +210,130 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     return names
 
 
+WRAPPER_NAME = "with-org-db-env.sh"
+
+
+def _is_windows() -> bool:
+    return sys.platform == "win32"
+
+
+def node_yaml_path() -> Path:
+    """The host's node file (~/.config/mooniex/node.yaml, docs/design/org-mesh.md
+    C1); $MOONIEX_NODE_YAML overrides it for tests."""
+    return Path(
+        os.environ.get("MOONIEX_NODE_YAML")
+        or Path.home() / ".config" / "mooniex" / "node.yaml"
+    )
+
+
+_ORG_DB_KEY = re.compile(r"^org_db\s*:")
+
+
+def _org_db_value(line: str) -> str:
+    """Value of a top-level `org_db:` line, trailing ` # comment` removed."""
+    value = line.split(":", 1)[1]
+    return re.sub(r"\s+#.*$", "", value).strip()
+
+
+def hub_is_live() -> bool:
+    """True only when this host's node file has a top-level `org_db: hub` line.
+
+    This is the per-host cutover switch. The env file alone is NOT the
+    cutover: it exists on the Mac and on Contabo before it (it is the
+    cutover's input), so keying on it would move every new session to the
+    hub while the watchdog, hooks and CLI writes stay on state/tasks.db -- a
+    split ledger, without the CEO's window. Any other value (`sqlite`,
+    `hubx`, quoted), a commented-out line, a missing key or a missing file
+    means "not live". stdlib line match, not yaml: this file runs under the
+    system python3, where PyYAML is absent. The last `org_db:` line wins.
+    """
+    try:
+        text = node_yaml_path().read_text(encoding="utf-8")
+    except OSError:
+        return False
+    value = None
+    for line in text.splitlines():
+        if _ORG_DB_KEY.match(line):
+            value = _org_db_value(line)
+    return value == "hub"
+
+
+def set_org_db(text: str, value: str | None) -> str:
+    """`text` (a node file) with its `org_db:` line set to `value`, or removed
+    when `value` is None. An existing line is replaced in place and further
+    `org_db:` lines are dropped, so the key never appears twice; every other
+    line (`host:` above all) is kept byte for byte. Idempotent."""
+    out: list[str] = []
+    placed = False
+    for line in text.splitlines(keepends=True):
+        if _ORG_DB_KEY.match(line):
+            if value is not None and not placed:
+                out.append(f"org_db: {value}\n")
+                placed = True
+            continue
+        out.append(line)
+    if value is not None and not placed:
+        if out and not out[-1].endswith("\n"):
+            out[-1] += "\n"
+        out.append(f"org_db: {value}\n")
+    return "".join(out)
+
+
+def org_db_wrapper(root: str) -> str | None:
+    """Path of scripts/hub/with-org-db-env.sh when this host should start the
+    org MCP server through it, else None (docs/design/tasks-db-hub.md §3.3).
+
+    Wrapped only when ALL hold: the host's node file says `org_db: hub`
+    (hub_is_live), the env file exists, the wrapper script exists, and the
+    platform is not Windows (the wrapper is bash; winbox is W3.4).
+
+    The wrapper sources the hub env file (ORG_DB_URL) at spawn time, so the
+    secret reaches the server without landing in this generated config or in
+    any tracked file. Only the env file's EXISTENCE is tested here: it is
+    never opened, and nothing from it goes into `env`.
+    """
+    if _is_windows() or not hub_is_live():
+        return None
+    env_file = Path(
+        os.environ.get("MOONIEX_ORG_DB_ENV")
+        or Path.home() / ".config" / "mooniex" / "org-db.env"
+    )
+    wrapper = Path(root) / "scripts" / "hub" / WRAPPER_NAME
+    if env_file.is_file() and wrapper.is_file():
+        return str(wrapper)
+    return None
+
+
+def wrap_org_entry(entry: dict, root: str) -> dict:
+    """`entry` routed through the env wrapper when org_db_wrapper() says so.
+
+    An entry whose command already is the wrapper (a checkout where
+    scripts/hub/cutover_flip.py once rewrote a template) is returned as is:
+    wrapping it twice would hand the wrapper itself to `exec`.
+    """
+    if Path(entry["command"]).name == WRAPPER_NAME:
+        return entry
+    wrapper = org_db_wrapper(root)
+    if wrapper is None:
+        return entry
+    return {**entry, "command": wrapper, "args": [entry["command"], *entry.get("args", [])]}
+
+
 def _build(name: str, root: str) -> dict | None:
     """Return the MCP entry for `name`, or None when it isn't installed here."""
     if name == "org":
-        python = Path(root) / ".venv" / "bin" / "python"
+        python = _venv_python(root)
         if not python.exists():
             return None
-        return {
-            "command": str(python),
-            "args": ["-m", "runners.cto_mcp_server"],
-            "cwd": root,
-            "env": {"PYTHONUNBUFFERED": "1"},
-        }
+        return wrap_org_entry(
+            {
+                "command": str(python),
+                "args": ["-m", "runners.cto_mcp_server"],
+                "cwd": root,
+                "env": {"PYTHONUNBUFFERED": "1"},
+            },
+            root,
+        )
 
     if name == "lungnote":
         if not Path(LUNGNOTE_MCP_JS).is_file():
@@ -331,7 +465,7 @@ def main() -> int:
     if not args.servers and "org" not in servers:
         print(
             f"cxo_mcp_config: org MCP server unavailable "
-            f"({args.root}/.venv/bin/python missing) — refusing to launch",
+            f"({_venv_python(args.root)} missing) — refusing to launch",
             file=sys.stderr,
         )
         return 1
@@ -347,7 +481,8 @@ def main() -> int:
         print(" ".join(_allowed_for(list(servers), args.root, not args.no_builtins)))
         return 0
 
-    Path(args.out).write_text(json.dumps({"mcpServers": servers}, indent=2) + "\n")
+    Path(args.out).write_text(
+        json.dumps({"mcpServers": servers}, indent=2) + "\n", encoding="utf-8")
     print(
         f"cxo_mcp_config: role={args.role or args.servers} servers={','.join(servers)}"
         + (f" skipped(not installed)={','.join(missing)}" if missing else ""),

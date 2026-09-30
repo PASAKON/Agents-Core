@@ -17,6 +17,10 @@ it cannot import anything else from Agents-Core.
                            for HOST and saves it here as /etc/infisical/HOST.env. Safe to re-run.
     status                 Print what exists now.
     retire-setup           Delete the temporary `setup` identity and its file (end of migration).
+    node-secrets           List the client secrets under the shared `org-node` identity (description,
+                           id, created, live/revoked). Never a value. Minting and revoking them is
+                           done by tools/hq_join through ensure_node_identity / mint_node_secret /
+                           revoke_node_secret below (Org Mesh W4.2), not by a verb.
     put <project> <env> <NAME> --stdin [--as ID] [--comment ..] [--meta k=v ..] [--multiline]
                            Create or update ONE secret whose value arrives on stdin (phase 2,
                            skill CTO_Procedure_KeyFetch). Lints NAME against PLAN §4b, requires
@@ -49,6 +53,7 @@ import getpass
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -139,16 +144,51 @@ def read_cred(name: str) -> tuple[str, str]:
             values["INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET"])
 
 
-def write_cred(name: str, client_id: str, client_secret: str) -> str:
+class AclError(OSError):
+    """icacls refused, or could not run: the credentials were not saved."""
+
+
+def _is_nt() -> bool:
+    return os.name == "nt"
+
+
+def _run_icacls(argv: list) -> int:
+    """Return code of an icacls run. argv is a list and there is no shell."""
+    return subprocess.run(argv, capture_output=True, timeout=30, check=False).returncode
+
+
+def lock_acl(path: str, run=None) -> None:
+    """Windows only (W4.6a F5): drop the ACL entries `path` inherits (ProgramData gives
+    BUILTIN\\Users read and execute) and leave SYSTEM and Administrators. os.chmod and the
+    0o600 of os.open set no ACL on nt. Fails closed: a non-zero exit, or icacls missing,
+    raises AclError. `run(argv) -> returncode` is injectable for tests. A no-op elsewhere."""
+    if not _is_nt():
+        return
+    argv = ["icacls", path, "/inheritance:r", "/grant:r", "SYSTEM:F", "Administrators:F"]
+    try:
+        rc = (run or _run_icacls)(argv)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise AclError(f"icacls could not run on {path} ({type(exc).__name__})") from None
+    if rc != 0:
+        raise AclError(f"icacls exited {rc} on {path}")
+
+
+def write_cred(name: str, client_id: str, client_secret: str, *, run=None) -> str:
     require_root()
     os.makedirs(CRED_DIR, mode=0o700, exist_ok=True)
     os.chmod(CRED_DIR, 0o700)
+    lock_acl(CRED_DIR, run)    # the directory first, before a secret exists anywhere in it
     path = cred_path(name)
     fd = os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as fh:
         fh.write(f"INFISICAL_API_URL={API}\n"
                  f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={client_id}\n"
                  f"INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={client_secret}\n")
+    try:
+        lock_acl(path + ".tmp", run)
+    except AclError:
+        os.unlink(path + ".tmp")   # fail closed: no secret-bearing file is left behind
+        raise
     os.replace(path + ".tmp", path)
     return path
 
@@ -192,7 +232,10 @@ def cmd_save(name: str, from_stdin: bool = False) -> None:
         _, claims, ttl = login(client_id, client_secret)
     except ApiError as exc:
         sys.exit(f"login failed, nothing saved ({exc})")
-    path = write_cred(name, client_id, client_secret)
+    try:
+        path = write_cred(name, client_id, client_secret)
+    except AclError as exc:
+        sys.exit(f"{exc}; nothing saved")
     print(f"saved {path} (0600) · login OK · token lasts {ttl} s · "
           f"identity {str(claims.get('identityId', '?'))[:8]} · org {str(claims.get('orgId', '?'))[:8]}")
     if name == SETUP:
@@ -312,14 +355,8 @@ def reconcile(org: Org, dry: bool, mint: str | None) -> list[str]:
     for host, allowed in MACHINES.items():
         iid = idents.get(host)
         if not iid:
-            def create(h=host):
-                made = org.send("POST", "/api/v1/identities",
-                                {"name": h, "organizationId": org.org_id, "role": "no-access"})
-                new_id = made["identity"]["id"]
-                org.send("POST", f"/api/v1/auth/universal-auth/identities/{new_id}",
-                         {"accessTokenTTL": TOKEN_TTL, "accessTokenMaxTTL": TOKEN_MAX_TTL})
-                return new_id
-            iid = act(f"+ identity {host} (no org role, Universal Auth, token {TOKEN_TTL} s)", create)
+            iid = act(f"+ identity {host} (no org role, Universal Auth, token {TOKEN_TTL} s)",
+                      lambda h=host: _create_identity(org, h))
             if iid:
                 idents[host] = iid
         for name in allowed:
@@ -377,6 +414,154 @@ def cmd_retire_setup(org: Org) -> None:
     org.send("DELETE", f"/api/v1/identities/{org.setup_identity}")
     os.remove(cred_path(SETUP))
     print(f"deleted identity setup and {cred_path(SETUP)}")
+
+
+# --- org-node: one shared identity, one client secret per joining node (Org Mesh W4.2) ------------
+# Infisical Free allows IDENTITY_CAP identities and mac, contabo, winbox (plus `setup` until
+# retire-setup) already hold slots. A joining node therefore gets its own Universal Auth CLIENT
+# SECRET under this one identity, never an identity of its own; `hq_join leave` revokes that one
+# secret. These are functions, not CLI verbs: a value exists only in mint_node_secret's return.
+
+NODE_IDENTITY = "org-node"
+NODE_PROJECT = "Agents-Core"   # viewer membership; on Free a viewer sees dev and prod alike
+IDENTITY_CAP = 5
+NODE_SECRET_TTL = 90 * 86_400   # a node's client secret expires in 90 days (W4.6a F4); uses stay unlimited
+# The host-name rule, 3-31 chars: a copy of lib.config.HOST_NAME_RE (tools/hq_join.HOST_RE is that
+# same object). Not imported: this file stays stdlib-only, a Run Inbox card copies it alone.
+# tests/test_w44c_join_followups.py asserts the two patterns are the same string.
+NODE_HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,29}[a-z0-9]")
+_UUID_RE = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")   # ids go into URL paths
+
+
+class IdentityCapError(ApiError):
+    """Creating org-node would be the identity that goes over the Free plan's cap."""
+
+
+def _create_identity(org: Org, name: str) -> str:
+    """A machine identity with no org role and Universal Auth; returns its id."""
+    made = org.send("POST", "/api/v1/identities",
+                    {"name": name, "organizationId": org.org_id, "role": "no-access"})
+    new_id = made["identity"]["id"]
+    org.send("POST", f"/api/v1/auth/universal-auth/identities/{new_id}",
+             {"accessTokenTTL": TOKEN_TTL, "accessTokenMaxTTL": TOKEN_MAX_TTL})
+    return new_id
+
+
+def ensure_node_identity(org: Org) -> str:
+    """Id of the `org-node` identity, created when missing (and repaired when half-made):
+    Universal Auth attached, viewer on Agents-Core and nothing else. Safe to re-run.
+    Never creates an identity past IDENTITY_CAP: raises IdentityCapError naming the ones in use."""
+    idents = org.identities()
+    iid = idents.get(NODE_IDENTITY)
+    if iid is None:
+        if len(idents) >= IDENTITY_CAP:
+            raise IdentityCapError(
+                f"not creating {NODE_IDENTITY}: the org already has {len(idents)} identities "
+                f"({', '.join(sorted(idents))}) and Free allows {IDENTITY_CAP}")
+        iid = _create_identity(org, NODE_IDENTITY)
+    else:
+        try:
+            org.get(f"/api/v1/auth/universal-auth/identities/{iid}")
+        except ApiError as exc:
+            if "HTTP 404" not in str(exc):
+                raise
+            org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}",
+                     {"accessTokenTTL": TOKEN_TTL, "accessTokenMaxTTL": TOKEN_MAX_TTL})
+    project = org.projects().get(NODE_PROJECT.lower())
+    if project is None:
+        raise ApiError(f"project {NODE_PROJECT} does not exist: run `apply` first")
+    roles = org.identity_members(project["id"]).get(NODE_IDENTITY)
+    if roles is None:
+        org.send("POST", f"/api/v1/projects/{project['id']}/identity-memberships/{iid}",
+                 {"role": "viewer"})
+    elif roles != ["viewer"]:   # its secret goes to every node: never widen, refuse when wider
+        raise ApiError(f"{NODE_IDENTITY} has roles {roles} on {NODE_PROJECT}, expected viewer only")
+    return iid
+
+
+def _client_secrets(org: Org, identity_id: str) -> list[dict]:
+    out = org.get(f"/api/v1/auth/universal-auth/identities/{identity_id}/client-secrets")
+    return [{"description": s.get("description") or "", "id": s.get("id"),
+             "created": s.get("createdAt"), "revoked": bool(s.get("isClientSecretRevoked"))}
+            for s in out.get("clientSecretData", [])]
+
+
+def list_node_secrets(org: Org) -> list[dict]:
+    """description · id · created · revoked of every client secret under org-node. Never a value."""
+    iid = org.identities().get(NODE_IDENTITY)
+    return [] if iid is None else _client_secrets(org, iid)
+
+
+def mint_node_secret(org: Org, host: str) -> dict:
+    """A new client secret for `host` under org-node (ttl NODE_SECRET_TTL = 90 days, unlimited
+    uses; the identity's access-token settings are not touched), as
+    {client_id, client_secret, client_secret_id}. The value is in this return only: nothing is
+    printed or logged, and no error message here carries it. Refuses when a live secret
+    described `org-node:<host>` already exists, so a repeat never leaves one nobody can find."""
+    if not isinstance(host, str) or not NODE_HOST_RE.fullmatch(host):
+        raise ApiError("bad host name for a node secret")
+    iid = ensure_node_identity(org)
+    desc = f"{NODE_IDENTITY}:{host}"
+    live = [s for s in _client_secrets(org, iid) if s["description"] == desc and not s["revoked"]]
+    if live:
+        raise ApiError(f"a live client secret described {desc!r} already exists "
+                       f"(id {live[0]['id']}): revoke it first")
+    client_id = org.get(f"/api/v1/auth/universal-auth/identities/{iid}")[
+        "identityUniversalAuth"]["clientId"]
+    out = org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}/client-secrets",
+                   {"description": desc, "ttl": NODE_SECRET_TTL, "numUsesLimit": 0})
+    secret = out.get("clientSecret") if isinstance(out, dict) else None
+    data = out.get("clientSecretData") if isinstance(out, dict) else None
+    sid = data.get("id") if isinstance(data, dict) else None
+    if not (isinstance(secret, str) and secret and isinstance(sid, str) and _UUID_RE.fullmatch(sid)):
+        # Names only, never the body: it holds the value. A secret may exist now.
+        raise ApiError(f"client-secret response had an unexpected shape; check "
+                       f"`node-secrets` for a live {desc!r}")
+    return {"client_id": client_id, "client_secret": secret, "client_secret_id": sid}
+
+
+def revoke_node_secret(org: Org, client_secret_id: str) -> None:
+    """Revoke ONE client secret of org-node by id. Already revoked or gone counts as done."""
+    if not isinstance(client_secret_id, str) or not _UUID_RE.fullmatch(client_secret_id):
+        raise ApiError("bad client secret id")
+    iid = org.identities().get(NODE_IDENTITY)
+    if iid is None:   # no identity, no live secret
+        return
+    try:
+        org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}"
+                         f"/client-secrets/{client_secret_id}/revoke", {})
+    except ApiError as exc:
+        text = str(exc)
+        if "HTTP 404" in text or ("HTTP 400" in text and "revoked" in text.lower()):
+            return
+        raise
+
+
+def node_readable_secret_names(org: Org) -> dict[str, list[str]]:
+    """'<NODE_PROJECT>/<env>' -> sorted secret NAMES that org-node can read (W4.6a F8), for
+    `hq_join leave --live` to print as "rotate these". org-node is a viewer on NODE_PROJECT and
+    on Free a viewer sees every environment, so every environment the project has is listed.
+    Only the folder "/" is read: the plan holds no folders in Agents-Core. The list call
+    returns values too; they are dropped here and never returned, logged or printed."""
+    project = org.projects().get(NODE_PROJECT.lower())
+    if project is None:
+        raise ApiError(f"project {NODE_PROJECT} does not exist")
+    out: dict[str, list[str]] = {}
+    for env in sorted(org.environments(project["id"])):
+        listed = org.get("/api/v3/secrets/raw", workspaceId=project["id"], environment=env,
+                         secretPath="/")
+        out[f"{NODE_PROJECT}/{env}"] = sorted(
+            s["secretKey"] for s in listed.get("secrets", []) if s.get("secretKey"))
+    return out
+
+
+def cmd_node_secrets(org: Org) -> None:
+    rows = list_node_secrets(org)
+    if not rows:
+        print(f"no client secrets under {NODE_IDENTITY}")
+    for s in rows:
+        print(f"{s['description']} · {s['id']} · created {s['created']} · "
+              f"{'REVOKED' if s['revoked'] else 'live'}")
 
 
 # --- put / last4: one secret in, from stdin only (phase 2, skill CTO_Procedure_KeyFetch) ---------
@@ -601,6 +786,7 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--mint", metavar="HOST")
     sub.add_parser("status")
     sub.add_parser("retire-setup")
+    sub.add_parser("node-secrets")
     for cmd in ("put", "last4", "import-env", "run"):
         c = sub.add_parser(cmd)
         c.add_argument("project")
@@ -640,6 +826,8 @@ def main(argv: list[str] | None = None) -> None:
             cmd_status(Org())
         elif args.cmd == "retire-setup":
             cmd_retire_setup(Org())
+        elif args.cmd == "node-secrets":
+            cmd_node_secrets(Org())
         elif args.cmd == "put":
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
                     args.meta, args.multiline, legacy=args.legacy, path=args.path)

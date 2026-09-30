@@ -1,0 +1,36 @@
+# Policy for tools/agy_browse.py (GH #188). Loaded on every call; a bad file
+# refuses every call (exit 2) rather than falling back to anything.
+#
+# One row per Browser Home CDP port. Adding a site = adding a row here; no code
+# change. The CLI attaches only to 127.0.0.1:<port>, never launches a browser,
+# and never acts on a tab whose host is not in allowed_hosts.
+#
+#   allowed_hosts      exact host, or "*.example.com" for any subdomain (not the apex)
+#   upload_dirs        `upload` paths must realpath inside one of these. ${WORK_DIR}
+#                      expands to the task's Work/<task>/ dir; an unset variable
+#                      drops the entry. [] = no uploads.
+#   max_calls_per_min  per port, counted from state/agy-browse.jsonl
+#   fire_cooldown_s    minimum gap between two clicks on the submit button
+#   fire_label_regex   the submit button's label must match this, read in the same
+#                      call as the click, or the click is refused
+#   submit_selector    what `state`, `button-label` and the fire rule call the submit button
+#   chip_selector      what `chips` counts as a bound reference chip (optional)
+ports:
+  9280:
+    label: champa
+    allowed_hosts: [champa.io, "*.champa.io"]
+    upload_dirs: ["${WORK_DIR}"]
+    max_calls_per_min: 30
+    fire_cooldown_s: 120
+    fire_label_regex: "Unlimited"
+    submit_selector: "button[type=submit]"
+  9281:
+    label: higgsfield
+    allowed_hosts: [higgsfield.ai, "*.higgsfield.ai"]
+    upload_dirs: []
+    max_calls_per_min: 30
+    fire_cooldown_s: 120
+    # Only the free Unlimited lane may be fired; a label that shows a credit
+    # price is refused here and again by the money rule.
+    fire_label_regex: "(?i)unlimited"
+    submit_selector: "button[type=submit]"

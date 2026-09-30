@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.node-probe</string>
+
+  <!-- Node probe (docs/design/runner-routing/PLAN-auto-dispatch.md section 4, row H1):
+       every 60s this box measures itself (free disk, free RAM, running workers,
+       cpus, load per core, which of claude/codex/agy are installed) and writes
+       one row of the `hosts` table. The router (H2 lib/router.pick_host) treats a
+       probe older than 60s as a box that is not there, so 60s is the ceiling.
+       One-shot command, so StartInterval, not a -loop daemon.
+
+       The probe writes to whichever ledger lib.db resolves on this box (the
+       local state/tasks.db, or the hub when ORG_DB_URL is set). Until the shared
+       ledger exists (W1.10) that is a private ledger, so the row is only useful
+       to OTHER hosts after W1.10.
+
+       PATH includes /Users/gob/.local/bin on purpose: claude and agy live there,
+       and the probe finds them with shutil.which. Without it launchd's short
+       PATH would report runners as only ["codex"].
+
+       No secrets in this file. Files only, NOT installed. Install (on the Mac):
+         cp scripts/com.mooniex.node-probe.plist ~/Library/LaunchAgents/
+         launchctl load ~/Library/LaunchAgents/com.mooniex.node-probe.plist
+       An older ledger gains the cpus/load_per_core/runners columns on its next
+       db.init() (any daemon start does it). Run one init before the first load.
+  -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
+    <string>-m</string>
+    <string>tools.node_dispatch</string>
+    <string>probe</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/gob/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
+
+  <key>StartInterval</key>
+  <integer>60</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/logs/node-probe.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/logs/node-probe.log</string>
+</dict>
+</plist>

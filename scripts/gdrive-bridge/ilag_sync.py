@@ -64,8 +64,8 @@ ENV_CANDIDATES = [
         os.environ.get("MOONIEX_CLAUDEFLOW_ENV"),
         "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env",
         "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env.local",
-        "/root/projects/mooniex-claudeflow/.env",
-        "/root/projects/mooniex-claudeflow/.env.local",
+        "/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env",
+        "/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env.local",
     ])
 ]
 
@@ -236,7 +236,7 @@ def upload(local_path: Path, name: str, parent_id: str) -> dict:
     meta = json.dumps({"name": name, "parents": [parent_id]}).encode()
     init = urllib.request.Request(
         DRIVE_UPLOAD + "?" + urllib.parse.urlencode({"uploadType": "resumable",
-                                                     "fields": "id,name,size"}),
+                                                     "fields": "id,name,size,md5Checksum"}),
         data=meta,
         headers={
             "Authorization": "Bearer " + access_token(),

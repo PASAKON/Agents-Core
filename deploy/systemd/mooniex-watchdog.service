@@ -1,0 +1,28 @@
+[Unit]
+Description=MoonieX org watchdog (Org Mesh W0.4)
+# runners.watchdog --loop is a long-running daemon (it sleeps INTERVAL_S between
+# scans itself), so this is a plain service with Restart=, not a oneshot with a
+# timer -- same shape as the Mac's scripts/com.mooniex.agents-watchdog.plist.
+# Files only -- installing this unit is a later live step (W0.5).
+#
+# Branch poller ON: CEO ruling 2026-09-30 (Org Mesh lane C, "Mac + Contabo").
+# The poller takes only rows this host dispatched (W1.5 poller set), so the
+# Mac and Contabo never poll the same row.
+#
+# No secrets in this unit. ORG_DB_URL for the Postgres hub reaches this unit at
+# Contabo's own cutover (W1.8), through a systemd drop-in, not this file.
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=ORG_HOST=contabo
+Environment=PYTHONUNBUFFERED=1
+Environment=ORG_WATCHDOG_BRANCH_POLL=1
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m runners.watchdog --loop
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -28,6 +28,12 @@ import lib.db as db_mod  # noqa: E402
 import tools.delegate as delegate  # noqa: E402
 
 
+
+@pytest.fixture(autouse=True)
+def pin_disk_space(monkeypatch):
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
+    monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh_alias: 100.0)
+
 @pytest.fixture()
 def temp_db(monkeypatch, tmp_path):
     db_path = tmp_path / "tasks.db"

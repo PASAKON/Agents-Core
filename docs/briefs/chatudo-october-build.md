@@ -55,6 +55,112 @@ admin approves it from the shop's own inbox page; (4) security_engineer sign-off
 Serialize tasks that touch `approvalGate.js`, `adminInboxApi.js` or the agent files (O2 → O6 → O7).
 O3 and O4 are disjoint from them and can run in parallel from day 1.
 
+## Plan from 1 Oct (CTO cto-4bb20df8, written 30 Sep 21:30 Thai time)
+
+### Status on 30 Sep
+
+- **Merged:** O1 (live Sheet), O2, O3 (code only), O4 (code only), O6, O7a and O7b.
+- **In progress:** O7b-4 security fixes (task-d0ba070f). Items 1–7 are done, items 8–11 are running.
+- **DoD:** 0/4.
+
+At most **2 sonnet workers run at the same time**, because the weekly limit stopped a worker on 29 Sep. Mechanical items may go to Jules instead: ClaudeFlow is on the allowlist and marked prod_adjacent.
+
+### Build waves
+
+| Wave | Work | Start | Done by | After |
+|---|---|---|---|---|
+| 1a | O7b-4: finish, review, merge | now | Thu 1 Oct | — |
+| 1b | **C2 G0 harness** (details below) | Thu 1 | Tue 13 | — (new files only) |
+| 2a | **Bring-up prep** (details below) | O7b-4 merged | Tue 6 | 1a |
+| 2b | **C3 shop inbox page** (details below) | O7b-4 merged | Fri 9 | 1a |
+| 3a | **Meta native draft gate** (details below) | O7b-4 merged | Tue 6 | 1a |
+| 3b | **O8 per-shop handoff:** alert the shop's own admin on LINE, replacing the hard-coded pass.gob1 email and single Telegram chat | 3a merged | Mon 12 | 3a (both touch `approvalGate.js`) |
+| 4 | **O9 + O10** (details below) | Mon 12 | Fri 16 | — |
+
+**Wave 1b, C2 G0 harness:**
+- Replays 200 MoonieX chats through the shop agent, using a MoonieX-as-shop profile and a price list.
+- Scores the G0 criteria: sendable without edit ≥70%, wrong price 0, handoff 100%. The CEO also checks a sample of 30 by eye.
+- Tests use a mocked LLM.
+- The real drafting runs on a Claude Code session at $0 (CEO 28 Sep).
+- The export from MoonieX Supabase is read-only and runs under `infisical run`.
+
+**Wave 2a, bring-up prep:**
+- O4 F2: add a `.dockerignore`. There is none on main, so `COPY . .` copies any env file into the image.
+- Change `scripts/chatudo/compose.sh` to run under `infisical_setup.py run … --path /chatudo`.
+- Specify the Run Inbox card that mints the encryption key.
+- List the values the CEO has to enter, matched against `.env.chatudo.example`.
+
+**Wave 2b, C3 shop inbox page:**
+- A page in `/app`: the list of held drafts, with approve, edit-then-send and reject, all through the existing API.
+- The shop's knowledge base, taken from its page or site text. Ingestion is offline and tested.
+- This page is DoD 3's "approves from the shop's own inbox page".
+
+**Wave 3a, Meta native draft gate:**
+- This is the O6 GAP: native Messenger and IG replies are held as drafts too.
+- The C1 screencast needs it.
+- Until it merges, no shop may be on Messenger or IG.
+
+**Wave 4, O9 + O10:**
+- O9: a retention and auto-delete job, and a draft data-processing agreement. The CEO approves the agreement text.
+- O10: uptime check, alert, Chatudo DB backup and an outage runbook.
+
+### Gates on the calendar
+
+- **Fri 9 Oct, C1 Meta submit.**
+  - It needs the answers to Q1 and Q2 by **Mon 5 Oct 10:00**. Otherwise C1 slips past 9 Oct, because the site needs DNS by Tue 6 for the privacy and data-deletion URLs.
+  - O3 goes live on Tue 6. Its 11 `site.config.json` placeholders need the legal name and contact details from Q1.
+  - The screencast is recorded on winbox with the Dorsine Gobb Facebook account, by a browser_operator that leaves a replay script (IRON §42).
+- **Tue 13 Oct, O4 bring-up.**
+  - The CEO enters the values in Infisical `/chatudo`.
+  - DNS: `app.chatudo.com` and `api.chatudo.com`.
+  - Apply the schema, then run the security smoke test (task-8ae7a7c6, steps 0–7). A pass there is **DoD 4**.
+- **Wed 14 – Fri 16 Oct, G0.**
+  - Run on Wed 14, fix on Thu 15, report on Fri 16. The report is **DoD 2**.
+  - If G0 fails, the pilot moves back 2 weeks (CMO plan).
+- **Mon 19 – Fri 23 Oct, first outside shop on LINE in draft mode.**
+  - Time the install; the target is ≤1 hour.
+  - The shop's admin approves a draft from the page built in 2b. That is **DoD 3**.
+  - It needs a shop that agreed during outreach, which is the CEO's and CMO's lane.
+
+### Path to ฿15,000 MRR (CEO 30 Sep: "เป้าหมายเดือนหน้าฉันอยากได้อย่างน้อย 15000 บาท … ทำให้เสร็จทีละ Step")
+
+**Target:** paying shops × price ≥ ฿15,000 at the CMO's first-money checkpoint, **Mon 30 Nov 2026 18:00**. That checkpoint is November because the CMO plan (artifact RGs4f2GGoffxXSjX7vxTQf `#plan`) bills no shop in October. The CMO's own November target is 8 shops and ฿12,000 (pass ≥6 / ฿8,000, stretch ≥11).
+
+**Math.** Everything marked (O) is the CMO model's estimate; nothing has been measured yet.
+
+| Pricing | Paying shops needed | Pilots (80% pay, O) | Owners reached (22% → pilot, O) | Shops contacted (10% reach owner, O) |
+|---|---|---|---|---|
+| Average ฿1,500 (CMO model ARPU) | 10 | 13 | ~59 | ~590 |
+| All Founding ฿990 | 16 | 20 | ~90 | ~900 |
+
+The CMO price table sets Founding at ฿990 for the first 2 months and the first 30 shops. So every shop billed in November is a Founding shop, and the ฿1,500 ARPU in the model does not hold in November. Priced as Founding, 8 shops = ฿7,920, which is below the CMO's own pass line. The CMO decides whether November goes to 16 Founding shops or a mix that includes Starter at ฿1,990.
+
+| # | Step | Owner | Due | Done when |
+|---|---|---|---|---|
+| 1 | Lock the target and the math; tell the CMO | CTO | Wed 30 Sep | The CMO letter is sent and this table is committed |
+| 2 | Outreach from the O1 Sheet, 20–30 a day, 3 messages × 4 segments; ~590–900 contacts by mid-Nov instead of 450 | CEO + CMO | from Thu 1 Oct | The Monday 10:00 funnel counts, computed in Thai time |
+| 3 | O7b-4 security fixes merged | CTO | Thu 1 Oct | Merge sha on ClaudeFlow main |
+| 4 | Meta submit, needed for the Pro tier and for Messenger shops | CTO + CEO (Q1, Q2) | Fri 9 Oct | Submission id |
+| 5 | Chatudo instance live and the security smoke test passed | CTO + CEO (secrets, DNS) | Tue 13 Oct | Smoke-test steps 0–7 pass (DoD 4) |
+| 6 | G0 passed | CTO + CEO (checks 30 by eye) | Fri 16 Oct | ≥70% sendable, 0 wrong prices, 100% handoff |
+| 7 | First outside shop live on LINE; install timed at ≤1 h | CTO | Fri 23 Oct | DoD 3. Live chats need Q3 (a model) before this date |
+| 8 | Pilots installed: ≥7 (G1), aiming for 13–20 | CTO installs, CEO closes | Sat 31 Oct | `tenants.js` list, lifecycle active |
+| 9 | **C5 moved earlier:** usage and AI cost per shop, plus a PromptPay QR invoice sent on LINE, confirmed by the CEO | CTO | **Fri 30 Oct** (was 13 Nov) | Invoice test to one tenant |
+| 10 | Pilots switch to paid on 1 Nov; the CMO sets the price mix | CEO + CMO | Sun 1 Nov | Invoices sent |
+| 11 | New shops keep coming through November (outreach continues) | CEO + CTO installs | through Mon 30 Nov | Paying count every Monday |
+| 12 | Count at the checkpoint: paying shops × price ≥ ฿15,000 | CTO reports | Mon 30 Nov 18:00 | Sum of confirmed PromptPay payments |
+
+**Risks specific to money:**
+- The CMO funnel assumed a demo link in the first message, but the CEO parked the demo (D5). Contact-to-owner conversion may therefore come in below 10%. Measure it on Monday 5 Oct.
+- Many target shops buy Click-to-Messenger ads, but November is LINE-only unless Meta approves in time.
+
+### Risks
+
+1. **Q1 and Q2 answered late.** C1 misses 9 Oct. Nothing else in October waits on them except the O3 go-live.
+2. **The weekly limit.** Mitigation: at most 2 workers at once, plus Jules for mechanical work.
+3. **G0 may test a different model than the shops get.** G0 runs on a Claude Code session. If Q3 moves live chats to an API model, the G0 report has to say that the model differs.
+4. **No outside shop by 19 Oct.** Then DoD 3 slips, even with the code ready.
+
 ## Guardrails
 - Build only what the next gate needs. Nothing from Nov onward starts in October.
 - MoonieX's own bot must keep working: every ClaudeFlow change ships with the MoonieX path unchanged and the suite green (~1,355 cases).

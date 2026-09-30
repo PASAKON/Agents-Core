@@ -246,6 +246,7 @@ def _fake_project(repo: Path) -> dict:
     return {"key": "test-project", "path": str(repo), "default_branch": "main"}
 
 
+@pytest.mark.usefixtures("pinned_mac_host")  # fake project carries only the Mac `path`
 def test_merge_task_pushes_and_reports_on_origin(temp_db, hub_with_origin, monkeypatch):
     origin, hub = hub_with_origin
     monkeypatch.setattr(git_ops, "get_project", lambda key: _fake_project(hub))
@@ -262,6 +263,7 @@ def test_merge_task_pushes_and_reports_on_origin(temp_db, hub_with_origin, monke
     assert db_mod.get_task(tid)["status"] == "done"
 
 
+@pytest.mark.usefixtures("pinned_mac_host")
 def test_merge_task_push_false_reports_pushed_false_without_attempting(
     temp_db, hub_with_origin, monkeypatch
 ):

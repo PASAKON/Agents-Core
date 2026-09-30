@@ -1,4 +1,4 @@
-# WINBOX WORKER LAUNCHER — Phase 1 (docs/design/multi-host-workers.md).
+# WINBOX WORKER LAUNCHER -- Phase 1 (docs/design/multi-host-workers.md).
 #
 # Invoked by tools/delegate.py's _spawn_remote() over:
 #   ssh winbox powershell -NoProfile -ExecutionPolicy Bypass -File spawn-worker.ps1 ...
@@ -7,18 +7,22 @@
 # TASK.md + WORKER.md, and launches `claude.exe` --remote-control inside a
 # visible Windows Terminal tab (ADDENDUM 1, CTO 2026-09-07: Remote Control
 # needs an interactive console session, so a fully detached Start-Process
-# would never show up in the CEO's Claude app — same reason win-cto.ps1
+# would never show up in the CEO's Claude app -- same reason win-cto.ps1
 # runs the Windows CTO inside a wt.exe tab rather than detached). Prints the
 # child pid as the LAST line of stdout so the Mac side can parse it with
 # `lines[-1]`. Every other line this script prints is informational and
 # must come BEFORE that one.
 #
-# PowerShell 5.1 syntax only (this box has no pwsh 7). Never prompts —
+# PowerShell 5.1 syntax only (this box has no pwsh 7). Never prompts --
 # every git/ssh call is forced non-interactive, so a bad credential or an
 # unknown host key fails loudly instead of hanging the whole pipe.
 #
-# Deployed to $AgentsRoot (e.g. C:\Users\UsEr\mooniex\spawn-worker.ps1) by
-# scp as part of tools/delegate.py's automatic deploy check — re-run that
+# W3.3: tools/node_dispatch.py's spawn_worker verb runs this same file in place
+# from the repo checkout when the hub IS this box (no ssh, no deploy copy), with
+# -AgentsRoot <checkout>; see the param block.
+#
+# Deployed to the host's agents_root (e.g. C:\Users\UsEr\mooniex\spawn-worker.ps1) by
+# scp as part of tools/delegate.py's automatic deploy check -- re-run that
 # check (sha256 compare) after editing this file, there is no git clone of
 # the Agents repo on this box.
 
@@ -32,12 +36,12 @@ param(
     [Parameter(Mandatory = $true)][string]$RepoPath,
     [Parameter(Mandatory = $true)][string]$WorktreeRoot,
     # AllowEmptyString: codex and agy have no claude-style flags, so
-    # tools/delegate.py's _render_remote_runner_args returns '' for them — and
+    # tools/delegate.py's _render_remote_runner_args returns '' for them -- and
     # a Mandatory [string] rejects '' at bind time, before the script runs a
     # single line. The first real agy spawn (task-22f3579a, 2026-09-22) died
     # here with "Cannot bind argument to parameter 'ClaudeArgs' because it is
     # an empty string". Static text tests could not see it; only a real spawn
-    # could. Still Mandatory — the hub must always pass the parameter, it just
+    # could. Still Mandatory -- the hub must always pass the parameter, it just
     # may be empty.
     [Parameter(Mandatory = $true)][AllowEmptyString()][string]$ClaudeArgs,
     [Parameter(Mandatory = $true)][string]$Model,
@@ -46,19 +50,29 @@ param(
     [string]$TaskFile = '',
     # task-adbc6f43: which CLI drives this worker. 'claude' is the default and
     # its entire launch path (below) is BYTE-IDENTICAL to before this param
-    # existed — every other step (worktree/git/clone/pid/teardown) is shared
+    # existed -- every other step (worktree/git/clone/pid/teardown) is shared
     # by all three, only the launch line (step 6) and the pid-poll filter
     # (step 7) branch on this. ValidateSet is defense-in-depth: the hub
     # (tools/delegate.py's _validate_runner) already refuses an unknown
     # runner before ssh is ever called.
-    [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude'
+    [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude',
+    [string]$TaskMetaB64 = '',
+    [string]$RunnerModel = '',
+    # W3.3 (task-782936c0): the folder that holds roles\ and receives the
+    # .launch-<task> dir + launch-<task>.cmd wrapper. Empty (the ssh deploy
+    # path, unchanged) = this script's own folder, because the deploy step
+    # copies the script and roles\ side by side. tools/node_dispatch.py's
+    # spawn_worker runs THIS file out of the repo checkout, where the script sits
+    # in windows\ and roles\ is one level up, so it passes the checkout root.
+    [string]$AgentsRoot = ''
 )
 
 $ErrorActionPreference = 'Stop'
 $env:GIT_TERMINAL_PROMPT = '0'
+$agentsRootDir = if ($AgentsRoot) { $AgentsRoot } else { $PSScriptRoot }
 
 # --- GitHub reachability: port 22 may be blocked from this box (measured
-# 2026-09-07 — `ssh -T git@github.com` hung with no ConnectTimeout). Probe
+# 2026-09-07 -- `ssh -T git@github.com` hung with no ConnectTimeout). Probe
 # with a bounded timeout; on failure/hang, fall back to ssh.github.com:443
 # (GitHub's documented SSH-over-443 endpoint) by writing a Host override
 # into this user's ~/.ssh/config, unless one is already there. Reported on
@@ -77,7 +91,7 @@ function Ensure-GithubSshRoute {
             $p = Start-Process -FilePath git -ArgumentList @('ls-remote','--exit-code',$RepoUrl,'HEAD') -NoNewWindow -PassThru -RedirectStandardOutput "$env:TEMP\gitprobe-out.txt" -RedirectStandardError "$env:TEMP\gitprobe-err.txt"
             # Windows PowerShell 5.1 quirk: unless the process handle is touched
             # BEFORE the process exits, $p.ExitCode stays $null afterwards, and
-            # ($null -eq 0) is $false — so every probe read as "unreachable"
+            # ($null -eq 0) is $false -- so every probe read as "unreachable"
             # while the ls-remote had in fact succeeded (stdout held HEAD's sha).
             # Measured on winbox 2026-09-17: waited=True exit=<empty>. Caching
             # the handle makes the exit code observable.
@@ -100,7 +114,7 @@ function Ensure-GithubSshRoute {
 try {
     # PowerShell 5.1 + $ErrorActionPreference='Stop' turns ANY native stderr
     # line (git progress, "Preparing worktree", a harmless "branch not found"
-    # from the idempotent branch -D) into a terminating error — even under
+    # from the idempotent branch -D) into a terminating error -- even under
     # 2>$null. That failed the first real winbox spawn on 2026-09-07. Git's
     # success/failure is its exit code, so check $LASTEXITCODE explicitly and
     # let stderr flow.
@@ -110,7 +124,7 @@ try {
     $githubRoute = Ensure-GithubSshRoute
     Write-Output "GITHUB_SSH_ROUTE=$githubRoute"
 
-    # Non-interactive SSH for every git network op below — an unknown host
+    # Non-interactive SSH for every git network op below -- an unknown host
     # key or a missing credential must fail, never prompt into a dead pipe.
     $env:GIT_SSH_COMMAND = 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new'
 
@@ -130,7 +144,7 @@ try {
     # run more than once for the same task while the pipe is being tested) ---
     $wt = Join-Path $WorktreeRoot "$Project`__$Role`__$Task"
     # GH #151: files a worker writes at its own worktree root and never
-    # cleans up — a stale one here means a NEW worker inherits another
+    # cleans up -- a stale one here means a NEW worker inherits another
     # task's report/blocker/mailbox/heartbeat. worker.log is NOT in this list
     # (iteration 1 review, 2026-09-18): nothing writes it any more since the
     # Tee-Object launcher line was reverted (see step 6 below).
@@ -173,6 +187,32 @@ try {
         if (Test-Path $staleP) { Remove-Item -Force $staleP }
     }
 
+    # Sidecar (.org-task.json) and runner_model resolution
+    $metaPath = Join-Path $wt '.org-task.json'
+    if ($TaskMetaB64) {
+        try {
+            $metaBytes = [System.Convert]::FromBase64String($TaskMetaB64)
+            [System.IO.File]::WriteAllBytes($metaPath, $metaBytes)
+        } catch {}
+    }
+
+    if (-not $RunnerModel -and (Test-Path -LiteralPath $metaPath)) {
+        try {
+            $metaJsonStr = [System.IO.File]::ReadAllText($metaPath, [System.Text.Encoding]::UTF8)
+            $metaObj = $metaJsonStr | ConvertFrom-Json
+            if ($metaObj.runner_model) {
+                $RunnerModel = [string]$metaObj.runner_model
+            }
+        } catch {}
+    }
+
+    if ($RunnerModel) {
+        if ($RunnerModel -notmatch '^[A-Za-z0-9._:-]{1,64}$') {
+            Write-Error "spawn-worker.ps1: invalid runner_model '$RunnerModel' (must match ^[A-Za-z0-9._:-]{1,64}$)"
+            exit 2
+        }
+    }
+
     # GH #150/#152 review (2026-09-18): HEARTBEAT and MAILBOX.md must NEVER be
     # committed. roles/_worker_remote.md tells the worker to `git add -A &&
     # git commit`; REPORT.md/BLOCKER.md are meant to be committed (they ARE
@@ -199,16 +239,27 @@ try {
     }
     $excludeLines = @()
     if (Test-Path $excludePath) { $excludeLines = @(Get-Content -Path $excludePath -Encoding ASCII) }
-    $toAdd = @('HEARTBEAT', 'MAILBOX.md') | Where-Object { $excludeLines -notcontains $_ }
+    # W0.6: plus every name a codex/agy run must never commit (note below).
+    $toAdd = @('HEARTBEAT', 'MAILBOX.md', '.worker.pid', '.worker.json', '/TASK.md',
+               '/.org-task.json', '/.org-worker.mcp.json', '/CTO-FEEDBACK.md', '/*.log') |
+        Where-Object { $excludeLines -notcontains $_ }
     if ($toAdd.Count -gt 0) {
         Add-Content -Path $excludePath -Value $toAdd -Encoding ASCII
     }
+    # W0.6 note: the codex/agy launcher below runs `git add -A` after the CLI
+    # exits, so the launcher's own .worker.pid/.worker.json, the CTO's scratch
+    # file and logs are excluded above. Root files are anchored with '/' -- an
+    # unanchored REPORT.md would also hide docs/reports/<task>/REPORT.md. Root
+    # REPORT.md/BLOCKER.md are NOT listed: info/exclude is shared by every
+    # worktree of this clone and claude workers commit those two through
+    # `git add -A`; the codex/agy launcher resets them itself instead (see
+    # New-ReportStepBody below).
 
     # --- 3. TASK.md: from -TaskFile (scp'd ahead of this call) or stdin ---
     if ($TaskFile -and (Test-Path $TaskFile)) {
         # -Encoding UTF8 is load-bearing: Windows PowerShell 5.1's Get-Content
         # defaults to the ANSI codepage, so a UTF-8 brief comes back as mojibake
-        # and the Set-Content below re-encodes that mojibake as UTF-8 — the
+        # and the Set-Content below re-encodes that mojibake as UTF-8 -- the
         # double-encoding that truncated the Thai dialogue in task-34350c98.
         $taskContent = Get-Content -Raw -Path $TaskFile -Encoding UTF8
     } else {
@@ -219,7 +270,7 @@ try {
 
     # --- 4. WORKER.md: the remote-worker contract, read from the copy this
     # script's own deploy step scp'd alongside it ---
-    $rolesDir = Join-Path (Split-Path $PSCommandPath -Parent) 'roles'
+    $rolesDir = Join-Path $agentsRootDir 'roles'
     $remoteContractPath = Join-Path $rolesDir '_worker_remote.md'
     $sharedDocPath = Join-Path $rolesDir '_worker_shared.md'
     $roleDocPath = Join-Path $rolesDir "$Role.md"
@@ -235,12 +286,12 @@ try {
 
     # --- 6. Launch the worker CLI via a one-shot interactive scheduled task
     # (session-0 rule: SSH lands in Windows session 0, never the logged-in
-    # desktop/session 1 that wt.exe/claude.exe/codex/agy all need — see
-    # docs/ops/agent-runners.md §3). task-adbc6f43: -Runner dispatches
+    # desktop/session 1 that wt.exe/claude.exe/codex/agy all need -- see
+    # docs/ops/agent-runners.md sec.3). task-adbc6f43: -Runner dispatches
     # binary + argv here; 'claude' keeps its ORIGINAL Windows Terminal tab
     # launch byte-identical below. codex/agy are headless CLIs (no TUI, no
     # window needed) so they run straight inside the scheduled task via a
-    # generated launcher.ps1 — the same session-1 mechanism
+    # generated launcher.ps1 -- the same session-1 mechanism
     # windows/s1probe.ps1 proved for codex (2026-09-20), reused rather than
     # reinvented, not the wt.exe tab claude needs.
     #
@@ -248,7 +299,7 @@ try {
     # worktree -- a file dropped in the worktree gets swept up by the
     # worker's own `git add -A` and pushed onto its branch (it used to be
     # $wt\.launch, which had exactly that problem).
-    $launchDir = Join-Path $PSScriptRoot ".launch-$Task"
+    $launchDir = Join-Path $agentsRootDir ".launch-$Task"
     New-Item -ItemType Directory -Force -Path $launchDir | Out-Null
     $logsDir = Join-Path (Split-Path $WorktreeRoot -Parent) 'logs'
     if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
@@ -256,21 +307,149 @@ try {
     $finishPs1Path = Join-Path $launchDir "finish-$Task.ps1"
     $finishCmdPath = Join-Path $launchDir "finish-$Task.cmd"
     $launcherPath = Join-Path $launchDir 'launch.ps1'
-    $wrapper = Join-Path $PSScriptRoot ("launch-" + $Task + ".cmd")   # beside this script, like win-cto.ps1
+    $wrapper = Join-Path $agentsRootDir ("launch-" + $Task + ".cmd")   # beside this script, like win-cto.ps1
     $stName = "mooniex-worker-" + $Task
     $me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
 
+    # W0.6 (runner-routing contract): the tail every codex/agy launch.ps1 ends
+    # with, after the CLI has exited and `$cliExit is set. Returns the runtime
+    # code as text: (1) make sure docs/reports/<task>/REPORT.md exists with the
+    # '# REPORT <task>' first line -- kept when the worker wrote it, else a root
+    # REPORT.md is moved there (header prepended if missing), else it is built
+    # from the runner's final message; (2) `git add -A`, then `git reset` the
+    # never-commit files as a second guard behind info/exclude; (3) commit
+    # (the report alone is a commit) and push. $finalMsg = codex's -o file,
+    # $logTail = agy's events log; the other is ''. `$x below is runtime,
+    # $x is filled in now. Files are written as UTF-8 WITHOUT a BOM: Set-Content
+    # -Encoding UTF8 emits one on PS5.1 and branch_poller would then read
+    # '<BOM># REPORT task-...' as a header mismatch.
+    function New-ReportStepBody([string]$finalMsg, [string]$logTail) {
+        return @"
+`$noBom = New-Object System.Text.UTF8Encoding `$false
+`$hdr = '# REPORT $Task'
+`$nl = [string][char]10
+`$reportDir = Join-Path '$wt' 'docs\reports\$Task'
+`$reportPath = Join-Path `$reportDir 'REPORT.md'
+`$rootReport = Join-Path '$wt' 'REPORT.md'
+`$finalMsgPath = '$finalMsg'
+`$logTailPath = '$logTail'
+New-Item -ItemType Directory -Force -Path `$reportDir | Out-Null
+function Test-ReportHdr([string]`$p) {
+    if (-not (Test-Path -LiteralPath `$p)) { return `$false }
+    `$txt = [System.IO.File]::ReadAllText(`$p, `$noBom)
+    if (-not `$txt.Trim()) { return `$false }
+    return ((`$txt -split '\r?\n')[0].TrimEnd() -eq `$hdr)
+}
+function Test-NonEmpty([string]`$p) {
+    return ((Test-Path -LiteralPath `$p) -and ((Get-Item -LiteralPath `$p).Length -gt 0))
+}
+function Add-ReportHdr([string]`$p) {
+    `$body = [System.IO.File]::ReadAllText(`$p, `$noBom)
+    [System.IO.File]::WriteAllText(`$p, (`$hdr + `$nl + `$nl + `$body), `$noBom)
+}
+if (Test-ReportHdr `$reportPath) {
+    # the worker already wrote its report where it belongs
+}
+elseif (Test-NonEmpty `$rootReport) {
+    git -C '$wt' ls-files --error-unmatch REPORT.md *> `$null
+    if (`$LASTEXITCODE -eq 0) { git -C '$wt' mv -f REPORT.md 'docs/reports/$Task/REPORT.md' }
+    else { Move-Item -LiteralPath `$rootReport -Destination `$reportPath -Force }
+    if ((Test-NonEmpty `$reportPath) -and -not (Test-ReportHdr `$reportPath)) { Add-ReportHdr `$reportPath }
+}
+elseif (Test-NonEmpty `$reportPath) {
+    Add-ReportHdr `$reportPath
+}
+if (-not (Test-NonEmpty `$reportPath)) {
+    `$msg = ''
+    if (`$finalMsgPath -and (Test-Path -LiteralPath `$finalMsgPath)) {
+        `$msg = [System.IO.File]::ReadAllText(`$finalMsgPath, `$noBom)
+    }
+    elseif (`$logTailPath -and (Test-Path -LiteralPath `$logTailPath)) {
+        `$msg = (@(Get-Content -LiteralPath `$logTailPath -Tail 200) -join `$nl)
+    }
+    if (-not `$msg -or -not `$msg.Trim()) { `$msg = 'no final message; exit=' + `$cliExit }
+    `$text = `$hdr + `$nl + `$nl + 'Runner: $Runner' + `$nl + 'Exit code: ' + `$cliExit + `$nl + `$nl + `$msg + `$nl
+    [System.IO.File]::WriteAllText(`$reportPath, `$text, `$noBom)
+}
+
+git -C '$wt' add -A
+git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md ':(glob)*.log'
+
+`$mediaExts = @('png','jpg','jpeg','gif','webp','heic','mp4','mov','webm','mkv','avi','mp3','wav','m4a','aac','flac','ogg')
+`$stagedFiles = @(git -C '$wt' diff --cached --name-only)
+`$mediaBlockers = @()
+
+foreach (`$f in `$stagedFiles) {
+    if (-not `$f) { continue }
+    `$fullPath = Join-Path '$wt' `$f
+    if (-not (Test-Path -LiteralPath `$fullPath)) { continue }
+    `$ext = [System.IO.Path]::GetExtension(`$f).TrimStart('.').ToLowerInvariant()
+    `$fi = New-Object System.IO.FileInfo(`$fullPath)
+    `$sz = `$fi.Length
+    `$isMedia = `$mediaExts -contains `$ext
+    `$isLargeBinary = `$false
+    if (-not `$isMedia -and (`$sz -gt 1048576)) {
+        `$numstat = git -C '$wt' diff --cached --numstat -- `$f
+        if (`$numstat -and (`$numstat.StartsWith("-`t-") -or `$numstat.StartsWith("- -") -or `$numstat.StartsWith("-"))) {
+            `$isLargeBinary = `$true
+        }
+    }
+    if (`$isMedia -or `$isLargeBinary) {
+        git -C '$wt' reset -q -- `$f
+        `$hsz = if (`$sz -ge 1048576) {
+            "{0:0.0} MB" -f (`$sz / 1048576.0)
+        } elseif (`$sz -ge 1024) {
+            "{0:0.0} KB" -f (`$sz / 1024.0)
+        } else {
+            "`$sz B"
+        }
+        `$mediaBlockers += "media not committed: `$f (`$hsz) -- upload per CXO_Rules_GDrive_Filing and put the link here"
+    }
+}
+
+if (`$mediaBlockers.Count -gt 0) {
+    `$repText = [System.IO.File]::ReadAllText(`$reportPath, `$noBom)
+    if (`$repText -match '(?m)^## Blockers') {
+        `$lines = `$repText -split '\r?\n'
+        `$newLines = @()
+        foreach (`$ln in `$lines) {
+            `$newLines += `$ln
+            if (`$ln -match '^## Blockers') {
+                foreach (`$mb in `$mediaBlockers) {
+                    `$newLines += "- `$mb"
+                }
+            }
+        }
+        `$repText = `$newLines -join `$nl
+    } else {
+        `$repText = `$repText.TrimEnd() + `$nl + `$nl + '## Blockers' + `$nl
+        foreach (`$mb in `$mediaBlockers) {
+            `$repText += "- `$mb" + `$nl
+        }
+    }
+    [System.IO.File]::WriteAllText(`$reportPath, `$repText, `$noBom)
+    git -C '$wt' add 'docs/reports/$Task/REPORT.md'
+}
+
+git -C '$wt' diff --cached --quiet
+if (`$LASTEXITCODE -ne 0) {
+    git -C '$wt' commit -q -m "${Runner}: task $Task"
+}
+git -C '$wt' push -q origin $Branch
+"@
+    }
+
     if ($Runner -eq 'claude') {
         # Prompt goes first (positional), --allowed-tools (inside
         # $ClaudeArgs, rendered on the Mac side via worker_tool_grants)
-        # stays LAST with nothing after it — same rule runners/worker_init.py
+        # stays LAST with nothing after it -- same rule runners/worker_init.py
         # documents: it is variadic and swallows every following argv element.
         #
         # The full arg list (including the system prompt, which can be
         # thousands of characters of quotes/newlines/non-ASCII) is written to a
         # JSON file and read back by a tiny generated launcher script, instead
-        # of being inlined into the wt.exe command line — that line would go
+        # of being inlined into the wt.exe command line -- that line would go
         # through THREE layers of shell re-quoting (wt.exe -> `powershell
         # -Command` -> `& claude.exe`) and is not a safe place for that text. ---
         $claude = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
@@ -335,7 +514,7 @@ exit 0
         Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
 
         # No -NoExit (CTO correction 2026-09-07): the tab's lifetime must equal
-        # claude.exe's lifetime — when the process ends (naturally, or via
+        # claude.exe's lifetime -- when the process ends (naturally, or via
         # `ssh winbox taskkill /PID <pid> /T /F` from the hub), this powershell
         # has nothing left to run and exits, and Windows Terminal closes the
         # tab with it. CEO rule: closing a worker closes its window too, never
@@ -355,9 +534,9 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
     }
     elseif ($Runner -eq 'codex') {
         # codex exec [PROMPT] -C <dir> -s workspace-write --skip-git-repo-check
-        # --json -o <file> (docs/ops/agent-runners.md §1). No --model/
+        # --json -o <file> (docs/ops/agent-runners.md sec.1). No --model/
         # --effort/--allowed-tools equivalent exists for codex, so none are
-        # invented here ($ClaudeArgs is empty for this runner —
+        # invented here ($ClaudeArgs is empty for this runner --
         # tools/delegate.py's _render_remote_runner_args). codex also has no
         # --append-system-prompt flag, so the remote worker contract is
         # folded into the one prompt argument it does take instead of being
@@ -367,8 +546,12 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
         $codexPrompt = "$taskContent`n`n$remoteContract"
         $codexFinalMsg = Join-Path $launchDir 'codex-final.txt'
         $codexJsonLog = Join-Path $launchDir 'codex-events.jsonl'
-        $argList = @('exec', [string]$codexPrompt, '-C', [string]$wt, '-s', 'workspace-write',
-                     '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
+        $argList = @('exec', [string]$codexPrompt)
+        if ($RunnerModel) {
+            $argList += @('-m', [string]$RunnerModel)
+        }
+        $argList += @('-C', [string]$wt, '-s', 'workspace-write',
+                      '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
 
@@ -388,17 +571,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
         Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
 
         # Never gate on this process's own exit code (docs/ops/agent-runners.md
-        # §4: codex exits 0 after writing nothing) -- $codexJsonLog is the
+        # sec.4: codex exits 0 after writing nothing) -- $codexJsonLog is the
         # artefact lib/artefact_gate.py actually reads (turn.completed /
         # turn.failed events). The EXITCODE line is diagnostic only, same
         # convention windows/s1probe.ps1 already uses.
+        #
+        # W0.6: after codex exits, THE HUB (this launcher, not codex) puts the
+        # report at docs/reports/<task>/REPORT.md and commits + pushes -- the
+        # codex-final.txt message becomes the report when codex wrote none.
+        # A stale message from an earlier launch of this task is removed first.
+        $reportStepBody = New-ReportStepBody $codexFinalMsg ''
         $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$exe = '$codexExe'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
+Remove-Item -LiteralPath '$codexFinalMsg' -Force -ErrorAction SilentlyContinue
 & `$exe @argArray *> '$codexJsonLog'
-"EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$codexJsonLog'
+`$cliExit = `$LASTEXITCODE
+"EXITCODE=`$cliExit" | Add-Content -Path '$codexJsonLog'
+
+$reportStepBody
 exit 0
 "@
         Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
@@ -409,10 +602,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
     }
     else {
         # agy -p "<prompt>" --mode accept-edits --add-dir <dir>
-        # (docs/ops/agent-runners.md §1/§6, §6b measured 2026-09-22) -- headless,
+        # (docs/ops/agent-runners.md sec.1/sec.6, sec.6b measured 2026-09-22) -- headless,
         # no TTY needed, never --dangerously-skip-permissions (Hard Rule).
         #
-        # §6b, THE CONTRACT: agy in print mode cannot run ANY shell command --
+        # sec.6b, THE CONTRACT: agy in print mode cannot run ANY shell command --
         # a RunCommand step is soft-denied, and the denial is not partial, it
         # ABANDONS THE WHOLE TURN (asked to fix a bug AND `git commit`, it
         # committed nothing AND left the file unedited). So agy's prompt must
@@ -422,7 +615,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         # abandon the file edits too, not just the git step. Widening agy's
         # permissions to allow git was tried and is a dead end: a project-
         # scoped permission grant is discarded one line after being parsed
-        # (§6b's own measured log line), and --dangerously-skip-permissions
+        # (sec.6b's own measured log line), and --dangerously-skip-permissions
         # stays banned regardless. So: agy edits ONLY; THE HUB (this script,
         # not agy) commits, pushes, and lets the artefact gate judge --
         # "external runners push agent/<runner>-<task> only" is enforced
@@ -447,12 +640,13 @@ file-editing tool (not a shell command) to summarize what you changed.
 $taskContent
 "@
         $agyLog = Join-Path $launchDir 'agy-events.log'
-        $argList = @('-p', [string]$agyPrompt, '--mode', 'accept-edits', '--add-dir', [string]$wt)
+        $agyModel = if ($RunnerModel) { $RunnerModel } else { 'gemini-3.8-flash-high' }
+        $argList = @('-p', [string]$agyPrompt, '--model', [string]$agyModel, '--mode', 'accept-edits', '--add-dir', [string]$wt)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
 
         # agy is honest about failure (non-zero exit + AGY_ERROR JSON on
-        # stderr, docs/ops/agent-runners.md §6) but gets the SAME artefact
+        # stderr, docs/ops/agent-runners.md sec.6) but gets the SAME artefact
         # gate as codex regardless -- no runner is trusted on its own word.
         # There is no live agy.exe left to kill by the time a worker might
         # want to self-terminate (it never runs long enough to need it, and
@@ -474,12 +668,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 "@
         Set-Content -Path $finishCmdPath -Value $finishCmdBody -Encoding ASCII
 
-        # §6b: THE HUB commits and pushes here, in this generated launcher,
+        # sec.6b: THE HUB commits and pushes here, in this generated launcher,
         # immediately after agy's own process exits -- agy itself never runs
-        # git. `$reportPath`/`$fallbackLines`/`$dirty` below are evaluated by
-        # THIS LAUNCHER at ITS OWN runtime (backtick-escaped so this outer
-        # script does not evaluate them now); `$wt`/`$Task`/`$Branch` are
-        # this outer script's own known-now values, interpolated directly.
+        # git. W0.6: the hub, not agy, also guarantees the report exists at
+        # docs/reports/<task>/REPORT.md with the header branch_poller
+        # requires -- agy is only ASKED for a REPORT.md (optional, best-effort,
+        # a root REPORT.md is accepted and moved), never relied on to get it
+        # right; with none written the report is built from the tail of
+        # agy-events.log. `$x inside the body below is evaluated by THIS
+        # LAUNCHER at ITS OWN runtime (backtick-escaped so this outer script
+        # does not evaluate it now); $wt/$Task/$Branch are known-now values.
+        $reportStepBody = New-ReportStepBody '' $agyLog
         $launcherBody = @"
 `$env:ORG_HOST = 'winbox'
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
@@ -487,46 +686,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 # PowerShell has no '<' input-redirect operator (that's cmd.exe syntax) --
 # piping `$null` in is the equivalent of the proven `< /dev/null`
-# (docs/ops/agent-runners.md §6) that keeps agy from blocking on stdin.
+# (docs/ops/agent-runners.md sec.6) that keeps agy from blocking on stdin.
 `$null | & `$exe @argArray *> '$agyLog'
-"EXITCODE=`$LASTEXITCODE" | Add-Content -Path '$agyLog'
+`$cliExit = `$LASTEXITCODE
+"EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'
 
-# The hub, not agy, guarantees REPORT.md exists with the header
-# branch_poller._header_task_id requires -- agy was only ASKED to write one
-# (optional, best-effort), never relied on to get the header exactly right.
-`$reportPath = Join-Path '$wt' 'REPORT.md'
-`$hasValidReport = `$false
-if (Test-Path `$reportPath) {
-    `$firstLine = Get-Content -Path `$reportPath -Encoding UTF8 |
-        Where-Object { `$_.Trim() -ne '' } | Select-Object -First 1
-    if (`$firstLine -match '^#\s*REPORT\s+$Task\s*`$') { `$hasValidReport = `$true }
-}
-if (-not `$hasValidReport) {
-    `$fallbackLines = @(
-        '# REPORT $Task',
-        '',
-        '## Summary',
-        'agy (edit-only run) finished; no REPORT.md written by the agent -- see agy-events.log for detail.',
-        '',
-        '## Files Changed',
-        '- see git diff on this branch',
-        '',
-        '## Tests',
-        '- not run by agy (hub-only, by design) -- the artefact gate runs them separately',
-        '',
-        '## Issues / Blockers',
-        '- agy did not produce a valid REPORT.md itself; this is a hub-generated fallback'
-    )
-    Set-Content -Path `$reportPath -Value `$fallbackLines -Encoding UTF8
-}
-
-# The hub commits and pushes -- agy structurally cannot (§6b).
-`$dirty = git -C '$wt' status --porcelain
-if (`$dirty) {
-    git -C '$wt' add -A
-    git -C '$wt' commit -q -m "agy: task $Task"
-    git -C '$wt' push -q origin $Branch
-}
+$reportStepBody
 exit 0
 "@
         Set-Content -Path $launcherPath -Value $launcherBody -Encoding UTF8
@@ -574,12 +739,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
     }
 
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
-    # --- 8. .worker.json — what the Mac-side liveness poller reads back ---
+    # --- 8. .worker.json -- what the Mac-side liveness poller reads back ---
     $startedAt = (Get-Date).ToUniversalTime().ToString('o')
     $workerInfo = @{ pid = $workerPid; started_at = $startedAt; host = 'winbox' } | ConvertTo-Json -Compress
     Set-Content -Path (Join-Path $wt '.worker.json') -Value $workerInfo -Encoding UTF8
 
-    # LAST line of stdout, on purpose — the Mac side parses this with
+    # LAST line of stdout, on purpose -- the Mac side parses this with
     # lines[-1]. Nothing may print after this.
     Write-Output $workerPid
 } catch {

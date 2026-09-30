@@ -11,7 +11,7 @@ from scratch.
     T2  qwen/qwen3.7-flash       (OpenRouter)
         agree              -> accept
         disagree (1:1)     -> T3
-    T3  Claude Sonnet 5 on the CEO's Claude subscription (`claude -p`), one
+    T3  Claude Sonnet 5.5 on the CEO's Claude subscription (`claude -p`), one
         image, casting vote. Capped at SONNET_DAY_USD a day -- emergencies
         only, never at the scale of the whole corpus.
         still unclear      -> human review: YES/NO plus the reason, which is
@@ -62,7 +62,7 @@ T1_NANO = "openai/gpt-5-nano"
 # 5/5 right. Two families (Google, Alibaba) so their mistakes do not line up.
 T1 = os.environ.get("TEACHER_T1", "google/gemma-4-26b-a4b-it")
 T2 = "qwen/qwen3.7-flash"
-T3 = "claude-sonnet-5"
+T3 = "claude-sonnet-5-5"
 OR_RUN_USD = float(os.environ.get("TEACHER_OR_RUN_USD", "0.10"))
 SONNET_DAY_USD = float(os.environ.get("TEACHER_SONNET_DAY_USD", "1.0"))
 

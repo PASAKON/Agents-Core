@@ -21,7 +21,7 @@
 #      ORG_DB_URL / ORG_TEST_DB_URL for the runtime and the tests
 #   5. prove the port answers over the tailnet
 #
-# Never touches /opt/mooniex-agents or any running C-level session.
+# Never touches /opt/MoonieXHQ/Agents/Core or any running C-level session.
 # Rollback:  ssh mooniex-vps 'docker rm -f org-postgres && docker volume rm org-pgdata'
 set -euo pipefail
 HOST_ALIAS="${HOST_ALIAS:-mooniex-vps}"

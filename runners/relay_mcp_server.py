@@ -8,7 +8,10 @@ is the alternative: five named, typed actions instead of a shell.
   org_snapshot()                        -- what's running, Contabo-only view
   relay_to_session(target_role, message, wait=False)
                                          -- queue/deliver an order to a C-level
-  spawn_c_level(role, host)             -- start a C-level session
+  spawn_c_level(role, host, resume_session_id=None)
+                                         -- start a C-level session; with
+                                            ORG_MESH_DISPATCH on, on any host
+                                            through node_dispatch (W2.5)
   read_session(target_role, lines, host="contabo")
                                          -- read back the tail of a C-level
                                             session's live tmux pane (task-da873c76)
@@ -80,8 +83,10 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
+from collections import deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -95,7 +100,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import requests
 from mcp.server.fastmcp import FastMCP
 
-from lib import link_reader, mailbox, video_grab
+from lib import config, link_reader, mailbox, mesh, video_grab
 from lib.logger import get_logger
 from tools import org_inspector, tmux_session
 from tools.send_to_cxo import Identity, _active_session_id, attempt_wake, authorize
@@ -110,6 +115,19 @@ mcp = FastMCP("relay")
 # ---------------------------------------------------------------------------
 C_LEVEL_ROLES = ("cto", "cmo", "cgo", "cfo")
 HOSTS = ("contabo", "mac")
+
+# task-81d39324 (Org Mesh W2.5) -- with ORG_MESH_DISPATCH on (lib/mesh.enabled()),
+# spawn_c_level starts a C-level on any host in config/hosts.yaml through the
+# node_dispatch verb `start_clevel`. This second, separate switch keeps the
+# mac_agent queue leg running beside it for the 24 h parallel run that precedes
+# mac_agent's retirement (see runners/mac_agent.py). Same 1/true/on parsing as
+# the mesh flag; unset = no queue row, ever, on the mesh path.
+MESH_PARALLEL_ENV = "ORG_MESH_PARALLEL_MAC_AGENT"
+
+# Same pattern as tools/node_dispatch.SESSION_ID_RE (the verb's own rule for a
+# `--resume` id), copied rather than imported so this module does not pull
+# lib.db in at import time; a test pins the two together.
+RESUME_SESSION_ID_RE = re.compile(r"[0-9a-f]{8}")
 
 # How long to let a freshly spawned Claude Code session boot before dismissing
 # its first-run MCP prompt. Too short and the keystroke lands in a shell that is
@@ -1069,8 +1087,142 @@ def check_relay_status(queue_id: int) -> str:
 # spawn_c_level
 # ---------------------------------------------------------------------------
 
+def _mesh_parallel_mac_agent() -> bool:
+    return os.environ.get(MESH_PARALLEL_ENV, "").strip().lower() in ("1", "true", "on")
+
+
+# W2.7 F10 (task-42fdcda7, CTO decision): each spawn starts a paid Claude
+# session, so one caller gets at most SPAWN_RATE_LIMIT spawn attempts in any
+# SPAWN_RATE_WINDOW_S. This server is a stdio MCP server, one process per
+# calling session, so module state is per caller. A call rejected before any
+# spawn is tried (unknown role, host or id) takes no slot. The per-host bound
+# that survives a restart is node_dispatch's start_clevel cap (3 live sessions
+# per role per host).
+SPAWN_RATE_LIMIT = 3
+SPAWN_RATE_WINDOW_S = 600
+_spawn_times: deque[float] = deque()
+_spawn_lock = threading.Lock()
+
+
+def _take_spawn_slot() -> float | None:
+    """None when a slot was taken, else the seconds until the oldest one frees."""
+    now = time.monotonic()
+    with _spawn_lock:
+        while _spawn_times and now - _spawn_times[0] >= SPAWN_RATE_WINDOW_S:
+            _spawn_times.popleft()
+        if len(_spawn_times) >= SPAWN_RATE_LIMIT:
+            return SPAWN_RATE_WINDOW_S - (now - _spawn_times[0])
+        _spawn_times.append(now)
+        return None
+
+
+def _rate_limited(role: str, host: str, wait_s: float) -> str:
+    retry = int(wait_s) + 1
+    _audit("spawn_c_level", role, "rate_limited", f"host={host} retry_after_s={retry}")
+    return json.dumps({
+        "status": "rate_limited", "role": role, "host": host,
+        "reason": (f"at most {SPAWN_RATE_LIMIT} spawn_c_level calls per "
+                   f"{SPAWN_RATE_WINDOW_S // 60} minutes from one session"),
+        "retry_after_s": retry,
+    }, ensure_ascii=False)
+
+
+def _queue_mac_spawn(role: str) -> dict:
+    """Enqueue a `spawn` for runners/mac_agent.py and return the dict the tool
+    answers with. The pre-mesh Mac path, unchanged: also the queue leg of the
+    parallel run (MESH_PARALLEL_ENV)."""
+    queue_id = _queue_enqueue("spawn", role, {})
+    mac = _mac_status_dict()
+    _audit("spawn_c_level", role, "queued",
+           f"queue_id={queue_id} mac_state={mac['state']}")
+    return {
+        "status": "queued", "role": role, "host": "mac", "queue_id": queue_id,
+        "mac_reachable": mac["reachable"], "mac_state": mac["state"],
+        "mac_summary_th": mac["summary_th"],
+    }
+
+
+def _spawn_via_mesh(role: str, host: str, resume_session_id: str | None) -> dict:
+    """One `start_clevel` on `host` through lib/mesh. Never raises, never
+    writes a relay_queue row. `status`: spawned | refused (the host answered
+    no) | unreachable (no answer: says nothing about whether it ran) | error
+    (this relay could not tell which host it is, or the host config is bad)."""
+    args = (role,) if resume_session_id is None else (role, "--resume", resume_session_id)
+    try:
+        reply = mesh.dispatch(host, "start_clevel", *args)
+    except mesh.MeshUnreachable as e:
+        _audit("spawn_c_level", role, "unreachable", f"host={host} transport=mesh {e}")
+        return {"status": "unreachable", "role": role, "host": host,
+                "reason": f"host {host} unreachable", "detail": str(e)}
+    except (RuntimeError, ValueError) as e:  # self_host() unresolved / bad host config
+        _audit("spawn_c_level", role, "spawn_failed", f"host={host} transport=mesh error={e}")
+        return {"status": "error", "role": role, "host": host, "detail": str(e)}
+    if not reply.get("ok"):
+        detail = str(reply.get("error") or reply)[:400]
+        _audit("spawn_c_level", role, "refused", f"host={host} transport=mesh {detail}")
+        return {"status": "refused", "role": role, "host": host, "detail": detail}
+    result = reply.get("result") if isinstance(reply.get("result"), dict) else {}
+    out = {"status": "spawned", "role": role, "host": host, "transport": "mesh",
+           "session_id": result.get("session_id"), "result": result}
+    if result.get("tmux_session"):
+        out["tmux_session"] = result["tmux_session"]
+    _audit("spawn_c_level", role, "spawned",
+           f"host={host} transport=mesh session_id={result.get('session_id')} "
+           f"tmux={result.get('tmux_session')}")
+    return out
+
+
+def _spawn_c_level_mesh(role: str, host: str, resume_session_id: str | None) -> str:
+    """spawn_c_level with ORG_MESH_DISPATCH on: every host in config/hosts.yaml
+    (mac, contabo, winbox), via node_dispatch's `start_clevel`. The relay's own
+    role and id checks run first, so nothing malformed reaches mesh.dispatch."""
+    rejection = _reject_unknown_role("spawn_c_level", role, host=host)
+    if rejection:
+        return rejection
+    known = tuple(config.hosts())
+    if host not in known:
+        _audit("spawn_c_level", role, "rejected", f"unknown host {host!r}")
+        return json.dumps({
+            "status": "rejected",
+            "reason": f"unknown host {host!r}. Known: {', '.join(known)}",
+        }, ensure_ascii=False)
+    if resume_session_id is not None and not (
+            isinstance(resume_session_id, str)
+            and RESUME_SESSION_ID_RE.fullmatch(resume_session_id)):
+        _audit("spawn_c_level", role, "rejected",
+               f"malformed resume_session_id={resume_session_id!r}")
+        return json.dumps({
+            "status": "rejected",
+            "reason": (f"malformed resume_session_id {resume_session_id!r} -- "
+                       "must be 8 lowercase hex characters"),
+        }, ensure_ascii=False)
+
+    wait_s = _take_spawn_slot()
+    if wait_s is not None:
+        return _rate_limited(role, host, wait_s)
+    out = _spawn_via_mesh(role, host, resume_session_id)
+    if host != "mac" or not _mesh_parallel_mac_agent():
+        return json.dumps(out, ensure_ascii=False)
+
+    # Parallel run: mac_agent still gets its row, whatever the mesh leg said
+    # (the Mac has no ssh alias, so from here that leg is `unreachable` until
+    # it has one -- the queue keeps the spawn working meanwhile). mac_agent
+    # cannot resume, so a resume request gets no queue leg: a fresh session
+    # would answer a different question.
+    if resume_session_id is not None:
+        _audit("spawn_c_level", role, "parallel_mac_agent",
+               f"queue_id=none mesh_status={out['status']} (resume: no queue leg)")
+        return json.dumps({**out, "queue_leg": "skipped: mac_agent cannot resume"},
+                          ensure_ascii=False)
+    answer = _queue_mac_spawn(role)
+    _audit("spawn_c_level", role, "parallel_mac_agent",
+           f"queue_id={answer['queue_id']} mesh_status={out['status']} "
+           f"mesh_session_id={out.get('session_id')}")
+    return json.dumps({**answer, "mesh": out}, ensure_ascii=False)
+
+
 @mcp.tool()
-def spawn_c_level(role: str, host: str) -> str:
+def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) -> str:
     """Start a C-level session, on the CEO's behalf -- equivalent in
     effect to the CEO running `/spawn-cto` (or the cmo/cgo/cfo
     equivalent) themselves, so every call is audited prominently.
@@ -1084,7 +1236,17 @@ def spawn_c_level(role: str, host: str) -> str:
     sessions this same way).
     host="mac": enqueued for the separate, not-yet-built Mac-side
     draining agent (same queue relay_to_session uses).
+
+    When the operator has switched on the org mesh (ORG_MESH_DISPATCH),
+    every host in config/hosts.yaml is accepted ("winbox" too) and the
+    session is started on that host itself, not queued: the answer says
+    spawned, refused (the host said no) or unreachable (no answer, nothing
+    queued). `resume_session_id` (8 lowercase hex characters) then resumes
+    that earlier session instead of starting a fresh one; without the mesh
+    it is rejected, never ignored.
     """
+    if mesh.enabled():
+        return _spawn_c_level_mesh(role, host, resume_session_id)
     rejection = _reject_unknown_role("spawn_c_level", role, host=host)
     if rejection:
         return rejection
@@ -1094,17 +1256,18 @@ def spawn_c_level(role: str, host: str) -> str:
             "status": "rejected",
             "reason": f"unknown host {host!r}. Known: {', '.join(HOSTS)}",
         }, ensure_ascii=False)
-
-    if host == "mac":
-        queue_id = _queue_enqueue("spawn", role, {})
-        mac = _mac_status_dict()
-        _audit("spawn_c_level", role, "queued",
-               f"queue_id={queue_id} mac_state={mac['state']}")
+    if resume_session_id is not None:
+        _audit("spawn_c_level", role, "rejected", "resume_session_id needs the org mesh")
         return json.dumps({
-            "status": "queued", "role": role, "host": "mac", "queue_id": queue_id,
-            "mac_reachable": mac["reachable"], "mac_state": mac["state"],
-            "mac_summary_th": mac["summary_th"],
+            "status": "rejected",
+            "reason": "resume_session_id needs the org mesh (ORG_MESH_DISPATCH), which is off",
         }, ensure_ascii=False)
+
+    wait_s = _take_spawn_slot()
+    if wait_s is not None:
+        return _rate_limited(role, host, wait_s)
+    if host == "mac":
+        return json.dumps(_queue_mac_spawn(role), ensure_ascii=False)
 
     # host == "contabo"
     session_id = uuid.uuid4().hex[:8]

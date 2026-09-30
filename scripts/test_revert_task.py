@@ -70,9 +70,17 @@ class RevertTaskTests(unittest.TestCase):
         # test ever runs. This suite tests revert_task(), not the gate.
         self._gate_patcher = patch.dict(os.environ, {"ORG_CHARTER_GATE": "off"})
         self._gate_patcher.start()
+        # FAKE_PROJECT carries only the Mac checkout path, so these tests mean "a
+        # Mac hub": revert_task resolves the repo for self_host(), which is
+        # 'contabo' under ORG_HOST=contabo (task-6f6e5179 W0.3). Pinned here, not
+        # with the pytest `pinned_mac_host` fixture, so the standalone runner
+        # (`python scripts/test_revert_task.py`) is pinned too.
+        self._host_patcher = patch("tools.revert_task.self_host", return_value="mac")
+        self._host_patcher.start()
         db_module.init()
 
     def tearDown(self):
+        self._host_patcher.stop()
         self._gate_patcher.stop()
         self._db_patcher.stop()
         shutil.rmtree(self.tmpdir)

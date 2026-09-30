@@ -24,6 +24,7 @@ import os
 import shutil
 import socket
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -93,6 +94,8 @@ def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
 
 
 def has_session(session: str) -> bool:
+    if sys.platform == "win32":  # no tmux on Windows, so no tmux session exists
+        return False
     r = subprocess.run(
         [tmux_bin(), "has-session", "-t", session],
         capture_output=True, text=True, check=False,
@@ -129,6 +132,8 @@ def create(session: str, cwd: str | Path, cmd: str) -> None:
     success for a command it could not run (see `login_shell`), so its exit
     code proves nothing -- only the session existing does.
     """
+    if sys.platform == "win32":
+        raise RuntimeError("tmux is not available on Windows")
     if has_session(session):
         return
     cwd = str(Path(cwd).expanduser())
@@ -174,6 +179,8 @@ def capture(session: str, lines: int = 200) -> str:
     Returns "" when the session is already gone or tmux errors; the caller is
     reporting a failure either way and must not fail again on the report.
     """
+    if sys.platform == "win32":
+        return ""
     r = subprocess.run(
         [tmux_bin(), "capture-pane", "-t", session, "-p", "-S", f"-{lines}"],
         capture_output=True, text=True, check=False,

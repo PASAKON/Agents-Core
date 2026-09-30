@@ -46,8 +46,11 @@ from lib.config import (
     get_project,
     host as get_host,
     role as get_role,
+    self_host,
     worker_session_name,
 )
+from lib.worker_mcp_config import write_for_worktree
+from runners import agy_local
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
@@ -122,12 +125,12 @@ def clean_title(title: str | None) -> str:
 def current_host() -> str:
     """Host key (config/hosts.yaml) this runtime is on.
 
-    Defaults to 'mac' -- this launcher was Mac-only through task-af5268b3.
-    ORG_HOST lets the identical code run unchanged on Contabo later (ADDENDUM
-    1, CTO 2026-09-07): the CEO only ever talks to a session from the Claude
-    app, so every worker's name has to say which machine spawned it.
+    Delegates to lib.config.self_host() (docs/design/org-mesh.md C1) --
+    ORG_HOST env, then ~/.config/mooniex/node.yaml, then ROOT matched
+    against a host's agents_root, then platform. Raises instead of
+    defaulting to 'mac' on a host it can't identify.
     """
-    return (os.environ.get("ORG_HOST") or "mac").strip().lower() or "mac"
+    return self_host()
 
 
 def remote_control_args(host_name: str) -> list[str]:
@@ -408,14 +411,20 @@ def main() -> None:
         sys.exit(4)
 
     # Runner (task-adbc6f43): NULL on the row means "claude" (every
-    # pre-migration/local task, unchanged). This launcher only ever execs
-    # claude.exe/claude — codex and agy are winbox-only today
-    # (windows/spawn-worker.ps1's job), gated at config/hosts.yaml's `mac`
-    # entry (`runners: [claude]`) so tools.delegate._validate_runner already
-    # refuses a codex/agy task before it reaches this file. This is a second,
-    # local check — never trust a runner blind at exec time either.
+    # pre-migration/local task, unchanged). claude and agy can be spawned
+    # locally on Mac (config/hosts.yaml `runners: [claude, agy]`). codex is not
+    # signed in here (use host contabo). This is a second, local check — never
+    # trust a runner blind at exec time either.
     runner = (task.get("runner") or "claude").strip().lower()
-    if runner != "claude":
+    if runner == "codex":
+        db.update_status(
+            task_id, "failed",
+            report="runner='codex' not signed in on the Mac — use host contabo",
+            actor=role,
+        )
+        print("runner 'codex' not signed in on the Mac — use host contabo", file=sys.stderr)
+        sys.exit(5)
+    elif runner not in ("claude", "agy"):
         db.update_status(
             task_id, "failed",
             report=f"runner={runner!r} not supported by local Mac spawn "
@@ -475,6 +484,10 @@ def main() -> None:
     # brand/theme to match — the same context the CEO's Web UI flow has.
     if role == "web_designer":
         prompt += db.designer_kickoff_suffix(task.get("description") or "")
+
+    if runner == "agy":
+        sys.exit(agy_local.run_agy_task(task, worktree, prompt + "\n\n" + role_doc, role))
+
     try:
         model = get_role(role).get("model") or "claude-opus-5-5"
     except ValueError:
@@ -521,9 +534,10 @@ def main() -> None:
     # left browser work with nowhere to run but a C-level tab; the
     # browser_operator role now carries it, and worker_tool_grants() decides
     # which roles get the Chrome surface + the --chrome flag. Still no
-    # per-role MCP config branch — all DEVs share worker.mcp.json.
+    # per-role MCP config branch — all DEVs share worker.mcp.json, which is a
+    # Mac-written TEMPLATE; each spawn renders it for THIS host into the worktree.
     allowed, chrome_args = worker_tool_grants(role)
-    mcp_config = ROOT / "config" / "worker.mcp.json"
+    mcp_config = write_for_worktree(worktree, ROOT)
 
     effort_args = ["--effort", get_role(role).get("effort") or "high"]
 

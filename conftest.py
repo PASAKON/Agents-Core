@@ -16,6 +16,9 @@ which layer on top of this fixture within the same test's monkeypatch stack.
 """
 from __future__ import annotations
 
+import subprocess
+from pathlib import Path
+
 import pytest
 
 from tools import tmux_session
@@ -60,6 +63,29 @@ def _clean_session_env(monkeypatch):
                 "CTO_SESSION", "CXO_SESSION", "ORG_DB_URL",
                 "WORK_DIR", "WORKER_CTO_ID", "WORK_EXPECT_GB"):
         monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_org_db_env(tmp_path, monkeypatch):
+    """Org Mesh W1.6 (task-719e0c56): the MCP config generators
+    (scripts/lib/cxo_mcp_config.py, lib/worker_mcp_config.py) route the org
+    server through scripts/hub/with-org-db-env.sh when the host's node file says
+    `org_db: hub` AND the hub env file exists (~/.config/mooniex/org-db.env,
+    on the Mac and Contabo since before the cutover). A test that reaches
+    either real file would pass on one box and fail on another. Point both
+    overrides at files that do not exist; tests/test_w16_org_db_injection.py
+    (and any other test that wants the wrapper) sets its own on top."""
+    monkeypatch.setenv("MOONIEX_ORG_DB_ENV", str(tmp_path / "no-such-org-db.env"))
+    monkeypatch.setenv("MOONIEX_NODE_YAML", str(tmp_path / "no-such-node.yaml"))
+
+
+@pytest.fixture(autouse=True)
+def _router_off(monkeypatch):
+    """delegate_task routes a NULL-runner row through tools.route, whose
+    quota read is an ssh to Contabo plus the agy CLI. No test may reach
+    those (task-ae42c0a7); tests/test_delegate_router.py re-enables it
+    against a mocked pick_runner."""
+    monkeypatch.setenv("ORG_ROUTER", "off")
 
 
 @pytest.fixture(autouse=True)
@@ -142,6 +168,66 @@ def _isolate_workdir_root(tmp_path, monkeypatch):
     monkeypatch.setattr(_workdir, "_default_root", lambda: tmp_path / "Work")
 
 
+def _git(repo: Path, *args: str) -> str:
+    r = subprocess.run(["git", *args], cwd=str(repo), capture_output=True, text=True)
+    if r.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)} in {repo} failed: {r.stderr}")
+    return r.stdout.strip()
+
+
+@pytest.fixture
+def fake_projects(tmp_path, monkeypatch):
+    """A bare 'origin' repo + a clone standing in for a runtime checkout,
+    wired into lib.config's project registry (Org Mesh W0.2, ADR 0021 —
+    tmp_path only, never the real repo/origin/tasks.db).
+
+    tools/git_ops.py, tools/revert_task.py, tools/rollback.py and
+    lib/org_tools_registry.py all resolve a project via `get_project`,
+    which in turn calls the module-level `projects()` in lib.config —
+    patching that one function here covers every one of those modules
+    for a test, without a separate monkeypatch per module (the older
+    per-file `monkeypatch.setattr(git_ops, "get_project", ...)` pattern
+    only ever covered tools.git_ops's own namespace).
+
+    Returns a dict: `origin` (bare repo path), `runtime` (the clone
+    standing in for this host's runtime checkout — same repo
+    `_create_temp_worktree` will add its throwaway worktrees to), `proj`
+    (the fake project dict), and `git(*args)` (run git in `runtime`).
+    """
+    from lib import config as config_module
+
+    origin = tmp_path / "origin.git"
+    _git(tmp_path, "init", "-q", "--bare", "--initial-branch=main", str(origin))
+
+    seed = tmp_path / "seed"
+    _git(tmp_path, "clone", "-q", str(origin), str(seed))
+    _git(seed, "config", "user.email", "test@example.com")
+    _git(seed, "config", "user.name", "Test")
+    (seed / "README.md").write_text("seed\n")
+    _git(seed, "add", "README.md")
+    _git(seed, "commit", "-q", "-m", "initial")
+    _git(seed, "push", "-q", "origin", "main")
+
+    runtime = tmp_path / "runtime"
+    _git(tmp_path, "clone", "-q", str(origin), str(runtime))
+    _git(runtime, "config", "user.email", "test@example.com")
+    _git(runtime, "config", "user.name", "Test")
+
+    host = config_module.self_host()
+    proj = {
+        "key": "test-project",
+        "path": str(runtime),
+        "paths": {host: str(runtime)},
+        "default_branch": "main",
+        "remote": str(origin),
+        "auto_push": False,
+    }
+    monkeypatch.setattr(config_module, "projects", lambda: {"test-project": proj})
+
+    return {"origin": origin, "runtime": runtime, "proj": proj,
+            "git": lambda *args: _git(runtime, *args)}
+
+
 # --- .env seal for EVERY test (moved here from tests/conftest.py 2026-09-22, task-3de56f59 found
 # that scripts/ tests were outside the tests/ seal). tools/decide.py and lib/config.py read paid
 # keys from os.environ then the gitignored .env; a test that only delenv()s them still goes LIVE.
@@ -168,4 +254,29 @@ def _no_dotenv_no_paid_calls(request, monkeypatch):
         if hasattr(mod, "_read_dotenv_var"):
             monkeypatch.setattr(mod, "_read_dotenv_var", lambda name: None)
     yield
+
+
+@pytest.fixture
+def pinned_mac_host(monkeypatch, tmp_path):
+    """Make self_host() answer 'mac' from EVERY source, whatever box or env runs the suite.
+
+    A test that asserts "this is the Mac" must not depend on the machine it
+    runs on (Contabo, winbox) or on ORG_HOST / ~/.config/mooniex/node.yaml
+    being unset. The four sources of lib.config.self_host() are pinned in
+    resolution order: ORG_HOST unset, no node.yaml, ROOT = the Mac's
+    agents_root, platform = Darwin. self_host() is lru_cached, so the cache
+    is cleared on both sides of the test (task-6f6e5179).
+    """
+    from types import SimpleNamespace
+
+    from lib import config
+
+    mac_root = Path(config.hosts()["mac"]["agents_root"])
+    monkeypatch.delenv("ORG_HOST", raising=False)
+    monkeypatch.setattr(config, "NODE_CONFIG_PATH", tmp_path / "no-node.yaml")
+    monkeypatch.setattr(config, "ROOT", mac_root)
+    monkeypatch.setattr(config, "platform", SimpleNamespace(system=lambda: "Darwin"))
+    config.self_host.cache_clear()
+    yield "mac"
+    config.self_host.cache_clear()
 

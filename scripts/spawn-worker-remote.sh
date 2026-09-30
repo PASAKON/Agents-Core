@@ -2,7 +2,9 @@
 # CONTABO WORKER LAUNCHER — Phase 2 (docs/design/multi-host-workers.md §4,
 # task-a5c0549d). Runs ON the spoke (Linux), invoked by
 # tools/delegate.py::_spawn_remote's linux branch over:
-#   ssh mooniex-vps bash <agents_root>/scripts/spawn-worker-remote.sh --task ...
+#   ssh mooniex-vps bash <agents_root>/.launch/spawn-worker-remote.sh --task ...
+# The hub deploys this file into <agents_root>/.launch/ (git-ignored), never
+# into the spoke's tracked scripts/, so a deploy cannot dirty the spoke's checkout.
 # with the hub's rendered TASK.md prompt piped in on stdin.
 #
 # Mirrors windows/spawn-worker.ps1's parameters and behavior one-for-one,
@@ -20,6 +22,15 @@
 # refused/dirty worktree, prints `SPAWN_REFUSED=<reason> <path>` instead and
 # exits 1 (tools/delegate.py greps for this prefix, host-agnostically).
 #
+# codex/agy (W0.6, runner-routing contract): the generated launch.sh runs the
+# CLI, then guarantees the run's report is committed on its branch at
+# docs/reports/<task-id>/REPORT.md (a worker-written one is kept, a root
+# REPORT.md is moved there, else it is built from codex's final message / the
+# tail of agy's events log -- a run never ends without one), never commits its
+# own bookkeeping files (info/exclude + `git reset` after `git add -A`), and
+# pushes. `--org-host <name>` (default contabo) is the ORG_HOST the worker
+# runs under. The claude runner path is unchanged.
+#
 # POSIX/bash-3-compatible ON PURPOSE, even though it only ever EXECUTES on
 # Contabo's newer bash: tests run this under macOS's bash 3.2 via `bash -n`
 # and `--dry-run` (tests/test_spawn_remote_linux.py). No arrays, no
@@ -36,6 +47,11 @@ DRY_RUN=0
 TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
 TASK_META_B64=""
+RUNNER_MODEL=""
+# ORG_HOST the worker runs under (W0.6): `contabo` is what the only caller
+# passes today (no flag); a hub that spawns codex/agy on another Linux box
+# passes its own name here instead of inheriting a hard-coded one.
+ORG_HOST="contabo"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -53,10 +69,37 @@ while [ $# -gt 0 ]; do
     --session-name) SESSION_NAME="$2"; shift 2 ;;
     --runner) RUNNER="$2"; shift 2 ;;
     --task-meta-b64) TASK_META_B64="$2"; shift 2 ;;
+    --runner-model) RUNNER_MODEL="$2"; shift 2 ;;
+    --org-host) ORG_HOST="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     *) echo "spawn-worker-remote.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+if [ -z "$RUNNER_MODEL" ] && [ -n "$TASK_META_B64" ]; then
+  DECODED_META=$(printf '%s' "$TASK_META_B64" | base64 -d 2>/dev/null || true)
+  if [ -n "$DECODED_META" ]; then
+    if command -v python3 >/dev/null 2>&1; then
+      RUNNER_MODEL=$(printf '%s' "$DECODED_META" | python3 -c 'import sys, json; data = json.load(sys.stdin); print(data.get("runner_model") or "")' 2>/dev/null || true)
+    else
+      RUNNER_MODEL=$(printf '%s' "$DECODED_META" | sed -n 's/.*"runner_model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' || true)
+    fi
+  fi
+fi
+
+if [ -n "$RUNNER_MODEL" ]; then
+  case "$RUNNER_MODEL" in
+    *[!A-Za-z0-9._:-]*)
+      echo "spawn-worker-remote.sh: invalid runner_model '$RUNNER_MODEL' (must match ^[A-Za-z0-9._:-]{1,64}$)" >&2
+      exit 2
+      ;;
+  esac
+  if [ "${#RUNNER_MODEL}" -gt 64 ]; then
+    echo "spawn-worker-remote.sh: runner_model '$RUNNER_MODEL' exceeds 64 chars (must match ^[A-Za-z0-9._:-]{1,64}$)" >&2
+    exit 2
+  fi
+fi
+AGY_MODEL="${RUNNER_MODEL:-gemini-3.8-flash-high}"
 
 # CLAUDE_ARGS may legitimately be empty for a future non-claude runner
 # (parity with windows/spawn-worker.ps1's AllowEmptyString -ClaudeArgs) --
@@ -69,10 +112,22 @@ if [ -z "$TASK" ] || [ -z "$PROJECT" ] || [ -z "$ROLE" ] || [ -z "$BRANCH" ] \
   exit 2
 fi
 
-if [ "$RUNNER" != "claude" ]; then
-  echo "spawn-worker-remote.sh: runner '$RUNNER' not supported by this launcher yet (claude only)" >&2
-  exit 2
-fi
+# ORG_HOST lands unquoted in the generated launch.sh (`export ORG_HOST=<name>`),
+# so it is checked here at the trust boundary, not quoted later.
+case "$ORG_HOST" in
+  ''|*[!A-Za-z0-9._-]*)
+    echo "spawn-worker-remote.sh: --org-host '$ORG_HOST' must match [A-Za-z0-9._-]+" >&2
+    exit 2
+    ;;
+esac
+
+case "$RUNNER" in
+  claude|codex|agy) ;;
+  *)
+    echo "spawn-worker-remote.sh: runner '$RUNNER' not supported by this launcher (claude|codex|agy)" >&2
+    exit 2
+    ;;
+esac
 
 WT="${WORKTREE_ROOT}/${PROJECT}__${ROLE}__${TASK}"
 # tmux-safe identifier (no spaces/parens, unlike --session-name which is
@@ -87,6 +142,24 @@ TMUX_SESSION="mooniex-${TASK}"
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 AGENTS_ROOT=$(dirname "$SCRIPT_DIR")
 ROLES_DIR="$AGENTS_ROOT/roles"
+LAUNCH_DIR="$AGENTS_ROOT/.launch-${TASK}"
+CODEX_FINAL_MSG="$LAUNCH_DIR/codex-final.txt"
+CODEX_TRANSCRIPT="$LAUNCH_DIR/codex-events.jsonl"
+AGY_LOG="$LAUNCH_DIR/agy-events.log"
+
+# Files a codex/agy run must never put on the branch (W0.6): the launcher's own
+# bookkeeping, the CTO's scratch file, logs, and a ROOT REPORT.md/BLOCKER.md
+# (the report goes to docs/reports/<task-id>/REPORT.md instead). Two guards:
+# ANCHORED_EXCLUDES go into the clone's info/exclude, GIT_RESET_GUARD is
+# `git reset`-ed after `git add -A` in the generated launch.sh.
+#  - Every exclude line starts with '/' where it names a root file: an
+#    unanchored `REPORT.md` would also hide docs/reports/<id>/REPORT.md.
+#  - REPORT.md/BLOCKER.md are NOT in ANCHORED_EXCLUDES: info/exclude is shared
+#    by every worktree of the clone, and claude workers here commit a root
+#    REPORT.md/BLOCKER.md through `git add -A` (roles/_worker_remote.md). Only
+#    the codex/agy launch.sh, which runs solely for those runners, resets them.
+ANCHORED_EXCLUDES=".worker.pid /TASK.md /.org-task.json /.org-worker.mcp.json /CTO-FEEDBACK.md /*.log"
+GIT_RESET_GUARD=".worker.pid TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md :(glob)*.log"
 
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] task=$TASK project=$PROJECT role=$ROLE branch=$BRANCH base=$BASE"
@@ -100,7 +173,29 @@ if [ "$DRY_RUN" -eq 1 ]; then
   if [ -n "$TASK_META_B64" ]; then
     echo "[dry-run] task_meta_b64=$TASK_META_B64"
   fi
-  echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; copy this box's own scripts/hook-self-repo-guard.py into $WT/scripts/ so a pre-merge fix reaches the worktree; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
+  if [ "$RUNNER" = "claude" ]; then
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
+  elif [ "$RUNNER" = "codex" ]; then
+    if [ -n "$RUNNER_MODEL" ]; then
+      CODEX_CMD="codex exec \"\$(cat TASK.md)\" -m $RUNNER_MODEL -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
+    else
+      CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
+    fi
+    echo "[dry-run] cmd=$CODEX_CMD"
+    echo "[dry-run] runner_model=${RUNNER_MODEL:-(none)}"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
+    echo "[dry-run] org_host=$ORG_HOST"
+    echo "[dry-run] report_step: after codex exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from $CODEX_FINAL_MSG (header, 'Runner: codex', exit code, text; 'no final message; exit=<n>' when empty)"
+    echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
+  elif [ "$RUNNER" = "agy" ]; then
+    AGY_CMD="/root/.local/bin/agy -p \"\$(cat TASK.md)\" --model $AGY_MODEL --mode accept-edits --add-dir \"$WT\" < /dev/null >> $AGY_LOG 2>&1"
+    echo "[dry-run] cmd=$AGY_CMD"
+    echo "[dry-run] runner_model=$AGY_MODEL"
+    echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running agy>"
+    echo "[dry-run] org_host=$ORG_HOST"
+    echo "[dry-run] report_step: after agy exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from the last 200 lines of $AGY_LOG (header, 'Runner: agy', exit code, text; 'no final message; exit=<n>' when empty)"
+    echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
+  fi
   exit 0
 fi
 
@@ -166,9 +261,16 @@ case "$EXCLUDE_FILE" in
 esac
 mkdir -p "$(dirname "$EXCLUDE_FILE")"
 touch "$EXCLUDE_FILE"
-for name in HEARTBEAT MAILBOX.md; do
+# .worker.pid too: the codex/agy launch.sh runs `git add -A` after the CLI
+# exits, and swept it into the branch commit (task-419e6c8c, 2026-09-29).
+# W0.6: the rest of ANCHORED_EXCLUDES (see its comment above) -- launcher
+# bookkeeping, CTO scratch, logs. `set -f`: the '/*.log' entry must reach
+# the file as text, not be glob-expanded here.
+set -f
+for name in HEARTBEAT MAILBOX.md $ANCHORED_EXCLUDES; do
   grep -qxF "$name" "$EXCLUDE_FILE" 2>/dev/null || echo "$name" >> "$EXCLUDE_FILE"
 done
+set +f
 
 # --- 2b. Sidecar (GH #180, task-378523bb): the hub already knows this
 # task's declared touches at spawn time -- write them straight into the
@@ -185,19 +287,6 @@ if [ -n "$TASK_META_B64" ]; then
   else
     chmod 600 "$WT/.org-task.json"
   fi
-fi
-
-# --- 2c. Pre-merge guard fix (GH #180): a freshly checked-out worktree gets
-# whatever scripts/hook-self-repo-guard.py was on origin/$BASE at clone
-# time, which won't carry a fix until the PR that adds it is merged. This
-# box's own copy of the script (tools/delegate.py::_ensure_remote_deploy_linux
-# scp's it here ahead of any merge, same mechanism as this launcher script
-# itself) is authoritative -- copy it into the worktree so the guard a
-# spawned worker actually runs is never stale.
-GUARD_SRC="$SCRIPT_DIR/hook-self-repo-guard.py"
-if [ -f "$GUARD_SRC" ]; then
-  mkdir -p "$WT/scripts"
-  cp "$GUARD_SRC" "$WT/scripts/hook-self-repo-guard.py"
 fi
 
 # --- 3. TASK.md from stdin (the hub's rendered prompt) ---
@@ -241,20 +330,54 @@ cp "$WT/TASK.md" "$PROMPT_FILE"
 # is however the box's two live CTO sessions themselves find it) then the
 # installer's default location keeps this independent of shell startup
 # files entirely. ---
-CLAUDE_BIN=""
-for candidate in "$(command -v claude 2>/dev/null)" \
-                 "$HOME/.local/bin/claude" \
-                 "$HOME/.npm-global/bin/claude" \
-                 "/usr/local/bin/claude" \
-                 "/usr/bin/claude"; do
-  if [ -n "$candidate" ] && [ -x "$candidate" ]; then
-    CLAUDE_BIN="$candidate"
-    break
+if [ "$RUNNER" = "claude" ]; then
+  CLAUDE_BIN=""
+  for candidate in "$(command -v claude 2>/dev/null)" \
+                   "$HOME/.local/bin/claude" \
+                   "$HOME/.npm-global/bin/claude" \
+                   "/usr/local/bin/claude" \
+                   "/usr/bin/claude"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      CLAUDE_BIN="$candidate"
+      break
+    fi
+  done
+  if [ -z "$CLAUDE_BIN" ]; then
+    echo "SPAWN_REFUSED=claude-not-found (checked PATH, ~/.local/bin, ~/.npm-global/bin, /usr/local/bin, /usr/bin)"
+    exit 1
   fi
-done
-if [ -z "$CLAUDE_BIN" ]; then
-  echo "SPAWN_REFUSED=claude-not-found (checked PATH, ~/.local/bin, ~/.npm-global/bin, /usr/local/bin, /usr/bin)"
-  exit 1
+elif [ "$RUNNER" = "codex" ]; then
+  CODEX_BIN=""
+  for candidate in "$(command -v codex 2>/dev/null)" \
+                   "/usr/bin/codex" \
+                   "/usr/local/bin/codex" \
+                   "$HOME/.local/bin/codex" \
+                   "$HOME/.npm-global/bin/codex"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      CODEX_BIN="$candidate"
+      break
+    fi
+  done
+  if [ -z "$CODEX_BIN" ]; then
+    echo "SPAWN_REFUSED=codex-not-found (checked PATH, /usr/bin, /usr/local/bin, ~/.local/bin, ~/.npm-global/bin)"
+    exit 1
+  fi
+elif [ "$RUNNER" = "agy" ]; then
+  AGY_BIN=""
+  for candidate in "/root/.local/bin/agy" \
+                   "$(command -v agy 2>/dev/null)" \
+                   "$HOME/.local/bin/agy" \
+                   "/usr/local/bin/agy" \
+                   "/usr/bin/agy"; do
+    if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+      AGY_BIN="$candidate"
+      break
+    fi
+  done
+  if [ -z "$AGY_BIN" ]; then
+    echo "SPAWN_REFUSED=agy-not-found (checked /root/.local/bin/agy, PATH, ~/.local/bin)"
+    exit 1
+  fi
 fi
 
 # --- 7. Launch: a tiny generated launch.sh inside a detached tmux session.
@@ -290,21 +413,191 @@ TMUX_BIN=$(command -v tmux || echo tmux)
 # job, so a box that hasn't been set up yet just keeps using system Node.
 NODE22_BIN="$AGENTS_ROOT/.tools/node/bin"
 
+# W0.6 -- the tail every codex/agy launch.sh ends with, after the CLI exits
+# and its exit status is in $CLI_RC: make sure the run's report sits at
+# docs/reports/<task-id>/REPORT.md, stage everything except the never-commit
+# files, commit, push. $1 runner name, $2 codex final-message file (or ''),
+# $3 agy events log (or ''), $4 extra `git -c ...` identity args (or ''),
+# $5 commit message.
+# Task/branch/runner values are sh_quote-d assignments; the body is a quoted
+# heredoc, so nothing in it is expanded when launch.sh is WRITTEN.
+emit_report_commit_push() {
+  printf 'TASK_ID=%s\n' "$(sh_quote "$TASK")"
+  printf 'BRANCH_NAME=%s\n' "$(sh_quote "$BRANCH")"
+  printf 'RUNNER_NAME=%s\n' "$(sh_quote "$1")"
+  printf 'FINAL_MSG=%s\n' "$(sh_quote "$2")"
+  printf 'LOG_TAIL=%s\n' "$(sh_quote "$3")"
+  printf 'GIT_ID_ARGS=%s\n' "$(sh_quote "$4")"
+  printf 'COMMIT_MSG=%s\n' "$(sh_quote "$5")"
+  printf 'GIT_RESET_GUARD=%s\n' "$(sh_quote "$GIT_RESET_GUARD")"
+  cat <<'REPORT_STEP_EOF'
+R_DIR="docs/reports/$TASK_ID"
+R="$R_DIR/REPORT.md"
+HDR="# REPORT $TASK_ID"
+mkdir -p "$R_DIR"
+has_hdr() { [ -s "$1" ] && [ "$(head -n 1 "$1" | tr -d '\r')" = "$HDR" ]; }
+put_hdr() { { printf '%s\n\n' "$HDR"; cat "$1"; } > "$1.hdr" && mv -f "$1.hdr" "$1"; }
+build_report() {
+  {
+    printf '%s\n\n' "$HDR"
+    printf 'Runner: %s\n' "$RUNNER_NAME"
+    printf 'Exit code: %s\n\n' "$CLI_RC"
+    if [ -n "$FINAL_MSG" ] && [ -s "$FINAL_MSG" ]; then
+      cat "$FINAL_MSG"
+    elif [ -n "$LOG_TAIL" ] && [ -s "$LOG_TAIL" ]; then
+      tail -n 200 "$LOG_TAIL"
+    else
+      printf 'no final message; exit=%s\n' "$CLI_RC"
+    fi
+  } > "$R"
+}
+if has_hdr "$R"; then
+  :
+elif [ -s REPORT.md ]; then
+  if git ls-files --error-unmatch REPORT.md >/dev/null 2>&1; then
+    git mv -f REPORT.md "$R"
+  else
+    mv -f REPORT.md "$R"
+  fi
+  has_hdr "$R" || { [ -s "$R" ] && put_hdr "$R"; }
+elif [ -s "$R" ]; then
+  put_hdr "$R"
+fi
+[ -s "$R" ] || build_report
+git add -A
+set -f
+git reset -q -- $GIT_RESET_GUARD 2>/dev/null || true
+set +f
+MEDIA_BLOCKERS_FILE="$R_DIR/.media_blockers"
+rm -f "$MEDIA_BLOCKERS_FILE"
+git diff --cached --name-only | while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  [ -f "$f" ] || continue
+  ext="${f##*.}"
+  ext_lower=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
+  is_media=0
+  case "$ext_lower" in
+    png|jpg|jpeg|gif|webp|heic|mp4|mov|webm|mkv|avi|mp3|wav|m4a|aac|flac|ogg)
+      is_media=1
+      ;;
+  esac
+
+  sz=$(wc -c < "$f" 2>/dev/null | tr -d ' ' || echo 0)
+  is_large_binary=0
+  if [ "$is_media" -eq 0 ] && [ "$sz" -gt 1048576 ]; then
+    stat_line=$(git diff --cached --numstat -- "$f" 2>/dev/null | head -n 1)
+    case "$stat_line" in
+      "-"*) is_large_binary=1 ;;
+    esac
+  fi
+
+  if [ "$is_media" -eq 1 ] || [ "$is_large_binary" -eq 1 ]; then
+    git reset -q -- "$f"
+    if [ "$sz" -ge 1048576 ]; then
+      hsz="$(awk "BEGIN {printf \"%.1f MB\", $sz / 1048576}" 2>/dev/null || printf '%d MB' "$((sz / 1048576))")"
+    elif [ "$sz" -ge 1024 ]; then
+      hsz="$(awk "BEGIN {printf \"%.1f KB\", $sz / 1024}" 2>/dev/null || printf '%d KB' "$((sz / 1024))")"
+    else
+      hsz="${sz} B"
+    fi
+    printf 'media not committed: %s (%s) — upload per CXO_Rules_GDrive_Filing and put the link here\n' "$f" "$hsz" >> "$MEDIA_BLOCKERS_FILE"
+  fi
+done
+
+if [ -s "$MEDIA_BLOCKERS_FILE" ]; then
+  if grep -qi '^## Blockers' "$R"; then
+    awk '
+      /^## Blockers/ {
+        print
+        while ((getline line < bfile) > 0) {
+          print "- " line
+        }
+        close(bfile)
+        next
+      }
+      { print }
+    ' bfile="$MEDIA_BLOCKERS_FILE" "$R" > "$R.tmp" && mv -f "$R.tmp" "$R"
+  else
+    printf '\n## Blockers\n' >> "$R"
+    while IFS= read -r line; do
+      printf -- '- %s\n' "$line" >> "$R"
+    done < "$MEDIA_BLOCKERS_FILE"
+  fi
+  rm -f "$MEDIA_BLOCKERS_FILE"
+  git add "$R"
+fi
+
+if ! git diff --cached --quiet; then
+  git $GIT_ID_ARGS commit -q -m "$COMMIT_MSG"
+fi
+git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
+REPORT_STEP_EOF
+}
+
 LAUNCH_SH="$LAUNCH_DIR/launch.sh"
-{
-  echo '#!/bin/sh'
-  printf 'export ORG_HOST=contabo\n'
-  printf 'export ORG_WORKER_FINISH=%s\n' \
-    "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
-  printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
-    "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
-  printf 'exec %s "$(cat %s)" -n %s --append-system-prompt "$(cat %s)" %s\n' \
-    "$(sh_quote "$CLAUDE_BIN")" \
-    "$(sh_quote "$PROMPT_FILE")" \
-    "$(sh_quote "$SESSION_NAME")" \
-    "$(sh_quote "$SYSPROMPT_FILE")" \
-    "$CLAUDE_ARGS"
-} > "$LAUNCH_SH"
+if [ "$RUNNER" = "claude" ]; then
+  {
+    echo '#!/bin/sh'
+    printf 'export ORG_HOST=%s\n' "$ORG_HOST"
+    printf 'export ORG_WORKER_FINISH=%s\n' \
+      "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+    printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+      "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
+    printf 'exec %s "$(cat %s)" -n %s --append-system-prompt "$(cat %s)" %s\n' \
+      "$(sh_quote "$CLAUDE_BIN")" \
+      "$(sh_quote "$PROMPT_FILE")" \
+      "$(sh_quote "$SESSION_NAME")" \
+      "$(sh_quote "$SYSPROMPT_FILE")" \
+      "$CLAUDE_ARGS"
+  } > "$LAUNCH_SH"
+elif [ "$RUNNER" = "codex" ]; then
+  {
+    echo '#!/bin/sh'
+    printf 'export ORG_HOST=%s\n' "$ORG_HOST"
+    printf 'export ORG_WORKER_FINISH=%s\n' \
+      "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+    printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+      "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
+    printf 'cd %s || exit 1\n' "$(sh_quote "$WT")"
+    # A final message left by an earlier launch of this same task must not be
+    # read back as this run's message.
+    printf 'rm -f %s\n' "$(sh_quote "$CODEX_FINAL_MSG")"
+    if [ -n "$RUNNER_MODEL" ]; then
+      printf 'codex exec "$(cat TASK.md)" -m %s -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
+        "$(sh_quote "$RUNNER_MODEL")" \
+        "$(sh_quote "$WT")" \
+        "$(sh_quote "$CODEX_FINAL_MSG")" \
+        "$(sh_quote "$CODEX_TRANSCRIPT")"
+    else
+      printf 'codex exec "$(cat TASK.md)" -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
+        "$(sh_quote "$WT")" \
+        "$(sh_quote "$CODEX_FINAL_MSG")" \
+        "$(sh_quote "$CODEX_TRANSCRIPT")"
+    fi
+    printf 'CLI_RC=$?\n'
+    emit_report_commit_push codex "$CODEX_FINAL_MSG" "" "" "codex: task $TASK"
+  } > "$LAUNCH_SH"
+elif [ "$RUNNER" = "agy" ]; then
+  {
+    echo '#!/bin/sh'
+    printf 'export ORG_HOST=%s\n' "$ORG_HOST"
+    printf 'export ORG_WORKER_FINISH=%s\n' \
+      "$(sh_quote "$TMUX_BIN kill-session -t $TMUX_SESSION")"
+    printf 'if [ -d %s ]; then export PATH=%s:"$PATH"; fi\n' \
+      "$(sh_quote "$NODE22_BIN")" "$(sh_quote "$NODE22_BIN")"
+    printf 'cd %s || exit 1\n' "$(sh_quote "$WT")"
+    # $AGY_BIN is what the probe above resolved (/root/.local/bin/agy first, so
+    # Contabo runs the same binary as before); it used to be resolved and then
+    # ignored in favour of the literal path.
+    printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
+      "$(sh_quote "$AGY_BIN")" \
+      "$(sh_quote "$AGY_MODEL")" \
+      "$(sh_quote "$WT")" \
+      "$(sh_quote "$AGY_LOG")"
+    printf 'CLI_RC=$?\n'
+    emit_report_commit_push agy "" "$AGY_LOG" "-c user.name=agy-worker -c user.email=agy-worker@localhost" "agy: task $TASK"
+  } > "$LAUNCH_SH"
+fi
 chmod +x "$LAUNCH_SH"
 
 "$TMUX_BIN" new-session -d -s "$TMUX_SESSION" -c "$WT" bash "$LAUNCH_SH"

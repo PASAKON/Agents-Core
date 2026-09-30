@@ -23,6 +23,13 @@ lock row whose owner isn't a task at all.
 
 Idempotent. Safe to run concurrently with other CTOs (uses a single UPDATE
 with a WHERE clause that re-checks the same predicates).
+
+W1.5 (shared ledger): each category acts only on rows this box owns. 1 (the
+disk_queue exemption and the pid check read THIS box's queue file and process
+table) takes `is_local_row` rows; 1b and 3 take local rows plus remote rows
+this box dispatched (`_alive_for_gc` asks over ssh, and reads None -- never
+act -- for any other row); 2 takes rows this box dispatched. A row that is
+not ours is skipped, never cancelled.
 """
 from __future__ import annotations
 
@@ -38,10 +45,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import host as get_host
+from lib.config import host as get_host, self_host
 from runners.branch_poller import remote_pid_alive
 from tools import disk_queue
-from tools.worker_reap import _pid_alive
+from tools.worker_reap import (_pid_alive, is_dispatched_here, is_local_row,
+                               is_remote_row, row_host)
 from tools.worktree import remove_worktree
 
 STALE_PENDING_MINUTES         = 30
@@ -157,19 +165,22 @@ def _reclaim_worktree(task: dict, *, dry_run: bool) -> dict | None:
 
 def _alive_for_gc(t: dict) -> bool | None:
     """True/False/None liveness for the process behind task `t`, dispatched
-    by host. None means "couldn't determine — do not act", matching
-    remote_pid_alive's own contract; a local check never returns None since
-    kill(pid, 0) is always answerable (no pid included — _pid_alive(None)
-    is False).
+    by ownership (W1.5): a local row (host == self) is checked with kill(pid,
+    0); a remote row this box dispatched is asked over ssh; a row that is
+    neither is another box's business and reads None. None means "couldn't
+    determine — do not act", matching remote_pid_alive's own contract; a local
+    check never returns None since kill(pid, 0) is always answerable (no pid
+    included — _pid_alive(None) is False).
     """
-    host_name = t.get("host")
-    if host_name in (None, "mac"):
+    if is_local_row(t):
         return _pid_alive(t.get("pid"))
+    if not is_remote_row(t):
+        return None
     pid = t.get("pid")
     if not pid:
         return False
     try:
-        host_cfg = get_host(host_name)
+        host_cfg = get_host(row_host(t))
     except ValueError:
         return None
     return remote_pid_alive(host_cfg, pid)
@@ -188,6 +199,11 @@ def gc_stale_tasks(
     # Category 1: pending tasks never delegated (no assigned_agent)
     for t in db.list_tasks(status="pending", limit=500):
         if t.get("assigned_agent") is not None:
+            continue
+        # W1.5: the pid check below reads THIS box's process table, and the
+        # disk_queue exemption reads THIS box's queue file -- so only a row
+        # that belongs here (an unspawned row belongs to its dispatcher).
+        if not is_local_row(t):
             continue
         # ADR 0030 §D (task-dbe47b9b): a task sitting in tools/disk_queue.py's
         # FIFO queue (tools/delegate.py's disk_floor refusal path) is
@@ -279,7 +295,7 @@ def gc_stale_tasks(
                 t["id"], "cancelled", actor="gc_stale_tasks",
                 report=(f"gc: stale spawned pending "
                         f">{STALE_SPAWNED_PENDING_MINUTES}min, no live "
-                        f"process (host={t.get('host') or 'mac'})"),
+                        f"process (host={t.get('host') or self_host()})"),
             )
             # update_status already released these locks — 'cancelled' is
             # in lib/db.py's RELEASING_STATUSES. This call is a no-op safety
@@ -291,6 +307,10 @@ def gc_stale_tasks(
 
     # Category 2: conflict tasks whose caller gave up retrying
     for t in db.list_tasks(status="conflict", limit=500):
+        # W1.5: no process to probe, only a status flip -- the dispatcher, whose
+        # caller gave up retrying, is the one owner.
+        if not is_dispatched_here(t):
+            continue
         age = _age_minutes(t.get("updated_at"))
         if age is None or age <= conflict_minutes:
             continue
@@ -311,6 +331,11 @@ def gc_stale_tasks(
 
     # Category 3: rate_limited tasks whose retry_after_ts is overdue
     for t in db.list_tasks(status="rate_limited", limit=500):
+        # W1.5: _alive_for_gc reads None ("not ours") and this branch cancels on
+        # anything but a definite True, so a row that is neither local nor
+        # dispatched here must be skipped before the liveness call.
+        if not (is_local_row(t) or is_remote_row(t)):
+            continue
         rat = _parse_ts(t.get("retry_after_ts"))
         if rat is not None:
             overdue_min = (_now() - rat).total_seconds() / 60

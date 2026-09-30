@@ -63,10 +63,10 @@ RSYNC_EXCLUDES=(
 
 # The 5 .env files (label|remote-path). The 5th lives outside /root (item 4 dir).
 ENV_FILES="\
-claudeflow|/root/projects/mooniex-claudeflow/.env
-option|/root/projects/mooniex-option/.env
-line-automation|/root/projects/mooniex-line-automation/.env
-alphatrader|/root/projects/mooniex-alphatrader/.env
+claudeflow|/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env
+option|/opt/MoonieXHQ/Projects/MoonieX/Option/.env
+line-automation|/opt/MoonieXHQ/Projects/MoonieX/LineAutomation/.env
+alphatrader|/opt/MoonieXHQ/Projects/MoonieX/AlphaTrader/.env
 docker-n8n|/docker/n8n/.env"
 
 # DNS hostnames to snapshot (item 11). Old hstgr.cloud names die at cutover;
@@ -197,19 +197,19 @@ echo; echo "== docker volumes =="; docker volume ls 2>/dev/null
 echo; echo "== /docker/n8n =="; ls -la /docker/n8n 2>/dev/null
 echo; echo "== systemd mooniex-* =="; ls -la /etc/systemd/system/mooniex-* 2>/dev/null
 echo; echo "== .env files =="
-for f in /root/projects/mooniex-claudeflow/.env /root/projects/mooniex-option/.env \
-         /root/projects/mooniex-line-automation/.env /root/projects/mooniex-alphatrader/.env \
+for f in /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env /opt/MoonieXHQ/Projects/MoonieX/Option/.env \
+         /opt/MoonieXHQ/Projects/MoonieX/LineAutomation/.env /opt/MoonieXHQ/Projects/MoonieX/AlphaTrader/.env \
          /docker/n8n/.env; do
   if [ -f "$f" ]; then
     printf '%4s  %s\n' "$(grep -cE '^[[:space:]]*[^#[:space:]]' "$f")" "$f"
   else printf '%4s  %s\n' "MISS" "$f"; fi
 done
-echo; echo "== wineprefix =="; ls -ld /root/projects/mooniex-line-poster/wineprefix 2>/dev/null
+echo; echo "== wineprefix =="; ls -ld /opt/MoonieXHQ/Projects/MoonieX/LinePoster/wineprefix 2>/dev/null
 echo; echo "== sizes =="; du -sh /var/lib/docker/volumes/n8n_data/_data \
-  /var/lib/docker/volumes/traefik_data/_data /root/projects/mooniex-line-poster/wineprefix \
+  /var/lib/docker/volumes/traefik_data/_data /opt/MoonieXHQ/Projects/MoonieX/LinePoster/wineprefix \
   /root/projects/* 2>/dev/null
-echo; echo "== sompong-user.json =="; ls -la /root/projects/mooniex-claudeflow/data/sompong-user.json 2>/dev/null || echo MISSING
-echo; echo "== claudeflow state? =="; ls -ld /root/projects/mooniex-claudeflow/state 2>/dev/null || echo "state ABSENT (expected — Supabase SOT)"
+echo; echo "== sompong-user.json =="; ls -la /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/data/sompong-user.json 2>/dev/null || echo MISSING
+echo; echo "== claudeflow state? =="; ls -ld /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/state 2>/dev/null || echo "state ABSENT (expected — Supabase SOT)"
 echo; echo "== crontab (root) =="; crontab -l 2>/dev/null || echo "(empty)"
 echo; echo "== pm2 =="; pm2 list 2>/dev/null || echo "(pm2 n/a)"
 echo; echo "== ufw =="; ufw status verbose 2>/dev/null || echo "(ufw n/a)"
@@ -226,7 +226,7 @@ REMOTE
 ITEM_DETAIL=""
 
 pull_claudeflow() {
-  local base="/root/projects/mooniex-claudeflow"
+  local base="/opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow"
   do_rsync "claudeflow/data" "$base/data/" || return 1
   do_rsync "claudeflow/.env" "$base/.env"  || return 1
   if ssh_run "test -d '$base/state'"; then
@@ -261,20 +261,20 @@ pull_volume() {  # pull_volume <volname> <relpath>
 
 pull_n8n_compose() { do_rsync "docker-n8n" "/docker/n8n/" || return 1; ITEM_DETAIL="compose + .env"; }
 
-pull_option()  { do_rsync "option"  "/root/projects/mooniex-option/"  "${RSYNC_EXCLUDES[@]}" || return 1; ITEM_DETAIL="repo + .env (excl node_modules/venv)"; }
-pull_alphatr() { do_rsync "alphatrader" "/root/projects/mooniex-alphatrader/" "${RSYNC_EXCLUDES[@]}" || return 1; ITEM_DETAIL="full dir (excl venv) incl traders.json/bot.log/.env"; }
+pull_option()  { do_rsync "option"  "/opt/MoonieXHQ/Projects/MoonieX/Option/"  "${RSYNC_EXCLUDES[@]}" || return 1; ITEM_DETAIL="repo + .env (excl node_modules/venv)"; }
+pull_alphatr() { do_rsync "alphatrader" "/opt/MoonieXHQ/Projects/MoonieX/AlphaTrader/" "${RSYNC_EXCLUDES[@]}" || return 1; ITEM_DETAIL="full dir (excl venv) incl traders.json/bot.log/.env"; }
 
 pull_line_automation() {
-  do_rsync "line-automation" "/root/projects/mooniex-line-automation/" "${RSYNC_EXCLUDES[@]}" || return 1
+  do_rsync "line-automation" "/opt/MoonieXHQ/Projects/MoonieX/LineAutomation/" "${RSYNC_EXCLUDES[@]}" || return 1
   if [ "$DRY_RUN" -eq 0 ]; then
-    ssh_run "/root/projects/mooniex-line-automation/venv/bin/pip freeze 2>/dev/null" \
+    ssh_run "/opt/MoonieXHQ/Projects/MoonieX/LineAutomation/venv/bin/pip freeze 2>/dev/null" \
       >"$RUN_DIR/line-automation/requirements.freeze.txt" 2>/dev/null || true
   fi
   ITEM_DETAIL="queue.db + code + pip-freeze (unit in system/)"
 }
 
 pull_line_poster() {
-  do_rsync "line-poster" "/root/projects/mooniex-line-poster/" "${RSYNC_EXCLUDES[@]}" || return 1
+  do_rsync "line-poster" "/opt/MoonieXHQ/Projects/MoonieX/LinePoster/" "${RSYNC_EXCLUDES[@]}" || return 1
   ITEM_DETAIL="wineprefix + screenshots + launch_line.sh + code"
 }
 

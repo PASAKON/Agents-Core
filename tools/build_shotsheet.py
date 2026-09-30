@@ -27,6 +27,10 @@ COST = {4: 6, 6: 9, 8: 12, 10: 15}
 # plates then contradicted them three ways in ninety seconds.
 PLATE_DIR = Path(os.environ.get("BANCHI_PLATES", Path.home() / "Desktop" / "banchi-plates"))
 
+# Added after the face line in every shot that has a spoken line (see build()).
+CONTINUOUS_TAKE = ("This is one single continuous take with no cuts: the camera never cuts away "
+                   "to a close-up of anyone, and stays on the same framing for the whole clip.")
+
 
 def load(path: Path):
     spec = importlib.util.spec_from_file_location("sheetdata", path)
@@ -194,11 +198,27 @@ def build(d, act: str = "?") -> str:
             if sp not in getattr(d, "VOICE", {}):
                 raise SystemExit(f"shot {n}: speaker {sp!r} has no VOICE block")
             voice = d.VOICE[sp][1]
-            spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
+            # Optional per-character language/accent (film 4, CEO 2026-09-27):
+            # the Isan voice test passed only with Isan-spelled words AND an
+            # explicit accent direction, so a data file may set LANG[key] to a
+            # phrase that replaces the bare "Thai". No LANG entry = unchanged.
+            lang = getattr(d, "LANG", {}).get(sp)
+            if lang:
+                spoken = f"speaks {lang}, in {voice}, {direction}" if voice else f"speaks {lang}, {direction}"
+            else:
+                spoken = f"speaks Thai in {voice}, {direction}" if voice else f"speaks Thai, {direction}"
             ref = f" <IMAGE_REF_{charref[sp]}>" if sp in charref else ""
             out.append(f'{d.CHAR[sp][2]}{ref} {spoken}, and says: "{line}"')
         out.append("")
         out.append("The face of whoever is speaking stays in frame for the whole line.")
+        # Wrong-mouth fix (CEO ruling 2026-09-28, A/B task-c816fbc0): Omni cuts
+        # inside the 8 s clip to a close-up of the listener and lip-syncs the line
+        # onto the only face left in frame. With this sentence, clips with an
+        # in-clip cut went 8/9 -> 0/9 and eye-confirmed wrong-mouth lines 4/18 ->
+        # 0/18. A second sentence telling the listener to keep their lips closed
+        # added nothing (2/20), so it is not here. Dialogue shots only.
+        if lines:
+            out.append(CONTINUOUS_TAKE)
         if nots:
             # A key that is also a CHARACTER key is a continuity rule for that
             # character ("she stays propped on the pillows, the cannula stays

@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
 from lib import db
-from lib.config import get_project, is_c_level
+from lib.config import get_project, is_c_level, self_host
 from lib.notify import info, success, error, warn
 from tools import workdir
 from tools.delegate import _scope_applies
@@ -112,6 +114,33 @@ def _resolve_merge_ref(repo: Path, branch: str) -> str:
     )
 
 
+def _repo_path_for_host(proj: dict, host: str) -> str:
+    """This host's runtime checkout for `proj` (Org Mesh W0.2).
+
+    Same rule as `lib.config.project_path_for_host`, applied to an already-
+    fetched project dict instead of a project KEY: `mac` falls back to the
+    legacy top-level `path` when `paths.mac` is absent, every other host
+    requires `paths.<host>`. Deliberately does not call
+    `project_path_for_host` itself — that function does its own internal
+    `get_project()` lookup against `lib.config`'s real project registry, so
+    calling it here would bypass a test's `monkeypatch.setattr(git_ops,
+    "get_project", ...)` (the established pattern across the merge/revert
+    test suite) and hit the real config/projects.yaml instead of the fake
+    project the test built.
+    """
+    if host == "mac":
+        p = (proj.get("paths") or {}).get("mac") or proj.get("path")
+    else:
+        p = (proj.get("paths") or {}).get(host)
+    if not p:
+        raise ValueError(
+            f"project {proj.get('key')!r} has no path configured for host "
+            f"{host!r} — not routable there. Add it under paths.{host} in "
+            f"config/projects.yaml."
+        )
+    return p
+
+
 CHANNEL_FILES = ("REPORT.md", "BLOCKER.md")
 
 
@@ -186,12 +215,17 @@ def _is_non_ff_rejection(stderr: str) -> bool:
 
 
 def _push_once(repo: Path, base: str) -> tuple[int, str, str]:
-    """Seam for tests: run `git push origin <base>` once, never --force.
+    """Seam for tests: run `git push origin HEAD:<base>` once, never --force.
+
+    `HEAD:<base>` (not a bare `<base>`) so this also works from a detached
+    HEAD (Org Mesh W0.2 merges happen in a temp detached worktree) — a bare
+    branch-name push has no local branch ref to resolve there. Behaviorally
+    identical to `git push origin <base>` from an attached HEAD on `<base>`.
 
     Tests inject transient (HTTP 5xx-style) failures by monkeypatching this
     function directly (real git has no way to fabricate a 500 locally).
     """
-    r = subprocess.run(["git", "push", "origin", base], cwd=str(repo),
+    r = subprocess.run(["git", "push", "origin", f"HEAD:{base}"], cwd=str(repo),
                        capture_output=True, text=True)
     return r.returncode, r.stdout, r.stderr
 
@@ -266,10 +300,73 @@ def _push_base(repo: Path, base: str, merge_sha: str) -> dict:
                 "push_error": f"merged locally, NOT pushed: {reason}"}
 
 
+def _create_temp_worktree(repo: Path, ref: str, *, prefix: str) -> Path:
+    """Add a throwaway detached worktree of `repo` at `ref`.
+
+    `git worktree add` only registers a new working directory against
+    `repo`'s existing object store/refs — it never touches `repo`'s own
+    working directory or current branch, so this is safe to call while
+    `repo` is any host's live, possibly-dirty runtime checkout.
+    """
+    tmp_root = Path(tempfile.mkdtemp(prefix=prefix))
+    wt = tmp_root / "wt"
+    _run(["git", "worktree", "add", "--detach", str(wt), ref], cwd=repo)
+    return wt
+
+
+def _remove_temp_worktree(repo: Path, tmp_dir: Path) -> None:
+    """Undo `_create_temp_worktree`. Best-effort — a leftover temp dir is a
+    disk-hygiene nuisance, never a reason to fail a merge that already
+    landed."""
+    try:
+        _run(["git", "worktree", "remove", "--force", str(tmp_dir)], cwd=repo)
+    except GitOpsError:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        try:
+            _run(["git", "worktree", "prune"], cwd=repo)
+        except GitOpsError:
+            pass
+    shutil.rmtree(tmp_dir.parent, ignore_errors=True)
+
+
+def _ff_runtime_checkout(repo: Path, base: str) -> dict:
+    """Best-effort fast-forward of this host's runtime checkout to
+    `origin/<base>`, after a merge already landed on origin.
+
+    `git merge --ff-only` is the whole mechanism: it only touches files that
+    actually differ between the checkout's old and new tip, so it silently
+    tolerates a dirty file the incoming change never touches, and it
+    refuses — cleanly, with nothing mutated — the moment the checkout has
+    diverged or the incoming change collides with a dirty file. No
+    special-casing needed for any of those cases; git already decides
+    correctly. This never runs inside the merge's own temp worktree, and a
+    refusal here never undoes or blocks the merge that already landed on
+    origin.
+    """
+    r = subprocess.run(["git", "merge", "--ff-only", f"origin/{base}"],
+                       cwd=str(repo), capture_output=True, text=True)
+    if r.returncode == 0:
+        return {"runtime_updated": True, "runtime_reason": None}
+    reason = (r.stderr or r.stdout or "unknown ff error").strip()[:500]
+    return {"runtime_updated": False, "runtime_reason": reason}
+
+
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                push: bool | None = None, cleanup: bool = True,
                gate_tests: bool = False, override_touches_check: bool = False) -> dict:
     """Merge agent branch into project default branch. CTO only.
+
+    Host-aware (Org Mesh W0.2, docs/design/org-mesh.md C5): when the project
+    has an origin remote (`remote:` set in config/projects.yaml), the merge
+    happens in a throwaway detached worktree of `origin/<base>` — never in
+    this host's live runtime checkout, which may be dirty, diverged, or
+    simply not exist at `proj["path"]` (a Mac-only path) on this host. After
+    the merge lands on origin, the runtime checkout is fast-forwarded in
+    place, best-effort — a refusal there (dirty file collision, diverged
+    checkout) never undoes or blocks the merge that already landed.
+
+    A project with no `remote` (no origin) keeps the original local-checkout
+    merge path unchanged, gated by `auto_push` exactly as before.
 
     With gate_tests=True (or proj.gate_tests=true), run proj.test_command
     in the worktree before merging — failure reopens the task with output.
@@ -285,6 +382,11 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
 
     On merge conflict: abort, set status=conflict, file a gh issue with
     the conflict files so the human can resolve.
+
+    `auto_push` on the project controls only whether a WORKER may push its
+    own branch directly — on a project with an origin remote, a merge
+    always pushes (unless the caller explicitly passes push=False, e.g. for
+    testing). A no-origin project keeps deferring to `auto_push` as before.
     """
     if not is_c_level(role):
         raise PermissionError(f"only C-level can merge. got: {role}")
@@ -296,10 +398,17 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
         raise GitOpsError(f"task {task_id} not in review/done state (got {task['status']})")
 
     proj = get_project(task["project"])
-    repo = Path(proj["path"])
     base = proj["default_branch"]
     branch = task["branch"] or branch_name(task["role"], task_id)
     worktree = task.get("worktree")
+    host = self_host()
+    repo = Path(_repo_path_for_host(proj, host))
+    has_origin = bool(proj.get("remote"))
+
+    if has_origin:
+        _run(["git", "fetch", "origin", base], cwd=repo)
+    base_ref = f"origin/{base}" if has_origin else base
+
     merge_ref = _resolve_merge_ref(repo, branch)
 
     if worktree and not override_touches_check:
@@ -309,13 +418,13 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
             declared_touches = []
         if declared_touches:
             if Path(worktree).exists():
-                extra = _touches_violation(worktree, base, declared_touches)
+                extra = _touches_violation(worktree, base_ref, declared_touches)
             else:
                 # Remote worker: its worktree is on another box. Diff the
                 # fetched ref inside the hub clone instead of silently
                 # skipping the gate (the old call raised inside _run and
                 # returned [] -- no gate at all for winbox tasks).
-                extra = _touches_violation(str(repo), base, declared_touches,
+                extra = _touches_violation(str(repo), base_ref, declared_touches,
                                            ref=merge_ref)
             if extra:
                 shown = extra[:20]
@@ -363,9 +472,10 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
 
     # ADR 0030 / Work/RULES.md rule 6 — `work_dir` scope only (task-36aaa3c4).
     # This is BOTH "the close gate" and "the done path" the task brief
-    # names separately: git_ops.py:453 below is the only call site in the
-    # codebase that ever writes status='done' (grepped "done" across
-    # tools/ lib/ runners/ — merge_task is it), so gating here covers both.
+    # names separately: the two merge paths below (_merge_local,
+    # _merge_via_temp_worktree) are the only call sites in the codebase that
+    # ever write status='done' (grepped "done" across tools/ lib/ runners/
+    # — merge_task is it), so gating here covers both.
     # Run before any git mutation (same pre-flight shape as the
     # touches-violation check above) so a refusal has zero git state to
     # undo. Out-of-scope owner_cto: unchanged, this block never runs.
@@ -387,6 +497,25 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                 return {"merged": False, "work_dir_unfiled": True, "unfiled": unfiled,
                         "branch": branch, "base": base, "project": proj["key"]}
 
+    if not has_origin:
+        return _merge_local(task_id, task, proj, repo, base, branch, merge_ref,
+                            worktree, strategy, push, cleanup, host)
+
+    return _merge_via_temp_worktree(task_id, task, proj, repo, base, branch,
+                                    merge_ref, worktree, strategy, push,
+                                    cleanup, host)
+
+
+def _merge_local(task_id: str, task: dict, proj: dict, repo: Path, base: str,
+                 branch: str, merge_ref: str, worktree: str | None,
+                 strategy: str, push: bool | None, cleanup: bool,
+                 host: str) -> dict:
+    """Original merge path: no origin remote, merge directly in `repo`.
+
+    Unchanged from before Org Mesh W0.2 (task brief item 3, byte-for-byte)
+    except for the additive `host`/`runtime_updated`/`runtime_reason` result
+    fields every merge_task caller can now rely on regardless of path.
+    """
     info(f"merging {branch} → {base} on {proj['key']}")
     _run(["git", "checkout", base], cwd=repo)
     try:
@@ -519,7 +648,8 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
         info(f"dropped worker channel file(s) from {base}: {dropped}")
 
     result = {"merged": True, "branch": branch, "base": base, "project": proj["key"],
-              "merge_sha": merge_sha}
+              "merge_sha": merge_sha, "host": host, "runtime_updated": True,
+              "runtime_reason": None}
 
     do_push = push if push is not None else proj.get("auto_push", False)
     if do_push:
@@ -566,6 +696,199 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                                  "timeout_seconds": timeout}
                 error(f"auto_deploy: timeout ({timeout}s) for {proj['key']}")
 
+    result["deploy"] = deploy_result
+
+    if cleanup:
+        try:
+            remove_worktree(task["project"], task["role"], task_id, delete_branch=True)
+            result["cleaned"] = True
+        except Exception as e:
+            result["cleaned"] = False
+            result["cleanup_error"] = str(e)[:300]
+
+    db.update_status(
+        task_id, "done", actor="cto",
+        report=(task.get("report") or "") + f"\n\n## Merge\n{result}",
+        review=json.dumps({"merge_sha": merge_sha, "branch": branch,
+                           "base": base}),
+    )
+
+    try:
+        reap = close_dev(task_id, reason="merge_task")
+        result["tab_closed"] = reap["closed_tab"]
+        result["dev_reap"] = reap
+    except Exception as e:
+        # A reap problem must never fail the merge — it already landed.
+        result["tab_closed"] = False
+        result["tab_close_error"] = str(e)[:300]
+
+    return result
+
+
+def _merge_via_temp_worktree(task_id: str, task: dict, proj: dict, repo: Path,
+                             base: str, branch: str, merge_ref: str,
+                             worktree: str | None, strategy: str,
+                             push: bool | None, cleanup: bool, host: str) -> dict:
+    """Org Mesh W0.2: merge in a throwaway detached worktree of `origin/<base>`
+    so the merge never depends on this host's live runtime checkout — then
+    push, then best-effort fast-forward that checkout in place.
+
+    Every gate the local path has (no-op guard, conflict handling, channel-
+    file drop) runs the same way here, just scoped to the temp worktree
+    instead of `repo`'s own working directory. The touches-check, gate_tests
+    and Work/ close gates already ran in merge_task before this is called.
+    """
+    info(f"merging {branch} → {base} on {proj['key']} (temp worktree, host={host})")
+
+    tmp_dir = _create_temp_worktree(repo, f"origin/{base}", prefix=f"mergewt-{task_id}-")
+    try:
+        pre_sha = _run(["git", "rev-parse", "HEAD"], cwd=tmp_dir)
+
+        # Same no-op guard as the local path: an already-merged branch is a
+        # silent "Already up to date" from `git merge`, not a real merge.
+        if _is_ancestor(tmp_dir, merge_ref, "HEAD"):
+            msg = (f"branch {branch} is already an ancestor of {base} at "
+                   f"{pre_sha[:8]} — nothing to merge (empty/stale branch ref?). "
+                   f"Refusing to report success; branch + worktree preserved for retry.")
+            error(f"merge no-op on {task_id}: {msg}")
+            db.update_status(
+                task_id, "review", actor="cto",
+                review=json.dumps({"merge_error": msg, "branch": branch, "base": base}),
+            )
+            return {"merged": False, "no_op": True, "reason": msg,
+                    "branch": branch, "base": base, "project": proj["key"], "host": host}
+
+        merge_args = ["git", "merge", "--no-ff" if strategy == "no-ff" else "--ff",
+                      "-m", f"Merge {branch} (task {task_id})", merge_ref]
+        try:
+            _run(merge_args, cwd=tmp_dir)
+        except GitOpsError as merge_err:
+            conflicts = _conflict_files(tmp_dir)
+            try:
+                _run(["git", "merge", "--abort"], cwd=tmp_dir)
+            except GitOpsError:
+                pass
+
+            if not conflicts:
+                msg = str(merge_err)[:1500]
+                warn(f"merge failed on {task_id} with no conflict markers "
+                     f"(not a content conflict): {msg}")
+                db.update_status(
+                    task_id, "review", actor="cto",
+                    review=json.dumps({"merge_error": msg}),
+                )
+                return {"merged": False, "conflict": False, "merge_error": msg,
+                        "branch": branch, "base": base, "project": proj["key"], "host": host}
+
+            body = (
+                f"Merge of `{branch}` into `{base}` for task `{task_id}` "
+                f"failed with conflicts.\n\n"
+                f"**Conflicting files** ({len(conflicts)}):\n" +
+                "\n".join(f"- `{f}`" for f in conflicts) +
+                f"\n\n**Worktree**: `{worktree}`\n"
+                f"**Error**:\n```\n{str(merge_err)[:1500]}\n```\n\n"
+                "Resolve manually, then re-run merge_task."
+            )
+            issue_url = ""
+            try:
+                from tools.gh_issue import create_issue
+                issue_url = create_issue(
+                    proj["key"],
+                    f"merge conflict: {branch} → {base}",
+                    body,
+                    labels=["merge-conflict", "agent"],
+                )
+            except Exception as e:
+                warn(f"gh issue creation failed: {e}")
+            db.update_status(
+                task_id, "conflict", actor="cto",
+                review=json.dumps({"conflicts": conflicts, "issue": issue_url,
+                                   "error": str(merge_err)[:1000]}),
+            )
+            error(f"merge conflict on {task_id}: {len(conflicts)} files. issue: {issue_url or '(none)'}")
+            return {"merged": False, "conflict": True, "files": conflicts,
+                    "issue": issue_url}
+
+        merge_sha = _run(["git", "rev-parse", "HEAD"], cwd=tmp_dir)
+        if merge_sha == pre_sha:
+            msg = (f"merge of {branch} did not advance {base} (HEAD still "
+                   f"{pre_sha[:8]}). Aborting without cleanup; branch preserved.")
+            error(f"merge no-op on {task_id}: {msg}")
+            db.update_status(
+                task_id, "review", actor="cto",
+                review=json.dumps({"merge_error": msg, "branch": branch, "base": base}),
+            )
+            return {"merged": False, "no_op": True, "reason": msg,
+                    "branch": branch, "base": base, "project": proj["key"], "host": host}
+
+        dropped = _drop_channel_files(tmp_dir, pre_sha)
+        if dropped:
+            info(f"dropped worker channel file(s) from {base}: {dropped}")
+
+        # Task brief item 4: on an origin project, a merge always pushes
+        # regardless of `auto_push` (that flag now only means "a worker may
+        # not push its own branch directly"). push=False stays available for
+        # tests that need to inspect a landed-but-not-pushed merge.
+        do_push = push if push is not None else True
+        if do_push:
+            push_result = _push_base(tmp_dir, base, merge_sha)
+        else:
+            push_result = {"pushed": False, "on_origin": False}
+    finally:
+        _remove_temp_worktree(repo, tmp_dir)
+
+    result = {"merged": True, "branch": branch, "base": base, "project": proj["key"],
+              "merge_sha": merge_sha, "host": host}
+    result.update(push_result)
+    if push_result.get("pushed"):
+        note = " (integrated remote changes first)" if push_result.get("integrated") else ""
+        success(f"pushed {base} on {proj['key']}{note}")
+    elif "push_error" in push_result:
+        error(f"{push_result['push_error']} ({proj['key']})")
+
+    if push_result.get("pushed"):
+        ff_result = _ff_runtime_checkout(repo, base)
+    else:
+        ff_result = {"runtime_updated": False, "runtime_reason": "not pushed"}
+    if not ff_result["runtime_updated"]:
+        warn(f"runtime checkout on {host} not fast-forwarded for {proj['key']}: "
+             f"{ff_result.get('runtime_reason')}")
+    result.update(ff_result)
+
+    # Auto-deploy acts on the runtime checkout — never fire it against one
+    # that wasn't actually advanced.
+    auto = proj.get("auto_deploy") or {}
+    deploy_result: dict = {"deployed": False, "reason": "no auto_deploy config"}
+    if auto.get("enabled"):
+        if not ff_result["runtime_updated"]:
+            deploy_result = {"deployed": False,
+                             "reason": "runtime_updated=false, skipping deploy"}
+        elif auto.get("requires_ceo_ack"):
+            deploy_result = {"deployed": False, "reason": "awaiting_ceo_ack",
+                             "command": auto.get("command", "")}
+            info(f"auto_deploy: awaiting CEO ack for {proj['key']}")
+        else:
+            cmd = auto.get("command", "")
+            timeout = int(auto.get("timeout_seconds", 60))
+            info(f"auto_deploy: running command for {proj['key']} (timeout={timeout}s)")
+            try:
+                proc = subprocess.run(
+                    cmd, shell=True, capture_output=True, text=True, timeout=timeout
+                )
+                deploy_result = {
+                    "deployed": proc.returncode == 0,
+                    "stdout": proc.stdout[-500:],
+                    "stderr": proc.stderr[-500:],
+                    "rc": proc.returncode,
+                }
+                if proc.returncode == 0:
+                    success(f"auto_deploy: succeeded for {proj['key']}")
+                else:
+                    error(f"auto_deploy: failed rc={proc.returncode} for {proj['key']}")
+            except subprocess.TimeoutExpired:
+                deploy_result = {"deployed": False, "reason": "timeout",
+                                 "timeout_seconds": timeout}
+                error(f"auto_deploy: timeout ({timeout}s) for {proj['key']}")
     result["deploy"] = deploy_result
 
     if cleanup:

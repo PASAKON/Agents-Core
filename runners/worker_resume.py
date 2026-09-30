@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.config import get_project, role as get_role, worker_session_name
+from lib.worker_mcp_config import write_for_worktree
 from runners.worker_init import (  # type: ignore
     _write_dev_settings,
     _symlink_knowledge,
@@ -120,7 +121,7 @@ def main() -> None:
             model=model,
             effort_args=effort_args,
             role_doc=role_doc,
-            mcp_config=ROOT / "config" / "worker.mcp.json",
+            mcp_config=write_for_worktree(worktree, ROOT),
             chrome_args=chrome_args,
             allowed=allowed,
             host_name=host_name,

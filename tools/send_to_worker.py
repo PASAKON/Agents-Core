@@ -77,7 +77,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib import mailbox
-from lib.config import display_for, host as get_host
+from lib import mesh
+from lib.config import display_for, host as get_host, self_host
 from tools import agent_transport
 from tools.agent_transport import (
     _resolve_sender_role,
@@ -106,7 +107,8 @@ def _ps_quote(value: str) -> str:
 
 def _send_remote(task: dict, message: str, *, from_role: str, from_sid: str,
                  label: str) -> str:
-    """Deliver `message` to a non-mac host's DEV via its MAILBOX.md.
+    """Deliver `message` to a DEV on another host (not self_host())
+    via its MAILBOX.md.
 
     GH #150 (task task-e40fc5a1): a `tmux_session` only ever exists for a
     Mac-spawned DEV -- send()'s old mailbox+tmux-wake path silently no-op'd
@@ -208,6 +210,31 @@ def _send_remote(task: dict, message: str, *, from_role: str, from_sid: str,
     return f"delivered to {display_for(role)} ({tid}) on {host_name}: [{label}] : {message}"
 
 
+def _send_via_mesh(task: dict, message: str, *, from_role: str, from_sid: str,
+                   label: str) -> str:
+    """A DEV on another host, ORG_MESH_DISPATCH on (W3.3): a `letters` row
+    addressed to (host, role, task id) and one `deliver_letter` attempt through
+    tools.send_to_cxo.dispatch_letter, the same sender a C-level letter uses.
+    The far node_dispatch checks the task row (role, host, live tmux or an
+    existing worktree) before it writes anything.
+
+    Returns "delivered ..." only when the host wrote it. Any other outcome
+    leaves the row pending for the watchdog's retry and says "queued for
+    <host>": not an error, and not "delivered" either. Never silently drops
+    (GH #150's rule for a remote task)."""
+    from tools import send_to_cxo  # lazy: the flag-off path never imports it here
+
+    tid = task["id"]
+    host_name = task["host"]
+    lid = db.create_letter(host_name, task["role"], message, to_session=tid,
+                           from_role=from_role, from_session=from_sid,
+                           from_host=self_host())
+    target = f"{display_for(task['role'])} ({tid})"
+    if send_to_cxo.dispatch_letter(lid) == "delivered":
+        return f"delivered to {target} on {host_name}: [{label}] : {message}"
+    return f"queued for {host_name}: {target} (letter {lid}): [{label}] : {message}"
+
+
 def _attempt_wake(tmux_sess: str | None, label: str) -> None:
     """Best-effort attention nudge for the just-delivered letter's DEV.
 
@@ -244,7 +271,7 @@ def send(task_id: str, message: str) -> str:
     denied) raises whatever `lib.mailbox.send()` raises; there is no
     fallback transport to catch it and retry.
 
-    GH #150 (task task-e40fc5a1): for a task whose `host` is not mac/None,
+    GH #150 (task task-e40fc5a1): for a task whose `host` is not self_host()/None,
     `tmux_session` is never set (that column only exists for Mac-spawned
     DEVs), so the mailbox+tmux path below would silently no-op the wake
     while still returning "queued" -- delivered a message to nowhere,
@@ -280,8 +307,15 @@ def send(task_id: str, message: str) -> str:
     from_role = sender_identity.role.lower()
     from_sid = sender_identity.session_id or "ceo"
 
-    host_name = task.get("host") or "mac"
-    if host_name != "mac":
+    this_host = self_host()
+    host_name = task.get("host") or this_host
+    if host_name != this_host:
+        # W3.3 (ORG_MESH_DISPATCH on): one `deliver_letter` verb to that host,
+        # whose node_dispatch writes the worker's inbox (or MAILBOX.md on
+        # Windows). Flag off: today's ssh path below, untouched.
+        if mesh.enabled():
+            return _send_via_mesh(task, message, from_role=from_role,
+                                  from_sid=from_sid, label=label)
         return _send_remote(task, message, from_role=from_role,
                             from_sid=from_sid, label=label)
 

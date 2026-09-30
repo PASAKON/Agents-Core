@@ -87,6 +87,7 @@ def run_tests(tmp_db: Path, tmp_worktrees: Path, fake_repo: Path) -> None:
     original_db_path = db_mod.DB_PATH
     original_wt_dir = worktree_mod.WORKTREE_DIR
     original_get_project = worktree_mod.get_project
+    original_path_for_host = worktree_mod.project_path_for_host
     db_mod.DB_PATH = tmp_db
 
     # remove_worktree() looks up the project via get_project() to find the
@@ -99,6 +100,7 @@ def run_tests(tmp_db: Path, tmp_worktrees: Path, fake_repo: Path) -> None:
 
     worktree_mod.WORKTREE_DIR = tmp_worktrees
     worktree_mod.get_project = _fake_get_project
+    worktree_mod.project_path_for_host = lambda key, host: str(fake_repo)
 
     try:
         db_mod.init()
@@ -237,6 +239,7 @@ def run_tests(tmp_db: Path, tmp_worktrees: Path, fake_repo: Path) -> None:
         db_mod.DB_PATH = original_db_path
         worktree_mod.WORKTREE_DIR = original_wt_dir
         worktree_mod.get_project = original_get_project
+        worktree_mod.project_path_for_host = original_path_for_host
 
 
 def main() -> int:

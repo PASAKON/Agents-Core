@@ -828,7 +828,7 @@ def ensure_mcp_config() -> Path:
             # actions (mac_status/org_snapshot/relay_to_session/
             # spawn_c_level). ROOT-relative, unlike the Mac-only literal
             # paths above/below, so this resolves correctly whether ROOT is
-            # the Mac checkout or Contabo's /opt/mooniex-agents.
+            # the Mac checkout or Contabo's /opt/MoonieXHQ/Agents/Core.
             # Launched by absolute file path, NOT `-m` plus `cwd`. Claude Code
             # silently drops an mcpServers entry that carries a `cwd` key: the
             # server still starts by hand, `initialize` and `tools/list` both

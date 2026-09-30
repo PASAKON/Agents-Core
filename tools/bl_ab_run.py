@@ -546,7 +546,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("run-c")
     p.add_argument("--work-dir", required=True)
-    p.add_argument("--repo-path", default="/opt/mooniex-agents", help="Contabo's main checkout path")
+    p.add_argument("--repo-path", default="/opt/MoonieXHQ/Agents/Core", help="Contabo's main checkout path")
     p.set_defaults(func=cmd_run_c)
 
     p = sub.add_parser("score")

@@ -11,6 +11,14 @@ Scans tasks WHERE status='in_progress'. For each:
 
 "Silent" = seconds since tasks.updated_at (Stop-hook relay touches this).
 
+W1.5 duty split (org-mesh): on a shared ledger every duty has exactly one
+owner per row. LOCAL duties (pid liveness, stall, tmux/tab close, finished-DEV
+reap) act only on rows this box runs (`is_local_row`). REMOTE duties (ssh
+stall, close_remote, branch poll, blocked_human escalation) act only on rows
+this box dispatched (`is_remote_row` / `is_dispatched_here`). A row neither is
+ours is skipped -- never stalled, never cancelled. Predicates:
+tools/worker_reap.py; the per-duty table: docs/reports/task-a137ecca/REPORT.md.
+
 Usage:
     python -m runners.watchdog                   # one-shot scan
     python -m runners.watchdog --loop            # forever, sleep INTERVAL_S
@@ -31,16 +39,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib import db
+from lib import db, mesh
 from lib.notify import info, success, warn, error
-from lib.config import host as get_host
+from lib.config import host as get_host, hosts as all_hosts, self_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
-                               close_remote, _chrome_running)
+                               close_remote, _chrome_running, is_dispatched_here,
+                               is_local_row, is_remote_row, row_host)
 from runners.branch_poller import remote_pid_alive
 from runners import branch_poller
 from tools import delegate
 from tools import disk_queue
 from tools import send_to_cto
+from tools import send_to_cxo
 from tools import work_watch
 from tools.gc_stale_tasks import gc_stale_tasks
 from tools import tmux_session
@@ -98,6 +108,15 @@ REAP_GRACE_S = 300
 # Cap on tasks actually reaped (close_dev called) per sweep tick — a runaway
 # state (many leaked tasks at once) must not stall the watchdog's main loop.
 SWEEP_CAP = 20
+
+
+def _mac_surfaces() -> bool:
+    """iTerm tabs, osascript and the Chrome tab-claim registry exist only on
+    the Mac. On any other platform the passes that close those surfaces
+    (stall tab-close, finished-DEV reap, the local half of the terminal
+    sweep) are skipped rather than left to raise on a missing `osascript`
+    (Org Mesh W0.4; W1.5 gives Linux its own local duties)."""
+    return sys.platform == "darwin"
 
 
 def _close_tab(task_id: str) -> bool:
@@ -321,14 +340,18 @@ def sweep_terminal_surfaces() -> list[dict]:
     remote spoke was skipped here entirely, so a winbox/contabo task that
     went terminal by any route other than close_remote's own callers — a
     direct sqlite edit, a cancel — was never reaped, unlike a mac one).
-    Local (host is None/"mac"): the existing pid/tmux/tab/Chrome-tab-claim
-    liveness probe below, gated on an actual live surface being found.
-    Remote (host is a spoke): this machine cannot see winbox's/contabo's
-    process table, tmux server or terminal, so there is no liveness probe to
-    gate on — every terminal remote task past REAP_GRACE_S calls
+    Local (`is_local_row`: host is None or self_host()): the existing pid/
+    tmux/tab/Chrome-tab-claim liveness probe below, gated on an actual live
+    surface being found. Darwin only -- see `_mac_surfaces`.
+    Remote (`is_remote_row`: host is another box AND this box dispatched it,
+    W1.5): this machine cannot see winbox's/contabo's process table, tmux
+    server or terminal, so there is no liveness probe to gate on — every
+    terminal remote task past REAP_GRACE_S calls
     `tools.worker_reap.close_remote` unconditionally and relies on
     close_remote's own re-read-and-refuse-unless-terminal check (ADDENDUM 2)
     as the safety gate instead. See `_sweep_remote_terminal_task`.
+    A row that is neither (another box's own or another box's dispatch) is
+    skipped: on a shared ledger each row has one owner per duty.
 
     Runs close_dev — already idempotent, never raises — on every terminal-
     status task that still shows a live pid, live `wd-<id>` tmux session, an
@@ -352,14 +375,16 @@ def sweep_terminal_surfaces() -> list[dict]:
     normal close_dev caller to run before the sweep treats it as a leak.
     """
     reaped: list[dict] = []
+    mac = _mac_surfaces()
 
-    try:
-        from scripts.browser.tab_registry import all_claims
-        claims = all_claims()
-    except Exception as e:
-        warn(f"sweep: tab_registry import failed: {e}")
-        claims = {}
-    _log_unclaimed_org_tabs(set(claims.keys()))
+    claims: dict = {}
+    if mac:
+        try:
+            from scripts.browser.tab_registry import all_claims
+            claims = all_claims()
+        except Exception as e:
+            warn(f"sweep: tab_registry import failed: {e}")
+        _log_unclaimed_org_tabs(set(claims.keys()))
     claimed_task_ids = set(claims.values())
 
     rows: list[dict] = []
@@ -369,7 +394,7 @@ def sweep_terminal_surfaces() -> list[dict]:
         return reaped
 
     live_tmux = _live_tmux_sessions()
-    live_tab_ids = _live_task_tab_ids()
+    live_tab_ids = _live_task_tab_ids() if mac else set()
 
     for t in rows:
         if len(reaped) >= SWEEP_CAP:
@@ -377,11 +402,15 @@ def sweep_terminal_surfaces() -> list[dict]:
         task_id = t["id"]
         if _silent_seconds(t.get("updated_at")) < REAP_GRACE_S:
             continue
-        host = t.get("host")
-        if host not in (None, "mac"):
-            remote_reap = _sweep_remote_terminal_task(t, host)
-            if remote_reap is not None:
-                reaped.append(remote_reap)
+        if not is_local_row(t):
+            # W1.5: the box that dispatched a remote row reaps it; every other
+            # box sharing the ledger leaves it alone (no second ssh kill).
+            if is_remote_row(t):
+                remote_reap = _sweep_remote_terminal_task(t, row_host(t))
+                if remote_reap is not None:
+                    reaped.append(remote_reap)
+            continue
+        if not mac:
             continue
         pid_alive = _pid_alive(t.get("pid"))
         tmux_alive = tmux_session.session_name_for(task_id) in live_tmux
@@ -435,15 +464,30 @@ def _heartbeat_age_seconds(raw: str) -> float | None:
     return (datetime.now(timezone.utc) - ts).total_seconds()
 
 
+# W2.7 F9 (task-42fdcda7): the slug below ends up inside a command that a
+# remote shell parses (ssh joins its argv into one string for cmd.exe or sh,
+# and tools/remote_worker_log puts it inside a PowerShell string). project and
+# role come from the task row, which create_task does not check, so a row with
+# project `x & <command> &` would run <command> under the admin key. Plain
+# tokens only; anything else reads as "cannot build the path".
+_SLUG_TOKEN_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_TASK_ID_RE = re.compile(r"task-[0-9a-f]{8}")
+
+
 def _remote_worktree_dir(host_cfg: dict, task: dict) -> str | None:
     """`<host's worktrees root>/<project>__<role>__<task-id>` in the host's
     own path style — the same slug windows/spawn-worker.ps1 builds `$wt`
     from. None when hosts.yaml has no `worktrees` root configured for this
     host, or the task row is missing a field the slug needs (e.g. a legacy
-    row created before `host`/`project`/`role` were all populated)."""
+    row created before `host`/`project`/`role` were all populated), or a
+    field is not a plain `[A-Za-z0-9_-]` token (W2.7 F9)."""
     root = host_cfg.get("worktrees")
-    if not root or not task.get("project") or not task.get("role") or not task.get("id"):
+    if not root:
         return None
+    for field in ("project", "role", "id"):
+        value = task.get(field)
+        if not isinstance(value, str) or not _SLUG_TOKEN_RE.fullmatch(value):
+            return None
     slug = f"{task['project']}__{task['role']}__{task['id']}"
     sep = "\\" if host_cfg.get("os") == "windows" else "/"
     return f"{root.rstrip(chr(92)).rstrip('/')}{sep}{slug}"
@@ -460,6 +504,8 @@ def read_remote_heartbeat(host_cfg: dict, task: dict) -> str | None:
     ssh_alias = host_cfg.get("ssh")
     if not ssh_alias:
         return None
+    if not isinstance(task.get("id"), str) or not _TASK_ID_RE.fullmatch(task["id"]):
+        return None  # W2.7 F9: only a real task id reaches the remote shell
     wt_dir = _remote_worktree_dir(host_cfg, task)
     if not wt_dir:
         return None
@@ -476,11 +522,120 @@ def read_remote_heartbeat(host_cfg: dict, task: dict) -> str | None:
     return r.stdout.strip() or None
 
 
+def _mesh_pid_alive(t: dict, host_name: str, host_cfg: dict, pid: int) -> bool | None:
+    """W2.3 (ORG_MESH_DISPATCH): ask the box itself, `pid_alive <task-id>`, in
+    place of the per-OS ssh query. Same True/False/None contract as
+    `remote_pid_alive`: no answer is None (unknown, never dead). A box that
+    answered "cannot say" (windows refuses pid_alive until W3.3; the row is not
+    on its ledger) gets today's ssh query, so it is no blinder than with the
+    flag off."""
+    try:
+        reply = mesh.dispatch(host_name, "pid_alive", t["id"])
+    except mesh.MeshUnreachable:
+        return None
+    if not reply.get("ok"):
+        return remote_pid_alive(host_cfg, pid)
+    alive = (reply.get("result") or {}).get("alive")
+    return alive if isinstance(alive, bool) else None
+
+
+def _retry_queued_remote() -> list[dict]:
+    """W2.3: one more spawn attempt for every `queued_remote` row this box
+    dispatched to another host (a mesh spawn that got no answer). At most one
+    attempt per row per pass: a pass that fails leaves the row queued, and
+    tools.delegate.mesh_spawn_worker counts the attempts in `delegate_log` and
+    the `status_queued_remote` events. Off unless ORG_MESH_DISPATCH is on.
+
+    A host that gives no answer (the row comes back still `queued_remote`)
+    ends that host's turn for this pass, as in `_retry_letters` (W2.7 F12):
+    each dial can wait ConnectTimeout, or a verb's full timeout (300 s for
+    spawn_worker) when the host hangs instead of refusing, so dialling every
+    row of a dead host stalls the watchdog, and each row would spend an
+    attempt on the same outage. Rows keep their order: the head of the host's
+    queue is the one that spends attempts.
+
+    A row that has been unreachable `mesh.max_attempts()` times (default 12,
+    about 55 minutes at this tick; ORG_MESH_MAX_ATTEMPTS) is failed instead of
+    dialled again: `delegate.give_up_queued_remote` releases its path locks and
+    tells the owner once. That needs no dial, so it happens even for a row
+    behind a silent host, and it does not make that host silent."""
+    if not mesh.enabled():
+        return []
+    retried = []
+    silent_hosts: set[str] = set()
+    cap = mesh.max_attempts()
+    for t in db.list_tasks(status="queued_remote", limit=200):
+        if not is_remote_row(t):  # another box's row, or no target host yet
+            continue
+        host_name = row_host(t)
+        try:
+            attempts = delegate._queued_remote_attempts(t["id"])
+            if attempts >= cap:
+                row = delegate.give_up_queued_remote(t["id"], host_name, attempts)
+                retried.append({"task": t["id"], "host": host_name, "status": row["status"]})
+                info(f"watchdog: queued_remote {t['id']} host={host_name} gave up after "
+                     f"{attempts} attempts -> {row['status']}")
+                continue
+        except Exception as e:  # one bad row must not stop the others
+            warn(f"watchdog: queued_remote cap check failed for {t['id']}: {e}")
+            continue
+        if host_name in silent_hosts:
+            continue
+        try:
+            row = delegate.mesh_spawn_worker(t["id"], host_name)
+        except Exception as e:  # one bad row must not stop the others
+            warn(f"watchdog: queued_remote retry failed for {t['id']}: {e}")
+            continue
+        retried.append({"task": t["id"], "host": host_name, "status": row["status"]})
+        info(f"watchdog: queued_remote retry {t['id']} host={host_name} -> {row['status']}")
+        if row["status"] == "queued_remote":
+            silent_hosts.add(host_name)
+    return retried
+
+
+def _retry_letters() -> list[dict]:
+    """W2.4: one more `deliver_letter` attempt for every pending letter THIS host
+    sent to another host (a cross-host send_to_cxo whose host did not answer). At
+    most one attempt per letter per pass; `send_to_cxo.dispatch_letter` counts it
+    (`letters.attempts`, `failed` at 5), never re-sends a delivered letter, and
+    never counts a letter that is no longer pending. Off unless ORG_MESH_DISPATCH
+    is on.
+
+    Only letters with `from_host` == this host are retried. On a shared ledger
+    every box's watchdog sees every pending letter; without this filter they would
+    all dial the same row, the receiver would get it twice and an outage would
+    spend its attempts several times per pass. A letter whose `from_host` is NULL
+    (written before that column existed) is retried by nobody: no owner is guessed.
+
+    A host that gives no answer ends that host's turn for this pass: the rest of
+    its queue is not dialled (each dial can wait ConnectTimeout) and, more to the
+    point, does not each lose an attempt to one outage. Letters keep their order:
+    the head of the queue is the one that spends attempts."""
+    if not mesh.enabled():
+        return []
+    here = self_host()
+    tried = []
+    for host_name in all_hosts():
+        if host_name == here:
+            continue
+        for letter in db.pending_letters(host_name, from_host=here):
+            try:
+                outcome = send_to_cxo.dispatch_letter(letter["id"])
+            except Exception as e:  # one bad letter must not stop the others
+                warn(f"watchdog: letter {letter['id']} retry failed: {e}")
+                continue
+            tried.append({"letter": letter["id"], "host": host_name, "outcome": outcome})
+            info(f"watchdog: letter {letter['id']} -> {host_name}: {outcome}")
+            if outcome == "unreachable":
+                break
+    return tried
+
+
 def _check_remote_stall(t: dict, host_name: str) -> dict | None:
     """GAP 3 (task-59780ac3): a remote in_progress task whose worker died
     mid-task used to be invisible forever — this box's own process table
     can't see winbox's/contabo's pids, so the local stall loop always
-    skipped host != mac entirely.
+    skipped host != self_host() entirely.
 
     Reuses `runners.branch_poller.remote_pid_alive` (do not reimplement) —
     True/False from a real remote query, or None when the ssh call itself
@@ -511,7 +666,10 @@ def _check_remote_stall(t: dict, host_name: str) -> dict | None:
         host_cfg = get_host(host_name)
     except ValueError:
         return None
-    alive = remote_pid_alive(host_cfg, pid)
+    if mesh.enabled():
+        alive = _mesh_pid_alive(t, host_name, host_cfg, pid)
+    else:
+        alive = remote_pid_alive(host_cfg, pid)
     if alive is None:  # ssh unreachable — unknown, never treated as dead
         return None
 
@@ -633,22 +791,63 @@ def _drain_disk_queue() -> dict | None:
     return None
 
 
+# W4.2: a host whose provision failed is left alone this long, so a broken row does
+# not mint and revoke a client secret on every pass.
+PROVISION_BACKOFF_S = 3600
+_provision_retry_at: dict[str, float] = {}
+# W4.6a F1: a pending host nobody approved is skipped by provision_pending. The pass says so once
+# per PROVISION_BACKOFF_S, not on every scan. Kept apart from _provision_retry_at on purpose: that
+# one would also hold the host back for up to an hour AFTER the operator approves it.
+_unapproved_noted_until: dict[str, float] = {}
+
+
+def _provision_identities() -> list[dict]:
+    """W4.2: give every `pending_identity` host its identity (tools.hq_join.provision:
+    Infisical client secret under org-node, sealed to the host's key, GitHub deploy
+    key). Off unless ORG_W42_PROVISION=1 AND this box holds the admin identity file;
+    hq_join.provision_pending checks both and does nothing otherwise. One bad row
+    never stops the others, and a failed one waits PROVISION_BACKOFF_S."""
+    from tools import hq_join  # lazy: keeps the watchdog's import list untouched
+    now = time.time()
+    results = hq_join.provision_pending(
+        skip={h for h, at in _provision_retry_at.items() if at > now})
+    waiting = set()
+    for r in results:
+        if "error" in r:
+            _provision_retry_at[r["host"]] = now + PROVISION_BACKOFF_S
+            warn(f"watchdog: provision of {r['host']} failed: {r['error']}")
+        elif r.get("skipped") == "not_approved":
+            waiting.add(r["host"])
+            if _unapproved_noted_until.get(r["host"], 0) <= now:
+                _unapproved_noted_until[r["host"]] = now + PROVISION_BACKOFF_S
+                warn(f"watchdog: {r['host']} joined but is NOT approved, so it gets no identity: "
+                     f"compare its key fingerprint (`hq_join status`) with the one on the "
+                     f"node's screen, then `hq_join approve`")
+        elif r.get("changed"):
+            info(f"watchdog: provisioned identity for {r['host']}")
+    for host in [h for h in _unapproved_noted_until if h not in waiting]:
+        del _unapproved_noted_until[host]   # approved or gone: it is said again if it comes back
+    return results
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
     rows = db.list_tasks(status="in_progress", limit=200)
     for t in rows:
-        # Remote workers (host != mac) have pids that live on ANOTHER machine;
-        # _pid_alive() here checks the Mac's process table and would read every
-        # one of them as dead (a winbox browser_operator was flipped to
+        # Remote workers (host != self_host()) have pids that live on ANOTHER
+        # machine; _pid_alive() here checks this box's process table and would
+        # read every one of them as dead (a winbox browser_operator was flipped to
         # 'stalled' this way on 2026-09-07). _check_remote_stall asks the box
         # itself over ssh instead (GAP 3, task-59780ac3) — before that fix a
         # remote task whose worker actually died just sat in_progress forever.
-        host = t.get("host") or "mac"
-        if host != "mac":
-            remote_stall = _check_remote_stall(t, host)
-            if remote_stall is not None:
-                stalled.append(remote_stall)
+        # W1.5: only the box that dispatched the row asks; on a shared ledger a
+        # row dispatched elsewhere is not ours to stall (or to ssh about).
+        if not is_local_row(t):
+            if is_remote_row(t):
+                remote_stall = _check_remote_stall(t, row_host(t))
+                if remote_stall is not None:
+                    stalled.append(remote_stall)
             continue
         silent = _silent_seconds(t["updated_at"])
         if silent < PING_AFTER_S:
@@ -696,7 +895,9 @@ def scan_once() -> dict:
             # interactively (e.g. a `spawn Web Designer` REPL) have
             # `pid IS NULL` and are left alone — they may be live work.
             if pid:
-                tab_closed = _close_tab(t["id"])
+                # No iTerm tab off the Mac (`_mac_surfaces`); the tmux
+                # cleanup below is the surface on Linux.
+                tab_closed = _close_tab(t["id"]) if _mac_surfaces() else False
             else:
                 tab_closed = False
                 info(f"watchdog: skip tab close for {t['id']} (no pid; "
@@ -753,6 +954,10 @@ def scan_once() -> dict:
     # treat the CEO as unavailable and escalate to 'stalled' + GH issue.
     human_rows = db.list_tasks(status="blocked_human", limit=200)
     for t in human_rows:
+        # W1.5: a status flip plus a GH issue touches no local resource, so the
+        # one owner is the box that dispatched the row (else each box files one).
+        if not is_dispatched_here(t):
+            continue
         silent = _silent_seconds(t["updated_at"])
         if silent < HUMAN_TIMEOUT_S:
             continue
@@ -783,8 +988,15 @@ def scan_once() -> dict:
     # NOT touch task status — the task is already terminal, the reap is
     # recorded here and in the log, not in tasks.db.
     reaped = []
-    finished_rows = (db.list_tasks(status="review", limit=200)
-                     + db.list_tasks(status="done", limit=200))
+    # close_dev closes an iTerm tab and Chrome tabs via osascript, so this
+    # pass is Darwin-only (`_mac_surfaces`).
+    finished_rows = []
+    if _mac_surfaces():
+        # W1.5: pid + tab are this box's own process table, so local rows only
+        # (before, another box's pid could match a stranger's process here).
+        finished_rows = [t for t in (db.list_tasks(status="review", limit=200)
+                                     + db.list_tasks(status="done", limit=200))
+                         if is_local_row(t)]
     for t in finished_rows:
         pid = t.get("pid")
         if not pid or not _pid_alive(pid):
@@ -846,6 +1058,27 @@ def scan_once() -> dict:
     except Exception as e:
         warn(f"watchdog disk queue drain error: {e}")
         disk_queue_spawned = None
+
+    # Sixth-b pass — mesh spawns that got no answer (W2.3): one retry per
+    # queued_remote row this box dispatched. No-op unless ORG_MESH_DISPATCH is on.
+    try:
+        _retry_queued_remote()
+    except Exception as e:
+        warn(f"watchdog queued_remote retry error: {e}")
+
+    # Sixth-c pass — cross-host letters that got no answer (W2.4): one retry per
+    # pending letter addressed to another host. No-op unless ORG_MESH_DISPATCH is on.
+    try:
+        _retry_letters()
+    except Exception as e:
+        warn(f"watchdog letter retry error: {e}")
+
+    # Sixth-d pass — identity for joined nodes (W4.2): provision every
+    # pending_identity host. No-op unless ORG_W42_PROVISION=1 on the admin host.
+    try:
+        _provision_identities()
+    except Exception as e:
+        warn(f"watchdog identity provision error: {e}")
 
     # Seventh pass — Work/ watcher (Work/RULES.md rules 7-8, ADR 0030 §D,
     # task-dbe47b9b): alert the owning CTO or raise a LungNote to-do for any

@@ -1,36 +1,18 @@
-# WINDOWS CTO launcher — Phase 1 (standalone: no org MCP, no tmux).
-# Runs Claude Code with the Windows-outpost CTO role + Remote Control on,
-# named "WINDOWS CTO #<id>" so the mobile app list says which box this is.
+# WINDOWS CTO launcher -- thin wrapper (Org Mesh W3.2, task-3d392ab3).
 #
-# Lives in the Agents repo under windows\. Since 2026-09-27 winbox runs it
-# straight from its git clone (C:\Users\UsEr\mooniex\repo\MoonieX-Agents,
-# `git pull --ff-only` to update); the role is found via ..\roles.
+# The real launcher logic (model/effort resolution, hub-mode org MCP gate,
+# lock file, tab title, remote control, etc.) now lives in cxo-claude.ps1,
+# generalized to any C-level role (cto/cmo/cgo/cfo). This file stays so
+# existing shortcuts and scheduled tasks that point at win-cto.ps1 keep
+# working unchanged.
 #
-# Usage:  powershell -ExecutionPolicy Bypass -File win-cto.ps1
-# The Desktop shortcut "WINDOWS CTO" (OneDrive\Desktop) wraps exactly that
-# inside Windows Terminal with a blue tab, cwd C:\Users\UsEr\mooniex.
-# Never use the clone itself as cwd: its .claude\settings.json carries the
-# Mac hooks, which would fire on every tool call here.
-# First run needs a person at the desk: /login, then accept folder trust.
+# Usage:  powershell -ExecutionPolicy Bypass -File windows\win-cto.ps1
+# (Any extra args, e.g. -Session/-InitialPrompt/-TabTitle, pass straight
+# through to cxo-claude.ps1.)
 
-$ErrorActionPreference = 'Stop'
+param(
+    [Parameter(ValueFromRemainingArguments = $true)][string[]]$PassThroughArgs = @()
+)
 
-# 8-hex session id, same shape as the Mac/Contabo launchers.
-$sid = -join ((1..8) | ForEach-Object { '{0:x}' -f (Get-Random -Maximum 16) })
-
-# Role prompt sits next to this script on the box (repo layout differs).
-$roleFile = Join-Path $PSScriptRoot 'cto-windows.md'
-if (-not (Test-Path $roleFile)) {
-    $roleFile = Join-Path $PSScriptRoot '..\roles\cto-windows.md'   # repo layout
-}
-$role = Get-Content -Raw $roleFile
-
-$claude = "$env:USERPROFILE\.local\bin\claude.exe"
-if (-not (Test-Path $claude)) { $claude = 'claude' }   # PATH fallback
-
-& $claude `
-    -n "WINDOWS CTO #$sid" `
-    --remote-control `
-    --permission-mode auto `
-    --append-system-prompt $role
+& (Join-Path $PSScriptRoot 'cxo-claude.ps1') -Role cto @PassThroughArgs
 exit $LASTEXITCODE

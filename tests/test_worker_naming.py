@@ -27,6 +27,17 @@ import lib.config as config  # noqa: E402
 import runners.worker_init as worker_init  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def _clear_self_host_cache():
+    """current_host() now delegates to lib.config.self_host(), cached per
+    process (functools.lru_cache) -- without clearing it, the section-3
+    tests below (which flip ORG_HOST between calls) would see a stale
+    answer from whichever ran first."""
+    config.self_host.cache_clear()
+    yield
+    config.self_host.cache_clear()
+
+
 # ---------------------------------------------------------------------------
 # 1. worker_session_name shape per host/role + truncation
 # ---------------------------------------------------------------------------
@@ -104,8 +115,9 @@ def test_short_id_matches_task_id_suffix_for_every_host():
 # 3. current_host() -- default + ORG_HOST override.
 # ---------------------------------------------------------------------------
 
-def test_current_host_defaults_to_mac(monkeypatch):
-    monkeypatch.delenv("ORG_HOST", raising=False)
+def test_current_host_defaults_to_mac(pinned_mac_host):
+    # ORG_HOST unset, no node.yaml, ROOT + platform = the Mac's: pinned so the
+    # answer does not depend on the box (or ORG_HOST) running the suite.
     assert worker_init.current_host() == "mac"
 
 
@@ -114,7 +126,7 @@ def test_current_host_reads_org_host_override(monkeypatch):
     assert worker_init.current_host() == "contabo"
 
 
-def test_current_host_blank_org_host_falls_back_to_mac(monkeypatch):
+def test_current_host_blank_org_host_falls_back_to_mac(pinned_mac_host, monkeypatch):
     monkeypatch.setenv("ORG_HOST", "  ")
     assert worker_init.current_host() == "mac"
 

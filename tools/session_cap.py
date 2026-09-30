@@ -32,6 +32,8 @@ import re
 import sys
 from pathlib import Path
 
+from lib.proc import pid_alive
+
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS = ROOT / "state" / "locks"
 
@@ -60,17 +62,10 @@ _LOCK_RE = re.compile(rf"^({'|'.join(ROLES)})-(.+)$")
 
 
 def _alive(pid: int) -> bool:
-    """Signal 0 tests for existence without touching the process."""
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        # Exists, owned by someone else — still occupying the box.
-        return True
-    except OSError:
-        return False
-    return True
+    """Tests for existence without touching the process (lib.proc: signal 0 on
+    POSIX, an exit-code query on Windows). A pid owned by someone else still
+    occupies the box, so it counts."""
+    return pid_alive(pid)
 
 
 def live_sessions(locks_dir: Path | None = None) -> list[str]:
@@ -95,7 +90,7 @@ def live_sessions(locks_dir: Path | None = None) -> list[str]:
         if not _LOCK_RE.match(lock.stem):
             continue
         try:
-            pid = int(lock.read_text().strip())
+            pid = int(lock.read_text(encoding="utf-8").strip())
         except (OSError, ValueError):
             continue
         if _alive(pid):

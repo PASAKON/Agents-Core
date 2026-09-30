@@ -1,0 +1,41 @@
+# Subscriptions. Append a new entry when a plan changes; never delete old ones (history).
+providers:
+  anthropic: {runner: claude, plans: [{usd: 200, from: "2026-08-29"}, {usd: 20, from: "2026-09-29T10:00:00Z"}]}
+  google:    {runner: agy,    plans: [{usd: 100, from: "2026-09-01"}]}
+  openai:    {runner: codex,  plans: [{usd: 20,  from: "2026-09-01"}]}
+# Free grants / surprise resets: {provider, from, to, note}. While active the provider is treated as weekly=1.0.
+bonuses: []
+buckets:              # one limit that runs out; a candidate "runner:model" belongs to the first bucket whose match prefix it starts with
+  claude:     {provider: anthropic, match: ["claude:"]}
+  codex:      {provider: openai,    match: ["codex:"]}
+  agy-gemini: {provider: google,    match: ["agy:gemini-"]}
+  agy-claude: {provider: google,    match: ["agy:claude-", "agy:gpt-"]}
+# Runners that can run arbitrary shell commands headless.
+shell_runners: [claude, codex]
+# Candidate list per job class, in the CEO's order. "runner:model[:effort]".
+roles:
+  dev_general:    ["agy:gemini-3.8-flash-high", "agy:claude-sonnet-4-6", "codex:", "claude:claude-sonnet-5-5"]
+  # Jobs that must run shell commands (shell_runners only). "codex:" with an empty model = the CLI default;
+  # a model label here would reach the launcher as `-m <label>` (H3, 8db9213f).
+  dev_shell:      ["codex:", "claude:claude-sonnet-5-5"]
+  c_level:        ["claude:claude-opus-5-5:xhigh"]
+  c_level_openai: ["codex:sol:xhigh"]
+  complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]
+  # GH #188: browser_operator tasks whose brief uses tools/agy_browse.py and names a
+  # Browser Home CDP URL (tools/route.class_for). Not a role_classes entry on purpose.
+  browser_agy:    ["agy:gemini-3.8-flash-high"]
+# Worker role (tasks.role) -> router class above. A role not listed stays on claude, no routing.
+# Browser, video, design and security roles need Claude-only tools: never list them here.
+# (A browser_operator brief that uses tools/agy_browse.py routes to browser_agy instead.)
+role_classes:
+  developer: dev_general
+  # Shell-requiring roles routed to dev_shell class.
+  devops:    dev_shell
+  tester:    dev_shell
+router:
+  tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
+  min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown
+quota_sources:           # where each reader looks; ssh host "" = local
+  claude: {ssh: mooniex-vps, path: /opt/claude-usage-monitor/usage.json}
+  codex:  {ssh: mooniex-vps, sessions_glob: "/root/.codex/sessions/*/*/*/rollout-*.jsonl"}
+  agy:    {ssh: "", cmd: ["~/.local/bin/agy", "-p", "/usage", "--output-format", "json"]}

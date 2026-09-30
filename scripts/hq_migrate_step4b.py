@@ -155,7 +155,12 @@ def check_no_other_tasks_in_flight(db_path: Path, task_id: str | None,
         from lib import db as db_lib
     except Exception as exc:  # noqa: BLE001 — undecidable, refuse
         raise GateBlocked(f"cannot import lib.db to check the task registry: {exc}") from exc
-    if not db_path.exists():
+    # `path`/`readonly` are no-ops under the Postgres backend (get_conn talks to
+    # the one global ORG_DB_URL registry regardless) -- so the local sqlite file
+    # existing is only a precondition for the SQLite backend. Checking it
+    # unconditionally would refuse a Postgres-backed gate the moment this box's
+    # own state/tasks.db is missing or archived post-cutover (ADR 0025).
+    if not db_lib.pg_url() and not db_path.exists():
         raise GateBlocked(f"tasks.db not found at {db_path} — cannot verify the org is quiet, refusing")
     placeholders = ",".join("?" for _ in GATE_STATUSES)
     try:

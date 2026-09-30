@@ -1,15 +1,15 @@
 # Agent runners — who can be driven headless, from where
 
-Measured 2026-09-20. Rerun the probes in §5 before trusting this table; auth
+Measured 2026-09-20, updated 2026-09-29. Rerun the probes in §5 before trusting this table; auth
 expires and installs drift.
 
 ## 1. The table
 
 | runner | headless invocation | installed on | auth state | verdict |
 |---|---|---|---|---|
-| `claude` | `claude -p` / positional prompt | Mac ✅, winbox ✅ (`%USERPROFILE%\.local\bin\claude.exe`) | signed in both | **working** — this is what `windows/spawn-worker.ps1` drives |
-| `codex` (codex-cli 0.153.4) | `codex exec [PROMPT]` | **winbox only** (`%APPDATA%\npm\codex.cmd`) — NOT on the Mac | `Logged in using ChatGPT` | **model runs; file/shell tools blocked over SSH** — see §3 |
-| `agy` (Antigravity CLI 1.2.6) | `agy -p "<prompt>" --mode accept-edits --add-dir <dir> < /dev/null` | **Mac only** (`~/.local/bin/agy`) — NOT on winbox | ✅ signed in 2026-09-20 on the Ultra account | **WORKING — writes files headless, no API key** — see §6 |
+| `claude` | `claude -p` / positional prompt | Mac ✅, winbox ✅ (`%USERPROFILE%\.local\bin\claude.exe`), contabo ✅ (`/usr/local/bin/claude`) | signed in all three | **working** — driven by `windows/spawn-worker.ps1` (winbox) and `scripts/spawn-worker-remote.sh` (contabo) |
+| `codex` (codex-cli 0.155.1) | `codex exec [PROMPT]` | **contabo ✅** (`/usr/bin/codex`); Mac ❌ (not signed in); winbox ❌ (LOST in 2026-09-29 reset, needs reinstall + sign-in on desktop) | `Logged in using ChatGPT` on contabo | **contabo: wired via `scripts/spawn-worker-remote.sh`**; winbox lost in 2026-09-29 reset; Mac not signed in |
+| `agy` (Antigravity CLI 1.2.12) | `agy -p "<prompt>" --mode accept-edits --add-dir <dir> < /dev/null` | **contabo ✅** (`/root/.local/bin/agy`), **Mac ✅** (`~/.local/bin/agy`); winbox ❌ (LOST in 2026-09-29 reset, needs reinstall + sign-in on desktop) | ✅ signed in on contabo and Mac (Ultra account); winbox lost | **WORKING** — Mac wired via `runners/agy_local.py`, contabo wired via `scripts/spawn-worker-remote.sh`; winbox lost in 2026-09-29 reset |
 | Antigravity **IDE** | none (GUI) | winbox (`%LOCALAPPDATA%\Programs\antigravity`) | — | no CLI surface; install `agy` there instead of automating the GUI |
 
 Codex `mcp-server` is a dead end: deprecated in v0.149.1, **removed in v0.154.0**

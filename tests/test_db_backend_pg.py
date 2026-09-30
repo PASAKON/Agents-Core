@@ -19,9 +19,12 @@ ADR 0021: no test touches real state. Every test here drops and recreates
 its own schema in `org_test` (never `state/tasks.db`, never a production
 Postgres database) before and after running.
 
-Run via:  pytest tests/test_db_backend_pg.py
-(not in pytest.ini's default `testpaths` — run explicitly, same convention
-as tests/test_multihost.py.)
+This file IS in pytest.ini's default `testpaths` (`tests` is listed) and is
+not `--ignore`d, so a bare `pytest` run collects it -- it just self-skips
+every test via `pytestmark` above unless ORG_TEST_DB_URL is set. CI sets
+ORG_TEST_DB_URL against a `postgres:16` service container (.github/workflows
+/ci.yml) so these tests run there; locally, run explicitly against a
+throwaway Postgres:  ORG_TEST_DB_URL=... pytest tests/test_db_backend_pg.py
 """
 from __future__ import annotations
 
@@ -52,7 +55,7 @@ pytestmark = pytest.mark.skipif(
     ),
 )
 
-_TABLES = ("locks", "events", "tasks", "c_level_sessions")
+_TABLES = ("locks", "events", "tasks", "c_level_sessions", "hosts", "letters")
 
 
 def _drop_all(url: str) -> None:
@@ -244,21 +247,25 @@ def test_migrate_round_trip_counts(tmp_path, monkeypatch):
 
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)  # target is the empty pg db
 
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 0
 
     with db_mod.get_conn() as conn:
         pg_tasks = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
         pg_sessions = conn.execute(
             "SELECT COUNT(*) AS c FROM c_level_sessions").fetchone()["c"]
+        # locks are live path locks, not history -- migrate_tasks_db.py
+        # never copies them (Org Mesh W1.2), even though the source has one.
         pg_locks = conn.execute("SELECT COUNT(*) AS c FROM locks").fetchone()["c"]
     assert pg_tasks == 2
     assert pg_sessions == 1
-    assert pg_locks == 1
+    assert pg_locks == 0
     assert {t1, t2} == {r["id"] for r in db_mod.list_tasks(limit=100)}
 
     # idempotent re-run: DO NOTHING means the counts don't move
-    rc2 = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc2 = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                         "--apply", "--default-host", "mac"])
     assert rc2 == 0
     with db_mod.get_conn() as conn:
         pg_tasks_again = conn.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
@@ -281,7 +288,8 @@ def test_migrate_creates_schema_on_fresh_target(tmp_path, monkeypatch):
     tid = db_mod.create_task("projA", "developer", "s1", "d1")
 
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 0
 
     with db_mod.get_conn() as conn:
@@ -300,7 +308,8 @@ def test_migrate_advances_events_identity_sequence(tmp_path, monkeypatch):
         db_mod.update_status(tid, "in_progress", force=True)  # more events rows
 
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 0
 
     # Insert one more event through the *normal* lib.db API -- must not
@@ -333,7 +342,8 @@ def test_migrate_bad_row_default_aborts_and_reports_pk(tmp_path, monkeypatch, ca
 
     monkeypatch.setattr(db_pg.Connection, "execute", flaky_execute)
 
-    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL, "--apply"])
+    rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
+                        "--apply", "--default-host", "mac"])
     assert rc == 1
 
     captured = capsys.readouterr()
@@ -367,7 +377,7 @@ def test_migrate_skip_bad_rows_continues_and_lists_skipped(tmp_path, monkeypatch
     monkeypatch.setattr(db_pg.Connection, "execute", flaky_execute)
 
     rc = migrate.main(["--from", str(src), "--to", ORG_TEST_DB_URL,
-                        "--apply", "--skip-bad-rows"])
+                        "--apply", "--default-host", "mac", "--skip-bad-rows"])
     assert rc == 0
 
     captured = capsys.readouterr()
@@ -377,3 +387,28 @@ def test_migrate_skip_bad_rows_continues_and_lists_skipped(tmp_path, monkeypatch
     with db_mod.get_conn() as conn:
         ids = {r["id"] for r in conn.execute("SELECT id FROM tasks").fetchall()}
     assert ids == {t1}
+
+
+# ---------------------------------------------------------------------------
+# hosts / letters (Org Mesh W2.1)
+# ---------------------------------------------------------------------------
+
+def test_hosts_and_letters_roundtrip_on_postgres():
+    db_mod.upsert_host("mac", os="darwin", agents_root="/x", provides=["chrome"],
+                        max_workers=4)
+    db_mod.upsert_host("mac", status="online", running=2)  # probe-only, preserves os
+    assert db_mod.get_host("mac")["os"] == "darwin"
+    assert db_mod.get_host("mac")["status"] == "online"
+
+    lid = db_mod.create_letter("contabo", "cto", "hi", from_role="cto")
+    assert isinstance(lid, int)
+    assert db_mod.pending_letters("contabo") == [db_mod.get_letter(lid)]
+    assert db_mod.mark_letter_delivered(lid) is True
+    assert db_mod.mark_letter_delivered(lid) is False
+
+    lid2 = db_mod.create_letter("contabo", "cto", "retry me")
+    for i in range(5):
+        db_mod.record_letter_attempt(lid2, f"e{i}")
+    failed = db_mod.get_letter(lid2)
+    assert failed["attempts"] == 5
+    assert failed["status"] == "failed"

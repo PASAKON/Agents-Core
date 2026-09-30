@@ -121,6 +121,9 @@ def wired(tmp_path, policy_file, monkeypatch):
         worktree_mod, "get_project",
         lambda key: {"path": str(repo), "default_branch": "main"},
     )
+    # create_worktree resolves the checkout per host (task-6f6e5179), so the
+    # stub must answer for whichever host runs the suite.
+    monkeypatch.setattr(worktree_mod, "project_path_for_host", lambda key, host: str(repo))
     return {"origin": origin, "repo": repo, "wt_dir": wt_dir}
 
 

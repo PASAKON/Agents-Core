@@ -73,11 +73,12 @@ def create_task(
     depends_on: str = "",
     touches: str = "",
     host: str = "",
+    needs: str = "",
 ) -> str:
     return reg.dispatch_sync(
         "create_task", project=project, role=role, title=title,
         description=description, depends_on=depends_on, touches=touches,
-        host=host,
+        host=host, needs=needs,
     )
 
 

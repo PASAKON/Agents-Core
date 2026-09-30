@@ -163,6 +163,9 @@ def _fake_create_worktree(project_key, role, task_id, sparse=False):
 
 
 def test_delegate_task_exports_work_dir_for_pilot_owner(temp_db, work_root, monkeypatch):
+    # The iTerm spawn path runs only on darwin (tools/delegate._spawn_local);
+    # pin it so this passes on the Linux CI runner too.
+    monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
     monkeypatch.setattr(delegate, "get_project", lambda key: _fake_project())
     monkeypatch.setattr(delegate, "create_worktree", _fake_create_worktree)
@@ -248,6 +251,7 @@ def _fake_git_ops_project(repo: Path) -> dict:
     return {"key": "test-project", "path": str(repo), "default_branch": "main"}
 
 
+@pytest.mark.usefixtures("pinned_mac_host")  # fake project carries only the Mac `path`
 def test_merge_refused_while_work_folder_has_unfiled_files(
     temp_db, work_root, merge_repo, monkeypatch
 ):
@@ -267,6 +271,7 @@ def test_merge_refused_while_work_folder_has_unfiled_files(
     assert _git(merge_repo, "log", "-1", "--format=%s") == "C0 base"
 
 
+@pytest.mark.usefixtures("pinned_mac_host")  # fake project carries only the Mac `path`
 def test_merge_allowed_after_work_folder_is_clean(
     temp_db, work_root, merge_repo, monkeypatch
 ):
@@ -282,6 +287,7 @@ def test_merge_allowed_after_work_folder_is_clean(
     assert _git(merge_repo, "log", "-1", "--format=%s") == f"Merge {branch} (task {tid})"
 
 
+@pytest.mark.usefixtures("pinned_mac_host")  # fake project carries only the Mac `path`
 def test_merge_unchanged_for_non_pilot_owner_even_with_unfiled_files(
     temp_db, work_root, merge_repo, monkeypatch
 ):
@@ -302,6 +308,7 @@ def test_merge_unchanged_for_non_pilot_owner_even_with_unfiled_files(
     assert (folder / "out" / "deliverable.mp4").exists()
 
 
+@pytest.mark.usefixtures("pinned_mac_host")  # fake project carries only the Mac `path`
 def test_merge_allowed_for_pilot_task_with_no_work_folder(
     temp_db, work_root, merge_repo, monkeypatch
 ):
