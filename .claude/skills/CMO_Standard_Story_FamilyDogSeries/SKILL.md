@@ -54,8 +54,9 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 
 ## 2 · How an episode is written
 
-1. **Every script names the real fact it draws from** (a line such as "from: Mimi + sister home 19:00") so the
-   CEO can check the episode against his own life.
+1. **Every script names the real fact it draws from**, with the date of its §7 log entry (a line such as
+   "from: 2026-09-30 sister home 19:00") so the CEO can check the episode against his own life. **Re-read §7
+   before writing every episode** — the CEO feeds stories in pieces and the log is the newest version.
 2. **Mimi acts as Mimi does.** Her behaviour in a script comes from §4's list, not from a generic dog.
 3. **True events are adapted, not reported.** The CEO's stated aim is to adapt true events so viewers feel
    they know this dog. Change names and details the family would not want public before a script is approved.
@@ -69,8 +70,14 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
    confirms each sheet**). Whatever the CEO confirms is copied into §6 below.
    [SUPERSEDED 2026-09-30 by this ruling] "the same image style the rival page «กาฟิว» uses" — the rival look is
    no longer the target; never the rival's character, plots or captions either way.
-5. Episode structure and the ≤2:30 length come from the 90-day plan (`docs/plans/khaoniao-roadmap-90d-2026-09-28.md`
-   when it reaches origin), not from this file.
+5. **Format (CEO 2026-09-30): one clip a day, 2–3 minutes; the first version is 3:00.** Posting plan, cost and
+   calendar: `docs/plans/khaoniao-posting-plan-2026-09-30.md`. The writing order and the Structure gate are
+   `CMO_Standard_Story_ThaiMoralDrama` (§Writing a new episode, §Structure gate) — this series keeps steps 1–11 and
+   replaces the moral "karma" with the formula below. Hooks every ~1 minute (two at 3:00).
+6. **The formula (from the «แมวซีรี่ย์» teardown, 2026-09-28, 5 of 5 transcribed clips MEASURED):** the dog looks bad
+   first → a person misjudges her, **in words only, nothing harmful on screen** → the reveal shows she did it out of love
+   → a warm ending. The title asks "why did Mimi…?". Every episode is **self-contained**: a stranger who has seen
+   nothing else must follow it. Copy the pattern, never the rival's cat, plots or captions.
 
 ## 3 · Check before a script goes to the CEO
 
@@ -108,7 +115,36 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 
 ## 6 · The cast as the CEO confirmed it
 
-None confirmed yet — round 1 of the four character sheets (Mimi, mother, brother, sister) goes to the CEO on
-2026-09-30. When he says yes to a sheet, copy here: the file on Drive, the look in one line, the voice in one line.
+Style (CEO 2026-09-30): **3D Thai cartoon**, funny big-head proportions, Thai faces and Thai things, soft light and
+shadow. Sheets: `Assets/Agents/Core/khaoniao-family/sheets/` (Drive filing waits on the CEO's folder OK). Full
+design, voice direction and prompts: `docs/reports/khaoniao-family-style/STYLE-CARD.md`.
+
+| Who | File | Look in one line | Status |
+|---|---|---|---|
+| Mimi | `sheet-mimi-v3.png` | fluffy black cartoon dog, silver brows and beard, tan chin and paws, white chest and bib, huge silver-tipped ears | CEO saw it, no change asked |
+| Mother | `sheet-mother-v3.png` | short dumpling shape, sleepy eyes, ladle in the bun, pha thung sarong, pha khao ma on the shoulder, amulet necklace, chili apron, pink slippers | 3D chosen |
+| Brother | `sheet-brother-v3.png` | stocky tycoon, navy gold-button blazer, glasses, earbud, lucky-stone bracelet, elephant-print shorts and flip-flops (the work-from-home joke) | CEO saw it, no change asked |
+| Sister | `sheet-sister-v4.png` | angular, tall, high ponytail with a burgundy streak, winged eyeliner, red lips, **Thai office outfit** (white short-sleeve blouse, black pencil skirt, low heels, blank badge on a lanyard, handbag, car key with a plush charm) | outfit changed at the CEO's request |
+
+- CEO 2026-09-30: *"3D ของแม่ตัดทิ้งได้เลย"*. Read by the CMO as "drop the **2D** mother (`sheet-mother-2d-v3.png`)",
+  because the CEO had just said "เอา 3D ได้เลย". Nothing was deleted; if he meant the 3D mother, the 2D one is
+  the fallback. [to confirm]
+- Not decided: whether Mimi speaks (words, or sounds only), each person's voice, story names (§4).
+- The voice lines in the STYLE-CARD are **direction for the prompts**, not chosen voices: Flow binds a voice to the
+  character (`CMO_Knowledge_Flow_Omni1.1` §Voices).
+
+## 7 · Family log — dated, newest first
+
+The CEO tells family stories in pieces. **The same turn he tells one: add a row here, dated, then say which episode
+it feeds.** This table is the newest version of the family; §1 is the stable core. `seed` = told, not yet written;
+`script` = in a script; `shot`; `posted`. A fact the CEO has not said goes to him as a question, never in this table.
+**The newest row wins.** If a later row contradicts an earlier one, keep the old row, mark it `[SUPERSEDED <date>]`
+with the row that beat it, and re-check every script that cited it (`script` rows are reopened, `posted` rows are flagged to the CEO).
+
+| Date | Told by | What happened / what is true | Used in |
+|---|---|---|---|
+| 2026-09-30 | CEO | Photo IMG_4406 taken today: the street in front of the house is under brown water (looks like a flood; **what happened and what Mimi did — not told yet**). | seed |
+| 2026-09-30 | CEO | Photo IMG_4405 taken today: Mimi sits on the kitchen-side floor, facing the camera, tongue out. | look only |
+| 2026-09-30 | CEO | Sister: team lead, Civic, home 19:00, Monday–Saturday, Sunday off. Brother: works from home all day. Mother at home. Father farms rice upcountry; grandmother upcountry. (§1) | seed |
 
 ## Field notes
