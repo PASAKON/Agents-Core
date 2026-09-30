@@ -177,3 +177,6 @@ state/agy-browse-fire-*.lock
 # router runtime files (quota snapshot every 10 min, learned cost table)
 state/quota-snapshot.json
 state/cost-table.json
+
+# W3.3: spawn-worker.ps1 -AgentsRoot <checkout> writes launch-<task>.cmd at the checkout root
+launch-*.cmd
