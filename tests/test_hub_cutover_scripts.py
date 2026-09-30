@@ -324,7 +324,6 @@ def repo(tmp_path):
 def _run_remote(root: Path, timeout: float = 15) -> subprocess.CompletedProcess:
     env = {
         "ROOT": str(root),
-        "ENVF": str(root / "does-not-exist.env"),
         "FLAG": "--sessions-closed",  # never depend on this box's real tmux state
     }
     return _run(["bash", str(CONTABO_REMOTE)], env=env, timeout=timeout)
@@ -434,6 +433,7 @@ def test_contabo_remote_step5_carries_second_ledger_flags():
     assert "--append-events" in line
     assert "--on-collision" not in line, \
         "a collision must stop the cutover for a human, not be auto-resolved"
+    _assert_runs_inside_infisical_run(text, line)
 
 
 def test_contabo_remote_step5b_uses_subset_mode():
@@ -442,6 +442,16 @@ def test_contabo_remote_step5b_uses_subset_mode():
                   text, re.MULTILINE)
     assert m, "step 5b's verify_migration_counts.py invocation not found"
     assert "--mode subset" in m.group(0)
+    _assert_runs_inside_infisical_run(text, m.group(0))
+
+
+def _assert_runs_inside_infisical_run(text: str, line: str) -> None:
+    """W1.8: a command that takes "$ORG_DB_URL" gets it from `infisical_run` (Infisical
+    Agents-Core/prod), never from a sourced env file -- the line before it opens that block."""
+    before = text[:text.index(line.strip())].rstrip().splitlines()[-1]
+    assert "infisical_run sh -ec" in before, before
+    assert '"$ORG_DB_URL"' in line
+    assert not re.search(r"^\s*(source|\.)\s+.*ENVF", text, re.MULTILINE)
 
 
 # ============================================== verify_migration_counts.py:

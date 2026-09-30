@@ -17,7 +17,7 @@ Infisical rules (CLAUDE.md §Secrets, CEO 2026-09-25/26). Its line "a group-read
 | `tools/infisical_setup.py run` fetches the project's secrets and `os.execvpe`s the command; it refuses to start when the folder is empty | read, `:568` |
 | The Contabo identity file is root 0600, and the identity reads `Agents-Core` (`:88`) | runbook + code |
 | Precedent: `mooniex-line-queue.service.d/infisical.conf` (clears `EnvironmentFile`, `ExecStart` through `run`, `User=root`) | `cat` |
-| Which key names `/root/.config/mooniex/org-db.env` holds | **not checked** (the file is not opened) |
+| Which key names `/root/.config/mooniex/org-db.env` holds | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` only, no `ORG_DB_URL` (CTO, 2026-09-30) |
 
 ## Consequence: nothing is installed before the cutover window
 
@@ -33,7 +33,8 @@ installs nothing. The installer runs inside G1 (W1.10), next to `cutover-mac.sh`
   `lib/db.py` reads that name; rename in PLAN §6 phase 6.
 - The URL must reach Postgres from Contabo itself. If the file holds only the hub's own password,
   the value to store is built on the box (for example, the tailnet address the Mac already uses), again without being printed.
-- The existing file stays, as the rollback, for 7 green days (the line-queue rule), then goes.
+- The existing file is never extended (CLAUDE.md §Secrets). It stays for 7 green days (the line-queue
+  rule), then goes. `org-snapshot.service` still names it (open item below).
 
 ## The units (drop-ins, tracked under `deploy/systemd/<unit>.d/org-db.conf`)
 
@@ -52,14 +53,43 @@ installs nothing. The installer runs inside G1 (W1.10), next to `cutover-mac.sh`
   package, and the venv is already the waker's interpreter. The two existing `EnvironmentFile` lines
   stay untouched: they are not extended, and moving them is PLAN §6 phase 3.
 - **C-level MCP servers on Contabo**: the W1.6 switch, `org_db: hub` in `/root/.config/mooniex/node.yaml`.
-  The W1.6 wrapper still sources the existing env file. Moving it to `infisical run` is a follow-up,
-  and it waits for the secretary's own phase-3 move.
+  The wrapper gets `ORG_DB_URL` from `infisical run` when the env file lacks it (see the installer section).
 
-## The installer: `scripts/hub/cutover-contabo.sh` (dry-run by default)
+## The installer: `scripts/hub/contabo-cutover-remote.sh` step 4 (no new script)
 
-`--apply` copies the three drop-ins, writes `org_db: hub` (through `cutover_flip.set_org_db`), runs
-`daemon-reload` and restarts the three units. `--rollback --apply` removes all four and restarts.
-Dry-run prints the diff. W1.9 rehearses both directions against `org_test`.
+The Contabo half of the cutover already exists and runs inside G1 (W1.10), so the installer is its
+step 4, not a new script (task-1670b1f8). Step 4 used to append `ORG_DB_URL` and `ORG_TEST_DB_URL` to
+the env file. It now does this, and refuses before any write if a check fails:
+
+1. Refuse unless all three drop-ins exist in the checkout and all three units are installed.
+2. Refuse unless `infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python -c <connect>`
+   connects with `ORG_DB_URL`. The snippet prints no value.
+3. Copy the three drop-ins to `/etc/systemd/system/<unit>.service.d/org-db.conf`.
+4. Write `org_db: hub` into `/root/.config/mooniex/node.yaml` with `cutover_flip.set_org_db`
+   (idempotent, every other line kept, a missing file created).
+5. `systemctl daemon-reload`. Nothing restarts yet.
+
+Steps 5, 5b and 7 (migrate, verify, read-back) take `ORG_DB_URL` through the same `infisical_run`,
+not from a sourced file. The three units restart in a new step 8, after the migration and the
+tombstone, and the script fails if any is not active. `ORG_TEST_DB_URL` is gone: nothing in the
+cutover reads it, so W1.9's rehearsal fetches its own `org_test` URL. No env file is read or written.
+
+**Wrapper (`scripts/hub/with-org-db-env.sh`).** Contabo's env file holds `POSTGRES_*` only, so a wrapper
+that only sourced it would leave the Contabo MCP servers on SQLite after the cutover. The order is now:
+(a) source the env file if it exists (the Mac's carries `ORG_DB_URL`); (b) if `ORG_DB_URL` is still
+unset and `/etc/infisical/<host>.env` exists (`<host>` from `ORG_HOST`, else the node file's `host:`;
+`INFISICAL_CRED_DIR` and `MOONIEX_INFISICAL_ID_FILE` override the path for tests), exec
+`tools/infisical_setup.py run Agents-Core prod -- "$@"`; (c) else a plain exec. The identity file is
+tested for existence only, and the wrapper prints no value.
+
+**Rollback** (both `contabo-cutover*.sh` headers): remove the three drop-ins, remove the `org_db:` line
+(`cutover_flip.py --rollback --apply`), `systemctl daemon-reload`, restart the three units. Tests:
+`tests/test_w18_contabo_consumers.py`, against fakes and a throwaway root. W1.9 rehearses both
+directions against `org_test`.
+
+**Open item, not in this task.** `deploy/systemd/org-snapshot.service` still has
+`EnvironmentFile=/root/.config/mooniex/org-db.env`. That file has no `ORG_DB_URL`, so the snapshot export
+would get none after the cutover. It needs its own drop-in (root, `infisical_setup.py run ... --as contabo`).
 
 ## Console (`mooniex-console:src/orgdb.js:14`)
 
