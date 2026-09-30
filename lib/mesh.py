@@ -9,7 +9,7 @@ a hub row for, never send a shell to. This module is the client half:
 
   host == self_host()   in-process, `tools.node_dispatch.dispatch(verb, args)`.
   any other host        `ssh -i ~/.ssh/org_dispatch -o BatchMode=yes
-                        -o ConnectTimeout=10 <alias> <verb> <args...>`; the
+                        -o ConnectTimeout=10 <SSH_OPTIONS...> <alias> <verb> <args...>`; the
                         remote `authorized_keys` line pins that key to
                         `python -m tools.node_dispatch` (docs/ops/node-dispatch.md,
                         installed in W2.8).
@@ -56,6 +56,28 @@ VERB_TIMEOUT_S = {
 
 _SSH_FAILED = 255  # ssh's own exit code: no connection, no auth, no host
 
+# W2.7 F4 (task-42fdcda7): the dispatch key and only it, on a fresh
+# connection, with nothing forwarded. Without these, ~/.ssh/config for the
+# alias applies: a ControlMaster/ControlPath entry rides an admin connection
+# that is already open (the verb then runs as a plain command under the admin
+# key and the forced command is never used), and agent keys are offered when
+# org_dispatch is refused. IdentitiesOnly does not drop IdentityFile lines the
+# config names for that alias, so W2.8 gives the mesh its own `<host>-mesh`
+# alias whose only identity is the dispatch key (docs/ops/node-dispatch.md).
+SSH_OPTIONS = (
+    "BatchMode=yes",
+    f"ConnectTimeout={CONNECT_TIMEOUT_S}",
+    "IdentitiesOnly=yes",
+    "IdentityAgent=none",
+    "ControlMaster=no",
+    "ControlPath=none",
+    "ForwardAgent=no",
+    "ForwardX11=no",
+    "ClearAllForwardings=yes",
+    "PermitLocalCommand=no",
+    "StrictHostKeyChecking=yes",
+)
+
 
 class MeshUnreachable(Exception):
     """The host did not answer with a node_dispatch reply: no route, ssh error,
@@ -94,9 +116,8 @@ def build_argv(host: str, verb: str, args: tuple[str, ...] | list[str]) -> list[
     alias = config.host(host).get("ssh")
     if not alias:
         raise MeshUnreachable(f"host {host!r} has no ssh alias; nothing to dial")
-    return ["ssh", "-i", os.path.expanduser(SSH_KEY),
-            "-o", "BatchMode=yes", "-o", f"ConnectTimeout={CONNECT_TIMEOUT_S}",
-            alias, command]
+    options = [part for opt in SSH_OPTIONS for part in ("-o", opt)]
+    return ["ssh", "-i", os.path.expanduser(SSH_KEY), *options, alias, command]
 
 
 def dispatch(host: str, verb: str, *args: str, timeout: float | None = None) -> dict:

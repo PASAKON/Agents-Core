@@ -179,6 +179,11 @@ def test_remote_builds_the_exact_ssh_argv(monkeypatch, tmp_path):
     (argv, kw), = fake.calls
     assert argv == ["ssh", "-i", _key(tmp_path),
                     "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+                    "-o", "IdentitiesOnly=yes", "-o", "IdentityAgent=none",
+                    "-o", "ControlMaster=no", "-o", "ControlPath=none",
+                    "-o", "ForwardAgent=no", "-o", "ForwardX11=no",
+                    "-o", "ClearAllForwardings=yes", "-o", "PermitLocalCommand=no",
+                    "-o", "StrictHostKeyChecking=yes",
                     config.host("contabo")["ssh"], f"spawn_worker {TID}"]
     assert kw["stdin"] is subprocess.DEVNULL
     assert kw["capture_output"] is True and kw["text"] is True

@@ -74,18 +74,44 @@ puts the caller's text on it; the caller's text arrives only as
   later pull-side caller, not an open door. If it is ever opened, apply
   `docs/ops/mac-sshd-hardening.md` first.
 
-### Client side (lib/mesh.py), open in W2.7
+### Client side (lib/mesh.py)
 
 `ssh` reads `~/.ssh/config` for the alias. A `ControlMaster`/`ControlPath` entry
-for `mooniex-vps` or `winbox` makes a mesh call ride an admin connection that is
-already open: the verb then runs as a plain command under the admin key, and the
-forced command is never involved. Agent keys and `IdentityFile` entries are also
-offered when the far side refuses `org_dispatch`. The planned argv adds
-`-o IdentitiesOnly=yes -o IdentityAgent=none -o ControlMaster=no
--o ControlPath=none -o ForwardAgent=no -o ForwardX11=no -o ClearAllForwardings=yes
--o PermitLocalCommand=no -o StrictHostKeyChecking=yes` (waits on
-`tests/test_w23_mesh_dispatch.py`, which pins the argv). Until it lands, a
-dispatcher's `~/.ssh/config` keeps multiplexing off for those aliases.
+for `mooniex-vps` or `winbox` would make a mesh call ride an admin connection
+that is already open: the verb then runs as a plain command under the admin key,
+and the forced command is never involved. Agent keys would also be offered when
+the far side refuses `org_dispatch`. Since W2.7 (F4) `lib/mesh.SSH_OPTIONS` puts
+these on every mesh call:
+
+    -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o IdentityAgent=none
+    -o ControlMaster=no -o ControlPath=none -o ForwardAgent=no -o ForwardX11=no
+    -o ClearAllForwardings=yes -o PermitLocalCommand=no -o StrictHostKeyChecking=yes
+
+`StrictHostKeyChecking=yes` means the far host's key must already be in the
+dispatcher's `known_hosts`: W2.8 records it first, or every call is
+MeshUnreachable.
+
+**Dedicated alias (W2.8).** `IdentitiesOnly` does not drop `IdentityFile` lines
+the config names for that alias, so the admin key is still tried when
+`org_dispatch` is refused, and W2.8 check 1 could pass with the forced command
+missing. Give the mesh its own alias per host, `<host>-mesh`, whose only identity
+is the dispatch key. `config/hosts.yaml` `ssh:` cannot simply point at it: the
+admin readers (watchdog heartbeat, branch_poller, delegate's remote spawn and
+disk check, worker_reap, quota, mesh_check) read the same field and need the
+admin key. W2.8 adds a separate field (e.g. `mesh_ssh: contabo-mesh`) and
+`lib/mesh.build_argv` reads it; that is a code change for W2.8, not made here.
+The alias itself, on each dispatcher:
+
+    Host contabo-mesh
+        HostName <contabo tailnet IP>
+        User root
+        IdentityFile ~/.ssh/org_dispatch-<dispatcher>
+        IdentitiesOnly yes
+        ControlMaster no
+        ControlPath none
+
+Keep the admin alias (`mooniex-vps`, `winbox`) for people and the watchdog; never
+put the admin key under a `-mesh` alias.
 
 ### W2.8 acceptance checks, once per host after the key is installed
 
