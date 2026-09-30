@@ -32,6 +32,7 @@ from lib.config import (
     self_host, worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
+from lib.proc import pid_alive
 from tools import disk_queue
 from tools import send_to_cto
 from tools import storage_policy
@@ -383,13 +384,8 @@ def _operator_counts_as_live(task: dict, resolved_host: str) -> bool:
     if not pid or resolved_host != self_host():
         return True
     try:
-        os.kill(int(pid), 0)
-        return True
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except (TypeError, ValueError, OSError):
+        return pid_alive(int(pid))
+    except (TypeError, ValueError):
         return True
 
 # IRON-RULES §29: every spawn must ship a visible kickoff ping. Sleep
@@ -772,16 +768,9 @@ def _pid_alive(pid: int | None) -> bool:
     pid the instant it claims a task (before os.execvpe replaces it with
     claude), so a live pid on an in_progress row means a DEV is genuinely
     running — used by the W4 re-delegate guard to avoid resetting/clobbering
-    it. os.kill(pid, 0) sends no signal, just probes existence."""
-    if not pid:
-        return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
-        return True  # exists but owned by another user — still alive
-    return True
+    it. lib.proc probes existence without a signal (os.kill(pid, 0) is
+    CTRL_C on Windows). A pid owned by another user is still alive."""
+    return pid_alive(pid)
 
 
 def _seconds_since(iso_ts: str | None) -> float | None:
@@ -1711,6 +1700,18 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
     task_id = task["id"]
     role_name = task["role"]
     project_key = task["project"]
+    if sys.platform == "win32":
+        # Neither backend below exists here: no tmux, and WORKER_LAUNCHER is
+        # bash. Windows starts a worker as a one-shot scheduled task in session 1
+        # (windows/spawn-worker.ps1, wired in W3.3). Until then fail the row with
+        # the reason; tmux.create would die with a bare FileNotFoundError and
+        # leave a pending row that looks like a spawn in flight.
+        msg = ("local spawn is not available on Windows yet: no tmux and no bash "
+               "launcher here. Delegate from the Mac or Contabo with host='winbox' "
+               "(remote launcher), or wait for the scheduled-task spawn (W3.3).")
+        error(f"{task_id}: {msg}")
+        db.update_status(task_id, "failed", delegate_log=msg, actor="cto")
+        return db.get_task(task_id)
     # GH #180: the same `.org-task.json` sidecar a remote spawn writes, so the
     # self-repo guard reads this task's touches from the worktree itself.
     _write_task_sidecar((db.get_task(task_id) or task).get("worktree"),

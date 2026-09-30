@@ -37,6 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib import db
 from lib.config import hosts as config_hosts, self_host
 from lib.notify import info, warn
+from lib.proc import pid_alive
 from tools.itermtab import close_tab
 from tools import tmux_session
 
@@ -105,16 +106,11 @@ def is_remote_row(task: dict) -> bool:
 def _pid_alive(pid: int | None) -> bool:
     """True if a process with this PID exists and is reachable.
 
-    Uses kill(pid, 0) — sends no signal, just probes existence + permission.
-    Returns False for None, 0, or any error.
+    lib.proc probes existence without a signal. A pid we may not open (another
+    user's, or a recycled one) reads as dead: a reaper must never signal a
+    stranger. Returns False for None, 0, or any error.
     """
-    if not pid or pid <= 0:
-        return False
-    try:
-        os.kill(pid, 0)
-        return True
-    except (ProcessLookupError, PermissionError, OSError):
-        return False
+    return pid_alive(pid, denied_is_alive=False)
 
 
 def _pid_matches_task(pid: int, task_id: str) -> bool:
