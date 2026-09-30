@@ -1302,6 +1302,13 @@ async def _spawn_remote(task: dict, host_name: str, *,
     if not ssh_alias and not local:
         raise ValueError(f"host {host_name!r} has no ssh alias configured")
 
+    try:
+        fresh_task = db.get_task(task_id)
+        if fresh_task:
+            task = fresh_task
+    except Exception:
+        pass
+
     # Runner resolution + validation (task-adbc6f43). NULL on the task row
     # means "claude" (every pre-migration row, unchanged). Validated here —
     # loudly, before spawning — rather than discovered as a missing binary
@@ -1588,6 +1595,7 @@ def _task_meta(task: dict, host_name: str) -> dict:
         "host": host_name,
         "owner_cto": task.get("owner_cto"),
         "touches": touches,
+        "runner_model": task.get("runner_model"),
     }
 
 

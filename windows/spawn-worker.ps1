@@ -51,7 +51,9 @@ param(
     # (step 7) branch on this. ValidateSet is defense-in-depth: the hub
     # (tools/delegate.py's _validate_runner) already refuses an unknown
     # runner before ssh is ever called.
-    [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude'
+    [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude',
+    [string]$TaskMetaB64 = '',
+    [string]$RunnerModel = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -171,6 +173,32 @@ try {
     foreach ($stale in $staleFiles) {
         $staleP = Join-Path $wt $stale
         if (Test-Path $staleP) { Remove-Item -Force $staleP }
+    }
+
+    # Sidecar (.org-task.json) and runner_model resolution
+    $metaPath = Join-Path $wt '.org-task.json'
+    if ($TaskMetaB64) {
+        try {
+            $metaBytes = [System.Convert]::FromBase64String($TaskMetaB64)
+            [System.IO.File]::WriteAllBytes($metaPath, $metaBytes)
+        } catch {}
+    }
+
+    if (-not $RunnerModel -and (Test-Path -LiteralPath $metaPath)) {
+        try {
+            $metaJsonStr = [System.IO.File]::ReadAllText($metaPath, [System.Text.Encoding]::UTF8)
+            $metaObj = $metaJsonStr | ConvertFrom-Json
+            if ($metaObj.runner_model) {
+                $RunnerModel = [string]$metaObj.runner_model
+            }
+        } catch {}
+    }
+
+    if ($RunnerModel) {
+        if ($RunnerModel -notmatch '^[A-Za-z0-9._:-]{1,64}$') {
+            Write-Error "spawn-worker.ps1: invalid runner_model '$RunnerModel' (must match ^[A-Za-z0-9._:-]{1,64}$)"
+            exit 2
+        }
     }
 
     # GH #150/#152 review (2026-09-18): HEARTBEAT and MAILBOX.md must NEVER be
@@ -335,6 +363,63 @@ if (-not (Test-NonEmpty `$reportPath)) {
 
 git -C '$wt' add -A
 git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md ':(glob)*.log'
+
+`$mediaExts = @('png','jpg','jpeg','gif','webp','heic','mp4','mov','webm','mkv','avi','mp3','wav','m4a','aac','flac','ogg')
+`$stagedFiles = @(git -C '$wt' diff --cached --name-only)
+`$mediaBlockers = @()
+
+foreach (`$f in `$stagedFiles) {
+    if (-not `$f) { continue }
+    `$fullPath = Join-Path '$wt' `$f
+    if (-not (Test-Path -LiteralPath `$fullPath)) { continue }
+    `$ext = [System.IO.Path]::GetExtension(`$f).TrimStart('.').ToLowerInvariant()
+    `$fi = New-Object System.IO.FileInfo(`$fullPath)
+    `$sz = `$fi.Length
+    `$isMedia = `$mediaExts -contains `$ext
+    `$isLargeBinary = `$false
+    if (-not `$isMedia -and (`$sz -gt 1048576)) {
+        `$numstat = git -C '$wt' diff --cached --numstat -- `$f
+        if (`$numstat -and (`$numstat.StartsWith("-`t-") -or `$numstat.StartsWith("- -") -or `$numstat.StartsWith("-"))) {
+            `$isLargeBinary = `$true
+        }
+    }
+    if (`$isMedia -or `$isLargeBinary) {
+        git -C '$wt' reset -q -- `$f
+        `$hsz = if (`$sz -ge 1048576) {
+            "{0:0.0} MB" -f (`$sz / 1048576.0)
+        } elseif (`$sz -ge 1024) {
+            "{0:0.0} KB" -f (`$sz / 1024.0)
+        } else {
+            "`$sz B"
+        }
+        `$mediaBlockers += "media not committed: `$f (`$hsz) — upload per CXO_Rules_GDrive_Filing and put the link here"
+    }
+}
+
+if (`$mediaBlockers.Count -gt 0) {
+    `$repText = [System.IO.File]::ReadAllText(`$reportPath, `$noBom)
+    if (`$repText -match '(?m)^## Blockers') {
+        `$lines = `$repText -split '\r?\n'
+        `$newLines = @()
+        foreach (`$ln in `$lines) {
+            `$newLines += `$ln
+            if (`$ln -match '^## Blockers') {
+                foreach (`$mb in `$mediaBlockers) {
+                    `$newLines += "- `$mb"
+                }
+            }
+        }
+        `$repText = `$newLines -join `$nl
+    } else {
+        `$repText = `$repText.TrimEnd() + `$nl + `$nl + '## Blockers' + `$nl
+        foreach (`$mb in `$mediaBlockers) {
+            `$repText += "- `$mb" + `$nl
+        }
+    }
+    [System.IO.File]::WriteAllText(`$reportPath, `$repText, `$noBom)
+    git -C '$wt' add 'docs/reports/$Task/REPORT.md'
+}
+
 git -C '$wt' diff --cached --quiet
 if (`$LASTEXITCODE -ne 0) {
     git -C '$wt' commit -q -m "${Runner}: task $Task"
@@ -449,8 +534,12 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
         $codexPrompt = "$taskContent`n`n$remoteContract"
         $codexFinalMsg = Join-Path $launchDir 'codex-final.txt'
         $codexJsonLog = Join-Path $launchDir 'codex-events.jsonl'
-        $argList = @('exec', [string]$codexPrompt, '-C', [string]$wt, '-s', 'workspace-write',
-                     '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
+        $argList = @('exec', [string]$codexPrompt)
+        if ($RunnerModel) {
+            $argList += @('-m', [string]$RunnerModel)
+        }
+        $argList += @('-C', [string]$wt, '-s', 'workspace-write',
+                      '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
 
@@ -539,7 +628,8 @@ file-editing tool (not a shell command) to summarize what you changed.
 $taskContent
 "@
         $agyLog = Join-Path $launchDir 'agy-events.log'
-        $argList = @('-p', [string]$agyPrompt, '--mode', 'accept-edits', '--add-dir', [string]$wt)
+        $agyModel = if ($RunnerModel) { $RunnerModel } else { 'gemini-3.8-flash-high' }
+        $argList = @('-p', [string]$agyPrompt, '--model', [string]$agyModel, '--mode', 'accept-edits', '--add-dir', [string]$wt)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
 

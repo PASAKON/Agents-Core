@@ -47,6 +47,7 @@ DRY_RUN=0
 TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
 TASK_META_B64=""
+RUNNER_MODEL=""
 # ORG_HOST the worker runs under (W0.6): `contabo` is what the only caller
 # passes today (no flag); a hub that spawns codex/agy on another Linux box
 # passes its own name here instead of inheriting a hard-coded one.
@@ -68,11 +69,37 @@ while [ $# -gt 0 ]; do
     --session-name) SESSION_NAME="$2"; shift 2 ;;
     --runner) RUNNER="$2"; shift 2 ;;
     --task-meta-b64) TASK_META_B64="$2"; shift 2 ;;
+    --runner-model) RUNNER_MODEL="$2"; shift 2 ;;
     --org-host) ORG_HOST="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     *) echo "spawn-worker-remote.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+if [ -z "$RUNNER_MODEL" ] && [ -n "$TASK_META_B64" ]; then
+  DECODED_META=$(printf '%s' "$TASK_META_B64" | base64 -d 2>/dev/null || true)
+  if [ -n "$DECODED_META" ]; then
+    if command -v python3 >/dev/null 2>&1; then
+      RUNNER_MODEL=$(printf '%s' "$DECODED_META" | python3 -c 'import sys, json; data = json.load(sys.stdin); print(data.get("runner_model") or "")' 2>/dev/null || true)
+    else
+      RUNNER_MODEL=$(printf '%s' "$DECODED_META" | sed -n 's/.*"runner_model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' || true)
+    fi
+  fi
+fi
+
+if [ -n "$RUNNER_MODEL" ]; then
+  case "$RUNNER_MODEL" in
+    *[!A-Za-z0-9._:-]*)
+      echo "spawn-worker-remote.sh: invalid runner_model '$RUNNER_MODEL' (must match ^[A-Za-z0-9._:-]{1,64}$)" >&2
+      exit 2
+      ;;
+  esac
+  if [ "${#RUNNER_MODEL}" -gt 64 ]; then
+    echo "spawn-worker-remote.sh: runner_model '$RUNNER_MODEL' exceeds 64 chars (must match ^[A-Za-z0-9._:-]{1,64}$)" >&2
+    exit 2
+  fi
+fi
+AGY_MODEL="${RUNNER_MODEL:-gemini-3.8-flash-high}"
 
 # CLAUDE_ARGS may legitimately be empty for a future non-claude runner
 # (parity with windows/spawn-worker.ps1's AllowEmptyString -ClaudeArgs) --
@@ -149,15 +176,21 @@ if [ "$DRY_RUN" -eq 1 ]; then
   if [ "$RUNNER" = "claude" ]; then
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
   elif [ "$RUNNER" = "codex" ]; then
-    CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
+    if [ -n "$RUNNER_MODEL" ]; then
+      CODEX_CMD="codex exec \"\$(cat TASK.md)\" -m $RUNNER_MODEL -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
+    else
+      CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
+    fi
     echo "[dry-run] cmd=$CODEX_CMD"
+    echo "[dry-run] runner_model=${RUNNER_MODEL:-(none)}"
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
     echo "[dry-run] org_host=$ORG_HOST"
     echo "[dry-run] report_step: after codex exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from $CODEX_FINAL_MSG (header, 'Runner: codex', exit code, text; 'no final message; exit=<n>' when empty)"
     echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
   elif [ "$RUNNER" = "agy" ]; then
-    AGY_CMD="/root/.local/bin/agy -p \"\$(cat TASK.md)\" --model gemini-3.8-flash-high --mode accept-edits --add-dir \"$WT\" < /dev/null >> $AGY_LOG 2>&1"
+    AGY_CMD="/root/.local/bin/agy -p \"\$(cat TASK.md)\" --model $AGY_MODEL --mode accept-edits --add-dir \"$WT\" < /dev/null >> $AGY_LOG 2>&1"
     echo "[dry-run] cmd=$AGY_CMD"
+    echo "[dry-run] runner_model=$AGY_MODEL"
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running agy>"
     echo "[dry-run] org_host=$ORG_HOST"
     echo "[dry-run] report_step: after agy exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from the last 200 lines of $AGY_LOG (header, 'Runner: agy', exit code, text; 'no final message; exit=<n>' when empty)"
@@ -435,6 +468,65 @@ git add -A
 set -f
 git reset -q -- $GIT_RESET_GUARD 2>/dev/null || true
 set +f
+MEDIA_BLOCKERS_FILE="$R_DIR/.media_blockers"
+rm -f "$MEDIA_BLOCKERS_FILE"
+git diff --cached --name-only | while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  [ -f "$f" ] || continue
+  ext="${f##*.}"
+  ext_lower=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
+  is_media=0
+  case "$ext_lower" in
+    png|jpg|jpeg|gif|webp|heic|mp4|mov|webm|mkv|avi|mp3|wav|m4a|aac|flac|ogg)
+      is_media=1
+      ;;
+  esac
+
+  sz=$(wc -c < "$f" 2>/dev/null | tr -d ' ' || echo 0)
+  is_large_binary=0
+  if [ "$is_media" -eq 0 ] && [ "$sz" -gt 1048576 ]; then
+    stat_line=$(git diff --cached --numstat -- "$f" 2>/dev/null | head -n 1)
+    case "$stat_line" in
+      "-"*) is_large_binary=1 ;;
+    esac
+  fi
+
+  if [ "$is_media" -eq 1 ] || [ "$is_large_binary" -eq 1 ]; then
+    git reset -q -- "$f"
+    if [ "$sz" -ge 1048576 ]; then
+      hsz="$(awk "BEGIN {printf \"%.1f MB\", $sz / 1048576}" 2>/dev/null || printf '%d MB' "$((sz / 1048576))")"
+    elif [ "$sz" -ge 1024 ]; then
+      hsz="$(awk "BEGIN {printf \"%.1f KB\", $sz / 1024}" 2>/dev/null || printf '%d KB' "$((sz / 1024))")"
+    else
+      hsz="${sz} B"
+    fi
+    printf 'media not committed: %s (%s) — upload per CXO_Rules_GDrive_Filing and put the link here\n' "$f" "$hsz" >> "$MEDIA_BLOCKERS_FILE"
+  fi
+done
+
+if [ -s "$MEDIA_BLOCKERS_FILE" ]; then
+  if grep -qi '^## Blockers' "$R"; then
+    awk '
+      /^## Blockers/ {
+        print
+        while ((getline line < bfile) > 0) {
+          print "- " line
+        }
+        close(bfile)
+        next
+      }
+      { print }
+    ' bfile="$MEDIA_BLOCKERS_FILE" "$R" > "$R.tmp" && mv -f "$R.tmp" "$R"
+  else
+    printf '\n## Blockers\n' >> "$R"
+    while IFS= read -r line; do
+      printf -- '- %s\n' "$line" >> "$R"
+    done < "$MEDIA_BLOCKERS_FILE"
+  fi
+  rm -f "$MEDIA_BLOCKERS_FILE"
+  git add "$R"
+fi
+
 if ! git diff --cached --quiet; then
   git $GIT_ID_ARGS commit -q -m "$COMMIT_MSG"
 fi
@@ -470,10 +562,18 @@ elif [ "$RUNNER" = "codex" ]; then
     # A final message left by an earlier launch of this same task must not be
     # read back as this run's message.
     printf 'rm -f %s\n' "$(sh_quote "$CODEX_FINAL_MSG")"
-    printf 'codex exec "$(cat TASK.md)" -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
-      "$(sh_quote "$WT")" \
-      "$(sh_quote "$CODEX_FINAL_MSG")" \
-      "$(sh_quote "$CODEX_TRANSCRIPT")"
+    if [ -n "$RUNNER_MODEL" ]; then
+      printf 'codex exec "$(cat TASK.md)" -m %s -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
+        "$(sh_quote "$RUNNER_MODEL")" \
+        "$(sh_quote "$WT")" \
+        "$(sh_quote "$CODEX_FINAL_MSG")" \
+        "$(sh_quote "$CODEX_TRANSCRIPT")"
+    else
+      printf 'codex exec "$(cat TASK.md)" -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
+        "$(sh_quote "$WT")" \
+        "$(sh_quote "$CODEX_FINAL_MSG")" \
+        "$(sh_quote "$CODEX_TRANSCRIPT")"
+    fi
     printf 'CLI_RC=$?\n'
     emit_report_commit_push codex "$CODEX_FINAL_MSG" "" "" "codex: task $TASK"
   } > "$LAUNCH_SH"
@@ -489,8 +589,9 @@ elif [ "$RUNNER" = "agy" ]; then
     # $AGY_BIN is what the probe above resolved (/root/.local/bin/agy first, so
     # Contabo runs the same binary as before); it used to be resolved and then
     # ignored in favour of the literal path.
-    printf '%s -p "$(cat TASK.md)" --model gemini-3.8-flash-high --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
+    printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
       "$(sh_quote "$AGY_BIN")" \
+      "$(sh_quote "$AGY_MODEL")" \
       "$(sh_quote "$WT")" \
       "$(sh_quote "$AGY_LOG")"
     printf 'CLI_RC=$?\n'
