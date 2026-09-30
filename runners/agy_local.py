@@ -98,6 +98,11 @@ def run_agy_subprocess(
     """Run agy headless with stdout and stderr appended to log_path."""
     effective_model = model if model else (os.environ.get("AGY_MODEL") or "gemini-3.8-flash-high")
     cmd = [agy_bin, "-p", prompt, "--model", effective_model, "--mode", "accept-edits", "--add-dir", worktree]
+    work_dir = os.environ.get("WORK_DIR")
+    if work_dir and Path(work_dir).is_dir():
+        # agy_browse writes shots to $WORK_DIR/agy-shots; outside the workspace a headless
+        # read_file of one is auto-denied and the run dies (task-4245497d, task-ed829cdc).
+        cmd += ["--add-dir", work_dir]
     with open(log_path, "a", encoding="utf-8") as f:
         try:
             proc = subprocess.run(
