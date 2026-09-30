@@ -197,6 +197,22 @@ CREATE TABLE IF NOT EXISTS letters (
 CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status);
 """
 
+# Org Mesh W4.1 (tools/hq_join.py): one-time join tokens. Only the sha256 of a
+# token is stored, never the token. `locks` cannot hold this: it has no used_at
+# and no host, and acquire_lock/_claim purge expired rows, which would turn
+# "expired" and "reused" into "unknown" for the operator. One DDL string for
+# both backends (TEXT columns only, valid SQLite and Postgres alike), run by
+# init_schema() after the backend's own schema, so the two cannot drift.
+JOIN_TOKENS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS join_tokens (
+    token_hash   TEXT PRIMARY KEY,
+    host         TEXT NOT NULL,
+    created_at   TEXT NOT NULL,
+    expires_at   TEXT NOT NULL,
+    used_at      TEXT
+);
+"""
+
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
                 "blocked_human", "blocked_host", "reverted", "merged",
@@ -287,6 +303,20 @@ _HOSTS_MIGRATION = [
     ("cpus", "INTEGER"),
     ("load_per_core", "REAL"),
     ("runners", "TEXT"),
+]
+
+# hosts columns for hq join (W4.1), a separate list so the probe migration
+# above keeps naming exactly its own columns (tests/test_h1_node_probe.py pins
+# that). Applied by the same loop in init_schema().
+#   pubkey       the node's age X25519 recipient, set only by tools/hq_join
+#                accept. The W4.2 Infisical client secret is sealed to it.
+#                NULL = not a joined node (mac/contabo/winbox).
+#   config_json  the hosts.yaml entry as JSON, written by seed_hosts_from_config
+#                and by hq_join accept. `hq_join export-hosts` rebuilds
+#                hosts.yaml from it.
+_HOSTS_JOIN_MIGRATION = [
+    ("pubkey", "TEXT"),
+    ("config_json", "TEXT"),
 ]
 
 # letters.from_host (W2.4): which host (config/hosts.yaml key) sent the letter.
@@ -639,6 +669,7 @@ def init_schema(conn, *, is_pg: bool) -> None:
     `get_conn()`/ORG_DB_URL may not point at, reusing this exact column list
     instead of hand-duplicating it."""
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
+    conn.executescript(JOIN_TOKENS_SCHEMA)
     existing = {r["name"] for r in conn.execute(
         "PRAGMA table_info(tasks)").fetchall()}
     for col, coltype in _MIGRATION_COLUMNS:
@@ -666,7 +697,7 @@ def init_schema(conn, *, is_pg: bool) -> None:
                 f"ALTER TABLE c_level_sessions ADD COLUMN {col} {coltype}")
     hosts_existing = {r["name"] for r in conn.execute(
         "PRAGMA table_info(hosts)").fetchall()}
-    for col, coltype in _HOSTS_MIGRATION:
+    for col, coltype in _HOSTS_MIGRATION + _HOSTS_JOIN_MIGRATION:
         if col not in hosts_existing:
             conn.execute(f"ALTER TABLE hosts ADD COLUMN {col} {coltype}")
     letters_existing = {r["name"] for r in conn.execute(
@@ -1263,7 +1294,7 @@ def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> Non
 _HOST_COLUMNS = {
     "os", "hq_root", "agents_root", "provides", "max_workers", "status",
     "probed_at", "free_gb", "ram_free_gb", "running", "version",
-    "cpus", "load_per_core", "runners",
+    "cpus", "load_per_core", "runners", "pubkey", "config_json",
 }
 
 
@@ -1311,11 +1342,12 @@ def list_hosts() -> list[dict]:
 
 def seed_hosts_from_config() -> None:
     """One `hosts` row per config/hosts.yaml entry -- os, agents_root,
-    provides, max_workers only. Never touches probe fields (status,
-    probed_at, free_gb, ram_free_gb, running, version) -- upsert_host only
-    writes the columns it's given, so a live node's heartbeat data survives
-    a reseed untouched. Idempotent: rerunning with an unchanged hosts.yaml
-    leaves every seeded field the same.
+    provides, max_workers, plus the whole entry as config_json (what
+    `hq_join export-hosts` rebuilds hosts.yaml from). Never touches probe
+    fields (status, probed_at, free_gb, ram_free_gb, running, version) --
+    upsert_host only writes the columns it's given, so a live node's
+    heartbeat data survives a reseed untouched. Idempotent: rerunning with
+    an unchanged hosts.yaml leaves every seeded field the same.
 
     Imports lib.config lazily (pulls in PyYAML) so lib.db itself stays
     importable without it -- the PreToolUse hooks import lib.db under the
@@ -1329,6 +1361,7 @@ def seed_hosts_from_config() -> None:
             agents_root=h.get("agents_root"),
             provides=h.get("provides") or [],
             max_workers=h.get("max_workers"),
+            config_json=json.dumps(h),
         )
 
 
