@@ -54,6 +54,20 @@ def load_plans(path: Path | str | None = None) -> dict:
     return yaml.safe_load(p.read_text()) or {}
 
 
+def bucket_for(candidate: str, cfg: dict) -> str | None:
+    """Return the first bucket name whose match prefix candidate starts with, or None."""
+    buckets = cfg.get("buckets", {})
+    if not isinstance(buckets, dict):
+        return None
+    for bucket_name, b_info in buckets.items():
+        if isinstance(b_info, dict):
+            matches = b_info.get("match", [])
+            for m in matches:
+                if candidate.startswith(m):
+                    return bucket_name
+    return None
+
+
 def parse_claude(obj: dict | str, *, source: str = "claude") -> Quota:
     """Parse Claude usage JSON object.
 
@@ -199,7 +213,12 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
         )
 
 
-def parse_agy(obj: dict | str, *, source: str = "agy") -> Quota:
+def parse_agy(
+    obj: dict | str,
+    *,
+    source: str = "agy",
+    group: str = "Gemini Models",
+) -> Quota:
     """Parse agy CLI /usage JSON output.
 
     Structure:
@@ -207,8 +226,16 @@ def parse_agy(obj: dict | str, *, source: str = "agy") -> Quota:
       each {"name": "Gemini Models" | "Claude and GPT models",
             "buckets": [{"window": "weekly" | "5h", "remaining_fraction": 1, "reset_time": "2026-10-06T00:05:38Z"}]}
 
-    Uses the "Gemini Models" group (workers run Gemini). "5h" = daily slot.
+    "5h" = daily slot.
+    The returned Quota.provider is "agy-gemini" for "Gemini Models" and "agy-claude" for "Claude and GPT models".
     """
+    if group == "Gemini Models":
+        provider_name = "agy-gemini"
+    elif group == "Claude and GPT models":
+        provider_name = "agy-claude"
+    else:
+        provider_name = group
+
     try:
         if isinstance(obj, str):
             obj = json.loads(obj)
@@ -225,18 +252,18 @@ def parse_agy(obj: dict | str, *, source: str = "agy") -> Quota:
         if not isinstance(groups, list):
             raise ValueError("missing 'command.data.groups' list in agy output")
 
-        gemini_group = None
+        target_group = None
         for g in groups:
-            if isinstance(g, dict) and g.get("name") == "Gemini Models":
-                gemini_group = g
+            if isinstance(g, dict) and g.get("name") == group:
+                target_group = g
                 break
 
-        if gemini_group is None:
-            raise ValueError("'Gemini Models' group not found in agy groups")
+        if target_group is None:
+            raise ValueError(f"'{group}' group not found in agy groups")
 
-        buckets = gemini_group.get("buckets", [])
+        buckets = target_group.get("buckets", [])
         if not isinstance(buckets, list):
-            raise ValueError("missing 'buckets' in Gemini Models group")
+            raise ValueError(f"missing 'buckets' in {group} group")
 
         weekly_remaining = None
         weekly_resets_at = None
@@ -260,10 +287,10 @@ def parse_agy(obj: dict | str, *, source: str = "agy") -> Quota:
                 daily_resets_at = str(reset) if reset is not None else None
 
         if weekly_remaining is None and daily_remaining is None:
-            raise ValueError("no weekly or daily buckets found in Gemini Models group")
+            raise ValueError(f"no weekly or daily buckets found in {group} group")
 
         return Quota(
-            provider="agy",
+            provider=provider_name,
             weekly_remaining=weekly_remaining,
             daily_remaining=daily_remaining,
             weekly_resets_at=weekly_resets_at,
@@ -273,7 +300,7 @@ def parse_agy(obj: dict | str, *, source: str = "agy") -> Quota:
         )
     except Exception as e:
         return Quota(
-            provider="agy",
+            provider=provider_name,
             weekly_remaining=None,
             daily_remaining=None,
             weekly_resets_at=None,
@@ -326,6 +353,8 @@ def apply_bonuses(quota: Quota, bonuses: list[dict], now: datetime | str | None 
         RUNNER_TO_PROVIDER.get(prov_lower, "").lower(),
         PROVIDER_TO_RUNNER.get(prov_lower, "").lower(),
     } - {""}
+    if prov_lower in ("agy-gemini", "agy-claude"):
+        matched_names.update({"google", "agy"})
 
     for b in bonuses:
         if not isinstance(b, dict):
@@ -435,7 +464,7 @@ def fetch_codex(cfg: dict | None = None) -> Quota:
         )
 
 
-def fetch_agy(cfg: dict | None = None) -> Quota:
+def fetch_agy(cfg: dict | None = None) -> dict[str, Quota]:
     """Fetch agy usage via `agy -p /usage --output-format json`."""
     cfg = cfg or load_plans()
     source_cfg = cfg.get("quota_sources", {}).get("agy", {})
@@ -452,28 +481,45 @@ def fetch_agy(cfg: dict | None = None) -> Quota:
         res = subprocess.run(full_cmd, capture_output=True, text=True, timeout=30)
         if res.returncode != 0:
             raise RuntimeError(f"agy exit {res.returncode}: {res.stderr.strip()[:200]}")
-        return parse_agy(res.stdout, source=src_label)
+        return {
+            "agy-gemini": parse_agy(res.stdout, source=src_label, group="Gemini Models"),
+            "agy-claude": parse_agy(res.stdout, source=src_label, group="Claude and GPT models"),
+        }
     except Exception as e:
-        return Quota(
-            provider="agy",
-            weekly_remaining=None,
-            daily_remaining=None,
-            weekly_resets_at=None,
-            daily_resets_at=None,
-            source=src_label,
-            error=str(e),
-        )
+        err = str(e)
+        return {
+            "agy-gemini": Quota(
+                provider="agy-gemini",
+                weekly_remaining=None,
+                daily_remaining=None,
+                weekly_resets_at=None,
+                daily_resets_at=None,
+                source=src_label,
+                error=err,
+            ),
+            "agy-claude": Quota(
+                provider="agy-claude",
+                weekly_remaining=None,
+                daily_remaining=None,
+                weekly_resets_at=None,
+                daily_resets_at=None,
+                source=src_label,
+                error=err,
+            ),
+        }
 
 
 def fetch_all_quotas(cfg: dict | None = None, now: datetime | str | None = None) -> dict[str, Quota]:
-    """Fetch quotas for all configured runners, applying active bonuses."""
+    """Fetch quotas for all configured buckets, applying active bonuses."""
     cfg = cfg or load_plans()
     bonuses = cfg.get("bonuses", [])
 
+    agy_quotas = fetch_agy(cfg)
     quotas = {
         "claude": apply_bonuses(fetch_claude(cfg), bonuses, now),
         "codex": apply_bonuses(fetch_codex(cfg), bonuses, now),
-        "agy": apply_bonuses(fetch_agy(cfg), bonuses, now),
+        "agy-gemini": apply_bonuses(agy_quotas["agy-gemini"], bonuses, now),
+        "agy-claude": apply_bonuses(agy_quotas["agy-claude"], bonuses, now),
     }
     return quotas
 

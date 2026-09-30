@@ -37,7 +37,7 @@ EXPECTED_FIELDS = {
 }
 
 
-def test_two_providers(tmp_path: Path):
+def test_four_buckets(tmp_path: Path):
     path = tmp_path / "history.jsonl"
     quotas = {
         "claude": Quota(
@@ -49,8 +49,16 @@ def test_two_providers(tmp_path: Path):
             source="vps",
             error=None,
         ),
-        "agy": Quota(
-            provider="agy",
+        "codex": Quota(
+            provider="codex",
+            weekly_remaining=0.7,
+            daily_remaining=0.9,
+            weekly_resets_at="2026-10-05T00:00:00+00:00",
+            source="session",
+            error=None,
+        ),
+        "agy-gemini": Quota(
+            provider="agy-gemini",
             weekly_remaining=1.0,
             daily_remaining=0.75,
             weekly_resets_at="2026-10-06T00:05:38Z",
@@ -58,12 +66,21 @@ def test_two_providers(tmp_path: Path):
             source="cli",
             error=None,
         ),
+        "agy-claude": Quota(
+            provider="agy-claude",
+            weekly_remaining=0.95,
+            daily_remaining=0.85,
+            weekly_resets_at="2026-10-06T00:05:38Z",
+            daily_resets_at="2026-09-29T12:00:00Z",
+            source="cli",
+            error=None,
+        ),
     }
     ret = record_snapshot(quotas, path)
-    assert ret == 2
+    assert ret == 4
 
     lines = path.read_text(encoding="utf-8").splitlines()
-    assert len(lines) == 2
+    assert len(lines) == 4
 
     for line in lines:
         entry = json.loads(line)
@@ -71,12 +88,17 @@ def test_two_providers(tmp_path: Path):
 
     entry0 = json.loads(lines[0])
     entry1 = json.loads(lines[1])
+    entry2 = json.loads(lines[2])
+    entry3 = json.loads(lines[3])
     assert entry0["provider"] == "claude"
     assert entry0["weekly_remaining"] == 0.5
     assert entry0["daily_remaining"] == 0.8
-    assert entry1["provider"] == "agy"
-    assert entry1["weekly_remaining"] == 1.0
-    assert entry1["daily_remaining"] == 0.75
+    assert entry1["provider"] == "codex"
+    assert entry1["weekly_remaining"] == 0.7
+    assert entry2["provider"] == "agy-gemini"
+    assert entry2["weekly_remaining"] == 1.0
+    assert entry3["provider"] == "agy-claude"
+    assert entry3["weekly_remaining"] == 0.95
 
 
 def test_now_utc(tmp_path: Path):
@@ -128,7 +150,7 @@ def test_calling_twice_appends(tmp_path: Path):
     path = tmp_path / "history.jsonl"
     quotas = {
         "claude": Quota(provider="claude"),
-        "agy": Quota(provider="agy"),
+        "agy-gemini": Quota(provider="agy-gemini"),
     }
     first_ret = record_snapshot(quotas, path)
     assert first_ret == 2
@@ -175,6 +197,9 @@ def test_main_record_flag(tmp_path: Path, monkeypatch, capsys):
     history_file = tmp_path / "custom-history.jsonl"
     fake_quotas = {
         "claude": Quota(provider="claude", weekly_remaining=0.5, daily_remaining=0.8),
+        "codex": Quota(provider="codex", weekly_remaining=0.7, daily_remaining=0.9),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=1.0, daily_remaining=0.75),
+        "agy-claude": Quota(provider="agy-claude", weekly_remaining=0.95, daily_remaining=0.85),
     }
 
     monkeypatch.setattr(quota_mod, "load_plans", lambda path=None: {})
@@ -184,9 +209,9 @@ def test_main_record_flag(tmp_path: Path, monkeypatch, capsys):
     quota_mod.main()
 
     captured = capsys.readouterr()
-    assert f"recorded 1 lines -> {history_file}" in captured.err
+    assert f"recorded 4 lines -> {history_file}" in captured.err
     assert history_file.exists()
-    assert len(history_file.read_text(encoding="utf-8").splitlines()) == 1
+    assert len(history_file.read_text(encoding="utf-8").splitlines()) == 4
 
 
 def test_main_record_default_history(monkeypatch, capsys):
@@ -194,6 +219,9 @@ def test_main_record_default_history(monkeypatch, capsys):
 
     fake_quotas = {
         "claude": Quota(provider="claude", weekly_remaining=0.5, daily_remaining=0.8),
+        "codex": Quota(provider="codex", weekly_remaining=0.7, daily_remaining=0.9),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=1.0, daily_remaining=0.75),
+        "agy-claude": Quota(provider="agy-claude", weekly_remaining=0.95, daily_remaining=0.85),
     }
     recorded_calls = []
 
@@ -209,6 +237,6 @@ def test_main_record_default_history(monkeypatch, capsys):
     quota_mod.main()
 
     captured = capsys.readouterr()
-    assert f"recorded 1 lines -> {quota_mod.DEFAULT_HISTORY}" in captured.err
+    assert f"recorded 4 lines -> {quota_mod.DEFAULT_HISTORY}" in captured.err
     assert len(recorded_calls) == 1
     assert recorded_calls[0][1] == str(quota_mod.DEFAULT_HISTORY)
