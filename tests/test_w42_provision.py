@@ -456,11 +456,12 @@ def test_accept_cli_takes_the_flag_and_says_when_it_is_missing(capsys):
     base = ["accept", "--host", "node-a", "--os", "linux", "--hq-root", "/opt/x", "--pubkey", PUB]
     assert hq_join.main(base + ["--token", tok, "--deploy-pubkey", DEPLOY + " c"]) == 0
     assert db.get_host("node-a")["deploy_pubkey"] == DEPLOY
-    capsys.readouterr()
+    assert "gets no GitHub deploy key" not in capsys.readouterr().err
     tok = hq_join.mint("node-b")["token"]
     assert hq_join.main(["accept", "--host", "node-b", "--os", "linux", "--hq-root", "/opt/x",
                          "--pubkey", PUB, "--token", tok]) == 0
     assert db.get_host("node-b")["deploy_pubkey"] is None
+    assert "node-b gets no GitHub deploy key" in capsys.readouterr().err
 
 
 def test_a_rejoin_replaces_the_deploy_key():
