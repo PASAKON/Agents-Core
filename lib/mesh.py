@@ -38,6 +38,7 @@ import shlex
 import subprocess
 
 from lib import config
+from tools.agent_transport import WAKE_WORST_CASE_S
 
 ENV_FLAG = "ORG_MESH_DISPATCH"
 ENV_MAX_ATTEMPTS = "ORG_MESH_MAX_ATTEMPTS"
@@ -70,6 +71,8 @@ VERB_TIMEOUT_S = {
     "start_clevel": 180,
     "publish_branch": 150,
     "kill_worker": 60,
+    # ssh dial, then the far side's wake (up to WAKE_WORST_CASE_S), then the write.
+    "deliver_letter": CONNECT_TIMEOUT_S + round(WAKE_WORST_CASE_S) + LETTER_WRITE_MARGIN_S,
 }
 
 _SSH_FAILED = 255  # ssh's own exit code: no connection, no auth, no host

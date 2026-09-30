@@ -177,6 +177,14 @@ short enough that the locks do not block other work for hours. Override with
 number of 1 or more is ignored, never read as "no cap". A row already moved by the far
 side, or failed by another watchdog, is neither failed again nor announced again.
 
+**`deliver_letter` timeout.** On a Windows host with `ORG_WIN_WAKE=1` the verb also
+wakes the C-level tab (`agent_transport.wake_windows_tab`: `schtasks /run`, then a wait
+for the result), which can block `agent_transport.WAKE_WORST_CASE_S` (30 s). The letter
+is already on disk by then, so a slow wake must not read as an unreachable host. The
+verb's timeout in `lib/mesh.VERB_TIMEOUT_S` is the ssh connect time, plus that constant
+(imported, not copied), plus `LETTER_WRITE_MARGIN_S`: 10 + 30 + 15 = 55 s, instead of the
+30 s default.
+
 ### W2.8 acceptance checks, once per host after the key is installed
 
 From the dispatcher, with only the dispatch key
