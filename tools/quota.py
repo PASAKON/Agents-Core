@@ -687,6 +687,12 @@ def main() -> None:
         record_snapshot(quotas, DEFAULT_HISTORY, now=now_dt)
         ts = now_dt.isoformat(timespec="seconds")
         print(f"snapshot: {snap_path} {len(quotas)} buckets {ts}")
+        try:
+            from tools import cost_learn
+            table = cost_learn.learn()
+            cost_learn.write_table(table)
+        except Exception as _cl_err:
+            print(f"cost-learn skipped: {_cl_err}", file=sys.stderr)
         return
 
     if args.record is not None:
