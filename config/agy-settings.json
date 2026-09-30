@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "command(regex:^(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/\\.venv/bin/python -m pytest( .*)?$)",
+      "command(regex:^(/Users/gob/MoonieXHQ/Agents/Core|/opt/MoonieXHQ/Agents/Core)/\\.venv/bin/python tools/agy_browse\\.py( --port [0-9]{4,5})?( --tab [A-Za-z0-9]{1,64})? (tabs|goto|text|count|state|button-label|click|type|key|upload|wait-text|chips|shot|mute)( [A-Za-z0-9 _./:#=@%+,'\"()\\[\\]-]*)?$)",
       "command(git status)",
       "command(git diff)",
       "command(git log)",

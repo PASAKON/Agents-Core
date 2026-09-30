@@ -170,3 +170,7 @@ state/neko/
 # cron rewrites it on each box, so a tracked copy is dirty on Contabo and blocks
 # every merge there. The file is written and read only on its own machine.
 state/machine-discovered-*.yaml
+# agy_browse (GH #188): shots land in $WORK_DIR/agy-shots or <cwd>/agy-shots; the audit log is per box
+agy-shots/
+state/agy-browse.jsonl
+state/agy-browse-fire-*.lock
