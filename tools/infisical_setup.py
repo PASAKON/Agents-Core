@@ -386,7 +386,10 @@ def cmd_retire_setup(org: Org) -> None:
 NODE_IDENTITY = "org-node"
 NODE_PROJECT = "Agents-Core"   # viewer membership; on Free a viewer sees dev and prod alike
 IDENTITY_CAP = 5
-NODE_HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,30}[a-z0-9]")   # same shape as tools/hq_join.HOST_RE
+# The host-name rule, 3-31 chars: a copy of lib.config.HOST_NAME_RE (tools/hq_join.HOST_RE is that
+# same object). Not imported: this file stays stdlib-only, a Run Inbox card copies it alone.
+# tests/test_w44c_join_followups.py asserts the two patterns are the same string.
+NODE_HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,29}[a-z0-9]")
 _UUID_RE = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")   # ids go into URL paths
 
 

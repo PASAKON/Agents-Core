@@ -1376,12 +1376,21 @@ def seed_hosts_from_config() -> None:
     heartbeat data survives a reseed untouched. Idempotent: rerunning with
     an unchanged hosts.yaml leaves every seeded field the same.
 
+    Seeds only what config/hosts.yaml itself declares. On a joined node
+    lib.config.hosts() also carries an entry built from that node's own
+    node.yaml; the hub's row for that node comes from `hq_join accept` and
+    the node's own probe, and a reseed run there must never replace it.
+
     Imports lib.config lazily (pulls in PyYAML) so lib.db itself stays
     importable without it -- the PreToolUse hooks import lib.db under the
     system python3, which may not have PyYAML installed.
     """
+    import yaml
     from lib import config
+    declared = yaml.safe_load(config.HOSTS_CONFIG.read_text(encoding="utf-8"))["hosts"]
     for name, h in config.hosts().items():
+        if name not in declared:
+            continue
         upsert_host(
             name,
             os=h.get("os"),

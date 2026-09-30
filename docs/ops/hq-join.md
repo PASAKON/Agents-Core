@@ -31,7 +31,7 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
 
 ### mint
 
-- `<name>`: 3 to 32 chars, `a-z 0-9 -`, starts with a letter, does not end in `-`.
+- `<name>`: 3 to 31 chars, `a-z 0-9 -`, starts with a letter, does not end in `-`.
 - TTL: 15 minutes by default, 1 to 60 allowed.
 - A name is free only if it has no `hosts` row or its row is `left`, and it is not
   a key in `config/hosts.yaml`. This is stricter than "online or pending_identity":
@@ -133,8 +133,30 @@ Plans the revocation, in this order:
   the export refuse, naming the host, rather than emit a half entry.
 - Note for the cutover: a second host with the same `os` makes
   `lib.config._platform_host()` ambiguous (it returns None). The joined node
-  resolves itself through `node.yaml` (join.sh step 5), so this only matters for a
+  resolves itself through `node.yaml` (join.sh step 8), so this only matters for a
   node that skipped it.
+
+### How a joined node knows itself
+
+A joined node is in the hub's `hosts` table and never in this repo's
+`config/hosts.yaml`, so it learns who it is from its own
+`~/.config/mooniex/node.yaml` (`host`, `os`, `hq_root`), which join.sh step 8 and
+join.ps1 write. `lib.config.hosts()` adds an entry for it when all three are
+well-formed: `host` is 3 to 31 chars (the same rule as `mint`), `os` is one of
+`darwin`, `linux`, `windows`, and `hq_root` is an absolute path for that `os`,
+with no `..` and not a filesystem root. The entry has `os`, `hq_root`,
+`agents_root` (`<hq_root>/Agents/Core`), `worktrees`, `ssh: None`,
+`provides: []`, `max_workers: 1` and `runners: []`: nothing is claimed that the
+probe has not measured. `config/hosts.yaml` wins for every name it declares, so
+a node.yaml that names `mac` adds nothing to `hosts()`. `self_host()` then resolves in this
+order: `ORG_HOST`, node.yaml `host`, the checkout path, the OS. `ORG_HOST` and
+node.yaml resolve a name only if `hosts()` holds it, so a bare `ORG_HOST=<name>`
+with no node.yaml to back it raises. That is why join.sh step 9 runs the probe
+with `HOME` as well as `ORG_HOST` in its command: under `sudo` the probe would
+otherwise see root's home and no node.yaml. A node.yaml that is not well-formed
+adds nothing to `hosts()` and `self_host()` reports it. The synthesized entry is
+never written to the hub: `lib.db.seed_hosts_from_config()` seeds only what
+`config/hosts.yaml` declares, and the hub's row for the node comes from `accept`.
 
 ## Run Inbox card for mint
 
