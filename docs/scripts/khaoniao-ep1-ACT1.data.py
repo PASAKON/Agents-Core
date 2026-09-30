@@ -125,12 +125,18 @@ _N = ["nosubs", "noother"]
 
 # n: (seconds, framing, [char keys, first speaker first], loc, time of day, action, [nots])
 _META = {
- 1: (10, "Low medium shot at dog's-eye height on the threshold, her face three-quarters to camera",
+ 1: (10, "Low over-the-shoulder shot from INSIDE the house at dog's-eye height, the camera just behind "
+     "and a little to the left of the small dog: she stands on the threshold with her BACK and left "
+     "flank to the camera, facing OUT toward the flood, her head turned in three-quarter rear profile "
+     "toward screen-right so the side of her muzzle and her moving mouth stay visible; she never "
+     "looks at the camera",
      ["mimi_d"], "door", T_FLOOD,
      "the small dog, terrified, shaking from nose to tail, stands at the very edge of the dry "
-     "threshold staring at the brown flood water, her ears pinned flat, and squeaks the whole line "
-     "while she edges one paw forward and snatches it back; on the very last words she squeezes "
-     "her eyes shut and leaps off the threshold into the brown water with a big splash", _N),
+     "threshold with her back to the camera, staring out over the brown flood water, her ears pinned "
+     "flat, and squeaks the whole line out into the rain, calling after someone far ahead who is "
+     "off-screen, while she edges one paw forward and snatches it back; on the very last words she "
+     "squeezes her eyes shut and leaps FORWARD off the threshold, away from the camera, into the "
+     "brown water with a big splash", _N),
  2: (10, "Medium shot in the living room, her face three-quarters to camera",
      ["mom_h"], "living", T_AM,
      "the woman with the wooden ladle in her bun, cheerful and beaming, cocks her head toward the "
