@@ -23,4 +23,5 @@ def test_watchdog_plist_environment_variables():
     assert "/usr/bin:/bin" in path_val
 
     assert "ORG_WATCHDOG_BRANCH_POLL" in env_vars
-    assert env_vars["ORG_WATCHDOG_BRANCH_POLL"] == "0"
+    # CEO ruling 2026-09-30: the branch poller runs on the Mac watchdog.
+    assert env_vars["ORG_WATCHDOG_BRANCH_POLL"] == "1"

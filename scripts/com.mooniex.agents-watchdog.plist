@@ -17,13 +17,14 @@
   <dict>
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
-    <!-- keep ORG_WATCHDOG_BRANCH_POLL at 0 (the CEO has not ruled on turning it on) -->
+    <!-- Branch poller ON: CEO ruling 2026-09-30 (Org Mesh lane C). The
+         poller takes only rows this Mac dispatched (W1.5 poller set). -->
     <key>ORG_WATCHDOG_BRANCH_POLL</key>
-    <string>0</string>
+    <string>1</string>
   </dict>
 
   <key>WorkingDirectory</key>
-  <string>/Users/gob/Projects/Agents</string>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
 
   <!-- Long-running daemon (was: nohup python -m runners.watchdog --loop,
        which dies on reboot — LungNote todo b16487b0). RunAtLoad starts it
