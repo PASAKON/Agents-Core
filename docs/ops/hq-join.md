@@ -407,9 +407,9 @@ only; Org-Node holds no folders, and the `/org-join` folder of Agents-Core prod 
 project `org-node` is not a member of), and anything the node copied out of the repo
 checkout itself.
 
-A node that is already running under `infisical_setup.py run Agents-Core prod --as <host>`
-must change that command to `run Org-Node prod --as <host>` when the membership moves
-(`join.sh` and `join.ps1` print the new form). Until the CEO has entered
+A node whose start command still names the project Agents-Core (`infisical_setup.py run`
+with Agents-Core, prod and its own `--as`) must change the project to Org-Node when the
+membership moves: `run Org-Node prod --as <host>` is the form `join.sh` and `join.ps1` print. Until the CEO has entered
 `CLAUDE_CODE_OAUTH_TOKEN` in Org-Node prod (gate G3), `run Org-Node prod` refuses to
 start, because it refuses an empty folder: do the move and the entry in one sitting.
 
