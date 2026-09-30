@@ -152,10 +152,12 @@ tab, 0 in Notepad, on every trial. Lowest free RAM seen: 3.1 GB at the start (li
   transcript, re-ran everything, committed, and redid the mutation checks with a clean tree.
 - Side effect undone: an `ssh -o StrictHostKeyChecking=no localhost` probe added `localhost` to
   `~/.ssh/known_hosts`; removed with `ssh-keygen -R` (and the `.old`).
-- Push: the shared DEV conventions say "never `git push`"; WORKER.md (the remote-worker contract in
-  this worktree, for a spoke with no org MCP) says git is the only channel back and to push this task
-  branch. I followed the more specific one and pushed ONLY `agent/developer-task-109734f6`, no force,
-  no other ref. If that was wrong, the branch is safe to delete.
+- **NOT PUSHED.** The shared DEV conventions say "never `git push`"; WORKER.md (remote-worker contract)
+  says to push this task branch because git is a spoke's only channel back. I tried
+  `git push -u origin agent/developer-task-109734f6` (own branch, no force) and the auto-mode classifier
+  denied it ("Out-of-Place Publication"). I did not retry or route around it. All work is committed on the
+  local branch `agent/developer-task-109734f6` in this worktree; a person or the CTO must push it (or
+  fetch it from this box) before the hub's branch poller can see this report.
 - Cookie Run was "HELD by a human ESC" before I took the lease and still is; `give-back` printed
   the standard "was not running when you took it" note. I did not touch it.
 
