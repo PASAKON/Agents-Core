@@ -163,6 +163,9 @@ def _fake_create_worktree(project_key, role, task_id, sparse=False):
 
 
 def test_delegate_task_exports_work_dir_for_pilot_owner(temp_db, work_root, monkeypatch):
+    # The iTerm spawn path runs only on darwin (tools/delegate._spawn_local);
+    # pin it so this passes on the Linux CI runner too.
+    monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
     monkeypatch.setattr(delegate, "get_project", lambda key: _fake_project())
     monkeypatch.setattr(delegate, "create_worktree", _fake_create_worktree)

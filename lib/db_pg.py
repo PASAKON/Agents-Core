@@ -99,7 +99,7 @@ CREATE INDEX IF NOT EXISTS idx_c_level_sessions_task
     WHERE active_task_id IS NOT NULL;
 
 -- Org Mesh W2.1 -- Postgres mirror of lib.db.SCHEMA's hosts/letters tables.
--- Column shapes are identical; only id's AUTOINCREMENT -> IDENTITY changes,
+-- Column shapes are identical, and only id's AUTOINCREMENT -> IDENTITY changes,
 -- same pattern as `events` above.
 CREATE TABLE IF NOT EXISTS hosts (
     host         TEXT PRIMARY KEY,
