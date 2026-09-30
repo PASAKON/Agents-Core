@@ -24,3 +24,13 @@ ports:
     fire_cooldown_s: 120
     fire_label_regex: "Unlimited"
     submit_selector: "button[type=submit]"
+  9281:
+    label: higgsfield
+    allowed_hosts: [higgsfield.ai, "*.higgsfield.ai"]
+    upload_dirs: []
+    max_calls_per_min: 30
+    fire_cooldown_s: 120
+    # Only the free Unlimited lane may be fired; a label that shows a credit
+    # price is refused here and again by the money rule.
+    fire_label_regex: "(?i)unlimited"
+    submit_selector: "button[type=submit]"
