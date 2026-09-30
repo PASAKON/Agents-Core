@@ -3,18 +3,24 @@
 One command on a new machine, one tap on the hub side, no login and no secret typed.
 
 ```
-curl -fsSL https://<hub>/org-join/join.sh | sh -s -- --token <t> --host <name> [--hq-root <path>]     # Linux, macOS
-iwr -UseBasicParsing https://<hub>/org-join/join.ps1 | iex                                            # Windows (elevated)
+curl -fsSL https://<hub>/org-join/join.sh | sh -s -- --host <name> [--hq-root <path>]     # Linux, macOS
+$env:ORG_JOIN_HOST = '<name>'; iwr -UseBasicParsing https://<hub>/org-join/join.ps1 | iex  # Windows (elevated)
 ```
 
-The Windows form cannot take arguments through `iex`, so it reads `$env:ORG_JOIN_TOKEN` and
-`$env:ORG_JOIN_HOST` (and `ORG_JOIN_HQ_ROOT`). The same arguments as `join.sh` work too:
+**The preferred form has no token in it.** Both scripts ask for the token when it is not given:
+`join.sh` on the terminal (`/dev/tty`, `stty -echo`, restored on every way out including ^C and
+`die`), `join.ps1` with `Read-Host -AsSecureString` (converted to text in memory only). The token is
+then in no shell history (`~/.bash_history`, `~/.zsh_history`, PowerShell's `ConsoleHost_history.txt`)
+and in no process argument list (`ps`, `/proc/<pid>/cmdline`). Paste it from the Run Inbox card when
+asked. The forms that carry it still work, for a machine with no terminal to ask on:
+`curl ... | ORG_JOIN_TOKEN=<t> sh -s -- --host <name>`, `curl ... | sh -s -- --token <t> --host <name>`
+(history and `ps`), and on Windows `$env:ORG_JOIN_TOKEN` or
 `& ([scriptblock]::Create((iwr -UseBasicParsing https://<hub>/org-join/join.ps1).Content)) --token <t> --host <name>`.
-Keeping the token out of the command line: `curl ... | ORG_JOIN_TOKEN=<t> sh -s -- --host <name>`.
+The Windows `iex` form cannot take arguments, so it reads `$env:ORG_JOIN_HOST` (and `ORG_JOIN_HQ_ROOT`).
 
 | File | What it is |
 |---|---|
-| `join.sh` | POSIX sh, Linux + macOS. `--dry-run` prints the nine steps and changes nothing. |
+| `join.sh` | POSIX sh, Linux + macOS. `--dry-run` prints the nine steps and changes nothing. Every python it starts runs `-I`. |
 | `join.ps1` | Windows PowerShell 5.1, ASCII only. Same steps, same messages. |
 | `org-join.service` | systemd unit for the hub endpoint (`tools/join_api.py`) on Contabo (W4.5). |
 | `bind-docker0.sh` | Start-up wrapper of that unit: exports `JOIN_API_BIND` = the docker0 IPv4 address. |
@@ -27,24 +33,32 @@ Keeping the token out of the command line: `curl ... | ORG_JOIN_TOKEN=<t> sh -s 
 operator (phone)           hub (Contabo)                     new machine                      Mac (provisioner)
   Run Inbox: mint --host X ->  join_tokens row
   token, 15 min            <-
-                                                   curl .../join.sh | sh --token T --host X
-                                                   2 install  3 keys (age, deploy, dispatch)
-                              POST /accept  <---   4 accept: token + age pubkey + deploy pubkey
-                              hosts: pending_identity
-                              {host, status, tailscale_authkey?} --->  5 tailscale up
-                                                   6 poll POST /sealed every 15 s ...
-                                                                                              hq_join provision X
+                                                   curl .../join.sh | sh -s -- --host X   (token asked, no echo)
+                                                   2 keys (age, deploy, dispatch); installs only the tools they need
+                              POST /accept  <---   3 accept: token + age pubkey + deploy pubkey
+                              hosts: pending_identity    prints  fingerprint: <last 8 of the age recipient>
+                              {host, status, tailscale_authkey?} --->  4 install the rest  5 tailscale up
+                                                   6 poll POST /sealed every 15 s: "waiting for approval"
+  Run Inbox: approve X, compare the 8 characters
+  hq_join approve --host X --fingerprint <8> ------------------------------------------>  hq_join provision X
                               node_secrets.ciphertext <---------------------------------------  (mint Infisical secret,
                               hosts: identity_ready                                              seal to X's age key,
                                                                                                  register deploy key)
-                              200 {ciphertext} --->   7 clone Agents-Core (deploy key)
+                              200 {ciphertext} --->   7 GitHub host keys -> known_hosts, clone (StrictHostKeyChecking=yes)
                                                    8 age -d | infisical_setup.py save X --stdin ; node.yaml
                                                    9 probe
 ```
 
+Accept comes before the long installs, on purpose (review task-79219f24, F1): the token is used
+within seconds of being typed, and the operator sees the node's fingerprint at once. Whoever
+holds a leaked token and accepts first shows a different fingerprint than the machine the
+operator is sitting at, and the approval (W4.6a, `hq_join approve`) is what stops the hub
+provisioning them. Step 2 installs only what the keys and the hub calls need (curl, ssh-keygen,
+age, python; on Windows age, and git for its ssh-keygen); step 4 installs the rest.
+
 Steps 6 and 7 are in the order the machine needs them, not the order the nine are listed in the
-task: the deploy key only works once the Mac has provisioned the node, and `save` is a script
-from the clone.
+task: the deploy key only works once the operator approved the node and the Mac provisioned it,
+and `save` is a script from the clone.
 
 Every step is safe to repeat. After any failure, run the same command again: a token that already
 joined this host is recognised through `/sealed`, and keys, clone, venv and node.yaml are kept.
@@ -52,7 +66,10 @@ joined this host is recognised through `/sealed`, and keys, clone, venv and node
 ## What each side sees
 
 - The token goes in a request body under TLS. It is never a URL, a header, a file, or a line of
-  output. `join.sh` takes it from `--token` or `ORG_JOIN_TOKEN` (and unsets the variable at once).
+  output. `join.sh` takes it from the hidden prompt, `--token` or `ORG_JOIN_TOKEN` (and unsets the
+  variable at once). The hub's endpoint answers `503 {"error":"busy"}` when it is overloaded; the
+  scripts then stop with "wait a minute and run the same command again", and the token is not
+  used up (a 503 comes before any database work).
 - The node's client id and secret exist on the node only as age ciphertext until step 8, where
   `age -d | python | infisical_setup.py save` moves them over pipes. `save` (root, `/etc/infisical`,
   0600) is the only thing that stores them. On Windows one python process does the same chain,
@@ -62,6 +79,36 @@ joined this host is recognised through `/sealed`, and keys, clone, venv and node
   apart from outside. `/sealed` also stops answering 24 hours after the token was used.
 - `CLAUDE_CODE_OAUTH_TOKEN` is not fetched. The node reads it at run time with
   `infisical_setup.py run Agents-Core prod --as <host> -- <command>`.
+
+## What root runs, and what `-I` does and does not do (F6)
+
+Steps 8 and 9 run as root (`sudo` on Linux and macOS) and execute files from the user-owned clone:
+`tools/infisical_setup.py save`, then `infisical_setup.py run`, which execs the venv's python on
+`tools/node_dispatch.py probe`. A user-writable file executed by root is a path from the node's
+user (an LLM worker included) to root. `join.sh` now starts every python with `-I` (isolated): no
+user site-packages and no `.pth` files, no `PYTHON*` variables, no current directory and no script
+directory on `sys.path`. `-B` is added where a root process imports the repo, so root writes no
+root-owned `.pyc` into the clone (the `PYTHONDONTWRITEBYTECODE` variable that did that before is
+one of the variables `-I` ignores). Because `-I` also drops the current directory, `-m
+tools.node_dispatch` cannot find the `tools` package (`No module named 'tools'`, reproduced), so the
+probe is started by its path, `.venv/bin/python -I -B "$CORE/tools/node_dispatch.py" probe`; the file
+puts the checkout on `sys.path` itself (`sys.path.insert(0, ROOT)`) and imports `lib` as before.
+
+What `-I` does **not** fix: the clone's own code is still user-writable and root still runs it, and
+so does any `.pth` in the venv's or Homebrew's own site-packages. Closing that needs a model
+change, not a flag (a dedicated `orgnode` user that owns the credential and runs the workers, or
+`run` dropping to `SUDO_USER` before exec with `save` run from a root-owned copy). That is a
+decision for the CTO and the CEO; the review's F6 wording is "at minimum add `-I`".
+
+## GitHub's host keys (F7)
+
+Before the first clone, step 7 fetches `https://api.github.com/meta` over TLS, takes `ssh_keys`
+(checks each against `ssh-ed25519|ecdsa-sha2-nistp256|ssh-rsa` and the base64 shape) and writes
+them as `github.com <key>` lines into `$CONF_DIR/known_hosts`, replacing any file an older run left.
+The clone and every later `git pull` use `StrictHostKeyChecking=yes` with that file. If the fetch
+fails or lists no usable key, the script stops and says so: there is no fallback to `accept-new`.
+Run the same command again once `api.github.com` is reachable (the unauthenticated API limit is 60
+requests an hour per address).
 
 ## Exit codes (`join.sh`)
 
@@ -146,6 +193,28 @@ sudo systemctl disable --now org-join                                # the endpo
 `/etc/systemd/system/org-join.service` may stay; a disabled, stopped unit does nothing. The
 token rows in the hub database are untouched by either step.
 
+### The unit's sandbox, and the load gate (W4.6b; review F3 and F11)
+
+`org-join.service` carries `NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome=yes`,
+`PrivateTmp`, `ProtectKernelTunables`, `ProtectKernelModules`, `ProtectControlGroups`,
+`RestrictSUIDSGID` and `LockPersonality`, each explained in a comment in the file. There is no
+`ReadWritePaths=`: the service writes nothing on disk (hub Postgres over the network, logs to
+journald, checkout and `/etc/infisical/contabo.env` read-only). What stays open, and is a CEO
+decision (F3): the process still gets every Agents-Core prod secret and connects as the full `org`
+role, and it still runs as the `secretary` uid.
+
+Before `systemctl daemon-reload`, on Contabo: `readlink -f /opt/MoonieXHQ/Agents/Core/.venv/bin/python`
+must not start with `/home` or `/root` (`ProtectHome=yes` would hide the interpreter), and
+`systemd-analyze verify /etc/systemd/system/org-join.service` must print nothing. After the start,
+`systemctl show org-join -p NoNewPrivileges -p ProtectSystem -p ProtectHome` and the two checks in
+"Checks" above must still answer.
+
+`tools/join_api.py` lets at most 4 requests be inside their database section at once
+(`DB_SLOTS`, a module-level `BoundedSemaphore`). A request that cannot get a slot within 2 s
+(`DB_WAIT_S`) is answered `503 {"error":"busy"}` with `Retry-After: 2`. The body is read and
+checked before the slot is taken, so a slow client holds none; the 503 depends on load and never
+on the token. The socat container's `pids_limit: 128` remains the cap on open connections.
+
 ## Tailscale pre-auth key
 
 `tools/join_api.py` takes an injectable `TailscaleMinter` (`host -> one-use, tagged pre-auth key`).
@@ -156,8 +225,13 @@ exact `tailscale up --hostname <name>` to run).
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w43_join_api.py tests/test_w43_join_scripts.py tests/test_w45_bind.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w43_join_api.py tests/test_w43_join_scripts.py tests/test_w45_bind.py tests/test_w46b_node_fixes.py
 ```
+
+`tests/test_w46b_node_fixes.py` covers the W4.6b fixes: accept before install, the fingerprint
+line, the hidden token prompt (on a real pty), the pinned `known_hosts`, `-I` on every python call,
+the 503 gate and the unit's directives. The PowerShell side is read as text there and parsed only
+where `pwsh` is installed (it is not on the Mac).
 
 `tests/test_w45_bind.py` reads the compose file, the unit and `bind-docker0.sh` (run with a fake
 `ip`). The container, traefik and systemd themselves are only exercised on Contabo, by the checks above.
