@@ -101,3 +101,64 @@ the tests can fail. Scripts restored afterwards and re-checked with `bash -n`.
 
 - MISSING [no owner | hooks] : the `self_repo_guard` hook treats the text `<host>.env` inside a `git commit -m` message as a redirect into `.env` and blocks the commit. Reword to avoid it; the guard was not bypassed. · evidence: task-1670b1f8, first commit attempt (Bash blocked, reworded, then committed)
 - COSTLY [no owner | hooks] : GateGuard arms once per new or edited file (Edit/Write) plus once per Bash session; with 9 touched files that was about a dozen blocked-then-retried calls. The facts must be stated and the identical call retried; stating them first does not pre-empt it. · evidence: task-1670b1f8 session · prevented by: batch all edits per file into one Edit where possible, and budget one error per file
+
+---
+
+# Iteration 2 (CTO-FEEDBACK.md, one change): node.yaml write moves from step 4 to step 8
+
+This supersedes the iteration-1 lines that say step 4 writes `org_db: hub` (Files Changed, and Notes for Reviewer note 1).
+
+## Summary
+`org_db: hub` is now written in step 8, after the migration (5/5b), the tombstone (6) and the read-back (7), immediately
+before the three unit restarts. Step 4 keeps the preflights, the Infisical connect check, the drop-in copy and
+`daemon-reload`, and no longer touches node.yaml. A step 8 failure prints a rollback that names removing the `org_db:` line.
+
+## Files Changed
+- `scripts/hub/contabo-cutover-remote.sh` — node.yaml writer block moved out of step 4 into step 8 (before the restarts).
+  New `print_rollback()` (drop-ins, `org_db:` line via `cutover_flip.py --rollback --apply`, `daemon-reload`, restart) is printed on
+  three step 8 failures: the node write fails (no unit restarted), a `systemctl restart` fails (was: silent `set -e` exit,
+  now `RESTART FAILED: <unit>`, the other units are still tried, a failed restart is not re-judged by `is-active`), or a unit is not active.
+  Header and step 4 comments say why.
+- `scripts/hub/contabo-cutover.sh` — header only: step 4 says node.yaml is not touched there; step 8 names the write and that a step 8
+  failure prints the rollback.
+- `docs/design/org-mesh-w18-contabo-consumers.md` — installer section now "steps 4 and 8"; the node write is listed under step 8 with the reason;
+  MCP bullet says it is written in step 8.
+- `tests/test_w18_contabo_consumers.py` — fakes log `node_hub` (does the node file already say `org_db: hub` at the moment of the call) and
+  gained `FAKE_MIGRATE_FAIL` / `FAKE_RESTART_FAIL_UNIT`; `box.env` merges overrides (so a test can move `NODE_YAML`).
+  Three node-file tests renamed step4 to step8. New tests (6):
+  `test_node_yaml_is_written_after_the_migration_and_before_the_restarts` (fails if the write sits before the migration: every
+  daemon-reload / migrate / verify / read-back call must see no switch, all three restarts must see it),
+  `test_a_failed_migration_never_writes_the_node_file_or_restarts_a_unit`,
+  `test_step8_failure_after_the_node_write_still_prints_the_org_db_line_rollback`,
+  `test_step8_restart_command_failure_is_reported_and_prints_the_rollback`,
+  `test_step8_node_file_write_failure_restarts_nothing_and_prints_the_rollback`,
+  `test_the_switch_write_is_in_step_8_before_the_first_restart_and_not_in_step_4` (static text check of the script and the header).
+- `docs/reports/task-1670b1f8/REPORT.md` — this section.
+- `tests/test_hub_cutover_scripts.py` — untouched this iteration; no test outside `tests/test_w18_contabo_consumers.py` pinned the step 4 write.
+
+## Commits
+- 7f18120e — W1.8 iter 2: write org_db: hub in step 8 right before the restarts, not in step 4
+- (report commit follows this section)
+
+## Tests
+- ran: `.venv/bin/python -m pytest` (full suite, worktree, default env, no `-q`) — `3612 passed, 27 skipped, 72 warnings in 300.87s (0:05:00)`, exit=0
+- ran: `ORG_HOST=contabo .venv/bin/python -m pytest` (full suite, worktree) — `3612 passed, 27 skipped, 72 warnings in 288.93s (0:04:48)`, exit=0
+- ran: `.venv/bin/python scripts/test_mcp_role_config.py` standalone — 57 PASS, 0 FAIL, `OK — 0 failure(s)`, exit=0
+- iteration 1 was 3606 passed / 27 skipped; +6 = the six new tests. `bash -n` ok on the three touched shell files.
+- passed: 3612 · failed: 0 · skipped: 27
+- Mutation probe: a copy of the node-file writer inserted into step 4 (before `daemon-reload`) made 6 tests fail
+  (ordering test, failed-migration test, both step 8 node-file tests, the write-failure test, the static test), 64 passed;
+  script restored byte for byte (`diff` empty) and `bash -n` re-checked.
+
+## Issues / Blockers
+- none. The earlier open item (`org-snapshot.service`) stays out of scope, as instructed.
+
+## Notes for Reviewer
+- A failure before step 8 (steps 5 to 7) leaves the drop-ins installed and node.yaml untouched; the header rollback still applies and its
+  `cutover_flip.py --rollback --apply` is a no-op ("already absent") when the line was never written.
+- `cutover_flip.py --rollback` takes the node path from `node_yaml_path()`, not from `$NODE_YAML`. On Contabo both are `/root/.config/mooniex/node.yaml`; only the tests move `NODE_YAML`.
+- One behaviour change beyond the move, needed for requirement 2: a failing `systemctl restart` used to exit silently under `set -e` with no rollback text. It is now caught, reported and followed by the rollback.
+- Note the earlier suite time-to-run: both full runs ~5 minutes.
+
+## Skill learning
+- (none)
