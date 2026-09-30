@@ -474,6 +474,113 @@ def test_cutover_mac_script_parses_and_step_4_tells_sessions_to_restart():
     assert "cutover_flip.py --rollback --apply" in text
 
 
+# --------------------------------------------------------------------- mesh_check
+
+import asyncio  # noqa: E402
+import types  # noqa: E402
+
+import tools.mesh_check as mesh  # noqa: E402
+
+
+def _capture_l2_params(monkeypatch, root: Path) -> dict:
+    """Run check_l2 against a fake MCP client that records the launch params."""
+    import mcp
+    import mcp.client.stdio as mcp_stdio
+
+    seen: dict = {}
+
+    class _Ctx:
+        async def __aenter__(self):
+            return (None, None)
+
+        async def __aexit__(self, *exc):
+            return False
+
+    class _Session:
+        def __init__(self, *_a, **_k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def initialize(self):
+            return None
+
+        async def list_tools(self):
+            return types.SimpleNamespace(tools=[types.SimpleNamespace(name=n)
+                                                for n in ("create_task", "delegate_task")])
+
+    def fake_stdio_client(params):
+        seen["params"] = params
+        return _Ctx()
+
+    monkeypatch.setattr(mcp_stdio, "stdio_client", fake_stdio_client)
+    monkeypatch.setattr(mcp, "ClientSession", _Session)
+    ok, reason = asyncio.run(mesh.check_l2(root))
+    assert (ok, reason) == (True, None)
+    return seen
+
+
+def test_mesh_check_launch_uses_the_wrapper_when_the_hub_is_live(root, hub_on):
+    command, args = mesh._org_server_launch(root, Path(_py(root)))
+
+    assert command == _wrapper(root)
+    assert args == [_py(root), "-m", "runners.cto_mcp_server"]
+
+
+def test_mesh_check_launch_is_plain_with_the_switch_off(root, env_file):
+    """env file present, no `org_db: hub`: the probe stays on the plain launch."""
+    command, args = mesh._org_server_launch(root, Path(_py(root)))
+
+    assert (command, args) == (_py(root), ["-m", "runners.cto_mcp_server"])
+
+
+def test_mesh_check_l2_passes_the_wrapper_params_to_the_client(root, hub_on, monkeypatch):
+    params = _capture_l2_params(monkeypatch, root)["params"]
+
+    assert params.command == _wrapper(root)
+    assert params.args == [_py(root), "-m", "runners.cto_mcp_server"]
+    assert params.cwd == str(root)
+    assert SENTINEL not in json.dumps(params.args) and "ORG_DB_URL" not in (params.env or {})
+
+
+def test_mesh_check_l2_passes_plain_params_with_the_switch_off(root, env_file, monkeypatch):
+    params = _capture_l2_params(monkeypatch, root)["params"]
+
+    assert params.command == _py(root)
+    assert params.args == ["-m", "runners.cto_mcp_server"]
+
+
+def test_mesh_check_falls_back_to_plain_only_when_the_generator_file_is_missing(
+        root, hub_on, tmp_path, monkeypatch):
+    monkeypatch.setattr(mesh, "ROOT", tmp_path / "no-checkout-here")
+
+    assert mesh._org_server_launch(root, Path(_py(root))) == (
+        _py(root), ["-m", "runners.cto_mcp_server"])
+
+
+def test_mesh_check_a_generator_error_is_a_red_result_not_a_silent_plain_probe(
+        root, hub_on, monkeypatch):
+    """The params are built inside check_l2's try: a broken generator must turn
+    the cell red, never fall back to probing the wrong ledger."""
+    def boom(*_a, **_k):
+        raise RuntimeError("generator exploded")
+
+    monkeypatch.setattr(mesh, "_org_server_launch", boom)
+    import mcp
+    import mcp.client.stdio as mcp_stdio
+    monkeypatch.setattr(mcp_stdio, "stdio_client", lambda p: pytest.fail("client must not start"))
+    monkeypatch.setattr(mcp, "ClientSession", object)
+
+    ok, reason = asyncio.run(mesh.check_l2(root))
+
+    assert ok is False
+    assert "RuntimeError" in reason and "generator exploded" in reason
+
+
 def test_the_shipped_launcher_inputs_carry_no_wrapper_or_env_path():
     """The tracked launcher inputs must not name the wrapper or the env file:
     the generators decide the wrapper per host."""

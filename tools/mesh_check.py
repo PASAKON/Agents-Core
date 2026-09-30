@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib.util
 import json
 import os
 import re
@@ -167,6 +168,25 @@ def _venv_python(root: Path) -> Path:
     if os.name == "nt":
         return root / ".venv" / "Scripts" / "python.exe"
     return root / ".venv" / "bin" / "python"
+
+
+def _org_server_launch(root: Path, python: Path) -> tuple[str, list[str]]:
+    """(command, args) for the org MCP server, built by the generator every real
+    session uses (scripts/lib/cxo_mcp_config.py), so a probe reaches the same
+    ledger: wrapped when `org_db: hub` is set on this host and its env file
+    exists, plain otherwise. Only a MISSING generator falls back to the plain
+    launch (a peer box that has not pulled it yet); any error in it propagates."""
+    plain = (str(python), ["-m", "runners.cto_mcp_server"])
+    src = ROOT / "scripts" / "lib" / "cxo_mcp_config.py"
+    if not src.is_file():
+        return plain
+    spec = importlib.util.spec_from_file_location("cxo_mcp_config", src)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    entry = mod._build("org", str(root))
+    if not entry:
+        return plain
+    return entry["command"], list(entry.get("args", []))
 
 
 def _ssh_run(alias: str, remote_cmd: str, *, timeout: int,
@@ -337,9 +357,9 @@ async def check_l2(root: Path) -> tuple[bool, str | None]:
 
     env = dict(os.environ)
     env["PYTHONUNBUFFERED"] = "1"
-    params = StdioServerParameters(command=str(python), args=["-m", "runners.cto_mcp_server"],
-                                   cwd=str(root), env=env)
     try:
+        command, args = _org_server_launch(root, python)
+        params = StdioServerParameters(command=command, args=args, cwd=str(root), env=env)
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as session:
                 await asyncio.wait_for(session.initialize(), timeout=20)
@@ -433,9 +453,9 @@ async def run_l3_probe(from_host: str, to_host: str, root: Path, expect: str,
     env = dict(os.environ)
     env["PYTHONUNBUFFERED"] = "1"
     env["CTO_SESSION_ID"] = session_id
-    params = StdioServerParameters(command=str(python), args=["-m", "runners.cto_mcp_server"],
-                                   cwd=str(root), env=env)
     try:
+        command, args = _org_server_launch(root, python)
+        params = StdioServerParameters(command=command, args=args, cwd=str(root), env=env)
         async with stdio_client(params) as (read, write):
             async with ClientSession(read, write) as session:
                 await asyncio.wait_for(session.initialize(), timeout=20)
