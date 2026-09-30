@@ -417,6 +417,32 @@ def test_watchdog_dropin_runs_the_same_command_as_the_unit_it_extends():
     assert "User=root" in base                                 # the identity file is root-only
 
 
+@pytest.mark.parametrize("unit", UNITS)
+def test_dropin_execstart_survives_infisical_setup_argument_parsing(unit, monkeypatch):
+    """The real tools/infisical_setup.py main() splits at the FIRST `--`; the secretary lines carry a
+    second one (before setpriv's program). Feed the drop-in's own ExecStart to the real parser."""
+    import shlex
+
+    sys.path.insert(0, str(ROOT))
+    import tools.infisical_setup as inf
+
+    line = _body(unit)[-1].split("=", 1)[1].removeprefix("+")
+    argv = shlex.split(line)
+    assert argv[:2] == ["/usr/bin/python3", f"{AGENTS}/tools/infisical_setup.py"]
+    seen: dict = {}
+    monkeypatch.setattr(inf, "cmd_run", lambda identity, project, env, command, path="/":
+                        seen.update(identity=identity, project=project, env=env, command=command, path=path))
+
+    inf.main(argv[2:])
+
+    assert (seen["identity"], seen["project"], seen["env"], seen["path"]) == \
+        ("contabo", "Agents-Core", "prod", "/")
+    assert seen["command"] == argv[argv.index("--") + 1:]
+    assert seen["command"][0] == ("/usr/bin/setpriv" if unit in SECRETARY_UNITS else VENV_PY)
+    if unit in SECRETARY_UNITS:
+        assert seen["command"].count("--") == 1 and seen["command"][-1] != "--"
+
+
 @pytest.mark.skipif(not BLUEPRINT.is_dir(), reason="state/contabo-blueprint-20260924 not in this checkout")
 @pytest.mark.parametrize("unit, target", [
     ("mooniex-secretary", f"{AGENTS}/runners/secretary_server.py"),
