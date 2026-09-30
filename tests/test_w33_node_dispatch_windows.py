@@ -59,7 +59,7 @@ def _isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
     db_mod.init()
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
-                "SSH_ORIGINAL_COMMAND", "SSH_CLIENT"):
+                "SSH_ORIGINAL_COMMAND", "SSH_CLIENT", "ORG_WIN_WAKE"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setattr(config_mod, "self_host", lambda: "winbox")

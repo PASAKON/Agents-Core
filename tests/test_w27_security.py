@@ -57,6 +57,7 @@ from tools import node_dispatch as nd  # noqa: E402
 
 SEED = 0x42FDCDA7
 FUZZ_CASES = 6000
+_REAL_SPAWN_WORKER_WINDOWS = nd._spawn_worker_windows  # the `winbox` fixture replaces it
 CANARY = "canary-SECRET-7f3a9c0d"  # stands in for a token in the environment
 UUID = "12345678-1234-1234-1234-123456789abc"
 
@@ -69,7 +70,7 @@ UUID = "12345678-1234-1234-1234-123456789abc"
 def _isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
     for var in ("ORG_DB_URL", "CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
-                "SSH_ORIGINAL_COMMAND", "SSH_CLIENT", mesh.ENV_FLAG):
+                "SSH_ORIGINAL_COMMAND", "SSH_CLIENT", "ORG_WIN_WAKE", mesh.ENV_FLAG):
         monkeypatch.delenv(var, raising=False)
     db_mod.init()
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
@@ -922,8 +923,41 @@ def test_redact_leaves_ordinary_errors_alone(text):
 # 7. Windows: spawn gating and MAILBOX.md links (CTO-FEEDBACK items 3 and 4)
 # ---------------------------------------------------------------------------
 
+class Disk:
+    """delegate._free_gb, replaced: the one seam the disk floor reads free space
+    through. `paths` is every path it was asked about."""
+
+    def __init__(self) -> None:
+        self.gb = 100.0
+        self.error: Exception | None = None
+        self.paths: list[str] = []
+
+    def __call__(self, path: str = "/") -> float:
+        self.paths.append(path)
+        if self.error is not None:
+            raise self.error
+        return self.gb
+
+
+def _policy(tmp_path: Path, orange: float, disk_floor: str = "all") -> Path:
+    path = tmp_path / "storage-policy.yaml"
+    path.write_text(f"gauge:\n  orange: {orange}\nscope:\n  disk_floor: {disk_floor}\n",
+                    encoding="utf-8")
+    return path
+
+
 @pytest.fixture
-def winbox(monkeypatch, wire):
+def disk(monkeypatch, tmp_path) -> Disk:
+    """100 GB free against a 5 GB floor, scope "all": what the real policy says today,
+    written into tmp_path so a later edit of config/storage-policy.yaml cannot move it."""
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", _policy(tmp_path, 5))
+    d = Disk()
+    monkeypatch.setattr(delegate, "_free_gb", d)
+    return d
+
+
+@pytest.fixture
+def winbox(monkeypatch, wire, disk):
     monkeypatch.setenv("ORG_HOST", "winbox")
     config_mod.self_host.cache_clear()
     monkeypatch.setattr(nd, "_is_windows", lambda: True)
@@ -978,6 +1012,132 @@ def test_windows_spawn_passes_a_row_the_hub_gated(winbox):
     out, code = nd._run("spawn_worker", [tid])
     assert code == 0 and out["result"]["status"] == "in_progress"
     assert winbox == [tid]
+
+
+# W2.7 F3b (task-49f70bc6): the disk floor delegate_task applies, re-checked on
+# the win32 path before any PowerShell. Same reading seam (delegate._free_gb),
+# same floor (storage-policy gauge.orange via delegate._disk_orange_floor_gb),
+# same strict `<`, same scope rule. The browser cap stays the hub's.
+
+def _floor() -> float:
+    return delegate._disk_orange_floor_gb()
+
+
+def test_windows_spawn_refuses_below_the_disk_floor_and_starts_nothing(winbox, disk, wire):
+    disk.gb = _floor() - 0.1
+    tid = _task(status="pending", host="winbox")
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 2, out
+    assert "disk red on winbox" in out["error"] and "GB floor" in out["error"]
+    assert winbox == [] and wire.calls == []  # no spawn, no PowerShell
+    row = db_mod.get_task(tid)
+    assert row["status"] == "pending" and not row.get("spawned_at")
+    ev = [e for e in _events() if e["payload"].get("verb") == "spawn_worker"]
+    assert [(e["payload"]["ok"], e["task_id"]) for e in ev] == [(False, tid)]
+
+
+@pytest.mark.parametrize("delta, allowed", [(-0.01, False), (0.0, True), (0.01, True)])
+def test_the_disk_floor_is_a_strict_less_than_like_delegates(winbox, disk, delta, allowed):
+    disk.gb = _floor() + delta
+    tid = _task(status="pending", host="winbox")
+    out, code = nd._run("spawn_worker", [tid])
+    assert (code == 0) is allowed, out
+    assert winbox == ([tid] if allowed else [])
+
+
+def test_the_floor_is_read_from_delegate_not_copied(winbox, disk, monkeypatch):
+    monkeypatch.setattr(delegate, "_disk_orange_floor_gb", lambda: 42.0)
+    tid = _task(status="pending", host="winbox")
+    disk.gb = 41.9
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 2 and "42.0 GB floor" in out["error"], out
+    disk.gb = 42.0
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 0, out
+
+
+def test_the_floor_comes_from_the_storage_policy_gauge_orange_key(winbox, disk, monkeypatch,
+                                                                  tmp_path):
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", _policy(tmp_path, 9))
+    tid = _task(status="pending", host="winbox")
+    disk.gb = 8.9
+    assert nd._run("spawn_worker", [tid])[1] == 2
+    disk.gb = 9.0
+    assert nd._run("spawn_worker", [tid])[1] == 0
+
+
+def test_the_gate_holds_no_number_of_its_own():
+    tree = ast.parse((ROOT / "tools" / "node_dispatch.py").read_text(encoding="utf-8"))
+    gate = next(n for n in ast.walk(tree)
+                if isinstance(n, ast.FunctionDef) and n.name == "_windows_disk_floor_gate")
+    numbers = [c.value for c in ast.walk(gate)
+               if isinstance(c, ast.Constant) and isinstance(c.value, (int, float))
+               and not isinstance(c.value, bool)]
+    assert numbers == []
+
+
+def test_free_space_is_read_on_the_worktrees_drive(winbox, disk, tmp_path):
+    tid = _task(status="pending", host="winbox")
+    assert nd._run("spawn_worker", [tid])[1] == 0
+    assert disk.paths == [str(tmp_path / "worktrees")]
+
+
+def test_a_worktrees_root_that_does_not_exist_yet_reads_its_nearest_ancestor(
+        winbox, disk, monkeypatch, tmp_path):
+    monkeypatch.setattr(nd, "_worktrees_root", lambda: tmp_path / "not" / "there" / "yet")
+    tid = _task(status="pending", host="winbox")
+    assert nd._run("spawn_worker", [tid])[1] == 0
+    assert disk.paths == [str(tmp_path)]
+
+
+def test_a_free_space_read_that_fails_is_a_refusal_not_a_pass(winbox, disk):
+    disk.error = OSError(5, "input/output error")
+    tid = _task(status="pending", host="winbox")
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 2 and "cannot read free disk" in out["error"], out
+    assert winbox == []
+
+
+def test_a_task_out_of_the_disk_floor_scope_is_not_gated_like_delegates(
+        winbox, disk, monkeypatch, tmp_path):
+    monkeypatch.setattr(delegate, "STORAGE_POLICY", _policy(tmp_path, 5, disk_floor="[cto-other]"))
+    disk.gb = 0.0
+    tid = _task(status="pending", host="winbox")
+    assert nd._run("spawn_worker", [tid])[1] == 0
+    assert disk.paths == []  # out of scope: free space is not even read
+
+
+def test_the_disk_refusal_comes_before_powershell_on_the_real_spawn_function(
+        winbox, disk, wire, monkeypatch):
+    monkeypatch.setattr(nd, "_spawn_worker_windows", _REAL_SPAWN_WORKER_WINDOWS)
+    disk.gb = 0.5
+    tid = _task(status="pending", host="winbox")
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 2 and "disk red" in out["error"], out
+    assert wire.calls == []  # _run_powershell, subprocess.run and Popen all untouched
+    assert not (ROOT / "state" / f".remote-task-{tid}.md").exists()
+
+
+def test_the_disk_gate_runs_after_the_dependency_and_conflict_checks(winbox, disk):
+    disk.gb = 0.5
+    dep = _task(status="pending")
+    tid = _task(status="pending", host="winbox", depends_on=json.dumps([dep]))
+    out, code = nd._run("spawn_worker", [tid])
+    assert code == 2 and "unfinished dependencies" in out["error"], out
+    assert disk.paths == []
+
+
+def test_the_posix_spawn_path_does_not_run_the_windows_disk_gate(winbox, disk, monkeypatch):
+    monkeypatch.setattr(nd, "_is_windows", lambda: False)
+    monkeypatch.setattr(nd, "_windows_disk_floor_gate", lambda task: pytest.fail("win32 gate on POSIX"))
+
+    async def fake_delegate(task_id, host=None):
+        _update(task_id, status="in_progress", pid=4242)
+
+    monkeypatch.setattr(delegate, "delegate_task", fake_delegate)
+    tid = _task(status="pending", host="winbox")
+    disk.gb = 0.1  # delegate_task does its own floor; this gate is not its second copy
+    assert nd._run("spawn_worker", [tid])[1] == 0
 
 
 def _worker_with_letter(tmp_path) -> tuple[str, Path, int]:
