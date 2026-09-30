@@ -40,9 +40,27 @@ import subprocess
 from lib import config
 
 ENV_FLAG = "ORG_MESH_DISPATCH"
+ENV_MAX_ATTEMPTS = "ORG_MESH_MAX_ATTEMPTS"
 SSH_KEY = "~/.ssh/org_dispatch"
 CONNECT_TIMEOUT_S = 10
 DEFAULT_TIMEOUT_S = 30
+
+# A `queued_remote` row (a mesh spawn the host did not answer) is retried once
+# per watchdog pass, INTERVAL_S = 300 s in runners/watchdog.py. The first
+# attempt is at delegate time, so 12 attempts are 11 passes: about 55 minutes
+# of silence (longer when a hung dial eats its full 300 s verb timeout). That
+# rides out a reboot, a Windows update restart or a tailnet re-key, and it
+# stops well before the row's path locks have blocked other work for hours.
+# Past it the row is failed and the owner told (delegate.give_up_queued_remote).
+MAX_ATTEMPTS = 12
+
+# The Windows wake inside `deliver_letter` (agent_transport.wake_windows_tab:
+# schtasks /run, then a wait for the result) can block up to WAKE_WORST_CASE_S.
+# The ssh dial comes first and the far side then starts python, reads the
+# ledger and writes the letter: that part gets this margin. A letter whose
+# wake is slow is already on disk, so the timeout must not be the thing that
+# reports the host unreachable.
+LETTER_WRITE_MARGIN_S = 15
 
 # Wall-clock ceilings for the verbs that do real work on the far side. The
 # numbers sit just above the ones node_dispatch and delegate already use
@@ -87,6 +105,18 @@ class MeshUnreachable(Exception):
 def enabled() -> bool:
     """ORG_MESH_DISPATCH is 1/true/on. Default off: see the module docstring."""
     return os.environ.get(ENV_FLAG, "").strip().lower() in ("1", "true", "on")
+
+
+def max_attempts() -> int:
+    """How many unanswered spawn attempts a `queued_remote` row gets before it
+    is failed: ORG_MESH_MAX_ATTEMPTS, else MAX_ATTEMPTS. A value that is not a
+    whole number >= 1 falls back to the default: a typo must never turn the
+    cap off, which is the unbounded retry this exists to stop."""
+    try:
+        n = int(os.environ.get(ENV_MAX_ATTEMPTS, "").strip())
+    except ValueError:
+        return MAX_ATTEMPTS
+    return n if n >= 1 else MAX_ATTEMPTS
 
 
 def _node_dispatch():

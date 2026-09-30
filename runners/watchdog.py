@@ -552,15 +552,33 @@ def _retry_queued_remote() -> list[dict]:
     spawn_worker) when the host hangs instead of refusing, so dialling every
     row of a dead host stalls the watchdog, and each row would spend an
     attempt on the same outage. Rows keep their order: the head of the host's
-    queue is the one that spends attempts."""
+    queue is the one that spends attempts.
+
+    A row that has been unreachable `mesh.max_attempts()` times (default 12,
+    about 55 minutes at this tick; ORG_MESH_MAX_ATTEMPTS) is failed instead of
+    dialled again: `delegate.give_up_queued_remote` releases its path locks and
+    tells the owner once. That needs no dial, so it happens even for a row
+    behind a silent host, and it does not make that host silent."""
     if not mesh.enabled():
         return []
     retried = []
     silent_hosts: set[str] = set()
+    cap = mesh.max_attempts()
     for t in db.list_tasks(status="queued_remote", limit=200):
         if not is_remote_row(t):  # another box's row, or no target host yet
             continue
         host_name = row_host(t)
+        try:
+            attempts = delegate._queued_remote_attempts(t["id"])
+            if attempts >= cap:
+                row = delegate.give_up_queued_remote(t["id"], host_name, attempts)
+                retried.append({"task": t["id"], "host": host_name, "status": row["status"]})
+                info(f"watchdog: queued_remote {t['id']} host={host_name} gave up after "
+                     f"{attempts} attempts -> {row['status']}")
+                continue
+        except Exception as e:  # one bad row must not stop the others
+            warn(f"watchdog: queued_remote cap check failed for {t['id']}: {e}")
+            continue
         if host_name in silent_hosts:
             continue
         try:

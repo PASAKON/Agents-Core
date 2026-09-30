@@ -1257,9 +1257,40 @@ def _local_launcher_env() -> dict[str, str]:
 
 def _queued_remote_attempts(task_id: str) -> int:
     """How many times this task has been put in `queued_remote`: one
-    `status_queued_remote` event per unreachable attempt (db.update_status)."""
-    return sum(1 for e in db.recent_events(limit=500, task_id=task_id)
-               if e["kind"] == "status_queued_remote")
+    `status_queued_remote` event per unreachable attempt (db.update_status).
+    Counted in the ledger, not over a window of recent events: the retry cap
+    (lib/mesh.max_attempts) reads this, and a row that logs many other events
+    must not push its old attempts out of view and so never reach the cap."""
+    with db.get_conn(readonly=True) as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n FROM events WHERE task_id=? AND kind=?",
+            (task_id, "status_queued_remote"),
+        ).fetchone()
+    return int(row["n"])
+
+
+def give_up_queued_remote(task_id: str, host_name: str, attempts: int) -> dict:
+    """Fail a `queued_remote` row whose host never answered `attempts` times
+    (the cap, lib/mesh.max_attempts). `failed` releases the row's path locks
+    in db.update_status (RELEASING_STATUSES), the same way a failed launcher
+    run does. The owner is told once, through the error path and the owner's
+    mailbox; a row already moved off the wait (the far side took it, another
+    watchdog failed it) is returned untouched and not announced, so a repeat
+    call cannot notify twice. Returns the row."""
+    row = db.get_task(task_id) or {}
+    if row.get("status") not in ("queued_remote", "pending"):
+        return row
+    cap = mesh.max_attempts()
+    msg = (f"mesh spawn_worker on {host_name} unreachable {attempts} times "
+           f"(cap {cap}, {mesh.ENV_MAX_ATTEMPTS}); giving up, task failed and its path locks released")
+    db.update_status(task_id, "failed", actor="cto", delegate_log=msg[:1000])
+    error(f"mesh spawn gave up task={task_id} host={host_name} attempts={attempts}")
+    try:
+        send_to_cto.send(task_id, msg, role=row.get("role"), cto_id=row.get("owner_cto"),
+                         owner_role=row.get("owner_role") or "cto")
+    except Exception as e:  # the row is already failed: a mailbox error must not undo that
+        warn(f"mesh spawn gave up task={task_id}: notify owner failed: {e}")
+    return db.get_task(task_id)
 
 
 def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
