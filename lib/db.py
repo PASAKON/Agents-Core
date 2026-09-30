@@ -1389,7 +1389,11 @@ def record_letter_attempt(letter_id: int, error: str) -> None:
     """Bump attempts, record `error` as last_error, and flip to `failed`
     once attempts reaches 5. Atomic per row (single UPDATE ... RETURNING) so
     two racing delivery attempts can't both read the same pre-increment
-    count and under-count."""
+    count and under-count.
+
+    Only a `pending` letter flips: a late count (a timeout while the far side
+    delivered) must not turn a `delivered` row into `failed` (W2.7 F14,
+    task-42fdcda7)."""
     with get_conn() as conn:
         row = conn.execute(
             "UPDATE letters SET attempts = attempts + 1, last_error = ? "
@@ -1398,7 +1402,8 @@ def record_letter_attempt(letter_id: int, error: str) -> None:
         ).fetchone()
         if row is not None and row["attempts"] >= 5:
             conn.execute(
-                "UPDATE letters SET status='failed' WHERE id=?", (letter_id,)
+                "UPDATE letters SET status='failed' WHERE id=? AND status='pending'",
+                (letter_id,),
             )
 
 

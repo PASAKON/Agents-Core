@@ -686,6 +686,25 @@ def test_a_failed_write_counts_one_attempt_and_frees_the_slot(monkeypatch, tmp_p
     assert _letter_locks() == []
 
 
+def test_a_late_count_never_turns_a_delivered_letter_into_failed(live_cto):
+    # F14: the far side delivered, but the dispatcher saw a timeout and keeps
+    # counting. The count still lands; the status stays what really happened.
+    lid = _clevel_letter()
+    out, code = nd._run("deliver_letter", [str(lid)])
+    assert code == 0 and out["result"]["delivered"] is True
+    for i in range(6):
+        db_mod.record_letter_attempt(lid, f"ssh timeout #{i}")
+    row = db_mod.get_letter(lid)
+    assert (row["status"], row["attempts"], row["last_error"]) == ("delivered", 6, "ssh timeout #5")
+
+
+def test_a_pending_letter_still_fails_on_its_fifth_count():
+    lid = _clevel_letter()
+    for i in range(5):
+        db_mod.record_letter_attempt(lid, f"e{i}")
+    assert db_mod.get_letter(lid)["status"] == "failed"
+
+
 # ---------------------------------------------------------------------------
 # 5. queued_remote: one retry per row per pass
 # ---------------------------------------------------------------------------
