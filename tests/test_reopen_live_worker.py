@@ -30,6 +30,9 @@ from lib.org_tools_registry import _h_reopen_task  # noqa: E402
 
 @pytest.fixture()
 def env(monkeypatch, tmp_path):
+    # The iTerm spawn path runs only on darwin (tools/delegate._spawn_local);
+    # pin it so this passes on the Linux CI runner too.
+    monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setattr(delegate, "_scope_owners", lambda feature: [])
