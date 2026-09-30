@@ -122,6 +122,38 @@ At most **2 sonnet workers run at the same time**, because the weekly limit stop
   - The shop's admin approves a draft from the page built in 2b. That is **DoD 3**.
   - It needs a shop that agreed during outreach, which is the CEO's and CMO's lane.
 
+### Path to ฿15,000 MRR (CEO 30 Sep: "เป้าหมายเดือนหน้าฉันอยากได้อย่างน้อย 15000 บาท … ทำให้เสร็จทีละ Step")
+
+**Target:** paying shops × price ≥ ฿15,000 at the CMO's first-money checkpoint, **Mon 30 Nov 2026 18:00**. That checkpoint is November because the CMO plan (artifact RGs4f2GGoffxXSjX7vxTQf `#plan`) bills no shop in October. The CMO's own November target is 8 shops and ฿12,000 (pass ≥6 / ฿8,000, stretch ≥11).
+
+**Math.** Everything marked (O) is the CMO model's estimate; nothing has been measured yet.
+
+| Pricing | Paying shops needed | Pilots (80% pay, O) | Owners reached (22% → pilot, O) | Shops contacted (10% reach owner, O) |
+|---|---|---|---|---|
+| Average ฿1,500 (CMO model ARPU) | 10 | 13 | ~59 | ~590 |
+| All Founding ฿990 | 16 | 20 | ~90 | ~900 |
+
+The CMO price table sets Founding at ฿990 for the first 2 months and the first 30 shops. So every shop billed in November is a Founding shop, and the ฿1,500 ARPU in the model does not hold in November. Priced as Founding, 8 shops = ฿7,920, which is below the CMO's own pass line. The CMO decides whether November goes to 16 Founding shops or a mix that includes Starter at ฿1,990.
+
+| # | Step | Owner | Due | Done when |
+|---|---|---|---|---|
+| 1 | Lock the target and the math; tell the CMO | CTO | Wed 30 Sep | The CMO letter is sent and this table is committed |
+| 2 | Outreach from the O1 Sheet, 20–30 a day, 3 messages × 4 segments; ~590–900 contacts by mid-Nov instead of 450 | CEO + CMO | from Thu 1 Oct | The Monday 10:00 funnel counts, computed in Thai time |
+| 3 | O7b-4 security fixes merged | CTO | Thu 1 Oct | Merge sha on ClaudeFlow main |
+| 4 | Meta submit, needed for the Pro tier and for Messenger shops | CTO + CEO (Q1, Q2) | Fri 9 Oct | Submission id |
+| 5 | Chatudo instance live and the security smoke test passed | CTO + CEO (secrets, DNS) | Tue 13 Oct | Smoke-test steps 0–7 pass (DoD 4) |
+| 6 | G0 passed | CTO + CEO (checks 30 by eye) | Fri 16 Oct | ≥70% sendable, 0 wrong prices, 100% handoff |
+| 7 | First outside shop live on LINE; install timed at ≤1 h | CTO | Fri 23 Oct | DoD 3. Live chats need Q3 (a model) before this date |
+| 8 | Pilots installed: ≥7 (G1), aiming for 13–20 | CTO installs, CEO closes | Sat 31 Oct | `tenants.js` list, lifecycle active |
+| 9 | **C5 moved earlier:** usage and AI cost per shop, plus a PromptPay QR invoice sent on LINE, confirmed by the CEO | CTO | **Fri 30 Oct** (was 13 Nov) | Invoice test to one tenant |
+| 10 | Pilots switch to paid on 1 Nov; the CMO sets the price mix | CEO + CMO | Sun 1 Nov | Invoices sent |
+| 11 | New shops keep coming through November (outreach continues) | CEO + CTO installs | through Mon 30 Nov | Paying count every Monday |
+| 12 | Count at the checkpoint: paying shops × price ≥ ฿15,000 | CTO reports | Mon 30 Nov 18:00 | Sum of confirmed PromptPay payments |
+
+**Risks specific to money:**
+- The CMO funnel assumed a demo link in the first message, but the CEO parked the demo (D5). Contact-to-owner conversion may therefore come in below 10%. Measure it on Monday 5 Oct.
+- Many target shops buy Click-to-Messenger ads, but November is LINE-only unless Meta approves in time.
+
 ### Risks
 
 1. **Q1 and Q2 answered late.** C1 misses 9 Oct. Nothing else in October waits on them except the O3 go-live.
