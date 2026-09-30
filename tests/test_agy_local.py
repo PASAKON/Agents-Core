@@ -307,6 +307,9 @@ def test_contract_names_agy_browse_only_for_a_browser_brief():
         "Drive http://127.0.0.1:9280 with tools/agy_browse.py --port 9280 state", "/tmp/wt")
     assert f"`{agy_local.ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]`" in browse
     assert "It is your only browser." in browse
+    # a denied command ends the run, so agy is told the allowed set and the positional way round Thai labels
+    assert "no Thai or other non-ASCII text" in browse and "ends your run" in browse
+    assert "':nth-match(button, N)'" in browse
     plain = build_agy_prompt("Fix the parser", "/tmp/wt")
     assert "agy_browse" not in plain
     # a path that merely ends in the name (another repo's copy) does not count

@@ -56,6 +56,10 @@ shell's `*` `?` `~` expansions: nothing can be chained, substituted, redirected
 or globbed (`tests/test_agy_browse.py::test_allow_rule_refuses_chained_redirected_or_foreign_commands`).
 Consequences a brief must respect: a `wait-text` regex cannot use `|`, `*` or `?`
 (pass a plain phrase), and typed text is ASCII (no Thai) through this rule.
+A denied command ends a headless agy run (no retry), so reach a Thai-labelled
+element by position instead: `count button`, `text ':nth-match(button, N)'`,
+`click ':nth-match(button, N)'` (checked on champa 2026-10-01: button 2 reads
+`สร้าง`). An attribute-substring selector (`[class*=x]`) is refused too.
 `tools/agy_browse.ALLOW_RULE_REGEX` is the source; a test checks this page
 carries the same string.
 
