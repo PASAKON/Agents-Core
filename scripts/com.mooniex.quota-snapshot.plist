@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.quota-snapshot</string>
+
+  <!-- Quota Snapshot (docs/design/runner-routing/PLAN-auto-dispatch.md §3 "Snapshot, not live reads"):
+       Refreshes state/quota-snapshot.json and appends state/reports/quota-history.jsonl
+       every 600s so router cached_quotas() has fresh precomputed quota data without
+       making expensive live ssh/CLI calls. One-shot script, not a -loop daemon like
+       com.mooniex.agents-watchdog.plist - StartInterval instead of
+       RunAtLoad+KeepAlive. Install (on the Mac):
+         cp scripts/com.mooniex.quota-snapshot.plist ~/Library/LaunchAgents/
+         launchctl load ~/Library/LaunchAgents/com.mooniex.quota-snapshot.plist
+  -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/tools/quota.py</string>
+    <string>--snapshot</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
+
+  <key>StartInterval</key>
+  <integer>600</integer>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/logs/quota-snapshot.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core/state/logs/quota-snapshot.log</string>
+</dict>
+</plist>
