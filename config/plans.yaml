@@ -10,9 +10,13 @@ buckets:              # one limit that runs out; a candidate "runner:model" belo
   codex:      {provider: openai,    match: ["codex:"]}
   agy-gemini: {provider: google,    match: ["agy:gemini-"]}
   agy-claude: {provider: google,    match: ["agy:claude-", "agy:gpt-"]}
+# Runners that can run arbitrary shell commands headless.
+shell_runners: [claude, codex]
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
   dev_general:    ["agy:gemini-3.8-flash-high", "claude:claude-sonnet-5-5"]
+  # Candidates that can run arbitrary shell commands headless (codex model ignored; "default" is a label).
+  dev_shell:      ["codex:default", "claude:claude-sonnet-5-5"]
   c_level:        ["claude:claude-opus-5-5:xhigh"]
   c_level_openai: ["codex:sol:xhigh"]
   complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]
@@ -20,7 +24,9 @@ roles:
 # Browser, video, design and security roles need Claude-only tools: never list them here.
 role_classes:
   developer: dev_general
-  tester:    dev_general
+  # Shell-requiring roles routed to dev_shell class.
+  devops:    dev_shell
+  tester:    dev_shell
 router:
   tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
   min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown
