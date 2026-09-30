@@ -497,6 +497,10 @@ function Save-Identity {
 function Invoke-Probe {
     Step 9 'probe: measure this node through its own identity'
     Say ('python tools\infisical_setup.py run Agents-Core prod --as ' + $script:HostName + ' -- .venv\Scripts\python.exe -m tools.node_dispatch probe')
+    # No hop here, unlike join.sh's sudo: the probe is a child of this window, so it inherits the
+    # USERPROFILE that ConfDir (where step 8 wrote node.yaml) was built from, and Python's
+    # Path.home() reads that same variable on Windows. Nothing to pass on; the dry run says so.
+    Say ('the probe reads ' + (Join-Path $script:ConfDir 'node.yaml') + ' (USERPROFILE ' + $env:USERPROFILE + ', the same window and user that step 8 wrote it under)')
     if ($script:DryRun) { return $true }
     $venvPy = Join-Path $script:Core '.venv\Scripts\python.exe'
     Push-Location $script:Core

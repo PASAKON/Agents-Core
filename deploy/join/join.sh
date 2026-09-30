@@ -541,11 +541,15 @@ print(d["client_secret"])' 2>/dev/null \
 # its identity is saved, and the probe's own message says what is left to fix.
 do_probe() {
   step 9 "probe: measure this node through its own identity"
-  say "$(root_prefix)python3 tools/infisical_setup.py run Agents-Core prod --as $HOST -- .venv/bin/python -m tools.node_dispatch probe"
+  say "$(root_prefix)env HOME=$HOME ORG_HOST=$HOST python3 tools/infisical_setup.py run Agents-Core prod --as $HOST -- .venv/bin/python -m tools.node_dispatch probe"
+  say "HOME=$HOME is handed on explicitly: the probe reads $CONF_DIR/node.yaml, the file step 8 wrote"
   [ "$DRY_RUN" -eq 1 ] && return 0
-  # ORG_HOST is passed because under sudo the HOME is often root's, where node.yaml is not.
+  # node.yaml was written under this script's $HOME (CONF_DIR), and lib/config.py finds it through
+  # the probe's own HOME. Under sudo that HOME is often root's, where node.yaml is not, and ORG_HOST
+  # alone names a host without an os or an hq_root. So HOME is part of the command, not inherited:
+  # `env` sets it after sudo has had its say. ORG_HOST stays, it is what makes the probe use $HOST.
   # The probe's stderr is left on the terminal; only its one JSON line is read.
-  _res=$(cd "$CORE" && as_root env ORG_HOST="$HOST" PYTHONDONTWRITEBYTECODE=1 "$PY" tools/infisical_setup.py run Agents-Core prod --as "$HOST" \
+  _res=$(cd "$CORE" && as_root env HOME="$HOME" ORG_HOST="$HOST" PYTHONDONTWRITEBYTECODE=1 "$PY" tools/infisical_setup.py run Agents-Core prod --as "$HOST" \
     -- "$CORE/.venv/bin/python" -m tools.node_dispatch probe </dev/null) || true
   printf '%s\n' "$_res" | "$PY" -c 'import json, sys
 last = [l for l in sys.stdin.read().splitlines() if l.strip()][-1:]
