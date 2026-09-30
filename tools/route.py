@@ -628,9 +628,10 @@ def check_override(task: dict, cfg: dict | None = None) -> str | None:
         runner_model = task.get("runner_model")
 
         # A manual pin is: model_hint non-empty, OR runner non-empty while
-        # runner_model is empty/None.  The router always writes runner AND
-        # runner_model together, so a router-written row has both set.
-        is_manual_pin = bool(model_hint) or (bool(runner) and not runner_model)
+        # runner_model is NULL. The router always writes runner AND
+        # runner_model together; for "codex:" it writes "" (CLI default), so
+        # only NULL means nobody routed this row.
+        is_manual_pin = bool(model_hint) or (bool(runner) and runner_model is None)
         if not is_manual_pin:
             return None
 

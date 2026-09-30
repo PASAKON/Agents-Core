@@ -127,3 +127,13 @@ def test_no_pin_returns_none(monkeypatch):
 def test_check_override_never_raises():
     # Pass something totally broken as a task
     assert check_override(None, _CFG) is None  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# Router-written codex row: "codex:" means the CLI default, so the router
+# writes runner_model="" — that is still a routed row, not a manual pin.
+# ---------------------------------------------------------------------------
+def test_router_written_codex_row_with_empty_model_returns_none(monkeypatch):
+    monkeypatch.delenv("ORG_ROUTER", raising=False)
+    task = _task(runner="codex", runner_model="")
+    assert check_override(task, _CFG) is None
