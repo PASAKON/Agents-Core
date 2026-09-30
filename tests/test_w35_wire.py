@@ -124,7 +124,7 @@ def test_flag_unset_is_todays_answer_and_never_wakes(win):
 
 
 @pytest.mark.parametrize("value", [
-    "", "0", "true", "True", "yes", "on", "2", "01", "11", " 1", "1 ", "1\n", "１", "one"])
+    "", "0", "true", "True", "yes", "on", "2", "01", "11", " 1", "1 ", "1\n", "\uff11", "one"])
 def test_any_value_but_exactly_1_is_off(win, monkeypatch, value):
     monkeypatch.setenv(FLAG, value)
     out, code = _deliver()
