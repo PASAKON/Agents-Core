@@ -176,7 +176,8 @@ def hosts() -> dict[str, dict]:
     well-formed host + os + hq_root for a name hosts.yaml does not declare,
     that entry is added here. hosts.yaml wins for every name it declares.
     A bad node.yaml adds nothing and never raises from here: self_host() is
-    where it is reported.
+    where it is reported. Cached per process, like hosts.yaml: a node.yaml
+    written after the first call is seen by the next process.
     """
     data = yaml.safe_load(HOSTS_CONFIG.read_text(encoding="utf-8"))
     registry = data["hosts"]
@@ -279,10 +280,10 @@ def _env_host() -> str | None:
     if raw is None or not raw.strip():
         return None
     key = raw.strip().lower()
-    # A joined node's own node.yaml may name it (deploy/join/join.sh runs the
-    # probe with ORG_HOST set). Any other unknown name still raises.
-    node = _node_yaml_entry()
-    if key not in hosts() and not (node and node[0] == key):
+    # hosts() includes a joined node's own node.yaml entry, so ORG_HOST naming it
+    # resolves (deploy/join/join.sh runs the probe with ORG_HOST set). Any other
+    # unknown name still raises.
+    if key not in hosts():
         raise ValueError(
             f"ORG_HOST={raw!r} is not a known host (config/hosts.yaml, or a "
             f"well-formed host + os + hq_root in {NODE_CONFIG_PATH}). "
@@ -299,9 +300,9 @@ def _node_yaml_host() -> str | None:
     if raw is None or not str(raw).strip():
         return None
     key = str(raw).strip().lower()
-    # hosts.yaml wins for a name it declares (hosts() is where node.yaml's os and
-    # hq_root are ignored); an unknown name is a joined node only with all three.
-    if key not in hosts() and _node_entry(data) is None:
+    # hosts() holds hosts.yaml's names plus this node.yaml's own entry when it has
+    # host + os + hq_root, all well-formed; anything else is unknown.
+    if key not in hosts():
         raise ValueError(
             f"{NODE_CONFIG_PATH}: host: {raw!r} is not a known host "
             f"(config/hosts.yaml) and node.yaml has no well-formed os + hq_root "
