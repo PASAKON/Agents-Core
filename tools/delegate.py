@@ -1737,10 +1737,11 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         choice = route.pick_runner(role_name, host)
         if choice is None:
             return None
-        line = f"router: {choice.runner} — {choice.reason}"
+        line = f"router: {choice.runner} {choice.model} [{choice.bucket}] — {choice.reason}"
         # set_fields, not update_status: the status must not be rewritten
         # from this (possibly stale) dict or logged as a transition.
-        db.set_fields(task["id"], runner=choice.runner, delegate_log=line,
+        db.set_fields(task["id"], runner=choice.runner,
+                      runner_model=choice.model, delegate_log=line,
                       actor="cto")
         info(line)
         return choice.runner

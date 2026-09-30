@@ -398,3 +398,63 @@ def test_worker_init_agy_dispatch(monkeypatch, tmp_path):
     assert "Task task-agy" in called[0][2]
     assert called[0][3] == "developer"
 
+
+def test_runner_model_claude_passed_to_agy(tmp_path, monkeypatch):
+    """(a) a task dict with runner_model='claude-sonnet-4-6' makes captured agy command contain '--model claude-sonnet-4-6'."""
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    _init_git_repo(worktree)
+
+    captured_cmd_file = tmp_path / "captured_cmd.txt"
+    fake_bin = tmp_path / "fake_agy_model.sh"
+    fake_bin.write_text(
+        "#!/bin/sh\n"
+        f"printf '%s ' \"$@\" > '{captured_cmd_file}'\n"
+        "echo 'done' > result.txt\n"
+        "echo 'REPORT' > REPORT.md\n"
+        "exit 0\n"
+    )
+    fake_bin.chmod(0o755)
+
+    monkeypatch.setenv("AGY_BIN", str(fake_bin))
+    monkeypatch.setattr(agy_local.db, "update_status", lambda *a, **kw: True)
+    monkeypatch.setattr(agy_local, "update_status", lambda *a, **kw: True)
+
+    task = {"id": "task-model-01", "title": "Model test", "runner_model": "claude-sonnet-4-6"}
+    rc = agy_local.run_agy_task(task, str(worktree), "prompt", "developer")
+    assert rc == 0
+
+    captured = captured_cmd_file.read_text(encoding="utf-8")
+    assert "--model claude-sonnet-4-6" in captured
+
+
+def test_runner_model_none_and_agy_model_unset_defaults_to_gemini(tmp_path, monkeypatch):
+    """(b) runner_model None and AGY_MODEL unset gives '--model gemini-3.8-flash-high'."""
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    _init_git_repo(worktree)
+
+    captured_cmd_file = tmp_path / "captured_cmd.txt"
+    fake_bin = tmp_path / "fake_agy_default_model.sh"
+    fake_bin.write_text(
+        "#!/bin/sh\n"
+        f"printf '%s ' \"$@\" > '{captured_cmd_file}'\n"
+        "echo 'done' > result.txt\n"
+        "echo 'REPORT' > REPORT.md\n"
+        "exit 0\n"
+    )
+    fake_bin.chmod(0o755)
+
+    monkeypatch.setenv("AGY_BIN", str(fake_bin))
+    monkeypatch.delenv("AGY_MODEL", raising=False)
+    monkeypatch.setattr(agy_local.db, "update_status", lambda *a, **kw: True)
+    monkeypatch.setattr(agy_local, "update_status", lambda *a, **kw: True)
+
+    task = {"id": "task-model-02", "title": "Default model test", "runner_model": None}
+    rc = agy_local.run_agy_task(task, str(worktree), "prompt", "developer")
+    assert rc == 0
+
+    captured = captured_cmd_file.read_text(encoding="utf-8")
+    assert "--model gemini-3.8-flash-high" in captured
+
+
