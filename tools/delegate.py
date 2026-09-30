@@ -1278,7 +1278,7 @@ def give_up_queued_remote(task_id: str, host_name: str, attempts: int) -> dict:
     watchdog failed it) is returned untouched and not announced, so a repeat
     call cannot notify twice. Returns the row."""
     row = db.get_task(task_id) or {}
-    if row.get("status") not in ("queued_remote", "pending"):
+    if row.get("status") != "queued_remote":
         return row
     cap = mesh.max_attempts()
     msg = (f"mesh spawn_worker on {host_name} unreachable {attempts} times "
