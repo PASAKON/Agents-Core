@@ -78,6 +78,7 @@ def _isolated(monkeypatch, tmp_path):
         monkeypatch.setenv(var, CANARY)
     monkeypatch.setattr(notify_mod, "notify", lambda *a, **kw: None)
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
+    monkeypatch.setattr(send_to_cxo, "LOCKS_DIR", tmp_path / "locks")
     monkeypatch.setattr(nd, "SPAWN_PROMPT_DELAY_S", 0)
     monkeypatch.setattr(nd, "_worktrees_root", lambda: tmp_path / "worktrees")
     (tmp_path / "worktrees").mkdir()
@@ -900,3 +901,108 @@ def test_mailbox_md_plain_file_still_takes_the_letter(winbox, tmp_path):
     assert code == 0, out
     lines = (wt / "MAILBOX.md").read_text(encoding="utf-8").splitlines()
     assert lines[0] == "earlier" and lines[1].endswith(" | cto-abcd1234 | please push")
+
+
+# ---------------------------------------------------------------------------
+# 10. start_clevel: at most 3 live sessions per role per host (F10, CTO decision)
+# ---------------------------------------------------------------------------
+
+LIVE_PIDS = {1001, 1002, 1003, 1004}
+
+
+@pytest.fixture
+def clevel(monkeypatch, wire):
+    """start_clevel on a linux box with the tmux backend recorded, not run."""
+    started: list[tuple] = []
+    monkeypatch.setattr(nd, "_is_windows", lambda: False)
+    monkeypatch.setattr(nd, "_os_name", lambda: "linux")
+    monkeypatch.setattr(nd, "_pid_is_alive", lambda pid: pid in LIVE_PIDS)
+    monkeypatch.setattr(nd, "_start_clevel_tmux",
+                        lambda role, sid: started.append((role, sid)) or {"role": role})
+    return started
+
+
+def _clevel_lock(name: str, content: str) -> None:
+    locks = Path(send_to_cxo.LOCKS_DIR)
+    locks.mkdir(parents=True, exist_ok=True)
+    (locks / name).write_text(content)
+
+
+def _locks_rows() -> list[dict]:
+    with db_mod.get_conn() as conn:
+        return [dict(r) for r in conn.execute("SELECT * FROM locks")]
+
+
+def test_start_clevel_refuses_a_fourth_live_session_of_the_role(clevel):
+    for i, sid in enumerate(("aaaa0001", "aaaa0002", "aaaa0003")):
+        _clevel_lock(f"cto-{sid}.lock", f"{1001 + i}\n")
+    out, code = nd.run_command("start_clevel cto")
+    assert code == 2 and "limit 3" in out["error"] and "cto" in out["error"], out
+    out, code = nd.run_command("start_clevel cto --resume 1234abcd")
+    assert code == 2 and "limit 3" in out["error"]
+    assert clevel == []
+    out, code = nd.run_command("start_clevel cmo")      # another role is not counted
+    assert code == 0 and clevel == [("cmo", None)], out
+    assert _locks_rows() == []                           # the start slot is released
+
+
+def test_start_clevel_counts_only_live_well_formed_locks_of_that_role(clevel):
+    _clevel_lock("cto-aaaa0001.lock", "1001\n")
+    _clevel_lock("cto-aaaa0002.lock", "1002")
+    _clevel_lock("cto-aaaa0003.lock", "999\n")          # dead pid
+    _clevel_lock("cto-aaaa0004.lock", "not a pid")
+    _clevel_lock("cto-AAAA0005.lock", "1003")            # not a session id
+    _clevel_lock("cto-aaaa00061.lock", "1003")
+    _clevel_lock("ctox-aaaa0007.lock", "1003")           # another role's prefix
+    _clevel_lock("cto-aaaa0008.uuid", "1004")            # not a lock
+    _clevel_lock("cmo-aaaa0009.lock", "1004")
+    assert nd._live_clevel_count("cto") == 2
+    out, code = nd.run_command("start_clevel cto")
+    assert code == 0 and clevel == [("cto", None)], out
+
+
+def test_start_clevel_with_no_locks_dir_counts_zero(clevel):
+    assert not Path(send_to_cxo.LOCKS_DIR).exists()
+    assert nd.run_command("start_clevel cfo")[1] == 0
+
+
+def test_start_clevel_refuses_while_another_start_of_the_role_holds_the_slot(clevel):
+    token = nd._claim("clevel:mac:cto:start", nd.CLEVEL_START_CLAIM_TTL_S)
+    assert token
+    out, code = nd.run_command("start_clevel cto")
+    assert code == 2 and "in progress" in out["error"] and clevel == []
+    nd._release("clevel:mac:cto:start", token)
+    assert nd.run_command("start_clevel cto")[1] == 0
+
+
+def test_start_clevel_frees_its_slot_when_the_backend_fails(monkeypatch, clevel):
+    def boom(role, sid):
+        raise nd.Failure("tmux spawn failed: no server")
+    monkeypatch.setattr(nd, "_start_clevel_tmux", boom)
+    out, code = nd.run_command("start_clevel cto")
+    assert code == 1 and "tmux spawn failed" in out["error"]
+    assert _locks_rows() == []
+
+
+def test_two_overlapping_start_clevel_calls_launch_once(monkeypatch, clevel):
+    """Without the slot both calls would count 0 live sessions and both launch;
+    a lock file only appears once the launcher runs."""
+    entered, release = threading.Event(), threading.Event()
+
+    def slow(role, sid):
+        clevel.append((role, sid))
+        entered.set()
+        release.wait(5)
+        return {"role": role}
+
+    monkeypatch.setattr(nd, "_start_clevel_tmux", slow)
+    results = {}
+    a = threading.Thread(target=lambda: results.__setitem__("a", nd.run_command("start_clevel cto")))
+    a.start()
+    assert entered.wait(5)
+    results["b"] = nd.run_command("start_clevel cto")
+    release.set()
+    a.join(5)
+    assert results["a"][1] == 0 and results["b"][1] == 2, results
+    assert "in progress" in results["b"][0]["error"]
+    assert clevel == [("cto", None)]

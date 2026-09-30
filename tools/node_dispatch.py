@@ -696,12 +696,54 @@ def _spawn_worker_windows(task: dict) -> None:
     )
 
 
+# W2.7 F10 (task-42fdcda7, CTO decision): each session is a paid Claude
+# session, so a looping or prompt-injected caller must not be able to start
+# them without end. At most this many live sessions of one role per host; the
+# next start_clevel is refused (exit 2). A session counts while
+# state/locks/<role>-<sid>.lock holds a live pid (every launcher writes it:
+# cxo-claude.sh, spawn-cto.sh, cxo-claude.ps1). The start itself holds a
+# `locks` row for the role, so two calls cannot both count 2 and both launch.
+MAX_LIVE_CLEVEL_PER_ROLE = 3
+CLEVEL_START_CLAIM_TTL_S = 300  # above the slowest launch (script 120 s + prompt delay)
+
+
+def _live_clevel_count(role: str) -> int:
+    from tools import send_to_cxo
+    prefix = f"{role}-"
+    try:
+        locks = [p for p in Path(send_to_cxo.LOCKS_DIR).glob("*.lock")
+                 if p.stem.startswith(prefix) and SESSION_ID_RE.fullmatch(p.stem[len(prefix):])]
+    except OSError:
+        return 0
+    live = 0
+    for lock in locks:
+        try:
+            pid = int(lock.read_text(encoding="utf-8").strip())
+        except (OSError, ValueError):
+            continue
+        if _pid_is_alive(pid):
+            live += 1
+    return live
+
+
 def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
-    if _is_windows():
-        return _start_clevel_schtask(role, resume_sid)
-    if _os_name() == "darwin":
-        return _start_clevel_iterm(role, resume_sid)
-    return _start_clevel_tmux(role, resume_sid)
+    host = _self_host()
+    key = f"clevel:{host}:{role}:start"
+    token = _claim(key, CLEVEL_START_CLAIM_TTL_S)
+    if token is None:
+        raise Refusal(f"start_clevel: another {role} start is in progress on {host}")
+    try:
+        live = _live_clevel_count(role)
+        if live >= MAX_LIVE_CLEVEL_PER_ROLE:
+            raise Refusal(f"start_clevel: {live} {role} sessions are already live on {host} "
+                          f"(limit {MAX_LIVE_CLEVEL_PER_ROLE}); close one first")
+        if _is_windows():
+            return _start_clevel_schtask(role, resume_sid)
+        if _os_name() == "darwin":
+            return _start_clevel_iterm(role, resume_sid)
+        return _start_clevel_tmux(role, resume_sid)
+    finally:
+        _release(key, token)
 
 
 def _parse_start_clevel(args: list[str]) -> tuple[str, str | None]:
@@ -866,15 +908,13 @@ def _write_letter(letter: dict) -> dict:
 LETTER_CLAIM_TTL_S = 120
 
 
-def _letter_claim_key(lid: int) -> str:
-    return f"letter:{lid}:delivery"
-
-
-def _claim_letter(lid: int) -> str | None:
-    """The slot's token, or None when another call holds a live slot."""
-    key, token = _letter_claim_key(lid), uuid.uuid4().hex
+def _claim(key: str, ttl_s: int) -> str | None:
+    """One `locks` row as a slot: the slot's token, or None when another call
+    holds it live. A single INSERT ... ON CONFLICT DO NOTHING RETURNING on the
+    primary key, so two callers cannot both win (SQLite and Postgres)."""
+    token = uuid.uuid4().hex
     now = datetime.now(timezone.utc)
-    expires = (now + timedelta(seconds=LETTER_CLAIM_TTL_S)).isoformat(timespec="seconds")
+    expires = (now + timedelta(seconds=ttl_s)).isoformat(timespec="seconds")
     with db.get_conn() as conn:
         conn.execute("DELETE FROM locks WHERE key=? AND expires_at<=?",
                      (key, now.isoformat(timespec="seconds")))
@@ -886,11 +926,24 @@ def _claim_letter(lid: int) -> str | None:
     return token if row is not None else None
 
 
-def _release_letter(lid: int, token: str) -> None:
+def _release(key: str, token: str) -> None:
     try:  # a slot that cannot be freed now frees itself at the TTL
-        db.release_lock(_letter_claim_key(lid), token)
+        db.release_lock(key, token)
     except Exception as e:
-        print(f"node_dispatch: letter {lid} claim release failed: {e}", file=sys.stderr)
+        print(f"node_dispatch: release of {key} failed: {e}", file=sys.stderr)
+
+
+def _letter_claim_key(lid: int) -> str:
+    return f"letter:{lid}:delivery"
+
+
+def _claim_letter(lid: int) -> str | None:
+    """The slot's token, or None when another call holds a live slot."""
+    return _claim(_letter_claim_key(lid), LETTER_CLAIM_TTL_S)
+
+
+def _release_letter(lid: int, token: str) -> None:
+    _release(_letter_claim_key(lid), token)
 
 
 def verb_deliver_letter(letter_id: str) -> dict:

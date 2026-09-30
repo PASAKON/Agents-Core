@@ -39,6 +39,7 @@ def _isolated(monkeypatch, tmp_path):
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setattr(config_mod, "self_host", lambda: "mac")
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
+    monkeypatch.setattr(send_to_cxo, "LOCKS_DIR", tmp_path / "locks")
     monkeypatch.setattr(nd, "SPAWN_PROMPT_DELAY_S", 0)
     monkeypatch.setattr(nd, "_worktrees_root", lambda: tmp_path / "worktrees")
 

@@ -17,6 +17,8 @@ import inspect
 import json
 import subprocess
 import sys
+import threading
+from collections import deque
 from pathlib import Path
 
 import pytest
@@ -45,6 +47,7 @@ def relay(monkeypatch, tmp_path):
     monkeypatch.setenv("HOME", str(tmp_path))  # the org_dispatch key path expands from it
     monkeypatch.delenv(mesh.ENV_FLAG, raising=False)
     monkeypatch.delenv(rms.MESH_PARALLEL_ENV, raising=False)
+    monkeypatch.setattr(rms, "_spawn_times", deque())  # the per-caller rate limit (W2.7 F10)
     config.self_host.cache_clear()
     yield audits
     config.self_host.cache_clear()
@@ -434,3 +437,67 @@ def test_spawn_c_level_signature_adds_one_optional_argument_and_no_free_form_one
 def test_mac_agent_is_still_there_with_its_retirement_note():
     assert callable(mac_agent.do_spawn) and callable(mac_agent.fetch_pending)
     assert "RETIREMENT" in mac_agent.__doc__ and "24 h" in mac_agent.__doc__
+
+
+# ---------------------------------------------------------------------------
+# W2.7 F10: at most 3 spawn attempts per caller session per 10 minutes
+# ---------------------------------------------------------------------------
+
+def test_the_fourth_spawn_in_ten_minutes_is_rate_limited_and_dials_nothing(flag_on, fake_mesh, relay):
+    for _ in range(3):
+        assert _spawn("cto", "winbox")["status"] == "spawned"
+    result = _spawn("cto", "winbox")
+    assert result["status"] == "rate_limited"
+    assert 0 < result["retry_after_s"] <= rms.SPAWN_RATE_WINDOW_S + 1
+    assert len(fake_mesh.calls) == 3
+    assert relay[-1][:3] == ("spawn_c_level", "cto", "rate_limited")
+
+
+def test_flag_off_the_limit_holds_for_the_queue_and_tmux_paths_too(monkeypatch, relay):
+    monkeypatch.setattr(rms.tmux_session, "create", lambda *a, **kw: None)
+    monkeypatch.setattr(rms, "SPAWN_PROMPT_DELAY_S", 0)
+    monkeypatch.setattr(rms.subprocess, "run", lambda *a, **kw: None)
+    assert _spawn("cfo", "mac")["status"] == "queued"
+    assert _spawn("cfo", "mac")["status"] == "queued"
+    assert _spawn("cmo", "contabo")["status"] == "spawned"
+    assert _spawn("cmo", "contabo")["status"] == "rate_limited"
+    assert _spawn("cfo", "mac")["status"] == "rate_limited"
+    assert len(_rows()) == 2
+
+
+def test_a_call_rejected_before_any_spawn_takes_no_slot(flag_on, fake_mesh):
+    for _ in range(5):
+        assert _spawn("ceo", "winbox")["status"] == "rejected"
+        assert _spawn("cto", "moon")["status"] == "rejected"
+        assert _spawn("cto", "winbox", resume_session_id="XYZ")["status"] == "rejected"
+    assert [_spawn("cto", "winbox")["status"] for _ in range(4)] == \
+        ["spawned", "spawned", "spawned", "rate_limited"]
+
+
+def test_a_slot_frees_when_the_window_has_passed(flag_on, fake_mesh, monkeypatch):
+    clock = [1000.0]
+    monkeypatch.setattr(rms.time, "monotonic", lambda: clock[0])
+    for _ in range(3):
+        _spawn("cto", "winbox")
+    clock[0] += rms.SPAWN_RATE_WINDOW_S - 1
+    assert _spawn("cto", "winbox")["status"] == "rate_limited"
+    clock[0] += 1
+    assert _spawn("cto", "winbox")["status"] == "spawned"
+    assert len(fake_mesh.calls) == 4
+
+
+def test_concurrent_calls_get_exactly_three_slots(flag_on, fake_mesh):
+    results: list[str] = []
+    gate = threading.Barrier(12)
+
+    def one():
+        gate.wait()
+        results.append(_spawn("cto", "winbox")["status"])
+
+    threads = [threading.Thread(target=one) for _ in range(12)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(10)
+    assert sorted(results) == ["rate_limited"] * 9 + ["spawned"] * 3
+    assert len(fake_mesh.calls) == 3
