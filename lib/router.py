@@ -19,8 +19,8 @@ reason, the first check that failed, and the reasons go to delegate_log):
   5. at least one runner the role can use is installed on the host
      (`hosts.runners`, from the probe)
 
-Survivors are ranked by lowest `load_per_core`, then most `ram_free_gb`, then
-name. No survivor -> HostPick.host is None and `line` is `no_host: ...`; the
+Survivors are ranked by lowest `load_per_core` (no reading ranks last), then
+most `ram_free_gb`, then name. No survivor -> HostPick.host is None and `line` is `no_host: ...`; the
 caller leaves the task pending and does not spawn. There is no fallback host:
 a stale or missing probe means "unknown", and unknown is never "fine".
 
@@ -224,8 +224,10 @@ def pick_host(task: dict, *, hosts_rows: list[dict] | None = None,
     if not survivors:
         return HostPick(None, f"no_host: {rej or 'no hosts configured'}", rejected)
 
+    # Unknown load (the probe has none on Windows) ranks last: such a host is
+    # still picked when nothing with a reading is eligible, never ahead of one.
     best = min(survivors, key=lambda r: (
-        r["load_per_core"],
+        float("inf") if r.get("load_per_core") is None else r["load_per_core"],
         -(r["ram_free_gb"] if r.get("ram_free_gb") is not None else -1.0),
         r["host"]))
     line = (f"host: {best['host']} · load {_num(best['load_per_core'], '.2f')}/core"
@@ -261,6 +263,4 @@ def _reject_reason(name: str, row: dict | None, needs: list[str],
         config.project_path_for_host(project, name)
     except ValueError:
         return f"no paths.{name} for {project}"
-    if row.get("load_per_core") is None:
-        return "no load_per_core reading"
     return None

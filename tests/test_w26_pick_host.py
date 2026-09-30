@@ -163,7 +163,6 @@ def test_baseline_lightest_host_wins(world):
     ({"running": 3}, "full 3/3"),
     ({"running": None}, "running/max_workers unknown"),
     ({"max_workers": None}, "running/max_workers unknown"),
-    ({"load_per_core": None}, "no load_per_core reading"),
     ({"runners": ["codex"]}, "no usable runner"),
     ({"runners": None}, "no usable runner"),
 ])
@@ -266,6 +265,16 @@ def test_unknown_ram_loses_the_tie(world):
             row("mac", load_per_core=0.2, ram_free_gb=0.1)]
     p = pick(rows)
     assert p.host == "mac"
+
+
+def test_unknown_load_ranks_last_but_is_still_eligible(world):
+    """The Windows probe has no loadavg: winbox must stay pickable (win_gui)."""
+    rows = [row("winbox", load_per_core=None, provides=["win_gui"], ram_free_gb=9.0),
+            row("mac", load_per_core=0.95), row("contabo", load_per_core=0.99)]
+    assert pick(rows).host == "mac"
+    only_winbox = pick(rows, task=task(description="needs: win_gui"))
+    assert only_winbox.host == "winbox"
+    assert "load ?/core" in only_winbox.line
 
 
 def test_success_line_lists_every_rejection(world):
