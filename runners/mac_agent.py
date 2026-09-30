@@ -1,5 +1,14 @@
 """Mac-side drain agent for the secretary's relay queue (task-776fbf7e).
 
+RETIREMENT (Org Mesh W2.5, docs/design/org-mesh.md; task-81d39324). The relay's
+`spawn_c_level` now starts a C-level on any host through node_dispatch's
+`start_clevel` when ORG_MESH_DISPATCH is on, and stops using this queue. This
+agent is NOT retired yet. It runs in parallel with the mesh path
+(ORG_MESH_PARALLEL_MAC_AGENT=1 on the relay keeps enqueueing the `spawn` row)
+and records its outcome as before. Retire it (stop the launchd job, drop the
+Mac's `relay_queue` polling) only after 24 h of matching output, counted from
+the moment ORG_MESH_DISPATCH goes live on the secretary's relay, per plan W2.5.
+
 The Telegram secretary (SomPong) runs on Contabo. Every C-level session the CEO
 actually works with runs on this Mac. The secretary can act on Contabo directly,
 but anything aimed at the Mac lands in a queue that needs draining here.
