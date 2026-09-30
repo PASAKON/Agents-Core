@@ -70,7 +70,7 @@ class Api:
     def __init__(self, **kw):
         self.server = join_api.make_server(0, **kw)
         self.port = self.server.server_address[1]
-        self._thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self._thread = threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": 0.02}, daemon=True)
         self._thread.start()
 
     def close(self):

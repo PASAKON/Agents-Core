@@ -108,7 +108,7 @@ function Initialize-Args($o) {
     if (-not $script:Token) { Die 'no token: pass --token <t> or set $env:ORG_JOIN_TOKEN' }
     if ($script:Token -cnotmatch '^hqj_[A-Za-z0-9_-]{43}$') { Die 'the token is not in the expected shape (hqj_ and 43 more characters); copy it again' }
     if (-not $script:HostName) { Die 'no --host <name>' }
-    if ($script:HostName -cnotmatch '^[a-z][a-z0-9-]{1,30}[a-z0-9]$') { Die "--host must be 3-32 characters: a-z, 0-9, '-', starting with a letter, not ending in '-'" }
+    if ($script:HostName -cnotmatch '^[a-z][a-z0-9-]{1,29}[a-z0-9]$') { Die "--host must be 3-31 characters: a-z, 0-9, '-', starting with a letter, not ending in '-'" }
     if (-not $script:HqRoot) { $script:HqRoot = Join-Path $env:USERPROFILE 'MoonieXHQ' }
     if ($script:HqRoot -notmatch '^[A-Za-z]:[\\/].+') { Die '--hq-root must be an absolute path such as C:\Users\you\MoonieXHQ' }
     $script:HqRoot = $script:HqRoot.TrimEnd('\', '/')
@@ -491,10 +491,12 @@ function Save-Identity {
 
 # ---------------------------------------------------------------- 9: probe
 
+# Returns $true when the probe passed. Not fatal: by now the node IS joined and its identity is
+# saved, and the probe's own message says what is left to fix.
 function Invoke-Probe {
     Step 9 'probe: measure this node through its own identity'
     Say ('python tools\infisical_setup.py run Agents-Core prod --as ' + $script:HostName + ' -- .venv\Scripts\python.exe -m tools.node_dispatch probe')
-    if ($script:DryRun) { return }
+    if ($script:DryRun) { return $true }
     $venvPy = Join-Path $script:Core '.venv\Scripts\python.exe'
     Push-Location $script:Core
     try {
@@ -505,13 +507,16 @@ function Invoke-Probe {
         Pop-Location
     }
     $last = @($out | Where-Object { ([string]$_).Trim() }) | Select-Object -Last 1
-    try { $d = [string]$last | ConvertFrom-Json } catch { Die 'joined and identity saved, but the probe gave no JSON answer' }
+    $d = $null
+    try { $d = [string]$last | ConvertFrom-Json } catch { $d = $null }
+    if ($null -eq $d) { Say 'probe: FAILED: no JSON answer'; return $false }
     if ($d.ok) {
         Say ('probe: ok host=' + $d.result.host + ' os=' + $d.result.os + ' free_gb=' + $d.result.free_gb)
-    } else {
-        $e = [string]$d.error
-        Die ('joined and identity saved, but the probe FAILED: ' + $e.Substring(0, [Math]::Min(300, $e.Length)))
+        return $true
     }
+    $e = [string]$d.error
+    Say ('probe: FAILED: ' + $e.Substring(0, [Math]::Min(300, $e.Length)))
+    return $false
 }
 
 # ---------------------------------------------------------------- main
@@ -527,10 +532,11 @@ function Join-OrgNode($argList) {
     Wait-Sealed
     Copy-Core
     Save-Identity
-    Invoke-Probe
+    $probeOk = Invoke-Probe
     Write-Host ''
     if ($script:DryRun) { Write-Host 'join: dry run finished. Nothing was changed.'; return }
-    Write-Host ('join: ' + $script:HostName + ' is a node.')
+    if ($probeOk) { Write-Host ('join: ' + $script:HostName + ' is a node.') }
+    else { Write-Host ('join: ' + $script:HostName + ' is joined and its identity is saved, but the probe did not pass (above).') }
     Say ('dispatch public key (for the ssh mesh, W2.8): ' + $script:DispatchKey + '.pub')
     Say 'claude: nothing to sign in to here. The node reads CLAUDE_CODE_OAUTH_TOKEN at run time through'
     Say ('  infisical_setup.py run Agents-Core prod --as ' + $script:HostName + ' -- <command>   (once the CEO has put it there)')

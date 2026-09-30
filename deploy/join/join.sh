@@ -133,8 +133,8 @@ check_args() {
   printf '%s' "$TOKEN" | grep -Eq '^hqj_[A-Za-z0-9_-]{43}$' \
     || die "the token is not in the expected shape (hqj_ and 43 more characters); copy it again"
   [ -n "$HOST" ] || die "no --host <name>"
-  printf '%s' "$HOST" | grep -Eq '^[a-z][a-z0-9-]{1,30}[a-z0-9]$' \
-    || die "--host must be 3-32 characters: a-z, 0-9, '-', starting with a letter, not ending in '-'"
+  printf '%s' "$HOST" | grep -Eq '^[a-z][a-z0-9-]{1,29}[a-z0-9]$' \
+    || die "--host must be 3-31 characters: a-z, 0-9, '-', starting with a letter, not ending in '-'"
   if [ -z "$HQ_ROOT" ]; then
     if [ "$OS" = linux ] && [ "$(id -u)" -eq 0 ]; then HQ_ROOT=/opt/MoonieXHQ; else HQ_ROOT=$HOME/MoonieXHQ; fi
   fi
@@ -237,7 +237,10 @@ install_tailscale_linux() {
 }
 
 install_linux() {
-  have apt-get || die "no apt-get: this script installs on Debian and Ubuntu. Install git, python3.11+, Node 22, age, tailscale and claude yourself, then re-run"
+  if ! have apt-get; then
+    [ "$DRY_RUN" -eq 1 ] && { say "WARNING: no apt-get: a real run would stop here (Debian and Ubuntu only)"; return 0; }
+    die "no apt-get: this script installs on Debian and Ubuntu. Install git, python3.11+, Node 22, age, tailscale and claude yourself, then re-run"
+  fi
   _missing=""
   have git || _missing="$_missing git"
   have curl || _missing="$_missing curl ca-certificates"
@@ -264,7 +267,10 @@ install_linux() {
 
 install_darwin() {
   if ! have brew && [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
-  have brew || die "Homebrew is not installed: install it from https://brew.sh, then re-run (this script does not pipe a second installer into your shell)"
+  if ! have brew; then
+    [ "$DRY_RUN" -eq 1 ] && { say "WARNING: Homebrew is not installed: a real run would stop here"; return 0; }
+    die "Homebrew is not installed: install it from https://brew.sh, then re-run (this script does not pipe a second installer into your shell)"
+  fi
   [ "$(id -u)" -ne 0 ] || die "on macOS run this as your own user, not as root: Homebrew refuses to run as root"
   _missing=""
   have git || _missing="$_missing git"
@@ -451,7 +457,7 @@ do_wait_sealed() {
     else
       say "hub not reachable, retrying"
     fi
-    [ "$_waited" -lt "$POLL_MAX_S" ] || die "gave up after $((POLL_MAX_S / 60)) min: the hub did not provision $HOST. Run the same command again to keep waiting"
+    [ "$_waited" -lt "$POLL_MAX_S" ] || die "gave up waiting ($_waited s): the hub did not provision $HOST. Run the same command again to keep waiting"
     sleep "$POLL_S"
     _waited=$((_waited + POLL_S))
   done
@@ -527,26 +533,29 @@ print(d["client_secret"])' 2>/dev/null \
 
 # ---------------------------------------------------------------- 9: probe
 
+# Returns 0 when the probe passed, 1 when it did not. Not fatal: by now the node IS joined and
+# its identity is saved, and the probe's own message says what is left to fix.
 do_probe() {
   step 9 "probe: measure this node through its own identity"
   say "$(root_prefix)python3 tools/infisical_setup.py run Agents-Core prod --as $HOST -- .venv/bin/python -m tools.node_dispatch probe"
   [ "$DRY_RUN" -eq 1 ] && return 0
+  # ORG_HOST is passed because under sudo the HOME is often root's, where node.yaml is not.
+  # The probe's stderr is left on the terminal; only its one JSON line is read.
   _res=$(cd "$CORE" && as_root env ORG_HOST="$HOST" PYTHONDONTWRITEBYTECODE=1 "$PY" tools/infisical_setup.py run Agents-Core prod --as "$HOST" \
-    -- "$CORE/.venv/bin/python" -m tools.node_dispatch probe </dev/null)
+    -- "$CORE/.venv/bin/python" -m tools.node_dispatch probe </dev/null) || true
   printf '%s\n' "$_res" | "$PY" -c 'import json, sys
 last = [l for l in sys.stdin.read().splitlines() if l.strip()][-1:]
 try:
     d = json.loads(last[0])
 except Exception:
-    print("probe: no JSON answer")
+    print("probe: FAILED: no JSON answer (see the messages above)")
     sys.exit(1)
 if d.get("ok"):
     r = d.get("result", {})
     print("probe: ok host=%s os=%s free_gb=%s runners=%s" % (r.get("host"), r.get("os"), r.get("free_gb"), r.get("runners")))
 else:
     print("probe: FAILED: %s" % str(d.get("error"))[:300])
-    sys.exit(1)' \
-    || die "joined and identity saved, but the probe did not pass (see the line above)"
+    sys.exit(1)'
 }
 
 # ---------------------------------------------------------------- main
@@ -557,7 +566,11 @@ finish() {
     printf 'join: dry run finished. Nothing was changed.\n'
     return 0
   fi
-  printf 'join: %s is a node.\n' "$HOST"
+  if [ "$1" -eq 0 ]; then
+    printf 'join: %s is a node.\n' "$HOST"
+  else
+    printf 'join: %s is joined and its identity is saved, but the probe did not pass (above).\n' "$HOST"
+  fi
   say "dispatch public key (for the ssh mesh, W2.8): $DISPATCH_KEY.pub"
   say "claude: nothing to sign in to here. The node reads CLAUDE_CODE_OAUTH_TOKEN at run time through"
   say "  infisical_setup.py run Agents-Core prod --as $HOST -- <command>   (once the CEO has put it there)"
@@ -574,9 +587,15 @@ main() {
   do_wait_sealed
   do_clone
   do_identity
-  do_probe
-  finish
+  _probe=0
+  do_probe || _probe=1
+  finish "$_probe"
+  # 0 = a node; 2 = joined, probe failed; 1 (die) = stopped before the node existed
+  [ "$_probe" -eq 0 ] || exit 2
 }
 
-main "$@"
-exit $?
+# ORG_JOIN_LIB=1 lets tests source this file and call one step at a time. A real run never sets it.
+if [ "${ORG_JOIN_LIB:-}" != 1 ]; then
+  main "$@"
+  exit $?
+fi
