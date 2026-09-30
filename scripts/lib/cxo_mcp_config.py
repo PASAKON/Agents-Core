@@ -172,7 +172,11 @@ def _venv_python(root: str) -> Path:
     if posix.exists():
         return posix
     windows = Path(root) / ".venv" / "Scripts" / "python.exe"
-    return windows if windows.exists() else posix
+    if windows.exists():
+        return windows
+    # No venv yet: name the interpreter this OS would have, so the "missing"
+    # message in main() points at a path that could exist here.
+    return windows if _is_windows() else posix
 
 
 def _org_tool_names(root: str) -> tuple[str, ...]:

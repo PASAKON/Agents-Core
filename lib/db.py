@@ -686,17 +686,42 @@ def new_task_id() -> str:
 # name/skill/path. See playbooks/web-designer.md §9 + memory
 # designer-spawn-inputs.
 _DESIGNER_ROLE = "web_designer"
-OD_ROOT = Path("/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeSign/.od")
 UUID_RE = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
+_od_root_warned = False
+
+
+def _od_root() -> Path | None:
+    """claudesign's gitignored .od dir on THIS host: $CLAUDESIGN_OD_ROOT, else
+    the mooniex-claudesign checkout config/projects.yaml lists for this host.
+    None when the host has no checkout: designer context is then off, with one
+    stderr warning per process. Looked up per call, never at import (lib.config
+    needs PyYAML and a resolvable host)."""
+    global _od_root_warned
+    override = os.environ.get("CLAUDESIGN_OD_ROOT")
+    if override:
+        return Path(override)
+    try:
+        from lib.config import project_path_for_host, self_host
+        return Path(project_path_for_host("mooniex-claudesign", self_host())) / ".od"
+    except Exception as e:
+        if not _od_root_warned:
+            _od_root_warned = True
+            print(f"[db] claudesign .od root not resolvable here ({e}); "
+                  f"designer design refs are off", file=sys.stderr)
+        return None
 
 
 def resolve_od_project(project_id: str) -> dict | None:
     """Resolve a claudesign (open-design) project UUID to name/skill/paths by
     reading the local, gitignored .od/app.sqlite. Returns None if unavailable
-    (missing file, no matching row, or any read error) — never raises."""
-    db_file = OD_ROOT / "app.sqlite"
+    (no claudesign checkout on this host, missing file, no matching row, or any
+    read error) — never raises."""
+    od_root = _od_root()
+    if od_root is None:
+        return None
+    db_file = od_root / "app.sqlite"
     if not db_file.exists():
         return None
     try:
@@ -711,7 +736,7 @@ def resolve_od_project(project_id: str) -> dict | None:
         return None
     if not row:
         return None
-    pdir = OD_ROOT / "projects" / project_id
+    pdir = od_root / "projects" / project_id
     skill = row["skill_id"] or ""
     design = pdir / ".od-skills" / skill / "example.html"
     return {

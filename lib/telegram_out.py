@@ -76,8 +76,10 @@ EXPECTED_BOT_USERNAME = "SSomPongBot"
 # D2) -- on the Mac, TELEGRAM_BOT_TOKEN/TELEGRAM_CEO_CHAT_ID are never set,
 # only claudeflow's SECRETARY_* vars are. On Contabo the secretary service
 # sets TELEGRAM_BOT_TOKEN/TELEGRAM_CEO_CHAT_ID directly, so this fallback
-# read never triggers there. Overridable so tests never touch the real file.
-CLAUDEFLOW_ENV_DEFAULT = "/Users/gob/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env"
+# read never triggers there. Overridable (CLAUDEFLOW_ENV) so tests never touch
+# the real file. The Mac path comes from config/projects.yaml, not a literal:
+# see _claudeflow_env_default.
+_claudeflow_fallback_warned = False
 
 FFPROBE_BIN = os.environ.get("FFPROBE_BIN", "ffprobe")
 
@@ -175,9 +177,31 @@ def _dotenv(path: Path) -> dict:
     return out
 
 
+def _claudeflow_env_default() -> str | None:
+    """claudeflow's .env on the Mac, from the mooniex-claudeflow row of
+    config/projects.yaml. None on any other host (Contabo's secretary sets the
+    TELEGRAM_* vars itself, winbox has no claudeflow), with one stderr warning
+    per process: the fallback is then off and a missing token surfaces as the
+    send's own `reason`. Looked up per call, never at import."""
+    global _claudeflow_fallback_warned
+    try:
+        from lib.config import project_path_for_host, self_host
+        host = self_host()
+        if host != "mac":
+            raise RuntimeError(f"no claudeflow .env fallback on host {host!r}")
+        return str(Path(project_path_for_host("mooniex-claudeflow", "mac")) / ".env")
+    except Exception as e:
+        if not _claudeflow_fallback_warned:
+            _claudeflow_fallback_warned = True
+            print(f"[telegram_out] claudeflow .env fallback off ({e})", file=sys.stderr)
+        return None
+
+
 def _claudeflow_env() -> dict:
-    path = Path(os.environ.get("CLAUDEFLOW_ENV", CLAUDEFLOW_ENV_DEFAULT))
-    return _dotenv(path)
+    path = os.environ.get("CLAUDEFLOW_ENV")
+    if path is None:
+        path = _claudeflow_env_default()
+    return _dotenv(Path(path)) if path is not None else {}
 
 
 def _resolve_env(primary_var: str, fallback_var: str) -> str | None:

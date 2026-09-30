@@ -14,6 +14,11 @@
 # Contabo, so an unprefixed path fails on that box — prefix `org:` there.
 # Any root that is genuinely missing is skipped by wiki_list/wiki_search and
 # raises a named WikiError from wiki_read/wiki_write.
+#
+# The paths below are the Mac's. winbox (Windows) points each root at its own
+# checkout through WIKI_ROOT_ORG / WIKI_ROOT_MOONIEX / WIKI_ROOT_LUNGNOTE, set
+# by its launcher; with none set the Mac path does not exist there, the wiki
+# reads "not available in this environment", and nothing crashes at import.
 default: mooniex
 wikis:
   - ns: org
