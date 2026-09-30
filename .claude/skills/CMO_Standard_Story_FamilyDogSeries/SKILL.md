@@ -25,7 +25,7 @@ The CEO's words, 2026-09-30 (kept verbatim, typos included):
 
 | Who | Facts the CEO gave | Source |
 |---|---|---|
-| **มีมี่ (Mimi)** | A **black** dog, **female**. Her habits shape every story. **The habits themselves are NOT recorded yet** — see §4. | CEO 2026-09-30 |
+| **มีมี่ (Mimi)** | A **black** dog, **female**. Her habits shape every story. Recorded so far (§7): **loves going out** and fawns on the mother and the brother to be let out; **very afraid of water**, will not even take a bath; on the flood day she could not go out, jumped out anyway and came back soaked. More habits are still to come — §4. | CEO 2026-09-30 |
 | ↳ how she looks | Small, long-haired, fluffy; coat **black**, with grey-white eyebrows and muzzle, a white bib on the chest, tan on the chin and on the paws, long drop ears with grey tips, dark brown eyes, a little pink tongue showing. An older-looking face. (CMO reading of IMG_4405, not the CEO's words; the breed is not said — do not name one.) | photo IMG_4405, taken 2026-09-30 |
 | **แม่ (mother)** | Does not go out to work; is at home. | CEO 2026-09-30 |
 | **พี่ชาย (older brother)** | The CEO himself. Works from home all day; a CEO with a very heavy workload (Work From Home). | CEO 2026-09-30 |
@@ -79,6 +79,29 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
    → a warm ending. The title asks "why did Mimi…?". Every episode is **self-contained**: a stranger who has seen
    nothing else must follow it. Copy the pattern, never the rival's cat, plots or captions.
 
+7. **Follow the prototype closely (CEO 2026-09-30: "เนื้อหาต้องเน้นไปตามต้นแบบของเพจเขาเลย").** The prototype is the
+   cat page «แมวซีรี่ย์» (teardown `research/catseries-teardown-2026-09-28.md`, roadmap §1; MEASURED unless marked).
+   Copy its **anatomy**; never its names, look, plots or caption text (base plan §"Never copy", line 156).
+
+   | Element of the prototype | What it does | What we do |
+   |---|---|---|
+   | The animal **talks in the first person** (the cat calls himself «ฟิว») | viewers love the character, not only the genre ("รักกาฟิว", "#FC") | Mimi talks about herself as «มีมี่»; cute female child-like voice (CEO 2026-09-30); the humans do not hear her words — she is misjudged because they cannot (CMO design, keeps the formula; [to confirm]) |
+   | Looks bad first → a **human villain** misjudges → reveal of love | 17 of 32 top comments side with the misjudged animal; 9 are angry at the human — villain comments drive comment volume | same order; the misjudging human is one of the imagined family characters, words only, nothing harmful on screen; every named character still ends somewhere (ThaiMoralDrama rule 7) |
+   | The reveal is meant to **make viewers cry**, then share | 10+ of 32 comments "น้ำตาไหล"; shares 26–663 per reel | write toward one tear beat before the ending; the warm ending is what gets shared |
+   | **Self-contained** episode | any episode can break out to non-followers | no episode needs another one |
+   | Episode **2:00–2:30** (newest 2:16) | watched to the end | CEO ruled 2–3 min, **3:00 first** |
+   | Title is a hook about the animal («กาฟิว แมวร้ายผู้เสียสละ»; "why did the cat do that?") | holds the first seconds | «ทำไมมีมี่…?» or «มีมี่ <bad-looking adjective> ผู้<virtue>» |
+   | Daily mix: episode + **teaser** (10–15 s + a quoted line + "ติดตามตอนใหม่") + **ordinary post** (good night / good morning / thanks) | ~24% of posts ordinary, 0 credits | 1 episode + 1 teaser + 1 ordinary post a day (plan §4) |
+   | Posting time | reels at 05:00 and 16:00–20:30 | 19:30 |
+   | The **admin comments first** (behind the scenes, apology for AI voice errors, apology for the tears) | fans trust the page | first comment on every episode, in the page's voice |
+   | A **true story** adapted (their «กาแฟ» was a fan's; 970k views; viewers then tell their own pet stories) | free story intake | ours are the family's own true stories (§7) — and a fan story only with its owner's consent, said on the episode |
+   | AI label line (their caption: "ตัวละครสมมติ เนื้อหาสร้างด้วย AI ไม่มีสัตว์หรือบุคคลจริงได้รับอันตราย") | platform disclosure | **do not copy the wording: Mimi is real and the stories are true.** Ours: "ดัดแปลงจากเรื่องจริงในบ้านของเรา · ภาพและเสียงสร้างด้วย AI" [wording to confirm] |
+   | Monthly «ฝากร้าน» post; pinned comment asking for the ฿19 subscription | revenue | later; Thai eligibility unchecked |
+
+   Not copied on purpose: the five premises we saw (villain pet that protects, pet a man never meant to keep, dream job vs pet,
+   grandpa's old shoes, stray running off with medicine). We saw only 5 of their episodes — before each script locks, one
+   read-only look at their newest posts so we do not land on the same premise.
+
 ## 3 · Check before a script goes to the CEO
 
 - [ ] The "from:" line names a fact in §1 or a habit in §4.
@@ -91,18 +114,19 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 
 ## 4 · Open questions for the CEO (ask once; record the answer here)
 
-1. **Mimi's habits** — what she does when the sister comes home, when the brother works, with the mother; what
-   she steals, fears, loves. Without this list no episode can be written from her.
+1. **Mimi's habits** — PARTLY answered 2026-09-30 (§7: loves going out, fawns to be let out, fears water, will not bathe).
+   Still missing: what she does when the sister comes home, when the brother works, with the mother; what she steals or eats.
 2. **Story names** — does each family member keep the role name (แม่ / พี่ชาย / น้องสาว) or get a story name?
 3. **Page name** — the 2026-09-28 plan named the dog «ข้าวเหนียว» and the grandmother «ยายคำ». The real dog is
-   Mimi. Keep the page name «บ้านนี้มีข้าวเหนียว» as it is, or rename?
+   Mimi. CEO 2026-09-30 asked for 3 name options with pictures to choose from (plan of record: the CMO's 3 names + the
+   current «บ้านนี้มีข้าวเหนียว»); his choice goes here.
 4. **The sister's job on screen** — may the debt-collection job appear in a story? (The ILAG films are about
    loan sharks; a viewer could confuse the two.)
 5. **Where upcountry** — which province and dialect (needed for the father's and grandmother's lines).
 6. ~~Which of IMG_4405 / IMG_4406 shows whom~~ — answered 2026-09-30 by looking: Mimi, and the house front (table in §1).
 7. **Photos of the mother, the brother and the sister** (one clear photo each, shrunk first) — needed before any person is drawn.
-8. **The flood** — is the water in front of the house a real flood on 2026-09-30? If yes it is the first true event for an episode; what did Mimi do?
-9. **Mimi's coat in pictures** — the photo shows grey-white and tan markings on black; keep them (recommended, they are what people will recognise) or simplify to an all-black dog?
+8. **The flood** — ANSWERED in part 2026-09-30 (§7): it was a real flood day; Mimi jumped out and got soaked. **Still missing: why she went out** — the reveal of the episode.
+9. ~~Mimi's coat in pictures~~ — the markings stay (sheet-mimi-v3 was shown to the CEO, no change asked, 2026-09-30).
 
 ## 5 · What this replaces
 
@@ -126,10 +150,12 @@ design, voice direction and prompts: `docs/reports/khaoniao-family-style/STYLE-C
 | Brother | `sheet-brother-v3.png` | stocky tycoon, navy gold-button blazer, glasses, earbud, lucky-stone bracelet, elephant-print shorts and flip-flops (the work-from-home joke) | CEO saw it, no change asked |
 | Sister | `sheet-sister-v4.png` | angular, tall, high ponytail with a burgundy streak, winged eyeliner, red lips, **Thai office outfit** (white short-sleeve blouse, black pencil skirt, low heels, blank badge on a lanyard, handbag, car key with a plush charm) | outfit changed at the CEO's request |
 
-- CEO 2026-09-30: *"3D ของแม่ตัดทิ้งได้เลย"*. Read by the CMO as "drop the **2D** mother (`sheet-mother-2d-v3.png`)",
-  because the CEO had just said "เอา 3D ได้เลย". Nothing was deleted; if he meant the 3D mother, the 2D one is
-  the fallback. [to confirm]
-- Not decided: whether Mimi speaks (words, or sounds only), each person's voice, story names (§4).
+- CEO 2026-09-30: *"ตัด 2D ของแม่ออก"* — the 2D mother (`sheet-mother-2d-v3.png`) is dropped; the 3D mother stays. The
+  file is kept on disk, not used.
+- **Mimi talks (CEO 2026-09-30: "มีมี่พูดด้วย เป็นเสียงหมา ผู้หญิง เสียงน่ารักเหมือนเด็ก")** — a cute, child-like girl's
+  voice with a dog feel. The humans are written as not understanding her words (CMO design, [to confirm]). The earlier
+  "sounds only" line in the STYLE-CARD is superseded.
+- Not decided: each human's voice (Flow presets, free 10-s samples), story names (§4).
 - The voice lines in the STYLE-CARD are **direction for the prompts**, not chosen voices: Flow binds a voice to the
   character (`CMO_Knowledge_Flow_Omni1.1` §Voices).
 
@@ -143,6 +169,10 @@ with the row that beat it, and re-check every script that cited it (`script` row
 
 | Date | Told by | What happened / what is true | Used in |
 |---|---|---|---|
+| 2026-09-30 | CEO | **Mimi talks**: a dog's voice, female, cute like a small child. The mother's 2D design is cut. The series starts as Option C (see the plan): a 3-shot test, then a stock of 3 finished episodes, then one post a day. TikTok and YouTube wait until the page has some interest. | format |
+| 2026-09-30 | CEO | Mimi **loves going out**; she fawns on the mother and the brother (อ้อน, คลอเคลีย) so they let her out. | seed |
+| 2026-09-30 | CEO | Mimi is **very afraid of water** — she does not even want to be bathed. | seed |
+| 2026-09-30 | CEO | **The flood day** (IMG_4406): Mimi could not go out; she **jumped out anyway and came back soaked**. *Why she went out is not told yet.* | seed EP1 |
 | 2026-09-30 | CEO | Photo IMG_4406 taken today: the street in front of the house is under brown water (looks like a flood; **what happened and what Mimi did — not told yet**). | seed |
 | 2026-09-30 | CEO | Photo IMG_4405 taken today: Mimi sits on the kitchen-side floor, facing the camera, tongue out. | look only |
 | 2026-09-30 | CEO | Sister: team lead, Civic, home 19:00, Monday–Saturday, Sunday off. Brother: works from home all day. Mother at home. Father farms rice upcountry; grandmother upcountry. (§1) | seed |

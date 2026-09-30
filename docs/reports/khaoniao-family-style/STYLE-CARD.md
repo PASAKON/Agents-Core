@@ -43,8 +43,10 @@ Open in round 2: the brother came out stocky (he stands for the CEO — slimmer?
 Small, long-haired, fluffy; wavy **black** coat; silver-white eyebrow tufts; silver beard with tan under the chin; white
 chest patch and white bib; cream-tan on two paws; long drop ears with silver tips; dark brown eyes; a little pink tongue.
 Older-looking face. Stylised: rounder, bigger ears and eyes, but **every marking stays**. Never brown, never all-black.
-- **Voice:** no words. A tiny hoarse "โฮ่ง" (she is older), a sulky "งื้ดๆ", a snort-sneeze, a long sigh, a happy pant.
-  (Option: a thought-voice narrator later — CEO's call.)
+- **Voice [UPDATED 2026-09-30, CEO: "มีมี่พูดด้วย เป็นเสียงหมา ผู้หญิง เสียงน่ารักเหมือนเด็ก"]:** Mimi **talks**, in a cute, child-like girl's
+  voice with a dog feel; she calls herself «มีมี่». Dog sounds stay as seasoning (a tiny hoarse "โฮ่ง", a sulky "งื้ดๆ", a sneeze, a sigh).
+  The humans do not understand her words (CMO design, [to confirm]). Flow binds the voice to her as a custom voice on a preset.
+  [SUPERSEDED 2026-09-30] "no words … (Option: a thought-voice narrator later)".
 
 ### แม่ (Mother) — imagined · sweet, dreamy, "ซื่อบื้อ", genius cook
 Short and round; big sleepy half-closed warm eyes, dot nose, rosy cheeks, a slow open-mouth "เอ๋?" face. Short black hair
@@ -79,3 +81,8 @@ One sheet per character: a large full-body front view, one three-quarter full-bo
 different expressions, plain light-grey studio background, soft studio light with a gentle contact shadow (the CEO asked
 for beautiful light and shadow; scene mood lighting comes later), **no text of any kind**. The style block is identical in
 all four, the character block is the only thing that changes. Prompts are built in `build_prompts.py` next to this file.
+
+## Update 2026-09-30 (evening)
+- CEO: *"ตัด 2D ของแม่ออก"* — `sheet-mother-2d-v3.png` is dropped (kept on disk); the 3D mother is the design.
+- Page pictures (3 profile + 3 cover, no text in any of them): `build_page_assets.py` → round5; references are crops of the approved
+  sheets (`refs/mimi_cartoon_ref.jpg`, `refs/family_lineup_ref.jpg`, single fronts in `refs/fronts/`).
