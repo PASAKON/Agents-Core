@@ -97,23 +97,15 @@ alphabets before it writes a file.
   persistent-task design avoids the question: ssh only writes a file and runs an existing task.
 - Blocks the caller up to 15 s (`_WAKE_WAIT_S`) waiting for the result; typical 4 s.
 
-## Wiring (not done here; `tools/node_dispatch.py` was out of scope while W2.7 reviews it)
+## Wiring (done in task-49f70bc6, OFF by default)
 
-In `_write_clevel_letter`, the win32 line
-
-```python
-    if _is_windows():  # waking a pane on Windows is the W3.5 spike
-        return {"to": f"{role}-{sid}", "woke": False}
-```
-
-becomes
-
-```python
-    if _is_windows():  # W3.5
-        r = agent_transport.wake_windows_tab(f"{role}-{sid}", from_role.upper())
-        return {"to": f"{role}-{sid}", "woke": r["woke"]}
-```
-
-(`agent_transport` is already imported in that module.) Worker letters
-(`_append_worker_mailbox`) stay `woke: False`: a worker reads `MAILBOX.md` before every
-tool call and needs no nudge.
+`tools/node_dispatch.py` `_windows_wake`, called from the win32 branch of
+`_write_clevel_letter`. The wake runs only when the environment variable `ORG_WIN_WAKE`
+is exactly `1`. Otherwise the answer is the W3.3 one, `woke: false`, and
+`wake_windows_tab` is not called. With the flag on, the letter is written first, then
+`wake_windows_tab(f"{role}-{sid}", from_role.upper())` is called once, and its `woke`
+and `why` come back in the verb's result. A wake that returns false or raises never
+fails the delivery. Worker letters (`_append_worker_mailbox`) stay `woke: false`: a
+worker reads `MAILBOX.md` before every tool call and needs no nudge. The flag stays off
+until the CEO decides the question in "Decision for the CEO" (a wake raises a window and
+presses Enter). Details: `docs/ops/node-dispatch.md`, pinned by `tests/test_w35_wire.py`.
