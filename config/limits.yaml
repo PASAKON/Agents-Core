@@ -1,0 +1,10 @@
+# Quota limits and reserve thresholds per bucket.
+# plan_usd: bucket's subscription cost in USD (scales seed cost estimates).
+# reserve_pct: weekly quota % kept back (for claude: protects C-level sessions).
+# min_5h_pct: minimum 5h/daily quota % required; bucket skipped while below this.
+# change with: .venv/bin/python tools/limits.py set <bucket>.<key> <value>
+buckets:
+  claude:     {plan_usd: 20,  reserve_pct: 50, min_5h_pct: 30}
+  codex:      {plan_usd: 20,  reserve_pct: 20, min_5h_pct: 0}
+  agy-gemini: {plan_usd: 100, reserve_pct: 10, min_5h_pct: 10}
+  agy-claude: {plan_usd: 100, reserve_pct: 10, min_5h_pct: 10}

@@ -1734,7 +1734,17 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
             return None
         from tools import route
 
-        choice = route.pick_runner(role_name, host)
+        touches = task.get("touches")
+        if isinstance(touches, str):
+            try:
+                touches = json.loads(touches)
+            except Exception:
+                touches = []
+        elif touches is None:
+            touches = []
+        brief = task.get("description")
+
+        choice = route.pick_runner(role_name, host, touches=touches, brief=brief)
         if choice is None:
             return None
         line = f"router: {choice.runner} {choice.model} [{choice.bucket}] — {choice.reason}"

@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 import functools
+from datetime import datetime
 from pathlib import Path
 import sys
 import time
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tools import quota
+from tools import forecast, limits as limits_mod, quota
 from tools.delegate import _host_runners
 from tools.quota import Quota, bucket_for, fetch_all_quotas, load_plans
 
@@ -31,6 +32,18 @@ class Choice:
     daily: float | None
     skill: float | None
     reason: str
+
+
+@dataclass
+class Plan:
+    choice: Choice
+    size: str
+    cost: float | None
+    cost_source: str
+    after: float | None
+    verdict: str
+    why: str
+    projection: str | None
 
 
 class _CandidateItem:
@@ -146,7 +159,7 @@ def rank(
     role: str,
     quotas: dict[str, Quota],
     skill: dict[tuple[str, str], float | None],
-    host: str,
+    host: str | None = None,
     cfg: dict | None = None,
 ) -> list[Choice]:
     """Rank candidate runners for `role` on `host` based on quotas and skill."""
@@ -159,7 +172,7 @@ def rank(
         return []
 
     # Rule 1: Only candidates from roles[role] whose runner is in host's runners
-    available_runners = set(_host_runners(host))
+    available_runners = set(_host_runners(host)) if host is not None else None
 
     min_samples = cfg.get("router", {}).get("min_samples", 5)
     tie_points = cfg.get("router", {}).get("tie_points", 5)
@@ -171,7 +184,7 @@ def rank(
         runner = parts[0]
         model = parts[1] if len(parts) > 1 else ""
 
-        if runner not in available_runners:
+        if available_runners is not None and runner not in available_runners:
             continue
 
         # Look up quota
@@ -326,13 +339,120 @@ def cached_quotas(
     return quotas
 
 
+def plan(
+    role: str,
+    size: str | None = None,
+    *,
+    touches: list | tuple | None = None,
+    brief: str | None = None,
+    host: str | None = None,
+    cfg: dict | None = None,
+    quotas: dict[str, Quota] | None = None,
+    skill: dict[tuple[str, str], float | None] | None = None,
+    limits: dict[str, dict] | None = None,
+    table: dict | None = None,
+    now: datetime | None = None,
+) -> list[Plan]:
+    """Plan candidate runners for role with quota forecasts and verdicts."""
+    try:
+        if cfg is None:
+            cfg = load_plans()
+
+        role_classes = cfg.get("role_classes") or {}
+        roles = cfg.get("roles") or {}
+        if role in role_classes:
+            role_cls = role_classes[role]
+        elif role in roles:
+            role_cls = role
+        else:
+            return []
+
+        if size is None:
+            size = forecast.infer_size(touches, brief)
+
+        if quotas is None:
+            quotas = cached_quotas(cfg)
+        if skill is None:
+            skill = load_skill_scores()
+        if limits is None:
+            limits = limits_mod.load_limits()
+
+        choices = rank(role_cls, quotas, skill, host=host, cfg=cfg)
+        plans: list[Plan] = []
+        for c in choices:
+            bucket = c.bucket
+            q = quotas.get(bucket) if bucket else None
+            limit_row = limits.get(bucket, {}) if (limits and bucket) else {}
+            cost, cost_source = (
+                forecast.cost_for(bucket, size, limits=limits, table=table)
+                if (bucket and limits)
+                else (None, "no cost data")
+            )
+            v, after, why = forecast.verdict(q, cost, limit_row)
+            rate = forecast.burn_rate(bucket, now=now) if bucket else None
+            reserve_pct = limit_row.get("reserve_pct", 0)
+            proj = forecast.projection(bucket, q, rate, reserve_pct, now=now) if (bucket and q) else None
+            plans.append(
+                Plan(
+                    choice=c,
+                    size=size,
+                    cost=cost,
+                    cost_source=cost_source,
+                    after=after,
+                    verdict=v,
+                    why=why,
+                    projection=proj,
+                )
+            )
+
+        ok_plans = [p for p in plans if p.verdict == "ok"]
+        unknown_plans = [p for p in plans if p.verdict == "unknown"]
+        will_hit_plans = [p for p in plans if p.verdict == "will_hit"]
+        return ok_plans + unknown_plans + will_hit_plans
+    except Exception:
+        return []
+
+
+def plan_line(p: Plan) -> str:
+    """Format a single plan entry into a concise summary line."""
+    c = p.choice
+    runner_model = f"{c.runner} {c.model}"
+    bucket_part = f"bucket {c.bucket}" if c.bucket else "no bucket"
+
+    if c.weekly is not None and p.after is not None:
+        w_str = forecast.fmt_pct(c.weekly * 100)
+        a_str = forecast.fmt_pct(p.after * 100)
+        cost_str = f"≈{forecast.fmt_pct(p.cost * 100)}" if p.cost is not None else "cost unknown"
+        bracket = f"({p.size} {cost_str})"
+        stats_part = f"{w_str}→{a_str} {bracket}"
+    else:
+        stats_part = ""
+
+    if p.verdict == "ok":
+        verdict_part = p.why
+    else:
+        verdict_part = f"{p.verdict}: {p.why}"
+
+    parts = [f"{runner_model} · {bucket_part}"]
+    if stats_part:
+        parts.append(stats_part)
+    parts.append(verdict_part)
+    return " ".join(parts)
+
+
 def pick_runner(
     role: str,
     host: str,
     *,
+    touches: list | tuple | None = None,
+    brief: str | None = None,
+    size: str | None = None,
     cfg: dict | None = None,
     quotas: dict | None = None,
     skill: dict | None = None,
+    limits: dict | None = None,
+    table: dict | None = None,
+    now: datetime | None = None,
 ) -> Choice | None:
     try:
         cfg = cfg or load_plans()
@@ -341,9 +461,30 @@ def pick_runner(
             return None
         quotas = quotas if quotas is not None else cached_quotas(cfg)
         skill = skill if skill is not None else load_skill_scores()
+
+        plans = plan(
+            role,
+            size=size,
+            touches=touches,
+            brief=brief,
+            host=host,
+            cfg=cfg,
+            quotas=quotas,
+            skill=skill,
+            limits=limits,
+            table=table,
+            now=now,
+        )
+
+        for p in plans:
+            if p.verdict == "ok":
+                p.choice.reason = plan_line(p)
+                return p.choice
+
         choices = rank(cls, quotas, skill, host, cfg)
         for choice in choices:
             if "exhausted" not in choice.reason:
+                choice.reason = f"no ok candidate, fallback: {choice.reason}"
                 return choice
         return None
     except Exception:
@@ -357,9 +498,19 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Dry run routing")
     parser.add_argument("--config", help="Path to plans.yaml")
     parser.add_argument("--pick", metavar="ROLE", help="Pick single runner for worker role (e.g. developer)")
+    parser.add_argument("--plan", metavar="ROLE", help="Plan routing for worker role or class")
+    parser.add_argument("--size", choices=["S", "M", "L"], help="Task size (S, M, L)")
     args = parser.parse_args()
 
     cfg = load_plans(args.config)
+
+    if args.plan:
+        plans = plan(args.plan, size=args.size, host=args.host, cfg=cfg)
+        for i, p in enumerate(plans, 1):
+            print(f"{i}. {plan_line(p)}")
+            if p.projection:
+                print(f"   {p.projection}")
+        return
 
     if args.pick:
         choice = pick_runner(args.pick, args.host, cfg=cfg)
