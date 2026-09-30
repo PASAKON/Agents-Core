@@ -307,6 +307,9 @@ def test_contract_names_agy_browse_only_for_a_browser_brief():
         "Drive http://127.0.0.1:9280 with tools/agy_browse.py --port 9280 state", "/tmp/wt")
     assert f"`{agy_local.ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]`" in browse
     assert "It is your only browser." in browse
+    # a denied command ends the run, so agy is told the allowed set and the positional way round Thai labels
+    assert "no Thai or other non-ASCII text" in browse and "ends your run" in browse
+    assert "':nth-match(button, N)'" in browse
     plain = build_agy_prompt("Fix the parser", "/tmp/wt")
     assert "agy_browse" not in plain
     # a path that merely ends in the name (another repo's copy) does not count
@@ -471,3 +474,24 @@ def test_runner_model_none_and_agy_model_unset_defaults_to_gemini(tmp_path, monk
     assert "--model gemini-3.8-flash-high" in captured
 
 
+
+
+def test_work_dir_added_to_agy_workspace(tmp_path, monkeypatch):
+    """WORK_DIR (where agy_browse writes shots) joins the workspace; a missing one is skipped."""
+    worktree = tmp_path / "worktree"
+    worktree.mkdir()
+    work_dir = tmp_path / "Work" / "task-wd-01"
+    work_dir.mkdir(parents=True)
+    captured = tmp_path / "captured_cmd.txt"
+    fake_bin = tmp_path / "fake_agy_workdir.sh"
+    fake_bin.write_text("#!/bin/sh\n" f"printf '%s ' \"$@\" > '{captured}'\n" "exit 0\n")
+    fake_bin.chmod(0o755)
+    log = tmp_path / "run.log"
+
+    monkeypatch.setenv("WORK_DIR", str(work_dir))
+    agy_local.run_agy_subprocess(str(fake_bin), "p", str(worktree), log)
+    assert f"--add-dir {worktree} --add-dir {work_dir}" in captured.read_text(encoding="utf-8")
+
+    monkeypatch.setenv("WORK_DIR", str(tmp_path / "gone"))
+    agy_local.run_agy_subprocess(str(fake_bin), "p", str(worktree), log)
+    assert captured.read_text(encoding="utf-8").count("--add-dir") == 1

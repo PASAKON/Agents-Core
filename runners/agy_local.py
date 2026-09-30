@@ -60,8 +60,11 @@ def build_agy_prompt(prompt: str, worktree: str) -> str:
         contract += (
             f" Exception for this browser task: you may also run "
             f"`{ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]` from the worktree root, "
-            f"with exactly this interpreter path. It is your only browser. Its arguments must be ASCII and must "
-            f"not contain ; & | ` $ \\ < > * ? ~ or a newline, or the call is refused."
+            f"with exactly this interpreter path. It is your only browser. Every argument may use only "
+            f"A-Z a-z 0-9, space and _ . / : # = @ % + , ' \" ( ) [ ] - : no Thai or other non-ASCII text, "
+            f"no * ? ~ (so no [attr*=x] selectors). A command outside this set is denied, and the denial ends "
+            f"your run with no retry. To reach an element by a label you cannot type, go by position: "
+            f"`count button`, then `text ':nth-match(button, N)'` to read it, then `click ':nth-match(button, N)'`."
         )
     p = prompt.rstrip()
     if p:
@@ -98,6 +101,11 @@ def run_agy_subprocess(
     """Run agy headless with stdout and stderr appended to log_path."""
     effective_model = model if model else (os.environ.get("AGY_MODEL") or "gemini-3.8-flash-high")
     cmd = [agy_bin, "-p", prompt, "--model", effective_model, "--mode", "accept-edits", "--add-dir", worktree]
+    work_dir = os.environ.get("WORK_DIR")
+    if work_dir and Path(work_dir).is_dir():
+        # agy_browse writes shots to $WORK_DIR/agy-shots; outside the workspace a headless
+        # read_file of one is auto-denied and the run dies (task-4245497d, task-ed829cdc).
+        cmd += ["--add-dir", work_dir]
     with open(log_path, "a", encoding="utf-8") as f:
         try:
             proc = subprocess.run(
