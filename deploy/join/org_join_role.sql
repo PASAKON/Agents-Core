@@ -19,8 +19,9 @@
 -- What each grant is for (derived from the SQL the two paths run; the README lists it too):
 --   join_tokens  SELECT token_hash, host, used_at, expires_at   consume, diagnose, sealed check
 --                UPDATE used_at                                 consume the token, one statement
---   hosts        INSERT / UPDATE the columns of the register    hq_join._INSERT_HOST_SQL
---                SELECT host, status                            RETURNING, DO UPDATE ... WHERE, sealed
+--   hosts        INSERT the columns of the register             hq_join._INSERT_HOST_SQL
+--                UPDATE the columns of the rejoin (a `left` row) hq_join._REJOIN_HOST_SQL
+--                SELECT host, status                            ON CONFLICT(host), WHERE, RETURNING, sealed
 --   node_secrets SELECT host, ciphertext, fetched_at, revoked_at  hq_join.sealed_ciphertext
 --                UPDATE fetched_at                              stamp the first fetch
 --   events       INSERT task_id, actor, kind, payload, ts       db.log_event (join_accept, node_sealed_fetch)
