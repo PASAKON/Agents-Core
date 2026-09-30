@@ -401,8 +401,21 @@ def flow(monkeypatch, tmp_path):
     monkeypatch.delenv("ORG_HOST_ROUTER", raising=False)
     monkeypatch.delenv("ORG_ROUTER", raising=False)
     db_mod.init()
-    rec = SimpleNamespace(route_hosts=[], spawn_hosts=[], route_log=None)
+    rec = SimpleNamespace(route_hosts=[], spawn_hosts=[], local_spawns=[], route_log=None)
     monkeypatch.setattr(delegate, "self_host", lambda: "mac")
+    # A task that resolves to this box reaches create_worktree + _spawn_local:
+    # both must be fakes, or the test cuts a real worktree/branch in the repo
+    # and starts a real worker (an unfaked run left 7 of each behind).
+    monkeypatch.setattr(delegate, "create_worktree", lambda project, role, tid, sparse=False: {
+        "project": project, "task_id": tid, "role": role, "branch": f"agent/{role}-{tid}",
+        "worktree": f"/nowhere/{tid}", "base": "main", "repo": "/nowhere", "provisioned": []})
+    monkeypatch.setattr(delegate, "_warn_if_stale_code", lambda: None)
+
+    async def spawn_local(t, proj, *, kickoff=None, touches=()):
+        rec.local_spawns.append(t["id"])
+        return db_mod.get_task(t["id"])
+
+    monkeypatch.setattr(delegate, "_spawn_local", spawn_local)
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
     monkeypatch.setattr(delegate, "_remote_free_gb", lambda ssh: 100.0)
 
@@ -455,6 +468,7 @@ def test_flag_off_is_todays_resolution_and_never_calls_pick_host(
     run(tid, host=arg)
 
     assert flow.route_hosts == [want]
+    assert (flow.local_spawns, flow.spawn_hosts) == (([tid], []) if want == "mac" else ([], [want]))
     assert db_mod.get_task(tid)["delegate_log"] is None, "flag off writes no host line"
 
 
@@ -490,6 +504,19 @@ def test_flag_on_picks_the_lightest_host_and_it_reaches_route_and_spawn(flow, mo
     assert flow.spawn_hosts == ["contabo"]
     assert row_["delegate_log"].startswith(
         "host: contabo · load 0.10/core · ram 3.0 GB · running 1/3 · rejected: none")
+
+
+def test_flag_on_pick_of_this_box_takes_the_local_spawn(flow, monkeypatch):
+    monkeypatch.setenv("ORG_HOST_ROUTER", "1")
+    probe("mac", load_per_core=0.05)
+    probe("contabo", load_per_core=0.50)
+    tid = new_task()
+
+    row_ = run(tid)
+
+    assert flow.route_hosts == ["mac"]
+    assert (flow.local_spawns, flow.spawn_hosts) == ([tid], [])
+    assert row_["delegate_log"].startswith("host: mac · load 0.05/core")
 
 
 def test_flag_on_needs_line_steers_the_pick(flow, monkeypatch):
