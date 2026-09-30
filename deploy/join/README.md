@@ -22,7 +22,10 @@ The Windows `iex` form cannot take arguments, so it reads `$env:ORG_JOIN_HOST` (
 |---|---|
 | `join.sh` | POSIX sh, Linux + macOS. `--dry-run` prints the nine steps and changes nothing. Every python it starts runs `-I`. |
 | `join.ps1` | Windows PowerShell 5.1, ASCII only. Same steps, same messages. |
-| `org-join.service` | systemd unit for the hub endpoint (`tools/join_api.py`) on Contabo (W4.5). |
+| `org-join.service` | systemd unit for the hub endpoint (`tools/join_api.py`) on Contabo (W4.5). Not enabled: `door.sh` starts it (W4.6c). |
+| `door.sh` | POSIX sh, root on Contabo. `open [--minutes N]`, `close`, `status`, `approve --host H --fingerprint F`. The door is closed by default (W4.6c). |
+| `org_join_role.sql` | The hub Postgres role `org_join` the endpoint connects as, with its grants and row guards (W4.6c F3). |
+| `org_join_role.py` | Makes the role's password in memory, runs that SQL with it, prints the role's URL for `put` (W4.6c F3). |
 | `bind-docker0.sh` | Start-up wrapper of that unit: exports `JOIN_API_BIND` = the docker0 IPv4 address. |
 | `docker-compose.join-proxy.yml` | The socat container and traefik labels that put `/org-join` on the internet (W4.5). |
 | `tools/join_api.py` | The endpoint the two scripts talk to. |
@@ -78,7 +81,9 @@ joined this host is recognised through `/sealed`, and keys, clone, venv and node
   token, another host's token, an expired one, a used one and "not provisioned" cannot be told
   apart from outside. `/sealed` also stops answering 24 hours after the token was used.
 - `CLAUDE_CODE_OAUTH_TOKEN` is not fetched. The node reads it at run time with
-  `infisical_setup.py run Agents-Core prod --as <host> -- <command>`.
+  `infisical_setup.py run Org-Node prod --as <host> -- <command>` (W4.6c F2). Org-Node is a project
+  of its own, prod only, with that one secret in it. The shared identity `org-node` is a viewer
+  there and a member of no other project, so a node can no longer read any Agents-Core secret.
 
 ## What root runs, and what `-I` does and does not do (F6)
 
@@ -144,21 +149,23 @@ came from; without it the hub address would come from the request's `Host` heade
 
 ### Install (the CTO, on Contabo, after this is merged and pulled)
 
+Since W4.6c the endpoint is not installed to run all the time: read "The door" and "Live order"
+below first. The unit is copied and never enabled, and the proxy container and the unit are
+started by `door.sh open`. The commands here are the manual form of what `open` does, and the
+checks to run while the door is open.
+
 ```bash
 cd /opt/MoonieXHQ/Agents/Core
 # 0. look first, nothing changes
 ip -4 -o addr show dev docker0                  # inet 172.17.0.1/16, inside 172.16.0.0/12
 docker network ls --filter name=n8n_default     # traefik's network must exist
 docker compose -f deploy/join/docker-compose.join-proxy.yml config -q
-# 1. the proxy container (traefik picks its labels up by itself, no restart)
-docker compose -f deploy/join/docker-compose.join-proxy.yml up -d
-docker ps --filter name=org-join-proxy --format '{{.Names}} {{.Status}} [{{.Ports}}]'   # Ports stays empty
-docker exec org-join-proxy grep host.docker.internal /etc/hosts                          # = the docker0 address
-# 2. the unit
+# 1. the unit (NOT `enable`: the door starts it)
 sudo cp deploy/join/org-join.service /etc/systemd/system/
 sudo systemctl daemon-reload
-# 3. start it
-sudo systemctl enable --now org-join
+# 2. open the door (a Run Inbox card: `door.sh open --minutes 5`), then look
+docker ps --filter name=org-join-proxy --format '{{.Names}} {{.Status}} [{{.Ports}}]'   # Ports stays empty
+docker exec org-join-proxy grep host.docker.internal /etc/hosts                          # = the docker0 address
 journalctl -u org-join -n 20 --no-pager         # "listening on 172.17.0.1:8791"
 ss -ltnH 'sport = :8791'                        # 172.17.0.1:8791 only, never 0.0.0.0 or *
 ```
@@ -186,12 +193,11 @@ address, and it must sit inside `172.16.0.0/12`, or `join_api` exits 2 and says 
 
 ```bash
 cd /opt/MoonieXHQ/Agents/Core
-docker compose -f deploy/join/docker-compose.join-proxy.yml down    # the public route is gone
-sudo systemctl disable --now org-join                                # the endpoint stops
+deploy/join/door.sh close      # or a Run Inbox card; proxy down, endpoint stopped, timer cancelled
 ```
 
-`/etc/systemd/system/org-join.service` may stay; a disabled, stopped unit does nothing. The
-token rows in the hub database are untouched by either step.
+`/etc/systemd/system/org-join.service` may stay; a stopped unit that is not enabled does nothing.
+The token rows in the hub database are untouched.
 
 ### The unit's sandbox, and the load gate (W4.6b; review F3 and F11)
 
@@ -199,9 +205,8 @@ token rows in the hub database are untouched by either step.
 `PrivateTmp`, `ProtectKernelTunables`, `ProtectKernelModules`, `ProtectControlGroups`,
 `RestrictSUIDSGID` and `LockPersonality`, each explained in a comment in the file. There is no
 `ReadWritePaths=`: the service writes nothing on disk (hub Postgres over the network, logs to
-journald, checkout and `/etc/infisical/contabo.env` read-only). What stays open, and is a CEO
-decision (F3): the process still gets every Agents-Core prod secret and connects as the full `org`
-role, and it still runs as the `secretary` uid.
+journald, checkout and `/etc/infisical/contabo.env` read-only). Who the unit runs as, and what it can
+reach, is the next sections (F3, closed in W4.6c).
 
 Before `systemctl daemon-reload`, on Contabo: `readlink -f /opt/MoonieXHQ/Agents/Core/.venv/bin/python`
 must not start with `/home` or `/root` (`ProtectHome=yes` would hide the interpreter), and
@@ -215,6 +220,198 @@ must not start with `/home` or `/root` (`ProtectHome=yes` would hide the interpr
 checked before the slot is taken, so a slow client holds none; the 503 depends on load and never
 on the token. The socat container's `pids_limit: 128` remains the cap on open connections.
 
+## The door: closed by default (W4.6c, CEO 2026-10-01)
+
+The endpoint is not a service that runs all the time. `org-join.service` is not enabled and has no
+`[Install]` section, and the proxy container has `restart: "no"`. While the door is shut, nothing
+listens on the docker0 address and traefik has no backend for `/org-join`. A CEO tap on a Run Inbox
+card opens it for a few minutes, and it shuts itself.
+
+`deploy/join/door.sh` is POSIX sh and runs as root on Contabo:
+
+| Verb | What it does |
+|---|---|
+| `open [--minutes N]` | N is 1 to 120 (default 30). Schedules its own close first (`systemd-run --on-active=Nm`, unit `org-join-door-close`, replacing an earlier one), then starts `org-join.service`, then `docker compose up -d` for the proxy. Prints one line, `open until <UTC time>`, only after it has checked that service, proxy and timer are all there. On any failure it shuts everything again and exits 1: it never stays open without a timer. A second `open` moves the close time. |
+| `close` | Proxy down, service stopped, timer cancelled, then checks both are down. Prints `closed`. Safe to repeat. Exits 1 and says `NOT closed` when something would not stop. |
+| `status` | `closed`, or `open until <UTC time>`. `half open: ...` or `open, no close timer scheduled` mean: run `close`. |
+| `approve --host H --fingerprint F` | `hq_join approve` for one pending host (the W4.6a F1 gate). Prints the result line only. H is a host name, F is exactly 8 letters or digits. |
+
+### The cards (what the CTO types, what the CEO taps)
+
+A worker can only ask for a script at a pushed commit, so push first: `<sha>` is the commit on
+`origin` that holds this `door.sh`. The executor fetches that sha on Contabo, so what the CEO reads
+on the card is what runs.
+
+```bash
+cd /Users/gob/MoonieXHQ/Agents/Core        # the Mac; on Contabo: /opt/MoonieXHQ/Agents/Core
+python3 tools/ask_run.py create --host contabo \
+    --script Agents-Core@<sha>:deploy/join/door.sh \
+    --why "open the join door for 30 minutes: <name> is about to join" \
+    --expected "open until <UTC time>, 30 minutes from now" \
+    -- open --minutes 30
+
+python3 tools/ask_run.py create --host contabo \
+    --script Agents-Core@<sha>:deploy/join/door.sh \
+    --why "approve <name>: its own screen must show fingerprint <8 characters>" \
+    --expected "a JSON line with ok true, the same host and the same fingerprint" \
+    -- approve --host <name> --fingerprint <8 characters>
+
+python3 tools/ask_run.py create --host contabo --script Agents-Core@<sha>:deploy/join/door.sh \
+    --why "close the join door now" -- close
+python3 tools/ask_run.py create --host contabo --script Agents-Core@<sha>:deploy/join/door.sh \
+    --why "is the join door open?" --risk green -- status
+```
+
+Add `--dry-run` to any of them to print the card without sending it.
+
+**The approve card's `--why` must carry the host name and the 8-character fingerprint.** The
+fingerprint is the last 8 characters of the node's public key, printed on the node's own screen by
+`join.sh` (W4.6b). The CEO compares the card on the phone with that screen. If they differ, the key
+on the hub is not the node's, and the tap must be a refusal. The same two values are in the card's
+arguments, so the card shows them twice. No card carries a secret: a join token comes only from the
+hidden prompt of `join.sh`.
+
+**Where the script runs from.** The runner may delete its copy when the card ends, and the timer
+fires up to two hours later. So `open` copies its own file to `/var/lib/org-join-door/door.sh` (root,
+mode 700, made for this) and schedules that copy. When run from a pipe, where there is no file of its
+own, it copies the checkout's `deploy/join/door.sh` instead, after checking that file starts with
+its own header line. If neither is found, it refuses before starting anything.
+
+**`approve` runs under the full hub role.** It runs `hq_join approve` as `secretary` with `org`, not
+as `org_join`: approving is the gate against a stolen token, so the endpoint's role is forbidden to
+do it (a row guard, below). The `org` URL is read from Agents-Core prod with the `contabo` identity
+and handed to the child in its environment, never on a command line.
+
+## Least privilege for the endpoint (W4.6c F3)
+
+The endpoint is reachable from the internet. It used to run as `secretary`, with every Agents-Core
+prod secret in its environment and the full `org` role on the hub. Now:
+
+- **A system user of its own**, `org-join`, that owns nothing and has no shell and no home.
+- **One secret**, `ORG_JOIN_DB_URL`, from the `/org-join` folder of Agents-Core prod. No other
+  Agents-Core value reaches the process.
+- **A database role of its own**, `org_join`, with only the grants below.
+
+`tools/join_api.py` reads `ORG_JOIN_DB_URL`. When only `ORG_DB_URL` is set it exits 2 with one line
+that names the variables, unless `JOIN_API_ALLOW_ORG_ROLE=1` says the full role is intended: then it
+connects with it and logs a one-line warning (a stopgap for a hub that has no `org_join` yet; the
+unit never sets it). When both are set it uses `ORG_JOIN_DB_URL` and warns that `ORG_DB_URL` is
+ignored. No message holds a value.
+
+**How the unit gets the machine credential without widening `/etc/infisical`.** The unit starts as
+root, because only root can read `/etc/infisical/contabo.env` (0600, unchanged). The root leg is
+`bind-docker0.sh`, then `infisical_setup.py run Agents-Core prod --as contabo --path /org-join`,
+which logs in and puts only the `/org-join` folder in the environment. Its child is
+`setpriv --reuid=org-join --regid=org-join --init-groups`, which drops to the new user and execs the
+endpoint. The user `org-join` never sees the credential file or the credential, and no permission on
+`/etc/infisical` changes. `setpriv` execs, so systemd still supervises the endpoint's own pid.
+`infisical_setup.py run` refuses to start on an empty folder, so a missing `ORG_JOIN_DB_URL` stops
+the service with a clear message instead of starting it with no database.
+
+### What the role can do, derived from the SQL
+
+Nothing is granted that one of these statements does not use. The statements are in
+`tools/join_api.py` and `tools/hq_join.py`, and the tests read them from there.
+
+| Table | Grant | Used by |
+|---|---|---|
+| `join_tokens` | `SELECT (token_hash, host, used_at, expires_at)` | the consume, the diagnosis after a failed consume, the `/sealed` token check |
+| | `UPDATE (used_at)` | `_CONSUME_SQL`: one atomic `UPDATE ... WHERE used_at IS NULL AND expires_at > ? RETURNING host` |
+| `hosts` | `SELECT (host, status)` | `ON CONFLICT (host)`, the rejoin `WHERE`, `RETURNING host` |
+| | `INSERT (host, os, hq_root, agents_root, provides, max_workers, status, pubkey, config_json, updated_at, deploy_pubkey)` | `_INSERT_HOST_SQL`, the register |
+| | `UPDATE (os, hq_root, agents_root, provides, max_workers, status, pubkey, config_json, deploy_pubkey, approved_at, updated_at, probed_at, free_gb, ram_free_gb, running, version, cpus, load_per_core, runners)` | `_REJOIN_HOST_SQL`, the take-over of a `left` row (`approved_at` and the probe columns go back to NULL) |
+| `node_secrets` | `SELECT (host, ciphertext, fetched_at, revoked_at)` | `sealed_ciphertext` |
+| | `UPDATE (fetched_at)` | the first-fetch stamp |
+| `events` | `INSERT (task_id, actor, kind, payload, ts)` | `db.log_event`: `join_accept`, `node_sealed_fetch` |
+
+Everything else is denied: no `DELETE`, no `TRUNCATE`, no `SELECT` on `pubkey` or `config_json`,
+nothing on any other table, no sequence, no `CREATE` in schema `public`. A check at the end of the
+SQL compares the role's privileges, column by column, with the list inside the file, and fails the
+run when they differ.
+
+`accept` is two statements in one transaction, not one `INSERT ... ON CONFLICT DO UPDATE`: the
+second form would need `SELECT` on every column it reads through `excluded`, and the role must not
+read `pubkey` or `config_json`. The first statement inserts and does nothing when the name exists;
+the second takes over a `left` row only. The loser of a race finds the row `pending_identity`, which
+matches neither statement, and gets `host_in_use` with its token un-consumed (the transaction rolls
+back).
+
+**Column grants cannot limit rows, so two triggers do, for this role only.** Without them, whoever
+held the role's URL could run `UPDATE hosts SET approved_at = now()` (approve their own node) or
+overwrite the key of an approved host. `org_join_guard` on `hosts` lets the role write only
+`pending_identity` rows with no approval, and update only a row that is `left`. On `events` it lets
+the role write only `task_id IS NULL`, actor `hq_join`, kinds `join_accept` and `node_sealed_fetch`.
+For every other role the triggers return the row untouched. The role also has `CONNECTION LIMIT 5`,
+`statement_timeout 10s` and `idle_in_transaction_session_timeout 15s`; the endpoint lets at most 4
+requests into the database section at once and gives each connection back at the end of it.
+
+### Live order (the CTO, and the CEO where it says so)
+
+Do these in this order. Step 2 must come before any node runs under Org-Node, and step 3 before a
+node that joined earlier is moved.
+
+1. **Create Org-Node.** `python3 tools/infisical_setup.py plan`, read it, then `apply` (identity
+   `setup`, with the CEO's go). It creates the project `Org-Node` (environment `prod` only) and the
+   `/org-join` folder in Agents-Core prod. It writes no secret value.
+2. **The CEO enters `CLAUDE_CODE_OAUTH_TOKEN` in Org-Node prod** (gate G3). The code never does:
+   `put` and `import-env` refuse to write anything else to that project, and the value is typed by
+   the CEO in Infisical. Until then `run Org-Node prod` refuses to start, because the folder is
+   empty, and so does a node's first probe.
+3. **Move the `org-node` membership.** In Infisical: Org-Node, Access Control, Machine Identities,
+   add `org-node` as **Viewer**. Then Agents-Core, the same page, remove `org-node`. Add first,
+   remove second, so a node that joined earlier is never without the token. Until the removal,
+   `apply` prints a `!` line, and every provision refuses (`ensure_node_identity` will not hand a
+   node's secret to an identity that can read anything but Org-Node). Existing nodes then run
+   `infisical_setup.py run Org-Node prod --as <host> -- <command>`.
+4. **Create the role.** On the machine that holds the `setup` credential and can reach the hub
+   database, from the checkout, with `psql` installed (`command -v psql`). `org_join_role.py` makes a
+   password in memory, runs `org_join_role.sql` with it through the environment (`ps` shows argv, so
+   the password is never a `-v` argument), and only when that succeeded prints
+   `postgresql://org_join:<password>@<host, port and database of ORG_DB_URL>` on stdout. That line
+   goes by pipe straight into `put`, so the password is in no file, no argument and no terminal. The
+   connecting role needs `CREATEROLE` (`org` has it; otherwise run it with a `postgres` URL). Running
+   it again rotates the password and re-applies the grants. `<id>` is this machine's identity
+   (`mac`, `contabo` or `winbox`).
+
+   ```bash
+   cd /Users/gob/MoonieXHQ/Agents/Core
+   python3 tools/infisical_setup.py run Agents-Core prod --as <id> -- \
+       .venv/bin/python deploy/join/org_join_role.py \
+     | python3 tools/infisical_setup.py put Agents-Core prod ORG_JOIN_DB_URL --path /org-join --stdin \
+         --comment "hub Postgres URL of the org_join role (join endpoint only)" \
+         --meta provider_name=org_join --meta console_url=https://terminal.mooniex.com \
+         --meta scope=hub-postgres-join-endpoint --meta expires=<YYYY-MM-DD> --meta owner=cto
+   ```
+
+   If the script fails it prints nothing on stdout and `put` refuses the empty value. Check the
+   result without showing it: `infisical_setup.py last4 Agents-Core prod ORG_JOIN_DB_URL --path /org-join`.
+5. **The user.** On Contabo: `id org-join` must say no such user, then
+   `sudo useradd --system --no-create-home --shell /usr/sbin/nologin org-join`, then
+   `sudo -u org-join test -r /opt/MoonieXHQ/Agents/Core/tools/join_api.py && sudo -u org-join test -x /opt/MoonieXHQ/Agents/Core/.venv/bin/python && echo ok`
+   must print `ok`: the user has to read the checkout and run the interpreter, and nothing else.
+6. **Install the unit, without enabling it.** `sudo cp deploy/join/org-join.service /etc/systemd/system/`
+   and `sudo systemctl daemon-reload`. `systemctl is-enabled org-join` must say `disabled` or
+   `static`. Do NOT run `systemctl enable`. If the older always-on version is running, stop it once:
+   `sudo systemctl disable --now org-join` and
+   `docker compose -f deploy/join/docker-compose.join-proxy.yml down` (the old proxy restarted by
+   itself). From then on the door opens from a card, never from a shell.
+7. **Try it.** A card `open --minutes 5`, the "Checks" above, then a card `close`, then
+   `curl -m 5 -s -o /dev/null -w '%{http_code}\n' https://webhook.mooniex.com/org-join/join.sh`
+   must no longer answer 200.
+
+**Rollback.** A `close` card shuts the door at any time. To go back to the W4.6b behaviour (not
+recommended): set `JOIN_API_ALLOW_ORG_ROLE=1` and change the unit's `--path /org-join` back to `/`.
+The role and the two triggers can stay: they do nothing for any other role.
+
+### What is still open
+
+- `door.sh approve` runs as `secretary` with the full `org` role. A second role for approval only
+  would be one more credential to keep; the card and the CEO's tap are what gate it.
+- A node that joined before Org-Node read Agents-Core with the old membership. `docs/ops/hq-join.md`,
+  "Nodes that joined before Org-Node", says what to rotate when one leaves.
+- The door is a schedule, not a lock: while it is open the endpoint answers the internet as it did
+  before W4.6c. The token, the rate limit and the approval gate protect that window.
+
 ## Tailscale pre-auth key
 
 `tools/join_api.py` takes an injectable `TailscaleMinter` (`host -> one-use, tagged pre-auth key`).
@@ -225,8 +422,20 @@ exact `tailscale up --hostname <name>` to run).
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w43_join_api.py tests/test_w43_join_scripts.py tests/test_w45_bind.py tests/test_w46b_node_fixes.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w43_join_api.py tests/test_w43_join_scripts.py tests/test_w45_bind.py tests/test_w46b_node_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py
+ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54330/org_test \
+    .venv/bin/python -m pytest -p no:warnings tests/test_w46c_join_role.py   # adds the real-Postgres tests
 ```
+
+`tests/test_w46c_door.py` runs `door.sh` for real under `dash`, `sh` and `bash`, with `systemctl`,
+`docker` and `systemd-run` replaced by shims on disk (it never touches a real systemd). It covers
+the timer-first order, the rollback when each step fails, the clamp on minutes, `close` being
+repeatable, `status`, the `approve` argument checks, and that no secret reaches argv or output.
+`tests/test_w46c_join_role.py` reads the SQL, and runs it against a scratch Postgres when
+`ORG_TEST_DB_URL` is set: a real accept and sealed over HTTP as `org_join`, a matrix of denied
+privileges, the row guards, the 5-connection limit, re-running, password rotation and drift
+detection. `tests/test_w46c_node_project.py` covers Org-Node in `infisical_setup.py` against a fake
+Infisical.
 
 `tests/test_w46b_node_fixes.py` covers the W4.6b fixes: accept before install, the fingerprint
 line, the hidden token prompt (on a real pty), the pinned `known_hosts`, `-I` on every python call,

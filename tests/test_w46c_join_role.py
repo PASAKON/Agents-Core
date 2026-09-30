@@ -704,3 +704,130 @@ def test_the_self_check_fails_the_run_when_the_role_has_drifted_past_what_the_fi
     finally:
         hub.owner_exec("ALTER ROLE org_join NOCREATEDB")
     assert _run_role_file(hub.owner_url, hub.password).returncode == 0
+
+
+# ------------------------------------------------------------ deploy/join/org_join_role.py
+
+import importlib.util  # noqa: E402
+
+_SCRIPT = ROOT / "deploy" / "join" / "org_join_role.py"
+_spec = importlib.util.spec_from_file_location("org_join_role_script", _SCRIPT)
+role_script = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(role_script)
+
+_ADMIN = "postgresql://org:Ad%40min-pw-0123456789@db.example.internal:5433/hub?sslmode=require"
+
+_SHIM = """#!/bin/sh
+# records what psql was started with; never prints the password unless SHIM_ECHO=1
+{ for a in "$@"; do printf 'ARG %s\\n' "$a"; done; env | grep -E '^(PG|ORG_JOIN_PASSWORD)' | sort; } > "$SHIM_LOG"
+[ "${SHIM_ECHO:-}" = 1 ] && echo "ERROR: syntax error near PASSWORD '$ORG_JOIN_PASSWORD'" >&2
+exit "${SHIM_RC:-0}"
+"""
+
+
+@pytest.fixture
+def shim(tmp_path, monkeypatch):
+    psql = tmp_path / "psql"
+    psql.write_text(_SHIM)
+    psql.chmod(0o755)
+    log = tmp_path / "psql.log"
+    monkeypatch.setenv("SHIM_LOG", str(log))
+    monkeypatch.setenv(role_script.PSQL_ENV, str(psql))
+    return log
+
+
+def _recorded(log: Path):
+    lines = log.read_text().splitlines()
+    args = [ln[4:] for ln in lines if ln.startswith("ARG ")]
+    env = dict(ln.split("=", 1) for ln in lines if not ln.startswith("ARG "))
+    return args, env
+
+
+def test_the_role_script_runs_the_sql_and_prints_the_role_url_and_nothing_else(shim, capsys):
+    rc = role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN})
+    out, err = capsys.readouterr()
+    assert rc == 0
+    args, env = _recorded(shim)
+    password = env["ORG_JOIN_PASSWORD"]
+    assert len(password) >= 24 and re.fullmatch(r"[A-Za-z0-9_-]+", password)
+    assert out == f"postgresql://org_join:{password}@db.example.internal:5433/hub?sslmode=require\n"
+    assert args == ["-X", "-v", "ON_ERROR_STOP=1", "-f", str(SQL)]
+    assert password not in " ".join(args) and password not in err     # argv and stderr: never
+
+
+def test_the_role_script_connects_through_pg_variables_and_keeps_no_admin_url(shim):
+    assert role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN, "PGOPTIONS": "-c x=1"}) == 0
+    args, env = _recorded(shim)
+    assert (env["PGHOST"], env["PGPORT"], env["PGUSER"], env["PGDATABASE"], env["PGSSLMODE"]) == (
+        "db.example.internal", "5433", "org", "hub", "require")
+    assert env["PGPASSWORD"] == "Ad@min-pw-0123456789"                 # percent-decoded, in env only
+    assert "PGOPTIONS" not in env                                      # no inherited PG* setting
+    assert "Ad" not in " ".join(args) and "ORG_DB_URL" not in env
+
+
+def test_each_run_makes_a_new_password(shim):
+    seen = set()
+    for _ in range(3):
+        assert role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN}) == 0
+        seen.add(_recorded(shim)[1]["ORG_JOIN_PASSWORD"])
+    assert len(seen) == 3
+
+
+def test_a_failing_psql_leaves_stdout_empty_so_put_stores_nothing(shim, capsys, monkeypatch):
+    monkeypatch.setenv("SHIM_RC", "3")
+    monkeypatch.setenv("SHIM_ECHO", "1")
+    rc = role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN})
+    out, err = capsys.readouterr()
+    password = _recorded(shim)[1]["ORG_JOIN_PASSWORD"]
+    assert rc == 1 and out == ""
+    assert password not in err and "PASSWORD '***'" in err              # scrubbed in psql's own echo
+    assert "psql exited 3" in err
+
+
+@pytest.mark.parametrize("url", [
+    "", "mysql://u:p@h/db", "postgresql://h/db", "postgresql://u:p@/db", "postgresql://u:p@h", "postgresql://u:p@h:port/db"])
+def test_the_role_script_refuses_a_missing_or_odd_admin_url_before_running_psql(shim, capsys, url):
+    assert role_script.main([], {**os.environ, "ORG_DB_URL": url}) == 2
+    out, err = capsys.readouterr()
+    assert out == "" and not shim.exists()
+    assert "ORG_DB_URL" in err and "p@" not in err
+
+
+def test_the_role_script_refuses_arguments_and_a_missing_psql(capsys, monkeypatch, tmp_path):
+    assert role_script.main(["--password", "x"], {**os.environ, "ORG_DB_URL": _ADMIN}) == 2
+    monkeypatch.setenv(role_script.PSQL_ENV, str(tmp_path / "no-such-psql"))
+    assert role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN}) == 2
+    out, err = capsys.readouterr()
+    assert out == "" and "psql is not installed" in err and "--password" not in out
+
+
+def test_the_role_script_url_of_an_ipv6_host_keeps_its_brackets():
+    parts = role_script.urlsplit("postgresql://org:pw@[::1]:5432/hub")
+    assert role_script.role_url(parts, "abc") == "postgresql://org_join:abc@[::1]:5432/hub"
+
+
+@pg_only
+def test_the_role_script_against_a_real_postgres_makes_a_working_role(monkeypatch, capsys):
+    for var in ("ORG_JOIN_DB_URL", "JOIN_API_ALLOW_ORG_ROLE", "ORG_JOIN_PSQL"):
+        monkeypatch.delenv(var, raising=False)
+    _drop_all(ORG_TEST_DB_URL)
+    monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
+    db.init()
+    capsys.readouterr()                                                  # db.init() prints a line
+    try:
+        assert role_script.main([], {**os.environ, "ORG_DB_URL": ORG_TEST_DB_URL}) == 0
+        out, err = capsys.readouterr()
+        url = out.strip()
+        assert out.count("\n") == 1 and urlsplit(url).username == "org_join"
+        password = urlsplit(url).password
+        assert password and password not in err
+        assert "role and grants are in place and verified" in err
+        assert urlsplit(url).hostname == urlsplit(ORG_TEST_DB_URL).hostname
+        conn = db_pg.connect(url, timeout=10)
+        try:
+            assert conn.execute("SELECT count(*) AS n FROM hosts").fetchone() is not None
+        finally:
+            conn.close()
+    finally:
+        db_pg.evict(ORG_TEST_DB_URL)
+        _drop_all(ORG_TEST_DB_URL)
