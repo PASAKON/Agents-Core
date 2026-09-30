@@ -44,6 +44,7 @@ param(
     [ValidateSet('auto', 'appactivate', 'uia')] [string] $Method = 'auto',
     [int] $TimeoutSec = 20,
     [string] $Log = '',
+    [switch] $Contains,
     [switch] $DryRun
 )
 
@@ -76,6 +77,11 @@ if ($Title -cmatch '[^\x20-\x7E]' -or $Title.Length -lt 1 -or $Title.Length -gt 
 if ($Marker -cmatch '[^\x20-\x7E]' -or $Marker.Length -lt 1 -or $Marker.Length -gt 300) {
     Done 64 'bad -Marker (printable ASCII, 1-300 chars)'
 }
+# -Contains: -Title is a stable TOKEN (e.g. "#2c6b9f03"), not the whole title. Real
+# session tabs are titled "<role> #<sid> (<topic>)" and worker tabs carry an
+# animated spinner glyph, so the whole title is not knowable in advance. A token
+# that short would match anything, hence the floor; and the match must be unique.
+if ($Contains -and $Title.Length -lt 6) { Done 64 'bad -Title for -Contains (token of at least 6 chars)' }
 
 $session = (Get-Process -Id $PID).SessionId
 if ($session -eq 0) { Done 4 'session 0 has no desktop; run this through a task in the console session' }
@@ -111,13 +117,47 @@ public class WakeWin {
 }
 '@
 
+$AE = [System.Windows.Automation.AutomationElement]
+$TS = [System.Windows.Automation.TreeScope]
+
+# Exact (default) or token-contained, case-sensitive and ordinal either way.
+function Test-Title([string] $text) {
+    if ($Contains) { return $text.Contains($Title) }
+    return ($text -ceq $Title)
+}
+
 # The whole safety rule, in one place: is `$hwnd` the foreground window, is it a
-# Windows Terminal window, and does its title equal -Title exactly (case and all)?
-function Test-Foreground([IntPtr] $hwnd) {
+# Windows Terminal window, does its title equal -Title exactly (case and all),
+# and does KEYBOARD FOCUS sit in a terminal control of that same process?
+# The last check exists because the first three alone were measured to pass
+# while every key was swallowed: after a UIA tab Select() (or a click on the
+# strip) keyboard focus is on the tab item, not the terminal, and the title
+# and foreground window look perfect (2026-09-30, 5/5 "sent", 0/5 received).
+function Test-Foreground([IntPtr] $hwnd, [switch] $NoFocusCheck) {
     $fg = [WakeWin]::GetForegroundWindow()
     if ($fg -ne $hwnd) { return $false }
     if ([WakeWin]::Cls($fg) -cne $WT_CLASS) { return $false }
-    return ([WakeWin]::Text($fg) -ceq $Title)
+    if (-not (Test-Title ([WakeWin]::Text($fg)))) { return $false }
+    if ($NoFocusCheck) { return $true }
+    try {
+        $fe = $AE::FocusedElement
+        $fpid = 0
+        [void][WakeWin]::GetWindowThreadProcessId($fg, [ref] $fpid)
+        return ($fe.Current.ClassName -ceq 'TermControl' -and $fe.Current.ProcessId -eq $fpid)
+    } catch { return $false }
+}
+
+# Move keyboard focus into the terminal of `$hwnd` (UIA SetFocus on the visible
+# TermControl). Only ever called on the window already found for -Title.
+function Focus-Terminal([IntPtr] $hwnd) {
+    try {
+        $w = $AE::FromHandle($hwnd)
+        $cond = New-Object System.Windows.Automation.PropertyCondition ($AE::ClassNameProperty), 'TermControl'
+        foreach ($tc in $w.FindAll($TS::Descendants, $cond)) {
+            if (-not $tc.Current.IsOffscreen) { $tc.SetFocus(); return $true }
+        }
+    } catch {}
+    return $false
 }
 
 function Describe-Foreground {
@@ -131,11 +171,24 @@ function Describe-Foreground {
     return ('fg=proc:{0} class:{1} title:"{2}"' -f $name, [WakeWin]::Cls($fg), $t)
 }
 
+# Window in front (title + class), not yet caring where keyboard focus is.
 function Wait-Foreground([IntPtr] $hwnd, [int] $ms) {
     $end = (Get-Date).AddMilliseconds($ms)
     do {
-        if (Test-Foreground $hwnd) { return $true }
+        if (Test-Foreground $hwnd -NoFocusCheck) { return $true }
         Start-Sleep -Milliseconds 50
+    } while ((Get-Date) -lt $end)
+    return $false
+}
+
+# Everything Send-Guarded will demand: foreground + title + focus in a terminal.
+# With -FixFocus it also pushes focus into the terminal (UIA path only).
+function Wait-Ready([IntPtr] $hwnd, [int] $ms, [switch] $FixFocus) {
+    $end = (Get-Date).AddMilliseconds($ms)
+    do {
+        if ($FixFocus) { [void](Focus-Terminal $hwnd) }
+        if (Test-Foreground $hwnd) { return $true }
+        Start-Sleep -Milliseconds 100
     } while ((Get-Date) -lt $end)
     return $false
 }
@@ -146,9 +199,11 @@ function Wait-Foreground([IntPtr] $hwnd, [int] $ms) {
 # Returns the name of the step that worked, or $null.
 function Raise-Window([IntPtr] $hwnd, $wsh) {
     if ([WakeWin]::IsIconic($hwnd)) { [void][WakeWin]::ShowWindow($hwnd, 9) }   # SW_RESTORE
-    if (Test-Foreground $hwnd) { return 'already' }
+    if (Test-Foreground $hwnd -NoFocusCheck) { return 'already' }
 
-    try { [void]$wsh.AppActivate($Title) } catch {}
+    # AppActivate takes a title; give it the window's own current one (in -Contains
+    # mode -Title is only a token). Whatever it raises, Wait-Foreground re-checks.
+    try { [void]$wsh.AppActivate([WakeWin]::Text($hwnd)) } catch {}
     if (Wait-Foreground $hwnd 1500) { return 'AppActivate' }
 
     $fg = [WakeWin]::GetForegroundWindow()
@@ -191,17 +246,39 @@ function Send-Guarded([IntPtr] $hwnd, $wsh) {
     return 'sent'
 }
 
+# Every WT tab (all WT windows) whose title matches. Two or more is ambiguous, in
+# ANY method: a window's own title is only its SELECTED tab, so counting windows
+# cannot see a second matching tab in the same window (measured: a token that
+# matched two tabs of one window typed into the selected one).
+function Find-Tabs {
+    $wins = $AE::RootElement.FindAll($TS::Children,
+        (New-Object System.Windows.Automation.PropertyCondition ($AE::ClassNameProperty), $WT_CLASS))
+    $tabCond = New-Object System.Windows.Automation.PropertyCondition ($AE::ControlTypeProperty),
+        ([System.Windows.Automation.ControlType]::TabItem)
+    $found = @()
+    foreach ($w in $wins) {
+        foreach ($tab in $w.FindAll($TS::Descendants, $tabCond)) {
+            if (Test-Title ([string]$tab.Current.Name)) { $found += , @($w, $tab) }
+        }
+    }
+    return , $found
+}
+
 $wsh = New-Object -ComObject WScript.Shell
 $tried = @()
 
-# ---- (a) appactivate: a WT window whose own title is exactly -Title
+try { $found = Find-Tabs } catch { Done 4 "UI Automation failed, cannot prove the target is unique: $($_.Exception.Message)" }
+if ($found.Count -gt 1) { Done 2 "ambiguous: $($found.Count) tabs match the title; nothing sent" }
+if ($found.Count -eq 0) { Done 2 'no Windows Terminal tab matches the title; nothing sent' }
+$w = $found[0][0]; $tab = $found[0][1]
+$hwnd = [IntPtr]$w.Current.NativeWindowHandle
+
+# ---- (a) appactivate: only when the target is ALREADY the selected tab (the
+# window's own title then is the target's). No UI Automation used to reach it.
 if ($Method -eq 'auto' -or $Method -eq 'appactivate') {
-    $hits = @([WakeWin]::Windows() | Where-Object {
-        [WakeWin]::IsWindowVisible($_) -and [WakeWin]::Cls($_) -ceq $WT_CLASS -and [WakeWin]::Text($_) -ceq $Title })
-    if ($hits.Count -gt 1) { Done 2 "ambiguous: $($hits.Count) windows titled exactly that" }
-    if ($hits.Count -eq 1) {
-        $hwnd = $hits[0]
+    if (Test-Title ([WakeWin]::Text($hwnd))) {
         $how = Raise-Window $hwnd $wsh
+        if ($how -and -not (Wait-Ready $hwnd 800)) { $how = $null; $tried += 'appactivate:focus-not-in-terminal' }
         if ($how) {
             $r = Send-Guarded $hwnd $wsh
             if ($r -eq 'sent' -or $r -eq 'dry-run') { Done 0 "$r method=appactivate via=$how" }
@@ -209,36 +286,21 @@ if ($Method -eq 'auto' -or $Method -eq 'appactivate') {
         }
         $tried += 'appactivate:refused'
     } else {
-        $tried += 'appactivate:no-window-titled-that'
+        $tried += 'appactivate:target-tab-not-selected'
     }
 }
 
-# ---- (b) uia: select the tab, then raise its window
+# ---- (b) uia: select the tab, put focus in its terminal, raise its window
 if ($Method -eq 'auto' -or $Method -eq 'uia') {
-    $AE = [System.Windows.Automation.AutomationElement]
-    $TS = [System.Windows.Automation.TreeScope]
-    try {
-        $wins = $AE::RootElement.FindAll($TS::Children,
-            (New-Object System.Windows.Automation.PropertyCondition ($AE::ClassNameProperty), $WT_CLASS))
-    } catch { Done 4 "UI Automation failed: $($_.Exception.Message)" }
-    $tabCond = New-Object System.Windows.Automation.PropertyCondition ($AE::ControlTypeProperty),
-        ([System.Windows.Automation.ControlType]::TabItem)
-    $found = @()
-    foreach ($w in $wins) {
-        foreach ($tab in $w.FindAll($TS::Descendants, $tabCond)) {
-            if ($tab.Current.Name -ceq $Title) { $found += , @($w, $tab) }
-        }
-    }
-    if ($found.Count -gt 1) { Done 2 "ambiguous: $($found.Count) tabs titled exactly that" }
-    if ($found.Count -eq 0) { Done 2 "no tab titled exactly that ($($wins.Count) WT windows; tried: $($tried -join ','))" }
-    $w = $found[0][0]; $tab = $found[0][1]
-    $hwnd = [IntPtr]$w.Current.NativeWindowHandle
     try {
         $sel = $tab.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
-        $sel.Select()
+        # Select() on the tab that is already selected moves keyboard focus onto
+        # the tab item (measured), so only select when it is not.
+        if (-not $sel.Current.IsSelected) { $sel.Select() }
     } catch { Done 4 "cannot select the tab: $($_.Exception.Message)" }
     Start-Sleep -Milliseconds 150
     $how = Raise-Window $hwnd $wsh
+    if ($how -and -not (Wait-Ready $hwnd 3000 -FixFocus)) { $how = $null; $tried += 'uia:focus-not-in-terminal' }
     if ($how) {
         $r = Send-Guarded $hwnd $wsh
         if ($r -eq 'sent' -or $r -eq 'dry-run') { Done 0 "$r method=uia via=$how" }
