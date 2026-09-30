@@ -41,7 +41,7 @@ import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -81,6 +81,23 @@ class Failure(Exception):
 
 def _show(value: object) -> str:
     return repr(str(value)[:64])
+
+
+# Credentials a failing child can print (git echoes a remote URL with its
+# token, an HTTP client its Authorization header). Every error string passes
+# through here before it reaches the reply, the audit row or letters.last_error.
+_SECRET_PATTERNS = (
+    (re.compile(r"([A-Za-z][A-Za-z0-9+.-]*://)[^/\s@]+@"), r"\1***@"),
+    (re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})"), "***"),
+    (re.compile(r"\bsk-[A-Za-z0-9_-]{20,}"), "***"),
+    (re.compile(r"(?i)\b(bearer|token|basic)\s+[A-Za-z0-9._~+/=-]{16,}"), r"\1 ***"),
+)
+
+
+def _redact(text: str) -> str:
+    for pattern, repl in _SECRET_PATTERNS:
+        text = pattern.sub(repl, text)
+    return text
 
 
 def _self_host() -> str:
@@ -259,11 +276,43 @@ def verb_pid_alive(task_id: str) -> dict:
     return {"task_id": task_id, "pid": pid, "alive": _pid_is_alive(pid)}
 
 
+def _json_list(value: object) -> list:
+    try:
+        out = json.loads(value or "[]")
+    except (TypeError, ValueError):
+        return []
+    return out if isinstance(out, list) else []
+
+
+def _windows_spawn_gate(task: dict) -> None:
+    """The checks delegate_task runs before a spawn, read-only, for the win32
+    path that does not call delegate_task (W2.7, task-42fdcda7). The hub's
+    delegate_task ran them and took the path locks before it dispatched, so on
+    the normal path they pass. They stop a caller holding the org_dispatch key
+    from starting a pending row the hub never gated: one with an unfinished
+    dependency, or whose touches overlap a task already in flight. Locks stay
+    the hub's to take; nothing here writes."""
+    tid = task["id"]
+    if task.get("host") != _self_host():  # the hub always names the host first
+        raise Refusal(f"task {tid} has no host; spawn_worker on Windows needs this host's row")
+    deps = [d for d in _json_list(task.get("depends_on")) if isinstance(d, str)]
+    unmet = db.unmet_dependencies(deps) if deps else []
+    if unmet:
+        raise Refusal(f"task {tid} has unfinished dependencies: "
+                      + ", ".join(f"{u['id']}({u['status']})" for u in unmet[:5]))
+    touches = [p for p in _json_list(task.get("touches")) if isinstance(p, str)]
+    conflicts = db.find_conflicts(task["project"], touches, exclude_task=tid) if touches else []
+    if conflicts:
+        raise Refusal(f"task {tid} overlaps tasks in flight: "
+                      + ", ".join(str(c.get("task_id")) for c in conflicts[:5]))
+
+
 def verb_spawn_worker(task_id: str) -> dict:
     task = _task_on_this_host(task_id, allow_null_host=True)
     if task["status"] != "pending":
         raise Refusal(f"task {task_id} is {task['status']}, spawn_worker needs pending")
     if _is_windows():
+        _windows_spawn_gate(task)
         _spawn_worker_windows(task)
     else:
         from tools import delegate
@@ -357,7 +406,7 @@ def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
     sid = uuid.uuid4().hex[:8]
     name = f"{role}-{sid}"
     cmd = (f"export CXO_SESSION_ID={sid} && "
-           f"exec bash {shlex.quote(str(launcher))} --role {role}{claude_args}")
+           f"exec bash {shlex.quote(str(launcher))} --role {shlex.quote(role)}{claude_args}")
     try:
         tmux_session.create(name, ROOT, cmd)
     except Exception as e:
@@ -740,7 +789,17 @@ def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     line = f"{stamp} | {from_role}-{from_sid} | {' '.join(body.splitlines())}"
     path = worktree / "MAILBOX.md"
+    # The worker owns its worktree, so it can plant MAILBOX.md as a symlink or
+    # a hard link to any file its user can write, and the append would land
+    # there. Refuse a link before opening, and check the opened file is the
+    # plain file named MAILBOX.md in this worktree before writing to it.
+    if path.is_symlink() or (path.exists() and path.resolve().parent != worktree):
+        raise ValueError(f"MAILBOX.md for {tid} is a link, refusing to write through it")
     with open(path, "ab") as f:  # bytes: CRLF like Add-Content, no newline translation
+        st = os.fstat(f.fileno())
+        if (path.is_symlink() or st.st_nlink != 1
+                or not os.path.samestat(st, os.lstat(path))):
+            raise ValueError(f"MAILBOX.md for {tid} is a link, refusing to write through it")
         f.write((line + "\r\n").encode("utf-8"))
     lines = [ln for ln in path.read_text(encoding="utf-8", errors="replace").splitlines()
              if ln.strip()]
@@ -791,6 +850,44 @@ def _write_letter(letter: dict) -> dict:
     return _write_worker_letter(letter, role)
 
 
+# One delivery slot per letter (W2.7, task-42fdcda7). Two overlapping
+# deliver_letter calls for one id both passed the "not delivered" read and both
+# wrote the letter: 20 of 20 measured, with a window of at least 0.7 s (the
+# wake's own sleeps) on every delivery. Overlap is ordinary: send_to_cxo's first
+# dial and the watchdog's retry, or a retry after lib.mesh gave up at 30 s while
+# the far side was still writing. The slot is one row in the existing `locks`
+# table, taken by an INSERT the primary key lets exactly one caller win (SQLite
+# and Postgres alike). A slot older than the TTL belongs to a call that died.
+LETTER_CLAIM_TTL_S = 120
+
+
+def _letter_claim_key(lid: int) -> str:
+    return f"letter:{lid}:delivery"
+
+
+def _claim_letter(lid: int) -> str | None:
+    """The slot's token, or None when another call holds a live slot."""
+    key, token = _letter_claim_key(lid), uuid.uuid4().hex
+    now = datetime.now(timezone.utc)
+    expires = (now + timedelta(seconds=LETTER_CLAIM_TTL_S)).isoformat(timespec="seconds")
+    with db.get_conn() as conn:
+        conn.execute("DELETE FROM locks WHERE key=? AND expires_at<=?",
+                     (key, now.isoformat(timespec="seconds")))
+        row = conn.execute(
+            "INSERT INTO locks (key, owner, expires_at) VALUES (?, ?, ?) "
+            "ON CONFLICT(key) DO NOTHING RETURNING owner",
+            (key, token, expires),
+        ).fetchone()
+    return token if row is not None else None
+
+
+def _release_letter(lid: int, token: str) -> None:
+    try:  # a slot that cannot be freed now frees itself at the TTL
+        db.release_lock(_letter_claim_key(lid), token)
+    except Exception as e:
+        print(f"node_dispatch: letter {lid} claim release failed: {e}", file=sys.stderr)
+
+
 def verb_deliver_letter(letter_id: str) -> dict:
     lid = int(letter_id)
     letter = db.get_letter(lid)
@@ -801,13 +898,23 @@ def verb_deliver_letter(letter_id: str) -> dict:
         raise Refusal(f"letter {lid} is for host {letter['to_host']!r}, this host is {here!r}")
     if letter["status"] == "delivered":
         return {"letter_id": lid, "already_delivered": True}
+    token = _claim_letter(lid)
+    if token is None:
+        raise Refusal(f"letter {lid} is being delivered by another call")
     try:
-        where = _write_letter(letter)
-        if not db.mark_letter_delivered(lid):  # a concurrent call won
+        # Read again under the slot: a call that finished between the first
+        # read and the claim has already written this letter.
+        if (db.get_letter(lid) or {}).get("status") == "delivered":
             return {"letter_id": lid, "already_delivered": True}
-    except Exception as e:
-        db.record_letter_attempt(lid, f"{type(e).__name__}: {e}"[:MAX_ERROR_CHARS])
-        raise Failure(f"letter {lid} not delivered: {e}")
+        try:
+            where = _write_letter(letter)
+            if not db.mark_letter_delivered(lid):
+                return {"letter_id": lid, "already_delivered": True}
+        except Exception as e:
+            db.record_letter_attempt(lid, _redact(f"{type(e).__name__}: {e}")[:MAX_ERROR_CHARS])
+            raise Failure(f"letter {lid} not delivered: {e}")
+    finally:
+        _release_letter(lid, token)
     return {"letter_id": lid, "delivered": True, **where}
 
 
@@ -856,10 +963,10 @@ def _audit(verb, args: list, ok: bool, error: str | None, *,
         "args": [str(a)[:MAX_COMMAND_CHARS] for a in args[:MAX_LOG_ARGS]],
         "caller": _caller(),
         "ok": ok,
-        "error": error[:MAX_ERROR_CHARS] if error else None,
+        "error": _redact(error)[:MAX_ERROR_CHARS] if error else None,
     }
     if raw is not None:
-        payload["raw"] = raw[:MAX_COMMAND_CHARS]
+        payload["raw"] = _redact(raw[:MAX_COMMAND_CHARS])
     try:
         with db.get_conn() as conn:
             db.log_event(conn, task_id, ACTOR, "dispatch", payload)
@@ -890,6 +997,8 @@ def _run(verb: object, args: object) -> tuple[dict, int]:
         out, code = {"ok": False, "verb": shown, "error": str(e)}, 1
     except Exception as e:  # a backend that raised ran and failed
         out, code = {"ok": False, "verb": shown, "error": f"{type(e).__name__}: {e}"}, 1
+    if out.get("error"):
+        out["error"] = _redact(out["error"])
     _audit(shown, log_args, out["ok"], out.get("error"), task_id=task_id)
     return out, code
 
