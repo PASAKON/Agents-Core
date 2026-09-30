@@ -3,8 +3,9 @@
 
     python -m tools.join_api --port 8791 [--bind ADDR] [--public-url https://<hub>]
 
-Runs on Contabo with the hub database in its environment (`infisical_setup.py run
-Agents-Core prod --as contabo -- ...`, see deploy/join/org-join.service). stdlib only,
+Runs on Contabo as the system user `org-join` with ONE secret in its environment, the DSN of the
+Postgres role `org_join` (ORG_JOIN_DB_URL, from the /org-join folder of Agents-Core prod; see
+deploy/join/org-join.service and deploy/join/org_join_role.sql). stdlib only,
 ThreadingHTTPServer. It binds 127.0.0.1 unless told otherwise, and `--bind` (env
 JOIN_API_BIND) takes ONLY a loopback address or one inside 172.16.0.0/12 (a docker bridge):
 never 0.0.0.0, never a public or other private address (Org Mesh W4.5: traefik reaches it
@@ -33,6 +34,11 @@ one that cannot get a slot within DB_WAIT_S seconds is answered 503 {"error":"bu
 is read and its shape checked BEFORE the slot is taken, so a slow client never holds one, and
 the 503 depends on load only, never on the token.
 
+Database role (W4.6c, F3): the endpoint is public, so it connects as the least-privileged role
+`org_join` (column grants on three tables, CONNECTION LIMIT 5), never as the full hub role `org`.
+It reads ORG_JOIN_DB_URL. Only when that is unset and JOIN_API_ALLOW_ORG_ROLE=1 does it fall back to
+ORG_DB_URL, with a one-line warning; without the flag it refuses to start.
+
 The TailscaleMinter is an injectable `host -> pre-auth key` callable and is NOT wired here
 (CEO gate G3 = the Tailscale OAuth client). Without one the field is absent and join.sh
 requires the machine to be on the tailnet already.
@@ -59,7 +65,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import db  # noqa: E402
+from lib import db, db_pg  # noqa: E402
 from tools import hq_join  # noqa: E402
 
 _log = logging.getLogger("join_api")
@@ -79,6 +85,7 @@ SEALED_WINDOW = timedelta(hours=24)
 DRAIN_MAX = 64 * 1024    # an oversized body is read (and dropped) up to this, so close() is not an RST
 REQUEST_TIMEOUT_S = 15
 DB_SLOTS = 4             # requests inside a database section at the same time, whole process
+#                          (the role org_join allows 5 connections: the four slots plus one spare)
 DB_WAIT_S = 2.0          # how long a request waits for a slot before it is answered 503
 
 # Shapes checked before anything is built from them.
@@ -110,15 +117,28 @@ _REFUSED = (403, "refused")
 _DB_GATE = threading.BoundedSemaphore(DB_SLOTS)
 
 
+def _release_conn() -> None:
+    """Close this thread's pooled hub connection. lib.db keeps one per thread and never closes it,
+    and this server starts a thread per request; the role org_join allows 5 connections, so a
+    connection must not outlive the slot it was used in."""
+    url = db.pg_url()
+    if url:
+        db_pg.evict(url)
+
+
 @contextlib.contextmanager
 def _db_slot():
-    """Hold one of the DB_SLOTS for the body of the `with`. No slot within DB_WAIT_S is a 503."""
+    """Hold one of the DB_SLOTS for the body of the `with`. No slot within DB_WAIT_S is a 503.
+    The thread's connection is closed before the slot is given back."""
     if not _DB_GATE.acquire(timeout=DB_WAIT_S):
         raise _Refuse(503, "busy")
     try:
         yield
     finally:
-        _DB_GATE.release()
+        try:
+            _release_conn()
+        finally:
+            _DB_GATE.release()
 
 
 def _json(obj: dict) -> bytes:
@@ -400,10 +420,43 @@ def make_server(port: int = 0, **kw) -> JoinServer:
 
 
 def _preflight() -> None:
-    """Fail at start, not on the first caller's request, when the hub schema is not there."""
-    with db.get_conn() as conn:
-        for table in ("join_tokens", "hosts", "node_secrets"):
-            conn.execute(f"SELECT 1 FROM {table} LIMIT 1")
+    """Fail at start, not on the first caller's request, when the hub schema is not there (or the
+    role cannot read it). The main thread's connection is closed again: it would sit open for
+    the life of the process and use one of the role's five."""
+    try:
+        with db.get_conn() as conn:
+            for table in ("join_tokens", "hosts", "node_secrets"):
+                conn.execute(f"SELECT 1 FROM {table} LIMIT 1")
+    finally:
+        _release_conn()
+
+
+ORG_JOIN_DB_ENV = "ORG_JOIN_DB_URL"
+ALLOW_ORG_ROLE_ENV = "JOIN_API_ALLOW_ORG_ROLE"
+
+
+def choose_db_url(environ) -> tuple[str | None, str | None]:
+    """(url, warning) for the hub database, from `environ`; ValueError when none may be used.
+
+    ORG_JOIN_DB_URL, the role org_join, wins. Without it the full-role ORG_DB_URL is used only
+    when JOIN_API_ALLOW_ORG_ROLE=1, and then with a warning: a public endpoint must not hold
+    the org role by accident. With neither set (tests, a laptop) url is None and lib.db keeps
+    its own default, the local SQLite file. The messages name variables, never a value."""
+    def get(name: str) -> str:
+        return (environ.get(name) or "").strip()
+
+    join_url, org_url = get(ORG_JOIN_DB_ENV), get("ORG_DB_URL")
+    if join_url:
+        note = ("ORG_DB_URL is also set in this environment and is ignored: this endpoint should "
+                "not hold the org role at all") if org_url else None
+        return join_url, note
+    if not org_url:
+        return None, None
+    if get(ALLOW_ORG_ROLE_ENV) != "1":
+        raise ValueError(f"{ORG_JOIN_DB_ENV} is not set and this endpoint will not fall back to "
+                         f"ORG_DB_URL (the full org role) unless {ALLOW_ORG_ROLE_ENV}=1")
+    return org_url, (f"{ORG_JOIN_DB_ENV} is not set: connecting with ORG_DB_URL, the full org role, "
+                     f"because {ALLOW_ORG_ROLE_ENV}=1 (least privilege is off)")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -420,9 +473,14 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     try:
         check_bind(args.bind)
+        db_url, db_warning = choose_db_url(os.environ)
     except ValueError as exc:
         p.error(str(exc))  # exit 2, before the database is touched
     logging.basicConfig(level=logging.INFO, format="%(asctime)s join_api %(levelname)s %(message)s")
+    if db_url:
+        os.environ["ORG_DB_URL"] = db_url  # the one variable lib.db reads; this process only
+    if db_warning:
+        _log.warning("%s", db_warning)
     try:
         _preflight()
         srv = make_server(args.port, public_url=args.public_url,
