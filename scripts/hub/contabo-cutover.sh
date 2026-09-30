@@ -30,12 +30,19 @@
 #      never silently discarded).
 #   3. .venv: install psycopg[binary] only -- a full `pip install -r requirements.txt`
 #      pulls mcp 2.x, which breaks runners/cto_mcp_server.py's mcp-1.x FastMCP usage.
-#   4. append ORG_DB_URL / ORG_TEST_DB_URL to /root/.config/mooniex/org-db.env
-#      (host 100.118.171.23 -- the container binds the tailnet IP, not loopback).
+#   4. ORG_DB_URL comes from Infisical Agents-Core/prod, never from an env file
+#      (CLAUDE.md §Secrets; nothing is appended to /root/.config/mooniex/org-db.env,
+#      and ORG_TEST_DB_URL is gone: nothing here reads it). Refuse unless it
+#      connects (tools/infisical_setup.py run Agents-Core prod --as contabo).
+#      Then copy the three drop-ins deploy/systemd/<unit>.service.d/org-db.conf
+#      (watchdog, secretary, secretary-waker) into /etc/systemd/system/ and
+#      `systemctl daemon-reload`. node.yaml is not touched here (step 8).
+#      Design: docs/design/org-mesh-w18-contabo-consumers.md.
 #   5. import this box's own registry rows into the hub (ids never collide with
 #      the Mac's: checked 2026-09-18, 0 of 11 overlapped), then verify per-table
 #      row counts (sqlite before vs postgres after) match -- refuses on mismatch,
-#      before anything is archived.
+#      before anything is archived. ORG_DB_URL reaches these commands through
+#      infisical run, not through a sourced file.
 #   6. checkpoint the WAL (PRAGMA wal_checkpoint(TRUNCATE), retried on busy) so a
 #      commit still sitting only in tasks.db-wal is folded into the main file,
 #      then archive state/tasks.db together with -wal/-shm (whichever exist) and
@@ -43,6 +50,12 @@
 #      backend fails loudly instead of silently creating an empty database (the
 #      split brain this whole change removes).
 #   7. read the hub back through lib.db and print the row counts.
+#   8. write `org_db: hub` into /root/.config/mooniex/node.yaml (the switch for
+#      the C-level MCP servers and workers; only now, so nothing opens the hub
+#      before it is migrated), then restart mooniex-watchdog, mooniex-secretary
+#      and mooniex-secretary-waker (last, after the migration and the tombstone)
+#      and require all three active. A failure here prints the rollback below,
+#      which includes removing the `org_db:` line.
 #
 # Rollback:
 #   ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core && rmdir state/tasks.db &&
@@ -50,7 +63,16 @@
 #     mv state/tasks.db.archived-<date>-wal state/tasks.db-wal 2>/dev/null;
 #     mv state/tasks.db.archived-<date>-shm state/tasks.db-shm 2>/dev/null;
 #     git checkout backup/main-before-hub-<date>'
-#   then delete the two ORG_*_URL lines from /root/.config/mooniex/org-db.env.
+#   then remove the drop-ins and the switch, and restart the three units:
+#   ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core &&
+#     for u in mooniex-watchdog mooniex-secretary mooniex-secretary-waker;
+#       do rm -f /etc/systemd/system/$u.service.d/org-db.conf; done &&
+#     python3 scripts/hub/cutover_flip.py --rollback --apply &&
+#     systemctl daemon-reload &&
+#     systemctl restart mooniex-watchdog mooniex-secretary mooniex-secretary-waker'
+#   (cutover_flip.py --rollback removes only the `org_db:` line of
+#   /root/.config/mooniex/node.yaml; it does not touch launchd plists.)
+#   Nothing was ever appended to org-db.env, so there is nothing to delete there.
 set -euo pipefail
 HOST_ALIAS="${HOST_ALIAS:-mooniex-vps}"
 FLAG="${1:-}"

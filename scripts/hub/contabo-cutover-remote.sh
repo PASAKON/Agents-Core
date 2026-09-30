@@ -8,19 +8,49 @@
 # itself -- scripts/hub/contabo-cutover.sh is the only caller that does,
 # by piping this file's content over ssh to Contabo.
 #
-# ROOT/ENVF default to the real Contabo paths and are overridable via env
-# vars of the same name -- production leaves them unset and gets the real
-# paths; tests point them at a tmp_path git repo / env file so this can run
-# fully sandboxed. FLAG carries scripts/hub/contabo-cutover.sh's optional
-# `--sessions-closed` argument (set as a remote env var by the ssh command
-# line, same as before this file existed).
+# ROOT/SYSTEMD_DIR/NODE_YAML default to the real Contabo paths and are
+# overridable via env vars of the same name -- production leaves them unset and
+# gets the real paths; tests point them at a tmp_path git repo and tmp dirs so
+# this can run fully sandboxed. FLAG carries scripts/hub/contabo-cutover.sh's
+# optional `--sessions-closed` argument (set as a remote env var by the ssh
+# command line, same as before this file existed).
+#
+# ORG_DB_URL never touches a .env file (CLAUDE.md §Secrets): it lives in
+# Infisical Agents-Core/prod, and every command below that needs it runs
+# through `infisical_run` (tools/infisical_setup.py run ...), which puts it in
+# that one process's environment. Design: docs/design/org-mesh-w18-contabo-consumers.md
+#
+# Rollback of step 4 and step 8 (the full text, with the tasks.db half, is in
+# scripts/hub/contabo-cutover.sh's header): remove the three drop-ins
+# /etc/systemd/system/<unit>.service.d/org-db.conf, remove the `org_db:` line
+# from /root/.config/mooniex/node.yaml (python3 scripts/hub/cutover_flip.py
+# --rollback --apply), `systemctl daemon-reload`, then restart the three units.
+# Step 4 installs the drop-ins; the `org_db:` line is written only in step 8,
+# after the migration and the tombstone, so a step 8 failure prints the same
+# rollback (print_rollback below) -- the line may already be in the file by then.
 set -euo pipefail
 
 ROOT="${ROOT:-/opt/MoonieXHQ/Agents/Core}"
-ENVF="${ENVF:-/root/.config/mooniex/org-db.env}"
+SYSTEMD_DIR="${SYSTEMD_DIR:-/etc/systemd/system}"
+NODE_YAML="${NODE_YAML:-/root/.config/mooniex/node.yaml}"
 FLAG="${FLAG:-}"
 TODAY=$(date +%F)
+UNITS="mooniex-watchdog mooniex-secretary mooniex-secretary-waker"
 cd "$ROOT"
+
+# Run "$@" with Agents-Core/prod's secrets (ORG_DB_URL among them) in its env.
+infisical_run() {
+  python3 "$ROOT/tools/infisical_setup.py" run Agents-Core prod --as contabo -- "$@"
+}
+
+# Printed when step 8 fails after (or while) writing node.yaml: the switch line
+# must come out along with the drop-ins.
+print_rollback() {
+  echo "Rollback (Contabo half; the tasks.db half is in the header of scripts/hub/contabo-cutover.sh):"
+  echo "  1. rm -f $SYSTEMD_DIR/<unit>.service.d/org-db.conf for mooniex-watchdog, mooniex-secretary, mooniex-secretary-waker"
+  echo "  2. remove the org_db: line from $NODE_YAML (python3 scripts/hub/cutover_flip.py --rollback --apply)"
+  echo "  3. systemctl daemon-reload, then systemctl restart the three units"
+}
 
 echo "== step 1: C-level sessions must be closed =="
 LIVE=$(tmux ls 2>/dev/null | cut -d: -f1 | grep -E '^(cto|cxo)-' || true)
@@ -66,23 +96,43 @@ echo "== step 3: psycopg into the venv =="
 .venv/bin/pip install -q "psycopg[binary]" 2>&1 | grep -viE 'notice|upgrade' || true
 .venv/bin/python -c "import psycopg; print('psycopg', psycopg.__version__)"
 
-echo "== step 4: hub URLs into $ENVF (values never printed) =="
-[ -s "$ENVF" ] || { echo "REFUSING: $ENVF missing -- run contabo-postgres-up.sh first"; exit 1; }
-ENVF="$ENVF" python3 - <<'PY'
-import os, urllib.parse
-p = os.environ["ENVF"]
-raw = [l.rstrip("\n") for l in open(p) if l.strip()]
-kv = dict(l.split("=", 1) for l in raw if "=" in l and not l.startswith("ORG_"))
-pw = urllib.parse.quote(kv["POSTGRES_PASSWORD"], safe="")
-lines = [l for l in raw if not l.startswith("ORG_")]
-lines.append(f"ORG_DB_URL=postgresql://{kv['POSTGRES_USER']}:{pw}@100.118.171.23:5432/org")
-lines.append(f"ORG_TEST_DB_URL=postgresql://{kv['POSTGRES_USER']}:{pw}@100.118.171.23:5432/org_test")
-open(p, "w").write("\n".join(lines) + "\n")
-os.chmod(p, 0o600)
-print("keys:", ", ".join(l.split("=")[0] for l in lines))
-PY
-
-set -a; . "$ENVF"; set +a
+echo "== step 4: ORG_DB_URL from Infisical, consumer drop-ins (values never printed) =="
+# Nothing is written before every refusal below has passed. No env file is read
+# or written here. ORG_TEST_DB_URL is no longer produced: nothing in this
+# cutover reads it (W1.9's rehearsal fetches its own org_test URL). node.yaml is
+# NOT touched here: it is the hub switch for the C-level/worker MCP servers, and
+# a session spawned before the migration (step 5) would open an empty hub. It is
+# written in step 8.
+for u in $UNITS; do
+  [ -f "deploy/systemd/$u.service.d/org-db.conf" ] \
+    || { echo "REFUSING: deploy/systemd/$u.service.d/org-db.conf is missing in $ROOT"; exit 1; }
+  systemctl cat "$u.service" >/dev/null 2>&1 \
+    || { echo "REFUSING: $u.service is not installed on this box -- install it first"; exit 1; }
+done
+if ! infisical_run .venv/bin/python -c '
+import os, sys
+url = os.environ.get("ORG_DB_URL", "").strip()
+if not url:
+    sys.exit("ORG_DB_URL is not in Agents-Core/prod")
+import psycopg
+try:
+    with psycopg.connect(url, connect_timeout=10) as c:
+        c.execute("select 1")
+except Exception as e:
+    sys.exit("hub connect failed: " + type(e).__name__)
+print("Agents-Core/prod ORG_DB_URL reaches the hub")
+'; then
+  echo "REFUSING: Agents-Core/prod ORG_DB_URL is missing or the hub is not reachable with it."
+  echo "Nothing was changed."
+  exit 1
+fi
+for u in $UNITS; do
+  install -d -m 755 "$SYSTEMD_DIR/$u.service.d"
+  install -m 644 "deploy/systemd/$u.service.d/org-db.conf" "$SYSTEMD_DIR/$u.service.d/org-db.conf"
+  echo "installed $SYSTEMD_DIR/$u.service.d/org-db.conf"
+done
+systemctl daemon-reload
+echo "drop-ins installed; the three units keep running as they are until step 8"
 
 echo "== step 5: import this box's registry rows into the hub =="
 if [ -f state/tasks.db ]; then
@@ -95,14 +145,20 @@ if [ -f state/tasks.db ]; then
   # when a task/c_level_sessions row's key exists on both sides with
   # differing data, which is exactly what should stop this cutover for a
   # human instead of silently picking a side.
+  # $ORG_DB_URL below is expanded by the inner sh, inside infisical_run's
+  # environment (single quotes: the outer shell never sees the value).
+  infisical_run sh -ec '
   .venv/bin/python scripts/migrate_tasks_db.py --from state/tasks.db --to "$ORG_DB_URL" --apply --default-host contabo --append-events
+  '
 
   echo "== step 5b: verify no data lost (sqlite is a SUBSET of postgres) =="
   # Not --mode equal: the target already holds the Mac's rows too, so
   # postgres = mac + contabo and a byte-for-byte count match can never hold
   # for this second ledger (task brief). --mode subset instead checks every
   # sqlite row is present in postgres, extra target rows and all.
+  infisical_run sh -ec '
   .venv/bin/python scripts/hub/verify_migration_counts.py --sqlite state/tasks.db --pg "$ORG_DB_URL" --mode subset
+  '
 else
   echo "no state/tasks.db here (already archived?) -- skipping import"
 fi
@@ -117,11 +173,60 @@ else
 fi
 
 echo "== step 7: read back through lib.db =="
-.venv/bin/python - <<'PY'
+infisical_run .venv/bin/python - <<'PY'
 from lib import db
 with db.get_conn() as c:
     for t in ("tasks", "c_level_sessions", "events", "locks"):
         print(f"  hub {t:18s} {c.execute(f'select count(*) from {t}').fetchone()[0]}")
 PY
+
+echo "== step 8: hub switch in node.yaml, then restart the three consumers (after the migration and tombstone) =="
+# The switch for the C-level MCP servers and workers on this box (W1.6): the
+# same line grammar as cutover_flip.py; idempotent, every other line kept.
+# Written only now, right before the restarts: earlier, a session spawned
+# between step 4 and here would open the hub before it is migrated.
+if ! NODE_YAML="$NODE_YAML" python3 - <<'PY'
+import os, sys
+sys.path.insert(0, "scripts/hub")
+from cutover_flip import set_org_db
+p = os.environ["NODE_YAML"]
+before = open(p).read() if os.path.exists(p) else ""
+after = set_org_db(before, "hub")
+if after == before:
+    print(f"ok: {p} already says org_db: hub")
+else:
+    os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
+    open(p, "w").write(after)
+    print(f"wrote org_db: hub to {p}")
+PY
+then
+  echo "REFUSING: could not write org_db: hub to $NODE_YAML. No unit was restarted."
+  print_rollback
+  exit 1
+fi
+BAD=""
+for u in $UNITS; do
+  if ! systemctl restart "$u.service"; then
+    echo "  RESTART FAILED: $u"
+    BAD="$BAD $u"
+  fi
+done
+sleep "${RESTART_SETTLE_S:-3}"
+for u in $UNITS; do
+  case " $BAD " in *" $u "*) continue ;; esac
+  if systemctl is-active --quiet "$u.service"; then
+    echo "  active: $u"
+  else
+    echo "  NOT ACTIVE: $u"
+    BAD="$BAD $u"
+  fi
+done
+if [ -n "$BAD" ]; then
+  echo "REFUSING to call this done: not restarted or not active after restart:$BAD"
+  echo "Look with: journalctl -u <unit> -n 30 --no-pager   (values are never logged)"
+  print_rollback
+  exit 1
+fi
 echo "== done. Spawn Contabo C-level sessions again now --"
-echo "   scripts/cto-claude.sh sources $ENVF at launch, so they come up on the hub."
+echo "   their org MCP server starts through scripts/hub/with-org-db-env.sh (node.yaml"
+echo "   says org_db: hub), which gets ORG_DB_URL from Infisical Agents-Core/prod."
