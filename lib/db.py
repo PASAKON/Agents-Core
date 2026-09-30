@@ -198,7 +198,10 @@ CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status
 
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
-                "blocked_human", "blocked_host", "reverted", "merged"}
+                "blocked_human", "blocked_host", "reverted", "merged",
+                # W2.3: a remote spawn whose host did not answer (lib/mesh.py
+                # MeshUnreachable). Not failed: the watchdog retries it.
+                "queued_remote"}
 
 # Columns added after initial release. init() runs idempotent ALTER TABLE
 # ADD COLUMN for each so existing DBs migrate forward without losing data.
@@ -909,7 +912,7 @@ VALID_COLUMNS = {
 # Terminal "work landed" statuses that must not be silently resurrected into
 # an active (lock-holding) status. Resurrecting one is what left phantom path
 # locks after a successful merge — see issue #13. The active set is
-# ACTIVE_STATUSES (pending/in_progress/rate_limited/conflict).
+# ACTIVE_STATUSES (pending/in_progress/rate_limited/conflict/queued_remote).
 _TERMINAL_MERGED = ("done", "merged")
 
 
@@ -1092,7 +1095,10 @@ def _path_lock_key(project: str, path: str) -> str:
     return f"proj:{project}:path:{path.strip().lstrip('/')}"
 
 
-ACTIVE_STATUSES = ("pending", "in_progress", "rate_limited", "conflict")
+# queued_remote is active: its path locks stay held while it waits for the host,
+# and it must not join the terminal-surface sweep (VALID_STATUS - ACTIVE_STATUSES).
+ACTIVE_STATUSES = ("pending", "in_progress", "rate_limited", "conflict",
+                   "queued_remote")
 
 
 def find_conflicts(project: str, touches: list[str],

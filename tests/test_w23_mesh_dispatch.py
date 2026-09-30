@@ -30,6 +30,7 @@ import runners.branch_poller as poller  # noqa: E402
 import runners.watchdog as watchdog  # noqa: E402
 from tools import delegate  # noqa: E402
 from tools import node_dispatch as nd  # noqa: E402
+from tools import worker_reap  # noqa: E402
 
 TID = "task-1234abcd"
 PROJECT = "mooniex-agents"
@@ -282,6 +283,8 @@ def test_queued_remote_is_valid_and_active_not_terminal():
     assert "queued_remote" in db_mod.ACTIVE_STATUSES
     # the surface sweep is VALID - ACTIVE - {...}: a queued row must not join it
     assert "queued_remote" not in watchdog.TERMINAL_SURFACE_STATUSES
+    assert "queued_remote" not in worker_reap._TERMINAL_SURFACE_STATUSES
+    assert "queued_remote" not in db_mod.RELEASING_STATUSES  # path locks stay held
 
 
 def test_a_merged_task_is_not_resurrected_into_queued_remote():
