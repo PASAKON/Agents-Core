@@ -213,6 +213,27 @@ CREATE TABLE IF NOT EXISTS join_tokens (
 );
 """
 
+# Org Mesh W4.2 (tools/hq_join.py provision): one row per joined node holding
+# the Infisical client secret and GitHub deploy key made for it. `ciphertext` is
+# the node's client id and secret sealed to its age recipient (lib/sealed.py):
+# the plaintext never reaches this table, and only that node's key opens it.
+# `ciphertext` is NULL between the mint and the seal of a run, and again after
+# the secret is revoked. The two ids are what `leave` revokes by. Same one-DDL,
+# TEXT-only, both-backends pattern as JOIN_TOKENS_SCHEMA.
+#   fetched_at  first time `hq_join sealed` handed the ciphertext out
+#   revoked_at  when `leave` revoked the Infisical client secret
+NODE_SECRETS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS node_secrets (
+    host                        TEXT PRIMARY KEY,
+    ciphertext                  TEXT,
+    infisical_client_secret_id  TEXT,
+    github_deploy_key_id        TEXT,
+    created_at                  TEXT NOT NULL,
+    fetched_at                  TEXT,
+    revoked_at                  TEXT
+);
+"""
+
 VALID_STATUS = {"pending", "in_progress", "review", "done", "failed",
                 "cancelled", "rate_limited", "stalled", "conflict",
                 "blocked_human", "blocked_host", "reverted", "merged",
@@ -314,9 +335,14 @@ _HOSTS_MIGRATION = [
 #   config_json  the hosts.yaml entry as JSON, written by seed_hosts_from_config
 #                and by hq_join accept. `hq_join export-hosts` rebuilds
 #                hosts.yaml from it.
+#   deploy_pubkey  (W4.2) the node's ssh-ed25519 public key line for its GitHub
+#                deploy key, set by hq_join accept --deploy-pubkey. Its own
+#                column, not config_json, so it never leaks into the hosts.yaml
+#                export. NULL = the node gets no deploy key.
 _HOSTS_JOIN_MIGRATION = [
     ("pubkey", "TEXT"),
     ("config_json", "TEXT"),
+    ("deploy_pubkey", "TEXT"),
 ]
 
 # letters.from_host (W2.4): which host (config/hosts.yaml key) sent the letter.
@@ -670,6 +696,7 @@ def init_schema(conn, *, is_pg: bool) -> None:
     instead of hand-duplicating it."""
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
     conn.executescript(JOIN_TOKENS_SCHEMA)
+    conn.executescript(NODE_SECRETS_SCHEMA)
     existing = {r["name"] for r in conn.execute(
         "PRAGMA table_info(tasks)").fetchall()}
     for col, coltype in _MIGRATION_COLUMNS:
@@ -1294,7 +1321,7 @@ def bind_session_to_task(role: str, session_id: str, task_id: str | None) -> Non
 _HOST_COLUMNS = {
     "os", "hq_root", "agents_root", "provides", "max_workers", "status",
     "probed_at", "free_gb", "ram_free_gb", "running", "version",
-    "cpus", "load_per_core", "runners", "pubkey", "config_json",
+    "cpus", "load_per_core", "runners", "pubkey", "config_json", "deploy_pubkey",
 }
 
 
