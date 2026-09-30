@@ -83,8 +83,10 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
+from collections import deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -1089,6 +1091,42 @@ def _mesh_parallel_mac_agent() -> bool:
     return os.environ.get(MESH_PARALLEL_ENV, "").strip().lower() in ("1", "true", "on")
 
 
+# W2.7 F10 (task-42fdcda7, CTO decision): each spawn starts a paid Claude
+# session, so one caller gets at most SPAWN_RATE_LIMIT spawn attempts in any
+# SPAWN_RATE_WINDOW_S. This server is a stdio MCP server, one process per
+# calling session, so module state is per caller. A call rejected before any
+# spawn is tried (unknown role, host or id) takes no slot. The per-host bound
+# that survives a restart is node_dispatch's start_clevel cap (3 live sessions
+# per role per host).
+SPAWN_RATE_LIMIT = 3
+SPAWN_RATE_WINDOW_S = 600
+_spawn_times: deque[float] = deque()
+_spawn_lock = threading.Lock()
+
+
+def _take_spawn_slot() -> float | None:
+    """None when a slot was taken, else the seconds until the oldest one frees."""
+    now = time.monotonic()
+    with _spawn_lock:
+        while _spawn_times and now - _spawn_times[0] >= SPAWN_RATE_WINDOW_S:
+            _spawn_times.popleft()
+        if len(_spawn_times) >= SPAWN_RATE_LIMIT:
+            return SPAWN_RATE_WINDOW_S - (now - _spawn_times[0])
+        _spawn_times.append(now)
+        return None
+
+
+def _rate_limited(role: str, host: str, wait_s: float) -> str:
+    retry = int(wait_s) + 1
+    _audit("spawn_c_level", role, "rate_limited", f"host={host} retry_after_s={retry}")
+    return json.dumps({
+        "status": "rate_limited", "role": role, "host": host,
+        "reason": (f"at most {SPAWN_RATE_LIMIT} spawn_c_level calls per "
+                   f"{SPAWN_RATE_WINDOW_S // 60} minutes from one session"),
+        "retry_after_s": retry,
+    }, ensure_ascii=False)
+
+
 def _queue_mac_spawn(role: str) -> dict:
     """Enqueue a `spawn` for runners/mac_agent.py and return the dict the tool
     answers with. The pre-mesh Mac path, unchanged: also the queue leg of the
@@ -1159,6 +1197,9 @@ def _spawn_c_level_mesh(role: str, host: str, resume_session_id: str | None) -> 
                        "must be 8 lowercase hex characters"),
         }, ensure_ascii=False)
 
+    wait_s = _take_spawn_slot()
+    if wait_s is not None:
+        return _rate_limited(role, host, wait_s)
     out = _spawn_via_mesh(role, host, resume_session_id)
     if host != "mac" or not _mesh_parallel_mac_agent():
         return json.dumps(out, ensure_ascii=False)
@@ -1222,6 +1263,9 @@ def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) ->
             "reason": "resume_session_id needs the org mesh (ORG_MESH_DISPATCH), which is off",
         }, ensure_ascii=False)
 
+    wait_s = _take_spawn_slot()
+    if wait_s is not None:
+        return _rate_limited(role, host, wait_s)
     if host == "mac":
         return json.dumps(_queue_mac_spawn(role), ensure_ascii=False)
 

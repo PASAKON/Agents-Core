@@ -41,7 +41,7 @@ import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -83,6 +83,23 @@ def _show(value: object) -> str:
     return repr(str(value)[:64])
 
 
+# Credentials a failing child can print (git echoes a remote URL with its
+# token, an HTTP client its Authorization header). Every error string passes
+# through here before it reaches the reply, the audit row or letters.last_error.
+_SECRET_PATTERNS = (
+    (re.compile(r"([A-Za-z][A-Za-z0-9+.-]*://)[^/\s@]+@"), r"\1***@"),
+    (re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})"), "***"),
+    (re.compile(r"\bsk-[A-Za-z0-9_-]{20,}"), "***"),
+    (re.compile(r"(?i)\b(bearer|token|basic)\s+[A-Za-z0-9._~+/=-]{16,}"), r"\1 ***"),
+)
+
+
+def _redact(text: str) -> str:
+    for pattern, repl in _SECRET_PATTERNS:
+        text = pattern.sub(repl, text)
+    return text
+
+
 def _self_host() -> str:
     return config.self_host()
 
@@ -115,13 +132,17 @@ def _pid_is_alive(pid: object) -> bool:
     return proc.pid_alive(pid)  # a non-int, a bool and pid <= 0 are False there
 
 
-def _task_on_this_host(task_id: str, *, allow_null_host: bool = False) -> dict:
+def _task_on_this_host(task_id: str) -> dict:
+    """The row, if the hub assigned it to this host. A NULL host is refused
+    like any other host: every real spawn names its host first
+    (delegate.mesh_spawn_worker), so a NULL row is one the hub never routed
+    here (W2.7 F2, task-42fdcda7)."""
     task = db.get_task(task_id)
     if not task:
         raise Refusal(f"no such task {task_id}")
     here = _self_host()
     task_host = task.get("host")
-    if task_host != here and not (allow_null_host and task_host is None):
+    if task_host != here:
         raise Refusal(f"task {task_id} is on host {task_host!r}, this host is {here!r}")
     return task
 
@@ -259,11 +280,42 @@ def verb_pid_alive(task_id: str) -> dict:
     return {"task_id": task_id, "pid": pid, "alive": _pid_is_alive(pid)}
 
 
+def _json_list(value: object) -> list:
+    try:
+        out = json.loads(value or "[]")
+    except (TypeError, ValueError):
+        return []
+    return out if isinstance(out, list) else []
+
+
+def _windows_spawn_gate(task: dict) -> None:
+    """The checks delegate_task runs before a spawn, read-only, for the win32
+    path that does not call delegate_task (W2.7, task-42fdcda7). The hub's
+    delegate_task ran them and took the path locks before it dispatched, so on
+    the normal path they pass. They stop a caller holding the org_dispatch key
+    from starting a pending row the hub never gated: one with an unfinished
+    dependency, or whose touches overlap a task already in flight. Locks stay
+    the hub's to take; nothing here writes. The row's host is checked before
+    this, by _task_on_this_host."""
+    tid = task["id"]
+    deps =[d for d in _json_list(task.get("depends_on")) if isinstance(d, str)]
+    unmet = db.unmet_dependencies(deps) if deps else []
+    if unmet:
+        raise Refusal(f"task {tid} has unfinished dependencies: "
+                      + ", ".join(f"{u['id']}({u['status']})" for u in unmet[:5]))
+    touches = [p for p in _json_list(task.get("touches")) if isinstance(p, str)]
+    conflicts = db.find_conflicts(task["project"], touches, exclude_task=tid) if touches else []
+    if conflicts:
+        raise Refusal(f"task {tid} overlaps tasks in flight: "
+                      + ", ".join(str(c.get("task_id")) for c in conflicts[:5]))
+
+
 def verb_spawn_worker(task_id: str) -> dict:
-    task = _task_on_this_host(task_id, allow_null_host=True)
+    task = _task_on_this_host(task_id)
     if task["status"] != "pending":
         raise Refusal(f"task {task_id} is {task['status']}, spawn_worker needs pending")
     if _is_windows():
+        _windows_spawn_gate(task)
         _spawn_worker_windows(task)
     else:
         from tools import delegate
@@ -357,7 +409,7 @@ def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
     sid = uuid.uuid4().hex[:8]
     name = f"{role}-{sid}"
     cmd = (f"export CXO_SESSION_ID={sid} && "
-           f"exec bash {shlex.quote(str(launcher))} --role {role}{claude_args}")
+           f"exec bash {shlex.quote(str(launcher))} --role {shlex.quote(role)}{claude_args}")
     try:
         tmux_session.create(name, ROOT, cmd)
     except Exception as e:
@@ -424,13 +476,15 @@ def _one_shot_task_script(task_name: str, argument: str) -> str:
         "-DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Seconds 0); "
         f"Register-ScheduledTask -TaskName {name} -Action $act -Principal $pri "
         "-Settings $set -Force | Out-Null; "
-        f"Start-ScheduledTask -TaskName {name}; "
+        # try/finally (W2.7): with 'Stop', a Start-ScheduledTask that throws
+        # would otherwise leave the task registered for anyone to re-run.
+        f"try {{ Start-ScheduledTask -TaskName {name}; "
         f"$deadline = (Get-Date).AddSeconds({_SCHTASK_START_WAIT_S}); "
         f"while ((Get-Date) -lt $deadline -and (Get-ScheduledTask -TaskName {name}).State "
         "-ne 'Running') { Start-Sleep -Milliseconds 500 }; "
-        f"$state = [string](Get-ScheduledTask -TaskName {name}).State; "
-        f"Unregister-ScheduledTask -TaskName {name} -Confirm:$false "
-        "-ErrorAction SilentlyContinue; "
+        f"$state = [string](Get-ScheduledTask -TaskName {name}).State }} "
+        f"finally {{ Unregister-ScheduledTask -TaskName {name} -Confirm:$false "
+        "-ErrorAction SilentlyContinue }; "
         "if ($state -ne 'Running') { throw \"task state is $state, not Running\" }; "
         "Write-Output \"STARTED $state\""
     )
@@ -627,7 +681,7 @@ def _spawn_worker_windows(task: dict) -> None:
                                       f"{refused[len('SPAWN_REFUSED='):]}")
         return
     if r.returncode != 0 or not lines:
-        detail = (r.stderr or r.stdout or "").strip()[:1000]
+        detail = _redact((r.stderr or r.stdout or "").strip())[:1000]
         db.update_status(task_id, "failed", actor=ACTOR,
                          delegate_log=f"spawn ({_self_host()}) failed: {detail}")
         return
@@ -642,12 +696,64 @@ def _spawn_worker_windows(task: dict) -> None:
     )
 
 
+# W2.7 F10 (task-42fdcda7, CTO decision): each session is a paid Claude
+# session, so a looping or prompt-injected caller must not be able to start
+# them without end. At most this many live sessions of one role per host; the
+# next start_clevel is refused (exit 2). A session counts while
+# state/locks/<role>-<sid>.lock holds a live pid (every launcher writes it:
+# cxo-claude.sh, spawn-cto.sh, cxo-claude.ps1). The start itself holds a
+# `locks` row for the role, so two calls cannot both count 2 and both launch.
+# The launcher writes its lock file a few seconds after start_clevel returns
+# (iTerm tab, tmux session, scheduled task), so a start that succeeds keeps the
+# row for CLEVEL_LAUNCH_GRACE_S: a burst of starts cannot each count before the
+# last one's lock exists. A refused or failed start frees the row at once.
+MAX_LIVE_CLEVEL_PER_ROLE = 3
+CLEVEL_START_CLAIM_TTL_S = 300  # above the slowest launch (script 120 s + prompt delay)
+CLEVEL_LAUNCH_GRACE_S = 60
+
+
+def _live_clevel_count(role: str) -> int:
+    from tools import send_to_cxo
+    prefix = f"{role}-"
+    try:
+        locks = [p for p in Path(send_to_cxo.LOCKS_DIR).glob("*.lock")
+                 if p.stem.startswith(prefix) and SESSION_ID_RE.fullmatch(p.stem[len(prefix):])]
+    except OSError:
+        return 0
+    live = 0
+    for lock in locks:
+        try:
+            pid = int(lock.read_text(encoding="utf-8").strip())
+        except (OSError, ValueError):
+            continue
+        if _pid_is_alive(pid):
+            live += 1
+    return live
+
+
 def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
-    if _is_windows():
-        return _start_clevel_schtask(role, resume_sid)
-    if _os_name() == "darwin":
-        return _start_clevel_iterm(role, resume_sid)
-    return _start_clevel_tmux(role, resume_sid)
+    host = _self_host()
+    key = f"clevel:{host}:{role}:start"
+    token = _claim(key, CLEVEL_START_CLAIM_TTL_S)
+    if token is None:
+        raise Refusal(f"start_clevel: another {role} start is in progress on {host} "
+                      f"(one start per role per {CLEVEL_LAUNCH_GRACE_S} s); try again shortly")
+    try:
+        live = _live_clevel_count(role)
+        if live >= MAX_LIVE_CLEVEL_PER_ROLE:
+            raise Refusal(f"start_clevel: {live} {role} sessions are already live on {host} "
+                          f"(limit {MAX_LIVE_CLEVEL_PER_ROLE}); close one first")
+        if _is_windows():
+            result = _start_clevel_schtask(role, resume_sid)
+        elif _os_name() == "darwin":
+            result = _start_clevel_iterm(role, resume_sid)
+        else:
+            result = _start_clevel_tmux(role, resume_sid)
+    except BaseException:
+        _release(key, token)
+        raise
+    _hold(key, token, CLEVEL_LAUNCH_GRACE_S)
+    return result
 
 
 def _parse_start_clevel(args: list[str]) -> tuple[str, str | None]:
@@ -740,7 +846,17 @@ def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str)
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     line = f"{stamp} | {from_role}-{from_sid} | {' '.join(body.splitlines())}"
     path = worktree / "MAILBOX.md"
+    # The worker owns its worktree, so it can plant MAILBOX.md as a symlink or
+    # a hard link to any file its user can write, and the append would land
+    # there. Refuse a link before opening, and check the opened file is the
+    # plain file named MAILBOX.md in this worktree before writing to it.
+    if path.is_symlink() or (path.exists() and path.resolve().parent != worktree):
+        raise ValueError(f"MAILBOX.md for {tid} is a link, refusing to write through it")
     with open(path, "ab") as f:  # bytes: CRLF like Add-Content, no newline translation
+        st = os.fstat(f.fileno())
+        if (path.is_symlink() or st.st_nlink != 1
+                or not os.path.samestat(st, os.lstat(path))):
+            raise ValueError(f"MAILBOX.md for {tid} is a link, refusing to write through it")
         f.write((line + "\r\n").encode("utf-8"))
     lines = [ln for ln in path.read_text(encoding="utf-8", errors="replace").splitlines()
              if ln.strip()]
@@ -791,6 +907,66 @@ def _write_letter(letter: dict) -> dict:
     return _write_worker_letter(letter, role)
 
 
+# One delivery slot per letter (W2.7, task-42fdcda7). Two overlapping
+# deliver_letter calls for one id both passed the "not delivered" read and both
+# wrote the letter: 20 of 20 measured, with a window of at least 0.7 s (the
+# wake's own sleeps) on every delivery. Overlap is ordinary: send_to_cxo's first
+# dial and the watchdog's retry, or a retry after lib.mesh gave up at 30 s while
+# the far side was still writing. The slot is one row in the existing `locks`
+# table, taken by an INSERT the primary key lets exactly one caller win (SQLite
+# and Postgres alike). A slot older than the TTL belongs to a call that died.
+LETTER_CLAIM_TTL_S = 120
+
+
+def _claim(key: str, ttl_s: int) -> str | None:
+    """One `locks` row as a slot: the slot's token, or None when another call
+    holds it live. A single INSERT ... ON CONFLICT DO NOTHING RETURNING on the
+    primary key, so two callers cannot both win (SQLite and Postgres)."""
+    token = uuid.uuid4().hex
+    now = datetime.now(timezone.utc)
+    expires = (now + timedelta(seconds=ttl_s)).isoformat(timespec="seconds")
+    with db.get_conn() as conn:
+        conn.execute("DELETE FROM locks WHERE key=? AND expires_at<=?",
+                     (key, now.isoformat(timespec="seconds")))
+        row = conn.execute(
+            "INSERT INTO locks (key, owner, expires_at) VALUES (?, ?, ?) "
+            "ON CONFLICT(key) DO NOTHING RETURNING owner",
+            (key, token, expires),
+        ).fetchone()
+    return token if row is not None else None
+
+
+def _release(key: str, token: str) -> None:
+    try:  # a slot that cannot be freed now frees itself at the TTL
+        db.release_lock(key, token)
+    except Exception as e:
+        print(f"node_dispatch: release of {key} failed: {e}", file=sys.stderr)
+
+
+def _hold(key: str, token: str, seconds: int) -> None:
+    """Keep a slot this call owns for `seconds` from now instead of freeing it."""
+    expires = (datetime.now(timezone.utc) + timedelta(seconds=seconds)).isoformat(timespec="seconds")
+    try:  # on failure the row keeps its claim TTL, which is longer
+        with db.get_conn() as conn:
+            conn.execute("UPDATE locks SET expires_at=? WHERE key=? AND owner=?",
+                         (expires, key, token))
+    except Exception as e:
+        print(f"node_dispatch: hold of {key} failed: {e}", file=sys.stderr)
+
+
+def _letter_claim_key(lid: int) -> str:
+    return f"letter:{lid}:delivery"
+
+
+def _claim_letter(lid: int) -> str | None:
+    """The slot's token, or None when another call holds a live slot."""
+    return _claim(_letter_claim_key(lid), LETTER_CLAIM_TTL_S)
+
+
+def _release_letter(lid: int, token: str) -> None:
+    _release(_letter_claim_key(lid), token)
+
+
 def verb_deliver_letter(letter_id: str) -> dict:
     lid = int(letter_id)
     letter = db.get_letter(lid)
@@ -801,13 +977,23 @@ def verb_deliver_letter(letter_id: str) -> dict:
         raise Refusal(f"letter {lid} is for host {letter['to_host']!r}, this host is {here!r}")
     if letter["status"] == "delivered":
         return {"letter_id": lid, "already_delivered": True}
+    token = _claim_letter(lid)
+    if token is None:
+        raise Refusal(f"letter {lid} is being delivered by another call")
     try:
-        where = _write_letter(letter)
-        if not db.mark_letter_delivered(lid):  # a concurrent call won
+        # Read again under the slot: a call that finished between the first
+        # read and the claim has already written this letter.
+        if (db.get_letter(lid) or {}).get("status") == "delivered":
             return {"letter_id": lid, "already_delivered": True}
-    except Exception as e:
-        db.record_letter_attempt(lid, f"{type(e).__name__}: {e}"[:MAX_ERROR_CHARS])
-        raise Failure(f"letter {lid} not delivered: {e}")
+        try:
+            where = _write_letter(letter)
+            if not db.mark_letter_delivered(lid):
+                return {"letter_id": lid, "already_delivered": True}
+        except Exception as e:
+            db.record_letter_attempt(lid, _redact(f"{type(e).__name__}: {e}")[:MAX_ERROR_CHARS])
+            raise Failure(f"letter {lid} not delivered: {e}")
+    finally:
+        _release_letter(lid, token)
     return {"letter_id": lid, "delivered": True, **where}
 
 
@@ -856,10 +1042,10 @@ def _audit(verb, args: list, ok: bool, error: str | None, *,
         "args": [str(a)[:MAX_COMMAND_CHARS] for a in args[:MAX_LOG_ARGS]],
         "caller": _caller(),
         "ok": ok,
-        "error": error[:MAX_ERROR_CHARS] if error else None,
+        "error": _redact(error)[:MAX_ERROR_CHARS] if error else None,
     }
     if raw is not None:
-        payload["raw"] = raw[:MAX_COMMAND_CHARS]
+        payload["raw"] = _redact(raw[:MAX_COMMAND_CHARS])
     try:
         with db.get_conn() as conn:
             db.log_event(conn, task_id, ACTOR, "dispatch", payload)
@@ -890,6 +1076,8 @@ def _run(verb: object, args: object) -> tuple[dict, int]:
         out, code = {"ok": False, "verb": shown, "error": str(e)}, 1
     except Exception as e:  # a backend that raised ran and failed
         out, code = {"ok": False, "verb": shown, "error": f"{type(e).__name__}: {e}"}, 1
+    if out.get("error"):
+        out["error"] = _redact(out["error"])
     _audit(shown, log_args, out["ok"], out.get("error"), task_id=task_id)
     return out, code
 

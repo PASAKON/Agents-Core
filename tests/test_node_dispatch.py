@@ -39,6 +39,7 @@ def _isolated(monkeypatch, tmp_path):
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setattr(config_mod, "self_host", lambda: "mac")
     monkeypatch.setattr(mailbox, "INBOX_ROOT", tmp_path / "inbox")
+    monkeypatch.setattr(send_to_cxo, "LOCKS_DIR", tmp_path / "locks")
     monkeypatch.setattr(nd, "SPAWN_PROMPT_DELAY_S", 0)
     monkeypatch.setattr(nd, "_worktrees_root", lambda: tmp_path / "worktrees")
 
@@ -310,9 +311,8 @@ def test_pid_alive_refuses_other_host_null_host_and_unknown_task():
 # spawn_worker
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("host", ["mac", None])
-def test_spawn_worker_happy_path(rec, host):
-    tid = _mk_task(status="pending", **({} if host is None else {"host": host}))
+def test_spawn_worker_happy_path(rec):
+    tid = _mk_task(status="pending", host="mac")
     out, code = nd.run_command(f"spawn_worker {tid}")
     assert code == 0, out
     assert out["result"] == {"id": tid, "status": "in_progress", "pid": 4242,
@@ -323,7 +323,10 @@ def test_spawn_worker_happy_path(rec, host):
 def test_spawn_worker_refusals_never_reach_delegate(rec):
     busy = _mk_task(host="mac", status="in_progress")
     other = _mk_task(host="winbox", status="pending")
-    for tid in (busy, other, "task-00000000"):
+    # W2.7 F2: a pending row the hub never routed (host NULL) is refused on
+    # every OS; delegate.mesh_spawn_worker always names the host first.
+    unrouted = _mk_task(status="pending")
+    for tid in (busy, other, unrouted, "task-00000000"):
         _, code = nd.run_command(f"spawn_worker {tid}")
         assert code == 2
     assert rec.calls == []
@@ -334,7 +337,7 @@ def test_spawn_worker_queued_by_delegate_is_a_failure(rec, monkeypatch):
         rec.calls.append(("delegate", task_id, kw))
 
     monkeypatch.setattr(delegate, "delegate_task", queued)
-    tid = _mk_task(status="pending")
+    tid = _mk_task(status="pending", host="mac")
     out, code = nd.run_command(f"spawn_worker {tid}")
     assert code == 1 and "pending" in out["error"]
 
@@ -344,7 +347,7 @@ def test_spawn_worker_backend_exception_is_a_failure(rec, monkeypatch):
         raise ValueError("already merged")
 
     monkeypatch.setattr(delegate, "delegate_task", boom)
-    tid = _mk_task(status="pending")
+    tid = _mk_task(status="pending", host="mac")
     out, code = nd.run_command(f"spawn_worker {tid}")
     assert code == 1 and "already merged" in out["error"]
 

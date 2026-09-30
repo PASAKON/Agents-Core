@@ -464,15 +464,30 @@ def _heartbeat_age_seconds(raw: str) -> float | None:
     return (datetime.now(timezone.utc) - ts).total_seconds()
 
 
+# W2.7 F9 (task-42fdcda7): the slug below ends up inside a command that a
+# remote shell parses (ssh joins its argv into one string for cmd.exe or sh,
+# and tools/remote_worker_log puts it inside a PowerShell string). project and
+# role come from the task row, which create_task does not check, so a row with
+# project `x & <command> &` would run <command> under the admin key. Plain
+# tokens only; anything else reads as "cannot build the path".
+_SLUG_TOKEN_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_TASK_ID_RE = re.compile(r"task-[0-9a-f]{8}")
+
+
 def _remote_worktree_dir(host_cfg: dict, task: dict) -> str | None:
     """`<host's worktrees root>/<project>__<role>__<task-id>` in the host's
     own path style — the same slug windows/spawn-worker.ps1 builds `$wt`
     from. None when hosts.yaml has no `worktrees` root configured for this
     host, or the task row is missing a field the slug needs (e.g. a legacy
-    row created before `host`/`project`/`role` were all populated)."""
+    row created before `host`/`project`/`role` were all populated), or a
+    field is not a plain `[A-Za-z0-9_-]` token (W2.7 F9)."""
     root = host_cfg.get("worktrees")
-    if not root or not task.get("project") or not task.get("role") or not task.get("id"):
+    if not root:
         return None
+    for field in ("project", "role", "id"):
+        value = task.get(field)
+        if not isinstance(value, str) or not _SLUG_TOKEN_RE.fullmatch(value):
+            return None
     slug = f"{task['project']}__{task['role']}__{task['id']}"
     sep = "\\" if host_cfg.get("os") == "windows" else "/"
     return f"{root.rstrip(chr(92)).rstrip('/')}{sep}{slug}"
@@ -489,6 +504,8 @@ def read_remote_heartbeat(host_cfg: dict, task: dict) -> str | None:
     ssh_alias = host_cfg.get("ssh")
     if not ssh_alias:
         return None
+    if not isinstance(task.get("id"), str) or not _TASK_ID_RE.fullmatch(task["id"]):
+        return None  # W2.7 F9: only a real task id reaches the remote shell
     wt_dir = _remote_worktree_dir(host_cfg, task)
     if not wt_dir:
         return None
@@ -524,17 +541,28 @@ def _mesh_pid_alive(t: dict, host_name: str, host_cfg: dict, pid: int) -> bool |
 
 def _retry_queued_remote() -> list[dict]:
     """W2.3: one more spawn attempt for every `queued_remote` row this box
-    dispatched to another host (a mesh spawn that got no answer). Exactly one
+    dispatched to another host (a mesh spawn that got no answer). At most one
     attempt per row per pass: a pass that fails leaves the row queued, and
     tools.delegate.mesh_spawn_worker counts the attempts in `delegate_log` and
-    the `status_queued_remote` events. Off unless ORG_MESH_DISPATCH is on."""
+    the `status_queued_remote` events. Off unless ORG_MESH_DISPATCH is on.
+
+    A host that gives no answer (the row comes back still `queued_remote`)
+    ends that host's turn for this pass, as in `_retry_letters` (W2.7 F12):
+    each dial can wait ConnectTimeout, or a verb's full timeout (300 s for
+    spawn_worker) when the host hangs instead of refusing, so dialling every
+    row of a dead host stalls the watchdog, and each row would spend an
+    attempt on the same outage. Rows keep their order: the head of the host's
+    queue is the one that spends attempts."""
     if not mesh.enabled():
         return []
     retried = []
+    silent_hosts: set[str] = set()
     for t in db.list_tasks(status="queued_remote", limit=200):
         if not is_remote_row(t):  # another box's row, or no target host yet
             continue
         host_name = row_host(t)
+        if host_name in silent_hosts:
+            continue
         try:
             row = delegate.mesh_spawn_worker(t["id"], host_name)
         except Exception as e:  # one bad row must not stop the others
@@ -542,6 +570,8 @@ def _retry_queued_remote() -> list[dict]:
             continue
         retried.append({"task": t["id"], "host": host_name, "status": row["status"]})
         info(f"watchdog: queued_remote retry {t['id']} host={host_name} -> {row['status']}")
+        if row["status"] == "queued_remote":
+            silent_hosts.add(host_name)
     return retried
 
 

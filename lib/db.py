@@ -328,6 +328,16 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def redact_url(url: str | None) -> str | None:
+    """`url` with any password in its userinfo replaced by `***`, for printing.
+    `postgresql://org:<password>@host/db` -> `postgresql://org:***@host/db`.
+    Every place that prints or logs the hub URL goes through this: the init
+    banner once put the hub password into a session transcript (2026-10-01)."""
+    if not url:
+        return url
+    return re.sub(r"(://[^:/@]*):[^@/]*@", r"\1:***@", url)
+
+
 def pg_url() -> str | None:
     """ORG_DB_URL, stripped, or None when unset/blank -- the one switch
     between the SQLite and Postgres backends (docs/design/tasks-db-hub.md)."""
@@ -687,7 +697,7 @@ def init():
     for tables that predate _MIGRATION_COLUMNS."""
     with get_conn() as conn:
         init_schema(conn, is_pg=bool(pg_url()))
-    print(f"[db] initialized at {pg_url() or DB_PATH}")
+    print(f"[db] initialized at {redact_url(pg_url()) or DB_PATH}")
 
 
 def new_task_id() -> str:
@@ -1389,7 +1399,11 @@ def record_letter_attempt(letter_id: int, error: str) -> None:
     """Bump attempts, record `error` as last_error, and flip to `failed`
     once attempts reaches 5. Atomic per row (single UPDATE ... RETURNING) so
     two racing delivery attempts can't both read the same pre-increment
-    count and under-count."""
+    count and under-count.
+
+    Only a `pending` letter flips: a late count (a timeout while the far side
+    delivered) must not turn a `delivered` row into `failed` (W2.7 F14,
+    task-42fdcda7)."""
     with get_conn() as conn:
         row = conn.execute(
             "UPDATE letters SET attempts = attempts + 1, last_error = ? "
@@ -1398,7 +1412,8 @@ def record_letter_attempt(letter_id: int, error: str) -> None:
         ).fetchone()
         if row is not None and row["attempts"] >= 5:
             conn.execute(
-                "UPDATE letters SET status='failed' WHERE id=?", (letter_id,)
+                "UPDATE letters SET status='failed' WHERE id=? AND status='pending'",
+                (letter_id,),
             )
 
 
