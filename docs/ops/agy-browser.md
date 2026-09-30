@@ -37,7 +37,7 @@ line per call in `state/agy-browse.jsonl` (under `$ORG_ROOT` when set).
 There is no JavaScript verb, no cookie/storage/network-body access and no
 shell. The CLI never launches a browser and never touches a tab on another host.
 
-## The agy allow-rule (proposed, NOT applied)
+## The agy allow-rule (applied 2026-09-30, 16c4279f)
 
 Exactly one rule. The CTO applies it after review to `config/agy-settings.json`
 and to the installed copy `~/.gemini/antigravity-cli/settings.json` (the two

@@ -70,10 +70,12 @@ def test_allow_rule_is_what_the_doc_proposes():
     assert json.dumps(f"command(regex:{ab.ALLOW_RULE_REGEX})") in doc
 
 
-def test_repo_agy_settings_are_not_changed_by_this_task():
-    """The CTO applies the rule after review (GH #188 step 5)."""
+def test_repo_agy_settings_carry_exactly_the_reviewed_rule():
+    """The CTO applied the rule after review (GH #188 step 5, 16c4279f): one
+    agy_browse rule, byte-equal to ALLOW_RULE_REGEX, and the deny rules kept."""
     settings = json.loads((ROOT / "config" / "agy-settings.json").read_text())
-    assert not any("agy_browse" in r for r in settings["permissions"]["allow"])
+    rules = [r for r in settings["permissions"]["allow"] if "agy_browse" in r]
+    assert rules == [f"command(regex:{ab.ALLOW_RULE_REGEX})"]
     for denied in ("command(curl)", "command(ssh)", "command(rm)"):
         assert denied in settings["permissions"]["deny"]
 
