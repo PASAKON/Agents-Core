@@ -1,28 +1,36 @@
 #!/bin/sh
 # join.sh - make this Linux or macOS machine a MoonieX org node (Org Mesh W4.3).
 #
-#   curl -fsSL https://<hub>/org-join/join.sh | sh -s -- --token <t> --host <name> [--hq-root <path>]
+#   curl -fsSL https://<hub>/org-join/join.sh | sh -s -- --host <name> [--hq-root <path>]
 #
-# Better, so the token is not in `ps` for the whole run (it is single use and dies after 15
-# minutes, but it IS the credential until step 4 has used it):
+# That is the preferred form: no token on the command line. join.sh asks for it on the terminal
+# (/dev/tty, typing hidden), so it is in no shell history and in no `ps` line. The token is single
+# use and dies after 15 minutes, but it IS the credential until step 3 has used it. Still
+# supported, for a box with no terminal to ask on:
 #
 #   curl -fsSL https://<hub>/org-join/join.sh | ORG_JOIN_TOKEN=<t> sh -s -- --host <name>
+#   curl -fsSL https://<hub>/org-join/join.sh | sh -s -- --token <t> --host <name>     (history + ps)
 #
 # Arguments
-#   --token <t>      the one-time token from `hq_join mint` (or env ORG_JOIN_TOKEN)
+#   --token <t>      the one-time token from `hq_join mint`. Leave it out and it is asked for with
+#                    no echo (or env ORG_JOIN_TOKEN)
 #   --host <name>    this machine's node name, the one the token was minted for
 #   --hq-root <p>    where the HQ folder goes (default: /opt/MoonieXHQ as root, else ~/MoonieXHQ)
 #   --hub <url>      the hub, https://<hub>. Default: the hub this script was fetched from
 #   --dry-run        print every step, change nothing, contact nothing
 #
 # The nine steps, in order. Each is safe to repeat: run the same command again after a failure.
-#   1 check the arguments             6 wait for the hub to seal this node's identity to its key
-#   2 install what is missing         7 clone Agents-Core over the deploy key, build the venv
-#   3 make the node's keys            8 open the sealed identity, save it, write node.yaml
-#   4 accept: hand the hub the token  9 probe
+#   1 check the arguments             6 wait for the operator's approval and the sealed identity
+#   2 make the node's keys            7 clone Agents-Core over the deploy key, build the venv
+#   3 accept: hand the hub the token  8 open the sealed identity, save it, write node.yaml
+#   4 install what is missing         9 probe
 #   5 join the tailnet
-# The deploy key only works once the hub has provisioned this node (step 6), and the save in
-# step 8 is a script from the clone, so the clone comes between the wait and the save.
+# Keys and accept come BEFORE the long installs: the token is used within seconds of being typed,
+# and the operator sees this node's fingerprint (the last 8 characters of its age recipient) at
+# once. Step 2 installs only what the keys need (curl, ssh-keygen, age, python) if they are missing.
+# The deploy key only works once the operator approved this node and the hub provisioned it (step
+# 6), and the save in step 8 is a script from the clone, so the clone comes between the wait and
+# the save.
 #
 # No secret is typed, written to disk by this script, or put on a command line of a process that
 # lives longer than a moment. The token travels in a request body on stdin. The node's identity
@@ -31,7 +39,12 @@
 # under /etc/infisical (root, 0600).
 #
 # Needs root for: installing packages, `tailscale up`, and saving the identity. On Linux and
-# macOS that is sudo (asked for once, up front). Run it as your own user, not as root, on a Mac.
+# macOS that is sudo (asked for when first needed). Run it as your own user, not as root, on a Mac.
+#
+# Every python this script starts runs as `python -I`: isolated mode, so no user site-packages
+# (.pth files), no PYTHON* variables and no current directory on sys.path. As root that keeps a
+# file the node's user can write from being loaded into a root process. The checkout itself is
+# still user-owned code that root runs (step 8, 9): see deploy/join/README.md, "What root runs".
 
 set -u
 
@@ -56,6 +69,9 @@ DEPLOY_KEY=""
 DISPATCH_KEY=""
 CORE=""
 GH_REPO_SSH="git@github.com:PASAKON/Agents-Core.git"
+GITHUB_META_URL="https://api.github.com/meta"
+TTY_SAVED=""
+APT_UPDATED=0
 POLL_S=15
 POLL_MAX_S=900
 
@@ -66,8 +82,9 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 usage() {
   printf '%s\n' \
-    "join.sh --token <t> --host <name> [--hq-root <path>] [--hub <url>] [--dry-run]" \
-    "  --token <t>     one-time join token (or env ORG_JOIN_TOKEN, which keeps it out of ps)" \
+    "join.sh --host <name> [--token <t>] [--hq-root <path>] [--hub <url>] [--dry-run]" \
+    "  --token <t>     one-time join token. Preferred: leave it out and type it when asked (no echo," \
+    "                  not in history or ps). Or env ORG_JOIN_TOKEN" \
     "  --host <name>   this machine's node name; the token was minted for it" \
     "  --hq-root <p>   HQ folder (default /opt/MoonieXHQ as root, else ~/MoonieXHQ)" \
     "  --hub <url>     https://<hub> (default: the hub this script was fetched from)" \
@@ -95,6 +112,42 @@ act_root() {
 }
 
 # ---------------------------------------------------------------- 1: arguments
+
+# Put the terminal back the way it was. Safe to call twice, or when nothing was changed.
+tty_restore() {
+  [ -n "$TTY_SAVED" ] || return 0
+  stty "$TTY_SAVED" </dev/tty >/dev/null 2>&1
+  TTY_SAVED=""
+}
+
+# Ask for the token on the controlling terminal with echo off, and leave it in TOKEN. `curl | sh`
+# has the script itself on stdin, so the answer has to come from /dev/tty. Returns 1 when there is
+# no terminal to ask on, or one whose echo cannot be turned off (then it asks for nothing).
+# The terminal is restored on every way out: the normal one, `die` (EXIT trap), ^C, kill, hangup.
+read_token_tty() {
+  ( : </dev/tty ) 2>/dev/null || return 1
+  have stty || return 1
+  TTY_SAVED=$(stty -g </dev/tty 2>/dev/null) || TTY_SAVED=""
+  [ -n "$TTY_SAVED" ] || return 1
+  trap 'tty_restore' EXIT
+  trap 'tty_restore; exit 130' INT
+  trap 'tty_restore; exit 143' TERM
+  trap 'tty_restore; exit 129' HUP
+  if ! stty -echo </dev/tty 2>/dev/null; then
+    tty_restore
+    trap - EXIT INT TERM HUP
+    return 1
+  fi
+  printf 'Join token (typing is hidden): ' >/dev/tty
+  _got=""
+  IFS= read -r _got </dev/tty || _got=""
+  tty_restore
+  printf '\n' >/dev/tty
+  trap - EXIT INT TERM HUP
+  TOKEN=$(printf '%s' "$_got" | tr -d '[:space:]')
+  _got=""
+  [ -n "$TOKEN" ]
+}
 
 parse_args() {
   while [ $# -gt 0 ]; do
@@ -129,7 +182,8 @@ check_args() {
   esac
   if [ -z "$TOKEN" ] && [ -n "${ORG_JOIN_TOKEN:-}" ]; then TOKEN=$ORG_JOIN_TOKEN; fi
   unset ORG_JOIN_TOKEN   # do not hand it to every child process we start
-  [ -n "$TOKEN" ] || die "no token: pass --token <t> or set ORG_JOIN_TOKEN"
+  [ -n "$TOKEN" ] || read_token_tty \
+    || die "no token: there is no terminal to ask on. Pass --token <t> or set ORG_JOIN_TOKEN, or run this from a terminal and it asks (typing hidden)"
   printf '%s' "$TOKEN" | grep -Eq '^hqj_[A-Za-z0-9_-]{43}$' \
     || die "the token is not in the expected shape (hqj_ and 43 more characters); copy it again"
   [ -n "$HOST" ] || die "no --host <name>"
@@ -160,7 +214,7 @@ check_args() {
 
 root_need_text() {
   if [ "$(id -u)" -eq 0 ]; then printf 'Running as root: fine.'
-  elif have sudo; then printf 'Uses sudo: it will ask for your password now.'
+  elif have sudo; then printf 'Uses sudo: it will ask for your password when it first needs it.'
   else printf 'NOT root and no sudo here: this will stop.'; fi
 }
 
@@ -169,7 +223,7 @@ banner() {
   say "host $HOST ($OS), hub $HUB"
   say "HQ root $HQ_ROOT  (checkout: $CORE)"
   say "keys go under $CONF_DIR (age identity, deploy key) and $HOME/.ssh (dispatch key)"
-  say "ROOT NEEDED for three steps: installing packages (2), tailscale up (5), saving the node's"
+  say "ROOT NEEDED for three things: installing packages (2, 4), tailscale up (5), saving the node's"
   say "identity under /etc/infisical (8). $(root_need_text)"
   if [ "$DRY_RUN" -eq 1 ]; then
     say "DRY RUN: every step below is printed, nothing is changed, nothing is contacted"
@@ -185,12 +239,12 @@ ensure_root_access() {
   [ "$DRY_RUN" -eq 1 ] || sudo -v || die "sudo did not accept the password"
 }
 
-# ---------------------------------------------------------------- 2: install
+# ---------------------------------------------------------------- 2, 4: install
 
 find_python() {
   for _c in python3.13 python3.12 python3.11 python3; do
     _p=$(command -v "$_c" 2>/dev/null) || continue
-    if "$_p" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+    if "$_p" -I -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
       PY=$_p
       return 0
     fi
@@ -240,53 +294,96 @@ install_tailscale_linux() {
   as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y tailscale </dev/null || die "apt-get install tailscale failed"
 }
 
-install_linux() {
-  if ! have apt-get; then
-    [ "$DRY_RUN" -eq 1 ] && { say "WARNING: no apt-get: a real run would stop here (Debian and Ubuntu only)"; return 0; }
-    die "no apt-get: this script installs on Debian and Ubuntu. Install git, python3.11+, Node 22, age, tailscale and claude yourself, then re-run"
+# One apt-get update per run, however many of the install functions need it.
+apt_install() {
+  if [ "$APT_UPDATED" -eq 0 ]; then
+    act_root apt-get update -qq
+    APT_UPDATED=1
   fi
+  act_root env DEBIAN_FRONTEND=noninteractive apt-get install -y "$@"
+}
+
+# No apt-get: a dry run says so and moves on, a real run stops. Returns 1 when the caller should stop.
+linux_need_apt() {
+  have apt-get && return 0
+  [ "$DRY_RUN" -eq 1 ] && { say "WARNING: no apt-get: a real run would stop here (Debian and Ubuntu only)"; return 1; }
+  die "no apt-get: this script installs on Debian and Ubuntu. Install git, curl, openssh-client, age, python3.11+, Node 22, tailscale and claude yourself, then re-run"
+}
+
+# Step 2's tools: only what making the keys and talking to the hub needs, so accept does not
+# wait for the long installs. curl and python (json) are the hub calls, ssh-keygen and age the keys.
+install_keytools_linux() {
+  linux_need_apt || return 0
   _missing=""
-  have git || _missing="$_missing git"
   have curl || _missing="$_missing curl ca-certificates"
   have ssh-keygen || _missing="$_missing openssh-client"
   { have age && have age-keygen; } || _missing="$_missing age"
   if find_python; then
-    "$PY" -c 'import ensurepip, venv' 2>/dev/null || _missing="$_missing python3-venv"
+    "$PY" -I -c 'import ensurepip, venv' 2>/dev/null || _missing="$_missing python3-venv"
   else
     _missing="$_missing python3 python3-venv"
   fi
-  have_node22 || have xz || _missing="$_missing xz-utils"
   if [ -n "$_missing" ]; then
-    act_root apt-get update -qq
+    ensure_root_access
     # shellcheck disable=SC2086  # package names, no spaces
-    act_root env DEBIAN_FRONTEND=noninteractive apt-get install -y $_missing
+    apt_install $_missing
   else
-    say "apt packages: git, curl, openssh-client, age, python3 + venv present"
+    say "key tools: curl, openssh-client, age, python3 + venv present"
   fi
   find_python || [ "$DRY_RUN" -eq 1 ] || die "python 3.11 or newer is required (this machine has: $(python3 --version 2>&1)); install it, then re-run"
+}
+
+install_linux() {
+  linux_need_apt || return 0
+  _missing=""
+  have git || _missing="$_missing git"
+  have_node22 || have xz || _missing="$_missing xz-utils"
+  if [ -n "$_missing" ]; then
+    # shellcheck disable=SC2086  # package names, no spaces
+    apt_install $_missing
+  else
+    say "apt packages: git present"
+  fi
   if have_node22; then say "node $(node --version): present"; else install_node_linux; fi
   if have tailscale; then say "tailscale: present"; else install_tailscale_linux; fi
   if have claude; then say "claude: present"; else act_root npm install -g @anthropic-ai/claude-code; fi
 }
 
-install_darwin() {
+# Homebrew ready, or 1 (dry run, says so) / die (real run).
+darwin_need_brew() {
   if ! have brew && [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
   if ! have brew; then
-    [ "$DRY_RUN" -eq 1 ] && { say "WARNING: Homebrew is not installed: a real run would stop here"; return 0; }
+    [ "$DRY_RUN" -eq 1 ] && { say "WARNING: Homebrew is not installed: a real run would stop here"; return 1; }
     die "Homebrew is not installed: install it from https://brew.sh, then re-run (this script does not pipe a second installer into your shell)"
   fi
   [ "$(id -u)" -ne 0 ] || die "on macOS run this as your own user, not as root: Homebrew refuses to run as root"
+}
+
+install_keytools_darwin() {
   _missing=""
-  have git || _missing="$_missing git"
   { have age && have age-keygen; } || _missing="$_missing age"
   find_python || _missing="$_missing python@3.12"
+  if [ -z "$_missing" ]; then
+    say "key tools: age, python 3.11+ present (curl and ssh-keygen ship with macOS)"
+    return 0
+  fi
+  darwin_need_brew || return 0
+  # shellcheck disable=SC2086  # formula names, no spaces
+  act brew install $_missing
+  find_python || [ "$DRY_RUN" -eq 1 ] || die "python 3.11 or newer is required; install it, then re-run"
+}
+
+install_darwin() {
+  darwin_need_brew || return 0
+  _missing=""
+  have git || _missing="$_missing git"
   have_node22 || _missing="$_missing node@22"
   have tailscale || _missing="$_missing tailscale"
   if [ -n "$_missing" ]; then
     # shellcheck disable=SC2086  # formula names, no spaces
     act brew install $_missing
   else
-    say "brew packages: git, age, python 3.11+, node 22, tailscale present"
+    say "brew packages: git, node 22, tailscale present"
   fi
   case "$_missing" in
     *node@22*) act brew link --overwrite --force node@22 ;;
@@ -294,22 +391,29 @@ install_darwin() {
   case "$_missing" in
     *tailscale*) act_root brew services start tailscale ;;
   esac
-  find_python || [ "$DRY_RUN" -eq 1 ] || die "python 3.11 or newer is required; install it, then re-run"
   if have claude; then say "claude: present"; else act npm install -g @anthropic-ai/claude-code; fi
 }
 
-do_install() {
-  step 2 "install what is missing (git, python 3.11+, node 22, age, tailscale, claude)"
-  ensure_root_access
-  if [ "$OS" = linux ]; then install_linux; else install_darwin; fi
+# Step 2, first half: the few tools the keys need. Sets PY.
+ensure_key_tools() {
+  if [ "$OS" = linux ]; then install_keytools_linux; else install_keytools_darwin; fi
   find_python || true
   [ -n "$PY" ] || PY=python3   # dry run on a machine without one
 }
 
-# ---------------------------------------------------------------- 3: keys
+# Step 4: everything else (git, node 22, tailscale, claude), after the hub has the token.
+do_install() {
+  step 4 "install what is missing (git, node 22, tailscale, claude; the key tools came in step 2)"
+  ensure_root_access
+  if [ "$OS" = linux ]; then install_linux; else install_darwin; fi
+}
+
+# ---------------------------------------------------------------- 2: keys
 
 do_keys() {
-  step 3 "make the node's keys (kept if they already exist), 0600"
+  step 2 "make the node's keys (kept if they already exist), 0600"
+  say "first, only the tools the keys and the hub calls need, if missing: curl, ssh-keygen, age, python 3.11+"
+  ensure_key_tools
   say "age identity    $AGE_ID"
   say "deploy key      $DEPLOY_KEY (ssh ed25519, read-only on GitHub once the hub registers it)"
   say "dispatch key    $DISPATCH_KEY (ssh ed25519, what lib/mesh.py uses to call other nodes)"
@@ -340,7 +444,7 @@ do_keys() {
 
 # Field values arrive one per line on stdin, never as arguments.
 json_accept() {
-  "$PY" -c 'import json, sys
+  "$PY" -I -c 'import json, sys
 f = sys.stdin.read().split("\n")
 d = {"token": f[0], "host": f[1], "os": f[2], "hq_root": f[3], "pubkey": f[4]}
 if f[5]:
@@ -349,13 +453,13 @@ sys.stdout.write(json.dumps(d))'
 }
 
 json_sealed() {
-  "$PY" -c 'import json, sys
+  "$PY" -I -c 'import json, sys
 f = sys.stdin.read().split("\n")
 sys.stdout.write(json.dumps({"host": f[0], "token": f[1]}))'
 }
 
 json_get() {
-  "$PY" -c 'import json, sys
+  "$PY" -I -c 'import json, sys
 try:
     v = json.load(sys.stdin).get(sys.argv[1], "")
 except Exception:
@@ -376,13 +480,25 @@ hub_post() {
 
 sealed_body() { printf '%s\n%s\n' "$HOST" "$TOKEN" | json_sealed; }
 
+# The last 8 characters of this node's age recipient: what the operator checks against the
+# approve card in the Run Inbox, so the hub provisions the machine the operator is looking at
+# and not whoever else holds the token.
+fingerprint() {
+  if [ "$DRY_RUN" -eq 1 ]; then
+    printf '<last 8 characters of the age recipient>'
+  else
+    printf '%s' "${AGE_PUB#"${AGE_PUB%????????}"}"
+  fi
+}
+
 # ---------------------------------------------------------------- 4: accept
 
 do_accept() {
-  step 4 "accept: give the hub the token and this node's public keys"
+  step 3 "accept: give the hub the token and this node's public keys"
   say "POST $HUB/accept  (host, os, hq_root, age recipient, deploy public key; the token is in the body)"
   if [ "$DRY_RUN" -eq 1 ]; then
     say "a used token is refused; step 6's answer then tells 'already joined' from 'wrong token'"
+    say "then: fingerprint: $(fingerprint) - the operator approves this in the Run Inbox"
     return 0
   fi
   _body=$(printf '%s\n%s\n%s\n%s\n%s\n%s\n' "$TOKEN" "$HOST" "$OS" "$HQ_ROOT" "$AGE_PUB" "$DEPLOY_PUB" | json_accept) \
@@ -401,14 +517,19 @@ do_accept() {
       hub_post sealed "$(sealed_body)" || die "could not reach the hub at $HUB"
       case "$HTTP_CODE" in
         200|202) say "already joined with this token: continuing with the steps that are left" ;;
+        503) die "the hub is busy: wait a minute and run the same command again (the token is not used up)" ;;
         *) die "the hub refused this token: it is unknown, already used for another machine, expired (15 min), or minted for a different host name. Ask for a new one." ;;
       esac
       ;;
     409) die "the hub already has a node called $HOST. Pick another name, or leave the old one first" ;;
     429) die "the hub is rate limiting this address: wait a minute and run the same command again" ;;
+    503) die "the hub is busy: wait a minute and run the same command again (the token is not used up)" ;;
     000) die "could not reach the hub at $HUB" ;;
     *) die "unexpected answer from the hub: HTTP $HTTP_CODE" ;;
   esac
+  # Every refusal above stopped the run, so here the hub has the keys. Show the fingerprint now,
+  # before the long install: the operator approves exactly this value.
+  say "fingerprint: $(fingerprint) - the operator approves this in the Run Inbox"
 }
 
 # ---------------------------------------------------------------- 5: tailnet
@@ -439,8 +560,8 @@ do_tailscale() {
 # ---------------------------------------------------------------- 6: wait for the sealed identity
 
 do_wait_sealed() {
-  step 6 "wait for the hub to seal this node's identity (polls every ${POLL_S} s, up to $((POLL_MAX_S / 60)) min)"
-  say "POST $HUB/sealed  -> pending until the Mac provisions it, then the age ciphertext"
+  step 6 "wait for the operator's approval, then for the hub to seal this node's identity (polls every ${POLL_S} s, up to $((POLL_MAX_S / 60)) min)"
+  say "POST $HUB/sealed  -> pending until the operator approves fingerprint $(fingerprint) and the Mac provisions it, then the age ciphertext"
   say "the ciphertext is held in memory only; only the identity in $AGE_ID can open it"
   [ "$DRY_RUN" -eq 1 ] && return 0
   _waited=0
@@ -453,7 +574,7 @@ do_wait_sealed() {
           say "sealed identity received"
           return 0
           ;;
-        202) say "pending (${_waited} s)" ;;
+        202) say "waiting for the operator to approve fingerprint $(fingerprint) in the Run Inbox (${_waited} s)" ;;
         403) die "the hub will not release the sealed identity for this token (expired after 24 h, or the node left). Ask for a new token" ;;
         429) say "rate limited, waiting" ;;
         *) say "hub answered HTTP $HTTP_CODE, retrying" ;;
@@ -469,15 +590,45 @@ do_wait_sealed() {
 
 # ---------------------------------------------------------------- 7: clone + venv
 
+# StrictHostKeyChecking=yes against a known_hosts that write_known_hosts filled from GitHub itself:
+# the first clone is no longer trust-on-first-use, so a network in the middle cannot hand this
+# node a fake Agents-Core whose tools/infisical_setup.py root then runs with the node's identity.
 git_ssh() {
-  printf 'ssh -i %s -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=%s' \
+  printf 'ssh -i %s -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=%s' \
     "'$DEPLOY_KEY'" "'$CONF_DIR/known_hosts'"
+}
+
+# GitHub's published SSH host keys, from its API over TLS, as the ONLY entries in known_hosts (a
+# file left by an older run, with keys it trusted on first use, is replaced). If the fetch or the
+# parse fails this stops: there is no fallback to accept-new.
+write_known_hosts() {
+  _kh=$CONF_DIR/known_hosts
+  say "GitHub's SSH host keys: $GITHUB_META_URL (ssh_keys, over TLS) -> $_kh; the clone then uses StrictHostKeyChecking=yes"
+  [ "$DRY_RUN" -eq 1 ] && return 0
+  _meta=$(curl -fsS --max-time 30 -H 'Accept: application/vnd.github+json' "$GITHUB_META_URL" </dev/null 2>/dev/null) \
+    || die "could not fetch GitHub's SSH host keys from $GITHUB_META_URL. Not cloning without them (there is no trust-on-first-use fallback): check the network and run the same command again"
+  _keys=$(printf '%s' "$_meta" | "$PY" -I -c 'import json, re, sys
+try:
+    keys = json.load(sys.stdin)["ssh_keys"]
+except Exception:
+    sys.exit(1)
+ok = re.compile(r"(ssh-ed25519|ecdsa-sha2-nistp256|ssh-rsa) [A-Za-z0-9+/]{20,}={0,2}")
+lines = ["github.com " + k for k in keys if isinstance(k, str) and ok.fullmatch(k)]
+if not lines:
+    sys.exit(1)
+sys.stdout.write("\n".join(lines))') \
+    || die "$GITHUB_META_URL did not list any SSH host key in the expected shape. Not cloning without them"
+  mkdir -p "$CONF_DIR" || die "could not create $CONF_DIR"
+  printf '%s\n' "$_keys" > "$_kh.tmp" || die "could not write $_kh"
+  mv "$_kh.tmp" "$_kh" || die "could not write $_kh"
+  say "known_hosts: $(printf '%s\n' "$_keys" | wc -l | tr -d ' ') GitHub host keys written"
 }
 
 do_clone() {
   step 7 "clone Agents-Core over the deploy key, build the venv"
   say "$GH_REPO_SSH -> $CORE  (GIT_SSH_COMMAND: the deploy key only, nothing from ~/.ssh)"
-  say "then: $PY -m venv $CORE/.venv and pip install -r requirements.txt"
+  say "then: $PY -I -m venv $CORE/.venv and pip install -r requirements.txt"
+  write_known_hosts
   [ "$DRY_RUN" -eq 1 ] && return 0
   if [ ! -d "$HQ_ROOT/Agents" ]; then
     mkdir -p "$HQ_ROOT/Agents" 2>/dev/null || {
@@ -494,9 +645,9 @@ do_clone() {
       || die "git clone failed. If it says 'Permission denied (publickey)', the hub registered no deploy key for this node"
   fi
   if [ ! -x "$CORE/.venv/bin/python" ]; then
-    "$PY" -m venv "$CORE/.venv" </dev/null || die "python -m venv failed"
+    "$PY" -I -m venv "$CORE/.venv" </dev/null || die "python -m venv failed"
   fi
-  "$CORE/.venv/bin/python" -m pip install -q -r "$CORE/requirements.txt" </dev/null || die "pip install -r requirements.txt failed"
+  "$CORE/.venv/bin/python" -I -m pip install -q -r "$CORE/requirements.txt" </dev/null || die "pip install -r requirements.txt failed"
 }
 
 # ---------------------------------------------------------------- 8: identity + node.yaml
@@ -515,7 +666,7 @@ write_node_yaml() {
 
 do_identity() {
   step 8 "open the sealed identity, save it under /etc/infisical, write node.yaml"
-  say "age -d -i $AGE_ID | (json: client_id, client_secret) | $(root_prefix)python3 tools/infisical_setup.py save $HOST --stdin"
+  say "age -d -i $AGE_ID | (json: client_id, client_secret) | $(root_prefix)python3 -I tools/infisical_setup.py save $HOST --stdin"
   say "the plaintext only ever flows through those pipes"
   say "node.yaml: host, os, hq_root -> $CONF_DIR/node.yaml (where lib/config.py reads it)"
   [ "$DRY_RUN" -eq 1 ] && return 0
@@ -525,11 +676,11 @@ do_identity() {
   # last stage is the status of the whole.
   printf '%s\n' "$CIPHER" \
     | age -d -i "$AGE_ID" \
-    | "$PY" -c 'import json, sys
+    | "$PY" -I -c 'import json, sys
 d = json.load(sys.stdin)
 print(d["client_id"])
 print(d["client_secret"])' 2>/dev/null \
-    | as_root "$PY" "$CORE/tools/infisical_setup.py" save "$HOST" --stdin \
+    | as_root "$PY" -I "$CORE/tools/infisical_setup.py" save "$HOST" --stdin \
     || die "could not save the node's identity (the decrypt, the parse or the Infisical login failed; nothing was stored)"
   CIPHER=""
   write_node_yaml
@@ -541,17 +692,23 @@ print(d["client_secret"])' 2>/dev/null \
 # its identity is saved, and the probe's own message says what is left to fix.
 do_probe() {
   step 9 "probe: measure this node through its own identity"
-  say "$(root_prefix)env HOME=$HOME ORG_HOST=$HOST python3 tools/infisical_setup.py run Agents-Core prod --as $HOST -- .venv/bin/python -m tools.node_dispatch probe"
+  say "$(root_prefix)env HOME=$HOME ORG_HOST=$HOST python3 -I -B tools/infisical_setup.py run Agents-Core prod --as $HOST -- .venv/bin/python -I -B tools/node_dispatch.py probe"
   say "HOME=$HOME is handed on explicitly: the probe reads $CONF_DIR/node.yaml, the file step 8 wrote"
   [ "$DRY_RUN" -eq 1 ] && return 0
   # node.yaml was written under this script's $HOME (CONF_DIR), and lib/config.py finds it through
   # the probe's own HOME. Under sudo that HOME is often root's, where node.yaml is not, and ORG_HOST
   # alone names a host without an os or an hq_root. So HOME is part of the command, not inherited:
   # `env` sets it after sudo has had its say. ORG_HOST stays, it is what makes the probe use $HOST.
+  # Both pythons are root here, so both run isolated (-I: no user site-packages or .pth, no PYTHON*
+  # variables, no current directory on sys.path), and -B keeps root from writing root-owned .pyc
+  # files into the user's clone (the PYTHONDONTWRITEBYTECODE variable that used to do that is one
+  # of the variables -I ignores). -I also drops the current directory, which is how
+  # `-m tools.node_dispatch` found the `tools` package, so the probe is started by its path: the
+  # file puts the checkout on sys.path itself (tools/node_dispatch.py, `sys.path.insert(0, ROOT)`).
   # The probe's stderr is left on the terminal; only its one JSON line is read.
-  _res=$(cd "$CORE" && as_root env HOME="$HOME" ORG_HOST="$HOST" PYTHONDONTWRITEBYTECODE=1 "$PY" tools/infisical_setup.py run Agents-Core prod --as "$HOST" \
-    -- "$CORE/.venv/bin/python" -m tools.node_dispatch probe </dev/null) || true
-  printf '%s\n' "$_res" | "$PY" -c 'import json, sys
+  _res=$(cd "$CORE" && as_root env HOME="$HOME" ORG_HOST="$HOST" "$PY" -I -B "$CORE/tools/infisical_setup.py" run Agents-Core prod --as "$HOST" \
+    -- "$CORE/.venv/bin/python" -I -B "$CORE/tools/node_dispatch.py" probe </dev/null) || true
+  printf '%s\n' "$_res" | "$PY" -I -c 'import json, sys
 last = [l for l in sys.stdin.read().splitlines() if l.strip()][-1:]
 try:
     d = json.loads(last[0])
@@ -588,9 +745,9 @@ main() {
   parse_args "$@"
   check_args
   banner
-  do_install
   do_keys
   do_accept
+  do_install
   do_tailscale
   do_wait_sealed
   do_clone

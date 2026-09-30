@@ -88,7 +88,7 @@ def test_dry_run_step_9_names_the_home_and_the_node_yaml_it_reads(tmp_path):
     step8, step9 = r.stdout.split("[8/9]", 1)[1].split("[9/9]", 1)
     # the very command a real run executes: HOME and ORG_HOST ride in the env
     assert f"env HOME={home} ORG_HOST={HOST} " in step9, step9
-    assert "tools.node_dispatch probe" in step9
+    assert "tools/node_dispatch.py probe" in step9
     # and the file it reads is the one step 8 is announced to write
     assert f"{home}/.config/mooniex/node.yaml" in step9
     assert f"node.yaml: host, os, hq_root -> {home}/.config/mooniex/node.yaml" in step8
@@ -96,13 +96,14 @@ def test_dry_run_step_9_names_the_home_and_the_node_yaml_it_reads(tmp_path):
 
 
 def _stub_python(tmp_path: Path) -> Path:
-    """Stands in for `$PY` in do_probe. `-c` is the JSON reader at the end of do_probe: the real
-    interpreter. Anything else is the probe: it asks lib.config who this machine is, through the
-    HOME it was started with, which is what tools.node_dispatch probe does first."""
+    """Stands in for `$PY` in do_probe. A call with `-c` is the JSON reader at the end of do_probe
+    (`$PY -I -c ...`): the real interpreter. Anything else is the probe: it asks lib.config who this
+    machine is, through the HOME it was started with, which is what tools/node_dispatch.py probe
+    does first."""
     stub = tmp_path / "stub-python"
     stub.write_text(
         '#!/bin/sh\n'
-        'if [ "$1" = "-c" ]; then exec "$REAL_PY" "$@"; fi\n'
+        'for a in "$@"; do if [ "$a" = "-c" ]; then exec "$REAL_PY" "$@"; fi; done\n'
         'exec "$REAL_PY" -c \'\n'
         'import json\n'
         'from lib import config\n'

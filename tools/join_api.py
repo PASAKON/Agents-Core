@@ -27,6 +27,12 @@ Hardening: body at most 8 KB and JSON only, an in-memory per-IP rate limit, no C
 directory serving. The log line is method, path, status and host, never a body, a token,
 a ciphertext or a key. An exception is logged by class name only.
 
+Database load (W4.6, F11): every request opens its own hub connection, and the hub's Postgres is
+shared with the whole org. At most DB_SLOTS requests are inside their database section at once;
+one that cannot get a slot within DB_WAIT_S seconds is answered 503 {"error":"busy"}. The body
+is read and its shape checked BEFORE the slot is taken, so a slow client never holds one, and
+the 503 depends on load only, never on the token.
+
 The TailscaleMinter is an injectable `host -> pre-auth key` callable and is NOT wired here
 (CEO gate G3 = the Tailscale OAuth client). Without one the field is absent and join.sh
 requires the machine to be on the tailnet already.
@@ -34,6 +40,7 @@ requires the machine to be on the tailnet already.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import ipaddress
 import json
 import logging
@@ -71,6 +78,8 @@ RATE_WINDOW_S = 60.0
 SEALED_WINDOW = timedelta(hours=24)
 DRAIN_MAX = 64 * 1024    # an oversized body is read (and dropped) up to this, so close() is not an RST
 REQUEST_TIMEOUT_S = 15
+DB_SLOTS = 4             # requests inside a database section at the same time, whole process
+DB_WAIT_S = 2.0          # how long a request waits for a slot before it is answered 503
 
 # Shapes checked before anything is built from them.
 _ORIGIN_RE = re.compile(r"https?://[A-Za-z0-9.-]{1,253}(?::[0-9]{1,5})?")
@@ -96,6 +105,20 @@ class _Refuse(Exception):
 
 # One answer for every token or host refusal, so nothing tells a caller which check failed.
 _REFUSED = (403, "refused")
+
+# Module level, so every server and every handler thread in this process shares the same four.
+_DB_GATE = threading.BoundedSemaphore(DB_SLOTS)
+
+
+@contextlib.contextmanager
+def _db_slot():
+    """Hold one of the DB_SLOTS for the body of the `with`. No slot within DB_WAIT_S is a 503."""
+    if not _DB_GATE.acquire(timeout=DB_WAIT_S):
+        raise _Refuse(503, "busy")
+    try:
+        yield
+    finally:
+        _DB_GATE.release()
 
 
 def _json(obj: dict) -> bytes:
@@ -176,7 +199,8 @@ def _route_accept(h: "_Handler"):
     args = (token, host, _field(body, "os"), _field(body, "hq_root"), _field(body, "pubkey"))
     deploy = _field(body, "deploy_pubkey", optional=True)
     try:
-        res = hq_join.accept(*args, deploy_pubkey=deploy)
+        with _db_slot():
+            res = hq_join.accept(*args, deploy_pubkey=deploy)
     except hq_join.JoinError as exc:
         if exc.code == "bad_arg":
             return 400, _json({"error": "bad_arg", "message": exc.message}), _JSON, log_host
@@ -201,7 +225,7 @@ def _route_sealed(h: "_Handler"):
     log_host = _loggable_host(host)
     if log_host is None or not isinstance(token, str) or not hq_join.TOKEN_RE.fullmatch(token):
         raise _Refuse(*_REFUSED)
-    with db.get_conn() as conn:
+    with _db_slot(), db.get_conn() as conn:
         tok = conn.execute("SELECT host, used_at FROM join_tokens WHERE token_hash = ?",
                            (hq_join.hash_token(token),)).fetchone()
         row = conn.execute("SELECT status FROM hosts WHERE host = ?", (log_host,)).fetchone()
@@ -216,7 +240,8 @@ def _route_sealed(h: "_Handler"):
     if row["status"] == hq_join.STATUS_PENDING:
         return 202, _json({"status": "pending"}), _JSON, log_host
     try:
-        ciphertext = hq_join.sealed_ciphertext(log_host)
+        with _db_slot():
+            ciphertext = hq_join.sealed_ciphertext(log_host)
     except hq_join.JoinError:  # no live ciphertext (revoked, or never stored)
         raise _Refuse(*_REFUSED) from None
     return 200, _json({"status": "ready", "ciphertext": ciphertext}), _JSON, log_host
@@ -327,7 +352,8 @@ class _Handler(BaseHTTPRequestHandler):
                 self._send(status, body, ctype)
         except _Refuse as r:
             status, drain = r.status, r.drain
-            self._send(status, _json({"error": r.code}), _JSON)
+            self._send(status, _json({"error": r.code}), _JSON,
+                       {"Retry-After": str(int(DB_WAIT_S))} if status == 503 else None)
         except Exception as exc:  # never a message: a driver error can carry row values
             status = 500
             _log.error("%s %s: %s", method, path if route else "-", type(exc).__name__)
