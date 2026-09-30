@@ -473,13 +473,15 @@ def _one_shot_task_script(task_name: str, argument: str) -> str:
         "-DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Seconds 0); "
         f"Register-ScheduledTask -TaskName {name} -Action $act -Principal $pri "
         "-Settings $set -Force | Out-Null; "
-        f"Start-ScheduledTask -TaskName {name}; "
+        # try/finally (W2.7): with 'Stop', a Start-ScheduledTask that throws
+        # would otherwise leave the task registered for anyone to re-run.
+        f"try {{ Start-ScheduledTask -TaskName {name}; "
         f"$deadline = (Get-Date).AddSeconds({_SCHTASK_START_WAIT_S}); "
         f"while ((Get-Date) -lt $deadline -and (Get-ScheduledTask -TaskName {name}).State "
         "-ne 'Running') { Start-Sleep -Milliseconds 500 }; "
-        f"$state = [string](Get-ScheduledTask -TaskName {name}).State; "
-        f"Unregister-ScheduledTask -TaskName {name} -Confirm:$false "
-        "-ErrorAction SilentlyContinue; "
+        f"$state = [string](Get-ScheduledTask -TaskName {name}).State }} "
+        f"finally {{ Unregister-ScheduledTask -TaskName {name} -Confirm:$false "
+        "-ErrorAction SilentlyContinue }; "
         "if ($state -ne 'Running') { throw \"task state is $state, not Running\" }; "
         "Write-Output \"STARTED $state\""
     )
@@ -676,7 +678,7 @@ def _spawn_worker_windows(task: dict) -> None:
                                       f"{refused[len('SPAWN_REFUSED='):]}")
         return
     if r.returncode != 0 or not lines:
-        detail = (r.stderr or r.stdout or "").strip()[:1000]
+        detail = _redact((r.stderr or r.stdout or "").strip())[:1000]
         db.update_status(task_id, "failed", actor=ACTOR,
                          delegate_log=f"spawn ({_self_host()}) failed: {detail}")
         return
