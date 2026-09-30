@@ -88,6 +88,10 @@ fmt_utc() {
     fi
 }
 
+is_door_script() {
+    [ -f "$1" ] && [ -r "$1" ] && grep -q "^# The hub's join door (Org Mesh W4.6c)" "$1"
+}
+
 proxy_up() {
     [ -n "$("$DOCKER" ps -q --filter "name=^/$PROXY\$" --filter status=running 2>/dev/null || true)" ]
 }
@@ -149,10 +153,13 @@ cmd_open() {
     need_root
     [ -f "$COMPOSE" ] || die "missing $COMPOSE (update the checkout first, see deploy/join/README.md)"
 
-    # The copy the timer will run. $0 must be a real file: `sh -s` or a pipe has nothing to copy.
+    # The copy the timer will run. Normally $0, the file the card runner executes. Run from a
+    # pipe (`sh -s`) $0 is "sh", or "/bin/sh": not this script, so it is checked by its first
+    # comment line, and the checkout's own copy is the one to keep.
     self=$0
     case $self in /*) ;; *) self=$(pwd)/$self ;; esac
-    [ -f "$self" ] && [ -r "$self" ] || die "cannot find this script's own file ($0) to schedule the close from"
+    is_door_script "$self" || self=$CORE/deploy/join/door.sh
+    is_door_script "$self" || die "cannot find this script's own file ($0) or $CORE/deploy/join/door.sh to schedule the close from"
     umask 077
     mkdir -p "$DOOR_HOME"
     chmod 700 "$DOOR_HOME"

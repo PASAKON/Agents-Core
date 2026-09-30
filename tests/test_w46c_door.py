@@ -121,6 +121,7 @@ class Door:
         self.core = tmp_path / dirname
         (self.core / "deploy" / "join").mkdir(parents=True)
         (self.core / "deploy" / "join" / "docker-compose.join-proxy.yml").write_text("name: org-join-proxy\n")
+        shutil.copyfile(DOOR, self.core / "deploy" / "join" / "door.sh")       # the checkout's own copy
         self.home = tmp_path / "door-home"
         self.script = tmp_path / "runner" / "door.sh"            # where the card runner left it
         self.script.parent.mkdir()
@@ -215,6 +216,23 @@ def test_the_timer_runs_a_copy_that_outlives_the_file_the_card_ran_from(door):
     r = subprocess.run([door.shell, *argv[-2:]], capture_output=True, text=True, env=door.env, timeout=60)
     assert (r.returncode, r.stdout) == (0, "closed\n")             # what the timer does when it fires
     assert not door.up("service") and not door.up("proxy") and not door.up("timer")
+
+
+def test_run_from_a_pipe_the_checkouts_copy_is_the_one_scheduled(door):
+    text = door.script.read_text()
+    r = subprocess.run([door.shell, "-s", "open", "--minutes", "5"], input=text, capture_output=True, text=True,
+                       env=door.env, cwd=str(door.script.parent), timeout=60)
+    assert (r.returncode, r.stdout) == (0, f"open until {_utc(NOW + 5 * 60)}\n"), r.stderr
+    assert door.door_copy.read_bytes() == DOOR.read_bytes()
+    assert (door.state / "timer.argv").read_text().splitlines()[-2:] == [str(door.door_copy), "close"]
+
+
+def test_run_from_a_pipe_with_no_checkout_copy_open_refuses_and_starts_nothing(door):
+    (door.core / "deploy" / "join" / "door.sh").unlink()
+    r = subprocess.run([door.shell, "-s", "open"], input=door.script.read_text(), capture_output=True, text=True,
+                       env=door.env, cwd=str(door.script.parent), timeout=60)
+    assert r.returncode == 1 and "cannot find this script's own file" in r.stderr
+    assert door.calls() == []
 
 
 def test_open_starts_the_service_then_the_proxy_compose_of_the_checkout(door):
