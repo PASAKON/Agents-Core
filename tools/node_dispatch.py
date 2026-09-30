@@ -37,6 +37,7 @@ import os
 import re
 import shlex
 import shutil
+import stat
 import subprocess
 import sys
 import time
@@ -244,9 +245,165 @@ def _installed_runners() -> list[str]:
     return sorted(n for n in ("claude", "codex", "agy") if shutil.which(n))
 
 
+# W4.4 (task-49f70bc6): `provides` measured on the node, never read from
+# hosts.yaml. Each detector answers one capability with a bool. Bounded: every
+# child has an argv list, no shell, no stdin and PROBE_CHILD_TIMEOUT_S, and a
+# detector that raises (or whose child hangs) is left out of the list and named
+# once in `probe_errors`; nothing here can fail the probe.
+#
+# A signed-in runner is read off the credential file's existence and size from
+# os.stat. The file is never opened, read, hashed or printed
+# (tests/test_w44_probe_provides.py pins that with an open() that explodes).
+PROBE_CHILD_TIMEOUT_S = 5
+_NODE_MIN_MAJOR = 20
+_NODE_VERSION_RE = re.compile(r"v(\d{1,4})\.")
+
+
+def _is_file(path: Path) -> bool:
+    try:
+        return path.is_file()
+    except OSError:
+        return False
+
+
+def _file_has_content(path: Path) -> bool:
+    """Exists, is a regular file, size > 0. os.stat only: never opens `path`."""
+    try:
+        st = path.stat()
+    except OSError:
+        return False
+    return stat.S_ISREG(st.st_mode) and st.st_size > 0
+
+
+def _windows_env_dirs(*names: str) -> list[Path]:
+    """Each named env var that is set and non-empty, as a Path. An unset one is
+    skipped: Path('') / 'x' would be a relative path under the working dir."""
+    return [Path(v) for v in (os.environ.get(n) for n in names) if v]
+
+
+def _chrome_candidates() -> list[Path]:
+    home = Path.home()
+    if _is_windows():
+        tails = (Path("Google/Chrome/Application/chrome.exe"),
+                 Path("Chromium/Application/chrome.exe"))
+        return [d / t for d in _windows_env_dirs("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA")
+                for t in tails]
+    if _os_name() == "darwin":
+        apps = (Path("Google Chrome.app/Contents/MacOS/Google Chrome"),
+                Path("Chromium.app/Contents/MacOS/Chromium"))
+        return [root / a for root in (Path("/Applications"), home / "Applications") for a in apps]
+    named = ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome")
+    found = [Path(p) for p in (shutil.which(n) for n in named) if p]
+    return found + [Path("/opt/google/chrome/chrome"), Path("/snap/bin/chromium")]
+
+
+def _has_chrome() -> bool:
+    return any(_is_file(p) for p in _chrome_candidates())
+
+
+def _child_exit(argv: list[str], want_stdout: bool = False) -> tuple[int, str]:
+    """(exit code, stdout) of a bounded child. stderr and stdin are /dev/null; with
+    `want_stdout` False stdout is too, so no pipe stays open if a grandchild
+    outlives the timeout."""
+    r = subprocess.run(
+        argv, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        stdout=subprocess.PIPE if want_stdout else subprocess.DEVNULL,
+        text=True, timeout=PROBE_CHILD_TIMEOUT_S,
+    )
+    return r.returncode, (r.stdout or "") if want_stdout else ""
+
+
+def _has_ffmpeg() -> bool:
+    exe = shutil.which("ffmpeg")
+    return bool(exe) and _child_exit([exe, "-version"])[0] == 0
+
+
+def _has_gpu() -> bool:
+    """An NVIDIA GPU: nvidia-smi exits 0 and lists one. A driver with no device is
+    not a GPU. macOS Metal is not reported (the task says only nvidia)."""
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        return False
+    code, out = _child_exit([exe, "-L"], want_stdout=True)
+    return code == 0 and any(ln.startswith("GPU ") for ln in out.splitlines())
+
+
+def _has_node20() -> bool:
+    exe = shutil.which("node")
+    if not exe:
+        return False
+    code, out = _child_exit([exe, "--version"], want_stdout=True)
+    m = _NODE_VERSION_RE.match(out.strip()) if code == 0 else None
+    return bool(m) and int(m.group(1)) >= _NODE_MIN_MAJOR
+
+
+def _playwright_browsers_dir() -> Path | None:
+    override = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+    if override:
+        # "0" makes Playwright keep browsers inside node_modules: no fixed folder.
+        return None if override == "0" else Path(override)
+    if _is_windows():
+        base = _windows_env_dirs("LOCALAPPDATA")
+        return base[0] / "ms-playwright" if base else None
+    if _os_name() == "darwin":
+        return Path.home() / "Library" / "Caches" / "ms-playwright"
+    return Path.home() / ".cache" / "ms-playwright"
+
+
+def _has_playwright_chromium() -> bool:
+    """The browsers folder holds a chromium build (`chromium-<n>`). A folder with
+    only firefox/webkit in it does not provide playwright_chromium."""
+    folder = _playwright_browsers_dir()
+    try:
+        return folder is not None and any(folder.glob("chromium*"))
+    except OSError:
+        return False
+
+
+def _claude_credentials() -> Path:
+    return Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / ".credentials.json"
+
+
+def _codex_credentials() -> Path:
+    return Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex") / "auth.json"
+
+
+def _agy_credentials() -> Path:
+    return Path.home() / ".gemini" / "antigravity-cli" / "antigravity-oauth-token"
+
+
+# In the order the probe reports them. `os` is handled apart (it always answers).
+_PROVIDES_DETECTORS = (
+    ("chrome", _has_chrome),
+    ("ffmpeg", _has_ffmpeg),
+    ("gpu", _has_gpu),
+    ("node20", _has_node20),
+    ("playwright_chromium", _has_playwright_chromium),
+    ("runner_claude", lambda: _file_has_content(_claude_credentials())),
+    ("runner_codex", lambda: _file_has_content(_codex_credentials())),
+    ("runner_agy", lambda: _file_has_content(_agy_credentials())),
+)
+
+
+def _measure_provides() -> tuple[list[str], list[str]]:
+    """(provides_measured, probe_errors). The OS family is always first:
+    `macos`, `linux` or `windows`. An error entry is `<name>: <ExceptionType>`
+    and nothing else, so a path or a message cannot leak through it."""
+    os_family = {"darwin": "macos"}.get(_os_name(), _os_name())
+    measured, errors = [os_family], []
+    for name, detect in _PROVIDES_DETECTORS:
+        try:
+            if detect():
+                measured.append(name)
+        except Exception as e:  # incl. subprocess.TimeoutExpired: absent, not a failed probe
+            errors.append(f"{name}: {type(e).__name__}")
+    return measured, errors
+
+
 def verb_probe() -> dict:
     host = _self_host()
     cpus, load_per_core = _cpu_facts()
+    provides_measured, probe_errors = _measure_provides()
     facts = {
         "host": host,
         "os": _os_name(),
@@ -258,6 +415,10 @@ def verb_probe() -> dict:
         "cpus": cpus,
         "load_per_core": load_per_core,
         "runners": _installed_runners(),
+        # W4.4: measured here, not from hosts.yaml. Reported only; it is not
+        # written to the `hosts` row (the router's merge is a separate change).
+        "provides_measured": provides_measured,
+        "probe_errors": probe_errors,
     }
     # Probe fields only. `status` is left alone on purpose: it is the join
     # state machine's (pending_identity -> online), not a measurement.
@@ -294,9 +455,9 @@ def _windows_spawn_gate(task: dict) -> None:
     delegate_task ran them and took the path locks before it dispatched, so on
     the normal path they pass. They stop a caller holding the org_dispatch key
     from starting a pending row the hub never gated: one with an unfinished
-    dependency, or whose touches overlap a task already in flight. Locks stay
-    the hub's to take; nothing here writes. The row's host is checked before
-    this, by _task_on_this_host."""
+    dependency, whose touches overlap a task already in flight, or on a box
+    below the disk floor (F3b). Locks stay the hub's to take; nothing here
+    writes. The row's host is checked before this, by _task_on_this_host."""
     tid = task["id"]
     deps =[d for d in _json_list(task.get("depends_on")) if isinstance(d, str)]
     unmet = db.unmet_dependencies(deps) if deps else []
@@ -308,6 +469,40 @@ def _windows_spawn_gate(task: dict) -> None:
     if conflicts:
         raise Refusal(f"task {tid} overlaps tasks in flight: "
                       + ", ".join(str(c.get("task_id")) for c in conflicts[:5]))
+    _windows_disk_floor_gate(task)
+
+
+def _nearest_existing(path: Path) -> Path:
+    """`path`, or its closest ancestor that exists: the worktrees root is made by
+    the launcher, so on a first spawn it is not there yet and disk_usage raises.
+    The ancestor is on the same drive."""
+    for candidate in (path, *path.parents):
+        if candidate.exists():
+            return candidate
+    return path
+
+
+def _windows_disk_floor_gate(task: dict) -> None:
+    """W2.7 F3b: the disk floor delegate_task applies before a spawn, re-checked
+    here because the win32 path never calls delegate_task. Same reading seam
+    (delegate._free_gb), same floor (delegate._disk_orange_floor_gb, the
+    `gauge.orange` key of config/storage-policy.yaml), same strict `<`, same
+    scope rule (delegate._scope_applies "disk_floor"). Measured on the drive
+    that will hold the worktree. A refusal leaves the row pending: delegate's
+    queue-for-disk is the hub's to do. The browser cap stays the hub's too.
+    A free-space read that fails is a refusal, not a pass: this is a guard."""
+    from tools import delegate
+    if not delegate._scope_applies("disk_floor", task.get("owner_cto")):
+        return
+    where = _nearest_existing(_worktrees_root())
+    floor_gb = delegate._disk_orange_floor_gb()
+    try:
+        free_gb = delegate._free_gb(str(where))
+    except OSError as e:
+        raise Refusal(f"spawn_worker: cannot read free disk on {_show(where)}: {type(e).__name__}")
+    if free_gb < floor_gb:
+        raise Refusal(f"disk red on {_self_host()}: {free_gb:.1f} GB free < {floor_gb:.1f} GB "
+                      f"floor (storage-policy gauge.orange), spawn refused")
 
 
 def verb_spawn_worker(task_id: str) -> dict:
@@ -805,6 +1000,27 @@ def _letter_sender(letter: dict) -> tuple[str, str]:
     return from_role, from_sid
 
 
+WIN_WAKE_FLAG = "ORG_WIN_WAKE"
+
+
+def _windows_wake(role: str, sid: str, from_role: str) -> dict:
+    """W3.5 wiring, OFF unless ORG_WIN_WAKE is exactly "1" (CEO has not decided
+    whether a wake may raise a window on his desktop and press Enter). Off: the
+    W3.3 answer, `woke: False`, and agent_transport.wake_windows_tab is never
+    called. On: its `woke` and `why`. The letter is already on disk, so a wake
+    that fails or raises is `woke: False`, never a failed delivery. C-level
+    letters only: a worker reads MAILBOX.md before every tool call."""
+    if os.environ.get(WIN_WAKE_FLAG) != "1":
+        return {"woke": False}
+    from tools import agent_transport
+    try:
+        r = agent_transport.wake_windows_tab(f"{role}-{sid}", from_role.upper())
+        return {"woke": r.get("woke") is True,
+                "why": _redact(str(r.get("why", "")))[:MAX_ERROR_CHARS]}
+    except Exception as e:
+        return {"woke": False, "why": f"wake raised {type(e).__name__}"}
+
+
 def _write_clevel_letter(letter: dict, role: str) -> dict:
     from tools import send_to_cxo
     sid = letter.get("to_session") or send_to_cxo._active_session_id(role)
@@ -820,8 +1036,8 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
-    if _is_windows():  # waking a pane on Windows is the W3.5 spike
-        return {"to": f"{role}-{sid}", "woke": False}
+    if _is_windows():
+        return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
     try:  # best effort, never changes the outcome (same rule as send_to_cxo)
         send_to_cxo.attempt_wake(role, sid, from_role.upper())
     except Exception:

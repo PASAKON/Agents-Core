@@ -28,7 +28,7 @@ sys.path.insert(0, str(ROOT))
 from lib import config as config_mod  # noqa: E402
 from lib import db as db_mod  # noqa: E402
 from lib import mailbox, mesh, proc  # noqa: E402
-from tools import agent_transport, send_to_cxo, session_status, tmux_session  # noqa: E402
+from tools import agent_transport, delegate, send_to_cxo, session_status, tmux_session  # noqa: E402
 from tools import send_to_worker as sw  # noqa: E402
 from tools import node_dispatch as nd  # noqa: E402
 
@@ -69,6 +69,8 @@ def _isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(send_to_cxo, "LOCKS_DIR", locks)
     monkeypatch.setattr(nd, "_worktrees_root", lambda: tmp_path / "worktrees")
     (tmp_path / "worktrees").mkdir()
+    # W2.7 F3b: the spawn gate reads free disk; these tests are about the launch, not the box.
+    monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 100.0)
 
 
 @pytest.fixture
@@ -159,6 +161,7 @@ def _stub_machine(monkeypatch, *, ram=8 * 1024 ** 3):
     monkeypatch.setattr(nd, "_win_avail_phys_bytes", lambda: ram)
     monkeypatch.setattr(nd, "_git_version", lambda: "abc1234")
     monkeypatch.setattr(nd, "_installed_runners", lambda: ["claude"])
+    monkeypatch.setattr(nd, "_measure_provides", lambda: (["windows"], []))  # W4.4: no real ffmpeg/node
     monkeypatch.setattr(nd.os, "cpu_count", lambda: 8)
     monkeypatch.delattr(nd.os, "getloadavg", raising=False)  # absent on Windows
 
