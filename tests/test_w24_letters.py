@@ -284,9 +284,12 @@ def test_two_open_sessions_on_the_one_other_host_pick_the_newest(monkeypatch, fl
     assert _letters()[0]["to_session"] == "new11111"
 
 
-def test_send_to_worker_is_not_changed_by_the_flag(monkeypatch, flag_on):
-    """A DEV on another host still goes through today's _send_remote: node_dispatch's
-    deliver_letter only writes to C-level boxes, so a worker letter could not land."""
+def test_send_to_worker_flag_on_is_a_letter_since_w33(monkeypatch, flag_on):
+    """W3.3 reversed this test. It used to say: a DEV on another host still goes
+    through _send_remote, because deliver_letter only wrote C-level boxes (and the
+    flag-on send raised NotImplementedError for a Linux host). deliver_letter now
+    writes a worker's box, so the message goes out as one letter and one verb. The
+    full cases are in tests/test_w33_node_dispatch_windows.py."""
     fake = _install(monkeypatch, _ok)
     tid = "task-" + uuid.uuid4().hex[:8]
     ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -297,9 +300,12 @@ def test_send_to_worker_is_not_changed_by_the_flag(monkeypatch, flag_on):
             (tid, "p", "developer", "in_progress", "t", "d", "[]", "[]", "contabo",
              "/opt/MoonieXHQ/Agents/Core/worktrees/x", ts, ts),
         )
-    with pytest.raises(NotImplementedError):
-        sw.send(tid, "hello")
-    assert fake.calls == [] and _letters() == []
+    out = sw.send(tid, "hello")
+    assert out.startswith(f"delivered to Developer ({tid}) on contabo")
+    (letter,) = _letters()
+    assert (letter["to_host"], letter["to_role"], letter["to_session"]) == (
+        "contabo", "developer", tid)
+    assert fake.calls == [("contabo", "deliver_letter", (str(letter["id"]),))]
 
 
 # ---------------------------------------------------------------------------

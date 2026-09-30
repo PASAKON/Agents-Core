@@ -27,8 +27,9 @@ sys.path.insert(0, str(ROOT))
 
 from lib import config as config_mod  # noqa: E402
 from lib import db as db_mod  # noqa: E402
-from lib import mailbox, proc  # noqa: E402
+from lib import mailbox, mesh, proc  # noqa: E402
 from tools import agent_transport, send_to_cxo, session_status, tmux_session  # noqa: E402
+from tools import send_to_worker as sw  # noqa: E402
 from tools import node_dispatch as nd  # noqa: E402
 
 UUID = "12345678-1234-1234-1234-123456789abc"
@@ -536,3 +537,124 @@ def test_hostile_argument_over_the_ssh_command_line_is_refused_on_windows(win, m
     events = [json.loads(r["payload"]) for r in db_mod.recent_events(limit=50)
               if r["actor"] == nd.ACTOR]
     assert len(events) == 5 and not any(e["ok"] for e in events)
+
+
+# ---------------------------------------------------------------------------
+# send_to_worker: a worker on another host
+# ---------------------------------------------------------------------------
+
+class FakeMesh:
+    """Stands in for lib.mesh.dispatch. `script(host, verb, args)` answers."""
+
+    def __init__(self, script) -> None:
+        self.script, self.calls = script, []
+
+    def __call__(self, host, verb, *args, timeout=None):
+        self.calls.append((host, verb, args))
+        return self.script(host, verb, args)
+
+
+def _ok(host, verb, args):
+    return {"ok": True, "verb": verb, "result": {"delivered": True}}
+
+
+def _down(host, verb, args):
+    raise mesh.MeshUnreachable(f"{verb} on {host}: no route")
+
+
+def _refused(host, verb, args):
+    return {"ok": False, "verb": verb, "error": "letter not delivered: no live tmux session"}
+
+
+def _letters() -> list[dict]:
+    with db_mod.get_conn() as conn:
+        return [dict(r) for r in conn.execute("SELECT * FROM letters ORDER BY id").fetchall()]
+
+
+@pytest.fixture
+def sender(monkeypatch):
+    """This process is the Mac hub sending to a worker elsewhere."""
+    monkeypatch.setattr(sw, "self_host", lambda: "mac")
+    for var in ("WORKER_TASK_ID", "WORKER_ROLE"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.delenv(mesh.ENV_FLAG, raising=False)
+
+
+@pytest.fixture
+def flag_on(sender, monkeypatch):
+    monkeypatch.setenv(mesh.ENV_FLAG, "1")
+
+
+def _install(monkeypatch, script) -> FakeMesh:
+    fake = FakeMesh(script)
+    monkeypatch.setattr(mesh, "dispatch", fake)
+    return fake
+
+
+def test_send_to_a_remote_worker_flag_on_is_one_letter_and_one_verb(flag_on, monkeypatch, runs):
+    fake = _install(monkeypatch, _ok)
+    monkeypatch.setattr(sw, "_send_remote", _boom)
+    tid = _mk_task(host="contabo", worktree="/opt/x/wt")
+
+    out = sw.send(tid, "please push")
+
+    assert out == f"delivered to Developer ({tid}) on contabo: [CEO] : please push"
+    (letter,) = _letters()
+    assert (letter["to_host"], letter["to_role"], letter["to_session"], letter["from_host"],
+            letter["body"], letter["status"]) == (
+        "contabo", "developer", tid, "mac", "please push", "delivered")
+    assert fake.calls == [("contabo", "deliver_letter", (str(letter["id"]),))]
+    assert runs.calls == []  # no ssh, no scp
+
+
+@pytest.mark.parametrize("script, attempts", [(_down, 1), (_refused, 1)])
+def test_send_to_a_remote_worker_that_does_not_answer_queues_and_does_not_raise(
+        flag_on, monkeypatch, script, attempts):
+    _install(monkeypatch, script)
+    tid = _mk_task(host="contabo", worktree="/opt/x/wt")
+
+    out = sw.send(tid, "hello")
+
+    (letter,) = _letters()
+    assert out == f"queued for contabo: Developer ({tid}) (letter {letter['id']}): [CEO] : hello"
+    assert (letter["status"], letter["attempts"]) == ("pending", attempts)
+
+
+def test_send_to_a_worker_on_this_host_never_touches_the_mesh(flag_on, monkeypatch):
+    fake = _install(monkeypatch, _ok)
+    for host in (None, "mac"):
+        tid = _mk_task(**({"host": host} if host else {}))
+        assert sw.send(tid, "hello").startswith(f"queued to Developer ({tid})")
+        assert [m["body"] for m in mailbox.peek("developer", tid)] == ["hello"]
+    assert fake.calls == [] and _letters() == []
+
+
+def test_flag_off_a_remote_worker_takes_todays_ssh_path_and_never_touches_the_mesh(
+        sender, monkeypatch, runs):
+    def no_mesh(*a, **kw):
+        raise AssertionError(f"lib.mesh must not be used: {a}")
+
+    for name in ("dispatch", "build_argv", "_node_dispatch"):
+        monkeypatch.setattr(mesh, name, no_mesh)
+    monkeypatch.setattr(send_to_cxo, "dispatch_letter", no_mesh)
+    seen = []
+    monkeypatch.setattr(sw, "_send_remote",
+                        lambda task, message, **kw: seen.append((task["id"], message)) or "ssh path")
+    tid = _mk_task(host="contabo", worktree="/opt/x/wt")
+
+    assert sw.send(tid, "hello") == "ssh path"
+    assert seen == [(tid, "hello")] and _letters() == [] and runs.calls == []
+
+
+def test_a_worker_letter_travels_from_send_to_worker_to_mailbox_md_on_windows(
+        flag_on, monkeypatch, win, tmp_path):
+    """Both ends in one process: the hub side sends, node_dispatch on 'winbox' writes."""
+    tid, wt = _worker(tmp_path, host="winbox")
+    _install(monkeypatch, lambda host, verb, args: nd.dispatch(verb, list(args)))
+
+    out = sw.send(tid, "stop and push")
+
+    assert out.startswith(f"delivered to Developer ({tid}) on winbox")
+    (line,) = (wt / "MAILBOX.md").read_text(encoding="utf-8").splitlines()
+    assert line.endswith(" | ceo-ceo | stop and push")
+    assert _letters()[0]["status"] == "delivered"
