@@ -1,5 +1,51 @@
 # task-719e0c56 — Org Mesh W1.6: ORG_DB_URL to every org MCP server through the env-file wrapper
 
+> **Iteration 2 follows this heading and supersedes parts of iteration 1.** Superseded: "wrapper when the env file exists" (now needs the node-file switch too) and the watchdog unit's `EnvironmentFile` (reverted). The iteration-1 text below is kept as written for the record; where it disagrees with Iteration 2, Iteration 2 wins.
+
+## Iteration 2 (CTO-FEEDBACK: the env file is not the cutover)
+
+### Why
+The env file exists on the Mac (since 2026-09-18) and on Contabo before any cutover. Wrapping on existence alone would have moved every NEW session to Postgres while the watchdog, the hooks and the CLI stayed on `state/tasks.db`: a split ledger. The switch must be an explicit per-host act.
+
+### What changed
+- `scripts/lib/cxo_mcp_config.py` (stdlib only, runs under system `python3`):
+  - `hub_is_live()` reads the node file (`~/.config/mooniex/node.yaml`, override `$MOONIEX_NODE_YAML`). Live only when a top-level line matches `^org_db:\s*hub\s*$` after a trailing ` # comment` is stripped. The last `org_db:` line wins.
+  - Not live: any other value (`sqlite`, `hubx`, `hub#x`, quoted, empty), an indented or commented-out line, a missing key, a missing file, a directory.
+  - `org_db_wrapper()` now needs ALL of: hub live, env file exists (`is_file()`, never opened), wrapper script exists, not Windows. `lib/worker_mcp_config.py` is unchanged in logic and follows through `cxo.wrap_org_entry` (docstring names the switch).
+  - `set_org_db(text, value)` is the writer, next to the reader so the grammar lives in one place. It replaces the first `org_db:` line in place, drops later duplicates, appends if absent, removes all on `None`, and keeps every other line byte for byte (`host:` above all). Idempotent.
+- `scripts/hub/cutover_flip.py`: step 4 `--apply` also writes `org_db: hub` (via `set_org_db`, path from `node_yaml_path()` so the override name cannot drift). New `--rollback` (with `--apply`) removes the line and leaves the plists alone. Dry-run prints the diff and writes nothing. A missing node file is created holding only the switch.
+- `scripts/hub/cutover-mac.sh`: step-4 text names the node-file line, says the env file alone is not the switch, and says running sessions and workers keep their old MCP config until they restart. Summary and rollback text name `cutover_flip.py --rollback --apply`. `bash -n` clean.
+- `deploy/systemd/mooniex-watchdog.service`: back to 9631849f except the comment's last sentence, which now reads "ORG_DB_URL for the Postgres hub reaches this unit at Contabo's own cutover (W1.8), through a systemd drop-in, not this file." No `EnvironmentFile`.
+- `tests/test_w04_self_host_sites.py`: back to 9631849f (`git diff 9631849f` is empty); it pins "no EnvironmentFile" again.
+- `conftest.py`: the autouse fixture now also pins `MOONIEX_NODE_YAML` to a nonexistent tmp file.
+- `tests/test_w16_org_db_injection.py`: rewritten, 51 tests (was 16). Fake env file and fake node file in `tmp_path` only; the real env file and real node file are never opened, and an autouse fixture points both overrides at missing files.
+
+### Tests added (the CTO's list)
+- Env file present, switch absent: both generators return today's plain entry byte for byte (the case that matters most). Also a node file with only `host: mac`.
+- Both present: wrapped, no secret and no `ORG_DB_URL` in any generated JSON. Switch present, env file absent: plain. Wrapper script missing: plain. Windows: plain.
+- 14 non-live node files (`sqlite`, commented, `hubx`, `xhub`, indented, nested, quoted, `hub#x`, empty, last-line-wins to `sqlite`, empty file, more) are plain. 7 live spellings (trailing comment, CRLF, no final newline, `sqlite` then `hub`, extra spaces) are wrapped. Default paths under a fake `$HOME` with both overrides unset.
+- `set_org_db` unit tests: replace in place, no duplicate, `host:` kept, append with and without a final newline, remove, idempotent.
+- `cutover_flip` (tested on a tmp copy, never the real cutover, plists and node file in tmp): dry-run leaves the node file byte-identical and prints `+org_db: hub`. `--apply` is idempotent, never duplicates, keeps `host:` and `hq_root:`, and replaces an existing `org_db: sqlite`. `--rollback` dry-run is a no-op. `--rollback --apply` removes the line and leaves the plists. The line `--apply` writes is exactly the one `hub_is_live()` reads. The tracked files are never touched in any of the four modes.
+- `cutover-mac.sh` parses (`bash -n`) and carries the restart sentence and the rollback command.
+
+### Tests run (from the worktree, main checkout's interpreter, no `-q`)
+- `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -p no:warnings`, default host: **3427 passed, 27 skipped** in 271.40s, exit 0.
+- Same with `ORG_HOST=contabo`: **3427 passed, 27 skipped** in 251.12s, exit 0.
+- `.venv/bin/python scripts/test_mcp_role_config.py` standalone: `OK — 0 failure(s)`, exit 0.
+- Baseline before any iteration-1 edit: 3376 passed, 27 skipped. 3376 + 51 (new file) = 3427; no other test changed.
+
+### NOT DONE: `tools/mesh_check.py:340` and `:436` (BLOCKED)
+`self_repo_guard` (ADR 0020) refuses every Edit of `tools/mesh_check.py`. The guard lists this task's declared touches as the original 7 paths; `tools/mesh_check.py` is not among them. I asked the CTO by `dev_message` to add it and have had no reply. I did not route around the guard. Final attempt after the suite run was refused the same way.
+Ready to apply as soon as the path is declared, then one more full-suite run:
+- add `import importlib.util`;
+- add `_org_server_launch(root, python)` after `_venv_python`: load `scripts/lib/cxo_mcp_config.py` by path, return `_build("org", str(root))`'s `command` and `args`, and fall back to the plain `python -m runners.cto_mcp_server` only when that file is missing;
+- in `check_l2` and `run_l3_probe`, move the `StdioServerParameters(...)` construction into the existing `try:` and build it from `_org_server_launch`, so a failure is a red result, never a silent probe of the wrong ledger;
+- tests in `tests/test_mesh_check.py` (or this task's file): switch on plus fake env file gives the wrapper, switch off gives plain.
+Until then `mesh_check` L2/L3 still spawn the plain server and reach the hub only if the caller's env carries `ORG_DB_URL`. After a host's cutover the probe therefore does not follow the same switch as real sessions; on this branch nothing else reads or writes through `mesh_check`'s launch params.
+
+### For Contabo's own cutover (W1.8, not built here)
+Write `org_db: hub` into `/root/.config/mooniex/node.yaml` (the same line `cutover_flip.py` writes on the Mac) and give the watchdog unit `ORG_DB_URL` through a systemd drop-in (`EnvironmentFile=`), not through the tracked unit. Until both are done, Contabo sessions stay on SQLite by design.
+
 ## Summary
 The two MCP config generators now start the org server through `scripts/hub/with-org-db-env.sh` when the hub env file exists on the host, so `ORG_DB_URL` reaches the server at spawn time with nothing written into any config or tracked file. `cutover_flip.py` no longer edits tracked files (only the two untracked launchd plists), and the watchdog systemd unit gets an optional `EnvironmentFile`.
 
@@ -73,3 +119,9 @@ The wrapper sources the env file and `exec`s the command; it works for any `lib.
 - MISSING [CXO_Protocol_DevSpawn §brief / touch-list]: a touch list should be built by grepping the tests that pin the OLD behaviour of the thing being changed. This brief's list omitted `tests/test_w04_self_host_sites.py:498` (asserts no `EnvironmentFile`) and `conftest.py` (host-file isolation); both had to be edited anyway · evidence: task-719e0c56, commits 9deecce6 / 43ad45ab
 - MISSING [no owner]: a test that asserts generator output must pin any host file the generator now looks at (here `MOONIEX_ORG_DB_ENV` in `conftest.py`); a real `~/.config/mooniex/org-db.env` made one existing test pass on Contabo/CI and fail on the CEO's Mac · evidence: `tests/test_w03_self_host_spawn.py::test_mac_generated_worker_mcp_config_parses_equal_to_the_template`, commit 9deecce6
 - COSTLY [no owner]: the Grep tool (ripgrep) skips dotfiles, so a consumer inventory misses `.mcp.json` and `.claude/` unless repeated with `grep -rI` · evidence: this task's step-3 inventory; prevented by: run both, or state the dotfile gap in the report
+
+Iteration 2:
+- WRONG [CXO_Protocol_DevSpawn §brief / cutover switch]: "wrap when the env file exists" was treated as the cutover signal, but the env file predates the cutover on every host (Mac since 2026-09-18, Contabo too). Existence of an input file is not a per-host switch; it splits the ledger · evidence: task-719e0c56 CTO-FEEDBACK iteration 2, commit e111d2b7 · fix: the brief must name the explicit switch (here `org_db: hub` in node.yaml) and say which files must NOT change behaviour when only the input exists.
+- MISSING [CXO_Protocol_DevSpawn §touch-list]: when a brief says "follow the same switch everywhere", the touch list must include every non-generated launch site found by the inventory. `tools/mesh_check.py` was named in the iteration-1 report and required in iteration 2, but was not in the declared `touches`, so `self_repo_guard` blocked it · evidence: task-719e0c56, `tools/mesh_check.py:340,436`, guard refusal · fix: add every inventory hit under `tools/` to `touches` at spawn.
+- MISSING [no owner]: the GateGuard Edit gate fires first and `self_repo_guard` second; a GateGuard-only error does NOT mean the path is cleared. Answer the gate and retry once to see the real verdict · evidence: task-719e0c56 (`tools/mesh_check.py`, 2 rounds).
+- COSTLY [no owner]: a mutation probe on a source file to prove a test can fail ("delete the gate, expect red") is refused by the auto-mode classifier as Security Weaken, and a scratch dir containing `.venv` is refused by `self_repo_guard` even in the scratchpad · evidence: task-719e0c56, two refused Bash calls · prevented by: prove the guard with a bad input inside a test (the switch-absent and non-live-value cases do), not by editing the source or building a fake `.venv` path.
