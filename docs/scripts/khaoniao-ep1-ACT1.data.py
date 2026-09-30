@@ -198,7 +198,7 @@ _META = {
      "the small dog, torn and trembling, stands on the threshold with her back to the camera, whining "
      "out over the brown water toward the right, dips one front paw toward the water and snatches it "
      "back again and again while she speaks, ears flattened, eyes darting between the water and the "
-     "gate at screen-right; she stays on the threshold", _N),
+     "street ahead; she stays on the threshold", _N),
  9: (10, "Low shot on the flood water at her eye level, from ahead of her and to the left: the small dog "
      "paddles from screen-left to screen-right, in three-quarter profile to the camera facing "
      "screen-right with her chin high, her eyes on the blue pickup truck far ahead at screen-right; "
@@ -276,7 +276,7 @@ _META = {
       ["bro", "mimi_w"], "living", T_DAY,
       "the stocky man in the navy blazer, remorseful and choked up, kneels on the marble floor and "
       "cradles the small dog's face gently in both hands while he speaks to her, his glasses fogged, "
-      "his eyes wet and a small smile breaking through; the small dog, wrapped in the towel, looks up "
+      "his eyes wet and a small smile breaking through; the small dog, wrapped in the same pink towel, looks up "
       "at him and her tail starts to wag slowly", _N),
  18: (10, "Medium shot at the dining table: the slim woman kneels at screen-right facing screen-left in "
       "three-quarters toward the small dog, her eyes on her, and talks to her; the dog stands at "
