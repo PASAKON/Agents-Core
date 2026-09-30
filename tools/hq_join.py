@@ -267,22 +267,26 @@ _CONSUME_SQL = (
     "RETURNING token_hash"
 )
 
-# A `left` row may be re-joined; any other row keeps its name (WHERE on the
-# DO UPDATE: no row comes back and the caller rolls the consume back).
-# Probe columns are reset: they describe the machine that left.
+# A new name is inserted; an existing name is left alone by the INSERT (DO NOTHING) and only a
+# `left` row is re-joined, by the UPDATE (W4.6c: one statement used to do both with
+# ON CONFLICT DO UPDATE ... excluded.*, and Postgres then asks for SELECT on every column it reads
+# through `excluded`, which would have let the public endpoint's role read each host's key and
+# config; two statements need SELECT on host and status only). Both run in the caller's
+# transaction: a name that is neither new nor `left` matches nothing, the caller raises, and the
+# consume rolls back. Two racing accepts for one name: the second finds the row `pending_identity`
+# and matches nothing. Probe columns are reset: they describe the machine that left.
 _INSERT_HOST_SQL = (
     "INSERT INTO hosts (host, os, hq_root, agents_root, provides, max_workers, "
     "status, pubkey, config_json, updated_at, deploy_pubkey) "
     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-    "ON CONFLICT(host) DO UPDATE SET os=excluded.os, hq_root=excluded.hq_root, "
-    "agents_root=excluded.agents_root, provides=excluded.provides, "
-    "max_workers=excluded.max_workers, status=excluded.status, "
-    "pubkey=excluded.pubkey, config_json=excluded.config_json, "
-    "deploy_pubkey=excluded.deploy_pubkey, approved_at=NULL, "
-    "updated_at=excluded.updated_at, probed_at=NULL, free_gb=NULL, "
-    "ram_free_gb=NULL, running=NULL, version=NULL, cpus=NULL, "
-    "load_per_core=NULL, runners=NULL "
-    f"WHERE hosts.status = '{STATUS_LEFT}' RETURNING host"
+    "ON CONFLICT(host) DO NOTHING RETURNING host"
+)
+_REJOIN_HOST_SQL = (
+    "UPDATE hosts SET os = ?, hq_root = ?, agents_root = ?, provides = ?, max_workers = ?, "
+    "status = ?, pubkey = ?, config_json = ?, updated_at = ?, deploy_pubkey = ?, "
+    "approved_at = NULL, probed_at = NULL, free_gb = NULL, ram_free_gb = NULL, "
+    "running = NULL, version = NULL, cpus = NULL, load_per_core = NULL, runners = NULL "
+    f"WHERE host = ? AND status = '{STATUS_LEFT}' RETURNING host"
 )
 
 
@@ -355,10 +359,11 @@ def accept(token: str, host: str, os_name: str, hq_root: str, pubkey: str,
     with db.get_conn() as conn:
         if not _consume(conn, now_s, token_hash, host):
             raise _diagnose(conn, token_hash, host, now_s)
-        placed = conn.execute(_INSERT_HOST_SQL, (
-            host, os_name, root, agents_root, json.dumps([]), 1,
-            STATUS_PENDING, pubkey, json.dumps(entry), now_s, deploy_key,
-        )).fetchone()
+        values = (host, os_name, root, agents_root, json.dumps([]), 1,
+                  STATUS_PENDING, pubkey, json.dumps(entry), now_s, deploy_key)
+        placed = conn.execute(_INSERT_HOST_SQL, values).fetchone()
+        if placed is None:  # the name exists: only a `left` row may be taken over again
+            placed = conn.execute(_REJOIN_HOST_SQL, values[1:] + (host,)).fetchone()
         if placed is None:  # raising rolls the consume back too
             raise JoinError("host_in_use", f"host name {host!r} is already registered")
         db.log_event(conn, None, ACTOR, "join_accept",
