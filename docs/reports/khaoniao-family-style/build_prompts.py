@@ -9,11 +9,15 @@ import json
 import pathlib
 import sys
 
+VERSION = "v2"  # v1 (Mimi only) came out photoreal; v2 pushes the cartoon side
+
 STYLE = (
-    "Stylised 3D animated family-comedy cartoon character, original design, in the spirit of a Japanese family-comedy cartoon: "
-    "simple funny deformed proportions, big head about 40 percent of body height, short limbs, small hands, simple expressive eyes, "
-    "but rendered as a high-end 3D animated feature film: warm key light with a cool rim light, soft global illumination, "
-    "subtle subsurface scattering on skin, fabric and fur with visible micro-detail, soft contact shadow under the feet. "
+    "Stylised 3D animated family-comedy cartoon character, original design, clearly a CARTOON and not a photograph: "
+    "the look of a Pixar or Illumination animated feature, in the spirit of a Japanese family-comedy cartoon. "
+    "Simplified sculpted shapes and exaggerated caricatured features: an oversized head about 40 percent of body height, "
+    "very large round expressive eyes, short stubby limbs, small hands, simplified smooth fur or hair in bold clumps, "
+    "clean graphic shapes. Rendered in 3D with a high-end finish: warm key light with a cool rim light, soft global illumination, "
+    "subtle subsurface scattering, soft contact shadow under the feet. "
     "Saturated but natural colours. Not photorealistic, not anime, not flat 2D."
 )
 
@@ -33,7 +37,7 @@ CHARACTERS = {
             "recognisable: a small long-haired fluffy dog, wavy black coat (never brown, never solid black), silver-white eyebrow "
             "tufts above the eyes, a silver-grey beard with tan under the chin, a white patch on the chest and a white bib, "
             "cream-tan on two of the paws, long drop ears with silver tips, dark brown eyes, a little pink tongue. Older, wiser face. "
-            "Make the ears and eyes a bit bigger and the body rounder, but keep every marking in the same place. "
+            "Turn her into a cartoon: much bigger head, much bigger eyes and ears, a rounder chubbier body, simplified fur in bold clumps, but keep every marking in the same place. "
             "She is a dog on four legs, no clothes, no collar. The silhouette is a fluffy mop with two huge ears."
         ),
     ),
@@ -74,7 +78,7 @@ def build():
     items = []
     for name, c in CHARACTERS.items():
         prompt = " ".join([STYLE, LAYOUT.format(expr=c["expr"]), c["body"]]).replace("\n", " ")
-        item = {"name": f"sheet-{name}", "prompt": prompt}
+        item = {"name": f"sheet-{name}-{VERSION}", "prompt": prompt}
         if "attach" in c:
             item["attach"] = c["attach"]
         items.append(item)
