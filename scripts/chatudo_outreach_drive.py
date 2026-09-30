@@ -5,6 +5,11 @@
   run              ensure PROJECT/CHATUDO/Sales & Outreach (CEO approved 2026-09-28), create the Sheet from a
                    12-row sample build, check Google's values, then replace the content with the empty tracker
                    (same file id, so nothing is deleted) and check again. Refuses if the Sheet already exists.
+  update FILE_ID [--messages FILE]
+                   rebuild an existing Sheet in place after a layout change (same file id and link; Drive keeps
+                   the old version in its history). Refuses if any shop row holds input or a message cell was
+                   typed on Drive, so it never overwrites the CEO's work. Loads the sample build, checks Google's
+                   values, then loads the empty build (with the CMO's messages when --messages is given).
 
 Live Sheet (2026-09-28): 1kqCYwXOJ2rdnOwAtitICTtoZ3WW01aBuz1cMP6Ta7e0 in PROJECT/CHATUDO/Sales & Outreach.
 
@@ -32,6 +37,9 @@ sys.path.insert(0, os.path.join(HERE, "gdrive-bridge"))
 import ilag_sync as g  # noqa: E402
 from openpyxl import load_workbook  # noqa: E402
 
+sys.path.insert(0, HERE)
+import chatudo_outreach_sheet as sheet  # noqa: E402
+
 PROJECT_ID = "1HVLTPS09R4WvhYyOPW_0HHrfWxWGF-hQ"
 L1, L2 = "CHATUDO", "Sales & Outreach"
 TITLE = "Chatudo ตารางทักร้าน"
@@ -39,10 +47,59 @@ FOLDER = "application/vnd.google-apps.folder"
 GSHEET = "application/vnd.google-apps.spreadsheet"
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ERRS = {"#NAME?", "#ERROR!", "#VALUE!", "#REF!", "#N/A", "#DIV/0!", "#NUM!", "#NULL!"}
-# chatudo_outreach_sheet.py --sample 12, 'ต้องทำต่อ' per row; rows 4 and 8 are due today, so they read 'รอ'
-# while the Sheet's clock is a day behind Bangkok.
-EXPECT_Y = ["รอ", "โทรหาเจ้าของ", "ติดตั้งร้านนำร่อง", "ตามครั้งที่ 1", "รอ", "รอ", "รอ", "ตามครั้งที่ 2",
-            "หยุด (ตามครบ 2 ครั้ง)", "หยุด (ตามครบ 2 ครั้ง)", "ทักครั้งแรก", "ทักครั้งแรก"]
+SAMPLE_N = 12
+
+
+def expected_sample(build_day, sheet_today, n=SAMPLE_N):
+    """What Google should compute for chatudo_outreach_sheet.fill_sample(n), worked out here independently.
+
+    The converted Sheet runs on Pacific time, so its TODAY() (sheet_today) can be a day behind the build day
+    before 14:00 Bangkok; the expectation follows the Sheet's own clock rather than a hard-coded list.
+    """
+    seg, var, col = sheet.SEGMENTS, sheet.VARIANTS, sheet.COL
+    out = {}
+    for i in range(n):
+        r = sheet.FIRST + i
+        sent = build_day - dt.timedelta(days=i) if i < n - 2 else None
+        f1_sent = build_day - dt.timedelta(days=i - 3) if i in (4, 5, 6, 7, 8, 9) else None
+        f2_sent = build_day if i in (8, 9) else None
+        replied, called, pilot = i in (1, 2), i == 2, i == 2
+        if pilot:
+            nxt = "ติดตั้งร้านนำร่อง"
+        elif replied:
+            nxt = "รอผลหลังโทร" if called else "โทรหาเจ้าของ"
+        elif sent is None:
+            nxt = "ทักครั้งแรก"
+        elif f1_sent is None and sheet_today >= sent + dt.timedelta(days=3):
+            nxt = sheet.FOLLOW1
+        elif f1_sent is not None and f2_sent is None and sheet_today >= sent + dt.timedelta(days=7):
+            nxt = sheet.FOLLOW2
+        elif f2_sent is not None:
+            nxt = "หยุด (ตามครบ 2 ครั้ง)"
+        else:
+            nxt = "รอ"
+        owner = "คุณสมชาย" if i % 2 == 0 else "คุณเจ้าของร้าน"
+        shop = f"ร้านทดสอบ {i + 1}"
+        out[f"{col['next']}{r}"] = nxt
+        out[f"{col['draft']}{r}"] = f"[ทดสอบ {seg[i % 4]}{sheet.MSG_KEY_SEP}{var[i % 3]}] สวัสดีครับ {owner} ร้าน {shop}"
+        tag = {sheet.FOLLOW1: "1", sheet.FOLLOW2: "2"}.get(nxt)
+        out[f"{col['follow_draft']}{r}"] = f"[ทดสอบ ตาม {tag}] {owner} ร้าน {shop}" if tag else None
+    return out
+
+
+def check_sample(wb, build_day):
+    """Mismatches between Google's computed sample values and expected_sample(); [] means the formulas hold."""
+    sheet_today = day(wb[sheet.SUM]["B2"].value)
+    want = expected_sample(build_day, dt.date.fromisoformat(sheet_today))
+    shop = wb[sheet.SHOP]
+    got = {k: (shop[k].value if shop[k].value != "" else None) for k in want}
+    fails = [f"{k}: {got[k]!r} != {v!r}" for k, v in want.items() if got[k] != v]
+    lineoa_total = wb[sheet.SUM][f"K{4 + 2 + len(sheet.SEGMENTS)}"].value
+    want_lineoa = sum(1 for i in range(SAMPLE_N) if i % 3 != 2)
+    if lineoa_total != want_lineoa:
+        fails.append(f"summary มี LINE OA total {lineoa_total!r} != {want_lineoa}")
+    return fails
+
 
 
 def children(fid):
@@ -61,10 +118,12 @@ def ensure_folder(parent, name):
     return made["id"], True
 
 
-def build(path, sample):
+def build(path, sample, messages=None):
     cmd = [sys.executable, os.path.join(HERE, "chatudo_outreach_sheet.py"), "--out", path]
     if sample:
         cmd += ["--sample", str(sample)]
+    if messages:
+        cmd += ["--messages", messages]
     subprocess.run(cmd, check=True)
 
 
@@ -117,6 +176,17 @@ def main():
         print(f"errors={len(errors(wb))} sheet TODAY()={sheet_today} bangkok={bkk} "
               f"{now_bkk:%H:%M} -> {verdict}")
         return
+    if step == "update":
+        args = sys.argv[2:]
+        msgs = None
+        if "--messages" in args:
+            k = args.index("--messages")
+            msgs = args[k + 1]
+            del args[k:k + 2]
+        if len(args) != 1:
+            raise SystemExit(__doc__)
+        update(args[0], msgs)
+        return
     if step != "run":
         raise SystemExit(__doc__)
 
@@ -128,21 +198,62 @@ def main():
         raise SystemExit(f"{TITLE!r} already exists in {L2}; use verify")
 
     sample, empty = os.path.join(WORK, "o1-sample.xlsx"), os.path.join(WORK, "o1-empty.xlsx")
-    build(sample, 12)
+    build_day = dt.date.today()
+    build(sample, SAMPLE_N)
     build(empty, 0)
     f = create_sheet(sample, l2)
     fid = f["id"]
     wb = export(fid, os.path.join(WORK, "o1-export-sample.xlsx"))
-    shop = wb["ร้าน"]
-    fails = [f"Y{2 + i}: {shop[f'Y{2 + i}'].value!r} != {want!r}" for i, want in enumerate(EXPECT_Y)
-             if shop[f"Y{2 + i}"].value != want]
-    print(f"sample: errors={errors(wb)[:10]} next-action mismatches={fails}")
+    print(f"sample: errors={errors(wb)[:10]} mismatches={check_sample(wb, build_day)}")
 
     replace_content(fid, empty)
     wb2 = export(fid, os.path.join(WORK, "o1-export-empty.xlsx"))
-    left = [f"{c}{r}" for r in range(2, 14) for c in "BCLY" if wb2["ร้าน"][f"{c}{r}"].value not in (None, "")]
-    print(f"empty: errors={errors(wb2)[:10]} sample cells left={left} tabs={wb2.sheetnames}")
+    print(f"empty: errors={errors(wb2)[:10]} sample cells left={sample_left(wb2)} tabs={wb2.sheetnames}")
     print("SHEET", fid, f.get("webViewLink"))
+
+
+def sample_left(wb):
+    cols = [sheet.COL[k] for k in ("seg", "shop", "sent", "next")]
+    return [f"{c}{r}" for r in range(sheet.FIRST, sheet.FIRST + SAMPLE_N) for c in cols
+            if wb[sheet.SHOP][f"{c}{r}"].value not in (None, "")]
+
+
+def user_input(wb):
+    """Cells a person typed into: any non-formula shop column with a value, or a filled message text cell."""
+    shop = wb[sheet.SHOP]
+    formula_heads = {head for head, _w, kind in sheet.COLS.values() if kind.startswith("formula")}
+    typed = [c for c in range(2, shop.max_column + 1)
+             if shop.cell(row=1, column=c).value and shop.cell(row=1, column=c).value not in formula_heads]
+    found = [f"{shop.cell(row=1, column=c).value}!{r}" for r in range(sheet.FIRST, shop.max_row + 1)
+             for c in typed if shop.cell(row=r, column=c).value not in (None, "")]
+    msg = wb[sheet.MSG]
+    text_col = next((c for c in range(1, msg.max_column + 1) if msg.cell(row=2, column=c).value == "ข้อความ"), None)
+    if text_col:
+        found += [f"{sheet.MSG}!{msg.cell(row=r, column=text_col).coordinate}" for r in range(3, msg.max_row + 1)
+                  if msg.cell(row=r, column=text_col).value not in (None, "")]
+    return found
+
+
+def update(fid, messages=None):
+    before = export(fid, os.path.join(WORK, f"o1-before-update-{dt.date.today():%Y%m%d}.xlsx"))
+    typed = user_input(before)
+    if typed:
+        raise SystemExit(f"refusing: the live Sheet holds input that a rebuild would overwrite: {typed[:10]}")
+    build_day = dt.date.today()
+    sample, final = os.path.join(WORK, "o1-sample.xlsx"), os.path.join(WORK, "o1-final.xlsx")
+    build(sample, SAMPLE_N)
+    build(final, 0, messages)
+    replace_content(fid, sample)
+    wb = export(fid, os.path.join(WORK, "o1-export-sample.xlsx"))
+    errs, fails = errors(wb), check_sample(wb, build_day)
+    print(f"sample: errors={errs[:10]} mismatches={fails}")
+    replace_content(fid, final)
+    wb2 = export(fid, os.path.join(WORK, "o1-export-final.xlsx"))
+    msg_filled = sum(1 for r in range(sheet.MSG_FIRST, sheet.MSG_F2 + 1) if wb2[sheet.MSG][f"D{r}"].value)
+    print(f"final: errors={errors(wb2)[:10]} sample cells left={sample_left(wb2)} "
+          f"message cells filled={msg_filled} tabs={wb2.sheetnames}")
+    if errs or fails:
+        raise SystemExit("sample check FAILED; the final build is loaded but its formulas are unproven")
 
 
 if __name__ == "__main__":
