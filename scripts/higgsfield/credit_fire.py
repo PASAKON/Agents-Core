@@ -27,6 +27,7 @@ import csv
 import json
 import os
 import sys
+import time
 import urllib.parse
 from pathlib import Path
 
@@ -199,6 +200,37 @@ class ComposerPage:
                 self.page.close()
             except Exception:
                 pass
+
+
+WAIT_PRICE_TIMEOUT_S = 5.0
+WAIT_PRICE_POLL_S = 0.5
+
+
+def wait_for_price(
+    adapter: ComposerPage,
+    timeout_s: float | None = None,
+    poll_interval_s: float | None = None,
+) -> tuple[int | None, str | None]:
+    """Poll adapter.read_label() up to timeout_s (every poll_interval_s) until parse_price is not None."""
+    if timeout_s is None:
+        timeout_s = WAIT_PRICE_TIMEOUT_S
+    if poll_interval_s is None:
+        poll_interval_s = WAIT_PRICE_POLL_S
+
+    label = adapter.read_label()
+    price = parse_price(label) if label else None
+    if price is not None:
+        return price, label
+
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        time.sleep(poll_interval_s)
+        label = adapter.read_label()
+        price = parse_price(label) if label else None
+        if price is not None:
+            return price, label
+
+    return None, label
 
 
 def verify_settings(
@@ -466,8 +498,8 @@ def main(
 
         if not is_fire:
             # DRY RUN MODE
-            # attach/open, apply settings if flags given, check textbox exists,
-            # read label, parse price, print one line per clip.
+            # attach/open, apply settings if flags given, check textbox exists.
+            # per clip: type prompt, wait up to 5s until label parses, report DRY line.
             current_settings = adapter.read_settings()
             if not verify_settings(
                 current_settings, args.duration, args.ratio, args.resolution
@@ -485,15 +517,6 @@ def main(
                 )
                 return 4
 
-            label = adapter.read_label()
-            if label is None:
-                print(
-                    "Page problem: submit button missing or label unreadable",
-                    file=sys.stderr,
-                )
-                return 4
-
-            price = parse_price(label)
             has_caps = (
                 args.max_per_clip is not None and args.budget is not None
             )
@@ -505,10 +528,20 @@ def main(
 
             for r in todo:
                 cid = str(r["clip_id"])
+                prompt_text = str(r.get("prompt", ""))
+
+                adapter.type_prompt(prompt_text)
+                price, _ = wait_for_price(adapter)
+
                 if not has_caps:
-                    would_fire = "no"
-                    reason = "caps not given (dry-run)"
-                    price_str = str(price) if price is not None else "None"
+                    if price is None:
+                        would_fire = "no"
+                        reason = "unreadable label"
+                        price_str = "None"
+                    else:
+                        would_fire = "no"
+                        reason = "caps not given (dry-run)"
+                        price_str = str(price)
                 else:
                     if price is None:
                         would_fire = "no"
@@ -537,7 +570,7 @@ def main(
         # Per clip, in this order:
         # read settings back (mismatch = exit 4) ->
         # type prompt ->
-        # read label ->
+        # wait up to 5 s until label parses (never parses = exit 4, nothing clicked) ->
         # guard.check(label) (SpendRefused = exit 3, nothing clicked) ->
         # remember newest hf_ timestamp ->
         # click_submit once ->
@@ -570,11 +603,11 @@ def main(
             # 2. type prompt
             adapter.type_prompt(prompt_text)
 
-            # 3. read label
-            label = adapter.read_label()
-            if label is None:
+            # 3. wait up to 5 s until the label parses before guard.check
+            price, label = wait_for_price(adapter)
+            if price is None or label is None:
                 print(
-                    f"Page problem: submit button missing on clip {cid}",
+                    f"Page problem: submit button label unreadable on clip {cid}: {label!r}",
                     file=sys.stderr,
                 )
                 return 4

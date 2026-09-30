@@ -53,5 +53,32 @@ Complete. All gates passed.
 ### Anything could not do
 None. All requirements implemented and verified.
 
+## Iteration 1 Update (CTO Feedback)
+### What was changed
+1. `scripts/higgsfield/credit_fire.py`:
+   - Added `wait_for_price(adapter, timeout_s, poll_interval_s)` helper with `WAIT_PRICE_TIMEOUT_S = 5.0` and `WAIT_PRICE_POLL_S = 0.5`.
+   - In `--dry-run`, per clip: types the prompt with `adapter.type_prompt(prompt)`, waits up to 5 s (polling every 0.5 s) until `parse_price(read_label()) is not None`, then formats and prints the DRY line as before (`DRY clip_id=<id> price=<n> would_fire=<yes|no> reason=<...>`). Dry-run never calls `click_submit` and never writes the ledger.
+   - If the label never parses in dry-run, reports `would_fire=no reason=unreadable label` with `price=None`.
+   - In the `--fire` path: after `adapter.type_prompt(prompt)`, uses `wait_for_price(adapter)` before `guard.check(label)`. If it never parses, prints page problem and exits with code 4 with zero submit clicks.
+   - Exactly one submit-click call site maintained, zero `role=switch`, zero `drive_upload`.
+
+2. `tests/test_higgsfield_credit_fire.py`:
+   - Updated `FakeComposerPage` to support before/after typing labels, returning "Generate" before typing and "Generate 80 60" after typing (using sentinel `_UNSET` to allow explicit `label=None` or `label="Generate"`).
+   - Added `label_delay_polls` support in `FakeComposerPage` to simulate delayed label updates.
+   - Added `fast_wait_price` autouse fixture to accelerate test timeouts offline.
+   - Renamed and updated `test_dry_run_makes_zero_submit_clicks_and_zero_typing` to `test_dry_run_types_but_makes_zero_submit_clicks`: verifies fake label returns "Generate" before typing and "Generate 80 60" after typing, prompt typing occurs per clip, zero submit clicks are made, and spend ledger is not created.
+   - Updated `test_dry_run_with_caps_simulates_in_memory` to expect typed prompts in dry-run.
+   - Added `test_label_never_gets_price_dry_run_reports_unreadable_and_fire_returns_4`: verifies dry-run prints `would_fire=no reason=unreadable label`, and fire returns exit code 4 with zero clicks.
+   - Added `test_wait_for_price_polls_until_label_updates` to verify polling until label updates.
+
+3. Protected files `tests/test_higgsfield_credit_guard.py` and `scripts/higgsfield/gen_loop.py`:
+   - Verified untouched (`git diff main` is empty).
+
+### Test Commands and Results
+- Test command:
+  `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest tests/test_higgsfield_credit_guard.py tests/test_higgsfield_credit_fire.py -v`
+- Last output line:
+  `======================== 35 passed, 1 warning in 0.58s =========================`
+
 ## Skill learning
 - (none)
