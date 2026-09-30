@@ -14,7 +14,7 @@ buckets:              # one limit that runs out; a candidate "runner:model" belo
 shell_runners: [claude, codex]
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
-  dev_general:    ["agy:gemini-3.8-flash-high", "agy:claude-sonnet-4-6", "claude:claude-sonnet-5-5"]
+  dev_general:    ["agy:gemini-3.8-flash-high", "agy:claude-sonnet-4-6", "codex:", "claude:claude-sonnet-5-5"]
   # Jobs that must run shell commands (shell_runners only). "codex:" with an empty model = the CLI default;
   # a model label here would reach the launcher as `-m <label>` (H3, 8db9213f).
   dev_shell:      ["codex:", "claude:claude-sonnet-5-5"]
