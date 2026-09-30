@@ -211,6 +211,9 @@ ROUTES[("POST", PREFIX + "sealed")] = _route_sealed
 
 class _Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.0"  # one request per connection: no unread body is ever a second request
+    # Python <= 3.12 starts every request as HTTP/0.9, and send_error on a request line it
+    # cannot parse then writes no status line at all. Contabo runs 3.12: answer 1.0 always.
+    default_request_version = "HTTP/1.0"
     timeout = REQUEST_TIMEOUT_S
 
     def version_string(self) -> str:
