@@ -30,6 +30,8 @@ Run:  python -m tools.node_dispatch probe
 from __future__ import annotations
 
 import asyncio
+import base64
+import ctypes
 import json
 import os
 import re
@@ -39,12 +41,13 @@ import subprocess
 import sys
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import config, db, mailbox  # noqa: E402
+from lib import config, db, mailbox, proc  # noqa: E402
 
 ACTOR = "node_dispatch"
 MAX_COMMAND_CHARS = 256
@@ -89,9 +92,9 @@ def _is_windows() -> bool:
 
 
 def _os_name() -> str:
-    if sys.platform == "darwin":
-        return "darwin"
-    return "windows" if _is_windows() else "linux"
+    if _is_windows():
+        return "windows"
+    return "darwin" if sys.platform == "darwin" else "linux"
 
 
 def _caller() -> str | None:
@@ -102,22 +105,14 @@ def _caller() -> str | None:
 
 
 def _pid_is_alive(pid: object) -> bool:
-    """kill(pid, 0). PermissionError means the process exists, so alive.
+    """lib.proc.pid_alive (W3.1): the one liveness probe on every OS. On
+    Windows `os.kill(pid, 0)` sends Ctrl-C instead of probing, so nothing in
+    this file signals a pid. Access denied means the process exists, so alive.
 
     worker_reap._pid_alive reads PermissionError as dead; that is right for a
     reaper that must never signal a stranger and wrong for a liveness answer.
     """
-    if isinstance(pid, bool) or not isinstance(pid, int) or pid <= 0:
-        return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    except OSError:
-        return False
-    return True
+    return proc.pid_alive(pid)  # a non-int, a bool and pid <= 0 are False there
 
 
 def _task_on_this_host(task_id: str, *, allow_null_host: bool = False) -> dict:
@@ -144,8 +139,33 @@ def _worktrees_root() -> Path:
 # probe
 # ---------------------------------------------------------------------------
 
+class _MemoryStatusEx(ctypes.Structure):
+    """MEMORYSTATUSEX for GlobalMemoryStatusEx (64 bytes). Defined on every OS
+    so a test can pin its layout without Windows."""
+    _fields_ = [
+        ("dwLength", ctypes.c_uint32), ("dwMemoryLoad", ctypes.c_uint32),
+        ("ullTotalPhys", ctypes.c_uint64), ("ullAvailPhys", ctypes.c_uint64),
+        ("ullTotalPageFile", ctypes.c_uint64), ("ullAvailPageFile", ctypes.c_uint64),
+        ("ullTotalVirtual", ctypes.c_uint64), ("ullAvailVirtual", ctypes.c_uint64),
+        ("ullAvailExtendedVirtual", ctypes.c_uint64),
+    ]
+
+
+def _win_avail_phys_bytes() -> int | None:
+    """Free physical RAM on Windows, or None when the call is not there
+    (`ctypes.windll` is missing on every other OS)."""
+    status = _MemoryStatusEx()
+    status.dwLength = ctypes.sizeof(status)
+    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+        return None
+    return int(status.ullAvailPhys)
+
+
 def _ram_free_gb() -> float | None:
     try:
+        if _is_windows():
+            avail = _win_avail_phys_bytes()
+            return None if avail is None else round(avail / 1024 ** 3, 1)
         if sys.platform.startswith("linux"):
             for line in Path("/proc/meminfo").read_text().splitlines():
                 if line.startswith("MemAvailable:"):
@@ -176,8 +196,6 @@ def _running_workers(host: str) -> int:
         rows = conn.execute(
             "SELECT pid FROM tasks WHERE host=? AND status='in_progress'", (host,)
         ).fetchall()
-    if _is_windows():  # no liveness check until W3.3
-        return len(rows)
     return sum(1 for r in rows if _pid_is_alive(r["pid"]))
 
 
@@ -236,8 +254,6 @@ def verb_probe() -> dict:
 # ---------------------------------------------------------------------------
 
 def verb_pid_alive(task_id: str) -> dict:
-    if _is_windows():
-        raise Refusal("pid_alive is not supported on windows until W3.3")
     task = _task_on_this_host(task_id)
     pid = task.get("pid")
     return {"task_id": task_id, "pid": pid, "alive": _pid_is_alive(pid)}
@@ -354,9 +370,114 @@ def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
             "resumed_from": resume_sid, "prompt_dismissed": dismissed}
 
 
+# Everything that is formatted into a PowerShell string below is checked against
+# this first. It is deliberately narrow: no quote, backtick, dollar sign,
+# semicolon, ampersand, parenthesis or control character, so a value cannot end
+# the single-quoted literal it sits in. A repo path outside it is refused, not
+# escaped.
+_PS_SAFE_RE = re.compile(r"[A-Za-z0-9_.:\\/ -]{1,300}")
+# The same set plus the double quote that wraps the launcher path in the
+# scheduled task's argument string.
+_PS_ARGUMENT_RE = re.compile(r'[A-Za-z0-9_.:\\/ "-]{1,600}')
+_SCHTASK_START_WAIT_S = 20
+_SCHTASK_TIMEOUT_S = 90
+
+
+def _ps_safe(label: str, value: object) -> str:
+    if not isinstance(value, str) or not _PS_SAFE_RE.fullmatch(value):
+        raise Refusal(f"{label} {_show(value)} is not safe to hand to PowerShell")
+    return value
+
+
+def _run_powershell(script: str) -> subprocess.CompletedProcess:
+    """One powershell.exe call, argv list. The script travels as -EncodedCommand
+    (base64 of UTF-16LE), so no shell or command line ever re-parses it."""
+    encoded = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
+    return subprocess.run(
+        ["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+         "-EncodedCommand", encoded],
+        capture_output=True, text=True, timeout=_SCHTASK_TIMEOUT_S,
+        stdin=subprocess.DEVNULL,
+    )
+
+
+def _one_shot_task_script(task_name: str, argument: str) -> str:
+    """PowerShell for the pattern windows/spawn-worker.ps1 uses: an interactive
+    one-shot scheduled task, so the process lands on the logged-in desktop
+    (session 1) and not in the session 0 sshd gives us. Register, run, wait
+    until it is Running, unregister (the running process is kept, as for
+    spawn-worker's codex/agy launch). Both values are validated here again,
+    whatever the caller did."""
+    _ps_safe("task name", task_name)
+    if not _PS_ARGUMENT_RE.fullmatch(argument):
+        raise Refusal("task argument has a character PowerShell could act on")
+    name = f"'{task_name}'"
+    return (
+        "$ErrorActionPreference = 'Stop'; "
+        "$me = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name; "
+        f"$act = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '{argument}'; "
+        "$pri = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Limited; "
+        "$set = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries "
+        "-DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Seconds 0); "
+        f"Register-ScheduledTask -TaskName {name} -Action $act -Principal $pri "
+        "-Settings $set -Force | Out-Null; "
+        f"Start-ScheduledTask -TaskName {name}; "
+        f"$deadline = (Get-Date).AddSeconds({_SCHTASK_START_WAIT_S}); "
+        f"while ((Get-Date) -lt $deadline -and (Get-ScheduledTask -TaskName {name}).State "
+        "-ne 'Running') { Start-Sleep -Milliseconds 500 }; "
+        f"$state = [string](Get-ScheduledTask -TaskName {name}).State; "
+        f"Unregister-ScheduledTask -TaskName {name} -Confirm:$false "
+        "-ErrorAction SilentlyContinue; "
+        "if ($state -ne 'Running') { throw \"task state is $state, not Running\" }; "
+        "Write-Output \"STARTED $state\""
+    )
+
+
+def _start_clevel_schtask(role: str, resume_sid: str | None) -> dict:
+    """Windows: windows/cxo-claude.ps1 (W3.2) from a one-shot interactive
+    scheduled task. Same result shape as _start_clevel_tmux.
+
+    The id is passed as `-Session <sid>` because that is the only way the
+    launcher takes one, and it is how the caller learns which session it started.
+    That is the launcher's ephemeral shape: it does not write the
+    `<role>-active` pointer, so a letter to this session names it by
+    `to_session`; a role-only letter finds nothing until the pointer exists."""
+    from tools import session_status
+    launcher = ROOT / "windows" / "cxo-claude.ps1"
+    if not launcher.exists():
+        raise Failure(f"missing {launcher.name}")
+    if role not in config.live_c_level_roles():
+        raise Refusal(f"start_clevel: unknown role {_show(role)}")
+    resume_args = ""
+    if resume_sid:
+        # Same rule as the tmux path: a short id must never reach `claude`.
+        if not SESSION_ID_RE.fullmatch(resume_sid):
+            raise Refusal(f"start_clevel: malformed session id {_show(resume_sid)}")
+        target = (session_status.resume_target(role, resume_sid) or "").strip()
+        if not session_status.UUID_RE.fullmatch(target):
+            raise Refusal(f"no resumable UUID for {role}-{resume_sid}")
+        # `--resume`, not `-r`: PowerShell would bind `-r` as an abbreviation of
+        # -Role / -RemainingArgs. cxo-claude.ps1 adds --fork-session for it.
+        resume_args = f" --resume {target}"
+    sid = uuid.uuid4().hex[:8]
+    task_name = f"mooniex-cxo-{role}-{sid}"
+    argument = (f'-NoProfile -ExecutionPolicy Bypass -File "{_ps_safe("launcher path", str(launcher))}" '
+                f"-Role {role} -Session {sid}{resume_args}")
+    script = _one_shot_task_script(task_name, argument)
+    try:
+        r = _run_powershell(script)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise Failure(f"scheduled task launch failed: {e}")
+    if r.returncode != 0 or "STARTED" not in (r.stdout or ""):
+        raise Failure(f"scheduled task exit {r.returncode}: "
+                      f"{(r.stderr or r.stdout).strip()[:200]}")
+    return {"role": role, "via": "schtask", "session_id": sid, "task_name": task_name,
+            "resumed_from": resume_sid}
+
+
 def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
     if _is_windows():
-        raise Refusal("start_clevel is not supported on windows until W3")
+        return _start_clevel_schtask(role, resume_sid)
     if _os_name() == "darwin":
         return _start_clevel_iterm(role, resume_sid)
     return _start_clevel_tmux(role, resume_sid)
@@ -388,32 +509,119 @@ def _session_live(name: str) -> bool:
         return False
 
 
-def _write_letter(letter: dict) -> dict:
+def _clevel_session_live(role: str, sid: str) -> bool:
+    """Is `<role>-<sid>` running here? tmux answers on POSIX. Windows has no
+    tmux: windows/cxo-claude.ps1 writes state\\locks\\<role>-<sid>.lock holding
+    the pid of the PowerShell that runs claude, so that pid is the answer."""
     from tools import send_to_cxo, session_name
-    role = letter.get("to_role")
-    if role not in config.live_c_level_roles():
-        raise ValueError(f"to_role {role!r} is not a C-level role")
+    if not _is_windows():
+        return _session_live(session_name.lock_basename(role, sid))
+    try:
+        pid = int((Path(send_to_cxo.LOCKS_DIR) / f"{role}-{sid}.lock").read_text().strip())
+    except (OSError, ValueError):
+        return False
+    return _pid_is_alive(pid)
+
+
+def _letter_sender(letter: dict) -> tuple[str, str]:
+    from_role = letter.get("from_role") or "hub"
+    from_sid = letter.get("from_session") or "node-dispatch"
+    for label, value in (("from_role", from_role), ("from_session", from_sid)):
+        if not _SAFE_TOKEN_RE.fullmatch(str(value)):
+            raise ValueError(f"unsafe {label} {_show(value)}")
+    return from_role, from_sid
+
+
+def _write_clevel_letter(letter: dict, role: str) -> dict:
+    from tools import send_to_cxo
     sid = letter.get("to_session") or send_to_cxo._active_session_id(role)
     if not sid:
         raise ValueError(f"no active {role} session on this host")
-    from_role = letter.get("from_role") or "hub"
-    from_sid = letter.get("from_session") or "node-dispatch"
-    for label, value in (("to_session", sid), ("from_role", from_role),
-                         ("from_session", from_sid)):
-        if not _SAFE_TOKEN_RE.fullmatch(str(value)):
-            raise ValueError(f"unsafe {label} {_show(value)}")
+    if not _SAFE_TOKEN_RE.fullmatch(str(sid)):
+        raise ValueError(f"unsafe to_session {_show(sid)}")
+    from_role, from_sid = _letter_sender(letter)
     # A letter in a box nobody reads is lost while the hub says delivered.
     # runners/mac_agent.do_relay refuses the same way.
-    if not _session_live(session_name.lock_basename(role, sid)):
+    if not _clevel_session_live(role, sid):
         raise ValueError(f"no live session {role}-{sid} on this host")
     path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
+    if _is_windows():  # waking a pane on Windows is the W3.5 spike
+        return {"to": f"{role}-{sid}", "woke": False}
     try:  # best effort, never changes the outcome (same rule as send_to_cxo)
         send_to_cxo.attempt_wake(role, sid, from_role.upper())
     except Exception:
         pass
     return {"to": f"{role}-{sid}"}
+
+
+def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str) -> dict:
+    """Windows worker: one line appended to `<worktree>\\MAILBOX.md`, the file
+    a remote worker reads before every tool call. Same contract as
+    tools.send_to_worker._send_remote (append-only, UTF-8, line
+    `<ISO-8601 UTC> | <from_role>-<from_sid> | <message on one line>`), verified
+    by reading the last line back. Written here, on the box, not over ssh."""
+    tid = task["id"]
+    if not task.get("worktree"):
+        raise ValueError(f"task {tid} has no worktree yet")
+    worktree = Path(task["worktree"]).resolve()
+    if _worktrees_root().resolve() not in worktree.parents:
+        raise ValueError(f"worktree {_show(worktree)} is outside the worktrees root")
+    if not worktree.is_dir():
+        raise ValueError(f"worktree {_show(worktree)} does not exist")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    line = f"{stamp} | {from_role}-{from_sid} | {' '.join(body.splitlines())}"
+    path = worktree / "MAILBOX.md"
+    with open(path, "ab") as f:  # bytes: CRLF like Add-Content, no newline translation
+        f.write((line + "\r\n").encode("utf-8"))
+    lines = [ln for ln in path.read_text(encoding="utf-8", errors="replace").splitlines()
+             if ln.strip()]
+    if not lines or lines[-1].strip() != line.strip():
+        raise ValueError(f"MAILBOX.md write for {tid} could not be verified")
+    return {"to": f"{task['role']}-{tid}", "woke": False}
+
+
+def _write_worker_letter(letter: dict, role: object) -> dict:
+    """A letter for a worker on this host. `to_session` is its task id and the
+    task row must say this role and this host: the row is the proof that a
+    live worker owns the inbox, so a caller cannot aim a letter at an arbitrary
+    mailbox path."""
+    from tools import agent_transport
+    tid = letter.get("to_session")
+    if (not isinstance(role, str) or not _SAFE_TOKEN_RE.fullmatch(role)
+            or not isinstance(tid, str) or not TASK_ID_RE.fullmatch(tid)):
+        raise ValueError(f"to_role {role!r} is not a C-level role, "
+                         f"and to_session {_show(tid)} is not a task id")
+    task = db.get_task(tid)
+    if not task:
+        raise ValueError(f"no such task {tid}")
+    if task.get("role") != role:
+        raise ValueError(f"task {tid} has role {task.get('role')!r}, the letter is for {role!r}")
+    here = _self_host()
+    if task.get("host") != here:
+        raise ValueError(f"task {tid} is on host {task.get('host')!r}, this host is {here!r}")
+    from_role, from_sid = _letter_sender(letter)
+    if _is_windows():
+        return _append_worker_mailbox(task, letter["body"], from_role, from_sid)
+    tmux_name = task.get("tmux_session")
+    if not tmux_name or not _SAFE_TOKEN_RE.fullmatch(tmux_name) or not _session_live(tmux_name):
+        raise ValueError(f"no live tmux session for task {tid} on this host")
+    path = mailbox.send(role, tid, letter["body"], from_role, from_sid)
+    if not path.is_file():
+        raise ValueError(f"letter not on disk after write: {path}")
+    try:  # best effort, never changes the outcome
+        agent_transport.attempt_wake(tmux_name, from_role.upper(), "node_dispatch")
+    except Exception:
+        pass
+    return {"to": f"{role}-{tid}"}
+
+
+def _write_letter(letter: dict) -> dict:
+    role = letter.get("to_role")
+    if role in config.live_c_level_roles():
+        return _write_clevel_letter(letter, role)
+    return _write_worker_letter(letter, role)
 
 
 def verb_deliver_letter(letter_id: str) -> dict:

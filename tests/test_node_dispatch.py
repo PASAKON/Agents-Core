@@ -303,11 +303,7 @@ def test_pid_alive_refuses_other_host_null_host_and_unknown_task():
         assert code == 2 and out["ok"] is False
 
 
-def test_pid_alive_windows_is_an_explicit_refusal(monkeypatch):
-    monkeypatch.setattr(nd, "_is_windows", lambda: True)
-    tid = _mk_task(host="mac", pid=os.getpid())
-    out, code = nd.run_command(f"pid_alive {tid}")
-    assert code == 2 and "W3.3" in out["error"]
+# pid_alive on Windows (lib.proc, no os.kill): tests/test_w33_node_dispatch_windows.py
 
 
 # ---------------------------------------------------------------------------
@@ -441,10 +437,7 @@ def test_start_clevel_linux_resume_without_a_real_uuid_is_refused(rec, monkeypat
     assert not [c for c in rec.calls if c[0] == "tmux_create"]
 
 
-def test_start_clevel_windows_is_refused(rec, monkeypatch):
-    monkeypatch.setattr(nd, "_is_windows", lambda: True)
-    _, code = nd.run_command("start_clevel cto")
-    assert code == 2 and rec.calls == []
+# start_clevel on Windows (one-shot scheduled task): tests/test_w33_node_dispatch_windows.py
 
 
 # ---------------------------------------------------------------------------
