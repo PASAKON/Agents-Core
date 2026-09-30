@@ -703,8 +703,13 @@ def _spawn_worker_windows(task: dict) -> None:
 # state/locks/<role>-<sid>.lock holds a live pid (every launcher writes it:
 # cxo-claude.sh, spawn-cto.sh, cxo-claude.ps1). The start itself holds a
 # `locks` row for the role, so two calls cannot both count 2 and both launch.
+# The launcher writes its lock file a few seconds after start_clevel returns
+# (iTerm tab, tmux session, scheduled task), so a start that succeeds keeps the
+# row for CLEVEL_LAUNCH_GRACE_S: a burst of starts cannot each count before the
+# last one's lock exists. A refused or failed start frees the row at once.
 MAX_LIVE_CLEVEL_PER_ROLE = 3
 CLEVEL_START_CLAIM_TTL_S = 300  # above the slowest launch (script 120 s + prompt delay)
+CLEVEL_LAUNCH_GRACE_S = 60
 
 
 def _live_clevel_count(role: str) -> int:
@@ -731,19 +736,24 @@ def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
     key = f"clevel:{host}:{role}:start"
     token = _claim(key, CLEVEL_START_CLAIM_TTL_S)
     if token is None:
-        raise Refusal(f"start_clevel: another {role} start is in progress on {host}")
+        raise Refusal(f"start_clevel: another {role} start is in progress on {host} "
+                      f"(one start per role per {CLEVEL_LAUNCH_GRACE_S} s); try again shortly")
     try:
         live = _live_clevel_count(role)
         if live >= MAX_LIVE_CLEVEL_PER_ROLE:
             raise Refusal(f"start_clevel: {live} {role} sessions are already live on {host} "
                           f"(limit {MAX_LIVE_CLEVEL_PER_ROLE}); close one first")
         if _is_windows():
-            return _start_clevel_schtask(role, resume_sid)
-        if _os_name() == "darwin":
-            return _start_clevel_iterm(role, resume_sid)
-        return _start_clevel_tmux(role, resume_sid)
-    finally:
+            result = _start_clevel_schtask(role, resume_sid)
+        elif _os_name() == "darwin":
+            result = _start_clevel_iterm(role, resume_sid)
+        else:
+            result = _start_clevel_tmux(role, resume_sid)
+    except BaseException:
         _release(key, token)
+        raise
+    _hold(key, token, CLEVEL_LAUNCH_GRACE_S)
+    return result
 
 
 def _parse_start_clevel(args: list[str]) -> tuple[str, str | None]:
@@ -931,6 +941,17 @@ def _release(key: str, token: str) -> None:
         db.release_lock(key, token)
     except Exception as e:
         print(f"node_dispatch: release of {key} failed: {e}", file=sys.stderr)
+
+
+def _hold(key: str, token: str, seconds: int) -> None:
+    """Keep a slot this call owns for `seconds` from now instead of freeing it."""
+    expires = (datetime.now(timezone.utc) + timedelta(seconds=seconds)).isoformat(timespec="seconds")
+    try:  # on failure the row keeps its claim TTL, which is longer
+        with db.get_conn() as conn:
+            conn.execute("UPDATE locks SET expires_at=? WHERE key=? AND owner=?",
+                         (expires, key, token))
+    except Exception as e:
+        print(f"node_dispatch: hold of {key} failed: {e}", file=sys.stderr)
 
 
 def _letter_claim_key(lid: int) -> str:

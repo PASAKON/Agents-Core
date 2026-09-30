@@ -38,6 +38,7 @@ import sqlite3
 import subprocess
 import sys
 import threading
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -491,6 +492,9 @@ def test_fuzz_start_clevel_on_windows_builds_only_the_fixed_argument(monkeypatch
         return subprocess.CompletedProcess(["powershell.exe"], 0, "STARTED Running\r\n", "")
 
     monkeypatch.setattr(nd, "_run_powershell", fake_ps)
+    # one start per role per grace period is pinned in section 10; here every
+    # start frees its slot so the fuzz reaches the builder each time
+    monkeypatch.setattr(nd, "_hold", lambda key, token, seconds: nd._release(key, token))
     roles = "|".join(map(re.escape, config_mod.live_c_level_roles()))
     shape = re.compile(rf'-NoProfile -ExecutionPolicy Bypass -File "[^"]*" '
                        rf"-Role ({roles}) -Session [0-9a-f]{{8}}( --resume {UUID})?")
@@ -1051,9 +1055,31 @@ def test_start_clevel_refuses_a_fourth_live_session_of_the_role(clevel):
     out, code = nd.run_command("start_clevel cto --resume 1234abcd")
     assert code == 2 and "limit 3" in out["error"]
     assert clevel == []
+    assert _locks_rows() == []                           # a refused start frees its slot
     out, code = nd.run_command("start_clevel cmo")      # another role is not counted
     assert code == 0 and clevel == [("cmo", None)], out
-    assert _locks_rows() == []                           # the start slot is released
+    assert [r["key"] for r in _locks_rows()] == ["clevel:mac:cmo:start"]  # held for the grace
+
+
+def test_a_burst_of_starts_cannot_outrun_the_lock_files(clevel):
+    # The launcher writes its lock file after start_clevel returns. Without the
+    # grace hold, starts in quick succession all count 2 and all launch.
+    _clevel_lock("cto-aaaa0001.lock", "1001")
+    _clevel_lock("cto-aaaa0002.lock", "1002")
+    codes = [nd.run_command("start_clevel cto")[1] for _ in range(5)]
+    assert codes == [0, 2, 2, 2, 2] and clevel == [("cto", None)]
+    out, _ = nd.run_command("start_clevel cto")
+    assert "in progress" in out["error"] and f"{nd.CLEVEL_LAUNCH_GRACE_S} s" in out["error"]
+    (row,) = _locks_rows()
+    expires = datetime.fromisoformat(row["expires_at"])
+    left = (expires - datetime.now(timezone.utc)).total_seconds()
+    assert nd.CLEVEL_LAUNCH_GRACE_S - 5 <= left <= nd.CLEVEL_LAUNCH_GRACE_S + 1, left
+    # the grace ends; by then the launcher's lock exists and the cap counts it
+    with db_mod.get_conn() as conn:
+        conn.execute("UPDATE locks SET expires_at='2000-01-01T00:00:00+00:00'")
+    _clevel_lock("cto-aaaa0003.lock", "1003")
+    out, code = nd.run_command("start_clevel cto")
+    assert code == 2 and "limit 3" in out["error"] and clevel == [("cto", None)]
 
 
 def test_start_clevel_counts_only_live_well_formed_locks_of_that_role(clevel):
