@@ -64,7 +64,16 @@ hub letter addressed to this host once, push one task branch.
 Cannot: run a shell or any binary of its choosing; name a path, a branch, a role or
 a host of its own; push `main`, force-push or delete; act on another host's task or
 letter; touch a letter twice (`deliver_letter` again returns `already_delivered`
-and writes nothing); on Windows, `pid_alive` and `start_clevel` are refused until W3.
+and writes nothing).
+
+On Windows (W3.3) every verb runs in place: `pid_alive` uses `lib.proc`, `spawn_worker`
+runs `windows/spawn-worker.ps1` from the checkout (which makes its own interactive
+one-shot scheduled task), `start_clevel` registers one for `windows/cxo-claude.ps1`
+(the id is passed as `-Session`, so there is no `<role>-active` pointer and a letter
+names the session by `to_session`), and `deliver_letter` writes the inbox or
+`<worktree>\MAILBOX.md` without waking anything (`woke: false`). Every value that
+reaches PowerShell is checked against an allow-list first; a refusal is exit 2 with
+no subprocess run.
 
 ## Audit
 
