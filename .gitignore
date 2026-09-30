@@ -180,3 +180,6 @@ state/cost-table.json
 
 # W3.3: spawn-worker.ps1 -AgentsRoot <checkout> writes launch-<task>.cmd at the checkout root
 launch-*.cmd
+
+# W3.5 wake requests/results written at runtime by tools/agent_transport.py + windows/wake-request.ps1
+state/wake/

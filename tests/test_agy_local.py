@@ -300,6 +300,19 @@ def test_contract_names_org_python():
     assert "Do not run shell commands" not in prompt
 
 
+def test_contract_names_agy_browse_only_for_a_browser_brief():
+    """A brief that drives tools/agy_browse.py is told the command is allowed (GH #188);
+    any other brief keeps the plain list, so agy is never invited to browse."""
+    browse = build_agy_prompt(
+        "Drive http://127.0.0.1:9280 with tools/agy_browse.py --port 9280 state", "/tmp/wt")
+    assert f"`{agy_local.ORG_PYTHON} tools/agy_browse.py [--port N] [--tab ID] <verb> [args]`" in browse
+    assert "It is your only browser." in browse
+    plain = build_agy_prompt("Fix the parser", "/tmp/wt")
+    assert "agy_browse" not in plain
+    # a path that merely ends in the name (another repo's copy) does not count
+    assert "agy_browse" not in build_agy_prompt("see other/tools/agy_browse.py", "/tmp/wt").split("\n\n")[-1]
+
+
 def test_find_agy_binary_resolution(tmp_path, monkeypatch):
     """Test binary resolution order: AGY_BIN -> ~/.local/bin/agy -> PATH."""
     # 1. AGY_BIN set
