@@ -1,0 +1,6 @@
+# Facebook Pages the posting tools may act as (tools/fb_page_post.py --page <key>).
+# profile_id = the id in https://www.facebook.com/<profile_id>; name = the Page name exactly as its h2 shows it.
+pages:
+  ilag:
+    profile_id: "61594116376333"
+    name: "ละครสั้นคุณธรรม by ILAG Studio"
