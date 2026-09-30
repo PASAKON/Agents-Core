@@ -585,3 +585,59 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
+
+_OVERRIDE_RE = re.compile(r"^\s*override:\s*\S", re.IGNORECASE | re.MULTILINE)
+
+_IRON_59_MSG = (
+    "IRON §59: runner/model_hint pinned by hand without a reason — add a line"
+    ' "override: <reason>" to the task description'
+    " (reasons: review/repair of another agent's code, security,"
+    " silent-wrong-answer risk, Claude-only tool, CEO order, A/B test,"
+    " box-bound job), or leave runner and model_hint empty and let the router pick."
+)
+
+
+def check_override(task: dict, cfg: dict | None = None) -> str | None:
+    """Return a refusal message when a C-level manually pins a runner without a reason.
+
+    Returns None (allow) when:
+    - The task's role is not in cfg["role_classes"] (router doesn't handle it).
+    - ORG_ROUTER env var is "off" (repair mode).
+    - No manual pin is detected.
+    - A manual pin is detected but the description contains a matching override line.
+
+    Returns the IRON §59 error string otherwise.
+    Never raises: any internal error -> None.
+    """
+    try:
+        import os as _os
+
+        if cfg is None:
+            cfg = load_plans()
+
+        role = (task.get("role") or "").strip()
+        role_classes = (cfg.get("role_classes") or {})
+        if role not in role_classes:
+            return None
+
+        if _os.environ.get("ORG_ROUTER", "").strip().lower() == "off":
+            return None
+
+        model_hint = (task.get("model_hint") or "").strip()
+        runner = (task.get("runner") or "").strip()
+        runner_model = task.get("runner_model")
+
+        # A manual pin is: model_hint non-empty, OR runner non-empty while
+        # runner_model is empty/None.  The router always writes runner AND
+        # runner_model together, so a router-written row has both set.
+        is_manual_pin = bool(model_hint) or (bool(runner) and not runner_model)
+        if not is_manual_pin:
+            return None
+
+        description = task.get("description") or ""
+        if _OVERRIDE_RE.search(description):
+            return None
+
+        return _IRON_59_MSG
+    except Exception:
+        return None

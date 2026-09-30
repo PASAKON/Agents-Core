@@ -1814,12 +1814,17 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
 
 
 def _route_runner(task: dict, role_name: str, host: str) -> str | None:
+    from tools import route  # noqa: PLC0415 — outside try so PermissionError escapes
+    refusal = route.check_override(task)
+    if refusal:
+        db.set_fields(task["id"], delegate_log=refusal, actor="cto")
+        warn(refusal)
+        raise PermissionError(refusal)
     try:
         if (task.get("runner")
                 or (task.get("model_hint") or "").strip().lower() == "claude"
                 or os.environ.get("ORG_ROUTER", "").strip().lower() == "off"):
             return None
-        from tools import route
 
         touches = task.get("touches")
         if isinstance(touches, str):
