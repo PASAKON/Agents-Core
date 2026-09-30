@@ -21,8 +21,12 @@ roles:
   c_level:        ["claude:claude-opus-5-5:xhigh"]
   c_level_openai: ["codex:sol:xhigh"]
   complex:        ["claude:claude-fable-5-1", "codex:astra:xhigh"]
+  # GH #188: browser_operator tasks whose brief uses tools/agy_browse.py and names a
+  # Browser Home CDP URL (tools/route.class_for). Not a role_classes entry on purpose.
+  browser_agy:    ["agy:gemini-3.8-flash-high"]
 # Worker role (tasks.role) -> router class above. A role not listed stays on claude, no routing.
 # Browser, video, design and security roles need Claude-only tools: never list them here.
+# (A browser_operator brief that uses tools/agy_browse.py routes to browser_agy instead.)
 role_classes:
   developer: dev_general
   # Shell-requiring roles routed to dev_shell class.

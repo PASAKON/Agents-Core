@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 import functools
+import re
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -452,6 +453,26 @@ def plan_line(p: Plan) -> str:
     return " ".join(parts)
 
 
+# GH #188: a browser_operator task runs on agy only when its brief drives the
+# Browser Home through tools/agy_browse.py AND names the Home's CDP URL. Any
+# other browser task keeps the Claude-only tools and is never routed.
+BROWSER_AGY_CLASS = "browser_agy"
+_AGY_BROWSE_RE = re.compile(r"(?<![\w/])tools/agy_browse\.py\b")
+_CDP_URL_RE = re.compile(r"\bhttp://127\.0\.0\.1:\d{4,5}\b")
+
+
+def class_for(role: str, brief: str | None, cfg: dict) -> str | None:
+    """The router class for a worker role, or None to stay on Claude."""
+    cls = (cfg.get("role_classes") or {}).get(role)
+    if cls:
+        return cls
+    if (role == "browser_operator" and brief
+            and BROWSER_AGY_CLASS in (cfg.get("roles") or {})
+            and _AGY_BROWSE_RE.search(brief) and _CDP_URL_RE.search(brief)):
+        return BROWSER_AGY_CLASS
+    return None
+
+
 def pick_runner(
     role: str,
     host: str,
@@ -469,14 +490,14 @@ def pick_runner(
 ) -> Choice | None:
     try:
         cfg = cfg or load_plans()
-        cls = (cfg.get("role_classes") or {}).get(role)
+        cls = class_for(role, brief, cfg)
         if not cls:
             return None
         quotas = quotas if quotas is not None else cached_quotas(cfg)
         skill = skill if skill is not None else load_skill_scores()
 
         plans = plan(
-            role,
+            cls,
             size=size,
             touches=touches,
             brief=brief,
