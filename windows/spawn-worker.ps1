@@ -392,7 +392,7 @@ foreach (`$f in `$stagedFiles) {
         } else {
             "`$sz B"
         }
-        `$mediaBlockers += "media not committed: `$f (`$hsz) — upload per CXO_Rules_GDrive_Filing and put the link here"
+        `$mediaBlockers += "media not committed: `$f (`$hsz) -- upload per CXO_Rules_GDrive_Filing and put the link here"
     }
 }
 

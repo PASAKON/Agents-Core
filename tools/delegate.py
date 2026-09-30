@@ -1302,12 +1302,15 @@ async def _spawn_remote(task: dict, host_name: str, *,
     if not ssh_alias and not local:
         raise ValueError(f"host {host_name!r} has no ssh alias configured")
 
+    # H3 (task-3cc9b119): _route_runner writes runner_model to the row with
+    # set_fields and does not refresh the caller's dict, so read that one
+    # field back fresh. Only that field: the rest of the dict is the caller's.
     try:
         fresh_task = db.get_task(task_id)
-        if fresh_task:
-            task = fresh_task
     except Exception:
-        pass
+        fresh_task = None
+    if fresh_task and fresh_task.get("runner_model") and not task.get("runner_model"):
+        task = {**task, "runner_model": fresh_task["runner_model"]}
 
     # Runner resolution + validation (task-adbc6f43). NULL on the task row
     # means "claude" (every pre-migration row, unchanged). Validated here —
@@ -1356,6 +1359,10 @@ async def _spawn_remote(task: dict, host_name: str, *,
             f"-Effort {_ps_quote(effort)} -TaskFile {_ps_quote(remote_task_file)} "
             f"-SessionName {_ps_quote(session_name)} -Runner {_ps_quote(runner)}"
         )
+        # H3: the model the router picked for codex/agy; spawn-worker.ps1
+        # validates it again and falls back when it is absent.
+        if runner != "claude" and task.get("runner_model"):
+            remote_cmd += f" -RunnerModel {_ps_quote(str(task['runner_model']))}"
         cmd = ["ssh", ssh_alias, remote_cmd]
 
         if dry_run:

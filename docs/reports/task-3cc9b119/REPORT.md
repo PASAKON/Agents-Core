@@ -49,3 +49,9 @@
 - `spawn-worker-remote.sh` uses `set -uo pipefail`. All variables like `RUNNER_MODEL` must be initialized at script top (`RUNNER_MODEL=""`) before being checked or referenced, or access them with `${VAR:-}` to avoid unbound variable aborts under `set -u`.
 - Existing test harnesses (such as `tests/test_spawn_worker_ps1_runners.py`) extract PowerShell code blocks using strict string substring markers like `code.index("else {", codex_start)`. Avoid using nested `else {` constructs within those blocks to prevent breaking string-slice index boundaries.
 - In `tools/delegate.py`, unit test fixtures may invoke `_spawn_remote` with mock tasks that do not exist in the temporary database or without an initialized database. Wrapping `db.get_task(task_id)` in a `try...except` block ensures that unit tests with synthetic tasks continue to run smoothly while real tasks properly fetch updated fields from SQLite.
+
+## CTO review (e6754203, 2026-09-30)
+- `_spawn_remote` replaced the caller's whole task dict with the DB row; narrowed to reading back `runner_model` only (the rest of the dict is the caller's).
+- The winbox leg never passed the model: delegate.py now appends `-RunnerModel` to the ssh command for codex/agy when the row has one.
+- `spawn-worker.ps1` media-gate string carried an em dash; PowerShell 5.1 reads a BOM-less script as ANSI, where its last byte is a right double quote that ends the string literal. Replaced with `--`, plus a test that only comment lines may be non-ASCII.
+- Tests added: winbox carries `-RunnerModel` for agy and not for claude; the fresh read keeps the caller's runner; ps1 ASCII guard. The fresh-read test now passes a full row, as real callers do.

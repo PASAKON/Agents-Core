@@ -117,12 +117,10 @@ def test_spawn_remote_refreshes_task_from_db(tmp_path, monkeypatch):
         )
         conn.commit()
 
-    # Stale dict lacking runner_model and having runner=None
-    stale_dict = {
-        "id": task_id,
-        "project": "mooniex-agents",
-        "role": "developer",
-    }
+    # Stale dict: the full row as the caller holds it, before the router's
+    # set_fields wrote runner_model (real callers pass the whole row).
+    stale_dict = dict(db.get_task(task_id))
+    stale_dict["runner_model"] = None
 
     res = asyncio.run(delegate._spawn_remote(stale_dict, "contabo", dry_run=True))
     assert res is not None
@@ -134,6 +132,59 @@ def test_spawn_remote_refreshes_task_from_db(tmp_path, monkeypatch):
     decoded = json.loads(base64.b64decode(m.group(1)).decode("utf-8"))
     assert decoded.get("runner_model") == "claude-sonnet-4-6"
 
+
+
+def _insert_task(task_id, runner, runner_model, host):
+    with db.get_conn() as conn:
+        now = db.now_iso()
+        conn.execute(
+            """INSERT INTO tasks (id, project, role, status, title, description, touches,
+               depends_on, branch, host, runner, runner_model, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (task_id, "mooniex-agents", "developer", "pending", "Test", "Desc", "[]",
+             "[]", f"agent/developer-{task_id}", host, runner, runner_model, now, now),
+        )
+        conn.commit()
+
+
+def test_winbox_ssh_command_carries_runner_model_for_agy(tmp_path, monkeypatch):
+    """CTO review: the winbox leg must hand the router's model to spawn-worker.ps1."""
+    import asyncio
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "tasks.db")
+    db.init()
+    _insert_task("task-winrm01", "agy", "claude-sonnet-4-6", "winbox")
+    task = dict(db.get_task("task-winrm01"))
+    task["runner_model"] = None if "agy" != "claude" else task["runner_model"]
+    task["runner"] = "agy"
+    res = asyncio.run(delegate._spawn_remote(task, "winbox", dry_run=True))
+    log_text = res.get("delegate_log") or ""
+    assert '-RunnerModel "claude-sonnet-4-6"' in log_text, log_text
+
+
+def test_winbox_ssh_command_has_no_runner_model_for_claude(tmp_path, monkeypatch):
+    import asyncio
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "tasks.db")
+    db.init()
+    _insert_task("task-winrm02", "claude", "claude-sonnet-4-6", "winbox")
+    task = dict(db.get_task("task-winrm02"))
+    task["runner_model"] = None if "claude" != "claude" else task["runner_model"]
+    task["runner"] = "claude"
+    res = asyncio.run(delegate._spawn_remote(task, "winbox", dry_run=True))
+    assert "-RunnerModel" not in (res.get("delegate_log") or "")
+
+
+def test_fresh_read_keeps_the_callers_other_fields(tmp_path, monkeypatch):
+    """Only runner_model is read back; a field the caller set in memory survives."""
+    import asyncio
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "tasks.db")
+    db.init()
+    _insert_task("task-keep01", None, "gpt-5.5", "contabo")
+    task = dict(db.get_task("task-keep01"))
+    task["runner_model"] = None if "codex" != "claude" else task["runner_model"]
+    task["runner"] = "codex"
+    res = asyncio.run(delegate._spawn_remote(task, "contabo", dry_run=True))
+    log_text = res.get("delegate_log") or ""
+    assert "--runner codex" in log_text or "--runner 'codex'" in log_text, log_text
 
 # ==============================================================================
 # 2. scripts/spawn-worker-remote.sh: dry-run shows model chosen & empty falls back
@@ -385,3 +436,13 @@ def test_script_org_tools_registry_verdict():
     r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
     assert r.returncode == 0, f"test_org_tools_registry.py failed: {r.stderr}\n{r.stdout}"
     assert "ALL PASS" in r.stdout
+
+
+def test_ps1_generated_strings_are_ascii():
+    """PowerShell 5.1 reads a BOM-less script as ANSI: an em dash (E2 80 94)
+    becomes a cp1252 right double quote and ends the string literal. Only
+    comment lines may carry non-ASCII."""
+    text = (ROOT / "windows" / "spawn-worker.ps1").read_text(encoding="utf-8")
+    bad = [ (n, ln) for n, ln in enumerate(text.splitlines(), 1)
+            if any(ord(c) > 127 for c in ln) and not ln.lstrip().startswith("#") ]
+    assert not bad, bad
