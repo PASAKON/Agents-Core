@@ -352,6 +352,7 @@ def plan(
     limits: dict[str, dict] | None = None,
     table: dict | None = None,
     now: datetime | None = None,
+    needs_shell: bool | None = None,
 ) -> list[Plan]:
     """Plan candidate runners for role with quota forecasts and verdicts."""
     try:
@@ -369,6 +370,13 @@ def plan(
 
         if size is None:
             size = forecast.infer_size(touches, brief)
+
+        if needs_shell is None:
+            needs_shell = forecast.needs_shell(brief)
+
+        shell_runners = cfg.get("shell_runners")
+        if shell_runners is None:
+            shell_runners = ["claude", "codex"]
 
         if quotas is None:
             quotas = cached_quotas(cfg)
@@ -392,6 +400,9 @@ def plan(
             rate = forecast.burn_rate(bucket, now=now) if bucket else None
             reserve_pct = limit_row.get("reserve_pct", 0)
             proj = forecast.projection(bucket, q, rate, reserve_pct, now=now) if (bucket and q) else None
+            if needs_shell and c.runner not in shell_runners:
+                v = "cannot"
+                why = f"needs shell; {c.runner} is edit-only"
             plans.append(
                 Plan(
                     choice=c,
@@ -408,7 +419,8 @@ def plan(
         ok_plans = [p for p in plans if p.verdict == "ok"]
         unknown_plans = [p for p in plans if p.verdict == "unknown"]
         will_hit_plans = [p for p in plans if p.verdict == "will_hit"]
-        return ok_plans + unknown_plans + will_hit_plans
+        cannot_plans = [p for p in plans if p.verdict == "cannot"]
+        return ok_plans + unknown_plans + will_hit_plans + cannot_plans
     except Exception:
         return []
 
@@ -453,6 +465,7 @@ def pick_runner(
     limits: dict | None = None,
     table: dict | None = None,
     now: datetime | None = None,
+    needs_shell: bool | None = None,
 ) -> Choice | None:
     try:
         cfg = cfg or load_plans()
@@ -474,6 +487,7 @@ def pick_runner(
             limits=limits,
             table=table,
             now=now,
+            needs_shell=needs_shell,
         )
 
         for p in plans:
@@ -481,11 +495,10 @@ def pick_runner(
                 p.choice.reason = plan_line(p)
                 return p.choice
 
-        choices = rank(cls, quotas, skill, host, cfg)
-        for choice in choices:
-            if "exhausted" not in choice.reason:
-                choice.reason = f"no ok candidate, fallback: {choice.reason}"
-                return choice
+        for p in plans:
+            if p.verdict != "cannot" and "exhausted" not in p.choice.reason:
+                p.choice.reason = f"no ok candidate, fallback: {p.choice.reason}"
+                return p.choice
         return None
     except Exception:
         return None
@@ -500,12 +513,19 @@ def main() -> None:
     parser.add_argument("--pick", metavar="ROLE", help="Pick single runner for worker role (e.g. developer)")
     parser.add_argument("--plan", metavar="ROLE", help="Plan routing for worker role or class")
     parser.add_argument("--size", choices=["S", "M", "L"], help="Task size (S, M, L)")
+    parser.add_argument("--needs-shell", action="store_true", help="Task requires arbitrary shell commands")
     args = parser.parse_args()
 
     cfg = load_plans(args.config)
 
     if args.plan:
-        plans = plan(args.plan, size=args.size, host=args.host, cfg=cfg)
+        plans = plan(
+            args.plan,
+            size=args.size,
+            host=args.host,
+            cfg=cfg,
+            needs_shell=True if args.needs_shell else None,
+        )
         for i, p in enumerate(plans, 1):
             print(f"{i}. {plan_line(p)}")
             if p.projection:
@@ -513,7 +533,12 @@ def main() -> None:
         return
 
     if args.pick:
-        choice = pick_runner(args.pick, args.host, cfg=cfg)
+        choice = pick_runner(
+            args.pick,
+            args.host,
+            cfg=cfg,
+            needs_shell=True if args.needs_shell else None,
+        )
         if choice is not None:
             print(f"runner={choice.runner} model={choice.model} reason={choice.reason}")
         else:

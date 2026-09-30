@@ -26,6 +26,45 @@ SEED_COSTS: dict[str, dict[str, float | int]] = {
 
 COST_TABLE_PATH = ROOT / "state" / "cost-table.json"
 
+SHELL_PATTERNS: list[str] = [
+    "psql",
+    "pg_dump",
+    # not a bare "migrate"/"migration": edit-only briefs name migration lists (lib/db.py)
+    "db migrate",
+    "migrate up",
+    "migrate deploy",
+    "alembic",
+    "systemctl",
+    "systemd-run",
+    "journalctl",
+    "docker",
+    "npm ",
+    "npx ",
+    "pnpm ",
+    "pip install",
+    "uv pip",
+    "ssh ",
+    "scp ",
+    "rsync ",
+    "curl ",
+    "git push",
+    "git commit",
+    "make ",
+    "bash ",
+    "sh -c",
+    "crontab",
+    "launchctl",
+    "ffmpeg",
+]
+
+
+def needs_shell(brief: str | None) -> bool:
+    """Return True if brief tells the worker to run commands other than pytest/read-only git."""
+    if not brief:
+        return False
+    lower = brief.lower()
+    return any(p.lower() in lower for p in SHELL_PATTERNS)
+
 
 def infer_size(touches: list | tuple | None = None, brief: str | None = None) -> str:
     """Infer task size S, M, or L based on touch count and brief length.

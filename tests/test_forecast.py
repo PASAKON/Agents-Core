@@ -199,3 +199,23 @@ def test_projection():
     # reach date: 2026-10-10 (after reset 10-06)
     proj2 = forecast.projection("claude", q, 0.02, 50, now=now)
     assert proj2 == "holds past reset 10-06"
+
+
+def test_needs_shell():
+    assert forecast.needs_shell("run psql -f x.sql then systemd-run …") is True
+    assert forecast.needs_shell("run /…/python -m pytest -q") is False
+    assert forecast.needs_shell(None) is False
+    assert forecast.needs_shell("") is False
+    assert forecast.needs_shell("run pytest and git status") is False
+
+    # Test patterns case-insensitively
+    assert forecast.needs_shell("run PSQL -c 'SELECT 1'") is True
+    assert forecast.needs_shell("apply alembic migrations") is True
+    assert forecast.needs_shell("systemctl restart nginx") is True
+    assert forecast.needs_shell("docker compose up") is True
+    assert forecast.needs_shell("npm test") is True
+    assert forecast.needs_shell("pip install requests") is True
+    assert forecast.needs_shell("git push origin main") is True
+    assert forecast.needs_shell("git commit -m 'update'") is True
+    assert forecast.needs_shell("ffmpeg -i in.mp4 out.mp4") is True
+
