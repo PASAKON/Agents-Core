@@ -825,7 +825,7 @@ def winbox(monkeypatch, wire):
 def test_windows_spawn_refuses_a_row_without_this_host(winbox):
     tid = _task(status="pending")
     out, code = nd._run("spawn_worker", [tid])
-    assert code == 2 and "has no host" in out["error"]
+    assert code == 2 and "is on host None" in out["error"]
     assert winbox == []
 
 

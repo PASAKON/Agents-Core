@@ -132,13 +132,17 @@ def _pid_is_alive(pid: object) -> bool:
     return proc.pid_alive(pid)  # a non-int, a bool and pid <= 0 are False there
 
 
-def _task_on_this_host(task_id: str, *, allow_null_host: bool = False) -> dict:
+def _task_on_this_host(task_id: str) -> dict:
+    """The row, if the hub assigned it to this host. A NULL host is refused
+    like any other host: every real spawn names its host first
+    (delegate.mesh_spawn_worker), so a NULL row is one the hub never routed
+    here (W2.7 F2, task-42fdcda7)."""
     task = db.get_task(task_id)
     if not task:
         raise Refusal(f"no such task {task_id}")
     here = _self_host()
     task_host = task.get("host")
-    if task_host != here and not (allow_null_host and task_host is None):
+    if task_host != here:
         raise Refusal(f"task {task_id} is on host {task_host!r}, this host is {here!r}")
     return task
 
@@ -291,11 +295,10 @@ def _windows_spawn_gate(task: dict) -> None:
     the normal path they pass. They stop a caller holding the org_dispatch key
     from starting a pending row the hub never gated: one with an unfinished
     dependency, or whose touches overlap a task already in flight. Locks stay
-    the hub's to take; nothing here writes."""
+    the hub's to take; nothing here writes. The row's host is checked before
+    this, by _task_on_this_host."""
     tid = task["id"]
-    if task.get("host") != _self_host():  # the hub always names the host first
-        raise Refusal(f"task {tid} has no host; spawn_worker on Windows needs this host's row")
-    deps = [d for d in _json_list(task.get("depends_on")) if isinstance(d, str)]
+    deps =[d for d in _json_list(task.get("depends_on")) if isinstance(d, str)]
     unmet = db.unmet_dependencies(deps) if deps else []
     if unmet:
         raise Refusal(f"task {tid} has unfinished dependencies: "
@@ -308,7 +311,7 @@ def _windows_spawn_gate(task: dict) -> None:
 
 
 def verb_spawn_worker(task_id: str) -> dict:
-    task = _task_on_this_host(task_id, allow_null_host=True)
+    task = _task_on_this_host(task_id)
     if task["status"] != "pending":
         raise Refusal(f"task {task_id} is {task['status']}, spawn_worker needs pending")
     if _is_windows():
