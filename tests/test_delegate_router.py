@@ -78,8 +78,12 @@ def test_choice_persists_runner_and_reason(task, pick_runner, monkeypatch):
     ("model_hint", "  CLAUDE  "),
 ])
 def test_explicit_choice_skips_router(task, pick_runner, field, value):
+    # IRON §59: a manual pin requires an override line in the description.
     with db_mod.get_conn() as conn:
-        conn.execute(f"UPDATE tasks SET {field}=? WHERE id=?", (value, task["id"]))
+        conn.execute(
+            f"UPDATE tasks SET {field}=?, description=? WHERE id=?",
+            (value, "override: test\n" + (task["description"] or ""), task["id"]),
+        )
         conn.commit()
     before = db_mod.get_task(task["id"])
 
@@ -117,3 +121,39 @@ def test_router_error_leaves_row_unchanged(task, pick_runner, monkeypatch):
     assert db_mod.get_task(task["id"]) == task
     warning.assert_called_once_with(
         "router skipped task=task-router: quota unavailable")
+
+
+def test_pin_without_reason_raises_permission_error_and_logs(
+    task, pick_runner, monkeypatch
+):
+    """IRON §59: _route_runner must raise PermissionError (not swallow it) when
+    a manual runner pin has no override line.  The refusal must be written to
+    delegate_log, and pick_runner must never be called."""
+    warning = Mock()
+    monkeypatch.setattr(delegate, "warn", warning)
+
+    # Set runner on 'developer' task without an override line or runner_model.
+    with db_mod.get_conn() as conn:
+        conn.execute(
+            "UPDATE tasks SET runner=? WHERE id=?", ("claude", task["id"])
+        )
+        conn.commit()
+    pinned = db_mod.get_task(task["id"])
+
+    with pytest.raises(PermissionError) as exc_info:
+        delegate._route_runner(pinned, "developer", "test-host")
+
+    # Error message written to delegate_log
+    after = db_mod.get_task(task["id"])
+    assert after["delegate_log"] is not None
+    assert "IRON §59" in after["delegate_log"]
+
+    # The same message is in the raised exception
+    assert "IRON §59" in str(exc_info.value)
+
+    # warn() was called with the refusal
+    warning.assert_called_once()
+    assert "IRON §59" in warning.call_args[0][0]
+
+    # pick_runner was never called
+    pick_runner.assert_not_called()
