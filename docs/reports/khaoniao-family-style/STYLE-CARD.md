@@ -27,6 +27,16 @@ Colour tones (guides only; an image model cannot hit a hex, so judge by eye):
 Mimi coat `#1B1B1F`, silver tufts `#CFCFD2`, chest `#F2EEE6`, tan `#C9A27A` · Mother turmeric `#F6D365`, chili `#D9382B`,
 cream `#FFF3D6` · Brother navy `#14233F`, gold `#D4A73A`, mint `#9ED8C4` · Sister black `#101014`, crimson `#C4122F`, silver `#B9BCC4`.
 
+### Update 2026-09-30 (later) — "ขอเป็นการ์ตูนสไตล์ไทยๆ"
+The CEO asked for a **Thai-style** cartoon after the first round (Pixar-like, faces not Thai, proportions too tall).
+Round 2 (`v3`) keeps the 3D light and shadow and the big-head funny proportions, and makes everything Thai: Thai faces
+(dark brown eyes, warm tan skin, low nose bridge), Thai things — mother in a pha thung sarong with a pha khao ma cloth
+and a Buddha-amulet necklace; brother in elephant-print shorts and rubber flip-flops with a lucky-stone bracelet; a
+plush charm on the sister's car key. One extra sheet shows the mother as a **2D Thai gag comic** (ink outlines, cel
+colour) for the CEO to compare; 3D vs 2D is his call. Round 1 and `v2` sheets stay on disk as history.
+Open in round 2: the brother came out stocky (he stands for the CEO — slimmer?); the sister is still tall and slim
+(the only one who is not stubby — keep as her signature, or shrink?); Mimi's fur is still quite real.
+
 ## 2 · The cast
 
 ### มีมี่ (Mimi) — the real dog (look fixed by the photo)
