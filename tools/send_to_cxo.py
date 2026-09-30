@@ -566,7 +566,6 @@ def _remote_target(role: str) -> tuple[str, str] | None:
     if not mesh.enabled():
         return None
     try:
-        db.init()
         with db.get_conn() as conn:
             rows = conn.execute(
                 "SELECT session_id, host FROM c_level_sessions "
