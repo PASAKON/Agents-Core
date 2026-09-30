@@ -506,20 +506,64 @@ def test_missing_wiki_roots_degrade_instead_of_crashing(monkeypatch, tmp_path):
 # --------------------------------------------------------------------------
 
 PORTABLE_FILES = FOUR_FILES + ("lib/proc.py", "lib/db.py", "lib/telegram_out.py", "lib/notify.py",
-                               "tools/tmux_session.py", "scripts/lib/cxo_mcp_config.py")
+                               "lib/config.py", "tools/tmux_session.py",
+                               "scripts/lib/cxo_mcp_config.py")
+
+
+def _text_io_without_encoding(source: str) -> list[int]:
+    """Lines of read_text/write_text and text-mode open() calls with no encoding=."""
+    bare = []
+    for n in ast.walk(ast.parse(source)):
+        if not isinstance(n, ast.Call) or any(k.arg == "encoding" for k in n.keywords):
+            continue
+        if isinstance(n.func, ast.Attribute) and n.func.attr in ("read_text", "write_text"):
+            if not (n.func.attr == "write_text" and len(n.args) > 1):   # positional data, encoding
+                bare.append(n.lineno)
+        elif isinstance(n.func, ast.Name) and n.func.id == "open":
+            mode = n.args[1] if len(n.args) > 1 else next(
+                (k.value for k in n.keywords if k.arg == "mode"), None)
+            if not (isinstance(mode, ast.Constant) and "b" in str(mode.value)):
+                bare.append(n.lineno)
+    return bare
+
+
+def test_the_encoding_check_can_see_a_bare_read():
+    assert _text_io_without_encoding("p.read_text()") == [1]
+    assert _text_io_without_encoding("p.write_text(s)") == [1]
+    assert _text_io_without_encoding("open(p)") == [1]
+    assert _text_io_without_encoding("open(p, 'w')") == [1]
+    assert _text_io_without_encoding("p.read_text(encoding='utf-8')") == []
+    assert _text_io_without_encoding("open(p, encoding='utf-8')") == []
+    assert _text_io_without_encoding("open(p, 'rb')") == []
 
 
 @pytest.mark.parametrize("rel", PORTABLE_FILES)
 def test_no_text_read_or_write_without_an_encoding(rel):
     # config/*.yaml and the state files carry Thai and typographic characters; a
     # bare read_text() decodes them with the locale codec and dies on winbox.
-    tree = ast.parse((ROOT / rel).read_text(encoding="utf-8"))
-    bare = [n.lineno for n in ast.walk(tree)
-            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
-            and n.func.attr in ("read_text", "write_text")
-            and not any(k.arg == "encoding" for k in n.keywords)
-            and not (n.func.attr == "write_text" and len(n.args) > 1)]
-    assert bare == [], f"{rel}: read_text/write_text without encoding= at lines {bare}"
+    bare = _text_io_without_encoding((ROOT / rel).read_text(encoding="utf-8"))
+    assert bare == [], f"{rel}: text read/write without encoding= at lines {bare}"
+
+
+def test_lib_config_loads_the_yaml_files_under_a_non_utf8_locale():
+    # The measured failure: projects()/agents()/hosts() raised UnicodeDecodeError
+    # ('ascii' codec can't decode byte 0xe2) because the yaml holds Thai and
+    # typographic characters.
+    code = ("import json, locale, sys; sys.path.insert(0, %r);"
+            "import lib.config as c;"
+            "print(json.dumps({'enc': locale.getpreferredencoding(False),"
+            " 'projects': len(c.projects()), 'agents': len(c.agents()),"
+            " 'hosts': len(c.hosts())}))" % str(ROOT))
+    env = {**os.environ, "LC_ALL": "C", "LANG": "C", "PYTHONCOERCECLOCALE": "0",
+           "PYTHONUTF8": "0", "ORG_NOTIFY_SILENT": "1"}
+    r = subprocess.run([sys.executable, "-X", "utf8=0", "-c", code], cwd=str(ROOT), env=env,
+                       capture_output=True, text=True, timeout=120)
+    assert r.returncode == 0, r.stderr[-1500:]
+    out = json.loads(r.stdout.strip().splitlines()[-1])
+    assert out["enc"].lower().replace("-", "") in ("usascii", "ascii", "ansix3.41968"), out
+    assert out["projects"] == len(config.projects())
+    assert out["agents"] == len(config.agents())
+    assert out["hosts"] == len(config.hosts())
 
 
 def test_delegate_reads_its_policy_file_under_a_non_utf8_locale():

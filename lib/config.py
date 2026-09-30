@@ -25,7 +25,7 @@ HOSTS_CONFIG = ROOT / "config" / "hosts.yaml"
 
 @lru_cache(maxsize=1)
 def _wiki_registry() -> dict:
-    return yaml.safe_load(WIKIS_CONFIG.read_text())
+    return yaml.safe_load(WIKIS_CONFIG.read_text(encoding="utf-8"))
 
 
 def _wiki_root_path(ns: str) -> str | None:
@@ -37,7 +37,7 @@ def _wiki_root_path(ns: str) -> str | None:
 
 @lru_cache(maxsize=1)
 def projects() -> dict[str, dict]:
-    data = yaml.safe_load(PROJECTS_CONFIG.read_text())
+    data = yaml.safe_load(PROJECTS_CONFIG.read_text(encoding="utf-8"))
     out = {p["key"]: p for p in data["projects"]}
     # The `LLMs` project's path is not duplicated in projects.yaml — it's
     # derived from config/wikis.yaml, the single source of truth for wiki
@@ -49,7 +49,7 @@ def projects() -> dict[str, dict]:
 
 @lru_cache(maxsize=1)
 def agents() -> dict:
-    return yaml.safe_load(AGENTS_CONFIG.read_text())
+    return yaml.safe_load(AGENTS_CONFIG.read_text(encoding="utf-8"))
 
 
 def role(name: str) -> dict:
@@ -144,7 +144,7 @@ def _read_dotenv_var(name: str) -> str | None:
     env_file = ROOT / ".env"
     if not env_file.exists():
         return None
-    for line in env_file.read_text().splitlines():
+    for line in env_file.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -170,7 +170,7 @@ def hosts() -> dict[str, dict]:
     provides and how to reach it (ssh alias, native paths). Nothing here
     reads `provides` for routing yet — that's Phase 3.
     """
-    data = yaml.safe_load(HOSTS_CONFIG.read_text())
+    data = yaml.safe_load(HOSTS_CONFIG.read_text(encoding="utf-8"))
     return data["hosts"]
 
 
@@ -206,7 +206,7 @@ def _env_host() -> str | None:
 def _node_yaml_host() -> str | None:
     if not NODE_CONFIG_PATH.exists():
         return None
-    data = yaml.safe_load(NODE_CONFIG_PATH.read_text()) or {}
+    data = yaml.safe_load(NODE_CONFIG_PATH.read_text(encoding="utf-8")) or {}
     raw = data.get("host")
     if raw is None or not str(raw).strip():
         return None
@@ -339,7 +339,7 @@ def _read_dotenv_var(name: str) -> str | None:
     env_file = ROOT / ".env"
     if not env_file.exists():
         return None
-    for line in env_file.read_text().splitlines():
+    for line in env_file.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
