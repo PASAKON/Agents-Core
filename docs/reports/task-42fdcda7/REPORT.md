@@ -174,6 +174,30 @@ Document only; nothing applied.
 
 ## Tests
 
+Iteration 2, on the final code (a27a22c4):
+
+- Full suite, once, sequentially, `.venv/bin/python -m pytest -p no:warnings`
+  with `ORG_DB_URL` unset: **4699 passed, 0 failed, 28 skipped** in 406 s. No
+  `tests/test_agy_browse.py::test_live_*` timeout this run. One earlier run was
+  stopped after about 5 minutes, before it finished, because the F10 grace
+  hold (a7911a9a) then changed `tools/node_dispatch.py`; only the run above
+  completed.
+- `scripts/test_org_tools_registry.py`: 29 PASS, 0 FAIL, "ALL PASS", exit 0.
+- `scripts/test_mcp_role_config.py`: 57 PASS, 0 FAIL, "OK — 0 failure(s)", exit 0.
+- `tests/test_w27_security.py`: **73 passed** (53 in iteration 1, plus F9, F10,
+  F12 and F14). `tests/test_w25_spawn_c_level_mesh.py` gains 5 relay rate-limit
+  tests.
+- The suites next to the iteration-2 changes, together (watchdog, letters,
+  node_dispatch, mesh, relay, surface reaper and the w-series), with `ORG_ROOT`
+  also unset: 1233 passed. With the worker shell's `ORG_ROOT` (the main
+  checkout) set, `scripts/test_surface_reaper.py` and its neighbours stop on
+  the ADR 0021 guard ("tests must not touch a real checkout's tasks.db"). That
+  comes from the environment, not from this diff.
+- Invisible-character scan (categories Cf, Zs, Co, Cc except tab) on every
+  diff before its commit: 0.
+
+Iteration 1:
+
 - `tests/test_w27_security.py`: 53 passed (about 10 s). The seven test files
   next to the change, run together after the code fixes: 813 passed.
 - Full suite, once, sequentially, `.venv/bin/python -m pytest -p no:warnings`
