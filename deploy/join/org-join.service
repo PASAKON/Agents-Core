@@ -37,5 +37,44 @@ ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/join/bind-docker0.sh /usr/bi
 Restart=on-failure
 RestartSec=10
 
+# Sandbox (Org Mesh W4.6b, security review task-79219f24 F3, the part that changes no secret and
+# no database role). The service runs two legs: a root leg (bind-docker0.sh, then
+# infisical_setup.py reads /etc/infisical/contabo.env and execs setpriv) and, after setpriv drops
+# to `secretary`, the public endpoint. The directives below confine both. What the service
+# really writes, found in the code: nothing on disk. The hub is Postgres over the network
+# (lib/db.py takes the SQLite path only when ORG_DB_URL is unset, and the unit always has it),
+# logs go to stderr and so to journald, /etc/infisical and the checkout are only read, and
+# `ip -4 addr show` is a netlink read. Python's attempt to write .pyc files into the checkout
+# fails quietly, as it does for any read-only tree. So there is no ReadWritePaths= line on
+# purpose: add one only together with the code that needs it.
+#
+# NoNewPrivileges: no process of this unit can gain privilege through exec (setuid or setgid
+#   bit, file capabilities). setpriv only DROPS root to `secretary`, which this does not block.
+NoNewPrivileges=yes
+# ProtectSystem=strict: the whole file system is read-only for this unit, except /dev, /proc and
+#   /sys (which the next directives cover). A bug in the endpoint cannot rewrite the checkout
+#   (F15: the scripts it serves are in it) or anything under /etc.
+ProtectSystem=strict
+# ProtectHome: /home, /root and /run/user are empty and unreachable, so the endpoint cannot read
+#   another user's keys or shell history. Nothing needs them: the checkout is under /opt, and
+#   Environment=HOME above is only a value for setpriv to pass on. Before installing, check that
+#   `readlink -f /opt/MoonieXHQ/Agents/Core/.venv/bin/python` does not resolve under /home or /root
+#   (an interpreter installed there would stop working). lib/config.py already treats an
+#   unreadable node.yaml as absent on the path join_api uses (config.hosts()).
+ProtectHome=yes
+# PrivateTmp: its own /tmp and /var/tmp, shared with no other service (the secretary runs as the
+#   same uid). The endpoint uses no temporary file.
+PrivateTmp=yes
+# ProtectKernelTunables: /proc/sys, /sys and the like are read-only. `ip` only reads them.
+ProtectKernelTunables=yes
+# ProtectKernelModules: no kernel module can be loaded, even by the root leg.
+ProtectKernelModules=yes
+# ProtectControlGroups: the cgroup file system is read-only.
+ProtectControlGroups=yes
+# RestrictSUIDSGID: nothing this unit creates can carry a setuid or setgid bit.
+RestrictSUIDSGID=yes
+# LockPersonality: the execution domain (personality(2)) cannot be changed.
+LockPersonality=yes
+
 [Install]
 WantedBy=multi-user.target

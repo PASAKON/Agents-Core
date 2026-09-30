@@ -1,26 +1,34 @@
 # join.ps1 - make this Windows machine a MoonieX org node (Org Mesh W4.3).
 # ASCII only, PowerShell 5.1 compatible. Run it in an ELEVATED PowerShell (Run as administrator).
 #
-#   $env:ORG_JOIN_TOKEN = '<t>'; $env:ORG_JOIN_HOST = '<name>'
+#   $env:ORG_JOIN_HOST = '<name>'
 #   iwr -UseBasicParsing https://<hub>/org-join/join.ps1 | iex
 #
-# or, with the same arguments as join.sh (the token then shows in this window's history):
+# That is the preferred form: no token in the command line or in this window's history. The
+# script asks for the token (Read-Host -AsSecureString: nothing is echoed, and it is converted
+# in memory only). The token is single use and dies after 15 minutes, but it IS the credential
+# until step 3 has used it. Still supported, for a window that cannot ask:
 #
+#   $env:ORG_JOIN_TOKEN = '<t>'; $env:ORG_JOIN_HOST = '<name>'; iwr -UseBasicParsing https://<hub>/org-join/join.ps1 | iex
 #   & ([scriptblock]::Create((iwr -UseBasicParsing https://<hub>/org-join/join.ps1).Content)) --token <t> --host <name> [--hq-root <path>]
 #
 # Arguments (the --name form and the -Name form both work)
-#   --token <t>      the one-time token from `hq_join mint` (or $env:ORG_JOIN_TOKEN)
+#   --token <t>      the one-time token from `hq_join mint`. Leave it out and it is asked for with
+#                    no echo (or $env:ORG_JOIN_TOKEN)
 #   --host <name>    this machine's node name, the one the token was minted for ($env:ORG_JOIN_HOST)
 #   --hq-root <p>    where the HQ folder goes (default: %USERPROFILE%\MoonieXHQ)
 #   --hub <url>      the hub, https://<hub>. Default: the hub this script was fetched from
 #   --dry-run        print every step, change nothing, contact nothing
 #
 # The nine steps, in order (same as join.sh). Each is safe to repeat.
-#   1 check the arguments             6 wait for the hub to seal this node's identity to its key
-#   2 install what is missing         7 clone Agents-Core over the deploy key, build the venv
-#   3 make the node's keys            8 open the sealed identity, save it, write node.yaml
-#   4 accept: hand the hub the token  9 probe
+#   1 check the arguments             6 wait for the operator's approval and the sealed identity
+#   2 make the node's keys            7 clone Agents-Core over the deploy key, build the venv
+#   3 accept: hand the hub the token  8 open the sealed identity, save it, write node.yaml
+#   4 install what is missing         9 probe
 #   5 join the tailnet
+# Keys and accept come BEFORE the long installs: the token is used within seconds of being typed,
+# and the operator sees this node's fingerprint (the last 8 characters of its age recipient) at
+# once. Step 2 installs only what the keys need (age, and git for its ssh-keygen) if missing.
 #
 # No secret is typed, written to disk by this script, or put on the command line of a process
 # that lives longer than a moment. The node's identity is age-decrypted and handed to
@@ -38,6 +46,7 @@ $script:DryRun = $false
 $script:PollS = 15
 $script:PollMaxS = 900
 $script:GhRepoSsh = 'git@github.com:PASAKON/Agents-Core.git'
+$script:GithubMetaUrl = 'https://api.github.com/meta'
 $script:Py = ''
 $script:PyPre = @()
 $script:AgePub = ''
@@ -93,6 +102,23 @@ function Read-Args($argList) {
     return $o
 }
 
+# Ask for the token with nothing echoed. Read-Host -AsSecureString keeps it out of the console and
+# the transcript; it is turned into a string in memory only, and the unmanaged copy is wiped.
+# An empty string means there was nothing to ask on (a non-interactive host) or nothing typed.
+function Read-TokenPrompt {
+    $sec = $null
+    try { $sec = Read-Host -Prompt 'Join token (typing is hidden)' -AsSecureString } catch { return '' }
+    if ($null -eq $sec) { return '' }
+    $bstr = [IntPtr]::Zero
+    try {
+        $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec)
+        return ([Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)).Trim()
+    } finally {
+        if ($bstr -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
+        $sec.Dispose()
+    }
+}
+
 function Initialize-Args($o) {
     $script:DryRun = [bool]$o.DryRun
     $script:Token = $o.Token
@@ -105,7 +131,8 @@ function Initialize-Args($o) {
     $script:Hub = $o.Hub
     if ((-not $script:Hub) -and $env:ORG_JOIN_HUB) { $script:Hub = $env:ORG_JOIN_HUB }
 
-    if (-not $script:Token) { Die 'no token: pass --token <t> or set $env:ORG_JOIN_TOKEN' }
+    if (-not $script:Token) { $script:Token = Read-TokenPrompt }
+    if (-not $script:Token) { Die 'no token: pass --token <t> or set $env:ORG_JOIN_TOKEN, or run this in a window that can ask for it (typing hidden)' }
     if ($script:Token -cnotmatch '^hqj_[A-Za-z0-9_-]{43}$') { Die 'the token is not in the expected shape (hqj_ and 43 more characters); copy it again' }
     if (-not $script:HostName) { Die 'no --host <name>' }
     if ($script:HostName -cnotmatch '^[a-z][a-z0-9-]{1,29}[a-z0-9]$') { Die "--host must be 3-31 characters: a-z, 0-9, '-', starting with a letter, not ending in '-'" }
@@ -133,7 +160,7 @@ function Show-Banner {
     Say ('host ' + $script:HostName + ' (windows), hub ' + $script:Hub)
     Say ('HQ root ' + $script:HqRoot + '  (checkout: ' + $script:Core + ')')
     Say ('keys go under ' + $script:ConfDir + ' (age identity, deploy key) and ' + $script:SshDir + ' (dispatch key)')
-    Say 'ELEVATION NEEDED for three steps: installing packages (2), tailscale up (5), saving the'
+    Say 'ELEVATION NEEDED for three things: installing packages (2, 4), tailscale up (5), saving the'
     Say "node's identity under C:\ProgramData\Infisical (8)."
     if (Test-Admin) {
         Say 'This window is elevated: fine.'
@@ -180,7 +207,7 @@ function Install-Winget($id, $what) {
 }
 
 function Install-Missing {
-    Step 2 'install what is missing (git, python 3.11+, node 22, age, tailscale, claude)'
+    Step 4 'install what is missing (git, python 3.11+, node 22, age, tailscale, claude; the key tools came in step 2)'
     if (-not (Test-Have 'winget')) {
         if ($script:DryRun) { Say 'WARNING: winget is not installed; a real run would stop here' }
         else { Die 'winget is not installed: install "App Installer" from the Microsoft Store, then run the same command again' }
@@ -213,13 +240,35 @@ function Install-Missing {
     if ((-not $script:Py) -and $script:DryRun) { $script:Py = 'python'; $script:PyPre = @() }
 }
 
-function Find-SshKeygen {
+# The path of an ssh-keygen, or $null.
+function Get-SshKeygen {
     $c = Get-Command 'ssh-keygen' -ErrorAction SilentlyContinue
     if ($c) { return $c.Source }
     foreach ($p in @("$env:ProgramFiles\Git\usr\bin\ssh-keygen.exe", "$env:SystemRoot\System32\OpenSSH\ssh-keygen.exe")) {
         if (Test-Path -LiteralPath $p) { return $p }
     }
+    return $null
+}
+
+function Find-SshKeygen {
+    $k = Get-SshKeygen
+    if ($k) { return $k }
     Die 'ssh-keygen not found: turn on "OpenSSH Client" under Optional features, or reinstall Git for Windows, then run the same command again'
+}
+
+# Step 2's tools: only what the keys need (age, and an ssh-keygen: Git for Windows brings one), so
+# accept does not wait for the long installs of step 4.
+function Install-KeyTools {
+    $needAge = -not ((Test-Have 'age') -and (Test-Have 'age-keygen'))
+    $needSsh = -not (Get-SshKeygen)
+    if ((-not $needAge) -and (-not $needSsh)) { Say 'key tools: age and ssh-keygen present'; return }
+    if (-not (Test-Have 'winget')) {
+        if ($script:DryRun) { Say 'WARNING: winget is not installed; a real run would stop here'; return }
+        Die 'winget is not installed: install "App Installer" from the Microsoft Store, then run the same command again'
+    }
+    Update-PathFromRegistry
+    if ($needAge) { Install-Winget 'FiloSottile.age' 'age' }
+    if ($needSsh) { Install-Winget 'Git.Git' 'git, which brings ssh-keygen' }
 }
 
 # ---------------------------------------------------------------- 3: keys
@@ -231,7 +280,9 @@ function Set-PrivateAcl($path) {
 }
 
 function New-Keys {
-    Step 3 "make the node's keys (kept if they already exist), private to this user"
+    Step 2 "make the node's keys (kept if they already exist), private to this user"
+    Say 'first, only the tools the keys need, if missing: age, ssh-keygen (git brings one)'
+    Install-KeyTools
     Say ('age identity    ' + $script:AgeId)
     Say ('deploy key      ' + $script:DeployKey + ' (ssh ed25519, read-only on GitHub once the hub registers it)')
     Say ('dispatch key    ' + $script:DispatchKey + ' (ssh ed25519, what lib/mesh.py uses to call other nodes)')
@@ -300,13 +351,23 @@ function Get-JsonField($body, $name) {
 
 function Send-Sealed { return (Send-Hub 'sealed' @{ host = $script:HostName; token = $script:Token }) }
 
+# The last 8 characters of this node's age recipient: what the operator checks against the approve
+# card in the Run Inbox, so the hub provisions the machine the operator is looking at and not
+# whoever else holds the token.
+function Get-Fingerprint {
+    if ($script:DryRun) { return '<last 8 characters of the age recipient>' }
+    $a = [string]$script:AgePub
+    return $a.Substring([Math]::Max(0, $a.Length - 8))
+}
+
 # ---------------------------------------------------------------- 4: accept
 
 function Send-Accept {
-    Step 4 "accept: give the hub the token and this node's public keys"
+    Step 3 "accept: give the hub the token and this node's public keys"
     Say ('POST ' + $script:Hub + '/accept  (host, os, hq_root, age recipient, deploy public key; the token is in the body)')
     if ($script:DryRun) {
         Say "a used token is refused; step 6's answer then tells 'already joined' from 'wrong token'"
+        Say ('then: fingerprint: ' + (Get-Fingerprint) + ' - the operator approves this in the Run Inbox')
         return
     }
     $r = Send-Hub 'accept' @{ token = $script:Token; host = $script:HostName; os = 'windows'; hq_root = $script:HqRoot; pubkey = $script:AgePub; deploy_pubkey = $script:DeployPub }
@@ -320,16 +381,22 @@ function Send-Accept {
         # "this token already joined this host" (200/202) from "never valid" (403).
         $s = Send-Sealed
         if ($s.Code -eq 200 -or $s.Code -eq 202) { Say 'already joined with this token: continuing with the steps that are left' }
+        elseif ($s.Code -eq 503) { Die 'the hub is busy: wait a minute and run the same command again (the token is not used up)' }
         else { Die 'the hub refused this token: it is unknown, already used for another machine, expired (15 min), or minted for a different host name. Ask for a new one.' }
     } elseif ($r.Code -eq 409) {
         Die ('the hub already has a node called ' + $script:HostName + '. Pick another name, or leave the old one first')
     } elseif ($r.Code -eq 429) {
         Die 'the hub is rate limiting this address: wait a minute and run the same command again'
+    } elseif ($r.Code -eq 503) {
+        Die 'the hub is busy: wait a minute and run the same command again (the token is not used up)'
     } elseif ($r.Code -eq 0) {
         Die ('could not reach the hub at ' + $script:Hub)
     } else {
         Die ('unexpected answer from the hub: HTTP ' + $r.Code)
     }
+    # Every refusal above stopped the run, so here the hub has the keys. Show the fingerprint now,
+    # before the long install: the operator approves exactly this value.
+    Say ('fingerprint: ' + (Get-Fingerprint) + ' - the operator approves this in the Run Inbox')
 }
 
 # ---------------------------------------------------------------- 5: tailnet
@@ -363,8 +430,8 @@ function Join-Tailnet {
 # ---------------------------------------------------------------- 6: wait for the sealed identity
 
 function Wait-Sealed {
-    Step 6 ("wait for the hub to seal this node's identity (polls every " + $script:PollS + ' s, up to ' + [int]($script:PollMaxS / 60) + ' min)')
-    Say ('POST ' + $script:Hub + '/sealed  -> pending until the Mac provisions it, then the age ciphertext')
+    Step 6 ("wait for the operator's approval, then for the hub to seal this node's identity (polls every " + $script:PollS + ' s, up to ' + [int]($script:PollMaxS / 60) + ' min)')
+    Say ('POST ' + $script:Hub + '/sealed  -> pending until the operator approves fingerprint ' + (Get-Fingerprint) + ' and the Mac provisions it, then the age ciphertext')
     Say ('the ciphertext is held in memory only; only the identity in ' + $script:AgeId + ' can open it')
     if ($script:DryRun) { return }
     $waited = 0
@@ -376,7 +443,7 @@ function Wait-Sealed {
             Say 'sealed identity received'
             return
         } elseif ($r.Code -eq 202) {
-            Say ('pending (' + $waited + ' s)')
+            Say ('waiting for the operator to approve fingerprint ' + (Get-Fingerprint) + ' in the Run Inbox (' + $waited + ' s)')
         } elseif ($r.Code -eq 403) {
             Die 'the hub will not release the sealed identity for this token (expired after 24 h, or the node left). Ask for a new token'
         } elseif ($r.Code -eq 429) {
@@ -394,16 +461,46 @@ function Wait-Sealed {
 
 # ---------------------------------------------------------------- 7: clone + venv
 
+# StrictHostKeyChecking=yes against a known_hosts that Write-KnownHosts filled from GitHub itself:
+# the first clone is no longer trust-on-first-use, so a network in the middle cannot hand this
+# node a fake Agents-Core whose tools\infisical_setup.py then runs with the node's identity.
 function Get-GitSshCommand {
     $k = $script:DeployKey -replace '\\', '/'
     $kh = ($script:ConfDir -replace '\\', '/') + '/known_hosts'
-    return ('ssh -i "' + $k + '" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="' + $kh + '"')
+    return ('ssh -i "' + $k + '" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="' + $kh + '"')
+}
+
+# GitHub's published SSH host keys, from its API over TLS, as the ONLY entries in known_hosts (a
+# file left by an older run, with keys it trusted on first use, is replaced). If the fetch or the
+# parse fails this stops: there is no fallback to accept-new.
+function Write-KnownHosts {
+    $kh = Join-Path $script:ConfDir 'known_hosts'
+    Say ("GitHub's SSH host keys: " + $script:GithubMetaUrl + ' (ssh_keys, over TLS) -> ' + $kh + '; the clone then uses StrictHostKeyChecking=yes')
+    if ($script:DryRun) { return }
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $meta = $null
+    try {
+        $meta = Invoke-RestMethod -UseBasicParsing -Uri $script:GithubMetaUrl -Headers @{ Accept = 'application/vnd.github+json' } -TimeoutSec 30 -ErrorAction Stop
+    } catch {
+        Die ("could not fetch GitHub's SSH host keys from " + $script:GithubMetaUrl + '. Not cloning without them (there is no trust-on-first-use fallback): check the network and run the same command again')
+    }
+    $lines = @()
+    foreach ($k in @($meta.ssh_keys)) {
+        if (([string]$k) -cmatch '^(ssh-ed25519|ecdsa-sha2-nistp256|ssh-rsa) [A-Za-z0-9+/]{20,}={0,2}$') { $lines += ('github.com ' + [string]$k) }
+    }
+    if ($lines.Count -eq 0) { Die ($script:GithubMetaUrl + ' did not list any SSH host key in the expected shape. Not cloning without them') }
+    New-Item -ItemType Directory -Force -Path $script:ConfDir -ErrorAction Stop | Out-Null
+    # LF and no BOM: OpenSSH reads a line's last field up to the newline, so a CR would be part of the key.
+    [IO.File]::WriteAllText(($kh + '.tmp'), (($lines -join "`n") + "`n"), (New-Object Text.UTF8Encoding($false)))
+    Move-Item -Force -LiteralPath ($kh + '.tmp') -Destination $kh -ErrorAction Stop
+    Say ('known_hosts: ' + $lines.Count + ' GitHub host keys written')
 }
 
 function Copy-Core {
     Step 7 'clone Agents-Core over the deploy key, build the venv'
     Say ($script:GhRepoSsh + ' -> ' + $script:Core + '  (GIT_SSH_COMMAND: the deploy key only, nothing from ~\.ssh)')
     Say ('then: python -m venv ' + $script:Core + '\.venv and pip install -r requirements.txt')
+    Write-KnownHosts
     if ($script:DryRun) { return }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $script:Core) -ErrorAction Stop | Out-Null
     $env:GIT_SSH_COMMAND = Get-GitSshCommand
@@ -530,9 +627,9 @@ function Join-OrgNode($argList) {
     $o = Read-Args $argList
     Initialize-Args $o
     Show-Banner
-    Install-Missing
     New-Keys
     Send-Accept
+    Install-Missing
     Join-Tailnet
     Wait-Sealed
     Copy-Core
