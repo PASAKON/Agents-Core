@@ -176,6 +176,10 @@ def _wake_tmux_send(session: str, text: str) -> None:
 WAKE_TASK_NAME = "MooniexOrgWake"
 WAKE_DIR = ROOT / "state" / "wake"
 _WAKE_WAIT_S = 15.0
+_WAKE_RUN_TIMEOUT_S = 15  # the `schtasks /run` call
+# The longest wake_windows_tab can block: the schtasks call, then the wait for
+# the result. lib/mesh.py sizes the deliver_letter timeout from it.
+WAKE_WORST_CASE_S = _WAKE_RUN_TIMEOUT_S + _WAKE_WAIT_S
 _WAKE_LABEL_RE = re.compile(r"[A-Za-z0-9_.#-]{1,40}")
 _WAKE_SID_RE = re.compile(r"[A-Za-z0-9_-]{6,40}")
 
@@ -224,7 +228,7 @@ def wake_windows_tab(session: str, label: str, *, wait_s: float = _WAKE_WAIT_S,
 
     try:
         r = run(["schtasks", "/run", "/tn", WAKE_TASK_NAME],
-                capture_output=True, text=True, timeout=15)
+                capture_output=True, text=True, timeout=_WAKE_RUN_TIMEOUT_S)
     except (OSError, subprocess.SubprocessError) as e:
         _withdraw()
         return {"woke": False, "why": f"schtasks /run failed: {e}"}

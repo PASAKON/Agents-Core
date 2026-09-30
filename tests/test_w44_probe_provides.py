@@ -257,8 +257,9 @@ def test_gpu_is_absent_when_nvidia_smi_fails_or_lists_nothing(box, code, out):
 
 def test_macos_without_nvidia_smi_reports_no_gpu_and_no_metal(box):
     box.os("macos")
+    box.children.table["/usr/bin/security"] = (44, "")  # runner_claude: no Keychain item
     assert "gpu" not in box.measured()
-    assert box.children.calls == []
+    assert [c[0][0] for c in box.children.calls] == ["/usr/bin/security"]  # nvidia-smi never runs
 
 
 @pytest.mark.parametrize("version, ok", [

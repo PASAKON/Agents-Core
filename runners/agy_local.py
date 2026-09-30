@@ -65,6 +65,10 @@ def build_agy_prompt(prompt: str, worktree: str) -> str:
             f"no * ? ~ (so no [attr*=x] selectors). A command outside this set is denied, and the denial ends "
             f"your run with no retry. To reach an element by a label you cannot type, go by position: "
             f"`count button`, then `text ':nth-match(button, N)'` to read it, then `click ':nth-match(button, N)'`."
+            f" One call can take up to 30 s: run each command with WaitMsBeforeAsync 30000. If a command still "
+            f"goes to the background, check its status until it has finished before you do anything else; "
+            f"ending your turn while a command runs ends the whole run and loses your work. Append what you "
+            f"learn to the report file the task names after every few calls, so a crash loses nothing."
         )
     p = prompt.rstrip()
     if p:

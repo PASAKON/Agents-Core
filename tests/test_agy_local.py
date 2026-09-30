@@ -310,6 +310,8 @@ def test_contract_names_agy_browse_only_for_a_browser_brief():
     # a denied command ends the run, so agy is told the allowed set and the positional way round Thai labels
     assert "no Thai or other non-ASCII text" in browse and "ends your run" in browse
     assert "':nth-match(button, N)'" in browse
+    # a backgrounded call followed by an idle turn ends a headless run (task-4245497d run 3)
+    assert "WaitMsBeforeAsync 30000" in browse and "ending your turn while a command runs" in browse
     plain = build_agy_prompt("Fix the parser", "/tmp/wt")
     assert "agy_browse" not in plain
     # a path that merely ends in the name (another repo's copy) does not count
