@@ -80,10 +80,11 @@ def run_agy_subprocess(
     worktree: str,
     log_path: Path,
     timeout: int = 3600,
+    model: str | None = None,
 ) -> int:
     """Run agy headless with stdout and stderr appended to log_path."""
-    model = os.environ.get("AGY_MODEL", "gemini-3.8-flash-high")
-    cmd = [agy_bin, "-p", prompt, "--model", model, "--mode", "accept-edits", "--add-dir", worktree]
+    effective_model = model if model else (os.environ.get("AGY_MODEL") or "gemini-3.8-flash-high")
+    cmd = [agy_bin, "-p", prompt, "--model", effective_model, "--mode", "accept-edits", "--add-dir", worktree]
     with open(log_path, "a", encoding="utf-8") as f:
         try:
             proc = subprocess.run(
@@ -116,7 +117,14 @@ def run_agy_task(task: dict, worktree: str, prompt: str, role: str) -> int:
     full_prompt = build_agy_prompt(prompt, worktree)
 
     # Run agy
-    exit_code = run_agy_subprocess(agy_bin, full_prompt, worktree, log_path, timeout=3600)
+    exit_code = run_agy_subprocess(
+        agy_bin,
+        full_prompt,
+        worktree,
+        log_path,
+        timeout=3600,
+        model=(task.get("runner_model") or None),
+    )
 
     # Git stage: add all, unstage the run log, check cached diff
     run_git(worktree, ["add", "-A"])

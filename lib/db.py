@@ -264,6 +264,11 @@ _MIGRATION_COLUMNS = [
     # `runners:` list at delegate_task() time (the hub), not here — never
     # trust a runner blind at spawn time (docs/ops/agent-runners.md §4).
     ("runner", "TEXT"),
+    # Model the router picked for `runner` (the part after 'runner:' in a
+    # plans.yaml candidate, e.g. gemini-3.8-flash-high, claude-sonnet-4-6).
+    # NULL = the runner's own default. Written by tools/delegate.py
+    # _route_runner; read by runners/agy_local.py (PLAN-auto-dispatch Q1b).
+    ("runner_model", "TEXT"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -878,6 +883,7 @@ VALID_COLUMNS = {
     "session_id", "retry_after_ts", "last_checkpoint", "pid",
     "tmux_session", "ttyd_port", "ttyd_pid", "owner_cto", "owner_role",
     "delegate_log", "spawned_at", "host", "dispatcher_host", "runner",
+    "runner_model",
 }
 
 

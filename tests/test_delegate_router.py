@@ -46,8 +46,18 @@ def pick_runner(monkeypatch):
 
 
 def test_choice_persists_runner_and_reason(task, pick_runner, monkeypatch):
-    pick_runner.return_value = SimpleNamespace(
-        runner="agy", reason="weekly 99% vs 50%")
+    from tools.route import Choice
+
+    pick_runner.return_value = Choice(
+        candidate="agy:claude-sonnet-4-6",
+        runner="agy",
+        model="claude-sonnet-4-6",
+        bucket="agy-claude",
+        weekly=0.9,
+        daily=None,
+        skill=None,
+        reason="r",
+    )
     log = Mock()
     monkeypatch.setattr(delegate, "info", log)
 
@@ -56,8 +66,9 @@ def test_choice_persists_runner_and_reason(task, pick_runner, monkeypatch):
     pick_runner.assert_called_once_with("developer", "test-host")
     after = db_mod.get_task(task["id"])
     assert after["runner"] == "agy"
+    assert after["runner_model"] == "claude-sonnet-4-6"
     assert after["status"] == task["status"]
-    assert after["delegate_log"] == "router: agy — weekly 99% vs 50%"
+    assert after["delegate_log"] == "router: agy claude-sonnet-4-6 [agy-claude] — r"
     log.assert_called_once_with(after["delegate_log"])
 
 
