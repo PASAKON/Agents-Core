@@ -38,19 +38,35 @@ and `lib/router.py` does not read it yet.
 | `gpu` | `nvidia-smi -L` exits 0 within 5 s and lists a `GPU ` line. NVIDIA only: macOS Metal is not reported |
 | `node20` | `node --version` exits 0 within 5 s and the major is 20 or more |
 | `playwright_chromium` | the Playwright browsers folder holds a `chromium*` folder. Folder: `$PLAYWRIGHT_BROWSERS_PATH` (`0` means none), else `~/Library/Caches/ms-playwright` (macOS), `~/.cache/ms-playwright` (Linux), `%LOCALAPPDATA%\ms-playwright` (Windows) |
-| `runner_claude` | `$CLAUDE_CONFIG_DIR/.credentials.json` (default `~/.claude/`) exists and is not empty |
+| `runner_claude` | Linux, Windows: `$CLAUDE_CONFIG_DIR/.credentials.json` (default `~/.claude/`) exists and is not empty. macOS: see below |
 | `runner_codex` | `$CODEX_HOME/auth.json` (default `~/.codex/`) exists and is not empty |
 | `runner_agy` | `~/.gemini/antigravity-cli/antigravity-oauth-token` exists and is not empty |
 
 A runner name means "a credential file is there", read from `os.stat` (existence and
 size). The file is never opened, read, hashed or printed. It does not say the login is
 still valid, and it does not say the CLI is installed (`runners` lists the installed
-ones). On macOS the Claude Code login lives in the Keychain, not in a file, so
-`runner_claude` is absent on a Mac whose only login is the Keychain one.
+ones).
+
+**`runner_claude` on macOS.** Claude Code keeps the login in the Keychain, so the file
+is not the test there. Two checks, in order, neither reads the secret:
+
+1. `claude auth status --json` (when `claude` is on PATH): only its `loggedIn` boolean
+   is used. The same output carries an email and an org name; they are parsed in place
+   and never stored, logged or returned. `loggedIn` true or false is the answer.
+2. If the CLI cannot answer (not on PATH, hung past 5 s, would not start, output that
+   is not that JSON): `/usr/bin/security find-generic-password -s "Claude Code-credentials"`.
+   Attributes only: **no `-w` and no `-g`**, which would print the password. The exit
+   code is the whole answer (0 item present; any other exit, such as 44 not found,
+   reads as absent), and stdout and stderr go to /dev/null.
+
+With `CLAUDE_CONFIG_DIR` set, the default Keychain item may belong to a different
+login (not measured here), so step 2 is skipped and the file check is used instead. `tests/test_mesh_followups.py` fails if a `-w` or `-g` style flag ever reaches
+a child's argv or appears as a string in `tools/node_dispatch.py`.
 
 Every detector is bounded and cannot fail the probe. A child is an argv list (no
 shell), with stdin and stderr on /dev/null and a 5 s timeout (`PROBE_CHILD_TIMEOUT_S`),
-so the worst case is 3 children, 15 s. A detector that raises or times out is left out
+so the worst case is 3 children, 15 s (5 children, 25 s on macOS, where `runner_claude`
+may run `claude` and then `security`). A detector that raises or times out is left out
 of `provides_measured` and adds one entry to `probe_errors`: `"<name>: <ExceptionType>"`,
 the type only, never the message.
 
@@ -146,6 +162,20 @@ The alias itself, on each dispatcher:
 
 Keep the admin alias (`mooniex-vps`, `winbox`) for people and the watchdog; never
 put the admin key under a `-mesh` alias.
+
+**Retry cap for an unanswered spawn.** A `spawn_worker` the host did not answer leaves
+the row `queued_remote`, and the watchdog dials it again once per pass (300 s). Each
+unanswered attempt writes one `status_queued_remote` event, counted in the ledger per
+task (`delegate._queued_remote_attempts`). At `lib/mesh.max_attempts()` attempts the
+next pass does not dial: `delegate.give_up_queued_remote` moves the row to `failed`
+(its `delegate_log` names the host and the count), which releases its path locks
+exactly as a failed launcher run does, and sends the owner one letter. Default 12
+(`lib/mesh.MAX_ATTEMPTS`): the first attempt is at delegate time, so that is 11 passes,
+about 55 minutes of silence, long enough for a reboot or a Windows update restart and
+short enough that the locks do not block other work for hours. Override with
+`ORG_MESH_MAX_ATTEMPTS` in the watchdog's environment; a value that is not a whole
+number of 1 or more is ignored, never read as "no cap". A row already moved by the far
+side, or failed by another watchdog, is neither failed again nor announced again.
 
 ### W2.8 acceptance checks, once per host after the key is installed
 

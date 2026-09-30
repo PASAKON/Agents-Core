@@ -364,6 +364,46 @@ def _claude_credentials() -> Path:
     return Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / ".credentials.json"
 
 
+# macOS keeps the Claude Code login in the Keychain, not in .credentials.json.
+# Signed in is read without the secret, two ways, in this order:
+#   1. `claude auth status --json`: the `loggedIn` boolean only. Its output also
+#      carries an email and an org name, so it is parsed in place and only the
+#      boolean leaves this function; nothing is logged or returned from it.
+#   2. the Keychain item's presence: `security find-generic-password -s <service>`
+#      with no -w and no -g (either would print the secret). Attributes only;
+#      the exit code is the whole answer, stdout and stderr go to /dev/null.
+# tests/test_mesh_followups.py fails if a -w or -g ever reaches an argv here.
+_SECURITY_BIN = "/usr/bin/security"
+_CLAUDE_KEYCHAIN_SERVICE = "Claude Code-credentials"
+
+
+def _claude_logged_in_per_cli() -> bool | None:
+    """`loggedIn` from `claude auth status --json`; None when the CLI cannot
+    answer (not on PATH, hung, failed to start, output that is not that JSON)."""
+    exe = shutil.which("claude")
+    if not exe:
+        return None
+    try:
+        _, out = _child_exit([exe, "auth", "status", "--json"], want_stdout=True)
+        logged_in = json.loads(out).get("loggedIn")
+    except (OSError, ValueError, AttributeError, subprocess.SubprocessError):
+        return None
+    return logged_in if isinstance(logged_in, bool) else None
+
+
+def _claude_signed_in() -> bool:
+    if _os_name() != "darwin":
+        return _file_has_content(_claude_credentials())
+    per_cli = _claude_logged_in_per_cli()
+    if per_cli is not None:
+        return per_cli
+    if os.environ.get("CLAUDE_CONFIG_DIR"):
+        # A custom config dir may keep its login under another Keychain item;
+        # the default service could then answer for a different login.
+        return _file_has_content(_claude_credentials())
+    return _child_exit([_SECURITY_BIN, "find-generic-password", "-s", _CLAUDE_KEYCHAIN_SERVICE])[0] == 0
+
+
 def _codex_credentials() -> Path:
     return Path(os.environ.get("CODEX_HOME") or Path.home() / ".codex") / "auth.json"
 
@@ -379,7 +419,7 @@ _PROVIDES_DETECTORS = (
     ("gpu", _has_gpu),
     ("node20", _has_node20),
     ("playwright_chromium", _has_playwright_chromium),
-    ("runner_claude", lambda: _file_has_content(_claude_credentials())),
+    ("runner_claude", _claude_signed_in),
     ("runner_codex", lambda: _file_has_content(_codex_credentials())),
     ("runner_agy", lambda: _file_has_content(_agy_credentials())),
 )

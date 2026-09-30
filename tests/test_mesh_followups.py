@@ -343,3 +343,218 @@ def test_a_slow_wake_inside_the_timeout_is_a_reply_not_an_unreachable_host(monke
     monkeypatch.setattr(subprocess, "run", fake_run)
     assert limit > took
     assert mesh.dispatch("contabo", "deliver_letter", "42")["ok"] is True
+
+
+# ---------------------------------------------------------------------------
+# 3. runner_claude on macOS: signed in without reading the secret
+# ---------------------------------------------------------------------------
+
+import ast  # noqa: E402
+import json  # noqa: E402
+import re  # noqa: E402
+
+from tools import node_dispatch as nd  # noqa: E402
+
+CLAUDE = "/fake/bin/claude"
+SECURITY = "/usr/bin/security"
+SERVICE = "Claude Code-credentials"
+SECRET = "sk-ant-oat01-SECRET-TOKEN-BODY"
+EMAIL = "someone@example.invalid"
+# a flag that would make `security` print the password: -w (only), -g (to stderr),
+# alone or bundled with others (-gw, -ag ...)
+_SECRET_FLAG = re.compile(r"-[A-Za-z]*[wg][A-Za-z]*")
+
+
+def _status(logged_in) -> str:
+    return json.dumps({"loggedIn": logged_in, "authMethod": "claude.ai",
+                       "email": EMAIL, "orgName": "Some Org", "subscriptionType": "max"})
+
+
+class Children:
+    """subprocess.run, replaced. `table` maps argv[0] to (exit code, stdout) or an
+    exception. A child that was not planned is recorded and then fails the test
+    (nd swallows the AssertionError into probe_errors, so `calls` is the witness)."""
+
+    def __init__(self) -> None:
+        self.table: dict[str, object] = {}
+        self.calls: list[tuple[list, dict]] = []
+
+    def __call__(self, argv, **kw):
+        self.calls.append((list(argv), kw))
+        hit = self.table.get(argv[0])
+        if hit is None:
+            raise AssertionError(f"unplanned child process: {argv}")
+        if isinstance(hit, BaseException):
+            raise hit
+        code, out = hit
+        return subprocess.CompletedProcess(
+            argv, code, out if kw.get("stdout") == subprocess.PIPE else None, None)
+
+    @property
+    def argvs(self) -> list[list]:
+        return [c[0] for c in self.calls]
+
+
+class Mac:
+    def __init__(self, monkeypatch, tmp_path: Path, os_name: str = "darwin") -> None:
+        self.home = tmp_path / "home"
+        self.home.mkdir()
+        self.children = Children()
+        self.on_path: dict[str, str] = {}
+        monkeypatch.setenv("HOME", str(self.home))
+        monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+        monkeypatch.setattr(nd.shutil, "which", lambda name, *a, **kw: self.on_path.get(name))
+        monkeypatch.setattr(subprocess, "run", self.children)
+        monkeypatch.setattr(nd, "_os_name", lambda: os_name)
+        monkeypatch.setattr(nd, "_is_windows", lambda: os_name == "windows")
+
+    def cli(self, code: int, out: str) -> None:
+        self.on_path["claude"] = CLAUDE
+        self.children.table[CLAUDE] = (code, out)
+
+    def keychain(self, code: int) -> None:
+        self.children.table[SECURITY] = (code, f"attributes... password: {SECRET}")
+
+
+@pytest.fixture()
+def mac(monkeypatch, tmp_path) -> Mac:
+    return Mac(monkeypatch, tmp_path)
+
+
+def test_the_cli_says_signed_in(mac):
+    mac.cli(0, _status(True))
+    assert nd._claude_signed_in() is True
+    assert mac.children.argvs == [[CLAUDE, "auth", "status", "--json"]]  # the Keychain is not asked
+
+
+def test_the_cli_says_signed_out_and_that_answer_stands(mac):
+    mac.cli(1, _status(False))
+    mac.keychain(0)  # an item is there, but the CLI knows better
+    assert nd._claude_signed_in() is False
+    assert mac.children.argvs == [[CLAUDE, "auth", "status", "--json"]]
+
+
+def test_without_the_cli_the_keychain_item_answers(mac):
+    mac.keychain(0)
+    assert nd._claude_signed_in() is True
+    assert mac.children.argvs == [[SECURITY, "find-generic-password", "-s", SERVICE]]
+    mac.children.calls.clear()
+    mac.keychain(44)  # errSecItemNotFound
+    assert nd._claude_signed_in() is False
+
+
+@pytest.mark.parametrize("cli_answer", [
+    subprocess.TimeoutExpired([CLAUDE, "auth", "status"], 5),  # hung
+    OSError("exec format error"),                              # would not start
+    (2, "error: unknown command 'auth'"),                      # an older CLI
+    (0, "not json at all"),
+    (0, "[]"),
+    (0, json.dumps({"loggedIn": "yes"})),                      # not a boolean
+    (0, json.dumps({"authMethod": "none"})),                   # no loggedIn
+])
+def test_a_cli_that_cannot_answer_falls_back_to_the_keychain(mac, cli_answer):
+    mac.on_path["claude"] = CLAUDE
+    mac.children.table[CLAUDE] = cli_answer
+    mac.keychain(0)
+    assert nd._claude_signed_in() is True
+    assert mac.children.argvs[-1] == [SECURITY, "find-generic-password", "-s", SERVICE]
+
+
+def test_a_custom_config_dir_is_not_judged_by_the_default_keychain_item(mac, monkeypatch, tmp_path):
+    cfg = tmp_path / "cfg"
+    cfg.mkdir()
+    (cfg / ".credentials.json").write_text("x", encoding="utf-8")
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(cfg))
+    mac.keychain(0)  # the default login is someone else's
+    assert nd._claude_signed_in() is True  # the file check answers for this dir
+    assert SECURITY not in [a[0] for a in mac.children.argvs]
+    (cfg / ".credentials.json").unlink()
+    assert nd._claude_signed_in() is False
+
+
+@pytest.mark.parametrize("os_name", ["linux", "windows"])
+def test_linux_and_windows_keep_the_credentials_file_check(monkeypatch, tmp_path, os_name):
+    box = Mac(monkeypatch, tmp_path, os_name)
+    assert nd._claude_signed_in() is False
+    cred = box.home / ".claude" / ".credentials.json"
+    cred.parent.mkdir()
+    cred.write_text("", encoding="utf-8")
+    assert nd._claude_signed_in() is False  # empty file: not a login
+    cred.write_text(SECRET, encoding="utf-8")
+    assert nd._claude_signed_in() is True
+    assert box.children.calls == []  # no claude, no security, no child at all
+
+
+@pytest.mark.parametrize("setup", [
+    lambda m: (m.cli(0, _status(True))),
+    lambda m: (m.cli(1, _status(False))),
+    lambda m: (m.keychain(0)),
+    lambda m: (m.keychain(44)),
+    lambda m: (m.on_path.update(claude=CLAUDE), m.children.table.update({CLAUDE: (0, "junk")}), m.keychain(0)),
+])
+def test_no_child_ever_gets_a_flag_that_prints_the_secret(mac, setup):
+    setup(mac)
+    nd._claude_signed_in()
+    assert mac.children.argvs, "a detector that asks nothing proves nothing"
+    for argv in mac.children.argvs:
+        assert [a for a in argv[1:] if _SECRET_FLAG.fullmatch(a)] == [], argv
+
+
+def test_the_keychain_child_output_is_never_captured(mac):
+    mac.keychain(0)
+    nd._claude_signed_in()
+    (argv, kw), = mac.children.calls
+    assert argv[0] == SECURITY
+    assert kw["stdout"] == subprocess.DEVNULL and kw["stderr"] == subprocess.DEVNULL
+    assert kw["timeout"] == nd.PROBE_CHILD_TIMEOUT_S
+    assert kw["stdin"] == subprocess.DEVNULL
+    assert "shell" not in kw or kw["shell"] is False
+
+
+def test_the_cli_child_is_bounded_and_its_stderr_is_dropped(mac):
+    mac.cli(0, _status(True))
+    nd._claude_signed_in()
+    (argv, kw), = mac.children.calls
+    assert kw["timeout"] == nd.PROBE_CHILD_TIMEOUT_S
+    assert kw["stderr"] == subprocess.DEVNULL and kw["stdin"] == subprocess.DEVNULL
+
+
+def test_neither_the_secret_nor_the_cli_identity_reaches_the_probe_answer(mac, monkeypatch):
+    mac.cli(0, _status(True))
+    measured, errors = nd._measure_provides()
+    assert "runner_claude" in measured and "macos" in measured
+    assert errors == []
+    blob = json.dumps([measured, errors])
+    assert EMAIL not in blob and SECRET not in blob and "Some Org" not in blob
+
+
+def test_a_keychain_child_that_hangs_is_named_once_and_is_not_a_login(mac):
+    mac.children.table[SECURITY] = subprocess.TimeoutExpired([SECURITY], 5)
+    measured, errors = nd._measure_provides()
+    assert "runner_claude" not in measured
+    assert errors == ["runner_claude: TimeoutExpired"]
+
+
+def test_node_dispatch_source_has_no_flag_that_prints_a_secret():
+    """Any -w / -g style flag string in this module is a way for `security` to
+    print the password. There is none today; adding one fails here."""
+    tree = ast.parse((ROOT / "tools" / "node_dispatch.py").read_text(encoding="utf-8"))
+    flags = sorted(n.value for n in ast.walk(tree)
+                   if isinstance(n, ast.Constant) and isinstance(n.value, str)
+                   and _SECRET_FLAG.fullmatch(n.value))
+    assert flags == []
+
+
+def test_the_macos_detector_source_never_opens_or_reads_a_file():
+    tree = ast.parse((ROOT / "tools" / "node_dispatch.py").read_text(encoding="utf-8"))
+    names = {"_claude_logged_in_per_cli", "_claude_signed_in"}
+    funcs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name in names]
+    assert {f.name for f in funcs} == names
+    bad = []
+    for fn in funcs:
+        for call in (c for c in ast.walk(fn) if isinstance(c, ast.Call)):
+            f = call.func
+            name = f.id if isinstance(f, ast.Name) else f.attr if isinstance(f, ast.Attribute) else ""
+            if name in ("open", "read_text", "read_bytes"):
+                bad.append(name)
+    assert bad == []
