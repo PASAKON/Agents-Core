@@ -65,22 +65,34 @@ os.execv("@PY@", ["@PY@"] + argv)
 """
 
 # .venv/bin/python and .venv/bin/pip of the throwaway root: log, never run anything.
+# node_hub = the node file already says `org_db: hub` at the moment of the call (NODE_YAML
+# reaches every child, as the remote script's own env). FAKE_MIGRATE_FAIL makes the
+# migration command exit 1.
 _FAKE_VENV_TOOL = """#!@PY@
 import json, os, sys
 redact = lambda a: "<url>" if "postgresql://" in a else a
+node = os.environ.get("NODE_YAML", "")
+node_hub = os.path.exists(node) and "org_db: hub" in open(node).read()
 with open(os.environ["FAKE_LOG"], "a") as f:
     f.write(json.dumps({"tool": "@NAME@", "argv": [redact(a) for a in sys.argv[1:]],
-                        "org_db_url": bool(os.environ.get("ORG_DB_URL"))}) + "\\n")
+                        "org_db_url": bool(os.environ.get("ORG_DB_URL")),
+                        "node_hub": node_hub}) + "\\n")
+if os.environ.get("FAKE_MIGRATE_FAIL") and sys.argv[1:2] and sys.argv[1].endswith("migrate_tasks_db.py"):
+    sys.exit(1)
 """
 
 _FAKE_SYSTEMCTL = """#!@PY@
 import json, os, sys
 argv = sys.argv[1:]
+node = os.environ.get("NODE_YAML", "")
+node_hub = os.path.exists(node) and "org_db: hub" in open(node).read()
 with open(os.environ["FAKE_LOG"], "a") as f:
-    f.write(json.dumps({"tool": "systemctl", "argv": argv,
+    f.write(json.dumps({"tool": "systemctl", "argv": argv, "node_hub": node_hub,
                         "tombstone": os.path.isdir("state/tasks.db")}) + "\\n")
 unit = (argv[-1] if argv else "").removesuffix(".service")
 if argv[:1] == ["cat"] and unit == os.environ.get("FAKE_MISSING_UNIT"):
+    sys.exit(1)
+if argv[:1] == ["restart"] and unit == os.environ.get("FAKE_RESTART_FAIL_UNIT"):
     sys.exit(1)
 if argv[:1] == ["is-active"] and unit == os.environ.get("FAKE_INACTIVE_UNIT"):
     sys.exit(3)
@@ -507,9 +519,9 @@ def box(tmp_path):
 
     return SimpleNamespace(
         tmp=tmp_path, work=work, systemd=systemd, node=node, envfile=envfile, log=log,
-        env=lambda **extra: _env(tmp_path, fakebin, log, ROOT=str(work), SYSTEMD_DIR=str(systemd),
-                                 NODE_YAML=str(node), FLAG="--sessions-closed",
-                                 RESTART_SETTLE_S="0", **extra),
+        env=lambda **extra: _env(tmp_path, fakebin, log, **{
+            "ROOT": str(work), "SYSTEMD_DIR": str(systemd), "NODE_YAML": str(node),
+            "FLAG": "--sessions-closed", "RESTART_SETTLE_S": "0", **extra}),
     )
 
 
@@ -610,7 +622,45 @@ def test_step4_installs_the_three_dropins_byte_for_byte_and_reloads(box):
         [f"systemctl:cat {u}.service" for u in UNITS]
 
 
-def test_step4_node_yaml_write_is_idempotent_and_keeps_every_other_line(box):
+def test_node_yaml_is_written_after_the_migration_and_before_the_restarts(box):
+    """Fails if the write sits in step 4: a session spawned between step 4 and the migration would
+    open the hub while it is empty. Every call before step 8 must see a node file without the switch."""
+    _make_tasks_db(box.work)
+
+    r = _run_remote(box)
+    assert r.returncode == 0, r.stdout + r.stderr
+
+    before_switch, restarts = [], []
+    for c in _read_log(box.log):
+        if c["tool"] == "systemctl" and c["argv"][:1] == ["restart"]:
+            restarts.append(c)
+        elif (c["tool"] == "systemctl" and c["argv"][:1] == ["daemon-reload"]) \
+                or c["tool"] in ("venv-python", "venv-pip"):
+            before_switch.append(c)
+    kinds = [c["argv"][0] if c["argv"] else "" for c in before_switch]
+    assert any(k.endswith("migrate_tasks_db.py") for k in kinds)
+    assert any(k.endswith("verify_migration_counts.py") for k in kinds)
+    assert "daemon-reload" in kinds and "-" in kinds            # step 4's reload, step 7's read-back
+    assert all(c["node_hub"] is False for c in before_switch), \
+        [(c["argv"][:1], c["node_hub"]) for c in before_switch if c["node_hub"]]
+    assert len(restarts) == 3 and all(c["node_hub"] is True for c in restarts)
+    assert r.stdout.index("== step 7:") < r.stdout.index("wrote org_db: hub") < r.stdout.index("active: mooniex-watchdog")
+
+
+def test_a_failed_migration_never_writes_the_node_file_or_restarts_a_unit(box):
+    _make_tasks_db(box.work)
+    before = box.node.read_bytes()
+
+    r = _run_remote(box, FAKE_MIGRATE_FAIL="1")
+
+    assert r.returncode != 0
+    assert box.node.read_bytes() == before
+    assert not any(t.startswith("systemctl:restart") for t in _tools(box))
+    assert (box.work / "state" / "tasks.db").is_file(), "no tombstone before a successful migration"
+    assert "org_db: hub" not in r.stdout
+
+
+def test_step8_node_yaml_write_is_idempotent_and_keeps_every_other_line(box):
     box.node.write_text("# node\nhost: contabo\norg_db: sqlite\nhq_root: /x\n")
 
     assert _run_remote(box).returncode == 0
@@ -625,7 +675,7 @@ def test_step4_node_yaml_write_is_idempotent_and_keeps_every_other_line(box):
         assert (box.systemd / f"{unit}.service.d" / "org-db.conf").read_bytes() == _dropin(unit).read_bytes()
 
 
-def test_step4_creates_a_missing_node_file_holding_only_the_switch(box):
+def test_step8_creates_a_missing_node_file_holding_only_the_switch(box):
     box.node.unlink()
     box.node.parent.rmdir()
 
@@ -633,7 +683,7 @@ def test_step4_creates_a_missing_node_file_holding_only_the_switch(box):
     assert box.node.read_text() == "org_db: hub\n"
 
 
-def test_step4_the_written_line_is_the_one_the_generators_read(box, monkeypatch):
+def test_step8_the_written_line_is_the_one_the_generators_read(box, monkeypatch):
     sys.path.insert(0, str(ROOT / "scripts" / "lib"))
     import cxo_mcp_config as cxo
 
@@ -714,6 +764,50 @@ def test_a_unit_that_is_not_active_after_the_restart_fails_the_cutover(box):
     assert "== done." not in r.stdout
 
 
+def _assert_rollback_names_the_switch_line(node: Path, out: str) -> None:
+    """The rollback printed on a step 8 failure: drop-ins, the org_db: line, reload, restart."""
+    tail = out[out.index("Rollback"):]
+    assert "org-db.conf" in tail and "mooniex-secretary-waker" in tail
+    assert f"remove the org_db: line from {node}" in tail
+    assert "cutover_flip.py --rollback --apply" in tail
+    assert "daemon-reload" in tail and "restart the three units" in tail
+
+
+def test_step8_failure_after_the_node_write_still_prints_the_org_db_line_rollback(box):
+    r = _run_remote(box, FAKE_INACTIVE_UNIT="mooniex-secretary")
+
+    assert r.returncode != 0
+    assert "org_db: hub" in box.node.read_text(), "the scenario: the switch was written, then a unit failed"
+    _assert_rollback_names_the_switch_line(box.node, r.stdout)
+    assert "== done." not in r.stdout
+
+
+def test_step8_restart_command_failure_is_reported_and_prints_the_rollback(box):
+    r = _run_remote(box, FAKE_RESTART_FAIL_UNIT="mooniex-secretary")
+
+    assert r.returncode != 0
+    assert "RESTART FAILED: mooniex-secretary" in r.stdout
+    restarts = [t for t in _tools(box) if t.startswith("systemctl:restart")]
+    assert restarts == [f"systemctl:restart {u}.service" for u in UNITS]   # the others were still tried
+    checked = [c["argv"][-1] for c in _read_log(box.log) if c["argv"][:1] == ["is-active"]]
+    assert "mooniex-secretary.service" not in checked                       # a failed restart is not re-judged
+    _assert_rollback_names_the_switch_line(box.node, r.stdout)
+    assert "== done." not in r.stdout
+
+
+def test_step8_node_file_write_failure_restarts_nothing_and_prints_the_rollback(box):
+    blocker = box.tmp / "a-file"
+    blocker.write_text("not a directory\n")
+    node = blocker / "node.yaml"                                # its parent is a file: the write cannot succeed
+
+    r = _run_remote(box, NODE_YAML=str(node))
+
+    assert r.returncode != 0
+    assert "could not write org_db: hub" in r.stdout and "No unit was restarted" in r.stdout
+    assert not any(t.startswith("systemctl:restart") for t in _tools(box))
+    _assert_rollback_names_the_switch_line(node, r.stdout)
+
+
 def test_the_full_run_on_the_throwaway_root_prints_every_step_in_order(box):
     _make_tasks_db(box.work)
 
@@ -740,3 +834,17 @@ def test_both_cutover_scripts_carry_the_dropin_and_switch_rollback():
         assert "daemon-reload" in text and "systemctl restart" in text, script.name
     # the two ORG_*_URL lines are gone from the rollback: nothing is appended to org-db.env any more
     assert "delete the two ORG_*_URL lines" not in CUTOVER.read_text()
+
+
+def test_the_switch_write_is_in_step_8_before_the_first_restart_and_not_in_step_4():
+    text = REMOTE.read_text()
+    code = "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith("#"))
+    step4 = code.split('echo "== step 4:')[1].split('echo "== step 5:')[0]
+    step8 = code.split('echo "== step 8:')[1]
+    assert "set_org_db" not in step4 and "org_db: hub" not in step4
+    assert step8.index("set_org_db") < step8.index("systemctl restart")
+    header = CUTOVER.read_text()                                # the header says the same
+    h4 = header.split("#   4.")[1].split("#   5.")[0]
+    h8 = header.split("#   8.")[1].split("# Rollback:")[0]
+    assert "org_db: hub" not in h4 and "not touched here (step 8)" in h4
+    assert "node.yaml" in h8 and "org_db: hub" in h8 and "`org_db:` line" in h8

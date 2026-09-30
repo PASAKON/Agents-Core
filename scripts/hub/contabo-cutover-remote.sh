@@ -25,6 +25,9 @@
 # /etc/systemd/system/<unit>.service.d/org-db.conf, remove the `org_db:` line
 # from /root/.config/mooniex/node.yaml (python3 scripts/hub/cutover_flip.py
 # --rollback --apply), `systemctl daemon-reload`, then restart the three units.
+# Step 4 installs the drop-ins; the `org_db:` line is written only in step 8,
+# after the migration and the tombstone, so a step 8 failure prints the same
+# rollback (print_rollback below) -- the line may already be in the file by then.
 set -euo pipefail
 
 ROOT="${ROOT:-/opt/MoonieXHQ/Agents/Core}"
@@ -38,6 +41,15 @@ cd "$ROOT"
 # Run "$@" with Agents-Core/prod's secrets (ORG_DB_URL among them) in its env.
 infisical_run() {
   python3 "$ROOT/tools/infisical_setup.py" run Agents-Core prod --as contabo -- "$@"
+}
+
+# Printed when step 8 fails after (or while) writing node.yaml: the switch line
+# must come out along with the drop-ins.
+print_rollback() {
+  echo "Rollback (Contabo half; the tasks.db half is in the header of scripts/hub/contabo-cutover.sh):"
+  echo "  1. rm -f $SYSTEMD_DIR/<unit>.service.d/org-db.conf for mooniex-watchdog, mooniex-secretary, mooniex-secretary-waker"
+  echo "  2. remove the org_db: line from $NODE_YAML (python3 scripts/hub/cutover_flip.py --rollback --apply)"
+  echo "  3. systemctl daemon-reload, then systemctl restart the three units"
 }
 
 echo "== step 1: C-level sessions must be closed =="
@@ -84,10 +96,13 @@ echo "== step 3: psycopg into the venv =="
 .venv/bin/pip install -q "psycopg[binary]" 2>&1 | grep -viE 'notice|upgrade' || true
 .venv/bin/python -c "import psycopg; print('psycopg', psycopg.__version__)"
 
-echo "== step 4: ORG_DB_URL from Infisical, consumer drop-ins, node.yaml switch (values never printed) =="
+echo "== step 4: ORG_DB_URL from Infisical, consumer drop-ins (values never printed) =="
 # Nothing is written before every refusal below has passed. No env file is read
 # or written here. ORG_TEST_DB_URL is no longer produced: nothing in this
-# cutover reads it (W1.9's rehearsal fetches its own org_test URL).
+# cutover reads it (W1.9's rehearsal fetches its own org_test URL). node.yaml is
+# NOT touched here: it is the hub switch for the C-level/worker MCP servers, and
+# a session spawned before the migration (step 5) would open an empty hub. It is
+# written in step 8.
 for u in $UNITS; do
   [ -f "deploy/systemd/$u.service.d/org-db.conf" ] \
     || { echo "REFUSING: deploy/systemd/$u.service.d/org-db.conf is missing in $ROOT"; exit 1; }
@@ -116,22 +131,6 @@ for u in $UNITS; do
   install -m 644 "deploy/systemd/$u.service.d/org-db.conf" "$SYSTEMD_DIR/$u.service.d/org-db.conf"
   echo "installed $SYSTEMD_DIR/$u.service.d/org-db.conf"
 done
-# The switch for the C-level MCP servers and workers on this box (W1.6): the
-# same line grammar as cutover_flip.py; idempotent, every other line kept.
-NODE_YAML="$NODE_YAML" python3 - <<'PY'
-import os, sys
-sys.path.insert(0, "scripts/hub")
-from cutover_flip import set_org_db
-p = os.environ["NODE_YAML"]
-before = open(p).read() if os.path.exists(p) else ""
-after = set_org_db(before, "hub")
-if after == before:
-    print(f"ok: {p} already says org_db: hub")
-else:
-    os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
-    open(p, "w").write(after)
-    print(f"wrote org_db: hub to {p}")
-PY
 systemctl daemon-reload
 echo "drop-ins installed; the three units keep running as they are until step 8"
 
@@ -181,13 +180,40 @@ with db.get_conn() as c:
         print(f"  hub {t:18s} {c.execute(f'select count(*) from {t}').fetchone()[0]}")
 PY
 
-echo "== step 8: restart the three consumers onto the hub (after the migration and tombstone) =="
-for u in $UNITS; do
-  systemctl restart "$u.service"
-done
-sleep "${RESTART_SETTLE_S:-3}"
+echo "== step 8: hub switch in node.yaml, then restart the three consumers (after the migration and tombstone) =="
+# The switch for the C-level MCP servers and workers on this box (W1.6): the
+# same line grammar as cutover_flip.py; idempotent, every other line kept.
+# Written only now, right before the restarts: earlier, a session spawned
+# between step 4 and here would open the hub before it is migrated.
+if ! NODE_YAML="$NODE_YAML" python3 - <<'PY'
+import os, sys
+sys.path.insert(0, "scripts/hub")
+from cutover_flip import set_org_db
+p = os.environ["NODE_YAML"]
+before = open(p).read() if os.path.exists(p) else ""
+after = set_org_db(before, "hub")
+if after == before:
+    print(f"ok: {p} already says org_db: hub")
+else:
+    os.makedirs(os.path.dirname(p) or ".", exist_ok=True)
+    open(p, "w").write(after)
+    print(f"wrote org_db: hub to {p}")
+PY
+then
+  echo "REFUSING: could not write org_db: hub to $NODE_YAML. No unit was restarted."
+  print_rollback
+  exit 1
+fi
 BAD=""
 for u in $UNITS; do
+  if ! systemctl restart "$u.service"; then
+    echo "  RESTART FAILED: $u"
+    BAD="$BAD $u"
+  fi
+done
+sleep "${RESTART_SETTLE_S:-3}"
+for u in $UNITS; do
+  case " $BAD " in *" $u "*) continue ;; esac
   if systemctl is-active --quiet "$u.service"; then
     echo "  active: $u"
   else
@@ -196,9 +222,9 @@ for u in $UNITS; do
   fi
 done
 if [ -n "$BAD" ]; then
-  echo "REFUSING to call this done: not active after restart:$BAD"
+  echo "REFUSING to call this done: not restarted or not active after restart:$BAD"
   echo "Look with: journalctl -u <unit> -n 30 --no-pager   (values are never logged)"
-  echo "Rollback is in the header of scripts/hub/contabo-cutover.sh."
+  print_rollback
   exit 1
 fi
 echo "== done. Spawn Contabo C-level sessions again now --"

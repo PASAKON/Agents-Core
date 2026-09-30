@@ -52,27 +52,31 @@ installs nothing. The installer runs inside G1 (W1.10), next to `cutover-mac.sh`
   the service's own pid. The secretary also moves from `/usr/bin/python3` to the venv. This needs no apt
   package, and the venv is already the waker's interpreter. The two existing `EnvironmentFile` lines
   stay untouched: they are not extended, and moving them is PLAN §6 phase 3.
-- **C-level MCP servers on Contabo**: the W1.6 switch, `org_db: hub` in `/root/.config/mooniex/node.yaml`.
-  The wrapper gets `ORG_DB_URL` from `infisical run` when the env file lacks it (see the installer section).
+- **C-level MCP servers on Contabo**: the W1.6 switch, `org_db: hub` in `/root/.config/mooniex/node.yaml`,
+  written in step 8 of the cutover, after the migration (see the installer section).
+  The wrapper gets `ORG_DB_URL` from `infisical run` when the env file lacks it.
 
-## The installer: `scripts/hub/contabo-cutover-remote.sh` step 4 (no new script)
+## The installer: `scripts/hub/contabo-cutover-remote.sh` steps 4 and 8 (no new script)
 
 The Contabo half of the cutover already exists and runs inside G1 (W1.10), so the installer is its
-step 4, not a new script (task-1670b1f8). Step 4 used to append `ORG_DB_URL` and `ORG_TEST_DB_URL` to
-the env file. It now does this, and refuses before any write if a check fails:
+step 4 (plus step 8 below), not a new script (task-1670b1f8). Step 4 used to append `ORG_DB_URL` and
+`ORG_TEST_DB_URL` to the env file. It now does this, and refuses before any write if a check fails:
 
 1. Refuse unless all three drop-ins exist in the checkout and all three units are installed.
 2. Refuse unless `infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python -c <connect>`
    connects with `ORG_DB_URL`. The snippet prints no value.
 3. Copy the three drop-ins to `/etc/systemd/system/<unit>.service.d/org-db.conf`.
-4. Write `org_db: hub` into `/root/.config/mooniex/node.yaml` with `cutover_flip.set_org_db`
-   (idempotent, every other line kept, a missing file created).
-5. `systemctl daemon-reload`. Nothing restarts yet.
+4. `systemctl daemon-reload`. Nothing restarts yet, and `node.yaml` is not touched.
 
 Steps 5, 5b and 7 (migrate, verify, read-back) take `ORG_DB_URL` through the same `infisical_run`,
-not from a sourced file. The three units restart in a new step 8, after the migration and the
-tombstone, and the script fails if any is not active. `ORG_TEST_DB_URL` is gone: nothing in the
-cutover reads it, so W1.9's rehearsal fetches its own `org_test` URL. No env file is read or written.
+not from a sourced file. A new step 8 runs after the migration and the tombstone. It writes
+`org_db: hub` into `/root/.config/mooniex/node.yaml` with `cutover_flip.set_org_db` (idempotent, every
+other line kept, a missing file created), and only then restarts the three units. It fails if any unit
+does not restart or is not active. The node file is written this late on purpose (CTO, iteration 2): it
+is the switch for the C-level and worker MCP servers, so a session spawned between step 4 and the
+migration would open the hub before it holds any rows. If step 8 fails after the write, it prints the
+rollback, which names removing the `org_db:` line. `ORG_TEST_DB_URL` is gone: nothing in the cutover
+reads it, so W1.9's rehearsal fetches its own `org_test` URL. No env file is read or written.
 
 **Wrapper (`scripts/hub/with-org-db-env.sh`).** Contabo's env file holds `POSTGRES_*` only, so a wrapper
 that only sourced it would leave the Contabo MCP servers on SQLite after the cutover. The order is now:

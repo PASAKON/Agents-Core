@@ -35,9 +35,8 @@
 #      and ORG_TEST_DB_URL is gone: nothing here reads it). Refuse unless it
 #      connects (tools/infisical_setup.py run Agents-Core prod --as contabo).
 #      Then copy the three drop-ins deploy/systemd/<unit>.service.d/org-db.conf
-#      (watchdog, secretary, secretary-waker) into /etc/systemd/system/, write
-#      `org_db: hub` into /root/.config/mooniex/node.yaml (the switch for the
-#      C-level MCP servers and workers), and `systemctl daemon-reload`.
+#      (watchdog, secretary, secretary-waker) into /etc/systemd/system/ and
+#      `systemctl daemon-reload`. node.yaml is not touched here (step 8).
 #      Design: docs/design/org-mesh-w18-contabo-consumers.md.
 #   5. import this box's own registry rows into the hub (ids never collide with
 #      the Mac's: checked 2026-09-18, 0 of 11 overlapped), then verify per-table
@@ -51,8 +50,12 @@
 #      backend fails loudly instead of silently creating an empty database (the
 #      split brain this whole change removes).
 #   7. read the hub back through lib.db and print the row counts.
-#   8. restart mooniex-watchdog, mooniex-secretary and mooniex-secretary-waker
-#      (last, after the migration and the tombstone) and require all three active.
+#   8. write `org_db: hub` into /root/.config/mooniex/node.yaml (the switch for
+#      the C-level MCP servers and workers; only now, so nothing opens the hub
+#      before it is migrated), then restart mooniex-watchdog, mooniex-secretary
+#      and mooniex-secretary-waker (last, after the migration and the tombstone)
+#      and require all three active. A failure here prints the rollback below,
+#      which includes removing the `org_db:` line.
 #
 # Rollback:
 #   ssh mooniex-vps 'cd /opt/MoonieXHQ/Agents/Core && rmdir state/tasks.db &&
