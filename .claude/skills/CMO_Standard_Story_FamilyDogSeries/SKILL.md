@@ -1,7 +1,7 @@
 ---
 name: CMO_Standard_Story_FamilyDogSeries
 kind: standard
-description: "STANDARD — The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีข้าวเหนียว» — who Mimi the black dog is, the CEO's real family (mother, older brother = the CEO, younger sister, father and grandmother upcountry) with their real daily routines, and how an episode is adapted from true events. Trigger on /CMO_Standard_Story_FamilyDogSeries and on \"มีมี่\", \"มิมี่\", \"หมาดำ\", \"ครอบครัวเรา\", \"แต่งเรื่องหมา\", \"ข้าวเหนียว\", \"บท EP\", \"family bible\", \"dog series script\", or whenever someone writes, checks or illustrates a dog-series episode. Do NOT fire for the ILAG moral dramas (CMO_Standard_Story_ThaiMoralDrama) or for scene-by-scene structure audits (CMO_Gate_Story_SceneEngine)."
+description: "STANDARD — The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีมีมี่» — who Mimi the black dog is, the CEO's real family (mother, older brother = the CEO, younger sister, father and grandmother upcountry) with their real daily routines, and how an episode is adapted from true events. Trigger on /CMO_Standard_Story_FamilyDogSeries and on \"มีมี่\", \"มิมี่\", \"หมาดำ\", \"ครอบครัวเรา\", \"แต่งเรื่องหมา\", \"ข้าวเหนียว\", \"บท EP\", \"family bible\", \"dog series script\", or whenever someone writes, checks or illustrates a dog-series episode. Do NOT fire for the ILAG moral dramas (CMO_Standard_Story_ThaiMoralDrama) or for scene-by-scene structure audits (CMO_Gate_Story_SceneEngine)."
 owner: CMO
 created_by: agent
 author: {role: cmo, date: "2026-09-30"}
@@ -10,7 +10,7 @@ audience: [cmo, script_writer, content_strategist, browser_operator]
 
 # Family dog series — the story bible
 
-The series on the FB page «บ้านนี้มีข้าวเหนียว» is told about the CEO's **real family and their real dog**.
+The series on the FB page «บ้านนี้มีมีมี่» is told about the CEO's **real family and their real dog**.
 Every episode is written from the facts below, so a viewer who follows the page meets the same house every
 time. This file is the one place those facts live: add to it when the CEO tells you more, never invent a
 fact about a real person and write it down here as true.
@@ -119,13 +119,14 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 2. **Story names** — does each family member keep the role name (แม่ / พี่ชาย / น้องสาว) or get a story name?
 3. **Page name** — the 2026-09-28 plan named the dog «ข้าวเหนียว» and the grandmother «ยายคำ». The real dog is
    Mimi. CEO 2026-09-30 asked for 3 name options with pictures to choose from (plan of record: the CMO's 3 names + the
-   current «บ้านนี้มีข้าวเหนียว»); his choice goes here.
+   current «บ้านนี้มีข้าวเหนียว»); his choice goes here. **ANSWERED 2026-09-30: «บ้านนี้มีมีมี่».** The Facebook rename and the
+   new profile and cover pictures are an admin step on the page (see the plan §0).
 4. **The sister's job on screen** — may the debt-collection job appear in a story? (The ILAG films are about
    loan sharks; a viewer could confuse the two.)
 5. **Where upcountry** — which province and dialect (needed for the father's and grandmother's lines).
 6. ~~Which of IMG_4405 / IMG_4406 shows whom~~ — answered 2026-09-30 by looking: Mimi, and the house front (table in §1).
 7. **Photos of the mother, the brother and the sister** (one clear photo each, shrunk first) — needed before any person is drawn.
-8. **The flood** — ANSWERED in part 2026-09-30 (§7): it was a real flood day; Mimi jumped out and got soaked. **Still missing: why she went out** — the reveal of the episode.
+8. **The flood** — ANSWERED in part 2026-09-30 (§7): it was a real flood day; Mimi jumped out and got soaked. **ANSWERED 2026-09-30 (§7): she jumped out to follow the mother, who was going to the vegetable truck.**
 9. ~~Mimi's coat in pictures~~ — the markings stay (sheet-mimi-v3 was shown to the CEO, no change asked, 2026-09-30).
 
 ## 5 · What this replaces
@@ -169,6 +170,8 @@ with the row that beat it, and re-check every script that cited it (`script` row
 
 | Date | Told by | What happened / what is true | Used in |
 |---|---|---|---|
+| 2026-09-30 | CEO | The page is named **«บ้านนี้มีมีมี่»** (chosen from three). | format |
+| 2026-09-30 | CEO | **Why Mimi jumped out on the flood day: to follow the mother.** The mother always buys food from the **vegetable truck (รถขายผัก) that drives around the village** — that is where she was going. So: Mimi, who is terrified of water, braved the flood to go with her. | seed EP1 (reveal known) |
 | 2026-09-30 | CEO | **Mimi talks**: a dog's voice, female, cute like a small child. The mother's 2D design is cut. The series starts as Option C (see the plan): a 3-shot test, then a stock of 3 finished episodes, then one post a day. TikTok and YouTube wait until the page has some interest. | format |
 | 2026-09-30 | CEO | Mimi **loves going out**; she fawns on the mother and the brother (อ้อน, คลอเคลีย) so they let her out. | seed |
 | 2026-09-30 | CEO | Mimi is **very afraid of water** — she does not even want to be bathed. | seed |
