@@ -60,10 +60,15 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 3. **True events are adapted, not reported.** The CEO's stated aim is to adapt true events so viewers feel
    they know this dog. Change names and details the family would not want public before a script is approved.
    (CMO advice; the CEO decides what a real person may see shown.)
-4. **Look of the pictures:** the same image style the rival page «กาฟิว» uses (the CEO's request,
-   2026-09-30). The style card the operator writes from that page goes to
-   `docs/reports/khaoniao-family-style/STYLE-CARD.md` — it does not exist until that task reports.
-   Copy the **look** only; never the rival's character, plots or captions.
+4. **Look of the pictures:** a Shin-chan-like family-comedy cartoon, rendered in 3D with beautiful light and
+   shadow, every character with its own silhouette (CEO 2026-09-30: "แนวการ์ตูนคล้ายชินจัง แต่เป็น 3D ที่มีแสงเงาสวยงาม
+   · Design เป็นเอกลักษณ์ทุกๆ คน"). The mother, brother and sister are drawn as **imagined characters**
+   (CEO: "ใช้แบบในจินตนาการได้เลย"): mother = sweet, dreamy, "ซื่อบื้อ", a genius cook; brother = over-the-top
+   businessman ("มาดนักธุรกิจจ๋าๆ"); sister = tough ("แรงๆ"). Mimi is the one look fixed by a photo.
+   Designs, voices and the prompts: `docs/reports/khaoniao-family-style/STYLE-CARD.md` (**proposal until the CEO
+   confirms each sheet**). Whatever the CEO confirms is copied into §6 below.
+   [SUPERSEDED 2026-09-30 by this ruling] "the same image style the rival page «กาฟิว» uses" — the rival look is
+   no longer the target; never the rival's character, plots or captions either way.
 5. Episode structure and the ≤2:30 length come from the 90-day plan (`docs/plans/khaoniao-roadmap-90d-2026-09-28.md`
    when it reaches origin), not from this file.
 
@@ -100,5 +105,10 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
   Evidence: the CEO's message above; `docs/plans/animal-series-channel-plan-2026-09-28.md` (on main, commit
   32decaca, still names «ข้าวเหนียว»). The 90-day roadmap md is only on the Mac branch
   `cmo/c7879552-ledger-port`, not yet pushed.
+
+## 6 · The cast as the CEO confirmed it
+
+None confirmed yet — round 1 of the four character sheets (Mimi, mother, brother, sister) goes to the CEO on
+2026-09-30. When he says yes to a sheet, copy here: the file on Drive, the look in one line, the voice in one line.
 
 ## Field notes
