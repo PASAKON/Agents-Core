@@ -1,0 +1,114 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>บ้านนี้มีมีมี่ — logo lettering, 3 styles</title>
+<!--
+  Render:  logo.html?style=1|2|3&mode=cover|profile|mark
+  cover   1672x941  C3 + wordmark inside the 2.6:1 desktop band (top-right, over the gate)
+  profile 1254x1254 P3 in a round badge + wordmark
+  mark    1600x520  wordmark alone, transparent background
+  Real Thai fonts (Google Fonts, SIL OFL: free for commercial use), never an image model — it garbles Thai letters.
+  Style 1 Chonburi (gold serif) · Style 2 Mitr (sticker) · Style 3 Itim (child handwriting).
+  Icons are inline SVG, no emoji. The tagline is the CMO's proposal, not the CEO's words.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Chonburi&family=Mitr:wght@400;500;700&family=Itim&display=block');
+html,body{margin:0;padding:0;background:transparent;overflow:hidden}
+#stage{position:relative;overflow:hidden}
+.lockup{position:absolute;display:flex;flex-direction:column;align-items:center;transform-origin:center center}
+.name{position:relative;white-space:nowrap;line-height:1.25}
+.tag{white-space:nowrap;margin-top:.15em;text-align:center}
+.paw{display:inline-block;vertical-align:middle}
+
+/* style 1: gold serif, swash line */
+.s1 .name{font-family:'Chonburi';font-size:120px;letter-spacing:.02em;
+  background:linear-gradient(180deg,#FFF1B8 0%,#F7C948 42%,#B8741A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:2.5px #4A2A0C;filter:drop-shadow(0 5px 7px rgba(0,0,0,.6))}
+.s1 .tag{font-family:'Mitr';font-weight:500;font-size:34px;color:#FFF3D6;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+.s1 .swash{width:100%;height:30px;margin-top:4px}
+
+/* style 2: sticker, bouncy letters, white die-cut edge */
+.s2 .name{font-family:'Mitr';font-weight:700;font-size:120px}
+.s2 .layer{display:block;white-space:nowrap}
+.s2 .back{position:absolute;left:0;top:0;color:#fff;-webkit-text-stroke:40px #fff;paint-order:stroke fill;filter:drop-shadow(0 8px 6px rgba(0,0,0,.45))}
+.s2 .front{position:relative;color:#FFD23F;-webkit-text-stroke:15px #3B2415;paint-order:stroke fill}
+.s2 .ch{display:inline-block}
+.s2 .tag{font-family:'Mitr';font-weight:500;font-size:34px;color:#3B2415;background:#fff;border-radius:40px;padding:6px 26px;margin-top:22px;box-shadow:0 4px 8px rgba(0,0,0,.35)}
+
+/* style 3: child handwriting (Mimi talks in a little girl's voice) */
+.s3 .name{font-family:'Itim';font-size:140px;color:#FFF6D6;-webkit-text-stroke:14px #203A5E;paint-order:stroke fill;filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
+.s3 .ch{display:inline-block}
+.s3 .tag{font-family:'Itim';font-size:40px;color:#FFF6D6;-webkit-text-stroke:7px #203A5E;paint-order:stroke fill}
+.s3 .wave{width:100%;height:26px}
+</style>
+<div id="stage"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const style = q.get('style') || '1', mode = q.get('mode') || 'mark';
+const NAME = 'บ้านนี้มีมีมี่', TAG = 'เรื่องจริงในบ้านเรา เล่าโดยมีมี่';
+const IMG = {cover: 'file:///C:/mooniex/khaoniao/out/cover-3-doorway.png', profile: 'file:///C:/mooniex/khaoniao/out/profile-3-wet.png'};
+const PAW = (c) => `<svg class="paw" width="44" height="40" viewBox="0 0 44 40" fill="${c}"><ellipse cx="8" cy="15" rx="5" ry="6.5"/><ellipse cx="18" cy="7" rx="5" ry="7"/><ellipse cx="30" cy="7" rx="5" ry="7"/><ellipse cx="40" cy="15" rx="5" ry="6.5"/><path d="M22 18c7 0 14 7 14 14 0 5-4 7-9 6-3-.6-3.5-1.6-5-1.6s-2 1-5 1.6c-5 1-9-1-9-6 0-7 7-14 14-14z"/></svg>`;
+const clusters = (s) => [...new Intl.Segmenter('th', {granularity: 'grapheme'}).segment(s)].map(x => x.segment);
+const rot = [-5, 4, -3, 5, -4, 3, -5], dy = [0, -8, 4, -6, 6, -4, 2];
+
+function spans(s, amp) {
+  return clusters(s).map((c, i) => `<span class="ch" style="transform:translateY(${dy[i % 7] * amp}px) rotate(${rot[i % 7] * amp}deg)">${c}</span>`).join('');
+}
+
+function lockup(st, withTag) {
+  let inner = '';
+  if (st === '1') {
+    inner = `<div class="name">${NAME}</div>
+      <svg class="swash" viewBox="0 0 600 30"><path d="M10 15 H250 M350 15 H590" stroke="#F7C948" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M250 15 q25 -16 50 0 q25 16 50 0" stroke="#F7C948" stroke-width="3" fill="none"/><circle cx="300" cy="15" r="6" fill="#F7C948"/></svg>
+      ${withTag ? `<div class="tag">${TAG}</div>` : ''}`;
+  } else if (st === '2') {
+    inner = `<div class="name"><span class="layer back">${spans(NAME, 1)}</span><span class="layer front">${spans(NAME, 1)}</span></div>
+      ${withTag ? `<div class="tag">${PAW('#3B2415')} ${TAG}</div>` : ''}`;
+  } else {
+    inner = `<div class="name">${spans(NAME, 0.8)}</div>
+      <svg class="wave" viewBox="0 0 600 26"><path d="M8 14 q20 -14 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" stroke="#FFF6D6" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+      ${withTag ? `<div class="tag">${PAW('#FFF6D6')} ${TAG}</div>` : ''}`;
+  }
+  return `<div class="lockup s${st}">${inner}</div>`;
+}
+
+function fit(el, maxW) {
+  const w = el.getBoundingClientRect().width;
+  el.style.transform = `scale(${Math.min(1, maxW / w)})`;
+  return el.getBoundingClientRect();
+}
+
+async function build() {
+  const stage = document.getElementById('stage');
+  let W, H;
+  if (mode === 'cover') {
+    W = 1672; H = 941;
+    stage.style.cssText = `width:${W}px;height:${H}px;background:#222 url(${IMG.cover}) center/cover`;
+    stage.innerHTML = `<div style="position:absolute;right:-60px;top:70px;width:1000px;height:520px;background:radial-gradient(ellipse at 65% 45%,rgba(8,16,32,.62) 0%,rgba(8,16,32,.35) 40%,rgba(8,16,32,0) 70%)"></div>` + lockup(style, true);
+  } else if (mode === 'profile') {
+    W = H = 1254;
+    stage.style.cssText = `width:${W}px;height:${H}px;background:transparent`;
+    stage.innerHTML = `<div style="position:absolute;inset:0;border-radius:50%;background:#FFF3D6;box-shadow:inset 0 0 0 16px #F2B632"></div>
+      <div style="position:absolute;inset:40px;border-radius:50%;overflow:hidden;background:url(${IMG.profile}) center/cover;box-shadow:0 0 0 10px #fff"></div>
+      <div style="position:absolute;left:40px;right:40px;bottom:40px;height:360px;border-radius:0 0 50% 50%/0 0 100% 100%;background:linear-gradient(180deg,rgba(8,16,32,0) 0%,rgba(8,16,32,.55) 100%)"></div>` + lockup(style, false);
+  } else {
+    W = 1600; H = 520;
+    stage.style.cssText = `width:${W}px;height:${H}px;background:transparent`;
+    stage.innerHTML = lockup(style, true);
+  }
+  await document.fonts.ready;
+  await Promise.all(['Chonburi', 'Mitr', 'Itim'].map(f => document.fonts.load(`40px "${f}"`, NAME + TAG)));
+  const el = stage.querySelector('.lockup');
+  const maxW = mode === 'cover' ? 720 : mode === 'profile' ? 960 : 1400;
+  el.style.left = '0'; el.style.top = '0';
+  const r = fit(el, maxW);
+  // position after scaling (scale is about the centre, so place by the centre)
+  let cx, cy;
+  if (mode === 'cover') { cx = W - 40 - maxW / 2 + 40; cy = 152 + 150; }
+  else if (mode === 'profile') { cx = W / 2; cy = H - 175; }
+  else { cx = W / 2; cy = H / 2; }
+  const w0 = el.offsetWidth, h0 = el.offsetHeight;
+  el.style.left = (cx - w0 / 2) + 'px'; el.style.top = (cy - h0 / 2) + 'px';
+  document.title = 'ready ' + W + 'x' + H;
+}
+build();
+</script>
