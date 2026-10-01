@@ -84,6 +84,30 @@ What it changes [O]:
 - The traffic that exists comes from old search videos about an XM rebate (the IB funnel). Putting a product basket on those videos mixes a rebate pitch with a shop link; avoid it. Baskets go on new videos only.
 - Not verified: whether a Shop entry exists under "การสร้างรายได้", whether the rebate videos would affect Shop eligibility ("no Code of Conduct violation" in the 2026-09-28 note).
 
+## 2d. Full year: the 365-day Studio export (Mac CTO, read 1 Oct; state/bl-tt-data-2026-10-01.zip; [M] unless marked)
+
+| month 2026 | video views | followers at month end |
+|---|---|---|
+| Jan | 27.9K | 607 |
+| Feb | 284.3K | 1,509 |
+| Mar | 50.0K | 1,695 |
+| Apr · May · Jun | 18.5K · 7.6K · 15.2K | 1,756 · 1,770 · 1,784 |
+| Jul · Aug · Sep | 11.7K · 28.6K · 6.5K | 1,792 · 1,801 · 1,792 |
+
+- 450K views in 365 days. Jan-Mar is 80% of it, Feb alone 63%. Two posts, "ทรัมป์ประกาศบรรลุข้อตกลงกรีนแลนด์" (8 Feb, 153K) and "รู้ไหม ?!! #rebate" (9 Feb, 152K), hold 67% of the 28 public posts' 456K lifetime views. Followers went 516 (end Dec) to 1,509 (end Feb); since then +283 in seven months. [O] about 3 followers per 1,000 views in Jan-Feb.
+- The hits were news hooks (a Trump headline, an Exness shutdown) and one rebate question. The 90.3% search share in 2c is the last 28 days only; it does not describe what made the hits.
+- Length against lifetime views, 28 public posts:
+
+| duration | posts | median views | best |
+|---|---|---|---|
+| up to 70 s | 7 | 1,805 | 153K |
+| 71-90 s | 12 | 1,132 | 50K |
+| 91-120 s | 3 | 963 | 3.2K |
+| over 120 s | 6 | 381 | 23K |
+
+  [O] This is a correlation, mixed with age (September posts are 12 days old) and topic (the short ones include the Feb news posts). The one long post that worked, "ยังจำได้ไหม" (2:47, 23K), went up on 19 Jun with a second post (the channel got 3.4K views that day); the channel also had 6.8K and 7.9K views on 13-14 Aug, when the post list shows no new public post, and which post drew them is unknown. Every post since 18 Sep runs 128-160 s and sits at 327-438 views. Reading: keep EP58 at 70-85 s.
+- Not in the export: per-post 28-day views, average watch time, traffic source. Asked the Mac CTO for them on 14 posts. One of the 35 posts did not render in the list.
+
 ## 3. Demand: not closed
 
 Free search found only general TikTok Shop TH facts: beauty/health/personal care leads GMV, then fashion, low-cost gadgets and home goods [J]. No best-seller data for safes, shredders, privacy screens or books. Kalodata / FastMoss are paid, and the TikTok Shop app needs a login, so this stays open and costs money or a CEO login.
@@ -138,7 +162,7 @@ Sources read through web search snippets, not opened in full: TikTok Shop TH sel
 
 - Real product needed? Yes. A basket points at a real seller listing, and the TH rules ban invented products and misleading content ([M], 2026-09-28 note). Footage, best first: (1) free sample, an affiliate creator with 1,000+ followers can request one from the seller (seller answers within 7 days, creator has 14 days to post [J]); (2) buy one unit ourselves, which needs the CEO's OK with the exact amount; (3) seller-provided images or clips with the seller's permission.
 - Clips from China because they have views: no. Content "largely repurposed from another source without adding creative edits", or carrying another platform's logo, stays on the platform but is not recommended on For You ([J]); BL already gets only 7.5% of views from For You [M]. The rights are not ours. A clip that sells in another country says nothing about BL's viewers, who arrive by searching broker questions [M]. Use viral foreign clips only as idea sources and remake with our own footage and commentary.
-- Broker education, analyse the clips that did well, post for 7 days: yes. The channel is a search channel (90.3% search [M]); the best video answers a searched question ("xm ฝากขั้นต่ำเท่าไหร่" is 5.1% of its search traffic [M]) and has 44K lifetime views on 1:25. The recent videos run 2:08-2:47 with 13-26 s average watch [M]. A "why it worked" read from about 5-10 videos is a hypothesis, not proof. Seven posts in seven days show direction, not proof.
+- Broker education, analyse the clips that did well, post for 7 days: yes. Today the channel is a search channel (90.3% search over the last 28 days [M]; the biggest hits in Feb were news hooks, section 2d); the best recent video answers a searched question ("xm ฝากขั้นต่ำเท่าไหร่" is 5.1% of its search traffic [M]) and has 44K lifetime views on 1:25. The recent videos run 2:08-2:47 with 13-26 s average watch [M]. A "why it worked" read from about 5-10 videos is a hypothesis, not proof. Seven posts in seven days show direction, not proof.
 - Pass line to set before posting [O]: week total above 4K views (last week 1.6K) and at least 3 of 7 videos above 400 views in 7 days (the two September videos reached about 400 lifetime). Broker videos follow the CEO ruling of 2026-09-17: warning label, no links in the open channel.
 - Basket: parked. Reach would have to grow by about two orders of magnitude before it matters (section 2c).
 
