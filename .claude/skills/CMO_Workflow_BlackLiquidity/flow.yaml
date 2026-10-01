@@ -1,0 +1,268 @@
+schema: mooniex.flow/v1
+flow: bl
+name: Black Liquidity episode
+skill: CMO_Workflow_BlackLiquidity
+owner: CMO
+goal: Turn one approved BL script into a finished, CEO-approved TikTok episode with the least agent time and API spend per run.
+output: A BLACK LIQUIDITY episode posted on TikTok @black_liquidity, with the cut and its sources filed on Drive.
+host: contabo
+trigger:
+  kind: manual
+  by: CEO
+watcher: CMO@contabo
+budget:
+  cash_usd: 1.00
+phases:
+  - {id: pre, name: Script and approval}
+  - {id: gen, name: Generation and footage}
+  - {id: edit, name: Edit plan and cut}
+  - {id: ship, name: Review and publish}
+nodes:
+  - id: script
+    name: Script
+    does: Writes the Thai episode script, one tagged line per beat, from the topic in STATUS.md.
+    phase: pre
+    kind: agent
+    after: []
+    role: cmo
+    skill: CMO_Standard_BlackLiquidity_Script
+    stage: agent
+    output: prototypes/bl<ep>-script/SCRIPT.tsv
+    verify: {check: "SCRIPT.tsv exists, every line carries a [SECTION-n] tag, and the length forecast is inside the episode target"}
+    gate: The script meets CMO_Standard_BlackLiquidity_Script, compliance rules included.
+
+  - id: approve
+    name: Script approval
+    does: The CEO approves the exact script text before any paid stage runs.
+    phase: pre
+    kind: human
+    after: [script]
+    approver: CEO
+    verify: {human: CEO}
+    gate: The CEO's approval of this exact text, quoted in STATUS.md with the commit sha.
+
+  - id: drive
+    name: Row and Drive folder
+    does: Caches the approved script verbatim on the ClaudeFlow row and creates the episode's Drive folder tree.
+    phase: gen
+    kind: code
+    after: [approve]
+    tool: claudeflow:scripts/run-bl-script.js
+    host: mac
+    output: claudeflow_video_projects row (status MANUAL_RUN) + Drive folder with Audio, AI Drafts, Finals
+    verify: {check: "row.script read back equals the approved file byte for byte; drive_folder_id is set"}
+    gate: Supabase row.script equals the approved file and the Drive folder exists.
+    blockers: [bug, input]
+    measured:
+      - {date: "2026-10-01", cost_usd: 0, minutes: 0.2, source: task-47ab0231}
+
+  - id: tts
+    name: Voice (TTS)
+    does: Reads the approved script, tags stripped, into the avatar's Thai voice track.
+    phase: gen
+    kind: api
+    after: [drive]
+    tool: claudeflow:src/video/videogen.js
+    provider: fal
+    host: mac
+    unit_cost: {usd: 0.00058, per: second, source: claudeflow:src/lib/cost-ledger.js, date: "2026-09-19"}
+    output: Drive Audio/ voice track, row.tts_audio_drive_id
+    verify: {check: "the voice track is on Drive and its ffprobe duration is logged in STATUS.md"}
+    gate: Duration within 5% of the forecast at about 11.4 spoken chars per second.
+    blockers: [credit, key, upstream]
+    expect_min: 2
+    measured:
+      - {date: "2026-10-01", minutes: 1.5, source: task-47ab0231}
+      - {date: "2026-10-01", minutes: 1.4, source: task-47ab0231}
+
+  - id: prompts
+    name: Scene prompts
+    does: One model call turns the tagged script into a scene prompt per line for the B-roll match.
+    phase: gen
+    kind: api
+    after: [drive]
+    tool: claudeflow:src/video/videogen.js
+    provider: openrouter
+    model: anthropic/claude-sonnet-5
+    host: mac
+    output: _MANIFEST.json stages.scene_prompts.items
+    verify: {check: "_MANIFEST.json stages.scene_prompts is done with one item per script line"}
+    gate: One scene prompt per script line; the JSON parsed on this call.
+    on_fail: {retry: 1}
+    blockers: [credit, key, verify_fail, money]
+    expect_min: 3
+    measured:
+      - {date: "2026-10-01", cost_usd: 0.322032, minutes: 4.4, source: task-47ab0231}
+      - {date: "2026-10-01", cost_usd: 0.15589, minutes: 2.1, source: task-47ab0231}
+
+  - id: transcript
+    name: Transcript
+    does: Word timings for the voice track, used to split lipsync parts and to time the cut.
+    phase: gen
+    kind: api
+    after: [tts]
+    tool: claudeflow:src/video/videostt.js
+    provider: fal
+    model: fal-ai/whisper
+    host: mac
+    unit_cost: {usd: 0.03, per: minute, source: claudeflow:src/lib/cost-ledger.js, date: "2026-09-19"}
+    output: row.transcript (word timings)
+    verify: {check: "row.transcript is set and its last word ends within 1 s of the voice track's duration"}
+    gate: Every script line is found in the transcript.
+    blockers: [credit, key, upstream]
+    expect_min: 1
+    measured:
+      - {date: "2026-10-01", minutes: 0.9, source: task-47ab0231}
+      - {date: "2026-10-01", minutes: 0.8, source: task-47ab0231}
+
+  - id: lipsync
+    name: Lipsync
+    does: Lip-syncs the avatar to the voice on the parts where the avatar is on screen (about half the episode).
+    phase: gen
+    kind: api
+    after: [transcript]
+    tool: claudeflow:src/video/videogen.js
+    provider: fal
+    host: mac
+    unit_cost: {usd: 0.0117, per: second, source: claudeflow:src/lib/cost-ledger.js, date: "2026-09-19"}
+    output: Drive AI Drafts/ lipsync parts A, B, C
+    verify: {check: "every lipsync part is on Drive and their summed length matches the billed seconds"}
+    gate: Every avatar part present, mouth in sync on a spot check of each part.
+    blockers: [credit, key, upstream, money]
+    expect_min: 9
+    measured:
+      - {date: "2026-10-01", cost_usd: 0.571667, minutes: 6.5, source: task-47ab0231}
+      - {date: "2026-10-01", cost_usd: 0.536667, minutes: 8.8, source: task-47ab0231}
+
+  - id: scenes
+    name: B-roll scenes
+    does: Matches each scene prompt to a clip from the B-roll catalogue; generates on Kling only where no clip fits.
+    phase: gen
+    kind: api
+    after: [prompts]
+    tool: claudeflow:src/video/videolib.js
+    provider: fal
+    model: fal-ai/kling-video/v3/pro/text-to-video
+    host: mac
+    unit_cost: {usd: 0.56, per: clip, source: claudeflow:src/lib/cost-ledger.js, date: "2026-09-19"}
+    output: Drive AI Drafts/ one clip per scene
+    verify: {check: "every scene has a clip, or is a real-footage beat listed in STATUS.md"}
+    gate: Every non-real-footage scene has a clip; any generated clip was approved with its exact cost first.
+    blockers: [credit, money, upstream]
+    expect_min: 1
+    measured:
+      - {date: "2026-10-01", cost_usd: 0, minutes: 0.8, source: task-47ab0231}
+      - {date: "2026-10-01", cost_usd: 0, minutes: 0.8, source: task-47ab0231}
+
+  - id: handoff
+    name: Editor hand-off
+    does: Marks the ClaudeFlow row DONE and the manifest's editor_handoff stage, so the edit can start.
+    phase: gen
+    kind: code
+    after: [transcript, lipsync, scenes]
+    tool: claudeflow:src/video/videogen.js
+    host: mac
+    output: _MANIFEST.json stages.editor_handoff, row status DONE
+    verify: {check: "_MANIFEST.json has stages.editor_handoff and the row status reads DONE"}
+    gate: Voice, transcript, lipsync parts and scene clips are all on Drive.
+
+  - id: footage
+    name: Real footage
+    does: Captures the real broker and WikiFX pages the script cites as censored clips and stills into real/.
+    phase: gen
+    kind: code
+    after: [drive]
+    tool: tools/bl_realfootage.py
+    output: real/ on Drive + REAL_MANIFEST.json
+    verify: {check: "REAL_MANIFEST.json lists every real-footage tag in the script and each upload's md5 matches"}
+    gate: Every real-footage line has its clip or still, ads and personal data censored.
+    blockers: [upstream, bug]
+
+  - id: jev
+    name: Jev editorial calls
+    does: One typed Jev decision per script line and question; low-confidence rows are flagged for review.
+    phase: edit
+    kind: model
+    after: [footage]
+    tool: .claude/skills/CMO_Procedure_BlackLiquidity_JevEditor/scripts/jev_edit.py
+    provider: jev
+    skill: CMO_Procedure_BlackLiquidity_JevEditor
+    output: decisions.jsonl + storyboard.html
+    verify: {check: "decisions.jsonl has non-null choices, and every needs_review row has been looked at in storyboard.html"}
+    gate: No answered row is null; flagged rows reviewed.
+    blockers: [key, credit]
+
+  - id: scripter
+    name: Scripter
+    does: Looks once at one frame per line and writes the cut table (beats.json) in one model call.
+    phase: edit
+    kind: model
+    after: [handoff, jev]
+    tool: tools/bl_scripter.py
+    provider: anthropic
+    output: beats.json
+    verify: {check: "beats.json has one row per script line in the bl_compose row shape"}
+    gate: beats.json covers every line with a mode and a source.
+    blockers: [quota, bug]
+
+  - id: compose
+    name: Compose and render
+    does: Builds the HyperFrames composition from beats.json and renders it with the narration muxed.
+    phase: edit
+    kind: code
+    after: [scripter]
+    tool: tools/bl_compose.py
+    output: final.mp4 in the episode's cut folder
+    verify: {check: "the render exists, its frame count matches the audio, and check_pieces_landed passed"}
+    gate: A full render with every piece landed.
+    blockers: [bug, input]
+
+  - id: checker
+    name: Checker
+    does: Runs the cut's gates (empty frames, brand mark, captions, geometry) on the render.
+    phase: edit
+    kind: code
+    after: [compose]
+    tool: tools/bl_checker.py
+    output: checker result JSON
+    verify: {cmd: "python tools/bl_checker.py --video <final.mp4> --beats <beats.json> --composition <index.html>"}
+    gate: The checker exits 0, or every failure is handed to the editor by name.
+    blockers: [verify_fail]
+
+  - id: editor
+    name: Editor
+    does: Fixes what the checker and the CEO's taste flag, re-renders, and finishes the cut.
+    phase: edit
+    kind: agent
+    after: [checker]
+    role: video_editor
+    skill: CMO_Procedure_BlackLiquidity_Cut
+    stage: agent
+    output: the final cut + REPORT.md
+    verify: {check: "bl_checker and bl_merge gates pass on the final, and 8 spread frames were read"}
+    gate: The checker passes on the final and the report names every deviation from beats.json.
+    on_fail: {retry_from: compose, max: 3}
+    blockers: [verify_fail, input, quota]
+    measured:
+      - {date: "2026-09-25", cost_usd: 99.79, turns: 760, minutes: 240, source: docs/ops/bl-ab-2026-09-25/REPORT.md}
+
+  - id: review
+    name: CEO review
+    does: The CEO watches the cut on the phone and approves it or sends fixes back.
+    phase: ship
+    kind: human
+    after: [editor]
+    approver: CEO
+    verify: {human: CEO}
+    gate: The CEO's approval, quoted in STATUS.md.
+
+  - id: publish
+    name: Publish
+    does: The approved cut goes up on TikTok @black_liquidity with the cart link.
+    phase: ship
+    kind: human
+    after: [review]
+    approver: CEO
+    verify: {check: "the post URL opens and the cart link is live"}
+    gate: The post is live and its URL is in STATUS.md.
+    release: true
