@@ -198,10 +198,10 @@ esac
     # badge instead of the fixed "🔴 รอ CEO" fallback — see tools/itermtab.py
     # mark_attention(badge=...). Falls back to the old fixed badge when no
     # subtitle was given (existing single-arg callers, unaffected).
-    python3 -m tools.itermtab mark "$BASE" "$SUBTITLE" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
-    [ -n "${WINID:-}" ] && [ "${WINID:-0}" != "0" ] && python3 -m tools.itermtab arrange "$WINID" >/dev/null 2>&1 || true
+    bash scripts/hub/org-python.sh -m tools.itermtab mark "$BASE" "$SUBTITLE" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
+    [ -n "${WINID:-}" ] && [ "${WINID:-0}" != "0" ] && bash scripts/hub/org-python.sh -m tools.itermtab arrange "$WINID" >/dev/null 2>&1 || true
   else
-    python3 -m tools.itermtab status "$BASE" "${WINID:-0}" "$_GLYPH" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
+    bash scripts/hub/org-python.sh -m tools.itermtab status "$BASE" "${WINID:-0}" "$_GLYPH" "${TTY_DEV:-}" "$TITLE" >/dev/null 2>&1
   fi
   # Keep the Main Tab clock alive without touching the spawn scripts: this is
   # a pidfile check that no-ops when the daemon is already up (the normal

@@ -54,6 +54,7 @@ from runners import agy_local
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
+ORG_PYTHON_SH = ROOT / "scripts" / "hub" / "org-python.sh"
 
 # Tools every worker DEV may call, regardless of role. Skill is here (not a
 # per-role add-on) because every role now carries a skills_profile (ADR 0022
@@ -325,7 +326,12 @@ def _write_dev_settings(worktree: str, role: str | None = None) -> None:
                     "hooks": [
                         {
                             "type": "command",
-                            "command": f"python3 {HOOK_SCRIPT}",
+                            # The hook records session_id and rate_limited on
+                            # the task row. The worker's env has no
+                            # ORG_DB_URL (env_without_org_db), so on a hub
+                            # host the hook gets it from org-python.sh
+                            # (task-1b8ef857).
+                            "command": f"bash {ORG_PYTHON_SH} {HOOK_SCRIPT}",
                         }
                     ]
                 }
