@@ -46,15 +46,15 @@ old secretary path. Logs to expect: `[sompong/internal] listening on :3011`, the
 3. The Run Inbox token for `ask_run.py` was copied to `/home/sompong/.config/mooniex/run-inbox.token` (600) by a
    CEO-approved card (RUN-20261001-1622-c71a).
 
-## Acceptance (probe 1 passed 2 Oct 00:15–00:32 BKK)
+## Acceptance (probes 1, 4, 5 passed 2 Oct 00:15–00:50 BKK)
 
 | Probe | Result |
 |---|---|
 | 1 Telegram DM + LINE DM + LINE group | PASS — 2 TG answered (26 s, 109 s), LINE DM answered, group event answered (7-day summary to the CEO's DM) |
 | 2 family `@สมพงษ์` in the group, risky ask → CEO | not run yet |
 | 3 kill the session, messages queue, restart drains | not run yet |
-| 4 `/spawn-coo` refuses a second session | not run yet |
-| 5 session cannot read the inbox keys | not run yet |
+| 4 `/spawn-coo` refuses a second session | PASS — `SomPong already online (tmux sompong, since 2026-10-02 00:11)`, rc 0, still 1 tmux + 1 claude |
+| 5 session cannot read the inbox keys | PASS — as `sompong`, `test -r` denied on `/etc/infisical/contabo.env`, `state/inbox.db`, ClaudeFlow `.env` (all root 600); inbox process is root |
 | 6 red Run card from SomPong, 15-min wait | not run yet |
 
 ## Known gaps (follow-ups)
