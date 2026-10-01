@@ -29,7 +29,7 @@ CEO's explicit "I'm still working."
 - [ ] State the session's **Entry Problem** (one sentence) and its **DoD list**
       as pinned at open. If no charter was set, reconstruct it now from the
       session's actual work, then judge against it.
-- [ ] 🏁 Cross-check against the DB: `python3 -m tools.session_charter get`
+- [ ] 🏁 Cross-check against the DB: `bash scripts/hub/org-python.sh -m tools.session_charter get`
       should echo the same Entry Problem — if it comes back empty, this
       session's `/session-open` never ran step 1b, worth naming in the report.
 

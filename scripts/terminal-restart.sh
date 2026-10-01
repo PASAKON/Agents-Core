@@ -51,7 +51,7 @@ fi
 FORCE_ARGS=()
 [ "$FORCE" = "1" ] && FORCE_ARGS=(--force)
 CHECK_RC=0
-CHECK_MSG="$(cd "$ROOT" && python3 -m tools.terminal_restart check \
+CHECK_MSG="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart check \
     --name "$NAME" --locks-dir "$LOCKS_DIR" ${FORCE_ARGS[@]+"${FORCE_ARGS[@]}"})" || CHECK_RC=$?
 if [ -n "$CHECK_MSG" ]; then
   echo "terminal-restart: $CHECK_MSG" >&2
@@ -79,7 +79,7 @@ echo "terminal-restart: the in-flight turn (if any) is lost — anything the" >&
 echo "  pane was mid-tool-call on does not come back. Files on disk / worktrees" >&2
 echo "  are untouched." >&2
 
-RUN_FILE="$(cd "$ROOT" && python3 -m tools.terminal_restart build-run-file \
+RUN_FILE="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart build-run-file \
     --name "$NAME" --locks-dir "$LOCKS_DIR")"
 echo "terminal-restart: resume run-file ready ($RUN_FILE), target uuid=$UUID"
 
@@ -101,7 +101,7 @@ if [ "$CURRENT" = "$NAME" ]; then
     tmux respawn-pane -k -t '$NAME' 'bash $RUN_FILE'
     sleep $VERIFY_DELAY
     cd '$ROOT'
-    if ! python3 -m tools.terminal_restart verify --name '$NAME' --locks-dir '$LOCKS_DIR' --delay 0 >>'$LOG_FILE' 2>&1; then
+    if ! bash '$ROOT/scripts/hub/org-python.sh' -m tools.terminal_restart verify --name '$NAME' --locks-dir '$LOCKS_DIR' --delay 0 >>'$LOG_FILE' 2>&1; then
       {
         echo \"\$(date -u +%FT%TZ) terminal-restart: VERIFY FAILED after respawn of '$NAME'\"
         echo \"\$(date -u +%FT%TZ) terminal-restart: resume by hand: bash scripts/spawn-cto.sh --resume $SID_PART  (uuid: $UUID)\"
@@ -114,14 +114,14 @@ fi
 
 # Restarting a DIFFERENT session — no self-kill risk, run synchronously so
 # the caller gets a real result instead of having to go check a log file.
-RESPAWN_OUT="$(cd "$ROOT" && python3 -m tools.terminal_restart respawn \
+RESPAWN_OUT="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart respawn \
     --name "$NAME" --locks-dir "$LOCKS_DIR" --run-file "$RUN_FILE" 2>&1)" \
   || { echo "terminal-restart: respawn-pane failed: $RESPAWN_OUT" >&2; exit 1; }
 [ -n "$RESPAWN_OUT" ] && echo "terminal-restart: $RESPAWN_OUT"
 
 echo "terminal-restart: waiting ${VERIFY_DELAY}s to verify..."
 VERIFY_RC=0
-VERIFY_OUT="$(cd "$ROOT" && python3 -m tools.terminal_restart verify \
+VERIFY_OUT="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart verify \
     --name "$NAME" --locks-dir "$LOCKS_DIR" --delay "$VERIFY_DELAY")" || VERIFY_RC=$?
 echo "$VERIFY_OUT"
 if [ "$VERIFY_RC" -ne 0 ]; then
