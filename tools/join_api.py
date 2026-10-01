@@ -3,9 +3,10 @@
 
     python -m tools.join_api --port 8791 [--bind ADDR] [--public-url https://<hub>]
 
-Runs on Contabo as the system user `org-join` with ONE secret in its environment, the DSN of the
+Runs on Contabo as the system user `org-join` with one secret in its environment, the DSN of the
 Postgres role `org_join` (ORG_JOIN_DB_URL, from the /org-join folder of Agents-Core prod; see
-deploy/join/org-join.service and deploy/join/org_join_role.sql). stdlib only,
+deploy/join/org-join.service and deploy/join/org_join_role.sql), plus the two Tailscale OAuth
+client values when the CEO has put them in that folder (see the TailscaleMinter paragraph). stdlib only,
 ThreadingHTTPServer. It binds 127.0.0.1 unless told otherwise, and `--bind` (env
 JOIN_API_BIND) takes ONLY a loopback address or one inside 172.16.0.0/12 (a docker bridge):
 never 0.0.0.0, never a public or other private address (Org Mesh W4.5: traefik reaches it
@@ -17,10 +18,12 @@ Routes, all under /org-join/ (every other path, and every other method on these,
                              address. The one placeholder, @@ORG_JOIN_HUB@@, becomes the
                              public hub URL so `curl .../join.sh | sh` knows where it came from.
     POST accept              {token, host, os, hq_root, pubkey, deploy_pubkey?}
-                             -> hq_join.accept(). 200 {host, status}. Plus
-                             `tailscale_authkey` when a TailscaleMinter is configured.
+                             -> hq_join.accept(). 200 {host, status}. Never a Tailscale key:
+                             the CEO has not approved the fingerprint yet.
     POST sealed              {host, token}. 202 {status: pending} until the host is
-                             identity_ready, then 200 {status: ready, ciphertext}. Allowed
+                             identity_ready, then 200 {status: ready, ciphertext}, plus
+                             `tailscale_authkey` when a TailscaleMinter is configured (a fresh
+                             key on every ready answer; none on pending or 403). Allowed
                              only for the token that joined that host, within 24 h of its use.
                              EVERY other case is the same 403: no oracle.
 
@@ -39,9 +42,14 @@ Database role (W4.6c, F3): the endpoint is public, so it connects as the least-p
 It reads ORG_JOIN_DB_URL. Only when that is unset and JOIN_API_ALLOW_ORG_ROLE=1 does it fall back to
 ORG_DB_URL, with a one-line warning; without the flag it refuses to start.
 
-The TailscaleMinter is an injectable `host -> pre-auth key` callable and is NOT wired here
-(CEO gate G3 = the Tailscale OAuth client). Without one the field is absent and join.sh
-requires the machine to be on the tailnet already.
+The TailscaleMinter is an injectable `host -> pre-auth key` callable. main() wires
+lib.tailscale_api when TAILSCALE_OAUTH_CLIENT_ID and TAILSCALE_OAUTH_CLIENT_SECRET are both in
+the environment (the /org-join folder the unit already injects); one without the other refuses
+to start. Without them the field is absent and join.sh requires the machine to be on the
+tailnet already. The key is minted by /sealed, only on the ready answer, so it is released
+after the CEO's approval and never before. A minter that raises does not fail the answer:
+ready and the ciphertext still go out, with no key field and one warning with the exception's
+class name (and the HTTP status, an integer, when Tailscale refused).
 """
 from __future__ import annotations
 
@@ -65,7 +73,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import db, db_pg  # noqa: E402
+from lib import db, db_pg, tailscale_api  # noqa: E402
 from tools import hq_join  # noqa: E402
 
 _log = logging.getLogger("join_api")
@@ -93,7 +101,7 @@ _ORIGIN_RE = re.compile(r"https?://[A-Za-z0-9.-]{1,253}(?::[0-9]{1,5})?")
 _HOSTHDR_RE = re.compile(r"[A-Za-z0-9.-]{1,253}(?::[0-9]{1,5})?")
 _AUTHKEY_RE = re.compile(r"[\x21-\x7e]{1,200}")
 
-# host -> one-use, ephemeral, tagged Tailscale pre-auth key.
+# host -> one-use, pre-authorized, tagged Tailscale pre-auth key (lib.tailscale_api.mint_authkey).
 TailscaleMinter = Callable[[str], str]
 
 _JSON = "application/json"
@@ -228,15 +236,25 @@ def _route_accept(h: "_Handler"):
             return 409, _json({"error": exc.code}), _JSON, log_host
         # unknown_token, wrong_host, already_used, expired: one answer
         return 403, _json({"error": _REFUSED[1]}), _JSON, log_host
-    out = {"host": res["host"], "status": res["status"]}
-    if h.server.minter is not None:
-        try:
-            key = h.server.minter(host)
-            if isinstance(key, str) and _AUTHKEY_RE.fullmatch(key):
-                out["tailscale_authkey"] = key
-        except Exception as exc:  # the node joined; it just gets no key, and says so
-            _log.warning("tailscale minter failed for %s: %s", log_host, type(exc).__name__)
-    return 200, _json(out), _JSON, log_host
+    # No Tailscale key here, whoever holds the token: the key is the tailnet door, and the CEO's
+    # fingerprint approval comes after this step. /sealed releases it, once that approval is in.
+    return 200, _json({"host": res["host"], "status": res["status"]}), _JSON, log_host
+
+
+def _mint_authkey(h: "_Handler", host: str) -> str | None:
+    """The pre-auth key for an approved host, or None: no minter, or Tailscale said no. A failure
+    never fails the sealed answer; it is one warning with the class name and, for a Tailscale
+    refusal, the integer HTTP status. Never a body, a message or a key."""
+    if h.server.minter is None:
+        return None
+    try:
+        key = h.server.minter(host)
+    except Exception as exc:
+        status = getattr(exc, "status", None) if isinstance(exc, tailscale_api.TailscaleError) else None
+        _log.warning("tailscale minter failed for %s: %s%s", host, type(exc).__name__,
+                     f" (HTTP {status})" if isinstance(status, int) else "")
+        return None
+    return key if isinstance(key, str) and _AUTHKEY_RE.fullmatch(key) else None
 
 
 def _route_sealed(h: "_Handler"):
@@ -264,7 +282,13 @@ def _route_sealed(h: "_Handler"):
             ciphertext = hq_join.sealed_ciphertext(log_host)
     except hq_join.JoinError:  # no live ciphertext (revoked, or never stored)
         raise _Refuse(*_REFUSED) from None
-    return 200, _json({"status": "ready", "ciphertext": ciphertext}), _JSON, log_host
+    out = {"status": "ready", "ciphertext": ciphertext}
+    # Past every gate above: the host is approved and its identity is sealed. Only now does the
+    # node get the tailnet key. Outside the database slot: this waits on Tailscale.
+    key = _mint_authkey(h, log_host)
+    if key is not None:
+        out["tailscale_authkey"] = key
+    return 200, _json(out), _JSON, log_host
 
 
 ROUTES: dict = {("GET", PREFIX + n): (lambda h, n=n: _route_script(h, n)) for n in SCRIPT_NAMES}
@@ -474,6 +498,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         check_bind(args.bind)
         db_url, db_warning = choose_db_url(os.environ)
+        ts_client = tailscale_api.from_env(os.environ)  # None = not configured; half of it = ValueError
     except ValueError as exc:
         p.error(str(exc))  # exit 2, before the database is touched
     logging.basicConfig(level=logging.INFO, format="%(asctime)s join_api %(levelname)s %(message)s")
@@ -484,7 +509,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         _preflight()
         srv = make_server(args.port, public_url=args.public_url,
-                          trust_forwarded=args.trust_forwarded_for, bind=args.bind)
+                          trust_forwarded=args.trust_forwarded_for, bind=args.bind,
+                          minter=ts_client.mint_authkey if ts_client else None)
     except (OSError, ValueError) as exc:
         print(f"join_api: cannot start ({type(exc).__name__}: {str(exc)[:200]})", file=sys.stderr)
         return 1

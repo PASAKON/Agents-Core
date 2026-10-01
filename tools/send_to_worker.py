@@ -33,7 +33,7 @@ Usage:
 Sender label: resolved from the calling process's env the same way
 `send_to_cxo._resolve_sender_role()` does (`CXO_ROLE` -> that C-level's
 display name, else "CEO") rather than the old hardcoded "[CTO]:" --
-`tasks.owner_role` already lets a CFO/CMO/CGO own a DEV task directly, so
+`tasks.owner_role` already lets a CFO/CMO/CGO/COO own a DEV task directly, so
 a CFO-delegated kickoff now correctly reads "[CFO]:" instead of lying
 "[CTO]:" like it used to.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spawn an iTerm2 window with a C-level chat tab (cto/cmo/cgo/cfo).
+# Spawn an iTerm2 window with a C-level chat tab (cto/cmo/cgo/cfo/coo).
 # Generalization of spawn-cto.sh — all C-levels share the same spawn
 # machinery and only differ in role doc + tab title + lock prefix.
 #
@@ -45,8 +45,16 @@ for a in "$@"; do
 done
 
 if [ -z "$ROLE" ]; then
-  echo "usage: spawn-cxo.sh --role <cto|cmo|cgo|cfo> [--new|--last|--resume <id>|--with-logs|--id <id>]" >&2
+  echo "usage: spawn-cxo.sh --role <cto|cmo|cgo|cfo|coo> [--new|--last|--resume <id>|--with-logs|--id <id>]" >&2
   exit 2
+fi
+
+# SomPong (coo) is one session, on Contabo, started by /spawn-coo (which checks
+# for a live one first) -- never an iTerm window here. cxo-claude.sh refuses it
+# off Contabo too; this stops it before any AppleScript work.
+if [ "$ROLE" = "coo" ]; then
+  echo "SomPong (COO) runs on Contabo only — use /spawn-coo" >&2
+  exit 1
 fi
 
 # Validate role early so we fail before any AppleScript work.
@@ -105,7 +113,7 @@ if ! [ -d "$ROOT/.venv" ]; then
   exit 1
 fi
 
-# Resolve display name (CTO / CMO / CGO / CFO) for tab title + log file.
+# Resolve display name (CTO / CMO / CGO / CFO / COO) for tab title + log file.
 DISPLAY="$(cd "$ROOT" && source .venv/bin/activate && python3 -c "
 from lib.config import display_for, is_c_level
 import sys
@@ -207,9 +215,10 @@ done
 export CLAUDE_CODE_AUTO_COMPACT_WINDOW
 # Same tmux wrapping as spawn-cto.sh, for the same reason: the CEO's phone has
 # to be able to attach the very session this tab is showing. `<role>-<slug>` is
-# the shape MoonieX Console's list filter requires, and cmo/cfo/cxo are all
-# already in its ROLES (mooniex-console src/tmux/names.js) — so every C-level
-# spawned here shows up on the phone, not just the CTO.
+# the shape MoonieX Console's list filter requires. Its ROLES
+# (mooniex-console src/tmux/names.js) held cto/cmo/cfo/cxo as of 2026-09-27 —
+# NOT cgo or coo, so those sessions run but do not show on the phone until
+# that list is extended (a Console change, not this repo).
 TMUX_SESSION="$ROLE-$CXO_SESSION_ID"
 
 # Through a file, to avoid nesting quotes inside both the tmux argv and the

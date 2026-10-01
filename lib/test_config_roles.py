@@ -30,13 +30,14 @@ def test_ceo_is_c_level_but_not_a_live_session() -> bool:
 
 
 def test_matches_the_tuples_it_replaces() -> bool:
-    """Behaviour-preserving today: the helper returns exactly the roster that
-    runners/relay_mcp_server.py and runners/mac_agent.py hardcode, so
-    swapping them over changes nothing until agents.yaml itself changes."""
+    """The helper returns the roster runners/relay_mcp_server.py and
+    runners/mac_agent.py used to hardcode, plus the COO (2026-09-27) -- they
+    now read it through lib/roles.py. tests/test_c_level_roles.py checks
+    every consumer against the policy."""
     ok = True
     roles = config.live_c_level_roles()
-    ok &= _check("same members as the hardcoded tuples",
-                 set(roles) == {"cto", "cmo", "cgo", "cfo"})
+    ok &= _check("same members as the org roster",
+                 set(roles) == {"cto", "cmo", "cgo", "cfo", "coo"})
     ok &= _check("returns a tuple (safe as a default arg)",
                  isinstance(roles, tuple))
     return ok

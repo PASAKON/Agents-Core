@@ -21,14 +21,18 @@
 #   --dry-run        print every step, change nothing, contact nothing
 #
 # The nine steps, in order (same as join.sh). Each is safe to repeat.
-#   1 check the arguments             6 wait for the operator's approval and the sealed identity
+#   1 check the arguments             6 join the tailnet
 #   2 make the node's keys            7 clone Agents-Core over the deploy key, build the venv
 #   3 accept: hand the hub the token  8 open the sealed identity, save it, write node.yaml
 #   4 install what is missing         9 probe
-#   5 join the tailnet
+#   5 wait for the operator's approval and the sealed identity
 # Keys and accept come BEFORE the long installs: the token is used within seconds of being typed,
 # and the operator sees this node's fingerprint (the last 8 characters of its age recipient) at
 # once. Step 2 installs only what the keys need (age, and git for its ssh-keygen) if missing.
+# The tailnet comes AFTER the wait: the hub releases the pre-auth key with the sealed answer (step
+# 5), and only once the operator approved the fingerprint, so a stolen token alone cannot put a
+# machine on the tailnet. Nothing before it needs the tailnet (public installs, the hub at its
+# public URL, GitHub for the clone).
 #
 # No secret is typed, written to disk by this script, or put on the command line of a process
 # that lives longer than a moment. The node's identity is age-decrypted and handed to
@@ -160,7 +164,7 @@ function Show-Banner {
     Say ('host ' + $script:HostName + ' (windows), hub ' + $script:Hub)
     Say ('HQ root ' + $script:HqRoot + '  (checkout: ' + $script:Core + ')')
     Say ('keys go under ' + $script:ConfDir + ' (age identity, deploy key) and ' + $script:SshDir + ' (dispatch key)')
-    Say 'ELEVATION NEEDED for three things: installing packages (2, 4), tailscale up (5), saving the'
+    Say 'ELEVATION NEEDED for three things: installing packages (2, 4), tailscale up (6), saving the'
     Say "node's identity under C:\ProgramData\Infisical (8)."
     if (Test-Admin) {
         Say 'This window is elevated: fine.'
@@ -366,14 +370,15 @@ function Send-Accept {
     Step 3 "accept: give the hub the token and this node's public keys"
     Say ('POST ' + $script:Hub + '/accept  (host, os, hq_root, age recipient, deploy public key; the token is in the body)')
     if ($script:DryRun) {
-        Say "a used token is refused; step 6's answer then tells 'already joined' from 'wrong token'"
+        Say "a used token is refused; step 5's answer then tells 'already joined' from 'wrong token'"
         Say ('then: fingerprint: ' + (Get-Fingerprint) + ' - the operator approves this in the Run Inbox')
         return
     }
     $r = Send-Hub 'accept' @{ token = $script:Token; host = $script:HostName; os = 'windows'; hq_root = $script:HqRoot; pubkey = $script:AgePub; deploy_pubkey = $script:DeployPub }
     if ($r.Code -eq 200) {
+        # No Tailscale key in this answer, on purpose: the hub releases it with the sealed answer
+        # (step 5), once the operator has approved the fingerprint.
         Say ('accepted: the hub now lists ' + $script:HostName + ' as pending_identity')
-        $script:TsKey = Get-JsonField $r.Body 'tailscale_authkey'
     } elseif ($r.Code -eq 400) {
         Die ('the hub refused the request: ' + (Get-JsonField $r.Body 'message'))
     } elseif ($r.Code -eq 403) {
@@ -399,7 +404,7 @@ function Send-Accept {
     Say ('fingerprint: ' + (Get-Fingerprint) + ' - the operator approves this in the Run Inbox')
 }
 
-# ---------------------------------------------------------------- 5: tailnet
+# ---------------------------------------------------------------- 6: tailnet
 
 function Test-OnTailnet {
     if (-not (Test-Have 'tailscale')) { return $false }
@@ -407,10 +412,12 @@ function Test-OnTailnet {
     return ($LASTEXITCODE -eq 0)
 }
 
+# Runs after Wait-Sealed: TsKey is the key the hub put in the sealed answer, so it exists only for
+# a node the operator approved.
 function Join-Tailnet {
-    Step 5 'join the tailnet (tag:org-node), or confirm this machine is already on it'
+    Step 6 'join the tailnet (tag:org-node), or confirm this machine is already on it'
     if ($script:DryRun) {
-        Say ('if the hub sent a pre-auth key: tailscale up --auth-key <key from the hub> --hostname ' + $script:HostName + ' --advertise-tags=tag:org-node')
+        Say ('if the hub sent a pre-auth key with the sealed answer: tailscale up --auth-key <key from the hub> --hostname ' + $script:HostName + ' --advertise-tags=tag:org-node')
         Say 'else the machine must already be on the tailnet; if it is not, this step stops with instructions'
         return
     }
@@ -427,12 +434,13 @@ function Join-Tailnet {
     $script:TsKey = ''
 }
 
-# ---------------------------------------------------------------- 6: wait for the sealed identity
+# ---------------------------------------------------------------- 5: wait for the sealed identity
 
 function Wait-Sealed {
-    Step 6 ("wait for the operator's approval, then for the hub to seal this node's identity (polls every " + $script:PollS + ' s, up to ' + [int]($script:PollMaxS / 60) + ' min)')
+    Step 5 ("wait for the operator's approval, then for the hub to seal this node's identity (polls every " + $script:PollS + ' s, up to ' + [int]($script:PollMaxS / 60) + ' min)')
     Say ('POST ' + $script:Hub + '/sealed  -> pending until the operator approves fingerprint ' + (Get-Fingerprint) + ' and the Mac provisions it, then the age ciphertext')
     Say ('the ciphertext is held in memory only; only the identity in ' + $script:AgeId + ' can open it')
+    Say 'the answer that carries the ciphertext also carries the Tailscale pre-auth key, if the hub has one: step 6 uses it'
     if ($script:DryRun) { return }
     $waited = 0
     while ($true) {
@@ -440,6 +448,7 @@ function Wait-Sealed {
         if ($r.Code -eq 200) {
             $script:Cipher = Get-JsonField $r.Body 'ciphertext'
             if (-not $script:Cipher) { Die 'the hub said ready but sent no ciphertext' }
+            $script:TsKey = Get-JsonField $r.Body 'tailscale_authkey'
             Say 'sealed identity received'
             return
         } elseif ($r.Code -eq 202) {
@@ -630,8 +639,8 @@ function Join-OrgNode($argList) {
     New-Keys
     Send-Accept
     Install-Missing
-    Join-Tailnet
     Wait-Sealed
+    Join-Tailnet
     Copy-Core
     Save-Identity
     $probeOk = Invoke-Probe

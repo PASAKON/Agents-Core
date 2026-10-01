@@ -236,7 +236,9 @@ def test_the_unit_runs_the_endpoint_as_org_join_not_secretary():
     (exec_start,) = [ln for ln in _unit_code() if ln.startswith("ExecStart=")]
     assert "/usr/bin/setpriv --reuid=org-join --regid=org-join --init-groups" in exec_start
     assert "secretary" not in " ".join(_unit_code())
-    assert "User=root" in _unit_code()                # the root leg reads /etc/infisical, then drops
+    # runs as root by default; an explicit User= (even root) plus NoNewPrivileges and a seccomp
+    # directive strips CAP_SETUID and setpriv cannot drop (Contabo 2026-10-01)
+    assert not any(ln.startswith("User=") for ln in _unit_code())
 
 
 def test_the_unit_injects_only_the_org_join_folder_never_all_of_agents_core_prod():

@@ -8,5 +8,6 @@
 เอ็กซ์เอ็ม: XM
 เอ็กซ์เนส: Exness
 เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์: XXLMARKETS
+เวลเทรด: Weltrade
 # Not mapped on purpose: ไลน์ (too common a Thai word to substring-replace safely),
 # place names (they may stay in Thai).

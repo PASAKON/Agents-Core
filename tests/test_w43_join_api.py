@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from lib import db
-from lib import db_pg
+from lib import db_pg, tailscale_api
 from tools import hq_join, join_api
 
 # The example recipient from the age README: a real bech32 checksum.
@@ -225,36 +225,120 @@ def test_accept_without_a_deploy_key_still_joins(api):
     assert api.post("accept", body)[0] == 200
 
 
-def test_the_tailscale_key_comes_back_only_when_a_minter_is_wired(start):
+def test_accept_never_returns_a_tailscale_key_and_never_asks_for_one(start):
+    """CTO review F1: the key is the tailnet door, and the CEO's approval comes after accept."""
     calls = []
-
-    def minter(host):
-        calls.append(host)
-        return TS_KEY
-
-    api = start(minter=minter)
+    api = start(minter=lambda host: calls.append(host) or TS_KEY)
     token = hq_join.mint("node-a")["token"]
     status, body = api.post("accept", _accept_body(token))
     assert status == 200
-    assert json.loads(body) == {"host": "node-a", "status": "pending_identity", "tailscale_authkey": TS_KEY}
+    assert json.loads(body) == {"host": "node-a", "status": "pending_identity"}
+    assert TS_KEY.encode() not in body
+    # a refused accept (wrong token, used token) mints nothing either
+    assert api.post("accept", _accept_body("hqj_" + "A" * 43, "node-b"))[0] == 403
+    assert api.post("accept", _accept_body(token))[0] == 403
+    assert calls == []
+
+
+# ---------------------------------------------------------------- the Tailscale key rides on /sealed
+
+def test_sealed_pending_never_calls_the_minter(start):
+    calls = []
+    api = start(minter=lambda host: calls.append(host) or TS_KEY)
+    token = _join(api)
+    for _ in range(3):
+        status, body = _sealed(api, "node-a", token)
+        assert (status, json.loads(body)) == (202, {"status": "pending"})
+    assert calls == []
+
+
+def test_a_sealed_403_never_calls_the_minter(start):
+    """Every refusal, including the ones where the host IS approved and sealed: wrong token, another
+    host's token, a token past 24 h, a host that left, a revoked secret."""
+    calls = []
+    api = start(minter=lambda host: calls.append(host) or TS_KEY)
+    token = _join(api, "node-a")
+    _ready("node-a")
+    other = _join(api, "node-b")
+    _ready("node-b")
+    late = _join(api, "node-d")
+    _ready("node-d")
+    _set_used_at(late, datetime.now(timezone.utc) - timedelta(hours=24, seconds=5))
+    left = _join(api, "node-e")
+    _ready("node-e")
+    with db.get_conn() as conn:
+        conn.execute("UPDATE hosts SET status = ? WHERE host = ?", (hq_join.STATUS_LEFT, "node-e"))
+    revoked = _join(api, "node-f")
+    _ready("node-f")
+    with db.get_conn() as conn:
+        conn.execute("UPDATE node_secrets SET revoked_at = ? WHERE host = ?",
+                     ("2026-01-01T00:00:00+00:00", "node-f"))
+    answers = {
+        "wrong token": _sealed(api, "node-a", "hqj_" + "B" * 43),
+        "other host's token": _sealed(api, "node-a", other),
+        "older than 24 h": _sealed(api, "node-d", late),
+        "host left": _sealed(api, "node-e", left),
+        "secret revoked": _sealed(api, "node-f", revoked),
+        "unknown host": _sealed(api, "node-zz", token),
+        "bad token shape": _sealed(api, "node-a", "nope"),
+    }
+    assert set(answers.values()) == {REFUSED}, answers
+    assert calls == []
+    assert all(TS_KEY.encode() not in body for _, body in answers.values())
+
+
+def test_sealed_ready_returns_the_key_and_calls_the_minter_once_per_ready_answer(start):
+    calls = []
+    api = start(minter=lambda host: calls.append(host) or TS_KEY)
+    token = _join(api)
+    assert _sealed(api, "node-a", token)[0] == 202 and calls == []
+    _ready()
+    status, body = _sealed(api, "node-a", token)
+    assert status == 200
+    assert json.loads(body) == {"status": "ready", "ciphertext": CIPHER, "tailscale_authkey": TS_KEY}
     assert calls == ["node-a"]
+    assert _sealed(api, "node-a", token)[0] == 200      # a poll again is a ready answer again
+    assert calls == ["node-a", "node-a"]
 
 
-def test_a_minter_that_fails_or_returns_junk_gives_a_join_without_a_key(start, caplog):
+def test_sealed_ready_without_a_minter_has_no_key_field(api):
+    token = _join(api)
+    _ready()
+    status, body = _sealed(api, "node-a", token)
+    assert status == 200 and "tailscale_authkey" not in json.loads(body)
+
+
+def test_a_minter_that_fails_or_returns_junk_still_gives_ready_without_a_key(start, caplog):
     def boom(host):
         raise RuntimeError("secret-detail-from-tailscale")
 
     api = start(minter=boom)
-    token = hq_join.mint("node-a")["token"]
-    status, body = api.post("accept", _accept_body(token))
-    assert status == 200 and "tailscale_authkey" not in json.loads(body)
+    token = _join(api)
+    _ready()
+    status, body = _sealed(api, "node-a", token)
+    assert status == 200 and json.loads(body) == {"status": "ready", "ciphertext": CIPHER}
     assert "RuntimeError" in caplog.text
     assert "secret-detail-from-tailscale" not in caplog.text
 
     api2 = start(minter=lambda host: "has a space and \n newline")
-    token2 = hq_join.mint("node-b")["token"]
-    status, body = api2.post("accept", _accept_body(token2, "node-b"))
+    token2 = _join(api2, "node-b")
+    _ready("node-b")
+    status, body = _sealed(api2, "node-b", token2)
     assert status == 200 and "tailscale_authkey" not in json.loads(body)
+
+
+def test_a_tailscale_refusal_logs_the_class_and_the_integer_status_and_nothing_else(start, caplog):
+    def refused(host):
+        raise tailscale_api.TailscaleError("message from Tailscale: " + TS_KEY, status=403)
+
+    api = start(minter=refused)
+    token = _join(api)
+    _ready()
+    status, body = _sealed(api, "node-a", token)
+    assert status == 200 and "tailscale_authkey" not in json.loads(body)
+    lines = [r.getMessage() for r in caplog.records if r.name == "join_api" and "minter" in r.getMessage()]
+    assert lines == ["tailscale minter failed for node-a: TailscaleError (HTTP 403)"]
+    assert "message from Tailscale" not in caplog.text and TS_KEY not in caplog.text
 
 
 def test_every_token_refusal_is_the_same_403(api):

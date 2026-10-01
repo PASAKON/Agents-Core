@@ -188,7 +188,8 @@ def check_caption_styles(segment_ids: list[str], compositions_dir: Path | None) 
 # ═══════════════════════════════════════════════════════════════════════════
 
 def merge(segments: list[dict[str, Any]], parts_dir: Path, audio_path: Path, out_path: Path,
-          compositions_dir: Path | None = None, fps: int = FPS) -> dict[str, Any]:
+          compositions_dir: Path | None = None, fps: int = FPS,
+          headline: dict | None = None) -> dict[str, Any]:
     seg_ids = [s["id"] for s in segments]
     parts = [parts_dir / f"{sid}.mp4" for sid in seg_ids]
     missing = [str(p) for p in parts if not p.is_file()]
@@ -215,7 +216,7 @@ def merge(segments: list[dict[str, Any]], parts_dir: Path, audio_path: Path, out
     audio_duration = probe_duration(audio_path)
 
     frame_count_result = check_frame_count(actual_frames, audio_duration, fps)
-    empty_frames = bl_checker.detect_empty_frames(out_path)
+    empty_frames = bl_checker.detect_empty_frames(out_path, **bl_checker.arm_mask_kwargs(headline))
     seam_bad = check_seams(empty_frames, seam_frame_indices, fps)
     audio_offset_result = check_audio_offset(out_path)
     caption_bad = check_caption_styles(seg_ids, compositions_dir)
@@ -268,6 +269,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
                      help="dir holding each segment's composed <id>.html or <id>/index.html "
                           "(for the one-caption-style gate; omit to skip that gate)")
     ap.add_argument("--fps", type=int, default=FPS)
+    ap.add_argument("--beats", default=None,
+                    help="the cut's beats.json; an arm-A object {headline, beats} gives the empty-frame gate the arm-A mask")
     return ap
 
 
@@ -276,10 +279,20 @@ def main(argv: list[str] | None = None) -> int:
     data = json.loads(Path(args.segments_json).read_text(encoding="utf-8"))
     segments = data["segments"] if isinstance(data, dict) else data
 
+    arm = {}
+    if args.beats:
+        try:
+            _, headline = bl_checker.split_beats_doc(json.loads(Path(args.beats).read_text(encoding="utf-8")))
+        except bl_checker.ArmAError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 2
+        if headline is not None:
+            arm = {"headline": headline}
+
     try:
         result = merge(
             segments, Path(args.parts), Path(args.audio), Path(args.out),
-            Path(args.compositions) if args.compositions else None, args.fps,
+            Path(args.compositions) if args.compositions else None, args.fps, **arm,
         )
     except MergeError as e:
         print(f"error: {e}", file=sys.stderr)

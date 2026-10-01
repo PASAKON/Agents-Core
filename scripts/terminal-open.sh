@@ -22,11 +22,11 @@
 #   bash scripts/terminal-open.sh --orphan     # most recent session with NO client attached
 set -euo pipefail
 
-ROLES_RE='^(cto|cmo|cgo|cfo)-'
+ROLES_RE='^(cto|cmo|cgo|cfo|coo)-'
 
 live_sessions() {  # "<activity-epoch> <name> <attached>", newest first
   tmux list-sessions -F '#{session_activity} #{session_name} #{session_attached}' 2>/dev/null \
-    | awk '$2 ~ /^(cto|cmo|cgo|cfo)-/' | sort -rn
+    | awk '$2 ~ /^(cto|cmo|cgo|cfo|coo)-/' | sort -rn
 }
 
 case "${1:-}" in
@@ -65,7 +65,7 @@ case "${1:-}" in
 
   *)
     case "$1" in
-      cto-*|cmo-*|cgo-*|cfo-*) SESSION="$1" ;;
+      cto-*|cmo-*|cgo-*|cfo-*|coo-*) SESSION="$1" ;;
       *)
         # Bare id: find whichever role owns it.
         SESSION="$(live_sessions | awk -v id="$1" '$2 ~ ("-" id "$") {print $2; exit}')"
