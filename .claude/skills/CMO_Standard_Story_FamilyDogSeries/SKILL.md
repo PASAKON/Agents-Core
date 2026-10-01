@@ -116,9 +116,26 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
    it and file it exactly as `CMO_Workflow_ShortFilm` Step 9 · Music says (tool `tools/film_music_mix.sh`, prompt
    `docs/scripts/khaoniao-ep1-music-prompts.json`). An episode without the bed is not finished.
 
+10. **The first 3 seconds must grab a stranger (CEO 2026-10-01: "คลิปต้องดึงดูดคนดู ตั้งแต่ 3 วิแรก";
+    the creator reply he showed: "เนื้อเรื่องต้องดึงดูด ทำให้น่าสนใจตั้งแต่ 3 วิแรก").** The viewer decides before
+    the story starts, so the story starts at frame 0:
+    - **Frame 0 is already inside the trouble.** No black, no fade-in, no logo or title card, no slow establishing
+      shot, and **never the back of Mimi's head**. The title card waits until after 3 s (or the mid-roll); the L3 logo
+      goes at the very end.
+    - **By 1 s** Mimi's face is in frame and something moves. **By 3 s** the episode's question is said or shown: the
+      formula's first beat ("looks bad / what is wrong") in shot 1's own line or picture.
+    - Shot 1 is staged **in profile or three-quarter from the side** (she still looks at the person or the flood, as
+      item 8 requires, but her face is visible). The strongest picture of the episode may be cold-opened as a flash of
+      about 2 s before the story returns to shot 1.
+    - **One question, four places:** cover, shot 1's line, the caption's first line and the teaser say the same
+      question, because viewers meet those before frame 0.
+    - **After posting:** read each episode's 3-second views (plan §5) against the one before; if reach holds and 3-s
+      views fall, rewrite the next shot 1 first.
+
 ## 3 · Check before a script goes to the CEO
 
 - [ ] The "from:" line names a fact in §1 or a habit in §4.
+- [ ] **Hook:** read shot 1 alone (0–3 s). A stranger can say what is wrong or what they want to know, Mimi's face is visible, and the same question is the cover line and the caption's first line (§2 item 10).
 - [ ] No fact about a real person appears that is not in §1 (a new one goes to the CEO as a question first).
 - [ ] Mimi is black and female in every line and every picture prompt (**never brown**, never "he").
 - [ ] Nobody is shown doing something the CEO has not said they do, unless it is marked as invented.
@@ -214,3 +231,4 @@ with the row that beat it, and re-check every script that cited it (`script` row
 - 2026-10-01 [MISSING] §7 - EP1 full 3:00 fired: 18/18 verified first attempt, 270 credits (EP1 total 288 of 300, reserve 12); transcript vs script match 0.90-1.00 on all 18; by-eye strips: facing/direction matched the prompts in all 18 (S1 back to camera + leap forward, S7 mother walks away toward screen-right, S9 Mimi moves right, door seen from inside in S1/S7/S8/S13). Defects for the CEO's eye: S6 burned caption (patched free, see FilmQC), S5 ends ~8 s on an empty room (both left frame), towel pink in S6/S14/S16 but beige in S17, dog-alone shots (S1 S8 S9 S14) read more photographic than the multi-person shots (my by-eye read), S18 sister wears lanyard + white shirt + black skirt (office look, not a uniform). Not judged: voice = child girl? (f0 Mimi 340-400 Hz; brother 165-176 in S4/S17 but 230 in S13) - the CEO's ears decide · evidence: prod.tsv, scratchpad audit.py, EP1-roughcut-v0 · status: pending
 - 2026-10-01 [MISSING] §7 - EP1 reshoots after the CEO's "ตรวจตาทั้งหมด แล้วยิงเพิ่มในฉากที่เสียได้เลย": S8 (dog not Mimi, doorway background differs from S1) and S17 (beige towel) re-fired once each, 30 credits (2534 -> 2504, EP1 total 318 of the original 300 cap, which the CEO overrode for reshoots after being told one would be 3 over). Both right on the first re-fire. Left as they are, told to the CEO: S6 dog is pure black and round-faced vs grey-muzzled in S5 (low shadowed shot, not reshot), S2 mother's eyes go to camera-left, not to the window, S1 dog in left profile rather than back to camera, S8's new take drops the phrase «อย่าเดินไกลนะ» (whisper: 0.77), S8's doorway still shows a metal gate and palms that S1 lacks. Cut trims S5 to 8.9 s · evidence: rs1.tsv, EP1-roughcut-v1 · status: pending
 - 2026-10-01 [MISSING] §6 cover — no skill says how a Reels cover is made. Done for EP1: pick 3 real frames where the dog's face is in the top 60% (shots 9, 14, 16 at 2.5–6.5 s), scale to 1080x1920, set the L3 lettering over a dark bottom gradient with `docs/reports/khaoniao-family-style/cover/cover.html` + `render.py` on winbox headless Chrome (real Itim, 3 renders in ~1 min, 0 credits, 0 image-gen), badge «EP.n» in the ring gold #F2B632, stroke #203A5E, fill #FFF6D6. Offer 3 numbered options on one contact sheet; the CEO answers by number · evidence: Assets/Agents/Core/khaoniao-family/covers/EP1/, commit 9a204007 (n=1, CEO has not chosen yet) · status: pending
+- 2026-10-01 [MISSING] §2 item 10 - measured on EP1 rough cut v1 (before the rule existed): sound starts at ~1 s (RMS s0 -36 dB, s1 -18.6, s2 -13.9), the question is spoken at 1-4 s («น้ำเต็มหน้าบ้าน ... มีมี่กลัวน้ำที่สุดในโลก»), but frame 0-0.5 s is the back of Mimi's head and her face shows at ~1.5 s because shot 1 stages her looking out at the flood from behind. Sound passes, picture is weak for the first ~1.2 s. Free fix: trim the first ~1.2 s so frame 0 is the turn to face, re-mix with film_music_mix.sh (music starts at 3 s of the new cut) · evidence: scratchpad/hook/strip.jpg (7 frames 0-3 s), ffmpeg per-second RMS on EP1-v1-music-M1.mp4 (n=1) · status: pending
