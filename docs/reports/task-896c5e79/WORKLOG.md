@@ -188,3 +188,17 @@ to `SOMPONG_SESSION_USER=nobody`; new root-default tests (no runuser, allowlist 
   `db.init()` (`PRAGMA journal_mode=WAL` → "attempt to write a readonly database"); group-writable DB + state/ → 25 tools
   incl. ask_run/ask_run_wait. Also `mailbox.send` into a root-owned 0755 box as nobody → PermissionError (mkstemp).
 - Stopped my own full run (it was on the previous commit) after the CTO's change set; one final full run follows the last edit.
+
+## 2026-10-01 final full suite at 1a333182
+
+`/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest` (env -u WORKER_TASK_ID, WIKI_ROOT_* set), 27m59s:
+**7 failed, 6064 passed, 373 skipped, 1 xfailed** (the xfail is the documented read-only-DB org-server test).
+Failures: the 6 on the base list (skill visibility, wiki multiroot, h3 registry verdict, w18 dropins, two w31 locale) plus
+`tests/test_storage_reclaim.py::test_delegate_skips_reclaim_for_non_pilot_task`, a **pre-existing flaky test, not this
+branch**: on Linux `delegate._spawn_local` always takes the tmux backend (`backend = ... if on_darwin else "tmux"`), the test
+only stubs the iTerm path, so it starts a REAL tmux session `wd-<id>` running `spawn-worker.sh` and fails when that command
+exits before `tmux_session.create`'s `has_session` check ("tmux session ... was not alive after new-session"). Re-run in
+isolation three times: 1 failed (this test), 1 failed (`..._skips_reclaim_when_green`, a sibling), then 19/19 passed. My diff
+to `tools/delegate.py` is comment-only (COO in two docstrings). `tests/test_self_host.py::test_local_spawn_writes_host`
+(a base failure) passed in this run. Scripts at the same commit: `test_org_tools_registry.py` ALL PASS,
+`test_mcp_role_config.py` OK 0 failures, `test_tool_parity.py` ALL PASS, `test_session_gc.py` ALL PASS.
