@@ -2,8 +2,11 @@
 """BLACK LIQUIDITY Checker -- judge a rendered cut by machine (task-67bb7a11).
 
 No images loop, no judgment calls at render-review time: given the finished
-MP4 and the beats table the Scripter wrote, run six mechanical checks and
-exit 1 if any fails.
+MP4 and the beats table the Scripter wrote, run the mechanical checks
+(sections 1-9 below) and exit 1 if any fails. The brand mark must be at
+least 95% of its steady level on every frame (section 8); empty frames in the
+first 4 frames of a KIN entry are excused while the mark and the legal pill are
+on screen (section 9).
 
 beats.json is either a bare list of beats (arm B, the look every episode so
 far has) or `{"headline": {...}, "beats": [...]}` (arm A, the headline-plate
@@ -20,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import subprocess
 import sys
@@ -490,6 +494,8 @@ HEADLINE_LINE_RATIO = 1.25
 # the zone is that row padded -- the logo is 60 px high and ~164 wide, the date chip ~150, 14 px gaps.
 BUG_LEFT_ORIGIN = (120, 190)
 BUG_LEFT_ZONE = (100.0, 176.0, 400.0, 86.0)
+BUG_LEFT_GAP = 14                     # px between the row's logo, divider and date chip (bl_compose.apply_arm_a emits it)
+BUG_LEFT_RULE_SIZE = (5, 44)          # the divider, arm A (bl_compose.apply_arm_a emits it)
 # bl_compose's credit() helper: `left: var(--safe-left); top: 40px`, 22px Kanit, 6px/14px padding.
 CREDIT_CHIP_LEFT, CREDIT_CHIP_TOP, CREDIT_CHIP_FONT_PX, CREDIT_CHIP_H = 120, 40, 22, 45
 
@@ -676,14 +682,237 @@ def check_headline_plate(headline: dict, composition_html: str) -> list[str]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 8. The brand mark is on every frame (task-c32c40e8, CMO ruling 2026-10-01).
+#
+#    EP58's final blinked its logo + date chip at t=0 and at all 11 window seams: each window replayed the mark's
+#    entrance from its own local t=0 (the template's tl.from("#bug", ...)), so the mark was absent for 8 frames and
+#    then faded in over ~0.3 s. The empty-frame gate masks the bug zone -- a standing element would otherwise hide an
+#    empty frame behind its own contrast -- so it cannot see this. This gate looks at the mark itself.
+#
+#    What is measured: the mark's neon rule (`.bug .rl`, #FF2D40 -- the logo is a PNG with no flat colour to read, the
+#    rule is a solid fill). Per frame, the mean "redness" R - (G+B)/2 of the rule's pixels. Over a black background
+#    that level is proportional to the mark's opacity; over any other background it is
+#    a*neon + (1-a)*background, so the ratio to the steady level (the clip's median) UNDER-states how absent the mark
+#    is by (1-a) * redness(background)/redness(neon): exact on dark plates, a little lenient over a red-ish backdrop.
+#    A frame whose level is below MARK_MIN_OPACITY of the steady level fails. If the steady level itself is far below
+#    what a neon rule reads, the mark is not in the video at all and the gate fails on that, not on a ratio.
+#
+#    Geometry is the template's own CSS, measured in the render's Chromium (headless shell 152) on the real template:
+#      arm B  .bug{right:150px;top:310px} column, gap 10, logo 163.59 x 60, rule 74 x 5   -> rule (856, 380, 74, 5)
+#      arm A  bug at BUG_LEFT_ORIGIN, row, gap 14, centred, rule 5 x 44                    -> rule (297.59, 198, 5, 44)
+#    The CMO measured arm B at x860-930 y380-385; the sample here is that rule inset by 1 px on every side, whole
+#    pixels only, so codec ringing and 4:2:0 chroma bleed from the neighbouring rows never enter the statistic.
+# ═══════════════════════════════════════════════════════════════════════════
+
+MARK_MIN_OPACITY = 0.95
+BRAND_NEON = (255, 45, 64)                 # template --neon #FF2D40
+MARK_STEADY_FLOOR = 0.6                    # steady level below this fraction of the neon's redness = no mark in the video
+MARK_SAMPLE_INSET = 1                      # px, each side of the rule
+BUG_RIGHT_INSET, BUG_RIGHT_TOP = 150, 310  # template `.bug { right: 150px; top: 310px }`
+BUG_LOGO_SIZE = (163.59, 60)               # `.bug .logo { height: 60px }`; the width follows assets/bl-logo.png (measured)
+BUG_COLUMN_GAP = 10                        # `.bug { gap: 10px }` (arm B stacks logo, rule, date)
+BUG_RIGHT_RULE_SIZE = (74, 5)              # `.bug .rl`
+
+
+def bug_rule_rect(side: str = "right") -> tuple[float, float, float, float]:
+    """The mark's neon rule (x, y, w, h) in canvas px: arm B under the logo, arm A between logo and date."""
+    logo_w, logo_h = BUG_LOGO_SIZE
+    if side == "left":
+        x0, y0 = BUG_LEFT_ORIGIN
+        rule_w, rule_h = BUG_LEFT_RULE_SIZE
+        return (x0 + logo_w + BUG_LEFT_GAP, y0 + (logo_h - rule_h) / 2, rule_w, rule_h)
+    rule_w, rule_h = BUG_RIGHT_RULE_SIZE
+    return (CANVAS_W - BUG_RIGHT_INSET - rule_w, BUG_RIGHT_TOP + logo_h + BUG_COLUMN_GAP, rule_w, rule_h)
+
+
+def mark_sample_rect(side: str = "right") -> tuple[int, int, int, int]:
+    """bug_rule_rect inset by MARK_SAMPLE_INSET, whole pixels only (x, y, w, h) -- what the gate reads."""
+    x, y, w, h = bug_rule_rect(side)
+    x0, x1 = math.ceil(x + MARK_SAMPLE_INSET - 1e-6), math.floor(x + w - MARK_SAMPLE_INSET + 1e-6)
+    y0, y1 = math.ceil(y + MARK_SAMPLE_INSET - 1e-6), math.floor(y + h - MARK_SAMPLE_INSET + 1e-6)
+    return (x0, y0, x1 - x0, y1 - y0)
+
+
+def _redness(rgb: tuple[float, float, float]) -> float:
+    return rgb[0] - (rgb[1] + rgb[2]) / 2
+
+
+def _read_crop(video_path: Path, rect: tuple[int, int, int, int], fps: int, gray: bool = False) -> "np.ndarray | None":
+    """Every sampled frame's crop of `rect` (canvas px) as (n, h, w, channels) uint8, or None when ffmpeg returned no
+    frames. A video that is not 1080x1920 is scaled to it first, so the rect always means canvas pixels."""
+    import numpy as np
+
+    x, y, w, h = rect
+    fmt, channels = ("gray", 1) if gray else ("rgb24", 3)
+    raw = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(video_path),
+         "-vf", f"fps={fps},scale={CANVAS_W}:{CANVAS_H},crop={w}:{h}:{x}:{y},format={fmt}", "-f", "rawvideo", "-"],
+        capture_output=True,
+    ).stdout
+    if not raw:
+        return None
+    return np.frombuffer(raw, np.uint8).reshape(-1, h, w, channels)
+
+
+def brand_mark_levels(video_path: Path, bug_side: str = "right", fps: int = EMPTY_FRAME_FPS) -> "np.ndarray | None":
+    """The mark's level on every frame: mean redness of the rule's sample. None when the video yields no frames."""
+    frames = _read_crop(video_path, mark_sample_rect(bug_side), fps)
+    if frames is None:
+        return None
+    f = frames.astype("float32")
+    return (f[..., 0] - (f[..., 1] + f[..., 2]) / 2).mean(axis=(1, 2))
+
+
+def _mark_ratios(levels: "np.ndarray") -> tuple[float, "np.ndarray | None"]:
+    """(steady level, each frame's level / steady). The ratios are None when the steady level is too low for a mark
+    to be in the video at all."""
+    import numpy as np
+
+    steady = float(np.median(levels))
+    if steady < MARK_STEADY_FLOOR * _redness(BRAND_NEON):
+        return steady, None
+    return steady, levels / steady
+
+
+def _ranges(frames: list[int], fps: int) -> list[dict]:
+    """Consecutive frame indices -> [{"from": t, "to": t, "frames": n}] (to = the last frame's time)."""
+    out: list[dict] = []
+    for i in frames:
+        if out and i == out[-1]["_last"] + 1:
+            out[-1]["_last"] = i
+            out[-1]["frames"] += 1
+        else:
+            out.append({"_first": i, "_last": i, "frames": 1})
+    return [{"from": round(r["_first"] / fps, 3), "to": round(r["_last"] / fps, 3), "frames": r["frames"]} for r in out]
+
+
+def judge_brand_mark(levels: "np.ndarray", bug_side: str = "right", fps: int = EMPTY_FRAME_FPS,
+                     min_opacity: float = MARK_MIN_OPACITY) -> dict:
+    """The gate's verdict from per-frame levels. `min_ratio` / `min_time` are the worst frame; `failing_times` every
+    frame under `min_opacity`; `failing_ranges` the same grouped. `error` = "mark_missing" when no mark is in the video."""
+    import numpy as np
+
+    steady, ratios = _mark_ratios(levels)
+    verdict = {"ok": True, "side": bug_side, "min_opacity": min_opacity, "steady_level": round(steady, 2),
+               "frames": int(len(levels))}
+    if ratios is None:
+        failing = list(range(len(levels)))
+        verdict.update(ok=False, error="mark_missing", expected_level=round(_redness(BRAND_NEON), 2),
+                       min_ratio=None, min_time=None)
+    else:
+        failing = [int(i) for i in np.flatnonzero(ratios < min_opacity)]
+        worst = int(np.argmin(ratios))
+        verdict.update(ok=not failing, min_ratio=round(float(ratios[worst]), 4), min_time=round(worst / fps, 3))
+    verdict.update(failing_frames=len(failing), failing_times=[round(i / fps, 3) for i in failing],
+                   failing_ranges=_ranges(failing, fps))
+    return verdict
+
+
+def check_brand_mark(video_path: Path, bug_side: str = "right", fps: int = EMPTY_FRAME_FPS,
+                     levels: "np.ndarray | None" = None) -> dict:
+    """Fails any frame whose mark level is under MARK_MIN_OPACITY of the clip's steady level, and a video with no mark
+    at all. A video that yields no frames cannot be verified and fails with error "no_frames". `levels` lets a caller
+    that already read them (run_checker, the KIN grace) skip a second pass over the video."""
+    if levels is None:
+        levels = brand_mark_levels(video_path, bug_side, fps)
+    if levels is None or not len(levels):
+        return {"ok": False, "side": bug_side, "min_opacity": MARK_MIN_OPACITY, "error": "no_frames"}
+    return judge_brand_mark(levels, bug_side, fps)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 9. Empty frames at a KIN entry: grace (task-c32c40e8, CMO ruling 2026-10-01: ACCEPT).
+#
+#    The generator starts a KIN beat's text at t0 + 0.10 s (kinetic(760, t0 + 0.05, ...) plus its wipe), so the first
+#    3-4 frames of the dark plate carry no text -- EP58 29.667-29.733 (MAIN-1) and 71.567-71.667 (CURIOSITY-5; the
+#    brief called it SUMMARY-1, but 71.567 is the 71.57 s t0 of CURIOSITY-5). That is the kit's entrance, not a drop.
+#    Up to KIN_ENTRY_GRACE_FRAMES empty frames counted from the beat's t0 are excused, and only a frame on which the
+#    brand mark (section 8 -- at least MARK_MIN_OPACITY of steady) and the legal pill are both on screen: a black
+#    frame with neither is a real defect. An empty frame on the 5th frame of the entry or later, or at any other beat,
+#    is never excused. Both gates that see empty frames and have the beats call this: run_checker and bl_merge.
+# ═══════════════════════════════════════════════════════════════════════════
+
+KIN_ENTRY_GRACE_FRAMES = 4
+# `.bl-legal { left: 120px; top: 1430px }`: a pill 720 wide that wraps to two lines (measured in Chromium, 80.78 high),
+# padding 24 x 8. The sample is the text area inside it.
+LEGAL_PILL_RECT = (120, 1430, 720, 81)
+LEGAL_PILL_PADDING = (24, 8)
+# Standard deviation of the pill's luma. Its grey text (#B9C0C6) on a flat dark plate reads ~40; the same zone with no
+# pill is flat, ~0-2. Only ever asked on a frame the empty-frame gate already found flat, so the plate under the pill
+# is flat there and the absolute threshold sits well clear of both.
+LEGAL_MIN_STD = 15.0
+
+
+def legal_pill_sample_rect() -> tuple[int, int, int, int]:
+    x, y, w, h = LEGAL_PILL_RECT
+    px, py = LEGAL_PILL_PADDING
+    return (x + px, y + py, w - 2 * px, h - 2 * py)
+
+
+def legal_pill_present(video_path: Path, fps: int = EMPTY_FRAME_FPS) -> "np.ndarray | None":
+    """True on every frame where the legal pill's text is on screen (the sample's luma is not flat). None = no frames."""
+    frames = _read_crop(video_path, legal_pill_sample_rect(), fps, gray=True)
+    if frames is None:
+        return None
+    flat = frames.astype("float32").reshape(len(frames), -1)
+    return flat.std(axis=1) >= LEGAL_MIN_STD
+
+
+def kin_entry_frames(beats: list[dict], fps: int = EMPTY_FRAME_FPS,
+                     grace: int = KIN_ENTRY_GRACE_FRAMES) -> dict[int, tuple[str, int]]:
+    """frame index -> (tag, 1-based frame of the entry) for the first `grace` frames of every KIN beat, counted from
+    the frame nearest its t0 (a window's first plate is pulled back to the window start, so the entry can sit a hair
+    before t0: EP58 CURIOSITY-5 t0 71.57 enters on frame 2147 = 71.567)."""
+    out: dict[int, tuple[str, int]] = {}
+    for b in sorted(beats, key=lambda b: b["t0"]):
+        if b.get("mode") != "KIN":
+            continue
+        first = round(b["t0"] * fps)
+        for k in range(grace):
+            out.setdefault(first + k, (b["tag"], k + 1))
+    return out
+
+
+def excuse_kin_entry(video_path: Path, empty_times: list[float], beats: list[dict], bug_side: str = "right",
+                     fps: int = EMPTY_FRAME_FPS, levels: "np.ndarray | None" = None) -> tuple[list[float], list[dict]]:
+    """(still_empty, excused) from the empty-frame gate's times. `excused` entries are
+    {"t", "beat", "entry_frame"}. With no empty frame inside a KIN entry the video is not read again."""
+    entry = kin_entry_frames(beats, fps)
+    if not any(round(t * fps) in entry for t in empty_times):
+        return list(empty_times), []
+    if levels is None:
+        levels = brand_mark_levels(video_path, bug_side, fps)
+    ratios = None if levels is None or not len(levels) else _mark_ratios(levels)[1]
+    legal = legal_pill_present(video_path, fps)
+    still_empty: list[float] = []
+    excused: list[dict] = []
+    for t in empty_times:
+        i = round(t * fps)
+        hit = entry.get(i)
+        on_screen = (hit is not None and ratios is not None and legal is not None
+                     and i < len(ratios) and i < len(legal) and ratios[i] >= MARK_MIN_OPACITY and bool(legal[i]))
+        if on_screen:
+            excused.append({"t": t, "beat": hit[0], "entry_frame": hit[1]})
+        else:
+            still_empty.append(t)
+    return still_empty, excused
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Runner
 # ═══════════════════════════════════════════════════════════════════════════
 
 def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, float, float, float] | None = None,
                  composition_html: str | None = None, headline: dict | None = None) -> dict:
     """`headline` (a parsed arm-A headline) switches on the arm-A mask and the plate checks and adds a "headline"
-    key to the verdict. Without it the verdict is exactly what arm B has always got."""
-    empty = detect_empty_frames(video_path, **arm_mask_kwargs(headline))
+    key to the verdict, and makes the brand-mark gate read the left bug. `empty_frames` is what is left after the
+    KIN-entry grace (section 9); the excused frames are listed under `empty_frames_excused`, and `brand_mark` is
+    section 8's verdict."""
+    side = headline["bug_side"] if headline is not None else "right"
+    mark_levels = brand_mark_levels(video_path, side)
+    empty, empty_excused = excuse_kin_entry(
+        video_path, detect_empty_frames(video_path, **arm_mask_kwargs(headline)), beats, side, levels=mark_levels)
+    brand_mark = check_brand_mark(video_path, side, levels=mark_levels)
     unsafe = check_out_of_safe_area(beats)
     text_over = check_text_over_face(beats, face_box, headline)
     credit_bad = check_credit_missing(beats)
@@ -696,13 +925,15 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
             headline_bad += check_headline_plate(headline, composition_html)
     result = {
         "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad or kinetic_overflow_bad
-                      or headline_bad),
+                      or headline_bad or not brand_mark["ok"]),
         "empty_frames": empty,
+        "empty_frames_excused": empty_excused,
         "out_of_safe_area": unsafe,
         "text_over_face": text_over,
         "credit_missing": credit_bad,
         "extra_caption_styles": caption_styles_bad,
         "kinetic_overflow": kinetic_overflow_bad,
+        "brand_mark": brand_mark,
     }
     if headline is not None:
         result["headline"] = headline_bad
