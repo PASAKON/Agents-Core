@@ -1,15 +1,32 @@
 # winbox — Windows 11, Ryzen 5 5500, 16 GB RAM, 512 GB NVMe
 
 The CEO's own gaming PC. It runs the Cookie Run bot around the clock and records
-everything it plays. **It is not an org machine** — roughly 400 of its 510 GB
-belong to the CEO, and BlueStacks alone holds 19.1 GB.
+everything it plays. Most of its disk is the CEO's, and BlueStacks alone held
+19.1 GB. Since the 2026-09-24 reset the account is `passg` (a junction keeps the
+old `C:\Users\UsEr` paths alive — write `%USERPROFILE%`, never `UsEr`).
 
-## Authority — read this before deleting anything here
+## Two owners on one disk — read this before deleting anything here
 
-`cookierun-bot/docs/DATA-STEWARD.md` is the authority, not this file. Only a
-session at **Opus 5 or above, effort max, working the Cookie Run scope** may
-create, move or delete data here. Any other agent: **read only** — write a note
-in `ledger/housekeeping.jsonl` and stop.
+| Area | Paths | Who may delete |
+|---|---|---|
+| **Cookie Run data** | `Documents\CookieRunScript\`, `cookierun-bot\`, the RunPod volume, its Drive folder | **only** a session at Opus 5 or above, effort max, working the Cookie Run scope. `cookierun-bot/docs/DATA-STEWARD.md` is the authority, not this file. Any other agent: read only — write a note in `ledger/housekeeping.jsonl` and stop |
+| **Org worker space** | `C:\Users\passg\mooniex\worktrees\` (worker worktrees, `config/hosts.yaml`), the worker clones beside it, `C:\mooniex\` (PC lease, YouTube auth, LINE/subtitle outputs, the doctor's sparse `Agents\Core`) | the parent SKILL's law, like any machine: a merged, clean, pushed worktree is Green for its own session; anything else is backed up first (2026-09-24: 30 worker worktrees, 26.6 GB, held 2.1 MB of unique commits) |
+| Everything else | `AppData\Local\Temp` (2.71 GB), `Windows\Temp` (0.92 GB), `$Recycle.Bin` (0.62 GB) … | the CEO — report them, never clear them |
+
+Login state is never Green here either (parent SKILL, "Never Green"): ask the CEO
+before touching `%LOCALAPPDATA%\Google\Chrome\User Data`, the CDP profiles
+`%USERPROFILE%\.flow-automation\chrome-profile` and `.chatgpt-automation\chrome-profile`,
+`%APPDATA%\rclone\rclone.conf`, `C:\mooniex\yt-auth\` or `%USERPROFILE%\.claude\.credentials.json`.
+
+## Limits the spawn path enforces (since 2026-10-01)
+
+- **30 GB floor on `C:`** — `config/storage-policy.yaml` `host_floor_gb.winbox`. Below it
+  `tools/delegate.py` queues a worker instead of spawning it. The probe is PowerShell
+  (`Get-PSDrive`); the old `df` probe failed through cmd.exe, so the floor never applied here.
+- **At most 2 workers** — `config/hosts.yaml` `max_workers` (CEO 2026-09-09), counted per
+  dispatching machine until the shared hub is live.
+- **Sparse worktrees** — `windows/spawn-worker.ps1 -SparseFile`: tracked media over 256 KiB
+  stays out of a worker's checkout.
 
 ## State
 
@@ -18,16 +35,7 @@ in `ledger/housekeeping.jsonl` and stop.
 | Disk | 510 GB, floor 30 GB free (critical below that) |
 | 2026-09-10 before | 6.65 GB free — the recorder was minutes from failing |
 | 2026-09-10 after | **24.8 GB free**, ours down 65.2 → 53.5 GB |
-
-## Scope — the only paths that are ours
-
-`Documents\CookieRunScript\`, `cookierun-bot\`, the RunPod volume, and the Drive
-folder. Nothing else. Not `AppData\Local\Temp` (2.71 GB), not `Windows\Temp`
-(0.92 GB), not `$Recycle.Bin` (0.62 GB) — report those to the CEO, never clear them.
-Login state is never Green here either (parent SKILL, "Never Green"): ask the CEO
-before touching `%LOCALAPPDATA%\Google\Chrome\User Data`, the CDP profiles
-`%USERPROFILE%\.flow-automation\chrome-profile` and `.chatgpt-automation\chrome-profile`,
-`%APPDATA%\rclone\rclone.conf`, `C:\mooniex\yt-auth\` or `%USERPROFILE%\.claude\.credentials.json`.
+| 2026-09-24 | **reset** (new account `passg`); everything above is history. Measure the current state with `tools/machine_doctor.py --machine winbox check` before quoting a number |
 
 ## Tiers (summary — the brief has the full table)
 

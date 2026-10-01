@@ -198,13 +198,21 @@ anything is uploaded.
   24 h, and anything newer than 7 days are never touched. **Nothing is lost** —
   merged code is in git, lessons are in memory and the wiki, task history is in
   `tasks.db`; the transcript is only the conversation, and it is one command away.
-- **Spawn floor** (ADR 0030, CEO 2026-09-23): below `gauge.orange` (5 GB) free on
-  the box that will hold the worktree, `tools/delegate.py` refuses a new worker and
-  queues it (`tools/disk_queue.py`; the watchdog spawns it once space is back).
-  Worker worktrees are sparse on the Mac (`tools/worktree.py`, ~78 MB). On Contabo they are not:
-  on 2026-09-28 none of its worktrees had a sparse-checkout (developer ones ~0.93 GB each), and the
-  harness's own `.claude/worktrees/` never pass through that tool — count them first when that box
+- **Spawn floor** (ADR 0030, CEO 2026-09-23): below the floor on the box that will
+  hold the worktree, `tools/delegate.py` refuses a new worker and queues it
+  (`tools/disk_queue.py`; the watchdog spawns it once THAT box has space again). The floor is
+  `gauge.orange` (5 GB) unless `host_floor_gb` names the host: winbox is 30 GB. winbox is probed
+  with PowerShell (`Get-PSDrive`); until 2026-10-01 the probe ran `df` through cmd.exe, failed, and
+  the floor never applied there. A probe that cannot reach a box still lets the spawn through.
+- **Worker worktrees are sparse on every machine** since 2026-10-01 (~78 MB instead of ~0.9 GB for
+  Agents-Core): the dispatching host computes the large-media exclude list and the Contabo and
+  winbox launchers apply it. Worktrees created before that stay full until recreated, and the
+  harness's own `.claude/worktrees/` never pass through any of it — count those first when a box
   runs low. Bands: `config/storage-policy.yaml`.
+- **Disk watch** (`tools/disk_watch.py`, every watchdog tick on the Mac and Contabo): yellow
+  (< 20 GB) = one letter to the CEO through SomPong a day, or straight away when the band gets
+  worse; orange (< 10 GB) = the REBUILD reclaim inside task worktrees, at most once an hour. Each
+  session start also prints this machine's band when it is not green.
 - **winbox archive loop**, every 30 min — see `references/winbox.md`.
 - **Training staging** (`playset/merged_*` and its `.tgz`) is deleted once a model
   in `vision/from_pod` is newer than it.
@@ -271,3 +279,4 @@ never from a tool's verdict about its own queue.
 - 2026-09-28 [MISSING] §Green — login state was on no list, so a cache sweep could take a browser profile (Chrome profiles are REBUILD in the registry). CEO 2026-09-28 ruling 4: "รวมถึงข้อมูลการ login ด้วยไหม ถ้าใช่ก็ไม่อยากให้ลบ ... ยกเว้นแต่ มันจำเป็นมากๆ" — never Green on any machine, deleted only when truly necessary and after asking him; HTTP caches stay Green · evidence: CEO-RULINGS 2026-09-28 (session 14cc900f); config/machine-contract.yaml Chrome-profile rows (REBUILD) and `.credentials.json` (DISPOSABLE) → §Never Green (HARD), references/*.md never-touch lists, `config/storage-policy.yaml` NEVER (+ tests/test_storage_policy.py) · status: promoted
 - 2026-09-28 [MISSING] references/mac.md §Never touch — the orphaned CloudDocs store: no standing "md5 → Trash before a wipe" step; it stays NEVER and he is asked each time. CEO 2026-09-28 ruling 5: "Yes" · evidence: CEO-RULINGS 2026-09-28 (session 14cc900f) → references/mac.md (CloudDocs) · status: promoted
 - 2026-09-28 [WRONG] §What will block you — "hand the CEO the exact one-line command to run themselves with `!`" contradicts the CEO's 2026-09-26 ruling that he runs commands from the phone only (ALL_Protocol_RunInbox; `scripts/hook-phone-only-commands.py` blocks a reply carrying a `!` command) · evidence: .claude/skills/ALL_Protocol_RunInbox/SKILL.md description → §What will block you · status: promoted
+- 2026-10-01 [MISSING] §Standing rules — the bands were rules without a runner: yellow's daily letter had no code, orange's reclaim ran only inside a spawn, winbox's floor (30 GB) never reached the spawn gate and its `df` probe always failed open through cmd.exe, and Contabo/winbox worktrees were full checkouts because only the Mac's local spawn path was sparse (the 2026-09-28 "not diagnosed" above) · evidence: org audit 2026-10-01, `tools/delegate.py` `_remote_free_gb`, `scripts/spawn-worker-remote.sh` / `windows/spawn-worker.ps1` plain `worktree add` → §Standing rules (spawn floor, sparse, disk watch), references/winbox.md, references/contabo.md · status: promoted
