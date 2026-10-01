@@ -95,3 +95,33 @@ jobs:
           scan-args: |-
             --recursive
             ./
+
+  # 4. Repo guards for what every machine pushes. The pre-commit hooks are
+  #    local (.git/hooks, scripts/install-git-hooks.sh) and were never on every
+  #    box: six media files over 1 MiB reached main from Contabo after the
+  #    2026-09-23 guard, and an unresolved merge conflict sat in a tracked doc
+  #    (docs/prompts/absence/CHECKLIST.md, found 2026-10-01).
+  repo-guards:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install deps
+        run: pip install pyyaml
+      - name: Unresolved merge conflict markers
+        run: python scripts/conflict_marker_guard.py
+      - name: New media over the media_guard limit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "media_guard: no base commit to compare against; skipped"
+            exit 0
+          fi
+          python scripts/media_guard.py --since "$BASE_SHA"
