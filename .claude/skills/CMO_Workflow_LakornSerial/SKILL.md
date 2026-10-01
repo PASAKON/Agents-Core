@@ -62,3 +62,5 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
 
 ## Field notes
 - 2026-10-01 [MISSING] film 5 was shot as one 9-minute EP before this pattern; recut into 3 EPs at the script's built-in cliffhangers (every ~3 min), hook taken from a later shot · evidence: 72acc21a · status: pending
+- 2026-10-01 [COSTLY] §Steps 7 — `fb_reel_post.py --resolve-permalink` is a separate resolve-ONLY mode (no upload, no Share); publish mode already resolves the permalink itself. Four runs (19:30–00:28) each polled 30 min and posted nothing; the real publish took 4 min · evidence: ep5 EP1 videos/1376542657800427 · status: pending
+- 2026-10-01 [WRONG] §Steps 7 — first comment: `REFUSED: comment text not found after submit` (exit 7) came back while the comment was live on the post; second false exit 7 in a day (12:00 poster too). Check the post page before treating 7 as a failure · evidence: ep5 EP1 post · status: pending
