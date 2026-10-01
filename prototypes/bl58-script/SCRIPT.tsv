@@ -10,7 +10,7 @@ CONTEXT-1	ตรวจล่าสุดวันที่หนึ่งตุ�
 CONTEXT-2	ตามวิกิเอฟเอ็กซ์ มาจากคะแนนต่ำ	weltrade-warning	show	same card, the headline: ระดับคะแนนอยู่ในระดับต่ำ. We attribute and do not repeat WikiFX's own word โปรดหลีกเลี่ยง in the voice
 CONTEXT-3	เลขบนจอคือคะแนนเต็มสิบ	weltrade-header	show	the score tile. NO number in the voice: the screen carries it (3.73 at capture, it moves between pages and days)
 CONTEXT-4	วิกิเอฟเอ็กซ์เพิ่งลงบทความใหม่	wikifx-article-sep	show	30 Sep 2026 WikiFX article, title + date. Page shows 'Yesterday 06:11' on 1 Oct, so the voice says เพิ่งลง, not เมื่อวาน
-CONTEXT-5	มีผู้อ้างถอนสองหมื่นดอลลาร์ไม่ได้	wikifx-article-sep-amount	show	the paragraph that opens with $22,067, sharp on screen. One user's claim reported by WikiFX; complainant not named there. AMOUNT FROM LIVE CAPTURE
+CONTEXT-5	มีผู้อ้างถอนสองหมื่นกว่าดอลลาร์ไม่ได้	wikifx-article-sep-amount	show	the paragraph that opens with $22,067, sharp on screen. One user's claim reported by WikiFX; complainant not named there. AMOUNT FROM LIVE CAPTURE
 MAIN-1	นี่คำอ้างคนเดียว กูยืนยันไม่ได้		verdict	avatar full frame, source honesty
 MAIN-2	ดูที่ตรวจเองได้ คือใบอนุญาต		verdict	avatar full frame, sets up the licence shot
 MAIN-3	ใบเขียวมีใบเดียว แอฟริกาใต้	weltrade-licence	show	WikiFX licence box: FSCA, South Africa, derivatives licence, number 50691 on screen
@@ -33,7 +33,7 @@ SUMMARY-1	สรุป ถอนเงินไม่ได้จริงไห
 SUMMARY-2	กูไม่ได้ลองถอน ตอบแทนไม่ได้		verdict	avatar full frame, we did not test a withdrawal, so no verdict is claimed
 SUMMARY-3	ก่อนเลือกโบรก เช็กสามอย่าง		verdict	avatar full frame
 SUMMARY-4	หนึ่ง ค้นเลขใบอนุญาตที่เว็บหน่วยงาน		show	GRAPHIC checklist card 1/3, kinetic Thai text on brand graphic (no real footage, per the checklist carve-out)
-SUMMARY-5	สอง ที่จดทะเบียน เกาะเล็กระวัง		show	GRAPHIC checklist card 2/3
+SUMMARY-5	สอง ดูว่าบริษัทจดทะเบียนที่ไหน		show	GRAPHIC checklist card 2/3
 SUMMARY-6	สาม ลองถอนก้อนเล็กก่อน		show	GRAPHIC checklist card 3/3
 SUMMARY-7	กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดู		verdict	avatar full frame, compliance line: the channel recommends no broker
 SUMMARY-8	คอมเมนต์ เช็กลิสต์ ถ้าอยากได้ตาราง		cta	avatar full frame, knowledge-only CTA. No link, no account CTA, no rebate
