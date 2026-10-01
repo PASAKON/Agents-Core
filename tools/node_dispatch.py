@@ -1020,10 +1020,11 @@ def _session_live(name: str) -> bool:
 def _clevel_session_live(role: str, sid: str) -> bool:
     """Is `<role>-<sid>` running here? tmux answers on POSIX. Windows has no
     tmux: windows/cxo-claude.ps1 writes state\\locks\\<role>-<sid>.lock holding
-    the pid of the PowerShell that runs claude, so that pid is the answer."""
+    the pid of the PowerShell that runs claude, so that pid is the answer.
+    SomPong (coo) is tmux `sompong`, not `coo-<id>`: ask tmux_name()."""
     from tools import send_to_cxo, session_name
     if not _is_windows():
-        return _session_live(session_name.lock_basename(role, sid))
+        return _session_live(session_name.tmux_name(role, sid))
     try:
         pid = int((Path(send_to_cxo.LOCKS_DIR) / f"{role}-{sid}.lock").read_text().strip())
     except (OSError, ValueError):

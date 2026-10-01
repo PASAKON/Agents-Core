@@ -37,6 +37,9 @@ strict org one; `--add-dir <Agents-Core>` for the org skills; generated `--setti
 `c_level_sessions` as role `coo`, host `contabo` (asserted in a test).
 
 ### Who runs as whom (differs from the brief's first picture — see WORKLOG)
+**CTO ruling 14:05Z: code default unchanged** — `SOMPONG_USER` (default `sompong`), root only with `SOMPONG_ALLOW_ROOT=1`;
+running the session as root like every other C-level is a deploy choice in the unit (commented lines there), taken to the CEO,
+and is tested: no runuser, env still `env -i` + allowlist. `roles/coo.md` is worded to be true either way.
 The sibling task found the session must not be root (inbox keys are root-only; acceptance probe 5). So:
 supervisor + tmux stay **root** (tmux `sompong` must be in root's tmux server — Console, wake nudge, session_gc, session_list
 all look there); the launcher does its bookkeeping as root and starts `claude` through
@@ -79,13 +82,12 @@ See the task report (`submit_report`) for the final numbers; recorded in WORKLOG
 2. **`state/tasks.db` is root:root 0644.** The non-root COO can read but not write the org DB until the DB is shared or the
    tasks hub is live; the role file already says to route through a C-level, so SomPong stays inside the contract, but any
    org tool that writes will fail for it.
-3. **Undeclared touches, not done (self-repo guard, ADR 0020):**
-   - `tools/node_dispatch.py` ~L1026 `_session_live(session_name.lock_basename(role, sid))` → `tmux_name(role, sid)`;
-     otherwise a Mac→Contabo cross-host letter to coo is refused at `deliver_letter`.
-   - `tools/session_gc.py` `reconcile`: count `TMUX_NAME_OVERRIDES` values as matched, else tmux `sompong` shows as an ORPHAN.
-   - `lib/mailbox.py` follow-up: relay_to_session and mesh `deliver_letter` still write 0600 letters (replaces `_share_letter`).
-   - MoonieX Console `src/tmux/names.js` has no cgo/coo (other repo).
-   - `windows/cxo-claude.ps1` has no coo refusal (cannot run here).
+3. **Follow-ups done after the guard was fixed (CTO 14:05Z):** `tools/node_dispatch.py` (`_clevel_session_live` asks
+   `tmux_name`, so a Mac→Contabo letter to coo is not refused as "no live session") and `tools/session_gc.py`
+   (`reconcile` matches a live `coo-<id>` lock with tmux `sompong`, no false ORPHAN), each with tests, mutation-checked.
+   **Still open, other owners:** `lib/mailbox.py` (relay_to_session and mesh `deliver_letter` write 0600 letters: a
+   group-readable letter for singleton roles would replace `_share_letter`); MoonieX Console `src/tmux/names.js` has no
+   cgo/coo (other repo); `windows/cxo-claude.ps1` has no coo refusal (cannot run here).
 4. **Not reproduced by me:** the exact text of the "Teach auto mode" and "New MCP server" dialogs (taken from the brief and the
    sibling's WORKLOG). The classifier needs a phrase plus the menu line, so a changed layout means no keystroke, never a
    wrong one. The trust and dev-channels screens are from my own probe on 2.1.285. claude drifted to 2.1.286 during the task.

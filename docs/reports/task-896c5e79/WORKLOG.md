@@ -152,3 +152,24 @@ Ready as soon as both are cleared (all small): node_dispatch L1026 `session_name
 tmux `sompong` alone = tmux_only; live coo lock without tmux = orphan; `_clevel_session_live("coo", sid)` asks tmux for
 `sompong`). Launcher: `SOMPONG_SESSION_USER` replaces `SOMPONG_USER`/`SOMPONG_ALLOW_ROOT`; the existing non-root tests move
 to `SOMPONG_SESSION_USER=nobody`; new root-default tests (no runuser, allowlist env, no group-writable box).
+
+## 2026-10-01 CTO letter 14:05Z: guard fixed; session user stays as it is
+
+- Self-repo guard: the task's sidecar now carries `tools/node_dispatch.py` and `tools/session_gc.py`. Done: **3a**
+  `node_dispatch._clevel_session_live` asks `session_name.tmux_name(role, sid)` (coo → `sompong`); **3b**
+  `session_gc.reconcile` counts `TMUX_NAME_OVERRIDES` values as C-level tmux sessions and compares each lock with
+  `tmux_name_for_stem(stem)` (a live SomPong = matched; `tmux_only` = tmux names matched). Tests (tests/test_spawn_coo.py):
+  liveness asks tmux `sompong` / `cmo-<id>`; coo lock + tmux `sompong` matched, with an unrelated session ignored; live coo
+  lock without tmux = orphan; `coo-<id>` as a tmux name is NOT SomPong's (tmux_only + orphan); tmux `sompong` alone =
+  tmux_only. Mutation-checked: reverting either source change fails 3 tests.
+- Session user: **no change to the launcher** (CTO ruling; the classifier's denial stands). `SOMPONG_USER` (default
+  `sompong`) and the `SOMPONG_ALLOW_ROOT=1` opt-in are exactly as before; the `SOMPONG_SESSION_USER` rename is dropped.
+  Added `test_root_is_an_explicit_opt_in_and_still_gets_the_clean_env`: with `SOMPONG_USER=root` + `SOMPONG_ALLOW_ROOT=1`
+  the launch uses no runuser (no `runuser.log`), `USER`/`LOGNAME` = root, and the claude env is still `env -i` + the
+  allowlist (no KEY/TOKEN/SECRET/INFISICAL names; canary values in the launching env never arrive). Skipped unless the test
+  runs as uid 0. The refusal without the opt-in is the existing `("root", {"SOMPONG_USER": "root"}, "must not run as root")` case.
+- Docs made true under either setting (words only): `roles/coo.md` "Where and as whom you run" (default unprivileged,
+  root if the deploy opts in, environment empty either way); the unit file carries the two opt-in lines as COMMENTS with a
+  note that it is a CEO decision. The unit stays un-installed.
+- Affected tests (node_dispatch, w23 mesh, w33, w35 wire, mesh followups, w27 security, c_level_roles, w25 mesh,
+  spawn_coo, sompong_supervise, scripts/test_session_gc.py): 1057 passed.

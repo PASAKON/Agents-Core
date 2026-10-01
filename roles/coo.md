@@ -124,11 +124,13 @@ spend (`ALL_Rules_Approvals`).
 
 ## Where and as whom you run
 
-Contabo, tmux `sompong`, the SomPong repo as your working directory, as the **unprivileged `sompong` user** —
-not root. You cannot read the inbox keys, `state/`, `/etc/mooniex` or `/etc/infisical`, by design; do not try to
-work round that. What needs root (restarting a service, installing, anything under `/etc`) is a brief to the
-CTO, not something you attempt. The org repo and the wikis are readable to you but not writable: edits to them go
-through a C-level's task and review.
+Contabo, tmux `sompong`, the SomPong repo as your working directory. The unix user is a deploy setting: by
+default the **unprivileged `sompong` user**, not root (`id -u` tells you). Either way your environment is empty
+plus a short allowlist, so the inbox keys are never in it, and you do not go looking for them (`state/`,
+`/etc/mooniex`, `/etc/sompong`, `/etc/infisical`) — as the unprivileged user you cannot read them, as root you
+choose not to. As the unprivileged user, what needs root (restarting a service, installing, anything under
+`/etc`) is a brief to the CTO, not something you attempt, and the org repo and the wikis are readable but not
+writable: edits go through a C-level's task and review.
 
 ## Your memory is the files
 

@@ -381,6 +381,15 @@ def _coo_env(sompong: dict[str, Path], **extra: str) -> dict[str, str]:
 needs_nobody = pytest.mark.skipif(shutil.which("getent") is None or subprocess.run(["id", "nobody"], capture_output=True).returncode != 0, reason="needs a `nobody` unix user")
 
 
+# what the claude process may see: the launcher's allowlist, plus what the fake's own /bin/sh adds
+COO_ENV_ALLOWED = {
+    "HOME", "USER", "LOGNAME", "PATH", "TERM", "LANG", "ORG_HOST", "SOMPONG_COO_SESSION", "WIKI_ROOT_ORG",
+    "WIKI_ROOT_MOONIEX", "DISABLE_AUTOUPDATER", "CLAUDE_CODE_DISABLE_TERMINAL_TITLE",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW", "CXO_ROLE", "CXO_SESSION", "CXO_SESSION_ID", "LUNGNOTE_MCP_NODE",
+    "PWD", "SHLVL", "_", "OLDPWD",
+}
+
+
 @needs_nobody
 def test_launcher_dry_run_on_contabo_describes_the_session(lroot: Path, tmp_path: Path, sompong) -> None:
     r = _launch(lroot, tmp_path, "--role", "coo", "--dry-run", **_coo_env(sompong))
@@ -456,13 +465,7 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
     # empty environment + the allowlist, and nothing that looks like a secret
     assert env["SOMPONG_COO_SESSION"] == "1" and env["ORG_HOST"] == "contabo"
     assert env["CXO_ROLE"] == "coo" and env["CXO_SESSION"] == "1" and re.fullmatch(r"[0-9a-f]{8}", env["CXO_SESSION_ID"])
-    allowed_env = {
-        "HOME", "USER", "LOGNAME", "PATH", "TERM", "LANG", "ORG_HOST", "SOMPONG_COO_SESSION", "WIKI_ROOT_ORG",
-        "WIKI_ROOT_MOONIEX", "DISABLE_AUTOUPDATER", "CLAUDE_CODE_DISABLE_TERMINAL_TITLE",
-        "CLAUDE_CODE_AUTO_COMPACT_WINDOW", "CXO_ROLE", "CXO_SESSION", "CXO_SESSION_ID", "LUNGNOTE_MCP_NODE",
-        "PWD", "SHLVL", "_", "OLDPWD",  # added by the fake's own /bin/sh, not by the launcher
-    }
-    assert set(env) <= allowed_env, set(env) - allowed_env
+    assert set(env) <= COO_ENV_ALLOWED, set(env) - COO_ENV_ALLOWED
     assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k)]
     assert env["HOME"] != str(tmp_path / "home")  # the unprivileged user's home, not the caller's
 
@@ -521,6 +524,26 @@ def test_launcher_ignores_a_stale_coo_lock(lroot: Path, tmp_path: Path, sompong)
 
 
 @needs_nobody
+@pytest.mark.skipif(os.getuid() != 0, reason="the direct (no runuser) path is taken only when the launcher itself is root")
+def test_root_is_an_explicit_opt_in_and_still_gets_the_clean_env(lroot: Path, tmp_path: Path, sompong) -> None:
+    # SOMPONG_USER=root + SOMPONG_ALLOW_ROOT=1 (a deploy choice in the unit, never a code default): the
+    # session starts as root with no runuser hop, and the environment is still `env -i` + the allowlist,
+    # so a key in the launching shell (the supervisor's, an Infisical identity) never reaches claude.
+    r = _launch(
+        lroot, tmp_path, "--role", "coo",
+        **_coo_env(sompong, SOMPONG_USER="root", SOMPONG_ALLOW_ROOT="1", SOMPONG_INBOX_KEY="canary", INFISICAL_TOKEN="canary"),
+    )
+    assert r.returncode == 0, r.stderr
+    got = sompong["out"].read_text(encoding="utf-8").splitlines()
+    env = dict(line[4:].split("=", 1) for line in got if line.startswith("ENV=") and "=" in line[4:])
+    assert not (tmp_path / "runuser.log").exists()  # claude was exec'd directly, not through runuser
+    assert env["USER"] == "root" and env["LOGNAME"] == "root"
+    assert env["SOMPONG_COO_SESSION"] == "1" and env["ORG_HOST"] == "contabo"
+    assert set(env) <= COO_ENV_ALLOWED, set(env) - COO_ENV_ALLOWED
+    assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k)]
+    assert "canary" not in "\n".join(got)
+
+
 def test_launcher_moves_an_unread_letter_to_the_new_box(lroot: Path, tmp_path: Path, sompong) -> None:
     old = lroot / "state" / "inbox" / "coo-0ldb0x00"
     old.mkdir(parents=True)
@@ -569,6 +592,41 @@ def test_a_letter_to_coo_wakes_tmux_sompong_not_coo_dash_id(monkeypatch) -> None
     send_to_cxo.attempt_wake("coo", "1a2b3c4d", "cto")
     send_to_cxo.attempt_wake("cmo", "1a2b3c4d", "cto")
     assert woken == ["sompong", "cmo-1a2b3c4d"]
+
+
+def test_cross_host_letter_liveness_asks_tmux_for_sompong(monkeypatch) -> None:
+    from tools import node_dispatch
+
+    asked: list[str] = []
+    monkeypatch.setattr(node_dispatch, "_is_windows", lambda: False)
+    monkeypatch.setattr(node_dispatch, "_session_live", lambda name: asked.append(name) or True)
+    assert node_dispatch._clevel_session_live("coo", "1a2b3c4d") is True
+    assert node_dispatch._clevel_session_live("cmo", "1a2b3c4d") is True
+    assert asked == ["sompong", "cmo-1a2b3c4d"]  # a Mac -> Contabo letter to coo is not refused as "no live session"
+
+
+def test_session_gc_matches_a_live_coo_lock_with_tmux_sompong(tmp_path: Path) -> None:
+    from tools import session_gc
+
+    (tmp_path / "coo-1a2b3c4d.lock").write_text(f"{os.getpid()}\n", encoding="utf-8")
+    (tmp_path / "cmo-5e6f7a8b.lock").write_text(f"{os.getpid()}\n", encoding="utf-8")
+    rec = session_gc.reconcile(tmp_path, {"sompong", "cmo-5e6f7a8b", "scratch"})
+    assert rec.matched == {"coo-1a2b3c4d", "cmo-5e6f7a8b"}
+    assert not rec.lock_only and not rec.orphans and not rec.tmux_only
+
+
+def test_session_gc_reports_coo_drift_both_ways(tmp_path: Path) -> None:
+    from tools import session_gc
+
+    lock = tmp_path / "coo-1a2b3c4d.lock"
+    lock.write_text(f"{os.getpid()}\n", encoding="utf-8")
+    rec = session_gc.reconcile(tmp_path, set())  # SomPong running with no tmux: the orphan
+    assert rec.orphans == {"coo-1a2b3c4d": os.getpid()} and not rec.matched
+    rec = session_gc.reconcile(tmp_path, {"coo-1a2b3c4d"})  # `coo-<id>` is not SomPong's tmux name
+    assert not rec.matched and rec.tmux_only == {"coo-1a2b3c4d"} and "coo-1a2b3c4d" in rec.orphans
+    lock.unlink()
+    rec = session_gc.reconcile(tmp_path, {"sompong"})  # tmux `sompong` with no lock: reported, never touched
+    assert rec.tmux_only == {"sompong"} and not rec.matched and not rec.lock_only
 
 
 def test_coo_is_never_spawned_per_request(monkeypatch) -> None:
