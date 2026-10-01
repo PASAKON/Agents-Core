@@ -692,7 +692,7 @@ def check_headline_plate(headline: dict, composition_html: str) -> list[str]:
 #    What is measured: the mark's neon rule (`.bug .rl`, #FF2D40 -- the logo is a PNG with no flat colour to read, the
 #    rule is a solid fill). Per frame, the mean "redness" R - (G+B)/2 of the rule's pixels. Over a black background
 #    that level is proportional to the mark's opacity; over any other background it is
-#    a*neon + (1-a)*background, so the ratio to the steady level (the clip's median) UNDER-states how absent the mark
+#    a*neon + (1-a)*background, so the ratio to the steady level (the clip's 90th percentile) UNDER-states how absent the mark
 #    is by (1-a) * redness(background)/redness(neon): exact on dark plates, a little lenient over a red-ish backdrop.
 #    A frame whose level is below MARK_MIN_OPACITY of the steady level fails. If the steady level itself is far below
 #    what a neon rule reads, the mark is not in the video at all and the gate fails on that, not on a ratio.
@@ -705,6 +705,7 @@ def check_headline_plate(headline: dict, composition_html: str) -> list[str]:
 # ═══════════════════════════════════════════════════════════════════════════
 
 MARK_MIN_OPACITY = 0.95
+MARK_STEADY_PERCENTILE = 90                # the steady level = what the mark reaches; a median would be dragged down by a long fade
 BRAND_NEON = (255, 45, 64)                 # template --neon #FF2D40
 MARK_STEADY_FLOOR = 0.6                    # steady level below this fraction of the neon's redness = no mark in the video
 MARK_SAMPLE_INSET = 1                      # px, each side of the rule
@@ -768,7 +769,7 @@ def _mark_ratios(levels: "np.ndarray") -> tuple[float, "np.ndarray | None"]:
     to be in the video at all."""
     import numpy as np
 
-    steady = float(np.median(levels))
+    steady = float(np.percentile(levels, MARK_STEADY_PERCENTILE))
     if steady < MARK_STEADY_FLOOR * _redness(BRAND_NEON):
         return steady, None
     return steady, levels / steady
