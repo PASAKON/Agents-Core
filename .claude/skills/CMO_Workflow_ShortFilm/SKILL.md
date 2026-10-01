@@ -183,6 +183,21 @@ and the CEO's own edit needs a day.
 - **Edit:** the CEO cuts in CapCut. Send him an edit kit (keepers, music, credits roll, subtitle file) over
   Drive or Taildrop, and remind him to delete the kit on the Mac afterwards.
 - **Music:** Flow Music tracks with the rights record (`MUSIC-RIGHTS.md`, `MUSIC-LEDGER.json`).
+  **The «บ้านนี้มีมีมี่» recipe (CEO 2026-10-01, "ผ่านแล้ว … ต้องใส่เพลงด้วยแบบนี้เลย"): every episode of that channel
+  carries a quiet solo-piano bed made exactly like M1.** One track per episode:
+  1. *Make it* (zero-model, 5 credits from the separate Flow Music pool of 30,000/month, ~50 s):
+     `tools/flow_music.py <prompts.json> --out <dir> --max-credits-per-track 10 --length 3:00 --no-title --cdp-url http://127.0.0.1:9224`
+     on winbox (9224 is the Chrome signed in to Flow Music; the default 9226 is not). `--dry-run` first, it is free.
+     Prompt = the M1 text in `docs/scripts/khaoniao-ep1-music-prompts.json` (tender lullaby piano, ~66 BPM, pp–mp,
+     solo piano only: no drums, strings, vocals, pads or effects), adapted by one scene line per episode. Instrumental
+     ON, Lyria 3.5. Length is clamped to 1:00–3:00, so order 3:00 for a 3-minute episode (came back 2:55).
+  2. *Mix it* with `tools/film_music_mix.sh <cut> <music> <out>`: -4 dB, starts at 3 s, fade-in 3 s, fade-out 5 s, ducked
+     by the dialogue (sidechain, ratio 2.5) = music ~16 dB under speech and a gentle swell in the pauses. The CEO
+     approved this level; do not make it louder. Never `alimiter` with its default `level`.
+  3. *Keep the record:* the runner's `ledger.json` (clip id, md5) beside the prompts, one `credit_ledger.py` row
+     (engine `flow-music`), the master WAV on winbox, an mp3 in `Assets/Agents/Core/khaoniao-family/music/`.
+  M1 itself (`M1-tender-lullaby.mp3`, 2:55) is the approved house sound: a new episode may reuse it, or make a fresh
+  track with the same recipe when the story's mood differs.
 - **Grade:** `docs/prompts/ilag-topview/looks.py` builds custom 3D LUTs and a comparison sheet; the CEO
   picks; applied with ffmpeg `lut3d` (trilinear).
 - **Subtitles:** `docs/prompts/ilag-topview/finish.py --subs-only` (faster-whisper word timings matched to
