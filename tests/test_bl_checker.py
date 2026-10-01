@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pytest
 
+import bl_mark_clips as mc
 from tools import bl_checker as ck
 
 
@@ -358,19 +359,26 @@ def test_check_kinetic_overflow_flags_the_real_pilot_composition():
 
 # ─────────────────────────── runner / CLI ────────────────────────────────
 
+def _clean_video(path: Path, sides=("right",)) -> Path:
+    """A clean 1 s clip: busy plate on every frame, the brand mark (and the legal pill) on, on the given side(s).
+    The 270x480 `testsrc` clips this file used before passed the mark gate only because testsrc's red/yellow colour
+    bars happen to sit under the mark's rule -- a clip a run_checker test calls clean must carry the mark on purpose."""
+    return mc.marked_clip(path, frames=30, sides=sides)
+
+
 def test_run_checker_pass_true_when_everything_clean(tmp_path):
-    video = tmp_path / "clean.mp4"
-    _continuous_video(video, dur=1.0)
+    video = _clean_video(tmp_path / "clean.mp4")
     beats = [_beat("EVID-1", "EVID", {"img": "real/x.png", "box": [200, 300, 400, 500]})]
     result = ck.run_checker(video, beats)
     assert result["pass"] is True
-    assert result == {"pass": True, "empty_frames": [], "out_of_safe_area": [], "text_over_face": [],
-                       "credit_missing": [], "extra_caption_styles": [], "kinetic_overflow": []}
+    assert result["brand_mark"]["ok"] is True and result["brand_mark"]["failing_frames"] == 0
+    assert {k: v for k, v in result.items() if k != "brand_mark"} == {
+        "pass": True, "empty_frames": [], "empty_frames_excused": [], "out_of_safe_area": [], "text_over_face": [],
+        "credit_missing": [], "extra_caption_styles": [], "kinetic_overflow": []}
 
 
 def test_run_checker_pass_false_when_safe_area_fails(tmp_path):
-    video = tmp_path / "clean.mp4"
-    _continuous_video(video, dur=1.0)
+    video = _clean_video(tmp_path / "clean.mp4")
     beats = [_beat("COMP-1", "COMP", {"img": "real/x.png", "box": [950, 200, 120, 100]})]
     result = ck.run_checker(video, beats)
     assert result["pass"] is False
@@ -379,8 +387,7 @@ def test_run_checker_pass_false_when_safe_area_fails(tmp_path):
 
 
 def test_main_exit_code_matches_pass(tmp_path, capsys):
-    video = tmp_path / "clean.mp4"
-    _continuous_video(video, dur=1.0)
+    video = _clean_video(tmp_path / "clean.mp4")
     beats_path = tmp_path / "beats.json"
     import json
     beats_path.write_text(json.dumps([_beat("EVID-1", "EVID", {"img": "real/x.png", "box": [200, 300, 400, 500]})]))
@@ -771,13 +778,13 @@ def test_check_headline_plate_flags_a_missing_or_misplaced_bug_override():
 # ── run_checker + main ──
 
 def test_run_checker_arm_a_clean_video_and_html_passes(tmp_path):
-    video = tmp_path / "clean.mp4"
-    _continuous_video(video, dur=1.0)
+    video = _clean_video(tmp_path / "clean.mp4", sides=("left",))
     h = _parsed()
     result = ck.run_checker(video, [_evid("EVID-1", [100, 800, 600, 500])], composition_html=_plate_html(h), headline=h)
     assert result["pass"] is True and result["headline"] == []
-    assert set(result) == {"pass", "empty_frames", "out_of_safe_area", "text_over_face", "credit_missing",
-                           "extra_caption_styles", "kinetic_overflow", "headline"}
+    assert result["brand_mark"]["side"] == "left"
+    assert set(result) == {"pass", "empty_frames", "empty_frames_excused", "out_of_safe_area", "text_over_face",
+                           "credit_missing", "extra_caption_styles", "kinetic_overflow", "brand_mark", "headline"}
 
 
 def test_run_checker_arm_a_fails_on_a_plate_geometry_problem(tmp_path):
@@ -804,8 +811,7 @@ def test_run_checker_arm_a_empty_frame_is_still_caught_under_the_plate(tmp_path)
 
 
 def test_main_reads_an_arm_a_object_and_an_arm_b_list(tmp_path):
-    video = tmp_path / "clean.mp4"
-    _continuous_video(video, dur=1.0)
+    video = _clean_video(tmp_path / "clean.mp4", sides=("right", "left"))   # both marks: either arm's gate is satisfied
     beats = [_evid("EVID-1", [100, 800, 600, 500])]
     arm_b = tmp_path / "b.json"
     arm_b.write_text(json.dumps(beats))
@@ -825,3 +831,199 @@ def test_main_exits_2_with_the_reason_when_red_is_ambiguous(tmp_path, capsys):
     doc.write_text(json.dumps({"headline": _headline(lines=["ผลลัพธ์จริง", "ผลลัพธ์ปลอม"], red="ผลลัพธ์"), "beats": []}))
     assert ck.main(["--video", str(video), "--beats", str(doc)]) == 2
     assert "ambiguous" in capsys.readouterr().err
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# The brand mark on every frame, and the KIN-entry grace (task-c32c40e8, CMO ruling 2026-10-01)
+# ═══════════════════════════════════════════════════════════════════════════
+
+import re  # noqa: E402
+
+TEMPLATE_HTML = Path(__file__).resolve().parent.parent / ".claude/skills/CMO_Procedure_BlackLiquidity_Cut/template/index.html"
+
+
+def _segments_from(alphas):
+    """Per-frame alphas -> the (first, last, alpha) runs mc.marked_clip draws."""
+    out = []
+    for i, a in enumerate(alphas):
+        if out and out[-1][2] == a and out[-1][1] == i - 1:
+            out[-1] = (out[-1][0], i, a)
+        else:
+            out.append((i, i, a))
+    return out
+
+
+def _seam_alphas(frames=90, seams=(0, 45)):
+    """The EP58 defect: at the opening and at a seam the mark is absent for 8 frames, then fades in (alpha .1 ... .8
+    over 8 frames), then it is steady. The real fade ended at ~.9; the fixture stops a step short because a thin
+    4:2:0 rule reads about 3-4 points high near the top of a fade, so a .9 frame sits on the 95% line by chance."""
+    alphas = [1.0] * frames
+    for s in seams:
+        for k in range(8):
+            alphas[s + k] = 0
+        for k in range(8):
+            alphas[s + 8 + k] = round((k + 1) / 10, 1)
+    return alphas
+
+
+def test_mark_rect_is_the_template_rule_inside_the_zone_the_empty_frame_gate_masks():
+    assert ck.bug_rule_rect("right") == (856, 380, 74, 5)    # the CMO's x860-930 y380-385, measured in Chromium
+    assert ck.bug_rule_rect("left") == pytest.approx((297.59, 198, 5, 44))
+    assert ck.mark_sample_rect("right") == (857, 381, 72, 3)
+    assert ck.mark_sample_rect("left") == (299, 199, 2, 42)
+    for side in ("right", "left"):
+        zx, zy, zw, zh = ck.bug_zone(side)
+        x, y, w, h = ck.mark_sample_rect(side)
+        assert zx <= x and x + w <= zx + zw and zy <= y and y + h <= zy + zh
+        rx, ry, rw, rh = ck.bug_rule_rect(side)
+        assert rx <= x and x + w <= rx + rw and ry <= y and y + h <= ry + rh
+
+
+def test_mark_geometry_constants_match_the_template_css():
+    css = TEMPLATE_HTML.read_text(encoding="utf-8")
+    bug = re.search(r"\.bug \{[^}]*?right: (\d+)px; top: (\d+)px;[^}]*?gap: (\d+)px", css, re.S)
+    logo = re.search(r"\.bug \.logo \{ height: (\d+)px", css)
+    rule = re.search(r"\.bug \.rl \{ width: (\d+)px; height: (\d+)px; background: var\(--neon\)", css)
+    neon = re.search(r"--neon:\s*#([0-9A-Fa-f]{6})", css)
+    assert bug and logo and rule and neon, "the template's .bug / .logo / .rl / --neon CSS changed shape"
+    assert (int(bug[1]), int(bug[2]), int(bug[3])) == (ck.BUG_RIGHT_INSET, ck.BUG_RIGHT_TOP, ck.BUG_COLUMN_GAP)
+    assert int(logo[1]) == ck.BUG_LOGO_SIZE[1]
+    assert (int(rule[1]), int(rule[2])) == ck.BUG_RIGHT_RULE_SIZE
+    assert tuple(int(neon[1][i:i + 2], 16) for i in (0, 2, 4)) == ck.BRAND_NEON
+
+
+@pytest.mark.parametrize("side", ["right", "left"])
+def test_brand_mark_gate_passes_a_steady_mark(tmp_path, side):
+    video = mc.marked_clip(tmp_path / "steady.mp4", frames=60, sides=(side,))
+    v = ck.check_brand_mark(video, side)
+    assert v["ok"] is True and v["failing_frames"] == 0 and v["failing_times"] == []
+    assert v["min_ratio"] >= ck.MARK_MIN_OPACITY and v["steady_level"] > 180
+
+
+@pytest.mark.parametrize("side", ["right", "left"])
+def test_brand_mark_gate_fails_a_fade_in_at_the_opening_and_at_a_seam(tmp_path, side):
+    alphas = _seam_alphas()
+    video = mc.marked_clip(tmp_path / "blink.mp4", frames=90, sides=(side,), segments=_segments_from(alphas))
+    v = ck.check_brand_mark(video, side)
+    assert v["ok"] is False and "error" not in v
+    # frames 0-15 and 45-60: absent for 8, then every ramp step (alpha .1 ... .8) is under 95%
+    assert v["failing_ranges"] == [{"from": 0.0, "to": 0.5, "frames": 16}, {"from": 1.5, "to": 2.0, "frames": 16}]
+    assert v["failing_frames"] == 32 and v["failing_times"][:3] == [0.0, 0.033, 0.067]
+    assert v["min_ratio"] < 0.05 and v["min_time"] < 8 / 30
+
+
+@pytest.mark.parametrize("alpha,ok", [(0.97, True), (0.85, False)])
+def test_brand_mark_gate_threshold_is_95_percent_of_the_steady_level(tmp_path, alpha, ok):
+    alphas = [alpha if 30 <= i < 40 else 1.0 for i in range(60)]
+    video = mc.marked_clip(tmp_path / "dip.mp4", frames=60, segments=_segments_from(alphas))
+    v = ck.check_brand_mark(video)
+    assert v["ok"] is ok
+    if not ok:
+        assert v["failing_ranges"] == [{"from": 1.0, "to": 1.3, "frames": 10}]
+
+
+def test_brand_mark_gate_fails_a_video_with_no_mark_at_all(tmp_path):
+    video = mc.marked_clip(tmp_path / "none.mp4", frames=30, segments=[(0, 29, 0)])    # alpha 0: nothing drawn
+    v = ck.check_brand_mark(video)
+    assert v["ok"] is False and v["error"] == "mark_missing" and v["failing_frames"] == 30
+    assert v["min_ratio"] is None and v["expected_level"] > 180
+
+
+def test_brand_mark_gate_reads_the_side_the_arm_puts_the_bug_on(tmp_path):
+    video = mc.marked_clip(tmp_path / "right-only.mp4", frames=30, sides=("right",))
+    assert ck.check_brand_mark(video, "right")["ok"] is True
+    assert ck.check_brand_mark(video, "left")["error"] == "mark_missing"
+
+
+def test_brand_mark_gate_cannot_verify_a_file_with_no_frames(tmp_path):
+    junk = tmp_path / "junk.mp4"
+    junk.write_bytes(b"not a video")
+    assert ck.check_brand_mark(junk) == {"ok": False, "side": "right", "min_opacity": 0.95, "error": "no_frames"}
+
+
+def test_run_checker_fails_on_a_blinking_mark_and_names_the_frames(tmp_path, capsys):
+    video = mc.marked_clip(tmp_path / "blink.mp4", frames=90, segments=_segments_from(_seam_alphas()))
+    beats = [_beat("EVID-1", "EVID", {"img": "real/x.png", "box": [200, 300, 400, 500]})]
+    result = ck.run_checker(video, beats)
+    assert result["pass"] is False
+    assert result["empty_frames"] == []                      # the plate is busy: only the mark gate caught it
+    assert result["brand_mark"]["failing_ranges"][0] == {"from": 0.0, "to": 0.5, "frames": 16}
+    beats_path = tmp_path / "beats.json"
+    beats_path.write_text(json.dumps(beats))
+    assert ck.main(["--video", str(video), "--beats", str(beats_path)]) == 1
+    assert json.loads(capsys.readouterr().out)["brand_mark"]["failing_frames"] == 32
+
+
+def test_run_checker_arm_a_reads_the_left_mark(tmp_path):
+    right_only = mc.marked_clip(tmp_path / "right-only.mp4", frames=30, sides=("right",))
+    result = ck.run_checker(right_only, [], headline=_parsed())
+    assert result["pass"] is False
+    assert result["brand_mark"]["side"] == "left" and result["brand_mark"]["error"] == "mark_missing"
+
+
+# ── KIN entry grace ──
+
+def _kin(t0=1.0, mode="KIN", tag="MAIN-1"):
+    extra = {"img": "real/x.png", "box": [200, 300, 400, 500]} if mode in ("COMP", "EVID") else {}
+    return {"tag": tag, "t0": t0, "t1": t0 + 1.0, "mode": mode, "extra": extra}
+
+
+def test_kin_entry_frames_are_the_first_four_from_each_kin_t0_only():
+    beats = [_kin(1.0, tag="A"), _kin(2.0, mode="COMP", tag="B"), _kin(3.0, tag="C")]
+    entry = ck.kin_entry_frames(beats)
+    assert sorted(entry) == [30, 31, 32, 33, 90, 91, 92, 93]
+    assert entry[30] == ("A", 1) and entry[93] == ("C", 4)
+
+
+def test_kin_grace_excuses_the_first_four_frames_while_the_mark_and_legal_pill_are_on(tmp_path):
+    video = mc.marked_clip(tmp_path / "kin.mp4", frames=90, flat=[(30, 33)])
+    plain = ck.run_checker(video, [])                         # no beats: today's behaviour
+    assert plain["empty_frames"] == [1.0, 1.033, 1.067, 1.1] and plain["pass"] is False
+    assert plain["empty_frames_excused"] == []
+    result = ck.run_checker(video, [_kin()])
+    assert result["empty_frames"] == [] and result["pass"] is True
+    assert result["empty_frames_excused"] == [
+        {"t": t, "beat": "MAIN-1", "entry_frame": k} for k, t in enumerate([1.0, 1.033, 1.067, 1.1], 1)]
+
+
+def test_kin_grace_does_not_cover_the_fifth_frame(tmp_path):
+    video = mc.marked_clip(tmp_path / "kin5.mp4", frames=90, flat=[(30, 34)])
+    result = ck.run_checker(video, [_kin()])
+    assert result["empty_frames"] == [1.133] and len(result["empty_frames_excused"]) == 4
+    assert result["pass"] is False
+
+
+def test_kin_grace_does_not_cover_a_beat_that_is_not_kin(tmp_path):
+    video = mc.marked_clip(tmp_path / "comp.mp4", frames=90, flat=[(30, 33)])
+    result = ck.run_checker(video, [_kin(mode="COMP", tag="COMP-1")])
+    assert result["empty_frames"] == [1.0, 1.033, 1.067, 1.1] and result["empty_frames_excused"] == []
+    assert result["pass"] is False
+
+
+def test_kin_grace_does_not_cover_frames_away_from_the_kin_t0(tmp_path):
+    video = mc.marked_clip(tmp_path / "away.mp4", frames=90, flat=[(30, 33)])
+    result = ck.run_checker(video, [_kin(t0=2.0)])
+    assert result["empty_frames"] == [1.0, 1.033, 1.067, 1.1] and result["empty_frames_excused"] == []
+
+
+def test_kin_grace_needs_the_brand_mark_on_the_frame(tmp_path):
+    video = mc.marked_clip(tmp_path / "nomark.mp4", frames=90, flat=[(30, 33)],
+                           segments=[(0, 29, 1.0), (34, 89, 1.0)])
+    result = ck.run_checker(video, [_kin()])
+    assert result["empty_frames"] == [1.0, 1.033, 1.067, 1.1] and result["empty_frames_excused"] == []
+    assert result["brand_mark"]["ok"] is False
+
+
+def test_kin_grace_needs_the_legal_pill_on_the_frame(tmp_path):
+    video = mc.marked_clip(tmp_path / "nolegal.mp4", frames=90, flat=[(30, 33)], legal_off=[(30, 33)])
+    result = ck.run_checker(video, [_kin()])
+    assert result["empty_frames"] == [1.0, 1.033, 1.067, 1.1] and result["empty_frames_excused"] == []
+    assert result["brand_mark"]["ok"] is True                 # the mark is fine: it is the pill that is missing
+
+
+def test_kin_grace_reads_the_mark_on_the_side_the_arm_uses(tmp_path):
+    video = mc.marked_clip(tmp_path / "left.mp4", frames=90, sides=("left",), flat=[(30, 33)])
+    left, excused = ck.excuse_kin_entry(video, [1.0, 1.033], [_kin()], "left")
+    assert left == [] and len(excused) == 2
+    right, excused = ck.excuse_kin_entry(video, [1.0, 1.033], [_kin()], "right")
+    assert right == [1.0, 1.033] and excused == []

@@ -316,6 +316,8 @@
              top: 0; transform: translateY(-50%);
              text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
              line-height: 1.28; text-shadow: var(--outline);
+             /* balance: never a one-word last line (EP58 "ไม่ได้", "ถอน"; CMO ruling 2026-10-01) */
+             text-wrap: balance;
              background: rgba(5,6,8,.90); padding: 20px 30px;
              border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
     </style>
@@ -546,7 +548,11 @@
          Agents repo, prototypes/bl51-first30/index.html
          ========================================================== */
 
-      tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+      // The brand mark is on from frame 0 and never animates (CMO ruling 2026-10-01). A range
+      // render replays everything at local t=0 in every window, so an entrance here blinked the
+      // logo + date chip at t=0 and at every seam (EP58: 11 seams, absent 8 frames, then a 0.3 s fade).
+      // Keep the line below as it is: tools/bl_compose.py finds it to splice the cut's calls in.
+      tl.set("#bug", { x: 0, opacity: 1 }, 0);
 
       // kinetic(top, in, out, [{c,h,d,g}], ruleWidth)
       // cards  (top, in, out, title, [{n,c,t}], visibleRows)
