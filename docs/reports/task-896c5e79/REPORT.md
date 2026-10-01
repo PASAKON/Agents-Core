@@ -37,9 +37,14 @@ strict org one; `--add-dir <Agents-Core>` for the org skills; generated `--setti
 `c_level_sessions` as role `coo`, host `contabo` (asserted in a test).
 
 ### Who runs as whom (differs from the brief's first picture — see WORKLOG)
-**CTO ruling 14:05Z: code default unchanged** — `SOMPONG_USER` (default `sompong`), root only with `SOMPONG_ALLOW_ROOT=1`;
-running the session as root like every other C-level is a deploy choice in the unit (commented lines there), taken to the CEO,
-and is tested: no runuser, env still `env -i` + allowlist. `roles/coo.md` is worded to be true either way.
+**CEO ruling 16:1x (via the CTO): SomPong runs as the unprivileged `sompong` user; root goes only through the Run Inbox**
+(a red card, fresh Face ID on the CEO's phone; `roles/coo.md` tells it to `ask_run` risk red, then `ask_run_wait`
+`max_wait_s=900`, cancel its own card after 15 minutes, never sudo). Code default unchanged (CTO 14:05Z): `SOMPONG_USER`
+(default `sompong`), root only with `SOMPONG_ALLOW_ROOT=1`, still `env -i` + allowlist (tested: no runuser, no key names).
+The launcher keeps `HOME=<sompong's home>` because `ask_run` reads `~/.config/mooniex/run-inbox.token` (0600); a missing
+token prints ONE warning line ("SomPong (COO) warning: ... run-inbox.token is missing ...") and the session still starts; the
+supervisor copies that warning into the journal. `mcp__org__ask_run` and `mcp__org__ask_run_wait` are in the coo session's
+allowed tools (asserted).
 The sibling task found the session must not be root (inbox keys are root-only; acceptance probe 5). So:
 supervisor + tmux stay **root** (tmux `sompong` must be in root's tmux server — Console, wake nudge, session_gc, session_list
 all look there); the launcher does its bookkeeping as root and starts `claude` through
@@ -76,12 +81,27 @@ See the task report (`submit_report`) for the final numbers; recorded in WORKLOG
 ## Open items for the CTO (deploy and follow-ups)
 
 1. **Deploy prerequisites — none exist on this box.** Unix user `sompong` (SomPong `ops/install-contabo.sh`), its own
-   `claude` install + one CEO login as that user, membership of group `secretary`, `SOMPONG_SOCKET_OWNER=sompong`.
+   `claude` install + one CEO login as that user, membership of group `secretary`, `SOMPONG_SOCKET_OWNER=sompong`, the Run
+   Inbox token at `~sompong/.config/mooniex/run-inbox.token` (0600; warning only if missing), `state/tasks.db` shared (item 2).
    `id sompong` fails today; the launcher says so ("SomPong (COO) cannot start: unix user sompong missing") and the
    supervisor logs it instead of looping. The unit is **not** installed, enabled or started.
-2. **`state/tasks.db` is root:root 0644.** The non-root COO can read but not write the org DB until the DB is shared or the
-   tasks hub is live; the role file already says to route through a C-level, so SomPong stays inside the contract, but any
-   org tool that writes will fail for it.
+2. **What fails for an unprivileged session user today (probed as uid `nobody`, fixtures in /tmp, nothing real touched):**
+   - **The org MCP server does not start** when the user can read but not write `state/tasks.db`:
+     `runners/cto_mcp_server.py` calls `db.init()` before serving, `lib/db.py _connect()` runs `PRAGMA journal_mode=WAL`, and a
+     WAL database needs a writable `-shm` beside it → `sqlite3.OperationalError: attempt to write a readonly database`, exit 1,
+     **no org tools at all, `ask_run` included** (so the Run Inbox path below cannot work either). Pinned by a strict-xfail test
+     (`test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_only_read_the_db`); it turns into a failure the day
+     it starts working, so it must then be un-xfailed. Production `tasks.db` is root:root 0644.
+   - **Works** once `state/` (2775) and `tasks.db` (0664) are shared with the session user's group: 25 tools listed, `ask_run`
+     and `ask_run_wait` among them (passing test `..._for_a_uid_that_can_write_the_shared_db`). Sharing a live WAL database
+     between users is fragile (the `-wal`/`-shm` files belong to whoever created them): the tasks hub is the real fix.
+   - **`mailbox.send` into another role's box fails**: boxes are root-owned 0755 and the letter is a `mkstemp` file →
+     `PermissionError` as `sompong`, so `send_to_cxo` from SomPong cannot reach the CTO/CMO/... until the boxes are
+     group-writable (`lib/mailbox.py`, not in this task's touches; not probed further, no test). The Run Inbox result letter the
+     hub writes into SomPong's own box is 0600 root and unreadable to it, but `ask_run_wait` polls the hub over HTTP, so the
+     15-minute wait does not depend on that letter.
+   - The role file already tells SomPong to route through a C-level, so it stays inside the contract, but the routing tool
+     cannot deliver until the two permission points above are fixed at deploy (or in `lib/mailbox.py`/`lib/db.py`).
 3. **Follow-ups done after the guard was fixed (CTO 14:05Z):** `tools/node_dispatch.py` (`_clevel_session_live` asks
    `tmux_name`, so a Mac→Contabo letter to coo is not refused as "no live session") and `tools/session_gc.py`
    (`reconcile` matches a live `coo-<id>` lock with tmux `sompong`, no false ORPHAN), each with tests, mutation-checked.

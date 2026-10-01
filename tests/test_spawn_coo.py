@@ -403,6 +403,8 @@ def test_launcher_dry_run_on_contabo_describes_the_session(lroot: Path, tmp_path
     allowed = next(line for line in out.splitlines() if line.startswith("dry-run: allowed-tools="))
     for tool in ("reply", "skip", "send", "ask_ceo", "history", "media"):
         assert f"mcp__sompong__{tool}" in allowed
+    # root work goes through a Run Inbox card: both org tools must be callable in this session
+    assert {"mcp__org__ask_run", "mcp__org__ask_run_wait"} <= set(allowed.split("=", 1)[1].split())
     names = next(line for line in out.splitlines() if line.startswith("dry-run: coo env=")).split("=", 1)[1].split()
     assert "SOMPONG_COO_SESSION" in names and "ORG_HOST" in names
     assert not [n for n in names if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", n)]
@@ -524,6 +526,43 @@ def test_launcher_ignores_a_stale_coo_lock(lroot: Path, tmp_path: Path, sompong)
 
 
 @needs_nobody
+def _session_home(tmp_path: Path) -> Path:
+    """A fake `getent` so the session user's home is a directory the test owns (nobody's is /nonexistent)."""
+    home = tmp_path / "sphome"
+    home.mkdir()
+    (tmp_path / "fakebin").mkdir(exist_ok=True)
+    _exe(tmp_path / "fakebin" / "getent", f'#!/bin/sh\necho "$2:x:65534:65534::{home}:/usr/sbin/nologin"\n')
+    return home
+
+
+@needs_nobody
+def test_launcher_keeps_the_session_users_home_and_warns_once_without_the_run_inbox_token(
+    lroot: Path, tmp_path: Path, sompong
+) -> None:
+    home = _session_home(tmp_path)
+    r = _launch(lroot, tmp_path, "--role", "coo", **_coo_env(sompong))
+    assert r.returncode == 0, r.stderr  # a missing token never stops the session: only ask_run fails
+    assert sompong["out"].exists()  # claude was started
+    warning = [line for line in r.stderr.splitlines() if "run-inbox.token" in line]
+    assert len(warning) == 1 and warning[0].startswith("SomPong (COO) warning: ")
+    assert str(home / ".config" / "mooniex" / "run-inbox.token") in warning[0] and "ask_run" in warning[0]
+    got = sompong["out"].read_text(encoding="utf-8").splitlines()
+    assert f"ENV=HOME={home}" in got  # ask_run reads ~/.config/mooniex/run-inbox.token from THIS home
+
+
+@needs_nobody
+def test_launcher_is_quiet_when_the_run_inbox_token_is_there(lroot: Path, tmp_path: Path, sompong) -> None:
+    home = _session_home(tmp_path)
+    token = home / ".config" / "mooniex" / "run-inbox.token"
+    token.parent.mkdir(parents=True)
+    token.write_text("dummy-not-a-token\n", encoding="utf-8")
+    token.chmod(0o600)
+    r = _launch(lroot, tmp_path, "--role", "coo", **_coo_env(sompong))
+    assert r.returncode == 0, r.stderr
+    assert "run-inbox" not in r.stderr and "warning" not in r.stderr
+    assert "dummy-not-a-token" not in r.stdout + r.stderr  # the file's content is never read out
+
+
 @pytest.mark.skipif(os.getuid() != 0, reason="the direct (no runuser) path is taken only when the launcher itself is root")
 def test_root_is_an_explicit_opt_in_and_still_gets_the_clean_env(lroot: Path, tmp_path: Path, sompong) -> None:
     # SOMPONG_USER=root + SOMPONG_ALLOW_ROOT=1 (a deploy choice in the unit, never a code default): the
@@ -542,6 +581,119 @@ def test_root_is_an_explicit_opt_in_and_still_gets_the_clean_env(lroot: Path, tm
     assert set(env) <= COO_ENV_ALLOWED, set(env) - COO_ENV_ALLOWED
     assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k)]
     assert "canary" not in "\n".join(got)
+
+
+# --- the org MCP server for a session user that is not root ------------------------------------------
+# The COO session runs as the unprivileged `sompong` user, and state/tasks.db is root-owned. The org MCP server
+# (runners.cto_mcp_server, started by every C-level launcher) calls db.init() before it serves a single tool.
+
+NOBODY_UID = 65534
+
+
+def _serve_tools_as_nobody(state_mode: int, db_mode: int, group: int) -> tuple[list[str] | None, str]:
+    """Start the org MCP server as uid `nobody` against a private org root whose tasks.db has the given
+    modes; send initialize + tools/list over stdio. Returns (tool names or None, stderr tail)."""
+    import select
+    import tempfile
+
+    fx = Path(tempfile.mkdtemp(dir="/tmp", prefix="coo-orgdb-"))
+    try:
+        fx.chmod(0o755)
+        (fx / "state").mkdir()
+        py = shutil.which("python3", path=str(Path(sys.prefix) / "bin")) or sys.executable
+        subprocess.run(
+            [py, "-c", "from lib import db; db.init()"], cwd=ROOT, check=True, capture_output=True,
+            env=dict(os.environ, ORG_ROOT=str(fx)),
+        )
+        os.chown(fx / "state", 0, group)
+        os.chown(fx / "state" / "tasks.db", 0, group)
+        (fx / "state").chmod(state_mode)
+        (fx / "state" / "tasks.db").chmod(db_mode)
+        env = {
+            "PATH": "/usr/bin:/bin", "HOME": "/nonexistent", "ORG_ROOT": str(fx), "ORG_HOST": "contabo",
+            "PYTHONUNBUFFERED": "1", "CXO_ROLE": "coo", "CXO_SESSION": "1",
+            "WIKI_ROOT_ORG": "/opt/MoonieXHQ/Agents/Rules", "WIKI_ROOT_MOONIEX": "/opt/MoonieXHQ/Agents/Wikis",
+        }
+        p = subprocess.Popen(
+            [py, "-m", "runners.cto_mcp_server"], cwd=ROOT, env=env, user=NOBODY_UID, group=group, extra_groups=[],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        )
+
+        def reply(want_id: int) -> dict | None:
+            deadline = time.time() + 30
+            while time.time() < deadline:
+                if not select.select([p.stdout], [], [], 1.0)[0]:
+                    if p.poll() is not None:
+                        return None
+                    continue
+                line = p.stdout.readline()
+                if not line:
+                    return None
+                try:  # db.init() prints a "[db] initialized" line to stdout first
+                    msg = json.loads(line)
+                except ValueError:
+                    continue
+                if msg.get("id") == want_id:
+                    return msg
+            return None
+
+        def send(msg: dict) -> None:
+            p.stdin.write(json.dumps(msg) + "\n")
+            p.stdin.flush()
+
+        names = None
+        try:
+            send({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+                "protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "0"}}})
+            if reply(1) is not None:
+                send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+                send({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+                listed = reply(2)
+                names = [t["name"] for t in listed["result"]["tools"]] if listed else None
+        except (BrokenPipeError, OSError):
+            names = None
+        finally:
+            if p.poll() is None:
+                p.terminate()
+            try:
+                p.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                p.kill()
+            err = p.stderr.read()[-800:]
+        return names, err
+    finally:
+        shutil.rmtree(fx, ignore_errors=True)
+
+
+needs_root_and_nobody = pytest.mark.skipif(
+    os.getuid() != 0 or shutil.which("getent") is None
+    or subprocess.run(["id", "-u", "nobody"], capture_output=True, text=True).stdout.strip() != str(NOBODY_UID),
+    reason="needs root (to switch to uid nobody and chown a fixture)",
+)
+
+
+@needs_root_and_nobody
+def test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_write_the_shared_db() -> None:
+    # The deploy prerequisite for the unprivileged COO: tasks.db and state/ shared with the session user's group.
+    from lib.org_tools_registry import REGISTRY
+
+    names, err = _serve_tools_as_nobody(state_mode=0o2775, db_mode=0o664, group=NOBODY_UID)
+    assert names is not None, err
+    assert {s.name for s in REGISTRY} <= set(names)
+    assert {"ask_run", "ask_run_wait"} <= set(names)
+
+
+@needs_root_and_nobody
+@pytest.mark.xfail(
+    strict=True,
+    reason="a uid that can read but not write state/tasks.db cannot start the org MCP server: runners/cto_mcp_server.py "
+    "calls db.init() first, and lib/db.py _connect() runs PRAGMA journal_mode=WAL (a WAL database also needs a writable "
+    "-shm beside it) -> sqlite3.OperationalError: attempt to write a readonly database. The session has no org tools "
+    "(ask_run included) until tasks.db is shared with the session user or the tasks hub is live.",
+)
+def test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_only_read_the_db() -> None:
+    names, err = _serve_tools_as_nobody(state_mode=0o755, db_mode=0o644, group=0)
+    assert names, err  # today: names is None and err ends "attempt to write a readonly database"
 
 
 def test_launcher_moves_an_unread_letter_to_the_new_box(lroot: Path, tmp_path: Path, sompong) -> None:
@@ -740,6 +892,8 @@ def test_the_coo_role_file_carries_the_contract_points() -> None:
         "mcp__sompong__",  # replied to with tools
         "reply(event_id, text)", "skip(event_id", "ask_ceo",
         "send_to_cxo",  # routing to the owning C-level
+        "ask_run", "ask_run_wait", "max_wait_s=900", "ask_run.py cancel",  # root work = a Run Inbox card
+        "Face ID", "sudo",
         "money", "secrets", "permanent deletion",  # always the CEO's call
         "family",
         "docs/design/sompong-coo-session.md",

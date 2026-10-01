@@ -270,7 +270,11 @@ wait_ready() {
 preflight() {
   local out
   # bash -c: parsed like LAUNCH is (tmux hands that to a shell too), not word-split.
-  if out="$(bash -c "$PREFLIGHT" 2>&1)"; then return 0; fi
+  if out="$(bash -c "$PREFLIGHT" 2>&1)"; then
+    # a warning on a passing preflight (e.g. no Run Inbox token yet) still reaches the journal
+    case "$out" in *"warning:"*) log "launcher preflight warning: $(printf '%s' "$out" | grep 'warning:' | head -n 2 | tr '\n' ' ')" ;; esac
+    return 0
+  fi
   loud "launcher preflight failed (not starting): $(printf '%s' "$out" | tail -n 3 | tr '\n' ' ')"
   return 1
 }

@@ -173,3 +173,18 @@ to `SOMPONG_SESSION_USER=nobody`; new root-default tests (no runuser, allowlist 
   note that it is a CEO decision. The unit stays un-installed.
 - Affected tests (node_dispatch, w23 mesh, w33, w35 wire, mesh followups, w27 security, c_level_roles, w25 mesh,
   spawn_coo, sompong_supervise, scripts/test_session_gc.py): 1057 passed.
+
+## 2026-10-01 CEO ruling via CTO 14:15Z: unprivileged sompong; root only through the Run Inbox
+
+- `roles/coo.md` "Where and as whom you run" rewritten: unprivileged `sompong` user, basic commands direct; root work =
+  `ask_run` (risk red, role coo, a why the CEO can read on the phone) then `ask_run_wait` `max_wait_s=900`; approved →
+  continue; not approved in 15 min → `python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py cancel <id>` and tell the asker;
+  never sudo; a family turn still needs the CEO's Face ID. The unit's commented root opt-in lines are gone (superseded).
+- Launcher: HOME stays the session user's home (already so; now asserted via a fake `getent`); missing
+  `~/.config/mooniex/run-inbox.token` = one warning line, session still starts (never reads the file). Supervisor logs a
+  `launcher preflight warning:` line when a passing preflight printed one. `mcp__org__ask_run(_wait)` already in coo's allowed
+  tools (25 org tools); asserted in the dry-run test.
+- Probe + tests for the org MCP server as uid nobody (details in REPORT item 2): read-only DB → server exits at
+  `db.init()` (`PRAGMA journal_mode=WAL` → "attempt to write a readonly database"); group-writable DB + state/ → 25 tools
+  incl. ask_run/ask_run_wait. Also `mailbox.send` into a root-owned 0755 box as nobody → PermissionError (mkstemp).
+- Stopped my own full run (it was on the previous commit) after the CTO's change set; one final full run follows the last edit.

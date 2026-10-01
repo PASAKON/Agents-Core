@@ -519,6 +519,16 @@ def test_preflight_pass(sim: Sim) -> None:
     assert sim.fn("preflight; echo rc=$?", SOMPONG_PREFLIGHT="true").stdout.strip() == "rc=0"
 
 
+def test_a_preflight_warning_reaches_the_journal_but_does_not_block_the_start(sim: Sim) -> None:
+    r = sim.fn(
+        "preflight; echo rc=$?",
+        SOMPONG_PREFLIGHT="echo 'SomPong (COO) warning: /home/sompong/.config/mooniex/run-inbox.token is missing' >&2; true",
+    )
+    assert r.stdout.strip() == "rc=0"
+    assert "launcher preflight warning:" in r.stderr and "run-inbox.token is missing" in r.stderr
+    assert "preflight failed" not in r.stderr
+
+
 @pytest.mark.skipif(not Path("/proc/self/fd").exists(), reason="needs /proc")
 def test_start_session_runs_the_launcher_and_does_not_leak_the_lock_fd(sim: Sim, tmp_path: Path) -> None:
     r = sim.fn(

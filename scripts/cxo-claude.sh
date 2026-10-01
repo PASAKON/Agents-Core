@@ -173,6 +173,11 @@ if [ "$ROLE" = "coo" ]; then
     [ -n "$COO_HOME" ] || COO_HOME="/home/$COO_UNIX_USER"
     COO_CLAUDE_BIN="${SOMPONG_CLAUDE:-$COO_HOME/.local/bin/claude}"
     [ -x "$COO_CLAUDE_BIN" ] || COO_PROBLEM="claude is not installed for $COO_UNIX_USER ($COO_CLAUDE_BIN)"
+    # Root work goes through a Run Inbox card (org tools ask_run / ask_run_wait), which read the hub
+    # token from the session user's HOME. Missing = warn once and start anyway: only that path fails.
+    if [ -z "$COO_PROBLEM" ] && [ ! -f "$COO_HOME/.config/mooniex/run-inbox.token" ]; then
+      echo "SomPong (COO) warning: $COO_HOME/.config/mooniex/run-inbox.token is missing - ask_run (root work through the Run Inbox) will fail until it is installed (mode 0600, owned by $COO_UNIX_USER)" >&2
+    fi
   fi
   if [ -z "$COO_PROBLEM" ]; then
     COO_SETTINGS="$MCP_CONFIG.hooks.json"

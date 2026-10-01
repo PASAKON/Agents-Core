@@ -28,15 +28,13 @@ Type=simple
 # because the inbox keys live where only root can read them (design doc,
 # acceptance probe 5). Prerequisites, all on the CTO's deploy checklist: the
 # `sompong` user (SomPong repo: ops/install-contabo.sh), its own `claude` install
-# + one CEO login, membership of group `secretary` (state/ is group-writable).
+# + one CEO login, membership of group `secretary` (state/ is group-writable), the Run Inbox
+# token at ~sompong/.config/mooniex/run-inbox.token (mode 0600: ask_run reads it; the launcher
+# warns when it is missing), and state/tasks.db shared with that group -- the org MCP server
+# cannot start for a user that can only read it (tests/test_spawn_coo.py documents the failure).
 User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=ORG_HOST=contabo
-# The session user defaults to the unprivileged `sompong` user. Running the session as root,
-# like every other C-level, is a deploy choice, made here and only with the CEO's decision:
-#   Environment=SOMPONG_USER=root
-#   Environment=SOMPONG_ALLOW_ROOT=1
-# (the launcher still starts claude with an empty environment plus its allowlist either way)
 Environment=HOME=/root
 Environment=PYTHONUNBUFFERED=1
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
