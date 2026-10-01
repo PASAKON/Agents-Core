@@ -13,7 +13,7 @@ started; nothing pushed.
 | 3 | `/spawn-coo` | `claude-home/commands/spawn-coo.md`, `scripts/spawn-coo.sh` |
 | 4 | Supervisor | `scripts/sompong-supervise.sh`, `deploy/systemd/mooniex-sompong.service` |
 | 5 | `roles/coo.md` rewritten | `roles/coo.md` |
-| 6 | Tests | `tests/test_sompong_supervise.py` (60), `tests/test_spawn_coo.py` (53), `tests/test_c_level_roles.py` (parked branch's 18 + additions) |
+| 6 | Tests | `tests/test_sompong_supervise.py` (61), `tests/test_spawn_coo.py` (61, one strict xfail), `tests/test_c_level_roles.py` (18, the parked branch's tests kept) |
 
 ### Parked branch (`origin/parked/coo-wiring` 9617f9f9)
 Cherry-picked and resolved by hand where the code had moved (646 commits of drift): the parked branch's coo shim role is
@@ -69,7 +69,10 @@ through the owning C-level; where it runs and as whom; memory = files. Checked a
 
 ## Tests
 
-See the task report (`submit_report`) for the final numbers; recorded in WORKLOG.
+Final full suite at `1a333182`: **7 failed, 6064 passed, 373 skipped, 1 xfailed** (28 min). The 7 failures = the 6 on main's own
+list + `tests/test_storage_reclaim.py::test_delegate_skips_reclaim_for_non_pilot_task`, a pre-existing flaky test (real tmux
+session on Linux, race; failed 2 of 3 isolated runs, my `tools/delegate.py` diff is comments only). Scripts: registry, mcp_role_config,
+tool_parity, session_gc all pass. Detail in WORKLOG.
 
 - Base (origin/main dfa72f92): 5924 passed / 373 skipped / 7 failed. The 7 are main's own, unrelated (list in WORKLOG).
 - New tests run only against fakes on PATH (tmux that refuses inexact targets, ps, sleep, systemctl, ssh, runuser, claude):
