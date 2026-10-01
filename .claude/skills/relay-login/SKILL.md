@@ -33,8 +33,16 @@ into a relay Chrome was refused by the auto-mode classifier as a bypass
 
 ## 0. Who does what
 
+- **Rule (CEO 2026-10-01, IRON-RULES §60 — every session, new ones too):** a login
+  goes through a relay **request** and, after the first time, the CEO's **Auto login**
+  (a recorded login recipe, Face ID, pauses at the SMS/2FA code). On the Console host
+  that holds the Chrome (Console checkout, `node scripts/relay-request.mjs …`):
+  `open --port <n> [--home <id>] --account "<label>" --why "<clause>" --by <sid>` prints
+  `rq-…`; `wait <rq-id> --timeout <s>` exits 0 only when the CEO pressed Done. The
+  relay menu shows only Chromes with an open request, so a Chrome without one is
+  invisible to him. Docs: `docs/relay.md` §10 (requests) and §11 (recipes, pacing).
 - **Worker (any role) blocked on a login:** do §1 on the machine you run on,
-  then put ONE line in your report or in a letter to your CTO —
+  open the request above, then put ONE line in your report or in a letter to your CTO —
   `relay-login: <machine>:<port> — <tab title> · account: <which> · why: <one clause>` —
   and carry on with whatever does not need the login. You never contact the
   CEO yourself and never wait at a prompt for him. Work that must follow the
@@ -183,4 +191,4 @@ never a value, cookie or QR payload.
 - 2026-10-01 [MISSING] §1 Browser Home — the stop verb is `quit`, not `stop` (`relay-home.mjs list | create | launch | url | quit`); `quitHome` removes only the pidfile, the profile and its login stay. Also: stop the Home that holds a paid account while a worker builds a spend script, so nothing can fire by accident · evidence: session 671f688f, Console src/relay/homes.js:201/235, task-03b721a0 · status: pending
 - 2026-10-01 [MISSING] §deploy — third sighting: the winbox Console was down again at 03:5x TH, about 4 h after the 23:19 restart. Contabo logged `peer winbox-4a7c2e91: timeout`; `MooniexConsole` showed Ready with Last Result -1073741510 (STATUS_CONTROL_C_EXIT: the console window was closed or got Ctrl+C). `schtasks /run /tn MooniexConsole` brought it back and Contabo logged `0 sessions (up)`. Three sightings agree, so the task needs a hidden-window or service launch; until then, check `schtasks /query /tn MooniexConsole /v` before telling the CEO a winbox pill works · evidence: cto-92788a12, Console c5b62f3 deploy · status: pending
 - 2026-10-01 [MISSING] §deploy — after a Console deploy, the CEO's phone kept /relay open from before it (the page is installed as a home-screen app via manifest.json, which does not reload on its own), so it ran the old relay.js and showed no login requests, although `GET /api/relay/targets` through the front door returned both. After every relay deploy, tell the CEO to close the app from the app switcher and reopen it, until the page reloads itself on a build-id change (asked of task-8cf9ba1a) · evidence: Console c5b62f3, rq-81ae5731 + rq-f4187f3e present in the front-door JSON · status: pending
-- 2026-10-01 [MISSING] §recipes — the login-recipe replay passed its Google-SMS fixture (800/800) but broke live on the first try. The fixtures draw instantly; real Google redraws the passkey page after the passkey call is turned down and slides fields in after the URL changes, and the replay clicked on the first fresh mirror. The server also skips a click on a vanished node without saying so (`if (!at) continue`), and a replay that ends posts nothing, so the DB (uses=0, fails=0) cannot say which step died. Test pacing against slow-drawing fixtures, and have each run report back before trusting a replay · evidence: CEO live test hf-replay :9285 22:48Z, recipe 631fa706 stuck at step 5 pk/presend; fix task-394641e1 · status: pending
+- 2026-10-01 [MISSING] §recipes — the login-recipe replay passed its Google-SMS fixture (800/800) but broke live on the first try. The fixtures draw instantly; real Google redraws the passkey page after the passkey call is turned down and slides fields in after the URL changes, and the replay clicked on the first fresh mirror. The server also skips a click on a vanished node without saying so (`if (!at) continue`), and a replay that ends posts nothing, so the DB (uses=0, fails=0) cannot say which step died. Test pacing against slow-drawing fixtures, and have each run report back before trusting a replay · evidence: CEO live test hf-replay :9285 22:48Z, recipe 631fa706 stuck at step 5 pk/presend; fix task-394641e1 · status: promoted (fixed in 0445d32: settle + run-result + recorded ends; CEO passed the live retest 2026-10-01)
