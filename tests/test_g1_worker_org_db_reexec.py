@@ -329,3 +329,83 @@ def test_the_agy_child_never_gets_the_url(tmp_path, monkeypatch):
     assert agy_local.run_agy_subprocess("agy", "p", str(tmp_path), tmp_path / "agy.log") == 0
     assert "ORG_DB_URL" not in seen["env"]
     assert seen["env"].get("PATH") == os.environ["PATH"]
+
+
+# --- the rest of the post-G1 sweep: every other ledger caller that runs from
+# a shell without ORG_DB_URL (session-kill's status record, --resume's uuid
+# lookup, session-restart, the DEV tab colours) ---------------------------------
+
+LEDGER_TOOLS = r"(?:terminal_restart|register_cxo|session_reconcile|session_status|itermtab)\b"
+
+
+@pytest.mark.parametrize("rel", [
+    "scripts/session-restart.sh", "scripts/spawn-cto.sh", "scripts/spawn-cxo.sh",
+    "scripts/session-kill.sh", "scripts/tab-title.sh",
+])
+def test_the_other_ledger_callers_go_through_org_python(rel):
+    src = (ROOT / rel).read_text()
+    assert re.findall(r"python3 -m tools\." + LEDGER_TOOLS, src) == [], rel
+    assert "scripts/hub/org-python.sh -m tools." in src, rel
+
+
+def test_the_session_list_and_workdir_skills_go_through_org_python():
+    session_list = (ROOT / ".claude/skills/session-list/SKILL.md").read_text()
+    assert re.findall(r"^python3 \S*scripts/session_list\.py", session_list, re.M) == []
+    assert "scripts/hub/org-python.sh /Users/gob/MoonieXHQ/Agents/Core/scripts/session_list.py" in session_list
+    disk = (ROOT / ".claude/skills/ALL_Rules_DiskHygiene/SKILL.md").read_text()
+    assert "`python tools/workdir.py" not in disk
+    assert "`bash scripts/hub/org-python.sh tools/workdir.py orphans --green`" in disk
+
+
+def test_the_worker_stop_hook_reaches_the_ledger_through_org_python(tmp_path):
+    from runners import worker_init
+
+    worker_init._write_dev_settings(str(tmp_path))
+    cfg = json.loads((tmp_path / ".claude" / "settings.local.json").read_text())
+    (stop,) = [h["command"] for g in cfg["hooks"]["Stop"] for h in g["hooks"]]
+    assert stop == f"bash {worker_init.ORG_PYTHON_SH} {worker_init.HOOK_SCRIPT}"
+    assert worker_init.ORG_PYTHON_SH.is_file()
+
+
+def test_model_stats_reads_through_lib_db_not_a_raw_sqlite_open(tmp_path):
+    from lib import db as db_lib
+    from tools import model_stats
+
+    tombstone = tmp_path / "state" / "tasks.db"
+    tombstone.mkdir(parents=True)
+    with pytest.raises(db_lib.ArchivedDB):
+        model_stats.compute_stats(tombstone)
+
+
+def test_model_stats_sql_and_rows_fit_the_postgres_backend(monkeypatch):
+    from contextlib import contextmanager
+    from decimal import Decimal
+
+    from lib.db_pg import Row
+    from tools import model_stats
+
+    seen: dict = {}
+
+    class _Conn:
+        def execute(self, sql, params=()):
+            seen["sql"], seen["params"] = sql, list(params)
+            cols = ["runner", "role", "n", "ok", "bad", "it", "score"]
+            vals = ("claude", "*", 3, 2, 1, Decimal("1.5"), Decimal("0.444444444"))
+
+            class _Cur:
+                def fetchall(self_inner):
+                    return [Row(cols, vals)]
+            return _Cur()
+
+    @contextmanager
+    def fake_get_conn(**kw):
+        seen["kw"] = kw
+        yield _Conn()
+
+    monkeypatch.setattr(model_stats.db_lib, "get_conn", fake_get_conn)
+    (stat,) = model_stats.compute_stats("ignored.db").values()
+    assert stat == model_stats.RunnerStat("claude", "*", 3, 2, 1, 1.5, 0.4444)
+    assert isinstance(stat.mean_iteration, float) and isinstance(stat.score, float)
+    assert "SUM(status" not in seen["sql"]  # Postgres has no sum(boolean)
+    assert "CAST(? AS TEXT)" in seen["sql"]
+    assert seen["kw"]["readonly"] is True

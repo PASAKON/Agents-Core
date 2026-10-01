@@ -84,13 +84,13 @@ case "${ARGS[0]:-}" in
     if [ -f "$RESUME_UUID_FILE" ]; then
       RESUME_TARGET="$(tr -d '[:space:]' <"$RESUME_UUID_FILE")"
     else
-      RESUME_TARGET="$(cd "$ROOT" && python3 -m tools.session_status resume \
+      RESUME_TARGET="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.session_status resume \
         --role "$ROLE" --session-id "$RESUME_ID" 2>/dev/null || true)"
     fi
     if ! [[ "$RESUME_TARGET" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
       echo "refuse to resume $ROLE-$RESUME_ID: no resumable UUID found." >&2
       echo "  checked: $RESUME_UUID_FILE" >&2
-      echo "  checked: c_level_sessions.resume_uuid (role=$ROLE, session_id=$RESUME_ID) in $ROOT/state/tasks.db" >&2
+      echo "  checked: c_level_sessions.resume_uuid (role=$ROLE, session_id=$RESUME_ID) in the task ledger" >&2
       echo "  a short id is not a valid 'claude -r' target — refusing rather than silently opening a new session." >&2
       exit 1
     fi

@@ -47,7 +47,7 @@ SID="${NAME#*-}"
 FORCE_ARGS=()
 [ "$FORCE" = "1" ] && FORCE_ARGS=(--force)
 CHECK_RC=0
-CHECK_MSG="$(cd "$ROOT" && python3 -m tools.terminal_restart check \
+CHECK_MSG="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart check \
     --name "$NAME" --locks-dir "$LOCKS_DIR" ${FORCE_ARGS[@]+"${FORCE_ARGS[@]}"})" || CHECK_RC=$?
 if [ -n "$CHECK_MSG" ]; then
   echo "session-restart: $CHECK_MSG" >&2
@@ -62,7 +62,7 @@ fi
 # capture must survive that regardless.
 CAPTURE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/session-restart-XXXXXX")"
 CAPTURE_FILE="$CAPTURE_DIR/$NAME.json"
-( cd "$ROOT" && python3 -m tools.terminal_restart capture \
+( cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart capture \
     --name "$NAME" --locks-dir "$LOCKS_DIR" --dest "$CAPTURE_FILE" ) >/dev/null
 UUID="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['uuid'])" "$CAPTURE_FILE")"
 echo "session-restart: captured identity for '$NAME' -> $CAPTURE_FILE (uuid=$UUID)"
@@ -107,7 +107,7 @@ if [ "$CURRENT" = "$NAME" ]; then
     $SPAWN_CMD
     sleep $VERIFY_DELAY
     cd '$ROOT'
-    if ! python3 -m tools.terminal_restart verify --name '$NAME' --locks-dir '$LOCKS_DIR' --delay 0 >>'$LOG_FILE' 2>&1; then
+    if ! bash '$ROOT/scripts/hub/org-python.sh' -m tools.terminal_restart verify --name '$NAME' --locks-dir '$LOCKS_DIR' --delay 0 >>'$LOG_FILE' 2>&1; then
       {
         echo \"\$(date -u +%FT%TZ) session-restart: VERIFY FAILED after rebuild of '$NAME'\"
         echo \"\$(date -u +%FT%TZ) session-restart: resume by hand: bash scripts/spawn-cto.sh --resume $SID  (uuid: $UUID)\"
@@ -125,7 +125,7 @@ eval "$SPAWN_CMD"
 
 echo "session-restart: waiting ${VERIFY_DELAY}s to verify..."
 VERIFY_RC=0
-VERIFY_OUT="$(cd "$ROOT" && python3 -m tools.terminal_restart verify \
+VERIFY_OUT="$(cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.terminal_restart verify \
     --name "$NAME" --locks-dir "$LOCKS_DIR" --delay "$VERIFY_DELAY")" || VERIFY_RC=$?
 echo "$VERIFY_OUT"
 if [ "$VERIFY_RC" -ne 0 ]; then
