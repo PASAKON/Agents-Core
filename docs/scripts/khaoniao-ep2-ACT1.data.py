@@ -109,13 +109,13 @@ _META = {
  1: (10, "Low shot at floor level from the front-left, looking into the shadowy hollow under the sofa: "
      "the small dog lies flat in the shaft of light with her head toward screen-right in side profile, so "
      "her whole face and moving mouth are visible from the first frame; she looks up and to the right at "
-     "a pair of slippered feet passing at the top-right edge, and whispers to herself; she never looks at "
-     "the camera",
+     "a pair of slippered feet passing at the top-right edge and says her line in a low, hushed voice; she "
+     "never looks at the camera",
      ["mimi_d"], "under", T_DAY,
      "the small dog, panicking, trembling from nose to tail with her ears flat, lies pressed against the "
      "floor under the sofa with a soft pink bath towel clamped between her front paws, her eyes darting up "
      "and to the right at the slippered feet that shuffle past and away at the top-right edge, and she "
-     "whispers the whole line to herself, tucking her chin down and shrinking further back into the shadow "
+     "says the whole line in a low, hushed voice, tucking her chin down and shrinking further back into the shadow "
      "on the last words", ["nosubs", "feetonly"]),
 
  2: (10, "Medium shot in the kitchen from the front at chest height: the woman stands at the counter at "
@@ -178,7 +178,7 @@ _META = {
      "her eyes up and to the right at the slippered feet planted at the top-right edge, and she speaks "
      "up to them; she never looks at the camera",
      ["mimi_d"], "under", T_DAY,
-     "the small dog, torn and whispering, lies under the sofa with a soft pink bath towel between her front "
+     "the small dog, torn and hushed, lies under the sofa with a soft pink bath towel between her front "
      "paws, her tail thumping the floor behind her, her eyes shining up at the slippered feet planted at the "
      "top-right edge while she speaks up to them, ears flat, her whole body leaning toward the feet and "
      "then shrinking back", ["nosubs", "feetonly"]),
@@ -187,7 +187,7 @@ _META = {
      "his chair toward screen-right in three-quarter profile with his eyes on the woman, who sits on the sofa "
      "at screen-right facing screen-left toward him; he talks to her, whispering",
      ["bro", "mom_h"], "living", T_DAY,
-     "the stocky man in the navy blazer, irritated and whispering, clamps one hand over the laptop's "
+     "the stocky man in the navy blazer, irritated and speaking low, clamps one hand over the laptop's "
      "microphone and leans toward the woman while he speaks, jabbing a finger toward the floor under the "
      "sofa and shaking his head in disapproval; the woman with the wooden ladle in her bun, sitting on the "
      "sofa, listens with a puzzled frown and her hands in her lap, looking at him", ["nosubs", "nomimi"]),
