@@ -323,13 +323,13 @@ Two-shot, the man in the cap passing by the stall, the woman covering the phone'
 
 ### SHOT 42 · 2:24–2:32 · 8s · Close-up, the woman turning her back to the aisle, phone pressed hard to her ear
 **ATTACH** 1) `@sri__face`→REF_0 · 2) `@market__stall`→REF_1 · 3) `@sri__apron`→REF_2
-**บทพูด** sri__face `"ห้ามวางสาย ห้ามบอกใคร แม้แต่ลูกชาย ลูกจะโดนสอบด้วยเหรอคะ"` — hushed, terrified whisper, glancing back in desperate motherly protection
+**บทพูด** sri__face `"ไม่ให้บอกใครเลยเหรอคะ แม้แต่ลูกชาย ลูกจะเดือดร้อนไปด้วยเหรอคะ"` — hushed, terrified whisper, glancing back in desperate motherly protection
 ```
 Use <IMAGE_REF_0> as the character reference for sri__face. Use <IMAGE_REF_1> as the location reference for market__stall. Use <IMAGE_REF_2> as the wardrobe reference: The woman in the papaya-orange apron wears exactly this outfit.
 
 In an open-air daytime som-tam stall in a Thai fresh market: a wooden counter under a large orange canvas umbrella, a large brown glazed clay mortar with a wooden pestle, baskets of green papayas, chilies and limes, an insulated red ice box, red plastic stools, adjacent stalls empty with bare tables <IMAGE_REF_1>, the mid-afternoon, hot bright afternoon sun, three o'clock. a hardworking Thai woman of forty-eight with sun-kissed golden-tan skin, plump full cheeks, sharp dark eyes with fine laugh lines at the corners, dark black hair tied back in a neat low bun wrapped with an orange floral cloth band, wearing no glasses, wearing a papaya-orange vendor apron with a deep front pocket over a plain cream short-sleeved cotton blouse with sleeves rolled up, a dark floral tube skirt and worn rubber flip-flops <IMAGE_REF_0> — the woman in the papaya-orange apron, hunched over with her back turned to the aisle, drops her voice to a frantic terrified whisper while repeating the caller's harsh condition; the whole time she talks, her anxious gaze darts constantly toward the market entrance where her son might appear; the instant she finishes, she squeezes her eyes shut in agonized surrender; the heavy orange fabric umbrella flaps against its metal ribs in the hot breeze.
 
-The woman in the papaya-orange apron <IMAGE_REF_0> speaks standard Central Thai with an everyday market vendor cadence, in the warm mid-pitched voice of a Thai woman of forty-eight with a slight vendor huskiness, hushed, terrified whisper, glancing back in desperate motherly protection, and says: "ห้ามวางสาย ห้ามบอกใคร แม้แต่ลูกชาย ลูกจะโดนสอบด้วยเหรอคะ"
+The woman in the papaya-orange apron <IMAGE_REF_0> speaks standard Central Thai with an everyday market vendor cadence, in the warm mid-pitched voice of a Thai woman of forty-eight with a slight vendor huskiness, hushed, terrified whisper, glancing back in desperate motherly protection, and says: "ไม่ให้บอกใครเลยเหรอคะ แม้แต่ลูกชาย ลูกจะเดือดร้อนไปด้วยเหรอคะ"
 
 The face of whoever is speaking stays in frame for the whole line.
 This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
@@ -403,13 +403,13 @@ Close-up, the woman holding the phone far from her face and squinting hard, the 
 
 ### SHOT 47 · 3:04–3:12 · 8s · Close-up, the woman's thumb hovering, tears welling
 **ATTACH** 1) `@sri__face`→REF_0 · 2) `@market__stall`→REF_1 · 3) `@sri__apron`→REF_2
-**บทพูด** sri__face `"แปดหมื่นนี่ค่าเทอมลูกฉันทั้งหมดเลยนะคะ พรุ่งนี้เช้าคืนครบแน่นะคะ"` — heartbroken hesitation, tears flooding her face, begging for mercy
+**บทพูด** sri__face `"อันนี้ค่าเทอมลูกฉันทั้งหมดเลยนะคะ พรุ่งนี้เช้าได้คืนครบแน่นะคะ"` — heartbroken hesitation, tears flooding her face, begging for mercy
 ```
 Use <IMAGE_REF_0> as the character reference for sri__face. Use <IMAGE_REF_1> as the location reference for market__stall. Use <IMAGE_REF_2> as the wardrobe reference: The woman in the papaya-orange apron wears exactly this outfit.
 
 In an open-air daytime som-tam stall in a Thai fresh market: a wooden counter under a large orange canvas umbrella, a large brown glazed clay mortar with a wooden pestle, baskets of green papayas, chilies and limes, an insulated red ice box, red plastic stools, adjacent stalls empty with bare tables <IMAGE_REF_1>, the mid-afternoon, hot bright afternoon sun, three o'clock. a hardworking Thai woman of forty-eight with sun-kissed golden-tan skin, plump full cheeks, sharp dark eyes with fine laugh lines at the corners, dark black hair tied back in a neat low bun wrapped with an orange floral cloth band, wearing no glasses, wearing a papaya-orange vendor apron with a deep front pocket over a plain cream short-sleeved cotton blouse with sleeves rolled up, a dark floral tube skirt and worn rubber flip-flops <IMAGE_REF_0> — the woman in the papaya-orange apron, thumb trembling millimeters above the dark phone screen facing away from camera, weeps openly as she speaks of her son's future; the whole time she talks, huge tears stream down into her mouth and her chest heaves with agonizing hesitation; the instant she finishes her plea, she draws in a deep shuddering breath and steels herself for the sacrifice; a warm draft stirs the loose strands of hair around her bun.
 
-The woman in the papaya-orange apron <IMAGE_REF_0> speaks standard Central Thai with an everyday market vendor cadence, in the warm mid-pitched voice of a Thai woman of forty-eight with a slight vendor huskiness, heartbroken hesitation, tears flooding her face, begging for mercy, and says: "แปดหมื่นนี่ค่าเทอมลูกฉันทั้งหมดเลยนะคะ พรุ่งนี้เช้าคืนครบแน่นะคะ"
+The woman in the papaya-orange apron <IMAGE_REF_0> speaks standard Central Thai with an everyday market vendor cadence, in the warm mid-pitched voice of a Thai woman of forty-eight with a slight vendor huskiness, heartbroken hesitation, tears flooding her face, begging for mercy, and says: "อันนี้ค่าเทอมลูกฉันทั้งหมดเลยนะคะ พรุ่งนี้เช้าได้คืนครบแน่นะคะ"
 
 The face of whoever is speaking stays in frame for the whole line.
 This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
@@ -483,13 +483,13 @@ Close-up, the phone slipping from the woman's fingers onto the stall table. Cont
 
 ### SHOT 52 · 3:44–3:52 · 8s · Medium, the woman collapsing onto the red stool, hugging the empty clay mortar
 **ATTACH** 1) `@sri__face`→REF_0 · 2) `@market__stall`→REF_1 · 3) `@mortar_clay`→REF_2 · 4) `@sri__apron`→REF_3
-**บทพูด** sri__face `"แปดหมื่น ห้าปีที่ตำส้มตำ ค่าเทอมของต้น แม่ทำหายหมดแล้วลูก"` — broken, rocking back and forth in soundless, agonizing despair
+**บทพูด** sri__face `"ห้าปีที่ตำส้มตำเก็บไว้ ค่าเทอมของต้น แม่ทำหายหมดแล้วลูก"` — broken, rocking back and forth in soundless, agonizing despair
 ```
 Use <IMAGE_REF_0> as the character reference for sri__face. Use <IMAGE_REF_1> as the location reference for market__stall. Use <IMAGE_REF_2> as the character reference for mortar_clay. Use <IMAGE_REF_3> as the wardrobe reference: The woman in the papaya-orange apron wears exactly this outfit.
 
 In an open-air daytime som-tam stall in a Thai fresh market: a wooden counter under a large orange canvas umbrella, a large brown glazed clay mortar with a wooden pestle, baskets of green papayas, chilies and limes, an insulated red ice box, red plastic stools, adjacent stalls empty with bare tables <IMAGE_REF_1>, the mid-afternoon, hot bright afternoon sun, three o'clock. a hardworking Thai woman of forty-eight with sun-kissed golden-tan skin, plump full cheeks, sharp dark eyes with fine laugh lines at the corners, dark black hair tied back in a neat low bun wrapped with an orange floral cloth band, wearing no glasses, wearing a papaya-orange vendor apron with a deep front pocket over a plain cream short-sleeved cotton blouse with sleeves rolled up, a dark floral tube skirt and worn rubber flip-flops <IMAGE_REF_0> — the woman in the papaya-orange apron, completely broken and destroyed, collapses forward onto the red stool, wrapping both arms around the heavy clay mortar and rocking in soundless sobs while she speaks; the whole time she talks, her forehead presses hard against the rough clay rim, her back heaving with devastating grief; the instant she finishes her despairing wail, she buries her face into her apron; afternoon sun beats down relentlessly on the quiet stall.
 
-The woman in the papaya-orange apron <IMAGE_REF_0> speaks standard Central Thai with an everyday market vendor cadence, in the warm mid-pitched voice of a Thai woman of forty-eight with a slight vendor huskiness, broken, rocking back and forth in soundless, agonizing despair, and says: "แปดหมื่น ห้าปีที่ตำส้มตำ ค่าเทอมของต้น แม่ทำหายหมดแล้วลูก"
+The woman in the papaya-orange apron <IMAGE_REF_0> speaks standard Central Thai with an everyday market vendor cadence, in the warm mid-pitched voice of a Thai woman of forty-eight with a slight vendor huskiness, broken, rocking back and forth in soundless, agonizing despair, and says: "ห้าปีที่ตำส้มตำเก็บไว้ ค่าเทอมของต้น แม่ทำหายหมดแล้วลูก"
 
 The face of whoever is speaking stays in frame for the whole line.
 This is one single continuous take with no cuts: the camera never cuts away to a close-up of anyone, and stays on the same framing for the whole clip.
