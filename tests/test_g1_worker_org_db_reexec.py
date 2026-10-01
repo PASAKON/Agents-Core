@@ -310,3 +310,22 @@ def test_the_charter_commands_go_through_org_python(rel):
     src = (ROOT / rel).read_text()
     assert "python3 -m tools.session_charter" not in src, rel
     assert "scripts/hub/org-python.sh -m tools.session_charter" in src, rel
+
+
+def test_the_agy_child_never_gets_the_url(tmp_path, monkeypatch):
+    from runners import agy_local
+
+    seen: dict = {}
+
+    class _Done:
+        returncode = 0
+
+    def fake_run(cmd, **kw):
+        seen.update(kw)
+        return _Done()
+
+    monkeypatch.setattr(agy_local.subprocess, "run", fake_run)
+    monkeypatch.setenv("ORG_DB_URL", FAKE_URL)
+    assert agy_local.run_agy_subprocess("agy", "p", str(tmp_path), tmp_path / "agy.log") == 0
+    assert "ORG_DB_URL" not in seen["env"]
+    assert seen["env"].get("PATH") == os.environ["PATH"]

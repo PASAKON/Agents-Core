@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from lib import db
+from lib.worker_mcp_config import env_without_org_db
 
 ORG_PYTHON = str(Path(__file__).resolve().parents[1] / ".venv" / "bin" / "python")
 # Same pattern as tools/route._AGY_BROWSE_RE: the brief that routes a task to agy
@@ -115,6 +116,9 @@ def run_agy_subprocess(
             proc = subprocess.run(
                 cmd,
                 cwd=worktree,
+                # The hub URL stays with this process (it reports through
+                # lib.db); the agent's shell never gets it (task-1b8ef857).
+                env=env_without_org_db(dict(os.environ)),
                 stdin=subprocess.DEVNULL,
                 stdout=f,
                 stderr=subprocess.STDOUT,
