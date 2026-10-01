@@ -61,12 +61,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+from tools.bl_compose import frame_floor, load_generator_functions, load_script_line_map  # noqa: E402
 
 SSH_ALIAS = "mooniex-vps"
 CONTABO_FIXTURE_DIR = "/opt/MoonieXHQ/Work/bl-ab-ep57"
@@ -193,6 +196,132 @@ def cmd_fixture(args: argparse.Namespace) -> int:
 # a segment editor gets the same coordinate-math functions, never the human
 # editor's own answer for this episode.
 
+# ── per-episode values (EP58, task-ee30ba95) ────────────────────────────────────
+# The generator (build_cut.py/assemble.py from GENERATOR_BRANCH) was written for
+# EP57 and carries three EP57-only values: the avatar windows (lip_offset/
+# LIP_DUR/pick_lip), TOTAL_DUR, and the date on the brand bug. An episode work
+# dir that holds `offsets.json` (bl_tools.py offsets' own output) and
+# `episode.json` ({"episode": N, "date": "YYYY-MM-DD"}) gets its own values
+# written into the staged copies; a dir without them (EP57's) is staged exactly
+# as before.
+
+LIP_DUR_MARGIN = 0.05        # EP57's own LIP_DUR = video length - 0.05..0.08, on the 0.05 s grid
+LIP_DUR_TOLERANCE = 0.2      # check_lip_windows: a LIP_DUR further than this from its file is not this episode's
+THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+EP57_BRAND_BUG_DATE = '<div class="dt2">23 ก.ย. 69</div>'   # assemble.py's own hardcoded replacement
+
+
+def _video_duration(path: Path) -> float:
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                        "stream=duration", "-of", "csv=p=0", str(path)],
+                       capture_output=True, text=True, check=True)
+    return float(r.stdout.strip())
+
+
+def _decoded_audio_seconds(path: Path) -> float:
+    """What the decoder really delivers -- the clock the render plays -- not the container header's figure
+    (EP58's mp3 header says 95.7388 s, the decode is 95.7009 s)."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "s16le", "-ac", "1", "-ar", "8000", "-"],
+                         capture_output=True, check=True).stdout
+    return len(raw) / 2 / 8000
+
+
+def thai_short_date(iso: str) -> str:
+    """'2026-10-01' -> '1 ต.ค. 69' (the brand bug's format: day, month, Buddhist year mod 100)."""
+    y, m, d = (int(x) for x in iso.split("-"))
+    return f"{d} {THAI_MONTHS[m - 1]} {(y + 543) % 100:02d}"
+
+
+def episode_meta(episode_work_dir: Path) -> dict:
+    path = episode_work_dir / "episode.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def lip_layout(episode_work_dir: Path) -> dict | None:
+    """This episode's avatar windows, from bl_tools.py offsets' offsets.json (parts A/B/C -> lip_a/b/c) and the
+    length of the normalised media/lip_*.mp4. None when there is no offsets.json (EP57: keep build_cut.py's own)."""
+    offsets_path = episode_work_dir / "offsets.json"
+    if not offsets_path.is_file():
+        return None
+    offset: dict[str, float] = {}
+    dur: dict[str, float] = {}
+    for part in json.loads(offsets_path.read_text(encoding="utf-8")):
+        name = f"lip_{part['part'].lower()}"
+        if part.get("r", 1.0) < 0.9:
+            raise SystemExit(f"fixture-full refused: {offsets_path} matched part {part['part']} weakly "
+                             f"(r={part['r']}) -- bl_tools.py says do not seat it until a human confirms")
+        media = episode_work_dir / "media" / f"{name}.mp4"
+        if not media.is_file():
+            raise SystemExit(f"fixture-full refused: {offsets_path} names part {part['part']} but {media} is missing "
+                             f"-- LIP_DUR cannot be derived, and silently keeping EP57's windows is the bug this guards")
+        offset[name] = float(part["true_s"])
+        dur[name] = round(math.floor((_video_duration(media) - LIP_DUR_MARGIN) / 0.05 + 1e-6) * 0.05, 2)
+    total = round(frame_floor(_decoded_audio_seconds(episode_work_dir / "audio-hq.mp3")), 4)
+    return {"offset": offset, "dur": dur, "total": total}
+
+
+def _apply_lip_layout(source: str, layout: dict) -> str:
+    """Replace build_cut.py's lip_offset / LIP_DUR / pick_lip / TOTAL_DUR with this episode's own. pick_lip hands
+    a t0 to the latest take that starts at or before it; bl_compose.check_avatar_window then refuses a t0 that
+    runs past that take's end, naming every window."""
+    import ast
+    names = sorted(layout["offset"], key=lambda n: layout["offset"][n])
+    pick = "def pick_lip(t0):\n" + "".join(
+        f"    if t0 < {layout['offset'][nxt]!r}:\n        return {cur!r}\n" for cur, nxt in zip(names, names[1:]))
+    pick += f"    return {names[-1]!r}\n"
+    new = {
+        "lip_offset": ast.parse(f"def lip_offset(src):\n    return {layout['offset']!r}[src]\n").body[0],
+        "LIP_DUR": ast.parse(f"LIP_DUR = {layout['dur']!r}").body[0],
+        "pick_lip": ast.parse(pick).body[0],
+        "TOTAL_DUR": ast.parse(f"TOTAL_DUR = {layout['total']!r}").body[0],
+    }
+    tree = ast.parse(source)
+    done = set()
+    for i, node in enumerate(tree.body):
+        key = node.name if isinstance(node, ast.FunctionDef) else next(
+            (t.id for t in getattr(node, "targets", []) if isinstance(t, ast.Name)), None)
+        if key in new:
+            tree.body[i] = new[key]
+            done.add(key)
+    if done != set(new):
+        raise SystemExit(f"build_cut.py has no top-level {sorted(set(new) - done)} to rewrite -- the generator changed")
+    ast.fix_missing_locations(tree)
+    return ast.unparse(tree)
+
+
+def _apply_episode_date(source: str, iso_date: str) -> str:
+    if source.count(EP57_BRAND_BUG_DATE) != 1:
+        raise SystemExit(f"assemble.py no longer carries exactly one {EP57_BRAND_BUG_DATE!r} -- the generator changed")
+    return source.replace(EP57_BRAND_BUG_DATE, f'<div class="dt2">{thai_short_date(iso_date)}</div>')
+
+
+def check_broll_coverage(dest: Path) -> list[str]:
+    """bl_compose defaults a bare KIN beat to media/broll/S{row:02d}.mp4. A scene the generator never finished (EP58:
+    S08, S28 -- Drive manifest scenes.status = partial, 38/40) leaves that default pointing at nothing."""
+    have = {p.name for p in (dest / "media" / "broll").glob("S*.mp4")}
+    if not have:
+        return []
+    absent = sorted((n, tag) for tag, n in load_script_line_map(dest).items() if f"S{n:02d}.mp4" not in have)
+    return [f"WARNING: media/broll has no S{n:02d}.mp4 ({tag}) -- a KIN beat on that line must name its own "
+            f"`broll` (or opt out with a falsy one); the default plate would not exist" for n, tag in absent]
+
+
+def check_lip_windows(dest: Path) -> list[str]:
+    """Warnings when the staged build_cut.py's LIP_DUR does not fit the staged media/lip_*.mp4 -- the signature of
+    another episode's windows (EP57's) sitting on this episode's lipsync parts."""
+    warnings = []
+    for name, want in sorted((load_generator_functions(dest).get("LIP_DUR") or {}).items()):
+        media = dest / "media" / f"{name}.mp4"
+        if not media.is_file():
+            warnings.append(f"WARNING: build_cut.py has a window for {name} but media/{name}.mp4 is not staged")
+            continue
+        have = _video_duration(media)
+        if abs(have - want) > LIP_DUR_TOLERANCE:
+            warnings.append(f"WARNING: build_cut.py says {name} lasts {want:g}s but media/{name}.mp4 is {have:.2f}s "
+                            f"-- these windows are not this episode's (add offsets.json + episode.json to the work dir)")
+    return warnings
+
+
 def build_full_generator(episode_work_dir: Path, dest: Path, force: bool = False) -> Path:
     """Build the generator into a staging dir, then swap it in.
 
@@ -226,16 +355,26 @@ def _build_generator_into(episode_work_dir: Path, dest: Path) -> Path:
     import shutil
     (dest / "media").mkdir(parents=True)
 
+    layout = lip_layout(episode_work_dir)
+    date = episode_meta(episode_work_dir).get("date")
     for name in ("build_cut.py", "assemble.py"):
         content = sh(["git", "show", f"{GENERATOR_BRANCH}:{GENERATOR_BRANCH_PATH}/{name}"],
                      cwd=ROOT, capture_output=True, text=True).stdout
         if name == "build_cut.py":
             content = _redact_ground_truth(content)
+            if layout:
+                content = _apply_lip_layout(content, layout)
+        elif date:
+            content = _apply_episode_date(content, date)
         (dest / name).write_text(content, encoding="utf-8")
 
     for name in ("index.html", "hyperframes.json", "package.json"):
         shutil.copy2(SKILL_TEMPLATE / name, dest / name)
     shutil.copytree(SKILL_TEMPLATE / "assets", dest / "assets")
+    # real/REAL_MANIFEST.json (+ shots.yaml): SKILL.md 5a says read it before placing anything; the brief's Jev
+    # command points at generator/real/REAL_MANIFEST.json. The stills themselves stay in media/real.
+    if (episode_work_dir / "real").is_dir():
+        shutil.copytree(episode_work_dir / "real", dest / "real")
 
     media_src = episode_work_dir / "media"
     for sub in ("real", "third-party", "broll", "matte"):
@@ -267,7 +406,7 @@ def _build_generator_into(episode_work_dir: Path, dest: Path) -> Path:
 
 def cmd_fixture_full(args: argparse.Namespace) -> int:
     episode_work_dir = Path(args.episode_work_dir).expanduser()
-    dest = Path(args.dest).expanduser()
+    dest = Path(args.dest).expanduser() if args.dest else episode_work_dir / FULL_FIXTURE_DIR_NAME
     build_full_generator(episode_work_dir, dest, force=getattr(args, "force", False))
 
     expected_mattes = {"lip_a-matte.webm", "lip_b-matte.webm", "lip_c-matte.webm"}
@@ -277,6 +416,13 @@ def cmd_fixture_full(args: argparse.Namespace) -> int:
     if missing:
         print(f"WARNING: fixture-full is missing matte(s) {missing} -- a COMP-mode beat on that "
               f"lipsync part needs a fresh `bl_tools.py matte` run before it can render (§6d)")
+
+    funcs = load_generator_functions(dest)
+    windows = ", ".join(f"{n} [{funcs['lip_offset'](n):g}, {funcs['lip_offset'](n) + d:g})"
+                        for n, d in sorted(funcs["LIP_DUR"].items(), key=lambda kv: funcs["lip_offset"](kv[0])))
+    print(f"avatar windows bl_compose will enforce: {windows}")
+    for warning in check_lip_windows(dest) + check_broll_coverage(dest):
+        print(warning)
 
     r = sh(["du", "-sh", str(dest)], capture_output=True, text=True)
     print(r.stdout.strip())
@@ -307,8 +453,34 @@ def _brief_body(path: Path) -> str:
     return text[text.index(marker):]
 
 
+def _episode_brief(body: str, work_dir: Path) -> str:
+    """BRIEF-arm1.md is written for EP57. For another episode, swap in that episode's number, paths, t-max and the
+    avatar windows exactly as its staged generator enforces them -- and fail loudly if the brief stopped
+    containing one of the EP57 strings, instead of printing EP57 text for EP58."""
+    ep = episode_meta(work_dir).get("episode")
+    if ep is None:
+        raise SystemExit(f"{work_dir}/episode.json with {{\"episode\": N}} is required for a non-EP57 brief")
+    funcs = load_generator_functions(work_dir / FULL_FIXTURE_DIR_NAME)
+    t_max = frame_floor(_decoded_audio_seconds(work_dir / "audio-hq.mp3"))
+    lips = sorted(funcs["LIP_DUR"].items(), key=lambda kv: funcs["lip_offset"](kv[0]))
+    ep57_windows = ["[0, 14.9)", "[68.3, 82.95)", "[137.16, 152.51)"]
+    subs = [("episode 57", f"episode {ep}"), ("153.0333", f"{t_max:g}"),
+            (str(FULL_EPISODE_WORK_DIR), str(work_dir)), ("prototypes/bl-split-ep57/", f"prototypes/bl-ep{ep}/")]
+    subs += [(old, f"[{funcs['lip_offset'](n):g}, {funcs['lip_offset'](n) + d:g})")
+             for old, (n, d) in zip(ep57_windows, lips)]
+    for old, new in subs:
+        if old not in body:
+            raise SystemExit(f"BRIEF-arm1.md no longer contains {old!r} -- update _episode_brief")
+        body = body.replace(old, new)
+    return body
+
+
 def cmd_spawn_full(args: argparse.Namespace) -> int:
-    print(_brief_body(BRIEF_ARM1_PATH))
+    work_dir = getattr(args, "episode_work_dir", None)
+    if work_dir and Path(work_dir).expanduser() != FULL_EPISODE_WORK_DIR:
+        print(_episode_brief(_brief_body(BRIEF_ARM1_PATH), Path(work_dir).expanduser()))
+    else:
+        print(_brief_body(BRIEF_ARM1_PATH))
     print("--- DRY RUN: BRIEF-arm1.md printed verbatim, NOT spawned. "
           "Task rule: spawn-full never calls delegate_task. ---")
     return 0
@@ -511,13 +683,17 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("fixture-full", help="stage the FULL 153s EP57 fixture, local to this box")
     p.add_argument("--episode-work-dir", default=str(FULL_EPISODE_WORK_DIR),
                     help="dir holding audio-hq.mp3/SCRIPT.tsv/timings.tsv/media/ (default: the real box path)")
-    p.add_argument("--dest", default=str(FULL_EPISODE_WORK_DIR / FULL_FIXTURE_DIR_NAME),
-                    help="where to stage the generator (default: <episode-work-dir>/generator)")
+    p.add_argument("--dest", default=None,
+                    help="where to stage the generator (default: <episode-work-dir>/generator -- never another "
+                         "episode's, so --episode-work-dir alone cannot rebuild EP57's generator under EP58's media)")
     p.add_argument("--force", action="store_true",
                     help="allow the rebuild to delete files in --dest that it does not recreate")
     p.set_defaults(func=cmd_fixture_full)
 
     p = sub.add_parser("spawn-full", help="print (never spawn) Arm 1's whole-episode brief (BRIEF-arm1.md)")
+    p.add_argument("--episode-work-dir", default=None,
+                    help="another episode's work dir (needs episode.json + a staged generator/): swaps its number, "
+                         "paths, t-max and avatar windows into the EP57 brief (default: the EP57 brief as written)")
     p.set_defaults(func=cmd_spawn_full)
 
     p = sub.add_parser("spawn-seg", help="print (never spawn) one segment editor's brief (BRIEF-seg.md)")
