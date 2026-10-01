@@ -80,6 +80,15 @@ def _no_real_org_db_env(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _disk_watch_off(monkeypatch):
+    """runners/watchdog.scan_once runs tools/disk_watch.check(), which on a
+    full disk reclaims real worktrees and ships a letter to SomPong over ssh.
+    No test may do either; tests/test_disk_watch.py turns it back on against
+    injected free space, notify and reclaim."""
+    monkeypatch.setenv("ORG_DISK_WATCH", "off")
+
+
+@pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
     quota read is an ssh to Contabo plus the agy CLI. No test may reach

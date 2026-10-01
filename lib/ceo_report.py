@@ -303,6 +303,25 @@ def _deliver_reply_letter(host: str, body: str, from_role: str,
     return {"ok": True}
 
 
+def notify_ceo(body: str, from_role: str, from_session_id: str, *,
+               host: str | None = None) -> dict:
+    """One letter to SomPong (who forwards it to the CEO on Telegram), with no
+    ceo_orders row behind it -- for a machine-raised alert such as
+    tools/disk_watch.py's. Same delivery as a report reply: a local mailbox
+    write on Contabo, the SSH shipment anywhere else. `host` defaults to
+    this machine's config/hosts.yaml key. Never raises."""
+    if host is None:
+        try:
+            from lib.config import self_host
+            host = self_host()
+        except Exception:  # noqa: BLE001 -- unknown host: ship over SSH
+            host = "unknown"
+    try:
+        return _deliver_reply_letter(host, body, from_role, from_session_id)
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "reason": str(e)}
+
+
 # ---------------------------------------------------------------------------
 # report_to_ceo -- the tool
 # ---------------------------------------------------------------------------
