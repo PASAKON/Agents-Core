@@ -274,6 +274,22 @@ def test_drive_leg_state_db_org_db_url_unset_is_a_file_copy(tmp_path, monkeypatc
     assert gzip.decompress(captured["raw_bytes"])[:16] == b"SQLite format 3\x00"
 
 
+
+def test_drive_leg_state_db_on_the_tombstone_fails_loudly(tmp_path, monkeypatch):
+    """After the hub cutover state/tasks.db is a directory. Without ORG_DB_URL the
+    leg printed "not found, skipping" every night and backed up nothing."""
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    tomb = tmp_path / "tasks.db"
+    tomb.mkdir()
+    captured: dict = {}
+    _fake_put(monkeypatch, captured)
+    cfg = tmp_path / "cfg"
+    (cfg / "logs").mkdir(parents=True)
+
+    with pytest.raises(drive_leg.DriveLegError, match="tombstone"):
+        drive_leg.state_db(config_dir=cfg, db_path=tomb)
+    assert not captured
+
 def test_drive_leg_state_db_org_db_url_set_calls_pg_dump(tmp_path, monkeypatch):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -311,3 +327,35 @@ def test_drive_leg_state_db_org_db_url_set_missing_pg_dump_fails_loudly(tmp_path
 
     with pytest.raises(drive_leg.DriveLegError, match="pg_dump is not on PATH"):
         drive_leg.state_db(config_dir=cfg)
+
+
+
+def test_drive_leg_state_db_pg_backs_up_once_per_date(tmp_path, monkeypatch):
+    """The leg runs nightly; a second run on the same date would rcat the same
+    name and replace that day's upload in place, so it skips before pg_dump."""
+    import time
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    stub = bin_dir / "pg_dump"
+    runs = tmp_path / "runs"
+    # a new dump each run, so the unchanged-sha skip never answers for the date check
+    stub.write_text(f"#!/bin/sh\necho run >> {runs}\necho \"-- dump $(wc -l < {runs})\"\n")
+    stub.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ.get('PATH', '')}")
+    monkeypatch.setenv("ORG_DB_URL", "postgresql://fake-host/org")
+    captured: dict = {}
+    _fake_put(monkeypatch, captured)
+    cfg = tmp_path / "cfg"
+    (cfg / "logs").mkdir(parents=True)
+    noon = time.mktime((2026, 10, 2, 12, 0, 0, 0, 0, -1))
+
+    first = drive_leg.state_db(config_dir=cfg, now=noon)
+    second = drive_leg.state_db(config_dir=cfg, now=noon + 3600)
+    next_day = drive_leg.state_db(config_dir=cfg, now=noon + 86400)
+
+    assert not first.get("skipped")
+    assert second["skipped"] and second["reason"] == "already backed up today"
+    assert second["drive"].endswith("tasks-2026-10-02.sql.gz")
+    assert not next_day.get("skipped")
+    assert runs.read_text().count("run") == 2
