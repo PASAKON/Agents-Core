@@ -22,11 +22,16 @@ or the manifest points at them.
 
 ## Length
 
-- 40 lines, 1,388 non-space spoken characters (1,417 with spaces).
-- Whole-track forecast at 13.2 to 14.7 chars/s: **94.4 to 105.2 s**. Speech-only at 16.6
-  chars/s would be 83.6 s, which is not the track length (breaths between 40 lines).
-- This sits at the top of the 90 to 100 s aim. If the CMO wants it inside 100 s the lines
-  to trim first are MAIN-13, SUMMARY-7, SUMMARY-8 (45 chars each, the longest three).
+- v2 (CMO length correction: 70 to 85 s of speech, about 950 to 1,200 characters, from the
+  28-post Studio export; posts over 120 s have a lifetime-view median of 381 vs 1,805 for <=70 s).
+- 40 lines, 1,125 non-space spoken characters (1,151 with spaces). Shortest line 20, longest 34,
+  average 28.1. All 40 tags kept, same shot mapping, same on-screen evidence as v1.
+- Whole-track forecast at 13.2 to 14.7 chars/s: **76.5 to 85.2 s**. Speech-only at 16.6
+  chars/s would be 67.8 s, which is not the track length (breaths between 40 lines).
+- v1 was 1,388 characters (94.4 to 105.2 s). Lines were tightened, none dropped. Facts kept:
+  43 complaints, 3-week wait, 1 Oct check, two WikiFX profiles, 2023 survey, Belize headline.
+  Dropped for length only: "ฝากเข้าได้" in PATTERN-2 and "ส่วนตัว" in MAIN-10.
+- The hook is not built on "90% search traffic" (28-day figure only).
 - `tools/bl_checker.py` cannot check a script. It takes `--video --beats`, so it needs a
   rendered MP4 plus a beats JSON. Not run. The structure was checked by hand: 40 unique
   tags, 4/4/5/13/5/9 per section, one idea per line, no em dash, no crude words, no link.
