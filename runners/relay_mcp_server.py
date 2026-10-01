@@ -102,6 +102,7 @@ from mcp.server.fastmcp import FastMCP
 
 from lib import config, link_reader, mailbox, mesh, video_grab
 from lib.logger import get_logger
+from lib.roles import c_level_roles
 from tools import org_inspector, tmux_session
 from tools.send_to_cxo import Identity, _active_session_id, attempt_wake, authorize
 import video_to_drive  # noqa: E402 -- task-c7d455aa D5, see sys.path insert above
@@ -111,9 +112,11 @@ mcp = FastMCP("relay")
 
 # ---------------------------------------------------------------------------
 # Known targets. Never derived from caller input -- an unknown role/host is
-# always rejected, never guessed or passed through.
+# always rejected, never guessed or passed through. The roles come from the
+# repo's own policies/agents.yaml `c_level` (lib/roles.py), not a copy here:
+# cto, cmo, cgo, cfo, coo today.
 # ---------------------------------------------------------------------------
-C_LEVEL_ROLES = ("cto", "cmo", "cgo", "cfo")
+C_LEVEL_ROLES = c_level_roles()
 HOSTS = ("contabo", "mac")
 
 # task-81d39324 (Org Mesh W2.5) -- with ORG_MESH_DISPATCH on (lib/mesh.enabled()),
@@ -240,8 +243,8 @@ TARGET_SESSION_ID_RE = re.compile(r"^[0-9a-fA-F]{6,64}$")
 # task-2a135187 D2 -- enumerated history modes, same contract as
 # runners/mac_agent.py's HISTORY_MODES (kept as a second copy, not an
 # import: this file is Contabo's own surface and mac_agent.py is the
-# Mac-side consumer of the queue this file writes into -- C_LEVEL_ROLES
-# above is already duplicated the same way for the same reason). An
+# Mac-side consumer of the queue this file writes into; C_LEVEL_ROLES is the
+# exception, both files read the org roster from policies/agents.yaml). An
 # unknown mode fails the call, never falls through to org_inspector.
 HISTORY_MODES = ("index", "read")
 
@@ -804,7 +807,7 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
                       target_session_id: str | None = None) -> str:
     """Queue or deliver an order to a C-level session, on the CEO's behalf.
 
-    `target_role` must be one of cto/cmo/cgo/cfo -- anything else is
+    `target_role` must be one of cto/cmo/cgo/cfo/coo -- anything else is
     rejected. `message` is free text (a message, never a shell command or
     key sequence) and is ALWAYS stored/delivered with the
     "[CEO via SomPong] " attribution prefix applied here, server-side --
@@ -1224,10 +1227,10 @@ def _spawn_c_level_mesh(role: str, host: str, resume_session_id: str | None) -> 
 @mcp.tool()
 def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) -> str:
     """Start a C-level session, on the CEO's behalf -- equivalent in
-    effect to the CEO running `/spawn-cto` (or the cmo/cgo/cfo
+    effect to the CEO running `/spawn-cto` (or the cmo/cgo/cfo/coo
     equivalent) themselves, so every call is audited prominently.
 
-    `role` must be one of cto/cmo/cgo/cfo. `host` must be "contabo" or
+    `role` must be one of cto/cmo/cgo/cfo/coo. `host` must be "contabo" or
     "mac" -- anything else is rejected.
 
     host="contabo": starts a live tmux session running
@@ -1374,7 +1377,7 @@ def read_session(target_role: str, lines: int, host: str = "auto",
     Naming a host explicitly still means exactly that host and nothing else:
     "auto" is a better default, not an override of a caller who has decided.
 
-    `target_role` must be one of cto/cmo/cgo/cfo -- same validation every
+    `target_role` must be one of cto/cmo/cgo/cfo/coo -- same validation every
     other tool here uses. `lines` is how much of the tail to return,
     clamped to READ_SESSION_MAX_LINES (currently 200) -- a pane can hold
     thousands of scrollback lines and every one is paid for on the way back
@@ -1722,7 +1725,7 @@ def open_terminal(role: str, session_id: str | None = None) -> str:
     """Reattach an iTerm window on the Mac to an already-running C-level
     tmux session -- the fix for a closed tab, triggerable from the phone.
 
-    `role` must be one of cto/cmo/cgo/cfo. `session_id` optional -- when
+    `role` must be one of cto/cmo/cgo/cfo/coo. `session_id` optional -- when
     omitted, the Mac resolves the <role>-active pointer (the same
     primary-session resolution do_relay uses) and refuses rather than
     guessing if the pointer and tmux disagree. When given explicitly, that

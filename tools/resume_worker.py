@@ -31,7 +31,7 @@ def _spawn_resume_tab(role: str, task_id: str,
         f"cd '{ROOT}' && source .venv/bin/activate && "
         f"python -m runners.worker_resume {role} {task_id}"
     )
-    # Route back into the owning C-level's window (CTO/CFO/CMO/CGO, per
+    # Route back into the owning C-level's window (CTO/CFO/CMO/CGO/COO, per
     # owner_role) instead of always assuming CTO — same fix as
     # tools.delegate._build_spawn_applescript. Falls back to a generic
     # "CTO" match only when owner_role is unknown (legacy rows).
