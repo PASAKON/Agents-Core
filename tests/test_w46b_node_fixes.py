@@ -845,7 +845,7 @@ def test_the_unit_still_runs_the_root_leg_into_infisical_setup_and_then_setpriv(
     assert "/usr/bin/setpriv --reuid=org-join --regid=org-join --init-groups" in exec_start
     assert "-m tools.join_api --port 8791" in exec_start
     code = [ln for ln in _unit_lines() if not ln.startswith("#")]
-    assert "User=root" in code                       # the root leg reads /etc/infisical/*.env, then drops
+    assert not any(ln.startswith("User=") for ln in code)  # root by default; User=root + NNP + seccomp drops CAP_SETUID
     assert "NoNewPrivileges=yes" in code             # setpriv only drops privilege: this does not stop it
     # directives that would break the root leg or the dropped leg are not here
     for bad in ("ProtectSystem=full", "ReadOnlyPaths=/etc", "InaccessiblePaths", "CapabilityBoundingSet",
