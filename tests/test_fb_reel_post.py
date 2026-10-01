@@ -305,6 +305,29 @@ def test_body_contains_text_false_wrong_order():
     assert not frp.body_contains_text(body, "line one\nline two")
 
 
+# -- collapsed-comment fixture (CEO/CTO addendum 2026-09-29, EP4 live bug: ---
+# -- Facebook collapses a long comment to "<prefix>... ดูเพิ่มเติม" in its ---
+# -- own innerText, which broke the strict multi-line body_contains_text ----
+# -- match and would have let is_duplicate_comment double-post a re-run ----
+
+def test_body_contains_text_true_for_facebook_collapsed_comment():
+    comment = "ดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่นี่เลยครับ 👇 https://www.facebook.com/61594116376333/videos/1973008630041783/"
+    collapsed_body = "noise\nดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่... ดูเพิ่มเติม\nmore noise"
+    assert frp.body_contains_text(collapsed_body, comment)
+
+
+def test_body_contains_text_false_when_collapsed_prefix_does_not_match():
+    comment = "ดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่นี่เลยครับ"
+    collapsed_body = "noise\nข้อความอื่นที่ไม่เกี่ยวข้อง... ดูเพิ่มเติม\nmore noise"
+    assert not frp.body_contains_text(collapsed_body, comment)
+
+
+def test_is_duplicate_comment_true_for_facebook_collapsed_existing_comment():
+    comment = "ดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่นี่เลยครับ 👇 https://www.facebook.com/61594116376333/videos/1973008630041783/"
+    existing = ["other comment", "ดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่... ดูเพิ่มเติม"]
+    assert frp.is_duplicate_comment(comment, existing)
+
+
 def test_extract_test_marker_found():
     assert frp.extract_test_marker("ทดสอบระบบ [TEST-a1b2c3d4]") == "a1b2c3d4"
 

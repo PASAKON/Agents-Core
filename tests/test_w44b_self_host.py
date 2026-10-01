@@ -46,6 +46,10 @@ def node_home(monkeypatch, tmp_path):
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.delenv("ORG_HOST", raising=False)
     monkeypatch.setattr(config, "NODE_CONFIG_PATH", tmp_path / ".config" / "mooniex" / "node.yaml")
+    # W4.6a F12: a node.yaml naming a host hosts.yaml declares must agree with the checkout-path
+    # match. This checkout is on the Mac, Contabo or a CI box, so pin "matches no host": nothing
+    # here depends on where the suite runs. The disagreement cases are in test_w46a_hub_fixes.py.
+    monkeypatch.setattr(config, "_root_match_host", lambda: None)
     config.self_host.cache_clear()
     config.hosts.cache_clear()
     yield tmp_path
@@ -274,6 +278,12 @@ def test_config_and_hq_join_share_the_one_rule():
     ("darwin", "/" + "a" * 240),
     ("windows", "C:\\Users\\x"), ("windows", "C:/Users/x/"), ("windows", "C:\\"), ("windows", "C:"),
     ("windows", "/opt/x"), ("windows", "D:\\..\\x"), ("windows", "c:\\Users\\x\\\\"),
+    # W4.6a F14: the character set. Allowed: letters, digits, space . _ - / \ :
+    ("linux", "/opt/Moonie X_1.2-b"), ("windows", "C:\\Program Files\\Moonie_X-1.2"),
+    ("linux", "/opt/$HOME"), ("linux", "/opt/`id`"), ("linux", "/opt/a;b"), ("linux", "/opt/a'b"),
+    ("linux", '/opt/a"b'), ("linux", "/opt/a(b)"), ("linux", "/opt/a&b"), ("linux", "/opt/a|b"),
+    ("linux", "/opt/a b>c"), ("linux", "/opt/\u0e44\u0e17\u0e22"), ("linux", "/opt/a\u00e9"),
+    ("windows", "C:\\Users\\x (2)\\MoonieXHQ"), ("windows", "C:\\Users\\x~1"),
 ])
 def test_node_hq_root_agrees_with_what_hq_join_accepts(os_name, root):
     """lib/config cannot import tools/hq_join (it imports lib/config), so the hq_root

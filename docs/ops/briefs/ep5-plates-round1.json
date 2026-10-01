@@ -1,0 +1,107 @@
+[
+  {
+    "name": "sri__face",
+    "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai woman, 48 years old, an urban fresh-market som-tam food vendor. Warm and hardworking: sun-kissed golden-tan skin, plump full cheeks, sharp dark eyes with fine laugh lines at the corners, dark black hair tied back in a neat low bun wrapped with an orange floral cloth band. She wears no glasses. Head-and-shoulders portrait, facing the camera at a slight three-quarter angle, both eyes clearly visible, a natural relaxed neutral expression with the mouth closed. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person, not glamorous: natural skin texture with pores and sun marks. No text, no logos, no watermark."
+  },
+  {
+    "name": "sri__apron",
+    "continue": "sri__face",
+    "prompt": "Keep this exact same woman as in the portrait above: identical face, features, age, skin, and low bun with orange floral cloth band. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a papaya-orange vendor apron with a deep front pocket, worn over a plain cream short-sleeved cotton blouse with sleeves rolled up, a dark floral tube skirt (pha sin) to the knees, multiple thin rubber bands around her left wrist, worn rubber flip-flops. No glasses. No text, no letters, no logos, no brand marks anywhere. Nothing in the hands. No watermark."
+  },
+  {
+    "name": "sri__noapron",
+    "continue": "sri__apron",
+    "prompt": "Keep this exact same woman in exactly the same pose, same grey backdrop and light. The only change: the papaya-orange apron is removed. She wears the plain cream short-sleeved cotton blouse with rolled-up sleeves, the dark floral tube skirt, rubber bands around her wrist, worn rubber flip-flops. Vertical 2:3 image. No text, no letters, no logos anywhere. Nothing in the hands. No watermark."
+  },
+  {
+    "name": "ton__face",
+    "prompt": "Photorealistic character reference photo for a Thai television drama. A handsome Thai young man, 19 years old, with down-to-earth, rustic good looks, like a good-looking local neighborhood motorcycle mechanic, not a model: tall lean athletic build from mechanical labor, sun-tanned golden-brown skin, thick straight dark eyebrows, warm expressive dark almond-shaped eyes, short black hair with tapered sides, a strong jawline, a slight warm closed-mouth smile revealing the subtle hint of a small single canine snaggletooth. Natural skin texture with pores. One hand rests near his collarbone so fingers are visible: fingertips permanently stained with dark engine grease around the cuticles. Head-and-shoulders portrait, three-quarter angle, both eyes visible. Plain light-grey studio backdrop, soft even daylight, sharp focus, 85mm portrait lens. Vertical 2:3 image. No text, no logos, no watermark."
+  },
+  {
+    "name": "ton__work",
+    "continue": "ton__face",
+    "prompt": "Keep this exact same young man as in the portrait above: identical face, smile, features, age, skin, and grease-stained fingertips. Now show him FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a plain heather-grey crewneck T-shirt with subtle dark oil smudges near the hem, faded dark blue jeans, worn dark canvas sneakers, a folded red cotton work rag tucked into his back right pocket. No text, no letters, no logos, no brand marks, no badges anywhere. Nothing in the hands. No watermark."
+  },
+  {
+    "name": "boy__face",
+    "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai man, 28 years old, an arrogant neighborhood hustler: solid stocky build with a slight paunch, round face, undercut hairstyle neatly combed back with shiny wet-look pomade, gold-rimmed sunglasses pushed up on top of his head, a thick gold chain necklace (thick as a thumb) around his neck, gold wristwatch, cocky self-satisfied smirk with mouth closed, chewing gum. Head-and-shoulders portrait, three-quarter angle, both eyes clearly visible. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. A real-looking person with natural skin texture. No text, no logos, no watermark."
+  },
+  {
+    "name": "boy__tiger",
+    "continue": "boy__face",
+    "prompt": "Keep this exact same man as in the portrait above: identical face, slicked hairstyle, gold sunglasses, thick gold chain, wristwatch and build. Now show him FULL BODY from head to toe, standing, three-quarter view facing the camera, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a short-sleeved rayon camp shirt printed with a bold yellow-and-black tiger stripe pattern with top two buttons open revealing the thick gold chain, dark tailored slim trousers, black leather slip-on loafers, gold wristwatch. No text, no letters, no logos, no brand marks anywhere. Nothing in the hands. No watermark."
+  },
+  {
+    "name": "fon__face",
+    "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai young woman, 23 years old, slender and modest: delicate oval face, clear skin with no makeup, dark hair pulled back into a sleek smooth high ponytail, soft gentle dark eyes, a quiet hesitant neutral expression with the mouth closed. Head-and-shoulders portrait, three-quarter angle, both eyes clearly visible. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person with natural skin texture. No text, no logos, no watermark."
+  },
+  {
+    "name": "fon__mint",
+    "continue": "fon__face",
+    "prompt": "Keep this exact same woman as in the portrait above: identical face, ponytail, age and slender build. Now show her FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a button-down short-sleeved cotton shirt in soft mint green with a neat collar, dark grey slim ankle trousers, simple flat black walking shoes, a small black crossbody sling bag across her chest. A slim smartphone held loosely in one hand with the dark blank screen turned away. No text, no letters, no logos anywhere. No watermark."
+  },
+  {
+    "name": "collector__face",
+    "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai man of about 45 years old, an everyday fresh-market rent collector: weathered tanned skin, flat expressionless features, tired eyes, a plain navy-blue baseball cap with no logo worn forward. Head-and-shoulders portrait, three-quarter angle, both eyes visible, closed mouth, neutral expression. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. This is NOT a uniform: no badges, no insignia, no crests, no patches. An ordinary real-looking person with natural skin texture. No text, no logos, no watermark."
+  },
+  {
+    "name": "collector__work",
+    "continue": "collector__face",
+    "prompt": "Keep this exact same man as in the portrait above: identical face, navy cap, age and build. Now show him FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a plain brown short-sleeved polo shirt with no logo and no badge, dark brown trousers, a black canvas zippered waist pouch buckled around his waist, worn black leather slip-on shoes. This is NOT a uniform: no badges, no patches, no rank, no lanyard. Nothing in the hands. No text, no logos anywhere. No watermark."
+  },
+  {
+    "name": "friend__face",
+    "prompt": "Photorealistic character reference photo for a Thai television drama. A Thai young man, 19 years old, an easygoing college friend: lean athletic build, friendly youthful face, short black hair with bleached-gold tips on top, lively dark eyes, a slight carefree smile with mouth closed. Head-and-shoulders portrait, three-quarter angle, both eyes visible. Plain light-grey studio backdrop, soft even daylight on the face, sharp focus, 85mm portrait lens. Vertical 2:3 image. An ordinary real-looking person with natural skin texture. No text, no logos, no watermark."
+  },
+  {
+    "name": "friend__jersey",
+    "continue": "friend__face",
+    "prompt": "Keep this exact same young man as in the portrait above: identical face, hair with bleached-gold tips, age and build. Now show him FULL BODY from head to toe, standing, three-quarter view facing the camera, arms relaxed at the sides, a natural neutral expression. Same plain light-grey studio backdrop and soft even light. Vertical 2:3 image. Outfit: a plain sleeveless athletic basketball jersey in cobalt blue with white trim (no numbers, no letters, no team names, no logos), knee-length dark sports shorts, blue rubber flip-flops. No text, no letters, no logos anywhere. Nothing in the hands. No watermark."
+  },
+  {
+    "name": "market__stall",
+    "prompt": "Photorealistic location reference photo for a Thai television drama, no people. A lively daytime open-air fresh market som-tam food stall in Thailand: a sturdy wooden market stall counter under a large weathered orange canvas market umbrella, a large brown glazed clay mortar with a long hardwood pestle resting inside, small woven bamboo baskets of fresh red chilies, green limes, and raw green papayas, an insulated red plastic ice box, two red plastic stools. Adjacent market stalls are empty with bare wooden tables. Bright natural daylight filtering through the market awnings. Eye level, wide view. Vertical 2:3 image. No readable text anywhere: no signs, no price tags, no brand logos, no numbers. No watermark."
+  },
+  {
+    "name": "market__road",
+    "continue": "market__stall",
+    "prompt": "Show the roadside curb and concrete pavement just outside the open-air fresh market entrance, in bright natural daytime sunlight. Dusty asphalt street with concrete curb, the vibrant market awnings and stalls visible in the background. Bright daytime sky. Eye level, wide view. Vertical 2:3 image. No vehicles, no people, no signs, no readable text, no logos. No watermark."
+  },
+  {
+    "name": "market__back",
+    "continue": "market__stall",
+    "prompt": "Show the quiet narrow service walkway behind the market stalls in bright natural daytime sunlight: a concrete floor alley between the backs of the wooden stalls and a plain concrete boundary wall, tall stacks of empty blue and red rectangular plastic produce crates piled high against the wall, dry concrete ground. Eye level. Vertical 2:3 image. No people at all, no signs, no readable text, no logos. No watermark."
+  },
+  {
+    "name": "repair__soi",
+    "prompt": "Photorealistic location reference photo for a Thai television drama, no people. A rustic roadside neighborhood motorcycle repair spot in a quiet urban soi (alleyway) in Thailand during the day: nestled beneath the shade of a large leafy tamarind tree, a weathered blue plastic tarpaulin canopy overhead, a sturdy wooden work bench, empty motorcycle tires and rubber inner tubes hanging on wooden pegs, a large round galvanized metal water basin for leak testing, an oily concrete ground patch, bright natural daytime sunlight. Eye level, wide view. Vertical 2:3 image. No people, no signs, no shop banners, no readable text, no logos. No watermark."
+  },
+  {
+    "name": "pickup__cab",
+    "prompt": "Photorealistic location reference photo for a Thai television drama, no people. The interior cabin of a modern four-door pickup truck, parked in broad daylight: dark charcoal fabric front bucket seats and rear bench seat, dashboard and steering wheel on the right-hand side, a closed plastic center console box with a hinged lid between the front seats, daylight streaming through the clear glass windows from outside. Eye level from front passenger perspective. Vertical 2:3 image. All digital screens and displays are turned completely off and dark: no text, no numbers, no cash, no banknotes, no logos on steering wheel or dash. No people. No watermark."
+  },
+  {
+    "name": "mortar_clay",
+    "prompt": "Photorealistic prop reference photo for a Thai television drama: a traditional Thai heavy clay mortar (khrok din phao) with a tapered conical shape, a smooth dark-hardwood pestle (saak) resting upright inside it, next to a small flat woven bamboo tray holding several whole raw green papayas and fresh red bird's eye chilies. Isolated on a plain light-grey studio backdrop, soft even light, three-quarter view, both objects fully in frame. Vertical 2:3 image. Nothing else in the image. No text, no logos, no watermark."
+  },
+  {
+    "name": "toolbox_red",
+    "prompt": "Photorealistic prop reference photo for a Thai television drama: a rectangular vintage red painted metal mechanic's toolbox with a hinged cantilever lid slightly open, showing several steel combination wrenches and sockets neatly inside, minor paint chips on the corners, a sturdy metal carrying handle on top. Isolated on a plain light-grey studio backdrop, soft even light, three-quarter view, the whole box in frame. Vertical 2:3 image. No brand names, no logos, no text, no watermark."
+  },
+  {
+    "name": "cards_pouch",
+    "prompt": "Photorealistic prop reference photo for a Thai television drama: a dark grey heavy canvas zippered pouch sitting next to a neat fan-spread of three completely blank plain white plastic cards (the size and shape of standard bank cards, but totally blank on both sides: no magnetic strip, no microchip, no numbers, no embossed letters, no bank names, no logos). Isolated on a plain light-grey studio backdrop, soft even light, fully in frame. Vertical 2:3 image. No text, no logos, no cash, no banknotes. No watermark."
+  },
+  {
+    "name": "motorbike_old",
+    "prompt": "Photorealistic prop reference photo for a Thai television drama: an older-model red-and-black step-through commuter motorcycle common in Thailand, slightly dusty, plain black vinyl seat, with a small rectangular red metal toolbox securely strapped to the rear luggage rack with black cords. Standing on its center stand on a plain light-grey studio floor with grey backdrop, soft even daylight, three-quarter side view, the whole motorcycle in frame. Blank plain white license plate. No brand badges, no logos, no stickers, no numbers. No people. Vertical 2:3 image. No watermark."
+  },
+  {
+    "name": "scooter_pink",
+    "prompt": "Photorealistic prop reference photo for a Thai television drama: a small lightweight commuter scooter painted in matte pale pastel pink, plain black seat, three-quarter side view, parked on its side stand on a plain light-grey studio floor with grey backdrop, soft even daylight, the whole scooter in frame. Blank plain white license plate. No badges, no brand emblems, no stickers, no text anywhere. No people. Vertical 2:3 image. No watermark."
+  },
+  {
+    "name": "pickup_black",
+    "prompt": "Photorealistic prop reference photo for a Thai television drama: a modern four-door double-cab pickup truck with a lowered suspension, painted in sleek matte black, polished chrome alloy wheels, slightly tinted windows, three-quarter front angle view, parked on a plain light-grey studio floor with grey backdrop, soft even daylight, the whole truck in frame. Blank plain white license plate. No brand logos, no emblems, no decals, no letters or numbers anywhere. No people. Vertical 2:3 image. No watermark."
+  }
+]

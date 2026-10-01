@@ -79,7 +79,10 @@ class FakeOrg(infisical_setup.Org):
         self.identity, self.token, self.org_id, self.setup_identity = "setup", "tok", "org-1", "id-setup"
         self.ids = {n: f"id-{n}" for n in idents}
         self.ua = {i: f"client-{n}" for n, i in self.ids.items()}
-        self.members = {n: ["viewer"] for n in idents if n != "setup"}
+        # W4.6c F2: two projects. proj-1 is Org-Node (what node_identity / node secrets use); the
+        # machine identities are viewers on proj-2, Agents-Core, where org-node must never be.
+        self.members = {n: ["viewer"] for n in idents if n == "org-node"}
+        self.core_members = {n: ["viewer"] for n in idents if n not in ("setup", "org-node")}
         self.secrets = {}           # client secret id -> {description, revoked, ttl, uses}
         self.minted_values = []     # every secret value this org ever handed out
         self.calls = []             # (method, route, body)
@@ -101,11 +104,14 @@ class FakeOrg(infisical_setup.Org):
         if route == "/api/v1/identities":
             return {"identities": [{"identity": {"name": n, "id": i}} for n, i in self.ids.items()]}
         if route == "/api/v2/organizations/org-1/workspaces":
-            return {"workspaces": [{"slug": "agents-core", "id": "proj-1"}]}
-        if route == "/api/v1/projects/proj-1/identity-memberships":
+            return {"workspaces": [{"slug": "org-node", "name": "Org-Node", "id": "proj-1"},
+                                   {"slug": "agents-core", "name": "Agents-Core", "id": "proj-2"}]}
+        m = re.fullmatch(r"/api/v1/projects/(proj-[12])/identity-memberships", route)
+        if m:
+            table = self.members if m[1] == "proj-1" else self.core_members
             return {"identityMemberships": [
                 {"identity": {"name": n}, "roles": [{"role": r} for r in roles]}
-                for n, roles in self.members.items()]}
+                for n, roles in table.items()]}
         m = re.fullmatch(UA + r"/identities/([^/]+)", route)
         if m:
             if m[1] not in self.ua:
@@ -202,9 +208,14 @@ def unseal(text):
 
 # ---------------------------------------------------------------- helpers
 
-def _join(host="node-a", deploy=DEPLOY):
+def _join(host="node-a", deploy=DEPLOY, approve=True):
+    """mint + accept, and (W4.6a F1) approve: provision skips a row nobody approved. Tests of the
+    gate itself pass approve=False (tests/test_w46a_hub_fixes.py)."""
     token = hq_join.mint(host)["token"]
-    return hq_join.accept(token, host, "linux", "/opt/MoonieXHQ", PUB, deploy_pubkey=deploy)
+    res = hq_join.accept(token, host, "linux", "/opt/MoonieXHQ", PUB, deploy_pubkey=deploy)
+    if approve:
+        hq_join.approve(host, PUB[-8:])
+    return res
 
 
 def _prov(host="node-a", org=None, gh=None, **kw):
@@ -337,13 +348,14 @@ def test_ensure_refuses_an_org_node_that_is_wider_than_viewer():
         infisical_setup.ensure_node_identity(org)
 
 
-def test_mint_returns_the_value_once_prints_nothing_and_sets_no_ttl(capsys):
+def test_mint_returns_the_value_once_prints_nothing_and_sets_a_90_day_ttl(capsys):
     org = FakeOrg()
     out = infisical_setup.mint_node_secret(org, "node-a")
     assert set(out) == {"client_id", "client_secret", "client_secret_id"}
     assert out["client_secret"] == org.minted_values[0] and out["client_id"] == "client-id-org-node"
+    # W4.6a F4: 90 days (7,776,000 s), uses still unlimited.
     assert org.secrets[out["client_secret_id"]] == {
-        "description": "org-node:node-a", "revoked": False, "ttl": 0, "uses": 0}
+        "description": "org-node:node-a", "revoked": False, "ttl": 7_776_000, "uses": 0}
     cap = capsys.readouterr()
     assert cap.out == "" and cap.err == ""
     assert out["client_secret"] not in json.dumps(org.calls)      # it was a response, never a request
@@ -643,7 +655,11 @@ def test_provision_twice_is_a_no_op():
 def test_provision_refuses_the_wrong_kind_of_row():
     assert _refusal(_prov, "ghost-node", org=FakeOrg(), gh=FakeGh()).code == "unknown_host"
     db.seed_hosts_from_config()
-    assert _refusal(_prov, "mac", org=FakeOrg(), gh=FakeGh()).code == "not_joined"
+    # mac is a reserved name (W4.6a F13), so it is refused at the name check; a seeded row
+    # under a name that is not reserved still gets not_joined.
+    assert _refusal(_prov, "mac", org=FakeOrg(), gh=FakeGh()).code == "bad_arg"
+    db.upsert_host("seeded-x", os="linux", status="online")
+    assert _refusal(_prov, "seeded-x", org=FakeOrg(), gh=FakeGh()).code == "not_joined"
     _join()
     for status in ("online", "left"):
         db.upsert_host("node-a", status=status)

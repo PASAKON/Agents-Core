@@ -569,6 +569,8 @@ def test_a_database_that_is_not_ready_stops_the_start_with_a_class_name_only(mon
         raise RuntimeError("row values: org secrets")
 
     monkeypatch.setattr(join_api, "_preflight", not_ready)
+    # the pg param points ORG_DB_URL at the scratch hub; this test is about the start, not the role
+    monkeypatch.setenv("JOIN_API_ALLOW_ORG_ROLE", "1")
     assert join_api.main(["--port", "0"]) == 1
     err = capsys.readouterr().err
     assert "RuntimeError" in err and "org secrets" not in err

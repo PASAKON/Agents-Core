@@ -466,7 +466,7 @@ def verify_clip(path: Path, expected_dur: float,
             width, height = probe_video_dimensions(path)
         except (OSError, ValueError, subprocess.SubprocessError) as e:
             return False, f"RESOLUTION unreadable: {e!r}"
-        expected = {"720p": (720, 1280), "1080p": (1080, 1920)}.get(
+        expected = {"360p": (360, 640), "720p": (720, 1280), "1080p": (1080, 1920)}.get(
             expected_resolution)
         if expected is None:
             return False, f"RESOLUTION unsupported target {expected_resolution!r}"
@@ -1440,15 +1440,16 @@ class FlowBrowser:
         except Exception:
             pass
         # Current UI first: the editor's own download button (no playback, no CDN capture).
-        try:
-            self.page.wait_for_url(re.compile(r"/edit/"), timeout=30_000)
-            return self._download_from_editor_button(self.download_resolution)
-        except Exception as e:
+        if self.download_resolution in ("1080p", "720p"):
             try:
-                self._close_download_menus()
-            except Exception:
-                pass
-            _log(f"  editor download button path failed, falling back: {e!r}")
+                self.page.wait_for_url(re.compile(r"/edit/"), timeout=30_000)
+                return self._download_from_editor_button(self.download_resolution)
+            except Exception as e:
+                try:
+                    self._close_download_menus()
+                except Exception:
+                    pass
+                _log(f"  editor download button path failed, falling back: {e!r}")
         if self.download_resolution == "1080p":
             return self._download_1080p_from_editor()
         deadline = time.time() + min(COMPLETION_TIMEOUT_S, CARD_OPEN_WAIT_S)
@@ -1562,12 +1563,18 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
              f"duration setting AND verify_clip's tolerance — PROOF SHOTS ONLY, "
              f"never use this for a production run ***")
 
+    if getattr(args, "resolution", None) == "360p":
+        _log("360p run: verify target is 360x640 (original captured file, 9:16; skips 1080p upscale for throwaway test)")
+
     browser = browser_factory()
     # Set immediately after construction, before anything else can touch
     # the browser — FlowBrowser.submit() itself refuses while this is set
     # (structural, not "the control flow happens not to call it").
     browser.dry_run = args.dry_run
-    browser.download_resolution = getattr(args, "download_resolution", "1080p")
+    if getattr(args, "resolution", None) == "360p":
+        browser.download_resolution = "360p"
+    else:
+        browser.download_resolution = getattr(args, "download_resolution", "1080p")
     cdp_url = flow_cdp.pick_cdp_url(getattr(args, "cdp_url", None))
     browser.cdp_url = cdp_url
     spent_this_run = 0
@@ -1735,9 +1742,13 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                 row["status"] = "downloaded"
                 flow_ledger.save_ledger(ledger_path, rows)
 
+                expected_resolution = (
+                    args.resolution if getattr(args, "resolution", None) == "360p"
+                    else browser.download_resolution
+                )
                 ok, reason = verify_clip(
                     clip_path, dur_s,
-                    expected_resolution=browser.download_resolution)
+                    expected_resolution=expected_resolution)
                 row["sha256"] = sha256_file(clip_path)
                 row["got_dur"] = reason
                 dup = duplicate_take_reason(row["sha256"], earlier)

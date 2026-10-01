@@ -339,10 +339,14 @@ _HOSTS_MIGRATION = [
 #                deploy key, set by hq_join accept --deploy-pubkey. Its own
 #                column, not config_json, so it never leaks into the hosts.yaml
 #                export. NULL = the node gets no deploy key.
+#   approved_at  (W4.6a, F1) when an operator matched the node's key fingerprint
+#                (`hq_join approve`). NULL = not approved: provision skips the
+#                row. Reset to NULL when a `left` host joins again.
 _HOSTS_JOIN_MIGRATION = [
     ("pubkey", "TEXT"),
     ("config_json", "TEXT"),
     ("deploy_pubkey", "TEXT"),
+    ("approved_at", "TEXT"),
 ]
 
 # letters.from_host (W2.4): which host (config/hosts.yaml key) sent the letter.
@@ -1322,6 +1326,7 @@ _HOST_COLUMNS = {
     "os", "hq_root", "agents_root", "provides", "max_workers", "status",
     "probed_at", "free_gb", "ram_free_gb", "running", "version",
     "cpus", "load_per_core", "runners", "pubkey", "config_json", "deploy_pubkey",
+    "approved_at",
 }
 
 
@@ -1376,12 +1381,21 @@ def seed_hosts_from_config() -> None:
     heartbeat data survives a reseed untouched. Idempotent: rerunning with
     an unchanged hosts.yaml leaves every seeded field the same.
 
+    Seeds only what config/hosts.yaml itself declares. On a joined node
+    lib.config.hosts() also carries an entry built from that node's own
+    node.yaml; the hub's row for that node comes from `hq_join accept` and
+    the node's own probe, and a reseed run there must never replace it.
+
     Imports lib.config lazily (pulls in PyYAML) so lib.db itself stays
     importable without it -- the PreToolUse hooks import lib.db under the
     system python3, which may not have PyYAML installed.
     """
+    import yaml
     from lib import config
+    declared = yaml.safe_load(config.HOSTS_CONFIG.read_text(encoding="utf-8"))["hosts"]
     for name, h in config.hosts().items():
+        if name not in declared:
+            continue
         upsert_host(
             name,
             os=h.get("os"),

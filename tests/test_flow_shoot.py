@@ -1661,3 +1661,178 @@ def test_validate_download_option_accepts_original_720p_and_refuses_paid():
         flow_shoot.validate_download_option("4K เพิ่มความละเอียดแล้ว · 50 เครดิต", "720p")
     with pytest.raises(RuntimeError):
         flow_shoot.validate_download_option("270p GIF ภาพเคลื่อนไหว", "720p")
+
+
+# ── 360p test-round support (task-10c8968a) ──────────────────────────────────
+
+def test_verify_clip_supports_360p_target(tmp_path, monkeypatch):
+    clip = tmp_path / "shot-360p.mp4"
+    _make_clip(clip, duration=4.0, silent=False)
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (360, 640))
+    ok, reason = flow_shoot.verify_clip(clip, expected_dur=4.0, expected_resolution="360p")
+    assert ok is True
+    assert "360x640" in reason
+    assert "unsupported target" not in reason
+
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (720, 1280))
+    ok, reason = flow_shoot.verify_clip(clip, expected_dur=4.0, expected_resolution="360p")
+    assert ok is False
+    assert reason == "RESOLUTION got 720x1280 want 360x640"
+
+
+def test_cmd_run_360p_expects_360x640_passes_360x640_fails_720x1280(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    clip_file = tmp_path / "payload.mp4"
+    _make_clip(clip_file, duration=6.0, silent=False)
+    payload = clip_file.read_bytes()
+
+    # Pass case: file probe returns 360x640
+    dir_pass = tmp_path / "run_pass"
+    dir_pass.mkdir()
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (360, 640))
+    ap = flow_shoot.build_parser()
+    args_pass = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(dir_pass / "pass.tsv"),
+        "--dest", str(dir_pass / "dest1"),
+        "--credit-cap", "999", "--only", "35",
+        "--resolution", "360p",
+    ])
+    stub_pass = _DownloadStubBrowser(payload, dir_pass)
+    rc_pass = flow_shoot.cmd_run(args_pass, browser_factory=lambda: stub_pass)
+    assert rc_pass == 0
+    rows_pass = flow_ledger.load_ledger(dir_pass / "pass.tsv")
+    assert rows_pass[35]["status"] == "verified"
+    assert "360x640" in rows_pass[35]["got_dur"]
+
+    # Fail case: file probe returns 720x1280
+    dir_fail = tmp_path / "run_fail"
+    dir_fail.mkdir()
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (720, 1280))
+    args_fail = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(dir_fail / "fail.tsv"),
+        "--dest", str(dir_fail / "dest2"),
+        "--credit-cap", "999", "--only", "35",
+        "--resolution", "360p",
+    ])
+    stub_fail = _DownloadStubBrowser(payload, dir_fail)
+    rc_fail = flow_shoot.cmd_run(args_fail, browser_factory=lambda: stub_fail)
+    assert rc_fail == 1
+    rows_fail = flow_ledger.load_ledger(dir_fail / "fail.tsv")
+    assert rows_fail[35]["status"] == "failed"
+    assert "RESOLUTION got 720x1280 want 360x640" in rows_fail[35]["note"]
+
+
+def test_360p_run_selects_non_upscale_download_path(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    clip_file = tmp_path / "payload.mp4"
+    _make_clip(clip_file, duration=6.0, silent=False)
+
+    class _CaptureTrackingBrowser(_GateStubBrowser):
+        def __init__(self):
+            super().__init__(chip_count_sequence=[0, 1, 1, 2, 2, 3, 3])
+            self._pending_download = None
+            self.upscale_called = False
+            self.fetch_captured_called = False
+
+        def poll_result(self, timeout_s: int = 0) -> dict:
+            return {"status": "download", "text": ""}
+
+        def _download_1080p_from_editor(self):
+            self.upscale_called = True
+            raise AssertionError("1080p upscale menu must NOT be called on a 360p run")
+
+        def _fetch_captured_video(self):
+            self.fetch_captured_called = True
+            return clip_file
+
+        def download(self):
+            return flow_shoot.FlowBrowser.download(self)
+
+    stub = _CaptureTrackingBrowser()
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(tmp_path / "test_360p_path.tsv"),
+        "--dest", str(tmp_path / "dest_path"),
+        "--credit-cap", "999", "--only", "35",
+        "--resolution", "360p",
+    ])
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (360, 640))
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert rc == 0
+    assert stub.download_resolution == "360p"
+    assert stub.upscale_called is False
+    assert stub.fetch_captured_called is True
+
+
+def test_720p_run_still_expects_1080x1920_with_default_download(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    clip_file = tmp_path / "payload.mp4"
+    _make_clip(clip_file, duration=6.0, silent=False)
+    payload = clip_file.read_bytes()
+
+    # Pass case: file is 1080x1920
+    dir_pass = tmp_path / "run_720_pass"
+    dir_pass.mkdir()
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (1080, 1920))
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(dir_pass / "720p_default.tsv"),
+        "--dest", str(dir_pass / "dest_720p"),
+        "--credit-cap", "999", "--only", "35",
+    ])
+    assert args.resolution == "720p"
+    assert args.download_resolution == "1080p"
+
+    stub = _DownloadStubBrowser(payload, dir_pass)
+    rc = flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+    assert rc == 0
+    assert stub.download_resolution == "1080p"
+    rows = flow_ledger.load_ledger(dir_pass / "720p_default.tsv")
+    assert rows[35]["status"] == "verified"
+    assert "1080x1920" in rows[35]["got_dur"]
+
+    # Fail case: file is 720x1280 on default 1080p upscale download
+    dir_fail = tmp_path / "run_720_fail"
+    dir_fail.mkdir()
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (720, 1280))
+    args_fail = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(dir_fail / "720p_fail.tsv"),
+        "--dest", str(dir_fail / "dest_720p_fail"),
+        "--credit-cap", "999", "--only", "35",
+    ])
+    stub_fail = _DownloadStubBrowser(payload, dir_fail)
+    rc_fail = flow_shoot.cmd_run(args_fail, browser_factory=lambda: stub_fail)
+    assert rc_fail == 1
+    rows_fail = flow_ledger.load_ledger(dir_fail / "720p_fail.tsv")
+    assert rows_fail[35]["status"] == "failed"
+    assert "RESOLUTION got 720x1280 want 1080x1920" in rows_fail[35]["note"]
+
+
+def test_360p_run_logs_verify_target_and_reason(tmp_path, monkeypatch):
+    log_file = tmp_path / "test_360p.log"
+    monkeypatch.setattr(flow_shoot, "DOWNLOAD_GAP_S", 0)
+    clip_file = tmp_path / "payload.mp4"
+    _make_clip(clip_file, duration=6.0, silent=False)
+    monkeypatch.setattr(flow_shoot, "probe_video_dimensions", lambda _path: (360, 640))
+
+    ap = flow_shoot.build_parser()
+    args = ap.parse_args([
+        "run", "--sheet", str(FIXTURE_SHEET),
+        "--ledger", str(tmp_path / "ledger_log.tsv"),
+        "--dest", str(tmp_path / "dest_log"),
+        "--credit-cap", "999", "--only", "35",
+        "--resolution", "360p",
+        "--log", str(log_file),
+    ])
+    stub = _DownloadStubBrowser(clip_file.read_bytes(), tmp_path)
+    flow_shoot.cmd_run(args, browser_factory=lambda: stub)
+
+    log_content = log_file.read_text(encoding="utf-8")
+    assert "360p run: verify target is 360x640" in log_content
+    assert log_content.count("verify target is 360x640") == 1
+

@@ -10,6 +10,10 @@
 # X-Forwarded-For traefik appends reaches join_api untouched (JOIN_API_TRUST_FORWARDED=1).
 # Nothing is published on the host: no `ports:`. Only the labelled path /org-join is routed.
 #
+# The door (W4.6c): this container runs only while deploy/join/door.sh has opened the door
+# (`door.sh open` = compose up, `door.sh close` = compose down), so it does not restart by itself:
+# a Docker restart or a reboot must not reopen the route while the endpoint is down.
+#
 # Deploy and rollback: deploy/join/README.md. Image tag is pinned; replace it by the digest
 # (`docker image inspect --format '{{index .RepoDigests 0}}'`) once it has been pulled on the box.
 name: org-join-proxy
@@ -25,7 +29,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - n8n_default
-    restart: always
+    restart: "no"
     read_only: true
     user: "65534:65534"
     cap_drop:

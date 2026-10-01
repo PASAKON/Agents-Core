@@ -150,7 +150,10 @@ def _env(tmp_path: Path, bindir: Path | None = None, **extra) -> dict:
 
 
 def _run(args, *, env, stdin_text=None, timeout=60):
-    return subprocess.run(args, input=stdin_text, capture_output=True, text=True, env=env, timeout=timeout)
+    # start_new_session: no controlling terminal. join.sh asks for a missing token on /dev/tty, and
+    # a test run from a terminal would otherwise stop and wait for a person to type it.
+    return subprocess.run(args, input=stdin_text, capture_output=True, text=True, env=env, timeout=timeout,
+                          start_new_session=True)
 
 
 def _tree(path: Path) -> list:
@@ -196,7 +199,7 @@ def test_dry_run_names_the_files_it_would_make(server, tmp_path):
                  f"{home}/.ssh/org_dispatch", f"{home}/.config/mooniex/node.yaml",
                  f"{tmp_path}/hq/Agents/Core", "git@github.com:PASAKON/Agents-Core.git",
                  "--advertise-tags=tag:org-node", "infisical_setup.py save node-a --stdin",
-                 "tools.node_dispatch probe"):
+                 "tools/node_dispatch.py probe"):
         assert want in r.stdout, want
 
 

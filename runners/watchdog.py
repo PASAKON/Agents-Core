@@ -795,6 +795,10 @@ def _drain_disk_queue() -> dict | None:
 # not mint and revoke a client secret on every pass.
 PROVISION_BACKOFF_S = 3600
 _provision_retry_at: dict[str, float] = {}
+# W4.6a F1: a pending host nobody approved is skipped by provision_pending. The pass says so once
+# per PROVISION_BACKOFF_S, not on every scan. Kept apart from _provision_retry_at on purpose: that
+# one would also hold the host back for up to an hour AFTER the operator approves it.
+_unapproved_noted_until: dict[str, float] = {}
 
 
 def _provision_identities() -> list[dict]:
@@ -807,12 +811,22 @@ def _provision_identities() -> list[dict]:
     now = time.time()
     results = hq_join.provision_pending(
         skip={h for h, at in _provision_retry_at.items() if at > now})
+    waiting = set()
     for r in results:
         if "error" in r:
             _provision_retry_at[r["host"]] = now + PROVISION_BACKOFF_S
             warn(f"watchdog: provision of {r['host']} failed: {r['error']}")
+        elif r.get("skipped") == "not_approved":
+            waiting.add(r["host"])
+            if _unapproved_noted_until.get(r["host"], 0) <= now:
+                _unapproved_noted_until[r["host"]] = now + PROVISION_BACKOFF_S
+                warn(f"watchdog: {r['host']} joined but is NOT approved, so it gets no identity: "
+                     f"compare its key fingerprint (`hq_join status`) with the one on the "
+                     f"node's screen, then `hq_join approve`")
         elif r.get("changed"):
             info(f"watchdog: provisioned identity for {r['host']}")
+    for host in [h for h in _unapproved_noted_until if h not in waiting]:
+        del _unapproved_noted_until[host]   # approved or gone: it is said again if it comes back
     return results
 
 
