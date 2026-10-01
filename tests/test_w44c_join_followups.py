@@ -177,7 +177,7 @@ def test_join_ps1_runs_step_9_in_the_window_and_user_that_wrote_node_yaml():
     probe = _function_body(text, "Invoke-Probe")
     for hop in ("Start-Process", "-Credential", "-Verb", "runas", "Invoke-Command", "$env:USERPROFILE ="):
         assert hop not in probe, hop
-    assert "$venvPy (Join-Path $script:Core 'tools\\infisical_setup.py') run Agents-Core prod" in probe
+    assert "$venvPy (Join-Path $script:Core 'tools\\infisical_setup.py') run Org-Node prod" in probe
     # the dry run says which node.yaml the probe reads, and under which USERPROFILE
     assert "(Join-Path $script:ConfDir 'node.yaml')" in probe and "$env:USERPROFILE" in probe
     assert "Write-NodeYaml" in _function_body(text, "Save-Identity")

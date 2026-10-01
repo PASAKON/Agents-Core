@@ -71,6 +71,7 @@ SETUP_MAX_DAYS = 14  # the admin identity lives only for the migration (PLAN §6
 PROJECTS: dict[str, list[str]] = {
     "Agents-Core": ["dev", "prod"],
     "Org-Infra": ["prod"],
+    "Org-Node": ["prod"],   # the ONE project every joined node reads (W4.6c F2), see NODE_PROJECT
     "MoonieX-ClaudeFlow": ["dev", "prod"],
     "MoonieX-Option": ["dev", "prod"],
     "MoonieX-AlphaTrader": ["dev", "prod"],
@@ -86,6 +87,14 @@ PROJECTS: dict[str, list[str]] = {
 }
 ORG_INFRA = "Org-Infra"
 ORG_INFRA_FOLDERS = ["dns", "deploy", "repo", "net", "db", "vault"]  # §3b closed list
+# W4.6c F3: the hub's public join endpoint reads ONLY this folder of Agents-Core prod
+# (ORG_JOIN_DB_URL, the DSN of the Postgres role `org_join`), never the whole project.
+ORG_JOIN_FOLDER = "org-join"
+# project -> folders `apply` creates in its prod environment (none of these hold a value yet)
+PROJECT_FOLDERS: dict[str, list[str]] = {
+    ORG_INFRA: ORG_INFRA_FOLDERS,
+    "Agents-Core": [ORG_JOIN_FOLDER],
+}
 
 # PLAN.md §3: machine identity -> projects it may read (viewer). On Free a viewer sees every
 # environment of the project, so MoonieX-WebApp is not given to the Mac until local dev needs it.
@@ -331,12 +340,14 @@ def reconcile(org: Org, dry: bool, mint: str | None) -> list[str]:
                 act(f"+ {name}: environment {env_slug}", lambda p=pid, e=env_slug: org.send(
                     "POST", f"/api/v1/projects/{p}/environments", {"name": e, "slug": e}))
 
-    if ORG_INFRA in project_ids:
-        pid = project_ids[ORG_INFRA]
+    for project_name, wanted in PROJECT_FOLDERS.items():
+        if project_name not in project_ids:
+            continue
+        pid = project_ids[project_name]
         have = org.folders(pid, "prod")
-        for folder in ORG_INFRA_FOLDERS:
+        for folder in wanted:
             if folder not in have:
-                act(f"+ {ORG_INFRA}: folder /{folder}", lambda f=folder, p=pid: org.send(
+                act(f"+ {project_name}: folder /{folder}", lambda f=folder, p=pid: org.send(
                     "POST", "/api/v2/folders",
                     {"projectId": p, "environment": "prod", "name": f, "path": "/"}))
 
@@ -374,6 +385,14 @@ def reconcile(org: Org, dry: bool, mint: str | None) -> list[str]:
             if name not in allowed and host in members.get(name, {}):
                 log.append(f"! {name}: {host} is a member but the plan says it should not be")
                 print(log[-1])
+
+    # org-node is not in MACHINES: ensure_node_identity gives it viewer on NODE_PROJECT when the
+    # first node is provisioned. Here we only say so if it sits anywhere else (W4.6c F2).
+    for name in project_ids:
+        if name != NODE_PROJECT and NODE_IDENTITY in members.get(name, {}):
+            log.append(f"! {name}: {NODE_IDENTITY} is a member but must be on {NODE_PROJECT} only "
+                       f"(not changed; provisioning a node refuses until it is removed)")
+            print(log[-1])
 
     if mint:
         if mint not in MACHINES:
@@ -423,7 +442,13 @@ def cmd_retire_setup(org: Org) -> None:
 # secret. These are functions, not CLI verbs: a value exists only in mint_node_secret's return.
 
 NODE_IDENTITY = "org-node"
-NODE_PROJECT = "Agents-Core"   # viewer membership; on Free a viewer sees dev and prod alike
+# W4.6c F2: the one project a node may read. org-node is a viewer HERE and a member of no other
+# project, because every node reads all of it (on Free a viewer sees every environment and there
+# are no folder permissions). Its content is exactly NODE_SECRET_NAMES; the CEO enters the value
+# (gate G3) and no code here writes it. Before this, org-node was a viewer on Agents-Core, so one
+# compromised node read every Agents-Core secret (review task-79219f24 F2).
+NODE_PROJECT = "Org-Node"
+NODE_SECRET_NAMES = ("CLAUDE_CODE_OAUTH_TOKEN",)
 IDENTITY_CAP = 5
 NODE_SECRET_TTL = 90 * 86_400   # a node's client secret expires in 90 days (W4.6a F4); uses stay unlimited
 # The host-name rule, 3-31 chars: a copy of lib.config.HOST_NAME_RE (tools/hq_join.HOST_RE is that
@@ -447,12 +472,33 @@ def _create_identity(org: Org, name: str) -> str:
     return new_id
 
 
+def _refuse_other_node_memberships(org: Org, projects: dict[str, dict]) -> None:
+    """org-node may be a member of NODE_PROJECT and of nothing else (W4.6c F2). Every node holds
+    org-node's secret, so a second membership is a second project every node can read. Raises an
+    ApiError naming the projects; it changes nothing, and never removes a membership itself."""
+    also = sorted(p.get("name") or slug for slug, p in projects.items()
+                  if slug != NODE_PROJECT.lower() and NODE_IDENTITY in org.identity_members(p["id"]))
+    if also:
+        raise ApiError(
+            f"{NODE_IDENTITY} is a member of {', '.join(also)}; it may be a member of {NODE_PROJECT} "
+            f"(viewer) only. Remove it from {'that project' if len(also) == 1 else 'those projects'} "
+            f"first (Infisical UI, project, Access Control, Machine Identities), then run this again")
+
+
 def ensure_node_identity(org: Org) -> str:
     """Id of the `org-node` identity, created when missing (and repaired when half-made):
-    Universal Auth attached, viewer on Agents-Core and nothing else. Safe to re-run.
-    Never creates an identity past IDENTITY_CAP: raises IdentityCapError naming the ones in use."""
+    Universal Auth attached, viewer on NODE_PROJECT (Org-Node) and on no other project.
+    Safe to re-run. Refuses, changing nothing, when org-node is already a member of any other
+    project. Never creates an identity past IDENTITY_CAP: raises IdentityCapError naming the
+    ones in use."""
+    projects = org.projects()
+    project = projects.get(NODE_PROJECT.lower())
+    if project is None:
+        raise ApiError(f"project {NODE_PROJECT} does not exist: run `apply` first")
     idents = org.identities()
     iid = idents.get(NODE_IDENTITY)
+    if iid is not None:
+        _refuse_other_node_memberships(org, projects)   # before anything is repaired or added
     if iid is None:
         if len(idents) >= IDENTITY_CAP:
             raise IdentityCapError(
@@ -467,9 +513,6 @@ def ensure_node_identity(org: Org) -> str:
                 raise
             org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}",
                      {"accessTokenTTL": TOKEN_TTL, "accessTokenMaxTTL": TOKEN_MAX_TTL})
-    project = org.projects().get(NODE_PROJECT.lower())
-    if project is None:
-        raise ApiError(f"project {NODE_PROJECT} does not exist: run `apply` first")
     roles = org.identity_members(project["id"]).get(NODE_IDENTITY)
     if roles is None:
         org.send("POST", f"/api/v1/projects/{project['id']}/identity-memberships/{iid}",
@@ -539,10 +582,11 @@ def revoke_node_secret(org: Org, client_secret_id: str) -> None:
 
 def node_readable_secret_names(org: Org) -> dict[str, list[str]]:
     """'<NODE_PROJECT>/<env>' -> sorted secret NAMES that org-node can read (W4.6a F8), for
-    `hq_join leave --live` to print as "rotate these". org-node is a viewer on NODE_PROJECT and
-    on Free a viewer sees every environment, so every environment the project has is listed.
-    Only the folder "/" is read: the plan holds no folders in Agents-Core. The list call
-    returns values too; they are dropped here and never returned, logged or printed."""
+    `hq_join leave --live` to print as "rotate these". org-node is a viewer on NODE_PROJECT
+    (Org-Node, W4.6c F2: NODE_SECRET_NAMES and nothing else) and on Free a viewer sees every
+    environment, so every environment the project has is listed. Only the folder "/" is read:
+    the plan holds no folders in Org-Node. The list call returns values too; they are dropped
+    here and never returned, logged or printed."""
     project = org.projects().get(NODE_PROJECT.lower())
     if project is None:
         raise ApiError(f"project {NODE_PROJECT} does not exist")
@@ -635,6 +679,17 @@ def parse_meta(items: list[str]) -> dict[str, str]:
     return out
 
 
+def _node_project_guard(project: str, name: str | None, path: str) -> None:
+    """Org-Node holds NODE_SECRET_NAMES at `/` and nothing else (W4.6c F2): every joined node
+    reads the whole project, so a second name is a second secret on every node. `name` None is
+    a bulk import, always refused."""
+    if project.lower() != NODE_PROJECT.lower():
+        return
+    if name not in NODE_SECRET_NAMES or path != "/":
+        sys.exit(f"refused: {NODE_PROJECT} holds only {', '.join(NODE_SECRET_NAMES)} at / "
+                 f"(every joined node reads all of it); nothing else goes there")
+
+
 def _target(org: Org, project: str, env: str) -> dict:
     if project.lower() == ORG_INFRA.lower():
         sys.exit("refused: Org-Infra values are entered by the CEO in the web UI (PLAN §3b rule 1)")
@@ -687,6 +742,7 @@ def _write_secret(org: Org, p: dict, env: str, name: str, value: str, comment: s
 def cmd_put(org: Org, project: str, env: str, name: str, comment: str | None,
             meta: list[str], multiline: bool, legacy: bool = False, path: str = "/") -> None:
     clean = _check_name(name, legacy)
+    _node_project_guard(project, name, path)
     p = _target(org, project, env)
     metadata = parse_meta(meta)
     if not clean:
@@ -719,6 +775,7 @@ def parse_env_file(path: str) -> dict[str, str]:
 def cmd_import_env(org: Org, project: str, env: str, file: str, only: list[str],
                    comment: str | None, meta: list[str], legacy: bool, path: str = "/") -> None:
     """Phase 2: move a whole .env into Infisical 1:1 — names are printed, values never."""
+    _node_project_guard(project, None, path)      # first: a refused import opens no file
     values = parse_env_file(file)
     names = [n for n in values if not only or n in only]
     absent = [n for n in only if n not in values]

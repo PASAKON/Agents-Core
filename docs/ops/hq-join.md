@@ -261,6 +261,11 @@ human says the key is the right one.
   is not a failure and does not start the one-hour back-off: the next pass after
   `approve` provisions it.
 - A rejoin (`accept` over a `left` row) resets `approved_at` to NULL.
+  `accept` does this with two statements in one transaction (W4.6c): an INSERT that does
+  nothing when the name exists, then an UPDATE `WHERE host = ? AND status = 'left'`.
+  One `INSERT ... ON CONFLICT DO UPDATE ... excluded.*` would make Postgres ask for
+  SELECT on every column it reads through `excluded`, which the endpoint's role
+  (`org_join`) must not have.
 - 8 characters are 40 bits. A racer who wants to be approved must *grind* a key
   whose last 8 characters equal the node's, about 2^40 key generations, and cannot
   start before the node has made its key, inside a 15-minute token. That stops a
@@ -273,7 +278,7 @@ Infisical Free allows **5 machine identities**. `mac`, `contabo` and `winbox` ar
 three of them, and `setup` (the admin identity) is the fourth until
 `retire-setup`. That leaves one. A new node therefore gets its own **client
 secret** under ONE shared identity `org-node` (Universal Auth, viewer on
-Agents-Core), never its own identity. `infisical_setup.ensure_node_identity`
+the project **Org-Node** and on no other project, W4.6c F2), never its own identity. `infisical_setup.ensure_node_identity`
 finds or creates `org-node` and **refuses to create a sixth identity**: it raises
 `IdentityCapError` naming the five that exist. Revoking one node's secret leaves
 every other node's secret working.
@@ -359,9 +364,11 @@ over. It refuses a host that has no live ciphertext (`not_provisioned`).
 `leave --live` revokes the node's client secret, its deploy key and its
 `authorized_keys` lines. That stops the node from logging in again. It does **not**
 recall a value the node already read, and the shared identity `org-node` is a viewer
-on Agents-Core, on Free for `dev` and `prod` alike. So after every `leave --live`,
-treat what the node could read as seen by whoever holds the node, and rotate it.
-The command prints the list as its last lines (names only, never a value).
+on **Org-Node** (prod only; on Free a viewer sees every environment of a project it is
+in, so what counts is what the project holds: one secret, `CLAUDE_CODE_OAUTH_TOKEN`).
+So after every `leave --live`, treat what the node could read as seen by whoever holds
+the node, and rotate it. The command prints the list as its last lines (names only,
+never a value).
 
 Procedure, per name:
 
@@ -373,8 +380,19 @@ Procedure, per name:
    first (CLAUDE.md, "Secrets").
 
 The documented set, used when this box cannot ask Infisical (no admin login; the
-block says so). It is categories, not exact names, and a name that is not on it can
-still be readable, so prefer the list Infisical gives:
+block says so), is one line since W4.6c: `CLAUDE_CODE_OAUTH_TOKEN (shared by every
+node)`, the only secret Org-Node holds. A name that is not on it can still be
+readable if someone put it in Org-Node by hand (`put` and `import-env` refuse to), so
+prefer the list Infisical gives.
+
+#### Nodes that joined before Org-Node
+
+Until the `org-node` identity was moved (live step 2 in `deploy/join/README.md`,
+"Live order"), it was a viewer on **Agents-Core**, and every node that joined before
+that read Agents-Core `dev` and `prod` with it. For such a node, `leave --live` still
+has to rotate what it could read then, and the documented categories are these (names
+move; a name not listed can still have been readable, so prefer a list taken from
+Infisical before the move):
 
 - `ORG_DB_URL`: the hub Postgres URL (role `org`).
 - `CLAUDE_CODE_OAUTH_TOKEN`: one token shared by every node.
@@ -385,19 +403,50 @@ still be readable, so prefer the list Infisical gives:
 - LungNote MCP client credentials.
 
 Not covered: a secret that sits in a **folder** below `/` (the lookup reads `/`
-only; the plan holds no folders in Agents-Core), and anything the node copied out
-of the repo checkout itself.
+only; Org-Node holds no folders, and the `/org-join` folder of Agents-Core prod is in a
+project `org-node` is not a member of), and anything the node copied out of the repo
+checkout itself.
+
+A node whose start command still names the project Agents-Core (`infisical_setup.py run`
+with Agents-Core, prod and its own `--as`) must change the project to Org-Node when the
+membership moves: `run Org-Node prod --as <host>` is the form `join.sh` and `join.ps1` print. Until the CEO has entered
+`CLAUDE_CODE_OAUTH_TOKEN` in Org-Node prod (gate G3), `run Org-Node prod` refuses to
+start, because it refuses an empty folder: do the move and the entry in one sitting.
 
 ### Left for W4.3 and for going live
 
 - **Delivery** of the ciphertext to the node, and the node opening it with its age
   identity. `sealed.open()` exists for that; nothing calls it yet.
 - Setting `ORG_W42_PROVISION=1` on the Mac, plus the CEO's go for the first real
-  provision (it creates the `org-node` identity and a real client secret).
+  provision (it creates the `org-node` identity and a real client secret, and gives it
+  viewer on Org-Node; `apply` must have created Org-Node first).
 - `tailscale_device` and `authorized_keys` revokers.
 - A real `age` run on the node side. On the Mac, `age` 1.3.2 is installed and the
   real round trip is covered by `test_real_age_round_trip`; it skips where `age`
   is not on PATH.
+
+## The door, the endpoint's role and Org-Node (W4.6c)
+
+Three changes from the security review task-79219f24 (F2, F3) and the CEO's ruling of
+2026-10-01, "the door is closed by default". They are described where they run, in
+`deploy/join/README.md`; in short:
+
+- **The door.** `deploy/join/door.sh open [--minutes N]` starts the endpoint and its
+  proxy and schedules their close (default 30 minutes, at most 120); `close`, `status`
+  and `approve --host H --fingerprint F` are the other verbs. Each is a Run Inbox card
+  on Contabo, so the CEO's tap opens the door, and the door shuts itself. `approve` is
+  the W4.6a F1 gate from a card: the card's `--why` carries the host name and the
+  8-character fingerprint, which the CEO compares with the node's own screen.
+- **F2, Org-Node.** Nodes read the project `Org-Node` (prod only, one secret) and no
+  longer Agents-Core. `infisical_setup.py plan` and `apply` create it; `ensure_node_identity`
+  refuses, changing nothing, while `org-node` is still a member of any other project; `put` and `import-env` refuse anything in Org-Node but
+  `CLAUDE_CODE_OAUTH_TOKEN`.
+- **F3, least privilege.** `tools/join_api.py` connects as the Postgres role `org_join`
+  (`deploy/join/org_join_role.sql`: column grants on `hosts`, `join_tokens`,
+  `node_secrets` and `events`, five connections, row guards) from `ORG_JOIN_DB_URL` in
+  the `/org-join` folder of Agents-Core prod, runs as the system user `org-join`, and
+  refuses the full role `org` unless `JOIN_API_ALLOW_ORG_ROLE=1`. Approval stays with
+  the full role: `door.sh approve` runs `hq_join approve` as before.
 
 ## Open for W4.3
 
@@ -428,7 +477,7 @@ decision; W4.1 gives it the in-process `accept()` and the CLI.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py tests/test_w46a_hub_fixes.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py tests/test_w46a_hub_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py
 ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54329/org_test \
     .venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py   # adds the pg param
 ```

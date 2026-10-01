@@ -267,22 +267,26 @@ _CONSUME_SQL = (
     "RETURNING token_hash"
 )
 
-# A `left` row may be re-joined; any other row keeps its name (WHERE on the
-# DO UPDATE: no row comes back and the caller rolls the consume back).
-# Probe columns are reset: they describe the machine that left.
+# A new name is inserted; an existing name is left alone by the INSERT (DO NOTHING) and only a
+# `left` row is re-joined, by the UPDATE (W4.6c: one statement used to do both with
+# ON CONFLICT DO UPDATE ... excluded.*, and Postgres then asks for SELECT on every column it reads
+# through `excluded`, which would have let the public endpoint's role read each host's key and
+# config; two statements need SELECT on host and status only). Both run in the caller's
+# transaction: a name that is neither new nor `left` matches nothing, the caller raises, and the
+# consume rolls back. Two racing accepts for one name: the second finds the row `pending_identity`
+# and matches nothing. Probe columns are reset: they describe the machine that left.
 _INSERT_HOST_SQL = (
     "INSERT INTO hosts (host, os, hq_root, agents_root, provides, max_workers, "
     "status, pubkey, config_json, updated_at, deploy_pubkey) "
     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-    "ON CONFLICT(host) DO UPDATE SET os=excluded.os, hq_root=excluded.hq_root, "
-    "agents_root=excluded.agents_root, provides=excluded.provides, "
-    "max_workers=excluded.max_workers, status=excluded.status, "
-    "pubkey=excluded.pubkey, config_json=excluded.config_json, "
-    "deploy_pubkey=excluded.deploy_pubkey, approved_at=NULL, "
-    "updated_at=excluded.updated_at, probed_at=NULL, free_gb=NULL, "
-    "ram_free_gb=NULL, running=NULL, version=NULL, cpus=NULL, "
-    "load_per_core=NULL, runners=NULL "
-    f"WHERE hosts.status = '{STATUS_LEFT}' RETURNING host"
+    "ON CONFLICT(host) DO NOTHING RETURNING host"
+)
+_REJOIN_HOST_SQL = (
+    "UPDATE hosts SET os = ?, hq_root = ?, agents_root = ?, provides = ?, max_workers = ?, "
+    "status = ?, pubkey = ?, config_json = ?, updated_at = ?, deploy_pubkey = ?, "
+    "approved_at = NULL, probed_at = NULL, free_gb = NULL, ram_free_gb = NULL, "
+    "running = NULL, version = NULL, cpus = NULL, load_per_core = NULL, runners = NULL "
+    f"WHERE host = ? AND status = '{STATUS_LEFT}' RETURNING host"
 )
 
 
@@ -355,10 +359,11 @@ def accept(token: str, host: str, os_name: str, hq_root: str, pubkey: str,
     with db.get_conn() as conn:
         if not _consume(conn, now_s, token_hash, host):
             raise _diagnose(conn, token_hash, host, now_s)
-        placed = conn.execute(_INSERT_HOST_SQL, (
-            host, os_name, root, agents_root, json.dumps([]), 1,
-            STATUS_PENDING, pubkey, json.dumps(entry), now_s, deploy_key,
-        )).fetchone()
+        values = (host, os_name, root, agents_root, json.dumps([]), 1,
+                  STATUS_PENDING, pubkey, json.dumps(entry), now_s, deploy_key)
+        placed = conn.execute(_INSERT_HOST_SQL, values).fetchone()
+        if placed is None:  # the name exists: only a `left` row may be taken over again
+            placed = conn.execute(_REJOIN_HOST_SQL, values[1:] + (host,)).fetchone()
         if placed is None:  # raising rolls the consume back too
             raise JoinError("host_in_use", f"host name {host!r} is already registered")
         db.log_event(conn, None, ACTOR, "join_accept",
@@ -854,18 +859,14 @@ def leave(host: str, *, live: bool = False,
 
 # ---------------------------------------------------------------- rotate after leave (F8)
 
-# Revoking a node's client secret does not recall what the node already read. The org-node
-# identity is a viewer on Agents-Core (dev and prod alike on Free), so the set below is what a
-# node could have copied. Scope, not exact names: PLAN.md §3 and the W4.6 review name the
-# categories. Used only when Infisical cannot be asked; docs/ops/hq-join.md carries the same list.
+# Revoking a node's client secret does not recall what the node already read. Since W4.6c F2 the
+# org-node identity is a viewer on the Org-Node project ONLY (dev and prod alike on Free, but that
+# project holds one prod secret), so the set below is what a node could have copied. Used only
+# when Infisical cannot be asked; docs/ops/hq-join.md carries the same list. A node that left
+# before org-node was moved off Agents-Core could also read that project: docs/ops/hq-join.md,
+# "Nodes that joined before Org-Node", says what to rotate for those.
 DOCUMENTED_READABLE = (
-    "ORG_DB_URL (hub Postgres, role `org`)",
     "CLAUDE_CODE_OAUTH_TOKEN (shared by every node)",
-    "Run Inbox tokens",
-    "SomPong / secretary credentials",
-    "Jules and Jev / OpenRouter keys",
-    "Drive OAuth client and each machine's Drive token",
-    "LungNote MCP client credentials",
 )
 ROTATE_DOC = 'docs/ops/hq-join.md, "After a leave: rotate what the node could read"'
 
@@ -883,7 +884,7 @@ def rotate_scope(org=None) -> dict:
         except Exception as exc:   # the leave already ran: a failed lookup must not hide the block
             why = f"the Infisical lookup failed ({type(exc).__name__})"
     return {"source": "documented", "why": why,
-            "names": {"Agents-Core (documented set)": list(DOCUMENTED_READABLE)}}
+            "names": {"Org-Node (documented set)": list(DOCUMENTED_READABLE)}}
 
 
 def _live_rotate_scope() -> dict:

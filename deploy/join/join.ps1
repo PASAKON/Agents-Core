@@ -593,7 +593,7 @@ function Save-Identity {
 # saved, and the probe's own message says what is left to fix.
 function Invoke-Probe {
     Step 9 'probe: measure this node through its own identity'
-    Say ('python tools\infisical_setup.py run Agents-Core prod --as ' + $script:HostName + ' -- .venv\Scripts\python.exe -m tools.node_dispatch probe')
+    Say ('python tools\infisical_setup.py run Org-Node prod --as ' + $script:HostName + ' -- .venv\Scripts\python.exe -m tools.node_dispatch probe')
     # No hop here, unlike join.sh's sudo: the probe is a child of this window, so it inherits the
     # USERPROFILE that ConfDir (where step 8 wrote node.yaml) was built from, and Python's
     # Path.home() reads that same variable on Windows. Nothing to pass on; the dry run says so.
@@ -603,7 +603,7 @@ function Invoke-Probe {
     Push-Location $script:Core
     try {
         $env:ORG_HOST = $script:HostName
-        $out = & $venvPy (Join-Path $script:Core 'tools\infisical_setup.py') run Agents-Core prod --as $script:HostName -- $venvPy -m tools.node_dispatch probe 2>$null
+        $out = & $venvPy (Join-Path $script:Core 'tools\infisical_setup.py') run Org-Node prod --as $script:HostName -- $venvPy -m tools.node_dispatch probe 2>$null
     } finally {
         Remove-Item Env:ORG_HOST -ErrorAction SilentlyContinue
         Pop-Location
@@ -641,7 +641,7 @@ function Join-OrgNode($argList) {
     else { Write-Host ('join: ' + $script:HostName + ' is joined and its identity is saved, but the probe did not pass (above).') }
     Say ('dispatch public key (for the ssh mesh, W2.8): ' + $script:DispatchKey + '.pub')
     Say 'claude: nothing to sign in to here. The node reads CLAUDE_CODE_OAUTH_TOKEN at run time through'
-    Say ('  infisical_setup.py run Agents-Core prod --as ' + $script:HostName + ' -- <command>   (once the CEO has put it there)')
+    Say ('  infisical_setup.py run Org-Node prod --as ' + $script:HostName + ' -- <command>   (once the CEO has put it there)')
 }
 
 try {

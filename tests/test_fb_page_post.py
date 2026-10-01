@@ -13,6 +13,8 @@ Run via:  pytest tests/test_fb_page_post.py
 """
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from tools import fb_page_post as fpp
@@ -491,3 +493,118 @@ def test_run_dispatches_by_mode(monkeypatch):
     for mode in ("photo", "story", "comments"):
         fpp.run(type("Args", (), {"mode": mode})())
     assert calls == ["photo", "story", "comments"]
+
+
+# -- upload_story_video: positive attach marker (measured live 2026-10-01, ------
+# -- docs/reports/fb-story-attach/REPORT.md) --------------------------------------
+
+_EMPTY_BODY = f"สื่อ\nลากแล้วปล่อยรูปภาพหรือวิดีโอที่นี่\nเพิ่มรูปภาพ/วิดีโอ\n{fpp.STORY_PLACEHOLDER_TEXT}\nยกเลิก\nแชร์"
+_UPLOADING_BODY = "สื่อ\nกำลังอัพโหลดสื่อ\nลบออก\nยกเลิก\nแชร์"          # placeholder already gone (t=2.5 s live)
+_PROCESSING_BODY = "สื่อ\nกำลังประมวลผลสื่อ\nลบออก\nยกเลิก\nแชร์"
+_ATTACHED_BODY = "สื่อ\n0:24 วินาที\n1080 × 1920\nลบออก\nเพิ่มลิงก์\nยกเลิก\nแชร์"   # t=35.5 s live
+_LOADED_VIDEOS = [{"readyState": 4, "duration": 24.105375}, {"readyState": 4, "duration": 24.105375}]
+
+
+class _FakeStoryPage:
+    """Stands in for the Playwright page upload_story_video drives. `states` is
+    the sequence page.evaluate() returns, one per poll; the last one repeats."""
+
+    def __init__(self, states):
+        self.states = list(states)
+        self.clicked: list[str] = []
+        self.files_set: list[str] = []
+        self.reads = 0
+
+    def get_by_text(self, text, exact=False):
+        page = self
+
+        class _Loc:
+            @property
+            def first(self):
+                return self
+
+            def click(self):
+                page.clicked.append(text)
+
+        return _Loc()
+
+    def expect_file_chooser(self, timeout=None):
+        page = self
+
+        class _Chooser:
+            def set_files(self, path):
+                page.files_set.append(path)
+
+        class _Ctx:
+            value = _Chooser()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+        return _Ctx()
+
+    def wait_for_timeout(self, ms):
+        time.sleep(0.005)
+
+    def evaluate(self, js):
+        self.reads += 1
+        return self.states.pop(0) if len(self.states) > 1 else self.states[0]
+
+
+def _story_browser(states):
+    logs: list[str] = []
+    fb = fpp.FBPageBrowser("http://127.0.0.1:9230", "123", log=logs.append)
+    fb.page = _FakeStoryPage(states)
+    return fb, logs
+
+
+@pytest.mark.parametrize(
+    "body, videos",
+    [
+        pytest.param("สื่อ\nยกเลิก\nแชร์", [], id="placeholder-gone-nothing-else"),
+        pytest.param(_UPLOADING_BODY, [], id="mid-upload"),
+        pytest.param(_PROCESSING_BODY, [], id="mid-processing"),
+        pytest.param(_PROCESSING_BODY, _LOADED_VIDEOS, id="video-but-still-processing"),
+        pytest.param(_ATTACHED_BODY, [{"readyState": 0, "duration": float("nan")}], id="video-metadata-not-loaded"),
+        pytest.param(_ATTACHED_BODY, [{"readyState": 4, "duration": 0}], id="video-zero-duration"),
+        pytest.param(_EMPTY_BODY, _LOADED_VIDEOS, id="placeholder-still-shown"),
+    ],
+)
+def test_upload_story_video_no_marker_times_out_false(body, videos):
+    fb, logs = _story_browser([{"body": body, "videos": videos}])
+    assert fb.upload_story_video("/tmp/story.mp4", timeout_s=0.05) is False
+    assert fb.page.files_set == ["/tmp/story.mp4"]
+    assert fb.page.clicked == [fpp.ATTACH_BUTTON_TEXT]  # the attach button, nothing else
+    assert any("TIMED OUT" in line for line in logs)
+    assert not any("attach confirmed" in line for line in logs)
+
+
+def test_upload_story_video_marker_present_returns_true_and_logs_marker():
+    fb, logs = _story_browser([{"body": _ATTACHED_BODY, "videos": _LOADED_VIDEOS}])
+    assert fb.upload_story_video("/tmp/story.mp4", timeout_s=5) is True
+    assert logs == ["upload_story_video: attach confirmed, marker=video element (readyState=4, duration=24.1s)"]
+
+
+def test_upload_story_video_waits_through_upload_and_processing_until_marker():
+    uploading = {"body": _UPLOADING_BODY, "videos": []}
+    processing = {"body": _PROCESSING_BODY, "videos": []}
+    attached = {"body": _ATTACHED_BODY, "videos": _LOADED_VIDEOS}
+    fb, logs = _story_browser([uploading, processing, processing, attached])
+    assert fb.upload_story_video("/tmp/story.mp4", timeout_s=5) is True
+    assert fb.page.reads == 5  # 3 states with no marker, then 2 consecutive marker reads
+
+
+def test_upload_story_video_marker_flicker_resets_stable_reads():
+    attached = {"body": _ATTACHED_BODY, "videos": _LOADED_VIDEOS}
+    flicker = {"body": _PROCESSING_BODY, "videos": []}
+    fb, _ = _story_browser([attached, flicker, attached, attached])
+    assert fb.upload_story_video("/tmp/story.mp4", timeout_s=5) is True
+    assert fb.page.reads == 4  # marker, flicker resets the count, then 2 fresh marker reads
+
+
+def test_story_attach_marker_is_pure_and_names_the_marker():
+    assert fpp.story_attach_marker(_ATTACHED_BODY, _LOADED_VIDEOS) == "video element (readyState=4, duration=24.1s)"
+    assert fpp.story_attach_marker(_ATTACHED_BODY, []) is None  # placeholder-free body alone is never enough

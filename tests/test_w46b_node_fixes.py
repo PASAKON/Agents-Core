@@ -616,7 +616,7 @@ def test_the_extractors_the_probe_and_save_run_isolated_and_the_probe_by_path():
     text = JOIN_SH.read_text()
     probe = _function(text, "do_probe")
     probe_code = "\n".join(ln for ln in probe.splitlines() if not ln.lstrip().startswith("#"))
-    assert '"$PY" -I -B "$CORE/tools/infisical_setup.py" run Agents-Core prod' in probe_code
+    assert '"$PY" -I -B "$CORE/tools/infisical_setup.py" run Org-Node prod' in probe_code
     assert '"$CORE/.venv/bin/python" -I -B "$CORE/tools/node_dispatch.py" probe' in probe_code
     assert "PYTHONDONTWRITEBYTECODE" not in probe_code and "-m tools.node_dispatch" not in probe_code
     assert ' env HOME="$HOME" ORG_HOST="$HOST" ' in probe                      # the w44c HOME pass-through stays
@@ -841,15 +841,15 @@ def test_the_unit_carries_every_sandbox_directive_and_explains_each_in_a_comment
 def test_the_unit_still_runs_the_root_leg_into_infisical_setup_and_then_setpriv():
     exec_start = next(ln for ln in _unit_lines() if ln.startswith("ExecStart="))
     assert ("bind-docker0.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py "
-            "run Agents-Core prod --as contabo") in exec_start
-    assert "/usr/bin/setpriv --reuid=secretary --regid=secretary --init-groups" in exec_start
+            "run Agents-Core prod --as contabo --path /org-join --") in exec_start
+    assert "/usr/bin/setpriv --reuid=org-join --regid=org-join --init-groups" in exec_start
     assert "-m tools.join_api --port 8791" in exec_start
     code = [ln for ln in _unit_lines() if not ln.startswith("#")]
     assert "User=root" in code                       # the root leg reads /etc/infisical/*.env, then drops
     assert "NoNewPrivileges=yes" in code             # setpriv only drops privilege: this does not stop it
     # directives that would break the root leg or the dropped leg are not here
     for bad in ("ProtectSystem=full", "ReadOnlyPaths=/etc", "InaccessiblePaths", "CapabilityBoundingSet",
-                "User=secretary", "PrivateDevices", "SystemCallFilter", "RestrictAddressFamilies",
+                "User=secretary", "User=org-join", "PrivateDevices", "SystemCallFilter", "RestrictAddressFamilies",
                 "PrivateNetwork", "ProtectProc", "MemoryDenyWriteExecute"):
         assert not any(ln.startswith(bad) for ln in code), bad
 
@@ -866,14 +866,14 @@ def test_the_unit_has_no_writable_path_because_the_service_writes_nothing():
 
 def test_the_unit_keeps_its_environment_lines_and_stays_ascii():
     env = sorted(ln for ln in _unit_lines() if ln.startswith("Environment="))
-    assert env == ["Environment=HOME=/home/secretary", "Environment=JOIN_API_PUBLIC_URL=https://webhook.mooniex.com",
+    assert env == ["Environment=HOME=/nonexistent", "Environment=JOIN_API_PUBLIC_URL=https://webhook.mooniex.com",
                    "Environment=JOIN_API_TRUST_FORWARDED=1", "Environment=PYTHONUNBUFFERED=1"]
     assert all(b < 128 for b in UNIT.read_bytes())
 
 
 @not_root
 def test_an_unreadable_home_does_not_break_the_one_config_read_the_endpoint_makes(tmp_path, monkeypatch):
-    # ProtectHome=yes turns /home/secretary into an empty mode-0000 directory: stat on a file under
+    # ProtectHome=yes turns a home directory into an empty mode-0000 directory: stat on a file under
     # it fails with EACCES, which Python 3.12 raises from Path.exists(). The accept path reads
     # lib.config.hosts(), which must treat that as "no node.yaml", not crash.
     locked = tmp_path / "locked"
