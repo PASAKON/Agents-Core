@@ -29,9 +29,16 @@ key. A machine that has not been wired up yet (memory dir is a real
 directory, not a symlink — see ``docs/memory-repo.md``) is a no-op on both
 commands, not an error.
 
+Owner of the repo's sync (GH #176): besides the launcher's pull and the
+session-close push, `scripts/com.mooniex.memory-sync.plist` runs `sync` every
+15 minutes on the Mac, so edits no session pushed still reach origin. Every
+verb commits what is on disk and merges origin in (union merge for `*.md`)
+before it pushes.
+
 Usage:
     python3 -m tools.memory_sync pull
     python3 -m tools.memory_sync push
+    python3 -m tools.memory_sync sync     # = push, for the scheduled job
 """
 from __future__ import annotations
 
@@ -144,17 +151,25 @@ def pull(memory_dir: Path | None = None) -> int:
         print(f"[memory_sync] pull: symlink target {repo} is missing — skipping")
         return 0
 
-    result = _git(repo, "pull", "--ff-only")
-    if result.returncode == 0:
-        print(f"[memory_sync] pull: {result.stdout.strip() or 'already up to date'}")
+    # GH #176: uncommitted edits from other sessions made every merge
+    # refuse ("commit your changes or stash them"), and --ff-only gave up on
+    # any divergence, so the repo only drifted further. Commit what is on
+    # disk, then merge origin in (MEMORY.md and notes merge as a union).
+    committed = _commit_all(repo, "before pull")
+    if committed is not None and committed.returncode != 0:
+        print(f"[memory_sync] pull: WARNING — could not commit local edits in {repo}; "
+              "continuing with memory as-is")
+        return 0
+    ok, detail = _integrate(repo)
+    if ok:
+        print(f"[memory_sync] pull: {detail}")
         return 0
 
     print(
-        f"[memory_sync] pull: WARNING — could not fast-forward {repo} "
-        "(likely a local commit from a crashed session not yet pushed, or a "
-        "network issue). Continuing with memory as-is; spawn is not blocked."
+        f"[memory_sync] pull: WARNING — could not bring origin into {repo} "
+        "(network, or a conflict the union merge could not settle). "
+        "Continuing with memory as-is; spawn is not blocked."
     )
-    detail = (result.stderr or result.stdout).strip()
     if detail:
         print(f"[memory_sync] pull:   {detail}")
     return 0
@@ -179,22 +194,25 @@ def push(memory_dir: Path | None = None) -> int:
         print(f"[memory_sync] push: symlink target {repo} is missing — skipping")
         return 0
 
-    add = _git(repo, "add", "-A")
-    if add.returncode != 0:
-        print(f"[memory_sync] push: FAILED to stage changes in {repo}")
-        print(f"[memory_sync] push:   {add.stderr.strip()}")
-        return 1
-
-    staged = _git(repo, "diff", "--cached", "--quiet")
-    if staged.returncode == 0:
-        return 0  # nothing changed — quiet success
-
-    msg = f"memory: {_session_label()} {date.today().isoformat()}"
-    commit = _git(repo, "commit", "-m", msg)
-    if commit.returncode != 0:
+    commit = _commit_all(repo)
+    if commit is not None and commit.returncode != 0:
         print(f"[memory_sync] push: FAILED to commit in {repo}")
-        print(f"[memory_sync] push:   {commit.stderr.strip()}")
+        print(f"[memory_sync] push:   {(commit.stderr or commit.stdout).strip()}")
         return 1
+
+    # GH #176: a push while behind origin was rejected, and "nothing staged"
+    # returned 0 over older unpushed commits. Merge origin in first, then
+    # push whenever anything local is ahead, whether or not it is new.
+    ok, detail = _integrate(repo)
+    if not ok:
+        print(f"[memory_sync] push: FAILED to bring origin into {repo} — memory stays local-only")
+        if detail:
+            print(f"[memory_sync] push:   {detail}")
+        return 1
+
+    ahead = _count(repo, "@{u}..HEAD")
+    if ahead == 0:
+        return 0  # nothing to send — quiet success
 
     pushed = _git(repo, "push")
     if pushed.returncode != 0:
@@ -204,8 +222,79 @@ def push(memory_dir: Path | None = None) -> int:
             print(f"[memory_sync] push:   {detail}")
         return 1
 
-    print(f"[memory_sync] push: committed + pushed ({msg!r})")
+    what = "committed + pushed" if commit is not None else "pushed"
+    print(f"[memory_sync] push: {what} ({ahead if ahead is not None else '?'} commit(s))")
     return 0
+
+
+# Memory files are lists of notes. When two sessions add to the same file,
+# keeping both sides' lines is right far more often than a conflict nobody is
+# there to resolve (session-save 2026-09-29: 13 ahead / 8 behind, MEMORY.md in
+# conflict, every later save failed). Set in .git/info/attributes, which is
+# local to this checkout, so the memory repo's tracked files are untouched.
+_UNION_ATTR = "*.md merge=union"
+
+
+def _ensure_union_merge(repo: Path) -> None:
+    r = _git(repo, "rev-parse", "--git-path", "info/attributes")
+    if r.returncode != 0 or not r.stdout.strip():
+        return
+    attrs = Path(r.stdout.strip())
+    if not attrs.is_absolute():
+        attrs = repo / attrs
+    try:
+        existing = attrs.read_text(encoding="utf-8") if attrs.exists() else ""
+        if _UNION_ATTR not in existing.splitlines():
+            attrs.parent.mkdir(parents=True, exist_ok=True)
+            sep = "" if not existing or existing.endswith("\n") else "\n"
+            attrs.write_text(existing + sep + _UNION_ATTR + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _commit_all(repo: Path, why: str = "") -> subprocess.CompletedProcess | None:
+    """Stage and commit everything. None when there was nothing to commit."""
+    add = _git(repo, "add", "-A")
+    if add.returncode != 0:
+        return add
+    if _git(repo, "diff", "--cached", "--quiet").returncode == 0:
+        return None
+    msg = f"memory: {_session_label()} {date.today().isoformat()}"
+    if why:
+        msg += f" ({why})"
+    return _git(repo, "commit", "-q", "-m", msg)
+
+
+def _count(repo: Path, rev_range: str) -> int | None:
+    r = _git(repo, "rev-list", "--count", rev_range)
+    if r.returncode != 0:
+        return None
+    try:
+        return int(r.stdout.strip())
+    except ValueError:
+        return None
+
+
+def _integrate(repo: Path) -> tuple[bool, str]:
+    """Fetch, then merge the upstream in when it has anything new.
+
+    A merge, never a rebase: other checkouts may already have these commits.
+    A conflict the union driver cannot settle is aborted, leaving the repo
+    exactly as it was, and reported as a failure."""
+    fetch = _git(repo, "fetch", "-q")
+    if fetch.returncode != 0:
+        return False, f"fetch failed: {(fetch.stderr or fetch.stdout).strip()}"
+    behind = _count(repo, "HEAD..@{u}")
+    if behind is None:
+        return True, "no upstream branch; nothing to merge"
+    if behind == 0:
+        return True, "already up to date"
+    _ensure_union_merge(repo)
+    merge = _git(repo, "merge", "--no-edit", "-q", "@{u}")
+    if merge.returncode != 0:
+        _git(repo, "merge", "--abort")
+        return False, f"merge of {behind} upstream commit(s) failed: {(merge.stderr or merge.stdout).strip()}"
+    return True, f"merged {behind} upstream commit(s)"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -213,7 +302,8 @@ def main(argv: list[str] | None = None) -> int:
         prog="tools.memory_sync",
         description="Sync the C-level auto-memory dir with its git repo.",
     )
-    ap.add_argument("command", choices=["pull", "push"])
+    ap.add_argument("command", choices=["pull", "push", "sync"],
+                    help="sync = push; the name the scheduled job uses")
     args = ap.parse_args(argv)
 
     if args.command == "pull":

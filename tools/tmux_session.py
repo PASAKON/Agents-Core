@@ -190,6 +190,25 @@ def capture(session: str, lines: int = 200) -> str:
     return "\n".join(ln for ln in (r.stdout or "").splitlines() if ln.strip())
 
 
+# Claude Code's folder-trust prompt (GH #161). Its highlighted default is
+# "No, exit", so an Enter typed into it by a kickoff or a wake quits claude.
+TRUST_DIALOG_MARKER = "Yes, I trust this folder"
+
+
+def shows_trust_dialog(session: str) -> bool:
+    """True when the visible screen of `session` is claude's folder-trust
+    prompt. Reads the visible screen only (no scrollback), so a prompt that
+    was answered earlier does not count. False on any tmux error."""
+    try:
+        r = subprocess.run(
+            [tmux_bin(), "capture-pane", "-t", session, "-p"],
+            capture_output=True, text=True, check=False, timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return r.returncode == 0 and TRUST_DIALOG_MARKER in (r.stdout or "")
+
+
 def kill(session: str) -> bool:
     """Kill tmux session. Returns True iff a session was killed."""
     if not has_session(session):
