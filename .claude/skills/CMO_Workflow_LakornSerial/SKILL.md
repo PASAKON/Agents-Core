@@ -61,5 +61,4 @@ it re-states in dialogue what the viewer needs from earlier EPs (story rules: CM
 8. **Drive:** the EP folder (CXO_Rules_GDrive_Filing): final, cover, end card, clips, logs.txt, md5.
 
 ## Field notes
-- 2026-10-01 [n=1] film 5 was shot as one 9-minute EP before this pattern; recut into 3 EPs at the script's
-  built-in cliffhangers (every ~3 min), hook taken from a later shot · evidence: ep5 EP1 cut · status: pending
+- 2026-10-01 [MISSING] film 5 was shot as one 9-minute EP before this pattern; recut into 3 EPs at the script's built-in cliffhangers (every ~3 min), hook taken from a later shot · evidence: 72acc21a · status: pending
