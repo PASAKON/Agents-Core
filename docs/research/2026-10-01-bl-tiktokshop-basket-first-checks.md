@@ -132,6 +132,16 @@ Cheapest test [O]: three baskets, one new organic video each, same week, compare
 
 Simpler alternative (scrutinize) [O]: skip the basket until views recover, and spend the same three videos on the search questions that already carry the channel. At about ฿24 a month the basket cannot repay even one cut.
 
+## 7. CEO's three questions, CMO opinion (1 Oct, after 2c) [O unless labelled]
+
+Sources read through web search snippets, not opened in full: TikTok Shop TH seller pages "Free Sample Guide for Creators" and "How to Apply as an Affiliate Creator" ([J]); TikTok Community Guidelines effective 24 Sep 2026 on unoriginal content ([J]).
+
+- Real product needed? Yes. A basket points at a real seller listing, and the TH rules ban invented products and misleading content ([M], 2026-09-28 note). Footage, best first: (1) free sample, an affiliate creator with 1,000+ followers can request one from the seller (seller answers within 7 days, creator has 14 days to post [J]); (2) buy one unit ourselves, which needs the CEO's OK with the exact amount; (3) seller-provided images or clips with the seller's permission.
+- Clips from China because they have views: no. Content "largely repurposed from another source without adding creative edits", or carrying another platform's logo, stays on the platform but is not recommended on For You ([J]); BL already gets only 7.5% of views from For You [M]. The rights are not ours. A clip that sells in another country says nothing about BL's viewers, who arrive by searching broker questions [M]. Use viral foreign clips only as idea sources and remake with our own footage and commentary.
+- Broker education, analyse the clips that did well, post for 7 days: yes. The channel is a search channel (90.3% search [M]); the best video answers a searched question ("xm ฝากขั้นต่ำเท่าไหร่" is 5.1% of its search traffic [M]) and has 44K lifetime views on 1:25. The recent videos run 2:08-2:47 with 13-26 s average watch [M]. A "why it worked" read from about 5-10 videos is a hypothesis, not proof. Seven posts in seven days show direction, not proof.
+- Pass line to set before posting [O]: week total above 4K views (last week 1.6K) and at least 3 of 7 videos above 400 views in 7 days (the two September videos reached about 400 lifetime). Broker videos follow the CEO ruling of 2026-09-17: warning label, no links in the open channel.
+- Basket: parked. Reach would have to grow by about two orders of magnitude before it matters (section 2c).
+
 ## Open
 
 1. [closed 1 Oct] BL Studio gender and age: measured, section 2b.
