@@ -412,3 +412,65 @@ def test_check_broll_coverage_names_scene_clips_that_were_never_made(tmp_path):
         (tmp_path / "media" / "broll" / f"S{n:02d}.mp4").write_bytes(b"x")
     warnings = run.check_broll_coverage(tmp_path)
     assert len(warnings) == 1 and "S02.mp4 (HOOK-2)" in warnings[0] and warnings[0].startswith("WARNING")
+
+
+# ───────── task-406c21f3 -- arm A on the REAL staged generator, and the tool push ─────────
+
+def _arm_a_real_beats():
+    return [
+        {"tag": "H1", "t0": 0.0, "t1": 1.2, "mode": "COMP", "extra": {"cap": "Hook one"}},
+        {"tag": "H2", "t0": 1.2, "t1": 2.4, "mode": "COMP", "extra": {"cap": "Hook two"}},
+        {"tag": "H3", "t0": 2.4, "t1": 3.4, "mode": "COMP", "extra": {}},
+        {"tag": "E1", "t0": 3.4, "t1": 5.0, "mode": "EVID",
+         "extra": {"img": "real/x.png", "native_w": 1080, "native_h": 1500, "box": [40, 800, 900, 500],
+                   "credit": "WikiFX", "cap": "Evidence"}},
+        {"tag": "K1", "t0": 5.0, "t1": 6.0, "mode": "KIN",
+         "extra": {"broll": "broll/S01.mp4", "lines": [["w", "Hello"]]}},
+    ]
+
+
+@pytest.mark.skipif(not _generator_branch_available(),
+                     reason=f"{run.GENERATOR_BRANCH} not fetched in this clone")
+def test_arm_a_composes_on_the_real_staged_generator_without_touching_it(tmp_path):
+    from tools import bl_checker
+    episode_dir = _ep58_work_dir(tmp_path)
+    (episode_dir / "media" / "real").mkdir()
+    for name in ("a", "b", "c", "x"):
+        (episode_dir / "media" / "real" / f"{name}.png").write_bytes(b"png")
+    dest = tmp_path / "generator"
+    run.build_full_generator(episode_dir, dest)
+    snapshot = {p: p.read_bytes() for p in dest.rglob("*") if p.is_file() and "media" not in p.relative_to(dest).parts}
+
+    headline = bl_checker.parse_headline({
+        "lines": ["โบรกเกอร์ไม่อยากให้คุณรู้", "Weltrade เปิดบัญชีง่ายจริงไหม"], "red": "ไม่อยากให้คุณรู้",
+        "bug_side": "left",
+        "backdrop": [{"t0": 0.0, "src": "real/a.png"}, {"t0": 1.0, "src": "real/b.png"},
+                     {"t0": 2.0, "src": "real/c.png"}]})
+    beats = _arm_a_real_beats()
+    html = bl_compose.compose(beats, dest, 6.0, tmp_path / "out", headline=headline).read_text(encoding="utf-8")
+
+    # the real template's own anchors took the plate and the override; the real assemble.py ran unmodified
+    assert html.count('id="hl"') == 1 and html.count('<style id="arm-a-bug">') == 1
+    assert html.index('<style id="arm-a-bug">') < html.index("</head>") < html.index('id="hl"') < html.index('id="bug"')
+    assert 'src="media/real/a.png"' in html and 'src="media/real/c.png"' in html
+    assert 'data-composition-id="main"' in html and "spotlight(" in html and "caption(" in html
+    assert bl_checker.check_headline_plate(headline, html) == []
+    assert bl_checker.check_headline(headline, beats) == []
+    assert {p: p.read_bytes() for p in snapshot} == snapshot, "the staged generator must not be edited"
+
+    # the same generator, an arm-B table: no arm-A artefact anywhere
+    arm_b = [b for b in beats if b["mode"] != "COMP"]
+    html_b = bl_compose.compose(arm_b, dest, 6.0, tmp_path / "out-b").read_text(encoding="utf-8")
+    assert 'id="hl"' not in html_b and "arm-a" not in html_b and "hl-red" not in html_b
+    assert '<div class="bug" id="bug">' in html_b
+
+
+def test_push_tool_ships_bl_checker_with_bl_compose(monkeypatch):
+    import argparse
+    # bl_compose imports bl_checker's arm-A schema; a box that gets one without the other cannot import it
+    sent = []
+    monkeypatch.setattr(run, "sh", lambda cmd, **kw: sent.append(cmd))
+    assert run.cmd_push_tool(argparse.Namespace(worktree="/opt/wt")) == 0
+    assert [c[2].split("/")[-1] for c in sent] == ["bl_compose.py", "bl_checker.py"]
+    assert all(c[:2] == ["scp", "-q"] and c[3] == f"{run.SSH_ALIAS}:/opt/wt/tools/{c[2].split('/')[-1]}" for c in sent)
+    assert all(c[2] == str(run.ROOT / "tools" / c[2].split("/")[-1]) for c in sent)

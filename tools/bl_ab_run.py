@@ -17,7 +17,8 @@ Subcommands:
     spawn-a     create + delegate the Arm A video_editor task (brief =
                 docs/ops/bl-ab-2026-09-25/arms/A/README.md verbatim).
     spawn-b     same for Arm B.
-    push-tool   scp tools/bl_compose.py into a spawned worker's remote
+    push-tool   scp tools/bl_compose.py (and tools/bl_checker.py, which it
+                imports) into a spawned worker's remote
                 worktree -- needed only while this tool is unmerged to main
                 (spoke worktrees branch from origin/main, not this branch).
     collect     fetch a finished arm's branch (REPORT.md, beats.json,
@@ -551,8 +552,10 @@ def cmd_spawn_b(args: argparse.Namespace) -> int:
 
 
 def cmd_push_tool(args: argparse.Namespace) -> int:
-    sh(["scp", "-q", str(ROOT / "tools" / "bl_compose.py"),
-        f"{SSH_ALIAS}:{args.worktree}/tools/bl_compose.py"])
+    # bl_compose imports bl_checker's arm-A schema (task-406c21f3): shipping one without the other leaves the box
+    # with a bl_compose that cannot import, arm B included.
+    for tool in ("bl_compose.py", "bl_checker.py"):
+        sh(["scp", "-q", str(ROOT / "tools" / tool), f"{SSH_ALIAS}:{args.worktree}/tools/{tool}"])
     return 0
 
 
@@ -609,7 +612,8 @@ def cmd_run_c(args: argparse.Namespace) -> int:
     remote_c = f"{CONTABO_FIXTURE_DIR}/C"
     ssh_cmd(f"mkdir -p {remote_c}")
     ssh_cmd(f"cp {args.repo_path}/docs/ops/bl-ab-2026-09-25/beats.json {remote_c}/beats.json")
-    sh(["scp", "-q", str(ROOT / "tools" / "bl_compose.py"), f"{SSH_ALIAS}:{args.repo_path}/tools/bl_compose.py"])
+    for tool in ("bl_compose.py", "bl_checker.py"):  # bl_compose imports bl_checker (task-406c21f3)
+        sh(["scp", "-q", str(ROOT / "tools" / tool), f"{SSH_ALIAS}:{args.repo_path}/tools/{tool}"])
 
     ssh_cmd(
         f"cd {args.repo_path} && python3 tools/bl_compose.py "

@@ -1,0 +1,28 @@
+{
+  "plates": [
+    "<video class=\"clip\" id=\"v_h1\" src=\"media/lip_a.mp4\" muted playsinline data-start=\"0.0\" data-duration=\"2.0\" data-media-start=\"0.0\" data-track-index=\"0\"></video>",
+    "<img class=\"clip\" id=\"v_c1\" src=\"media/real/c.png\" style=\"top:545px;left:0px;right:auto;bottom:auto;width:1080px;height:810px;transform:none\" data-start=\"2.0\" data-duration=\"2.0\" data-track-index=\"0\">",
+    "<video class=\"avatar-comp\" id=\"av_c1\" src=\"media/matte/lip_a-matte.webm\" muted playsinline data-start=\"2.0\" data-duration=\"1.5\" data-media-start=\"2.0\" data-track-index=\"1\"></video>",
+    "<img class=\"clip\" id=\"v_e1\" src=\"media/real/e.png\" style=\"top:0px;left:0px;right:auto;bottom:auto;width:1080px;height:1400px\" data-start=\"4.0\" data-duration=\"2.0\" data-track-index=\"0\">",
+    "<video class=\"clip plate-darkened\" id=\"v_k1\" src=\"media/broll/S01.mp4\" muted playsinline data-start=\"6.0\" data-duration=\"2.0\" data-media-start=\"0\" data-track-index=\"0\"></video>",
+    "<video class=\"clip plate-darkened\" id=\"v_k2\" src=\"media/broll/S02.mp4\" muted playsinline data-start=\"8.0\" data-duration=\"2.0\" data-media-start=\"0\" data-track-index=\"0\"></video>",
+    "<img class=\"clip\" id=\"v_e2\" src=\"media/real/e2.png\" style=\"top:0px;left:0px;right:auto;bottom:auto;width:1080px;height:1920px\" data-start=\"10.0\" data-duration=\"2.0\" data-track-index=\"0\">"
+  ],
+  "script_lines": [
+    "spotlight(\"sp_c1\", 2.15, 3.92, 135, 680, 405, 270);",
+    "credit(\"cr_c1\", 2.1, 4.0, \"WikiFX\");",
+    "spotlight(\"sp_e1\", 4.25, 5.92, 40, 300, 900, 500);",
+    "credit(\"cr_e1\", 4.1, 6.0, \"SEC filing\");",
+    "kinetic(760, 6.05, 8.0, [{c:\"w\", h:\"Hello\"}, {c:\"r\", h:\"World\"}], 0); // K1",
+    "kinetic(760, 8.05, 10.0, [{c:\"w\", h:\"No broll named\"}], 0); // K2"
+  ],
+  "check_call": "",
+  "check_override_js": [],
+  "caps_js": [
+    "caption(0.0, 2.0, \"Hook line\");",
+    "caption(2.0, 4.0, \"Comp caption\");",
+    "caption(4.0, 6.0, \"Evidence caption\");",
+    "caption(10.0, 12.0, \"Last\");"
+  ],
+  "total_dur": 11.9997
+}

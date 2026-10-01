@@ -71,6 +71,25 @@ Usage:
     python3 tools/bl_compose.py \\
         --beats beats.json --generator-dir <dir> --t0 39.3 --t-max 65.8333 \\
         --out-dir <workdir> --out seg02.mp4
+
+Two looks from one beats.json (task-406c21f3, CMO ruling 2026-10-01). A bare list
+of beats is arm B, today's look -- nothing below applies and the output is
+byte-identical to what this tool produced before arm A existed. An object
+`{"headline": {...}, "beats": [...]}` is arm A, the headline-plate look; the
+schema and the plate's geometry live in tools/bl_checker.py (section 7), which
+judges the same rectangles this tool places. What arm A changes:
+  - the plate (two lines, one substring `red` in red) is on screen from frame 0
+    for the whole clip, and the brand bug moves top-left. Both are applied to
+    the RENDER workdir's index.html only: the staged generator dir and the
+    skill template are never edited, so an arm-B build is untouched.
+  - FF is refused (a full-frame avatar would sit under the plate); use COMP
+    (avatar lower, matted), EVID or KIN.
+  - `headline.backdrop` is three real images behind the avatar at 0, 1 and 2 s.
+    They are the plate of the COMP beats that name no `img`: at 0, 1 and 2 s
+    the active beat must be such a COMP beat (an img-less COMP beat may only
+    start inside the opening, before 3 s). Each src must exist under the
+    generator's media/ and sit under real/.
+A refused arm-A beats.json prints the reason and exits 2.
 """
 from __future__ import annotations
 
@@ -81,11 +100,15 @@ import math
 import shutil
 import subprocess
 import sys
+from html import escape as html_escape
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+from tools.bl_checker import (  # noqa: E402  -- arm A's schema and geometry have one source, the checker
+    BUG_LEFT_ORIGIN, ArmAError, check_headline, headline_layout, parse_headline, split_beats_doc)
 
 CANVAS_W, CANVAS_H = 1080, 1920
 FPS = 30
@@ -237,8 +260,124 @@ def compute_ext_end(beats: list[dict], t_max: float) -> dict[str, float]:
     return ext_end
 
 
+# ── Arm A: the headline plate (task-406c21f3) ────────────────────────────────
+# Schema + geometry are tools/bl_checker.py's (section 7); this is what compose
+# does with them. Nothing in this block runs for an arm-B (bare list) beats.json.
+
+ARM_A_OPENING_END = 3.0   # an img-less COMP beat -- one that rides the headline backdrop -- must start before this
+
+
+def _beat_at(ordered: list[dict], t: float) -> dict | None:
+    """The beat on screen at absolute time `t`: the last one whose t0 <= t. A table whose first beat starts under 1 s
+    in is treated as covering the clip start, because emit_pieces pulls the window's first plate back to it."""
+    cur = None
+    for b in ordered:
+        if b["t0"] <= t + 0.001:
+            cur = b
+        else:
+            break
+    if cur is None and ordered and ordered[0]["t0"] < 1.0:
+        cur = ordered[0]
+    return cur
+
+
+def _is_backdrop_comp(beat: dict | None) -> bool:
+    return bool(beat) and beat.get("mode") == "COMP" and "img" not in (beat.get("extra") or {})
+
+
+def check_arm_a_beats(beats: list[dict], headline: dict) -> None:
+    """Refuse, before anything is emitted, a beats table arm A cannot render faithfully. Raises ComposeError naming
+    the beat. Judged on the WHOLE table, whatever window a range render asks for."""
+    ordered = sorted(beats, key=lambda b: b["t0"])
+    for b in ordered:
+        if b["mode"] == "FF":
+            raise ComposeError(
+                f"beat {b['tag']!r} is FF: arm A keeps the headline plate on screen for the whole clip, and a "
+                f"full-frame avatar would sit under it. Use COMP (avatar lower, matted over a real image), EVID or KIN.")
+    problems = check_headline(headline, beats)
+    if problems:
+        hint = (" Set headline.bug_side to \"left\": the plate sits where the right-hand bug does."
+                if "overlaps_bug_right" in problems else "")
+        raise ComposeError(f"headline plate refused: {', '.join(problems)}.{hint}")
+    for b in ordered:
+        ex = b.get("extra") or {}
+        if not _is_backdrop_comp(b):
+            continue
+        if b["t0"] >= ARM_A_OPENING_END - 0.001:
+            raise ComposeError(
+                f"beat {b['tag']!r} is COMP with no `img` at t0={b['t0']:g}s: only the opening (before "
+                f"{ARM_A_OPENING_END:g}s) rides the headline backdrop; a later COMP names its own `img`.")
+        if ex.get("box") or ex.get("credit"):
+            raise ComposeError(
+                f"beat {b['tag']!r} is a backdrop COMP (no `img`) and carries a box/credit: the backdrop is a "
+                f"first-party real/ capture with nothing to spotlight or credit. Name an `img` or drop them.")
+    for slot in headline["backdrop"]:
+        beat = _beat_at(ordered, slot["t0"])
+        if not _is_backdrop_comp(beat):
+            what = f"{beat['tag']!r} ({beat['mode']}{', with img' if beat['mode'] == 'COMP' else ''})" if beat else "none"
+            raise ComposeError(
+                f"headline.backdrop switches at t={slot['t0']:g}s, but the beat on screen then is {what}. During "
+                f"0, 1 and 2 s the beat must be a COMP with no `img`: its avatar rides the backdrop images.")
+
+
+def check_backdrop_files(headline: dict, generator_dir: Path) -> None:
+    """Every headline.backdrop src must exist under the generator's media/ -- the render workdir symlinks it, and a
+    missing file is a blank backdrop the empty-frame gate may not catch under standing text."""
+    for slot in headline["backdrop"]:
+        if not (generator_dir / "media" / slot["src"]).is_file():
+            raise ComposeError(
+                f"headline.backdrop src {slot['src']!r} (t0={slot['t0']:g}s) is not a file under "
+                f"{generator_dir / 'media'}")
+
+
+def headline_plate_html(headline: dict) -> str:
+    """The plate: one element, two lines, `red` in a span. Position and size come from headline_layout() -- the same
+    numbers bl_checker.check_headline_plate reads back out of the composed HTML. No data-start: like .bl-legal and
+    .bug it is present on every frame from 0."""
+    lay = headline_layout(headline)
+    left, top, width, height = lay["box"]
+    red = headline["red"]
+    rows = []
+    for line in headline["lines"]:
+        i = line.find(red)
+        body = (html_escape(line) if i < 0 else
+                html_escape(line[:i]) + f'<span class="hl-red">{html_escape(red)}</span>' + html_escape(line[i + len(red):]))
+        rows.append(f'<div class="hl-line">{body}</div>')
+    style = (f'left:{left}px;top:{top}px;width:{width}px;height:{height}px;'
+             f'font-size:{lay["font_px"]}px;line-height:{lay["line_h"]}px')
+    return f'<div id="hl" class="hl" style="{style}">{"".join(rows)}</div>'
+
+
+def apply_arm_a(html: str, headline: dict) -> str:
+    """The composed index.html -> arm A: the plate element, the plate's styles, and (bug_side "left") the override
+    that moves the bug. Applied to the RENDER workdir's copy only, never to the generator or the skill template.
+    Exactly one of each anchor must exist: a template that changed shape is refused, not guessed at."""
+    head_anchor, bug_anchor = "</head>", '<div class="bug" id="bug">'
+    for anchor in (head_anchor, bug_anchor):
+        if html.count(anchor) != 1:
+            raise ComposeError(
+                f"arm A: the composed index.html has {html.count(anchor)} occurrence(s) of {anchor!r}, expected "
+                f"exactly 1 -- the generator's template changed shape, so the plate cannot be placed.")
+    styles = ('<style id="arm-a-plate">.hl{position:absolute;z-index:38;text-align:center;white-space:nowrap;'
+              'font-family:Kanit,sans-serif;font-weight:800;color:var(--white);text-shadow:var(--outline)}'
+              '.hl-line{display:block}.hl-red{color:var(--neon)}</style>\n')
+    if headline["bug_side"] == "left":
+        x, y = BUG_LEFT_ORIGIN
+        styles += (f'<style id="arm-a-bug">#bug{{left:{x}px;right:auto;top:{y}px;flex-direction:row;'
+                   f'align-items:center;gap:14px}}#bug .rl{{width:5px;height:44px}}</style>\n')
+    html = html.replace(head_anchor, styles + head_anchor)
+    return html.replace(bug_anchor, headline_plate_html(headline) + "\n      " + bug_anchor)
+
+
+def _avatar_comp_html(safe_id: str, lipname: str, t0: float, avatar_dur: float, media_start: float,
+                      avatar_track: int) -> str:
+    return (f'<video class="avatar-comp" id="av_{safe_id}" src="media/matte/{lipname}-matte.webm" '
+            f'muted playsinline data-start="{t0}" data-duration="{avatar_dur}" '
+            f'data-media-start="{media_start}" data-track-index="{avatar_track}"></video>')
+
+
 def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_window: float = 0.0,
-                 script_line_map: dict[str, int] | None = None) -> dict:
+                 script_line_map: dict[str, int] | None = None, headline: dict | None = None) -> dict:
     """Beats -> the same cut_pieces.json shape build_cut.py writes (plates,
     script_lines, check_call, check_override_js, caps_js, total_dur).
 
@@ -273,6 +412,13 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
     generator-dir's own SCRIPT.tsv tag -> line-number map, used only to
     default a bare KIN beat's plate (see default_kin_broll()); every other
     mode ignores it.
+
+    `headline` (task-406c21f3, a parsed arm-A headline; None = arm B, the
+    default, whose output is byte-identical to before arm A existed) makes a
+    COMP beat that names no `img` ride the headline backdrop: one full-bleed
+    plate per backdrop slot (t0 0 / 1 / 2 s) that falls inside the beat, with
+    the matted avatar over it exactly as a COMP with an image has. The beats
+    table is first refused if arm A cannot render it (check_arm_a_beats).
     """
     img_placement = funcs["img_placement"]
     box_to_canvas = funcs["box_to_canvas"]
@@ -282,6 +428,8 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
     PLATE_TRACK = funcs.get("PLATE_TRACK", 0)
     AVATAR_TRACK = funcs.get("AVATAR_TRACK", 1)
     script_line_map = script_line_map or {}
+    if headline is not None:
+        check_arm_a_beats(beats, headline)
 
     ext_end = compute_ext_end(beats, t_max)
     plates: list[str] = []
@@ -320,6 +468,31 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
             if ex.get("cap"):
                 caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
 
+        elif mode == "COMP" and headline is not None and "img" not in ex:
+            # Arm A opening: the plate is the headline backdrop, switching at each slot's t0. A slot's plate lasts
+            # from its t0 to the next slot's (the last one to the beat's end) and is cut to this beat's span -- a
+            # gap in the plate is the defect SKILL.md §6g names, so the slots tile the beat with no hole.
+            lipname = pick_lip(abs_t0)
+            check_avatar_window(tag, mode, abs_t0, lipname, funcs)
+            media_start = round(abs_t0 - lip_offset(lipname), 3)
+            abs_end = min(ext_end[tag], t_max)
+            slots = headline["backdrop"]
+            for k, slot in enumerate(slots):
+                a = max(slot["t0"], abs_t0)
+                b_end = min(slots[k + 1]["t0"] if k + 1 < len(slots) else abs_end, abs_end)
+                if b_end - a < 0.001:
+                    continue
+                plates.append(
+                    f'<img class="clip" id="bd_{safe_id}_{k}" src="media/{slot["src"]}" style="object-fit:cover" '
+                    f'data-start="{round(a - t0_window, 3)}" data-duration="{round(b_end - a, 3)}" '
+                    f'data-track-index="{PLATE_TRACK}">')
+            avatar_dur = dur
+            if "avatar_until" in ex:
+                avatar_dur = round(ex["avatar_until"] - abs_t0, 3)
+            plates.append(_avatar_comp_html(safe_id, lipname, t0, avatar_dur, media_start, AVATAR_TRACK))
+            if ex.get("cap"):
+                caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
+
         elif mode == "COMP":
             place = img_placement(ex)
             dw, dh, top, left, scale = place
@@ -338,10 +511,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
                 f'<img class="clip" id="v_{safe_id}" src="media/{img}" '
                 f'style="{style}" data-start="{t0}" data-duration="{plate_dur}" '
                 f'data-track-index="{PLATE_TRACK}">')
-            plates.append(
-                f'<video class="avatar-comp" id="av_{safe_id}" src="media/matte/{lipname}-matte.webm" '
-                f'muted playsinline data-start="{t0}" data-duration="{avatar_dur}" '
-                f'data-media-start="{media_start}" data-track-index="{AVATAR_TRACK}"></video>')
+            plates.append(_avatar_comp_html(safe_id, lipname, t0, avatar_dur, media_start, AVATAR_TRACK))
             box_c = box_to_canvas(ex.get("box"), place)
             if box_c:
                 bx, by, bw, bh = box_c
@@ -424,16 +594,26 @@ def build_render_workdir(generator_dir: Path, out_dir: Path) -> None:
         (out_dir / "media").symlink_to(media_src.resolve())
 
 
-def compose(beats: list[dict], generator_dir: Path, t_max: float, out_dir: Path, t0: float = 0.0) -> Path:
+def compose(beats: list[dict], generator_dir: Path, t_max: float, out_dir: Path, t0: float = 0.0,
+            headline: dict | None = None) -> Path:
     """Beats -> a composed index.html in out_dir, via the unmodified
     assemble.py (subprocess, exactly as render_windows.sh calls it). Returns
     out_dir/index.html. Does not render or mux -- callers that only need the
     HTML (tests, dry-run) can stop here. `t0` (task-99f3d2e8 range render):
     the composition covers only [t0, t_max) of ABSOLUTE episode time,
-    starting at composition-local t=0 -- see emit_pieces()'s own docstring."""
+    starting at composition-local t=0 -- see emit_pieces()'s own docstring.
+
+    `headline` (task-406c21f3): an arm-A headline object (validated here, so a
+    raw dict cannot skip parse_headline). Everything arm A refuses is refused
+    BEFORE build_render_workdir() clears out_dir, and the plate + bug move are
+    written into out_dir's copy of index.html only -- never the generator's."""
+    if headline is not None:
+        headline = parse_headline(headline)
     funcs = load_generator_functions(generator_dir)
     script_line_map = load_script_line_map(generator_dir)
-    pieces = emit_pieces(beats, t_max, funcs, t0_window=t0, script_line_map=script_line_map)
+    pieces = emit_pieces(beats, t_max, funcs, t0_window=t0, script_line_map=script_line_map, headline=headline)
+    if headline is not None:
+        check_backdrop_files(headline, generator_dir)
     build_render_workdir(generator_dir, out_dir)
     pieces_path = out_dir / "cut_pieces.json"
     pieces_path.write_text(json.dumps(pieces, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -445,6 +625,8 @@ def compose(beats: list[dict], generator_dir: Path, t_max: float, out_dir: Path,
         [sys.executable, str(assemble_py), str(index_path), str(pieces_path), "0.0"],
         check=True, cwd=out_dir,
     )
+    if headline is not None:
+        index_path.write_text(apply_arm_a(index_path.read_text(encoding="utf-8"), headline), encoding="utf-8")
     return index_path
 
 
@@ -522,7 +704,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
-    beats = json.loads(Path(args.beats).read_text(encoding="utf-8"))
+    try:
+        beats, headline = split_beats_doc(json.loads(Path(args.beats).read_text(encoding="utf-8")))
+    except ArmAError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     generator_dir = Path(args.generator_dir)
     out_dir = Path(args.out_dir)
 
@@ -531,7 +717,9 @@ def main(argv: list[str] | None = None) -> int:
     # and its editor trimmed by hand (task-5d9ecc9e, 2026-09-25).
     range_render = args.t0 is not None
     t0 = args.t0 if range_render else 0.0
-    index_path = compose(beats, generator_dir, args.t_max, out_dir, t0=t0)
+    # arm B calls compose() exactly as it always did (callers and tests stub that signature); arm A adds `headline`.
+    arm_a = {} if headline is None else {"headline": headline}
+    index_path = compose(beats, generator_dir, args.t_max, out_dir, t0=t0, **arm_a)
     print(f"wrote {index_path}")
     if args.no_render:
         return 0
@@ -553,6 +741,9 @@ def main(argv: list[str] | None = None) -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
+    except ArmAError as e:
+        print(f"error: {e}", file=sys.stderr)
+        raise SystemExit(2)
     except ComposeError as e:
         print(f"error: {e}", file=sys.stderr)
         raise SystemExit(1)
