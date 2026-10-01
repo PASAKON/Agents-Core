@@ -1,0 +1,47 @@
+[Unit]
+Description=SomPong (the COO) -- one always-on Claude Code session in tmux "sompong"
+Documentation=file:///opt/MoonieXHQ/Agents/Core/docs/design/sompong-coo-session.md
+# Files only -- the CTO installs and starts this unit (CEO 2026-10-01: SomPong is the
+# COO, Contabo only, one session ever). Install:
+#   install -m 0644 deploy/systemd/mooniex-sompong.service /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now mooniex-sompong.service
+# Start it by hand with /spawn-coo (scripts/spawn-coo.sh): that checks for a live
+# session first, so a second one is never started.
+#
+# The channel server `sompong` (SomPong repo .mcp.json) talks to the inbox service
+# mooniex-sompong-inbox.service; this unit does not depend on it -- the session
+# starts without it and the channel connects when the inbox is up.
+#
+# No secrets in this unit. The org MCP server reaches the hub through the
+# launcher's own wrapper (scripts/hub/with-org-db-env.sh), not through this file.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# The SUPERVISOR runs as root on purpose: tmux session `sompong` must live in root's
+# tmux server, the one MoonieX Console, send_to_cxo's wake nudge, session_gc and
+# session_list all look at (a tmux server owned by another user is invisible to
+# them, and a letter to SomPong would never wake it). The SESSION is not root:
+# scripts/cxo-claude.sh --role coo does its bookkeeping as root, then runs
+# `claude` through runuser as the unix user `sompong` with an empty environment,
+# because the inbox keys live where only root can read them (design doc,
+# acceptance probe 5). Prerequisites, all on the CTO's deploy checklist: the
+# `sompong` user (SomPong repo: ops/install-contabo.sh), its own `claude` install
+# + one CEO login, membership of group `secretary` (state/ is group-writable).
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=ORG_HOST=contabo
+Environment=HOME=/root
+Environment=PYTHONUNBUFFERED=1
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/sompong-supervise.sh
+# Ends the session cleanly (/exit, then kill-session after a grace period) before
+# systemd signals the supervisor, so the supervisor cannot restart it in between.
+ExecStop=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/sompong-supervise.sh --stop
+TimeoutStopSec=60
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

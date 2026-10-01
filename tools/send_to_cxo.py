@@ -688,9 +688,32 @@ def send(role: str, message: str, sender: str | None = None) -> str:
         # Not an error: the row stays pending and the watchdog retries it.
         return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}"
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
-    mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    if role in SINGLETON_ROLES:
+        _share_letter(letter)
     _attempt_wake(role, sid, label)
     return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+
+
+def _share_letter(letter: Path | None) -> None:
+    """Let SomPong's unprivileged unix user read and delete the letter just written.
+
+    SomPong runs as its own user, not root (the inbox keys are root-only), but a
+    C-level writes the letter as itself, and `mailbox.send` creates it 0600 (a
+    mkstemp file) inside a 0755 box. The session's mailbox hook would then skip
+    the letter it cannot open, on every prompt. Group read/write on the letter and
+    group write on its box (state/ is group `secretary`, which SomPong's user
+    joins) fixes it without touching lib/mailbox.py. Best effort and silent: the
+    letter is already durable, and on a box where the session user is root
+    nothing here is needed.
+    """
+    if letter is None:
+        return
+    try:
+        os.chmod(letter, 0o664)
+        os.chmod(Path(letter).parent, 0o2775)
+    except OSError:
+        pass
 
 
 def _usage() -> str:
