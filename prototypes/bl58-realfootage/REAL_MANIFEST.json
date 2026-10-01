@@ -1,0 +1,402 @@
+[
+ {
+  "file": "real/weltrade-header.png",
+  "kind": "still",
+  "covers": [
+   "HOOK-1",
+   "HOOK-2",
+   "CONTEXT-3",
+   "MAIN-7"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/9161578493.html",
+  "captured_at": "2026-10-01T18:41:21+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "reviewer avatar + username",
+    "rule": "full"
+   },
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 205,
+    "y": 475,
+    "w": 450,
+    "h": 270,
+    "proves": "HOOK-1/HOOK-2: WikiFX logo tile for Weltrade with the green label อยู่ในการกำกับดูแล (also MAIN-7)"
+   },
+   {
+    "x": 205,
+    "y": 782,
+    "w": 450,
+    "h": 258,
+    "proves": "CONTEXT-3: the score tile, 3.73/10 at capture time"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/weltrade-warning.png",
+  "kind": "still",
+  "covers": [
+   "HOOK-3",
+   "HOOK-4",
+   "CONTEXT-1",
+   "CONTEXT-2"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/9161578493.html",
+  "captured_at": "2026-10-01T18:41:28+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 0,
+    "y": 875,
+    "w": 1080,
+    "h": 172,
+    "proves": "HOOK-3/HOOK-4/CONTEXT-1/CONTEXT-2: red card, คำเตือน: ระดับคะแนนอยู่ในระดับต่ำ, 43 รายการ, date 2026-10-01"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wikifx-article-apr.png",
+  "kind": "still",
+  "covers": [
+   "PATTERN-1",
+   "MAIN-6"
+  ],
+  "source_url": "https://www.wikifx.com/th/newsdetail/202604298924908012.html",
+  "captured_at": "2026-10-01T18:38:38+07:00",
+  "seconds": 0,
+  "censored": [],
+  "evidence_box": [
+   {
+    "x": 0,
+    "y": 683,
+    "w": 1080,
+    "h": 225,
+    "proves": "PATTERN-1/MAIN-6: abstract, 43 complaints in 3 months, main pattern = cannot withdraw, licence revoked in some countries"
+   },
+   {
+    "x": 0,
+    "y": 405,
+    "w": 1080,
+    "h": 180,
+    "proves": "title of the 29 Apr 2026 WikiFX article"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/weltrade-complaint-1.png",
+  "kind": "still",
+  "covers": [
+   "PATTERN-2"
+  ],
+  "source_url": "https://www.wikifx.com/th/exposure/detail/COG20251231202513916192344.html",
+  "captured_at": "2026-10-01T18:34:57+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "complainant FX id",
+    "rule": "full"
+   },
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 90,
+    "y": 290,
+    "w": 900,
+    "h": 60,
+    "proves": "PATTERN-2: Thai text of the complaint, deposits fine then withdrawal blocked"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "note": "full 1080-wide viewport, no crop (the text column is wider than the crop cap); only the top third carries content, editor zooms in. Evidence image and username hidden/pixelated."
+ },
+ {
+  "file": "real/weltrade-complaint-2.png",
+  "kind": "still",
+  "covers": [
+   "PATTERN-3"
+  ],
+  "source_url": "https://www.wikifx.com/th/exposure/detail/COG20250904085434501137992.html",
+  "captured_at": "2026-10-01T18:35:06+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "complainant FX id",
+    "rule": "full"
+   },
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 90,
+    "y": 290,
+    "w": 900,
+    "h": 185,
+    "proves": "PATTERN-3: complaint text, 3 weeks, under finance department review"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "note": "same as complaint-1; the lower half is empty because the evidence image is hidden."
+ },
+ {
+  "file": "real/wikifx-article-sep.png",
+  "kind": "still",
+  "covers": [
+   "CONTEXT-4"
+  ],
+  "source_url": "https://www.wikifx.com/th/newsdetail/202609302364545921.html",
+  "captured_at": "2026-10-01T18:35:16+07:00",
+  "seconds": 0,
+  "censored": [],
+  "evidence_box": [
+   {
+    "x": 0,
+    "y": 405,
+    "w": 1080,
+    "h": 195,
+    "proves": "CONTEXT-4: title + date of the 30 Sep 2026 WikiFX article"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wikifx-article-sep-amount.png",
+  "kind": "still",
+  "covers": [
+   "CONTEXT-5",
+   "MAIN-13"
+  ],
+  "source_url": "https://www.wikifx.com/th/newsdetail/202609302364545921.html",
+  "captured_at": "2026-10-01T18:41:36+07:00",
+  "seconds": 0,
+  "censored": [],
+  "evidence_box": [
+   {
+    "x": 0,
+    "y": 845,
+    "w": 1080,
+    "h": 235,
+    "proves": "CONTEXT-5: the $22,067 paragraph"
+   },
+   {
+    "x": 20,
+    "y": 1840,
+    "w": 760,
+    "h": 50,
+    "proves": "MAIN-13: contents line ใบอนุญาตเบลีซถูกเพิกถอน"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "note": "promo censor profile NOT applied on purpose, it would blank the dollar figure."
+ },
+ {
+  "file": "real/weltrade-licence.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-3",
+   "MAIN-4",
+   "MAIN-5"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/9161578493.html",
+  "captured_at": "2026-10-01T18:41:47+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 10,
+    "y": 605,
+    "w": 1060,
+    "h": 700,
+    "proves": "MAIN-3/MAIN-4: licence box, FSCA, South Africa, WELTRADE SA (PTY) L..., licence number 50691"
+   },
+   {
+    "x": 590,
+    "y": 655,
+    "w": 225,
+    "h": 70,
+    "proves": "MAIN-5: tab ผิดปกติ 2"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/weltrade-registration.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-4",
+   "MAIN-12"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/9161578493.html",
+  "captured_at": "2026-10-01T18:35:48+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 0,
+    "y": 733,
+    "w": 1080,
+    "h": 455,
+    "proves": "MAIN-4/MAIN-12: registered Saint Lucia, company Weltrade Ltd; website and email pixelated"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/weltrade-survey.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-8",
+   "MAIN-9",
+   "MAIN-10",
+   "MAIN-11"
+  ],
+  "source_url": "https://www.wikifx.com/th/survey/97378304c7.html",
+  "captured_at": "2026-10-01T18:41:55+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "private street address, Thai",
+    "rule": "full"
+   },
+   {
+    "what": "private street address (any case)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 70,
+    "y": 200,
+    "w": 880,
+    "h": 100,
+    "proves": "MAIN-8/MAIN-9: survey title, ไม่พบสำนักงาน, date 2023-11-06"
+   },
+   {
+    "x": 90,
+    "y": 1525,
+    "w": 840,
+    "h": 165,
+    "proves": "MAIN-10/MAIN-11: private residence, owner never heard of it, broker had no presence"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "note": "full viewport, no crop; the WikiFX field photos and the map are hidden and the street address is pixelated in both English and Thai lines."
+ },
+ {
+  "file": "real/weltrade2-header.png",
+  "kind": "still",
+  "covers": [
+   "CURIOSITY-1",
+   "CURIOSITY-4"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/5381662917.html",
+  "captured_at": "2026-10-01T18:36:25+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 205,
+    "y": 475,
+    "w": 450,
+    "h": 320,
+    "proves": "CURIOSITY-1: second WikiFX profile, stamp ยังไม่มีการกำกับดูแล"
+   },
+   {
+    "x": 205,
+    "y": 782,
+    "w": 450,
+    "h": 258,
+    "proves": "CURIOSITY-4: score tile of profile 2, 2.04/10 at capture time"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/weltrade2-info.png",
+  "kind": "still",
+  "covers": [
+   "CURIOSITY-2"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/5381662917.html",
+  "captured_at": "2026-10-01T18:36:35+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 40,
+    "y": 960,
+    "w": 350,
+    "h": 70,
+    "proves": "CURIOSITY-2: registered region Saint Vincent and the Grenadines"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/weltrade2-licence.png",
+  "kind": "still",
+  "covers": [
+   "CURIOSITY-3"
+  ],
+  "source_url": "https://www.wikifx.com/th/dealer/5381662917.html",
+  "captured_at": "2026-10-01T18:36:46+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "broker website / email text (regex, exact text range)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 10,
+    "y": 605,
+    "w": 1060,
+    "h": 700,
+    "proves": "CURIOSITY-3: ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์ โปรดตระหนักถึงความเสี่ยง"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ }
+]
