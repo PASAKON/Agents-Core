@@ -1,0 +1,9 @@
+[
+ {"tag": "HOOK-1", "t0": 0.28, "t1": 2.06, "mode": "FF",
+  "extra": {"cap": "เวลเทรดโดนว่าถอนเงินไม่ออก"}},
+ {"tag": "HOOK-3", "t0": 4.44, "t1": 6.40, "mode": "EVID",
+  "extra": {"img": "real/weltrade-header.png", "native_w": 1080, "native_h": 1920,
+            "box": [60, 330, 960, 420], "cap": "วิกิเอฟเอ็กซ์ขึ้นคำเตือนสีแดง"}},
+ {"tag": "HOOK-4", "t0": 6.73, "t1": 8.48, "mode": "KIN",
+  "extra": {"broll": "broll/S04.mp4", "lines": [["bl-xl", "ร้องเรียน"], ["bl-xl", "43 รายการ"]]}}
+]
