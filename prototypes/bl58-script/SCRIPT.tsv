@@ -1,0 +1,40 @@
+HOOK-1	เวลเทรดโดนว่าถอนเงินไม่ออก	weltrade-header	show	FIRST FRAME: WikiFX logo tile for Weltrade + name + score, the viewer sees WHICH broker and the claim inside 3 s. The claim is attributed by the wording: โดนร้องเรียน
+HOOK-2	จริงไหม กูไปเช็กมาให้	weltrade-header	show	same still held; on-screen search phrase: Weltrade ถอนเงินไม่ได้จริงไหม
+HOOK-3	วิกิเอฟเอ็กซ์ขึ้นคำเตือนสีแดง	weltrade-warning	show	red warning card on the WikiFX profile (WikiFX's own words, WikiFX branding stays on screen)
+HOOK-4	ข้อร้องเรียนสี่สิบสามรายการ	weltrade-warning	show	same still, zoom to the count on the card. The card says 43 รายการ (entries), not people. NUMBER FROM LIVE CAPTURE 2026-10-01 18:24 ICT, re-check before voice
+PATTERN-1	วิกิเอฟเอ็กซ์ว่าซ้ำๆ ถอนไม่ได้	wikifx-article-apr	show	29 Apr 2026 WikiFX article, abstract: the main repeated problem is withdrawal. Attributed to WikiFX, no amount
+PATTERN-2	คนหนึ่งว่าถอนติดตรวจสอบ	weltrade-complaint-1	show	one complaint page, tag ปัญหาการถอนเงิน; username/avatar pixelated, evidence image hidden. Content is the top third, zoom in. One user's claim
+PATTERN-3	อีกคนรอสามสัปดาห์ ว่ากำลังตรวจ	weltrade-complaint-2	show	second complaint page, same treatment. One user's claim
+PATTERN-4	นี่คำผู้ร้องเรียน ไม่ใช่ของกู		verdict	avatar full frame, compliance line: complaints are theirs, not the channel's finding
+CONTEXT-1	ตรวจล่าสุดวันที่หนึ่งตุลาคม	weltrade-warning	show	the date on the warning card (2026-10-01) is the proof; same still as HOOK-3
+CONTEXT-2	ตามวิกิเอฟเอ็กซ์ มาจากคะแนนต่ำ	weltrade-warning	show	same card, the headline: ระดับคะแนนอยู่ในระดับต่ำ. We attribute and do not repeat WikiFX's own word โปรดหลีกเลี่ยง in the voice
+CONTEXT-3	เลขบนจอคือคะแนนเต็มสิบ	weltrade-header	show	the score tile. NO number in the voice: the screen carries it (3.73 at capture, it moves between pages and days)
+CONTEXT-4	วิกิเอฟเอ็กซ์เพิ่งลงบทความใหม่	wikifx-article-sep	show	30 Sep 2026 WikiFX article, title + date. Page shows 'Yesterday 06:11' on 1 Oct, so the voice says เพิ่งลง, not เมื่อวาน
+CONTEXT-5	มีผู้อ้างถอนสองหมื่นกว่าดอลลาร์ไม่ได้	wikifx-article-sep-amount	show	the paragraph that opens with $22,067, sharp on screen. One user's claim reported by WikiFX; complainant not named there. AMOUNT FROM LIVE CAPTURE
+MAIN-1	นี่คำอ้างคนเดียว กูยืนยันไม่ได้		verdict	avatar full frame, source honesty
+MAIN-2	ดูที่ตรวจเองได้ คือใบอนุญาต		verdict	avatar full frame, sets up the licence shot
+MAIN-3	ใบเขียวมีใบเดียว แอฟริกาใต้	weltrade-licence	show	WikiFX licence box: FSCA, South Africa, derivatives licence, number 50691 on screen
+MAIN-4	บริษัทถือใบ คนละชื่อกับโปรไฟล์	weltrade-licence	show	licence box names WELTRADE SA (PTY) L... (cut by the page itself); then cut to weltrade-registration where the company reads Weltrade Ltd. Hold each 1 s
+MAIN-5	หน้าเดียวกัน มีใบผิดปกติสองใบ	weltrade-licence	show	zoom to the tab ผิดปกติ 2 next to ใบอนุญาตฟอเร็กซ์ 1. The tab content needs a click, so the voice says only that two are marked ผิดปกติ
+MAIN-6	วิกิเอฟเอ็กซ์ว่าบางประเทศเพิกถอน	wikifx-article-apr	show	29 Apr abstract, last clause: สถานะใบอนุญาตถูกเพิกถอนในบางประเทศ. Same still as PATTERN-1, zoom to the end of the abstract
+MAIN-7	แต่ป้ายเขียวยังขึ้นว่ากำกับดูแล	weltrade-header	show	zoom to the green label อยู่ในการกำกับดูแล on the logo tile; it is what the page shows today, we say so and move on
+MAIN-8	วิกิเอฟเอ็กซ์ไปดูที่อยู่แอฟริกาใต้	weltrade-survey	show	WikiFX Survey page, title ไม่พบสำนักงาน
+MAIN-9	ปีสองพันยี่สิบสาม ไม่เจอสำนักงาน	weltrade-survey	show	same still: field date 2023-11-06 is under the title. This finding is nearly three years old and the line says the year
+MAIN-10	เป็นบ้านพัก เจ้าของไม่รู้จักชื่อ	weltrade-survey	show	same page, finding paragraph; street address pixelated, photos hidden
+MAIN-11	ผลสำรวจว่า ไม่มีตัวนายหน้า	weltrade-survey	show	same page, last sentence of the visit text: นายหน้าไม่มีตัวตน ณ สถานที่นั้น
+MAIN-12	โปรไฟล์ว่าจดทะเบียนเซนต์ลูเซีย	weltrade-registration	show	basic-info box: registered Saint Lucia, 20+ years; website and email pixelated
+MAIN-13	หัวข้อบทความ ใบเบลีซถูกเพิกถอน	wikifx-article-sep-amount	show	contents line at the bottom of the same frame as CONTEXT-5, WikiFX's own heading. Editor: Ken-Burns down to it
+CURIOSITY-1	วิกิเอฟเอ็กซ์มีเวลเทรดสองหน้า	weltrade2-header	show	second WikiFX profile for the same name (id 5381662917). Editor: stack or cut against weltrade-header
+CURIOSITY-2	อีกหน้าว่าจดที่เซนต์วินเซนต์	weltrade2-info	show	basic-info box of profile 2: registered Saint Vincent and the Grenadines; email pixelated
+CURIOSITY-3	หน้านั้นไม่พบใบอนุญาตฟอเร็กซ์	weltrade2-licence	show	licence box of profile 2: ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์ โปรดตระหนักถึงความเสี่ยง
+CURIOSITY-4	คะแนนสองหน้าก็ไม่เท่ากัน	weltrade2-header	show	score of profile 2 on screen (2.04 at capture) against 3.73 on profile 1. NO number in the voice
+CURIOSITY-5	ก่อนโอน ถามว่าเงินเข้าบริษัทไหน		verdict	avatar full frame, the check this twist teaches
+SUMMARY-1	สรุป ถอนเงินไม่ได้จริงไหม		verdict	avatar full frame
+SUMMARY-2	กูไม่ได้ลองถอน ตอบแทนไม่ได้		verdict	avatar full frame, we did not test a withdrawal, so no verdict is claimed
+SUMMARY-3	ก่อนเลือกโบรก เช็กสามอย่าง		verdict	avatar full frame
+SUMMARY-4	หนึ่ง ค้นเลขใบอนุญาตที่เว็บหน่วยงาน		show	GRAPHIC checklist card 1/3, kinetic Thai text on brand graphic (no real footage, per the checklist carve-out)
+SUMMARY-5	สอง ดูว่าบริษัทจดทะเบียนที่ไหน		show	GRAPHIC checklist card 2/3
+SUMMARY-6	สาม ลองถอนก้อนเล็กก่อน		show	GRAPHIC checklist card 3/3
+SUMMARY-7	กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดู		verdict	avatar full frame, compliance line: the channel recommends no broker
+SUMMARY-8	คอมเมนต์ เช็กลิสต์ ถ้าอยากได้ตาราง		cta	avatar full frame, knowledge-only CTA. No link, no account CTA, no rebate
+SUMMARY-9	ป้ายเขียวไม่พอ เช็กเลขใบอนุญาต		verdict	avatar full frame, close

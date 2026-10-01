@@ -40,14 +40,15 @@ operator (phone)           hub (Contabo)                     new machine        
                                                    2 keys (age, deploy, dispatch); installs only the tools they need
                               POST /accept  <---   3 accept: token + age pubkey + deploy pubkey
                               hosts: pending_identity    prints  fingerprint: <last 8 of the age recipient>
-                              {host, status, tailscale_authkey?} --->  4 install the rest  5 tailscale up
-                                                   6 poll POST /sealed every 15 s: "waiting for approval"
+                              {host, status} --->      4 install the rest
+                                                   5 poll POST /sealed every 15 s: "waiting for approval"
   Run Inbox: approve X, compare the 8 characters
   hq_join approve --host X --fingerprint <8> ------------------------------------------>  hq_join provision X
                               node_secrets.ciphertext <---------------------------------------  (mint Infisical secret,
                               hosts: identity_ready                                              seal to X's age key,
                                                                                                  register deploy key)
-                              200 {ciphertext} --->   7 GitHub host keys -> known_hosts, clone (StrictHostKeyChecking=yes)
+                              200 {ciphertext, tailscale_authkey?} --->  6 tailscale up --auth-key
+                                                   7 GitHub host keys -> known_hosts, clone (StrictHostKeyChecking=yes)
                                                    8 age -d | infisical_setup.py save X --stdin ; node.yaml
                                                    9 probe
 ```
@@ -59,9 +60,12 @@ operator is sitting at, and the approval (W4.6a, `hq_join approve`) is what stop
 provisioning them. Step 2 installs only what the keys and the hub calls need (curl, ssh-keygen,
 age, python; on Windows age, and git for its ssh-keygen); step 4 installs the rest.
 
-Steps 6 and 7 are in the order the machine needs them, not the order the nine are listed in the
+Steps 5 to 7 are in the order the machine needs them, not the order the nine are listed in the
 task: the deploy key only works once the operator approved the node and the Mac provisioned it,
-and `save` is a script from the clone.
+and `save` is a script from the clone. The tailnet (step 6) comes after the wait (step 5) because
+the hub hands the pre-auth key out with the sealed answer, which exists only after the approval
+(CTO review of task-4d6fe461, F1). Nothing before step 6 needs the tailnet: the installs come
+from public package repositories, the hub is called at its public URL, and the clone is over GitHub.
 
 Every step is safe to repeat. After any failure, run the same command again: a token that already
 joined this host is recognised through `/sealed`, and keys, clone, venv and node.yaml are kept.
@@ -415,14 +419,84 @@ The role and the two triggers can stay: they do nothing for any other role.
 ## Tailscale pre-auth key
 
 `tools/join_api.py` takes an injectable `TailscaleMinter` (`host -> one-use, tagged pre-auth key`).
-It is **not wired**: CEO gate G3 (the Tailscale OAuth client) decides that. Until then `/accept`
-returns no key and step 5 requires the machine to be on the tailnet already (it stops with the
-exact `tailscale up --hostname <name>` to run).
+`main()` wires `lib/tailscale_api.py` into it when the Tailscale OAuth client is in the endpoint's
+environment (CEO gate G3). **The key is released only after the CEO approves the node's
+fingerprint**: `/accept` never carries one, and `/sealed` adds `tailscale_authkey` to its `ready`
+answer (the same answer that releases the ciphertext, once the host is approved and its identity
+is sealed). Whoever holds a join token but has not been approved gets no key, so a stolen token
+alone cannot put a machine on the tailnet. `join.sh` and `join.ps1` run the tailnet step (6)
+after the wait (5): `tailscale up --auth-key <key> --hostname <name> --advertise-tags=tag:org-node`
+with the key from the sealed answer, and fall back to the old behaviour without one.
+
+| Situation | What the endpoint does |
+|---|---|
+| Both variables set | The `ready` answer of `/sealed` adds `tailscale_authkey`: one use (`reusable: false`), pre-authorized, `tag:org-node`, not ephemeral, valid 1 hour, described `org-node:<host>`. A new key per `ready` answer; `pending` and every 403 mint nothing; `/accept` never mints. The journal says `(minter wired)`. |
+| Neither set | As before: no key field, step 6 requires the machine to be on the tailnet already (it stops with the exact `tailscale up --hostname <name>` to run). The journal says `(minter not wired)`. |
+| One without the other | The endpoint refuses to start (exit 2) and names the two variables. Half a configuration must not look like "not configured". |
+| Tailscale refuses or is down | The `ready` answer still goes out with the ciphertext and no key field. One journal line, `tailscale minter failed for <host>: TailscaleError (HTTP <status>)` (class name and the integer status only, never a body or a message). The node gets step 6's "join by hand" message; running the same command again polls `/sealed` again and gets a fresh try. |
+
+The client secret, the access token and the minted key are never in a log line, an exception
+message or an argument list; the key is in the `/sealed` answer and nowhere else. The only address
+the secret is ever posted to is `https://api.tailscale.com`: there is no environment variable
+that changes it. `leave` removes the node's device, not its key: a key that was never used (the
+node left before step 6, or re-ran the command) dies by itself within the hour. A re-run polls
+`/sealed` again (to tell "already joined" from "wrong token") and each `ready` answer mints a key,
+so a re-run leaves one unused key that expires within the hour.
+
+### What the CEO sets up (once)
+
+1. **ACL.** In the Tailscale admin console, Access controls, add the tag to `tagOwners`:
+   ```
+   "tagOwners": { "tag:org-node": ["autogroup:admin"] },
+   ```
+   If the ACL is not allow-all, tagged nodes also need a rule that lets them reach, and be
+   reached by, mac, contabo and winbox.
+2. **OAuth client.** Settings, OAuth clients, Generate. Tick exactly two scopes:
+   **Auth Keys: Write** and **Devices Core: Write**. When it asks which tags the client may use,
+   pick `tag:org-node` and no other. Copy the client ID and the client secret once.
+3. **Infisical.** Project **Agents-Core**, environment **prod**, folder **/org-join** (the folder the
+   `org-join` unit already injects, `infisical_setup.py run Agents-Core prod --as contabo --path /org-join`),
+   two secrets:
+
+   | Name | Value |
+   |---|---|
+   | `TAILSCALE_OAUTH_CLIENT_ID` | the client ID |
+   | `TAILSCALE_OAUTH_CLIENT_SECRET` | the client secret |
+
+   Both pass the PLAN §4b name lint. From a terminal, the value goes on stdin, never into an argument:
+   `python3 tools/infisical_setup.py put Agents-Core prod TAILSCALE_OAUTH_CLIENT_SECRET --path /org-join --stdin --comment "<purpose>" --meta provider_name=... --meta console_url=... --meta scope=... --meta expires=... --meta owner=...`
+   (PLAN §4c metadata; the Infisical page works as well). No unit change is needed.
+
+The endpoint reads its environment when it starts, so the key takes effect the next time the door
+opens (`door.sh open`), not before.
+
+### Check that the minter is wired (no Tailscale call needed)
+
+```bash
+journalctl -u org-join -n 40 --no-pager | grep -E 'infisical run|listening on'
+```
+
+- `[infisical run] Agents-Core/prod/org-join ... TAILSCALE_OAUTH_CLIENT_ID, TAILSCALE_OAUTH_CLIENT_SECRET ...`
+  lists the names the folder injected (never the values).
+- `join_api ... listening on 172.17.0.1:8791 (minter wired)`. `(minter not wired)` means neither name
+  reached the process; the endpoint did not start at all if only one did.
+
+The first real proof is the first join, after the CEO approves it: the `ready` answer of `/sealed`
+carries `tailscale_authkey`, and step 6 prints `joined the tailnet`. If the journal instead shows `tailscale minter failed`, check the two scopes,
+the tag the client may use and the `tagOwners` line above.
+
+### What it can do if the endpoint is compromised
+
+The endpoint is public, and it now holds the Tailscale OAuth client secret in memory (before:
+only the `org_join` database URL). Whoever gets that secret can mint tagged pre-auth keys, which
+add machines to the tailnet as `tag:org-node`, and delete devices. Keep the client at exactly the
+two scopes and the one tag above, so it can touch nothing else, and rotate it like any other key
+(new client in Tailscale, Infisical, restart the door, delete the old client).
 
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w43_join_api.py tests/test_w43_join_scripts.py tests/test_w45_bind.py tests/test_w46b_node_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w43_join_api.py tests/test_w43_join_scripts.py tests/test_w45_bind.py tests/test_w46b_node_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py tests/test_w47_tailscale.py
 ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54330/org_test \
     .venv/bin/python -m pytest -p no:warnings tests/test_w46c_join_role.py   # adds the real-Postgres tests
 ```

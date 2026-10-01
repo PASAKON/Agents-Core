@@ -293,8 +293,8 @@ def test_load_role_groups_from_real_agents_yaml() -> None:
 
     # Verbatim-confirmed by two real skills' own text (session-change-model:
     # "Shared by CTO/CFO/CGO/CMO"; higgsfield-unlimited-gen: "any C-level
-    # (CTO, CMO, CFO, CGO)").
-    assert cxo_tokens == {"cto", "cfo", "cgo", "cmo"}
+    # (CTO, CMO, CFO, CGO)"), plus the COO added 2026-09-27.
+    assert cxo_tokens == {"cto", "cfo", "cgo", "cmo", "coo"}
 
     assert "developer" in worker_tokens
     assert "browser_operator" in worker_tokens

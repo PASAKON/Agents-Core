@@ -127,12 +127,26 @@ fails closed — an unreachable inbox means deny. Group text, image text and web
 4. `/spawn-coo` while it runs → "already running", still one `sompong` tmux session; Mac/winbox `--role coo`
    refuses.
 5. The session cannot read the wake/internal keys or any token (`printenv`, `/etc/sompong/*`, the
-   ClaudeFlow `data/` dir) — enforced at the tool layer: the keys live only in the inbox process, the
-   session env never carries them, `.claude/settings.json` denies Read on the secret paths, the org
-   secret-env guard runs, and family turns are gated.
+   ClaudeFlow `data/` dir). The OS enforces this (non-root user), and so does the tool layer: the keys
+   live only in the inbox process, the session env never carries them, `.claude/settings.json` denies
+   Read on the secret paths, the org secret-env guard runs, and family turns are gated.
+6. Asked to do something that needs root, SomPong posts a red Run card. Nothing runs until the CEO's
+   Face ID on `/run`. Approved within 15 min: SomPong continues with the result. Not approved: it
+   cancels its own card and says so.
 
-**Session user (CTO 2026-10-01):** the session runs as root, like every C-level on Contabo, because the
-CEO made SomPong a full C-level (org tools, tasks, worktrees, pushes all assume root). So probe 5 is a
-tool-layer guarantee, not OS isolation: a CEO turn is ungated, as in any C-level session. A non-root
-session user (real isolation from the inbox's keys) is a later hardening and needs the org tools to work
-for a non-root user first (task-179acf77 report, risk 1).
+**Session user (CEO 2026-10-01, 16:1x; supersedes the CTO's earlier "root"):** the session runs as the
+unprivileged unix user `sompong`. Basic commands run directly. Anything that needs root goes through the
+Run Inbox: SomPong posts a card (`ask_run`, risk red, requester role `coo`), the card names who asked,
+and only the CEO's phone can approve it, with a fresh Face ID (Console `src/run/stepup.js`: a WebAuthn
+assertion with user verification, single-use, bound to that card). The approved card runs as root under
+`mooniex-console.service`. SomPong waits for it (`ask_run_wait`, 900 s), carries on the moment it is
+approved, and cancels its own card if 15 minutes pass. CEO: "สิทธิ์ root ต้องยืนยันตัวตนก่อน … คนที่มีมือถือ
+แสกนหน้าได้เท่านั้นที่จะรันได้". The code default was already non-root (launcher `SOMPONG_USER`, default
+`sompong`; uid 0 only with `SOMPONG_ALLOW_ROOT=1`). The auto-mode classifier refused making root the
+default, and the CEO's ruling keeps it that way. With a non-root user, probe 5 is OS isolation as well:
+the session cannot read `/etc/infisical`, `/proc/<inbox pid>/environ` or `state/inbox.db`.
+Not `secretary`: that uid is the secretary service's, so the session could read that service's secrets
+through `/proc`. Deploy needs: the user, its own `claude` and one CEO login, its own Run Inbox token
+(`~/.config/mooniex/run-inbox.token`, 0600; it can create cards, never approve them) and LungNote access.
+Org tools that write `state/tasks.db` do not work for it, so DEV work goes to a C-level through
+`send_to_cxo`.

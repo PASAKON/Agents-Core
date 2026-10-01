@@ -55,6 +55,7 @@ sys.path.insert(0, str(ROOT))
 
 from lib import mailbox  # noqa: E402
 from lib.logger import get_logger  # noqa: E402
+from lib.roles import c_level_roles  # noqa: E402
 from tools.org_inspector import (  # noqa: E402
     detect_host,
     history_index,
@@ -101,14 +102,18 @@ SECRETARY_FROM_SESSION_ID = "sompong"
 # — the secretary's own name, not a C-level's (same rule).
 SECRETARY_WAKE_LABEL = "SomPong"
 
-C_LEVEL_ROLES = ("cto", "cfo", "cmo", "cgo")
+# The org roster from policies/agents.yaml `c_level` (lib/roles.py) -- the same
+# list Contabo's runners/relay_mcp_server.py validates against, so the two ends
+# of the queue agree by construction. Read from this Mac's own checkout, never
+# from a queue row.
+C_LEVEL_ROLES = c_level_roles()
 
 # Same validation as Contabo's runners/relay_mcp_server.py
 # (task-689fc721): an explicit target_session_id in the queue payload lands
 # directly in a tmux session name here too, so it is checked before that
 # name is built -- hex, bounded length, nothing else. Duplicated rather
-# than imported, same reasoning as C_LEVEL_ROLES above: this file is the
-# Mac-side consumer of a queue Contabo writes into, not a shared module.
+# than imported: this file is the Mac-side consumer of a queue Contabo
+# writes into, not a shared module.
 TARGET_SESSION_ID_RE = re.compile(r"^[0-9a-fA-F]{6,64}$")
 
 # Cap on a `read` capture. A pane holds thousands of lines and every one of them

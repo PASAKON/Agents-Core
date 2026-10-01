@@ -4,7 +4,7 @@
 `runners/relay_mcp_server.py::relay_to_session` (Contabo, the secretary's
 own MCP server) opens a `ceo_orders` row per delivered order and hands the
 recipient an order id in the letter's footer. This module is how ANY
-C-level (cto/cmo/cgo/cfo) closes that row -- from wherever it happens to be
+C-level (cto/cmo/cgo/cfo/coo) closes that row -- from wherever it happens to be
 running, Contabo or the Mac -- and gets the reply's own wording into
 SomPong's mailbox (the ledger row alone would lose it; see
 `report_to_ceo`'s docstring).
@@ -20,8 +20,9 @@ table. It therefore resolves its OWN copy of the DB path / SSH target
 constants from the same env vars, rather than importing a `runners.*`
 module from `lib.*` (wrong layering direction -- runners depends on lib,
 never the reverse). Same duplication-for-independence reasoning already
-used in this codebase for C_LEVEL_ROLES/HISTORY_MODES between
-runners/mac_agent.py and runners/relay_mcp_server.py.
+used in this codebase for HISTORY_MODES between runners/mac_agent.py and
+runners/relay_mcp_server.py (their C_LEVEL_ROLES now both come from
+policies/agents.yaml via lib/roles.py).
 """
 from __future__ import annotations
 

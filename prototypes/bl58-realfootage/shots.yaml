@@ -1,0 +1,400 @@
+# BLACK LIQUIDITY EP58 -- Weltrade (WikiFX) -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl58-realfootage/shots.yaml --episode bl58
+#
+# Sources (all public pages, no login, captured 2026-10-01, see prototypes/bl58-script/RUNLOG.md):
+#   p1   = https://www.wikifx.com/th/dealer/9161578493.html  (WikiFX profile 1: Weltrade Ltd, Saint Lucia, FSCA listed)
+#   p2   = https://www.wikifx.com/th/dealer/5381662917.html  (WikiFX profile 2: Systemgates Ltd., Saint Vincent, no licence found)
+#   art1 = https://www.wikifx.com/th/newsdetail/202604298924908012.html (29 Apr 2026, 43 complaints / withdrawal delays)
+#   art2 = https://www.wikifx.com/th/newsdetail/202609302364545921.html (30 Sep 2026, the $22,067 claim)
+#   srv  = https://www.wikifx.com/th/survey/97378304c7.html (WikiFX field visit to the South Africa address, 2023-11-06)
+#   exp1 = https://www.wikifx.com/th/exposure/detail/COG20251231202513916192344.html (complaint, withdrawal)
+#   exp2 = https://www.wikifx.com/th/exposure/detail/COG20250904085434501137992.html (complaint, 3 weeks)
+#
+# censor_profiles and the x-wikifx-hygiene hide-block are REUSED VERBATIM from
+# prototypes/bl57-realfootage/shots.yaml. The one addition is the `broker_contact`
+# profile (the subject's own website / email, so no link is on screen even as text).
+# Per-shot hide lists = the verbatim hygiene list + that shot's extras.
+#
+# NOT captured by this file: the checklist cards SUMMARY-4..6 (graphics), no real page behind them.
+
+censor_profiles:
+  personal_data:
+    - {label: "reviewer avatar + username", kind: full, avatar_heuristic: true}
+  faces: []
+  promo:
+    - {label: "signup/register CTA (สมัคร)", kind: full, text: "สมัคร"}
+    - {label: "register CTA (ลงทะเบียน)", kind: full, text: "ลงทะเบียน"}
+    - {label: "download app CTA", kind: full, text: "ดาวน์โหลด"}
+    - {label: "bonus/prize banner (รางวัล)", kind: full, text: "รางวัล"}
+    - {label: "gift/welcome-bonus banner (ของขวัญ)", kind: full, text: "ของขวัญ"}
+    - {label: "dollar bonus amount", kind: full, regex: "\\$[\\d,]{4,}"}
+    # who.is (whois-no-match shot) carries its own unrelated third-party
+    # website-builder upsell -- not PII, not another broker, but still an
+    # unrelated ad per the skill's "ads" rule, so it gets its own keyword.
+    - {label: "unrelated product upsell (BotBuilt)", kind: full, text: "BotBuilt"}
+  broker_logo_partial:
+    - label: "header logo (partial)"
+      kind: partial
+      selector: ".nav-logo-link, header img[alt*=logo], a[href='/'] img"
+      fraction: 0.4
+      side: right
+      min_w: 60
+  # EP58 additions (not in bl57)
+  broker_contact:
+    - {label: "broker website / email text (regex, exact text range)", kind: full, regex: "(https?://)?(www\\.)?weltrade\\.com\\S*|info@weltrade\\.com"}
+  complaint_ids:
+    - {label: "complainant FX id", kind: full, regex: "FX\\d{8,}"}
+    - {label: "complaint COG id", kind: full, regex: "COG\\d{10,}"}
+  survey_address:
+    - {label: "private street address, Thai", kind: full, regex: "[0-9]+\\s*ถนน\\S*"}
+    - {label: "private street address (any case)", kind: full, regex: "[0-9]*\\s*[Ff][Aa][Ii][Rr][Mm][Oo][Uu][Nn][Tt]\\s*[A-Za-z]*"}
+
+x-wikifx-hygiene: &wikifx_hygiene
+  hide_selectors:
+    - ".advertisement-list"
+    - ".wiki-direct"
+    - ".article-r"
+    - ".head-r"
+    - ".dealer-primary-jaf-new"
+    - ".article-c img, .article-info img"
+    - ".chrome_ctx_right"
+    - ".new_chrome_down"
+    - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+  hide_texts:
+    - "切换"
+
+shots:
+  # -- WikiFX profile 1 header: logo + name + score + grade
+  - id: weltrade-header
+    url: "https://www.wikifx.com/th/dealer/9161578493.html"
+    action: capture
+    kind: still
+    covers: [HOOK-1, HOOK-2, CONTEXT-3, MAIN-7]
+    wait_ms: 2500
+    crop:
+      selector: ".head-l-john"
+      pad: 2.4
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "score badge is an odometer reel, anchored on the header container not on digits"
+
+  # -- WikiFX profile 1 red warning card
+  - id: weltrade-warning
+    url: "https://www.wikifx.com/th/dealer/9161578493.html"
+    action: capture
+    kind: still
+    covers: [HOOK-3, HOOK-4, CONTEXT-1, CONTEXT-2]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-risk"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "WikiFX's own warning card: low-score warning, complaint count, check date"
+
+  # -- WikiFX article 29 Apr 2026 title + abstract
+  - id: wikifx-article-apr
+    url: "https://www.wikifx.com/th/newsdetail/202604298924908012.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-1, MAIN-6]
+    wait_ms: 2500
+    crop:
+      selector: "p.des"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "abstract of the WikiFX article; no amounts"
+
+  # -- Complaint page 1 (withdrawal)
+  - id: weltrade-complaint-1
+    url: "https://www.wikifx.com/th/exposure/detail/COG20251231202513916192344.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-2]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".swiper-image"
+      - ".service-box"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, complaint_ids, broker_contact]
+    source_note: "one user's claim; ID, avatar pixelated; no crop = full 1080-wide viewport (the text column is wider than the 756 px crop cap); evidence image hidden"
+
+  # -- Complaint page 2 (3 weeks)
+  - id: weltrade-complaint-2
+    url: "https://www.wikifx.com/th/exposure/detail/COG20250904085434501137992.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-3]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".swiper-image"
+      - ".service-box"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, complaint_ids, broker_contact]
+    source_note: "one user's claim; ID, avatar pixelated; no crop = full 1080-wide viewport (the text column is wider than the 756 px crop cap); evidence image hidden"
+
+  # -- WikiFX article 30 Sep 2026 title + abstract
+  - id: wikifx-article-sep
+    url: "https://www.wikifx.com/th/newsdetail/202609302364545921.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-4]
+    wait_ms: 2500
+    crop:
+      selector: "p.des"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "title and date of the 30 Sep article"
+
+  # -- WikiFX article 30 Sep 2026 amount paragraph
+  - id: wikifx-article-sep-amount
+    url: "https://www.wikifx.com/th/newsdetail/202609302364545921.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-5, MAIN-13]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info p"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "one user's claim reported by WikiFX; promo profile NOT used here, it would blank the dollar figure"
+
+  # -- WikiFX profile 1 licence box
+  - id: weltrade-licence
+    url: "https://www.wikifx.com/th/dealer/9161578493.html"
+    action: capture
+    kind: still
+    covers: [MAIN-3, MAIN-4, MAIN-5]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-regulatory"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "FSCA, South Africa, WELTRADE SA (PTY) LTD, licence number"
+
+  # -- WikiFX profile 1 basic-info box
+  - id: weltrade-registration
+    url: "https://www.wikifx.com/th/dealer/9161578493.html"
+    action: capture
+    kind: still
+    covers: [MAIN-4, MAIN-12]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-basebox"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "registered Saint Lucia, company Weltrade Ltd; website and email pixelated"
+
+  # -- WikiFX Survey page: title, date, finding text (full viewport)
+  - id: weltrade-survey
+    url: "https://www.wikifx.com/th/survey/97378304c7.html"
+    action: capture
+    kind: still
+    covers: [MAIN-8, MAIN-9, MAIN-10, MAIN-11]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".carousel"
+      - ".ex-map-box"
+      - ".survey-info-content img"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, survey_address]
+    source_note: "field visit dated 2023-11-06 -- two years old; photos and map hidden; street address pixelated"
+
+  # -- WikiFX profile 2 header
+  - id: weltrade2-header
+    url: "https://www.wikifx.com/th/dealer/5381662917.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-1, CURIOSITY-4]
+    wait_ms: 2500
+    crop:
+      selector: ".head-l-john"
+      pad: 2.4
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "second WikiFX profile for the same name"
+
+  # -- WikiFX profile 2 basic-info box
+  - id: weltrade2-info
+    url: "https://www.wikifx.com/th/dealer/5381662917.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-2]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-basebox"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "Systemgates Ltd., Saint Vincent"
+
+  # -- WikiFX profile 2 licence box
+  - id: weltrade2-licence
+    url: "https://www.wikifx.com/th/dealer/5381662917.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-3]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-regulatory"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "no forex licence found"

@@ -79,8 +79,8 @@ def tmux_lock_live(role: str, sid: str) -> bool:
     """
     name = f"{role.lower()}-{sid.lower()}"
     try:
-        from tools import tmux_session
-        if tmux_session.has_session(name):
+        from tools import session_name, tmux_session
+        if tmux_session.has_session(session_name.tmux_name(role.lower(), sid.lower())):
             return True
     except Exception:
         pass
