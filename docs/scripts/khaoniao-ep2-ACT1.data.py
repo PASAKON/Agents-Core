@@ -77,7 +77,7 @@ LOC = {
  "bath": ("@loc__bathroom",
    "a small Thai home bathroom with glossy pale-blue wall tiles and a cream tiled floor, an open "
    "doorway at screen-left, a low blue plastic basin of warm water with white soap bubbles on the "
-   "tiled floor at screen-right with a red plastic dipper bowl with a handle floating in it, a "
+   "tiled floor right of centre with a red plastic dipper bowl with a handle floating in it, a "
    "plastic stool, a white bath mat, a small window with soft daylight"),
  "under": ("@loc__sofa_low",
    "the living room seen from floor level at the front of the small tidy sofa: its low front edge and "
@@ -230,10 +230,10 @@ _META = {
       "a tearful smile spreading; the small dog, shivering all over, stands in front of her holding a soft pink "
       "bath towel in her teeth, her tail low and wagging in tiny sweeps, looking up at her face", _N),
 
- 14: (10, "Medium shot in the bathroom from the front: the small dog sits in the blue basin at screen-right, "
-      "in three-quarter profile facing screen-left with her eyes squeezed shut and her muzzle in profile so her "
-      "mouth shows, soap bubbles heaped on her head, and she talks to the woman who kneels beside the basin at "
-      "the right edge of the frame",
+ 14: (10, "Medium shot in the bathroom from the front: the small dog sits in the blue basin at screen-centre, "
+      "in profile facing screen-right with her eyes squeezed shut so her muzzle and moving mouth show, soap bubbles "
+      "heaped on her head, and she talks to the woman who kneels beside the basin at screen-right, facing "
+      "screen-left toward the dog",
       ["mimi_w", "mom_h"], "bath", T_DAY,
       "the small dog, squeaking and shivering, sits up to her chest in the blue basin of bubbly water with her "
       "eyes squeezed shut and a heap of white bubbles on her head, her ears floating on the water, "
@@ -252,7 +252,7 @@ _META = {
 
  16: (10, "Medium wide shot in the bathroom from the front: the stocky man stands in the open doorway at screen-left "
       "in profile facing screen-right, a closed laptop under his arm, his eyes on the small dog in the blue basin "
-      "at screen-right, and he talks to the dog; the woman kneels beside the basin at the right edge and stays "
+      "at screen-centre, and he talks to the dog; the woman kneels beside the basin at screen-right and stays "
       "silent",
       ["bro", "mimi_w", "mom_h"], "bath", T_DAY,
       "the stocky man in the navy blazer and elephant-print shorts, amused and warm, leans in the doorway "
