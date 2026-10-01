@@ -461,9 +461,12 @@ Three changes from the security review task-79219f24 (F2, F3) and the CEO's ruli
 `lib/tailscale_api.py` (stdlib only) is the one client for both jobs. It signs in with an OAuth
 client (client credentials, token cached until 60 s before it expires) and does two things:
 
-- **Join.** `tools/join_api.py` calls `mint_authkey(host)` for each accepted node and returns the
-  key as `tailscale_authkey`: one use, pre-authorized, `tag:org-node`, not ephemeral, valid 1
-  hour, described `org-node:<host>`. `join.sh` step 5 already uses it; it is unchanged.
+- **Join.** `tools/join_api.py` calls `mint_authkey(host)` for the `ready` answer of `/sealed` and
+  adds the key to it as `tailscale_authkey`: one use, pre-authorized, `tag:org-node`, not
+  ephemeral, valid 1 hour, described `org-node:<host>`. **The key is released only after the CEO
+  approves the node's fingerprint**: `/accept` never carries one, and `pending` and every 403
+  answer of `/sealed` mint nothing, so a stolen join token alone cannot put a machine on the
+  tailnet. `join.sh` and `join.ps1` run the tailnet step (6) after the wait (5) for that reason.
 - **Leave.** `hq_join leave --live` calls `delete_device(host)` (rules in "leave" above).
 
 **It is off until the CEO does this once.** Nothing is contacted by merging, and without the two
@@ -492,8 +495,10 @@ variables the endpoint and `leave` behave exactly as before.
 `listening on ... (minter wired)` is yes, and the `[infisical run]` line lists the two names
 (never a value). `(minter not wired)` means neither name reached the process; the endpoint
 refuses to start (exit 2, names both variables) when only one did. If Tailscale says no, the
-accept still succeeds without a key and the journal shows
-`tailscale minter failed for <host>: TailscaleError`: check the scopes, the tag and the ACL line.
+`ready` answer still goes out with the ciphertext and no key, and the journal shows
+`tailscale minter failed for <host>: TailscaleError (HTTP <status>)`: check the scopes, the tag
+and the ACL line. The node then stops at step 6 with the `tailscale up` to run by hand; the same
+command run again asks `/sealed` again.
 
 Errors from the client carry the HTTP status and Tailscale's own `message` text only (control
 characters removed, key-shaped strings and any held secret replaced by `[redacted]`). The client

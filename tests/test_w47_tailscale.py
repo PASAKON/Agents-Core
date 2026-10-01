@@ -1,6 +1,7 @@
 """Org Mesh W4, CEO gate G3 part 2: lib/tailscale_api.py, and its two uses.
 
-  * tools/join_api.py hands each accepted node a one-use tag:org-node pre-auth key;
+  * tools/join_api.py hands each approved node a one-use tag:org-node pre-auth key, with the
+    `ready` answer of /sealed (never at accept: the key is released after the CEO's approval);
   * `hq_join leave --live` removes that node's device from the tailnet.
 
 Every test talks to FakeTailscale, a real HTTP server on an ephemeral 127.0.0.1 port. Nothing here
@@ -32,6 +33,7 @@ CLIENT_SECRET = "ts-client-secret-SYNTHETIC-0123456789"
 MINT_KEY = "tskey-auth-kSyntheticMint1CNTRL-abcdefghijklmnopqrstuvwxyz"
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
 DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "A" * 43 + " org-node:node-a"
+CIPHER = "-----BEGIN AGE ENCRYPTED FILE-----\nc3ludGhldGljLWNpcGhlcnRleHQ=\n-----END AGE ENCRYPTED FILE-----\n"
 TAG = "tag:org-node"
 
 MINT_BODY = {"capabilities": {"devices": {"create": {"reusable": False, "ephemeral": False,
@@ -440,6 +442,7 @@ class Door:
     """A running join endpoint (ephemeral port) and a tiny client."""
 
     def __init__(self, **kw):
+        self.tokens = {}
         self.server = join_api.make_server(0, **kw)
         self.port = self.server.server_address[1]
         self._thread = threading.Thread(target=self.server.serve_forever, kwargs={"poll_interval": 0.02},
@@ -451,17 +454,32 @@ class Door:
         self.server.server_close()
         self._thread.join(timeout=5)
 
-    def accept(self, host="node-a"):
-        token = hq_join.mint(host)["token"]
-        body = json.dumps({"token": token, "host": host, "os": "linux", "hq_root": "/opt/MoonieXHQ",
-                           "pubkey": PUB, "deploy_pubkey": DEPLOY}).encode()
+    def _post(self, route, obj):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=15)
         try:
-            conn.request("POST", join_api.PREFIX + "accept", body, {"Content-Type": "application/json"})
+            conn.request("POST", join_api.PREFIX + route, json.dumps(obj).encode(),
+                         {"Content-Type": "application/json"})
             r = conn.getresponse()
             return r.status, r.read()
         finally:
             conn.close()
+
+    def accept(self, host="node-a"):
+        """mint + accept; returns (status, body). The token is kept in self.tokens[host]."""
+        token = self.tokens[host] = hq_join.mint(host)["token"]
+        return self._post("accept", {"token": token, "host": host, "os": "linux",
+                                     "hq_root": "/opt/MoonieXHQ", "pubkey": PUB, "deploy_pubkey": DEPLOY})
+
+    def sealed(self, host="node-a"):
+        return self._post("sealed", {"host": host, "token": self.tokens[host]})
+
+    @staticmethod
+    def approve(host="node-a"):
+        """What approve + provision leave behind: a sealed secret and identity_ready."""
+        with db.get_conn() as conn:
+            conn.execute("INSERT INTO node_secrets (host, ciphertext, infisical_client_secret_id, created_at) "
+                         "VALUES (?, ?, ?, ?)", (host, CIPHER, "secret-id-1", "2026-10-01T00:00:00+00:00"))
+            conn.execute("UPDATE hosts SET status = ? WHERE host = ?", (hq_join.STATUS_READY, host))
 
 
 @pytest.fixture
@@ -479,31 +497,66 @@ def door(hub, caplog):
         d.close()
 
 
-def test_accept_returns_a_one_use_key_when_the_tailscale_client_is_wired(door, ts, client, caplog):
+def test_accept_with_the_tailscale_client_wired_returns_no_key_and_never_calls_tailscale(door, ts, client):
+    """CTO review F1: the key is released after the CEO's approval (/sealed), never at accept."""
     d = door(minter=client.mint_authkey)
     status, body = d.accept("node-a")
     assert status == 200
-    assert json.loads(body) == {"host": "node-a", "status": "pending_identity", "tailscale_authkey": MINT_KEY}
+    assert json.loads(body) == {"host": "node-a", "status": "pending_identity"}
+    assert ts.requests == []                                      # not even the token call
+    assert secrets_in(body.decode(), ts) == []
+
+
+def test_a_pending_host_gets_no_key_and_tailscale_is_not_called(door, ts, client):
+    d = door(minter=client.mint_authkey)
+    d.accept("node-a")
+    for _ in range(2):
+        status, body = d.sealed("node-a")
+        assert (status, json.loads(body)) == (202, {"status": "pending"})
+    assert ts.requests == []
+
+
+def test_an_approved_host_gets_a_one_use_key_with_the_sealed_answer(door, ts, client, caplog):
+    d = door(minter=client.mint_authkey)
+    d.accept("node-a")
+    d.approve("node-a")
+    status, body = d.sealed("node-a")
+    assert status == 200
+    assert json.loads(body) == {"status": "ready", "ciphertext": CIPHER, "tailscale_authkey": MINT_KEY}
     (mint,) = ts.calls("POST", "/api/v2/tailnet/-/keys")
     assert json.loads(mint["body"]) == MINT_BODY
     assert secrets_in(caplog.text, ts) == []                      # the key is in the answer only
 
 
-def test_accept_returns_no_key_field_without_a_minter(door, ts):
-    d = door()
-    status, body = d.accept("node-a")
-    assert status == 200 and json.loads(body) == {"host": "node-a", "status": "pending_identity"}
+def test_a_refused_sealed_call_does_not_reach_tailscale_even_for_an_approved_host(door, ts, client):
+    d = door(minter=client.mint_authkey)
+    d.accept("node-a")
+    d.approve("node-a")
+    status, body = d._post("sealed", {"host": "node-a", "token": "hqj_" + "B" * 43})
+    assert (status, json.loads(body)) == (403, {"error": "refused"})
     assert ts.requests == []
 
 
-def test_a_failing_tailscale_leaves_the_accept_alone_and_logs_the_class_name_only(door, ts, client, caplog):
+def test_sealed_returns_no_key_field_without_a_minter(door, ts):
+    d = door()
+    d.accept("node-a")
+    d.approve("node-a")
+    status, body = d.sealed("node-a")
+    assert status == 200 and json.loads(body) == {"status": "ready", "ciphertext": CIPHER}
+    assert ts.requests == []
+
+
+def test_a_failing_tailscale_still_releases_the_identity_and_logs_class_and_status_only(door, ts, client, caplog):
     ts.canned[("POST", "/api/v2/tailnet/-/keys")] = (403, {"message": "FORBIDDEN-BY-ACL requires auth_keys"})
     d = door(minter=client.mint_authkey)
-    status, body = d.accept("node-a")
-    assert status == 200 and json.loads(body) == {"host": "node-a", "status": "pending_identity"}
-    assert db.get_host("node-a")["status"] == hq_join.STATUS_PENDING
+    d.accept("node-a")
+    d.approve("node-a")
+    status, body = d.sealed("node-a")
+    assert status == 200 and json.loads(body) == {"status": "ready", "ciphertext": CIPHER}
+    assert db.get_host("node-a")["status"] == hq_join.STATUS_READY
     warn = [r for r in caplog.records if r.levelno == logging.WARNING]
-    assert len(warn) == 1 and warn[0].getMessage() == "tailscale minter failed for node-a: TailscaleError"
+    assert len(warn) == 1
+    assert warn[0].getMessage() == "tailscale minter failed for node-a: TailscaleError (HTTP 403)"
     assert "FORBIDDEN-BY-ACL" not in caplog.text and secrets_in(caplog.text + body.decode(), ts) == []
 
 

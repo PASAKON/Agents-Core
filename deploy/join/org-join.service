@@ -17,9 +17,10 @@ Description=MoonieX hub join endpoint (Org Mesh W4.3 + W4.5, tools/join_api.py)
 # database role of its own (org_join, deploy/join/org_join_role.sql) that can do what accept and
 # sealed do and nothing else.
 #
-# Secrets: none in this file. The endpoint gets ONE value, ORG_JOIN_DB_URL, from the /org-join
-# folder of Agents-Core prod in Infisical, and nothing else of Agents-Core (no ORG_DB_URL, no
-# token of any other service). /etc/infisical/contabo.env is root 0600 and stays that way: the
+# Secrets: none in this file. The endpoint gets ORG_JOIN_DB_URL, plus the two Tailscale OAuth
+# client values (TAILSCALE_OAUTH_CLIENT_ID, TAILSCALE_OAUTH_CLIENT_SECRET) once the CEO has put
+# them there, from the /org-join folder of Agents-Core prod in Infisical, and nothing else of
+# Agents-Core (no ORG_DB_URL, no token of any other service). /etc/infisical/contabo.env is root 0600 and stays that way: the
 # fetch runs as root, `infisical_setup.py run ... --path /org-join` puts only that folder's values
 # into the environment, then setpriv drops to `org-join` before the endpoint starts. The machine
 # credential never reaches the `org-join` user, and no permission on /etc/infisical changes.

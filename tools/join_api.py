@@ -18,10 +18,12 @@ Routes, all under /org-join/ (every other path, and every other method on these,
                              address. The one placeholder, @@ORG_JOIN_HUB@@, becomes the
                              public hub URL so `curl .../join.sh | sh` knows where it came from.
     POST accept              {token, host, os, hq_root, pubkey, deploy_pubkey?}
-                             -> hq_join.accept(). 200 {host, status}. Plus
-                             `tailscale_authkey` when a TailscaleMinter is configured.
+                             -> hq_join.accept(). 200 {host, status}. Never a Tailscale key:
+                             the CEO has not approved the fingerprint yet.
     POST sealed              {host, token}. 202 {status: pending} until the host is
-                             identity_ready, then 200 {status: ready, ciphertext}. Allowed
+                             identity_ready, then 200 {status: ready, ciphertext}, plus
+                             `tailscale_authkey` when a TailscaleMinter is configured (a fresh
+                             key on every ready answer; none on pending or 403). Allowed
                              only for the token that joined that host, within 24 h of its use.
                              EVERY other case is the same 403: no oracle.
 
@@ -44,8 +46,10 @@ The TailscaleMinter is an injectable `host -> pre-auth key` callable. main() wir
 lib.tailscale_api when TAILSCALE_OAUTH_CLIENT_ID and TAILSCALE_OAUTH_CLIENT_SECRET are both in
 the environment (the /org-join folder the unit already injects); one without the other refuses
 to start. Without them the field is absent and join.sh requires the machine to be on the
-tailnet already. A minter that raises does not fail the accept: no key field, one warning
-with the exception's class name.
+tailnet already. The key is minted by /sealed, only on the ready answer, so it is released
+after the CEO's approval and never before. A minter that raises does not fail the answer:
+ready and the ciphertext still go out, with no key field and one warning with the exception's
+class name (and the HTTP status, an integer, when Tailscale refused).
 """
 from __future__ import annotations
 
@@ -232,15 +236,25 @@ def _route_accept(h: "_Handler"):
             return 409, _json({"error": exc.code}), _JSON, log_host
         # unknown_token, wrong_host, already_used, expired: one answer
         return 403, _json({"error": _REFUSED[1]}), _JSON, log_host
-    out = {"host": res["host"], "status": res["status"]}
-    if h.server.minter is not None:
-        try:
-            key = h.server.minter(host)
-            if isinstance(key, str) and _AUTHKEY_RE.fullmatch(key):
-                out["tailscale_authkey"] = key
-        except Exception as exc:  # the node joined; it just gets no key, and says so
-            _log.warning("tailscale minter failed for %s: %s", log_host, type(exc).__name__)
-    return 200, _json(out), _JSON, log_host
+    # No Tailscale key here, whoever holds the token: the key is the tailnet door, and the CEO's
+    # fingerprint approval comes after this step. /sealed releases it, once that approval is in.
+    return 200, _json({"host": res["host"], "status": res["status"]}), _JSON, log_host
+
+
+def _mint_authkey(h: "_Handler", host: str) -> str | None:
+    """The pre-auth key for an approved host, or None: no minter, or Tailscale said no. A failure
+    never fails the sealed answer; it is one warning with the class name and, for a Tailscale
+    refusal, the integer HTTP status. Never a body, a message or a key."""
+    if h.server.minter is None:
+        return None
+    try:
+        key = h.server.minter(host)
+    except Exception as exc:
+        status = getattr(exc, "status", None) if isinstance(exc, tailscale_api.TailscaleError) else None
+        _log.warning("tailscale minter failed for %s: %s%s", host, type(exc).__name__,
+                     f" (HTTP {status})" if isinstance(status, int) else "")
+        return None
+    return key if isinstance(key, str) and _AUTHKEY_RE.fullmatch(key) else None
 
 
 def _route_sealed(h: "_Handler"):
@@ -268,7 +282,13 @@ def _route_sealed(h: "_Handler"):
             ciphertext = hq_join.sealed_ciphertext(log_host)
     except hq_join.JoinError:  # no live ciphertext (revoked, or never stored)
         raise _Refuse(*_REFUSED) from None
-    return 200, _json({"status": "ready", "ciphertext": ciphertext}), _JSON, log_host
+    out = {"status": "ready", "ciphertext": ciphertext}
+    # Past every gate above: the host is approved and its identity is sealed. Only now does the
+    # node get the tailnet key. Outside the database slot: this waits on Tailscale.
+    key = _mint_authkey(h, log_host)
+    if key is not None:
+        out["tailscale_authkey"] = key
+    return 200, _json(out), _JSON, log_host
 
 
 ROUTES: dict = {("GET", PREFIX + n): (lambda h, n=n: _route_script(h, n)) for n in SCRIPT_NAMES}

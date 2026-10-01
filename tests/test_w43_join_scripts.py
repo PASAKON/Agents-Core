@@ -258,12 +258,14 @@ def _lib(tmp_path, body: str, *, hub: str, host="node-a", token=TOKEN, age_pub=P
     return _run(["sh", "-c", prelude + body], env=env, timeout=timeout)
 
 
-def test_the_accept_step_joins_through_the_real_endpoint(server, tmp_path):
-    srv = server(minter=lambda host: TS_KEY)
+def test_the_accept_step_joins_through_the_real_endpoint_and_gets_no_tailscale_key(server, tmp_path):
+    minted = []
+    srv = server(minter=lambda host: minted.append(host) or TS_KEY)
     token = hq_join.mint("node-a")["token"]
-    r = _lib(tmp_path, 'do_accept; printf "TS=%s\\n" "$TS_KEY"', hub=srv.url, token=token)
+    r = _lib(tmp_path, 'do_accept; printf "TS=[%s]\\n" "$TS_KEY"', hub=srv.url, token=token)
     assert r.returncode == 0, r.stderr + r.stdout
-    assert "accepted" in r.stdout and f"TS={TS_KEY}" in r.stdout
+    assert "accepted" in r.stdout and "TS=[]" in r.stdout    # the key comes with the sealed answer
+    assert minted == [] and TS_KEY not in r.stdout + r.stderr
     row = db.get_host("node-a")
     assert row["status"] == "pending_identity" and row["pubkey"] == PUB
     assert row["deploy_pubkey"].startswith("ssh-ed25519 AAAA")
@@ -332,6 +334,70 @@ def test_the_wait_step_stops_at_once_when_the_hub_refuses(server, tmp_path):
     srv = server()
     r = _lib(tmp_path, "POLL_S=1; POLL_MAX_S=30; do_wait_sealed", hub=srv.url, token="hqj_" + "Q" * 43)
     assert r.returncode == 1 and "will not release" in r.stderr
+
+
+# ---------------------------------------------------------------- the tailnet comes after the wait
+
+def test_the_wait_step_takes_the_tailscale_key_from_the_sealed_answer(server, tmp_path):
+    minted = []
+    srv = server(minter=lambda host: minted.append(host) or TS_KEY)
+    token = hq_join.mint("node-a")["token"]
+    _lib(tmp_path, "do_accept", hub=srv.url, token=token)
+    _ready()
+    r = _lib(tmp_path, 'do_wait_sealed; printf "TS=%s\\n" "$TS_KEY"', hub=srv.url, token=token)
+    assert r.returncode == 0, r.stderr
+    assert f"TS={TS_KEY}" in r.stdout and minted == ["node-a"]
+    # the script itself never prints the key: only the test's own printf above did
+    quiet = _lib(tmp_path, "do_wait_sealed", hub=srv.url, token=token)
+    assert quiet.returncode == 0 and TS_KEY not in quiet.stdout + quiet.stderr
+
+
+def test_a_node_still_waiting_for_approval_has_no_key_and_the_hub_minted_none(server, tmp_path):
+    minted = []
+    srv = server(minter=lambda host: minted.append(host) or TS_KEY)
+    token = hq_join.mint("node-a")["token"]
+    _lib(tmp_path, "do_accept", hub=srv.url, token=token)       # pending_identity: not approved
+    r = _lib(tmp_path, 'POLL_S=1; POLL_MAX_S=1; do_wait_sealed', hub=srv.url, token=token)
+    assert r.returncode == 1 and "gave up waiting" in r.stderr
+    assert minted == [] and TS_KEY not in r.stdout + r.stderr
+
+
+def _tailscale_stub(tmp_path: Path, *, on_tailnet: bool) -> tuple[dict, Path]:
+    """A `tailscale` that answers `ip -4` and records `up`, and an as_root that runs the command
+    itself (sudo is a recorder in these tests). Returns (extra env for _lib, the call log)."""
+    bindir, log = tmp_path / "tsbin", tmp_path / "tailscale.log"
+    bindir.mkdir()
+    exe = bindir / "tailscale"
+    ip = "echo 100.64.0.9; exit 0" if on_tailnet else "exit 1"
+    exe.write_text(f'#!/bin/sh\ncase "$1" in\n  ip) {ip} ;;\n  up) echo "$*" >> "{log}"; exit 0 ;;\nesac\nexit 2\n')
+    exe.chmod(exe.stat().st_mode | stat.S_IXUSR)
+    return {"PATH": f"{bindir}{os.pathsep}{os.environ['PATH']}"}, log
+
+
+def test_the_tailnet_step_joins_with_the_key_the_wait_step_got_and_forgets_it(server, tmp_path):
+    srv = server()
+    extra, log = _tailscale_stub(tmp_path, on_tailnet=False)
+    r = _lib(tmp_path, f'as_root() {{ "$@"; }}; TS_KEY={TS_KEY}; do_tailscale; printf "after=[%s]\\n" "$TS_KEY"',
+             hub=srv.url, extra=extra)
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert "[6/9] join the tailnet" in r.stdout and "joined the tailnet" in r.stdout
+    assert log.read_text().strip() == f"up --auth-key {TS_KEY} --hostname node-a --advertise-tags=tag:org-node"
+    assert "after=[]" in r.stdout and TS_KEY not in r.stdout + r.stderr
+
+
+def test_the_tailnet_step_keeps_the_already_on_it_path_and_the_join_by_hand_message(server, tmp_path):
+    srv = server()
+    extra, log = _tailscale_stub(tmp_path, on_tailnet=True)
+    r = _lib(tmp_path, f'as_root() {{ "$@"; }}; TS_KEY={TS_KEY}; do_tailscale', hub=srv.url, extra=extra)
+    assert r.returncode == 0 and "already on the tailnet as 100.64.0.9" in r.stdout
+    assert not log.exists()                        # on the tailnet already: the key is not used
+
+    off = tmp_path / "off"
+    off.mkdir()
+    extra, log = _tailscale_stub(off, on_tailnet=False)
+    r = _lib(tmp_path, 'as_root() { "$@"; }; TS_KEY=; do_tailscale', hub=srv.url, extra=extra)
+    assert r.returncode == 1 and not log.exists()
+    assert "hub sent no Tailscale key" in r.stderr and "tailscale up --hostname node-a" in r.stderr
 
 
 # ---------------------------------------------------------------- step 8, with a real age

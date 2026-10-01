@@ -190,9 +190,22 @@ def _stub_hub(script: dict):
 def test_main_calls_keys_and_accept_before_install():
     main = _function(JOIN_SH.read_text(), "main")
     order = [re.search(rf"^  {fn}\b", main, re.M).start()
-             for fn in ("do_keys", "do_accept", "do_install", "do_tailscale",
-                        "do_wait_sealed", "do_clone", "do_identity", "do_probe")]
+             for fn in ("do_keys", "do_accept", "do_install", "do_wait_sealed",
+                        "do_tailscale", "do_clone", "do_identity", "do_probe")]
     assert order == sorted(order), main
+
+
+def test_the_tailnet_step_runs_after_the_wait_and_only_the_wait_reads_the_key():
+    """CTO review of task-4d6fe461, F1: the Tailscale key rides on the sealed answer, so a stolen
+    token alone gets no key. Accept never reads one; the wait step does; the tailnet step uses it."""
+    sh, ps1 = JOIN_SH.read_text(), JOIN_PS1.read_text(encoding="ascii")
+    assert "tailscale_authkey" not in _function(sh, "do_accept")
+    assert "tailscale_authkey" in _function(sh, "do_wait_sealed")
+    assert "tailscale_authkey" not in _function(ps1, "Send-Accept", ps1=True)
+    assert "tailscale_authkey" in _function(ps1, "Wait-Sealed", ps1=True)
+    assert "Step 5 " in _function(ps1, "Wait-Sealed", ps1=True)
+    assert "Step 6 " in _function(ps1, "Join-Tailnet", ps1=True)
+    assert "step 5 " in _function(sh, "do_wait_sealed") and "step 6 " in _function(sh, "do_tailscale")
 
 
 def test_dry_run_prints_keys_and_accept_before_the_install_step(tmp_path):
@@ -204,6 +217,9 @@ def test_dry_run_prints_keys_and_accept_before_the_install_step(tmp_path):
     assert re.search(r"\[2/9\] make the node's keys", r.stdout)
     assert re.search(r"\[3/9\] accept", r.stdout)
     assert re.search(r"\[4/9\] install", r.stdout)
+    # the tailnet comes after the wait: the key arrives with the sealed answer
+    assert re.search(r"\[5/9\] wait for the operator's approval", r.stdout)
+    assert re.search(r"\[6/9\] join the tailnet", r.stdout)
     # the fingerprint line is promised inside step 3, before step 4's install
     fpr = r.stdout.find("fingerprint: <last 8 characters of the age recipient> - the operator approves this in the Run Inbox")
     assert at[3] < fpr < at[4], r.stdout
@@ -214,10 +230,11 @@ def test_dry_run_prints_keys_and_accept_before_the_install_step(tmp_path):
 def test_join_ps1_calls_keys_and_accept_before_install_and_numbers_the_steps_to_match():
     text = JOIN_PS1.read_text(encoding="ascii")
     body = text[text.rindex("Read-Args"):]
-    order = [body.index(fn) for fn in ("New-Keys", "Send-Accept", "Install-Missing", "Join-Tailnet",
-                                       "Wait-Sealed", "Copy-Core", "Save-Identity", "Invoke-Probe")]
+    order = [body.index(fn) for fn in ("New-Keys", "Send-Accept", "Install-Missing", "Wait-Sealed",
+                                       "Join-Tailnet", "Copy-Core", "Save-Identity", "Invoke-Probe")]
     assert order == sorted(order), body
-    for fn, n in (("New-Keys", 2), ("Send-Accept", 3), ("Install-Missing", 4), ("Join-Tailnet", 5)):
+    for fn, n in (("New-Keys", 2), ("Send-Accept", 3), ("Install-Missing", 4), ("Wait-Sealed", 5),
+                  ("Join-Tailnet", 6)):
         assert f"Step {n} " in _function(text, fn, ps1=True), (fn, n)
 
 
@@ -634,7 +651,9 @@ def test_a_recording_python_sees_dash_I_first_on_every_call_of_accept_and_clone(
     r = _lib(tmp_path, f'PY="{shim}"\ndo_accept\ndo_clone\n', hub=srv.url, token=token, bindir=bindir)
     assert r.returncode == 0, r.stdout + r.stderr
     calls = rec.read_text().splitlines()
-    assert len(calls) >= 3, calls              # the accept body, the accept answer, the known_hosts parse
+    # the accept body and the known_hosts parse (accept no longer reads an answer field: the
+    # Tailscale key arrives with the sealed answer, and json_get's -I is held by the static scan above)
+    assert len(calls) >= 2, calls
     assert set(calls) == {"-I"}, calls                                 # -I is the first argument of every call
     venv_calls = [ln for ln in log.read_text().splitlines() if ln.startswith("venv-python ")]
     assert venv_calls and all(c.startswith("venv-python -I -m pip install") for c in venv_calls), venv_calls

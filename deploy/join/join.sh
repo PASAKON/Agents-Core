@@ -20,17 +20,21 @@
 #   --dry-run        print every step, change nothing, contact nothing
 #
 # The nine steps, in order. Each is safe to repeat: run the same command again after a failure.
-#   1 check the arguments             6 wait for the operator's approval and the sealed identity
+#   1 check the arguments             6 join the tailnet
 #   2 make the node's keys            7 clone Agents-Core over the deploy key, build the venv
 #   3 accept: hand the hub the token  8 open the sealed identity, save it, write node.yaml
 #   4 install what is missing         9 probe
-#   5 join the tailnet
+#   5 wait for the operator's approval and the sealed identity
 # Keys and accept come BEFORE the long installs: the token is used within seconds of being typed,
 # and the operator sees this node's fingerprint (the last 8 characters of its age recipient) at
 # once. Step 2 installs only what the keys need (curl, ssh-keygen, age, python) if they are missing.
+# The tailnet comes AFTER the wait: the hub releases the pre-auth key with the sealed answer (step
+# 5), and only once the operator approved the fingerprint, so a stolen token alone cannot put a
+# machine on the tailnet. Nothing before it needs the tailnet: the installs come from public
+# package repositories, the hub is called at its public URL, and the clone is over GitHub.
 # The deploy key only works once the operator approved this node and the hub provisioned it (step
-# 6), and the save in step 8 is a script from the clone, so the clone comes between the wait and
-# the save.
+# 5), and the save in step 8 is a script from the clone, so the clone comes between the tailnet
+# and the save.
 #
 # No secret is typed, written to disk by this script, or put on a command line of a process that
 # lives longer than a moment. The token travels in a request body on stdin. The node's identity
@@ -223,7 +227,7 @@ banner() {
   say "host $HOST ($OS), hub $HUB"
   say "HQ root $HQ_ROOT  (checkout: $CORE)"
   say "keys go under $CONF_DIR (age identity, deploy key) and $HOME/.ssh (dispatch key)"
-  say "ROOT NEEDED for three things: installing packages (2, 4), tailscale up (5), saving the node's"
+  say "ROOT NEEDED for three things: installing packages (2, 4), tailscale up (6), saving the node's"
   say "identity under /etc/infisical (8). $(root_need_text)"
   if [ "$DRY_RUN" -eq 1 ]; then
     say "DRY RUN: every step below is printed, nothing is changed, nothing is contacted"
@@ -497,7 +501,7 @@ do_accept() {
   step 3 "accept: give the hub the token and this node's public keys"
   say "POST $HUB/accept  (host, os, hq_root, age recipient, deploy public key; the token is in the body)"
   if [ "$DRY_RUN" -eq 1 ]; then
-    say "a used token is refused; step 6's answer then tells 'already joined' from 'wrong token'"
+    say "a used token is refused; step 5's answer then tells 'already joined' from 'wrong token'"
     say "then: fingerprint: $(fingerprint) - the operator approves this in the Run Inbox"
     return 0
   fi
@@ -507,8 +511,9 @@ do_accept() {
   _body=""
   case "$HTTP_CODE" in
     200)
+      # No Tailscale key in this answer, on purpose: the hub releases it with the sealed answer
+      # (step 5), once the operator has approved the fingerprint.
       say "accepted: the hub now lists $HOST as pending_identity"
-      TS_KEY=$(printf '%s' "$HTTP_BODY" | json_get tailscale_authkey)
       ;;
     400) die "the hub refused the request: $(printf '%s' "$HTTP_BODY" | json_get message)" ;;
     403)
@@ -532,14 +537,16 @@ do_accept() {
   say "fingerprint: $(fingerprint) - the operator approves this in the Run Inbox"
 }
 
-# ---------------------------------------------------------------- 5: tailnet
+# ---------------------------------------------------------------- 6: tailnet
 
 on_tailnet() { have tailscale && tailscale ip -4 >/dev/null 2>&1; }
 
+# Runs after do_wait_sealed: TS_KEY is the key the hub put in the sealed answer, so it exists only
+# for a node the operator approved.
 do_tailscale() {
-  step 5 "join the tailnet (tag:org-node), or confirm this machine is already on it"
+  step 6 "join the tailnet (tag:org-node), or confirm this machine is already on it"
   if [ "$DRY_RUN" -eq 1 ]; then
-    say "if the hub sent a pre-auth key: $(root_prefix)tailscale up --auth-key <key from the hub> --hostname $HOST --advertise-tags=tag:org-node"
+    say "if the hub sent a pre-auth key with the sealed answer: $(root_prefix)tailscale up --auth-key <key from the hub> --hostname $HOST --advertise-tags=tag:org-node"
     say "else the machine must already be on the tailnet; if it is not, this step stops with instructions"
     return 0
   fi
@@ -557,12 +564,13 @@ do_tailscale() {
   TS_KEY=""
 }
 
-# ---------------------------------------------------------------- 6: wait for the sealed identity
+# ---------------------------------------------------------------- 5: wait for the sealed identity
 
 do_wait_sealed() {
-  step 6 "wait for the operator's approval, then for the hub to seal this node's identity (polls every ${POLL_S} s, up to $((POLL_MAX_S / 60)) min)"
+  step 5 "wait for the operator's approval, then for the hub to seal this node's identity (polls every ${POLL_S} s, up to $((POLL_MAX_S / 60)) min)"
   say "POST $HUB/sealed  -> pending until the operator approves fingerprint $(fingerprint) and the Mac provisions it, then the age ciphertext"
   say "the ciphertext is held in memory only; only the identity in $AGE_ID can open it"
+  say "the answer that carries the ciphertext also carries the Tailscale pre-auth key, if the hub has one: step 6 uses it"
   [ "$DRY_RUN" -eq 1 ] && return 0
   _waited=0
   while :; do
@@ -571,6 +579,7 @@ do_wait_sealed() {
         200)
           CIPHER=$(printf '%s' "$HTTP_BODY" | json_get ciphertext)
           [ -n "$CIPHER" ] || die "the hub said ready but sent no ciphertext"
+          TS_KEY=$(printf '%s' "$HTTP_BODY" | json_get tailscale_authkey)
           say "sealed identity received"
           return 0
           ;;
@@ -748,8 +757,8 @@ main() {
   do_keys
   do_accept
   do_install
-  do_tailscale
   do_wait_sealed
+  do_tailscale
   do_clone
   do_identity
   _probe=0
