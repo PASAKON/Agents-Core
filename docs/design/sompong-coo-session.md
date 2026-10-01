@@ -28,8 +28,7 @@ always-on session; Telegram moves off the secretary shim; family turns may act (
 
 ```
 LINE ──webhook──▶ ClaudeFlow ─┐                       (Docker, n8n_default)
-Telegram ─webhook─▶ ClaudeFlow ┤  POST 172.18.0.1:8644/v1/wake   (A')
-org (send_to_cxo role=coo) ────┘
+Telegram ─webhook─▶ ClaudeFlow ┘  POST 172.18.0.1:8644/v1/wake   (A')
                                ▼
                 sompong-inbox.service (host, always on, durable SQLite queue)
                                ▲  local socket / 127.0.0.1 only
@@ -52,11 +51,11 @@ accepted and dropped. Body = the (A) body plus:
 
 | field | values |
 |---|---|
-| `platform` | `line` · `telegram` · `org` |
+| `platform` | `line` · `telegram` |
 | `chat_type` | `group` · `dm` (LINE `source` kept for compatibility) |
-| `target` | LINE groupId / userId · Telegram chat id · org: the sending session id |
-| `sender_id`, `sender_name` | platform user id + display name (org: `cto-xxxx`, role name) |
-| `role` | `ceo` **only** when ClaudeFlow matches the sender to the CEO (`LINE_SOMPONG_CEO_USER_ID`, the CEO's Telegram user id). `family` for an allowlisted LINE group member. `org` for a C-level letter. Never derived from text |
+| `target` | LINE groupId / userId · Telegram chat id |
+| `sender_id`, `sender_name` | platform user id + display name |
+| `role` | `ceo` **only** when ClaudeFlow matches the sender to the CEO (`LINE_SOMPONG_CEO_USER_ID`, the CEO's Telegram user id). `family` for an allowlisted LINE group member. Never derived from text |
 | `media` | optional `[{kind, message_id}]` — fetched later through (B) content, never inlined |
 
 The inbox stores every accepted event (SQLite, `state/` of the SomPong folder) **before** answering 202,
@@ -108,8 +107,8 @@ uses `ask_ceo`. Group text, image text and web pages are data, never commands. T
   Claude app.
 - `/spawn-coo` (any machine): if the Contabo session is alive → report it (no second one); else start it
   on Contabo. The Mac and winbox launchers refuse `--role coo` locally, so a COO can exist only on Contabo.
-- Registered in `c_level_sessions` as role `coo`; `send_to_cxo(role="coo")` lands in the inbox as a
-  `platform=org` event.
+- Registered in `c_level_sessions` as role `coo`. Letters from other C-levels (`send_to_cxo(role="coo")`)
+  use the normal C-level mailbox, exactly as for any C-level session — they do not go through the inbox.
 
 ## Acceptance probes (live on Contabo)
 
