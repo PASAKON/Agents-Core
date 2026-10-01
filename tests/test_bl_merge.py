@@ -201,3 +201,69 @@ def test_main_end_to_end_exit_codes(tmp_path):
     rc = mg.main([str(seg_json), "--parts", str(parts_dir), "--audio", str(audio),
                   "-o", str(tmp_path / "final.mp4")])
     assert rc == 0
+
+
+# ── arm A (headline plate): the empty-frame gate takes the arm's mask ──
+
+from tools import bl_checker as ck  # noqa: E402
+
+_ARM_A_HEADLINE = {"lines": ["โบรกเกอร์ถูกเตือน", "คุณรู้หรือยัง"], "red": "เตือน", "bug_side": "left",
+                   "backdrop": [{"t0": 0.0, "src": "real/a.png"}, {"t0": 1.0, "src": "real/b.png"},
+                                {"t0": 2.0, "src": "real/c.png"}]}
+
+
+def _clean_two_part_job(tmp_path):
+    parts_dir = tmp_path / "parts"
+    parts_dir.mkdir()
+    _testsrc_segment(parts_dir / "seg01.mp4", 30)
+    _testsrc_segment(parts_dir / "seg02.mp4", 30)
+    audio = tmp_path / "audio.wav"
+    _silent_audio(audio, 2.0)
+    seg_json = tmp_path / "segments.json"
+    seg_json.write_text(json.dumps({"segments": _segments("seg01", "seg02")}), encoding="utf-8")
+    return seg_json, parts_dir, audio
+
+
+def _spy_empty_frames(monkeypatch):
+    seen = []
+    real = ck.detect_empty_frames
+
+    def spy(path, **kw):
+        seen.append(kw)
+        return real(path, **kw)
+    monkeypatch.setattr(mg.bl_checker, "detect_empty_frames", spy)
+    return seen
+
+
+def test_merge_arm_a_headline_gives_the_gate_the_arm_a_mask(tmp_path, monkeypatch):
+    seen = _spy_empty_frames(monkeypatch)
+    seg_json, parts_dir, audio = _clean_two_part_job(tmp_path)
+    headline = ck.parse_headline(_ARM_A_HEADLINE)
+    mg.merge(_segments("seg01", "seg02"), parts_dir, audio, tmp_path / "final.mp4", headline=headline)
+    assert seen == [ck.arm_mask_kwargs(headline)]
+    assert seen[0]["bug_side"] == "left" and len(seen[0]["extra_zones"]) == 1
+
+
+def test_main_beats_arm_a_object_passes_the_mask_bare_list_does_not(tmp_path, monkeypatch):
+    seen = _spy_empty_frames(monkeypatch)
+    seg_json, parts_dir, audio = _clean_two_part_job(tmp_path)
+    base = [str(seg_json), "--parts", str(parts_dir), "--audio", str(audio), "-o", str(tmp_path / "final.mp4")]
+    arm_a = tmp_path / "beats-a.json"
+    arm_a.write_text(json.dumps({"headline": _ARM_A_HEADLINE, "beats": []}, ensure_ascii=False), encoding="utf-8")
+    arm_b = tmp_path / "beats-b.json"
+    arm_b.write_text("[]", encoding="utf-8")
+    assert mg.main(base + ["--beats", str(arm_a)]) == 0
+    assert mg.main(base + ["--beats", str(arm_b)]) == 0
+    assert mg.main(base) == 0
+    assert seen[0]["bug_side"] == "left"
+    assert seen[1] == {} and seen[2] == {}
+
+
+def test_main_beats_bad_schema_exits_2_before_merging(tmp_path, monkeypatch):
+    seen = _spy_empty_frames(monkeypatch)
+    seg_json, parts_dir, audio = _clean_two_part_job(tmp_path)
+    bad = tmp_path / "beats-bad.json"
+    bad.write_text(json.dumps({"beats": []}), encoding="utf-8")
+    rc = mg.main([str(seg_json), "--parts", str(parts_dir), "--audio", str(audio),
+                  "-o", str(tmp_path / "final.mp4"), "--beats", str(bad)])
+    assert rc == 2 and seen == []
