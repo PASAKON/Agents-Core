@@ -29,7 +29,7 @@
 // Node 22+ (global WebSocket + fetch). Env: INFISICAL_SETUP_PY, PYTHON, CDP_TARGET_ID.
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UsageError, parseArgs, pickFields, runPuts, checkAbsent } from './keyfetch_lib.mjs';
+import { UsageError, parseArgs, pickFields, describeShape, runPuts, checkAbsent } from './keyfetch_lib.mjs';
 
 // --- arguments --------------------------------------------------------------------------------
 function usage(msg) {
@@ -154,12 +154,16 @@ if (mode === 'wire') {
     ws.close(); fail(5, e.message === 'timeout' ? `no ${opts.method} response matching /${opts.match}/ seen` : 'the create request failed in the browser');
   }
   if (hit.status < 200 || hit.status > 299) { ws.close(); fail(6, `provider answered HTTP ${hit.status}; nothing saved`); }
+  let shape = null;
   try {
     const r = await send('Network.getResponseBody', { requestId: hit.target });
-    ({ entries, missing } = pickFields(JSON.parse(r.base64Encoded ? Buffer.from(r.body, 'base64').toString('utf8') : r.body), extractors));
+    const body = JSON.parse(r.base64Encoded ? Buffer.from(r.body, 'base64').toString('utf8') : r.body);
+    ({ entries, missing } = pickFields(body, extractors));
+    if (missing.length) shape = describeShape(body);
   } catch { /* the whole body is unreadable: every name stays missing */ }
   await send('Network.disable').catch(() => {});
   log(`provider answered HTTP ${hit.status}; ${names.map(n => `${n}: ${missing.includes(n) ? 'MISSING' : 'present'}`).join(' · ')}`);
+  if (shape) log(`response shape (key names and types only): ${shape.join(' ') || '(empty)'}`);
 } else {
   // Page mode waits until EVERY element shows a value: two fields rarely paint in the same tick.
   const sels = extractors.map(e => e.src);

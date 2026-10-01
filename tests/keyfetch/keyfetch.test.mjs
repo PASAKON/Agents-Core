@@ -10,7 +10,7 @@ import { mkdtempSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { UsageError, parseArgs, pickFields, runPuts, checkAbsent } from '../../scripts/keyfetch/keyfetch_lib.mjs';
+import { UsageError, parseArgs, pickFields, describeShape, runPuts, checkAbsent } from '../../scripts/keyfetch/keyfetch_lib.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CAPTURE = resolve(HERE, '../../scripts/keyfetch/capture_key.mjs');
@@ -298,6 +298,22 @@ test('capture_key wire: one value missing from the response -> exit 7 and NO put
   assert.equal(r.calls.length, 0);
   assert.match(r.text, /TAILSCALE_OAUTH_CLIENT_SECRET/);
   assert.match(r.text, /nothing saved/);
+});
+
+test('capture_key wire: wrong field path -> exit 7, response shape printed as names and types only', async () => {
+  const b = await fakeBrowser({ body: { data: { id: ID, key: SECRET, scopes: ['x'] }, ok: true } });
+  const r = await runCapture(b, [...TWO_WIRE, ...META]);
+  assert.equal(r.code, 7, r.text);
+  assert.equal(r.calls.length, 0);
+  assert.match(r.text, /response shape \(key names and types only\): data:object data\.id:string data\.key:string data\.scopes:array ok:boolean/);
+});
+
+test('describeShape: names and types, capped depth, never a value', () => {
+  const s = describeShape({ a: 'v1', b: { c: 5, d: { e: { f: 'deep' } } }, 'we ird': null, list: [1] });
+  assert.deepEqual(s, ['a:string', 'b:object', 'b.c:number', 'b.d:object', 'b.d.e:object', 'we?ird:null', 'list:array']);
+  assert.ok(!s.join(' ').includes('v1') && !s.join(' ').includes('deep'));
+  assert.deepEqual(describeShape('plain string'), []);
+  assert.equal(describeShape(Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`k${i}`, 1]))).length, 24);
 });
 
 test('capture_key wire: second put fails -> exit 8, PARTIAL line names saved and failed', async () => {

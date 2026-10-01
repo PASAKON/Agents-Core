@@ -83,6 +83,20 @@ export function pickFields(body, extractors) {
   return { entries, missing };
 }
 
+// What a response looks like, for the "value MISSING" diagnosis: key names and JSON types only,
+// three levels deep, at most 24 entries. A value never appears, not even its length.
+export function describeShape(node, prefix = '', depth = 0, out = []) {
+  if (!node || typeof node !== 'object' || depth >= 3) return out;
+  for (const [k, v] of Object.entries(node)) {
+    if (out.length >= 24) break;
+    const p = `${prefix}${prefix ? '.' : ''}${k.replace(/[^A-Za-z0-9_-]/g, '?').slice(0, 32)}`;
+    if (Array.isArray(v)) out.push(`${p}:array`);
+    else if (v && typeof v === 'object') { out.push(`${p}:object`); describeShape(v, p, depth + 1, out); }
+    else out.push(`${p}:${v === null ? 'null' : typeof v}`);
+  }
+  return out;
+}
+
 export function putArgs(tool, name, cfg) {
   const args = [tool, 'put', cfg.project, cfg.env, name, '--stdin', '--as', cfg.as, '--path', cfg.path];
   if (cfg.comment) args.push('--comment', cfg.comment);
