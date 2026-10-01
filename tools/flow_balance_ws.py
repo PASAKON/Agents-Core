@@ -8,6 +8,7 @@ If it prints "btn none" the page was still settling: run it again. Prints BALANC
 Do not point it at a project tab that is not yours.
 """
 import sys
+sys.stdout.reconfigure(encoding="utf-8")  # winbox default is cp1252; the Thai menu text crashed the print
 import socket, os, base64, json, re, struct, urllib.request, time
 tabs = json.load(urllib.request.urlopen("http://127.0.0.1:9226/json/list", timeout=8))
 mine = [t for t in tabs if t["type"] == "page" and (sys.argv[1] if len(sys.argv) > 1 else "29b3326b") in t["url"]]
