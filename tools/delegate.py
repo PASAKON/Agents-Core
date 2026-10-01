@@ -38,7 +38,7 @@ from tools import send_to_cto
 from tools import storage_policy
 from tools import tmux_session as tmux
 from tools import workdir
-from tools.worktree import _exclude_in_worktree, branch_name, create_worktree
+from tools.worktree import _exclude_in_worktree, branch_name, create_worktree, sparse_patterns
 
 # Every CLI the org knows how to drive a worker with (task-adbc6f43). Kept
 # local to this module rather than lib/config.py — that file is not a
@@ -1340,6 +1340,61 @@ def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
     return db.get_task(task_id)
 
 
+
+def _remote_sparse_file(task: dict, role_name: str, base: str) -> Path | None:
+    """Write the sparse-checkout lines for a REMOTE worker's worktree to a
+    local temp file and return it, or None for a full checkout.
+
+    Computed here, on the dispatching host, from this host's own clone of the
+    project (tools/worktree.sparse_patterns, the same list a local spawn
+    uses), because the spoke's clone may be blobless (`--filter=blob:none`)
+    and reading a blob's size there would fetch it. A stale local clone only
+    means a newer large file gets checked out in full, never a missing one.
+    No local clone, scope off, or any error: None, i.e. a full checkout as
+    before. Contabo's worktrees were all full checkouts (~0.9 GB each,
+    ALL_Rules_DiskHygiene field note 2026-09-28) because only the local
+    spawn path was sparse."""
+    if not _scope_applies("sparse_worktree", task.get("owner_cto")):
+        return None
+    try:
+        repo = Path(project_path_for_host(task["project"], self_host()))
+    except Exception:
+        return None
+    if not (repo / ".git").exists():
+        return None
+    try:
+        r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+                            f"origin/{base}"], capture_output=True, text=True)
+        start = f"origin/{base}" if r.returncode == 0 else base
+        patterns = sparse_patterns(repo, start, role_name)
+    except Exception as e:  # noqa: BLE001 -- a full checkout is the safe fallback
+        warn(f"sparse list for remote task={task['id']} skipped: {e}")
+        return None
+    if not patterns:
+        return None
+    path = ROOT / "state" / f".remote-sparse-{task['id']}.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(patterns) + "\n", encoding="utf-8")
+    return path
+
+
+
+def _scp_sparse_file(local_path: Path, ssh_alias: str, remote_path: str,
+                     task_id: str) -> bool:
+    """scp a sparse list to a spoke. Never raises: a failure only means the
+    launcher finds no file and does a full checkout, as before ADR 0030."""
+    try:
+        r = subprocess.run(["scp", str(local_path), f"{ssh_alias}:{remote_path}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        warn(f"sparse list scp failed task={task_id}: {e} (full checkout)")
+        return False
+    if r.returncode != 0:
+        warn(f"sparse list scp failed task={task_id}: {(r.stderr or '').strip()[:200]} "
+             f"(full checkout)")
+        return False
+    return True
+
 async def _spawn_remote(task: dict, host_name: str, *,
                         dry_run: bool = False, local: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
@@ -1441,6 +1496,11 @@ async def _spawn_remote(task: dict, host_name: str, *,
         prompt = _build_prompt(task, proj, remote_worktree)
         remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
         remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+        # Sparse worktree list (ADR 0030): computed here, scp'd beside TASK.md,
+        # read and deleted by spawn-worker.ps1. A missing file there means a
+        # full checkout, so a failed scp below is a warning, not a failure.
+        sparse_local = None if dry_run else _remote_sparse_file(task, role_name, base)
+        remote_sparse_file = f"{host_cfg['agents_root']}\\.sparse-{task_id}.txt"
 
         remote_cmd = (
             f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "
@@ -1456,6 +1516,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
         # validates it again and falls back when it is absent.
         if runner != "claude" and task.get("runner_model"):
             remote_cmd += f" -RunnerModel {_ps_quote(str(task['runner_model']))}"
+        if sparse_local is not None:
+            remote_cmd += f" -SparseFile {_ps_quote(remote_sparse_file)}"
         cmd = ["ssh", ssh_alias, remote_cmd]
 
         if dry_run:
@@ -1480,8 +1542,12 @@ async def _spawn_remote(task: dict, host_name: str, *,
                                capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
             if r.returncode != 0:
                 raise RuntimeError(f"scp of TASK.md failed: {r.stderr}")
+            if sparse_local is not None:
+                _scp_sparse_file(sparse_local, ssh_alias, remote_sparse_file, task_id)
         finally:
             tmp_task_md.unlink(missing_ok=True)
+            if sparse_local is not None:
+                sparse_local.unlink(missing_ok=True)
 
         info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
         r = subprocess.run(cmd, capture_output=True, text=True,
@@ -1599,6 +1665,20 @@ async def _spawn_remote(task: dict, host_name: str, *,
         "--session-name", session_name, "--runner", runner,
         "--task-meta-b64", task_meta_b64,
     ]
+    # Sparse worktree list (ADR 0030): a local launcher reads the file where
+    # it is; a remote one gets it scp'd into the untracked .launch/. The
+    # launcher deletes it after use and does a full checkout without it.
+    sparse_local = None if dry_run else _remote_sparse_file(task, role_name, base)
+    if sparse_local is not None:
+        if local:
+            script_args += ["--sparse-file", str(sparse_local)]
+        else:
+            remote_sparse_file = f"{host_cfg['agents_root']}/.launch/sparse-{task_id}.txt"
+            try:
+                if _scp_sparse_file(sparse_local, ssh_alias, remote_sparse_file, task_id):
+                    script_args += ["--sparse-file", remote_sparse_file]
+            finally:
+                sparse_local.unlink(missing_ok=True)
     transport = "local" if local else "ssh"
     if local:
         cmd = ["bash", remote_script, *script_args]
@@ -1628,9 +1708,13 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # thing on the box that reads stdin.
     info(f"spawn remote task={task_id} host={host_name} role={role_name} "
          f"transport={transport} deploy={deploy_actions}")
-    r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                       timeout=REMOTE_LAUNCH_TIMEOUT_S,
-                       env=_local_launcher_env() if local else None)
+    try:
+        r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
+                           timeout=REMOTE_LAUNCH_TIMEOUT_S,
+                           env=_local_launcher_env() if local else None)
+    finally:
+        if sparse_local is not None:
+            sparse_local.unlink(missing_ok=True)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
 
     refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)

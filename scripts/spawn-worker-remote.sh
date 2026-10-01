@@ -48,6 +48,10 @@ TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
 TASK_META_B64=""
 RUNNER_MODEL=""
+# Sparse worktree list (ADR 0030): one non-cone sparse-checkout line per line,
+# computed by the hub (tools/delegate._remote_sparse_file) and scp'd into
+# .launch/. Absent or empty = full checkout, exactly as before.
+SPARSE_FILE=""
 # ORG_HOST the worker runs under (W0.6): `contabo` is what the only caller
 # passes today (no flag); a hub that spawns codex/agy on another Linux box
 # passes its own name here instead of inheriting a hard-coded one.
@@ -71,6 +75,7 @@ while [ $# -gt 0 ]; do
     --task-meta-b64) TASK_META_B64="$2"; shift 2 ;;
     --runner-model) RUNNER_MODEL="$2"; shift 2 ;;
     --org-host) ORG_HOST="$2"; shift 2 ;;
+    --sparse-file) SPARSE_FILE="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     *) echo "spawn-worker-remote.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -173,6 +178,9 @@ if [ "$DRY_RUN" -eq 1 ]; then
   if [ -n "$TASK_META_B64" ]; then
     echo "[dry-run] task_meta_b64=$TASK_META_B64"
   fi
+  if [ -n "$SPARSE_FILE" ]; then
+    echo "[dry-run] sparse_file=$SPARSE_FILE (worktree add --no-checkout + sparse-checkout set --no-cone --stdin, full checkout if absent)"
+  fi
   if [ "$RUNNER" = "claude" ]; then
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
   elif [ "$RUNNER" = "codex" ]; then
@@ -239,10 +247,39 @@ if [ -d "$WT" ]; then
 fi
 git -C "$REPO_PATH" branch -D "$BRANCH" >/dev/null 2>&1 || true
 mkdir -p "$WORKTREE_ROOT"
-if ! git -C "$REPO_PATH" worktree add -b "$BRANCH" "$WT" "origin/$BASE"; then
+# Auto-gc must leave the big media packs alone (ALL_Rules_DiskHygiene
+# references/mac.md: a gc of a 3.4 GB pack holds old + new side by side).
+# Idempotent; only packs over 1 GB are affected.
+git -C "$REPO_PATH" config gc.bigPackThreshold 1g >/dev/null 2>&1 || true
+if [ -n "$SPARSE_FILE" ] && [ -s "$SPARSE_FILE" ]; then
+  # Sparse worktree (ADR 0030): same sequence as tools/worktree.create_worktree.
+  # The sparse config lives in this worktree's own git-dir (worktreeConfig),
+  # never the main checkout's. Any sparse step failing falls back to a full
+  # checkout of the same worktree rather than failing the spawn.
+  git -C "$REPO_PATH" config extensions.worktreeConfig true
+  if ! git -C "$REPO_PATH" worktree add --no-checkout -b "$BRANCH" "$WT" "origin/$BASE"; then
+    echo "spawn-worker-remote.sh: git worktree add failed ($WT on $BRANCH from origin/$BASE)" >&2
+    rm -f "$SPARSE_FILE"
+    exit 1
+  fi
+  if git -C "$WT" sparse-checkout init --no-cone \
+     && git -C "$WT" sparse-checkout set --no-cone --stdin < "$SPARSE_FILE"; then
+    echo "sparse worktree: $(($(wc -l < "$SPARSE_FILE") - 1)) large media path(s) left out"
+  else
+    echo "spawn-worker-remote.sh: sparse-checkout failed; full checkout instead" >&2
+    git -C "$WT" sparse-checkout disable >/dev/null 2>&1 || true
+  fi
+  if ! git -C "$WT" checkout "$BRANCH"; then
+    echo "spawn-worker-remote.sh: git checkout failed in $WT" >&2
+    rm -f "$SPARSE_FILE"
+    exit 1
+  fi
+elif ! git -C "$REPO_PATH" worktree add -b "$BRANCH" "$WT" "origin/$BASE"; then
   echo "spawn-worker-remote.sh: git worktree add failed ($WT on $BRANCH from origin/$BASE)" >&2
+  [ -n "$SPARSE_FILE" ] && rm -f "$SPARSE_FILE"
   exit 1
 fi
+[ -n "$SPARSE_FILE" ] && rm -f "$SPARSE_FILE"
 
 # GH #151 defense-in-depth (same rationale as spawn-worker.ps1): a stale
 # REPORT.md/BLOCKER.md committed to $BASE by mistake, or left by a prior
