@@ -6,7 +6,7 @@
 >
 > **What did not hold, fixed in place and tagged `[CMO fix]`:** D2-2 analysed n (54 → 57); D3-1 sex (said 'not on the page', page gives 23M/14F); D4-1 sex (said 'not reported', page gives 14F/8M); C1-1 neuter split (said all males neutered, page says all but one; female split not given). Three AGY 'Answer' lines claimed more than their rows show and were rewritten (D3, D4, D6).
 >
-> **Gaps:** C2–C4 (cat–person selectivity, cat sex differences, dog–cat in one home) were not reached; a second AGY run covers them, see `2026-10-01-cat-evidence-part2.md` if it landed. No row isolates *female dogs*. Cat evidence is thin and mixed: C1-1 found no secure attachment; C1-2 found rebound contact-seeking.
+> **Gaps:** C2–C4 (cat–person selectivity, cat sex differences, dog–cat in one home) are in `2026-10-01-cat-evidence-part2.md` (second AGY run, also CMO-reviewed). No row isolates *female dogs*. Cat evidence is thin and mixed: C1-1 found no secure attachment; C1-2 found rebound contact-seeking.
 >
 > Level key: A = controlled experiment n ≥ 20 (C1-2 is n = 14 and was labelled B by AGY, which is right); B = observational/questionnaire or small experiment; C = review; D = case.
 
