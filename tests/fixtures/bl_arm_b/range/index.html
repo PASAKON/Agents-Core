@@ -1,5 +1,6 @@
 <!doctype html>
-<html><body>
+<html><head><style id="bl-caption-balance">.cap{text-wrap:balance}</style>
+</head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="6.9997">
 <!-- VIDEO TRACK -->
 <video class="clip plate-darkened" id="v_k1" src="media/broll/S01.mp4" muted playsinline data-start="1.0" data-duration="2.0" data-media-start="0" data-track-index="0"></video>
@@ -7,7 +8,7 @@
 <img class="clip" id="v_e2" src="media/real/e2.png" style="top:0px;left:0px;right:auto;bottom:auto;width:1080px;height:1920px" data-start="5.0" data-duration="2.0" data-track-index="0">
 <audio id="va" src="media/voice.mp3" data-start="0" data-duration="6.9997"></audio>
 <script>
-tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+tl.set("#bug", { x: 0, opacity: 1 }, 0);
 kinetic(760, 1.05, 3.0, [{c:"w", h:"Hello"}, {c:"r", h:"World"}], 0); // K1
 kinetic(760, 3.05, 5.0, [{c:"w", h:"No broll named"}], 0); // K2
 caption(5.0, 7.0, "Last");
