@@ -428,6 +428,12 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
     lroot: Path, tmp_path: Path, sompong
 ) -> None:
     runuser_log = tmp_path / "runuser.log"
+    # an empty hub DB for the launcher's background `register_cxo` (the schema is created elsewhere on a real hub)
+    (tmp_path / "orgroot").mkdir()
+    subprocess.run(
+        [sys.executable, "-c", "from lib import db; db.init()"],
+        cwd=ROOT, env=dict(os.environ, ORG_ROOT=str(tmp_path / "orgroot")), check=True, capture_output=True,
+    )
     r = _launch(lroot, tmp_path, "--role", "coo", **_coo_env(sompong))
     assert r.returncode == 0, r.stderr
     got = sompong["out"].read_text(encoding="utf-8").splitlines()
@@ -463,6 +469,23 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
     # bookkeeping happened as the launching user, claude through runuser as `nobody` (when uid differs)
     if os.getuid() != int(subprocess.check_output(["id", "-u", "nobody"], text=True)):
         assert runuser_log.read_text().startswith("RUNUSER -u nobody -- env -i ")
+    # registered as role `coo` in c_level_sessions (a background job of the launcher: poll for it)
+    import sqlite3
+
+    db = tmp_path / "orgroot" / "state" / "tasks.db"
+    row, deadline = None, time.time() + 30
+    while row is None and time.time() < deadline:
+        if db.exists():
+            try:
+                with sqlite3.connect(db, timeout=5) as conn:
+                    row = conn.execute(
+                        "SELECT role, host FROM c_level_sessions WHERE session_id = ?", (env["CXO_SESSION_ID"],)
+                    ).fetchone()
+            except sqlite3.Error:
+                row = None
+        if row is None:
+            time.sleep(0.3)
+    assert row == ("coo", "contabo"), row
     # the mailbox box existed while claude ran, group-writable so SomPong's user can delete a letter it read
     # (the launcher's exit trap removes an empty box afterwards)
     assert "BOXMODE=2775" in got
