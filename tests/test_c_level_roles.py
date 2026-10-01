@@ -218,10 +218,10 @@ def test_launcher_usage_names_every_role(script: str) -> None:
 # A literal that lists three or more C-level roles is a roster copy; it must
 # list them all. Deliberate subsets are named here with the reason.
 _ALLOWED_SUBSETS = {
-    # The memory cap counts cto/cmo/cfo (+ cxo) only -- cgo and coo sessions
-    # are not capped (see tools/session_name.py's docstring). A capacity
-    # decision, not a roster copy.
-    ("tools/session_cap.py", ("cto", "cmo", "cfo", "cxo")),
+    # The memory cap counts cto/cmo/cfo/coo (+ cxo) -- coo is SomPong, always
+    # on, so its memory counts; cgo sessions are still not capped (see
+    # tools/session_name.py's docstring). A capacity decision, not a roster copy.
+    ("tools/session_cap.py", ("cto", "cmo", "cfo", "coo", "cxo")),
 }
 _QUOTED_SEQ = re.compile(
     r"[(\[{]\s*((?:[\"'][A-Za-z_ ]+[\"']\s*,\s*){2,}[\"'][A-Za-z_ ]+[\"'])\s*,?\s*[)\]}]")

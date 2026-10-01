@@ -300,7 +300,7 @@ def test_flag_off_mac_still_enqueues_exactly_as_today(monkeypatch, relay):
 def test_flag_off_unknown_role_is_rejected_as_today(monkeypatch, relay):
     _no_mesh(monkeypatch)
     assert _spawn("ceo", "mac") == {
-        "status": "rejected", "reason": "unknown role 'ceo'. Known: cto, cmo, cgo, cfo"}
+        "status": "rejected", "reason": "unknown role 'ceo'. Known: cto, cmo, cgo, cfo, coo"}
     assert relay == [("spawn_c_level", "ceo", "rejected", "unknown role, host=mac")]
 
 

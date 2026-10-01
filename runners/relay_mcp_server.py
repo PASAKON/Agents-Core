@@ -102,7 +102,7 @@ from mcp.server.fastmcp import FastMCP
 
 from lib import config, link_reader, mailbox, mesh, video_grab
 from lib.logger import get_logger
-from lib.roles import c_level_roles
+from lib.roles import c_level_roles, singleton_refusal
 from tools import org_inspector, tmux_session
 from tools.send_to_cxo import Identity, _active_session_id, attempt_wake, authorize
 import video_to_drive  # noqa: E402 -- task-c7d455aa D5, see sys.path insert above
@@ -1247,7 +1247,14 @@ def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) ->
     queued). `resume_session_id` (8 lowercase hex characters) then resumes
     that earlier session instead of starting a fresh one; without the mesh
     it is rejected, never ignored.
+
+    `coo` is refused on every host: SomPong is one always-on session on
+    Contabo, started by /spawn-coo, never per request.
     """
+    refusal = singleton_refusal(role)
+    if refusal:
+        _audit("spawn_c_level", role, "rejected", f"singleton role, host={host}")
+        return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)
     if mesh.enabled():
         return _spawn_c_level_mesh(role, host, resume_session_id)
     rejection = _reject_unknown_role("spawn_c_level", role, host=host)

@@ -22,6 +22,25 @@ from __future__ import annotations
 STATIC_C_LEVEL_ROLES: tuple[str, ...] = ("cto", "cmo", "cgo", "cfo", "coo")
 
 
+# C-levels that are ONE session ever, started only by their own command and never
+# opened per request. coo = SomPong (CEO 2026-10-01): one always-on session on
+# Contabo, tmux `sompong`, started by /spawn-coo (scripts/spawn-coo.sh).
+# send_to_cxo --spawn and the relay's spawn_c_level refuse these; the launcher
+# (scripts/cxo-claude.sh --role coo) refuses a second one itself.
+SINGLETON_ROLES: tuple[str, ...] = ("coo",)
+
+
+def singleton_refusal(role: str) -> str | None:
+    """Why `role` cannot be spawned ad hoc, or None when it can."""
+    if role not in SINGLETON_ROLES:
+        return None
+    return (
+        "SomPong (COO) is ONE always-on session on Contabo and is never spawned "
+        "per request. If it is down, run /spawn-coo (bash scripts/spawn-coo.sh); "
+        "then send the letter with send_to_cxo, without --spawn."
+    )
+
+
 def c_level_roles() -> tuple[str, ...]:
     """C-level roles that can own a session, in policies/agents.yaml order."""
     try:

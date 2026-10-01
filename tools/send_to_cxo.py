@@ -85,7 +85,7 @@ from lib import mailbox
 from lib import mesh
 from lib import notify
 from lib.config import display_for, is_c_level, self_host
-from lib.roles import c_level_roles
+from lib.roles import SINGLETON_ROLES, c_level_roles, singleton_refusal
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
@@ -326,7 +326,8 @@ def attempt_wake(role: str, session_id: str, label: str) -> None:
     resolution.
 
     Resolves (role, session_id) to its tmux session name via
-    `tools.session_name.lock_basename()` and delegates the actual nudge to
+    `tools.session_name.tmux_name()` (SomPong's is `sompong`, not `coo-<id>`)
+    and delegates the actual nudge to
     `tools.agent_transport.attempt_wake()`. `send_fn=_wake_tmux_send` is
     passed explicitly -- this module's own imported reference, resolved in
     THIS module's globals -- so a test that monkeypatches
@@ -334,7 +335,7 @@ def attempt_wake(role: str, session_id: str, label: str) -> None:
     `agent_transport.attempt_wake`'s docstring for why that indirection is
     needed).
     """
-    session = session_name.lock_basename(role, session_id)
+    session = session_name.tmux_name(role, session_id)
     agent_transport.attempt_wake(session, label, "send_to_cxo", send_fn=_wake_tmux_send)
 
 
@@ -459,6 +460,9 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
+    refusal = singleton_refusal(role)
+    if refusal:
+        raise ValueError(refusal)
     sender_identity = current_identity()
     authorize(sender_identity, role, None, spawning=True)
     label = sender or _resolve_sender_role()
@@ -662,9 +666,10 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     if not sid:
         remote = _remote_target(role)  # None unless ORG_MESH_DISPATCH names one other host
         if remote is None:
+            how = ("/spawn-coo (bash scripts/spawn-coo.sh)" if role in SINGLETON_ROLES
+                   else f"bash scripts/spawn-cxo.sh --role {role}")
             raise ValueError(
-                f"no active {display_for(role)} session found. "
-                f"Spawn one first: bash scripts/spawn-cxo.sh --role {role}"
+                f"no active {display_for(role)} session found. Spawn one first: {how}"
             )
         sid = remote[1]
     sender_identity = current_identity()
