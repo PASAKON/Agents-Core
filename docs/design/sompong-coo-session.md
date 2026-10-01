@@ -55,7 +55,7 @@ accepted and dropped. Body = the (A) body plus:
 | `chat_type` | `group` · `dm` (LINE `source` kept for compatibility) |
 | `target` | LINE groupId / userId · Telegram chat id |
 | `sender_id`, `sender_name` | platform user id + display name |
-| `role` | `ceo` **only** when ClaudeFlow matches the sender to the CEO (`LINE_SOMPONG_CEO_USER_ID`, the CEO's Telegram user id). `family` for an allowlisted LINE group member. Never derived from text |
+| `role` | `ceo` **only** when ClaudeFlow matches the sender to the CEO: LINE `LINE_SOMPONG_CEO_USER_ID`, Telegram `SECRETARY_ADMIN_CHAT_ID` (single-valued; `TELEGRAM_ALLOWED_USERS` is the list of who may talk to the bot and is never the CEO test — task-56f60a9b). `family` otherwise. Never derived from text |
 | `media` | optional `[{kind, message_id}]` — fetched later through (B) content, never inlined |
 
 The inbox stores every accepted event (SQLite, `state/` of the SomPong folder) **before** answering 202,
