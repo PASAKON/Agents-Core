@@ -38,11 +38,16 @@ censor_profiles:
     - {label: "complaint COG id", kind: full, regex: "COG\\d{10,}"}
   broker_contact:
     - {label: "broker website / email / phone text (regex, exact text range)", kind: full, regex: "(https?://)?(www\\.)?goldenburg(group|funds)\\.(eu|com)\\S*|info@goldenburggroup\\.eu|\\+?357\\s?25\\s?349815"}
+  complaint_user:
+    - {label: "complainant avatar + username row (older exposure template, avatar heuristic misses it)", kind: full, selector: ".user"}
   people:
     - {label: "named company officer", kind: full, regex: "IVOR\\s*LEHOTAN"}
   survey_address:
     - {label: "private street address, Thai", kind: full, regex: "[0-9]+\\s*ถนน\\S*"}
     - {label: "2019 field-visit street address", kind: full, regex: "[0-9]+\\s*Siafi\\s*Street\\S*"}
+    - {label: "2019 field-visit building name", kind: full, regex: "Porto\\s*Bello\\S*"}
+  other_broker:
+    - {label: "another broker's name in the survey text", kind: full, regex: "[Ee][Xx][Nn][Ee][Ss][Ss]"}
 
 x-wikifx-hygiene: &wikifx_hygiene
   hide_selectors:
@@ -64,7 +69,7 @@ shots:
     url: "https://www.wikifx.com/th/dealer/8341918460.html"
     action: capture
     kind: still
-    covers: [HOOK-1, CONTEXT-1, MAIN-1]
+    covers: [HOOK-1, HOOK-4, CONTEXT-1, CONTEXT-2, MAIN-1]
     wait_ms: 2500
     crop:
       selector: ".head-l-john"
@@ -90,7 +95,7 @@ shots:
     url: "https://www.wikifx.com/th/dealer/8341918460.html"
     action: capture
     kind: still
-    covers: [HOOK-2, HOOK-3, HOOK-4, CONTEXT-2]
+    covers: [HOOK-2]
     wait_ms: 2500
     crop:
       selector: ".dealer-risk"
@@ -117,7 +122,7 @@ shots:
     url: "https://www.wikifx.com/th/dealer/8341918460.html"
     action: capture
     kind: still
-    covers: [MAIN-3, MAIN-4]
+    covers: [MAIN-2, MAIN-3, MAIN-4]
     wait_ms: 2500
     crop:
       selector: ".dealer-regulatory"
@@ -174,8 +179,8 @@ shots:
     covers: [MAIN-9, MAIN-10]
     wait_ms: 2500
     crop:
-      selector: "section.bg-white.mb-20.active"
-      pad: 1.0
+      text: "GOLDENBURG GROUP LTD(Cyprus)"
+      pad: 4.0
     hide_selectors:
       - ".advertisement-list"
       - ".wiki-direct"
@@ -186,14 +191,14 @@ shots:
       - ".chrome_ctx_right"
       - ".new_chrome_down"
       - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
-      - "section:has(.dealer-list-ul)"
-      - "section:has(.dealerWorker)"
+      - ".dealerWorker"
       - ".dealer-list-ul"
+      - "section[class*='flex-1'][class*='flex-wrap']"
       - ".top-comment-item"
       - ".dealer-survey-container"
     hide_texts:
       - "切换"
-    censor_profiles: [personal_data, broker_contact, people]
+    censor_profiles: [broker_contact, people]
     source_note: "related company GOLDENBURG GROUP LTD (Cyprus), WikiFX status text; clone list and officer names hidden"
 
   # -- WikiFX article 1 Oct 2026 title + abstract
@@ -201,7 +206,7 @@ shots:
     url: "https://www.wikifx.com/th/newsdetail/202610019604717978.html"
     action: capture
     kind: still
-    covers: [CONTEXT-3, CONTEXT-4]
+    covers: [HOOK-3, CONTEXT-3, CONTEXT-4]
     wait_ms: 2500
     crop:
       selector: "p.des"
@@ -276,7 +281,7 @@ shots:
     url: "https://www.wikifx.com/th/newsdetail/202610019604717978.html"
     action: capture
     kind: still
-    covers: [CURIOSITY-1, CURIOSITY-2]
+    covers: [CONTEXT-5, CURIOSITY-1, CURIOSITY-2]
     wait_ms: 2500
     crop:
       selector: ".article-c .info > :nth-child(6)"
@@ -296,16 +301,13 @@ shots:
     censor_profiles: []
     source_note: "WikiFX names GB Finance UK Ltd (UK) while the licence belonged to GOLDENBURG GROUP LTD"
 
-  # -- WikiFX survey page title + date (2019)
-  - id: gb-survey-title
+  # -- WikiFX survey page, 2019 visit (full viewport)
+  - id: gb-survey
     url: "https://www.wikifx.com/th/survey/104771d952.html"
     action: capture
     kind: still
-    covers: [CURIOSITY-3]
+    covers: [CURIOSITY-3, CURIOSITY-4]
     wait_ms: 2500
-    crop:
-      selector: ".tag"
-      pad: 1.0
     hide_selectors:
       - ".advertisement-list"
       - ".wiki-direct"
@@ -321,50 +323,16 @@ shots:
       - ".survey-info-content img"
     hide_texts:
       - "切换"
-      - "Siafi"
-      - "Porto Bello"
-      - "EXness"
-    censor_profiles: [survey_address, personal_data]
-    source_note: "WikiFX survey dated 2019-05-31, tagged Good: seven years old; photos hidden"
-
-  # -- WikiFX survey page, the 2019 licence sentence
-  - id: gb-survey-brand
-    url: "https://www.wikifx.com/th/survey/104771d952.html"
-    action: capture
-    kind: still
-    covers: [CURIOSITY-4, CURIOSITY-5]
-    wait_ms: 2500
-    crop:
-      text: "ได้รับอนุญาตอย่างเต็มที่"
-      pad: 1.0
-    hide_selectors:
-      - ".advertisement-list"
-      - ".wiki-direct"
-      - ".article-r"
-      - ".head-r"
-      - ".dealer-primary-jaf-new"
-      - ".article-c img, .article-info img"
-      - ".chrome_ctx_right"
-      - ".new_chrome_down"
-      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
-      - ".carousel"
-      - ".ex-map-box"
-      - ".survey-info-content img"
-    hide_texts:
-      - "切换"
-      - "Siafi"
-      - "Porto Bello"
-      - "EXness"
-    censor_profiles: [survey_address, personal_data]
-    source_note: "2019 text: licensed under CySEC, CIF 242/14; the other-broker sentence and street address hidden"
+    censor_profiles: [survey_address, other_broker, personal_data]
+    source_note: "WikiFX survey dated 2019-05-31, tagged Good, text says licensed under CySEC CIF 242/14; photos and map hidden; street address and the other broker's name pixelated"
 
   # -- Complaint page (2021)
   - id: gb-complaint
     url: "https://www.wikifx.com/th/exposure/detail/202102035922794080.html"
     action: capture
     kind: still
-    covers: [PATTERN-1, PATTERN-2, PATTERN-3, PATTERN-4]
-    wait_ms: 2500
+    covers: [PATTERN-1, PATTERN-2, PATTERN-3]
+    wait_ms: 5500
     hide_selectors:
       - ".advertisement-list"
       - ".wiki-direct"
@@ -380,5 +348,5 @@ shots:
     hide_texts:
       - "切换"
       - "มีความเสี่ยงถูกโบรกเกอร์โกง"
-    censor_profiles: [personal_data, complaint_ids, broker_contact]
+    censor_profiles: [personal_data, complaint_user, complaint_ids, broker_contact]
     source_note: "one user's claim from 2021-02-03, amount without a currency; username pixelated; WikiFX's risk-label hidden; full viewport"
