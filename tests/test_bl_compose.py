@@ -1260,8 +1260,8 @@ def test_arm_a_compose_writes_the_plate_the_red_span_the_left_bug_and_three_back
     assert html.count('id="hl"') == 1
     plate = re.search(r'<div id="hl" class="hl" style="([^"]*)">(.*?)</div></div>', html, re.S)
     style = dict(p.split(":", 1) for p in plate.group(1).split(";"))
-    assert style == {"left": "120px", "top": "276px", "width": "840px", "height": "150px",
-                     "font-size": "60px", "line-height": "75px"}
+    assert style == {"left": "120px", "top": "276px", "width": "840px", "height": "148px",
+                     "font-size": "59px", "line-height": "74px"}
     assert plate.group(2) == (f'<div class="hl-line">โบรกเกอร์<span class="hl-red">{RED}</span></div>'
                               f'<div class="hl-line">{LINE_2}')
     assert "data-start" not in plate.group(0)
