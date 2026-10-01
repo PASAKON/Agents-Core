@@ -49,18 +49,18 @@ if [ -z "$ROLE" ]; then
   exit 2
 fi
 
-# Validate role early so we fail before any AppleScript work.
-if [ ! -f "$ROOT/roles/$ROLE.md" ]; then
-  echo "role doc not found: $ROOT/roles/$ROLE.md" >&2
-  exit 2
-fi
-
 # SomPong (coo) is one session, on Contabo, started by /spawn-coo (which checks
 # for a live one first) -- never an iTerm window here. cxo-claude.sh refuses it
 # off Contabo too; this stops it before any AppleScript work.
 if [ "$ROLE" = "coo" ]; then
   echo "SomPong (COO) runs on Contabo only — use /spawn-coo" >&2
   exit 1
+fi
+
+# Validate role early so we fail before any AppleScript work.
+if [ ! -f "$ROOT/roles/$ROLE.md" ]; then
+  echo "role doc not found: $ROOT/roles/$ROLE.md" >&2
+  exit 2
 fi
 
 # Never inherit a session id from the parent shell.

@@ -269,7 +269,8 @@ wait_ready() {
 # would never reach the journal.
 preflight() {
   local out
-  if out="$($PREFLIGHT 2>&1)"; then return 0; fi
+  # bash -c: parsed like LAUNCH is (tmux hands that to a shell too), not word-split.
+  if out="$(bash -c "$PREFLIGHT" 2>&1)"; then return 0; fi
   loud "launcher preflight failed (not starting): $(printf '%s' "$out" | tail -n 3 | tr '\n' ' ')"
   return 1
 }

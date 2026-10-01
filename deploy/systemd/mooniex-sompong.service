@@ -9,11 +9,11 @@ Documentation=file:///opt/MoonieXHQ/Agents/Core/docs/design/sompong-coo-session.
 # session first, so a second one is never started.
 #
 # The channel server `sompong` (SomPong repo .mcp.json) talks to the inbox service
-# mooniex-sompong-inbox.service; this unit does not depend on it -- the session
+# sompong-inbox.service (SomPong repo ops/); this unit does not depend on it -- the session
 # starts without it and the channel connects when the inbox is up.
 #
-# No secrets in this unit. The org MCP server reaches the hub through the
-# launcher's own wrapper (scripts/hub/with-org-db-env.sh), not through this file.
+# No secrets in this unit, and none passed to the session: the launcher starts
+# `claude` with an empty environment plus a short allowlist.
 After=network-online.target
 Wants=network-online.target
 

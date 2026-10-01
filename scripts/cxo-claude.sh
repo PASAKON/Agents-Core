@@ -196,7 +196,7 @@ if [ "$ROLE" = "coo" ]; then
     --add-dir "$ROOT"
     --settings "$COO_SETTINGS"
   )
-  ALLOWED="$ALLOWED mcp__sompong__reply mcp__sompong__send mcp__sompong__ask_ceo mcp__sompong__history mcp__sompong__media"
+  ALLOWED="$ALLOWED mcp__sompong__reply mcp__sompong__skip mcp__sompong__send mcp__sompong__ask_ceo mcp__sompong__history mcp__sompong__media"
   : "${WIKI_ROOT_ORG:=/opt/MoonieXHQ/Agents/Rules}"
   : "${WIKI_ROOT_MOONIEX:=/opt/MoonieXHQ/Agents/Wikis}"
   COO_ENV=(
