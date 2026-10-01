@@ -101,6 +101,48 @@ def _large_tracked_media(repo: Path, start_point: str, min_bytes: int,
     return out
 
 
+def sparse_patterns(repo: Path, start_point: str, role: str) -> list[str]:
+    """Non-cone sparse-checkout lines for a worker worktree of `repo` at
+    `start_point`, or [] when nothing should be excluded (full checkout).
+
+    A role in `full_checkout_roles` (e.g. video_editor) gets a full checkout.
+    Otherwise only EXISTING tracked files above `min_bytes` with a
+    `media_guard` extension are excluded, by EXACT PATH — never a directory.
+    A directory-level exclude was tried and reverted: git refuses `git add -A`
+    for any NEW file under an excluded directory ("paths ... outside of your
+    sparse-checkout definition", exit 1), which would break nearly every
+    browser_operator commit under docs/reports (see storage-policy.yaml's
+    comment for the measurement). Excluding by exact path keeps every
+    directory inside the sparse definition, so a brand-new file anywhere is
+    always addable.
+
+    Shared by create_worktree (a local spawn) and tools/delegate.py's remote
+    spawns, which compute the list on the dispatching host and hand it to
+    scripts/spawn-worker-remote.sh / windows/spawn-worker.ps1 as a file: a
+    spoke's own clone may be blobless (`--filter=blob:none`), where reading
+    a blob's size would fetch the blob."""
+    policy = _sparse_worktree_policy()
+    min_bytes = policy.get("min_bytes")
+    full_roles = set(policy.get("full_checkout_roles") or [])
+    if role in full_roles or not min_bytes:
+        return []
+    extensions = _media_guard_extensions()
+    if not extensions:
+        return []
+    large_media = _large_tracked_media(repo, start_point, int(min_bytes), extensions)
+    # `keep_paths` (CTO 3d312dd6 review, 2026-09-23): workers read
+    # reference media outside their touches — skills' templates,
+    # prototypes, knowledge/ design references. Those stay on disk.
+    keep = [str(g) for g in (policy.get("keep_paths") or [])]
+    if keep:
+        import fnmatch
+        large_media = [p for p in large_media
+                       if not any(fnmatch.fnmatch(p, g) for g in keep)]
+    if not large_media:
+        return []
+    return ["/*"] + [f"!/{_escape_sparse_pattern(p)}" for p in large_media]
+
+
 def _run(cmd: list[str], cwd: str | Path | None = None) -> str:
     r = subprocess.run(cmd, cwd=str(cwd) if cwd else None,
                        capture_output=True, text=True, encoding="utf-8")
@@ -240,46 +282,19 @@ def create_worktree(project_key: str, role: str, task_id: str, *,
     except GitError:
         pass
 
-    # Sparse worktrees (ADR 0030, storage-policy.yaml `sparse_worktree`).
-    # A role in `full_checkout_roles` (e.g. video_editor) gets today's
-    # unchanged full checkout. Otherwise, exclude only EXISTING tracked
-    # files above `min_bytes` with a media extension, by EXACT PATH — never
-    # a directory. A directory-level exclude was tried and reverted:
-    # git refuses `git add -A` for any NEW file under an excluded directory
-    # ("paths ... outside of your sparse-checkout definition", exit 1),
-    # which would break nearly every browser_operator commit under
-    # docs/reports (see storage-policy.yaml's comment for the measurement).
-    # Excluding by exact path keeps every directory inside the sparse
-    # definition, so a brand-new file anywhere is always addable. The
-    # sparse config is written into THIS worktree's own git-dir
-    # (extensions.worktreeConfig + per-worktree scope) — never the main
-    # checkout's, which stays untouched.
-    policy = _sparse_worktree_policy()
-    min_bytes = policy.get("min_bytes")
-    full_roles = set(policy.get("full_checkout_roles") or [])
+    # Sparse worktrees (ADR 0030, storage-policy.yaml `sparse_worktree`):
+    # see sparse_patterns() for what is excluded and why. The sparse config
+    # is written into THIS worktree's own git-dir (extensions.worktreeConfig
+    # + per-worktree scope) — never the main checkout's, which stays untouched.
+    patterns = sparse_patterns(repo, start_point, role) if sparse else []
 
-    large_media: list[str] = []
-    if sparse and role not in full_roles and min_bytes:
-        extensions = _media_guard_extensions()
-        if extensions:
-            large_media = _large_tracked_media(repo, start_point, int(min_bytes), extensions)
-            # `keep_paths` (CTO 3d312dd6 review, 2026-09-23): workers read
-            # reference media outside their touches — skills' templates,
-            # prototypes, knowledge/ design references. Those stay on disk.
-            keep = [str(g) for g in (policy.get("keep_paths") or [])]
-            if keep:
-                import fnmatch
-                large_media = [p for p in large_media
-                               if not any(fnmatch.fnmatch(p, g) for g in keep)]
-
-    if not large_media:
+    if not patterns:
         _run(["git", "worktree", "add", "-b", branch, str(wt), start_point], cwd=repo)
     else:
         _run(["git", "config", "extensions.worktreeConfig", "true"], cwd=repo)
         _run(["git", "worktree", "add", "--no-checkout", "-b", branch, str(wt),
               start_point], cwd=repo)
         _run(["git", "sparse-checkout", "init", "--no-cone"], cwd=wt)
-        patterns = ["/*"] + [f"!/{_escape_sparse_pattern(p)}" for p in large_media]
         _run(["git", "sparse-checkout", "set", "--no-cone", *patterns], cwd=wt)
         _run(["git", "checkout", branch], cwd=wt)
 

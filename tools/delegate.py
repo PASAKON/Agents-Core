@@ -235,6 +235,64 @@ def _disk_orange_floor_gb() -> float:
         return DEFAULT_DISK_ORANGE_GB
 
 
+def _windows_drive(path: str | None) -> str:
+    """Drive letter of a Windows path ('C:\\Users\\x' -> 'C'); 'C' when the
+    path names none."""
+    m = re.match(r"^([A-Za-z]):", path or "")
+    return m.group(1).upper() if m else "C"
+
+
+def _remote_free_gb_windows(ssh_alias: str, drive: str = "C") -> float | None:
+    """Free space (GB) on a Windows spoke's `drive`, or None if the probe
+    fails. winbox's OpenSSH runs a command through cmd.exe, which has no
+    `df`, so `_remote_free_gb` always returned None there and the spawn floor
+    never applied on the box a bot fills 2-4 GB a day. Same fail-OPEN
+    contract as `_remote_free_gb`; never raises."""
+    if not re.fullmatch(r"[A-Z]", drive or ""):
+        return None
+    try:
+        r = subprocess.run(
+            ["ssh", ssh_alias,
+             f'powershell -NoProfile -NonInteractive -Command "(Get-PSDrive -Name {drive}).Free"'],
+            capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    numbers = [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip().isdigit()]
+    if not numbers:
+        return None
+    return int(numbers[-1]) / (1024 ** 3)
+
+
+def _remote_free_gb_for_host(host_cfg: dict | None) -> float | None:
+    """Free space on a spoke, by its OS: PowerShell on Windows, `df` elsewhere.
+    None when the host has no ssh alias or the probe fails (fail open)."""
+    if not host_cfg or not host_cfg.get("ssh"):
+        return None
+    if host_cfg.get("os") == "windows":
+        return _remote_free_gb_windows(host_cfg["ssh"], _windows_drive(host_cfg.get("worktrees")))
+    return _remote_free_gb(host_cfg["ssh"])
+
+
+def _disk_floor_gb_for_host(host_name: str | None) -> float:
+    """The spawn floor for `host_name`: `host_floor_gb[<host>]` from
+    config/storage-policy.yaml when set, else gauge.orange. winbox's own
+    floor (ALL_Rules_DiskHygiene references/winbox.md: 30 GB, "critical below
+    that") was written down but never reached the spawn gate, which used the
+    one 5 GB orange band for every box."""
+    floor = _disk_orange_floor_gb()
+    if not host_name:
+        return floor
+    try:
+        data = yaml.safe_load(STORAGE_POLICY.read_text(encoding="utf-8")) or {}
+        value = (data.get("host_floor_gb") or {}).get(host_name)
+        return float(value) if value is not None else floor
+    except (OSError, ValueError, TypeError, AttributeError, yaml.YAMLError):
+        return floor
+
+
 def _scope_owners(feature: str) -> str | list[str] | None:
     """Raw `scope[<feature>]` value from config/storage-policy.yaml (ADR
     0030 §8; CEO widened all six features to "all" 2026-09-23). "all" —
@@ -387,6 +445,69 @@ def _operator_counts_as_live(task: dict, resolved_host: str) -> bool:
         return pid_alive(int(pid))
     except (TypeError, ValueError):
         return True
+
+# Statuses that hold a worker process for the per-host `max_workers` cap.
+# 'stalled' counts only when its pid is provably alive on this machine: the
+# watchdog leaves stalled rows alone, and a remote one cannot be pid-checked
+# from here, so counting those would block a host forever (the same trap
+# the browser cap hit on 2026-09-09, see _operator_counts_as_live).
+_WORKER_CAP_STATUSES = ("in_progress", "rate_limited", "stalled")
+
+
+# A row with no pid yet is a spawn in flight only while it is fresh; an old
+# pid-less row is bookkeeping (a hand claim, a crashed launcher), not a process.
+_WORKER_CAP_PIDLESS_FRESH_S = 30 * 60
+
+
+def _worker_counts_as_live(t: dict, host_name: str, here: str) -> bool:
+    pid = t.get("pid")
+    if not pid:
+        if t.get("status") == "stalled":
+            return False
+        try:
+            updated = datetime.fromisoformat(str(t.get("updated_at")))
+        except (TypeError, ValueError):
+            return False
+        if updated.tzinfo is None:
+            updated = updated.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - updated).total_seconds() < _WORKER_CAP_PIDLESS_FRESH_S
+    if host_name != here:
+        return t.get("status") != "stalled"
+    try:
+        return pid_alive(int(pid))
+    except (TypeError, ValueError):
+        return False
+
+
+def _worker_cap_on() -> bool:
+    return os.environ.get("ORG_HOST_WORKER_CAP", "on").lower() not in ("0", "off", "false")
+
+
+def worker_slot_free(host_name: str) -> bool:
+    """True when `host_name` is under its hosts.yaml `max_workers` in this
+    machine's ledger (or has no cap). The watchdog's queue drain asks this
+    before re-delegating a task the cap queued."""
+    try:
+        cap = get_host(host_name).get("max_workers")
+    except ValueError:
+        return True
+    if not cap or not _worker_cap_on():
+        return True
+    return _live_workers_on(host_name) < int(cap)
+
+
+def _live_workers_on(host_name: str, *, exclude_task: str | None = None) -> int:
+    """Workers this machine's ledger shows running on `host_name`."""
+    here = self_host()
+    return sum(
+        1
+        for status in _WORKER_CAP_STATUSES
+        for t in db.list_tasks(status=status, limit=500)
+        if t.get("id") != exclude_task
+        and (t.get("host") or here) == host_name
+        and _worker_counts_as_live(t, host_name, here)
+    )
+
 
 # IRON-RULES §29: every spawn must ship a visible kickoff ping. Sleep
 # lets the claude TUI in the new tab finish booting before keystrokes
@@ -1340,6 +1461,62 @@ def mesh_spawn_worker(task_id: str, host_name: str) -> dict:
     return db.get_task(task_id)
 
 
+
+def _remote_sparse_file(task: dict, role_name: str, base: str) -> Path | None:
+    """Write the sparse-checkout lines for a REMOTE worker's worktree to a
+    local temp file and return it, or None for a full checkout.
+
+    Computed here, on the dispatching host, from this host's own clone of the
+    project (tools/worktree.sparse_patterns, the same list a local spawn
+    uses), because the spoke's clone may be blobless (`--filter=blob:none`)
+    and reading a blob's size there would fetch it. A stale local clone only
+    means a newer large file gets checked out in full, never a missing one.
+    No local clone, scope off, or any error: None, i.e. a full checkout as
+    before. Contabo's worktrees were all full checkouts (~0.9 GB each,
+    ALL_Rules_DiskHygiene field note 2026-09-28) because only the local
+    spawn path was sparse."""
+    if not _scope_applies("sparse_worktree", task.get("owner_cto")):
+        return None
+    try:
+        repo = Path(project_path_for_host(task["project"], self_host()))
+    except Exception:
+        return None
+    if not (repo / ".git").exists():
+        return None
+    try:
+        from tools.worktree import sparse_patterns
+        r = subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "--quiet",
+                            f"origin/{base}"], capture_output=True, text=True)
+        start = f"origin/{base}" if r.returncode == 0 else base
+        patterns = sparse_patterns(repo, start, role_name)
+    except Exception as e:  # noqa: BLE001 -- a full checkout is the safe fallback
+        warn(f"sparse list for remote task={task['id']} skipped: {e}")
+        return None
+    if not patterns:
+        return None
+    path = ROOT / "state" / f".remote-sparse-{task['id']}.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(patterns) + "\n", encoding="utf-8")
+    return path
+
+
+
+def _scp_sparse_file(local_path: Path, ssh_alias: str, remote_path: str,
+                     task_id: str) -> bool:
+    """scp a sparse list to a spoke. Never raises: a failure only means the
+    launcher finds no file and does a full checkout, as before ADR 0030."""
+    try:
+        r = subprocess.run(["scp", str(local_path), f"{ssh_alias}:{remote_path}"],
+                           capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        warn(f"sparse list scp failed task={task_id}: {e} (full checkout)")
+        return False
+    if r.returncode != 0:
+        warn(f"sparse list scp failed task={task_id}: {(r.stderr or '').strip()[:200]} "
+             f"(full checkout)")
+        return False
+    return True
+
 async def _spawn_remote(task: dict, host_name: str, *,
                         dry_run: bool = False, local: bool = False) -> dict:
     """Spawn a DEV on a remote spoke host (winbox today; a Contabo launcher
@@ -1441,6 +1618,11 @@ async def _spawn_remote(task: dict, host_name: str, *,
         prompt = _build_prompt(task, proj, remote_worktree)
         remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
         remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+        # Sparse worktree list (ADR 0030): computed here, scp'd beside TASK.md,
+        # read and deleted by spawn-worker.ps1. A missing file there means a
+        # full checkout, so a failed scp below is a warning, not a failure.
+        sparse_local = None if dry_run else _remote_sparse_file(task, role_name, base)
+        remote_sparse_file = f"{host_cfg['agents_root']}\\.sparse-{task_id}.txt"
 
         remote_cmd = (
             f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "
@@ -1456,6 +1638,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
         # validates it again and falls back when it is absent.
         if runner != "claude" and task.get("runner_model"):
             remote_cmd += f" -RunnerModel {_ps_quote(str(task['runner_model']))}"
+        if sparse_local is not None:
+            remote_cmd += f" -SparseFile {_ps_quote(remote_sparse_file)}"
         cmd = ["ssh", ssh_alias, remote_cmd]
 
         if dry_run:
@@ -1480,8 +1664,12 @@ async def _spawn_remote(task: dict, host_name: str, *,
                                capture_output=True, text=True, timeout=REMOTE_SSH_TIMEOUT_S)
             if r.returncode != 0:
                 raise RuntimeError(f"scp of TASK.md failed: {r.stderr}")
+            if sparse_local is not None:
+                _scp_sparse_file(sparse_local, ssh_alias, remote_sparse_file, task_id)
         finally:
             tmp_task_md.unlink(missing_ok=True)
+            if sparse_local is not None:
+                sparse_local.unlink(missing_ok=True)
 
         info(f"spawn remote task={task_id} host={host_name} role={role_name} deploy={deploy_actions}")
         r = subprocess.run(cmd, capture_output=True, text=True,
@@ -1599,6 +1787,20 @@ async def _spawn_remote(task: dict, host_name: str, *,
         "--session-name", session_name, "--runner", runner,
         "--task-meta-b64", task_meta_b64,
     ]
+    # Sparse worktree list (ADR 0030): a local launcher reads the file where
+    # it is; a remote one gets it scp'd into the untracked .launch/. The
+    # launcher deletes it after use and does a full checkout without it.
+    sparse_local = None if dry_run else _remote_sparse_file(task, role_name, base)
+    if sparse_local is not None:
+        if local:
+            script_args += ["--sparse-file", str(sparse_local)]
+        else:
+            remote_sparse_file = f"{host_cfg['agents_root']}/.launch/sparse-{task_id}.txt"
+            try:
+                if _scp_sparse_file(sparse_local, ssh_alias, remote_sparse_file, task_id):
+                    script_args += ["--sparse-file", remote_sparse_file]
+            finally:
+                sparse_local.unlink(missing_ok=True)
     transport = "local" if local else "ssh"
     if local:
         cmd = ["bash", remote_script, *script_args]
@@ -1628,9 +1830,13 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # thing on the box that reads stdin.
     info(f"spawn remote task={task_id} host={host_name} role={role_name} "
          f"transport={transport} deploy={deploy_actions}")
-    r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                       timeout=REMOTE_LAUNCH_TIMEOUT_S,
-                       env=_local_launcher_env() if local else None)
+    try:
+        r = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
+                           timeout=REMOTE_LAUNCH_TIMEOUT_S,
+                           env=_local_launcher_env() if local else None)
+    finally:
+        if sparse_local is not None:
+            sparse_local.unlink(missing_ok=True)
     lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
 
     refused_line = next((ln for ln in lines if ln.startswith("SPAWN_REFUSED=")), None)
@@ -2023,12 +2229,14 @@ async def delegate_task(task_id: str, *, wait: bool = False,
     # pre_free_gb above, so it sees the post-reclaim reading when reclaim
     # ran); any other host probes THAT box over ssh instead — its worktree,
     # git clone and worker process live there, not on the Mac, so the Mac's
-    # disk is not what will run out. `_remote_free_gb` fails OPEN (None) on
-    # an unreachable host or missing `df` — same shape as
+    # disk is not what will run out (`df` on Linux, PowerShell on Windows,
+    # `_remote_free_gb_for_host`), against that host's own floor
+    # (`host_floor_gb` in storage-policy.yaml, else gauge.orange). The probe
+    # fails OPEN (None) on an unreachable host or a missing tool — same shape as
     # runners/branch_poller.remote_pid_alive's liveness probe — so a broken
     # probe can never become a false floor that blocks every remote spawn.
     disk_floor_applies = _scope_applies("disk_floor", task.get("owner_cto"))
-    orange_gb = _disk_orange_floor_gb()
+    orange_gb = _disk_floor_gb_for_host(resolved_host)
     free_gb: float | None
     if resolved_host == this_host:
         free_gb = _free_gb()
@@ -2045,8 +2253,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             host_cfg_for_disk = get_host(resolved_host)
         except ValueError:
             host_cfg_for_disk = None
-        free_gb = (_remote_free_gb(host_cfg_for_disk["ssh"])
-                  if host_cfg_for_disk and host_cfg_for_disk.get("ssh") else None)
+        free_gb = _remote_free_gb_for_host(host_cfg_for_disk)
     if disk_floor_applies and free_gb is not None and free_gb < orange_gb:
         # ADR 0030 §D / task-dbe47b9b (CEO 2026-09-23: "สั่งเป็นกฎอย่างเดียว
         # ไม่ได้ ต้องทำระบบเข้าคิวไว้ด้วย รันตามคิว"): a refused spawn no
@@ -2055,17 +2262,8 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         # it, oldest first, one per tick, once free space clears
         # gauge.orange + 1 GB. Status is left exactly as it was (pending),
         # matching the pre-queue behaviour this branch already had.
-        #
-        # KNOWN GAP (task-a5c0549d, not fixed here — runners/watchdog.py is
-        # not a declared touches path for this task): _drain_disk_queue()'s
-        # own resume check (runners/watchdog.py DISK_QUEUE_RESUME_MARGIN_GB)
-        # still gates EVERY queued entry on the Mac's free space alone,
-        # regardless of which host it was queued for. A task queued here for
-        # a spoke whose own disk is fine will still wait on the Mac's disk
-        # clearing before the watchdog even attempts to drain it — this
-        # function's re-resolution of `resolved_host` fixes the INITIAL
-        # refusal to gate on the right box, but the drain's resume gate
-        # needs the same per-entry host awareness to fully close the loop.
+        # The drain gates each entry on the disk of the host it was queued for,
+        # with that host's own floor (runners/watchdog._drain_disk_queue).
         host_note = "" if resolved_host == this_host else f" on {resolved_host}"
         ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
         msg = (f"disk red{host_note}: {free_gb:.1f} GB free < {orange_gb:.1f} GB floor "
@@ -2138,6 +2336,42 @@ async def delegate_task(task_id: str, *, wait: bool = False,
                     actor="cto",
                 )
                 return db.get_task(task_id)
+
+    # hosts.yaml `max_workers` (CEO 2026-09-09 for winbox: "เปิดไม่เกิน 2 Worker
+    # ก็พอแล้ว"). Declared since Phase 1 but read only by lib/router.py, which
+    # is off by default (ORG_HOST_ROUTER), so no spawn path enforced it. A
+    # capped spawn joins the same queue as a disk-floor refusal
+    # (tools/disk_queue.py, exempt from gc_stale_tasks; CEO 2026-09-23: a rule
+    # alone is not enough, it must queue) and the watchdog spawns it when a
+    # slot frees. Counts THIS machine's ledger only: until the shared hub
+    # (ADR 0025, Org Mesh W1) is live, workers another machine dispatched to
+    # the same host are invisible here. ORG_HOST_WORKER_CAP=off disables it.
+    try:
+        worker_cap = get_host(resolved_host).get("max_workers")
+    except ValueError:
+        worker_cap = None
+    if worker_cap and _worker_cap_on():
+        live_workers = _live_workers_on(resolved_host, exclude_task=task_id)
+        if live_workers >= int(worker_cap):
+            first_time = not disk_queue.is_queued(task_id)
+            ahead = disk_queue.enqueue(task_id, task.get("owner_cto"))
+            msg = (f"worker cap: {live_workers}/{worker_cap} workers live on {resolved_host} "
+                   f"(config/hosts.yaml max_workers) — queued ({ahead} ahead), "
+                   f"spawns when a slot frees")
+            warn(f"worker cap blocked task={task_id}: {msg}")
+            db.set_fields(task_id, delegate_log=msg, actor="cto")
+            if first_time:
+                try:
+                    send_to_cto.send(
+                        task_id,
+                        f"queued for a worker slot on {resolved_host} ({ahead} ahead) — "
+                        f"{live_workers}/{worker_cap} running. Will spawn automatically.",
+                        role=task.get("role"), cto_id=task.get("owner_cto"),
+                        owner_role=task.get("owner_role") or "cto",
+                    )
+                except Exception as e:  # never let a mailbox failure break the refusal
+                    warn(f"worker cap: notify owner failed task={task_id}: {e}")
+            return db.get_task(task_id)
 
     # W3 (audit 2026-08-06): depends_on was invisible to this pre-flight —
     # only a touches overlap with an ACTIVE task ever blocked a delegate, and

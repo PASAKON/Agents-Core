@@ -12,6 +12,11 @@ Read it to know which machine you're on and which projects you can actually touc
   `/opt/MoonieXHQ/Agents/Core` (`/opt/mooniex-agents` is a compat link until ~2026-10-01). Only repos actually cloned onto this box are
   reachable — everything else needs `git clone` onto the box first.
   Confirm with `hostname` / `pwd` if unsure.
+- **winbox** (Windows 11, the CEO's game PC, account `passg` since the
+  2026-09-24 reset): workers run from `C:\Users\passg\mooniex`
+  (`config/hosts.yaml`), the Cookie Run bot and its data are the CEO's (see
+  "winbox" below). `python -c "from lib.config import self_host;
+  print(self_host())"` names the machine the same way every tool does.
 
 ## Project availability on Contabo (mobile Console)
 
@@ -31,6 +36,7 @@ Plan + record: `docs/ops/contabo-hq-migration-plan-2026-09-23.md`.
 | MoonieX-LineAutomation | `/opt/MoonieXHQ/Projects/MoonieX/LineAutomation` | `/root/projects/mooniex-line-automation` |
 | LinePoster (no repo) | `/opt/MoonieXHQ/Projects/MoonieX/LinePoster` | `/root/projects/mooniex-line-poster` |
 | LungNote-MCP | `/opt/MoonieXHQ/Projects/LungNote/Mcp` | `/opt/lungnote-mcp` |
+| MoonieX-SomPong | `/opt/MoonieXHQ/Projects/MoonieX/SomPong` | — |
 | claude-usage-monitor (tool, stays outside) | `/opt/claude-usage-monitor` | — |
 
 Compose projects keep their old names (`COMPOSE_PROJECT_NAME` pinned in each `.env`), so
@@ -51,6 +57,43 @@ superseded by `MoonieX-Design`).
 If a task needs one of the "NOT on Contabo" repos from a mobile session, say so
 explicitly and tell the CEO it needs cloning onto Contabo first — don't silently
 attempt it or assume GitHub presence is enough.
+
+## winbox (Windows)
+
+- **Two kinds of things live there.** The Cookie Run bot (`cookierun-bot\`,
+  `Documents\CookieRunScript\`) is the CEO's: only its data steward creates,
+  moves or deletes there (`cookierun-bot/docs/DATA-STEWARD.md`). Org work is
+  separate: worker worktrees under `C:\Users\passg\mooniex\worktrees`, and
+  `C:\mooniex\` (PC lease, YouTube auth, LINE/subtitle outputs, and a sparse
+  `Agents\Core` clone used only by the weekly MachineContractDoctor).
+- **Limits the spawn path now enforces** (2026-10-01): at most 2 workers
+  (`hosts.yaml` `max_workers`), no spawn below 30 GB free on `C:`
+  (`storage-policy.yaml` `host_floor_gb`), sparse worktrees.
+- **The screen is shared with a bot.** Before any click, keystroke or
+  screenshot there: `/ALL_Rules_Winbox_PCLease`. ssh, git, ffmpeg and file
+  copies need no lease.
+- A C-level session on winbox starts with `windows/cxo-claude.ps1`; it has the
+  org MCP only when `%USERPROFILE%\.config\mooniex\org-db.env` exists.
+
+## Three machines, three task ledgers (until the hub is live)
+
+Each machine still keeps its own `state/tasks.db`; the shared Postgres hub
+(ADR 0025, Org Mesh W1) is built but not cut over. So what one machine's
+`delegate_task` checks — path locks (`touches`), the browser cap, `max_workers`
+— sees only the tasks THAT machine dispatched. Two CTOs on two machines can
+put two workers on the same files of the same repo, or four browser operators
+on winbox's Chrome, and nothing refuses. Until the cutover:
+
+- **One repo, one dispatching machine at a time.** Before delegating into a
+  repo, look for the other machines' live workers on it:
+  `git fetch origin && git branch -r --list 'origin/agent/*'` (a worker pushes
+  its branch as it goes). If one touches your files, wait or ask its owner.
+- `max_workers` and `host_floor_gb` are enforced per dispatching machine, so
+  the real load on a shared host can be up to twice the cap.
+- Every machine pushes to `main` of this repo. CI (`repo-guards`) now rejects
+  unresolved conflict markers and new media over 1 MiB, but a field note two
+  machines append to the same `SKILL.md` at once still conflicts: pull right
+  before you append, push right after.
 
 ## Wiki access
 
@@ -80,7 +123,8 @@ how Contabo resolves them. Any namespace can be repointed the same way with
 ⚠️ **Contabo's copies are rsync snapshots, not git checkouts** — neither has a
 `.git`, so there is nothing to pull and nothing to push. They go stale as soon
 as the Mac's wiki changes, and a `wiki_write` on that box edits a copy the next
-sync silently overwrites. Treat Contabo wikis as **read-only** and refresh after
+sync silently overwrites. Treat Contabo wikis as **read-only** (since 2026-10-01
+`wiki_write` refuses a root with no `.git` before writing anything) and refresh after
 any significant wiki change (run from the Mac):
 
 ```bash

@@ -33,6 +33,7 @@ import json
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 # lungnote-mcp was split out to its own repo (PASAKON/LungNote-MCP) on
 # 2026-08-03, so its .env now sits beside that checkout instead of inside this
@@ -162,7 +163,9 @@ def box_disk_warning():
     try:
         r = subprocess.run(
             ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "winbox",
-             "cmd /c type C:\\Users\\UsEr\\Documents\\CookieRunScript\\ledger\\DISK-WARNING.txt"],
+             # %USERPROFILE%, not C:\\Users\\UsEr: the 2026-09-24 reset moved the
+             # profile to passg, and the old name only works through a junction.
+             "cmd /c type \"%USERPROFILE%\\Documents\\CookieRunScript\\ledger\\DISK-WARNING.txt\""],
             capture_output=True, text=True, timeout=12)
     except Exception:
         return
@@ -173,11 +176,34 @@ def box_disk_warning():
             print("  " + line)
 
 
+def local_disk_warning():
+    """Warn when THIS machine is below the yellow band of
+    config/storage-policy.yaml. The session start only ever relayed winbox's
+    warning, so the box a session actually runs on could be nearly full
+    with nothing said (the Mac hit 0 bytes on 2026-09-23). Fails quiet."""
+    import shutil
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from tools import storage_policy
+    policy = storage_policy.load(str(Path(__file__).resolve().parent.parent
+                                     / "config" / "storage-policy.yaml"))
+    free = shutil.disk_usage("/").free / 1024 ** 3
+    band = storage_policy.band(free, policy)
+    if band == "green":
+        return
+    floor = policy["gauge"]["orange"]
+    print(f"💽 THIS MACHINE: {free:.1f} GB free ({band} band). Below {floor} GB no worker "
+          f"spawns here. Before deleting anything read /ALL_Rules_DiskHygiene.")
+
+
 if __name__ == "__main__":
     try:
         main()
     except Exception:
         pass  # never block session start
+    try:
+        local_disk_warning()
+    except Exception:
+        pass
     try:
         box_disk_warning()
     except Exception:

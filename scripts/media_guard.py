@@ -26,9 +26,31 @@ def get_staged_files(repo_path: Path):
     files = result.stdout.split(b'\x00')
     return [f.decode('utf-8') for f in files if f]
 
-def get_staged_size(repo_path: Path, filepath: str) -> int:
+def get_range_files(repo_path: Path, since: str):
+    """Files added or modified between merge-base(since, HEAD) and HEAD — the
+    commits a pull request or a push brings in (CI mode, --since)."""
+    mb = subprocess.run(
+        ["git", "merge-base", since, "HEAD"],
+        cwd=repo_path, capture_output=True, text=True,
+    )
+    if mb.returncode != 0:
+        # e.g. a force-push whose old tip is no longer reachable: nothing to
+        # compare against, so say so and check nothing rather than fail CI.
+        print(f"media_guard: cannot find merge-base of {since} and HEAD; skipped")
+        return []
+    base = mb.stdout.strip()
     result = subprocess.run(
-        ["git", "cat-file", "-s", f":{filepath}"],
+        ["git", "diff", "--name-only", "--diff-filter=AM", "-M", "-z", base, "HEAD"],
+        cwd=repo_path,
+        capture_output=True,
+        check=True
+    )
+    return [f.decode('utf-8') for f in result.stdout.split(b'\x00') if f]
+
+
+def get_staged_size(repo_path: Path, filepath: str, rev: str = "") -> int:
+    result = subprocess.run(
+        ["git", "cat-file", "-s", f"{rev}:{filepath}"],
         cwd=repo_path,
         capture_output=True,
         text=True,
@@ -42,6 +64,10 @@ def main():
     default_policy_path = Path(__file__).resolve().parent.parent / "config" / "storage-policy.yaml"
     parser.add_argument("--policy", type=Path, default=default_policy_path, help="Path to storage policy YAML")
     parser.add_argument("--repo", type=Path, default=Path.cwd(), help="Path to git repository")
+    parser.add_argument("--since", default=None,
+                        help="CI mode: check files added/modified from merge-base(SINCE, HEAD) "
+                             "to HEAD instead of the staged ones (the pre-commit hook is local "
+                             "and was never installed on every machine)")
 
     args = parser.parse_args()
 
@@ -55,7 +81,12 @@ def main():
 
     max_mb = max_bytes / (1024 * 1024)
 
-    staged_files = get_staged_files(args.repo)
+    if args.since:
+        staged_files = get_range_files(args.repo, args.since)
+        rev = "HEAD"
+    else:
+        staged_files = get_staged_files(args.repo)
+        rev = ""
 
     violations = False
 
@@ -64,7 +95,7 @@ def main():
         if ext not in extensions:
             continue
 
-        size = get_staged_size(args.repo, filepath)
+        size = get_staged_size(args.repo, filepath, rev)
 
         if size > max_bytes:
             # Check against allow_globs

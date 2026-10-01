@@ -1,4 +1,7 @@
-"""FIFO queue for tasks the ADR 0030 disk floor refused to spawn.
+"""FIFO queue for tasks the ADR 0030 disk floor refused to spawn — and,
+since 2026-10-01, tasks the per-host `max_workers` cap (config/hosts.yaml)
+held back; the watchdog drains both, gating each entry on its host's disk
+AND a free worker slot.
 
 tools/delegate.py's `delegate_task` refuses a spawn when free space is below
 `gauge.orange` (config/storage-policy.yaml) for a `disk_floor`-scoped task

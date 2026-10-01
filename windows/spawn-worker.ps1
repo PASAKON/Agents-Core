@@ -58,6 +58,10 @@ param(
     [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude',
     [string]$TaskMetaB64 = '',
     [string]$RunnerModel = '',
+    # Sparse worktree list (ADR 0030): one non-cone sparse-checkout line per
+    # line, computed by the hub (tools/delegate._remote_sparse_file) and scp'd
+    # beside the TaskFile. Empty or missing = full checkout, exactly as before.
+    [string]$SparseFile = '',
     # W3.3 (task-782936c0): the folder that holds roles\ and receives the
     # .launch-<task> dir + launch-<task>.cmd wrapper. Empty (the ssh deploy
     # path, unchanged) = this script's own folder, because the deploy step
@@ -173,8 +177,41 @@ try {
     if (-not (Test-Path $WorktreeRoot)) {
         New-Item -ItemType Directory -Path $WorktreeRoot -Force | Out-Null
     }
-    git -C $RepoPath worktree add -b $Branch $wt "origin/$Base" 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
-    Assert-Git "worktree add"
+    # Auto-gc must leave the big media packs alone (ALL_Rules_DiskHygiene
+    # references/mac.md). Idempotent; only packs over 1 GB are affected.
+    git -C $RepoPath config gc.bigPackThreshold 1g 2>$null
+    $useSparse = $SparseFile -and (Test-Path -LiteralPath $SparseFile) -and
+        ((Get-Item -LiteralPath $SparseFile).Length -gt 0)
+    if ($useSparse) {
+        # Same sequence as tools/worktree.create_worktree; the sparse config
+        # lives in this worktree's own git-dir (worktreeConfig). The list is
+        # copied byte for byte into info/sparse-checkout rather than piped to
+        # `--stdin`, so PowerShell never re-encodes a Thai path. Any sparse step
+        # failing falls back to a full checkout of the same worktree.
+        git -C $RepoPath config extensions.worktreeConfig true
+        Assert-Git "config extensions.worktreeConfig"
+        git -C $RepoPath worktree add --no-checkout -b $Branch $wt "origin/$Base" 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
+        Assert-Git "worktree add --no-checkout"
+        try {
+            git -C $wt sparse-checkout init --no-cone 2>&1 | ForEach-Object { "$_" } | Out-Null
+            Assert-Git "sparse-checkout init"
+            $spPath = "$(git -C $wt rev-parse --git-path info/sparse-checkout)".Trim()
+            Assert-Git "rev-parse --git-path"
+            if (-not [System.IO.Path]::IsPathRooted($spPath)) { $spPath = Join-Path $wt $spPath }
+            [System.IO.File]::WriteAllBytes($spPath, [System.IO.File]::ReadAllBytes($SparseFile))
+            $nSparse = @(Get-Content -LiteralPath $SparseFile).Count - 1
+            Write-Output "sparse worktree: $nSparse large media path(s) left out"
+        } catch {
+            Write-Output "sparse-checkout failed ($_); full checkout instead"
+            git -C $wt sparse-checkout disable 2>&1 | Out-Null
+        }
+        git -C $wt checkout $Branch 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
+        Assert-Git "checkout"
+    } else {
+        git -C $RepoPath worktree add -b $Branch $wt "origin/$Base" 2>&1 | ForEach-Object { "$_" } | Select-Object -Last 3
+        Assert-Git "worktree add"
+    }
+    if ($SparseFile -and (Test-Path -LiteralPath $SparseFile)) { Remove-Item -Force -LiteralPath $SparseFile }
 
     # GH #151 defense-in-depth: `worktree add` checks out whatever is
     # COMMITTED on $Base (a stale REPORT.md committed to main by mistake is

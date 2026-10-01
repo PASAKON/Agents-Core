@@ -183,3 +183,8 @@ launch-*.cmd
 
 # W3.5 wake requests/results written at runtime by tools/agent_transport.py + windows/wake-request.ps1
 state/wake/
+# Per-machine watcher state (tools/work_watch.py, tools/disk_watch.py) and the
+# sparse list tools/delegate.py writes for a remote spawn before scp'ing it.
+state/work_watch_state.json
+state/disk_watch_state.json
+state/.remote-sparse-*.txt

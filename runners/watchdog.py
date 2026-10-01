@@ -49,6 +49,7 @@ from runners.branch_poller import remote_pid_alive
 from runners import branch_poller
 from tools import delegate
 from tools import disk_queue
+from tools import disk_watch
 from tools import send_to_cto
 from tools import send_to_cxo
 from tools import work_watch
@@ -762,18 +763,43 @@ def _drain_disk_queue() -> dict | None:
     ticks. Returns None when nothing was spawned (empty queue, space still
     below the resume margin, or every queued entry was dead), else a small
     dict describing what was spawned."""
-    if not disk_queue.all_entries():
+    entries = disk_queue.all_entries()
+    if not entries:
         return None
-    free_gb = delegate._free_gb()
-    orange_gb = delegate._disk_orange_floor_gb()
-    if free_gb < orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:
-        return None
-
-    for entry in disk_queue.all_entries():
+    try:
+        here = self_host()
+    except RuntimeError:
+        here = None
+    # Each entry is gated on the disk of the host it was queued FOR, with that
+    # host's own floor (delegate._disk_floor_gb_for_host): a task queued for
+    # Contabo or winbox used to wait on the Mac's free space instead. A remote
+    # probe that fails reads as None and lets the entry through, the same
+    # fail-open delegate_task applies when it re-checks.
+    free_by_host: dict[str | None, float | None] = {}
+    free_gb: float | None = None
+    for entry in entries:
         task_id = entry["task_id"]
         task = db.get_task(task_id)
         if task is None or task["status"] != "pending":
             disk_queue.pop(task_id)  # cancelled/closed/reset elsewhere meanwhile
+            continue
+        host = task.get("host") or here
+        if host not in free_by_host:
+            if host == here:
+                free_by_host[host] = delegate._free_gb()
+            else:
+                try:
+                    host_cfg = get_host(host)
+                except ValueError:
+                    host_cfg = None
+                free_by_host[host] = delegate._remote_free_gb_for_host(host_cfg)
+        free_gb = free_by_host[host]
+        if free_gb is not None and free_gb < (delegate._disk_floor_gb_for_host(host)
+                                              + DISK_QUEUE_RESUME_MARGIN_GB):
+            continue
+        # The same queue holds tasks the per-host worker cap held back
+        # (delegate's max_workers check): wait for a free slot, not just disk.
+        if host and not delegate.worker_slot_free(host):
             continue
         disk_queue.pop(task_id)
         try:
@@ -781,8 +807,8 @@ def _drain_disk_queue() -> dict | None:
         except Exception as e:
             error(f"watchdog: disk queue spawn failed for {task_id}: {e}")
             return {"task": task_id, "error": str(e)}
-        success(f"watchdog: disk queue spawning {task_id} "
-               f"(free {free_gb:.1f} GB >= {orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:.1f} GB)")
+        free_note = "unknown" if free_gb is None else f"{free_gb:.1f} GB"
+        success(f"watchdog: disk queue spawning {task_id} on {host} (free {free_note})")
         # No letter here (CEO 2026-09-23: permanent watchdog letters only when
         # critical or risky). The start is a good-news event: it is recorded
         # in the task's own delegate_log and the worker's kickoff; the owner
@@ -1090,12 +1116,22 @@ def scan_once() -> dict:
         warn(f"watchdog work watch error: {e}")
         work_watch_result = {"alerted": [], "lungnote_filed": [], "green": []}
 
+    # Eighth pass — disk watch (ADR 0030 gauge): the yellow-band letter to the
+    # CEO and the orange-band REBUILD reclaim, on THIS machine, every tick
+    # rather than only when a spawn happens. See tools/disk_watch.py.
+    try:
+        disk_watch_result = disk_watch.check()
+    except Exception as e:
+        warn(f"watchdog disk watch error: {e}")
+        disk_watch_result = {"error": str(e)}
+
     return {"pinged": pinged, "stalled": stalled, "reaped": reaped,
             "surface_reaped": surface_reaped,
             "scanned": len(rows) + len(human_rows),
             "gc_cancelled": len(gc_cancelled),
             "disk_queue_spawned": disk_queue_spawned,
-            "work_watch": work_watch_result}
+            "work_watch": work_watch_result,
+            "disk_watch": disk_watch_result}
 
 
 def main() -> int:

@@ -416,3 +416,60 @@ projects:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
       contabo: /opt/MoonieXHQ/Projects/MoonieX/Option
     spawn_backend: tmux
+
+  # ── Contabo-only projects (added 2026-10-01, org audit) ──
+  # These three live and run on Contabo (CLAUDE.md "Project availability")
+  # but had no row here, so no worker could be delegated to them: whoever
+  # changed them edited the live checkout directly, with no worktree, no
+  # path lock and no review. `path: null` + paths.contabo only: they are not
+  # routable on the Mac (no checkout there is known), and a delegate with
+  # host=mac fails with "not routable" instead of guessing a folder. None of
+  # them has a test suite that is safe as a merge gate (LineAutomation has
+  # only seed/smoke scripts; AlphaTrader's test_integration and LungNote-MCP's
+  # `selftest` reach live services), so gate_tests stays off and every merge
+  # goes through review.
+  - key: mooniex-lineautomation
+    name: MoonieX LineAutomation (VPS queue on Contabo + Windows LINE poster agent)
+    path: null
+    remote: https://github.com/PASAKON/MoonieX-LineAutomation.git
+    default_branch: main
+    stack: [python]
+    agents_allowed: *default_workers
+    # The VPS half (vps/) runs on Contabo as mooniex-line-queue.service; the
+    # agent/ half drives LINE on winbox (no winbox checkout path is recorded).
+    auto_push: false
+    review_required: true
+    gate_tests: false
+    paths:
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/LineAutomation
+    spawn_backend: tmux
+
+  - key: mooniex-alphatrader
+    name: MoonieX AlphaTrader (Polymarket copy-trading bot)
+    path: null
+    remote: https://github.com/PASAKON/MoonieX-AlphaTrader.git
+    default_branch: main
+    stack: [python]
+    agents_allowed: *default_workers
+    auto_push: false
+    review_required: true
+    gate_tests: false
+    paths:
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/AlphaTrader
+    spawn_backend: tmux
+
+  - key: lungnote-mcp
+    name: LungNote MCP (notes + todos MCP server)
+    path: null
+    remote: https://github.com/PASAKON/LungNote-MCP.git
+    default_branch: main
+    stack: [node]
+    agents_allowed: *default_workers
+    # Every C-level session loads this server; a broken main breaks every
+    # session's LungNote tools, so nothing merges without review.
+    auto_push: false
+    review_required: true
+    gate_tests: false
+    paths:
+      contabo: /opt/MoonieXHQ/Projects/LungNote/Mcp
+    spawn_backend: tmux

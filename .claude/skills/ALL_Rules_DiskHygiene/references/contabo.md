@@ -45,10 +45,13 @@ since 2026-09-28 ("log บน Contabo เอาออกได้เลย"): `j
 [SUPERSEDED 2026-09-28] "Not Green, so still his go: `journalctl --vacuum-size=500M` (~3.3 GB on
 2026-09-10) — old logs do not rebuild."
 
-**Worktrees are the big consumer, and they are full checkouts here.** On 2026-09-28
-none of the 22 worktrees had a sparse-checkout: developer ones ~0.93 GB each,
-`worktrees/` 11 GB, the harness's `.claude/worktrees/` 6.5 GB. A merged, clean one
-is Green for its own session; another session's goes to its owner (contract step 6).
+**Worktrees are the big consumer.** On 2026-09-28 none of the 22 worktrees had a
+sparse-checkout: developer ones ~0.93 GB each, `worktrees/` 11 GB, the harness's
+`.claude/worktrees/` 6.5 GB. The cause: `scripts/spawn-worker-remote.sh` ran a plain
+`git worktree add`. Since 2026-10-01 it applies the sparse list the dispatching host
+sends, so new worktrees are ~78 MB; the old full ones stay full until recreated, and
+`.claude/worktrees/` is still outside every tool. A merged, clean one is Green for its
+own session; another session's goes to its owner (contract step 6).
 
 ## Never touch here
 
