@@ -426,13 +426,13 @@ esac
 # exactly like the register call right after it -- a reconcile failure or
 # slow run must never delay or block this spawn.
 (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
-  python3 -m tools.session_reconcile --apply 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+  bash scripts/hub/org-python.sh -m tools.session_reconcile --apply 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
 
 # Register session in c_level_sessions DB so gate 4 can query it later.
 # stdio detached: a backgrounded child holding our stdout/stderr pipes
 # makes programmatic callers (tests, capture_output) hang until it exits.
 (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
-  python3 -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" --host "$HOST_KEY" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+  bash scripts/hub/org-python.sh -m tools.register_cxo --role "$ROLE" --session "$CXO_SESSION_ID" --host "$HOST_KEY" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
 
 # Launch idle-ping watcher — EPHEMERAL sessions only (--session set by
 # send_to_cxo --spawn). Primary CEO<->CXO tabs must never be idle-pinged:

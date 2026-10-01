@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
 from lib.config import get_project, role as get_role, worker_session_name
-from lib.worker_mcp_config import write_for_worktree
+from lib.worker_mcp_config import env_without_org_db, reexec_with_org_db_url, write_for_worktree
 from runners.worker_init import (  # type: ignore
     _write_dev_settings,
     _symlink_knowledge,
@@ -42,6 +42,9 @@ def main() -> None:
     role = sys.argv[1]
     task_id = sys.argv[2]
 
+    # Same as worker_init: a pane may lack ORG_DB_URL on a hub host.
+    reexec_with_org_db_url("runners.worker_resume", [role, task_id])
+
     db.init()
     task = db.get_task(task_id)
     if not task:
@@ -52,7 +55,7 @@ def main() -> None:
     if not session_id:
         print(f"no session_id on {task_id} - falling back to hard resume "
               "via worker_init", file=sys.stderr)
-        os.execvp("python", ["python", "-m", "runners.worker_init", role, task_id])
+        os.execv(sys.executable, [sys.executable, "-m", "runners.worker_init", role, task_id])
         return
 
     worktree = task.get("worktree")
@@ -80,7 +83,7 @@ def main() -> None:
     except ValueError:
         model = "claude-opus-5-5"
 
-    env = os.environ.copy()
+    env = env_without_org_db(os.environ.copy())
     # Mirror worker_init: an update prompt is a startup interrupt that no
     # --permission-mode or --allowed-tools setting can reach, and it would
     # block a resumed worker nobody is watching (IRON-RULES §45).
