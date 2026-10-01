@@ -38,7 +38,11 @@ Wants=network-online.target docker.service
 
 [Service]
 Type=simple
-User=root
+# No User= line on purpose: the unit runs as root by default. An explicit User=root together with
+#   NoNewPrivileges=yes and a directive that installs a seccomp filter (LockPersonality,
+#   ProtectKernelModules) makes systemd clear CAP_SETUID from the effective set before exec, so
+#   setpriv fails with "setresuid failed: Operation not permitted" (measured on Contabo,
+#   systemd 255, 2026-10-01: CapEff 000001fffffeff7f with User=root, 000001fffffeffff without).
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=PYTHONUNBUFFERED=1
 Environment=HOME=/nonexistent
