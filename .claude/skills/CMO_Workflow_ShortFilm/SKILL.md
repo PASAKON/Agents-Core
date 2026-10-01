@@ -180,6 +180,9 @@ and the CEO's own edit needs a day.
 - **Gate:** the CEO marks the keepers; wave 2 only with a new cost OK; then the shot list is locked.
 
 ### Step 9 · Edit and finish
+- **First 3 seconds (CEO 2026-10-01, every film and channel):** before export play 0–3 s alone and trim the lead-in until
+  frame 0 is already inside the hook (a face, movement, the question said or shown; no black, no title or logo card, no
+  back of the head). The rule and its tests are `CMO_Standard_Story_FamilyDogSeries` §2 item 10.
 - **Edit:** the CEO cuts in CapCut. Send him an edit kit (keepers, music, credits roll, subtitle file) over
   Drive or Taildrop, and remind him to delete the kit on the Mac afterwards.
 - **Music:** Flow Music tracks with the rights record (`MUSIC-RIGHTS.md`, `MUSIC-LEDGER.json`).
