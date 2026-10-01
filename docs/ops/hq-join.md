@@ -7,8 +7,9 @@ revocation when a node leaves, and exports the `hosts` table as `hosts.yaml`.
 **Status: built, not live.** By default nothing in it calls Infisical, Tailscale,
 GitHub or ssh. W4.2 adds the calls (below), but they run only with
 `ORG_W42_PROVISION=1` on the admin host, and every outside call is injectable so
-the tests never reach a real service. The Tailscale and `authorized_keys` revokers
-wait for CEO gate G3 and W2.8. Nothing reads the export.
+the tests never reach a real service. The `authorized_keys` revoker waits for W2.8; the
+Tailscale one (G3) is built and runs only when the OAuth client is in the environment
+("Tailscale: the pre-auth key and the device", below). Nothing reads the export.
 Plan: `~/.claude/plans/glimmering-shimmying-eagle.md` section W4 (W4.2: "redesign
 for Infisical Free").
 
@@ -116,15 +117,22 @@ Plans the revocation, in this order:
   step was ok. Otherwise the row keeps its status and the output lists what is
   left behind (`kind:target`). Re-running converges, so a real revoker must be
   idempotent: already gone (404) is ok.
-- **`--live` today refuses every step** (`not wired yet: ...`): the shipped table
+- **`--live` without the flag refuses every step** (`not wired yet: ...`): the shipped table
   is `UNWIRED_REVOKERS`, so the exit code is `1` and the row stays. W4.2 replaces
   the first and third entries, G3 the second, W2.8 the fourth. The interface is
   `Revoker = Callable[[Step], Outcome]`, passed as `leave(..., revokers={...})`.
 - **W4.2 wires the first and third rows** when `ORG_W42_PROVISION=1` (see
   "W4.2: per-node identity"). The default table is chosen when `leave` is called
   without `revokers=`: the wired table with the flag, `UNWIRED_REVOKERS` without it.
-  `tailscale_device` and `authorized_keys` stay `not wired yet`, so a real
-  `leave --live` still ends `partial` (exit `1`) until G3 and W2.8 land.
+- **G3 wires the second row** (`tailscale_device`) when the flag is on AND
+  `TAILSCALE_OAUTH_CLIENT_ID` + `TAILSCALE_OAUTH_CLIENT_SECRET` are in the environment of
+  that `leave` process. It removes the device whose hostname is the node's AND whose tags
+  include `tag:org-node`; an untagged device, one with only another tag, or two matches is never
+  deleted (two is refused with an error). No such device, or a 404, counts as done. With the flag
+  but not the variables the step stays `not wired yet`; with only one of the two it refuses and
+  names both.
+- `authorized_keys` stays `not wired yet`, so a real `leave --live` still ends `partial`
+  (exit `1`) until W2.8 lands.
 - `leave` refuses a host that has no `pubkey` (`not_joined`: a row seeded from
   `hosts.yaml` was never joined through `accept`): revoking "their" keys on every
   other host would cut the hub off. mac, contabo and winbox are refused even
@@ -420,7 +428,7 @@ start, because it refuses an empty folder: do the move and the entry in one sitt
 - Setting `ORG_W42_PROVISION=1` on the Mac, plus the CEO's go for the first real
   provision (it creates the `org-node` identity and a real client secret, and gives it
   viewer on Org-Node; `apply` must have created Org-Node first).
-- `tailscale_device` and `authorized_keys` revokers.
+- The `authorized_keys` revoker (W2.8). The `tailscale_device` one is built (G3, below).
 - A real `age` run on the node side. On the Mac, `age` 1.3.2 is installed and the
   real round trip is covered by `test_real_age_round_trip`; it skips where `age`
   is not on PATH.
@@ -447,6 +455,51 @@ Three changes from the security review task-79219f24 (F2, F3) and the CEO's ruli
   the `/org-join` folder of Agents-Core prod, runs as the system user `org-join`, and
   refuses the full role `org` unless `JOIN_API_ALLOW_ORG_ROLE=1`. Approval stays with
   the full role: `door.sh approve` runs `hq_join approve` as before.
+
+## Tailscale: the pre-auth key and the device (CEO gate G3)
+
+`lib/tailscale_api.py` (stdlib only) is the one client for both jobs. It signs in with an OAuth
+client (client credentials, token cached until 60 s before it expires) and does two things:
+
+- **Join.** `tools/join_api.py` calls `mint_authkey(host)` for each accepted node and returns the
+  key as `tailscale_authkey`: one use, pre-authorized, `tag:org-node`, not ephemeral, valid 1
+  hour, described `org-node:<host>`. `join.sh` step 5 already uses it; it is unchanged.
+- **Leave.** `hq_join leave --live` calls `delete_device(host)` (rules in "leave" above).
+
+**It is off until the CEO does this once.** Nothing is contacted by merging, and without the two
+variables the endpoint and `leave` behave exactly as before.
+
+1. **ACL.** Add `"tagOwners": { "tag:org-node": ["autogroup:admin"] }` (the line, in the
+   existing `tagOwners`). A non-allow-all ACL also needs a rule for the tagged nodes.
+2. **OAuth client** (Tailscale admin console, Settings, OAuth clients). Scopes, exactly two:
+   **Auth Keys: Write**, **Devices Core: Write**. Tag the client may use: `tag:org-node` only.
+3. **Infisical.** Project **Agents-Core**, env **prod**, folder **/org-join**, the folder the
+   `org-join` unit already injects (`infisical_setup.py run Agents-Core prod --as contabo --path
+   /org-join`, so no unit change):
+
+   | Name | Value |
+   |---|---|
+   | `TAILSCALE_OAUTH_CLIENT_ID` | the OAuth client ID |
+   | `TAILSCALE_OAUTH_CLIENT_SECRET` | the OAuth client secret |
+
+4. **For `leave --live`** the same two names must be in the environment of the process that runs
+   it, together with `ORG_W42_PROVISION=1`, on the Mac (the admin host). One way, if the `mac`
+   identity can read that folder (not checked here):
+   `python3 tools/infisical_setup.py run Agents-Core prod --as mac --path /org-join -- python -m tools.hq_join leave --host <name> --live`.
+
+**Is the minter wired?** On Contabo, after the door opens:
+`journalctl -u org-join -n 40 --no-pager | grep -E 'infisical run|listening on'`.
+`listening on ... (minter wired)` is yes, and the `[infisical run]` line lists the two names
+(never a value). `(minter not wired)` means neither name reached the process; the endpoint
+refuses to start (exit 2, names both variables) when only one did. If Tailscale says no, the
+accept still succeeds without a key and the journal shows
+`tailscale minter failed for <host>: TailscaleError`: check the scopes, the tag and the ACL line.
+
+Errors from the client carry the HTTP status and Tailscale's own `message` text only (control
+characters removed, key-shaped strings and any held secret replaced by `[redacted]`). The client
+secret, the access token and the key are never in a log line, an exception message or an argument
+list. There is no setting for the base URL, so the secret goes only to `api.tailscale.com`.
+Details and the review notes: `deploy/join/README.md`, "Tailscale pre-auth key".
 
 ## Open for W4.3
 
@@ -477,7 +530,7 @@ decision; W4.1 gives it the in-process `accept()` and the CLI.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py tests/test_w46a_hub_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py tests/test_w46a_hub_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py tests/test_w47_tailscale.py
 ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54329/org_test \
     .venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py   # adds the pg param
 ```
