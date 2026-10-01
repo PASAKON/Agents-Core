@@ -557,7 +557,41 @@ _FIND_HELPERS_JS = r"""
 # into a "wikifx-article-score-reason" frame. Direct math has no such quirk.
 SCROLL_INTO_VIEW_JS = (
     "(target) => {\n" + _FIND_HELPERS_JS + r"""
-  const el = findTarget(target);
+  // findTarget() only matches elements that overlap the CURRENT viewport
+  // (visibleRect), so a target below the first screen (y > innerHeight at
+  // scrollY=0) was never found, never scrolled to, and the shot fell back
+  // to the full frame ("crop target not found"). Measured 2026-10-01
+  // (task-eb88fd7b, EP60): WikiFX related-company box at y=2744 and an
+  // article paragraph at y=2513 on a 1920 px viewport. Look the target up
+  // by layout size only, here; MEASURE_JS keeps the strict viewport check
+  // because by then the page has been scrolled.
+  function findAnywhere(t) {
+    if (t.text) {
+      let best = null, bestLen = Infinity;
+      for (const el of document.body.querySelectorAll("*")) {
+        const tx = el.innerText || el.textContent || "";
+        if (!tx || !tx.includes(t.text)) continue;
+        const rr = el.getBoundingClientRect();
+        if (rr.width <= 0 || rr.height <= 0) continue;
+        if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+        if (tx.length < bestLen) { best = el; bestLen = tx.length; }
+      }
+      return best;
+    }
+    if (t.selector) {
+      for (const sel of t.selector.split(",").map(x => x.trim()).filter(Boolean)) {
+        let nodes;
+        try { nodes = document.querySelectorAll(sel); } catch (e) { continue; }
+        for (const el of nodes) {
+          const rr = el.getBoundingClientRect();
+          if (rr.width >= (t.min_w || 0) && rr.height >= (t.min_h || 0) && rr.width > 0 && rr.height > 0
+              && (!el.checkVisibility || el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))) return el;
+        }
+      }
+    }
+    return null;
+  }
+  const el = findAnywhere(target);
   if (!el) return false;
   const r = el.getBoundingClientRect();
   const docY = r.top + window.scrollY + r.height / 2;
