@@ -1,6 +1,6 @@
 IB status of Weltrade: unconfirmed, CEO to confirm before posting
 
-# EP58 RUNLOG — Weltrade (task-cc4df7f0, script_writer, stage 1 of 3)
+# EP58 RUNLOG - Weltrade (task-cc4df7f0, script_writer, stage 1 of 3)
 
 Stage 1 = script + real footage only. No paid API, no TTS, no lipsync, no Drive upload.
 All times Asia/Bangkok. Capture session 2026-10-01 18:02 to 18:42 ICT (11:02 to 11:42 UTC).

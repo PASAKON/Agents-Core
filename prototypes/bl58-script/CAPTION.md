@@ -1,4 +1,4 @@
-# EP58 Weltrade — TikTok caption + on-screen search phrases
+# EP58 Weltrade - TikTok caption + on-screen search phrases
 
 Nothing here carries a link, a rebate, an IB mention or an account CTA.
 
