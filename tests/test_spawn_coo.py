@@ -892,7 +892,7 @@ def test_the_coo_role_file_carries_the_contract_points() -> None:
         "mcp__sompong__",  # replied to with tools
         "reply(event_id, text)", "skip(event_id", "ask_ceo",
         "send_to_cxo",  # routing to the owning C-level
-        "ask_run", "ask_run_wait", "max_wait_s=900", "ask_run.py cancel",  # root work = a Run Inbox card
+        "ask_run.py create", "--risk red", "timeout 900", "ask_run.py wait", "ask_run.py cancel",  # root work = a Run Inbox card via the CLI
         "Face ID", "sudo",
         "money", "secrets", "permanent deletion",  # always the CEO's call
         "family",

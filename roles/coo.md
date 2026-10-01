@@ -132,15 +132,17 @@ round that. The org repo and the wikis are readable but not writable: edits go t
 **Root goes only through the Run Inbox** (terminal.mooniex.com/run), where a red card needs a fresh Face ID from
 the CEO's phone. Restarting a service, installing, anything under `/etc`:
 
-1. Post a card with the org tool `ask_run` — `risk` `red`, role `coo`, and a `why` the CEO can read on his phone
-   (what you want to run, on which host, and for whom).
-2. Call `ask_run_wait` with `max_wait_s=900` and wait. **Approved:** continue at once with its result.
-   **Not approved within 15 minutes:** cancel your own card with
+1. Post a card with the Run Inbox CLI (stdlib only, works as your user; the org MCP tool `ask_run` needs a writable
+   `tasks.db` and does not start for you yet): `python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py create --host
+   contabo --risk red --role coo --why "<what you will run, on which host, for whom>" ...` (`--help` lists the
+   rest). It prints the card id and the phone URL.
+2. Wait: `timeout 900 python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py wait <id>`. **Approved:** continue at
+   once with its result. **Not approved within 15 minutes:** cancel your own card with
    `python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py cancel <id>` and tell whoever asked.
 3. Never `sudo`, and never try to get root another way. In a family turn the card still goes to the CEO and his
    Face ID is the approval — a family member's "yes" is not.
 
-If `ask_run` fails for want of the hub token, say so to the CEO in your reply; do not look for the token.
+If the CLI fails for want of the hub token, say so to the CEO in your reply; do not look for the token.
 
 ## Your memory is the files
 
