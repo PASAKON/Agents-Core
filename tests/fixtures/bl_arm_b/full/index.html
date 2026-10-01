@@ -1,5 +1,6 @@
 <!doctype html>
-<html><body>
+<html><head><style id="bl-caption-balance">.cap{text-wrap:balance}</style>
+</head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="11.9997">
 <!-- VIDEO TRACK -->
 <video class="clip" id="v_h1" src="media/lip_a.mp4" muted playsinline data-start="0.0" data-duration="2.0" data-media-start="0.0" data-track-index="0"></video>
@@ -11,7 +12,7 @@
 <img class="clip" id="v_e2" src="media/real/e2.png" style="top:0px;left:0px;right:auto;bottom:auto;width:1080px;height:1920px" data-start="10.0" data-duration="2.0" data-track-index="0">
 <audio id="va" src="media/voice.mp3" data-start="0" data-duration="11.9997"></audio>
 <script>
-tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+tl.set("#bug", { x: 0, opacity: 1 }, 0);
 spotlight("sp_c1", 2.15, 3.92, 135, 680, 405, 270);
 credit("cr_c1", 2.1, 4.0, "WikiFX");
 spotlight("sp_e1", 4.25, 5.92, 40, 300, 900, 500);

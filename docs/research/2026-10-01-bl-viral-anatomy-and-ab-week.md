@@ -77,3 +77,13 @@ September; the on-screen picture does [S]. This supports building the A/B on the
 - 2026-10-01 CMO ruling for arm A layout: brand bug top-left with the date stamp, headline below it at ~12–26% of height, avatar lower
   (COMP/EVID, no FF with the plate on screen), as in the Feb sheets. Mac CTO builds it as {"headline": {...}, "beats": [...]} (a bare
   list = arm B).
+- 2026-10-01 CEO: GB (Goldenburg / GB Finance, EP60): the channel never earned from it, IB gate cleared. EP59: the Facebook page is the source with no document attached, so PATTERN-3 reads "ในโพสต์ไม่เห็นหลักฐานแนบ ยืนยันไม่ได้" (eacdfce6).
+- 2026-10-01 CEO "อนุมัติสำรอง": back up `Work/bl-ep58` to Drive `BACKUP/MoonieX HQ/Work-Archive` (the unique files only: cut finals and sheets, mattes, real stills, logs, briefs), verify every file by md5 read back by id, and only then delete the local working copies (drive/, media/, generator/). Not before BOTH EP58 cuts (arm A task-4305b93b, arm B v2 task-cc55e620) are accepted, because both still render from generator/ and media/. `drive/` is a plain copy of Drive folder 1usilCA-lYRs_XinTh11yjvwxSCjK0fp8 (md5-compare against its listing, no archive needed).
+- 2026-10-01 stage 2 done (task-47ab0231): EP59 $0.9789 (94.08 s, Drive 1gkEN_ot34e1Gfto8y-3thB4rX8qzM29O), EP60 $0.7689 (90.23 s, Drive 1NI696i5XzNPgLLV2AMYiptjzglV7onIN); $1.7479 of the $2.00 cap.
+- Headline picks (CMO, top option of each HEADLINE.md): EP58 "Weltrade ถูกร้องเรียน / ถอนไม่ออก?", EP59 "ใครตรวจ WikiFX / เว็บให้คะแนนโบรก?", EP60 "WikiFX: GB เคยมีใบ / ถูกเพิกถอนแล้ว" (swap to "GB ยังมีใบอนุญาต / อยู่ไหม?" if the CEO objects: the licence status was not checked at a regulator).
+
+## 10. Resume list (for a session restarted by the G1 hub cutover)
+1. Hold new workers until Mac CTO #e6754203 says the G1 window is over. Then say "G1 ready" only when task-4305b93b (EP58 arm A) is in review/merged.
+2. EP58: review arm B v2 (cut/v2/frames, the 8 frames 0.0, 9.1, 9.3, 16.7, 59.9, 71.6, 74.4, 86.7 s; note 71.567 s is CURIOSITY-5, SUMMARY-1 starts at 74.42) and arm A (brand-mark opacity >= 95% every frame); then the archive-then-delete above.
+3. EP59, EP60: create video_editor cut tasks (arm A + arm B each, one episode at a time while disk is tight; brief pattern = task-4305b93b), inputs = the two Drive folders above plus each episode's real/ folder (EP59 1F0i5tWOr_vdC4UKEpPNWOK9WzhErjNo1, EP60 1J1c6z00rgsD_YP-mnG6CkKsqRi3sI5TS).
+4. Post schedule (one post a day, same hour, alternate arm order, 2+ days between the two cuts of a topic), read at 48 h from Studio post detail pages.

@@ -903,3 +903,28 @@ def test_real_skill_kinds_config_is_well_formed() -> None:
     assert "CEO" not in rules.roles  # no model: never a skill's lane
     assert skill_lint.KINDS_YAML == ROOT / "config" / "skill-kinds.yaml"
     assert skill_lint.INDEX_MD == ROOT / "docs" / "org" / "SKILL-INDEX.md"
+
+
+# --------------------------------------------------------------------------
+# code 18 -- a Workflow skill's flow.yaml (scripts/flow-lint.py, CEO 2026-10-02)
+#
+# The rules themselves (F1-F14) are tested in scripts/test_flow_lint.py; these
+# prove skill-lint runs them on live workflows only and names the rule.
+# --------------------------------------------------------------------------
+
+def test_workflow_without_flow_yaml_is_code_18(tmp_path: Path) -> None:
+    d = _write_org_skill(tmp_path / "skills", "CMO_Workflow_Film", kind="workflow", owner="CMO")
+    findings = skill_lint.lint_skill("CMO_Workflow_Film", d, _KNOWN_AUDIENCE, rules=_rules(tmp_path))
+    assert [f.code for f in findings] == [18]
+    assert findings[0].code_name == "workflow-flow"
+    assert findings[0].message.startswith("F1: no flow.yaml")
+
+
+def test_code_18_skips_other_kinds_stubs_and_no_rules(tmp_path: Path) -> None:
+    assert _kind_codes(tmp_path, "CMO_Procedure_Film", kind="procedure", owner="CMO") == []
+    stub = _write_org_skill(tmp_path / "skills", "CTO_Film_Workflow", kind="workflow", owner=None,
+                            description=_STUB_DESC, extra_frontmatter="disable-model-invocation: true")
+    findings = skill_lint.lint_skill("CTO_Film_Workflow", stub, _KNOWN_AUDIENCE, rules=_rules(tmp_path))
+    assert 18 not in [f.code for f in findings]
+    d = _write_org_skill(tmp_path / "skills", "CMO_Workflow_Film", kind="workflow", owner="CMO")
+    assert skill_lint.lint_skill("CMO_Workflow_Film", d, _KNOWN_AUDIENCE) == []

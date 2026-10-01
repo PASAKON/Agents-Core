@@ -21,17 +21,21 @@ import { fileURLToPath } from 'node:url';
 //                               §3); mints a 365-day client secret and saves it on THIS box as the
 //                               machine's read-only credential. Run it on the machine that will use
 //                               it, after the CEO's relay login there (skill CTO_Procedure_KeyFetch).
+//   --scope user                Windows node where nothing runs elevated (option B, CEO 2026-10-02):
+//                               `save --scope user`, the file goes under %LOCALAPPDATA%\MoonieX\Infisical.
 const argv = process.argv.slice(2);
-const opt = { identity: 'setup', ttl: null, dry: false, cdp: 'http://127.0.0.1:9281' };
+const opt = { identity: 'setup', ttl: null, dry: false, cdp: 'http://127.0.0.1:9281', scope: 'machine' };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--dry') opt.dry = true;
   else if (a === '--identity') opt.identity = argv[++i] || '';
   else if (a === '--ttl-days') opt.ttl = Number(argv[++i]);
+  else if (a === '--scope') opt.scope = argv[++i] || '';
   else if (!a.startsWith('--')) opt.cdp = a;
   else { console.error(`[bootstrap] unknown flag ${a}`); process.exit(64); }
 }
 if (!/^[a-z][a-z0-9-]{1,30}$/.test(opt.identity)) { console.error(`[bootstrap] bad identity name ${opt.identity}`); process.exit(64); }
+if (!['machine', 'user'].includes(opt.scope)) { console.error(`[bootstrap] bad --scope ${opt.scope} (machine | user)`); process.exit(64); }
 const cdpUrl = opt.cdp;
 const DRY = opt.dry;
 const API = 'https://app.infisical.com';
@@ -115,7 +119,7 @@ token = null;
 log(`client secret created (${desc}, ${SECRET_TTL / 86_400} days) · handing the pair to the save tool`);
 
 // --- 4. save it on this box, unseen ----------------------------------------------------------------
-const child = spawn(PYTHON, [TOOL, 'save', IDENTITY, '--stdin'], { stdio: ['pipe', 'inherit', 'inherit'] });
+const child = spawn(PYTHON, [TOOL, 'save', IDENTITY, '--stdin', '--scope', opt.scope], { stdio: ['pipe', 'inherit', 'inherit'] });
 child.stdin.end(`${clientId}\n${secret}\n`);
 secret = null;
 const code = await new Promise((r) => { child.on('exit', (c) => r(c ?? 1)); child.on('error', () => r(127)); });

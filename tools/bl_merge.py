@@ -12,8 +12,10 @@ gate and refuse to ship on any failure.
 Merge gates (PLAN.md "Merge gates -- the CTO refuses to ship on any failure"):
     1. Frame count = floor(audio_duration * fps) +/- 1.
     2. Zero empty/black frames at 30fps, incl. single-frame dips
-       (tools/bl_checker.py::detect_empty_frames, reused here as-is).
-    3. Seam check +/- 3 frames around every join.
+       (tools/bl_checker.py::detect_empty_frames, reused here as-is). With
+       --beats, up to 4 empty frames from a KIN beat's t0 are excused while
+       the brand mark and legal pill are on screen (CMO 2026-10-01).
+    3. Seam check +/- 3 frames around every join (on what gate 2 left).
     4. One caption style across the whole episode (every segment's own
        composed index.html, tools/bl_checker.py::caption_style_signatures).
     5. Audio offset < 40ms against the master.
@@ -189,7 +191,11 @@ def check_caption_styles(segment_ids: list[str], compositions_dir: Path | None) 
 
 def merge(segments: list[dict[str, Any]], parts_dir: Path, audio_path: Path, out_path: Path,
           compositions_dir: Path | None = None, fps: int = FPS,
-          headline: dict | None = None) -> dict[str, Any]:
+          headline: dict | None = None, beats: list[dict] | None = None) -> dict[str, Any]:
+    """`beats` (task-c32c40e8, CMO ruling 2026-10-01) switches on the KIN-entry grace for the empty-frame and seam
+    gates: up to bl_checker.KIN_ENTRY_GRACE_FRAMES empty frames from a KIN beat's t0 are excused while the brand mark
+    and the legal pill are on screen (bl_checker section 9), and listed under gates["empty_frames_excused"]. Without
+    `beats` the gates and the result's shape are what they were."""
     seg_ids = [s["id"] for s in segments]
     parts = [parts_dir / f"{sid}.mp4" for sid in seg_ids]
     missing = [str(p) for p in parts if not p.is_file()]
@@ -217,6 +223,10 @@ def merge(segments: list[dict[str, Any]], parts_dir: Path, audio_path: Path, out
 
     frame_count_result = check_frame_count(actual_frames, audio_duration, fps)
     empty_frames = bl_checker.detect_empty_frames(out_path, **bl_checker.arm_mask_kwargs(headline))
+    excused: list[dict] = []
+    if beats is not None:
+        side = headline["bug_side"] if headline is not None else "right"
+        empty_frames, excused = bl_checker.excuse_kin_entry(out_path, empty_frames, beats, side, fps)
     seam_bad = check_seams(empty_frames, seam_frame_indices, fps)
     audio_offset_result = check_audio_offset(out_path)
     caption_bad = check_caption_styles(seg_ids, compositions_dir)
@@ -228,6 +238,8 @@ def merge(segments: list[dict[str, Any]], parts_dir: Path, audio_path: Path, out
         "audio_offset": audio_offset_result,
         "extra_caption_styles": caption_bad,
     }
+    if beats is not None:
+        gates["empty_frames_excused"] = excused
     passed = (frame_count_result["ok"] and not empty_frames and not seam_bad
               and audio_offset_result["ok"] and not caption_bad)
     return {
@@ -270,7 +282,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
                           "(for the one-caption-style gate; omit to skip that gate)")
     ap.add_argument("--fps", type=int, default=FPS)
     ap.add_argument("--beats", default=None,
-                    help="the cut's beats.json; an arm-A object {headline, beats} gives the empty-frame gate the arm-A mask")
+                    help="the cut's beats.json; an arm-A object {headline, beats} gives the empty-frame gate the arm-A mask, "
+                         "and the beats switch on the KIN-entry grace (<=4 empty frames from a KIN t0 while the mark "
+                         "and legal pill are on screen); omit for no grace")
     return ap
 
 
@@ -282,12 +296,13 @@ def main(argv: list[str] | None = None) -> int:
     arm = {}
     if args.beats:
         try:
-            _, headline = bl_checker.split_beats_doc(json.loads(Path(args.beats).read_text(encoding="utf-8")))
+            beats, headline = bl_checker.split_beats_doc(json.loads(Path(args.beats).read_text(encoding="utf-8")))
         except bl_checker.ArmAError as e:
             print(f"error: {e}", file=sys.stderr)
             return 2
+        arm = {"beats": beats}
         if headline is not None:
-            arm = {"headline": headline}
+            arm["headline"] = headline
 
     try:
         result = merge(

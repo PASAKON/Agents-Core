@@ -550,7 +550,7 @@ print("wrote", TEMPLATE)
 '''
 
 _TEMPLATE_HTML = '''<!doctype html>
-<html><body>
+<html><head></head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="0">
 <!-- VIDEO TRACK - replace with plates -->
 <audio id="va" src="media/voice.m4a" data-start="0" data-duration="0"></audio>
@@ -1412,6 +1412,10 @@ def test_arm_a_refuses_a_template_it_cannot_anchor_to(generator_dir, tmp_path):
     (generator_dir / "media" / "real").mkdir(parents=True)
     for name in ("a", "b", "c"):
         (generator_dir / "media" / "real" / f"{name}.png").write_bytes(b"png")
+    # the plain synthetic template has a <head> (both arms need it, see check_template_anchors) but no bug block
+    with pytest.raises(bc.ComposeError, match=r"0 occurrence\(s\) of '<div class=\"bug\" id=\"bug\">'"):
+        bc.compose(_arm_a_beats(), generator_dir, 7.0, tmp_path / "out", headline=_arm_a_headline())
+    (generator_dir / "index.html").write_text(_TEMPLATE_HTML.replace("<head></head>", ""), encoding="utf-8")
     with pytest.raises(bc.ComposeError, match=r"0 occurrence\(s\) of '</head>'"):
         bc.compose(_arm_a_beats(), generator_dir, 7.0, tmp_path / "out", headline=_arm_a_headline())
 
@@ -1456,10 +1460,14 @@ def test_main_arm_b_still_calls_compose_without_a_headline_argument(monkeypatch,
     assert seen["kw"] == {"t0": 0.0}
 
 
-# ── arm B is byte-identical to what this tool produced before arm A existed ──
-# tests/fixtures/bl_arm_b/ holds cut_pieces.json + index.html recorded from the PRE-change tool (git show
-# 18da8cc1:tools/bl_compose.py) for a six-beat table covering FF, COMP (box, credit, shift, avatar_until), EVID and
-# KIN (named broll, default broll from SCRIPT.tsv), as a full render and as a range render starting at 5.0 s.
+# ── arm B goldens ──
+# tests/fixtures/bl_arm_b/ holds cut_pieces.json + index.html for a six-beat table covering FF, COMP (box, credit,
+# shift, avatar_until), EVID and KIN (named broll, default broll from SCRIPT.tsv), as a full render and as a range
+# render starting at 5.0 s. They were first recorded from the tool as it was before arm A existed (git show
+# 18da8cc1:tools/bl_compose.py), and arm B stayed byte-identical to that until task-c32c40e8 (CMO ruling 2026-10-01).
+# Regenerated then: cut_pieces.json is unchanged; index.html differs from the old golden in exactly three places --
+# the synthetic template now has an (empty) <head> to anchor the caption-balance style in, that style, and the brand
+# mark's entrance line replaced by its end state. Everything else in index.html is byte-for-byte what it was.
 
 def _arm_b_generator(tmp_path):
     d = tmp_path / "generator"
@@ -1472,7 +1480,7 @@ def _arm_b_generator(tmp_path):
 
 
 @pytest.mark.parametrize("name,t0", [("full", 0.0), ("range", 5.0)])
-def test_arm_b_compose_is_byte_identical_to_the_pre_arm_a_golden(tmp_path, name, t0):
+def test_arm_b_compose_matches_the_golden(tmp_path, name, t0):
     beats = json.loads((ARM_B_FIXTURES / "beats.json").read_text(encoding="utf-8"))
     out = tmp_path / "out"
     bc.compose(beats, _arm_b_generator(tmp_path), 12.0, out, t0=t0)
@@ -1480,7 +1488,7 @@ def test_arm_b_compose_is_byte_identical_to_the_pre_arm_a_golden(tmp_path, name,
         assert (out / f).read_bytes() == (ARM_B_FIXTURES / name / f).read_bytes(), f
 
 
-def test_arm_b_main_is_byte_identical_to_the_pre_arm_a_golden(tmp_path):
+def test_arm_b_main_matches_the_golden(tmp_path):
     out = tmp_path / "out"
     rc = bc.main(["--beats", str(ARM_B_FIXTURES / "beats.json"), "--generator-dir",
                   str(_arm_b_generator(tmp_path)), "--t-max", "12.0", "--out-dir", str(out), "--no-render"])
@@ -1496,3 +1504,101 @@ def test_arm_b_golden_really_covers_every_mode():
                    "spotlight(", "credit(", "kinetic(", "caption("):
         assert needle in joined, needle
     assert "hl" not in joined.replace("hl-", "") or 'id="hl"' not in joined       # no arm-A artefact in arm B
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# The brand mark is on from frame 0, captions balance, and the assembler's anchor is guarded
+# (task-c32c40e8, CMO ruling 2026-10-01)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# What the skill template carries today: the entrance line replaced by the end state.
+_TEMPLATE_HTML_CURRENT = _TEMPLATE_HTML.replace(bc.BUG_ENTRANCE, bc.BUG_END_STATE)
+# A stand-in assemble.py that finds no splice point and so does nothing for the cut -- the real one does exactly that
+# when its marker is absent, and says nothing.
+_ASSEMBLE_PY_SPLICES_NOTHING = _ASSEMBLE_PY.replace("src = src.replace(old_marker, new_cut)", "pass")
+
+
+def _generator_with(tmp_path, name, template, assemble=_ASSEMBLE_PY):
+    d = tmp_path / name
+    d.mkdir()
+    (d / "build_cut.py").write_text(_BUILD_CUT_PY, encoding="utf-8")
+    (d / "assemble.py").write_text(assemble, encoding="utf-8")
+    (d / "index.html").write_text(template, encoding="utf-8")
+    return d
+
+
+def test_the_stand_in_templates_differ_only_in_the_bug_line():
+    assert _TEMPLATE_HTML_CURRENT != _TEMPLATE_HTML
+    assert _TEMPLATE_HTML.count(bc.BUG_ENTRANCE) == 1 and _TEMPLATE_HTML_CURRENT.count(bc.BUG_END_STATE) == 1
+    assert _TEMPLATE_HTML_CURRENT.replace(bc.BUG_END_STATE, bc.BUG_ENTRANCE) == _TEMPLATE_HTML
+
+
+@pytest.mark.parametrize("t0", [0.0, 2.0])
+def test_compose_pins_the_brand_mark_on_from_frame_0_in_every_window(generator_dir, beats_2, tmp_path, t0):
+    html = bc.compose(beats_2, generator_dir, 5.0, tmp_path / "out", t0=t0).read_text(encoding="utf-8")
+    assert 'tl.from("#bug"' not in html and bc.BUG_ENTRANCE not in html
+    assert html.count(bc.BUG_END_STATE) == 1
+    assert "caption(" in html[html.index(bc.BUG_END_STATE):], "the cut's calls are still spliced in after it"
+
+
+def test_compose_gives_an_older_and_the_current_template_copy_the_same_composed_html(beats_2, tmp_path):
+    older = _generator_with(tmp_path, "older", _TEMPLATE_HTML)
+    current = _generator_with(tmp_path, "current", _TEMPLATE_HTML_CURRENT)
+    a = bc.compose(beats_2, older, 5.0, tmp_path / "out-older")
+    b = bc.compose(beats_2, current, 5.0, tmp_path / "out-current")
+    assert a.read_bytes() == b.read_bytes()
+    assert (tmp_path / "out-older" / "cut_pieces.json").read_bytes() == (tmp_path / "out-current" / "cut_pieces.json").read_bytes()
+
+
+def test_compose_never_edits_the_generators_template(generator_dir, beats_2, tmp_path):
+    before = (generator_dir / "index.html").read_bytes()
+    bc.compose(beats_2, generator_dir, 5.0, tmp_path / "out")
+    assert (generator_dir / "index.html").read_bytes() == before
+
+
+def test_compose_adds_text_wrap_balance_to_the_caption_band(generator_dir, beats_2, tmp_path):
+    html = bc.compose(beats_2, generator_dir, 5.0, tmp_path / "out").read_text(encoding="utf-8")
+    style = '<style id="bl-caption-balance">.cap{text-wrap:balance}</style>'
+    assert html.count(style) == 1
+    assert html.index(style) < html.index("</head>")
+
+
+@pytest.mark.parametrize("name,template,reason", [
+    ("neither", _TEMPLATE_HTML.replace(bc.BUG_ENTRANCE, "// no bug line"), "0 occurrence(s) of the old brand-mark entrance and 0"),
+    ("both", _TEMPLATE_HTML.replace(bc.BUG_ENTRANCE, bc.BUG_ENTRANCE + "\n" + bc.BUG_END_STATE),
+     "1 occurrence(s) of the old brand-mark entrance and 1"),
+    ("twice", _TEMPLATE_HTML.replace(bc.BUG_ENTRANCE, bc.BUG_ENTRANCE + "\n" + bc.BUG_ENTRANCE),
+     "2 occurrence(s) of the old brand-mark entrance and 0"),
+    ("two-heads", _TEMPLATE_HTML.replace("</head>", "</head></head>"), "2 occurrence(s) of '</head>'"),
+    ("no-head", _TEMPLATE_HTML.replace("<head></head>", ""), "0 occurrence(s) of '</head>'"),
+])
+def test_compose_refuses_a_template_whose_anchors_are_not_what_is_expected(beats_2, tmp_path, name, template, reason):
+    gen = _generator_with(tmp_path, name, template)
+    out = tmp_path / "out"
+    with pytest.raises(bc.ComposeError, match=re.escape(reason)):
+        bc.compose(beats_2, gen, 5.0, out)
+    assert not out.exists(), "refused before the render workdir is built"
+
+
+def test_compose_refuses_when_assemble_splices_the_cut_into_nothing(beats_2, tmp_path):
+    gen = _generator_with(tmp_path, "silent", _TEMPLATE_HTML, _ASSEMBLE_PY_SPLICES_NOTHING)
+    with pytest.raises(bc.ComposeError, match="into nothing"):
+        bc.compose(beats_2, gen, 5.0, tmp_path / "out")
+
+
+def test_pin_bug_end_state_refuses_anything_but_one_entrance():
+    with pytest.raises(bc.ComposeError, match="0 occurrence"):
+        bc.pin_bug_end_state("<html></html>")
+    with pytest.raises(bc.ComposeError, match="2 occurrence"):
+        bc.pin_bug_end_state(bc.BUG_ENTRANCE + bc.BUG_ENTRANCE)
+    assert bc.pin_bug_end_state("a" + bc.BUG_ENTRANCE + "b") == "a" + bc.BUG_END_STATE + "b"
+
+
+def test_arm_a_carries_both_overrides_and_its_bug_override_is_unchanged(arm_a_generator, tmp_path):
+    html = bc.compose(_arm_a_beats(), arm_a_generator, 7.0, tmp_path / "out", headline=_arm_a_headline()).read_text(
+        encoding="utf-8")
+    assert html.count(bc.BUG_END_STATE) == 1 and bc.BUG_ENTRANCE not in html
+    assert html.count('<style id="bl-caption-balance">') == 1 and 'id="arm-a-plate"' in html
+    assert ('<style id="arm-a-bug">#bug{left:120px;right:auto;top:190px;flex-direction:row;align-items:center;'
+            'gap:14px}#bug .rl{width:5px;height:44px}</style>') in html
+    assert (ck.BUG_LEFT_GAP, ck.BUG_LEFT_RULE_SIZE) == (14, (5, 44))

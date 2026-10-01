@@ -267,3 +267,83 @@ def test_main_beats_bad_schema_exits_2_before_merging(tmp_path, monkeypatch):
     rc = mg.main([str(seg_json), "--parts", str(parts_dir), "--audio", str(audio),
                   "-o", str(tmp_path / "final.mp4"), "--beats", str(bad)])
     assert rc == 2 and seen == []
+
+
+# ── KIN-entry grace (task-c32c40e8, CMO ruling 2026-10-01): with --beats, <=4 empty frames from a KIN t0 are excused
+#    while the brand mark and the legal pill are on screen. The seam sits on the KIN's t0, as EP58's 71.567 s did. ──
+
+import bl_mark_clips as mc  # noqa: E402
+
+SEAM_FRAME = 45   # 1.5 s
+
+
+def _kin_job(tmp_path, flat_frames=4, sides=("right",)):
+    """Two 45-frame 1080x1920 parts; part 2 opens with `flat_frames` bare-plate frames (an empty KIN entry), the brand
+    mark and the legal pill on every frame of both."""
+    parts_dir = tmp_path / "parts"
+    parts_dir.mkdir()
+    mc.marked_clip(parts_dir / "seg01.mp4", frames=45, sides=sides)
+    mc.marked_clip(parts_dir / "seg02.mp4", frames=45, sides=sides, flat=[(0, flat_frames - 1)] if flat_frames else ())
+    audio = tmp_path / "audio.wav"
+    _silent_audio(audio, 3.0)
+    seg_json = tmp_path / "segments.json"
+    seg_json.write_text(json.dumps({"segments": _segments("seg01", "seg02")}), encoding="utf-8")
+    return seg_json, parts_dir, audio
+
+
+def _kin_beat(t0=1.5, mode="KIN"):
+    extra = {"img": "real/x.png", "box": [200, 300, 400, 500]} if mode == "COMP" else {}
+    return {"tag": "CURIOSITY-5", "t0": t0, "t1": t0 + 1.0, "mode": mode, "extra": extra}
+
+
+def test_merge_without_beats_still_refuses_an_empty_kin_entry_at_a_seam(tmp_path):
+    seg_json, parts_dir, audio = _kin_job(tmp_path)
+    result = mg.merge(_segments("seg01", "seg02"), parts_dir, audio, tmp_path / "final.mp4")
+    assert result["pass"] is False
+    assert result["gates"]["empty_frames"] == [1.5, 1.533, 1.567, 1.6]
+    assert result["gates"]["seam_failures"][0]["seam_frame"] == SEAM_FRAME
+    assert "empty_frames_excused" not in result["gates"]
+
+
+def test_merge_with_beats_excuses_the_first_four_frames_of_a_kin_entry(tmp_path):
+    seg_json, parts_dir, audio = _kin_job(tmp_path)
+    result = mg.merge(_segments("seg01", "seg02"), parts_dir, audio, tmp_path / "final.mp4", beats=[_kin_beat()])
+    assert result["pass"] is True, result["gates"]
+    assert result["gates"]["empty_frames"] == [] and result["gates"]["seam_failures"] == []
+    assert [e["entry_frame"] for e in result["gates"]["empty_frames_excused"]] == [1, 2, 3, 4]
+    assert {e["beat"] for e in result["gates"]["empty_frames_excused"]} == {"CURIOSITY-5"}
+
+
+def test_merge_with_beats_refuses_a_fifth_empty_frame(tmp_path):
+    seg_json, parts_dir, audio = _kin_job(tmp_path, flat_frames=5)
+    result = mg.merge(_segments("seg01", "seg02"), parts_dir, audio, tmp_path / "final.mp4", beats=[_kin_beat()])
+    assert result["pass"] is False
+    assert result["gates"]["empty_frames"] == [1.633]
+    assert "empty_frames" in mg.failed_gate_names(result)
+
+
+def test_merge_with_beats_does_not_excuse_a_beat_that_is_not_kin(tmp_path):
+    seg_json, parts_dir, audio = _kin_job(tmp_path)
+    result = mg.merge(_segments("seg01", "seg02"), parts_dir, audio, tmp_path / "final.mp4",
+                      beats=[_kin_beat(mode="COMP")])
+    assert result["pass"] is False
+    assert result["gates"]["empty_frames"] == [1.5, 1.533, 1.567, 1.6]
+    assert result["gates"]["seam_failures"] and result["gates"]["empty_frames_excused"] == []
+
+
+def test_merge_arm_a_with_beats_reads_the_left_mark(tmp_path):
+    seg_json, parts_dir, audio = _kin_job(tmp_path, sides=("left",))
+    headline = ck.parse_headline(_ARM_A_HEADLINE)
+    result = mg.merge(_segments("seg01", "seg02"), parts_dir, audio, tmp_path / "final.mp4",
+                      headline=headline, beats=[_kin_beat()])
+    assert result["pass"] is True, result["gates"]
+    assert len(result["gates"]["empty_frames_excused"]) == 4
+
+
+def test_main_beats_switches_the_kin_grace_on(tmp_path):
+    seg_json, parts_dir, audio = _kin_job(tmp_path)
+    base = [str(seg_json), "--parts", str(parts_dir), "--audio", str(audio), "-o", str(tmp_path / "final.mp4")]
+    beats = tmp_path / "beats.json"
+    beats.write_text(json.dumps([_kin_beat()]), encoding="utf-8")
+    assert mg.main(base) == 1
+    assert mg.main(base + ["--beats", str(beats)]) == 0

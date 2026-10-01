@@ -72,9 +72,16 @@ Usage:
         --beats beats.json --generator-dir <dir> --t0 39.3 --t-max 65.8333 \\
         --out-dir <workdir> --out seg02.mp4
 
+Both looks get two render-workdir overrides (task-c32c40e8, CMO ruling 2026-10-01),
+see the block above apply_arm_a: the brand mark is fully on from frame 0 of every
+window (the template's slide-in entrance replayed at every window seam and blinked
+the logo), and the caption band carries `text-wrap: balance` (no one-word last
+line). So arm B is no longer byte-identical to what this tool produced before
+arm A existed; the only differences are those two.
+
 Two looks from one beats.json (task-406c21f3, CMO ruling 2026-10-01). A bare list
-of beats is arm B, today's look -- nothing below applies and the output is
-byte-identical to what this tool produced before arm A existed. An object
+of beats is arm B, today's look -- nothing below applies beyond the two overrides
+above. An object
 `{"headline": {...}, "beats": [...]}` is arm A, the headline-plate look; the
 schema and the plate's geometry live in tools/bl_checker.py (section 7), which
 judges the same rectangles this tool places. What arm A changes:
@@ -108,7 +115,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from tools.bl_checker import (  # noqa: E402  -- arm A's schema and geometry have one source, the checker
-    BUG_LEFT_ORIGIN, ArmAError, check_headline, headline_layout, parse_headline, split_beats_doc)
+    BUG_LEFT_GAP, BUG_LEFT_ORIGIN, BUG_LEFT_RULE_SIZE, ArmAError, check_headline, headline_layout, parse_headline,
+    split_beats_doc)
 
 CANVAS_W, CANVAS_H = 1080, 1920
 FPS = 30
@@ -260,6 +268,82 @@ def compute_ext_end(beats: list[dict], t_max: float) -> dict[str, float]:
     return ext_end
 
 
+# ── The brand mark and the caption band: render-workdir overrides (task-c32c40e8) ─────────────────────────────────
+# Both arms. Applied to the RENDER workdir's index.html only, anchored on exact text, refused when an anchor count is
+# not what is expected -- the staged generator and the skill template are never edited by compose, and a generator
+# that carries an older (or the current) template copy gets the same result.
+#
+# The mark: the template used to open with `tl.from("#bug", { x: -50, opacity: 0, duration: 0.7 ... }, 0.25)`. Every
+# window of a range render replays it from its own local t=0, so the logo + date chip were absent for 8 frames at t=0
+# and at every seam, then faded in (EP58, 11 seams). CMO ruling 2026-10-01: the mark is fully on from frame 0 of every
+# window, the opening included, in arm A and arm B -- no entrance at all.
+#
+# The trap: the staged assemble.py (branch origin/agent/video_editor-task-501f1d89, off-limits) finds the place to
+# splice every kinetic(), spotlight(), credit() and caption() call by searching for that exact tl.from line, and
+# silently splices NOTHING when the line is absent -- the cut would render without a single caption. So a template
+# that has dropped the line (the current one has: it carries BUG_END_STATE there) is given the line back for the
+# length of the assemble, and the line is then replaced by BUG_END_STATE.
+
+BUG_ENTRANCE = 'tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);'
+BUG_END_STATE = 'tl.set("#bug", { x: 0, opacity: 1 }, 0);'
+CAPTION_BALANCE_STYLE = '<style id="bl-caption-balance">.cap{text-wrap:balance}</style>\n'
+HEAD_ANCHOR = "</head>"
+
+
+def check_template_anchors(html: str) -> None:
+    """Refuse a template whose shape compose cannot place its overrides in: exactly one `</head>`, and exactly one
+    of BUG_ENTRANCE (an older copy) or BUG_END_STATE (the current one) and not the other."""
+    if html.count(HEAD_ANCHOR) != 1:
+        raise ComposeError(
+            f"the template has {html.count(HEAD_ANCHOR)} occurrence(s) of {HEAD_ANCHOR!r}, expected exactly 1 -- "
+            f"the caption-balance style cannot be placed.")
+    entrance, end_state = html.count(BUG_ENTRANCE), html.count(BUG_END_STATE)
+    if (entrance, end_state) not in ((1, 0), (0, 1)):
+        raise ComposeError(
+            f"the template has {entrance} occurrence(s) of the old brand-mark entrance and {end_state} of the "
+            f"end-state line, expected exactly one of them -- the generator's template changed shape, so the mark "
+            f"cannot be pinned on from frame 0 (and assemble.py would not find its splice point).")
+
+
+def expose_assemble_anchor(html: str) -> str:
+    """Before assemble.py runs: the template as it must be for the unmodified assembler to find its splice point."""
+    check_template_anchors(html)
+    return html.replace(BUG_END_STATE, BUG_ENTRANCE) if html.count(BUG_END_STATE) else html
+
+
+def pin_bug_end_state(html: str) -> str:
+    """After assemble.py ran: the brand mark at its end state from frame 0 -- BUG_ENTRANCE (still there, the
+    assembler keeps it) replaced by BUG_END_STATE. Exactly one of the former and none of the latter, or refused."""
+    entrance, end_state = html.count(BUG_ENTRANCE), html.count(BUG_END_STATE)
+    if (entrance, end_state) != (1, 0):
+        raise ComposeError(
+            f"after assemble.py the composed index.html has {entrance} occurrence(s) of the brand-mark entrance and "
+            f"{end_state} of the end-state line, expected 1 and 0 -- assemble.py changed, so the mark cannot be "
+            f"pinned on from frame 0.")
+    return html.replace(BUG_ENTRANCE, BUG_END_STATE)
+
+
+def add_caption_balance(html: str) -> str:
+    """`text-wrap: balance` on the caption band, so a line break never leaves a lone word on the last line
+    (EP58 "ไม่ได้" at 29.6 s, "ถอน" at 60 s). Placed before the single `</head>`."""
+    if html.count(HEAD_ANCHOR) != 1:
+        raise ComposeError(
+            f"the composed index.html has {html.count(HEAD_ANCHOR)} occurrence(s) of {HEAD_ANCHOR!r}, expected "
+            f"exactly 1 -- the caption-balance style cannot be placed.")
+    return html.replace(HEAD_ANCHOR, CAPTION_BALANCE_STYLE + HEAD_ANCHOR)
+
+
+def check_pieces_landed(html: str, pieces: dict) -> None:
+    """Every plate, script line and caption call reached the composed index.html. assemble.py splices by searching for
+    text and does nothing when it finds none, so a template that drifted from what it expects would otherwise
+    render a cut with no captions and no kinetic text, and nothing would say so."""
+    lost = [piece for key in ("plates", "script_lines", "caps_js") for piece in pieces[key] if piece not in html]
+    if lost:
+        raise ComposeError(
+            f"assemble.py spliced {len(lost)} of the cut's {sum(len(pieces[k]) for k in ('plates', 'script_lines', 'caps_js'))} "
+            f"pieces into nothing, e.g. {lost[0][:90]!r} -- the template no longer carries a splice point it searches for.")
+
+
 # ── Arm A: the headline plate (task-406c21f3) ────────────────────────────────
 # Schema + geometry are tools/bl_checker.py's (section 7); this is what compose
 # does with them. Nothing in this block runs for an arm-B (bare list) beats.json.
@@ -363,8 +447,9 @@ def apply_arm_a(html: str, headline: dict) -> str:
               '.hl-line{display:block}.hl-red{color:var(--neon)}</style>\n')
     if headline["bug_side"] == "left":
         x, y = BUG_LEFT_ORIGIN
+        rule_w, rule_h = BUG_LEFT_RULE_SIZE
         styles += (f'<style id="arm-a-bug">#bug{{left:{x}px;right:auto;top:{y}px;flex-direction:row;'
-                   f'align-items:center;gap:14px}}#bug .rl{{width:5px;height:44px}}</style>\n')
+                   f'align-items:center;gap:{BUG_LEFT_GAP}px}}#bug .rl{{width:{rule_w}px;height:{rule_h}px}}</style>\n')
     html = html.replace(head_anchor, styles + head_anchor)
     return html.replace(bug_anchor, headline_plate_html(headline) + "\n      " + bug_anchor)
 
@@ -614,19 +699,26 @@ def compose(beats: list[dict], generator_dir: Path, t_max: float, out_dir: Path,
     pieces = emit_pieces(beats, t_max, funcs, t0_window=t0, script_line_map=script_line_map, headline=headline)
     if headline is not None:
         check_backdrop_files(headline, generator_dir)
+    assemble_py = generator_dir / "assemble.py"
+    if not assemble_py.is_file():
+        raise ComposeError(f"generator-dir missing assemble.py: {assemble_py}")
+    # Refuse a template compose cannot place its overrides in BEFORE build_render_workdir() clears out_dir.
+    check_template_anchors((generator_dir / "index.html").read_text(encoding="utf-8"))
     build_render_workdir(generator_dir, out_dir)
     pieces_path = out_dir / "cut_pieces.json"
     pieces_path.write_text(json.dumps(pieces, ensure_ascii=False, indent=2), encoding="utf-8")
     index_path = out_dir / "index.html"
-    assemble_py = generator_dir / "assemble.py"
-    if not assemble_py.is_file():
-        raise ComposeError(f"generator-dir missing assemble.py: {assemble_py}")
+    index_path.write_text(expose_assemble_anchor(index_path.read_text(encoding="utf-8")), encoding="utf-8")
     subprocess.run(
         [sys.executable, str(assemble_py), str(index_path), str(pieces_path), "0.0"],
         check=True, cwd=out_dir,
     )
+    html = pin_bug_end_state(index_path.read_text(encoding="utf-8"))
+    check_pieces_landed(html, pieces)
+    html = add_caption_balance(html)
     if headline is not None:
-        index_path.write_text(apply_arm_a(index_path.read_text(encoding="utf-8"), headline), encoding="utf-8")
+        html = apply_arm_a(html, headline)
+    index_path.write_text(html, encoding="utf-8")
     return index_path
 
 
