@@ -1,4 +1,4 @@
-IB status of the subject (WikiFX, a rating site, not a broker): not applicable. Open before posting: the CEO says the Facebook post "has evidence from the page"; PATTERN-3 "ไม่มีหลักฐานแนบ" was judged from his screenshot only (2026-10-01), settle the wording before TTS.
+IB status of the subject (WikiFX, a rating site, not a broker): not applicable. PATTERN-3 wording settled with the CEO 2026-10-01 (page is the source, no attachment): ในโพสต์ไม่เห็นหลักฐานแนบ ยืนยันไม่ได้.
 
 > CEO ruling, relayed by the CMO (c4432bad) in Thai, verbatim:
 > "ให้เราพูด ในนาม คนที่โพสในเพจนะ อ้างว่า ผมไปเจอโพสนึงมา (censor user Facebook เรื่องนี้เป็นประเด็นร้อนแรงมาก ให้ใช้คำว่าเขาอ้างว่า แทนการพูดจากปากของเราเอง)"
@@ -27,7 +27,7 @@ received", brokers marketing in Thailand are offered or charged about $10,000 or
 
 Same breath as the figure, in the channel voice (rule 2): HOOK-3 "โพสต์ติดป้าย สร้างโดยเอไอ"
 (the Facebook label stays visible on the still), HOOK-4 "ผมยังตรวจเรื่องนี้ไม่ได้", PATTERN-3
-"ไม่มีหลักฐานแนบ ยืนยันไม่ได้", SUMMARY-1 "ผมไม่รู้ว่าโพสต์นั้นจริงไหม".
+"ในโพสต์ไม่เห็นหลักฐานแนบ ยืนยันไม่ได้" (reworded 2026-10-01 after the CEO: no document is attached, the page is the source), SUMMARY-1 "ผมไม่รู้ว่าโพสต์นั้นจริงไหม".
 
 Left out on purpose (rule 3): the post's last sentence (that unpaid brokers get their scores
 cut). It is not in the CEO's screenshot either. The script never says or implies it.

@@ -4,7 +4,7 @@ HOOK-3	โพสต์ติดป้าย สร้างโดยเอไอ
 HOOK-4	ผมยังตรวจเรื่องนี้ไม่ได้	fb-post-head	show	same still. Channel voice: unverified. Said BEFORE any allegation
 PATTERN-1	เขาอ้างว่าโบรกเกอร์ถูกเสนอหรือเรียกเก็บ	fb-post-figure	show	ALLEGATION 1 of 1 (part a). Screenshot paragraph with the figure, sharp on screen. 'เขา' = the post's author. Do not sharpen: the post says เสนอหรือเรียกเก็บ
 PATTERN-2	ค่าบริการราวหนึ่งหมื่นดอลลาร์ขึ้นไป	fb-post-figure	show	ALLEGATION 1 of 1 (part b): same sentence continued, same still. The post says $10,000 ขึ้นไป
-PATTERN-3	ไม่มีหลักฐานแนบ ยืนยันไม่ได้	fb-post-figure	show	channel voice, same breath as the figure (CEO ruling 2). I saw the screenshot only: CEO to confirm the post carries no attachment
+PATTERN-3	ในโพสต์ไม่เห็นหลักฐานแนบ ยืนยันไม่ได้	fb-post-figure	show	channel voice, same breath as the figure (CEO ruling 2). CEO 2026-10-01: the evidence is the page itself, no document attached, so the line says what the post shows (ในโพสต์ไม่เห็นหลักฐานแนบ)
 PATTERN-4	เขาถามสี่ข้อ ผมสรุปให้	fb-post-questions	show	the four numbered questions on screen, readable
 CONTEXT-1	หนึ่ง เก็บเงินโบรกเกอร์อะไรบ้าง	fb-post-questions	show	post Q1 paraphrase. Zoom to item 1
 CONTEXT-2	สอง จ่ายกับไม่จ่าย ต่างกันไหม	fb-post-questions	show	post Q2 paraphrase. Zoom to item 2

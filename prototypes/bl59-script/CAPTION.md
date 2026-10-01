@@ -5,7 +5,7 @@ Voice is first person (ผม), by the CEO's ruling for this episode, see RUNLOG
 
 ## Caption (paste as is)
 
-ผมไปเจอโพสต์หนึ่งในเฟซบุ๊กที่ตั้งคำถามกับวิกิเอฟเอ็กซ์ ในโพสต์ติดป้ายว่าเนื้อหาสร้างโดย AI และไม่มีหลักฐานแนบ ผมยังตรวจสอบเรื่องนี้ไม่ได้
+ผมไปเจอโพสต์หนึ่งในเฟซบุ๊กที่ตั้งคำถามกับวิกิเอฟเอ็กซ์ ในโพสต์ติดป้ายว่าเนื้อหาสร้างโดย AI และผมไม่เห็นหลักฐานแนบในโพสต์ ผมยังตรวจสอบเรื่องนี้ไม่ได้
 ผมเลยไปเปิดหน้าสาธารณะของวิกิเอฟเอ็กซ์เองดูว่าตอบคำถามเหล่านั้นไหม ณ วันที่ 1 ต.ค. 2569 และไม่ได้บอกว่าใครผิด
 ผมไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น อย่าเชื่อเว็บเดียว รวมถึงวิกิเอฟเอ็กซ์ ช่องนี้ และโพสต์ที่ผมเจอ
 คอมเมนต์คำว่า เช็กลิสต์ ถ้าอยากได้ตารางตรวจโบรก
@@ -39,5 +39,5 @@ kit's `.bl-legal`, not mine to write.)
 - The date in the caption (1 ต.ค. 2569) is the capture date. If the post goes out later, repeat
   the right-of-reply search (CURIOSITY-1/2) and re-read WikiFX's pages. Both can change.
 - The IB status of the subject is unconfirmed. See the top of RUNLOG.md.
-- The CEO to confirm the Facebook post carries no attachment (PATTERN-3 says "ไม่มีหลักฐานแนบ").
+- RESOLVED 2026-10-01 (CEO: the page is the source, no document attached): PATTERN-3 now says "ในโพสต์ไม่เห็นหลักฐานแนบ ยืนยันไม่ได้".
   I judged that from his screenshot only.
