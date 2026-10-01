@@ -9,8 +9,9 @@ scoped reaper; it never decides to kill a process or end a tmux session.
 Three sets, computed by :func:`reconcile`:
 
   ``matched``
-      a lock whose pid is alive AND whose stem is a running tmux session. The
-      only entries that are unambiguously real.
+      a lock whose pid is alive AND whose tmux session (its stem, except SomPong's
+      `coo-<id>` lock, whose session is `sompong`) is running. The only entries
+      that are unambiguously real.
   ``lock_only``
       a lock that is NOT matched — its pid is dead, OR its tmux session is
       gone. Reapable when the pid is dead; dangerous when the pid is still
@@ -38,7 +39,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LOCKS = ROOT / "state" / "locks"
 
-from tools.session_name import LOCK_SUFFIXES, ROLE_RE  # noqa: E402
+from tools.session_name import (  # noqa: E402
+    LOCK_SUFFIXES, ROLE_RE, TMUX_NAME_OVERRIDES, tmux_name_for_stem,
+)
 from tools.tmux_session import tmux_bin  # noqa: E402
 # Signal-0 liveness is the canonical check the cap already uses; reuse it so
 # the GC and the cap cannot disagree on what "alive" means.
@@ -50,7 +53,7 @@ class Reconciliation:
     """The three drift sets from :func:`reconcile`, plus the orphan subset.
 
     ``matched`` / ``lock_only`` hold lock STEMS (``<role>-<id>``);
-    ``tmux_only`` holds tmux session NAMES (also ``<role>-<id>``);
+    ``tmux_only`` holds tmux session NAMES (``<role>-<id>``, or `sompong`);
     ``orphans`` maps each live-pid ``lock_only`` stem to its pid — the entries
     a caller must NOT reap without a human looking first.
     """
@@ -82,7 +85,12 @@ def reconcile(
     a DEV pidfile or a non-C-level tmux session is neither half of a C-level
     session and is ignored.
     """
-    tmux_set = {s for s in tmux_sessions if ROLE_RE.match(s)}
+    # SomPong's tmux session is `sompong`, not `coo-<id>` (its lock stays
+    # `coo-<id>.lock`): the override names count as C-level tmux sessions, and a
+    # lock is compared with ITS tmux name, so a live SomPong is matched, not an orphan.
+    tmux_set = {s for s in tmux_sessions
+                if ROLE_RE.match(s) or s in TMUX_NAME_OVERRIDES.values()}
+    matched_tmux: set[str] = set()
 
     rec = Reconciliation()
     try:
@@ -96,8 +104,10 @@ def reconcile(
             continue
         pid = _read_pid(lock)
         alive = _alive(pid) if pid is not None else False
-        if alive and stem in tmux_set:
+        tmux = tmux_name_for_stem(stem)
+        if alive and tmux in tmux_set:
             rec.matched.add(stem)
+            matched_tmux.add(tmux)
         else:
             rec.lock_only.add(stem)
             if alive:
@@ -105,7 +115,7 @@ def reconcile(
                 # pid so a caller can show it and refuse to reap.
                 rec.orphans[stem] = pid
 
-    rec.tmux_only = tmux_set - rec.matched
+    rec.tmux_only = tmux_set - matched_tmux
     return rec
 
 

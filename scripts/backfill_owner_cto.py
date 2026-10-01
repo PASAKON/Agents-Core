@@ -93,7 +93,7 @@ def main() -> int:
     )
     ap.add_argument(
         "--role", default="cto",
-        help="owning C-level role: cto/cfo/cmo/cgo (default: cto)",
+        help="owning C-level role: cto/cfo/cmo/cgo/coo (default: cto)",
     )
     args = ap.parse_args()
 

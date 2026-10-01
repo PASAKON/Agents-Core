@@ -19,18 +19,29 @@ The fix is structural: the lock basename and the tmux session name must be the
 SAME string. This module is the single derivation of that rule, so the two
 launchers (which name tmux), the GC tool (which classifies the halves), and the
 tests cannot drift to three different answers. ``tools/session_cap`` keeps its
-own narrower ROLES (it deliberately does not count ``cgo``); the wider set here
-covers every role the spawn machinery can produce, so a ``cgo`` orphan is still
-detectable by the GC even though it is invisible to the cap.
+own narrower ROLES (it deliberately does not count ``cgo``); the wider set
+here covers every role the spawn machinery can produce, so a ``cgo`` orphan is
+still detectable by the GC even though it is invisible to the cap.
+
+One exception to "the two names are the same string": SomPong, the COO, runs
+in tmux session ``sompong`` (one per world, CEO 2026-10-01) while its lock
+files stay ``coo-<id>.*``. ``tmux_name()`` / ``tmux_name_for_stem()`` below
+are the only place that knows it; anything that means "the tmux session"
+asks them, anything that means "the lock file" keeps ``lock_basename()``.
 """
 from __future__ import annotations
 
 import re
 
-# Every role scripts/spawn-cxo.sh + scripts/cxo-claude.sh can launch. Wider
-# than session_cap.ROLES on purpose: the cap counts cto/cmo/cfo/cxo only, but
-# the GC must still reconcile a cgo session whose halves have drifted.
-ROLES = ("cto", "cmo", "cgo", "cfo", "cxo")
+from lib.roles import c_level_roles
+
+# Every role scripts/spawn-cxo.sh + scripts/cxo-claude.sh can launch: the
+# C-level roster from policies/agents.yaml (lib/roles.py -- import-light, this
+# module is loaded by the system python3 via tools.session_gc) plus the generic
+# ``cxo`` prefix. Wider than session_cap.ROLES on purpose: the cap counts
+# cto/cmo/cfo/coo/cxo only, but the GC must still reconcile a cgo session
+# whose halves have drifted.
+ROLES = (*c_level_roles(), "cxo")
 
 ROLE_RE = re.compile(rf"^({'|'.join(ROLES)})-(.+)$")
 
@@ -60,6 +71,29 @@ def lock_basename(role: str, session_id: str) -> str:
     concrete path build ``f"{locks_dir}/{lock_basename(role, id)}.<ext>"``.
     """
     return f"{role}-{session_id}"
+
+
+# The C-level roles whose tmux session is NOT named <role>-<id>. coo = SomPong:
+# tmux `sompong`, started by mooniex-sompong.service. Ask tmux_name() for "the
+# tmux session of this C-level", never lock_basename(): with the lock name the
+# wake nudge types into a session that does not exist (a letter then sits unseen
+# in an idle always-on session) and the lock/tmux reconcile calls a live SomPong
+# an orphan.
+TMUX_NAME_OVERRIDES = {"coo": "sompong"}
+
+
+def tmux_name(role: str, session_id: str) -> str:
+    """The tmux session name of a C-level session: ``<role>-<id>``, except for
+    the roles in TMUX_NAME_OVERRIDES (SomPong's is ``sompong``)."""
+    return TMUX_NAME_OVERRIDES.get(role) or lock_basename(role, session_id)
+
+
+def tmux_name_for_stem(stem: str) -> str:
+    """:func:`tmux_name` for a lock stem (``<role>-<id>``): the stem itself
+    unless its role has an override. A stem that is not C-level shaped is
+    returned unchanged."""
+    role = parse_role(stem)
+    return TMUX_NAME_OVERRIDES.get(role, stem) if role else stem
 
 
 def id_from_tmux_session(tmux_name: str, role: str | None = None) -> str | None:

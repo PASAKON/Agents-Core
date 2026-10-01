@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch Claude Code CLI with any C-level role (cto/cmo/cgo/cfo) + org MCP server.
+# Launch Claude Code CLI with any C-level role (cto/cmo/cgo/cfo/coo) + org MCP server.
 # Generalization of cto-claude.sh — all C-levels share the same MCP toolset
 # (powers granted in policies/agents.yaml) and only differ in role doc +
 # tab title + lock file prefix.
@@ -18,6 +18,24 @@
 #                             runners/worker_init.py's kickoff uses. Never typed.
 #   --tab-title <title>       Override the default tab title
 #                             ("$DISPLAY #$CXO_SESSION_ID").
+#
+# Check-only:
+#   --dry-run                 Validate the role (role doc, `c_level` in
+#                             policies/agents.yaml, model/effort) and build its
+#                             MCP set + tool allowlist, print them, and exit 0
+#                             -- before any lock, DB row, tmux or claude. For
+#                             proving a new role is wired without starting a
+#                             session (COO, 2026-09-27).
+#
+# --role coo is SomPong (CEO 2026-10-01): ONE session, Contabo only, started by
+# scripts/sompong-supervise.sh in tmux `sompong` (never by hand, never by
+# spawn-cxo.sh). It differs from the other C-levels in six ways, all in the
+# "coo" blocks below: refused off Contabo; cwd = the SomPong repo; its channel
+# MCP server `sompong` is loaded as a development channel; the org hooks and
+# skills are re-attached by absolute path (cwd is not Agents-Core); the bookkeeping
+# runs as the launching user but `claude` itself drops to the unprivileged SomPong
+# unix user, because the inbox keys live where root can read and that user cannot
+# (docs/design/sompong-coo-session.md, acceptance probe 5).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,6 +44,7 @@ ROLE=""
 SESSION_OVERRIDE=""
 INITIAL_PROMPT=""
 TAB_TITLE_OVERRIDE=""
+DRY_RUN=0
 ARGS=()
 prev=""
 for a in "$@"; do
@@ -46,13 +65,33 @@ for a in "$@"; do
     --session)        prev="--session" ;;
     --initial-prompt) prev="--initial-prompt" ;;
     --tab-title)      prev="--tab-title" ;;
+    --dry-run)        DRY_RUN=1 ;;
     *)                ARGS+=("$a") ;;
   esac
 done
 
 if [ -z "$ROLE" ]; then
-  echo "usage: cxo-claude.sh --role <cto|cmo|cgo|cfo> [claude args...]" >&2
+  echo "usage: cxo-claude.sh --role <cto|cmo|cgo|cfo|coo> [--dry-run] [claude args...]" >&2
   exit 2
+fi
+
+# --- SomPong (the COO): ONE session, on Contabo only (CEO 2026-10-01) ---------
+# docs/design/sompong-coo-session.md "Singleton + spawn". Checked before anything
+# else, even --dry-run: no lock, no DB row, no venv. The host comes from
+# lib.config (ORG_HOST, node.yaml, agents_root) through coo_host.py, never from
+# `hostname`/`uname`; an unresolved host counts as "not Contabo" (fails closed).
+SOMPONG_DIR="${SOMPONG_DIR:-/opt/MoonieXHQ/Projects/MoonieX/SomPong}"
+if [ "$ROLE" = "coo" ]; then
+  COO_PY="$ROOT/.venv/bin/python"; [ -x "$COO_PY" ] || COO_PY=python3
+  COO_HOST="$("$COO_PY" "$ROOT/scripts/lib/coo_host.py" host)" || COO_HOST=""
+  if [ "$COO_HOST" != "contabo" ]; then
+    echo "SomPong (COO) runs on Contabo only — use /spawn-coo" >&2
+    exit 1
+  fi
+  if [ -n "$SESSION_OVERRIDE" ]; then
+    echo "SomPong (COO) is one always-on session, never spawned per request — use /spawn-coo" >&2
+    exit 1
+  fi
 fi
 
 ROLE_DOC="$ROOT/roles/$ROLE.md"
@@ -103,9 +142,95 @@ python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "$ROOT" --ou
 # Tool whitelist for THIS role, derived from the same generator that emitted
 # the server set above. C-levels share org powers (agents.yaml) but not their
 # server sets — CMO has meigen/meta-ads where CFO has supabase — so one
-# hardcoded string could never be right for all four, and the one that used to
+# hardcoded string could never be right for every role, and the one that used to
 # live here covered org + lungnote only. See cto-claude.sh for the full note.
 ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role "$ROLE" --root "$ROOT" --print-allowed)"
+
+# --- SomPong (coo): what differs from every other C-level ----------------------
+# COO_ARGS rides into the one claude invocation at the bottom; COO_ENV is the whole
+# environment the unprivileged session gets (env -i + this list), so nothing the
+# launching shell holds -- Infisical identity, keys -- reaches it.
+COO_ARGS=()
+COO_SETTINGS=""
+COO_UNIX_USER=""
+COO_ENV=()
+COO_CLAUDE_BIN=""
+if [ "$ROLE" = "coo" ]; then
+  COO_UNIX_USER="${SOMPONG_USER:-sompong}"
+  SOMPONG_MCP="$SOMPONG_DIR/.mcp.json"
+  COO_PROBLEM=""
+  if [ ! -d "$SOMPONG_DIR" ]; then
+    COO_PROBLEM="SomPong repo not found: $SOMPONG_DIR"
+  elif [ ! -f "$SOMPONG_MCP" ] || ! grep -q '"sompong"' "$SOMPONG_MCP"; then
+    COO_PROBLEM="$SOMPONG_MCP does not declare MCP server 'sompong' (the SomPong channel server is not deployed)"
+  elif ! COO_UID="$(id -u "$COO_UNIX_USER" 2>/dev/null)"; then
+    COO_PROBLEM="unix user '$COO_UNIX_USER' does not exist (SomPong repo: sudo bash ops/install-contabo.sh)"
+  elif [ "$COO_UID" = "0" ] && [ "${SOMPONG_ALLOW_ROOT:-0}" != "1" ]; then
+    COO_PROBLEM="SomPong must not run as root (it could read the inbox keys); SOMPONG_USER=$COO_UNIX_USER is uid 0"
+  fi
+  if [ -z "$COO_PROBLEM" ]; then
+    COO_HOME="$(getent passwd "$COO_UNIX_USER" | cut -d: -f6)"
+    [ -n "$COO_HOME" ] || COO_HOME="/home/$COO_UNIX_USER"
+    COO_CLAUDE_BIN="${SOMPONG_CLAUDE:-$COO_HOME/.local/bin/claude}"
+    [ -x "$COO_CLAUDE_BIN" ] || COO_PROBLEM="claude is not installed for $COO_UNIX_USER ($COO_CLAUDE_BIN)"
+    # Root work goes through a Run Inbox card (org tools ask_run / ask_run_wait), which read the hub
+    # token from the session user's HOME. Missing = warn once and start anyway: only that path fails.
+    if [ -z "$COO_PROBLEM" ] && [ ! -f "$COO_HOME/.config/mooniex/run-inbox.token" ]; then
+      echo "SomPong (COO) warning: $COO_HOME/.config/mooniex/run-inbox.token is missing - ask_run (root work through the Run Inbox) will fail until it is installed (mode 0600, owned by $COO_UNIX_USER)" >&2
+    fi
+  fi
+  if [ -z "$COO_PROBLEM" ]; then
+    COO_SETTINGS="$MCP_CONFIG.hooks.json"
+    "$COO_PY" "$ROOT/scripts/lib/cxo_hooks_settings.py" --root "$ROOT" --out "$COO_SETTINGS" 2>/dev/null \
+      || COO_PROBLEM="cannot build the org hooks settings from $ROOT/.claude/settings.json"
+    # The unprivileged session must be able to read what the launcher generated.
+    chmod 0644 "$MCP_CONFIG" "$COO_SETTINGS" 2>/dev/null || true
+  fi
+  if [ -n "$COO_PROBLEM" ]; then
+    rm -f "$MCP_CONFIG" "$COO_SETTINGS"
+    echo "SomPong (COO) cannot start: $COO_PROBLEM" >&2
+    exit 1
+  fi
+  # Channel flag: a custom server is not on the channel allowlist, so it needs the
+  # development flag (the plain channels flag is rejected for server: entries,
+  # claude 2.1.285). SomPong's own .mcp.json is a SECOND --mcp-config so the
+  # session stays strict (org + lungnote + sompong, nothing inherited).
+  COO_ARGS=(
+    --mcp-config "$SOMPONG_MCP"
+    --dangerously-load-development-channels server:sompong
+    --add-dir "$ROOT"
+    --settings "$COO_SETTINGS"
+  )
+  ALLOWED="$ALLOWED mcp__sompong__reply mcp__sompong__skip mcp__sompong__send mcp__sompong__ask_ceo mcp__sompong__history mcp__sompong__media"
+  : "${WIKI_ROOT_ORG:=/opt/MoonieXHQ/Agents/Rules}"
+  : "${WIKI_ROOT_MOONIEX:=/opt/MoonieXHQ/Agents/Wikis}"
+  COO_ENV=(
+    "HOME=$COO_HOME" "USER=$COO_UNIX_USER" "LOGNAME=$COO_UNIX_USER"
+    "PATH=$COO_HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
+    "TERM=${TERM:-tmux-256color}" "LANG=${LANG:-C.UTF-8}"
+    "ORG_HOST=contabo" "SOMPONG_COO_SESSION=1"
+    "WIKI_ROOT_ORG=$WIKI_ROOT_ORG" "WIKI_ROOT_MOONIEX=$WIKI_ROOT_MOONIEX"
+    "DISABLE_AUTOUPDATER=1" "CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1"
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW=${CLAUDE_CODE_AUTO_COMPACT_WINDOW:-300000}"
+  )
+  [ -z "${LUNGNOTE_MCP_NODE:-}" ] || COO_ENV+=("LUNGNOTE_MCP_NODE=$LUNGNOTE_MCP_NODE")
+fi
+
+# --dry-run stops here: everything above only reads and validates (the temp MCP
+# config is its one file, removed now); everything below writes locks, rows in
+# c_level_sessions, tab state, and starts claude.
+if [ "$DRY_RUN" = "1" ]; then
+  rm -f "$MCP_CONFIG" "$COO_SETTINGS"
+  echo "dry-run: role=$ROLE display=$DISPLAY model=$MODEL effort=$EFFORT"
+  echo "dry-run: allowed-tools=$ALLOWED"
+  if [ "$ROLE" = "coo" ]; then
+    echo "dry-run: coo host=$COO_HOST cwd=$SOMPONG_DIR user=$COO_UNIX_USER claude=$COO_CLAUDE_BIN"
+    echo "dry-run: coo extra-args=${COO_ARGS[*]}"
+    echo "dry-run: coo env=$(printf '%s\n' "${COO_ENV[@]}" | cut -d= -f1 | tr '\n' ' ')"
+  fi
+  echo "dry-run: stopped before lock / session registration / claude"
+  exit 0
+fi
 
 cd "$ROOT"
 
@@ -177,6 +302,24 @@ printf '%s\n' "$CXO_UUID" >"$UUID_FILE"
 
 LOCKS_DIR="$ROOT/state/locks"
 mkdir -p "$LOCKS_DIR"
+
+# SomPong is ONE session: any other live coo launcher (a different id, so the
+# per-id lock below cannot see it) means this start must stop. Liveness is the
+# pid in the lock AND that the pid is still a cxo-claude.sh -- a recycled pid is
+# not a SomPong. The supervisor's flock and tmux's one-`sompong`-name already
+# make a second launch hard; this is the check that names the cause.
+if [ "$ROLE" = "coo" ]; then
+  for other in "$LOCKS_DIR"/coo-*.lock; do
+    [ -e "$other" ] || continue
+    opid="$(tr -d '[:space:]' <"$other" 2>/dev/null || true)"
+    if [ -n "$opid" ] && [ "$opid" != "$$" ] && kill -0 "$opid" 2>/dev/null \
+       && tr '\0' ' ' <"/proc/$opid/cmdline" 2>/dev/null | grep -q 'cxo-claude'; then
+      rm -f "$MCP_CONFIG" "$COO_SETTINGS"
+      echo "SomPong (COO) is already running (launcher pid $opid, $(basename "$other" .lock)) — one session only; use /spawn-coo to check on it" >&2
+      exit 1
+    fi
+  done
+fi
 LOCKFILE="$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.lock"
 if [ -e "$LOCKFILE" ]; then
   existing_pid="$(tr -d '[:space:]' <"$LOCKFILE" 2>/dev/null || true)"
@@ -304,8 +447,11 @@ fi
 cleanup() {
   # .run is the launcher tmux exec'd us from (written by spawn-cxo.sh); it has
   # no reason to outlive the session it started.
-  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG" \
+  rm -f "$LOCKFILE" "$WINID_FILE" "$TTY_FILE" "$UUID_FILE" "$MCP_CONFIG" "$COO_SETTINGS" \
         "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.run"
+  # An empty SomPong mailbox box is not worth keeping per restart; rmdir leaves
+  # one that still holds an unread letter (the next launch picks those up).
+  if [ "$ROLE" = "coo" ]; then rmdir "$ROOT/state/inbox/$ROLE-$CXO_SESSION_ID" 2>/dev/null || true; fi
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
@@ -467,6 +613,11 @@ print('1' if remote_control_args('$HOST_KEY') else '0')
 " 2>/dev/null || echo 1)" != "0" ]; then
   REMOTE_CONTROL_ARGS=(--remote-control)
 fi
+# SomPong shows in the Claude app under its own name, not "COO #<id>": the flag
+# takes an optional value, so the name is appended to the array built above.
+if [ "$ROLE" = "coo" ] && [ "${#REMOTE_CONTROL_ARGS[@]}" -gt 0 ]; then
+  REMOTE_CONTROL_ARGS+=(SomPong)
+fi
 
 # Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1) — same
 # reasoning as cto-claude.sh's identical block: the harness loads MEMORY.md
@@ -477,9 +628,40 @@ fi
 # `|| true` here is a second belt, not the only one. cxo-claude.sh has no
 # CTO_CLAUDE_TEST_MODE early-exit of its own (only cto-claude.sh does), so
 # this guard is the actual skip for that env var, not just a mirror of one.
-if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ] && [ "$ROLE" != "coo" ]; then
   (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
     python3 -m tools.memory_sync pull) || true
+fi
+
+# SomPong: cwd is its own repo (CLAUDE.md, memory, the family-gate hook live
+# there), and `claude` below is a function that runs the real binary as the
+# unprivileged SomPong user with an empty environment plus COO_ENV. Everything
+# above (locks, c_level_sessions row, mailbox dir) was done as the launching user.
+# SomPong's memory is its own (work/memory), so the org memory pull is skipped.
+if [ "$ROLE" = "coo" ]; then
+  cd "$SOMPONG_DIR"
+  # The session's UserPromptSubmit hook drains state/inbox/<role>-<id> keyed on
+  # these two; the box must exist and be group-writable so the unprivileged user
+  # can delete a letter it has read (send_to_cxo makes the letter readable).
+  COO_ENV+=("CXO_ROLE=$ROLE" "CXO_SESSION=1" "CXO_SESSION_ID=$CXO_SESSION_ID")
+  COO_BOX="$ROOT/state/inbox/$ROLE-$CXO_SESSION_ID"
+  mkdir -p "$COO_BOX" && chmod 2775 "$COO_BOX" 2>/dev/null || true
+  # Each launch is a new session id, so a letter that reached the previous
+  # session's box and was never read (it died first) moves to this one: the lock
+  # check above proved no other SomPong is alive. rmdir only takes an empty box.
+  for old in "$ROOT"/state/inbox/coo-*; do
+    [ -d "$old" ] && [ "$old" != "$COO_BOX" ] || continue
+    mv "$old"/*.json "$COO_BOX"/ 2>/dev/null || true
+    rmdir "$old" 2>/dev/null || true
+  done
+  COO_RUNUSER="$(command -v runuser 2>/dev/null || echo /usr/sbin/runuser)"
+  claude() {
+    if [ "$(id -u)" = "$COO_UID" ]; then
+      env -i ${COO_ENV[@]+"${COO_ENV[@]}"} "$COO_CLAUDE_BIN" "$@"
+    else
+      "$COO_RUNUSER" -u "$COO_UNIX_USER" -- env -i ${COO_ENV[@]+"${COO_ENV[@]}"} "$COO_CLAUDE_BIN" "$@"
+    fi
+  }
 fi
 
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
@@ -489,6 +671,7 @@ claude \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \
   --mcp-config "$MCP_CONFIG" \
+  ${COO_ARGS[@]+"${COO_ARGS[@]}"} \
   ${STRICT_ARGS[@]+"${STRICT_ARGS[@]}"} \
   ${REMOTE_CONTROL_ARGS[@]+"${REMOTE_CONTROL_ARGS[@]}"} \
   --allowed-tools $ALLOWED \

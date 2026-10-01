@@ -33,6 +33,8 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+from lib.roles import c_level_displays
+
 # iTerm2 Python API — used only by the arrange / attention helpers at the
 # bottom of this module (AppleScript cannot reorder tabs or set tab
 # color/badge, so those features need the API). Optional: if the package is
@@ -45,6 +47,23 @@ except ImportError:  # pragma: no cover - depends on host setup
 
 _ROOT = Path(__file__).resolve().parent.parent
 _LOCKS = _ROOT / "state" / "locks"
+
+# "CTO ", "CMO ", ... -- the title prefix of every C-level tab, one per role in
+# policies/agents.yaml `c_level` (lib/roles.py; import-light, since this module
+# is loaded by the system python3 via tools.maintab). A tab carrying one is a
+# C-level chat and is never closed or recoloured as a DEV tab (IRON-RULES §32).
+_CLEVEL_PREFIXES = tuple(f"{d} " for d in c_level_displays())
+
+
+def _clevel_title_guard() -> str:
+    """AppleScript clauses that exclude every C-level tab from a title match:
+    ``and not (nm contains "CTO ") ... and not (tn contains "CTO ") ...``,
+    over both title surfaces (session name `nm`, tab name `tn`)."""
+    return " ".join(
+        f'and not ({var} contains "{prefix}")'
+        for var in ("nm", "tn")
+        for prefix in _CLEVEL_PREFIXES
+    )
 
 
 def _task_pid(task_id: str) -> int | None:
@@ -107,7 +126,7 @@ def _close_tab_by_pid(pid: int) -> bool:
                 except (TypeError, ValueError):
                     continue
                 title = await _session_title(session)
-                if any(f"{p} " in title for p in ("CTO", "CMO", "CGO", "CFO")):
+                if any(p in title for p in _CLEVEL_PREFIXES):
                     continue
                 await tab.async_close()
                 return True
@@ -148,10 +167,7 @@ def close_tab(task_id: str, *, allow_pid: bool = True) -> bool:
     # scripts/tab-title.sh). If a summary ever mentions a task, a naive
     # task-id match would close the C-level chat itself — so any tab whose
     # title carries a C-level prefix is excluded from closing.
-    guard = ('and not (nm contains "CTO ") and not (nm contains "CMO ") '
-             'and not (nm contains "CGO ") and not (nm contains "CFO ") '
-             'and not (tn contains "CTO ") and not (tn contains "CMO ") '
-             'and not (tn contains "CGO ") and not (tn contains "CFO ")')
+    guard = _clevel_title_guard()
     script = f'''
 tell application "iTerm"
   set closedAny to false
@@ -191,19 +207,16 @@ def list_task_tabs() -> list[tuple[str, str]]:
     — never "current window" (a prior incident closed the CEO's own window
     via an untargeted osascript call; this module binds window ids
     explicitly everywhere for that reason). Same C-level exclusion as
-    close_tab: a tab whose title carries a CTO/CMO/CGO/CFO prefix is never
-    returned, even if its live work summary happens to mention a task id
-    (IRON-RULES §32).
+    close_tab: a tab whose title carries a CTO/CMO/CGO/CFO/COO prefix is
+    never returned, even if its live work summary happens to mention a task
+    id (IRON-RULES §32).
 
     Used by runners/watchdog.py's sweep_terminal_surfaces() (task-92118d4e)
     to find an orphan DEV tab that has no recorded pid — the case
     close_tab's own pid-first path cannot see, and the reason a single
     batched scan beats calling close_tab's per-task title search N times.
     """
-    guard = ('and not (nm contains "CTO ") and not (nm contains "CMO ") '
-             'and not (nm contains "CGO ") and not (nm contains "CFO ") '
-             'and not (tn contains "CTO ") and not (tn contains "CMO ") '
-             'and not (tn contains "CGO ") and not (tn contains "CFO ")')
+    guard = _clevel_title_guard()
     script = f'''
 tell application "iTerm"
   set outLines to {{}}
@@ -660,7 +673,8 @@ _TASK_STATUS_GLYPH = {
     "rate_limited":  "🔴",
 }
 
-_CLEVEL_PREFIXES = ("CTO ", "CMO ", "CGO ", "CFO ")
+# _CLEVEL_PREFIXES (the C-level tab-title prefixes) is defined at the top of
+# this module, from lib/roles.py.
 _TASK_ID_RE = re.compile(r"task-[0-9a-fA-F]+")
 
 # DEV tabs coloured on the last tick, so the next one can clear a tab whose

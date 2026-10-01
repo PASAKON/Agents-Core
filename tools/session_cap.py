@@ -57,7 +57,12 @@ CAP = int(os.environ.get("SESSION_CAP") or 6)
 # finish something lasts longer before turning into a refusal at 9.
 GRACE = int(os.environ.get("SESSION_CAP_GRACE") or 3)
 
-ROLES = ("cto", "cmo", "cfo", "cxo")
+# coo = SomPong (one always-on session, CEO 2026-10-01): it holds memory like any
+# other session, so it counts. cgo stays out -- a capacity decision, see
+# tools/session_name.py. The cap only gates NEW spawns (spawn-cxo.sh); the
+# supervisor restarting SomPong never goes through that check, so a full box
+# can crowd out a new CTO tab but never keep SomPong down.
+ROLES = ("cto", "cmo", "cfo", "coo", "cxo")
 _LOCK_RE = re.compile(rf"^({'|'.join(ROLES)})-(.+)$")
 
 

@@ -1,6 +1,6 @@
 """C-level cross-talk: queue a message into another C-level's mailbox.
 
-The sender (typically CTO/CMO/CGO/CFO acting on a request from CEO)
+The sender (typically CTO/CMO/CGO/CFO/COO acting on a request from CEO)
 needs to ask a sibling C-level to do something (e.g. CTO → CFO for a
 budget approval, CMO → CGO for an attribution check). This mirrors
 `tools/send_to_worker.py` but targets C-level boxes identified by role +
@@ -39,7 +39,8 @@ Usage:
     python -m tools.send_to_cxo --from cgo cfo "ROAS hit 4.2 — request +$1k uplift"
     python -m tools.send_to_cxo --spawn cfo "budget review needed"
 
-`<role>` = target C-level (cto|cmo|cgo|cfo).
+`<role>` = target C-level (cto|cmo|cgo|cfo|coo -- the `c_level` roster in
+policies/agents.yaml, via lib/roles.py).
 Sender role auto-detected from $CXO_ROLE env when invoked from within a
 C-level chat tab; falls back to "CEO" when nothing is set.
 
@@ -84,6 +85,7 @@ from lib import mailbox
 from lib import mesh
 from lib import notify
 from lib.config import display_for, is_c_level, self_host
+from lib.roles import SINGLETON_ROLES, c_level_roles, singleton_refusal
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
@@ -324,7 +326,8 @@ def attempt_wake(role: str, session_id: str, label: str) -> None:
     resolution.
 
     Resolves (role, session_id) to its tmux session name via
-    `tools.session_name.lock_basename()` and delegates the actual nudge to
+    `tools.session_name.tmux_name()` (SomPong's is `sompong`, not `coo-<id>`)
+    and delegates the actual nudge to
     `tools.agent_transport.attempt_wake()`. `send_fn=_wake_tmux_send` is
     passed explicitly -- this module's own imported reference, resolved in
     THIS module's globals -- so a test that monkeypatches
@@ -332,7 +335,7 @@ def attempt_wake(role: str, session_id: str, label: str) -> None:
     `agent_transport.attempt_wake`'s docstring for why that indirection is
     needed).
     """
-    session = session_name.lock_basename(role, session_id)
+    session = session_name.tmux_name(role, session_id)
     agent_transport.attempt_wake(session, label, "send_to_cxo", send_fn=_wake_tmux_send)
 
 
@@ -455,8 +458,11 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
     """
     if not is_c_level(role):
         raise ValueError(
-            f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
+            f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
+    refusal = singleton_refusal(role)
+    if refusal:
+        raise ValueError(refusal)
     sender_identity = current_identity()
     authorize(sender_identity, role, None, spawning=True)
     label = sender or _resolve_sender_role()
@@ -653,16 +659,17 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     """
     if not is_c_level(role):
         raise ValueError(
-            f"{role} is not a C-level role. Known C-level: cto, cmo, cgo, cfo"
+            f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
     sid = _active_session_id(role)
     remote = None
     if not sid:
         remote = _remote_target(role)  # None unless ORG_MESH_DISPATCH names one other host
         if remote is None:
+            how = ("/spawn-coo (bash scripts/spawn-coo.sh)" if role in SINGLETON_ROLES
+                   else f"bash scripts/spawn-cxo.sh --role {role}")
             raise ValueError(
-                f"no active {display_for(role)} session found. "
-                f"Spawn one first: bash scripts/spawn-cxo.sh --role {role}"
+                f"no active {display_for(role)} session found. Spawn one first: {how}"
             )
         sid = remote[1]
     sender_identity = current_identity()
@@ -681,9 +688,39 @@ def send(role: str, message: str, sender: str | None = None) -> str:
         # Not an error: the row stays pending and the watchdog retries it.
         return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}"
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
-    mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    if role in SINGLETON_ROLES:
+        _share_letter(letter)
     _attempt_wake(role, sid, label)
     return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+
+
+def _share_letter(letter: Path | None) -> None:
+    """Let SomPong's unprivileged unix user read and delete the letter just written.
+
+    SomPong runs as its own user, not root (the inbox keys are root-only), but a
+    C-level writes the letter as itself, and `mailbox.send` creates it 0600 (a
+    mkstemp file) inside a 0755 box. The session's mailbox hook would then skip
+    the letter it cannot open, on every prompt. Group read/write on the letter and
+    group write on its box (state/ is group `secretary`, which SomPong's user
+    joins) fixes it without touching lib/mailbox.py. Best effort and silent: the
+    letter is already durable, and on a box where the session user is root
+    nothing here is needed.
+    """
+    if letter is None:
+        return
+    try:
+        os.chmod(letter, 0o664)
+        os.chmod(Path(letter).parent, 0o2775)
+    except OSError:
+        pass
+
+
+def _usage() -> str:
+    return (
+        'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] <target_role> "<message>"\n'
+        f"  <target_role>: {'|'.join(c_level_roles())}"
+    )
 
 
 def main() -> int:
@@ -695,6 +732,9 @@ def main() -> int:
     i = 0
     while i < len(argv):
         a = argv[i]
+        if a in ("-h", "--help"):
+            print(_usage())
+            return 0
         if a == "--spawn":
             do_spawn = True
         elif a == "--from":
@@ -710,10 +750,7 @@ def main() -> int:
     argv = remaining
 
     if len(argv) < 2:
-        print(
-            'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] <target_role> "<message>"',
-            file=sys.stderr,
-        )
+        print(_usage(), file=sys.stderr)
         return 1
     role, message = argv[0], argv[1]
     try:
