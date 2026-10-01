@@ -1,4 +1,4 @@
-IB status of the subject (WikiFX, a rating site): unconfirmed, CEO to confirm before posting
+IB status of the subject (WikiFX, a rating site, not a broker): not applicable. Open before posting: the CEO says the Facebook post "has evidence from the page"; PATTERN-3 "ไม่มีหลักฐานแนบ" was judged from his screenshot only (2026-10-01), settle the wording before TTS.
 
 > CEO ruling, relayed by the CMO (c4432bad) in Thai, verbatim:
 > "ให้เราพูด ในนาม คนที่โพสในเพจนะ อ้างว่า ผมไปเจอโพสนึงมา (censor user Facebook เรื่องนี้เป็นประเด็นร้อนแรงมาก ให้ใช้คำว่าเขาอ้างว่า แทนการพูดจากปากของเราเอง)"

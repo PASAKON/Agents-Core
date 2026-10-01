@@ -1,4 +1,4 @@
-IB status of GB (Goldenburg): unconfirmed, CEO to confirm before posting
+IB status of GB (Goldenburg / GB Finance): CONFIRMED by the CEO 2026-10-01 ("ไม่เคย": the channel never earned from it). Posting gate on IB cleared.
 
 # EP60 RUNLOG - GB / Goldenburg (task-eb88fd7b, script_writer, stage 1 of 3)
 
