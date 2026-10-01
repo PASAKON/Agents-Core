@@ -60,7 +60,29 @@ Read by Mac CTO 671f688f through the relay login. Screenshots: `state/bl-tt-foll
 - Basket gate: 1.8K followers clears the 1,000 minimum [M]. The ID check and 18+ remain the CEO's.
 - Discrepancy: CTO memory says BL has an 80k TikTok audience; Studio shows 1.8K. Probably another account. Ask the CEO.
 
-Reach reality check [O, all inputs labelled]: 1.5K viewers a week. If views were 10x viewers (15k a week, unknown, [U]) and 1 order per 5,000 views [U] and ฿19 net per order (AOV ฿250, 10% commission, 24% returns [O] from the 2026-09-28 note), the basket earns about 3 orders and ฿57 a week, roughly $1.7. At today's reach the basket is a learning test, not income. $100 a week needs 0.87M basket-video views a week in that model.
+(An earlier guess here, "views 10x viewers, about ฿57 a week", is replaced by the measured views in 2c. It was too high.)
+
+## 2c. Reach: measured (Studio overview + content, read by the Mac CTO 1 Oct ~17:0x TH, [M])
+
+Screenshots in `state/`: `bl-tt_overview_7d-…`, `bl-tt_overview_28d-…`, `bl-tt_content_28d-…`, `bl-tt_video1_detail-…`, `bl-tt_studio_home-…` (all `2026-10-01.png`). I opened the 28d overview and the content list and they match the numbers below. The rest are the Mac CTO's text.
+
+| | 7 days | 28 days |
+|---|---|---|
+| Video views | 1.6K (-41.7%) | 6.3K (-76.5%; prior 28 days about 26.9K) |
+| Profile views | 28 | 86 |
+| Likes / comments / shares | 38 / 0 / 2 | 167 / 1 / 12 |
+| Estimated rewards | | $0.00 |
+
+- Traffic source (28d, same in 7d): search 90.3%, For You 7.5%, profile 2.2%. The 7-day search terms are all XM broker questions: minimum withdrawal, blacklist, which bank.
+- Daily views were about 150 for most of September, spiked to about 740 on 19 Sep and about 560 on 23 Sep, then fell back to about 150.
+- Top 28-day videos (28d views / lifetime / posted): "XM เสรปดสูง แต่คืน Rebate ให้เยอะ" 2.8K / 44K / 1 Mar 2026 (watch 21.9 s of 1:25, search 96.5%); "ยังจำได้ไหม" 517 / 23K / 19 Jun; "โบรคดังบิดเงินลูกค้า" 429 / 438 / 23 Sep (For You 93%); "ชวนเพื่อนเทรด ผิดกฏหมายไหม?!" 388 / 390 / 19 Sep; "Forex 3d ตายไปแล้ว…" 372 / 372.
+- Studio shows no Shop, product or showcase entry. A "การสร้างรายได้" menu exists and was not opened.
+
+What it changes [O]:
+- The viewers are mostly men 18-34 who search broker questions (XM deposit, withdrawal, blacklist). So they trade or are about to. That brings the CTO's "traders" guess back, and my "scam-aware general public" reading was too wide. Their also-watched list is still phones, gadgets and fintech, with no trading channel.
+- Reach is the bottleneck, not the product. At 6.3K views per 28 days and 1 order per 5,000 views [U], the basket makes about 1.3 orders per 28 days; at ฿19 net per order (AOV ฿250, 10% commission, 24% returns, from the 2026-09-28 note) that is about ฿24 a month. $100 a week needs about 0.87M basket-video views a week, which is about 550 times today's weekly views of 1.6K.
+- The traffic that exists comes from old search videos about an XM rebate (the IB funnel). Putting a product basket on those videos mixes a rebate pitch with a shop link; avoid it. Baskets go on new videos only.
+- Not verified: whether a Shop entry exists under "การสร้างรายได้", whether the rebate videos would affect Shop eligibility ("no Code of Conduct violation" in the 2026-09-28 note).
 
 ## 3. Demand: not closed
 
@@ -104,13 +126,17 @@ Rule used: policy-clean (section 1) + fits what they already watch (phones, gadg
 | Hold | Trader desk gear, finance books | no trading content in what they watch | n/a | wasted slots |
 | Never | courses, signals, any investment, crypto wallet, luxury, spy/hidden cameras | policy or message clash | n/a | account risk |
 
-Cheapest test [O]: three baskets (1 privacy film, 2 card sleeve, 3 power bank), one organic video each, same week, compare product clicks per 1,000 views. No ad spend. Stop rule: if three videos give fewer than 5 clicks combined, the basket is not worth trust cost at this reach.
+After 2c the viewers are XM-searching men 18-34 who also watch phone content, so desk gear moves up from Hold to a test arm: the data cannot separate phone gear from desk gear, only a test can.
+
+Cheapest test [O]: three baskets, one new organic video each, same week, compare product clicks per 1,000 views: (A) power bank or phone stand, (B) phone privacy film, (C) laptop stand or monitor arm. No ad spend. Stop rule: at about 150 views a day three videos reach roughly 3k views in a week; fewer than 5 clicks combined means stop. The real cost of the test is the three videos, not the products. Reference, 2026-09-25 note [API-equivalent, not cash]: the editor step cost $1.66 (arm B) to $3.73 (arm A) per cut and arm C at $0.26 failed its check; the EP57 whole-episode baseline was $99.79.
+
+Simpler alternative (scrutinize) [O]: skip the basket until views recover, and spend the same three videos on the search questions that already carry the channel. At about ฿24 a month the basket cannot repay even one cut.
 
 ## Open
 
 1. [closed 1 Oct] BL Studio gender and age: measured, section 2b.
 2. [closed 1 Oct] Follower count 1.8K clears 1,000. Shop account status: unknown (asked the Mac CTO to look without opening it).
-3. Views per video, 28-day top videos, traffic source: requested from the Mac CTO, pending.
+3. [closed 1 Oct] Views per video, 28-day top videos, traffic source: section 2c.
 4. Best-seller data per category (paid tool or logged-in app).
 5. Open the two sources marked [U] in the superseded section 2 before quoting them to anyone.
 6. CEO: where is the 80k TikTok audience?
