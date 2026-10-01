@@ -119,3 +119,36 @@ selected-line check; no backoff; launcher host guard off; spawn-coo always start
 `_share_letter` not called; route allowed from Contabo; spawn-cxo refusal off.
 Traps hit: `$PREFLIGHT` unquoted was word-split (a shell one-liner as the preflight silently ran as `echo`) → `bash -c`;
 `spawn-cxo.sh`'s coo refusal sat after the role-doc check, whose Mac-absolute ROOT does not exist on Contabo → moved above.
+
+## 2026-10-01 full suite at f3d53a95 (before the CTO's session-user change)
+
+`/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest` (env -u WORKER_TASK_ID, WIKI_ROOT_* set): **6 failed, 6057 passed,
+373 skipped** in 19m40s. Base was 5924 passed / 373 skipped / 7 failed. The 6 failures are all on the base list (skill
+visibility, wiki multiroot, h3 registry verdict, w18 dropins, the two w31 locale tests); the 7th base failure
+(`tests/test_self_host.py::test_local_spawn_writes_host`) passed this time, so there is no new failure. Scripts at the same
+commit: `scripts/test_org_tools_registry.py` ALL PASS, `scripts/test_mcp_role_config.py` OK 0 failures,
+`scripts/test_tool_parity.py` ALL PASS. The full-launch test now also asserts the `c_level_sessions` row (role coo, host
+contabo) and `SOMPONG_COO_SESSION=1` in the claude env; `--permission-mode auto` is asserted (CTO letter 11:23Z: already true).
+
+## 2026-10-01 CTO letter 12:24Z: session user = SOMPONG_SESSION_USER, default root — NOT APPLIED, two blocks
+
+Contract change read (origin 76229c79, "Session user"). Requested: session user is a setting `SOMPONG_SESSION_USER`
+(default root); root → no runuser, no "unix user missing" refusal, still `env -i <allowlist>`; `_share_letter` only for a
+non-root user; keep the non-root path and its tests; plus 3a (`node_dispatch` uses `tmux_name`) and 3b (`session_gc`
+counts `TMUX_NAME_OVERRIDES`).
+
+1. **Launcher change denied by the auto-mode classifier** ("Security Weaken": the edit to `scripts/cxo-claude.sh` removes the
+   launcher's "SomPong must not run as root" refusal). Nothing was written (tree clean at f3d53a95). I did not retry in pieces
+   or by another route, and I left every part that depends on it undone so the tree stays consistent (`_share_letter`
+   gating, `roles/coo.md` "unprivileged user" wording, unit comments, the launcher tests, the supervisor's login message).
+   Needs the user's explicit go (a Bash permission rule) or the CTO applying that hunk itself.
+2. **3a / 3b rejected by the self-repo guard (ADR 0020):** the guard's declared-touches list for task-896c5e79 still does not
+   contain `tools/node_dispatch.py` or `tools/session_gc.py`; the CTO's "now in your touches" has not reached the task row.
+   Not worked around. Needs those two paths added to the task's `touches`.
+
+Ready as soon as both are cleared (all small): node_dispatch L1026 `session_name.tmux_name(role, sid)`; session_gc
+`reconcile` builds `tmux_set` from `ROLE_RE` matches plus `TMUX_NAME_OVERRIDES` values and compares each lock with
+`tmux_name_for_stem(stem)` (tmux_only = tmux_set − matched tmux names); tests for both (coo lock + tmux `sompong` = matched;
+tmux `sompong` alone = tmux_only; live coo lock without tmux = orphan; `_clevel_session_live("coo", sid)` asks tmux for
+`sompong`). Launcher: `SOMPONG_SESSION_USER` replaces `SOMPONG_USER`/`SOMPONG_ALLOW_ROOT`; the existing non-root tests move
+to `SOMPONG_SESSION_USER=nobody`; new root-default tests (no runuser, allowlist env, no group-writable box).
