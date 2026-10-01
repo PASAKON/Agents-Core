@@ -106,7 +106,26 @@ What it changes [O]:
 | over 120 s | 6 | 381 | 23K |
 
   [O] This is a correlation, mixed with age (September posts are 12 days old) and topic (the short ones include the Feb news posts). The one long post that worked, "ยังจำได้ไหม" (2:47, 23K), went up on 19 Jun with a second post (the channel got 3.4K views that day); the channel also had 6.8K and 7.9K views on 13-14 Aug, when the post list shows no new public post, and which post drew them is unknown. Every post since 18 Sep runs 128-160 s and sits at 327-438 views. Reading: keep EP58 at 70-85 s.
-- Not in the export: per-post 28-day views, average watch time, traffic source. Asked the Mac CTO for them on 14 posts. One of the 35 posts did not render in the list.
+- One of the 35 posts did not render in the list. Per-post detail for 14 posts came from the Mac CTO the same day (state/bl-tt-posts-detail-2026-10-01.csv), next table.
+
+Average watch as a share of the video's length, with the main traffic source ([M] from the detail CSV; the share is [O], my division using the length from the post list):
+
+| post | length | avg watch | share | full-watch | lifetime views | main source |
+|---|---|---|---|---|---|---|
+| Greenland 8 Feb | 65 s | 32.5 s | 50% | 22.3% | 153K | For You 98.5% |
+| rebate 9 Feb | 59 s | 21.8 s | 37% | 8.4% | 152K | For You 97.6% |
+| Exness 23 Jan | 76 s | 26.0 s | 34% | 10.3% | 50K | For You 86.2% |
+| โอนเงินไปทิ้ง 20 Feb | 63 s | 24.5 s | 39% | 9.5% | 8.3K | For You 96.3% |
+| ทรัพย์สินหน้าเก็บ 26 Mar | 77 s | 19.0 s | 25% | 7.0% | 3.6K | For You 93.0% |
+| ACT 28 Mar | 107 s | 31.1 s | 29% | 8.3% | 3.2K | For You 77.3% |
+| XM 1 Mar | 85 s | 21.9 s | 26% | 5.6% | 44K | search 96.5% |
+| ยังจำได้ไหม 19 Jun | 167 s | 26.4 s | 16% | 2.1% | 23K | search 96.4% |
+| XM vs EXNESS 25 Apr | 78 s | 14.0 s | 18% | 2.0% | 3.5K | search 81.3% |
+| five posts 18-23 Sep | 128-160 s | 12.8-20.9 s | 8-14% | 1.8-4.4% | 327-438 | For You 86-93% |
+
+- [O] Among the posts pushed by For You, views rise with the share watched: 34-50% reached 8K-153K, 25-29% reached 3K, 8-14% stopped at about 400. The September posts were shown (86-93% For You) and lost viewers early; their average watch of 13-21 s is also lower in absolute terms than the hits' 22-32 s. n = 14 and the share falls mechanically with length, so this is a pattern to test, not a rule.
+- The two search posts keep paying: XM 1 Mar still had 2.7K views in the last 28 days, ยังจำได้ไหม 515, XM vs EXNESS 191. A post that answers a searched question earns for months; a For You post earns for days.
+- Target for EP58, to check at 48 hours [O]: average watch of about 22 s or more and full-watch of 8% or more (the lowest values among the three biggest hits). Below 15 s average watch means the first seconds failed, as in September.
 
 ## 3. Demand: not closed
 
