@@ -7,7 +7,8 @@ contract (ADR 0022 section 3: `audience`, `created_by`, `author`,
 `pinned`, `lifecycle`, `archived_at` — moved out of the deleted
 state/skill-usage.json sidecar into each skill's own frontmatter), the
 ADR 0026 learning loop (8-10) and the skill naming contract the CEO approved
-on 2026-09-27 and guarded on 2026-09-28 (11-16, "Ok ลุย"). Seventeen
+on 2026-09-27 and guarded on 2026-09-28 (11-16, "Ok ลุย"), and the
+flow.yaml contract of a Workflow skill (18, CEO 2026-10-02). Eighteen
 finding codes:
 
   1. missing SKILL.md
@@ -31,6 +32,10 @@ finding codes:
  17. more than one `## Field notes` heading outside fenced code -- code 8 and
      `skill-curator.py notes` read only the first, so the rest are invisible
      (CXO_Protocol_DevSpawn hid 32 pending notes that way, 2026-09-28)
+ 18. a live `kind: workflow` skill whose flow.yaml breaks a rule F1-F14 of
+     ALL_Protocol_SkillAuthor/references/workflow-flow.md -- one finding per
+     rule hit, the rule named first; run by scripts/flow-lint.py, which also
+     holds the corpus check (F3, one flow id per workflow) and `--base`
 
 Codes 11-14 skip imported public skills, redirect stubs
 (`disable-model-invocation: true` + a description starting `MOVED`) and
@@ -88,6 +93,7 @@ KINDS_YAML = ROOT / "config" / "skill-kinds.yaml"
 INDEX_MD = ROOT / "docs" / "org" / "SKILL-INDEX.md"
 
 _CURATOR_PATH = Path(__file__).resolve().parent / "skill-curator.py"
+_FLOW_LINT_PATH = Path(__file__).resolve().parent / "flow-lint.py"
 
 CODES = {
     1: "missing-skill-md",
@@ -107,6 +113,7 @@ CODES = {
     15: "stub-expired",
     16: "index-stale",
     17: "duplicate-field-notes-heading",
+    18: "workflow-flow",
 }
 
 # The ROLE that means everyone, workers included -- part of the naming grammar
@@ -147,6 +154,23 @@ def _cur():
     if _CUR is None:
         _CUR = _load_curator()
     return _CUR
+
+
+_FLOW = None
+
+
+def _flow():
+    """scripts/flow-lint.py, loaded once -- code 18 is its per-skill rules, so
+    `flow-lint.py check` and this lint can never disagree about a flow.yaml."""
+    global _FLOW
+    if _FLOW is None:
+        spec = importlib.util.spec_from_file_location("_flow_lint", _FLOW_LINT_PATH)
+        assert spec is not None and spec.loader is not None
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = mod
+        spec.loader.exec_module(mod)
+        _FLOW = mod
+    return _FLOW
 
 
 def _git_out(cwd: Path, *args: str) -> Optional[str]:
@@ -408,8 +432,8 @@ def lint_skill(
     name: str, skill_dir: Path, known_audience: set[str], *, staged: bool = False,
     rules: Optional[NamingRules] = None, today: Optional[date] = None,
 ) -> list[Finding]:
-    """Codes 1-10 always; codes 11-15 only when `rules` is given (run_check
-    loads them from config/skill-kinds.yaml)."""
+    """Codes 1-10 always; codes 11-15 and 18 only when `rules` is given
+    (run_check loads them from config/skill-kinds.yaml)."""
     findings: list[Finding] = []
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.is_file():
@@ -492,6 +516,11 @@ def lint_skill(
 
     if rules is not None:
         findings.extend(kind_findings(name, data, rules, today))
+        if name not in rules.kinds.imported and _flow().is_live_workflow(data):
+            findings.extend(
+                Finding(name, 18, CODES[18], f"{f.rule}: {f.message}")
+                for f in _flow().lint_flow(name, skill_dir)
+            )
 
     return findings
 

@@ -12,6 +12,7 @@ created_by: human
 audience: [all]
 improved_by:
   - {role: cto, date: "2026-09-27", what: "kinds, naming, create/update/rename procedures, templates (CEO rulings 2026-09-27)"}
+  - {role: cto, date: "2026-10-02", what: "Workflow template binds to flow.yaml (references/workflow-flow.md), lint code 18 (CEO ruling 2026-10-02)"}
 ---
 
 # Skill Author — how the org makes and keeps a skill
@@ -85,7 +86,8 @@ report is the COO's job. The naming contract is codes 11–16 (lists in `config/
 missing or not one of the seven · 12 name not `<ROLE>_<Kind>_<Topic>` or Kind ≠ `kind:` (CEO commands exempt) ·
 13 `owner:` not a C-level · 14 description not `<KIND> — ` · 15 redirect stub past its removal date · 16
 `docs/org/SKILL-INDEX.md` stale. Imported skills, stubs (except 15) and archived skills are skipped. Code 17:
-a second `## Field notes` heading — the tools read only the first, so keep one section at the bottom.
+a second `## Field notes` heading — the tools read only the first, so keep one section at the bottom. Code 18:
+a Workflow's `flow.yaml` breaks a rule F1–F14 of `references/workflow-flow.md` (run by `scripts/flow-lint.py`).
 
 ## 4 · Create — eight steps
 
@@ -113,7 +115,8 @@ a second `## Field notes` heading — the tools read only the first, so keep one
      grep -oE '`(tools|docs|scripts|runners|lib|config|roles)/[^` ]+`' | tr -d '`' | sort -u |
      while read p; do [ -e "${p%%<*}" ] || echo "MISSING $p"; done
    ```
-   and any script it tells an agent to run has been run once.
+   and any script it tells an agent to run has been run once. A Workflow also passes
+   `.venv/bin/python scripts/flow-lint.py check <name> --base origin/main` with no finding.
 8. **Commit** (named paths only, §6 step 6) `skill(<name>): new — <what> — evidence <task-id / sha / the CEO's
    words>`, push, tell the CEO in one line, and add a pointer in the matching memory index when it matters
    across sessions.
@@ -204,16 +207,23 @@ Verified <date> at <source URL or task-id that measured it>.
 ## Field notes
 ```
 
-**Workflow**
+**Workflow** — two files: `SKILL.md` (below) and `flow.yaml` beside it, the graph the Console's Flow board
+draws and the run events key on. The contract, rules F1–F14 and a full example: `references/workflow-flow.md`.
+Order, dependencies, tool, owner skill, provider, cost, verify, stage, trigger and budget live in `flow.yaml`
+only; `SKILL.md` carries how to do each step, which no yaml can say.
 ```
 # <Project type> — end to end
-## How an agent joins (STATUS.md → current step → owner skill)
+<goal, public output, trigger, watcher — one paragraph, the same facts as flow.yaml's header>
+## How an agent joins (STATUS.md → node: → that node in flow.yaml → the Step below → its owner skill)
 ## Rules that hold on every step (pointers; HARD only for money / platform rules)
-## Day plan (Day | steps | gate at end of day | CEO time)
-## Step <n> · <name> — Do · Owner skill · Tool · Output · Gate
-## STATUS.md template
+## Day plan (Day | nodes | gate at end of day | CEO time) — only when a run spans days
+## The steps
+### Step <n> · <node name> [node: <node id>]      ← one per node, in an order that respects `after`
+Do: <how, the judgement, the traps>  ·  Gate: <how to check the node's one-line gate>
+## STATUS.md template (flow, run, node, state, done, blocker, spent — references/workflow-flow.md §10)
+## Field notes
 ```
-The model: `CMO_Workflow_ShortFilm`.
+The model for the prose: `CMO_Workflow_ShortFilm` (its `flow.yaml` is still to be written — lint code 18).
 
 **Procedure**
 ```
@@ -380,3 +390,4 @@ there.
 - 2026-09-28 [COSTLY] §4 step 8 — in a worktree-isolated agent, a compound Bash call naming git (`cd … && git …`, `.git/worktrees` paths) is refused and a bare `cd` is blocked by `scripts/hook-cwd-guard.py`; separate plain `git add` / `git commit -F <scratch file>` calls work · evidence: Disk/Browser/Merge fold worker, session 14cc900f · status: pending
 - 2026-09-28 [MISSING] §3 / §Description discipline — nothing enforces the ≤350-character description cap: `skill-curator.py create` accepted a 388-character description and `skill-lint.py check` reported the skill clean; the cap was found only by counting by hand (`python3 -c "len(...)"`) and trimming to exactly 350. A lint code for the length (or a refusal in `create`) would close it · evidence: CTO_Procedure_KeyFetch scaffold d6fefc5e vs final 7ea3c569, session cto-885ae930 · status: pending
 - 2026-09-30 [COSTLY] §5 Update — two live sessions folded the same incident into relay-login within 2 minutes (a7d20ddd from cto-8a3b20f6, 46ef714a from cto-92788a12): two overlapping [WRONG] notes on the 4102 "ตอบช้า/หลับ" close. Before appending a note, run `git log --since=1.day --oneline -- <skill>/SKILL.md` and extend a same-day note instead of adding a twin · evidence: a7d20ddd, 46ef714a · status: pending
+- 2026-10-02 [MISSING] §9 Workflow — the Workflow template was prose only, so no machine could draw a flow, count its automation or key run events on a step; every Workflow now carries `flow.yaml` (contract, rules F1–F14 and the board's computed values in `references/workflow-flow.md`), its steps are tagged `[node: <id>]`, and skill-lint code 18 runs `scripts/flow-lint.py` on it. CEO ruling 2026-10-02 "1. แก้ไข" (bind the ClaudeFlow Control Room to the Workflow skill; the CTO sets the format, the owner writes the workflow in it) · evidence: CTO winbox session 7c33db60, scripts/test_flow_lint.py → §9 Workflow, §3 code 18, §4 step 7 · status: promoted
