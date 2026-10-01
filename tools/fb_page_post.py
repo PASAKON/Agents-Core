@@ -109,14 +109,15 @@ the top, which is not the footer submit).
 
 ## What is UNVERIFIED LIVE (never exercised end-to-end — read before trusting)
 
-- `upload_story_video`: pass-2 measurement clicked "สร้างสตอรี่" itself,
-  expecting THAT click to open a file chooser directly — it did not; it only
-  navigated to the story_composer page (see above). The actual attach step
-  (clicking "เพิ่มรูปภาพ/วิดีโอ" INSIDE the story composer, with file-chooser
-  interception) was never exercised live in this task; its upload-progress
-  polling mirrors `FBReelBrowser.upload_video`'s filename+"100%" heuristic on
-  the (unverified) assumption Business Suite's video-upload UI is the same
-  underneath both composers.
+- `upload_story_video`: the attach step (click "เพิ่มรูปภาพ/วิดีโอ" inside the
+  story composer, file chooser intercepted) and its confirmation WERE measured
+  live 2026-10-01 (docs/reports/fb-story-attach/REPORT.md). The page never shows
+  the file name or "100%"; the placeholder text goes away ~2.5 s in, mid-upload;
+  "กำลังอัพโหลดสื่อ" then "กำลังประมวลผลสื่อ" show until a `<video>` element
+  (readyState 4, duration 24.1 s for the 24 s test file) appears at ~30 s. The
+  positive marker is that loaded `<video>` (`story_attach_marker`); the
+  placeholder and the two status lines can only veto. Not yet re-run end to end
+  after the fix, and never run through a real publish.
 - `verify_story_published`: best-effort read of the Page's public surface for
   a "story tray" marker. The exact marker text was never measured against a
   real published Story (this task published nothing) — a miss is treated as
@@ -158,6 +159,7 @@ this composer's different markup actually requires are overridden on the
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import sys
 import time
@@ -182,6 +184,17 @@ STORY_COMPOSER_URL_MARKER = "story_composer"
 PHOTO_REMOVE_CONFIRM_TEXT = "ลบรูปภาพ"
 AUDIENCE_PUBLIC_DESC_POST = "ทุกคนทั้งที่ใช้และไม่ใช้ Facebook จะสามารถเห็นโพสต์ของคุณได้"
 PHOTO_ATTACH_TIMEOUT_S = 60
+# Story attach proof, measured live 2026-10-01 (docs/reports/fb-story-attach/REPORT.md):
+# the placeholder vanishes ~2.5 s after set_files while the file is still uploading,
+# so its absence proves nothing. The two status lines show during upload/processing.
+STORY_PLACEHOLDER_TEXT = "อัพโหลดสื่อเพื่อดูตัวอย่างสตอรี่ของคุณ"
+STORY_ATTACH_BUSY_TEXTS = ("กำลังอัพโหลดสื่อ", "กำลังประมวลผลสื่อ")
+STORY_ATTACH_STATE_JS = """
+() => ({
+  body: document.body.innerText,
+  videos: [...document.querySelectorAll('video')].map(v => ({readyState: v.readyState, duration: v.duration})),
+})
+"""
 
 
 # -- pure decision logic (unit-tested with fixtures; never exercised live) ---
@@ -207,6 +220,25 @@ def comment_identity_decision(identity: str | None, expected_page_name: str, swi
         "action": "switch_then_recheck",
         "reason": f"identity {identity!r} != {expected_page_name!r}, --switch-to-page given",
     }
+
+
+def story_attach_marker(body: str, videos: list[dict]) -> str | None:
+    """Pure. Returns the positive marker proving the Story video is attached AND
+    processed, or None. The marker is a <video> element whose metadata loaded
+    (readyState >= 1, finite duration > 0): measured live 2026-10-01 it is absent
+    at t=0 and during upload/processing (~30 s for a 22 MB / 24 s file) and present
+    after. The placeholder text and the two busy status lines are extra conditions
+    that can only veto; their absence is never enough on its own."""
+    if STORY_PLACEHOLDER_TEXT in body:
+        return None
+    if any(text in body for text in STORY_ATTACH_BUSY_TEXTS):
+        return None
+    for v in videos:
+        duration, ready = v.get("duration"), v.get("readyState")
+        if isinstance(duration, (int, float)) and math.isfinite(duration) and duration > 0 \
+                and isinstance(ready, int) and ready >= 1:
+            return f"video element (readyState={ready}, duration={duration:.1f}s)"
+    return None
 
 
 # -- Page registry (CEO/CTO addendum 2026-09-29): key -> {profile_id, name}. -
@@ -384,29 +416,35 @@ class FBPageBrowser(frp.FBReelBrowser):
         return False
 
     def upload_story_video(self, video_path: str, timeout_s: int = frp.UPLOAD_TIMEOUT_S) -> bool:
-        """UNVERIFIED LIVE — see module docstring."""
+        """Attach via the composer's own attach button, then require the positive
+        marker from story_attach_marker on 2 consecutive reads. The page never
+        shows the file name or a "100%" label, and the placeholder text goes away
+        ~2.5 s in, mid-upload — so neither can confirm an attach. Measured live
+        2026-10-01: docs/reports/fb-story-attach/REPORT.md."""
         page = self.page
         btn = page.get_by_text(ATTACH_BUTTON_TEXT, exact=True).first
         with page.expect_file_chooser(timeout=15000) as fc_info:
             btn.click()
         fc_info.value.set_files(video_path)
-        filename = Path(video_path).name
         deadline = time.time() + timeout_s
         stable_reads = 0
+        placeholder_gone = False
         while time.time() < deadline:
             page.wait_for_timeout(2000)
-            body = page.evaluate("document.body.innerText")
-            idx = body.find(filename)
-            snippet = body[idx: idx + 80] if idx >= 0 else ""
-            placeholder_gone = "อัพโหลดสื่อเพื่อดูตัวอย่างสตอรี่ของคุณ" not in body
-            if "100%" in snippet or placeholder_gone:
+            state = page.evaluate(STORY_ATTACH_STATE_JS)
+            placeholder_gone = STORY_PLACEHOLDER_TEXT not in state["body"]
+            marker = story_attach_marker(state["body"], state["videos"])
+            if marker:
                 stable_reads += 1
                 if stable_reads >= 2:
-                    self.log(f"upload_story_video: attach confirmed, snippet={snippet!r}")
+                    self.log(f"upload_story_video: attach confirmed, marker={marker}")
                     return True
             else:
                 stable_reads = 0
-        self.log(f"upload_story_video: TIMED OUT after {timeout_s}s waiting for upload confirmation")
+        self.log(
+            f"upload_story_video: TIMED OUT after {timeout_s}s waiting for a positive attach marker "
+            f"(loaded <video> element); placeholder_gone={placeholder_gone}"
+        )
         return False
 
     def ensure_public_audience_post(self) -> bool:
@@ -767,7 +805,7 @@ def run_story(args: argparse.Namespace) -> int:
         if not fb.upload_story_video(video_path):
             print(
                 "REFUSED: video attach did not confirm before timeout "
-                "(upload_story_video is UNVERIFIED LIVE — see module docstring)", file=sys.stderr,
+                "(no loaded <video> marker — see upload_story_video's log line)", file=sys.stderr,
             )
             return 3
 
