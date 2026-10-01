@@ -55,6 +55,14 @@ if [ ! -f "$ROOT/roles/$ROLE.md" ]; then
   exit 2
 fi
 
+# SomPong (coo) is one session, on Contabo, started by /spawn-coo (which checks
+# for a live one first) -- never an iTerm window here. cxo-claude.sh refuses it
+# off Contabo too; this stops it before any AppleScript work.
+if [ "$ROLE" = "coo" ]; then
+  echo "SomPong (COO) runs on Contabo only — use /spawn-coo" >&2
+  exit 1
+fi
+
 # Never inherit a session id from the parent shell.
 unset CXO_SESSION_ID CTO_SESSION_ID
 if [ -n "$EXPLICIT_ID" ]; then
