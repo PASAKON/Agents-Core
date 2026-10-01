@@ -380,13 +380,15 @@ projects:
     default_branch: main
     stack: [python]
     agents_allowed: *default_workers
-    # PRIVATE repo, hq.yaml row approved by the CEO 2026-09-26. Runs on
-    # Contabo as unix user sompong; reaches LINE only through ClaudeFlow's
+    # PRIVATE repo, hq.yaml row approved by the CEO 2026-09-26. Since 2026-10-01
+    # the COO session (docs/design/sompong-coo-session.md): sompong-inbox.service
+    # holds the keys; the session reaches LINE/Telegram only through ClaudeFlow's
     # internal API, never through ClaudeFlow's files (IRON §54).
     auto_push: true
     review_required: true
     # stdlib-only project; uv supplies pytest so the gate needs no venv (Mac python3 has none).
-    test_command: uv run --no-project --python 3.12 --with pytest python -m pytest -q
+    # Contabo has no uv (gate failed 127 on task-179acf77, 2026-10-01) → the Agents venv there.
+    test_command: if command -v uv >/dev/null 2>&1; then uv run --no-project --python 3.12 --with pytest python -m pytest -q; else /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -q; fi
     gate_tests: true
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong

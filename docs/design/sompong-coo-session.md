@@ -127,4 +127,12 @@ fails closed — an unreachable inbox means deny. Group text, image text and web
 4. `/spawn-coo` while it runs → "already running", still one `sompong` tmux session; Mac/winbox `--role coo`
    refuses.
 5. The session cannot read the wake/internal keys or any token (`printenv`, `/etc/sompong/*`, the
-   ClaudeFlow `data/` dir).
+   ClaudeFlow `data/` dir) — enforced at the tool layer: the keys live only in the inbox process, the
+   session env never carries them, `.claude/settings.json` denies Read on the secret paths, the org
+   secret-env guard runs, and family turns are gated.
+
+**Session user (CTO 2026-10-01):** the session runs as root, like every C-level on Contabo, because the
+CEO made SomPong a full C-level (org tools, tasks, worktrees, pushes all assume root). So probe 5 is a
+tool-layer guarantee, not OS isolation: a CEO turn is ungated, as in any C-level session. A non-root
+session user (real isolation from the inbox's keys) is a later hardening and needs the org tools to work
+for a non-root user first (task-179acf77 report, risk 1).
