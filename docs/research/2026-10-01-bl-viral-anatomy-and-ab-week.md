@@ -60,3 +60,20 @@ Six cuts × the Arm-1 editor (about 1 h each at 80–95 s [O]), renders serializ
 - Arm A needs a headline plate that the 25 Sep template (one caption band, no per-mode chip) does not have. Template change = Mac CTO's
   lane, with the CEO's OK.
 - Hooks like "โบรกไม่อยากบอก" are a generalisation about brokers: the script standard's attributed-claim rule still applies to arm A.
+
+## 8. Update: the spoken hooks (medium transcripts of the top 4, [R], state/bl-tt-transcripts-top4-medium-2026-10-01.tsv)
+| post | first 3 s, spoken |
+|---|---|
+| 9 Feb rebate 152K | "มึงรู้ไหม ทุกออเดอร์ที่กดมีบางอย่างที่โบรกไม่อยากบอก" then "กูจะพูดตรงๆ…" |
+| 8 Feb Greenland 153K | "ละครสั้นจบแล้ว ล่าสุดทรัมป์ออกมาประกาศเองว่า…" |
+| 23 Jan Exness 50K | "พวกมึงได้ข่าว Exness กำลังจะปิดบริการ Copy Trade หรือเปล่า?" |
+| 1 Mar XM 44K | "มึงเคยใช้ XM ไหม แล้วมึงรู้ไหมว่าบัญชี Standard ของ XM สเปรดสูง" |
+All four open with a question or a "nobody tells you" line, name the subject inside 3 s, and run at 2 short lines per 3 s. September openings
+("Order ที่มึงกด ไม่เคยออกไปถึงตลาดเลยสักครั้ง…" [R, small model]) have the same shape. So the spoken hook does not separate hits from
+September; the on-screen picture does [S]. This supports building the A/B on the look and holding the script constant.
+
+## 9. Decisions log
+- 2026-10-01 CEO: approved $2.00 for stage 2 of two new topics (EP59, EP60). Weltrade: the channel never earned from it (EP58 gate cleared).
+- 2026-10-01 CMO ruling for arm A layout: brand bug top-left with the date stamp, headline below it at ~12–26% of height, avatar lower
+  (COMP/EVID, no FF with the plate on screen), as in the Feb sheets. Mac CTO builds it as {"headline": {...}, "beats": [...]} (a bare
+  list = arm B).

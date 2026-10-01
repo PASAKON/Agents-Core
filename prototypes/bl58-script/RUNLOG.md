@@ -1,4 +1,4 @@
-IB status of Weltrade: unconfirmed, CEO to confirm before posting
+IB status of Weltrade: CONFIRMED by the CEO 2026-10-01 ("ไม่เคยได้รับ ไม่ต้องกังวล": the channel never earned from Weltrade). Posting gate cleared; still review the cut by eye first.
 
 # EP58 RUNLOG - Weltrade (task-cc4df7f0, script_writer, stage 1 of 3)
 
