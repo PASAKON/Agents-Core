@@ -1168,3 +1168,331 @@ def test_trim_range_frame_count_rounds_not_floors(monkeypatch, tmp_path):
     bc.trim_range(tmp_path / "in.mp4", 65.8333 - 39.3, tmp_path / "out.mp4")
     cmd = seen["cmd"]
     assert cmd[cmd.index("-frames:v") + 1] == "796"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Arm A -- the headline plate (task-406c21f3). Schema + geometry are tested in
+# tests/test_bl_checker.py; this is what compose does with them. No render.
+# ═══════════════════════════════════════════════════════════════════════════
+import re  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from tools import bl_checker as ck  # noqa: E402
+
+ARM_B_FIXTURES = Path(__file__).parent / "fixtures" / "bl_arm_b"
+
+# The real template's own anchors: </head> and the bug block. The older synthetic template above has neither.
+_TEMPLATE_HTML_ARM_A = '''<!doctype html>
+<html><head><style>:root{--neon:#FF2D40}</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="0">
+<!-- VIDEO TRACK - replace with plates -->
+<audio id="va" src="media/voice.m4a" data-start="0" data-duration="0"></audio>
+<div class="stage" id="stage"></div>
+      <div class="bug" id="bug">
+        <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
+        <div class="rl"></div>
+        <div class="dt2">20 พ.ค. 69</div>
+      </div>
+<script>
+tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+</script>
+</div>
+</body></html>
+'''
+
+LINE_1, LINE_2, RED = "โบรกเกอร์ไม่อยากให้คุณรู้", "Weltrade เปิดบัญชีง่ายจริงไหม", "ไม่อยากให้คุณรู้"
+
+
+def _arm_a_headline(**over):
+    h = {"lines": [LINE_1, LINE_2], "red": RED, "bug_side": "left",
+         "backdrop": [{"t0": 0.0, "src": "real/a.png"}, {"t0": 1.0, "src": "real/b.png"},
+                      {"t0": 2.0, "src": "real/c.png"}]}
+    h.update(over)
+    return h
+
+
+def _arm_a_beats():
+    return [
+        {"tag": "H1", "t0": 0.0, "t1": 1.2, "mode": "COMP", "extra": {"cap": "Hook one"}},
+        {"tag": "H2", "t0": 1.2, "t1": 2.4, "mode": "COMP", "extra": {"cap": "Hook two", "avatar_until": 2.0}},
+        {"tag": "H3", "t0": 2.4, "t1": 3.4, "mode": "COMP", "extra": {}},
+        {"tag": "E1", "t0": 3.4, "t1": 5.0, "mode": "EVID",
+         "extra": {"img": "real/x.png", "native_w": 1080, "native_h": 1500, "box": [40, 800, 900, 500],
+                   "credit": "WikiFX", "cap": "Evidence"}},
+        {"tag": "K1", "t0": 5.0, "t1": 7.0, "mode": "KIN",
+         "extra": {"broll": "broll/S01.mp4", "lines": [["w", "Hello"]]}},
+    ]
+
+
+@pytest.fixture
+def arm_a_generator(tmp_path):
+    d = tmp_path / "generator"
+    (d / "media" / "real").mkdir(parents=True)
+    (d / "build_cut.py").write_text(_BUILD_CUT_PY, encoding="utf-8")
+    (d / "assemble.py").write_text(_ASSEMBLE_PY, encoding="utf-8")
+    (d / "index.html").write_text(_TEMPLATE_HTML_ARM_A, encoding="utf-8")
+    for name in ("a", "b", "c"):
+        (d / "media" / "real" / f"{name}.png").write_bytes(b"png")
+    return d
+
+
+def _backdrops(html):
+    """[(id, src, start, duration)] of every backdrop plate in a composed index.html."""
+    return [(m[0], m[1], float(m[2]), float(m[3])) for m in re.findall(
+        r'<img class="clip" id="(bd_[a-z0-9_]+)" src="media/([^"]+)" style="object-fit:cover" '
+        r'data-start="([\d.]+)" data-duration="([\d.]+)"', html)]
+
+
+def _src_at(backdrops, t):
+    on = [src for _, src, start, dur in backdrops if start - 1e-9 <= t < start + dur - 1e-9]
+    assert len(on) <= 1, f"two backdrops at t={t}: {on}"
+    return on[0] if on else None
+
+
+# ── the HTML-level smoke ──
+
+def test_arm_a_compose_writes_the_plate_the_red_span_the_left_bug_and_three_backdrop_switches(arm_a_generator, tmp_path):
+    beats, h = _arm_a_beats(), ck.parse_headline(_arm_a_headline())
+    index = bc.compose(beats, arm_a_generator, t_max=7.0, out_dir=tmp_path / "out", headline=h)
+    html = index.read_text(encoding="utf-8")
+
+    # the plate: one element, two lines, the red substring in a span, present from frame 0 (no data-start)
+    assert html.count('id="hl"') == 1
+    plate = re.search(r'<div id="hl" class="hl" style="([^"]*)">(.*?)</div></div>', html, re.S)
+    style = dict(p.split(":", 1) for p in plate.group(1).split(";"))
+    assert style == {"left": "120px", "top": "276px", "width": "840px", "height": "150px",
+                     "font-size": "60px", "line-height": "75px"}
+    assert plate.group(2) == (f'<div class="hl-line">โบรกเกอร์<span class="hl-red">{RED}</span></div>'
+                              f'<div class="hl-line">{LINE_2}')
+    assert "data-start" not in plate.group(0)
+    assert html.count('<span class="hl-red">') == 1
+    assert html.index('id="hl"') < html.index('id="bug"')
+
+    # the bug moved top-left by an override in the render workdir; the plate's own styles came with it
+    assert '<style id="arm-a-bug">#bug{left:120px;right:auto;top:190px;' in html
+    assert '<style id="arm-a-plate">.hl{' in html and "font-weight:800" in html
+    assert html.index('<style id="arm-a-bug">') < html.index("</head>")
+
+    # the backdrop switches at 0, 1 and 2 s and never leaves a hole until the EVID beat takes over at 3.4
+    bd = _backdrops(html)
+    assert [(i, s, st, du) for i, s, st, du in bd] == [
+        ("bd_h1_0", "real/a.png", 0.0, 1.0), ("bd_h1_1", "real/b.png", 1.0, 0.2),
+        ("bd_h2_1", "real/b.png", 1.2, 0.8), ("bd_h2_2", "real/c.png", 2.0, 0.4),
+        ("bd_h3_2", "real/c.png", 2.4, 1.0)]
+    assert [_src_at(bd, t) for t in (0.0, 0.5, 0.99, 1.0, 1.5, 1.99, 2.0, 2.9, 3.39)] == \
+        ["real/a.png"] * 3 + ["real/b.png"] * 3 + ["real/c.png"] * 3
+    assert all(_src_at(bd, round(t * 0.05, 2)) for t in range(0, 68))        # every 50 ms of [0, 3.4): one plate
+    assert _src_at(bd, 3.4) is None                                           # the EVID plate owns it from here
+
+    # the matted avatar rides each opening beat, avatar_until honoured; captions are the one template style
+    assert 'id="av_h1" src="media/matte/lip_a-matte.webm"' in html
+    assert re.search(r'id="av_h2"[^>]*data-start="1.2" data-duration="0.8"', html)
+    assert re.search(r'id="av_h3"[^>]*data-start="2.4" data-duration="1.0"', html)
+    assert 'caption(0.0, 1.2, "Hook one");' in html and 'caption(1.2, 2.4, "Hook two");' in html
+    assert re.search(r'id="v_e1" src="media/real/x.png"', html)
+
+    # the verdict side agrees with what was composed
+    assert ck.check_headline_plate(h, html) == []
+    assert ck.check_headline(h, beats) == []
+
+
+def test_arm_a_compose_never_edits_the_generator_dir(arm_a_generator, tmp_path):
+    before = {p.name: p.read_bytes() for p in arm_a_generator.iterdir() if p.is_file()}
+    bc.compose(_arm_a_beats(), arm_a_generator, t_max=7.0, out_dir=tmp_path / "out", headline=_arm_a_headline())
+    assert {p.name: p.read_bytes() for p in arm_a_generator.iterdir() if p.is_file()} == before
+    assert 'id="hl"' not in (arm_a_generator / "index.html").read_text(encoding="utf-8")
+
+
+def test_arm_a_compose_accepts_a_raw_headline_dict_and_validates_it(arm_a_generator, tmp_path):
+    with pytest.raises(ck.ArmAError, match="ambiguous"):
+        bc.compose(_arm_a_beats(), arm_a_generator, 7.0, tmp_path / "out",
+                   headline=_arm_a_headline(lines=["ผลลัพธ์จริง", "ผลลัพธ์ปลอม"], red="ผลลัพธ์"))
+
+
+def test_arm_a_plate_text_is_html_escaped(arm_a_generator, tmp_path):
+    h = _arm_a_headline(lines=["A & B <b>x", "ไหม"], red="B")
+    html = bc.compose(_arm_a_beats(), arm_a_generator, 7.0, tmp_path / "out", headline=h).read_text(encoding="utf-8")
+    assert 'A &amp; <span class="hl-red">B</span> &lt;b&gt;x' in html
+    assert "<b>x" not in html
+
+
+def test_arm_a_range_render_keeps_the_plate_and_clips_the_backdrop_to_the_window(arm_a_generator, tmp_path):
+    # segment 2 of a split render starts at H2's own t0 (a window never starts mid-beat)
+    html = bc.compose(_arm_a_beats(), arm_a_generator, t_max=7.0, out_dir=tmp_path / "out", t0=1.2,
+                      headline=_arm_a_headline()).read_text(encoding="utf-8")
+    assert html.count('id="hl"') == 1 and '<style id="arm-a-bug">' in html
+    bd = _backdrops(html)
+    assert bd == [("bd_h2_1", "real/b.png", 0.0, 0.8), ("bd_h2_2", "real/c.png", 0.8, 0.4),
+                  ("bd_h3_2", "real/c.png", 1.2, 1.0)]                       # composition-local time
+
+
+# ── what arm A refuses, by name, before anything is written ──
+
+def _refused(arm_a_generator, tmp_path, beats, headline=None, **kw):
+    out = tmp_path / "out"
+    out.mkdir(exist_ok=True)
+    (out / "keep.txt").write_text("a previous build", encoding="utf-8")
+    with pytest.raises(bc.ComposeError) as exc:
+        bc.compose(beats, arm_a_generator, 7.0, out, headline=headline or _arm_a_headline(), **kw)
+    assert (out / "keep.txt").is_file(), "a refused compose must not clear the render workdir"
+    return str(exc.value)
+
+
+def test_arm_a_refuses_an_ff_beat_and_names_it(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()
+    beats[3] = {"tag": "FF-LATE", "t0": 3.4, "t1": 5.0, "mode": "FF", "extra": {"cap": "x"}}
+    msg = _refused(arm_a_generator, tmp_path, beats)
+    assert "'FF-LATE' is FF" in msg and "COMP" in msg
+
+
+def test_arm_a_refuses_ff_even_when_the_range_render_window_excludes_it(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()
+    beats[4] = {"tag": "FF-LATE", "t0": 5.0, "t1": 7.0, "mode": "FF", "extra": {}}
+    assert "'FF-LATE' is FF" in _refused(arm_a_generator, tmp_path, beats, t0=0.0)
+
+
+def test_arm_b_still_accepts_ff(generator_dir, beats_2, tmp_path):
+    assert bc.compose(beats_2, generator_dir, 5.0, tmp_path / "out").is_file()
+
+
+def test_arm_a_refuses_a_missing_backdrop_file_and_names_it(arm_a_generator, tmp_path):
+    (arm_a_generator / "media" / "real" / "b.png").unlink()
+    msg = _refused(arm_a_generator, tmp_path, _arm_a_beats())
+    assert "real/b.png" in msg and "t0=1s" in msg and str(arm_a_generator / "media") in msg
+
+
+def test_arm_a_refuses_when_the_beat_at_1s_is_not_a_backdrop_comp(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()
+    beats[1] = {"tag": "H2", "t0": 1.0, "t1": 2.4, "mode": "KIN", "extra": {"lines": [["w", "x"]]}}
+    msg = _refused(arm_a_generator, tmp_path, beats)
+    assert "t=1s" in msg and "'H2' (KIN)" in msg
+
+
+def test_arm_a_refuses_when_the_beat_at_2s_is_a_comp_with_its_own_img(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()
+    beats[1] = {"tag": "H2", "t0": 1.2, "t1": 3.4, "mode": "COMP",
+                "extra": {"img": "real/x.png", "native_w": 1080, "native_h": 1000}}
+    msg = _refused(arm_a_generator, tmp_path, beats)
+    assert "t=2s" in msg and "'H2' (COMP, with img)" in msg
+
+
+def test_arm_a_refuses_when_no_beat_covers_the_opening(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()[3:]                                    # first beat starts at 3.4
+    assert "beat on screen then is none" in _refused(arm_a_generator, tmp_path, beats)
+
+
+def test_arm_a_refuses_a_backdrop_comp_after_the_opening(arm_a_generator, tmp_path):
+    beats = _arm_a_beats() + [{"tag": "LATE", "t0": 6.0, "t1": 7.0, "mode": "COMP", "extra": {}}]
+    beats[4]["t1"] = 6.0
+    msg = _refused(arm_a_generator, tmp_path, beats)
+    assert "'LATE'" in msg and "only the opening" in msg
+
+
+def test_arm_a_refuses_a_box_or_credit_on_a_backdrop_comp(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()
+    beats[0]["extra"]["box"] = [0, 0, 100, 100]
+    assert "'H1' is a backdrop COMP" in _refused(arm_a_generator, tmp_path, beats)
+    beats = _arm_a_beats()
+    beats[0]["extra"]["credit"] = "WikiFX"
+    assert "'H1' is a backdrop COMP" in _refused(arm_a_generator, tmp_path, beats)
+
+
+def test_arm_a_refuses_the_right_hand_bug_and_says_how_to_fix_it(arm_a_generator, tmp_path):
+    msg = _refused(arm_a_generator, tmp_path, _arm_a_beats(), headline=_arm_a_headline(bug_side="right"))
+    assert "overlaps_bug_right" in msg and 'bug_side to "left"' in msg
+
+
+def test_arm_a_refuses_a_plate_on_top_of_an_evid_box(arm_a_generator, tmp_path):
+    beats = _arm_a_beats()
+    beats[3]["extra"].update(native_h=1920, box=[100, 300, 400, 100])
+    assert "overlaps_evidence:E1" in _refused(arm_a_generator, tmp_path, beats)
+
+
+def test_arm_a_refuses_a_template_it_cannot_anchor_to(generator_dir, tmp_path):
+    (generator_dir / "media" / "real").mkdir(parents=True)
+    for name in ("a", "b", "c"):
+        (generator_dir / "media" / "real" / f"{name}.png").write_bytes(b"png")
+    with pytest.raises(bc.ComposeError, match=r"0 occurrence\(s\) of '</head>'"):
+        bc.compose(_arm_a_beats(), generator_dir, 7.0, tmp_path / "out", headline=_arm_a_headline())
+
+
+def test_emit_pieces_alone_refuses_ff_in_arm_a(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    beats = [{"tag": "A1", "t0": 0.0, "t1": 2.0, "mode": "FF", "extra": {}}]
+    with pytest.raises(bc.ComposeError, match="'A1' is FF"):
+        bc.emit_pieces(beats, 5.0, funcs, headline=ck.parse_headline(_arm_a_headline()))
+
+
+# ── main(): one beats.json, either arm ──
+
+def test_main_composes_an_arm_a_object(arm_a_generator, tmp_path, capsys):
+    doc = tmp_path / "beats.json"
+    doc.write_text(json.dumps({"headline": _arm_a_headline(), "beats": _arm_a_beats()}), encoding="utf-8")
+    rc = bc.main(["--beats", str(doc), "--generator-dir", str(arm_a_generator), "--t-max", "7.0",
+                  "--out-dir", str(tmp_path / "out"), "--no-render"])
+    assert rc == 0
+    assert 'id="hl"' in (tmp_path / "out" / "index.html").read_text(encoding="utf-8")
+
+
+def test_main_exits_2_with_the_reason_when_red_is_missing_or_ambiguous(arm_a_generator, tmp_path, capsys):
+    for bad, word in ((_arm_a_headline(red="ไม่มีคำนี้"), "neither line"),
+                      (_arm_a_headline(lines=["ผลลัพธ์จริง", "ผลลัพธ์ปลอม"], red="ผลลัพธ์"), "ambiguous")):
+        doc = tmp_path / "beats.json"
+        doc.write_text(json.dumps({"headline": bad, "beats": _arm_a_beats()}), encoding="utf-8")
+        rc = bc.main(["--beats", str(doc), "--generator-dir", str(arm_a_generator), "--t-max", "7.0",
+                      "--out-dir", str(tmp_path / "out"), "--no-render"])
+        assert rc == 2
+        assert word in capsys.readouterr().err
+        assert not (tmp_path / "out").exists(), "a refused schema writes nothing"
+
+
+def test_main_arm_b_still_calls_compose_without_a_headline_argument(monkeypatch, tmp_path):
+    seen = {}
+    monkeypatch.setattr(bc, "compose", lambda *a, **kw: seen.update(args=a, kw=kw) or tmp_path / "index.html")
+    doc = tmp_path / "beats.json"
+    doc.write_text(json.dumps([{"tag": "A", "t0": 0.0, "t1": 1.0, "mode": "KIN", "extra": {}}]), encoding="utf-8")
+    assert bc.main(["--beats", str(doc), "--generator-dir", str(tmp_path), "--t-max", "1.0",
+                    "--out-dir", str(tmp_path), "--no-render"]) == 0
+    assert seen["kw"] == {"t0": 0.0}
+
+
+# ── arm B is byte-identical to what this tool produced before arm A existed ──
+# tests/fixtures/bl_arm_b/ holds cut_pieces.json + index.html recorded from the PRE-change tool (git show
+# 18da8cc1:tools/bl_compose.py) for a six-beat table covering FF, COMP (box, credit, shift, avatar_until), EVID and
+# KIN (named broll, default broll from SCRIPT.tsv), as a full render and as a range render starting at 5.0 s.
+
+def _arm_b_generator(tmp_path):
+    d = tmp_path / "generator"
+    d.mkdir()
+    (d / "build_cut.py").write_text(_BUILD_CUT_PY, encoding="utf-8")
+    (d / "assemble.py").write_text(_ASSEMBLE_PY, encoding="utf-8")
+    (d / "index.html").write_text(_TEMPLATE_HTML, encoding="utf-8")
+    (d / "SCRIPT.tsv").write_text((ARM_B_FIXTURES / "SCRIPT.tsv").read_text(encoding="utf-8"), encoding="utf-8")
+    return d
+
+
+@pytest.mark.parametrize("name,t0", [("full", 0.0), ("range", 5.0)])
+def test_arm_b_compose_is_byte_identical_to_the_pre_arm_a_golden(tmp_path, name, t0):
+    beats = json.loads((ARM_B_FIXTURES / "beats.json").read_text(encoding="utf-8"))
+    out = tmp_path / "out"
+    bc.compose(beats, _arm_b_generator(tmp_path), 12.0, out, t0=t0)
+    for f in ("cut_pieces.json", "index.html"):
+        assert (out / f).read_bytes() == (ARM_B_FIXTURES / name / f).read_bytes(), f
+
+
+def test_arm_b_main_is_byte_identical_to_the_pre_arm_a_golden(tmp_path):
+    out = tmp_path / "out"
+    rc = bc.main(["--beats", str(ARM_B_FIXTURES / "beats.json"), "--generator-dir",
+                  str(_arm_b_generator(tmp_path)), "--t-max", "12.0", "--out-dir", str(out), "--no-render"])
+    assert rc == 0
+    for f in ("cut_pieces.json", "index.html"):
+        assert (out / f).read_bytes() == (ARM_B_FIXTURES / "full" / f).read_bytes(), f
+
+
+def test_arm_b_golden_really_covers_every_mode():
+    pieces = json.loads((ARM_B_FIXTURES / "full" / "cut_pieces.json").read_text(encoding="utf-8"))
+    joined = "\n".join(pieces["plates"] + pieces["script_lines"] + pieces["caps_js"])
+    for needle in ('class="clip" id="v_h1"', 'class="avatar-comp" id="av_c1"', 'id="v_e1"', "plate-darkened",
+                   "spotlight(", "credit(", "kinetic(", "caption("):
+        assert needle in joined, needle
+    assert "hl" not in joined.replace("hl-", "") or 'id="hl"' not in joined       # no arm-A artefact in arm B

@@ -1,0 +1,96 @@
+[
+ {
+  "tag": "H1",
+  "t0": 0.0,
+  "t1": 2.0,
+  "mode": "FF",
+  "extra": {
+   "cap": "Hook line"
+  }
+ },
+ {
+  "tag": "C1",
+  "t0": 2.0,
+  "t1": 4.0,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/c.png",
+   "native_w": 800,
+   "native_h": 600,
+   "box": [
+    100,
+    100,
+    300,
+    200
+   ],
+   "cap": "Comp caption",
+   "credit": "WikiFX",
+   "shift": 10,
+   "avatar_until": 3.5
+  }
+ },
+ {
+  "tag": "E1",
+  "t0": 4.0,
+  "t1": 6.0,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/e.png",
+   "native_w": 1080,
+   "native_h": 1400,
+   "box": [
+    40,
+    300,
+    900,
+    500
+   ],
+   "cap": "Evidence caption",
+   "credit": "SEC filing"
+  }
+ },
+ {
+  "tag": "K1",
+  "t0": 6.0,
+  "t1": 8.0,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S01.mp4",
+   "lines": [
+    [
+     "w",
+     "Hello"
+    ],
+    [
+     "r",
+     "World"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "K2",
+  "t0": 8.0,
+  "t1": 10.0,
+  "mode": "KIN",
+  "extra": {
+   "lines": [
+    [
+     "w",
+     "No broll named"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "E2",
+  "t0": 10.0,
+  "t1": 12.0,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/e2.png",
+   "native_w": 1080,
+   "native_h": 1920,
+   "cap": "Last"
+  }
+ }
+]
