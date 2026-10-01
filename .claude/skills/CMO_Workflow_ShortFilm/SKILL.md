@@ -185,6 +185,21 @@ and the CEO's own edit needs a day.
   back of the head). The rule and its tests are `CMO_Standard_Story_FamilyDogSeries` §2 item 10.
 - **Edit:** the CEO cuts in CapCut. Send him an edit kit (keepers, music, credits roll, subtitle file) over
   Drive or Taildrop, and remind him to delete the kit on the Mac afterwards.
+- **The «บ้านนี้มีมีมี่» cut (CEO 2026-10-01: v2 approved, "save เป็น workflow"):** one manifest per episode, built by
+  `tools/film_cut_assemble.py <manifest> --var PROD=… --var CARDS=… --var OUT=…` (ffmpeg only, 0 tokens; the EP1 manifest is
+  `docs/scripts/khaoniao-ep1-cut-manifest.json` and re-renders the approved cut bit-for-bit, video md5 equal). The recipe:
+  1. **Trim the first shot's lead-in** so frame 0 is inside the hook: dump the first 2 s as 50 ms RMS, start at the first
+     sound burst (EP1: 0.8 s), then check a face is on screen by ~0.3 s.
+  2. **Time label** («เมื่อเช้า») = transparent PNG from `docs/reports/khaoniao-family-style/cover/card.html?mode=morning`,
+     laid over the first 2.4 s of the flashback shot, fade 0.3 s in and out, placed at y=60 (lower covers the heads).
+  3. **Title card** (`mode=title`, 2.6 s) right after a shot that leaves a question open, placed so **1:00 falls inside it**
+     (the manifest's `mid_roll_s` check prints what lands there); never before 3 s.
+  4. **End card** (`mode=end`, 3.5 s): the page mark + only a promise we keep («ติดตามตอนใหม่ทุกวัน 19:30»).
+  5. Then the music step below, a 540x960 crf-28 preview (3 min ≈ 14 MiB; the chat send limit is 30 MiB) and the full file
+     to `Assets/Agents/Core/khaoniao-family/ep1/` + the winbox cut folder.
+  Cards render on winbox with `render_cards.py` (Chrome headless; real Itim from Google Fonts; `--default-background-color=00000000`
+  gives the transparent label). Traps: a space between inline-block Thai spans collapses (use `&nbsp;`); the page-mark PNG is
+  mostly transparent padding (size it at 2400 px or the name prints tiny); look at the cards once on one sheet over a real frame.
 - **Music:** Flow Music tracks with the rights record (`MUSIC-RIGHTS.md`, `MUSIC-LEDGER.json`).
   **The «บ้านนี้มีมีมี่» recipe (CEO 2026-10-01, "ผ่านแล้ว … ต้องใส่เพลงด้วยแบบนี้เลย"): every episode of that channel
   carries a quiet solo-piano bed made exactly like M1.** One track per episode:
