@@ -1,0 +1,384 @@
+# BLACK LIQUIDITY EP60 -- GB / Goldenburg (WikiFX) -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl60-realfootage/shots.yaml --episode bl60
+#
+# Sources (all public pages, no login, captured 2026-10-01 Thai time, see prototypes/bl60-script/RUNLOG.md):
+#   profile = https://www.wikifx.com/th/dealer/8341918460.html  (WikiFX profile: GB, Cyprus)
+#   art     = https://www.wikifx.com/th/newsdetail/202610019604717978.html (1 Oct 2026 review, licence Revoked)
+#   srv     = https://www.wikifx.com/th/survey/104771d952.html (WikiFX field visit, 2019-05-31, Good)
+#   exp     = https://www.wikifx.com/th/exposure/detail/202102035922794080.html (complaint, 2021-02-03)
+#
+# censor_profiles and the x-wikifx-hygiene hide-block are REUSED VERBATIM from
+# prototypes/bl58-realfootage/shots.yaml. Additions for EP60 only:
+#   broker_contact = GB's own website / email / phone
+#   people         = the two named officers WikiFX lists for the related company (never in frame)
+#   survey_address = the 2019 field-visit street address
+# Other brokers on the profile page (clone list, "users also viewed") are hidden by selector in every crop.
+
+censor_profiles:
+  personal_data:
+    - {label: "reviewer avatar + username", kind: full, avatar_heuristic: true}
+  faces: []
+  promo:
+    - {label: "signup/register CTA (สมัคร)", kind: full, text: "สมัคร"}
+    - {label: "register CTA (ลงทะเบียน)", kind: full, text: "ลงทะเบียน"}
+    - {label: "download app CTA", kind: full, text: "ดาวน์โหลด"}
+    - {label: "bonus/prize banner (รางวัล)", kind: full, text: "รางวัล"}
+    - {label: "gift/welcome-bonus banner (ของขวัญ)", kind: full, text: "ของขวัญ"}
+    - {label: "dollar bonus amount", kind: full, regex: "\\$[\\d,]{4,}"}
+    - {label: "unrelated product upsell (BotBuilt)", kind: full, text: "BotBuilt"}
+  broker_logo_partial:
+    - label: "header logo (partial)"
+      kind: partial
+      selector: ".nav-logo-link, header img[alt*=logo], a[href='/'] img"
+      fraction: 0.4
+      side: right
+      min_w: 60
+  complaint_ids:
+    - {label: "complainant FX id", kind: full, regex: "FX\\d{8,}"}
+    - {label: "complaint COG id", kind: full, regex: "COG\\d{10,}"}
+  broker_contact:
+    - {label: "broker website / email / phone text (regex, exact text range)", kind: full, regex: "(https?://)?(www\\.)?goldenburg(group|funds)\\.(eu|com)\\S*|info@goldenburggroup\\.eu|\\+?357\\s?25\\s?349815"}
+  people:
+    - {label: "named company officer", kind: full, regex: "IVOR\\s*LEHOTAN"}
+  survey_address:
+    - {label: "private street address, Thai", kind: full, regex: "[0-9]+\\s*ถนน\\S*"}
+    - {label: "2019 field-visit street address", kind: full, regex: "[0-9]+\\s*Siafi\\s*Street\\S*"}
+
+x-wikifx-hygiene: &wikifx_hygiene
+  hide_selectors:
+    - ".advertisement-list"
+    - ".wiki-direct"
+    - ".article-r"
+    - ".head-r"
+    - ".dealer-primary-jaf-new"
+    - ".article-c img, .article-info img"
+    - ".chrome_ctx_right"
+    - ".new_chrome_down"
+    - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+  hide_texts:
+    - "切换"
+
+shots:
+  # -- WikiFX profile header: logo + name + score + grade
+  - id: gb-header
+    url: "https://www.wikifx.com/th/dealer/8341918460.html"
+    action: capture
+    kind: still
+    covers: [HOOK-1, CONTEXT-1, MAIN-1]
+    wait_ms: 2500
+    crop:
+      selector: ".head-l-john"
+      pad: 2.4
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "score badge is an odometer reel, anchored on the header container not on digits"
+
+  # -- WikiFX profile red warning card
+  - id: gb-warning
+    url: "https://www.wikifx.com/th/dealer/8341918460.html"
+    action: capture
+    kind: still
+    covers: [HOOK-2, HOOK-3, HOOK-4, CONTEXT-2]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-risk"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "WikiFX's own warning card dated 2026-10-01"
+
+  # -- WikiFX profile licence box
+  - id: gb-licence
+    url: "https://www.wikifx.com/th/dealer/8341918460.html"
+    action: capture
+    kind: still
+    covers: [MAIN-3, MAIN-4]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-regulatory"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "WikiFX: no forex licence found, as shown on the profile"
+
+  # -- WikiFX profile basic-info box
+  - id: gb-basic
+    url: "https://www.wikifx.com/th/dealer/8341918460.html"
+    action: capture
+    kind: still
+    covers: [MAIN-5, MAIN-6]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-basebox"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "registered Cyprus, company Goldenburg Group Limited; website, email and phone pixelated"
+
+  # -- WikiFX profile related-company box (status: registration cancelled)
+  - id: gb-related
+    url: "https://www.wikifx.com/th/dealer/8341918460.html"
+    action: capture
+    kind: still
+    covers: [MAIN-9, MAIN-10]
+    wait_ms: 2500
+    crop:
+      selector: "section.bg-white.mb-20.active"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - "section:has(.dealer-list-ul)"
+      - "section:has(.dealerWorker)"
+      - ".dealer-list-ul"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact, people]
+    source_note: "related company GOLDENBURG GROUP LTD (Cyprus), WikiFX status text; clone list and officer names hidden"
+
+  # -- WikiFX article 1 Oct 2026 title + abstract
+  - id: gb-article-oct
+    url: "https://www.wikifx.com/th/newsdetail/202610019604717978.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-3, CONTEXT-4]
+    wait_ms: 2500
+    crop:
+      selector: "p.des"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "title and date of the 1 Oct article"
+
+  # -- 1 Oct article: the licence paragraph
+  - id: gb-article-licence
+    url: "https://www.wikifx.com/th/newsdetail/202610019604717978.html"
+    action: capture
+    kind: still
+    covers: [MAIN-7, MAIN-8]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(9)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "CySEC licence no. 242/14, effective 14 Jul 2014, as WikiFX states it"
+
+  # -- 1 Oct article: status Revoked paragraph
+  - id: gb-article-revoked
+    url: "https://www.wikifx.com/th/newsdetail/202610019604717978.html"
+    action: capture
+    kind: still
+    covers: [MAIN-11, MAIN-12, MAIN-13]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(11)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: [broker_contact]
+    source_note: "WikiFX: current status Revoked; the paragraph tells the reader to check with CySEC directly"
+
+  # -- 1 Oct article: which legal entity
+  - id: gb-article-entity
+    url: "https://www.wikifx.com/th/newsdetail/202610019604717978.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-1, CURIOSITY-2]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(6)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "WikiFX names GB Finance UK Ltd (UK) while the licence belonged to GOLDENBURG GROUP LTD"
+
+  # -- WikiFX survey page title + date (2019)
+  - id: gb-survey-title
+    url: "https://www.wikifx.com/th/survey/104771d952.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-3]
+    wait_ms: 2500
+    crop:
+      selector: ".tag"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".carousel"
+      - ".ex-map-box"
+      - ".survey-info-content img"
+    hide_texts:
+      - "切换"
+      - "Siafi"
+      - "Porto Bello"
+      - "EXness"
+    censor_profiles: [survey_address, personal_data]
+    source_note: "WikiFX survey dated 2019-05-31, tagged Good: seven years old; photos hidden"
+
+  # -- WikiFX survey page, the 2019 licence sentence
+  - id: gb-survey-brand
+    url: "https://www.wikifx.com/th/survey/104771d952.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-4, CURIOSITY-5]
+    wait_ms: 2500
+    crop:
+      text: "ได้รับอนุญาตอย่างเต็มที่"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".carousel"
+      - ".ex-map-box"
+      - ".survey-info-content img"
+    hide_texts:
+      - "切换"
+      - "Siafi"
+      - "Porto Bello"
+      - "EXness"
+    censor_profiles: [survey_address, personal_data]
+    source_note: "2019 text: licensed under CySEC, CIF 242/14; the other-broker sentence and street address hidden"
+
+  # -- Complaint page (2021)
+  - id: gb-complaint
+    url: "https://www.wikifx.com/th/exposure/detail/202102035922794080.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-1, PATTERN-2, PATTERN-3, PATTERN-4]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".swiper-image"
+      - ".service-box"
+    hide_texts:
+      - "切换"
+      - "มีความเสี่ยงถูกโบรกเกอร์โกง"
+    censor_profiles: [personal_data, complaint_ids, broker_contact]
+    source_note: "one user's claim from 2021-02-03, amount without a currency; username pixelated; WikiFX's risk-label hidden; full viewport"

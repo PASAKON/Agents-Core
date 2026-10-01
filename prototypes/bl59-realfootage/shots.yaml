@@ -1,0 +1,394 @@
+# BLACK LIQUIDITY EP59 -- GVD Markets (WikiFX) -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl59-realfootage/shots.yaml --episode bl59
+#
+# Sources (all public pages, no login, captured 2026-10-01 Thai time, see prototypes/bl59-script/RUNLOG.md):
+#   profile = https://www.wikifx.com/th/dealer/3938681280.html  (WikiFX profile: GVD Markets, Cyprus)
+#   art1    = https://www.wikifx.com/th/newsdetail/202609296884498721.html (29 Sep 2026 review, field-visit finding)
+#   art2    = https://www.wikifx.com/th/newsdetail/202604228024859656.html (22 Apr 2026, licence table + caveat)
+#   srv     = https://www.wikifx.com/th/survey/4354228159.html (WikiFX field visit, 2024-10-22, Cyprus, Danger)
+#   expo    = https://www.wikifx.com/th/survey/712574a54c.html (WikiFX Expo Dubai 2024 page, GVD Gold Sponsor)
+#   exp1    = https://www.wikifx.com/th/exposure/detail/COG20251026013307127649203.html (complaint, withdrawal + 2,800 USDT "tax")
+#   exp2    = https://www.wikifx.com/th/exposure/detail/COG20251008061622342987695.html (complaint, withdrawal not processed)
+#
+# censor_profiles and the x-wikifx-hygiene hide-block are REUSED VERBATIM from
+# prototypes/bl58-realfootage/shots.yaml (which reused bl57). Additions for EP59 only:
+#   broker_contact = GVD's own website / email / phone (so no link is on screen even as text)
+#   survey_address = the field-visit building address (same conservative rule as EP58)
+# Per-shot hide lists = the verbatim hygiene list + that shot's extras.
+#
+# NOT captured by this file: the checklist cards in SUMMARY (graphics), no real page behind them.
+
+censor_profiles:
+  personal_data:
+    - {label: "reviewer avatar + username", kind: full, avatar_heuristic: true}
+  faces: []
+  promo:
+    - {label: "signup/register CTA (สมัคร)", kind: full, text: "สมัคร"}
+    - {label: "register CTA (ลงทะเบียน)", kind: full, text: "ลงทะเบียน"}
+    - {label: "download app CTA", kind: full, text: "ดาวน์โหลด"}
+    - {label: "bonus/prize banner (รางวัล)", kind: full, text: "รางวัล"}
+    - {label: "gift/welcome-bonus banner (ของขวัญ)", kind: full, text: "ของขวัญ"}
+    - {label: "dollar bonus amount", kind: full, regex: "\\$[\\d,]{4,}"}
+    - {label: "unrelated product upsell (BotBuilt)", kind: full, text: "BotBuilt"}
+  broker_logo_partial:
+    - label: "header logo (partial)"
+      kind: partial
+      selector: ".nav-logo-link, header img[alt*=logo], a[href='/'] img"
+      fraction: 0.4
+      side: right
+      min_w: 60
+  complaint_ids:
+    - {label: "complainant FX id", kind: full, regex: "FX\\d{8,}"}
+    - {label: "complaint COG id", kind: full, regex: "COG\\d{10,}"}
+  broker_contact:
+    - {label: "broker website / email / phone text (regex, exact text range)", kind: full, regex: "(https?://)?(www\\.)?gvd(markets|trading|marketsth)\\.(com|eu)\\S*|cs@gvdmarkets\\.com|\\+?357\\s?25\\s?261457"}
+  survey_address:
+    - {label: "private street address, Thai", kind: full, regex: "[0-9]+\\s*ถนน\\S*"}
+    - {label: "field-visit building address (Omirou)", kind: full, regex: "20\\s*Omirou,?\\s*Thomaides\\s*Group"}
+    - {label: "field-visit street name", kind: full, regex: "Omirou\\S*"}
+
+x-wikifx-hygiene: &wikifx_hygiene
+  hide_selectors:
+    - ".advertisement-list"
+    - ".wiki-direct"
+    - ".article-r"
+    - ".head-r"
+    - ".dealer-primary-jaf-new"
+    - ".article-c img, .article-info img"
+    - ".chrome_ctx_right"
+    - ".new_chrome_down"
+    - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+  hide_texts:
+    - "切换"
+
+shots:
+  # -- WikiFX profile header: logo + name + score + grade
+  - id: gvd-header
+    url: "https://www.wikifx.com/th/dealer/3938681280.html"
+    action: capture
+    kind: still
+    covers: [HOOK-1, CONTEXT-1, MAIN-1]
+    wait_ms: 2500
+    crop:
+      selector: ".head-l-john"
+      pad: 2.4
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "score badge is an odometer reel, anchored on the header container not on digits"
+
+  # -- WikiFX profile licence box
+  - id: gvd-licence
+    url: "https://www.wikifx.com/th/dealer/3938681280.html"
+    action: capture
+    kind: still
+    covers: [MAIN-3, MAIN-4]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-regulatory"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "WikiFX: no forex licence found on the profile; licence box as shown"
+
+  # -- WikiFX profile basic-info box
+  - id: gvd-basic
+    url: "https://www.wikifx.com/th/dealer/3938681280.html"
+    action: capture
+    kind: still
+    covers: [MAIN-5, MAIN-6]
+    wait_ms: 2500
+    crop:
+      selector: ".dealer-basebox"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".top-comment-item"
+      - ".dealer-survey-container"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, broker_contact]
+    source_note: "registered Cyprus, company GVD KORIMCY LTD; website, email and phone pixelated"
+
+  # -- Complaint page 1 (withdrawal, 2,800 USDT tax)
+  - id: gvd-complaint-tax
+    url: "https://www.wikifx.com/th/exposure/detail/COG20251026013307127649203.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-1, PATTERN-2, MAIN-10]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".swiper-image"
+      - ".service-box"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, complaint_ids, broker_contact]
+    source_note: "one user's claim, marked unverified by WikiFX; ID and avatar pixelated; evidence image hidden; no crop = full 1080-wide viewport"
+
+  # -- Complaint page 2 (withdrawal not processed)
+  - id: gvd-complaint-2
+    url: "https://www.wikifx.com/th/exposure/detail/COG20251008061622342987695.html"
+    action: capture
+    kind: still
+    covers: [PATTERN-3, PATTERN-4]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".swiper-image"
+      - ".service-box"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, complaint_ids, broker_contact]
+    source_note: "one user's claim, marked unverified by WikiFX; username and avatar pixelated; no crop = full viewport"
+
+  # -- WikiFX article 29 Sep 2026 title + abstract
+  - id: gvd-article-sep
+    url: "https://www.wikifx.com/th/newsdetail/202609296884498721.html"
+    action: capture
+    kind: still
+    covers: [CONTEXT-2, CONTEXT-3]
+    wait_ms: 2500
+    crop:
+      selector: "p.des"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "title and date of the 29 Sep article"
+
+  # -- 29 Sep article: field-visit paragraph
+  - id: gvd-article-field
+    url: "https://www.wikifx.com/th/newsdetail/202609296884498721.html"
+    action: capture
+    kind: still
+    covers: [MAIN-7, MAIN-8]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(9)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: [survey_address]
+    source_note: "22 Oct 2024 visit, WikiFX team; building address pixelated"
+
+  # -- 29 Sep article: what the visit found
+  - id: gvd-article-findings
+    url: "https://www.wikifx.com/th/newsdetail/202609296884498721.html"
+    action: capture
+    kind: still
+    covers: [MAIN-9]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(12)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: [survey_address]
+    source_note: "two bullets: other companies on floors 1 and 2, no sign of GVD Markets"
+
+  # -- WikiFX survey page, Cyprus visit (full viewport)
+  - id: gvd-survey-cyprus
+    url: "https://www.wikifx.com/th/survey/4354228159.html"
+    action: capture
+    kind: still
+    covers: [HOOK-2, HOOK-3, HOOK-4, MAIN-8]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".carousel"
+      - ".ex-map-box"
+      - ".survey-info-content img"
+    hide_texts:
+      - "切换"
+    censor_profiles: [personal_data, survey_address]
+    source_note: "field visit dated 2024-10-22; photos and map hidden; street address pixelated"
+
+  # -- 22 Apr article: licence table
+  - id: gvd-licence-table
+    url: "https://www.wikifx.com/th/newsdetail/202604228024859656.html"
+    action: capture
+    kind: still
+    covers: [MAIN-4, MAIN-5]
+    wait_ms: 2500
+    crop:
+      selector: "table.cms_autoformat_table"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "three licences all marked unverified by WikiFX; the licence holders carry other company names"
+
+  # -- 22 Apr article: WikiFX's own caveat about complaints
+  - id: gvd-article-caveat
+    url: "https://www.wikifx.com/th/newsdetail/202604228024859656.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-1, CURIOSITY-2]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(19)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "WikiFX: complaints are user text, no broker reply found in the dataset"
+
+  # -- WikiFX Expo Dubai 2024 page header (Gold Sponsors tag)
+  - id: gvd-expo
+    url: "https://www.wikifx.com/th/survey/712574a54c.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-3, CURIOSITY-4]
+    wait_ms: 2500
+    crop:
+      selector: ".ex-center"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+      - ".carousel"
+      - ".swiper-image"
+      - ".ex-map-box"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "WikiFX's own page lists GVD Markets as an exhibitor, tagged Gold Sponsors; photos of people not in this crop"
+
+  # -- 29 Sep article: the positive-review bullet
+  - id: gvd-article-mixed
+    url: "https://www.wikifx.com/th/newsdetail/202609296884498721.html"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-5]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(21) li:nth-child(3)"
+      pad: 1.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "WikiFX notes some users praise the platform; third bullet only"
