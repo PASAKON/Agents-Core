@@ -5,6 +5,13 @@ No images loop, no judgment calls at render-review time: given the finished
 MP4 and the beats table the Scripter wrote, run six mechanical checks and
 exit 1 if any fails.
 
+beats.json is either a bare list of beats (arm B, the look every episode so
+far has) or `{"headline": {...}, "beats": [...]}` (arm A, the headline-plate
+look, task-406c21f3). For arm A this module also owns the schema
+(split_beats_doc / parse_headline) and the plate's geometry (headline_layout,
+bug_zone) -- bl_compose.py imports them, so the plate it places and the
+plate this checker judges are one rectangle. Section 7 below.
+
 Usage:
     python3 tools/bl_checker.py --video final.mp4 --beats beats.json \
         [--face-box x,y,w,h] [--composition cut/index.html]
@@ -52,10 +59,25 @@ DIP_MIN_GAP = 40          # neighbour mean must exceed this frame's mean by >= t
 DIP_MAX_RATIO = 0.5       # and this frame's mean must be <= this fraction of the DARKER neighbour's mean
 
 
-def _frame_stats(video_path: Path, fps: int, w: int, h: int) -> tuple["np.ndarray", "np.ndarray"] | None:
+def _mask_canvas_rect(m: "np.ndarray", rect: tuple[float, float, float, float], w: int, h: int) -> None:
+    """Blank a canvas-px rect (x, y, w, h) out of a (h, w) frame mask, rounding outward so a sliver of the
+    standing element never leaks into the statistics."""
+    import math
+    x, y, rw, rh = rect
+    m[max(0, math.floor(y / CANVAS_H * h)):math.ceil((y + rh) / CANVAS_H * h),
+      max(0, math.floor(x / CANVAS_W * w)):math.ceil((x + rw) / CANVAS_W * w)] = False
+
+
+def _frame_stats(video_path: Path, fps: int, w: int, h: int, bug_side: str = "right",
+                 extra_zones: tuple = ()) -> tuple["np.ndarray", "np.ndarray"] | None:
     """(means, stds) per sampled frame, each masked to exclude the standing
     brand-bug and legal-label zones (they are never empty, so including them
-    would hide a genuinely empty frame behind their own contrast)."""
+    would hide a genuinely empty frame behind their own contrast).
+
+    Arm A (task-406c21f3): `bug_side="left"` masks the top-left bug zone
+    instead of the top-right one, and `extra_zones` (canvas-px rects) masks the
+    headline plate, which is standing text on every frame for the same reason.
+    Left at the defaults this is exactly the arm-B mask."""
     import numpy as np
 
     raw = subprocess.run(
@@ -67,7 +89,12 @@ def _frame_stats(video_path: Path, fps: int, w: int, h: int) -> tuple["np.ndarra
         return None
     a = np.frombuffer(raw, np.uint8).reshape(-1, h, w).astype(np.float32)
     m = np.ones((h, w), bool)
-    m[int(h * .12):int(h * .24), int(w * .55):] = False  # brand bug, top-right
+    if bug_side == "left":
+        _mask_canvas_rect(m, bug_zone("left"), w, h)      # brand bug, top-left (arm A)
+    else:
+        m[int(h * .12):int(h * .24), int(w * .55):] = False  # brand bug, top-right
+    for zone in extra_zones:
+        _mask_canvas_rect(m, zone, w, h)
     m[int(h * .66):int(h * .74), :] = False               # legal label band
     means = np.array([frame[m].mean() for frame in a])
     stds = np.array([frame[m].std() for frame in a])
@@ -75,8 +102,12 @@ def _frame_stats(video_path: Path, fps: int, w: int, h: int) -> tuple["np.ndarra
 
 
 def detect_empty_frames(video_path: Path, ignore_before: float = EMPTY_FRAME_IGNORE_BEFORE,
-                         fps: int = EMPTY_FRAME_FPS) -> list[float]:
-    stats = _frame_stats(video_path, fps, EMPTY_FRAME_W, EMPTY_FRAME_H)
+                         fps: int = EMPTY_FRAME_FPS, bug_side: str = "right",
+                         extra_zones: tuple = ()) -> list[float]:
+    if bug_side == "right" and not extra_zones:
+        stats = _frame_stats(video_path, fps, EMPTY_FRAME_W, EMPTY_FRAME_H)
+    else:
+        stats = _frame_stats(video_path, fps, EMPTY_FRAME_W, EMPTY_FRAME_H, bug_side, extra_zones)
     if stats is None:
         return []
     means, stds = stats
@@ -239,13 +270,20 @@ def caption_band(mode: str, canvas_h: int = CANVAS_H) -> tuple[float, float] | N
     return None
 
 
-def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float, float] | None) -> list[str]:
+def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float, float] | None,
+                          headline: dict | None = None) -> list[str]:
+    """Arm A (`headline` given): the plate is text on every frame, so every FF/COMP beat -- the ones with a face in
+    them -- is also flagged when the plate's text rectangle meets the face box, caption or not."""
     if face_box is None:
         return []
     fx, fy, fw, fh = face_box
+    plate_hits_face = headline is not None and _rects_overlap(headline_layout(headline)["text"], face_box)
     bad = []
     for b in beats:
         if b.get("mode") not in ("FF", "COMP"):
+            continue
+        if plate_hits_face:
+            bad.append(b["tag"])
             continue
         if not (b.get("extra") or {}).get("cap"):
             continue
@@ -386,19 +424,255 @@ def check_kinetic_overflow(html_text: str | None) -> list[str]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 7. Arm A -- the headline plate (task-406c21f3, CMO ruling 2026-10-01).
+#
+#    Arm A is the Feb-2026 viral look (docs/research/2026-10-01-bl-viral-
+#    anatomy-and-ab-week.md §5, §9): BL logo + date stamp top-left, a two-line
+#    headline under it with one word red, on screen from frame 0 for the whole
+#    clip, a topical real image behind the avatar at 0 / 1 / 2 s. Arm B is
+#    today's look and stays a bare list of beats.
+#
+#    beats.json for arm A:
+#      {"headline": {"lines": ["<line 1>", "<line 2>"],      # each <= 30 characters
+#                    "red": "<substring>",                   # occurs exactly once across both lines
+#                    "bug_side": "left",                     # "left" for arm A; default "right" (today)
+#                    "backdrop": [{"t0": 0.0, "src": "real/a.png"},
+#                                 {"t0": 1.0, "src": "real/b.png"},
+#                                 {"t0": 2.0, "src": "real/c.png"}]},
+#       "beats": [ ...the same beats an arm-B list holds... ]}
+#
+#    Characters are counted by `_visual_len` (section 5): spacing characters
+#    only, Unicode Mn (Thai vowel and tone marks) excluded -- the same count
+#    the kinetic-overflow gate uses, so one line of "30" means the same width
+#    in both places.
+#
+#    `red` is an exact substring, not the CMO's "red_word index": Thai has no
+#    spaces, so a word index is undefined.
+#
+#    Geometry is one source: bl_compose places the plate and the left bug with
+#    these numbers and this checker judges the same rectangles.
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ArmAError(ValueError):
+    """An arm-A beats.json, or a use of it, the tools refuse. bl_compose and bl_checker print it and exit 2."""
+
+
+HEADLINE_LINES = 2
+HEADLINE_MAX_CHARS = 30
+HEADLINE_KEYS = ("lines", "red", "bug_side", "backdrop")
+BUG_SIDES = ("left", "right")
+BACKDROP_T0S = (0.0, 1.0, 2.0)
+BACKDROP_PREFIX = "real/"   # a backdrop carries no credit chip, so it may only be a first-party `real/` capture
+
+# Canvas px (1080x1920). The plate spans the same horizontal box a `.blk.wide` block does: the template lets a block
+# that ends above y=900 take the right margin back to 120, and this one ends near y=500 -- 120..960, centred on 540.
+HEADLINE_BOX_LEFT, HEADLINE_BOX_RIGHT = 120, 960
+HEADLINE_TOP = 276                    # 14.4% of the height; the two lines end by ~25.8% (CMO: about 12-26%)
+HEADLINE_FONT_MAX = 88                # px, Kanit 800 -- 16 characters or fewer; a 30-character line fits at 48
+HEADLINE_LINE_RATIO = 1.25
+# The bug at the top-left: logo + divider + date on one row (the Feb sheets' shape). Origin is where compose pins it;
+# the zone is that row padded -- the logo is 60 px high and ~164 wide, the date chip ~150, 14 px gaps.
+BUG_LEFT_ORIGIN = (120, 190)
+BUG_LEFT_ZONE = (100.0, 176.0, 400.0, 86.0)
+# bl_compose's credit() helper: `left: var(--safe-left); top: 40px`, 22px Kanit, 6px/14px padding.
+CREDIT_CHIP_LEFT, CREDIT_CHIP_TOP, CREDIT_CHIP_FONT_PX, CREDIT_CHIP_H = 120, 40, 22, 45
+
+
+def _is_number(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def parse_headline(raw: Any) -> dict:
+    """Validate an arm-A `headline` object and return it normalised (backdrop sorted by t0, bug_side filled in).
+    Raises ArmAError with the rule that failed."""
+    if not isinstance(raw, dict):
+        raise ArmAError("headline must be an object {lines, red, bug_side, backdrop}")
+    unknown = sorted(set(raw) - set(HEADLINE_KEYS))
+    if unknown:
+        raise ArmAError(f"headline has unknown key(s) {unknown}; allowed: {list(HEADLINE_KEYS)}")
+
+    lines = raw.get("lines")
+    if not (isinstance(lines, list) and len(lines) == HEADLINE_LINES
+            and all(isinstance(l, str) and l.strip() for l in lines)):
+        raise ArmAError(f"headline.lines must be exactly {HEADLINE_LINES} non-empty strings, got {lines!r}")
+    for n, line in enumerate(lines, 1):
+        if any(c in line for c in "\r\n\t"):
+            raise ArmAError(f"headline.lines[{n - 1}] holds a line break or tab; each entry is one line: {line!r}")
+        count = _visual_len(line)
+        if count > HEADLINE_MAX_CHARS:
+            raise ArmAError(f"headline line {n} is {count} characters (Thai combining marks not counted, the way "
+                            f"bl_checker._visual_len counts); the limit is {HEADLINE_MAX_CHARS}: {line!r}")
+
+    red = raw.get("red")
+    if not isinstance(red, str) or not red.strip():
+        raise ArmAError('headline.red is required: the exact substring of one line to set in red '
+                        '(Thai has no spaces, so it is a substring, not a word index)')
+    hits = [(i, j) for i, line in enumerate(lines) for j in range(len(line)) if line.startswith(red, j)]
+    if not hits:
+        raise ArmAError(f"headline.red {red!r} occurs in neither line {lines!r}")
+    if len(hits) > 1:
+        raise ArmAError(f"headline.red {red!r} is ambiguous: it occurs {len(hits)} times across the two lines "
+                        f"{lines!r}; it must occur exactly once -- lengthen it until it does")
+    i, j = hits[0]
+    end = j + len(red)
+    if unicodedata.category(red[0]) == "Mn" or (end < len(lines[i]) and unicodedata.category(lines[i][end]) == "Mn"):
+        raise ArmAError(f"headline.red {red!r} cuts a Thai syllable: a vowel or tone mark would end up outside the "
+                        f"red span, away from its consonant. Start and end it on a whole syllable.")
+
+    side = raw.get("bug_side", "right")
+    if side not in BUG_SIDES:
+        raise ArmAError(f"headline.bug_side must be one of {list(BUG_SIDES)}, got {side!r}")
+
+    backdrop = raw.get("backdrop")
+    if not isinstance(backdrop, list) or len(backdrop) != len(BACKDROP_T0S):
+        raise ArmAError(f"headline.backdrop must be exactly {len(BACKDROP_T0S)} entries "
+                        f'{{"t0", "src"}} at t0 {list(BACKDROP_T0S)}, got {backdrop!r}')
+    entries = []
+    for e in backdrop:
+        if not isinstance(e, dict) or set(e) != {"t0", "src"} or not _is_number(e["t0"]):
+            raise ArmAError(f'headline.backdrop entries are {{"t0": <number>, "src": "real/<file>"}}, got {e!r}')
+        src = e["src"]
+        if (not isinstance(src, str) or not src.startswith(BACKDROP_PREFIX) or len(src) == len(BACKDROP_PREFIX)
+                or ".." in src.split("/") or "\\" in src):
+            raise ArmAError(f"headline.backdrop src must be a path under media/ starting {BACKDROP_PREFIX!r} "
+                            f"(no '..', no absolute path; a backdrop shows no credit chip), got {src!r}")
+        entries.append({"t0": float(e["t0"]), "src": src})
+    entries.sort(key=lambda e: e["t0"])
+    if tuple(e["t0"] for e in entries) != BACKDROP_T0S:
+        raise ArmAError(f"headline.backdrop t0 values must be exactly {list(BACKDROP_T0S)}, "
+                        f"got {[e['t0'] for e in entries]}")
+    return {"lines": list(lines), "red": red, "bug_side": side, "backdrop": entries}
+
+
+def split_beats_doc(doc: Any) -> tuple[list[dict], dict | None]:
+    """beats.json -> (beats, headline). A bare list is arm B (headline None); an object
+    {"headline", "beats"} is arm A. Raises ArmAError for anything else."""
+    if isinstance(doc, list):
+        return doc, None
+    if isinstance(doc, dict):
+        extra = sorted(set(doc) - {"headline", "beats"})
+        if extra or "headline" not in doc or "beats" not in doc or not isinstance(doc["beats"], list):
+            raise ArmAError('an arm-A beats.json is exactly {"headline": {...}, "beats": [...]} '
+                            f"(keys found: {sorted(doc)})")
+        return doc["beats"], parse_headline(doc["headline"])
+    raise ArmAError("beats.json must be a list of beats (arm B) or an object {headline, beats} (arm A)")
+
+
+def headline_layout(headline: dict) -> dict:
+    """Where the plate sits, in canvas px: `font_px`, `line_h`, `box` (the element compose emits -- full safe width,
+    two lines high) and `text` (the estimated extent of the widest line, centred on the box; what the checks
+    judge). Width is estimated the way the kinetic gate does it (visual characters x KINETIC_CHAR_WIDTH_RATIO x
+    font size, Kanit 800), and the font is the largest size, up to HEADLINE_FONT_MAX, at which the widest line fits
+    the box -- so a 30-character line comes out at 48 px, the smallest size this returns."""
+    widest = max(_visual_len(line) for line in headline["lines"])
+    box_w = HEADLINE_BOX_RIGHT - HEADLINE_BOX_LEFT
+    font = min(HEADLINE_FONT_MAX, int(box_w // (widest * KINETIC_CHAR_WIDTH_RATIO)))
+    line_h = round(font * HEADLINE_LINE_RATIO)
+    box = (HEADLINE_BOX_LEFT, HEADLINE_TOP, box_w, HEADLINE_LINES * line_h)
+    text_w = min(box_w, widest * KINETIC_CHAR_WIDTH_RATIO * font)
+    text = ((HEADLINE_BOX_LEFT + HEADLINE_BOX_RIGHT - text_w) / 2, HEADLINE_TOP, text_w, box[3])
+    return {"font_px": font, "line_h": line_h, "box": box, "text": text}
+
+
+def arm_mask_kwargs(headline: dict | None) -> dict:
+    """The `detect_empty_frames` keywords for an arm: none for arm B, so its call is the one it always was; for arm A
+    the left bug zone plus the plate's rectangle, both standing on every frame. Every empty-frame gate that can see an
+    arm-A video (run_checker, bl_merge) takes its mask from here."""
+    if headline is None:
+        return {}
+    return {"bug_side": headline["bug_side"], "extra_zones": (headline_layout(headline)["box"],)}
+
+
+def bug_zone(side: str = "right") -> tuple[float, float, float, float]:
+    """The brand bug's zone (x, y, w, h) in canvas px. Right is today's (the mask `_frame_stats` has always used);
+    left is arm A's."""
+    if side == "left":
+        return BUG_LEFT_ZONE
+    return (CANVAS_W * .55, CANVAS_H * .12, CANVAS_W * .45, CANVAS_H * .12)
+
+
+def _rects_overlap(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> bool:
+    """Positive-area overlap of two (x, y, w, h) rects; touching edges do not count."""
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
+
+
+def check_headline(headline: dict, beats: list[dict]) -> list[str]:
+    """Problems with where the plate sits, as stable ids. Empty means it is clear.
+      outside_safe_area        the text rect leaves safe_rect()
+      overlaps_bug_<side>      it meets the brand bug's zone (bug_side "right" always does -- set "left")
+      overlaps_evidence:<tag>  it meets the `box` of a COMP/EVID beat (the content the spotlight points at; a beat
+                               with no `box` declares no content area, so there is nothing to meet)
+      overlaps_credit:<tag>    it meets the credit chip of a COMP/EVID beat"""
+    text = headline_layout(headline)["text"]
+    problems = []
+    if not rect_within_safe(text, safe_rect()):
+        problems.append("outside_safe_area")
+    side = headline["bug_side"]
+    if _rects_overlap(text, bug_zone(side)):
+        problems.append(f"overlaps_bug_{side}")
+    for b in beats:
+        if b.get("mode") not in ("COMP", "EVID"):
+            continue
+        extra = b.get("extra") or {}
+        if extra.get("box") and _rects_overlap(text, box_to_canvas(extra["box"], img_placement(extra))):
+            problems.append(f"overlaps_evidence:{b['tag']}")
+        if extra.get("credit"):
+            chip_w = _visual_len(extra["credit"]) * KINETIC_CHAR_WIDTH_RATIO * CREDIT_CHIP_FONT_PX + 28
+            if _rects_overlap(text, (CREDIT_CHIP_LEFT, CREDIT_CHIP_TOP, chip_w, CREDIT_CHIP_H)):
+                problems.append(f"overlaps_credit:{b['tag']}")
+    return problems
+
+
+_HEADLINE_PLATE_RE = re.compile(r'<div id="hl"[^>]*?\bstyle="([^"]*)"')
+
+
+def check_headline_plate(headline: dict, composition_html: str) -> list[str]:
+    """The composed HTML carries the plate where `headline_layout` says (same left/top/width/height/font-size) and,
+    for bug_side "left", the compose override that moves the bug. This is what ties the verdict above to what was
+    actually rendered: the video itself cannot be read for a headline."""
+    layout = headline_layout(headline)
+    plates = _HEADLINE_PLATE_RE.findall(composition_html)
+    if len(plates) != 1:
+        return [f"plate_count={len(plates)}"]
+    style = {k.strip(): v.strip() for k, v in (part.split(":", 1) for part in plates[0].split(";") if ":" in part)}
+    left, top, width, height = layout["box"]
+    want = {"left": f"{left}px", "top": f"{top}px", "width": f"{width}px", "height": f"{height}px",
+            "font-size": f"{layout['font_px']}px"}
+    problems = [f"plate_{k}={style.get(k)}!={v}" for k, v in want.items() if style.get(k) != v]
+    if headline["bug_side"] == "left":
+        bug = re.search(r'<style id="arm-a-bug">(.*?)</style>', composition_html, re.S)
+        x, y = BUG_LEFT_ORIGIN
+        if not bug:
+            problems.append("bug_override_missing")
+        elif f"left:{x}px" not in bug.group(1) or f"top:{y}px" not in bug.group(1):
+            problems.append(f"bug_override_not_at_{x},{y}")
+    return problems
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Runner
 # ═══════════════════════════════════════════════════════════════════════════
 
 def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, float, float, float] | None = None,
-                 composition_html: str | None = None) -> dict:
-    empty = detect_empty_frames(video_path)
+                 composition_html: str | None = None, headline: dict | None = None) -> dict:
+    """`headline` (a parsed arm-A headline) switches on the arm-A mask and the plate checks and adds a "headline"
+    key to the verdict. Without it the verdict is exactly what arm B has always got."""
+    empty = detect_empty_frames(video_path, **arm_mask_kwargs(headline))
     unsafe = check_out_of_safe_area(beats)
-    text_over = check_text_over_face(beats, face_box)
+    text_over = check_text_over_face(beats, face_box, headline)
     credit_bad = check_credit_missing(beats)
     caption_styles_bad = check_one_caption_style(composition_html)
     kinetic_overflow_bad = check_kinetic_overflow(composition_html)
-    return {
-        "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad or kinetic_overflow_bad),
+    headline_bad = []
+    if headline is not None:
+        headline_bad = check_headline(headline, beats)
+        if composition_html:
+            headline_bad += check_headline_plate(headline, composition_html)
+    result = {
+        "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad or kinetic_overflow_bad
+                      or headline_bad),
         "empty_frames": empty,
         "out_of_safe_area": unsafe,
         "text_over_face": text_over,
@@ -406,6 +680,9 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
         "extra_caption_styles": caption_styles_bad,
         "kinetic_overflow": kinetic_overflow_bad,
     }
+    if headline is not None:
+        result["headline"] = headline_bad
+    return result
 
 
 def parse_box(s: str | None) -> tuple[float, float, float, float] | None:
@@ -427,9 +704,13 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
-    beats = json.loads(Path(args.beats).read_text(encoding="utf-8"))
+    try:
+        beats, headline = split_beats_doc(json.loads(Path(args.beats).read_text(encoding="utf-8")))
+    except ArmAError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     composition_html = Path(args.composition).read_text(encoding="utf-8") if args.composition else None
-    result = run_checker(Path(args.video), beats, parse_box(args.face_box), composition_html)
+    result = run_checker(Path(args.video), beats, parse_box(args.face_box), composition_html, headline)
     text = json.dumps(result, indent=2, ensure_ascii=False)
     print(text)
     if args.out:
