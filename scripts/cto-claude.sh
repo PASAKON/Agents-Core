@@ -216,12 +216,28 @@ fi
 # Computed here (moved up from its original spot further below) so HOST_KEY
 # is ready in time for the reconcile + register_cxo calls right after it —
 # both need to know which machine this is before they touch c_level_sessions.
-case "$(uname -s)" in
-  Darwin) MACHINE_LABEL="MAC" ;;
-  Linux)  if [ -d /opt/MoonieXHQ/Agents/Core ]; then MACHINE_LABEL="CONTABO"
-          else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
-  MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
-  *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
+# The host key comes from lib.config.self_host() first -- the one resolver
+# every Python tool uses (ORG_HOST, node.yaml, agents_root match, platform) --
+# so this label and the ledger rows the tools write can never disagree. The
+# old uname guess called ANY Linux box with /opt/MoonieXHQ/Agents/Core
+# "CONTABO", which is exactly where deploy/join/join.sh puts a newly joined
+# Linux node. The guess stays as the fallback when Python cannot resolve.
+SELF_HOST_KEY="$(cd "$ROOT" 2>/dev/null && for py in "$ROOT/.venv/bin/python" python3; do
+  "$py" -c 'from lib.config import self_host; print(self_host())' 2>/dev/null && break
+done)" || SELF_HOST_KEY=""
+case "$SELF_HOST_KEY" in
+  mac)     MACHINE_LABEL="MAC" ;;
+  contabo) MACHINE_LABEL="CONTABO" ;;
+  winbox)  MACHINE_LABEL="WINDOWS" ;;
+  ?*)      MACHINE_LABEL="$(printf '%s' "$SELF_HOST_KEY" | tr '[:lower:]' '[:upper:]')" ;;
+  *)
+    case "$(uname -s)" in
+      Darwin) MACHINE_LABEL="MAC" ;;
+      Linux)  if [ -d /opt/MoonieXHQ/Agents/Core ]; then MACHINE_LABEL="CONTABO"
+              else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
+      MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
+      *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
+    esac ;;
 esac
 
 # config/hosts.yaml key for THIS machine -- same values runners/worker_init.py's
@@ -233,6 +249,23 @@ case "$MACHINE_LABEL" in
   WINDOWS) HOST_KEY="winbox" ;;
   *)       HOST_KEY="$(printf '%s' "$MACHINE_LABEL" | tr '[:upper:]' '[:lower:]')" ;;
 esac
+# self_host() wins whenever it resolved (see SELF_HOST_KEY above).
+if [ -n "${SELF_HOST_KEY:-}" ]; then HOST_KEY="$SELF_HOST_KEY"; fi
+
+# Commit author NAME for this session's git commits: "<role> @ <host>". Each
+# box's own git config named them -- the CEO's name on the Mac and winbox,
+# a leftover "Contabo verify" on Contabo (348 commits in one week) -- so git
+# could not say which machine or role made a change. The email is untouched
+# (GitHub attributes by email). An identity set by the caller wins.
+export GIT_AUTHOR_NAME="${GIT_AUTHOR_NAME:-CTO @ $HOST_KEY}"
+export GIT_COMMITTER_NAME="${GIT_COMMITTER_NAME:-CTO @ $HOST_KEY}"
+# The pre-commit hooks (gitleaks, media guard, skill-lint) live in .git/hooks,
+# which git never tracks, so a box only has them once someone ran the
+# installer -- Contabo's checkout committed six over-limit media files after
+# the guard shipped. Idempotent; never blocks the launch.
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
+  (cd "$ROOT" && sh scripts/install-git-hooks.sh) >/dev/null 2>&1 || true
+fi
 
 # Reconcile c_level_sessions BEFORE registering this new row (task-9ff9263f):
 # marks any 'open' row on this host whose tmux is actually dead as

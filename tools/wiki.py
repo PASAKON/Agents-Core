@@ -186,6 +186,16 @@ def wiki_write(path: str, content: str, *, role: str, message: str | None = None
         raise PermissionError(f"role '{role}' cannot write wiki. C-level only.")
     ns, rel = _split_ns(path)
     root = _require_root(ns)
+    # A root with no git repo is a read-only snapshot: Contabo serves `org:`
+    # and `mooniex:` from rsync copies of the Mac's checkouts, and the next
+    # `rsync --delete` silently wipes anything written there. Refuse BEFORE
+    # writing — the file used to land on disk first, then `git add` failed.
+    if not (root / ".git").exists():
+        raise WikiError(
+            f"wiki root for '{ns}:' ({root}) is not a git checkout — on this "
+            f"machine it is a read-only snapshot and a write would be lost at the "
+            f"next sync. Write it from the Mac (or a machine with the git checkout)."
+        )
     full = _safe_path(root, rel)
     full.parent.mkdir(parents=True, exist_ok=True)
     full.write_text(content, encoding="utf-8")
