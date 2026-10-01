@@ -1,0 +1,690 @@
+{
+ "headline": {
+  "lines": [
+   "Weltrade ถูกร้องเรียน",
+   "ถอนไม่ออก?"
+  ],
+  "red": "ร้องเรียน",
+  "bug_side": "left",
+  "backdrop": [
+   {
+    "t0": 0,
+    "src": "real/weltrade-header.png"
+   },
+   {
+    "t0": 1,
+    "src": "real/weltrade-warning.png"
+   },
+   {
+    "t0": 2,
+    "src": "real/wikifx-article-sep.png"
+   }
+  ]
+ },
+ "beats": [
+  {
+   "tag": "HOOK-1",
+   "t0": 0.28,
+   "t1": 2.06,
+   "mode": "COMP",
+   "extra": {
+    "cap": "Weltrade โดนว่าถอนเงินไม่ออก"
+   }
+  },
+  {
+   "tag": "HOOK-2",
+   "t0": 2.47,
+   "t1": 3.85,
+   "mode": "COMP",
+   "extra": {
+    "cap": "จริงไหม กูไปเช็กมาให้"
+   }
+  },
+  {
+   "tag": "HOOK-3",
+   "t0": 4.44,
+   "t1": 6.4,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-warning.png",
+    "cap": "WikiFX ขึ้นคำเตือนสีแดง",
+    "box": [
+     54,
+     875,
+     972,
+     172
+    ],
+    "shift": 120
+   }
+  },
+  {
+   "tag": "HOOK-4",
+   "t0": 6.73,
+   "t1": 8.48,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-warning.png",
+    "cap": "ข้อร้องเรียนสี่สิบสามรายการ",
+    "box": [
+     54,
+     962,
+     972,
+     65
+    ],
+    "shift": 120
+   }
+  },
+  {
+   "tag": "PATTERN-1",
+   "t0": 9.07,
+   "t1": 11.37,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/wikifx-article-apr.png",
+    "cap": "WikiFX ว่าซ้ำๆ ถอนไม่ได้",
+    "box": [
+     54,
+     712,
+     972,
+     86
+    ],
+    "shift": -140
+   }
+  },
+  {
+   "tag": "PATTERN-2",
+   "t0": 11.95,
+   "t1": 13.38,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-complaint-1.png",
+    "cap": "คนหนึ่งว่าถอนติดตรวจสอบ",
+    "box": [
+     85,
+     290,
+     910,
+     55
+    ],
+    "shift": -470
+   }
+  },
+  {
+   "tag": "PATTERN-3",
+   "t0": 13.8,
+   "t1": 16.03,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-complaint-2.png",
+    "cap": "อีกคนรอสามสัปดาห์ ว่ากำลังตรวจ",
+    "avatar_until": 15.9,
+    "box": [
+     85,
+     285,
+     910,
+     190
+    ],
+    "shift": -470
+   }
+  },
+  {
+   "tag": "PATTERN-4",
+   "t0": 16.63,
+   "t1": 18.31,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "นี่คำผู้ร้องเรียน"
+     ],
+     [
+      "bl-lg",
+      "ไม่ใช่ของกู"
+     ]
+    ],
+    "broll": ""
+   }
+  },
+  {
+   "tag": "CONTEXT-1",
+   "t0": 18.91,
+   "t1": 20.48,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade-warning.png",
+    "cap": "ตรวจล่าสุดวันที่หนึ่งตุลาคม",
+    "box": [
+     850,
+     905,
+     170,
+     45
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-2",
+   "t0": 20.87,
+   "t1": 22.56,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade-warning.png",
+    "cap": "ตาม WikiFX มาจากคะแนนต่ำ",
+    "box": [
+     54,
+     905,
+     686,
+     45
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-3",
+   "t0": 23.13,
+   "t1": 24.46,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade-header.png",
+    "cap": "เลขบนจอคือคะแนนเต็มสิบ",
+    "box": [
+     205,
+     782,
+     450,
+     258
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-4",
+   "t0": 25.05,
+   "t1": 26.71,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/wikifx-article-sep.png",
+    "cap": "WikiFX เพิ่งลงบทความใหม่",
+    "box": [
+     40,
+     555,
+     320,
+     45
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-5",
+   "t0": 27.25,
+   "t1": 29.37,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/wikifx-article-sep-amount.png",
+    "cap": "มีผู้อ้างถอนสองหมื่นกว่าดอลลาร์ไม่ได้",
+    "box": [
+     54,
+     845,
+     972,
+     235
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-1",
+   "t0": 29.66,
+   "t1": 31.67,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "นี่คำอ้างคนเดียว"
+     ],
+     [
+      "bl-lg",
+      "กูยืนยันไม่ได้"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-2",
+   "t0": 32.15,
+   "t1": 33.73,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ดูที่ตรวจเองได้"
+     ],
+     [
+      "bl-lg",
+      "คือใบอนุญาต"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-3",
+   "t0": 34.13,
+   "t1": 36.28,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade-licence.png",
+    "cap": "ใบเขียวมีใบเดียว แอฟริกาใต้",
+    "box": [
+     54,
+     605,
+     972,
+     700
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-4",
+   "t0": 36.79,
+   "t1": 38.81,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade-registration.png",
+    "cap": "บริษัทถือใบ คนละชื่อกับโปรไฟล์",
+    "box": [
+     54,
+     1070,
+     496,
+     90
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-5",
+   "t0": 39.28,
+   "t1": 41.7,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-licence.png",
+    "cap": "หน้าเดียวกัน มีใบผิดปกติสองใบ",
+    "box": [
+     590,
+     655,
+     225,
+     70
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-6",
+   "t0": 42.36,
+   "t1": 44.31,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/wikifx-article-apr.png",
+    "cap": "WikiFX ว่าบางประเทศเพิกถอน",
+    "box": [
+     54,
+     792,
+     666,
+     45
+    ],
+    "shift": -100
+   }
+  },
+  {
+   "tag": "MAIN-7",
+   "t0": 44.66,
+   "t1": 46.48,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-header.png",
+    "cap": "แต่ป้ายเขียวยังขึ้นว่ากำกับดูแล",
+    "box": [
+     200,
+     470,
+     290,
+     75
+    ],
+    "shift": -300
+   }
+  },
+  {
+   "tag": "MAIN-8",
+   "t0": 47.17,
+   "t1": 48.82,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-survey.png",
+    "cap": "WikiFX ไปดูที่อยู่แอฟริกาใต้",
+    "box": [
+     70,
+     200,
+     880,
+     60
+    ],
+    "shift": -520
+   }
+  },
+  {
+   "tag": "MAIN-9",
+   "t0": 48.99,
+   "t1": 51.1,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-survey.png",
+    "cap": "ปีสองพันยี่สิบสาม ไม่เจอสำนักงาน",
+    "box": [
+     70,
+     260,
+     500,
+     45
+    ],
+    "shift": -520
+   }
+  },
+  {
+   "tag": "MAIN-10",
+   "t0": 51.68,
+   "t1": 53.6,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-survey.png",
+    "cap": "เป็นบ้านพัก เจ้าของไม่รู้จักชื่อ",
+    "box": [
+     80,
+     1595,
+     860,
+     95
+    ],
+    "shift": 780
+   }
+  },
+  {
+   "tag": "MAIN-11",
+   "t0": 54.12,
+   "t1": 55.97,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-survey.png",
+    "cap": "ผลสำรวจว่า ไม่มีตัวนายหน้า",
+    "avatar_until": 55.9,
+    "box": [
+     80,
+     1690,
+     860,
+     45
+    ],
+    "shift": 780
+   }
+  },
+  {
+   "tag": "MAIN-12",
+   "t0": 56.58,
+   "t1": 58.41,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade-registration.png",
+    "cap": "โปรไฟล์ว่าจดทะเบียนเซนต์ลูเซีย",
+    "box": [
+     54,
+     860,
+     486,
+     70
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-13",
+   "t0": 59.12,
+   "t1": 61.7,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/wikifx-article-sep-amount.png",
+    "cap": "หัวข้อบทความ ใบเบลีซถูกเพิกถอน",
+    "box": [
+     20,
+     1835,
+     760,
+     55
+    ],
+    "shift": 950
+   }
+  },
+  {
+   "tag": "CURIOSITY-1",
+   "t0": 62.44,
+   "t1": 64.21,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade2-header.png",
+    "cap": "WikiFX มี Weltrade สองหน้า",
+    "box": [
+     205,
+     540,
+     450,
+     255
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-2",
+   "t0": 64.8,
+   "t1": 66.35,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade2-info.png",
+    "cap": "อีกหน้าว่าจดที่เซนต์วินเซนต์",
+    "box": [
+     54,
+     960,
+     336,
+     70
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-3",
+   "t0": 67.04,
+   "t1": 68.81,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade2-licence.png",
+    "cap": "หน้านั้นไม่พบใบอนุญาตฟอเร็กซ์",
+    "box": [
+     60,
+     980,
+     960,
+     210
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-4",
+   "t0": 69.41,
+   "t1": 70.8,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/weltrade2-header.png",
+    "cap": "คะแนนสองหน้าก็ไม่เท่ากัน",
+    "box": [
+     205,
+     782,
+     450,
+     258
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-5",
+   "t0": 71.57,
+   "t1": 73.63,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ก่อนโอน"
+     ],
+     [
+      "bl-md",
+      "ถามว่าเงินเข้าบริษัทไหน"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-1",
+   "t0": 74.42,
+   "t1": 76.02,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "สรุป"
+     ],
+     [
+      "bl-lg",
+      "ถอนเงินไม่ได้จริงไหม"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-2",
+   "t0": 76.75,
+   "t1": 78.5,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "กูไม่ได้ลองถอน"
+     ],
+     [
+      "bl-lg",
+      "ตอบแทนไม่ได้"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-3",
+   "t0": 79.22,
+   "t1": 80.82,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ก่อนเลือกโบรก"
+     ],
+     [
+      "bl-lg",
+      "เช็กสามอย่าง"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-4",
+   "t0": 81.37,
+   "t1": 83.53,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "หนึ่ง"
+     ],
+     [
+      "bl-md",
+      "ค้นเลขใบอนุญาต"
+     ],
+     [
+      "bl-md",
+      "ที่เว็บหน่วยงาน"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-5",
+   "t0": 84.04,
+   "t1": 86.03,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "สอง"
+     ],
+     [
+      "bl-md",
+      "ดูว่าบริษัท"
+     ],
+     [
+      "bl-md",
+      "จดทะเบียนที่ไหน"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-6",
+   "t0": 86.61,
+   "t1": 88.14,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "สาม"
+     ],
+     [
+      "bl-md",
+      "ลองถอน"
+     ],
+     [
+      "bl-md",
+      "ก้อนเล็กก่อน"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-7",
+   "t0": 88.69,
+   "t1": 90.76,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-licence.png",
+    "cap": "กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดู",
+    "shift": 300
+   }
+  },
+  {
+   "tag": "SUMMARY-8",
+   "t0": 91.27,
+   "t1": 92.81,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-licence.png",
+    "cap": "คอมเมนต์ เช็กลิสต์ ถ้าอยากได้ตาราง",
+    "shift": 300
+   }
+  },
+  {
+   "tag": "SUMMARY-9",
+   "t0": 93.35,
+   "t1": 95.24,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/weltrade-licence.png",
+    "cap": "ป้ายเขียวไม่พอ เช็กเลขใบอนุญาต",
+    "shift": 300,
+    "box": [
+     54,
+     1170,
+     700,
+     70
+    ]
+   }
+  }
+ ]
+}
