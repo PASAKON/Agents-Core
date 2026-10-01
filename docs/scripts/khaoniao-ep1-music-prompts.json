@@ -1,0 +1,22 @@
+[
+  {
+    "id": "M1",
+    "title": "Mimi EP1 tender lullaby",
+    "prompt": "Tender solo piano, slow tempo around 66 BPM, intimate close-miked felt-soft touch, gentle broken-chord left hand under a simple, memorable, lullaby-like melody in the middle register. Warm, nostalgic and bittersweet but hopeful, the feeling of a family holding a frightened little dog close after a misunderstanding. Slow gentle build in the middle, then it settles into a tender, comforting resolution and a soft final chord. Very restrained dynamics (pianissimo to mezzo-piano), steady middle register, no sudden loud notes and no busy high-register runs, so it can sit quietly under spoken dialogue. Solo piano only: no drums, no strings, no vocals, no synth pads, no sound effects."
+  },
+  {
+    "id": "M2",
+    "title": "Mimi EP1 worry to forgiveness",
+    "prompt": "Emotional solo grand piano, slow rubato ballad around 60 BPM. It opens sparse and anxious in a minor key, single notes with long pauses like a worried heartbeat, then grows into fuller, tender chords as the mood turns to forgiveness and relief, and ends in a warm major key with a soft last chord. Moving and heartfelt, a small family and their dog finding each other again. Very restrained dynamics (pianissimo to mezzo-piano), steady middle register, no sudden loud notes and no busy high-register runs, so it can sit quietly under spoken dialogue. Solo piano only: no drums, no strings, no vocals, no synth pads, no sound effects."
+  },
+  {
+    "id": "M3",
+    "title": "Mimi EP1 minimal heartfelt motif",
+    "prompt": "Minimal modern film-score piano, around 72 BPM. One gentle repeating four-note motif with soft sustain pedal and sparse left hand, slowly adding a second voice a little at a time, never rushing. Quiet, sincere, touching, a little teary and then comforted; warmth of home on a rainy day. Very restrained dynamics (pianissimo to mezzo-piano), steady middle register, no sudden loud notes and no busy high-register runs, so it can sit quietly under spoken dialogue. Solo piano only: no drums, no strings, no vocals, no synth pads, no sound effects."
+  },
+  {
+    "id": "M4",
+    "title": "Mimi EP1 slow waltz lullaby",
+    "prompt": "Slow 3/4 lullaby waltz for solo piano, around 70 BPM, soft and rocking like cradling something small. Simple sweet melody with a bittersweet turn halfway, then a gentle return to the opening theme with a little more warmth, ending peacefully. Touching, tender, affectionate, a child's-bedtime tune for a family dog. Very restrained dynamics (pianissimo to mezzo-piano), steady middle register, no sudden loud notes and no busy high-register runs, so it can sit quietly under spoken dialogue. Solo piano only: no drums, no strings, no vocals, no synth pads, no sound effects."
+  }
+]

@@ -1,0 +1,116 @@
+{
+  "M1": {
+    "api_credits_after": 30580.0,
+    "api_credits_before": 30585.0,
+    "balance_after": 30580.0,
+    "balance_before": 30585.0,
+    "balance_text": "30585 credits",
+    "before_ids": [
+      "021c63ff-2ea3-4cf8-b253-58cac8a6ba6a",
+      "070354a0-daeb-4221-b0da-277ebc36209f",
+      "179b2284-058d-4b94-a234-2112c5f3b620",
+      "1a864f9e-d461-4d00-9f69-57a96b628569",
+      "1bef94ff-c733-4b6d-9a3f-9b63894e44b6",
+      "3938d4aa-e530-4a62-8a83-2be33cce159e",
+      "6287ce33-9419-476c-9f00-77ceb0c48d6e",
+      "7bd474a8-2316-459b-a28d-fb462023488b",
+      "8d6c0521-bcef-40b5-b3e4-326656b8a8f9",
+      "b6ab4ef7-eaad-44b6-93c1-ebdd55780552",
+      "b7aad0b5-9300-414b-a7e0-a2db51a2c28d",
+      "b85db534-04f4-4bf4-a8e7-25802d0e1fd5",
+      "d20324bd-6990-47df-b9cd-5bc8a4d17006",
+      "d29b969d-1572-4112-830f-224db8f0d610",
+      "faf2fd02-ee03-4855-8b47-993fd80bc92d"
+    ],
+    "bpm": "Auto",
+    "card_wait_s": 2,
+    "charged": 5.0,
+    "compose_url": "https://www.flowmusic.app/session?t=true",
+    "cost_note": "Flow Music shows no price on Generate (measured 2026-09-26)",
+    "cost_shown": null,
+    "dialogs": [],
+    "files": [
+      {
+        "bytes": 33703860,
+        "clip_id": "601e3893-c2fa-494c-b0a4-8f7f5b9bbe26",
+        "file": "C:\\mooniex\\khaoniao\\ep1\\music\\M1-1.wav",
+        "md5": "fab6f2f84019c6f92552f423fb0ca2c7",
+        "seconds_api": 175.50933333333333,
+        "seconds_header": 175.509,
+        "title": "Untitled",
+        "url": "https://storage.googleapis.com/producer-app-public/clips/601e3893-c2fa-494c-b0a4-8f7f5b9bbe26.wav",
+        "via": "file_url"
+      }
+    ],
+    "fired_at": "2026-10-01T07:37:08+00:00",
+    "gen_count": 1,
+    "gen_disabled": false,
+    "gen_text": "Generate",
+    "generation_s": 47,
+    "id": "M1",
+    "instrumental": true,
+    "length": "3:00",
+    "model": "Lyria 3.5",
+    "network": [
+      {
+        "path": "/__api/personalize/scores",
+        "status": 200
+      },
+      {
+        "path": "/__api/clips",
+        "status": 200
+      },
+      {
+        "path": "/__api/personalize/level",
+        "status": 200
+      },
+      {
+        "path": "/__api/personalize/level",
+        "status": 200
+      },
+      {
+        "body": "{\"job_id\":\"989d5e5f-d763-4cde-84e1-2f0d317e44f9\"}",
+        "path": "/__api/producer/tool-call",
+        "status": 200
+      },
+      {
+        "path": "/__api/personalize/level",
+        "status": 200
+      }
+    ],
+    "note": "Generate clicked once; never click it again for this id",
+    "per_song": 5.0,
+    "prompt_chars": 685,
+    "session_id": "7520bd0d-e0ef-44c7-8472-6ec4bcdabc0c",
+    "session_url": "https://www.flowmusic.app/session/7520bd0d-e0ef-44c7-8472-6ec4bcdabc0c?t=true",
+    "song_cards_on_session_page": 1,
+    "songs": 1,
+    "status": "done",
+    "time": "2026-10-01T07:38:10+00:00",
+    "title": "Mimi EP1 tender lullaby",
+    "title_set": null
+  },
+  "M1:dry-run": {
+    "api_credits_before": 30585.0,
+    "balance_before": 30585.0,
+    "balance_text": "30585 credits",
+    "bpm": "Auto",
+    "compose_url": "https://www.flowmusic.app/session?t=true",
+    "cost_note": "Flow Music shows no price on Generate (measured 2026-09-26)",
+    "cost_shown": null,
+    "dialogs": [],
+    "gen_count": 1,
+    "gen_disabled": false,
+    "gen_text": "Generate",
+    "id": "M1",
+    "instrumental": true,
+    "length": "3:00",
+    "model": "Lyria 3.5",
+    "note": "everything but the Generate click",
+    "prompt_chars": 685,
+    "status": "dry-run",
+    "time": "2026-10-01T07:36:13+00:00",
+    "title": "Mimi EP1 tender lullaby",
+    "title_set": null
+  }
+}
