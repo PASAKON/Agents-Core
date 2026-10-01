@@ -543,6 +543,18 @@ def l4_probe(from_host: str, to_host: str) -> tuple[bool, str | None]:
         return False, f"local create_task failed: {type(e).__name__}: {e}"[:200]
 
     try:
+        return _l4_read_back(to_host, task_id)
+    finally:
+        # The probe only has to be seen. Since the hub cutover every host
+        # shares one ledger, and a probe left pending is clutter in all of them.
+        try:
+            db_mod.update_status(task_id, "cancelled", actor="mesh_check")
+        except Exception:
+            pass
+
+
+def _l4_read_back(to_host: str, task_id: str) -> tuple[bool, str | None]:
+    try:
         cfg = config.host(to_host)
     except ValueError as e:
         return False, str(e)[:200]
@@ -552,9 +564,14 @@ def l4_probe(from_host: str, to_host: str) -> tuple[bool, str | None]:
     remote_root = cfg.get("agents_root")
     if not remote_root:
         return False, "target has no agents_root configured"
-    python = f"{remote_root}\\.venv\\Scripts\\python.exe" if cfg.get("os") == "windows" \
-        else f"{remote_root}/.venv/bin/python"
-    cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --get-task {task_id} --json'
+    if cfg.get("os") == "windows":
+        python = f"{remote_root}\\.venv\\Scripts\\python.exe"
+        cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --get-task {task_id} --json'
+    else:
+        # After the hub cutover an ssh shell has no ORG_DB_URL and
+        # state/tasks.db is a tombstone; org-python.sh brings the URL.
+        cmd = (f'cd "{remote_root}" && bash scripts/hub/org-python.sh '
+               f'-m tools.mesh_check --get-task {task_id} --json')
     out = _ssh_run(alias, cmd, timeout=20)
     if out is None:
         return False, "read-only ssh to target failed"

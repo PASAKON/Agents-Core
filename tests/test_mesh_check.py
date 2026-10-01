@@ -272,7 +272,17 @@ def test_run_l3_probe_red_when_merge_sha_not_on_origin(monkeypatch, tmp_path):
 # L4 — ledger
 # ---------------------------------------------------------------------------
 
-def test_l4_probe_green_when_peer_sees_task(monkeypatch):
+@pytest.fixture
+def l4_cancelled(monkeypatch):
+    """Record the probe's clean-up instead of writing to any ledger."""
+    import lib.db as db_mod
+    seen: list[tuple[str, str]] = []
+    monkeypatch.setattr(db_mod, "update_status",
+                        lambda task_id, status, **kw: seen.append((task_id, status)) or True)
+    return seen
+
+
+def test_l4_probe_green_when_peer_sees_task(monkeypatch, l4_cancelled):
     import lib.db as db_mod
     monkeypatch.setattr(db_mod, "create_task", lambda **kw: "task-l4green1")
     monkeypatch.setattr(m, "_ssh_run",
@@ -280,25 +290,62 @@ def test_l4_probe_green_when_peer_sees_task(monkeypatch):
     ok, reason = m.l4_probe("mac", "contabo")
     assert ok is True
     assert reason is None
+    assert l4_cancelled == [("task-l4green1", "cancelled")]
 
 
-def test_l4_probe_red_when_peer_ledger_is_separate(monkeypatch):
-    """Today's real state: one sqlite per host, so the target never sees a
-    task created on this host's ledger."""
+def test_l4_probe_red_when_peer_ledger_is_separate(monkeypatch, l4_cancelled):
+    """Before the hub: one sqlite per host, so the target never sees a task
+    created on this host's ledger."""
     import lib.db as db_mod
     monkeypatch.setattr(db_mod, "create_task", lambda **kw: "task-l4red001")
     monkeypatch.setattr(m, "_ssh_run", lambda alias, cmd, timeout, stdin_path=None: json.dumps({}))
     ok, reason = m.l4_probe("mac", "contabo")
     assert ok is False
     assert "separate ledger" in reason
+    assert l4_cancelled == [("task-l4red001", "cancelled")]
 
 
-def test_l4_probe_red_when_target_unreachable(monkeypatch):
+def test_l4_probe_red_when_target_unreachable(monkeypatch, l4_cancelled):
     import lib.db as db_mod
     monkeypatch.setattr(db_mod, "create_task", lambda **kw: "task-l4red002")
     ok, reason = m.l4_probe("contabo", "mac")  # mac has no ssh alias
     assert ok is False
     assert reason == "target unreachable (no ssh alias)"
+    assert l4_cancelled == [("task-l4red002", "cancelled")]
+
+
+def test_l4_probe_reads_a_posix_peer_through_org_python(monkeypatch, l4_cancelled):
+    """After G1 a bare venv python over ssh has no ORG_DB_URL and dies on the
+    tombstone (ArchivedDB), which read as "read-only ssh to target failed"."""
+    import lib.db as db_mod
+    monkeypatch.setattr(db_mod, "create_task", lambda **kw: "task-l4posix1")
+    sent: list[str] = []
+
+    def fake_ssh(alias, cmd, timeout, stdin_path=None):
+        sent.append(cmd)
+        return json.dumps({"id": "task-l4posix1"})
+
+    monkeypatch.setattr(m, "_ssh_run", fake_ssh)
+    ok, _ = m.l4_probe("mac", "contabo")
+    assert ok is True
+    assert len(sent) == 1
+    assert "bash scripts/hub/org-python.sh -m tools.mesh_check --get-task task-l4posix1 --json" in sent[0]
+    assert ".venv/bin/python" not in sent[0]
+
+
+def test_l4_probe_reads_winbox_with_its_venv_python(monkeypatch, l4_cancelled):
+    import lib.db as db_mod
+    monkeypatch.setattr(db_mod, "create_task", lambda **kw: "task-l4win001")
+    sent: list[str] = []
+    monkeypatch.setattr(m, "_ssh_run",
+                        lambda alias, cmd, timeout, stdin_path=None: sent.append(cmd) or None)
+    ok, reason = m.l4_probe("mac", "winbox")
+    assert ok is False
+    assert reason == "read-only ssh to target failed"
+    assert len(sent) == 1
+    assert "\\.venv\\Scripts\\python.exe" in sent[0]
+    assert "org-python.sh" not in sent[0]
+    assert l4_cancelled == [("task-l4win001", "cancelled")]
 
 
 # ---------------------------------------------------------------------------
