@@ -193,3 +193,6 @@ Sources read through web search snippets, not opened in full: TikTok Shop TH sel
 4. Best-seller data per category (paid tool or logged-in app).
 5. Open the two sources marked [U] in the superseded section 2 before quoting them to anyone.
 6. CEO: where is the 80k TikTok audience?
+
+## 2e. Viral anatomy and 1-week A/B (added 2026-10-01)
+See 2026-10-01-bl-viral-anatomy-and-ab-week.md: first-3-s sheets of 13 posts, why the look and the calendar cannot be separated from the data, and the 3-topic x 2-cut test.
