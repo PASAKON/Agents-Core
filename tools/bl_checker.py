@@ -194,6 +194,19 @@ def rect_within_safe(rect: tuple[float, float, float, float], safe: tuple[float,
     return x >= L - tol and y >= T - tol and x + w <= R + tol and y + h <= B + tol
 
 
+def placed_box(beat: dict) -> tuple[float, float, float, float] | None:
+    """The evidence `box` where it lands on screen. A COMP still is drawn `shift` px higher
+    (bl_compose: `top - shift`, spotlight `by -= shift`); EVID never shifts."""
+    extra = beat.get("extra") or {}
+    box = box_to_canvas(extra.get("box"), img_placement(extra))
+    if box is None:
+        return None
+    if beat.get("mode") == "COMP":
+        x, y, w, h = box
+        return (x, y - extra.get("shift", 0), w, h)
+    return box
+
+
 def check_out_of_safe_area(beats: list[dict]) -> list[str]:
     """Beats with an evidence `box` (COMP/EVID) whose canvas-placed box lands
     outside the safe rectangle -- likely cropped by TikTok's own UI chrome."""
@@ -202,11 +215,9 @@ def check_out_of_safe_area(beats: list[dict]) -> list[str]:
     for b in beats:
         if b.get("mode") not in ("COMP", "EVID"):
             continue
-        extra = b.get("extra") or {}
-        box = extra.get("box")
-        if not box:
+        canvas_box = placed_box(b)
+        if canvas_box is None:
             continue
-        canvas_box = box_to_canvas(box, img_placement(extra))
         if not rect_within_safe(canvas_box, safe):
             bad.append(b["tag"])
     return bad
@@ -629,7 +640,7 @@ def check_headline(headline: dict, beats: list[dict]) -> list[str]:
         if b.get("mode") not in ("COMP", "EVID"):
             continue
         extra = b.get("extra") or {}
-        if extra.get("box") and _rects_overlap(text, box_to_canvas(extra["box"], img_placement(extra))):
+        if extra.get("box") and _rects_overlap(text, placed_box(b)):
             problems.append(f"overlaps_evidence:{b['tag']}")
         if extra.get("credit"):
             chip_w = _visual_len(extra["credit"]) * KINETIC_CHAR_WIDTH_RATIO * CREDIT_CHIP_FONT_PX + 28
