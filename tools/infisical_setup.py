@@ -76,6 +76,7 @@ PROJECTS: dict[str, list[str]] = {
     "MoonieX-Option": ["dev", "prod"],
     "MoonieX-AlphaTrader": ["dev", "prod"],
     "MoonieX-LineAutomation": ["dev", "prod"],
+    "MoonieX-SomPong": ["dev", "prod"],  # the COO session inbox (CEO 2026-10-01)
     "MoonieX-Console": ["dev", "prod"],
     "MoonieX-ComfyRunpod": ["dev", "prod"],
     "MoonieX-CookierunBot": ["dev", "prod"],
@@ -100,7 +101,7 @@ PROJECT_FOLDERS: dict[str, list[str]] = {
 # environment of the project, so MoonieX-WebApp is not given to the Mac until local dev needs it.
 MACHINES: dict[str, list[str]] = {
     "contabo": ["Agents-Core", "MoonieX-ClaudeFlow", "MoonieX-Option", "MoonieX-AlphaTrader",
-                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP"],
+                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP", "MoonieX-SomPong"],
     "mac": ["Agents-Core", ORG_INFRA, "MoonieX-Console", "MoonieX-ComfyRunpod", "LungNote-MCP"],
     "winbox": ["MoonieX-Console", "MoonieX-CookierunBot", "LungNote-MCP"],  # Agents-Core back at G1 (CEO 2026-10-01)
 }
