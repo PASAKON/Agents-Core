@@ -10,7 +10,10 @@ it cannot import anything else from Agents-Core.
                            /etc/infisical/<identity>.env (root, 0600).
                            --stdin reads the two values as two lines from a pipe instead, for a
                            script that captures them from the web page so no model sees them.
-    plan                   Show what `apply` would create or change. Read-only.
+                           --scope user (Windows only, option B): save under
+                           %LOCALAPPDATA%\\MoonieX\\Infisical, ACL'd to this user, for a node where
+                           nothing runs elevated; read_cred falls back to it.
+    plan                  Show what `apply` would create or change. Read-only.
     apply [--mint HOST]    Create what is missing: the projects, their environments, the Org-Infra
                            folders, the machine identities with read-only project memberships and
                            the CEO as admin of every project. --mint also creates a client secret
@@ -64,6 +67,15 @@ API = os.environ.get("INFISICAL_API_URL", "https://app.infisical.com")
 _DEFAULT_CRED_DIR = (os.path.join(os.environ.get("ProgramData", r"C:\ProgramData"), "Infisical")
                      if os.name == "nt" else "/etc/infisical")   # PLAN §5: root-only, one file per host
 CRED_DIR = os.environ.get("INFISICAL_CRED_DIR", _DEFAULT_CRED_DIR)  # override only in tests
+# Option B (CEO 2026-10-02): on winbox nothing runs elevated (UAC on: Claude, the Run executor, every
+# scheduled task), so an Administrators-only file is unreadable by every consumer. `save --scope user`
+# keeps the file under the user's profile instead, ACL'd to that user + SYSTEM + Administrators, and
+# read_cred falls back to it when the machine file is missing or unreadable. Windows only; off when
+# INFISICAL_CRED_DIR points somewhere else (tests).
+_DEFAULT_USER_CRED_DIR = (os.path.join(os.environ.get("LOCALAPPDATA") or os.path.expanduser(r"~\AppData\Local"),
+                                       "MoonieX", "Infisical")
+                          if os.name == "nt" and "INFISICAL_CRED_DIR" not in os.environ else None)
+USER_CRED_DIR = os.environ.get("INFISICAL_USER_CRED_DIR", _DEFAULT_USER_CRED_DIR)
 SETUP = "setup"
 SETUP_MAX_DAYS = 14  # the admin identity lives only for the migration (PLAN §6)
 
@@ -143,9 +155,24 @@ def cred_path(name: str) -> str:
     return os.path.join(CRED_DIR, f"{name}.env")
 
 
+def user_cred_path(name: str) -> str | None:
+    """The user-scoped file of option B, or None where there is none: not Windows, or CRED_DIR
+    moved away from the default (a test), so a test can never fall back to a real credential."""
+    if not (_is_nt() and USER_CRED_DIR and CRED_DIR == _DEFAULT_CRED_DIR):
+        return None
+    return os.path.join(USER_CRED_DIR, f"{name}.env")
+
+
 def read_cred(name: str) -> tuple[str, str]:
     values = {}
-    with open(cred_path(name)) as fh:
+    try:
+        fh = open(cred_path(name))
+    except (FileNotFoundError, PermissionError):
+        user = user_cred_path(name)
+        if not user or not os.path.exists(user):
+            raise
+        fh = open(user)
+    with fh:
         for line in fh:
             key, _, val = line.strip().partition("=")
             values[key] = val
@@ -166,14 +193,32 @@ def _run_icacls(argv: list) -> int:
     return subprocess.run(argv, capture_output=True, timeout=30, check=False).returncode
 
 
-def lock_acl(path: str, run=None) -> None:
+def current_user_sid(run=None) -> str:
+    """SID of the account this process runs as (`whoami /user`), for option B's ACL.
+    `run(argv) -> stdout` is injectable for tests."""
+    def _whoami(argv: list) -> str:
+        return subprocess.run(argv, capture_output=True, text=True, timeout=30, check=False).stdout
+    try:
+        out = (run or _whoami)(["whoami", "/user", "/fo", "csv", "/nh"])
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise AclError(f"whoami could not run ({type(exc).__name__})") from None
+    sid = out.strip().rsplit(",", 1)[-1].strip().strip('"')
+    if not re.fullmatch(r"S-1-[0-9-]+", sid):
+        raise AclError("whoami did not return a SID")
+    return sid
+
+
+def lock_acl(path: str, run=None, user_sid: str | None = None) -> None:
     """Windows only (W4.6a F5): drop the ACL entries `path` inherits (ProgramData gives
-    BUILTIN\\Users read and execute) and leave SYSTEM and Administrators. os.chmod and the
-    0o600 of os.open set no ACL on nt. Fails closed: a non-zero exit, or icacls missing,
-    raises AclError. `run(argv) -> returncode` is injectable for tests. A no-op elsewhere."""
+    BUILTIN\\Users read and execute) and leave SYSTEM and Administrators, plus `user_sid` for
+    option B's user-scoped file. os.chmod and the 0o600 of os.open set no ACL on nt. Fails
+    closed: a non-zero exit, or icacls missing, raises AclError. `run(argv) -> returncode` is
+    injectable for tests. A no-op elsewhere."""
     if not _is_nt():
         return
     argv = ["icacls", path, "/inheritance:r", "/grant:r", "SYSTEM:F", "Administrators:F"]
+    if user_sid:
+        argv.append(f"*{user_sid}:F")
     try:
         rc = (run or _run_icacls)(argv)
     except (OSError, subprocess.SubprocessError) as exc:
@@ -182,19 +227,27 @@ def lock_acl(path: str, run=None) -> None:
         raise AclError(f"icacls exited {rc} on {path}")
 
 
-def write_cred(name: str, client_id: str, client_secret: str, *, run=None) -> str:
-    require_root()
-    os.makedirs(CRED_DIR, mode=0o700, exist_ok=True)
-    os.chmod(CRED_DIR, 0o700)
-    lock_acl(CRED_DIR, run)    # the directory first, before a secret exists anywhere in it
-    path = cred_path(name)
+def write_cred(name: str, client_id: str, client_secret: str, *, run=None,
+               scope: str = "machine", user_sid: str | None = None) -> str:
+    if scope == "user":
+        path = user_cred_path(name)
+        if not path:
+            raise AclError("--scope user is for Windows nodes only (option B)")
+        cdir = USER_CRED_DIR
+        user_sid = user_sid or current_user_sid()
+    else:
+        require_root()
+        cdir, path, user_sid = CRED_DIR, cred_path(name), None
+    os.makedirs(cdir, mode=0o700, exist_ok=True)
+    os.chmod(cdir, 0o700)
+    lock_acl(cdir, run, user_sid)    # the directory first, before a secret exists anywhere in it
     fd = os.open(path + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as fh:
         fh.write(f"INFISICAL_API_URL={API}\n"
                  f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={client_id}\n"
                  f"INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={client_secret}\n")
     try:
-        lock_acl(path + ".tmp", run)
+        lock_acl(path + ".tmp", run, user_sid)
     except AclError:
         os.unlink(path + ".tmp")   # fail closed: no secret-bearing file is left behind
         raise
@@ -225,10 +278,13 @@ def self_host() -> str:
 
 # --- save -----------------------------------------------------------------------------------
 
-def cmd_save(name: str, from_stdin: bool = False) -> None:
+def cmd_save(name: str, from_stdin: bool = False, scope: str = "machine") -> None:
     if not NAME_RE.match(name):
         sys.exit(f"bad identity name: {name!r}")
-    require_root()
+    if scope == "user" and not user_cred_path(name):
+        sys.exit("--scope user is for Windows nodes only (option B); nothing saved")
+    if scope != "user":
+        require_root()
     if from_stdin:
         client_id = sys.stdin.readline().strip()
         client_secret = sys.stdin.readline().strip()
@@ -242,7 +298,7 @@ def cmd_save(name: str, from_stdin: bool = False) -> None:
     except ApiError as exc:
         sys.exit(f"login failed, nothing saved ({exc})")
     try:
-        path = write_cred(name, client_id, client_secret)
+        path = write_cred(name, client_id, client_secret, scope=scope)
     except AclError as exc:
         sys.exit(f"{exc}; nothing saved")
     print(f"saved {path} (0600) · login OK · token lasts {ttl} s · "
@@ -838,6 +894,9 @@ def main(argv: list[str] | None = None) -> None:
     s = sub.add_parser("save")
     s.add_argument("identity")
     s.add_argument("--stdin", action="store_true", help="read id and secret as two lines from stdin")
+    s.add_argument("--scope", choices=("machine", "user"), default="machine",
+                   help="user: Windows only, the file goes under %%LOCALAPPDATA%%\\MoonieX\\Infisical "
+                        "for nodes where nothing runs elevated (option B, CEO 2026-10-02)")
     sub.add_parser("plan")
     a = sub.add_parser("apply")
     a.add_argument("--mint", metavar="HOST")
@@ -874,7 +933,7 @@ def main(argv: list[str] | None = None) -> None:
     args = ap.parse_args(argv)
     try:
         if args.cmd == "save":
-            cmd_save(args.identity, from_stdin=args.stdin)
+            cmd_save(args.identity, from_stdin=args.stdin, scope=args.scope)
         elif args.cmd == "plan":
             reconcile(Org(), dry=True, mint=None)
         elif args.cmd == "apply":
