@@ -162,6 +162,20 @@ def test_check_out_of_safe_area_ignores_modes_without_a_box():
     assert ck.check_out_of_safe_area(beats) == []
 
 
+def test_check_out_of_safe_area_counts_a_comp_shift():
+    # EP58 MAIN-10: evidence at native y 1595-1690 sits in TikTok's caption zone, but the COMP
+    # still is drawn 780 px higher (bl_compose `top - shift`), so on screen it is at y 815-910.
+    box = [80, 1595, 860, 95]
+    assert ck.check_out_of_safe_area([_beat("MAIN-10", "COMP", {"img": "real/x.png", "box": box})]) == ["MAIN-10"]
+    assert ck.check_out_of_safe_area([_beat("MAIN-10", "COMP", {"img": "real/x.png", "box": box,
+                                                                "shift": 780})]) == []
+
+
+def test_check_out_of_safe_area_evid_never_shifts():
+    beats = [_beat("MAIN-13", "EVID", {"img": "real/x.png", "box": [80, 1595, 860, 95], "shift": 780})]
+    assert ck.check_out_of_safe_area(beats) == ["MAIN-13"]
+
+
 def test_check_out_of_safe_area_landscape_source_uses_placement_transform():
     # native 1374x868 (landscape) -> scaled to canvas width 1080, scale~0.786,
     # centered vertically. A box already safely inside the scaled/centered

@@ -1,0 +1,7 @@
+{
+  "decisions_path": "prototypes/bl-ep58/decisions.jsonl",
+  "decisions_sha256": "8efd06d93c0c4b38d7a565d90372acb0dfbd7956dc1bef394389efbc941182b1",
+  "frozen_at": "2026-10-01T14:21:18+00:00",
+  "row_count": 159,
+  "site_yaml_sha": "1e8181479ed39307bc0f6c7a36e51e894e95065a"
+}

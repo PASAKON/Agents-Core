@@ -1,0 +1,406 @@
+[
+ {
+  "file": "real/wfx-about-top.png",
+  "kind": "still",
+  "covers": [
+   "HOOK-2",
+   "CONTEXT-5",
+   "MAIN-1",
+   "CURIOSITY-1",
+   "CURIOSITY-2"
+  ],
+  "source_url": "https://www.wikifx.com/th/about.html",
+  "captured_at": "2026-10-01T22:11:18+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 60,
+    "y": 15,
+    "w": 200,
+    "h": 52,
+    "proves": "WikiFX name and logo (header)"
+   },
+   {
+    "x": 70,
+    "y": 985,
+    "w": 940,
+    "h": 120,
+    "proves": "the site's own figures: 81,000+ broker checks, 60+ regulators, 200+ countries, 21,000,000+ users"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wfx-about-score.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-2",
+   "MAIN-3"
+  ],
+  "source_url": "https://www.wikifx.com/th/about.html",
+  "captured_at": "2026-10-01T22:06:18+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 185,
+    "y": 940,
+    "w": 530,
+    "h": 215,
+    "proves": "About page: 'ระบบการให้คะแนน WikiFX' described as an advanced algorithm; no price, no weights"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wfx-about-footer.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-4",
+   "CURIOSITY-4"
+  ],
+  "source_url": "https://www.wikifx.com/th/about.html",
+  "captured_at": "2026-10-01T22:11:35+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 85,
+    "y": 1856,
+    "w": 300,
+    "h": 26,
+    "proves": "the advertising contact line: 'ร่วมมือด้านการโฆษณา: business@wikifx.com' (WikiFX's own corporate address)"
+   },
+   {
+    "x": 388,
+    "y": 1540,
+    "w": 606,
+    "h": 56,
+    "proves": "the site's own note advising investors to check key details with official sources (faint grey on dark: legible at full size, small on a phone)"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "source_note": "hand-made: the About page scrolled to the bottom (runner crops cannot reach a footer: window capped at 756 px wide)"
+ },
+ {
+  "file": "real/wfx-contact.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-5"
+  ],
+  "source_url": "https://www.wikifx.com/th/contract.html",
+  "captured_at": "2026-10-01T22:06:47+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 70,
+    "y": 800,
+    "w": 940,
+    "h": 720,
+    "proves": "a business-cooperation form: no price, no fee table anywhere on the page; nothing typed, nothing clicked"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wfx-terms.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-6"
+  ],
+  "source_url": "https://www.wikifx.com/th/terms.html?type=1",
+  "captured_at": "2026-10-01T22:06:58+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 340,
+    "y": 312,
+    "w": 400,
+    "h": 40,
+    "proves": "'Service Agreement of WikiFX' (a user software agreement)"
+   },
+   {
+    "x": 100,
+    "y": 1420,
+    "w": 880,
+    "h": 360,
+    "proves": "fee clauses are about users' software products; no broker fees"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wfx-stmt-title.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-7"
+  ],
+  "source_url": "https://www.wikifx.com/en/newsdetail/202506121224450441.html",
+  "captured_at": "2026-10-01T22:07:06+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 100,
+    "y": 330,
+    "w": 820,
+    "h": 100,
+    "proves": "title: Important Statement on the Authenticity of WikiFX Score and Broker Reviews"
+   },
+   {
+    "x": 100,
+    "y": 455,
+    "w": 200,
+    "h": 30,
+    "proves": "publisher WikiFX, dated 2025-06-12"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wfx-stmt-score.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-8",
+   "MAIN-9",
+   "MAIN-10"
+  ],
+  "source_url": "https://www.wikifx.com/en/newsdetail/202506121224450441.html",
+  "captured_at": "2026-10-01T22:07:17+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 60,
+    "y": 605,
+    "w": 930,
+    "h": 105,
+    "proves": "its own words: 'scoring system operates independently and is in no way linked to partnerships or payments'"
+   },
+   {
+    "x": 60,
+    "y": 740,
+    "w": 930,
+    "h": 440,
+    "proves": "the five indices (License, Regulation, Risk Control, Business, Software); no weights given"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/wfx-stmt-partner.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-11",
+   "MAIN-12",
+   "MAIN-13"
+  ],
+  "source_url": "https://www.wikifx.com/en/newsdetail/202506121224450441.html",
+  "captured_at": "2026-10-01T22:07:29+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "WikiFX ad slots, direct-link banners, language prompt (切换) and floating widgets",
+    "rule": "WikiFX hygiene block (hide_selectors + hide_texts), copied verbatim from bl58"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 90,
+    "y": 845,
+    "w": 900,
+    "h": 230,
+    "proves": "its own words: partnered brokers and the Complaint Mediation Window"
+   },
+   {
+    "x": 90,
+    "y": 1110,
+    "w": 900,
+    "h": 330,
+    "proves": "its own words: the window exists for partnered brokers"
+   },
+   {
+    "x": 90,
+    "y": 1480,
+    "w": 900,
+    "h": 210,
+    "proves": "its own words: non-partnered brokers do not have the window"
+   },
+   {
+    "x": 90,
+    "y": 1775,
+    "w": 900,
+    "h": 115,
+    "proves": "'We welcome scrutiny but reject slander. We reserve the right to pursue legal action'"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/mas-register.png",
+  "kind": "still",
+  "covers": [
+   "CURIOSITY-5"
+  ],
+  "source_url": "https://eservices.mas.gov.sg/fid",
+  "captured_at": "2026-10-01T22:07:53+07:00",
+  "seconds": 0,
+  "censored": [],
+  "evidence_box": [
+   {
+    "x": 70,
+    "y": 255,
+    "w": 940,
+    "h": 380,
+    "proves": "a regulator's own register: warning to verify identity, search box (Monetary Authority of Singapore, example of the kind of source only)"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)"
+ },
+ {
+  "file": "real/fb-post-head.png",
+  "kind": "still",
+  "covers": [
+   "HOOK-1",
+   "HOOK-3",
+   "HOOK-4"
+  ],
+  "source_url": "Facebook post screenshot supplied by the CEO (outside git: /opt/MoonieXHQ/Work/bl59-input/fb-post-screenshot-from-ceo.jpg); post URL not known",
+  "captured_at": "2026-10-01T22:11:36+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "page name, page icon, author name and BOTH avatars (also the small profile picture)",
+    "rule": "personal_data: pixelate_region from tools/bl_realfootage.py, block 14-18, applied to the whole screenshot before any crop"
+   },
+   {
+    "what": "the CEO's second image (AI art with the crossed-out WikiFX logo)",
+    "rule": "not used at all (CEO ruling 4)"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 495,
+    "y": 900,
+    "w": 290,
+    "h": 38,
+    "proves": "the Facebook label 'เนื้อหาที่สร้างโดย AI' on the post"
+   },
+   {
+    "x": 25,
+    "y": 1020,
+    "w": 1030,
+    "h": 120,
+    "proves": "the post's title: 'ถึง WikiFX — คนที่ตรวจสอบโบรกเกอร์ ก็ควรพร้อมให้คนอื่นตรวจสอบเช่นกัน'"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas. The screenshot own capture time is unknown (supplied by the CEO), captured_at here = when this crop was made"
+ },
+ {
+  "file": "real/fb-post-figure.png",
+  "kind": "still",
+  "covers": [
+   "PATTERN-1",
+   "PATTERN-2",
+   "PATTERN-3"
+  ],
+  "source_url": "Facebook post screenshot supplied by the CEO (outside git: /opt/MoonieXHQ/Work/bl59-input/fb-post-screenshot-from-ceo.jpg); post URL not known",
+  "captured_at": "2026-10-01T22:11:37+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "page name, page icon, author name and BOTH avatars (also the small profile picture)",
+    "rule": "personal_data: pixelate_region from tools/bl_realfootage.py, block 14-18, applied to the whole screenshot before any crop"
+   },
+   {
+    "what": "the CEO's second image (AI art with the crossed-out WikiFX logo)",
+    "rule": "not used at all (CEO ruling 4)"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 25,
+    "y": 880,
+    "w": 1030,
+    "h": 180,
+    "proves": "the post's own hedged wording: 'จากข้อมูลที่ผมได้รับมา มีการกล่าวถึงการเสนอหรือเรียกเก็บค่าบริการ ... $10,000 ขึ้นไป'. Not proof of the claim, only of what the post says"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas. The screenshot own capture time is unknown (supplied by the CEO), captured_at here = when this crop was made"
+ },
+ {
+  "file": "real/fb-post-questions.png",
+  "kind": "still",
+  "covers": [
+   "PATTERN-4",
+   "CONTEXT-1",
+   "CONTEXT-2",
+   "CONTEXT-3",
+   "CONTEXT-4"
+  ],
+  "source_url": "Facebook post screenshot supplied by the CEO (outside git: /opt/MoonieXHQ/Work/bl59-input/fb-post-screenshot-from-ceo.jpg); post URL not known",
+  "captured_at": "2026-10-01T22:11:37+07:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "page name, page icon, author name and BOTH avatars (also the small profile picture)",
+    "rule": "personal_data: pixelate_region from tools/bl_realfootage.py, block 14-18, applied to the whole screenshot before any crop"
+   },
+   {
+    "what": "the CEO's second image (AI art with the crossed-out WikiFX logo)",
+    "rule": "not used at all (CEO ruling 4)"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 25,
+    "y": 693,
+    "w": 1030,
+    "h": 530,
+    "proves": "the four questions the post asks WikiFX, as written"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
+  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas. The screenshot own capture time is unknown (supplied by the CEO), captured_at here = when this crop was made"
+ }
+]

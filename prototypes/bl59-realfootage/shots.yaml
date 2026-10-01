@@ -1,0 +1,218 @@
+# BLACK LIQUIDITY EP59 -- who checks the rating sites (WikiFX's own public pages + one regulator register) -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl59-realfootage/shots.yaml --episode bl59
+# The three fb-post-* stills are NOT runner shots: they are made by hand from the CEO's Facebook screenshot
+# (outside git) and merged into REAL_MANIFEST.json, see RUNLOG.md.
+
+censor_profiles:
+  personal_data:
+    - {label: "reviewer avatar + username", kind: full, avatar_heuristic: true}
+  faces: []
+  promo:
+    - {label: "signup/register CTA (สมัคร)", kind: full, text: "สมัคร"}
+    - {label: "register CTA (ลงทะเบียน)", kind: full, text: "ลงทะเบียน"}
+    - {label: "download app CTA", kind: full, text: "ดาวน์โหลด"}
+    - {label: "bonus/prize banner (รางวัล)", kind: full, text: "รางวัล"}
+    - {label: "gift/welcome-bonus banner (ของขวัญ)", kind: full, text: "ของขวัญ"}
+    - {label: "dollar bonus amount", kind: full, regex: "\\$[\\d,]{4,}"}
+    - {label: "unrelated product upsell (BotBuilt)", kind: full, text: "BotBuilt"}
+  broker_logo_partial:
+    - label: "header logo (partial)"
+      kind: partial
+      selector: ".nav-logo-link, header img[alt*=logo], a[href='/'] img"
+      fraction: 0.4
+      side: right
+      min_w: 60
+  complaint_ids:
+    - {label: "complainant FX id", kind: full, regex: "FX\\d{8,}"}
+    - {label: "complaint COG id", kind: full, regex: "COG\\d{10,}"}
+
+x-wikifx-hygiene: &wikifx_hygiene
+  hide_selectors:
+    - ".advertisement-list"
+    - ".wiki-direct"
+    - ".article-r"
+    - ".head-r"
+    - ".dealer-primary-jaf-new"
+    - ".article-c img, .article-info img"
+    - ".chrome_ctx_right"
+    - ".new_chrome_down"
+    - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+  hide_texts:
+    - "切换"
+
+shots:
+  # -- WikiFX About page, first screen: logo + ABOUT US
+  - id: wfx-about-top
+    url: "https://www.wikifx.com/th/about.html"
+    action: capture
+    kind: still
+    covers: [HOOK-2, CONTEXT-5, MAIN-1, CURIOSITY-1, CURIOSITY-2]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "first screen of the Thai About page, scroll 0"
+
+  # -- About page block: the WikiFX scoring system sentence
+  - id: wfx-about-score
+    url: "https://www.wikifx.com/th/about.html"
+    action: capture
+    kind: still
+    covers: [MAIN-2, MAIN-3]
+    wait_ms: 2500
+    crop:
+      text: "ระบบการให้คะแนน WikiFX"
+      pad: 3.0
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "the About page says the score uses an advanced algorithm, no formula and no weights"
+
+  # -- WikiFX contact page: business cooperation form
+  - id: wfx-contact
+    url: "https://www.wikifx.com/th/contract.html"
+    action: capture
+    kind: still
+    covers: [MAIN-5]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "form + purposes list, no price on the page; no field filled, nothing clicked"
+
+  # -- WikiFX terms of use page
+  - id: wfx-terms
+    url: "https://www.wikifx.com/th/terms.html?type=1"
+    action: capture
+    kind: still
+    covers: [MAIN-6]
+    wait_ms: 2500
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "a software service agreement for users, no broker fees on the page"
+
+  # -- WikiFX statement 2025-06-12 title
+  - id: wfx-stmt-title
+    url: "https://www.wikifx.com/en/newsdetail/202506121224450441.html"
+    action: capture
+    kind: still
+    covers: [MAIN-7]
+    wait_ms: 2500
+    crop:
+      text: "Important Statement on the Authenticity of WikiFX Score and Broker Reviews"
+      pad: 2.6
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "English page only: the Thai URL of this article returns 404"
+
+  # -- statement: score independent of payments + five indices
+  - id: wfx-stmt-score
+    url: "https://www.wikifx.com/en/newsdetail/202506121224450441.html"
+    action: capture
+    kind: still
+    covers: [MAIN-8, MAIN-9, MAIN-10]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(6)"
+      pad: 1.2
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "its own words: score not linked to partnerships or payments; five indices, no weights"
+
+  # -- statement: partnered / non-partnered brokers + mediation window
+  - id: wfx-stmt-partner
+    url: "https://www.wikifx.com/en/newsdetail/202506121224450441.html"
+    action: capture
+    kind: still
+    covers: [MAIN-11, MAIN-12, MAIN-13]
+    wait_ms: 2500
+    crop:
+      selector: ".article-c .info > :nth-child(18)"
+      pad: 1.2
+    hide_selectors:
+      - ".advertisement-list"
+      - ".wiki-direct"
+      - ".article-r"
+      - ".head-r"
+      - ".dealer-primary-jaf-new"
+      - ".article-c img, .article-info img"
+      - ".chrome_ctx_right"
+      - ".new_chrome_down"
+      - "iframe[id*=google_ads], iframe[id*='/ad_'], [id*=dfp-ad], [class*=adsbygoogle]"
+    hide_texts:
+      - "切换"
+    censor_profiles: []
+    source_note: "its own words on partnered and non-partnered brokers"
+
+  # -- MAS Financial Institutions Directory landing: what a regulator's own register looks like
+  - id: mas-register
+    url: "https://eservices.mas.gov.sg/fid"
+    action: capture
+    kind: still
+    covers: [CURIOSITY-5]
+    wait_ms: 3500
+    censor_profiles: []
+    source_note: "Monetary Authority of Singapore directory landing page. Search box + licence-type counts, no firm names in frame. Example of a primary source only"

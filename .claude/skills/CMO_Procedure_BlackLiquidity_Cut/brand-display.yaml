@@ -9,5 +9,9 @@
 เอ็กซ์เนส: Exness
 เอ็กซ์เอ็กซ์แอลมาร์เก็ตส์: XXLMARKETS
 เวลเทรด: Weltrade
+จีบี: GB
+ไซเซค: CySEC
+โกลเดนเบิร์ก: Goldenburg
+เอไอ: AI
 # Not mapped on purpose: ไลน์ (too common a Thai word to substring-replace safely),
 # place names (they may stay in Thai).

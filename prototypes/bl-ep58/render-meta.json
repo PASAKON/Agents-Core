@@ -1,0 +1,45 @@
+{
+ "task": "task-8f940c57",
+ "episode": "BL EP58 Weltrade",
+ "final": "/opt/MoonieXHQ/Work/bl-ep58/cut/final-ep58.mp4",
+ "bytes": 23620044,
+ "duration_s": 95.7,
+ "fps": "30/1",
+ "size": "1080x1920",
+ "frames": 2871,
+ "video_codec": "h264",
+ "audio_codec": "aac",
+ "loudness_lufs": -15.4,
+ "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/cut/sheet-ep58.jpg",
+ "modes": {
+  "COMP": 14,
+  "EVID": 14,
+  "KIN": 9,
+  "FF": 3
+ },
+ "beats": 40,
+ "windows": 12,
+ "window_render": "bl_compose --t0/--t-max, frame-aligned, merged with bl_merge",
+ "verify": "PASSED (sync 0 ms at 3 points; lip A/B/C seated 0.00/38.77/80.84 at 0 ms; loudness -15.4)",
+ "checker": {
+  "pass": false,
+  "empty_frames": [
+   29.667,
+   29.7,
+   29.733,
+   71.567,
+   71.6,
+   71.633,
+   71.667
+  ],
+  "out_of_safe_area": [
+   "MAIN-10",
+   "MAIN-11",
+   "MAIN-13"
+  ],
+  "text_over_face": [],
+  "credit_missing": [],
+  "extra_caption_styles": [],
+  "kinetic_overflow": []
+ }
+}
