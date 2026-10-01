@@ -39,9 +39,12 @@ Database role (W4.6c, F3): the endpoint is public, so it connects as the least-p
 It reads ORG_JOIN_DB_URL. Only when that is unset and JOIN_API_ALLOW_ORG_ROLE=1 does it fall back to
 ORG_DB_URL, with a one-line warning; without the flag it refuses to start.
 
-The TailscaleMinter is an injectable `host -> pre-auth key` callable and is NOT wired here
-(CEO gate G3 = the Tailscale OAuth client). Without one the field is absent and join.sh
-requires the machine to be on the tailnet already.
+The TailscaleMinter is an injectable `host -> pre-auth key` callable. main() wires
+lib.tailscale_api when TAILSCALE_OAUTH_CLIENT_ID and TAILSCALE_OAUTH_CLIENT_SECRET are both in
+the environment (the /org-join folder the unit already injects); one without the other refuses
+to start. Without them the field is absent and join.sh requires the machine to be on the
+tailnet already. A minter that raises does not fail the accept: no key field, one warning
+with the exception's class name.
 """
 from __future__ import annotations
 
@@ -65,7 +68,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import db, db_pg  # noqa: E402
+from lib import db, db_pg, tailscale_api  # noqa: E402
 from tools import hq_join  # noqa: E402
 
 _log = logging.getLogger("join_api")
@@ -93,7 +96,7 @@ _ORIGIN_RE = re.compile(r"https?://[A-Za-z0-9.-]{1,253}(?::[0-9]{1,5})?")
 _HOSTHDR_RE = re.compile(r"[A-Za-z0-9.-]{1,253}(?::[0-9]{1,5})?")
 _AUTHKEY_RE = re.compile(r"[\x21-\x7e]{1,200}")
 
-# host -> one-use, ephemeral, tagged Tailscale pre-auth key.
+# host -> one-use, pre-authorized, tagged Tailscale pre-auth key (lib.tailscale_api.mint_authkey).
 TailscaleMinter = Callable[[str], str]
 
 _JSON = "application/json"
@@ -474,6 +477,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         check_bind(args.bind)
         db_url, db_warning = choose_db_url(os.environ)
+        ts_client = tailscale_api.from_env(os.environ)  # None = not configured; half of it = ValueError
     except ValueError as exc:
         p.error(str(exc))  # exit 2, before the database is touched
     logging.basicConfig(level=logging.INFO, format="%(asctime)s join_api %(levelname)s %(message)s")
@@ -484,7 +488,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         _preflight()
         srv = make_server(args.port, public_url=args.public_url,
-                          trust_forwarded=args.trust_forwarded_for, bind=args.bind)
+                          trust_forwarded=args.trust_forwarded_for, bind=args.bind,
+                          minter=ts_client.mint_authkey if ts_client else None)
     except (OSError, ValueError) as exc:
         print(f"join_api: cannot start ({type(exc).__name__}: {str(exc)[:200]})", file=sys.stderr)
         return 1

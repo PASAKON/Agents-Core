@@ -50,8 +50,9 @@ act (Infisical, Tailscale, GitHub, ssh) is injectable: a `Revoker` is a callable
 taking a Step and returning an Outcome, and `provision` takes the Infisical org,
 a gh runner and a sealer. `leave --live` uses UNWIRED_REVOKERS ("not wired
 yet") unless the flag is on; with it, wired_revokers() revokes the Infisical
-client secret and the GitHub deploy key for real, and tailscale_device and
-authorized_keys stay unwired. Tests inject fakes.
+client secret and the GitHub deploy key for real, removes the tailnet device
+too when TAILSCALE_OAUTH_CLIENT_ID / _SECRET are in the environment (lib/tailscale_api.py),
+and leaves authorized_keys unwired. Tests inject fakes.
 
 Exit    0 ok, 1 ran and failed (leave with steps left behind, provision
         failed), 2 refused (bad argument, or the token/host was rejected)
@@ -79,7 +80,7 @@ sys.path.insert(0, str(ROOT))
 
 import yaml  # noqa: E402
 
-from lib import config, db, sealed  # noqa: E402
+from lib import config, db, sealed, tailscale_api  # noqa: E402
 from tools import infisical_setup  # noqa: E402
 
 ACTOR = "hq_join"
@@ -465,12 +466,14 @@ def _not_wired(why: str) -> Revoker:
 
 
 # What `leave --live` uses unless ORG_W42_PROVISION=1 (then wired_revokers(),
-# below, replaces the first and third entries). Every step refuses, so nothing
-# outside the hub can be touched by this file.
+# below, replaces the first and third entries, and the second when the Tailscale OAuth
+# client is in the environment). Every step refuses, so nothing outside the hub can be
+# touched by this file.
 UNWIRED_REVOKERS: Mapping[str, Revoker] = {
     "infisical_client_secret": _not_wired(
         f"live revocation is off (set {W42_FLAG}=1, W4.2)"),
-    "tailscale_device": _not_wired("needs the Tailscale OAuth client (CEO gate G3)"),
+    "tailscale_device": _not_wired(
+        f"needs {W42_FLAG}=1 and {tailscale_api.ID_ENV} + {tailscale_api.SECRET_ENV} in the environment"),
     "github_deploy_key": _not_wired(
         f"live revocation is off (set {W42_FLAG}=1, W4.2)"),
     "authorized_keys": _not_wired("needs the W2.8 ssh mesh (forced-command keys)"),
@@ -563,12 +566,34 @@ def _revoke_key_leg(host: str, kid: str | None, gh: GhRunner) -> None:
     _exec("UPDATE node_secrets SET github_deploy_key_id = NULL WHERE host = ?", (host,))
 
 
-def wired_revokers(*, org=None, gh: GhRunner | None = None,
+def tailscale_revoker(client=None) -> Revoker | None:
+    """The `tailscale_device` leg: remove the node's tag:org-node device from the tailnet
+    (lib.tailscale_api.delete_device, which refuses anything untagged and any ambiguity).
+    `client` defaults to the one TAILSCALE_OAUTH_CLIENT_ID / _SECRET in the environment name; None
+    when the environment holds none, so the step stays unwired. Half a configuration is not
+    "none": the step refuses, naming the variables. Builds a client and calls nothing."""
+    if client is None:
+        try:
+            client = tailscale_api.from_env(os.environ)
+        except ValueError as exc:   # names the two variables, never a value
+            return _not_wired(str(exc))
+        if client is None:
+            return None
+
+    def revoke(step: Step) -> Outcome:
+        gone = client.delete_device(step.target)
+        return Outcome(True, "deleted" if gone else "no tag:org-node device on the tailnet")
+    return revoke
+
+
+def wired_revokers(*, org=None, gh: GhRunner | None = None, tailscale=None,
                    now: datetime | None = None) -> Mapping[str, Revoker]:
-    """UNWIRED_REVOKERS with the two W4.2 legs made real: the client secret and the
-    deploy key are revoked by the ids in node_secrets. tailscale_device and
-    authorized_keys stay unwired. `org` defaults to the live Infisical org, built on
-    first use so a leave that never reaches the first step never logs in."""
+    """UNWIRED_REVOKERS with the W4.2 legs made real: the client secret and the
+    deploy key are revoked by the ids in node_secrets. The tailnet device is removed when
+    `tailscale` (a client) is given or the environment holds the Tailscale OAuth client
+    (tailscale_revoker); otherwise tailscale_device stays unwired, as does authorized_keys.
+    `org` defaults to the live Infisical org, built on first use so a leave that never
+    reaches the first step never logs in."""
     cache: dict = {}
 
     def the_org():
@@ -588,8 +613,12 @@ def wired_revokers(*, org=None, gh: GhRunner | None = None,
         _revoke_key_leg(step.target, kid, gh or _gh_subprocess)
         return Outcome(True, "deleted" if kid else "no deploy key recorded")
 
-    return {**UNWIRED_REVOKERS, "infisical_client_secret": revoke_secret,
-            "github_deploy_key": revoke_key}
+    table = {**UNWIRED_REVOKERS, "infisical_client_secret": revoke_secret,
+             "github_deploy_key": revoke_key}
+    ts = tailscale_revoker(tailscale)
+    if ts is not None:
+        table["tailscale_device"] = ts
+    return table
 
 
 def default_revokers() -> Mapping[str, Revoker]:
