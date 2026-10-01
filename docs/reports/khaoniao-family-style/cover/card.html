@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>บ้านนี้มีมีมี่ — in-video cards 1080x1920</title>
+<!--
+  In-video text for an episode, same L3 treatment as cover.html (Itim, fill #FFF6D6, stroke #203A5E, gold #F2B632).
+  ?mode=morning  transparent "เมื่อเช้า" time card laid over the first seconds of a flashback shot
+  ?mode=title    full card shown at the mid-roll (never before 3 s, CEO 2026-10-01): EP badge + the episode question
+  ?mode=end      end card: page mark + the promise line (l1)
+  Params: l1, l2, ep.  Render with render_cards.py on winbox (real Thai fonts, no image model).
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=block');
+html,body{margin:0;padding:0;overflow:hidden;background:transparent}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:'Itim'}
+.bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#1c3358 0%,#10203a 55%,#0a1426 100%)}
+.line{position:absolute;left:0;right:0;display:flex;justify-content:center}
+.t{display:inline-block;white-space:nowrap;line-height:1.25;-webkit-text-stroke:16px #203A5E;paint-order:stroke fill;filter:drop-shadow(0 7px 6px rgba(0,0,0,.5))}
+.ch{display:inline-block}
+.cream{color:#FFF6D6}.gold{color:#F2B632}
+.badge{position:absolute;left:50%;transform:translateX(-50%);top:420px;width:260px;height:260px;border-radius:50%;background:#F2B632;
+  box-shadow:inset 0 0 0 14px #FFF3D6,0 10px 18px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#203A5E;line-height:1}
+.badge b{font-size:116px;font-weight:400}.badge i{font-style:normal;font-size:44px;margin-top:6px}
+.wave{position:absolute;left:140px;width:800px;height:30px}
+.mark{position:absolute;left:50%;transform:translateX(-50%);width:2400px;max-width:none}
+</style>
+<div id="stage"></div>
+<script>
+const q = new URLSearchParams(location.search), mode = q.get('mode') || 'title';
+const rot = [-5, 4, -3, 5, -4, 3, -5], dy = [0, -8, 4, -6, 6, -4, 2];
+const clusters = s => [...new Intl.Segmenter('th', {granularity: 'grapheme'}).segment(s)].map(x => x.segment);
+const spans = s => clusters(s).map((c, i) => `<span class="ch" style="transform:translateY(${dy[i % 7] * .8}px) rotate(${rot[i % 7] * .8}deg)">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+const line = (txt, cls, top, size) => `<div class="line" style="top:${top}px"><span class="t ${cls}" style="font-size:${size}px">${spans(txt)}</span></div>`;
+let h = '';
+if (mode === 'morning') {
+  h = line(q.get('l1') || 'เมื่อเช้า', 'cream', 60, 170);
+} else if (mode === 'title') {
+  h = `<div class="bg"></div><div class="badge"><b>EP.${q.get('ep') || '1'}</b><i>ตอนแรก</i></div>` +
+      line(q.get('l1') || 'ทำไมมีมี่กลัวน้ำ', 'cream', 800, 140) + line(q.get('l2') || 'แต่ยอมลุยน้ำท่วม?', 'gold', 1000, 140) +
+      `<svg class="wave" style="top:1200px" viewBox="0 0 800 30"><path d="M8 16 q25 -16 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="#FFF6D6" stroke-width="7" fill="none" stroke-linecap="round"/></svg>`;
+} else {
+  h = `<div class="bg"></div><img class="mark" style="top:420px" src="file:///C:/mooniex/khaoniao/cover/logo-3-mark.png">` +
+      line(q.get('l1') || 'ติดตามตอนใหม่ทุกวัน 19:30', 'cream', 1250, 84);
+}
+document.getElementById('stage').innerHTML = h;
+(async () => {
+  await document.fonts.ready;
+  await document.fonts.load('40px "Itim"', 'เมื่อเช้าทำไมมีมี่กลัวน้ำแต่ยอมลุยท่วมEP.1ตอนแรกติดตามใหม่ทุกวัน19:30');
+  for (const t of document.querySelectorAll('.t')) { const w = t.getBoundingClientRect().width; if (w > 960) t.style.transform = `scale(${960 / w})`; }
+  document.title = 'ready';
+})();
+</script>
