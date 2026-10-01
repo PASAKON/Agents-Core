@@ -156,3 +156,50 @@ def test_a_moved_cred_dir_never_falls_back_to_a_real_user_file(monkeypatch, tmp_
     monkeypatch.setattr(infisical_setup, "CRED_DIR", str(tmp_path / "elsewhere"))
     with pytest.raises(FileNotFoundError):
         infisical_setup.read_cred("winbox")
+
+
+class _FakeOrg:
+    def __init__(self, identity):
+        self.identity = identity
+
+    def get(self, path, **params):
+        return {"secrets": [{"secretKey": "SUPABASE_URL", "secretValue": "https://x"}]}
+
+
+def _fake_run_env(monkeypatch):
+    monkeypatch.setattr(infisical_setup, "Org", _FakeOrg)
+    monkeypatch.setattr(infisical_setup, "_project", lambda org, name: {"id": "p1", "name": name})
+
+
+def test_run_on_windows_waits_for_the_child_and_returns_its_exit_code(monkeypatch):
+    """os.execvpe on Windows ends the parent at once, so a supervisor would lose the program."""
+    _fake_run_env(monkeypatch)
+    monkeypatch.setattr(infisical_setup, "_is_nt", lambda: True)
+    monkeypatch.setattr(infisical_setup.os, "execvpe", lambda *a: pytest.fail("exec on Windows"))
+    seen = {}
+
+    def call(argv, env):
+        seen["argv"], seen["url"] = argv, env.get("SUPABASE_URL")
+        return 7
+
+    monkeypatch.setattr(infisical_setup.subprocess, "call", call)
+    with pytest.raises(SystemExit) as exc:
+        infisical_setup.cmd_run("winbox", "MoonieX-Option", "prod", ["node", "trader.js"])
+    assert exc.value.code == 7
+    assert seen["argv"][1:] == ["trader.js"] and seen["url"] == "https://x"
+
+
+def test_run_off_windows_still_execs(monkeypatch):
+    _fake_run_env(monkeypatch)
+    monkeypatch.setattr(infisical_setup, "_is_nt", lambda: False)
+    seen = {}
+
+    def execvpe(file, argv, env):
+        seen["argv"], seen["url"] = argv, env.get("SUPABASE_URL")
+        raise SystemExit(0)
+
+    monkeypatch.setattr(infisical_setup.os, "execvpe", execvpe)
+    monkeypatch.setattr(infisical_setup.subprocess, "call", lambda *a, **k: pytest.fail("child off Windows"))
+    with pytest.raises(SystemExit):
+        infisical_setup.cmd_run("contabo", "MoonieX-Option", "prod", ["node", "trader.js"])
+    assert seen == {"argv": ["node", "trader.js"], "url": "https://x"}

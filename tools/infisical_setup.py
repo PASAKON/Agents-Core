@@ -56,6 +56,7 @@ import getpass
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -880,7 +881,18 @@ def cmd_run(identity: str, project: str, env: str, argv: list[str], path: str = 
         sys.exit(f"{where} holds no secrets — refusing to start {argv[0]} without them")
     print(f"[infisical run] {where} as {identity}: {', '.join(sorted(secrets))} -> {argv[0]}",
           file=sys.stderr)
-    os.execvpe(argv[0], argv, {**os.environ, **secrets})
+    child_env = {**os.environ, **secrets}
+    if _is_nt():
+        # os.exec* on Windows starts a NEW process and ends this one at once (CRT _execvpe), so a
+        # supervisor (winbox-trader.ps1's wait, -Loop, taskkill /T) would lose the real program.
+        # Wait for it as a child instead and hand back its exit code.
+        exe = shutil.which(argv[0], path=child_env.get("PATH")) or argv[0]
+        try:
+            rc = subprocess.call([exe, *argv[1:]], env=child_env)
+        except KeyboardInterrupt:
+            rc = 130
+        sys.exit(rc)
+    os.execvpe(argv[0], argv, child_env)
 
 
 def main(argv: list[str] | None = None) -> None:
