@@ -565,6 +565,16 @@ def test_layout_font_shrinks_with_the_widest_line_and_caps_at_88():
     assert full["text"][2] <= 840 + 0.01
 
 
+def test_layout_estimates_latin_capitals_wider_than_thai_text():
+    # measured in Chromium on Kanit 800 (task-406c21f3): a 30-character all-caps line rendered 870 px at 48 px in an
+    # 840 px box when it was estimated at the Thai 0.58 em per character; capitals are 0.70 em in the estimate now.
+    caps = ck.headline_layout(_parsed(lines=["BROKER WITHDRAWAL SCAM EXPOSED", "WHAT THEY HIDE FROM TRADERS"], red="SCAM"))
+    thai = ck.headline_layout(_parsed(lines=["ก" * 30, "ข" * 30], red="ก" * 30))
+    assert thai["font_px"] == 48 and caps["font_px"] == 40
+    assert caps["text"][2] <= 840 and caps["font_px"] * 30 * 0.688 * 0.97 < 840      # the measured 0.688 em mean fits
+    assert ck._text_width_em("ก" * 30 + "ิ่") == pytest.approx(30 * 0.58)           # combining marks are zero width
+
+
 def test_a_default_headline_sits_inside_the_cmo_band_of_12_to_26_percent():
     for lines, red in ((["รู้ก่อนเสียเงิน", "เปิดบัญชีง่าย"], "เสียเงิน"), ([LINE_1, LINE_2], RED),
                        (["ก" * 30, "ข" * 30], "ก" * 30)):

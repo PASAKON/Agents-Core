@@ -468,7 +468,12 @@ BACKDROP_PREFIX = "real/"   # a backdrop carries no credit chip, so it may only 
 # that ends above y=900 take the right margin back to 120, and this one ends near y=500 -- 120..960, centred on 540.
 HEADLINE_BOX_LEFT, HEADLINE_BOX_RIGHT = 120, 960
 HEADLINE_TOP = 276                    # 14.4% of the height; the two lines end by ~25.8% (CMO: about 12-26%)
-HEADLINE_FONT_MAX = 88                # px, Kanit 800 -- 16 characters or fewer; a 30-character line fits at 48
+HEADLINE_FONT_MAX = 88                # px, Kanit 800 -- 16 characters or fewer; a 30-character Thai line fits at 48
+# Kanit 800 measured in Chromium (the render's engine) on the real template's fonts, task-406c21f3: Thai text 0.553 em
+# per spacing character (30-character sample), Latin lowercase 0.539, digits 0.556 -- all under the 0.58 the kinetic
+# gate uses -- but Latin CAPITALS 0.688 on average (W, M up to 0.94). A 30-character all-caps line at 0.58 rendered
+# 870 px wide in an 840 px box. Capitals are therefore estimated at 0.70 and everything else at KINETIC_CHAR_WIDTH_RATIO.
+HEADLINE_UPPER_WIDTH_RATIO = 0.70
 HEADLINE_LINE_RATIO = 1.25
 # The bug at the top-left: logo + divider + date on one row (the Feb sheets' shape). Origin is where compose pins it;
 # the zone is that row padded -- the logo is 60 px high and ~164 wide, the date chip ~150, 14 px gaps.
@@ -558,18 +563,26 @@ def split_beats_doc(doc: Any) -> tuple[list[dict], dict | None]:
     raise ArmAError("beats.json must be a list of beats (arm B) or an object {headline, beats} (arm A)")
 
 
+def _text_width_em(text: str) -> float:
+    """Estimated width of `text` in em, Kanit 800: zero for Thai combining marks (they stack on a consonant), 0.70
+    for a Latin capital, KINETIC_CHAR_WIDTH_RATIO for every other character -- spaces included, which over-counts."""
+    return sum(0.0 if unicodedata.category(c) == "Mn"
+               else HEADLINE_UPPER_WIDTH_RATIO if "A" <= c <= "Z" else KINETIC_CHAR_WIDTH_RATIO
+               for c in text)
+
+
 def headline_layout(headline: dict) -> dict:
     """Where the plate sits, in canvas px: `font_px`, `line_h`, `box` (the element compose emits -- full safe width,
     two lines high) and `text` (the estimated extent of the widest line, centred on the box; what the checks
-    judge). Width is estimated the way the kinetic gate does it (visual characters x KINETIC_CHAR_WIDTH_RATIO x
-    font size, Kanit 800), and the font is the largest size, up to HEADLINE_FONT_MAX, at which the widest line fits
-    the box -- so a 30-character line comes out at 48 px, the smallest size this returns."""
-    widest = max(_visual_len(line) for line in headline["lines"])
+    judge). Width is estimated by _text_width_em, and the font is the largest size, up to HEADLINE_FONT_MAX, at which
+    the widest line fits the box -- so a 30-character Thai line comes out at 48 px and a 30-character all-caps Latin
+    line at 40."""
+    widest = max(_text_width_em(line) for line in headline["lines"])
     box_w = HEADLINE_BOX_RIGHT - HEADLINE_BOX_LEFT
-    font = min(HEADLINE_FONT_MAX, int(box_w // (widest * KINETIC_CHAR_WIDTH_RATIO)))
+    font = min(HEADLINE_FONT_MAX, int(box_w // widest))
     line_h = round(font * HEADLINE_LINE_RATIO)
     box = (HEADLINE_BOX_LEFT, HEADLINE_TOP, box_w, HEADLINE_LINES * line_h)
-    text_w = min(box_w, widest * KINETIC_CHAR_WIDTH_RATIO * font)
+    text_w = min(box_w, widest * font)
     text = ((HEADLINE_BOX_LEFT + HEADLINE_BOX_RIGHT - text_w) / 2, HEADLINE_TOP, text_w, box[3])
     return {"font_px": font, "line_h": line_h, "box": box, "text": text}
 
