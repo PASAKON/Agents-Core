@@ -71,7 +71,7 @@
    "CURIOSITY-4"
   ],
   "source_url": "https://www.wikifx.com/th/about.html",
-  "captured_at": "2026-10-01T22:06:28+07:00",
+  "captured_at": "2026-10-01T22:11:35+07:00",
   "seconds": 0,
   "censored": [
    {
@@ -333,7 +333,7 @@
    }
   ],
   "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
-  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas"
+  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas. The screenshot own capture time is unknown (supplied by the CEO), captured_at here = when this crop was made"
  },
  {
   "file": "real/fb-post-figure.png",
@@ -366,7 +366,7 @@
    }
   ],
   "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
-  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas"
+  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas. The screenshot own capture time is unknown (supplied by the CEO), captured_at here = when this crop was made"
  },
  {
   "file": "real/fb-post-questions.png",
@@ -401,6 +401,6 @@
    }
   ],
   "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (the runner does not export it)",
-  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas"
+  "source_note": "hand-made from the CEO's screenshot (not a runner shot); crop scaled to 1080 wide on a white 1080x1920 canvas. The screenshot own capture time is unknown (supplied by the CEO), captured_at here = when this crop was made"
  }
 ]
