@@ -692,12 +692,61 @@ def sqlite_connect(path: str | Path, *, row_factory: bool = True,
     return conn
 
 
-def init_schema(conn, *, is_pg: bool) -> None:
-    """Create schema + run forward-only column migrations on an already-open
-    `conn`. Idempotent. Split out of init() (task-78586938) so
-    scripts/migrate_tasks_db.py can initialise a specific --to target that
-    `get_conn()`/ORG_DB_URL may not point at, reusing this exact column list
-    instead of hand-duplicating it."""
+# Postgres runs init_schema() in one transaction. CREATE INDEX IF NOT EXISTS
+# takes a SHARE lock on its table even when the index is already there, and
+# the backfill then needs ROW EXCLUSIVE on tasks. Two processes initialising
+# at the same moment each held the SHARE lock the other was waiting on, so
+# Postgres killed one with DeadlockDetected: a worker's org MCP server died at
+# startup and the worker ran without submit_report (task-1b8ef857,
+# 2026-10-02; 38 of 40 paired inits deadlocked on a local Postgres 16). The
+# advisory lock makes concurrent inits take turns, and a schema that is
+# already current skips the DDL, so an ordinary init takes no SHARE lock at
+# all. The key is the bytes of "org_init" read as a bigint.
+_PG_INIT_LOCK_KEY = int.from_bytes(b"org_init", "big")
+_PG_CREATE_RE = re.compile(
+    r"CREATE\s+(?:TABLE|(?:UNIQUE\s+)?INDEX)\s+IF\s+NOT\s+EXISTS\s+(\w+)",
+    re.IGNORECASE)
+
+
+def _pg_schema_current(conn) -> bool:
+    """True when every DDL statement init_schema() would run on Postgres is a
+    no-op: each table and index the schema scripts create exists, every
+    migration column is there, and claudesign_project_id is gone. A statement
+    this cannot read answers False, so the DDL runs and a new kind of
+    statement in a schema script is never skipped by mistake."""
+    names = []
+    for script in (db_pg.PG_SCHEMA, JOIN_TOKENS_SCHEMA, NODE_SECRETS_SCHEMA):
+        for stmt in db_pg._split_statements(script):
+            m = _PG_CREATE_RE.match(stmt)
+            if m is None:
+                return False
+            names.append(m.group(1).lower())
+    found = {r[0] for r in conn.execute(
+        "SELECT c.relname FROM pg_class c"
+        " JOIN pg_namespace n ON n.oid = c.relnamespace"
+        " WHERE n.nspname = current_schema() AND c.relname = ANY(?)",
+        (names,)).fetchall()}
+    if not set(names) <= found:
+        return False
+    wanted = {"tasks": _MIGRATION_COLUMNS,
+              "c_level_sessions": _C_LEVEL_SESSION_MIGRATION,
+              "hosts": _HOSTS_MIGRATION + _HOSTS_JOIN_MIGRATION,
+              "letters": _LETTERS_MIGRATION}
+    have: dict[str, set[str]] = {}
+    for table, column in conn.execute(
+            "SELECT table_name, column_name FROM information_schema.columns"
+            " WHERE table_schema = current_schema() AND table_name = ANY(?)",
+            (list(wanted),)).fetchall():
+        have.setdefault(table, set()).add(column)
+    if "claudesign_project_id" in have.get("tasks", set()):
+        return False
+    return all({col for col, _ in cols} <= have.get(table, set())
+               for table, cols in wanted.items())
+
+
+def _create_and_migrate(conn, *, is_pg: bool) -> None:
+    """init_schema()'s DDL: the backend's schema, the join and secret tables,
+    then the forward-only column migrations."""
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
     conn.executescript(JOIN_TOKENS_SCHEMA)
     conn.executescript(NODE_SECRETS_SCHEMA)
@@ -736,6 +785,24 @@ def init_schema(conn, *, is_pg: bool) -> None:
     for col, coltype in _LETTERS_MIGRATION:
         if col not in letters_existing:
             conn.execute(f"ALTER TABLE letters ADD COLUMN {col} {coltype}")
+
+
+def init_schema(conn, *, is_pg: bool) -> None:
+    """Create schema + run forward-only column migrations on an already-open
+    `conn`. Idempotent. Split out of init() (task-78586938) so
+    scripts/migrate_tasks_db.py can initialise a specific --to target that
+    `get_conn()`/ORG_DB_URL may not point at, reusing this exact column list
+    instead of hand-duplicating it.
+
+    On a Postgres connection the advisory lock is taken first and the DDL is
+    skipped when the schema is already current (_PG_INIT_LOCK_KEY says why).
+    The read-only snapshot that stands in for a down hub is SQLite underneath
+    and keeps the path it had before."""
+    on_pg = is_pg and isinstance(conn, db_pg.Connection)
+    if on_pg:
+        conn.execute("SELECT pg_advisory_xact_lock(?)", (_PG_INIT_LOCK_KEY,))
+    if not (on_pg and _pg_schema_current(conn)):
+        _create_and_migrate(conn, is_pg=is_pg)
     # Backfill: move runner-generated messages out of report into
     # delegate_log so DEV completion reports are never overwritten.
     conn.execute("""

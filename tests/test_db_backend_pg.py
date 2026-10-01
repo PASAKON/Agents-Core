@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -100,6 +101,66 @@ def test_init_is_idempotent():
     with db_mod.get_conn() as conn:
         cols = {r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
     assert "host" in cols
+
+
+def test_concurrent_inits_with_pending_ddl_take_turns(monkeypatch):
+    """Two processes initialising at the same moment deadlocked on the hub
+    (task-1b8ef857): CREATE INDEX IF NOT EXISTS held SHARE on tasks and the
+    backfill then wanted ROW EXCLUSIVE. With a migration pending every init
+    runs the DDL, so the advisory lock is what keeps them apart. Each thread
+    gets its own pooled connection, as two processes would."""
+    monkeypatch.setattr(db_mod, "_pg_schema_current", lambda conn: False)
+    barrier = threading.Barrier(2)
+    errors: list[BaseException] = []
+
+    def run():
+        for _ in range(10):
+            barrier.wait()
+            try:
+                db_mod.init()
+            except BaseException as exc:  # noqa: BLE001 - collected for the assert
+                errors.append(exc)
+
+    threads = [threading.Thread(target=run) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=120)
+    assert not any(t.is_alive() for t in threads)
+    assert errors == []
+
+
+def test_init_on_a_current_schema_runs_no_ddl(monkeypatch):
+    """The fixture's init() built the schema, so the next one takes the
+    advisory lock, reads the catalog and runs the backfill. No CREATE INDEX,
+    so no SHARE lock that stalls every writer on the hub."""
+    seen: list[str] = []
+    real = db_pg.Connection.execute
+
+    def spy(self, sql, params=()):
+        seen.append(" ".join(sql.split()))
+        return real(self, sql, params)
+
+    monkeypatch.setattr(db_pg.Connection, "execute", spy)
+    db_mod.init()
+    assert seen[0].startswith("SELECT pg_advisory_xact_lock(")
+    assert not [s for s in seen if s.split()[0].upper() in ("CREATE", "ALTER", "DROP")]
+    assert seen[-1].startswith("UPDATE tasks")
+
+
+def test_init_restores_a_dropped_index_and_column():
+    with db_mod.get_conn() as conn:
+        conn.execute("DROP INDEX idx_letters_to_host_status")
+        conn.execute("ALTER TABLE tasks DROP COLUMN owner_cto")
+        assert not db_mod._pg_schema_current(conn)
+    db_mod.init()
+    with db_mod.get_conn() as conn:
+        index = conn.execute(
+            "SELECT to_regclass('idx_letters_to_host_status')").fetchone()[0]
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
+        assert db_mod._pg_schema_current(conn)
+    assert index is not None
+    assert "owner_cto" in cols
 
 
 # ---------------------------------------------------------------------------
