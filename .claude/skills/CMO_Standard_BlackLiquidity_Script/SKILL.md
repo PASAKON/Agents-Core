@@ -40,8 +40,15 @@ One line per tag, one idea per line. The editor cuts on these boundaries and the
 lipsync parts are seated against them, so a line that carries two ideas becomes
 a cut that lands in the middle of a sentence.
 
-**How long it will run.** Forecast the TTS track from the whole-track rate,
-**13.2-14.7 spoken chars/s** on the channel's Gemini voice: EP55 v1 2,470 chars →
+**How long it will run.** Forecast the TTS track from the whole-track rate. With
+the 40-line scripts of 2026-10 (about 27 characters a line) that rate is
+**11.4-12.1 spoken chars/s** (EP58 12.1, EP59 11.5, EP60 11.4; 1,028-1,130
+characters → 90-96 s), so 1,000 characters means about 85-88 s, not 70 s.
+[SUPERSEDED 2026-10-01, for scripts of about 27 characters a line] the earlier
+forecast of **13.2-14.7 spoken chars/s** holds only for about 54 characters a line
+(the EP55/EP57 scripts): short lines carry a pause each, so the rate falls as lines
+get shorter. Evidence: three TTS tracks (ffprobe), Drive folders of EP58/59/60,
+CMO c4432bad. The old measurement, on the channel's Gemini voice: EP55 v1 2,470 chars →
 167.66 s, v2 1,750 chars → 133.1 s (the shorter script sat at the low end). The
 speech-only rate is 16.6 chars/s (EP54 16.64, EP55 16.62, silencedetect on the
 real TTS files); the gap is the breath between the 40 lines. Forecasting from
@@ -182,3 +189,4 @@ need to be hand-formatted, but a writer who knows the rules writes cleaner input
 - 2026-10-01 [MISSING] §length — the standard gives the 13.2 to 14.7 chars/s forecast but no target length; the EP58 brief asked for 90-100 s and the 365-day Studio export (28 public posts) showed median lifetime views of 1,805 for posts up to 70 s, 1,132 for 71-90 s, 963 for 91-120 s and 381 above 120 s, and the posts that took off kept 34-50% of their length watched against 8-14% for the 128-160 s September posts; one run, a correlation mixed with age and topic, EP58 is cut at 70-85 s as the test · evidence: task-cc4df7f0, docs/research/2026-10-01-bl-tiktokshop-basket-first-checks.md §2d · status: pending
 - 2026-10-01 [WRONG] §length forecast — 13.2-14.7 chars/s is the whole-track rate measured on EP57 (about 54 characters per line); EP58 with 28-character lines read at 12.1 chars/s (1,130 characters, 95.7 s, against a 77-86 s forecast); short lines carry a pause each, so the rate falls as lines get shorter (my reading, one run) · evidence: Drive folder 1usilCA-lYRs_XinTh11yjvwxSCjK0fp8 (audio-hq 95.7 s), prototypes/bl58-script/SCRIPT.tsv, Mac CTO report 2026-10-01 · status: pending
 - 2026-10-01 [MISSING] §compliance — the standard names WikiFX as the only source and has no rule for a CEO-supplied topic whose source is an anonymous or AI-labelled social post accusing a named company (here: a Facebook post alleging a rating site takes about $10,000 from brokers); CEO ruled for that case: tell it in first person as someone who found a post, every claim as "เขาอ้างว่า" (never in the channel own voice, never as fact), the post author and page censored, the AI label left visible, and the sharpest sentence of the post (retaliation by score cuts) left out by the CMO · evidence: CEO order 2026-10-01 (EP59), prototypes/bl59-script/RUNLOG.md · status: pending
+- 2026-10-01 [promoted] §length forecast — the pending note above is confirmed by two more independent scripts: EP59 1,086 chars → 94.08 s (11.54 chars/s) and EP60 1,028 chars → 90.23 s (11.39 chars/s), both estimated at 73-82 s from the old 13.2-14.7 range; with EP58 (12.1) that is three runs; the rule body now carries 11.4-12.1 chars/s for ~27-character lines and keeps the old range as [SUPERSEDED] for ~54-character lines · evidence: Mac CTO #671f688f report on task-47ab0231 (ffprobe), Drive 1gkEN_ot34e1Gfto8y-3thB4rX8qzM29O and 1NI696i5XzNPgLLV2AMYiptjzglV7onIN · status: promoted
