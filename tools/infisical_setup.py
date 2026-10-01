@@ -13,7 +13,7 @@ it cannot import anything else from Agents-Core.
                            --scope user (Windows only, option B): save under
                            %LOCALAPPDATA%\\MoonieX\\Infisical, ACL'd to this user, for a node where
                            nothing runs elevated; read_cred falls back to it.
-    plan                  Show what `apply` would create or change. Read-only.
+    plan                   Show what `apply` would create or change. Read-only.
     apply [--mint HOST]    Create what is missing: the projects, their environments, the Org-Infra
                            folders, the machine identities with read-only project memberships and
                            the CEO as admin of every project. --mint also creates a client secret
