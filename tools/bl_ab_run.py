@@ -69,7 +69,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from tools.bl_compose import frame_floor, load_generator_functions  # noqa: E402
+from tools.bl_compose import frame_floor, load_generator_functions, load_script_line_map  # noqa: E402
 
 SSH_ALIAS = "mooniex-vps"
 CONTABO_FIXTURE_DIR = "/opt/MoonieXHQ/Work/bl-ab-ep57"
@@ -295,6 +295,17 @@ def _apply_episode_date(source: str, iso_date: str) -> str:
     return source.replace(EP57_BRAND_BUG_DATE, f'<div class="dt2">{thai_short_date(iso_date)}</div>')
 
 
+def check_broll_coverage(dest: Path) -> list[str]:
+    """bl_compose defaults a bare KIN beat to media/broll/S{row:02d}.mp4. A scene the generator never finished (EP58:
+    S08, S28 -- Drive manifest scenes.status = partial, 38/40) leaves that default pointing at nothing."""
+    have = {p.name for p in (dest / "media" / "broll").glob("S*.mp4")}
+    if not have:
+        return []
+    absent = sorted((n, tag) for tag, n in load_script_line_map(dest).items() if f"S{n:02d}.mp4" not in have)
+    return [f"WARNING: media/broll has no S{n:02d}.mp4 ({tag}) -- a KIN beat on that line must name its own "
+            f"`broll` (or opt out with a falsy one); the default plate would not exist" for n, tag in absent]
+
+
 def check_lip_windows(dest: Path) -> list[str]:
     """Warnings when the staged build_cut.py's LIP_DUR does not fit the staged media/lip_*.mp4 -- the signature of
     another episode's windows (EP57's) sitting on this episode's lipsync parts."""
@@ -410,7 +421,7 @@ def cmd_fixture_full(args: argparse.Namespace) -> int:
     windows = ", ".join(f"{n} [{funcs['lip_offset'](n):g}, {funcs['lip_offset'](n) + d:g})"
                         for n, d in sorted(funcs["LIP_DUR"].items(), key=lambda kv: funcs["lip_offset"](kv[0])))
     print(f"avatar windows bl_compose will enforce: {windows}")
-    for warning in check_lip_windows(dest):
+    for warning in check_lip_windows(dest) + check_broll_coverage(dest):
         print(warning)
 
     r = sh(["du", "-sh", str(dest)], capture_output=True, text=True)

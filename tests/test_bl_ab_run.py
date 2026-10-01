@@ -401,3 +401,14 @@ def test_fixture_full_dest_defaults_under_the_given_episode_not_ep57(tmp_path, c
     assert "avatar windows bl_compose will enforce: lip_a [0, 15.95), lip_b [38.77, 55.92), lip_c [80.84, 95.09)" in out
     assert "WARNING: fixture-full is missing matte" in out        # this fixture has none; the real run must not
     assert str(run.FULL_EPISODE_WORK_DIR) not in out
+
+
+def test_check_broll_coverage_names_scene_clips_that_were_never_made(tmp_path):
+    (tmp_path / "media" / "broll").mkdir(parents=True)
+    (tmp_path / "SCRIPT.tsv").write_text("HOOK-1\ta\tx\tshow\tn\nHOOK-2\tb\ty\tshow\tn\nHOOK-3\tc\tz\tshow\tn\n",
+                                          encoding="utf-8")
+    assert run.check_broll_coverage(tmp_path) == []             # no broll staged at all: nothing to compare to
+    for n in (1, 3):
+        (tmp_path / "media" / "broll" / f"S{n:02d}.mp4").write_bytes(b"x")
+    warnings = run.check_broll_coverage(tmp_path)
+    assert len(warnings) == 1 and "S02.mp4 (HOOK-2)" in warnings[0] and warnings[0].startswith("WARNING")
