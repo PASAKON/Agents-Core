@@ -244,7 +244,10 @@ nodes:
     on_fail: {retry_from: compose, max: 3}
     blockers: [verify_fail, input, quota]
     measured:
+      # EP57: the full edit from zero, before bl_compose existed (Arm-0 baseline).
       - {date: "2026-09-25", cost_usd: 99.79, turns: 760, minutes: 240, source: docs/ops/bl-ab-2026-09-25/REPORT.md}
+      # EP58: the Arm-1 route this flow draws (beats.json, bl_compose, checker, fixes), sonnet-5-5, API-equivalent.
+      - {date: "2026-10-01", cost_usd: 5.9551, turns: 107, minutes: 81.1, source: "task-8f940c57 transcript, tools/token_profile.py"}
 
   - id: review
     name: CEO review

@@ -41,7 +41,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 
 | name | owner | audience | what it is |
 |---|---|---|---|
-| `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | The ordered workflow for one BLACK LIQUIDITY episode end to end, as a Flow the ClaudeFlow Control Room draws: script, CEO approval… |
+| `CMO_Workflow_BlackLiquidity` | CMO | cmo, cto, video_editor, browser_operator, developer | One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. |
 | `CMO_Workflow_ShortFilm` | CMO | cmo, cto, cxo, script_writer, prompt_engineer, browser_operator, video_editor | The ordered, day-by-day workflow for making an ILAG short film end to end with Seedance 2.5 (Higgsfield), MiniMax H3 (our ComfyRunpod… |
 
 ## Procedure

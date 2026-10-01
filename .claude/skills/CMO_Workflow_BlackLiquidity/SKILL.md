@@ -1,7 +1,7 @@
 ---
 name: CMO_Workflow_BlackLiquidity
 kind: workflow
-description: "WORKFLOW — The ordered workflow for one BLACK LIQUIDITY episode end to end, as a Flow the ClaudeFlow Control Room draws: script, CEO approval, ClaudeFlow stage run (Drive folder, TTS, transcript, scene prompts, catalogue B-roll, lipsync, hand-off), real footage, Jev calls, scripter, compose, checker, editor, CEO review, publish. Each step names its node in flow.yaml and the skill that owns its rules; the rules live there, not here. Trigger on /CMO_Workflow_BlackLiquidity and whenever a BL episode starts or an agent joins one mid-way: \"ทำ BL EP ใหม่\", \"BL ตอนนี้อยู่ขั้นไหน\", \"รัน stage 2 BL\", \"BL episode workflow\". Use instead of CMO_Procedure_BlackLiquidity_Cut when the question is the order of the whole episode, not how to cut it; do NOT use for the ILAG short film (CMO_Workflow_ShortFilm) or ละครสั้น serials (CMO_Workflow_LakornSerial)."
+description: "WORKFLOW — One BLACK LIQUIDITY episode end to end as a Flow: script to publish, through ClaudeFlow stages, Jev, compose, checker and editor. Trigger on /CMO_Workflow_BlackLiquidity, \"ทำ BL EP ใหม่\", \"BL ตอนนี้อยู่ขั้นไหน\". Use instead of CMO_Procedure_BlackLiquidity_Cut for the episode order; not for ILAG short films (CMO_Workflow_ShortFilm)."
 owner: CMO
 created_by: agent
 author: {role: cto, date: "2026-10-02"}
@@ -29,7 +29,9 @@ from the EP57–EP60 runs (task-8ba088ce, task-47ab0231, task-8f940c57, task-c32
 
 1. **HARD — money (`ALL_Rules_Approvals`).** No paid stage runs before `approve` passes, and a run stays
    under its cash cap. A retry of a paid stage needs room under that cap; work out the room before you
-   retry, and ask the CEO with the exact amount when there is none.
+   retry, and ask the CEO with the exact amount when there is none. The watcher holds the cap by the fal +
+   OpenRouter balance delta: ClaudeFlow's own guard (`EP_BUDGET_USD`, default $3.00, `src/lib/cost-ledger.js`)
+   stops only at its own ledger total and does not count the OpenRouter `prompts` call.
    **Why hard:** money. A fired API call cannot be taken back, and a truncated `prompts` call still bills
    (EP59, $0.167 sunk).
 2. Compliance on what the episode says belongs to `CMO_Standard_BlackLiquidity_Script` (§Compliance). Every
@@ -91,10 +93,12 @@ none generated). A scene with no clip that is a real-footage beat stays empty on
 Gate: every non-real-footage scene has a clip.
 
 ### Step 9 · Editor hand-off [node: handoff]
-Do: `--stages=editor_handoff` marks the row DONE. Run it only when the edit is ready to start: a brief that
-stops before it (EP58–EP60) leaves this node open on purpose. `resume-video.js --dry-run` shows `scenes` as
-missing after every stage-by-stage run; that is a gap in the diagnoser, not a failure.
-Gate: voice, transcript, lipsync parts and scene clips are all on Drive.
+Do: `--stages=editor_handoff` as soon as Steps 4–8 pass their gates, before any edit work starts. It costs
+nothing: it only sets the row to DONE and marks the manifest stage (`runEditorHandoff` in `videogen.js`).
+The scripter waits on it, so a run that skips it never reaches the edit. EP58–EP60 briefs stopped before it;
+later runs do not. `resume-video.js --dry-run` shows `scenes` as missing after every stage-by-stage run;
+that is a gap in the diagnoser, not a failure.
+Gate: voice, transcript, lipsync parts and scene clips are all on Drive, and the row reads DONE.
 
 ### Step 10 · Real footage [node: footage]
 Do: capture the pages the script cites with `tools/bl_realfootage.py run --shots <shots.yaml> --episode
