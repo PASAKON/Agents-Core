@@ -3,9 +3,10 @@
 
     python -m tools.join_api --port 8791 [--bind ADDR] [--public-url https://<hub>]
 
-Runs on Contabo as the system user `org-join` with ONE secret in its environment, the DSN of the
+Runs on Contabo as the system user `org-join` with one secret in its environment, the DSN of the
 Postgres role `org_join` (ORG_JOIN_DB_URL, from the /org-join folder of Agents-Core prod; see
-deploy/join/org-join.service and deploy/join/org_join_role.sql). stdlib only,
+deploy/join/org-join.service and deploy/join/org_join_role.sql), plus the two Tailscale OAuth
+client values when the CEO has put them in that folder (see the TailscaleMinter paragraph). stdlib only,
 ThreadingHTTPServer. It binds 127.0.0.1 unless told otherwise, and `--bind` (env
 JOIN_API_BIND) takes ONLY a loopback address or one inside 172.16.0.0/12 (a docker bridge):
 never 0.0.0.0, never a public or other private address (Org Mesh W4.5: traefik reaches it
