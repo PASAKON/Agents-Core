@@ -215,8 +215,8 @@ the Postgres hub; `state/tasks.db` is a tombstone and is never opened.
 
 | level | cell(s) | wave |
 |---|---|---|
-| SEC | mac→contabo, mac→winbox, contabo→winbox, winbox→contabo | w2 |
-| SEC | contabo→mac, winbox→mac (closed until the Mac has `mesh_ssh`) | w2 |
+| SEC | mac→contabo, contabo→mac (closed until the Mac has `mesh_ssh`) | w2 |
+| SEC | mac→winbox, contabo→winbox, winbox→contabo, winbox→mac (node_dispatch on Windows is W3.3) | w3 |
 | L5 | mac→contabo, contabo→mac | w2 |
 | L5 | mac→winbox, winbox→mac, contabo→winbox, winbox→contabo | w3 |
 | L6 | mac, contabo (diagonal) | w2 |

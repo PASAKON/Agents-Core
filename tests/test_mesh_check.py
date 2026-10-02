@@ -1226,7 +1226,7 @@ def test_render_unreachable_is_failing_but_reads_differently_from_red():
     combined = _empty()
     combined["SEC"]["mac"]["contabo"] = m._unreachable("probe on contabo: ssh failed")
     combined["SEC"]["mac"]["winbox"] = m._red("'bash' ran in a shell")
-    md, any_fail, n_ok, n_fail = m.render(combined, "w2")
+    md, any_fail, n_ok, n_fail = m.render(combined, "w3")  # SEC into winbox is w3
     row = _row_of(md, "SEC", "mac")
     assert "UNREACHABLE(probe on contabo: ssh failed)" in row
     assert "FAIL('bash' ran in a shell)" in row
@@ -1278,6 +1278,20 @@ def test_render_new_levels_do_not_count_before_their_wave():
     assert n_fail == 4
 
 
+def test_sec_cells_touching_winbox_wait_for_w3_like_the_other_winbox_cells():
+    # node_dispatch on Windows and the winbox forced-command line are W3.3/W3.4,
+    # so a w2 run must be able to go green on Mac <-> Contabo alone.
+    for frm, to in (("mac", "winbox"), ("contabo", "winbox"), ("winbox", "contabo"), ("winbox", "mac")):
+        assert m.EXPECT[("SEC", frm, to)] == "w3"
+    for frm, to in (("mac", "contabo"), ("contabo", "mac")):
+        assert m.EXPECT[("SEC", frm, to)] == "w2"
+    combined = _empty()
+    combined["SEC"]["mac"]["winbox"] = m._unreachable("probe on winbox: ssh failed")
+    md, any_fail, _, n_fail = m.render(combined, "w2")
+    assert (any_fail, n_fail) == (False, 0)
+    assert "UNREACHABLE" not in _row_of(md, "SEC", "mac")
+
+
 def _stub_levels(monkeypatch, calls):
     monkeypatch.setattr(m, "check_sec", lambda to: calls.append(("SEC", to)) or m._green())
     monkeypatch.setattr(m, "l5_probe", lambda frm, to: calls.append(("L5", frm, to)) or m._green())
@@ -1295,7 +1309,7 @@ def test_run_mesh_levels_touches_only_claimed_cells_and_probes_before_the_router
     _stub_levels(monkeypatch, calls)
     combined = _empty()
     m._run_mesh_levels(combined, "mac", "w2")
-    assert ("SEC", "contabo") in calls and ("SEC", "winbox") in calls
+    assert ("SEC", "contabo") in calls and ("SEC", "winbox") not in calls  # w3
     assert ("L5", "mac", "contabo") in calls and ("L5", "mac", "winbox") not in calls  # w3
     assert ("L6", "mac") in calls and ("L6", "contabo") in calls and ("L6", "winbox") not in calls
     assert ("L7", ("contabo",)) in calls

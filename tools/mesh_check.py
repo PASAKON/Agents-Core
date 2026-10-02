@@ -208,15 +208,17 @@ EXPECT: dict[tuple[str, str, str], str] = {
     # L8 join drill — one verdict for the hub; the drill is W4.7.
     ("L8", "all", "all"): "w4",
 
-    # SEC — the dispatch key gets `probe` and no shell, every direction. All
-    # six are W2 ("the security cell is green"); the two into the Mac are
-    # closed (by design) until it has a mesh_ssh.
+    # SEC — the dispatch key gets `probe` and no shell, every direction. Mac
+    # <-> Contabo is W2 ("the security cell is green"); anything touching
+    # winbox waits for W3, like L5/L6/L7: node_dispatch on Windows and the
+    # winbox forced-command line are W3.3/W3.4 (docs/ops/node-dispatch.md).
+    # The cells into the Mac are closed (by design) until it has a mesh_ssh.
     ("SEC", "mac", "contabo"): "w2",
-    ("SEC", "mac", "winbox"): "w2",
-    ("SEC", "contabo", "winbox"): "w2",
-    ("SEC", "winbox", "contabo"): "w2",
     ("SEC", "contabo", "mac"): "w2",
-    ("SEC", "winbox", "mac"): "w2",
+    ("SEC", "mac", "winbox"): "w3",
+    ("SEC", "contabo", "winbox"): "w3",
+    ("SEC", "winbox", "contabo"): "w3",
+    ("SEC", "winbox", "mac"): "w3",
 
     # INV — "every in-progress remote row is polled by exactly one host" is a
     # statement about the shared hub ledger (the W1.5 duty split), so it is
