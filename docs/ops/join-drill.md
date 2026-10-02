@@ -49,7 +49,7 @@ preflight, nothing started and nothing written.
 
 | step | what happens | a red here means |
 |---|---|---|
-| `preflight` | root; `free -m` available >= 1500 MB; docker, curl, gh, git, perl; join door `closed`; no `drill-*` container, volume or non-`left` host; `/etc/infisical/setup.env` exists; `TAILSCALE_OAUTH_CLIENT_ID/_SECRET` in the environment; the Tailscale, `gh` and `node-secrets` readers answer | exit 2, nothing started. The message says which. Memory: Contabo runs one heavy job at a time, run again when it is quiet |
+| `preflight` | the script is a readable file (it re-runs itself through the hub wrapper, so a pipe is refused); this checkout's `tools/mesh_check.py` has `--join-drill` (the card runs the script at a pushed sha, the tools come from the checkout: a stale checkout is refused here, not after the join); root; `free -m` available >= 1500 MB; docker, curl, gh, git, perl; join door `closed`; no `drill-*` container, volume or non-`left` host; `/etc/infisical/setup.env` exists; `TAILSCALE_OAUTH_CLIENT_ID/_SECRET` in the environment; the Tailscale, `gh` and `node-secrets` readers answer | exit 2, nothing started. The message says which. Memory: Contabo runs one heavy job at a time, run again when it is quiet |
 | `door_open` | `deploy/join/door.sh open --minutes 30`. A trap closes it on every exit path, and the door is also closed as soon as `provision` ends | the door service would not start; check `door.sh status` |
 | `container` | `ubuntu:24.04`, hostname `drill-<stamp>`, 1200 MB cap, `tailscaled --tun=userspace-networking`, state in a removable volume | docker problem (disk, image pull); nothing joined |
 | `mint` | `hq_join mint --host drill-<stamp>`; the token is held in one shell variable | hub unreachable or `ORG_DB_URL` missing; see `docs/ops/hq-join.md` |
@@ -57,14 +57,14 @@ preflight, nothing started and nothing written.
 | `approve` | `hq_join approve --fingerprint <read from the node>` | fingerprint mismatch: the node's key file and the hub's row disagree |
 | `provision` | `ORG_W42_PROVISION=1` set for this one command only; then waits up to 15 min for join.sh to finish (it polls `/sealed`) | `provision` refused: this box lacks the admin identity, or Infisical/Tailscale refused. join.sh stopped: read its last line |
 | `node_probe` | join.sh's own step 9 (`node_dispatch.py probe` through the node's identity) must have passed | exit 2 from join.sh: joined but could not probe. Finding `node_probe_failed`. The node has no `ORG_DB_URL` (Org-Node holds only the OAuth token) so this may fail by design; it is reported, the run goes on |
-| `token_worker` | on the node: `claude -p` with **only** `CLAUDE_CODE_OAUTH_TOKEN` from Org-Node prod (everything else stripped with `env -i`) must answer a nonce | the W4.0 pass criterion failed: token missing from Org-Node prod, wrong scope, or `claude` not installed |
+| `token_worker` | on the node: `claude -p` with **only** `CLAUDE_CODE_OAUTH_TOKEN` from Org-Node prod must answer a nonce. Everything else is stripped, and the token never appears on a command line: a `python3 -I -c` one-liner builds the clean environment (PATH, HOME, the token) and `exec`s `claude`, so it reaches the process by environment only | the W4.0 pass criterion failed: token missing from Org-Node prod, wrong scope, or `claude` not installed |
 | `probe` | a task for the node is created `pending` (so no poller adopts it); the node commits `docs/ops/mesh-probe/contabo-<host>.md` with a `mesh-probe:` message on `agent/probe-<task>` and pushes; the hub `git ls-remote`s the same sha; <= 15 min. **Never merged.** | finding `deploy_key_read_only` (see gaps), or the node could not reach origin, or the sha on origin differs |
-| `leave` | `hq_join leave --host ... --live` | the three real revocations (`infisical_client_secret`, `tailscale_device`, `github_deploy_key`) must be `[ok]`. Only `authorized_keys ... not wired yet` failures are accepted, and they are recorded as finding `leave_partial_authorized_keys_unwired` |
+| `leave` | `ORG_W42_PROVISION=1 hq_join leave --host ... --live`. The flag matters: without it `w42_enabled()` is false, every revoker answers "not wired yet: live revocation is off" and nothing is removed | the three real revocations (`infisical_client_secret`, `tailscale_device`, `github_deploy_key`) must be `[ok]`. Only `authorized_keys ... not wired yet` failures are accepted, and they are recorded as finding `leave_partial_authorized_keys_unwired` |
 | `verify_tailnet` | Tailscale API: no device named `drill-<stamp>` | `leave` said ok but the device is still there |
 | `verify_deploy_key` | `gh api repos/PASAKON/Agents-Core/keys`: no key titled `org-node:drill-<stamp>` | same, for the deploy key |
 | `verify_infisical` | `infisical_setup.py node-secrets`: no `live` secret `org-node:drill-<stamp>` | same, for the client secret |
 | `verify_host_row` | `hq_join status --host`: row is `left` | see gap 1: `leave()` writes `left` only when every step is ok |
-| `verify_authorized_keys` | no line naming the host in contabo's `authorized_keys`, nor on winbox (`ssh $DRILL_WINBOX_SSH`, default alias `winbox`, reads `administrators_authorized_keys`). Mac is skipped with a note until G2 (Remote Login is closed) | a line exists, or winbox could not be read. An unreadable winbox is a red, never a silent skip |
+| `verify_authorized_keys` | no line naming the host in contabo's `authorized_keys`, nor on winbox (`ssh $DRILL_WINBOX_SSH`, default alias `winbox`, reads `administrators_authorized_keys`). `findstr` exits 1 both for "no match" and for a file it cannot open, so the file is first proved readable with a search that must match (`/C:ssh-`, exit 0); only then is the host searched. Mac is skipped with a note until G2 (Remote Login is closed) | a line exists, or winbox could not be read. An unreadable winbox is a red, never a silent skip |
 | `cleanup` | deletes the probe branch on origin, cancels the probe task, removes the container and volume, closes the door, then writes the JSON, the `events` row and prints the `re-os-drills` row | something is still there; the detail names what (`origin-branch:`, `task:`, `container:`, `volume:`, `door:`) |
 | `record` | writes the `join_drill` events row (added after `cleanup`) | the hub could not be written; the file is still there, the Mac cannot see it |
 
@@ -82,7 +82,7 @@ the `re-os-drills` row. The same data is in `state/mesh-check/join-drill.json` (
  "steps": [{"name": "join", "ok": true, "detail": "node accepted; fingerprint abcd1234 read from the node's own output"},
            {"name": "probe", "ok": false, "detail": "the node's push was refused: its deploy key is read-only ..."}],
  "failed_step": "probe",
- "w40": {"remote_control": null, "remote_control_cmd": "claude remote-control", "remote_control_error": ""},
+ "w40": {"remote_control": null, "remote_control_cmd": "claude remote-control", "remote_control_error": "", "remote_control_output": ""},
  "probe": {"task": "task-0123abcd", "branch": "agent/probe-task-0123abcd", "sha": "<40 hex>", "seconds": 42},
  "findings": ["deploy_key_read_only"], "notes": [], "minutes": {"to_joined": 3, "to_probe": null, "total": 9},
  "by": "scripts/drill-join.sh", "version": 1}
@@ -94,8 +94,11 @@ the `re-os-drills` row. The same data is in `state/mesh-check/join-drill.json` (
 - `findings` are named conditions found while running; `notes` are facts worth a line.
 - `probe.sha` is the commit the node pushed. The branch is deleted at cleanup; the sha stays here.
 - `w40` answers the W4.0 question, outside `steps`: does `claude remote-control` start on the OAuth
-  token alone? `true` = it was still running when cut at 25 s; `false` = it exited, first line in
-  `remote_control_error`; `null` = not reached. **It never fails the drill.**
+  token alone? `true` = the process was **still running** when `timeout` cut it at 25 s. That is
+  all it says: it does not prove a session was opened, so read `remote_control_output`. `false` =
+  it exited early (first line in `remote_control_error`); `null` = not reached.
+  `remote_control_output` is the first line the command printed, kept in every case (URLs masked
+  as `[url]`, ASCII, 200 characters at most). **It never fails the drill.**
 
 ### Seeing it from the Mac
 
@@ -162,12 +165,15 @@ each; the script reports them rather than hiding them.
 | question | where the answer lands |
 |---|---|
 | Does `claude -p` work on a node with only `CLAUDE_CODE_OAUTH_TOKEN` from Org-Node prod? | step `token_worker` |
-| Does `claude remote-control` start on that token alone? | `w40.remote_control`, `w40.remote_control_error` |
+| Does `claude remote-control` start on that token alone? | `w40.remote_control`, `w40.remote_control_error`, and `w40.remote_control_output` (read this: `true` only means it was still running at 25 s) |
 
 ## Safety
 
 - No secret is printed, written to the JSON, or put in a command line. The join token lives in one
-  shell variable and reaches the container through the environment. There is no `set -x`. Every
+  shell variable and reaches the container through the environment. The node's OAuth token reaches
+  `claude` by environment only (a `python3 -I -c` exec builds the clean env; no `env VAR=...`, no
+  `sh -c '... VAR="$VAR"'`), because container processes show in the host's `/proc` and in any
+  execve audit. There is no `set -x`. Every
   detail passes a mask for `tskey-`, `sk-ant-`, `AGE-SECRET-KEY-`, `ghp_`-style tokens.
 - No `.env` is created. The script re-execs itself through `scripts/hub/with-org-db-env.sh`, like
   every Contabo consumer of the hub.
