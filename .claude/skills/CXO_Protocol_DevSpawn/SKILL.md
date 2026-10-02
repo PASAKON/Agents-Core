@@ -327,13 +327,14 @@ its own; two stalled 50 and 25 minutes while `proc=alive`). Arm this right after
 file the task is supposed to be filling.**
 
 ```bash
-DB=/Users/gob/MoonieXHQ/Agents/Core/state/tasks.db
+C=/Users/gob/MoonieXHQ/Agents/Core
 W=/Users/gob/MoonieXHQ/Agents/Core/worktrees/<project>__<role>__task-XXXXXXXX
 OUT="$W/<the file this task produces>"     # progress, not liveness
 STALL_S=900                                 # the job's normal step time
 prev=""; last_n=-1; grown=$(date +%s); stalled=no
 while true; do
-  row=$(sqlite3 "$DB" "SELECT status||'~'||COALESCE(pid,0) FROM tasks WHERE id='task-XXXXXXXX';" 2>/dev/null || echo "dberror~0")
+  row=$(cd "$C" && bash scripts/hub/org-python.sh -c "from lib import db; t=db.get_task('task-XXXXXXXX'); print(f\"{t['status']}~{t.get('pid') or 0}\")" 2>/dev/null | tail -1)
+  [ -z "$row" ] && row="dberror~0"
   st=${row%%~*}; p=${row##*~}
   alive=dead
   if [ "$p" != "0" ] && kill -0 "$p" 2>/dev/null; then alive=alive; fi
@@ -357,6 +358,11 @@ while true; do
   sleep 45
 done
 ```
+
+`[SUPERSEDED 2026-10-02]` the row read `sqlite3 "$DB" "SELECT status||'~'||COALESCE(pid,0) FROM tasks …"`
+with `DB=…/state/tasks.db` — since the G1 hub cutover (2026-10-01) `state/tasks.db` is a tombstone,
+so that read printed `dberror` and the loop broke on its first poll. The hub read above has
+watched task-ec82f9ea since 2026-10-02 09:31 (cto-e6754203).
 
 A task that produces no file until the end cannot be supervised and loses
 everything when it stalls: ask the brief for an append-as-you-go log.
