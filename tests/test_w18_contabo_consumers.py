@@ -430,7 +430,8 @@ def test_dropin_says_why_names_the_design_doc_and_the_rollback(unit):
 
 
 def test_only_the_three_dropins_exist():
-    found = sorted(str(p.relative_to(SYSTEMD)) for p in SYSTEMD.rglob("*.conf"))
+    # the org-db drop-ins only: another lane's drop-in (secretary no-zai.conf) is not this test's business
+    found = sorted(str(p.relative_to(SYSTEMD)) for p in SYSTEMD.rglob("org-db.conf"))
     assert found == sorted(f"{u}.service.d/org-db.conf" for u in UNITS)
 
 
