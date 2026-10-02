@@ -6,7 +6,7 @@
   ?mode=morning  transparent "เมื่อเช้า" time card laid over the first seconds of a flashback shot
   ?mode=title    full card shown at the mid-roll (never before 3 s, CEO 2026-10-01): EP badge + the episode question
   ?mode=end      end card: page mark + the promise line (l1)
-  Params: l1, l2, ep.  Render with render_cards.py on winbox (real Thai fonts, no image model).
+  Params: l1, l2, ep, sub (the italic word beside the EP badge, default ตอนแรก).  Render with render_cards.py on winbox (real Thai fonts, no image model).
 -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Itim&display=block');
@@ -34,7 +34,7 @@ let h = '';
 if (mode === 'morning') {
   h = line(q.get('l1') || 'เมื่อเช้า', 'cream', 60, 170);
 } else if (mode === 'title') {
-  h = `<div class="bg"></div><div class="badge"><b>EP.${q.get('ep') || '1'}</b><i>ตอนแรก</i></div>` +
+  h = `<div class="bg"></div><div class="badge"><b>EP.${q.get('ep') || '1'}</b><i>${q.get('sub') || 'ตอนแรก'}</i></div>` +
       line(q.get('l1') || 'ทำไมมีมี่กลัวน้ำ', 'cream', 800, 140) + line(q.get('l2') || 'แต่ยอมลุยน้ำท่วม?', 'gold', 1000, 140) +
       `<svg class="wave" style="top:1200px" viewBox="0 0 800 30"><path d="M8 16 q25 -16 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="#FFF6D6" stroke-width="7" fill="none" stroke-linecap="round"/></svg>`;
 } else {
@@ -44,7 +44,7 @@ if (mode === 'morning') {
 document.getElementById('stage').innerHTML = h;
 (async () => {
   await document.fonts.ready;
-  await document.fonts.load('40px "Itim"', 'เมื่อเช้าทำไมมีมี่กลัวน้ำแต่ยอมลุยท่วมEP.1ตอนแรกติดตามใหม่ทุกวัน19:30');
+  await document.fonts.load('40px "Itim"', 'เมื่อเช้าทำไมมีมี่กลัวน้ำแต่ยอมลุยท่วมEP.1ตอนแรกติดตามใหม่ทุกวัน19:30' + [...q.values()].join(''));
   for (const t of document.querySelectorAll('.t')) { const w = t.getBoundingClientRect().width; if (w > 960) t.style.transform = `scale(${960 / w})`; }
   document.title = 'ready';
 })();
