@@ -34,3 +34,10 @@ Content: every scene is a synthetic test prompt written for this test. The ref i
 **Never tested live, on purpose:** the post-render tripwire and the NudeNet ref flag. Testing them would mean sending nude content to Colab, which is the exact thing the rules forbid. The offline tests cover both.
 
 **Money cap:** RunPod $1.50 for the whole run (balance $2.60, gate margin $0.50). Colab: 6 CU in total. Stop and ask the CEO if either is reached.
+
+## CEO rulings 2026-10-03 06:0x
+
+- "Ok": the RunPod cap of $1.50 for T3–T4 is approved.
+- **"ห้ามแอบดูคลิปที่ทำก่อนหน้านั้นของฉันในคลัง":** never open, play, frame-grab, ffprobe or describe any clip, take or episode in the studio library that is not from this test's own `TEST-colab` batch.
+  - When the CTO reads `/api/queue`, `/api/takes` or `/api/episodes`, filter by the test batch id BEFORE printing anything.
+  - Every check runs only on files named after the test batch's own ids.
