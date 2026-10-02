@@ -8,11 +8,12 @@ a hub row for, never send a shell to. This module is the client half:
     dispatch(host, verb, *args, timeout=None) -> dict
 
   host == self_host()   in-process, `tools.node_dispatch.dispatch(verb, args)`.
-  any other host        `ssh -i ~/.ssh/org_dispatch -o BatchMode=yes
-                        -o ConnectTimeout=10 <SSH_OPTIONS...> <alias> <verb> <args...>`; the
-                        remote `authorized_keys` line pins that key to
-                        `python -m tools.node_dispatch` (docs/ops/node-dispatch.md,
-                        installed in W2.8).
+  any other host        `ssh -F none -i ~/.ssh/org_dispatch -o BatchMode=yes
+                        -o ConnectTimeout=10 <SSH_OPTIONS...> <mesh_ssh> <verb> <args...>`;
+                        `mesh_ssh` is the host's user@tailnet-address in
+                        config/hosts.yaml, and the remote `authorized_keys` line pins
+                        that key to `python -m tools.node_dispatch`
+                        (docs/ops/node-dispatch.md, installed in W2.8).
 
 Two failure kinds stay apart, and callers depend on it:
 
@@ -34,6 +35,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shlex
 import subprocess
 
@@ -82,9 +84,8 @@ _SSH_FAILED = 255  # ssh's own exit code: no connection, no auth, no host
 # alias applies: a ControlMaster/ControlPath entry rides an admin connection
 # that is already open (the verb then runs as a plain command under the admin
 # key and the forced command is never used), and agent keys are offered when
-# org_dispatch is refused. IdentitiesOnly does not drop IdentityFile lines the
-# config names for that alias, so W2.8 gives the mesh its own `<host>-mesh`
-# alias whose only identity is the dispatch key (docs/ops/node-dispatch.md).
+# org_dispatch is refused. W2.8 goes further and reads no config file at all
+# (MESH_SSH_CONFIG below).
 SSH_OPTIONS = (
     "BatchMode=yes",
     f"ConnectTimeout={CONNECT_TIMEOUT_S}",
@@ -98,6 +99,24 @@ SSH_OPTIONS = (
     "PermitLocalCommand=no",
     "StrictHostKeyChecking=yes",
 )
+
+# W2.8: `ssh -F none` reads neither ~/.ssh/config nor /etc/ssh/ssh_config.
+# IdentitiesOnly keeps every IdentityFile a config file names for the
+# destination: the admin alias's own line, or a `Host *` default. If the far
+# side refused org_dispatch, ssh would then offer the admin key, and the verb
+# text would run as a plain command in a shell. With no config file the
+# dispatch key is the only identity ssh has, whatever any dispatcher's config
+# says. The design first gave each dispatcher a `<host>-mesh` alias (W2.7
+# review); a Host block cannot rule out a `Host *` IdentityFile, and every
+# dispatcher would need one block per target.
+MESH_SSH_CONFIG = "none"
+
+# config/hosts.yaml `mesh_ssh`: `user@address`, never the admin `ssh` alias.
+# A config-free ssh cannot resolve an alias, and the address must be the
+# host's TAILNET address: the authorized_keys `from=` pins the dispatcher's
+# tailnet address, and the admin alias for Contabo dials its public one. The
+# shape check also keeps the value from being read as an ssh option.
+_MESH_DEST_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]{0,31}@[A-Za-z0-9][A-Za-z0-9.-]{0,252}")
 
 
 class MeshUnreachable(Exception):
@@ -129,11 +148,25 @@ def _node_dispatch():
     return node_dispatch
 
 
+def mesh_destination(host: str) -> str:
+    """The `user@address` a mesh call to `host` dials: config/hosts.yaml
+    `mesh_ssh`. ValueError: unknown host. MeshUnreachable when the host has
+    none (the Mac, whose sshd stays closed until G2) or the value is not a
+    plain user@address. Nothing is dialled in either case."""
+    dest = config.host(host).get("mesh_ssh")
+    if not dest:
+        raise MeshUnreachable(f"host {host!r} has no mesh_ssh destination; nothing to dial")
+    if not isinstance(dest, str) or not _MESH_DEST_RE.fullmatch(dest):
+        raise MeshUnreachable(f"host {host!r}: mesh_ssh {dest!r} is not user@address; "
+                              "refusing to dial")
+    return dest
+
+
 def build_argv(host: str, verb: str, args: tuple[str, ...] | list[str]) -> list[str]:
     """The exact ssh argv for a remote call. Raises `node_dispatch.Refusal`
     (nothing built) for an unknown verb, a malformed argument or a command
     node_dispatch's parser would refuse. ValueError: unknown host.
-    MeshUnreachable: the host has no ssh alias (the Mac's is null on purpose)."""
+    MeshUnreachable: the host has no usable mesh_ssh (mesh_destination)."""
     nd = _node_dispatch()
     if verb not in nd.HANDLERS:
         raise nd.Refusal(f"unknown verb {nd._show(verb)}. Known: {', '.join(nd.HANDLERS)}")
@@ -146,11 +179,10 @@ def build_argv(host: str, verb: str, args: tuple[str, ...] | list[str]) -> list[
     # characters, and a split that must give back exactly what we meant.
     if nd.parse_command(command) != [verb, *args]:
         raise nd.Refusal(f"{verb}: arguments do not survive quoting")
-    alias = config.host(host).get("ssh")
-    if not alias:
-        raise MeshUnreachable(f"host {host!r} has no ssh alias; nothing to dial")
+    dest = mesh_destination(host)
     options = [part for opt in SSH_OPTIONS for part in ("-o", opt)]
-    return ["ssh", "-i", os.path.expanduser(SSH_KEY), *options, alias, command]
+    return ["ssh", "-F", MESH_SSH_CONFIG, "-i", os.path.expanduser(SSH_KEY), *options,
+            dest, command]
 
 
 def dispatch(host: str, verb: str, *args: str, timeout: float | None = None) -> dict:
