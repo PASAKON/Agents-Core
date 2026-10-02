@@ -362,19 +362,33 @@ def _build(name: str, root: str) -> dict | None:
         }
 
     if name == "supabase":
-        if not shutil.which("mcp-server-supabase"):
-            return None
         # --read-only is what makes execute_sql safe to pre-approve in
         # SERVER_TOOLS: the server refuses writes, so the guarantee is
         # enforced server-side instead of by prompt fatigue. A session that
         # genuinely needs to write sets CXO_SUPABASE_WRITE=1, which drops the
         # flag AND (because execute_sql is then a write vector) should be
         # paired with a deliberate look at what it is about to run.
+        read_only = os.environ.get("CXO_SUPABASE_WRITE") != "1"
+        # No PAT in the env: use Supabase's hosted server with OAuth, so no
+        # token sits on disk (2026-10-02: two PATs were found in plaintext in
+        # .claude/settings.local.json and removed). The CEO signs in once
+        # through /mcp; Claude Code keeps the OAuth token in the keychain.
+        if not os.environ.get("SUPABASE_ACCESS_TOKEN"):
+            url = (
+                f"https://mcp.supabase.com/mcp?project_ref={SUPABASE_PROJECT_REF}"
+                "&features=database"
+            )
+            if read_only:
+                url += "&read_only=true"
+            return {"type": "http", "url": url}
+        if not shutil.which("mcp-server-supabase"):
+            return None
         args = [f"--project-ref={SUPABASE_PROJECT_REF}", "--features=database"]
-        if os.environ.get("CXO_SUPABASE_WRITE") != "1":
+        if read_only:
             args.append("--read-only")
         # Token left unexpanded on purpose — Claude Code resolves ${VAR} against
-        # the session env, which is where .claude/settings.local.json puts the PAT.
+        # the session env. Only a machine that exports a PAT (from Infisical,
+        # never a settings file) takes this branch.
         return {
             "command": "mcp-server-supabase",
             "args": args,
