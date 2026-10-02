@@ -94,7 +94,9 @@ puts the caller's text on it; the caller's text arrives only as
   tailnet address, not `100.64.0.0/10`: every device on the tailnet (phones,
   shared nodes) is inside that range. Use one key per dispatcher
   (`org_dispatch-mac`, `org_dispatch-contabo`) so `from=` can be exact and one
-  leaked key is revoked alone.
+  leaked key is revoked alone. On disk every dispatcher keeps its own key at
+  `~/.ssh/org_dispatch` (the path lib/mesh.py reads and deploy/join/join.sh
+  writes); `org_dispatch-<dispatcher>` is the key's comment, which names it here.
 - `-E -s`: Python ignores `PYTHON*` variables and the user site-packages.
   `restrict` and the default `PermitUserEnvironment no` already stop a caller
   from setting variables; macOS still accepts `LANG` and `LC_*` (`AcceptEnv` in
@@ -138,30 +140,41 @@ these on every mesh call:
     -o ClearAllForwardings=yes -o PermitLocalCommand=no -o StrictHostKeyChecking=yes
 
 `StrictHostKeyChecking=yes` means the far host's key must already be in the
-dispatcher's `known_hosts`: W2.8 records it first, or every call is
-MeshUnreachable.
+dispatcher's `known_hosts`, under the address in `mesh_ssh` (below), not under
+an admin alias: W2.8 records it first, from the fingerprint the target's own
+`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` prints over the admin
+channel, or every call is MeshUnreachable.
 
-**Dedicated alias (W2.8).** `IdentitiesOnly` does not drop `IdentityFile` lines
-the config names for that alias, so the admin key is still tried when
-`org_dispatch` is refused, and W2.8 check 1 could pass with the forced command
-missing. Give the mesh its own alias per host, `<host>-mesh`, whose only identity
-is the dispatch key. `config/hosts.yaml` `ssh:` cannot simply point at it: the
-admin readers (watchdog heartbeat, branch_poller, delegate's remote spawn and
-disk check, worker_reap, quota, mesh_check) read the same field and need the
-admin key. W2.8 adds a separate field (e.g. `mesh_ssh: contabo-mesh`) and
-`lib/mesh.build_argv` reads it; that is a code change for W2.8, not made here.
-The alias itself, on each dispatcher:
+**No ssh config (W2.8).** `IdentitiesOnly` does not drop the `IdentityFile`
+lines a config file names for the destination (the admin alias's own line, or a
+`Host *` default), so the admin key would still be offered when `org_dispatch`
+is refused, and W2.8 check 1 could pass with the forced command missing. A mesh
+call therefore reads no config file at all: `lib/mesh.build_argv` runs
+`ssh -F none` (`MESH_SSH_CONFIG`), which skips `~/.ssh/config` and
+`/etc/ssh/ssh_config`, so on every dispatcher the dispatch key is the only
+identity ssh has, whatever that machine's config says.
 
-    Host contabo-mesh
-        HostName <contabo tailnet IP>
-        User root
-        IdentityFile ~/.ssh/org_dispatch-<dispatcher>
-        IdentitiesOnly yes
-        ControlMaster no
-        ControlPath none
+With no config there is no alias to resolve. The destination is the host's
+`mesh_ssh` in `config/hosts.yaml`, `user@<tailnet address>`: contabo
+`root@100.118.171.23`, winbox `passg@100.124.196.11`, mac `null` until G2. It
+must be the tailnet address: `from=` pins the dispatcher's tailnet address, and
+the admin alias `mooniex-vps` dials Contabo's public one. A host without
+`mesh_ssh`, or with a value that is not a plain `user@address`, is never dialled
+(`MeshUnreachable`; `tests/test_w28_mesh_destination.py`). A joined node's entry
+has no `mesh_ssh` until someone adds its tailnet address.
 
-Keep the admin alias (`mooniex-vps`, `winbox`) for people and the watchdog; never
-put the admin key under a `-mesh` alias.
+The admin aliases (`ssh:` in hosts.yaml: `mooniex-vps`, `winbox`) stay as they
+are, for people and for the admin readers (watchdog heartbeat, branch_poller,
+delegate's remote spawn and disk check, worker_reap, quota, mesh_check). The
+W2.7 review first proposed a `<host>-mesh` Host block per target on each
+dispatcher. `-F none` replaced it: a Host block cannot rule out a `Host *`
+IdentityFile, and it needs one block per target on every dispatcher.
+
+**Tailscale SSH must be off on every target** (`tailscale set --ssh=false`;
+`tailscale debug prefs` shows `"RunSSH": false`). With it on, tailscaled answers
+port 22 on the tailnet address itself and applies the tailnet policy instead of
+`authorized_keys`, so the forced command is never involved. Check 2 below
+catches it: a shell answers `probe; id`.
 
 **Retry cap for an unanswered spawn.** A `spawn_worker` the host did not answer leaves
 the row `queued_remote`, and the watchdog dials it again once per pass (300 s). Each
@@ -187,15 +200,16 @@ verb's timeout in `lib/mesh.VERB_TIMEOUT_S` is the ssh connect time, plus that c
 
 ### W2.8 acceptance checks, once per host after the key is installed
 
-From the dispatcher, with only the dispatch key
-(`K="-i ~/.ssh/org_dispatch-<dispatcher> -o IdentitiesOnly=yes -o IdentityAgent=none -o ControlPath=none"`):
+From the dispatcher, with only the dispatch key, exactly as lib/mesh.py dials
+(`K="-F none -i ~/.ssh/org_dispatch -o BatchMode=yes -o IdentitiesOnly=yes -o IdentityAgent=none -o StrictHostKeyChecking=yes"`,
+`D` = the host's `mesh_ssh`):
 
-1. `ssh $K <alias> probe` prints one JSON line with `"ok": true` and this host's name.
+1. `ssh $K $D probe` prints one JSON line with `"ok": true` and this host's name.
 2. Each of `'probe; id'`, `'probe && id'`, `'$(id)'`, `` '`id`' ``, `'probe | id'`
    returns `"ok": false`, exit 2, and no `uid=` anywhere in the output.
-3. `ssh $K -N -L 12345:127.0.0.1:22 <alias>`, then a connection to local port 12345,
+3. `ssh $K -N -L 12345:127.0.0.1:22 $D`, then a connection to local port 12345,
    is refused (`administratively prohibited`).
-4. `ssh $K -t <alias> probe` reports that no pty was allocated and still returns the JSON line.
+4. `ssh $K -t $D probe` reports that no pty was allocated and still returns the JSON line.
 5. From a tailnet address outside `from=`: `Permission denied (publickey)`.
 6. On the host, the newest `events` rows are `actor=node_dispatch` with `caller`
    set to the dispatcher's tailnet address.

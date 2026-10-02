@@ -8,6 +8,12 @@
 # entry in ~/.ssh/config on the Mac) — null on mac itself, which never
 # dials out to reach itself.
 #
+# `mesh_ssh` is where an Org Mesh call goes (lib/mesh.py, W2.8):
+# `user@<tailnet address>`, dialled with `ssh -F none` and the org_dispatch key
+# only, so no ssh config and no admin key is ever involved. It must be the
+# TAILNET address: the far side's authorized_keys `from=` pins each
+# dispatcher's tailnet address. null = no mesh calls to this host.
+#
 # `agents_root` / `worktrees` are host-native absolute paths (Windows paths
 # use backslashes, quoted so YAML doesn't need double-escaping).
 
@@ -18,6 +24,8 @@ hosts:
     os: darwin
     remote_control: true   # session shows in the CEO Claude app
     ssh: null
+    # Mac sshd stays closed until G2 (Remote Login + sshd hardening, at the end).
+    mesh_ssh: null
     agents_root: /Users/gob/MoonieXHQ/Agents/Core
     worktrees: /Users/gob/MoonieXHQ/Agents/Core/worktrees
     provides: [chrome, macos_cu, blender_bridge]
@@ -37,6 +45,7 @@ hosts:
     os: windows
     remote_control: true   # session shows in the CEO Claude app
     ssh: winbox
+    mesh_ssh: passg@100.124.196.11
     agents_root: 'C:\Users\passg\mooniex'
     worktrees: 'C:\Users\passg\mooniex\worktrees'
     provides: [chrome, blender, win_gui]
@@ -60,6 +69,8 @@ hosts:
     os: linux
     remote_control: true   # session shows in the CEO Claude app
     ssh: mooniex-vps
+    # mooniex-vps dials Contabo's public address; the mesh needs the tailnet one.
+    mesh_ssh: root@100.118.171.23
     # The pre-2026-09-23 flat Contabo path is now a compat symlink onto
     # agents_root below (removed ~2026-10-01) -- the real checkout is here,
     # on main, remote git@github.com:PASAKON/Agents-Core.git
