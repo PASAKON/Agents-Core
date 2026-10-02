@@ -386,8 +386,15 @@ COO_ENV_ALLOWED = {
     "HOME", "USER", "LOGNAME", "PATH", "TERM", "LANG", "ORG_HOST", "SOMPONG_COO_SESSION", "WIKI_ROOT_ORG",
     "WIKI_ROOT_MOONIEX", "DISABLE_AUTOUPDATER", "CLAUDE_CODE_DISABLE_TERMINAL_TITLE",
     "CLAUDE_CODE_AUTO_COMPACT_WINDOW", "CXO_ROLE", "CXO_SESSION", "CXO_SESSION_ID", "LUNGNOTE_MCP_NODE",
+    # CEO 2026-10-02: the inbox socket under /var/lib, and the org MCP's own identity + project
+    "SOMPONG_INBOX_SOCKET", "INFISICAL_CRED_DIR", "MOONIEX_INFISICAL_ID_FILE", "MOONIEX_INFISICAL_AS",
+    "MOONIEX_ORG_DB_PROJECT",
     "PWD", "SHLVL", "_", "OLDPWD",
 }
+# The session's OWN Infisical identity (CEO 2026-10-02): names and paths only, the launcher sets
+# them itself; the client secret stays in ~sompong/.config/mooniex/infisical/sompong.env. Nothing
+# from the launching shell's environment (INFISICAL_TOKEN, a key) may reach claude.
+OWN_IDENTITY_VARS = {"INFISICAL_CRED_DIR", "MOONIEX_INFISICAL_ID_FILE", "MOONIEX_INFISICAL_AS"}
 
 
 @needs_nobody
@@ -407,7 +414,7 @@ def test_launcher_dry_run_on_contabo_describes_the_session(lroot: Path, tmp_path
     assert {"mcp__org__ask_run", "mcp__org__ask_run_wait"} <= set(allowed.split("=", 1)[1].split())
     names = next(line for line in out.splitlines() if line.startswith("dry-run: coo env=")).split("=", 1)[1].split()
     assert "SOMPONG_COO_SESSION" in names and "ORG_HOST" in names
-    assert not [n for n in names if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", n)]
+    assert not [n for n in names if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", n) and n not in OWN_IDENTITY_VARS]
     assert list((lroot / "state").iterdir()) == []  # a dry run registers nothing
     assert not list(tmp_path.glob("cxo-mcp-*"))  # and leaves no temp config behind
 
@@ -468,7 +475,7 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
     assert env["SOMPONG_COO_SESSION"] == "1" and env["ORG_HOST"] == "contabo"
     assert env["CXO_ROLE"] == "coo" and env["CXO_SESSION"] == "1" and re.fullmatch(r"[0-9a-f]{8}", env["CXO_SESSION_ID"])
     assert set(env) <= COO_ENV_ALLOWED, set(env) - COO_ENV_ALLOWED
-    assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k)]
+    assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k) and k not in OWN_IDENTITY_VARS]
     assert env["HOME"] != str(tmp_path / "home")  # the unprivileged user's home, not the caller's
 
     # bookkeeping happened as the launching user, claude through runuser as `nobody` (when uid differs)
@@ -579,7 +586,7 @@ def test_root_is_an_explicit_opt_in_and_still_gets_the_clean_env(lroot: Path, tm
     assert env["USER"] == "root" and env["LOGNAME"] == "root"
     assert env["SOMPONG_COO_SESSION"] == "1" and env["ORG_HOST"] == "contabo"
     assert set(env) <= COO_ENV_ALLOWED, set(env) - COO_ENV_ALLOWED
-    assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k)]
+    assert not [k for k in env if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", k) and k not in OWN_IDENTITY_VARS]
     assert "canary" not in "\n".join(got)
 
 

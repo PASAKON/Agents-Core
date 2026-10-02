@@ -57,7 +57,13 @@ if [ -z "${ORG_DB_URL:-}" ]; then
     if [ -n "$HOST" ]; then ID_FILE="${INFISICAL_CRED_DIR:-/etc/infisical}/$HOST.env"; fi
   fi
   if [ -n "$ID_FILE" ] && [ -f "$ID_FILE" ]; then
-    exec python3 "$ROOT/tools/infisical_setup.py" run Agents-Core prod -- "$@"
+    # A non-root C-level (the COO session, user `sompong`) has its own identity and reads its own
+    # project, whose ORG_DB_URL is a limited Postgres role (deploy/hub/org_coo_role.sql), never the
+    # hub superuser in Agents-Core: MOONIEX_ORG_DB_PROJECT + MOONIEX_INFISICAL_AS (CEO 2026-10-02).
+    AS_ARGS=()
+    [ -z "${MOONIEX_INFISICAL_AS:-}" ] || AS_ARGS=(--as "$MOONIEX_INFISICAL_AS")
+    exec python3 "$ROOT/tools/infisical_setup.py" run "${MOONIEX_ORG_DB_PROJECT:-Agents-Core}" prod \
+      "${AS_ARGS[@]}" -- "$@"
   fi
 fi
 exec "$@"

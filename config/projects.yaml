@@ -390,9 +390,15 @@ projects:
     # Contabo has no uv (gate failed 127 on task-179acf77, 2026-10-01) → the Agents venv there.
     test_command: if command -v uv >/dev/null 2>&1; then uv run --no-project --python 3.12 --with pytest python -m pytest -q; else /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m pytest -q; fi
     gate_tests: true
+    # NO contabo path, on purpose (CEO 2026-10-02: SomPong edits itself; root only through his Face
+    # ID). On Contabo the repo is owned by the unix user `sompong`, so any ROOT git command there
+    # (worktree add, merge, fetch) runs whatever hooks/config sompong put in .git, and root pytest
+    # runs its code. Without this path, delegate/merge_task/worktree tooling refuses the project on
+    # Contabo (lib.config.project_path_for_host). SomPong changes its repo itself; the root inbox runs
+    # a release made by scripts/sompong-inbox-deploy.sh (red Run card). Read it as root only through
+    # `runuser -u sompong -- git -C /opt/MoonieXHQ/Projects/MoonieX/SomPong ...`.
     paths:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/SomPong
-      contabo: /opt/MoonieXHQ/Projects/MoonieX/SomPong
     spawn_backend: tmux
 
   - key: mooniex-option
