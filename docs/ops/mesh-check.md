@@ -4,7 +4,8 @@
 (`docs/design/org-mesh.md`, plan approved by the CEO 2026-09-28). It prints
 the wiring matrix from the design doc's §1 measured tables and exits 1 when a
 cell that is expected green for the given `--expect` wave is red. Every wave
-adds its own level to check; this build ships the frame plus L0–L4.
+adds its own level to check; this build ships the frame plus L0–L8, the SEC
+(dispatch-key security) row and the one-poller invariant (INV).
 
 ## How to run
 
@@ -18,7 +19,9 @@ Runs this host's own L0/L1/L2 checks, collects every other host's L0–L2 via
 read-only ssh (`--local --json`, see below), prints the combined markdown
 matrix, writes it to `state/mesh-check/<UTC ts>.json` and
 `state/mesh-check/latest.json` (both gitignored), then exits 0 if every cell
-in scope for `--expect` passed, 1 otherwise.
+in scope for `--expect` passed, 1 otherwise. It also computes the two levels
+that only read: L8 (a file, from w4) and INV (the hub, from w1). It never
+dials a host and never writes the ledger unless `--live` is given.
 
 `--expect wN` is required outside `--local`/`--get-task` — it's the wave
 you're claiming, and it decides which cells actually count toward the exit
@@ -42,7 +45,7 @@ mode collects over ssh from each peer. It works two ways:
   filesystem context around `lib/config.py` degrades its cells to "n/a"
   instead of crashing.
 
-### `--live` (delegate probes — CTO runs this, not you)
+### `--live` (delegate and mesh probes — CTO runs this, not you)
 
 ```bash
 .venv/bin/python -m tools.mesh_check --expect wN --live [--no-merge]
@@ -53,6 +56,16 @@ polls for completion, and merges it. This spawns real workers and writes a
 real commit — see "L3 in detail" below before running it. `--no-merge` stops
 after delegate/poll and skips `merge_task` (useful for inspecting a probe
 without landing it).
+
+`--live` also computes the mesh levels, for this host's own outbound row and
+only for cells `--expect` already claims: **SEC**, **L5**, **L6** and **L7**.
+They dial real hosts over the dispatch key (`ssh -F none -i
+~/.ssh/org_dispatch`, built only by `lib.mesh.build_argv`) and write to the
+live hub: SEC (a) and L6 make the far side stamp `hosts.probed_at`, and L5
+writes one `letters` row per cell. L6 runs before L7 on purpose: the router
+rejects a probe older than 60 s, so L6's fresh stamps are what L7 reads.
+Nothing here is run by the unit tests; they mock `subprocess.run` and
+`lib.mesh`.
 
 ### `--get-task <id> --json`
 
@@ -80,6 +93,7 @@ the task is visible there.
   to `cmd /c exit 0` when `true` isn't on PATH). Mac has no ssh alias
   (sshd closed by design) — any cell targeting mac renders
   "closed (by design)" and is excluded from the exit code until wave w2.
+  The dispatch-key checks are **not** here: they live in the SEC row below.
 
 - **L2 org MCP** — starts the org MCP server for this host over stdio
   exactly as a C-level session does (`scripts/lib/cxo_mcp_config.py`'s
@@ -98,6 +112,9 @@ the task is visible there.
   task. Red today by design — every host still runs its own SQLite
   (`state/tasks.db`), so nothing federates yet. Expected green from wave w1
   once the Postgres hub lands.
+
+- **L5 letters**, **L6 liveness**, **L7 router**, **L8 join drill**, **SEC**
+  and **INV** — see "The mesh levels" below, one section each.
 
 ## L3 in detail
 
@@ -135,15 +152,35 @@ to_host) -> first_wave_green`. A cell:
   the literal `closed (by design)` for an L1 cell whose target has no ssh
   alias) — not yet claimed, so not yet judged, and it does **not** fail the
   run.
-- **present and in scope for `--expect`** renders `ok` or `FAIL(<reason>)`
-  and counts toward the exit code.
+- **a SEC or L5 cell whose target has no `mesh_ssh`** in `config/hosts.yaml`
+  renders `closed (by design)` whatever the wave, is never dialled, and is
+  excluded from the exit code. The tool reads `mesh_ssh` from the config; no
+  host name is hardcoded. Today only the Mac has `mesh_ssh: null` (its sshd
+  opens at the very end, G2), so every cell into the Mac is closed until that
+  line is filled in. L6 is closed the same way for a host that has no
+  `mesh_ssh` and is not the host the tool runs on (the host that runs it
+  answers `probe` in-process).
+- **present and in scope for `--expect`** renders one of four texts and
+  counts toward the exit code unless it is closed:
+
+  | text | meaning | exit code |
+  |---|---|---|
+  | `ok` / `ok (<note>)` | the far side answered, and right | 0 |
+  | `FAIL(<reason>)` | **red**: the far side answered, and wrong | 1 |
+  | `UNREACHABLE(<reason>)` | `lib.mesh.MeshUnreachable` (ssh 255, timeout, no JSON, or the hub itself unreadable): nothing answered, so nothing is known | 1 |
+  | `not run (<reason>)` | L8 only: no drill has ever written its file | 1 |
+
+  **Unknown is never green.** Red and unreachable both fail the run but are
+  printed apart, so a host that is down is not read as a host that is
+  wrong: live, before the dispatch keys are installed on Contabo and
+  winbox (W2.8a), every mesh cell reads `UNREACHABLE`, not `FAIL`.
 
 This means running `--expect w0` today never fails on, say, L3
 contabo→winbox (gated to w3) even though nothing computes it — but it does
 fail on a genuinely broken cell that's already claimed for w0, like L0
 disagreeing on a worktree checkout.
 
-## The "one poller per remote row" invariant
+## Each row runs from its own host
 
 L3 and L4 can only ever be computed by the host actually executing the
 process, for that host's own outbound row — a single invocation of
@@ -159,21 +196,270 @@ host's own seat, and merging the three `state/mesh-check/latest.json`
 snapshots (or just reading each host's own printed matrix) — never a single
 run claiming to speak for every row.
 
+The same rule holds for SEC, L5 and L6: `--live` computes only the row whose
+`from` is the host the tool runs on (SEC and L5), and the cell of each host
+for L6. L7, L8 and INV are not per-host: they read the hub (or a file), so
+any one host's run can claim them.
+
+## The mesh levels
+
+Every cell below follows the three-answer rule in "Wave gating": green, red,
+unreachable, and never green on unknown. Every `lib.mesh` call is
+`ssh -F none -i ~/.ssh/org_dispatch <options> <mesh_ssh> <verb>`, built only
+by `lib.mesh.build_argv`; the admin alias of L1 is never used. The ledger is
+the Postgres hub; `state/tasks.db` is a tombstone and is never opened.
+
+### Gate table (the new rows)
+
+`(level, from, to) -> first wave the cell must be green`, as in `EXPECT`:
+
+| level | cell(s) | wave |
+|---|---|---|
+| SEC | mac→contabo, mac→winbox, contabo→winbox, winbox→contabo | w2 |
+| SEC | contabo→mac, winbox→mac (closed until the Mac has `mesh_ssh`) | w2 |
+| L5 | mac→contabo, contabo→mac | w2 |
+| L5 | mac→winbox, winbox→mac, contabo→winbox, winbox→contabo | w3 |
+| L6 | mac, contabo (diagonal) | w2 |
+| L6 | winbox (diagonal) | w3 |
+| L7 | `always_on` → contabo | w2 |
+| L7 | `win_gui` → winbox, and stale winbox → `no_host` | w3 |
+| L8 | `all` (one cell) | w4 |
+| INV | `all` (one cell) | w1 |
+
+L7 is one diagonal cell per host (contabo, winbox), not a pair. L8 and INV
+are single cells: in the printed matrix they show as a two-column
+`check | result` table, and in `state/mesh-check/latest.json` under
+`matrix.L8.all.all` and `matrix.INV.all.all`. INV is gated at w1, the wave in
+which the hub lands, because the poller sets it reads only mean something
+when every host shares one ledger.
+
+### SEC — the dispatch key gets `probe` and no shell
+
+**Proves**, for every direction whose target has a `mesh_ssh`:
+
+- (a) `mesh.dispatch(to, "probe")` returns `ok: true` and `result.host ==
+  to`: the key reaches the right box and the forced command runs.
+- (b) the far side refuses a shell. `lib.mesh` refuses a bad verb locally,
+  before ssh, so the raw text has to be sent around it: the check takes
+  `prefix = mesh.build_argv(to, "probe", ())[:-1]` (every option and the
+  destination, minus the verb) and runs `prefix + [payload]` for each of
+  `probe; id`, `probe && id`, `$(id)`, a backtick `id`, `probe | id` (the
+  five of `docs/ops/node-dispatch.md` acceptance check 2) and `bash`.
+  Green needs, for every payload, that the last stdout line is
+  node_dispatch's own JSON with `ok: false`, and that `uid=` appears in
+  neither stdout nor stderr. `uid=` anywhere is red, even next to a proper
+  refusal: a shell that ran `id` and then also printed the refusal is still a
+  shell.
+
+**How it can lie:**
+
+- A payload refused **here** is not the far side's refusal. Calling
+  `mesh.dispatch` with `probe; id` returns `ok: false` without touching ssh,
+  which is exactly what a correct server would answer. The check therefore
+  never calls `dispatch` for (b); an answer counts only if it came back from
+  ssh as a JSON line. If `build_argv` itself refuses, the cell is red and
+  says the far side was not tested.
+- ssh exit 255, a timeout or an OSError on any payload is `UNREACHABLE`
+  (nothing was tested), never green.
+- The refusal check reads node_dispatch's JSON; a far side that prints some
+  other JSON object with `ok: false` passes it. The `uid=` search is the
+  real guard for the shell; the JSON is the guard for "the forced command
+  answered".
+- It only proves what these six payloads reach. A key that is not forced to
+  node_dispatch at all would run `id` and fail on `uid=`; a restricted shell
+  that rejects `id` but allows `ls` would pass. The `command=`, `from=` and
+  `restrict` options on the key line in `authorized_keys` stay the
+  authoritative control; this row is the regression test, not the control.
+- (a) is a real call, so it writes `hosts.probed_at` for the far side on the
+  live hub.
+
+**Waves:** see the gate table.
+
+### L5 — letters
+
+**Proves**, for A→B: `deliver_letter` is the verb that carries a letter to a
+recipient on B. The check finds the newest in-progress `probe`-role worker
+on B (the recipient: a letter needs a live worker session on the box that
+receives it), calls `db.create_letter(B, "probe", body, to_session=<its
+task id>, from_role="mesh_check", from_host=A)`, then
+`mesh.dispatch(B, "deliver_letter", <id>)`. Green needs all of:
+
+- the reply is `ok: true`, for this `letter_id`, with `delivered: true` (its
+  `to` must be `probe-<that task id>`) or `already_delivered: true`;
+- the hub row now has `status = 'delivered'`;
+- the reply does not report a failed wake: `woke: false` with a `why` is red.
+
+The body says it is a mesh-check probe letter and to ignore it, so a human or
+a worker that reads it knows to do nothing.
+
+**How it can lie:**
+
+- The wake fields are `woke` (bool) and `why` (str), and only
+  `tools/node_dispatch.py::_windows_wake` sets `why`: a **C-level letter on
+  Windows**, and only with `ORG_WIN_WAKE=1` (off by default; off answers
+  `woke: false` with no `why`). A worker letter on Windows returns `woke:
+  false` with no `why` (a worker is never woken; it reads its `MAILBOX.md`
+  before every tool call), and a POSIX letter (C-level or worker) returns no
+  wake field at all: the wake is a best-effort tmux call whose outcome is
+  not reported. The probe recipient is a worker, so this check cannot see a
+  wake ran on any host today. It therefore reads green as `ok (wake not
+  reported)` and says so; `ok (woke)` appears only if a reply reports
+  `woke: true`, and `woke: false` with a `why` is red. Treat the delivery as
+  proven and the wake as unproven, until `node_dispatch` gives every letter
+  path an explicit wake field. The brief asked for "the wake ran" as a pass
+  condition; a strict version of it would be permanently red.
+- It needs a live worker of role `probe` on B (`status = in_progress`, its
+  `host` = B, a tmux session on POSIX or a worktree on Windows) and creates
+  none. With none, the cell is red (`no in_progress probe worker on <B>`),
+  not skipped.
+- A letter that does not land is set to `failed` straight away (only a row
+  still `pending`; a delivered row is never rewritten), so the watchdog's
+  retry cannot hand it to the probe worker later, out of context. A
+  delivered probe letter stays in the ledger as the proof.
+- `delivered` plus the hub status are two views of the same far-side write,
+  so they can agree and both be wrong only if the far side is wrong about
+  the hub. It cannot prove the recipient read the letter.
+
+**Waves:** see the gate table.
+
+### L6 — liveness
+
+**Proves**, per host (diagonal): `mesh.dispatch(host, "probe")` answers in
+under 60 s (`L6_MAX_S`, measured with a monotonic clock and also passed as
+the call's timeout), says it is that host, and afterwards
+`db.get_host(host)["probed_at"]` is fresh by `lib.router._probe_problem`,
+the router's own staleness rule (its constant is `PROBE_MAX_AGE_S`, also 60 s;
+the check holds no copy of that number). The `probe` verb writes
+`probed_at` on the far side, so a fresh stamp shows the write reached the
+shared hub. The host the tool runs on answers in-process (that is what
+`mesh.dispatch` does for its own host), so the Mac is never "closed" for
+L6; any other host with no `mesh_ssh` is closed.
+
+**How it can lie:**
+
+- Fresh `probed_at` can come from someone else's probe a second earlier (the
+  CTO's, a router run). The answer in the reply and the timing are this
+  call's own; the stamp is only "the hub row is not stale".
+- An in-process probe on the Mac proves the verb and the hub write, not that
+  anything can reach the Mac: it is the Mac's own liveness only.
+- The hub being unreadable after a good probe is `UNREACHABLE`, since the
+  freshness is then unknown.
+
+**Waves:** see the gate table.
+
+### L7 — router
+
+**Proves**, with `router.pick_host(task, hosts_rows=rows)` on a synthetic
+task (`needs:` in the description header, project `mooniex-agents`, runner
+pinned to `claude`, never stored) over the live rows from `db.list_hosts()`:
+
+- `needs: always_on` picks `contabo` (w2);
+- `needs: win_gui` picks `winbox` (w3);
+- with winbox's `probed_at` pushed past the router's limit **in a deep copy
+  of the rows**, the same task gets `no_host` (w3): the router has no
+  fallback host to quietly use.
+
+The hosts table is never written; the rows list is never mutated.
+
+**How it can lie:**
+
+- It depends on fresh probes. Nothing probes on a timer, so a host that was
+  not probed in the last 60 s is rejected as `no probe`, and L7 reads red
+  although the router is fine. `--live` runs L6 first for that reason; read
+  an L7 red together with the L6 cell of the same host.
+- `contabo` for `always_on` and `winbox` for `win_gui` are the two pairs
+  the wave plan names; a legitimate change of `provides` in
+  `config/hosts.yaml` turns them red and the pairs in `L7_CASES` have to move
+  with it.
+- A hub that cannot be read makes both cells `UNREACHABLE`.
+
+**Waves:** see the gate table.
+
+### L8 — join drill
+
+**Proves** that `hq join` was drilled end to end on a clean machine within
+the last 7 days. This tool does not run the drill; it reads
+`state/mesh-check/join-drill.json` (gitignored, written by the drill):
+
+```json
+{
+  "ok": true,
+  "at": "2026-10-20T14:03:00Z",
+  "host": "testbox",
+  "steps": [{"name": "mint-token", "ok": true}, {"name": "join", "ok": true}]
+}
+```
+
+| field | type | meaning |
+|---|---|---|
+| `ok` | bool | the drill as a whole passed |
+| `at` | ISO-8601 string | when it finished; `Z` or an offset, UTC if neither |
+| `host` | non-empty string | the machine that was joined |
+| `steps` | list of `{"name": str, "ok": bool}` | what ran, in order; may not be empty |
+
+- missing file: `not run` (a failing, named state, never green);
+- unreadable, not a JSON object, or a missing or mistyped field: red;
+- `at` more than 7 days ago (`JOIN_DRILL_MAX_AGE_S`), or in the future by more
+  than 10 minutes: red;
+- `ok: false`: red, naming the failed step when there is one;
+- `ok: true` with no steps, or with a step that is not `ok`: red, because
+  the file contradicts itself.
+
+**How it can lie:** it trusts the file. A drill that writes `ok: true`
+without having run, or a stale file copied from another box, passes. It says
+which host and how many hours ago in the cell, so a human can see.
+
+**Waves:** w4.
+
+### INV — one poller per remote row
+
+**Proves**, read-only, that every remote or external row has exactly one
+poller. For every `in_progress` task that is *remote* (its `host` is set and
+differs from its `dispatcher_host`) or whose runner is `codex` or `agy` (a
+launcher run: `runners.branch_poller.EXTERNAL_RUNNERS`), it counts the hosts
+in `config/hosts.yaml` whose `branch_poller.in_poller_set(task)` is true,
+evaluating each in turn with `self_host()` pinned to that host. Green =
+exactly 1 for every row. A row with 0 (nobody watches it, it would sit in
+`in_progress` for ever) or more than 1 (two pollers flip it twice) is
+printed by task id with its poller hosts, e.g. `task-1234abcd (0 pollers)` or
+`task-5678abcd (2 pollers: mac, winbox)`, and the cell is red.
+
+`self_host()` is cached and `branch_poller` / `worker_reap` bind it by name
+(`from lib.config import self_host`), so the check pins it through
+`ORG_HOST` and clears the cache, and puts both back afterwards; patching the
+module attribute would not reach them. The hosts table and the tasks table
+are never written.
+
+**How it can lie:**
+
+- It evaluates the predicate, not the processes: a poller that is down, or a
+  host that runs the predicate differently because its checkout is behind,
+  still counts as one. It proves the design has exactly one watcher per row,
+  not that the watcher is alive (that is L6).
+- A row with no `dispatcher_host` (written before the column existed) is
+  claimed by every host except its own, so it shows as `2 pollers`. That is
+  a real double poll, not a false alarm.
+- At most 500 in-progress rows are read.
+
+**Waves:** w1.
+
 ## Later waves
 
-This build ships L0–L4. Each later wave in `docs/design/org-mesh.md` §5 adds
-its own level to the same matrix, without touching what's already here:
+L5–L8, SEC and INV are built; what they need to turn green is not in this
+file:
 
-- **L5 letters** — hub mailbox delivery (a message written on one host is
-  readable from another).
-- **L6 liveness** — `node_agent` heartbeat / presence per host.
-- **L7 router** — pull-model task routing across the hub, not just a single
-  delegate call.
-- **L8 join drill** — the `hq join` flow for registering a brand-new
-  machine end-to-end.
-- **A security cell** — auth/authorization boundary between hosts (who is
-  allowed to delegate to whom, who can read whose ledger) gets its own row,
-  separate from the plumbing cells above it.
+- **W2.8a** — install the dispatch key on Contabo and winbox. Until it is
+  there, every live SEC, L5 and remote L6 cell reads `UNREACHABLE`.
+- **G2** — open the Mac's sshd and set `mesh_ssh` for `mac` in
+  `config/hosts.yaml`. The cells into the Mac then stop being "closed (by
+  design)" with no change to this tool.
+- **A probe worker per target** for L5 (see its section), and the wake field
+  on the POSIX and worker letter paths of `node_dispatch` if L5 should ever
+  prove a wake rather than a delivery.
+- **The join drill** (W4.7 in the plan, a container on Contabo), which writes `state/mesh-check/join-drill.json`;
+  L8 stays `not run` until then.
+- Any later wave that adds a level adds it to `LEVELS`, `EXPECT` and this
+  file together, without touching the cells above it.
 
 ## Troubleshooting
 
