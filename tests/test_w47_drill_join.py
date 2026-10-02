@@ -302,8 +302,11 @@ class Drill:
         return self
 
     def popen(self, *args: str) -> subprocess.Popen:
+        # A pytest run started as a background job inherits SIGINT as ignored, and a shell cannot
+        # trap a signal that was ignored when it started: give the script the default back.
         return subprocess.Popen(["/bin/bash", str(SCRIPT), *args], env=self.env, cwd=self.root,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
 
     def run(self, *args: str, timeout: int = 120) -> subprocess.CompletedProcess:
         return subprocess.run(["/bin/bash", str(SCRIPT), *args], env=self.env, cwd=self.root,
