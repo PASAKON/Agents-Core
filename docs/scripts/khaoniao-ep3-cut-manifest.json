@@ -1,5 +1,5 @@
 {
- "out": "${OUT}/EP2-cut-v2.mp4",
+ "out": "${OUT}/EP3-cut-v1.mp4",
  "size": [
   720,
   1280
@@ -33,7 +33,7 @@
    "dur": 10
   },
   {
-   "card": "${CARDS}/card-title-ep2.png",
+   "card": "${CARDS}/card-title-ep3.png",
    "dur": 2.6
   },
   {
@@ -85,7 +85,7 @@
    "dur": 10
   },
   {
-   "card": "${CARDS}/card-end.png",
+   "card": "${CARDS}/card-end-ep3.png",
    "dur": 3.5
   }
  ]
