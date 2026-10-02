@@ -91,3 +91,15 @@ Between them, `studio/src/lib/colabBackend.ts` is a stub that always answers `{a
     - In the live acceptance take, prove it once: stop sending heartbeats (keep the guard as the safety net), shorten the timeout to 3 min for that test only, then confirm with `colab sessions` that the VM went away on its own. Report the seconds it took.
 
 **Acceptance take change (CEO asked how long 720p takes on Colab):** render the 2 chained scenes at quality **720p**. Make scene 1 362 frames (15 s, the usual H3 length) and scene 2 124 frames. Report each clip's render seconds and s/frame. For comparison, RunPod r2v_720 is 1.23 s/frame, a median of 447 s for 362 frames (n=6). Raise the cap for this take to 8 CU.
+
+## Addendum 2026-10-03 (CEO: "if S2 finishes before S1, how does the auto merge work?") — item 11
+
+11. **Test a mixed-backend episode** in `test_colab_backend.py`, through the real tick, using a fake CLI and fake ComfyUI.
+    - Set up one cut batch: 15 scenes, N=5, which makes 3 takes.
+    - Route take 1 to RunPod, because it has one risky scene. Route takes 2 and 3 to Colab.
+    - Make take 2 on Colab finish before take 1 on RunPod.
+    - Assert that RunPod and Colab ran at the same time.
+    - Assert that take 3 waited for the warm VM and did not launch a second VM.
+    - Assert that `joinEpisodes` ran only after all 15 scenes were done.
+    - Assert that the episode joins its segments in `cutBatch.pos` order (take 1, then 2, then 3), whatever the finish order.
+    - Make one Colab take fail mid-way. Assert that its unfinished scenes go to RunPod and that the episode still forms once they are done.
