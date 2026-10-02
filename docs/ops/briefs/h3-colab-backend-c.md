@@ -103,3 +103,41 @@ Between them, `studio/src/lib/colabBackend.ts` is a stub that always answers `{a
     - Assert that `joinEpisodes` ran only after all 15 scenes were done.
     - Assert that the episode joins its segments in `cutBatch.pos` order (take 1, then 2, then 3), whatever the finish order.
     - Make one Colab take fail mid-way. Assert that its unfinished scenes go to RunPod and that the episode still forms once they are done.
+
+## Addendum 2026-10-03 (CEO ruling: "ทำได้เลย") — item 12: narrower risky rules
+
+The CEO ruled that the risky list is too wide. Today a story with a child extra can never go to Colab: "เด็ก" and "child" are on the deny list, and both the writer and Jev mark any young-looking character as risky. The same rule is written three times: `scenegen.ts` (L1, the writer `rating`), `sceneJudge.ts` (L2, `JEV_SAFE` / `JEV_RISKY`) and `safeSplit.ts` (L3, `DENY_LIST`). Change all three.
+
+12. **New rule. A scene is risky ONLY when it has one of these:**
+    1. **Nudity.** This covers undressing, a nude or partly nude body, and a sex act.
+    2. **Kissing.**
+    3. **Caressing, fondling or groping.**
+    4. **Graphic gore or blood spray.**
+    5. **A child together with romance, intimacy, or the camera dwelling on the child's body.** A child extra in an ordinary scene is SAFE.
+
+    Everything else is safe unless it hits 1–5. That includes:
+    - swimwear or underwear without nudity;
+    - a bed, a bedroom, a shower or a bath scene with no nudity, no kiss and no caress;
+    - flirting;
+    - a young-looking adult.
+
+    A real-person likeness is also removed: Jev cannot see images, and the CEO controls the refs. Keep "when in doubt, choose risky", fail-closed timeouts and errors, and the 0.95 threshold.
+    - **One source of truth.** Define the five rules once and build the L1 and L2 text from that one definition, so the three layers can never drift apart again.
+    - **L3 deny list.** Keep only words for 1–4. Remove every child, teen, school-uniform, bed, bedroom, bath, shower, towel, underwear, swimwear and body-part word. Child-plus-romance is a judgement for L2, not a word match.
+    - Narrow the over-broad Thai stems:
+      - `ถอด` becomes `ถอดเสื้อ`, `ถอดกางเกง` and `เปลื้องผ้า`, because `ถอด` alone also hits ถอดรองเท้า and ถอดใจ;
+      - drop `ก้น` and `สะโพก`;
+      - keep `จูบ`, `เปลือย`, `ร่างเปล่า`, `ร่วมรัก`, `เซ็กส์`, `ลูบไล้`, `ลูบคลำ`.
+    - Add gore stems: `เลือดสาด`, `ไส้ทะลัก`, `หัวขาด`, `gore`, `dismember`, `decapitat`.
+    - In English, keep `kiss`, `naked`, `nude`, `undress`, `topless`, `sex`, `orgasm`, `caress`, `fondl` and `grop`. Drop `lick`, because it hits "licks an ice cream". Make `strip` match only the undressing senses, never "striped".
+    - **Cached verdicts.** If any route decision or Jev verdict is cached or fingerprinted by text, put a rules version in the key. A scene judged under the old rules must not reuse an old verdict.
+    - **The post-render tripwire and the L4 NudeNet ref scan stay exactly as they are.**
+    - **Tests.** Update `test_safe_split.py`, and report the old and new case counts. Cover each of these, with fake writer and fake Jev answers where the layer is a model:
+      - a child extra in an ordinary scene passes L1, L2 and L3;
+      - a kiss fails L3;
+      - "ถอดรองเท้า" passes L3, and "ถอดเสื้อ" fails it;
+      - a swimwear or bed scene with nothing from 1–5 passes L3;
+      - a child plus romance is risky at L2;
+      - gore fails L3.
+    - **Docs.** `docs/STUDIO-API.md`, the safe-split section, lists the five rules.
+    - These files are added to your touches: `studio/src/lib/sceneJudge.ts`, `studio/src/lib/scenegen.ts`, `scripts/test_safe_split.py`.
