@@ -322,6 +322,19 @@ def test_body_contains_text_false_when_collapsed_prefix_does_not_match():
     assert not frp.body_contains_text(collapsed_body, comment)
 
 
+def test_body_contains_text_true_when_collapse_falls_on_a_later_line():
+    # 2026-10-02 film 5 EP2: line 1 rendered whole, line 2 cut with the marker.
+    comment = "บรรทัดแรกครบ แท็กคนที่คุณห่วงไว้เลยครับ\nรู้ไว้ใช่ว่า: ตำรวจตัวจริงไม่มีวันโทรมาสั่งแบบนี้\nบรรทัดสาม"
+    body = "noise\nบรรทัดแรกครบ แท็กคนที่คุณห่วงไว้เลยครับ\nรู้ไว้ใช่ว่า: ตำรวจตัวจริงไม่มีวั... ดูเพิ่มเติม\nmore"
+    assert frp.body_contains_text(body, comment)
+
+
+def test_body_contains_text_false_when_earlier_line_differs_before_collapse():
+    comment = "บรรทัดแรกครบ\nรู้ไว้ใช่ว่า: ตำรวจตัวจริงไม่มีวันโทรมา"
+    body = "noise\nบรรทัดแรกอื่น\nรู้ไว้ใช่ว่า: ตำรวจตัวจริงไม่มีวั... ดูเพิ่มเติม"
+    assert not frp.body_contains_text(body, comment)
+
+
 def test_is_duplicate_comment_true_for_facebook_collapsed_existing_comment():
     comment = "ดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่นี่เลยครับ 👇 https://www.facebook.com/61594116376333/videos/1973008630041783/"
     existing = ["other comment", "ดูละครสั้น «ขายฝากนาแม่» เต็มเรื่องได้ที่... ดูเพิ่มเติม"]
