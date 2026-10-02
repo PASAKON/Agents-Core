@@ -224,15 +224,23 @@ case "$(uname -s)" in
   *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
 esac
 
-# config/hosts.yaml key for THIS machine -- same values runners/worker_init.py's
-# current_host()/ORG_HOST resolve to (mac/winbox/contabo), derived from the
-# label above rather than a second uname case so the two can never disagree.
+# config/hosts.yaml key for THIS machine. The org's one resolver answers first:
+# lib.config.self_host() (org-mesh.md C1: ORG_HOST, then node.yaml, then
+# agents_root), read through scripts/lib/coo_host.py. session_reconcile and
+# runners/worker_init.py resolve their host the same way, so the row registered
+# below names the same machine as the rows the reconcile checks. The label case
+# is the fallback for a machine self_host() cannot resolve (coo_host.py exits 3)
+# or where no Python can run it.
 case "$MACHINE_LABEL" in
   MAC)     HOST_KEY="mac" ;;
   CONTABO) HOST_KEY="contabo" ;;
   WINDOWS) HOST_KEY="winbox" ;;
   *)       HOST_KEY="$(printf '%s' "$MACHINE_LABEL" | tr '[:upper:]' '[:lower:]')" ;;
 esac
+HOST_PY="$ROOT/.venv/bin/python"; [ -x "$HOST_PY" ] || HOST_PY=python3
+if SELF_HOST="$("$HOST_PY" "$ROOT/scripts/lib/coo_host.py" host 2>/dev/null)" && [ -n "$SELF_HOST" ]; then
+  HOST_KEY="$SELF_HOST"
+fi
 
 # Reconcile c_level_sessions BEFORE registering this new row (task-9ff9263f):
 # marks any 'open' row on this host whose tmux is actually dead as
