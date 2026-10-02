@@ -16,6 +16,7 @@ import logging
 import os
 import socket
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -613,6 +614,27 @@ def test_logs_name_method_path_status_and_host_and_nothing_secret(start, caplog)
     assert "POST /org-join/sealed 200 host=node-a" in lines
     assert "GET /org-join/join.sh 200 host=-" in lines
     assert "GET - 404 host=-" in lines   # the unknown path is not echoed
+
+
+def test_the_access_log_line_is_written_before_the_client_gets_the_response(start):
+    # CI flake (run 36952132198): the line of the LAST request was missing when the test read the log,
+    # because the handler thread sent the response first and logged after. Make the log slow: with that
+    # order the client returns while the handler is still inside emit(), and `seen` is still empty.
+    seen = []
+
+    class SlowHandler(logging.Handler):
+        def emit(self, record):
+            time.sleep(0.3)
+            seen.append(record.getMessage())
+
+    slow, logger = SlowHandler(), logging.getLogger("join_api")
+    logger.addHandler(slow)
+    try:
+        status, _, _ = start().request("GET", "/org-join/join.sh")
+        assert status == 200
+        assert "GET /org-join/join.sh 200 host=-" in seen
+    finally:
+        logger.removeHandler(slow)
 
 
 def test_a_hostile_host_value_is_not_logged(start, caplog):

@@ -383,27 +383,28 @@ class _Handler(BaseHTTPRequestHandler):
     def _handle(self) -> None:
         method, path, host, drain = self.command, urlsplit(self.path).path, None, 0
         route = ROUTES.get((method, path))
+        extra = None
         try:
             if not self.server.limiter.allow(self._client_key()):
-                status = 429
-                self._send(429, _json({"error": "rate_limited"}), _JSON,
-                           {"Retry-After": str(int(self.server.limiter.window_s))})
+                status, body, ctype = 429, _json({"error": "rate_limited"}), _JSON
+                extra = {"Retry-After": str(int(self.server.limiter.window_s))}
             elif route is None:
-                status = 404
-                self._send(404, _json({"error": "not_found"}), _JSON)
+                status, body, ctype = 404, _json({"error": "not_found"}), _JSON
             else:
                 status, body, ctype, host = route(self)
-                self._send(status, body, ctype)
         except _Refuse as r:
             status, drain = r.status, r.drain
-            self._send(status, _json({"error": r.code}), _JSON,
-                       {"Retry-After": str(int(DB_WAIT_S))} if status == 503 else None)
+            body, ctype = _json({"error": r.code}), _JSON
+            extra = {"Retry-After": str(int(DB_WAIT_S))} if status == 503 else None
         except Exception as exc:  # never a message: a driver error can carry row values
             status = 500
             _log.error("%s %s: %s", method, path if route else "-", type(exc).__name__)
-            self._send(500, _json({"error": "internal"}), _JSON)
+            body, ctype = _json({"error": "internal"}), _JSON
+        # Log BEFORE the response goes out: this runs on its own thread, so a line written after
+        # _send() can still be missing when the client (a test, a probe) has read the reply and looks.
         # Only a route we serve is named; anything else is "-" (log injection, a token in a URL).
         _log.info("%s %s %d host=%s", method, path if route else "-", status, host or "-")
+        self._send(status, body, ctype, extra)
         if drain:
             self._drain(drain)
 
