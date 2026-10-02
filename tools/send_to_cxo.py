@@ -310,7 +310,7 @@ def _log_hop(sender: Identity, target_role: str, target_session_id: str | None) 
 # delegates the nudge itself.
 
 
-def attempt_wake(role: str, session_id: str, label: str) -> None:
+def attempt_wake(role: str, session_id: str, label: str) -> bool:
     """Best-effort attention nudge for the just-delivered letter's
     recipient. The one hard rule (task-cf325742): NOTHING from this step
     may propagate or change the caller's notion of success -- no tmux
@@ -331,9 +331,14 @@ def attempt_wake(role: str, session_id: str, label: str) -> None:
     `tools.send_to_cxo._wake_tmux_send` is still honored (see
     `agent_transport.attempt_wake`'s docstring for why that indirection is
     needed).
+
+    Returns `agent_transport.attempt_wake`'s bool (True only when the nudge
+    reached a live tmux session). tools/node_dispatch.py reports it as
+    `woke`; every other caller ignores it, and False never means the letter
+    was not delivered.
     """
     session = session_name.lock_basename(role, session_id)
-    agent_transport.attempt_wake(session, label, "send_to_cxo", send_fn=_wake_tmux_send)
+    return agent_transport.attempt_wake(session, label, "send_to_cxo", send_fn=_wake_tmux_send)
 
 
 # Back-compat alias (task-18241f1d): existing callers and tests reference

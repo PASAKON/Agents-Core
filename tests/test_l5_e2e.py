@@ -565,7 +565,7 @@ def test_the_probe_role_file_and_the_description_tail_tell_the_worker_the_same_t
     role = (ROOT / "roles" / "probe.md").read_text()
     tail = m.L5Window("mac", "contabo").instructions()
     for text in (role, tail):
-        for needle in ("MESH-NONCE-", "nonce=", "120 s", "sleep 15"):
+        for needle in ("MESH-NONCE-", "nonce=", "120 s", "sleep 15", "look there first"):
             assert needle in text, needle
     # the role file still lets the probe touch exactly one file
     assert "Touch exactly one file" in role and "docs/ops/mesh-probe/<from>-<to>.md" in role

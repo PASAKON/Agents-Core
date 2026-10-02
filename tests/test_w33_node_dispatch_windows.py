@@ -681,7 +681,7 @@ def _posix_worker(monkeypatch, tmp_path, *, live=True, **over):
     monkeypatch.setattr(tmux_session, "has_session", lambda name: live)
     wakes = []
     monkeypatch.setattr(agent_transport, "attempt_wake",
-                        lambda session, label, prefix, **kw: wakes.append((session, label, prefix)))
+                        lambda session, label, prefix, **kw: wakes.append((session, label, prefix)) or True)
     tid, _ = _worker(tmp_path, host="contabo", tmux_session="dev-abc", **over)
     return tid, wakes
 
@@ -694,7 +694,8 @@ def test_worker_letter_on_posix_goes_to_the_task_mailbox_and_wakes_its_tmux(
     out, code = nd._run("deliver_letter", [str(lid)])
 
     assert code == 0, out
-    assert out["result"] == {"letter_id": lid, "delivered": True, "to": f"developer-{tid}"}
+    assert out["result"] == {"letter_id": lid, "delivered": True, "to": f"developer-{tid}",
+                             "woke": True}  # the tmux wake's own result (task-f9d23d0b)
     assert [(m["body"], m["from"]["role"]) for m in mailbox.peek("developer", tid)] == [
         ("status?", "cmo")]
     assert wakes == [("dev-abc", "CMO", "node_dispatch")]
