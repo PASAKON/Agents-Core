@@ -30,6 +30,9 @@ WINCTO_SCRIPT = ROOT / "windows" / "win-cto.ps1"
 HARDCODED_PROFILE_PATHS = ("C:\\Users\\UsEr", "C:\\Users\\passg")
 
 DROPPED_MECHANISMS = ("osascript", "tmux", "iTerm")
+# W3.4 (CEO approval 2026-10-03): hub mode on winbox = the Infisical route, decided by
+# scripts/lib/cxo_mcp_config.py --hub-route. There is never an org-db.env on winbox.
+HUB_IF = "if ($hubRoute -eq 'infisical')"
 
 
 def _text(p: Path) -> str:
@@ -115,17 +118,21 @@ def test_org_mcp_and_lungnote_each_get_a_skip_log_line():
 
 
 def test_standalone_branch_never_calls_cxo_mcp_config():
-    """The org-db.env gate must be a real if/else: the generator call sits
-    only in the branch that found org-db.env, not unconditionally before the
-    check (which would attempt the org MCP server, and its local-sqlite
-    fallback, before winbox is allowed to have one)."""
+    """The hub gate must be a real if/else: the generator calls (--out,
+    --print-allowed) sit only in the branch that found a hub route, not
+    unconditionally before the check (which would attempt the org MCP server,
+    and its local-sqlite fallback, before winbox is allowed to have one).
+    W3.4: the one call before the branch is the read-only --hub-route probe."""
     text = _text(CXO_SCRIPT)
-    if_idx = text.index("if (Test-Path $orgEnv)")
+    if_idx = text.index(HUB_IF)
     else_idx = text.index("} else {", if_idx)
     gen_idx = text.index("cxo_mcp_config.py", if_idx)
     assert if_idx < gen_idx < else_idx, (
-        "cxo_mcp_config.py call must be inside the org-db.env present branch"
+        "cxo_mcp_config.py call must be inside the hub-route branch"
     )
+    before = [ln for ln in _code_only(CXO_SCRIPT)[: _code_only(CXO_SCRIPT).index(HUB_IF)].splitlines()
+              if "cxo_mcp_config.py" in ln]
+    assert before and all("--hub-route" in ln for ln in before), before
 
 
 def test_strict_mcp_config_applies_in_both_modes():
@@ -136,7 +143,7 @@ def test_strict_mcp_config_applies_in_both_modes():
     code = _code_only(CXO_SCRIPT)
     assert "--strict-mcp-config" in code
     # Must not be gated inside the hub-mode branch only.
-    if_idx = _text(CXO_SCRIPT).index("if (Test-Path $orgEnv)")
+    if_idx = _text(CXO_SCRIPT).index(HUB_IF)
     else_close_idx = _text(CXO_SCRIPT).index("\n}\n", if_idx)
     strict_idx = _text(CXO_SCRIPT).index("--strict-mcp-config", else_close_idx)
     assert strict_idx > else_close_idx
@@ -145,10 +152,10 @@ def test_strict_mcp_config_applies_in_both_modes():
 def test_cxo_env_vars_exported_unconditionally():
     """Review-fix regression guard: win-cto.ps1 v2 (6edac472) only exported
     CXO_ROLE/CXO_SESSION/CXO_SESSION_ID inside the hub-mode branch. Must be
-    set before the org-db.env check, not after/inside it."""
+    set before the hub-route check, not after/inside it."""
     text = _text(CXO_SCRIPT)
     export_idx = text.index('$env:CXO_SESSION_ID = $sid')
-    orgenv_check_idx = text.index("if (Test-Path $orgEnv)")
+    orgenv_check_idx = text.index(HUB_IF)
     assert export_idx < orgenv_check_idx, (
         "CXO_SESSION_ID must be exported before the hub/standalone branch, "
         "not only inside the hub-mode branch"
@@ -203,3 +210,30 @@ def test_parses_with_zero_errors():
             timeout=30,
         )
         assert proc.returncode == 0, f"{script.name} failed to parse:\n{proc.stdout}\n{proc.stderr}"
+
+
+def test_hub_mode_never_reads_an_org_db_env():
+    """W3.4: winbox gets ORG_DB_URL from Infisical inside the processes that need it;
+    the launcher reads no env file and sets no secret in its own environment."""
+    code = _code_only(CXO_SCRIPT)
+    assert "org-db.env" not in code
+    assert "$orgEnv" not in code
+    assert "Get-Content -Encoding UTF8 $orgEnv" not in code
+    assert not re.search(r"Set-Item\s+-Path\s+\"env:\$\(\$Matches", code)
+
+
+def test_register_and_reconcile_start_under_infisical_run():
+    """Both write the hub through lib.db, so both need ORG_DB_URL: they start under the
+    same `infisical_setup.py run Agents-Core prod --as winbox` as the org server."""
+    code = _code_only(CXO_SCRIPT)
+    assert ("$hubRun = @('-E', '-s', (Join-Path $root 'tools\\infisical_setup.py'), "
+            "'run', 'Agents-Core', 'prod', '--as', 'winbox', '--', $venvPy)") in code
+    assert "-ArgumentList ($hubRun + @('-m', 'tools.session_reconcile', '--apply'))" in code
+    assert "-ArgumentList ($hubRun + @('-m', 'tools.register_cxo'," in code
+
+
+def test_hub_banner_keeps_the_phrase_the_winbox_check_reads():
+    """The W3.4 acceptance check on winbox reads this phrase from the launch banner."""
+    code = _code_only(CXO_SCRIPT)
+    hub_branch = code[code.index(HUB_IF): code.index("} else {", code.index(HUB_IF))]
+    assert "[cxo-claude] hub mode: org MCP on" in hub_branch

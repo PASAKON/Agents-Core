@@ -310,15 +310,92 @@ def org_db_wrapper(root: str) -> str | None:
     return None
 
 
-def wrap_org_entry(entry: dict, root: str) -> dict:
-    """`entry` routed through the env wrapper when org_db_wrapper() says so.
+# Windows has no bash, so winbox reaches the hub through the wrapper's leg b
+# directly: `infisical_setup.py run Agents-Core prod --as winbox -- <command>`
+# (W3.4, CEO 2026-10-03). There is never an org-db.env on winbox: the secret
+# lives only in the environment of the process that needs it.
+INFISICAL_SETUP_NAME = "infisical_setup.py"
+WINDOWS_IDENTITY = "winbox"            # tools/infisical_setup.py self_host() on Windows
+HUB_PROJECT = ("Agents-Core", "prod")  # where ORG_DB_URL lives (tasks-db-hub §3.3, leg b)
 
-    An entry whose command already is the wrapper (a checkout where
-    scripts/hub/cutover_flip.py once rewrote a template) is returned as is:
-    wrapping it twice would hand the wrapper itself to `exec`.
+
+def _basename(path: str) -> str:
+    """Last component of `path` on either separator (a Windows path read on a POSIX host)."""
+    return re.split(r"[\\/]", path)[-1]
+
+
+def _windows_cred_exists(identity: str) -> bool:
+    """True when `identity`'s Infisical credential file exists where
+    tools/infisical_setup.py read_cred looks on Windows: the machine file
+    (%ProgramData%\\Infisical\\<id>.env) or option B's user file
+    (%LOCALAPPDATA%\\MoonieX\\Infisical\\<id>.env, CEO 2026-10-02).
+
+    Existence only: the file is never opened. An overridden INFISICAL_CRED_DIR
+    (tests) turns the user file off unless INFISICAL_USER_CRED_DIR names one,
+    the same rule infisical_setup.user_cred_path keeps, so a test can never
+    fall back to a real credential.
     """
-    if Path(entry["command"]).name == WRAPPER_NAME:
+    machine_dir = os.environ.get("INFISICAL_CRED_DIR") or os.path.join(
+        os.environ.get("ProgramData", r"C:\ProgramData"), "Infisical")
+    user_dir = os.environ.get("INFISICAL_USER_CRED_DIR")
+    if user_dir is None and "INFISICAL_CRED_DIR" not in os.environ:
+        user_dir = os.path.join(
+            os.environ.get("LOCALAPPDATA") or os.path.expanduser(r"~\AppData\Local"),
+            "MoonieX", "Infisical")
+    return any(os.path.isfile(os.path.join(d, f"{identity}.env"))
+               for d in (machine_dir, user_dir) if d)
+
+
+def windows_hub_prefix(root: str) -> list[str] | None:
+    """argv that starts a command with Agents-Core prod's secrets (ORG_DB_URL)
+    on Windows, or None (docs/ops/node-dispatch.md, W3.4).
+
+    Only when ALL hold: the platform is Windows, the node file says
+    `org_db: hub` (hub_is_live, the same per-host switch as on the Mac and
+    Contabo), the venv python and tools/infisical_setup.py exist, and this box
+    holds winbox's credential file. On Windows `run` waits for its child and
+    hands back the exit code, so a stdio MCP server keeps its pipes; it prints
+    secret NAMES only, on stderr.
+    """
+    if not _is_windows() or not hub_is_live():
+        return None
+    python = _venv_python(root)
+    setup = Path(root) / "tools" / INFISICAL_SETUP_NAME
+    if not (python.exists() and setup.is_file() and _windows_cred_exists(WINDOWS_IDENTITY)):
+        return None
+    return [str(python), "-E", "-s", str(setup), "run", *HUB_PROJECT,
+            "--as", WINDOWS_IDENTITY, "--"]
+
+
+def hub_route(root: str) -> str:
+    """How this host's org MCP server reaches the hub: `infisical` (Windows,
+    windows_hub_prefix), `wrapper` (POSIX, org_db_wrapper) or `none`.
+    windows/cxo-claude.ps1 asks through `--hub-route`, so the launcher and the
+    generated config never disagree."""
+    if _is_windows():
+        return "infisical" if windows_hub_prefix(root) else "none"
+    return "wrapper" if org_db_wrapper(root) else "none"
+
+
+def wrap_org_entry(entry: dict, root: str) -> dict:
+    """`entry` routed to the hub's secrets: through the env wrapper when
+    org_db_wrapper() says so, on Windows through windows_hub_prefix().
+
+    An entry that is already routed is returned as is: its command is the
+    wrapper (a checkout where scripts/hub/cutover_flip.py once rewrote a
+    template), or its args already run infisical_setup.py. Wrapping it twice
+    would hand the wrapper itself to `exec`.
+    """
+    if _basename(entry["command"]) == WRAPPER_NAME:
         return entry
+    if any(_basename(a) == INFISICAL_SETUP_NAME for a in entry.get("args", [])):
+        return entry
+    if _is_windows():
+        prefix = windows_hub_prefix(root)
+        if prefix is None:
+            return entry
+        return {**entry, "command": prefix[0],
+                "args": [*prefix[1:], entry["command"], *entry.get("args", [])]}
     wrapper = org_db_wrapper(root)
     if wrapper is None:
         return entry
@@ -464,7 +541,15 @@ def main() -> int:
         action="store_true",
         help="with --print-allowed, omit Read/Grep/Glob/Bash (borrow sessions want MCP only)",
     )
+    ap.add_argument(
+        "--hub-route",
+        action="store_true",
+        help="print how the org MCP server reaches the hub here (infisical / wrapper / none) and exit",
+    )
     args = ap.parse_args()
+    if args.hub_route:
+        print(hub_route(args.root))
+        return 0
     if not args.role and not args.servers:
         ap.error("one of --role or --servers is required")
     if not args.out and not args.print_allowed:
