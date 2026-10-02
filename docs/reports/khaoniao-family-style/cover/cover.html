@@ -40,11 +40,12 @@ const q = new URLSearchParams(location.search);
 const L1 = q.get('l1') || 'ทำไมมีมี่กลัวน้ำ', L2 = q.get('l2') || 'แต่ยอมลุยน้ำท่วม?';
 const IMG = q.get('img') || 'A', TOP = +(q.get('top') || 1090), FIT = +(q.get('fit') || 940);
 document.getElementById('pic').style.backgroundImage = `url(file:///C:/mooniex/khaoniao/cover/${IMG}.png)`;
-document.getElementById('ep').textContent = 'EP.' + (q.get('ep') || '1');
+document.getElementById('ep').textContent = q.get('badge') || ('EP.' + (q.get('ep') || '1'));
+if (q.get('bs')) document.getElementById('ep').style.fontSize = q.get('bs') + 'px';
 document.getElementById('sub').textContent = q.get('sub') || 'ตอนแรก';
 const rot = [-5, 4, -3, 5, -4, 3, -5], dy = [0, -8, 4, -6, 6, -4, 2];
 const clusters = s => [...new Intl.Segmenter('th', {granularity: 'grapheme'}).segment(s)].map(x => x.segment);
-const spans = s => clusters(s).map((c, i) => `<span class="ch" style="transform:translateY(${dy[i % 7] * .8}px) rotate(${rot[i % 7] * .8}deg)">${c}</span>`).join('');
+const spans = s => clusters(s).map((c, i) => `<span class="ch" style="transform:translateY(${dy[i % 7] * .8}px) rotate(${rot[i % 7] * .8}deg)">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
 async function build() {
   for (const [id, txt, y] of [['l1', L1, TOP], ['l2', L2, TOP + 200]]) {
     const el = document.getElementById(id); el.style.top = y + 'px';
