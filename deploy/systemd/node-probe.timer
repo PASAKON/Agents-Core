@@ -1,8 +1,9 @@
 [Unit]
 Description=Run node-probe.service every 60 seconds (PLAN-auto-dispatch.md section 4, row H1)
 # 60 s because the router (H2) counts a probe older than 60 s as a box that is
-# not there. The probe writes to whichever ledger lib.db resolves on this box,
-# so the row is only useful to other hosts after the shared ledger (W1.10).
+# not there. The probe writes to whichever ledger lib.db resolves on this box;
+# since the G1 cutover that is the hub, reached through the service's
+# with-org-db-env.sh wrapper.
 # Files only, not installed. No secrets here.
 
 [Timer]
