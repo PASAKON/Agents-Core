@@ -2,7 +2,8 @@
 
 Prints the wiring matrix from the design doc's §1 measured tables and exits
 1 when a cell that is expected green for the given `--expect` wave is red.
-Every later wave adds its own level; this file builds the frame + L0-L4.
+Every later wave adds its own level; this file builds the frame + L0-L8, the
+SEC (dispatch-key security) row and the one-poller invariant.
 
     python3 -m tools.mesh_check --expect w0 [--live] [--no-merge]
     python3 -m tools.mesh_check --local --json          # this host only, no ssh
@@ -20,11 +21,25 @@ Levels:
   L3 delegate  — --live only: create a probe task, delegate it to a target
                  host, poll to review/done, merge, verify on origin + clean
                  worktree. Only ever run for from == the host this process is
-                 actually executing on ("one poller per remote row" — a host
-                 can prove its own outbound delegate, never another host's).
+                 actually executing on (a host can prove its own outbound
+                 delegate, never another host's).
   L4 ledger    — create a task on this host's ledger, ask another host
                  (read-only ssh, `--get-task`) whether it sees it. Same
                  from-== self restriction as L3.
+  L5 letters   — --live only: a hub letter for a probe worker on B, delivered
+                 by `mesh.dispatch(B, "deliver_letter", id)`.
+  L6 liveness  — --live only: `probe` answers in < 60 s and the hub's
+                 `hosts.probed_at` is fresh by the router's own rule.
+  L7 router    — --live only: `router.pick_host` on synthetic tasks
+                 (`needs: always_on` -> contabo, `needs: win_gui` -> winbox).
+  L8 join drill— reads state/mesh-check/join-drill.json; > 7 days = red.
+  SEC          — --live only: the dispatch key gets `probe` and no shell.
+  INV          — read-only: every in-progress remote row has exactly one poller.
+
+A mesh cell (SEC, L5, L6) keeps three answers apart: green, red (the far side
+answered wrong) and unreachable (`lib.mesh.MeshUnreachable`: no answer, so
+nothing is known). Unknown is never green. A mesh cell whose target has no
+`mesh_ssh` in config/hosts.yaml renders "closed (by design)" and never counts.
 
 L0/L1/L2 are cheap, stateless, one-shot checks, so a peer host's copy of
 them is collected via `--local --json`, either from an already-deployed
@@ -33,12 +48,15 @@ checkout or piped raw over ssh stdin when the tool isn't deployed there yet
 context for lib/config.py degrades to "n/a" instead of crashing). L3/L4 need
 either a long-lived MCP session (L3) or a real cross-host round trip (L4),
 so they are never collected remotely — only computed for this process's own
-host, exactly like the invariant above.
+host. The same own-seat rule covers SEC, L5 and the L6 of a remote host: they
+are computed from the host this process runs on, for its outbound row.
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
+import copy
 import importlib.util
 import json
 import os
@@ -47,7 +65,7 @@ import subprocess
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Under a normal `python -m tools.mesh_check` / `python tools/mesh_check.py`
@@ -77,7 +95,14 @@ except Exception:
     HOSTS = []
 
 WAVES = ["w0", "w1", "w2", "w3", "w4", "w5"]
-LEVELS = ["L0", "L1", "L2", "L3", "L4"]
+LEVELS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "SEC", "INV"]
+
+# Levels whose cells are one verdict for the whole hub, not a from x to matrix.
+# Their one cell is keyed (level, "all", "all").
+SINGLE_LEVELS = {"L8": "join drill", "INV": "one poller per remote row"}
+# Off-diagonal levels that dial the target through its `mesh_ssh`: a target
+# with none (the Mac until G2) is "closed (by design)", whoever runs the tool.
+MESH_PAIR_LEVELS = ("SEC", "L5")
 
 
 def _wave_index(w: str) -> int:
@@ -157,6 +182,46 @@ EXPECT: dict[tuple[str, str, str], str] = {
     ("L4", "contabo", "winbox"): "w1",
     ("L4", "winbox", "mac"): "w1",
     ("L4", "winbox", "contabo"): "w1",
+
+    # L5 letters — a hub letter delivered through the dispatch key. Mac <->
+    # Contabo is the W2 "done when" line; anything touching winbox waits for
+    # W3 (node_dispatch on Windows). Into the Mac the cell is "closed (by
+    # design)" until its hosts.yaml gets a mesh_ssh, whatever the wave.
+    ("L5", "mac", "contabo"): "w2",
+    ("L5", "contabo", "mac"): "w2",
+    ("L5", "mac", "winbox"): "w3",
+    ("L5", "winbox", "mac"): "w3",
+    ("L5", "contabo", "winbox"): "w3",
+    ("L5", "winbox", "contabo"): "w3",
+
+    # L6 liveness — diagonal: "is this host answering, as seen from here".
+    # winbox needs node_dispatch on Windows (W3).
+    ("L6", "mac", "mac"): "w2",
+    ("L6", "contabo", "contabo"): "w2",
+    ("L6", "winbox", "winbox"): "w3",
+
+    # L7 router — diagonal on the host the task must land on:
+    # `needs: always_on` -> contabo (W2.6), `needs: win_gui` -> winbox (W3).
+    ("L7", "contabo", "contabo"): "w2",
+    ("L7", "winbox", "winbox"): "w3",
+
+    # L8 join drill — one verdict for the hub; the drill is W4.7.
+    ("L8", "all", "all"): "w4",
+
+    # SEC — the dispatch key gets `probe` and no shell, every direction. All
+    # six are W2 ("the security cell is green"); the two into the Mac are
+    # closed (by design) until it has a mesh_ssh.
+    ("SEC", "mac", "contabo"): "w2",
+    ("SEC", "mac", "winbox"): "w2",
+    ("SEC", "contabo", "winbox"): "w2",
+    ("SEC", "winbox", "contabo"): "w2",
+    ("SEC", "contabo", "mac"): "w2",
+    ("SEC", "winbox", "mac"): "w2",
+
+    # INV — "every in-progress remote row is polled by exactly one host" is a
+    # statement about the shared hub ledger (the W1.5 duty split), so it is
+    # claimed with the hub, w1. Read-only.
+    ("INV", "all", "all"): "w1",
 }
 
 
@@ -582,6 +647,442 @@ def _l4_read_back(to_host: str, task_id: str) -> tuple[bool, str | None]:
 
 
 # ---------------------------------------------------------------------------
+# Mesh levels (SEC, L5-L8, INV): cells with three answers.
+#
+# A cell here is a dict {"ok": bool, "reason": str | None, "kind": ..., "note": ...}.
+# `kind` is absent for a plain green / red ("the far side answered, and the
+# answer was wrong"). Otherwise it is one of:
+#   "unreachable"  MeshUnreachable: nothing answered, so nothing is known
+#   "closed"       the target has no mesh_ssh (config/hosts.yaml): never dialled
+#   "not_run"      L8 only: no drill has ever written its file
+# Unreachable and not_run are never green: render() counts them as failing
+# when the cell is in scope, and labels them apart from a red.
+# ---------------------------------------------------------------------------
+
+def _red(reason: str) -> dict:
+    return {"ok": False, "reason": reason[:300]}
+
+
+def _green(note: str | None = None) -> dict:
+    return {"ok": True, "reason": None, **({"note": note} if note else {})}
+
+
+def _unreachable(reason: str) -> dict:
+    return {"ok": False, "reason": reason[:300], "kind": "unreachable"}
+
+
+def _closed() -> dict:
+    return {"ok": False, "reason": "closed (by design)", "kind": "closed"}
+
+
+def _mesh():
+    """lib.mesh, imported late: a piped copy of this file (--local) has no repo."""
+    from lib import mesh
+    return mesh
+
+
+def _self_host_or_none() -> str | None:
+    try:
+        return config.self_host()
+    except (AttributeError, ValueError, RuntimeError):
+        return None
+
+
+def _mesh_ssh_for(host: str) -> str | None:
+    """config/hosts.yaml `mesh_ssh` for `host`: a string, None when it has
+    none, "?" when the config cannot say (unknown host, no repo)."""
+    if not HAVE_CONFIG:
+        return "?"
+    try:
+        return config.host(host).get("mesh_ssh")
+    except ValueError:
+        return "?"
+
+
+def _in_scope(level: str, frm: str, to: str, expect: str) -> bool:
+    first_green = EXPECT.get((level, frm, to))
+    return first_green is not None and _wave_index(first_green) <= _wave_index(expect)
+
+
+def _node_reply_ok(reply: dict, host: str | None = None) -> str | None:
+    """Why a `probe` reply from node_dispatch is not a good one, else None."""
+    if reply.get("ok") is not True:
+        return f"probe refused: {str(reply.get('error'))[:200]}"
+    if host is not None:
+        got = (reply.get("result") or {}).get("host")
+        if got != host:
+            return f"probe answered as host {got!r}, expected {host!r}"
+    return None
+
+
+# ---------------------------------------------------------------------------
+# SEC — the dispatch key gets `probe`, and no shell
+# ---------------------------------------------------------------------------
+
+# docs/ops/node-dispatch.md, "W2.8 acceptance checks", check 2, plus a bare shell.
+SEC_PAYLOADS = ("probe; id", "probe && id", "$(id)", "`id`", "probe | id", "bash")
+
+
+def check_sec(to_host: str) -> dict:
+    """(a) a remote `probe` answers ok and says it is `to_host`; (b) each of
+    SEC_PAYLOADS, sent as the raw ssh command text, is refused by node_dispatch
+    and no `uid=` shows up in its stdout or stderr.
+
+    lib.mesh refuses a bad verb before ssh, so (b) never goes through
+    mesh.dispatch: it takes the argv build_argv makes for `probe`, drops the
+    command and puts the payload in its place. Only an answer that is
+    node_dispatch's own JSON line with ok false counts as the far side's
+    refusal. A refusal made here, or no answer at all, never does."""
+    if not HAVE_CONFIG:
+        return _red("no repo access")
+    mesh = _mesh()
+    if not _mesh_ssh_for(to_host):
+        return _closed()
+    if to_host == _self_host_or_none():
+        return _red("target is this host: an in-process call says nothing about the key")
+    try:
+        reply = mesh.dispatch(to_host, "probe")
+    except mesh.MeshUnreachable as e:
+        return _unreachable(str(e))
+    except ValueError as e:
+        return _red(str(e))
+    why = _node_reply_ok(reply, to_host)
+    if why:
+        return _red(why)
+
+    try:
+        prefix = mesh.build_argv(to_host, "probe", ())[:-1]
+    except mesh.MeshUnreachable as e:
+        return _unreachable(str(e))
+    except Exception as e:  # a Refusal: nothing was dialled, so nothing was tested
+        return _red(f"argv for the shell probes was refused here, far side not tested: "
+                    f"{type(e).__name__}: {e}")
+    for payload in SEC_PAYLOADS:
+        try:
+            r = subprocess.run(prefix + [payload], capture_output=True, text=True,
+                               timeout=mesh.DEFAULT_TIMEOUT_S, stdin=subprocess.DEVNULL)
+        except (subprocess.TimeoutExpired, OSError) as e:
+            return _unreachable(f"{payload!r}: {type(e).__name__}")
+        if r.returncode == mesh._SSH_FAILED:
+            return _unreachable(f"{payload!r}: ssh failed: {(r.stderr or '').strip()[:150]}")
+        if "uid=" in (r.stdout or "") or "uid=" in (r.stderr or ""):
+            return _red(f"{payload!r} ran in a shell (uid= in its output)")
+        lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
+        try:
+            answer = json.loads(lines[-1]) if lines else None
+        except ValueError:
+            answer = None
+        if not isinstance(answer, dict) or answer.get("ok") is not False:
+            return _red(f"{payload!r} was not refused by node_dispatch "
+                        f"(exit {r.returncode}): {((r.stdout or '') + (r.stderr or ''))[-150:].strip()!r}")
+    return _green()
+
+
+# ---------------------------------------------------------------------------
+# L5 — letters
+# ---------------------------------------------------------------------------
+
+L5_ROLE = "probe"
+L5_FROM_ROLE = "mesh_check"
+
+
+def _abandon_letter(db_mod, letter_id: int) -> None:
+    """A probe letter that did not land must not wait for the watchdog's retry
+    (it would reach the probe worker later, out of context). Only a `pending`
+    row moves; a letter the far side did deliver stays delivered."""
+    try:
+        with db_mod.get_conn() as conn:
+            conn.execute("UPDATE letters SET status='failed', last_error=? "
+                         "WHERE id=? AND status='pending'",
+                         ("mesh_check probe abandoned", letter_id))
+    except Exception:
+        pass
+
+
+def l5_probe(from_host: str, to_host: str) -> dict:
+    """A hub letter from `from_host` for the newest in-progress `probe` worker
+    on `to_host`, delivered by `mesh.dispatch(to_host, "deliver_letter", id)`.
+
+    Pass = the reply says delivered or already_delivered, names the recipient
+    (`to`), the hub row is `delivered`, and the reply does not report a failed
+    wake. The wake fields in a reply are `woke` / `why` (tools/node_dispatch.py
+    `_windows_wake`); only the Windows C-level path has them, so a probe worker
+    letter on POSIX reports no wake at all and the cell says so in its note."""
+    if not HAVE_CONFIG:
+        return _red("no repo access")
+    from lib import db as db_mod
+    mesh = _mesh()
+    if not _mesh_ssh_for(to_host):
+        return _closed()
+    try:
+        workers = [t for t in db_mod.list_tasks(status="in_progress", role=L5_ROLE, limit=100)
+                   if t.get("host") == to_host]
+    except Exception as e:
+        return _unreachable(f"hub read failed: {type(e).__name__}: {e}")
+    if not workers:
+        return _red(f"no in_progress {L5_ROLE} worker on {to_host} to receive the letter")
+    tid = workers[0]["id"]
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    body = (f"mesh-check probe letter {from_host}->{to_host} {ts}. "
+            "Automated Org Mesh L5 test. Ignore it: nothing to answer or do.")
+    try:
+        lid = db_mod.create_letter(to_host, L5_ROLE, body, to_session=tid,
+                                   from_role=L5_FROM_ROLE,
+                                   from_session=f"mesh-check-{uuid.uuid4().hex[:8]}",
+                                   from_host=from_host)
+    except Exception as e:
+        return _unreachable(f"hub write failed: {type(e).__name__}: {e}")
+
+    cell = _l5_deliver(db_mod, mesh, to_host, lid, tid)
+    if not cell["ok"]:
+        _abandon_letter(db_mod, lid)
+    return cell
+
+
+def _l5_deliver(db_mod, mesh, to_host: str, lid: int, tid: str) -> dict:
+    try:
+        reply = mesh.dispatch(to_host, "deliver_letter", str(lid))
+    except mesh.MeshUnreachable as e:
+        return _unreachable(str(e))
+    except ValueError as e:
+        return _red(str(e))
+    if reply.get("ok") is not True:
+        return _red(f"deliver_letter refused: {str(reply.get('error'))[:200]}")
+    result = reply.get("result") or {}
+    if result.get("letter_id") != lid:
+        return _red(f"reply is for letter {result.get('letter_id')!r}, sent {lid}")
+    if result.get("delivered") is not True and result.get("already_delivered") is not True:
+        return _red(f"reply says neither delivered nor already_delivered: {str(result)[:150]}")
+    if result.get("delivered") is True and result.get("to") != f"{L5_ROLE}-{tid}":
+        return _red(f"delivered to {result.get('to')!r}, expected {L5_ROLE}-{tid}")
+    try:
+        row = db_mod.get_letter(lid)
+    except Exception as e:
+        return _unreachable(f"hub read failed: {type(e).__name__}: {e}")
+    status = (row or {}).get("status")
+    if status != "delivered":
+        return _red(f"reply says delivered but the hub row is {status!r}")
+    # `woke: False` with a `why` is a wake that was tried and failed. A bare
+    # `woke: False` (worker letter on Windows) and no field at all (POSIX)
+    # are paths that report nothing: the cell is ok, and says what it did not see.
+    if result.get("woke") is False and result.get("why"):
+        return _red(f"letter delivered, wake failed: {str(result['why'])[:150]}")
+    return _green("woke" if result.get("woke") is True else "wake not reported")
+
+
+# ---------------------------------------------------------------------------
+# L6 — liveness
+# ---------------------------------------------------------------------------
+
+L6_MAX_S = 60
+
+
+def l6_probe(host: str) -> dict:
+    """`probe` answers within L6_MAX_S, and afterwards the hub's `hosts` row for
+    `host` is fresh by the router's own rule (`router._probe_problem`, whose
+    constant is PROBE_MAX_AGE_S): the verb writes `probed_at` on the far side,
+    so a fresh stamp shows the write reached the shared hub. The running host
+    answers in-process; a host with no mesh_ssh is closed (by design)."""
+    if not HAVE_CONFIG:
+        return _red("no repo access")
+    mesh = _mesh()
+    if host != _self_host_or_none() and not _mesh_ssh_for(host):
+        return _closed()
+    from lib import db as db_mod
+    from lib import router
+    t0 = time.monotonic()
+    try:
+        reply = mesh.dispatch(host, "probe", timeout=L6_MAX_S)
+    except mesh.MeshUnreachable as e:
+        return _unreachable(str(e))
+    except ValueError as e:
+        return _red(str(e))
+    took = time.monotonic() - t0
+    why = _node_reply_ok(reply, host)
+    if why:
+        return _red(why)
+    if took >= L6_MAX_S:
+        return _red(f"probe took {took:.0f} s (limit {L6_MAX_S} s)")
+    try:
+        row = db_mod.get_host(host)
+    except Exception as e:
+        return _unreachable(f"hub read failed: {type(e).__name__}: {e}")
+    why = router._probe_problem(row, datetime.now(timezone.utc))
+    if why:
+        return _red(f"probe answered in {took:.1f} s but the hosts row is not fresh: {why}")
+    return _green()
+
+
+# ---------------------------------------------------------------------------
+# L7 — router
+# ---------------------------------------------------------------------------
+
+# (host the task must land on, `needs:` name, also prove "stale probe -> no_host")
+L7_CASES = (("contabo", "always_on", False), ("winbox", "win_gui", True))
+L7_PROJECT = "mooniex-agents"
+
+
+def _l7_task(need: str) -> dict:
+    """A synthetic task row for pick_host. Never stored. `runner` is pinned so
+    the check does not depend on tools/route.py's plans."""
+    return {"id": "task-00000000", "project": L7_PROJECT, "role": "developer",
+            "runner": "claude", "status": "pending", "host": None,
+            "description": f"needs: {need}\n\nmesh-check L7 synthetic task. Never stored."}
+
+
+def check_l7(host: str, need: str, check_stale: bool, rows: list[dict]) -> dict:
+    """`pick_host` on a task that `needs: <need>` picks `host`. With
+    `check_stale`, a COPY of `rows` whose `host` probe is older than the
+    router's limit must give no_host: the router has no fallback host. `rows`
+    is never written back, and the hosts table is never written at all."""
+    from lib import router
+    now = datetime.now(timezone.utc)
+    task = _l7_task(need)
+    pick = router.pick_host(task, hosts_rows=rows, now=now)
+    if pick.host != host:
+        return _red(f"needs {need}: picked {pick.host!r}, expected {host!r}: {pick.line[:200]}")
+    if not check_stale:
+        return _green()
+    stale_rows = copy.deepcopy(rows)
+    old = (now - timedelta(seconds=router.PROBE_MAX_AGE_S + 60)).isoformat()
+    for r in stale_rows:
+        if r.get("host") == host:
+            r["probed_at"] = old
+    pick = router.pick_host(task, hosts_rows=stale_rows, now=now)
+    if pick.host is not None or not pick.line.startswith("no_host"):
+        return _red(f"needs {need} with {host} stale: expected no_host, got "
+                    f"{pick.host!r}: {pick.line[:200]}")
+    return _green()
+
+
+def l7_probe(cases=L7_CASES) -> dict[str, dict]:
+    """host -> L7 cell, from the live `hosts` rows (read-only). A hub that cannot
+    be read makes every cell unreachable: the router's verdict is not known."""
+    if not HAVE_CONFIG:
+        return {h: _red("no repo access") for h, _, _ in cases}
+    from lib import db as db_mod
+    try:
+        rows = db_mod.list_hosts()
+    except Exception as e:
+        cell = _unreachable(f"hub read failed: {type(e).__name__}: {e}")
+        return {h: cell for h, _, _ in cases}
+    return {h: check_l7(h, need, stale, rows) for h, need, stale in cases}
+
+
+# ---------------------------------------------------------------------------
+# L8 — join drill
+# ---------------------------------------------------------------------------
+
+JOIN_DRILL_FILE = "join-drill.json"
+JOIN_DRILL_MAX_AGE_S = 7 * 24 * 3600
+
+
+def check_l8(state_dir: Path, now: datetime | None = None) -> dict:
+    """state/mesh-check/join-drill.json, written by the W4.7 drill (not by this
+    tool): {"ok": bool, "at": ISO-8601, "host": str, "steps": [{"name", "ok"}]}.
+    Missing = not run. Malformed, failed, empty or older than 7 days = red."""
+    now = now or datetime.now(timezone.utc)
+    path = state_dir / JOIN_DRILL_FILE
+    if not path.is_file():
+        return {"ok": False, "reason": f"no drill recorded ({JOIN_DRILL_FILE} missing)",
+                "kind": "not_run"}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        return _red(f"{JOIN_DRILL_FILE} unreadable: {type(e).__name__}")
+    if not isinstance(data, dict):
+        return _red(f"{JOIN_DRILL_FILE} is not a JSON object")
+    steps = data.get("steps")
+    if (not isinstance(data.get("ok"), bool) or not isinstance(data.get("host"), str)
+            or not data["host"] or not isinstance(steps, list)):
+        return _red(f"{JOIN_DRILL_FILE} lacks ok (bool), at, host (str) or steps (list)")
+    try:
+        at = datetime.fromisoformat(str(data.get("at")).strip().replace("Z", "+00:00"))
+    except ValueError:
+        return _red(f"{JOIN_DRILL_FILE}: at {str(data.get('at'))[:40]!r} is not ISO-8601")
+    if at.tzinfo is None:
+        at = at.replace(tzinfo=timezone.utc)
+    age = (now - at).total_seconds()
+    if age < -600:
+        return _red(f"drill dated in the future ({data['at']})")
+    if age > JOIN_DRILL_MAX_AGE_S:
+        return _red(f"last drill is {int(age // 86400)} days old (limit "
+                    f"{JOIN_DRILL_MAX_AGE_S // 86400}), host {data['host']}")
+    failed = [str(s.get("name", "?")) for s in steps if isinstance(s, dict) and s.get("ok") is not True]
+    if data["ok"] is not True:
+        return _red(f"last drill failed on {data['host']}"
+                    + (f": step {', '.join(failed)}" if failed else ""))
+    if not steps:
+        return _red("drill says ok but recorded no steps")
+    if failed:
+        return _red(f"drill says ok but step {', '.join(failed)} is not ok")
+    return _green(f"{data['host']}, {int(age // 3600)} h ago")
+
+
+# ---------------------------------------------------------------------------
+# INV — one poller per remote row
+# ---------------------------------------------------------------------------
+
+@contextlib.contextmanager
+def _self_host_as(host: str):
+    """Make lib.config.self_host() answer `host`, for code that already holds
+    that function by name (runners.branch_poller, tools.worker_reap bind it with
+    `from lib.config import self_host`, so replacing the module attribute would
+    not reach them). self_host() reads ORG_HOST first and is cached: set the
+    variable, clear the cache, and put both back on the way out."""
+    old = os.environ.get("ORG_HOST")
+    os.environ["ORG_HOST"] = host
+    config.self_host.cache_clear()
+    try:
+        yield
+    finally:
+        if old is None:
+            os.environ.pop("ORG_HOST", None)
+        else:
+            os.environ["ORG_HOST"] = old
+        config.self_host.cache_clear()
+
+
+def check_invariant() -> dict:
+    """For every in_progress row that is remote (its host is not its dispatcher)
+    or is a codex/agy launcher run, count the hosts whose
+    `branch_poller.in_poller_set(row)` is true with self_host() pinned to each
+    host of config/hosts.yaml in turn. Exactly 1 is correct: 0 means nobody
+    watches the row, more than 1 means two pollers flip it twice. Read-only."""
+    if not HAVE_CONFIG:
+        return _red("no repo access")
+    from lib import db as db_mod
+    try:
+        tasks = db_mod.list_tasks(status="in_progress", limit=500)
+    except Exception as e:
+        return _unreachable(f"hub read failed: {type(e).__name__}: {e}")
+    try:
+        from runners import branch_poller
+    except Exception as e:
+        return _red(f"cannot load runners.branch_poller: {type(e).__name__}: {e}")
+
+    def candidate(t: dict) -> bool:
+        host, disp = t.get("host") or None, t.get("dispatcher_host") or None
+        runner = (t.get("runner") or "claude").strip().lower()
+        return (host is not None and host != disp) or runner in branch_poller.EXTERNAL_RUNNERS
+
+    rows = [t for t in tasks if candidate(t)]
+    pollers: dict[str, list[str]] = {t["id"]: [] for t in rows}
+    for h in config.hosts():
+        with _self_host_as(h):
+            for t in rows:
+                if branch_poller.in_poller_set(t):
+                    pollers[t["id"]].append(h)
+    offenders = [f"{tid} ({len(p)} pollers" + (f": {', '.join(p)})" if p else ")")
+                 for tid, p in pollers.items() if len(p) != 1]
+    if offenders:
+        shown = ", ".join(offenders[:10]) + (f" (+{len(offenders) - 10} more)" if len(offenders) > 10 else "")
+        return {"ok": False, "reason": f"{len(offenders)} of {len(rows)} rows: {shown}",
+                "offenders": offenders, "rows": len(rows)}
+    return {**_green(f"{len(rows)} rows"), "rows": len(rows)}
+
+
+# ---------------------------------------------------------------------------
 # --local: this host's L0-L2 cells only, no ssh, writes nothing
 # ---------------------------------------------------------------------------
 
@@ -623,7 +1124,8 @@ def _collect_peer_local(alias: str, cfg: dict, script_path: Path) -> dict | None
 # ---------------------------------------------------------------------------
 
 async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
-    combined: dict = {lvl: {h: {} for h in HOSTS} for lvl in LEVELS}
+    combined: dict = {lvl: ({"all": {}} if lvl in SINGLE_LEVELS else {h: {} for h in HOSTS})
+                      for lvl in LEVELS}
     running_host = _running_host_guess(ROOT)
 
     if running_host and HAVE_CONFIG:
@@ -670,7 +1172,36 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
             ok, reason = l4_probe(running_host, target)
             combined["L4"][running_host][target] = {"ok": ok, "reason": reason}
 
+    if args.live and running_host and HAVE_CONFIG:
+        _run_mesh_levels(combined, running_host, args.expect)
+    if HAVE_CONFIG:
+        # Read-only, so no --live: L8 reads a file, INV reads the hub.
+        if _in_scope("L8", "all", "all", args.expect):
+            combined["L8"]["all"]["all"] = check_l8(ROOT / "state" / "mesh-check")
+        if _in_scope("INV", "all", "all", args.expect):
+            combined["INV"]["all"]["all"] = check_invariant()
+
     return combined, running_host
+
+
+def _run_mesh_levels(combined: dict, running_host: str, expect: str) -> None:
+    """SEC, L5, L6 and L7 for this host's own row, only the cells `expect`
+    already claims (a cell not claimed yet is never dialled and writes no
+    letter). Order matters: L6's probes write the `hosts` rows L7 then reads."""
+    for to in HOSTS:
+        if to == running_host:
+            continue
+        if _in_scope("SEC", running_host, to, expect):
+            combined["SEC"][running_host][to] = check_sec(to)
+        if _in_scope("L5", running_host, to, expect):
+            combined["L5"][running_host][to] = l5_probe(running_host, to)
+    for h in HOSTS:
+        if _in_scope("L6", h, h, expect):
+            combined["L6"][h][h] = l6_probe(h)
+    wanted = tuple(c for c in L7_CASES if _in_scope("L7", c[0], c[0], expect))
+    if wanted:
+        for h, cell in l7_probe(wanted).items():
+            combined["L7"][h][h] = cell
 
 
 def _l1_alias_for(to_host: str) -> str | None:
@@ -682,48 +1213,67 @@ def _l1_alias_for(to_host: str) -> str | None:
         return "?"
 
 
+def _judge(computed: dict) -> tuple[str, str]:
+    """(text, outcome) for one computed cell. outcome: "ok", "fail" or "skip".
+
+    Red, unreachable and not-run all fail (unknown is never green) but read
+    differently, so a down host is not mistaken for a wrong answer. A closed
+    cell (target has no mesh_ssh) is "closed (by design)" and never counts."""
+    kind = computed.get("kind")
+    if kind == "closed":
+        return "closed (by design)", "skip"
+    if computed["ok"]:
+        note = computed.get("note")
+        return (f"ok ({note})" if note else "ok"), "ok"
+    if kind == "unreachable":
+        return f"UNREACHABLE({computed['reason']})", "fail"
+    if kind == "not_run":
+        return f"not run ({computed['reason']})", "fail"
+    return f"FAIL({computed['reason']})", "fail"
+
+
 def render(combined: dict, expect: str) -> tuple[str, bool, int, int]:
-    """Returns (markdown, any_fail_in_scope, n_ok, n_fail)."""
+    """Returns (markdown, any_fail_in_scope, n_ok, n_fail). n_fail counts every
+    in-scope cell that is not green: red, UNREACHABLE and not run alike."""
     expect_idx = _wave_index(expect)
     lines: list[str] = []
-    n_ok = 0
-    n_fail = 0
-    any_fail = False
+    tally = {"ok": 0, "fail": 0}
+
+    def cell_text(level: str, frm: str, to: str) -> str:
+        key = (level, frm, to)
+        first_green = EXPECT.get(key)
+        computed = (combined.get(level, {}).get(frm, {}) or {}).get(to)
+        if first_green is None:
+            return "n/a"
+        if level in MESH_PAIR_LEVELS and _mesh_ssh_for(to) is None:
+            return "closed (by design)"
+        if _wave_index(first_green) > expect_idx:
+            if level == "L1" and _l1_alias_for(to) is None:
+                return "closed (by design)"
+            return "n/a"
+        if computed is None:
+            return "n/a"
+        text, outcome = _judge(computed)
+        if outcome in tally:
+            tally[outcome] += 1
+        return text
 
     for level in LEVELS:
         lines.append(f"## {level}")
         lines.append("")
+        if level in SINGLE_LEVELS:
+            lines.append("| check | result |")
+            lines.append("|---|---|")
+            lines.append(f"| {SINGLE_LEVELS[level]} | {cell_text(level, 'all', 'all')} |")
+            lines.append("")
+            continue
         lines.append("| from \\ to | " + " | ".join(HOSTS) + " |")
         lines.append("|---|" + "---|" * len(HOSTS))
         for frm in HOSTS:
-            row = [frm]
-            for to in HOSTS:
-                key = (level, frm, to)
-                first_green = EXPECT.get(key)
-                computed = (combined.get(level, {}).get(frm, {}) or {}).get(to)
-                if first_green is None:
-                    row.append("n/a")
-                    continue
-                if _wave_index(first_green) > expect_idx:
-                    if level == "L1" and _l1_alias_for(to) is None:
-                        row.append("closed (by design)")
-                    else:
-                        row.append("n/a")
-                    continue
-                if computed is None:
-                    row.append("n/a")
-                    continue
-                if computed["ok"]:
-                    row.append("ok")
-                    n_ok += 1
-                else:
-                    row.append(f"FAIL({computed['reason']})")
-                    n_fail += 1
-                    any_fail = True
-            lines.append("| " + " | ".join(row) + " |")
+            lines.append("| " + " | ".join([frm] + [cell_text(level, frm, to) for to in HOSTS]) + " |")
         lines.append("")
 
-    return "\n".join(lines), any_fail, n_ok, n_fail
+    return "\n".join(lines), tally["fail"] > 0, tally["ok"], tally["fail"]
 
 
 def write_state(combined: dict, args: argparse.Namespace, running_host: str | None) -> Path:
@@ -748,7 +1298,8 @@ def write_state(combined: dict, args: argparse.Namespace, running_host: str | No
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--expect", choices=WAVES, help="wave to judge cells against (e.g. w0)")
-    ap.add_argument("--live", action="store_true", help="run real L3 delegate probes")
+    ap.add_argument("--live", action="store_true",
+                    help="run real L3 delegate probes and the dispatch-key levels (SEC, L5, L6, L7)")
     ap.add_argument("--no-merge", action="store_true", help="L3: skip merge_task after delegate")
     ap.add_argument("--local", action="store_true", help="print this host's L0-L2 cells only")
     ap.add_argument("--json", action="store_true", help="with --local, JSON output (default)")
