@@ -3,18 +3,7 @@ name: CMO_Workflow_MimiPage_Weekly
 kind: workflow
 owner: CMO
 description: >-
-  WORKFLOW — The standing weekly rhythm of the Facebook page «บ้านนี้มีมีมี่» (Mimi the black dog, the CEO's real
-  family): 3 video episodes a week on Friday, Saturday and Sunday at 19:30, one designed post with a poster
-  on each of Monday to Thursday at 19:30, everything for the week prepared and scheduled ahead, and the CMO
-  then supervising the automation (first comments, did-it-go-live checks, replies, numbers). Gives the weekly
-  calendar, the per-episode pipeline with its lead times and gates, the Monday-Thursday post menu, the credit
-  and approval rules, the first-comment text rule (it depends on which day the next episode falls), the
-  daily/weekly supervision loop and the fallback when an episode is late. Trigger on /CMO_Workflow_MimiPage_Weekly
-  and on "มีมี่ สัปดาห์นี้", "ตารางโพสต์มีมี่", "บ้านนี้มีมีมี่ ลงเวลา", "EP ถัดไปของมีมี่", "คุมงานเพจมีมี่",
-  "โพสต์จันทร์-พฤหัส มีมี่", "mimi weekly", or whenever a session picks up the Mimi page mid-week. Do NOT use it for
-  the story rules (CMO_Standard_Story_FamilyDogSeries), the engine (CMO_Knowledge_Flow_Omni1.1), the film QC
-  (CMO_Gate_Flow_Omni1.1_FilmQC) or the cut recipe (CMO_Workflow_ShortFilm Step 9) — it points at them and repeats none
-  of their rules.
+  WORKFLOW — Weekly rhythm of the Mimi page «บ้านนี้มีมีมี่»: 3 video episodes Fri/Sat/Sun and one poster post Mon–Thu, all at 19:30, prepared and scheduled ahead, then supervised. Trigger on /CMO_Workflow_MimiPage_Weekly, "มีมี่ สัปดาห์นี้", "ตารางโพสต์มีมี่", "คุมงานเพจมีมี่". Not for story rules, the engine, QC or the cut recipe.
 created_by: agent
 author: {role: cmo, date: "2026-10-02"}
 audience: [cmo, script_writer, content_strategist, browser_operator, video_editor]
