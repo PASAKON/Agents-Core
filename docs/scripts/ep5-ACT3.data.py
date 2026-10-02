@@ -121,15 +121,15 @@ _META = {
 
     66: (8, "Medium, the son beside his motorbike at the roadside edge of the market, phone at his ear, the stall far behind",
         ["ton"], "market_road", T5,
-        "the young man in the grey T-shirt, gripping the handlebars of his motorcycle with an iron fist, repeats the banking official's devastating announcement in rising panic while he speaks; "
+        "the young man in the grey T-shirt, gripping the handlebars of his motorcycle with an iron fist, repeats the caller's devastating announcement in rising panic while he speaks; "
         "the whole time he talks, he glances back in mounting desperation toward his mother's stall across the market pavement, his voice cracking with shock; "
         "the instant he finishes, he pivots his back to the market, his knees trembling violently on the asphalt; afternoon dust drifts along the roadside curb",
         _N + ["nocash"]),
 
     67: (8, "Close-up, the son's face draining as he hears the amount",
         ["ton"], "market_road", T5,
-        "the young man in the grey T-shirt, all color draining from his face until his lips turn pale, whispers the exact catastrophic sum into the receiver while his eyes widen in horror; "
-        "the whole time he talks, the hand holding the smartphone shakes uncontrollably and his breath shudders in his chest; the instant he finishes speaking the amount, "
+        "the young man in the grey T-shirt, all color draining from his face until his lips turn pale, whispers the devastating news into the receiver while his eyes widen in horror; "
+        "the whole time he talks, the hand holding the smartphone shakes uncontrollably and his breath shudders in his chest; the instant he finishes speaking, "
         "he freezes in absolute paralysis, his mouth hanging slightly open; the golden late-afternoon sun catches the small silver amulet cord at his neck",
         _N + ["nocash"]),
 
