@@ -19,9 +19,9 @@ P = {
  # Wednesday 7 Oct: one concrete question to the fans
  "wed": dict(img="wed", oy="250", bB="?", bS="ถามหน่อย", l1="หมาของคุณ", l2="ทำอะไรหลังอาบน้ำ?",
              c1="มีมี่ตัวสั่นแล้วกลิ้งทับผ้า", c2="บ้านคุณล่ะ เล่าให้มีมี่ฟังหน่อย"),
- # Thursday teaser TEMPLATE: put a real still of Friday's episode in frames\\thu.png and the one spoken line in q.
- # (rendered here only as a preview with a stand-in still; the final is rendered after EP4 exists)
- "thu_tpl": dict(img="mon", oy="250", bB="EP.4", bS="ศุกร์นี้", q="[ใส่บทพูด 1 บรรทัดจากตอน]",
+ # Thursday 8 Oct teaser: a real still of EP4 (shot 15 @6 s) in frames\\thu.png + one line spoken in EP4 shot 10 («อยากได้คืน ต้องลุกมาเอาเอง», heard in the transcript).
+ # Rendered 2026-10-02 after EP4 existed; the thu_tpl stand-in is retired.
+ "thu": dict(img="thu", oy="250", bB="EP.4", bS="ศุกร์นี้", q="อยากได้คืน ต้องลุกมาเอาเอง",
              l1="พรุ่งนี้", l2="19:30 ตอนใหม่", c1="บ้านนี้มีมีมี่", c2=""),
 }
 keys = sys.argv[1:] or list(P)
