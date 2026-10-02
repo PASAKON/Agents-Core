@@ -55,6 +55,7 @@ from lib.config import get_project, projects, self_host
 from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
 from tools import ask_run as ask_run_tool
+from tools import email_ceo as email_ceo_tool
 from tools import decide as decide_tool
 from tools import wiki as wiki_tools
 from tools.inject_prompt import _build_task_md, _write_task_md
@@ -356,6 +357,15 @@ async def _h_ask_run_wait(*, id: str, max_wait_s: float = 600.0, interval_s: flo
     result = await asyncio.to_thread(
         ask_run_tool.wait_result, id, max_wait_s=max_wait_s, interval_s=interval_s,
         tail_lines_n=tail_lines)
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
+async def _h_email_ceo(*, kind: str, title: str, need: str = "", why: str = "", if_not: str = "",
+                      link: str = "", ref: str = "", due: str = "", session: str = "", role: str = "",
+                      dry_run: bool = False) -> str:
+    arguments = {"kind": kind, "title": title, "need": need, "why": why, "if_not": if_not, "link": link,
+                 "ref": ref, "due": due, "session": session, "role": role, "dry_run": dry_run}
+    result = await asyncio.to_thread(email_ceo_tool.mcp_send, arguments)
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
@@ -766,6 +776,37 @@ REGISTRY: tuple[ToolSpec, ...] = (
             Param("interval_s", float, 5.0), Param("tail_lines", int, 40),
         ),
         handler=_h_ask_run_wait,
+        is_async=True,
+        response_format="text",
+    ),
+    ToolSpec(
+        name="email_ceo",
+        description=(
+            "Email the CEO (skill ALL_Protocol_EmailCEO, CEO 2026-10-02). C-level "
+            "only; four kinds, nothing else:\n"
+            "- action: a decision only he can make that blocks work. need + why + "
+            "link required, if_not recommended. Buzzes his phone.\n"
+            "- alert: money, a customer or security is being hurt now. why + link. "
+            "Buzzes.\n"
+            "- done: an order he gave is finished. why = the result, link = the "
+            "result. Silent.\n"
+            "- deadline: one of his to-dos is due within 24 h. due required. No "
+            "mail; the 08:00 digest carries it.\n"
+            "Never for progress, FYI, anything he can see in this chat now, or a "
+            "Run card / relay request (those mail by themselves). title is one line "
+            "of 90 chars or fewer. Caps: 3 mails per session per Thai day (an alert "
+            "is exempt) and 20 for the org; the same kind + ref within 6 h is a "
+            "duplicate. A secret-shaped value is refused. Returns {id, mailed, "
+            "buzz, quota}; dry_run=True shows the mail and sends nothing. Same code "
+            "as tools/email_ceo.py."
+        ),
+        params=(
+            Param("kind", str), Param("title", str), Param("need", str, ""),
+            Param("why", str, ""), Param("if_not", str, ""), Param("link", str, ""),
+            Param("ref", str, ""), Param("due", str, ""), Param("session", str, ""),
+            Param("role", str, ""), Param("dry_run", bool, False),
+        ),
+        handler=_h_email_ceo,
         is_async=True,
         response_format="text",
     ),

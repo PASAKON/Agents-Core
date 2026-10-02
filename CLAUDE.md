@@ -119,3 +119,17 @@ question — he approves or cancels it there. Say in one chat line what you rais
 Every new request also emails him (pass.gob1@gmail.com) as a reminder. What a card may contain is
 unchanged (no secret values, exact bytes, red risk for root).
 
+
+## Emailing the CEO: one tool, four kinds (CEO 2026-10-02, C-level only)
+
+The only way to email the CEO is the org MCP tool `email_ceo` (CLI `tools/email_ceo.py`). Read skill
+`ALL_Protocol_EmailCEO` before the first send. The four kinds:
+
+- `action`: a decision only he can make that blocks work. Buzzes his phone.
+- `alert`: money, a customer or security is being hurt now. Buzzes.
+- `done`: an order he gave is finished. Silent.
+- `deadline`: one of his to-dos is due within 24 h. Goes in the 08:00 digest only.
+
+Never send progress, FYI, or anything he can read in this chat now. The hub enforces the caps: 3 mails
+per session per Thai day (an alert is exempt), 20 for the org, and a duplicate within 6 h is refused.
+A worker never mails him; it reports to its C-level.
