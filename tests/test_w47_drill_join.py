@@ -16,6 +16,7 @@ import re
 import shutil
 import signal
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -135,9 +136,11 @@ case "$joined" in
     for a in "$@"; do nonce=$a; done; echo "$nonce"; exit 0 ;;
   "sh /tmp/remote_control.sh"*)
     f rc_refused && { echo "Error: Remote Control requires a full-scope login. Run claude login."; echo "second line"; exit 1; }
+    f rc_prints_url && echo "Remote Control ready: https://claude.ai/code/session_AbC123xyz connect from your phone"
     exit 124 ;;
   "sh /tmp/probe.sh"*)
     f probe_readonly && { echo "ERROR: The key you are using is read-only."; echo "fatal: Could not read from remote repository."; exit 6; }
+    f probe_readonly_gh && { echo "ERROR: The key you are authenticating with has been marked as read only."; echo "fatal: Could not read from remote repository."; exit 6; }
     f probe_wrong_sha && { echo "sha=1111111111111111111111111111111111111111"; echo "$SHA" >"$S/remote_branch"; exit 0; }
     echo "$SHA" >"$S/remote_branch"; echo "sha=$SHA"; exit 0 ;;
 esac
@@ -181,6 +184,14 @@ case "$mod $verb" in
     echo '{"ok": true}'; exit 0 ;;
   "tools.hq_join leave")
     : >"$S/left_ran"
+    if [ "${ORG_W42_PROVISION:-}" != 1 ]; then      # w42_enabled() is false: UNWIRED_REVOKERS, nothing removed
+      echo "  [FAILED] infisical_client_secret on $H: not wired yet: live revocation is off (set ORG_W42_PROVISION=1, W4.2)"
+      echo "  [FAILED] tailscale_device on $H: not wired yet: needs ORG_W42_PROVISION=1 and TAILSCALE_OAUTH_CLIENT_ID + TAILSCALE_OAUTH_CLIENT_SECRET in the environment"
+      echo "  [FAILED] github_deploy_key on $H: not wired yet: live revocation is off (set ORG_W42_PROVISION=1, W4.2)"
+      for t in mac contabo winbox; do echo "  [FAILED] authorized_keys on $t: not wired yet: needs the W2.8 ssh mesh (forced-command keys)"; done
+      echo "hq_join: $H NOT marked left; left behind: infisical_client_secret:$H, tailscale_device:$H, github_deploy_key:$H, authorized_keys:mac, authorized_keys:contabo, authorized_keys:winbox"
+      exit 1
+    fi
     f leave_keeps_device || rm -f "$S/ts_device_present"
     f leave_keeps_key || rm -f "$S/deploy_key_present"
     f leave_keeps_secret || { rm -f "$S/secret_live"; : >"$S/secret_revoked"; }
@@ -242,8 +253,10 @@ exit 0
 SSH = PRELUDE + r'''
 echo "ssh $*" >>"$S/calls.log"
 f winbox_down && exit 255
-f winbox_line && exit 0
-exit 1
+case "$*" in
+  *"/C:ssh-"*) f winbox_unreadable && exit 1; exit 0 ;;     # findstr: 1 = no match OR a file it cannot open
+  *) f winbox_unreadable && exit 1; f winbox_line && exit 0; exit 1 ;;
+esac
 '''
 
 STUBS = {"free": FREE, "docker": DOCKER, "curl": CURL, "gh": GH, "git": GIT, "ssh": SSH}
@@ -260,6 +273,10 @@ class Drill:
         self.bin.mkdir()
         self.core = tmp_path / "core"
         (self.core / "state").mkdir(parents=True)
+        (self.core / "tools").mkdir()
+        self.mesh_check = self.core / "tools" / "mesh_check.py"
+        self.mesh_check.write_text("# stand-in for the checkout's tool: the preflight only looks for this flag\n"
+                                   "    ap.add_argument('--join-drill', nargs=2)\n")
         self.state = tmp_path / "out" / "mesh-check"
         self.rows = self.core / "state" / "re-os-drills.jsonl"
         self.cred = tmp_path / "cred"
@@ -370,6 +387,16 @@ def test_script_never_traces_and_never_puts_a_secret_on_a_command_line():
     assert not re.search(r"^\s*set\s+-[a-z]*x", text, re.M) and "xtrace" not in text
     assert "docker exec -d -e ORG_JOIN_TOKEN" in text          # by environment, no value in argv
     assert not re.search(r"--token\b", text)
+    # the OAuth token: never `NAME=$CLAUDE_CODE_OAUTH_TOKEN` (env(1), sh -c ...) on any command line
+    assert not re.search(r"=\s*[\"']?\$\{?CLAUDE_CODE_OAUTH_TOKEN", text)
+    assert not re.search(r"\benv\s+-i\b", text)
+
+
+def test_every_live_provision_and_leave_runs_with_the_w42_flag():
+    # hq_join wires its revokers and provisioner only when ORG_W42_PROVISION=1 (w42_enabled())
+    lines = [l for l in SCRIPT.read_text().splitlines()
+             if re.search(r"tools\.hq_join (provision|leave)\b", l) and not l.lstrip().startswith(("#", "provision ", "leave "))]
+    assert len(lines) == 2 and all("ORG_W42_PROVISION=1" in l for l in lines), lines
 
 
 # ------------------------------------------------------------------------------ the pass path
@@ -390,13 +417,13 @@ def test_pass_path_every_step_ok_and_nothing_left_behind(drill):
     assert '"kind": "join-drill"' in cp.stdout and '"result": "PASS"' in cp.stdout
 
 
-def test_the_fingerprint_comes_from_the_node_and_the_flag_is_set_only_for_provision(drill):
+def test_the_fingerprint_comes_from_the_node_and_the_flag_is_set_only_for_provision_and_leave(drill):
     cp = drill.run()
     assert cp.returncode == 0
     approve = [c for c in drill.calls() if "hq_join approve" in c]
     assert len(approve) == 1 and f"--fingerprint {NODE_FP}" in approve[0] and HUB_FP not in approve[0]
     with_flag = [c for c in drill.calls() if c.startswith("py ") and "[w42=1]" in c]
-    assert len(with_flag) == 1 and "hq_join provision" in with_flag[0]
+    assert [("provision" in c, "leave" in c) for c in with_flag] == [(True, False), (False, True)]
     assert drill.read("seen_token") == TOKEN                 # the node got the token, by environment
     assert any(c == "env_token=yes" for c in drill.calls())
 
@@ -606,7 +633,129 @@ def test_hub_that_will_not_record_fails_the_drill_and_leaves_the_file(drill):
     assert res["steps"][-1]["name"] == "record" and not drill.has("recorded.json")
 
 
+def test_leave_without_the_flag_would_revoke_nothing_and_the_drill_would_say_so(drill):
+    """The stub is the real tool: no ORG_W42_PROVISION=1, no revocation. Dropping the flag from the
+    script's leave call must turn this drill red at leave, never leave the node's credentials behind
+    unnoticed."""
+    script = drill.root / "drill-noflag.sh"
+    script.write_text(SCRIPT.read_text().replace('ORG_W42_PROVISION=1 "$PY" -m tools.hq_join leave',
+                                                 '"$PY" -m tools.hq_join leave'))
+    cp = subprocess.run(["/bin/bash", str(script)], env=drill.env, cwd=drill.root, capture_output=True, text=True)
+    assert cp.returncode == 1
+    res = _failed(drill, "leave")
+    assert "tailscale_device" in drill.step("leave")["detail"] or "not ok" in drill.step("leave")["detail"]
+    assert drill.step("verify_tailnet")["ok"] is False and drill.step("verify_deploy_key")["ok"] is False
+    assert drill.step("verify_infisical")["ok"] is False and res["failed_step"] == "leave"
+
+
+def test_leave_runs_with_the_flag_and_removes_what_provision_made(drill):
+    assert drill.run().returncode == 0
+    leave = [c for c in drill.calls() if "hq_join leave" in c]
+    assert len(leave) == 1 and "--live" in leave[0] and leave[0].endswith("[w42=1]")
+    assert not drill.has("ts_device_present") and not drill.has("deploy_key_present") and not drill.has("secret_live")
+
+
+def test_real_github_read_only_message_is_recorded_as_the_finding(drill):
+    drill.flag("probe_readonly_gh")                  # "marked as read only": no hyphen
+    assert drill.run().returncode == 1
+    res = _failed(drill, "probe")
+    assert "deploy_key_read_only" in res["findings"]
+
+
+def test_an_unreadable_winbox_keys_file_is_never_read_as_no_line(drill):
+    drill.flag("winbox_unreadable")                  # findstr exits 1: no match AND cannot open
+    assert drill.run().returncode == 1
+    detail = drill.step("verify_authorized_keys")["detail"]
+    assert drill.step("verify_authorized_keys")["ok"] is False and "not readable" in detail
+    ssh_calls = [c for c in drill.calls() if c.startswith("ssh ")]
+    assert len(ssh_calls) == 1 and "/C:ssh-" in ssh_calls[0]       # it never got to the host search
+
+
+def test_winbox_is_searched_for_the_host_only_after_the_file_proved_readable(drill):
+    assert drill.run().returncode == 0
+    ssh_calls = [c for c in drill.calls() if c.startswith("ssh ")]
+    assert len(ssh_calls) == 2 and "/C:ssh-" in ssh_calls[0] and f"/C:{HOST}" in ssh_calls[1]
+
+
+def test_remote_control_keeps_the_first_output_line_masks_urls_and_never_fails_the_drill(drill):
+    drill.flag("rc_prints_url")
+    cp = drill.run()
+    assert cp.returncode == 0
+    w40 = drill.result()["w40"]
+    assert w40["remote_control"] is True and w40["remote_control_error"] == ""
+    assert w40["remote_control_output"] == "Remote Control ready: [url] connect from your phone"
+    assert "claude.ai/code/session_" not in drill.everything(cp)
+
+
+def test_remote_control_output_is_empty_when_it_printed_nothing_and_kept_when_it_exited(drill):
+    assert drill.run().returncode == 0
+    assert drill.result()["w40"]["remote_control_output"] == ""
+
+
+def test_remote_control_refusal_is_kept_as_the_output_too(drill):
+    drill.flag("rc_refused")
+    assert drill.run().returncode == 0
+    w40 = drill.result()["w40"]
+    assert w40["remote_control"] is False
+    assert w40["remote_control_output"] == w40["remote_control_error"].strip() and w40["remote_control_output"]
+
+
+CLEAN_EXEC = re.compile(r"python3 -I -c '([^']+)' ")
+
+
+@pytest.mark.parametrize("name", ["token_worker", "remote_control"])
+def test_the_node_scripts_hold_no_token_on_any_command_line_and_give_claude_a_clean_env(drill, tmp_path, name):
+    assert drill.run().returncode == 0
+    text = (drill.shim / "scripts" / f"{name}.sh").read_text()        # what the node was told to run
+    assert "CLAUDE_CODE_OAUTH_TOKEN=" not in text and "env -i" not in text
+    snippet = CLEAN_EXEC.search(text)
+    assert snippet, "the node script must build claude's environment inside python, not in argv"
+    # run the real snippet: only PATH, HOME and the token reach the child, cwd /tmp, token not in argv
+    fake = tmp_path / "fakebin"
+    fake.mkdir()
+    out = tmp_path / "claude.out"
+    (fake / "fakeclaude").write_text(f'#!/bin/sh\n/usr/bin/env > "{out}"\npwd -P >> "{out}"\necho "ARGV:$*" >> "{out}"\n')
+    (fake / "fakeclaude").chmod(0o755)
+    value = "placeholder" + "-for-the-test"             # not a secret; built so no scanner reads it as one
+    env = {"PATH": f"{fake}:/usr/bin:/bin", "HOME": "/home/someone", "CLAUDE_CODE_OAUTH_TOKEN": value,
+           "ORG_DB_URL": "postgres://nope", "JUNK": "x"}
+    cp = subprocess.run([sys.executable, "-I", "-c", snippet.group(1), "fakeclaude", "-p", "say it"], env=env,
+                        cwd=tmp_path, capture_output=True, text=True)
+    assert cp.returncode == 0, cp.stderr
+    seen = out.read_text()
+    assert f"CLAUDE_CODE_OAUTH_TOKEN={value}" in seen and "HOME=/root" in seen
+    assert "JUNK" not in seen and "ORG_DB_URL" not in seen and "/home/someone" not in seen
+    assert seen.strip().splitlines()[-2].endswith("/tmp") and seen.strip().splitlines()[-1] == "ARGV:-p say it"
+    assert value not in seen.split("ARGV:")[1]
+
+
+def test_the_oauth_token_is_missing_loudly_not_silently(drill, tmp_path):
+    snippet = CLEAN_EXEC.search(SCRIPT.read_text()).group(1)
+    cp = subprocess.run([sys.executable, "-I", "-c", snippet, "true"], env={"PATH": "/usr/bin:/bin"},
+                        cwd=tmp_path, capture_output=True, text=True)
+    assert cp.returncode != 0 and "CLAUDE_CODE_OAUTH_TOKEN" in cp.stderr
+
+
 # ------------------------------------------------------------------------------ refusals
+
+def test_a_stale_checkout_without_join_drill_is_refused_before_anything_starts(drill):
+    drill.mesh_check.write_text("# an older mesh_check: no such verb\n")
+    cp = drill.run()
+    assert cp.returncode == 2 and "stale" in cp.stderr and "--join-drill" in cp.stderr
+    assert started_nothing(drill) and not (drill.state / "join-drill.json").exists()
+    assert not any(c.startswith("docker") or c.startswith("door") for c in drill.calls())
+
+
+def test_a_checkout_with_no_mesh_check_at_all_is_refused_too(drill):
+    drill.mesh_check.unlink()
+    assert drill.run().returncode == 2
+
+
+def test_the_script_piped_in_is_refused_because_it_cannot_re_run_itself(drill):
+    cp = subprocess.run(["/bin/bash", "-s"], input=SCRIPT.read_text(), env=drill.env, cwd=drill.root,
+                        capture_output=True, text=True)
+    assert cp.returncode == 2 and "re-runs itself" in cp.stderr
+    assert drill.calls() == []
 
 def test_memory_below_the_floor_refuses_with_exit_2_and_starts_nothing(drill):
     drill.put("avail_mb", "1200\n")

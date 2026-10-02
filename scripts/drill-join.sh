@@ -37,7 +37,8 @@ set -uo pipefail
 
 STEP_NAMES="preflight door_open container mint join approve provision node_probe token_worker probe leave verify_tailnet verify_deploy_key verify_infisical verify_host_row verify_authorized_keys cleanup"
 
-SELF=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")
+SELF=""                                         # stays empty when the script is piped in: no file to re-run
+[ -n "${BASH_SOURCE[0]:-}" ] && SELF=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")
 CORE=${DRILL_CORE:-/opt/MoonieXHQ/Agents/Core}
 STATE_DIR=${DRILL_STATE_DIR:-$CORE/state/mesh-check}
 ROWS_FILE=${DRILL_ROWS_FILE:-$CORE/state/re-os-drills.jsonl}
@@ -86,6 +87,7 @@ PROBE_SHA=""
 PROBE_SECS=""
 RC_STATE=null
 RC_ERR=""
+RC_OUT=""
 RC_CMD="claude remote-control"
 PREFLIGHT_DETAIL=""
 
@@ -124,11 +126,13 @@ drill: DRY RUN for $HOST. Nothing below is run: no door, no docker, no hub write
   approve          python -m tools.hq_join approve --host $HOST --fingerprint <the 8 chars the node printed>
   provision        ORG_W42_PROVISION=1 python -m tools.hq_join provision --host $HOST; wait for join.sh to end (<= ${JOIN_WAIT_S}s)
   node_probe       join.sh's own step 9 must have passed (exit 0)
-  token_worker     node: infisical run Org-Node prod --as $HOST -- env -i CLAUDE_CODE_OAUTH_TOKEN claude -p <nonce>
+  token_worker     node: infisical run Org-Node prod --as $HOST -- python3 -I -c <exec with a clean env> claude -p <nonce>
+                   (the token reaches claude by environment only, never on a command line)
                    question (not a pass criterion, key "w40"): does \`$RC_CMD\` start on that token alone?
+                   its first output line is kept as w40.remote_control_output
   probe            hub: probe task for $HOST (pending); node: commit + push agent/probe-<task> within ${PROBE_WAIT_S}s;
                    hub: git ls-remote shows the same sha. Never merged. The branch is deleted at cleanup.
-  leave            python -m tools.hq_join leave --host $HOST --live (authorized_keys "not wired yet" is the only accepted failure)
+  leave            ORG_W42_PROVISION=1 python -m tools.hq_join leave --host $HOST --live (authorized_keys "not wired yet" is the only accepted failure)
   verify_tailnet   Tailscale API: no device named $HOST
   verify_deploy_key  gh api repos/$GH_REPO/keys: no key titled org-node:$HOST
   verify_infisical node-secrets: no live client secret org-node:$HOST
@@ -144,6 +148,7 @@ fi
 # The hub URL and the Agents-Core prod secrets (Tailscale OAuth, gh) reach this process through the
 # same wrapper every Contabo consumer uses; never a .env.
 if [ "${DRILL_HUB_ENV:-}" != 1 ]; then
+  [ -f "$SELF" ] && [ -r "$SELF" ] || refuse "cannot read this script as a file ($SELF): the drill re-runs itself, run it from a file, not a pipe"
   [ -x "$HUB_WRAP" ] || refuse "$HUB_WRAP is not executable: the drill needs the hub environment"
   DRILL_HUB_ENV=1 DRILL_LOG_TO_REPO=$LOG_TO_REPO exec "$HUB_WRAP" bash "$SELF"
 fi
@@ -160,7 +165,7 @@ clean() {
   local s
   s=$(LC_ALL=C tr '\n\t\r' '   ' | LC_ALL=C tr -cd '\040-\176')
   [ -n "$TOKEN" ] && s=${s//"$TOKEN"/[token]}
-  printf '%s' "$s" | scrub | cut -c1-200
+  printf '%s' "$s" | scrub | sed -E 's/^ +//; s/ +$//' | cut -c1-200
 }
 jstr() { printf '"%s"' "$(printf '%s' "$1" | clean | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"; }
 first_line() { LC_ALL=C tr -d '\r' | sed -n '/[^[:space:]]/{p;q;}'; }
@@ -219,6 +224,10 @@ door_state() { bash "$DOOR" status 2>/dev/null | first_line; }
 # ------------------------------------------------------------------------------------ 0 preflight
 preflight() {
   [ "$(id -u)" = 0 ] || [ "${DRILL_ALLOW_NONROOT:-}" = 1 ] || refuse "run as root on Contabo"
+  # The card runs this script at a pushed sha, but the tools it drives come from this checkout.
+  # A stale checkout would get through the door, the join and the provision before it failed.
+  grep -q -- '--join-drill' "$CORE/tools/mesh_check.py" 2>/dev/null \
+    || refuse "the checkout at $CORE is stale: tools/mesh_check.py has no --join-drill; pull it (git pull) and run again"
   command -v free >/dev/null 2>&1 || refuse "no free(1): this drill runs on Contabo (Linux)"
   local avail c d st
   avail=$(free -m | awk '/^Mem:/ {print $7}')
@@ -364,7 +373,7 @@ set -u
 cd /opt/MoonieXHQ/Agents/Core || exit 3
 [ -e /root/.claude/.credentials.json ] && { echo "a login file exists in the node"; exit 4; }
 exec env HOME=/root ORG_HOST="$1" python3 -I -B tools/infisical_setup.py run Org-Node prod --as "$1" -- \
-  sh -c 'cd /tmp && exec env -i PATH="$PATH" HOME=/root CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" claude -p "Reply with exactly this text and nothing else: $0"' "$2"
+  python3 -I -c 'import os,sys; e={"PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"), "HOME": "/root", "CLAUDE_CODE_OAUTH_TOKEN": os.environ["CLAUDE_CODE_OAUTH_TOKEN"]}; os.chdir("/tmp"); os.execvpe(sys.argv[1], sys.argv[1:], e)' claude -p "Reply with exactly this text and nothing else: $2"
 EOS
   rc=$?
   if [ $rc -eq 0 ] && grep -Fq -- "$nonce" "$WORK/token_worker.out"; then
@@ -377,15 +386,19 @@ EOS
 set -u
 cd /opt/MoonieXHQ/Agents/Core || exit 3
 exec env HOME=/root ORG_HOST="$1" python3 -I -B tools/infisical_setup.py run Org-Node prod --as "$1" -- \
-  sh -c 'cd /tmp && exec env -i PATH="$PATH" HOME=/root CLAUDE_CODE_OAUTH_TOKEN="$CLAUDE_CODE_OAUTH_TOKEN" timeout 25 claude remote-control'
+  python3 -I -c 'import os,sys; e={"PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"), "HOME": "/root", "CLAUDE_CODE_OAUTH_TOKEN": os.environ["CLAUDE_CODE_OAUTH_TOKEN"]}; os.chdir("/tmp"); os.execvpe(sys.argv[1], sys.argv[1:], e)' timeout 25 claude remote-control
 EOS
   rc=$?
+  # The first output line is kept whatever happened: exit 124 only says the process was still
+  # running at 25 s, so what it printed is the evidence. URLs are masked.
+  RC_OUT=""
+  [ -f "$WORK/remote_control.out" ] \
+    && RC_OUT=$(first_line <"$WORK/remote_control.out" | sed -E 's#https?://[^[:space:]]+#[url]#g' | clean)
   if [ $rc -eq 97 ]; then RC_STATE=null; RC_ERR="could not reach the container"
-  elif [ $rc -eq 124 ]; then RC_STATE=true          # still running when timeout cut it: it started
+  elif [ $rc -eq 124 ]; then RC_STATE=true          # still running when timeout cut it: not proof of a session
   else
     RC_STATE=false
-    RC_ERR=$(first_line <"$WORK/remote_control.out" | clean)
-    [ -n "$RC_ERR" ] || RC_ERR="exit $rc, no output"
+    RC_ERR=${RC_OUT:-"exit $rc, no output"}
   fi
   return 0
 }
@@ -416,7 +429,8 @@ EOS
   rc=$?
   PROBE_SECS=$((SECONDS - t0))
   if [ $rc -ne 0 ]; then
-    if grep -Eqi 'read-only|denied to deploy key|permission denied|403' "$WORK/probe.out" 2>/dev/null; then
+    # GitHub says "The key you are authenticating with has been marked as read only."
+    if grep -Eqi 'read[- ]only|denied to deploy key|permission denied|403' "$WORK/probe.out" 2>/dev/null; then
       finding deploy_key_read_only
       step_fail probe "the node's push was refused: its deploy key is read-only (hq_join registers read_only=true), so a node cannot return work to origin"
     elif [ $rc -eq 142 ]; then
@@ -444,7 +458,9 @@ step_leave() {
     return 0
   fi
   local rc failed unwired real bad=""
-  "$PY" -m tools.hq_join leave --host "$HOST" --live >"$WORK/leave.out" 2>"$WORK/leave.err"
+  # Without the flag hq_join wires none of the three real revokers (w42_enabled()): it would answer
+  # "not wired yet" for each and remove nothing.
+  ORG_W42_PROVISION=1 "$PY" -m tools.hq_join leave --host "$HOST" --live >"$WORK/leave.out" 2>"$WORK/leave.err"
   rc=$?
   failed=$(grep -c '^  \[FAILED\]' "$WORK/leave.out")
   unwired=$(grep '^  \[FAILED\] authorized_keys' "$WORK/leave.out" | grep -c 'not wired yet')
@@ -496,10 +512,19 @@ verify_authorized_keys() {
     grep -Fq -- "$HOST" "$AK_FILE"; rc=$?
     case $rc in 1) ;; 0) bad="$bad contabo:line-found" ;; *) bad="$bad contabo:unreadable" ;; esac
   fi
-  ssh -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=yes "$WINBOX_SSH" \
-      "findstr /C:$HOST "'C:\ProgramData\ssh\administrators_authorized_keys' >/dev/null 2>&1
-  rc=$?
-  case $rc in 1) ;; 0) bad="$bad winbox:line-found" ;; *) bad="$bad winbox:unverifiable(ssh $WINBOX_SSH exit $rc)" ;; esac
+  # findstr exits 1 for "no match" AND for a file it cannot open, so a "no" is only believed after
+  # a probe that must match (any key line) has proved the file is readable.
+  win_findstr() {
+    ssh -o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=yes "$WINBOX_SSH" \
+        "findstr /C:$1 "'C:\ProgramData\ssh\administrators_authorized_keys' >/dev/null 2>&1
+  }
+  win_findstr ssh-; rc=$?
+  if [ $rc -ne 0 ]; then
+    bad="$bad winbox:unverifiable(administrators_authorized_keys not readable, ssh $WINBOX_SSH exit $rc)"
+  else
+    win_findstr "$HOST"; rc=$?
+    case $rc in 1) ;; 0) bad="$bad winbox:line-found" ;; *) bad="$bad winbox:unverifiable(ssh $WINBOX_SSH exit $rc)" ;; esac
+  fi
   note "authorized_keys on mac not checked: Remote Login stays closed until G2"
   if [ -z "$bad" ]; then step_ok verify_authorized_keys "no line for $HOST on contabo or winbox; mac skipped until G2"
   else step_fail verify_authorized_keys "$(printf '%s' "$bad" | sed 's/^ //')"; fi
@@ -584,8 +609,8 @@ write_json() { # write_json <path>
     printf '{"ok": %s, "at": "%s", "host": %s, "stamp": "%s",\n' "$ok" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(jstr "$HOST")" "$STAMP"
     printf ' "steps": %s,\n' "$(steps_json)"
     printf ' "failed_step": %s,\n' "$failed"
-    printf ' "w40": {"remote_control": %s, "remote_control_cmd": %s, "remote_control_error": %s},\n' \
-      "$rcj" "$(jstr "$RC_CMD")" "$(jstr "$RC_ERR")"
+    printf ' "w40": {"remote_control": %s, "remote_control_cmd": %s, "remote_control_error": %s, "remote_control_output": %s},\n' \
+      "$rcj" "$(jstr "$RC_CMD")" "$(jstr "$RC_ERR")" "$(jstr "$RC_OUT")"
     printf ' "probe": {"task": %s, "branch": %s, "sha": %s, "seconds": %s},\n' \
       "$(jstr "$TASK_ID")" "$(jstr "$BRANCH")" "$(jstr "$PROBE_SHA")" "$(num_or_null "$PROBE_SECS")"
     printf ' "findings": %s,\n "notes": %s,\n' "$(json_list "$FINDINGS")" "$(json_list "$NOTES")"
