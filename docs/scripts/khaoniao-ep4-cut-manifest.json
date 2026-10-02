@@ -1,0 +1,92 @@
+{
+ "out": "${OUT}/EP4-cut-v1.mp4",
+ "size": [
+  720,
+  1280
+ ],
+ "fps": 24,
+ "mid_roll_s": 60,
+ "segments": [
+  {
+   "clip": "${PROD}/shot-01.mp4",
+   "dur": 9.2,
+   "ss": 0.8
+  },
+  {
+   "clip": "${PROD}/shot-02.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-03.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-04.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-05.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-06.mp4",
+   "dur": 10
+  },
+  {
+   "card": "${CARDS}/card-title-ep4.png",
+   "dur": 2.6
+  },
+  {
+   "clip": "${PROD}/shot-07.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-08.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-09.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-10.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-11.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-12.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-13.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-14.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-15.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-16.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-17.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${PROD}/shot-18.mp4",
+   "dur": 10
+  },
+  {
+   "card": "${CARDS}/card-end-ep4.png",
+   "dur": 3.5
+  }
+ ]
+}
