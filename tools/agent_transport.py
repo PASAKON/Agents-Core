@@ -260,14 +260,17 @@ def wake_windows_tab(session: str, label: str, *, wait_s: float = _WAKE_WAIT_S,
         sleep(0.25)
 
 
-def _attempt_wake_windows(session: str, label: str, log_prefix: str) -> None:
-    """attempt_wake's Windows body: same never-raise, same log lines."""
+def _attempt_wake_windows(session: str, label: str, log_prefix: str) -> bool:
+    """attempt_wake's Windows body: same never-raise, same log lines. True only
+    when wake_windows_tab reported that the keys went to the verified tab."""
+    woke = False
     try:
         try:
             notify.info(f"[{log_prefix}] wake attempted: {session}")
         except Exception:
             pass
         r = wake_windows_tab(session, label)
+        woke = r["woke"] is True
         try:
             notify.info(f"[{log_prefix}] wake {'succeeded' if r['woke'] else 'failed'}: {session}: {r['why']}")
         except Exception:
@@ -277,15 +280,23 @@ def _attempt_wake_windows(session: str, label: str, log_prefix: str) -> None:
             notify.info(f"[{log_prefix}] wake failed: {session}: {e}")
         except Exception:
             pass
+    return woke
 
 
 def attempt_wake(session: str | None, label: str, log_prefix: str, *,
-                  send_fn=_wake_tmux_send) -> None:
+                  send_fn=_wake_tmux_send) -> bool:
     """Best-effort attention nudge for a just-delivered letter's recipient.
     The one hard rule (task-cf325742): NOTHING from this step may
     propagate or change the caller's notion of success -- no tmux session,
     a tmux error, a timeout, anything. The mailbox write already succeeded
     before this is ever called; this is strictly on top of it.
+
+    Returns True only when the nudge reached a live session (every tmux call
+    exited 0; on Windows, wake.ps1 reported keys sent to the verified tab).
+    False for everything else: no session, not live, a tmux error, a timeout.
+    The value is information for a caller that wants to report the wake
+    (tools/node_dispatch.py does); a caller that ignores it behaves exactly as
+    before, and False never means the letter was not delivered.
 
     `session` is already resolved by the caller -- each send_to_*.py file
     has its own logic for that (task row lookup for DEVs,
@@ -306,11 +317,10 @@ def attempt_wake(session: str | None, label: str, log_prefix: str, *,
     have no effect on what actually runs.
     """
     if not session:
-        return
+        return False
     # W3.5 win32 branch -- additive; everything after the end marker is unchanged.
     if _is_windows():
-        _attempt_wake_windows(session, label, log_prefix)
-        return
+        return _attempt_wake_windows(session, label, log_prefix)
     # end W3.5 win32 branch
     try:
         if not tmux_session.has_session(session):
@@ -318,7 +328,7 @@ def attempt_wake(session: str | None, label: str, log_prefix: str, *,
                 notify.info(f"[{log_prefix}] wake skipped (no live session): {session}")
             except Exception:
                 pass
-            return
+            return False
         try:
             notify.info(f"[{log_prefix}] wake attempted: {session}")
         except Exception:
@@ -329,8 +339,10 @@ def attempt_wake(session: str | None, label: str, log_prefix: str, *,
             notify.info(f"[{log_prefix}] wake succeeded: {session}")
         except Exception:
             pass
+        return True
     except Exception as e:
         try:
             notify.info(f"[{log_prefix}] wake failed: {session}: {e}")
         except Exception:
             pass
+        return False
