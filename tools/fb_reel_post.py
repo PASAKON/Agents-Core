@@ -741,8 +741,22 @@ class FBReelBrowser:
         ok, diff = captions_match(caption_text, readback)
         return ok, readback, diff
 
+    def _hide_sticky_terms_notice(self) -> None:
+        # Since 2026-10-02 Business Suite pins a "เรากำลังปรับปรุงข้อกำหนด…" terms notice
+        # (position:sticky, no close button) over the top of the composer; the cover
+        # buttons scroll under it and every click is intercepted. Hide it on screen only.
+        self.page.evaluate("""() => {
+            for (const d of document.querySelectorAll('div')) {
+                if (!(d.innerText || '').startsWith('เรากำลังปรับปรุงข้อกำหนด')) continue;
+                let el = d;
+                while (el && getComputedStyle(el).position !== 'sticky') el = el.parentElement;
+                if (el) el.style.display = 'none';
+            }
+        }""")
+
     def set_cover(self, cover_path: str) -> bool:
         page = self.page
+        self._hide_sticky_terms_notice()
         tabs = page.get_by_text("อัพโหลดภาพ", exact=True)
         if tabs.count() == 0:
             self.log("set_cover: 'อัพโหลดภาพ' tab not found")
