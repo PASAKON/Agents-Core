@@ -5,7 +5,7 @@ all behind ORG_MESH_DISPATCH (default off).
 Fakes only. subprocess.run is a recorder (no ssh ever leaves this process),
 tools.node_dispatch.dispatch stands in for the in-process self path, and lib.db
 points at a tmp_path SQLite ledger (ADR 0021). config/hosts.yaml is read as-is:
-self is pinned to "mac" (ssh: null), the remote is "contabo" (a real alias).
+self is pinned to "mac" (mesh_ssh: null), the remote is "contabo" (a real mesh_ssh).
 
 Run:  .venv/bin/python -m pytest tests/test_w23_mesh_dispatch.py
 """
@@ -177,14 +177,14 @@ def test_remote_builds_the_exact_ssh_argv(monkeypatch, tmp_path):
     out = mesh.dispatch("contabo", "spawn_worker", TID)
     assert out == {"ok": True, "verb": "spawn_worker", "result": {"id": TID}}
     (argv, kw), = fake.calls
-    assert argv == ["ssh", "-i", _key(tmp_path),
+    assert argv == ["ssh", "-F", "none", "-i", _key(tmp_path),
                     "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
                     "-o", "IdentitiesOnly=yes", "-o", "IdentityAgent=none",
                     "-o", "ControlMaster=no", "-o", "ControlPath=none",
                     "-o", "ForwardAgent=no", "-o", "ForwardX11=no",
                     "-o", "ClearAllForwardings=yes", "-o", "PermitLocalCommand=no",
                     "-o", "StrictHostKeyChecking=yes",
-                    config.host("contabo")["ssh"], f"spawn_worker {TID}"]
+                    config.host("contabo")["mesh_ssh"], f"spawn_worker {TID}"]
     assert kw["stdin"] is subprocess.DEVNULL
     assert kw["capture_output"] is True and kw["text"] is True
 
@@ -265,11 +265,11 @@ def test_the_last_stdout_line_is_the_reply(monkeypatch):
     assert mesh.dispatch("contabo", "pid_alive", TID)["result"] == {"alive": True}
 
 
-def test_a_host_with_no_ssh_alias_is_unreachable_and_never_dialled(monkeypatch):
+def test_a_host_with_no_mesh_ssh_is_unreachable_and_never_dialled(monkeypatch):
     monkeypatch.setenv("ORG_HOST", "contabo")
     config.self_host.cache_clear()
     _no_subprocess(monkeypatch)
-    with pytest.raises(mesh.MeshUnreachable, match="no ssh alias"):
+    with pytest.raises(mesh.MeshUnreachable, match="no mesh_ssh"):
         mesh.dispatch("mac", "pid_alive", TID)  # the Mac's sshd is closed by design
 
 
@@ -376,7 +376,7 @@ def test_flag_on_dry_run_prints_the_mesh_command_and_sends_nothing(monkeypatch, 
     tid = _row()
     row = _spawn(tid, dry_run=True)
     log = row["delegate_log"]
-    assert log.startswith("[dry-run] host=contabo mesh_cmd=ssh -i ")
+    assert log.startswith("[dry-run] host=contabo mesh_cmd=ssh -F none -i ")
     assert f"spawn_worker {tid}" in log and "BatchMode=yes" in log
     assert row["status"] == "pending"
 

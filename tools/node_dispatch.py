@@ -1062,6 +1062,24 @@ def _windows_wake(role: str, sid: str, from_role: str) -> dict:
         return {"woke": False, "why": f"wake raised {type(e).__name__}"}
 
 
+def _posix_wake(nudge) -> dict:
+    """`woke` (bool), and `why` when False, for a POSIX letter. `nudge()` is the
+    best-effort tmux wake; agent_transport.attempt_wake returns True only when
+    the keys reached a live tmux session and every tmux call exited 0. The
+    letter is already on disk, so a wake that fails or raises is `woke: False`,
+    never a failed delivery."""
+    try:
+        woke = nudge()
+    except Exception as e:
+        return {"woke": False, "why": f"wake raised {type(e).__name__}"}
+    if woke is True:
+        return {"woke": True}
+    if woke is False:
+        return {"woke": False,
+                "why": "tmux nudge not delivered (session gone or tmux refused the keys)"}
+    return {"woke": False, "why": "wake reported no result"}
+
+
 def _write_clevel_letter(letter: dict, role: str) -> dict:
     from tools import send_to_cxo
     sid = letter.get("to_session") or send_to_cxo._active_session_id(role)
@@ -1079,11 +1097,9 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
         raise ValueError(f"letter not on disk after write: {path}")
     if _is_windows():
         return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
-    try:  # best effort, never changes the outcome (same rule as send_to_cxo)
-        send_to_cxo.attempt_wake(role, sid, from_role.upper())
-    except Exception:
-        pass
-    return {"to": f"{role}-{sid}"}
+    # best effort, never changes the outcome (same rule as send_to_cxo)
+    return {"to": f"{role}-{sid}",
+            **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
 
 
 def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str) -> dict:
@@ -1150,11 +1166,10 @@ def _write_worker_letter(letter: dict, role: object) -> dict:
     path = mailbox.send(role, tid, letter["body"], from_role, from_sid)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
-    try:  # best effort, never changes the outcome
-        agent_transport.attempt_wake(tmux_name, from_role.upper(), "node_dispatch")
-    except Exception:
-        pass
-    return {"to": f"{role}-{tid}"}
+    # best effort, never changes the outcome
+    return {"to": f"{role}-{tid}",
+            **_posix_wake(lambda: agent_transport.attempt_wake(
+                tmux_name, from_role.upper(), "node_dispatch"))}
 
 
 def _write_letter(letter: dict) -> dict:

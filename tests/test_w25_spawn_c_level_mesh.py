@@ -7,7 +7,7 @@ Fakes only. `mesh.dispatch` is a recorder in most tests; a few run the real
 `lib.mesh.dispatch` with `subprocess.run` recorded (no ssh leaves this process) and
 `tools.node_dispatch.dispatch` standing in for the in-process self path. The relay queue
 and the audit trail are redirected to tmp_path / a list. config/hosts.yaml is read as-is:
-mac (ssh: null), winbox (ssh: winbox), contabo (ssh: mooniex-vps).
+mac (mesh_ssh: null), winbox and contabo (mesh_ssh: user@tailnet address).
 
 Run:  .venv/bin/python -m pytest tests/test_w25_spawn_c_level_mesh.py
 """
@@ -169,12 +169,14 @@ def test_flag_on_remote_really_dials_the_org_dispatch_ssh_command(flag_on, monke
     assert result["status"] == "spawned" and result["session_id"] == SID
     assert len(run.calls) == 1
     argv = run.calls[0]
-    assert argv[0] == "ssh" and argv[1:3] == ["-i", str(tmp_path / ".ssh" / "org_dispatch")]
-    assert argv[-2:] == ["winbox", "start_clevel cto"]
+    assert argv[0] == "ssh" and argv[1:5] == ["-F", "none", "-i",
+                                              str(tmp_path / ".ssh" / "org_dispatch")]
+    dest = config.host("winbox")["mesh_ssh"]
+    assert argv[-2:] == [dest, "start_clevel cto"]
 
     run.calls.clear()
     _spawn("cto", "winbox", resume_session_id=SID)
-    assert run.calls[0][-2:] == ["winbox", f"start_clevel cto --resume {SID}"]
+    assert run.calls[0][-2:] == [dest, f"start_clevel cto --resume {SID}"]
 
 
 def test_flag_on_self_host_runs_in_process_and_dials_nothing(flag_on, monkeypatch):
@@ -241,12 +243,12 @@ def test_flag_on_unreachable_says_so_and_queues_nothing(flag_on, fake_mesh, rela
 
 
 def test_flag_on_mac_from_a_remote_relay_is_unreachable_not_queued(flag_on, monkeypatch):
-    """The Mac has `ssh: null` (it dials out, nobody dials it): the real lib.mesh
-    answers unreachable without ever running ssh, and no queue row follows."""
+    """The Mac has `mesh_ssh: null` (it dials out, nobody dials it): the real
+    lib.mesh answers unreachable without ever running ssh, and no queue row follows."""
     _no_subprocess(monkeypatch)
     result = _spawn("cfo", "mac")
     assert result["status"] == "unreachable" and result["reason"] == "host mac unreachable"
-    assert "no ssh alias" in result["detail"]
+    assert "no mesh_ssh" in result["detail"]
     assert _rows() == []
 
 
@@ -368,7 +370,7 @@ def test_parallel_mac_enqueues_beside_the_mesh_call(flag_on, parallel_on, fake_m
 
 def test_parallel_mac_still_queues_when_the_mesh_leg_is_unreachable(flag_on, parallel_on,
                                                                     monkeypatch, relay):
-    """From Contabo the Mac has no ssh alias, so this is the normal parallel-run answer
+    """From Contabo the Mac has no mesh_ssh, so this is the normal parallel-run answer
     until it gets one: the queue keeps the spawn working, the audit records the gap."""
     _no_subprocess(monkeypatch)
     result = _spawn("cfo", "mac")

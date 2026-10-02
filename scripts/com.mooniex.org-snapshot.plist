@@ -14,19 +14,18 @@
        fallback if the Contabo hub goes down):
          cp scripts/com.mooniex.org-snapshot.plist ~/Library/LaunchAgents/
          launchctl load ~/Library/LaunchAgents/com.mooniex.org-snapshot.plist
-       No-op (exit 0, "hub not configured") on a box where ORG_DB_URL isn't
-       set -- safe to install everywhere.
+       No-op (exit 0, "hub not configured") on a box where the wrapper finds
+       no ORG_DB_URL -- safe to install everywhere.
 
-       Like the watchdog/mac-agent plists this template intentionally does
-       NOT reference scripts/hub/with-org-db-env.sh directly -- ORG_DB_URL
-       reaches a live daemon by scripts/hub/cutover_flip.py inserting the
-       wrapper into the INSTALLED copy under ~/Library/LaunchAgents at
-       cutover time (docs/design/tasks-db-hub.md §3.3 step 3), never into
-       this git-tracked template. cutover_flip.py's PLISTS list does not
-       cover this file yet -- add it there when this scheduler is actually
-       installed (out of scope for this task, which is files-only). -->
+       ORG_DB_URL comes from scripts/hub/with-org-db-env.sh, named here in
+       the template itself: the wrapper reads the hub env file (or this
+       host's Infisical identity) at run time, so no value lands in this
+       file, and on a host with neither it is a plain exec. Installed on the
+       Mac 2026-10-02 after the G1 cutover shipped without it. -->
   <key>ProgramArguments</key>
   <array>
+    <string>/bin/bash</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh</string>
     <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
     <string>/Users/gob/MoonieXHQ/Agents/Core/scripts/hub/export_to_sqlite.py</string>
   </array>

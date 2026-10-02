@@ -140,7 +140,7 @@ threads). This command is the actual enforcement — skipping it does not fail
 quietly: the **next** `create_task` call this session makes (any task spawn)
 raises a `RuntimeError` and refuses to create the task.
 ```bash
-python3 -m tools.session_charter set "<Entry Problem, one sentence, from step 1>"
+bash scripts/hub/org-python.sh -m tools.session_charter set "<Entry Problem, one sentence, from step 1>"
 ```
 Escape hatch for setup/repair sessions only, never for normal work:
 `ORG_CHARTER_GATE=off`.

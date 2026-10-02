@@ -99,7 +99,7 @@ record_status() {
   # mattered and the status was never recorded, silently, behind a warning
   # that blamed a python traceback which was never there. Same idiom as
   # spawn-cto.sh:302.
-  ( cd "$ROOT" && python3 -m tools.session_status close \
+  ( cd "$ROOT" && bash scripts/hub/org-python.sh -m tools.session_status close \
       --role "$role" --session-id "$sid" \
       --status "$STATUS" --locks-dir "$LOCKS_DIR" ${note[@]+"${note[@]}"} ) >/dev/null \
     || echo "session-kill: WARNING: could not record status='$STATUS' for '$NAME' (see the error above) — kill still proceeds" >&2

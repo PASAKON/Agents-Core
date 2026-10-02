@@ -77,8 +77,9 @@ def test_skill_scores(db, cfg):
 
 
 def test_missing_db_is_not_created(tmp_path):
+    # Read through lib.db (readonly): it refuses up front, never creates.
     path = tmp_path / "missing.db"
-    with pytest.raises(sqlite3.OperationalError):
+    with pytest.raises(FileNotFoundError):
         compute_stats(path)
     assert not path.exists()
 

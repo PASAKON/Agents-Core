@@ -12,10 +12,12 @@
        probe older than 60s as a box that is not there, so 60s is the ceiling.
        One-shot command, so StartInterval, not a -loop daemon.
 
-       The probe writes to whichever ledger lib.db resolves on this box (the
-       local state/tasks.db, or the hub when ORG_DB_URL is set). Until the shared
-       ledger exists (W1.10) that is a private ledger, so the row is only useful
-       to OTHER hosts after W1.10.
+       The probe writes to whichever ledger lib.db resolves on this box. Since
+       the G1 cutover (2026-10-02) that must be the hub: state/tasks.db is a
+       tombstone, and launchd starts the job without ORG_DB_URL. So the job
+       starts through scripts/hub/with-org-db-env.sh, which sources
+       ~/.config/mooniex/org-db.env (or this host's Infisical identity), the
+       same way the org MCP server starts (scripts/lib/cxo_mcp_config.py).
 
        PATH includes /Users/gob/.local/bin on purpose: claude and agy live there,
        and the probe finds them with shutil.which. Without it launchd's short
@@ -29,6 +31,8 @@
   -->
   <key>ProgramArguments</key>
   <array>
+    <string>/bin/bash</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh</string>
     <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
     <string>-m</string>
     <string>tools.node_dispatch</string>

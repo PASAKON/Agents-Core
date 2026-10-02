@@ -525,7 +525,8 @@ def test_fuzz_start_clevel_on_windows_builds_only_the_fixed_argument(monkeypatch
 def test_fuzz_mesh_build_argv_sends_only_validated_plain_tokens():
     rng = random.Random(SEED + 13)
     prefix = mesh.build_argv("contabo", "probe", ())[:-1]
-    assert prefix[0] == "ssh" and prefix[-1] == config_mod.host("contabo")["ssh"]
+    assert prefix[0] == "ssh" and prefix[-1] == config_mod.host("contabo")["mesh_ssh"]
+    assert prefix[1:3] == ["-F", "none"]
     built = refused = 0
     for i in range(FUZZ_CASES):
         if i % 2:

@@ -49,11 +49,12 @@ from lib.config import (
     self_host,
     worker_session_name,
 )
-from lib.worker_mcp_config import write_for_worktree
+from lib.worker_mcp_config import env_without_org_db, reexec_with_org_db_url, write_for_worktree
 from runners import agy_local
 
 ROOT = Path(__file__).resolve().parent.parent
 HOOK_SCRIPT = ROOT / "scripts" / "hook-log-dev-reply.py"
+ORG_PYTHON_SH = ROOT / "scripts" / "hub" / "org-python.sh"
 
 # Tools every worker DEV may call, regardless of role. Skill is here (not a
 # per-role add-on) because every role now carries a skills_profile (ADR 0022
@@ -325,7 +326,12 @@ def _write_dev_settings(worktree: str, role: str | None = None) -> None:
                     "hooks": [
                         {
                             "type": "command",
-                            "command": f"python3 {HOOK_SCRIPT}",
+                            # The hook records session_id and rate_limited on
+                            # the task row. The worker's env has no
+                            # ORG_DB_URL (env_without_org_db), so on a hub
+                            # host the hook gets it from org-python.sh
+                            # (task-1b8ef857).
+                            "command": f"bash {ORG_PYTHON_SH} {HOOK_SCRIPT}",
                         }
                     ]
                 }
@@ -394,6 +400,11 @@ def main() -> None:
         sys.exit(1)
     role = sys.argv[1]
     task_id = sys.argv[2]
+
+    # A tmux pane has the tmux server's env, not the delegating session's:
+    # on a hub host it may lack ORG_DB_URL (task-1b8ef857). Does not return
+    # when it re-execs through scripts/hub/with-org-db-env.sh.
+    reexec_with_org_db_url("runners.worker_init", [role, task_id])
 
     db.init()
     task = db.get_task(task_id)
@@ -495,7 +506,7 @@ def main() -> None:
         # fall back to worker-tier default
         model = "claude-opus-5-5"
 
-    env = os.environ.copy()
+    env = env_without_org_db(os.environ.copy())
     # An "update available" prompt is a startup-level interrupt, not a tool
     # permission check, so neither --permission-mode nor --allowed-tools
     # reaches it -- it would block a worker nobody is watching on a keypress

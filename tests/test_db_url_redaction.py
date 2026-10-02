@@ -32,3 +32,39 @@ def test_init_banner_does_not_print_the_password(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert secret not in out
     assert "postgresql://org:***@h:5432/org_test" in out
+
+
+def test_pg_dump_never_gets_the_password_on_its_command_line(tmp_path, monkeypatch):
+    """The nightly hub backup (tools/drive_leg.py state-db) used to run
+    `pg_dump <ORG_DB_URL>`: the password sat in argv, which `ps` shows to every
+    user on Contabo, and the failure message printed argv into the cron log."""
+    import os
+
+    import pytest
+
+    import tools.drive_leg as drive_leg
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    stub = bin_dir / "pg_dump"
+    stub.write_text(
+        "#!/bin/sh\n"
+        f'echo "$@" > {tmp_path / "argv"}\n'
+        f'printf %s "$PGPASSWORD" > {tmp_path / "pw"}\n'
+        "echo 'connection refused' >&2\n"
+        "exit 1\n"
+    )
+    stub.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ.get('PATH', '')}")
+    monkeypatch.setenv("ORG_DB_URL", "postgresql://org:s3cr3t%40Pass@h:5432/org?sslmode=disable")
+    cfg = tmp_path / "cfg"
+    (cfg / "logs").mkdir(parents=True)
+
+    with pytest.raises(drive_leg.DriveLegError) as err:
+        drive_leg.state_db(config_dir=cfg)
+
+    argv = (tmp_path / "argv").read_text()
+    assert "s3cr3t" not in argv
+    assert "s3cr3t" not in str(err.value)
+    assert "postgresql://org@h:5432/org?sslmode=disable" in argv
+    assert (tmp_path / "pw").read_text() == "s3cr3t@Pass"

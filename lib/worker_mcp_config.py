@@ -123,3 +123,55 @@ def write_for_worktree(worktree: str | Path, root: str | Path = ROOT) -> Path:
     os.chmod(out, 0o600)
     _exclude_in_worktree(worktree, (GENERATED_NAME,))
     return out
+
+
+# --------------------------------------------------------------------------
+# The worker process itself (worker_init / worker_resume), not its MCP server
+# --------------------------------------------------------------------------
+
+# Names, never values, of the variables the worker launcher had before it went
+# through the wrapper. Set by reexec_with_org_db_url, read by
+# env_without_org_db; its presence is also the "already re-exec'd" guard.
+PRE_WRAP_NAMES = "MOONIEX_PRE_ORG_DB_ENV"
+
+
+def reexec_with_org_db_url(module: str, args: list[str], root: str | Path = ROOT) -> None:
+    """Restart `python -m <module> <args>` through scripts/hub/with-org-db-env.sh
+    when this host is on the hub and ORG_DB_URL is not in the environment.
+
+    A worker runs in a tmux pane, and tmux hands a pane the tmux SERVER's
+    environment, not the caller's. On a cut-over host that server predates the
+    cutover, so worker_init reached lib.db without ORG_DB_URL and died on the
+    archived state/tasks.db (task-1b8ef857, 2026-10-02). The gate is
+    cxo.org_db_wrapper, the rule that already wraps the worker's org MCP
+    server, so the worker process and its MCP server land on the same ledger.
+
+    Returns without doing anything when the URL is already set, when this
+    process already went through the wrapper once (a wrapper that could not
+    supply the URL leaves lib.db to fail loudly instead of looping), or when
+    the host is not on the hub. Otherwise it does not return."""
+    if (os.environ.get("ORG_DB_URL") or "").strip() or PRE_WRAP_NAMES in os.environ:
+        return
+    wrapper = _load_cxo().org_db_wrapper(str(root))
+    if wrapper is None:
+        return
+    names = ",".join(sorted(os.environ))
+    os.environ[PRE_WRAP_NAMES] = names
+    os.execvp("bash", ["bash", wrapper, sys.executable, "-m", module, *args])
+
+
+def env_without_org_db(env: dict[str, str]) -> dict[str, str]:
+    """`env` as the worker's claude process gets it: without ORG_DB_URL and
+    without anything else the wrapper added (whatever the env file or the
+    Infisical project carries). The worker's org MCP server starts through the
+    wrapper on its own, and the model's shell has no use for the hub's
+    password. Hooks that
+    read the task DB run under the system python3 and stay fail-open, as they
+    were for a session that predated the cutover."""
+    names = env.get(PRE_WRAP_NAMES)
+    if names is not None:
+        keep = set(filter(None, names.split(",")))
+        env = {k: v for k, v in env.items() if k in keep}
+    env.pop("ORG_DB_URL", None)
+    env.pop(PRE_WRAP_NAMES, None)
+    return env

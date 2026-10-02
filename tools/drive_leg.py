@@ -51,6 +51,7 @@ import sys
 import tarfile
 import tempfile
 import time
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
@@ -846,6 +847,19 @@ def state_db_index_path(config_dir_: Path) -> Path:
     return config_dir_ / "logs" / "state-db-archive-index.jsonl"
 
 
+def _pg_dump_cmd_env(url: str) -> tuple[list[str], dict]:
+    """pg_dump's argv and env for `url`, with the password moved into PGPASSWORD.
+    argv is readable by every user on the box (`ps`), and the failure message
+    below prints it, so only the password-free URL goes there."""
+    parts = urllib.parse.urlsplit(url)
+    env = dict(os.environ)
+    if parts.password is not None:
+        env["PGPASSWORD"] = urllib.parse.unquote(parts.password)
+        userinfo, hostport = parts.netloc.rsplit("@", 1)
+        parts = parts._replace(netloc=f"{userinfo.split(':', 1)[0]}@{hostport}")
+    return ["pg_dump", "--no-password", urllib.parse.urlunsplit(parts)], env
+
+
 def _state_db_pg(*, url: str, idx_path: Path, date: str, dry_run: bool,
                   rclone: str | None, who: str, config_dir: Path) -> dict:
     """ORG_DB_URL branch (ADR 0025): the org ledger lives in the Postgres hub, so a
@@ -854,12 +868,21 @@ def _state_db_pg(*, url: str, idx_path: Path, date: str, dry_run: bool,
     destination naming/skip-if-unchanged/manifest shape as the SQLite branch below,
     ".sql.gz" instead of ".sqlite.gz". Fails loudly (DriveLegError) if pg_dump is
     not on PATH -- a missing tool must never be mistaken for "nothing changed"."""
+    rows = _read_jsonl(idx_path)
+    last = rows[-1] if rows else None
+    drive = (last or {}).get("drive")
+    done = str(drive.get("remote_path", "") if isinstance(drive, dict) else drive or "")
+    if last and last.get("date") == date and done.endswith(".sql.gz"):
+        # One dump per date: the same name again would replace the earlier
+        # upload in place (CXO_Rules_GDrive_Filing rule 11).
+        print(f"[1/1] state-db tasks-{date}: already on Drive today ({done}), skipping")
+        return dict(skipped=True, reason="already backed up today", drive=done)
     if not shutil.which("pg_dump"):
         raise DriveLegError(
             "ORG_DB_URL is set but pg_dump is not on PATH -- cannot back up the org ledger"
         )
-    cmd = ["pg_dump", url]
-    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd, env = _pg_dump_cmd_env(url)
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     if proc.returncode != 0:
         raise DriveLegError(
             f"pg_dump failed rc={proc.returncode} ({' '.join(cmd)}): {proc.stderr[-400:]!r}"
@@ -867,8 +890,6 @@ def _state_db_pg(*, url: str, idx_path: Path, date: str, dry_run: bool,
     dump = proc.stdout
     size = len(dump)
     sha = hashlib.sha256(dump).hexdigest()
-    rows = _read_jsonl(idx_path)
-    last = rows[-1] if rows else None
     print(f"[1/1] state-db tasks-{date}: {size} B, sha256 {sha[:12]}... (pg_dump $ORG_DB_URL)")
     if last and last.get("sha256") == sha:
         print(f"    unchanged since {last.get('date')}, skipping")
@@ -918,6 +939,13 @@ def state_db(*, config_dir: Path, db_path: Path | None = None, dry_run: bool = F
 
     import sqlite3
     src = Path(db_path) if db_path else ROOT / "state" / "tasks.db"
+    if src.is_dir():
+        # The hub-cutover tombstone: the ledger lives in Postgres, and only the
+        # ORG_DB_URL branch above backs it up. A run that lands here was started
+        # without the env wrapper; "not found, skipping" would hide that forever.
+        raise DriveLegError(
+            f"{src} is the hub-cutover tombstone and ORG_DB_URL is unset -- run the leg "
+            "through scripts/hub/with-org-db-env.sh so pg_dump backs up the hub")
     if not src.is_file():
         print(f"[1/1] state-db: {src} not found, skipping")
         return dict(skipped=True, reason="missing", source=str(src))

@@ -106,9 +106,9 @@ Contabo included (CEO 2026-09-28: "ตามนั้น").
 - A git worktree whose branch is merged, nothing dirty, nothing unpushed
 
 - An **abandoned Work/ folder** (CEO 2026-09-23: "นับเป็น Green ได้ ถ้าไม่ได้ทำต่อแล้วนานมากๆ หรือฉันลืม"):
-  `python tools/workdir.py orphans --green` lists folders whose task ended more than
+  `bash scripts/hub/org-python.sh tools/workdir.py orphans --green` lists folders whose task ended more than
   `work_dir.abandon_days` (14) ago with the owner alerted and a LungNote Critical to-do open.
-  Clear each with `python tools/workdir.py close <task> --archive` — no asking, but never a
+  Clear each with `bash scripts/hub/org-python.sh tools/workdir.py close <task> --archive` — no asking, but never a
   plain delete: out/ and unsourced in/ go to Drive BACKUP (md5 verified) first, tmp/ and
   re-downloadable in/ are deleted. Check this list on every disk clean-up.
 

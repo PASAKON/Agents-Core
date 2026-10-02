@@ -241,7 +241,7 @@ esac
 # slow run must never delay or block this spawn.
 if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
   (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
-    python3 -m tools.session_reconcile --apply 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+    bash scripts/hub/org-python.sh -m tools.session_reconcile --apply 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
 fi
 
 # Register this session in c_level_sessions so send_to_cxo has a target to
@@ -253,7 +253,7 @@ fi
 # not what this guard is about; it belongs to register_cxo.py's own coverage.
 if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
   (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
-    python3 -m tools.register_cxo --role cto --session "$CTO_SESSION_ID" --host "$HOST_KEY" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
+    bash scripts/hub/org-python.sh -m tools.register_cxo --role cto --session "$CTO_SESSION_ID" --host "$HOST_KEY" 2>/dev/null || true) >/dev/null 2>&1 </dev/null &
 fi
 
 # Test-only early exit: everything above (lock/uuid/winid/tty files, the

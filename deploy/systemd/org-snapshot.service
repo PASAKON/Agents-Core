@@ -3,13 +3,18 @@ Description=MoonieX org ledger hub snapshot export (Org Mesh W1.7)
 # Refreshes state/tasks.snapshot.db from the Postgres hub so lib.db.get_conn()
 # has a read-only fallback when ORG_DB_URL is set but the hub can't be
 # reached (docs/design/org-mesh.md, docs/design/tasks-db-hub.md). Triggered
-# by org-snapshot.timer, not started directly. Files only -- installing this
-# unit is a later live step, same as the sibling .plist for the Mac.
-After=network.target
+# by org-snapshot.timer, not started directly.
+#
+# ORG_DB_URL comes from scripts/hub/with-org-db-env.sh, not an
+# EnvironmentFile: Contabo's /root/.config/mooniex/org-db.env carries only
+# POSTGRES_*, so the URL is read through this host's Infisical identity
+# (wrapper leg b). With EnvironmentFile alone the export no-ops forever as
+# "hub not configured".
+After=network-online.target docker.service
+Wants=network-online.target
 
 [Service]
 Type=oneshot
 User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
-EnvironmentFile=/root/.config/mooniex/org-db.env
-ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/scripts/hub/export_to_sqlite.py
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/scripts/hub/export_to_sqlite.py

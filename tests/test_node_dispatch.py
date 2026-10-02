@@ -75,6 +75,7 @@ class Recorder:
         self.script_out = "spawned iTerm window id=abcd1234 (logs at x)"
         self.close_result: dict | None = None
         self.wake_raises = False
+        self.wake_result: object = True  # what attempt_wake answers: True, False or None
         self.session_live = True
 
     def run(self, argv, **kw):
@@ -110,6 +111,7 @@ def rec(monkeypatch) -> Recorder:
         r.calls.append(("wake", role, sid, label))
         if r.wake_raises:
             raise RuntimeError("wake exploded")
+        return r.wake_result
 
     def fake_create(name, cwd, cmd):
         r.calls.append(("tmux_create", name, str(cwd), cmd))
@@ -464,7 +466,8 @@ def test_deliver_letter_writes_wakes_and_marks_delivered(rec):
     lid = _letter()
     out, code = nd.run_command(f"deliver_letter {lid}")
     assert code == 0, out
-    assert out["result"] == {"letter_id": lid, "delivered": True, "to": "cto-abcd1234"}
+    assert out["result"] == {"letter_id": lid, "delivered": True, "to": "cto-abcd1234",
+                             "woke": True}
     letters = mailbox.peek("cto", "abcd1234")
     assert [(l["body"], l["from"]["role"]) for l in letters] == [("hello", "cmo")]
     assert ("wake", "cto", "abcd1234", "CMO") in rec.calls
@@ -558,8 +561,90 @@ def test_deliver_letter_mailbox_exception_is_a_failure(rec, monkeypatch):
 def test_deliver_letter_wake_failure_never_fails_delivery(rec):
     rec.wake_raises = True
     lid = _letter()
-    assert nd.run_command(f"deliver_letter {lid}")[1] == 0
+    out, code = nd.run_command(f"deliver_letter {lid}")
+    assert code == 0
     assert db_mod.get_letter(lid)["status"] == "delivered"
+    assert out["result"]["woke"] is False and out["result"]["why"] == "wake raised RuntimeError"
+
+
+@pytest.mark.parametrize("answer, why", [
+    (False, "tmux nudge not delivered"),       # attempt_wake: no live session, or tmux refused
+    (None, "wake reported no result"),         # a wake that answers nothing is never "woke"
+    ("yes", "wake reported no result"),        # only a real True counts
+    (1, "wake reported no result"),
+])
+def test_clevel_letter_on_posix_reports_woke_false_with_a_reason(rec, answer, why):
+    rec.wake_result = answer
+    lid = _letter()
+    out, code = nd.run_command(f"deliver_letter {lid}")
+    assert code == 0, out
+    assert out["result"]["woke"] is False and out["result"]["why"].startswith(why)
+    assert db_mod.get_letter(lid)["status"] == "delivered"
+    assert len(mailbox.peek("cto", "abcd1234")) == 1  # the letter is on disk whatever the wake did
+
+
+def test_clevel_letter_on_posix_reports_woke_true_without_a_why(rec):
+    out, code = nd.run_command(f"deliver_letter {_letter()}")
+    assert code == 0 and out["result"]["woke"] is True and "why" not in out["result"]
+
+
+# Worker letters on POSIX: the task row backs the inbox, agent_transport does the tmux wake.
+
+def _posix_worker_letter(monkeypatch, rec, wake):
+    """A `developer` worker with a live tmux session on this host (mac), and
+    agent_transport.attempt_wake replaced by `wake(session, label, prefix)`."""
+    from tools import agent_transport
+    monkeypatch.setattr(nd, "_is_windows", lambda: False)
+    monkeypatch.setattr(agent_transport, "attempt_wake",
+                        lambda session, label, prefix, **kw: wake(session, label, prefix))
+    tid = _mk_task(host="mac", status="in_progress", tmux_session="dev-abc")
+    return tid, _letter(to_role="developer", to_session=tid)
+
+
+def test_worker_letter_on_posix_reports_woke_true_when_the_nudge_reached_tmux(rec, monkeypatch):
+    seen = []
+    tid, lid = _posix_worker_letter(monkeypatch, rec,
+                                    lambda s, label, prefix: seen.append((s, label, prefix)) or True)
+    out, code = nd.run_command(f"deliver_letter {lid}")
+    assert code == 0, out
+    assert out["result"] == {"letter_id": lid, "delivered": True, "to": f"developer-{tid}",
+                             "woke": True}
+    assert seen == [("dev-abc", "CMO", "node_dispatch")]
+    assert len(mailbox.peek("developer", tid)) == 1
+
+
+@pytest.mark.parametrize("answer, why", [
+    (False, "tmux nudge not delivered"),
+    (None, "wake reported no result"),
+])
+def test_worker_letter_on_posix_reports_woke_false_with_a_reason(rec, monkeypatch, answer, why):
+    tid, lid = _posix_worker_letter(monkeypatch, rec, lambda *a: answer)
+    out, code = nd.run_command(f"deliver_letter {lid}")
+    assert code == 0, out
+    assert out["result"]["woke"] is False and out["result"]["why"].startswith(why)
+    assert db_mod.get_letter(lid)["status"] == "delivered"
+
+
+def test_worker_letter_on_posix_wake_that_raises_is_woke_false_and_still_delivered(rec, monkeypatch):
+    def boom(*a):
+        raise OSError("tmux gone")
+
+    tid, lid = _posix_worker_letter(monkeypatch, rec, boom)
+    out, code = nd.run_command(f"deliver_letter {lid}")
+    assert code == 0, out
+    assert out["result"]["woke"] is False and out["result"]["why"] == "wake raised OSError"
+    assert db_mod.get_letter(lid)["status"] == "delivered"
+    assert len(mailbox.peek("developer", tid)) == 1
+
+
+def test_worker_letter_on_posix_with_no_live_tmux_is_a_failed_delivery_not_woke_false(rec, monkeypatch):
+    """The wake is only ever asked about a session that was live a moment ago."""
+    rec.session_live = False
+    tid, lid = _posix_worker_letter(monkeypatch, rec, lambda *a: pytest.fail("woke a dead session"))
+    out, code = nd.run_command(f"deliver_letter {lid}")
+    assert code == 1 and "no live tmux session" in out["error"]
+    assert mailbox.peek("developer", tid) == []
+    assert db_mod.get_letter(lid)["status"] == "pending"
 
 
 # ---------------------------------------------------------------------------

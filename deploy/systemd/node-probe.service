@@ -5,10 +5,12 @@ Description=MoonieX node probe (docs/design/runner-routing/PLAN-auto-dispatch.md
 # table, so the router (H2 lib/router.pick_host) can pick the least loaded box.
 # Triggered by node-probe.timer, not started directly.
 #
-# The probe writes to whichever ledger lib.db resolves on this box (the local
-# state/tasks.db, or the hub when ORG_DB_URL is set). Until the shared ledger
-# exists (W1.10) that is a private ledger, so the row is only useful to OTHER
-# hosts after W1.10.
+# The probe writes to whichever ledger lib.db resolves on this box. Since the
+# G1 cutover (2026-10-02) that must be the hub: state/tasks.db is a tombstone,
+# and systemd starts the unit without ORG_DB_URL. So ExecStart goes through
+# scripts/hub/with-org-db-env.sh, as org-snapshot.service does: Contabo's
+# org-db.env carries only POSTGRES_*, so the URL is read through this host's
+# Infisical identity (wrapper leg b).
 #
 # PATH lists /root/.local/bin and /root/.npm-global/bin on purpose: claude and
 # agy live in the first, and the probe finds them with shutil.which. systemd's
@@ -25,4 +27,4 @@ User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=ORG_HOST=contabo
 Environment=PATH=/root/.local/bin:/root/.npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_dispatch probe
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_dispatch probe

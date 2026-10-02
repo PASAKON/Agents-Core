@@ -354,7 +354,11 @@ def test_plist_runs_the_probe_every_60_seconds():
 
     assert plist["Label"] == "com.mooniex.node-probe"
     assert plist["StartInterval"] == 60
+    # through the hub env wrapper: launchd has no ORG_DB_URL, and since G1
+    # state/tasks.db is a tombstone (docs/ops/node-dispatch.md)
     assert plist["ProgramArguments"] == [
+        "/bin/bash",
+        "/Users/gob/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh",
         "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python",
         "-m", "tools.node_dispatch", "probe",
     ]
@@ -381,6 +385,7 @@ def test_service_is_a_oneshot_that_runs_the_probe_on_contabo():
 
     assert _values(unit, "Service", "Type") == ["oneshot"]
     assert _values(unit, "Service", "ExecStart") == [
+        "/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh "
         "/opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_dispatch probe"]
     assert _values(unit, "Service", "WorkingDirectory") == ["/opt/MoonieXHQ/Agents/Core"]
     env = _values(unit, "Service", "Environment")
@@ -404,7 +409,7 @@ def test_timer_fires_at_boot_plus_60s_then_every_60s_after_the_last_run():
 def test_timer_files_say_which_ledger_and_when_it_helps(path):
     text = path.read_text()
     assert "lib.db resolves" in text
-    assert "W1.10" in text
+    assert "G1" in text and "with-org-db-env.sh" in text  # the hub, never the tombstone
 
 
 @pytest.mark.parametrize("path", [PLIST, SERVICE, TIMER], ids=lambda p: p.name)
