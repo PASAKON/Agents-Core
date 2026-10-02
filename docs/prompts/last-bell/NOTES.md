@@ -40,6 +40,26 @@ The CTO proposed «ระฆังสุดท้ายแห่งนครน�
 - Look: a surreal yellow-green grade ("ย้อมเขียวเหลือง เหนือจินตนาการ").
 - English version, with Thai identity inside it.
 - The CTO asks before acting on anything it is not sure of.
+- Camera, light, lens and colour: skill `CMO_Knowledge_Cinematography_ShortMovie`. CEO 2026-10-03: "ที่สำคัฐ
+  อันนี้คือShort Movie ไม่ใช่ ละครสั้นนะ อย่าเอามา ปนกัร" — no lakorn / short-drama rule enters this film.
+
+## Drive (CEO 2026-10-03: "ALL DRAFT/YT: ILAG/The Last Bell/ ตกลง")
+
+Created 2026-10-03 by cto-671f688f, layout copied from THE SHADOW BELOW (`CXO_Rules_GDrive_Filing` §YT: ILAG).
+Every upload appends a line to `logs.txt` in the same turn; nothing on this branch is deleted.
+
+| Path | Drive id |
+|---|---|
+| `ALL DRAFT/YT: ILAG/The Last Bell/` | `1ygI2iuJJGavGO-PwBjDB-oT4JRukOVlS` |
+| `logs.txt` | `1vQOSnq9k4RxZI1azm7e_7hUXQ7uo5pKu` |
+| `All Scene/` | `1pT0rGcZqnbWE6-fTEdt5nkibzViGfkoV` |
+| `Element/` | `1gyKkEl08MUWV3yvwaoN9iUqT1R8LUPxE` |
+| `Element/Character/` | `1tppgjOyzPF3W5rDWqDwlm2ELbVd9CWY5` |
+| `Element/Location/` | `1mbbtYAq2CQed3V7w5pZfunT3yBjtpYlI` |
+| `Element/Prop/` | `1MxP2lwz5pQkVfafTUftHLdR4y0Cq59qA` |
+| `Soundtrack/` | `12E2_u7hfIKq0KUajJYbK7oZgjTNypQDT` |
+| `Final Draft/` | `1xYY-3WDxxU3XR3lNAT9lA2DqgwpYrIWp` |
+| `StoryBoard` (Google Doc) | `1j_mA0HcB7Zd8c5j7wHrenrFIAMWzj5V8JjyGVJMxEIA` |
 
 ## Assumptions not yet confirmed (CTO, 2026-10-03)
 
