@@ -1,0 +1,158 @@
+schema: mooniex.flow/v1
+flow: mimi_week
+name: Mimi page week
+skill: CMO_Workflow_MimiPage_Weekly
+owner: CMO
+goal: Ship one week of the Mimi page — 3 video episodes (Fri-Sun) and 4 designed posts (Mon-Thu), all scheduled, then supervised.
+output: Three Reels and four poster posts live on the Page «บ้านนี้มีมีมี่» at 19:30 Thai time, each with a first comment and a numbers row.
+host: contabo
+trigger:
+  kind: manual
+  by: CMO
+watcher: CMO@contabo
+phases:
+  - {id: pre, name: Story and approval}
+  - {id: gen, name: Shoot and QC}
+  - {id: ship, name: Cut and schedule}
+  - {id: run, name: Supervise}
+nodes:
+  - id: fact
+    name: Real family fact
+    does: The CEO tells one real story from the house; it becomes a dated row in the story bible.
+    phase: pre
+    kind: human
+    after: []
+    approver: CEO
+    verify: {human: CEO}
+    gate: A dated row exists in CMO_Standard_Story_FamilyDogSeries section 7 for this episode.
+
+  - id: script
+    name: Script and sheet
+    does: Writes the episode script, the shot data and the built sheet from the fact, with the lint passing.
+    phase: pre
+    kind: agent
+    after: [fact]
+    role: cmo
+    skill: CMO_Standard_Story_FamilyDogSeries
+    stage: agent
+    output: docs/scripts/khaoniao-epN-SCRIPT-v1.md + ACT1.data.py + ACT1.md
+    verify: {cmd: "python3 tools/shotsheet_lint.py docs/scripts/khaoniao-epN-ACT1.md"}
+    gate: Structure gate passed, lint PASS with 100% spoken, the fact and its date named in the script.
+
+  - id: approve
+    name: Script and credit OK
+    does: The CEO reads the scripts and gives the exact Flow credit cap for the batch before any paid job.
+    phase: pre
+    kind: human
+    after: [script]
+    approver: CEO
+    verify: {human: CEO}
+    gate: His OK in chat naming the credits per episode, quoted in the calendar file.
+    blockers: [money]
+
+  - id: shoot
+    name: Flow shoot
+    does: Fires the 18 shots on winbox Flow with the credit cap and verifies each download in the ledger.
+    phase: gen
+    kind: code
+    after: [approve]
+    tool: tools/flow_shoot.py
+    host: winbox
+    output: C:\mooniex\khaoniao\epN\clips + ledger
+    verify: {check: "the ledger shows 18/18 rows verified and the credit_ledger row is written"}
+    gate: 18 of 18 shots verified, credits within the cap.
+    on_fail: {retry: 1}
+    blockers: [credit, login, quota, money]
+    expect_min: 30
+    measured:
+      - {date: "2026-10-01", minutes: 23, source: docs/plans/khaoniao-week-workflow-2026-10-01.md}
+
+  - id: qc
+    name: Film QC
+    does: Checks transcript against script, burned text and a contact sheet by eye, and reshoots the failed shots.
+    phase: gen
+    kind: agent
+    after: [shoot]
+    role: cmo
+    skill: CMO_Gate_Flow_Omni1.1_FilmQC
+    stage: agent
+    output: QC list in the episode report
+    verify: {check: "every shot has a pass or a reshoot reason, reshoots at most 3"}
+    gate: All 18 shots pass the FilmQC gate.
+
+  - id: cut
+    name: Cut, music, cover
+    does: Assembles the cut with title and end cards, mixes the piano bed, renders the cover and a 540p preview.
+    phase: ship
+    kind: code
+    after: [qc]
+    tool: tools/film_cut_assemble.py
+    host: contabo
+    output: Assets/Agents/Core/khaoniao-family/epN/EP<N>-cut-v2-M1.mp4 + cover + 540p preview
+    verify: {check: "the cut plays end to end, the title card covers 1:00, the first three seconds show Mimi's face"}
+    gate: The cut passes the 3-second check and the length is about 3:00.
+
+  - id: posters
+    name: Mon-Thu posters
+    does: Designs the four weekday posters and captions from real frames and the page lettering.
+    phase: ship
+    kind: agent
+    after: []
+    role: cmo
+    skill: CMO_Workflow_MimiPage_Weekly
+    stage: agent
+    output: docs/reports/khaoniao-family-style/posters/ + captions in the calendar file
+    verify: {check: "contact sheet of four posters looked at once; no privacy item; every caption has the AI label"}
+    gate: Four posters and four captions ready, none showing a house number, a framed picture or fake progress.
+
+  - id: preview
+    name: CEO watches 540p
+    does: The CEO watches the episode preview and the poster sheet and gives his go for the final schedule press.
+    phase: ship
+    kind: human
+    after: [cut, posters]
+    approver: CEO
+    verify: {human: CEO}
+    gate: His OK on the cut and his go for the schedule press, both in chat.
+
+  - id: schedule
+    name: Schedule on the Page
+    does: Schedules the Reel and the four posts on the Page profile for 19:30 and reads the list back.
+    phase: ship
+    kind: agent
+    after: [preview]
+    role: browser_operator
+    skill: BROWSER_OPERATOR_Protocol_Playbook
+    stage: agent
+    host: winbox
+    output: The Page's Manage posts list showing each item as scheduled
+    verify: {check: "Manage posts lists the item as scheduled for the right date and time with the AI label on"}
+    gate: Every item of the week reads back as scheduled for 19:30.
+    blockers: [login, account]
+
+  - id: comment
+    name: First comments armed
+    does: Arms one first-comment cron per episode and one live-check cron, with the next-episode promise computed.
+    phase: run
+    kind: agent
+    after: [schedule]
+    role: cmo
+    skill: CMO_Workflow_MimiPage_Weekly
+    stage: agent
+    output: CronList entries for 19:33 and 19:45 of each episode day
+    verify: {check: "CronList shows both crons for each episode and the promised day matches the calendar"}
+    gate: Crons armed and each comment text names the right next day.
+
+  - id: watch
+    name: Live check and numbers
+    does: Confirms the post is live, posts the first comment, answers replies and records the numbers.
+    phase: run
+    kind: agent
+    after: [comment]
+    role: cmo
+    skill: CMO_Workflow_MimiPage_Weekly
+    stage: agent
+    output: calendar row and credit ledger row updated
+    verify: {check: "the permalink opens, the first comment is visible, the calendar row has measured numbers"}
+    gate: The post is public, the first comment is up and the numbers row is written.
+    release: true
