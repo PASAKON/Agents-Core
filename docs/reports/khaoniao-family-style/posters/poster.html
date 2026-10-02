@@ -1,0 +1,72 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>บ้านนี้มีมีมี่ — weekday poster 1080x1350</title>
+<!--
+  Weekday poster (4:5) for «บ้านนี้มีมีมี่» — Mon-Thu posts of CMO_Workflow_MimiPage_Weekly §3.
+  Same L3 child-handwriting treatment and the same tokens as ../cover/cover.html (code wins over wiki):
+    Itim, fill #FFF6D6, stroke #203A5E (paint-order stroke), grapheme wobble, wave underline,
+    gold #F2B632 badge with #FFF3D6 ring, navy shade rgba(8,16,32,..), page bg #10203a.
+  The picture is a real frame cut from an episode (never an image model). Icons: none needed (no emoji).
+  Query: img=<key> (C:\mooniex\khaoniao\poster\frames\<key>.png, 720x1280) &oy=<px offset of the 1080-wide frame>
+         &bB=<badge big> &bS=<badge small> &l1= &l2= &c1= &c2= (chips) &q=<spoken line, optional bubble> &top=<y of l1>
+  Mon-Thu text lives in render_posters.py, one param set per post; edit the text THERE, never in a PNG.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=block');
+html,body{margin:0;padding:0;background:#10203a;overflow:hidden}
+#stage{position:relative;width:1080px;height:1350px;overflow:hidden;font-family:'Itim'}
+.pic{position:absolute;left:0;top:0;width:1080px;height:1350px;background-repeat:no-repeat;background-size:1080px auto}
+.top{position:absolute;left:0;right:0;top:0;height:300px;background:linear-gradient(180deg,rgba(8,16,32,.5) 0%,rgba(8,16,32,0) 100%)}
+.shade{position:absolute;left:0;right:0;bottom:0;height:760px;background:linear-gradient(180deg,rgba(8,16,32,0) 0%,rgba(8,16,32,.7) 38%,rgba(8,16,32,.94) 100%)}
+.line{position:absolute;left:0;right:0;display:flex;justify-content:center}
+.t{display:inline-block;white-space:nowrap;line-height:1.25;transform-origin:center center;
+   -webkit-text-stroke:14px #203A5E;paint-order:stroke fill;filter:drop-shadow(0 6px 5px rgba(0,0,0,.5))}
+.ch{display:inline-block}
+.l1 .t{font-size:118px;color:#FFF6D6}
+.l2 .t{font-size:118px;color:#F2B632}
+.c1 .t,.c2 .t{font-size:56px;color:#FFF6D6;-webkit-text-stroke:9px #203A5E}
+.wave{position:absolute;left:150px;width:780px;height:30px}
+.badge{position:absolute;left:48px;top:48px;width:176px;height:176px;border-radius:50%;background:#F2B632;
+  box-shadow:inset 0 0 0 10px #FFF3D6,0 8px 14px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#203A5E;line-height:1}
+.badge b{font-size:70px;font-weight:400}.badge i{font-style:normal;font-size:30px;margin-top:4px}
+.mark{position:absolute;right:36px;top:40px;width:470px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.45))}
+.bubble{position:absolute;left:70px;right:70px;background:#FFF6D6;color:#203A5E;border-radius:44px;padding:26px 40px;
+  font-size:54px;line-height:1.3;text-align:center;box-shadow:0 8px 14px rgba(0,0,0,.4)}
+</style>
+<div id="stage">
+  <div class="pic" id="pic"></div><div class="top"></div><div class="shade"></div>
+  <div class="badge"><b id="bB"></b><i id="bS"></i></div>
+  <img class="mark" src="file:///C:/mooniex/khaoniao/cover/logo-3-mark.png">
+  <div class="bubble" id="bubble" style="display:none"></div>
+  <div class="line l1" id="l1"></div><div class="line l2" id="l2"></div>
+  <svg class="wave" id="wave" viewBox="0 0 800 30"><path d="M8 16 q25 -16 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="#FFF6D6" stroke-width="7" fill="none" stroke-linecap="round"/></svg>
+  <div class="line c1" id="c1"></div><div class="line c2" id="c2"></div>
+</div>
+<script>
+const q = new URLSearchParams(location.search);
+const g = (k, d = '') => q.get(k) || d;
+const TOP = +g('top', 850), FIT = 940;
+document.getElementById('pic').style.backgroundImage = `url(file:///C:/mooniex/khaoniao/poster/frames/${g('img')}.png)`;
+document.getElementById('pic').style.backgroundPosition = `0 -${+g('oy', 250)}px`;
+document.getElementById('bB').textContent = g('bB'); document.getElementById('bS').textContent = g('bS');
+const rot = [-5, 4, -3, 5, -4, 3, -5], dy = [0, -8, 4, -6, 6, -4, 2];
+const clusters = s => [...new Intl.Segmenter('th', {granularity: 'grapheme'}).segment(s)].map(x => x.segment);
+const spans = (s, k) => clusters(s).map((c, i) => `<span class="ch" style="transform:translateY(${dy[i % 7] * k}px) rotate(${rot[i % 7] * k}deg)">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+async function build() {
+  const rows = [['l1', g('l1'), TOP, .8], ['l2', g('l2'), TOP + 140, .8], ['c1', g('c1'), TOP + 300, .35], ['c2', g('c2'), TOP + 372, .35]];
+  for (const [id, txt, y, k] of rows) {
+    const el = document.getElementById(id); el.style.top = y + 'px';
+    el.innerHTML = txt ? `<span class="t">${spans(txt, k)}</span>` : '';
+  }
+  if (g('q')) { const b = document.getElementById('bubble'); b.style.display = 'block'; b.textContent = '“' + g('q') + '”'; b.style.top = (TOP - 250) + 'px'; }
+  await document.fonts.ready;
+  await document.fonts.load('40px "Itim"', rows.map(r => r[1]).join('') + g('q') + g('bB') + g('bS'));
+  for (const id of ['l1', 'l2', 'c1', 'c2']) {
+    const t = document.querySelector('#' + id + ' .t'); if (!t) continue;
+    const w = t.getBoundingClientRect().width; t.style.transform = `scale(${Math.min(1, FIT / w)})`;
+  }
+  document.getElementById('wave').style.top = (TOP + 262) + 'px';
+  document.title = 'ready';
+}
+build();
+</script>
