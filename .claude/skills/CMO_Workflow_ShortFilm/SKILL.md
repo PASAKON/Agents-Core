@@ -135,6 +135,8 @@ and the CEO's own edit needs a day.
   montage), length, who and where. Then the continuity table in cut order (`CMO_Knowledge_Film_Production` §9; Flow
   films: `CMO_Gate_Flow_Omni1.1_Continuity`; tools: `tools/build_shotsheet.py`, `tools/continuity_sheet.py`,
   `tools/shotsheet_lint.py`). Say the tolerance out loud (§5).
+  Shot size, angle, move, lens, light and colour per shot: `CMO_Knowledge_Cinematography_ShortMovie`
+  (Short Movie only; ละครสั้น / lakorn never borrows from it, CEO 2026-10-03).
 - **Output:** STORYBOARD.md + continuity table. **Gate:** every open question asked at once, each with a
   recommended answer; the CEO's answers written into the notes before any prompt changes.
 

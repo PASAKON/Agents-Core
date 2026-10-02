@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-45 org skills by kind — Rules 6 · Knowledge 11 · Workflow 3 · Procedure 9 · Standard 4 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+46 org skills by kind — Rules 6 · Knowledge 12 · Workflow 3 · Procedure 9 · Standard 4 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -26,6 +26,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `ALL_Knowledge_Jev` | CTO | all | How to get the most out of Jev for the least money — the decisions it fits, the choice/score/noul question types, the cost formula… |
+| `CMO_Knowledge_Cinematography_ShortMovie` | CMO | cmo, cto, cxo, script_writer, browser_operator | Professional cinematography for a SHORT MOVIE (หนังสั้น, cinema grammar) made with AI video engines: lighting setups, portrait patterns… |
 | `CMO_Knowledge_Film_Production` | CMO | cmo, cto, cxo, script_writer | How to run a multi-shot AI film on any engine so it stays one film: the story gate, CAST.md from day one, reference plates, what to… |
 | `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra account: the model-scope block the three… |
 | `CMO_Knowledge_MiniMax_H3` | CMO | cmo, cto, browser_operator, developer | Everything measured about generating video with MiniMax H3 through our own ComfyRunpod studio (the Mac, reached over the tailnet): adding… |
