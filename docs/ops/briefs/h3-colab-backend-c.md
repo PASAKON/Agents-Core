@@ -141,3 +141,14 @@ The CEO ruled that the risky list is too wide. Today a story with a child extra 
       - gore fails L3.
     - **Docs.** `docs/STUDIO-API.md`, the safe-split section, lists the five rules.
     - These files are added to your touches: `studio/src/lib/sceneJudge.ts`, `studio/src/lib/scenegen.ts`, `scripts/test_safe_split.py`.
+
+## Addendum 2026-10-03 — item 13: route preview (lets the CTO test routing without spending anything)
+
+13. **`POST /api/safe-split/preview`.**
+    - Input: a list of scenes in the same shape as enqueue (positive text, rating, refs) plus N.
+    - It runs the real `routeTakes` layers L1–L4 and returns, per take: the backend it would get, and the first layer that sent it to RunPod (`writer` / `words` / `judge` / `refs` / `error`).
+    - It returns per scene: which layers passed. It never returns the prompt text.
+    - It writes nothing to the queue, starts no render and touches no VM.
+    - It calls L2 for real, so each call costs about $0.0002 per scene.
+    - Add a test through the route with a fake judge, plus one line in STUDIO-API.md.
+    - After the merge, the CTO uses this route to check every routing rule live for under $0.01.
