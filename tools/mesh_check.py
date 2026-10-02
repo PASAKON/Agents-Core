@@ -494,13 +494,32 @@ def _git_ls_remote_has(root: Path, sha: str) -> bool:
     return r.returncode == 0 and sha in r.stdout
 
 
+_GIT_STATUS_FAILED = "git status failed"
+
+
 def _git_status_porcelain(root: Path) -> str:
     try:
         r = subprocess.run(["git", "status", "--porcelain"], cwd=str(root),
                            capture_output=True, text=True, timeout=30)
     except (subprocess.TimeoutExpired, OSError):
-        return "git status failed"
+        return _GIT_STATUS_FAILED
     return r.stdout.strip()
+
+
+def _new_tracked_dirt(before: str, after: str) -> list[str]:
+    """`git status --porcelain` lines in `after` that `before` did not have,
+    untracked (`??`) entries left out.
+
+    L3 asks whether ITS cycle dirtied this host's runtime checkout, not
+    whether that checkout is clean. A live checkout can carry another
+    session's WIP, or the harness's model line in claude-home/settings.json,
+    for days, and other sessions keep writing untracked state files while
+    the probe runs. merge_task can only change tracked files there (the
+    best-effort fast-forward, or an in-place merge on a project with no
+    origin), so a new tracked entry is the signal."""
+    seen = set(before.splitlines())
+    return [line for line in after.splitlines()
+            if line not in seen and not line.startswith("??")]
 
 
 def _git_show_from_origin(root: Path, rev: str, path: str) -> tuple[str | None, str]:
@@ -554,6 +573,7 @@ async def _l3_cycle(from_host: str, to_host: str, root: Path, expect: str,
     python = _venv_python(root)
     if not python.exists():
         return False, ".venv missing"
+    dirt_before = _git_status_porcelain(root)
     env = dict(os.environ)
     env["PYTHONUNBUFFERED"] = "1"
     env["CTO_SESSION_ID"] = session_id
@@ -633,9 +653,12 @@ async def _l3_cycle(from_host: str, to_host: str, root: Path, expect: str,
         return False, f"merge_sha {merge_sha[:12]} not found on origin"
     if l5 is not None:
         await asyncio.to_thread(l5.read_probe, root, merge_sha, probe_path)
-    dirty = _git_status_porcelain(root)
-    if dirty:
-        return False, f"worktree not clean after merge: {dirty[:200]}"
+    dirt_after = _git_status_porcelain(root)
+    if dirt_after == _GIT_STATUS_FAILED:
+        return False, "git status failed after merge"
+    new_dirt = _new_tracked_dirt(dirt_before, dirt_after)
+    if new_dirt:
+        return False, f"merge left the runtime checkout dirty: {'; '.join(new_dirt)[:200]}"
     return True, None
 
 
