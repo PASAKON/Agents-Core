@@ -3,7 +3,9 @@
 
 Read-only, stdlib only. Talks to ONE Flow project tab's own websocket (never the browser target):
 mutes media, clicks the account button [aria-label="รายละเอียดบัญชี"], reads "เครดิต Google Flow N เครดิต", Escape.
-Run ON winbox:  python tools\\flow_balance_ws.py [project-id-fragment]   (default: the Mimi project, 29b3326b)
+Run ON winbox:  python tools\\flow_balance_ws.py [project-id-fragment] [--reload]   (default: the Mimi project, 29b3326b)
+--reload reloads the tab first: the idle project tab keeps the credit number it loaded with, so after a long shoot
+(the runner works in the /edit/ tab) the number is stale until the page is reloaded (EP3 shoot 2026-10-02: 17 shots, still 1,541).
 If it prints "btn none" the page was still settling: run it again. Prints BALANCE <n> or BALANCE ?.
 Do not point it at a project tab that is not yours.
 """
@@ -11,7 +13,9 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")  # winbox default is cp1252; the Thai menu text crashed the print
 import socket, os, base64, json, re, struct, urllib.request, time
 tabs = json.load(urllib.request.urlopen("http://127.0.0.1:9226/json/list", timeout=8))
-mine = [t for t in tabs if t["type"] == "page" and (sys.argv[1] if len(sys.argv) > 1 else "29b3326b") in t["url"]]
+_args = [a for a in sys.argv[1:] if not a.startswith("--")]
+RELOAD = "--reload" in sys.argv
+mine = [t for t in tabs if t["type"] == "page" and (_args[0] if _args else "29b3326b") in t["url"]]
 print("my tabs", len(mine))
 ws = mine[0]["webSocketDebuggerUrl"]
 host, rest = ws[5:].split("/", 1); h, port = host.split(":")
@@ -51,6 +55,8 @@ def call(method, **params):
 def ev(expr):
     r = call("Runtime.evaluate", expression=expr, returnByValue=True, awaitPromise=True)
     return r.get("result", {}).get("result", {}).get("value")
+if RELOAD:
+    call("Page.reload"); time.sleep(12); print("reloaded")
 print("mute", ev("document.querySelectorAll('video,audio').forEach(m=>{m.muted=true;m.pause()});1"))
 print("btn", ev("""(()=>{const b=document.querySelector('[aria-label="รายละเอียดบัญชี"]'); if(!b) return 'none'; b.click(); return 'clicked'})()"""))
 time.sleep(1.8)
