@@ -297,7 +297,8 @@ def _hermetic_venv(dest: Path, prefix: str) -> None:
     if (Path(prefix) / "bin" / "activate").exists():
         dest.symlink_to(prefix)
     else:
-        venv.create(dest, system_site_packages=True, with_pip=False)
+        # symlinks, as `python -m venv` does on POSIX: a copied interpreter loses its libpython on a shared build
+        venv.create(dest, system_site_packages=True, symlinks=True, with_pip=False)
 
 
 @pytest.fixture()
