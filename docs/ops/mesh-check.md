@@ -57,8 +57,14 @@ real commit — see "L3 in detail" below before running it. `--no-merge` stops
 after delegate/poll and skips `merge_task` (useful for inspecting a probe
 without landing it).
 
+When L3 and L5 are both claimed for a pair (A = this host, B), L5 runs
+**inside L3's window**, on L3's own probe task, so one `--live` run can turn
+L5 green and prove the wake (see "L5 — letters"). L3 then sends one extra
+letter and its probe task waits up to 120 s for it.
+
 `--live` also computes the mesh levels, for this host's own outbound row and
 only for cells `--expect` already claims: **SEC**, **L5**, **L6** and **L7**.
+A pair whose L5 ran inside L3's window is not asked again.
 They dial real hosts over the dispatch key (`ssh -F none -i
 ~/.ssh/org_dispatch`, built only by `lib.mesh.build_argv`) and write to the
 live hub: SEC (a) and L6 make the far side stamp `hosts.probed_at`, and L5
@@ -134,7 +140,13 @@ never used here.
 
 Each probe overwrites exactly one file,
 `docs/ops/mesh-probe/<from>-<to>.md`, with a single UTC-timestamped line,
-commits with a `mesh-probe:` message prefix, and reports. L3 passes only
+commits with a `mesh-probe:` message prefix, and reports. When L5 runs in
+this window, the probe task's description also says that a letter is coming
+and tells the worker to wait for it (at most 120 s) and to end its line with
+` nonce=<token>`; `roles/probe.md` carries the same rule. L3 reads the file
+back from origin for L5 (after the merge it reads `<merge_sha>:<path>`; with
+`--no-merge` it reads `origin/<the task's branch>:<path>`), and that read never
+changes L3's own verdict. L3 passes only
 when: the task reaches `review`/`done`, `merge_task` reports `merged: true`
 with a `merge_sha`, that sha shows up in `git ls-remote origin`, and this
 host's checkout is clean afterward. Any of `failed` / `blocked_human` /
@@ -292,26 +304,79 @@ task id>, from_role="mesh_check", from_host=A)`, then
 The body says it is a mesh-check probe letter and to ignore it, so a human or
 a worker that reads it knows to do nothing.
 
+That is the **standalone** form, which runs when L3 is not claimed with L5
+for the pair (for example `--expect` below the wave that claims L3, or a
+standalone call). It proves the delivery and the hub row and, at best, what
+the reply says about the wake. The form that proves the wake is next.
+
+#### L5 inside L3's window (`--live`, L3 and L5 both claimed)
+
+In one `--live` run, L3 creates the only `in_progress` probe worker on B and
+finishes it before the mesh levels run, so the standalone form would find no
+worker and be red every time. Instead, `tools/mesh_check.py::L5Window` hands
+the letter to L3's own task:
+
+1. As soon as L3's poll sees its task `in_progress` on B, the window writes a
+   hub letter to that task (`to_session` = the task id, `to_role` = the role
+   L3 created it with) and has B deliver it with `deliver_letter`. The body
+   carries a fresh nonce, `MESH-NONCE-<16 hex>`, and tells the worker to add
+   ` nonce=<nonce>` to the end of its probe-file line.
+2. L3's probe task description says a letter is coming, to wait for it (120 s
+   at most, `sleep 15` in a loop) and to copy the token from the letter. It
+   does **not** contain the nonce: the worker can only get it from the letter.
+   `roles/probe.md` says the same.
+3. After the merge, L3 reads `docs/ops/mesh-probe/<A>-<B>.md` back from origin
+   (`git show <merge_sha>:<path>` after a `git fetch origin`; with `--no-merge`
+   it reads `origin/<branch>`).
+
+L5 is green only when **all** of these hold:
+
+- the reply is `ok: true`, for this `letter_id`, `delivered: true`, with `to`
+  equal to `<role>-<task id>`, and the hub row is `delivered`;
+- the reply says `woke: true` (the tmux nudge reached a live session and tmux
+  exited 0 on every call);
+- the file on origin carries `nonce=<this letter's nonce>`.
+
+The note on a green cell is `woke, nonce read back from origin`. Each red says
+which step failed: a failed wake (with its `why`), a reply with no `woke: true`
+(an older `node_dispatch` reports none), a delivery to the wrong recipient, a
+probe file that cannot be read back, a file with no nonce ("the worker did not
+read the letter"), or a file with another nonce. `UNREACHABLE` means B gave no
+answer, or the hub could not be written. A letter that did not land is
+abandoned the same way as in the standalone form. The L5 step never changes
+L3's own result.
+
+One exception, on purpose: a **Windows** worker is never woken (it reads its
+`MAILBOX.md` before every tool call), and `node_dispatch` answers `woke: false`
+with no `why`. For a target whose `os` is `windows`, that reply counts as
+"wake not applicable" and the cell reads `wake n/a: Windows worker reads
+MAILBOX.md, nonce read back from origin`. The nonce is still required, and a
+`woke: false` with a `why` is still red. The wake itself is not proven on
+Windows; the nonce proves that the worker read its mailbox.
+
 **How it can lie:**
 
-- The wake fields are `woke` (bool) and `why` (str), and only
-  `tools/node_dispatch.py::_windows_wake` sets `why`: a **C-level letter on
-  Windows**, and only with `ORG_WIN_WAKE=1` (off by default; off answers
-  `woke: false` with no `why`). A worker letter on Windows returns `woke:
-  false` with no `why` (a worker is never woken; it reads its `MAILBOX.md`
-  before every tool call), and a POSIX letter (C-level or worker) returns no
-  wake field at all: the wake is a best-effort tmux call whose outcome is
-  not reported. The probe recipient is a worker, so this check cannot see a
-  wake ran on any host today. It therefore reads green as `ok (wake not
-  reported)` and says so; `ok (woke)` appears only if a reply reports
-  `woke: true`, and `woke: false` with a `why` is red. Treat the delivery as
-  proven and the wake as unproven, until `node_dispatch` gives every letter
-  path an explicit wake field. The brief asked for "the wake ran" as a pass
-  condition; a strict version of it would be permanently red.
+- The wake fields are `woke` (bool) and `why` (str, only when `woke` is
+  false). `tools/node_dispatch.py` sets them on every letter path: `_posix_wake`
+  for a POSIX worker and a POSIX C-level letter, `_windows_wake` for a Windows
+  C-level letter (only with `ORG_WIN_WAKE=1`; off answers `woke: false` with no
+  `why`). A worker letter on Windows returns `woke: false` with no `why`.
+  `woke: true` means the nudge reached a live tmux session and every tmux call
+  exited 0 (`agent_transport.attempt_wake` returns that bool). It does not mean
+  the worker has read anything, which is why the nonce is the proof and
+  `woke: true` alone is not. The standalone form still accepts a reply with no
+  wake field (`ok (wake not reported)`) because a node running an older
+  `node_dispatch` sends none; the window form does not.
+- `send_to_cxo.attempt_wake` (the POSIX **C-level** wake) must return the bool
+  from `agent_transport.attempt_wake`; while it returns `None`, a C-level
+  letter on POSIX answers `woke: false, why: "wake reported no result"`. This
+  does not touch the probe check, whose recipient is a worker.
 - It needs a live worker of role `probe` on B (`status = in_progress`, its
-  `host` = B, a tmux session on POSIX or a worktree on Windows) and creates
-  none. With none, the cell is red (`no in_progress probe worker on <B>`),
-  not skipped.
+  `host` = B, a tmux session on POSIX or a worktree on Windows). The standalone
+  form creates none; with none, the cell is red (`no in_progress probe worker
+  on <B>`), not skipped. The window form uses L3's own task, so a task that
+  never reaches `in_progress` (it goes straight to `review`, or fails) leaves
+  the cell red with `no letter was sent`.
 - A letter that does not land is set to `failed` straight away (only a row
   still `pending`; a delivered row is never rewritten), so the watchdog's
   retry cannot hand it to the probe worker later, out of context. A
@@ -453,9 +518,11 @@ file:
 - **G2** — open the Mac's sshd and set `mesh_ssh` for `mac` in
   `config/hosts.yaml`. The cells into the Mac then stop being "closed (by
   design)" with no change to this tool.
-- **A probe worker per target** for L5 (see its section), and the wake field
-  on the POSIX and worker letter paths of `node_dispatch` if L5 should ever
-  prove a wake rather than a delivery.
+- **A probe worker per target** for the standalone L5 (see its section). In a
+  `--live` run, L3's own probe task is that worker. The wake field on the POSIX
+  and worker letter paths of `node_dispatch` exists now (task-f9d23d0b), so L5
+  inside L3's window proves a wake and not only a delivery; every target must
+  run that `node_dispatch` first.
 - **The join drill** (W4.7 in the plan, a container on Contabo), which writes `state/mesh-check/join-drill.json`;
   L8 stays `not run` until then.
 - Any later wave that adds a level adds it to `LEVELS`, `EXPECT` and this
