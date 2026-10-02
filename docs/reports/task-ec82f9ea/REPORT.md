@@ -1,7 +1,7 @@
 # REPORT task-ec82f9ea
 
 Job: make the GitHub Actions `pytest` job pass on origin/main (run 36954979364 on 67443d49: 20 failed, 6820 passed, 40 skipped).
-Branch `agent/developer-task-ec82f9ea`, 8 commits on top of 0547d1b7. Nothing pushed.
+Branch `agent/developer-task-ec82f9ea`, 9 commits on top of 0547d1b7 (8 code and test, 1 report). Nothing pushed.
 
 Two causes in the brief were not what the log says: B is not a production bug, and C is not two code paths that
 disagree. Group A is 13 tests in that log, not 11 (13 + 1 + 1 + 1 + 2 + 2 = 20). Groups B and C were reproduced on the
@@ -48,7 +48,7 @@ The one failure left in runs 2 and 3 is `tests/test_spawn_coo.py::test_launcher_
 
 ## Blockers and risks
 - No Linux run was possible here. Docker Desktop is installed but stopped; I did not start it or pull an image (brief: no network), and asked the CTO in a `dev_message` with no answer. The CTO's push and real CI are the proof for A, B, C and G on Linux.
-- Group A runs through the rest of `cxo-claude.sh` for the first time on Linux, as a non-root `runner` user: 12 of its 13 tests do not run on the Mac. Anything behind the `.venv` failure only shows up there. If a test fails on CI after this branch, it is a second layer, not a regression.
+- Group A runs through the rest of `cxo-claude.sh` for the first time on Linux, as a non-root `runner` user: 12 of its 13 tests do not get through the launcher on the Mac (11 skip, 1 stops at `getent`). Anything behind the `.venv` failure only shows up there. If a test fails on CI after this branch, it is a second layer, not a regression.
 - One Mac-only failure remains (`test_launcher_moves_an_unread_letter_to_the_new_box`, `getent` missing). I did not add a skip marker, as the brief forbids skips; adding the `@needs_nobody` its siblings carry is a one-line follow-up if you want a green Mac suite.
 - The Ubuntu shellcheck was not available; F rests on the truth table plus shellcheck 0.11.0.
 
