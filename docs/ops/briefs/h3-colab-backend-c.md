@@ -73,3 +73,21 @@ Between them, `studio/src/lib/colabBackend.ts` is a stub that always answers `{a
 - The live acceptance take is done. Report stage times, CU charged, and both clips' frames / fps / duration. The second clip must continue from the first.
 - `docs/COLAB.md` and `docs/STUDIO-API.md` describe the backend, the settings and the fallback reasons.
 - The report lists files, commits, per-suite counts, and a Skill learning section.
+
+## Addendum 2026-10-03 (CEO: "I cannot tell whether Colab is running; if nothing stops it, does it shut itself down?") — items 9 and 10
+
+9. **Colab status the CEO can see, and a stop button.**
+   - The studio header shows a Colab pill next to the RunPod balance badge, with these states: off / setting up / rendering S<n> / idle <m> min.
+   - The pill also shows the CU balance and the CU this VM has used so far, read from `colab usage` and `colab sessions`. Poll at most once a minute, and only while a VM exists or a take is pending.
+   - A "ปิด Colab" button calls a new `POST /api/colab/stop`. That route stops every VM the studio owns, then returns the scenes of the running take to RunPod (`routeReason: "colab_stopped"`).
+   - Publish these states on the event bus, so the pill updates without a reload.
+   - Use inline SVG icons, never emoji.
+10. **A dead-man switch on the VM itself.** guard.py runs on the Mac. If the Mac sleeps, reboots or loses the network, the guard dies too, and today nothing stops the VM.
+    - On the VM, start a small watchdog at setup.
+    - While a take runs, the Mac side touches a heartbeat on the VM about every 60 s.
+    - If no heartbeat arrives for 15 min, the watchdog releases the VM from inside. Try `google.colab.runtime.unassign()` first. If that is unavailable on a CLI runtime, use another way to make the runtime end itself, and record in docs/COLAB.md which way worked.
+    - The watchdog also enforces the hard VM ceiling (`vm_max_minutes`) with no Mac involved.
+    - Test the watchdog with a fake clock in the existing test pattern.
+    - In the live acceptance take, prove it once: stop sending heartbeats (keep the guard as the safety net), shorten the timeout to 3 min for that test only, then confirm with `colab sessions` that the VM went away on its own. Report the seconds it took.
+
+**Acceptance take change (CEO asked how long 720p takes on Colab):** render the 2 chained scenes at quality **720p**. Make scene 1 362 frames (15 s, the usual H3 length) and scene 2 124 frames. Report each clip's render seconds and s/frame. For comparison, RunPod r2v_720 is 1.23 s/frame, a median of 447 s for 362 frames (n=6). Raise the cap for this take to 8 CU.
