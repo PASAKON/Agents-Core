@@ -33,11 +33,18 @@ delegating, force Claude when the work is any of:
 - **needs a Claude-only tool** — org MCP tools, Claude in Chrome, Artifact, skills
 
 ```bash
-sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' WHERE id='task-XXXX';"
+bash scripts/hub/org-python.sh -c "from lib import db; db.set_fields('task-XXXX', runner='claude', actor='cto')"
 ```
 
-Write the reason in the task description (§59 rule 2, HARD). An explicit
-`tasks.runner` is never overridden; `ORG_ROUTER=off` is for router repair only.
+Put `override: <reason>` in the description's first block (before the first
+blank line, max 5 lines), or `delegate_task` refuses (§59 rule 2, HARD). An
+explicit `tasks.runner` is never overridden (`_route_runner` skips the router);
+`ORG_ROUTER=off` is for router repair only.
+
+`[SUPERSEDED 2026-10-02]` `sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' …"`
+— since the G1 hub cutover `state/tasks.db` is a tombstone, and `db.set_fields`
+refuses `model_hint` (not in `VALID_COLUMNS`); `runner='claude'` pins Claude the
+same way (task-81a577ba).
 
 `[SUPERSEDED 2026-09-29]` "`WORKER_MODEL_PROVIDER=auto` routes on quota headroom
 alone … falls back to normal routing (`lib.config.worker_provider_overrides`)" —
@@ -565,3 +572,4 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-10-02 [MISSING] §0 — `reopen_task` puts its feedback in FRONT of the description. That pushes the IRON §59 `override:` line out of the first block, so the next `delegate_task` on a task with a pinned runner/model_hint is refused ("pinned by hand without a reason"). Fix that worked: put the override line back at the very top with `lib.db.set_fields(id, description="override: <reason>\n"+d)`, then delegate again · evidence: task-1b8ef857 iteration 1, 2026-10-02 05:0x · status: pending
 - 2026-10-02 [WRONG] §6b — the liveness Monitor template reads `state/tasks.db` with sqlite3, but after the G1 hub cutover that file is a tombstone (`lib.db.ArchivedDB`), so the template reports `dberror` straight away. What worked: a 4-line scratch script (`from lib import db; t=db.get_task(id); print(status~pid)`), run as `PYTHONPATH=<Core> bash scripts/hub/with-org-db-env.sh .venv/bin/python <script> <id>`. An inline `python -c` with escaped quotes inside single quotes fails silently and looks like a DB outage · evidence: task-1b8ef857 monitors b5hi3hrz9 (dberror) and b6ji6v8e2 (worked) · status: pending
 - 2026-10-02 [MISSING] §6b — a worker whose `org` MCP is `CONNECTION_CLOSED` cannot call `submit_report`, so it puts the report in its final chat message, and the row stays `in_progress` with a live pid. The Monitor never sees a terminal state. Recovery: read the last long assistant text from `~/.claude/projects/<worktree slug>/<uuid>.jsonl`, then `db.set_fields(id, report=…)` + `db.update_status(id,"review")`. Cause (cto-e6754203): a Postgres deadlock in `db.init()` when two inits overlap at spawn. Fixed in 691b7950 (Mac local 2505e472). The worker's MCP log is at `~/Library/Caches/claude-cli-nodejs/<worktree slug>/mcp-logs-org/`. A live worker can try `/mcp` and then reconnect org (not tried) · evidence: task-1b8ef857 iter 1 (spawned 05:33 after f79f4847) · status: pending
+- 2026-10-02 [WRONG] §0 — the "pin Claude" command `sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' …"` cannot work after G1: tasks.db is a tombstone, and `db.set_fields(model_hint=…)` raises "unknown column(s)" (model_hint is not in VALID_COLUMNS). `db.set_fields(id, runner='claude')` through `scripts/hub/org-python.sh` pins Claude; the first delegate then refused with IRON §59 until an `override: security …` line went into the description's first block. Also: a C-level whose own org MCP predates the cutover gets "tasks.db is archived … restart it" from every org tool; `lib.org_tools_registry.dispatch` run through org-python.sh works without a restart (delegate needs the event loop kept alive for the kickoff) · evidence: task-81a577ba, rule body flipped (artefact: ArchivedDB) · status: promoted
