@@ -206,23 +206,26 @@ try { $Host.UI.RawUI.WindowTitle = $resolvedTabTitle } catch {}
 # without this env, same guard cxo-claude.sh sets).
 $env:CLAUDE_CODE_DISABLE_TERMINAL_TITLE = '1'
 
-# Org MCP (+ LungNote) only when %USERPROFILE%\.config\mooniex\org-db.env
-# exists -- CEO 2026-09-28 ruling ("wait for both W1s"): winbox has no hub
-# secrets until the W1 Infisical cutover, so org MCP and lungnote must be
-# left out cleanly, one clear log line each, never a crash, never a prompt
-# for a secret. This also generates --allowed-tools from the same generator
-# (missing in v2 -- see the review-fix note above).
+# Org MCP (+ LungNote) only in hub mode. winbox reaches the hub through its
+# Infisical machine identity (W3.4, CEO approval 2026-10-03):
+# cxo_mcp_config.py --hub-route answers "infisical" only when node.yaml says
+# `org_db: hub` and the winbox credential file exists, and the config it
+# then generates starts the org server under
+# `tools\infisical_setup.py run Agents-Core prod --as winbox`, so ORG_DB_URL
+# lives in that process only. There is never an org-db.env on winbox.
+# Anything else is standalone, as the CEO's 2026-09-28 ruling ("wait for
+# both W1s") requires: org MCP and lungnote left out cleanly, one clear log
+# line each, never a crash, never a prompt for a secret. This also generates
+# --allowed-tools from the same generator (missing in v2 -- see the
+# review-fix note above).
 $mcpConfig = $null
 $allowedTools = @()
-$orgEnv = Join-Path $env:USERPROFILE '.config\mooniex\org-db.env'
-if (Test-Path $orgEnv) {
-    # KEY=VALUE lines, same file format scripts/hub/with-org-db-env.sh sources.
-    foreach ($l in Get-Content -Encoding UTF8 $orgEnv) {
-        if ($l -match '^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$') {
-            Set-Item -Path "env:$($Matches[1])" -Value ($Matches[2].Trim().Trim('"').Trim("'"))
-        }
-    }
-
+$hubRoute = 'none'
+try {
+    $hubRoute = "$(& $venvPy (Join-Path $root 'scripts\lib\cxo_mcp_config.py') --root $root --hub-route)".Trim()
+} catch {}
+if (-not $hubRoute) { $hubRoute = 'none' }
+if ($hubRoute -eq 'infisical') {
     $mcpConfig = Join-Path $env:TEMP "cxo-mcp-$sid.json"
     & $venvPy (Join-Path $root 'scripts\lib\cxo_mcp_config.py') --role $Role --root $root --out $mcpConfig
     if ($LASTEXITCODE -ne 0) { throw "cxo_mcp_config failed (exit $LASTEXITCODE)" }
@@ -233,20 +236,22 @@ if (Test-Path $orgEnv) {
     # Register + reconcile against c_level_sessions on the hub, hub mode
     # only: both tools write through lib.db, which falls back to a LOCAL
     # sqlite state\tasks.db when ORG_DB_URL is unset -- exactly the
-    # split-brain winbox must never create. Backgrounded + best-effort, same
-    # as cxo-claude.sh -- neither may delay or block this launch.
+    # split-brain winbox must never create. So both start under the same
+    # `infisical_setup.py run` as the org server. Backgrounded + best-effort,
+    # same as cxo-claude.sh -- neither may delay or block this launch.
+    $hubRun = @('-E', '-s', (Join-Path $root 'tools\infisical_setup.py'), 'run', 'Agents-Core', 'prod', '--as', 'winbox', '--', $venvPy)
     try {
         Start-Process -WindowStyle Hidden -WorkingDirectory $root -FilePath $venvPy `
-            -ArgumentList @('-m', 'tools.session_reconcile', '--apply') | Out-Null
+            -ArgumentList ($hubRun + @('-m', 'tools.session_reconcile', '--apply')) | Out-Null
     } catch {}
     try {
         Start-Process -WindowStyle Hidden -WorkingDirectory $root -FilePath $venvPy `
-            -ArgumentList @('-m', 'tools.register_cxo', '--role', $Role, '--session', $sid, '--host', $hostKey) | Out-Null
+            -ArgumentList ($hubRun + @('-m', 'tools.register_cxo', '--role', $Role, '--session', $sid, '--host', $hostKey)) | Out-Null
     } catch {}
-    Write-Host "[cxo-claude] hub mode: org MCP on (session $sid)" -ForegroundColor Green
+    Write-Host "[cxo-claude] hub mode: org MCP on (session $sid, ORG_DB_URL via Infisical as winbox)" -ForegroundColor Green
 } else {
-    Write-Host "[cxo-claude] standalone: no org-db.env -> org MCP skipped (would need a local state\tasks.db on winbox -- split-brain risk until the W1 hub cutover)" -ForegroundColor Yellow
-    Write-Host "[cxo-claude] standalone: no org-db.env -> LungNote MCP skipped (same hub secrets, arriving via Infisical after W1)" -ForegroundColor Yellow
+    Write-Host "[cxo-claude] standalone: hub route '$hubRoute' (needs org_db: hub in node.yaml + the winbox Infisical credential) -> org MCP skipped" -ForegroundColor Yellow
+    Write-Host "[cxo-claude] standalone: no hub route -> LungNote MCP skipped" -ForegroundColor Yellow
 }
 
 # Without --strict-mcp-config the session also loads Agents/.mcp.json,

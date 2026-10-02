@@ -84,8 +84,8 @@ puts the caller's text on it; the caller's text arrives only as
     # Contabo (agents_root from config/hosts.yaml; the Mac's is /Users/gob/MoonieXHQ/Agents/Core)
     command="cd /opt/MoonieXHQ/Agents/Core && exec /bin/bash scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python -E -s -m tools.node_dispatch",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
 
-    # winbox (W3.4, NOT installable yet, see below): no shell syntax, so the line means the same under cmd or PowerShell
-    command="C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\infisical_setup.py run Org-Node prod --as winbox -- C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\node_dispatch.py",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
+    # winbox (W3.4, install after the probe below answers ok): no shell syntax, so the line means the same under cmd or PowerShell
+    command="C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\infisical_setup.py run Agents-Core prod --as winbox -- C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\node_dispatch.py",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
 
 - **The forced command reaches the hub through a wrapper (G1, 2026-10-02).**
   Since the G1 cutover the ledger is the Postgres hub and `state/tasks.db` is a
@@ -104,10 +104,13 @@ puts the caller's text on it; the caller's text arrives only as
   (`C:\Users\passg\mooniex\repo\MoonieX-Agents`). `agents_root` in
   config/hosts.yaml is the spawn directory beside it, which has no `.venv` and
   no `tools`. The wrapper is bash (`org_db_wrapper` skips Windows), so winbox
-  reaches the hub the way `deploy/join/join.ps1` runs its probe: through
-  `tools\infisical_setup.py run Org-Node prod --as winbox`. That needs winbox's
-  Org-Node identity (W3), and the line is **not verified on winbox**. Install
-  it only after `infisical_setup.py run Org-Node prod --as winbox -- <python> -m
+  reaches the hub through `tools\infisical_setup.py run Agents-Core prod --as
+  winbox`: the wrapper's leg b, without bash. winbox is a core machine, not a
+  joined node, so its identity reads Agents-Core (`MACHINES`, W3.4, CEO
+  approval 2026-10-03), not Org-Node, and there is never an `org-db.env` on
+  winbox. `scripts/lib/cxo_mcp_config.py` (`windows_hub_prefix`) starts the
+  org MCP server the same way. Install the line only after
+  `infisical_setup.py run Agents-Core prod --as winbox -- <python> -m
   tools.node_dispatch probe` answers `"ok": true` on the box itself.
 
 - `restrict` turns on every restriction sshd knows: no port, agent or X11

@@ -177,14 +177,17 @@ def test_every_posix_forced_command_starts_node_dispatch_through_the_hub_env_wra
         assert command.index("with-org-db-env.sh") < command.index("python"), ln
 
 
-def test_the_winbox_forced_command_reaches_the_hub_through_its_org_node_identity():
+def test_the_winbox_forced_command_reaches_the_hub_through_its_agents_core_identity():
+    """W3.4 (CEO approval 2026-10-03): winbox is a core machine, so its identity reads
+    ORG_DB_URL from Agents-Core prod, the same project as the org MCP server there."""
     (win,) = [ln for ln in _doc_key_lines() if "C:\\" in ln]
     command = win.split('",', 1)[0]
     checkout = "C:\\Users\\passg\\mooniex\\repo\\MoonieX-Agents"
     projects = yaml.safe_load((ROOT / "config" / "projects.yaml").read_text(encoding="utf-8"))
     paths = [p.get("paths", {}).get("winbox") for p in projects["projects"]]
     assert checkout in paths  # the line names the real checkout, not agents_root
-    assert f"{checkout}\\tools\\infisical_setup.py run Org-Node prod --as winbox -- " in command
+    assert f"{checkout}\\tools\\infisical_setup.py run Agents-Core prod --as winbox -- " in command
+    assert "Org-Node" not in command
     assert command.endswith(f"{checkout}\\tools\\node_dispatch.py")
 
 
