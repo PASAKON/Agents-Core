@@ -33,11 +33,18 @@ delegating, force Claude when the work is any of:
 - **needs a Claude-only tool** — org MCP tools, Claude in Chrome, Artifact, skills
 
 ```bash
-sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' WHERE id='task-XXXX';"
+bash scripts/hub/org-python.sh -c "from lib import db; db.set_fields('task-XXXX', runner='claude', actor='cto')"
 ```
 
-Write the reason in the task description (§59 rule 2, HARD). An explicit
-`tasks.runner` is never overridden; `ORG_ROUTER=off` is for router repair only.
+Put `override: <reason>` in the description's first block (before the first
+blank line, max 5 lines), or `delegate_task` refuses (§59 rule 2, HARD). An
+explicit `tasks.runner` is never overridden (`_route_runner` skips the router);
+`ORG_ROUTER=off` is for router repair only.
+
+`[SUPERSEDED 2026-10-02]` `sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' …"`
+— since the G1 hub cutover `state/tasks.db` is a tombstone, and `db.set_fields`
+refuses `model_hint` (not in `VALID_COLUMNS`); `runner='claude'` pins Claude the
+same way (task-81a577ba).
 
 `[SUPERSEDED 2026-09-29]` "`WORKER_MODEL_PROVIDER=auto` routes on quota headroom
 alone … falls back to normal routing (`lib.config.worker_provider_overrides`)" —
@@ -564,3 +571,4 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-10-01 [MISSING] §2 Path lock — a bare `docs/reports/` in `touches` collides with every other in-flight task that also lists it (task-406c21f3 went `conflict` against a pending task-8f940c57). List `docs/reports/<task-id>/`. Also: a change to a shared gate (bl_checker's frame mask) forces its callers (`tools/bl_merge.py`); grep the callers into `touches` before spawning, or the self-repo guard blocks the worker mid-task · evidence: task-406c21f3 (conflict 21:14:29; REPORT "Issues") · status: pending
 - 2026-10-01 [MISSING] §6b — a watcher armed at the same moment as a Contabo spawn saw no tmux pane on its first poll and reported GONE while the worker was starting. Require several consecutive empty polls before GONE · evidence: task-8f940c57, watcher btpgxdmbc 21:19 · status: pending
 - 2026-10-02 [MISSING] §3d — a brief for a render on Contabo must carry a MEMORY budget, not only a disk budget. The task-cc55e620 brief said "3-4 renders at once", copying task-8f940c57, which survived it while nothing else was rendering. This time another job was rendering in `Work/bl-ep58/armA`, so 5 HyperFrames renders ran together. chrome-headless + ffmpeg held about 4.6 of 7.9 GB. The box thrashed from 19:45 to 20:09 CEST (load 145). The kernel OOM killer took only small chromium renderers, so the root tmux server died and every Contabo C-level session and worker went with it; the systemd services and containers survived. Rule for a Contabo render brief: one render at a time, and check `free -m` before each render; a second render only with ≥3 GB available · evidence: task-cc55e620 transcript last write 19:56:34, `journalctl -k` 19:53–20:09 CEST, OOM task dump RSS by process name · status: pending
+- 2026-10-02 [WRONG] §0 — the "pin Claude" command `sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' …"` cannot work after G1: tasks.db is a tombstone, and `db.set_fields(model_hint=…)` raises "unknown column(s)" (model_hint is not in VALID_COLUMNS). `db.set_fields(id, runner='claude')` through `scripts/hub/org-python.sh` pins Claude; the first delegate then refused with IRON §59 until an `override: security …` line went into the description's first block. Also: a C-level whose own org MCP predates the cutover gets "tasks.db is archived … restart it" from every org tool; `lib.org_tools_registry.dispatch` run through org-python.sh works without a restart (delegate needs the event loop kept alive for the kickoff) · evidence: task-81a577ba, rule body flipped (artefact: ArchivedDB) · status: promoted
