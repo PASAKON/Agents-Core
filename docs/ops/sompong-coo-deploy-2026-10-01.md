@@ -95,7 +95,7 @@ root-owned files in `.git`. So:
 | 3 kill the session, messages queue, restart drains | not run yet |
 | 4 `/spawn-coo` refuses a second session | PASS — `SomPong already online (tmux sompong, since 2026-10-02 00:11)`, rc 0, still 1 tmux + 1 claude |
 | 5 session cannot read the inbox keys | FILE-LEVEL ONLY — as `sompong`, `test -r` denied on `/etc/infisical/contabo.env`, `state/inbox.db`, ClaudeFlow `.env` (all root 600). **Not a full pass:** `sompong-inbox.service` runs as root from the SomPong repo, which `sompong` owns and can edit, so its next restart runs that code as root (open CEO decision, 2 Oct) |
-| 6 red Run card from SomPong, 15-min wait | HALF — card RUN-20261002-1227-3e80 created as `sompong` (`id -u; id -un`, risk red) reached the hub and the phone, expired unapproved 19:57 TH; the Face-ID tap itself is still to be seen |
+| 6 red Run card from SomPong, 15-min wait | PASS (2 Oct 20:04 TH) — card RUN-20261002-1303-316b created as `sompong` (risk red, `id -u; id -un`), CEO approved with Face ID, output `0` / `root`, exit 0; the result letter came back to the requester box. (First card 3e80 expired unapproved 19:57.) |
 
 ## Known gaps (follow-ups)
 
