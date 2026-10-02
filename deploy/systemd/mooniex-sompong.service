@@ -38,6 +38,12 @@ Environment=ORG_HOST=contabo
 Environment=HOME=/root
 Environment=PYTHONUNBUFFERED=1
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# The org MCP's hub DSN (limited role org_coo) from Infisical Org-Coo, as a root:sompong 0440 file in
+# /run/sompong-coo, removed on stop (scripts/coo-org-db-cred.sh, CEO 2026-10-02). "-": SomPong still
+# starts when Infisical is unreachable, only without the org tools.
+RuntimeDirectory=sompong-coo
+RuntimeDirectoryMode=0711
+ExecStartPre=-/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Org-Coo prod --as contabo -- /bin/bash /opt/MoonieXHQ/Agents/Core/scripts/coo-org-db-cred.sh
 ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/sompong-supervise.sh
 # Ends the session cleanly (/exit, then kill-session after a grace period) before
 # systemd signals the supervisor, so the supervisor cannot restart it in between.

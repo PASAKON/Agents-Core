@@ -215,11 +215,9 @@ if [ "$ROLE" = "coo" ]; then
     # The inbox runs from a root-owned release with its state under /var/lib (CEO 2026-10-02,
     # scripts/sompong-inbox-deploy.sh); the channel server and the family-gate hook find it here.
     "SOMPONG_INBOX_SOCKET=${SOMPONG_INBOX_SOCKET:-/var/lib/sompong-inbox/inbox.sock}"
-    # The org MCP: its own Infisical identity and project, whose ORG_DB_URL is the limited role
-    # org_coo (scripts/hub/with-org-db-env.sh, deploy/hub/org_coo_role.sql).
-    "INFISICAL_CRED_DIR=$COO_HOME/.config/mooniex/infisical"
-    "MOONIEX_INFISICAL_ID_FILE=$COO_HOME/.config/mooniex/infisical/sompong.env"
-    "MOONIEX_INFISICAL_AS=sompong" "MOONIEX_ORG_DB_PROJECT=Org-Coo"
+    # The org MCP reads the DSN of the limited role org_coo from this file, written by
+    # mooniex-sompong.service at start (scripts/coo-org-db-cred.sh, scripts/hub/with-org-db-env.sh).
+    "MOONIEX_ORG_DB_URL_FILE=${MOONIEX_ORG_DB_URL_FILE:-/run/sompong-coo/org-db.url}"
   )
   [ -z "${LUNGNOTE_MCP_NODE:-}" ] || COO_ENV+=("LUNGNOTE_MCP_NODE=$LUNGNOTE_MCP_NODE")
 fi

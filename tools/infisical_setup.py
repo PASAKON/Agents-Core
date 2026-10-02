@@ -90,10 +90,10 @@ PROJECTS: dict[str, list[str]] = {
     "MoonieX-AlphaTrader": ["dev", "prod"],
     "MoonieX-LineAutomation": ["dev", "prod"],
     "MoonieX-SomPong": ["dev", "prod"],  # the COO session inbox (CEO 2026-10-01)
-    # The COO session's own secrets, read by the identity `sompong` (the session's unix user), so a
-    # viewer that "sees every environment" sees nothing but these: ORG_DB_URL of the limited Postgres
-    # role org_coo (deploy/hub/org_coo_role.sql), never the hub superuser in Agents-Core and never
-    # the inbox keys in MoonieX-SomPong (CEO 2026-10-02).
+    # What the COO session (unix user `sompong`, not root) may hold: ORG_DB_URL of the limited
+    # Postgres role org_coo (deploy/hub/org_coo_role.sql), never the hub superuser in Agents-Core.
+    # Read by `contabo` when mooniex-sompong.service starts and handed over as one file in /run
+    # (scripts/coo-org-db-cred.sh); `sompong` has no identity of its own (CEO 2026-10-02).
     "Org-Coo": ["prod"],
     "MoonieX-Console": ["dev", "prod"],
     "MoonieX-ComfyRunpod": ["dev", "prod"],
@@ -119,12 +119,10 @@ PROJECT_FOLDERS: dict[str, list[str]] = {
 # environment of the project, so MoonieX-WebApp is not given to the Mac until local dev needs it.
 MACHINES: dict[str, list[str]] = {
     "contabo": ["Agents-Core", "MoonieX-ClaudeFlow", "MoonieX-Option", "MoonieX-AlphaTrader",
-                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP", "MoonieX-SomPong"],
+                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP", "MoonieX-SomPong",
+                "Org-Coo"],  # Org-Coo: handed to the COO session as one file (CEO 2026-10-02)
     "mac": ["Agents-Core", ORG_INFRA, "MoonieX-Console", "MoonieX-ComfyRunpod", "LungNote-MCP"],
     "winbox": ["MoonieX-Console", "MoonieX-CookierunBot", "LungNote-MCP", "MoonieX-Option"],  # Agents-Core back at G1 (CEO 2026-10-01); Option = IQ demo trader (CEO 2026-10-01)
-    # Not a machine: the COO session's unix user on Contabo. Its client secret lives with that user
-    # (~sompong/.config/mooniex/infisical/sompong.env, 0600), because the user itself is the consumer.
-    "sompong": ["Org-Coo"],
 }
 TOKEN_TTL = 86_400            # an access token lives a day...
 TOKEN_MAX_TTL = 7 * 86_400    # ...and cannot be renewed past a week
@@ -502,9 +500,10 @@ def cmd_retire_setup(org: Org) -> None:
 
 
 # --- org-node: one shared identity, one client secret per joining node (Org Mesh W4.2) ------------
-# Infisical Free allows IDENTITY_CAP identities and mac, contabo, winbox, sompong (plus `setup` until
-# retire-setup) already hold slots — all five since `sompong` (CEO 2026-10-02), so org-node can be
-# created only after retire-setup. A joining node therefore gets its own Universal Auth CLIENT
+# Infisical Free allows IDENTITY_CAP identities and mac, contabo, winbox (plus `setup` until
+# retire-setup) already hold slots. The cap counts the org's USER accounts too: with the CEO that is
+# 5 of 5, and POST /api/v1/identities answers 400 "identity limit reached" (measured 2026-10-02).
+# A joining node therefore gets its own Universal Auth CLIENT
 # SECRET under this one identity, never an identity of its own; `hq_join leave` revokes that one
 # secret. These are functions, not CLI verbs: a value exists only in mint_node_secret's return.
 
