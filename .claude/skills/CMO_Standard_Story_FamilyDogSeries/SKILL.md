@@ -73,7 +73,7 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
    confirms each sheet**). Whatever the CEO confirms is copied into §6 below.
    [SUPERSEDED 2026-09-30 by this ruling] "the same image style the rival page «กาฟิว» uses" — the rival look is
    no longer the target; never the rival's character, plots or captions either way.
-5. **Format (CEO 2026-09-30): one clip a day, 2–3 minutes; the first version is 3:00.** Posting plan, cost and
+5. **Format (CEO 2026-09-30): one clip a day, 2–3 minutes; the first version is 3:00.** [SUPERSEDED 2026-10-02: **3 video episodes a week — Friday, Saturday, Sunday at 19:30 — and one ordinary post a day Monday–Thursday** (CEO 2026-10-02); the episode length stays 3:00. Workflow: `CMO_Workflow_MimiPage_Weekly`.] Posting plan, cost and
    calendar: `docs/plans/khaoniao-posting-plan-2026-09-30.md`. The writing order and the Structure gate are
    `CMO_Standard_Story_ThaiMoralDrama` (§Writing a new episode, §Structure gate) — this series keeps steps 1–11 and
    replaces the moral "karma" with the formula below. Hooks every ~1 minute (two at 3:00).
@@ -166,7 +166,7 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 10. ~~Brother's room or sister's room?~~ — **ANSWERED 2026-10-01: the brother's bedroom (2nd floor)** — the CEO: *"ใช่เลย ห้องนอน ของพี่ชาย"*. On a bath day Mimi runs under the sofa, or on some days climbs to the brother's bedroom and sleeps there (§7).
 11. **Ryo** — colour, size, age; does it like Mimi, and what does Mimi do around it? A photo, or an OK for a character sheet (the sheets are made by the same free route as the family's).
 12. ~~EP1 shot 18~~ — **ANSWERED 2026-10-01: keep it** as a one-time softening of the sister, marked [แต่ง]; no reshoot, 0 credits. The CEO: *"เลือก ก. (ข้อมูลใหม่ไว้ใช้คลิปต่อไป)"* — the new facts apply from EP2 on. Later episodes must not make the sister warm again unless the CEO says so.
-13. **The bath at home** (asked 2026-10-02 with the EP2 script) — how is Mimi really bathed (basin and dipper / shower / tub), what does she like right after (the towel hug, a treat, a blow-dry), and may the mother cry on screen? EP2 v1 assumes a blue plastic basin + dipper, a pink-towel hug and a mother who is hurt, in tears. Written down only when he answers.
+13. **The bath at home** — PARTLY ANSWERED 2026-10-02 (§7: she shivers in the bath, then rolls on the towel to dry herself; still open: basin vs shower, the mother crying on screen) (asked 2026-10-02 with the EP2 script) — how is Mimi really bathed (basin and dipper / shower / tub), what does she like right after (the towel hug, a treat, a blow-dry), and may the mother cry on screen? EP2 v1 assumes a blue plastic basin + dipper, a pink-towel hug and a mother who is hurt, in tears. Written down only when he answers.
 
 ## 5 · What this replaces
 
@@ -215,6 +215,8 @@ with the row that beat it, and re-check every script that cited it (`script` row
 
 | Date | Told by | What happened / what is true | Used in |
 |---|---|---|---|
+| 2026-10-02 | CEO | **Bath behaviour (an update to the bath-day row below):** Mimi **shivers while she is being bathed** (*"มีมี่ชอบตัวสั่นเวลาอาบน้ำ"*), and **when the bath is over she rolls back and forth on the fluffy towel to dry herself** (*"เมื่ออาบน้ำเสร็จ จะกลิ้งทับผ้าขนนูนไปมาเพื่อทำให้ตัวแห้ง"*; «ผ้าขนนูน» read as ผ้าขนหนู = towel). EP2 was already shot: the shivering agrees with it, the towel-roll is NOT in it. Answers §4 q13 in part (what she does right after the bath). | EP2 (shiver only, shot) · seed for EP3 |
+| 2026-10-02 | CEO | **Rhythm ruling:** *"อาทิตย์ละ 3 EP ที่เป็น Video ศุกร์ เสาร์ อาทิตย์"*, and Monday–Thursday **one post a day** to the fans plus an update of our work, with posters designed in advance; prepare one week, schedule it, then the CMO supervises the automation. Workflow: `CMO_Workflow_MimiPage_Weekly`. EP2 verdict: *"สวยงามมากชอบมาก"*. | format |
 | 2026-10-01 | CMO | **EP1 check against the two rows above:** shot 18 (sister kneels, melts over Mimi, calls her «ลูก») contradicts "the sister pays Mimi little attention" and was **not** marked [แต่ง] in the script. Shots 3, 5, 6 agree (Mimi fawns on the brother to go out; the mother bathes her). Shot 17 has the brother drying Mimi with a towel after the apology — drying, not bathing, and already [แต่ง]. EP1 is not posted, so the row is reopened: CEO to choose keep or reshoot shot 18 (§4 q12). | shot — reopened |
 | 2026-10-01 | CEO | **The sister and Mimi:** *"น้องสาว ไม่ค่อยจะถูกกับ มีมี่เท่าไหร่ หมายถึง เขาไม่พูดคุยกัน น้องสาวไม่ค่อยสนใจมีมี่ แต่จะมีตัวละคร แมวของน้องสาวชื่อ เรียว ที่เขารักมากๆ"* — they do not talk, the sister pays Mimi little attention; the sister has a cat, **เรียว (Ryo)**, whom she loves very much. | seed (new character: Ryo) |
 | 2026-10-01 | CEO | **Bath day:** *"พี่ชายไม่ได้เป็นคนอาบน้ำให้มีมี่ คุณแม่จะเป็นคนอาบให้ตลอด และเมื่อมีมี่ได้ยินคำว่า มีมี่วันนี้แม่อาบน้ำให้นะ เขาจะกลัวแล้ววิ่งไปหลบใต้โซฟาเลย หรือบางวันก็ปีนขึ้นไปชั้น 2 ไปนอนหน้องน้อง ของพี่ชาย"* (voice-typed; the last phrase read as the brother's bedroom, §4 q10). The mother always bathes her; the brother never does. | script EP2 v1 (`docs/scripts/khaoniao-ep2-SCRIPT-v1.md`, 2026-10-02; under-the-sofa version, the brother's-bedroom version is kept for a later episode) |
