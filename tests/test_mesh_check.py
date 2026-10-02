@@ -271,6 +271,58 @@ def test_run_l3_probe_red_when_merge_sha_not_on_origin(monkeypatch, tmp_path):
     assert "not found on origin" in reason
 
 
+def _l3_green_cycle_with_status(monkeypatch, tmp_path, before: str, after: str):
+    """A full green L3 cycle whose `git status --porcelain` reads `before` when
+    the probe starts and `after` once the merge is on origin."""
+    (tmp_path / ".venv" / "bin").mkdir(parents=True)
+    (tmp_path / ".venv" / "bin" / "python").write_text("#!/bin/sh\n")
+    monkeypatch.setattr(m, "_register_probe_session", lambda session_id, host: None)
+    responses = {
+        "create_task": lambda args: "task-abc12345",
+        "delegate_task": lambda args: _toon_task(status="in_progress"),
+        "get_task": lambda args: _toon_task(status="review"),
+        "merge_task": lambda args: _toon_task(merged="true", merge_sha="deadbeef1234"),
+    }
+    _install_fake_mcp(monkeypatch, ["create_task", "delegate_task", "get_task", "merge_task"],
+                      responses)
+    monkeypatch.setattr(m, "_git_ls_remote_has", lambda root, sha: True)
+    reads = iter([before, after])
+    monkeypatch.setattr(m, "_git_status_porcelain", lambda root: next(reads))
+    return asyncio.run(m.run_l3_probe("mac", "contabo", tmp_path, "w0", False))
+
+
+# The Mac's runtime checkout always carries the harness's model line in
+# claude-home/settings.json, so a check for an absolutely clean checkout could
+# never pass there.
+_MAC_DIRT = " M claude-home/settings.json\n M state/banchi/flow_shoot.log\n?? state/jules/"
+
+
+def test_run_l3_probe_green_when_the_checkout_was_dirty_before_the_probe(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(monkeypatch, tmp_path, _MAC_DIRT, _MAC_DIRT)
+    assert ok is True
+    assert reason is None
+
+
+def test_run_l3_probe_green_when_another_session_adds_untracked_files(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(
+        monkeypatch, tmp_path, _MAC_DIRT, _MAC_DIRT + "\n?? state/work_watch_state.json")
+    assert ok is True
+    assert reason is None
+
+
+def test_run_l3_probe_red_when_the_cycle_dirties_a_tracked_file(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(
+        monkeypatch, tmp_path, _MAC_DIRT, "UU docs/ops/mesh-probe/mac-contabo.md\n" + _MAC_DIRT)
+    assert ok is False
+    assert reason == "merge left the runtime checkout dirty: UU docs/ops/mesh-probe/mac-contabo.md"
+
+
+def test_run_l3_probe_red_when_git_status_fails_after_the_merge(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(monkeypatch, tmp_path, "", m._GIT_STATUS_FAILED)
+    assert ok is False
+    assert reason == "git status failed after merge"
+
+
 # ---------------------------------------------------------------------------
 # L4 — ledger
 # ---------------------------------------------------------------------------

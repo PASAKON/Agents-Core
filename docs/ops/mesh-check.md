@@ -110,8 +110,9 @@ the task is visible there.
 - **L3 delegate** (`--live` only) — proves a real cross-host delegate cycle:
   `create_task` → `delegate_task(host=T)` → poll `get_task` until
   review/done (25 min timeout) → `merge_task` → confirm the merge sha is on
-  `origin` (`git ls-remote`) and this host's runtime checkout is clean
-  (`git status --porcelain`). See "L3 in detail" below.
+  `origin` (`git ls-remote`) and that the cycle left no new tracked change in
+  this host's runtime checkout (`git status --porcelain`, before vs after).
+  See "L3 in detail" below.
 
 - **L4 ledger** — creates a task on this host's own ledger, then asks
   another host (read-only ssh, `--get-task --json`) whether it sees that
@@ -148,8 +149,14 @@ back from origin for L5 (after the merge it reads `<merge_sha>:<path>`; with
 `--no-merge` it reads `origin/<the task's branch>:<path>`), and that read never
 changes L3's own verdict. L3 passes only
 when: the task reaches `review`/`done`, `merge_task` reports `merged: true`
-with a `merge_sha`, that sha shows up in `git ls-remote origin`, and this
-host's checkout is clean afterward. Any of `failed` / `blocked_human` /
+with a `merge_sha`, that sha shows up in `git ls-remote origin`, and
+`git status --porcelain` in this host's runtime checkout has no tracked entry
+after the merge that it did not have before the probe started. Dirt that was
+already there is not the merge's doing: the Mac's checkout always carries the
+harness's model line in `claude-home/settings.json`, and other sessions' WIP
+can sit in any checkout for days. New untracked (`??`) entries are ignored
+too, because other sessions keep writing state files during the 25 minutes;
+`merge_task` can only change tracked files there. Any of `failed` / `blocked_human` /
 `conflict` status, a 25-minute timeout, or a missing/absent merge sha is a
 hard fail with the specific reason in the cell.
 
