@@ -115,7 +115,9 @@ MACHINES: dict[str, list[str]] = {
     "contabo": ["Agents-Core", "MoonieX-ClaudeFlow", "MoonieX-Option", "MoonieX-AlphaTrader",
                 "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP"],
     "mac": ["Agents-Core", ORG_INFRA, "MoonieX-Console", "MoonieX-ComfyRunpod", "LungNote-MCP"],
-    "winbox": ["MoonieX-Console", "MoonieX-CookierunBot", "LungNote-MCP", "MoonieX-Option"],  # Agents-Core back at G1 (CEO 2026-10-01); Option = IQ demo trader (CEO 2026-10-01)
+    # Agents-Core back for W3.4 (CEO approval 2026-10-03): winbox reads ORG_DB_URL through
+    # `run Agents-Core prod --as winbox`, never an org-db.env. Option = IQ demo trader (CEO 2026-10-01)
+    "winbox": ["Agents-Core", "MoonieX-Console", "MoonieX-CookierunBot", "LungNote-MCP", "MoonieX-Option"],
 }
 TOKEN_TTL = 86_400            # an access token lives a day...
 TOKEN_MAX_TTL = 7 * 86_400    # ...and cannot be renewed past a week
