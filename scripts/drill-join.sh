@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# drill-join.sh - Org Mesh W4.7, the join drill. Run as root on Contabo, from
-# /opt/MoonieXHQ/Agents/Core, as ONE Run Inbox card (docs/ops/join-drill.md has the card lines).
+# drill-join.sh - Org Mesh W4.7, the join drill. Run as root on Contabo, from a checkout of
+# origin/main (the live /opt/MoonieXHQ/Agents/Core, or a worktree the card names with --cwd), as ONE
+# Run Inbox card (docs/ops/join-drill.md has the card lines).
 # The CEO's tap on that card is the human approval of the throwaway node: nothing else is typed.
 #
 #   bash scripts/drill-join.sh [--dry-run] [--log-to-repo]
@@ -29,7 +30,7 @@
 # No `set -x`. Every detail string is cut to one printable-ASCII line with token shapes masked.
 #
 # Overrides (tests and odd boxes; every one has a default that is right on Contabo):
-#   DRILL_CORE DRILL_STATE_DIR DRILL_ROWS_FILE DRILL_PY DRILL_DOOR DRILL_HUB_WRAP DRILL_JOIN_URL
+#   DRILL_CORE DRILL_LIVE_CORE DRILL_STATE_DIR DRILL_ROWS_FILE DRILL_PY DRILL_DOOR DRILL_HUB_WRAP DRILL_JOIN_URL
 #   DRILL_IMAGE DRILL_MIN_MB DRILL_CONTAINER_MB DRILL_DOOR_MIN DRILL_FP_WAIT_S DRILL_JOIN_WAIT_S
 #   DRILL_PROBE_WAIT_S DRILL_POLL_S DRILL_GH_REPO DRILL_AUTHORIZED_KEYS DRILL_WINBOX_SSH
 #   DRILL_TS_API DRILL_STAMP DRILL_ALLOW_NONROOT INFISICAL_CRED_DIR
@@ -39,10 +40,19 @@ STEP_NAMES="preflight door_open container mint join approve provision node_probe
 
 SELF=""                                         # stays empty when the script is piped in: no file to re-run
 [ -n "${BASH_SOURCE[0]:-}" ] && SELF=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")
-CORE=${DRILL_CORE:-/opt/MoonieXHQ/Agents/Core}
+# LIVE_CORE is what deploy/join/org-join.service runs: the join API, and door.sh's own approve leg, run its
+# code whatever checkout this script runs in. CORE is the code under test: the checkout the card runs in
+# (a detached worktree of origin/main when the live checkout is behind), else the live one.
+LIVE_CORE=${DRILL_LIVE_CORE:-/opt/MoonieXHQ/Agents/Core}
+CORE=${DRILL_CORE:-$(git rev-parse --show-toplevel 2>/dev/null || echo "$LIVE_CORE")}
 STATE_DIR=${DRILL_STATE_DIR:-$CORE/state/mesh-check}
 ROWS_FILE=${DRILL_ROWS_FILE:-$CORE/state/re-os-drills.jsonl}
-PY=${DRILL_PY:-$CORE/.venv/bin/python3}
+# A fresh worktree has no .venv: borrow the live one. The tools still load from $CORE, because the
+# script changes into $CORE and runs `python -m`.
+if [ -n "${DRILL_PY:-}" ]; then PY=$DRILL_PY
+elif [ -f "$CORE/.venv/bin/python3" ]; then PY=$CORE/.venv/bin/python3
+else PY=$LIVE_CORE/.venv/bin/python3
+fi
 DOOR=${DRILL_DOOR:-$CORE/deploy/join/door.sh}
 HUB_WRAP=${DRILL_HUB_WRAP:-$CORE/scripts/hub/with-org-db-env.sh}
 JOIN_URL=${DRILL_JOIN_URL:-https://webhook.mooniex.com/org-join/join.sh}
@@ -90,6 +100,11 @@ RC_ERR=""
 RC_OUT=""
 RC_CMD="claude remote-control"
 PREFLIGHT_DETAIL=""
+CODE_DRILL=""; CODE_JOIN=""                     # the two commits that ran, set by code_commits
+
+# Short commit of a checkout, "unknown" when it is not a git checkout.
+code_rev() { git -C "$1" rev-parse --short HEAD 2>/dev/null || printf unknown; }
+code_commits() { CODE_DRILL=$(code_rev "$CORE"); CODE_JOIN=$(code_rev "$LIVE_CORE"); }
 
 say() { printf 'drill: %s\n' "$*"; }
 refuse() { printf 'drill: REFUSED: %s\n' "$*" >&2; exit 2; }
@@ -118,7 +133,10 @@ drill: DRY RUN for $HOST. Nothing below is run: no door, no docker, no hub write
   preflight        root; free -m available >= $MIN_MB MB else exit 2; docker, curl, gh, git, perl;
                    door status is "closed"; no container, volume or non-left host named drill-*;
                    $CRED_DIR/setup.env exists (provision needs the admin identity);
-                   TAILSCALE_OAUTH_CLIENT_ID/_SECRET set; the Tailscale, gh and node-secrets readers answer
+                   TAILSCALE_OAUTH_CLIENT_ID/_SECRET set; the Tailscale, gh and node-secrets readers answer;
+                   tools/mesh_check.py has --join-drill. Code under test = this checkout ($CORE, venv from
+                   $PY); the join API and door.sh approve run $LIVE_CORE. Both commits are printed and
+                   written to the JSON as code.drill / code.join_service
   door_open        bash $DOOR open --minutes $DOOR_MIN        (trap closes it on every exit path)
   container        docker run $IMAGE --hostname $HOST --memory ${CONTAINER_MB}m, volume $HOST-ts, tailscaled --tun=userspace-networking
   mint             python -m tools.hq_join mint --host $HOST
@@ -227,7 +245,8 @@ preflight() {
   # The card runs this script at a pushed sha, but the tools it drives come from this checkout.
   # A stale checkout would get through the door, the join and the provision before it failed.
   grep -q -- '--join-drill' "$CORE/tools/mesh_check.py" 2>/dev/null \
-    || refuse "the checkout at $CORE is stale: tools/mesh_check.py has no --join-drill; pull it (git pull) and run again"
+    || refuse "the checkout at $CORE is stale: tools/mesh_check.py has no --join-drill (or this is not an Agents-Core checkout); update it (git pull) or run the card with --cwd in a worktree of origin/main"
+  code_commits
   command -v free >/dev/null 2>&1 || refuse "no free(1): this drill runs on Contabo (Linux)"
   local avail c d st
   avail=$(free -m | awk '/^Mem:/ {print $7}')
@@ -255,7 +274,7 @@ preflight() {
   tailnet_has_device; [ $? -eq 2 ] && refuse "the Tailscale API did not answer (token or device list)"
   deploy_key_present; [ $? -eq 2 ] && refuse "gh api repos/$GH_REPO/keys failed: gh has no access to the deploy keys"
   infisical_live_secret; [ $? -eq 2 ] && refuse "infisical_setup.py node-secrets failed: no admin read of org-node client secrets"
-  PREFLIGHT_DETAIL="$avail MB available, door closed, no drill-* leftovers"
+  PREFLIGHT_DETAIL="$avail MB available, door closed, no drill-* leftovers; code: drill $CODE_DRILL, join service $CODE_JOIN"
 }
 
 # ------------------------------------------------------------------------------------ 1 door
@@ -616,6 +635,7 @@ write_json() { # write_json <path>
     printf ' "findings": %s,\n "notes": %s,\n' "$(json_list "$FINDINGS")" "$(json_list "$NOTES")"
     printf ' "minutes": {"to_joined": %s, "to_probe": %s, "total": %s},\n' \
       "$(mins_or_null "$T_JOINED")" "$(mins_or_null "$T_PROBE")" "$(minutes $((SECONDS - STARTED)))"
+    printf ' "code": {"drill": %s, "join_service": %s},\n' "$(jstr "$CODE_DRILL")" "$(jstr "$CODE_JOIN")"
     printf ' "by": "scripts/drill-join.sh", "version": 1}\n'
   } >"$1.tmp" && mv "$1.tmp" "$1"
 }
@@ -676,6 +696,10 @@ trap 'exit 143' TERM
 trap 'exit 129' HUP
 trap on_exit EXIT
 say "drill for $HOST; $PREFLIGHT_DETAIL"
+say "code under test: $CORE at $CODE_DRILL (python $PY); join service and door.sh approve: $LIVE_CORE at $CODE_JOIN"
+if [ "$CODE_DRILL" != "$CODE_JOIN" ]; then
+  note "the join API and door.sh's approve leg run the live checkout at $CODE_JOIN; the drill's tools run $CODE_DRILL"
+fi
 step_ok preflight "$PREFLIGHT_DETAIL"
 
 if step_door_open && step_container && step_mint && step_join && step_approve && step_provision; then

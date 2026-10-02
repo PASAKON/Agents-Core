@@ -5,7 +5,8 @@ hands it a probe task, makes it leave, and then checks that nothing of it is lef
 thing behind the **L8** cell of `tools/mesh_check.py`, and L8 green on every `--expect w5 --live`
 run is part of the charter's done line.
 
-It runs **on Contabo, as root, from `/opt/MoonieXHQ/Agents/Core`, as one Run Inbox card**. The CEO
+It runs **on Contabo, as root, from a checkout of `origin/main` (a detached worktree under
+`/opt/MoonieXHQ/Agents/Core/worktrees/`, see below), as one Run Inbox card**. The CEO
 taps once. Nothing is typed, no login is done on the node. Run it only when a CTO has decided to:
 it opens the public join door (30-minute cap, closed as soon as the node is provisioned) and
 creates and revokes real credentials.
@@ -27,7 +28,7 @@ Push the commit first; the card runs a script at a pushed SHA.
 ```bash
 python3 tools/ask_run.py create --host contabo \
     --script Agents-Core@<pushed-sha>:scripts/drill-join.sh \
-    --cwd /opt/MoonieXHQ/Agents/Core --timeout 2700 --risk amber \
+    --cwd <worktree path given by the Contabo CTO> --timeout 2700 --risk amber \
     --why "W4.7 join drill: a throwaway container joins the mesh as drill-<utc stamp>. Your tap IS the human approval of that node. It opens the join door for the run, then creates and revokes one tailnet device, one GitHub deploy key and one Infisical client secret, and pushes one probe branch that it deletes. Needs 1.5 GB free RAM, about 20 minutes." \
     --expected "result: PASS, every step ok, a re-os-drills row printed, the door closed, no drill-* container or volume left"
 ```
@@ -37,13 +38,45 @@ below). Do a free look first with `--dry-run` (it prints every step, touches not
 
 ```bash
 python3 tools/ask_run.py create --host contabo --script Agents-Core@<sha>:scripts/drill-join.sh \
-    --cwd /opt/MoonieXHQ/Agents/Core --timeout 60 --risk green \
+    --cwd <worktree path given by the Contabo CTO> --timeout 60 --risk green \
     --why "W4.7 join drill, dry run: prints the plan, touches nothing" \
     --expected "one line per step, exit 0" -- --dry-run
 ```
 
 Exit codes: **0** pass; **1** the drill ran and failed (the JSON names the step); **2** refused at
 preflight, nothing started and nothing written.
+
+## Which code runs
+
+The live checkout on Contabo can be far behind `origin/main` (106 ahead and 27 behind on 2026-10-03),
+so it cannot carry this drill. The Contabo CTO makes a detached worktree of `origin/main` under
+`/opt/MoonieXHQ/Agents/Core/worktrees/<name>` and puts its path in the card (`--cwd`). Two sets of
+code take part, and they are **not the same checkout**:
+
+| Part | Runs the code of | Why |
+|---|---|---|
+| The drill script and every `python -m tools.*` call it makes (`hq_join` mint, approve, provision, leave, status, `mesh_check --join-drill`) | the checkout the card runs in: `CORE` = `git rev-parse --show-toplevel` of the working directory, else `/opt/MoonieXHQ/Agents/Core`. The script changes into `CORE`, so `python -m` loads the tools from there | that is the code under test |
+| Python itself | `CORE/.venv/bin/python3` when it exists, else `/opt/MoonieXHQ/Agents/Core/.venv/bin/python3` | a fresh worktree has no `.venv` |
+| The join API (`join.sh`, the token and fingerprint checks) and `door.sh`'s own approve leg | the **live** checkout, `/opt/MoonieXHQ/Agents/Core`, because `deploy/join/org-join.service` hardcodes that path | the service is not started from the worktree |
+
+So a pass proves the worktree's tools against the live checkout's join service. Preflight prints both
+commits and the run records them in the JSON (`code.drill`, `code.join_service`); a note says so when
+they differ. `unknown` means git could not name the commit.
+
+**Before the card**, the Contabo CTO checks that the join-path files of the live checkout match
+`origin/main`, because those are the files the join service really runs:
+
+```bash
+git -C /opt/MoonieXHQ/Agents/Core diff --stat origin/main -- \
+    tools/join_api.py tools/hq_join.py lib/db.py lib/tailscale_api.py deploy/join/
+```
+
+Empty output means the live join service is on the code under test. Any file listed means the drill
+would test the new tools against an old service: update the live checkout first, or accept that the
+result says so (`code.join_service` shows which commit it was).
+
+Preflight also refuses (exit 2) when `CORE/tools/mesh_check.py` has no `--join-drill`: that is a
+checkout from before this drill, or not an Agents-Core checkout at all.
 
 ## What one run does
 
@@ -75,7 +108,8 @@ signal (SIGTERM, SIGINT, SIGHUP) takes the same path.
 ## Reading the result
 
 The run prints one line per step (`drill: <step>: ok (...)` or `FAILED (...)`), the result line, and
-the `re-os-drills` row. The same data is in `state/mesh-check/join-drill.json` (gitignored):
+the `re-os-drills` row. The same data is in `state/mesh-check/join-drill.json` (gitignored) **of the
+checkout the card ran in**: from a worktree that is the worktree's `state/`, not the live checkout's:
 
 ```json
 {"ok": false, "at": "2026-10-03T14:00:00Z", "host": "drill-20261003-140000", "stamp": "20261003-140000",
@@ -85,9 +119,12 @@ the `re-os-drills` row. The same data is in `state/mesh-check/join-drill.json` (
  "w40": {"remote_control": null, "remote_control_cmd": "claude remote-control", "remote_control_error": "", "remote_control_output": ""},
  "probe": {"task": "task-0123abcd", "branch": "agent/probe-task-0123abcd", "sha": "<40 hex>", "seconds": 42},
  "findings": ["deploy_key_read_only"], "notes": [], "minutes": {"to_joined": 3, "to_probe": null, "total": 9},
+ "code": {"drill": "ab12cd3", "join_service": "ef45678"},
  "by": "scripts/drill-join.sh", "version": 1}
 ```
 
+- `code` is which commit each part ran (see "Which code runs"): `drill` = the checkout the script and
+  its tools ran from, `join_service` = the live checkout the join API and `door.sh` approve ran from.
 - `steps` is what L8 reads (`name`, `ok`; `detail` is for people). L8 is green only if `ok` is true,
   `at` is under 7 days old, and every step is ok.
 - `detail` is one printable-ASCII line, 200 characters at most, with token shapes masked.
@@ -104,7 +141,8 @@ the `re-os-drills` row. The same data is in `state/mesh-check/join-drill.json` (
 
 `join_drill` is also written to the hub as an `events` row (kind `join_drill`, the same JSON). With
 no local file, `check_l8` reads the newest such row, so `mesh_check --expect w5` on the Mac shows
-the cell without a copy of the file. The file wins when both exist. A hub that cannot be read gives
+the cell without a copy of the file (this is also how the live checkout sees a drill that ran in a worktree).
+The file wins when both exist. A hub that cannot be read gives
 `not run (... hub read failed ...)`, never green.
 
 ### `--log-to-repo`
@@ -113,7 +151,8 @@ By default the `re-os-drills` row is **printed only**: `state/re-os-drills.jsonl
 appending is a repo change. With `--log-to-repo` the script appends that one line, in the file's
 existing shape (`date, machine, kind: "join-drill", scope, result, minutes_to_remote_access,
 minutes_to_org_restore, bytes_from_git_mb, bytes_from_drive_mb, irreplaceable_lost_gb, human_steps,
-gaps_found, by, ref`). It does not commit; a CTO does.
+gaps_found, by, ref`). It does not commit; a CTO does. From a worktree the line lands in that worktree's
+`state/re-os-drills.jsonl`: commit it from there.
 
 ## What it proves, and what it does not
 
@@ -184,7 +223,9 @@ each; the script reports them rather than hiding them.
 
 ## Overrides (tests and odd boxes)
 
-`DRILL_CORE`, `DRILL_STATE_DIR`, `DRILL_ROWS_FILE`, `DRILL_PY`, `DRILL_DOOR`, `DRILL_HUB_WRAP`,
+`DRILL_CORE` (default: the git top level of the working directory, else the live checkout),
+`DRILL_LIVE_CORE` (the join service's checkout, default `/opt/MoonieXHQ/Agents/Core`; its `.venv` is the
+fallback python), `DRILL_STATE_DIR`, `DRILL_ROWS_FILE`, `DRILL_PY`, `DRILL_DOOR`, `DRILL_HUB_WRAP`,
 `DRILL_JOIN_URL`, `DRILL_IMAGE`, `DRILL_MIN_MB`, `DRILL_CONTAINER_MB`, `DRILL_DOOR_MIN`,
 `DRILL_FP_WAIT_S`, `DRILL_JOIN_WAIT_S`, `DRILL_PROBE_WAIT_S`, `DRILL_POLL_S`, `DRILL_GH_REPO`,
 `DRILL_AUTHORIZED_KEYS`, `DRILL_WINBOX_SSH`, `DRILL_TS_API`, `DRILL_STAMP`, `DRILL_ALLOW_NONROOT`.

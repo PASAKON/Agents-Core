@@ -243,6 +243,13 @@ if [ -e "$S/deploy_key_present" ]; then echo "[{\"id\":1,\"title\":\"org-node:$H
 GIT = PRELUDE + r'''
 echo "git $*" >>"$S/calls.log"
 case "$*" in
+  *rev-parse*)
+    [ -s "$S/real_git" ] && exec "$(cat "$S/real_git")" "$@"      # a test that wants the real answer
+    case "$*" in
+      *"--show-toplevel"*) exit 128 ;;
+      *"--short HEAD"*)      # git -C <dir> ...: the stub's commit is "c-" plus the directory's name
+        [ "$1" = -C ] || exit 128; f no_git_here && exit 128; echo "c-$(basename "$2")"; exit 0 ;;
+    esac ;;
   *ls-remote*) [ -e "$S/remote_branch" ] && printf '%s\t%s\n' "$(cat "$S/remote_branch")" "refs/heads/agent/probe-task-0123abcd" ;;
   *"push -q origin --delete"*) f branch_delete_fails && { echo "remote: Permission denied" >&2; exit 1; }; rm -f "$S/remote_branch" ;;
   *) echo "stub git: unexpected $*" >&2; exit 99 ;;
@@ -271,6 +278,8 @@ class Drill:
         (self.shim / "flags").mkdir(parents=True)
         self.bin = tmp_path / "bin"
         self.bin.mkdir()
+        self.live = tmp_path / "live"           # stand-in for /opt/MoonieXHQ/Agents/Core (the join service's code)
+        self.live.mkdir()
         self.core = tmp_path / "core"
         (self.core / "state").mkdir(parents=True)
         (self.core / "tools").mkdir()
@@ -295,6 +304,7 @@ class Drill:
             "SHIM_STATE": str(self.shim),
             "DRILL_STAMP": STAMP,
             "DRILL_CORE": str(self.core),
+            "DRILL_LIVE_CORE": str(self.live),
             "DRILL_STATE_DIR": str(self.state),
             "DRILL_ROWS_FILE": str(self.rows),
             "DRILL_PY": str(self.bin / "py"),
@@ -862,3 +872,108 @@ def test_l8_goes_red_on_a_failed_drill_and_names_the_step(drill):
     assert cell["ok"] is False and "kind" not in cell and "probe" in cell["reason"]
     at = datetime.fromisoformat(drill.result()["at"].replace("Z", "+00:00"))
     assert at.tzinfo is not None and abs((datetime.now(timezone.utc) - at).total_seconds()) < 600
+
+
+# ------------------------------------------------------------------------------ which code ran (addendum 7-10)
+
+REAL_GIT = shutil.which("git", path="/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin")
+
+
+def _venv(drill: Drill, where: Path, name: str) -> None:
+    """A venv python for `where` that says which venv and which directory it ran in, then acts as the PY stub."""
+    py = where / ".venv" / "bin" / "python3"
+    py.parent.mkdir(parents=True)
+    py.write_text(f'#!/bin/bash\necho "{name} $(pwd -P)" >>"$SHIM_STATE/venv.log"\nexec "{drill.bin}/py" "$@"\n')
+    py.chmod(0o755)
+
+
+def _venv_log(drill: Drill) -> list[tuple[str, str]]:
+    return sorted({tuple(line.split(" ", 1)) for line in drill.read("venv.log").splitlines()})
+
+
+def _repo(path: Path) -> str:
+    """A real git repo with one commit; returns its short sha."""
+    path.mkdir(parents=True, exist_ok=True)
+    git = ["git", "-C", str(path), "-c", "user.name=t", "-c", "user.email=t@invalid"]
+    subprocess.run([REAL_GIT, "init", "-q", str(path)], check=True, capture_output=True)
+    (path / "tools").mkdir(exist_ok=True)
+    (path / "tools" / "mesh_check.py").write_text("ap.add_argument('--join-drill', nargs=2)\n")
+    subprocess.run([REAL_GIT, *git[1:], "add", "-A"], check=True, capture_output=True)
+    subprocess.run([REAL_GIT, *git[1:], "commit", "-q", "-m", f"fixture {path.name}"], check=True, capture_output=True)
+    return subprocess.run([REAL_GIT, "-C", str(path), "rev-parse", "--short", "HEAD"], check=True,
+                          capture_output=True, text=True).stdout.strip()
+
+
+@pytest.mark.skipif(REAL_GIT is None, reason="no git on this machine")
+def test_core_is_the_git_top_level_of_the_directory_the_card_runs_in(drill, tmp_path):
+    wt = tmp_path / "worktree-of-origin-main"
+    wt_sha = _repo(wt)
+    live_sha = _repo(drill.live)
+    (wt / "sub" / "dir").mkdir(parents=True)
+    _venv(drill, wt, "worktree")
+    drill.put("real_git", REAL_GIT)                       # the script's rev-parse calls are the real ones
+    del drill.env["DRILL_CORE"], drill.env["DRILL_PY"]    # nothing tells it where CORE is
+    cp = subprocess.run(["/bin/bash", str(SCRIPT)], env=drill.env, cwd=wt / "sub" / "dir", capture_output=True, text=True)
+    assert cp.returncode == 0, cp.stderr
+    assert {where for _, where in _venv_log(drill)} == {str(wt.resolve())}      # it ran in the top level, not in sub/dir
+    assert drill.result()["code"] == {"drill": wt_sha, "join_service": live_sha}
+    assert f"code under test: {wt.resolve()} at {wt_sha}" in cp.stdout
+    assert f"drill {wt_sha}, join service {live_sha}" in drill.step("preflight")["detail"]
+
+
+def test_with_no_git_checkout_around_core_falls_back_to_the_live_checkout(drill):
+    del drill.env["DRILL_CORE"]                           # the stub git has no top level: the card ran outside any repo
+    cp = drill.run()
+    assert cp.returncode == 2 and f"the checkout at {drill.live} is stale" in cp.stderr    # the live stand-in has no tool
+    assert started_nothing(drill)
+
+
+@pytest.mark.parametrize("core_has_venv", [True, False])
+def test_python_is_the_cores_venv_when_it_has_one_else_the_live_venv(drill, core_has_venv):
+    _venv(drill, drill.live, "live")
+    if core_has_venv:
+        _venv(drill, drill.core, "core")
+    del drill.env["DRILL_PY"]
+    assert drill.run().returncode == 0
+    want = ("core", str(drill.core.resolve())) if core_has_venv else ("live", str(drill.core.resolve()))
+    assert _venv_log(drill) == [want]      # one venv only, and every call ran with the checkout under test as cwd
+
+
+def test_drill_py_still_wins_over_both_venvs(drill):
+    _venv(drill, drill.live, "live")
+    _venv(drill, drill.core, "core")
+    assert drill.run().returncode == 0                    # DRILL_PY (the stub) is still in the environment
+    assert not drill.has("venv.log")
+
+
+def test_both_code_commits_are_in_the_json_and_printed_at_preflight(drill):
+    cp = drill.run()
+    assert cp.returncode == 0
+    assert drill.result()["code"] == {"drill": "c-core", "join_service": "c-live"}      # git stub: "c-" + directory name
+    assert "drill c-core" in cp.stdout and "join service c-live" in cp.stdout
+    assert any("live checkout at c-live" in n and "c-core" in n for n in drill.result()["notes"])
+
+
+def test_no_note_when_the_drill_runs_in_the_live_checkout_itself(drill):
+    drill.env["DRILL_LIVE_CORE"] = str(drill.core)
+    assert drill.run().returncode == 0
+    code = drill.result()["code"]
+    assert code["drill"] == code["join_service"] == "c-core"
+    assert not any("live checkout" in n for n in drill.result()["notes"])
+
+
+def test_the_code_keys_are_there_even_when_git_cannot_name_a_commit(drill):
+    drill.flag("no_git_here")
+    assert drill.run().returncode == 0
+    assert drill.result()["code"] == {"drill": "unknown", "join_service": "unknown"}
+
+
+def test_a_refused_run_writes_no_code_record(drill):
+    drill.mesh_check.write_text("")
+    assert drill.run().returncode == 2
+    assert not (drill.state / "join-drill.json").exists()
+
+
+def test_the_dry_run_says_which_checkout_and_that_both_commits_are_recorded(drill):
+    out = drill.run("--dry-run").stdout
+    assert str(drill.core) in out and str(drill.live) in out and "code.drill" in out and "code.join_service" in out
