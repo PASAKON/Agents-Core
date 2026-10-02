@@ -27,7 +27,10 @@ Levels:
                  (read-only ssh, `--get-task`) whether it sees it. Same
                  from-== self restriction as L3.
   L5 letters   — --live only: a hub letter for a probe worker on B, delivered
-                 by `mesh.dispatch(B, "deliver_letter", id)`.
+                 by `mesh.dispatch(B, "deliver_letter", id)`. When L3 is claimed
+                 for the same pair it runs INSIDE L3's window, on L3's probe
+                 task, and also proves the wake: `woke: true` in the reply and
+                 a nonce from the letter in the probe file read back from origin.
   L6 liveness  — --live only: `probe` answers in < 60 s and the hub's
                  `hosts.probed_at` is fresh by the router's own rule.
   L7 router    — --live only: `router.pick_host` on synthetic tasks
@@ -500,8 +503,42 @@ def _git_status_porcelain(root: Path) -> str:
     return r.stdout.strip()
 
 
+def _git_show_from_origin(root: Path, rev: str, path: str) -> tuple[str | None, str]:
+    """(file text, "") for `path` at `rev` after a `git fetch origin`, else
+    (None, why). `rev` is a merge sha (it is on origin: L3 checked) or
+    `origin/<branch>`. A failed fetch is not an answer by itself: the show
+    decides, and names the fetch when it fails too."""
+    fetch_note = ""
+    try:
+        f = subprocess.run(["git", "fetch", "--quiet", "origin"], cwd=str(root),
+                           capture_output=True, text=True, timeout=60)
+        if f.returncode != 0:
+            fetch_note = f" (git fetch origin failed: {(f.stderr or '').strip()[:100]})"
+    except (subprocess.TimeoutExpired, OSError) as e:
+        fetch_note = f" (git fetch origin failed: {type(e).__name__})"
+    try:
+        r = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=str(root),
+                           capture_output=True, text=True, timeout=30)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        return None, f"git show failed: {type(e).__name__}{fetch_note}"
+    if r.returncode != 0:
+        return None, f"git show {rev[:20]}:{path}: {(r.stderr or '').strip()[:150]}{fetch_note}"
+    return r.stdout, ""
+
+
 async def run_l3_probe(from_host: str, to_host: str, root: Path, expect: str,
-                       no_merge: bool) -> tuple[bool, str | None]:
+                       no_merge: bool, l5: "L5Window | None" = None) -> tuple[bool, str | None]:
+    """The L3 cell for (from_host, to_host): (ok, reason). With `l5` (an
+    L5Window) the L5 letter is sent inside this window and the L5 cell is left
+    in `l5.cell`; it never changes what this function returns."""
+    ok, reason = await _l3_cycle(from_host, to_host, root, expect, no_merge, l5)
+    if l5 is not None:
+        l5.close(reason)
+    return ok, reason
+
+
+async def _l3_cycle(from_host: str, to_host: str, root: Path, expect: str,
+                    no_merge: bool, l5: "L5Window | None") -> tuple[bool, str | None]:
     try:
         from mcp import ClientSession, StdioServerParameters
         from mcp.client.stdio import stdio_client
@@ -534,6 +571,7 @@ async def run_l3_probe(from_host: str, to_host: str, root: Path, expect: str,
                     f"mesh-check L3 probe ({from_host} -> {to_host}, expect={expect}).\n\n"
                     f"Overwrite {probe_path} with exactly one line:\n"
                     f"`mesh-probe {from_host}->{to_host} {ts}`\n\n"
+                    f"{l5.instructions() if l5 is not None else ''}"
                     f"Commit with a message starting `mesh-probe:`. Then report."
                 )
                 create_result = await asyncio.wait_for(
@@ -556,10 +594,16 @@ async def run_l3_probe(from_host: str, to_host: str, root: Path, expect: str,
 
                 deadline = time.monotonic() + 25 * 60
                 final_status = None
+                branch = None
                 while time.monotonic() < deadline:
                     get_result = await asyncio.wait_for(
                         session.call_tool("get_task", {"task_id": task_id}), timeout=30)
-                    final_status = _toon_field(_first_text(get_result), "status")
+                    get_text = _first_text(get_result)
+                    final_status = _toon_field(get_text, "status")
+                    branch = _toon_field(get_text, "branch") or branch
+                    if l5 is not None and not l5.sent and final_status == "in_progress":
+                        # The far side's reply can take a minute (ssh, wake): off the loop.
+                        await asyncio.to_thread(l5.send, task_id, role)
                     if final_status in ("review", "done"):
                         break
                     if final_status in ("failed", "blocked_human", "conflict"):
@@ -569,6 +613,9 @@ async def run_l3_probe(from_host: str, to_host: str, root: Path, expect: str,
                     return False, "timeout waiting for review/done (25 min)"
 
                 if no_merge:
+                    if l5 is not None:  # nothing was merged: the worker's branch is the proof
+                        await asyncio.to_thread(l5.read_probe, root,
+                                                f"origin/{branch}" if branch else None, probe_path)
                     return True, None
 
                 merge_result = await asyncio.wait_for(
@@ -584,6 +631,8 @@ async def run_l3_probe(from_host: str, to_host: str, root: Path, expect: str,
 
     if not _git_ls_remote_has(root, merge_sha):
         return False, f"merge_sha {merge_sha[:12]} not found on origin"
+    if l5 is not None:
+        await asyncio.to_thread(l5.read_probe, root, merge_sha, probe_path)
     dirty = _git_status_porcelain(root)
     if dirty:
         return False, f"worktree not clean after merge: {dirty[:200]}"
@@ -807,9 +856,13 @@ def l5_probe(from_host: str, to_host: str) -> dict:
 
     Pass = the reply says delivered or already_delivered, names the recipient
     (`to`), the hub row is `delivered`, and the reply does not report a failed
-    wake. The wake fields in a reply are `woke` / `why` (tools/node_dispatch.py
-    `_windows_wake`); only the Windows C-level path has them, so a probe worker
-    letter on POSIX reports no wake at all and the cell says so in its note."""
+    wake. The wake fields in a reply are `woke` / `why` (tools/node_dispatch.py:
+    `_posix_wake` for the POSIX worker and C-level paths, `_windows_wake` for a
+    Windows C-level letter). A worker letter on Windows reports `woke: false`
+    and no `why`. This standalone form accepts an absent or bare `woke` and says
+    "wake not reported"; the form that PROVES the wake is L5Window, which runs
+    inside L3's window and also demands `woke: true` and the nonce in the probe
+    file. This form is what runs when L3 is not claimed with L5."""
     if not HAVE_CONFIG:
         return _red("no repo access")
     from lib import db as db_mod
@@ -841,7 +894,17 @@ def l5_probe(from_host: str, to_host: str) -> dict:
     return cell
 
 
-def _l5_deliver(db_mod, mesh, to_host: str, lid: int, tid: str) -> dict:
+def _is_windows_host(host: str) -> bool:
+    try:
+        return config.host(host).get("os") == "windows"
+    except Exception:
+        return False
+
+
+def _l5_deliver(db_mod, mesh, to_host: str, lid: int, tid: str, role: str = L5_ROLE,
+                need_wake: bool = False) -> dict:
+    """Deliver letter `lid` for worker `tid` on `to_host` and judge the reply.
+    `need_wake` (the L5Window form) also demands `woke: true`."""
     try:
         reply = mesh.dispatch(to_host, "deliver_letter", str(lid))
     except mesh.MeshUnreachable as e:
@@ -855,8 +918,8 @@ def _l5_deliver(db_mod, mesh, to_host: str, lid: int, tid: str) -> dict:
         return _red(f"reply is for letter {result.get('letter_id')!r}, sent {lid}")
     if result.get("delivered") is not True and result.get("already_delivered") is not True:
         return _red(f"reply says neither delivered nor already_delivered: {str(result)[:150]}")
-    if result.get("delivered") is True and result.get("to") != f"{L5_ROLE}-{tid}":
-        return _red(f"delivered to {result.get('to')!r}, expected {L5_ROLE}-{tid}")
+    if result.get("delivered") is True and result.get("to") != f"{role}-{tid}":
+        return _red(f"delivered to {result.get('to')!r}, expected {role}-{tid}")
     try:
         row = db_mod.get_letter(lid)
     except Exception as e:
@@ -865,11 +928,153 @@ def _l5_deliver(db_mod, mesh, to_host: str, lid: int, tid: str) -> dict:
     if status != "delivered":
         return _red(f"reply says delivered but the hub row is {status!r}")
     # `woke: False` with a `why` is a wake that was tried and failed. A bare
-    # `woke: False` (worker letter on Windows) and no field at all (POSIX)
-    # are paths that report nothing: the cell is ok, and says what it did not see.
-    if result.get("woke") is False and result.get("why"):
+    # `woke: False` (worker letter on Windows) and no field at all (a node_dispatch
+    # older than task-f9d23d0b) report nothing: without `need_wake` the cell is ok
+    # and says what it did not see; with it, only the Windows worker is let off.
+    woke = result.get("woke")
+    if woke is False and result.get("why"):
         return _red(f"letter delivered, wake failed: {str(result['why'])[:150]}")
-    return _green("woke" if result.get("woke") is True else "wake not reported")
+    if need_wake and woke is not True:
+        if woke is False and _is_windows_host(to_host):
+            # node_dispatch never wakes a Windows worker (it reads MAILBOX.md before
+            # every tool call) and says so with a bare `woke: false`: not applicable.
+            return _green("wake n/a: Windows worker reads MAILBOX.md")
+        seen = "no woke field" if woke is None else f"woke={woke!r}"
+        return _red(f"letter delivered, but the reply does not say woke: true ({seen}): "
+                    "the wake is not proven")
+    return _green("woke" if woke is True else "wake not reported")
+
+
+# ---------------------------------------------------------------------------
+# L5 inside L3's window: the wake, proven by a nonce
+# ---------------------------------------------------------------------------
+
+L5_NONCE_PREFIX = "MESH-NONCE-"
+L5_NONCE_WAIT_S = 120  # how long the probe worker waits for the letter
+
+
+class L5Window:
+    """L5 for one (A, B) pair, run inside L3's window.
+
+    The standalone L5 needs an `in_progress` probe worker on B, but a `--live`
+    run's L3 creates the only one and finishes it before the mesh levels run.
+    So L3 hands its task to this object the moment it is `in_progress` on B
+    (`send`). The letter body carries a fresh nonce that appears nowhere else:
+    not in the task description, not in the hub row of the task. The probe
+    worker is told to wait for the letter and write `nonce=<token>` on its
+    probe-file line. A POSIX worker only sees a letter on its next prompt, and
+    the prompt comes from the wake, so the nonce in the file read back from
+    origin proves the wake end to end, not just the mailbox write.
+
+    Green = the reply delivered THIS letter to the worker, the hub row is
+    `delivered`, the reply says `woke: true` and the file on origin has the
+    nonce. Anything less is a red or unreachable cell that says which step."""
+
+    def __init__(self, from_host: str, to_host: str):
+        self.from_host, self.to_host = from_host, to_host
+        self.nonce = f"{L5_NONCE_PREFIX}{uuid.uuid4().hex[:16]}"
+        self.sent = False                    # send() was called (once at most)
+        self.delivery: dict | None = None    # the cell for the letter itself
+        self.probe_text: str | None = None
+        self.probe_why = "L3 never got as far as reading the probe file"
+        self.cell: dict | None = None        # final; set by close()
+
+    def instructions(self) -> str:
+        """The paragraph L3 adds to the probe task's description. It never
+        contains the nonce: the worker can only get it from the letter."""
+        return (
+            "A letter from mesh_check is on its way to your mailbox. It holds one token: "
+            f"`{L5_NONCE_PREFIX}` followed by 16 hex digits. Wait for it before you write "
+            f"the line: run `sleep 15` and look for the letter, for at most {L5_NONCE_WAIT_S} s "
+            "in all. It reaches you as a mailbox block on your next message. When it comes, "
+            "copy the whole token and add ` nonce=<token>` to the end of the line. If "
+            f"nothing came after {L5_NONCE_WAIT_S} s, write the line without a nonce and say "
+            "in your report that no letter came. Never invent a token.\n\n"
+        )
+
+    def body(self) -> str:
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        return (f"mesh-check probe letter {self.from_host}->{self.to_host} {ts}. "
+                f"Your nonce is {self.nonce}. Add ` nonce={self.nonce}` to the end of the line "
+                "you write in your probe file, as your task says. Nothing else to do.")
+
+    def send(self, task_id: str, role: str) -> None:
+        """Write the letter for `task_id` and have B deliver it. Once only; the
+        outcome is in `self.delivery`. Never raises: an L5 problem must not fail L3."""
+        self.sent = True
+        try:
+            if not HAVE_CONFIG:
+                self.delivery = _red("no repo access")
+                return
+            from lib import db as db_mod
+            mesh = _mesh()
+            try:
+                lid = db_mod.create_letter(self.to_host, role, self.body(), to_session=task_id,
+                                           from_role=L5_FROM_ROLE,
+                                           from_session=f"mesh-check-{uuid.uuid4().hex[:8]}",
+                                           from_host=self.from_host)
+            except Exception as e:
+                self.delivery = _unreachable(f"hub write failed: {type(e).__name__}: {e}")
+                return
+            cell = _l5_deliver(db_mod, mesh, self.to_host, lid, task_id, role=role, need_wake=True)
+            if not cell["ok"]:
+                _abandon_letter(db_mod, lid)
+            self.delivery = cell
+        except Exception as e:
+            self.delivery = _red(f"L5 letter step failed: {type(e).__name__}: {e}")
+
+    def read_probe(self, root: Path, rev: str | None, path: str) -> None:
+        """Read the probe file back from origin at `rev`. Skipped when there is
+        no delivered letter to look for."""
+        if self.delivery is None or not self.delivery["ok"]:
+            return
+        if not rev:
+            self.probe_why = "the task has no branch or merge sha to read the file from"
+            return
+        try:
+            self.probe_text, self.probe_why = _git_show_from_origin(root, rev, path)
+        except Exception as e:
+            self.probe_why = f"{type(e).__name__}: {e}"
+
+    def close(self, l3_reason: str | None) -> None:
+        """Fix the final cell. Called once, when L3 is over, whatever it ended in."""
+        if self.cell is not None:
+            return
+        tail = f" (L3: {l3_reason})" if l3_reason else ""
+        if self.delivery is None:
+            self.cell = _red(f"no letter was sent: the probe worker was never seen in_progress "
+                             f"on {self.to_host}{tail}")
+        elif not self.delivery["ok"]:
+            self.cell = self.delivery
+        elif self.probe_text is None:
+            self.cell = _red(f"letter delivered ({self.delivery.get('note')}), but the probe file "
+                             f"could not be read back from origin: {self.probe_why}{tail}")
+        else:
+            self.cell = self._judge_file()
+
+    def _judge_file(self) -> dict:
+        note = self.delivery.get("note")
+        if f"nonce={self.nonce}" in (self.probe_text or ""):
+            return _green(f"{note}, nonce read back from origin")
+        m = re.search(r"nonce=(\S{0,40})", self.probe_text or "")
+        if m:
+            return _red(f"letter delivered ({note}), but the probe file on origin carries "
+                        f"nonce={m.group(1)!r}, not the one in the letter")
+        return _red(f"letter delivered ({note}), but the probe file on origin has no nonce: "
+                    "the worker did not read the letter (or did not copy it)")
+
+
+def l5_window_for(from_host: str, to_host: str, expect: str) -> L5Window | None:
+    """An L5Window when L3 and L5 are both claimed for (from, to) and B can be
+    dialled; else None, and L5 keeps the standalone form. A target with no
+    `mesh_ssh` is "closed (by design)": no letter, so no window."""
+    if not HAVE_CONFIG or from_host == to_host:
+        return None
+    if not (_in_scope("L3", from_host, to_host, expect) and _in_scope("L5", from_host, to_host, expect)):
+        return None
+    if _mesh_ssh_for(to_host) in (None, "", "?"):
+        return None
+    return L5Window(from_host, to_host)
 
 
 # ---------------------------------------------------------------------------
@@ -1164,8 +1369,14 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
 
     if args.live and running_host:
         for target in HOSTS:
-            ok, reason = await run_l3_probe(running_host, target, ROOT, args.expect, args.no_merge)
+            # L5 for this pair runs inside L3's window when both are claimed: the
+            # probe worker L3 creates is the only one there is (see L5Window).
+            window = l5_window_for(running_host, target, args.expect)
+            ok, reason = await run_l3_probe(running_host, target, ROOT, args.expect,
+                                            args.no_merge, window)
             combined["L3"][running_host][target] = {"ok": ok, "reason": reason}
+            if window is not None and window.cell is not None:
+                combined["L5"][running_host][target] = window.cell
 
     if running_host and HAVE_CONFIG and _wave_index(args.expect) >= _wave_index("w1"):
         for target in HOSTS:
@@ -1195,7 +1406,8 @@ def _run_mesh_levels(combined: dict, running_host: str, expect: str) -> None:
             continue
         if _in_scope("SEC", running_host, to, expect):
             combined["SEC"][running_host][to] = check_sec(to)
-        if _in_scope("L5", running_host, to, expect):
+        # A pair whose L5 already ran inside L3's window is not asked twice.
+        if _in_scope("L5", running_host, to, expect) and combined["L5"][running_host].get(to) is None:
             combined["L5"][running_host][to] = l5_probe(running_host, to)
     for h in HOSTS:
         if _in_scope("L6", h, h, expect):
