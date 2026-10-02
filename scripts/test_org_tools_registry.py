@@ -126,7 +126,7 @@ def test_wiki_read_equivalence() -> bool:
 def test_wiki_list_equivalence() -> bool:
     expected = srv.wiki_list("org:decisions")
     got = _dispatch("wiki_list", prefix="org:decisions")
-    return got == expected and got.startswith("[")
+    return got == expected == toon.encode(DECISION_PAGES)
 
 
 def test_wiki_search_equivalence() -> bool:
@@ -384,8 +384,30 @@ def test_error_wrapper_format_matches_already_guarded_tool() -> bool:
     return got == expected == "ERROR: wiki boom"
 
 
+DECISION_PAGES = [f"org:decisions/{n}" for n in ("0001-a.md", "0009-b.md", "0013-c.md")]
+
+
+def _make_wiki(base: Path) -> None:
+    """A throwaway wiki behind WIKI_ROOT_ORG, so the wiki_* checks need no checkout (ubuntu CI has none;
+    with no root both sides return the same "ERROR: wiki 'org' not available" and the check proves nothing).
+
+    The decisions are written out of order on purpose: wiki_list must sort, whatever order the
+    filesystem lists them in (APFS returns them sorted, ext4 does not).
+    """
+    org = base / "org-wiki"
+    (org / "decisions").mkdir(parents=True)
+    for page in reversed(DECISION_PAGES):
+        (org / page.removeprefix("org:")).write_text(f"# {page}\n", encoding="utf-8")
+    (org / "IRON-RULES.md").write_text("# Iron rules\nTOON is the wire format.\n", encoding="utf-8")
+    os.environ["WIKI_ROOT_ORG"] = str(org)
+    for ns in ("MOONIEX", "LUNGNOTE"):
+        os.environ[f"WIKI_ROOT_{ns}"] = str(base / f"no-{ns.lower()}-wiki")
+    reg.wiki_tools._roots.cache_clear()
+
+
 def main() -> int:
     tmp = tempfile.mkdtemp(prefix="org-tools-registry-")
+    _make_wiki(Path(tmp))
     db.DB_PATH = Path(tmp) / "tasks.db"
     # CTO_A/CTO_B below are synthetic owner_cto ids with no c_level_sessions
     # row — this suite tests registry/dispatch equivalence, not the charter
