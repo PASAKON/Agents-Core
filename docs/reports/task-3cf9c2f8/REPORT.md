@@ -61,7 +61,7 @@ Only what the headline plate forces; everything else is byte-identical (same tag
 
 ## Issues / Blockers
 - **text_over_face fails (17 beats) — needs a CMO/CTO decision, not fixed here.** The caption pill at y 1300 (SKILL §6f, fixed) covers the matted avatar's mouth wherever the avatar is composited at the standard position (top ~845). This is the kit's geometry and is shared with arm B, so it does not decide the A/B on the plate. Options: raise the COMP avatar ~100-130 px (chin clears the pill; costs evidence room), or move the pill lower (collides with the legal pill at y 1430). I did neither because §6f forbids moving the caption and a different avatar position would put arm A and arm B on different footing.
-- Brief said "the avatar sits lower under the plate"; measured, it is at the same place as in arm B (head top 903 for lip_a, same as arm B's matte geometry).
+- Brief said "the avatar sits lower under the plate"; comparing frames 0.5 and 3.0 s of both finals, it is at the same place as in arm B (eyes at y ~1190 in both).
 - `face_box.py` boxes include the neck (narrowest row below the head), so they are taller than the face; the gate fails even more conservatively than the eye does, but the eye confirms the mouth is covered.
 - The 4305b93b worktree's `render_lock.sh` had no flock and no RAM gate; used `render_seq.sh` instead.
 
