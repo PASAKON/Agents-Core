@@ -145,9 +145,11 @@ puts the caller's text on it; the caller's text arrives only as
   Win32-OpenSSH parses key options with the portable OpenSSH code, so
   `command=`, `from=` and `restrict` apply. Whether `restrict`'s no-pty holds
   exactly under ConPTY is **not verified**.
-- Mac sshd stays closed (design §6): on the Mac this key is for local tests and a
-  later pull-side caller, not an open door. If it is ever opened, apply
-  `docs/ops/mac-sshd-hardening.md` first.
+- The Mac: until gate G2 its sshd stays closed, and this key is for local
+  tests only. At G2 the CEO turns on Remote Login on the tailnet, after
+  `docs/ops/mac-sshd-hardening.md` (CEO decision 2026-09-28, design §6
+  decision 1; recorded in org ADR 0034, which supersedes "the Mac keeps sshd
+  closed").
 
 ### Client side (lib/mesh.py)
 

@@ -153,17 +153,29 @@ Invariant for the soak: each remote row has exactly one poller.
 
 ### Security
 
-- Postgres and `node_agent` listen on the tailnet only; nothing new on a public IP.
-- Per-host node key, revocable in one row. The Mac keeps sshd closed.
-- `node_agent` executes a fixed dispatch table (spawn worker, start C-level,
-  deliver letter, report) — same threat model `mac_agent.py` documents.
+- Postgres listens on the tailnet only. A mesh key is accepted only from its
+  dispatcher's own tailnet address (`from=` with a /32).
+- One `org_dispatch` key per dispatcher, revoked by deleting one
+  `authorized_keys` line.
+- sshd runs `tools/node_dispatch.py` as that key's forced command: seven
+  verbs, never a shell (`docs/ops/node-dispatch.md`).
+- **Changed 2026-09-28 (CEO, §6 decision 1):** the Mac no longer keeps sshd
+  closed. It turns on Remote Login on the tailnet at gate G2, after
+  `docs/ops/mac-sshd-hardening.md`. ADR 0034 records the reversal and the
+  threat model. Until G2 the Mac is reached only through the relay queue
+  (`runners/mac_agent.py`).
 - Every join is approved by a CEO tap; no silent registration.
 
 ## 4. Target matrix (after W0–W4)
 
 Every cell in 1b and 1c becomes ok, including Contabo → Mac and anything from
-winbox, with the Mac's sshd still closed. SSH (1a) stays as measured — delegation
-no longer needs it.
+winbox. ~~with the Mac's sshd still closed. SSH (1a) stays as measured —
+delegation no longer needs it.~~ Changed by the CEO's 2026-09-28 decision (§6):
+every host, the Mac included from gate G2, answers the `org_dispatch` key, and
+only with node_dispatch.
+
+The measured final matrix (`mesh_check --expect w5 --live`, one run from each
+host) goes here when W5 runs.
 
 ## 5. Waves
 
@@ -176,15 +188,49 @@ no longer needs it.
 | **W4** | C6 `hq join` + `hosts` table + probed `provides`. | A throwaway Linux VM joins with one command + one phone tap + `claude` login, receives a delegated worker within 15 min, then leaves with `hq leave`. | Infisical identity for new hosts (free tier full) |
 | **W5** | C7 router by `needs`. | `create_task(needs=['win_gui'])` lands on winbox without `host=`. | no |
 
-## 6. Decisions for the CEO
+### Scope moves (plan of 2026-09-29, CEO update the same day)
+
+The table above is the design of 2026-09-28. These moves change it:
+
+- **W0:** "`delegate_task(host='winbox')` merges on Contabo" moved to W3.
+  Linux `remote_pid_alive` / `send_to_worker` were dropped: the W2 dispatch
+  verbs `pid_alive` and `deliver_letter` replace them.
+- **W2:** the `node_agent` pull model (C3) became an ssh mesh with
+  forced-command keys (§6 decision 1). C4 letters reach the target through
+  the `deliver_letter` verb instead of a `node_agent` tick. The router (C7)
+  moved from W5 into W2 (W2.6). Mac Remote Login and its sshd hardening
+  (W2.0, W2.8b) moved to the very end, as gate G2. The W2 cell "with Mac sshd
+  still closed" no longer applies.
+- **W4:** runs last, on Infisical Free (decision 4).
+- **W5:** the router is built in W2.6 and tested again in W3, so W5 is only
+  the full acceptance run, `mesh_check --expect w5 --live`.
+
+## 6. Decisions for the CEO (all four ruled by the CEO on 2026-09-28)
 
 1. **Pull model + Mac sshd stays closed** (recommended) vs open Mac Remote Login
    on the tailnet for a plain ssh mesh. Opening it is faster but reverses the
    documented security design and still leaves Windows session 0 and sleep.
+   **Ruled: open Remote Login on the tailnet**, with forced-command keys so
+   no caller gets a shell (ADR 0034). The Mac side waits on gate G2.
 2. **W1 restart window** — the hub cutover needs every live C-level session
    restarted once.
+   **Ruled: yes.** It ran as gate G1 on 2026-10-02 (Mac 04:35, Contabo 04:56 TH).
 3. **Contabo as the single hub** — one bill and one box; the 2026-09-16 payment
    reboot is the precedent. Mitigation: nightly `pg_dump` to Drive (drive_leg
    `state-db` pattern) and read-only fallback to local SQLite.
+   **Ruled: yes** (ADR 0025). Both mitigations run since 2026-10-02, and a
+   restore drill into a throwaway database passed
+   (`docs/ops/machine-contract-drive-leg.md`).
 4. **Secrets for new hosts** — Infisical free tier is 5 of 5; a fourth machine
    needs a paid tier or a shared node identity.
+   **Ruled on 2026-09-28: paid tier; changed on 2026-09-29: stay on Free.**
+   W4.2 uses one shared identity, `org-node`. Each joining node gets its own
+   Universal Auth client secret under it, and `hq_join leave` revokes that one
+   secret (`tools/infisical_setup.py`). `org-node` reads only the `Org-Node`
+   project, which holds `CLAUDE_CODE_OAUTH_TOKEN`; the CEO enters the value at
+   gate G3 (W4.6c, review task-79219f24).
+
+Also ruled on 2026-09-28: the mesh probes commit to Agents-Core itself (only
+`docs/ops/mesh-probe/<from>-<to>.md`, prefix `mesh-probe:`), and a new
+machine signs in to claude with a long-lived token from `claude setup-token`
+kept in Infisical, so a join has no login step.
