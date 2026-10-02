@@ -29,9 +29,12 @@ def test_init_banner_does_not_print_the_password(monkeypatch, capsys):
     monkeypatch.setattr(db, "get_conn", lambda: _Conn())
     monkeypatch.setattr(db, "init_schema", lambda conn, is_pg: None)
     db.init()
-    out = capsys.readouterr().out
-    assert secret not in out
-    assert "postgresql://org:***@h:5432/org_test" in out
+    cap = capsys.readouterr()
+    assert secret not in cap.out + cap.err
+    assert "postgresql://org:***@h:5432/org_test" in cap.err
+    # stdout stays clean: the org MCP server speaks JSON-RPC on it (2026-10-03, mesh_check
+    # logged "Failed to parse JSONRPC message" on this banner)
+    assert cap.out == ""
 
 
 def test_pg_dump_never_gets_the_password_on_its_command_line(tmp_path, monkeypatch):
