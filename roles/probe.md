@@ -28,6 +28,8 @@ reaches a running worker and wakes it, so the token must come from the letter.
   one, none is coming: do not wait and do not write a nonce.
 - The token is `MESH-NONCE-` followed by 16 hex digits. The description never
   holds it; only the letter does.
+- It may already be in your messages when you start (it can arrive with the
+  kickoff): look there first. Only if it is not there, wait.
 - To wait: run `sleep 15`, then look at your next message. A letter shows
   up there as a mailbox block (on Windows it is a new line in `MAILBOX.md` at
   the top of your worktree, which you read before each tool call). Repeat until

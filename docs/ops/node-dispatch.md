@@ -314,6 +314,13 @@ forced command, so on winbox it is a machine-level variable plus an sshd restart
 (not tried here). A wake blocks the verb for up to about 30 s in the worst case
 (`schtasks` 15 s, then a 15 s wait for the result); typical is 4 s.
 
+**Waking on the Mac and Contabo (task-f9d23d0b).** `deliver_letter` for a worker or a
+C-level session on a POSIX host writes the mailbox, nudges the tmux pane
+(`agent_transport.attempt_wake`), and answers `"woke": true` only when the keys reached a
+live tmux session and every tmux call exited 0. Otherwise it answers `"woke": false` plus
+a `why`. The letter stays delivered either way. `mesh_check` L5 reads `woke`
+(`docs/ops/mesh-check.md`).
+
 ## Audit
 
 Every call, refusals included, writes one `events` row: `actor=node_dispatch`,

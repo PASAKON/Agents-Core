@@ -235,10 +235,11 @@ def test_on_posix_the_flag_changes_nothing_and_the_tmux_wake_is_the_one_used(
     monkeypatch.setattr(nd, "_is_windows", lambda: False)
     monkeypatch.setattr(nd, "_clevel_session_live", lambda role, sid: True)
     woken = []
-    monkeypatch.setattr(send_to_cxo, "attempt_wake", lambda *a, **kw: woken.append(a))
+    monkeypatch.setattr(send_to_cxo, "attempt_wake", lambda *a, **kw: woken.append(a) or True)
     out, code = _deliver()
     assert code == 0, out
+    # POSIX reports the tmux wake's own result as `woke` (task-f9d23d0b)
     assert out["result"] == {"letter_id": out["result"]["letter_id"], "delivered": True,
-                             "to": "cto-abcd1234"}  # no `woke` key on POSIX, as before
+                             "to": "cto-abcd1234", "woke": True}
     assert woken == [("cto", "abcd1234", "CMO")]
     assert wake.calls == []

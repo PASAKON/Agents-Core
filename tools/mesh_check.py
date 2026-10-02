@@ -984,7 +984,9 @@ class L5Window:
         contains the nonce: the worker can only get it from the letter."""
         return (
             "A letter from mesh_check is on its way to your mailbox. It holds one token: "
-            f"`{L5_NONCE_PREFIX}` followed by 16 hex digits. Wait for it before you write "
+            f"`{L5_NONCE_PREFIX}` followed by 16 hex digits. It may already be in your "
+            "messages (it can arrive with the kickoff): look there first. If it is not there, "
+            "wait for it before you write "
             f"the line: run `sleep 15` and look for the letter, for at most {L5_NONCE_WAIT_S} s "
             "in all. It reaches you as a mailbox block on your next message. When it comes, "
             "copy the whole token and add ` nonce=<token>` to the end of the line. If "
