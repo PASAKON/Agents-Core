@@ -31,6 +31,12 @@ into a relay Chrome was refused by the auto-mode classifier as a bypass
 (cto-3156a56c, 2026-09-27). Those go through `ALL_Protocol_RunInbox`
 (`--expects-input`); on the Mac or winbox before its P2, its §Hosts route.
 
+## Rule — open the request, never ask to open it (CEO 2026-10-02)
+
+A login the session needs → open the relay request **now** (§1/§2), then one chat line: machine:port,
+account label, why. Never ask in chat whether you may, never wait for "ส่งมา" — he opens it or
+dismisses it on the phone. Every new request also emails him as a reminder.
+
 ## 0. Who does what
 
 - **Rule (CEO 2026-10-01, IRON-RULES §60 — every session, new ones too):** a login

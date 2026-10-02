@@ -17,6 +17,15 @@ result returns to your session. **The one rule:** the tap is the only authority,
 reads is byte-for-byte what runs — no agent approves, no batch, no "always allow", no edit after
 approval. Design: `docs/design/run-inbox/DESIGN.md`; hub facts: Console `docs/run.md`.
 
+## Rule 0b — raise the card, never ask to raise it (CEO 2026-10-02)
+
+> "สามารถขอ Relay + Run ได้โดยไม่ต้องขออนุญาต … CEO ตรวจคำขอ และสามารถอนุมัติ หรือ Cancel ไปได้"
+
+A blocker that needs the CEO's tap → create the card **now**, then one chat line: id, link, why. Never
+"may I send a card?", never wait for "ส่งมาเลย" — the old loop (ask in chat → he says send → you send →
+he taps) cost him a turn every time. The card is the question; Deny/cancel is his answer. Every new
+card also emails him as a reminder (Console `scripts/run-mail-sender.mjs`).
+
 ## Hosts (state on 2026-09-25)
 
 | host | runs cards | how |

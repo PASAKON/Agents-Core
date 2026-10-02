@@ -109,3 +109,13 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
   phases: `docs/design/secrets-infisical/PLAN.md` §3b–§6.
 - Migration runs project by project starting on Contabo (P2 = MoonieX-LineAutomation). The owner of
   a service is told before its process is restarted under `infisical run`.
+
+## Relay + Run cards: raise them, never ask first (CEO 2026-10-02, every role, every machine)
+
+When a blocker needs the CEO's hands — a login (relay request, `relay-login`) or a command he must tap
+(Run card, `ALL_Protocol_RunInbox` / `ask_run`) — **raise the request at once**. Do not ask in chat
+"may I send a card?" and do not wait for him to say "send it": that costs him a turn. The card IS the
+question — he approves or cancels it there. Say in one chat line what you raised (id + link + why).
+Every new request also emails him (pass.gob1@gmail.com) as a reminder. What a card may contain is
+unchanged (no secret values, exact bytes, red risk for root).
+
