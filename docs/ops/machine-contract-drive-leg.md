@@ -183,3 +183,24 @@ sqlite3's online backup API (never `cp` of a live database), gzips it into
 equals the previous run's (`$CLAUDE_CONFIG_DIR/logs/state-db-archive-index.jsonl`). Never deletes.
 Cron: `15 2 * * 0 … tools/drive_leg.py state-db`. First object 2026-09-24: id `1f-mR9YmHoDpm0zmHRc7sExoARJRJh-i3`
 (51,037 B gz of 229,376 B, md5 verified). Restore: download, gunzip, stop the org daemon, move into place.
+
+**Since the G1 hub cutover (2026-10-01): a `pg_dump` of the hub.** When `ORG_DB_URL` is set, `state-db`
+dumps the Postgres hub (`pg_dump $ORG_DB_URL`) instead of copying SQLite, and writes
+`State-DB/contabo/tasks-<date>.sql.gz`, one object per date. The cron line runs through the hub env
+wrapper so the variable is there, and runs every night since 2026-10-02 (box time; the old crontab is
+`/root/crontab.bak-2026-10-02-0429`):
+`15 2 * * * cd /opt/MoonieXHQ/Agents/Core && /bin/bash scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python3 tools/drive_leg.py state-db >> state/drive-leg.log 2>&1`.
+Restore = `gunzip -c <file> | psql -v ON_ERROR_STOP=1` into an empty database.
+
+**Restore drill (Org Mesh W1, PASS 2026-10-02).** Restore into a throwaway database, never into
+`org_test`. Test runs leave functions in `org_test` (`org_join_events_guard`, `org_join_hosts_guard`)
+even when it holds no tables, so a restore there stops at the first `CREATE FUNCTION` (Run card
+RUN-20261002-0215-f942, exit 8). What passed (Run card RUN-20261002-0238-1c6e):
+1. Read the date's dump back from Drive through winbox (`scripts/rclone_via_winbox.sh cat`).
+2. Check that the sha256 of the unzipped file equals the index line for that date.
+3. `create database org_drill_<time>`, then restore with `psql -v ON_ERROR_STOP=1`.
+4. Compare each table's `count(*)` with the dump's COPY row count.
+5. `drop database org_drill_<time>`.
+
+All 8 tables matched: tasks 1281, events 10911, c_level_sessions 198, locks 15, hosts 1, and 0 in
+letters, join_tokens and node_secrets.
