@@ -46,7 +46,7 @@ old secretary path. Logs to expect: `[sompong/internal] listening on :3011`, the
 3. The Run Inbox token for `ask_run.py` was copied to `/home/sompong/.config/mooniex/run-inbox.token` (600) by a
    CEO-approved card (RUN-20261001-1622-c71a).
 
-## Acceptance (probes 1, 4, 5 passed 2 Oct 00:15–00:50 BKK)
+## Acceptance (probes 1 + 4 passed, 5 file-level only — 2 Oct 00:15–00:50 BKK)
 
 | Probe | Result |
 |---|---|
@@ -54,13 +54,25 @@ old secretary path. Logs to expect: `[sompong/internal] listening on :3011`, the
 | 2 family `@สมพงษ์` in the group, risky ask → CEO | not run yet |
 | 3 kill the session, messages queue, restart drains | not run yet |
 | 4 `/spawn-coo` refuses a second session | PASS — `SomPong already online (tmux sompong, since 2026-10-02 00:11)`, rc 0, still 1 tmux + 1 claude |
-| 5 session cannot read the inbox keys | PASS — as `sompong`, `test -r` denied on `/etc/infisical/contabo.env`, `state/inbox.db`, ClaudeFlow `.env` (all root 600); inbox process is root |
+| 5 session cannot read the inbox keys | FILE-LEVEL ONLY — as `sompong`, `test -r` denied on `/etc/infisical/contabo.env`, `state/inbox.db`, ClaudeFlow `.env` (all root 600). **Not a full pass:** `sompong-inbox.service` runs as root from the SomPong repo, which `sompong` owns and can edit, so its next restart runs that code as root (open CEO decision, 2 Oct) |
 | 6 red Run card from SomPong, 15-min wait | not run yet |
 
 ## Known gaps (follow-ups)
 
 - No `chats` tool: the session learns a group's id only when that group sends an event (SomPong saved targets in
   its git-ignored `work/memory/private/chat-targets.md`). LINE has no history API before the first event.
-- Non-root session has no org MCP (tasks.db read-only), no `send_to_cxo` (mailbox perms), no LungNote.
+- Org MCP: after G1 the hub URL comes from Infisical `Agents-Core/prod` through `/etc/infisical/contabo.env` (root 700),
+  so the `sompong` user's org server dies on the archived `state/tasks.db`. Open: how a non-root client gets
+  `ORG_DB_URL` (Org Mesh lane). Root's `~/.config/mooniex/org-db.env` holds `POSTGRES_*`, not `ORG_DB_URL` — copying it
+  does nothing (a copy made by RUN-20261002-0234-f4ec was removed the same day).
+- Card RUN-20261002-0234-f4ec (2 Oct) gave `sompong` read on the LungNote MCP `.env` (ACL) and rw on
+  `state/inbox` (ACL, default ACL on each mailbox dir). Cross-session `SendMessage`/`ListAgents` work without it.
 - SomPong installer default user is still root; Console `names.js` and `windows/cxo-claude.ps1` don't know `coo`.
 - Contabo RAM: 7.9 GB, swap 4 GB full during the BL EP58 render; the session slows (an 11 s `date`).
+
+## Restarting a service on this box (incident 2 Oct 09:38 TH)
+
+`systemctl restart mooniex-sompong.service` killed every tmux session on Contabo: the shared root tmux server had been
+started from inside that unit and lived in its cgroup. Fixed 16:27 TH by the Mac CTO: the server now runs in its own
+unit `org-tmux.scope`. Before restarting any unit, check `tail -1 /proc/$(pgrep -x 'tmux: server')/cgroup` reads
+`org-tmux.scope`.
