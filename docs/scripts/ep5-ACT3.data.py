@@ -70,10 +70,10 @@ _META = {
         "warm shadows stretch across the wooden market floor",
         _N + ["nocash"]),
 
-    59: (8, "Medium, a narrow back aisle behind the market stalls stacked with empty crates, the mother alone with her phone at her ear",
+    59: (8, "Medium, a sunny back walkway behind the market stalls beside stacked crates, the mother alone with her phone at her ear",
         ["sri_noapron"], "market_back", T5,
-        "the woman in the cream blouse, crouching in the shadowy service alley beside towering stacks of empty plastic crates, clutches her phone to her ear and whispers in breathless haste while she speaks; "
-        "the whole time she talks, her anxious gaze darts back toward the bright market stall where her son works; she drops her voice to an absolute minimum, her chin trembling with humiliation; "
+        "the woman in the cream blouse, standing in the bright sunny walkway beside stacks of empty plastic crates, holds her phone to her ear with both hands and speaks quickly in a low urgent voice; "
+        "the whole time she talks, her worried eyes keep glancing back toward the market stall where her son works, and her free fingers twist the hem of her blouse; "
         "the instant she finishes, she presses the phone tightly to her cheek, listening with bated breath; dry leaves stir on the concrete alley floor",
         _N + ["nocash"]),
 
@@ -151,7 +151,7 @@ DIRECTION = {
     (57, "sri"): "frantically covering, pounding chilies with furious deflection, voice strained",
     (58, "sri"): "hurried, anxious and evasive, untying her apron with trembling fingers",
     (58, "ton"): "easy, cheerful and reassuring, accepting the pestle with a warm smile",
-    (59, "sri_noapron"): "ashamed, desperate, speaking in a frantic hushed whisper behind the crates",
+    (59, "sri_noapron"): "urgent and tearful, voice low and shaking, gripping the phone with both hands",
     (60, "sri_noapron"): "nodding frantically, a tiny thread of desperate hope entering her trembling voice",
     (61, "sri_noapron"): "fierce, resolute maternal sacrifice, whispering through gritted teeth while watching him",
     (62, "fon"): "terrified yet pushing herself, whispering in urgent breathless dread",
