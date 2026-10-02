@@ -7,7 +7,7 @@ Design: `docs/design/sompong-coo-session.md`. Owner: CTO cto-e106b78b. Went live
 | Piece | Where | Runs as |
 |---|---|---|
 | `mooniex-sompong.service` (supervisor → `scripts/cxo-claude.sh --role coo`, tmux `sompong`) | Agents-Core `deploy/systemd/` → `/etc/systemd/system/` | root supervisor; claude runs as unix user `sompong` |
-| `sompong-inbox.service` (durable queue `state/inbox.db`, wake listener 172.18.0.1:8644, socket `state/inbox.sock`) | SomPong repo `ops/` + drop-in `10-session-user.conf` | root, under `infisical_setup.py run MoonieX-SomPong prod --as contabo` |
+| `sompong-inbox.service` (durable queue `/var/lib/sompong-inbox/inbox.db`, wake listener 172.18.0.1:8644, socket `/var/lib/sompong-inbox/inbox.sock`) | Agents-Core `deploy/systemd/sompong-inbox.service`; code = root-owned release `/opt/sompong-inbox/current` (since 2 Oct 19:11 TH) | root, under `infisical_setup.py run MoonieX-SomPong prod --as contabo` |
 | ClaudeFlow webhook container | image `mooniex-claudeflow-claudeflow-webhook:sompong-session-e639d4e` | Docker, `n8n_default` |
 
 ClaudeFlow is **not** built from main: branch `deploy/sompong-session-2026-10-01` = 42590d5 (the previous
@@ -51,16 +51,51 @@ old secretary path. Logs to expect: `[sompong/internal] listening on :3011`, the
    user switch, `find <repo> -not -user sompong -not -path '*/.git/*'` must list only `__pycache__`, `state/` and the
    installer's root-owned skill symlink.
 
+## Root boundary (CEO 2 Oct: SomPong edits itself and codes; root only through his Face ID)
+
+The SomPong repo belongs to user `sompong`. Nothing that runs as root may run its code or its git:
+git as root runs whatever `.git/config` names, pytest as root runs its tests, a root merge leaves
+root-owned files in `.git`. So:
+
+- **Inbox code** runs from a root-owned release. To ship SomPong's inbox changes: a **red Run card**
+  (Face ID) with `bash /opt/MoonieXHQ/Agents/Core/scripts/sompong-inbox-deploy.sh [<rev>]` — git archive
+  as `sompong`, data-filter extract as root (regular files + dirs only), atomic `current` switch,
+  health check, rollback, keep 5. `ExecStart` never points into the repo again.
+- **Inbox state** lives in `/var/lib/sompong-inbox` (moved 2 Oct 19:11 TH; the old file is
+  `SomPong/state/inbox.db.pre-move-2026-10-02`). `SomPong/state/inbox.sock` is a compat link for the
+  session started before the move; from its next start the launcher sets `SOMPONG_INBOX_SOCKET`.
+- **Root tooling refuses the repo on Contabo:** `config/projects.yaml` has no contabo path for
+  `mooniex-sompong`, so delegate / merge_task / worktree fail fast. SomPong commits and pushes itself.
+  Read as root only via `runuser -u sompong -- git -C /opt/MoonieXHQ/Projects/MoonieX/SomPong …`.
+- Never run the SomPong repo's `ops/install-contabo.sh` as root again.
+
+## The org MCP for the COO (CEO 2 Oct: "ให้ SomPong มีกุญแจ")
+
+- Hub role **`org_coo`** (`deploy/hub/org_coo_role.sql`): no superuser (the `org` role is one, and
+  `COPY … TO PROGRAM` would be root-equivalent); rw on tasks/events/locks/c_level_sessions/letters,
+  read on hosts, nothing on join_tokens/node_secrets. Not the owner: schema migrations still need a
+  root process first. Re-run the file after adding a table the COO needs.
+- DSN in **Infisical `Org-Coo/prod` `ORG_DB_URL`**, read by `contabo` only. `sompong` has **no
+  Infisical identity**: Free counts the CEO's user against its 5, so the org is full (HTTP 400
+  "identity limit reached", 2 Oct). `mooniex-sompong.service` `ExecStartPre` writes the DSN to
+  `/run/sompong-coo/org-db.url` (RuntimeDirectory, dir root 0711, file root:sompong 0440, gone on stop)
+  via `scripts/coo-org-db-cred.sh`; `scripts/hub/with-org-db-env.sh` leg (a2) reads it into the org
+  MCP's environment only (`MOONIEX_ORG_DB_URL_FILE` in COO_ENV).
+- Rotate: re-run `org_coo_role.sql` with a new password (env `ORG_COO_PASSWORD`), `put` the new DSN,
+  restart `mooniex-sompong.service` (coordinate with SomPong: the restart starts a fresh conversation).
+- Face ID: SomPong's own Run Inbox token (`~sompong/.config/mooniex/run-inbox.token`) + `coo` in
+  `c_level` → `ask_run --risk red --command …` reaches the CEO's phone.
+
 ## Acceptance (probes 1 + 4 passed, 5 file-level only — 2 Oct 00:15–00:50 BKK)
 
 | Probe | Result |
 |---|---|
 | 1 Telegram DM + LINE DM + LINE group | PASS — 2 TG answered (26 s, 109 s), LINE DM answered, group event answered (7-day summary to the CEO's DM) |
-| 2 family `@สมพงษ์` in the group, risky ask → CEO | not run yet |
+| 2 family `@สมพงษ์` in the group, risky ask → CEO | GATE PASS (2 Oct 19:3x TH, hook against the live inbox as `sompong`, made-up session id): CEO turn → no gate; family-classified turn → Edit `ask`, Bash `ask`, Read `allow`. No family event is stored yet (all 9 are role=ceo), so the family turn was the fail-closed path (unknown id); a real family message is still to be seen |
 | 3 kill the session, messages queue, restart drains | not run yet |
 | 4 `/spawn-coo` refuses a second session | PASS — `SomPong already online (tmux sompong, since 2026-10-02 00:11)`, rc 0, still 1 tmux + 1 claude |
 | 5 session cannot read the inbox keys | FILE-LEVEL ONLY — as `sompong`, `test -r` denied on `/etc/infisical/contabo.env`, `state/inbox.db`, ClaudeFlow `.env` (all root 600). **Not a full pass:** `sompong-inbox.service` runs as root from the SomPong repo, which `sompong` owns and can edit, so its next restart runs that code as root (open CEO decision, 2 Oct) |
-| 6 red Run card from SomPong, 15-min wait | not run yet |
+| 6 red Run card from SomPong, 15-min wait | card RUN-20261002-1227-3e80 created as `sompong` (`id -u; id -un`, risk red), waiting for the CEO's Face ID |
 
 ## Known gaps (follow-ups)
 
