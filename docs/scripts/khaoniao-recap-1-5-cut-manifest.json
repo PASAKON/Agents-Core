@@ -1,0 +1,69 @@
+{
+ "out": "${OUT}/RECAP-cut-v1.mp4",
+ "size": [
+  720,
+  1280
+ ],
+ "fps": 24,
+ "mid_roll_s": 60,
+ "segments": [
+  {
+   "clip": "${E1}/shot-01.mp4",
+   "dur": 9.2,
+   "ss": 0.8
+  },
+  {
+   "clip": "${E1}/shot-09.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E1}/shot-16.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E2}/shot-01.mp4",
+   "dur": 9.2,
+   "ss": 0.8
+  },
+  {
+   "clip": "${E2}/shot-11.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E2}/shot-14.mp4",
+   "dur": 10
+  },
+  {
+   "card": "${CARDS}/card-title-recap.png",
+   "dur": 2.6
+  },
+  {
+   "clip": "${E3}/shot-03.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E3}/shot-15.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E4}/shot-10.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E4}/shot-15.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E5}/shot-12.mp4",
+   "dur": 10
+  },
+  {
+   "clip": "${E5}/shot-17.mp4",
+   "dur": 10
+  },
+  {
+   "card": "${CARDS}/card-end-recap.png",
+   "dur": 3.5
+  }
+ ]
+}

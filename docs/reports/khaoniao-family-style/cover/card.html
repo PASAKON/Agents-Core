@@ -34,7 +34,7 @@ let h = '';
 if (mode === 'morning') {
   h = line(q.get('l1') || 'เมื่อเช้า', 'cream', 60, 170);
 } else if (mode === 'title') {
-  h = `<div class="bg"></div><div class="badge"><b>EP.${q.get('ep') || '1'}</b><i>${q.get('sub') || 'ตอนแรก'}</i></div>` +
+  h = `<div class="bg"></div><div class="badge"><b${q.get('bs') ? ` style="font-size:${q.get('bs')}px"` : ''}>${q.get('badge') || 'EP.' + (q.get('ep') || '1')}</b><i>${q.get('sub') || 'ตอนแรก'}</i></div>` +
       line(q.get('l1') || 'ทำไมมีมี่กลัวน้ำ', 'cream', 800, 140) + line(q.get('l2') || 'แต่ยอมลุยน้ำท่วม?', 'gold', 1000, 140) +
       `<svg class="wave" style="top:1200px" viewBox="0 0 800 30"><path d="M8 16 q25 -16 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="#FFF6D6" stroke-width="7" fill="none" stroke-linecap="round"/></svg>`;
 } else {
