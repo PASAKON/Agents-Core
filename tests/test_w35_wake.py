@@ -177,8 +177,12 @@ def test_nothing_in_python_registers_the_wake_task():
 # tools/agent_transport.py: POSIX byte-for-byte unchanged
 # ---------------------------------------------------------------------------
 
-# sha256 of inspect.getsource() (LF-normalised) taken BEFORE W3.5 touched the file.
-_ATTEMPT_WAKE_POSIX_SHA = "6648aaf8eb1d72ca1aa7bfd282083718339bb259f0b8acdf06e05d37857ee7d2"
+# sha256 of inspect.getsource() (LF-normalised) taken BEFORE W3.5 touched the file,
+# re-pinned by task-f9d23d0b: attempt_wake now RETURNS a bool (True only when the
+# tmux nudge went through) instead of None. Same calls, same log lines, same
+# never-raise; only the `return`s and the docstring changed. Was
+# 6648aaf8eb1d72ca1aa7bfd282083718339bb259f0b8acdf06e05d37857ee7d2.
+_ATTEMPT_WAKE_POSIX_SHA = "57f3750deaf1475da905c867b6e049025dbdf39073815208caa596b9b8f50d5f"
 _WAKE_TMUX_SEND_SHA = "05bb50d29eff03c0a8792b5c82497b786d28104d0c29d20a86ef5896ee84c42b"
 
 
@@ -254,6 +258,102 @@ def test_posix_attempt_wake_still_never_raises(monkeypatch):
     at.attempt_wake("cto-1234abcd", "CTO", "send_to_cxo", send_fn=boom)
 
 
+# ---- the return value (task-f9d23d0b): True only when the nudge went through ----
+
+def test_posix_attempt_wake_returns_true_only_when_every_tmux_call_succeeded(monkeypatch):
+    _no_schtasks(monkeypatch)
+    monkeypatch.setattr(at, "_is_windows", lambda: False)
+    monkeypatch.setattr(tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "x", send_fn=lambda s, t: None) is True
+
+
+def test_posix_attempt_wake_returns_false_for_a_session_that_is_not_live(monkeypatch):
+    _no_schtasks(monkeypatch)
+    monkeypatch.setattr(at, "_is_windows", lambda: False)
+    monkeypatch.setattr(tmux_session, "has_session", lambda s: False)
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "x",
+                           send_fn=lambda s, t: pytest.fail("typed into a dead session")) is False
+
+
+@pytest.mark.parametrize("failure", [
+    RuntimeError("tmux died"),
+    subprocess.CalledProcessError(1, ["tmux", "send-keys"]),   # tmux exited non-zero (check=True)
+    subprocess.TimeoutExpired(["tmux", "send-keys"], 5),
+    FileNotFoundError("tmux"),
+])
+def test_posix_attempt_wake_returns_false_and_does_not_raise_when_tmux_fails(monkeypatch, failure):
+    _no_schtasks(monkeypatch)
+    monkeypatch.setattr(at, "_is_windows", lambda: False)
+    monkeypatch.setattr(tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+
+    def boom(s, t):
+        raise failure
+
+    assert at.attempt_wake("cto-1234abcd", "CTO", "x", send_fn=boom) is False
+
+
+def test_posix_attempt_wake_returns_false_when_has_session_itself_raises(monkeypatch):
+    _no_schtasks(monkeypatch)
+    monkeypatch.setattr(at, "_is_windows", lambda: False)
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+
+    def no_tmux(s):
+        raise OSError("no tmux on this box")
+
+    monkeypatch.setattr(tmux_session, "has_session", no_tmux)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "x", send_fn=lambda s, t: None) is False
+
+
+def test_real_wake_send_failing_on_a_nonzero_tmux_exit_makes_attempt_wake_false(monkeypatch):
+    """_wake_tmux_send runs tmux with check=True, so a non-zero exit raises and
+    the nudge is reported as not delivered. The tmux calls themselves are faked."""
+    calls: list[list] = []
+
+    def fake_run(argv, **kw):
+        calls.append(list(argv))
+        rc = 1 if argv[-1] == "Enter" else 0
+        return subprocess.CompletedProcess(argv, rc, "", "can't find pane")
+
+    def checked_run(argv, **kw):
+        r = fake_run(argv, **kw)
+        if kw.get("check") and r.returncode != 0:
+            raise subprocess.CalledProcessError(r.returncode, argv)
+        return r
+
+    monkeypatch.setattr(subprocess, "run", checked_run)
+    monkeypatch.setattr(at.time, "sleep", lambda s: None)
+    monkeypatch.setattr(at, "_is_windows", lambda: False)
+    monkeypatch.setattr(tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(tmux_session, "tmux_bin", lambda: "tmux")
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "x") is False
+    assert calls and calls[0][:3] == ["tmux", "send-keys", "-t"]
+
+
+def test_real_wake_send_with_every_tmux_call_exiting_zero_is_true(monkeypatch):
+    calls: list[list] = []
+    monkeypatch.setattr(subprocess, "run",
+                        lambda argv, **kw: calls.append(list(argv)) or subprocess.CompletedProcess(argv, 0, "", ""))
+    monkeypatch.setattr(at.time, "sleep", lambda s: None)
+    monkeypatch.setattr(at, "_is_windows", lambda: False)
+    monkeypatch.setattr(tmux_session, "has_session", lambda s: True)
+    monkeypatch.setattr(tmux_session, "tmux_bin", lambda: "tmux")
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "x") is True
+    assert [c[-1] for c in calls] == ["[New message from CTO]", "Enter", "Enter"]
+
+
+def test_falsy_session_returns_false_on_both_platforms(monkeypatch):
+    _no_schtasks(monkeypatch)
+    for win in (False, True):
+        monkeypatch.setattr(at, "_is_windows", lambda w=win: w)
+        assert at.attempt_wake(None, "CTO", "x") is False
+        assert at.attempt_wake("", "CTO", "x") is False
+
+
 def test_falsy_session_still_does_nothing_on_both_platforms(monkeypatch):
     runs = _no_schtasks(monkeypatch)
     for win in (False, True):
@@ -279,6 +379,29 @@ def test_win32_attempt_wake_never_touches_tmux_and_uses_the_windows_function(mon
                     send_fn=lambda s, t: pytest.fail("tmux send on Windows"))
     assert calls == [("cto-1234abcd", "CTO")]
     assert logs[-1] == "[send_to_cxo] wake succeeded: cto-1234abcd: ok"
+
+
+@pytest.mark.parametrize("answer, expected", [
+    ({"woke": True, "why": "ok"}, True),
+    ({"woke": False, "why": "tab not found"}, False),
+    ({"woke": "yes", "why": "x"}, False),     # only a real True counts
+])
+def test_win32_attempt_wake_returns_what_the_windows_wake_reported(monkeypatch, answer, expected):
+    monkeypatch.setattr(at, "_is_windows", lambda: True)
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+    monkeypatch.setattr(at, "wake_windows_tab", lambda session, label, **k: answer)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "send_to_cxo") is expected
+
+
+def test_win32_attempt_wake_returns_false_when_the_windows_wake_raises(monkeypatch):
+    monkeypatch.setattr(at, "_is_windows", lambda: True)
+    monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
+
+    def boom(*a, **k):
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(at, "wake_windows_tab", boom)
+    assert at.attempt_wake("cto-1234abcd", "CTO", "send_to_cxo") is False
 
 
 def test_win32_attempt_wake_never_raises(monkeypatch):
