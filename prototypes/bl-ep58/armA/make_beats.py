@@ -59,7 +59,7 @@ CHANGES = {
     # EVID beats whose box sat under the plate (EVID cannot shift)
     "PATTERN-4": ("KIN", lambda e: {"lines": [["bl-lg", "นี่คำผู้ร้องเรียน"], ["bl-lg", "ไม่ใช่ของกู"]], "broll": ""},
                   "complaint-1 text is only at y 285-340, under the plate; no avatar window at 16.6 s so COMP is out; KIN keeps the attribution on screen"),
-    "CONTEXT-4": (None, patch(box=[40, 555, 320, 45]), "article title (y 405-600) is under the plate; spotlight the dated byline row 'WikiFX | Yesterday 06:11'"),
+    "CONTEXT-4": (None, patch(box=[124, 555, 180, 45]), "article title (y 405-600) is under the plate; spotlight the date 'Yesterday 06:11' (box x 124, inside the safe rectangle; the old [40,555,320,45] began at x 40, left of the 54 px margin)"),
     "CURIOSITY-1": (None, patch(box=[205, 540, 450, 255]), "box top 475 met the date stamp; starts below it"),
     # MAIN-13: arm B moved to a new still whose contents row sits at y 687-713 (task-cc55e620); arm A follows it exactly
     "MAIN-13": (None, patch(img="real/wikifx-article-sep-contents.png", box=[60, 660, 480, 76], shift=None), "follows arm B: new contents still, box inside the safe area (60,660,480,76); no EVID lift needed"),
