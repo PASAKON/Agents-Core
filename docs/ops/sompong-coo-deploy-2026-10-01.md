@@ -45,6 +45,11 @@ old secretary path. Logs to expect: `[sompong/internal] listening on :3011`, the
    as that user, then `systemctl restart mooniex-sompong.service`. The supervisor does not handle the theme picker.
 3. The Run Inbox token for `ask_run.py` was copied to `/home/sompong/.config/mooniex/run-inbox.token` (600) by a
    CEO-approved card (RUN-20261001-1622-c71a).
+4. **Re-own what root created before the switch.** `install-contabo.sh` ran as root on 1 Oct and left
+   `work/` and `work/memory` as `root:root`. As `sompong`, the `media` tool could not create `work/media`, and the
+   channel server reported only "tool media failed" (2 Oct). Fixed with `chown -R sompong:sompong work/`. After any
+   user switch, `find <repo> -not -user sompong -not -path '*/.git/*'` must list only `__pycache__`, `state/` and the
+   installer's root-owned skill symlink.
 
 ## Acceptance (probes 1 + 4 passed, 5 file-level only — 2 Oct 00:15–00:50 BKK)
 
@@ -68,6 +73,13 @@ old secretary path. Logs to expect: `[sompong/internal] listening on :3011`, the
 - Card RUN-20261002-0234-f4ec (2 Oct) gave `sompong` read on the LungNote MCP `.env` (ACL) and rw on
   `state/inbox` (ACL, default ACL on each mailbox dir). Cross-session `SendMessage`/`ListAgents` work without it.
 - SomPong installer default user is still root; Console `names.js` and `windows/cxo-claude.ps1` don't know `coo`.
+- `install-contabo.sh:147` links `.claude/skills/gdrive-filing` (root-owned, untracked) to the Core stub that says
+  "MOVED to CXO_Rules_GDrive_Filing" and is deleted after 2026-10-27. The link should point at the new skill, and git
+  should ignore it.
+- **Fixed 2 Oct (SomPong dcc1bcf, task-f965b035):** a bare "@สมพงษ์" arrives with `text=""`. The inbox used to answer
+  400, and ClaudeFlow moved the event to `wake-outbox/rejected/` permanently (event 01M3XRJB… 14:34 TH, never
+  replayed). The inbox now stores a marker telling the session to read the sender's next message in history.
+  `rejected/` is never retried: check it after any inbox validation change.
 - Contabo RAM: 7.9 GB, swap 4 GB full during the BL EP58 render; the session slows (an 11 s `date`).
 
 ## Restarting a service on this box (incident 2 Oct 09:38 TH)
