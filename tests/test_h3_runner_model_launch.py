@@ -292,6 +292,9 @@ def media_gate_env(tmp_path):
     fake_runner = bindir / "fake_runner"
     fake_runner.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
     fake_runner.chmod(0o755)
+    # --runner codex makes the script look for a `codex` before it writes launch.sh and, when there is
+    # none, print SPAWN_REFUSED=codex-not-found on STDOUT and exit 1. The Mac has one, ubuntu CI does not.
+    (bindir / "codex").symlink_to(fake_runner)
 
     env["PATH"] = f"{bindir}{os.pathsep}{env['PATH']}"
 
@@ -303,12 +306,8 @@ def media_gate_env(tmp_path):
     )
 
 
-def test_media_gate_unstages_mp4_and_large_binary_and_keeps_large_text(media_gate_env):
-    sp = media_gate_env
-    task_id = "task-h3media01"
-    branch = f"agent/developer-{task_id}"
-
-    # Spawn worker (creates worktree and launch.sh)
+def _media_spawn(sp, task_id, branch, env=None):
+    """Run the spawn script (creates the worktree and launch.sh) against the fixture's origin."""
     spawn_cmd = [
         BASH, str(sp.script),
         "--task", task_id,
@@ -325,8 +324,33 @@ def test_media_gate_unstages_mp4_and_large_binary_and_keeps_large_text(media_gat
         "--session-name", "media-test",
         "--runner", "codex",
     ]
-    r = subprocess.run(spawn_cmd, input="TASK BRIEF\n", capture_output=True, text=True, env=sp.env)
-    assert r.returncode == 0, r.stderr
+    return subprocess.run(spawn_cmd, input="TASK BRIEF\n", capture_output=True, text=True, env=env or sp.env)
+
+
+def test_spawn_refuses_the_codex_runner_on_stdout_when_no_codex_is_installed(media_gate_env):
+    # What ubuntu CI saw as "exit 1 right after Preparing worktree": the refusal is a stdout line, and
+    # stderr only holds git's clone/worktree chatter. The probe list is PATH, /usr/bin/codex,
+    # /usr/local/bin/codex, then ~/.local/bin and ~/.npm-global/bin (HOME is a tmp dir here).
+    sp = media_gate_env
+    (sp.tmp / "bin" / "codex").unlink()
+    env = {**sp.env, "PATH": f"{sp.tmp / 'bin'}{os.pathsep}/usr/bin{os.pathsep}/bin"}
+    r = _media_spawn(sp, "task-h3nocodex", "agent/developer-task-h3nocodex", env=env)
+    if any(Path(p).exists() for p in ("/usr/bin/codex", "/usr/local/bin/codex")):
+        assert r.returncode == 0, f"{r.stderr}\n{r.stdout}"  # this machine has a codex at an absolute probe path
+    else:
+        assert r.returncode == 1
+        assert "SPAWN_REFUSED=codex-not-found" in r.stdout
+        assert "SPAWN_REFUSED" not in r.stderr
+
+
+def test_media_gate_unstages_mp4_and_large_binary_and_keeps_large_text(media_gate_env):
+    sp = media_gate_env
+    task_id = "task-h3media01"
+    branch = f"agent/developer-{task_id}"
+
+    # Spawn worker (creates worktree and launch.sh)
+    r = _media_spawn(sp, task_id, branch)
+    assert r.returncode == 0, f"{r.stderr}\n{r.stdout}"
 
     wt = sp.wt_root / f"proj__developer__{task_id}"
     launch_sh = sp.agents / f".launch-{task_id}" / "launch.sh"
