@@ -732,6 +732,7 @@ def test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_only_read_
     assert names, err  # today: names is None and err ends "attempt to write a readonly database"
 
 
+@needs_nobody  # the COO launcher reads the user's home with getent (cxo-claude.sh), which macOS lacks
 def test_launcher_moves_an_unread_letter_to_the_new_box(lroot: Path, tmp_path: Path, sompong) -> None:
     old = lroot / "state" / "inbox" / "coo-0ldb0x00"
     old.mkdir(parents=True)
