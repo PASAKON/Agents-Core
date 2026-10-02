@@ -264,15 +264,16 @@ _META = {
       "her head while she speaks; the small dog, wrapped to her chin, looks up at her with big shining eyes and a "
       "tiny tail wag", _N),
 
- 17: (10, "Medium shot in the living room from the front at low height: the stocky man kneels at screen-left facing "
-      "screen-right with a fluffy white towel in his hands, rubbing the back of the small dog who sits wrapped on the "
-      "woman's lap at screen-right, and he talks to the dog",
+ 17: (10, "Medium wide shot in the living room from the front at low height: the stocky man kneels at screen-left "
+      "facing screen-right with a fluffy white towel in his hands, rubbing the back of the small dog who sits wrapped "
+      "on the lap of the woman at screen-right, the woman sitting upright on the sofa so that her pale-yellow top, "
+      "cream apron and the wooden ladle in her bun are fully visible, and he talks to the dog",
       ["bro", "mimi_x", "mom_h"], "living", T_DAY,
       "the stocky man in the navy blazer and blue elephant-print shorts, warm and sincere, kneels and gently rubs "
       "the small dog's back through a fluffy white towel, glancing up at her face with a promising nod on the last "
-      "words; the small dog, snuggled in the towel on the lap of the woman with the wooden ladle in her bun and the "
-      "tartan cloth over her shoulder, who sits on the sofa smiling and stroking her head, closes her eyes in "
-      "bliss", ["nosubs"]),
+      "words; the small dog, snuggled in the towel on the lap of the woman with the wooden ladle in her bun, in her "
+      "pale-yellow top and cream apron, who sits upright on the sofa smiling and stroking her head, closes her "
+      "eyes in bliss", ["nosubs"]),
 
  18: (10, "Medium close shot in the living room from the front: the small dog sits in the woman's lap at screen-centre "
       "wrapped in a white towel, her head turned toward screen-left in three-quarter profile toward the man at the "
