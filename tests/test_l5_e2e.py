@@ -559,3 +559,16 @@ def test_the_window_cell_renders_with_its_note_and_counts_as_ok():
     md, any_fail, n_ok, n_fail = m.render(combined, "w2")
     assert "ok (woke, nonce read back from origin)" in md
     assert any_fail is False and n_fail == 0 and n_ok >= 1
+
+
+def test_the_probe_role_file_and_the_description_tail_tell_the_worker_the_same_thing():
+    role = (ROOT / "roles" / "probe.md").read_text()
+    tail = m.L5Window("mac", "contabo").instructions()
+    for text in (role, tail):
+        for needle in ("MESH-NONCE-", "nonce=", "120 s", "sleep 15"):
+            assert needle in text, needle
+    # the role file still lets the probe touch exactly one file
+    assert "Touch exactly one file" in role and "docs/ops/mesh-probe/<from>-<to>.md" in role
+    assert m.L5_NONCE_WAIT_S == 120
+    # and the description tail never carries a real token
+    assert NONCE_RE.search(tail) is None
