@@ -81,11 +81,34 @@ puts the caller's text on it; the caller's text arrives only as
 `SSH_ORIGINAL_COMMAND`, which node_dispatch splits itself. Revised in W2.7
 (task-42fdcda7, `docs/reports/task-42fdcda7/REPORT.md`):
 
-    # Mac / Contabo (agents_root from config/hosts.yaml; Contabo = /opt/MoonieXHQ/Agents/Core)
-    command="cd /Users/gob/MoonieXHQ/Agents/Core && exec .venv/bin/python -E -s -m tools.node_dispatch",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
+    # Contabo (agents_root from config/hosts.yaml; the Mac's is /Users/gob/MoonieXHQ/Agents/Core)
+    command="cd /opt/MoonieXHQ/Agents/Core && exec /bin/bash scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python -E -s -m tools.node_dispatch",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
 
-    # winbox: no shell syntax, so the line means the same under cmd or PowerShell
-    command="C:\Users\passg\mooniex\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\tools\node_dispatch.py",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
+    # winbox (W3.4, NOT installable yet, see below): no shell syntax, so the line means the same under cmd or PowerShell
+    command="C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\infisical_setup.py run Org-Node prod --as winbox -- C:\Users\passg\mooniex\repo\MoonieX-Agents\.venv\Scripts\python.exe -E -s C:\Users\passg\mooniex\repo\MoonieX-Agents\tools\node_dispatch.py",from="<dispatcher tailnet IP>/32",restrict ssh-ed25519 AAAA... org_dispatch-<dispatcher>
+
+- **The forced command reaches the hub through a wrapper (G1, 2026-10-02).**
+  Since the G1 cutover the ledger is the Postgres hub and `state/tasks.db` is a
+  tombstone. sshd starts the forced command with a bare environment (no
+  `ORG_DB_URL`; `restrict` and `PermitUserEnvironment no` keep it that way), so
+  a line that starts python directly reaches the tombstone, and every verb that
+  touches the ledger fails (`probe` included). On a POSIX host the line starts
+  node_dispatch through `scripts/hub/with-org-db-env.sh`, as
+  `deploy/systemd/org-snapshot.service` does: the wrapper sources
+  `~/.config/mooniex/org-db.env`, and when that holds no `ORG_DB_URL` (Contabo)
+  it runs the command under `tools/infisical_setup.py run Agents-Core prod`
+  with the identity named by `~/.config/mooniex/node.yaml` (`host: contabo`,
+  `/etc/infisical/contabo.env`). The wrapper never reads `SSH_ORIGINAL_COMMAND`;
+  it passes the environment on, so node_dispatch still finds it.
+- winbox: the checkout is `config/projects.yaml` `paths.winbox`
+  (`C:\Users\passg\mooniex\repo\MoonieX-Agents`). `agents_root` in
+  config/hosts.yaml is the spawn directory beside it, which has no `.venv` and
+  no `tools`. The wrapper is bash (`org_db_wrapper` skips Windows), so winbox
+  reaches the hub the way `deploy/join/join.ps1` runs its probe: through
+  `tools\infisical_setup.py run Org-Node prod --as winbox`. That needs winbox's
+  Org-Node identity (W3), and the line is **not verified on winbox**. Install
+  it only after `infisical_setup.py run Org-Node prod --as winbox -- <python> -m
+  tools.node_dispatch probe` answers `"ok": true` on the box itself.
 
 - `restrict` turns on every restriction sshd knows: no port, agent or X11
   forwarding, no pty, no `~/.ssh/rc`, and any restriction a later OpenSSH adds

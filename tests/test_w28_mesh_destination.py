@@ -151,3 +151,55 @@ def test_a_bad_verb_is_still_refused_before_the_destination_is_read(monkeypatch)
     _tripwire(monkeypatch)
     reply = mesh.dispatch("testbox", "bash", "-c", "id")
     assert reply["ok"] is False and "unknown verb" in reply["error"]
+
+
+# ---------------------------------------------------------------------------
+# The far side: the forced command must reach the hub (G1). sshd starts it
+# with a bare environment, and state/tasks.db is a tombstone since the cutover.
+# ---------------------------------------------------------------------------
+
+DOC = ROOT / "docs" / "ops" / "node-dispatch.md"
+WRAPPER = ROOT / "scripts" / "hub" / "with-org-db-env.sh"
+
+
+def _doc_key_lines() -> list[str]:
+    return [ln.strip() for ln in DOC.read_text(encoding="utf-8").splitlines()
+            if ln.strip().startswith("command=") and "ssh-ed25519" in ln]
+
+
+def test_every_posix_forced_command_starts_node_dispatch_through_the_hub_env_wrapper():
+    posix = [ln for ln in _doc_key_lines() if "C:\\" not in ln]
+    assert posix
+    for ln in posix:
+        command = ln.split('",', 1)[0]
+        assert "exec /bin/bash scripts/hub/with-org-db-env.sh " in command, ln
+        # the wrapper starts python; python never starts first
+        assert command.index("with-org-db-env.sh") < command.index("python"), ln
+
+
+def test_the_winbox_forced_command_reaches_the_hub_through_its_org_node_identity():
+    (win,) = [ln for ln in _doc_key_lines() if "C:\\" in ln]
+    command = win.split('",', 1)[0]
+    checkout = "C:\\Users\\passg\\mooniex\\repo\\MoonieX-Agents"
+    projects = yaml.safe_load((ROOT / "config" / "projects.yaml").read_text(encoding="utf-8"))
+    paths = [p.get("paths", {}).get("winbox") for p in projects["projects"]]
+    assert checkout in paths  # the line names the real checkout, not agents_root
+    assert f"{checkout}\\tools\\infisical_setup.py run Org-Node prod --as winbox -- " in command
+    assert command.endswith(f"{checkout}\\tools\\node_dispatch.py")
+
+
+def test_the_wrapper_never_reads_the_callers_text():
+    assert "SSH_ORIGINAL_COMMAND" not in WRAPPER.read_text(encoding="utf-8")
+
+
+def test_the_wrapper_hands_the_callers_text_through_with_the_hub_url(tmp_path):
+    env_file = tmp_path / "org-db.env"
+    env_file.write_text("ORG_DB_URL=postgresql://org@hub.invalid:5432/org\n", encoding="utf-8")
+    probe = "import os; print(os.environ['SSH_ORIGINAL_COMMAND']); print('ORG_DB_URL' in os.environ)"
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), "MOONIEX_ORG_DB_ENV": str(env_file),
+           "SSH_ORIGINAL_COMMAND": "probe; id"}
+    r = subprocess.run(["/bin/bash", str(WRAPPER), sys.executable, "-E", "-s", "-c", probe],
+                       env=env, capture_output=True, text=True, timeout=30)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.splitlines() == ["probe; id", "True"]  # passed on as data, never run
+    assert "uid=" not in r.stdout + r.stderr
