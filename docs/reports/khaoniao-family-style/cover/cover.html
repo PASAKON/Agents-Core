@@ -30,7 +30,7 @@ html,body{margin:0;padding:0;background:#10203a;overflow:hidden}
 </style>
 <div id="stage">
   <div class="pic" id="pic"></div><div class="top"></div><div class="shade"></div>
-  <div class="badge"><b id="ep">EP.1</b><i>ตอนแรก</i></div>
+  <div class="badge"><b id="ep">EP.1</b><i id="sub">ตอนแรก</i></div>
   <div class="line l1" id="l1"></div><div class="line l2" id="l2"></div>
   <svg class="wave" id="wave" viewBox="0 0 800 30"><path d="M8 16 q25 -16 50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="#FFF6D6" stroke-width="7" fill="none" stroke-linecap="round"/></svg>
   <img class="mark" id="mark" src="file:///C:/mooniex/khaoniao/cover/logo-3-mark.png">
@@ -41,6 +41,7 @@ const L1 = q.get('l1') || 'ทำไมมีมี่กลัวน้ำ', L2
 const IMG = q.get('img') || 'A', TOP = +(q.get('top') || 1090), FIT = +(q.get('fit') || 940);
 document.getElementById('pic').style.backgroundImage = `url(file:///C:/mooniex/khaoniao/cover/${IMG}.png)`;
 document.getElementById('ep').textContent = 'EP.' + (q.get('ep') || '1');
+document.getElementById('sub').textContent = q.get('sub') || 'ตอนแรก';
 const rot = [-5, 4, -3, 5, -4, 3, -5], dy = [0, -8, 4, -6, 6, -4, 2];
 const clusters = s => [...new Intl.Segmenter('th', {granularity: 'grapheme'}).segment(s)].map(x => x.segment);
 const spans = s => clusters(s).map((c, i) => `<span class="ch" style="transform:translateY(${dy[i % 7] * .8}px) rotate(${rot[i % 7] * .8}deg)">${c}</span>`).join('');

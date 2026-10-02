@@ -225,7 +225,7 @@ _META = {
       "small dog who stands in front of her at screen-centre, a pink towel in her mouth, facing screen-right "
       "up at her; the woman talks to the dog",
       ["mom_h", "mimi_d"], "living", T_DAY,
-      "the woman with the wooden ladle in her bun, voice breaking and eyes brimming, leans forward from the "
+      "the woman with the wooden ladle in her bun and the tartan cloth still draped over her shoulder, her pink-and-green floral sarong showing at her knees, voice breaking and eyes brimming, leans forward from the "
       "sofa with both hands pressed to her chest and then reaches out toward the dog while she speaks to her, "
       "a tearful smile spreading; the small dog, shivering all over, stands in front of her holding a soft pink "
       "bath towel in her teeth, her tail low and wagging in tiny sweeps, looking up at her face", _N),
@@ -265,7 +265,7 @@ _META = {
       "dog wrapped in the pink towel in her lap, her face bent toward the dog's face in three-quarter profile "
       "facing screen-left, and she talks to the dog, who looks up at her",
       ["mom_h", "mimi_w"], "living", T_DAY,
-      "the woman with the wooden ladle in her bun, soft and a little teary, wraps the small damp dog snugly in a "
+      "the woman with the wooden ladle in her bun and the tartan cloth still draped over her shoulder, her pink-and-green floral sarong showing at her knees, soft and a little teary, wraps the small damp dog snugly in a "
       "soft pink bath towel on her lap and hugs her to her chest while she speaks, rocking her gently and "
       "kissing the top of her head; the small dog, wrapped up to her chin in the pink towel, looks up at her "
       "with big shining eyes and a tiny tail wag", _N),
@@ -277,7 +277,7 @@ _META = {
       ["mimi_w", "mom_h"], "living", T_DAY,
       "the small dog, sleepy and cheeky, snuggled in the pink towel in the woman's lap, blinks slowly and "
       "yawns while she speaks up to the woman, her eyes sliding half shut on the last words with a sly little "
-      "smile; the woman with the wooden ladle in her bun gently strokes the dog's head with one hand, smiling "
+      "smile; the woman with the wooden ladle in her bun and the tartan cloth still draped over her shoulder, her pink-and-green floral sarong showing at her knees, gently strokes the dog's head with one hand, smiling "
       "down at her", _N),
 }
 
