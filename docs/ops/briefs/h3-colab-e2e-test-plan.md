@@ -18,7 +18,7 @@ Content: every scene is a synthetic test prompt written for this test. The ref i
   - the new five risky rules;
   - the preview route;
   - with the switch off, nothing changes.
-- One live take, on Colab only: 2 chained scenes at 720p, cap 8 CU. It gives the 720p timing the CEO asked for, and one live dead-man proof.
+- One live batch, on Colab only, at 360p: 6 scenes, N=3, so 2 takes on one warm VM. It proves the take stitch and the episode join live, plus one dead-man proof. Cap 6 CU (item 14).
 
 ## After the merge (CTO, live)
 

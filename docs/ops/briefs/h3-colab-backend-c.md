@@ -152,3 +152,24 @@ The CEO ruled that the risky list is too wide. Today a story with a child extra 
     - It calls L2 for real, so each call costs about $0.0002 per scene.
     - Add a test through the route with a fake judge, plus one line in STUDIO-API.md.
     - After the merge, the CTO uses this route to check every routing rule live for under $0.01.
+
+## Addendum 2026-10-03 — item 14: the live acceptance take becomes a BATCH at 360p (CEO ruling; replaces the 720p change)
+
+CEO: no timing measurement is needed, because he will measure during real use. He wants the live test to generate a batch, so that clip merging is tested too. This replaces the "Acceptance take change (720p)" paragraph above.
+
+14. **Live acceptance batch.** Run it through the studio queue, not `run_take.py` alone.
+    - Start the worktree studio on port 4195, with a temp data dir and the real Colab backend. `allowColab` is on and there is no RunPod: every take must route to Colab.
+    - **Content:** use synthetic safe prompts only, with the synthetic ref (`make_ref.py`) in a test entity.
+    - **Batch:** 6 scenes, Auto Cut N=3, which makes 2 takes. Each take is 3 chained scenes, each **360p** and 124 frames.
+    - **Pass when:**
+      - both takes render on ONE warm VM, so take 2 does no new setup;
+      - each take is stitched into one take file (`restitchChain`);
+      - `joinEpisodes` writes ONE episode file that holds take 1, then take 2, in `cutBatch.pos` order, joined with a hard cut;
+      - the episode's duration equals the sum of the two take files, ±1 frame.
+    - **Report:**
+      - per clip: frames, fps, duration;
+      - per take file: duration;
+      - the episode: duration, segment count, and the order of its segments;
+      - CU charged.
+    - Keep the dead-man proof from item 10 in this same run, after the batch is done.
+    - Cap: 6 CU.
