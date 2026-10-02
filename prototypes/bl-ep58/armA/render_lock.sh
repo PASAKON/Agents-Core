@@ -1,6 +1,6 @@
 #!/bin/bash
 # usage: render_lock.sh [rev] -- claims windows with mkdir locks so two drivers share the list (EP58 arm A)
-W=/opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__video_editor__task-4305b93b
+W=/opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__video_editor__task-3cf9c2f8
 C=/opt/MoonieXHQ/Work/bl-ep58/armA
 export PATH=/opt/node-v22/bin:$PATH
 cd "$W" || exit 1

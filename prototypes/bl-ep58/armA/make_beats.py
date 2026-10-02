@@ -61,8 +61,8 @@ CHANGES = {
                   "complaint-1 text is only at y 285-340, under the plate; no avatar window at 16.6 s so COMP is out; KIN keeps the attribution on screen"),
     "CONTEXT-4": (None, patch(box=[40, 555, 320, 45]), "article title (y 405-600) is under the plate; spotlight the dated byline row 'WikiFX | Yesterday 06:11'"),
     "CURIOSITY-1": (None, patch(box=[205, 540, 450, 255]), "box top 475 met the date stamp; starts below it"),
-    # MAIN-13: contents line at y 1835-1890 is in TikTok's bottom UI zone; arm A lifts the EVID page 950 px (render_window.py)
-    "MAIN-13": (None, patch(shift=950), "EVID cannot shift in bl_compose; render_window.py lifts the page 950 px, contents line lands at 885-940"),
+    # MAIN-13: arm B moved to a new still whose contents row sits at y 687-713 (task-cc55e620); arm A follows it exactly
+    "MAIN-13": (None, patch(img="real/wikifx-article-sep-contents.png", box=[60, 660, 480, 76], shift=None), "follows arm B: new contents still, box inside the safe area (60,660,480,76); no EVID lift needed"),
     # FF is refused in arm A: avatar lower, matted, over the licence page
     "SUMMARY-7": ("COMP", lambda e: {"img": LICENCE, "cap": e["cap"], "shift": 300}, "FF refused; COMP over the licence page, no box"),
     "SUMMARY-8": ("COMP", lambda e: {"img": LICENCE, "cap": e["cap"], "shift": 300}, "FF refused; same plate, no box"),

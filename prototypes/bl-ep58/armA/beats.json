@@ -434,15 +434,14 @@
    "t1": 61.7,
    "mode": "EVID",
    "extra": {
-    "img": "real/wikifx-article-sep-amount.png",
+    "img": "real/wikifx-article-sep-contents.png",
     "cap": "หัวข้อบทความ ใบเบลีซถูกเพิกถอน",
     "box": [
-     20,
-     1835,
-     760,
-     55
-    ],
-    "shift": 950
+     60,
+     660,
+     480,
+     76
+    ]
    }
   },
   {
