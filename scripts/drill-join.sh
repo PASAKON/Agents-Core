@@ -64,7 +64,7 @@ C_CONF=/root/.config/mooniex                  # inside the container: join.sh ru
 C_CORE=/opt/MoonieXHQ/Agents/Core             # where join.sh clones as root
 
 DRY=0
-LOG_TO_REPO=0
+LOG_TO_REPO=${DRILL_LOG_TO_REPO:-0}               # the re-exec below hands the flag over by env: the loop shifted "$@" away
 TOKEN=""
 FP=""
 WORK=""
@@ -145,7 +145,7 @@ fi
 # same wrapper every Contabo consumer uses; never a .env.
 if [ "${DRILL_HUB_ENV:-}" != 1 ]; then
   [ -x "$HUB_WRAP" ] || refuse "$HUB_WRAP is not executable: the drill needs the hub environment"
-  DRILL_HUB_ENV=1 exec "$HUB_WRAP" bash "$SELF" "$@"
+  DRILL_HUB_ENV=1 DRILL_LOG_TO_REPO=$LOG_TO_REPO exec "$HUB_WRAP" bash "$SELF"
 fi
 cd "$CORE" 2>/dev/null || refuse "no checkout at $CORE"
 
