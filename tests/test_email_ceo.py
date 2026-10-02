@@ -154,7 +154,7 @@ def test_due_todos_without_creds_is_a_hub_error():
 
 
 def test_the_feeder_posts_one_deadline_per_todo_and_counts_duplicates():
-    todos = [{"id": "t1", "text": "ยื่นภาษี  ภ.ง.ด.90", "due_at": "2026-10-03T12:30:00+00:00"},
+    todos = [{"id": "t1", "text": "[SID:cto-1 · backlog] [FYI] ยื่นภาษี  ภ.ง.ด.90", "due_at": "2026-10-03T12:30:00+00:00"},
              {"id": "t2", "text": "x" * 120, "due_at": "2026-10-04T00:00:00Z"}]
     posted = []
 

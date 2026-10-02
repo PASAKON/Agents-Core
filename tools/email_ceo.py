@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -167,8 +168,12 @@ def _thai_when(due_at: str) -> str:
     return d.strftime("%d/%m %H:%M") + " น."
 
 
+_TAGS = re.compile(r"^(?:\s*\[[^\]]{0,120}\])+\s*")  # "[SID:cto-x · backlog] " routing tags agents prepend
+
+
 def deadline_fields(todo: dict) -> dict:
-    text = " ".join(str(todo.get("text") or "").split())
+    raw = " ".join(str(todo.get("text") or "").split())
+    text = _TAGS.sub("", raw) or raw
     title = text if len(text) <= 90 else text[:89] + "…"
     return {"title": title, "due": _thai_when(todo.get("due_at", "")), "ref": f"todo:{todo.get('id', '')}"[:80]}
 
