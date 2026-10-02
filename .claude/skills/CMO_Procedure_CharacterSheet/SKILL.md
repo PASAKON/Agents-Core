@@ -232,3 +232,6 @@ it to the plate alone.
 
 Sources: OpenAI cookbook, multimodal image-gen prompting guide; fal.ai's
 prompting guide for GPT Image 2.
+
+## Field notes
+- 2026-10-03 [MISSING] §Model — the skill is locked to paid fal `openai/gpt-image-2` (~$0.053 each), but the org's working route for character sheets is the zero-model ChatGPT web runner `tools/chatgpt_images.py` (plan cost, no API spend): 18/18 plates on «ตาชั่งของเสี่ย» (task-c2723478) and the CEO's own choice for THE LAST BELL ("ChatGPT บน winbox", 2026-10-03). The skill should name the runner as the default route and keep fal as the paid fallback that needs a $ quote · evidence: task-c2723478 REPORT, task-ede59d38, docs/prompts/last-bell/NOTES.md · status: pending
