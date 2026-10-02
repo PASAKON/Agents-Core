@@ -271,7 +271,7 @@ install_node_linux() {
   _sums=$(curl -fsSL "$_base/SHASUMS256.txt" </dev/null) || die "could not fetch $_base/SHASUMS256.txt"
   _file=$(printf '%s\n' "$_sums" | awk -v s="-linux-$_na.tar.xz" 'length($2) > length(s) && substr($2, length($2) - length(s) + 1) == s {print $2; exit}')
   _want=$(printf '%s\n' "$_sums" | awk -v f="$_file" '$2 == f {print $1; exit}')
-  [ -n "$_file" ] && [ -n "$_want" ] || die "no linux-$_na tarball in $_base/SHASUMS256.txt"
+  if [ -z "$_file" ] || [ -z "$_want" ]; then die "no linux-$_na tarball in $_base/SHASUMS256.txt"; fi
   _tmp=$(mktemp -d) || die "mktemp failed"
   curl -fsSL "$_base/$_file" -o "$_tmp/$_file" </dev/null || { rm -rf "$_tmp"; die "download of $_file failed"; }
   _got=$(sha256sum "$_tmp/$_file" | awk '{print $1}')

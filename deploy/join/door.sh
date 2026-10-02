@@ -251,7 +251,7 @@ cmd_approve() {
             *) usage ;;
         esac
     done
-    [ -n "$host" ] && [ -n "$fp" ] || usage
+    if [ -z "$host" ] || [ -z "$fp" ]; then usage; fi
     # Shape only, so neither value can be read as an option or carry a shell character;
     # tools/hq_join.py checks the real rules (host charset, the fingerprint alphabet).
     case $host in
