@@ -203,9 +203,11 @@ def test_node_host_re_takes_3_to_31_characters(name, ok):
     assert bool(config.HOST_NAME_RE.fullmatch(name)) is ok
 
 
-def test_mint_node_secret_refuses_a_32_character_host_before_it_talks_to_anyone():
-    with pytest.raises(infisical_setup.ApiError, match="bad host name"):
-        infisical_setup.mint_node_secret(None, "a" * 32)       # org=None: the name is checked first
+def test_hq_join_refuses_a_32_character_host_before_it_touches_the_hub():
+    # W4.2b removed mint_node_secret (a node has no Infisical identity); the name rule it enforced
+    # now lives in hq_join._check_host alone, and every verb calls it first.
+    with pytest.raises(hq_join.JoinError, match="3-31 chars"):
+        hq_join.mint("a" * 32)
 
 
 def test_infisical_setup_imports_only_the_standard_library():
