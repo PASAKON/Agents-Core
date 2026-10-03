@@ -196,6 +196,10 @@ A worker learns its environment by hunting, and every step is paid. The brief ca
 - **The interpreter.** A worktree has no `.venv`: name the main checkout's by absolute path —
   `/opt/MoonieXHQ/Agents/Core/.venv/bin/python` on Contabo, `/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python`
   on the Mac (Mac-only) (task-9f6fec26, task-9ea68924: 7–10 Bash calls per run hunting for it).
+- **The suite's runtime** (rule, 2 runs). The full Agents-Core suite takes 11–33 minutes, longer than
+  the Bash tool's 600 s limit. The brief says: start it with `run_in_background`, write its output to
+  a file in the worktree, and wait for that file. Runs: task-8da2f248 (867 s and 686 s),
+  task-47202255 (1980 s).
 - **Gitignored inputs.** Only the repo-root `node_modules` and `.env` are linked in. A fixture,
   snapshot or nested `node_modules` the task needs: say where to link or copy it from — a worker left
   to find one generated its own and validated against it, a circular check (task-7c2a89d1; ComfyRunpod
@@ -606,3 +610,4 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-10-03 [MISSING] §brief — before a DONE line that depends on an existing tool's state change goes into a brief, read that change's precondition. W4.7's "hosts row = left" cannot pass today: `hq_join.leave()` writes `left` only when every step is ok, and `authorized_keys` is always `_not_wired` (W2.8, tools/hq_join.py:479 and 876-881). The worker found it offline and documented it as known gap 1. The brief should have listed it as an expected red, with the follow-up fix named · evidence: task-c57b23fb, docs/ops/join-drill.md "Known gaps" 1 · status: pending
 - 2026-10-03 [MISSING] §3d — a brief that asks for a full-suite run also says: add your files by name, never `git add -A` or `git commit -a`, and check `git show --stat HEAD` before you report. The suite writes tracked files (`tests/test_ep5_preprod.py` rewrites `docs/scripts/ep5-ACT{1,2,3}.md`), and the W4.1b worker's `git add -A` committed them · evidence: task-8da2f248 2bd0ffde; the task-47202255 brief carries the line · status: pending
 - 2026-10-03 [MISSING] §3d — `scripts/hub/with-org-db-env.sh` loads only the root folder of Agents-Core prod (ORG_DB_URL). A brief whose script needs a secret from a sub-folder names the folder and the leg that loads it: `python3 tools/infisical_setup.py run Agents-Core prod --path /org-join -- <wrapper> <cmd>` for TAILSCALE_OAUTH_CLIENT_ID/_SECRET. The W4.7 brief said only "through with-org-db-env.sh", and the drill's first live card refused at preflight · evidence: RUN-20261003-0029-5164, fix PR #213 3475a7d1 · status: pending
+- 2026-10-03 [MISSING] §3d — the full Agents-Core suite outlasts the Bash tool's 600 s limit: task-8da2f248 ran it in 867 s and 686 s, task-47202255 in 1980 s, and neither brief said how long it takes or that it must run in the background · evidence: both REPORTs, agreed 2026-10-03, rule now in §3d "The suite's runtime" · status: promoted
