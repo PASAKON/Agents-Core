@@ -60,8 +60,16 @@ case $1 in
 esac
 '''
 
+# with-org-db-env.sh loads the root folder of Agents-Core prod: ORG_DB_URL only, no Tailscale client.
 WRAP = r'''#!/bin/bash
 echo "wrap $*" >>"$SHIM_STATE/calls.log"
+exec "$@"
+'''
+
+# `infisical_setup.py run Agents-Core prod --path /org-join --`: the one folder that holds the Tailscale
+# OAuth client (deploy/join/README.md).
+JOINENV = r'''#!/bin/bash
+echo "joinenv $*" >>"$SHIM_STATE/calls.log"
 if [ ! -e "$SHIM_STATE/flags/no_ts_creds" ]; then
   export TAILSCALE_OAUTH_CLIENT_ID=ts-client-id-test TAILSCALE_OAUTH_CLIENT_SECRET=ts-client-secret-test-0123456789
 fi
@@ -293,7 +301,7 @@ class Drill:
         (self.cred / "setup.env").write_text("admin identity placeholder\n")
         self.ak = tmp_path / "authorized_keys"
         self.ak.write_text("ssh-ed25519 AAAA placeholder org-dispatch:mac\n")
-        for name, body in {**STUBS, "py": PY, "door.sh": DOOR, "wrap.sh": WRAP}.items():
+        for name, body in {**STUBS, "py": PY, "door.sh": DOOR, "wrap.sh": WRAP, "joinenv.sh": JOINENV}.items():
             p = self.bin / name
             p.write_text(body)
             p.chmod(0o755)
@@ -310,6 +318,7 @@ class Drill:
             "DRILL_PY": str(self.bin / "py"),
             "DRILL_DOOR": str(self.bin / "door.sh"),
             "DRILL_HUB_WRAP": str(self.bin / "wrap.sh"),
+            "DRILL_JOIN_ENV_WRAP": str(self.bin / "joinenv.sh"),
             "DRILL_AUTHORIZED_KEYS": str(self.ak),
             "DRILL_ALLOW_NONROOT": "1",
             "DRILL_POLL_S": "0.1",
@@ -456,11 +465,63 @@ def test_no_fingerprint_anywhere_fails_join(drill):
 def test_the_hub_environment_wrapper_is_used_and_the_door_closes_before_the_probe(drill):
     assert drill.run().returncode == 0
     calls = drill.calls()
-    assert calls[0].startswith("wrap ")                       # re-exec through with-org-db-env.sh
+    assert calls[0].startswith("joinenv ")                    # re-exec through Infisical /org-join,
+    assert calls[1].startswith("wrap ")                       # then through with-org-db-env.sh
     closes = [i for i, c in enumerate(calls) if c == "door close"]
     task = next(i for i, c in enumerate(calls) if "--join-drill task-create" in c)
     assert closes and closes[0] < task                        # the public endpoint is shut after the join
 
+
+
+def test_the_tailscale_client_comes_from_the_org_join_leg_before_the_hub_wrapper(drill):
+    """The hub wrapper loads only the root folder of Agents-Core prod (ORG_DB_URL); the Tailscale OAuth
+    client is in /org-join. The first live card ran the script bare and refused at preflight
+    (RUN-20261003-0029-5164): the script must load /org-join itself."""
+    cp = drill.run()
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    first, second = drill.calls()[:2]
+    leg, wrap, sh, script = first.split()
+    assert (leg, wrap, sh) == ("joinenv", str(drill.bin / "wrap.sh"), "bash")
+    assert script.endswith("scripts/drill-join.sh") and second == f"wrap bash {script}"
+
+
+def test_a_caller_that_already_loaded_org_join_gets_no_second_leg(drill):
+    # the shape of the second card: infisical_setup.py run ... --path /org-join -- bash scripts/drill-join.sh
+    drill.env.update(TAILSCALE_OAUTH_CLIENT_ID=TS_ID, TAILSCALE_OAUTH_CLIENT_SECRET=TS_SECRET)
+    cp = drill.run()
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    calls = drill.calls()
+    assert calls[0].startswith("wrap ") and not any(c.startswith("joinenv ") for c in calls)
+
+
+def test_the_org_join_leg_is_infisical_run_on_the_folder_the_join_service_loads(drill):
+    del drill.env["DRILL_JOIN_ENV_WRAP"]
+    stub = drill.bin / "python3"                          # nothing else on the host runs a bare python3
+    stub.write_text(JOINENV.replace('"joinenv $*"', '"python3 $*"').replace(
+        'exec "$@"', 'while [ "$#" -gt 0 ] && [ "$1" != -- ]; do shift; done\n'
+                     '[ "$#" -gt 0 ] || exit 97\nshift; exec "$@"'))
+    stub.chmod(0o755)
+    cp = drill.run()
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    leg = f"python3 {drill.core}/tools/infisical_setup.py run Agents-Core prod --path /org-join -- "
+    assert drill.calls()[0].startswith(leg + f"{drill.bin / 'wrap.sh'} bash ")
+    unit = (ROOT / "deploy" / "join" / "org-join.service").read_text(encoding="utf-8")
+    assert "infisical_setup.py run Agents-Core prod --as contabo --path /org-join -- " in unit
+
+
+def test_every_documented_leave_line_loads_org_join_first():
+    """A recovery `leave` run through the hub wrapper alone has no Tailscale client and cannot delete
+    the tailnet device."""
+    lines, fenced = [], False
+    for ln in (ROOT / "docs" / "ops" / "join-drill.md").read_text(encoding="utf-8").splitlines():
+        if ln.startswith("```"):
+            fenced = not fenced
+        elif fenced and "tools.hq_join leave" in ln:
+            lines.append(ln)
+    assert lines, "the recovery section lost its leave line"
+    leg = "python3 tools/infisical_setup.py run Agents-Core prod --path /org-join -- scripts/hub/with-org-db-env.sh "
+    for ln in lines:
+        assert ln.startswith(leg) and "ORG_W42_PROVISION=1" in ln and ln.rstrip().endswith("--live"), ln
 
 def test_no_secret_reaches_output_json_row_or_any_command_line(drill):
     cp = drill.run("--log-to-repo")

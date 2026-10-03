@@ -33,7 +33,7 @@
 #   DRILL_CORE DRILL_LIVE_CORE DRILL_STATE_DIR DRILL_ROWS_FILE DRILL_PY DRILL_DOOR DRILL_HUB_WRAP DRILL_JOIN_URL
 #   DRILL_IMAGE DRILL_MIN_MB DRILL_CONTAINER_MB DRILL_DOOR_MIN DRILL_FP_WAIT_S DRILL_JOIN_WAIT_S
 #   DRILL_PROBE_WAIT_S DRILL_POLL_S DRILL_GH_REPO DRILL_AUTHORIZED_KEYS DRILL_WINBOX_SSH
-#   DRILL_TS_API DRILL_STAMP DRILL_ALLOW_NONROOT INFISICAL_CRED_DIR
+#   DRILL_TS_API DRILL_STAMP DRILL_ALLOW_NONROOT INFISICAL_CRED_DIR DRILL_JOIN_ENV_WRAP
 set -uo pipefail
 
 STEP_NAMES="preflight door_open container mint join approve provision node_probe token_worker probe leave verify_tailnet verify_deploy_key verify_infisical verify_host_row verify_authorized_keys cleanup"
@@ -55,6 +55,11 @@ else PY=$LIVE_CORE/.venv/bin/python3
 fi
 DOOR=${DRILL_DOOR:-$CORE/deploy/join/door.sh}
 HUB_WRAP=${DRILL_HUB_WRAP:-$CORE/scripts/hub/with-org-db-env.sh}
+# The hub wrapper loads only the root folder of Agents-Core prod (ORG_DB_URL). The Tailscale OAuth
+# client is in its /org-join folder (deploy/join/README.md, the folder org-join.service loads).
+if [ -n "${DRILL_JOIN_ENV_WRAP:-}" ]; then JOIN_ENV=("$DRILL_JOIN_ENV_WRAP")
+else JOIN_ENV=(python3 "$CORE/tools/infisical_setup.py" run Agents-Core prod --path /org-join --)
+fi
 JOIN_URL=${DRILL_JOIN_URL:-https://webhook.mooniex.com/org-join/join.sh}
 IMAGE=${DRILL_IMAGE:-ubuntu:24.04}
 MIN_MB=${DRILL_MIN_MB:-1500}
@@ -133,7 +138,9 @@ drill: DRY RUN for $HOST. Nothing below is run: no door, no docker, no hub write
   preflight        root; free -m available >= $MIN_MB MB else exit 2; docker, curl, gh, git, perl;
                    door status is "closed"; no container, volume or non-left host named drill-*;
                    $CRED_DIR/setup.env exists (provision needs the admin identity);
-                   TAILSCALE_OAUTH_CLIENT_ID/_SECRET set; the Tailscale, gh and node-secrets readers answer;
+                   TAILSCALE_OAUTH_CLIENT_ID/_SECRET set (the script first re-runs itself through Infisical
+                   Agents-Core prod /org-join unless they are, then through $HUB_WRAP for ORG_DB_URL);
+                   the Tailscale, gh and node-secrets readers answer;
                    tools/mesh_check.py has --join-drill. Code under test = this checkout ($CORE, venv from
                    $PY); the join API and door.sh approve run $LIVE_CORE. Both commits are printed and
                    written to the JSON as code.drill / code.join_service
@@ -163,14 +170,20 @@ EOF
 fi
 
 # ------------------------------------------------------------------------------------ re-exec
-# The hub URL and the Agents-Core prod secrets (Tailscale OAuth, gh) reach this process through the
-# same wrapper every Contabo consumer uses; never a .env.
+# Secrets reach this process from Infisical, never a .env. The hub URL (ORG_DB_URL, the root folder of
+# Agents-Core prod) comes through the wrapper every Contabo consumer uses. The Tailscale OAuth client
+# is in /org-join, which that wrapper does not load, so the /org-join leg runs first unless the caller
+# already set it. `infisical_setup.py run` adds its folder to the environment it was given, so the
+# hub leg keeps the Tailscale values.
 if [ "${DRILL_HUB_ENV:-}" != 1 ]; then
   if [ ! -f "$SELF" ] || [ ! -r "$SELF" ]; then
     refuse "cannot read this script as a file ($SELF): the drill re-runs itself, run it from a file, not a pipe"
   fi
   [ -x "$HUB_WRAP" ] || refuse "$HUB_WRAP is not executable: the drill needs the hub environment"
-  DRILL_HUB_ENV=1 DRILL_LOG_TO_REPO=$LOG_TO_REPO exec "$HUB_WRAP" bash "$SELF"
+  if [ -n "${TAILSCALE_OAUTH_CLIENT_ID:-}" ] && [ -n "${TAILSCALE_OAUTH_CLIENT_SECRET:-}" ]; then
+    DRILL_HUB_ENV=1 DRILL_LOG_TO_REPO=$LOG_TO_REPO exec "$HUB_WRAP" bash "$SELF"
+  fi
+  DRILL_HUB_ENV=1 DRILL_LOG_TO_REPO=$LOG_TO_REPO exec "${JOIN_ENV[@]}" "$HUB_WRAP" bash "$SELF"
 fi
 cd "$CORE" 2>/dev/null || refuse "no checkout at $CORE"
 
@@ -270,7 +283,7 @@ preflight() {
   [ -e "$CRED_DIR/setup.env" ] \
     || refuse "no $CRED_DIR/setup.env: provision needs the Infisical admin identity, and this box does not hold it"
   { [ -n "${TAILSCALE_OAUTH_CLIENT_ID:-}" ] && [ -n "${TAILSCALE_OAUTH_CLIENT_SECRET:-}" ]; } \
-    || refuse "TAILSCALE_OAUTH_CLIENT_ID / _SECRET are not in this environment: provision and leave need them"
+    || refuse "TAILSCALE_OAUTH_CLIENT_ID / _SECRET are not in this environment (Agents-Core prod /org-join): provision and leave need them"
   # The readers the end of the drill relies on must work NOW, or the drill would join a node it
   # cannot then prove gone.
   tailnet_has_device; [ $? -eq 2 ] && refuse "the Tailscale API did not answer (token or device list)"
