@@ -276,3 +276,4 @@ Spend so far: <credits / $> · Balance: <read fresh on date>
 Drive: <project folder id> · Prompts: docs/prompts/<film>/ · Rules: docs/promo/<CHALLENGE>-RULES.md
 Last agent: <session id> · Next action: <one line>
 ```
+- 2026-10-04 [MISSING] Step 8 — the step named only the Flow lakorn gate; a champa Seedance short movie fails in the picture (weather from a reference, creature geometry, named states) where that gate's cheap stage is blind: 0 defects at stage 1 vs 15 of 41 shots failing by eye on THE LAST BELL. Pointer added to the new gate CMO_Gate_Champa_Seedance2.0_ShortMovieQC · evidence: session cto-671f688f, commit e5e898f3 · status: promoted
