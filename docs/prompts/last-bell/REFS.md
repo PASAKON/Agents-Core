@@ -4,11 +4,18 @@
 
 - Images are attached in slot order and named in the prompt by position: the first attached image is
   `@ภาพ1`, the second `@ภาพ2`, and so on. The prompt describes what each one is.
-- The CEO estimates about 10 slots. **Not yet measured** — the first champa test counts them.
+- **Measured 2026-10-03: 9 slots** (`@ภาพ1`–`@ภาพ9`), not the 10 the CEO estimated. In "หลายภาพอ้างอิง"
+  mode the first slot is the "Frame 1" button, every later one `button[aria-label='Add frame']`; that button
+  disappears after the 9th image. The paperclip ("Up to 3 images") is a different attach, capped at 3; do not use it.
+  The test job with 9 references (`lb-t2-e5-r9`) was accepted with all 9 tags in the @ menu.
+- **Prompt cap: 2,000 characters.** The textarea keeps 12,000+, but the server answers "ข้อมูลไม่ถูกต้อง" and
+  queues nothing above 2,000 (2,000 accepted; 2,001 / 2,500 / 3,000 / 4,000 / 8,000 refused, 2026-10-03; measured with ASCII text, Thai not yet).
+  `build_shots.py` asserts the cap for every shot.
+- A continue shot therefore carries at most **6** other references (9 minus the 3 continue frames).
 - Fill order: location → characters → props → (last 3 slots) continue frames.
 - **Continue the same scene** (same place, the action carries on): put the previous clip's frames at
   **−1.0 s, −0.5 s and the last frame** in the last 3 slots (CEO's choice of spacing, 2026-10-03), oldest first,
-  and say in the prompt: "Continue directly from @ภาพ8 → @ภาพ9 → @ภาพ10: same place, same light, same
+  and say in the prompt: "Continue directly from the last three images, oldest first: same place, same light, same
   positions; the action carries on from the last frame."
 - **Change of location or scene:** no continue frames. The prompt carries the story on from the last scene.
 - Extract the three frames with ffmpeg (`-sseof -1.0`, `-sseof -0.5`, and the last frame) as PNG at source size.

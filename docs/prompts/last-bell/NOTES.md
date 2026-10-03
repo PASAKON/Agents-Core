@@ -96,3 +96,31 @@ Locked refs. All are on Drive, each md5 was re-read by file id, and each has a r
 
 - Superseded: `ch_naga_a`. It is on Drive in Element/Character and is replaced by `-2`.
 - Not used: every `ch_*_b` and round 1's `loc_yai_house`. They stay only on winbox in `C:\mooniex\last-bell\refs`.
+
+## Script, storyboard and the A/B test (2026-10-03, session 671f688f)
+
+CEO, verbatim:
+- "คุณเลือกได้เลย แล้วทำต่อได้เลย ตามบท ตอนนี้คิวอย่าให้วิ่าง Chamap"
+- "ตอนนี้เขียน บทให้พอ ทำ A/B Test ก่อนว่าใส่ได้มากกว่า 10 อยู่เท่าไหร่ หรือ อาจจะแค่ 10 และ Prompt ยาวสุดประมานไหน"
+
+What the CTO did under that delegation:
+- A/B test, 8 free jobs (`lb-t1` … `lb-t5`), measured on champa Seedance 2.0 16:9 15 s:
+  - Reference slots: **9**, not 10 (REFS.md has the detail).
+  - Prompt length: **2,000 characters** is the most the server queues. Above that it shows "ข้อมูลไม่ถูกต้อง" and queues nothing.
+  - Still rendering, judged by eye when the clips come back:
+    - whether 9 references hold every face (`lb-t2-e5-r9`);
+    - whether the end of a 2,000-character prompt is still obeyed (`lb-t3-len0400` / `len2000`; the white heron at the end of the prompt is the marker);
+    - English speech (`lb-t1-a3-r3`, `lb-t4-b1-speech`);
+    - the Naga look (`lb-t5-d1-naga`).
+- Script and storyboard: `build_shots.py` holds 41 shots (scenes A–E, 6:46 of cut time) and writes `shots/<id>.txt` (house two-zone format), `STORYBOARD.md`, `SCRIPT.md` and `jobs-wave1.json`.
+  - Every shot is written to fit 9 slots and 2,000 characters; the script refuses to build otherwise.
+  - 40 shots are standalone cuts and go to the queue now (wave 1).
+  - D05 continues D04, so it waits for D04's render.
+- Lines the CTO wrote (the CEO delegated the script; flag any to change):
+  - YAI BUA: "Every bell in this city has a voice. The great one has only one song."
+  - KAEW: "Which song?"
+  - MEK: "Late again, bell girl!"
+  - OLD BOATMAN: "Ring the great bell, and the Naga will rise to hold back the sea." The OLD BOATMAN is a new walk-on with no ref image.
+  - KAEW: "No... I woke it."
+- The lullaby is the BIBLE §5 draft, sung in Thai in E04. The CTO kept it as written.
+- Kept from the BIBLE: "And the rest of us?", "If you ring it, ring it right.", "Kaew, run!" and the Governor's storm speech.

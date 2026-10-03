@@ -1,0 +1,18 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot E08 · scene E · target length in the cut 15 s · grade dawn
+References in upload order: @ภาพ1=loc_bell_pavilion, @ภาพ2=loc_city, @ภาพ3=ch_kaew_a, @ภาพ4=ch_mek_a, @ภาพ5=ch_naga_a-2, @ภาพ6=prop_great_bell, @ภาพ7=prop_mallet
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, a slow crane up.
+Dawn after the storm. KAEW is the new keeper of PHAYA NAK.
+REFERENCES: @ภาพ1 — THE BELL PAVILION atop the great chedi: stone, gold, naga rails. @ภาพ2 — SUWANNAWARI, the floating city: stilt houses, canals, the great white-and-gold chedi. @ภาพ3 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ4 — MEK: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ5 — PHAYA NAK: head, crest, jade-and-gold scales, amber eyes, bronze neck bands; ignore the sheet layout and background. @ภาพ6 — THE GREAT BELL: shape, bronze, chained-naga engraving; ignore the sheet layout and background. @ภาพ7 — THE MALLET: dark wood, red thread on the handle; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot. MEK, lanky Thai boy about 14, turquoise checked headband, turquoise vest, black trousers. PHAYA NAK, colossal one-headed Thai naga, jade scales rimmed gold, gold crest, amber eyes.
+THE FRAME: Medium wide in THE BELL PAVILION: the head of PHAYA NAK resting at screen-right; KAEW sitting at screen-left facing it, THE MALLET across her knees; THE GREAT BELL lying broken.
+STATE: PHAYA NAK asleep, eyes closed; KAEW's hands bound in crimson cloth.
+WHAT HAPPENS: [0s] KAEW rests one hand on the Naga's scales. [5s] Far below, MEK rows a small boat toward the island and waves up. [9s] The camera cranes up: SUWANNAWARI standing, the sleeping coil around it.
+SOUND: Dawn wind, water, small bells chiming, the Naga's slow breath.
+Grade: dawn after the storm: pale gold-green, low soft sun through mist, wet gold surfaces, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

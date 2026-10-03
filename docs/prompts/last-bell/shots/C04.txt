@@ -1,0 +1,17 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot C04 · scene C · target length in the cut 10 s · grade storm
+References in upload order: @ภาพ1=loc_canal, @ภาพ2=ch_kaew_a, @ภาพ3=prop_mallet
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, a slow crane following her climb.
+KAEW climbs the floating wreckage to the island.
+REFERENCES: @ภาพ1 — THE CANAL and its long wooden footbridge. @ภาพ2 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ3 — THE MALLET: dark wood, red thread on the handle; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot.
+THE FRAME: Medium wide: a tangle of floating beams and roof panels between the broken bridge at screen-left and the chedi island's stone steps at screen-right; KAEW climbing across them, moving screen-left to screen-right, THE MALLET in her waistband.
+WHAT HAPPENS: [0s] KAEW pulls herself onto a heaving beam. [4s] She jumps from beam to roof panel; it tilts and she scrambles on. [8s] She reaches the stone steps of the island and looks up.
+SOUND: Waves, groaning timber, rain, her breath.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

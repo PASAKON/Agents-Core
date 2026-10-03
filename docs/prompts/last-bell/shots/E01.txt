@@ -1,0 +1,18 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot E01 · scene E · target length in the cut 12 s · grade storm
+References in upload order: @ภาพ1=loc_bell_pavilion, @ภาพ2=ch_naga_a-2, @ภาพ3=ch_kaew_a
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, camera locked.
+PHAYA NAK lowers its head to the top of the chedi, eye to eye with KAEW.
+REFERENCES: @ภาพ1 — THE BELL PAVILION atop the great chedi: stone, gold, naga rails. @ภาพ2 — PHAYA NAK: head, crest, jade-and-gold scales, amber eyes, bronze neck bands; ignore the sheet layout and background. @ภาพ3 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot. PHAYA NAK, colossal one-headed Thai naga, jade scales rimmed gold, gold crest, amber eyes.
+THE FRAME: Wide inside THE BELL PAVILION: KAEW at screen-left, small, facing screen-right; the open side of the pavilion at screen-right filled by PHAYA NAK's descending head.
+STATE: PHAYA NAK listening, head low.
+WHAT HAPPENS: [0s] The head of PHAYA NAK sinks into frame from above, screen-right. [5s] One amber eye, bigger than KAEW, stops a few metres from her. [9s] KAEW does not move.
+SOUND: The Naga's breath like a storm wind, rain, silence from the city.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

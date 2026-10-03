@@ -1,0 +1,17 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot D05 · scene D · target length in the cut 10 s · grade storm
+References in upload order: @ภาพ1=loc_bell_pavilion, @ภาพ2=prop_great_bell, @ภาพ3=ch_kaew_a, then the last 3 frames of D04 (-1.0 s, -0.5 s, last)
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, camera locked.
+KAEW understands; THE GREAT BELL cracks.
+REFERENCES: @ภาพ1 — THE BELL PAVILION atop the great chedi: stone, gold, naga rails. @ภาพ2 — THE GREAT BELL: shape, bronze, chained-naga engraving; ignore the sheet layout and background. @ภาพ3 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ4, @ภาพ5, @ภาพ6 — the last three frames of the previous moment, oldest first: continue directly from @ภาพ6, same place, same light, same positions.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot.
+THE FRAME: Medium close-up: KAEW at screen-left, three-quarter view facing screen-right toward THE GREAT BELL, bloodied hands at her sides.
+WHAT HAPPENS: [0s] KAEW, barely a whisper: "No... I woke it." [4s] A crack runs down one side of THE GREAT BELL with a sharp ringing snap. [7s] KAEW steps back.
+SOUND: Her whisper, then a splitting crack of bronze and a dying tone.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no stage directions spoken aloud, nothing spoken outside the quotes; no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===
