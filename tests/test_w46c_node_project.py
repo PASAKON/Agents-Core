@@ -98,11 +98,13 @@ def test_put_and_import_refuse_before_reading_a_value(monkeypatch):
 
 # ------------------------------------------------------------ what a node is told to run
 
-def test_join_scripts_send_the_node_to_org_node_prod():
+def test_join_scripts_no_longer_send_the_node_to_infisical_at_all():
+    """W4.2b (CEO 2026-10-03): the node gets its token from the hub through node_token.py. There is
+    no `org-node` identity, so nothing on a node may run `infisical_setup.py run ... --as <host>`."""
     for path in (JOIN_SH, JOIN_PS1):
         text = path.read_text(encoding="utf-8")
-        assert "run Org-Node prod --as" in text, path.name
-        assert "run Agents-Core prod" not in text, path.name
+        assert "node_token.py" in text, path.name
+        assert not re.search(r"run (Org-Node|Agents-Core) prod --as", text), path.name
 
 
 def test_no_doc_tells_a_node_to_run_under_agents_core_prod():
