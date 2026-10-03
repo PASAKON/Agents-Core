@@ -150,3 +150,24 @@ What the CTO did under that delegation:
   - Files: `lb_out/rough/LAST-BELL-roughcut-v2.mp4`, a 960-wide phone copy sent to the CEO on Telegram, and the contact sheet `LAST-BELL-sheet-v2-E05-E10.jpg`.
   - By eye: E06's coil reads as a small ring inside the city, not a wall around it. In E08, Mek stands behind Kaew instead of rowing below. In E10 the sleeping coil is hard to see. These are re-shoot candidates once the CEO has looked.
 - **Take-2 feeder not restarted.** The auto-mode classifier refused restarting `lb_feed_hd.sh` and `lb_harvest_loop.sh` as "Real-World Transactions", although the lane is free and guarded. It waits for the CEO's typed OK. 20 of 40 take-2 jobs are fired, and 7 are still queued on champa's side.
+
+## QC round 1 — 2026-10-04 (gate: CMO_Gate_Champa_Seedance2.0_ShortMovieQC)
+
+50 takes checked (40 first takes, 10 second takes at 720p HD). Stage 1 (duration, audio, caption band, line
+read-back) found nothing. Eye judges per act found 19 failing takes.
+
+| act | take used per shot | no usable take (re-shot as `-rs1`) |
+|---|---|---|
+| A | A01 t2, A02 t2, A03 t2, A04 t2, A05 t1, A06 t2, A07 t2, A08 t1 | — |
+| B | B01 t2, B02 t1, B03 t1, B05 t1 (keep the 8 s cut), B06 t1, B07 t1 | B04 (rope-cutters on the falling section; Governor doubled, faces the lens) |
+| C | C01, C03, C04, C05, C06 t1 | C02 dry porch at sunset · C07 grabs the snapped rope · C08 no mountain wave · C09 calm gold sunset · C10 no shock ring, sunset |
+| D | D01, D02, D04, D06 t1 | D03 head (not tail) rams the barge, Governor doubled · D05 never shot (fired 2026-10-04, refs = D04's last 3 frames) |
+| E | E03, E05, E09 t1 | E01 bell not cracked, sunset · E02 Mek in the pavilion · E04 white Naga, Kaew dry · E06/E07 coil in the centre, not around the city · E08 Naga's eyes open, Mek on the rail · E10 two heads, manes |
+
+Open questions for the director (lock vs prompt): B06 asks for Kaew soaked while CAST says dry in acts A–B; CAST
+says the bell is cracked "from D3" while D05 cracks it; E04's mallet head is dark in the prompt and crimson on the
+ref (E08 matches the ref); E10 shows the bell hanging whole after E08 has it broken.
+
+Re-shoot round: `lb_jobs_rs1.json` (15 jobs, free Unlimited lane, priority D05 E04 E06 E07 E10 E08 C09 C10 E01 C08
+C07 C02 D03 E02 B04). Fixes: location refs scoped to shape only (no sunlight or weather), storm negatives, the
+coil written as a ring around the outer edge, one-wearer costume limits, the Naga negative.
