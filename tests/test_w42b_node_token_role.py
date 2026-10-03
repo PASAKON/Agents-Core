@@ -357,6 +357,10 @@ class Hub:
         finally:
             conn.close()
 
+    def owner_role(self) -> str:
+        """The owner connection's login role, quoted: whatever the test database was created with."""
+        return self.owner_rows("SELECT quote_ident(current_user) AS r")[0]["r"]
+
     def sessions(self) -> int:
         return self.owner_rows("SELECT count(*) AS n FROM pg_stat_activity WHERE usename = 'org_node_token'")[0]["n"]
 
@@ -486,11 +490,11 @@ def test_the_role_can_read_the_four_columns_and_nothing_else_of_hosts(pg):
     "ALTER TABLE hosts ADD COLUMN x int",
     "GRANT SELECT ON tasks TO PUBLIC",
     "COPY hosts TO PROGRAM 'id'",
-    "SET ROLE org",
+    "SET ROLE {owner}",                                                       # the hub owner: `org` live, `postgres` in CI
 ])
 def test_everything_else_the_role_tries_is_refused(pg, sql):
     pg.host("node-a")
-    result = pg.attempt(sql)
+    result = pg.attempt(sql.replace("{owner}", pg.owner_role()))   # replace, not format: one case holds a literal {}
     assert result != "RAN", sql
     assert re.search(r"permission denied|must be (owner|superuser)", result), result
     assert [r["host"] for r in pg.owner_rows("SELECT host FROM hosts")] == ["node-a"]   # nothing changed
