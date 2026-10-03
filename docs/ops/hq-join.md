@@ -7,7 +7,8 @@ revocation when a node leaves, and exports the `hosts` table as `hosts.yaml`.
 **Status: built, not live.** By default nothing in it calls Infisical, Tailscale,
 GitHub or ssh. W4.2 adds the calls (below), but they run only with
 `ORG_W42_PROVISION=1` on the admin host, and every outside call is injectable so
-the tests never reach a real service. The `authorized_keys` revoker waits for W2.8; the
+the tests never reach a real service. The `authorized_keys` leg removes what was placed,
+which is nothing for a joined node ("What `leave` revokes", below); the
 Tailscale one (G3) is built and runs only when the OAuth client is in the environment
 ("Tailscale: the pre-auth key and the device", below). Nothing reads the export.
 Plan: `~/.claude/plans/glimmering-shimmying-eagle.md` section W4 (W4.2: "redesign
@@ -108,7 +109,7 @@ Plans the revocation, in this order:
 | `infisical_client_secret` | the node | revoke that node's Universal Auth client secret under identity `org-node` (only that one) |
 | `tailscale_device` | the node | remove the tailnet device and its pre-auth key |
 | `github_deploy_key` | the node | delete the deploy key(s) registered for it |
-| `authorized_keys` | each other host that has not left | remove the node's dispatch key and admin pubkey line |
+| `authorized_keys` | each other host that has not left | remove the node's dispatch key and admin pubkey line **that code placed** (nothing, for a joined node: see below) |
 
 - Without `--live` it prints the plan and changes nothing (no revoker is called,
   no row and no event is written).
@@ -119,7 +120,8 @@ Plans the revocation, in this order:
   idempotent: already gone (404) is ok.
 - **`--live` without the flag refuses every step** (`not wired yet: ...`): the shipped table
   is `UNWIRED_REVOKERS`, so the exit code is `1` and the row stays. W4.2 replaces
-  the first and third entries, G3 the second, W2.8 the fourth. The interface is
+  the first and third entries, G3 the second, and the fourth is replaced by
+  `revoke_authorized_keys` (all three only with the flag). The interface is
   `Revoker = Callable[[Step], Outcome]`, passed as `leave(..., revokers={...})`.
 - **W4.2 wires the first and third rows** when `ORG_W42_PROVISION=1` (see
   "W4.2: per-node identity"). The default table is chosen when `leave` is called
@@ -131,8 +133,31 @@ Plans the revocation, in this order:
   deleted (two is refused with an error). No such device, or a 404, counts as done. With the flag
   but not the variables the step stays `not wired yet`; with only one of the two it refuses and
   names both.
-- `authorized_keys` stays `not wired yet`, so a real `leave --live` still ends `partial`
-  (exit `1`) until W2.8 lands.
+- **What `leave` revokes: what was PLACED.** The `authorized_keys` leg removes the lines
+  code put on each other host, and only those. `_placed_authorized_keys(host, target)`
+  in `tools/hq_join.py` is the one place that says what was placed; the revoker removes
+  what it returns.
+  - **A joined node** (any name outside `reserved_hosts()`): the function returns `[]`.
+    `join.sh` / `join.ps1` (W4.3 step 3) create the node's keys on the node only, and no
+    code writes them into any host's `authorized_keys`. So each `authorized_keys` step is
+    **ok** with the detail `none placed: no code puts <host>'s key on <target> yet (W2.8
+    for joined nodes); nothing to remove`. With `ORG_W42_PROVISION=1` and the other three
+    legs ok (the Tailscale leg needs the OAuth client in the environment), the row goes to
+    `left` and `leave --live` exits `0`. A re-run converges: a node an earlier `leave`
+    left `partial` (this step used to refuse for everyone) is marked `left` by the next
+    run, since every real revoker already treats "already gone" as ok.
+  - **A core host** (`mac`, `contabo`, `winbox`): its W2.8a dispatch lines ARE placed on
+    the other hosts and nothing removes them, so the function returns a descriptor for
+    them and the step stays `not wired yet`. A leave of a core host cannot reach this
+    today (`leave` refuses the name, below); the branch keeps the row from going to
+    `left` if that refusal is ever loosened.
+  - **When W2.8 starts placing a joined node's key** on another host, it must record the
+    placement in `_placed_authorized_keys` in the same change. Until a remover exists the
+    revoker then refuses (`not wired yet`) instead of saying `none placed`, so the row
+    cannot reach `left` while the key still opens a door. A test pins this: it makes the
+    function return a placement and fails if the revoker still answers `none placed`.
+  - **Without the flag** nothing changes: every leg, `authorized_keys` included, refuses
+    `not wired yet`, nothing outside the hub is touched, and nothing is marked `left`.
 - `leave` refuses a host that has no `pubkey` (`not_joined`: a row seeded from
   `hosts.yaml` was never joined through `accept`): revoking "their" keys on every
   other host would cut the hub off. mac, contabo and winbox are refused even
@@ -369,8 +394,9 @@ over. It refuses a host that has no live ciphertext (`not_provisioned`).
 
 ### After a leave: rotate what the node could read
 
-`leave --live` revokes the node's client secret, its deploy key and its
-`authorized_keys` lines. That stops the node from logging in again. It does **not**
+`leave --live` revokes the node's client secret, its tailnet device, its deploy key and
+whatever `authorized_keys` lines code placed for it (none today). That stops the node from
+logging in again. It does **not**
 recall a value the node already read, and the shared identity `org-node` is a viewer
 on **Org-Node** (prod only; on Free a viewer sees every environment of a project it is
 in, so what counts is what the project holds: one secret, `CLAUDE_CODE_OAUTH_TOKEN`).
@@ -428,7 +454,8 @@ start, because it refuses an empty folder: do the move and the entry in one sitt
 - Setting `ORG_W42_PROVISION=1` on the Mac, plus the CEO's go for the first real
   provision (it creates the `org-node` identity and a real client secret, and gives it
   viewer on Org-Node; `apply` must have created Org-Node first).
-- The `authorized_keys` revoker (W2.8). The `tailscale_device` one is built (G3, below).
+- A remover for placed `authorized_keys` lines, and W2.8-for-nodes recording what it places
+  in `_placed_authorized_keys`. The `tailscale_device` revoker is built (G3, below).
 - A real `age` run on the node side. On the Mac, `age` 1.3.2 is installed and the
   real round trip is covered by `test_real_age_round_trip`; it skips where `age`
   is not on PATH.

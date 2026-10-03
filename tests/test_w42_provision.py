@@ -794,8 +794,9 @@ def test_leave_with_the_default_table_and_the_flag_revokes_two_legs_and_stays_pa
         by_kind.setdefault(s["kind"], []).append(s)
     assert by_kind["infisical_client_secret"][0]["ok"] and by_kind["github_deploy_key"][0]["ok"]
     assert not by_kind["tailscale_device"][0]["ok"] and "not wired yet" in by_kind["tailscale_device"][0]["detail"]
-    assert all(not s["ok"] for s in by_kind["authorized_keys"])
-    assert res["status"] == "partial" and _status() == "identity_ready"
+    # nothing was placed for a joined node, so there is nothing to remove: ok, not a refusal
+    assert all(s["ok"] and "none placed" in s["detail"] for s in by_kind["authorized_keys"])
+    assert res["status"] == "partial" and _status() == "identity_ready"      # tailscale holds it back
     assert org.live() == [] and gh.keys == {}
     res = hq_join.leave("node-a", live=True)                # converges: revoke again is fine
     assert res["status"] == "partial" and _ns()["revoked_at"]
