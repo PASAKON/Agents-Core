@@ -67,3 +67,32 @@ Every upload appends a line to `logs.txt` in the same turn; nothing on this bran
 - The city, Suwannawari, is fictional and timeless, built from Thai stilt-house, chedi and naga forms. No real place or period.
 - The lullaby is an original Thai lyric written for this film. No existing song.
 - The Naga has one head (easier to keep consistent across shots than seven).
+
+## Reference picks (round 1 + two fixes)
+
+- CEO 2026-10-03 08:32, typed in the COO session and relayed by SomPong: "เรื่องหนังเลือก A ได้เลย". The `_a` casting is locked for all five characters.
+- CEO 2026-10-03 08:34, same route: "ส่วนงานไหนที่ทำได้ทำไปก่อน blocker ที่ไม่เกี่ยวกับ run หรือ relay ให้ทำต่อได้เลย". The CTO therefore redid the two plates it had flagged:
+  - `loc_yai_house-2`: a poor zinc-roofed stilt shack. Round 1's teak house read as wealthy.
+  - `ch_naga_a-2`: the same Naga A with its bronze neck bands clearly visible. Made as an edit in the chat of `ch_naga_a`.
+- Prompts for the fixes: `docs/ops/briefs/last-bell-refs-round2.json` (ChatGPT on winbox, `tools/chatgpt_images.py --json`).
+
+Locked refs. All are on Drive, each md5 was re-read by file id, and each has a row in `logs.txt`:
+
+| ref | Drive folder | md5 |
+|---|---|---|
+| ch_kaew_a | Element/Character | f508dc4262f8135a8471278fad7c39be |
+| ch_yai_a | Element/Character | 336b5cd757c108cdf4b311faaac0bdfc |
+| ch_mek_a | Element/Character | dd7f904d39a0f167b4e69c78121e82f7 |
+| ch_governor_a | Element/Character | 0a64cff17cb1e19e06fb2782d4d0ac49 |
+| ch_naga_a-2 | Element/Character | 1bcb8a16f293c3b946daf67eadc1aa1f |
+| loc_city | Element/Location | 6a212ac7a1c2feac51bf7c63075bf4cb |
+| loc_bell_pavilion | Element/Location | a1649af9ab21d72afe7ff9ece10e449c |
+| loc_canal | Element/Location | c4cdfb13b5835a1bcc5a32b15bfccb0f |
+| loc_yai_house-2 | Element/Location | befdf11e1a032c2397bc3bac1f3fd72d |
+| prop_great_bell | Element/Prop | 4846d3de387bcd7729283a28605786ab |
+| prop_mallet | Element/Prop | c800212edd7b192858af98861f995abb |
+| key_bell_naga | film root (no key-art folder yet) | e1a3d5c0234ebc1194aabbd9a7f3cbe7 |
+| key_storm_city | film root | 54eabb4747c6df31d014fd53cc23d53f |
+
+- Superseded: `ch_naga_a`. It is on Drive in Element/Character and is replaced by `-2`.
+- Not used: every `ch_*_b` and round 1's `loc_yai_house`. They stay only on winbox in `C:\mooniex\last-bell\refs`.

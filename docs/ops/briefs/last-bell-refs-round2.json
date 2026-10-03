@@ -1,0 +1,11 @@
+[
+ {
+  "name": "loc_yai_house-2",
+  "prompt": "Interior, landscape 3:2, no people anywhere. The one-room stilt shack of a very poor old Thai woman on a canal. A rusted corrugated zinc roof with holes and tin patches, thin light leaking through. Walls of mismatched grey weathered planks and old woven bamboo panels, patched with flattened tin sheets and a torn rice sack. Bare uneven floor planks with gaps, dark canal water visible below. Almost no furniture: one thin frayed woven mat on the floor, a folded faded blanket, a dented aluminium pot on a soot-black clay stove, a chipped clay water jar, a plastic basin, a small dented tin betel box. Dried herbs and a few strings of small cheap brass bells hang from a nail by the open window; the canal and other poor shacks outside. One smoky kerosene lamp. Cluttered, worn, patched, dusty, poor. Not a traditional Thai teak house: no carvings, no decoration, no ornaments, no rugs, no cushions, nothing expensive.\n\nColour grade: a surreal yellow-green world. Acid yellow-green sky, chartreuse highlights, deep olive shadows, warm gold lamp light, soft haze. Photorealistic, epic fantasy film still, anamorphic lens, rich detail.\n\nNo text, no watermark."
+ },
+ {
+  "name": "ch_naga_a-2",
+  "prompt": "Keep everything exactly the same: the same creature, the same layout, the same four labelled close-ups, the same full-body panel and the same white background. The one fix: the old bronze bands around the neck must be clearly visible in every panel. Three or four thick, dark, weathered bronze rings green with verdigris, sunk deep into the scales just behind the head, like shackles worn for a hundred years, the scales around them worn and scarred. They must read at a glance in the close-ups and in the full-body panel.",
+  "continue": "ch_naga_a"
+ }
+]
