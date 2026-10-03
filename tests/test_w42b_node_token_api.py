@@ -487,6 +487,32 @@ def test_a_host_is_limited_and_the_429_says_when_to_retry(start):
     assert a.token()[0] == 200                                         # the window moved on
 
 
+def test_refused_requests_for_a_host_do_not_spend_that_hosts_window(start):
+    """W4.2b round 2: one tailnet peer sends `host=victim` over and over. Each is a 403 (the row is
+    not approved yet, or there is none) and is charged to the peer's source address only, so the
+    victim's own request, once it can be granted, is not a 429."""
+    sealer = Sealer()
+    a = start(sealer=sealer, host_limiter=node_token_api.RateLimiter(3, 60.0, _Clock()),
+              source_limiter=node_token_api.RateLimiter(1000, 60.0, _Clock()))
+    for _ in range(30):
+        st, body, _h = a.token("node-a")                              # no such host yet
+        assert (st, json.loads(body)) == (403, {"error": "unknown_host"})
+    _row("node-a", status=hq_join.STATUS_PENDING, approved=False)
+    for _ in range(30):
+        assert json.loads(a.token("node-a")[1]) == {"error": "not_approved"}
+    _row("node-a")                                                     # approved: the victim asks
+    assert [a.token("node-a")[0] for _ in range(3)] == [200, 200, 200]
+    assert a.token("node-a")[0] == 429                                 # granted requests still count
+    assert len(sealer.calls) == 3
+
+
+def test_refused_requests_are_still_charged_to_their_source(start):
+    a = start(source_limiter=node_token_api.RateLimiter(5, 60.0, _Clock()),
+              host_limiter=node_token_api.RateLimiter(100, 60.0, _Clock()))
+    assert [a.token("node-zz")[0] for _ in range(5)] == [403] * 5
+    assert a.token("node-zz")[0] == 429                                # the source limiter, not the host's
+
+
 def test_one_host_limit_does_not_block_another(start):
     a = start(host_limiter=node_token_api.RateLimiter(1, 60.0, _Clock()))
     _row("node-a")

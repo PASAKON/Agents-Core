@@ -36,8 +36,9 @@ never falls back to ORG_DB_URL, the full role.
 Binds only an address inside 100.64.0.0/10 (a tailnet address). 0.0.0.0, loopback, a LAN or a
 public address, a hostname and IPv6 are refused at start (exit 2), the way tools/join_api.py
 refuses what is not a docker bridge. Tests alone may bind loopback, with allow_loopback=True;
-main() never passes it. Rate limited per source address and per host. The repo's lib.sealed and
-lib.db, ThreadingHTTPServer, HTTP/1.0.
+main() never passes it. Rate limited per source address (every request) and per host (a request
+that will be granted: a refused one is charged to its source only, so a peer cannot spend a
+victim host's window). The repo's lib.sealed and lib.db, ThreadingHTTPServer, HTTP/1.0.
 
 Start-up refuses (exit 2) when a name in infisical_setup.NODE_SECRET_NAMES is missing from the
 environment, naming the variable; and when ORG_NODE_TOKEN_DB_URL is missing.
@@ -216,14 +217,17 @@ def _route_token(h: "_Handler"):
     name = q.get("name", infisical_setup.NODE_SECRET_NAMES[0])
     if name not in h.server.tokens:
         raise _Refuse(400, "bad_name")
-    if not h.server.host_limiter.allow(host):
-        raise _Refuse(429, "rate_limited")
     with _hub() as conn:
         row = conn.execute("SELECT status, pubkey, approved_at FROM hosts WHERE host = ?",
                            (host,)).fetchone()
     refusal = decide(row)
     if refusal is not None:
+        # A refused request is charged to its source address only (in _handle). Charging the
+        # host named in it would let any tailnet peer spend a victim's whole window with
+        # `host=victim`, and the victim's own node would then get 429s (exit 4).
         return 403, _json({"error": refusal}), _JSON, host
+    if not h.server.host_limiter.allow(host):   # only a request that will be granted counts here
+        raise _Refuse(429, "rate_limited")
     payload = {"v": 1, "host": host, "name": name, "value": h.server.tokens[name],
                "issued_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
     try:
