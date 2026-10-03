@@ -369,9 +369,11 @@ def make_server(port: int = 0, **kw) -> NodeTokenServer:
 
 
 def _preflight() -> None:
-    """Fail at start, not on the first node's request, when the hub schema is not there or the
-    role cannot read it. The main thread's connection is closed again: it would hold one of the
-    role's three for the life of the process."""
+    """Fail at start, not on the first node's request, when `age` is not installed (every answer is
+    sealed with it, so without it each request is a 500 while /health says ok), or when the hub
+    schema is not there or the role cannot read it. The main thread's connection is closed again:
+    it would hold one of the role's three for the life of the process."""
+    sealed.find_age()   # SealError: main() prints its message, which names the package to install
     try:
         with _hub() as conn:
             conn.execute("SELECT host, status, pubkey, approved_at FROM hosts LIMIT 1").fetchall()
@@ -413,7 +415,7 @@ def main(argv: list[str] | None = None, environ=None) -> int:
     try:
         _preflight()
         srv = make_server(args.port, tokens=tokens, bind=args.bind)
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, sealed.SealError) as exc:   # SealError: age missing; no caller data in it
         print(f"node_token_api: cannot start ({type(exc).__name__}: {str(exc)[:200]})", file=sys.stderr)
         return 1
     except Exception as exc:   # the hub database: a class name, never the driver's message
