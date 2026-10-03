@@ -18,12 +18,14 @@ Run:  .venv/bin/python -m pytest -p no:warnings tests/test_w42b_node_token_api.p
 """
 from __future__ import annotations
 
+import contextlib
 import http.client
 import json
 import logging
 import os
 import shutil
 import socket
+import sqlite3
 import stat
 import subprocess
 import threading
@@ -385,6 +387,73 @@ def test_health_is_503_when_the_database_is_down_and_names_no_error(api, monkeyp
     st, body, _ = api.get("/health")
     assert (st, json.loads(body)) == (503, {"ok": False, "token_loaded": True, "db": False})
     assert b"password" not in body and _holds_no_value(body)
+
+
+@pytest.fixture
+def hub_down_with_a_snapshot(monkeypatch, tmp_path):
+    """The hub does not answer (HubConnectError) and a read-only ledger snapshot exists in which
+    node-a is approved and online: what lib.db.get_conn() falls back to. A service that decided from
+    it would issue the token to a host that has since left."""
+    snap = tmp_path / "tasks.snapshot.db"
+    conn = sqlite3.connect(str(snap))
+    conn.row_factory = sqlite3.Row
+    db.init_schema(conn, is_pg=False)
+    db.init_snapshot_meta(conn)
+    conn.execute("INSERT INTO hosts (host, status, pubkey, approved_at) VALUES (?, 'online', ?, ?)",
+                 ("node-a", PUB, APPROVED))
+    db.write_snapshot_meta(conn, "2026-10-03T00:00:00+00:00")
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(db, "SNAPSHOT_PATH", snap)
+    monkeypatch.setenv("ORG_DB_URL", DSN)
+
+    def down(url, timeout=None):
+        raise db_pg.HubConnectError("hub down: " + DSN)
+    monkeypatch.setattr(db_pg, "get_pooled", down)
+    with db.get_conn() as c:       # the set-up does what it claims: lib.db would answer from the snapshot
+        assert isinstance(c, db._SnapshotConnection)
+        assert c.execute("SELECT status FROM hosts WHERE host = 'node-a'").fetchone()["status"] == "online"
+    return snap
+
+
+def test_a_down_hub_is_a_503_and_never_an_answer_from_the_snapshot(start, hub_down_with_a_snapshot, caplog):
+    sealer = Sealer()
+    a = start(sealer=sealer)
+    st, body, headers = a.token()
+    assert (st, json.loads(body)) == (503, {"error": "hub_unavailable"}) and "retry-after" in headers
+    assert sealer.calls == []                                          # nothing was sealed, nothing issued
+    assert b"Sy-nth" not in body + _logged(caplog) and _holds_no_value(body + _logged(caplog))
+
+
+def test_a_down_hub_with_no_snapshot_at_all_is_the_same_503(start, hub_down_with_a_snapshot):
+    hub_down_with_a_snapshot.unlink()
+    st, body, _ = start().token()
+    assert (st, json.loads(body)) == (503, {"error": "hub_unavailable"})
+
+
+def test_health_says_db_false_when_the_hub_is_down_even_with_a_snapshot(start, hub_down_with_a_snapshot):
+    st, body, _ = start().get("/health")
+    assert (st, json.loads(body)) == (503, {"ok": False, "token_loaded": True, "db": False})
+
+
+def test_the_start_up_check_does_not_pass_on_the_snapshot(hub_down_with_a_snapshot):
+    with pytest.raises(RuntimeError, match="hub_unavailable"):
+        node_token_api._preflight()
+
+
+def test_a_connection_that_dies_mid_query_is_a_503_too(start, monkeypatch):
+    psycopg = pytest.importorskip("psycopg")
+
+    class Dying:
+        def execute(self, *a):
+            raise psycopg.OperationalError("server closed the connection unexpectedly")
+
+    @contextlib.contextmanager
+    def get_conn():
+        yield Dying()
+    monkeypatch.setattr(db, "get_conn", get_conn)
+    st, body, _ = start().token()
+    assert (st, json.loads(body)) == (503, {"error": "hub_unavailable"})
 
 
 def test_health_is_503_when_no_token_is_loaded(start):

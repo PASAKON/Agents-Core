@@ -20,6 +20,9 @@ nodes only: THIS process still gets its own values through `infisical run`
                             not_approved (approved_at is NULL), not_issuing (any other status,
                             for example pending_identity). `?name=` picks one of
                             infisical_setup.NODE_SECRET_NAMES; the default is the first.
+                            503 {"error": "hub_unavailable"} when the hub database does not
+                            answer: this service never decides from the read-only snapshot
+                            lib.db falls back to (see _hub).
     GET /health             {"ok","token_loaded","db"}: booleans. Never a value, a length or
                             the last four characters. 200 when ok, 503 when not.
 
@@ -159,6 +162,27 @@ def _db_slot():
             _DB_GATE.release()
 
 
+@contextlib.contextmanager
+def _hub():
+    """The hub connection, inside one of the DB_SLOTS. The hub not answering is a 503
+    `hub_unavailable`, never a decision taken from old data: when the hub does not answer,
+    lib.db.get_conn() hands back a read-only SNAPSHOT of the ledger, and a snapshot that still
+    shows `approved_at` and `online` for a host that has since left would issue the token. A
+    snapshot connection, an unreachable hub and a connection that dies mid-query are all refused."""
+    with _db_slot():
+        try:
+            with db.get_conn() as conn:
+                if isinstance(conn, db._SnapshotConnection):
+                    raise _Refuse(503, "hub_unavailable")
+                yield conn
+        except _Refuse:
+            raise
+        except Exception as exc:
+            if isinstance(exc, db.HubUnavailable) or db_pg.is_operational_error(exc):
+                raise _Refuse(503, "hub_unavailable") from None
+            raise
+
+
 def _loggable_host(host: object) -> str | None:
     return host if isinstance(host, str) and hq_join.HOST_RE.fullmatch(host) else None
 
@@ -194,7 +218,7 @@ def _route_token(h: "_Handler"):
         raise _Refuse(400, "bad_name")
     if not h.server.host_limiter.allow(host):
         raise _Refuse(429, "rate_limited")
-    with _db_slot(), db.get_conn() as conn:
+    with _hub() as conn:
         row = conn.execute("SELECT status, pubkey, approved_at FROM hosts WHERE host = ?",
                            (host,)).fetchone()
     refusal = decide(row)
@@ -214,11 +238,13 @@ def _route_token(h: "_Handler"):
 def _route_health(h: "_Handler"):
     _query(h.path, ())
     try:
-        with _db_slot(), db.get_conn() as conn:
+        with _hub() as conn:
             conn.execute("SELECT 1 FROM hosts LIMIT 1").fetchone()
         db_ok = True
-    except _Refuse:
-        raise
+    except _Refuse as r:
+        if r.code != "hub_unavailable":   # `busy` is the gate being full, not the hub being down
+            raise
+        db_ok = False
     except Exception:
         db_ok = False
     loaded = bool(h.server.tokens) and all(h.server.tokens.values())
@@ -311,8 +337,10 @@ def _preflight() -> None:
     role cannot read it. The main thread's connection is closed again: it would hold one of the
     role's three for the life of the process."""
     try:
-        with db.get_conn() as conn:
+        with _hub() as conn:
             conn.execute("SELECT host, status, pubkey, approved_at FROM hosts LIMIT 1").fetchall()
+    except _Refuse as r:
+        raise RuntimeError(r.code) from None   # main() prints the class only
     finally:
         _release_conn()
 
