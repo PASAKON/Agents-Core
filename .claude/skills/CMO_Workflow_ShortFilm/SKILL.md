@@ -276,3 +276,8 @@ Spend so far: <credits / $> · Balance: <read fresh on date>
 Drive: <project folder id> · Prompts: docs/prompts/<film>/ · Rules: docs/promo/<CHALLENGE>-RULES.md
 Last agent: <session id> · Next action: <one line>
 ```
+
+## Field notes
+
+- 2026-10-03 [MISSING] Step 4 output — plates have `Element/Character|Location|Prop`, but key art (a poster-style frame that is not an element) has no folder in the YT: ILAG layout. THE LAST BELL's two key frames went to the film root · evidence: docs/prompts/last-bell/NOTES.md (key_bell_naga, key_storm_city), session 671f688f · status: pending
+- 2026-10-03 [MISSING] engine limits before writing prompts — champa Seedance 2.0 takes at most 9 reference images and a 2,000-character prompt (2,001 is refused with "ข้อมูลไม่ถูกต้อง"; the textarea itself keeps 12,000+). A storyboard written before measuring would have overflowed: the first build of THE LAST BELL had shots up to 2,846 characters. Measure the engine's slot and length caps with free jobs before the storyboard step, and have the build script assert them · evidence: docs/prompts/last-bell/REFS.md, build_shots.py LIMIT, lb_out/queue.jsonl reject rows lb-t3-len2001…len8000 · status: pending
