@@ -124,3 +124,14 @@ What the CTO did under that delegation:
   - KAEW: "No... I woke it."
 - The lullaby is the BIBLE §5 draft, sung in Thai in E04. The CTO kept it as written.
 - Kept from the BIBLE: "And the rest of us?", "If you ring it, ring it right.", "Kaew, run!" and the Governor's storm speech.
+
+## Rough cut v1 and the sharpness question (2026-10-03 evening)
+
+- CEO 2026-10-03: "รายงานผล / อยากดูคลิปว่าเป็นยังไงบ้าง เนื้อเรื่องดีไหม / แต่เท่าท่ี่ดู footage ไม่ใช่ความคมชัด 720ย"
+- Rough cut v1 went to the CEO on Telegram: 34 of 41 shots (A01–E04, no D05), 5:32, each shot trimmed to its `cut` length, shot id top-left. Clips stay on the Mac until the CEO approves `All Scene/` sub-folders.
+- **Measured.** Seedance 2.0's quality menu offers 480p Standard, 720p HD, 1080p Full HD and 4K Ultra HD, and it **defaults to 720p**. Wave 1 was therefore fired at 720p. The Telegram caption that said "rendered at 480p" was wrong.
+- Every card reads `seedance-2|15s|16:9|Standard|`. That includes three re-fires with 720p HD picked explicitly (A05, A02 and A03 `-hd`). The "Standard" field does not follow the menu.
+- The files are 1248x704, Seedance's native 720p frame, at about 3.2 Mbps. Each carries black pillar bars of about 10 px inside the frame on both sides; crop them in the edit.
+- 480p and 720p keep the label "ส่งเข้าคิว Unlimited 0", which is free. 1080p turns the Unlimited switch off and the button reads "สร้าง 106": **106 paid credits per 15 s clip**, against a balance of about 1,350.
+- The `-hd` re-fire of all 40 shots uses the same settings as wave 1, so it gives a **second take** of every shot, not a sharper one. It keeps the free queue busy, as the CEO ordered.
+- Not yet known: whether the free lane renders below 720p and then upscales. To settle it, compare `lb-A05-hd` with `lb-A05` once it is harvested.
