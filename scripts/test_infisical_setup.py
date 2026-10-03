@@ -491,9 +491,11 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertEqual(seen["env"]["VPS_QUEUE_TOKEN"], "SECRET-run-9999")
         self.assertNotIn("SECRET", err.getvalue())          # stderr names the keys, never a value
         self.assertIn("VPS_QUEUE_TOKEN", err.getvalue())
-        with self.assertRaises(SystemExit) as cm:
+        err = io.StringIO()
+        with self.assertRaises(SystemExit) as cm, contextlib.redirect_stderr(err):
             self.run_cli("run", "MoonieX-LineAutomation", "dev", "--as", "contabo", "--", "uvicorn")
-        self.assertIn("holds no secrets", str(cm.exception))
+        self.assertIn("holds no secrets", err.getvalue())
+        self.assertEqual(cm.exception.code, 2)      # 2, so a unit's RestartPreventExitStatus=2 stops on it
 
 
 if __name__ == "__main__":

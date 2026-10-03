@@ -830,6 +830,55 @@ def test_the_unit_is_sandboxed_like_the_join_unit_and_has_no_writable_path():
     assert "Restart=on-failure" in live and "After=network-online.target tailscaled.service" in live
 
 
+def _unit_sections() -> dict:
+    """{"Unit": ["After=...", ...], "Service": [...], "Install": [...]} of the live (non-comment) lines."""
+    out, cur = {}, None
+    for ln in _live_lines(_unit()):
+        if ln.startswith("[") and ln.endswith("]"):
+            cur = out.setdefault(ln[1:-1], [])
+        else:
+            cur.append(ln)
+    return out
+
+
+def test_a_start_that_keeps_failing_is_stopped_after_5_tries_in_10_minutes_and_waits_30_s_between():
+    sections = _unit_sections()
+    # StartLimit* belong in [Unit]: systemd ignores them in [Service] on the versions Contabo runs
+    assert "StartLimitIntervalSec=600" in sections["Unit"] and "StartLimitBurst=5" in sections["Unit"]
+    assert not [ln for ln in sections["Service"] if ln.startswith("StartLimit")]
+    assert "Restart=on-failure" in sections["Service"] and "RestartSec=30" in sections["Service"]
+    assert not [ln for ln in _live_lines(_unit()) if ln.startswith("RestartSec=") and ln != "RestartSec=30"]
+
+
+def test_exit_2_is_not_retried_and_it_is_what_a_missing_value_exits_with():
+    """The service exits 2 for a missing token or DSN; `infisical_setup.py run` exits 2 for a folder with
+    nothing in it (a missing Org-Node value). Both are 'will fail again', so systemd must not retry them."""
+    assert "RestartPreventExitStatus=2" in _unit_sections()["Service"]
+    assert infisical_setup.EXIT_NO_SECRETS == 2
+
+
+def test_the_unit_limits_core_files_memory_and_threads():
+    service = _unit_sections()["Service"]
+    for directive in ("LimitCORE=0", "MemoryMax=256M", "TasksMax=64"):
+        assert directive in service, directive
+    assert not [ln for ln in service if ln.startswith(("MemoryHigh", "MemorySwapMax", "LimitNOFILE", "CPUQuota"))]
+
+
+def test_the_unit_adds_no_privilege_directive_that_would_break_setpriv():
+    """setpriv drops from root to org-node-token. A seccomp filter or a capability bounding set (and a
+    User= line, which the other tests ban) makes it fail; the hardening here is limits, not privileges."""
+    live = _live_lines(_unit())
+    for banned in ("CapabilityBoundingSet", "AmbientCapabilities", "SystemCallFilter", "SystemCallArchitectures",
+                   "SecureBits", "PrivateUsers", "DynamicUser", "RestrictNamespaces", "MemoryDenyWriteExecute"):
+        assert not [ln for ln in live if ln.startswith(banned)], banned
+    assert "NoNewPrivileges=yes" in live            # already there, and it works without a User= line
+
+
+def test_the_bind_script_says_what_the_unit_does_when_there_is_no_tailnet_address():
+    text = BIND_SH.read_text(encoding="utf-8")
+    assert "every 10 s" not in text and "every 30 s" in text and "StartLimitBurst=5" in text
+
+
 def test_the_unit_points_at_files_that_exist():
     line = next(ln for ln in _unit().splitlines() if ln.startswith("ExecStart="))
     prefix = "/opt/MoonieXHQ/Agents/Core/"

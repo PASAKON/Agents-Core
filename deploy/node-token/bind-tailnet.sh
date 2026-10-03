@@ -12,7 +12,8 @@
 # and never widens it: no 0.0.0.0, no loopback, no public address.
 #
 # Fail closed: tailscale missing, tailscaled down, or no IPv4 address is exit 1. systemd retries
-# every 10 s (Restart=on-failure) until the tailnet is up. Nothing falls back to anything else.
+# every 30 s (Restart=on-failure), at most 5 times in 10 minutes (StartLimitBurst=5), then the unit
+# stays failed until `systemctl reset-failed org-node-token`. Nothing falls back to anything else.
 set -eu
 
 addr=$(tailscale ip -4 2>/dev/null | awk 'NF { print $1; exit }') || addr=""

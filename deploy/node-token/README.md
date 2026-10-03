@@ -41,6 +41,14 @@ bind-tailnet.sh                                   exports NODE_TOKEN_BIND (the t
        -> python -m tools.node_token_api --port 8792
 ```
 
+A start that fails is retried every 30 s, at most 5 times in 10 minutes (`StartLimitBurst`); after that
+the unit stays `failed` until `systemctl reset-failed org-node-token && systemctl start org-node-token`.
+Exit 2 is never retried (`RestartPreventExitStatus=2`): the service exits 2 when the token or the DSN is
+missing, and `infisical_setup.py run` exits 2 when a folder it reads is empty, so a missing Org-Node value
+stops the unit at once instead of calling Infisical every 30 s. The unit also sets `LimitCORE=0` (a crash
+writes no core file with the token in it), `MemoryMax=256M` and `TasksMax=64` (one thread per connection).
+It adds no seccomp filter and no capability set: `setpriv` fails under them.
+
 The first two legs run as root, because only root reads `/etc/infisical/contabo.env`; `setpriv` then
 drops to the system user `org-node-token`, so the machine credential never reaches the service. The
 service listens on the tailnet address only (`100.64.0.0/10`): it refuses `0.0.0.0`, loopback and

@@ -143,6 +143,12 @@ def test_the_role_and_put_card_names_files_flags_and_metadata_that_exist():
     assert "ORG_NODE_TOKEN_DB_URL" in role
 
 
+def test_the_readme_says_how_to_start_a_unit_that_the_start_limit_stopped():
+    text = README.read_text(encoding="utf-8")
+    assert "systemctl reset-failed org-node-token" in text and "StartLimitBurst" in text
+    assert "RestartPreventExitStatus=2" in text and "MemoryMax=256M" in text and "TasksMax=64" in text
+
+
 def test_the_unit_card_creates_the_user_the_unit_drops_to_and_installs_the_file_it_has():
     unit_card = next(" ".join(c) for c in CARDS if "systemctl enable" in " ".join(c))
     unit = UNIT.read_text(encoding="utf-8")

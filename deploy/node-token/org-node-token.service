@@ -29,6 +29,11 @@ Description=MoonieX hub node-token service (Org Mesh W4.2b, tools/node_token_api
 # service's own pid. HOME is set because setpriv does not reset it.
 After=network-online.target tailscaled.service
 Wants=network-online.target tailscaled.service
+# A start that keeps failing must stop, not retry for ever: 5 starts in 10 minutes and the unit is
+# `failed` until `systemctl reset-failed org-node-token` (README, "Known limits"). While it is down
+# nothing answers a node, and the port is free for anything on the hub to bind.
+StartLimitIntervalSec=600
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -39,7 +44,17 @@ Environment=PYTHONUNBUFFERED=1
 Environment=HOME=/nonexistent
 ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/node-token/bind-tailnet.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo --path /node-token -- /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Org-Node prod --as contabo -- /usr/bin/setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_token_api --port 8792
 Restart=on-failure
-RestartSec=10
+RestartSec=30
+# Exit 2 is "this will fail again": the service exits 2 when the token or the DSN is missing, and
+# `infisical_setup.py run` exits 2 when a folder it reads is empty (a missing Org-Node value). Retrying
+# one of those is a loop that calls Infisical every RestartSec for nothing, so systemd does not.
+RestartPreventExitStatus=2
+
+# Limits. No core file (a crash must not write the token to disk); a ceiling on memory and on
+# threads (one per connection) so a flood of requests cannot take the hub's memory with it.
+LimitCORE=0
+MemoryMax=256M
+TasksMax=64
 
 # Sandbox, the same set as the join unit. What the service writes: nothing on disk. The hub is
 # Postgres over the network, logs go to stderr and so to journald, `tailscale ip -4` is a read of

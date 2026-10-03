@@ -787,6 +787,9 @@ def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> N
           f" · last4={(s.get('secretValue') or '').strip()[-4:]}")
 
 
+EXIT_NO_SECRETS = 2
+
+
 def cmd_run(identity: str, project: str, env: str, argv: list[str], path: str = "/") -> None:
     """Exec a command with the project's secrets in its environment (PLAN §5), nothing on disk.
 
@@ -801,7 +804,10 @@ def cmd_run(identity: str, project: str, env: str, argv: list[str], path: str = 
     secrets = {s["secretKey"]: s["secretValue"] for s in out.get("secrets", []) if s.get("secretKey")}
     where = f"{p['name']}/{env}" + ("" if path == "/" else path.rstrip("/"))
     if not secrets:
-        sys.exit(f"{where} holds no secrets — refusing to start {argv[0]} without them")
+        # Exit 2, not sys.exit(message)'s 1: an empty folder is a standing condition, not a blip, and a
+        # unit that lists 2 in RestartPreventExitStatus= (org-node-token.service) must not retry it.
+        print(f"{where} holds no secrets — refusing to start {argv[0]} without them", file=sys.stderr)
+        sys.exit(EXIT_NO_SECRETS)
     print(f"[infisical run] {where} as {identity}: {', '.join(sorted(secrets))} -> {argv[0]}",
           file=sys.stderr)
     child_env = {**os.environ, **secrets}
