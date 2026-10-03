@@ -44,13 +44,15 @@ operator (phone)           hub (Contabo)                     new machine        
                                                    5 poll POST /sealed every 15 s: "waiting for approval"
   Run Inbox: approve X, compare the 8 characters
   hq_join approve --host X --fingerprint <8> ------------------------------------------>  hq_join provision X
-                              node_secrets.ciphertext <---------------------------------------  (mint Infisical secret,
-                              hosts: identity_ready                                              seal to X's age key,
-                                                                                                 register deploy key)
+                              node_secrets.ciphertext <---------------------------------------  (seal {v:2, host, token_url}
+                              hosts: identity_ready                                              to X's age key,
+                                                                                                 register deploy key;
+                                                                                                 no Infisical call)
                               200 {ciphertext, tailscale_authkey?} --->  6 tailscale up --auth-key
                                                    7 GitHub host keys -> known_hosts, clone (StrictHostKeyChecking=yes)
-                                                   8 age -d | infisical_setup.py save X --stdin ; node.yaml
-                                                   9 probe
+                                                   8 age -d -> token_url ; node.yaml (token_url, age_identity)
+                                                   9 probe through tools/node_token.py: GET token_url?host=X&nonce=N
+                              (tools/node_token_api.py, approved hosts only) -- sealed token --->  age -d in memory, child env only
 ```
 
 Accept comes before the long installs, on purpose (review task-79219f24, F1): the token is used
@@ -62,7 +64,7 @@ age, python; on Windows age, and git for its ssh-keygen); step 4 installs the re
 
 Steps 5 to 7 are in the order the machine needs them, not the order the nine are listed in the
 task: the deploy key only works once the operator approved the node and the Mac provisioned it,
-and `save` is a script from the clone. The tailnet (step 6) comes after the wait (step 5) because
+and step 9 runs two programs from the clone. The tailnet (step 6) comes after the wait (step 5) because
 the hub hands the pre-auth key out with the sealed answer, which exists only after the approval
 (CTO review of task-4d6fe461, F1). Nothing before step 6 needs the tailnet: the installs come
 from public package repositories, the hub is called at its public URL, and the clone is over GitHub.
@@ -77,37 +79,40 @@ joined this host is recognised through `/sealed`, and keys, clone, venv and node
   variable at once). The hub's endpoint answers `503 {"error":"busy"}` when it is overloaded; the
   scripts then stop with "wait a minute and run the same command again", and the token is not
   used up (a 503 comes before any database work).
-- The node's client id and secret exist on the node only as age ciphertext until step 8, where
-  `age -d | python | infisical_setup.py save` moves them over pipes. `save` (root, `/etc/infisical`,
-  0600) is the only thing that stores them. On Windows one python process does the same chain,
-  because a PowerShell pipeline re-encodes and adds CRLF.
+- The node holds no secret at rest. Since W4.2b (CEO 2026-10-03) it has no Infisical identity, and
+  the sealed answer of step 5 carries only `{"v":2,"host":H,"token_url":URL}`: the address of the
+  hub's token service. Step 8 opens it with the node's age key (`age -d | python`, over pipes, one
+  python process on Windows) and writes `token_url` and `age_identity` into `node.yaml`. Nothing is
+  saved under `/etc/infisical`. An old v1 bundle (client id and secret) is refused with a fixed
+  sentence and never echoed.
 - The endpoint answers every token problem with the same `403 {"error":"refused"}`. A wrong
   token, another host's token, an expired one, a used one and "not provisioned" cannot be told
   apart from outside. `/sealed` also stops answering 24 hours after the token was used.
-- `CLAUDE_CODE_OAUTH_TOKEN` is not fetched. The node reads it at run time with
-  `infisical_setup.py run Org-Node prod --as <host> -- <command>` (W4.6c F2). Org-Node is a project
-  of its own, prod only, with that one secret in it. The shared identity `org-node` is a viewer
-  there and a member of no other project, so a node can no longer read any Agents-Core secret.
+- `CLAUDE_CODE_OAUTH_TOKEN` is not fetched by the join. A command that needs it runs as
+  `python3 -I tools/node_token.py run -- <command>`: the hub's token service (`deploy/node-token/`)
+  answers the node's `GET token_url?host=<host>&nonce=<random>` with the token sealed to the age key the node
+  registered, and only while the operator has approved the node and it has not left. The value is
+  opened in memory and put in the child's environment; it is never a file, a log line or an
+  argument. Org-Node is a project of its own, prod only, with that one secret in it; the hub reads
+  it through its own `contabo` identity (`infisical run`), so a node can read no Infisical secret.
 
 ## What root runs, and what `-I` does and does not do (F6)
 
-Steps 8 and 9 run as root (`sudo` on Linux and macOS) and execute files from the user-owned clone:
-`tools/infisical_setup.py save`, then `infisical_setup.py run`, which execs the venv's python on
-`tools/node_dispatch.py probe`. A user-writable file executed by root is a path from the node's
-user (an LLM worker included) to root. `join.sh` now starts every python with `-I` (isolated): no
-user site-packages and no `.pth` files, no `PYTHON*` variables, no current directory and no script
-directory on `sys.path`. `-B` is added where a root process imports the repo, so root writes no
-root-owned `.pyc` into the clone (the `PYTHONDONTWRITEBYTECODE` variable that did that before is
-one of the variables `-I` ignores). Because `-I` also drops the current directory, `-m
+Root runs only the package manager and `tailscale up` (steps 2, 4 and 6). Since W4.2b nothing from
+the user-owned clone runs as root: step 8 (open the bundle, write `node.yaml`) and step 9 (the probe,
+through `tools/node_token.py`) run as the node's own user, because the token comes from the hub and
+no longer from a root-only file under `/etc/infisical`. That closes the F6 path from the node's user
+(an LLM worker included) to root through a user-writable file that root executes, which this section
+used to describe as open.
+
+`join.sh` still starts every python with `-I` (isolated): no user site-packages and no `.pth` files,
+no `PYTHON*` variables, no current directory and no script directory on `sys.path`. `-B` keeps the
+probe from writing `.pyc` files into the clone. Because `-I` also drops the current directory, `-m
 tools.node_dispatch` cannot find the `tools` package (`No module named 'tools'`, reproduced), so the
 probe is started by its path, `.venv/bin/python -I -B "$CORE/tools/node_dispatch.py" probe`; the file
 puts the checkout on `sys.path` itself (`sys.path.insert(0, ROOT)`) and imports `lib` as before.
-
-What `-I` does **not** fix: the clone's own code is still user-writable and root still runs it, and
-so does any `.pth` in the venv's or Homebrew's own site-packages. Closing that needs a model
-change, not a flag (a dedicated `orgnode` user that owns the credential and runs the workers, or
-`run` dropping to `SUDO_USER` before exec with `save` run from a root-owned copy). That is a
-decision for the CTO and the CEO; the review's F6 wording is "at minimum add `-I`".
+`tools/node_token.py` is standard library only and imports nothing from the repo, so `python3 -I`
+needs nothing else to start it.
 
 ## GitHub's host keys (F7)
 
@@ -121,8 +126,8 @@ requests an hour per address).
 
 ## Exit codes (`join.sh`)
 
-`0` the node is up and the probe passed. `2` joined and identity saved, but the probe failed (the
-line above says why). `1` stopped before the node existed; the message says what to change.
+`0` the node is up and the probe passed. `2` joined, but the probe failed (the line above says why:
+for example `node_token: hub answered HTTP 403 (not_approved)`). `1` stopped before the node existed; the message says what to change.
 
 ## Putting the endpoint on the internet (W4.5)
 
@@ -351,22 +356,20 @@ requests into the database section at once and gives each connection back at the
 
 ### Live order (the CTO, and the CEO where it says so)
 
-Do these in this order. Step 2 must come before any node runs under Org-Node, and step 3 before a
-node that joined earlier is moved.
+Do these in this order. Step 2 must come before the token service starts (step 3), and the token
+service before any node's probe.
 
 1. **Create Org-Node.** `python3 tools/infisical_setup.py plan`, read it, then `apply` (identity
-   `setup`, with the CEO's go). It creates the project `Org-Node` (environment `prod` only) and the
-   `/org-join` folder in Agents-Core prod. It writes no secret value.
+   `setup`, with the CEO's go). It creates the project `Org-Node` (environment `prod` only), the
+   `/org-join` and `/node-token` folders in Agents-Core prod, and makes `contabo` a viewer of
+   Org-Node. It creates no identity (Free allows five and the CEO's own account is one of them) and
+   writes no secret value.
 2. **The CEO enters `CLAUDE_CODE_OAUTH_TOKEN` in Org-Node prod** (gate G3). The code never does:
    `put` and `import-env` refuse to write anything else to that project, and the value is typed by
-   the CEO in Infisical. Until then `run Org-Node prod` refuses to start, because the folder is
-   empty, and so does a node's first probe.
-3. **Move the `org-node` membership.** In Infisical: Org-Node, Access Control, Machine Identities,
-   add `org-node` as **Viewer**. Then Agents-Core, the same page, remove `org-node`. Add first,
-   remove second, so a node that joined earlier is never without the token. Until the removal,
-   `apply` prints a `!` line, and every provision refuses (`ensure_node_identity` will not hand a
-   node's secret to an identity that can read anything but Org-Node). Existing nodes then run
-   `infisical_setup.py run Org-Node prod --as <host> -- <command>`.
+   the CEO in Infisical. Until then the token service refuses to start (its folder is empty), so a
+   node's probe says `hub not reachable`.
+3. **Start the token service.** `deploy/node-token/README.md`, its four cards in order. Without it
+   a joined node cannot get the token. It is not part of the join door: it is always on.
 4. **Create the role.** On the machine that holds the `setup` credential and can reach the hub
    database, from the checkout, with `psql` installed (`command -v psql`). `org_join_role.py` makes a
    password in memory, runs `org_join_role.sql` with it through the environment (`ps` shows argv, so
@@ -411,8 +414,9 @@ The role and the two triggers can stay: they do nothing for any other role.
 
 - `door.sh approve` runs as `secretary` with the full `org` role. A second role for approval only
   would be one more credential to keep; the card and the CEO's tap are what gate it.
-- A node that joined before Org-Node read Agents-Core with the old membership. `docs/ops/hq-join.md`,
-  "Nodes that joined before Org-Node", says what to rotate when one leaves.
+- No node ever had an Infisical identity (the drill's run 5, 2026-10-03, hit the Free cap before the
+  first one was created), so there is no node credential to rotate when one leaves; the hub just
+  stops answering it (`docs/ops/hq-join.md`, "A node leaves").
 - The door is a schedule, not a lock: while it is open the endpoint answers the internet as it did
   before W4.6c. The token, the rate limit and the approval gate protect that window.
 

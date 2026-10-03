@@ -620,13 +620,12 @@ def test_main_refuses_to_start_on_half_a_configuration(main_stub, monkeypatch, c
 @pytest.fixture
 def live(monkeypatch, ts):
     """ORG_W42_PROVISION=1, the OAuth client in the environment, and from_env pointed at the fake.
-    The Infisical admin login is replaced by a stand-in nothing is asked of (no secret is recorded)."""
+    A node has no Infisical identity (W4.2b), so leave has no Infisical leg to stand in for."""
     monkeypatch.setenv(hq_join.W42_FLAG, "1")
     monkeypatch.setenv(tailscale_api.ID_ENV, CLIENT_ID)
     monkeypatch.setenv(tailscale_api.SECRET_ENV, CLIENT_SECRET)
     real = tailscale_api.from_env
     monkeypatch.setattr(tailscale_api, "from_env", lambda environ, **kw: real(environ, base_url=ts.url, **kw))
-    monkeypatch.setattr(hq_join, "_live_org", lambda: object())
 
 
 def _join(host="node-a"):
@@ -690,7 +689,6 @@ def test_leave_live_without_the_flag_never_builds_a_client_even_with_the_env(hub
 def test_leave_live_with_the_flag_but_no_client_in_the_env_stays_unwired(hub, ts, monkeypatch):
     _join()
     monkeypatch.setenv(hq_join.W42_FLAG, "1")
-    monkeypatch.setattr(hq_join, "_live_org", lambda: object())
     res = hq_join.leave("node-a", live=True)
     step = _step(res, "tailscale_device")
     assert not step["ok"] and step["detail"].startswith("not wired yet")
@@ -702,7 +700,6 @@ def test_leave_live_with_half_a_client_refuses_the_step_and_says_why(hub, ts, mo
     _join()
     monkeypatch.setenv(hq_join.W42_FLAG, "1")
     monkeypatch.setenv(var, value)
-    monkeypatch.setattr(hq_join, "_live_org", lambda: object())
     ts.devices = [dev("2", "node-a", [TAG])]
     res = hq_join.leave("node-a", live=True)
     step = _step(res, "tailscale_device")
@@ -725,7 +722,7 @@ def test_wired_revokers_takes_an_injected_client_without_reading_the_env():
             seen.append(host)
             return True
 
-    table = hq_join.wired_revokers(org=object(), tailscale=Fake())
+    table = hq_join.wired_revokers(tailscale=Fake())
     out = table["tailscale_device"](hq_join.Step("tailscale_device", "node-a", "x"))
     assert out == hq_join.Outcome(True, "deleted") and seen == ["node-a"]
     assert table["authorized_keys"] is hq_join.revoke_authorized_keys      # settled by what was placed

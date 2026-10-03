@@ -444,13 +444,16 @@ def make_server(port: int = 0, **kw) -> JoinServer:
     return JoinServer(port, **kw)
 
 
+_PREFLIGHT_TABLES = ("join_tokens", "hosts", "node_secrets")
+
+
 def _preflight() -> None:
     """Fail at start, not on the first caller's request, when the hub schema is not there (or the
     role cannot read it). The main thread's connection is closed again: it would sit open for
     the life of the process and use one of the role's five."""
     try:
         with db.get_conn() as conn:
-            for table in ("join_tokens", "hosts", "node_secrets"):
+            for table in _PREFLIGHT_TABLES:
                 conn.execute(f"SELECT 1 FROM {table} LIMIT 1")
     finally:
         _release_conn()
@@ -484,8 +487,43 @@ def choose_db_url(environ) -> tuple[str | None, str | None]:
                      f"because {ALLOW_ORG_ROLE_ENV}=1 (least privilege is off)")
 
 
+def check_db(environ) -> int:
+    """`join_api --check-db`: log in with the DSN the endpoint would use (choose_db_url), run
+    `SELECT 1` and the start-up read, and return. Starts no server, opens no door. Exit 0 ok,
+    1 cannot log in or read, 2 no DSN may be used. scripts/drill-join.sh runs it at preflight
+    (gap 7: a stale ORG_JOIN_DB_URL surfaced only as an HTTP 500 at /accept, run 4). Prints the
+    driver's exception class at most, never its message and never a DSN."""
+    try:
+        db_url, _ = choose_db_url(environ)
+    except ValueError as exc:
+        print(f"join_api: {exc}", file=sys.stderr)
+        return 2
+    if not db_url:
+        print(f"join_api: {ORG_JOIN_DB_ENV} is not set", file=sys.stderr)
+        return 2
+    # db_pg.connect, not db.get_conn: when the hub refuses the login, get_conn WARNS and falls back to
+    # a read-only snapshot, so a check through it passes on a DSN that cannot log in (the same
+    # fallback is why run 4 died only at the first write).
+    conn = None
+    try:
+        conn = db_pg.connect(db_url, timeout=10)
+        conn.execute("SELECT 1")
+        for table in _PREFLIGHT_TABLES:
+            conn.execute(f"SELECT 1 FROM {table} LIMIT 1")
+    except Exception as exc:
+        print(f"join_api: cannot log in or read with {ORG_JOIN_DB_ENV} ({type(exc).__name__})",
+              file=sys.stderr)
+        return 1
+    finally:
+        if conn is not None:
+            conn.close()
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="join_api", description=__doc__.split("\n", 1)[0])
+    p.add_argument("--check-db", action="store_true",
+                   help="log in with the DSN this endpoint would use, run SELECT 1, exit; starts nothing")
     p.add_argument("--port", type=int, default=DEFAULT_PORT)
     p.add_argument("--bind", default=os.environ.get("JOIN_API_BIND") or BIND_HOST,
                    help="IPv4 address to listen on: loopback or inside 172.16.0.0/12 only "
@@ -496,6 +534,8 @@ def main(argv: list[str] | None = None) -> int:
                    default=os.environ.get("JOIN_API_TRUST_FORWARDED") == "1",
                    help="rate-limit on the last X-Forwarded-For entry (only behind our own proxy)")
     args = p.parse_args(argv)
+    if args.check_db:
+        return check_db(os.environ)
     try:
         check_bind(args.bind)
         db_url, db_warning = choose_db_url(os.environ)

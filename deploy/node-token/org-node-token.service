@@ -1,0 +1,73 @@
+[Unit]
+Description=MoonieX hub node-token service (Org Mesh W4.2b, tools/node_token_api.py)
+# Hands the Claude token, sealed to the node's own age key, to a node the CEO approved. A node has
+# no Infisical identity (CEO 2026-10-03: Free allows 5 and they are taken), so the hub reads the
+# token and the node asks the hub. docs: tools/node_token_api.py (module docstring),
+# deploy/node-token/README.md (the cards that install it, in order).
+#
+# Where it listens: this machine's tailnet address (`tailscale ip -4`), port 8792, nothing else.
+# deploy/node-token/bind-tailnet.sh reads the address when the service starts and exports
+# NODE_TOKEN_BIND; tools/node_token_api.py refuses anything outside 100.64.0.0/10. So the public
+# address answers nothing, and a machine that is not on the tailnet cannot reach it. If the
+# tailnet ACL is not allow-all, `tag:org-node` needs an accept rule to this port: the README says
+# how.
+#
+# Who it runs as: the dedicated system user `org-node-token`, which owns nothing and reads the
+# checkout. Its database role (org_node_token, deploy/node-token/org_node_token_role.sql) can read
+# four columns of `hosts` and nothing else.
+#
+# Secrets: none in this file. The service gets, through two nested `infisical_setup.py run` calls
+# that run as root (only root reads /etc/infisical/contabo.env, 0600, unchanged):
+#   ORG_NODE_TOKEN_DB_URL from Agents-Core prod, folder /node-token,
+#   CLAUDE_CODE_OAUTH_TOKEN from Org-Node prod (contabo is a viewer there),
+# and nothing else. `infisical_setup.py run` refuses to start on an empty folder, so a missing
+# value stops the service with a clear message. Then setpriv drops to `org-node-token` before the
+# service starts, so the machine credential never reaches that user. This is the hub reading its
+# own secrets the usual way; what the service then does with the token (hand it, sealed, to an
+# approved node) is the one exception to "a service reads its secrets through infisical run", and
+# it is for nodes only (CEO ruling 2026-10-03). setpriv execs, so systemd still supervises the
+# service's own pid. HOME is set because setpriv does not reset it.
+After=network-online.target tailscaled.service
+Wants=network-online.target tailscaled.service
+# A start that keeps failing must stop, not retry for ever: 5 starts in 10 minutes and the unit is
+# `failed` until `systemctl reset-failed org-node-token` (README, "Known limits"). While it is down
+# nothing answers a node, and the port is free for anything on the hub to bind.
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+# No User= line on purpose: the unit runs as root by default (see deploy/join/org-join.service:
+# an explicit User=root with NoNewPrivileges and a seccomp directive makes setpriv fail).
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=PYTHONUNBUFFERED=1
+Environment=HOME=/nonexistent
+ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/node-token/bind-tailnet.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo --path /node-token -- /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Org-Node prod --as contabo -- /usr/bin/setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_token_api --port 8792
+Restart=on-failure
+RestartSec=30
+# Exit 2 is "this will fail again": the service exits 2 when the token or the DSN is missing, and
+# `infisical_setup.py run` exits 2 when a folder it reads is empty (a missing Org-Node value). Retrying
+# one of those is a loop that calls Infisical every RestartSec for nothing, so systemd does not.
+RestartPreventExitStatus=2
+
+# Limits. No core file (a crash must not write the token to disk); a ceiling on memory and on
+# threads (one per connection) so a flood of requests cannot take the hub's memory with it.
+LimitCORE=0
+MemoryMax=256M
+TasksMax=64
+
+# Sandbox, the same set as the join unit. What the service writes: nothing on disk. The hub is
+# Postgres over the network, logs go to stderr and so to journald, `tailscale ip -4` is a read of
+# the tailscaled socket. So there is no ReadWritePaths= line on purpose.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

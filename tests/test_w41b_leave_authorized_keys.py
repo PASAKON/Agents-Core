@@ -81,9 +81,8 @@ def _no_gh(args, stdin=None):
 
 def _flag_on(monkeypatch, ts):
     """ORG_W42_PROVISION=1 with every outside client faked. The node has no node_secrets row, so
-    the Infisical and GitHub legs find nothing recorded: the org is never asked, gh never run."""
+    the GitHub leg finds nothing recorded: gh is never run."""
     monkeypatch.setenv(hq_join.W42_FLAG, "1")
-    monkeypatch.setattr(hq_join, "_live_org", lambda: object())
     monkeypatch.setattr(hq_join, "_gh_subprocess", _no_gh)
     monkeypatch.setattr(tailscale_api, "from_env", lambda environ, **kw: ts)
 
@@ -94,8 +93,7 @@ def _ok(step):
 
 def _three_ok_table():
     """The wired table with the three real legs stubbed ok; authorized_keys stays the real one."""
-    return {**hq_join.wired_revokers(), "infisical_client_secret": _ok,
-            "tailscale_device": _ok, "github_deploy_key": _ok}
+    return {**hq_join.wired_revokers(), "tailscale_device": _ok, "github_deploy_key": _ok}
 
 
 # ---------------------------------------------------------------- helpers
@@ -133,7 +131,7 @@ def test_joined_node_with_the_flag_on_ends_left_and_says_none_placed(monkeypatch
     assert res["status"] == "left" and res["left_behind"] == []
     assert _status("node-a") == "left"
     steps = _by_kind(res)
-    assert [s["ok"] for s in steps["infisical_client_secret"] + steps["tailscale_device"]
+    assert [s["ok"] for s in steps["status_leaving"] + steps["tailscale_device"]
             + steps["github_deploy_key"]] == [True, True, True]
     assert ts.calls == ["node-a"]
     assert sorted(s["target"] for s in steps["authorized_keys"]) == ["contabo", "mac", "winbox"]
@@ -196,23 +194,29 @@ def test_a_core_host_that_reached_leave_stays_partial(monkeypatch):
 
 # ------------------------------------------------------------- flag off
 
-def test_flag_off_every_leg_still_refuses_and_nothing_is_marked_left():
+def test_flag_off_every_outside_leg_still_refuses_and_nothing_is_marked_left():
+    """Six steps: `status_leaving` is the hub's own write and runs without the flag; the five
+    outside legs refuse. The row goes to `leaving` (the token door shuts), never to `left`."""
     _joined()
-    before = _hosts_table()
+    before = {r["host"]: r for r in _hosts_table()}
     res = hq_join.leave("node-a", live=True)          # no flag, no revokers: UNWIRED_REVOKERS
     assert res["status"] == "partial" and len(res["steps"]) == 6
-    assert all(not s["ok"] and NOT_WIRED in s["detail"] for s in res["steps"])
+    first, *rest = res["steps"]
+    assert first["kind"] == "status_leaving" and first["ok"]
+    assert all(not s["ok"] and NOT_WIRED in s["detail"] for s in rest)
     assert not any(NONE_PLACED in s["detail"] for s in res["steps"])
-    assert len(res["left_behind"]) == 6
-    assert _hosts_table() == before
+    assert len(res["left_behind"]) == 5
+    after = {r["host"]: r for r in _hosts_table()}
+    assert after["node-a"]["status"] == "leaving"
+    assert {h: r for h, r in after.items() if h != "node-a"} == {h: r for h, r in before.items() if h != "node-a"}
 
 
-def test_flag_off_cli_prints_six_refusals_and_does_not_mark_left(capsys):
+def test_flag_off_cli_prints_five_refusals_and_does_not_mark_left(capsys):
     _joined()
     assert hq_join.main(["leave", "--host", "node-a", "--live"]) == 1
     out = capsys.readouterr().out
-    assert out.count(NOT_WIRED) == 6 and "NOT marked left" in out and NONE_PLACED not in out
-    assert _status("node-a") != "left"
+    assert out.count(NOT_WIRED) == 5 and "NOT marked left" in out and NONE_PLACED not in out
+    assert _status("node-a") == "leaving"
 
 
 # ------------------------------------------------------------- re-run
@@ -224,7 +228,7 @@ def test_a_rerun_after_a_partial_leave_converges_to_left(monkeypatch):
     first = hq_join.leave("node-a", live=True)
     assert first["status"] == "partial" and first["left_behind"] == ["tailscale_device:node-a"]
     assert all(s["ok"] for s in _by_kind(first)["authorized_keys"])    # not what held it back
-    assert _status("node-a") != "left"
+    assert _status("node-a") == "leaving"
     ts.fail = False
     second = hq_join.leave("node-a", live=True)
     assert second["status"] == "left" and second["left_behind"] == []
@@ -232,14 +236,14 @@ def test_a_rerun_after_a_partial_leave_converges_to_left(monkeypatch):
     assert ts.calls == ["node-a", "node-a"]
 
 
-def test_a_node_left_partial_by_the_old_code_is_marked_left_by_a_rerun():
-    """The row the old code left behind: every other leg went through, only authorized_keys
-    refused, and the status stayed as it was."""
+def test_a_node_left_partial_is_marked_left_by_a_rerun():
+    """A leave where every other leg went through and only authorized_keys refused: the row
+    stays `leaving` (it was `online` before), and a later run finishes it."""
     _joined()
     db.upsert_host("node-a", status="online")
     old = {**_three_ok_table(), "authorized_keys": hq_join.UNWIRED_REVOKERS["authorized_keys"]}
     res = hq_join.leave("node-a", live=True, revokers=old)
-    assert res["status"] == "partial" and _status("node-a") == "online"
+    assert res["status"] == "partial" and _status("node-a") == "leaving"
     res = hq_join.leave("node-a", live=True, revokers=_three_ok_table())
     assert res["status"] == "left" and _status("node-a") == "left"
 

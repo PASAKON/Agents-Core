@@ -172,6 +172,7 @@ def test_baseline_lightest_host_wins(world):
     ({"probed_at": (NOW + timedelta(minutes=5)).isoformat()}, "probed_at in the future"),
     ({"status": "offline"}, "status offline"),
     ({"status": "pending_identity"}, "status pending_identity"),
+    ({"status": "leaving"}, "status leaving"),   # W4.2b: `leave --live` has begun
     ({"running": 3}, "full 3/3"),
     ({"running": None}, "running/max_workers unknown"),
     ({"max_workers": None}, "running/max_workers unknown"),

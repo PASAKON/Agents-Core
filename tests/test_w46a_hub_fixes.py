@@ -1,15 +1,16 @@
 """Org Mesh W4.6a (task-7656a701): the hub-side fixes from the W4.6 review (task-79219f24).
 
   F1   approval gate: hosts.approved_at, `hq_join approve`, provision skips what is not approved
-  F4   a node's client secret gets a 90-day ttl (uses stay unlimited)
+  F4   (a node's client secret gets a 90-day ttl: gone in W4.2b, a node has no client secret)
   F5   Windows: icacls on the credentials directory and file, fail closed
-  F8   `leave --live` ends with the secret NAMES the node could read (never a value)
+  F8   `leave --live` ends with the secret NAMES the node could read (never a value; W4.2b: the fixed
+       node token list, no Infisical lookup)
   F12  node.yaml may not relabel a core box as another core host
   F13  reserved host names (setup, org-node, every machine identity)
   F14  hq_root is limited to [A-Za-z0-9 ._/\\:-]
 
-Nothing here contacts Infisical, GitHub, Tailscale or a node: the org is FakeOrg (tests/
-test_w42_provision.py), gh is FakeGh, age is fake_seal, icacls is an injected runner. Every test
+Nothing here contacts Infisical, GitHub, Tailscale or a node: gh is FakeGh (tests/
+test_w42_provision.py), age is fake_seal, icacls is an injected runner. Every test
 runs on a throwaway ledger: SQLite in tmp_path, and also the Postgres named by ORG_TEST_DB_URL
 when it is set (the pg param skips otherwise).
 
@@ -30,9 +31,8 @@ import yaml
 
 from lib import config, db, db_pg
 from runners import watchdog
-from test_w42_provision import FakeGh, FakeOrg, fake_seal
+from test_w42_provision import TOKEN_URL, FakeGh, _no_infisical, fake_seal
 from tools import hq_join, infisical_setup
-from tools.infisical_setup import ApiError
 
 # The example recipient from the age README: a real bech32 checksum.
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
@@ -72,7 +72,7 @@ def _drop_pg(url: str) -> None:
 
 @pytest.fixture(params=["sqlite", "pg"], autouse=True)
 def hub(request, monkeypatch, tmp_path):
-    for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE", hq_join.W42_FLAG):
+    for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE", hq_join.W42_FLAG, hq_join.TOKEN_URL_ENV):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")
     monkeypatch.setattr(infisical_setup, "CRED_DIR", str(tmp_path / "no-creds"))
@@ -121,10 +121,9 @@ def _refusal(fn, *a, **kw) -> hq_join.JoinError:
     return ei.value
 
 
-def _live_env(monkeypatch, org, gh):
+def _live_env(monkeypatch, gh):
     monkeypatch.setenv(hq_join.W42_FLAG, "1")
-    monkeypatch.setattr(hq_join, "is_admin_host", lambda: True)
-    monkeypatch.setattr(infisical_setup, "Org", lambda *a, **k: org)
+    monkeypatch.setenv(hq_join.TOKEN_URL_ENV, TOKEN_URL)
     monkeypatch.setattr(hq_join, "_gh_subprocess", gh)
     monkeypatch.setattr(hq_join.sealed, "seal", fake_seal)
 
@@ -222,33 +221,34 @@ def test_a_rejoin_starts_unapproved_again():
     assert hq_join.approve("node-a", OTHER[-8:])["changed"] is True
 
 
-def test_provision_refuses_an_unapproved_row_before_any_login_or_mint():
+def test_provision_refuses_an_unapproved_row_before_any_claim_or_deploy_key(monkeypatch):
+    _no_infisical(monkeypatch)
     _join()
-    org, gh = FakeOrg(), FakeGh()
-    err = _refusal(hq_join.provision, "node-a", org=org, gh=gh, sealer=fake_seal)
+    gh = FakeGh()
+    err = _refusal(hq_join.provision, "node-a", gh=gh, sealer=fake_seal, token_url=TOKEN_URL)
     assert err.code == "not_approved" and "hq_join approve" in err.message
-    assert org.calls == [] and org.minted_values == [] and gh.calls == []
+    assert gh.calls == []
     assert _ns() is None and _row()["status"] == "pending_identity"
     hq_join.approve("node-a", FP)
-    assert hq_join.provision("node-a", org=org, gh=gh, sealer=fake_seal)["changed"] is True
+    assert hq_join.provision("node-a", gh=gh, sealer=fake_seal, token_url=TOKEN_URL)["changed"] is True
 
 
 def test_provision_pending_skips_the_unapproved_row_and_provisions_the_rest():
     _join("node-a")
     _join("node-b", approve=True, pubkey=OTHER)
-    org, gh = FakeOrg(), FakeGh()
-    results = hq_join.provision_pending(org=org, gh=gh, sealer=fake_seal)
+    gh = FakeGh()
+    results = hq_join.provision_pending(gh=gh, sealer=fake_seal, token_url=TOKEN_URL)
     by_host = {r["host"]: r for r in results}
     assert by_host["node-a"] == {"host": "node-a", "skipped": "not_approved"}
     assert by_host["node-b"]["changed"] is True
     assert _row("node-a")["status"] == "pending_identity" and _row("node-b")["status"] == "identity_ready"
-    assert len(org.live()) == 1 and len(gh.keys) == 1
+    assert len(gh.keys) == 1
 
 
 def test_provision_pending_logs_nothing_for_an_unapproved_row(caplog):
     _join()
     with caplog.at_level("DEBUG"):
-        hq_join.provision_pending(org=FakeOrg(), gh=FakeGh(), sealer=fake_seal)
+        hq_join.provision_pending(gh=FakeGh(), sealer=fake_seal, token_url=TOKEN_URL)
     assert "node-a" not in caplog.text
 
 
@@ -259,26 +259,26 @@ def _watchdog(monkeypatch):
     monkeypatch.setattr(watchdog, "warn", lines.append)
     monkeypatch.setattr(watchdog, "_provision_retry_at", {})
     monkeypatch.setattr(watchdog, "_unapproved_noted_until", {})
-    org, gh = FakeOrg(), FakeGh()
-    _live_env(monkeypatch, org, gh)
-    return lines, org, gh
+    gh = FakeGh()
+    _live_env(monkeypatch, gh)
+    return lines, gh
 
 
 def test_the_watchdog_says_so_once_per_window_for_an_unapproved_row(monkeypatch):
-    lines, org, gh = _watchdog(monkeypatch)
+    lines, gh = _watchdog(monkeypatch)
     _join()
     for _ in range(4):
         results = watchdog._provision_identities()
         assert results == [{"host": "node-a", "skipped": "not_approved"}]
     assert len(lines) == 1 and "node-a" in lines[0] and "NOT approved" in lines[0]
-    assert org.calls == [] and watchdog._provision_retry_at == {}     # no failure back-off
+    assert gh.calls == [] and watchdog._provision_retry_at == {}      # no failure back-off
     watchdog._unapproved_noted_until["node-a"] = 0                    # the window has passed
     watchdog._provision_identities()
     assert len(lines) == 2
 
 
 def test_approving_takes_effect_on_the_next_pass_with_no_back_off(monkeypatch):
-    lines, org, gh = _watchdog(monkeypatch)
+    lines, gh = _watchdog(monkeypatch)
     _join()
     watchdog._provision_identities()
     assert "node-a" in watchdog._unapproved_noted_until
@@ -358,7 +358,7 @@ def test_every_verb_refuses_a_reserved_name(name):
     for call in (lambda: hq_join.mint(name),
                  lambda: hq_join.accept(tok, name, "linux", "/opt/MoonieXHQ", PUB),
                  lambda: hq_join.approve(name, FP),
-                 lambda: hq_join.provision(name, org=FakeOrg(), gh=FakeGh(), sealer=fake_seal),
+                 lambda: hq_join.provision(name, gh=FakeGh(), sealer=fake_seal, token_url=TOKEN_URL),
                  lambda: hq_join.leave(name),
                  lambda: hq_join.node_status(name)):
         err = _refusal(call)
@@ -470,114 +470,59 @@ def test_the_check_is_the_real_root_match_when_it_is_not_patched(node_home, monk
 
 # ================================================================= F8: rotate what the node could read
 
-class SecretsOrg(FakeOrg):
-    """FakeOrg plus the project, environment and secret-list routes node_readable_secret_names
-    uses. The list answers with VALUES too, as Infisical does: none may reach the output."""
-
-    # W4.6c F2: proj-1 is Org-Node, prod only, one secret.
-    VALUES = {"prod": {"CLAUDE_CODE_OAUTH_TOKEN": "sk-ant-LEAKME-prod"}}
-
-    def get(self, route, **query):
-        if route == "/api/v1/projects/proj-1":
-            self.calls.append(("GET", route, None))
-            return {"project": {"environments": [{"slug": "prod", "id": "e2"}]}}
-        if route == "/api/v3/secrets/raw":
-            self.calls.append(("GET", route, None))
-            assert query["workspaceId"] == "proj-1" and query["secretPath"] == "/"
-            return {"secrets": [{"secretKey": k, "secretValue": v}
-                                for k, v in self.VALUES[query["environment"]].items()]}
-        return super().get(route, **query)
-
-
-def test_node_readable_secret_names_returns_names_only():
-    out = infisical_setup.node_readable_secret_names(SecretsOrg())
-    assert out == {"Org-Node/prod": ["CLAUDE_CODE_OAUTH_TOKEN"]}
-    assert "LEAKME" not in json.dumps(out)
-
-
-def test_rotate_scope_with_an_org_lists_names_and_says_where_they_came_from():
-    scope = hq_join.rotate_scope(SecretsOrg())
-    assert scope["source"] == "infisical" and "Org-Node/prod" in scope["names"]
-
-
-def test_rotate_scope_falls_back_to_the_documented_set_and_says_why():
-    none = hq_join.rotate_scope(None)
-    assert none["source"] == "documented" and "no admin login" in none["why"]
-    (names,) = none["names"].values()
-    assert names == list(hq_join.DOCUMENTED_READABLE) == ["CLAUDE_CODE_OAUTH_TOKEN (shared by every node)"]
-
-    class Broken(SecretsOrg):
-        def get(self, route, **query):
-            if route == "/api/v3/secrets/raw":
-                raise ApiError("GET /api/v3/secrets/raw -> HTTP 503: LEAKME")
-            return super().get(route, **query)
-
-    failed = hq_join.rotate_scope(Broken())
-    assert failed["source"] == "documented" and "lookup failed" in failed["why"]
-    assert "LEAKME" not in json.dumps(failed)        # the type is named, the body is not
-
-
-def _leave_table(org, gh):
+def _leave_table(gh):
     ok = lambda step: hq_join.Outcome(True, "")      # noqa: E731
-    return {**hq_join.wired_revokers(org=org, gh=gh), "tailscale_device": ok, "authorized_keys": ok}
+    return {**hq_join.wired_revokers(gh=gh), "tailscale_device": ok, "authorized_keys": ok}
 
 
-def _provisioned(monkeypatch, org, gh):
-    _live_env(monkeypatch, org, gh)
+def _provisioned(monkeypatch, gh):
+    _live_env(monkeypatch, gh)
     _join(approve=True)
-    hq_join.provision("node-a", org=org, gh=gh, sealer=fake_seal)
+    hq_join.provision("node-a", gh=gh, sealer=fake_seal)
 
 
-def test_leave_live_ends_with_the_documented_block_when_there_is_no_admin_login(monkeypatch, capsys):
-    org, gh = FakeOrg(), FakeGh()
-    _provisioned(monkeypatch, org, gh)
-    monkeypatch.delenv(hq_join.W42_FLAG)                   # the admin lane is off on this box
-    monkeypatch.setattr(hq_join, "default_revokers", lambda: _leave_table(org, gh))
-    assert hq_join.main(["leave", "--host", "node-a", "--live"]) == 0
-    out = capsys.readouterr().out
-    lines = out.strip().splitlines()
-    assert "ROTATE what node-a could read" in out
-    assert lines[-1].strip().startswith("procedure:") and "hq-join.md" in lines[-1]
-    assert "DOCUMENTED set, not read from Infisical" in out
-    for item in hq_join.DOCUMENTED_READABLE:
-        assert item in out
-    assert out.index("is now `left`") < out.index("ROTATE")
+def test_rotate_scope_is_the_fixed_node_secret_list_and_reads_nothing(monkeypatch):
+    _no_infisical(monkeypatch)       # a name list: no login, no request
+    assert hq_join.rotate_scope() == {"Org-Node/prod": ["CLAUDE_CODE_OAUTH_TOKEN"]}
+    assert list(infisical_setup.NODE_SECRET_NAMES) == ["CLAUDE_CODE_OAUTH_TOKEN"]
 
 
-def test_leave_live_prints_secret_names_from_infisical_and_never_a_value(monkeypatch, capsys):
-    org, gh = SecretsOrg(), FakeGh()
-    _provisioned(monkeypatch, org, gh)
-    monkeypatch.setattr(hq_join, "default_revokers", lambda: _leave_table(org, gh))
+def test_leave_live_ends_with_the_rotate_block_naming_the_token_and_no_value(monkeypatch, capsys):
+    gh = FakeGh()
+    _provisioned(monkeypatch, gh)
+    monkeypatch.setattr(hq_join, "default_revokers", lambda: _leave_table(gh))
     assert hq_join.main(["leave", "--host", "node-a", "--live"]) == 0
     captured = capsys.readouterr()
     out = captured.out
-    assert "source: Infisical" in out
+    lines = out.strip().splitlines()
+    assert "ROTATE what node-a could read" in out
+    assert "does not recall a token it already received" in out
     assert "Org-Node/prod: CLAUDE_CODE_OAUTH_TOKEN" in out
     assert "Agents-Core" not in out
-    everything = out + captured.err
-    assert "LEAKME" not in everything
-    assert org.minted_values[0] not in everything
+    assert lines[-1].strip().startswith("procedure:") and "hq-join.md" in lines[-1]
+    assert out.index("is now `left`") < out.index("ROTATE")
 
 
-def test_a_failed_leave_still_ends_with_the_block(monkeypatch, capsys):
-    org, gh = FakeOrg(), FakeGh()
+def test_a_failed_leave_still_ends_with_the_block_and_the_row_stays_leaving(monkeypatch, capsys):
+    gh = FakeGh()
     db.seed_hosts_from_config()                            # the other hosts: authorized_keys steps
-    _provisioned(monkeypatch, org, gh)
-    monkeypatch.delenv(hq_join.W42_FLAG)
-    table = _leave_table(org, gh)
+    _provisioned(monkeypatch, gh)
+    table = _leave_table(gh)
     table["authorized_keys"] = lambda step: hq_join.Outcome(False, "ssh refused")
     monkeypatch.setattr(hq_join, "default_revokers", lambda: table)
     assert hq_join.main(["leave", "--host", "node-a", "--live"]) == 1
     out = capsys.readouterr().out
     assert "NOT marked left" in out and out.strip().splitlines()[-1].strip().startswith("procedure:")
+    assert "stays `leaving`" in out and _row()["status"] == "leaving"
 
 
 def test_a_dry_run_and_an_already_left_host_print_no_rotate_block(monkeypatch, capsys):
-    org, gh = FakeOrg(), FakeGh()
-    _provisioned(monkeypatch, org, gh)
+    gh = FakeGh()
+    _provisioned(monkeypatch, gh)
     assert hq_join.main(["leave", "--host", "node-a"]) == 0               # no --live
     assert "ROTATE" not in capsys.readouterr().out
-    monkeypatch.setattr(hq_join, "default_revokers", lambda: _leave_table(org, gh))
+    assert _row()["status"] == "identity_ready"                           # a plan changes nothing
+    monkeypatch.setattr(hq_join, "default_revokers", lambda: _leave_table(gh))
     assert hq_join.main(["leave", "--host", "node-a", "--live"]) == 0
     capsys.readouterr()
     assert hq_join.main(["leave", "--host", "node-a", "--live"]) == 0     # again: nothing to do
@@ -696,18 +641,8 @@ def test_infisical_setup_still_imports_only_the_standard_library():
     assert mods <= set(sys.stdlib_module_names), mods - set(sys.stdlib_module_names)
 
 
-# ================================================================= F4: the node secret expires
+# ================================================================= F4: the node secret expires (gone in W4.2b)
 
-def test_the_node_secret_gets_a_90_day_ttl_and_unlimited_uses():
-    assert infisical_setup.NODE_SECRET_TTL == 90 * 86_400 == 7_776_000
-    org = FakeOrg()
-    infisical_setup.ensure_node_identity(org)       # the identity exists; only the mint is measured
-    org.calls.clear()
-    out = infisical_setup.mint_node_secret(org, "node-a")
-    assert org.secrets[out["client_secret_id"]]["ttl"] == 7_776_000
-    assert org.secrets[out["client_secret_id"]]["uses"] == 0
-    writes = [c for c in org.calls if c[0] != "GET"]
-    assert len(writes) == 1                        # the identity's own settings are not touched
-    method, route, body = writes[0]
-    assert method == "POST" and route.endswith("/client-secrets")
-    assert set(body) == {"description", "ttl", "numUsesLimit"} and body["numUsesLimit"] == 0
+def test_a_node_has_no_client_secret_so_there_is_no_ttl_to_set():
+    for name in ("NODE_SECRET_TTL", "mint_node_secret", "revoke_node_secret", "ensure_node_identity"):
+        assert not hasattr(infisical_setup, name), name

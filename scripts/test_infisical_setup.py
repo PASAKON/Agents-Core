@@ -36,6 +36,10 @@ class Fake:
         self.secrets = {SETUP_ID: SETUP_SECRET}      # clientId -> clientSecret
         self.store: dict[tuple, dict] = {}           # (project id, env, name) -> raw secret record
         self.writes = 0
+        # org memberships as Infisical lists them: the CEO, plus whatever a test adds (an invited
+        # user has no `user` object, only `inviteEmail`). Free counts these with the identities.
+        self.users: list[dict] = [{"role": "admin", "isActive": True,
+                                   "user": {"username": "ceo@example.com"}}]
 
     def nid(self, p):
         return f"{p}-{next(self.ids)}"
@@ -116,8 +120,7 @@ def make_handler(fake: Fake):
                 fake.projects[b["projectId"]]["folders"].setdefault(b["environment"], set()).add(b["name"])
                 return self.reply(200, {"folder": {"id": fake.nid("fld")}})
             if method == "GET" and p == f"/api/v2/organizations/{ORG}/memberships":
-                return self.reply(200, {"users": [{"role": "admin", "isActive": True,
-                                                   "user": {"username": "ceo@example.com"}}]})
+                return self.reply(200, {"users": fake.users})
             m = re.fullmatch(r"/api/v1/workspace/([^/]+)/memberships", p)
             if method == "GET" and m:
                 return self.reply(200, {"memberships": [
@@ -187,7 +190,8 @@ def make_handler(fake: Fake):
                 if method == "DELETE":
                     fake.store.pop(key, None)
                     return self.reply(200, {"secret": {"secretKey": name}})
-            return self.reply(404, {"message": f"fake: no route {method} {p}"})
+            return self.reply(404, {"message": f"fake: no route {method} {p}", "reqId": "req-fake-1",
+                                    "statusCode": 404, "error": "NotFound"})
 
         def do_GET(self):
             self.route("GET")
@@ -283,12 +287,12 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertEqual(projects["Org-Infra"]["envs"].keys(), {"prod"})
         self.assertEqual(projects["Org-Infra"]["folders"]["prod"], set(self.mod.ORG_INFRA_FOLDERS))
         # W4.6c: Org-Node is prod only with no folder; Agents-Core prod gets the /org-join folder
+        # and (W4.2b) the /node-token folder. No identity named org-node exists anywhere.
         self.assertEqual(projects["Org-Node"]["envs"].keys(), {"prod"})
         self.assertEqual(projects["Org-Node"]["folders"].get("prod", set()), set())
-        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join"})
-        for host in self.mod.MACHINES:
-            self.assertNotIn(host, projects["Org-Node"]["idents"])
-        self.assertNotIn("org-node", projects["Agents-Core"]["idents"])
+        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join", "node-token"})
+        for name, x in projects.items():
+            self.assertNotIn("org-node", x["idents"], name)
         for host, allowed in self.mod.MACHINES.items():
             for name, x in projects.items():
                 self.assertEqual(x["idents"].get(host) == ["viewer"], name in allowed, (host, name))
@@ -302,6 +306,71 @@ class InfisicalSetupTest(unittest.TestCase):
         again = self.run_cli("apply")
         self.assertEqual(self.fake.writes, before, again)
         self.assertNotIn("+ ", again)
+
+    def test_no_node_identity_is_ever_planned_or_created(self):
+        """W4.2b: nodes have no Infisical identity, and the verbs and functions that made one are gone."""
+        self.save_setup()
+        self.run_cli("apply", "--mint", "contabo")
+        self.assertEqual(sorted(x["name"] for x in self.fake.identities.values()),
+                         ["contabo", "mac", "setup", "winbox"])
+        for gone in ("ensure_node_identity", "mint_node_secret", "revoke_node_secret",
+                     "list_node_secrets", "cmd_node_secrets", "node_readable_secret_names"):
+            self.assertFalse(hasattr(self.mod, gone), gone)
+        with self.assertRaises(SystemExit):                  # argparse: no such verb
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.mod.main(["node-secrets"])
+
+    def test_a_seat_that_is_not_there_is_refused_before_the_post_naming_users_and_identities(self):
+        """Drill run 5: Free counts the org's users with its identities. The refusal is ours, it
+        comes before POST /api/v1/identities, and it names who holds the seats."""
+        self.save_setup()
+        self.fake.users += [{"role": "member", "isActive": True, "user": {"username": "second@example.com"}},
+                            {"role": "member", "isActive": False, "inviteEmail": "invited@example.com"}]
+        # setup + 3 users = 4 seats: contabo takes the fifth, mac is the one that does not fit
+        with self.assertRaises(SystemExit) as cm:
+            self.run_cli("apply", "--mint", "contabo")
+        msg = str(cm.exception)
+        self.assertIn("5 of 5 seats", msg)
+        for who in ("setup", "contabo", "ceo@example.com", "second@example.com", "invited@example.com"):
+            self.assertIn(who, msg)
+        self.assertNotIn("HTTP 400", msg)
+        self.assertEqual(sorted(x["name"] for x in self.fake.identities.values()), ["contabo", "setup"])
+
+    def test_plan_says_which_identity_it_would_refuse_and_changes_nothing(self):
+        self.save_setup()
+        self.fake.users += [{"role": "member", "user": {"username": f"u{i}@example.com"}} for i in range(3)]
+        text = self.run_cli("plan")
+        self.assertIn("! would refuse identity contabo", text)
+        self.assertEqual(self.fake.writes, 0)
+
+    def test_an_api_error_leads_with_infisicals_message_then_the_request_id(self):
+        self.save_setup()
+        with self.assertRaises(self.mod.ApiError) as cm:
+            self.mod.call("GET", "/api/v1/nope", token=self.fake.jwt("id-setup"))
+        text = str(cm.exception)
+        self.assertTrue(text.startswith("fake: no route GET /api/v1/nope (reqId req-fake-1): "), text)
+        self.assertTrue(text.endswith("GET /api/v1/nope -> HTTP 404"), text)
+
+    def test_error_text_shapes(self):
+        et = self.mod._error_text
+        # the message first, then the request id, then the request line
+        self.assertEqual(
+            et("POST", "/api/v1/identities", 400,
+               '{"reqId":"abc-1","statusCode":400,"message":"Identity limit reached","error":"BadRequest"}'),
+            "Identity limit reached (reqId abc-1): POST /api/v1/identities -> HTTP 400")
+        # no reqId: no empty parentheses
+        self.assertEqual(et("GET", "/x", 500, '{"message":"boom"}'), "boom: GET /x -> HTTP 500")
+        # a validation message that is a list stays readable
+        self.assertIn('"role"', et("POST", "/x", 400, '{"message":[{"path":["role"]}],"reqId":"r"}'))
+        # not JSON, or JSON with no message: as before, cut at 300 characters
+        html = "<html>" + "x" * 500
+        self.assertEqual(et("GET", "/x", 502, html), f"GET /x -> HTTP 502: {html[:300]}")
+        self.assertEqual(et("GET", "/x", 404, '{"error":"NotFound"}'),
+                         'GET /x -> HTTP 404: {"error":"NotFound"}')
+        self.assertEqual(et("GET", "/x", 400, "[1,2]"), "GET /x -> HTTP 400: [1,2]")
+        # an enormous message and request id are cut
+        long = et("GET", "/x", 400, json.dumps({"message": "m" * 900, "reqId": "r" * 900}))
+        self.assertLess(len(long), 450)
 
     def test_retire_setup_removes_identity_and_file(self):
         self.save_setup()
@@ -422,9 +491,11 @@ class InfisicalSetupTest(unittest.TestCase):
         self.assertEqual(seen["env"]["VPS_QUEUE_TOKEN"], "SECRET-run-9999")
         self.assertNotIn("SECRET", err.getvalue())          # stderr names the keys, never a value
         self.assertIn("VPS_QUEUE_TOKEN", err.getvalue())
-        with self.assertRaises(SystemExit) as cm:
+        err = io.StringIO()
+        with self.assertRaises(SystemExit) as cm, contextlib.redirect_stderr(err):
             self.run_cli("run", "MoonieX-LineAutomation", "dev", "--as", "contabo", "--", "uvicorn")
-        self.assertIn("holds no secrets", str(cm.exception))
+        self.assertIn("holds no secrets", err.getvalue())
+        self.assertEqual(cm.exception.code, 2)      # 2, so a unit's RestartPreventExitStatus=2 stops on it
 
 
 if __name__ == "__main__":
