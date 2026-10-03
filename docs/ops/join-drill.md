@@ -93,11 +93,11 @@ checkout from before this drill, or not an Agents-Core checkout at all.
 | `node_probe` | join.sh's own step 9 (`node_dispatch.py probe` through the node's identity) must have passed | exit 2 from join.sh: joined but could not probe. Finding `node_probe_failed`. The node has no `ORG_DB_URL` (Org-Node holds only the OAuth token) so this may fail by design; it is reported, the run goes on |
 | `token_worker` | on the node: `claude -p` with **only** `CLAUDE_CODE_OAUTH_TOKEN` from Org-Node prod must answer a nonce. Everything else is stripped, and the token never appears on a command line: a `python3 -I -c` one-liner builds the clean environment (PATH, HOME, the token) and `exec`s `claude`, so it reaches the process by environment only | the W4.0 pass criterion failed: token missing from Org-Node prod, wrong scope, or `claude` not installed |
 | `probe` | a task for the node is created `pending` (so no poller adopts it); the node commits `docs/ops/mesh-probe/contabo-<host>.md` with a `mesh-probe:` message on `agent/probe-<task>` and pushes; the hub `git ls-remote`s the same sha; <= 15 min. **Never merged.** | finding `deploy_key_read_only` (see gaps), or the node could not reach origin, or the sha on origin differs |
-| `leave` | `ORG_W42_PROVISION=1 hq_join leave --host ... --live`. The flag matters: without it `w42_enabled()` is false, every revoker answers "not wired yet: live revocation is off" and nothing is removed | the three real revocations (`infisical_client_secret`, `tailscale_device`, `github_deploy_key`) must be `[ok]`. Only `authorized_keys ... not wired yet` failures are accepted, and they are recorded as finding `leave_partial_authorized_keys_unwired` |
+| `leave` | `ORG_W42_PROVISION=1 hq_join leave --host ... --live`. The flag matters: without it `w42_enabled()` is false, every revoker answers "not wired yet: live revocation is off" and nothing is removed | the three real revocations (`infisical_client_secret`, `tailscale_device`, `github_deploy_key`) must be `[ok]`. Each `authorized_keys` step answers `[ok] ... none placed` for a drill node (W4.1b, #214): nothing writes a joined node's key into any `authorized_keys` until W2.8 for nodes. A `not wired yet` failure (a hub on code older than #214) is still accepted and recorded as finding `leave_partial_authorized_keys_unwired`. A node that was never accepted has nothing to revoke, and the step is ok |
 | `verify_tailnet` | Tailscale API: no device named `drill-<stamp>` | `leave` said ok but the device is still there |
 | `verify_deploy_key` | `gh api repos/PASAKON/Agents-Core/keys`: no key titled `org-node:drill-<stamp>` | same, for the deploy key |
 | `verify_infisical` | `infisical_setup.py node-secrets`: no `live` secret `org-node:drill-<stamp>` | same, for the client secret |
-| `verify_host_row` | `hq_join status --host`: row is `left` | see gap 1: `leave()` writes `left` only when every step is ok |
+| `verify_host_row` | `hq_join status --host`: row is `left`, or no row when the node was never accepted | `leave()` writes `left` only when every step is ok (gap 1, closed by W4.1b) |
 | `verify_authorized_keys` | no line naming the host in contabo's `authorized_keys`, nor on winbox (`ssh $DRILL_WINBOX_SSH`, default alias `winbox`, reads `administrators_authorized_keys`). `findstr` exits 1 both for "no match" and for a file it cannot open, so the file is first proved readable with a search that must match (`/C:ssh-`, exit 0); only then is the host searched. Mac is skipped with a note until G2 (Remote Login is closed) | a line exists, or winbox could not be read. An unreadable winbox is a red, never a silent skip |
 | `cleanup` | deletes the probe branch on origin, cancels the probe task, removes the container and volume, closes the door, then writes the JSON, the `events` row and prints the `re-os-drills` row | something is still there; the detail names what (`origin-branch:`, `task:`, `container:`, `volume:`, `door:`) |
 | `record` | writes the `join_drill` events row (added after `cleanup`) | the hub could not be written; the file is still there, the Mac cannot see it |
@@ -197,10 +197,9 @@ loads only the root folder (`ORG_DB_URL`). Without the first leg, `leave` cannot
 device.
 
 `leave` prints one line per step. `[ok] tailscale_device`, `[ok] github_deploy_key` and
-`[ok] infisical_client_secret` must all hold. Until W4.1b (task-8da2f248) merges, each
-`authorized_keys` line reads `[FAILED] ... not wired yet` and the row stays `partial` (gap 1 below);
-once it merges, run the same `leave` line again and the row becomes `left`. `leave` is safe to repeat:
-a credential that is already gone counts as ok.
+`[ok] infisical_client_secret` must all hold. Each `authorized_keys` line reads
+`[ok] ... none placed` (W4.1b, #214), so the row becomes `left`. `leave` is safe to repeat: a
+credential that is already gone counts as ok.
 
 If the run reached `probe`, close its task and delete its branch:
 
@@ -217,7 +216,7 @@ git push origin --delete "agent/probe-$T"
 ```bash
 bash deploy/join/door.sh status                         # closed
 docker ps -a --filter name=drill- --format '{{.Names}}'; docker volume ls -q --filter name=drill-   # no output
-scripts/hub/with-org-db-env.sh "$PY" -m tools.hq_join status | awk -v h="$H" '$1 == h'   # left (partial until W4.1b)
+scripts/hub/with-org-db-env.sh "$PY" -m tools.hq_join status | awk -v h="$H" '$1 == h'   # left
 ```
 
 ## What it proves, and what it does not
@@ -247,11 +246,12 @@ Does **not** prove:
 These come from reading `tools/hq_join.py` and `deploy/join/join.sh`, offline. A live run settles
 each; the script reports them rather than hiding them.
 
-1. **`hq_join leave` cannot mark the row `left` while `authorized_keys` is unwired.** `leave()` adds
-   one `authorized_keys` step per other non-left host, each fails with `not wired yet`, and `left`
-   is written only when no step failed. So `verify_host_row` is **expected to go red** until W2.8
-   ships or `leave()` treats unwired steps differently (a security decision, not the drill's). The
-   drill stays strict: it will not wave the row through.
+1. **Closed by W4.1b (#214, 6ad7fc21).** `leave()` adds one `authorized_keys` step per other
+   non-left host, and `left` is written only when no step failed. Each step used to fail with
+   `not wired yet`, so the row could never become `left`. Now a step reports `none placed` (ok) for a
+   joined node, because nothing writes a joined node's key into any `authorized_keys`. A core host
+   (mac, contabo, winbox) still refuses: its W2.8a dispatch lines are placed and nothing removes them
+   yet. W2.8 for nodes must record what it places, in the same change that places it.
 2. **The deploy key is read-only** (`add_deploy_key` registers `read_only=True`), so the node cannot
    push its probe branch: step `probe` fails with finding `deploy_key_read_only`. Options: a
    write-capable deploy key for drill hosts only (CEO call: the repo is public, a write key on a
@@ -266,6 +266,20 @@ each; the script reports them rather than hiding them.
    `DRILL_WINBOX_SSH`; without one, `verify_authorized_keys` is red (unverifiable).
 5. **join.sh step 9** (`node_probe`) reads the hub; the node has no `ORG_DB_URL`. May be red by
    design: finding `node_probe_failed`.
+6. **The hub refused every real deploy key** (found by run 3). `DEPLOY_PUBKEY_RE` in
+   `tools/hq_join.py` allowed 43 base64 characters after the fixed `AAAAC3NzaC1lZDI1NTE5AAAA`
+   prefix. A real ssh-ed25519 key blob is 51 bytes, which is 68 characters: the prefix and 44 more.
+   The test fixtures built keys with the same wrong length, so the tests passed. Fix: task-7dcc3d45
+   (a decoded check, plus fixtures made with `ssh-keygen`). The join API runs from the live checkout
+   (`LIVE_CORE`), so the fix must be on that checkout before the next run, not only on origin.
+
+## Runs so far
+
+| run | card | result |
+|---|---|---|
+| 1 | RUN-20261003-0029-5164 | refused at `preflight`: only the root Infisical folder was loaded, so there was no `TAILSCALE_OAUTH_*` (gap 3). The script now loads `/org-join` itself (#213) |
+| 2 | (expired) | the card expired before it was tapped; nothing ran |
+| 3 | RUN-20261003-0134-1883 | failed at `join` in 81 s: `the hub refused the request: deploy-pubkey is not an ssh-ed25519 public key line` (gap 6). `leave`, the five `verify_*` steps and `cleanup` were ok; the door closed and nothing was left behind |
 
 ## W4.0 questions this drill answers live
 
