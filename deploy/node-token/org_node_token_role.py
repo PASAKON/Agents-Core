@@ -4,7 +4,7 @@
     infisical_setup.py run Agents-Core prod --as <id> -- .venv/bin/python deploy/node-token/org_node_token_role.py \\
       | infisical_setup.py put Agents-Core prod ORG_NODE_TOKEN_DB_URL --path /node-token --stdin ...
 
-deploy/node-token/README.md, card 1 and 2, has the whole line. Same recipe as
+deploy/node-token/README.md, card 4 (role and DSN put are one line), has the whole line. Same recipe as
 deploy/join/org_join_role.py, for the role that may only read four columns of `hosts`:
 
 1. Reads the hub URL of the connecting role (`ORG_DB_URL`, put in the environment by
