@@ -142,8 +142,10 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
        --command 'curl -fsS -m 5 http://$(tailscale ip -4 | head -n 1):8792/health'
    ```
 
-   `token_loaded: false` means Org-Node prod has no `CLAUDE_CODE_OAUTH_TOKEN` (step 3). `db: false` means
-   the role or its URL is wrong (card 4). The unit's own log: `journalctl -u org-node-token -n 40 --no-pager`.
+   No answer at all, with the unit failed, usually means Org-Node prod has no `CLAUDE_CODE_OAUTH_TOKEN`
+   (step 3): the service exits 2 naming the variable rather than serve an empty token (`token_loaded:
+   false` is the same fault, should it ever be seen). `db: false` means the role or its URL is wrong
+   (card 4). The unit's own log: `journalctl -u org-node-token -n 40 --no-pager`.
 
 ### Where `provision` learns the address
 
