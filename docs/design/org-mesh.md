@@ -229,6 +229,37 @@ The table above is the design of 2026-09-28. These moves change it:
    secret (`tools/infisical_setup.py`). `org-node` reads only the `Org-Node`
    project, which holds `CLAUDE_CODE_OAUTH_TOKEN`; the CEO enters the value at
    gate G3 (W4.6c, review task-79219f24).
+   **Changed 2026-10-03 (CEO): no `org-node` identity at all; the hub hands the
+   node its token.** Run 5 of the join drill (RUN-20261003-1425-1343) found
+   the premise wrong: Free allows 5 identities and the CEO's own user account
+   is one of them, so contabo, mac, winbox and setup already fill the org and
+   `POST /api/v1/identities` answers 400. The fifth slot stays free for
+   KeyFetch. Ruling, verbatim: "Hub ส่ง token ให้ — ฟรี ไม่ต้องสร้าง identity
+   ใหม่ ให้ identity contabo อ่านโปรเจกต์ Org-Node ได้ แล้ว hub ส่ง token ให้
+   เฉพาะ node ที่คุณ approve แล้ว token ไม่ถูกเก็บเป็นไฟล์บน node และ node ที่
+   leave แล้วขอใหม่ไม่ได้ เป็นข้อยกเว้นของกฎ 'อ่าน secret ผ่าน infisical run'
+   สำหรับ node". Built in W4.2b (`tools/node_token_api.py`, `tools/node_token.py`,
+   `deploy/node-token/`). What it must keep true:
+   - **R1** no new identity. The hub's own `contabo` identity reads `Org-Node`.
+   - **R2** the hub hands the token only to a node the CEO approved
+     (`hosts.status` is `identity_ready` or `online`, with `approved_at` set).
+     Anything else is a 403 with one error word.
+   - **R3** the token is never a file on the node. The answer is the token
+     sealed (age) to that node's own key; `node_token.py` opens it in memory
+     and puts it in the child's environment only.
+   - **R4** a node that has left cannot ask again. `hq_join leave` writes
+     `leaving` as its first step, before any revocation, so the refusal starts
+     before the first credential is touched; `left` follows only when every
+     step is ok.
+   - **R5** the exception is for nodes only. The hub itself still reads every
+     secret through `infisical run`. The service has its own DB role
+     (`org_node_token`, which may read four columns of `hosts` and nothing
+     else) and its own DSN in Agents-Core prod `/node-token`.
+
+   Cost: the node trusts the hub's answer and the tailnet path to it, where it
+   used to hold a credential of its own. A stolen node key can read the token
+   until `leave` runs, as a stolen client secret could; `leave` now needs one
+   DB write, not a call to Infisical.
 
 Also ruled on 2026-09-28: the mesh probes commit to Agents-Core itself (only
 `docs/ops/mesh-probe/<from>-<to>.md`, prefix `mesh-probe:`), and a new

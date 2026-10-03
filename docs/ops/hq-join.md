@@ -4,9 +4,11 @@
 mints a one-time join token, accepts a new node against it, plans the
 revocation when a node leaves, and exports the `hosts` table as `hosts.yaml`.
 
-**Status: built, not live.** By default nothing in it calls Infisical, Tailscale,
-GitHub or ssh. W4.2 adds the calls (below), but they run only with
-`ORG_W42_PROVISION=1` on the admin host, and every outside call is injectable so
+**Status: built, not live.** By default nothing in it calls Tailscale, GitHub or ssh,
+and since W4.2b **nothing in it calls Infisical at all** (CEO 2026-10-03: a node has no
+identity of its own; the hub serves it the token, "W4.2b: the hub serves the token", below).
+W4.2 adds the calls (below), but they run only with
+`ORG_W42_PROVISION=1`, and every outside call is injectable so
 the tests never reach a real service. The `authorized_keys` leg removes what was placed,
 which is nothing for a joined node ("What `leave` revokes", below); the
 Tailscale one (G3) is built and runs only when the OAuth client is in the environment
@@ -24,7 +26,7 @@ python -m tools.hq_join accept --token <t|-> --host <name> --os <darwin|linux|wi
                                --hq-root <abs path> --pubkey <age1...> [--deploy-pubkey "<ssh-ed25519 ...>"]
 python -m tools.hq_join status [--host <name>]       # W4.6a, lists joined nodes + the fingerprint to compare
 python -m tools.hq_join approve --host <name> --fingerprint <8 chars>   # W4.6a, the gate before provision
-python -m tools.hq_join provision --host <name>      # W4.2, Mac side, needs ORG_W42_PROVISION=1
+python -m tools.hq_join provision --host <name>      # W4.2, needs ORG_W42_PROVISION=1 and ORG_NODE_TOKEN_URL (W4.2b)
 python -m tools.hq_join sealed --host <name>         # W4.2, prints the armored ciphertext
 python -m tools.hq_join leave --host <name> [--live]
 python -m tools.hq_join export-hosts [--out PATH]
@@ -39,8 +41,9 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
 - **Reserved names (W4.6a F13):** `setup`, `org-node` and every machine identity
   (`mac`, `contabo`, `winbox`: the keys of `infisical_setup.MACHINES`) are refused by
   every verb with `bad_arg`. A joined node named `setup` or `contabo` would have its
-  Infisical client secret description, its `authorized_keys` line and its dispatch
-  routing collide with the real one. A name that only contains one (`mac-mini`,
+  deploy key title, its `authorized_keys` line and its dispatch routing collide with the
+  real one (and, with the token service, a node named like a machine identity would be
+  asking for the token under that identity's name). A name that only contains one (`mac-mini`,
   `setup-2`) is fine. `hq_join.reserved_hosts()` is the list; it reads the names from
   `infisical_setup`, which `hq_join` already imported, so no import cycle is added.
 - TTL: 15 minutes by default, 1 to 60 allowed.
@@ -93,9 +96,10 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
   the token is touched, like `--pubkey`. A rejoin replaces it.
 
 **Why the node key is an age X25519 recipient (`age1...`), not `ssh-ed25519`.**
-W4.2 seals the Infisical client secret to this key, which needs an encryption
-key. `age` is needed on both ends either way (sealing on the Mac, opening on the
-node), because an ssh-ed25519 key would only work through age's ssh-recipient
+W4.2 sealed an Infisical client secret to this key, which needs an encryption
+key; W4.2b seals the token bundle `{host, token URL}` to it, and the token service
+seals the token itself to it on every request. `age` is needed on both ends either
+way (sealing on the hub, opening on the node), because an ssh-ed25519 key would only work through age's ssh-recipient
 conversion, so ssh saves no dependency. An age recipient is a fixed 62-character
 bech32 string with a checksum, so a typo is refused here instead of producing a
 secret nobody can open; an `authorized_keys` line has options and a comment
@@ -108,26 +112,33 @@ Plans the revocation, in this order:
 
 | step | target | what a real revoker must do |
 |---|---|---|
-| `infisical_client_secret` | the node | revoke that node's Universal Auth client secret under identity `org-node` (only that one) |
+| `status_leaving` | the node | **the hub's own write, run first** (W4.2b): the row becomes `leaving` and its sealed bundle is voided, so the token service refuses the host from that moment |
 | `tailscale_device` | the node | remove the tailnet device and its pre-auth key |
 | `github_deploy_key` | the node | delete the deploy key(s) registered for it |
 | `authorized_keys` | each other host that has not left | remove the node's dispatch key and admin pubkey line **that code placed** (nothing, for a joined node: see below) |
 
 - Without `--live` it prints the plan and changes nothing (no revoker is called,
   no row and no event is written).
-- With `--live` each step goes through a revoker. One failed step, or a revoker
+- With `--live` the first step, `status_leaving`, is the hub's own write and runs
+  before any revoker, **with or without the flag**: from then on the token service
+  answers the host 403 (`left`), so a node that is being removed cannot fetch the
+  token while the slow steps run (CEO 2026-10-03: a node that has left cannot ask
+  again). Every other step goes through a revoker. One failed step, or a revoker
   that raises, never stops the others. The row goes to `left` only when every
-  step was ok. Otherwise the row keeps its status and the output lists what is
-  left behind (`kind:target`). Re-running converges, so a real revoker must be
-  idempotent: already gone (404) is ok.
-- **`--live` without the flag refuses every step** (`not wired yet: ...`): the shipped table
-  is `UNWIRED_REVOKERS`, so the exit code is `1` and the row stays. W4.2 replaces
-  the first and third entries, G3 the second, and the fourth is replaced by
-  `revoke_authorized_keys` (all three only with the flag). The interface is
-  `Revoker = Callable[[Step], Outcome]`, passed as `leave(..., revokers={...})`.
-- **W4.2 wires the first and third rows** when `ORG_W42_PROVISION=1` (see
-  "W4.2: per-node identity"). The default table is chosen when `leave` is called
-  without `revokers=`: the wired table with the flag, `UNWIRED_REVOKERS` without it.
+  step was ok. Otherwise the row stays `leaving` (still refused) and the output
+  lists what is left behind (`kind:target`). Re-running converges, so a real
+  revoker must be idempotent: already gone (404) is ok.
+- **`--live` without the flag refuses every revoker step** (`not wired yet: ...`): the
+  shipped table is `UNWIRED_REVOKERS`, so the exit code is `1` and the row stays
+  `leaving`. That is deliberate: even a leave that cannot reach Tailscale or GitHub
+  stops the token. The deploy-key row is wired by W4.2, the device row by G3, and the
+  `authorized_keys` row is replaced by `revoke_authorized_keys` (all three only with
+  the flag). The interface is `Revoker = Callable[[Step], Outcome]`, passed as
+  `leave(..., revokers={...})`.
+- **W4.2 wires the deploy-key row** when `ORG_W42_PROVISION=1`. There is no Infisical
+  row any more: a node holds no Infisical credential to revoke (W4.2b). The default
+  table is chosen when `leave` is called without `revokers=`: the wired table with the
+  flag, `UNWIRED_REVOKERS` without it.
 - **G3 wires the second row** (`tailscale_device`) when the flag is on AND
   `TAILSCALE_OAUTH_CLIENT_ID` + `TAILSCALE_OAUTH_CLIENT_SECRET` are in the environment of
   that `leave` process. It removes the device whose hostname is the node's AND whose tags
@@ -143,7 +154,7 @@ Plans the revocation, in this order:
     `join.sh` / `join.ps1` (W4.3 step 3) create the node's keys on the node only, and no
     code writes them into any host's `authorized_keys`. So each `authorized_keys` step is
     **ok** with the detail `none placed: no code puts <host>'s key on <target> yet (W2.8
-    for joined nodes); nothing to remove`. With `ORG_W42_PROVISION=1` and the other three
+    for joined nodes); nothing to remove`. With `ORG_W42_PROVISION=1` and the other
     legs ok (the Tailscale leg needs the OAuth client in the environment), the row goes to
     `left` and `leave --live` exits `0`. A re-run converges: a node an earlier `leave`
     left `partial` (this step used to refuse for everyone) is marked `left` by the next
@@ -164,25 +175,23 @@ Plans the revocation, in this order:
   `hosts.yaml` was never joined through `accept`): revoking "their" keys on every
   other host would cut the hub off. mac, contabo and winbox are refused even
   earlier, as reserved names (`bad_arg`).
-- **`leave --live` ends with a rotate block (W4.6a F8).** Revoking the client secret
-  stops new logins; it does not recall what the node already read. The last lines of
-  the output name the secrets to rotate: the NAMES org-node can read (Infisical, read
-  just now; the list call returns values and they are dropped, never returned or
-  printed), or, when this box has no admin login (`ORG_W42_PROVISION` off, not the
-  admin host, or the lookup failed), the documented categories below, labelled as
-  such. The block is printed also when the leave ended partial, and never on a dry
-  run or for a host that had already left. Procedure: "After a leave: rotate what
-  the node could read".
-- When the Infisical leg succeeds, `node_secrets.revoked_at` is set and the
-  ciphertext is nulled (the client secret id stays, as the audit trail). The
-  deploy key id is nulled once the key is deleted. A leg that fails keeps its id
-  for the next run.
+- **`leave --live` ends with a rotate block (W4.6a F8).** Leaving stops the hub serving
+  the node the token; it does not recall a token the node already received. The last
+  lines of the output name what to rotate: the names the hub hands a node
+  (`infisical_setup.NODE_SECRET_NAMES`, one name: `CLAUDE_CODE_OAUTH_TOKEN` in
+  `Org-Node/prod`). It is a constant list, not an Infisical lookup (W4.2b: nothing here
+  logs in to Infisical). The block is printed also when the leave ended partial, and
+  never on a dry run or for a host that had already left. Procedure: "After a leave:
+  rotate what the node could read".
+- `status_leaving` sets `node_secrets.revoked_at` and nulls the ciphertext (so
+  `/sealed` serves nothing either). The deploy key id is nulled once the key is
+  deleted. A leg that fails keeps its id for the next run.
 
 ### export-hosts
 
-- Writes `hosts:` for every row whose status is not `left`, `pending_identity` or
-  `identity_ready` (W4.2: a provisioned node has no probe yet, so nothing can be
-  routed to it),
+- Writes `hosts:` for every row whose status is not `left`, `leaving` (W4.2b),
+  `pending_identity` or `identity_ready` (W4.2: a provisioned node has no probe yet,
+  so nothing can be routed to it; `lib/router.py` skips `leaving` the same way),
   from `hosts.config_json`. `lib.db.seed_hosts_from_config()` now fills
   `config_json` with the whole hosts.yaml entry, and `accept` fills it for a
   joined node.
@@ -258,23 +267,30 @@ requester's mailbox. CLAUDE.md says a secret value never appears in a Run Inbox
 card; a one-time, short-lived join token is not a long-lived secret, but W4.6
 should rule on it.
 
-## W4.2: per-node identity
+## W4.2 / W4.2b: the hub serves the token
 
 A row in `pending_identity` becomes `identity_ready` through **one approval and one
-Mac-side call**:
+hub-side call**:
 
 ```bash
 python -m tools.hq_join status                                   # the fingerprint the hub holds
 python -m tools.hq_join approve --host <name> --fingerprint <8 chars from the node's screen>
-ORG_W42_PROVISION=1 python -m tools.hq_join provision --host <name>
+ORG_W42_PROVISION=1 ORG_NODE_TOKEN_URL=http://<hub tailnet ip>:8792/v1/token \
+    python -m tools.hq_join provision --host <name>
 python -m tools.hq_join sealed --host <name>      # the armored ciphertext, for W4.3 to deliver
 ```
+
+`ORG_NODE_TOKEN_URL` is the token service's address as a node reaches it
+(`http://<host>[:port]/<path>`, checked by `check_token_url`; `provision` refuses
+without it, before anything is claimed). It goes into the sealed bundle, which is
+`{"v":2,"host","token_url"}`: **no secret**. The node learns where to ask; the hub
+decides, on every request, whether to answer (`deploy/node-token/README.md`).
 
 ### The approval gate (W4.6a F1)
 
 `accept` proves the caller held a token, not that the caller is the machine the
 operator meant: the first caller with the token wins the name and chooses the age
-key the client secret will be sealed to. So a row does not get an identity until a
+key the token will be sealed to. So a row does not get the token until a
 human says the key is the right one.
 
 - The **fingerprint** is the last 8 characters of the node's age recipient (2 key
@@ -291,8 +307,10 @@ human says the key is the right one.
   message does not echo the stored value; if the two still differ after a re-read,
   someone else used the token: do not approve. Approving twice is a no-op; every
   approval writes one `join_approve` event `{host, fingerprint}`.
-- `provision` refuses an unapproved row (`not_approved`) before any login, claim or
-  mint. `provision_pending` returns `{host, skipped: "not_approved"}` for it, which
+- `provision` refuses an unapproved row (`not_approved`) before any claim or deploy
+  key. The token service checks the same thing on every request (`approved_at` set),
+  so it also refuses a row that was ever flipped to `identity_ready` or `online`
+  without an approval. `provision_pending` returns `{host, skipped: "not_approved"}` for it, which
   is not a failure and does not start the one-hour back-off: the next pass after
   `approve` provisions it.
 - A rejoin (`accept` over a `left` row) resets `approved_at` to NULL.
@@ -307,85 +325,91 @@ human says the key is the right one.
   racer who simply used the token first; it is not a signature and not a defence
   against an attacker with a large GPU farm and a long token window.
 
-### Why one shared identity, and no sixth
+### Why no identity at all (CEO 2026-10-03)
 
-Infisical Free allows **5 machine identities**. `mac`, `contabo` and `winbox` are
-three of them, and `setup` (the admin identity) is the fourth until
-`retire-setup`. That leaves one. A new node therefore gets its own **client
-secret** under ONE shared identity `org-node` (Universal Auth, viewer on
-the project **Org-Node** and on no other project, W4.6c F2), never its own identity. `infisical_setup.ensure_node_identity`
-finds or creates `org-node` and **refuses to create a sixth identity**: it raises
-`IdentityCapError` naming the five that exist. Revoking one node's secret leaves
-every other node's secret working.
+Infisical Free allows **5 identities, and the CEO's own user account counts as one of
+them** (found by drill run 5). `mac`, `contabo`, `winbox` and `setup` already fill the
+org, so `POST /api/v1/identities` answers 400 and there was never room for `org-node`.
+The first design, one shared `org-node` identity with a client secret per node, could
+not be built. The CEO's ruling replaced it: **the hub hands the token to a node it has
+approved**, with no new identity (the fifth slot stays free for KeyFetch). The five
+rules, and where each is kept:
+
+| rule | where it is kept |
+|---|---|
+| R1 no new identity | the token service reads `Org-Node` as the hub's own `contabo` identity (`infisical_setup.py run Org-Node prod --as contabo`) |
+| R2 only a CEO-approved node | `tools/node_token_api.py`: status `identity_ready` or `online` **and** `approved_at` set, checked on every request; anything else is a 403 |
+| R3 never a file on the node | the answer is the token sealed to the node's own age key; `tools/node_token.py` opens it in memory and gives it to one child's environment |
+| R4 a node that left cannot ask again | `leave` writes `leaving` first; the service refuses `leaving` and `left` (`error: left`) |
+| R5 an exception for nodes only | the hub itself still reads through `infisical run`; the service has its own DB role (`org_node_token`, four columns of `hosts`) |
+
+`infisical_setup.IDENTITY_CAP` now counts the org's users too, so a plan that cannot
+fit says so before it calls the API.
 
 ### What `provision` does, in this order
 
-1. **Gate.** With a live org, `ORG_W42_PROVISION` must be exactly `1` and this
-   host must be the admin host (the setup credential file exists; it is checked
-   for existence only and never read). Otherwise `not_enabled` / `not_admin_host`,
-   exit `2`, and nothing is logged in.
+1. **Gate.** `ORG_W42_PROVISION` must be exactly `1` (`not_enabled`, exit `2`).
+   Nothing about the admin host: no Infisical login happens here.
 2. **Validate.** The row must exist (`unknown_host`), must have been joined
    (`not_joined`: mac, contabo and winbox have no `pubkey`), and must be
    `pending_identity` (`bad_status`). An `identity_ready` row returns
    `changed: false` and does nothing: re-running is a no-op. A `pending_identity`
-   row with `approved_at` NULL is refused (`not_approved`, W4.6a F1).
+   row with `approved_at` NULL is refused (`not_approved`, W4.6a F1). The token URL
+   (`ORG_NODE_TOKEN_URL`) must be set (`no_token_url`) and well formed (`bad_token_url`).
 3. **Claim.** One atomic `INSERT ... ON CONFLICT ... RETURNING` puts a
-   `node_secrets` row in place before anything is minted. A second run sees it and
-   answers `busy` for 10 minutes (`CLAIM_STALE_S`); after that it revokes what the
+   `node_secrets` row in place before anything is made. A second run sees it and
+   answers `busy` for 10 minutes (`CLAIM_STALE_S`); after that it removes what the
    dead run left behind and starts again.
-4. **Mint** a client secret `org-node:<host>` (**ttl 90 days**, 7,776,000 s, unlimited
-   uses; W4.6a F4). Its id is written to the claim row **at once**, before anything
-   else can fail. The identity's own access-token settings and `retire-setup` are
-   not touched.
-5. **Seal** `{"v":1,"host","client_id","client_secret"}` to `hosts.pubkey` with
+4. **Seal** `{"v":2,"host","token_url"}` to `hosts.pubkey` with
    `lib/sealed.py` (age, plaintext on stdin, armored output).
-6. **Deploy key**, if `hosts.deploy_pubkey` is set: `gh api
+5. **Deploy key**, if `hosts.deploy_pubkey` is set: `gh api
    repos/PASAKON/Agents-Core/keys` POST, title `org-node:<host>`, `read_only: true`.
    Its id is recorded.
-7. **Store** the ciphertext and flip the row to `identity_ready` in one
+6. **Store** the ciphertext and flip the row to `identity_ready` in one
    transaction; one `node_provisioned` event (host only, never a value).
 
-**A failure after step 4 revokes what was made** (the client secret, and the deploy
-key if step 6 got that far) and drops the claim, so the row stays
-`pending_identity` with no orphan. If the revoke itself fails, the error is
-`provision_orphans`, it names `kind:id` for each leftover, and the claim row keeps
-the ids so the next run can finish the job. The watchdog waits one hour before
-retrying a host that failed.
+**A failure after step 5 removes what was made** (the deploy key) and drops the
+claim, so the row stays `pending_identity` with no orphan. If the removal itself
+fails, the error is `provision_orphans`, it names `kind:id` for each leftover, and
+the claim row keeps the id so the next run can finish the job. The watchdog waits
+one hour before retrying a host that failed.
 
-### The secret value
+### The token value
 
-It exists in memory between step 4 and step 5, and afterwards only inside the age
-ciphertext. It is never in argv (age reads stdin), a temp file, a log line, an
-event, an exception message, the stdout of any verb, or any database column. Error
-text that happens to carry it is scrubbed. `node-secrets` (in
-`tools/infisical_setup.py`) lists description, id, created and revoked, never a
-value.
+The hub injects it into the token service's environment at start (`infisical_setup.py run
+Org-Node prod --as contabo`, in the unit), the service removes it from its own environment
+and keeps it in memory, and it seals it to the asking node's key for each answer. On the node it exists in
+the opened answer and then in one child's environment. It is never in argv, a temp
+file, a log line, an event, an exception message, the stdout of any verb, any
+database column, or a file on the node. `/health` returns booleans only
+(`ok`, `token_loaded`, `db`).
 
 ### The watchdog pass
 
 `runners/watchdog.py::_provision_identities` (one call in `scan_once`, after the
 letter retry) calls `provision_pending()` for every `pending_identity` row. It
-does nothing unless the flag is on AND the host is the admin host. One bad row
-never stops the others. A row nobody approved is skipped (W4.6a F1) and the pass
+does nothing unless the flag is on; since W4.2b the admin host is not a precondition
+(its docstring still says so: `runners/watchdog.py` is outside this task's files).
+The watchdog's environment needs `ORG_NODE_TOKEN_URL`, or each approved row fails
+with `no_token_url` and waits the hour. One bad row never stops the others. A row nobody approved is skipped (W4.6a F1) and the pass
 says so once per `PROVISION_BACKOFF_S` (an hour) per host, not on every scan; the
 line is kept apart from the failure back-off, so approving takes effect on the very
 next pass.
 
-**The 90-day secret expires, and nothing re-provisions it yet (W4.6a F4).** A node's
-client secret dies 90 days after `provision`. Until a renewal flow exists, the
-node's Infisical login starts failing then, and the fix is a manual one: `leave`,
-then `mint` / `accept` / `approve` / `provision` again. The date is
-`node_secrets.created_at + 90 days`. Put that on a calendar for every joined node.
-
-Caveat for going live: `/etc/infisical` is root-only on the Mac, so the watchdog's
-user must be able to **stat** the setup file for `is_admin_host()` to be true. If
-it cannot, the pass is silently a no-op: check that before relying on it.
+**Nothing expires any more (W4.2b).** The 90-day client secret of W4.2 (W4.6a F4) is gone
+with the identity it belonged to: a node's access ends only when the hub stops answering
+it (`leave`, or a status other than `identity_ready` / `online`). There is no per-node
+credential to renew and no date to calendar. The column `node_secrets.infisical_client_secret_id`
+stays in the schema, unwritten, as the audit trail of nodes provisioned before W4.2b.
 
 ### Schema
 
 ```
 node_secrets (host PK, ciphertext, infisical_client_secret_id, github_deploy_key_id,
               created_at, fetched_at, revoked_at)          -- lib.db.NODE_SECRETS_SCHEMA
+                                                           -- ciphertext = the v2 bundle (W4.2b), no secret;
+                                                           -- infisical_client_secret_id: unwritten since W4.2b
+hosts.status: ... pending_identity, identity_ready, online, leaving (W4.2b), left   -- no CHECK constraint
 hosts.deploy_pubkey TEXT                                    -- _HOSTS_JOIN_MIGRATION
 hosts.approved_at   TEXT  (nullable, ISO-8601 UTC)          -- _HOSTS_JOIN_MIGRATION, W4.6a F1
 ```
@@ -396,12 +420,12 @@ over. It refuses a host that has no live ciphertext (`not_provisioned`).
 
 ### After a leave: rotate what the node could read
 
-`leave --live` revokes the node's client secret, its tailnet device, its deploy key and
-whatever `authorized_keys` lines code placed for it (none today). That stops the node from
-logging in again. It does **not**
-recall a value the node already read, and the shared identity `org-node` is a viewer
-on **Org-Node** (prod only; on Free a viewer sees every environment of a project it is
-in, so what counts is what the project holds: one secret, `CLAUDE_CODE_OAUTH_TOKEN`).
+`leave --live` stops the token service answering the node (`status_leaving`, first), then
+removes its tailnet device, its deploy key and whatever `authorized_keys` lines code
+placed for it (none today). That stops the node from getting the token again. It does
+**not** recall a token the node already received: the hub hands a node exactly one name,
+`CLAUDE_CODE_OAUTH_TOKEN`, from the project **Org-Node**, and a node that held it in
+memory (or copied it out of its child's environment) still has it.
 So after every `leave --live`, treat what the node could read as seen by whoever holds
 the node, and rotate it. The command prints the list as its last lines (names only,
 never a value).
@@ -415,20 +439,20 @@ Procedure, per name:
 5. If a value ever appeared in chat, a log or a card, tag it `leaked` in Infisical
    first (CLAUDE.md, "Secrets").
 
-The documented set, used when this box cannot ask Infisical (no admin login; the
-block says so), is one line since W4.6c: `CLAUDE_CODE_OAUTH_TOKEN (shared by every
-node)`, the only secret Org-Node holds. A name that is not on it can still be
-readable if someone put it in Org-Node by hand (`put` and `import-env` refuse to), so
-prefer the list Infisical gives.
+The printed set is one line: `CLAUDE_CODE_OAUTH_TOKEN (shared by every node)`, the only
+secret the hub hands a node. The list is a constant (`infisical_setup.NODE_SECRET_NAMES`),
+so it cannot grow by someone putting another name in Org-Node: `put` and `import-env`
+refuse anything else there, and the token service reads only the names on that list.
 
-#### Nodes that joined before Org-Node
+#### Nodes that joined before W4.2b
 
-Until the `org-node` identity was moved (live step 2 in `deploy/join/README.md`,
-"Live order"), it was a viewer on **Agents-Core**, and every node that joined before
-that read Agents-Core `dev` and `prod` with it. For such a node, `leave --live` still
+None is known: the five live drill runs (`docs/ops/join-drill.md`, "Runs so far") never got
+past `provision`, and the `org-node` identity could not be created (Free is full). If a
+node was nevertheless provisioned while `org-node` was planned as a viewer on
+**Agents-Core**, it could read Agents-Core `dev` and `prod`. For such a node, `leave --live` still
 has to rotate what it could read then, and the documented categories are these (names
 move; a name not listed can still have been readable, so prefer a list taken from
-Infisical before the move):
+Infisical):
 
 - `ORG_DB_URL`: the hub Postgres URL (role `org`).
 - `CLAUDE_CODE_OAUTH_TOKEN`: one token shared by every node.
@@ -438,24 +462,23 @@ Infisical before the move):
 - The Drive OAuth client, and each machine's Drive token.
 - LungNote MCP client credentials.
 
-Not covered: a secret that sits in a **folder** below `/` (the lookup reads `/`
-only; Org-Node holds no folders, and the `/org-join` folder of Agents-Core prod is in a
-project `org-node` is not a member of), and anything the node copied out of the repo
-checkout itself.
+Not covered: anything the node copied out of the repo checkout itself.
 
-A node whose start command still names the project Agents-Core (`infisical_setup.py run`
-with Agents-Core, prod and its own `--as`) must change the project to Org-Node when the
-membership moves: `run Org-Node prod --as <host>` is the form `join.sh` and `join.ps1` print. Until the CEO has entered
-`CLAUDE_CODE_OAUTH_TOKEN` in Org-Node prod (gate G3), `run Org-Node prod` refuses to
-start, because it refuses an empty folder: do the move and the entry in one sitting.
+A node's own start command is `python3 -I tools/node_token.py run -- <command>`
+(`join.sh` and `join.ps1` print it); nothing on a node runs `infisical_setup.py`. Until
+the CEO has entered `CLAUDE_CODE_OAUTH_TOKEN` in Org-Node prod (gate G3), the token
+service refuses to start (exit 2, naming the variable, never a value), so there is
+nothing to answer a node. It never serves an empty or half-loaded token.
 
-### Left for W4.3 and for going live
+### Left for going live
 
-- **Delivery** of the ciphertext to the node, and the node opening it with its age
-  identity. `sealed.open()` exists for that; nothing calls it yet.
-- Setting `ORG_W42_PROVISION=1` on the Mac, plus the CEO's go for the first real
-  provision (it creates the `org-node` identity and a real client secret, and gives it
-  viewer on Org-Node; `apply` must have created Org-Node first).
+- The cards in `deploy/node-token/README.md`, in order: `plan`, `apply`, the CEO's own
+  entry of the token (not a card), the role and DSN, the unit, the health check. Nothing
+  in them has run. Then the Tailscale ACL rule for port 8792 (`tag:org-node` to the hub;
+  the README states it and applies nothing).
+- Setting `ORG_W42_PROVISION=1` and `ORG_NODE_TOKEN_URL` where `provision` runs, plus the
+  CEO's go for the first real provision (it registers a real deploy key and creates no
+  Infisical object).
 - A remover for placed `authorized_keys` lines, and W2.8-for-nodes recording what it places
   in `_placed_authorized_keys`. The `tailscale_device` revoker is built (G3, below).
 - A real `age` run on the node side. On the Mac, `age` 1.3.2 is installed and the
@@ -474,10 +497,11 @@ Three changes from the security review task-79219f24 (F2, F3) and the CEO's ruli
   on Contabo, so the CEO's tap opens the door, and the door shuts itself. `approve` is
   the W4.6a F1 gate from a card: the card's `--why` carries the host name and the
   8-character fingerprint, which the CEO compares with the node's own screen.
-- **F2, Org-Node.** Nodes read the project `Org-Node` (prod only, one secret) and no
-  longer Agents-Core. `infisical_setup.py plan` and `apply` create it; `ensure_node_identity`
-  refuses, changing nothing, while `org-node` is still a member of any other project; `put` and `import-env` refuse anything in Org-Node but
-  `CLAUDE_CODE_OAUTH_TOKEN`.
+- **F2, Org-Node.** The token a node is handed lives in the project `Org-Node` (prod only,
+  one secret), not in Agents-Core. `infisical_setup.py plan` and `apply` create it and give
+  the hub's `contabo` identity viewer on it (W4.2b: no node is a member, and there is no
+  `org-node` identity: `ensure_node_identity` was removed); `put` and `import-env` refuse
+  anything in Org-Node but `CLAUDE_CODE_OAUTH_TOKEN`.
 - **F3, least privilege.** `tools/join_api.py` connects as the Postgres role `org_join`
   (`deploy/join/org_join_role.sql`: column grants on `hosts`, `join_tokens`,
   `node_secrets` and `events`, five connections, row guards) from `ORG_JOIN_DB_URL` in
@@ -515,9 +539,10 @@ variables the endpoint and `leave` behave exactly as before.
    | `TAILSCALE_OAUTH_CLIENT_SECRET` | the OAuth client secret |
 
 4. **For `leave --live`** the same two names must be in the environment of the process that runs
-   it, together with `ORG_W42_PROVISION=1`, on the Mac (the admin host). One way, if the `mac`
-   identity can read that folder (not checked here):
-   `python3 tools/infisical_setup.py run Agents-Core prod --as mac --path /org-join -- python -m tools.hq_join leave --host <name> --live`.
+   it, together with `ORG_W42_PROVISION=1` (without them `status_leaving` still runs and stops
+   the token; the device stays). No admin host is needed any more. On Contabo (the hub
+   wrapper adds `ORG_DB_URL`):
+   `python3 tools/infisical_setup.py run Agents-Core prod --path /org-join -- scripts/hub/with-org-db-env.sh env ORG_W42_PROVISION=1 .venv/bin/python -m tools.hq_join leave --host <name> --live`.
 
 **Is the minter wired?** On Contabo, after the door opens:
 `journalctl -u org-join -n 40 --no-pager | grep -E 'infisical run|listening on'`.
@@ -538,9 +563,9 @@ Details and the review notes: `deploy/join/README.md`, "Tailscale pre-auth key".
 ## Open for W4.3
 
 `accept` needs write access to the hub, and a joining node has no `ORG_DB_URL`
-at step 6 (it arrives from Infisical at step 8). The transport for `accept`
-(a forced-command ssh key on the tailnet, or a small endpoint) is W4.3's
-decision; W4.1 gives it the in-process `accept()` and the CLI.
+and never gets one (W4.2b: it gets the Claude token from the token service and nothing
+else from Infisical). The transport for `accept` is the join endpoint (`tools/join_api.py`,
+W4.3); W4.1 gave it the in-process `accept()` and the CLI.
 
 ## Schema
 
@@ -565,6 +590,7 @@ decision; W4.1 gives it the in-process `accept()` and the CLI.
 
 ```bash
 .venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py tests/test_w42_provision.py tests/test_w42_sealed.py tests/test_w46a_hub_fixes.py tests/test_w46c_node_project.py tests/test_w46c_join_role.py tests/test_w46c_door.py tests/test_w47_tailscale.py
+.venv/bin/python -m pytest -p no:warnings tests/test_w42b_node_token.py tests/test_w42b_node_token_api.py tests/test_w42b_node_token_role.py tests/test_w42b_node_token_cards.py tests/test_w42b_join_check_db.py   # W4.2b: service, client, role, cards, --check-db
 ORG_TEST_DB_URL=postgresql://postgres@127.0.0.1:54329/org_test \
     .venv/bin/python -m pytest -p no:warnings tests/test_w41_hq_join.py   # adds the pg param
 ```
