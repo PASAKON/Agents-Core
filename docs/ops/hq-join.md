@@ -285,8 +285,9 @@ python -m tools.hq_join sealed --host <name>      # the armored ciphertext, for 
 ```
 
 `ORG_NODE_TOKEN_URL` is the token service's address as a node reaches it
-(`http://<host>[:port]/<path>`, checked by `check_token_url`; `provision` refuses
-without it, before anything is claimed). It goes into the sealed bundle, which is
+(`http://<hub tailnet IPv4, 100.64.0.0/10>:<port>/v1/token`, nothing else, checked by
+`check_token_url` with the same function the node uses; `provision` refuses a missing or other
+URL as `no_token_url` / `bad_token_url`, before anything is claimed). It goes into the sealed bundle, which is
 `{"v":2,"host","token_url"}`: **no secret**. The node learns where to ask; the hub
 decides, on every request, whether to answer (`deploy/node-token/README.md`).
 

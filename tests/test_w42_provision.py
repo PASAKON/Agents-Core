@@ -334,9 +334,26 @@ def test_provision_refuses_a_malformed_token_url(bad):
 
 def test_the_token_url_comes_from_the_environment_when_none_is_passed(monkeypatch):
     _join()
-    monkeypatch.setenv(hq_join.TOKEN_URL_ENV, "http://hub.example.ts.net:8792/v1/token")
+    monkeypatch.setenv(hq_join.TOKEN_URL_ENV, "http://100.101.102.103:8792/v1/token")
     hq_join.provision("node-a", gh=FakeGh(), sealer=fake_seal)
-    assert unseal(_ns()["ciphertext"])[1]["token_url"] == "http://hub.example.ts.net:8792/v1/token"
+    assert unseal(_ns()["ciphertext"])[1]["token_url"] == "http://100.101.102.103:8792/v1/token"
+
+
+@pytest.mark.parametrize("bad", [
+    "http://hub.example.ts.net:8792/v1/token", "http://127.0.0.1:8792/v1/token", "http://10.0.0.5:8792/v1/token",
+    "http://194.233.80.26:8792/v1/token", "https://100.64.0.7:8792/v1/token", "http://100.64.0.7/v1/token",
+    "http://100.64.0.7:8792/other", "http://100.64.0.7.evil.example:8792/v1/token",
+    "http://100.128.0.1:8792/v1/token"])
+def test_provision_seals_only_a_tailnet_token_url_whatever_the_environment_says(monkeypatch, bad):
+    """A hostname, a public address or a loopback one in the environment is refused as bad_token_url before
+    anything is claimed or sealed: a node would not use it, and a bundle that points outside the tailnet
+    would send its token request (and its host name) to whoever answers there."""
+    _join()
+    monkeypatch.setenv(hq_join.TOKEN_URL_ENV, bad)
+    gh = FakeGh()
+    err = _refusal(hq_join.provision, "node-a", gh=gh, sealer=fake_seal)
+    assert err.code == "bad_token_url" and gh.calls == [] and _ns() is None
+    assert "100.64.0.0/10" in err.message
 
 
 def test_a_sealer_failure_makes_no_deploy_key_and_leaves_the_row_pending():

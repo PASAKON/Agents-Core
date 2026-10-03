@@ -532,7 +532,13 @@ def _fake_core(tmp_path: Path) -> Path:
     core = tmp_path / "hq" / "Agents" / "Core"
     (core / "tools").mkdir(parents=True)
     (core / ".venv" / "bin").mkdir(parents=True)
-    shutil.copy(ROOT / "tools" / "node_token.py", core / "tools" / "node_token.py")
+    # The REAL client, with one line changed: the service under test listens on loopback and the client
+    # accepts only a tailnet address. The line is asserted to exist, so a rename fails here.
+    src = (ROOT / "tools" / "node_token.py").read_text(encoding="utf-8")
+    line = 'TOKEN_NET = ipaddress.ip_network("100.64.0.0/10")'
+    assert src.count(line) == 1
+    (core / "tools" / "node_token.py").write_text(
+        src.replace(line, 'TOKEN_NET = ipaddress.ip_network("127.0.0.0/8")'), encoding="utf-8")
     stub = core / ".venv" / "bin" / "python"
     stub.write_text(f"#!/bin/sh\ncat <<EOF\n{NODE_JSON}\nEOF\n")
     stub.chmod(stub.stat().st_mode | stat.S_IXUSR)

@@ -32,6 +32,7 @@ start; otherwise the command's own (on Windows) or none (the command replaces th
 """
 from __future__ import annotations
 
+import ipaddress
 import json
 import os
 import re
@@ -52,7 +53,13 @@ MAX_ANSWER_AGE_S = 300   # an opened answer whose issued_at is further than this
 ISSUED_AT_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\+00:00")
 NAME_RE = re.compile(r"[A-Z][A-Z0-9_]{2,63}")
 HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,29}[a-z0-9]")
-URL_RE = re.compile(r"https?://[A-Za-z0-9][A-Za-z0-9.-]{0,98}(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]{0,100})?")
+# The hub's token service answers on the hub's TAILNET address and nowhere else, so that is the only
+# URL a node accepts: http://<IPv4 in 100.64.0.0/10>:<port>/v1/token. No host name (a DNS answer or a
+# hosts-file line could move it), no https (nothing on the tailnet holds a certificate for an address),
+# no other path, no user, query or fragment. tools/hq_join.py checks the same string with
+# tailnet_token_url() before it puts it in a node's bundle.
+TOKEN_NET = ipaddress.ip_network("100.64.0.0/10")
+URL_RE = re.compile(r"http://([0-9]{1,3}(?:\.[0-9]{1,3}){3}):([1-9][0-9]{0,4})/v1/token")
 CODE_RE = re.compile(r"[a-z_]{1,32}")
 YAML_LINE_RE = re.compile(r"^([a-z_]+):[ \t]*(.*?)[ \t]*$")
 
@@ -94,6 +101,21 @@ def read_node_yaml(path: Path) -> dict:
     return out
 
 
+def tailnet_token_url(url) -> bool:
+    """True only for http://<IPv4 inside TOKEN_NET>:<port 1-65535>/v1/token, written the plain way
+    (no leading zeros: some resolvers read 0100 as octal)."""
+    m = URL_RE.fullmatch(url) if isinstance(url, str) else None
+    if m is None:
+        return False
+    addr, port = m.groups()
+    if any(len(o) > 1 and o[0] == "0" for o in addr.split(".")) or int(port) > 65535:
+        return False
+    try:
+        return ipaddress.IPv4Address(addr) in TOKEN_NET
+    except ValueError:
+        return False
+
+
 def settings(config: Path) -> tuple[str, str, Path]:
     """(host, token_url, age identity path) from node.yaml, or TokenError naming the missing key."""
     conf = read_node_yaml(config)
@@ -103,8 +125,9 @@ def settings(config: Path) -> tuple[str, str, Path]:
     if not url:
         raise TokenError(f"{config} has no 'token_url' (this node joined before the hub served the "
                          f"token; run join.sh again)", 2)
-    if not URL_RE.fullmatch(url):
-        raise TokenError(f"{config}: 'token_url' must look like http://<host>[:port]/<path>", 2)
+    if not tailnet_token_url(url):
+        raise TokenError(f"{config}: 'token_url' must be http://<hub tailnet address, 100.64.0.0/10>:"
+                         f"<port>/v1/token", 2)
     return host, url, Path(conf.get("age_identity") or AGE_IDENTITY_DEFAULT)
 
 

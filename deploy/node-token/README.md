@@ -161,7 +161,11 @@ ORG_NODE_TOKEN_URL=http://<the hub's tailnet address>:8792/v1/token
 ```
 
 The address is `tailscale ip -4` on Contabo. It is not a secret, and it is the only thing a node's
-`node.yaml` learns about the hub's side (`token_url`).
+`node.yaml` learns about the hub's side (`token_url`). Only that exact shape is accepted: `http://`, an IPv4
+address inside `100.64.0.0/10` (written without leading zeros), a port, and the path `/v1/token`. A host name
+(MagicDNS too), a public or loopback address, `https`, another path, a user, a query or a fragment is
+refused as `bad_token_url` by `provision`, and again by the node (exit `2`) before it asks. A name would
+put the request (and the node's host name) at the mercy of whatever answers a DNS lookup.
 
 ### Tailnet ACL note (write it, do not apply it)
 

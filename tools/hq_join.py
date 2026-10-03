@@ -91,7 +91,7 @@ sys.path.insert(0, str(ROOT))
 import yaml  # noqa: E402
 
 from lib import config, db, sealed, tailscale_api  # noqa: E402
-from tools import infisical_setup  # noqa: E402
+from tools import infisical_setup, node_token  # noqa: E402
 
 ACTOR = "hq_join"
 _log = logging.getLogger("hq_join")
@@ -131,9 +131,6 @@ NOT_EXPORTED = (STATUS_LEFT, STATUS_LEAVING, STATUS_PENDING, STATUS_READY)
 # where to ask the hub for its token, and tools/node_token_api.py answers there.
 TOKEN_URL_ENV = "ORG_NODE_TOKEN_URL"
 BUNDLE_VERSION = 2
-# scheme://host[:port][/path], nothing else: no userinfo, query or fragment (the node adds
-# `?host=<its name>` itself), no whitespace, bounded. A DNS name or an IPv4 address.
-TOKEN_URL_RE = re.compile(r"https?://[A-Za-z0-9][A-Za-z0-9.-]{0,98}(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]{0,100})?")
 
 # W4.2. The live path (real Infisical, real gh) is off unless this is "1".
 W42_FLAG = "ORG_W42_PROVISION"
@@ -219,9 +216,9 @@ def check_token_url(url: str | None) -> str:
     if not url:
         raise JoinError("no_token_url", f"the hub's token URL is not set: set {TOKEN_URL_ENV} "
                                         f"(for example http://<hub tailnet address>:8792/v1/token)")
-    if not TOKEN_URL_RE.fullmatch(url):
-        raise JoinError("bad_token_url", f"{TOKEN_URL_ENV} must look like "
-                                         f"http://<host>[:port]/<path>, with no user, query or fragment")
+    if not node_token.tailnet_token_url(url):   # the node refuses anything else, so refuse it here, early
+        raise JoinError("bad_token_url", f"{TOKEN_URL_ENV} must be http://<the hub's tailnet address, inside "
+                                         f"100.64.0.0/10>:<port>/v1/token, and nothing else")
     return url
 
 

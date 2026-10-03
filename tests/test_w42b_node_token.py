@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import ast
 import io
+import ipaddress
 import json
 import os
 import subprocess
@@ -135,13 +136,77 @@ def test_a_node_that_joined_before_the_hub_served_the_token_is_told_to_join_agai
     assert ei.value.code == 2 and "token_url" in str(ei.value) and "join.sh" in str(ei.value)
 
 
-@pytest.mark.parametrize("url", ["ftp://100.64.0.1/v1/token", "file:///etc/passwd", "100.64.0.1/v1/token",
-                                 "http://100.64.0.1:8792/v1/token?x=1", "http://a b/v1/token",
-                                 "http://100.64.0.1:8792/v1/token#frag", "javascript:alert(1)", "http://"])
-def test_a_token_url_that_is_not_a_plain_http_url_is_refused(tmp_path, url):
+GOOD_URLS = ["http://100.64.0.1:8792/v1/token", "http://100.127.255.254:1/v1/token",
+             "http://100.100.100.100:65535/v1/token", "http://100.64.0.7:8792/v1/token"]
+BAD_URLS = [
+    # not an address on the tailnet
+    "http://hub.example.ts.net:8792/v1/token", "http://localhost:8792/v1/token", "http://127.0.0.1:8792/v1/token",
+    "http://0.0.0.0:8792/v1/token", "http://10.0.0.5:8792/v1/token", "http://192.168.1.5:8792/v1/token",
+    "http://172.17.0.1:8792/v1/token", "http://8.8.8.8:8792/v1/token", "http://194.233.80.26:8792/v1/token",
+    "http://100.63.255.255:8792/v1/token", "http://100.128.0.0:8792/v1/token",     # one step outside the /10
+    "http://[fd7a:115c:a1e0::1]:8792/v1/token", "http://[::1]:8792/v1/token",
+    "http://100.64.0.1.evil.example:8792/v1/token", "http://100.64.0.1@evil.example:8792/v1/token",
+    "http://user:pw@100.64.0.1:8792/v1/token", "http://evil.example/@100.64.0.1:8792/v1/token",
+    # not written the plain way
+    "http://100.064.0.1:8792/v1/token", "http://100.64.00.1:8792/v1/token", "http://100.64.0.256:8792/v1/token",
+    "http://100.64.0:8792/v1/token", "http://100.64.0.1.1:8792/v1/token", "http://1685323777:8792/v1/token",
+    "http://0x64.64.0.1:8792/v1/token", "http://\uff11\uff10\uff10.64.0.1:8792/v1/token",
+    # port
+    "http://100.64.0.1/v1/token", "http://100.64.0.1:/v1/token", "http://100.64.0.1:0/v1/token",
+    "http://100.64.0.1:08792/v1/token", "http://100.64.0.1:65536/v1/token", "http://100.64.0.1:123456/v1/token",
+    "http://100.64.0.1:-1/v1/token",
+    # scheme, path, tail
+    "https://100.64.0.1:8792/v1/token", "HTTP://100.64.0.1:8792/v1/token", "ftp://100.64.0.1:8792/v1/token",
+    "file:///etc/passwd", "javascript:alert(1)", "100.64.0.1:8792/v1/token", "http://", "",
+    "http://100.64.0.1:8792", "http://100.64.0.1:8792/", "http://100.64.0.1:8792/v1/token/",
+    "http://100.64.0.1:8792/v1/tokens", "http://100.64.0.1:8792/v1/other", "http://100.64.0.1:8792/v2/token",
+    "http://100.64.0.1:8792/v1/token?x=1", "http://100.64.0.1:8792/v1/token?host=x", "http://100.64.0.1:8792/v1/token#frag",
+    "http://100.64.0.1:8792/v1/token\n", "http://100.64.0.1:8792/v1/ token", "http://100.64.0.1:8792/v1/token/../x",
+    "http://100.64.0.1:8792//v1/token", "http://a b/v1/token"]
+
+
+@pytest.mark.parametrize("url", GOOD_URLS)
+def test_only_a_tailnet_address_with_the_token_path_is_a_token_url(tmp_path, url):
+    assert node_token.tailnet_token_url(url) is True
+    assert node_token.settings(_node(tmp_path, url, None))[1] == url
+
+
+@pytest.mark.parametrize("url", BAD_URLS)
+def test_a_token_url_that_is_not_the_tailnet_one_is_refused(tmp_path, url):
+    assert node_token.tailnet_token_url(url) is False
+    if "\n" in url or not url:
+        return                       # not representable as one yaml line; the validator above is the check
     with pytest.raises(node_token.TokenError) as ei:
         node_token.settings(_node(tmp_path, url, None))
     assert ei.value.code == 2 and "token_url" in str(ei.value)
+    assert "100.64.0.0/10" in str(ei.value)                             # the message says what is accepted
+
+
+@pytest.mark.parametrize("not_a_string", [None, 7, b"http://100.64.0.1:8792/v1/token", ["http://100.64.0.1:8792/v1/token"]])
+def test_a_token_url_that_is_not_text_is_not_a_token_url(not_a_string):
+    assert node_token.tailnet_token_url(not_a_string) is False
+
+
+@pytest.mark.parametrize("url", GOOD_URLS + BAD_URLS)
+def test_the_hub_side_check_and_the_node_side_check_agree_on_every_url(url):
+    """What provision refuses to seal into a bundle is exactly what the node would refuse to use."""
+    if url != url.strip():
+        return                       # the hub strips an env value before it looks; node.yaml's reader strips too
+    node_says = node_token.tailnet_token_url(url)
+    try:
+        hub_says = hq_join.check_token_url(url) == url.strip()
+    except hq_join.JoinError as e:
+        assert e.code in ("bad_token_url", "no_token_url")
+        hub_says = False
+    assert hub_says == node_says, url
+
+
+def test_the_loopback_widening_is_a_test_only_constant_and_not_a_knob(monkeypatch):
+    """Nothing in the process environment or on node.yaml can widen the range."""
+    assert node_token.TOKEN_NET == ipaddress.ip_network("100.64.0.0/10")
+    for var in ("ORG_NODE_TOKEN_NET", "NODE_TOKEN_NET", "ALLOW_LOOPBACK", "TOKEN_NET"):
+        monkeypatch.setenv(var, "127.0.0.0/8")
+    assert node_token.tailnet_token_url("http://127.0.0.1:8792/v1/token") is False
 
 
 def test_the_identity_defaults_to_the_file_join_sh_writes(tmp_path):
@@ -486,7 +551,10 @@ def test_main_with_a_node_that_never_joined_is_exit_2(tmp_path, capsys):
 # ---------------------------------------------------------------- end to end: the real service, the real age
 
 @pytest.fixture
-def served():
+def served(monkeypatch):
+    # The service under test listens on loopback. A node accepts only a tailnet address, so these tests
+    # (and only these) widen the range the CLIENT accepts to loopback; production code has no such knob.
+    monkeypatch.setattr(node_token, "TOKEN_NET", ipaddress.ip_network("127.0.0.0/8"))
     made = []
 
     def _serve():
@@ -535,6 +603,19 @@ def test_end_to_end_a_recorded_answer_opens_for_its_own_nonce_and_for_no_other(s
     assert ei.value.code == 5 and "300 s" in str(ei.value)
 
 
+def _loopback_client(tmp_path) -> Path:
+    """A copy of tools/node_token.py that accepts a loopback token URL, for the tests that start it as a
+    real process (a monkeypatch cannot reach into one). The copy is the only difference: the line is
+    asserted to exist, so a rename of it fails here and not silently."""
+    src = SOURCE.read_text(encoding="utf-8")
+    line = 'TOKEN_NET = ipaddress.ip_network("100.64.0.0/10")'
+    assert src.count(line) == 1
+    copy = tmp_path / "client" / "node_token.py"
+    copy.parent.mkdir()
+    copy.write_text(src.replace(line, 'TOKEN_NET = ipaddress.ip_network("127.0.0.0/8")'), encoding="utf-8")
+    return copy
+
+
 @needs_age
 def test_end_to_end_through_the_real_exec_the_child_gets_the_value_and_stdout_does_not(served, tmp_path):
     """`python3 -I tools/node_token.py run -- sh -c ...`, as join.sh and the drill start it."""
@@ -549,7 +630,7 @@ def test_end_to_end_through_the_real_exec_the_child_gets_the_value_and_stdout_do
     env.update(HOME=str(home), TMPDIR=str(scratch))
     before = _files(cfg.parent)
     done = subprocess.run(
-        [sys.executable, "-I", str(SOURCE), "run", "--config", str(cfg), "--", "/bin/sh", "-c",
+        [sys.executable, "-I", str(_loopback_client(tmp_path)), "run", "--config", str(cfg), "--", "/bin/sh", "-c",
          'printf "%s" "${CLAUDE_CODE_OAUTH_TOKEN:+set}"; printf " %s" "${#CLAUDE_CODE_OAUTH_TOKEN}"'],
         env=env, capture_output=True, text=True, timeout=60, cwd=work)
     assert done.returncode == 0, done.stderr
@@ -567,7 +648,7 @@ def test_end_to_end_a_host_that_left_gets_exit_3_and_the_command_never_starts(se
     cfg = _node(tmp_path, f"http://127.0.0.1:{api.port}/v1/token", ident)
     marker = tmp_path / "ran"
     done = subprocess.run(
-        [sys.executable, "-I", str(SOURCE), "run", "--config", str(cfg), "--", "/usr/bin/touch", str(marker)],
+        [sys.executable, "-I", str(_loopback_client(tmp_path)), "run", "--config", str(cfg), "--", "/usr/bin/touch", str(marker)],
         capture_output=True, text=True, timeout=60)
     assert done.returncode == 3 and not marker.exists()
     assert done.stderr == "node_token: hub answered HTTP 403 (left)\n" and done.stdout == ""
