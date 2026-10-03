@@ -84,7 +84,9 @@ that the Contabo CTO made for it (the live checkout on Contabo can be far behind
 
 **Before card 1:** the live checkout the unit runs from, `/opt/MoonieXHQ/Agents/Core`, must contain
 this commit. `test -f /opt/MoonieXHQ/Agents/Core/tools/node_token_api.py` must succeed, or card 5
-installs a unit that cannot start.
+installs a unit that cannot start. `command -v age` must succeed too (`apt install age`): every
+answer is sealed with it, and `provision` seals the bundles with it. Contabo had no `age` when
+W4.2b merged. The service now refuses to start without it, but the install is still a step.
 
 The four things the design names, in dependency order: **Infisical apply** (cards 1, 2), **role** and
 **DSN `put`** (card 4, one line: the URL holds the password and never rests on a file, so the role

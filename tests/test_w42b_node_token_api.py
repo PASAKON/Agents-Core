@@ -547,9 +547,26 @@ def test_health_says_db_false_when_the_hub_is_down_even_with_a_snapshot(start, h
     assert (st, json.loads(body)) == (503, {"ok": False, "token_loaded": True, "db": False})
 
 
-def test_the_start_up_check_does_not_pass_on_the_snapshot(hub_down_with_a_snapshot):
+def test_the_start_up_check_does_not_pass_on_the_snapshot(hub_down_with_a_snapshot, monkeypatch):
+    monkeypatch.setattr(node_token_api.sealed, "find_age", lambda name=None: "/usr/bin/age")   # CI has no age
     with pytest.raises(RuntimeError, match="hub_unavailable"):
         node_token_api._preflight()
+
+
+def _no_age(name=None):
+    raise node_token_api.sealed.SealError("age is not installed (brew install age / apt install age): "
+                                          "refusing to seal without it, there is no fallback")
+
+
+def test_the_start_up_check_refuses_a_box_without_age_before_it_touches_the_hub(monkeypatch):
+    # Contabo had no age when W4.2b merged (Contabo CTO, PR #221): the service would have started,
+    # said ok on /health, and answered every node 500.
+    touched = []
+    monkeypatch.setattr(node_token_api.sealed, "find_age", _no_age)
+    monkeypatch.setattr(node_token_api, "_hub", lambda: touched.append("hub"))
+    with pytest.raises(node_token_api.sealed.SealError, match="age is not installed"):
+        node_token_api._preflight()
+    assert touched == []
 
 
 def test_a_connection_that_dies_mid_query_is_a_503_too(start, monkeypatch):
@@ -853,6 +870,19 @@ def test_the_command_line_bind_beats_the_environment(no_server, monkeypatch):
     monkeypatch.setenv("NODE_TOKEN_BIND", "100.64.0.9")
     assert node_token_api.main(["--bind", "100.64.0.20"]) == 0
     assert no_server["make"]["bind"] == "100.64.0.20"
+
+
+def test_a_box_without_age_stops_start_and_says_what_to_install(capsys, no_server, monkeypatch):
+    def preflight():
+        _no_age()
+    monkeypatch.setattr(node_token_api, "_preflight", preflight)
+    monkeypatch.setenv(NAME, TOKEN)
+    monkeypatch.setenv(node_token_api.ORG_NODE_TOKEN_DB_ENV, DSN)
+    monkeypatch.setenv("NODE_TOKEN_BIND", "100.64.0.9")
+    assert node_token_api.main([]) == 1
+    err = capsys.readouterr().err
+    assert "cannot start (SealError: age is not installed" in err and "apt install age" in err
+    assert "hub database" not in err and "make" not in no_server
 
 
 def test_a_database_that_is_not_ready_stops_start_with_the_class_only(capsys, no_server, monkeypatch):
