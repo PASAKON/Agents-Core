@@ -221,6 +221,43 @@ def test_a_200_is_sealed_to_the_hosts_own_pubkey_and_says_what_it_is(start):
     assert TOKEN.encode() not in body                   # the response carries the ciphertext only
 
 
+NONCE = "0123456789abcdef" * 2
+
+
+def test_a_nonce_sent_with_the_request_is_sealed_into_the_answer(start):
+    sealer = Sealer()
+    a = start(sealer=sealer)
+    _row()
+    assert a.token(extra=f"&nonce={NONCE}")[0] == 200
+    payload = json.loads(sealer.calls[0][1])
+    assert payload["nonce"] == NONCE and payload["value"] == TOKEN and payload["host"] == "node-a"
+    assert payload["issued_at"].endswith("+00:00") and len(payload["issued_at"]) == 25
+
+
+def test_a_request_without_a_nonce_still_works_and_the_payload_has_none(start):
+    sealer = Sealer()
+    a = start(sealer=sealer)
+    _row()
+    assert a.token()[0] == 200
+    assert "nonce" not in json.loads(sealer.calls[0][1])
+
+
+@pytest.mark.parametrize("nonce", ["", "f" * 31, "f" * 33, "F" * 32, "g" * 32, "0123456789abcdef" * 4,
+                                   "../" + "f" * 29, "%0a" + "f" * 29])
+def test_a_nonce_that_is_not_32_lower_case_hex_is_400_and_never_sealed(start, nonce):
+    sealer = Sealer()
+    a = start(sealer=sealer)
+    _row()
+    st, body, _ = a.token(extra=f"&nonce={nonce}")
+    assert (st, json.loads(body)) == (400, {"error": "bad_nonce"}) and sealer.calls == []
+
+
+def test_a_nonce_given_twice_is_400(start):
+    a = start()
+    _row()
+    assert a.token(extra=f"&nonce={NONCE}&nonce={NONCE}")[0] == 400
+
+
 def test_the_secret_can_be_named_but_only_from_the_list_the_hub_hands_out(start):
     sealer = Sealer()
     a = start(sealer=sealer)

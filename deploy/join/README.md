@@ -51,7 +51,7 @@ operator (phone)           hub (Contabo)                     new machine        
                               200 {ciphertext, tailscale_authkey?} --->  6 tailscale up --auth-key
                                                    7 GitHub host keys -> known_hosts, clone (StrictHostKeyChecking=yes)
                                                    8 age -d -> token_url ; node.yaml (token_url, age_identity)
-                                                   9 probe through tools/node_token.py: GET token_url?host=X
+                                                   9 probe through tools/node_token.py: GET token_url?host=X&nonce=N
                               (tools/node_token_api.py, approved hosts only) -- sealed token --->  age -d in memory, child env only
 ```
 
@@ -90,7 +90,7 @@ joined this host is recognised through `/sealed`, and keys, clone, venv and node
   apart from outside. `/sealed` also stops answering 24 hours after the token was used.
 - `CLAUDE_CODE_OAUTH_TOKEN` is not fetched by the join. A command that needs it runs as
   `python3 -I tools/node_token.py run -- <command>`: the hub's token service (`deploy/node-token/`)
-  answers the node's `GET token_url?host=<host>` with the token sealed to the age key the node
+  answers the node's `GET token_url?host=<host>&nonce=<random>` with the token sealed to the age key the node
   registered, and only while the operator has approved the node and it has not left. The value is
   opened in memory and put in the child's environment; it is never a file, a log line or an
   argument. Org-Node is a project of its own, prod only, with that one secret in it; the hub reads

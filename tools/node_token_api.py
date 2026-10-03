@@ -9,9 +9,13 @@ This is the one exception to "a service reads its secrets through `infisical run
 nodes only: THIS process still gets its own values through `infisical run`
 (deploy/node-token/org-node-token.service).
 
-    GET /v1/token?host=H    200 {"ciphertext": <armored age>} sealed to hosts.pubkey of H.
+    GET /v1/token?host=H[&nonce=N]
+                            200 {"ciphertext": <armored age>} sealed to hosts.pubkey of H.
                             The plaintext is {"v":1,"host":H,"name":"CLAUDE_CODE_OAUTH_TOKEN",
-                            "value":...,"issued_at":...}. Sealing is the authentication: only H's
+                            "value":...,"issued_at":...,"nonce":N}. N is 32 hex characters the
+                            node made up for this request and is echoed only when sent;
+                            node_token.py always sends one and refuses an answer without it, so
+                            an old sealed answer cannot be played back to it. Sealing is the authentication: only H's
                             age identity (on H, root 0600) opens it, so any other caller learns
                             nothing, and the tailnet-only bind is the second wall.
                             403 {"error": code} unless the row is approved and its status is one
@@ -51,6 +55,7 @@ import ipaddress
 import json
 import logging
 import os
+import re
 import sys
 import threading
 from datetime import datetime, timezone
@@ -72,6 +77,7 @@ DEFAULT_PORT = 8792
 TAILNET_NET = ipaddress.ip_network("100.64.0.0/10")   # Tailscale's CGNAT range
 TOKEN_PATH = "/v1/token"
 HEALTH_PATH = "/health"
+NONCE_RE = re.compile(r"[0-9a-f]{32}")   # what node_token.py sends: 16 random bytes as hex
 ORG_NODE_TOKEN_DB_ENV = "ORG_NODE_TOKEN_DB_URL"
 BIND_ENV = "NODE_TOKEN_BIND"
 
@@ -210,13 +216,16 @@ def decide(row) -> str | None:
 
 
 def _route_token(h: "_Handler"):
-    q = _query(h.path, ("host", "name"))
+    q = _query(h.path, ("host", "name", "nonce"))
     host = _loggable_host(q.get("host"))
     if host is None:
         raise _Refuse(400, "bad_host")
     name = q.get("name", infisical_setup.NODE_SECRET_NAMES[0])
     if name not in h.server.tokens:
         raise _Refuse(400, "bad_name")
+    nonce = q.get("nonce")
+    if nonce is not None and not NONCE_RE.fullmatch(nonce):
+        raise _Refuse(400, "bad_nonce")
     with _hub() as conn:
         row = conn.execute("SELECT status, pubkey, approved_at FROM hosts WHERE host = ?",
                            (host,)).fetchone()
@@ -230,6 +239,8 @@ def _route_token(h: "_Handler"):
         raise _Refuse(429, "rate_limited")
     payload = {"v": 1, "host": host, "name": name, "value": h.server.tokens[name],
                "issued_at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    if nonce is not None:   # sealed in with the value: node_token.py refuses an answer without its own
+        payload["nonce"] = nonce
     try:
         armored = h.server.sealer(row["pubkey"], _json(payload)).decode("ascii")
     except Exception as exc:   # SealError and anything else: the class only, never a message

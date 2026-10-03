@@ -58,9 +58,12 @@ a short code and nothing else:
 | `not_approved` | `approved_at` is empty |
 | `not_issuing` | any other status: `pending_identity`, `offline`, empty, or one this code has never seen |
 
-Issuing statuses are `identity_ready` and `online`, with `approved_at` set. `400` is a bad host or name,
-`429` the rate limit (per source address and per host), `503 busy` the database gate, `500 internal`
-anything unexpected (the class name only is logged). The journal gets one line per answer:
+Issuing statuses are `identity_ready` and `online`, with `approved_at` set. `400` is a bad host, name or
+nonce (`bad_nonce`: not 32 lower-case hex characters), `429` the rate limit (every request counts against
+its source address; only a request that will be granted counts against its host, so a peer cannot spend
+another host's window by naming it), `503 busy` the database gate, `503 hub_unavailable` the hub database
+does not answer (the service never decides from the read-only ledger snapshot `lib.db` falls back to, and
+`/health` says `db: false`), `500 internal` anything unexpected (the class name only is logged). The journal gets one line per answer:
 `issued CLAUDE_CODE_OAUTH_TOKEN to <host>`. No log line, error body or `/health` answer holds the
 value, a length or its last four characters.
 
@@ -186,9 +189,33 @@ argument or a line of output. Exit codes: `2` bad usage or `node.yaml`, `3` the 
 approved, or left), `4` the hub or the network failed, `5` the answer could not be opened, `127` the
 command could not start.
 
+Each run sends `?host=<H>&nonce=<16 random bytes, hex>`. The service seals the nonce into the answer
+next to `issued_at`, and the node refuses (exit `5`) an answer that does not carry its own nonce or whose
+`issued_at` is more than 300 s from its clock. So an old sealed answer, recorded and played back, opens
+with the node's key and is still refused. A node whose clock is more than 5 minutes out gets exit `5` and
+a message that says to check the clock.
+
 A node that has left cannot ask again: `leave` sets the row to `leaving` before it does anything else
 (the service answers `403 left` at once), and the row becomes `left` only when every step succeeded,
-so a half-finished leave still stops the token.
+so a half-finished leave still stops the token. If that first step cannot be written (the hub database
+is down), `leave` runs no other step and reports every step as left behind.
+
+## Known limits
+
+- **The answer is sealed, not signed.** Only the node can read it, but the node cannot tell who sealed
+  it: a node's age recipient is not secret, so anyone who can answer a request can seal a payload for
+  it. The nonce and `issued_at` stop the replay of an OLD hub answer. They do not stop a process that
+  binds the hub's tailnet address on port 8792 while the service is down (the port is above 1024, so
+  any local user on the hub can) from answering a node's request with a token **of its own choosing**:
+  the node's `claude` runs would then go to the attacker's account. It cannot read the CEO's token
+  (the node's request holds none, and it never has the token). The window is the time the service is
+  down, and a unit that trips its start limit stays down until `systemctl reset-failed
+  org-node-token`. Closing it needs the node to check a signature from a hub key pinned at join, or
+  a listening socket that systemd owns. Neither is built. The CTO reports it to the CEO.
+- **The service does not know who is calling.** It answers by host name and seals to that host's key;
+  it does not tie the caller's tailnet address to the host row (the drill container reaches it over
+  the docker bridge, so that would fail there). The tailnet ACL (note above) is the only wall around
+  who may ask. Binding the caller to the row with `tailscale whois` is a follow-up, not built.
 
 ## Tests
 

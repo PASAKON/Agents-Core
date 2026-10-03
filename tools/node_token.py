@@ -8,8 +8,11 @@ token to a node it approved, sealed to the age recipient this node registered. T
 
   1. reads host, token_url and age_identity from node.yaml (default ~/.config/mooniex/node.yaml;
      the identity falls back to ~/.config/mooniex/age-identity.txt, where join.sh puts it),
-  2. GETs <token_url>?host=<host>, which answers an armored age ciphertext,
-  3. opens it with `age -d -i <identity>` through pipes,
+  2. GETs <token_url>?host=<host>&nonce=<16 random bytes, hex>, which answers an armored age
+     ciphertext,
+  3. opens it with `age -d -i <identity>` through pipes and refuses it unless it carries that
+     nonce and an issued_at within 300 s of this machine's clock (an old answer played back to
+     this node opens with its key too: the nonce and the age are what reject it),
   4. puts the value in the child's environment under NAME (default CLAUDE_CODE_OAUTH_TOKEN),
   5. replaces itself with the command.
 
@@ -23,7 +26,8 @@ Standard library only and no import from this repo: join.sh and the drill start 
 a root process must not import files a user can write.
 
 Exit: 2 = bad usage or node.yaml; 3 = the hub refused (403: the node is not approved, or left);
-4 = the hub or the network failed; 5 = the answer could not be opened; 127 = the command could not
+4 = the hub or the network failed; 5 = the answer could not be opened, or was stale or for another
+request; 127 = the command could not
 start; otherwise the command's own (on Windows) or none (the command replaces this process).
 """
 from __future__ import annotations
@@ -31,6 +35,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -38,9 +43,13 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_NAME = "CLAUDE_CODE_OAUTH_TOKEN"
+NONCE_BYTES = 16         # the request carries 16 random bytes as hex; the hub seals them into the answer
+MAX_ANSWER_AGE_S = 300   # an opened answer whose issued_at is further than this from now is refused
+ISSUED_AT_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\+00:00")
 NAME_RE = re.compile(r"[A-Z][A-Z0-9_]{2,63}")
 HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,29}[a-z0-9]")
 URL_RE = re.compile(r"https?://[A-Za-z0-9][A-Za-z0-9.-]{0,98}(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]{0,100})?")
@@ -118,11 +127,14 @@ def _hub_code(err: urllib.error.HTTPError) -> str:
     return code if isinstance(code, str) and CODE_RE.fullmatch(code) else ""
 
 
-def fetch_ciphertext(url: str, host: str, name: str, *, opener=None) -> str:
-    """The armored ciphertext the hub sealed for `host`. TokenError with the status and code."""
+def fetch_ciphertext(url: str, host: str, name: str, nonce: str, *, opener=None) -> str:
+    """The armored ciphertext the hub sealed for `host`. TokenError with the status and code.
+    `nonce` is sent with the request and comes back sealed inside the answer (open_token checks it),
+    so an answer recorded earlier cannot be played back to this node."""
     query = {"host": host}
     if name != DEFAULT_NAME:
         query["name"] = name
+    query["nonce"] = nonce
     full = url + "?" + urllib.parse.urlencode(query)
     opener = opener or _opener()
     last = "hub not reachable"
@@ -165,9 +177,26 @@ def find_age() -> str:
     return found
 
 
-def open_token(cipher: str, identity: Path, host: str, name: str, *, runner=None) -> str:
+def _issued_at(text) -> "datetime | None":
+    """The UTC time the hub wrote (`2026-10-04T00:50:12+00:00`), or None when it is anything else.
+    Parsed by hand: datetime.fromisoformat does not exist before Python 3.7."""
+    m = ISSUED_AT_RE.fullmatch(text) if isinstance(text, str) else None
+    if m is None:
+        return None
+    try:
+        return datetime(*[int(g) for g in m.groups()], tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def open_token(cipher: str, identity: Path, host: str, name: str, nonce: str, *,
+               runner=None, now: "datetime | None" = None) -> str:
     """The token value from `cipher`. The plaintext crosses stdin/stdout only; age gets the
-    identity PATH on argv, which is not secret."""
+    identity PATH on argv, which is not secret.
+
+    The opened answer must carry THIS request's `nonce` and an `issued_at` within MAX_ANSWER_AGE_S
+    of `now` (this machine's clock): an old sealed answer, replayed by something standing in for
+    the hub, opens fine with the node's key but fails both checks."""
     if not Path(identity).is_file():
         raise TokenError(f"the age identity {identity} does not exist", 5)
     argv = [find_age(), "-d", "-i", str(identity)]
@@ -186,10 +215,17 @@ def open_token(cipher: str, identity: Path, host: str, name: str, *, runner=None
         d = json.loads(out.decode("utf-8"))
         ok = d["v"] == 1 and d["host"] == host and d["name"] == name
         value = d["value"]
+        echoed, issued = d.get("nonce"), _issued_at(d.get("issued_at"))
     except Exception:
         raise TokenError("the opened answer is not the expected JSON", 5) from None
     if not ok:
         raise TokenError("the opened answer is for another host or secret", 5)
+    if echoed != nonce:
+        raise TokenError("the opened answer is for another request (an old answer was played back)", 5)
+    when = now if now is not None else datetime.now(timezone.utc)
+    if issued is None or abs((when - issued).total_seconds()) > MAX_ANSWER_AGE_S:
+        raise TokenError(f"the opened answer was not issued within {MAX_ANSWER_AGE_S} s of this machine's "
+                         f"clock (an old answer was played back, or this clock is wrong)", 5)
     if not isinstance(value, str) or not value:
         raise TokenError("the opened answer holds no value", 5)
     return value
@@ -203,7 +239,9 @@ def run(argv: list[str], *, config: Path = NODE_YAML, name: str = DEFAULT_NAME,
     if not NAME_RE.fullmatch(name):
         raise TokenError("--name must look like CLAUDE_CODE_OAUTH_TOKEN", 2)
     host, url, identity = settings(config)
-    value = open_token(fetch_ciphertext(url, host, name, opener=opener), identity, host, name, runner=runner)
+    nonce = secrets.token_hex(NONCE_BYTES)   # new for every run: nothing recorded earlier can answer it
+    value = open_token(fetch_ciphertext(url, host, name, nonce, opener=opener), identity, host, name, nonce,
+                       runner=runner)
     env = dict(os.environ)
     env[name] = value
     del value
