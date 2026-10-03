@@ -32,7 +32,8 @@ CLIENT_ID = "ts-client-id-SYNTHETIC"
 CLIENT_SECRET = "ts-client-secret-SYNTHETIC-0123456789"
 MINT_KEY = "tskey-auth-kSyntheticMint1CNTRL-abcdefghijklmnopqrstuvwxyz"
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
-DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "A" * 43 + " org-node:node-a"
+# A real ssh-keygen -t ed25519 public key. A prefix + "A" * n fixture checks the regex against itself.
+DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPevyJRWgM559TAkS0aqU6fNI/5HXCNkmC5EoKCEpoB6 org-node:node-a"
 CIPHER = "-----BEGIN AGE ENCRYPTED FILE-----\nc3ludGhldGljLWNpcGhlcnRleHQ=\n-----END AGE ENCRYPTED FILE-----\n"
 TAG = "tag:org-node"
 

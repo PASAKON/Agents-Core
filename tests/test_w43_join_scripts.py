@@ -35,7 +35,8 @@ UNIT = ROOT / "deploy" / "join" / "org-join.service"
 TOKEN = "hqj_" + "Tok3n_-" * 6 + "T"                # hqj_ + 43 characters
 assert len(TOKEN) == 47
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
-DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "A" * 43 + " org-node:node-a"
+# A real ssh-keygen -t ed25519 public key. A prefix + "A" * n fixture checks the regex against itself.
+DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPevyJRWgM559TAkS0aqU6fNI/5HXCNkmC5EoKCEpoB6 org-node:node-a"
 CLIENT_ID = "client-id-synthetic"
 CLIENT_SECRET = "client-secret-synthetic-7f3a"
 TS_KEY = "tskey-auth-kSyntheticKey123-abcdefghijklmnop"

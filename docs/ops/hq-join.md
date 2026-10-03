@@ -83,7 +83,9 @@ Exit codes: `0` ok, `1` `leave --live` ran and left steps behind, `2` refused
   "The approval gate". A rejoin resets `approved_at` to NULL.
 - `--token -` reads the token from stdin so it stays out of `ps`.
 - `--deploy-pubkey` (W4.2, optional): the node's `ssh-ed25519 <base64>` public key,
-  checked by shape (comment dropped, one line only). It is stored in its **own
+  one line, comment dropped. It must be a real `ssh-keygen -t ed25519` key line: the
+  base64 (68 characters, no padding) is decoded and has to be the 51-byte ssh blob of
+  an ed25519 key, so a line that only looks right is refused. It is stored in its **own
   column `hosts.deploy_pubkey`**, not in `config_json`, because `config_json` is
   what `export-hosts` writes out and a deploy key has no business in `hosts.yaml`.
   Leaving it out is not an error: the node gets no GitHub deploy key, the CLI

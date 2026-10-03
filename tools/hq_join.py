@@ -63,6 +63,7 @@ Exit    0 ok, 1 ran and failed (leave with steps left behind, provision
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import hmac
 import json
@@ -119,9 +120,13 @@ NOT_EXPORTED = (STATUS_LEFT, STATUS_PENDING, STATUS_READY)
 # W4.2. The live path (real Infisical, real gh) is off unless this is "1".
 W42_FLAG = "ORG_W42_PROVISION"
 GH_REPO = "PASAKON/Agents-Core"
-# ssh-ed25519 public key line: type header + 32-byte key = 68 base64 chars, optional comment.
+# ssh-ed25519 public key line: `ssh-ed25519 <base64>` and an optional comment. The regex only
+# splits the line; _is_ed25519_blob decodes the base64 and checks the wire format. A real key
+# is 51 bytes (4-byte length, "ssh-ed25519", 4-byte length 32, the key), so 68 characters, no padding.
 DEPLOY_PUBKEY_RE = re.compile(
-    r"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA[A-Za-z0-9+/]{43}(?: [\x20-\x7e]{1,80})?")
+    r"ssh-ed25519 ([A-Za-z0-9+/]+)(?: [\x20-\x7e]{1,80})?")
+_ED25519_BLOB_HEAD = b"\x00\x00\x00\x0bssh-ed25519\x00\x00\x00\x20"
+_ED25519_BLOB_LEN = len(_ED25519_BLOB_HEAD) + 32
 # A provision claim younger than this, with no ciphertext yet, is a run still in progress.
 CLAIM_STALE_S = 600
 
@@ -317,16 +322,26 @@ def _diagnose(conn, token_hash: str, host: str, now_s: str) -> JoinError:
     return JoinError("conflict", "the token could not be consumed, try again")
 
 
+def _is_ed25519_blob(b64: str) -> bool:
+    """The base64 of a real ssh-ed25519 public key: it decodes (no padding, no stray character)
+    to exactly the 51-byte wire blob, the "ssh-ed25519" header and a 32-byte key."""
+    try:
+        blob = base64.b64decode(b64, validate=True)
+    except ValueError:
+        return False
+    return len(blob) == _ED25519_BLOB_LEN and blob.startswith(_ED25519_BLOB_HEAD)
+
+
 def _check_deploy_pubkey(key: str | None) -> str | None:
     """None stays None (the node gets no deploy key). A key line is reduced to
     "ssh-ed25519 <base64>": the comment is free text and is not stored."""
     if key is None:
         return None
-    line = key.strip() if isinstance(key, str) else ""
-    if not DEPLOY_PUBKEY_RE.fullmatch(line):
+    m = DEPLOY_PUBKEY_RE.fullmatch(key.strip() if isinstance(key, str) else "")
+    if not m or not _is_ed25519_blob(m.group(1)):
         raise JoinError("bad_arg", "deploy-pubkey is not an ssh-ed25519 public key line "
                                    "(ssh-ed25519 AAAA... [comment])")
-    return " ".join(line.split()[:2])
+    return f"ssh-ed25519 {m.group(1)}"
 
 
 def accept(token: str, host: str, os_name: str, hq_root: str, pubkey: str,
