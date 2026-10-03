@@ -1,7 +1,7 @@
 """Org Mesh W4.4c: the follow-ups W4.3 (join scripts) and W4.4b (self_host) left behind.
 
-  1. join.sh / join.ps1 step 9 (the node probe) reads the node.yaml step 8 wrote, even when
-     `sudo` gives the probe root's HOME.
+  1. join.sh / join.ps1 step 9 (the node probe) reads the node.yaml step 8 wrote. Since W4.2b the
+     probe runs as the node's own user, with no `sudo` hop at all, so root's HOME cannot replace it.
   2. tools/infisical_setup.NODE_HOST_RE is the same 3-31 rule as lib.config.HOST_NAME_RE, and
      infisical_setup.py stays stdlib-only (a Run Inbox card copies that one file).
   3. lib.db.seed_hosts_from_config() never seeds a host hosts.yaml does not declare, so the
@@ -77,7 +77,7 @@ def _join_args(tmp_path: Path) -> str:
     return f"--token {TOKEN} --host {HOST} --hub https://hub.example.test --hq-root '{tmp_path}/hq'"
 
 
-def test_dry_run_step_9_names_the_home_and_the_node_yaml_it_reads(tmp_path):
+def test_dry_run_step_9_runs_as_the_user_and_names_the_node_yaml_it_reads(tmp_path):
     bindir, calls = _fake_bin(tmp_path)
     env = _sh_env(tmp_path, bindir)
     home = env["HOME"]
@@ -86,20 +86,21 @@ def test_dry_run_step_9_names_the_home_and_the_node_yaml_it_reads(tmp_path):
                        capture_output=True, text=True, env=env, timeout=60)
     assert r.returncode == 0, r.stderr
     step8, step9 = r.stdout.split("[8/9]", 1)[1].split("[9/9]", 1)
-    # the very command a real run executes: HOME and ORG_HOST ride in the env
-    assert f"env HOME={home} ORG_HOST={HOST} " in step9, step9
-    assert "tools/node_dispatch.py probe" in step9
+    # the command a real run executes: through node_token.py, as the user (no sudo, no HOME hop)
+    assert f"env ORG_HOST={HOST} python3 -I tools/node_token.py run -- " in step9, step9
+    assert "tools/node_dispatch.py probe" in step9 and "env HOME=" not in step9 and "sudo" not in step9
     # and the file it reads is the one step 8 is announced to write
     assert f"{home}/.config/mooniex/node.yaml" in step9
-    assert f"node.yaml: host, os, hq_root -> {home}/.config/mooniex/node.yaml" in step8
+    assert f"node.yaml: host, os, hq_root, token_url, age_identity -> {home}/.config/mooniex/node.yaml" in step8
     assert not calls.exists(), calls.read_text()        # a dry run calls nothing
 
 
 def _stub_python(tmp_path: Path) -> Path:
     """Stands in for `$PY` in do_probe. A call with `-c` is the JSON reader at the end of do_probe
-    (`$PY -I -c ...`): the real interpreter. Anything else is the probe: it asks lib.config who this
-    machine is, through the HOME it was started with, which is what tools/node_dispatch.py probe
-    does first."""
+    (`$PY -I -c ...`): the real interpreter. Anything else is the probe (here the node_token.py call
+    that wraps it is not run: tests/test_w43_join_scripts.py does that end to end): it asks
+    lib.config who this machine is, through the HOME it was started with, which is what
+    tools/node_dispatch.py probe does first."""
     stub = tmp_path / "stub-python"
     stub.write_text(
         '#!/bin/sh\n'
@@ -120,7 +121,8 @@ def _stub_python(tmp_path: Path) -> Path:
 
 def _step_8_then_9(tmp_path: Path, join_sh: Path = JOIN_SH):
     """join.sh's own parse_args + check_args, then step 8's write_node_yaml, then step 9's do_probe,
-    under a `sudo` that swaps HOME for root's. Returns (result, call log, HOME)."""
+    with a `sudo` on PATH that swaps HOME for root's: step 9 must never call it. Returns (result,
+    call log, HOME)."""
     bindir, calls = _fake_bin(tmp_path)
     env = _sh_env(tmp_path, bindir, ORG_JOIN_LIB="1", JOIN_SH=str(join_sh), REAL_PY=sys.executable,
                   PYTHONPATH=str(ROOT), STUB=str(_stub_python(tmp_path)))
@@ -131,7 +133,7 @@ def _step_8_then_9(tmp_path: Path, join_sh: Path = JOIN_SH):
         'check_args\n'
         'PY=$STUB; DRY_RUN=0\n'
         'mkdir -p "$CONF_DIR"\n'
-        'write_node_yaml\n'
+        'write_node_yaml "http://100.64.0.1:8792/v1/token"\n'
         'do_probe\n'
     )
     r = subprocess.run(["sh", "-c", body], capture_output=True, text=True, env=env, timeout=60)
@@ -139,31 +141,27 @@ def _step_8_then_9(tmp_path: Path, join_sh: Path = JOIN_SH):
 
 
 @not_root
-def test_the_probe_reads_the_node_yaml_step_8_wrote_even_when_sudo_resets_home(tmp_path):
+def test_the_probe_reads_the_node_yaml_step_8_wrote_and_never_calls_sudo(tmp_path):
     r, calls, home = _step_8_then_9(tmp_path)
     assert (home / ".config" / "mooniex" / "node.yaml").is_file()
     assert r.returncode == 0, r.stdout + r.stderr
     this_os = {"Darwin": "darwin", "Linux": "linux"}[platform.system()]      # check_args reads uname
     assert f"probe: ok host={HOST} os={this_os}" in r.stdout, r.stdout + r.stderr
-    sudo_line = calls.read_text().splitlines()[0]
-    assert sudo_line.startswith(f"sudo env HOME={home} ORG_HOST={HOST} "), sudo_line
+    # The probe is the node's own user (W4.2b: the token comes from the hub, not from a root-only
+    # Infisical file), so there is no sudo hop that could swap HOME. The fake sudo here would have
+    # reset it and logged: it was never called.
+    assert not calls.exists(), calls.read_text()
 
 
-@not_root
-def test_the_same_run_fails_when_the_home_is_left_out_of_the_probe_command(tmp_path):
-    # The control. With HOME taken back out of the probe's command line the run reproduces the
-    # bug (root's HOME, no node.yaml, "not a known host"), so the pass above is the HOME
-    # pass-through and not the stub being kind.
+def test_the_probe_command_has_no_privilege_hop_and_no_home_pass_through():
     text = JOIN_SH.read_text()
-    assert ' env HOME="$HOME" ORG_HOST="$HOST" ' in text
-    broken = tmp_path / "join-without-home.sh"
-    broken.write_text(text.replace(' env HOME="$HOME" ORG_HOST="$HOST" ', ' env ORG_HOST="$HOST" '))
-    r, _, _ = _step_8_then_9(tmp_path, broken)
-    assert r.returncode == 1 and "probe: FAILED" in r.stdout and "not a known host" in r.stdout, r.stdout
+    probe = text[text.index("\ndo_probe() {"):text.index("\n# ---------------------------------------------------------------- main")]
+    assert "as_root" not in probe and "sudo" not in probe and 'env HOME="$HOME"' not in probe
+    assert '"$CORE/tools/node_token.py" run' in probe
 
 
 def _function_body(text: str, name: str) -> str:
-    m = re.search(r"^function " + re.escape(name) + r" \{.*?^\}", text, re.S | re.M)
+    m = re.search(r"^function " + re.escape(name) + r"(?:\([^)]*\))? \{.*?^\}", text, re.S | re.M)
     assert m, name
     return m.group(0)
 
@@ -177,10 +175,10 @@ def test_join_ps1_runs_step_9_in_the_window_and_user_that_wrote_node_yaml():
     probe = _function_body(text, "Invoke-Probe")
     for hop in ("Start-Process", "-Credential", "-Verb", "runas", "Invoke-Command", "$env:USERPROFILE ="):
         assert hop not in probe, hop
-    assert "$venvPy (Join-Path $script:Core 'tools\\infisical_setup.py') run Org-Node prod" in probe
+    assert "$venvPy -I (Join-Path $script:Core 'tools\\node_token.py') run --" in probe and "infisical" not in probe
     # the dry run says which node.yaml the probe reads, and under which USERPROFILE
     assert "(Join-Path $script:ConfDir 'node.yaml')" in probe and "$env:USERPROFILE" in probe
-    assert "Write-NodeYaml" in _function_body(text, "Save-Identity")
+    assert "Write-NodeYaml" in _function_body(text, "Open-Bundle")
     assert "Join-Path $script:ConfDir 'node.yaml'" in _function_body(text, "Write-NodeYaml")
 
 

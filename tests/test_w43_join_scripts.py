@@ -5,7 +5,8 @@ Static checks (sh -n, shellcheck when installed, ASCII-only, pwsh parse when ins
 functions (ORG_JOIN_LIB=1 sources the file without running it) against the real endpoint on a
 throwaway SQLite ledger. No test installs anything, touches a real HOME, or contacts Infisical,
 GitHub, Tailscale or a package manager: `sudo`, `apt-get`, `brew` and `npm` are replaced by
-recorders, and the `save` step talks to a stub, never to infisical_setup.py.
+recorders. Steps 8 and 9 (W4.2b) run against the real token service on loopback with a real age:
+the node has no Infisical identity, so nothing in this file can reach Infisical.
 
 Run:  .venv/bin/python -m pytest -p no:warnings tests/test_w43_join_scripts.py
 """
@@ -199,9 +200,12 @@ def test_dry_run_names_the_files_it_would_make(server, tmp_path):
     for want in (f"{home}/.config/mooniex/age-identity.txt", f"{home}/.config/mooniex/deploy_key",
                  f"{home}/.ssh/org_dispatch", f"{home}/.config/mooniex/node.yaml",
                  f"{tmp_path}/hq/Agents/Core", "git@github.com:PASAKON/Agents-Core.git",
-                 "--advertise-tags=tag:org-node", "infisical_setup.py save node-a --stdin",
-                 "tools/node_dispatch.py probe"):
+                 "--advertise-tags=tag:org-node", "tools/node_token.py run --",
+                 "node.yaml: host, os, hq_root, token_url, age_identity", "tools/node_dispatch.py probe"):
         assert want in r.stdout, want
+    # W4.2b: a node has no Infisical identity, so the dry run names no Infisical program and no root step 8
+    assert "infisical_setup.py" not in r.stdout and "save node-a" not in r.stdout
+    assert "[8/9] open the sealed bundle" in r.stdout and "no secret is stored" in r.stdout
 
 
 def test_the_token_can_come_from_the_environment_and_is_never_echoed(server, tmp_path):
@@ -401,21 +405,32 @@ def test_the_tailnet_step_keeps_the_already_on_it_path_and_the_join_by_hand_mess
     assert "hub sent no Tailscale key" in r.stderr and "tailscale up --hostname node-a" in r.stderr
 
 
+# ---------------------------------------------------------------- the node has no Infisical identity (W4.2b)
+
+def test_neither_node_script_runs_infisical_or_names_an_identity_secret():
+    for path in (JOIN_SH, JOIN_PS1):
+        code = [ln for ln in path.read_text(encoding="ascii").splitlines() if not ln.lstrip().startswith("#")]
+        for n, line in enumerate(code, 1):
+            for word in ("infisical_setup", "client_secret", "client_id", "infisical_client", "--as ", "Org-Node"):
+                assert word not in line, (path.name, word, line)
+
+
+def test_the_root_needed_line_names_two_things_and_no_infisical_save():
+    for path, text in ((JOIN_SH, "ROOT NEEDED for two things"), (JOIN_PS1, "ELEVATION NEEDED for two things")):
+        body = path.read_text(encoding="ascii")
+        assert text in body and "saving the" not in body, path.name
+
+
 # ---------------------------------------------------------------- step 8, with a real age
 
-def _stub_core(tmp_path: Path, *, exit_code=0) -> tuple[Path, Path]:
-    """A checkout whose tools/infisical_setup.py records what `save` would have been given."""
-    core = tmp_path / "hq" / "Agents" / "Core"
-    (core / "tools").mkdir(parents=True)
-    out = tmp_path / "save.json"
-    (core / "tools" / "infisical_setup.py").write_text(
-        "import json, sys\n"
-        "data = sys.stdin.read()\n"
-        f"open({str(out)!r}, 'w').write(json.dumps({{'argv': sys.argv[1:], 'stdin': data}}))\n"
-        "if not data.strip():\n"
-        "    sys.exit('empty input, nothing saved')\n"
-        f"sys.exit({exit_code})\n")
-    return core, out
+TOKEN_URL = "http://100.64.0.1:8792/v1/token"
+CONF = ".config/mooniex"
+# join.sh's own `do_bundle`, with sudo and as_root made to fail loudly: step 8 needs no root now
+_BUNDLE_BODY = (
+    'as_root() { echo "AS_ROOT $*" >&2; return 1; }; sudo() { echo "SUDO $*" >&2; return 1; }\n'
+    'CIPHER=$T_CIPHER; PY=python3\n'
+    "do_bundle\n"
+)
 
 
 def _age_identity(path: Path) -> str:
@@ -426,56 +441,181 @@ def _age_identity(path: Path) -> str:
 
 
 def _seal_for(pub: str, **over) -> str:
-    payload = {"v": 1, "host": "node-a", "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET}
+    payload = {"v": 2, "host": "node-a", "token_url": TOKEN_URL}
     payload.update(over)
+    payload = {k: v for k, v in payload.items() if v is not None}
     return sealed.seal(pub, json.dumps(payload).encode()).decode("ascii")
 
 
-_IDENTITY_BODY = (
-    'as_root() { "$@"; }; sudo() { :; }\n'          # the test is not root and must never prompt
-    'CORE=$T_CORE; CIPHER=$T_CIPHER; PY=python3\n'
-    "do_identity\n"
-)
-
-
 @needs_age
-def test_the_identity_step_decrypts_and_hands_two_lines_to_save(tmp_path):
+def test_the_bundle_step_opens_the_bundle_and_writes_node_yaml_and_nothing_else(tmp_path):
     home = tmp_path / "home"
-    pub = _age_identity(home / ".config" / "mooniex" / "age-identity.txt")
-    core, out = _stub_core(tmp_path)
-    r = _lib(tmp_path, _IDENTITY_BODY, hub="http://h:1/org-join",
-             extra={"T_CORE": str(core), "T_CIPHER": _seal_for(pub)})
+    pub = _age_identity(home / CONF / "age-identity.txt")
+    r = _lib(tmp_path, _BUNDLE_BODY, hub="http://h:1/org-join", extra={"T_CIPHER": _seal_for(pub)})
     assert r.returncode == 0, r.stderr + r.stdout
-    got = json.loads(out.read_text())
-    assert got["argv"] == ["save", "node-a", "--stdin"]
-    assert got["stdin"] == f"{CLIENT_ID}\n{CLIENT_SECRET}\n"
-    assert CLIENT_SECRET not in r.stdout + r.stderr and CLIENT_ID not in r.stdout + r.stderr
-    node = yaml.safe_load((home / ".config" / "mooniex" / "node.yaml").read_text())
-    assert node == {"host": "node-a", "os": "linux", "hq_root": "/opt/MoonieXHQ"}
+    assert "AS_ROOT" not in r.stderr and "SUDO" not in r.stderr          # no root, no Infisical, no save
+    node = yaml.safe_load((home / CONF / "node.yaml").read_text())
+    assert node == {"host": "node-a", "os": "linux", "hq_root": "/opt/MoonieXHQ", "token_url": TOKEN_URL,
+                    "age_identity": str(home / CONF / "age-identity.txt")}
+    assert _tree(home) == [".config", ".config/mooniex", ".config/mooniex/age-identity.txt",
+                           ".config/mooniex/node.yaml"]                   # the one file step 8 adds
+    assert "no secret is stored" in r.stdout and "/etc/infisical" in r.stdout    # the dry-run-style note
+    # the very file tools/node_token.py reads, parsed by it
+    from tools import node_token
+    assert node_token.settings(home / CONF / "node.yaml") == ("node-a", TOKEN_URL, home / CONF / "age-identity.txt")
 
 
 @needs_age
-def test_the_identity_step_with_the_wrong_key_stores_nothing_and_leaks_nothing(tmp_path):
+def test_the_bundle_step_survives_a_conf_dir_with_a_space_and_a_quote(tmp_path):
+    home = tmp_path / "it's a home"
+    pub = _age_identity(home / CONF / "age-identity.txt")
+    r = _lib(tmp_path, _BUNDLE_BODY, hub="http://h:1/org-join",
+             extra={"T_CIPHER": _seal_for(pub), "T_HOME": str(home)})
+    assert r.returncode == 0, r.stderr + r.stdout
+    from tools import node_token
+    assert node_token.settings(home / CONF / "node.yaml") == ("node-a", TOKEN_URL, home / CONF / "age-identity.txt")
+
+
+@needs_age
+@pytest.mark.parametrize("over, message", [
+    ({"v": 1, "token_url": None, "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET}, "not a v2 bundle"),
+    ({"host": "node-b"}, "made for another host"),
+    ({"token_url": None}, "no usable token_url"),
+    ({"token_url": 7}, "no usable token_url"),
+    ({"token_url": "ftp://100.64.0.1/v1/token"}, "no usable token_url"),
+    ({"token_url": "file:///etc/passwd"}, "no usable token_url"),
+    ({"token_url": "http://user:pw@100.64.0.1/v1/token"}, "no usable token_url"),
+    ({"token_url": TOKEN_URL + "?x=1"}, "no usable token_url"),
+    ({"token_url": TOKEN_URL + "\nhost: mac"}, "no usable token_url"),
+])
+def test_a_bundle_that_is_not_a_good_v2_bundle_writes_nothing_and_echoes_no_field(tmp_path, over, message):
     home = tmp_path / "home"
-    _age_identity(home / ".config" / "mooniex" / "age-identity.txt")
-    stranger = _age_identity(tmp_path / "other" / "identity.txt")
-    core, out = _stub_core(tmp_path)
-    r = _lib(tmp_path, _IDENTITY_BODY, hub="http://h:1/org-join",
-             extra={"T_CORE": str(core), "T_CIPHER": _seal_for(stranger)})
+    pub = _age_identity(home / CONF / "age-identity.txt")
+    r = _lib(tmp_path, _BUNDLE_BODY, hub="http://h:1/org-join", extra={"T_CIPHER": _seal_for(pub, **over)})
     assert r.returncode == 1
-    assert "nothing was stored" in r.stderr
-    assert json.loads(out.read_text())["stdin"].strip() == ""      # `save` got no secret and refused
-    assert not (home / ".config" / "mooniex" / "node.yaml").exists()
-    assert CLIENT_SECRET not in r.stdout + r.stderr
+    assert message in r.stderr and "nothing was written" in r.stderr
+    assert not (home / CONF / "node.yaml").exists()
+    assert CLIENT_SECRET not in r.stdout + r.stderr and CLIENT_ID not in r.stdout + r.stderr
+    assert "passwd" not in r.stdout + r.stderr and "user:pw" not in r.stdout + r.stderr
 
 
 @needs_age
-def test_the_identity_step_refuses_a_node_yaml_that_names_another_host(tmp_path):
+def test_the_bundle_step_with_the_wrong_key_writes_nothing(tmp_path):
     home = tmp_path / "home"
-    pub = _age_identity(home / ".config" / "mooniex" / "age-identity.txt")
-    (home / ".config" / "mooniex" / "node.yaml").write_text("host: mac\n")
-    core, _ = _stub_core(tmp_path)
-    r = _lib(tmp_path, _IDENTITY_BODY, hub="http://h:1/org-join",
-             extra={"T_CORE": str(core), "T_CIPHER": _seal_for(pub)})
+    _age_identity(home / CONF / "age-identity.txt")
+    stranger = _age_identity(tmp_path / "other" / "identity.txt")
+    r = _lib(tmp_path, _BUNDLE_BODY, hub="http://h:1/org-join", extra={"T_CIPHER": _seal_for(stranger)})
+    assert r.returncode == 1 and "nothing was written" in r.stderr
+    assert not (home / CONF / "node.yaml").exists()
+    assert TOKEN_URL not in r.stdout + r.stderr
+
+
+@needs_age
+def test_the_bundle_step_refuses_a_node_yaml_that_names_another_host(tmp_path):
+    home = tmp_path / "home"
+    pub = _age_identity(home / CONF / "age-identity.txt")
+    (home / CONF / "node.yaml").write_text("host: mac\n")
+    r = _lib(tmp_path, _BUNDLE_BODY, hub="http://h:1/org-join", extra={"T_CIPHER": _seal_for(pub)})
     assert r.returncode == 1 and "already names another host" in r.stderr
-    assert (home / ".config" / "mooniex" / "node.yaml").read_text() == "host: mac\n"
+    assert (home / CONF / "node.yaml").read_text() == "host: mac\n"
+
+
+# ---------------------------------------------------------------- step 9, against the real token service
+
+NODE_JSON = ('{"ok": true, "result": {"host": "node-a", "os": "linux", "free_gb": 1, '
+             '"runners": ["token=${CLAUDE_CODE_OAUTH_TOKEN:+set}", "host=$ORG_HOST"]}}')
+
+
+def _fake_core(tmp_path: Path) -> Path:
+    """A checkout with the REAL tools/node_token.py and a `.venv/bin/python` that prints the probe's
+    one JSON line: whether the token reached its environment, never its value."""
+    core = tmp_path / "hq" / "Agents" / "Core"
+    (core / "tools").mkdir(parents=True)
+    (core / ".venv" / "bin").mkdir(parents=True)
+    shutil.copy(ROOT / "tools" / "node_token.py", core / "tools" / "node_token.py")
+    stub = core / ".venv" / "bin" / "python"
+    stub.write_text(f"#!/bin/sh\ncat <<EOF\n{NODE_JSON}\nEOF\n")
+    stub.chmod(stub.stat().st_mode | stat.S_IXUSR)
+    return core
+
+
+@pytest.fixture
+def token_service(ledger):
+    from test_w42b_node_token_api import Api, NAME, TOKEN as CLAUDE
+    made = []
+
+    def start():
+        a = Api(tokens={NAME: CLAUDE})                                 # the real service and lib.sealed.seal
+        made.append(a)
+        return a
+    start.claude = CLAUDE
+    yield start
+    for a in made:
+        a.close()
+
+
+def _approve(host="node-a", *, pub, status=None, approved=True):
+    db.upsert_host(host, status=status or hq_join.STATUS_READY, pubkey=pub,
+                   approved_at="2026-10-03T10:00:00+00:00" if approved else None)
+
+
+@needs_age
+def test_steps_8_and_9_end_to_end_the_probe_gets_the_token_and_nothing_is_stored(token_service, tmp_path):
+    home = tmp_path / "home"
+    pub = _age_identity(home / CONF / "age-identity.txt")
+    api = token_service()
+    _approve(pub=pub)
+    url = f"http://127.0.0.1:{api.port}/v1/token"
+    core = _fake_core(tmp_path)
+    before = _tree(tmp_path / "hq")
+    body = (
+        'as_root() { echo "AS_ROOT $*" >&2; return 1; }; sudo() { echo "SUDO $*" >&2; return 1; }\n'
+        'CORE=$T_CORE; CIPHER=$T_CIPHER; PY=python3\n'
+        'do_bundle || exit 9\n'
+        'do_probe\n'
+    )
+    r = _lib(tmp_path, body, hub="http://h:1/org-join",
+             extra={"T_CORE": str(core), "T_CIPHER": _seal_for(pub, token_url=url)})
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert "probe: ok host=node-a os=linux free_gb=1 runners=['token=set', 'host=node-a']" in r.stdout, r.stdout
+    assert "AS_ROOT" not in r.stderr and "SUDO" not in r.stderr          # step 9 runs as the user
+    assert token_service.claude not in r.stdout + r.stderr                # the value reached the child only
+    assert _tree(tmp_path / "hq") == before                               # no file written in the checkout
+    assert _tree(home) == [".config", ".config/mooniex", ".config/mooniex/age-identity.txt",
+                           ".config/mooniex/node.yaml"]
+    assert token_service.claude not in (home / CONF / "node.yaml").read_text()
+
+
+@needs_age
+@pytest.mark.parametrize("status, approved, code", [
+    (hq_join.STATUS_LEFT, True, "left"), (hq_join.STATUS_LEAVING, True, "left"),
+    (hq_join.STATUS_READY, False, "not_approved"), (hq_join.STATUS_PENDING, False, "not_approved"),
+    (hq_join.STATUS_PENDING, True, "not_issuing"), ("offline", True, "not_issuing")])
+def test_step_9_names_the_hubs_refusal_and_the_probe_fails_without_the_token(token_service, tmp_path,
+                                                                           status, approved, code):
+    home = tmp_path / "home"
+    pub = _age_identity(home / CONF / "age-identity.txt")
+    api = token_service()
+    _approve(pub=pub, status=status, approved=approved)
+    core = _fake_core(tmp_path)
+    marker = tmp_path / "probe-ran"
+    (core / ".venv" / "bin" / "python").write_text(f"#!/bin/sh\ntouch '{marker}'\n")
+    body = (
+        'CORE=$T_CORE; CIPHER=$T_CIPHER; PY=python3\n'
+        'do_bundle || exit 9\n'
+        'do_probe\n'
+    )
+    r = _lib(tmp_path, body, hub="http://h:1/org-join",
+             extra={"T_CORE": str(core), "T_CIPHER": _seal_for(pub, token_url=f"http://127.0.0.1:{api.port}/v1/token")})
+    assert r.returncode == 1
+    assert "probe: FAILED" in r.stdout and f"hub answered HTTP 403 ({code})" in r.stderr
+    assert not marker.exists()                                            # the probe never started
+    assert token_service.claude not in r.stdout + r.stderr
+
+
+def test_step_9_with_a_node_yaml_missing_says_to_run_join_again(tmp_path):
+    core = _fake_core(tmp_path)
+    r = _lib(tmp_path, 'CORE=$T_CORE; PY=python3\ndo_probe\n', hub="http://h:1/org-join",
+             extra={"T_CORE": str(core)})
+    assert r.returncode == 1 and "probe: FAILED" in r.stdout
+    assert "this machine has not joined" in r.stderr
