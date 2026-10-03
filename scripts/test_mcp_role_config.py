@@ -223,8 +223,42 @@ def test_g3_spawn_forwards_env() -> None:
             _mark("CXO_SKIP_MCP" not in out, f"{rel}: loop skips an empty var")
 
 
+def test_supabase_oauth_when_no_pat() -> None:
+    print("supabase without a PAT in env = hosted OAuth server, read-only")
+    saved = os.environ.pop("SUPABASE_ACCESS_TOKEN", None)
+    try:
+        entry = cfg._build("supabase", str(ROOT))
+        _mark(entry is not None and entry.get("type") == "http", "no PAT -> http entry")
+        url = (entry or {}).get("url", "")
+        _mark(url.startswith("https://mcp.supabase.com/mcp?"), "hosted Supabase URL")
+        _mark(f"project_ref={cfg.SUPABASE_PROJECT_REF}" in url, "scoped to one project")
+        _mark("read_only=true" in url, "read_only=true by default")
+        _mark("env" not in (entry or {}) and "headers" not in (entry or {}), "no token in the entry")
+        os.environ["CXO_SUPABASE_WRITE"] = "1"
+        try:
+            _mark("read_only" not in cfg._build("supabase", str(ROOT))["url"],
+                  "CXO_SUPABASE_WRITE=1 drops read_only")
+        finally:
+            del os.environ["CXO_SUPABASE_WRITE"]
+    finally:
+        if saved is not None:
+            os.environ["SUPABASE_ACCESS_TOKEN"] = saved
+
+
 def test_supabase_read_only_by_default() -> None:
     print("supabase is read-only unless explicitly told otherwise")
+    saved = os.environ.get("SUPABASE_ACCESS_TOKEN")
+    os.environ["SUPABASE_ACCESS_TOKEN"] = "synthetic-not-a-token"
+    try:
+        _check_supabase_stdio_read_only()
+    finally:
+        if saved is None:
+            del os.environ["SUPABASE_ACCESS_TOKEN"]
+        else:
+            os.environ["SUPABASE_ACCESS_TOKEN"] = saved
+
+
+def _check_supabase_stdio_read_only() -> None:
     entry = cfg._build("supabase", str(_effective_root()))
     if entry is None:
         _mark(True, "supabase CLI not installed here — skipped")
@@ -276,6 +310,7 @@ if __name__ == "__main__":
         test_org_tools_come_from_registry,
         test_launchers_derive_allowed,
         test_g3_spawn_forwards_env,
+        test_supabase_oauth_when_no_pat,
         test_supabase_read_only_by_default,
         test_borrow_mode,
     ):

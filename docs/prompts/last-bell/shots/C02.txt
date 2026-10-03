@@ -1,0 +1,17 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot C02 · scene C · target length in the cut 8 s · grade storm
+References in upload order: @ภาพ1=loc_city, @ภาพ2=ch_kaew_a, @ภาพ3=ch_mek_a
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, a slow lateral dolly screen-right to screen-left.
+People cling to the rooftops of SUWANNAWARI.
+REFERENCES: @ภาพ1 — SUWANNAWARI, the floating city: stilt houses, canals, the great white-and-gold chedi. @ภาพ2 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ3 — MEK: face, hair, clothes, colours; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot. MEK, lanky Thai boy about 14, turquoise checked headband, turquoise vest, black trousers.
+THE FRAME: Wide: families on the rooftops of half-flooded houses, holding each other in the rain; the boat with MEK and KAEW small in the foreground passing screen-right to screen-left.
+WHAT HAPPENS: [0s] A family huddles on a roof ridge; a child clutches a small bell. [4s] KAEW looks up at them as the boat passes; she does not stop.
+SOUND: Rain, wind, distant cries, a child's bell ringing faintly.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

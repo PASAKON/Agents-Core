@@ -14,6 +14,7 @@ Run via: pytest tests/test_mesh_check.py
 """
 from __future__ import annotations
 
+import ast
 import asyncio
 import copy
 import json
@@ -67,6 +68,90 @@ def test_check_l0_self_host_failure_is_not_a_disagreement(monkeypatch):
     ok, reason = m.check_l0(Path("/opt/MoonieXHQ/Agents/Core"))
     assert ok is True
     assert reason is None
+
+
+# --- L0 root_match: agents_root OR the registered checkout of this repo -----
+# winbox's agents_root is the spawn directory; the Agents-Core checkout is
+# config/projects.yaml `mooniex-agents` `paths.winbox` (task-47202255).
+
+WIN_SPAWN = r"C:\Users\x\spawn"
+WIN_CHECKOUT = r"C:\Users\x\spawn\repo\Agents-Core"
+
+
+@pytest.fixture
+def fake_registry(monkeypatch, tmp_path):
+    """A hosts/projects registry shaped like the real config: winbox registers its
+    checkout under `paths`, away from its agents_root; mac registers both alike."""
+    hosts = {
+        "mac": {"agents_root": "/fake/mac/Core"},
+        "winbox": {"agents_root": WIN_SPAWN},
+    }
+    projects = {m.AGENTS_PROJECT_KEY: {"paths": {"mac": "/fake/mac/Core", "winbox": WIN_CHECKOUT}}}
+    monkeypatch.setattr(m.config, "hosts", lambda: hosts)
+    monkeypatch.setattr(m.config, "projects", lambda: projects)
+    return hosts, projects
+
+
+def test_root_match_windows_checkout_ignores_case_and_separator(fake_registry):
+    for spelling in (WIN_CHECKOUT, WIN_CHECKOUT.replace("\\", "/"),
+                     WIN_CHECKOUT.replace("\\", "/").lower(), WIN_CHECKOUT.upper() + "\\"):
+        assert m._root_match_host(Path(spelling)) == "winbox", spelling
+
+
+def test_root_match_windows_checkout_of_the_real_config(monkeypatch):
+    """Not the fixture: the winbox row config/projects.yaml really carries."""
+    registered = m.config.projects()[m.AGENTS_PROJECT_KEY]["paths"]["winbox"]
+    assert m._root_match_host(Path(registered.replace("\\", "/").lower())) == "winbox"
+
+
+def test_root_match_agents_root_still_matches(fake_registry):
+    assert m._root_match_host(Path("/fake/mac/Core")) == "mac"
+    assert m._root_match_host(Path(WIN_SPAWN.lower().replace("\\", "/"))) == "winbox"
+
+
+def test_root_match_a_worktree_matches_nobody(fake_registry):
+    """Under a registered checkout is still not a registered checkout."""
+    for worktree in ("/fake/mac/Core/worktrees/mooniex-agents__developer__task-1",
+                     WIN_CHECKOUT + r"\worktrees\task-1", WIN_SPAWN + r"\worktrees\task-1",
+                     "/fake/mac/Core-other"):
+        assert m._root_match_host(Path(worktree)) is None, worktree
+
+
+def test_root_match_without_a_registered_checkout_falls_back_to_agents_root(fake_registry, monkeypatch):
+    monkeypatch.setattr(m.config, "projects", lambda: {})
+    assert m._root_match_host(Path(WIN_SPAWN)) == "winbox"
+    assert m._root_match_host(Path(WIN_CHECKOUT)) is None
+
+
+def test_root_match_resolves_a_symlink_for_a_path_that_exists_here(monkeypatch, tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    link = tmp_path / "link"
+    try:
+        link.symlink_to(real, target_is_directory=True)
+    except OSError:
+        pytest.skip("cannot create a symlink here")
+    monkeypatch.setattr(m.config, "hosts", lambda: {"mac": {"agents_root": "/elsewhere"}})
+    monkeypatch.setattr(m.config, "projects",
+                        lambda: {m.AGENTS_PROJECT_KEY: {"paths": {"mac": str(link)}}})
+    assert m._root_match_host(real) == "mac"
+    assert m._root_match_host(link) == "mac"
+
+
+def test_check_l0_green_on_winbox_when_run_from_its_registered_checkout(fake_registry, monkeypatch):
+    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
+    monkeypatch.setattr(m, "_tailscale_guess_host", lambda: "winbox")
+    ok, reason = m.check_l0(Path(WIN_CHECKOUT.replace("\\", "/").lower()))
+    assert (ok, reason) == (True, None)
+
+
+def test_check_l0_red_from_a_worktree_even_when_the_checkout_is_registered(fake_registry, monkeypatch):
+    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
+    monkeypatch.setattr(m, "_tailscale_guess_host", lambda: "winbox")
+    ok, reason = m.check_l0(Path(WIN_CHECKOUT + r"\worktrees\task-1"))
+    assert ok is False
+    assert "root_match=(unregistered)" in reason
+    assert "self_host=winbox" in reason
 
 
 # ---------------------------------------------------------------------------
@@ -123,6 +208,167 @@ def test_check_l1_windows_target_falls_back_to_cmd_exit(monkeypatch):
     assert reason is None
     assert calls[0][5] == "winbox" and calls[0][-1] == "true"
     assert calls[1][-3:] == ["cmd", "/c", "exit"] or calls[1][-4:] == ["cmd", "/c", "exit", "0"]
+
+
+# --- L1 to this host itself: no ssh, a cell that never counts ----------------
+# winbox cannot resolve its own ssh alias, so the cell to itself made it red
+# (task-47202255).
+
+#
+# ONE identity per run decides which cell is "to itself": the host the matrix
+# labels its row with (`_running_host_guess`), passed to `_l1_cell` as `me`.
+# `self_host()` is a second source and can disagree (a worktree, another
+# node.yaml, the Linux CI runner answering "contabo" for a test that runs the
+# matrix as "mac"); if it chose, a red cell would silently become an uncounted
+# n/a. The tests pin it every which way to prove it is never consulted.
+
+SELF_HOST_PINS = ["mac", "contabo", "winbox", ValueError]  # a host key, or "raises this"
+
+
+def _pin_self_host(monkeypatch, pin) -> None:
+    def fake():
+        if isinstance(pin, type):
+            raise pin("cannot resolve self_host")
+        return pin
+    monkeypatch.setattr(m.config, "self_host", fake)
+
+
+@pytest.fixture(params=SELF_HOST_PINS, ids=lambda p: p if isinstance(p, str) else "raises-" + p.__name__)
+def self_host_pin(request, monkeypatch):
+    """The test runs once per self_host() answer: each host, and "cannot say"."""
+    _pin_self_host(monkeypatch, request.param)
+    return request.param
+
+
+# self_host() is lru_cached and reads ORG_HOST first. Every test in this file
+# starts on "mac", whatever box runs it (the Linux CI runner is "contabo"), the
+# way the `hub` fixture below does; a test that needs another answer overrides it.
+_REAL_SELF_HOST = m.config.self_host
+
+
+@pytest.fixture(autouse=True)
+def _self_host_is_mac_whatever_the_box(monkeypatch):
+    monkeypatch.setenv("ORG_HOST", "mac")
+    _REAL_SELF_HOST.cache_clear()
+    yield
+    _REAL_SELF_HOST.cache_clear()
+
+
+def _fake_ssh(monkeypatch, red=()) -> list:
+    """Replace subprocess.run: record the alias of every ssh dialled (the list
+    returned); an alias in `red` answers 255, every other one 0."""
+    dialled: list = []
+
+    def fake_run(cmd, **kwargs):
+        dialled.append(cmd[5])
+        return _FakeCompleted(returncode=255 if cmd[5] in red else 0, stderr="no route to host")
+    monkeypatch.setattr(m.subprocess, "run", fake_run)
+    return dialled
+
+
+def test_l1_cell_to_this_host_never_runs_subprocess(monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("subprocess.run called for an L1 cell to this host")
+    monkeypatch.setattr(m.subprocess, "run", boom)
+    cell = m._l1_cell("winbox", "winbox")
+    assert cell["ok"] is True and cell["reason"] == "n/a" and cell["kind"] == "n/a"
+    assert m._judge(cell) == ("n/a", "skip")
+
+
+def test_l1_cell_never_asks_self_host_who_this_host_is(self_host_pin, monkeypatch):
+    """Whatever self_host() says, only `me` makes a cell n/a, and a red answer to
+    any other target stays red."""
+    dialled = _fake_ssh(monkeypatch, red=("mooniex-vps",))
+    assert m._l1_cell("contabo", "contabo")["kind"] == "n/a"
+    assert dialled == []
+    cell = m._l1_cell("contabo", "mac")
+    assert cell["ok"] is False and "no route to host" in cell["reason"]
+    assert dialled == ["mooniex-vps"]
+
+
+def test_l1_cell_to_another_host_is_still_the_ssh_answer(monkeypatch):
+    dialled = _fake_ssh(monkeypatch)
+    assert m._l1_cell("contabo", "winbox") == {"ok": True, "reason": None}
+    assert dialled == ["mooniex-vps"]
+
+
+def test_l1_cell_dials_everyone_when_the_run_has_no_identity(monkeypatch):
+    """me is None: nothing is "this host", so nothing is skipped."""
+    dialled = _fake_ssh(monkeypatch)
+    assert m._l1_cell("contabo", None)["ok"] is True
+    assert m._l1_cell("winbox", None)["ok"] is True
+    assert dialled == ["mooniex-vps", "winbox"]
+
+
+def test_local_payload_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(self_host_pin, monkeypatch):
+    dialled = _fake_ssh(monkeypatch)
+    monkeypatch.setattr(m, "_running_host_guess", lambda root: "winbox")
+    monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
+    monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
+    payload = asyncio.run(m.local_payload())
+    assert payload["l1"]["winbox"] == {"ok": True, "reason": "n/a", "kind": "n/a"}
+    assert payload["l1"]["contabo"] == {"ok": True, "reason": None}
+    assert payload["l1"]["mac"] == {"ok": False, "reason": "closed (by design)"}
+    assert dialled == ["mooniex-vps"]
+
+
+def test_local_payload_dials_every_host_when_it_cannot_tell_where_it_runs(self_host_pin, monkeypatch):
+    """The labelling source says None (a worktree, tailscale silent): no cell is
+    n/a, this host's own included, even when self_host() names one."""
+    dialled = _fake_ssh(monkeypatch, red=("winbox",))
+    monkeypatch.setattr(m, "_running_host_guess", lambda root: None)
+    monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
+    monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
+    payload = asyncio.run(m.local_payload())
+    assert set(dialled) == {"winbox", "mooniex-vps"}
+    assert payload["l1"]["winbox"]["ok"] is False and "kind" not in payload["l1"]["winbox"]
+    assert payload["l1"]["contabo"] == {"ok": True, "reason": None}
+
+
+def _l1_row(md: str, frm: str) -> list[str]:
+    section = md.split("## L1")[1].split("## L2")[0]
+    row = [ln for ln in section.splitlines() if ln.startswith(f"| {frm} ")][0]
+    return [c.strip() for c in row.strip("|").split("|")]
+
+
+def _matrix(monkeypatch, running_host: str, expect: str = "w0"):
+    monkeypatch.setattr(m, "_running_host_guess", lambda root: running_host)
+    monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
+    monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
+    monkeypatch.setattr(m, "_collect_peer_local", lambda alias, cfg, script_path: None)
+    args = types.SimpleNamespace(expect=expect, live=False, no_merge=False)
+    combined, _ = asyncio.run(m.build_matrix(args))
+    return combined, m.render(combined, expect)
+
+
+def test_matrix_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(self_host_pin, monkeypatch):
+    dialled = _fake_ssh(monkeypatch)
+    combined, (md, any_fail, n_ok, n_fail) = _matrix(monkeypatch, "winbox")
+    assert "winbox" not in combined["L1"]["winbox"]  # the diagonal has no cell at all
+    assert _l1_row(md, "winbox")[m.HOSTS.index("winbox") + 1] == "n/a"
+    assert dialled == ["mooniex-vps"]
+    assert any_fail is False and n_fail == 0
+
+
+@pytest.mark.parametrize("running, other_self, red_alias, red_to", [
+    ("contabo", "winbox", "winbox", "winbox"),       # self_host() names the TARGET
+    ("winbox", "contabo", "mooniex-vps", "contabo"),  # self_host() names ANOTHER host
+])
+def test_matrix_a_red_l1_cell_stays_red_when_self_host_names_another_host(
+        monkeypatch, running, other_self, red_alias, red_to):
+    """The two identity sources disagree, in each direction. The matrix row is
+    labelled `running`, so that row dials every other host, and a red answer is
+    a red cell that counts and flips the exit code. The CI failure was this:
+    the matrix ran as "mac", self_host() said "contabo", and a red L1 to contabo
+    came out as n/a."""
+    _pin_self_host(monkeypatch, other_self)
+    dialled = _fake_ssh(monkeypatch, red=(red_alias,))
+    combined, (md, any_fail, n_ok, n_fail) = _matrix(monkeypatch, running)
+    assert red_alias in dialled
+    cell = combined["L1"][running][red_to]
+    assert cell["ok"] is False and "kind" not in cell
+    assert "FAIL(" in _l1_row(md, running)[m.HOSTS.index(red_to) + 1]
+    assert any_fail is True and n_fail >= 1
 
 
 # ---------------------------------------------------------------------------
@@ -269,6 +515,58 @@ def test_run_l3_probe_red_when_merge_sha_not_on_origin(monkeypatch, tmp_path):
     ok, reason = asyncio.run(m.run_l3_probe("mac", "contabo", tmp_path, "w0", False))
     assert ok is False
     assert "not found on origin" in reason
+
+
+def _l3_green_cycle_with_status(monkeypatch, tmp_path, before: str, after: str):
+    """A full green L3 cycle whose `git status --porcelain` reads `before` when
+    the probe starts and `after` once the merge is on origin."""
+    (tmp_path / ".venv" / "bin").mkdir(parents=True)
+    (tmp_path / ".venv" / "bin" / "python").write_text("#!/bin/sh\n")
+    monkeypatch.setattr(m, "_register_probe_session", lambda session_id, host: None)
+    responses = {
+        "create_task": lambda args: "task-abc12345",
+        "delegate_task": lambda args: _toon_task(status="in_progress"),
+        "get_task": lambda args: _toon_task(status="review"),
+        "merge_task": lambda args: _toon_task(merged="true", merge_sha="deadbeef1234"),
+    }
+    _install_fake_mcp(monkeypatch, ["create_task", "delegate_task", "get_task", "merge_task"],
+                      responses)
+    monkeypatch.setattr(m, "_git_ls_remote_has", lambda root, sha: True)
+    reads = iter([before, after])
+    monkeypatch.setattr(m, "_git_status_porcelain", lambda root: next(reads))
+    return asyncio.run(m.run_l3_probe("mac", "contabo", tmp_path, "w0", False))
+
+
+# The Mac's runtime checkout always carries the harness's model line in
+# claude-home/settings.json, so a check for an absolutely clean checkout could
+# never pass there.
+_MAC_DIRT = " M claude-home/settings.json\n M state/banchi/flow_shoot.log\n?? state/jules/"
+
+
+def test_run_l3_probe_green_when_the_checkout_was_dirty_before_the_probe(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(monkeypatch, tmp_path, _MAC_DIRT, _MAC_DIRT)
+    assert ok is True
+    assert reason is None
+
+
+def test_run_l3_probe_green_when_another_session_adds_untracked_files(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(
+        monkeypatch, tmp_path, _MAC_DIRT, _MAC_DIRT + "\n?? state/work_watch_state.json")
+    assert ok is True
+    assert reason is None
+
+
+def test_run_l3_probe_red_when_the_cycle_dirties_a_tracked_file(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(
+        monkeypatch, tmp_path, _MAC_DIRT, "UU docs/ops/mesh-probe/mac-contabo.md\n" + _MAC_DIRT)
+    assert ok is False
+    assert reason == "merge left the runtime checkout dirty: UU docs/ops/mesh-probe/mac-contabo.md"
+
+
+def test_run_l3_probe_red_when_git_status_fails_after_the_merge(monkeypatch, tmp_path):
+    ok, reason = _l3_green_cycle_with_status(monkeypatch, tmp_path, "", m._GIT_STATUS_FAILED)
+    assert ok is False
+    assert reason == "git status failed after merge"
 
 
 # ---------------------------------------------------------------------------
@@ -422,7 +720,7 @@ def _async_return(value):
     return _f
 
 
-def test_amain_exits_1_when_an_in_scope_cell_is_red(monkeypatch, tmp_path, capsys):
+def test_amain_exits_1_when_an_in_scope_cell_is_red(self_host_pin, monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(m, "_running_host_guess", lambda root: "mac")
     monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
     monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
@@ -437,7 +735,7 @@ def test_amain_exits_1_when_an_in_scope_cell_is_red(monkeypatch, tmp_path, capsy
     assert "FAIL(ssh boom)" in out
 
 
-def test_amain_exits_0_when_everything_in_scope_is_green(monkeypatch, tmp_path, capsys):
+def test_amain_exits_0_when_everything_in_scope_is_green(self_host_pin, monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(m, "_running_host_guess", lambda root: "mac")
     monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
     monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
@@ -1083,8 +1381,9 @@ def _drill(tmp_path: Path, **over) -> Path:
 
 
 def test_l8_missing_file_is_not_run_and_never_green(tmp_path):
-    cell = m.check_l8(tmp_path)
+    cell = m.check_l8(tmp_path, events=lambda: None)
     assert cell["ok"] is False and cell["kind"] == "not_run"
+    assert "no join_drill event" in cell["reason"]
 
 
 def test_l8_green_for_a_fresh_ok_drill_with_steps(tmp_path):
@@ -1123,6 +1422,107 @@ def test_l8_red_when_the_file_is_not_json_or_not_an_object(tmp_path):
     assert m.check_l8(tmp_path)["ok"] is False
     (tmp_path / m.JOIN_DRILL_FILE).write_text("[1]")
     assert m.check_l8(tmp_path)["ok"] is False
+
+
+# ---- L8: the join_drill events row, for a machine that never ran the drill --------
+
+def _event(**over) -> dict:
+    data = {"ok": True, "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "host": "drill-20261003-140000",
+            "steps": [{"name": "join", "ok": True, "detail": "x"}, {"name": "probe", "ok": True}]}
+    data.update(over)
+    return data
+
+
+def test_l8_reads_the_event_when_the_file_is_missing_and_goes_green(tmp_path):
+    cell = m.check_l8(tmp_path, events=lambda: _event())
+    assert cell["ok"] is True and "drill-20261003-140000" in cell["note"]
+
+
+def test_l8_the_file_wins_over_an_event(tmp_path):
+    cell = m.check_l8(_drill(tmp_path, ok=False, steps=[{"name": "mint", "ok": False}]),
+                      events=lambda: _event())
+    assert cell["ok"] is False and "mint" in cell["reason"]
+
+
+def test_l8_event_gets_the_same_checks_as_the_file(tmp_path):
+    now = datetime(2026, 10, 10, 12, 0, tzinfo=timezone.utc)
+    old = _event(at=(now - timedelta(days=8)).isoformat())
+    cell = m.check_l8(tmp_path, now, events=lambda: old)
+    assert cell["ok"] is False and "kind" not in cell and "days old" in cell["reason"]
+    failed = _event(ok=False, steps=[{"name": "join", "ok": True}, {"name": "probe", "ok": False}])
+    cell = m.check_l8(tmp_path, events=lambda: failed)
+    assert cell["ok"] is False and "probe" in cell["reason"]
+    for bad in ({"ok": "yes"}, {"host": ""}, {"steps": []}, {"at": "yesterday"}):
+        assert m.check_l8(tmp_path, events=lambda bad=bad: _event(**bad))["ok"] is False
+    assert m.check_l8(tmp_path, events=lambda: [1])["ok"] is False
+
+
+def test_l8_hub_that_cannot_be_read_is_not_run_not_green_and_not_a_crash(tmp_path):
+    def boom():
+        raise RuntimeError("hub down")
+
+    cell = m.check_l8(tmp_path, events=boom)
+    assert cell["ok"] is False and cell["kind"] == "not_run" and "RuntimeError" in cell["reason"]
+
+
+def test_join_drill_record_then_latest_round_trip_and_the_newest_wins(hub, tmp_path):
+    assert m.latest_join_drill() is None
+    assert m.check_l8(tmp_path)["kind"] == "not_run"                 # the real reader, empty hub
+    m.join_drill_record(_event(ok=False, host="drill-old", steps=[{"name": "join", "ok": False}]))
+    m.join_drill_record(_event())
+    got = m.latest_join_drill()
+    assert got["host"] == "drill-20261003-140000" and got["ok"] is True
+    cell = m.check_l8(tmp_path)                                      # the Mac: no file, real reader
+    assert cell["ok"] is True and "drill-20261003-140000" in cell["note"]
+
+
+def test_join_drill_record_refuses_a_bad_or_oversized_payload(hub):
+    for bad in ([1], {"host": 3}, {"host": "h", "pad": "x" * (m.JOIN_DRILL_MAX_BYTES + 1)}):
+        with pytest.raises(ValueError):
+            m.join_drill_record(bad)
+    assert m.latest_join_drill() is None
+
+
+def test_join_drill_task_is_pending_targeted_and_carries_the_l3_probe_path(hub):
+    tid = m.join_drill_task_create("drill-20261003-140000")
+    task = hub.get_task(tid)
+    assert task["status"] == "pending" and task["host"] == "drill-20261003-140000"
+    assert task["project"] == "mooniex-agents" and task["role"] == "developer"
+    assert "docs/ops/mesh-probe/contabo-drill-20261003-140000.md" in json.dumps(task["touches"])
+    assert "mesh-probe:" in task["description"]
+    with pytest.raises(ValueError):
+        m.join_drill_task_create("Bad Host; rm -rf /")
+
+
+def test_join_drill_task_close_cancels_once(hub):
+    tid = m.join_drill_task_create("drill-20261003-140000")
+    assert m.join_drill_task_close(tid) is True
+    assert hub.get_task(tid)["status"] == "cancelled"
+
+
+def test_join_drill_cli_verbs_and_exit_codes(hub, tmp_path, capsys):
+    assert m.join_drill_cli("task-create", "drill-20261003-140000") == 0
+    tid = capsys.readouterr().out.strip().splitlines()[-1]
+    assert tid.startswith("task-")
+    assert m.join_drill_cli("task-close", tid) == 0
+    f = tmp_path / "d.json"
+    f.write_text(json.dumps(_event()))
+    assert m.join_drill_cli("record", str(f)) == 0
+    assert m.latest_join_drill()["host"] == "drill-20261003-140000"
+    f.write_text("{not json")
+    assert m.join_drill_cli("record", str(f)) == 2
+    assert m.join_drill_cli("record", str(tmp_path / "nope.json")) == 2
+    assert m.join_drill_cli("task-create", "Bad Host") == 2
+    assert m.join_drill_cli("explode", "x") == 2
+    assert "unknown verb" in capsys.readouterr().err
+
+
+def test_join_drill_flag_needs_no_expect_and_hands_over_to_the_cli(monkeypatch):
+    seen = []
+    monkeypatch.setattr(m, "join_drill_cli", lambda verb, arg: seen.append((verb, arg)) or 0)
+    assert asyncio.run(m.amain(["--join-drill", "task-close", "task-0123abcd"])) == 0
+    assert seen == [("task-close", "task-0123abcd")]
 
 
 # ---- INV -------------------------------------------------------------------
@@ -1363,3 +1763,77 @@ def test_amain_live_exits_0_when_everything_claimed_is_green_or_closed(monkeypat
     _amain_stubs(monkeypatch, tmp_path, calls)
     assert asyncio.run(m.amain(["--expect", "w2", "--live"])) == 0
     assert "closed (by design)" in capsys.readouterr().out  # SEC / L5 into the Mac
+
+
+# ---------------------------------------------------------------------------
+# Text decoding: every text-mode subprocess call names utf-8 (task-47202255)
+#
+# text=True alone decodes with the locale codec, cp1252 on winbox, and a byte
+# like 0x81 then kills the reader thread with UnicodeDecodeError. A new call that
+# forgets the encoding must fail here, not on a Windows box later.
+# ---------------------------------------------------------------------------
+
+_SUBPROCESS_CALLS = {"run", "Popen", "check_output", "check_call", "call"}
+
+
+def _kw(call: "ast.Call") -> dict:
+    return {k.arg: k.value for k in call.keywords if k.arg}
+
+
+def _is_true(node) -> bool:
+    return isinstance(node, ast.Constant) and node.value is True
+
+
+def _is_const(node, value) -> bool:
+    return isinstance(node, ast.Constant) and node.value == value
+
+
+def _text_calls_without_utf8(source: str) -> tuple[int, list[int]]:
+    """(text-mode subprocess calls seen, line numbers of those that do not pass
+    encoding="utf-8" and errors="replace"). A call that hides its keywords behind
+    **kwargs counts as lacking them: the walker cannot see them."""
+    seen, bad = 0, []
+    for node in ast.walk(ast.parse(source)):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr in _SUBPROCESS_CALLS
+                and isinstance(node.func.value, ast.Name) and node.func.value.id == "subprocess"):
+            continue
+        kw = _kw(node)
+        if not (_is_true(kw.get("text")) or _is_true(kw.get("universal_newlines"))):
+            continue
+        seen += 1
+        if not (_is_const(kw.get("encoding"), "utf-8") and _is_const(kw.get("errors"), "replace")):
+            bad.append(node.lineno)
+    return seen, bad
+
+
+def test_every_text_mode_subprocess_call_in_mesh_check_names_utf8():
+    seen, bad = _text_calls_without_utf8((ROOT / "tools" / "mesh_check.py").read_text(encoding="utf-8"))
+    assert seen >= 10, f"walker saw only {seen} text-mode calls; it has stopped finding them"
+    assert bad == [], f"text=True without encoding='utf-8', errors='replace' at lines {bad}"
+
+
+def test_the_utf8_walker_can_fail():
+    """A check that cannot fail is worthless: prove the walker flags each way to miss."""
+    ok = 'subprocess.run(c, text=True, encoding="utf-8", errors="replace")'
+    assert _text_calls_without_utf8(ok) == (1, [])
+    for src in ("subprocess.run(c, text=True)",
+                "subprocess.run(c, universal_newlines=True)",
+                'subprocess.run(c, text=True, encoding="utf-8")',
+                'subprocess.check_output(c, text=True, encoding="cp1252", errors="replace")',
+                "subprocess.run(c, text=True, **opts)"):
+        seen, bad = _text_calls_without_utf8(src)
+        assert (seen, bad) == (1, [1]), src
+    assert _text_calls_without_utf8("subprocess.run(c, capture_output=True)") == (0, [])
+
+
+def test_ssh_run_passes_utf8_and_replace_to_subprocess(monkeypatch):
+    """The keywords reach subprocess.run, not only the source text the walker reads."""
+    seen = {}
+
+    def fake_run(cmd, **kwargs):
+        seen.update(kwargs)
+        return _FakeCompleted(returncode=0, stdout="ok")
+    monkeypatch.setattr(m.subprocess, "run", fake_run)
+    assert m._ssh_run("mooniex-vps", "true", timeout=5) == "ok"
+    assert seen["encoding"] == "utf-8" and seen["errors"] == "replace"

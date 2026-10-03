@@ -30,6 +30,7 @@ import stat
 import subprocess
 import sys
 import time
+import venv
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -287,6 +288,19 @@ def test_coo_host_unresolved_and_usage_exit_codes() -> None:
 # --- the launcher ------------------------------------------------------------------------------------
 
 
+def _hermetic_venv(dest: Path, prefix: str) -> None:
+    """The root's `.venv`. cxo-claude.sh runs `source .venv/bin/activate`.
+
+    A venv's own prefix has that file, so link to it. A bare interpreter prefix does not
+    (CI: the setup-python toolcache), so build a venv over it that still sees its site-packages.
+    """
+    if (Path(prefix) / "bin" / "activate").exists():
+        dest.symlink_to(prefix)
+    else:
+        # symlinks, as `python -m venv` does on POSIX: a copied interpreter loses its libpython on a shared build
+        venv.create(dest, system_site_packages=True, symlinks=True, with_pip=False)
+
+
 @pytest.fixture()
 def lroot(tmp_path: Path) -> Path:
     """A hermetic org root: the real code by symlink, a private state/, the test's own venv."""
@@ -294,9 +308,31 @@ def lroot(tmp_path: Path) -> Path:
     root.mkdir()
     for name in (".claude", "config", "lib", "policies", "roles", "runners", "scripts", "tools"):
         (root / name).symlink_to(ROOT / name)
-    (root / ".venv").symlink_to(sys.prefix)
+    _hermetic_venv(root / ".venv", sys.prefix)
     (root / "state").mkdir()
     return root
+
+
+def test_hermetic_venv_links_a_prefix_that_has_activate(tmp_path: Path) -> None:
+    prefix = tmp_path / "prefix"
+    (prefix / "bin").mkdir(parents=True)
+    (prefix / "bin" / "activate").write_text("", encoding="utf-8")
+    _hermetic_venv(tmp_path / ".venv", str(prefix))
+    assert (tmp_path / ".venv").is_symlink() and (tmp_path / ".venv").resolve() == prefix.resolve()
+
+
+def test_hermetic_venv_builds_activate_over_a_prefix_that_has_none(tmp_path: Path) -> None:
+    bare = tmp_path / "bare"  # the CI toolcache shape: an interpreter prefix with no bin/activate
+    (bare / "bin").mkdir(parents=True)
+    dest = tmp_path / ".venv"
+    _hermetic_venv(dest, str(bare))
+    assert (dest / "bin" / "activate").is_file() and not dest.is_symlink()
+    r = subprocess.run(
+        ["bash", "-c", f"cd {dest.parent} && source .venv/bin/activate && python3 -c 'import sys; print(sys.prefix)'"],
+        capture_output=True, text=True, timeout=60,
+    )
+    assert r.returncode == 0, r.stderr
+    assert Path(r.stdout.strip()).resolve() == dest.resolve()
 
 
 def _launch(lroot: Path, tmp: Path, *argv: str, **env_extra: str) -> subprocess.CompletedProcess:
@@ -698,6 +734,7 @@ def test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_only_read_
     assert names, err  # today: names is None and err ends "attempt to write a readonly database"
 
 
+@needs_nobody  # the COO launcher reads the user's home with getent (cxo-claude.sh), which macOS lacks
 def test_launcher_moves_an_unread_letter_to_the_new_box(lroot: Path, tmp_path: Path, sompong) -> None:
     old = lroot / "state" / "inbox" / "coo-0ldb0x00"
     old.mkdir(parents=True)

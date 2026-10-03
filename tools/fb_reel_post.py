@@ -313,8 +313,21 @@ def body_contains_text(body_text: str, expected_text: str) -> bool:
     for i in range(len(body_lines) - n + 1):
         if body_lines[i:i + n] == exp_lines:
             return True
-    first_line = exp_lines[0]
-    return any(_collapse_tolerant_line_match(first_line, ln) for ln in body_lines)
+    # Collapsed rendering: Facebook cuts a long comment at whatever line crosses its length
+    # limit, so the marker can sit on line 2 or 3 with the earlier lines intact. Match an
+    # exact in-order run of expected lines that ends on a collapsed excerpt of the next one.
+    # (2026-10-02, EP2 of film 5: the cut fell on line 2, the first-line-only check missed
+    # the posted comment and a --comment-only rerun posted it a second time.)
+    for i in range(len(body_lines)):
+        for k, exp in enumerate(exp_lines):
+            if i + k >= len(body_lines):
+                break
+            line = body_lines[i + k]
+            if _collapse_tolerant_line_match(exp, line):
+                return True
+            if line != exp:
+                break
+    return False
 
 
 def _meta_content(html_text: str, attr_name: str, attr_value: str) -> str | None:
@@ -741,8 +754,22 @@ class FBReelBrowser:
         ok, diff = captions_match(caption_text, readback)
         return ok, readback, diff
 
+    def _hide_sticky_terms_notice(self) -> None:
+        # Since 2026-10-02 Business Suite pins a "เรากำลังปรับปรุงข้อกำหนด…" terms notice
+        # (position:sticky, no close button) over the top of the composer; the cover
+        # buttons scroll under it and every click is intercepted. Hide it on screen only.
+        self.page.evaluate("""() => {
+            for (const d of document.querySelectorAll('div')) {
+                if (!(d.innerText || '').startsWith('เรากำลังปรับปรุงข้อกำหนด')) continue;
+                let el = d;
+                while (el && getComputedStyle(el).position !== 'sticky') el = el.parentElement;
+                if (el) el.style.display = 'none';
+            }
+        }""")
+
     def set_cover(self, cover_path: str) -> bool:
         page = self.page
+        self._hide_sticky_terms_notice()
         tabs = page.get_by_text("อัพโหลดภาพ", exact=True)
         if tabs.count() == 0:
             self.log("set_cover: 'อัพโหลดภาพ' tab not found")
@@ -1046,7 +1073,14 @@ class FBReelBrowser:
         if el is None:
             self.log("pin_comment: no 'more options' control found on the comment")
             return False
-        el.click()
+        try:
+            # Facebook's sticky top banner can sit over the comment's menu button; a pin is
+            # optional (see above), so a blocked click must not fail a run whose comment
+            # already posted (2026-10-02: exit 14 after a successful post).
+            el.click(timeout=5000)
+        except Exception as e:  # noqa: BLE001
+            self.log(f"pin_comment: menu button click failed ({str(e).splitlines()[0]}) — not pinned")
+            return False
         self.page.wait_for_timeout(800)
         pinned = self.click_menu_item(["ปักหมุดความคิดเห็น", "ปักหมุด"])
         if not pinned:

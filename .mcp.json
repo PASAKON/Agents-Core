@@ -1,44 +1,20 @@
 {
   "mcpServers": {
     "supabase": {
-      "command": "mcp-server-supabase",
-      "args": [
-        "--project-ref=tlokhyqpthvxabweekps",
-        "--features=database"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
-      }
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=tlokhyqpthvxabweekps&features=database"
     },
     "supabase-lungnote": {
-      "command": "mcp-server-supabase",
-      "args": [
-        "--project-ref=qkaxvockysyazmtormvf",
-        "--features=database"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
-      }
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=qkaxvockysyazmtormvf&features=database"
     },
     "supabase-chatudo": {
-      "command": "mcp-server-supabase",
-      "args": [
-        "--project-ref=gcjdirrtvybhvghjtscf",
-        "--features=database"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN_GOB2}"
-      }
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=gcjdirrtvybhvghjtscf&features=database"
     },
     "supabase-linkreed": {
-      "command": "mcp-server-supabase",
-      "args": [
-        "--project-ref=tlkujtschyhzuwumddej",
-        "--features=database"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN_GOB2}"
-      }
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=tlkujtschyhzuwumddej&features=database"
     },
     "mooniex-coord": {
       "type": "stdio",

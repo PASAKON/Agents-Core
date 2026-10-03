@@ -20,7 +20,7 @@ read-only ssh (`--local --json`, see below), prints the combined markdown
 matrix, writes it to `state/mesh-check/<UTC ts>.json` and
 `state/mesh-check/latest.json` (both gitignored), then exits 0 if every cell
 in scope for `--expect` passed, 1 otherwise. It also computes the two levels
-that only read: L8 (a file, from w4) and INV (the hub, from w1). It never
+that only read: L8 (a file or the hub's `join_drill` row, from w4) and INV (the hub, from w1). It never
 dials a host and never writes the ledger unless `--live` is given.
 
 `--expect wN` is required outside `--local`/`--get-task` — it's the wave
@@ -89,10 +89,22 @@ the task is visible there.
 - **L0 identity** — "which host am I?" Cross-checks `lib.config.self_host()`
   (when it exists — it lands in wave W0.1, so its absence is tolerated, not
   a disagreement), a `tailscale status --json` Self.HostName/DNSName match
-  against a configured host key or ssh alias, and whether this checkout's
-  `ROOT` equals some host's `agents_root` in `config/hosts.yaml`. Green only
-  if every available source agrees. Diagonal only (`from == to`) — there is
-  no cross-host "who are you" question.
+  against a configured host key or ssh alias, and a **root match**: which
+  host has this checkout's `ROOT` as its `agents_root` (`config/hosts.yaml`)
+  **or** as its registered checkout of this repo (`paths.<host>` of the
+  `mooniex-agents` entry in `config/projects.yaml`, read through
+  `lib.config.projects()`). The second source exists because on winbox
+  `agents_root` is the spawn directory (`C:\Users\passg\mooniex`), not the
+  checkout (`...\mooniex\repo\MoonieX-Agents`); with `agents_root` alone every
+  winbox run read `root_match=(unregistered)` and L0 went red. Paths are
+  compared after normalising: a drive-letter path goes through `ntpath`
+  (`normcase` + `normpath`), so case and `/` vs `\` do not matter; any other
+  path is POSIX-normalised and case-sensitive; a configured path that exists
+  on this machine is symlink-resolved first. A worktree matches neither
+  source, so it still reads `root_match=(unregistered)` and L0 still
+  disagrees — that is deliberate (see Troubleshooting). Green only if every
+  available source agrees. Diagonal only (`from == to`) — there is no
+  cross-host "who are you" question.
 
 - **L1 ssh** — from this host to every other host:
   `ssh -o BatchMode=yes -o ConnectTimeout=5 <alias> true` (winbox falls back
@@ -100,6 +112,24 @@ the task is visible there.
   (sshd closed by design) — any cell targeting mac renders
   "closed (by design)" and is excluded from the exit code until wave w2.
   The dispatch-key checks are **not** here: they live in the SEC row below.
+  **The self rule:** when the target is this host, **no ssh is made** — a
+  host need not resolve its own alias (winbox cannot: `Could not resolve
+  hostname winbox`). That cell is `n/a`: in the matrix it reads `n/a` like the
+  L1 diagonal (`EXPECT` has no L1 diagonal key), and in the `--local` payload
+  it is `{"ok": true, "reason": "n/a", "kind": "n/a"}`, which `render()` prints
+  as `n/a` and never counts as a failure. Only that one cell changes; every
+  other L1 cell is still the ssh answer.
+  **Which identity decides:** one per run — the host the matrix labels its row
+  with, `_running_host_guess(ROOT)` (root match, else the tailscale guess).
+  `build_matrix` passes its `running_host`; `--local` passes the same
+  `_running_host_guess(ROOT)`. `lib.config.self_host()` does **not** decide: it
+  is a second source that can disagree (a worktree, a node.yaml naming another
+  host, the Linux CI runner answering `contabo`), and if it chose, a red L1
+  cell would turn into an uncounted `n/a` — a silent wrong answer. When the
+  run has no identity (`_running_host_guess` is `None`, e.g. a worktree with
+  no tailscale answer) **every host is dialled, this one included**: an unknown
+  identity never hides a red cell, and L0 already reports that same
+  disagreement.
 
 - **L2 org MCP** — starts the org MCP server for this host over stdio
   exactly as a C-level session does (`scripts/lib/cxo_mcp_config.py`'s
@@ -110,8 +140,9 @@ the task is visible there.
 - **L3 delegate** (`--live` only) — proves a real cross-host delegate cycle:
   `create_task` → `delegate_task(host=T)` → poll `get_task` until
   review/done (25 min timeout) → `merge_task` → confirm the merge sha is on
-  `origin` (`git ls-remote`) and this host's runtime checkout is clean
-  (`git status --porcelain`). See "L3 in detail" below.
+  `origin` (`git ls-remote`) and that the cycle left no new tracked change in
+  this host's runtime checkout (`git status --porcelain`, before vs after).
+  See "L3 in detail" below.
 
 - **L4 ledger** — creates a task on this host's own ledger, then asks
   another host (read-only ssh, `--get-task --json`) whether it sees that
@@ -121,6 +152,23 @@ the task is visible there.
 
 - **L5 letters**, **L6 liveness**, **L7 router**, **L8 join drill**, **SEC**
   and **INV** — see "The mesh levels" below, one section each.
+
+## Text decoding — every `text=True` names utf-8
+
+`subprocess.run(..., text=True)` alone decodes with the **locale codec**,
+which is cp1252 on winbox. A byte such as `0x81` (a UTF-8 lead byte from
+ssh, git or the far side's JSON) is undefined in cp1252, and the subprocess
+reader thread dies with `UnicodeDecodeError: 'charmap' codec can't decode
+byte 0x81`. So every text-mode subprocess call in `tools/mesh_check.py`
+passes `encoding="utf-8", errors="replace"` beside `text=True`: the output
+decodes the same on every host, and a stray byte becomes `U+FFFD` instead
+of killing the reader.
+
+`tests/test_mesh_check.py` walks the AST of `tools/mesh_check.py` and fails
+on any `subprocess.run/Popen/check_output/check_call/call` with `text=True`
+or `universal_newlines=True` that lacks `encoding="utf-8"` and
+`errors="replace"` (a call that hides them behind `**kwargs` fails too), so a
+new call cannot regress this. Keep the keywords literal at the call site.
 
 ## L3 in detail
 
@@ -148,8 +196,14 @@ back from origin for L5 (after the merge it reads `<merge_sha>:<path>`; with
 `--no-merge` it reads `origin/<the task's branch>:<path>`), and that read never
 changes L3's own verdict. L3 passes only
 when: the task reaches `review`/`done`, `merge_task` reports `merged: true`
-with a `merge_sha`, that sha shows up in `git ls-remote origin`, and this
-host's checkout is clean afterward. Any of `failed` / `blocked_human` /
+with a `merge_sha`, that sha shows up in `git ls-remote origin`, and
+`git status --porcelain` in this host's runtime checkout has no tracked entry
+after the merge that it did not have before the probe started. Dirt that was
+already there is not the merge's doing: the Mac's checkout always carries the
+harness's model line in `claude-home/settings.json`, and other sessions' WIP
+can sit in any checkout for days. New untracked (`??`) entries are ignored
+too, because other sessions keep writing state files during the 25 minutes;
+`merge_task` can only change tracked files there. Any of `failed` / `blocked_human` /
 `conflict` status, a 25-minute timeout, or a missing/absent merge sha is a
 hard fail with the specific reason in the cell.
 
@@ -443,7 +497,8 @@ The hosts table is never written; the rows list is never mutated.
 ### L8 — join drill
 
 **Proves** that `hq join` was drilled end to end on a clean machine within
-the last 7 days. This tool does not run the drill; it reads
+the last 7 days. This tool does not run the drill (`scripts/drill-join.sh`
+does, on Contabo, as one Run Inbox card: see `docs/ops/join-drill.md`); it reads
 `state/mesh-check/join-drill.json` (gitignored, written by the drill):
 
 ```json
@@ -462,7 +517,11 @@ the last 7 days. This tool does not run the drill; it reads
 | `host` | non-empty string | the machine that was joined |
 | `steps` | list of `{"name": str, "ok": bool}` | what ran, in order; may not be empty |
 
-- missing file: `not run` (a failing, named state, never green);
+- missing file: the newest `events` row of kind `join_drill` is judged instead
+  (the drill records the same JSON there, so the Mac, which never runs the
+  drill, can read the cell; the file wins when both exist). No file and no
+  row, or a hub that cannot be read: `not run` (a failing, named state, never
+  green);
 - unreadable, not a JSON object, or a missing or mistyped field: red;
 - `at` more than 7 days ago (`JOIN_DRILL_MAX_AGE_S`), or in the future by more
   than 10 minutes: red;
@@ -523,8 +582,9 @@ file:
   and worker letter paths of `node_dispatch` exists now (task-f9d23d0b), so L5
   inside L3's window proves a wake and not only a delivery; every target must
   run that `node_dispatch` first.
-- **The join drill** (W4.7 in the plan, a container on Contabo), which writes `state/mesh-check/join-drill.json`;
-  L8 stays `not run` until then.
+- **The join drill** (W4.7 in the plan, a container on Contabo; built, `scripts/drill-join.sh`,
+  `docs/ops/join-drill.md`, but not yet run live), which writes `state/mesh-check/join-drill.json` and a
+  `join_drill` events row; L8 stays `not run` until a run lands.
 - Any later wave that adds a level adds it to `LEVELS`, `EXPECT` and this
   file together, without touching the cells above it.
 
@@ -534,12 +594,18 @@ file:
   `python -m venv .venv && ./.venv/bin/pip install -r requirements.txt`).
 - **`mcp package unavailable`** — same fix; `mcp` is in `requirements.txt`.
 - **L0 "sources disagree"** — usually means you're running from a worktree
-  or an unregistered checkout, so `ROOT` doesn't match any `agents_root` in
-  `config/hosts.yaml`. Expected and honest, not a bug in the tool — run from
-  the registered checkout to get a clean L0.
+  or an unregistered checkout, so `ROOT` matches neither a host's
+  `agents_root` (`config/hosts.yaml`) nor its registered checkout
+  (`paths.<host>` of `mooniex-agents` in `config/projects.yaml`). Expected and
+  honest, not a bug in the tool — run from the registered checkout to get a
+  clean L0. If the checkout you run from *should* be registered (a new
+  machine), fix `paths.<host>` in `config/projects.yaml`.
 - **L1 timeout / ssh failed** — check the alias resolves
   (`ssh -G <alias>`), and that BatchMode auth (a working key, no password
-  prompt) is set up for it.
+  prompt) is set up for it. A host does not dial its own alias: its own L1
+  cell is `n/a` (see "The self rule" above), so a failure here is a *peer* —
+  unless the run could not tell which host it is (L0 then says so), in which
+  case every host, this one too, is dialled.
 - **A peer's L0/L2 cells read `no repo access` or a surprising `mcp package
   unavailable` reason, but that host looks fine in person** — the piped
   fallback (`ssh <alias> python3 - --local --json < tools/mesh_check.py`)

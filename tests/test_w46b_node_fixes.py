@@ -53,7 +53,8 @@ README = ROOT / "deploy" / "join" / "README.md"
 
 TOKEN = "hqj_" + "Tok3n_-" * 6 + "T"                # hqj_ + 43 characters
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
-DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "A" * 43 + " org-node:node-a"
+# A real ssh-keygen -t ed25519 public key. A prefix + "A" * n fixture checks the regex against itself.
+DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPevyJRWgM559TAkS0aqU6fNI/5HXCNkmC5EoKCEpoB6 org-node:node-a"
 FINGERPRINT = PUB[-8:]
 FPR_LINE = f"fingerprint: {FINGERPRINT} - the operator approves this in the Run Inbox"
 
@@ -191,7 +192,7 @@ def test_main_calls_keys_and_accept_before_install():
     main = _function(JOIN_SH.read_text(), "main")
     order = [re.search(rf"^  {fn}\b", main, re.M).start()
              for fn in ("do_keys", "do_accept", "do_install", "do_wait_sealed",
-                        "do_tailscale", "do_clone", "do_identity", "do_probe")]
+                        "do_tailscale", "do_clone", "do_bundle", "do_probe")]
     assert order == sorted(order), main
 
 
@@ -231,7 +232,7 @@ def test_join_ps1_calls_keys_and_accept_before_install_and_numbers_the_steps_to_
     text = JOIN_PS1.read_text(encoding="ascii")
     body = text[text.rindex("Read-Args"):]
     order = [body.index(fn) for fn in ("New-Keys", "Send-Accept", "Install-Missing", "Wait-Sealed",
-                                       "Join-Tailnet", "Copy-Core", "Save-Identity", "Invoke-Probe")]
+                                       "Join-Tailnet", "Copy-Core", "Open-Bundle", "Invoke-Probe")]
     assert order == sorted(order), body
     for fn, n in (("New-Keys", 2), ("Send-Accept", 3), ("Install-Missing", 4), ("Wait-Sealed", 5),
                   ("Join-Tailnet", 6)):
@@ -629,17 +630,21 @@ def test_every_python_join_sh_starts_is_isolated():
     assert seen >= 10, seen                      # the scan really saw the calls
 
 
-def test_the_extractors_the_probe_and_save_run_isolated_and_the_probe_by_path():
+def test_the_probe_and_the_bundle_reader_run_isolated_and_the_probe_by_path_through_node_token():
+    """W4.2b: the probe is started by node_token.py (stdlib, python -I) as the user, and the bundle
+    reader no longer hands anything to infisical_setup.py: nothing is saved on the node."""
     text = JOIN_SH.read_text()
     probe = _function(text, "do_probe")
     probe_code = "\n".join(ln for ln in probe.splitlines() if not ln.lstrip().startswith("#"))
-    assert '"$PY" -I -B "$CORE/tools/infisical_setup.py" run Org-Node prod' in probe_code
+    assert '"$PY" -I -B "$CORE/tools/node_token.py" run' in probe_code
     assert '"$CORE/.venv/bin/python" -I -B "$CORE/tools/node_dispatch.py" probe' in probe_code
     assert "PYTHONDONTWRITEBYTECODE" not in probe_code and "-m tools.node_dispatch" not in probe_code
-    assert ' env HOME="$HOME" ORG_HOST="$HOST" ' in probe                      # the w44c HOME pass-through stays
-    ident = _function(text, "do_identity")
-    assert 'as_root "$PY" -I "$CORE/tools/infisical_setup.py" save "$HOST" --stdin' in ident
-    assert '"$PY" -I -c' in ident
+    assert "infisical" not in probe_code and "as_root" not in probe_code      # no Infisical, no root hop
+    assert 'ORG_HOST="$HOST"' in probe_code                                    # the probe still names this node
+    bundle = _function(text, "do_bundle")
+    bundle_code = "\n".join(ln for ln in bundle.splitlines() if not ln.lstrip().startswith("#"))
+    assert '"$PY" -I -c' in bundle_code and "age -d -i" in bundle_code
+    assert "infisical" not in bundle_code.lower().replace("/etc/infisical", "")
 
 
 def test_a_recording_python_sees_dash_I_first_on_every_call_of_accept_and_clone(server, tmp_path):

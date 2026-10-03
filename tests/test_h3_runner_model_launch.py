@@ -13,6 +13,7 @@ Verifies:
 from __future__ import annotations
 
 import base64
+import contextlib
 import json
 import os
 import re
@@ -25,6 +26,7 @@ import pytest
 
 import lib.db as db
 import tools.delegate as delegate
+import tools.wiki as wiki_tools
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "spawn-worker-remote.sh"
@@ -292,6 +294,9 @@ def media_gate_env(tmp_path):
     fake_runner = bindir / "fake_runner"
     fake_runner.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
     fake_runner.chmod(0o755)
+    # --runner codex makes the script look for a `codex` before it writes launch.sh and, when there is
+    # none, print SPAWN_REFUSED=codex-not-found on STDOUT and exit 1. The Mac has one, ubuntu CI does not.
+    (bindir / "codex").symlink_to(fake_runner)
 
     env["PATH"] = f"{bindir}{os.pathsep}{env['PATH']}"
 
@@ -303,12 +308,8 @@ def media_gate_env(tmp_path):
     )
 
 
-def test_media_gate_unstages_mp4_and_large_binary_and_keeps_large_text(media_gate_env):
-    sp = media_gate_env
-    task_id = "task-h3media01"
-    branch = f"agent/developer-{task_id}"
-
-    # Spawn worker (creates worktree and launch.sh)
+def _media_spawn(sp, task_id, branch, env=None):
+    """Run the spawn script (creates the worktree and launch.sh) against the fixture's origin."""
     spawn_cmd = [
         BASH, str(sp.script),
         "--task", task_id,
@@ -325,8 +326,33 @@ def test_media_gate_unstages_mp4_and_large_binary_and_keeps_large_text(media_gat
         "--session-name", "media-test",
         "--runner", "codex",
     ]
-    r = subprocess.run(spawn_cmd, input="TASK BRIEF\n", capture_output=True, text=True, env=sp.env)
-    assert r.returncode == 0, r.stderr
+    return subprocess.run(spawn_cmd, input="TASK BRIEF\n", capture_output=True, text=True, env=env or sp.env)
+
+
+def test_spawn_refuses_the_codex_runner_on_stdout_when_no_codex_is_installed(media_gate_env):
+    # What ubuntu CI saw as "exit 1 right after Preparing worktree": the refusal is a stdout line, and
+    # stderr only holds git's clone/worktree chatter. The probe list is PATH, /usr/bin/codex,
+    # /usr/local/bin/codex, then ~/.local/bin and ~/.npm-global/bin (HOME is a tmp dir here).
+    sp = media_gate_env
+    (sp.tmp / "bin" / "codex").unlink()
+    env = {**sp.env, "PATH": f"{sp.tmp / 'bin'}{os.pathsep}/usr/bin{os.pathsep}/bin"}
+    r = _media_spawn(sp, "task-h3nocodex", "agent/developer-task-h3nocodex", env=env)
+    if any(Path(p).exists() for p in ("/usr/bin/codex", "/usr/local/bin/codex")):
+        assert r.returncode == 0, f"{r.stderr}\n{r.stdout}"  # this machine has a codex at an absolute probe path
+    else:
+        assert r.returncode == 1
+        assert "SPAWN_REFUSED=codex-not-found" in r.stdout
+        assert "SPAWN_REFUSED" not in r.stderr
+
+
+def test_media_gate_unstages_mp4_and_large_binary_and_keeps_large_text(media_gate_env):
+    sp = media_gate_env
+    task_id = "task-h3media01"
+    branch = f"agent/developer-{task_id}"
+
+    # Spawn worker (creates worktree and launch.sh)
+    r = _media_spawn(sp, task_id, branch)
+    assert r.returncode == 0, f"{r.stderr}\n{r.stdout}"
 
     wt = sp.wt_root / f"proj__developer__{task_id}"
     launch_sh = sp.agents / f".launch-{task_id}" / "launch.sh"
@@ -436,6 +462,45 @@ def test_script_org_tools_registry_verdict():
     r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
     assert r.returncode == 0, f"test_org_tools_registry.py failed: {r.stderr}\n{r.stdout}"
     assert "ALL PASS" in r.stdout
+
+
+@contextlib.contextmanager
+def _org_wiki_at(root: Path):
+    """Point WIKI_ROOT_ORG at `root` for one block; the cached root table is rebuilt on the way in and out."""
+    try:
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setenv("WIKI_ROOT_ORG", str(root))
+            wiki_tools._roots.cache_clear()
+            yield
+    finally:
+        wiki_tools._roots.cache_clear()
+
+
+def test_wiki_list_is_sorted_whatever_order_the_filesystem_lists(tmp_path):
+    # ext4 lists a directory in hash order, APFS sorted; the registry and cto_mcp_server.py must still
+    # answer identically. Force the worst order (reversed) instead of trusting the runner's filesystem.
+    from lib import toon
+    from runners import cto_mcp_server as srv
+    org = tmp_path / "org"
+    (org / "decisions").mkdir(parents=True)
+    for name in ("0013-c.md", "0001-a.md", "0009-b.md"):
+        (org / "decisions" / name).write_text(f"# {name}\n", encoding="utf-8")
+    real_rglob = Path.rglob
+    expected = toon.encode([f"org:decisions/{n}" for n in ("0001-a.md", "0009-b.md", "0013-c.md")])
+    with _org_wiki_at(org), pytest.MonkeyPatch.context() as mp:
+        mp.setattr(Path, "rglob", lambda self, pattern: iter(sorted(real_rglob(self, pattern), reverse=True)))
+        assert srv.wiki_list("org:decisions") == expected
+
+
+def test_wiki_list_without_an_org_wiki_is_the_same_error_on_both_sides(tmp_path):
+    # ubuntu CI has no Agents/Rules checkout: both sides return this string, so an equivalence check that
+    # also wants a "[" list back fails there unless it builds its own wiki (scripts/test_org_tools_registry.py).
+    from lib import org_tools_registry as reg
+    from runners import cto_mcp_server as srv
+    with _org_wiki_at(tmp_path / "no-such-wiki"):
+        got = srv.wiki_list("org:decisions")
+        assert got == reg.dispatch_sync("wiki_list", prefix="org:decisions")
+        assert got == "ERROR: wiki 'org' not available in this environment"
 
 
 def test_ps1_generated_strings_are_ascii():

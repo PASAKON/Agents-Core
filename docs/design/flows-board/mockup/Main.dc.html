@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Flow — รายการ workflow</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&amp;family=IBM+Plex+Sans+Thai:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;background:#0d1419}
+a{color:#5cc3cf}a:hover{color:#8fdbe4}
+.mono{font-family:'IBM Plex Mono','IBM Plex Sans Thai',ui-monospace,monospace}
+.nav{display:flex;height:56px;background:#0d1419;border-top:1px solid #1b2833}
+.nav a{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#97a6b2;font-size:11px;line-height:1.2;text-decoration:none}
+.nav a[aria-current=page]{color:#5cc3cf;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;background:#1b2833;border:1px solid #2a3a47;border-radius:999px;padding:5px 10px;font-size:12px;color:#97a6b2}
+.st-auto{background:#16343a;border:1px solid #2b5a62}
+.st-auto_review{background:#0d1419;border:1.5px solid #5cc3cf}
+.st-shadow{background:#0d1419;border:1.5px dashed #e3a74d}
+.st-agent{background:#3a2b14;border:1px solid #6e5226}
+.st-human{background:#0d1419;border:1.5px dashed #6f7f8b}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #0d1419; color: #e3eaef; font-family: 'IBM Plex Sans Thai', system-ui, sans-serif">
+<header style="padding: 22px 16px 10px; display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-family: 'Chakra Petch', 'IBM Plex Sans Thai', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.25">Flow</h1>
+<div class="mono" style="font-size: 12px; color: #56646f">terminal.mooniex.com/flows</div>
+</header>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 14px; padding: 6px 16px 16px">
+<div style="font-size: 13px; color: #97a6b2">workflow ที่วาดได้ 1 จาก 2 · อ่านจาก Agents-Core</div>
+<a href="Bl.dc.html" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #152029; border: 1px solid #2a3a47; border-radius: 14px; color: #e3eaef; text-decoration: none">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+<div style="font-family: 'Chakra Petch', 'IBM Plex Sans Thai', sans-serif; font-weight: 600; font-size: 18px; line-height: 1.3">Black Liquidity episode</div>
+<div class="mono" style="font-size: 11px; color: #56646f; overflow-wrap: anywhere">CMO_Workflow_BlackLiquidity</div>
+</div>
+<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#97a6b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 2px"><path d="M9 6l6 6-6 6"></path></svg>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span class="pill">เจ้าของ CMO</span><span class="pill">เริ่มเอง · CEO</span><span class="pill">17 ขั้น</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; gap: 3px"><div class="st-auto" style="flex-grow: 12; height: 10px; border-radius: 3px"></div><div class="st-agent" style="flex-grow: 2; height: 10px; border-radius: 3px"></div><div class="st-human" style="flex-grow: 3; height: 10px; border-radius: 3px"></div></div>
+<div style="font-size: 12px; color: #97a6b2">Auto 12 · Agent 2 · คน 3</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 22px; color: #5cc3cf">85.7%</div><div style="font-size: 11px; color: #97a6b2; line-height: 1.35">Auto ตามจำนวนขั้น</div></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 22px; color: #e3a74d">10.4%</div><div style="font-size: 11px; color: #97a6b2; line-height: 1.35">Auto ตามต้นทุน</div></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Chakra Petch', sans-serif; font-weight: 700; font-size: 22px; color: #e3eaef">$6.65</div><div style="font-size: 11px; color: #97a6b2; line-height: 1.35">ต้นทุนต่อรัน</div></div>
+</div>
+<div style="font-size: 12px; color: #e3a74d">ยังไม่รู้ต้นทุน 9 ขั้น · ระบบไม่เดาให้</div>
+</a>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px dashed #2a3a47; border-radius: 14px">
+<div style="font-family: 'Chakra Petch', 'IBM Plex Sans Thai', sans-serif; font-weight: 600; font-size: 16px; color: #97a6b2">CMO_Workflow_ShortFilm</div>
+<div style="font-size: 13px; color: #97a6b2">ยังวาดไม่ได้ เพราะยังไม่มี flow.yaml</div>
+<div class="mono" style="font-size: 11px; color: #56646f">F1 · no flow.yaml beside SKILL.md</div>
+</div>
+</div>
+<nav class="nav" aria-label="สลับหน้า">
+<a href="#"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7l5 5-5 5M12 19h7"></path></svg><span>Terminal</span></a>
+<a href="#"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="M10.85 12.15L19 4M18 5l2 2M15 8l2 2"></path></svg><span>เข้าระบบ</span></a>
+<a href="#"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg><span>คำสั่ง</span></a>
+<a href="Main.dc.html" aria-current="page"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="12" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><path d="M8.4 7.2l7.2 3.6M8.4 16.8l7.2-3.6"></path></svg><span>Flow</span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

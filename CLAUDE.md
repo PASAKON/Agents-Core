@@ -94,6 +94,35 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
 1. The table above.
 2. Wiki `projects/mooniex-console.md` §"Project availability" (Mac session only).
 
+## Task ledger — the Postgres hub (since G1, 2026-10-02)
+
+- Every org tool reads and writes tasks in the hub: Postgres 16 on Contabo, bound to the
+  tailnet IP. `state/tasks.db` is an archived tombstone; `lib/db.py` raises `ArchivedDB` on it.
+- A process needs `ORG_DB_URL` (from Infisical at spawn time, never typed or echoed) and the
+  venv's psycopg. Run org Python as `bash scripts/hub/org-python.sh <args>`. Start any other
+  command that touches the ledger (launchd, systemd, an sshd forced command, a tmux pane)
+  through `scripts/hub/with-org-db-env.sh <command>`. A bare `python3`, or a shell started
+  before the cutover, lands on the tombstone.
+- Design: `docs/design/tasks-db-hub.md`. Machines and cross-machine calls:
+  `docs/design/org-mesh.md`; health check `tools/mesh_check.py` (`docs/ops/mesh-check.md`).
+
+## Contabo — one tmux server holds every session
+
+- Every C-level, worker and SomPong pane runs in ONE root tmux server (`/tmp/tmux-0/default`).
+  Whatever stops the systemd unit holding the server or its panes ends every session at once:
+  a service restart did on 2026-10-02, an OOM kill of root's user manager on 2026-10-01.
+- Before restarting ANY service on Contabo, look where tmux lives:
+  `for p in $(pgrep -f '^tmux'); do echo $p $(tail -1 /proc/$p/cgroup); done`, and for panes
+  `for pp in $(tmux list-panes -a -F '#{pane_pid}'); do tail -1 /proc/$pp/cgroup; done | sort | uniq -c`.
+  If either names that service, do not restart it; tell the CEO.
+- The server belongs in `org-tmux.scope`. `scripts/org-tmux-adopt.sh` moves a new server there
+  and `scripts/install-org-tmux-adopt.sh` installs it (installed when
+  `grep -q org-tmux-adopt /etc/tmux.conf` succeeds). A unit with systemd's default
+  `OOMPolicy=stop` is stopped whole when the OOM killer kills one process in it.
+- Start a new shared server from a service, or with `DBUS_SESSION_BUS_ADDRESS` and
+  `XDG_RUNTIME_DIR` unset. Started from an ssh login, tmux 3.4 puts every pane under
+  `user@0.service`, outside the server's scope.
+
 ## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
 
 - Every secret lives in Infisical (org `MoonieX`, one project per repo, envs `dev`/`prod`; org-wide

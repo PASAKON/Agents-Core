@@ -153,8 +153,10 @@ T5 = "the late afternoon, warm bright late afternoon sunlight"
 
 
 def _lines_from_script():
-    """{shot: [(thai speaker, english direction, thai line), ...]} from SCRIPT-v1."""
-    text = (Path(__file__).with_name("ep5-khaichue-EP1-SCRIPT-v1.md")).read_text(encoding="utf-8")
+    """{shot: [(thai speaker, english direction, thai line), ...]} from SCRIPT-v1 (S1-68)
+    and the EP3 closing script (S69-78); the two files never share a shot number."""
+    text = "\n".join(Path(__file__).with_name(f).read_text(encoding="utf-8")
+                     for f in ("ep5-khaichue-EP1-SCRIPT-v1.md", "ep5-EP3-SCRIPT-v1.md"))
     out, cur = {}, None
     for ln in text.splitlines():
         m = re.match(r"^### SHOT (\d+) ", ln)

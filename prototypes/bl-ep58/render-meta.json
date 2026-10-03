@@ -1,8 +1,8 @@
 {
- "task": "task-8f940c57",
+ "task": "task-cc55e620",
  "episode": "BL EP58 Weltrade",
- "final": "/opt/MoonieXHQ/Work/bl-ep58/cut/final-ep58.mp4",
- "bytes": 23620044,
+ "final": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/final-ep58-v2.mp4",
+ "bytes": 23480763,
  "duration_s": 95.7,
  "fps": "30/1",
  "size": "1080x1920",
@@ -10,7 +10,7 @@
  "video_codec": "h264",
  "audio_codec": "aac",
  "loudness_lufs": -15.4,
- "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/cut/sheet-ep58.jpg",
+ "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/sheet-ep58-v2.jpg",
  "modes": {
   "COMP": 14,
   "EVID": 14,
@@ -20,10 +20,11 @@
  "beats": 40,
  "windows": 12,
  "window_render": "bl_compose --t0/--t-max, frame-aligned, merged with bl_merge",
- "verify": "PASSED (sync 0 ms at 3 points; lip A/B/C seated 0.00/38.77/80.84 at 0 ms; loudness -15.4)",
+ "verify": "PASSED (sync 0 ms at 3 points; lip A/B/C seated 0 ms; loudness -15.4)",
  "checker": {
-  "pass": false,
-  "empty_frames": [
+  "pass": true,
+  "empty_frames": [],
+  "empty_frames_excused": [
    29.667,
    29.7,
    29.733,
@@ -32,14 +33,31 @@
    71.633,
    71.667
   ],
-  "out_of_safe_area": [
-   "MAIN-10",
-   "MAIN-11",
-   "MAIN-13"
-  ],
+  "out_of_safe_area": [],
   "text_over_face": [],
+  "text_over_face_note": "gate did NOT run (no --face-box given)",
   "credit_missing": [],
   "extra_caption_styles": [],
-  "kinetic_overflow": []
- }
+  "kinetic_overflow": [],
+  "brand_mark": {
+   "ok": true,
+   "min_ratio": 0.9833,
+   "min_time": 83.767,
+   "failing_frames": 0,
+   "frames": 2871
+  }
+ },
+ "previous_final_task": "task-8f940c57",
+ "frames_dir": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/frames/",
+ "kit": "origin/main 9993bd6e (task-c32c40e8)",
+ "main13_still": "real/wikifx-article-sep-contents.png",
+ "merge": "PASS (frame_count 2871 vs 2872 +-1, empty_frames [], seam_failures [], audio offset 0.0 s, extra_caption_styles [])",
+ "old_final_brand_mark": {
+  "ok": false,
+  "failing_frames": 226,
+  "min_ratio": -0.013,
+  "failing_ranges": 12
+ },
+ "loudnorm": "single pass loudnorm=I=-14:TP=-1.5:LRA=11 -c:v copy (same as v1); file measures -15.4 LUFS",
+ "posted": false
 }

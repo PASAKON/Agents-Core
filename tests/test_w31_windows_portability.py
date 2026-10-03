@@ -560,7 +560,7 @@ def test_lib_config_loads_the_yaml_files_under_a_non_utf8_locale():
                        capture_output=True, text=True, timeout=120)
     assert r.returncode == 0, r.stderr[-1500:]
     out = json.loads(r.stdout.strip().splitlines()[-1])
-    assert out["enc"].lower().replace("-", "") in ("usascii", "ascii", "ansix3.41968"), out
+    assert out["enc"].lower().replace("-", "").replace("_", "") in ("usascii", "ascii", "ansix3.41968"), out
     assert out["projects"] == len(config.projects())
     assert out["agents"] == len(config.agents())
     assert out["hosts"] == len(config.hosts())
@@ -580,6 +580,6 @@ def test_delegate_reads_its_policy_file_under_a_non_utf8_locale():
                        capture_output=True, text=True, timeout=120)
     assert r.returncode == 0, r.stderr[-1500:]
     out = json.loads(r.stdout.strip().splitlines()[-1])
-    assert out["enc"].lower().replace("-", "") in ("usascii", "ascii", "ansix3.41968"), out
+    assert out["enc"].lower().replace("-", "").replace("_", "") in ("usascii", "ascii", "ansix3.41968"), out
     assert out["floor"] == delegate._disk_orange_floor_gb()
     assert out["owners"] is None

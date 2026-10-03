@@ -67,6 +67,13 @@ def call(server: str, root: str, tool: str | None, args: dict, timeout: int) -> 
             file=sys.stderr,
         )
         return 3
+    if "command" not in entry:
+        print(
+            f"mcp_call: server '{server}' is a remote OAuth server "
+            f"({entry.get('url')}); call it from a Claude session instead",
+            file=sys.stderr,
+        )
+        return 3
 
     want_list = tool is None
     msgs: list[dict] = [

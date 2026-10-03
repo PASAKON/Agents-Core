@@ -70,10 +70,10 @@ _META = {
         "warm shadows stretch across the wooden market floor",
         _N + ["nocash"]),
 
-    59: (8, "Medium, a narrow back aisle behind the market stalls stacked with empty crates, the mother alone with her phone at her ear",
+    59: (8, "Medium, a sunny back walkway behind the market stalls beside stacked crates, the mother alone with her phone at her ear",
         ["sri_noapron"], "market_back", T5,
-        "the woman in the cream blouse, crouching in the shadowy service alley beside towering stacks of empty plastic crates, clutches her phone to her ear and whispers in breathless haste while she speaks; "
-        "the whole time she talks, her anxious gaze darts back toward the bright market stall where her son works; she drops her voice to an absolute minimum, her chin trembling with humiliation; "
+        "the woman in the cream blouse, standing in the bright sunny walkway beside stacks of empty plastic crates, holds her phone to her ear with both hands and speaks quickly in a low urgent voice; "
+        "the whole time she talks, her worried eyes keep glancing back toward the market stall where her son works, and her free fingers twist the hem of her blouse; "
         "the instant she finishes, she presses the phone tightly to her cheek, listening with bated breath; dry leaves stir on the concrete alley floor",
         _N + ["nocash"]),
 
@@ -121,15 +121,15 @@ _META = {
 
     66: (8, "Medium, the son beside his motorbike at the roadside edge of the market, phone at his ear, the stall far behind",
         ["ton"], "market_road", T5,
-        "the young man in the grey T-shirt, gripping the handlebars of his motorcycle with an iron fist, repeats the banking official's devastating announcement in rising panic while he speaks; "
+        "the young man in the grey T-shirt, gripping the handlebars of his motorcycle with an iron fist, repeats the caller's devastating announcement in rising panic while he speaks; "
         "the whole time he talks, he glances back in mounting desperation toward his mother's stall across the market pavement, his voice cracking with shock; "
         "the instant he finishes, he pivots his back to the market, his knees trembling violently on the asphalt; afternoon dust drifts along the roadside curb",
         _N + ["nocash"]),
 
     67: (8, "Close-up, the son's face draining as he hears the amount",
         ["ton"], "market_road", T5,
-        "the young man in the grey T-shirt, all color draining from his face until his lips turn pale, whispers the exact catastrophic sum into the receiver while his eyes widen in horror; "
-        "the whole time he talks, the hand holding the smartphone shakes uncontrollably and his breath shudders in his chest; the instant he finishes speaking the amount, "
+        "the young man in the grey T-shirt, all color draining from his face until his lips turn pale, whispers the devastating news into the receiver while his eyes widen in horror; "
+        "the whole time he talks, the hand holding the smartphone shakes uncontrollably and his breath shudders in his chest; the instant he finishes speaking, "
         "he freezes in absolute paralysis, his mouth hanging slightly open; the golden late-afternoon sun catches the small silver amulet cord at his neck",
         _N + ["nocash"]),
 
@@ -151,7 +151,7 @@ DIRECTION = {
     (57, "sri"): "frantically covering, pounding chilies with furious deflection, voice strained",
     (58, "sri"): "hurried, anxious and evasive, untying her apron with trembling fingers",
     (58, "ton"): "easy, cheerful and reassuring, accepting the pestle with a warm smile",
-    (59, "sri_noapron"): "ashamed, desperate, speaking in a frantic hushed whisper behind the crates",
+    (59, "sri_noapron"): "urgent and tearful, voice low and shaking, gripping the phone with both hands",
     (60, "sri_noapron"): "nodding frantically, a tiny thread of desperate hope entering her trembling voice",
     (61, "sri_noapron"): "fierce, resolute maternal sacrifice, whispering through gritted teeth while watching him",
     (62, "fon"): "terrified yet pushing herself, whispering in urgent breathless dread",

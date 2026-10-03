@@ -1,0 +1,18 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot C01 · scene C · target length in the cut 12 s · grade storm
+References in upload order: @ภาพ1=loc_canal, @ภาพ2=ch_mek_a, @ภาพ3=ch_kaew_a, @ภาพ4=prop_mallet
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, a tracking shot ahead of the boat.
+MEK rows KAEW through the flooded canals.
+REFERENCES: @ภาพ1 — THE CANAL and its long wooden footbridge. @ภาพ2 — MEK: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ3 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ4 — THE MALLET: dark wood, red thread on the handle; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot. MEK, lanky Thai boy about 14, turquoise checked headband, turquoise vest, black trousers.
+THE FRAME: Medium shot from the front of a long-tail boat moving toward the camera: MEK standing in the stern rowing hard, facing the camera; KAEW crouched in the bow, facing forward past the camera, THE MALLET in her waistband; flooded houses on both sides.
+STATE: KAEW and MEK soaked and torn by the storm.
+WHAT HAPPENS: [0s] The boat surges forward through waves; rain lashes. [5s] At screen-right a stilt house folds into the water. [9s] MEK leans into the oar; KAEW points ahead, screen-left.
+SOUND: Storm wind, waves on the hull, timber cracking, MEK's breath.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

@@ -1,0 +1,12 @@
+  file      final-ep58-armA.mp4
+  video     1080x1920 @ 30/1  2871 frames  95.70s
+  loudness  -15.4 LUFS (target -14, tolerance 2)
+  audio sync vs the master voice:
+    t=   4.8s  lag    +0 ms  r=0.982  ok
+    t=  43.1s  lag    +0 ms  r=0.990  ok
+    t=  86.1s  lag    +0 ms  r=0.988  ok
+  lipsync A seated at 0.00s: lag    +0 ms  r=0.982  ok
+  lipsync B seated at 38.77s: lag    +0 ms  r=0.993  ok
+  lipsync C seated at 80.84s: lag    +0 ms  r=0.988  ok
+
+  VERIFY PASSED

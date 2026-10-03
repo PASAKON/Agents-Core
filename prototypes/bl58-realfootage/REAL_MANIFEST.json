@@ -211,6 +211,33 @@
   "note": "promo censor profile NOT applied on purpose, it would blank the dollar figure."
  },
  {
+  "file": "real/wikifx-article-sep-contents.png",
+  "kind": "still",
+  "covers": [
+   "MAIN-13"
+  ],
+  "source_url": "https://www.wikifx.com/th/newsdetail/202609302364545921.html",
+  "captured_at": "2026-10-01T23:58:00+02:00",
+  "seconds": 0,
+  "censored": [
+   {
+    "what": "app download CTA in the site nav (Download button, pixelated)",
+    "rule": "full"
+   }
+  ],
+  "evidence_box": [
+   {
+    "x": 64,
+    "y": 668,
+    "w": 460,
+    "h": 62,
+    "proves": "MAIN-13: contents row 02 Weltrade ใบอนุญาตเบลีซถูกเพิกถอน — ข้อมูลสำคัญที่ต้องรู้"
+   }
+  ],
+  "evidence_box_source": "read by eye on the full-resolution 1080x1920 still (row measured in the DOM at y 687-713, text x 84-500)",
+  "note": "task-cc55e620: full 1080x1920 viewport, no crop; capture by a one-off headless Chromium script (normal Chrome UA, Thai fonts), contents list scrolled up so row 02 sits at y ~700. Same hygiene hide block as wikifx-article-sep*; the plain headless shell is Access Denied from Contabo, full Chromium (channel chromium) is not. The $22,067 paragraph is half behind the site nav at the top edge and not used as evidence."
+ },
+ {
   "file": "real/weltrade-licence.png",
   "kind": "still",
   "covers": [

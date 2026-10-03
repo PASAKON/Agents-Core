@@ -41,6 +41,9 @@ ENV_BODY = f"ORG_DB_URL=postgresql://fake:{SENTINEL}@127.0.0.1:1/x\n"
 def _never_the_real_host_files(tmp_path, monkeypatch):
     monkeypatch.setenv("MOONIEX_ORG_DB_ENV", str(tmp_path / "no-such-org-db.env"))
     monkeypatch.setenv("MOONIEX_NODE_YAML", str(tmp_path / "no-such-node.yaml"))
+    # W3.4: the Windows route looks for an Infisical credential file; never a real one.
+    monkeypatch.setenv("INFISICAL_CRED_DIR", str(tmp_path / "no-such-infisical"))
+    monkeypatch.delenv("INFISICAL_USER_CRED_DIR", raising=False)
 
 
 @pytest.fixture
@@ -310,9 +313,127 @@ def test_set_org_db_none_removes_every_org_db_line_and_nothing_else():
 # --------------------------------------------------------------------------- Windows
 
 def test_windows_stays_unwrapped_even_with_the_hub_live(root, hub_on, monkeypatch):
+    """An env file is not a route on Windows (bash wrapper, W3.4): without winbox's
+    Infisical credential and tools/infisical_setup.py, both entries stay plain."""
     monkeypatch.setattr(sys, "platform", "win32")
 
     _assert_both_plain(root)
+
+
+# W3.4 (CEO approval 2026-10-03): winbox has no bash and never an org-db.env. The org
+# server starts under `infisical_setup.py run Agents-Core prod --as winbox` when the
+# node file says `org_db: hub` AND winbox's Infisical credential file exists.
+
+@pytest.fixture
+def win(monkeypatch):
+    monkeypatch.setattr(sys, "platform", "win32")
+
+
+@pytest.fixture
+def win_root(root):
+    """The fake root plus tools/infisical_setup.py (the generators test existence only)."""
+    (root / "tools").mkdir(exist_ok=True)
+    (root / "tools" / "infisical_setup.py").write_text("")
+    return root
+
+
+@pytest.fixture
+def winbox_cred(tmp_path, monkeypatch):
+    """A fake machine credential dir holding winbox.env."""
+    d = tmp_path / "infisical"
+    d.mkdir()
+    f = d / "winbox.env"
+    f.write_text(f"INFISICAL_CLIENT_SECRET={SENTINEL}\n")
+    monkeypatch.setenv("INFISICAL_CRED_DIR", str(d))
+    return f
+
+
+def _win_prefix(root: Path) -> list[str]:
+    return [_py(root), "-E", "-s", str(root / "tools" / "infisical_setup.py"),
+            "run", "Agents-Core", "prod", "--as", "winbox", "--"]
+
+
+def test_windows_routes_both_org_entries_through_infisical_run(win, win_root, hub_node, winbox_cred):
+    prefix = _win_prefix(win_root)
+
+    cxo_org = cxo._build("org", str(win_root))
+    worker_org = _worker(win_root)["mcpServers"]["org"]
+
+    plain = _plain_cxo_org(win_root)
+    assert cxo_org == {**plain, "command": prefix[0], "args": [*prefix[1:], plain["command"], *plain["args"]]}
+    plain_w = _plain_worker_org(win_root)
+    assert worker_org == {**plain_w, "command": prefix[0], "args": [*prefix[1:], plain_w["command"], *plain_w["args"]]}
+
+
+def test_windows_without_the_switch_stays_plain(win, win_root, winbox_cred):
+    _assert_both_plain(win_root)
+
+
+def test_windows_without_the_credential_stays_plain(win, win_root, hub_node):
+    _assert_both_plain(win_root)
+
+
+def test_windows_without_infisical_setup_stays_plain(win, root, hub_node, winbox_cred):
+    _assert_both_plain(root)
+
+
+def test_windows_user_scoped_credential_counts(win, win_root, hub_node, tmp_path, monkeypatch):
+    """Option B (CEO 2026-10-02): the credential under the user's profile is enough."""
+    user = tmp_path / "user-infisical"
+    user.mkdir()
+    (user / "winbox.env").write_text("x\n")
+    monkeypatch.setenv("INFISICAL_USER_CRED_DIR", str(user))
+
+    assert cxo._build("org", str(win_root))["args"][:9] == _win_prefix(win_root)[1:]
+
+
+def test_windows_route_is_idempotent(win, win_root, hub_node, winbox_cred):
+    once = cxo.wrap_org_entry(_plain_cxo_org(win_root), str(win_root))
+
+    assert once["args"][:9] == _win_prefix(win_root)[1:]
+    assert cxo.wrap_org_entry(once, str(win_root)) == once
+
+
+def test_windows_credential_file_is_never_opened(win, win_root, hub_node, winbox_cred, monkeypatch, tmp_path):
+    real_open = builtins.open
+
+    def guarded(file, *a, **kw):
+        assert Path(file) != winbox_cred, "the credential file must never be opened"
+        return real_open(file, *a, **kw)
+
+    monkeypatch.setattr(builtins, "open", guarded)
+    out = tmp_path / "cxo.json"
+    monkeypatch.setattr(sys, "argv", ["cxo_mcp_config.py", "--servers", "org", "--root", str(win_root), "--out", str(out)])
+    assert cxo.main() == 0
+    assert SENTINEL not in out.read_text()
+
+
+@pytest.mark.parametrize("setup, expected", [
+    ("win-routed", "infisical"),
+    ("win-no-cred", "none"),
+    ("posix-hub", "wrapper"),
+    ("posix-plain", "none"),
+])
+def test_hub_route_cli(setup, expected, root, tmp_path, monkeypatch, capsys):
+    """windows/cxo-claude.ps1 decides hub vs standalone from this one line."""
+    if setup.startswith("win"):
+        monkeypatch.setattr(sys, "platform", "win32")
+        (root / "tools").mkdir(exist_ok=True)
+        (root / "tools" / "infisical_setup.py").write_text("")
+        _write_node(tmp_path, monkeypatch, "host: winbox\norg_db: hub\n")
+        if setup == "win-routed":
+            d = tmp_path / "cred"
+            d.mkdir()
+            (d / "winbox.env").write_text("x\n")
+            monkeypatch.setenv("INFISICAL_CRED_DIR", str(d))
+    elif setup == "posix-hub":
+        (tmp_path / "org-db.env").write_text(ENV_BODY)
+        monkeypatch.setenv("MOONIEX_ORG_DB_ENV", str(tmp_path / "org-db.env"))
+        _write_node(tmp_path, monkeypatch, "host: mac\norg_db: hub\n")
+    monkeypatch.setattr(sys, "argv", ["cxo_mcp_config.py", "--root", str(root), "--hub-route"])
+
+    assert cxo.main() == 0
+    assert capsys.readouterr().out.strip() == expected
 
 
 # ------------------------------------------------------------------ already wrapped

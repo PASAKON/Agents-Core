@@ -826,7 +826,8 @@ def init():
     for tables that predate _MIGRATION_COLUMNS."""
     with get_conn() as conn:
         init_schema(conn, is_pg=bool(pg_url()))
-    print(f"[db] initialized at {redact_url(pg_url()) or DB_PATH}")
+    # stderr: stdout belongs to the caller (the org MCP server's JSON-RPC stream, `$(...)` captures)
+    print(f"[db] initialized at {redact_url(pg_url()) or DB_PATH}", file=sys.stderr)
 
 
 def new_task_id() -> str:

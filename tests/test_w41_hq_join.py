@@ -390,8 +390,8 @@ class Fake:
                     raise RuntimeError("provider said 500")
                 return hq_join.Outcome(kind not in self.fail, "refused" if kind in self.fail else "")
             return revoke
-        return {k: make(k) for k in ("infisical_client_secret", "tailscale_device",
-                                     "github_deploy_key", "authorized_keys")}
+        # No status_leaving entry: that step is the hub's own write, run inside leave() itself.
+        return {k: make(k) for k in ("tailscale_device", "github_deploy_key", "authorized_keys")}
 
 
 @pytest.fixture
@@ -409,11 +409,12 @@ def test_leave_without_live_prints_the_plan_and_changes_nothing(joined):
     assert fake.calls == [] and _dump() == before
     assert res["status"] == "planned"
     assert [s["kind"] for s in res["steps"]] == [
-        "infisical_client_secret", "tailscale_device", "github_deploy_key",
+        "status_leaving", "tailscale_device", "github_deploy_key",
         "authorized_keys", "authorized_keys", "authorized_keys"]
     assert [s["target"] for s in res["steps"] if s["kind"] == "authorized_keys"] == \
         ["contabo", "mac", "winbox"]
-    assert "org-node" in res["steps"][0]["what"]
+    assert "token service" in res["steps"][0]["what"]      # step 1 is what stops the token at once
+    assert not any("infisical" in s["kind"] for s in res["steps"])   # a node has no identity to revoke
 
 
 def test_leave_cli_defaults_to_the_plan(joined, capsys):
@@ -427,19 +428,85 @@ def test_leave_full_success_marks_the_row_left(joined):
     fake = Fake()
     res = hq_join.leave("node-a", live=True, revokers=fake.table())
     assert res["status"] == "left" and res["left_behind"] == []
-    assert len(fake.calls) == 6 and fake.calls[0][0] == "infisical_client_secret"
+    assert len(fake.calls) == 5 and fake.calls[0][0] == "tailscale_device"
+    assert [s["kind"] for s in res["steps"]][0] == "status_leaving" and res["steps"][0]["ok"]
     assert _host("node-a")["status"] == "left"
     assert hq_join.leave("node-a", live=True, revokers=fake.table())["note"]  # idempotent
-    assert len(fake.calls) == 6
+    assert len(fake.calls) == 5
+
+
+def test_leave_stops_the_token_before_any_slow_step_runs(joined):
+    """The CEO's rule: a node that left can never get the token again. The row is `leaving`
+    (the token service refuses it) before the first revoker is asked to do anything."""
+    seen = []
+
+    def watch(kind):
+        def revoke(step):
+            seen.append((kind, _host("node-a")["status"]))
+            return hq_join.Outcome(True, "")
+        return revoke
+    table = {k: watch(k) for k in ("tailscale_device", "github_deploy_key", "authorized_keys")}
+    hq_join.leave("node-a", live=True, revokers=table)
+    assert seen and {status for _, status in seen} == {"leaving"}
+    assert _host("node-a")["status"] == "left"
+
+
+def _fails_step_one(how):
+    def begin(host, now_s):
+        if how == "raises":
+            raise RuntimeError("could not connect with postgresql://u:pw@h/db")
+        return hq_join.Outcome(False, "refused")
+    return begin
+
+
+@pytest.mark.parametrize("how", ["raises", "reports_failure"])
+def test_leave_runs_no_other_step_when_the_first_one_fails(joined, monkeypatch, how):
+    """W4.2b round 2: if the row could not be set to `leaving` it may still be issuing the token.
+    Deleting the node's Tailscale device and deploy key anyway would cut a node the hub still serves
+    and look like a finished leave. Nothing after step 1 runs, and every step is left behind."""
+    monkeypatch.setattr(hq_join, "_begin_leave", _fails_step_one(how))
+    fake = Fake()
+    res = hq_join.leave("node-a", live=True, revokers=fake.table())
+    assert fake.calls == []                                           # no revoker was called
+    assert res["status"] == "partial"
+    kinds = [f"{s['kind']}:{s['target']}" for s in res["steps"]]
+    assert kinds[0] == "status_leaving:node-a" and len(kinds) == 6
+    assert res["left_behind"] == kinds                                # the failed step and every one after it
+    assert all(s["ok"] is False and "not run" in s["detail"] for s in res["steps"][1:])
+    assert _host("node-a")["status"] == "online"                      # not `left`, and nothing else changed
+    ev = [e for e in _dump()["events"] if e["kind"] == "join_leave"][-1]
+    assert "postgresql://" not in ev["payload"] and "pw@" not in ev["payload"]
+
+
+def test_leave_still_answers_when_step_one_and_the_audit_write_both_fail(joined, monkeypatch):
+    monkeypatch.setattr(hq_join, "_begin_leave", _fails_step_one("raises"))
+
+    def no_audit(*a, **k):
+        raise RuntimeError("hub down")
+    monkeypatch.setattr(hq_join.db, "log_event", no_audit)
+    fake = Fake()
+    res = hq_join.leave("node-a", live=True, revokers=fake.table())
+    assert res["status"] == "partial" and fake.calls == [] and len(res["left_behind"]) == 6
+
+
+def test_a_rerun_after_a_failed_first_step_starts_again_from_it(joined, monkeypatch):
+    with monkeypatch.context() as m:
+        m.setattr(hq_join, "_begin_leave", _fails_step_one("raises"))
+        hq_join.leave("node-a", live=True, revokers=Fake().table())
+    fake = Fake()
+    res = hq_join.leave("node-a", live=True, revokers=fake.table())
+    assert res["status"] == "left" and res["left_behind"] == [] and len(fake.calls) == 5
+    assert _host("node-a")["status"] == "left"
 
 
 def test_leave_partial_failure_runs_every_step_and_keeps_the_row(joined):
     fake = Fake(fail={"tailscale_device"}, boom={"github_deploy_key"})
     res = hq_join.leave("node-a", live=True, revokers=fake.table())
-    assert len(fake.calls) == 6                      # one failure did not stop the rest
+    assert len(fake.calls) == 5                      # one failure did not stop the rest
     assert res["status"] == "partial"
     assert res["left_behind"] == ["tailscale_device:node-a", "github_deploy_key:node-a"]
-    assert _host("node-a")["status"] == "online"
+    # not `left`, but already `leaving`: the token service refuses it while the rest is fixed
+    assert _host("node-a")["status"] == "leaving"
     boom = next(s for s in res["steps"] if s["kind"] == "github_deploy_key")
     assert boom["ok"] is False and "RuntimeError" in boom["detail"]
     ev = [e for e in _dump()["events"] if e["kind"] == "join_leave"][-1]
@@ -455,11 +522,20 @@ def test_leave_fails_one_authorized_keys_host_and_names_it(joined):
 
 
 def test_leave_live_with_the_default_revokers_touches_nothing_outside(joined, capsys):
-    """No revokers injected: the shipped table refuses every step."""
+    """No revokers injected: the shipped table refuses every outside step. The hub's own first
+    step still runs, so the node is `leaving` (refused by the token service), not `left`."""
     rc = hq_join.main(["leave", "--host", "node-a", "--live"])
     out = capsys.readouterr().out
-    assert rc == 1 and out.count("not wired yet") == 6 and "NOT marked left" in out
-    assert _host("node-a")["status"] == "online"
+    assert rc == 1 and out.count("not wired yet") == 5 and "NOT marked left" in out
+    assert "[ok] status_leaving" in out
+    assert _host("node-a")["status"] == "leaving"
+
+
+def test_a_rerun_after_a_partial_leave_finishes_it(joined):
+    hq_join.leave("node-a", live=True, revokers=Fake(fail={"tailscale_device"}).table())
+    assert _host("node-a")["status"] == "leaving"
+    res = hq_join.leave("node-a", live=True, revokers=Fake().table())
+    assert res["status"] == "left" and _host("node-a")["status"] == "left"
 
 
 def test_leave_refuses_a_host_that_never_joined_through_accept(joined):
