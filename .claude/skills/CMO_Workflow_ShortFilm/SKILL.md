@@ -173,7 +173,7 @@ and the CEO's own edit needs a day.
 
 ### Step 8 · QC: continuity and drift
 - **Do:** one numbered contact sheet (start / middle / end frame per clip); judge by eye, then give the CEO
-  one table per number: what failed against the brief (`CMO_Knowledge_Film_Production` §8; Flow: `CMO_Gate_Flow_Omni1.1_FilmQC`).
+  one table per number: what failed against the brief (`CMO_Knowledge_Film_Production` §8; Flow: `CMO_Gate_Flow_Omni1.1_FilmQC`; champa Seedance short movie: `CMO_Gate_Champa_Seedance2.0_ShortMovieQC`, whose 14-item eye checklist is the gate).
 - Mechanical checks find what frames cannot: `tools/film_transcript.py` (the line was said, no stage
   direction spoken), `tools/burned_text_scan.py` (text or subtitles burned into the picture). Look for the
   known drifts listed in the engine skill's field notes (wrong species, missing mount, lamp state).

@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-47 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 9 · Standard 4 · Gate 4 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+48 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 9 · Standard 4 · Gate 5 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -74,6 +74,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 
 | name | owner | audience | what it is |
 |---|---|---|---|
+| `CMO_Gate_Champa_Seedance2.0_ShortMovieQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for every clip of a SHORT MOVIE (one continuous story world, creatures, VFX, English dialogue) shot on champa Seedance… |
 | `CMO_Gate_Flow_Omni1.1_Continuity` | CMO | cmo, cto, script_writer, browser_operator | Continuity sheet + pre-shoot gate for an AI film shot in Google Flow (Omni 1.1 Flash, องค์ประกอบ mode): one table of time, place, who… |
 | `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of «จุดจบของเจ้าหนี้นอกระบบ»… |
 | `CMO_Gate_Story_SceneEngine` | CMO | cmo, script_writer, worker | Write and audit screenplay scenes and sequences using a five-element dramatic engine — Goal, Obstacle, Tactic, Reversal, Value Shift… |
