@@ -89,10 +89,22 @@ the task is visible there.
 - **L0 identity** — "which host am I?" Cross-checks `lib.config.self_host()`
   (when it exists — it lands in wave W0.1, so its absence is tolerated, not
   a disagreement), a `tailscale status --json` Self.HostName/DNSName match
-  against a configured host key or ssh alias, and whether this checkout's
-  `ROOT` equals some host's `agents_root` in `config/hosts.yaml`. Green only
-  if every available source agrees. Diagonal only (`from == to`) — there is
-  no cross-host "who are you" question.
+  against a configured host key or ssh alias, and a **root match**: which
+  host has this checkout's `ROOT` as its `agents_root` (`config/hosts.yaml`)
+  **or** as its registered checkout of this repo (`paths.<host>` of the
+  `mooniex-agents` entry in `config/projects.yaml`, read through
+  `lib.config.projects()`). The second source exists because on winbox
+  `agents_root` is the spawn directory (`C:\Users\passg\mooniex`), not the
+  checkout (`...\mooniex\repo\MoonieX-Agents`); with `agents_root` alone every
+  winbox run read `root_match=(unregistered)` and L0 went red. Paths are
+  compared after normalising: a drive-letter path goes through `ntpath`
+  (`normcase` + `normpath`), so case and `/` vs `\` do not matter; any other
+  path is POSIX-normalised and case-sensitive; a configured path that exists
+  on this machine is symlink-resolved first. A worktree matches neither
+  source, so it still reads `root_match=(unregistered)` and L0 still
+  disagrees — that is deliberate (see Troubleshooting). Green only if every
+  available source agrees. Diagonal only (`from == to`) — there is no
+  cross-host "who are you" question.
 
 - **L1 ssh** — from this host to every other host:
   `ssh -o BatchMode=yes -o ConnectTimeout=5 <alias> true` (winbox falls back
@@ -100,6 +112,24 @@ the task is visible there.
   (sshd closed by design) — any cell targeting mac renders
   "closed (by design)" and is excluded from the exit code until wave w2.
   The dispatch-key checks are **not** here: they live in the SEC row below.
+  **The self rule:** when the target is this host, **no ssh is made** — a
+  host need not resolve its own alias (winbox cannot: `Could not resolve
+  hostname winbox`). That cell is `n/a`: in the matrix it reads `n/a` like the
+  L1 diagonal (`EXPECT` has no L1 diagonal key), and in the `--local` payload
+  it is `{"ok": true, "reason": "n/a", "kind": "n/a"}`, which `render()` prints
+  as `n/a` and never counts as a failure. Only that one cell changes; every
+  other L1 cell is still the ssh answer.
+  **Which identity decides:** one per run — the host the matrix labels its row
+  with, `_running_host_guess(ROOT)` (root match, else the tailscale guess).
+  `build_matrix` passes its `running_host`; `--local` passes the same
+  `_running_host_guess(ROOT)`. `lib.config.self_host()` does **not** decide: it
+  is a second source that can disagree (a worktree, a node.yaml naming another
+  host, the Linux CI runner answering `contabo`), and if it chose, a red L1
+  cell would turn into an uncounted `n/a` — a silent wrong answer. When the
+  run has no identity (`_running_host_guess` is `None`, e.g. a worktree with
+  no tailscale answer) **every host is dialled, this one included**: an unknown
+  identity never hides a red cell, and L0 already reports that same
+  disagreement.
 
 - **L2 org MCP** — starts the org MCP server for this host over stdio
   exactly as a C-level session does (`scripts/lib/cxo_mcp_config.py`'s
@@ -122,6 +152,23 @@ the task is visible there.
 
 - **L5 letters**, **L6 liveness**, **L7 router**, **L8 join drill**, **SEC**
   and **INV** — see "The mesh levels" below, one section each.
+
+## Text decoding — every `text=True` names utf-8
+
+`subprocess.run(..., text=True)` alone decodes with the **locale codec**,
+which is cp1252 on winbox. A byte such as `0x81` (a UTF-8 lead byte from
+ssh, git or the far side's JSON) is undefined in cp1252, and the subprocess
+reader thread dies with `UnicodeDecodeError: 'charmap' codec can't decode
+byte 0x81`. So every text-mode subprocess call in `tools/mesh_check.py`
+passes `encoding="utf-8", errors="replace"` beside `text=True`: the output
+decodes the same on every host, and a stray byte becomes `U+FFFD` instead
+of killing the reader.
+
+`tests/test_mesh_check.py` walks the AST of `tools/mesh_check.py` and fails
+on any `subprocess.run/Popen/check_output/check_call/call` with `text=True`
+or `universal_newlines=True` that lacks `encoding="utf-8"` and
+`errors="replace"` (a call that hides them behind `**kwargs` fails too), so a
+new call cannot regress this. Keep the keywords literal at the call site.
 
 ## L3 in detail
 
@@ -547,12 +594,18 @@ file:
   `python -m venv .venv && ./.venv/bin/pip install -r requirements.txt`).
 - **`mcp package unavailable`** — same fix; `mcp` is in `requirements.txt`.
 - **L0 "sources disagree"** — usually means you're running from a worktree
-  or an unregistered checkout, so `ROOT` doesn't match any `agents_root` in
-  `config/hosts.yaml`. Expected and honest, not a bug in the tool — run from
-  the registered checkout to get a clean L0.
+  or an unregistered checkout, so `ROOT` matches neither a host's
+  `agents_root` (`config/hosts.yaml`) nor its registered checkout
+  (`paths.<host>` of `mooniex-agents` in `config/projects.yaml`). Expected and
+  honest, not a bug in the tool — run from the registered checkout to get a
+  clean L0. If the checkout you run from *should* be registered (a new
+  machine), fix `paths.<host>` in `config/projects.yaml`.
 - **L1 timeout / ssh failed** — check the alias resolves
   (`ssh -G <alias>`), and that BatchMode auth (a working key, no password
-  prompt) is set up for it.
+  prompt) is set up for it. A host does not dial its own alias: its own L1
+  cell is `n/a` (see "The self rule" above), so a failure here is a *peer* —
+  unless the run could not tell which host it is (L0 then says so), in which
+  case every host, this one too, is dialled.
 - **A peer's L0/L2 cells read `no repo access` or a surprising `mcp package
   unavailable` reason, but that host looks fine in person** — the piped
   fallback (`ssh <alias> python3 - --local --json < tools/mesh_check.py`)

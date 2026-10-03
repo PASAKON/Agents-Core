@@ -13,9 +13,11 @@ See docs/ops/mesh-check.md for what each level proves and the design
 rationale behind the EXPECT table below.
 
 Levels:
-  L0 identity  — which host am I (self_host() / tailscale / ROOT-vs-agents_root
-                 agreement). Diagonal only (from == to).
+  L0 identity  — which host am I (self_host() / tailscale / ROOT-vs-checkout
+                 agreement: a host's agents_root OR its registered checkout of
+                 this repo). Diagonal only (from == to).
   L1 ssh       — `ssh -o BatchMode=yes ... <alias> true` to every other host.
+                 This host's own cell makes no ssh call and is "n/a".
   L2 org MCP   — start the org MCP server over stdio, tools/list includes
                  create_task + delegate_task. Diagonal only.
   L3 delegate  — --live only: create a probe task, delegate it to a target
@@ -63,6 +65,7 @@ import contextlib
 import copy
 import importlib.util
 import json
+import ntpath
 import os
 import re
 import subprocess
@@ -97,6 +100,9 @@ try:
 except Exception:
     HAVE_CONFIG = False
     HOSTS = []
+
+# The config/projects.yaml entry whose `paths.<host>` registers this repo's checkout.
+AGENTS_PROJECT_KEY = "mooniex-agents"
 
 WAVES = ["w0", "w1", "w2", "w3", "w4", "w5"]
 LEVELS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "SEC", "INV"]
@@ -268,10 +274,12 @@ def _ssh_run(alias: str, remote_cmd: str, *, timeout: int,
     try:
         if stdin_path is not None:
             with open(stdin_path, "rb") as f:
-                r = subprocess.run(cmd, stdin=f, capture_output=True, text=True, timeout=timeout)
+                r = subprocess.run(cmd, stdin=f, capture_output=True,
+                                   text=True, encoding="utf-8", errors="replace",
+                                   timeout=timeout)
         else:
             r = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True,
-                               text=True, timeout=timeout)
+                               text=True, encoding="utf-8", errors="replace", timeout=timeout)
     except (subprocess.TimeoutExpired, OSError):
         return None
     if r.returncode != 0:
@@ -299,6 +307,29 @@ def _to_cell(pair: tuple[bool, str | None]) -> dict:
     return {"ok": ok, "reason": reason}
 
 
+def _na() -> dict:
+    """A cell with nothing to judge (L1 from a host to itself). `ok` is True so
+    a reader that only looks at `ok` never sees a failure; `kind` "n/a" makes
+    render() print "n/a" and never count it."""
+    return {"ok": True, "reason": "n/a", "kind": "n/a"}
+
+
+def _l1_cell(target_host_key: str, me: str | None) -> dict:
+    """The L1 cell for `target_host_key`, from the host the caller calls `me`.
+    A target equal to `me` makes NO ssh call (a host cannot always resolve its
+    own alias: winbox cannot) and is n/a, like the L1 diagonal in the matrix;
+    every other target is the ssh answer.
+
+    `me` is the ONE identity of the run: the host the matrix labels its row
+    with (`_running_host_guess`). It is never read from `self_host()` here: a
+    second source that disagrees (a worktree, a box whose node.yaml says
+    something else) would turn a red L1 cell into an uncounted n/a. `me` None
+    (identity unknown) dials every target, so nothing is ever skipped."""
+    if me is not None and target_host_key == me:
+        return _na()
+    return _to_cell(check_l1(target_host_key))
+
+
 def _tailscale_guess_host() -> str | None:
     """Best-effort: match `tailscale status --json` Self.HostName/DNSName
     against a host key or its ssh alias. None if tailscale is unavailable,
@@ -307,7 +338,8 @@ def _tailscale_guess_host() -> str | None:
         return None
     try:
         r = subprocess.run(["tailscale", "status", "--json"],
-                           capture_output=True, text=True, timeout=10)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=10)
     except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
         return None
     if r.returncode != 0:
@@ -329,14 +361,51 @@ def _tailscale_guess_host() -> str | None:
     return None
 
 
+def _path_key(p) -> str | None:
+    """Comparable form of a configured checkout path. A path that exists on
+    this machine is symlink-resolved first. A drive-letter path (winbox) then
+    goes through ntpath, so case and `/` vs `\\` stop mattering; anything
+    else is normalised the POSIX way and stays case-sensitive."""
+    s = str(p) if p else ""
+    if not s:
+        return None
+    try:
+        if os.path.exists(s):
+            s = os.path.realpath(s)
+    except (OSError, ValueError):
+        pass
+    if re.match(r"^[A-Za-z]:", s):
+        return ntpath.normcase(ntpath.normpath(s))
+    return os.path.normpath(s)
+
+
+def _registered_checkouts() -> dict[str, str]:
+    """host key -> where config/projects.yaml registers this repo's checkout
+    (`paths.<host>` of the `mooniex-agents` entry), through lib.config. {} when
+    the project or its `paths` is missing, so L0 then falls back to agents_root."""
+    try:
+        entry = config.projects().get(AGENTS_PROJECT_KEY) or {}
+    except Exception:
+        return {}
+    return {h: p for h, p in (entry.get("paths") or {}).items() if p}
+
+
 def _root_match_host(root: Path) -> str | None:
-    """Which host, if any, has `agents_root` == `root`. Always contributes a
-    real answer (never "unavailable") — a checkout that matches nobody is
-    itself a meaningful (disagreeing) signal, e.g. running from a worktree."""
+    """Which host, if any, has `root` as its `agents_root` (config/hosts.yaml)
+    OR as its registered checkout of this repo (`paths.<host>` of the
+    `mooniex-agents` entry in config/projects.yaml). The second source is
+    needed where `agents_root` is the spawn directory, not this checkout
+    (winbox). Always contributes a real answer (never "unavailable") — a
+    checkout that matches neither is itself a meaningful (disagreeing) signal,
+    e.g. running from a worktree."""
     if not HAVE_CONFIG:
         return None
+    want = _path_key(root)
+    if want is None:
+        return None
+    checkouts = _registered_checkouts()
     for h, cfg in config.hosts().items():
-        if cfg.get("agents_root") == str(root):
+        if want in (_path_key(cfg.get("agents_root")), _path_key(checkouts.get(h))):
             return h
     return None
 
@@ -394,7 +463,8 @@ def check_l1(target_host_key: str) -> tuple[bool, str | None]:
         return False, "closed (by design)"
     cmd = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", alias, "true"]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=15)
     except subprocess.TimeoutExpired:
         return False, "timeout"
     if r.returncode == 0:
@@ -403,7 +473,8 @@ def check_l1(target_host_key: str) -> tuple[bool, str | None]:
         cmd2 = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", alias,
                 "cmd", "/c", "exit", "0"]
         try:
-            r2 = subprocess.run(cmd2, capture_output=True, text=True, timeout=15)
+            r2 = subprocess.run(cmd2, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                timeout=15)
         except subprocess.TimeoutExpired:
             return False, "timeout"
         if r2.returncode == 0:
@@ -489,7 +560,8 @@ def _register_probe_session(session_id: str, host: str) -> None:
 def _git_ls_remote_has(root: Path, sha: str) -> bool:
     try:
         r = subprocess.run(["git", "ls-remote", "origin"], cwd=str(root),
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=30)
     except (subprocess.TimeoutExpired, OSError):
         return False
     return r.returncode == 0 and sha in r.stdout
@@ -501,7 +573,8 @@ _GIT_STATUS_FAILED = "git status failed"
 def _git_status_porcelain(root: Path) -> str:
     try:
         r = subprocess.run(["git", "status", "--porcelain"], cwd=str(root),
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=30)
     except (subprocess.TimeoutExpired, OSError):
         return _GIT_STATUS_FAILED
     return r.stdout.strip()
@@ -531,14 +604,16 @@ def _git_show_from_origin(root: Path, rev: str, path: str) -> tuple[str | None, 
     fetch_note = ""
     try:
         f = subprocess.run(["git", "fetch", "--quiet", "origin"], cwd=str(root),
-                           capture_output=True, text=True, timeout=60)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=60)
         if f.returncode != 0:
             fetch_note = f" (git fetch origin failed: {(f.stderr or '').strip()[:100]})"
     except (subprocess.TimeoutExpired, OSError) as e:
         fetch_note = f" (git fetch origin failed: {type(e).__name__})"
     try:
         r = subprocess.run(["git", "show", f"{rev}:{path}"], cwd=str(root),
-                           capture_output=True, text=True, timeout=30)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=30)
     except (subprocess.TimeoutExpired, OSError) as e:
         return None, f"git show failed: {type(e).__name__}{fetch_note}"
     if r.returncode != 0:
@@ -730,6 +805,7 @@ def _l4_read_back(to_host: str, task_id: str) -> tuple[bool, str | None]:
 #   "unreachable"  MeshUnreachable: nothing answered, so nothing is known
 #   "closed"       the target has no mesh_ssh (config/hosts.yaml): never dialled
 #   "not_run"      L8 only: no drill has ever written its file
+#   "n/a"          L1 to this host itself: nothing to judge, never counts
 # Unreachable and not_run are never green: render() counts them as failing
 # when the cell is in scope, and labels them apart from a red.
 # ---------------------------------------------------------------------------
@@ -834,7 +910,7 @@ def check_sec(to_host: str) -> dict:
                     f"{type(e).__name__}: {e}")
     for payload in SEC_PAYLOADS:
         try:
-            r = subprocess.run(prefix + [payload], capture_output=True, text=True,
+            r = subprocess.run(prefix + [payload], capture_output=True, text=True, encoding="utf-8", errors="replace",
                                timeout=mesh.DEFAULT_TIMEOUT_S, stdin=subprocess.DEVNULL)
         except (subprocess.TimeoutExpired, OSError) as e:
             return _unreachable(f"{payload!r}: {type(e).__name__}")
@@ -1414,10 +1490,15 @@ def check_invariant() -> dict:
 # ---------------------------------------------------------------------------
 
 async def local_payload() -> dict:
+    """This host's L0-L2 cells. The L1 cell to this host is n/a, where "this
+    host" is `_running_host_guess(ROOT)`, the source build_matrix labels its row
+    with: one identity per run. When it cannot say (None) every host is dialled,
+    this one included, so an unknown identity never hides a red cell."""
     payload: dict = {}
     if HAVE_CONFIG:
+        me = _running_host_guess(ROOT)
         payload["l0"] = _to_cell(check_l0(ROOT))
-        payload["l1"] = {h: _to_cell(check_l1(h)) for h in HOSTS}
+        payload["l1"] = {h: _l1_cell(h, me) for h in HOSTS}
         payload["l2"] = _to_cell(await check_l2(ROOT))
     else:
         payload["l0"] = {"ok": False, "reason": "no repo access"}
@@ -1461,7 +1542,7 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
         for h in HOSTS:
             if h == running_host:
                 continue
-            combined["L1"][running_host][h] = _to_cell(check_l1(h))
+            combined["L1"][running_host][h] = _l1_cell(h, running_host)
 
     if HAVE_CONFIG:
         script_path = Path(__file__).resolve()
@@ -1552,8 +1633,11 @@ def _judge(computed: dict) -> tuple[str, str]:
 
     Red, unreachable and not-run all fail (unknown is never green) but read
     differently, so a down host is not mistaken for a wrong answer. A closed
-    cell (target has no mesh_ssh) is "closed (by design)" and never counts."""
+    cell (target has no mesh_ssh) is "closed (by design)" and never counts; an
+    "n/a" cell (L1 to this host itself) reads "n/a" and never counts either."""
     kind = computed.get("kind")
+    if kind == "n/a":
+        return "n/a", "skip"
     if kind == "closed":
         return "closed (by design)", "skip"
     if computed["ok"]:
