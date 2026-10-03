@@ -52,7 +52,9 @@ a gh runner and a sealer. `leave --live` uses UNWIRED_REVOKERS ("not wired
 yet") unless the flag is on; with it, wired_revokers() revokes the Infisical
 client secret and the GitHub deploy key for real, removes the tailnet device
 too when TAILSCALE_OAUTH_CLIENT_ID / _SECRET are in the environment (lib/tailscale_api.py),
-and leaves authorized_keys unwired. Tests inject fakes.
+and settles authorized_keys by what was PLACED (_placed_authorized_keys): nothing for a joined
+node, so it is ok there; a core host's lines are placed and no code removes them, so it
+refuses. Tests inject fakes.
 
 Exit    0 ok, 1 ran and failed (leave with steps left behind, provision
         failed), 2 refused (bad argument, or the token/host was rejected)
@@ -443,6 +445,7 @@ class Step:
     kind: str    # key into the revokers mapping
     target: str  # what it acts on (the node, or the other host for authorized_keys)
     what: str    # one line for the plan
+    host: str = ""  # the node that is leaving; set on authorized_keys steps, where target is another host
 
 
 @dataclass(frozen=True)
@@ -465,10 +468,45 @@ def _not_wired(why: str) -> Revoker:
     return revoke
 
 
+_AUTHORIZED_KEYS_WHY = "needs the W2.8 ssh mesh (forced-command keys)"
+
+
+def _placed_authorized_keys(host: str, target: str) -> list[str]:
+    """The authorized_keys lines code has put on `target` for `host`: the ONE place that
+    knows. Leave revokes what was placed, so revoke_authorized_keys removes exactly what
+    this returns.
+
+    A joined node: [] today. join.sh / join.ps1 (W4.3 step 3) create the node's keys on the
+    node only, and nothing writes them into any host's authorized_keys. W2.8-for-nodes is the
+    place that must start recording its placements here, in the same change that places them.
+
+    A core host (mac, contabo, winbox; every reserved name is treated alike): its W2.8a
+    dispatch lines ARE placed on the other hosts. They are not enumerated here, so one
+    descriptor stands for them and the revoker refuses until a remover exists."""
+    if host in reserved_hosts():
+        return [f"{host}'s W2.8a dispatch line on {target}"]
+    return []
+
+
+def revoke_authorized_keys(step: Step) -> Outcome:
+    """The `authorized_keys` leg. Nothing placed means nothing to remove: ok. Something
+    placed has no remover yet, so it refuses; saying ok there would mark a node `left`
+    while its key still opens a door. A step with no node named is refused for the same
+    reason: "none placed" is a claim about one host."""
+    if not step.host:
+        return Outcome(False, "the step names no node, so what was placed cannot be known")
+    placed = _placed_authorized_keys(step.host, step.target)
+    if placed:
+        return Outcome(False, f"not wired yet: {_AUTHORIZED_KEYS_WHY}; "
+                              f"{len(placed)} placed on {step.target}, nothing removes them")
+    return Outcome(True, f"none placed: no code puts {step.host}'s key on {step.target} yet "
+                         f"(W2.8 for joined nodes); nothing to remove")
+
+
 # What `leave --live` uses unless ORG_W42_PROVISION=1 (then wired_revokers(),
-# below, replaces the first and third entries, and the second when the Tailscale OAuth
-# client is in the environment). Every step refuses, so nothing outside the hub can be
-# touched by this file.
+# below, replaces the first and third entries, the second when the Tailscale OAuth
+# client is in the environment, and the fourth with revoke_authorized_keys). Every step
+# refuses, so nothing outside the hub can be touched by this file.
 UNWIRED_REVOKERS: Mapping[str, Revoker] = {
     "infisical_client_secret": _not_wired(
         f"live revocation is off (set {W42_FLAG}=1, W4.2)"),
@@ -476,7 +514,7 @@ UNWIRED_REVOKERS: Mapping[str, Revoker] = {
         f"needs {W42_FLAG}=1 and {tailscale_api.ID_ENV} + {tailscale_api.SECRET_ENV} in the environment"),
     "github_deploy_key": _not_wired(
         f"live revocation is off (set {W42_FLAG}=1, W4.2)"),
-    "authorized_keys": _not_wired("needs the W2.8 ssh mesh (forced-command keys)"),
+    "authorized_keys": _not_wired(_AUTHORIZED_KEYS_WHY),
 }
 
 
@@ -591,7 +629,8 @@ def wired_revokers(*, org=None, gh: GhRunner | None = None, tailscale=None,
     """UNWIRED_REVOKERS with the W4.2 legs made real: the client secret and the
     deploy key are revoked by the ids in node_secrets. The tailnet device is removed when
     `tailscale` (a client) is given or the environment holds the Tailscale OAuth client
-    (tailscale_revoker); otherwise tailscale_device stays unwired, as does authorized_keys.
+    (tailscale_revoker); otherwise tailscale_device stays unwired. authorized_keys is
+    revoke_authorized_keys: ok for a joined node (nothing placed), refused for a core host.
     `org` defaults to the live Infisical org, built on first use so a leave that never
     reaches the first step never logs in."""
     cache: dict = {}
@@ -614,7 +653,7 @@ def wired_revokers(*, org=None, gh: GhRunner | None = None, tailscale=None,
         return Outcome(True, "deleted" if kid else "no deploy key recorded")
 
     table = {**UNWIRED_REVOKERS, "infisical_client_secret": revoke_secret,
-             "github_deploy_key": revoke_key}
+             "github_deploy_key": revoke_key, "authorized_keys": revoke_authorized_keys}
     ts = tailscale_revoker(tailscale)
     if ts is not None:
         table["tailscale_device"] = ts
@@ -828,7 +867,8 @@ def plan_leave(conn, host: str) -> list[Step]:
     for r in others:
         steps.append(Step(
             "authorized_keys", r["host"],
-            f"remove {host}'s dispatch key and admin pubkey line from authorized_keys on {r['host']}"))
+            f"remove {host}'s dispatch key and admin pubkey line from authorized_keys on {r['host']}",
+            host))
     return steps
 
 
