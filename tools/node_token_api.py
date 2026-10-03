@@ -289,6 +289,7 @@ class _Handler(BaseHTTPRequestHandler):
 
 class NodeTokenServer(ThreadingHTTPServer):
     daemon_threads = True
+    request_queue_size = 64   # the default 5 resets a burst of nodes restarting together (seen on macOS)
 
     def __init__(self, port: int = 0, *, tokens: dict[str, str], bind: str,
                  allow_loopback: bool = False, sealer: Sealer | None = None,
