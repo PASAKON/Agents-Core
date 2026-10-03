@@ -727,4 +727,4 @@ def test_wired_revokers_takes_an_injected_client_without_reading_the_env():
     table = hq_join.wired_revokers(org=object(), tailscale=Fake())
     out = table["tailscale_device"](hq_join.Step("tailscale_device", "node-a", "x"))
     assert out == hq_join.Outcome(True, "deleted") and seen == ["node-a"]
-    assert table["authorized_keys"] is hq_join.UNWIRED_REVOKERS["authorized_keys"]
+    assert table["authorized_keys"] is hq_join.revoke_authorized_keys      # settled by what was placed
