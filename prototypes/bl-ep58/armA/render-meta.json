@@ -1,0 +1,91 @@
+{
+ "task": "task-3cf9c2f8",
+ "episode": "BL EP58 Weltrade, arm A (headline plate)",
+ "final": "/opt/MoonieXHQ/Work/bl-ep58/armA/final-ep58-armA.mp4",
+ "bytes": 19341684,
+ "duration_s": 95.7,
+ "fps": "30/1",
+ "size": "1080x1920",
+ "frames": 2871,
+ "video_codec": "h264",
+ "audio_codec": "aac",
+ "loudness_lufs": -15.4,
+ "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/armA/sheet-ep58-armA.jpg",
+ "modes": {
+  "COMP": 17,
+  "EVID": 13,
+  "KIN": 10,
+  "FF": 0
+ },
+ "beats": 40,
+ "windows": 12,
+ "window_boundary_note": "seg02|seg03 cut at 16.63 (PATTERN-4's own t0), not 16.6: a cut one frame earlier left frame 498 bare; a cut at 16.6333 dropped the KIN beat from seg03",
+ "brand_mark": {
+  "ok": true,
+  "min_ratio": 0.9897,
+  "min_time_s": 0.1,
+  "frames_checked": 2871,
+  "failing_frames": 0,
+  "side": "left"
+ },
+ "merge": "MERGE OK (frame count 2871 vs 2872 +-1, no seam failures, audio offset 0.0 s, one caption style)",
+ "verify": "PASSED (sync 0 ms at 4.8/43.1/86.1 s; lip A/B/C seated 0.00/38.77/80.84 s at 0 ms; -15.4 LUFS)",
+ "checker_without_face_box": {
+  "pass": true,
+  "empty_frames": [],
+  "empty_frames_excused": [
+   16.633,
+   16.667,
+   16.7,
+   16.733
+  ],
+  "out_of_safe_area": [],
+  "credit_missing": [],
+  "extra_caption_styles": [],
+  "kinetic_overflow": [],
+  "headline": []
+ },
+ "checker_with_face_box": {
+  "pass": false,
+  "boxes": {
+   "lip_a": [
+    55,
+    903,
+    371,
+    436
+   ],
+   "lip_b": [
+    56,
+    976,
+    432,
+    369
+   ],
+   "lip_c": [
+    95,
+    1003,
+    295,
+    296
+   ]
+  },
+  "text_over_face": [
+   "HOOK-1",
+   "HOOK-2",
+   "HOOK-3",
+   "HOOK-4",
+   "PATTERN-1",
+   "PATTERN-2",
+   "PATTERN-3",
+   "MAIN-5",
+   "MAIN-6",
+   "MAIN-7",
+   "MAIN-8",
+   "MAIN-9",
+   "MAIN-10",
+   "MAIN-11",
+   "SUMMARY-7",
+   "SUMMARY-8",
+   "SUMMARY-9"
+  ],
+  "note": "identical 17 beats for lip_a, lip_b and lip_c; all other gates pass"
+ }
+}
