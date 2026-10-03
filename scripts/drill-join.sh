@@ -10,16 +10,20 @@
 #   --log-to-repo   also append the state/re-os-drills.jsonl row to the repo file (default: print it)
 #
 # What one run does (the step names are the names in join-drill.json, mesh_check L8 reads them):
-#   preflight        refuse (exit 2, nothing started) unless the box can carry the drill
+#   preflight        refuse (exit 2, nothing started) unless the box can carry the drill; this includes the
+#                    join role's DSN logging in (gap 7) and the token service answering /health
 #   door_open        open the hub's join door for the drill only; a trap closes it on every exit
 #   container        ubuntu:24.04, tailscaled in userspace networking, state in a volume
 #   mint             `hq_join mint` a one-use token for drill-<stamp>
 #   join             the one command a new machine runs; the fingerprint is read from the NODE
 #   approve          `hq_join approve` with that fingerprint
-#   provision        `hq_join provision`; the node takes its sealed identity; node_probe = join.sh's own
-#   token_worker     the node answers a nonce through `claude -p` with only CLAUDE_CODE_OAUTH_TOKEN (W4.0)
+#   provision        `hq_join provision` seals the node's bundle (the token service's URL; no Infisical
+#                    call); node_probe = join.sh's own step 9, through tools/node_token.py
+#   token_worker     the node answers a nonce through `claude -p`; node_token.py asks the hub for the
+#                    token and gives it to claude by environment only (W4.0, W4.2b)
 #   probe            a probe task for the node completes: its commit is on origin on the task's branch
-#   leave            `hq_join leave --live`, then verify_* each thing it should have removed
+#   leave            `hq_join leave --live`, then verify_* each thing it should have removed;
+#                    verify_token_refused = the hub's /v1/token for the host now answers 403 left
 #   cleanup          branch, task, container, volume and door; JSON, event row and jsonl row written
 # A failed step still runs leave, the verifies and cleanup, and writes ok=false naming the step.
 #
@@ -33,10 +37,12 @@
 #   DRILL_CORE DRILL_LIVE_CORE DRILL_STATE_DIR DRILL_ROWS_FILE DRILL_PY DRILL_DOOR DRILL_HUB_WRAP DRILL_JOIN_URL
 #   DRILL_IMAGE DRILL_MIN_MB DRILL_CONTAINER_MB DRILL_DOOR_MIN DRILL_FP_WAIT_S DRILL_JOIN_WAIT_S
 #   DRILL_PROBE_WAIT_S DRILL_POLL_S DRILL_GH_REPO DRILL_AUTHORIZED_KEYS DRILL_WINBOX_SSH
-#   DRILL_TS_API DRILL_STAMP DRILL_ALLOW_NONROOT INFISICAL_CRED_DIR DRILL_JOIN_ENV_WRAP
+#   DRILL_TS_API DRILL_STAMP DRILL_ALLOW_NONROOT DRILL_JOIN_ENV_WRAP DRILL_TOKEN_URL
+#   DRILL_TOKEN_URL is the token service as a node sees it, http://<hub tailnet address>:8792/v1/token;
+#   ORG_NODE_TOKEN_URL in the environment is the second choice, `tailscale ip -4` on this box the third.
 set -uo pipefail
 
-STEP_NAMES="preflight door_open container mint join approve provision node_probe token_worker probe leave verify_tailnet verify_deploy_key verify_infisical verify_host_row verify_authorized_keys cleanup"
+STEP_NAMES="preflight door_open container mint join approve provision node_probe token_worker probe leave verify_tailnet verify_deploy_key verify_token_refused verify_host_row verify_authorized_keys cleanup"
 
 SELF=""                                         # stays empty when the script is piped in: no file to re-run
 [ -n "${BASH_SOURCE[0]:-}" ] && SELF=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")
@@ -73,7 +79,10 @@ GH_REPO=${DRILL_GH_REPO:-PASAKON/Agents-Core}
 AK_FILE=${DRILL_AUTHORIZED_KEYS:-/root/.ssh/authorized_keys}
 WINBOX_SSH=${DRILL_WINBOX_SSH:-winbox}
 TS_API=${DRILL_TS_API:-https://api.tailscale.com}
-CRED_DIR=${INFISICAL_CRED_DIR:-/etc/infisical}
+# Where a node reaches the hub's token service (tools/node_token_api.py, deploy/node-token/README.md).
+# Empty here means "ask tailscale at preflight"; provision seals it into the node's bundle.
+TOKEN_URL=${DRILL_TOKEN_URL:-${ORG_NODE_TOKEN_URL:-}}
+TOKEN_PORT=8792
 STAMP=${DRILL_STAMP:-$(date -u +%Y%m%d-%H%M%S)}
 HOST=drill-$STAMP
 C_CONF=/root/.config/mooniex                  # inside the container: join.sh runs there as root
@@ -137,11 +146,15 @@ if [ "$DRY" -eq 1 ]; then
 drill: DRY RUN for $HOST. Nothing below is run: no door, no docker, no hub write, no API call.
   preflight        root; free -m available >= $MIN_MB MB else exit 2; docker, curl, gh, git, perl;
                    door status is "closed"; no container, volume or non-left host named drill-*;
-                   $CRED_DIR/setup.env exists (provision needs the admin identity);
-                   TAILSCALE_OAUTH_CLIENT_ID/_SECRET set (the script first re-runs itself through Infisical
-                   Agents-Core prod /org-join unless they are, then through $HUB_WRAP for ORG_DB_URL);
-                   the Tailscale, gh and node-secrets readers answer;
-                   tools/mesh_check.py has --join-drill. Code under test = this checkout ($CORE, venv from
+                   TAILSCALE_OAUTH_CLIENT_ID/_SECRET and ORG_JOIN_DB_URL set (the script first re-runs itself
+                   through Infisical Agents-Core prod /org-join unless they are, then through $HUB_WRAP for ORG_DB_URL);
+                   ORG_JOIN_DB_URL logs in and answers SELECT 1 (python -m tools.join_api --check-db: the join
+                   API's own DSN choice and start-up read; the DSN is never printed) else exit 2:
+                   "rotate with deploy/join/org_join_role.py" (gap 7);
+                   the token service answers GET <token URL minus /v1/token>/health with token_loaded and db
+                   both true (token URL: ${TOKEN_URL:-the tailnet address of this box, port $TOKEN_PORT, path /v1/token});
+                   the Tailscale and gh readers answer;
+                   tools/mesh_check.py has --join-drill and tools/join_api.py has --check-db. Code under test = this checkout ($CORE, venv from
                    $PY); the join API and door.sh approve run $LIVE_CORE. Both commits are printed and
                    written to the JSON as code.drill / code.join_service
   door_open        bash $DOOR open --minutes $DOOR_MIN        (trap closes it on every exit path)
@@ -149,10 +162,12 @@ drill: DRY RUN for $HOST. Nothing below is run: no door, no docker, no hub write
   mint             python -m tools.hq_join mint --host $HOST
   join             in the container: curl -fsSL $JOIN_URL, sh join.sh --host $HOST (token by env); fingerprint read from the node's output
   approve          python -m tools.hq_join approve --host $HOST --fingerprint <the 8 chars the node printed>
-  provision        ORG_W42_PROVISION=1 python -m tools.hq_join provision --host $HOST; wait for join.sh to end (<= ${JOIN_WAIT_S}s)
-  node_probe       join.sh's own step 9 must have passed (exit 0)
-  token_worker     node: infisical run Org-Node prod --as $HOST -- python3 -I -c <exec with a clean env> claude -p <nonce>
-                   (the token reaches claude by environment only, never on a command line)
+  provision        ORG_W42_PROVISION=1 ORG_NODE_TOKEN_URL=<token URL> python -m tools.hq_join provision --host $HOST
+                   (no Infisical call: the bundle carries only the URL); wait for join.sh to end (<= ${JOIN_WAIT_S}s)
+  node_probe       join.sh's own step 9 (through tools/node_token.py) must have passed (exit 0)
+  token_worker     node: python3 -I tools/node_token.py run -- python3 -I -c <exec with a clean env> claude -p <nonce>
+                   (the hub hands the token over; it reaches claude by environment only, never on a
+                   command line and never in a file)
                    question (not a pass criterion, key "w40"): does \`$RC_CMD\` start on that token alone?
                    its first output line is kept as w40.remote_control_output
   probe            hub: probe task for $HOST (pending); node: commit + push agent/probe-<task> within ${PROBE_WAIT_S}s;
@@ -160,7 +175,7 @@ drill: DRY RUN for $HOST. Nothing below is run: no door, no docker, no hub write
   leave            ORG_W42_PROVISION=1 python -m tools.hq_join leave --host $HOST --live (authorized_keys "not wired yet" is the only accepted failure)
   verify_tailnet   Tailscale API: no device named $HOST
   verify_deploy_key  gh api repos/$GH_REPO/keys: no key titled org-node:$HOST
-  verify_infisical node-secrets: no live client secret org-node:$HOST
+  verify_token_refused  the token service for $HOST answers 403 left (HTTP status and error word only; a body that holds a token is never read)
   verify_host_row  hq_join status --host $HOST: row is "left"
   verify_authorized_keys  no line naming $HOST in $AK_FILE (contabo) or on winbox; mac skipped until G2
   cleanup          origin branch deleted, task cancelled, container + volume removed, door closed;
@@ -246,10 +261,38 @@ deploy_key_present() {
   out=$(gh api --paginate "repos/$GH_REPO/keys" 2>/dev/null) || return 2
   printf '%s' "$out" | grep -Fq -- "\"org-node:$HOST\""
 }
-infisical_live_secret() {
+# What the hub answers when asked for this host's token: "<status>" or, for a 403, "403 <error word>".
+# "000" = no answer. A 200 body holds the sealed token: it stays in this function's variable and is
+# neither printed nor written. The token service itself never puts a value in a refusal.
+token_answer() {
+  local out st
+  out=$(curl -sS --max-time 15 -w '\n%{http_code}' "$TOKEN_URL?host=$HOST" 2>/dev/null)
+  st=$(printf '%s' "$out" | tail -n 1)
+  case $st in [0-9][0-9][0-9]) ;; *) st=000 ;; esac
+  if [ "$st" = 403 ]; then
+    printf '403 %s' "$(printf '%s\n' "$out" | sed -n 's/.*"error": *"\([a-z_]*\)".*/\1/p' | head -n 1)"
+  else
+    printf '%s' "$st"
+  fi
+}
+# 0 = the token service says token_loaded and db are true; 1 = it answers but one is not; 2 = no answer.
+token_health() {
   local out
-  out=$("$PY" "$CORE/tools/infisical_setup.py" node-secrets 2>/dev/null) || return 2
-  printf '%s\n' "$out" | grep -F -- "org-node:$HOST " | grep -Eq ' live$'
+  out=$(curl -fsS --max-time 15 "${TOKEN_URL%/v1/token}/health" 2>/dev/null) || return 2
+  printf '%s' "$out" | grep -Eq '"ok" *: *true' || return 1
+  printf '%s' "$out" | grep -Eq '"token_loaded" *: *true' || return 1
+  printf '%s' "$out" | grep -Eq '"db" *: *true' || return 1
+}
+# Log in with the join role's DSN and run SELECT 1, through the join API's own code (`join_api
+# --check-db`: same DSN choice, same start-up read, no server). Returns its exit status and leaves one
+# clean line of its answer in DSN_ERR. It prints an exception class at most, never the DSN.
+DSN_ERR=""
+dsn_check() {
+  local out rc
+  out=$("$PY" -m tools.join_api --check-db 2>&1 >/dev/null)
+  rc=$?
+  DSN_ERR=$(printf '%s\n' "$out" | first_line | clean)
+  return $rc
 }
 host_row_status() { "$PY" -m tools.hq_join status --host "$HOST" 2>/dev/null | awk -v h="$HOST" '$1 == h {print $2; exit}'; }
 door_state() { bash "$DOOR" status 2>/dev/null | first_line; }
@@ -259,8 +302,8 @@ preflight() {
   [ "$(id -u)" = 0 ] || [ "${DRILL_ALLOW_NONROOT:-}" = 1 ] || refuse "run as root on Contabo"
   # The card runs this script at a pushed sha, but the tools it drives come from this checkout.
   # A stale checkout would get through the door, the join and the provision before it failed.
-  grep -q -- '--join-drill' "$CORE/tools/mesh_check.py" 2>/dev/null \
-    || refuse "the checkout at $CORE is stale: tools/mesh_check.py has no --join-drill (or this is not an Agents-Core checkout); update it (git pull) or run the card with --cwd in a worktree of origin/main"
+  { grep -q -- '--join-drill' "$CORE/tools/mesh_check.py" 2>/dev/null && grep -q -- '--check-db' "$CORE/tools/join_api.py" 2>/dev/null; } \
+    || refuse "the checkout at $CORE is stale: tools/mesh_check.py has no --join-drill or tools/join_api.py has no --check-db (or this is not an Agents-Core checkout); update it (git pull) or run the card with --cwd in a worktree of origin/main"
   code_commits
   command -v free >/dev/null 2>&1 || refuse "no free(1): this drill runs on Contabo (Linux)"
   local avail c d st
@@ -280,16 +323,37 @@ preflight() {
   st=$("$PY" -m tools.hq_join status 2>/dev/null) || refuse "hq_join status failed: no hub or no .venv ($PY)"
   printf '%s\n' "$st" | awk '$1 ~ /^drill-/ && $2 != "left" {bad=1} END {exit bad}' \
     || refuse "a host named drill-* is not 'left' in the hub: run hq_join leave --live for it first"
-  [ -e "$CRED_DIR/setup.env" ] \
-    || refuse "no $CRED_DIR/setup.env: provision needs the Infisical admin identity, and this box does not hold it"
   { [ -n "${TAILSCALE_OAUTH_CLIENT_ID:-}" ] && [ -n "${TAILSCALE_OAUTH_CLIENT_SECRET:-}" ]; } \
     || refuse "TAILSCALE_OAUTH_CLIENT_ID / _SECRET are not in this environment (Agents-Core prod /org-join): provision and leave need them"
+  # Gap 7 (run 4, RUN-20261003-1420-fe8f): a stale DSN in /org-join stayed unnoticed until the door was
+  # open and the first /accept died inside the join API as an HTTP 500. Log in with it now.
+  [ -n "${ORG_JOIN_DB_URL:-}" ] \
+    || refuse "ORG_JOIN_DB_URL is not in this environment (Agents-Core prod /org-join): it is how the join API reaches the hub"
+  dsn_check \
+    || refuse "${DSN_ERR:-the join DSN check failed with no message}. The DSN stored in Agents-Core prod /org-join is stale, or the role lost a grant: rotate with deploy/join/org_join_role.py (deploy/join/README.md), then run the drill again"
+  # The token service must be up and holding the token before a node is asked to join.
+  if [ -z "$TOKEN_URL" ]; then
+    d=$(tailscale ip -4 2>/dev/null | head -n 1)
+    case $d in
+      100.*) TOKEN_URL=http://$d:$TOKEN_PORT/v1/token ;;
+      *) refuse "no token URL: set DRILL_TOKEN_URL to http://<this box's tailnet address>:$TOKEN_PORT/v1/token (tailscale ip -4 gave no tailnet address)" ;;
+    esac
+  fi
+  case $TOKEN_URL in
+    http://*/v1/token) ;;
+    *) refuse "the token URL must look like http://<tailnet address>:$TOKEN_PORT/v1/token" ;;
+  esac
+  token_health
+  case $? in
+    0) ;;
+    1) refuse "the token service answers /health but token_loaded or db is not true: Org-Node prod has no CLAUDE_CODE_OAUTH_TOKEN, or the org_node_token role cannot read the hub (deploy/node-token/README.md)" ;;
+    *) refuse "the token service did not answer GET ${TOKEN_URL%/v1/token}/health: start it first (deploy/node-token/README.md)" ;;
+  esac
   # The readers the end of the drill relies on must work NOW, or the drill would join a node it
-  # cannot then prove gone.
+  # cannot then prove gone. (verify_token_refused reads the token service, which /health just proved.)
   tailnet_has_device; [ $? -eq 2 ] && refuse "the Tailscale API did not answer (token or device list)"
   deploy_key_present; [ $? -eq 2 ] && refuse "gh api repos/$GH_REPO/keys failed: gh has no access to the deploy keys"
-  infisical_live_secret; [ $? -eq 2 ] && refuse "infisical_setup.py node-secrets failed: no admin read of org-node client secrets"
-  PREFLIGHT_DETAIL="$avail MB available, door closed, no drill-* leftovers; code: drill $CODE_DRILL, join service $CODE_JOIN"
+  PREFLIGHT_DETAIL="$avail MB available, door closed, no drill-* leftovers, join DSN logs in, token service ready; code: drill $CODE_DRILL, join service $CODE_JOIN"
 }
 
 # ------------------------------------------------------------------------------------ 1 door
@@ -372,7 +436,9 @@ step_approve() {
 
 step_provision() {
   CUR_STEP=provision
-  ORG_W42_PROVISION=1 "$PY" -m tools.hq_join provision --host "$HOST" >"$WORK/prov.out" 2>"$WORK/prov.err" \
+  # provision makes no Infisical call: it seals {host, token URL} to the node's key. The URL is where the
+  # node will ask the hub for the Claude token (tools/hq_join.py check_token_url).
+  ORG_W42_PROVISION=1 ORG_NODE_TOKEN_URL="$TOKEN_URL" "$PY" -m tools.hq_join provision --host "$HOST" >"$WORK/prov.out" 2>"$WORK/prov.err" \
     || { close_door; step_fail provision "hq_join provision: $(first_line <"$WORK/prov.err")"; return 1; }
   local until=$((SECONDS + JOIN_WAIT_S)) rc=""
   while [ "$SECONDS" -lt "$until" ]; do
@@ -387,7 +453,8 @@ step_provision() {
     '')  step_fail provision "join.sh did not finish in ${JOIN_WAIT_S}s: $(c_cat /tmp/join.log | tail -n 1)"; return 1 ;;
     *)   step_fail provision "join.sh stopped (exit $rc): $(c_cat /tmp/join.log | tail -n 1)"; return 1 ;;
   esac
-  # join.sh's step 9 measured the node through its own identity; exit 2 = joined but that failed.
+  # join.sh's step 9 measured the node through tools/node_token.py (the hub hands it the token for
+  # the probe's environment); exit 2 = joined but that failed.
   if [ "$rc" = 0 ]; then
     step_ok node_probe "join.sh step 9 passed"
   else
@@ -406,7 +473,7 @@ step_token_worker() {
 set -u
 cd /opt/MoonieXHQ/Agents/Core || exit 3
 [ -e /root/.claude/.credentials.json ] && { echo "a login file exists in the node"; exit 4; }
-exec env HOME=/root ORG_HOST="$1" python3 -I -B tools/infisical_setup.py run Org-Node prod --as "$1" -- \
+exec env HOME=/root python3 -I -B tools/node_token.py run -- \
   python3 -I -c 'import os,sys; e={"PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"), "HOME": "/root", "CLAUDE_CODE_OAUTH_TOKEN": os.environ["CLAUDE_CODE_OAUTH_TOKEN"]}; os.chdir("/tmp"); os.execvpe(sys.argv[1], sys.argv[1:], e)' claude -p "Reply with exactly this text and nothing else: $2"
 EOS
   rc=$?
@@ -419,7 +486,7 @@ EOS
   c_run remote_control 120 "$HOST" <<'EOS'
 set -u
 cd /opt/MoonieXHQ/Agents/Core || exit 3
-exec env HOME=/root ORG_HOST="$1" python3 -I -B tools/infisical_setup.py run Org-Node prod --as "$1" -- \
+exec env HOME=/root python3 -I -B tools/node_token.py run -- \
   python3 -I -c 'import os,sys; e={"PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"), "HOME": "/root", "CLAUDE_CODE_OAUTH_TOKEN": os.environ["CLAUDE_CODE_OAUTH_TOKEN"]}; os.chdir("/tmp"); os.execvpe(sys.argv[1], sys.argv[1:], e)' timeout 25 claude remote-control
 EOS
   rc=$?
@@ -492,13 +559,14 @@ step_leave() {
     return 0
   fi
   local rc failed unwired real bad=""
-  # Without the flag hq_join wires none of the three real revokers (w42_enabled()): it would answer
-  # "not wired yet" for each and remove nothing.
+  # The first step, status_leaving, is the hub's own write and needs no flag: from then on the token
+  # service refuses the host. Without the flag hq_join wires neither real revoker (w42_enabled()): it
+  # would answer "not wired yet" for tailscale_device and github_deploy_key and remove nothing.
   ORG_W42_PROVISION=1 "$PY" -m tools.hq_join leave --host "$HOST" --live >"$WORK/leave.out" 2>"$WORK/leave.err"
   rc=$?
   failed=$(grep -c '^  \[FAILED\]' "$WORK/leave.out")
   unwired=$(grep '^  \[FAILED\] authorized_keys' "$WORK/leave.out" | grep -c 'not wired yet')
-  for real in infisical_client_secret tailscale_device github_deploy_key; do
+  for real in status_leaving tailscale_device github_deploy_key; do
     grep -q "^  \[ok\] $real " "$WORK/leave.out" || bad="$bad $real"
   done
   if [ "$rc" -eq 0 ]; then
@@ -506,7 +574,7 @@ step_leave() {
   elif [ "$rc" -eq 1 ] && [ -z "$bad" ] && [ "$failed" -gt 0 ] && [ "$failed" -eq "$unwired" ]; then
     LEAVE_PARTIAL=1
     finding leave_partial_authorized_keys_unwired
-    step_ok leave "3 real revocations ok; $failed authorized_keys steps 'not wired yet' (W2.8), as designed"
+    step_ok leave "status_leaving + 2 real revocations ok; $failed authorized_keys steps 'not wired yet' (W2.8), as designed"
   else
     step_fail leave "hq_join leave exit $rc, not ok:${bad:- none missing} $(grep '^  \[FAILED\]' "$WORK/leave.out" | grep -v 'not wired yet' | head -n 1) $(first_line <"$WORK/leave.err")"
   fi
@@ -514,7 +582,7 @@ step_leave() {
 }
 
 verify_all() {
-  local r st
+  local r st a
   tailnet_has_device; r=$?
   case $r in 1) step_ok verify_tailnet "no device named $HOST" ;;
              0) step_fail verify_tailnet "the tailnet still has a device named $HOST" ;;
@@ -523,10 +591,20 @@ verify_all() {
   case $r in 1) step_ok verify_deploy_key "no key titled org-node:$HOST on $GH_REPO" ;;
              0) step_fail verify_deploy_key "the deploy key org-node:$HOST is still on $GH_REPO" ;;
              *) step_fail verify_deploy_key "gh api repos/$GH_REPO/keys could not be read" ;; esac
-  infisical_live_secret; r=$?
-  case $r in 1) step_ok verify_infisical "no live client secret org-node:$HOST" ;;
-             0) step_fail verify_infisical "a live client secret org-node:$HOST remains under org-node" ;;
-             *) step_fail verify_infisical "node-secrets could not be read" ;; esac
+  # R4: a node that has left can never get the token again. The hub answers 403 `left` as soon as the row
+  # is `leaving`, so this holds even when a later revoker failed. A node the drill never accepted has no
+  # `left` to show: any 403 is its refusal (unknown_host, or not_approved for a row that registered).
+  # A 200, or no answer at all, is never a pass.
+  a=$(token_answer)
+  case $a in
+    "403 left") step_ok verify_token_refused "the hub answers 403 left for $HOST: it hands the node no token" ;;
+    403\ *)
+      if [ "$ACCEPTED" -eq 0 ]; then step_ok verify_token_refused "the node was never accepted: the hub answers ${a#403 } and hands it no token"
+      else step_fail verify_token_refused "the hub answers '$a' for $HOST, expected 403 left"; fi ;;
+    200) step_fail verify_token_refused "the hub still hands a token to $HOST (HTTP 200) after leave" ;;
+    000) step_fail verify_token_refused "the token service did not answer, so a refusal cannot be shown" ;;
+    *) step_fail verify_token_refused "the hub answered '$a' for $HOST, expected 403 left" ;;
+  esac
   st=$(host_row_status)
   if [ "$ACCEPTED" -eq 0 ] && [ -z "$st" ]; then
     step_ok verify_host_row "the host never registered, so there is no row"

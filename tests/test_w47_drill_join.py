@@ -32,8 +32,12 @@ HOST = f"drill-{STAMP}"
 TOKEN = "jointok-SECRET-0123456789abcdef"           # what `hq_join mint` prints in the stub
 TS_ID, TS_SECRET = "ts-client-id-test", "ts-client-secret-test-0123456789"
 TS_ACCESS = "ts-access-test-token-123"
+JOIN_DSN_PASSWORD = "joinpw-" + "SECRET-0123456789"  # the password inside ORG_JOIN_DB_URL; built so no scanner reads it as one
+JOIN_DSN = f"postgresql://org_join:{JOIN_DSN_PASSWORD}@hub.example:5432/org"
+SEALED = "SEALED-BODY-MARKER-0123456789"            # what a 200 from the token service carries
+TOKEN_URL = "http://100.64.0.9:8792/v1/token"
 NODE_FP, HUB_FP = "abcd1234", "zzzz9999"            # the node prints the first; `status` shows the second
-SECRETS = (TOKEN, TS_ID, TS_SECRET, TS_ACCESS)
+SECRETS = (TOKEN, TS_ID, TS_SECRET, TS_ACCESS, JOIN_DSN_PASSWORD, SEALED)
 SHA = "0123456789abcdef0123456789abcdef01234567"
 STEP_NAMES = re.search(r'^STEP_NAMES="([^"]+)"', SCRIPT.read_text(), re.M).group(1).split()
 
@@ -67,13 +71,23 @@ exec "$@"
 '''
 
 # `infisical_setup.py run Agents-Core prod --path /org-join --`: the one folder that holds the Tailscale
-# OAuth client (deploy/join/README.md).
+# OAuth client and the join role's DSN (deploy/join/README.md).
 JOINENV = r'''#!/bin/bash
 echo "joinenv $*" >>"$SHIM_STATE/calls.log"
 if [ ! -e "$SHIM_STATE/flags/no_ts_creds" ]; then
   export TAILSCALE_OAUTH_CLIENT_ID=ts-client-id-test TAILSCALE_OAUTH_CLIENT_SECRET=ts-client-secret-test-0123456789
 fi
+if [ ! -e "$SHIM_STATE/flags/no_join_dsn" ]; then
+  export ORG_JOIN_DB_URL=postgresql://org_join:joinpw-SECRET-0123456789@hub.example:5432/org
+fi
 exec "$@"
+'''
+
+# `tailscale ip -4`: the hub's tailnet address, asked only when nothing set the token URL.
+TAILSCALE = r'''#!/bin/bash
+echo "tailscale $*" >>"$SHIM_STATE/calls.log"
+[ -e "$SHIM_STATE/flags/no_tailnet_address" ] && exit 1
+echo 100.64.0.9
 '''
 
 DOCKER = PRELUDE + r'''
@@ -157,16 +171,14 @@ echo "stub docker exec: unexpected: $joined" >&2; exit 99
 
 PY = PRELUDE + r'''
 echo "py $* [w42=${ORG_W42_PROVISION:-unset}]" >>"$S/calls.log"
-if [ "$1" != "-m" ]; then                           # tools/infisical_setup.py node-secrets
-  [ "$2" = node-secrets ] || exit 99
-  f node_secrets_down && { echo "infisical: login failed" >&2; exit 1; }
-  if [ -e "$S/secret_live" ]; then echo "org-node:$H · id1 · created 2026-10-03T14:00:00Z · live"
-  elif [ -e "$S/secret_revoked" ]; then echo "org-node:$H · id1 · created 2026-10-03T14:00:00Z · REVOKED"
-  else echo "no client secrets under org-node"; fi
-  exit 0
-fi
+[ "$1" = "-m" ] || exit 99
 mod=$2; verb=$3; shift 3
+setrow() { f leave_keeps_token || echo "$1" >"$S/row_status"; }     # a hub that went on serving the host
 case "$mod $verb" in
+  "tools.join_api --check-db")                      # the join API's own start-up read with ORG_JOIN_DB_URL
+    [ -n "${ORG_JOIN_DB_URL:-}" ] || { echo "join_api: ORG_JOIN_DB_URL is not set" >&2; exit 2; }
+    f dsn_stale && { echo "join_api: cannot log in or read with ORG_JOIN_DB_URL (HubConnectError)" >&2; exit 1; }
+    exit 0 ;;
   "tools.hq_join status")
     if [ "$1" = --host ]; then
       [ -e "$S/row_status" ] || { echo "hq_join: refused (unknown_host): host '$H' did not join through hq_join" >&2; exit 2; }
@@ -187,32 +199,34 @@ case "$mod $verb" in
   "tools.hq_join provision")
     [ "${ORG_W42_PROVISION:-}" = 1 ] || { echo "hq_join: refused (not_enabled): live provisioning is off" >&2; exit 2; }
     [ -e "$S/approved" ] || { echo "hq_join: refused (not_approved)" >&2; exit 2; }
-    f provision_fails && { echo "hq_join: failed (ApiError): infisical 403" >&2; exit 1; }
-    : >"$S/provisioned"; : >"$S/ts_device_present"; : >"$S/deploy_key_present"; : >"$S/secret_live"; echo ready >"$S/row_status"
+    [ -n "${ORG_NODE_TOKEN_URL:-}" ] || { echo "hq_join: refused (no_token_url): the hub's token URL is not set" >&2; exit 2; }
+    echo "token_url=$ORG_NODE_TOKEN_URL" >>"$S/calls.log"
+    f provision_fails && { echo "hq_join: failed (JoinError): the bundle could not be sealed" >&2; exit 1; }
+    : >"$S/provisioned"; : >"$S/ts_device_present"; : >"$S/deploy_key_present"; echo ready >"$S/row_status"
     echo '{"ok": true}'; exit 0 ;;
   "tools.hq_join leave")
     : >"$S/left_ran"
+    setrow leaving                                  # the first step: no flag needed, the hub's own write
     if [ "${ORG_W42_PROVISION:-}" != 1 ]; then      # w42_enabled() is false: UNWIRED_REVOKERS, nothing removed
-      echo "  [FAILED] infisical_client_secret on $H: not wired yet: live revocation is off (set ORG_W42_PROVISION=1, W4.2)"
+      echo "  [ok] status_leaving on $H: status leaving, token service refuses $H"
       echo "  [FAILED] tailscale_device on $H: not wired yet: needs ORG_W42_PROVISION=1 and TAILSCALE_OAUTH_CLIENT_ID + TAILSCALE_OAUTH_CLIENT_SECRET in the environment"
       echo "  [FAILED] github_deploy_key on $H: not wired yet: live revocation is off (set ORG_W42_PROVISION=1, W4.2)"
       for t in mac contabo winbox; do echo "  [FAILED] authorized_keys on $t: not wired yet: needs the W2.8 ssh mesh (forced-command keys)"; done
-      echo "hq_join: $H NOT marked left; left behind: infisical_client_secret:$H, tailscale_device:$H, github_deploy_key:$H, authorized_keys:mac, authorized_keys:contabo, authorized_keys:winbox"
+      echo "hq_join: $H NOT marked left; left behind: tailscale_device:$H, github_deploy_key:$H, authorized_keys:mac, authorized_keys:contabo, authorized_keys:winbox"
       exit 1
     fi
     f leave_keeps_device || rm -f "$S/ts_device_present"
     f leave_keeps_key || rm -f "$S/deploy_key_present"
-    f leave_keeps_secret || { rm -f "$S/secret_live"; : >"$S/secret_revoked"; }
     if f leave_tailscale_fails; then
-      echo "  [ok] infisical_client_secret on $H"
+      echo "  [ok] status_leaving on $H: status leaving, token service refuses $H"
       echo "  [FAILED] tailscale_device on $H: TailscaleError: boom"
       echo "  [ok] github_deploy_key on $H"
       echo "hq_join: $H NOT marked left; left behind: tailscale_device:$H"; exit 1
     fi
-    echo "  [ok] infisical_client_secret on $H"; echo "  [ok] tailscale_device on $H"; echo "  [ok] github_deploy_key on $H"
+    echo "  [ok] status_leaving on $H: status leaving, token service refuses $H"; echo "  [ok] tailscale_device on $H"; echo "  [ok] github_deploy_key on $H"
     if f leave_all_ok; then
       for t in mac contabo winbox; do echo "  [ok] authorized_keys on $t"; done
-      echo left >"$S/row_status"; echo "hq_join: $H is now \`left\`"; exit 0
+      setrow left; echo "hq_join: $H is now \`left\`"; exit 0
     fi
     for t in mac contabo winbox; do echo "  [FAILED] authorized_keys on $t: not wired yet: needs the W2.8 ssh mesh (forced-command keys)"; done
     echo "hq_join: $H NOT marked left; left behind: authorized_keys:mac, authorized_keys:contabo, authorized_keys:winbox"
@@ -232,6 +246,23 @@ CURL = PRELUDE + r'''
 echo "curl $*" >>"$S/calls.log"
 [ -t 0 ] || cat >/dev/null
 for a in "$@"; do case $a in http*) url=$a ;; esac; done
+case $url in
+  http://100.64.0.9:8792/health)                    # the token service
+    f token_health_down && exit 7
+    if f token_not_loaded; then echo '{"ok": true, "token_loaded": false, "db": true}'
+    else echo '{"ok": true, "token_loaded": true, "db": true}'; fi
+    exit 0 ;;
+  http://100.64.0.9:8792/v1/token\?host=*)          # `-w '\n%{http_code}'`: the body, then the status
+    f token_down && exit 7
+    st=$(cat "$S/row_status" 2>/dev/null)
+    case $st in
+      ready|online) code=200; body='{"ciphertext": "SEALED-BODY-MARKER-0123456789"}' ;;
+      leaving|left) code=403; body='{"error": "left"}' ;;
+      pending)      code=403; body='{"error": "not_approved"}' ;;
+      *)            code=403; body='{"error": "unknown_host"}' ;;
+    esac
+    printf '%s\n%s' "$body" "$code"; exit 0 ;;
+esac
 f ts_api_down && exit 22
 case $url in
   */oauth/token) echo '{"access_token":"ts-access-test-token-123","token_type":"Bearer","expires_in":3600}' ;;
@@ -274,7 +305,7 @@ case "$*" in
 esac
 '''
 
-STUBS = {"free": FREE, "docker": DOCKER, "curl": CURL, "gh": GH, "git": GIT, "ssh": SSH}
+STUBS = {"free": FREE, "docker": DOCKER, "curl": CURL, "gh": GH, "git": GIT, "ssh": SSH, "tailscale": TAILSCALE}
 
 
 class Drill:
@@ -294,11 +325,11 @@ class Drill:
         self.mesh_check = self.core / "tools" / "mesh_check.py"
         self.mesh_check.write_text("# stand-in for the checkout's tool: the preflight only looks for this flag\n"
                                    "    ap.add_argument('--join-drill', nargs=2)\n")
+        self.join_api = self.core / "tools" / "join_api.py"
+        self.join_api.write_text("# stand-in for the checkout's tool: the preflight only looks for this flag\n"
+                                 "    p.add_argument('--check-db', action='store_true')\n")
         self.state = tmp_path / "out" / "mesh-check"
         self.rows = self.core / "state" / "re-os-drills.jsonl"
-        self.cred = tmp_path / "cred"
-        self.cred.mkdir()
-        (self.cred / "setup.env").write_text("admin identity placeholder\n")
         self.ak = tmp_path / "authorized_keys"
         self.ak.write_text("ssh-ed25519 AAAA placeholder org-dispatch:mac\n")
         for name, body in {**STUBS, "py": PY, "door.sh": DOOR, "wrap.sh": WRAP, "joinenv.sh": JOINENV}.items():
@@ -325,7 +356,7 @@ class Drill:
             "DRILL_FP_WAIT_S": "2",
             "DRILL_JOIN_WAIT_S": "3",
             "DRILL_PROBE_WAIT_S": "20",
-            "INFISICAL_CRED_DIR": str(self.cred),
+            "DRILL_TOKEN_URL": TOKEN_URL,
         }
 
     def flag(self, *names: str) -> "Drill":
@@ -487,7 +518,8 @@ def test_the_tailscale_client_comes_from_the_org_join_leg_before_the_hub_wrapper
 
 def test_a_caller_that_already_loaded_org_join_gets_no_second_leg(drill):
     # the shape of the second card: infisical_setup.py run ... --path /org-join -- bash scripts/drill-join.sh
-    drill.env.update(TAILSCALE_OAUTH_CLIENT_ID=TS_ID, TAILSCALE_OAUTH_CLIENT_SECRET=TS_SECRET)
+    drill.env.update(TAILSCALE_OAUTH_CLIENT_ID=TS_ID, TAILSCALE_OAUTH_CLIENT_SECRET=TS_SECRET,
+                     ORG_JOIN_DB_URL=JOIN_DSN)
     cp = drill.run()
     assert cp.returncode == 0, cp.stdout + cp.stderr
     calls = drill.calls()
@@ -671,7 +703,7 @@ def test_leave_that_really_fails_is_not_excused_as_unwired(drill):
 
 @pytest.mark.parametrize("flag,step", [("leave_keeps_device", "verify_tailnet"),
                                        ("leave_keeps_key", "verify_deploy_key"),
-                                       ("leave_keeps_secret", "verify_infisical"),
+                                       ("leave_keeps_token", "verify_token_refused"),
                                        ("winbox_line", "verify_authorized_keys"),
                                        ("winbox_down", "verify_authorized_keys")])
 def test_each_verify_fails_on_the_thing_it_checks(drill, flag, step):
@@ -716,14 +748,17 @@ def test_leave_without_the_flag_would_revoke_nothing_and_the_drill_would_say_so(
     res = _failed(drill, "leave")
     assert "tailscale_device" in drill.step("leave")["detail"] or "not ok" in drill.step("leave")["detail"]
     assert drill.step("verify_tailnet")["ok"] is False and drill.step("verify_deploy_key")["ok"] is False
-    assert drill.step("verify_infisical")["ok"] is False and res["failed_step"] == "leave"
+    assert res["failed_step"] == "leave"
+    # status_leaving is the hub's own write and needs no flag: the token is refused from the first step
+    assert drill.step("verify_token_refused")["ok"] is True
 
 
 def test_leave_runs_with_the_flag_and_removes_what_provision_made(drill):
     assert drill.run().returncode == 0
     leave = [c for c in drill.calls() if "hq_join leave" in c]
     assert len(leave) == 1 and "--live" in leave[0] and leave[0].endswith("[w42=1]")
-    assert not drill.has("ts_device_present") and not drill.has("deploy_key_present") and not drill.has("secret_live")
+    assert not drill.has("ts_device_present") and not drill.has("deploy_key_present")
+    assert drill.read("row_status") == "left"
 
 
 def test_real_github_read_only_message_is_recorded_as_the_finding(drill):
@@ -822,6 +857,117 @@ def test_a_checkout_with_no_mesh_check_at_all_is_refused_too(drill):
     assert drill.run().returncode == 2
 
 
+def test_a_checkout_whose_join_api_has_no_check_db_is_refused_as_stale(drill):
+    drill.join_api.write_text("# an older join_api: no such flag\n")
+    cp = drill.run()
+    assert cp.returncode == 2 and "stale" in cp.stderr and "--check-db" in cp.stderr
+    assert started_nothing(drill) and not any(c.startswith("door") for c in drill.calls())
+
+
+# ------------------------------------------------------------------------------ W4.2b: the token service
+
+def test_the_join_dsn_is_checked_before_the_door_opens_and_never_printed(drill):
+    drill.flag("dsn_stale")
+    cp = drill.run()
+    assert cp.returncode == 2 and "rotate with deploy/join/org_join_role.py" in cp.stderr
+    assert any(c.startswith("py -m tools.join_api --check-db") for c in drill.calls())
+    assert not any(c.startswith(("door open", "docker run")) for c in drill.calls())
+    assert JOIN_DSN_PASSWORD not in drill.everything(cp) and "hub.example" not in drill.everything(cp)
+    assert started_nothing(drill) and not (drill.state / "join-drill.json").exists()
+
+
+def test_a_join_dsn_that_logs_in_lets_the_drill_go_on(drill):
+    cp = drill.run()
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    calls = drill.calls()
+    check = next(i for i, c in enumerate(calls) if "tools.join_api --check-db" in c)
+    assert check < next(i for i, c in enumerate(calls) if c.startswith("door open"))
+    assert "join DSN logs in, token service ready" in drill.step("preflight")["detail"]
+
+
+def test_the_token_service_is_asked_for_health_before_the_door_opens(drill):
+    assert drill.run().returncode == 0
+    calls = drill.calls()
+    health = next(i for i, c in enumerate(calls) if c.startswith("curl") and "8792/health" in c)
+    assert health < next(i for i, c in enumerate(calls) if c.startswith("door open"))
+
+
+def test_provision_is_given_the_token_url_and_makes_no_infisical_call(drill):
+    cp = drill.run()
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    assert f"token_url={TOKEN_URL}" in drill.calls()
+    assert not any("infisical" in c.lower() and "joinenv" not in c for c in drill.calls())
+
+
+def test_the_token_url_is_asked_of_tailscale_when_nothing_sets_it(drill):
+    drill.env.pop("DRILL_TOKEN_URL")
+    cp = drill.run()
+    assert cp.returncode == 0, cp.stdout + cp.stderr
+    assert "tailscale ip -4" in drill.calls() and f"token_url={TOKEN_URL}" in drill.calls()
+
+
+def test_the_environment_url_is_taken_before_asking_tailscale(drill):
+    drill.env.pop("DRILL_TOKEN_URL")
+    drill.env["ORG_NODE_TOKEN_URL"] = TOKEN_URL
+    assert drill.run().returncode == 0
+    assert "tailscale ip -4" not in drill.calls()
+
+
+def test_the_node_scripts_go_through_node_token_and_name_no_infisical(drill):
+    assert drill.run().returncode == 0
+    for name in ("token_worker", "remote_control"):
+        text = (drill.shim / "scripts" / f"{name}.sh").read_text()
+        assert "python3 -I -B tools/node_token.py run --" in text, name
+        assert "infisical" not in text.lower() and "Org-Node" not in text and "--as" not in text, name
+
+
+def test_the_script_has_one_infisical_call_the_org_join_leg_and_no_node_identity_left():
+    text = SCRIPT.read_text()
+    calls = [l for l in text.splitlines() if not l.lstrip().startswith("#") and "infisical_setup.py" in l]
+    assert len(calls) == 1 and "JOIN_ENV=(" in calls[0] and "--path /org-join" in calls[0], calls
+    for gone in ("setup.env", "node-secrets", "Org-Node prod --as", "CRED_DIR", "verify_infisical"):
+        assert gone not in text, gone
+
+
+def test_verify_token_refused_passes_on_403_left_and_reads_no_body_it_could_print(drill):
+    cp = drill.run()
+    assert cp.returncode == 0
+    detail = drill.step("verify_token_refused")["detail"]
+    assert "403 left" in detail and HOST in detail
+    assert SEALED not in drill.everything(cp)
+
+
+def test_a_hub_that_still_serves_the_host_after_leave_fails_and_the_sealed_body_is_never_shown(drill):
+    drill.flag("leave_keeps_token")
+    cp = drill.run()
+    assert cp.returncode == 1
+    step = drill.step("verify_token_refused")
+    assert step["ok"] is False and "HTTP 200" in step["detail"]
+    assert SEALED not in drill.everything(cp)
+
+
+def test_a_token_service_that_goes_silent_is_never_read_as_a_refusal(drill):
+    drill.flag("token_down")                       # up for /health at preflight, then no answer to /v1/token
+    cp = drill.run()
+    assert cp.returncode == 1
+    step = drill.step("verify_token_refused")
+    assert step["ok"] is False and "did not answer" in step["detail"]
+
+
+def test_a_node_that_never_registered_is_refused_by_the_hub_and_that_passes(drill):
+    drill.flag("join_dies")                        # the stub writes no hosts row
+    assert drill.run().returncode == 1
+    step = drill.step("verify_token_refused")
+    assert step["ok"] is True and "never accepted" in step["detail"] and "unknown_host" in step["detail"]
+
+
+def test_a_node_that_registered_but_was_never_accepted_is_refused_not_approved(drill):
+    drill.flag("no_fingerprint")                   # the stub's row stays pending
+    assert drill.run().returncode == 1
+    step = drill.step("verify_token_refused")
+    assert step["ok"] is True and "not_approved" in step["detail"]
+
+
 def test_the_script_piped_in_is_refused_because_it_cannot_re_run_itself(drill):
     cp = subprocess.run(["/bin/bash", "-s"], input=SCRIPT.read_text(), env=drill.env, cwd=drill.root,
                         capture_output=True, text=True)
@@ -847,11 +993,15 @@ def test_memory_exactly_at_the_floor_runs(drill):
     (lambda d: d.put("containers", "drill-20250101-000000\n"), "container named drill-"),
     (lambda d: d.put("volumes", "drill-20250101-000000-ts\n"), "volume named drill-"),
     (lambda d: d.put("hosts", "drill-20250101-000000  ready  linux  fingerprint abcd1234  -\n"), "not 'left'"),
-    (lambda d: (d.cred / "setup.env").unlink(), "setup.env"),
     (lambda d: d.flag("no_ts_creds"), "TAILSCALE_OAUTH"),
     (lambda d: d.flag("ts_api_down"), "Tailscale API"),
     (lambda d: d.flag("gh_down"), "gh api"),
-    (lambda d: d.flag("node_secrets_down"), "node-secrets"),
+    (lambda d: d.flag("no_join_dsn"), "ORG_JOIN_DB_URL is not in this environment"),
+    (lambda d: d.flag("dsn_stale"), "rotate with deploy/join/org_join_role.py"),
+    (lambda d: d.flag("token_health_down"), "token service did not answer"),
+    (lambda d: d.flag("token_not_loaded"), "token_loaded or db is not true"),
+    (lambda d: d.env.update(DRILL_TOKEN_URL="http://100.64.0.9:8792/other"), "token URL must look like"),
+    (lambda d: (d.env.pop("DRILL_TOKEN_URL"), d.flag("no_tailnet_address")), "no token URL"),
 ])
 def test_preflight_refusals_start_nothing(drill, setup, needle):
     setup(drill)
@@ -959,6 +1109,7 @@ def _repo(path: Path) -> str:
     subprocess.run([REAL_GIT, "init", "-q", str(path)], check=True, capture_output=True)
     (path / "tools").mkdir(exist_ok=True)
     (path / "tools" / "mesh_check.py").write_text("ap.add_argument('--join-drill', nargs=2)\n")
+    (path / "tools" / "join_api.py").write_text("p.add_argument('--check-db', action='store_true')\n")
     subprocess.run([REAL_GIT, *git[1:], "add", "-A"], check=True, capture_output=True)
     subprocess.run([REAL_GIT, *git[1:], "commit", "-q", "-m", f"fixture {path.name}"], check=True, capture_output=True)
     return subprocess.run([REAL_GIT, "-C", str(path), "rev-parse", "--short", "HEAD"], check=True,
