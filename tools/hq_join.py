@@ -901,7 +901,9 @@ def leave(host: str, *, live: bool = False,
     `leaving`, so the token service refuses the host at once), then `revokers` (default
     default_revokers()) once per other step, catching whatever a revoker raises as a failed
     step. Only a run where every step is ok marks the row `left`; any failure leaves it
-    `leaving`, still refused, and a re-run finishes the job.
+    `leaving`, still refused, and a re-run finishes the job. The exception is the first step:
+    if `status_leaving` itself fails the row may still be issuing, so NO other step runs, the
+    answer is `partial` and every step is in `left_behind`.
     """
     _check_host(host)
     with db.get_conn() as conn:
@@ -923,7 +925,15 @@ def leave(host: str, *, live: bool = False,
 
     table = default_revokers() if revokers is None else revokers
     results = []
+    stopped = False
     for s in steps:
+        if stopped:
+            # status_leaving failed: the row may still be issuing the token. Deleting the node's
+            # Tailscale device and deploy key now would cut a node the hub still serves, and the
+            # operator would think it had left. Nothing else runs; a re-run starts again here.
+            results.append({"kind": s.kind, "target": s.target, "what": s.what, "ok": False,
+                            "detail": f"not run: the {STEP_LEAVING} step failed"})
+            continue
         revoker = (lambda step: _begin_leave(step.target, _iso(_utc(now)))) \
             if s.kind == STEP_LEAVING else table.get(s.kind)
         if revoker is None:
@@ -935,15 +945,22 @@ def leave(host: str, *, live: bool = False,
                 out = Outcome(False, f"{type(exc).__name__}: {str(exc)[:200]}")
         results.append({"kind": s.kind, "target": s.target, "what": s.what,
                         "ok": out.ok, "detail": out.detail})
+        stopped = s.kind == STEP_LEAVING and not out.ok
     left_behind = [f"{r['kind']}:{r['target']}" for r in results if not r["ok"]]
     status = STATUS_LEFT if not left_behind else "partial"
-    with db.get_conn() as conn:
-        if not left_behind:
-            conn.execute("UPDATE hosts SET status = ?, updated_at = ? WHERE host = ?",
-                         (STATUS_LEFT, _iso(_utc(now)), host))
-        # Names only: a revoker's detail text can carry a provider's error body.
-        db.log_event(conn, None, ACTOR, "join_leave",
-                     {"host": host, "status": status, "left_behind": left_behind})
+    try:
+        with db.get_conn() as conn:
+            if not left_behind:
+                conn.execute("UPDATE hosts SET status = ?, updated_at = ? WHERE host = ?",
+                             (STATUS_LEFT, _iso(_utc(now)), host))
+            # Names only: a revoker's detail text can carry a provider's error body.
+            db.log_event(conn, None, ACTOR, "join_leave",
+                         {"host": host, "status": status, "left_behind": left_behind})
+    except Exception:
+        if not stopped:
+            raise
+        # The hub already failed on step 1; the answer below is the record. Do not turn it into
+        # a traceback because the audit row could not be written either.
     return {"host": host, "live": True, "status": status, "steps": results,
             "left_behind": left_behind}
 

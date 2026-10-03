@@ -451,6 +451,54 @@ def test_leave_stops_the_token_before_any_slow_step_runs(joined):
     assert _host("node-a")["status"] == "left"
 
 
+def _fails_step_one(how):
+    def begin(host, now_s):
+        if how == "raises":
+            raise RuntimeError("could not connect with postgresql://u:pw@h/db")
+        return hq_join.Outcome(False, "refused")
+    return begin
+
+
+@pytest.mark.parametrize("how", ["raises", "reports_failure"])
+def test_leave_runs_no_other_step_when_the_first_one_fails(joined, monkeypatch, how):
+    """W4.2b round 2: if the row could not be set to `leaving` it may still be issuing the token.
+    Deleting the node's Tailscale device and deploy key anyway would cut a node the hub still serves
+    and look like a finished leave. Nothing after step 1 runs, and every step is left behind."""
+    monkeypatch.setattr(hq_join, "_begin_leave", _fails_step_one(how))
+    fake = Fake()
+    res = hq_join.leave("node-a", live=True, revokers=fake.table())
+    assert fake.calls == []                                           # no revoker was called
+    assert res["status"] == "partial"
+    kinds = [f"{s['kind']}:{s['target']}" for s in res["steps"]]
+    assert kinds[0] == "status_leaving:node-a" and len(kinds) == 6
+    assert res["left_behind"] == kinds                                # the failed step and every one after it
+    assert all(s["ok"] is False and "not run" in s["detail"] for s in res["steps"][1:])
+    assert _host("node-a")["status"] == "online"                      # not `left`, and nothing else changed
+    ev = [e for e in _dump()["events"] if e["kind"] == "join_leave"][-1]
+    assert "postgresql://" not in ev["payload"] and "pw@" not in ev["payload"]
+
+
+def test_leave_still_answers_when_step_one_and_the_audit_write_both_fail(joined, monkeypatch):
+    monkeypatch.setattr(hq_join, "_begin_leave", _fails_step_one("raises"))
+
+    def no_audit(*a, **k):
+        raise RuntimeError("hub down")
+    monkeypatch.setattr(hq_join.db, "log_event", no_audit)
+    fake = Fake()
+    res = hq_join.leave("node-a", live=True, revokers=fake.table())
+    assert res["status"] == "partial" and fake.calls == [] and len(res["left_behind"]) == 6
+
+
+def test_a_rerun_after_a_failed_first_step_starts_again_from_it(joined, monkeypatch):
+    with monkeypatch.context() as m:
+        m.setattr(hq_join, "_begin_leave", _fails_step_one("raises"))
+        hq_join.leave("node-a", live=True, revokers=Fake().table())
+    fake = Fake()
+    res = hq_join.leave("node-a", live=True, revokers=fake.table())
+    assert res["status"] == "left" and res["left_behind"] == [] and len(fake.calls) == 5
+    assert _host("node-a")["status"] == "left"
+
+
 def test_leave_partial_failure_runs_every_step_and_keeps_the_row(joined):
     fake = Fake(fail={"tailscale_device"}, boom={"github_deploy_key"})
     res = hq_join.leave("node-a", live=True, revokers=fake.table())

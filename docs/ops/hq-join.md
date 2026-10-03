@@ -123,7 +123,11 @@ Plans the revocation, in this order:
   before any revoker, **with or without the flag**: from then on the token service
   answers the host 403 (`left`), so a node that is being removed cannot fetch the
   token while the slow steps run (CEO 2026-10-03: a node that has left cannot ask
-  again). Every other step goes through a revoker. One failed step, or a revoker
+  again). **If `status_leaving` itself fails (the hub database is down), no other
+  step runs**: the row may still be issuing, so deleting the node's Tailscale device
+  and deploy key would cut a node the hub still serves. The answer is `partial` and
+  `left_behind` lists every step; run `leave --live` again once the hub answers.
+  Every other step goes through a revoker. One failed step, or a revoker
   that raises, never stops the others. The row goes to `left` only when every
   step was ok. Otherwise the row stays `leaving` (still refused) and the output
   lists what is left behind (`kind:target`). Re-running converges, so a real
