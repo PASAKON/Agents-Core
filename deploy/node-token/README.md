@@ -24,8 +24,8 @@ types); none was executed while building it.
 |---|---|
 | `org-node-token.service` | The systemd unit. Enabled at boot, always on (unlike the join door). |
 | `bind-tailnet.sh` | First thing the unit runs: exports `NODE_TOKEN_BIND` = this machine's tailnet IPv4 (`tailscale ip -4`). No tailnet address, no start. |
-| `org_node_token_role.sql` | The hub role `org_node_token`: `SELECT (host, status, pubkey, approved_at) ON hosts` and nothing else; 24-character-minimum password, `CONNECTION LIMIT 3`, `statement_timeout 5s`. |
-| `org_node_token_role.py` | Makes the password in memory, runs the SQL, prints the role's URL on stdout only when it succeeded (for `put`). |
+| `org_node_token_role.sql` | The hub role `org_node_token`: `SELECT (host, status, pubkey, approved_at) ON hosts` and nothing else; takes a SCRAM-SHA-256 verifier (a string of any other shape is refused), never a password; `CONNECTION LIMIT 3`, `statement_timeout 5s`. |
+| `org_node_token_role.py` | Makes the password in memory, computes its SCRAM-SHA-256 verifier, runs the SQL with the verifier (so no `CREATE ROLE ... PASSWORD '<plain>'` statement exists for a server to log), prints the role's URL on stdout only when it succeeded (for `put`). |
 | `tools/node_token_api.py` | The service (stdlib `http.server`, the shape of `tools/join_api.py`). |
 | `tools/node_token.py` | The node's side: `python3 -I tools/node_token.py run -- <command>`. |
 

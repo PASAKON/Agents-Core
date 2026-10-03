@@ -9,13 +9,17 @@
 -- Run as the database OWNER (`org`; it needs CREATEROLE to make the role, otherwise run the file
 -- as `postgres`), once per hub, and again whenever this file changes. It is idempotent: every run
 -- leaves the role with exactly the grants below, no more, no fewer. The password is NOT in this
--- file. Pass it at run time, through the environment so it never reaches argv:
+-- file, and it is not given to it either: this file takes the SCRAM-SHA-256 VERIFIER of the
+-- password (SCRAM-SHA-256$4096:<salt>$<StoredKey>:<ServerKey>), which Postgres stores as it is.
+-- `CREATE ROLE ... PASSWORD '<plain>'` is a statement the server may log or echo in an error;
+-- a verifier is a one-way hash of the password, so nothing that logs the statement holds a
+-- password. Pass it at run time, through the environment so it never reaches argv:
 --
---   ORG_NODE_TOKEN_PASSWORD="$pw" psql -v ON_ERROR_STOP=1 -X -f deploy/node-token/org_node_token_role.sql "$ADMIN_DSN"
+--   ORG_NODE_TOKEN_VERIFIER="$verifier" psql -v ON_ERROR_STOP=1 -X -f deploy/node-token/org_node_token_role.sql "$ADMIN_DSN"
 --
--- (or as the psql variable org_node_token_password). deploy/node-token/org_node_token_role.py runs
--- this file with a password it makes itself and prints the role's URL on stdout only; its use is
--- in deploy/node-token/README.md. Running it again sets the password to the one given.
+-- (or as the psql variable org_node_token_verifier). deploy/node-token/org_node_token_role.py makes
+-- the password, computes the verifier, runs this file with it and prints the role's URL on stdout
+-- only; its use is in deploy/node-token/README.md. Running it again sets the verifier to the one given.
 --
 -- What the grant is for (the statement is in tools/node_token_api.py, _route_token):
 --   hosts  SELECT host, status, pubkey, approved_at
@@ -24,16 +28,18 @@
 
 \set ON_ERROR_STOP on
 
--- 1. The password, from the psql variable or the environment; never a literal in this file.
-\if :{?org_node_token_password}
+-- 1. The verifier, from the psql variable or the environment; never a literal in this file. A string
+--    that is not exactly a SCRAM-SHA-256 verifier is refused: handed to PASSWORD as it is, Postgres
+--    would take any other string for a PLAIN password, hash it, and make the string the password.
+\if :{?org_node_token_verifier}
 \else
-  \set org_node_token_password `echo "$ORG_NODE_TOKEN_PASSWORD"`
+  \set org_node_token_verifier `echo "$ORG_NODE_TOKEN_VERIFIER"`
 \endif
-SELECT length(:'org_node_token_password') < 24 AS weak_password \gset
-\if :weak_password
+SELECT :'org_node_token_verifier' !~ '^SCRAM-SHA-256[$][0-9]{4,7}:[A-Za-z0-9+/]{22}==[$][A-Za-z0-9+/]{43}=:[A-Za-z0-9+/]{43}=$' AS bad_verifier \gset
+\if :bad_verifier
 DO $guard$
 BEGIN
-  RAISE EXCEPTION 'org_node_token_password (or ORG_NODE_TOKEN_PASSWORD) is missing or shorter than 24 characters';
+  RAISE EXCEPTION 'org_node_token_verifier (or ORG_NODE_TOKEN_VERIFIER) is missing or is not a SCRAM-SHA-256 verifier';
 END
 $guard$;
 \endif
@@ -41,12 +47,12 @@ $guard$;
 -- 2. The role: login, three connections, no attribute that widens it.
 SELECT NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'org_node_token') AS make_role \gset
 \if :make_role
-CREATE ROLE org_node_token LOGIN CONNECTION LIMIT 3 PASSWORD :'org_node_token_password'
+CREATE ROLE org_node_token LOGIN CONNECTION LIMIT 3 PASSWORD :'org_node_token_verifier'
   NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS INHERIT;
 \else
 -- No NO... attributes here: on Postgres 16 a role that is not itself a superuser may not even
 -- restate them. The check in section 5 fails the run if any of them has drifted.
-ALTER ROLE org_node_token LOGIN CONNECTION LIMIT 3 PASSWORD :'org_node_token_password';
+ALTER ROLE org_node_token LOGIN CONNECTION LIMIT 3 PASSWORD :'org_node_token_verifier';
 \endif
 -- A runaway statement or a stuck transaction must not hold one of the three connections.
 ALTER ROLE org_node_token SET statement_timeout = '5s';

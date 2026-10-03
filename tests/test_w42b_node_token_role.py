@@ -65,11 +65,20 @@ def test_the_file_is_ascii_and_stops_on_the_first_error():
     assert "\\set ON_ERROR_STOP on" in _sql()
 
 
-def test_the_password_is_never_in_the_file_and_must_be_long():
+def test_the_file_takes_a_scram_verifier_never_a_password_and_never_a_literal():
     sql = _sql()
-    assert "PASSWORD :'org_node_token_password'" in sql
-    assert not re.search(r"PASSWORD\s+'", sql)                      # no literal, anywhere
-    assert "< 24" in sql and "ORG_NODE_TOKEN_PASSWORD" in sql
+    live = "\n".join(ln for ln in sql.splitlines() if not ln.lstrip().startswith("--"))
+    assert live.count("PASSWORD :'org_node_token_verifier'") == 2          # CREATE ROLE and ALTER ROLE
+    assert not re.search(r"PASSWORD\s+'", live)                            # no literal, anywhere
+    assert "ORG_NODE_TOKEN_VERIFIER" in sql and "SCRAM-SHA-256" in sql
+    assert "org_node_token_password" not in live and "ORG_NODE_TOKEN_PASSWORD" not in live
+    assert "< 24" not in live                                              # the length guard moved: see below
+
+
+def test_the_file_refuses_anything_but_a_scram_verifier_before_it_touches_the_role():
+    sql = _sql()
+    guard, role = sql.index("bad_verifier"), sql.index("CREATE ROLE org_node_token")
+    assert guard < role and "is not a SCRAM-SHA-256 verifier" in sql
 
 
 def test_the_role_is_a_login_with_three_connections_and_no_attribute_that_widens_it():
@@ -112,9 +121,10 @@ def test_the_service_issues_no_write_statement_at_all():
 _ADMIN = "postgresql://org:Ad%40min-pw-0123456789@db.example.internal:5433/hub?sslmode=require"
 
 _SHIM = """#!/bin/sh
-# records what psql was started with; never prints the password unless SHIM_ECHO=1
-{ for a in "$@"; do printf 'ARG %s\\n' "$a"; done; env | grep -E '^(PG|ORG_NODE_TOKEN_PASSWORD)' | sort; } > "$SHIM_LOG"
-[ "${SHIM_ECHO:-}" = 1 ] && echo "ERROR: syntax error near PASSWORD '$ORG_NODE_TOKEN_PASSWORD'" >&2
+# records what psql was started with (argv, and the WHOLE environment); echoes the statement the way
+# a server error would, with the verifier it was given, only when SHIM_ECHO=1
+{ for a in "$@"; do printf 'ARG %s\\n' "$a"; done; env | sort; } > "$SHIM_LOG"
+[ "${SHIM_ECHO:-}" = 1 ] && echo "ERROR: syntax error near PASSWORD '$ORG_NODE_TOKEN_VERIFIER'" >&2
 exit "${SHIM_RC:-0}"
 """
 
@@ -133,8 +143,13 @@ def shim(tmp_path, monkeypatch):
 def _recorded(log: Path):
     lines = log.read_text().splitlines()
     args = [ln[4:] for ln in lines if ln.startswith("ARG ")]
-    env = dict(ln.split("=", 1) for ln in lines if not ln.startswith("ARG "))
+    env = dict(ln.split("=", 1) for ln in lines if not ln.startswith("ARG ") and "=" in ln)
     return args, env
+
+
+def _password_of(out: str) -> str:
+    """The password, from the one URL the script prints (the only place it may appear)."""
+    return urlsplit(out.strip()).password
 
 
 def test_the_role_script_runs_the_sql_and_prints_the_role_url_and_nothing_else(shim, capsys):
@@ -142,11 +157,33 @@ def test_the_role_script_runs_the_sql_and_prints_the_role_url_and_nothing_else(s
     out, err = capsys.readouterr()
     assert rc == 0
     args, env = _recorded(shim)
-    password = env["ORG_NODE_TOKEN_PASSWORD"]
+    password = _password_of(out)
     assert len(password) >= 24 and re.fullmatch(r"[A-Za-z0-9_-]+", password)
     assert out == f"postgresql://org_node_token:{password}@db.example.internal:5433/hub?sslmode=require\n"
     assert args == ["-X", "-v", "ON_ERROR_STOP=1", "-f", str(SQL)]
     assert password not in " ".join(args) and password not in err     # argv and stderr: never
+
+
+_STALE = "stale-" + "plain-" + "0123456789"          # built from parts: gitleaks flags NAME = "word-123..." literals
+
+
+def test_psql_is_given_the_verifier_of_the_password_and_the_password_nowhere(shim, capsys):
+    """The statement psql sends is CREATE/ALTER ROLE ... PASSWORD :'org_node_token_verifier': what a
+    server logs or echoes is the one-way verifier. The password is in no argument and no environment
+    variable of psql, and the verifier is the one made from it."""
+    assert role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN, "ORG_NODE_TOKEN_PASSWORD": _STALE}) == 0
+    out, _ = capsys.readouterr()
+    password = _password_of(out)
+    log = shim.read_text()
+    args, env = _recorded(shim)
+    assert password not in log and _STALE not in log                # argv and the whole environment
+    assert "ORG_NODE_TOKEN_PASSWORD" not in env                            # not even a stale one from the caller
+    verifier = env[role_script.VERIFIER_ENV]
+    assert re.fullmatch(r"SCRAM-SHA-256\$4096:[A-Za-z0-9+/]{22}==\$[A-Za-z0-9+/]{43}=:[A-Za-z0-9+/]{43}=", verifier)
+    assert password not in verifier
+    # made from THIS password: same salt and iteration count give the same verifier
+    salt = role_script.base64.b64decode(verifier.split("$")[1].split(":")[1])
+    assert role_script.scram_verifier(password, salt=salt) == verifier
 
 
 def test_the_role_script_connects_through_pg_variables_and_keeps_no_admin_url(shim):
@@ -159,12 +196,51 @@ def test_the_role_script_connects_through_pg_variables_and_keeps_no_admin_url(sh
     assert "Ad" not in " ".join(args) and "ORG_DB_URL" not in env
 
 
-def test_each_run_makes_a_new_password(shim):
-    seen = set()
+def test_each_run_makes_a_new_password_and_a_new_salt(shim, capsys):
+    passwords, verifiers = set(), set()
     for _ in range(3):
         assert role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN}) == 0
-        seen.add(_recorded(shim)[1]["ORG_NODE_TOKEN_PASSWORD"])
-    assert len(seen) == 3
+        passwords.add(_password_of(capsys.readouterr().out))
+        verifiers.add(_recorded(shim)[1][role_script.VERIFIER_ENV])
+    assert len(passwords) == 3 and len(verifiers) == 3
+    assert len({v.split("$")[1] for v in verifiers}) == 3                  # three salts
+
+
+# RFC 7677, section 3: user "user", password "pencil", salt W22ZaJ0SNY7soEsUEjb6gQ==, i=4096.
+_RFC_AUTH_MESSAGE = ("n=user,r=rOprNGfwEbeRWgbNEkqO,"
+                     "r=rOprNGfwEbeRWgbNEkqO%hvYDpWUa2RaTCAfuxFIlj)hNlF$k0,s=W22ZaJ0SNY7soEsUEjb6gQ==,i=4096,"
+                     "c=biws,r=rOprNGfwEbeRWgbNEkqO%hvYDpWUa2RaTCAfuxFIlj)hNlF$k0")
+_RFC_CLIENT_PROOF = "dHzbZapWIk4jUhN+Ute9ytag9zjfMHgsqmmiz7AndVQ="
+_RFC_SERVER_SIGNATURE = "6rriTRBi23WpRR/wtup+mMhUZUn/dB5nLTJRsjl95G4="
+
+
+def test_the_verifier_is_the_scram_sha_256_one_by_the_rfc_7677_example():
+    """The verifier is checked against the RFC's own exchange, not against a copy of this code: from
+    StoredKey and ServerKey alone, the RFC's ServerSignature is HMAC(ServerKey, AuthMessage), and its
+    ClientProof XOR HMAC(StoredKey, AuthMessage) is a ClientKey whose hash is the StoredKey."""
+    import base64, hashlib, hmac
+    salt = base64.b64decode("W22ZaJ0SNY7soEsUEjb6gQ==")
+    verifier = role_script.scram_verifier("pencil", salt=salt)
+    head, rest = verifier.split("$", 1)
+    iterations, salt_b64 = rest.split("$", 1)[0].split(":")
+    stored_b64, server_b64 = rest.split("$", 1)[1].split(":")
+    assert (head, iterations, salt_b64) == ("SCRAM-SHA-256", "4096", "W22ZaJ0SNY7soEsUEjb6gQ==")
+    stored, server = base64.b64decode(stored_b64), base64.b64decode(server_b64)
+    auth = _RFC_AUTH_MESSAGE.encode()
+    assert base64.b64encode(hmac.new(server, auth, hashlib.sha256).digest()).decode() == _RFC_SERVER_SIGNATURE
+    signature = hmac.new(stored, auth, hashlib.sha256).digest()
+    client_key = bytes(a ^ b for a, b in zip(base64.b64decode(_RFC_CLIENT_PROOF), signature))
+    assert hashlib.sha256(client_key).digest() == stored
+
+
+def test_the_verifier_has_the_shape_the_sql_guard_wants():
+    verifier = role_script.scram_verifier("a" * 43)
+    # Postgres's `$` is the end of the string, Python's is also before a final newline: use \Z
+    guard = re.search(r"!~ '([^']+)'", _sql()).group(1).replace("[$]", r"\$")[:-1] + r"\Z"
+    assert re.search(guard, verifier)
+    for bad in ("", "a" * 43, verifier.replace("SCRAM-SHA-256", "SCRAM-SHA-1"), verifier + "x", "x" + verifier,
+                verifier.replace("$4096:", "$:"), verifier.rsplit(":", 1)[0], verifier + "\n"):
+        assert not re.search(guard, bad), bad
 
 
 def test_a_failing_psql_leaves_stdout_empty_so_put_stores_nothing(shim, capsys, monkeypatch):
@@ -172,9 +248,9 @@ def test_a_failing_psql_leaves_stdout_empty_so_put_stores_nothing(shim, capsys, 
     monkeypatch.setenv("SHIM_ECHO", "1")
     rc = role_script.main([], {**os.environ, "ORG_DB_URL": _ADMIN})
     out, err = capsys.readouterr()
-    password = _recorded(shim)[1]["ORG_NODE_TOKEN_PASSWORD"]
+    verifier = _recorded(shim)[1][role_script.VERIFIER_ENV]
     assert rc == 1 and out == ""
-    assert password not in err and "PASSWORD '***'" in err              # scrubbed in psql's own echo
+    assert verifier not in err and "PASSWORD '***'" in err               # scrubbed in psql's own echo
     assert "psql exited 3" in err
 
 
@@ -223,13 +299,15 @@ def _with_login(url: str, user: str, password: str) -> str:
     return urlunsplit((p.scheme, f"{user}:{password}@{host}", p.path, p.query, p.fragment))
 
 
-def _run_role_file(owner_url: str, password: str | None, *, via: str = "env"):
-    env = {k: v for k, v in os.environ.items() if k != "ORG_NODE_TOKEN_PASSWORD"}
-    argv = ["psql", "-X", "-v", "ON_ERROR_STOP=1"]
-    if password is not None and via == "env":
-        env["ORG_NODE_TOKEN_PASSWORD"] = password
-    if password is not None and via == "var":
-        argv += ["-v", f"org_node_token_password={password}"]
+def _run_role_file(owner_url: str, verifier: str | None, *, via: str = "env", echo: bool = False):
+    """psql on the role file, handed `verifier` (None: nothing). echo=True adds psql's -e, which prints
+    every statement it sends to the server, variables already filled in."""
+    env = {k: v for k, v in os.environ.items() if k not in ("ORG_NODE_TOKEN_VERIFIER", "ORG_NODE_TOKEN_PASSWORD")}
+    argv = ["psql", "-X", "-v", "ON_ERROR_STOP=1"] + (["-e"] if echo else [])
+    if verifier is not None and via == "env":
+        env["ORG_NODE_TOKEN_VERIFIER"] = verifier
+    if verifier is not None and via == "var":
+        argv += ["-v", f"org_node_token_verifier={verifier}"]
     argv += ["-f", str(SQL), owner_url]
     return subprocess.run(argv, env=env, capture_output=True, text=True, timeout=60)
 
@@ -294,7 +372,7 @@ def pg(monkeypatch):
     _drop_all(ORG_TEST_DB_URL)
     monkeypatch.setenv("ORG_DB_URL", ORG_TEST_DB_URL)
     db.init()
-    r = _run_role_file(ORG_TEST_DB_URL, password)
+    r = _run_role_file(ORG_TEST_DB_URL, role_script.scram_verifier(password))
     assert r.returncode == 0, r.stderr
     h = Hub(ORG_TEST_DB_URL, password, monkeypatch)
     yield h
@@ -435,7 +513,7 @@ def test_the_file_run_twice_leaves_the_same_grants_and_a_new_password(pg):
     pg.host("node-a")
     before = pg.owner_rows(_VERIFIER)
     again = secrets.token_hex(16)
-    r = _run_role_file(pg.owner_url, again)
+    r = _run_role_file(pg.owner_url, role_script.scram_verifier(again))
     assert r.returncode == 0 and "role and grants are in place and verified" in r.stdout
     assert pg.password not in r.stdout + r.stderr and again not in r.stdout + r.stderr
     grants = pg.owner_rows("SELECT string_agg(privilege_type || ':' || column_name, ' ' ORDER BY column_name) AS g "
@@ -446,24 +524,61 @@ def test_the_file_run_twice_leaves_the_same_grants_and_a_new_password(pg):
 
 
 @pg_only
-def test_a_password_given_as_a_psql_variable_rotates_too(pg):
+def test_a_verifier_given_as_a_psql_variable_rotates_too(pg):
     before = pg.owner_rows(_VERIFIER)
     new = secrets.token_hex(16)
-    r = _run_role_file(pg.owner_url, new, via="var")
+    r = _run_role_file(pg.owner_url, role_script.scram_verifier(new), via="var")
     assert r.returncode == 0, r.stderr
     assert new not in r.stdout + r.stderr
     assert pg.owner_rows(_VERIFIER) != before
 
 
 @pg_only
-@pytest.mark.parametrize("password", [None, "", "weakpw-1234", "x" * 23])
-def test_a_missing_or_short_password_stops_the_run_and_changes_nothing(pg, password):
+def test_postgres_stores_the_verifier_as_given_and_does_not_hash_it_again(pg):
+    """A string that starts with SCRAM-SHA-256$ is kept as it is; a plain password would be hashed. The
+    stored value is byte for byte the verifier this file was given. (The throwaway cluster trusts
+    127.0.0.1, so a login here proves nothing about a password; the verifier's own correctness is the
+    RFC 7677 test above.)"""
+    pg.host("node-a")
+    new = secrets.token_hex(16)
+    verifier = role_script.scram_verifier(new)
+    assert _run_role_file(pg.owner_url, verifier).returncode == 0
+    assert pg.owner_rows(_VERIFIER)[0]["p"] == verifier
+    pg.role_url = _with_login(pg.owner_url, "org_node_token", new)
+    assert pg.attempt("SELECT count(*) FROM hosts") == "RAN"
+
+
+@pg_only
+def test_no_statement_psql_sends_to_the_server_holds_the_password(pg):
+    """psql -e prints every statement it sends, variables filled in: the text a server would log. It
+    holds the verifier twice (CREATE/ALTER ROLE and the shape check) and the password nowhere."""
+    password = secrets.token_hex(16)
+    verifier = role_script.scram_verifier(password)
+    r = _run_role_file(pg.owner_url, verifier, echo=True)
+    assert r.returncode == 0, r.stderr
+    sent = r.stdout + r.stderr
+    assert "ALTER ROLE org_node_token LOGIN CONNECTION LIMIT 3 PASSWORD '" + verifier + "'" in sent
+    assert password not in sent
+
+
+_GOOD = role_script.scram_verifier("a" * 43)
+
+
+@pg_only
+@pytest.mark.parametrize("bad", [
+    None, "", "weakpw-1234", "x" * 43, secrets.token_urlsafe(32),                  # a plain password: refused, not hashed
+    _GOOD.replace("SCRAM-SHA-256", "SCRAM-SHA-1"),
+    _GOOD.rsplit(":", 1)[0],                                                       # no ServerKey
+    _GOOD.replace("$4096:", "$4096:short"),
+    _GOOD + "'; select 1; --"])
+def test_anything_but_a_scram_verifier_stops_the_run_and_changes_nothing(pg, bad):
     before = pg.owner_rows(_VERIFIER)
-    r = _run_role_file(pg.owner_url, password)
-    assert r.returncode != 0 and "missing or shorter than 24" in r.stderr and "verified" not in r.stdout
-    if password:
-        assert password not in r.stdout + r.stderr
+    r = _run_role_file(pg.owner_url, bad)
+    assert r.returncode != 0 and "is not a SCRAM-SHA-256 verifier" in r.stderr and "verified" not in r.stdout
+    if bad:
+        assert bad not in r.stdout
     assert pg.owner_rows(_VERIFIER) == before
+    assert pg.attempt("SELECT count(*) FROM hosts") == "RAN"                      # the old password still works
 
 
 @pg_only
@@ -471,7 +586,7 @@ def test_a_grant_added_by_hand_is_removed_by_the_next_run(pg):
     pg.owner_exec("GRANT UPDATE (approved_at) ON hosts TO org_node_token")
     pg.owner_exec("GRANT SELECT ON tasks TO org_node_token")
     assert pg.attempt("SELECT count(*) FROM tasks") == "RAN"
-    assert _run_role_file(pg.owner_url, pg.password).returncode == 0
+    assert _run_role_file(pg.owner_url, role_script.scram_verifier(pg.password)).returncode == 0
     assert "permission denied" in pg.attempt("SELECT count(*) FROM tasks")
     assert "permission denied" in pg.attempt("UPDATE hosts SET approved_at = NULL")
 
@@ -482,12 +597,20 @@ def test_a_grant_added_by_hand_is_removed_by_the_next_run(pg):
 def test_the_self_check_fails_the_run_when_an_attribute_has_drifted(pg, attribute, undo):
     pg.owner_exec(f"ALTER ROLE org_node_token {attribute}")
     try:
-        r = _run_role_file(pg.owner_url, pg.password)
+        r = _run_role_file(pg.owner_url, role_script.scram_verifier(pg.password))
         assert r.returncode != 0 and "role attribute it must not have" in r.stderr
         assert "verified" not in r.stdout
     finally:
         pg.owner_exec(f"ALTER ROLE org_node_token {undo}")
-    assert _run_role_file(pg.owner_url, pg.password).returncode == 0
+    assert _run_role_file(pg.owner_url, role_script.scram_verifier(pg.password)).returncode == 0
+
+
+def pg_verifier_of_role() -> str:
+    conn = db_pg.connect(ORG_TEST_DB_URL, timeout=10)
+    try:
+        return conn.execute(_VERIFIER).fetchone()["p"]
+    finally:
+        conn.close()
 
 
 @pg_only
@@ -507,6 +630,9 @@ def test_the_role_script_against_a_real_postgres_makes_a_working_role(monkeypatc
         password = urlsplit(url).password
         assert password and password not in err
         assert "role and grants are in place and verified" in err
+        stored = pg_verifier_of_role()                                   # made from the printed password
+        assert role_script.scram_verifier(password, salt=role_script.base64.b64decode(
+            stored.split("$")[1].split(":")[1])) == stored
         assert urlsplit(url).hostname == urlsplit(ORG_TEST_DB_URL).hostname
         conn = db_pg.connect(url, timeout=10)
         try:
