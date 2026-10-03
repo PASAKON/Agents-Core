@@ -44,7 +44,8 @@ python3 tools/ask_run.py create --host contabo --script Agents-Core@<sha>:script
 ```
 
 Exit codes: **0** pass; **1** the drill ran and failed (the JSON names the step); **2** refused at
-preflight, nothing started and nothing written.
+preflight, nothing started and nothing written. An Infisical leg that cannot load its folder stops
+before preflight with `infisical_setup.py`'s own message (non-zero, no JSON, nothing started).
 
 ## Which code runs
 
@@ -82,7 +83,7 @@ checkout from before this drill, or not an Agents-Core checkout at all.
 
 | step | what happens | a red here means |
 |---|---|---|
-| `preflight` | the script is a readable file (it re-runs itself through the hub wrapper, so a pipe is refused); this checkout's `tools/mesh_check.py` has `--join-drill` (the card runs the script at a pushed sha, the tools come from the checkout: a stale checkout is refused here, not after the join); root; `free -m` available >= 1500 MB; docker, curl, gh, git, perl; join door `closed`; no `drill-*` container, volume or non-`left` host; `/etc/infisical/setup.env` exists; `TAILSCALE_OAUTH_CLIENT_ID/_SECRET` in the environment; the Tailscale, `gh` and `node-secrets` readers answer | exit 2, nothing started. The message says which. Memory: Contabo runs one heavy job at a time, run again when it is quiet |
+| `preflight` | the script is a readable file (it re-runs itself through Infisical, `/org-join` and then the hub wrapper, so a pipe is refused); this checkout's `tools/mesh_check.py` has `--join-drill` (the card runs the script at a pushed sha, the tools come from the checkout: a stale checkout is refused here, not after the join); root; `free -m` available >= 1500 MB; docker, curl, gh, git, perl; join door `closed`; no `drill-*` container, volume or non-`left` host; `/etc/infisical/setup.env` exists; `TAILSCALE_OAUTH_CLIENT_ID/_SECRET` in the environment; the Tailscale, `gh` and `node-secrets` readers answer | exit 2, nothing started. The message says which. Memory: Contabo runs one heavy job at a time, run again when it is quiet |
 | `door_open` | `deploy/join/door.sh open --minutes 30`. A trap closes it on every exit path, and the door is also closed as soon as `provision` ends | the door service would not start; check `door.sh status` |
 | `container` | `ubuntu:24.04`, hostname `drill-<stamp>`, 1200 MB cap, `tailscaled --tun=userspace-networking`, state in a removable volume | docker problem (disk, image pull); nothing joined |
 | `mint` | `hq_join mint --host drill-<stamp>`; the token is held in one shell variable | hub unreachable or `ORG_DB_URL` missing; see `docs/ops/hq-join.md` |
@@ -188,8 +189,12 @@ scripts/hub/with-org-db-env.sh "$PY" -m tools.hq_join status | awk '$1 ~ /^drill
 H=drill-<stamp>
 bash deploy/join/door.sh close                          # prints "closed"
 docker rm -f -v "$H"; docker volume rm "$H-ts"
-scripts/hub/with-org-db-env.sh env ORG_W42_PROVISION=1 "$PY" -m tools.hq_join leave --host "$H" --live
+python3 tools/infisical_setup.py run Agents-Core prod --path /org-join -- scripts/hub/with-org-db-env.sh env ORG_W42_PROVISION=1 "$PY" -m tools.hq_join leave --host "$H" --live
 ```
+
+`leave` needs two Infisical folders: `/org-join` holds the Tailscale OAuth client, and the hub wrapper
+loads only the root folder (`ORG_DB_URL`). Without the first leg, `leave` cannot delete the tailnet
+device.
 
 `leave` prints one line per step. `[ok] tailscale_device`, `[ok] github_deploy_key` and
 `[ok] infisical_client_secret` must all hold. Until W4.1b (task-8da2f248) merges, each
@@ -253,8 +258,10 @@ each; the script reports them rather than hiding them.
    throwaway container is a real credential), or another way to return the node's work. Until then
    the "probe commit on origin" criterion cannot pass.
 3. **Contabo may not be an admin host.** `provision` needs `/etc/infisical/setup.env`, and the Mac
-   is documented as the admin host. Preflight refuses (exit 2) with that message. Agents-Core prod
-   must also carry `TAILSCALE_OAUTH_*` and the box needs a `gh` login that can read deploy keys.
+   is documented as the admin host. Preflight refuses (exit 2) with that message. `TAILSCALE_OAUTH_*`
+   comes from Agents-Core prod `/org-join`, which the script loads itself when the caller has not (the
+   first live card, RUN-20261003-0029-5164, refused at preflight because only the root folder was
+   loaded). The box also needs a `gh` login that can read deploy keys.
 4. **Winbox.** Reading `administrators_authorized_keys` needs an admin-capable ssh alias. Set
    `DRILL_WINBOX_SSH`; without one, `verify_authorized_keys` is red (unverifiable).
 5. **join.sh step 9** (`node_probe`) reads the hub; the node has no `ORG_DB_URL`. May be red by
@@ -275,8 +282,9 @@ each; the script reports them rather than hiding them.
   `sh -c '... VAR="$VAR"'`), because container processes show in the host's `/proc` and in any
   execve audit. There is no `set -x`. Every
   detail passes a mask for `tskey-`, `sk-ant-`, `AGE-SECRET-KEY-`, `ghp_`-style tokens.
-- No `.env` is created. The script re-execs itself through `scripts/hub/with-org-db-env.sh`, like
-  every Contabo consumer of the hub.
+- No `.env` is created. The script re-execs itself through `tools/infisical_setup.py run Agents-Core
+  prod --path /org-join` (the Tailscale OAuth client; skipped when the caller already set it), then
+  through `scripts/hub/with-org-db-env.sh` (the hub URL), like every Contabo consumer of the hub.
 - It deletes only names it made: `drill-<stamp>` container and volume, the `agent/probe-task-<hex>`
   branch (the name is checked before `push --delete`), and it only cancels its own probe task.
 - The probe branch is never merged: the repo is public, and nothing from a throwaway node should
