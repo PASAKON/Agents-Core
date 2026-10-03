@@ -35,7 +35,8 @@ Levels:
                  `hosts.probed_at` is fresh by the router's own rule.
   L7 router    — --live only: `router.pick_host` on synthetic tasks
                  (`needs: always_on` -> contabo, `needs: win_gui` -> winbox).
-  L8 join drill— reads state/mesh-check/join-drill.json; > 7 days = red.
+  L8 join drill— reads state/mesh-check/join-drill.json, or with no file the newest
+                 `join_drill` events row (scripts/drill-join.sh writes both); > 7 days = red.
   SEC          — --live only: the dispatch key gets `probe` and no shell.
   INV          — read-only: every in-progress remote row has exactly one poller.
 
@@ -1207,31 +1208,59 @@ def l7_probe(cases=L7_CASES) -> dict[str, dict]:
 
 JOIN_DRILL_FILE = "join-drill.json"
 JOIN_DRILL_MAX_AGE_S = 7 * 24 * 3600
+JOIN_DRILL_KIND = "join_drill"       # the events row scripts/drill-join.sh records beside the file
+JOIN_DRILL_ACTOR = "drill-join"
 
 
-def check_l8(state_dir: Path, now: datetime | None = None) -> dict:
+def latest_join_drill() -> dict | None:
+    """The newest `join_drill` events row (the drill's JSON), or None when there is none. Raises
+    when the hub cannot be read: check_l8 turns that into its own answer."""
+    from lib import db as db_mod
+    with db_mod.get_conn() as conn:
+        row = conn.execute("SELECT payload FROM events WHERE kind = ? ORDER BY id DESC LIMIT 1",
+                           (JOIN_DRILL_KIND,)).fetchone()
+    if row is None:
+        return None
+    data = json.loads(row["payload"])
+    return data if isinstance(data, dict) else None
+
+
+def check_l8(state_dir: Path, now: datetime | None = None, *, events=None) -> dict:
     """state/mesh-check/join-drill.json, written by the W4.7 drill (not by this
     tool): {"ok": bool, "at": ISO-8601, "host": str, "steps": [{"name", "ok"}]}.
-    Missing = not run. Malformed, failed, empty or older than 7 days = red."""
+    The drill also records the same JSON as a `join_drill` events row, and with no file
+    here (the Mac never runs the drill) the newest row is judged instead: `events()`
+    returns it, default latest_join_drill().
+    No file and no row = not run. Malformed, failed, empty or older than 7 days = red."""
     now = now or datetime.now(timezone.utc)
     path = state_dir / JOIN_DRILL_FILE
-    if not path.is_file():
-        return {"ok": False, "reason": f"no drill recorded ({JOIN_DRILL_FILE} missing)",
-                "kind": "not_run"}
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as e:
-        return _red(f"{JOIN_DRILL_FILE} unreadable: {type(e).__name__}")
+    src = JOIN_DRILL_FILE
+    if path.is_file():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as e:
+            return _red(f"{JOIN_DRILL_FILE} unreadable: {type(e).__name__}")
+    else:
+        src = f"{JOIN_DRILL_KIND} event"
+        try:
+            data = (events or latest_join_drill)()
+        except Exception as e:
+            return {"ok": False, "kind": "not_run",
+                    "reason": f"no drill recorded ({JOIN_DRILL_FILE} missing, hub read failed: "
+                              f"{type(e).__name__})"}
+        if data is None:
+            return {"ok": False, "reason": f"no drill recorded ({JOIN_DRILL_FILE} missing, "
+                                           f"no {JOIN_DRILL_KIND} event)", "kind": "not_run"}
     if not isinstance(data, dict):
-        return _red(f"{JOIN_DRILL_FILE} is not a JSON object")
+        return _red(f"{src} is not a JSON object")
     steps = data.get("steps")
     if (not isinstance(data.get("ok"), bool) or not isinstance(data.get("host"), str)
             or not data["host"] or not isinstance(steps, list)):
-        return _red(f"{JOIN_DRILL_FILE} lacks ok (bool), at, host (str) or steps (list)")
+        return _red(f"{src} lacks ok (bool), at, host (str) or steps (list)")
     try:
         at = datetime.fromisoformat(str(data.get("at")).strip().replace("Z", "+00:00"))
     except ValueError:
-        return _red(f"{JOIN_DRILL_FILE}: at {str(data.get('at'))[:40]!r} is not ISO-8601")
+        return _red(f"{src}: at {str(data.get('at'))[:40]!r} is not ISO-8601")
     if at.tzinfo is None:
         at = at.replace(tzinfo=timezone.utc)
     age = (now - at).total_seconds()
@@ -1249,6 +1278,72 @@ def check_l8(state_dir: Path, now: datetime | None = None) -> dict:
     if failed:
         return _red(f"drill says ok but step {', '.join(failed)} is not ok")
     return _green(f"{data['host']}, {int(age // 3600)} h ago")
+
+
+# The hub side of scripts/drill-join.sh, as `--join-drill <verb> <arg>`. The drill is a shell
+# script; these are the three things it needs from lib.db, kept here beside the L8 reader so the
+# row's shape is written in one place.
+
+JOIN_DRILL_MAX_BYTES = 64 * 1024
+
+
+def join_drill_probe_path(host: str) -> str:
+    """Where the node writes its probe line, in the L3 shape docs/ops/mesh-probe/<from>-<to>.md."""
+    return f"docs/ops/mesh-probe/contabo-{host}.md"
+
+
+def join_drill_task_create(host: str) -> str:
+    """A task for the throwaway node. It stays `pending` on purpose: no poller adopts a pending
+    row, so nothing can pick up the node's probe branch and merge it."""
+    from lib import config as config_mod
+    from lib import db as db_mod
+    if not config_mod.HOST_NAME_RE.fullmatch(host):
+        raise ValueError("bad host name")
+    path = join_drill_probe_path(host)
+    return db_mod.create_task(
+        project="mooniex-agents", role="developer",
+        title=f"mesh-probe contabo->{host} (join drill)",
+        description=(f"W4.7 join drill probe for the throwaway node {host}. Overwrite {path} with "
+                     f"one line and commit it with a message starting `mesh-probe:`. The drill "
+                     f"deletes the branch and cancels this task; nothing is merged."),
+        touches=[path], host=host)
+
+
+def join_drill_task_close(task_id: str) -> bool:
+    from lib import db as db_mod
+    return db_mod.update_status(task_id, "cancelled", actor=JOIN_DRILL_ACTOR)
+
+
+def join_drill_record(data: object) -> None:
+    """One `join_drill` events row: the drill JSON exactly as written to join-drill.json."""
+    from lib import db as db_mod
+    if not isinstance(data, dict) or not isinstance(data.get("host"), str):
+        raise ValueError("drill JSON must be an object with a host")
+    if len(json.dumps(data)) > JOIN_DRILL_MAX_BYTES:
+        raise ValueError(f"drill JSON is over {JOIN_DRILL_MAX_BYTES} bytes")
+    with db_mod.get_conn() as conn:
+        db_mod.log_event(conn, None, JOIN_DRILL_ACTOR, JOIN_DRILL_KIND, data)
+
+
+def join_drill_cli(verb: str, arg: str) -> int:
+    """Exit 0 ok, 1 ran and changed nothing, 2 refused (bad verb or argument)."""
+    try:
+        if verb == "task-create":
+            print(join_drill_task_create(arg))
+        elif verb == "task-close":
+            if not join_drill_task_close(arg):
+                print(f"join-drill: {arg} was not changed (already closed?)", file=sys.stderr)
+                return 1
+        elif verb == "record":
+            join_drill_record(json.loads(Path(arg).read_text(encoding="utf-8")))
+        else:
+            print(f"join-drill: unknown verb {verb!r} (task-create, task-close, record)",
+                  file=sys.stderr)
+            return 2
+        return 0
+    except (ValueError, OSError) as e:
+        print(f"join-drill: refused: {type(e).__name__}: {str(e)[:160]}", file=sys.stderr)
+        return 2
 
 
 # ---------------------------------------------------------------------------
@@ -1543,14 +1638,20 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--local", action="store_true", help="print this host's L0-L2 cells only")
     ap.add_argument("--json", action="store_true", help="with --local, JSON output (default)")
     ap.add_argument("--get-task", metavar="TASK_ID", help="print db.get_task(TASK_ID) as JSON")
+    ap.add_argument("--join-drill", nargs=2, metavar=("VERB", "ARG"),
+                    help="hub side of scripts/drill-join.sh: task-create <host>, task-close <id>, "
+                         "record <drill.json>")
     args = ap.parse_args(argv)
-    if not args.local and not args.get_task and not args.expect:
-        ap.error("--expect is required outside --local/--get-task")
+    if not args.local and not args.get_task and not args.join_drill and not args.expect:
+        ap.error("--expect is required outside --local/--get-task/--join-drill")
     return args
 
 
 async def amain(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
+
+    if args.join_drill:
+        return join_drill_cli(*args.join_drill)
 
     if args.get_task:
         if not HAVE_CONFIG:

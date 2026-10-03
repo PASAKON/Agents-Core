@@ -1135,8 +1135,9 @@ def _drill(tmp_path: Path, **over) -> Path:
 
 
 def test_l8_missing_file_is_not_run_and_never_green(tmp_path):
-    cell = m.check_l8(tmp_path)
+    cell = m.check_l8(tmp_path, events=lambda: None)
     assert cell["ok"] is False and cell["kind"] == "not_run"
+    assert "no join_drill event" in cell["reason"]
 
 
 def test_l8_green_for_a_fresh_ok_drill_with_steps(tmp_path):
@@ -1175,6 +1176,107 @@ def test_l8_red_when_the_file_is_not_json_or_not_an_object(tmp_path):
     assert m.check_l8(tmp_path)["ok"] is False
     (tmp_path / m.JOIN_DRILL_FILE).write_text("[1]")
     assert m.check_l8(tmp_path)["ok"] is False
+
+
+# ---- L8: the join_drill events row, for a machine that never ran the drill --------
+
+def _event(**over) -> dict:
+    data = {"ok": True, "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "host": "drill-20261003-140000",
+            "steps": [{"name": "join", "ok": True, "detail": "x"}, {"name": "probe", "ok": True}]}
+    data.update(over)
+    return data
+
+
+def test_l8_reads_the_event_when_the_file_is_missing_and_goes_green(tmp_path):
+    cell = m.check_l8(tmp_path, events=lambda: _event())
+    assert cell["ok"] is True and "drill-20261003-140000" in cell["note"]
+
+
+def test_l8_the_file_wins_over_an_event(tmp_path):
+    cell = m.check_l8(_drill(tmp_path, ok=False, steps=[{"name": "mint", "ok": False}]),
+                      events=lambda: _event())
+    assert cell["ok"] is False and "mint" in cell["reason"]
+
+
+def test_l8_event_gets_the_same_checks_as_the_file(tmp_path):
+    now = datetime(2026, 10, 10, 12, 0, tzinfo=timezone.utc)
+    old = _event(at=(now - timedelta(days=8)).isoformat())
+    cell = m.check_l8(tmp_path, now, events=lambda: old)
+    assert cell["ok"] is False and "kind" not in cell and "days old" in cell["reason"]
+    failed = _event(ok=False, steps=[{"name": "join", "ok": True}, {"name": "probe", "ok": False}])
+    cell = m.check_l8(tmp_path, events=lambda: failed)
+    assert cell["ok"] is False and "probe" in cell["reason"]
+    for bad in ({"ok": "yes"}, {"host": ""}, {"steps": []}, {"at": "yesterday"}):
+        assert m.check_l8(tmp_path, events=lambda bad=bad: _event(**bad))["ok"] is False
+    assert m.check_l8(tmp_path, events=lambda: [1])["ok"] is False
+
+
+def test_l8_hub_that_cannot_be_read_is_not_run_not_green_and_not_a_crash(tmp_path):
+    def boom():
+        raise RuntimeError("hub down")
+
+    cell = m.check_l8(tmp_path, events=boom)
+    assert cell["ok"] is False and cell["kind"] == "not_run" and "RuntimeError" in cell["reason"]
+
+
+def test_join_drill_record_then_latest_round_trip_and_the_newest_wins(hub, tmp_path):
+    assert m.latest_join_drill() is None
+    assert m.check_l8(tmp_path)["kind"] == "not_run"                 # the real reader, empty hub
+    m.join_drill_record(_event(ok=False, host="drill-old", steps=[{"name": "join", "ok": False}]))
+    m.join_drill_record(_event())
+    got = m.latest_join_drill()
+    assert got["host"] == "drill-20261003-140000" and got["ok"] is True
+    cell = m.check_l8(tmp_path)                                      # the Mac: no file, real reader
+    assert cell["ok"] is True and "drill-20261003-140000" in cell["note"]
+
+
+def test_join_drill_record_refuses_a_bad_or_oversized_payload(hub):
+    for bad in ([1], {"host": 3}, {"host": "h", "pad": "x" * (m.JOIN_DRILL_MAX_BYTES + 1)}):
+        with pytest.raises(ValueError):
+            m.join_drill_record(bad)
+    assert m.latest_join_drill() is None
+
+
+def test_join_drill_task_is_pending_targeted_and_carries_the_l3_probe_path(hub):
+    tid = m.join_drill_task_create("drill-20261003-140000")
+    task = hub.get_task(tid)
+    assert task["status"] == "pending" and task["host"] == "drill-20261003-140000"
+    assert task["project"] == "mooniex-agents" and task["role"] == "developer"
+    assert "docs/ops/mesh-probe/contabo-drill-20261003-140000.md" in json.dumps(task["touches"])
+    assert "mesh-probe:" in task["description"]
+    with pytest.raises(ValueError):
+        m.join_drill_task_create("Bad Host; rm -rf /")
+
+
+def test_join_drill_task_close_cancels_once(hub):
+    tid = m.join_drill_task_create("drill-20261003-140000")
+    assert m.join_drill_task_close(tid) is True
+    assert hub.get_task(tid)["status"] == "cancelled"
+
+
+def test_join_drill_cli_verbs_and_exit_codes(hub, tmp_path, capsys):
+    assert m.join_drill_cli("task-create", "drill-20261003-140000") == 0
+    tid = capsys.readouterr().out.strip().splitlines()[-1]
+    assert tid.startswith("task-")
+    assert m.join_drill_cli("task-close", tid) == 0
+    f = tmp_path / "d.json"
+    f.write_text(json.dumps(_event()))
+    assert m.join_drill_cli("record", str(f)) == 0
+    assert m.latest_join_drill()["host"] == "drill-20261003-140000"
+    f.write_text("{not json")
+    assert m.join_drill_cli("record", str(f)) == 2
+    assert m.join_drill_cli("record", str(tmp_path / "nope.json")) == 2
+    assert m.join_drill_cli("task-create", "Bad Host") == 2
+    assert m.join_drill_cli("explode", "x") == 2
+    assert "unknown verb" in capsys.readouterr().err
+
+
+def test_join_drill_flag_needs_no_expect_and_hands_over_to_the_cli(monkeypatch):
+    seen = []
+    monkeypatch.setattr(m, "join_drill_cli", lambda verb, arg: seen.append((verb, arg)) or 0)
+    assert asyncio.run(m.amain(["--join-drill", "task-close", "task-0123abcd"])) == 0
+    assert seen == [("task-close", "task-0123abcd")]
 
 
 # ---- INV -------------------------------------------------------------------

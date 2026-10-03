@@ -20,7 +20,7 @@ read-only ssh (`--local --json`, see below), prints the combined markdown
 matrix, writes it to `state/mesh-check/<UTC ts>.json` and
 `state/mesh-check/latest.json` (both gitignored), then exits 0 if every cell
 in scope for `--expect` passed, 1 otherwise. It also computes the two levels
-that only read: L8 (a file, from w4) and INV (the hub, from w1). It never
+that only read: L8 (a file or the hub's `join_drill` row, from w4) and INV (the hub, from w1). It never
 dials a host and never writes the ledger unless `--live` is given.
 
 `--expect wN` is required outside `--local`/`--get-task` — it's the wave
@@ -450,7 +450,8 @@ The hosts table is never written; the rows list is never mutated.
 ### L8 — join drill
 
 **Proves** that `hq join` was drilled end to end on a clean machine within
-the last 7 days. This tool does not run the drill; it reads
+the last 7 days. This tool does not run the drill (`scripts/drill-join.sh`
+does, on Contabo, as one Run Inbox card: see `docs/ops/join-drill.md`); it reads
 `state/mesh-check/join-drill.json` (gitignored, written by the drill):
 
 ```json
@@ -469,7 +470,11 @@ the last 7 days. This tool does not run the drill; it reads
 | `host` | non-empty string | the machine that was joined |
 | `steps` | list of `{"name": str, "ok": bool}` | what ran, in order; may not be empty |
 
-- missing file: `not run` (a failing, named state, never green);
+- missing file: the newest `events` row of kind `join_drill` is judged instead
+  (the drill records the same JSON there, so the Mac, which never runs the
+  drill, can read the cell; the file wins when both exist). No file and no
+  row, or a hub that cannot be read: `not run` (a failing, named state, never
+  green);
 - unreadable, not a JSON object, or a missing or mistyped field: red;
 - `at` more than 7 days ago (`JOIN_DRILL_MAX_AGE_S`), or in the future by more
   than 10 minutes: red;
@@ -530,8 +535,9 @@ file:
   and worker letter paths of `node_dispatch` exists now (task-f9d23d0b), so L5
   inside L3's window proves a wake and not only a delivery; every target must
   run that `node_dispatch` first.
-- **The join drill** (W4.7 in the plan, a container on Contabo), which writes `state/mesh-check/join-drill.json`;
-  L8 stays `not run` until then.
+- **The join drill** (W4.7 in the plan, a container on Contabo; built, `scripts/drill-join.sh`,
+  `docs/ops/join-drill.md`, but not yet run live), which writes `state/mesh-check/join-drill.json` and a
+  `join_drill` events row; L8 stays `not run` until a run lands.
 - Any later wave that adds a level adds it to `LEVELS`, `EXPECT` and this
   file together, without touching the cells above it.
 
