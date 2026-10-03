@@ -30,7 +30,8 @@ from tools import hq_join, infisical_setup
 from tools.infisical_setup import ApiError
 
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
-DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "B" * 43
+# A real ssh-keygen -t ed25519 public key. A prefix + "A" * n fixture checks the regex against itself.
+DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPevyJRWgM559TAkS0aqU6fNI/5HXCNkmC5EoKCEpoB6"
 ORG_TEST_DB_URL = os.environ.get("ORG_TEST_DB_URL", "").strip()
 _PG_TABLES = ("locks", "events", "tasks", "c_level_sessions", "hosts", "letters",
               "join_tokens", "node_secrets")
@@ -479,7 +480,7 @@ def test_accept_cli_takes_the_flag_and_says_when_it_is_missing(capsys):
 def test_a_rejoin_replaces_the_deploy_key():
     _join()
     db.upsert_host("node-a", status="left")
-    other = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "C" * 43
+    other = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ2Yd9JmF0h6Hf7L52H4qZqx93vojzjt14XnLyl0YGBp"
     _join("node-a", deploy=other)
     assert db.get_host("node-a")["deploy_pubkey"] == other
 

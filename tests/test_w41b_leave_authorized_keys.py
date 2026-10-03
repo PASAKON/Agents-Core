@@ -268,7 +268,7 @@ def test_none_placed_is_never_reported_while_the_function_returns_a_placement(mo
     first = hq_join.revoke_authorized_keys(step)
     assert first.ok and NONE_PLACED in first.detail                 # today: nothing placed
 
-    line = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "B" * 43 + " node-a"
+    line = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPevyJRWgM559TAkS0aqU6fNI/5HXCNkmC5EoKCEpoB6 node-a"                                   # a real key, not prefix + filler
     monkeypatch.setattr(hq_join, "_placed_authorized_keys", lambda host, target: [line])
     out = hq_join.revoke_authorized_keys(step)
     assert out.ok is False and NONE_PLACED not in out.detail

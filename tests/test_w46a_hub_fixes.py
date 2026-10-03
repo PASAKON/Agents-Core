@@ -37,7 +37,8 @@ from tools.infisical_setup import ApiError
 # The example recipient from the age README: a real bech32 checksum.
 PUB = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
 FP = PUB[-8:]
-DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA" + "B" * 43
+# A real ssh-keygen -t ed25519 public key. A prefix + "A" * n fixture checks the regex against itself.
+DEPLOY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG9D06vH3gy5M9FVCiIgDoeYU6vNWImj359y+vMWz3Qh"
 ORG_TEST_DB_URL = os.environ.get("ORG_TEST_DB_URL", "").strip()
 _PG_TABLES = ("locks", "events", "tasks", "c_level_sessions", "hosts", "letters",
               "join_tokens", "node_secrets")
