@@ -134,4 +134,9 @@ What the CTO did under that delegation:
 - The files are 1248x704, Seedance's native 720p frame, at about 3.2 Mbps. Each carries black pillar bars of about 10 px inside the frame on both sides; crop them in the edit.
 - 480p and 720p keep the label "ส่งเข้าคิว Unlimited 0", which is free. 1080p turns the Unlimited switch off and the button reads "สร้าง 106": **106 paid credits per 15 s clip**, against a balance of about 1,350.
 - The `-hd` re-fire of all 40 shots uses the same settings as wave 1, so it gives a **second take** of every shot, not a sharper one. It keeps the free queue busy, as the CEO ordered.
-- Not yet known: whether the free lane renders below 720p and then upscales. To settle it, compare `lb-A05-hd` with `lb-A05` once it is harvested.
+- **Measured on `lb-A05-hd` (19:18), the 720p-HD re-fire of A05.** Same 1248x704 frame, same 10 px bars, about 3.6 Mbps. Neither clip holds detail above 480p:
+  - Test: scale a frame down to 854x490 and back up, then compare it with the original. A small loss means the frame never held finer detail.
+  - Clips: 47.4 dB (A05) and 44.7 dB (A05-hd).
+  - Sharp reference plates at the same size: 29.3–31.7 dB (`loc_city`, `loc_canal`, `loc_bell_pavilion`).
+  - So the free lane delivers about 480p of detail inside a 720p frame. The CEO's eye was right, and picking 720p HD does not change it.
+- Still not known: whether 1080p (106 credits) is really sharper. One test clip settles it, and it needs the CEO's yes.
