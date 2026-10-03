@@ -29,32 +29,39 @@ approve  W4.6a (F1). `--fingerprint` must equal the fingerprint of the stored ke
          `provision` does nothing for a row that is not approved, so whoever wins
          the accept race with a leaked token still gets no identity.
 provision
-         W4.2. A pending_identity row becomes identity_ready: mint a Universal
-         Auth client secret for the host under the shared identity `org-node`,
-         seal its client id and secret to the host's age key, register the
-         host's GitHub deploy key, store ONLY the ciphertext and the two
-         revoke ids (table node_secrets). A failure after the mint revokes
-         what was minted. Re-running on an identity_ready row does nothing.
+         W4.2 / W4.2b. An approved pending_identity row becomes identity_ready:
+         seal a v2 bundle {"v":2,"host":H,"token_url":<hub token URL>} to the
+         host's age key, register the host's GitHub deploy key, store ONLY the
+         ciphertext and the deploy key id (table node_secrets). Infisical is
+         not touched: a node has no identity of its own (CEO 2026-10-03), the
+         hub serves it the token itself (tools/node_token_api.py) for as long
+         as the row is approved and not leaving. The URL is the environment
+         variable ORG_NODE_TOKEN_URL; without it provision refuses. A failure
+         after the deploy key removes it. Re-running on an identity_ready row
+         does nothing.
 sealed   W4.2. Prints the armored ciphertext of a host (only that host's age
          key opens it). How it reaches the node is W4.3.
 leave    Plans the revocation of everything a node holds. Without --live it
-         prints the plan and changes nothing. With --live it runs each step
-         through a revoker; one failed step never stops the others; the row
-         goes to `left` only when every step succeeded.
+         prints the plan and changes nothing. With --live the FIRST step sets
+         the row to `leaving` (the token service refuses the host from that
+         moment); then each other step runs through a revoker; one failed step
+         never stops the others; the row goes to `left` only when every step
+         succeeded, and stays `leaving` otherwise.
 export-hosts
          Writes a hosts.yaml-shaped export of the `hosts` table. Nothing reads
          it yet (lib/config.hosts() still reads config/hosts.yaml).
 
 Nothing here touches a live system unless ORG_W42_PROVISION=1. Every outside
-act (Infisical, Tailscale, GitHub, ssh) is injectable: a `Revoker` is a callable
-taking a Step and returning an Outcome, and `provision` takes the Infisical org,
-a gh runner and a sealer. `leave --live` uses UNWIRED_REVOKERS ("not wired
-yet") unless the flag is on; with it, wired_revokers() revokes the Infisical
-client secret and the GitHub deploy key for real, removes the tailnet device
-too when TAILSCALE_OAUTH_CLIENT_ID / _SECRET are in the environment (lib/tailscale_api.py),
-and settles authorized_keys by what was PLACED (_placed_authorized_keys): nothing for a joined
-node, so it is ok there; a core host's lines are placed and no code removes them, so it
-refuses. Tests inject fakes.
+act (Tailscale, GitHub, ssh) is injectable: a `Revoker` is a callable taking a
+Step and returning an Outcome, and `provision` takes a gh runner and a sealer.
+`leave --live` uses UNWIRED_REVOKERS ("not wired yet") unless the flag is on; with
+it, wired_revokers() deletes the GitHub deploy key for real, removes the tailnet
+device too when TAILSCALE_OAUTH_CLIENT_ID / _SECRET are in the environment
+(lib/tailscale_api.py), and settles authorized_keys by what was PLACED
+(_placed_authorized_keys): nothing for a joined node, so it is ok there; a core
+host's lines are placed and no code removes them, so it refuses. The `leaving`
+step is the hub's own database write and does not depend on the flag. Tests
+inject fakes.
 
 Exit    0 ok, 1 ran and failed (leave with steps left behind, provision
         failed), 2 refused (bad argument, or the token/host was rejected)
@@ -112,10 +119,21 @@ HQ_ROOT_CHARS_RE = re.compile(r"[A-Za-z0-9 ._/\\:-]+")
 # hosts.status values that keep a name taken. Only `left` frees it.
 STATUS_LEFT = "left"
 STATUS_PENDING = "pending_identity"
-STATUS_READY = "identity_ready"   # W4.2: its sealed secret is in the hub, the node has not joined yet
+STATUS_READY = "identity_ready"   # W4.2: its sealed bundle is in the hub, the node has not joined yet
+# W4.2b: `leave --live` has started and has not finished. The token service refuses the host as
+# `left` from this moment, and a name in this state stays taken (only `left` frees it).
+STATUS_LEAVING = "leaving"
 # Not exported to hosts.yaml: a node that has no identity yet, one that has an identity
-# but has not finished joining (no probe, nothing to route to), and one that left.
-NOT_EXPORTED = (STATUS_LEFT, STATUS_PENDING, STATUS_READY)
+# but has not finished joining (no probe, nothing to route to), one that is leaving, and one that left.
+NOT_EXPORTED = (STATUS_LEFT, STATUS_LEAVING, STATUS_PENDING, STATUS_READY)
+
+# W4.2b (CEO 2026-10-03). A node has no Infisical identity: provision seals it a bundle that says
+# where to ask the hub for its token, and tools/node_token_api.py answers there.
+TOKEN_URL_ENV = "ORG_NODE_TOKEN_URL"
+BUNDLE_VERSION = 2
+# scheme://host[:port][/path], nothing else: no userinfo, query or fragment (the node adds
+# `?host=<its name>` itself), no whitespace, bounded. A DNS name or an IPv4 address.
+TOKEN_URL_RE = re.compile(r"https?://[A-Za-z0-9][A-Za-z0-9.-]{0,98}(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]{0,100})?")
 
 # W4.2. The live path (real Infisical, real gh) is off unless this is "1".
 W42_FLAG = "ORG_W42_PROVISION"
@@ -179,10 +197,10 @@ def valid_age_recipient(key: str) -> bool:
 
 
 def reserved_hosts() -> frozenset:
-    """Names no joined node may take (W4.6a F13): the admin identity `setup`, the shared
-    `org-node`, and every machine identity in infisical_setup.MACHINES. A node saves its
-    credentials as /etc/infisical/<host>.env, and `setup.env` is the file is_admin_host()
-    reads as the admin marker. Read at call time, so a new MACHINES entry is covered."""
+    """Names no joined node may take (W4.6a F13): the admin identity `setup`, the retired shared
+    name `org-node`, and every machine identity in infisical_setup.MACHINES. A core host's name
+    carries its Infisical credential file and its dispatch keys, and a node must never be
+    mistaken for one. Read at call time, so a new MACHINES entry is covered."""
     return frozenset({infisical_setup.SETUP, infisical_setup.NODE_IDENTITY,
                       *infisical_setup.MACHINES})
 
@@ -193,6 +211,18 @@ def _check_host(host: str) -> None:
                                    "starting with a letter, not ending in '-'")
     if host in reserved_hosts():
         raise JoinError("bad_arg", f"host name {host!r} is reserved (an Infisical identity name)")
+
+
+def check_token_url(url: str | None) -> str:
+    """The hub's token URL as it goes into a node's bundle, or JoinError naming TOKEN_URL_ENV."""
+    url = (url or "").strip()
+    if not url:
+        raise JoinError("no_token_url", f"the hub's token URL is not set: set {TOKEN_URL_ENV} "
+                                        f"(for example http://<hub tailnet address>:8792/v1/token)")
+    if not TOKEN_URL_RE.fullmatch(url):
+        raise JoinError("bad_token_url", f"{TOKEN_URL_ENV} must look like "
+                                         f"http://<host>[:port]/<path>, with no user, query or fragment")
+    return url
 
 
 def fingerprint(pubkey: str) -> str:
@@ -471,8 +501,8 @@ class Outcome:
 
 Revoker = Callable[[Step], Outcome]
 
-# Steps run in plan_leave's order: Infisical, Tailscale, GitHub, then
-# authorized_keys on each other host. A real revoker must be idempotent: a step
+# Steps run in plan_leave's order: `leaving` (the hub's own write, see _begin_leave), Tailscale,
+# GitHub, then authorized_keys on each other host. A real revoker must be idempotent: a step
 # that finds nothing left to revoke (already gone, 404) is ok, so a re-run after
 # a partial failure converges.
 
@@ -519,12 +549,10 @@ def revoke_authorized_keys(step: Step) -> Outcome:
 
 
 # What `leave --live` uses unless ORG_W42_PROVISION=1 (then wired_revokers(),
-# below, replaces the first and third entries, the second when the Tailscale OAuth
-# client is in the environment, and the fourth with revoke_authorized_keys). Every step
+# below, replaces the github entry, the tailscale one when the Tailscale OAuth client is in
+# the environment, and the authorized_keys one with revoke_authorized_keys). Every step
 # refuses, so nothing outside the hub can be touched by this file.
 UNWIRED_REVOKERS: Mapping[str, Revoker] = {
-    "infisical_client_secret": _not_wired(
-        f"live revocation is off (set {W42_FLAG}=1, W4.2)"),
     "tailscale_device": _not_wired(
         f"needs {W42_FLAG}=1 and {tailscale_api.ID_ENV} + {tailscale_api.SECRET_ENV} in the environment"),
     "github_deploy_key": _not_wired(
@@ -543,20 +571,6 @@ Sealer = Callable[[str, bytes], bytes]
 
 def w42_enabled() -> bool:
     return os.environ.get(W42_FLAG) == "1"
-
-
-def is_admin_host() -> bool:
-    """This box holds the Infisical admin identity file. Existence only: the file is
-    never read here."""
-    return os.path.exists(infisical_setup.cred_path(infisical_setup.SETUP))
-
-
-def _live_org():
-    if not w42_enabled():
-        raise JoinError("not_enabled", f"live provisioning is off: set {W42_FLAG}=1")
-    if not is_admin_host():
-        raise JoinError("not_admin_host", "this host holds no Infisical admin identity file")
-    return infisical_setup.Org()
 
 
 def _gh_subprocess(args: list, stdin: str | None = None) -> tuple:
@@ -596,21 +610,19 @@ def _exec(sql: str, params: tuple = ()) -> None:
         conn.execute(sql, params)
 
 
-def _node_ids(host: str) -> tuple:
-    """(infisical_client_secret_id, github_deploy_key_id) recorded for host."""
+def _deploy_key_id(host: str) -> str | None:
+    """The GitHub deploy key id recorded for host, or None."""
     with db.get_conn() as conn:
-        r = conn.execute("SELECT infisical_client_secret_id AS sid, github_deploy_key_id AS kid "
-                         "FROM node_secrets WHERE host = ?", (host,)).fetchone()
-    return (r["sid"], r["kid"]) if r else (None, None)
+        r = conn.execute("SELECT github_deploy_key_id AS kid FROM node_secrets WHERE host = ?",
+                         (host,)).fetchone()
+    return r["kid"] if r else None
 
 
-def _revoke_secret_leg(host: str, sid: str | None, org, now_s: str) -> None:
-    """Revoke the recorded client secret, then mark the row revoked and drop the
-    ciphertext (useless once the secret is dead). The id stays, as the audit trail."""
-    if sid:
-        infisical_setup.revoke_node_secret(org, sid)
-    _exec("UPDATE node_secrets SET revoked_at = ?, ciphertext = NULL WHERE host = ?",
-          (now_s, host))
+def _void_bundle(host: str, now_s: str) -> None:
+    """Mark the host's sealed bundle revoked and drop the ciphertext: `sealed` serves nothing
+    for it from here on. Idempotent: the first revoked_at stays."""
+    _exec("UPDATE node_secrets SET revoked_at = COALESCE(revoked_at, ?), ciphertext = NULL "
+          "WHERE host = ?", (now_s, host))
 
 
 def _revoke_key_leg(host: str, kid: str | None, gh: GhRunner) -> None:
@@ -639,36 +651,20 @@ def tailscale_revoker(client=None) -> Revoker | None:
     return revoke
 
 
-def wired_revokers(*, org=None, gh: GhRunner | None = None, tailscale=None,
-                   now: datetime | None = None) -> Mapping[str, Revoker]:
-    """UNWIRED_REVOKERS with the W4.2 legs made real: the client secret and the
-    deploy key are revoked by the ids in node_secrets. The tailnet device is removed when
-    `tailscale` (a client) is given or the environment holds the Tailscale OAuth client
-    (tailscale_revoker); otherwise tailscale_device stays unwired. authorized_keys is
-    revoke_authorized_keys: ok for a joined node (nothing placed), refused for a core host.
-    `org` defaults to the live Infisical org, built on first use so a leave that never
-    reaches the first step never logs in."""
-    cache: dict = {}
-
-    def the_org():
-        if org is not None:
-            return org
-        if "org" not in cache:
-            cache["org"] = _live_org()
-        return cache["org"]
-
-    def revoke_secret(step: Step) -> Outcome:
-        sid, _ = _node_ids(step.target)
-        _revoke_secret_leg(step.target, sid, the_org(), _iso(_utc(now)))
-        return Outcome(True, "revoked" if sid else "no client secret recorded")
-
+def wired_revokers(*, gh: GhRunner | None = None, tailscale=None) -> Mapping[str, Revoker]:
+    """UNWIRED_REVOKERS with the live legs made real: the deploy key is deleted by the id in
+    node_secrets. The tailnet device is removed when `tailscale` (a client) is given or the
+    environment holds the Tailscale OAuth client (tailscale_revoker); otherwise tailscale_device
+    stays unwired. authorized_keys is revoke_authorized_keys: ok for a joined node (nothing
+    placed), refused for a core host. There is no Infisical leg: a node holds no Infisical
+    credential (W4.2b)."""
     def revoke_key(step: Step) -> Outcome:
-        _, kid = _node_ids(step.target)
+        kid = _deploy_key_id(step.target)
         _revoke_key_leg(step.target, kid, gh or _gh_subprocess)
         return Outcome(True, "deleted" if kid else "no deploy key recorded")
 
-    table = {**UNWIRED_REVOKERS, "infisical_client_secret": revoke_secret,
-             "github_deploy_key": revoke_key, "authorized_keys": revoke_authorized_keys}
+    table = {**UNWIRED_REVOKERS, "github_deploy_key": revoke_key,
+             "authorized_keys": revoke_authorized_keys}
     ts = tailscale_revoker(tailscale)
     if ts is not None:
         table["tailscale_device"] = ts
@@ -679,12 +675,13 @@ def default_revokers() -> Mapping[str, Revoker]:
     return wired_revokers() if w42_enabled() else UNWIRED_REVOKERS
 
 
-# Claim the node_secrets row before anything is minted. One statement, so of two
-# racing provisions exactly one places it. A row that is revoked and holds no
-# deploy key (a node that left and came back) is taken over; any other row stays.
+# Claim the node_secrets row before anything is made. One statement, so of two racing
+# provisions exactly one places it. A row that is revoked and holds no deploy key (a node that
+# left and came back) is taken over; any other row stays. The row's old Infisical column (from
+# before W4.2b) is not written any more: a stale id stays as the audit trail it always was.
 _CLAIM_SQL = (
     "INSERT INTO node_secrets (host, created_at) VALUES (?, ?) "
-    "ON CONFLICT(host) DO UPDATE SET ciphertext = NULL, infisical_client_secret_id = NULL, "
+    "ON CONFLICT(host) DO UPDATE SET ciphertext = NULL, "
     "github_deploy_key_id = NULL, created_at = excluded.created_at, fetched_at = NULL, "
     "revoked_at = NULL "
     "WHERE node_secrets.revoked_at IS NOT NULL AND node_secrets.github_deploy_key_id IS NULL "
@@ -692,7 +689,7 @@ _CLAIM_SQL = (
 )
 
 
-def _claim(host: str, t: datetime, org, gh: GhRunner) -> None:
+def _claim(host: str, t: datetime, gh: GhRunner) -> None:
     now_s = _iso(t)
     with db.get_conn() as conn:
         if conn.execute(_CLAIM_SQL, (host, now_s)).fetchone() is not None:
@@ -704,34 +701,26 @@ def _claim(host: str, t: datetime, org, gh: GhRunner) -> None:
     if old["ciphertext"] is None and age_s < CLAIM_STALE_S:
         raise JoinError("busy", f"provisioning of {host!r} is already running "
                                 f"(started {old['created_at']})")
-    # What an earlier run left (it crashed, or could not revoke): clear it, then claim.
+    # What an earlier run left (it crashed, or could not delete the key): clear it, then claim.
     try:
-        _revoke_secret_leg(host, old["infisical_client_secret_id"], org, now_s)
+        _void_bundle(host, now_s)
         _revoke_key_leg(host, old["github_deploy_key_id"], gh)
     except Exception as exc:
-        raise JoinError("leftover", f"could not revoke what an earlier provision of {host!r} "
+        raise JoinError("leftover", f"could not remove what an earlier provision of {host!r} "
                                     f"left ({type(exc).__name__}: {str(exc)[:200]})") from None
     with db.get_conn() as conn:
         if conn.execute(_CLAIM_SQL, (host, now_s)).fetchone() is None:
             raise JoinError("busy", f"provisioning of {host!r} was claimed by another run")
 
 
-def _scrub(text: str, values: tuple) -> str:
-    for v in values:
-        if isinstance(v, str) and len(v) >= 4:
-            text = text.replace(v, "<redacted>")
-    return text
-
-
-def _undo(host: str, sid: str | None, kid: str | None, org, gh: GhRunner, cause: Exception,
-          now_s: str, values: tuple) -> JoinError:
-    """Revoke what this run made. Whatever cannot be revoked keeps its id in node_secrets
+def _undo(host: str, kid: str | None, gh: GhRunner, cause: Exception, now_s: str) -> JoinError:
+    """Remove what this run made. Whatever cannot be removed keeps its id in node_secrets
     (and is named in the error) so `leave` or the next run can finish the job."""
     left = []
     try:
-        _revoke_secret_leg(host, sid, org, now_s)
+        _void_bundle(host, now_s)
     except Exception:
-        left.append(f"infisical_client_secret:{sid}")
+        left.append("sealed_bundle")
     try:
         _revoke_key_leg(host, kid, gh)
     except Exception:
@@ -744,26 +733,29 @@ def _undo(host: str, sid: str | None, kid: str | None, org, gh: GhRunner, cause:
                          {"host": host, "cause": type(cause).__name__, "left_behind": left})
     except Exception:
         pass  # the hub may be what failed; the JoinError below still names the leftovers
-    why = _scrub(f"{type(cause).__name__}: {cause}", values)[:200]
+    why = f"{type(cause).__name__}: {cause}"[:200]
     if left:
         return JoinError("provision_orphans",
-                         f"provisioning {host!r} failed ({why}) and could NOT revoke: "
-                         f"{', '.join(left)}; revoke them by id or run `leave --host {host} --live`")
+                         f"provisioning {host!r} failed ({why}) and could NOT remove: "
+                         f"{', '.join(left)}; run `leave --host {host} --live` to finish")
     return JoinError("provision_failed",
-                     f"provisioning {host!r} failed ({why}); everything minted for it was revoked")
+                     f"provisioning {host!r} failed ({why}); everything made for it was removed")
 
 
-def provision(host: str, *, org=None, gh: GhRunner | None = None, sealer: Sealer | None = None,
-              now: datetime | None = None) -> dict:
-    """pending_identity -> identity_ready for `host`: mint, seal, deploy key, store.
+def provision(host: str, *, gh: GhRunner | None = None, sealer: Sealer | None = None,
+              token_url: str | None = None, now: datetime | None = None) -> dict:
+    """pending_identity -> identity_ready for `host`: seal the token bundle, deploy key, store.
 
-    Order: claim the node_secrets row; mint a client secret under org-node and record
-    its id at once (so a crash leaves a trace); seal client id + secret to the host's
-    age key (a failure here happens before any deploy key exists); register the deploy
-    key, if the host gave one, and record its id; then store the ciphertext and flip the
-    status in ONE transaction. A failure after the mint revokes what was minted (_undo).
-    An identity_ready row is a no-op. `org=None` means live: it needs ORG_W42_PROVISION=1
-    and the admin identity on this host; an injected `org` (tests) needs neither."""
+    Never touches Infisical (CEO 2026-10-03): the bundle is {"v":2,"host":host,"token_url":URL},
+    sealed to the host's age key, and the node asks the hub for its token at that URL
+    (tools/node_token_api.py). Order: claim the node_secrets row; seal (a failure here happens
+    before any deploy key exists); register the deploy key, if the host gave one, and record its
+    id; then store the ciphertext and flip the status in ONE transaction. A failure after the
+    deploy key removes it (_undo). An identity_ready row is a no-op.
+
+    `token_url` defaults to the environment variable ORG_NODE_TOKEN_URL; without either, provision
+    refuses before anything is claimed. `gh=None` means live for the GitHub leg: it needs
+    ORG_W42_PROVISION=1; an injected `gh` (tests) does not."""
     _check_host(host)
     with db.get_conn() as conn:
         row = conn.execute("SELECT status, pubkey, deploy_pubkey, approved_at FROM hosts "
@@ -777,27 +769,22 @@ def provision(host: str, *, org=None, gh: GhRunner | None = None, sealer: Sealer
     if row["status"] != STATUS_PENDING:
         raise JoinError("bad_status", f"host {host!r} is {row['status']!r}; "
                                       f"only {STATUS_PENDING} can be provisioned")
-    if row["approved_at"] is None:   # W4.6a F1: checked before any login, claim or mint
+    if row["approved_at"] is None:   # W4.6a F1: checked before any claim or deploy key
         raise JoinError("not_approved", f"host {host!r} is not approved: compare its key "
                                         f"fingerprint, then `hq_join approve --host {host} "
                                         f"--fingerprint <8 chars>`")
-    if org is None:
-        org = _live_org()
-        gh = gh or _gh_subprocess
-    gh = gh or _no_gh
+    url = check_token_url(token_url if token_url is not None else os.environ.get(TOKEN_URL_ENV))
+    if gh is None:
+        if not w42_enabled():
+            raise JoinError("not_enabled", f"live provisioning is off: set {W42_FLAG}=1")
+        gh = _gh_subprocess
     sealer = sealer or sealed.seal
     t = _utc(now)
     now_s = _iso(t)
-    _claim(host, t, org, gh)
-    sid = kid = None
-    values: tuple = ()
+    _claim(host, t, gh)
+    kid = None
     try:
-        minted = infisical_setup.mint_node_secret(org, host)
-        sid = minted["client_secret_id"]
-        values = (minted["client_secret"],)
-        _exec("UPDATE node_secrets SET infisical_client_secret_id = ? WHERE host = ?", (sid, host))
-        payload = json.dumps({"v": 1, "host": host, "client_id": minted["client_id"],
-                              "client_secret": minted["client_secret"]},
+        payload = json.dumps({"v": BUNDLE_VERSION, "host": host, "token_url": url},
                              separators=(",", ":")).encode("utf-8")
         ciphertext = sealer(row["pubkey"], payload).decode("ascii")
         if row["deploy_pubkey"]:
@@ -808,8 +795,7 @@ def provision(host: str, *, org=None, gh: GhRunner | None = None, sealer: Sealer
         with db.get_conn() as conn:
             stored = conn.execute(
                 "UPDATE node_secrets SET ciphertext = ? WHERE host = ? "
-                "AND infisical_client_secret_id = ? AND revoked_at IS NULL RETURNING host",
-                (ciphertext, host, sid)).fetchone()
+                "AND revoked_at IS NULL RETURNING host", (ciphertext, host)).fetchone()
             ready = conn.execute(
                 "UPDATE hosts SET status = ?, updated_at = ? WHERE host = ? AND status = ? "
                 "RETURNING host", (STATUS_READY, now_s, host, STATUS_PENDING)).fetchone()
@@ -818,24 +804,25 @@ def provision(host: str, *, org=None, gh: GhRunner | None = None, sealer: Sealer
             db.log_event(conn, None, ACTOR, "node_provisioned",
                          {"host": host, "deploy_key": kid is not None})
     except Exception as exc:
-        raise _undo(host, sid, kid, org, gh, exc, now_s, values) from None
+        raise _undo(host, kid, gh, exc, now_s) from None
     return {"host": host, "status": STATUS_READY, "changed": True, "deploy_key": kid is not None}
 
 
-def provision_pending(*, org=None, gh: GhRunner | None = None, sealer: Sealer | None = None,
-                      skip=(), now: datetime | None = None) -> list[dict]:
+def provision_pending(*, gh: GhRunner | None = None, sealer: Sealer | None = None,
+                      token_url: str | None = None, skip=(),
+                      now: datetime | None = None) -> list[dict]:
     """provision() for every pending_identity row not in `skip`. One bad row never stops
-    the others: it becomes {host, error}. With no `org` (the watchdog) it does nothing
-    unless ORG_W42_PROVISION=1 AND this host holds the admin identity file.
+    the others: it becomes {host, error}. With no `gh` (the watchdog) it does nothing unless
+    ORG_W42_PROVISION=1; the admin identity file is no longer a precondition (W4.2b: nothing
+    here logs in to Infisical).
 
     A row that is not approved (W4.6a F1) is not touched and does not count as a failure:
     it becomes {host, skipped: "not_approved"}. The caller says so, at its own pace: this
     function logs nothing for it, or every pass would."""
-    if org is None:
-        if not (w42_enabled() and is_admin_host()):
+    if gh is None:
+        if not w42_enabled():
             return []
-        org = infisical_setup.Org()
-        gh = gh or _gh_subprocess
+        gh = _gh_subprocess
     results = []
     for h in db.list_hosts():
         if h["status"] != STATUS_PENDING or not h["pubkey"] or h["host"] in skip:
@@ -844,7 +831,7 @@ def provision_pending(*, org=None, gh: GhRunner | None = None, sealer: Sealer | 
             results.append({"host": h["host"], "skipped": "not_approved"})
             continue
         try:
-            results.append(provision(h["host"], org=org, gh=gh, sealer=sealer, now=now))
+            results.append(provision(h["host"], gh=gh, sealer=sealer, token_url=token_url, now=now))
         except Exception as exc:
             code = exc.code if isinstance(exc, JoinError) else type(exc).__name__
             results.append({"host": h["host"], "error": code})
@@ -867,15 +854,32 @@ def sealed_ciphertext(host: str, *, now: datetime | None = None) -> str:
     return r["ciphertext"]
 
 
+# The one step the hub runs itself, before any revoker (leave() calls _begin_leave for it).
+STEP_LEAVING = "status_leaving"
+
+
+def _begin_leave(host: str, now_s: str) -> Outcome:
+    """The FIRST step of a live leave: the row becomes `leaving` and its sealed bundle is voided,
+    in one transaction. From the next request on, the token service answers this host 403
+    (`left`): the CEO's rule that a node that left can never get the token again starts here,
+    not after the slow steps. Idempotent; a `left` row is never moved back."""
+    with db.get_conn() as conn:
+        conn.execute("UPDATE hosts SET status = ?, updated_at = ? WHERE host = ? AND status != ?",
+                     (STATUS_LEAVING, now_s, host, STATUS_LEFT))
+        conn.execute("UPDATE node_secrets SET revoked_at = COALESCE(revoked_at, ?), "
+                     "ciphertext = NULL WHERE host = ?", (now_s, host))
+    return Outcome(True, f"status {STATUS_LEAVING}, token service refuses {host}")
+
+
 def plan_leave(conn, host: str) -> list[Step]:
     others = conn.execute(
         "SELECT host FROM hosts WHERE host != ? AND COALESCE(status, '') != ? "
         "ORDER BY host", (host, STATUS_LEFT),
     ).fetchall()
     steps = [
-        Step("infisical_client_secret", host,
-             f"revoke the Universal Auth client secret of {host} under identity "
-             f"org-node (that one only)"),
+        Step(STEP_LEAVING, host,
+             f"set {host} to `{STATUS_LEAVING}` and void its sealed bundle: the token service "
+             f"refuses it from this moment"),
         Step("tailscale_device", host, f"remove the tailnet device and pre-auth key of {host}"),
         Step("github_deploy_key", host, f"delete the deploy key(s) registered for {host}"),
     ]
@@ -893,9 +897,11 @@ def leave(host: str, *, live: bool = False,
     """Plan (live=False) or run (live=True) the revocation of `host`.
 
     live=False never calls a revoker and never writes to the hub. live=True
-    calls `revokers` (default default_revokers()) once per step, in order, and
-    catches whatever a revoker raises as a failed step. Only a run where every
-    step is ok marks the row `left`.
+    runs the steps in order: first `status_leaving` (the hub's own write: the row becomes
+    `leaving`, so the token service refuses the host at once), then `revokers` (default
+    default_revokers()) once per other step, catching whatever a revoker raises as a failed
+    step. Only a run where every step is ok marks the row `left`; any failure leaves it
+    `leaving`, still refused, and a re-run finishes the job.
     """
     _check_host(host)
     with db.get_conn() as conn:
@@ -918,7 +924,8 @@ def leave(host: str, *, live: bool = False,
     table = default_revokers() if revokers is None else revokers
     results = []
     for s in steps:
-        revoker = table.get(s.kind)
+        revoker = (lambda step: _begin_leave(step.target, _iso(_utc(now)))) \
+            if s.kind == STEP_LEAVING else table.get(s.kind)
         if revoker is None:
             out = Outcome(False, "no revoker for this step")
         else:
@@ -943,42 +950,16 @@ def leave(host: str, *, live: bool = False,
 
 # ---------------------------------------------------------------- rotate after leave (F8)
 
-# Revoking a node's client secret does not recall what the node already read. Since W4.6c F2 the
-# org-node identity is a viewer on the Org-Node project ONLY (dev and prod alike on Free, but that
-# project holds one prod secret), so the set below is what a node could have copied. Used only
-# when Infisical cannot be asked; docs/ops/hq-join.md carries the same list. A node that left
-# before org-node was moved off Agents-Core could also read that project: docs/ops/hq-join.md,
-# "Nodes that joined before Org-Node", says what to rotate for those.
-DOCUMENTED_READABLE = (
-    "CLAUDE_CODE_OAUTH_TOKEN (shared by every node)",
-)
+# Leaving stops the hub serving a node the token; it does not recall a token the node already
+# received. The hub hands a node exactly infisical_setup.NODE_SECRET_NAMES (W4.2b), so that list is
+# exact, not a guess. docs/ops/hq-join.md carries the procedure.
 ROTATE_DOC = 'docs/ops/hq-join.md, "After a leave: rotate what the node could read"'
 
 
-def rotate_scope(org=None) -> dict:
-    """What `leave --live` tells the operator to rotate: {source, names, why}. With an
-    Infisical `org` it is the secret NAMES org-node can read (infisical_setup reads the list and
-    drops every value); without one, or when that call fails, the documented set. A name list
-    only: no value is ever returned."""
-    why = "no admin login on this host"
-    if org is not None:
-        try:
-            return {"source": "infisical", "why": "",
-                    "names": infisical_setup.node_readable_secret_names(org)}
-        except Exception as exc:   # the leave already ran: a failed lookup must not hide the block
-            why = f"the Infisical lookup failed ({type(exc).__name__})"
-    return {"source": "documented", "why": why,
-            "names": {"Org-Node (documented set)": list(DOCUMENTED_READABLE)}}
-
-
-def _live_rotate_scope() -> dict:
-    org = None
-    if w42_enabled() and is_admin_host():
-        try:
-            org = infisical_setup.Org()
-        except Exception:
-            org = None
-    return rotate_scope(org)
+def rotate_scope() -> dict:
+    """What `leave --live` tells the operator to rotate: {where: [secret NAMES]}. A name list
+    only: no value is read, held or returned."""
+    return {f"{infisical_setup.NODE_PROJECT}/prod": list(infisical_setup.NODE_SECRET_NAMES)}
 
 
 # ---------------------------------------------------------------- export
@@ -1043,8 +1024,9 @@ def _build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--fingerprint", required=True,
                     help=f"last {FINGERPRINT_LEN} chars of the node's age recipient, "
                          f"as read on the node")
-    pr = sub.add_parser("provision", help=f"mint, seal and store a pending host's identity "
-                                          f"(needs {W42_FLAG}=1 and the admin identity)")
+    pr = sub.add_parser("provision", help=f"seal an approved pending host's token bundle and "
+                                          f"register its deploy key (needs {TOKEN_URL_ENV}; the "
+                                          f"live GitHub leg needs {W42_FLAG}=1)")
     pr.add_argument("--host", required=True)
     se = sub.add_parser("sealed", help="print the armored ciphertext stored for a host")
     se.add_argument("--host", required=True)
@@ -1089,8 +1071,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.verb == "leave":
             res = leave(args.host, live=args.live)
-            return _print_leave(res, _live_rotate_scope() if args.live and not res.get("note")
-                                else None)
+            return _print_leave(res, rotate_scope() if args.live and not res.get("note") else None)
         text = export_hosts_text()
         if args.out == "-":
             sys.stdout.write(text)
@@ -1101,9 +1082,9 @@ def main(argv: list[str] | None = None) -> int:
     except JoinError as exc:
         print(f"hq_join: refused ({exc.code}): {exc.message}", file=sys.stderr)
         return 2
-    except (sealed.SealError, infisical_setup.ApiError, OSError) as exc:
-        # provision's own failures arrive as JoinError; this is the login or the
-        # sealer failing before it ran. Type and a cut message, never a body.
+    except (sealed.SealError, OSError) as exc:
+        # provision's own failures arrive as JoinError; this is the sealer failing
+        # before it ran. Type and a cut message, never a body.
         print(f"hq_join: failed ({type(exc).__name__}): {str(exc)[:200]}", file=sys.stderr)
         return 1
 
@@ -1125,14 +1106,9 @@ def _print_status(rows: list) -> int:
 
 def _print_rotate(host: str, rotate: dict) -> None:
     """The closing block of `leave --live`: secret NAMES only, never a value."""
-    print(f"hq_join: ROTATE what {host} could read. Revoking its client secret does not recall "
-          f"the values it already read.")
-    if rotate["source"] == "infisical":
-        print("  source: Infisical, names read just now (values are never read out or printed)")
-    else:
-        print(f"  source: the DOCUMENTED set, not read from Infisical ({rotate['why']}); "
-              f"this list is categories, not exact names")
-    for where, names in rotate["names"].items():
+    print(f"hq_join: ROTATE what {host} could read. Leaving stops the hub serving it the token "
+          f"again; it does not recall a token it already received.")
+    for where, names in rotate.items():
         print(f"  {where}: " + (", ".join(names) if names else "(none)"))
     print(f"  procedure: {ROTATE_DOC}")
 
@@ -1154,7 +1130,9 @@ def _print_leave(res: dict, rotate: dict | None = None) -> int:
         code = 0
     else:
         print(f"hq_join: {res['host']} NOT marked left; left behind: "
-              + ", ".join(res["left_behind"]))
+              + ", ".join(res["left_behind"])
+              + f". It stays `{STATUS_LEAVING}` (the token service keeps refusing it); "
+                f"run the same leave again.")
         code = 1
     if rotate is not None:   # last on purpose: the output of a live leave ends with it
         _print_rotate(res["host"], rotate)

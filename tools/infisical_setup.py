@@ -20,10 +20,6 @@ it cannot import anything else from Agents-Core.
                            for HOST and saves it here as /etc/infisical/HOST.env. Safe to re-run.
     status                 Print what exists now.
     retire-setup           Delete the temporary `setup` identity and its file (end of migration).
-    node-secrets           List the client secrets under the shared `org-node` identity (description,
-                           id, created, live/revoked). Never a value. Minting and revoking them is
-                           done by tools/hq_join through ensure_node_identity / mint_node_secret /
-                           revoke_node_secret below (Org Mesh W4.2), not by a verb.
     put <project> <env> <NAME> --stdin [--as ID] [--comment ..] [--meta k=v ..] [--multiline]
                            Create or update ONE secret whose value arrives on stdin (phase 2,
                            skill CTO_Procedure_KeyFetch). Lints NAME against PLAN §4b, requires
@@ -80,11 +76,22 @@ USER_CRED_DIR = os.environ.get("INFISICAL_USER_CRED_DIR", _DEFAULT_USER_CRED_DIR
 SETUP = "setup"
 SETUP_MAX_DAYS = 14  # the admin identity lives only for the migration (PLAN §6)
 
+# W4.6c F2: the one project a node's token comes from. `contabo` is a viewer HERE (the hub reads it
+# to serve the token, tools/node_token_api.py) and no node is a member: nodes have no identity
+# (CEO 2026-10-03). Its content is exactly NODE_SECRET_NAMES; the CEO enters the value (gate G3) and
+# no code here writes it. On Free a viewer sees every environment and there are no folder
+# permissions, so the project holds these names and nothing else (`put` and `import-env` refuse more).
+NODE_PROJECT = "Org-Node"
+NODE_SECRET_NAMES = ("CLAUDE_CODE_OAUTH_TOKEN",)
+# Infisical Free: 5 identities, and the org's USER accounts count against the same 5 (found by
+# drill run 5, 2026-10-03: the CEO's account is the fifth with contabo, mac, winbox and setup).
+IDENTITY_CAP = 5
+
 # PLAN.md §3: project -> environments. Org-Infra has prod only (§3b).
 PROJECTS: dict[str, list[str]] = {
     "Agents-Core": ["dev", "prod"],
     "Org-Infra": ["prod"],
-    "Org-Node": ["prod"],   # the ONE project every joined node reads (W4.6c F2), see NODE_PROJECT
+    NODE_PROJECT: ["prod"],   # the token the hub hands to approved nodes (W4.6c F2), see NODE_PROJECT
     "MoonieX-ClaudeFlow": ["dev", "prod"],
     "MoonieX-Option": ["dev", "prod"],
     "MoonieX-AlphaTrader": ["dev", "prod"],
@@ -103,17 +110,21 @@ ORG_INFRA_FOLDERS = ["dns", "deploy", "repo", "net", "db", "vault"]  # §3b clos
 # W4.6c F3: the hub's public join endpoint reads ONLY this folder of Agents-Core prod
 # (ORG_JOIN_DB_URL, the DSN of the Postgres role `org_join`), never the whole project.
 ORG_JOIN_FOLDER = "org-join"
+# W4.2b: the hub's node-token service reads ONLY this folder of Agents-Core prod
+# (ORG_NODE_TOKEN_DB_URL, the DSN of the Postgres role `org_node_token`).
+NODE_TOKEN_FOLDER = "node-token"
 # project -> folders `apply` creates in its prod environment (none of these hold a value yet)
 PROJECT_FOLDERS: dict[str, list[str]] = {
     ORG_INFRA: ORG_INFRA_FOLDERS,
-    "Agents-Core": [ORG_JOIN_FOLDER],
+    "Agents-Core": [ORG_JOIN_FOLDER, NODE_TOKEN_FOLDER],
 }
 
 # PLAN.md §3: machine identity -> projects it may read (viewer). On Free a viewer sees every
 # environment of the project, so MoonieX-WebApp is not given to the Mac until local dev needs it.
 MACHINES: dict[str, list[str]] = {
+    # NODE_PROJECT: the hub reads the node token there and hands it to approved nodes (CEO 2026-10-03).
     "contabo": ["Agents-Core", "MoonieX-ClaudeFlow", "MoonieX-Option", "MoonieX-AlphaTrader",
-                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP"],
+                "MoonieX-LineAutomation", "MoonieX-Console", "LungNote-MCP", NODE_PROJECT],
     "mac": ["Agents-Core", ORG_INFRA, "MoonieX-Console", "MoonieX-ComfyRunpod", "LungNote-MCP"],
     # Agents-Core back for W3.4 (CEO approval 2026-10-03): winbox reads ORG_DB_URL through
     # `run Agents-Core prod --as winbox`, never an org-db.env. Option = IQ demo trader (CEO 2026-10-01)
@@ -128,6 +139,25 @@ NAME_RE = re.compile(r"^[a-z][a-z0-9-]{1,30}$")
 
 class ApiError(RuntimeError):
     pass
+
+
+def _error_text(method: str, path: str, code: int, body: str) -> str:
+    """The text of an ApiError. Infisical answers with JSON {reqId, statusCode, message, error};
+    the text leads with that `message` and then the `reqId` (the number Infisical support asks
+    for), then the request line. A body that is not such JSON stays as it was: the first 300
+    characters, after the request line. Never longer than ~400 characters either way."""
+    try:
+        parsed = json.loads(body)
+    except ValueError:
+        parsed = None
+    msg = parsed.get("message") if isinstance(parsed, dict) else None
+    if msg is None or msg == "":
+        return f"{method} {path} -> HTTP {code}: {body[:300]}"
+    if not isinstance(msg, str):   # a validation error carries a list or an object
+        msg = json.dumps(msg, ensure_ascii=False)
+    rid = parsed.get("reqId")
+    tail = f" (reqId {str(rid)[:64]})" if isinstance(rid, (str, int)) and rid != "" else ""
+    return f"{msg[:300]}{tail}: {method} {path} -> HTTP {code}"
 
 
 def call(method: str, path: str, token: str | None = None, body: dict | None = None,
@@ -147,8 +177,8 @@ def call(method: str, path: str, token: str | None = None, body: dict | None = N
             if exc.code == 429 and attempt < 5:
                 time.sleep(2 ** attempt)
                 continue
-            detail = exc.read().decode(errors="replace")[:300]
-            raise ApiError(f"{method} {path} -> HTTP {exc.code}: {detail}") from None
+            raise ApiError(_error_text(method, path, exc.code,
+                                       exc.read().decode(errors="replace"))) from None
     raise ApiError(f"{method} {path} -> still rate-limited after retries")
 
 
@@ -352,6 +382,14 @@ class Org:
         return [u["user"]["username"] for u in out.get("users", [])
                 if u.get("role") == "admin" and u.get("isActive", True) and u.get("user")]
 
+    def org_users(self) -> list[str]:
+        """Every user that holds a seat: active members by username, invited ones by the address
+        they were invited at. Sorted. Infisical Free counts them with the identities (IDENTITY_CAP)."""
+        out = self.get(f"/api/v2/organizations/{self.org_id}/memberships")
+        names = {(u.get("user") or {}).get("username") or u.get("inviteEmail")
+                 for u in out.get("users", [])}
+        return sorted(n for n in names if n)
+
     def user_members(self, project_id: str) -> set[str]:
         out = self.get(f"/api/v1/workspace/{project_id}/memberships")
         return {m["user"]["username"] for m in out.get("memberships", []) if m.get("user")}
@@ -425,10 +463,20 @@ def reconcile(org: Org, dry: bool, mint: str | None) -> list[str]:
     for host, allowed in MACHINES.items():
         iid = idents.get(host)
         if not iid:
-            iid = act(f"+ identity {host} (no org role, Universal Auth, token {TOKEN_TTL} s)",
-                      lambda h=host: _create_identity(org, h))
-            if iid:
-                idents[host] = iid
+            refused = None
+            if dry:   # a live run raises inside _create_identity; a dry one says so and goes on
+                try:
+                    check_identity_room(org, idents)
+                except IdentityCapError as exc:
+                    refused = exc
+            if refused:
+                log.append(f"! would refuse identity {host}: {refused}")
+                print(log[-1])
+            else:
+                iid = act(f"+ identity {host} (no org role, Universal Auth, token {TOKEN_TTL} s)",
+                          lambda h=host: _create_identity(org, h))
+                if iid:
+                    idents[host] = iid
         for name in allowed:
             roles = members.get(name, {}).get(host)
             if roles is None:
@@ -444,14 +492,6 @@ def reconcile(org: Org, dry: bool, mint: str | None) -> list[str]:
             if name not in allowed and host in members.get(name, {}):
                 log.append(f"! {name}: {host} is a member but the plan says it should not be")
                 print(log[-1])
-
-    # org-node is not in MACHINES: ensure_node_identity gives it viewer on NODE_PROJECT when the
-    # first node is provisioned. Here we only say so if it sits anywhere else (W4.6c F2).
-    for name in project_ids:
-        if name != NODE_PROJECT and NODE_IDENTITY in members.get(name, {}):
-            log.append(f"! {name}: {NODE_IDENTITY} is a member but must be on {NODE_PROJECT} only "
-                       f"(not changed; provisioning a node refuses until it is removed)")
-            print(log[-1])
 
     if mint:
         if mint not in MACHINES:
@@ -494,177 +534,58 @@ def cmd_retire_setup(org: Org) -> None:
     print(f"deleted identity setup and {cred_path(SETUP)}")
 
 
-# --- org-node: one shared identity, one client secret per joining node (Org Mesh W4.2) ------------
-# Infisical Free allows IDENTITY_CAP identities and mac, contabo, winbox (plus `setup` until
-# retire-setup) already hold slots. A joining node therefore gets its own Universal Auth CLIENT
-# SECRET under this one identity, never an identity of its own; `hq_join leave` revokes that one
-# secret. These are functions, not CLI verbs: a value exists only in mint_node_secret's return.
+# --- nodes: no identity of their own (CEO ruling 2026-10-03, Org Mesh W4.2b) ------------------------
+# Infisical Free allows IDENTITY_CAP identities and the CEO's own user account counts as one of them.
+# With contabo, mac, winbox and setup the org is full, so a node cannot have an identity, and there
+# is no shared `org-node` identity either (drill run 5: POST /api/v1/identities -> HTTP 400). The hub
+# reads NODE_PROJECT through `contabo` and hands the token to a node it has approved
+# (tools/node_token_api.py); a node never logs in to Infisical. Nothing here mints or revokes a
+# node credential. NODE_PROJECT is declared above, next to PROJECTS.
 
-NODE_IDENTITY = "org-node"
-# W4.6c F2: the one project a node may read. org-node is a viewer HERE and a member of no other
-# project, because every node reads all of it (on Free a viewer sees every environment and there
-# are no folder permissions). Its content is exactly NODE_SECRET_NAMES; the CEO enters the value
-# (gate G3) and no code here writes it. Before this, org-node was a viewer on Agents-Core, so one
-# compromised node read every Agents-Core secret (review task-79219f24 F2).
-NODE_PROJECT = "Org-Node"
-NODE_SECRET_NAMES = ("CLAUDE_CODE_OAUTH_TOKEN",)
-IDENTITY_CAP = 5
-NODE_SECRET_TTL = 90 * 86_400   # a node's client secret expires in 90 days (W4.6a F4); uses stay unlimited
 # The host-name rule, 3-31 chars: a copy of lib.config.HOST_NAME_RE (tools/hq_join.HOST_RE is that
 # same object). Not imported: this file stays stdlib-only, a Run Inbox card copies it alone.
 # tests/test_w44c_join_followups.py asserts the two patterns are the same string.
 NODE_HOST_RE = re.compile(r"[a-z][a-z0-9-]{1,29}[a-z0-9]")
-_UUID_RE = re.compile(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}")   # ids go into URL paths
+# "org-node" stays a name no host may take (tools/hq_join.reserved_hosts). No identity of that
+# name exists or is created any more; it was the name of the shared one, and a join must not land
+# on a name an operator may still know it by.
+NODE_IDENTITY = "org-node"
 
 
 class IdentityCapError(ApiError):
-    """Creating org-node would be the identity that goes over the Free plan's cap."""
+    """Creating another identity would go over the Free plan's seat cap."""
+
+
+def seat_holders(org: Org, idents: dict[str, str] | None = None) -> tuple[list[str], list[str]]:
+    """(identity names, user names) that hold the org's seats, each sorted. Infisical Free counts
+    both against the same cap. A user that was invited and has not accepted yet is listed by the
+    address it was invited at: refusing early costs a look, creating one too many costs a 400."""
+    idents = org.identities() if idents is None else idents
+    return sorted(idents), org.org_users()
+
+
+def check_identity_room(org: Org, idents: dict[str, str] | None = None) -> None:
+    """Raise IdentityCapError, naming every identity and user, when one more identity would not
+    fit. Reads only; called BEFORE the POST that would create it, so the refusal is ours and says
+    who holds the seats, not Infisical's bare HTTP 400."""
+    names, users = seat_holders(org, idents)
+    if len(names) + len(users) >= IDENTITY_CAP:
+        raise IdentityCapError(
+            f"not creating an identity: the org already holds {len(names) + len(users)} of "
+            f"{IDENTITY_CAP} seats on Free (identities: {', '.join(names) or 'none'}; "
+            f"users: {', '.join(users) or 'none'})")
 
 
 def _create_identity(org: Org, name: str) -> str:
-    """A machine identity with no org role and Universal Auth; returns its id."""
+    """A machine identity with no org role and Universal Auth; returns its id. Refuses first,
+    with IdentityCapError, when the org has no seat left."""
+    check_identity_room(org)
     made = org.send("POST", "/api/v1/identities",
                     {"name": name, "organizationId": org.org_id, "role": "no-access"})
     new_id = made["identity"]["id"]
     org.send("POST", f"/api/v1/auth/universal-auth/identities/{new_id}",
              {"accessTokenTTL": TOKEN_TTL, "accessTokenMaxTTL": TOKEN_MAX_TTL})
     return new_id
-
-
-def _refuse_other_node_memberships(org: Org, projects: dict[str, dict]) -> None:
-    """org-node may be a member of NODE_PROJECT and of nothing else (W4.6c F2). Every node holds
-    org-node's secret, so a second membership is a second project every node can read. Raises an
-    ApiError naming the projects; it changes nothing, and never removes a membership itself."""
-    also = sorted(p.get("name") or slug for slug, p in projects.items()
-                  if slug != NODE_PROJECT.lower() and NODE_IDENTITY in org.identity_members(p["id"]))
-    if also:
-        raise ApiError(
-            f"{NODE_IDENTITY} is a member of {', '.join(also)}; it may be a member of {NODE_PROJECT} "
-            f"(viewer) only. Remove it from {'that project' if len(also) == 1 else 'those projects'} "
-            f"first (Infisical UI, project, Access Control, Machine Identities), then run this again")
-
-
-def ensure_node_identity(org: Org) -> str:
-    """Id of the `org-node` identity, created when missing (and repaired when half-made):
-    Universal Auth attached, viewer on NODE_PROJECT (Org-Node) and on no other project.
-    Safe to re-run. Refuses, changing nothing, when org-node is already a member of any other
-    project. Never creates an identity past IDENTITY_CAP: raises IdentityCapError naming the
-    ones in use."""
-    projects = org.projects()
-    project = projects.get(NODE_PROJECT.lower())
-    if project is None:
-        raise ApiError(f"project {NODE_PROJECT} does not exist: run `apply` first")
-    idents = org.identities()
-    iid = idents.get(NODE_IDENTITY)
-    if iid is not None:
-        _refuse_other_node_memberships(org, projects)   # before anything is repaired or added
-    if iid is None:
-        if len(idents) >= IDENTITY_CAP:
-            raise IdentityCapError(
-                f"not creating {NODE_IDENTITY}: the org already has {len(idents)} identities "
-                f"({', '.join(sorted(idents))}) and Free allows {IDENTITY_CAP}")
-        iid = _create_identity(org, NODE_IDENTITY)
-    else:
-        try:
-            org.get(f"/api/v1/auth/universal-auth/identities/{iid}")
-        except ApiError as exc:
-            if "HTTP 404" not in str(exc):
-                raise
-            org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}",
-                     {"accessTokenTTL": TOKEN_TTL, "accessTokenMaxTTL": TOKEN_MAX_TTL})
-    roles = org.identity_members(project["id"]).get(NODE_IDENTITY)
-    if roles is None:
-        org.send("POST", f"/api/v1/projects/{project['id']}/identity-memberships/{iid}",
-                 {"role": "viewer"})
-    elif roles != ["viewer"]:   # its secret goes to every node: never widen, refuse when wider
-        raise ApiError(f"{NODE_IDENTITY} has roles {roles} on {NODE_PROJECT}, expected viewer only")
-    return iid
-
-
-def _client_secrets(org: Org, identity_id: str) -> list[dict]:
-    out = org.get(f"/api/v1/auth/universal-auth/identities/{identity_id}/client-secrets")
-    return [{"description": s.get("description") or "", "id": s.get("id"),
-             "created": s.get("createdAt"), "revoked": bool(s.get("isClientSecretRevoked"))}
-            for s in out.get("clientSecretData", [])]
-
-
-def list_node_secrets(org: Org) -> list[dict]:
-    """description · id · created · revoked of every client secret under org-node. Never a value."""
-    iid = org.identities().get(NODE_IDENTITY)
-    return [] if iid is None else _client_secrets(org, iid)
-
-
-def mint_node_secret(org: Org, host: str) -> dict:
-    """A new client secret for `host` under org-node (ttl NODE_SECRET_TTL = 90 days, unlimited
-    uses; the identity's access-token settings are not touched), as
-    {client_id, client_secret, client_secret_id}. The value is in this return only: nothing is
-    printed or logged, and no error message here carries it. Refuses when a live secret
-    described `org-node:<host>` already exists, so a repeat never leaves one nobody can find."""
-    if not isinstance(host, str) or not NODE_HOST_RE.fullmatch(host):
-        raise ApiError("bad host name for a node secret")
-    iid = ensure_node_identity(org)
-    desc = f"{NODE_IDENTITY}:{host}"
-    live = [s for s in _client_secrets(org, iid) if s["description"] == desc and not s["revoked"]]
-    if live:
-        raise ApiError(f"a live client secret described {desc!r} already exists "
-                       f"(id {live[0]['id']}): revoke it first")
-    client_id = org.get(f"/api/v1/auth/universal-auth/identities/{iid}")[
-        "identityUniversalAuth"]["clientId"]
-    out = org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}/client-secrets",
-                   {"description": desc, "ttl": NODE_SECRET_TTL, "numUsesLimit": 0})
-    secret = out.get("clientSecret") if isinstance(out, dict) else None
-    data = out.get("clientSecretData") if isinstance(out, dict) else None
-    sid = data.get("id") if isinstance(data, dict) else None
-    if not (isinstance(secret, str) and secret and isinstance(sid, str) and _UUID_RE.fullmatch(sid)):
-        # Names only, never the body: it holds the value. A secret may exist now.
-        raise ApiError(f"client-secret response had an unexpected shape; check "
-                       f"`node-secrets` for a live {desc!r}")
-    return {"client_id": client_id, "client_secret": secret, "client_secret_id": sid}
-
-
-def revoke_node_secret(org: Org, client_secret_id: str) -> None:
-    """Revoke ONE client secret of org-node by id. Already revoked or gone counts as done."""
-    if not isinstance(client_secret_id, str) or not _UUID_RE.fullmatch(client_secret_id):
-        raise ApiError("bad client secret id")
-    iid = org.identities().get(NODE_IDENTITY)
-    if iid is None:   # no identity, no live secret
-        return
-    try:
-        org.send("POST", f"/api/v1/auth/universal-auth/identities/{iid}"
-                         f"/client-secrets/{client_secret_id}/revoke", {})
-    except ApiError as exc:
-        text = str(exc)
-        if "HTTP 404" in text or ("HTTP 400" in text and "revoked" in text.lower()):
-            return
-        raise
-
-
-def node_readable_secret_names(org: Org) -> dict[str, list[str]]:
-    """'<NODE_PROJECT>/<env>' -> sorted secret NAMES that org-node can read (W4.6a F8), for
-    `hq_join leave --live` to print as "rotate these". org-node is a viewer on NODE_PROJECT
-    (Org-Node, W4.6c F2: NODE_SECRET_NAMES and nothing else) and on Free a viewer sees every
-    environment, so every environment the project has is listed. Only the folder "/" is read:
-    the plan holds no folders in Org-Node. The list call returns values too; they are dropped
-    here and never returned, logged or printed."""
-    project = org.projects().get(NODE_PROJECT.lower())
-    if project is None:
-        raise ApiError(f"project {NODE_PROJECT} does not exist")
-    out: dict[str, list[str]] = {}
-    for env in sorted(org.environments(project["id"])):
-        listed = org.get("/api/v3/secrets/raw", workspaceId=project["id"], environment=env,
-                         secretPath="/")
-        out[f"{NODE_PROJECT}/{env}"] = sorted(
-            s["secretKey"] for s in listed.get("secrets", []) if s.get("secretKey"))
-    return out
-
-
-def cmd_node_secrets(org: Org) -> None:
-    rows = list_node_secrets(org)
-    if not rows:
-        print(f"no client secrets under {NODE_IDENTITY}")
-    for s in rows:
-        print(f"{s['description']} · {s['id']} · created {s['created']} · "
-              f"{'REVOKED' if s['revoked'] else 'live'}")
 
 
 # --- put / last4: one secret in, from stdin only (phase 2, skill CTO_Procedure_KeyFetch) ---------
@@ -916,7 +837,6 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--mint", metavar="HOST")
     sub.add_parser("status")
     sub.add_parser("retire-setup")
-    sub.add_parser("node-secrets")
     for cmd in ("put", "last4", "import-env", "run"):
         c = sub.add_parser(cmd)
         c.add_argument("project")
@@ -956,8 +876,6 @@ def main(argv: list[str] | None = None) -> None:
             cmd_status(Org())
         elif args.cmd == "retire-setup":
             cmd_retire_setup(Org())
-        elif args.cmd == "node-secrets":
-            cmd_node_secrets(Org())
         elif args.cmd == "put":
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
                     args.meta, args.multiline, legacy=args.legacy, path=args.path)
