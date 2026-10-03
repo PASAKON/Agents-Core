@@ -314,11 +314,18 @@ def _na() -> dict:
     return {"ok": True, "reason": "n/a", "kind": "n/a"}
 
 
-def _l1_cell(target_host_key: str) -> dict:
-    """The L1 cell for `target_host_key`. This host's own cell makes NO ssh call
-    (a host cannot always resolve its own alias: winbox cannot) and is n/a, like
-    the L1 diagonal in the matrix; every other target is the ssh answer."""
-    if target_host_key == _self_host_or_none():
+def _l1_cell(target_host_key: str, me: str | None) -> dict:
+    """The L1 cell for `target_host_key`, from the host the caller calls `me`.
+    A target equal to `me` makes NO ssh call (a host cannot always resolve its
+    own alias: winbox cannot) and is n/a, like the L1 diagonal in the matrix;
+    every other target is the ssh answer.
+
+    `me` is the ONE identity of the run: the host the matrix labels its row
+    with (`_running_host_guess`). It is never read from `self_host()` here: a
+    second source that disagrees (a worktree, a box whose node.yaml says
+    something else) would turn a red L1 cell into an uncounted n/a. `me` None
+    (identity unknown) dials every target, so nothing is ever skipped."""
+    if me is not None and target_host_key == me:
         return _na()
     return _to_cell(check_l1(target_host_key))
 
@@ -1483,10 +1490,15 @@ def check_invariant() -> dict:
 # ---------------------------------------------------------------------------
 
 async def local_payload() -> dict:
+    """This host's L0-L2 cells. The L1 cell to this host is n/a, where "this
+    host" is `_running_host_guess(ROOT)`, the source build_matrix labels its row
+    with: one identity per run. When it cannot say (None) every host is dialled,
+    this one included, so an unknown identity never hides a red cell."""
     payload: dict = {}
     if HAVE_CONFIG:
+        me = _running_host_guess(ROOT)
         payload["l0"] = _to_cell(check_l0(ROOT))
-        payload["l1"] = {h: _l1_cell(h) for h in HOSTS}
+        payload["l1"] = {h: _l1_cell(h, me) for h in HOSTS}
         payload["l2"] = _to_cell(await check_l2(ROOT))
     else:
         payload["l0"] = {"ok": False, "reason": "no repo access"}
@@ -1530,7 +1542,7 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
         for h in HOSTS:
             if h == running_host:
                 continue
-            combined["L1"][running_host][h] = _l1_cell(h)
+            combined["L1"][running_host][h] = _l1_cell(h, running_host)
 
     if HAVE_CONFIG:
         script_path = Path(__file__).resolve()

@@ -112,14 +112,24 @@ the task is visible there.
   (sshd closed by design) — any cell targeting mac renders
   "closed (by design)" and is excluded from the exit code until wave w2.
   The dispatch-key checks are **not** here: they live in the SEC row below.
-  **The self rule:** when the target is this host (`lib.config.self_host()`),
-  **no ssh is made** — a host need not resolve its own alias (winbox cannot:
-  `Could not resolve hostname winbox`). That cell is `n/a`: in the matrix it
-  reads `n/a` like the L1 diagonal (`EXPECT` has no L1 diagonal key), and in
-  the `--local` payload it is `{"ok": true, "reason": "n/a", "kind": "n/a"}`,
-  which `render()` prints as `n/a` and never counts as a failure. Only that
-  one cell changes; every other L1 cell is still the ssh answer. If
-  `self_host()` cannot answer, no host is "this host" and nothing is skipped.
+  **The self rule:** when the target is this host, **no ssh is made** — a
+  host need not resolve its own alias (winbox cannot: `Could not resolve
+  hostname winbox`). That cell is `n/a`: in the matrix it reads `n/a` like the
+  L1 diagonal (`EXPECT` has no L1 diagonal key), and in the `--local` payload
+  it is `{"ok": true, "reason": "n/a", "kind": "n/a"}`, which `render()` prints
+  as `n/a` and never counts as a failure. Only that one cell changes; every
+  other L1 cell is still the ssh answer.
+  **Which identity decides:** one per run — the host the matrix labels its row
+  with, `_running_host_guess(ROOT)` (root match, else the tailscale guess).
+  `build_matrix` passes its `running_host`; `--local` passes the same
+  `_running_host_guess(ROOT)`. `lib.config.self_host()` does **not** decide: it
+  is a second source that can disagree (a worktree, a node.yaml naming another
+  host, the Linux CI runner answering `contabo`), and if it chose, a red L1
+  cell would turn into an uncounted `n/a` — a silent wrong answer. When the
+  run has no identity (`_running_host_guess` is `None`, e.g. a worktree with
+  no tailscale answer) **every host is dialled, this one included**: an unknown
+  identity never hides a red cell, and L0 already reports that same
+  disagreement.
 
 - **L2 org MCP** — starts the org MCP server for this host over stdio
   exactly as a C-level session does (`scripts/lib/cxo_mcp_config.py`'s
@@ -592,9 +602,10 @@ file:
   machine), fix `paths.<host>` in `config/projects.yaml`.
 - **L1 timeout / ssh failed** — check the alias resolves
   (`ssh -G <alias>`), and that BatchMode auth (a working key, no password
-  prompt) is set up for it. A host never dials its own alias: its own L1
-  cell is `n/a` (see "The self rule" above), so a failure here is always a
-  *peer*.
+  prompt) is set up for it. A host does not dial its own alias: its own L1
+  cell is `n/a` (see "The self rule" above), so a failure here is a *peer* —
+  unless the run could not tell which host it is (L0 then says so), in which
+  case every host, this one too, is dialled.
 - **A peer's L0/L2 cells read `no repo access` or a surprising `mcp package
   unavailable` reason, but that host looks fine in person** — the piped
   fallback (`ssh <alias> python3 - --local --json < tools/mesh_check.py`)

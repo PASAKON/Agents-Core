@@ -214,56 +214,95 @@ def test_check_l1_windows_target_falls_back_to_cmd_exit(monkeypatch):
 # winbox cannot resolve its own ssh alias, so the cell to itself made it red
 # (task-47202255).
 
-def _ssh_never_to_winbox(monkeypatch, dialled=None):
-    """Replace subprocess.run: it records the ssh alias it is given and fails the
-    test when the alias is `winbox`, the host the test pretends to run on."""
+#
+# ONE identity per run decides which cell is "to itself": the host the matrix
+# labels its row with (`_running_host_guess`), passed to `_l1_cell` as `me`.
+# `self_host()` is a second source and can disagree (a worktree, another
+# node.yaml, the Linux CI runner answering "contabo" for a test that runs the
+# matrix as "mac"); if it chose, a red cell would silently become an uncounted
+# n/a. The tests pin it every which way to prove it is never consulted.
+
+SELF_HOST_PINS = ["mac", "contabo", "winbox", ValueError]  # a host key, or "raises this"
+
+
+def _pin_self_host(monkeypatch, pin) -> None:
+    def fake():
+        if isinstance(pin, type):
+            raise pin("cannot resolve self_host")
+        return pin
+    monkeypatch.setattr(m.config, "self_host", fake)
+
+
+@pytest.fixture(params=SELF_HOST_PINS, ids=lambda p: p if isinstance(p, str) else "raises-" + p.__name__)
+def self_host_pin(request, monkeypatch):
+    """The test runs once per self_host() answer: each host, and "cannot say"."""
+    _pin_self_host(monkeypatch, request.param)
+    return request.param
+
+
+# self_host() is lru_cached and reads ORG_HOST first. Every test in this file
+# starts on "mac", whatever box runs it (the Linux CI runner is "contabo"), the
+# way the `hub` fixture below does; a test that needs another answer overrides it.
+_REAL_SELF_HOST = m.config.self_host
+
+
+@pytest.fixture(autouse=True)
+def _self_host_is_mac_whatever_the_box(monkeypatch):
+    monkeypatch.setenv("ORG_HOST", "mac")
+    _REAL_SELF_HOST.cache_clear()
+    yield
+    _REAL_SELF_HOST.cache_clear()
+
+
+def _fake_ssh(monkeypatch, red=()) -> list:
+    """Replace subprocess.run: record the alias of every ssh dialled (the list
+    returned); an alias in `red` answers 255, every other one 0."""
+    dialled: list = []
+
     def fake_run(cmd, **kwargs):
-        if dialled is not None:
-            dialled.append(cmd[5] if cmd[:1] == ["ssh"] else cmd)
-        assert "winbox" not in cmd, f"ssh to the host's own alias: {cmd}"
-        return _FakeCompleted(returncode=0)
+        dialled.append(cmd[5])
+        return _FakeCompleted(returncode=255 if cmd[5] in red else 0, stderr="no route to host")
     monkeypatch.setattr(m.subprocess, "run", fake_run)
+    return dialled
 
 
 def test_l1_cell_to_this_host_never_runs_subprocess(monkeypatch):
     def boom(*a, **k):
         raise AssertionError("subprocess.run called for an L1 cell to this host")
     monkeypatch.setattr(m.subprocess, "run", boom)
-    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
-    cell = m._l1_cell("winbox")
+    cell = m._l1_cell("winbox", "winbox")
     assert cell["ok"] is True and cell["reason"] == "n/a" and cell["kind"] == "n/a"
     assert m._judge(cell) == ("n/a", "skip")
 
 
-def test_l1_cell_to_another_host_is_still_the_ssh_answer(monkeypatch):
-    dialled = []
-    _ssh_never_to_winbox(monkeypatch, dialled)
-    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
-    assert m._l1_cell("contabo") == {"ok": True, "reason": None}
+def test_l1_cell_never_asks_self_host_who_this_host_is(self_host_pin, monkeypatch):
+    """Whatever self_host() says, only `me` makes a cell n/a, and a red answer to
+    any other target stays red."""
+    dialled = _fake_ssh(monkeypatch, red=("mooniex-vps",))
+    assert m._l1_cell("contabo", "contabo")["kind"] == "n/a"
+    assert dialled == []
+    cell = m._l1_cell("contabo", "mac")
+    assert cell["ok"] is False and "no route to host" in cell["reason"]
     assert dialled == ["mooniex-vps"]
 
 
-def test_l1_cell_dials_everyone_when_the_host_cannot_say_who_it_is(monkeypatch):
-    """self_host() unresolvable: no host is "this host", so nothing is skipped."""
-    dialled = []
+def test_l1_cell_to_another_host_is_still_the_ssh_answer(monkeypatch):
+    dialled = _fake_ssh(monkeypatch)
+    assert m._l1_cell("contabo", "winbox") == {"ok": True, "reason": None}
+    assert dialled == ["mooniex-vps"]
 
-    def fake_run(cmd, **kwargs):
-        dialled.append(cmd[5])
-        return _FakeCompleted(returncode=0)
-    monkeypatch.setattr(m.subprocess, "run", fake_run)
 
-    def _boom():
-        raise RuntimeError("cannot resolve self_host")
-    monkeypatch.setattr(m.config, "self_host", _boom)
-    assert m._l1_cell("contabo")["ok"] is True
-    assert m._l1_cell("winbox")["ok"] is True
+def test_l1_cell_dials_everyone_when_the_run_has_no_identity(monkeypatch):
+    """me is None: nothing is "this host", so nothing is skipped."""
+    dialled = _fake_ssh(monkeypatch)
+    assert m._l1_cell("contabo", None)["ok"] is True
+    assert m._l1_cell("winbox", None)["ok"] is True
     assert dialled == ["mooniex-vps", "winbox"]
 
 
-def test_local_payload_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(monkeypatch):
-    dialled = []
-    _ssh_never_to_winbox(monkeypatch, dialled)
-    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
+def test_local_payload_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(self_host_pin, monkeypatch):
+    dialled = _fake_ssh(monkeypatch)
+    monkeypatch.setattr(m, "_running_host_guess", lambda root: "winbox")
     monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
     monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
     payload = asyncio.run(m.local_payload())
@@ -271,6 +310,19 @@ def test_local_payload_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(monke
     assert payload["l1"]["contabo"] == {"ok": True, "reason": None}
     assert payload["l1"]["mac"] == {"ok": False, "reason": "closed (by design)"}
     assert dialled == ["mooniex-vps"]
+
+
+def test_local_payload_dials_every_host_when_it_cannot_tell_where_it_runs(self_host_pin, monkeypatch):
+    """The labelling source says None (a worktree, tailscale silent): no cell is
+    n/a, this host's own included, even when self_host() names one."""
+    dialled = _fake_ssh(monkeypatch, red=("winbox",))
+    monkeypatch.setattr(m, "_running_host_guess", lambda root: None)
+    monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
+    monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
+    payload = asyncio.run(m.local_payload())
+    assert set(dialled) == {"winbox", "mooniex-vps"}
+    assert payload["l1"]["winbox"]["ok"] is False and "kind" not in payload["l1"]["winbox"]
+    assert payload["l1"]["contabo"] == {"ok": True, "reason": None}
 
 
 def _l1_row(md: str, frm: str) -> list[str]:
@@ -289,10 +341,8 @@ def _matrix(monkeypatch, running_host: str, expect: str = "w0"):
     return combined, m.render(combined, expect)
 
 
-def test_matrix_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(monkeypatch):
-    dialled = []
-    _ssh_never_to_winbox(monkeypatch, dialled)
-    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
+def test_matrix_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(self_host_pin, monkeypatch):
+    dialled = _fake_ssh(monkeypatch)
     combined, (md, any_fail, n_ok, n_fail) = _matrix(monkeypatch, "winbox")
     assert "winbox" not in combined["L1"]["winbox"]  # the diagonal has no cell at all
     assert _l1_row(md, "winbox")[m.HOSTS.index("winbox") + 1] == "n/a"
@@ -300,17 +350,25 @@ def test_matrix_l1_to_this_host_is_na_and_dials_no_one_at_its_alias(monkeypatch)
     assert any_fail is False and n_fail == 0
 
 
-def test_matrix_l1_cell_to_the_self_host_when_the_running_host_guess_differs(monkeypatch):
-    """The matrix is labelled by a guess; self_host() is the authority on which
-    alias is this host's own, so that cell is n/a and never counts."""
-    dialled = []
-    _ssh_never_to_winbox(monkeypatch, dialled)
-    monkeypatch.setattr(m.config, "self_host", lambda: "winbox")
-    combined, (md, any_fail, n_ok, n_fail) = _matrix(monkeypatch, "contabo")
-    assert combined["L1"]["contabo"]["winbox"] == {"ok": True, "reason": "n/a", "kind": "n/a"}
-    assert _l1_row(md, "contabo")[m.HOSTS.index("winbox") + 1] == "n/a"
-    assert "winbox" not in dialled
-    assert any_fail is False and n_fail == 0
+@pytest.mark.parametrize("running, other_self, red_alias, red_to", [
+    ("contabo", "winbox", "winbox", "winbox"),       # self_host() names the TARGET
+    ("winbox", "contabo", "mooniex-vps", "contabo"),  # self_host() names ANOTHER host
+])
+def test_matrix_a_red_l1_cell_stays_red_when_self_host_names_another_host(
+        monkeypatch, running, other_self, red_alias, red_to):
+    """The two identity sources disagree, in each direction. The matrix row is
+    labelled `running`, so that row dials every other host, and a red answer is
+    a red cell that counts and flips the exit code. The CI failure was this:
+    the matrix ran as "mac", self_host() said "contabo", and a red L1 to contabo
+    came out as n/a."""
+    _pin_self_host(monkeypatch, other_self)
+    dialled = _fake_ssh(monkeypatch, red=(red_alias,))
+    combined, (md, any_fail, n_ok, n_fail) = _matrix(monkeypatch, running)
+    assert red_alias in dialled
+    cell = combined["L1"][running][red_to]
+    assert cell["ok"] is False and "kind" not in cell
+    assert "FAIL(" in _l1_row(md, running)[m.HOSTS.index(red_to) + 1]
+    assert any_fail is True and n_fail >= 1
 
 
 # ---------------------------------------------------------------------------
@@ -662,7 +720,7 @@ def _async_return(value):
     return _f
 
 
-def test_amain_exits_1_when_an_in_scope_cell_is_red(monkeypatch, tmp_path, capsys):
+def test_amain_exits_1_when_an_in_scope_cell_is_red(self_host_pin, monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(m, "_running_host_guess", lambda root: "mac")
     monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
     monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
@@ -677,7 +735,7 @@ def test_amain_exits_1_when_an_in_scope_cell_is_red(monkeypatch, tmp_path, capsy
     assert "FAIL(ssh boom)" in out
 
 
-def test_amain_exits_0_when_everything_in_scope_is_green(monkeypatch, tmp_path, capsys):
+def test_amain_exits_0_when_everything_in_scope_is_green(self_host_pin, monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(m, "_running_host_guess", lambda root: "mac")
     monkeypatch.setattr(m, "check_l0", lambda root: (True, None))
     monkeypatch.setattr(m, "check_l2", _async_return((True, None)))
