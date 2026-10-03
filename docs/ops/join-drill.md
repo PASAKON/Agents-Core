@@ -28,8 +28,8 @@ Push the commit first; the card runs a script at a pushed SHA.
 ```bash
 python3 tools/ask_run.py create --host contabo \
     --script Agents-Core@<pushed-sha>:scripts/drill-join.sh \
-    --cwd <worktree path given by the Contabo CTO> --timeout 2700 --risk amber \
-    --why "W4.7 join drill: a throwaway container joins the mesh as drill-<utc stamp>. Your tap IS the human approval of that node. It opens the join door for the run, then creates and revokes one tailnet device, one GitHub deploy key and one Infisical client secret, and pushes one probe branch that it deletes. Needs 1.5 GB free RAM, about 20 minutes." \
+    --cwd <worktree path given by the Contabo CTO> --timeout 7200 --risk amber \
+    --why "W4.7 join drill: a throwaway container joins the mesh as drill-<utc stamp>. Your tap IS the human approval of that node. It opens the join door for the run, then creates and revokes one tailnet device, one GitHub deploy key and one Infisical client secret, and pushes one probe branch that it deletes. Needs 1.5 GB free RAM, about 20 minutes. Do not cancel it or restart the Console while it runs: a killed card leaves the node joined (recovery: docs/ops/join-drill.md, If the card was killed)." \
     --expected "result: PASS, every step ok, a re-os-drills row printed, the door closed, no drill-* container or volume left"
 ```
 
@@ -103,7 +103,8 @@ checkout from before this drill, or not an Agents-Core checkout at all.
 
 A failed step does not stop the run: `leave`, every `verify_*`, and `cleanup` still run, and
 `join-drill.json` gets `"ok": false` and `"failed_step"` set to the first step that is not ok. A
-signal (SIGTERM, SIGINT, SIGHUP) takes the same path.
+signal (SIGTERM, SIGINT, SIGHUP) takes the same path. SIGKILL does not, and the Run Inbox kills a
+card with SIGKILL: see [If the card was killed](#if-the-card-was-killed).
 
 ## Reading the result
 
@@ -153,6 +154,66 @@ existing shape (`date, machine, kind: "join-drill", scope, result, minutes_to_re
 minutes_to_org_restore, bytes_from_git_mb, bytes_from_drive_mb, irreplaceable_lost_gb, human_steps,
 gaps_found, by, ref`). It does not commit; a CTO does. From a worktree the line lands in that worktree's
 `state/re-os-drills.jsonl`: commit it from there.
+
+## If the card was killed
+
+The Run Inbox stops a card with SIGKILL to its whole process group: on its timeout, on Cancel, and
+when the Console restarts. SIGKILL cannot be trapped, so neither `leave` nor `cleanup` runs and no
+JSON is written. Depending on how far the run got, these stay behind:
+
+| Left behind | Made by step | Removed by |
+|---|---|---|
+| the open join door | `door_open` | `door.sh close` (it also closes itself after 30 minutes) |
+| container `drill-<stamp>`, volume `drill-<stamp>-ts` | `container` | `docker rm -f -v`, `docker volume rm` |
+| hosts row `drill-<stamp>`, its tailnet device, GitHub deploy key and live Infisical client secret | `join` to `provision` | `hq_join leave --live` |
+| the probe task (`pending`) and branch `agent/probe-task-<8 hex>` on origin | `probe` | `mesh_check --join-drill task-close`, `git push origin --delete` |
+
+The next drill's preflight refuses while any of these exists; it does not remove them.
+
+**Find the stamp.** The card output's first line is `drill: drill for drill-<stamp>; ...`. No such
+line means preflight refused and nothing was made. Without the output, a leftover names it.
+
+Run everything below as root on Contabo, in the checkout the card ran in (its `--cwd`):
+
+```bash
+PY=.venv/bin/python3; [ -x "$PY" ] || PY=/opt/MoonieXHQ/Agents/Core/.venv/bin/python3
+docker ps -a --filter name=drill- --format '{{.Names}}'
+docker volume ls -q --filter name=drill-
+scripts/hub/with-org-db-env.sh "$PY" -m tools.hq_join status | awk '$1 ~ /^drill-/'
+```
+
+**Recover** in this order: close the door, stop the node, revoke its credentials, then tidy.
+
+```bash
+H=drill-<stamp>
+bash deploy/join/door.sh close                          # prints "closed"
+docker rm -f -v "$H"; docker volume rm "$H-ts"
+scripts/hub/with-org-db-env.sh env ORG_W42_PROVISION=1 "$PY" -m tools.hq_join leave --host "$H" --live
+```
+
+`leave` prints one line per step. `[ok] tailscale_device`, `[ok] github_deploy_key` and
+`[ok] infisical_client_secret` must all hold. Until W4.1b (task-8da2f248) merges, each
+`authorized_keys` line reads `[FAILED] ... not wired yet` and the row stays `partial` (gap 1 below);
+once it merges, run the same `leave` line again and the row becomes `left`. `leave` is safe to repeat:
+a credential that is already gone counts as ok.
+
+If the run reached `probe`, close its task and delete its branch:
+
+```bash
+scripts/hub/with-org-db-env.sh "$PY" -c "from lib import db; print(*[t['id'] for t in db.list_tasks(status='pending', project='mooniex-agents', limit=1000) if t.get('host') == '$H'])"
+T=task-<8 hex>                                          # the id printed above
+scripts/hub/with-org-db-env.sh "$PY" -m tools.mesh_check --join-drill task-close "$T"
+git ls-remote origin "refs/heads/agent/probe-$T"        # prints a line only if the branch exists
+git push origin --delete "agent/probe-$T"
+```
+
+**Check:**
+
+```bash
+bash deploy/join/door.sh status                         # closed
+docker ps -a --filter name=drill- --format '{{.Names}}'; docker volume ls -q --filter name=drill-   # no output
+scripts/hub/with-org-db-env.sh "$PY" -m tools.hq_join status | awk -v h="$H" '$1 == h'   # left (partial until W4.1b)
+```
 
 ## What it proves, and what it does not
 

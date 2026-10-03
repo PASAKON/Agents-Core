@@ -166,7 +166,9 @@ fi
 # The hub URL and the Agents-Core prod secrets (Tailscale OAuth, gh) reach this process through the
 # same wrapper every Contabo consumer uses; never a .env.
 if [ "${DRILL_HUB_ENV:-}" != 1 ]; then
-  [ -f "$SELF" ] && [ -r "$SELF" ] || refuse "cannot read this script as a file ($SELF): the drill re-runs itself, run it from a file, not a pipe"
+  if [ ! -f "$SELF" ] || [ ! -r "$SELF" ]; then
+    refuse "cannot read this script as a file ($SELF): the drill re-runs itself, run it from a file, not a pipe"
+  fi
   [ -x "$HUB_WRAP" ] || refuse "$HUB_WRAP is not executable: the drill needs the hub environment"
   DRILL_HUB_ENV=1 DRILL_LOG_TO_REPO=$LOG_TO_REPO exec "$HUB_WRAP" bash "$SELF"
 fi
@@ -676,7 +678,7 @@ finish() {
   return $rc
 }
 
-# shellcheck disable=SC2329  # runs from the EXIT trap
+# shellcheck disable=SC2317,SC2329  # runs from the EXIT trap (0.9 reports SC2317, 0.10+ SC2329)
 on_exit() {
   local rc=$?
   if [ "$FINISHED" -eq 0 ]; then
