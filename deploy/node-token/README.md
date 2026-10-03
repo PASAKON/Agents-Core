@@ -224,6 +224,13 @@ is down), `leave` runs no other step and reports every step as left behind.
   down, and a unit that trips its start limit stays down until `systemctl reset-failed
   org-node-token`. Closing it needs the node to check a signature from a hub key pinned at join, or
   a listening socket that systemd owns. Neither is built. The CTO reports it to the CEO.
+- **The token is in the service's start-up environment.** `infisical_setup.py run` hands it over as an
+  environment variable, and the kernel keeps the block a process was started with (readable under `/proc`
+  by that user and by root) whatever the service does to its own `os.environ` later. The service runs as
+  `org-node-token`, which owns nothing else; root can already read the machine credential, so the reader
+  that gains is another process of that user. What the service does do: its `age` child gets `PATH` only,
+  not the DSN or the token (`AGE_ENV`), and the pops in `main()` keep a later dump of `os.environ` clean.
+  Passing the values another way (an inherited pipe) would close this one; it is not built.
 - **The service does not know who is calling.** It answers by host name and seals to that host's key;
   it does not tie the caller's tailnet address to the host row (the drill container reaches it over
   the docker bridge, so that would fail there). The tailnet ACL (note above) is the only wall around

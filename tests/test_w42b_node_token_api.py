@@ -339,6 +339,80 @@ def test_the_answer_opens_with_the_nodes_identity_and_with_no_other(tmp_path):
     assert wrong.returncode != 0 and TOKEN.encode() not in wrong.stdout + wrong.stderr
 
 
+def _age_that_dumps_its_environment(tmp_path: Path, monkeypatch, *, plant_db_url: bool = True) -> Path:
+    """An `age` first on PATH that writes the environment it was started with to a file, then runs the
+    real one. The planted variables are the ones this service really holds."""
+    real = shutil.which("age")
+    dump = tmp_path / "age-env.txt"
+    wrapper = tmp_path / "bin" / "age"
+    wrapper.parent.mkdir()
+    wrapper.write_text(f'#!/bin/sh\n/usr/bin/printenv > "{dump}"\nexec "{real}" "$@"\n')
+    wrapper.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{wrapper.parent}{os.pathsep}{os.environ['PATH']}")
+    if plant_db_url:                  # a request through the service needs the test hub's own ORG_DB_URL
+        monkeypatch.setenv("ORG_DB_URL", DSN)
+    monkeypatch.setenv(node_token_api.ORG_NODE_TOKEN_DB_ENV, DSN)
+    monkeypatch.setenv(NAME, TOKEN)
+    monkeypatch.setenv("PLANTED_MARKER", "planted")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    return dump
+
+
+def _assert_age_saw_nothing_of_ours(dump: Path):
+    lines = dump.read_text().splitlines()
+    names = {ln.split("=", 1)[0] for ln in lines}
+    assert names.isdisjoint({"ORG_DB_URL", node_token_api.ORG_NODE_TOKEN_DB_ENV, NAME, "PLANTED_MARKER", "HOME"}), names
+    assert "PATH=" + node_token_api.AGE_ENV["PATH"] in lines
+    text = dump.read_text()
+    assert DSN not in text and TOKEN not in text and "Sy-nth" not in text
+
+
+@needs_age
+def test_the_age_child_gets_a_minimal_environment_and_none_of_the_services(tmp_path, monkeypatch):
+    dump = _age_that_dumps_its_environment(tmp_path, monkeypatch)
+    _, pub = _keygen(tmp_path, "node")
+    out = node_token_api._seal(pub, b'{"v":1}')
+    assert out.startswith(b"-----BEGIN AGE ENCRYPTED FILE-----")
+    _assert_age_saw_nothing_of_ours(dump)
+
+
+@needs_age
+def test_a_request_through_the_real_service_seals_with_that_minimal_environment(tmp_path, monkeypatch):
+    dump = _age_that_dumps_its_environment(tmp_path, monkeypatch, plant_db_url=False)
+    _, pub = _keygen(tmp_path, "node")
+    a = Api(tokens={NAME: TOKEN})                                  # the default sealer, no fake
+    try:
+        _row("node-a", pubkey=pub)
+        assert a.token("node-a")[0] == 200
+    finally:
+        a.close()
+    _assert_age_saw_nothing_of_ours(dump)
+
+
+def test_the_default_sealer_runs_age_by_full_path_with_exactly_the_minimal_environment(monkeypatch):
+    seen = {}
+
+    def fake_run(argv, **kw):
+        seen.update(argv=argv, **kw)
+        return subprocess.CompletedProcess(argv, 0, stdout=sealed_header + b"\nabc\n", stderr=b"")
+    sealed_header = b"-----BEGIN AGE ENCRYPTED FILE-----"
+    monkeypatch.setattr(node_token_api.subprocess, "run", fake_run)
+    monkeypatch.setattr(node_token_api.sealed, "find_age", lambda name=None: "/usr/bin/" + (name or "age"))
+    monkeypatch.setenv("ORG_DB_URL", DSN)
+    assert node_token_api._seal(PUB, b"x").startswith(sealed_header)
+    assert seen["env"] == {"PATH": "/usr/bin:/bin:/usr/local/bin"} and seen["argv"][0] == "/usr/bin/age"
+    assert seen["argv"][1:] == ["-r", PUB, "-a"] and seen["input"] == b"x"      # the plaintext on stdin only
+
+
+def test_an_age_that_hangs_is_a_seal_error_not_a_hung_request(monkeypatch):
+    def fake_run(argv, **kw):
+        raise subprocess.TimeoutExpired(argv, kw["timeout"])
+    monkeypatch.setattr(node_token_api.subprocess, "run", fake_run)
+    monkeypatch.setattr(node_token_api.sealed, "find_age", lambda name=None: "/usr/bin/age")
+    with pytest.raises(node_token_api.sealed.SealError):
+        node_token_api._seal(PUB, b"x")
+
+
 @needs_age
 def test_each_host_gets_an_answer_only_its_own_key_opens(tmp_path):
     ka, pa = _keygen(tmp_path, "a")

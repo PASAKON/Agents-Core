@@ -56,6 +56,7 @@ import json
 import logging
 import os
 import re
+import subprocess
 import sys
 import threading
 from datetime import datetime, timezone
@@ -97,6 +98,26 @@ _JSON = "application/json"
 _DB_GATE = threading.BoundedSemaphore(DB_SLOTS)
 
 Sealer = Callable[[str, bytes], bytes]
+
+# What the `age` child gets as its whole environment. This process holds the role's DSN in ORG_DB_URL
+# and (until main() pops them) the token and ORG_NODE_TOKEN_DB_URL; `age -r <recipient> -a` needs none
+# of it, so it inherits none of it. No HOME: sealing to a recipient reads no file.
+AGE_ENV = {"PATH": "/usr/bin:/bin:/usr/local/bin"}
+
+
+def _age_runner(argv: list, data: bytes, timeout: int) -> tuple:
+    """lib.sealed's runner, with the child's environment replaced by AGE_ENV. The binary is found the
+    way lib.sealed finds it (this process's PATH, then the usual bin dirs) and run by its full path."""
+    argv = [sealed.find_age(argv[0]), *argv[1:]]
+    try:
+        p = subprocess.run(argv, input=data, capture_output=True, timeout=timeout, check=False, env=AGE_ENV)
+    except subprocess.TimeoutExpired:
+        raise sealed.SealError(f"age did not finish within {timeout} s") from None
+    return p.returncode, p.stdout, p.stderr
+
+
+def _seal(recipient: str, plaintext: bytes) -> bytes:
+    return sealed.seal(recipient, plaintext, runner=_age_runner)
 
 
 class _Refuse(Exception):
@@ -337,7 +358,7 @@ class NodeTokenServer(ThreadingHTTPServer):
                  source_limiter: RateLimiter | None = None, host_limiter: RateLimiter | None = None):
         check_bind(bind, allow_loopback=allow_loopback)
         self.tokens = dict(tokens)
-        self.sealer = sealer or sealed.seal
+        self.sealer = sealer or _seal
         self.source_limiter = source_limiter or RateLimiter(RATE_LIMIT, RATE_WINDOW_S)
         self.host_limiter = host_limiter or RateLimiter(RATE_LIMIT, RATE_WINDOW_S)
         super().__init__((bind, port), _Handler)
@@ -381,7 +402,12 @@ def main(argv: list[str] | None = None, environ=None) -> int:
         p.error(str(exc))   # exit 2, before the database is touched
     logging.basicConfig(level=logging.INFO, format="%(asctime)s node_token_api %(levelname)s %(message)s")
     os.environ["ORG_DB_URL"] = db_url   # the one variable lib.db reads; this process only
-    for name in infisical_setup.NODE_SECRET_NAMES:   # held in `tokens` now; not left for children
+    # os.environ.pop edits this process's live environment and nothing more: the kernel keeps the
+    # environment block it recorded at exec (readable under /proc by the same uid, or by root), so
+    # those readers still see the values this service started with. What the pops buy is that nothing
+    # the service starts from here inherits them (age gets AGE_ENV, not os.environ) and no later dump
+    # of os.environ holds them.
+    for name in infisical_setup.NODE_SECRET_NAMES:   # held in `tokens` now
         os.environ.pop(name, None)
     os.environ.pop(ORG_NODE_TOKEN_DB_ENV, None)
     try:
