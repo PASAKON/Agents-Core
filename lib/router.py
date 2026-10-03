@@ -12,7 +12,7 @@ A host is a candidate only if ALL of these hold (each rejection gets exactly one
 reason, the first check that failed, and the reasons go to delegate_log):
 
   1. a probe no older than 60 s is in the `hosts` table (tools/node_dispatch.py
-     `probe` writes it) and `status` is not offline / pending_identity / left
+     `probe` writes it) and `status` is not offline / pending_identity / leaving / left
   2. `provides` contains every name in the task's `needs: a, b` description line
   3. `running < max_workers`
   4. the project has `paths.<host>` in config/projects.yaml
@@ -44,7 +44,7 @@ PROBE_MAX_AGE_S = 60
 # A probe stamped slightly in the future is a clock difference between boxes,
 # not a fresher probe. Beyond this it is treated as unreadable, never as fresh.
 PROBE_FUTURE_SKEW_S = 10
-_NOT_ONLINE = ("offline", "pending_identity", "left")
+_NOT_ONLINE = ("offline", "pending_identity", "leaving", "left")   # leaving: W4.2b, `leave --live` has begun
 
 _NEEDS_RE = re.compile(r"^[ \t]*needs:[ \t]*(.*)$", re.IGNORECASE | re.MULTILINE)
 
