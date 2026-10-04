@@ -23,16 +23,18 @@ def test_claude_contract_matches_prechange_bytes():
 def test_nonclaude_prompt_and_contract(runner):
     prompt = _remote_runner_prompt(TASK, PROJECT, '/tmp/tree', runner)
     contract = (ROOT / 'roles/_worker_remote.md').read_text().split(MARKER)[1]
-    for text in (prompt, contract):
-        assert 'mcp__org__' not in text
-        assert 'date -u' not in text
-        assert 'READ MAILBOX.md with your file tool if the file' in text
-        assert '## Blockers' in text
-        assert '## Skill learning' in text
-        assert 'launcher owns HEARTBEAT' in text
-    assert 'docs/reports/task-12345678/REPORT.md' in prompt
-    assert '# REPORT task-12345678' in prompt
+    assert 'mcp__org__' not in prompt
+    assert 'date -u' not in prompt
     assert 'call `mcp' not in prompt
+    assert '## Instructions' not in prompt
+    # The launcher appends the contract; the hub must not (it arrived twice before).
+    assert '# Codex / AGY Remote Worker Contract' not in prompt
+    assert 'mcp__org__' not in contract
+    assert 'date -u' not in contract
+    assert 'READ MAILBOX.md with your file tool if the file' in contract
+    assert '## Blockers' in contract
+    assert '## Skill learning' in contract
+    assert 'launcher owns HEARTBEAT' in contract
 
 
 def test_launchers_select_runner_contract():
@@ -53,7 +55,8 @@ def test_linux_actual_prompt_assembly(tmp_path, runner):
 
     wt = tmp_path / 'work tree'
     wt.mkdir()
-    brief = _build_prompt(TASK, PROJECT, str(wt))
+    # What the hub really sends: delegate's per-runner prompt, not the raw brief.
+    brief = _remote_runner_prompt(TASK, PROJECT, str(wt), runner)
     (wt / 'TASK.md').write_text(brief)
     source = (ROOT / 'scripts/spawn-worker-remote.sh').read_text()
     assembly = source.split('# --- 4. WORKER.md:', 1)[1]
@@ -75,3 +78,7 @@ def test_linux_actual_prompt_assembly(tmp_path, runner):
             assert 'date -u' not in text
             assert '## Blockers' in text
         assert f'docs/reports/{TASK["id"]}/REPORT.md' in system
+        task_md = (wt / 'TASK.md').read_text()
+        assert task_md.count('# Codex / AGY Remote Worker Contract') == 1
+        assert f'# REPORT {TASK["id"]}' in task_md
+        assert 'Fix widget' in task_md

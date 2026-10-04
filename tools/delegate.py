@@ -295,11 +295,11 @@ def _remote_runner_prompt(task, project, worktree, runner):
     prompt = _build_prompt(task, project, worktree)
     if runner == "claude":
         return prompt
+    # The launchers append the Codex/AGY contract themselves (spawn-worker-remote.sh
+    # step 5, spawn-worker.ps1 $codexPrompt / $agyPrompt); appending it here as well
+    # sent every external worker the contract twice (CTO review of task-6f178277).
     prompt = prompt.rsplit("## Instructions", 1)[0]
-    prompt = re.sub(r"mcp__org__\w+", "unavailable org tool (use the report file)", prompt)
-    contract = (ROOT / "roles/_worker_remote.md").read_text().split(
-        "<!-- NONCLAUDE CONTRACT -->\n", 1)[1]
-    return prompt + contract.replace("<task-id>", task["id"])
+    return re.sub(r"mcp__org__\w+", "unavailable org tool (use the report file)", prompt)
 
 
 def _work_dir_for(task_id: str, owner_cto: str | None) -> str | None:
@@ -1443,7 +1443,9 @@ async def _spawn_remote(task: dict, host_name: str, *,
     if runner != "claude":
         work_dir = task.get("work_dir")
         if local and not work_dir:
-            work_dir = os.environ.get("WORK_DIR") or _work_dir_for(task_id, task.get("owner_cto"))
+            # Not os.environ["WORK_DIR"]: a delegate run inside a worker would hand
+            # that worker's own Work folder to the child task.
+            work_dir = _work_dir_for(task_id, task.get("owner_cto"))
     claude_args = _render_remote_runner_args(role_name, host_name, runner)
     role_cfg = get_role(role_name)
     model = role_cfg.get("model") or "claude-sonnet-5-5"
