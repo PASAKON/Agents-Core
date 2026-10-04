@@ -120,6 +120,16 @@ and the CEO's own edit needs a day.
 - **Know what the viewer must understand before anything is shot (CEO 2026-10-04).** Write it in one line for the
   whole film and one line per scene: what the audience learns there. A scene that tells the viewer nothing the story
   needs is cut, however good it looks.
+- **Set up the ordinary world before the story starts (CEO 2026-10-04).** His words: "ช่วงเริ่มต้นเริ่มการปูตัวละคร
+  … คนดูต้องรู้ว่า กิจวัตรประจำวันของตัวละครที่เรากำลังจะเล่าเขาทำอะไร เมืองที่เราเล่า ฉากแต่ละฉาก ทำไมเป็นแบบนั้น
+  ความสัมพันธ์ของแต่ละตัวละครเป็นยังไง ผ่านบทพูดและการกระทำ … อยู่ๆ มาก็เข้าเรื่องเลย". Before the inciting
+  incident the viewer must already know, from dialogue and action and never from a caption:
+  1. the hero's daily routine: what they do every day, and why it matters to the people around them;
+  2. who each main character is and how they are related to the hero;
+  3. the place: what it is, why it looks the way it does, and the background the plot will use;
+  4. the antagonist's motive, shown in one act before his big move, so the move is in character.
+  Plan these as setup shots in the first act; if one of the four has no shot, the story jumps in too early.
+  Evidence: THE LAST BELL v1 opened on the bell, the boat and the Governor with none of the four set up.
 - **Output:** BIBLE.md, SCRIPT.md, beat list. **Gate:** the CEO approves the script.
 
 ### Step 3 · Characters, locations and props (the @Element registry)
