@@ -119,6 +119,10 @@ One file = one shot that can actually be fired; never two timelines in one block
     running at 15 s is lost, and a new generation never resumes the same melody or sentence. Check after the render:
     the `tail_voice` column of `tools/shortmovie_qc.py stage1` must be empty (it caught A05's hum at 12.5–13.4 s,
     E03's line at 11.9–14.8 s and E04's lullaby running to 14.2 s; it stayed empty on music-only clips).
+    **Write the last spoken line by [7s].** A line written after an action beat lands late: of 14 lines read back
+    in THE LAST BELL, the median was 0.4 s late but 4 landed 3.3–8.9 s late (E03 [3s] heard at 11.9 s, B01 hd [3s] at
+    9.3 s, B06 t1 and hd [4s] at 7.3 and 7.7 s), and two of those four are tail failures. A line at [8s] can still
+    finish inside the tail; [7s] plus the measured slip leaves room for the hold.
 
 ## 4 · Before handing a block over: 60 seconds
 
@@ -143,3 +147,4 @@ A new film copies build.py and CAST.md first (`CMO_Knowledge_Film_Production` §
 - 2026-09-27 [WRONG] §3 rule 2 (as applied in MASTER-PROMPT-cinematic v1) — v1 told the writer to cite references by upload order on positional engines (`@Image 1 — ANA: ...`). CEO ruling, verbatim: "อันนี้ผิดนะ ต้องใช้ @ANA @MEN ... ต้องเป็นแบบนี้ `@ANA — ANA: face, build and pajamas only; ignore the background.`" The reference line is always `@<the registry TAG> — <NAME>: <what to take>; <what to ignore>.` on every engine; never `@Image N`. Master prompt v1.1 fixed (E8 + self-check) (a CEO ruling, so promoted at once) · evidence: docs/prompts/MASTER-PROMPT-cinematic.md v1.1, fc82e003 · status: promoted
 - 2026-10-01 [MISSING] §3 - name a prop's colour in EVERY shot that shows it, not only in the first: EP1 S14 and S16 said 'pink towel' and came out pink, S17 said 'the towel' and came out beige; the re-fire with 'the same pink towel' came out pink (15 credits at 720p). n=1 · evidence: EP1 sheet S17 before/after 9dfceacb, rs1.tsv · status: pending
 - 2026-10-04 [MISSING] §3 rule 13 — no rule kept the end of a clip free: A05's song, E03's line and E04's lullaby all ran into the last 3 s of their 15 s clips and were cut. CEO ruling (verbatim in rule 13), so promoted at once · evidence: THE LAST BELL `lb_out/qc/stage1-v2.tsv` tail_voice column, session cto-671f688f · status: promoted
+- 2026-10-04 [MISSING] §3 rule 13 — the quiet tail needs a latest start for speech: 4 of 14 read-back lines landed 3.3–8.9 s after their written [Ns] (three shots: E03, B01 hd, B06 t1+hd), so a line written late still reaches the last 3 s. Rule line "Write the last spoken line by [7s]" added on ≥2 independent shots agreeing · evidence: `lb_out/qc/stage1-v2.tsv` + `r-r2a/stage1.tsv` heard timestamps vs prompt [Ns], session cto-671f688f · status: promoted
