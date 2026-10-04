@@ -129,3 +129,19 @@ def test_avatar_box_in_the_edl_checker_is_the_templates_composite_box():
     assert geom['scale'] == .56 and geom['bottom'] == 0 and geom['left'] == 0
     assert bl_edl.AVATAR_BOX['y0'] == round(1920 * (1 - geom['scale']) - geom['bottom']) == 845
     assert bl_edl.AVATAR_BOX['y1'] == 1920
+
+
+# task-2db3174c: the tool writes the checker's --take-table file for any episode (EP59 first).
+def test_take_table_from_a_measurement_loads_in_the_checker_and_derives_cy_the_same_way():
+    from tools.bl_face_box import take_table_from
+    measured = dict(chin_row=1100, fps=30, geometry={'scale': .56}, takes={
+        'lip_a': dict(used=dict(canvas_top=898.24, top=99, top_at=0.1, frames=12, range=[0.0, 0.4],
+                                comp_box=[-25, 898, 573, 564], ff_box=[21, 99, 1021, 1002])),
+        'lip_b': dict(used=dict(canvas_top=968.56, top=215, top_at=1.0, frames=9, range=[0.5, 0.8],
+                                comp_box=[-7, 968, 576, 494], ff_box=[54, 215, 1026, 886]))})
+    doc = take_table_from(measured, {'lip_a': 0.0, 'lip_b': 38.53}, episode=59)
+    assert doc['episode'] == 59 and doc['takes']['lip_a']['cy'] == math.floor(898.24 - 24 - 82) == 792
+    table = ck.load_take_table(doc)
+    assert table['seats'] == (('lip_a', 0.0), ('lip_b', 38.53))
+    assert ck.comp_caption_cy('lip_b', table) == doc['takes']['lip_b']['cy'] == 862
+    assert 'episode' not in take_table_from(measured, {'lip_a': 0.0, 'lip_b': 1.0})
