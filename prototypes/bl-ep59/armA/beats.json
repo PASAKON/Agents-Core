@@ -1,0 +1,674 @@
+{
+ "headline": {
+  "lines": [
+   "ใครตรวจ WikiFX",
+   "เว็บให้คะแนนโบรก?"
+  ],
+  "red": "ใครตรวจ",
+  "bug_side": "left",
+  "backdrop": [
+   {
+    "t0": 0,
+    "src": "real/fb-post-head.png"
+   },
+   {
+    "t0": 1,
+    "src": "real/wfx-about-score.png"
+   },
+   {
+    "t0": 2,
+    "src": "real/wfx-stmt-score.png"
+   }
+  ]
+ },
+ "beats": [
+  {
+   "tag": "HOOK-0",
+   "t0": 0.0,
+   "mode": "COMP",
+   "extra": {
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "HOOK-1",
+   "t0": 1.0,
+   "mode": "COMP",
+   "extra": {
+    "cap": "ผมเจอโพสต์ใน Facebook",
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "HOOK-2",
+   "t0": 1.6,
+   "mode": "COMP",
+   "extra": {
+    "cap": "ที่ตั้งคำถามกับ WikiFX",
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "HOOK-3",
+   "t0": 3.4667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-fb-h3.png",
+    "cap": "โพสต์ติดป้าย สร้างโดย AI",
+    "box": [
+     446,
+     565,
+     336,
+     58
+    ],
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "HOOK-4",
+   "t0": 5.5,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-fb-h4.png",
+    "cap": "ผมยังตรวจเรื่องนี้ไม่ได้",
+    "box": [
+     54,
+     608,
+     933,
+     64
+    ],
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "PATTERN-1",
+   "t0": 7.0667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-fb-p1.png",
+    "cap": "เขาอ้างว่าโบรกเกอร์ถูกเสนอหรือเรียกเก็บ",
+    "box": [
+     54,
+     608,
+     957,
+     59
+    ],
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "PATTERN-2",
+   "t0": 9.9,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-fb-p2.png",
+    "cap": "ค่าบริการราวหนึ่งหมื่นดอลลาร์ขึ้นไป",
+    "box": [
+     54,
+     608,
+     839,
+     59
+    ],
+    "cap_cy": 797
+   }
+  },
+  {
+   "tag": "PATTERN-3",
+   "t0": 12.3667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-fb-p2.png",
+    "cap": "ในโพสต์ไม่เห็นหลักฐานแนบ ยืนยันไม่ได้",
+    "cap_cy": 797,
+    "avatar_until": 14.7
+   }
+  },
+  {
+   "tag": "PATTERN-4",
+   "t0": 15.1333,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "เขาถามสี่ข้อ"
+     ],
+     [
+      "bl-lg",
+      "ผมสรุปให้"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-1",
+   "t0": 17.4333,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-fb-q.png",
+    "cap": "หนึ่ง เก็บเงินโบรกเกอร์อะไรบ้าง",
+    "box": [
+     54,
+     715,
+     870,
+     96
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-2",
+   "t0": 19.8333,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-fb-q.png",
+    "cap": "สอง จ่ายกับไม่จ่าย ต่างกันไหม",
+    "box": [
+     54,
+     834,
+     925,
+     64
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-3",
+   "t0": 22.5333,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-fb-q.png",
+    "cap": "สาม จ่ายแล้วกระทบคะแนนไหม",
+    "box": [
+     54,
+     912,
+     957,
+     102
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-4",
+   "t0": 24.7667,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-fb-q.png",
+    "cap": "สี่ ใครตรวจเว็บนี้ ตรวจได้ไหม",
+    "box": [
+     54,
+     1043,
+     943,
+     96
+    ]
+   }
+  },
+  {
+   "tag": "CONTEXT-5",
+   "t0": 27.9,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ถามได้"
+     ],
+     [
+      "bl-lg",
+      "ทุกเว็บให้คะแนน"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-1",
+   "t0": 30.0333,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ผมไปเปิดหน้า"
+     ],
+     [
+      "bl-lg",
+      "WikiFX เอง"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-2",
+   "t0": 32.2,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-about-score.png",
+    "cap": "หน้าเกี่ยวกับ มีระบบคะแนน",
+    "box": [
+     214,
+     683,
+     652,
+     274
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX"
+   }
+  },
+  {
+   "tag": "MAIN-3",
+   "t0": 34.4,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ไม่ได้พูดถึง"
+     ],
+     [
+      "bl-lg",
+      "ค่าบริการโบรกเกอร์"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "MAIN-4",
+   "t0": 36.6,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-about-foot-mail.png",
+    "cap": "ท้ายหน้ามีอีเมลลงโฆษณา",
+    "box": [
+     315,
+     791,
+     450,
+     58
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX"
+   }
+  },
+  {
+   "tag": "MAIN-5",
+   "t0": 39.0667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-contact.png",
+    "cap": "หน้าติดต่อมีฟอร์มร่วมมือ",
+    "box": [
+     379,
+     620,
+     321,
+     80
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "cap_cy": 862
+   }
+  },
+  {
+   "tag": "MAIN-6",
+   "t0": 41.3333,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-terms.png",
+    "cap": "ข้อกำหนดเป็นของผู้ใช้แอป",
+    "box": [
+     328,
+     625,
+     424,
+     50
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "cap_cy": 862
+   }
+  },
+  {
+   "tag": "MAIN-7",
+   "t0": 43.2,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-stmt-title.png",
+    "cap": "มีประกาศปีที่แล้ว ฉบับอังกฤษ",
+    "box": [
+     82,
+     592,
+     916,
+     117
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "cap_cy": 862
+   }
+  },
+  {
+   "tag": "MAIN-8",
+   "t0": 45.7667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-stmt-l1.png",
+    "cap": "เว็บระบุคะแนนไม่ผูกกับเงินจ่าย",
+    "box": [
+     54,
+     604,
+     972,
+     91
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "cap_cy": 862
+   }
+  },
+  {
+   "tag": "MAIN-9",
+   "t0": 48.3333,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-stmt-l2.png",
+    "cap": "ใช้ห้าด้านให้คะแนน",
+    "box": [
+     54,
+     625,
+     972,
+     51
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "cap_cy": 862
+   }
+  },
+  {
+   "tag": "MAIN-10",
+   "t0": 50.0,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-stmt-list.png",
+    "cap": "ไม่ระบุน้ำหนักแต่ละด้าน",
+    "box": [
+     67,
+     672,
+     946,
+     456
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX"
+   }
+  },
+  {
+   "tag": "MAIN-11",
+   "t0": 51.8667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-partner-a.png",
+    "cap": "เว็บระบุว่ามีโบรกเกอร์พาร์ตเนอร์",
+    "box": [
+     55,
+     614,
+     969,
+     92
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX",
+    "cap_cy": 862,
+    "avatar_until": 53.9
+   }
+  },
+  {
+   "tag": "MAIN-12",
+   "t0": 54.3,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-partner-b.png",
+    "cap": "ช่องไกล่เกลี่ยมีแต่พาร์ตเนอร์",
+    "box": [
+     80,
+     741,
+     920,
+     238
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX"
+   }
+  },
+  {
+   "tag": "MAIN-13",
+   "t0": 56.5667,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ใครตรวจเว็บนี้"
+     ],
+     [
+      "bl-lg",
+      "ไม่ได้ระบุ"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-1",
+   "t0": 58.8333,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-about-intro.png",
+    "cap": "ผมหาคำชี้แจงในเว็บ WikiFX",
+    "box": [
+     434,
+     781,
+     212,
+     78
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX"
+   }
+  },
+  {
+   "tag": "CURIOSITY-2",
+   "t0": 61.1,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ยังไม่เจอ"
+     ],
+     [
+      "bl-lg",
+      "ณ วันที่ถ่าย"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-3",
+   "t0": 63.4,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ผมไม่ได้บอกว่า"
+     ],
+     [
+      "bl-lg",
+      "ใครผิด"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "CURIOSITY-4",
+   "t0": 65.0333,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-about-foot-note.png",
+    "cap": "ท้ายหน้าให้เช็กแหล่งทางการ",
+    "box": [
+     54,
+     770,
+     864,
+     100
+    ],
+    "credit": "ขอบคุณภาพจาก WikiFX"
+   }
+  },
+  {
+   "tag": "CURIOSITY-5",
+   "t0": 67.5,
+   "mode": "EVID",
+   "extra": {
+    "img": "real/d-mas-title.png",
+    "cap": "ใบอนุญาตเช็กที่ทะเบียนทางการ",
+    "box": [
+     119,
+     776,
+     842,
+     89
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-1",
+   "t0": 70.2333,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ผมไม่รู้ว่า"
+     ],
+     [
+      "bl-lg",
+      "โพสต์นั้นจริงไหม"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-2",
+   "t0": 72.4333,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-lg",
+      "ถามสี่ข้อนี้"
+     ],
+     [
+      "bl-lg",
+      "ได้ทุกเว็บ"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-3",
+   "t0": 74.5667,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "หนึ่ง"
+     ],
+     [
+      "bl-md",
+      "ใครจ่ายเงิน"
+     ],
+     [
+      "bl-md",
+      "ให้เว็บ"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-4",
+   "t0": 76.8667,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "สอง"
+     ],
+     [
+      "bl-md",
+      "จ่ายแล้ว"
+     ],
+     [
+      "bl-md",
+      "คะแนนเปลี่ยนไหม"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-5",
+   "t0": 79.3333,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "สาม"
+     ],
+     [
+      "bl-md",
+      "ใครตรวจ"
+     ],
+     [
+      "bl-md",
+      "เว็บอีกที"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-6",
+   "t0": 81.7,
+   "mode": "KIN",
+   "extra": {
+    "lines": [
+     [
+      "bl-xl",
+      "สี่"
+     ],
+     [
+      "bl-md",
+      "กติกาให้คะแนน"
+     ],
+     [
+      "bl-md",
+      "เปิดไหม"
+     ]
+    ]
+   }
+  },
+  {
+   "tag": "SUMMARY-7",
+   "t0": 84.2333,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-mas-title-c.png",
+    "cap": "ผมไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น",
+    "box": [
+     119,
+     636,
+     842,
+     89
+    ],
+    "cap_cy": 893
+   }
+  },
+  {
+   "tag": "SUMMARY-8",
+   "t0": 87.3333,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-mas-plain.png",
+    "cap": "คอมเมนต์ เช็กลิสต์ ถ้าอยากได้ตาราง",
+    "cap_cy": 893
+   }
+  },
+  {
+   "tag": "SUMMARY-9",
+   "t0": 89.3667,
+   "mode": "COMP",
+   "extra": {
+    "img": "real/d-mas-plain.png",
+    "cap": "อย่าเชื่อเว็บเดียว รวมถึง WikiFX ช่องนี้ และโพสต์ที่ผมเจอ",
+    "cap_cy": 893
+   }
+  }
+ ]
+}

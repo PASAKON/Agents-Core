@@ -1,0 +1,714 @@
+{
+ "fb-h3": {
+  "file": "real/d-fb-h3.png",
+  "box": [
+   446,
+   565,
+   336,
+   58
+  ],
+  "take": "lip_a",
+  "note": "HOOK-3: the Facebook label `เนื้อหาที่สร้างโดย AI`, pixelated name beside it",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     150,
+     893,
+     775,
+     946
+    ],
+    "zoom": 1.15,
+    "at": [
+     54,
+     566
+    ]
+   },
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     0,
+     1015,
+     1080,
+     1133
+    ],
+    "zoom": 0.9,
+    "at": [
+     54,
+     641
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "fb-h4": {
+  "file": "real/d-fb-h4.png",
+  "box": [
+   54,
+   608,
+   933,
+   64
+  ],
+  "take": "lip_a",
+  "note": "HOOK-4: the post's title, first line",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     150,
+     893,
+     775,
+     946
+    ],
+    "zoom": 0.8,
+    "at": [
+     54,
+     566
+    ]
+   },
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     0,
+     1015,
+     1080,
+     1133
+    ],
+    "zoom": 0.95,
+    "at": [
+     22,
+     616
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "fb-p1": {
+  "file": "real/d-fb-p1.png",
+  "box": [
+   54,
+   608,
+   957,
+   59
+  ],
+  "take": "lip_a",
+  "note": "PATTERN-1: paragraph line 1 (offer or charge a fee)",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     150,
+     893,
+     775,
+     946
+    ],
+    "zoom": 0.8,
+    "at": [
+     54,
+     566
+    ]
+   },
+   {
+    "src": "real/fb-post-figure.png",
+    "crop": [
+     0,
+     863,
+     1080,
+     953
+    ],
+    "zoom": 0.95,
+    "at": [
+     23,
+     616
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "fb-p2": {
+  "file": "real/d-fb-p2.png",
+  "box": [
+   54,
+   608,
+   839,
+   59
+  ],
+  "take": "lip_a",
+  "note": "PATTERN-2/3: paragraph lines 3-4; PATTERN-2 spotlights line 3",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     150,
+     893,
+     775,
+     946
+    ],
+    "zoom": 0.8,
+    "at": [
+     54,
+     566
+    ]
+   },
+   {
+    "src": "real/fb-post-figure.png",
+    "crop": [
+     0,
+     963,
+     1080,
+     1058
+    ],
+    "zoom": 0.95,
+    "at": [
+     23,
+     616
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "fb-q": {
+  "file": "real/d-fb-q.png",
+  "box": null,
+  "take": null,
+  "note": "CONTEXT-1..4 and the intro line: the post's four questions as written",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/fb-post-head.png",
+    "crop": [
+     150,
+     893,
+     775,
+     946
+    ],
+    "zoom": 0.8,
+    "at": [
+     54,
+     566
+    ]
+   },
+   {
+    "src": "real/fb-post-questions.png",
+    "crop": [
+     0,
+     692,
+     1080,
+     1209
+    ],
+    "zoom": 0.95,
+    "at": [
+     22,
+     640
+    ]
+   }
+  ],
+  "boxes": {
+   "intro": [
+    54,
+    632,
+    526,
+    60
+   ],
+   "q1": [
+    54,
+    715,
+    870,
+    96
+   ],
+   "q2": [
+    54,
+    834,
+    925,
+    64
+   ],
+   "q3": [
+    54,
+    912,
+    957,
+    102
+   ],
+   "q4": [
+    54,
+    1043,
+    943,
+    96
+   ]
+  }
+ },
+ "contact": {
+  "file": "real/d-contact.png",
+  "box": [
+   379,
+   620,
+   321,
+   80
+  ],
+  "take": "lip_b",
+  "note": "MAIN-5: the contact page's business-cooperation tab",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-contact.png",
+    "crop": [
+     0,
+     690,
+     525,
+     1074
+    ],
+    "zoom": 1.4,
+    "at": [
+     345,
+     611
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "terms": {
+  "file": "real/d-terms.png",
+  "box": [
+   328,
+   625,
+   424,
+   50
+  ],
+  "take": "lip_b",
+  "note": "MAIN-6: Service Agreement of WikiFX (a user software agreement)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-terms.png",
+    "crop": [
+     0,
+     132,
+     1080,
+     520
+    ],
+    "zoom": 1.0,
+    "at": [
+     0,
+     447
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "stmt-title": {
+  "file": "real/d-stmt-title.png",
+  "box": [
+   82,
+   592,
+   916,
+   117
+  ],
+  "take": "lip_b",
+  "note": "MAIN-7: title of the 12 Jun 2025 statement",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-stmt-title.png",
+    "crop": [
+     14,
+     189,
+     996,
+     495
+    ],
+    "zoom": 1.1,
+    "at": [
+     0,
+     440
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "stmt-l1": {
+  "file": "real/d-stmt-l1.png",
+  "box": [
+   54,
+   604,
+   972,
+   91
+  ],
+  "take": "lip_b",
+  "note": "MAIN-8: 'operates independently ... not linked to partnerships or payments'",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-stmt-score.png",
+    "crop": [
+     0,
+     573,
+     1011,
+     1200
+    ],
+    "zoom": 1.0669642857142858,
+    "at": [
+     2,
+     542
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "stmt-l2": {
+  "file": "real/d-stmt-l2.png",
+  "box": [
+   54,
+   625,
+   972,
+   51
+  ],
+  "take": "lip_b",
+  "note": "MAIN-9: 'a five-dimensional model, covering:'",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-stmt-score.png",
+    "crop": [
+     0,
+     573,
+     998,
+     1200
+    ],
+    "zoom": 1.081447963800905,
+    "at": [
+     1,
+     517
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "partner-a": {
+  "file": "real/d-partner-a.png",
+  "box": [
+   55,
+   614,
+   969,
+   92
+  ],
+  "take": "lip_b",
+  "note": "MAIN-11: 'Partnered brokers ... Complaint Mediation Window'",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-stmt-partner.png",
+    "crop": [
+     25,
+     830,
+     1055,
+     1100
+    ],
+    "zoom": 1.05,
+    "at": [
+     -1,
+     603
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "stmt-list": {
+  "file": "real/d-stmt-list.png",
+  "box": [
+   67,
+   672,
+   946,
+   456
+  ],
+  "take": null,
+  "note": "MAIN-10: the five indices; no weights given",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-stmt-score.png",
+    "crop": [
+     0,
+     573,
+     1065,
+     1230
+    ],
+    "zoom": 1.0,
+    "at": [
+     15,
+     513
+    ]
+   }
+  ]
+ },
+ "partner-b": {
+  "file": "real/d-partner-b.png",
+  "box": [
+   80,
+   741,
+   920,
+   238
+  ],
+  "take": null,
+  "note": "MAIN-12: why non-partners do not have the window",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-stmt-partner.png",
+    "crop": [
+     0,
+     1440,
+     1078,
+     1720
+    ],
+    "zoom": 1.0,
+    "at": [
+     2,
+     715
+    ]
+   }
+  ]
+ },
+ "about-score": {
+  "file": "real/d-about-score.png",
+  "box": [
+   214,
+   683,
+   652,
+   274
+  ],
+  "take": null,
+  "note": "MAIN-2: the scoring-system paragraph on the About page",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-about-score.png",
+    "crop": [
+     0,
+     900,
+     900,
+     1250
+    ],
+    "zoom": 1.2,
+    "at": [
+     0,
+     645
+    ]
+   }
+  ]
+ },
+ "about-foot-mail": {
+  "file": "real/d-about-foot-mail.png",
+  "box": [
+   315,
+   791,
+   450,
+   58
+  ],
+  "take": null,
+  "note": "MAIN-4: the advertising contact line, enlarged",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-about-footer.png",
+    "crop": [
+     0,
+     1853,
+     626,
+     1895
+    ],
+    "zoom": 1.4,
+    "at": [
+     204,
+     800
+    ]
+   }
+  ]
+ },
+ "about-foot-note": {
+  "file": "real/d-about-foot-note.png",
+  "box": [
+   54,
+   770,
+   864,
+   100
+  ],
+  "take": null,
+  "note": "CURIOSITY-4: the site's own note to check key details with official sources",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-about-footer.png",
+    "crop": [
+     386,
+     1525,
+     1080,
+     1620
+    ],
+    "zoom": 1.4,
+    "at": [
+     59,
+     760
+    ]
+   }
+  ]
+ },
+ "about-intro": {
+  "file": "real/d-about-intro.png",
+  "box": [
+   434,
+   781,
+   212,
+   78
+  ],
+  "take": null,
+  "note": "CURIOSITY-1: the About page, 'เราคือใคร' (Who we are)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/wfx-about-top.png",
+    "crop": [
+     154,
+     632,
+     926,
+     698
+    ],
+    "zoom": 1.4,
+    "at": [
+     0,
+     778
+    ]
+   }
+  ]
+ },
+ "mas-title": {
+  "file": "real/d-mas-title.png",
+  "box": [
+   119,
+   776,
+   842,
+   89
+  ],
+  "take": null,
+  "note": "CURIOSITY-5: an official register's own page, 'Financial Institutions Directory'",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/mas-register.png",
+    "crop": [
+     154,
+     262,
+     926,
+     362
+    ],
+    "zoom": 1.4,
+    "at": [
+     0,
+     742
+    ]
+   }
+  ]
+ },
+ "mas-title-c": {
+  "file": "real/d-mas-title-c.png",
+  "box": [
+   119,
+   636,
+   842,
+   89
+  ],
+  "take": "lip_c",
+  "note": "SUMMARY-7: the same register page, spotlight on its title",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/mas-register.png",
+    "crop": [
+     154,
+     262,
+     926,
+     362
+    ],
+    "zoom": 1.4,
+    "at": [
+     0,
+     602
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   789
+  ],
+  "fits": true
+ },
+ "mas-plain": {
+  "file": "real/d-mas-plain.png",
+  "box": null,
+  "take": "lip_c",
+  "note": "SUMMARY-8/9: same register page, no spotlight",
+  "credit": false,
+  "parts": [
+   {
+    "src": "real/mas-register.png",
+    "crop": [
+     154,
+     262,
+     926,
+     362
+    ],
+    "zoom": 1.4,
+    "at": [
+     0,
+     602
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   789
+  ],
+  "fits": true
+ }
+}
