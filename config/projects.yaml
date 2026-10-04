@@ -432,3 +432,6 @@ projects:
     auto_push: true
     review_required: true
     spawn_backend: tmux
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Bedrock
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Bedrock   # worker clone only (codex lane), CEO 2026-10-05 'ส่ง Worker ... Codex AGY'
