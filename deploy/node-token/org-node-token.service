@@ -5,7 +5,7 @@ Description=MoonieX hub node-token service (Org Mesh W4.2b, tools/node_token_api
 # token and the node asks the hub. docs: tools/node_token_api.py (module docstring),
 # deploy/node-token/README.md (the cards that install it, in order).
 #
-# Where it listens: this machine's tailnet address (`tailscale ip -4`), port 8792, nothing else.
+# Where it listens: this machine's tailnet address (`tailscale ip -4`), port 792, nothing else.
 # deploy/node-token/bind-tailnet.sh reads the address when the service starts and exports
 # NODE_TOKEN_BIND; tools/node_token_api.py refuses anything outside 100.64.0.0/10. So the public
 # address answers nothing, and a machine that is not on the tailnet cannot reach it. If the
@@ -27,6 +27,10 @@ Description=MoonieX hub node-token service (Org Mesh W4.2b, tools/node_token_api
 # approved node) is the one exception to "a service reads its secrets through infisical run", and
 # it is for nodes only (CEO ruling 2026-10-03). setpriv execs, so systemd still supervises the
 # service's own pid. HOME is set because setpriv does not reset it.
+# Port 792 is below 1024 (decided for CEO 2026-10-04, "2a"): while the service is down no local
+# user can take the port and answer nodes with a token of its own. The service keeps exactly one
+# capability, CAP_NET_BIND_SERVICE, as an ambient capability through setpriv; measured on Contabo
+# under --no-new-privs: CapEff=CapAmb=0x400, and the same child without it gets EACCES on 792.
 After=network-online.target tailscaled.service
 Wants=network-online.target tailscaled.service
 # A start that keeps failing must stop, not retry for ever: 5 starts in 10 minutes and the unit is
@@ -42,7 +46,7 @@ Type=simple
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=PYTHONUNBUFFERED=1
 Environment=HOME=/nonexistent
-ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/node-token/bind-tailnet.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo --path /node-token -- /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Org-Node prod --as contabo -- /usr/bin/setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_token_api --port 8792
+ExecStart=/bin/sh /opt/MoonieXHQ/Agents/Core/deploy/node-token/bind-tailnet.sh /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Agents-Core prod --as contabo --path /node-token -- /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run Org-Node prod --as contabo -- /usr/bin/setpriv --reuid=org-node-token --regid=org-node-token --init-groups --inh-caps=+net_bind_service --ambient-caps=+net_bind_service -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python -m tools.node_token_api --port 792
 Restart=on-failure
 RestartSec=30
 # Exit 2 is "this will fail again": the service exits 2 when the token or the DSN is missing, and

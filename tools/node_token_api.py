@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The hub's node-token service (Org Mesh W4.2b): how an approved node gets the Claude token.
 
-    python -m tools.node_token_api --port 8792 [--bind ADDR]
+    python -m tools.node_token_api --port 792 [--bind ADDR]
 
 CEO ruling 2026-10-03: a node has no Infisical identity (Free allows 5 and they are all taken).
 The hub reads the token from Infisical itself and hands it, sealed, to a node it has approved.
@@ -74,7 +74,7 @@ from tools.join_api import RateLimiter  # noqa: E402
 
 _log = logging.getLogger("node_token_api")
 
-DEFAULT_PORT = 8792
+DEFAULT_PORT = 792   # below 1024: only root (or CAP_NET_BIND_SERVICE) can take it while the service is down
 TAILNET_NET = ipaddress.ip_network("100.64.0.0/10")   # Tailscale's CGNAT range
 TOKEN_PATH = "/v1/token"
 HEALTH_PATH = "/health"

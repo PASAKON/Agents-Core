@@ -807,7 +807,7 @@ def _provision_identities() -> list[dict]:
     key. It makes no Infisical call and creates no Infisical identity: the node asks the hub's
     token service (tools/node_token_api.py) at token_url for the Claude token. Off unless
     ORG_W42_PROVISION=1 (hq_join.provision_pending does nothing otherwise). token_url is read
-    from ORG_NODE_TOKEN_URL (http://<hub tailnet IPv4>:8792/v1/token); without it every row fails
+    from ORG_NODE_TOKEN_URL (http://<hub tailnet IPv4>:792/v1/token); without it every row fails
     as `no_token_url`, which the loop below logs and retries after PROVISION_BACKOFF_S. A row
     without `approved_at` is skipped as `not_approved`, not failed. One bad row never stops the
     others."""

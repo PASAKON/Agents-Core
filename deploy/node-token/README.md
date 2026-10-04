@@ -38,7 +38,7 @@ bind-tailnet.sh                                   exports NODE_TOKEN_BIND (the t
    -> infisical_setup.py run Org-Node prod --as contabo
                                                   CLAUDE_CODE_OAUTH_TOKEN (Org-Node holds exactly that name)
      -> setpriv --reuid=org-node-token --regid=org-node-token --init-groups
-       -> python -m tools.node_token_api --port 8792
+       -> python -m tools.node_token_api --port 792
 ```
 
 A start that fails is retried every 30 s, at most 5 times in 10 minutes (`StartLimitBurst`); after that
@@ -47,7 +47,9 @@ Exit 2 is never retried (`RestartPreventExitStatus=2`): the service exits 2 when
 missing, and `infisical_setup.py run` exits 2 when a folder it reads is empty, so a missing Org-Node value
 stops the unit at once instead of calling Infisical every 30 s. The unit also sets `LimitCORE=0` (a crash
 writes no core file with the token in it), `MemoryMax=256M` and `TasksMax=64` (one thread per connection).
-It adds no seccomp filter and no capability set: `setpriv` fails under them.
+It adds no seccomp filter and no capability set: `setpriv` fails under them. (`setpriv`'s own
+`--inh-caps`/`--ambient-caps` for CAP_NET_BIND_SERVICE is fine: it runs under NoNewPrivileges and was
+measured on Contabo on 2026-10-04.)
 
 The first two legs run as root, because only root reads `/etc/infisical/contabo.env`; `setpriv` then
 drops to the system user `org-node-token`, so the machine credential never reaches the service. The
@@ -141,7 +143,7 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
 
    ```bash
    python3 tools/ask_run.py create --host contabo --risk red --cwd <worktree> \
-       --why "W4.2b: install and start org-node-token.service (the hub hands the Claude token, sealed, to approved nodes; tailnet address only, port 8792)" \
+       --why "W4.2b: install and start org-node-token.service (the hub hands the Claude token, sealed, to approved nodes; tailnet address only, port 792)" \
        --expected "active (running); GET /health on the tailnet address answers ok true, token_loaded true, db true" \
        --command "id org-node-token >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin org-node-token; setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- test -r /opt/MoonieXHQ/Agents/Core/tools/node_token_api.py && setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- test -x /opt/MoonieXHQ/Agents/Core/.venv/bin/python && cp deploy/node-token/org-node-token.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now org-node-token && sleep 5 && systemctl is-active org-node-token"
    ```
@@ -152,7 +154,7 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
    python3 tools/ask_run.py create --host contabo --risk green \
        --why "W4.2b: is the node token service up, and does it hold the token and reach the hub database?" \
        --expected "one JSON line: ok, token_loaded and db are all true (booleans only, never a value)" \
-       --command 'curl -fsS -m 5 http://$(tailscale ip -4 | head -n 1):8792/health'
+       --command 'test "$(sysctl -n net.ipv4.ip_unprivileged_port_start)" -ge 1024 && curl -fsS -m 5 http://$(tailscale ip -4 | head -n 1):792/health'
    ```
 
    No answer at all, with the unit failed, usually means Org-Node prod has no `CLAUDE_CODE_OAUTH_TOKEN`
@@ -167,7 +169,7 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
 drill), next to `ORG_W42_PROVISION=1`:
 
 ```
-ORG_NODE_TOKEN_URL=http://<the hub's tailnet address>:8792/v1/token
+ORG_NODE_TOKEN_URL=http://<the hub's tailnet address>:792/v1/token
 ```
 
 The address is `tailscale ip -4` on Contabo. It is not a secret, and it is the only thing a node's
@@ -183,7 +185,7 @@ The service is reachable only on the tailnet. If the tailnet policy is **not** a
 needs an `accept` rule to the hub's token port, for example:
 
 ```json
-{ "action": "accept", "src": ["tag:org-node"], "dst": ["<the hub's tag or tailnet address>:8792"] }
+{ "action": "accept", "src": ["tag:org-node"], "dst": ["<the hub's tag or tailnet address>:792"] }
 ```
 
 Without it a node's probe says `node_token: hub not reachable (URLError)` after three tries. Nothing
@@ -219,13 +221,15 @@ is down), `leave` runs no other step and reports every step as left behind.
 - **The answer is sealed, not signed.** Only the node can read it, but the node cannot tell who sealed
   it: a node's age recipient is not secret, so anyone who can answer a request can seal a payload for
   it. The nonce and `issued_at` stop the replay of an OLD hub answer. They do not stop a process that
-  binds the hub's tailnet address on port 8792 while the service is down (the port is above 1024, so
-  any local user on the hub can) from answering a node's request with a token **of its own choosing**:
-  the node's `claude` runs would then go to the attacker's account. It cannot read the CEO's token
-  (the node's request holds none, and it never has the token). The window is the time the service is
-  down, and a unit that trips its start limit stays down until `systemctl reset-failed
-  org-node-token`. Closing it needs the node to check a signature from a hub key pinned at join, or
-  a listening socket that systemd owns. Neither is built. The CTO reports it to the CEO.
+  binds the hub's tailnet address on the service's port while the service is down from answering a
+  node's request with a token **of its own choosing**: the node's `claude` runs would then go to that
+  account. It cannot read the CEO's token (the node's request holds none). **Decided for CEO
+  2026-10-04 ("2a"):** the port is 792, below 1024. Contabo has `net.ipv4.ip_unprivileged_port_start
+  = 1024`, so only root, or a process holding CAP_NET_BIND_SERVICE, can take it. The service keeps
+  that one capability through `setpriv --ambient-caps` and nothing else. What is left: root on the
+  hub can still do it, and root can read the machine credential anyway. A signature from a hub key
+  pinned at join would close the rest; it is not built. If someone lowers that sysctl, the protection
+  is gone, so the health card checks it.
 - **The token is in the service's start-up environment.** `infisical_setup.py run` hands it over as an
   environment variable, and the kernel keeps the block a process was started with (readable under `/proc`
   by that user and by root) whatever the service does to its own `os.environ` later. The service runs as
