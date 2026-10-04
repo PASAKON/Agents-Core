@@ -171,3 +171,9 @@ ref (E08 matches the ref); E10 shows the bell hanging whole after E08 has it bro
 Re-shoot round: `lb_jobs_rs1.json` (15 jobs, free Unlimited lane, priority D05 E04 E06 E07 E10 E08 C09 C10 E01 C08
 C07 C02 D03 E02 B04). Fixes: location refs scoped to shape only (no sunlight or weather), storm negatives, the
 coil written as a ring around the outer edge, one-wearer costume limits, the Naga negative.
+
+## Round 2 and story v2 (2026-10-04, session 671f688f)
+
+The CEO asked whether story and dialogue follow the skills and approved overnight A/B tests. The story gate had
+been skipped; the audit, the v2 changes inside the approved spine, the quiet-tail rule and the duplicate fix are in
+`STORY-V2.md` (audits: `STORY-AUDIT-2026-10-04.md`, `DUPLICATE-LESSONS-2026-10-04.md`). Round 2 = 30 free-lane jobs.
