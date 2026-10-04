@@ -77,7 +77,7 @@ TABLE = [
     ("SUMMARY-4",   "KIN",  None, None, KIN("S20", (XL, "หนึ่ง"), (MD, "ค้นเลขใบ"), (MD, "ที่เว็บทางการ"))),
     ("SUMMARY-5",   "KIN",  None, None, KIN("S29", (XL, "สอง"), (MD, "ชื่อบริษัท"), (MD, "ต้องตรงกัน"))),
     ("SUMMARY-6",   "KIN",  None, None, KIN("S16", (XL, "สาม"), (MD, "ลองถอน"), (MD, "ก้อนเล็กก่อน"))),
-    ("SUMMARY-7",   "COMP", "header-plain", "box", {}),
+    ("SUMMARY-7",   "COMP", "oct-title-c", "box", {}),
     ("SUMMARY-8",   "COMP", "survey-plain", "box", {}),
     ("SUMMARY-9",   "COMP", "survey-date", "box", {"avatar_until": 89.72}),   # lip_c ends at 89.72, the clip at 90.23
 ]

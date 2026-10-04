@@ -221,6 +221,8 @@ def build():
          "MAIN-11: the article's first line: current licence status `revoked`", bg_patch=(500, 600, 520, 620))
     # ── COMP, lip_c ─────────────────────────────────────────────────────────────────────────────────────────
     C = "lip_c"
+    page("oct-title-c", "gb-article-oct", (0, 400, 1080, 130), 1.0, None, (380, 560), C,
+         "SUMMARY-7: the article title again (the tile crop of the first cut read as a broken half-card)", bg_patch=(500, 370, 520, 385))
     page("header-plain", "gb-header", (205, 475, 450, 120), 1.0, None, (460, 596), C,
          "SUMMARY-7: GB's profile tile again (box = the tile, only so the credit chip has a top to clear)", bg_patch=(10, 300, 30, 320), xcrop=190, xmax=690, snap=False)
     # a WikiFX still needs its credit chip, and bl_checker refuses a credit with no box (no evidence top to clear): box the tile
@@ -261,8 +263,19 @@ def build():
     sv = Image.open(REAL / "gb-survey.png").convert("RGB")
     p = Plate("survey-body", page_bg(sv, (500, 400, 520, 420)))
     p.paste("gb-survey", (70, 205, 950, 300), 1.0, (100, 640))
-    mb = p.paste("gb-survey", (86, 1062, 944, 1130), 1.12, (60, 790))
-    done(p, box_out(mb, (90, 1065, 840, 60)), None, "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC`")
+    # the body line is 15 px in the source: at the 1.12 the safe width allows it reads 17 px, so it is laid as two rows at 1.6
+    z = 1.6
+    r1 = (86, 1062, 690, 1092)
+    r2 = (693, 1062, 920, 1092)
+    r3 = (86, 1096, 150, 1122)
+    x0, y1, y2 = 70, 800, 868
+    m1 = p.paste("gb-survey", r1, z, (x0, y1))
+    m2 = p.paste("gb-survey", r2, z, (x0, y2))
+    m3 = p.paste("gb-survey", r3, z, (x0 + round((r2[2] - r2[0]) * z) + 22, y2 + (r2[3] - r2[1]) * z / 2 - (r3[3] - r3[1]) * z / 2))
+    bx = [m1(*r1[:2], r1[2] - r1[0], r1[3] - r1[1]), m2(*r2[:2], r2[2] - r2[0], r2[3] - r2[1]), m3(*r3[:2], r3[2] - r3[0], r3[3] - r3[1])]
+    x_0, y_0 = min(b[0] for b in bx) - PAD, min(b[1] for b in bx) - PAD
+    x_1, y_1 = max(b[0] + b[2] for b in bx) + PAD, max(b[1] + b[3] for b in bx) + PAD
+    done(p, [round(x_0), round(y_0), round(x_1 - x_0), round(y_1 - y_0)], None, "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC` (two rows, 1.6x)")
 
 
 def main():

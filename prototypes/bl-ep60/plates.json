@@ -390,6 +390,39 @@
   ],
   "fits": true
  },
+ "oct-title-c": {
+  "file": "real/d-oct-title-c.png",
+  "box": [
+   54,
+   606,
+   972,
+   131
+  ],
+  "take": "lip_c",
+  "note": "SUMMARY-7: the article title again (the tile crop of the first cut read as a broken half-card)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-oct.png",
+    "crop": [
+     0,
+     380,
+     1080,
+     557
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     596
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   782
+  ],
+  "fits": true
+ },
  "header-plain": {
   "file": "real/d-header-plain.png",
   "box": [
@@ -806,13 +839,13 @@
  "survey-body": {
   "file": "real/d-survey-body.png",
   "box": [
-   56,
-   785,
-   957,
-   83
+   62,
+   792,
+   982,
+   132
   ],
   "take": null,
-  "note": "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC`",
+  "note": "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC` (two rows, 1.6x)",
   "credit": true,
   "parts": [
    {
@@ -834,13 +867,41 @@
     "crop": [
      86,
      1062,
-     944,
-     1130
+     690,
+     1092
     ],
-    "zoom": 1.12,
+    "zoom": 1.6,
     "at": [
-     60,
-     790
+     70,
+     800
+    ]
+   },
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     693,
+     1062,
+     920,
+     1092
+    ],
+    "zoom": 1.6,
+    "at": [
+     70,
+     868
+    ]
+   },
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     86,
+     1096,
+     150,
+     1122
+    ],
+    "zoom": 1.6,
+    "at": [
+     455,
+     871
     ]
    }
   ]
