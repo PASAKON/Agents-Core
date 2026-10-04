@@ -50,8 +50,11 @@ creature acts fail most.
 audio and its mean level, the caption-band pixel score (`tools/burned_text_scan.py`), and a read-back of each quoted
 line. The language is chosen per line (English for dialogue, Thai for a Thai song) with VAD on. A clip with no
 quoted line is transcribed in auto mode, so unexpected speech shows in `heard`.
-- Passes when: duration matches the job, audio is present, no `CAPTION?` flag, and every line scores ≥ 0.8. A
-  score below 0.8 is a NOTE for ears, not a FAIL, until someone has listened.
+- Passes when: duration matches the job, audio is present, no `CAPTION?` flag, every line scores ≥ 0.8, and
+  `tail_voice` is `-`. A score below 0.8 is a NOTE for ears, not a FAIL, until someone has listened.
+- `tail_voice` lists voice (speech, song, hum; silero VAD) that ends inside the last 3 s of the clip. Any entry is a
+  FAIL: the prompt broke `CMO_Standard_Film_PromptFormat` rule 13 (quiet tail) and the editor cannot cut cleanly.
+  First run: 5 of 53 takes (A05 t1 and t2 Yai's hum, B01 t2, E03, E04's lullaby); music-only clips stayed empty.
 - A Thai **sung** line reads back badly (E04 lullaby 0.39, heard as near-Thai syllables). Judge a song by ear.
 - `Thanks for watching!` at 0.0–2.0 s on a music-only clip is a whisper hallucination. Re-read with VAD off before
   calling it speech: C10 and D03 came back as `BOOM!`, the bell and thunder hits.
@@ -188,3 +191,4 @@ call an act clean when only stages 1–2 ran.
 
 - 2026-10-04 [MISSING] new gate — first run on THE LAST BELL (41 shots, 50 takes): stage 1 found 0 defects and the eye stage found 14 shots without a usable take plus 1 never shot; rules 2, 3 and 5 rest on this one film · evidence: session cto-671f688f, `lb_out/qc/eye-*.tsv`, re-shoot round `lb_jobs_rs1.json` (15 jobs) · status: pending
 - 2026-10-04 [COSTLY] stage 3 — four act judges ran in parallel, 6–10 min each, about 570k subagent tokens in all; the sheets themselves cost one image per 8 takes. A local check for weather (mean saturation and hue of the top third against the act's grade) could pre-flag rule 2 shots for free · evidence: session cto-671f688f · status: pending
+- 2026-10-04 [MISSING] stage 1 — the gate had no check for the end of the clip; Yai's hum in A05 was cut off at the end of the 15 s and nothing flagged it until the CEO did. Added `tail_voice` (silero VAD, voice ending in the last 3 s) to `tools/shortmovie_qc.py stage1` and made it a FAIL, after the CEO's quiet-tail ruling (`CMO_Standard_Film_PromptFormat` rule 13) · evidence: `lb_out/qc/stage1-v2.tsv` 5 of 53 · status: promoted

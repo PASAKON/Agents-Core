@@ -6,7 +6,9 @@
 stage1, per clip: duration, audio present + mean level, caption-band pixel score (burned_text_scan.band_scores) and a
 read-back of every quoted line in the clip's prompt (faster-whisper small, language chosen per line, VAD on), scored
 0-1 by best-window similarity. A clip whose prompt quotes no line is transcribed in auto mode, so unexpected speech
-shows up in the `heard` column. Whisper writes "Thanks for watching!" over music: re-read such a clip with VAD off
+shows up in the `heard` column. `tail_voice` lists voice (speech, singing, humming: silero VAD) that ends inside the
+last 3 s of the clip; the house rule is a quiet tail, so any entry there is a FAIL (Yai's hum in A05 at 12.5-13.4 s was
+cut off mid-song, CEO 2026-10-04). Whisper writes "Thanks for watching!" over music: re-read such a clip with VAD off
 before calling it speech (THE LAST BELL C10/D03 2026-10-04 were bell and thunder hits, heard as "BOOM!").
 
 sheets: 3 frames per take inside the used cut (0.5 s, cut/2, cut-0.5 s), 8 takes per image, label at the left.
@@ -36,9 +38,10 @@ def stage1(a):
     sys.path.insert(0, str(Path(__file__).parent))
     from burned_text_scan import band_scores, GATE
     from faster_whisper import WhisperModel
+    from faster_whisper.vad import get_speech_timestamps, VadOptions
     prompts = {j["id"]: j["prompt"] for f in a.jobs for j in json.load(open(f))}
     model = WhisperModel("small", device="cpu", compute_type="int8")
-    rows = []
+    rows, a_tail = [], a.tail
     for clip in sorted(Path(a.clips).glob(a.glob)):
         cid = clip.stem
         p = json.loads(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration:stream=codec_type", "-of", "json",
@@ -53,12 +56,15 @@ def stage1(a):
         want = QUOTE.findall(prompts.get(cid, "").split("CRITICAL NEGATIVES")[0])
         lang = ("th" if any(THAI.search(x) for x in want) else "en") if want else None
         segs, info = model.transcribe(np.frombuffer(pcm, dtype=np.float32), language=lang, vad_filter=True)
+        audio = np.frombuffer(pcm, dtype=np.float32)
+        voice = [(t["start"] / 16000, t["end"] / 16000) for t in get_speech_timestamps(audio, VadOptions(min_silence_duration_ms=300))]
+        tail = ",".join(f"{a:.1f}-{b:.1f}" for a, b in voice if b > dur - a_tail)
         heard = " | ".join(f"{s.start:.1f}-{s.end:.1f} {s.text.strip()}" for s in segs)
         scores = [best_window(x, heard) for x in want]
         rows.append([cid, f"{dur:.1f}", "audio" if has_a else "SILENT", mv, f"{top[1]}@{top[0]}", "CAPTION?" if top[1] >= GATE else "",
-                     str(len(want)), ",".join(map(str, scores)), lang or "auto:" + str(info.language), heard[:400]])
-        print("\t".join(rows[-1][:9]) + "\t" + rows[-1][9][:120], flush=True)
-    Path(a.out).write_text("clip\tdur\taudio\tmean_db\tband_max\tflag\tlines\tline_match\tlang\theard\n"
+                     str(len(want)), ",".join(map(str, scores)), lang or "auto:" + str(info.language), tail or "-", heard[:400]])
+        print("\t".join(rows[-1][:10]) + "\t" + rows[-1][10][:120], flush=True)
+    Path(a.out).write_text("clip\tdur\taudio\tmean_db\tband_max\tflag\tlines\tline_match\tlang\ttail_voice\theard\n"
                            + "\n".join("\t".join(r) for r in rows) + "\n")
     print("wrote", a.out)
 
@@ -100,6 +106,7 @@ if __name__ == "__main__":
     sp = ap.add_subparsers(dest="cmd", required=True)
     s1 = sp.add_parser("stage1"); s1.add_argument("--clips", required=True); s1.add_argument("--jobs", nargs="+", required=True)
     s1.add_argument("--out", required=True); s1.add_argument("--glob", default="*.mp4")
+    s1.add_argument("--tail", type=float, default=3.0, help="seconds at the end that must hold no voice")
     sh = sp.add_parser("sheets"); sh.add_argument("--clips", required=True); sh.add_argument("--cuts", required=True)
     sh.add_argument("--prefix", default=""); sh.add_argument("--out", required=True)
     a = ap.parse_args()
