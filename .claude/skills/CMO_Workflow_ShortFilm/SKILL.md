@@ -117,6 +117,9 @@ and the CEO's own edit needs a day.
   reversal, value shift) — IRON-RULES §51; Thai moral dramas use `CMO_Standard_Story_ThaiMoralDrama`.
 - Write the story bible and the script with every spoken line locked; plan length as shots × seconds and
   turn it into a first credit estimate. Examples: `docs/promo/topview-trailer/BIBLE.md`, `SCRIPT.md`.
+- **Know what the viewer must understand before anything is shot (CEO 2026-10-04).** Write it in one line for the
+  whole film and one line per scene: what the audience learns there. A scene that tells the viewer nothing the story
+  needs is cut, however good it looks.
 - **Output:** BIBLE.md, SCRIPT.md, beat list. **Gate:** the CEO approves the script.
 
 ### Step 3 · Characters, locations and props (the @Element registry)
@@ -137,6 +140,16 @@ and the CEO's own edit needs a day.
   `tools/shotsheet_lint.py`). Say the tolerance out loud (§5).
   Shot size, angle, move, lens, light and colour per shot: `CMO_Knowledge_Cinematography_ShortMovie`
   (Short Movie only; ละครสั้น / lakorn never borrows from it, CEO 2026-10-03).
+- **Every cut from shot A to shot B must be explainable (CEO 2026-10-04).** His words: *"การทำหนัง 1 เรื่องเราต้อง
+  รู้ก่อนว่าจะสื่ออะไรให้คนดูได้รู้ และ A -> B ได้ยังไง สมเหตุสมผลหรือป่าว ถ้าอธิบายไม่ได้ แปลว่า เราทำมันได้ไม่ดี"*.
+  His example, THE LAST BELL: the girl sits with her grandmother, and the next shot has her already in a boat. Who
+  called her, did she get up, did she climb aboard? Write a cut-logic table in cut order, one row per pair: the IN
+  and OUT of each shot (place, who, doing what, light), then the one line that takes the viewer from A to B. Accepted
+  links: the same action continues; B is caused by A; the move between places is shown (gets up, leaves, boards,
+  arrives); a look or a sound in A motivates B; time passing is marked (light change, a dissolve). A row without
+  a link is a missing **bridge shot**: add it to the shot list (a call from outside, getting up, boarding, arriving),
+  4–7 s of cut, generated like any other shot. Run the table on the shot list before prompts and again on the real
+  takes' first and last frames before the edit, because a take can start somewhere the board did not say.
 - **Output:** STORYBOARD.md + continuity table. **Gate:** every open question asked at once, each with a
   recommended answer; the CEO's answers written into the notes before any prompt changes.
 
