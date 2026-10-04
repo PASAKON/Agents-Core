@@ -126,9 +126,13 @@ and the CEO's own edit needs a day.
   incident the viewer must already know, from dialogue and action and never from a caption:
   1. the hero's daily routine: what they do every day, and why it matters to the people around them;
   2. who each main character is and how they are related to the hero;
-  3. the place: what it is, why it looks the way it does, and the background the plot will use;
-  4. the antagonist's motive, shown in one act before his big move, so the move is in character.
-  Plan these as setup shots in the first act; if one of the four has no shot, the story jumps in too early.
+  3. the place: what it is, why it looks the way it does, and the background the plot will use. Show it through a
+     custom only this place has, something its people do every day, never through still scenery or stock-style
+     footage (CEO, same night: "เรื่องความเป็นอยู่ของเมืองออกแบบมาให้น่าสนใจมากกว่าที่จะเป็นฉากนิ่งๆ + footage ทั่วไป");
+  4. the antagonist's motive, shown in one act before his big move, so the move is in character;
+  5. why it has to be the hero: the reason nobody else can do the job, planted before it is needed (CEO, same
+     night: "ทำไมต้องเป็นเด็กเท่านั้นที่ขึ้นไปตีระฆัง คนอื่นตีไม่ได้หรอ").
+  Plan these as setup shots in the first act; if one of the five has no shot, the story jumps in too early.
   Evidence: THE LAST BELL v1 opened on the bell, the boat and the Governor with none of the four set up.
 - **Output:** BIBLE.md, SCRIPT.md, beat list. **Gate:** the CEO approves the script.
 

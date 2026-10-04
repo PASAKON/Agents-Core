@@ -21,6 +21,28 @@ Status: plot draft v1 (2026-10-03), not yet a locked script. CEO's words: NOTES.
 Audience verdict on Kaew: brave child → the one who doomed the city → the only one who can speak to the Naga.
 On the Naga: guardian → monster → the city's wall.
 
+## 1b · Setup: what the viewer knows before the storm (CEO 2026-10-04)
+
+The CEO found act A "จู่ๆ ก็เข้าเรื่องเลย": nobody knew who Kaew is, what she is to Yai, what the city is, why the
+Governor acts as he does, or why only Kaew can ring the great bell. Backstory he chose (all four picks the same night):
+
+- **Kaew** is Yai Bua's orphaned granddaughter. Her mother was the city's bell-keeper and is dead. Yai kept the bells
+  before her and still owns the keeper's red-headed mallet, but her legs can no longer climb. Kaew rings the morning
+  bell every day: she is the last keeper (the title).
+- **Why only Kaew:** only a keeper may touch the great bell, because only a keeper knows its one song. When the storm
+  comes, the adults flee on the Governor's barges or onto the roofs, so Kaew is the only keeper left who can climb.
+- **The city:** the founders made a pact with the Naga. Every house hangs its own bell and rings it to answer the
+  keeper's morning bell, "to keep the sea asleep"; a bell is hung for every newborn. The great bell on the chedi is
+  bound in chains and never rung except in the storm of a hundred years.
+- **The Governor** owns the long bridge to the chedi island and charges a toll; the poor pay with their family bells,
+  which his guard drops into a chest. Cutting that bridge in the storm (B04) is the same man.
+
+Setup shots (round 4, free lane): A00a Yai wakes Kaew ("Up, little keeper. Your mother never once rang late."),
+A03c the city answers the morning bell house by house, A09a Mek and Kaew pass the chained great bell ("Only a keeper
+may touch it. It has only one song."), A09b the toll gate ("Please, it's my son's birth bell." / "No coin, no
+crossing. The Governor's bridge."). Act A order: A01, A00a, A03, A04, A03c, A04b, A05, A05b, A06b, A07, A07b, A08,
+A08b, A09a, A09b, then B01.
+
 ## 2 · Look
 
 - **Grade (CEO):** surreal yellow-green. Acid yellow-green sky, chartreuse highlights, deep olive shadows,
