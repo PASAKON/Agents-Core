@@ -2,7 +2,9 @@
 
 **Status:** design only; nothing is built. Written 2026-10-04 by CTO #e106b78b (Contabo).
 **Order:** CEO via COO, 4 Oct ~14:0x TH: "ส่งให้ CTO ออกแบบได้เลย".
-**Review asked of:** MAC CTO #e6754203 (Org Mesh hub; the peer API in §10 is theirs to schedule).
+**Reviewed:** MAC CTO #e6754203 (Org Mesh hub), 2026-10-04: design sound; their 5 points are folded in
+(§5 verifier, §6 registry, §7 headless nodes, §8 audit, ledger key). The P2 peer API (§10) belongs to
+the Console lane (Run Inbox DESIGN, cto-6ebacd0e), not to Org Mesh, and no owner has scheduled it.
 Estimates are marked [E]. Everything else was read from code or logs on 2026-10-04.
 
 ## 1. The problem (measured)
@@ -87,8 +89,15 @@ The verifier needs only public inputs:
 5. sha256(the delivered text) == `text_sha256`.
 6. `session` == this session's id.
 7. Now is before `expires_at` (approval + 5 min).
-8. The card id is not already in this session's consumed ledger. This ledger is the single-use
-   guard. The counter cannot be: synced passkeys report counter 0.
+8. The pair (card id, session id) is not already in the host's consumed ledger. The ledger is the
+   single-use guard, and keying it by session too stops one card replaying into a second session
+   on the same host. The counter cannot be the guard: synced passkeys report counter 0.
+
+**The verifier is stdlib-only and fails closed.** The hook runs in every session on every host,
+and the Mac's system python3 has no `cryptography`; Org Mesh node code is stdlib-only on purpose
+(`tools/node_token.py`). P-256 ECDSA verification is small enough to write in pure Python.
+A header that cannot be verified, for any reason (missing key file, parse error, verifier crash),
+**blocks** the prompt; it never passes.
 
 **What this does not close.** A root process that types plain keystrokes into another pane, with no
 header, looks like the CEO at the keyboard. That is true today without this feature:
@@ -101,9 +110,10 @@ unforgeable; it does not make the keyboard unforgeable.
 - **The target is the 8-hex session id** (`#e106b78b`). Topics, Remote Control refs and tab names
   change; the id survives a launcher resume **only** when `--id <id>` is passed (a known trap in
   `spawn-cto.sh --resume`).
-- **Where the id comes from.** The hub keeps a registry of live sessions, reported by each host's
-  Console (`listSessions`). COO resolves "the Chatudo CTO" to an id from that registry. The card
-  shows id, role and topic, and the CEO sees all three before he scans.
+- **Where the id comes from.** One registry: the hub's existing `c_level_sessions` and `hosts`
+  tables (Postgres, Org Mesh G1). Each host's Console feeds them which sessions are live
+  (`listSessions`); no second registry is built. COO resolves "the Chatudo CTO" to an id from
+  those tables. The card shows id, role and topic, and the CEO sees all three before he scans.
 - **If the id is live on no host** at delivery, the card fails with `target_not_live`. It is never
   re-aimed at another session.
 
@@ -121,6 +131,10 @@ unforgeable; it does not make the keyboard unforgeable.
    it is still there, fail `not_submitted`.
 5. **A session mid-turn** queues the message as its next user turn. That is acceptable.
 
+**Requirement: a prompt without the header is never touched.** The hook ships with the repo, so it
+also runs on headless W4 worker nodes (`hq_join`), where no CEO turn ever lands. There it must be a
+no-op: no header means no check, no block, no log line.
+
 **Header**, one line before the text:
 
     [CEO·FaceID v=1 card=RUN-… proof=state/ceo-say/<card>.json sha=<sha256 of that file>]
@@ -131,11 +145,13 @@ This keeps the typed text short.
 
 ## 8. Audit
 
-- **Hub:** a `run_say_log` row with card id, approver (operator + credential id), approved_at,
-  target host + session, the text, its sha256, delivered_at and the result.
+- **Console DB, next to the card:** a `run_say_log` row with card id, approver (operator +
+  credential id), approved_at, target host + session, the text, its sha256, delivered_at and the
+  result.
 - **Target host:** the hook appends `{card, verified, reason, ts}` to `state/ceo-say-ledger.jsonl`.
   The same file is the replay ledger.
-- **Org event log:** one line per delivery, so it shows in every C-level's "Recent org activity".
+- **Hub `events` table:** one line per delivery. That table is what every C-level's "Recent org
+  activity" reads.
 
 ## 9. Blast radius
 
@@ -164,9 +180,9 @@ every C-level.
 | Phase | What | Where | Who | Effort [E] |
 |---|---|---|---|---|
 | S1 | `say` card kind: create and validate (target, text ≤ 4,000 chars, the existing secret-shape check), the phone view, challenge = card hash, local-host paste executor, `run_say_log` | Console | codex/AGY worker + CTO review | ~1 day, 2 worker runs |
-| S2 | Verify hook, public-key export, ledger, offline tests (ES256 with `cryptography`) | Agents-Core | codex worker | ~0.5 day, 1 run |
+| S2 | Verify hook (stdlib-only P-256, fail-closed), public-key export, ledger, offline tests | Agents-Core | codex worker | ~0.5 day, 1 run |
 | S3 | Contabo live: deploy the Console, turn the hook on, drill (card to a scratch session; a forged header is refused; a replay is refused) | Contabo | CTO | ~2 h |
-| S4 | Mac delivery | Console-Mac | after P2 (Run Inbox §P2); MAC CTO #e6754203 to say who builds it | +0.5 day after P2 |
+| S4 | Mac delivery | Console-Mac | after P2 (Run Inbox §P2, Console lane, no owner yet; see decision 8) | +0.5 day after P2 |
 | S5 | winbox delivery | winbox Console | after P2, **and** winbox C-level sessions must run under the winbox Console's pty (today the CEO launches them at the desk) | +1 day after P2 |
 
 Contabo could use it about **2 days after the CEO's OK** [E], on AGY/codex workers, with no new
@@ -185,3 +201,5 @@ spend. Mac and winbox wait on P2, which nobody has scheduled yet.
    text. **Recommended: yes.**
 6. Order: Contabo first, then Mac and winbox after P2. **Recommended: yes.**
 7. Start building S1–S3 (~2 days, AGY/codex workers, no extra spend). **Recommended: yes.**
+8. P2 (the Mac and winbox executors) has no owner. **Recommended:** the Contabo CTO takes it after
+   S3, because S1–S3 put the same code in that CTO's hands.
