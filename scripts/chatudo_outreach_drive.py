@@ -2,6 +2,9 @@
 """Put the Chatudo outreach tracker (plan O1) on Drive as a Google Sheet, and check what Google computes.
 
   verify FILE_ID   read-only: export the live Sheet, count formula errors, compare its TODAY() with Bangkok's date
+  add-shops FILE_ID CSV [--apply]
+                   preview free shop rows; --apply appends only mapped CSV cells using RAW values,
+                   checks target cells again before writing, then verifies input and formula errors.
   run              ensure PROJECT/CHATUDO/Sales & Outreach (CEO approved 2026-09-28), create the Sheet from a
                    12-row sample build, check Google's values, then replace the content with the empty tracker
                    (same file id, so nothing is deleted) and check again. Refuses if the Sheet already exists.
@@ -21,6 +24,7 @@ can tell only between 00:00 and 14:00 Bangkok, when the two dates differ; outsid
 Auth: the Drive OAuth in ClaudeFlow's .env, through scripts/gdrive-bridge/ilag_sync.py (values never printed).
 Needs openpyxl. Work files go to $CHATUDO_O1_DIR (default: the system temp dir).
 """
+import csv
 import datetime as dt
 import json
 import os
@@ -163,6 +167,13 @@ def day(v):
 
 def main():
     step = sys.argv[1] if len(sys.argv) > 1 else ""
+    if step == "add-shops":
+        args = sys.argv[2:]
+        apply = len(args) == 3 and args[-1] == "--apply"
+        if len(args) != 2 and not apply:
+            raise SystemExit("usage: add-shops FILE_ID CSV [--apply]")
+        add_shops(args[0], args[1], apply=apply)
+        return
     if step == "verify":
         wb = export(sys.argv[2], os.path.join(WORK, "o1-export-verify.xlsx"))
         now_bkk = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=7)
@@ -232,6 +243,72 @@ def user_input(wb):
         found += [f"{sheet.MSG}!{msg.cell(row=r, column=text_col).coordinate}" for r in range(3, msg.max_row + 1)
                   if msg.cell(row=r, column=text_col).value not in (None, "")]
     return found
+
+
+def add_shops(fid, path, apply=False):
+    """Append CSV inputs to existing free rows; all diagnostics exclude cell values."""
+    headers = {head: (sheet.COL[name], kind) for name, head, _width, kind in sheet.SHOP_COLS}
+    with open(path, encoding="utf-8-sig", newline="") as source:
+        reader = csv.reader(source, strict=True)
+        heads = next(reader, [])
+        if not heads or len(set(heads)) != len(heads):
+            raise SystemExit("refusing: missing or duplicate CSV headers")
+        if any(h not in headers or h == "#" or headers[h][1].startswith("formula") for h in heads):
+            raise SystemExit("refusing: unknown or protected CSV header")
+        rows = [[v.strip() for v in row] for row in reader]
+    if not rows or any(len(row) != len(heads) for row in rows):
+        raise SystemExit("refusing: empty CSV or inconsistent row width")
+    cols = [headers[h][0] for h in heads]
+    editable = [sheet.COL[name] for name, _h, _w, kind in sheet.SHOP_COLS
+                if name != "num" and not kind.startswith("formula")]
+    with tempfile.TemporaryDirectory(prefix="o1-add-shops-", dir=WORK) as work:
+        before = export(fid, os.path.join(work, "before.xlsx"))
+        shop = before[sheet.SHOP]
+        targets = [r for r in range(sheet.FIRST, shop.max_row + 1)
+                   if all(shop[f"{c}{r}"].value in (None, "") for c in editable)][:len(rows)]
+        if len(targets) != len(rows):
+            raise SystemExit("refusing: insufficient free rows")
+        print(f"rows={len(rows)} target_rows={','.join(map(str, targets))} columns={','.join(cols)}")
+        if not apply:
+            return
+        data = [{"range": f"'{sheet.SHOP}'!{col}{r}", "values": [[value]]}
+                for r, row in zip(targets, rows) for col, value in zip(cols, row)]
+        base = "https://sheets.googleapis.com/v4/spreadsheets/" + urllib.parse.quote(fid, safe="")
+        query = urllib.parse.urlencode([("ranges", item["range"]) for item in data]
+                                      + [("valueRenderOption", "FORMULA")])
+        current = g.api(base + "/values:batchGet?" + query)
+        ranges = current.get("valueRanges", [])
+        if len(ranges) != len(data) or any(
+                value not in (None, "") for item in ranges
+                for row in item.get("values", []) for value in row):
+            raise SystemExit("refusing: target cells changed or race check incomplete")
+        g.api(base + "/values:batchUpdate", method="POST",
+              data=json.dumps({"valueInputOption": "RAW", "data": data}).encode(),
+              headers={"Content-Type": "application/json"})
+        after = export(fid, os.path.join(work, "after.xlsx"))
+        def normalized(value):
+            return "" if value is None else value
+        mismatches = sum(normalized(after[sheet.SHOP][f"{c}{r}"].value) != value
+                         for r, row in zip(targets, rows) for c, value in zip(cols, row))
+        prefix = sheet.SHOP + "!"
+        new_errors = {e for e in errors(after) if e.startswith(prefix)} - {
+            e for e in errors(before) if e.startswith(prefix)}
+        # Build the expected input state, including old values, without changing the live Sheet.
+        for r, row in zip(targets, rows):
+            for c, value in zip(cols, row):
+                shop[f"{c}{r}"] = value
+        input_changed = set(user_input(after)) != set(user_input(before))
+        def inputs(wb):
+            return {(ws.title, cell.coordinate): cell.value for ws in wb.worksheets
+                    for row in ws.iter_rows() for cell in row
+                    if cell.value not in (None, "") and
+                    (ws.title == sheet.MSG or (ws.title == sheet.SHOP and
+                     cell.column_letter in editable and cell.row >= sheet.FIRST))}
+        input_changed = input_changed or inputs(after) != inputs(before)
+        print(f"verified_cells={len(data)} mismatches={mismatches} new_shop_errors={len(new_errors)} "
+              f"input_changes={int(input_changed)}")
+        if mismatches or new_errors or input_changed:
+            raise SystemExit("post-write verification FAILED; writes were submitted")
 
 
 def update(fid, messages=None):
