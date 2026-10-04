@@ -261,6 +261,23 @@ The table above is the design of 2026-09-28. These moves change it:
    until `leave` runs, as a stolen client secret could; `leave` now needs one
    DB write, not a call to Infisical.
 
+   **Decided for CEO 2026-10-04** (his standing order of that day: "decide what
+   the owning C-level can decide, don't stop to ask", relayed by the COO). Both
+   are logged to the COO.
+   - **1a: rotate the token after every live leave.** A node that left still
+     holds a working bearer token for the CEO's Claude account, and the token
+     is shared by every node. `leave --live` prints the rotation as required.
+     The new token is a secret step, so the CTO raises a Run card for the CEO
+     at once. The leave counts as finished only when the old token is revoked.
+   - **2a: the service listens on port 792, not 8792.** The answer is sealed,
+     not signed, so a process that binds the port while the service is down
+     can answer a node with a token of its own. Contabo has
+     `ip_unprivileged_port_start = 1024`, so below 1024 only root (or
+     CAP_NET_BIND_SERVICE) can take the port. The service keeps that one
+     capability through `setpriv --ambient-caps`, measured on Contabo under
+     NoNewPrivileges. Root on the hub can still do it; signing would close
+     that and is not built.
+
 Also ruled on 2026-09-28: the mesh probes commit to Agents-Core itself (only
 `docs/ops/mesh-probe/<from>-<to>.md`, prefix `mesh-probe:`), and a new
 machine signs in to claude with a long-lived token from `claude setup-token`
