@@ -177,3 +177,13 @@ coil written as a ring around the outer edge, one-wearer costume limits, the Nag
 The CEO asked whether story and dialogue follow the skills and approved overnight A/B tests. The story gate had
 been skipped; the audit, the v2 changes inside the approved spine, the quiet-tail rule and the duplicate fix are in
 `STORY-V2.md` (audits: `STORY-AUDIT-2026-10-04.md`, `DUPLICATE-LESSONS-2026-10-04.md`). Round 2 = 30 free-lane jobs.
+
+## Decided for CEO, 2026-10-04 13:1x (standing order relayed by the COO: decide what you can, leave money, secrets, deletion and outsiders to him)
+
+- Keep generating on the free champa lane — because it costs nothing and the CEO approved overnight A/B tests.
+- Story v2 — because it fixes the plot holes in STORY-AUDIT; the v1 takes stay, so a mix is still possible.
+- B06 soaked — because the new bridge B05b brings Kaew in from the storm.
+- E04 mallet dark wood with red thread — because that is the prop sheet every other shot uses.
+- E10 bell state: no change — because E10 is an aerial shot where the bell is not readable.
+- Real-ESRGAN deferred to the edit stage — because the download was refused by the auto-mode classifier on 10-03; it needs the CEO's own one-line OK.
+- Still the CEO's: Drive All Scene/S1–S5 + upload (recommend yes, locked takes only, md5 + logs.txt); 1080p test at 106 credits (recommend no until picture lock, then one shot against a Real-ESRGAN upscale).
