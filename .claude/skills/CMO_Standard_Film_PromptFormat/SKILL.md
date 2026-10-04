@@ -107,10 +107,24 @@ One file = one shot that can actually be fired; never two timelines in one block
     at the camera, speaks to someone off-screen ahead, leaps FORWARD away from the camera" she faced out, spoke
     over her shoulder and leapt forward (one frame still glanced at the camera).
 
+13. **The last 3 seconds of every clip are a quiet tail** [ANY] (CEO ruling 2026-10-04, after Yai's hum in THE LAST
+    BELL A05 was cut off by the end of the 15 s clip; his words: *"เว้นว่างช่วง 3 ท้าย ต้องไม่มีเสียงพูดหรือเหตุการณ์สำคัญ
+    เวลาตัดต่อจะได้ทำง่าย … ไม่ใช่แค่ใช้กับเพลง ใช้กับทุกๆ อย่างเลย"*). Every spoken line, song, hum and story-carrying action
+    ends by clip length − 3 s (12 s on a 15 s clip). The last beat is a hold, written as
+    `[12s] Hold: everyone stays where they are, no speech, no singing, no new action; only <the ambient sound>.`, and
+    the negatives carry `nothing new starts after 12 seconds`. A song or speech longer than one clip is split into
+    whole phrases, one block per clip, each ending before its tail; the next clip continues from the previous clip's
+    last frames, given as its final references (THE LAST BELL D05 continues D04 this way; first result pending on
+    2026-10-04), and the editor joins them with a jump cut or a cut-away (B-roll, a parallel scene). Why: the engine ends a clip wherever its length falls, so a line still
+    running at 15 s is lost, and a new generation never resumes the same melody or sentence. Check after the render:
+    the `tail_voice` column of `tools/shortmovie_qc.py stage1` must be empty (it caught A05's hum at 12.5–13.4 s,
+    E03's line at 11.9–14.8 s and E04's lullaby running to 14.2 s; it stayed empty on music-only clips).
+
 ## 4 · Before handing a block over: 60 seconds
 
 Read the block top to bottom once and ask: does any line describe what this block forbids? Is every
-reference declared once, with its own job? Do the negatives contradict the body? Then:
+reference declared once, with its own job? Do the negatives contradict the body? Does every voice and every
+story beat end 3 s before the clip does, with a hold as the last beat (rule 13)? Then:
 
 ```bash
 grep -nE '⚠️|✅|\(CE[OT]|\(CTO|20[0-9]{2}-[0-9]{2}|take [0-9]|GH #|\.md|\.txt|\.MP4|\.png|chip|plate|Elements panel|UUID|paste|operator|spoken words|Fire |Cuts against|as S[0-9]' <paste.txt>
@@ -128,3 +142,4 @@ A new film copies build.py and CAST.md first (`CMO_Knowledge_Film_Production` §
 ## Field notes
 - 2026-09-27 [WRONG] §3 rule 2 (as applied in MASTER-PROMPT-cinematic v1) — v1 told the writer to cite references by upload order on positional engines (`@Image 1 — ANA: ...`). CEO ruling, verbatim: "อันนี้ผิดนะ ต้องใช้ @ANA @MEN ... ต้องเป็นแบบนี้ `@ANA — ANA: face, build and pajamas only; ignore the background.`" The reference line is always `@<the registry TAG> — <NAME>: <what to take>; <what to ignore>.` on every engine; never `@Image N`. Master prompt v1.1 fixed (E8 + self-check) (a CEO ruling, so promoted at once) · evidence: docs/prompts/MASTER-PROMPT-cinematic.md v1.1, fc82e003 · status: promoted
 - 2026-10-01 [MISSING] §3 - name a prop's colour in EVERY shot that shows it, not only in the first: EP1 S14 and S16 said 'pink towel' and came out pink, S17 said 'the towel' and came out beige; the re-fire with 'the same pink towel' came out pink (15 credits at 720p). n=1 · evidence: EP1 sheet S17 before/after 9dfceacb, rs1.tsv · status: pending
+- 2026-10-04 [MISSING] §3 rule 13 — no rule kept the end of a clip free: A05's song, E03's line and E04's lullaby all ran into the last 3 s of their 15 s clips and were cut. CEO ruling (verbatim in rule 13), so promoted at once · evidence: THE LAST BELL `lb_out/qc/stage1-v2.tsv` tail_voice column, session cto-671f688f · status: promoted
