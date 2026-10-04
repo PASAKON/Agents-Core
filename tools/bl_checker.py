@@ -17,7 +17,7 @@ plate this checker judges are one rectangle. Section 7 below.
 
 Usage:
     python3 tools/bl_checker.py --video final.mp4 --beats beats.json \
-        [--face-box x,y,w,h] [--composition cut/index.html]
+        [--face-box x,y,w,h | --per-take-face-boxes] [--composition cut/index.html]
 """
 from __future__ import annotations
 
@@ -279,35 +279,151 @@ def check_credit_missing(beats: list[dict]) -> list[str]:
 #    apply to every mode with a caption, not just FF.
 # ═══════════════════════════════════════════════════════════════════════════
 
-def caption_band(mode: str, canvas_h: int = CANVAS_H) -> tuple[float, float] | None:
+# ── COMP captions sit ABOVE the avatar's head (task-f35f2935, CMO) ──
+# The composite avatar fills the lower 56% of the frame, so a pill at 1300 covers its face. A COMP beat's caption
+# now sits above the head instead: its bottom edge CAP_HEAD_GAP px above the highest row the take's matte ever shows
+# under a COMP beat, so the centre is head_top - CAP_HEAD_GAP - CAP_PILL_HALF_H. FF, EVID and KIN keep the one
+# CAPLAYER_TOP band. The numbers are measured by tools/bl_face_box.py (docs/reports/task-f35f2935/head-top.json is its
+# output) and pinned to that file by tests/test_bl_face_box.py; the beat carries the centre in `extra.cap_cy`.
+CAPLAYER_TOP = 1300          # `.caplayer { top: 1300px }` -- where a caption centres when the beat says nothing else
+CAP_PILL_HALF_H = 82         # a two-line pill is 164 px (2 x 61.44 line + 2 x 20 padding, measured ~164); one line is ~101
+CAP_HEAD_GAP = 24            # px between the pill's bottom edge and the head's top
+# Where each lipsync take's seat starts on the episode clock -- build_cut.py's pick_lip() thresholds.
+LIP_SEATS = (("lip_a", 0.0), ("lip_b", 38.77), ("lip_c", 80.84))
+# Per take, from the matte frames a COMP/FF beat can actually show (USED_RANGES in tools/bl_face_box.py): the head's
+# top row (canvas y, scale .56), the caption centre it fixes, and the head + neck + shoulder box the gate judges --
+# comp_box at .56 (x, y, w, h), ff_box at 1:1 (the full-frame clip). chin_row 1100 source px, below every chin seen.
+COMP_TAKES: dict[str, dict] = {
+    "lip_a": {"head_top": 903.04, "cy": 797, "comp_box": (-25, 903, 573, 559), "ff_box": (21, 104, 1021, 997)},
+    "lip_b": {"head_top": 968.56, "cy": 862, "comp_box": (-7, 968, 576, 494), "ff_box": (54, 221, 1026, 880)},
+    "lip_c": {"head_top": 999.92, "cy": 893, "comp_box": (48, 999, 416, 463), "ff_box": (151, 277, 742, 824)},
+}
+
+
+def lip_take(t: float) -> str:
+    """The lipsync take a beat starting at episode time `t` plays (the last seat that has begun)."""
+    name = LIP_SEATS[0][0]
+    for seat, start in LIP_SEATS:
+        if t >= start - 1e-9:
+            name = seat
+    return name
+
+
+def comp_caption_cy(take: str) -> int:
+    """The caption centre y for a COMP beat on `take`: head top - 24 - 82, rounded down so the gap is never less."""
+    return math.floor(COMP_TAKES[take]["head_top"] - CAP_HEAD_GAP - CAP_PILL_HALF_H)
+
+
+def take_face_boxes() -> dict[str, dict[str, tuple[float, float, float, float]]]:
+    """{take: {"FF": box, "COMP": box}} -- what `check_text_over_face(take_boxes=...)` takes."""
+    return {take: {"FF": t["ff_box"], "COMP": t["comp_box"]} for take, t in COMP_TAKES.items()}
+
+
+def caption_band(mode: str, canvas_h: int = CANVAS_H, cy: float | None = None) -> tuple[float, float] | None:
+    """The y range a mode's caption pill can cover. FF/COMP default to the band round CAPLAYER_TOP; a COMP beat that
+    names its centre (`cy`, the beat's `extra.cap_cy`) is judged where it actually sits."""
+    if mode == "COMP" and cy is not None:
+        return cy - CAP_PILL_HALF_H, cy + CAP_PILL_HALF_H
     if mode in ("FF", "COMP"):
         return 0.62 * canvas_h, 0.72 * canvas_h
     return None
 
 
+def _beat_face_box(beat: dict, face_box, take_boxes):
+    """The face box a FF/COMP beat is judged against: its take's own box for its own mode, or the one `face_box`."""
+    if take_boxes is None:
+        return face_box
+    take = lip_take(beat["t0"])
+    try:
+        return take_boxes[take][beat["mode"]]
+    except KeyError:
+        raise ValueError(f"no {beat['mode']} face box for take {take!r} (beat {beat['tag']!r} at {beat['t0']}s)") from None
+
+
 def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float, float] | None,
-                          headline: dict | None = None) -> list[str]:
+                          headline: dict | None = None,
+                          take_boxes: dict[str, dict[str, tuple[float, float, float, float]]] | None = None) -> list[str]:
     """Arm A (`headline` given): the plate is text on every frame, so every FF/COMP beat -- the ones with a face in
-    them -- is also flagged when the plate's text rectangle meets the face box, caption or not."""
-    if face_box is None:
+    them -- is also flagged when the plate's text rectangle meets the face box, caption or not.
+
+    `take_boxes` ({take: {"FF": box, "COMP": box}}, see take_face_boxes()) judges each beat against the box of the
+    take it plays and of its own mode, instead of one `face_box` for the whole cut; without it `face_box` is used
+    as it always was (None = nothing to judge)."""
+    if face_box is None and take_boxes is None:
         return []
-    fx, fy, fw, fh = face_box
-    plate_hits_face = headline is not None and _rects_overlap(headline_layout(headline)["text"], face_box)
+    plate = headline_layout(headline)["text"] if headline is not None else None
     bad = []
     for b in beats:
         if b.get("mode") not in ("FF", "COMP"):
             continue
-        if plate_hits_face:
+        box = _beat_face_box(b, face_box, take_boxes)
+        fx, fy, fw, fh = box
+        if plate is not None and _rects_overlap(plate, box):
             bad.append(b["tag"])
             continue
-        if not (b.get("extra") or {}).get("cap"):
+        extra = b.get("extra") or {}
+        if not extra.get("cap"):
             continue
-        band = caption_band(b["mode"])
+        band = caption_band(b["mode"], cy=extra.get("cap_cy"))
         if band is None:
             continue
         y0, y1 = band
         if y1 >= fy and y0 <= fy + fh:
             bad.append(b["tag"])
+    return bad
+
+
+def face_box_beats(beats: list[dict], take_boxes: dict[str, dict[str, tuple[float, float, float, float]]]) -> dict:
+    """{take: {mode: {"box": [x, y, w, h], "beats": [tag, ...]}}} for every FF/COMP beat -- which beats each face box
+    was judged against, so the verdict can be read back beat by beat."""
+    out: dict[str, dict[str, dict]] = {}
+    for b in sorted(beats, key=lambda b: b["t0"]):
+        if b.get("mode") not in ("FF", "COMP"):
+            continue
+        box = _beat_face_box(b, None, take_boxes)
+        slot = out.setdefault(lip_take(b["t0"]), {}).setdefault(b["mode"], {"box": list(box), "beats": []})
+        slot["beats"].append(b["tag"])
+    return out
+
+
+# The evidence a COMP beat points at must land BETWEEN what is above it and the caption pill below it. Arm B: under the
+# brand mark (bug_zone("right"), y to 460.8). Arm A: under the plate, its date stamp and the scrim's fade --
+# prototypes/bl-ep58/armA/render_window.py STAMP_TOP 484, SCRIM_END 560. Below: the pill's top edge, less the
+# spotlight's own 5 px border (10 px of outer size) and a 12 px gap.
+ARM_A_EVIDENCE_TOP = 560
+SPOTLIGHT_BORDER_PX = 10
+EVIDENCE_PILL_GAP = 12
+
+
+def evidence_region(take: str, headline: dict | None = None, cy: float | None = None) -> tuple[float, float]:
+    """(top, bottom) of the canvas band a COMP beat's evidence box may occupy on `take`; `cy` = the pill centre."""
+    if headline is None:
+        zx, zy, zw, zh = bug_zone("right")
+        top = zy + zh
+    else:
+        top = float(ARM_A_EVIDENCE_TOP)
+    pill_top = (comp_caption_cy(take) if cy is None else cy) - CAP_PILL_HALF_H
+    return top, pill_top - EVIDENCE_PILL_GAP - SPOTLIGHT_BORDER_PX
+
+
+def check_comp_evidence_landing(beats: list[dict], headline: dict | None = None) -> list[str]:
+    """COMP beats whose evidence box (placed_box -- the `shift` counted) does not land inside evidence_region() of the
+    take it plays: `<tag>:above_region` (under the brand mark / plate), `<tag>:in_caption` (reaches the pill). A beat
+    with no `box` points at nothing and is not judged. The region's bottom is the beat's own `cap_cy` when it names
+    one, else the take's centre, so a pill moved UP also pulls the evidence's limit up with it."""
+    bad = []
+    for b in beats:
+        if b.get("mode") != "COMP":
+            continue
+        box = placed_box(b)
+        if box is None:
+            continue
+        x, y, w, h = box
+        top, bottom = evidence_region(lip_take(b["t0"]), headline, (b.get("extra") or {}).get("cap_cy"))
+        if y < top - 0.5:
+            bad.append(f"{b['tag']}:above_region")
+        if y + h > bottom + 0.5:
+            bad.append(f"{b['tag']}:in_caption")
     return bad
 
 
@@ -904,18 +1020,21 @@ def excuse_kin_entry(video_path: Path, empty_times: list[float], beats: list[dic
 # ═══════════════════════════════════════════════════════════════════════════
 
 def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, float, float, float] | None = None,
-                 composition_html: str | None = None, headline: dict | None = None) -> dict:
+                 composition_html: str | None = None, headline: dict | None = None,
+                 take_boxes: dict[str, dict[str, tuple[float, float, float, float]]] | None = None) -> dict:
     """`headline` (a parsed arm-A headline) switches on the arm-A mask and the plate checks and adds a "headline"
     key to the verdict, and makes the brand-mark gate read the left bug. `empty_frames` is what is left after the
     KIN-entry grace (section 9); the excused frames are listed under `empty_frames_excused`, and `brand_mark` is
-    section 8's verdict."""
+    section 8's verdict. `take_boxes` (take_face_boxes()) judges text_over_face per take and adds `face_box_beats`,
+    the beats each take's box was judged against; `comp_evidence_landing` is section 3's evidence-region gate."""
     side = headline["bug_side"] if headline is not None else "right"
     mark_levels = brand_mark_levels(video_path, side)
     empty, empty_excused = excuse_kin_entry(
         video_path, detect_empty_frames(video_path, **arm_mask_kwargs(headline)), beats, side, levels=mark_levels)
     brand_mark = check_brand_mark(video_path, side, levels=mark_levels)
     unsafe = check_out_of_safe_area(beats)
-    text_over = check_text_over_face(beats, face_box, headline)
+    text_over = check_text_over_face(beats, face_box, headline, take_boxes)
+    landing_bad = check_comp_evidence_landing(beats, headline)
     credit_bad = check_credit_missing(beats)
     caption_styles_bad = check_one_caption_style(composition_html)
     kinetic_overflow_bad = check_kinetic_overflow(composition_html)
@@ -925,12 +1044,13 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
         if composition_html:
             headline_bad += check_headline_plate(headline, composition_html)
     result = {
-        "pass": not (empty or unsafe or text_over or credit_bad or caption_styles_bad or kinetic_overflow_bad
-                      or headline_bad or not brand_mark["ok"]),
+        "pass": not (empty or unsafe or text_over or landing_bad or credit_bad or caption_styles_bad
+                      or kinetic_overflow_bad or headline_bad or not brand_mark["ok"]),
         "empty_frames": empty,
         "empty_frames_excused": empty_excused,
         "out_of_safe_area": unsafe,
         "text_over_face": text_over,
+        "comp_evidence_landing": landing_bad,
         "credit_missing": credit_bad,
         "extra_caption_styles": caption_styles_bad,
         "kinetic_overflow": kinetic_overflow_bad,
@@ -938,6 +1058,8 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
     }
     if headline is not None:
         result["headline"] = headline_bad
+    if take_boxes is not None:
+        result["face_box_beats"] = face_box_beats(beats, take_boxes)
     return result
 
 
@@ -953,6 +1075,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--video", required=True)
     ap.add_argument("--beats", required=True)
     ap.add_argument("--face-box", default=None, help="x,y,w,h in canvas px")
+    ap.add_argument("--per-take-face-boxes", action="store_true",
+                    help="judge text_over_face per lipsync take with COMP_TAKES' head + neck + shoulder boxes "
+                         "(FF at 1:1, COMP at the template's 56%%) instead of one --face-box")
     ap.add_argument("--composition", default=None, help="the composed index.html (for the one-caption-style gate)")
     ap.add_argument("--out", default=None, help="write the result JSON here too")
     return ap
@@ -966,7 +1091,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {e}", file=sys.stderr)
         return 2
     composition_html = Path(args.composition).read_text(encoding="utf-8") if args.composition else None
-    result = run_checker(Path(args.video), beats, parse_box(args.face_box), composition_html, headline)
+    try:
+        result = run_checker(Path(args.video), beats, parse_box(args.face_box), composition_html, headline,
+                             take_face_boxes() if args.per_take_face_boxes else None)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
     text = json.dumps(result, indent=2, ensure_ascii=False)
     print(text)
     if args.out:

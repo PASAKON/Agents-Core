@@ -1,0 +1,137 @@
+{
+  "geometry": {
+    "scale": 0.56,
+    "translate_x": -0.06,
+    "left": 0.0,
+    "bottom": 0.0
+  },
+  "chin_row": 1100,
+  "fps": 30,
+  "chin_verified": false,
+  "note": "A supplied bound still requires visual review across every relevant frame.",
+  "takes": {
+    "lip_a": {
+      "used": {
+        "range": [
+          0.0,
+          15.95
+        ],
+        "frames": 479,
+        "top": 104,
+        "top_at": 0.0,
+        "min_top_0_5s": 104,
+        "source_bounds": [
+          21,
+          104,
+          1042,
+          1101
+        ],
+        "canvas_top": 903.04,
+        "comp_box": [
+          -25,
+          903,
+          573,
+          559
+        ],
+        "ff_box": [
+          21,
+          104,
+          1021,
+          997
+        ]
+      },
+      "whole_take": {
+        "range": [
+          0.0,
+          15.95
+        ],
+        "frames": 479,
+        "top": 104,
+        "top_at": 0.0,
+        "canvas_top": 903.04
+      }
+    },
+    "lip_b": {
+      "used": {
+        "range": [
+          0.5,
+          17.15
+        ],
+        "frames": 500,
+        "top": 221,
+        "top_at": 0.5,
+        "min_top_0_5s": 221,
+        "source_bounds": [
+          54,
+          221,
+          1080,
+          1101
+        ],
+        "canvas_top": 968.56,
+        "comp_box": [
+          -7,
+          968,
+          576,
+          494
+        ],
+        "ff_box": [
+          54,
+          221,
+          1026,
+          880
+        ]
+      },
+      "whole_take": {
+        "range": [
+          0.0,
+          17.15
+        ],
+        "frames": 515,
+        "top": 104,
+        "top_at": 0.0,
+        "canvas_top": 903.04
+      }
+    },
+    "lip_c": {
+      "used": {
+        "range": [
+          7.8,
+          14.25
+        ],
+        "frames": 194,
+        "top": 277,
+        "top_at": 8.2333,
+        "min_top_0_5s": 278,
+        "source_bounds": [
+          151,
+          277,
+          893,
+          1101
+        ],
+        "canvas_top": 999.92,
+        "comp_box": [
+          48,
+          999,
+          416,
+          463
+        ],
+        "ff_box": [
+          151,
+          277,
+          742,
+          824
+        ]
+      },
+      "whole_take": {
+        "range": [
+          0.0,
+          14.25
+        ],
+        "frames": 428,
+        "top": 104,
+        "top_at": 0.0,
+        "canvas_top": 903.04
+      }
+    }
+  }
+}
