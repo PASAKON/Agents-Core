@@ -1146,3 +1146,44 @@ def test_kin_grace_reads_the_mark_on_the_side_the_arm_uses(tmp_path):
     assert left == [] and len(excused) == 2
     right, excused = ck.excuse_kin_entry(video, [1.0, 1.033], [_kin()], "right")
     assert right == [1.0, 1.033] and excused == []
+
+
+# ───────── the EP58 cuts themselves (task-f35f2935): both beats.json files satisfy the new gates ─────────
+
+EP58 = Path(__file__).resolve().parents[1] / "prototypes" / "bl-ep58"
+EP58_ARMS = (("arm B", EP58 / "beats.json"), ("arm A", EP58 / "armA" / "beats.json"))
+
+
+def _ep58(path):
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(doc, dict):
+        return doc["beats"], ck.parse_headline(doc["headline"])
+    return doc, None
+
+
+@pytest.mark.parametrize("arm,path", EP58_ARMS)
+def test_ep58_every_captioned_comp_beat_carries_its_takes_pill_centre(arm, path):
+    beats, _ = _ep58(path)
+    comp = [b for b in beats if b["mode"] == "COMP" and b["extra"].get("cap")]
+    assert comp, arm
+    for b in comp:
+        assert b["extra"].get("cap_cy") == ck.COMP_TAKES[ck.lip_take(b["t0"])]["cy"], (arm, b["tag"])
+    # FF / EVID / KIN pills stay at the .caplayer's own 1300
+    assert not [b["tag"] for b in beats if b["mode"] != "COMP" and "cap_cy" in b.get("extra", {})]
+
+
+@pytest.mark.parametrize("arm,path", EP58_ARMS)
+def test_ep58_comp_evidence_lands_and_no_caption_touches_a_face(arm, path):
+    beats, headline = _ep58(path)
+    assert ck.check_comp_evidence_landing(beats, headline) == []
+    assert ck.check_text_over_face(beats, None, headline, take_boxes=ck.take_face_boxes()) == []
+
+
+def test_ep58_the_two_arms_share_every_comp_box_they_both_have():
+    b_beats, _ = _ep58(EP58_ARMS[0][1])
+    a_beats, _ = _ep58(EP58_ARMS[1][1])
+    a = {x["tag"]: x["extra"] for x in a_beats if x["mode"] == "COMP"}
+    shared = [(x["tag"], x["extra"]) for x in b_beats if x["mode"] == "COMP" and x["tag"] in a and "box" in x["extra"] and "box" in a[x["tag"]]]
+    assert len(shared) >= 10
+    for tag, ex in shared:
+        assert ex["box"] == a[tag]["box"] and ex.get("img") == a[tag].get("img"), tag
