@@ -223,6 +223,124 @@ def test_check_text_over_face_no_overlap_when_face_box_elsewhere():
     assert ck.check_text_over_face(beats, face_box) == []
 
 
+# ── COMP captions above the head: per-take face boxes, the beat's own cap_cy, the evidence region (task-f35f2935) ──
+
+def _comp(tag, t0, box=None, shift=0, cap="Caption", cy=None):
+    extra = {"cap": cap}
+    if box is not None:
+        extra.update({"img": "real/x.png", "box": box, "shift": shift})
+    if cy is not None:
+        extra["cap_cy"] = cy
+    return {"tag": tag, "t0": t0, "t1": t0 + 2.0, "mode": "COMP", "extra": extra}
+
+
+def test_lip_take_follows_the_generators_seat_thresholds():
+    assert [ck.lip_take(t) for t in (0.0, 38.76, 38.77, 80.83, 80.84, 95.0)] == \
+        ["lip_a", "lip_a", "lip_b", "lip_b", "lip_c", "lip_c"]
+
+
+def test_comp_caption_centre_is_head_top_minus_the_gap_and_half_a_pill_for_all_three_takes():
+    assert {t: ck.comp_caption_cy(t) for t in ck.COMP_TAKES} == {"lip_a": 797, "lip_b": 862, "lip_c": 893}
+    for take, row in ck.COMP_TAKES.items():
+        cy = ck.comp_caption_cy(take)
+        assert cy + ck.CAP_PILL_HALF_H <= row["head_top"] - ck.CAP_HEAD_GAP          # the pill ends 24 px above the head
+        assert cy + 1 + ck.CAP_PILL_HALF_H > row["head_top"] - ck.CAP_HEAD_GAP       # and not a pixel higher than it must
+
+
+def test_caption_band_comp_with_a_centre_is_the_pill_there_and_without_one_is_the_old_band():
+    assert ck.caption_band("COMP", cy=797) == (715, 879)
+    assert ck.caption_band("COMP") == ck.caption_band("FF") == (0.62 * ck.CANVAS_H, 0.72 * ck.CANVAS_H)
+    assert ck.caption_band("FF", cy=797) == ck.caption_band("FF")                       # only COMP moves
+    assert ck.caption_band("EVID", cy=797) is None and ck.caption_band("KIN") is None
+
+
+def test_text_over_face_per_take_passes_a_comp_pill_above_the_head_and_fails_the_one_on_the_face():
+    boxes = ck.take_face_boxes()
+    for t0, take in ((1.0, "lip_a"), (40.0, "lip_b"), (90.0, "lip_c")):
+        above = [_comp("C", t0, cy=ck.comp_caption_cy(take))]
+        assert ck.check_text_over_face(above, None, take_boxes=boxes) == [], take
+        assert ck.check_text_over_face([_comp("C", t0)], None, take_boxes=boxes) == ["C"], take       # still at 1300
+        slack = [_comp("C", t0, cy=ck.comp_caption_cy(take) + ck.CAP_HEAD_GAP - 1)]                   # 1 px short of the head
+        assert ck.check_text_over_face(slack, None, take_boxes=boxes) == [], take
+        touching = [_comp("C", t0, cy=ck.comp_caption_cy(take) + ck.CAP_HEAD_GAP)]                    # the pill meets the head
+        assert ck.check_text_over_face(touching, None, take_boxes=boxes) == ["C"], take
+
+
+def test_text_over_face_per_take_uses_the_beats_own_take_and_mode():
+    boxes = ck.take_face_boxes()
+    # lip_a's pill centre (797) is far above lip_c's head, but lip_c's own centre is 893: 797 is safe there too ...
+    assert ck.check_text_over_face([_comp("C", 90.0, cy=797)], None, take_boxes=boxes) == []
+    # ... and lip_c's centre (893) on a lip_a beat reaches 975, over lip_a's head (top 903)
+    assert ck.check_text_over_face([_comp("C", 1.0, cy=893)], None, take_boxes=boxes) == ["C"]
+    # an FF beat is judged against the FF box at 1:1 (head to y 1101), whose caption band is the standing one
+    ff = {"tag": "F", "t0": 90.0, "t1": 92.0, "mode": "FF", "extra": {"cap": "x"}}
+    assert ck.check_text_over_face([ff], None, take_boxes=boxes) == []
+    assert ck.check_text_over_face([ff], None, take_boxes={"lip_c": {"FF": (0, 1000, 1080, 600), "COMP": (0, 0, 1, 1)}}) == ["F"]
+
+
+def test_text_over_face_per_take_refuses_a_take_with_no_box():
+    with pytest.raises(ValueError, match="no COMP face box for take 'lip_b'"):
+        ck.check_text_over_face([_comp("C", 40.0, cy=862)], None, take_boxes={"lip_a": {"FF": (0, 0, 1, 1), "COMP": (0, 0, 1, 1)}})
+
+
+def test_face_box_beats_lists_the_beats_each_take_box_was_judged_against():
+    beats = [_comp("A1", 1.0), _comp("A2", 5.0), _comp("B1", 40.0),
+             {"tag": "F1", "t0": 90.0, "t1": 92.0, "mode": "FF", "extra": {}}, _evid("E1", [0, 0, 10, 10])]
+    got = ck.face_box_beats(beats, ck.take_face_boxes())
+    assert got == {"lip_a": {"COMP": {"box": list(ck.COMP_TAKES["lip_a"]["comp_box"]), "beats": ["A1", "A2"]}},
+                   "lip_b": {"COMP": {"box": list(ck.COMP_TAKES["lip_b"]["comp_box"]), "beats": ["B1"]}},
+                   "lip_c": {"FF": {"box": list(ck.COMP_TAKES["lip_c"]["ff_box"]), "beats": ["F1"]}}}
+
+
+def test_evidence_region_arm_b_runs_from_under_the_bug_to_above_the_pill_arm_a_starts_lower():
+    assert ck.evidence_region("lip_a") == (pytest.approx(460.8), 797 - 82 - 12 - 10)       # 693
+    assert ck.evidence_region("lip_b")[1] == 862 - 82 - 12 - 10
+    assert ck.evidence_region("lip_c", _parsed())[0] == ck.ARM_A_EVIDENCE_TOP == 560
+    assert ck.evidence_region("lip_a", cy=700)[1] == 700 - 82 - 12 - 10
+
+
+def test_comp_evidence_landing_counts_the_shift_and_names_which_edge_missed():
+    top, bottom = ck.evidence_region("lip_a")
+    fits = _comp("FIT", 9.0, box=[54, 500, 972, 150], shift=0, cy=797)
+    assert ck.check_comp_evidence_landing([fits]) == []
+    # the same box shifted down 60 (negative shift lowers the still) reaches 650+60 = 710 > 693 -> in the pill
+    low = _comp("LOW", 9.0, box=[54, 500, 972, 150], shift=-60, cy=797)
+    assert ck.check_comp_evidence_landing([low]) == ["LOW:in_caption"]
+    # lifted 100 it starts at 400, under the brand mark's 460.8
+    high = _comp("HIGH", 9.0, box=[54, 500, 972, 150], shift=100, cy=797)
+    assert ck.check_comp_evidence_landing([high]) == ["HIGH:above_region"]
+    assert top < 500 and 500 + 150 <= bottom
+    # exactly on the limits passes
+    edge = _comp("EDGE", 9.0, box=[54, 461, 972, bottom - 461], cy=797)
+    assert ck.check_comp_evidence_landing([edge]) == []
+
+
+def test_comp_evidence_landing_arm_a_limit_is_below_the_stamp_and_scrim():
+    beat = _comp("A", 9.0, box=[54, 520, 972, 100], cy=797)
+    assert ck.check_comp_evidence_landing([beat]) == []                                   # arm B: starts under 460.8
+    assert ck.check_comp_evidence_landing([beat], _parsed()) == ["A:above_region"]        # arm A: 520 < 560
+
+
+def test_comp_evidence_landing_skips_evid_and_a_comp_with_no_box():
+    beats = [_evid("EVID-1", [54, 100, 972, 1500]), _comp("NOBOX", 9.0, cy=797)]
+    assert ck.check_comp_evidence_landing(beats) == []
+
+
+def test_comp_evidence_landing_follows_a_pill_moved_up():
+    beat = _comp("UP", 9.0, box=[54, 500, 972, 150], cy=700)      # pill top 618: 650 + 22 > 618
+    assert ck.check_comp_evidence_landing([beat]) == ["UP:in_caption"]
+
+
+def test_run_checker_per_take_boxes_fail_a_comp_pill_on_the_face_and_report_the_beats(tmp_path):
+    video = _clean_video(tmp_path / "clean.mp4")
+    ok = ck.run_checker(video, [_comp("C", 1.0, box=[54, 500, 972, 150], cy=797)], take_boxes=ck.take_face_boxes())
+    assert ok["pass"] is True and ok["text_over_face"] == [] and ok["comp_evidence_landing"] == []
+    assert ok["face_box_beats"]["lip_a"]["COMP"]["beats"] == ["C"]
+    bad = ck.run_checker(video, [_comp("C", 1.0, box=[54, 500, 972, 150])], take_boxes=ck.take_face_boxes())
+    assert bad["pass"] is False and bad["text_over_face"] == ["C"]
+    assert "face_box_beats" not in ck.run_checker(video, [], face_box=None)
+
+
 # ─────────────────────── 4. one caption style per episode ────────────────
 
 def test_caption_style_signatures_new_generator_is_always_one_style():
@@ -374,7 +492,7 @@ def test_run_checker_pass_true_when_everything_clean(tmp_path):
     assert result["brand_mark"]["ok"] is True and result["brand_mark"]["failing_frames"] == 0
     assert {k: v for k, v in result.items() if k != "brand_mark"} == {
         "pass": True, "empty_frames": [], "empty_frames_excused": [], "out_of_safe_area": [], "text_over_face": [],
-        "credit_missing": [], "extra_caption_styles": [], "kinetic_overflow": []}
+        "comp_evidence_landing": [], "credit_missing": [], "extra_caption_styles": [], "kinetic_overflow": []}
 
 
 def test_run_checker_pass_false_when_safe_area_fails(tmp_path):
@@ -784,7 +902,8 @@ def test_run_checker_arm_a_clean_video_and_html_passes(tmp_path):
     assert result["pass"] is True and result["headline"] == []
     assert result["brand_mark"]["side"] == "left"
     assert set(result) == {"pass", "empty_frames", "empty_frames_excused", "out_of_safe_area", "text_over_face",
-                           "credit_missing", "extra_caption_styles", "kinetic_overflow", "brand_mark", "headline"}
+                           "comp_evidence_landing", "credit_missing", "extra_caption_styles", "kinetic_overflow",
+                           "brand_mark", "headline"}
 
 
 def test_run_checker_arm_a_fails_on_a_plate_geometry_problem(tmp_path):

@@ -104,6 +104,7 @@ import argparse
 import ast
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
@@ -115,8 +116,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from tools.bl_checker import (  # noqa: E402  -- arm A's schema and geometry have one source, the checker
-    BUG_LEFT_GAP, BUG_LEFT_ORIGIN, BUG_LEFT_RULE_SIZE, ArmAError, check_headline, headline_layout, parse_headline,
-    split_beats_doc)
+    BUG_LEFT_GAP, BUG_LEFT_ORIGIN, BUG_LEFT_RULE_SIZE, CAP_PILL_HALF_H, CAPLAYER_TOP, ArmAError, check_headline,
+    headline_layout, parse_headline, split_beats_doc)
 
 CANVAS_W, CANVAS_H = 1080, 1920
 FPS = 30
@@ -333,6 +334,71 @@ def add_caption_balance(html: str) -> str:
     return html.replace(HEAD_ANCHOR, CAPTION_BALANCE_STYLE + HEAD_ANCHOR)
 
 
+# The caption's centre y (task-f35f2935, CMO): a COMP beat names `extra.cap_cy` and its caption call gets it as a 4th
+# argument -- `caption(at, out, text, cy)` -- so the pill sits above the avatar's head. Absent = the 3-argument call
+# every cut so far made, centred on CAPLAYER_TOP; FF, EVID and KIN never take one. The skill template's caption()
+# carries the 4th argument; an older copy (the staged EP58 generator's) is given the same function here, for the
+# render workdir only, anchored on exact text and refused on any other shape. A cut with no cap_cy touches nothing.
+CAPLAYER_RULE = ".caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }"
+CAPTION_FN_OLD = """      function caption(at, out, text) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        document.getElementById("caps").appendChild(d);
+"""
+CAPTION_FN_NEW = """      function caption(at, out, text, cy) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        if (cy !== undefined) d.style.top = (cy - 1300) + "px";   /* the pill's CENTRE y; .caplayer is at 1300 (§6f) */
+        document.getElementById("caps").appendChild(d);
+"""
+_CAPTION_CY_CALL_RE = re.compile(r'", -?\d+(?:\.\d+)?\);$')   # a caps_js entry that ends `<text>, <cy>);`
+
+
+def caption_cy_used(pieces: dict) -> bool:
+    """Does any caption call of the cut carry a centre y (a 4th argument)?"""
+    return any(_CAPTION_CY_CALL_RE.search(call) for call in pieces["caps_js"])
+
+
+def add_caption_cy(html: str) -> str:
+    """The composed html with caption() taking the optional centre y. Already carrying it (the current template) is
+    left as it is; the old 3-argument function is replaced; anything else, or a `.caplayer` that is not at
+    CAPLAYER_TOP (the y is written relative to it), is refused."""
+    if html.count(CAPLAYER_RULE) != 1 or CAPLAYER_TOP != 1300:
+        raise ComposeError(
+            f"the template does not carry {CAPLAYER_RULE!r} exactly once -- a caption's centre y is written relative "
+            f"to `.caplayer {{ top: 1300px }}`, so the pill cannot be placed.")
+    new, old = html.count(CAPTION_FN_NEW), html.count(CAPTION_FN_OLD)
+    if (new, old) == (1, 0):
+        return html
+    if (new, old) != (0, 1):
+        raise ComposeError(
+            f"the template has {old} occurrence(s) of the 3-argument caption() and {new} of the one that takes a "
+            f"centre y, expected exactly one of them -- the generator's template changed shape, so a COMP caption "
+            f"cannot be moved above the head.")
+    return html.replace(CAPTION_FN_OLD, CAPTION_FN_NEW)
+
+
+def check_cap_cy(tag: str, mode: str, ex: dict) -> None:
+    """A beat's `cap_cy` (the caption pill's centre y) is valid on a COMP beat only, as a number the pill fits on the
+    canvas at. Anything else is refused: FF, EVID and KIN stay at y=CAPLAYER_TOP, and a value that is not a number
+    would be written into the page as it stands."""
+    if "cap_cy" not in ex:
+        return
+    cy = ex["cap_cy"]
+    if mode != "COMP":
+        raise ComposeError(f"beat {tag!r} ({mode}) names cap_cy: only a COMP caption moves; FF, EVID and KIN stay at "
+                           f"y={CAPLAYER_TOP}.")
+    if isinstance(cy, bool) or not isinstance(cy, (int, float)) or not CAP_PILL_HALF_H <= cy <= CANVAS_H - CAP_PILL_HALF_H:
+        raise ComposeError(f"beat {tag!r}: cap_cy must be a number between {CAP_PILL_HALF_H} and "
+                           f"{CANVAS_H - CAP_PILL_HALF_H}, got {cy!r}.")
+
+
+def caption_call(t0: float, t1: float, ex: dict) -> str:
+    """The `caption(...)` call for a beat with a `cap`: its `cap_cy`, when it names one, is the 4th argument."""
+    call = f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)}'
+    return f'{call}, {ex["cap_cy"]});' if "cap_cy" in ex else call + ");"
+
+
 def check_pieces_landed(html: str, pieces: dict) -> None:
     """Every plate, script line and caption call reached the composed index.html. assemble.py splices by searching for
     text and does nothing when it finds none, so a template that drifted from what it expects would otherwise
@@ -525,6 +591,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
     for b in sorted(beats, key=lambda b: b["t0"]):
         tag, abs_t0, mode = b["tag"], b["t0"], b["mode"]
         ex = b.get("extra") or {}
+        check_cap_cy(tag, mode, ex)
         if abs_t0 < t0_window - 0.001 or abs_t0 >= t_max - 0.001:
             continue
         # The window's first plate starts at the window start, not at its
@@ -551,7 +618,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
                 f'data-start="{t0}" data-duration="{dur}" data-media-start="{media_start}" '
                 f'data-track-index="{PLATE_TRACK}"></video>')
             if ex.get("cap"):
-                caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
+                caps_js.append(caption_call(t0, t1, ex))
 
         elif mode == "COMP" and headline is not None and "img" not in ex:
             # Arm A opening: the plate is the headline backdrop, switching at each slot's t0. A slot's plate lasts
@@ -576,7 +643,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
                 avatar_dur = round(ex["avatar_until"] - abs_t0, 3)
             plates.append(_avatar_comp_html(safe_id, lipname, t0, avatar_dur, media_start, AVATAR_TRACK))
             if ex.get("cap"):
-                caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
+                caps_js.append(caption_call(t0, t1, ex))
 
         elif mode == "COMP":
             place = img_placement(ex)
@@ -605,7 +672,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
                     f'spotlight("sp_{safe_id}", {t0 + 0.15}, {round(t1 - SPOTLIGHT_EXIT_LEAD, 3)}, '
                     f'{round(bx)}, {round(by)}, {round(bw)}, {round(bh)});')
             if ex.get("cap"):
-                caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
+                caps_js.append(caption_call(t0, t1, ex))
             if ex.get("credit"):
                 script_lines.append(f'credit("cr_{safe_id}", {t0 + 0.1}, {t1}, "{esc(ex["credit"])}");')
 
@@ -627,7 +694,7 @@ def emit_pieces(beats: list[dict], t_max: float, funcs: dict[str, Any], t0_windo
             if ex.get("credit"):
                 script_lines.append(f'credit("cr_{safe_id}", {t0 + 0.1}, {t1}, "{esc(ex["credit"])}");')
             if ex.get("cap"):
-                caps_js.append(f'caption({t0}, {t1}, {json.dumps(ex["cap"], ensure_ascii=False)});')
+                caps_js.append(caption_call(t0, t1, ex))
 
         elif mode == "KIN":
             # SKILL.md §6d plate table: never a bare kit background. An
@@ -716,6 +783,8 @@ def compose(beats: list[dict], generator_dir: Path, t_max: float, out_dir: Path,
     html = pin_bug_end_state(index_path.read_text(encoding="utf-8"))
     check_pieces_landed(html, pieces)
     html = add_caption_balance(html)
+    if caption_cy_used(pieces):
+        html = add_caption_cy(html)
     if headline is not None:
         html = apply_arm_a(html, headline)
     index_path.write_text(html, encoding="utf-8")
