@@ -263,19 +263,19 @@ def build():
     sv = Image.open(REAL / "gb-survey.png").convert("RGB")
     p = Plate("survey-body", page_bg(sv, (500, 400, 520, 420)))
     p.paste("gb-survey", (70, 205, 950, 300), 1.0, (100, 640))
-    # the body line is 15 px in the source: at the 1.12 the safe width allows it reads 17 px, so it is laid as two rows at 1.6
-    z = 1.6
+    # the body line is 15 px in the source: at the 1.12 the safe width allows it reads 17 px, so it is laid as two rows at 1.5
+    z = 1.5
     r1 = (86, 1062, 690, 1092)
     r2 = (693, 1062, 920, 1092)
     r3 = (86, 1096, 150, 1122)
-    x0, y1, y2 = 70, 800, 868
+    x0, y1, y2 = 84, 800, 864
     m1 = p.paste("gb-survey", r1, z, (x0, y1))
     m2 = p.paste("gb-survey", r2, z, (x0, y2))
     m3 = p.paste("gb-survey", r3, z, (x0 + round((r2[2] - r2[0]) * z) + 22, y2 + (r2[3] - r2[1]) * z / 2 - (r3[3] - r3[1]) * z / 2))
     bx = [m1(*r1[:2], r1[2] - r1[0], r1[3] - r1[1]), m2(*r2[:2], r2[2] - r2[0], r2[3] - r2[1]), m3(*r3[:2], r3[2] - r3[0], r3[3] - r3[1])]
     x_0, y_0 = min(b[0] for b in bx) - PAD, min(b[1] for b in bx) - PAD
     x_1, y_1 = max(b[0] + b[2] for b in bx) + PAD, max(b[1] + b[3] for b in bx) + PAD
-    done(p, [round(x_0), round(y_0), round(x_1 - x_0), round(y_1 - y_0)], None, "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC` (two rows, 1.6x)")
+    done(p, [round(x_0), round(y_0), round(x_1 - x_0), round(y_1 - y_0)], None, "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC` (two rows, 1.5x)")
 
 
 def main():

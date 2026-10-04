@@ -839,13 +839,13 @@
  "survey-body": {
   "file": "real/d-survey-body.png",
   "box": [
-   62,
+   76,
    792,
-   982,
-   132
+   922,
+   125
   ],
   "take": null,
-  "note": "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC` (two rows, 1.6x)",
+  "note": "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC` (two rows, 1.5x)",
   "credit": true,
   "parts": [
    {
@@ -870,9 +870,9 @@
      690,
      1092
     ],
-    "zoom": 1.6,
+    "zoom": 1.5,
     "at": [
-     70,
+     84,
      800
     ]
    },
@@ -884,10 +884,10 @@
      920,
      1092
     ],
-    "zoom": 1.6,
+    "zoom": 1.5,
     "at": [
-     70,
-     868
+     84,
+     864
     ]
    },
    {
@@ -898,10 +898,10 @@
      150,
      1122
     ],
-    "zoom": 1.6,
+    "zoom": 1.5,
     "at": [
-     455,
-     871
+     446,
+     867
     ]
    }
   ]

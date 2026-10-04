@@ -1,0 +1,121 @@
+{
+ "task": "task-3ae66e7a",
+ "episode": "BL EP60 GB (Goldenburg) ยังมีใบอนุญาตอยู่ไหม",
+ "arm": "B",
+ "final": "/opt/MoonieXHQ/Work/bl-ep60/cut/v1/final-ep60-v1.mp4",
+ "sheet": "/opt/MoonieXHQ/Work/bl-ep60/cut/v1/sheet-ep60-v1.jpg",
+ "bytes": 16847992,
+ "duration_s": 90.2,
+ "fps": "30/1",
+ "size": "1080x1920",
+ "frames": 2706,
+ "video_codec": "h264",
+ "loudness_lufs": -15.34,
+ "modes": {
+  "FF": 2,
+  "COMP": 14,
+  "KIN": 11,
+  "EVID": 14
+ },
+ "beats": 41,
+ "windows": 12,
+ "window_render": "tools/bl_compose.py --t0/--t-max, frame-aligned, merged with tools/bl_merge.py --beats against audio-hq-decoded.wav",
+ "verify": "VERIFY PASSED",
+ "checker_pass": true,
+ "brand_mark": {
+  "ok": true,
+  "side": "right",
+  "min_opacity": 0.95,
+  "steady_level": 192.81,
+  "frames": 2706,
+  "min_ratio": 0.9882,
+  "min_time": 87.7,
+  "failing_frames": 0,
+  "failing_times": [],
+  "failing_ranges": []
+ },
+ "checker": {
+  "pass": true,
+  "empty_frames": [],
+  "empty_frames_excused": [
+   {
+    "t": 72.333,
+    "beat": "SUMMARY-3",
+    "entry_frame": 1
+   },
+   {
+    "t": 72.367,
+    "beat": "SUMMARY-3",
+    "entry_frame": 2
+   },
+   {
+    "t": 72.4,
+    "beat": "SUMMARY-3",
+    "entry_frame": 3
+   },
+   {
+    "t": 72.433,
+    "beat": "SUMMARY-3",
+    "entry_frame": 4
+   }
+  ],
+  "out_of_safe_area": [],
+  "text_over_face": [],
+  "comp_evidence_landing": [],
+  "credit_missing": [],
+  "extra_caption_styles": [],
+  "kinetic_overflow": []
+ },
+ "merge_gates": {
+  "frame_count": {
+   "ok": true,
+   "actual": 2706,
+   "expected": 2706,
+   "tolerance": 1
+  },
+  "empty_frames": [],
+  "seam_failures": [],
+  "audio_offset": {
+   "ok": true,
+   "offset_s": 0.0,
+   "max_offset_s": 0.04
+  },
+  "extra_caption_styles": [],
+  "empty_frames_excused": [
+   {
+    "t": 72.333,
+    "beat": "SUMMARY-3",
+    "entry_frame": 1
+   },
+   {
+    "t": 72.367,
+    "beat": "SUMMARY-3",
+    "entry_frame": 2
+   },
+   {
+    "t": 72.4,
+    "beat": "SUMMARY-3",
+    "entry_frame": 3
+   },
+   {
+    "t": 72.433,
+    "beat": "SUMMARY-3",
+    "entry_frame": 4
+   }
+  ]
+ },
+ "part_frame_counts": {
+  "seg01": 245,
+  "seg02": 196,
+  "seg03": 248,
+  "seg04": 268,
+  "seg05": 266,
+  "seg06": 250,
+  "seg07": 262,
+  "seg08": 230,
+  "seg09": 205,
+  "seg10": 218,
+  "seg11": 243,
+  "seg12": 75
+ }
+}
