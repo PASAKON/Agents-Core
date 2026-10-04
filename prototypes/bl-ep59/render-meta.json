@@ -1,0 +1,101 @@
+{
+ "task": "task-2db3174c",
+ "episode": "BL EP59 ใครตรวจ WikiFX เว็บให้คะแนนโบรก?",
+ "arm": "B",
+ "final": "/opt/MoonieXHQ/Work/bl-ep59/cut/v1/final-ep59-v1.mp4",
+ "sheet": "/opt/MoonieXHQ/Work/bl-ep59/cut/v1/sheet-ep59-v1.jpg",
+ "bytes": 21575239,
+ "duration_s": 94.1,
+ "fps": "30/1",
+ "size": "1080x1920",
+ "frames": 2822,
+ "video_codec": "h264",
+ "loudness_lufs": -15.4,
+ "modes": {
+  "FF": 3,
+  "COMP": 14,
+  "KIN": 13,
+  "EVID": 11
+ },
+ "beats": 41,
+ "windows": 13,
+ "window_render": "tools/bl_compose.py --t0/--t-max, frame-aligned, merged with tools/bl_merge.py --beats",
+ "verify": "VERIFY PASSED",
+ "checker_pass": true,
+ "brand_mark": {
+  "ok": true,
+  "side": "right",
+  "min_opacity": 0.95,
+  "steady_level": 192.87,
+  "frames": 2822,
+  "min_ratio": 0.9856,
+  "min_time": 61.867,
+  "failing_frames": 0,
+  "failing_times": [],
+  "failing_ranges": []
+ },
+ "checker": {
+  "pass": true,
+  "empty_frames": [],
+  "empty_frames_excused": [
+   {
+    "t": 70.233,
+    "beat": "SUMMARY-1",
+    "entry_frame": 1
+   },
+   {
+    "t": 70.267,
+    "beat": "SUMMARY-1",
+    "entry_frame": 2
+   },
+   {
+    "t": 70.3,
+    "beat": "SUMMARY-1",
+    "entry_frame": 3
+   },
+   {
+    "t": 70.333,
+    "beat": "SUMMARY-1",
+    "entry_frame": 4
+   },
+   {
+    "t": 81.7,
+    "beat": "SUMMARY-6",
+    "entry_frame": 1
+   },
+   {
+    "t": 81.733,
+    "beat": "SUMMARY-6",
+    "entry_frame": 2
+   },
+   {
+    "t": 81.767,
+    "beat": "SUMMARY-6",
+    "entry_frame": 3
+   },
+   {
+    "t": 81.8,
+    "beat": "SUMMARY-6",
+    "entry_frame": 4
+   }
+  ],
+  "out_of_safe_area": [],
+  "text_over_face": [],
+  "comp_evidence_landing": [],
+  "credit_missing": [],
+  "extra_caption_styles": [],
+  "kinetic_overflow": [],
+  "brand_mark": {
+   "ok": true,
+   "side": "right",
+   "min_opacity": 0.95,
+   "steady_level": 192.87,
+   "frames": 2822,
+   "min_ratio": 0.9856,
+   "min_time": 61.867,
+   "failing_frames": 0,
+   "failing_times": [],
+   "failing_ranges": []
+  }
+ }
+}

@@ -35,6 +35,9 @@ STAMP_CSS = (
     'font-family:Kanit,sans-serif;font-weight:600;font-size:26px;line-height:34px;color:var(--white)}'
     '.hl-date span{display:inline-block;padding:3px 18px 5px;border-radius:10px;background:rgba(7,8,10,.80)}'
     '.hl-scrim{position:absolute;left:0;top:0;width:1080px;z-index:36;pointer-events:none}'
+    # the credit chip (assemble.py credit(): top:40px) lands inside the scrim and reads as a ghost; lift it above the
+    # scrim and park it under the date stamp, still above the evidence zone (task-2db3174c)
+    '[id^="cr_"]{top:528px !important;z-index:40 !important}'
     '</style>\n')
 
 
