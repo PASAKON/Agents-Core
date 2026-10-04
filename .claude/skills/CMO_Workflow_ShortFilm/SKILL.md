@@ -150,6 +150,13 @@ and the CEO's own edit needs a day.
   a link is a missing **bridge shot**: add it to the shot list (a call from outside, getting up, boarding, arriving),
   4–7 s of cut, generated like any other shot. Run the table on the shot list before prompts and again on the real
   takes' first and last frames before the edit, because a take can start somewhere the board did not say.
+  **A film can run on several story lines (CEO 2026-10-04: "กฏนี้จะใช้ได้กับเนื้อเรื่องที่เดินเป็นเส้นตรง เราอาจจะมี
+  หลายเส้นเรื่องก็ได้").** Tag every shot with its line (main: the hero; others: the villain, a parallel character,
+  the creature, a memory). Then check two kinds of row: (1) inside one line, each shot against that line's previous
+  shot, even when other lines' shots sit between them, so a return picks up where the line left off or marks the
+  time that passed; (2) every switch between lines needs its own reason: the same moment elsewhere, a question in A
+  that B answers, or a look, sound or shape carried across the cut. A switch is never a bridge-shot problem, but a
+  jump inside one line still is.
 - **Output:** STORYBOARD.md + continuity table. **Gate:** every open question asked at once, each with a
   recommended answer; the CEO's answers written into the notes before any prompt changes.
 
