@@ -1,0 +1,699 @@
+[
+ {
+  "tag": "HOOK-0",
+  "t0": 0.0,
+  "mode": "FF",
+  "extra": {}
+ },
+ {
+  "tag": "HOOK-1",
+  "t0": 1.0,
+  "mode": "FF",
+  "extra": {
+   "cap": "WikiFX ระบุ GB ยังไม่มีกำกับดูแล"
+  }
+ },
+ {
+  "tag": "HOOK-2",
+  "t0": 3.2,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-warning.png",
+   "cap": "ขึ้นคำเตือนแดง วันหนึ่งตุลา",
+   "box": [
+    54,
+    562,
+    972,
+    128
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "HOOK-3",
+  "t0": 5.1333,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-oct-title.png",
+   "cap": "บทความว่าใบ CySEC เคยมี ถูกเพิกถอน",
+   "box": [
+    54,
+    561,
+    971,
+    131
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "HOOK-4",
+  "t0": 8.1667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-header-tile.png",
+   "cap": "จริงไหม กูไปเช็กมาให้",
+   "box": [
+    54,
+    561,
+    447,
+    131
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "PATTERN-1",
+  "t0": 10.2,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-complaint-date.png",
+   "cap": "ปีสองพันยี่สิบเอ็ด ผู้ใช้เขียน",
+   "box": [
+    156,
+    598,
+    768,
+    57
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "PATTERN-2",
+  "t0": 12.3,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-complaint-words.png",
+   "cap": "ว่าถอนเงินไม่ได้ ติดต่อไม่ได้",
+   "box": [
+    134,
+    584,
+    812,
+    85
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 797,
+   "avatar_until": 14.3
+  }
+ },
+ {
+  "tag": "PATTERN-3",
+  "t0": 14.7,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S06.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "คนเดียว"
+    ],
+    [
+     "bl-lg",
+     "วันเดียว"
+    ],
+    [
+     "bl-lg",
+     "สองโพสต์"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "PATTERN-4",
+  "t0": 17.3333,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S25.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ยืนยันแทนเขา"
+    ],
+    [
+     "bl-lg",
+     "ไม่ได้"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "CONTEXT-1",
+  "t0": 18.9667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-score.png",
+   "cap": "เลขบนจอคือคะแนนเต็มสิบ",
+   "box": [
+    54,
+    650,
+    646,
+    380
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CONTEXT-2",
+  "t0": 20.8667,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S11.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "เลขขยับได้"
+    ],
+    [
+     "bl-lg",
+     "ตามวันที่เปิดดู"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "CONTEXT-3",
+  "t0": 22.9667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-oct-top.png",
+   "cap": "WikiFX ลงบทความล่าสุด",
+   "box": [
+    79,
+    836,
+    149,
+    44
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CONTEXT-4",
+  "t0": 25.1,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-oct-top.png",
+   "cap": "หัวข้อบอกว่าเคยอยู่ใต้ CySEC",
+   "box": [
+    311,
+    699,
+    344,
+    71
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CONTEXT-5",
+  "t0": 27.5,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-entity.png",
+   "cap": "CySEC คือผู้กำกับของไซปรัส",
+   "box": [
+    54,
+    1023,
+    972,
+    57
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "MAIN-1",
+  "t0": 29.7,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-header-crumb.png",
+   "cap": "กูเปิดหน้า GB เองทีละช่อง",
+   "box": [
+    360,
+    730,
+    361,
+    61
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "MAIN-2",
+  "t0": 31.9,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-licence-card.png",
+   "cap": "ช่องใบฟอเร็กซ์ ขึ้นว่าไม่พบ",
+   "box": [
+    54,
+    561,
+    972,
+    638
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "MAIN-3",
+  "t0": 34.2,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-licence-suspect.png",
+   "cap": "ข้างล่างว่าใบกำกับถูกสงสัย",
+   "box": [
+    102,
+    797,
+    876,
+    126
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "MAIN-4",
+  "t0": 36.7,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S03.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "นี่คือสิ่งที่"
+    ],
+    [
+     "bl-lg",
+     "WikiFX เขียน"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "MAIN-5",
+  "t0": 38.7,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-basic-country.png",
+   "cap": "ข้อมูลพื้นฐานว่าจดที่ไซปรัส",
+   "box": [
+    273,
+    598,
+    534,
+    121
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 862
+  }
+ },
+ {
+  "tag": "MAIN-6",
+  "t0": 40.7667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-basic-name.png",
+   "cap": "ชื่อบริษัท Goldenburg กรุ๊ป",
+   "box": [
+    273,
+    619,
+    534,
+    79
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 862
+  }
+ },
+ {
+  "tag": "MAIN-7",
+  "t0": 42.9667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-lic-no.png",
+   "cap": "บทความว่าใบสองสี่สองทับสิบสี่",
+   "box": [
+    54,
+    629,
+    972,
+    60
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 862
+  }
+ },
+ {
+  "tag": "MAIN-8",
+  "t0": 45.2667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-lic-date.png",
+   "cap": "มีผลตั้งแต่ปีสองพันสิบสี่",
+   "box": [
+    54,
+    609,
+    972,
+    100
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 862
+  }
+ },
+ {
+  "tag": "MAIN-9",
+  "t0": 47.2667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-related-head.png",
+   "cap": "ในรายการบริษัทที่เกี่ยวข้อง",
+   "box": [
+    322,
+    609,
+    436,
+    100
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 862
+  }
+ },
+ {
+  "tag": "MAIN-10",
+  "t0": 49.1,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-related-card.png",
+   "cap": "ติดป้ายยกเลิกการจดทะเบียน",
+   "box": [
+    54,
+    760,
+    902,
+    160
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "MAIN-11",
+  "t0": 51.1667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-revoked-l1.png",
+   "cap": "บทความว่าตอนนี้ ถูกเพิกถอน",
+   "box": [
+    54,
+    630,
+    972,
+    58
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 862,
+   "avatar_until": 52.94
+  }
+ },
+ {
+  "tag": "MAIN-12",
+  "t0": 53.6,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-revoked-p.png",
+   "cap": "เขียนว่าไม่มีใบที่ใช้ได้",
+   "box": [
+    54,
+    766,
+    972,
+    109
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "MAIN-13",
+  "t0": 55.5,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-revoked-cysec.png",
+   "cap": "และบอกให้ไปเช็กกับ CySEC ตรงๆ",
+   "box": [
+    54,
+    777,
+    972,
+    87
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CURIOSITY-1",
+  "t0": 57.8333,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-entity.png",
+   "cap": "บทความนี้บอกบริษัทอังกฤษ",
+   "box": [
+    54,
+    656,
+    972,
+    100
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CURIOSITY-2",
+  "t0": 59.9667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-entity.png",
+   "cap": "คนละชื่อกับเจ้าของใบเดิม",
+   "box": [
+    54,
+    981,
+    328,
+    57
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CURIOSITY-3",
+  "t0": 62.1333,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-survey-title.png",
+   "cap": "ผลสำรวจปีสองพันสิบเก้า",
+   "box": [
+    56,
+    730,
+    968,
+    100
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CURIOSITY-4",
+  "t0": 63.7667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-survey-body.png",
+   "cap": "ตอนนั้นเขียนว่ามีใบ",
+   "box": [
+    56,
+    785,
+    957,
+    83
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX"
+  }
+ },
+ {
+  "tag": "CURIOSITY-5",
+  "t0": 65.5,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S30.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ดูวันที่"
+    ],
+    [
+     "bl-lg",
+     "ของหลักฐาน"
+    ],
+    [
+     "bl-lg",
+     "ทุกครั้ง"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-1",
+  "t0": 67.7333,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S02.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "สรุป"
+    ],
+    [
+     "bl-lg",
+     "GB ยังมีใบไหม"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-2",
+  "t0": 70.2,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S21.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ยังไม่ได้เช็ก"
+    ],
+    [
+     "bl-lg",
+     "ที่ CySEC เอง"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-3",
+  "t0": 72.3333,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S24.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ก่อนเลือกโบรก"
+    ],
+    [
+     "bl-lg",
+     "เช็กสามอย่าง"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-4",
+  "t0": 74.5667,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S20.mp4",
+   "lines": [
+    [
+     "bl-xl",
+     "หนึ่ง"
+    ],
+    [
+     "bl-md",
+     "ค้นเลขใบ"
+    ],
+    [
+     "bl-md",
+     "ที่เว็บทางการ"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-5",
+  "t0": 77.2333,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S29.mp4",
+   "lines": [
+    [
+     "bl-xl",
+     "สอง"
+    ],
+    [
+     "bl-md",
+     "ชื่อบริษัท"
+    ],
+    [
+     "bl-md",
+     "ต้องตรงกัน"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-6",
+  "t0": 79.6,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S16.mp4",
+   "lines": [
+    [
+     "bl-xl",
+     "สาม"
+    ],
+    [
+     "bl-md",
+     "ลองถอน"
+    ],
+    [
+     "bl-md",
+     "ก้อนเล็กก่อน"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-7",
+  "t0": 81.7667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-header-plain.png",
+   "cap": "กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น",
+   "box": [
+    54,
+    600,
+    490,
+    130
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 886
+  }
+ },
+ {
+  "tag": "SUMMARY-8",
+  "t0": 85.5667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-survey-plain.png",
+   "cap": "คอมเมนต์ เช็กลิสต์ ถ้าอยากได้",
+   "box": [
+    54,
+    621,
+    972,
+    100
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 886
+  }
+ },
+ {
+  "tag": "SUMMARY-9",
+  "t0": 87.7,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-survey-date.png",
+   "cap": "ป้ายเก่าไม่พอ เช็กวันที่ด้วย",
+   "box": [
+    54,
+    621,
+    972,
+    100
+   ],
+   "credit": "ขอบคุณภาพจาก WikiFX",
+   "cap_cy": 886,
+   "avatar_until": 89.72
+  }
+ }
+]

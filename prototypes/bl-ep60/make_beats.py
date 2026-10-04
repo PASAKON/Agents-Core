@@ -45,7 +45,7 @@ TABLE = [
     ("HOOK-3",      "COMP", "oct-title", "box", {}),
     ("HOOK-4",      "COMP", "header-tile", "box", {}),
     ("PATTERN-1",   "COMP", "complaint-date", "box", {}),
-    ("PATTERN-2",   "COMP", "complaint-words", "box", {"avatar_until": 14.36}),   # lip_a ends at 14.37
+    ("PATTERN-2",   "COMP", "complaint-words", "box", {"avatar_until": 14.3}),   # lip_a ends at 14.3 (bl_compose window)
     ("PATTERN-3",   "KIN",  None, None, KIN("S06", (LG, "คนเดียว"), (LG, "วันเดียว"), (LG, "สองโพสต์"))),
     ("PATTERN-4",   "KIN",  None, None, KIN("S25", (LG, "ยืนยันแทนเขา"), (LG, "ไม่ได้"))),
     ("CONTEXT-1",   "EVID", "score", "box", {}),
@@ -63,7 +63,7 @@ TABLE = [
     ("MAIN-8",      "COMP", "lic-date", "box", {}),
     ("MAIN-9",      "COMP", "related-head", "box", {}),
     ("MAIN-10",     "EVID", "related-card", "box", {}),
-    ("MAIN-11",     "COMP", "revoked-l1", "box", {"avatar_until": 53.0}),     # lip_b ends at 53.01
+    ("MAIN-11",     "COMP", "revoked-l1", "box", {"avatar_until": 52.94}),     # lip_b ends at 52.94
     ("MAIN-12",     "EVID", "revoked-p", "box", {}),
     ("MAIN-13",     "EVID", "revoked-cysec", "box", {}),
     ("CURIOSITY-1", "EVID", "entity", "uk", {}),
@@ -77,9 +77,9 @@ TABLE = [
     ("SUMMARY-4",   "KIN",  None, None, KIN("S20", (XL, "หนึ่ง"), (MD, "ค้นเลขใบ"), (MD, "ที่เว็บทางการ"))),
     ("SUMMARY-5",   "KIN",  None, None, KIN("S29", (XL, "สอง"), (MD, "ชื่อบริษัท"), (MD, "ต้องตรงกัน"))),
     ("SUMMARY-6",   "KIN",  None, None, KIN("S16", (XL, "สาม"), (MD, "ลองถอน"), (MD, "ก้อนเล็กก่อน"))),
-    ("SUMMARY-7",   "COMP", "header-plain", None, {}),
-    ("SUMMARY-8",   "COMP", "survey-plain", None, {}),
-    ("SUMMARY-9",   "COMP", "survey-date", "box", {}),
+    ("SUMMARY-7",   "COMP", "header-plain", "box", {}),
+    ("SUMMARY-8",   "COMP", "survey-plain", "box", {}),
+    ("SUMMARY-9",   "COMP", "survey-date", "box", {"avatar_until": 89.72}),   # lip_c ends at 89.72, the clip at 90.23
 ]
 
 # the opening: beat starts that are not "line start minus 0.10 s"
@@ -160,6 +160,8 @@ def main():
     (HERE / "armA").mkdir(exist_ok=True)
     (HERE / "armA/beats.json").write_text(json.dumps({"headline": HEADLINE, "beats": armA}, indent=1, ensure_ascii=False) + "\n")
     # render windows: <= MAX_WINDOW s, every seam exactly on a beat's t0 (the same for both arms)
+    # 2706 frames = the decoded audio (90.229 s). bl_merge reads the mp3's container duration (90.279 s: a 25 ms start offset plus
+    # padding) and would expect 2708 +-1, so the merge runs against a PCM copy of the same audio (see REPORT, gate notes)
     total = frame(AUDIO_SECONDS)
     cuts = sorted({b["t0"] for b in beats if b["t0"] > 0})
     segs, start, k = [], 0.0, 1

@@ -222,13 +222,14 @@ def build():
     # ── COMP, lip_c ─────────────────────────────────────────────────────────────────────────────────────────
     C = "lip_c"
     page("header-plain", "gb-header", (205, 475, 450, 120), 1.0, None, (460, 596), C,
-         "SUMMARY-7: GB's profile tile again, no spotlight", bg_patch=(10, 300, 30, 320), xcrop=190, xmax=690, snap=False)
-    PLATES["header-plain"]["box"] = None
+         "SUMMARY-7: GB's profile tile again (box = the tile, only so the credit chip has a top to clear)", bg_patch=(10, 300, 30, 320), xcrop=190, xmax=690, snap=False)
+    # a WikiFX still needs its credit chip, and bl_checker refuses a credit with no box (no evidence top to clear): box the tile
+    PLATES["header-plain"]["box"] = [54, 600, 490, 130]
     page("survey-date", "gb-survey", (90, 215, 850, 75), 1.2, None, (200, 330), C,
          "SUMMARY-9: the 2019 survey page title and its date 2019-05-31 (tag `Good`)", bg_patch=(500, 400, 520, 420))
     page("survey-plain", "gb-survey", (90, 215, 850, 75), 1.2, None, (200, 330), C,
-         "SUMMARY-8: the same survey header, no spotlight", bg_patch=(500, 400, 520, 420))
-    PLATES["survey-plain"]["box"] = None
+         "SUMMARY-8: the same survey header as SUMMARY-9, same box", bg_patch=(500, 400, 520, 420))
+    PLATES["survey-plain"]["box"] = PLATES["survey-date"]["box"]   # same placement as survey-date; same credit rule as above
     # ── EVID (full canvas to use; the pill sits at 1300) ────────────────────────────────────────────────────
     page("score", "gb-header", (205, 780, 450, 260), 1.6, 840, (440, 1090), None,
          "CONTEXT-1: GB's profile on WikiFX: the score tile, 1.38 out of 10", bg_patch=(10, 300, 30, 320), xcrop=190, xmax=690, snap=False)
@@ -247,9 +248,9 @@ def build():
          "MAIN-2: the forex-licence tab: `ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์`", bg_patch=(500, 570, 520, 585), snap=False)
     page("licence-suspect", "gb-licence", (60, 1715, 860, 110), 1.0, 860, (1380, 1840), None,
          "MAIN-3: company overview, `ใบอนุญาตในการกำกับดูแลกำลังถูกตั้งข้อสงสัย`", bg_patch=(500, 1500, 520, 1520))
-    page("related-card", "gb-related", (180, 930, 540, 90), 1.7, 840, (770, 1100), None,
+    page("related-card", "gb-related", (158, 930, 554, 90), 1.7, 840, (810, 1075), None,
          "MAIN-10: related company card GOLDENBURG GROUP LTD(Cyprus), tags `ยกเลิกการจดทะเบียน` and Cyprus",
-         bg_patch=(500, 400, 520, 420), xcrop=170, xmax=745, snap=False)
+         bg_patch=(500, 400, 520, 420), xcrop=100, xmax=745, snap=False, zmax=1.6)
     page("revoked-p", "gb-article-revoked", (0, 870, 1080, 105), 1.0, 820, (860, 1050), None,
          "MAIN-12: `GB ไม่มีใบอนุญาตกำกับดูแลที่มีผลบังคับใช้จริงในปัจจุบันแล้ว`", bg_patch=(500, 600, 520, 620))
     page("revoked-cysec", "gb-article-revoked", (0, 965, 1080, 80), 1.0, 820, (860, 1050), None,

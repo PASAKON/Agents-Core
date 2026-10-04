@@ -392,9 +392,14 @@
  },
  "header-plain": {
   "file": "real/d-header-plain.png",
-  "box": null,
+  "box": [
+   54,
+   600,
+   490,
+   130
+  ],
   "take": "lip_c",
-  "note": "SUMMARY-7: GB's profile tile again, no spotlight",
+  "note": "SUMMARY-7: GB's profile tile again (box = the tile, only so the credit chip has a top to clear)",
   "credit": true,
   "parts": [
    {
@@ -408,13 +413,13 @@
     "zoom": 1.0,
     "at": [
      47,
-     592
+     596
     ]
    }
   ],
   "zone": [
    560.0,
-   775
+   782
   ],
   "fits": true
  },
@@ -422,7 +427,7 @@
   "file": "real/d-survey-date.png",
   "box": [
    54,
-   617,
+   621,
    972,
    100
   ],
@@ -441,21 +446,26 @@
     "zoom": 1.1247058823529412,
     "at": [
      -1,
-     608
+     612
     ]
    }
   ],
   "zone": [
    560.0,
-   775
+   782
   ],
   "fits": true
  },
  "survey-plain": {
   "file": "real/d-survey-plain.png",
-  "box": null,
+  "box": [
+   54,
+   621,
+   972,
+   100
+  ],
   "take": "lip_c",
-  "note": "SUMMARY-8: the same survey header, no spotlight",
+  "note": "SUMMARY-8: the same survey header as SUMMARY-9, same box",
   "credit": true,
   "parts": [
    {
@@ -469,13 +479,13 @@
     "zoom": 1.1247058823529412,
     "at": [
      -1,
-     608
+     612
     ]
    }
   ],
   "zone": [
    560.0,
-   775
+   782
   ],
   "fits": true
  },
@@ -685,9 +695,9 @@
   "file": "real/d-related-card.png",
   "box": [
    54,
-   769,
-   772,
-   142
+   760,
+   902,
+   160
   ],
   "take": null,
   "note": "MAIN-10: related company card GOLDENBURG GROUP LTD(Cyprus), tags `ยกเลิกการจดทะเบียน` and Cyprus",
@@ -696,15 +706,15 @@
    {
     "src": "real/gb-related.png",
     "crop": [
-     170,
-     770,
+     100,
+     810,
      745,
-     1100
+     1075
     ],
-    "zoom": 1.4,
+    "zoom": 1.6,
     "at": [
-     48,
-     553
+     -31,
+     576
     ]
    }
   ]
