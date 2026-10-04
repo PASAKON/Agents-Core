@@ -1,0 +1,838 @@
+{
+ "warning": {
+  "file": "real/d-warning.png",
+  "box": [
+   54,
+   562,
+   972,
+   128
+  ],
+  "take": "lip_a",
+  "note": "HOOK-2: WikiFX's red warning card on the GB page, dated 2026-10-01",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-warning.png",
+    "crop": [
+     0,
+     880,
+     1041,
+     1026
+    ],
+    "zoom": 1.0170212765957447,
+    "at": [
+     21,
+     550
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "oct-title": {
+  "file": "real/d-oct-title.png",
+  "box": [
+   54,
+   561,
+   971,
+   131
+  ],
+  "take": "lip_a",
+  "note": "HOOK-3: WikiFX article title: GB used to sit under CySEC but the licence was revoked",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-oct.png",
+    "crop": [
+     0,
+     380,
+     1080,
+     546
+    ],
+    "zoom": 0.8846153846153846,
+    "at": [
+     62,
+     551
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "header-tile": {
+  "file": "real/d-header-tile.png",
+  "box": [
+   54,
+   561,
+   447,
+   131
+  ],
+  "take": "lip_a",
+  "note": "HOOK-4: GB's profile tile on WikiFX, red label `ยังไม่มีการกำกับดูแล`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-header.png",
+    "crop": [
+     190,
+     460,
+     690,
+     596
+    ],
+    "zoom": 0.9583333333333334,
+    "at": [
+     48,
+     555
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "complaint-date": {
+  "file": "real/d-complaint-date.png",
+  "box": [
+   156,
+   598,
+   768,
+   57
+  ],
+  "take": "lip_a",
+  "note": "PATTERN-1: complaint page breadcrumb (GB, feedback details) and its date 2021-02-03; no user row",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-complaint.png",
+    "crop": [
+     70,
+     152,
+     297,
+     168
+    ],
+    "zoom": 2.4,
+    "at": [
+     164,
+     607
+    ]
+   },
+   {
+    "src": "real/gb-complaint.png",
+    "crop": [
+     94,
+     1043,
+     166,
+     1060
+    ],
+    "zoom": 2.4,
+    "at": [
+     743,
+     606
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "complaint-words": {
+  "file": "real/d-complaint-words.png",
+  "box": [
+   134,
+   584,
+   812,
+   85
+  ],
+  "take": "lip_a",
+  "note": "PATTERN-2: two phrases of the user's text: cannot withdraw / cannot contact; the rest of the line is not shown",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-complaint.png",
+    "crop": [
+     93,
+     292,
+     211,
+     322
+    ],
+    "zoom": 2.3,
+    "at": [
+     142,
+     592
+    ]
+   },
+   {
+    "src": "real/gb-complaint.png",
+    "crop": [
+     562,
+     292,
+     776,
+     322
+    ],
+    "zoom": 2.3,
+    "at": [
+     446,
+     592
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true
+ },
+ "basic-country": {
+  "file": "real/d-basic-country.png",
+  "box": [
+   273,
+   598,
+   534,
+   121
+  ],
+  "take": "lip_b",
+  "note": "MAIN-5: basic information, region of registration: Cyprus",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-basic.png",
+    "crop": [
+     0,
+     845,
+     560,
+     960
+    ],
+    "zoom": 1.4,
+    "at": [
+     225,
+     592
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "basic-name": {
+  "file": "real/d-basic-name.png",
+  "box": [
+   273,
+   619,
+   534,
+   79
+  ],
+  "take": "lip_b",
+  "note": "MAIN-6: basic information, company name Goldenburg Group Limited",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-basic.png",
+    "crop": [
+     0,
+     1094,
+     560,
+     1170
+    ],
+    "zoom": 1.4,
+    "at": [
+     225,
+     612
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "lic-no": {
+  "file": "real/d-lic-no.png",
+  "box": [
+   54,
+   629,
+   972,
+   60
+  ],
+  "take": "lip_b",
+  "note": "MAIN-7: the article's line with licence number 242/14",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-licence.png",
+    "crop": [
+     0,
+     930,
+     1080,
+     989
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     628
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "lic-date": {
+  "file": "real/d-lic-date.png",
+  "box": [
+   54,
+   609,
+   972,
+   100
+  ],
+  "take": "lip_b",
+  "note": "MAIN-8: the article's line `effective from 14 July 2014`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-licence.png",
+    "crop": [
+     0,
+     930,
+     1080,
+     1075
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     608
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "related-head": {
+  "file": "real/d-related-head.png",
+  "box": [
+   322,
+   609,
+   436,
+   100
+  ],
+  "take": "lip_b",
+  "note": "MAIN-9: the `related companies` heading",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-related.png",
+    "crop": [
+     0,
+     790,
+     694,
+     880
+    ],
+    "zoom": 1.4,
+    "at": [
+     109,
+     603
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "revoked-l1": {
+  "file": "real/d-revoked-l1.png",
+  "box": [
+   54,
+   630,
+   972,
+   58
+  ],
+  "take": "lip_b",
+  "note": "MAIN-11: the article's first line: current licence status `revoked`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-revoked.png",
+    "crop": [
+     0,
+     860,
+     1080,
+     918
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     629
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   758
+  ],
+  "fits": true
+ },
+ "header-plain": {
+  "file": "real/d-header-plain.png",
+  "box": null,
+  "take": "lip_c",
+  "note": "SUMMARY-7: GB's profile tile again, no spotlight",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-header.png",
+    "crop": [
+     190,
+     460,
+     690,
+     596
+    ],
+    "zoom": 1.0,
+    "at": [
+     47,
+     592
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   775
+  ],
+  "fits": true
+ },
+ "survey-date": {
+  "file": "real/d-survey-date.png",
+  "box": [
+   54,
+   617,
+   972,
+   100
+  ],
+  "take": "lip_c",
+  "note": "SUMMARY-9: the 2019 survey page title and its date 2019-05-31 (tag `Good`)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     34,
+     200,
+     996,
+     330
+    ],
+    "zoom": 1.1247058823529412,
+    "at": [
+     -1,
+     608
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   775
+  ],
+  "fits": true
+ },
+ "survey-plain": {
+  "file": "real/d-survey-plain.png",
+  "box": null,
+  "take": "lip_c",
+  "note": "SUMMARY-8: the same survey header, no spotlight",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     34,
+     200,
+     996,
+     330
+    ],
+    "zoom": 1.1247058823529412,
+    "at": [
+     -1,
+     608
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   775
+  ],
+  "fits": true
+ },
+ "score": {
+  "file": "real/d-score.png",
+  "box": [
+   54,
+   650,
+   646,
+   380
+  ],
+  "take": null,
+  "note": "CONTEXT-1: GB's profile on WikiFX: the score tile, 1.38 out of 10",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-header.png",
+    "crop": [
+     190,
+     440,
+     690,
+     1090
+    ],
+    "zoom": 1.4,
+    "at": [
+     41,
+     182
+    ]
+   }
+  ]
+ },
+ "oct-top": {
+  "file": "real/d-oct-top.png",
+  "box": [
+   54,
+   695,
+   972,
+   131
+  ],
+  "take": null,
+  "note": "CONTEXT-3/4: the article's top: breadcrumb, title, `WikiFX | 10h`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-oct.png",
+    "crop": [
+     0,
+     240,
+     1080,
+     740
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     561
+    ]
+   }
+  ],
+  "boxes": {
+   "byline": [
+    79,
+    836,
+    149,
+    44
+   ],
+   "title": [
+    311,
+    699,
+    344,
+    71
+   ]
+  }
+ },
+ "entity": {
+  "file": "real/d-entity.png",
+  "box": [
+   54,
+   656,
+   972,
+   87
+  ],
+  "take": null,
+  "note": "CONTEXT-5, CURIOSITY-1/2: the article's review and licence paragraphs",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-entity.png",
+    "crop": [
+     0,
+     900,
+     1080,
+     1480
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     642
+    ]
+   }
+  ],
+  "boxes": {
+   "cysec": [
+    54,
+    1023,
+    972,
+    57
+   ],
+   "uk": [
+    54,
+    656,
+    972,
+    100
+   ],
+   "names": [
+    54,
+    981,
+    328,
+    57
+   ]
+  }
+ },
+ "header-crumb": {
+  "file": "real/d-header-crumb.png",
+  "box": [
+   360,
+   730,
+   361,
+   61
+  ],
+  "take": null,
+  "note": "MAIN-1: GB's WikiFX page: breadcrumb `หน้าแรก - โบรกเกอร์ - GB`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-header.png",
+    "crop": [
+     0,
+     300,
+     871,
+     1090
+    ],
+    "zoom": 1.0,
+    "at": [
+     210,
+     698
+    ]
+   }
+  ]
+ },
+ "licence-card": {
+  "file": "real/d-licence-card.png",
+  "box": [
+   54,
+   561,
+   972,
+   638
+  ],
+  "take": null,
+  "note": "MAIN-2: the forex-licence tab: `ไม่พบใบอนุญาตซื้อขายฟอเร็กซ์`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-licence.png",
+    "crop": [
+     0,
+     590,
+     1080,
+     1320
+    ],
+    "zoom": 0.9018867924528302,
+    "at": [
+     53,
+     546
+    ]
+   }
+  ]
+ },
+ "licence-suspect": {
+  "file": "real/d-licence-suspect.png",
+  "box": [
+   102,
+   797,
+   876,
+   126
+  ],
+  "take": null,
+  "note": "MAIN-3: company overview, `ใบอนุญาตในการกำกับดูแลกำลังถูกตั้งข้อสงสัย`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-licence.png",
+    "crop": [
+     0,
+     1380,
+     1030,
+     1840
+    ],
+    "zoom": 1.0,
+    "at": [
+     50,
+     470
+    ]
+   }
+  ]
+ },
+ "related-card": {
+  "file": "real/d-related-card.png",
+  "box": [
+   54,
+   769,
+   772,
+   142
+  ],
+  "take": null,
+  "note": "MAIN-10: related company card GOLDENBURG GROUP LTD(Cyprus), tags `ยกเลิกการจดทะเบียน` and Cyprus",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-related.png",
+    "crop": [
+     170,
+     770,
+     745,
+     1100
+    ],
+    "zoom": 1.4,
+    "at": [
+     48,
+     553
+    ]
+   }
+  ]
+ },
+ "revoked-p": {
+  "file": "real/d-revoked-p.png",
+  "box": [
+   54,
+   766,
+   972,
+   109
+  ],
+  "take": null,
+  "note": "MAIN-12: `GB ไม่มีใบอนุญาตกำกับดูแลที่มีผลบังคับใช้จริงในปัจจุบันแล้ว`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-revoked.png",
+    "crop": [
+     0,
+     860,
+     1080,
+     1050
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     765
+    ]
+   }
+  ]
+ },
+ "revoked-cysec": {
+  "file": "real/d-revoked-cysec.png",
+  "box": [
+   54,
+   777,
+   972,
+   87
+  ],
+  "take": null,
+  "note": "MAIN-13: `ตรวจสอบสถานะล่าสุดกับ CySEC โดยตรงก่อนตัดสินใจ`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-article-revoked.png",
+    "crop": [
+     0,
+     860,
+     1080,
+     1050
+    ],
+    "zoom": 0.8851851851851852,
+    "at": [
+     62,
+     692
+    ]
+   }
+  ]
+ },
+ "survey-title": {
+  "file": "real/d-survey-title.png",
+  "box": [
+   56,
+   730,
+   968,
+   100
+  ],
+  "take": null,
+  "note": "CURIOSITY-3: the 2019 survey page title, date 2019-05-31",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     32,
+     130,
+     998,
+     330
+    ],
+    "zoom": 1.12,
+    "at": [
+     -1,
+     643
+    ]
+   }
+  ]
+ },
+ "survey-body": {
+  "file": "real/d-survey-body.png",
+  "box": [
+   56,
+   785,
+   957,
+   83
+  ],
+  "take": null,
+  "note": "CURIOSITY-4: survey title and the text `licence CIF 242/14 under CySEC`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     70,
+     205,
+     950,
+     300
+    ],
+    "zoom": 1.0,
+    "at": [
+     100,
+     640
+    ]
+   },
+   {
+    "src": "real/gb-survey.png",
+    "crop": [
+     86,
+     1062,
+     944,
+     1130
+    ],
+    "zoom": 1.12,
+    "at": [
+     60,
+     790
+    ]
+   }
+  ]
+ }
+}
