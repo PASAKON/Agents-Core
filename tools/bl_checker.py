@@ -17,7 +17,10 @@ plate this checker judges are one rectangle. Section 7 below.
 
 Usage:
     python3 tools/bl_checker.py --video final.mp4 --beats beats.json \
-        [--face-box x,y,w,h | --per-take-face-boxes] [--composition cut/index.html]
+        [--face-box x,y,w,h | --per-take-face-boxes | --take-table take_table.json] [--composition cut/index.html]
+
+`--take-table` (task-2db3174c) is --per-take-face-boxes for any episode: a per-episode JSON table (load_take_table) of
+{take: seat, head_top, cy, comp_box, ff_box} replaces COMP_TAKES, which holds EP58's three takes only.
 """
 from __future__ import annotations
 
@@ -300,23 +303,75 @@ COMP_TAKES: dict[str, dict] = {
 }
 
 
-def lip_take(t: float) -> str:
+# ── A per-episode take table (task-2db3174c, CMO) ──────────────────────────────────────────────────────────────────────
+# COMP_TAKES / LIP_SEATS are EP58's numbers. Another episode's lipsync takes sit differently, so every function that
+# reads them takes an optional `table` -- load_take_table()'s result -- and with None behaves exactly as before.
+# take_table.json (prototypes/bl-ep59/take_table.json is the first):
+#   {"episode": 59, "takes": {"lip_a": {"seat": 0.0, "head_top": 898.2, "cy": 792,
+#                                       "comp_box": [x, y, w, h], "ff_box": [x, y, w, h], ...extra keys are kept in
+#                                       the file for the reader and ignored here}, ...}}
+# `seat` = where the take starts on the episode clock (offsets.json true_s). `cy` must equal
+# floor(head_top - CAP_HEAD_GAP - CAP_PILL_HALF_H): a table that disagrees with itself is refused.
+DEFAULT_TABLE: dict = {"takes": COMP_TAKES, "seats": LIP_SEATS}
+
+
+def _table(table: dict | None) -> dict:
+    return DEFAULT_TABLE if table is None else table
+
+
+def load_take_table(source: "str | Path | dict") -> dict:
+    """A take table file (or its parsed dict) -> {"takes": {take: {head_top, cy, comp_box, ff_box}}, "seats": ((take,
+    start), ...) in seat order}. Raises ValueError naming the take and the field that is wrong."""
+    doc = json.loads(Path(source).read_text(encoding="utf-8")) if isinstance(source, (str, Path)) else source
+    raw = doc.get("takes") if isinstance(doc, dict) else None
+    if not isinstance(raw, dict) or not raw:
+        raise ValueError("take table: expected {\"takes\": {<take>: {...}, ...}} with at least one take")
+    takes: dict[str, dict] = {}
+    seats = []
+    for name, row in raw.items():
+        if not isinstance(row, dict):
+            raise ValueError(f"take table: take {name!r} is not an object")
+        for key in ("seat", "head_top", "cy", "comp_box", "ff_box"):
+            if key not in row:
+                raise ValueError(f"take table: take {name!r} has no {key!r}")
+        seat, head_top, cy = row["seat"], row["head_top"], row["cy"]
+        if not all(_is_number(v) for v in (seat, head_top, cy)):
+            raise ValueError(f"take table: take {name!r}: seat, head_top and cy must be numbers")
+        for key in ("comp_box", "ff_box"):
+            box = row[key]
+            if not (isinstance(box, (list, tuple)) and len(box) == 4 and all(_is_number(v) for v in box)
+                    and box[2] > 0 and box[3] > 0):
+                raise ValueError(f"take table: take {name!r}: {key} must be [x, y, w, h] with w, h > 0, got {box!r}")
+        want = math.floor(head_top - CAP_HEAD_GAP - CAP_PILL_HALF_H)
+        if cy != want:
+            raise ValueError(f"take table: take {name!r}: cy {cy} is not floor(head_top {head_top} - {CAP_HEAD_GAP} - "
+                             f"{CAP_PILL_HALF_H}) = {want}")
+        takes[name] = {"head_top": head_top, "cy": cy, "comp_box": tuple(row["comp_box"]), "ff_box": tuple(row["ff_box"])}
+        seats.append((name, float(seat)))
+    seats.sort(key=lambda x: x[1])
+    if len({x[1] for x in seats}) != len(seats):
+        raise ValueError("take table: two takes share one seat")
+    return {"takes": takes, "seats": tuple(seats)}
+
+
+def lip_take(t: float, table: dict | None = None) -> str:
     """The lipsync take a beat starting at episode time `t` plays (the last seat that has begun)."""
-    name = LIP_SEATS[0][0]
-    for seat, start in LIP_SEATS:
+    seats = _table(table)["seats"]
+    name = seats[0][0]
+    for seat, start in seats:
         if t >= start - 1e-9:
             name = seat
     return name
 
 
-def comp_caption_cy(take: str) -> int:
+def comp_caption_cy(take: str, table: dict | None = None) -> int:
     """The caption centre y for a COMP beat on `take`: head top - 24 - 82, rounded down so the gap is never less."""
-    return math.floor(COMP_TAKES[take]["head_top"] - CAP_HEAD_GAP - CAP_PILL_HALF_H)
+    return math.floor(_table(table)["takes"][take]["head_top"] - CAP_HEAD_GAP - CAP_PILL_HALF_H)
 
 
-def take_face_boxes() -> dict[str, dict[str, tuple[float, float, float, float]]]:
+def take_face_boxes(table: dict | None = None) -> dict[str, dict[str, tuple[float, float, float, float]]]:
     """{take: {"FF": box, "COMP": box}} -- what `check_text_over_face(take_boxes=...)` takes."""
-    return {take: {"FF": t["ff_box"], "COMP": t["comp_box"]} for take, t in COMP_TAKES.items()}
+    return {take: {"FF": t["ff_box"], "COMP": t["comp_box"]} for take, t in _table(table)["takes"].items()}
 
 
 def caption_band(mode: str, canvas_h: int = CANVAS_H, cy: float | None = None) -> tuple[float, float] | None:
@@ -329,11 +384,11 @@ def caption_band(mode: str, canvas_h: int = CANVAS_H, cy: float | None = None) -
     return None
 
 
-def _beat_face_box(beat: dict, face_box, take_boxes):
+def _beat_face_box(beat: dict, face_box, take_boxes, table: dict | None = None):
     """The face box a FF/COMP beat is judged against: its take's own box for its own mode, or the one `face_box`."""
     if take_boxes is None:
         return face_box
-    take = lip_take(beat["t0"])
+    take = lip_take(beat["t0"], table)
     try:
         return take_boxes[take][beat["mode"]]
     except KeyError:
@@ -342,7 +397,8 @@ def _beat_face_box(beat: dict, face_box, take_boxes):
 
 def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float, float] | None,
                           headline: dict | None = None,
-                          take_boxes: dict[str, dict[str, tuple[float, float, float, float]]] | None = None) -> list[str]:
+                          take_boxes: dict[str, dict[str, tuple[float, float, float, float]]] | None = None,
+                          table: dict | None = None) -> list[str]:
     """Arm A (`headline` given): the plate is text on every frame, so every FF/COMP beat -- the ones with a face in
     them -- is also flagged when the plate's text rectangle meets the face box, caption or not.
 
@@ -356,7 +412,7 @@ def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float,
     for b in beats:
         if b.get("mode") not in ("FF", "COMP"):
             continue
-        box = _beat_face_box(b, face_box, take_boxes)
+        box = _beat_face_box(b, face_box, take_boxes, table)
         fx, fy, fw, fh = box
         if plate is not None and _rects_overlap(plate, box):
             bad.append(b["tag"])
@@ -373,15 +429,16 @@ def check_text_over_face(beats: list[dict], face_box: tuple[float, float, float,
     return bad
 
 
-def face_box_beats(beats: list[dict], take_boxes: dict[str, dict[str, tuple[float, float, float, float]]]) -> dict:
+def face_box_beats(beats: list[dict], take_boxes: dict[str, dict[str, tuple[float, float, float, float]]],
+                    table: dict | None = None) -> dict:
     """{take: {mode: {"box": [x, y, w, h], "beats": [tag, ...]}}} for every FF/COMP beat -- which beats each face box
     was judged against, so the verdict can be read back beat by beat."""
     out: dict[str, dict[str, dict]] = {}
     for b in sorted(beats, key=lambda b: b["t0"]):
         if b.get("mode") not in ("FF", "COMP"):
             continue
-        box = _beat_face_box(b, None, take_boxes)
-        slot = out.setdefault(lip_take(b["t0"]), {}).setdefault(b["mode"], {"box": list(box), "beats": []})
+        box = _beat_face_box(b, None, take_boxes, table)
+        slot = out.setdefault(lip_take(b["t0"], table), {}).setdefault(b["mode"], {"box": list(box), "beats": []})
         slot["beats"].append(b["tag"])
     return out
 
@@ -395,18 +452,19 @@ SPOTLIGHT_BORDER_PX = 10
 EVIDENCE_PILL_GAP = 12
 
 
-def evidence_region(take: str, headline: dict | None = None, cy: float | None = None) -> tuple[float, float]:
+def evidence_region(take: str, headline: dict | None = None, cy: float | None = None,
+                     table: dict | None = None) -> tuple[float, float]:
     """(top, bottom) of the canvas band a COMP beat's evidence box may occupy on `take`; `cy` = the pill centre."""
     if headline is None:
         zx, zy, zw, zh = bug_zone("right")
         top = zy + zh
     else:
         top = float(ARM_A_EVIDENCE_TOP)
-    pill_top = (comp_caption_cy(take) if cy is None else cy) - CAP_PILL_HALF_H
+    pill_top = (comp_caption_cy(take, table) if cy is None else cy) - CAP_PILL_HALF_H
     return top, pill_top - EVIDENCE_PILL_GAP - SPOTLIGHT_BORDER_PX
 
 
-def check_comp_evidence_landing(beats: list[dict], headline: dict | None = None) -> list[str]:
+def check_comp_evidence_landing(beats: list[dict], headline: dict | None = None, table: dict | None = None) -> list[str]:
     """COMP beats whose evidence box (placed_box -- the `shift` counted) does not land inside evidence_region() of the
     take it plays: `<tag>:above_region` (under the brand mark / plate), `<tag>:in_caption` (reaches the pill). A beat
     with no `box` points at nothing and is not judged. The region's bottom is the beat's own `cap_cy` when it names
@@ -419,7 +477,7 @@ def check_comp_evidence_landing(beats: list[dict], headline: dict | None = None)
         if box is None:
             continue
         x, y, w, h = box
-        top, bottom = evidence_region(lip_take(b["t0"]), headline, (b.get("extra") or {}).get("cap_cy"))
+        top, bottom = evidence_region(lip_take(b["t0"], table), headline, (b.get("extra") or {}).get("cap_cy"), table)
         if y < top - 0.5:
             bad.append(f"{b['tag']}:above_region")
         if y + h > bottom + 0.5:
@@ -1021,8 +1079,10 @@ def excuse_kin_entry(video_path: Path, empty_times: list[float], beats: list[dic
 
 def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, float, float, float] | None = None,
                  composition_html: str | None = None, headline: dict | None = None,
-                 take_boxes: dict[str, dict[str, tuple[float, float, float, float]]] | None = None) -> dict:
-    """`headline` (a parsed arm-A headline) switches on the arm-A mask and the plate checks and adds a "headline"
+                 take_boxes: dict[str, dict[str, tuple[float, float, float, float]]] | None = None,
+                 table: dict | None = None) -> dict:
+    """`table` (load_take_table()) is the episode's own takes: seats, caption centres, face boxes. None = COMP_TAKES.
+    `headline` (a parsed arm-A headline) switches on the arm-A mask and the plate checks and adds a "headline"
     key to the verdict, and makes the brand-mark gate read the left bug. `empty_frames` is what is left after the
     KIN-entry grace (section 9); the excused frames are listed under `empty_frames_excused`, and `brand_mark` is
     section 8's verdict. `take_boxes` (take_face_boxes()) judges text_over_face per take and adds `face_box_beats`,
@@ -1033,8 +1093,8 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
         video_path, detect_empty_frames(video_path, **arm_mask_kwargs(headline)), beats, side, levels=mark_levels)
     brand_mark = check_brand_mark(video_path, side, levels=mark_levels)
     unsafe = check_out_of_safe_area(beats)
-    text_over = check_text_over_face(beats, face_box, headline, take_boxes)
-    landing_bad = check_comp_evidence_landing(beats, headline)
+    text_over = check_text_over_face(beats, face_box, headline, take_boxes, table)
+    landing_bad = check_comp_evidence_landing(beats, headline, table)
     credit_bad = check_credit_missing(beats)
     caption_styles_bad = check_one_caption_style(composition_html)
     kinetic_overflow_bad = check_kinetic_overflow(composition_html)
@@ -1059,7 +1119,7 @@ def run_checker(video_path: Path, beats: list[dict], face_box: tuple[float, floa
     if headline is not None:
         result["headline"] = headline_bad
     if take_boxes is not None:
-        result["face_box_beats"] = face_box_beats(beats, take_boxes)
+        result["face_box_beats"] = face_box_beats(beats, take_boxes, table)
     return result
 
 
@@ -1078,6 +1138,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--per-take-face-boxes", action="store_true",
                     help="judge text_over_face per lipsync take with COMP_TAKES' head + neck + shoulder boxes "
                          "(FF at 1:1, COMP at the template's 56%%) instead of one --face-box")
+    ap.add_argument("--take-table", default=None, metavar="JSON",
+                    help="this episode's takes (load_take_table): seats, caption centres, face boxes. Replaces COMP_TAKES "
+                         "and implies the per-take face-box gate")
     ap.add_argument("--composition", default=None, help="the composed index.html (for the one-caption-style gate)")
     ap.add_argument("--out", default=None, help="write the result JSON here too")
     return ap
@@ -1092,9 +1155,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     composition_html = Path(args.composition).read_text(encoding="utf-8") if args.composition else None
     try:
+        table = load_take_table(args.take_table) if args.take_table else None
+        per_take = args.per_take_face_boxes or table is not None
         result = run_checker(Path(args.video), beats, parse_box(args.face_box), composition_html, headline,
-                             take_face_boxes() if args.per_take_face_boxes else None)
-    except ValueError as e:
+                             take_face_boxes(table) if per_take else None, table)
+    except (ValueError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
     text = json.dumps(result, indent=2, ensure_ascii=False)

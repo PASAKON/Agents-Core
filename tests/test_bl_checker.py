@@ -8,6 +8,7 @@ Run via: pytest tests/test_bl_checker.py -q
 """
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -339,6 +340,97 @@ def test_run_checker_per_take_boxes_fail_a_comp_pill_on_the_face_and_report_the_
     bad = ck.run_checker(video, [_comp("C", 1.0, box=[54, 500, 972, 150])], take_boxes=ck.take_face_boxes())
     assert bad["pass"] is False and bad["text_over_face"] == ["C"]
     assert "face_box_beats" not in ck.run_checker(video, [], face_box=None)
+
+
+# ── --take-table: another episode's takes replace COMP_TAKES (task-2db3174c) ──
+
+def _table_doc(**over):
+    """Three takes at seats 0 / 31.5 / 62.0 with heads 40 px higher than lip_a/b/c of EP58 -- nothing like COMP_TAKES."""
+    takes = {
+        "lip_a": {"seat": 0.0, "head_top": 863.04, "cy": 757, "comp_box": [-25, 863, 573, 599], "ff_box": [21, 64, 1021, 1037]},
+        "lip_b": {"seat": 31.5, "head_top": 928.56, "cy": 822, "comp_box": [-7, 928, 576, 534], "ff_box": [54, 181, 1026, 920]},
+        "lip_c": {"seat": 62.0, "head_top": 959.92, "cy": 853, "comp_box": [48, 959, 416, 503], "ff_box": [151, 237, 742, 864]},
+    }
+    takes.update(over)
+    return {"episode": 99, "takes": takes}
+
+
+def test_load_take_table_reads_a_file_and_orders_the_seats(tmp_path):
+    path = tmp_path / "take_table.json"
+    doc = _table_doc()
+    doc["takes"]["lip_c"]["note"] = "extra keys are the reader's"
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    t = ck.load_take_table(path)
+    assert t["seats"] == (("lip_a", 0.0), ("lip_b", 31.5), ("lip_c", 62.0))
+    assert t["takes"]["lip_b"]["comp_box"] == (-7, 928, 576, 534) and t["takes"]["lip_a"]["cy"] == 757
+    assert ck.load_take_table(doc) == t                                  # a parsed dict is taken too
+
+
+def test_the_table_moves_the_seats_the_caption_centres_and_the_boxes():
+    t = ck.load_take_table(_table_doc())
+    assert [ck.lip_take(x, t) for x in (0.0, 31.49, 31.5, 61.99, 62.0, 90.0)] == \
+        ["lip_a", "lip_a", "lip_b", "lip_b", "lip_c", "lip_c"]
+    assert ck.lip_take(35.0) == "lip_a" and ck.lip_take(35.0, t) == "lip_b"       # EP58's seat 38.77 is not this table's
+    assert {k: ck.comp_caption_cy(k, t) for k in t["takes"]} == {"lip_a": 757, "lip_b": 822, "lip_c": 853}
+    assert ck.take_face_boxes(t)["lip_b"]["COMP"] == (-7, 928, 576, 534)
+    assert ck.evidence_region("lip_a", table=t)[1] == 757 - 82 - 12 - 10
+    # the no-table calls are untouched
+    assert ck.comp_caption_cy("lip_a") == 797 and ck.take_face_boxes() == ck.take_face_boxes(None)
+
+
+def test_the_table_judges_text_over_face_and_landing_with_its_own_numbers():
+    t = ck.load_take_table(_table_doc())
+    boxes = ck.take_face_boxes(t)
+    # 797 clears EP58's lip_a head (903) but this table's lip_a head is 863: the pill 715..879 meets it
+    on_face = [_comp("C", 1.0, cy=797)]
+    assert ck.check_text_over_face(on_face, None, take_boxes=ck.take_face_boxes()) == []
+    assert ck.check_text_over_face(on_face, None, take_boxes=boxes, table=t) == ["C"]
+    ok = [_comp("C", 1.0, cy=757), _comp("D", 33.0, cy=822), _comp("E", 70.0, cy=853)]
+    assert ck.check_text_over_face(ok, None, take_boxes=boxes, table=t) == []
+    # a beat at 33 s is lip_b here (seat 31.5) -- it was lip_a under EP58's seats, where cy 822 would meet a head at 903
+    assert ck.check_text_over_face([_comp("D", 33.0, cy=822)], None, take_boxes=ck.take_face_boxes()) == ["D"]
+    assert ck.check_comp_evidence_landing([_comp("L", 1.0, box=[54, 500, 972, 150], cy=757)], table=t) == []
+    assert ck.check_comp_evidence_landing([_comp("L", 1.0, box=[54, 500, 972, 150], cy=757)]) == []
+    assert ck.check_comp_evidence_landing([_comp("L", 1.0, box=[54, 560, 972, 150], cy=757)], table=t) == ["L:in_caption"]
+    got = ck.face_box_beats(ok, boxes, t)
+    assert got["lip_b"]["COMP"] == {"box": [-7, 928, 576, 534], "beats": ["D"]}
+
+
+@pytest.mark.parametrize("mutate, message", [
+    (lambda d: d.update(takes={}), "at least one take"),
+    (lambda d: d["takes"]["lip_a"].pop("ff_box"), "'lip_a' has no 'ff_box'"),
+    (lambda d: d["takes"]["lip_a"].update(cy=790), "cy 790 is not floor"),
+    (lambda d: d["takes"]["lip_b"].update(comp_box=[0, 0, 0, 5]), "comp_box must be"),
+    (lambda d: d["takes"]["lip_b"].update(seat="31.5"), "must be numbers"),
+    (lambda d: d["takes"]["lip_b"].update(seat=0.0), "share one seat"),
+])
+def test_load_take_table_refuses_a_table_that_disagrees_with_itself(mutate, message):
+    doc = _table_doc()
+    mutate(doc)
+    with pytest.raises(ValueError, match=message):
+        ck.load_take_table(doc)
+
+
+def test_main_take_table_judges_per_take_and_a_bad_table_is_exit_2(tmp_path, capsys):
+    video = _clean_video(tmp_path / "clean.mp4")
+    table = tmp_path / "take_table.json"
+    table.write_text(json.dumps(_table_doc()), encoding="utf-8")
+    good, bad = tmp_path / "good.json", tmp_path / "bad.json"
+    good.write_text(json.dumps([_comp("C", 1.0, box=[54, 500, 972, 150], cy=757)]), encoding="utf-8")
+    bad.write_text(json.dumps([_comp("C", 1.0, cy=797)]), encoding="utf-8")                   # EP58's centre, this head is higher
+    out = tmp_path / "result.json"
+    assert ck.main(["--video", str(video), "--beats", str(good), "--take-table", str(table), "--out", str(out)]) == 0
+    res = json.loads(out.read_text(encoding="utf-8"))
+    assert res["face_box_beats"]["lip_a"]["COMP"]["box"] == [-25, 863, 573, 599]            # the table's box, not COMP_TAKES'
+    assert ck.main(["--video", str(video), "--beats", str(bad), "--take-table", str(table)]) == 1
+    assert json.loads(capsys.readouterr().out.split("\n}\n")[-2] + "\n}")["text_over_face"] == ["C"]
+    broken = tmp_path / "broken.json"
+    broken.write_text(json.dumps(_table_doc(lip_a={"seat": 0.0})), encoding="utf-8")
+    assert ck.main(["--video", str(video), "--beats", str(good), "--take-table", str(broken)]) == 2
+    assert ck.main(["--video", str(video), "--beats", str(good), "--take-table", str(tmp_path / "missing.json")]) == 2
+    # without the option nothing changes: no per-take verdict, no face_box_beats
+    assert ck.main(["--video", str(video), "--beats", str(good), "--out", str(out)]) == 0
+    assert "face_box_beats" not in json.loads(out.read_text(encoding="utf-8"))
 
 
 # ─────────────────────── 4. one caption style per episode ────────────────
