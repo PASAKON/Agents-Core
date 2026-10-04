@@ -37,7 +37,7 @@ Backdrop check at 0 to 0.5 s: the article title sits at y 400 to 500 under the p
 - Survey (`gb-survey`, 2019-05-31, tag Good): «Goldenburg Group Limited เป็น บริษัท ที่ได้รับอนุญาตอย่างเต็มที่ภายใต้การควบคุมของ CySEC โดยมีใบอนุญาต CIF เลขที่ 242/14».
 - Complaint (`gb-complaint`): only the breadcrumb, the date 2021-02-03 and two phrases the voice reads («ไม่สามารถถอนเงินได้», «ไม่สามารถติดต่อบุคคลที่ให้คำแนะนำได้»). **No complainant name, avatar, id, amount or pixelated tag is on any frame** (checked by eye on the PATTERN-2 frame and on the plate sheets for PATTERN-1/2; the plates are two small snippets on white, built so the rest of the page cannot appear). The gate condition for the "ถูกเพิกถอน" claim holds: it rests on WikiFX's own words above, attributed on the plate.
 - "โกง" appears nowhere. The channel recommends no broker; the closing three tips are about checking, SUMMARY-7 says so. No em dash on screen.
-- Credit «ขอบคุณภาพจาก WikiFX» is on every beat that shows a WikiFX still (`credit_missing []` on both arms); the 12 b-roll KIN beats show no still and carry none.
+- Credit «ขอบคุณภาพจาก WikiFX» is on every beat that shows a WikiFX still (`credit_missing []` on both arms); the 11 b-roll KIN beats show no still and carry none.
 
 ## Per-frame verdicts (what I looked at)
 
@@ -95,7 +95,7 @@ Take table (`take_table.json`): lip_a head_top 903.04, cy 797; lip_b 968.56 / 86
 
 ## Judgment calls
 
-- Captions copy the voice (SCRIPT.tsv), including `กู` (HOOK-4 «จริงไหม กูไปเช็กมาให้», MAIN-1 «กูเปิดหน้า GB เองทีละช่อง», SUMMARY-7 «กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น»). IRON §37/memory say never มึง/กู on screen; the BL voice says it and the CMO's brief says captions copy the script verbatim. I told the CMO by dev_message, no reply. **SKILL-OVERRIDE: kept `กู` in three captions, because the brief says verbatim copy of SCRIPT.tsv and the voice track says the same word; changing a caption alone would put different words on screen than the voice, and the CMO can swap the three lines and re-render windows seg02, seg05/06 and seg11 only.**
+- Captions copy the voice (SCRIPT.tsv), including `กู` (HOOK-4 «จริงไหม กูไปเช็กมาให้», MAIN-1 «กูเปิดหน้า GB เองทีละช่อง», SUMMARY-7 «กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น»). IRON §37/memory say never มึง/กู on screen; the BL voice says it and the CMO's brief says captions copy the script verbatim. I told the CMO by dev_message, no reply. **SKILL-OVERRIDE: kept `กู` in three captions, because the brief says verbatim copy of SCRIPT.tsv and the voice track says the same word; changing a caption alone would put different words on screen than the voice, and the CMO can swap the three lines and re-render windows seg02, seg04 and seg11 only.**
 - Plain plates need a box when they carry a credit: `bl_checker` refuses a credit with no evidence top to clear (`credit_missing SUMMARY-7/8`). SUMMARY-8 reuses SUMMARY-9's box on the same plate.
 - Two plates were rebuilt after a look: survey body (15 px in the source: two rows at 1.5x), related card (heading clipped). SUMMARY-7 changed from the GB tile to the article-title plate.
 - The merge is run against `audio-hq-decoded.wav` (a PCM copy of `audio-hq.mp3`): the mp3's container duration is 90.279 s (25 ms start offset plus padding) while it decodes to 90.229 s. `bl_merge` expects floor(90.279 x 30) = 2708 frames ±1 and a 2706-frame cut (all the audio there is) failed by one; a 2707-frame video was cut to 2704 by the muxer's `-shortest`. Audio content is identical.
