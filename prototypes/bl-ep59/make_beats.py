@@ -83,6 +83,7 @@ TABLE = [
 # the opening: beat starts that are not "line start minus 0.10 s"
 FIXED_T0 = {"HOOK-0": 0.0, "HOOK-1": 1.0}
 LEAD = 0.10
+MAX_WINDOW = 9.0
 
 # Arm A: the first three beats ride the headline backdrop (img-less COMP, no box, no credit); nothing else changes.
 CHANGES_A = {
@@ -172,6 +173,17 @@ def main():
     doc = {"headline": HEADLINE, "beats": armA}
     (HERE / "armA").mkdir(exist_ok=True)
     (HERE / "armA/beats.json").write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+    # render windows: <= MAX_WINDOW s, every seam exactly on a beat's t0 (the same for both arms)
+    total = frame(94.0839)
+    cuts = sorted({b["t0"] for b in beats if b["t0"] > 0})
+    segs, start, k = [], 0.0, 1
+    while start < total - 1e-6:
+        ends = [c for c in cuts if start + 1e-6 < c <= start + MAX_WINDOW + 1e-6]
+        end = ends[-1] if ends and total - start > MAX_WINDOW else total
+        segs.append({"id": f"seg{k:02d}", "t0": start, "t1": end})
+        start, k = end, k + 1
+    (HERE / "segments.json").write_text(json.dumps({"segments": segs, "total": total}, indent=1) + "\n")
+    print("windows", len(segs), [round(g["t1"] - g["t0"], 2) for g in segs])
     modes = {}
     for b in beats:
         modes[b["mode"]] = modes.get(b["mode"], 0) + 1
