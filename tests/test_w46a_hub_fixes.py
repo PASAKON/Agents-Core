@@ -497,6 +497,7 @@ def test_leave_live_ends_with_the_rotate_block_naming_the_token_and_no_value(mon
     lines = out.strip().splitlines()
     assert "ROTATE what node-a could read" in out
     assert "does not recall a token it already received" in out
+    assert "required, not optional (decided for CEO 2026-10-04)" in out and "Run card" in out
     assert "Org-Node/prod: CLAUDE_CODE_OAUTH_TOKEN" in out
     assert "Agents-Core" not in out
     assert lines[-1].strip().startswith("procedure:") and "hq-join.md" in lines[-1]

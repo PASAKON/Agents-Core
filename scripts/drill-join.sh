@@ -38,7 +38,7 @@
 #   DRILL_IMAGE DRILL_MIN_MB DRILL_CONTAINER_MB DRILL_DOOR_MIN DRILL_FP_WAIT_S DRILL_JOIN_WAIT_S
 #   DRILL_PROBE_WAIT_S DRILL_POLL_S DRILL_GH_REPO DRILL_AUTHORIZED_KEYS DRILL_WINBOX_SSH
 #   DRILL_TS_API DRILL_STAMP DRILL_ALLOW_NONROOT DRILL_JOIN_ENV_WRAP DRILL_TOKEN_URL
-#   DRILL_TOKEN_URL is the token service as a node sees it, http://<hub tailnet address>:8792/v1/token;
+#   DRILL_TOKEN_URL is the token service as a node sees it, http://<hub tailnet address>:792/v1/token;
 #   ORG_NODE_TOKEN_URL in the environment is the second choice, `tailscale ip -4` on this box the third.
 set -uo pipefail
 
@@ -82,7 +82,7 @@ TS_API=${DRILL_TS_API:-https://api.tailscale.com}
 # Where a node reaches the hub's token service (tools/node_token_api.py, deploy/node-token/README.md).
 # Empty here means "ask tailscale at preflight"; provision seals it into the node's bundle.
 TOKEN_URL=${DRILL_TOKEN_URL:-${ORG_NODE_TOKEN_URL:-}}
-TOKEN_PORT=8792
+TOKEN_PORT=792
 STAMP=${DRILL_STAMP:-$(date -u +%Y%m%d-%H%M%S)}
 HOST=drill-$STAMP
 C_CONF=/root/.config/mooniex                  # inside the container: join.sh runs there as root

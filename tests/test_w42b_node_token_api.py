@@ -911,9 +911,20 @@ def test_the_unit_runs_the_two_fetches_then_drops_privileges_then_the_service_in
     line = next(ln for ln in _unit().splitlines() if ln.startswith("ExecStart="))
     order = ["bind-tailnet.sh", "infisical_setup.py run Agents-Core prod --as contabo --path /node-token",
              "infisical_setup.py run Org-Node prod --as contabo", "setpriv --reuid=org-node-token",
-             "-m tools.node_token_api --port 8792"]
+             "-m tools.node_token_api --port 792"]
     positions = [line.index(piece) for piece in order]
     assert positions == sorted(positions) and len(set(positions)) == len(order)
+
+
+def test_the_service_port_is_below_1024_and_keeps_only_the_bind_capability():
+    # 2a (decided for CEO 2026-10-04): while the service is down, no unprivileged user can take the port
+    assert node_token_api.DEFAULT_PORT < 1024
+    line = next(ln for ln in _unit().splitlines() if ln.startswith("ExecStart="))
+    assert f"-m tools.node_token_api --port {node_token_api.DEFAULT_PORT}" in line
+    setpriv = line[line.index("/usr/bin/setpriv "):line.index(" -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python")]
+    caps = [a for a in setpriv.split() if "caps" in a]
+    assert caps == ["--inh-caps=+net_bind_service", "--ambient-caps=+net_bind_service"], caps
+    assert "CapabilityBoundingSet" not in _unit() and "AmbientCapabilities" not in _unit()
 
 
 def test_the_unit_carries_no_secret_and_no_address():
