@@ -58,6 +58,7 @@ param(
     [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude',
     [string]$TaskMetaB64 = '',
     [string]$RunnerModel = '',
+    [string]$WorkDir = $env:WORK_DIR,
     # W3.3 (task-782936c0): the folder that holds roles\ and receives the
     # .launch-<task> dir + launch-<task>.cmd wrapper. Empty (the ssh deploy
     # path, unchanged) = this script's own folder, because the deploy step
@@ -275,6 +276,8 @@ try {
     $sharedDocPath = Join-Path $rolesDir '_worker_shared.md'
     $roleDocPath = Join-Path $rolesDir "$Role.md"
     $remoteContract = Get-Content -Raw -Path $remoteContractPath -Encoding UTF8
+    $contracts = $remoteContract -split '<!-- NONCLAUDE CONTRACT -->\r?\n', 2
+    $remoteContract = if ($Runner -ne 'claude') { $contracts[1] } else { $contracts[0] }
     Set-Content -Path (Join-Path $wt 'WORKER.md') -Value $remoteContract -NoNewline -Encoding UTF8
 
     # --- 5. System prompt: shared conventions + role doc + remote contract,
@@ -283,6 +286,34 @@ try {
     $sharedDoc = Get-Content -Raw -Path $sharedDocPath -Encoding UTF8
     $roleDoc = Get-Content -Raw -Path $roleDocPath -Encoding UTF8
     $systemPrompt = "$sharedDoc`n`n$roleDoc`n`n$remoteContract"
+    if ($Runner -ne 'claude') {
+        $remoteContract = $remoteContract.Replace('<task-id>', $Task)
+        $systemPrompt = $remoteContract
+        $taskContent = ($taskContent -split '(?m)^1\. Read your role doc \(already in your system prompt\)\.\r?$', 2)[0]
+        $taskContent = $taskContent -replace 'mcp__org__\w+', 'unavailable org tool (use report file)'
+    }
+
+    # Literal runtime body shared by both external runners. finally stops and
+    # waits for the heartbeat job even if invocation throws or returns nonzero.
+    $heartbeatStart = @'
+$heartbeatJob = Start-Job -ArgumentList $heartbeatPath, $PID -ScriptBlock {
+    param($path, $launcherPid)
+    while (Get-Process -Id $launcherPid -ErrorAction SilentlyContinue) {
+        [System.IO.File]::WriteAllText($path, [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"))
+        Start-Sleep -Seconds 60
+    }
+}
+try {
+'@
+    $heartbeatStop = @'
+} finally {
+    Stop-Job -Job $heartbeatJob -ErrorAction SilentlyContinue
+    Wait-Job -Job $heartbeatJob -ErrorAction SilentlyContinue | Out-Null
+    Remove-Job -Job $heartbeatJob -Force -ErrorAction SilentlyContinue
+}
+'@
+    $workDirLiteral = ([string]$WorkDir).Replace("'", "''")
+    $heartbeatPathLiteral = (Join-Path $wt 'HEARTBEAT').Replace("'", "''")
 
     # --- 6. Launch the worker CLI via a one-shot interactive scheduled task
     # (session-0 rule: SSH lands in Windows session 0, never the logged-in
@@ -550,6 +581,10 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
         if ($RunnerModel) {
             $argList += @('-m', [string]$RunnerModel)
         }
+        $gitCommonDir = (& git -C $wt rev-parse --path-format=absolute --git-common-dir).Trim()
+        if ($LASTEXITCODE -ne 0 -or -not $gitCommonDir) { throw 'Cannot resolve git common dir' }
+        $argList += @('--add-dir', [string]$gitCommonDir)
+        if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }
         $argList += @('-C', [string]$wt, '-s', 'workspace-write',
                       '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
@@ -587,8 +622,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$exe = '$codexExe'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 Remove-Item -LiteralPath '$codexFinalMsg' -Force -ErrorAction SilentlyContinue
+`$env:WORK_DIR = '$workDirLiteral'
+`$heartbeatPath = '$heartbeatPathLiteral'
+$heartbeatStart
 & `$exe @argArray *> '$codexJsonLog'
 `$cliExit = `$LASTEXITCODE
+$heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$codexJsonLog'
 
 $reportStepBody
@@ -608,8 +647,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         # sec.6b, THE CONTRACT: agy in print mode cannot run ANY shell command --
         # a RunCommand step is soft-denied, and the denial is not partial, it
         # ABANDONS THE WHOLE TURN (asked to fix a bug AND `git commit`, it
-        # committed nothing AND left the file unedited). So agy's prompt must
-        # NEVER include $remoteContract (roles/_worker_remote.md instructs
+        # committed nothing AND left the file unedited). The Claude contract
+        # must never reach AGY (it instructs
         # `git add -A && git commit && git push`) or any part of $taskContent
         # that asks for a commit/test/submit_report -- that would silently
         # abandon the file edits too, not just the git step. Widening agy's
@@ -632,8 +671,7 @@ instruction below that tells you to commit, push, run tests, or submit a
 report through a tool: a separate process (not you) does all of that after
 you finish editing.
 
-Optionally create or update REPORT.md in this directory using your
-file-editing tool (not a shell command) to summarize what you changed.
+$remoteContract
 
 ---
 
@@ -687,8 +725,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 # PowerShell has no '<' input-redirect operator (that's cmd.exe syntax) --
 # piping `$null` in is the equivalent of the proven `< /dev/null`
 # (docs/ops/agent-runners.md sec.6) that keeps agy from blocking on stdin.
+`$env:WORK_DIR = '$workDirLiteral'
+`$heartbeatPath = '$heartbeatPathLiteral'
+$heartbeatStart
 `$null | & `$exe @argArray *> '$agyLog'
 `$cliExit = `$LASTEXITCODE
+$heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'
 
 $reportStepBody

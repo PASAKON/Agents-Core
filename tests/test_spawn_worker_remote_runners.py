@@ -112,12 +112,14 @@ def test_codex_dry_run_prints_runner_command():
 
     wt = f"/opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__{task_id}"
     launch_dir = f"{ROOT}/.launch-{task_id}"
-    expected_cmd = (
-        f'codex exec "$(cat TASK.md)" -C "{wt}" -s workspace-write '
-        f'--skip-git-repo-check --json -o {launch_dir}/codex-final.txt '
-        f'> {launch_dir}/codex-events.jsonl 2>&1'
-    )
-    assert expected_cmd in out
+    import shlex
+    command = out.split("[dry-run] cmd=", 1)[1].splitlines()[0]
+    argv = shlex.split(command)
+    assert argv[:3] == ['codex', 'exec', '$(cat TASK.md)']
+    assert argv[argv.index('-C') + 1] == wt
+    assert argv[argv.index('-s') + 1] == 'workspace-write'
+    assert argv[argv.index('-o') + 1] == f'{launch_dir}/codex-final.txt'
+    assert argv.count('--add-dir') == 1
     assert "<launch.sh running codex>" in out
 
 
@@ -186,3 +188,72 @@ def test_script_source_checks_commit_logic():
     # Dangerous flags must NEVER be present
     assert "--dangerously-skip-permissions" not in code
     assert "--dangerously-bypass-approvals-and-sandbox" not in code
+
+
+@pytest.mark.parametrize("work_dir", [None, "/tmp/Work folder/task's output", r"C:\Work folder\task"])
+def test_codex_writable_dirs(tmp_path, work_dir):
+    import shlex
+    repo = tmp_path / "repo with spaces"
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    flags = {"repo_path": str(repo)}
+    if work_dir is not None:
+        flags["work_dir"] = work_dir
+    else:
+        flags["work_dir"] = ""  # do not inherit the test process's WORK_DIR
+    result = _run_dry_run("codex", **flags)
+    assert result.returncode == 0, result.stderr
+    command = result.stdout.split("[dry-run] cmd=", 1)[1].splitlines()[0]
+    args = shlex.split(command)
+    dirs = [args[i + 1] for i, arg in enumerate(args) if arg == "--add-dir"]
+    assert dirs == [str(repo / '.git')] + ([work_dir] if work_dir else [])
+    assert "danger-full-access" not in result.stdout
+    assert "dangerously-bypass" not in result.stdout
+    source = SCRIPT.read_text()
+    assert source.count('emit_codex_command') == 3  # definition, dry-run, real launch
+    assert 'git -C "$WT" rev-parse --path-format=absolute --git-common-dir' in source
+
+
+@pytest.mark.parametrize("runner", ["codex", "agy"])
+def test_heartbeat_body_cleanup_executes(tmp_path, runner):
+    result = _run_dry_run(runner)
+    body = result.stdout.split("heartbeat_pid=\n", 1)[1]
+    body = "heartbeat_pid=\n" + body.replace("CLI_RC=$?; cleanup_heartbeat", "sleep 0.1; CLI_RC=$?; cleanup_heartbeat")
+    # Execute only the generated supervisor fragment, never a worker or tmux.
+    process = subprocess.run(["bash", "-c", body], cwd=tmp_path,
+                             capture_output=True, text=True, timeout=5)
+    assert process.returncode == 0, process.stderr
+    assert 'kill "$heartbeat_pid"' in body
+    assert 'wait "$heartbeat_pid"' in body
+    assert 'sleep 60 &' in body
+    assert 'trap cleanup_runner EXIT' in body
+    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\n', (tmp_path / 'HEARTBEAT').read_text())
+
+
+@pytest.mark.parametrize('exit_mode', ['exit 7', 'kill -TERM $$'])
+def test_heartbeat_cleanup_on_exit(tmp_path, exit_mode):
+    source = SCRIPT.read_text()
+    body = source.split("cat <<'HEARTBEAT_START'\n", 1)[1].split('\nHEARTBEAT_START', 1)[0]
+    script = body + '\nprintf "%s" "$heartbeat_pid" > heartbeat.pid\nsleep 0.1\n' + exit_mode
+    result = subprocess.run(['bash', '-c', script], cwd=tmp_path, timeout=5)
+    assert result.returncode in (7, 143)
+    import os
+    with pytest.raises(ProcessLookupError):
+        os.kill(int((tmp_path / 'heartbeat.pid').read_text()), 0)
+
+
+def test_codex_git_common_dir_for_existing_linked_worktree(tmp_path):
+    import shlex
+    repo = tmp_path / 'common repo'
+    trees = tmp_path / 'work trees'
+    subprocess.run(['git', 'init', str(repo)], check=True, capture_output=True)
+    subprocess.run(['git', '-C', str(repo), '-c', 'user.name=Test',
+                    '-c', 'user.email=test@example.invalid', 'commit',
+                    '--allow-empty', '-m', 'fixture'], check=True, capture_output=True)
+    wt = trees / 'mooniex-agents__developer__task-linked'
+    subprocess.run(['git', '-C', str(repo), 'worktree', 'add', '-b', 'fixture', str(wt)],
+                   check=True, capture_output=True)
+    result = _run_dry_run('codex', task='task-linked', repo_path=str(repo),
+                          worktree_root=str(trees), work_dir='')
+    args = shlex.split(result.stdout.split('[dry-run] cmd=', 1)[1].splitlines()[0])
+    assert args[args.index('--add-dir') + 1] == str(repo / '.git')
+    assert args[args.index('-C') + 1] == str(wt)

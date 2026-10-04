@@ -48,6 +48,7 @@ TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
 TASK_META_B64=""
 RUNNER_MODEL=""
+WORK_DIR="${WORK_DIR:-}"
 # ORG_HOST the worker runs under (W0.6): `contabo` is what the only caller
 # passes today (no flag); a hub that spawns codex/agy on another Linux box
 # passes its own name here instead of inheriting a hard-coded one.
@@ -69,6 +70,7 @@ while [ $# -gt 0 ]; do
     --session-name) SESSION_NAME="$2"; shift 2 ;;
     --runner) RUNNER="$2"; shift 2 ;;
     --task-meta-b64) TASK_META_B64="$2"; shift 2 ;;
+    --work-dir) WORK_DIR="$2"; shift 2 ;;
     --runner-model) RUNNER_MODEL="$2"; shift 2 ;;
     --org-host) ORG_HOST="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
@@ -161,6 +163,53 @@ AGY_LOG="$LAUNCH_DIR/agy-events.log"
 ANCHORED_EXCLUDES=".worker.pid /TASK.md /.org-task.json /.org-worker.mcp.json /CTO-FEEDBACK.md /*.log"
 GIT_RESET_GUARD=".worker.pid TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md :(glob)*.log"
 
+# One renderer for dry-run and launch.sh; resolve git metadata on the target host.
+quote_arg() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
+emit_codex_command() {
+  printf 'codex exec "$(cat TASK.md)"'
+  if [ -n "$RUNNER_MODEL" ]; then printf ' -m %s' "$(quote_arg "$RUNNER_MODEL")"; fi
+  printf ' -C %s -s workspace-write --add-dir %s' "$(quote_arg "$WT")" "$(quote_arg "$GIT_COMMON_DIR")"
+  if [ -n "$WORK_DIR" ]; then printf ' --add-dir %s' "$(quote_arg "$WORK_DIR")"; fi
+  printf ' --skip-git-repo-check --json -o %s > %s 2>&1\n' "$(quote_arg "$CODEX_FINAL_MSG")" "$(quote_arg "$CODEX_TRANSCRIPT")"
+}
+GIT_COMMON_DIR=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || git -C "$REPO_PATH" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || printf '%s/.git' "$REPO_PATH")
+
+emit_heartbeat_start() {
+  cat <<'HEARTBEAT_START'
+heartbeat_pid=
+cleanup_heartbeat() {
+  if [ -n "$heartbeat_pid" ]; then
+    kill "$heartbeat_pid" 2>/dev/null || true
+    wait "$heartbeat_pid" 2>/dev/null || true
+    heartbeat_pid=
+  fi
+}
+runner_pid=
+cleanup_runner() {
+  if [ -n "$runner_pid" ]; then
+    kill "$runner_pid" 2>/dev/null || true
+    wait "$runner_pid" 2>/dev/null || true
+    runner_pid=
+  fi
+  cleanup_heartbeat
+}
+trap cleanup_runner EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+(
+  sleeper=
+  trap 'kill "$sleeper" 2>/dev/null; wait "$sleeper" 2>/dev/null; exit 0' TERM INT
+  while :; do
+    date -u +%Y-%m-%dT%H:%M:%SZ > HEARTBEAT
+    sleep 60 &
+    sleeper=$!
+    wait "$sleeper"
+  done
+) &
+heartbeat_pid=$!
+HEARTBEAT_START
+}
+
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] task=$TASK project=$PROJECT role=$ROLE branch=$BRANCH base=$BASE"
   echo "[dry-run] repo_url=$REPO_URL repo_path=$REPO_PATH"
@@ -176,11 +225,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   if [ "$RUNNER" = "claude" ]; then
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running claude>"
   elif [ "$RUNNER" = "codex" ]; then
-    if [ -n "$RUNNER_MODEL" ]; then
-      CODEX_CMD="codex exec \"\$(cat TASK.md)\" -m $RUNNER_MODEL -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
-    else
-      CODEX_CMD="codex exec \"\$(cat TASK.md)\" -C \"$WT\" -s workspace-write --skip-git-repo-check --json -o $CODEX_FINAL_MSG > $CODEX_TRANSCRIPT 2>&1"
-    fi
+    CODEX_CMD=$(emit_codex_command)
     echo "[dry-run] cmd=$CODEX_CMD"
     echo "[dry-run] runner_model=${RUNNER_MODEL:-(none)}"
     echo "[dry-run] would: clone/fetch $REPO_PATH; worktree add -b $BRANCH $WT origin/$BASE (reuse if present, refuse if dirty); decode --task-meta-b64 into $WT/.org-task.json (mode 600, GH #180 sidecar) when given; write TASK.md from stdin; prepend $AGENTS_ROOT/.tools/node/bin to PATH in launch.sh when that directory exists; tmux new-session -d -s $TMUX_SESSION -c $WT bash -l <launch.sh running codex>"
@@ -195,6 +240,11 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] org_host=$ORG_HOST"
     echo "[dry-run] report_step: after agy exits, $WT/docs/reports/$TASK/REPORT.md is committed on $BRANCH -- kept if its line 1 is '# REPORT $TASK'; else root REPORT.md moved there (header prepended if missing); else built from the last 200 lines of $AGY_LOG (header, 'Runner: agy', exit code, text; 'no final message; exit=<n>' when empty)"
     echo "[dry-run] never_committed: $GIT_RESET_GUARD (info/exclude + git reset after git add -A)"
+  fi
+  if [ "$RUNNER" != "claude" ]; then
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
+    emit_heartbeat_start
+    echo "CLI_RC=\$?; cleanup_heartbeat"
   fi
   exit 0
 fi
@@ -302,7 +352,11 @@ if [ ! -f "$REMOTE_CONTRACT" ] || [ ! -f "$SHARED_DOC" ] || [ ! -f "$ROLE_DOC" ]
   echo "SPAWN_REFUSED=missing-role-docs $ROLES_DIR"
   exit 1
 fi
-cp "$REMOTE_CONTRACT" "$WT/WORKER.md"
+if [ "$RUNNER" = "claude" ]; then
+  sed '/^<!-- NONCLAUDE CONTRACT -->/,$d' "$REMOTE_CONTRACT" > "$WT/WORKER.md"
+else
+  sed '1,/^<!-- NONCLAUDE CONTRACT -->/d' "$REMOTE_CONTRACT" > "$WT/WORKER.md"
+fi
 
 # --- 5. System prompt: shared conventions + role doc + remote contract
 # (same composition runners/worker_init.py builds for a Mac-spawned DEV,
@@ -315,7 +369,14 @@ mkdir -p "$LAUNCH_DIR"
 PROMPT_FILE="$LAUNCH_DIR/prompt.txt"
 SYSPROMPT_FILE="$LAUNCH_DIR/system_prompt.txt"
 cp "$WT/TASK.md" "$PROMPT_FILE"
-{ cat "$SHARED_DOC"; printf '\n\n'; cat "$ROLE_DOC"; printf '\n\n'; cat "$REMOTE_CONTRACT"; } > "$SYSPROMPT_FILE"
+{ cat "$SHARED_DOC"; printf '\n\n'; cat "$ROLE_DOC"; printf '\n\n'; cat "$WT/WORKER.md"; } > "$SYSPROMPT_FILE"
+if [ "$RUNNER" != "claude" ]; then
+  sed "s/<task-id>/$TASK/g" "$WT/WORKER.md" > "$SYSPROMPT_FILE"
+  awk '/^1\. Read your role doc \(already in your system prompt\)\.$/ {exit}
+       {gsub(/mcp__org__[A-Za-z0-9_]+/, "unavailable org tool (use report file)"); print}' "$WT/TASK.md" > "$PROMPT_FILE"
+  cp "$PROMPT_FILE" "$WT/TASK.md"
+  cat "$SYSPROMPT_FILE" >> "$WT/TASK.md"
+fi
 
 # --- 6. Resolve claude's absolute path HERE, in this script's own ssh-exec
 # environment -- not inside the launched shell. `ssh alias 'bash script'`
@@ -562,19 +623,11 @@ elif [ "$RUNNER" = "codex" ]; then
     # A final message left by an earlier launch of this same task must not be
     # read back as this run's message.
     printf 'rm -f %s\n' "$(sh_quote "$CODEX_FINAL_MSG")"
-    if [ -n "$RUNNER_MODEL" ]; then
-      printf 'codex exec "$(cat TASK.md)" -m %s -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
-        "$(sh_quote "$RUNNER_MODEL")" \
-        "$(sh_quote "$WT")" \
-        "$(sh_quote "$CODEX_FINAL_MSG")" \
-        "$(sh_quote "$CODEX_TRANSCRIPT")"
-    else
-      printf 'codex exec "$(cat TASK.md)" -C %s -s workspace-write --skip-git-repo-check --json -o %s > %s 2>&1\n' \
-        "$(sh_quote "$WT")" \
-        "$(sh_quote "$CODEX_FINAL_MSG")" \
-        "$(sh_quote "$CODEX_TRANSCRIPT")"
-    fi
-    printf 'CLI_RC=$?\n'
+    GIT_COMMON_DIR=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir) || exit 1
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
+    emit_heartbeat_start
+    printf '%s &\n' "$(emit_codex_command)"
+    printf 'runner_pid=$!\nwait "$runner_pid"\nCLI_RC=$?\nrunner_pid=\ncleanup_heartbeat\n'
     emit_report_commit_push codex "$CODEX_FINAL_MSG" "" "" "codex: task $TASK"
   } > "$LAUNCH_SH"
 elif [ "$RUNNER" = "agy" ]; then
@@ -589,12 +642,14 @@ elif [ "$RUNNER" = "agy" ]; then
     # $AGY_BIN is what the probe above resolved (/root/.local/bin/agy first, so
     # Contabo runs the same binary as before); it used to be resolved and then
     # ignored in favour of the literal path.
-    printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1\n' \
+    if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
+    emit_heartbeat_start
+    printf '%s -p "$(cat TASK.md)" --model %s --mode accept-edits --add-dir %s < /dev/null >> %s 2>&1 &\n' \
       "$(sh_quote "$AGY_BIN")" \
       "$(sh_quote "$AGY_MODEL")" \
       "$(sh_quote "$WT")" \
       "$(sh_quote "$AGY_LOG")"
-    printf 'CLI_RC=$?\n'
+    printf 'runner_pid=$!\nwait "$runner_pid"\nCLI_RC=$?\nrunner_pid=\ncleanup_heartbeat\n'
     emit_report_commit_push agy "" "$AGY_LOG" "-c user.name=agy-worker -c user.email=agy-worker@localhost" "agy: task $TASK"
   } > "$LAUNCH_SH"
 fi

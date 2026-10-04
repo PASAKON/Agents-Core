@@ -288,6 +288,20 @@ def _run_storage_reclaim() -> tuple[int, int]:
     return sum(i.get("bytes", 0) for i in deleted), len(deleted)
 
 
+def _remote_runner_prompt(task, project, worktree, runner):
+    """Keep Claude's brief byte-identical; external runners report through files."""
+    from runners.worker_init import _build_prompt
+
+    prompt = _build_prompt(task, project, worktree)
+    if runner == "claude":
+        return prompt
+    # The launchers append the Codex/AGY contract themselves (spawn-worker-remote.sh
+    # step 5, spawn-worker.ps1 $codexPrompt / $agyPrompt); appending it here as well
+    # sent every external worker the contract twice (CTO review of task-6f178277).
+    prompt = prompt.rsplit("## Instructions", 1)[0]
+    return re.sub(r"mcp__org__\w+", "unavailable org tool (use the report file)", prompt)
+
+
 def _work_dir_for(task_id: str, owner_cto: str | None) -> str | None:
     """Create this task's Work/<task_id>/ folder (Work/RULES.md rule 1-2,
     tools/workdir.py) and return its path, so the spawned worker's env can
@@ -1355,8 +1369,6 @@ async def _spawn_remote(task: dict, host_name: str, *,
     args, same prompt on stdin, same output parsing as over ssh, but no ssh
     and no copy into `.launch/`: the checkout's own tracked script IS the
     launcher. Linux only."""
-    from runners.worker_init import _build_prompt
-
     task_id = task["id"]
     role_name = task["role"]
     project_key = task["project"]
@@ -1425,6 +1437,15 @@ async def _spawn_remote(task: dict, host_name: str, *,
     sep = "\\" if os_name == "windows" else "/"
     remote_worktree = f"{worktree_root}{sep}{project_key}__{role_name}__{task_id}"
 
+    # Only create a local Work folder for a local runner. Remote paths must
+    # be supplied by the task or the target launcher's WORK_DIR environment.
+    work_dir = None
+    if runner != "claude":
+        work_dir = task.get("work_dir")
+        if local and not work_dir:
+            # Not os.environ["WORK_DIR"]: a delegate run inside a worker would hand
+            # that worker's own Work folder to the child task.
+            work_dir = _work_dir_for(task_id, task.get("owner_cto"))
     claude_args = _render_remote_runner_args(role_name, host_name, runner)
     role_cfg = get_role(role_name)
     model = role_cfg.get("model") or "claude-sonnet-5-5"
@@ -1438,7 +1459,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
     if os_name == "windows":
         deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
 
-        prompt = _build_prompt(task, proj, remote_worktree)
+        prompt = _remote_runner_prompt(task, proj, remote_worktree, runner)
         remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
         remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
 
@@ -1456,6 +1477,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
         # validates it again and falls back when it is absent.
         if runner != "claude" and task.get("runner_model"):
             remote_cmd += f" -RunnerModel {_ps_quote(str(task['runner_model']))}"
+        if work_dir:
+            remote_cmd += f" -WorkDir {_ps_quote(str(work_dir))}"
         cmd = ["ssh", ssh_alias, remote_cmd]
 
         if dry_run:
@@ -1578,7 +1601,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
         deploy_actions = _ensure_remote_deploy_linux(host_cfg, dry_run=dry_run)
         remote_script = f"{host_cfg['agents_root']}/{_LINUX_LAUNCHER_REL}"
 
-    prompt = _build_prompt(task, proj, remote_worktree)
+    prompt = _remote_runner_prompt(task, proj, remote_worktree, runner)
 
     # GH #180 (task-378523bb): the hub already knows this task's declared
     # touches — hand them to the spoke at spawn time instead of leaving the
@@ -1599,6 +1622,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
         "--session-name", session_name, "--runner", runner,
         "--task-meta-b64", task_meta_b64,
     ]
+    if work_dir:
+        script_args.extend(["--work-dir", str(work_dir)])
     transport = "local" if local else "ssh"
     if local:
         cmd = ["bash", remote_script, *script_args]
