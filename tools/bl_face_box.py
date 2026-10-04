@@ -159,6 +159,24 @@ def measure(path, window, chin_row=None):
     return [int(arr[:, 0].min()), int(arr[:, 1].min()), int(arr[:, 2].max()), int(arr[:, 3].max())], profiles
 
 
+def take_table_from(measured, seats, episode=None):
+    """The checker's per-episode take table (tools/bl_checker.py load_take_table) from main()'s result and {take: seat}.
+    `seat` is where the take starts on the episode clock (offsets.json true_s); cy is floor(head_top - 24 - 82), the
+    same arithmetic the checker re-checks when it loads the file."""
+    takes = {}
+    for name, row in measured['takes'].items():
+        used = row['used']
+        head_top = used['canvas_top']
+        takes[name] = dict(seat=seats[name], head_top=head_top, cy=math.floor(head_top - 24 - 82),
+                           comp_box=used['comp_box'], ff_box=used['ff_box'],
+                           used_range=used['range'], top_at=used['top_at'], source_top=used['top'],
+                           frames=used['frames'])
+    doc = dict(takes=takes, chin_row=measured['chin_row'], fps=measured['fps'], geometry=measured['geometry'])
+    if episode is not None:
+        doc = dict(episode=episode, **doc)
+    return doc
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--template', type=Path, default=TEMPLATE)
@@ -166,14 +184,25 @@ def main():
     parser.add_argument('--chin-row', type=int, default=CHIN_ROW,
                         help='reviewed conservative source-pixel lower bound; same framing across takes')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--ranges', type=Path, default=None,
+                        help='JSON {take: [from, to]} take-relative seconds the cut can show (default: EP58 USED_RANGES)')
+    parser.add_argument('--seats', type=Path, default=None,
+                        help='JSON {take: seconds on the episode clock}; with --take-table-out')
+    parser.add_argument('--episode', type=int, default=None)
+    parser.add_argument('--take-table-out', type=Path, default=None,
+                        help="also write the checker's --take-table file (needs --seats)")
     args = parser.parse_args()
+    ranges = {k: tuple(v) for k, v in json.loads(args.ranges.read_text()).items()} if args.ranges else USED_RANGES
+    seats = json.loads(args.seats.read_text()) if args.seats else None
+    if args.take_table_out and not seats:
+        parser.error('--take-table-out needs --seats')
     geom = geometry(args.template)
     result = dict(geometry=geom, chin_row=args.chin_row, fps=FPS, chin_verified=False,
                   note='A supplied bound still requires visual review across every relevant frame.', takes={})
-    for name in ('lip_a', 'lip_b', 'lip_c'):
+    for name in ranges:
         matte = args.matte_dir / f'{name}-matte.webm'
-        used = head_envelope(matte, *USED_RANGES[name], chin_row=args.chin_row, geom=geom)
-        whole = head_envelope(matte, 0.0, USED_RANGES[name][1], chin_row=args.chin_row, geom=geom)
+        used = head_envelope(matte, *ranges[name], chin_row=args.chin_row, geom=geom)
+        whole = head_envelope(matte, 0.0, ranges[name][1], chin_row=args.chin_row, geom=geom)
         used['comp_box'] = canvas_box(used['source_bounds'], geom)
         used['ff_box'] = [used['source_bounds'][0], used['source_bounds'][1],
                           used['source_bounds'][2] - used['source_bounds'][0],
@@ -184,6 +213,8 @@ def main():
         print(name, 'used', used['range'], 'top', used['top'], 'at', used['top_at'], '-> canvas', used['canvas_top'],
               '| whole take top', whole['top'], 'at', whole['top_at'], flush=True)
     args.output.write_text(json.dumps(result, indent=2) + '\n')
+    if args.take_table_out:
+        args.take_table_out.write_text(json.dumps(take_table_from(result, seats, args.episode), indent=2) + '\n')
 
 
 if __name__ == '__main__':
