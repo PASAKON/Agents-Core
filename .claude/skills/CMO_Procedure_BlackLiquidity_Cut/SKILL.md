@@ -188,7 +188,7 @@ bug happened).
 | `check(top, in, out, title, items)` | a numbered or ticked checklist |
 | `rules(top, items)` | one big numbered rule at a time |
 | `stats(top, in, out, title, items)` | one or two large figures |
-| `caption(at, out, text)` | the spoken-line caption band — same look in every mode, §6f |
+| `caption(at, out, text, cy)` | the spoken-line caption band — same look in every mode, §6f; `cy` (the pill's centre y) is optional and only a COMP beat sets it, §6f-1 |
 
 Video plates are `<video class="clip" muted playsinline data-start data-duration
 data-media-start>`; the audio is one separate `<audio>`. Put `#bg` up only over
@@ -794,6 +794,32 @@ screenshot (EP55's own final render is on Drive and not reachable from a
 worker session, so this is the template's `caption()` output on a
 representative background, not a frame pulled from the delivered EP55 file).
 
+#### 6f-1. COMP only: the caption pill sits above the avatar's head (2026-10-04, task-f35f2935 / 32991e09)
+
+`[SUPERSEDED 2026-10-04]` "…sitting in the standing `.caplayer` at `top: 1300px`" for every mode. On a COMP beat that
+puts the pill (y 1218-1382) on the composited avatar's face: `text_over_face` with real boxes failed arm B 14/14 and
+arm A 17/40 beats (task-cc55e620, task-3cf9c2f8), and under the chin there is no room (chin ~1416-1461 against the
+legal pill at 1430). The artefact is the failing gate, so the old line cannot hold.
+
+- **The look is unchanged** (still one style signature, still no inline override). Only the vertical position moves:
+  `caption(at, out, text, cy)` takes the pill's CENTRE y as an optional 4th argument. A COMP beat carries it as
+  `extra.cap_cy`; FF, EVID and KIN stay at 1300 (`bl_compose` refuses `cap_cy` on any other mode).
+- **cy = head top - 24 - 82** (a 2-line pill is 164 px tall, so its bottom is cy+82). EP58: lip_a 797, lip_b 862,
+  lip_c 893 (`COMP_TAKES` in `tools/bl_checker.py`).
+- **`COMP_TAKES` is EP58's numbers.** Another episode's takes sit differently: measure each take with
+  `python3 tools/bl_face_box.py` (a 30 fps scan of the frames the cut can show; a 0.5 s sample read 111 where frame 0
+  is 104, enough for the pill to touch the hat), add the take to `COMP_TAKES`, then use its cy.
+- **Evidence region.** A COMP still lands BELOW the brand bug (y 460.8; 560 under an arm-A headline plate) and ABOVE
+  the pill (pill centre - 82 - 12 - 10). COMP `shift` lifts still and spotlight together (placed y = box y - shift).
+  `check_comp_evidence_landing` fails a beat that lands outside it.
+- **The gate:** `python3 tools/bl_checker.py --video <final> --beats <beats.json> --per-take-face-boxes
+  --composition <index.html>` judges `text_over_face` per take (COMP head+neck+shoulder box at the template's 56 %,
+  FF at 1:1). Without `--per-take-face-boxes` or `--face-box` the gate is skipped silently.
+- The empty-frame mask does NOT read the caption band (it uses the static legal band .66-.74 H and the bug zone), so
+  moving the pill cannot change an empty-frame result.
+- Known cosmetic leftovers of the v3 cut (accepted, not defects of this rule): a 230-265 px dark band at the top where
+  a still is landed below the bug; shift 990 / 570 exposes the dark brand background right of the avatar.
+
 ### 6g. Plates hold until the next plate
 
 **A plate's end is the next plate's start.** Nothing on screen — a video
@@ -862,3 +888,6 @@ the first place, but it will catch it if you don't.
 - 2026-10-01 [MISSING] §checker gates, text_over_face — returns `[]` when `--face-box` is not passed, so a run without one looks like a pass (EP58 did). Nothing here says how to obtain a face box; until it does, say "did not run" in the REPORT instead of quoting a pass · evidence: task-c32c40e8 item 5, `tools/bl_checker.py` text_over_face · status: pending
 - 2026-10-03 [MISSING] §9 seams — a window boundary must sit exactly on the next beat's own t0 (EP58 arm A: 16.63), not on the 1/30 grid: 16.6 left a bare first frame and bl_merge refused; 16.6333 made `emit_pieces` skip the beat (abs_t0 < t0_window - 0.001) so a KIN beat vanished for 2.3 s. Check each re-cut window's cut_pieces.json holds the intended beat · evidence: task-3cf9c2f8 seg03, armA/merge.log first two runs · status: pending
 - 2026-10-03 [MISSING] §gates, text_over_face — second independent run agrees with the 10-02 note above: task-3cf9c2f8 ran the gate with each lip take's face box on arm A and 17 of 40 beats fail (HOOK-1..4, PATTERN-1..3, MAIN-5..11, SUMMARY-7..9), by eye the pill covers the mouth, the avatar sits where arm B has it (not lower, contrary to the brief); the kit's COMP geometry (avatar top ~845, caption top ~1250, legal pill 1430) leaves ~85 px under the chin. Waits on a CEO template ruling, then this becomes a rule · evidence: task-3cf9c2f8 REPORT, armA/checker-lip_*.json · status: pending (n=2 on the facts, ruling open)
+- 2026-10-04 [MISSING] §5b B-roll — a KIN beat gets a default plate only when `media/broll/S{n}.mp4` exists; EP58 has no S08, so PATTERN-4 shows the bare brand background in both arms. Check the clip exists for every KIN line before the cut, or pick a replacement plate · evidence: task-f35f2935 REPORT cosmetic (g) · status: pending
+- 2026-10-04 [COSTLY] §9 render — hyperframes "Sequential screenshot capture stalled" cost one 8-minute window plus a retry; `prototypes/bl-ep58/render_v3.sh` has no auto-retry for that exact message (the v2 "redo" logs are the same family) · evidence: Work/bl-ep58/cut/v3/build-testb.log, task-f35f2935 · status: pending
+- 2026-10-04 [MISSING] §8 look at it — the v3 re-landing left two cosmetic families, both seen by eye on 16 frames: a 230-265 px dark band at the top of arm B MAIN-8/9 and PATTERN-2/3 (stills landed below the bug), and the dark brand background right of the avatar at shift 990 (MAIN-10/11, arm A SUMMARY-9 at 570). A candidate fix is to let a box with x+w <= 594 sit above y 461, since the bug zone is only on the right · evidence: docs/reports/task-f35f2935/REPORT.md (a)(b) · status: pending
