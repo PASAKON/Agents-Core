@@ -847,8 +847,8 @@ def test_check_task_null_runner_bypasses_gate_like_claude(
 def test_codex_scoped_writes_and_heartbeat_cleanup():
     source = _text()
     assert "[string]$WorkDir = $env:WORK_DIR" in source
-    assert "git -C $wt rev-parse --path-format=absolute --git-common-dir" in source
-    assert "@('--add-dir', [string]$gitCommonDir)" in source
+    assert "git-common-dir" not in source  # no writable root under .git (task-2f1a8586)
+    assert "$gitCommonDir" not in source
     assert "if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }" in source
     assert "'-s', 'workspace-write'" in source
     assert "danger-full-access" not in source

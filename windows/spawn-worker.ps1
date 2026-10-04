@@ -581,9 +581,9 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
         if ($RunnerModel) {
             $argList += @('-m', [string]$RunnerModel)
         }
-        $gitCommonDir = (& git -C $wt rev-parse --path-format=absolute --git-common-dir).Trim()
-        if ($LASTEXITCODE -ne 0 -or -not $gitCommonDir) { throw 'Cannot resolve git common dir' }
-        $argList += @('--add-dir', [string]$gitCommonDir)
+        # No writable root under .git (same as spawn-worker-remote.sh): codex's Linux sandbox
+        # refuses to start with one (task-2f1a8586 probe); the commit step after codex exits
+        # commits and pushes the worker's changes.
         if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }
         $argList += @('-C', [string]$wt, '-s', 'workspace-write',
                       '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)

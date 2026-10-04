@@ -119,7 +119,7 @@ def test_codex_dry_run_prints_runner_command():
     assert argv[argv.index('-C') + 1] == wt
     assert argv[argv.index('-s') + 1] == 'workspace-write'
     assert argv[argv.index('-o') + 1] == f'{launch_dir}/codex-final.txt'
-    assert argv.count('--add-dir') == 1
+    assert '--add-dir' not in argv  # no WORK_DIR here, and never a root under .git (task-2f1a8586)
     assert "<launch.sh running codex>" in out
 
 
@@ -205,12 +205,12 @@ def test_codex_writable_dirs(tmp_path, work_dir):
     command = result.stdout.split("[dry-run] cmd=", 1)[1].splitlines()[0]
     args = shlex.split(command)
     dirs = [args[i + 1] for i, arg in enumerate(args) if arg == "--add-dir"]
-    assert dirs == [str(repo / '.git')] + ([work_dir] if work_dir else [])
+    assert dirs == ([work_dir] if work_dir else [])  # never a root under .git (task-2f1a8586)
     assert "danger-full-access" not in result.stdout
     assert "dangerously-bypass" not in result.stdout
     source = SCRIPT.read_text()
     assert source.count('emit_codex_command') == 3  # definition, dry-run, real launch
-    assert 'git -C "$WT" rev-parse --path-format=absolute --git-common-dir' in source
+    assert 'git-common-dir' not in source
 
 
 @pytest.mark.parametrize("runner", ["codex", "agy"])
@@ -241,7 +241,7 @@ def test_heartbeat_cleanup_on_exit(tmp_path, exit_mode):
         os.kill(int((tmp_path / 'heartbeat.pid').read_text()), 0)
 
 
-def test_codex_git_common_dir_for_existing_linked_worktree(tmp_path):
+def test_codex_linked_worktree_gets_no_git_root(tmp_path):
     import shlex
     repo = tmp_path / 'common repo'
     trees = tmp_path / 'work trees'
@@ -255,5 +255,5 @@ def test_codex_git_common_dir_for_existing_linked_worktree(tmp_path):
     result = _run_dry_run('codex', task='task-linked', repo_path=str(repo),
                           worktree_root=str(trees), work_dir='')
     args = shlex.split(result.stdout.split('[dry-run] cmd=', 1)[1].splitlines()[0])
-    assert args[args.index('--add-dir') + 1] == str(repo / '.git')
+    assert '--add-dir' not in args  # codex's bwrap sandbox fails to start with a root under .git
     assert args[args.index('-C') + 1] == str(wt)

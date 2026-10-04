@@ -168,11 +168,14 @@ quote_arg() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 emit_codex_command() {
   printf 'codex exec "$(cat TASK.md)"'
   if [ -n "$RUNNER_MODEL" ]; then printf ' -m %s' "$(quote_arg "$RUNNER_MODEL")"; fi
-  printf ' -C %s -s workspace-write --add-dir %s' "$(quote_arg "$WT")" "$(quote_arg "$GIT_COMMON_DIR")"
+  # No writable root under .git: codex 0.155's Linux sandbox (bwrap) masks <root>/.git in every
+  # writable root and fails to start ("Can't mkdir <git dir>/.git", task-2f1a8586 probe), and
+  # without one .git stays read-only. The worker leaves its changes uncommitted; launch.sh
+  # commits and pushes them after codex exits (emit_report_commit_push).
+  printf ' -C %s -s workspace-write' "$(quote_arg "$WT")"
   if [ -n "$WORK_DIR" ]; then printf ' --add-dir %s' "$(quote_arg "$WORK_DIR")"; fi
   printf ' --skip-git-repo-check --json -o %s > %s 2>&1\n' "$(quote_arg "$CODEX_FINAL_MSG")" "$(quote_arg "$CODEX_TRANSCRIPT")"
 }
-GIT_COMMON_DIR=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || git -C "$REPO_PATH" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || printf '%s/.git' "$REPO_PATH")
 
 emit_heartbeat_start() {
   cat <<'HEARTBEAT_START'
@@ -623,7 +626,6 @@ elif [ "$RUNNER" = "codex" ]; then
     # A final message left by an earlier launch of this same task must not be
     # read back as this run's message.
     printf 'rm -f %s\n' "$(sh_quote "$CODEX_FINAL_MSG")"
-    GIT_COMMON_DIR=$(git -C "$WT" rev-parse --path-format=absolute --git-common-dir) || exit 1
     if [ -n "$WORK_DIR" ]; then printf 'export WORK_DIR=%s\n' "$(quote_arg "$WORK_DIR")"; fi
     emit_heartbeat_start
     printf '%s &\n' "$(emit_codex_command)"
