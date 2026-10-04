@@ -274,7 +274,7 @@
      0,
      690,
      525,
-     1074
+     799
     ],
     "zoom": 1.4,
     "at": [
@@ -305,14 +305,14 @@
     "src": "real/wfx-terms.png",
     "crop": [
      0,
-     132,
+     130,
      1080,
-     520
+     418
     ],
     "zoom": 1.0,
     "at": [
      0,
-     447
+     445
     ]
    }
   ],
@@ -326,7 +326,7 @@
   "file": "real/d-stmt-title.png",
   "box": [
    82,
-   592,
+   591,
    916,
    117
   ],
@@ -338,14 +338,14 @@
     "src": "real/wfx-stmt-title.png",
     "crop": [
      14,
-     189,
+     170,
      996,
-     495
+     454
     ],
     "zoom": 1.1,
     "at": [
      0,
-     440
+     419
     ]
    }
   ],
@@ -373,7 +373,7 @@
      0,
      573,
      1011,
-     1200
+     780
     ],
     "zoom": 1.0669642857142858,
     "at": [
@@ -406,7 +406,7 @@
      0,
      573,
      998,
-     1200
+     781
     ],
     "zoom": 1.081447963800905,
     "at": [
@@ -439,7 +439,7 @@
      25,
      830,
      1055,
-     1100
+     970
     ],
     "zoom": 1.05,
     "at": [
@@ -541,27 +541,27 @@
  "about-foot-mail": {
   "file": "real/d-about-foot-mail.png",
   "box": [
-   315,
-   791,
-   450,
-   58
+   128,
+   777,
+   826,
+   86
   ],
   "take": null,
-  "note": "MAIN-4: the advertising contact line, enlarged",
+  "note": "MAIN-4: the advertising contact line, enlarged, on a card",
   "credit": true,
   "parts": [
    {
     "src": "real/wfx-about-footer.png",
     "crop": [
-     0,
+     60,
      1853,
-     626,
+     410,
      1895
     ],
-    "zoom": 1.4,
+    "zoom": 2.7,
     "at": [
-     204,
-     800
+     68,
+     780
     ]
    }
   ]
@@ -569,27 +569,27 @@
  "about-foot-note": {
   "file": "real/d-about-foot-note.png",
   "box": [
-   54,
-   770,
-   864,
-   100
+   87,
+   768,
+   925,
+   106
   ],
   "take": null,
-  "note": "CURIOSITY-4: the site's own note to check key details with official sources",
+  "note": "CURIOSITY-4: the site's own note to check key details with official sources, on a card",
   "credit": true,
   "parts": [
    {
     "src": "real/wfx-about-footer.png",
     "crop": [
-     386,
+     370,
      1525,
-     1080,
-     1620
+     1000,
+     1630
     ],
-    "zoom": 1.4,
+    "zoom": 1.5,
     "at": [
-     59,
-     760
+     68,
+     756
     ]
    }
   ]

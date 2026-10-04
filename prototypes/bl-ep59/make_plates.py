@@ -161,13 +161,15 @@ def build_fb():
 
 
 # ── WikiFX / regulator pages ─────────────────────────────────────────────────
-def snap_rows(src: Image.Image, rows, bg, down=60, up=100):
+def snap_rows(src: Image.Image, rows, bg, down=60, up=100, gap_x=(60, 1020)):
     """Move the window's edges to the nearest rows that are the page colour all the way across, so the crop never
     cuts through a line of text: r0 goes down to the first such row, r1 goes up to the last."""
     px = src.convert("RGB")
     def plain(r):
-        row = list(px.crop((0, r, 1080, r + 1)).get_flattened_data() if hasattr(px, 'get_flattened_data') else px.crop((0, r, 1080, r + 1)).getdata())
-        return all(max(abs(a - b) for a, b in zip(p, bg)) <= 10 for p in row)
+        # a gap row: nothing but one colour across the text columns (the page colour, or a card's own white)
+        row = px.crop((gap_x[0], r, gap_x[1], r + 1))
+        ext = row.getextrema()
+        return all(e[1] - e[0] <= 12 for e in ext)
     r0, r1 = rows
     for r in range(r0, min(r0 + down, r1)):
         if plain(r):
@@ -180,7 +182,7 @@ def snap_rows(src: Image.Image, rows, bg, down=60, up=100):
     return r0, r1
 
 
-def page(name, src, text_rect, z, cy, rows, take=None, note="", credit=True, zmax=1.4, bg_patch=None, xcrop=None):
+def page(name, src, text_rect, z, cy, rows, take=None, note="", credit=True, zmax=1.4, bg_patch=None, xcrop=None, gap_x=(60, 1020)):
     """A page crop at zoom z (capped so the text rectangle fits the safe width), the spotlight centred on y `cy`.
     rows = (r0, r1): the source rows that may be drawn (snapped to plain rows); the rest of the canvas is the page
     colour, taken from bg_patch (x0, y0, x1, y1) or white. xcrop = the source x where the crop's left edge sits (a
@@ -190,7 +192,10 @@ def page(name, src, text_rect, z, cy, rows, take=None, note="", credit=True, zma
     z = min(z, zmax, (SAFE_R - SAFE_L - 2 * PAD) / w)
     s = Image.open(REAL / f"{src}.png").convert("RGB")
     bg = page_bg(s, bg_patch) if bg_patch else (255, 255, 255)
-    r0, r1 = snap_rows(s, rows, bg)
+    if take:    # a COMP plate ends where the caption pill begins: page text running on under the pill reads as a mess
+        limit = y + h / 2 + (zone(take)[1] + 6 - cy) / z
+        rows = (rows[0], min(rows[1], math.floor(limit)))
+    r0, r1 = snap_rows(s, rows, bg, gap_x=gap_x)
     p = Plate(name, bg)
     if xcrop is None:
         left = max(SAFE_L + PAD, (CANVAS_W - w * z) / 2)          # canvas x of the text rectangle's left edge
@@ -205,13 +210,30 @@ def page(name, src, text_rect, z, cy, rows, take=None, note="", credit=True, zma
     return p
 
 
+def card(name, src, text_rect, xspan, z, cy, rows, note="", credit=True):
+    """A dark-page crop (WikiFX's footer) laid as a card on a white plate, centred on y `cy`. A footer crop on a
+    plate of its own colour is a flat dark frame with a few grey words in it: the checker calls that empty, and a
+    viewer sees nothing to look at. xspan = (x0, x1) in the still; rows snapped to plain rows of the footer colour."""
+    x, y, w, h = text_rect
+    s = Image.open(REAL / f"{src}.png").convert("RGB")
+    r0, r1 = snap_rows(s, rows, page_bg(s, (40, rows[0] + 5, 60, rows[0] + 25)))
+    x0, x1 = xspan
+    cw, ch = round((x1 - x0) * z), round((r1 - r0) * z)
+    assert cw <= SAFE_R - SAFE_L, (name, cw)
+    p = Plate(name, (255, 255, 255))
+    at = ((CANVAS_W - cw) / 2, cy - (y + h / 2 - r0) * z)
+    mb = p.paste(src, (x0, r0, x1, r1), z, at)
+    done(p, box_out(mb, text_rect), None, note, credit)
+
+
 def build_pages():
     DARK = (50, 56, 67)
     # COMP, lip_b
     page("contact", "wfx-contact", (30, 702, 218, 46), 1.4, 660, (690, 1100), "lip_b",
          "MAIN-5: the contact page's business-cooperation tab", bg_patch=(500, 800, 520, 820))
-    page("terms", "wfx-terms", (336, 318, 408, 34), 1.0, 650, (130, 520), "lip_b",
-         "MAIN-6: Service Agreement of WikiFX (a user software agreement)", bg_patch=(10, 300, 30, 320))
+    page("terms", "wfx-terms", (336, 318, 408, 34), 1.0, 650, (130, 418), "lip_b",
+         "MAIN-6: Service Agreement of WikiFX (a user software agreement)", bg_patch=(10, 300, 30, 320),
+         gap_x=(0, 1))
     page("stmt-title", "wfx-stmt-title", (96, 334, 818, 92), 1.1, 650, (170, 495), "lip_b",
          "MAIN-7: title of the 12 Jun 2025 statement", bg_patch=(1000, 300, 1020, 320))
     page("stmt-l1", "wfx-stmt-score", (56, 639, 896, 70), 1.1, 650, (560, 1200), "lip_b",
@@ -227,11 +249,10 @@ def build_pages():
          "MAIN-12: why non-partners do not have the window")
     page("about-score", "wfx-about-score", (185, 938, 530, 215), 1.2, 820, (900, 1250), None,
          "MAIN-2: the scoring-system paragraph on the About page")
-    page("about-foot-mail", "wfx-about-footer", (85, 1852, 310, 30), 2.0, 820, (1851, 1895), None,
-         "MAIN-4: the advertising contact line, enlarged", bg_patch=(40, 1700, 60, 1720))
-    page("about-foot-note", "wfx-about-footer", (388, 1538, 606, 60), 1.6, 820, (1500, 1620), None,
-         "CURIOSITY-4: the site's own note to check key details with official sources", bg_patch=(40, 1570, 60, 1590),
-         xcrop=386)
+    card("about-foot-mail", "wfx-about-footer", (85, 1855, 300, 26), (60, 410), 2.7, 820, (1851, 1895),
+         "MAIN-4: the advertising contact line, enlarged, on a card")
+    card("about-foot-note", "wfx-about-footer", (388, 1538, 606, 60), (370, 1000), 1.5, 820, (1500, 1630),
+         "CURIOSITY-4: the site's own note to check key details with official sources, on a card")
     page("about-intro", "wfx-about-top", (470, 640, 140, 44), 2.0, 820, (632, 700), None,
          "CURIOSITY-1: the About page, 'เราคือใคร' (Who we are)")
     # the regulator register (no WikiFX image: no credit)

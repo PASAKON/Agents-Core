@@ -81,7 +81,7 @@ TABLE = [
 ]
 
 # the opening: beat starts that are not "line start minus 0.10 s"
-FIXED_T0 = {"HOOK-0": 0.0, "HOOK-1": 1.0}
+FIXED_T0 = {"HOOK-0": 0.0, "HOOK-1": 1.0, "HOOK-2": 1.7}
 LEAD = 0.10
 MAX_WINDOW = 9.0
 
