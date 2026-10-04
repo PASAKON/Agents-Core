@@ -3,7 +3,7 @@
 #        render_v3.sh B testb=39.28:48.9667   (an ad-hoc test window: name=t0:t1, written to parts/<name>.mp4)
 # One window at a time, one fresh render process each, under the box-wide render lock (CEO 2026-10-02):
 #   - flock -w 7200 /opt/MoonieXHQ/Work/.bl-render.lock around every render, stdin from /dev/null
-#   - available RAM >= 3000 MB before each window (waits up to 3 min), stops under 1500
+#   - available RAM >= 3000 MB before each window (waits up to 40 min), stops under 1500
 # Arm B = tools/bl_compose.py -> cut/v3 ; arm A = armA/render_window.py (plate + stamp wrapper) -> armA/v3.
 # Windows come from prototypes/bl-ep58/segments.json (the seams sit on beat t0s). A finished part is never re-rendered.
 ARM=$1; shift
@@ -32,13 +32,13 @@ for a in adhoc:
 P
 while read -r id a b <&3; do
   [ -f "$C/parts/$id.mp4" ] && { echo "skip $id (part exists)"; continue; }
-  for i in 1 2 3 4 5 6; do
+  for i in $(seq 1 80); do
     av=$(free -m | awk '/^Mem:/{print $7}')
     [ "$av" -lt 1500 ] && { echo "STOP $id available=$av"; exit 2; }
     [ "$av" -ge 3000 ] && break
     echo "$(date -u +%T) wait $id available=$av"; sleep 30
   done
-  [ "$av" -ge 3000 ] || { echo "STOP $id available=$av after waiting"; exit 2; }
+  [ "$av" -ge 3000 ] || { echo "STOP $id available=$av after waiting 40 min"; exit 2; }
   echo "$(date -u +%T) start $ARM $id $a $b available=$av"
   flock -w 7200 /opt/MoonieXHQ/Work/.bl-render.lock $CMD --beats "$BEATS" \
     --generator-dir "$WORK/generator" --t0 "$a" --t-max "$b" \
