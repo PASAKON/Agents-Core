@@ -68,6 +68,14 @@ this skill only points at them.
    comparison the CEO judged gets written into this skill.
 8. **Review on the merged branch, and expect the launcher to drop media.** See `CXO_Protocol_DevSpawn`
    §3d (LESSONS G6 and B1, 2 runs each).
+9. **In-game tests go through a tool, not typed commands** (CEO ruling 2026-10-05, *"อยากให้ทำ Tools มาก่อน
+   ไว้ใช้ สำหรับทดสอบ ระบบทั้งหมดที่คุณทำออกมา ดีกว่าการ มานึ่งพิม คำสั่งทีละ คำสั่ง"*). Every system a
+   task adds (mob, biome, stage, item, loot) gets a button in the dev test pack in the same task. A brief
+   that adds a system without a button fails the check below.
+   **`/locate` always takes `minecraft:<name>`** (CEO ruling 2026-10-05): `/locate biome minecraft:warm_ocean`,
+   never the bare name. Our own biomes (`mooniex_abyss:*`) gave a syntax error with `/locate` on 1.26.5203;
+   reach them from the vanilla biome they replace (`minecraft:deep_lukewarm_ocean`,
+   `minecraft:warm_ocean`, `minecraft:lukewarm_ocean`).
 
 ## The check (60 seconds, before `delegate_task`)
 
