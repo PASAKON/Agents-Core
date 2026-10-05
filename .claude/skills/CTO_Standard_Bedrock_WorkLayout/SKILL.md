@@ -33,7 +33,10 @@ this skill only points at them.
    - why, in the CEO's own words;
    - the shared contract (item 2);
    - what the task owns and must not touch;
-   - the gates as exact commands;
+   - the gates as exact commands. A worktree under `Agents/Core/worktrees/` runs pytest as
+     `pytest tests -q -c /dev/null --rootdir=. --confcutdir=.`: plain `pytest tests` takes Agents/Core's
+     pytest.ini and `tools` package and fails `test_sky_tour.py` falsely (4 runs: task-b3540bea,
+     task-811d6a5f, task-ea4e3a1b, task-20215157);
    - the report: `docs/reports/<task-id>/REPORT.md`, first line `# REPORT <task-id>`, files changed, gates
      run, what it could not check, and a `## Skill learning` section.
 
@@ -102,5 +105,6 @@ this skill only points at them.
 - 2026-10-05 [COSTLY] §spec 4 — a ledger task run in parallel with content tasks was 39 rows out of date at merge time; re-check the ledger after the last merge of a round · evidence: task-f285db14, LESSONS B7 · status: pending
 - 2026-10-05 [MISSING] §spec 7 — downloaded community skills could not be pushed into the repo until the CEO typed an approval sentence; ask for it before downloading · evidence: MoonieX-Bedrock 4aaf0cf, LESSONS B9 · status: pending
 - 2026-10-06 [MISSING] §The check — a lane brief that calls a paid API through `infisical_setup.py run <project> prod --as mac` cannot start on the Mac: `/etc/infisical` does not exist there, so both PixelLab lanes failed with "missing credentials: /etc/infisical/mac.env" and made code-only options (0 generations, $0). Before assigning a lane that needs a key, run `python3 tools/infisical_setup.py status` on the host that will run it, or route the key call through Contabo · evidence: task-b3540bea, task-811d6a5f (both workers hit it independently) · status: pending
-- 2026-10-06 [MISSING] §The check — a Bedrock worktree under `Agents/Core/worktrees/` makes pytest take `Agents/Core/pytest.ini` as rootdir, and `Agents/Core/tools/__init__.py` shadows the Bedrock `tools` package, so `tests/test_sky_tour.py` fails with ModuleNotFoundError while a clean export passes. Three runs saw the failure (task-b3540bea, task-811d6a5f, task-ea4e3a1b; agy's fe5187f even edited the test to dodge it); the gate that works is `pytest tests -q -c /dev/null --rootdir=. --confcutdir=.`, so a brief should name that command · evidence: task-ea4e3a1b REPORT (295 passed), sky-tune 863b1f1 · status: pending
+- 2026-10-06 [MISSING] §The check — a Bedrock worktree under `Agents/Core/worktrees/` makes pytest take `Agents/Core/pytest.ini` as rootdir, and `Agents/Core/tools/__init__.py` shadows the Bedrock `tools` package, so `tests/test_sky_tour.py` fails with ModuleNotFoundError while a clean export passes. Three runs saw the failure (task-b3540bea, task-811d6a5f, task-ea4e3a1b; agy's fe5187f even edited the test to dodge it); the gate that works is `pytest tests -q -c /dev/null --rootdir=. --confcutdir=.`, so a brief should name that command · evidence: task-ea4e3a1b REPORT (295 passed), sky-tune 863b1f1 · status: promoted 2026-10-06 to spec item 1 (4th run task-20215157 agreed, 303 passed with the flags)
 - 2026-10-06 [MISSING] §spec R12 provenance — `tools/provenance.py` has no `move` or `remove` command, but a renamed file leaves a stale row that fails R12; the worker hand-wrote a `move` event (an earlier one exists from task-d384cf8a with no tool behind it) · evidence: task-ea4e3a1b provenance/log.jsonl · status: pending
+- 2026-10-06 [MISSING] §spec 4 provenance — commit the generator before `provenance.py record`: the row's `source_sha` is the last commit touching the tool, so recording first stamps the old sha. A regenerated file needs `record` (its old row moves to history); a hand-edited file needs `edit` · evidence: task-20215157 (sun.png row source_sha 15041c5, the codex row in history) · status: pending

@@ -172,3 +172,7 @@ you learned is lost — the owner's job is to make sure nothing false is kept.
 
 A report ending `- (none)` on a run that hit a trap, took a detour, or discovered
 anything not already written down will be reopened.
+
+## Field notes
+
+- 2026-10-06 [MISSING] §12 Shell scripts on this Mac — the tool shell is zsh, so `${PIPESTATUS[0]}` expands to an empty string and the exit code is lost without an error; use `$pipestatus[1]`, or run without a pipe and `echo $?` · evidence: task-20215157 (validate runs printed `exit ` with nothing after it) · status: pending
