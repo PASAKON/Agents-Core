@@ -488,6 +488,7 @@ NODE22_BIN="$AGENTS_ROOT/.tools/node/bin"
 emit_report_commit_push() {
   printf 'TASK_ID=%s\n' "$(sh_quote "$TASK")"
   printf 'BRANCH_NAME=%s\n' "$(sh_quote "$BRANCH")"
+  printf 'BASE_BRANCH=%s\n' "$(sh_quote "$BASE")"
   printf 'RUNNER_NAME=%s\n' "$(sh_quote "$1")"
   printf 'FINAL_MSG=%s\n' "$(sh_quote "$2")"
   printf 'LOG_TAIL=%s\n' "$(sh_quote "$3")"
@@ -533,7 +534,32 @@ set -f
 git reset -q -- $GIT_RESET_GUARD 2>/dev/null || true
 set +f
 MEDIA_BLOCKERS_FILE="$R_DIR/.media_blockers"
-rm -f "$MEDIA_BLOCKERS_FILE"
+MEDIA_KEPT_FILE="$R_DIR/.media_kept"
+ALLOW_FILE="$R_DIR/.media_allow_all"
+ALLOW_LARGE_FILE="$R_DIR/.media_allow_large"
+rm -f "$MEDIA_BLOCKERS_FILE" "$MEDIA_KEPT_FILE" "$ALLOW_FILE" "$ALLOW_LARGE_FILE"
+
+# Optional allow-list from committed origin/<base> (never from working tree)
+if git show "origin/${BASE_BRANCH:-main}:.media-allow" > "$R_DIR/.media_allow_raw" 2>/dev/null; then
+  awk -v allow_all="$ALLOW_FILE" -v allow_large="$ALLOW_LARGE_FILE" '
+    {
+      sub(/[[:space:]]+$/, "")
+      sub(/^[[:space:]]+/, "")
+      if ($0 == "" || $0 ~ /^#/) next
+      if ($0 ~ /[[:space:]]+!large$/) {
+        pat = $0
+        sub(/[[:space:]]+!large$/, "", pat)
+        sub(/[[:space:]]+$/, "", pat)
+        print pat > allow_all
+        print pat > allow_large
+      } else {
+        print $0 > allow_all
+      }
+    }
+  ' "$R_DIR/.media_allow_raw" 2>/dev/null
+  rm -f "$R_DIR/.media_allow_raw"
+fi
+
 git diff --cached --name-only | while IFS= read -r f; do
   [ -n "$f" ] || continue
   [ -f "$f" ] || continue
@@ -556,15 +582,40 @@ git diff --cached --name-only | while IFS= read -r f; do
   fi
 
   if [ "$is_media" -eq 1 ] || [ "$is_large_binary" -eq 1 ]; then
-    git reset -q -- "$f"
-    if [ "$sz" -ge 1048576 ]; then
-      hsz="$(awk "BEGIN {printf \"%.1f MB\", $sz / 1048576}" 2>/dev/null || printf '%d MB' "$((sz / 1048576))")"
-    elif [ "$sz" -ge 1024 ]; then
-      hsz="$(awk "BEGIN {printf \"%.1f KB\", $sz / 1024}" 2>/dev/null || printf '%d KB' "$((sz / 1024))")"
-    else
-      hsz="${sz} B"
+    is_allowed=0
+    if [ -s "$ALLOW_FILE" ]; then
+      match=$(git ls-files --cached --ignored --exclude-from="$ALLOW_FILE" -- "$f" 2>/dev/null)
+      if [ -n "$match" ]; then
+        is_allowed=1
+      fi
     fi
-    printf 'media not committed: %s (%s) — upload per CXO_Rules_GDrive_Filing and put the link here\n' "$f" "$hsz" >> "$MEDIA_BLOCKERS_FILE"
+
+    if [ "$is_allowed" -eq 1 ] && [ "$sz" -gt 1048576 ]; then
+      has_large=0
+      if [ -s "$ALLOW_LARGE_FILE" ]; then
+        match_large=$(git ls-files --cached --ignored --exclude-from="$ALLOW_LARGE_FILE" -- "$f" 2>/dev/null)
+        if [ -n "$match_large" ]; then
+          has_large=1
+        fi
+      fi
+      if [ "$has_large" -eq 0 ]; then
+        is_allowed=0
+      fi
+    fi
+
+    if [ "$is_allowed" -eq 1 ]; then
+      printf '%s\n' "$f" >> "$MEDIA_KEPT_FILE"
+    else
+      git reset -q -- "$f"
+      if [ "$sz" -ge 1048576 ]; then
+        hsz="$(LC_ALL=C awk "BEGIN {printf \"%.1f MB\", $sz / 1048576}" 2>/dev/null || printf '%d MB' "$((sz / 1048576))")"
+      elif [ "$sz" -ge 1024 ]; then
+        hsz="$(LC_ALL=C awk "BEGIN {printf \"%.1f KB\", $sz / 1024}" 2>/dev/null || printf '%d KB' "$((sz / 1024))")"
+      else
+        hsz="${sz} B"
+      fi
+      printf 'media not committed: %s (%s) — upload per CXO_Rules_GDrive_Filing and put the link here\n' "$f" "$hsz" >> "$MEDIA_BLOCKERS_FILE"
+    fi
   fi
 done
 
@@ -591,9 +642,24 @@ if [ -s "$MEDIA_BLOCKERS_FILE" ]; then
   git add "$R"
 fi
 
-if ! git diff --cached --quiet; then
-  git $GIT_ID_ARGS commit -q -m "$COMMIT_MSG"
+if [ -s "$MEDIA_KEPT_FILE" ]; then
+  printf '\n' >> "$R"
+  while IFS= read -r kf; do
+    [ -n "$kf" ] || continue
+    printf 'media kept: %s\n' "$kf" >> "$R"
+  done < "$MEDIA_KEPT_FILE"
+  git add "$R"
 fi
+
+if ! git diff --cached --quiet; then
+  if [ -s "$MEDIA_KEPT_FILE" ]; then
+    kept_body=$(awk '{print "media kept: " $0}' "$MEDIA_KEPT_FILE")
+    git $GIT_ID_ARGS commit -q -m "$COMMIT_MSG" -m "$kept_body"
+  else
+    git $GIT_ID_ARGS commit -q -m "$COMMIT_MSG"
+  fi
+fi
+rm -f "$ALLOW_FILE" "$ALLOW_LARGE_FILE" "$MEDIA_KEPT_FILE"
 git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
 REPORT_STEP_EOF
 }

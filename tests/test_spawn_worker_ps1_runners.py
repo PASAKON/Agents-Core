@@ -301,6 +301,23 @@ def test_report_step_resets_the_never_commit_files():
         assert name in reset_line, f"{name!r} missing from the git reset guard"
 
 
+def test_report_step_media_allow_gate():
+    """task-2506e4fd: the report step in windows/spawn-worker.ps1 must read
+    .media-allow from origin/$Base, keep allowed media files, honor !large for
+    files > 1 MB, and record kept media in REPORT.md and commit message."""
+    body = _report_step_body()
+
+    # Must read .media-allow from origin/<base>, never from working tree
+    assert 'git -C \'$wt\' show "origin/$Base:.media-allow"' in body
+    assert "mediaKept" in body
+    assert "!large" in body
+    assert "--exclude-from" in body
+    assert "1048576" in body
+    assert "media kept:" in body
+    assert 'commit -q -m "${Runner}: task $Task" -m `$keptBody' in body
+
+
+
 def test_info_exclude_lists_never_commit_names_anchored_and_spares_root_reports():
     """W0.6: the shared clone-level info/exclude gains the launcher's
     bookkeeping names. Root files are anchored with '/' (an unanchored
