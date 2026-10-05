@@ -257,3 +257,221 @@ def test_codex_linked_worktree_gets_no_git_root(tmp_path):
     args = shlex.split(result.stdout.split('[dry-run] cmd=', 1)[1].splitlines()[0])
     assert '--add-dir' not in args  # codex's bwrap sandbox fails to start with a root under .git
     assert args[args.index('-C') + 1] == str(wt)
+
+
+# ---------------------------------------------------------------------------
+# .media-allow gate tests (scripts/spawn-worker-remote.sh emit_report_commit_push)
+# ---------------------------------------------------------------------------
+
+def _generate_report_step_script(task: str = "task-media01", branch: str = "agent/developer-task-media01",
+                                base: str = "main", runner: str = "codex") -> str:
+    script_text = SCRIPT.read_text(encoding="utf-8")
+    sh_quote_idx = script_text.index("sh_quote() {")
+    eof_idx = script_text.index("REPORT_STEP_EOF\n}") + len("REPORT_STEP_EOF\n}")
+    fn_text = script_text[sh_quote_idx:eof_idx]
+    generator = f"""
+TASK={task!r}
+BRANCH={branch!r}
+BASE={base!r}
+GIT_RESET_GUARD='.worker.pid TASK.md'
+{fn_text}
+emit_report_commit_push {runner} "" "" "" "{runner}: task {task}"
+"""
+    res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True, check=True)
+    return res.stdout
+
+
+def _setup_media_test_repo(tmp_path: Path, origin_media_allow: str | None = None, task: str = "task-media01"):
+    origin = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(origin)], check=True)
+
+    seed = tmp_path / "seed"
+    subprocess.run(["git", "init", "-q", str(seed)], check=True)
+    subprocess.run(["git", "-C", str(seed), "checkout", "-q", "-b", "main"], check=True)
+    (seed / "README.md").write_text("seed\n", encoding="utf-8")
+    if origin_media_allow is not None:
+        (seed / ".media-allow").write_text(origin_media_allow, encoding="utf-8")
+    subprocess.run(["git", "-C", str(seed), "add", "-A"], check=True)
+    subprocess.run([
+        "git", "-C", str(seed),
+        "-c", "user.name=test", "-c", "user.email=test@example.invalid",
+        "commit", "-q", "-m", "seed"
+    ], check=True)
+    subprocess.run(["git", "-C", str(seed), "remote", "add", "origin", str(origin)], check=True)
+    subprocess.run(["git", "-C", str(seed), "push", "-q", "origin", "main"], check=True)
+
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "clone", "-q", str(origin), str(wt)], check=True)
+    branch = f"agent/developer-{task}"
+    subprocess.run(["git", "-C", str(wt), "checkout", "-q", "-b", branch, "origin/main"], check=True)
+    subprocess.run(["git", "-C", str(wt), "config", "user.name", "test"], check=True)
+    subprocess.run(["git", "-C", str(wt), "config", "user.email", "test@example.invalid"], check=True)
+
+    return origin, wt, branch
+
+
+def _run_report_step(wt: Path, script_body: str) -> subprocess.CompletedProcess:
+    script_path = wt / "run_report.sh"
+    script_path.write_text(script_body, encoding="utf-8")
+    return subprocess.run([BASH3, str(script_path)], cwd=wt, capture_output=True, text=True)
+
+
+def test_media_allow_allowed_png_is_kept(tmp_path):
+    task = "task-kept01"
+    origin, wt, branch = _setup_media_test_repo(
+        tmp_path, origin_media_allow="# allow Minecraft textures\n\ntextures/**\n", task=task
+    )
+    (wt / "textures").mkdir()
+    (wt / "textures" / "pack.png").write_bytes(b"pack data")
+    (wt / "code.py").write_text("print(1)\n", encoding="utf-8")
+
+    script = _generate_report_step_script(task=task, branch=branch)
+    res = _run_report_step(wt, script)
+    assert res.returncode == 0, f"script failed: {res.stderr}\nstdout: {res.stdout}"
+
+    tree = subprocess.run(
+        ["git", "-C", str(origin), "ls-tree", "-r", "--name-only", branch],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+
+    assert "textures/pack.png" in tree
+    assert "code.py" in tree
+    assert f"docs/reports/{task}/REPORT.md" in tree
+
+    report_content = subprocess.run(
+        ["git", "-C", str(origin), "show", f"{branch}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/pack.png" in report_content
+    assert "Blockers" not in report_content
+
+    log_body = subprocess.run(
+        ["git", "-C", str(origin), "log", "-1", "--format=%B", branch],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/pack.png" in log_body
+
+
+def test_media_allow_unallowed_png_is_reset(tmp_path):
+    task = "task-reset01"
+    origin, wt, branch = _setup_media_test_repo(
+        tmp_path, origin_media_allow="textures/**\n", task=task
+    )
+    (wt / "unallowed.png").write_bytes(b"image data")
+    (wt / "code.py").write_text("print(1)\n", encoding="utf-8")
+
+    script = _generate_report_step_script(task=task, branch=branch)
+    res = _run_report_step(wt, script)
+    assert res.returncode == 0, f"script failed: {res.stderr}\nstdout: {res.stdout}"
+
+    tree = subprocess.run(
+        ["git", "-C", str(origin), "ls-tree", "-r", "--name-only", branch],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+
+    assert "unallowed.png" not in tree
+    assert "code.py" in tree
+
+    report_content = subprocess.run(
+        ["git", "-C", str(origin), "show", f"{branch}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media not committed: unallowed.png" in report_content
+    assert "media kept:" not in report_content
+
+
+def test_media_allow_large_file_reset_without_bang_large_and_kept_with_it(tmp_path):
+    task = "task-large01"
+    # Part A: Without !large
+    dir_a = tmp_path / "part_a"
+    dir_a.mkdir()
+    origin_a, wt_a, branch_a = _setup_media_test_repo(
+        dir_a, origin_media_allow="textures/**\n", task=task
+    )
+    (wt_a / "textures").mkdir()
+    (wt_a / "textures" / "big.png").write_bytes(b"x" * 1572864)  # 1.5 MB
+
+    script_a = _generate_report_step_script(task=task, branch=branch_a)
+    res_a = _run_report_step(wt_a, script_a)
+    assert res_a.returncode == 0, res_a.stderr
+
+    tree_a = subprocess.run(
+        ["git", "-C", str(origin_a), "ls-tree", "-r", "--name-only", branch_a],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    assert "textures/big.png" not in tree_a
+
+    report_a = subprocess.run(
+        ["git", "-C", str(origin_a), "show", f"{branch_a}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert re.search(r"media not committed: textures/big\.png \(1[.,]5 MB\)", report_a)
+    assert "media kept:" not in report_a
+
+    # Part B: With !large
+    dir_b = tmp_path / "part_b"
+    dir_b.mkdir()
+    origin_b, wt_b, branch_b = _setup_media_test_repo(
+        dir_b, origin_media_allow="textures/** !large\n", task=task
+    )
+    (wt_b / "textures").mkdir()
+    (wt_b / "textures" / "big.png").write_bytes(b"x" * 1572864)  # 1.5 MB
+
+    script_b = _generate_report_step_script(task=task, branch=branch_b)
+    res_b = _run_report_step(wt_b, script_b)
+    assert res_b.returncode == 0, res_b.stderr
+
+    tree_b = subprocess.run(
+        ["git", "-C", str(origin_b), "ls-tree", "-r", "--name-only", branch_b],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    assert "textures/big.png" in tree_b
+
+    report_b = subprocess.run(
+        ["git", "-C", str(origin_b), "show", f"{branch_b}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/big.png" in report_b
+    assert "Blockers" not in report_b
+
+    log_b = subprocess.run(
+        ["git", "-C", str(origin_b), "log", "-1", "--format=%B", branch_b],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/big.png" in log_b
+
+
+def test_media_allow_in_working_tree_only_is_ignored(tmp_path):
+    task = "task-wt01"
+    # No .media-allow in origin
+    origin, wt, branch = _setup_media_test_repo(
+        tmp_path, origin_media_allow=None, task=task
+    )
+    # Worker creates .media-allow in worktree only
+    (wt / ".media-allow").write_text("textures/**\n", encoding="utf-8")
+    (wt / "textures").mkdir()
+    (wt / "textures" / "pack.png").write_bytes(b"pack data")
+
+    script = _generate_report_step_script(task=task, branch=branch)
+    res = _run_report_step(wt, script)
+    assert res.returncode == 0, res.stderr
+
+    tree = subprocess.run(
+        ["git", "-C", str(origin), "ls-tree", "-r", "--name-only", branch],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+
+    assert "textures/pack.png" not in tree
+
+    report = subprocess.run(
+        ["git", "-C", str(origin), "show", f"{branch}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media not committed: textures/pack.png" in report
+    assert "media kept:" not in report
+
+
+
+
+
+
