@@ -1,0 +1,60 @@
+{
+ "task": "task-2db3174c",
+ "episode": "BL EP59 ใครตรวจ WikiFX เว็บให้คะแนนโบรก?",
+ "arm": "A",
+ "final": "/opt/MoonieXHQ/Work/bl-ep59/armA/v1/final-ep59-armA-v1.mp4",
+ "sheet": "/opt/MoonieXHQ/Work/bl-ep59/armA/v1/sheet-ep59-armA-v1.jpg",
+ "bytes": 19387701,
+ "duration_s": 94.1,
+ "fps": "30/1",
+ "size": "1080x1920",
+ "frames": 2822,
+ "video_codec": "h264",
+ "loudness_lufs": -15.4,
+ "modes": {
+  "COMP": 17,
+  "KIN": 13,
+  "EVID": 11
+ },
+ "beats": 41,
+ "windows": 13,
+ "window_render": "armA/render_window.py --t0/--t-max, frame-aligned, merged with tools/bl_merge.py --beats",
+ "verify": "VERIFY PASSED",
+ "checker_pass": true,
+ "brand_mark": {
+  "ok": true,
+  "side": "left",
+  "min_opacity": 0.95,
+  "steady_level": 192.06,
+  "frames": 2822,
+  "min_ratio": 0.9912,
+  "min_time": 73.0,
+  "failing_frames": 0,
+  "failing_times": [],
+  "failing_ranges": []
+ },
+ "checker": {
+  "pass": true,
+  "empty_frames": [],
+  "empty_frames_excused": [],
+  "out_of_safe_area": [],
+  "text_over_face": [],
+  "comp_evidence_landing": [],
+  "credit_missing": [],
+  "extra_caption_styles": [],
+  "kinetic_overflow": [],
+  "brand_mark": {
+   "ok": true,
+   "side": "left",
+   "min_opacity": 0.95,
+   "steady_level": 192.06,
+   "frames": 2822,
+   "min_ratio": 0.9912,
+   "min_time": 73.0,
+   "failing_frames": 0,
+   "failing_times": [],
+   "failing_ranges": []
+  },
+  "headline": []
+ }
+}

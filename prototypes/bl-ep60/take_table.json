@@ -1,0 +1,85 @@
+{
+  "episode": 60,
+  "takes": {
+    "lip_a": {
+      "seat": 0.0,
+      "head_top": 903.04,
+      "cy": 797,
+      "comp_box": [
+        -26,
+        903,
+        538,
+        559
+      ],
+      "ff_box": [
+        20,
+        104,
+        958,
+        997
+      ],
+      "used_range": [
+        0.0,
+        14.3
+      ],
+      "top_at": 0.0,
+      "source_top": 104,
+      "frames": 429
+    },
+    "lip_b": {
+      "seat": 38.14,
+      "head_top": 968.56,
+      "cy": 862,
+      "comp_box": [
+        7,
+        968,
+        476,
+        494
+      ],
+      "ff_box": [
+        79,
+        221,
+        848,
+        880
+      ],
+      "used_range": [
+        0.5,
+        14.8
+      ],
+      "top_at": 0.5,
+      "source_top": 221,
+      "frames": 429
+    },
+    "lip_c": {
+      "seat": 74.17,
+      "head_top": 992.08,
+      "cy": 886,
+      "comp_box": [
+        -7,
+        992,
+        471,
+        470
+      ],
+      "ff_box": [
+        54,
+        263,
+        839,
+        838
+      ],
+      "used_range": [
+        7.5,
+        15.55
+      ],
+      "top_at": 15.5333,
+      "source_top": 263,
+      "frames": 242
+    }
+  },
+  "chin_row": 1100,
+  "fps": 30,
+  "geometry": {
+    "scale": 0.56,
+    "translate_x": -0.06,
+    "left": 0.0,
+    "bottom": 0.0
+  }
+}

@@ -1,5 +1,7 @@
 <!doctype html>
-<html><head><style id="bl-caption-balance">.cap{text-wrap:balance}</style>
+<html><head><style>
+.caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+</style><style id="bl-caption-balance">.cap{text-wrap:balance}</style>
 </head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="6.9997">
 <!-- VIDEO TRACK -->
@@ -8,6 +10,14 @@
 <img class="clip" id="v_e2" src="media/real/e2.png" style="top:0px;left:0px;right:auto;bottom:auto;width:1080px;height:1920px" data-start="5.0" data-duration="2.0" data-track-index="0">
 <audio id="va" src="media/voice.mp3" data-start="0" data-duration="6.9997"></audio>
 <script>
+      var CAPN = 0;
+      function caption(at, out, text) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        document.getElementById("caps").appendChild(d);
+        show("#" + id, at); hide("#" + id, out - 0.20);
+        return { id: id };
+      }
 tl.set("#bug", { x: 0, opacity: 1 }, 0);
 kinetic(760, 1.05, 3.0, [{c:"w", h:"Hello"}, {c:"r", h:"World"}], 0); // K1
 kinetic(760, 3.05, 5.0, [{c:"w", h:"No broll named"}], 0); // K2

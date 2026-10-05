@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,7 +50,6 @@ SHELL_PATTERNS: list[str] = [
     "curl ",
     "git push",
     "git commit",
-    "make ",
     "bash ",
     "sh -c",
     "crontab",
@@ -58,12 +58,22 @@ SHELL_PATTERNS: list[str] = [
 ]
 
 
+# `make` as a command, not the English verb: a flag (`make -C x`), or ONE target word that ends the
+# command (line end, `&&`, `;`, `|`, a closing backtick) and is not a
+# word English puts after the verb (sure, it, them ...). A bare "make " matched "make sure" and
+# "Make face_box.py parametric", so 67 of 254 developer/tester briefs (20 Sep - 4 Oct) were judged
+# shell-only and AGY was ruled out (task-541e46b2, task-7da0e6e4, task-d4c1f234; COO, CEO 2026-10-04).
+MAKE_COMMAND = re.compile(
+    r"\bmake\s+(?:-[a-z]|(?!(?:sure|it|them|this|that|sense|certain|clear)\b)"
+    r"[a-z0-9_/-](?:[a-z0-9_./-]*[a-z0-9_/-])?(?=[ \t]*(?:$|&&|;|\||`)))",
+    re.MULTILINE)
+
 def needs_shell(brief: str | None) -> bool:
     """Return True if brief tells the worker to run commands other than pytest/read-only git."""
     if not brief:
         return False
     lower = brief.lower()
-    return any(p.lower() in lower for p in SHELL_PATTERNS)
+    return any(p.lower() in lower for p in SHELL_PATTERNS) or bool(MAKE_COMMAND.search(lower))
 
 
 def infer_size(touches: list | tuple | None = None, brief: str | None = None) -> str:

@@ -250,6 +250,10 @@ projects:
   - key: mooniex-console
     name: MoonieX Console (mobile web console)
     path: /Users/gob/MoonieXHQ/Projects/MoonieX/Console
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Console
+      # The checkout the live service runs from (mooniex-console.service WorkingDirectory).
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Console
     remote: https://github.com/PASAKON/MoonieX-Console.git
     default_branch: main
     stack: [node, express, xterm.js, webauthn, sqlite]

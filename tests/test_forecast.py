@@ -219,3 +219,20 @@ def test_needs_shell():
     assert forecast.needs_shell("git commit -m 'update'") is True
     assert forecast.needs_shell("ffmpeg -i in.mp4 out.mp4") is True
 
+
+
+def test_needs_shell_make_is_a_command_not_the_verb():
+    # 67 of 254 developer/tester briefs (20 Sep - 4 Oct) were judged shell-only by a bare "make ":
+    # task-541e46b2, task-7da0e6e4, task-d4c1f234 (COO investigation, CEO 2026-10-04)
+    assert forecast.needs_shell("make sure the tests pass") is False
+    assert forecast.needs_shell("1. NO render yet. Make face_box.py parametric (read the av") is False
+    assert forecast.needs_shell("  - Make the L2 provider a setting (`jev` default)") is False
+    assert forecast.needs_shell("Make the 90 s and 30 s windows env-tunable") is False
+    assert forecast.needs_shell("we make it.") is False
+    assert forecast.needs_shell("then make sure") is False
+    # the command still counts
+    assert forecast.needs_shell("run `make test` before the report") is True
+    assert forecast.needs_shell("make -C build") is True
+    assert forecast.needs_shell("make install") is True
+    assert forecast.needs_shell("make build && ./run") is True
+    assert forecast.needs_shell("`make dist/app.tar`") is True

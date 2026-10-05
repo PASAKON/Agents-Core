@@ -85,7 +85,7 @@ The drill also needs two things from the hub side, and refuses (exit 2) before t
 either is missing: the join role's DSN (`ORG_JOIN_DB_URL`, Agents-Core prod `/org-join`) must log in,
 and the **token service** (`deploy/node-token/README.md`, unit `org-node-token`) must answer
 `/health` with `token_loaded` and `db` both true. The drill finds the service at
-`DRILL_TOKEN_URL`, else `ORG_NODE_TOKEN_URL`, else `http://<tailscale ip -4>:8792/v1/token`; the same
+`DRILL_TOKEN_URL`, else `ORG_NODE_TOKEN_URL`, else `http://<tailscale ip -4>:792/v1/token`; the same
 URL goes into the node's bundle at `provision`.
 
 ## What one run does
@@ -252,7 +252,7 @@ Does **not** prove:
   there" is true but weak. Mac is not checked until G2;
 - that the node's own `ORG_DB_URL` path works (the node has none);
 - that the token service is reachable from a **real** second machine. The container reaches the hub's
-  tailnet address (`http://100.x:8792`) over the docker bridge, because that address is local to the
+  tailnet address (`http://100.x:792`) over the docker bridge, because that address is local to the
   host; its userspace `tailscaled` cannot route to 100.x, and `node_token.py` uses no proxy. This was
   not tried live. If the host firewall drops it, `token_worker` fails with exit 4 and the drill's
   detail names the exit code; fix the route, not the drill;
@@ -349,7 +349,7 @@ each; the script reports them rather than hiding them.
 `DRILL_LIVE_CORE` (the join service's checkout, default `/opt/MoonieXHQ/Agents/Core`; its `.venv` is the
 fallback python), `DRILL_STATE_DIR`, `DRILL_ROWS_FILE`, `DRILL_PY`, `DRILL_DOOR`, `DRILL_HUB_WRAP`,
 `DRILL_JOIN_URL`, `DRILL_TOKEN_URL` (the token service's `/v1/token` URL; default `ORG_NODE_TOKEN_URL`, else
-`http://<tailscale ip -4>:8792/v1/token`), `DRILL_IMAGE`, `DRILL_MIN_MB`, `DRILL_CONTAINER_MB`, `DRILL_DOOR_MIN`,
+`http://<tailscale ip -4>:792/v1/token`), `DRILL_IMAGE`, `DRILL_MIN_MB`, `DRILL_CONTAINER_MB`, `DRILL_DOOR_MIN`,
 `DRILL_FP_WAIT_S`, `DRILL_JOIN_WAIT_S`, `DRILL_PROBE_WAIT_S`, `DRILL_POLL_S`, `DRILL_GH_REPO`,
 `DRILL_AUTHORIZED_KEYS`, `DRILL_WINBOX_SSH`, `DRILL_TS_API`, `DRILL_STAMP`, `DRILL_ALLOW_NONROOT`.
 Each has a default that is right on Contabo. `tests/test_w47_drill_join.py` runs the real script

@@ -87,10 +87,10 @@ def test_the_cards_come_in_the_order_the_deploy_needs():
     assert "org_node_token_role.py |" in role
     assert "put Agents-Core prod ORG_NODE_TOKEN_DB_URL --path /node-token --stdin" in role
     assert "systemctl enable --now org-node-token" in unit and "cp deploy/node-token/org-node-token.service" in unit
-    assert "8792/health" in health
+    assert ":792/health" in health
     text = README.read_text(encoding="utf-8")
     assert text.index("-- plan") < text.index("-- apply") < text.index("org_node_token_role.py |") \
-        < text.index("systemctl enable --now") < text.index("8792/health")
+        < text.index("systemctl enable --now") < text.index(":792/health")
 
 
 def test_the_ceo_enters_the_token_himself_between_apply_and_the_unit():
@@ -161,15 +161,18 @@ def test_the_unit_card_creates_the_user_the_unit_drops_to_and_installs_the_file_
 
 
 def test_the_health_card_reads_the_tailnet_address_on_contabo_and_not_on_the_typists_machine():
-    health = next(c for c in CARDS if "8792/health" in " ".join(c))
+    health = next(c for c in CARDS if ":792/health" in " ".join(c))
     assert "$(tailscale ip -4" in _flag(health, "--command")
-    line = next(ln for ln in README.read_text(encoding="utf-8").splitlines() if "8792/health" in ln and "--command" in ln)
+    line = next(ln for ln in README.read_text(encoding="utf-8").splitlines() if ":792/health" in ln and "--command" in ln)
     assert "--command '" in line                         # a double-quoted $( ) would run on the Mac
+    # 2a (decided for CEO 2026-10-04): the port only protects while unprivileged users cannot bind it
+    cmd = _flag(health, "--command")
+    assert cmd.startswith('test "$(sysctl -n net.ipv4.ip_unprivileged_port_start)" -ge 1024 && curl ')
 
 
 def test_the_readme_says_the_acl_rule_and_that_it_is_not_applied():
     text = README.read_text(encoding="utf-8")
-    assert "tag:org-node" in text and "8792" in text and "not** allow-all" in text
+    assert "tag:org-node" in text and ":792\"" in text and "not** allow-all" in text
     assert "Nothing\nhere applies that rule" in text
     assert "ORG_NODE_TOKEN_URL" in text and "ORG_W42_PROVISION=1" in text
 

@@ -549,13 +549,28 @@ open(TEMPLATE, "w").write(src)
 print("wrote", TEMPLATE)
 '''
 
+# The caption pieces of the skill template, as the staged generator's older copy has them: the `.caplayer` rule and the
+# 3-argument caption(). Present so a COMP beat's `cap_cy` has something to move (task-f35f2935).
+_CAPLAYER_RULE = ".caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }"
+_CAPTION_FN_3ARG = '''      var CAPN = 0;
+      function caption(at, out, text) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        document.getElementById("caps").appendChild(d);
+        show("#" + id, at); hide("#" + id, out - 0.20);
+        return { id: id };
+      }
+'''
+
 _TEMPLATE_HTML = '''<!doctype html>
-<html><head></head><body>
+<html><head><style>
+''' + _CAPLAYER_RULE + '''
+</style></head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="0">
 <!-- VIDEO TRACK - replace with plates -->
 <audio id="va" src="media/voice.m4a" data-start="0" data-duration="0"></audio>
 <script>
-tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
+''' + _CAPTION_FN_3ARG + '''tl.from("#bug", { x: -50, opacity: 0, duration: 0.7, ease: "power3.out" }, 0.25);
 </script>
 </div>
 </body></html>
@@ -1415,7 +1430,7 @@ def test_arm_a_refuses_a_template_it_cannot_anchor_to(generator_dir, tmp_path):
     # the plain synthetic template has a <head> (both arms need it, see check_template_anchors) but no bug block
     with pytest.raises(bc.ComposeError, match=r"0 occurrence\(s\) of '<div class=\"bug\" id=\"bug\">'"):
         bc.compose(_arm_a_beats(), generator_dir, 7.0, tmp_path / "out", headline=_arm_a_headline())
-    (generator_dir / "index.html").write_text(_TEMPLATE_HTML.replace("<head></head>", ""), encoding="utf-8")
+    (generator_dir / "index.html").write_text(_TEMPLATE_HTML.replace("</head>", ""), encoding="utf-8")
     with pytest.raises(bc.ComposeError, match=r"0 occurrence\(s\) of '</head>'"):
         bc.compose(_arm_a_beats(), generator_dir, 7.0, tmp_path / "out", headline=_arm_a_headline())
 
@@ -1507,6 +1522,101 @@ def test_arm_b_golden_really_covers_every_mode():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# A COMP caption above the head: `extra.cap_cy` is caption()'s 4th argument (task-f35f2935)
+# ═══════════════════════════════════════════════════════════════════════════
+
+_SKILL_TEMPLATE = Path(__file__).resolve().parents[1] / ".claude/skills/CMO_Procedure_BlackLiquidity_Cut/template/index.html"
+# the synthetic template as the current skill template has it: the 4-argument caption()
+_TEMPLATE_HTML_CAPTION_CY = _TEMPLATE_HTML.replace(bc.CAPTION_FN_OLD, bc.CAPTION_FN_NEW)
+
+
+def _cy_beats(cy=797):
+    comp = {"tag": "C1", "t0": 2.0, "t1": 4.0, "mode": "COMP",
+            "extra": {"img": "real/c.png", "cap": "Comp caption", "box": [100, 100, 300, 200]}}
+    if cy is not None:
+        comp["extra"]["cap_cy"] = cy
+    return [{"tag": "H1", "t0": 0.0, "t1": 2.0, "mode": "FF", "extra": {"cap": "Hook line"}}, comp,
+            {"tag": "E1", "t0": 4.0, "t1": 6.0, "mode": "EVID", "extra": {"img": "real/e.png", "cap": "Evid"}}]
+
+
+def test_a_comp_beats_cap_cy_is_the_fourth_argument_and_ff_and_evid_calls_are_the_old_three(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    caps = bc.emit_pieces(_cy_beats(), 6.0, funcs)["caps_js"]
+    assert caps == ['caption(0.0, 2.0, "Hook line");', 'caption(2.0, 4.0, "Comp caption", 797);',
+                    'caption(4.0, 6.0, "Evid");']
+    assert bc.emit_pieces(_cy_beats(cy=None), 6.0, funcs)["caps_js"][1] == 'caption(2.0, 4.0, "Comp caption");'
+    assert bc.emit_pieces(_cy_beats(cy=862.5), 6.0, funcs)["caps_js"][1] == 'caption(2.0, 4.0, "Comp caption", 862.5);'
+
+
+def test_a_cap_cy_shifts_with_a_range_windows_placement_but_never_with_the_centre(generator_dir):
+    funcs = bc.load_generator_functions(generator_dir)
+    caps = bc.emit_pieces(_cy_beats(), 6.0, funcs, t0_window=2.0)["caps_js"]
+    assert caps == ['caption(0.0, 2.0, "Comp caption", 797);', 'caption(2.0, 4.0, "Evid");']     # y is a canvas y
+
+
+def test_a_cap_cy_on_the_arm_a_backdrop_comp_is_the_fourth_argument_too(arm_a_generator):
+    funcs = bc.load_generator_functions(arm_a_generator)
+    beats = _arm_a_beats()
+    beats[0]["extra"]["cap_cy"] = 797
+    caps = bc.emit_pieces(beats, 7.0, funcs, headline=ck.parse_headline(_arm_a_headline()))["caps_js"]
+    assert caps[0] == 'caption(0.0, 1.2, "Hook one", 797);' and caps[1] == 'caption(1.2, 2.4, "Hook two");'
+
+
+@pytest.mark.parametrize("mode,extra", [
+    ("FF", {"cap": "x", "cap_cy": 797}),
+    ("EVID", {"img": "real/e.png", "cap": "x", "cap_cy": 797}),
+    ("KIN", {"cap": "x", "cap_cy": 797, "lines": [["w", "Hi"]]}),
+    ("COMP", {"img": "real/c.png", "cap": "x", "cap_cy": "797"}),
+    ("COMP", {"img": "real/c.png", "cap": "x", "cap_cy": True}),
+    ("COMP", {"img": "real/c.png", "cap": "x", "cap_cy": 40}),
+    ("COMP", {"img": "real/c.png", "cap": "x", "cap_cy": 1900}),
+])
+def test_cap_cy_is_refused_off_comp_and_when_it_is_not_a_number_on_the_canvas(generator_dir, mode, extra):
+    funcs = bc.load_generator_functions(generator_dir)
+    with pytest.raises(bc.ComposeError, match="cap_cy"):
+        bc.emit_pieces([{"tag": "B1", "t0": 0.0, "t1": 2.0, "mode": mode, "extra": extra}], 2.0, funcs)
+
+
+def test_the_old_and_the_current_template_copy_compose_to_the_same_html_with_a_cap_cy(tmp_path):
+    older = _generator_with(tmp_path, "older", _TEMPLATE_HTML)
+    current = _generator_with(tmp_path, "current", _TEMPLATE_HTML_CAPTION_CY)
+    assert _TEMPLATE_HTML_CAPTION_CY != _TEMPLATE_HTML
+    a = bc.compose(_cy_beats(), older, 6.0, tmp_path / "out-older").read_text(encoding="utf-8")
+    b = bc.compose(_cy_beats(), current, 6.0, tmp_path / "out-current").read_text(encoding="utf-8")
+    assert a == b
+    assert a.count(bc.CAPTION_FN_NEW) == 1 and bc.CAPTION_FN_OLD not in a
+    assert "caption(2.0, 4.0, " in a and '"Comp caption", 797);' in a
+
+
+def test_a_cut_with_no_cap_cy_leaves_the_templates_caption_function_alone(tmp_path):
+    older = _generator_with(tmp_path, "older", _TEMPLATE_HTML)
+    html = bc.compose(_cy_beats(cy=None), older, 6.0, tmp_path / "out").read_text(encoding="utf-8")
+    assert bc.CAPTION_FN_OLD in html and bc.CAPTION_FN_NEW not in html
+    assert 'caption(2.0, 4.0, "Comp caption");' in html and "function caption(at, out, text, cy)" not in html
+
+
+@pytest.mark.parametrize("name,template,reason", [
+    ("no-caption-fn", _TEMPLATE_HTML.replace(bc.CAPTION_FN_OLD, ""), "0 occurrence(s) of the 3-argument caption() and 0 of"),
+    ("two-caption-fns", _TEMPLATE_HTML.replace(bc.CAPTION_FN_OLD, bc.CAPTION_FN_OLD * 2), "2 occurrence(s) of the 3-argument caption()"),
+    ("caplayer-moved", _TEMPLATE_HTML.replace("top: 1300px", "top: 1200px"), "`.caplayer { top: 1300px }`"),
+    ("no-caplayer", _TEMPLATE_HTML.replace(_CAPLAYER_RULE, ""), "`.caplayer { top: 1300px }`"),
+])
+def test_a_cap_cy_is_refused_when_the_template_cannot_place_it(beats_2, tmp_path, name, template, reason):
+    gen = _generator_with(tmp_path, name, template)
+    with pytest.raises(bc.ComposeError, match=re.escape(reason)):
+        bc.compose(_cy_beats(), gen, 6.0, tmp_path / "out")
+    # the same template is fine for a cut that moves no caption
+    bc.compose(_cy_beats(cy=None), gen, 6.0, tmp_path / "out-fine")
+
+
+def test_the_skill_template_carries_the_caption_the_override_would_have_written():
+    html = _SKILL_TEMPLATE.read_text(encoding="utf-8")
+    assert html.count(bc.CAPTION_FN_NEW) == 1 and bc.CAPTION_FN_OLD not in html
+    assert html.count(bc.CAPLAYER_RULE) == 1
+    assert bc.CAPLAYER_TOP == 1300 and f"(cy - {bc.CAPLAYER_TOP})" in bc.CAPTION_FN_NEW
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # The brand mark is on from frame 0, captions balance, and the assembler's anchor is guarded
 # (task-c32c40e8, CMO ruling 2026-10-01)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1570,7 +1680,7 @@ def test_compose_adds_text_wrap_balance_to_the_caption_band(generator_dir, beats
     ("twice", _TEMPLATE_HTML.replace(bc.BUG_ENTRANCE, bc.BUG_ENTRANCE + "\n" + bc.BUG_ENTRANCE),
      "2 occurrence(s) of the old brand-mark entrance and 0"),
     ("two-heads", _TEMPLATE_HTML.replace("</head>", "</head></head>"), "2 occurrence(s) of '</head>'"),
-    ("no-head", _TEMPLATE_HTML.replace("<head></head>", ""), "0 occurrence(s) of '</head>'"),
+    ("no-head", _TEMPLATE_HTML.replace("</head>", ""), "0 occurrence(s) of '</head>'"),
 ])
 def test_compose_refuses_a_template_whose_anchors_are_not_what_is_expected(beats_2, tmp_path, name, template, reason):
     gen = _generator_with(tmp_path, name, template)

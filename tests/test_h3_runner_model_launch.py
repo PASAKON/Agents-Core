@@ -206,7 +206,7 @@ def test_dry_run_shows_chosen_model_codex():
     assert r.returncode == 0, r.stderr
     assert "[dry-run] runner_model=o3-mini" in r.stdout
     assert "codex exec" in r.stdout
-    assert "-m o3-mini" in r.stdout
+    assert "-m 'o3-mini'" in r.stdout  # same quoting as the real launch.sh (PR #228)
 
 
 def test_dry_run_empty_runner_model_falls_back_agy():

@@ -1,8 +1,8 @@
 {
- "task": "task-3cf9c2f8",
+ "task": "task-f35f2935",
  "episode": "BL EP58 Weltrade, arm A (headline plate)",
- "final": "/opt/MoonieXHQ/Work/bl-ep58/armA/final-ep58-armA.mp4",
- "bytes": 19341684,
+ "final": "/opt/MoonieXHQ/Work/bl-ep58/armA/v3/final-ep58-armA-v3.mp4",
+ "bytes": 18461159,
  "duration_s": 95.7,
  "fps": "30/1",
  "size": "1080x1920",
@@ -10,7 +10,7 @@
  "video_codec": "h264",
  "audio_codec": "aac",
  "loudness_lufs": -15.4,
- "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/armA/sheet-ep58-armA.jpg",
+ "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/armA/v3/sheet-ep58-armA-v3.jpg",
  "modes": {
   "COMP": 17,
   "EVID": 13,
@@ -20,18 +20,37 @@
  "beats": 40,
  "windows": 12,
  "window_boundary_note": "seg02|seg03 cut at 16.63 (PATTERN-4's own t0), not 16.6: a cut one frame earlier left frame 498 bare; a cut at 16.6333 dropped the KIN beat from seg03",
- "brand_mark": {
-  "ok": true,
-  "min_ratio": 0.9897,
-  "min_time_s": 0.1,
-  "frames_checked": 2871,
-  "failing_frames": 0,
-  "side": "left"
- },
- "merge": "MERGE OK (frame count 2871 vs 2872 +-1, no seam failures, audio offset 0.0 s, one caption style)",
+ "merge": "PASS (frame_count 2871 vs 2872 +-1, empty_frames [], seam_failures [], audio offset 0.0 s, extra_caption_styles [])",
  "verify": "PASSED (sync 0 ms at 4.8/43.1/86.1 s; lip A/B/C seated 0.00/38.77/80.84 s at 0 ms; -15.4 LUFS)",
- "checker_without_face_box": {
+ "version": "v3 (caption pill above the avatar's head on COMP beats)",
+ "previous_version": {
+  "task": "task-3cf9c2f8",
+  "final": "/opt/MoonieXHQ/Work/bl-ep58/armA/final-ep58-armA.mp4",
+  "note": "v2 final is untouched"
+ },
+ "windows_rendered": [
+  "seg01",
+  "seg02",
+  "seg05",
+  "seg06",
+  "seg07",
+  "seg12"
+ ],
+ "windows_reused_from_v2": [
+  "seg03",
+  "seg04",
+  "seg08",
+  "seg09",
+  "seg10",
+  "seg11"
+ ],
+ "windows_reused_note": "no COMP beat and no changed beat in these windows (v2 parts copied, not moved; v2 build dirs no longer exist, so the one-caption-style gate read the 6 v3 builds only)",
+ "checker": {
   "pass": true,
+  "mode": "--per-take-face-boxes --composition build/seg02/index.html",
+  "text_over_face": [],
+  "comp_evidence_landing": [],
+  "out_of_safe_area": [],
   "empty_frames": [],
   "empty_frames_excused": [
    16.633,
@@ -39,53 +58,77 @@
    16.7,
    16.733
   ],
-  "out_of_safe_area": [],
   "credit_missing": [],
   "extra_caption_styles": [],
   "kinetic_overflow": [],
-  "headline": []
- },
- "checker_with_face_box": {
-  "pass": false,
-  "boxes": {
-   "lip_a": [
-    55,
-    903,
-    371,
-    436
-   ],
-   "lip_b": [
-    56,
-    976,
-    432,
-    369
-   ],
-   "lip_c": [
-    95,
-    1003,
-    295,
-    296
-   ]
+  "headline": [],
+  "face_box_beats": {
+   "lip_a": {
+    "mode": "COMP",
+    "box": [
+     -25,
+     903,
+     573,
+     559
+    ],
+    "beats": [
+     "HOOK-1",
+     "HOOK-2",
+     "HOOK-3",
+     "HOOK-4",
+     "PATTERN-1",
+     "PATTERN-2",
+     "PATTERN-3"
+    ]
+   },
+   "lip_b": {
+    "mode": "COMP",
+    "box": [
+     -7,
+     968,
+     576,
+     494
+    ],
+    "beats": [
+     "MAIN-5",
+     "MAIN-6",
+     "MAIN-7",
+     "MAIN-8",
+     "MAIN-9",
+     "MAIN-10",
+     "MAIN-11"
+    ]
+   },
+   "lip_c": {
+    "mode": "COMP",
+    "box": [
+     48,
+     999,
+     416,
+     463
+    ],
+    "beats": [
+     "SUMMARY-7",
+     "SUMMARY-8",
+     "SUMMARY-9"
+    ]
+   }
   },
-  "text_over_face": [
-   "HOOK-1",
-   "HOOK-2",
-   "HOOK-3",
-   "HOOK-4",
-   "PATTERN-1",
-   "PATTERN-2",
-   "PATTERN-3",
-   "MAIN-5",
-   "MAIN-6",
-   "MAIN-7",
-   "MAIN-8",
-   "MAIN-9",
-   "MAIN-10",
-   "MAIN-11",
-   "SUMMARY-7",
-   "SUMMARY-8",
-   "SUMMARY-9"
-  ],
-  "note": "identical 17 beats for lip_a, lip_b and lip_c; all other gates pass"
- }
+  "brand_mark": {
+   "ok": true,
+   "side": "left",
+   "min_ratio": 0.9882,
+   "min_time": 4.533,
+   "frames": 2871,
+   "failing_frames": 0
+  },
+  "note": "per-take face boxes (bl_checker COMP_TAKES: head+neck+shoulder, COMP at 56%, FF 1:1); comp_evidence_landing gate on; brand mark checked on all 2871 frames incl. t=0 and the 11 seam frames"
+ },
+ "pill_centres_y": {
+  "lip_a": 797,
+  "lip_b": 862,
+  "lip_c": 893,
+  "ff_evid_kin": 1300
+ },
+ "frames_dir": "/opt/MoonieXHQ/Work/bl-ep58/armA/v3/frames/"
 }

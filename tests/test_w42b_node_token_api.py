@@ -547,9 +547,26 @@ def test_health_says_db_false_when_the_hub_is_down_even_with_a_snapshot(start, h
     assert (st, json.loads(body)) == (503, {"ok": False, "token_loaded": True, "db": False})
 
 
-def test_the_start_up_check_does_not_pass_on_the_snapshot(hub_down_with_a_snapshot):
+def test_the_start_up_check_does_not_pass_on_the_snapshot(hub_down_with_a_snapshot, monkeypatch):
+    monkeypatch.setattr(node_token_api.sealed, "find_age", lambda name=None: "/usr/bin/age")   # CI has no age
     with pytest.raises(RuntimeError, match="hub_unavailable"):
         node_token_api._preflight()
+
+
+def _no_age(name=None):
+    raise node_token_api.sealed.SealError("age is not installed (brew install age / apt install age): "
+                                          "refusing to seal without it, there is no fallback")
+
+
+def test_the_start_up_check_refuses_a_box_without_age_before_it_touches_the_hub(monkeypatch):
+    # Contabo had no age when W4.2b merged (Contabo CTO, PR #221): the service would have started,
+    # said ok on /health, and answered every node 500.
+    touched = []
+    monkeypatch.setattr(node_token_api.sealed, "find_age", _no_age)
+    monkeypatch.setattr(node_token_api, "_hub", lambda: touched.append("hub"))
+    with pytest.raises(node_token_api.sealed.SealError, match="age is not installed"):
+        node_token_api._preflight()
+    assert touched == []
 
 
 def test_a_connection_that_dies_mid_query_is_a_503_too(start, monkeypatch):
@@ -855,6 +872,19 @@ def test_the_command_line_bind_beats_the_environment(no_server, monkeypatch):
     assert no_server["make"]["bind"] == "100.64.0.20"
 
 
+def test_a_box_without_age_stops_start_and_says_what_to_install(capsys, no_server, monkeypatch):
+    def preflight():
+        _no_age()
+    monkeypatch.setattr(node_token_api, "_preflight", preflight)
+    monkeypatch.setenv(NAME, TOKEN)
+    monkeypatch.setenv(node_token_api.ORG_NODE_TOKEN_DB_ENV, DSN)
+    monkeypatch.setenv("NODE_TOKEN_BIND", "100.64.0.9")
+    assert node_token_api.main([]) == 1
+    err = capsys.readouterr().err
+    assert "cannot start (SealError: age is not installed" in err and "apt install age" in err
+    assert "hub database" not in err and "make" not in no_server
+
+
 def test_a_database_that_is_not_ready_stops_start_with_the_class_only(capsys, no_server, monkeypatch):
     def not_ready():
         raise RuntimeError("password authentication failed for user org_node_token " + DSN)
@@ -881,9 +911,20 @@ def test_the_unit_runs_the_two_fetches_then_drops_privileges_then_the_service_in
     line = next(ln for ln in _unit().splitlines() if ln.startswith("ExecStart="))
     order = ["bind-tailnet.sh", "infisical_setup.py run Agents-Core prod --as contabo --path /node-token",
              "infisical_setup.py run Org-Node prod --as contabo", "setpriv --reuid=org-node-token",
-             "-m tools.node_token_api --port 8792"]
+             "-m tools.node_token_api --port 792"]
     positions = [line.index(piece) for piece in order]
     assert positions == sorted(positions) and len(set(positions)) == len(order)
+
+
+def test_the_service_port_is_below_1024_and_keeps_only_the_bind_capability():
+    # 2a (decided for CEO 2026-10-04): while the service is down, no unprivileged user can take the port
+    assert node_token_api.DEFAULT_PORT < 1024
+    line = next(ln for ln in _unit().splitlines() if ln.startswith("ExecStart="))
+    assert f"-m tools.node_token_api --port {node_token_api.DEFAULT_PORT}" in line
+    setpriv = line[line.index("/usr/bin/setpriv "):line.index(" -- /opt/MoonieXHQ/Agents/Core/.venv/bin/python")]
+    caps = [a for a in setpriv.split() if "caps" in a]
+    assert caps == ["--inh-caps=+net_bind_service", "--ambient-caps=+net_bind_service"], caps
+    assert "CapabilityBoundingSet" not in _unit() and "AmbientCapabilities" not in _unit()
 
 
 def test_the_unit_carries_no_secret_and_no_address():

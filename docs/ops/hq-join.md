@@ -279,7 +279,7 @@ hub-side call**:
 ```bash
 python -m tools.hq_join status                                   # the fingerprint the hub holds
 python -m tools.hq_join approve --host <name> --fingerprint <8 chars from the node's screen>
-ORG_W42_PROVISION=1 ORG_NODE_TOKEN_URL=http://<hub tailnet ip>:8792/v1/token \
+ORG_W42_PROVISION=1 ORG_NODE_TOKEN_URL=http://<hub tailnet ip>:792/v1/token \
     python -m tools.hq_join provision --host <name>
 python -m tools.hq_join sealed --host <name>      # the armored ciphertext, for W4.3 to deliver
 ```
@@ -435,6 +435,12 @@ So after every `leave --live`, treat what the node could read as seen by whoever
 the node, and rotate it. The command prints the list as its last lines (names only,
 never a value).
 
+**Decided for CEO 2026-10-04 ("1a"): this rotation is required after every live leave.**
+A node that left still holds a working bearer token for the CEO's Claude account. Making the
+new token is a secret step, so it stays with the CEO: the CTO who ran the leave raises a Run
+card for it at once, and the leave counts as finished only when the old token is revoked.
+The other nodes need nothing: they ask the hub at every start and get the new value.
+
 Procedure, per name:
 
 1. Make a new key or password **at the provider** (never reuse the old value).
@@ -479,7 +485,7 @@ nothing to answer a node. It never serves an empty or half-loaded token.
 
 - The cards in `deploy/node-token/README.md`, in order: `plan`, `apply`, the CEO's own
   entry of the token (not a card), the role and DSN, the unit, the health check. Nothing
-  in them has run. Then the Tailscale ACL rule for port 8792 (`tag:org-node` to the hub;
+  in them has run. Then the Tailscale ACL rule for port 792 (`tag:org-node` to the hub;
   the README states it and applies nothing).
 - Setting `ORG_W42_PROVISION=1` and `ORG_NODE_TOKEN_URL` where `provision` runs, plus the
   CEO's go for the first real provision (it registers a real deploy key and creates no

@@ -35,7 +35,7 @@ TS_ACCESS = "ts-access-test-token-123"
 JOIN_DSN_PASSWORD = "joinpw-" + "SECRET-0123456789"  # the password inside ORG_JOIN_DB_URL; built so no scanner reads it as one
 JOIN_DSN = f"postgresql://org_join:{JOIN_DSN_PASSWORD}@hub.example:5432/org"
 SEALED = "SEALED-BODY-MARKER-0123456789"            # what a 200 from the token service carries
-TOKEN_URL = "http://100.64.0.9:8792/v1/token"
+TOKEN_URL = "http://100.64.0.9:792/v1/token"
 NODE_FP, HUB_FP = "abcd1234", "zzzz9999"            # the node prints the first; `status` shows the second
 SECRETS = (TOKEN, TS_ID, TS_SECRET, TS_ACCESS, JOIN_DSN_PASSWORD, SEALED)
 SHA = "0123456789abcdef0123456789abcdef01234567"
@@ -247,12 +247,12 @@ echo "curl $*" >>"$S/calls.log"
 [ -t 0 ] || cat >/dev/null
 for a in "$@"; do case $a in http*) url=$a ;; esac; done
 case $url in
-  http://100.64.0.9:8792/health)                    # the token service
+  http://100.64.0.9:792/health)                    # the token service
     f token_health_down && exit 7
     if f token_not_loaded; then echo '{"ok": true, "token_loaded": false, "db": true}'
     else echo '{"ok": true, "token_loaded": true, "db": true}'; fi
     exit 0 ;;
-  http://100.64.0.9:8792/v1/token\?host=*)          # `-w '\n%{http_code}'`: the body, then the status
+  http://100.64.0.9:792/v1/token\?host=*)          # `-w '\n%{http_code}'`: the body, then the status
     f token_down && exit 7
     st=$(cat "$S/row_status" 2>/dev/null)
     case $st in
@@ -888,7 +888,7 @@ def test_a_join_dsn_that_logs_in_lets_the_drill_go_on(drill):
 def test_the_token_service_is_asked_for_health_before_the_door_opens(drill):
     assert drill.run().returncode == 0
     calls = drill.calls()
-    health = next(i for i, c in enumerate(calls) if c.startswith("curl") and "8792/health" in c)
+    health = next(i for i, c in enumerate(calls) if c.startswith("curl") and ":792/health" in c)
     assert health < next(i for i, c in enumerate(calls) if c.startswith("door open"))
 
 
@@ -1000,7 +1000,7 @@ def test_memory_exactly_at_the_floor_runs(drill):
     (lambda d: d.flag("dsn_stale"), "rotate with deploy/join/org_join_role.py"),
     (lambda d: d.flag("token_health_down"), "token service did not answer"),
     (lambda d: d.flag("token_not_loaded"), "token_loaded or db is not true"),
-    (lambda d: d.env.update(DRILL_TOKEN_URL="http://100.64.0.9:8792/other"), "token URL must look like"),
+    (lambda d: d.env.update(DRILL_TOKEN_URL="http://100.64.0.9:792/other"), "token URL must look like"),
     (lambda d: (d.env.pop("DRILL_TOKEN_URL"), d.flag("no_tailnet_address")), "no token URL"),
 ])
 def test_preflight_refusals_start_nothing(drill, setup, needle):

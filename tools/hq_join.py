@@ -215,7 +215,7 @@ def check_token_url(url: str | None) -> str:
     url = (url or "").strip()
     if not url:
         raise JoinError("no_token_url", f"the hub's token URL is not set: set {TOKEN_URL_ENV} "
-                                        f"(for example http://<hub tailnet address>:8792/v1/token)")
+                                        f"(for example http://<hub tailnet address>:792/v1/token)")
     if not node_token.tailnet_token_url(url):   # the node refuses anything else, so refuse it here, early
         raise JoinError("bad_token_url", f"{TOKEN_URL_ENV} must be http://<the hub's tailnet address, inside "
                                          f"100.64.0.0/10>:<port>/v1/token, and nothing else")
@@ -1124,6 +1124,8 @@ def _print_rotate(host: str, rotate: dict) -> None:
           f"again; it does not recall a token it already received.")
     for where, names in rotate.items():
         print(f"  {where}: " + (", ".join(names) if names else "(none)"))
+    print("  required, not optional (decided for CEO 2026-10-04): the new token is the CEO's step, "
+          "so raise a Run card for it now; the leave is not finished until the old token is revoked.")
     print(f"  procedure: {ROTATE_DOC}")
 
 

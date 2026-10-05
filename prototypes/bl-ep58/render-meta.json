@@ -1,8 +1,8 @@
 {
- "task": "task-cc55e620",
+ "task": "task-f35f2935",
  "episode": "BL EP58 Weltrade",
- "final": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/final-ep58-v2.mp4",
- "bytes": 23480763,
+ "final": "/opt/MoonieXHQ/Work/bl-ep58/cut/v3/final-ep58-v3.mp4",
+ "bytes": 22036574,
  "duration_s": 95.7,
  "fps": "30/1",
  "size": "1080x1920",
@@ -10,21 +10,29 @@
  "video_codec": "h264",
  "audio_codec": "aac",
  "loudness_lufs": -15.4,
- "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/sheet-ep58-v2.jpg",
+ "contact_sheet": "/opt/MoonieXHQ/Work/bl-ep58/cut/v3/sheet-ep58-v3.jpg",
  "modes": {
   "COMP": 14,
-  "EVID": 14,
-  "KIN": 9,
+  "EVID": 13,
+  "KIN": 10,
   "FF": 3
  },
  "beats": 40,
  "windows": 12,
  "window_render": "bl_compose --t0/--t-max, frame-aligned, merged with bl_merge",
- "verify": "PASSED (sync 0 ms at 3 points; lip A/B/C seated 0 ms; loudness -15.4)",
+ "verify": "PASSED (sync 0 ms at 4.8/43.1/86.1 s; lip A/B/C seated 0.00/38.77/80.84 s at 0 ms; -15.4 LUFS)",
  "checker": {
   "pass": true,
+  "mode": "--per-take-face-boxes --composition build/seg02/index.html",
+  "text_over_face": [],
+  "comp_evidence_landing": [],
+  "out_of_safe_area": [],
   "empty_frames": [],
   "empty_frames_excused": [
+   16.633,
+   16.667,
+   16.7,
+   16.733,
    29.667,
    29.7,
    29.733,
@@ -33,31 +41,111 @@
    71.633,
    71.667
   ],
-  "out_of_safe_area": [],
-  "text_over_face": [],
-  "text_over_face_note": "gate did NOT run (no --face-box given)",
   "credit_missing": [],
   "extra_caption_styles": [],
   "kinetic_overflow": [],
+  "face_box_beats": {
+   "lip_a": {
+    "mode": "COMP",
+    "box": [
+     -25,
+     903,
+     573,
+     559
+    ],
+    "beats": [
+     "HOOK-1",
+     "HOOK-2",
+     "HOOK-3",
+     "HOOK-4",
+     "PATTERN-1",
+     "PATTERN-2",
+     "PATTERN-3"
+    ]
+   },
+   "lip_b": {
+    "mode": "COMP",
+    "box": [
+     -7,
+     968,
+     576,
+     494
+    ],
+    "beats": [
+     "MAIN-5",
+     "MAIN-6",
+     "MAIN-7",
+     "MAIN-8",
+     "MAIN-9",
+     "MAIN-10",
+     "MAIN-11"
+    ]
+   },
+   "lip_c": {
+    "mode": "FF",
+    "box": [
+     151,
+     277,
+     742,
+     824
+    ],
+    "beats": [
+     "SUMMARY-7",
+     "SUMMARY-8",
+     "SUMMARY-9"
+    ]
+   }
+  },
   "brand_mark": {
    "ok": true,
-   "min_ratio": 0.9833,
+   "side": "right",
+   "min_ratio": 0.9841,
    "min_time": 83.767,
-   "failing_frames": 0,
-   "frames": 2871
-  }
+   "frames": 2871,
+   "failing_frames": 0
+  },
+  "note": "per-take face boxes (bl_checker COMP_TAKES: head+neck+shoulder, COMP at 56%, FF 1:1); comp_evidence_landing gate on; brand mark checked on all 2871 frames incl. t=0 and the 11 seam frames"
  },
- "previous_final_task": "task-8f940c57",
- "frames_dir": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/frames/",
- "kit": "origin/main 9993bd6e (task-c32c40e8)",
+ "frames_dir": "/opt/MoonieXHQ/Work/bl-ep58/cut/v3/frames/",
+ "kit": "origin/main 9993bd6e + d4c1f234 (bl_face_box) merged; template/compose/checker per task-f35f2935",
  "main13_still": "real/wikifx-article-sep-contents.png",
  "merge": "PASS (frame_count 2871 vs 2872 +-1, empty_frames [], seam_failures [], audio offset 0.0 s, extra_caption_styles [])",
- "old_final_brand_mark": {
-  "ok": false,
-  "failing_frames": 226,
-  "min_ratio": -0.013,
-  "failing_ranges": 12
- },
  "loudnorm": "single pass loudnorm=I=-14:TP=-1.5:LRA=11 -c:v copy (same as v1); file measures -15.4 LUFS",
- "posted": false
+ "posted": false,
+ "version": "v3 (caption pill above the avatar's head on COMP beats)",
+ "previous_version": {
+  "task": "task-cc55e620",
+  "final": "/opt/MoonieXHQ/Work/bl-ep58/cut/v2/final-ep58-v2.mp4",
+  "note": "v2 final is untouched"
+ },
+ "windows_rendered": [
+  "seg01",
+  "seg02",
+  "seg03",
+  "seg04",
+  "seg05",
+  "seg06",
+  "seg07"
+ ],
+ "windows_reused_from_v2": [
+  "seg08",
+  "seg09",
+  "seg10",
+  "seg11",
+  "seg12"
+ ],
+ "windows_reused_note": "no COMP beat and no changed beat in 56.57-95.7 s of arm B (KIN/EVID/FF only; FF pill stays at y 1300); v2 parts and v2 build dirs copied, not moved",
+ "pill_centres_y": {
+  "lip_a": 797,
+  "lip_b": 862,
+  "lip_c": 893,
+  "ff_evid_kin": 1300
+ },
+ "pattern4": "KIN like arm A (the v2 EVID blank-white complaint still at 16.7 s is gone)",
+ "context4_box": [
+  124,
+  555,
+  180,
+  45
+ ]
 }

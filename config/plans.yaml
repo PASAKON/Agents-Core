@@ -30,7 +30,9 @@ roles:
 role_classes:
   developer: dev_general
   # Shell-requiring roles routed to dev_shell class.
-  devops:    dev_shell
+  # devops_engineer is NOT listed: it is an Opus worker (policies/agents.yaml, CEO 2026-09-23) and
+  # dev_shell would move it to codex/Sonnet. The old key `devops` matched no role (removed
+  # 2026-10-04); routing devops_engineer here waits for the CEO.
   tester:    dev_shell
 router:
   tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
