@@ -43,9 +43,14 @@ this skill only points at them.
    same file. Check: `check_collisions` is empty before `create_task`. (Evidence: LESSONS G2, 1 round of 5
    tasks with 0 merge conflicts. It is in the spec because the merge tooling needs disjoint `touches`
    anyway; the quality of the block itself is still a field note.)
-3. **Runner by job type** (LESSONS G1, 8 runs). JSON, Script API and logic tasks go to codex on Contabo:
+3. **Runner by job type** (LESSONS G1, 10 runs). JSON, Script API and logic tasks go to codex on Contabo:
    content right at the first pass, 0 content reopens. Model and animation jobs that need a study round so
    far ran on agy on the Mac (field note G5, n=1).
+   **A brief for agy on the Mac states its command limit** (LESSONS B8, 2 runs): it may run only
+   `<Agents-Core>/.venv/bin/python -m pytest` and read-only commands; a bare python, node or the build
+   aborts the run with no files. So the brief says to generate every file from inside a test, and that the
+   CTO runs validate, build and the viewer after merge. Evidence: task-c602b857 did this and merged;
+   task-bc504a72 was not told and died.
 4. **Every pack file is traceable** (CEO ruling 2026-10-05, *"ทุกการกระทำ ต้อง ตรวจสอบย้อนหลังได้ทั้งหมด"*).
    The brief tells the worker to run `python3 tools/provenance.py record` in the same commit as the file.
    Paid calls are logged with `tools/provenance.py call`. `provenance/ENFORCE` is on, so `validate.py`
@@ -85,6 +90,6 @@ this skill only points at them.
 - 2026-10-05 [MISSING] §spec 3 — a model job with a study doc (3 variants, preview PNGs, recorded adjust rounds) gave the CTO and the CEO something to judge by eye · evidence: task-c602b857, docs/design/04-model-study.md, LESSONS G5 · status: pending
 - 2026-10-05 [WRONG] §spec 8 — the CTO first blamed the workers for missing PNGs and wrote a rule saying so; the launcher had unstaged them. Read the launcher before writing a rule about worker behaviour · evidence: Agents-Core 11c600b2 flipped by 97dad04f, LESSONS B2 · status: pending
 - 2026-10-05 [MISSING] §spec 3 — a claude worker on Contabo waits on the folder-trust prompt, and the classifier refuses the remote keystroke that answers it; use codex there · evidence: task-b22580bf, LESSONS B3 · status: pending
-- 2026-10-05 [MISSING] §spec 3 — the agy sandbox on the Mac cannot run node, `tools/build.py` or a browser; the brief must say the CTO runs those gates · evidence: task-c602b857, LESSONS B8 · status: pending
+- 2026-10-05 [MISSING] §spec 3 — the agy sandbox on the Mac cannot run node, `tools/build.py` or a browser; the brief must say the CTO runs those gates · evidence: task-c602b857, LESSONS B8; second run task-bc504a72 (bare python aborted the run, no files) agreed, promoted to §spec 3 · status: promoted
 - 2026-10-05 [COSTLY] §spec 4 — a ledger task run in parallel with content tasks was 39 rows out of date at merge time; re-check the ledger after the last merge of a round · evidence: task-f285db14, LESSONS B7 · status: pending
 - 2026-10-05 [MISSING] §spec 7 — downloaded community skills could not be pushed into the repo until the CEO typed an approval sentence; ask for it before downloading · evidence: MoonieX-Bedrock 4aaf0cf, LESSONS B9 · status: pending
