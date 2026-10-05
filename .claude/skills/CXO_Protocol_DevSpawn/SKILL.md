@@ -218,12 +218,17 @@ A worker learns its environment by hunting, and every step is paid. The brief ca
   Others build their own client at module load (`kbSearch.js`, `handoffStore.js`, `kb-checker.js`,
   `handoff-checker.js`, `askAdminTools.js`, `handoffTools.js`): stub `createClient` before the `require`,
   or set `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` to dummies (rule, 2 runs: task-502e9287, task-1f78da17).
-- **Generated files must be committed** (rule, 2 runs). A worker whose generator writes binaries
-  (PNG, TGA) ran its gates in a working tree that still held them and reported all green, while the
-  branch had none: task-e78cd85d (4 PNGs) and task-11c59456 (1 PNG), both codex on Contabo, 2026-10-05.
-  The brief says: before `submit_report`, `git status --short` must print nothing, and the gates run
-  again from a clean checkout (`git stash -u` or a fresh `git worktree add`). On review, the CTO runs
-  the gates on the branch merged onto `origin/main` in a scratch worktree, never trusting the worker's.
+- **A remote codex/agy run never commits PNG or other media** (rule, 2 runs). `scripts/spawn-worker-remote.sh`
+  (`emit_report_commit_push`) runs `git add -A`, then `git reset` on every png/jpg/gif/webp/mp4/mp3/wav/ogg/…
+  and on any binary over 1 MB, and writes "media not committed" to `.media_blockers`. A worker whose
+  job produces shipped textures (Bedrock pack PNGs) therefore reports green while the branch has none:
+  task-e78cd85d (4 PNGs) and task-11c59456 (1 PNG), 2026-10-05. Until the gate honours a per-repo
+  allow-list, the CTO regenerates the files on the Mac from the worker's generator, checks the md5
+  against the Contabo worktree, commits them on the agent branch, and merges. On review, always run the
+  gates on the branch merged onto `origin/main` in a scratch worktree, never trusting the worker's.
+  [SUPERSEDED 2026-10-05] "Generated files must be committed … the brief says `git status --short` must
+  print nothing" — the workers had done nothing wrong; the runner unstaged the files (spawn-worker-remote.sh
+  lines ~467-505, read 2026-10-05).
 - **An agy worker sees only its worktree and `$WORK_DIR`** (rule, 2 runs). `runners/agy_local.py`
   passes those two as `--add-dir` (the second since 87257523). A headless read of any other path is
   auto-denied and the run dies, as `read_file ... auto-denied` or as `exit 0, no file changes`. Never
@@ -631,4 +636,4 @@ independent runs (task-77a2e043 2026-09-23, task-28147242 2026-09-26).
 - 2026-10-05 [MISSING] §5b remote — the §5b trust-prompt answer (`tmux send-keys Down Enter`) was refused by the auto-mode classifier as "Remote Shell Writes" when aimed at a Contabo worker pane over ssh; the claude worker on a newly cloned repo path sat on "trust this folder" for ~10 min with status `in_progress`. What worked: cancel and re-create the task with `runner='codex'` on Contabo (codex has no trust prompt; A and C finished in ~5 min). For a first claude spawn on a new Contabo path, check the pane at +1 min, and plan on codex if the classifier is active (n=1) · evidence: task-b22580bf cancelled, superseded by task-091a6280 · status: pending
 - 2026-10-05 [MISSING] §6b remote — the clean way to flip a finished remote row from a Mac hub is `bash scripts/hub/org-python.sh -m runners.branch_poller --once`, not a manual `update_status`: it applies the external-runner artefact gate (commits ahead, `turn.completed`, tests) and the REPORT.md header check, then sets `review` with the report text. Two codex rows sat `in_progress` with exit 0 and pushed branches because no poller runs on the Mac (n=1) · evidence: task-37c9efff, task-8e00aec8 flipped by one `--once` tick, merged fabbeee / 0842b94 · status: pending
 - 2026-10-05 [MISSING] §reopen — `reopen_task` puts "## CTO Feedback (iter N)" at the top of the description, which pushes a pinned task's `override:` line out of the first block, so the re-delegate is refused under IRON §59 ("runner/model_hint pinned by hand without a reason"). Fix: put the `override:` line back above the feedback with `db.set_fields(..., description=...)`, then delegate. Better: make reopen keep the override line first (n=1) · evidence: task-e78cd85d · status: pending
-- 2026-10-05 [MISSING] §review — a codex worker's REPORT said every gate was green, but the 4 PNGs it generated were never committed; its gates ran in a working tree that still held the files. Merging the branch onto main in a scratch worktree caught it (2 pytest FileNotFoundError). Always run the gates on the merged branch, never trust gates the worker ran · evidence: task-e78cd85d iter 0; second run task-11c59456 agreed, promoted to the §3d rule · status: promoted
+- 2026-10-05 [MISSING] §review — a codex worker's REPORT said every gate was green, but the 4 PNGs it generated were never committed; its gates ran in a working tree that still held the files. Merging the branch onto main in a scratch worktree caught it (2 pytest FileNotFoundError). Always run the gates on the merged branch, never trust gates the worker ran · evidence: task-e78cd85d iter 0; second run task-11c59456 agreed; the real cause was the runner media gate, not the worker (§3d rule rewritten 2026-10-05) · status: promoted
