@@ -222,9 +222,12 @@ A worker learns its environment by hunting, and every step is paid. The brief ca
   (`emit_report_commit_push`) runs `git add -A`, then `git reset` on every png/jpg/gif/webp/mp4/mp3/wav/ogg/…
   and on any binary over 1 MB, and writes "media not committed" to `.media_blockers`. A worker whose
   job produces shipped textures (Bedrock pack PNGs) therefore reports green while the branch has none:
-  task-e78cd85d (4 PNGs) and task-11c59456 (1 PNG), 2026-10-05. Until the gate honours a per-repo
-  allow-list, the CTO regenerates the files on the Mac from the worker's generator, checks the md5
-  against the Contabo worktree, commits them on the agent branch, and merges. On review, always run the
+  task-e78cd85d (4 PNGs) and task-11c59456 (1 PNG), 2026-10-05. Since Agents-Core 85aa5fb8
+  (task-2506e4fd) both launchers keep a staged file that matches a glob in `.media-allow` at the repo
+  root **on `origin/<base>`** (a worker cannot widen it in its own run; over 1 MB still needs ` !large`),
+  and list it as `media kept:` in REPORT.md and the commit body. A repo whose shipped media belong in
+  git (hq.yaml `keeps`) commits that file first; MoonieX-Bedrock did (3c97b18). Without it, the CTO
+  regenerates the files from the worker's generator, checks the md5, and commits them on the agent branch. On review, always run the
   gates on the branch merged onto `origin/main` in a scratch worktree, never trusting the worker's.
   [SUPERSEDED 2026-10-05] "Generated files must be committed … the brief says `git status --short` must
   print nothing" — the workers had done nothing wrong; the runner unstaged the files (spawn-worker-remote.sh
