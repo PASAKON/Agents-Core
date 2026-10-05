@@ -8,6 +8,83 @@ author: {role: cto, date: "2026-10-05"}
 audience: [cto]
 ---
 
-# CTO_Standard_Bedrock_WorkLayout
+# What a good Bedrock work layout is
 
-STANDARD — How to lay out Minecraft Bedrock add-on work for workers: split, brief, runner, evidence, review. Trigger on /CTO_Standard_Bedrock_WorkLayout and on "วางงาน Bedrock", "แบ่งงานให้ Worker", "brief Minecraft", "Deep Caller task". Spawn mechanics stay in CXO_Protocol_DevSpawn.
+The CEO, 2026-10-05: *"สำหรับโปรเจคแรกมันคือการเรียนรู้ลองผิดลองถูกปรับปรุงหลายอย่าง เขียน Skill วางงาน แบบไหนดีแบบไหนไม่ดี
+... ถ้าถามแล้วต้องตรวจสอบได้ จะได้ออกแบบ Skill ได้ถูก"*. So every line here points at evidence you can open.
+
+**Where the evidence lives:** repo `PASAKON/MoonieX-Bedrock`.
+
+| Path | Holds |
+|---|---|
+| `docs/briefs/<task-id>.md` | the exact brief each worker received |
+| `docs/reports/<task-id>/REPORT.md` | what the worker says it did |
+| `docs/learning/trials.jsonl` | one row per worker run: what actually happened, and the CEO's verdict |
+| `docs/learning/LESSONS.md` | the lesson table this skill is folded from (ids G1–G6, B1–B9) |
+
+A lesson enters the spec below only with two runs that agree, or a CEO ruling. One run stays in Field notes.
+Worker spawn mechanics (routing, reopen, merge, the launcher media gate) belong to `CXO_Protocol_DevSpawn`;
+this skill only points at them.
+
+## The spec (each item checkable)
+
+1. **Brief shape** (LESSONS G3, 7 runs). Every brief has, in this order:
+   - the job verb (CREATE / CHANGE / CONFIRM);
+   - why, in the CEO's own words;
+   - the shared contract (item 2);
+   - what the task owns and must not touch;
+   - the gates as exact commands;
+   - the report: `docs/reports/<task-id>/REPORT.md`, first line `# REPORT <task-id>`, files changed, gates
+     run, what it could not check, and a `## Skill learning` section.
+
+   Check: open the brief and find each heading.
+2. **One contract block, pasted into every parallel brief.** It holds the ids, bone names, events, the
+   namespace, and which task owns each shared file (`en_US.lang`, each loot table). Two tasks never own the
+   same file. Check: `check_collisions` is empty before `create_task`. (Evidence: LESSONS G2, 1 round of 5
+   tasks with 0 merge conflicts. It is in the spec because the merge tooling needs disjoint `touches`
+   anyway; the quality of the block itself is still a field note.)
+3. **Runner by job type** (LESSONS G1, 8 runs). JSON, Script API and logic tasks go to codex on Contabo:
+   content right at the first pass, 0 content reopens. Model and animation jobs that need a study round so
+   far ran on agy on the Mac (field note G5, n=1).
+4. **Every pack file is traceable** (CEO ruling 2026-10-05, *"ทุกการกระทำ ต้อง ตรวจสอบย้อนหลังได้ทั้งหมด"*).
+   The brief tells the worker to run `python3 tools/provenance.py record` in the same commit as the file.
+   Paid calls are logged with `tools/provenance.py call`. `provenance/ENFORCE` is on, so `validate.py`
+   R12 fails a file without a row. Check: `python3 tools/provenance.py check packs/abyss` prints nothing.
+5. **Every worker run is recorded** (CEO ruling 2026-10-05, this skill's own request). When the CTO creates
+   or reopens a task, it exports the brief to `docs/briefs/`. When it reviews the run, it adds a
+   `trials.jsonl` row, including for failed and cancelled runs. Check: every Bedrock task id in
+   `list_tasks(project='mooniex-bedrock')` has a brief file and a trials row.
+6. **Gates passing is not quality** (CEO ruling 2026-10-05: QA is the CEO, then Champ, then the partner).
+   A lesson about how a model, animation or texture looks enters this skill only with the CEO's verdict in
+   `trials.jsonl`.
+7. **Other people's skills are on trial, not adopted** (CEO ruling 2026-10-05). Workers read
+   `docs/reference/community-skills/` read-only, never run their scripts or the paid APIs they mention, and
+   list in the report which files they read and which rules they applied. Only a rule that wins an A/B
+   comparison the CEO judged gets written into this skill.
+8. **Review on the merged branch, and expect the launcher to drop media.** See `CXO_Protocol_DevSpawn`
+   §3d (LESSONS G6 and B1, 2 runs each).
+
+## The check (60 seconds, before `delegate_task`)
+
+- Brief has items 1, 2 and 4.
+- `check_collisions` is empty.
+- The runner matches item 3, or the brief says why not.
+- The task id gets its `docs/briefs/` export in the same turn.
+
+## Good vs bad (real)
+
+- **Good:** `docs/briefs/task-2fa691ad.md`, the 10 animations. It has a contract block, an own-review round
+  and exact gates. It merged at the first pass (`edab1a5`), and the review round caught a real bug (the eye
+  clip restarted on every state change).
+- **Bad:** the first grey-box batch, task-86d42c46 to task-086aaec1. It was created with a role and hosts the
+  org would not spawn, and all four were cancelled before any work (`Agents-Core 0837735e`).
+
+## Field notes
+
+- 2026-10-05 [MISSING] §spec 7 — a worker's own review round (first pass, review, adjust, recorded in the report) found a real bug before submit · evidence: task-2fa691ad REPORT, LESSONS G4 · status: pending
+- 2026-10-05 [MISSING] §spec 3 — a model job with a study doc (3 variants, preview PNGs, recorded adjust rounds) gave the CTO and the CEO something to judge by eye · evidence: task-c602b857, docs/design/04-model-study.md, LESSONS G5 · status: pending
+- 2026-10-05 [WRONG] §spec 8 — the CTO first blamed the workers for missing PNGs and wrote a rule saying so; the launcher had unstaged them. Read the launcher before writing a rule about worker behaviour · evidence: Agents-Core 11c600b2 flipped by 97dad04f, LESSONS B2 · status: pending
+- 2026-10-05 [MISSING] §spec 3 — a claude worker on Contabo waits on the folder-trust prompt, and the classifier refuses the remote keystroke that answers it; use codex there · evidence: task-b22580bf, LESSONS B3 · status: pending
+- 2026-10-05 [MISSING] §spec 3 — the agy sandbox on the Mac cannot run node, `tools/build.py` or a browser; the brief must say the CTO runs those gates · evidence: task-c602b857, LESSONS B8 · status: pending
+- 2026-10-05 [COSTLY] §spec 4 — a ledger task run in parallel with content tasks was 39 rows out of date at merge time; re-check the ledger after the last merge of a round · evidence: task-f285db14, LESSONS B7 · status: pending
+- 2026-10-05 [MISSING] §spec 7 — downloaded community skills could not be pushed into the repo until the CEO typed an approval sentence; ask for it before downloading · evidence: MoonieX-Bedrock 4aaf0cf, LESSONS B9 · status: pending
