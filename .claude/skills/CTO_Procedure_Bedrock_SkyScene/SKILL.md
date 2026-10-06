@@ -122,6 +122,13 @@ the bottom (windowed client). Underwater stops (E16, E17) use the top and bottom
     --blossom-draft <png> --palette <png>`; the drafts are archived at
     `/Users/gob/MoonieXHQ/Assets/MoonieX/Bedrock/sky/pixellab-drafts-2026-10-06` (SHA256SUMS). The CTO picks the
     option closest to the concept; options never go to the CEO.
+    **Before touching an effect's look, project its spawn positions through the tour camera** (rule, 3 runs).
+    `tools/sky_tour.py` puts the free camera 4 blocks ahead of the player and below the head, so an effect spawned
+    round the feet sits behind the lens and one spawned round the head reads high: aurora and shooting stars spawned
+    64-90 deg up and were never in frame, snow/fireflies/mist were 1-4% in frame, and the aimed sun haze landed
+    0.12-0.18 H above the sun. The camera height below the head is not settled (1.6 vs 2.34 blocks). Test helpers
+    `world()` + `px()` in `tests/js/sky_fx_near.test.mjs` do the projection. Runs: task-e7485779, task-222da532,
+    task-4ba4a067.
 13. **Confirm once.** Repeat steps 2 to 9 once with all changes together. Stop at `zen` and `hor` of 90 or
     more, or at a ceiling written down: band, number, levers tried, what the engine cannot do. Commit the
     files with their provenance rows in the same commit (`CTO_Standard_Bedrock_WorkLayout` item 4).
@@ -245,3 +252,6 @@ spent: 0 USD, N free generations · lease: taken HH:MM, given back HH:MM
 - 2026-10-07 [WRONG] §Verify — a worker's "sprites 0 and 2 are h320 in the PNG" was false: re-measured, all three cloud sprites sit at median h358 (body #EDB5C6 is half the texels); in the T00 game shot the cloud-like pixels read h350 and the "320" mixed lilac sky (C28, above any sprite tone) into the cloud boxes. Re-measure a colour claim on the shipped PNG and on a cloud-only pixel class before changing a generator · evidence: task-55fd162b REPORT, task-69457481 · status: pending
 - 2026-10-07 [MISSING] §Frame — `EL_BIAS` 1.6 (game sun above the model) was fitted through frame.py's separate yaw/elevation projection and holds only there; an exact pinhole on the same five morning discs gives +0.47 deg (0.37-0.60). Anything placed in 3D (sunOffset, a particle aim) takes the pinhole value · evidence: task-4ba4a067, docs/design/sky/sun-aim.md · status: pending
 - 2026-10-07 [MISSING] §Verify — `sky_tour.py` puts the player 4 blocks behind the free camera (head 2.34 blocks above it), so every head-anchored effect (sun haze, cloud bank, air) has parallax in tour frames: once sunOffset was aimed at the real sun, the glow landed 0.12-0.18 H above the sun in tour shots while it fits in first person. Confirm head-anchored fx in first person, or with the player at the camera spot · evidence: task-4ba4a067 (checked by hand: +7 deg at 30 blocks) · status: pending
+- 2026-10-07 [MISSING] §Step 12 — nightfx and nearfx both found their effects invisible only by placement (spawned outside every tour frame), nothing wrong in colour or size; with the sun-aim parallax that is 3 runs, promoted to the Step 12 rule · evidence: task-e7485779, task-222da532, task-4ba4a067 · status: promoted
+- 2026-10-07 [MISSING] §Measure — frame facts the workers had to rediscover: a billboard `size` is a half-extent; the game-shot crop is rows 32..H-50, then a centred 16:9; the frame top is pitch + 30 deg (VFOV 60) · evidence: task-e7485779 docs/design/sky/night-fx.md · status: pending
+- 2026-10-07 [MISSING] §Measure — a blob census of a whole game shot counts terrain texture (E11: 2222 blobs of median 3 px, all snow blocks); restrict it to the sky rows or use the spawn model · evidence: task-222da532 · status: pending
