@@ -1,0 +1,225 @@
+---
+name: CTO_Procedure_Bedrock_SkyScene
+kind: procedure
+description: "PROCEDURE — Make one Minecraft Bedrock sky scene match its concept image in the running game, scored against a 90 target. Trigger on /CTO_Procedure_Bedrock_SkyScene and on \"ทำให้เหมือนได้ 90%\", \"match the concept image\", \"make the sky look like the concept\". Not for laying out worker lanes (CTO_Standard_Bedrock_WorkLayout)."
+owner: CTO
+created_by: agent
+author: {role: cto, date: "2026-10-06"}
+audience: [cto]
+improved_by: []
+aka: []
+---
+
+# One sky scene, matched to its concept image
+
+The CEO, 2026-10-06: *"เอาท่าที่เกมทำได้เลย ทำให้เหมือนได้ 90% · อันไหนที่ เรื่อแสงทำไม่ได้ ให้ไไปอยู่ใน Taxture + VFX ได้เลย"*.
+Match 90% with what the engine can do. What lighting cannot do goes to textures and VFX.
+Also CEO 2026-10-06: capture every shot by script, look at ONE combined sheet once, tune in one pass.
+
+Input: a scene (a stop id such as `T00`, scene #1, the dreamy day), its concept image, a MoonieX-Bedrock
+checkout with the sky packs · Output: one sheet (concept next to game, similarity per band), the tuned files
+committed with provenance rows, one learning fold · Tool: the table under "Tools".
+
+## What it does
+
+The game says how close the scene is, not a guess. A script puts a free camera at a measured spot. A resident
+daemon on winbox takes the shot. `skymetric.py` compares two bands of the frame with the concept in Lab colour.
+One tuning pass follows: the palette first (a script file, no client restart), then VFX and textures for what
+the palette cannot reach. The loop exists because the CEO asked on 2026-10-06 to stop trial and error.
+
+## When to invoke / when not
+
+- Invoke when a scene has a concept image, a stop in `docs/testing/sky-tour.json` and a chosen camera spot in
+  `docs/testing/sky-tour-spots.json` (if not: `tools/sky_spots.py find <STOP>`).
+- Not for worker lanes and briefs (`CTO_Standard_Bedrock_WorkLayout`), button tests of a system (its item 9), or
+  the first draft of a scene's art (lane work). It needs the winbox screen, so it needs the lease.
+
+## What can reach what
+
+Source: wiki `research/2026-10-05-bedrock-sky-visuals-limits.md` (mostly official docs; its labels apply).
+
+| Band or element | Lever | Engine limit |
+|---|---|---|
+| zenith (`zen`) | `palettes.js` zenith colour, applied by script (`@minecraft/server-graphics`) | an input is not shown 1:1 |
+| horizon (`hor`) | palette answers weakly; VFX haze `sun_glow`; sun texture | see Field notes |
+| sun disc | `sun.png`, `sun_vv.png` | no size field; the sun quad bounds the texture |
+| glow past the quad, rays | VFX particles `sun_glow`, `sun_rays` | particles only |
+| cloud shape, rim colour | `clouds.png` | height, speed, thickness, direction fixed |
+| air (petals, glints) | particles; sprite size | |
+| stars, aurora | none native: particles or a cubemap | |
+| whole-frame mood | colour grading (no keyframes; a script can change it) | |
+
+## Tools
+
+(A) Agents-Core · (B) MoonieX-Bedrock `tools/` · (S) the CTO session scratchpad `$S`, not in a repo yet (Field notes).
+
+| Tool | Does |
+|---|---|
+| `scripts/pc-lease.sh` (A) | `status`, `take --who "<what for>"`, `give-back` |
+| `scene1/test.sh <label> [clouds.png]` (S) | steps 2 to 8 for T00 in one run; the 2nd argument swaps `clouds.png` for an A/B |
+| `scene1/deploy_sky.ps1` (S, runs on winbox) | unpack; `robocopy /MIR` each RP into the BDS dev folder AND the client's; BP into BDS; skips on a uuid mismatch |
+| `join_lan.sh` (S) | restart the client, clear dialogs, click the LAN tile; each click follows OCR of a fresh shot |
+| `mcmd.sh "<cmd>"` (S) | one console command through the bridge tunnel `127.0.0.1:18765` |
+| `shotd_take.sh <name> <dest.png>` (S) | one screenshot from the resident winbox daemon, no focus change. The daemon ends itself after 8 h; `TIMEOUT <name>` means it is down (`shotd_start.ps1`) |
+| `skymetric.py <round> [STOP ...]` (S) | the numbers below, from `caps/<round>/<STOP>.png` |
+| `calib.py <STOP> <palette type> [--apply]` (S) | solve one stop's palette from the engine's measured response |
+| `gridsheet.py` (S), `scene1/sheet.py` (S) | one sheet: a round of stops, or T00 variants |
+| `tools/sky_tour.py go <STOP> --camera`, `reset` (B) | weather, time, forced type, free camera at the spot; `reset` returns camera and HUD |
+| `tools/sky_spots.py find <STOP>` (B) | picks the camera spot, records every candidate |
+| `tools/wire_scene1.py` (B) | rebuilds every shipped art file of scene #1; same inputs, same pixels |
+
+**The metric.** Similarity = 100 − CIE76 dE per band, medians in Lab. `zen` = top 22% of the frame, `hor` = rows
+30 to 50%, green foliage dropped. Target 90 (dE of 10 or less). Game shots lose 32 px at the top and 50 px at
+the bottom (windowed client). Underwater stops (E16, E17) use the top and bottom thirds.
+
+## Steps (numbered; each with the stop condition)
+
+1. **Lease.** `./scripts/pc-lease.sh status`, then `take --who "cto: sky scene <STOP> match"` (ASCII only).
+   Stop unless `take` printed `OK - the screen is yours until HH:MM`; on `FAILED` do not touch the screen. Never
+   press ESC. Before the first in-game click ask the CEO for one typed sentence naming host, app and clicks (the
+   classifier refused them on 2026-10-05).
+2. **Deploy to BOTH copies.** `bash $S/scene1/test.sh <label> [clouds.png]`. It packs `sky_tex` RP, `sky` RP and
+   `sky` BP; `deploy_sky.ps1` mirrors each RP into the BDS dev folder AND the client's own dev folder (same uuid
+   and version, so the client uses its own copy). BP goes to BDS only; scripts run on the server. Stop unless
+   five `ok ... files=N` lines print and no `uuid mismatch ... skipped` or `robocopy failed`. A BDS-only deploy
+   proves nothing. A `palettes.js`-only change is BP: scp it to the BDS BP folder and `mcmd.sh reload`, as
+   `sweep.py` and `calib.py` do.
+3. **Restart.** `test.sh` runs `tools/mcb stop`, then `tools/mcb start --transport bds --server-dir
+   'C:\mooniex\bedrock\bds' --world mooniex-sky --pack-sha "scene1-<label>"`, then waits 30 s. The client
+   restarts in step 5, so an RP change always loads fresh. Stop if `mcb start` fails; step 4 shows it.
+4. **Tunnel check.** `curl -s -m 5 http://127.0.0.1:18765/state` must answer. If not,
+   `ssh -f -N -L 127.0.0.1:18765:127.0.0.1:8765 winbox`. Stop unless `/state` answers.
+5. **Join.** `bash $S/join_lan.sh`. It clicks only the LAN tile (the block holding both `mooniex-sky` and
+   `Dev's`), with integer coordinates under `LC_ALL=C`. Stop at `JOINED` and `mcmd.sh list` showing `There are
+   1/`. Exit 3 (single-player dialog): a local world opened; give the lease back and look. `GAVE UP`: read
+   `caps/join.png`. A Widgets panel over the game: kill process `WidgetBoard`, never ESC.
+6. **Camera to the measured spot.** `(cd <worktree> && python3 tools/sky_tour.py go <STOP> --camera)`, then
+   wait 15 s. Stop on any `FAIL` line. `no chosen spot` means run `sky_spots.py find <STOP>` first.
+7. **Shoot the whole batch, with the overlay check.** `bash $S/shotd_take.sh <name> <dest.png>` for the base
+   and every variant; after each, `tesseract <png> - | grep -iE 'been away|jump back|dressing room|resume game'`.
+   A hit: rejoin (step 5), camera again (step 6), reshoot; twice at most. Rejoin before a batch if the last
+   join is more than 10 min old. Stop when no shot shows those words and `mcmd.sh list` shows a player.
+8. **Measure.** `(cd $S && python3 skymetric.py <round> <STOP>)`, or the row `test.sh` prints. Stop when every
+   shot has a `zen` and a `hor` number. A number from a frame with an overlay, a menu, the desktop or no
+   player is void; shoot it again.
+9. **One sheet.** `python3 $S/gridsheet.py <round> <out.jpg> 4 192`, or `python3 $S/scene1/sheet.py <out.jpg>
+   base:<png> v1:<png>` for T00 variants (full frame plus a 2x crop of sun and clouds, similarity on each
+   panel). Stop when one image shows the concept next to every game shot.
+10. **One look.** Open the sheet once. Write each gap as one line tied to a band or element (zen, hor, sun,
+    clouds, air), with its number. No second look until the tuning pass is deployed.
+11. **Tuning pass, palette first.** `python3 $S/calib.py <STOP> <palette type> [--apply]`. It shoots six pairs
+    (a base, then the same palette with one of zen L, a, b, hor L, a, b moved 20 Lab), builds the 6x6 response
+    matrix, solves by damped least squares, shoots two Newton steps and prints similarity per band; `--apply`
+    writes the best palette line into `palettes.js`. Stop fitting palettes once `zen` is 90 or more. If `hor`
+    is still below 90 after the two solves, do not run calib again; go to step 12. Look in the calib log for
+    `idle overlay, rejoining` between a base and its moved shot: that pair is void.
+12. **Then what the palette cannot reach: VFX and texture.** Use the lever table: sun haze and glow
+    (`sun_glow`, `sun_rays`), sun disc (`sun.png`), cloud rims (`clouds.png`), air (sprite size). Stop when every
+    change answers one gap from step 10 and all of them ship in ONE deploy. Art: the PixelLab brief is the last
+    section of wiki `research/2026-10-06-pixellab-vfx-pixelart-references.md`; every rule there is an estimate
+    (Field notes). Run PixelLab calls one at a time. A lane that needs the key cannot start on the Mac
+    (`CTO_Standard_Bedrock_WorkLayout` Field notes). Scene #1's files rebuild with `tools/wire_scene1.py
+    --blossom-draft <png> --palette <png>`; the drafts are archived at
+    `/Users/gob/MoonieXHQ/Assets/MoonieX/Bedrock/sky/pixellab-drafts-2026-10-06` (SHA256SUMS). The CTO picks the
+    option closest to the concept; options never go to the CEO.
+13. **Confirm once.** Repeat steps 2 to 9 once with all changes together. Stop at `zen` and `hor` of 90 or
+    more, or at a ceiling written down: band, number, levers tried, what the engine cannot do. Commit the
+    files with their provenance rows in the same commit (`CTO_Standard_Bedrock_WorkLayout` item 4).
+14. **Give the lease back** the moment the last shot is taken: `python3 tools/sky_tour.py reset`, then
+    `./scripts/pc-lease.sh give-back`. Stop when `status` shows the lease free. If `give-back` prints `COOKIE RUN
+    DID NOT COME BACK`, tell the CTO and do not report clean.
+15. **Fold.** `ALL_Protocol_SkillAuthor` section 5: one line per lesson under `## Field notes` of this skill.
+    First run `git log --since=1.day --oneline -- .claude/skills/CTO_Procedure_Bedrock_SkyScene/SKILL.md` and
+    extend a same-day note instead of adding a twin. Stop when every number measured today sits in a note or
+    a table, so nobody measures it again.
+
+## Verify (the commands, and what "done" looks like)
+
+```bash
+S=<folder with the scene tools>   # 2026-10-06: the CTO session scratchpad
+W=<MoonieX-Bedrock worktree>
+bash $S/scene1/test.sh <label> | grep -E '^(ok |uuid mismatch|robocopy failed)'   # five "ok" lines only
+curl -s -m 5 http://127.0.0.1:18765/state | head -c 200                           # JSON, not an error
+bash $S/mcmd.sh list | tail -1                                                    # "There are 1/..."
+for p in <dir>/*.png; do tesseract "$p" - 2>/dev/null | grep -qiE 'been away|jump back|dressing room|resume game' && echo "OVERLAY $p"; done   # prints nothing
+(cd $S && python3 skymetric.py <round> T00)                    # zen and hor rows; similarity = 100 - dE
+(cd $S && python3 gridsheet.py <round> <out.jpg> 4 192)        # prints "<out> (w, h) N stops"
+(cd $W && python3 tools/provenance.py check packs/sky_tex && python3 tools/provenance.py check packs/sky)   # prints nothing
+(cd $W && pytest tests -q -c /dev/null --rootdir=. --confcutdir=.)   # a worktree under Agents/Core needs these flags
+```
+
+Done means: a sheet with similarity on each panel; `zen` and `hor` at 90 or more, or a written ceiling; the
+provenance check silent; the lease given back; the fold written.
+
+## Rules
+
+1. **HARD — winbox: take the pc-lease first, never press ESC, give the lease back the moment the screen work
+   is done.**
+   **Why hard:** irreversible — ESC on that box writes a hold file only a human clears, and the farm stays down
+   for the night (`ALL_Rules_Winbox_PCLease` rule 1).
+2. **HARD — the concept image is never uploaded to an outside service, never shipped and never traced.** Only
+   palettes sampled from it leave the machine, as a `color_image` strip we build.
+   **Why hard:** scope of authorisation — the standing Dreamy Skies rule of 2026-10-06; an upload cannot be
+   recalled.
+3. **HARD — paid spend needs the exact price and the CEO's OK first.** Free trial credits are fine.
+   **Why hard:** money — PixelLab's free plan gave 40 generations; a call charged in USD stops the run.
+4. Capture every shot by script, look at one sheet once, tune in one pass (CEO 2026-10-06). Each extra look
+   is a round trip, and the frame drifts between shots.
+5. The CTO picks the closest option to the concept, by the numbers and then by eye on the sheet. The CEO does
+   not choose between options. Report picture first, numbers after.
+6. Match what the engine can do. Stop fitting palettes at `zen` 90; give the rest to textures and VFX.
+
+## Output format (the report)
+
+```
+sky scene <STOP> · concept <id> · label <label>
+sheet: <path or Drive link> (concept next to game, similarity on each panel)
+before: zen NN hor NN · after: zen NN hor NN · target 90      (NN = measured, never estimated)
+levers: palette (calib, 2 steps) · <VFX or texture change> · ...
+ceiling: <band> stops at NN because <measured reason>; left for <lever>, not tried
+spent: 0 USD, N free generations · lease: taken HH:MM, given back HH:MM
+```
+
+## Failure modes seen (dated)
+
+- 2026-10-06 — a rain-fog test pushed fogs to BDS only and proved nothing: the client runs its own copy of an RP
+  with the same uuid and version (`deploy_sky.ps1` header). Step 2 deploys to both.
+- 2026-10-06 03:00 — a click on the first `mooniex-sky` word opened the local world in single player. The join
+  now clicks only the LAN tile (`join_lan.sh` header).
+- 2026-10-06 19:3x — the Mac's `LC_NUMERIC` is af_ZA, so awk printed `735,5`; the click hit the taskbar's
+  Widgets button and the panel covered the game (OCR read news and tickers). Integer coordinates under
+  `LC_ALL=C` fixed it. Under `LC_ALL=C` the test `/Dev.s/` then never matched the game's curly apostrophe in
+  `Dev’s`, and the join gave up after 40 steps; it matches `Dev` alone now (`join_lan.sh` header).
+- 2026-10-06 19:2x — the Mac-side tunnel to the bridge died across a long break; every call was refused and the
+  join gave up after 40 steps. `test.sh` checks `/state` and reopens it now.
+- 2026-10-06 — the "You've been away" overlay came back about 13 to 17 min after a join, twice: with the F15
+  keep-alive on (shot 6, 04:48) and with both pause options set to 0 and F15 off (shot 7, 05:38). Neither
+  stops it; the keep-alive stays in `shotd.ps1` and helps nothing. OCR and rejoin do. Calib run 2 hit it on shot
+  d4 (`caps/f15/idletest.log`, `caps/pausefix/log.txt`).
+- 2026-10-06 — with nothing changed the frame drifts. Calib run 1: zen L 61 to 48 over five shots. Run 2: base
+  zen L 73, 74, 73, 70, 68, then 73 again after a rejoin. A 12 Lab step moved the zenith by under 2 L. So a base
+  shot sits before every move and the step is 20 (`calib.py` header).
+- 2026-10-06 — calib run 2, pair d4 (hor a) straddled an idle-overlay rejoin: hor chroma 18 to 45 in that shot
+  only. Its matrix column is not trustworthy, and both Newton steps used it (`caps/calib2_t00.log`).
+- 2026-10-06 02:30 — the client closed mid-sweep and the remaining rows measured the desktop. `sweep.py` and
+  `calib.py` now stop when `mcmd.sh list` shows `There are 0/`.
+- 2026-10-06 — PixelLab's free plan runs one generation at a time: two calls sent together got HTTP 429
+  (`petal_b`, `blossom_a`, not charged). Send them one by one (`calls.jsonl` in the draft archive).
+
+## Field notes
+
+- 2026-10-06 [MISSING] §Step 12 — sun haze: measure it as ring colours in sun-disc radii (upper half-plane, 1.0 to 7.3 radii) against the concept. On a pale sky use `particles_blend`; `particles_add` only brightens. Mock-up distance to the concept (lower is closer): base 31.3, V5-a 22.8, V5-b 14.1, V5-c 13.3; V5-c is the option wired into scene #1. One scene, a mock-up, not yet seen in game · evidence: task-811d6a5f, merge 8b81b3d · status: pending
+- 2026-10-06 [MISSING] §Step 12 — tint alone carries V5-c to T00, E07 and E14; E06, E08 and E12 also need a size or alpha change. Mock-up transfer check, not in game · evidence: task-811d6a5f, a0c3c28 (the haze tint holds 1,1,1 at E07 as the check found) · status: pending
+- 2026-10-06 [MISSING] §What can reach what — the game sun disc is about 182 px across at 1920x1080 (concept 3.9% of the width, game 9.5%). The sun quad is about 343 px, so glow past about 1.9 core radii is not sun.png's job. One scene, one resolution · evidence: task-b3540bea · status: pending
+- 2026-10-06 [MISSING] §Step 12 — cloud colour is the texture RGB times an engine multiplier of about (0.91, 0.92, 0.94): keep the cloud RGB bright and put the warmth in the rims. If it holds, colour pixels in clouds.png do count in game, which the 2026-10-05 research left open (its question 4) · evidence: task-b3540bea, wire_scene1.py clouds_from_draft · status: pending
+- 2026-10-06 [MISSING] §Tools — the texture lane's constants HORIZON and OLD_CLOUD_BOXES were read by hand for T00 and E08 only; another scene needs them read again · evidence: task-b3540bea · status: pending
+- 2026-10-06 [MISSING] §Step 11 — palette ceiling on T00. Calib run 2: base zen 91.2, hor 74.8; after two Newton steps hor 83.0 but zen 87.4. In that matrix the horizon barely answered its own L and b inputs, so horizon warmth looks like a VFX haze and sun-texture job, but no run has shown VFX closing it. The d4 column was void (see Failure modes) and run 1 had no usable matrix. calib.py's header also says the engine puts green into the horizon and caps night brightness, with no numbers kept · evidence: caps/calib2_t00.log (session scratchpad), calib.py · status: pending
+- 2026-10-06 [MISSING] §Step 12 — floating-air density: "scale the rate so on-screen density matches" is the wrong lever. Over 80 seeds the count in view is angular and barely depends on spawn radius; sprite size carries coverage (AIR_SCALE .76 gives 1.00x coverage, 0.94x count, rate unchanged). A simulation, not measured in game · evidence: task-20215157, wire/exp_density2.py · status: pending
+- 2026-10-06 [MISSING] §Step 12 — the wiki's PixelLab brief is estimates until a draft proves them. Round 1 (6 free generations) used a keyword prompt, `color_image`, `seed` and `no_background` only. Round 2 (clouds from a code-drawn sketch at `init_image_strength` 450, 500, 550) copied the sketch: mask agreement 1.0 and colour copy 0.994 to 1.0 in 4 of 4 drafts, every colour exactly in the palette strip. So 450 and up recolours, it does not redraw; 350 is queued in jobs3.json, not run. Not yet judged by eye · evidence: pixellab/out2/metrics.json (session scratchpad, 20:06), calls.jsonl in the draft archive, research/2026-10-06-pixellab-vfx-pixelart-references.md · status: pending
+- 2026-10-06 [MISSING] §Step 7 — with nothing changed, zen chroma read 34, 43, 45, 45, 45 on five shots 2 min apart (the first 2 min after the camera was set; zen L stayed 63). Cause unknown. A shot taken in the first minutes after a join may not match a later one · evidence: caps/f15/idletest.log (session scratchpad) · status: pending
+- 2026-10-06 [MISSING] §Tools — the Mac tools sit in the session scratchpad, not in a repo. `test.sh`, `sheet.py` and `skymetric.py` are bound to scene #1 (T00 uses E07's concept image) and `test.sh` runs `C:\mooniex\stage\contentlog.ps1` without copying it. Before this skill merges, commit them to one MoonieX-Bedrock folder and make the stop id an argument · evidence: scene1/test.sh, skymetric.py CONCEPT map, read 2026-10-06 · status: pending
+- 2026-10-06 [WRONG] §Measure — a shot taken right after a fresh BDS start + join measures the resource-pack defaults, not the palette: the client drops graphics overrides sent while it is still loading in (T00 fresh L57 C50 = sky reset L56 C53; after a /reload or reset + force L48 C24). So calib.py/sweep.py (they /reload) measured the palette all along, and test.sh's after_a/after_b 69/49 did not. Fixed in the pack: a first spawn re-applies at 100 and 600 ticks (MoonieX-Bedrock 2b1a2b2; fresh join then measured L48 C24) · evidence: scratchpad caps/reloadexp A0 R0 X1 N0 F0 F1 J1 · status: pending
+- 2026-10-06 [MISSING] §Join — tesseract read "Dev's" under the LAN tile at confidence 28, below the old > 30 filter, and the join looped 40 steps without a click. join_lan.sh now matches "Dev" at any confidence but only within 400 px of the tile's own x · evidence: caps/join_tile.tsv 21:1x, scene1/join_joinfix2.log · status: pending
+- 2026-10-06 [MISSING] §Assets — every non-cloud sprite follows vanilla's measured style (hard alpha, 2-3 tones, vanilla ramps, 3-10 px shapes); the rules live in tools/sprites/style_lint.py + tests/test_sprite_style.py, the drawer in tools/sprites/draw_vanilla_style.py. Before baking a colour into a sprite, grep which particles the BP script tints per day (the leaf is grey x variable.color) · evidence: MoonieX-Bedrock 419e9ce, 588bbbb, 2cd154f; CEO order 2026-10-06 · status: pending
+- 2026-10-06 [MISSING] §Tools — the old generators (wire_scene1.py, gen_sky_particles.py, gen_sky_textures.py) silently overwrote hand-redrawn sprites; they now refuse without --legacy-sprites. List every writer of packs/ files before changing an asset · evidence: sprite lane report, 419e9ce · status: pending
+- 2026-10-06 [MISSING] §Tune — the sky's brightness is set by `sunIlluminance`, not by the zenith/horizon colours. At T00 (dreamy, t=1600) lux 100/200/400/800 gave zenith L48/54/62/72 and the whole frame L43/48/56/66, while chroma fell 25/20/14/9. `skyIntensity` 1.5 and 2 and a 4x `ambientIlluminance` moved nothing (dE < 1). Grading `temperature` shifts the hue of the whole frame (4500 K: zen h41 C9; 9000 K: zen h286 C25), so it cannot give a cool zenith over a warm horizon; that split must come from the colour inputs. Order: lux first to match the whole-frame L, then solve the colours at that lux · evidence: scratchpad caps/sweep_light.log, caps/sweep_light2.log · status: pending
