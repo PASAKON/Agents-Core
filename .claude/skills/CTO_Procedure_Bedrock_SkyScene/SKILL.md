@@ -175,6 +175,9 @@ provenance check silent; the lease given back; the fold written.
 5. The CTO picks the closest option to the concept, by the numbers and then by eye on the sheet. The CEO does
    not choose between options. Report picture first, numbers after.
 6. Match what the engine can do. Stop fitting palettes at `zen` 90; give the rest to textures and VFX.
+7. Likeness first, cost second (CEO 2026-10-07: *"ทำให้เหมือน reff มากที่สุดก่อน แล้วค่อยทา optimize ให้มัน เบาลงและยังคง
+   ความเหมือนอยู่"*). Build each scene's clouds and VFX to the closest look first. Only then cut particle
+   count, texture size and spawn rate, and re-check the side-by-side sheet after every cut so the likeness holds.
 
 ## Output format (the report)
 
@@ -271,3 +274,4 @@ spent: 0 USD, N free generations · lease: taken HH:MM, given back HH:MM
 - 2026-10-07 [MISSING] §Step 7 sweep — a variant list written as text `sub`s against palettes.js goes stale silently when the file is restructured (gain.json and ray12.json both failed against fd85769); run lists through `sweep.py --variants`, which checks every sub before the first rejoin · evidence: task-1840ca96, MoonieX-Bedrock c5adb6a · status: pending
 - 2026-10-07 [COSTLY] §clouds — a cloud mock that scattered puffs at about 1 puff-width apart read as popcorn, not one cloud; packing them at 0.38 × puff width, drawing upper lobes first so lower lobes cover their dark bottoms, and fading the back layer toward the sky colour (not darker) made them merge like the refs · evidence: scratch-cto-369faf85-2026-10-07/cloudmock/mock2.py vs mock3.py (Assets, the CEO saw v3) · status: pending
 - 2026-10-07 [WRONG] §score — confirm22's 82–96 scores compared only clear-sky colour rows; side by side, the CEO's sheet showed clouds and VFX about 10% like the refs (no clouds, no glow, no aurora). Report the side-by-side read before any score · evidence: CEO comparison sheet 2026-10-07, confirm22 · status: pending
+- 2026-10-07 [MISSING] §Rules — order of work for a scene: closest look first, then make it lighter while the likeness holds (CEO ruling: "ทำให้เหมือน reff มากที่สุดก่อน แล้วค่อยทา optimize ให้มัน เบาลงและยังคง ความเหมือนอยู่") · evidence: CEO message 2026-10-07 06:2x, session cto-369faf85 · status: promoted
