@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-50 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 5 · Gate 5 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+51 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 5 · Gate 5 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -93,6 +93,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CTO_Protocol_SpawnWebDesigner` | CTO | cto | Open the Web Designer surface for the CEO to design directly. |
 | `CXO_Protocol_DelegateExternal` | CTO | cxo, worker | Hand a task to an agent that is NOT Claude Code — Codex CLI, Antigravity, or a human — by writing a self-contained brief, shipping only… |
 | `CXO_Protocol_DevSpawn` | CTO | cxo, cto | Required steps when CTO spawns a DEV agent. |
+| `CXO_Protocol_OvernightSelfWake` | CTO | cxo | Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events plus a heartbeat with a… |
 | `VIDEO_EDITOR_Protocol_Playbook` | CMO | video_editor, worker | MoonieX org process layer for the `video_editor` role (owned by CMO, created 2026-08-03). Use this whenever a video_editor task arrives… |
 
 ## Commands the CEO types
