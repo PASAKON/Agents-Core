@@ -206,6 +206,11 @@ provenance check silent; the lease given back; the fold written.
    cards spawned at world points 48 blocks out shift up to about 7 degrees per 6 blocks walked, and past
    CLOUD_RECENTER a new set spawns while the old one lives out CLOUD_PANO_LIFE, so clusters show twice. A walk is a new
    movement pattern on winbox: ask the CEO for the typed sentence (host, file, value, actions) before the round.
+11. **No command text in a shot or a clip: `gamerule sendcommandfeedback false` in the world** (CEO ruling 2026-10-08,
+   *"ในเกมใช้คำสั่งนี้ /gamerule sendcommandfeedback false จะได้ไม่เห็น Command เวลา ถ่ายภาพ หรือ video"*). Set it once
+   through the bridge (`mcmd.sh "gamerule sendcommandfeedback false"`, read back with `mcmd.sh "gamerule sendcommandfeedback"`);
+   it lives in the world save, so a fresh or restored world needs it again. Set 2026-10-08 04:05 on mooniex-sky, with
+   `commandblockoutput false`.
 
 ## Output format (the report)
 
