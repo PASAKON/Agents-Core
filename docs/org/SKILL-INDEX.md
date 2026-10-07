@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-51 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 5 · Gate 5 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
+52 org skills by kind — Rules 7 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 5 · Gate 5 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -19,6 +19,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Rules_HQ_Filing` | COO | all | Filing rules for MoonieX HQ — read before creating/moving/cloning/renaming/deleting any project folder on the Mac, before `git clone`… |
 | `ALL_Rules_Winbox_PCLease` | CTO | cto, cmo, cgo, cfo, browser_operator, developer | Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any… |
 | `CFO_Rules_Finance` | CFO | cfo | The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. |
+| `CTO_Rules_Bedrock_References` | CTO | cto, worker | Every link, picture, video, pack or data file handed over as a reference for Minecraft Bedrock work is recorded with its URL and our… |
 | `CXO_Rules_GDrive_Filing` | COO | cxo | Filing rules for the CEO's Google Drive — read before ANY Drive action (create/upload/move/rename/delete, rclone, the gdrive-bridge, the… |
 
 ## Knowledge
