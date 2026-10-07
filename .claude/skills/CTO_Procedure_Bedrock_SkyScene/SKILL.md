@@ -187,6 +187,18 @@ provenance check silent; the lease given back; the fold written.
 
    A pack or picture the CEO sends as a reference gives the idea only (*"เอาแค่ไอเดียเขามาใช้ก็พอ"*). Its pixels are never
    copied, traced or uploaded, and a ChatGPT prompt describes the idea in words.
+9. **Time and tokens come first, so the loop can run more often and faster** (CEO 2026-10-07, after three days and
+   nights of rounds: *"การประหยัดเวลา และ token คือสิ่งที่ควรทำ เป็นอันดับต้นๆ เพื่อการทดสอบได้บ่อยและเร็วขึ้น"*).
+   - Before you add a step to a round, write what it costs per stop and per round. Cut every wait that no
+     measurement needs.
+   - Shoot only the stops a change touches. A full 23-stop round is for a confirm (step 13), not for each idea.
+   - Prefer one command the game runs over many round trips. A click through the shotd daemon is 0.4 to 0.8 s;
+     through `winbox-desktop.sh` it is 9 to 12 s.
+   - Keep pictures out of the context. Each image costs about 3k tokens on every later turn, so read numbers
+     first and open one combined sheet once (rule 4).
+   - Every round's log prints its join time and its time per stop. The next cut then has a number to beat.
+     Measured 2026-10-07: join 136 s with `winbox-desktop.sh` clicks and 97 s with shotd clicks. A stop takes
+     47 s, of which SETTLE is 30 s.
 
 ## Output format (the report)
 
