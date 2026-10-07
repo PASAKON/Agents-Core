@@ -178,6 +178,15 @@ provenance check silent; the lease given back; the fold written.
 7. Likeness first, cost second (CEO 2026-10-07: *"ทำให้เหมือน reff มากที่สุดก่อน แล้วค่อยทา optimize ให้มัน เบาลงและยังคง
    ความเหมือนอยู่"*). Build each scene's clouds and VFX to the closest look first. Only then cut particle
    count, texture size and spawn rate, and re-check the side-by-side sheet after every cut so the likeness holds.
+8. Pick the art source by detail (CEO 2026-10-07: *"อันไหนที่ Render เองได้ทำได้เลย -> สำหรับรายละเอียดไม่เยอะ และทำงานง่าย
+   เหมือนจริงมากกว่า · อันไหนที่ควรใช้ ChatGPT ก็สามารถทำได้เช่นกัน -> สำหรับรายละเอียดเยอะ · PixelLab สำหรับ Pixel art"*):
+   - **Code render:** low detail, where code looks more real. Examples: glow and halo falloff, light shafts, caustics,
+     horizon bands, gradients.
+   - **ChatGPT image generation:** high detail. Examples: a Milky Way, a painted sky.
+   - **PixelLab:** pixel art only, and on the free trial (rule 3).
+
+   A pack or picture the CEO sends as a reference gives the idea only (*"เอาแค่ไอเดียเขามาใช้ก็พอ"*). Its pixels are never
+   copied, traced or uploaded, and a ChatGPT prompt describes the idea in words.
 
 ## Output format (the report)
 
