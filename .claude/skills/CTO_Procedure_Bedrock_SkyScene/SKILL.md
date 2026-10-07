@@ -200,6 +200,13 @@ provenance check silent; the lease given back; the fold written.
      Measured 2026-10-07: join 136 s with `winbox-desktop.sh` clicks and 97 s with shotd clicks. A stop takes
      47 s, of which SETTLE is 30 s.
 
+10. **Every cloud or sky round that moves ships a walk clip, not only a still and a pan** (CEO ruling 2026-10-08,
+   after art28 was judged from a still and a pan: *"ภาพในเกมมันใกล้จอเกินไป อย่าเอาแค่ภาพนิ่ง ให้ถ่าย video ตอนเดินมาด้วย จะเห็นได้เลยว่า
+   มันกระจายเลยตอนเดิน"*). Walk about 20 blocks forward in first person. A still at the tour spot cannot show parallax:
+   cards spawned at world points 48 blocks out shift up to about 7 degrees per 6 blocks walked, and past
+   CLOUD_RECENTER a new set spawns while the old one lives out CLOUD_PANO_LIFE, so clusters show twice. A walk is a new
+   movement pattern on winbox: ask the CEO for the typed sentence (host, file, value, actions) before the round.
+
 ## Output format (the report)
 
 ```
