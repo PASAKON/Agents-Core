@@ -79,6 +79,10 @@ this skill only points at them.
    never the bare name. Our own biomes (`mooniex_abyss:*`) gave a syntax error with `/locate` on 1.26.5203;
    reach them from the vanilla biome they replace (`minecraft:deep_lukewarm_ocean`,
    `minecraft:warm_ocean`, `minecraft:lukewarm_ocean`).
+10. **Every reference link gets a ledger row** (CEO ruling 2026-10-07, *"บังคับใช้กับทุกลิ้งที่เป็น Reff และข้อมูล"*).
+   A link, picture or data file handed over as a reference is recorded with its URL and our analysis in
+   `docs/reference/links.jsonl` (`tools/refs.py add`) in the same turn. A brief that passes a link on quotes the rule.
+   Full rule: `CTO_Rules_Bedrock_References`. Check: `python3 tools/refs.py check` prints `ok`.
 
 ## The check (60 seconds, before `delegate_task`)
 
