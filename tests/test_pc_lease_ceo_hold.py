@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import sys
 import time
@@ -54,19 +55,33 @@ def box(tmp_path, monkeypatch):
     m.LEASE = mp / "PC_LEASE.json"
     m.LOG = mp / "pc_lease.log"
     m.CEO_HOLD = mp / "CEO_HOLD.json"
+    m.CEO_HOLD_LOCK = mp / "CEO_HOLD.lock"
+    m.RESUMING = mp / "FARM_RESUMING.json"
     m.FOREGROUND = mp / "foreground.json"
 
     calls: list[tuple] = []
-    st = SimpleNamespace(status={"bot_alive": False}, stops=True, resume_ok=True)
+    # hooks: {"status" | "nap" | "request_screen_clear" | <run_fn name>: callable},
+    # run when that call happens -- how a test makes the CEO press a button
+    # in the middle of another command.
+    st = SimpleNamespace(status={"bot_alive": False}, stops=True, resume_ok=True,
+                         hooks={}, game_up=True)
+
+    def hook(name):
+        f = st.hooks.get(name)
+        if f:
+            f()
 
     def fake_status():
         calls.append(("status",))
+        hook("status")
         return None if st.status is None else dict(st.status)
 
     def fake_run_fn(fn, args=None):
         calls.append(("run_fn", fn, args))
         if fn == "bot_stop" and st.stops and st.status is not None:
             st.status["bot_alive"] = False
+            st.status["job"] = None
+        hook(fn)
         return {"ok": True}
 
     def fake_pipe(*a, **k):
@@ -86,11 +101,14 @@ def box(tmp_path, monkeypatch):
     m.status = fake_status
     m.run_fn = fake_run_fn
     m.pipe = fake_pipe
-    m.request_screen_clear = lambda: calls.append(("request_screen_clear",))
+    m.request_screen_clear = lambda: calls.append(("request_screen_clear",)) or hook(
+        "request_screen_clear")
     m.minimise_foreign_windows = lambda: calls.append(("minimise",)) or "Chrome"
     m.resume = fake_resume
     m.wait_until_stopped = fake_wait_until_stopped
     m.record_foreground = lambda: calls.append(("record_foreground",))
+    m.nap = lambda sec: calls.append(("nap", sec)) or hook("nap")
+    m.game_running = lambda: st.game_up
 
     def run(*argv):
         monkeypatch.setattr(sys, "argv", ["pc_lease.py", *argv])
@@ -475,6 +493,350 @@ def test_health_calls_a_held_farm_parked_not_down(tmp_path, capsys):
     assert h.main() == 0
     out = capsys.readouterr().out
     assert "VERDICT: PARKED" in out and "the CEO is using this PC" in out
+
+
+# --- the CEO presses his button in the middle of something else ---------------
+# Each of these sets the hold from inside another command, at the moment the
+# review found it was not looked at again.
+
+def press(box):
+    """What the use-PC button leaves on disk, without running ceo-on."""
+    return lambda: put_hold(box)
+
+
+def run_fns(box):
+    return [c[1] for c in box.calls if c[0] == "run_fn"]
+
+
+def test_resume_stands_down_when_pressed_during_the_game_restart(box):
+    box.st.game_up = False
+    box.st.hooks["restart_game"] = press(box)
+    ok, why = box.originals["resume"](NIGHT_PLAN, "test")
+    assert (ok, why) == (False, box.m.HOLD_WHY)
+    assert "night" not in run_fns(box), "the farm started under the CEO"
+    assert not box.m.RESUMING.exists()
+
+
+def test_resume_stands_down_when_pressed_mid_sleep(box):
+    box.st.game_up = False
+    naps = []
+    box.st.hooks["nap"] = lambda: naps.append(1) or (len(naps) == 10 and put_hold(box))
+    ok, why = box.originals["resume"](NIGHT_PLAN, "test")
+    assert (ok, why) == (False, box.m.HOLD_WHY)
+    assert "night" not in run_fns(box)
+    assert len(naps) == 10, "waited out the whole 45 s after the press"
+
+
+def test_resume_stops_the_farm_it_started_when_pressed_mid_preflight(box):
+    def started():
+        box.st.status.update(job="preflight")
+        put_hold(box)
+    box.st.hooks["night"] = started
+    ok, why = box.originals["resume"](NIGHT_PLAN, "test")
+    assert (ok, why) == (False, box.m.HOLD_WHY)
+    assert run_fns(box) == ["night", "bot_stop"]
+    assert "esc" not in run_fns(box)
+
+
+def test_resume_marks_itself_while_it_runs_and_clears_the_mark(box):
+    seen = []
+    box.st.hooks["night"] = lambda: seen.append(box.m.RESUMING.exists()) or \
+        box.st.status.update(bot_alive=True)
+    assert box.originals["resume"](NIGHT_PLAN, "test") == (True, "farming")
+    assert seen == [True] and not box.m.RESUMING.exists()
+
+
+def test_give_back_moves_the_plan_onto_a_hold_pressed_mid_give_back(box, capsys):
+    put_lease(box)
+    box.m.resume = box.originals["resume"]
+    box.st.hooks["request_screen_clear"] = press(box)
+    assert box.run("give-back") == 0
+    out = capsys.readouterr().out
+    assert "NOT restarted" in out and "DID NOT COME BACK" not in out
+    assert box.m.read_lease() is None
+    hold = hold_on_disk(box)
+    assert hold["was_running"] is True and hold["resume"] == NIGHT_PLAN
+    assert "night" not in run_fns(box)
+
+
+def test_tick_moves_the_plan_onto_a_hold_pressed_mid_resume(box):
+    put_lease(box, minutes_left=-1)
+
+    def resume_then_pressed(plan, why):
+        box.calls.append(("resume", plan, why))
+        put_hold(box)
+        return False, box.m.HOLD_WHY
+    box.m.resume = resume_then_pressed
+    assert box.run("tick") == 0
+    assert box.m.read_lease() is None
+    assert hold_on_disk(box)["resume"] == NIGHT_PLAN
+
+
+@pytest.mark.parametrize("farm", [{"bot_alive": True, "champion": "champ"},
+                                  {"bot_alive": False, "job": "preflight"}])
+def test_tick_stops_a_farm_running_under_the_hold(box, farm):
+    put_hold(box)
+    box.st.status = dict(farm)
+    assert box.run("tick") == 0
+    assert run_fns(box) == ["bot_stop"]
+    assert hold_on_disk(box)["was_running"] is True
+    assert never_touched_windows(box)
+
+
+def test_tick_under_the_hold_leaves_an_idle_farm_alone(box):
+    put_hold(box)
+    assert box.run("tick") == 0
+    assert run_fns(box) == []
+
+
+def test_ceo_on_stops_a_preflight_too(box, capsys):
+    box.st.status = {"bot_alive": False, "job": "preflight"}
+    assert box.run("ceo-on") == 0
+    assert run_fns(box) == ["bot_stop"]
+    assert "FARM: stopped" in capsys.readouterr().out
+
+
+def test_ceo_on_stops_a_farm_that_comes_back_after_the_stop(box, capsys):
+    box.st.status = {"bot_alive": True, "champion": "champ"}
+    naps = []
+
+    def comes_back():
+        naps.append(1)
+        if len(naps) == 2:
+            box.st.status.update(bot_alive=True)
+    box.st.hooks["nap"] = comes_back
+    assert box.run("ceo-on") == 0
+    assert run_fns(box) == ["bot_stop", "bot_stop"]
+    assert "FARM: stopped" in capsys.readouterr().out
+
+
+def test_ceo_on_never_undoes_a_release_pressed_while_it_asked_the_farm(box, capsys):
+    box.st.status = {"bot_alive": True, "champion": "champ"}
+    box.st.hooks["status"] = lambda: box.m.clear_ceo_hold()
+    assert box.run("ceo-on") == 0
+    assert not box.m.CEO_HOLD.exists(), "ceo-on wrote back a hold he had released"
+    assert "bot_stop" not in run_fns(box)
+    assert "FARM: released" in capsys.readouterr().out
+
+
+def test_a_fold_never_resurrects_a_released_hold(box):
+    lease = {"who": "x", "was_running": True, "resume": NIGHT_PLAN}
+    assert box.m.fold_into_hold(lease, "test") is False
+    assert not box.m.CEO_HOLD.exists()
+
+
+def test_take_keeps_the_plan_when_it_cannot_reach_the_hold(box, capsys):
+    box.st.status = {"bot_alive": True, "champion": "champ"}
+    real_write = box.m.write_ceo_hold
+    box.st.hooks["bot_stop"] = lambda: real_write(
+        {"since": time.time(), "was_running": False, "resume": None, "bumped": None})
+
+    def broken(_d):
+        raise OSError("disk full")
+    box.m.write_ceo_hold = broken
+    assert box.run("take", "--who", "cto: x") == 2
+    lease = box.m.read_lease()
+    assert lease and lease["resume"] and box.m.remaining(lease) <= 0
+    box.m.write_ceo_hold = real_write
+    assert box.run("tick") == 0
+    assert box.m.read_lease() is None and hold_on_disk(box)["resume"]
+
+
+def test_take_finishes_when_the_hold_came_and_went_mid_take(box, capsys):
+    box.st.status = {"bot_alive": True, "champion": "champ"}
+    box.st.hooks["bot_stop"] = lambda: (put_hold(box), box.m.clear_ceo_hold())
+    assert box.run("take", "--who", "cto: x") == 0
+    assert box.m.read_lease()["who"] == "cto: x"
+
+
+def test_a_stale_hold_lock_is_broken_not_waited_on(box, capsys):
+    box.mp.mkdir(parents=True, exist_ok=True)
+    box.m.CEO_HOLD_LOCK.write_text("", encoding="utf-8")
+    old = time.time() - 60
+    os.utime(box.m.CEO_HOLD_LOCK, (old, old))
+    t0 = time.time()
+    assert box.run("ceo-on") == 0
+    assert time.time() - t0 < 5
+    assert box.m.CEO_HOLD.exists() and not box.m.CEO_HOLD_LOCK.exists()
+
+
+def test_revive_stands_down_while_pc_lease_is_resuming(tmp_path):
+    r = load(REVIVE, "revive_under_test")
+    r.CEO_HOLD = tmp_path / "CEO_HOLD.json"
+    r.RESUMING = tmp_path / "FARM_RESUMING.json"
+    r.LOG = tmp_path / "revive.log"
+    seen = []
+    r.pipe = lambda *a, **k: seen.append(a)
+    r.RESUMING.write_text("{}", encoding="utf-8")
+    assert r.main() == 0 and seen == []
+
+
+def revive_box(tmp_path, monkeypatch):
+    r = load(REVIVE, "revive_under_test")
+    r.CEO_HOLD = tmp_path / "CEO_HOLD.json"
+    r.RESUMING = tmp_path / "FARM_RESUMING.json"
+    r.LOG = tmp_path / "revive.log"
+    r.STATE = tmp_path / "revive_state.json"
+    r.LEASE = tmp_path / "PC_LEASE.json"
+    r.foreign_window_over_game = lambda: None
+    # A clock that a sleep moves on: revive's waits are loops on time.time(),
+    # and code that never looks at the hold again must run out, not hang.
+    clock = [time.time()]
+    fake = SimpleNamespace(**{k: getattr(time, k) for k in dir(time) if not k.startswith("_")})
+    fake.time = lambda: clock[0]
+    fake.sleep = lambda sec: clock.__setitem__(0, clock[0] + sec)
+    monkeypatch.setattr(r, "time", fake)
+    return r
+
+
+def test_revive_stands_down_when_pressed_during_its_game_restart(tmp_path, monkeypatch):
+    r = revive_box(tmp_path, monkeypatch)
+    sent = []
+
+    def fake_pipe(method, path, body=None, timeout=90):
+        if body:
+            sent.append(body["fn"])
+            if body["fn"] == "restart_game":
+                r.CEO_HOLD.write_text("{}", encoding="utf-8")
+        return {"ok": True} if body else {"bot_alive": False, "job": None}
+    r.pipe = fake_pipe
+    r.state_set({"foreign_since": time.time() - 3600, "foreign_app": "com.android.chrome"})
+    assert r.clear_foreign_app("com.android.chrome") == 0
+    assert sent == ["bot_stop", "restart_game"], "started the farm under the CEO"
+
+
+def test_revive_stops_its_own_start_when_pressed_mid_start(tmp_path, monkeypatch):
+    r = revive_box(tmp_path, monkeypatch)
+    sent = []
+
+    def fake_pipe(method, path, body=None, timeout=90):
+        if body:
+            sent.append(body["fn"])
+            if body["fn"] == "night":
+                r.CEO_HOLD.write_text("{}", encoding="utf-8")
+            return {"ok": True}
+        return {"bot_alive": False, "job": "preflight"}
+    r.pipe = fake_pipe
+    assert r.start_farm("test") is False
+    assert sent == ["night", "bot_stop"]
+
+
+def test_revive_minimiser_refuses_under_the_hold(tmp_path, monkeypatch):
+    r = revive_box(tmp_path, monkeypatch)
+    r.CEO_HOLD.write_text("{}", encoding="utf-8")
+    assert r.minimise_foreign_windows().startswith("REFUSED")
+
+
+def health_box(tmp_path, status):
+    h = load(HEALTH, "health_under_test")
+    h.CEO_HOLD = tmp_path / "CEO_HOLD.json"
+    h.LEASE = tmp_path / "PC_LEASE.json"
+    h.CEO_HOLD.write_text(json.dumps({"since": time.time() - 60}), encoding="utf-8")
+    h.pipe_status = lambda: status
+    h.newest_session = lambda: ("session-1", 3, time.time() - 60, time.time() - 7200)
+    h.recent_stalls = lambda: (0, 0)
+    h.free_gb = lambda: 100.0
+    h.foreground_app = lambda: None
+    h.window_over_game = lambda: None
+    h.emulator_missing = lambda: False
+    return h
+
+
+@pytest.mark.parametrize("status", [{"bot_alive": True, "job": "night", "esc_hold": False},
+                                    {"bot_alive": False, "job": "preflight", "esc_hold": False}])
+def test_health_names_a_farm_running_under_the_hold(tmp_path, capsys, status):
+    assert health_box(tmp_path, status).main() == 1
+    assert "VERDICT: RUNNING-UNDER-HOLD" in capsys.readouterr().out
+
+
+# --- files and answers that are not what they should be ------------------------
+
+def test_a_hold_file_that_is_not_utf8_counts_as_held(box):
+    box.mp.mkdir(parents=True, exist_ok=True)
+    box.m.CEO_HOLD.write_bytes(b"\xff\xfe{\x00")
+    hold = box.m.read_ceo_hold()
+    assert hold is not None and hold.get("corrupt")
+
+
+def test_ceo_on_over_a_non_utf8_hold_marks_the_plan_unknown(box, capsys):
+    box.mp.mkdir(parents=True, exist_ok=True)
+    box.m.CEO_HOLD.write_bytes(b"\xff\xfe")
+    assert box.run("ceo-on") == 0
+    assert hold_on_disk(box)["plan_unknown"] is True
+    assert box.run("ceo-off") == 0
+    assert "FARM: unknown" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("content", ["[]", '"x"', "7"])
+def test_a_lease_file_that_is_not_an_object_reads_as_none(box, content):
+    box.mp.mkdir(parents=True, exist_ok=True)
+    box.m.LEASE.write_text(content, encoding="utf-8")
+    assert box.m.read_lease() is None
+    assert box.run("status") == 0
+
+
+@pytest.mark.parametrize("content", ["[]", '{"expires_at": "noon"}'])
+def test_revive_and_health_read_a_broken_lease_as_no_lease(tmp_path, content):
+    r = load(REVIVE, "revive_under_test")
+    r.LEASE = tmp_path / "PC_LEASE.json"
+    r.LEASE.write_text(content, encoding="utf-8")
+    r.CEO_HOLD = tmp_path / "CEO_HOLD.json"
+    r.RESUMING = tmp_path / "FARM_RESUMING.json"
+    r.LOG = tmp_path / "revive.log"
+    r.STATE = tmp_path / "revive_state.json"
+    r.pipe = lambda *a, **k: {"bot_alive": False, "job": None, "esc_hold": False}
+    r.last_round_age_s = lambda: 60.0          # just stopped: no start either way
+    assert r.main() == 0
+    h = load(HEALTH, "health_under_test")
+    h.LEASE = r.LEASE
+    assert h.lease_now() is None
+
+
+def test_a_lease_expiry_that_is_not_a_number_reads_as_expired(box):
+    assert box.m.remaining({"expires_at": "noon"}) < 0
+    assert box.m.remaining({"expires_at": None}) < 0
+
+
+def test_pipe_swallows_a_truncated_http_answer(box, monkeypatch):
+    import http.client
+    m = load(PC_LEASE, "pc_lease_pipe_test")
+    m.TOKEN = box.mp / "pipe_token"
+    box.mp.mkdir(parents=True, exist_ok=True)
+    m.TOKEN.write_text("t", encoding="utf-8")
+
+    def boom(*a, **k):
+        raise http.client.IncompleteRead(b"{")
+    monkeypatch.setattr(m.urllib.request, "urlopen", boom)
+    assert m.pipe("GET", "/status") is None
+
+
+def test_ceo_on_says_the_lock_is_on_before_anything_can_fail(box, capsys):
+    def broken():
+        raise RuntimeError("pipe exploded")
+    box.m.status = broken
+    assert box.run("ceo-on") == 1
+    out = capsys.readouterr().out
+    assert out.startswith("PC: CEO")
+    assert "WARNING: the lock is on" in out
+    assert box.m.CEO_HOLD.exists()
+
+
+def test_ceo_off_with_a_mangled_plan_still_brings_the_farm_back(box, capsys):
+    put_hold(box, was_running=True, resume="garbage")
+    assert box.run("ceo-off") == 0
+    assert [c[1] for c in box.calls if c[0] == "resume"] == [
+        {"fn": "night", "args": {"rounds": 60}}]
+
+
+def test_the_real_resume_runs_night_for_a_plan_with_no_fn(box):
+    box.st.hooks["night"] = lambda: box.st.status.update(bot_alive=True)
+    assert box.originals["resume"]({"args": {}}, "test") == (True, "farming")
+    assert run_fns(box) == ["night"]
+
+
+def test_a_resume_plan_survives_an_ab_status_with_holes(box):
+    plan = box.m.capture_resume_plan({"bot_alive": True, "ab": {"rounds": None}})
+    assert plan["fn"] == "ab" and plan["args"]["rounds"] == 8
 
 
 # --- the desktop buttons ---------------------------------------------------------

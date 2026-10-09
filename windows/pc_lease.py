@@ -35,6 +35,8 @@ layer that turns non-ASCII into "?", and "?" is a single-char wildcard in
 PowerShell paths (docs/reports/FINDING-winbox-ascii-only.md).
 """
 import argparse
+import contextlib
+import http.client
 import json
 import os
 import sys
@@ -57,6 +59,10 @@ TOKEN = DATA / "modelplay" / "pipe_token"
 LEASE = DATA / "modelplay" / "PC_LEASE.json"
 LOG = DATA / "modelplay" / "pc_lease.log"
 CEO_HOLD = DATA / "modelplay" / "CEO_HOLD.json"
+CEO_HOLD_LOCK = DATA / "modelplay" / "CEO_HOLD.lock"
+# Present while resume() is putting the farm back. cookierun_revive.py stands
+# down while it is fresh, so the two never restart the farm on top of each other.
+RESUMING = DATA / "modelplay" / "FARM_RESUMING.json"
 PIPE = "http://127.0.0.1:8794"
 
 # BUMP THIS ON EVERY CHANGE TO THIS FILE. scripts/pc-lease.sh copies it to the
@@ -64,7 +70,7 @@ PIPE = "http://127.0.0.1:8794"
 # any stale checkout put an older pc_lease.py back -- one that knows nothing of
 # the CEO's hold). An edit without a bump stays on your machine and the wrapper
 # says so. scripts/lib/winbox_deploy.sh reads the line by this exact shape.
-LEASE_VERSION = 1
+LEASE_VERSION = 2
 
 DEFAULT_MINUTES = 120         # "others need 1-2 hours" -- CEO 2026-09-14
 MAX_MINUTES = 480
@@ -110,7 +116,11 @@ def pipe(method: str, path: str, body: dict | None = None, timeout: int = 90):
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read().decode("utf-8"))
-    except (urllib.error.URLError, OSError, ValueError, TimeoutError):
+    except (urllib.error.URLError, OSError, ValueError, TimeoutError,
+            http.client.HTTPException):
+        # HTTPException (IncompleteRead, BadStatusLine) is none of the others,
+        # and escaping from here mid-ceo-on told the CEO "lock failed" while
+        # the lock was on (review, 2026-10-09).
         return None
 
 
@@ -126,9 +136,12 @@ def run_fn(fn: str, args: dict | None = None) -> dict | None:
 
 def read_lease() -> dict | None:
     try:
-        return json.loads(LEASE.read_text(encoding="utf-8"))
+        d = json.loads(LEASE.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
+    # Valid JSON that is not an object ([] , "x") is as unreadable as broken
+    # JSON; every caller below does lease.get(...).
+    return d if isinstance(d, dict) else None
 
 
 def write_lease(d: dict) -> None:
@@ -143,8 +156,16 @@ def clear_lease() -> None:
         pass
 
 
+def expiry(lease: dict) -> float:
+    """expires_at as a number; anything unparseable reads as long expired."""
+    try:
+        return float(lease.get("expires_at", 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def remaining(lease: dict) -> float:
-    return lease.get("expires_at", 0) - time.time()
+    return expiry(lease) - time.time()
 
 
 def hhmm(ts: float) -> str:
@@ -165,8 +186,13 @@ def hhmm(ts: float) -> str:
 # timed out under him costs exactly what these buttons exist to stop.
 #
 #   {"since": epoch, "was_running": bool, "resume": plan | None,
-#    "bumped": {"who": str, "until": epoch} | None}
-HOLD_KEYS = ("since", "was_running", "resume", "bumped")
+#    "bumped": {"who": str, "until": epoch} | None, "plan_unknown": bool}
+#
+# plan_unknown: the hold was once unreadable, so whether Cookie Run ran before
+# it is not known. Kept across rewrites, so the release button still says
+# "unknown" instead of a confident "it was off".
+HOLD_KEYS = ("since", "was_running", "resume", "bumped", "plan_unknown")
+HOLD_LOCK_STALE_S = 15
 
 
 def read_ceo_hold() -> dict | None:
@@ -180,7 +206,10 @@ def read_ceo_hold() -> dict | None:
         raw = CEO_HOLD.read_text(encoding="utf-8")
     except FileNotFoundError:
         return None
-    except OSError:
+    except (OSError, ValueError):
+        # ValueError: UnicodeDecodeError on bytes that are not UTF-8. It is not
+        # an OSError, and escaping from here crashed every command -- held,
+        # but with neither button able to repair it.
         raw = None
     try:
         d = json.loads(raw) if raw is not None else None
@@ -224,6 +253,73 @@ def write_ceo_hold(d: dict) -> None:
             time.sleep(0.2)
 
 
+@contextlib.contextmanager
+def hold_lock():
+    """Serialise every WRITE of the hold: ceo-on, ceo-off and the folds.
+
+    Without it a writer that had read the hold wrote it back after the release
+    button removed it -- os.replace creates -- so the CEO's box said "released"
+    while agents stayed locked out and the farm stayed down (review, 2026-10-09).
+    Readers need no lock: the write is atomic. Held for one read-modify-write,
+    never across a pipe call.
+
+    It never blocks the CEO for good: a lock older than HOLD_LOCK_STALE_S is a
+    writer that died holding it, and is broken.
+    """
+    CEO_HOLD_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    fd = None
+    t0 = time.time()
+    while fd is None and time.time() - t0 < 3 * HOLD_LOCK_STALE_S:
+        try:
+            fd = os.open(str(CEO_HOLD_LOCK), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                age = time.time() - CEO_HOLD_LOCK.stat().st_mtime
+            except OSError:
+                continue                 # released between the two calls
+            if age > HOLD_LOCK_STALE_S:
+                log(f"hold lock: breaking a lock {int(age)} s old - its writer died")
+                with contextlib.suppress(OSError):
+                    CEO_HOLD_LOCK.unlink()
+                continue
+            time.sleep(0.05)
+        except PermissionError:
+            time.sleep(0.05)             # Windows: the lock file is being deleted
+        except OSError as e:
+            log(f"hold lock: cannot create {CEO_HOLD_LOCK.name} ({e}) - going on unlocked")
+            break
+    try:
+        yield
+    finally:
+        if fd is not None:
+            os.close(fd)
+            for _ in range(10):
+                try:
+                    CEO_HOLD_LOCK.unlink()
+                    break
+                except FileNotFoundError:
+                    break
+                except OSError:
+                    time.sleep(0.05)
+
+
+def update_ceo_hold(change) -> dict | None:
+    """Read-modify-write the hold under the lock -- ONLY if it still exists.
+
+    None means the hold is gone (the release button won): nothing is written,
+    so nothing resurrects it. Raises OSError when the write fails.
+    """
+    with hold_lock():
+        hold = read_ceo_hold()
+        if hold is None:
+            return None
+        if hold.pop("corrupt", False):
+            hold["plan_unknown"] = True
+        change(hold)
+        write_ceo_hold(hold)
+        return hold
+
+
 def clear_ceo_hold() -> bool:
     """Remove the hold. False means it is still there -- say so, loudly."""
     for _ in range(10):
@@ -257,14 +353,18 @@ def fold_into_hold(lease: dict, why: str) -> bool:
     """
     if not lease.get("was_running"):
         return True
-    hold = read_ceo_hold()               # re-read: he may have pressed release
-    if hold is None:
-        log(f"{why}: the CEO hold went away mid-hand-over; keeping the lease")
-        return False
-    hold["was_running"] = True
-    hold["resume"] = hold.get("resume") or lease.get("resume")
+
+    def add_plan(hold):
+        hold["was_running"] = True
+        hold["resume"] = hold.get("resume") or lease.get("resume")
+
     try:
-        write_ceo_hold(hold)
+        # Under the hold lock, and only onto a hold that still exists: he may
+        # have pressed release since the caller looked, and writing it back
+        # then would lock him out again behind his own "released" box.
+        if update_ceo_hold(add_plan) is None:
+            log(f"{why}: the CEO hold went away mid-hand-over; keeping the lease")
+            return False
     except OSError as e:
         log(f"{why}: could not put {lease.get('who', '?')}'s Cookie Run plan "
             f"on the CEO hold: {e}")
@@ -309,23 +409,132 @@ def wait_for_round_gap(limit_s: int = 240) -> bool:
 def capture_resume_plan(s: dict) -> dict:
     """What it takes to put Cookie Run back exactly as it was."""
     ab = s.get("ab")
-    if ab:
+    if isinstance(ab, dict) and ab:
+        try:
+            rounds = int(ab.get("rounds") or 8)
+        except (TypeError, ValueError):
+            rounds = 8                   # int(None) used to escape mid-ceo-on
         return {"fn": "ab", "args": {"champion": ab.get("champion", ""),
                                      "candidate": ab.get("candidate", ""),
-                                     "rounds": int(ab.get("rounds", 8)),
+                                     "rounds": rounds,
                                      "then_night": bool(s.get("night_guard"))}}
     if s.get("night_guard"):
         return {"fn": "night", "args": {"model": s.get("champion", ""), "rounds": 60}}
     return {"fn": "bot_start", "args": {"model": s.get("champion", ""), "rounds": 60}}
 
 
+HOLD_WHY = "the CEO is using this PC (CEO hold) - not resuming"
+
+
+def nap(seconds: float) -> None:
+    time.sleep(seconds)
+
+
+def nap_unless_held(seconds: int) -> bool:
+    """Sleep, a second at a time; True the moment the CEO's hold appears."""
+    for _ in range(int(seconds)):
+        if read_ceo_hold() is not None:
+            return True
+        nap(1)
+    return read_ceo_hold() is not None
+
+
+def stand_down_for_ceo(why: str) -> tuple[bool, str]:
+    """The CEO pressed his button while resume() was bringing the farm up.
+
+    Stop what we started (bot_stop, never esc) and say so with HOLD_WHY; the
+    caller moves the plan onto his hold, and his release button restarts it.
+    """
+    run_fn("bot_stop")
+    stopped = wait_until_stopped()
+    log(f"resume({why}): the CEO pressed his button mid-resume - bot_stop sent, "
+        f"{'stopped' if stopped else 'STILL ALIVE after 40 s'}")
+    return False, HOLD_WHY
+
+
+def farm_active(s: dict | None) -> bool:
+    """Is Cookie Run farming, or on its way to it? A preflight dry round counts:
+    the app launches the bot itself the moment it passes."""
+    return bool(s) and not s.get("esc_hold") and bool(
+        s.get("bot_alive") or s.get("job") == "preflight")
+
+
+def stop_farm_under_hold(why: str) -> bool:
+    """Stop a Cookie Run that is running while the CEO holds the PC.
+
+    Every known restart path checks the hold before it acts, but a press can
+    still land in a gap no check covers -- the preflight-to-bot hand-off, a
+    restart already in flight -- and then the bot presses keys into whatever
+    window he is in, with nothing stopping it (review probe, 2026-10-09). The
+    watchdog runs every 5 minutes, so this bounds that to 5 minutes. bot_stop,
+    never esc; no window is touched. The plan goes onto the hold so his release
+    button brings the farm back. True if it found something to stop.
+    """
+    s = status()
+    if not farm_active(s):
+        return False
+    plan = capture_resume_plan(s)
+
+    def add_plan(hold):
+        hold["was_running"] = True
+        hold["resume"] = hold.get("resume") or plan
+
+    try:
+        if update_ceo_hold(add_plan) is None:
+            return False                 # released meanwhile: the farm may run
+    except OSError as e:
+        log(f"{why}: could not record Cookie Run's plan on the CEO hold: {e}")
+    run_fn("bot_stop")
+    stopped = wait_until_stopped()
+    log(f"{why}: Cookie Run was running under the CEO hold - bot_stop sent, "
+        f"{'stopped' if stopped else 'STILL ALIVE after 40 s'}")
+    return True
+
+
+def mark_resuming(why: str) -> None:
+    try:
+        RESUMING.parent.mkdir(parents=True, exist_ok=True)
+        RESUMING.write_text(json.dumps({"t": time.time(), "why": why,
+                                        "pid": os.getpid()}), encoding="utf-8")
+    except OSError as e:
+        log(f"could not write {RESUMING.name}: {e}")
+
+
+def clear_resuming() -> None:
+    with contextlib.suppress(OSError):
+        RESUMING.unlink()
+
+
 def resume(plan: dict, why: str) -> tuple[bool, str]:
-    """Put Cookie Run back. Returns (ok, human-readable reason)."""
+    """Put Cookie Run back. Returns (ok, human-readable reason).
+
+    (False, HOLD_WHY) means the CEO holds the PC -- now, or since partway
+    through. That is not a failure to report: the caller moves the plan onto
+    his hold (fold_into_hold), and his release button carries it out.
+    """
     if read_ceo_hold() is not None:
         # Every path that restarts the farm comes through here, so this is the
         # one check no new caller can forget. Callers under a hold never get
         # this far; this is the backstop if one ever does.
-        return False, "the CEO is using this PC (CEO hold) - not resuming"
+        return False, HOLD_WHY
+    # cookierun_revive.py stands down while this file is fresh. Without it, a
+    # revive tick that landed in the 45 s game-restart sleep below found "app
+    # up, bot idle, nobody holding it" and started a second farm on top.
+    if not isinstance(plan, dict) or not isinstance(plan.get("fn"), str):
+        log(f"resume({why}): unusable plan {ascii_only(repr(plan))[:120]} - using night")
+        plan = {"fn": "night", "args": {"rounds": 60}}
+    mark_resuming(why)
+    try:
+        return _resume(plan, why)
+    finally:
+        clear_resuming()
+
+
+def _resume(plan: dict, why: str) -> tuple[bool, str]:
+    # The hold is checked again before every step that acts, not only once at
+    # the top: a resume runs for up to 8 minutes, and a press that landed in the
+    # game-restart sleep used to get BlueStacks relaunched and the farm started
+    # over his game anyway (review probe, 2026-10-09).
     s = status()
     if s is None:
         return False, "the Cookie Run app is not running (no pipe) - cannot resume"
@@ -336,11 +545,18 @@ def resume(plan: dict, why: str) -> tuple[bool, str]:
         return True, "already running"
 
     if not game_running():
+        if read_ceo_hold() is not None:
+            return False, HOLD_WHY
         log(f"resume({why}): game window is gone, restarting it first")
         run_fn("restart_game")
-        time.sleep(45)
+        if nap_unless_held(45):
+            log(f"resume({why}): the CEO pressed his button during the game restart - "
+                "not starting the farm")
+            return False, HOLD_WHY
 
-    r = run_fn(plan["fn"], plan["args"])
+    if read_ceo_hold() is not None:
+        return False, HOLD_WHY
+    r = run_fn(plan["fn"], plan.get("args") or {})
     if r is None:
         return False, "pipe call failed"
     if not r.get("ok", False):
@@ -355,6 +571,8 @@ def resume(plan: dict, why: str) -> tuple[bool, str]:
     saw_preflight = False
     gap_since = None
     while time.time() - t0 < 420:
+        if read_ceo_hold() is not None:
+            return stand_down_for_ceo(why)
         s = status()
         if s:
             job = s.get("job")
@@ -374,7 +592,7 @@ def resume(plan: dict, why: str) -> tuple[bool, str]:
                 if time.time() - gap_since > 45:
                     return False, ("preflight ended and the bot never started within 45 s - "
                                    "the app did not release it; check the app log")
-        time.sleep(5)
+        nap(5)
 
     s = status()
     if s and s.get("job") == "preflight":
@@ -503,12 +721,22 @@ def cmd_take(args) -> int:
     # restart -- so the plan goes onto the hold instead of into a lease.
     hold = read_ceo_hold()
     if hold is not None:
-        fold_into_hold({"who": who, "was_running": was_running, "resume": plan},
-                       f"take by {who}")
-        log(f"take by {who} REFUSED - the CEO pressed his button mid-take")
-        for line in ceo_refusal(hold):
-            print(line)
-        return 2
+        if not fold_into_hold({"who": who, "was_running": was_running, "resume": plan},
+                              f"take by {who}"):
+            if read_ceo_hold() is None:
+                hold = None              # he pressed release too: finish the take
+            else:
+                # The plan could not be written onto his hold. Never drop it:
+                # park it on an already-expired lease, which the next tick
+                # folds onto the hold (or, once he has released, resumes).
+                write_lease({"who": who, "taken_at": time.time(),
+                             "expires_at": time.time(), "was_running": was_running,
+                             "resume": plan, "resume_failures": 0})
+        if hold is not None:
+            log(f"take by {who} REFUSED - the CEO pressed his button mid-take")
+            for line in ceo_refusal(hold):
+                print(line)
+            return 2
 
     now = time.time()
     write_lease({"who": who, "taken_at": now, "expires_at": now + minutes * 60,
@@ -691,6 +919,23 @@ def cmd_give_back(_args) -> int:
         return 0
 
     ok, why = resume(lease.get("resume") or {"fn": "night", "args": {"rounds": 60}}, "give-back")
+    if not ok and read_ceo_hold() is not None:
+        # The CEO pressed his button while we were clearing the screen or
+        # bringing the farm back. Not a failure, and not one to report as one:
+        # "the farm is idle until someone looks" invites someone to restart it
+        # under him. The plan moves onto his hold; the lease goes only once it
+        # has (review, 2026-10-09: it used to be dropped here).
+        if not fold_into_hold(lease, f"give-back by {who}"):
+            print("FAILED: the CEO pressed his button mid-give-back, and Cookie Run's")
+            print("restart could not be handed to his hold. The lease is left in place;")
+            print("the watchdog hands it over at expiry. Tell the CTO. Hands off the screen.")
+            return 1
+        clear_lease()
+        log(f"give-back by {who} - the CEO pressed his button mid-resume; plan moved onto his hold")
+        print("OK - lease released. The CEO pressed his use-PC button while Cookie Run was")
+        print("     coming back, so it was NOT restarted. It comes back when he presses his")
+        print("     release button. Hands off the screen.")
+        return 0
     clear_lease()
     log(f"give-back by {who} - resume ok={ok} ({why})")
     if ok:
@@ -858,6 +1103,7 @@ def cmd_tick(_args) -> int:
             clear_lease()
             log(f"tick: lease from {lease.get('who', '?')} expired during the CEO "
                 "hold - cleared; nothing minimised, nothing resumed")
+        stop_farm_under_hold("tick")
         return 0
 
     if not lease:
@@ -887,6 +1133,14 @@ def cmd_tick(_args) -> int:
         clear_lease()
         log(f"tick: lease from {who} expired - Cookie Run resumed ({why})")
         return 0
+    if read_ceo_hold() is not None:
+        # He pressed his button while the farm was coming back. Not a failed
+        # resume to count towards RESUME_TRIES: the plan moves onto his hold.
+        if fold_into_hold(lease, "tick"):
+            clear_lease()
+            log(f"tick: the CEO pressed his button mid-resume - plan from {who} "
+                "moved onto his hold")
+        return 0
 
     fails = int(lease.get("resume_failures", 0)) + 1
     lease["resume_failures"] = fails
@@ -904,36 +1158,47 @@ def cmd_tick(_args) -> int:
 # windows/desktop/ceo_button.ps1 runs these and turns the output into one Thai
 # message box, by reading the line prefixes below -- keep them stable:
 #   PC: CEO / PC: released   the hold is on / off
-#   BUMPED: <who> ...        an agent lease that just lost the screen
+#   BUMPED: <who> ...        an agent lease that lost the screen to the hold
 #   FARM: <state> - ...      what happened to Cookie Run
 #   NO HOLD: / WARNING: / FAILED:
 # Neither command ever minimises, clears or focuses a window. On ceo-on the
 # CEO is about to use the screen; on ceo-off the windows on it are his own.
+SETTLE_POLLS = 10                # x 3 s after a stop: catch a farm that comes back
+
+
+def settle_after_stop() -> bool:
+    """After bot_stop, watch ~30 s for the farm coming back by itself.
+
+    A stopped preflight can still hand over to the bot, and a restart already
+    in flight can still start it. Stop whatever comes alive; True if it ends
+    stopped.
+    """
+    for _ in range(SETTLE_POLLS):
+        nap(3)
+        if farm_active(status()):
+            log("ceo-on: Cookie Run came back after the stop - stopping it again")
+            run_fn("bot_stop")
+            wait_until_stopped()
+    return not farm_active(status())
+
 
 def cmd_ceo_on(_args) -> int:
     """The "use PC" button: lock agents out first, then park Cookie Run."""
     now = time.time()
-    hold = read_ceo_hold()
-    already = hold is not None and not hold.get("corrupt")
-    if hold is not None:
-        d = {k: hold.get(k) for k in HOLD_KEYS}  # keep the original since + plan
-    else:
-        d = {"since": now, "was_running": False, "resume": None, "bumped": None}
-
-    lease = read_lease()
-    active = lease if lease and remaining(lease) > 0 else None
-    if active:
-        # Bumped, not ended: the lease file stays, so its holder's next status
-        # or gate shows them exactly why they are blocked, and its own plan for
-        # Cookie Run survives to be handed on later.
-        d["bumped"] = {"who": ascii_only(str(active.get("who", "?")))[:120],
-                       "until": active.get("expires_at")}
-
     # Lock first, then ask Cookie Run anything. The pipe can take 20 s to answer
     # and the bot up to 40 s to stop; agents are locked out from the press, not
     # from whenever the farm gets round to replying.
     try:
-        write_ceo_hold(d)
+        with hold_lock():
+            hold = read_ceo_hold()
+            already = hold is not None and not hold.get("corrupt")
+            if hold is not None:
+                d = {k: hold.get(k) for k in HOLD_KEYS}  # keep the original since + plan
+                if hold.get("corrupt"):
+                    d["plan_unknown"] = True
+            else:
+                d = {"since": now, "was_running": False, "resume": None, "bumped": None}
+            write_ceo_hold(d)
     except OSError as e:
         log(f"ceo-on: could not write the CEO hold: {e}")
         print("FAILED: could not write the CEO hold - agents are NOT locked out.")
@@ -941,36 +1206,9 @@ def cmd_ceo_on(_args) -> int:
         print("        Tell the CTO.")
         return 1
 
-    warn = None
-    s = status()
-    if s is None:
-        farm = "FARM: no-app - the Cookie Run app is not running, nothing to stop."
-    elif s.get("esc_hold"):
-        farm = "FARM: idle - Cookie Run is held by a human ESC, nothing to stop."
-    elif s.get("bot_alive"):
-        if not d.get("resume"):
-            d["resume"] = capture_resume_plan(s)
-        d["was_running"] = True
-        try:
-            write_ceo_hold(d)
-        except OSError as e:
-            log(f"ceo-on: could not record Cookie Run's plan on the hold: {e}")
-            warn = ("WARNING: the lock is on, but Cookie Run's restart plan was not saved - "
-                    "the release button will not bring the farm back. Tell the CTO.")
-        # bot_stop, NEVER esc -- see the header. esc would keep the farm down
-        # after the release button too, until a human cleared it by hand.
-        run_fn("bot_stop")
-        if wait_until_stopped():
-            farm = "FARM: stopped - Cookie Run stopped; it comes back on the release button."
-        else:
-            farm = "FARM: still-running - Cookie Run did not stop."
-            warn = ("WARNING: asked Cookie Run to stop but it is still alive after 40 s. "
-                    "The lock is on, but the bot may still be pressing keys. Tell the CTO.")
-    elif d.get("was_running"):
-        farm = "FARM: stopped - Cookie Run is stopped; it comes back on the release button."
-    else:
-        farm = "FARM: idle - Cookie Run was not running, nothing to stop."
-
+    # Say so the moment it is true. Everything after this talks to the farm and
+    # can fail or hang; the box must never report "lock failed" while the lock
+    # is on (review, 2026-10-09).
     since = hhmm(d["since"])
     if already:
         print(f"PC: CEO - already held since {since} (kept as it was). Agents stay")
@@ -980,12 +1218,89 @@ def cmd_ceo_on(_args) -> int:
         print("    until the release button is pressed.")
         if hold is not None:
             print("    (the old hold file was unreadable - written again)")
-    print(farm)
+    sys.stdout.flush()
+    log(f"ceo-on: CEO hold since {since}{' (already held)' if already else ''}")
+
+    try:
+        return _ceo_on_farm()
+    except Exception as e:                       # noqa: BLE001 -- the lock is on; say what broke
+        log(f"ceo-on: error after the lock was written: {e!r}")
+        print("WARNING: the lock is on, but something failed after it: "
+              f"{ascii_only(repr(e))[:200]}. Tell the CTO.")
+        return 1
+
+
+def _ceo_on_farm() -> int:
+    """ceo-on, after the hold is written: name the bumped lease, park the farm."""
+    lease = read_lease()
+    active = lease if lease and remaining(lease) > 0 else None
+    bumped = None
     if active:
-        print(f"BUMPED: {d['bumped']['who']} (lease to {hhmm(active['expires_at'])}) - "
-              "blocked until the release button.")
-    log(f"ceo-on: CEO hold since {since}{' (already held)' if already else ''} - {farm}"
-        + (f"; bumped {d['bumped']['who']}" if active else ""))
+        # Bumped, not ended: the lease file stays, so its holder's next status
+        # or gate shows them exactly why they are blocked, and its own plan for
+        # Cookie Run survives to be handed on later.
+        bumped = {"who": ascii_only(str(active.get("who", "?")))[:120],
+                  "until": expiry(active)}
+
+    s = status()
+    alive = farm_active(s)
+    plan = capture_resume_plan(s) if alive else None
+
+    def note(hold):
+        if bumped:
+            hold["bumped"] = bumped
+        if alive:
+            hold["was_running"] = True
+            hold["resume"] = hold.get("resume") or plan
+
+    warn = None
+    try:
+        held = update_ceo_hold(note) if (bumped or alive) else read_ceo_hold()
+    except OSError as e:
+        held = read_ceo_hold()
+        log(f"ceo-on: could not record Cookie Run's plan on the hold: {e}")
+        if alive:
+            warn = ("WARNING: the lock is on, but Cookie Run's restart plan was not saved - "
+                    "the release button will not bring the farm back. Tell the CTO.")
+    if held is None:
+        # The release button ran while we were asking Cookie Run. His release
+        # stands: re-creating the hold or stopping the farm now would undo it.
+        print("FARM: released - the release button was pressed meanwhile; nothing was stopped.")
+        log("ceo-on: the hold was released before the farm was parked - left as it is")
+        return 0
+
+    if s is None:
+        farm = "FARM: no-app - the Cookie Run app is not running, nothing to stop."
+    elif s.get("esc_hold"):
+        farm = "FARM: idle - Cookie Run is held by a human ESC, nothing to stop."
+    elif alive and read_ceo_hold() is None:
+        # Released in the moment since the write above: his release stands.
+        farm = "FARM: released - the release button was pressed meanwhile; nothing was stopped."
+    elif alive:
+        # bot_stop, NEVER esc -- see the header. esc would keep the farm down
+        # after the release button too, until a human cleared it by hand.
+        run_fn("bot_stop")
+        if wait_until_stopped() and settle_after_stop():
+            farm = "FARM: stopped - Cookie Run stopped; it comes back on the release button."
+        else:
+            farm = "FARM: still-running - Cookie Run did not stop."
+            warn = ("WARNING: asked Cookie Run to stop but it is still alive after 40 s. "
+                    "The lock is on, but the bot may still be pressing keys. Tell the CTO.")
+    elif held.get("was_running"):
+        farm = "FARM: stopped - Cookie Run is stopped; it comes back on the release button."
+    else:
+        farm = "FARM: idle - Cookie Run was not running, nothing to stop."
+
+    print(farm)
+    if bumped:
+        # What is true, and no more. The lease file stays and its holder's next
+        # take / extend / gate is refused -- but nothing reaches a runner already
+        # mid-run that never calls gate again. Saying "stopped" here put a false
+        # all-clear in the CEO's box (review, 2026-10-09).
+        print(f"BUMPED: {bumped['who']} (lease to {hhmm(bumped['until'])}) - its new "
+              "screen actions are refused from now on; a run it already started is "
+              "NOT stopped and may still move the screen for a while.")
+    log(f"ceo-on: {farm}" + (f"; bumped {bumped['who']}" if bumped else ""))
     if warn:
         print(warn)
         log(f"ceo-on: {warn}")
@@ -995,11 +1310,17 @@ def cmd_ceo_on(_args) -> int:
 
 def cmd_ceo_off(_args) -> int:
     """The "done" button: lift the hold, then put Cookie Run back if it was ours."""
-    hold = read_ceo_hold()
-    if hold is None:
-        print("NO HOLD: the CEO hold is not set - nothing to release.")
-        return 0
-    if not clear_ceo_hold():
+    try:
+        with hold_lock():
+            hold = read_ceo_hold()
+            if hold is None:
+                print("NO HOLD: the CEO hold is not set - nothing to release.")
+                return 0
+            cleared = clear_ceo_hold()
+    except OSError as e:
+        cleared = False
+        log(f"ceo-off: {e}")
+    if not cleared:
         log("ceo-off: could not remove the CEO hold file")
         print("FAILED: could not remove the CEO hold - agents are still locked out.")
         print("        Tell the CTO.")
@@ -1008,11 +1329,22 @@ def cmd_ceo_off(_args) -> int:
     since = hhmm(hold["since"])
     log(f"ceo-off: CEO hold since {since} released")
     print(f"PC: released - the CEO hold (since {since}) is gone; agents may use the screen.")
+    sys.stdout.flush()
+    try:
+        return _ceo_off_farm(hold)
+    except Exception as e:                       # noqa: BLE001 -- released; say what broke
+        log(f"ceo-off: error after the release: {e!r}")
+        print("WARNING: the PC is released, but bringing Cookie Run back failed: "
+              f"{ascii_only(repr(e))[:200]}. Tell the CTO.")
+        return 1
 
+
+def _ceo_off_farm(hold: dict) -> int:
+    """ceo-off, after the hold is gone: put Cookie Run back if it was ours."""
     # A plan on the hold means the farm ran when SOMEBODY parked it -- ceo-on
     # itself, or a lease that ended under the hold and folded its plan in.
-    was_running = bool(hold.get("was_running") or hold.get("resume"))
-    plan = hold.get("resume")
+    plan = hold.get("resume") if isinstance(hold.get("resume"), dict) else None
+    was_running = bool(hold.get("was_running") or plan)
 
     lease = read_lease()
     if lease and remaining(lease) <= 0:
@@ -1037,9 +1369,9 @@ def cmd_ceo_off(_args) -> int:
             write_lease(lease)
         log(f"ceo-off: Cookie Run's restart handed to {lease.get('who', '?')}'s lease")
         print(f"FARM: handed - {lease.get('who', '?')} still holds a lease until "
-              f"{hhmm(lease['expires_at'])}; Cookie Run comes back when they give it back.")
+              f"{hhmm(expiry(lease))}; Cookie Run comes back when they give it back.")
         return 0
-    if hold.get("corrupt") and not was_running:
+    if (hold.get("corrupt") or hold.get("plan_unknown")) and not was_running:
         print("FARM: unknown - the hold file was unreadable, so whether Cookie Run was")
         print("      running is unknown. Not restarting it.")
         return 0
@@ -1048,11 +1380,19 @@ def cmd_ceo_off(_args) -> int:
         return 0
 
     # Same fallback as give-back: a hold that knows the farm ran but not how.
-    ok, why = resume(plan or {"fn": "night", "args": {"rounds": 60}}, "ceo-off")
+    plan = plan or {"fn": "night", "args": {"rounds": 60}}
+    ok, why = resume(plan, "ceo-off")
     log(f"ceo-off: resume ok={ok} ({why})")
     if ok:
         print(f"FARM: back - Cookie Run is running again ({why}).")
         return 0
+    if read_ceo_hold() is not None:
+        # He pressed "use PC" again while the farm was coming back. resume()
+        # stood down; the plan rides on the new hold to the next release.
+        if fold_into_hold({"who": "ceo-off", "was_running": True, "resume": plan}, "ceo-off"):
+            print("FARM: held - the use-PC button was pressed again before Cookie Run came")
+            print("      back; it comes back on the next release.")
+            return 0
     print(f"FARM: failed - Cookie Run did not come back: {why}")
     print("Tell the CTO - the farm is idle until someone looks at it.")
     return 1

@@ -7,12 +7,16 @@ more expensive than the last (IRON-RULES 42). This answers from logs, file
 mtimes and the app pipe instead, and only tells a human to go look when there is
 something to look at.
 
-    VERDICT: OK | PARKED | DOWN | STUCK | STALLING | NO-APP
+    VERDICT: OK | PARKED | DOWN | STUCK | STALLING | NO-APP | RUNNING-UNDER-HOLD
 
 The distinction that matters most is PARKED vs DOWN. Cookie Run is *supposed*
 to be off while another agent holds the screen lease -- a check that cannot tell
 those apart will either cry wolf every time someone borrows the machine, or
 worse, "fix" it by starting the bot on top of their work.
+
+RUNNING-UNDER-HOLD is the one fault the CEO's hold does not hide: he pressed
+his "use PC" button, and the bot is alive anyway -- pressing keys into whatever
+he is doing. The watchdog stops it within 5 minutes; this names it meanwhile.
 
 Exit 0 = nothing to do (OK or PARKED). Exit 1 = needs attention.
 """
@@ -37,7 +41,7 @@ if hasattr(sys.stdout, "reconfigure"):
 # to the box only when this number is higher than the box copy's -- an md5
 # compare let a stale checkout put back a check that calls the CEO's parked
 # farm DOWN (scripts/lib/winbox_deploy.sh).
-HEALTH_VERSION = 1
+HEALTH_VERSION = 2
 
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
@@ -74,7 +78,11 @@ def lease_now():
         d = json.loads(LEASE.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    return d if d.get("expires_at", 0) > time.time() else None
+    try:
+        exp = float(d.get("expires_at", 0))
+    except (AttributeError, TypeError, ValueError):
+        return None                    # [] or {"expires_at": "noon"}: no usable lease
+    return {**d, "expires_at": exp} if exp > time.time() else None
 
 
 def ceo_hold_since():
@@ -294,7 +302,17 @@ def main() -> int:
     elif s is not None and not s.get("bot_alive") and not s.get("job"):
         faults.append("the bot is not running")
 
-    if ceo_since is not None:
+    if ceo_since is not None and s is not None and not s.get("esc_hold") and (
+            s.get("bot_alive") or s.get("job") == "preflight"):
+        # The hold says the farm is off and it is not. Reported as PARKED, the
+        # check that exists to catch exactly this said "nothing to do" while the
+        # bot played on top of him (review, 2026-10-09).
+        verdict = "RUNNING-UNDER-HOLD"
+        reason = (f"the CEO pressed his use-PC button at "
+                  f"{time.strftime('%H:%M', time.localtime(ceo_since))} but Cookie Run is "
+                  f"running (job={s.get('job')}) - stop it with bot_stop, never esc, and "
+                  f"touch no window; the pc_lease watchdog does this within 5 min")
+    elif ceo_since is not None:
         # Above even a held lease: the CEO pressed his "use PC" button, which
         # stopped the farm on purpose. Reported as DOWN, an hourly check would
         # hand someone an instruction to start the bot over whatever he is

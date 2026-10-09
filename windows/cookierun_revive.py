@@ -28,7 +28,7 @@ from pathlib import Path
 # BUMP THIS ON EVERY CHANGE TO THIS FILE. windows/desktop/install_ceo_buttons.sh
 # deploys it only when this number is higher than the box copy's
 # (scripts/lib/winbox_deploy.sh), and nothing else deploys it at all.
-REVIVE_VERSION = 1
+REVIVE_VERSION = 2
 
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
@@ -37,6 +37,12 @@ LEASE = DATA / "modelplay" / "PC_LEASE.json"
 # ceo-off). Its mere existence is the signal: a file we cannot read or parse
 # still counts as held, because a broken file must never free his screen.
 CEO_HOLD = DATA / "modelplay" / "CEO_HOLD.json"
+# pc_lease.py's resume() writes this while it puts the farm back (a give-back,
+# a lapsed lease, the CEO's release button). Two restarts at once collide, and
+# the one that loses reports a failure that is not one; so while it is fresh,
+# this stands down. Fresh = younger than any resume can take (~8 min).
+RESUMING = DATA / "modelplay" / "FARM_RESUMING.json"
+RESUMING_FRESH_S = 10 * 60
 LOG = DATA / "modelplay" / "cookierun_revive.log"
 
 # How long the farm must have been down before we step in. Long enough that a
@@ -175,10 +181,14 @@ def clear_foreign_app(fg: str) -> int:
     if now - st.get("last_try", 0) < COOLDOWN_S:
         return 0
 
+    if stand_down("before clearing a foreign app"):
+        return 0
     state_set({**st, "last_try": now, "foreign_since": None, "foreign_app": None})
     log(f"{fg} has owned the screen for {int((now - first) / 60)} min - restarting the game")
     pipe("POST", "/run", {"fn": "bot_stop", "args": {}, "who": "revive"})
     time.sleep(10)
+    if stand_down("before restart_game"):
+        return 0
     r = pipe("POST", "/run", {"fn": "restart_game", "args": {}, "who": "revive"})
     if r is None or not r.get("ok", False):
         log(f"restart_game FAILED: {str(r)[:200]}")
@@ -192,6 +202,8 @@ def clear_foreign_app(fg: str) -> int:
     t0 = time.time()
     while time.time() - t0 < 300:               # the game takes ~2 min to come up
         time.sleep(15)
+        if stand_down("while the game restarted"):
+            return 0
         s = pipe("GET", "/status", timeout=20)
         if s and not s.get("job"):              # restart_game has finished
             break
@@ -287,7 +299,14 @@ def foreign_window_over_game():
 def minimise_foreign_windows() -> str:
     """Minimise non-BlueStacks windows. Only ever called on a window that has
     been sitting there, unused, past the grace -- never on one a peer is
-    driving. Minimise, never close: it belongs to whoever opened it."""
+    driving. Minimise, never close: it belongs to whoever opened it.
+
+    Never while the CEO holds the PC: every window on screen is then his --
+    and the one this is most likely to find is the game he is playing. The
+    check lives here, like pc_lease's, so no caller can get round it."""
+    if ceo_holds_the_pc():
+        log("minimise_foreign_windows: refused - the CEO holds the PC")
+        return "REFUSED: the CEO holds the PC - minimised nothing"
     import ctypes
     import ctypes.wintypes
     u = ctypes.windll.user32
@@ -364,6 +383,9 @@ def clear_stall_while_alive(age_s: float) -> int:
         return 0
 
     mins = int(age_s / 60)
+    # A credential prompt over the game may be the CEO's own, mid-sign-in.
+    if stand_down("before clearing a stall"):
+        return 0
     if not st.get("stall_dismissed"):
         state_set({**st, "stall_dismissed": now})
         closed = dismiss_windows_dialog()
@@ -376,6 +398,8 @@ def clear_stall_while_alive(age_s: float) -> int:
     log(f"still no round after {mins} min - restarting the game")
     pipe("POST", "/run", {"fn": "bot_stop", "args": {}, "who": "revive"})
     time.sleep(10)
+    if stand_down("before restart_game"):
+        return 0
     r = pipe("POST", "/run", {"fn": "restart_game", "args": {}, "who": "revive"})
     if r is None or not r.get("ok", False):
         log(f"restart_game FAILED: {str(r)[:200]}")
@@ -383,6 +407,8 @@ def clear_stall_while_alive(age_s: float) -> int:
     t0 = time.time()
     while time.time() - t0 < 300:
         time.sleep(15)
+        if stand_down("while the game restarted"):
+            return 0
         s = pipe("GET", "/status", timeout=20)
         if s and not s.get("job"):
             break
@@ -391,6 +417,8 @@ def clear_stall_while_alive(age_s: float) -> int:
 
 def start_farm(why: str) -> bool:
     """night + wait for the preflight to clear. Shared by both recovery paths."""
+    if stand_down("before starting the farm"):
+        return False
     # Never start the farm underneath somebody else's window. A bot started
     # there looks alive, matches every screen, presses confidently and changes
     # nothing -- the most expensive kind of healthy.
@@ -423,12 +451,19 @@ def start_farm(why: str) -> bool:
         st = state_get()
         if st.get("fwin_since"):
             state_set({**st, "fwin_since": None, "fwin_title": None})
+    if stand_down("before night"):
+        return False
     r = pipe("POST", "/run", {"fn": "night", "args": {"rounds": 60}, "who": "revive"})
     if r is None or not r.get("ok", False):
         log(f"start FAILED ({why}): {str(r)[:200]}")
         return False
     t0 = time.time()
     while time.time() - t0 < 420:
+        if ceo_holds_the_pc():
+            # We started it and he has pressed since: stop what we started.
+            pipe("POST", "/run", {"fn": "bot_stop", "args": {}, "who": "revive"})
+            log(f"CEO hold appeared while the farm came up ({why}) - bot_stop sent")
+            return False
         s = pipe("GET", "/status", timeout=20)
         if s and s.get("bot_alive") and s.get("job") != "preflight":
             log(f"farming again ({why})")
@@ -470,6 +505,31 @@ def ceo_holds_the_pc() -> bool:
     return True
 
 
+def pc_lease_is_resuming() -> bool:
+    try:
+        return time.time() - RESUMING.stat().st_mtime < RESUMING_FRESH_S
+    except OSError:
+        return False
+
+
+def stand_down(where: str) -> bool:
+    """True (and logged) when this run must stop acting now.
+
+    main() checks once at the top, but a run lasts up to ~12 minutes (stop,
+    restart the game, wait 5 min, start, wait 7 min), and a press of the CEO's
+    button in the middle used to change nothing: BlueStacks was relaunched over
+    his game and night started under the hold (review probe, 2026-10-09). So
+    every step that acts asks again first.
+    """
+    if ceo_holds_the_pc():
+        log(f"CEO hold appeared {where} - standing down")
+        return True
+    if pc_lease_is_resuming():
+        log(f"pc_lease is putting the farm back ({where}) - standing down")
+        return True
+    return False
+
+
 def main() -> int:
     # Before anything at all -- before even starting the app, whose window would
     # open over whatever he is doing. ceo-on stops the farm on purpose, and from
@@ -480,12 +540,17 @@ def main() -> int:
     if ceo_holds_the_pc():
         log("CEO hold set - the CEO is using the PC; leaving everything alone")
         return 0
+    if pc_lease_is_resuming():
+        log("pc_lease is putting the farm back - leaving it to that")
+        return 0
 
     s = pipe("GET", "/status", timeout=20)
     if s is None:
         st = state_get()
         if time.time() - st.get("app_last_try", 0) < COOLDOWN_S:
             return 1
+        if stand_down("before starting the app"):
+            return 0
         state_set({**st, "app_last_try": time.time()})
         age = last_round_age_s()
         down_for = f"{int(age/60)} min" if age is not None else "unknown time"
@@ -496,6 +561,8 @@ def main() -> int:
         t0 = time.time()
         while time.time() - t0 < 90:
             time.sleep(5)
+            if stand_down("while the app started"):
+                return 0
             s = pipe("GET", "/status", timeout=20)
             if s is not None:
                 break
@@ -531,10 +598,10 @@ def main() -> int:
 
     try:
         lease = json.loads(LEASE.read_text(encoding="utf-8"))
-        if lease.get("expires_at", 0) > time.time():
+        if float(lease.get("expires_at", 0)) > time.time():
             return 0                       # somebody is using the screen
-    except (OSError, ValueError):
-        pass
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass                               # not a lease we can read: nobody holds it
 
     age = last_round_age_s()
     if age is not None and age < DOWN_GRACE_S:
