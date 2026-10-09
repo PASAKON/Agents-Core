@@ -55,6 +55,20 @@ quoted line is transcribed in auto mode, so unexpected speech shows in `heard`.
 - `tail_voice` lists voice (speech, song, hum; silero VAD) that ends inside the last 3 s of the clip. Any entry is a
   FAIL: the prompt broke `CMO_Standard_Film_PromptFormat` rule 13 (quiet tail) and the editor cannot cut cleanly.
   First run: 5 of 53 takes (A05 t1 and t2 Yai's hum, B01 t2, E03, E04's lullaby); music-only clips stayed empty.
+- **HARD — every clip is ALSO transcribed with the language on auto, and its detected language is compared with the
+  script (CEO 2026-10-09: "ฟังแล้วมันเป็นภาษาไทย แทนที่จะพูด English … ต้องเชค Dialog การพูดและการขยับปากให้ตรงตัวละคร").**
+  A read-back with the language forced to English makes whisper TRANSLATE Thai speech into English, so a Thai-spoken
+  line scores like a correct English one: B06-v3 ("ถ้าจะตีก็ตีให้ถูก") read back as "If you want to hit it, hit it right",
+  and E03-v3 scored its English line while Yai said it in Thai. Detected `th` (or any non-`en`) on a line scripted in
+  English is a FAIL; only a quoted Thai song may come back `th`. A silent read-back on a scripted line is re-read with
+  VAD off before it counts as missing (A03, A06, B05 were shouted under music and came back with VAD off).
+  `[SUPERSEDED 2026-10-09]` "The language is chosen per line (English for dialogue, Thai for a Thai song)" as the
+  only read-back — beaten by 5 Thai-spoken takes in rough cut v3.3 that the forced read-back passed (`lb_out/qc/dialogue-v33.tsv`).
+- **HARD — lip sync and speaker are checked by eye on every shot with a line (CEO 2026-10-09, same ruling).** One
+  image per line: 3 frames tiled inside the line's whisper timestamps (start+0.3, middle, end-0.3). PASS = the
+  intended speaker's mouth moves and nobody else's; FAIL = a wrong person mouths it, a visible face stays still
+  while the line plays, or two people mouth one line; NOTE = the speaker is off-screen or turned away. The brief
+  names the speaker of each line from the prompt and the character reference image, never from memory.
 - A Thai **sung** line reads back badly (E04 lullaby 0.39, heard as near-Thai syllables). Judge a song by ear.
 - `Thanks for watching!` at 0.0–2.0 s on a music-only clip is a whisper hallucination. Re-read with VAD off before
   calling it speech: C10 and D03 came back as `BOOM!`, the bell and thunder hits.
@@ -138,7 +152,7 @@ Gate 3 (eye checklist)   : FAIL — E01 #4 #5, E02 #7, E04 #3 #4, E06 #8, E07 #8
 Gate 4 (continuity)      : FAIL — E10 bell whole after E08 broken; mallet head E04 vs E08
 Gate 5 (re-shoot list)   : 7 re-shoots queued, free lane, priority E04 E06 E07 E10 E08 E01 E02
 Verdict: STOP — act E not locked; 7 re-shoots pending re-QC
-Not checked: motion between sampled frames, sound mix, lip sync on English lines, pacing across the cut
+Not checked: motion between sampled frames, sound mix, pacing across the cut
 ```
 
 ## Refusal
@@ -172,7 +186,7 @@ call an act clean when only stages 1–2 ran.
    Do not re-fire a queued shot.
 
 7. **Say what this loop still misses, every report.** Motion between sampled frames (a limb that morphs at 3.2 s),
-   the sound mix, lip sync on English lines, and pacing across the cut. A clean report means "no defect found by
+   the sound mix and pacing across the cut (lip sync is checked since 2026-10-09). A clean report means "no defect found by
    stages 1–4", not "no defect".
 
 8. **A conflict between the lock and a prompt goes to the director, not into a verdict.** B06's prompt asks for
