@@ -115,6 +115,14 @@ YTDLP_ATTEMPTS = 3
 YTDLP_PER_ATTEMPT_TIMEOUT_S = 180
 YTDLP_UNSUPPORTED_MARKER = "Unsupported URL"
 YTDLP_RETRYABLE_MARKER = "universal data for rehydration"
+# TikTok refuses yt-dlp unless it can impersonate a browser (curl_cffi). The
+# warning carrying this marker comes early in the output, so the tail kept in
+# `reason` usually cuts it off -- the hint puts the cause and the fix up front
+# (2026-10-10: every TikTok grab on Contabo failed this way until
+# scripts/install-yt-dlp.sh).
+YTDLP_NO_IMPERSONATE_MARKER = "no impersonate target is available"
+YTDLP_NO_IMPERSONATE_HINT = ("yt-dlp cannot impersonate a browser (curl_cffi missing), which TikTok "
+                             "needs -- run scripts/install-yt-dlp.sh install")
 
 PAGE_FETCH_TIMEOUT_S = 30.0     # matches threads-grab.sh's FETCH_TIMEOUT default
 MEDIA_DOWNLOAD_TIMEOUT_S = 300.0  # matches threads-grab.sh's CURL_MAX_TIME default
@@ -253,11 +261,18 @@ def _ytdlp_download(url: str, dest_dir: Path, *, attempts: int, deadline: float)
             return {"outcome": "unsupported"}
         if YTDLP_RETRYABLE_MARKER not in err or attempt == attempts:
             cleanup_parts()
-            return {"outcome": "fail", "reason": err[-500:] or "yt-dlp failed with no output"}
+            return {"outcome": "fail", "reason": _ytdlp_fail_reason(err)}
         time.sleep(min(attempt * 3, _remaining(deadline)))
 
     cleanup_parts()
-    return {"outcome": "fail", "reason": err[-500:] or "yt-dlp failed with no output"}
+    return {"outcome": "fail", "reason": _ytdlp_fail_reason(err)}
+
+
+def _ytdlp_fail_reason(err: str) -> str:
+    reason = err[-500:] or "yt-dlp failed with no output"
+    if YTDLP_NO_IMPERSONATE_MARKER in err:
+        reason = f"{YTDLP_NO_IMPERSONATE_HINT}. {reason}"
+    return reason
 
 
 # ---------------------------------------------------------------------------

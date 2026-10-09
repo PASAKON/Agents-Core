@@ -545,6 +545,32 @@ def test_ytdlp_real_failure_on_non_threads_url_never_attempts_threads(fake_run, 
     assert "yt-dlp failed" in result["reason"]
 
 
+def test_ytdlp_missing_impersonation_names_the_fix_even_when_the_tail_cuts_the_warning(
+        fake_dns, fake_run, tmp_path):
+    # The real 2026-10-10 TikTok output: the warning comes first, a long error
+    # after it, so err[-500:] alone drops the cause.
+    stderr = ("WARNING: [TikTok] The extractor is attempting impersonation, but no impersonate "
+              "target is available. If you encounter errors, then see ...\n"
+              "ERROR: [TikTok] 7489864438854520072: Unexpected response from webpage request; "
+              + "x" * 600)
+    fake_run.queues["yt-dlp"].append(FakeProc(1, stderr=stderr))
+    _install_public_dns(fake_dns, ["www.tt.site"])
+
+    result = vg.grab_video("https://www.tt.site/t/ZSbGXgkdL/", tmp_path)
+
+    assert result["reason_kind"] == "download_failed"
+    assert "curl_cffi missing" in result["reason"]
+    assert "scripts/install-yt-dlp.sh install" in result["reason"]
+
+
+def test_ytdlp_failure_without_the_marker_carries_no_impersonation_hint(fake_run, tmp_path):
+    fake_run.queues["yt-dlp"].append(FakeProc(1, stderr="ERROR: some real, non-retryable failure"))
+
+    result = vg.grab_video("https://example.org/x", tmp_path)
+
+    assert "curl_cffi" not in result["reason"]
+
+
 def test_ytdlp_real_failure_on_threads_looking_url_still_tries_threads(
         fake_dns, fake_http, fake_run, tmp_path):
     fake_run.queues["yt-dlp"].append(FakeProc(1, stderr="ERROR: some real, non-retryable failure"))
