@@ -15,6 +15,7 @@ Run:  python -m pytest tests/test_pc_lease_ceo_hold.py -q
 from __future__ import annotations
 
 import importlib.util
+import base64
 import json
 import os
 import re
@@ -988,8 +989,18 @@ def test_cmd_buttons_are_pure_ascii_and_call_the_right_mode():
         text = raw.decode("ascii")
         commands = [ln for ln in text.lower().splitlines() if not ln.startswith("rem ")]
         assert not any("pause" in ln for ln in commands), "the window must not linger"
-        assert re.search(r'-File "C:\\mooniex\\pclease\\ceo_button\.ps1" -Mode ' + mode + r"\r?$",
-                         text, re.M)
+        assert re.search(r'^start "" /min conhost\.exe powershell\.exe .*-WindowStyle Hidden '
+                         r'-File "C:\\mooniex\\pclease\\ceo_button\.ps1" -Mode ' + mode + r"\r?$",
+                         text, re.M), "launch through conhost, which honours -WindowStyle Hidden"
+        # a missing ceo_button.ps1 gets a Thai box, not a flash of console
+        m = re.search(r'^if not exist "C:\\mooniex\\pclease\\ceo_button\.ps1" \(\r?\n'
+                      r'  powershell\.exe .*-EncodedCommand ([A-Za-z0-9+/=]+)\r?\n'
+                      r'  exit /b 1\r?\n\)', text, re.M)
+        assert m, f"{path.name}: no fallback for a missing ceo_button.ps1"
+        shown = base64.b64decode(m.group(1)).decode("utf-16-le")
+        assert "MessageBox" in shown and "ceo_button.ps1" in shown
+        assert "\u0e44\u0e21\u0e48\u0e1e\u0e1a" in shown          # "ไม่พบ" (not found)
+        assert text.index("if not exist") < text.index("start ")
 
 
 def test_ps1_has_a_utf8_bom_and_runs_the_deployed_lease():
@@ -1003,8 +1014,34 @@ def test_ps1_has_a_utf8_bom_and_runs_the_deployed_lease():
     src = PC_LEASE.read_text(encoding="utf-8")
     for prefix in ("PC: CEO", "PC: released", "BUMPED: ", "NO HOLD:", "FARM: "):
         assert prefix in text and prefix in src
-    for state in ("back", "handed", "off", "unknown", "failed", "stopped"):
+    for state in ("back", "handed", "off", "unknown", "failed", "stopped", "still-running",
+                  "released", "held"):
         assert f"'{state}'" in text and f"FARM: {state} " in src
+
+
+def test_ps1_never_tells_the_ceo_a_bumped_agent_was_stopped():
+    text = PS1.read_bytes().decode("utf-8-sig")
+    # "หยุดเอเจนต์" -- "stopped the agent": false, a run in flight goes on.
+    assert "\u0e2b\u0e22\u0e38\u0e14\u0e40\u0e2d\u0e40\u0e08\u0e19\u0e15\u0e4c" not in text
+    # "อาจยังขยับจอ" -- "may still move the screen"
+    assert "\u0e2d\u0e32\u0e08\u0e22\u0e31\u0e07\u0e02\u0e22\u0e31\u0e1a\u0e08\u0e2d" in text
+
+
+def test_ps1_reports_the_lock_from_the_hold_file_and_serialises_presses():
+    text = PS1.read_bytes().decode("utf-8-sig")
+    assert "New-Object System.Threading.Mutex($false, 'Local\\MoonieXCeoButton')" in text
+    assert re.search(r"^trap \{", text, re.M), "an unexpected error must still show a box"
+    assert "$heldNow = Test-Held" in text
+    assert r"Documents\CookieRunScript\modelplay\CEO_HOLD.json" in text
+    # the final verdict on 'on' is the file, not only the line pc_lease printed
+    assert "if ($heldNow) {" in text
+
+
+def test_the_bumped_line_says_a_run_in_flight_is_not_stopped(box, capsys):
+    put_lease(box)
+    assert box.run("ceo-on") == 0
+    bumped = [ln for ln in capsys.readouterr().out.splitlines() if ln.startswith("BUMPED: ")]
+    assert len(bumped) == 1 and "NOT stopped" in bumped[0]
 
 
 # --- the one-way deploy (scripts/lib/winbox_deploy.sh) --------------------------

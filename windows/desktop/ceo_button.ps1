@@ -19,8 +19,12 @@
 #   PC: CEO / PC: released     the hold is on / off
 #   BUMPED: <who> ...          an agent lease that just lost the screen
 #   FARM: <state> - ...        what happened to Cookie Run
-#   NO HOLD: / WARNING: / FAILED:
+#   NO HOLD: / WARNING: / FAILED: / REFUSED:
 # Change one side, change the other (tests/test_pc_lease_ceo_hold.py).
+#
+# Whatever goes wrong, the box he sees says whether the screen is locked NOW,
+# read from the hold file itself -- never only "it failed" (review, 2026-10-09:
+# a crash after the lock was written told him the lock had failed).
 param(
     [Parameter(Mandatory = $true)] [ValidateSet('on', 'off')] [string] $Mode
 )
@@ -35,6 +39,47 @@ $Verb  = if ($Mode -eq 'on') { 'ceo-on' } else { 'ceo-off' }
 # stop waiting and say so: a button that never answers is worse than a "no".
 $LimitS = 900
 $Tell   = 'กรุณาบอก CTO พร้อมข้อความด้านล่างนี้'
+# Where pc_lease.py keeps the hold (Path.home()\Documents\...). Every user the
+# box has run it as, so the answer does not depend on who pressed.
+$HoldFiles = @(
+    (Join-Path $env:USERPROFILE 'Documents\CookieRunScript\modelplay\CEO_HOLD.json'),
+    'C:\Users\UsEr\Documents\CookieRunScript\modelplay\CEO_HOLD.json',
+    'C:\Users\passg\Documents\CookieRunScript\modelplay\CEO_HOLD.json'
+)
+
+
+function Test-Held {
+    foreach ($f in $HoldFiles) {
+        try { if (Test-Path -LiteralPath $f) { return $true } } catch { }
+    }
+    return $false
+}
+
+function Get-HoldLine {
+    if (Test-Held) { return 'ตอนนี้: จอล็อกอยู่ เอเจนต์ใช้จอไม่ได้' }
+    return 'ตอนนี้: จอไม่ได้ล็อก เอเจนต์ใช้จอได้'
+}
+
+function Show-Box([string] $Text, [bool] $Ok) {
+    # An owner that is TopMost puts the box in front of whatever is on screen; a
+    # box with no owner can open behind a full-screen window and look like
+    # nothing happened.
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        $owner = New-Object System.Windows.Forms.Form
+        $owner.TopMost = $true
+        $icon = if ($Ok) { [System.Windows.Forms.MessageBoxIcon]::Information } else { [System.Windows.Forms.MessageBoxIcon]::Warning }
+        [void][System.Windows.Forms.MessageBox]::Show($owner, $Text.Trim(), 'MoonieX', [System.Windows.Forms.MessageBoxButtons]::OK, $icon)
+        $owner.Dispose()
+    } catch { }
+}
+
+# Anything this script did not expect -- a missing assembly, a python that will
+# not start -- would otherwise end a HIDDEN window with no word to him at all.
+trap {
+    Show-Box ("ปุ่มนี้ทำงานไม่สำเร็จ`n" + (Get-HoldLine) + "`n$Tell`n`n" + $_.Exception.Message) $false
+    exit 1
+}
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -69,6 +114,34 @@ function New-Progress([string] $Text) {
 
 $waitText = if ($Mode -eq 'on') { 'กำลังล็อกจอให้คุณ รอสักครู่...' } else { 'กำลังปลดล็อกจอ รอสักครู่...' }
 $progress = New-Progress $waitText
+
+# One press at a time. A second press while the first still runs -- the off
+# button while Cookie Run is coming back, the same button twice -- waits for
+# the first to finish instead of racing it. pc_lease.py has its own file lock;
+# this keeps the two message boxes in the order he pressed.
+$mutex = New-Object System.Threading.Mutex($false, 'Local\MoonieXCeoButton')
+$have = $false
+$t0 = Get-Date
+while (-not $have) {
+    try {
+        $have = $mutex.WaitOne(200)
+    } catch {
+        # AbandonedMutexException: the previous press died holding it. That
+        # still hands the mutex to us.
+        $have = $true
+    }
+    if (-not $have) {
+        if ($progress) {
+            $progress.Label.Text = "รอปุ่มที่กดก่อนหน้านี้ทำงานให้เสร็จก่อน...`n$waitText"
+            [System.Windows.Forms.Application]::DoEvents()
+        }
+        if (((Get-Date) - $t0).TotalSeconds -gt $LimitS) {
+            if ($progress) { try { $progress.Form.Close() } catch { } }
+            Show-Box ("ปุ่มที่กดก่อนหน้านี้ยังทำงานไม่เสร็จ เลยยังไม่ได้ทำตามที่กดครั้งนี้`n" + (Get-HoldLine) + "`n$Tell") $false
+            exit 1
+        }
+    }
+}
 
 $out   = New-Object System.Collections.Generic.List[string]
 $err   = ''
@@ -105,6 +178,9 @@ try {
             if ($progress -and $line.StartsWith('PC: released')) {
                 $progress.Label.Text = "ปลดล็อกแล้ว กำลังเปิด Cookie Run กลับมา`nอาจใช้เวลาสองสามนาที..."
             }
+            if ($progress -and $line.StartsWith('PC: CEO')) {
+                $progress.Label.Text = "ล็อกจอแล้ว กำลังหยุด Cookie Run..."
+            }
             $next = $p.StandardOutput.ReadLineAsync()
             continue
         }
@@ -134,58 +210,72 @@ if ($err) {
     if ($e.Length -gt 800) { $e = '...' + $e.Substring($e.Length - 800) }
     $all = ($all + "`n" + $e).Trim()
 }
-$bumped = @($out | Where-Object { $_ -like 'BUMPED: *' } | ForEach-Object { $_.Substring(8) })
+$bumped = @($out | Where-Object { $_ -like 'BUMPED: *' } | ForEach-Object { ($_.Substring(8) -split ' \(lease to ')[0] })
 $farm = ''
 foreach ($l in $out) { if ($l -match '^FARM: ([a-z-]+)') { $farm = $Matches[1] } }
 $locked = [bool]($out | Where-Object { $_ -like 'PC: CEO*' })
 $freed  = [bool]($out | Where-Object { $_ -like 'PC: released*' })
 $nohold = [bool]($out | Where-Object { $_ -like 'NO HOLD:*' })
+# The hold file is the truth. The lines above say what pc_lease.py managed to
+# report before it ended; when it ended early (a crash, the time limit), the
+# file still says whether the screen is locked.
+$heldNow = Test-Held
 
-if ($crash) {
-    $ok  = $false
-    $msg = "ปุ่มนี้ทำงานไม่สำเร็จ`n$Tell`n`n$crash`n$all"
-} elseif ($Mode -eq 'on') {
-    if ($locked) {
-        $ok  = ($code -eq 0)
+$details = "$Tell`n`n$crash`n$all"
+if ($Mode -eq 'on') {
+    if ($heldNow) {
+        $ok  = ($code -eq 0) -and (-not $crash)
         $msg = 'ล็อกจอให้คุณแล้ว เอเจนต์จะไม่ใช้จอจนกว่าคุณจะกด เลิกใช้คอม'
         if ($bumped.Count -gt 0) {
-            $msg += "`n`nหยุดเอเจนต์ที่กำลังใช้จออยู่ไว้แล้ว: " + ($bumped -join ', ')
+            # The truth, and no more: a bumped agent cannot take the screen
+            # again, but a run it already started is not stopped by this.
+            $msg += "`n`nมีเอเจนต์ " + ($bumped -join ', ') + " ยืมจออยู่ ล็อกแล้ว มันขอจอใหม่ไม่ได้ แต่งานที่ทำค้างอยู่อาจยังขยับจออีกสักพัก ถ้าเห็นอะไรเปิดขึ้นมาเองให้บอก CTO"
         }
-        if ($farm -eq 'stopped') {
-            $msg += "`nหยุด Cookie Run ไว้ให้แล้ว จะกลับมาเองตอนคุณกด เลิกใช้คอม"
+        switch ($farm) {
+            'stopped'       { $msg += "`nหยุด Cookie Run ไว้ให้แล้ว จะกลับมาเองตอนคุณกด เลิกใช้คอม" }
+            'still-running' { $msg += "`nแต่ Cookie Run ยังไม่ยอมหยุด อาจยังกดปุ่มบนจออยู่" }
         }
-        if (-not $ok) { $msg += "`n`nแต่มีบางอย่างไม่เรียบร้อย $Tell`n`n$all" }
+        if (-not $ok) { $msg += "`n`nมีบางอย่างไม่เรียบร้อย`n$details" }
+    } elseif ($farm -eq 'released') {
+        $ok  = ($code -eq 0)
+        $msg = "ล็อกแล้ว แต่มีการกด เลิกใช้คอม ตามมาทันที`n" + (Get-HoldLine) + "`nถ้าจะใช้คอมต่อ ให้กด ใช้คอม อีกครั้ง"
+    } elseif ($locked) {
+        $ok  = $false
+        $msg = "ล็อกแล้ว แต่ไฟล์ล็อกหายไประหว่างทาง`n" + (Get-HoldLine) + "`n$details"
     } else {
         $ok  = $false
-        $msg = "ล็อกจอไม่สำเร็จ เอเจนต์ยังใช้จอได้อยู่`n$Tell`n`n$all"
+        $msg = "ล็อกจอไม่สำเร็จ`n" + (Get-HoldLine) + "`n$details"
     }
 } else {
-    if ($nohold) {
-        $ok  = ($code -eq 0)
-        $msg = 'ตอนนี้ไม่ได้ล็อกจออยู่ ไม่ต้องทำอะไรเพิ่ม'
-    } elseif ($freed) {
-        $ok  = ($code -eq 0)
-        $msg = 'ปลดล็อกแล้ว เอเจนต์กลับมาใช้จอได้'
-        switch ($farm) {
-            'back'    { $msg += "`nCookie Run กลับมาทำงานแล้ว" }
-            'handed'  { $msg += "`nCookie Run จะกลับมาเองเมื่อเอเจนต์ที่ยืมจออยู่คืนจอ" }
-            'off'     { $msg += "`nCookie Run ไม่ได้ทำงานอยู่ตอนที่คุณกด ใช้คอม เลยไม่ได้เปิดกลับ" }
-            'unknown' { $msg += "`nไม่ได้เปิด Cookie Run กลับ เพราะไม่รู้ว่าก่อนหน้านี้มันทำงานอยู่หรือเปล่า" }
-            'failed'  { $msg += "`nแต่ Cookie Run ไม่กลับมาทำงาน" }
+    if (-not $heldNow) {
+        if ($nohold) {
+            $ok  = ($code -eq 0)
+            $msg = 'ตอนนี้ไม่ได้ล็อกจออยู่ ไม่ต้องทำอะไรเพิ่ม'
+        } elseif ($freed) {
+            $ok  = ($code -eq 0) -and (-not $crash)
+            $msg = 'ปลดล็อกแล้ว เอเจนต์กลับมาใช้จอได้'
+            switch ($farm) {
+                'back'    { $msg += "`nCookie Run กลับมาทำงานแล้ว" }
+                'handed'  { $msg += "`nCookie Run จะกลับมาเองเมื่อเอเจนต์ที่ยืมจออยู่คืนจอ" }
+                'off'     { $msg += "`nCookie Run ไม่ได้ทำงานอยู่ตอนที่คุณกด ใช้คอม เลยไม่ได้เปิดกลับ" }
+                'unknown' { $msg += "`nไม่ได้เปิด Cookie Run กลับ เพราะไม่รู้ว่าก่อนหน้านี้มันทำงานอยู่หรือเปล่า" }
+                'failed'  { $msg += "`nแต่ Cookie Run ไม่กลับมาทำงาน" }
+            }
+            if (-not $ok) { $msg += "`n$details" }
+        } else {
+            $ok  = $false
+            $msg = "โปรแกรมทำงานไม่จบ`n" + (Get-HoldLine) + "`n$details"
         }
-        if (-not $ok) { $msg += "`n$Tell`n`n$all" }
+    } elseif ($freed -or $farm -eq 'held') {
+        # Released, then locked again before Cookie Run came back.
+        $ok  = ($code -eq 0)
+        $msg = "ปลดล็อกแล้ว แต่มีการกด ใช้คอม ตามมาก่อน Cookie Run จะกลับมา`n" + (Get-HoldLine) + "`nCookie Run จะกลับมาตอนกด เลิกใช้คอม ครั้งหน้า"
     } else {
         $ok  = $false
-        $msg = "ปลดล็อกไม่สำเร็จ เอเจนต์ยังใช้จอไม่ได้`n$Tell`n`n$all"
+        $msg = "ปลดล็อกไม่สำเร็จ`n" + (Get-HoldLine) + "`n$details"
     }
 }
 
-# An owner that is TopMost puts the box in front of whatever is on screen; a
-# box with no owner can open behind a full-screen window and look like nothing
-# happened.
-$owner = New-Object System.Windows.Forms.Form
-$owner.TopMost = $true
-$icon = if ($ok) { [System.Windows.Forms.MessageBoxIcon]::Information } else { [System.Windows.Forms.MessageBoxIcon]::Warning }
-[void][System.Windows.Forms.MessageBox]::Show($owner, $msg.Trim(), 'MoonieX', [System.Windows.Forms.MessageBoxButtons]::OK, $icon)
-$owner.Dispose()
+Show-Box $msg $ok
+try { $mutex.ReleaseMutex() } catch { }
 if ($ok) { exit 0 } else { exit 1 }
