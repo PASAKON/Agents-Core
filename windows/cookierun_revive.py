@@ -13,7 +13,8 @@ only thing missing was somebody to press start.
 This is that somebody. A scheduled task, so it does not depend on any session
 being open.
 
-It refuses to start in three cases, and each refusal matters more than the restart:
+It refuses to start in four cases, and each refusal matters more than the restart:
+  * the CEO holds the PC        -> he pressed his "use PC" button; do NOTHING
   * a screen lease is held      -> another agent is using the desktop
   * ESC_HOLD is set             -> a human stopped the bot; only a human clears it
   * the bot is already alive    -> nothing to do
@@ -27,6 +28,10 @@ from pathlib import Path
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
 LEASE = DATA / "modelplay" / "PC_LEASE.json"
+# Written and removed by the CEO's two desktop buttons (pc_lease.py ceo-on /
+# ceo-off). Its mere existence is the signal: a file we cannot read or parse
+# still counts as held, because a broken file must never free his screen.
+CEO_HOLD = DATA / "modelplay" / "CEO_HOLD.json"
 LOG = DATA / "modelplay" / "cookierun_revive.log"
 
 # How long the farm must have been down before we step in. Long enough that a
@@ -450,7 +455,27 @@ def start_app_task() -> bool:
         return False
 
 
+def ceo_holds_the_pc() -> bool:
+    try:
+        CEO_HOLD.stat()
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
 def main() -> int:
+    # Before anything at all -- before even starting the app, whose window would
+    # open over whatever he is doing. ceo-on stops the farm on purpose, and from
+    # here that looks exactly like a farm that died: down 10 min, nobody holding
+    # a lease. Left to the rest of this function it would start night, and when
+    # a non-browser window (his game) sat over BlueStacks it would minimise it
+    # after SELF_LAUNCH_GRACE_S. His release button puts the farm back.
+    if ceo_holds_the_pc():
+        log("CEO hold set - the CEO is using the PC; leaving everything alone")
+        return 0
+
     s = pipe("GET", "/status", timeout=20)
     if s is None:
         st = state_get()

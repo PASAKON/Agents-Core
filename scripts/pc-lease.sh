@@ -6,6 +6,11 @@
 #   ./scripts/pc-lease.sh give-back
 #   ./scripts/pc-lease.sh extend --minutes 60
 #
+# Above every lease sits the CEO. His two desktop buttons (windows/desktop/,
+# ceo-on / ceo-off) set a hold under which take, extend and gate refuse — take
+# and extend with exit 2, gate with 3 — and status opens with "PC: CEO". Wait
+# for his release button; nothing here gets past it.
+#
 # You do not need to know what is running on that box or how it works. `take`
 # parks it, `give-back` puts it back. If you never call `give-back`, a watchdog
 # on the box puts it back when your lease expires — so the worst case is a
@@ -27,6 +32,17 @@ PYEXE='C:\Users\UsEr\cookierun-bot\.venv\Scripts\python.exe'
 die() { printf '\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 
 [[ -f "$SRC" ]] || die "missing $SRC"
+
+# ceo-on / ceo-off are the CEO's own buttons: the desktop .cmd files run
+# pc_lease.py on the box and never pass through here. An agent his hold has
+# locked out must not be one command away from lifting it, so from here they
+# need his words -- checked before anything reaches the box.
+case "${1:-}" in
+  ceo-on|ceo-off)
+    [[ -n "${PC_LEASE_CEO_SAID:-}" ]] \
+      || die "$1 is the CEO's desktop button, not an agent command. Only if he asked for it in words: PC_LEASE_CEO_SAID=\"<his words>\" $0 $1"
+    ;;
+esac
 
 # Deploy only when the local file is newer than what the box has — an md5
 # compare, because mtime does not survive scp the way you would hope.

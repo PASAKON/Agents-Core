@@ -12,8 +12,10 @@ returns.
   pc_lease.py give-back
   pc_lease.py extend --minutes 60
   pc_lease.py tick                 # the watchdog; a scheduled task calls this
+  pc_lease.py ceo-on               # the CEO's "use PC" button (windows/desktop/)
+  pc_lease.py ceo-off              # the CEO's "done" button
 
-Two rules are load-bearing:
+Three rules are load-bearing:
 
 * It stops the bot with bot_stop (the STOP file), NEVER with esc. esc writes
   ESC_HOLD, which blocks every future launch until a HUMAN clears it -- app.py
@@ -21,6 +23,12 @@ Two rules are load-bearing:
   that used esc would take the farm down for the night, not for an hour.
 * The lease carries an expiry and `tick` enforces it. A borrower that crashes,
   loses its context or simply forgets costs one lease, not one night.
+* The CEO outranks every lease. A FREE lease is not a free screen: twice
+  (2026-10-07, 2026-10-09 13:36) an agent found it FREE and relaunched
+  Minecraft over the Dota 2 game the CEO was playing. His two desktop buttons
+  write and remove CEO_HOLD.json; while it exists take, extend and gate refuse,
+  and nothing here minimises a window or restarts Cookie Run. It has no expiry:
+  only the CEO ends it.
 
 Output is deliberately ASCII-only: it travels back through a PowerShell argument
 layer that turns non-ASCII into "?", and "?" is a single-char wildcard in
@@ -28,6 +36,7 @@ PowerShell paths (docs/reports/FINDING-winbox-ascii-only.md).
 """
 import argparse
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -47,6 +56,7 @@ DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
 LEASE = DATA / "modelplay" / "PC_LEASE.json"
 LOG = DATA / "modelplay" / "pc_lease.log"
+CEO_HOLD = DATA / "modelplay" / "CEO_HOLD.json"
 PIPE = "http://127.0.0.1:8794"
 
 DEFAULT_MINUTES = 120          # "others need 1-2 hours" -- CEO 2026-09-14
@@ -134,6 +144,128 @@ def hhmm(ts: float) -> str:
     return time.strftime("%H:%M", time.localtime(ts))
 
 
+# --- the CEO's hold ----------------------------------------------------------
+# A lease says which AGENT has the screen. It cannot say the CEO is sitting at
+# it, and twice now an agent read FREE as "nobody is here" -- 2026-10-07 (a night
+# runner) and 2026-10-09 13:36 (a rerun that relaunched Minecraft over his Dota
+# 2 game; his words: "let me use the PC first"). So he gets two desktop buttons
+# (windows/desktop/) that write and remove this file. While it exists:
+#   * take, extend and gate refuse -- no --force, no --as, no holder exception;
+#   * nothing here minimises a window or restarts Cookie Run (the windows on
+#     screen are his own, and the farm waits for his release button);
+#   * a lease that ends folds its "put Cookie Run back" duty onto the hold.
+# It has no expiry. A hold the CEO forgot costs the farm an evening; a hold that
+# timed out under him costs exactly what these buttons exist to stop.
+#
+#   {"since": epoch, "was_running": bool, "resume": plan | None,
+#    "bumped": {"who": str, "until": epoch} | None}
+HOLD_KEYS = ("since", "was_running", "resume", "bumped")
+
+
+def read_ceo_hold() -> dict | None:
+    """None only when there is no hold file. Anything else counts as HELD.
+
+    Fails closed on purpose: a file that exists but cannot be read or parsed
+    comes back held, details unknown ("corrupt": True). A broken file must never
+    be the thing that frees the CEO's screen.
+    """
+    try:
+        raw = CEO_HOLD.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    except OSError:
+        raw = None
+    try:
+        d = json.loads(raw) if raw is not None else None
+    except ValueError:
+        d = None
+    if isinstance(d, dict) and isinstance(d.get("since"), (int, float)):
+        return d
+    try:
+        since = CEO_HOLD.stat().st_mtime
+    except OSError:
+        since = time.time()
+    return {"since": since, "was_running": False, "resume": None, "bumped": None,
+            "corrupt": True}
+
+
+def write_ceo_hold(d: dict) -> None:
+    """Atomic (tmp + os.replace): a reader sees the old hold or the new one.
+
+    A torn write would read as corrupt, which still counts as held -- safe, but
+    it would lose the plan that puts Cookie Run back. Raises OSError when it
+    could not write; the caller decides how loud to be.
+    """
+    CEO_HOLD.parent.mkdir(parents=True, exist_ok=True)
+    tmp = CEO_HOLD.with_name(f"{CEO_HOLD.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps({k: d.get(k) for k in HOLD_KEYS}, indent=2),
+                   encoding="utf-8")
+    for attempt in range(10):
+        try:
+            os.replace(tmp, CEO_HOLD)
+            return
+        except PermissionError:
+            # Windows will not replace a file another process has open, and the
+            # readers (tick, health, revive, every agent's status) each hold it
+            # for a moment. Wait one out rather than fail the CEO's button.
+            if attempt == 9:
+                try:
+                    tmp.unlink()
+                except OSError:
+                    pass
+                raise
+            time.sleep(0.2)
+
+
+def clear_ceo_hold() -> bool:
+    """Remove the hold. False means it is still there -- say so, loudly."""
+    for _ in range(10):
+        try:
+            CEO_HOLD.unlink()
+            return True
+        except FileNotFoundError:
+            return True
+        except PermissionError:
+            time.sleep(0.2)              # a reader has it open; see write_ceo_hold
+        except OSError:
+            return False
+    return False
+
+
+def ceo_refusal(hold: dict) -> list[str]:
+    """The refusal every agent-facing command prints while the CEO holds the PC."""
+    return [f"REFUSED: the CEO is using this PC (CEO hold since {hhmm(hold['since'])}).",
+            "  Wait for the CEO's release button on the winbox desktop. --force does",
+            "  not override this and nothing else does either: he is at the keyboard."]
+
+
+def fold_into_hold(lease: dict, why: str) -> bool:
+    """Move a lease's duty to put Cookie Run back onto the CEO hold.
+
+    A lease that ends while the CEO holds the PC must not restart the farm under
+    him -- but the farm still has to come back, and the lease is the only record
+    that it was running. So the plan moves onto the hold and ceo-off carries it
+    out. False means it could not (the hold went away meanwhile, or the write
+    failed): the caller then KEEPS the lease, so the plan is never dropped.
+    """
+    if not lease.get("was_running"):
+        return True
+    hold = read_ceo_hold()               # re-read: he may have pressed release
+    if hold is None:
+        log(f"{why}: the CEO hold went away mid-hand-over; keeping the lease")
+        return False
+    hold["was_running"] = True
+    hold["resume"] = hold.get("resume") or lease.get("resume")
+    try:
+        write_ceo_hold(hold)
+    except OSError as e:
+        log(f"{why}: could not put {lease.get('who', '?')}'s Cookie Run plan "
+            f"on the CEO hold: {e}")
+        return False
+    log(f"{why}: Cookie Run plan from {lease.get('who', '?')} moved onto the CEO hold")
+    return True
+
+
 # --- stopping and resuming ---------------------------------------------------
 
 def wait_until_stopped(limit_s: int = 40) -> bool:
@@ -182,6 +314,11 @@ def capture_resume_plan(s: dict) -> dict:
 
 def resume(plan: dict, why: str) -> tuple[bool, str]:
     """Put Cookie Run back. Returns (ok, human-readable reason)."""
+    if read_ceo_hold() is not None:
+        # Every path that restarts the farm comes through here, so this is the
+        # one check no new caller can forget. Callers under a hold never get
+        # this far; this is the backstop if one ever does.
+        return False, "the CEO is using this PC (CEO hold) - not resuming"
     s = status()
     if s is None:
         return False, "the Cookie Run app is not running (no pipe) - cannot resume"
@@ -256,22 +393,43 @@ def game_running() -> bool:
 def cmd_status(_args) -> int:
     s = status()
     lease = read_lease()
+    hold = read_ceo_hold()
+
+    # The CEO's hold is the FIRST line, always: it is the one fact that makes
+    # every line after it irrelevant to an agent deciding whether to click.
+    if hold is not None:
+        print(f"PC: CEO - the CEO is using this PC since {hhmm(hold['since'])}. "
+              "Hands off the screen.")
+        print("    take, extend and gate refuse until he presses the release button.")
+        if hold.get("corrupt"):
+            print("    (the hold file is unreadable - it counts as held until he releases it)")
 
     if lease and remaining(lease) > 0:
         mins = int(remaining(lease) // 60)
         print(f"PC: BUSY - held by {lease.get('who', '?')}")
         print(f"    until {hhmm(lease['expires_at'])} ({mins} min left)")
-        print("    If that is you, carry on. If not, coordinate with them -")
-        print("    or take it anyway: peers outrank each other only by agreement.")
+        if hold is not None:
+            print("    That lease is blocked while the CEO holds the PC.")
+        else:
+            print("    If that is you, carry on. If not, coordinate with them -")
+            print("    or take it anyway: peers outrank each other only by agreement.")
+    elif hold is not None:
+        # Never the word FREE under a hold. A script that greps status for
+        # "PC: FREE" would read it as a go -- which is the 13:36 incident again.
+        print("    No agent lease is held.")
     elif lease:
         print("PC: FREE - a lease expired and the watchdog has not ticked yet")
     else:
         print("PC: FREE - nobody holds a lease")
 
-    if s is None:
+    if s is None and hold is not None:
+        print("Cookie Run: app NOT running")
+    elif s is None:
         print("Cookie Run: app NOT running (nothing to stop, screen is yours)")
     elif s.get("esc_hold"):
         print("Cookie Run: HELD by a human ESC (stays stopped until a human clears it)")
+    elif s.get("bot_alive") and hold is not None:
+        print("Cookie Run: RUNNING under the CEO hold - it should be stopped. Tell the CTO.")
     elif s.get("bot_alive"):
         print("Cookie Run: RUNNING - call `take` before you touch the screen")
     else:
@@ -282,6 +440,15 @@ def cmd_status(_args) -> int:
 def cmd_take(args) -> int:
     minutes = max(1, min(int(args.minutes), MAX_MINUTES))
     who = ascii_only(args.who or "unnamed agent")[:120]
+
+    # Before the lease check and before --force is even looked at: the CEO is
+    # not a peer, and no agreement between agents covers his screen.
+    hold = read_ceo_hold()
+    if hold is not None:
+        log(f"take by {who} REFUSED - CEO hold since {hhmm(hold['since'])}")
+        for line in ceo_refusal(hold):
+            print(line)
+        return 2
 
     old = read_lease()
     if old and remaining(old) > 0 and not args.force:
@@ -323,6 +490,18 @@ def cmd_take(args) -> int:
             return 1
     else:
         note = "Cookie Run app up but bot already idle - nothing to stop"
+
+    # The CEO may have pressed his button while we were stopping the bot. His
+    # hold wins, and what we just stopped becomes his release button's to
+    # restart -- so the plan goes onto the hold instead of into a lease.
+    hold = read_ceo_hold()
+    if hold is not None:
+        fold_into_hold({"who": who, "was_running": was_running, "resume": plan},
+                       f"take by {who}")
+        log(f"take by {who} REFUSED - the CEO pressed his button mid-take")
+        for line in ceo_refusal(hold):
+            print(line)
+        return 2
 
     now = time.time()
     write_lease({"who": who, "taken_at": now, "expires_at": now + minutes * 60,
@@ -369,7 +548,14 @@ def minimise_foreign_windows() -> str:
 
     Runs in SESSION 1 only -- see the note above. Minimise, never close: the
     window belongs to whoever opened it and they may want it back.
+
+    Never while the CEO holds the PC: then every window on screen is his. Like
+    resume(), the check lives here so the clear-screen task cannot get round it.
     """
+    if read_ceo_hold() is not None:
+        log("minimise_foreign_windows: refused - the CEO holds the PC")
+        return "REFUSED: the CEO holds the PC - minimised nothing"
+
     import ctypes
     import ctypes.wintypes
 
@@ -450,6 +636,33 @@ def cmd_clear_screen(_args) -> int:
 
 def cmd_give_back(_args) -> int:
     lease = read_lease()
+
+    # Under the CEO's hold a give-back clears nothing and restarts nothing: the
+    # windows on screen are his, and the farm waits for his release button. The
+    # lease still ends here -- its holder is done -- but its duty to put Cookie
+    # Run back moves onto the hold instead of being carried out under him.
+    hold = read_ceo_hold()
+    if hold is not None:
+        since = hhmm(hold["since"])
+        if not lease:
+            print(f"No lease was held. The CEO is using this PC (since {since}) - "
+                  "hands off the screen.")
+            return 0
+        who = lease.get("who", "?")
+        if not fold_into_hold(lease, f"give-back by {who}"):
+            print("FAILED: could not hand Cookie Run's restart over to the CEO hold.")
+            print("The lease is left in place; the watchdog hands it over when it expires.")
+            print("Tell the CTO. Either way, hands off the screen - the CEO is using it.")
+            return 1
+        clear_lease()
+        log(f"give-back by {who} during the CEO hold - lease cleared; "
+            "screen not cleared, Cookie Run not resumed")
+        print(f"OK - lease released. The CEO is using this PC (since {since}), so the")
+        print("     screen was NOT cleared and Cookie Run was NOT restarted. Hands off.")
+        if lease.get("was_running"):
+            print("     Cookie Run comes back when the CEO presses his release button.")
+        return 0
+
     # Before anything else, and on every path out of here -- including the two
     # early returns below, which are the ones that let this happen unnoticed.
     request_screen_clear()
@@ -483,6 +696,13 @@ def cmd_give_back(_args) -> int:
 
 def cmd_extend(args) -> int:
     lease = read_lease()
+    hold = read_ceo_hold()
+    if hold is not None:
+        log(f"extend by {(lease or {}).get('who', '?')} REFUSED - "
+            f"CEO hold since {hhmm(hold['since'])}")
+        for line in ceo_refusal(hold):
+            print(line)
+        return 2
     if not lease:
         print("No lease to extend. Call `take` first.")
         return 2
@@ -496,7 +716,8 @@ def cmd_extend(args) -> int:
 
 
 def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
-    """Exit 0 if it is safe to touch the screen, 3 if a tenant is farming unleased.
+    """Exit 0 if it is safe to touch the screen, 3 if a tenant is farming
+    unleased or the CEO holds the PC.
 
     **This command writes nothing to stdout, ever.** It is a predicate, not a
     reporter: the verdict is the exit code and every line of text -- refusal and
@@ -511,7 +732,25 @@ def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     returned OK, the toasts stacked in its own screenshots, and it read them as
     noise. The rule was written down and the document did not stop it. So the
     scripts that touch the screen call this first.
+
+    The CEO's hold is checked first and refuses with the SAME code, 3. Every
+    caller in the repo (winbox-desktop.sh, winbox-line-send.sh) runs
+    `pc-lease.sh gate || exit 3`, and the skill documents 0 = proceed, 3 =
+    refused; a new code would be one a hand-written `[[ $? == 3 ]]` check reads
+    as a pass. --as does not get a holder past it: the CEO is not a lease.
     """
+    hold = read_ceo_hold()
+    if hold is not None:
+        # Local import like the two below: they make `sys` a local name for the
+        # whole function, so the module-level one is not visible up here.
+        import sys
+        say = lambda t="": print(t, file=sys.stderr)
+        say(f"REFUSED: the CEO is using the winbox screen (since {hhmm(hold['since'])}).")
+        say("  Hands off until he presses the release button on his desktop. No")
+        say("  lease, --as or --force gets past this - and do not reach for")
+        say("  WINBOX_NO_LEASE: it exists for the farm, and he is at the keyboard.")
+        return 3
+
     lease = read_lease()
     held = lease and remaining(lease) > 0
 
@@ -597,8 +836,23 @@ def record_foreground() -> None:
 
 def cmd_tick(_args) -> int:
     """The watchdog. Resumes Cookie Run when a lease runs out."""
+    # Read-only, so it runs under the CEO's hold too: GetForegroundWindow and
+    # GetWindowText only look (GetWindowText does not even message a window
+    # owned by another process), and the one write is foreground.json.
     record_foreground()
     lease = read_lease()
+
+    # Under the CEO's hold the watchdog minimises nothing and resumes nothing.
+    # A lease that runs out meanwhile is cleared here, and its duty to put
+    # Cookie Run back moves onto the hold, for his release button to carry out.
+    hold = read_ceo_hold()
+    if hold is not None:
+        if lease and remaining(lease) <= 0 and fold_into_hold(lease, "tick"):
+            clear_lease()
+            log(f"tick: lease from {lease.get('who', '?')} expired during the CEO "
+                "hold - cleared; nothing minimised, nothing resumed")
+        return 0
+
     if not lease:
         return 0
     if remaining(lease) > 0:
@@ -612,7 +866,7 @@ def cmd_tick(_args) -> int:
     #
     # This runs IN session 1 already, so it can just do it.
     cleared = minimise_foreign_windows()
-    if cleared and not cleared.startswith("FAILED"):
+    if cleared and not cleared.startswith(("FAILED", "REFUSED")):
         log(f"tick: lease lapsed - minimised {cleared}")
 
     who = lease.get("who", "?")
@@ -636,6 +890,164 @@ def cmd_tick(_args) -> int:
     else:
         write_lease(lease)
         log(f"tick: resume attempt {fails}/{RESUME_TRIES} failed ({why}); will retry")
+    return 1
+
+
+# --- the CEO's two buttons ---------------------------------------------------
+# windows/desktop/ceo_button.ps1 runs these and turns the output into one Thai
+# message box, by reading the line prefixes below -- keep them stable:
+#   PC: CEO / PC: released   the hold is on / off
+#   BUMPED: <who> ...        an agent lease that just lost the screen
+#   FARM: <state> - ...      what happened to Cookie Run
+#   NO HOLD: / WARNING: / FAILED:
+# Neither command ever minimises, clears or focuses a window. On ceo-on the
+# CEO is about to use the screen; on ceo-off the windows on it are his own.
+
+def cmd_ceo_on(_args) -> int:
+    """The "use PC" button: lock agents out first, then park Cookie Run."""
+    now = time.time()
+    hold = read_ceo_hold()
+    already = hold is not None and not hold.get("corrupt")
+    if hold is not None:
+        d = {k: hold.get(k) for k in HOLD_KEYS}  # keep the original since + plan
+    else:
+        d = {"since": now, "was_running": False, "resume": None, "bumped": None}
+
+    lease = read_lease()
+    active = lease if lease and remaining(lease) > 0 else None
+    if active:
+        # Bumped, not ended: the lease file stays, so its holder's next status
+        # or gate shows them exactly why they are blocked, and its own plan for
+        # Cookie Run survives to be handed on later.
+        d["bumped"] = {"who": ascii_only(str(active.get("who", "?")))[:120],
+                       "until": active.get("expires_at")}
+
+    # Lock first, then ask Cookie Run anything. The pipe can take 20 s to answer
+    # and the bot up to 40 s to stop; agents are locked out from the press, not
+    # from whenever the farm gets round to replying.
+    try:
+        write_ceo_hold(d)
+    except OSError as e:
+        log(f"ceo-on: could not write the CEO hold: {e}")
+        print("FAILED: could not write the CEO hold - agents are NOT locked out.")
+        print(f"        {ascii_only(str(e))[:200]}")
+        print("        Tell the CTO.")
+        return 1
+
+    warn = None
+    s = status()
+    if s is None:
+        farm = "FARM: no-app - the Cookie Run app is not running, nothing to stop."
+    elif s.get("esc_hold"):
+        farm = "FARM: idle - Cookie Run is held by a human ESC, nothing to stop."
+    elif s.get("bot_alive"):
+        if not d.get("resume"):
+            d["resume"] = capture_resume_plan(s)
+        d["was_running"] = True
+        try:
+            write_ceo_hold(d)
+        except OSError as e:
+            log(f"ceo-on: could not record Cookie Run's plan on the hold: {e}")
+            warn = ("WARNING: the lock is on, but Cookie Run's restart plan was not saved - "
+                    "the release button will not bring the farm back. Tell the CTO.")
+        # bot_stop, NEVER esc -- see the header. esc would keep the farm down
+        # after the release button too, until a human cleared it by hand.
+        run_fn("bot_stop")
+        if wait_until_stopped():
+            farm = "FARM: stopped - Cookie Run stopped; it comes back on the release button."
+        else:
+            farm = "FARM: still-running - Cookie Run did not stop."
+            warn = ("WARNING: asked Cookie Run to stop but it is still alive after 40 s. "
+                    "The lock is on, but the bot may still be pressing keys. Tell the CTO.")
+    elif d.get("was_running"):
+        farm = "FARM: stopped - Cookie Run is stopped; it comes back on the release button."
+    else:
+        farm = "FARM: idle - Cookie Run was not running, nothing to stop."
+
+    since = hhmm(d["since"])
+    if already:
+        print(f"PC: CEO - already held since {since} (kept as it was). Agents stay")
+        print("    locked out until the release button is pressed.")
+    else:
+        print(f"PC: CEO - the PC is the CEO's since {since}. Agents are locked out")
+        print("    until the release button is pressed.")
+        if hold is not None:
+            print("    (the old hold file was unreadable - written again)")
+    print(farm)
+    if active:
+        print(f"BUMPED: {d['bumped']['who']} (lease to {hhmm(active['expires_at'])}) - "
+              "blocked until the release button.")
+    log(f"ceo-on: CEO hold since {since}{' (already held)' if already else ''} - {farm}"
+        + (f"; bumped {d['bumped']['who']}" if active else ""))
+    if warn:
+        print(warn)
+        log(f"ceo-on: {warn}")
+        return 1
+    return 0
+
+
+def cmd_ceo_off(_args) -> int:
+    """The "done" button: lift the hold, then put Cookie Run back if it was ours."""
+    hold = read_ceo_hold()
+    if hold is None:
+        print("NO HOLD: the CEO hold is not set - nothing to release.")
+        return 0
+    if not clear_ceo_hold():
+        log("ceo-off: could not remove the CEO hold file")
+        print("FAILED: could not remove the CEO hold - agents are still locked out.")
+        print("        Tell the CTO.")
+        return 1
+
+    since = hhmm(hold["since"])
+    log(f"ceo-off: CEO hold since {since} released")
+    print(f"PC: released - the CEO hold (since {since}) is gone; agents may use the screen.")
+
+    # A plan on the hold means the farm ran when SOMEBODY parked it -- ceo-on
+    # itself, or a lease that ended under the hold and folded its plan in.
+    was_running = bool(hold.get("was_running") or hold.get("resume"))
+    plan = hold.get("resume")
+
+    lease = read_lease()
+    if lease and remaining(lease) <= 0:
+        # A bumped lease that ran out before the tick folded it. Settle it here:
+        # left on file, the next tick would treat it as a lapsed borrow and
+        # minimise every window on screen -- the CEO's, a minute after he said
+        # he was done.
+        if lease.get("was_running"):
+            was_running = True
+            plan = plan or lease.get("resume")
+        clear_lease()
+        log(f"ceo-off: lease from {lease.get('who', '?')} had expired - cleared")
+        lease = None
+
+    if lease and (was_running or lease.get("was_running")):
+        # An agent still holds an unexpired lease. Restarting the farm under it
+        # would fight it for the screen; its give-back (or the watchdog at its
+        # expiry) restores the farm, so that is where the plan goes.
+        if was_running:
+            lease["was_running"] = True
+            lease["resume"] = plan or lease.get("resume")
+            write_lease(lease)
+        log(f"ceo-off: Cookie Run's restart handed to {lease.get('who', '?')}'s lease")
+        print(f"FARM: handed - {lease.get('who', '?')} still holds a lease until "
+              f"{hhmm(lease['expires_at'])}; Cookie Run comes back when they give it back.")
+        return 0
+    if hold.get("corrupt") and not was_running:
+        print("FARM: unknown - the hold file was unreadable, so whether Cookie Run was")
+        print("      running is unknown. Not restarting it.")
+        return 0
+    if not was_running:
+        print("FARM: off - Cookie Run was not running when the hold began; nothing restarted.")
+        return 0
+
+    # Same fallback as give-back: a hold that knows the farm ran but not how.
+    ok, why = resume(plan or {"fn": "night", "args": {"rounds": 60}}, "ceo-off")
+    log(f"ceo-off: resume ok={ok} ({why})")
+    if ok:
+        print(f"FARM: back - Cookie Run is running again ({why}).")
+        return 0
+    print(f"FARM: failed - Cookie Run did not come back: {why}")
+    print("Tell the CTO - the farm is idle until someone looks at it.")
     return 1
 
 
@@ -665,6 +1077,8 @@ def main() -> int:
                    help="who is calling; suppresses the NOTE when it is the lease holder")
     g.set_defaults(fn=cmd_gate)
     sub.add_parser("tick").set_defaults(fn=cmd_tick)
+    sub.add_parser("ceo-on", help="the CEO's 'use PC' button").set_defaults(fn=cmd_ceo_on)
+    sub.add_parser("ceo-off", help="the CEO's 'done' button").set_defaults(fn=cmd_ceo_off)
 
     args = p.parse_args()
     return args.fn(args)
