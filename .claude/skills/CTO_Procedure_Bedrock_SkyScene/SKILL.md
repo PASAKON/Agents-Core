@@ -16,6 +16,12 @@ The CEO, 2026-10-06: *"เอาท่าที่เกมทำได้เล
 Match 90% with what the engine can do. What lighting cannot do goes to textures and VFX.
 Also CEO 2026-10-06: capture every shot by script, look at ONE combined sheet once, tune in one pass.
 
+**Back to basics, CEO 2026-10-09** (after 33 rounds, 17 of them "confirm", moved the concept score backwards):
+*"ทำ 1 / 22 ให้ ดีที่สุดก่อน พอได้สิ่งที่ ดีที่สุดใน 1/22 ค่อยมาปนับ 2/22 ..... ไปเรื่อยๆ · ทุกค่าเมื่อปรับแล้ว เช่นแสงหรือ
+ท้องฟ้า หรือ เมฆฒ หรืออื่นๆ จะต้อง รอคอนเฟริ่มจากฉันก่อนว่าผ่าน ถึงจะไป setting ต่อไปได้"*. One stop at a time, one
+setting (gate) at a time, and the CEO passes every gate before the next one starts (rules 4, 5 and 12). Plan:
+`~/.claude/plans/witty-meandering-thunder.md`; old values: MoonieX-Bedrock `docs/design/sky/ARCHIVE-2026-10-09.md`.
+
 Input: a scene (a stop id such as `T00`, scene #1, the dreamy day), its concept image, a MoonieX-Bedrock
 checkout with the sky packs · Output: one sheet (concept next to game, similarity per band), the tuned files
 committed with provenance rows, one learning fold · Tool: the table under "Tools".
@@ -130,7 +136,14 @@ the bottom (windowed client). Underwater stops (E16, E17) use the top and bottom
     0.12-0.18 H above the sun. The camera height below the head is not settled (1.6 vs 2.34 blocks). Test helpers
     `world()` + `px()` in `tests/js/sky_fx_near.test.mjs` do the projection. Runs: task-e7485779, task-222da532,
     task-4ba4a067.
-13. **Confirm once.** Repeat steps 2 to 9 once with all changes together. Stop at `zen` and `hor` of 90 or
+13. **Per stop, per gate (CEO 2026-10-09).** Gates in order: G0 render lock, G1 sky system (pack demo), G2 light,
+    G3 sky colour + horizon + fog, G4 sun/moon, G5 clouds (judged on video), G6 particles, G7 final grade, G8 walk
+    video. Each gate: at most 3 options from one deploy (A = the approved state now; B and C move one axis), one
+    phone-portrait sheet with the reference on top and the build sha, sent with `send_media_to_ceo` and
+    SendUserFile. Wait for the answer; start no other gate. A pass is a commit plus a row in
+    `docs/learning/approvals.jsonl` (stop, gate, sha, values, the CEO's words, time). Three fails on one gate:
+    stop and send the "engine cannot because X" note. The next stop starts only after G8 passes.
+    [SUPERSEDED 2026-10-09] **Confirm once.** Repeat steps 2 to 9 once with all changes together. Stop at `zen` and `hor` of 90 or
     more, or at a ceiling written down: band, number, levers tried, what the engine cannot do. Commit the
     files with their provenance rows in the same commit (`CTO_Standard_Bedrock_WorkLayout` item 4).
 14. **Give the lease back** the moment the last shot is taken: `python3 tools/sky_tour.py reset`, then
@@ -171,10 +184,17 @@ provenance check silent; the lease given back; the fold written.
    recalled.
 3. **HARD — paid spend needs the exact price and the CEO's OK first.** Free trial credits are fine.
    **Why hard:** money — PixelLab's free plan gave 40 generations; a call charged in USD stops the run.
-4. Capture every shot by script, look at one sheet once, tune in one pass (CEO 2026-10-06). Each extra look
-   is a round trip, and the frame drifts between shots.
-5. The CTO picks the closest option to the concept, by the numbers and then by eye on the sheet. The CEO does
-   not choose between options. Report picture first, numbers after.
+4. Capture every shot by script. Work ONE stop and ONE gate at a time (CEO 2026-10-09: *"ทำ 1 / 22 ให้ ดีที่สุดก่อน"*);
+   a round over all 22 stops is only the regression check after a shared file changes (rule 12).
+   [SUPERSEDED 2026-10-09] Capture every shot by script, look at one sheet once, tune in one pass (CEO 2026-10-06).
+   Evidence that beat it: 33 full rounds in about 2.5 days; concept dE confirm32 762.4 to confirm43 1095.5.
+5. **The CEO passes every gate** (CEO 2026-10-09: *"ทุกค่าเมื่อปรับแล้ว ... จะต้อง รอคอนเฟริ่มจากฉันก่อนว่าผ่าน"*). The CTO
+   builds at most three options and recommends one; the CEO's eye decides. Numbers catch regressions only: on
+   2026-10-09 E07 scored zen 2.6 / hor 12.4 dE while the frame was a washed pink haze with no clouds. Report picture
+   first, numbers after.
+   [SUPERSEDED 2026-10-09] The CTO picks the closest option to the concept, by the numbers and then by eye on the
+   sheet. The CEO does not choose between options. Evidence that beat it: 0 of 40 CEO verdicts recorded across the
+   loop; values approved by eye moved again in later rounds (emissive .3 to .2 to .1, T00 time 5 times).
 6. Match what the engine can do. Stop fitting palettes at `zen` 90; give the rest to textures and VFX.
 7. Likeness first, cost second (CEO 2026-10-07: *"ทำให้เหมือน reff มากที่สุดก่อน แล้วค่อยทา optimize ให้มัน เบาลงและยังคง
    ความเหมือนอยู่"*). Build each scene's clouds and VFX to the closest look first. Only then cut particle
@@ -212,6 +232,12 @@ provenance check silent; the lease given back; the fold written.
    through the bridge (`mcmd.sh "gamerule sendcommandfeedback false"`, read back with `mcmd.sh "gamerule sendcommandfeedback"`);
    it lives in the world save, so a fresh or restored world needs it again. Set 2026-10-08 04:05 on mooniex-sky, with
    `commandblockoutput false`.
+12. **An approved value is locked** (CEO 2026-10-09: *"ไม่งั้นวนลูบ ปรับไปกบับมากลับมาปรับบนู้นนี่นั้นเสียเวลามาก"*).
+   `tests/js/sky_approved_lock.test.mjs` snapshots what the game draws for each passed stop (the `paletteFor`
+   output, the fog id, the sha256 of every file the stop uses, the fx and ring defaults, the client version) and
+   fails when one changes without a new approvals row. Only the CEO reopens a gate: a `reopen <gate>` row voids that
+   gate and every gate after it, and work resumes there. When a shared file (sun.png, clouds.png, lighting, a fog
+   default) changes, every passed stop is shot again (median of 3) against its noise baseline.
 
 ## Output format (the report)
 
@@ -436,3 +462,9 @@ spent: 0 USD, N free generations · lease: taken HH:MM, given back HH:MM
 - 2026-10-09 [COSTLY] §Step 13 commit — a provenance merge helper that rebuilds assets.jsonl from git stages :1/:2/:3 writes it EMPTY when git auto-merged that file (no stages); `provenance.py check` then lists every pack file as missing. Run such a helper only on paths in `git ls-files -u`; recover with `git merge-file` over base/ours/theirs · evidence: MoonieX-Bedrock 1960bac, merge_prov.py (cto-369faf85, guarded 2026-10-09) · status: pending
 - 2026-10-09 [WRONG] §Step 7 — a preshot of `fx_ring bgfade 0` makes the painted band swap card by card only behind the player (logic.js ringCards, unseen 105 deg); the tour camera never turns, so the front cards keep an earlier stop's set and every per-stop number mixes sets (confirm39 E04/E05 read a day band at night, zen 97,158,241). Preshot `bgfade 1` (all cards at once) fixed it: the fair pair at bgfade 1 read night identical for fade and emit3. fx_status cannot show it: with mat 4 and clouds 0 it prints the ring target, not the band's cards · evidence: cto-369faf85 + cto-f39cb080 confirm39, ringx1, confirm40/41 · status: pending
 - 2026-10-09 [MISSING] §Step 13 — two band pictures with the same median can still move night stops in game: the 256-colour build (12bde02) took E01 10.7 -> 49.2 while the blue_moon picture's median stayed 16,40,81; the 48-colour build read 10.4. A band change needs at least one night stop in its check round. Day set emissive: golden_day .2 is the ceiling (E06 67.2 -> 54.8); .1 cost E07 25.6 -> 36.8 · evidence: confirm42, confirm43, a9131b6, a4eeb9b · status: pending
+- 2026-10-09 [MISSING] §Tools — a pack demo runs on a copy of the world (`worlds\mooniex-demo`, one pack in its `world_resource_packs.json`, `level-name` switched in `server.properties`), so the 5 pack ids of mooniex-sky stay untouched. The LAN tile still shows the level.dat name `mooniex-sky`, so the normal join works; a pack the client lacks raises "Download Everything & Join", which `join_demo_dl.sh` clicks (the first run gave up at step 40 without it). About 5 min a cell with a still and an 11 s pan · evidence: scratch `demo/demo_cell.ps1`, `demo/demo_g1.sh`, basics-2026-10-09/g1/run.log · status: pending
+- 2026-10-09 [MISSING] §Tools — CurseForge answers curl with 403 on the project page; `https://www.curseforge.com/api/v1/mods/<project>/files/<file>/download` redirects to mediafilez.forgecdn.net and downloads (ids read from the page in a browser) · evidence: MoonieX-Bedrock links.jsonl L014, demo-quarantine-2026-10-09/reimagined · status: pending
+- 2026-10-09 [MISSING] §What can reach what — shipped VV sky packs draw clouds by painting them into `overworld_cubemap` (Re-imagined: 2048 px faces, clouds.png 1x1); Hyper Realistic Sky ships cubemaps only and no `pbr` capability, so under VV it falls back to Fancy · evidence: manifests read in demo-quarantine-2026-10-09, links.jsonl L013/L014 · status: pending
+- 2026-10-09 [WRONG] §Measure — the band metric can score a frame close while the eye sees it far: confirm43 E07 read zen 2.6 / hor 12.4 dE to the concept and was a washed pink haze with no clouds; confirm22 read 82-96 similar while the CEO judged about 10% alike. Two band medians cannot see cloud shape or the sun · evidence: basics-2026-10-09/E07_step0_ref.jpg, archive-2026-10-09/concept_dE_by_round.txt · status: pending
+- 2026-10-09 [COSTLY] §Steps — a baseline with every fx category off cannot be a code default yet: `DEFAULT_OFF = [...CATEGORIES]` failed 41 of 198 node tests that assume the old defaults. It is world state (`fx all off`) plus pyround `SKY_PRESHOT=baseline` · evidence: MoonieX-Bedrock sky-basics c3fc097 message · status: pending
+- 2026-10-09 [MISSING] §Tools — Mac shell traps in the scratch tools: zsh does not split an unquoted `$VAR` (use `bash -c` or `${=VAR}`), awk under the af_ZA locale prints `1485,0` (use `LC_ALL=C`), and the Mac has no `timeout` · evidence: archive-2026-10-09 concept_dE_totals.txt rebuild, this session · status: pending
