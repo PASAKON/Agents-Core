@@ -93,3 +93,4 @@ The passed script is `docs/prompts/the-old-telling-ep1/SCRIPT-TH.md` v3. Our del
 ## Field notes
 
 Append only; see ADR 0026 for tiers. (none yet)
+- 2026-10-09 [MISSING] §Other languages — CEO ruling after the first cut (his words: all text, character voice and picture text in the video are English; dubbing is a separate track per wanted language; no burned-in subtitles because YouTube makes auto captions; characters speak little, in English, and the line is the translation of what the Thai script says). So the master of an episode is ENGLISH, and TH, ES, DE, JA are dub tracks laid on the same picture, made only when asked; the road map above still writes each language fresh, but the picture is built from the English script. Dub lines must fit the English shot times, so the dub script is written against the cut, not before it · evidence: CEO message 2026-10-09 (session cmo-f76492bf), SCRIPT-EN.md v4 · status: pending
