@@ -1068,10 +1068,22 @@ if not m:
 if os.environ.get("FAKE_SSH_DOWN"):
     sys.exit(255)
 ps = base64.b64decode(m.group(1)).decode("utf-16-le")
+with open(os.environ["FAKE_LOG"], "a") as f:
+    f.write("ps " + ps.strip().splitlines()[0][:120] + "\n")
+if "Get-ScheduledTask" in ps:
+    print(os.environ.get("FAKE_REVIVE_ACTION", "")); sys.exit(0)
+if "GetFolderPath('Desktop')" in ps:
+    open(os.path.join(box, "DESKTOP_BUTTONS"), "w").close()
+    print("DESKTOP=C:\\Users\\passg\\OneDrive\\Desktop\nON=True\nOFF=True"); sys.exit(0)
 remote = re.search(r"\$p = '([^']+)'", ps).group(1)
 path = os.path.join(box, remote.rsplit("\\", 1)[-1])
 def md5():
     return hashlib.md5(open(path, "rb").read()).hexdigest()
+bak = re.search(r"\.bak-([0-9-]+)'", ps)
+if "Copy-Item" in ps and bak:
+    import shutil
+    shutil.copyfile(path, path + ".bak-" + bak.group(1))
+    print("BACKUP=True"); sys.exit(0)
 if "Select-String" in ps:
     if not os.path.exists(path):
         print("none none -"); sys.exit(0)
@@ -1095,6 +1107,8 @@ src, dst = sys.argv[-2], sys.argv[-1]
 with open(os.environ["FAKE_LOG"], "a") as f:
     f.write(f"scp {src} {dst}\n")
 target = os.path.join(box, dst.split(":", 1)[1].rsplit("\\", 1)[-1])
+if os.environ.get("FAKE_SCP_IGNORES_READONLY") and os.path.exists(target):
+    os.chmod(target, 0o644)
 try:
     shutil.copyfile(src, target)
 except PermissionError:
@@ -1213,3 +1227,119 @@ def test_pc_lease_wrapper_gate_keeps_stdout_empty_when_the_checkout_is_stale(fak
                                        (REVIVE, "REVIVE_VERSION")])
 def test_every_deployed_file_carries_its_version_line(path, name):
     assert re.search(rf"(?m)^{name} = \d+$", path.read_text(encoding="utf-8"))
+
+
+# --- the installer (windows/desktop/install_ceo_buttons.sh) -----------------------
+# Review, 2026-10-09: it put the buttons on the desktop in step 2 and only warned
+# when revive could not be found, so the buttons could go live with watchdogs
+# that ignore the hold. Run against the fake box, from a throwaway git checkout
+# whose origin is a local bare repo.
+
+REVIVE_ACTION = (r"C:\Users\UsEr\cookierun-bot\.venv\Scripts\pythonw.exe "
+                 r"C:\Users\UsEr\cookierun-bot\cookierun_revive.py")
+
+
+@pytest.fixture
+def install(fakebox):
+    import shutil
+    tmp = fakebox.tmp
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "core.hooksPath=/dev/null",
+           "-c", "init.defaultBranch=main"]
+    origin = tmp / "origin.git"
+    subprocess.run(git + ["init", "-q", "--bare", str(origin)], check=True)
+    repo = tmp / "repo"
+    for rel in ("scripts/lib/winbox_deploy.sh", "scripts/pc-lease.sh", "windows/pc_lease.py",
+                "windows/cookierun_health.py", "windows/cookierun_revive.py",
+                "windows/desktop.ps1", "windows/line-send.ps1"):
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / rel, repo / rel)
+    shutil.copytree(DESKTOP, repo / "windows" / "desktop")
+    g = lambda *a: subprocess.run(git + ["-C", str(repo), *a], check=True,  # noqa: E731
+                                  capture_output=True)
+    g("init", "-q")
+    g("add", "-A")
+    g("commit", "-q", "-m", "x")
+    g("remote", "add", "origin", str(origin))
+    g("push", "-q", "origin", "HEAD:main")
+
+    def run(**extra):
+        env = {**fakebox.env, "FAKE_REVIVE_ACTION": REVIVE_ACTION, **extra}
+        r = subprocess.run(["bash", str(repo / "windows" / "desktop" / "install_ceo_buttons.sh")],
+                           capture_output=True, text=True, env=env, timeout=120)
+        log = (tmp / "calls.log").read_text().splitlines()
+        return r, log
+
+    return SimpleNamespace(run=run, repo=repo, g=g, box=fakebox.box)
+
+
+def desktop_step(log):
+    return [i for i, ln in enumerate(log) if "GetFolderPath('Desktop')" in ln]
+
+
+def test_installer_deploys_everything_before_the_buttons_go_up(install):
+    r, log = install.run()
+    assert r.returncode == 0, r.stderr
+    assert "buttons are live" in r.stdout
+    desk = desktop_step(log)
+    assert len(desk) == 1
+    for name in ("pc_lease.py", "cookierun_health.py", "cookierun_revive.py",
+                 "desktop.ps1", "line-send.ps1", "ceo_on.cmd", "ceo_off.cmd"):
+        copied = [i for i, ln in enumerate(log) if ln.startswith("scp ") and ln.endswith(name)]
+        assert copied and max(copied) < desk[0], f"{name} went up after the buttons"
+    for name in ("pc_lease.py", "cookierun_revive.py", "desktop.ps1"):
+        assert not os.access(install.box / name, os.W_OK), f"{name} left writable on the box"
+
+
+def test_installer_puts_no_button_up_when_revive_cannot_be_found(install):
+    r, log = install.run(FAKE_REVIVE_ACTION="")
+    assert r.returncode != 0 and "MooniexCookieRunRevive" in r.stderr
+    assert desktop_step(log) == [] and not (install.box / "DESKTOP_BUTTONS").exists()
+    assert not any(ln.endswith("ceo_on.cmd") for ln in log)
+
+
+def test_installer_refuses_a_head_that_is_not_on_origin_main(install):
+    (install.repo / "windows" / "pc_lease.py").write_text("LEASE_VERSION = 99\n")
+    install.g("commit", "-q", "-am", "unreviewed")
+    r, log = install.run()
+    assert r.returncode != 0 and "origin/main" in r.stderr
+    assert not any(ln.startswith(("ssh", "scp")) for ln in log), "touched the box"
+
+
+def test_installer_refuses_uncommitted_changes(install):
+    (install.repo / "windows" / "pc_lease.py").write_text("LEASE_VERSION = 99\n")
+    r, log = install.run()
+    assert r.returncode != 0 and "uncommitted" in r.stderr
+    assert not any(ln.startswith(("ssh", "scp")) for ln in log)
+
+
+def test_installer_backs_up_a_revive_edited_on_the_box(install):
+    edited = "# someone's fix, made on the box\nprint('revive')\n"
+    (install.box / "cookierun_revive.py").write_text(edited)
+    r, _log = install.run()
+    assert r.returncode == 0, r.stderr
+    baks = list(install.box.glob("cookierun_revive.py.bak-*"))
+    assert len(baks) == 1 and baks[0].read_text() == edited
+    assert "REVIVE_VERSION" in (install.box / "cookierun_revive.py").read_text()
+
+
+def test_installer_does_not_back_up_a_revive_that_git_knows(install):
+    old = (install.repo / "windows" / "cookierun_revive.py").read_text()
+    (install.box / "cookierun_revive.py").write_text(
+        old.replace("REVIVE_VERSION", "OLD_UNVERSIONED"))
+    install.g("commit", "-q", "--allow-empty", "-m", "noop")
+    # make that exact unversioned file part of the checkout's history
+    (install.repo / "windows" / "cookierun_revive.py").write_text(
+        old.replace("REVIVE_VERSION", "OLD_UNVERSIONED"))
+    install.g("commit", "-q", "-am", "old revive")
+    (install.repo / "windows" / "cookierun_revive.py").write_text(old)
+    install.g("commit", "-q", "-am", "new revive")
+    install.g("push", "-q", "origin", "HEAD:main")
+    r, _log = install.run()
+    assert r.returncode == 0, r.stderr
+    assert list(install.box.glob("cookierun_revive.py.bak-*")) == []
+
+
+def test_installer_stops_when_the_box_copy_is_not_write_protected(install):
+    r, log = install.run(FAKE_SCP_IGNORES_READONLY="1")
+    assert r.returncode != 0 and "SUCCEEDED" in r.stderr
+    assert desktop_step(log) == []
