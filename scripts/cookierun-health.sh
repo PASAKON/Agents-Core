@@ -3,7 +3,7 @@
 #
 #   ./scripts/cookierun-health.sh        # prints a verdict block
 #   exit 0 = nothing to do (OK or PARKED)
-#   exit 1 = needs attention (DOWN / STUCK / STALLING / NO-APP)
+#   exit 1 = needs attention (DOWN / STUCK / STALLING / NO-APP / RUNNING-UNDER-HOLD)
 #
 # Built for an hourly loop. Deliberately costs no screenshot: images never leave
 # a model's context, so a recurring visual check makes every later iteration
@@ -11,7 +11,9 @@
 # this says there is something to look at.
 #
 # PARKED is not a fault. Cookie Run is supposed to be off while another agent
-# holds the screen lease — see ALL_Rules_Winbox_PCLease.
+# holds the screen lease, or while the CEO holds the PC — see ALL_Rules_Winbox_PCLease.
+# RUNNING-UNDER-HOLD is the reverse: he pressed his use-PC button and the bot
+# runs anyway. Stop it with bot_stop (never esc) and touch no window.
 set -euo pipefail
 
 HOST="${WINBOX_HOST:-winbox}"
