@@ -18,8 +18,9 @@
 #
 # Everything real happens in windows/pc_lease.py ON the box; this is a thin
 # wrapper so any machine with an `ssh winbox` alias can drive it. The script
-# redeploys itself whenever the local copy changes, so there is no setup step
-# to forget.
+# redeploys pc_lease.py whenever the local copy carries a HIGHER LEASE_VERSION
+# than the box's, so there is no setup step to forget -- but an edit to
+# pc_lease.py must bump LEASE_VERSION, or it stays on your machine.
 set -euo pipefail
 
 HOST="${WINBOX_HOST:-winbox}"
@@ -44,23 +45,15 @@ case "${1:-}" in
     ;;
 esac
 
-# Deploy only when the local file is newer than what the box has — an md5
-# compare, because mtime does not survive scp the way you would hope.
-# macOS ships `md5`, not GNU `md5sum` (bit a Mac CTO 2026-09-17: the wrapper
-# died before `status` could even run). Both print lowercase hex.
-if command -v md5sum >/dev/null 2>&1; then
-  local_md5=$(md5sum "$SRC" | cut -d' ' -f1)
-else
-  local_md5=$(md5 -q "$SRC")
-fi
-remote_md5=$(ssh -o BatchMode=yes -o ConnectTimeout=20 -n "$HOST" \
-  "powershell -NoProfile -Command \"if (Test-Path '$REMOTE_PY') { (Get-FileHash '$REMOTE_PY' -Algorithm MD5).Hash.ToLower() } else { 'none' }\"" \
-  2>/dev/null | tr -d '\r' || echo none)
-
-if [[ "$local_md5" != "$remote_md5" ]]; then
-  ssh -n "$HOST" "if not exist \"$REMOTE_DIR\" mkdir \"$REMOTE_DIR\"" >/dev/null 2>&1 || true
-  scp -q "$SRC" "$HOST:$REMOTE_PY" || die "could not copy pc_lease.py to $HOST"
-fi
+# Deploy only when the local file is NEWER than the box's -- by LEASE_VERSION,
+# not by md5. An md5 compare only says "different", and with ~25 worktrees and
+# two other machines calling this, a stale checkout put an older pc_lease.py
+# back on the box -- one that knows nothing of the CEO's hold. The box copy is
+# also kept read-only, so wrappers older than this one fail instead of
+# downgrading it. Details: scripts/lib/winbox_deploy.sh.
+# shellcheck source=lib/winbox_deploy.sh
+. "$HERE/scripts/lib/winbox_deploy.sh"
+winbox_deploy "$SRC" "$REMOTE_PY" LEASE_VERSION || die "could not deploy pc_lease.py to $HOST"
 
 # Remember locally which lease THIS machine took, so `gate` can stay quiet for
 # the holder and keep the NOTE meaningful for everyone else. Only ever used to

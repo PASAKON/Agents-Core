@@ -503,3 +503,174 @@ def test_ps1_has_a_utf8_bom_and_runs_the_deployed_lease():
         assert prefix in text and prefix in src
     for state in ("back", "handed", "off", "unknown", "failed", "stopped"):
         assert f"'{state}'" in text and f"FARM: {state} " in src
+
+
+# --- the one-way deploy (scripts/lib/winbox_deploy.sh) --------------------------
+# Review blocker, 2026-10-09: the wrappers md5-compared and scp'd the CALLER's
+# copy, so the first call from any stale checkout put a pc_lease.py that knows
+# nothing of the hold back on the box. These run the real bash helper against a
+# fake `ssh` / `scp` pair that keeps "the box" in a temp dir, and fake Windows'
+# read-only flag with chmod 444 (a write-open then fails, as on Windows).
+
+import subprocess  # noqa: E402
+import textwrap    # noqa: E402
+
+DEPLOY_LIB = ROOT / "scripts" / "lib" / "winbox_deploy.sh"
+
+FAKE_SSH = r'''#!/usr/bin/env python3
+import base64, hashlib, os, re, stat, sys
+box = os.environ["FAKE_BOX"]
+with open(os.environ["FAKE_LOG"], "a") as f:
+    f.write("ssh " + sys.argv[-1][:200] + "\n")
+cmd = sys.argv[-1]
+m = re.search(r"-EncodedCommand (\S+)", cmd)
+if not m:
+    sys.exit(int(os.environ.get("FAKE_RC", "0")))
+if os.environ.get("FAKE_SSH_DOWN"):
+    sys.exit(255)
+ps = base64.b64decode(m.group(1)).decode("utf-16-le")
+remote = re.search(r"\$p = '([^']+)'", ps).group(1)
+path = os.path.join(box, remote.rsplit("\\", 1)[-1])
+def md5():
+    return hashlib.md5(open(path, "rb").read()).hexdigest()
+if "Select-String" in ps:
+    if not os.path.exists(path):
+        print("none none -"); sys.exit(0)
+    name = re.search(r"\^\[# \]\*(\w+)", ps).group(1)
+    v = re.search(r"(?m)^[# ]*" + name + r"\s*=\s*(\d+)", open(path).read())
+    os.chmod(path, 0o444)
+    print(f"{v.group(1) if v else 0} {md5()} ro"); sys.exit(0)
+if "IsReadOnly = $false" in ps:
+    if os.path.exists(path):
+        os.chmod(path, 0o644)
+    sys.exit(0)
+if "IsReadOnly = $true" in ps:
+    os.chmod(path, 0o444)
+    print(md5()); sys.exit(0)
+'''
+
+FAKE_SCP = r'''#!/usr/bin/env python3
+import os, shutil, sys
+box = os.environ["FAKE_BOX"]
+src, dst = sys.argv[-2], sys.argv[-1]
+with open(os.environ["FAKE_LOG"], "a") as f:
+    f.write(f"scp {src} {dst}\n")
+target = os.path.join(box, dst.split(":", 1)[1].rsplit("\\", 1)[-1])
+try:
+    shutil.copyfile(src, target)
+except PermissionError:
+    print(f"scp: {dst}: Permission denied", file=sys.stderr); sys.exit(1)
+'''
+
+
+@pytest.fixture
+def fakebox(tmp_path):
+    bin_ = tmp_path / "bin"
+    bin_.mkdir()
+    for name, body in (("ssh", FAKE_SSH), ("scp", FAKE_SCP)):
+        (bin_ / name).write_text(body)
+        (bin_ / name).chmod(0o755)
+    box = tmp_path / "box"
+    box.mkdir()
+    log = tmp_path / "calls.log"
+    log.write_text("")
+    env = {**__import__("os").environ, "PATH": f"{bin_}:{__import__('os').environ['PATH']}",
+           "FAKE_BOX": str(box), "FAKE_LOG": str(log), "WINBOX_HOST": "winbox"}
+
+    def deploy(src, version_name="LEASE_VERSION", remote=r"C:\mooniex\pclease\pc_lease.py",
+               **extra):
+        script = (f'set -euo pipefail; HOST=winbox; . "{DEPLOY_LIB}"; '
+                  f'winbox_deploy "{src}" \'{remote}\' {version_name}')
+        return subprocess.run(["bash", "-c", script], capture_output=True, text=True,
+                              env={**env, **extra}, timeout=60)
+
+    def scps():
+        return [ln for ln in log.read_text().splitlines() if ln.startswith("scp ")]
+
+    return SimpleNamespace(box=box, env=env, deploy=deploy, scps=scps, tmp=tmp_path,
+                           on_box=lambda name="pc_lease.py": box / name)
+
+
+def version_file(tmp, name, version, body="print('x')\n"):
+    p = tmp / name
+    p.write_text(f"LEASE_VERSION = {version}\n{body}")
+    return p
+
+
+def test_deploy_puts_a_first_copy_on_the_box_read_only(fakebox):
+    src = version_file(fakebox.tmp, "pc_lease.py", 1)
+    r = fakebox.deploy(src)
+    assert r.returncode == 0, r.stderr
+    assert fakebox.on_box().read_bytes() == src.read_bytes()
+    assert not (fakebox.on_box().stat().st_mode & 0o200), "the box copy must be left read-only"
+    assert r.stdout == ""
+
+
+def test_deploy_never_goes_backwards(fakebox):
+    fakebox.on_box().write_text("LEASE_VERSION = 2\nprint('new')\n")
+    stale = version_file(fakebox.tmp, "pc_lease.py", 1, body="print('old')\n")
+    r = fakebox.deploy(stale)
+    assert r.returncode == 0
+    assert fakebox.scps() == [], "a stale checkout must not copy anything"
+    assert fakebox.on_box().read_text().endswith("print('new')\n")
+    assert "stale" in r.stderr and r.stdout == ""
+
+
+def test_deploy_an_unversioned_local_copy_never_replaces_a_versioned_box(fakebox):
+    fakebox.on_box().write_text("LEASE_VERSION = 1\nprint('hold-aware')\n")
+    old = fakebox.tmp / "pc_lease.py"
+    old.write_text("print('pre-hold')\n")                    # what main had
+    assert fakebox.deploy(old).returncode == 0
+    assert fakebox.scps() == []
+
+
+def test_deploy_moves_forward(fakebox):
+    fakebox.on_box().write_text("print('pre-hold, unversioned')\n")
+    src = version_file(fakebox.tmp, "pc_lease.py", 1)
+    r = fakebox.deploy(src)
+    assert r.returncode == 0, r.stderr
+    assert fakebox.on_box().read_bytes() == src.read_bytes()
+
+
+def test_deploy_same_version_different_content_keeps_the_box_copy(fakebox):
+    fakebox.on_box().write_text("LEASE_VERSION = 1\nprint('box')\n")
+    src = version_file(fakebox.tmp, "pc_lease.py", 1, body="print('local edit')\n")
+    r = fakebox.deploy(src)
+    assert fakebox.scps() == []
+    assert "bump LEASE_VERSION" in r.stderr
+
+
+def test_deploy_does_nothing_blind_when_the_box_cannot_be_read(fakebox):
+    src = version_file(fakebox.tmp, "pc_lease.py", 5)
+    r = fakebox.deploy(src, FAKE_SSH_DOWN="1")
+    assert r.returncode == 0 and fakebox.scps() == []
+    assert "not deploying" in r.stderr
+
+
+def test_an_old_wrapper_cannot_overwrite_the_read_only_box_copy(fakebox):
+    """What a pre-fix pc-lease.sh does on an md5 mismatch: a bare scp. It fails."""
+    src = version_file(fakebox.tmp, "pc_lease.py", 1)
+    fakebox.deploy(src)
+    old = fakebox.tmp / "old_pc_lease.py"
+    old.write_text("print('pre-hold')\n")
+    r = subprocess.run(["scp", "-q", str(old), r"winbox:C:\mooniex\pclease\pc_lease.py"],
+                       capture_output=True, text=True, env=fakebox.env)
+    assert r.returncode != 0
+    assert fakebox.on_box().read_bytes() == src.read_bytes()
+
+
+def test_pc_lease_wrapper_gate_keeps_stdout_empty_when_the_checkout_is_stale(fakebox):
+    fakebox.on_box().write_text("LEASE_VERSION = 999\nprint('newer')\n")
+    r = subprocess.run(["bash", str(ROOT / "scripts" / "pc-lease.sh"), "gate"],
+                       capture_output=True, text=True, env=fakebox.env, timeout=60)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout == ""
+    assert "stale" in r.stderr
+    assert fakebox.scps() == []
+
+
+@pytest.mark.parametrize("path,name", [(PC_LEASE, "LEASE_VERSION"),
+                                       (HEALTH, "HEALTH_VERSION"),
+                                       (REVIVE, "REVIVE_VERSION")])
+def test_every_deployed_file_carries_its_version_line(path, name):
+    assert re.search(rf"(?m)^{name} = \d+$", path.read_text(encoding="utf-8"))

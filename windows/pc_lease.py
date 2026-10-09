@@ -59,7 +59,14 @@ LOG = DATA / "modelplay" / "pc_lease.log"
 CEO_HOLD = DATA / "modelplay" / "CEO_HOLD.json"
 PIPE = "http://127.0.0.1:8794"
 
-DEFAULT_MINUTES = 120          # "others need 1-2 hours" -- CEO 2026-09-14
+# BUMP THIS ON EVERY CHANGE TO THIS FILE. scripts/pc-lease.sh copies it to the
+# box only when this number is HIGHER than the box copy's (an md5 compare let
+# any stale checkout put an older pc_lease.py back -- one that knows nothing of
+# the CEO's hold). An edit without a bump stays on your machine and the wrapper
+# says so. scripts/lib/winbox_deploy.sh reads the line by this exact shape.
+LEASE_VERSION = 1
+
+DEFAULT_MINUTES = 120         # "others need 1-2 hours" -- CEO 2026-09-14
 MAX_MINUTES = 480
 RESUME_TRIES = 3               # tick gives up after this, loudly, instead of looping
 

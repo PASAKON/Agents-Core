@@ -25,6 +25,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+# BUMP THIS ON EVERY CHANGE TO THIS FILE. windows/desktop/install_ceo_buttons.sh
+# deploys it only when this number is higher than the box copy's
+# (scripts/lib/winbox_deploy.sh), and nothing else deploys it at all.
+REVIVE_VERSION = 1
+
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
 LEASE = DATA / "modelplay" / "PC_LEASE.json"

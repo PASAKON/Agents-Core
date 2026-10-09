@@ -23,16 +23,14 @@ PYEXE='C:\Users\UsEr\cookierun-bot\.venv\Scripts\python.exe'
 
 [[ -f "$SRC" ]] || { echo "missing $SRC" >&2; exit 2; }
 
-# Same md5-redeploy as pc-lease.sh: editing the local copy is the whole deploy.
-local_md5=$(md5sum "$SRC" | cut -d' ' -f1)
-remote_md5=$(ssh -o BatchMode=yes -o ConnectTimeout=20 -n "$HOST" \
-  "powershell -NoProfile -Command \"if (Test-Path '$REMOTE_PY') { (Get-FileHash '$REMOTE_PY' -Algorithm MD5).Hash.ToLower() } else { 'none' }\"" \
-  2>/dev/null | tr -d '\r' || echo none)
-
-if [[ "$local_md5" != "$remote_md5" ]]; then
-  ssh -n "$HOST" "if not exist \"$REMOTE_DIR\" mkdir \"$REMOTE_DIR\"" >/dev/null 2>&1 || true
-  scp -q "$SRC" "$HOST:$REMOTE_PY"
-fi
+# Same one-way deploy as pc-lease.sh: only a HIGHER HEALTH_VERSION replaces the
+# box copy. An md5 compare let a stale checkout put back a health check that
+# calls the CEO's deliberately parked farm DOWN -- an instruction to restart it
+# under him. Edit cookierun_health.py = bump HEALTH_VERSION.
+# shellcheck source=lib/winbox_deploy.sh
+. "$HERE/scripts/lib/winbox_deploy.sh"
+winbox_deploy "$SRC" "$REMOTE_PY" HEALTH_VERSION \
+  || { echo "could not deploy cookierun_health.py to $HOST" >&2; exit 2; }
 
 ssh -o ConnectTimeout=25 "$HOST" "$PYEXE $REMOTE_PY" 2> >(tr -d '\r' >&2) | tr -d '\r'
 exit "${PIPESTATUS[0]}"

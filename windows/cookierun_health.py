@@ -33,6 +33,12 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# BUMP THIS ON EVERY CHANGE TO THIS FILE. scripts/cookierun-health.sh copies it
+# to the box only when this number is higher than the box copy's -- an md5
+# compare let a stale checkout put back a check that calls the CEO's parked
+# farm DOWN (scripts/lib/winbox_deploy.sh).
+HEALTH_VERSION = 1
+
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
 LEASE = DATA / "modelplay" / "PC_LEASE.json"
