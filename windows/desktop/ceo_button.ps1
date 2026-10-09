@@ -87,6 +87,10 @@ try {
     $psi.StandardOutputEncoding = [System.Text.Encoding]::UTF8
     $psi.StandardErrorEncoding = [System.Text.Encoding]::UTF8
     $psi.EnvironmentVariables['PYTHONIOENCODING'] = 'utf-8'
+    # pc_lease.py runs ceo-on / ceo-off only for the button (this variable) or
+    # with --ceo-said "<his words>" -- so an agent cannot lift his hold by
+    # running the command it is locked out by.
+    $psi.EnvironmentVariables['PC_LEASE_CEO_BUTTON'] = '1'
     $p = [System.Diagnostics.Process]::Start($psi)
     # stderr drains on its own task, or a chatty traceback could fill the pipe
     # and hang python while we wait on stdout.

@@ -5,6 +5,7 @@
 #   ./scripts/pc-lease.sh take --who "browser_operator: harvest 4 clips" [--minutes 120] [--after-round]
 #   ./scripts/pc-lease.sh give-back
 #   ./scripts/pc-lease.sh extend --minutes 60
+#   ./scripts/pc-lease.sh ceo-check      # exit 3 while the CEO holds the PC, else 0
 #
 # Above every lease sits the CEO. His two desktop buttons (windows/desktop/,
 # ceo-on / ceo-off) set a hold under which take, extend and gate refuse — take
@@ -37,11 +38,14 @@ die() { printf '\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 # ceo-on / ceo-off are the CEO's own buttons: the desktop .cmd files run
 # pc_lease.py on the box and never pass through here. An agent his hold has
 # locked out must not be one command away from lifting it, so from here they
-# need his words -- checked before anything reaches the box.
+# need his words -- checked before anything reaches the box, and passed on as
+# --ceo-said, which pc_lease.py itself requires and logs (a run on the box that
+# skips this wrapper is refused there too).
 case "${1:-}" in
   ceo-on|ceo-off)
     [[ -n "${PC_LEASE_CEO_SAID:-}" ]] \
       || die "$1 is the CEO's desktop button, not an agent command. Only if he asked for it in words: PC_LEASE_CEO_SAID=\"<his words>\" $0 $1"
+    set -- "$@" --ceo-said "$PC_LEASE_CEO_SAID"
     ;;
 esac
 

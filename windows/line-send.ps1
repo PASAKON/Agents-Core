@@ -16,6 +16,10 @@
 # but leaves keyboard focus wherever it was, so Ctrl+V went nowhere and the
 # script never looked. Now it clicks the composer first, and compares the
 # screen before and after — if the pixels did not move, it fails loudly.
+#
+# BUMP THIS ON EVERY CHANGE: scripts/winbox-line-send.sh deploys this file only
+# when the number is higher than the box copy's (scripts/lib/winbox_deploy.sh).
+# LINE_SEND_PS1_VERSION = 1
 param(
     [ValidateSet('peek', 'send', 'attach', 'clip', 'menu', 'pin', 'open')] [string] $Mode = 'peek',
     [string] $MsgFile = 'C:\mooniex\line\line_msg.txt',
@@ -65,6 +69,24 @@ function Result([string] $s) {
 function Say([string] $m) {
     Add-Content -Path $log -Encoding UTF8 -Value ("{0}  {1}" -f (Get-Date -Format 'HH:mm:ss'), $m)
 }
+
+# The CEO's hold (windows/pc_lease.py ceo-on, his "use PC" desktop button).
+# While it is on nothing here runs -- not even 'shot': his screen is private.
+# Checked here as well as by the wrapper's pc-lease.sh gate / ceo-check, so a
+# run that skipped the wrapper (WINBOX_NO_LEASE=1, an old checkout, a task
+# registered by hand) is refused too. The file existing is the signal; a broken
+# file counts as held. ASCII only: this file has no BOM.
+$ceoHold = @(
+    (Join-Path $env:USERPROFILE 'Documents\CookieRunScript\modelplay\CEO_HOLD.json'),
+    'C:\Users\UsEr\Documents\CookieRunScript\modelplay\CEO_HOLD.json',
+    'C:\Users\passg\Documents\CookieRunScript\modelplay\CEO_HOLD.json'
+) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+if ($ceoHold) {
+    Say 'refused: CEO hold'
+    Result 'FAIL the CEO is using this PC (CEO hold) - nothing done; wait for his release button'
+    exit 9
+}
+
 
 function Grab {
     $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds

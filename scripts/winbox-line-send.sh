@@ -32,19 +32,29 @@ ps1() { ssh -o ConnectTimeout=15 -n "$HOST" "powershell -NoProfile -Command \"$1
 die() { printf '\n\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 ok()  { printf '\033[32m✓\033[0m %s\n' "$*"; }
 
+# shellcheck source=lib/winbox_deploy.sh
+. "$HERE/scripts/lib/winbox_deploy.sh"
+
 # --- the screen may already be in use. Same gate as winbox-desktop.sh: a
 # session drove this desktop for three hours with the tenant live underneath
 # because the rule lived only in a document (2026-09-14). See ALL_Rules_Winbox_PCLease.
 if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
   "$HERE/scripts/pc-lease.sh" gate || exit 3
+else
+  # WINBOX_NO_LEASE skips the farm's lease, never the CEO's hold: it exists so a
+  # script can drive the screen while Cookie Run is broken, and it used to wave
+  # every such script past him too (review, 2026-10-09).
+  "$HERE/scripts/pc-lease.sh" ceo-check || exit 3
 fi
 
-# --- push the runner, every time. A worktree's copy drifts from main and the
-# box keeps whatever was last written; re-copying costs nothing and removes a
-# whole class of "why is it running the old logic".
+# --- push the runner, forward only. It used to be re-copied on every call, so a
+# worktree that had drifted from main put ITS copy back -- since 2026-10-09 one
+# without the CEO-hold check. Now only a higher LINE_SEND_PS1_VERSION replaces
+# the box copy (scripts/lib/winbox_deploy.sh); an edit must bump it.
 push_runner() {
   ssh -n "$HOST" "if not exist \"$REMOTE_DIR\" mkdir \"$REMOTE_DIR\"" >/dev/null 2>&1 || true
-  scp -q "$HERE/windows/line-send.ps1" "$HOST:$REMOTE_DIR\\line-send.ps1"
+  winbox_deploy "$HERE/windows/line-send.ps1" "$REMOTE_DIR\\line-send.ps1" LINE_SEND_PS1_VERSION \
+    || die "could not deploy line-send.ps1 to $HOST"
 }
 
 # --- run it in session 1. SSH lands in session 0, which has no desktop, so a

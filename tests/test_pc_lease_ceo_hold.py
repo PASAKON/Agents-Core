@@ -114,6 +114,9 @@ def box(tmp_path, monkeypatch):
         monkeypatch.setattr(sys, "argv", ["pc_lease.py", *argv])
         return m.main()
 
+    # As ceo_button.ps1 sets it; the guard has tests of its own below.
+    monkeypatch.setenv("PC_LEASE_CEO_BUTTON", "1")
+
     def names():
         return [c[0] for c in calls]
 
@@ -837,6 +840,143 @@ def test_the_real_resume_runs_night_for_a_plan_with_no_fn(box):
 def test_a_resume_plan_survives_an_ab_status_with_holes(box):
     plan = box.m.capture_resume_plan({"bot_alive": True, "ab": {"rounds": None}})
     assert plan["fn"] == "ab" and plan["args"]["rounds"] == 8
+
+
+# --- who may press the buttons ---------------------------------------------------
+
+@pytest.mark.parametrize("verb", ["ceo-on", "ceo-off"])
+def test_the_buttons_refuse_an_agent_without_the_ceos_words(box, capsys, monkeypatch, verb):
+    if verb == "ceo-off":
+        put_hold(box)
+    monkeypatch.delenv("PC_LEASE_CEO_BUTTON")
+    assert box.run(verb) == 2
+    assert box.m.CEO_HOLD.exists() is (verb == "ceo-off"), "the refused press changed the hold"
+    assert "REFUSED" in capsys.readouterr().err
+
+
+def test_the_buttons_run_with_the_ceos_words_and_log_them(box, monkeypatch):
+    monkeypatch.delenv("PC_LEASE_CEO_BUTTON")
+    assert box.run("ceo-on", "--ceo-said", "lock it for me") == 0
+    assert box.m.CEO_HOLD.exists()
+    assert "lock it for me" in box.m.LOG.read_text(encoding="utf-8")
+
+
+def test_the_buttons_are_not_in_the_help(box, capsys):
+    with pytest.raises(SystemExit):
+        box.run("--help")
+    out = capsys.readouterr().out
+    assert "ceo-on" not in out and "ceo-off" not in out and "ceo-check" in out
+
+
+def test_the_button_runs_the_lease_as_the_button():
+    src = PS1.read_text(encoding="utf-8-sig")
+    assert "$psi.EnvironmentVariables['PC_LEASE_CEO_BUTTON'] = '1'" in src
+
+
+def test_the_wrapper_passes_the_ceos_words_to_the_box():
+    src = (ROOT / "scripts" / "pc-lease.sh").read_text(encoding="utf-8")
+    assert 'set -- "$@" --ceo-said "$PC_LEASE_CEO_SAID"' in src
+
+
+def test_ceo_check_refuses_under_the_hold_with_an_empty_stdout(box, capsys):
+    box.st.status = {"bot_alive": True}
+    assert box.run("ceo-check") == 0
+    put_hold(box)
+    assert box.run("ceo-check") == 3
+    cap = capsys.readouterr()
+    assert cap.out == "" and "REFUSED" in cap.err
+    assert box.calls == [], "ceo-check asked the farm something"
+
+
+# --- the other scripts that touch the screen ------------------------------------
+
+@pytest.fixture
+def wrapper_tree(tmp_path):
+    """A copy of the two desktop wrappers whose pc-lease.sh and ssh only record."""
+    import shutil
+    import subprocess
+    root = tmp_path / "repo"
+    (root / "scripts" / "lib").mkdir(parents=True)
+    for f in ("winbox-desktop.sh", "winbox-line-send.sh"):
+        shutil.copy(ROOT / "scripts" / f, root / "scripts" / f)
+    shutil.copy(ROOT / "scripts" / "lib" / "winbox_deploy.sh", root / "scripts" / "lib")
+    rec = tmp_path / "calls.txt"
+    lease = root / "scripts" / "pc-lease.sh"
+    lease.write_text(f'#!/bin/sh\necho "pc-lease $*" >> {rec}\n'
+                     '[ "$1" = ceo-check ] && exit 3\nexit 0\n')
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    for tool in ("ssh", "scp"):
+        t = bindir / tool
+        t.write_text(f'#!/bin/sh\necho "{tool} $*" >> {rec}\nexit 1\n')
+        t.chmod(0o755)
+    lease.chmod(0o755)
+
+    def run(script, *args, **env):
+        e = {**os.environ, "PATH": f"{bindir}:{os.environ['PATH']}", **env}
+        r = subprocess.run(["bash", str(root / "scripts" / script), *args],
+                           capture_output=True, text=True, env=e, timeout=30)
+        return r.returncode, rec.read_text() if rec.exists() else ""
+    return run
+
+
+@pytest.mark.parametrize("script,args", [("winbox-desktop.sh", ["shot"]),
+                                         ("winbox-line-send.sh", ["peek"])])
+def test_winbox_no_lease_still_stops_at_the_ceos_hold(wrapper_tree, script, args):
+    code, calls = wrapper_tree(script, *args, WINBOX_NO_LEASE="1")
+    assert code == 3
+    assert calls.splitlines() == ["pc-lease ceo-check"], "reached the box past the hold"
+
+
+@pytest.mark.parametrize("path,name", [(ROOT / "windows" / "desktop.ps1", "DESKTOP_PS1_VERSION"),
+                                       (ROOT / "windows" / "line-send.ps1",
+                                        "LINE_SEND_PS1_VERSION")])
+def test_the_screen_runners_refuse_under_the_hold_before_acting(path, name):
+    src = path.read_text(encoding="utf-8")
+    assert re.search(rf"^# {name} = \d+$", src, re.M)
+    assert src.index(f"# {name}") < src.index("param(")
+    check = src.index("if ($ceoHold)")
+    first_action = min(i for i in (src.find("switch ($Mode)"), src.find("\nif ($Mode")) if i > 0)
+    assert check < first_action
+    block = src[src.index("# The CEO's hold"):src.index("exit 9") + 6]
+    assert block.isascii()
+    assert "CEO_HOLD.json" in block
+
+
+@pytest.mark.parametrize("script,runner", [("winbox-desktop.sh", "desktop.ps1"),
+                                           ("winbox-line-send.sh", "line-send.ps1")])
+def test_the_wrappers_deploy_their_runner_forward_only(script, runner):
+    src = (ROOT / "scripts" / script).read_text(encoding="utf-8")
+    assert f'scp -q "$HERE/windows/{runner}"' not in src
+    assert f'winbox_deploy "$HERE/windows/{runner}"' in src
+
+
+def test_the_probe_stops_when_the_ceo_presses_mid_plan(tmp_path, monkeypatch):
+    import types
+    clicks = []
+    core = types.ModuleType("core")
+    for k in ("_INPUT", "_KEYBDINPUT", "INPUT_KEYBOARD", "KEYEVENTF_KEYUP",
+              "GAME_WINDOW", "PLAYER_WINDOW"):
+        setattr(core, k, 0)
+    core.game_rect = lambda: (0, 0, 100, 100)
+    core.resolve_region = lambda *_a, **_k: None
+    core.win_point = lambda _w, x, y: (int(x * 100), int(y * 100))
+    core.esc_hold = lambda: False
+    core.click = lambda *a, **k: clicks.append(a)
+    for name, mod in (("core", core), ("cv2", types.ModuleType("cv2")),
+                      ("numpy", types.ModuleType("numpy"))):
+        monkeypatch.setitem(sys.modules, name, mod)
+    probe = load(ROOT / "windows" / "cookierun_probe.py", "probe_under_test")
+    probe.CEO_HOLD = tmp_path / "CEO_HOLD.json"
+    monkeypatch.setattr(probe.time, "sleep",
+                        lambda _s: probe.CEO_HOLD.write_text("{}", encoding="utf-8"))
+    plan = tmp_path / "plan.json"
+    plan.write_text(json.dumps([{"click": [0.5, 0.5]}, {"wait": 1},
+                                {"click": [0.5, 0.9]}]), encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["probe", str(plan), str(tmp_path / "out")])
+    assert probe.main() == 4
+    assert clicks == [(50, 50)], "clicked after the CEO pressed his button"
+    assert probe.clear_screen().startswith("REFUSED")
 
 
 # --- the desktop buttons ---------------------------------------------------------

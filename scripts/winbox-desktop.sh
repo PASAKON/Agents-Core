@@ -28,10 +28,16 @@ ps1() { ssh -o ConnectTimeout=15 -n "$HOST" "powershell -NoProfile -Command \"$1
 die() { printf '\n\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 ok()  { printf '\033[32m✓\033[0m %s\n' "$*"; }
 
+# shellcheck source=lib/winbox_deploy.sh
+. "$HERE/scripts/lib/winbox_deploy.sh"
+
 run() {
   local args="$1"
   ssh -n "$HOST" "if not exist \"$REMOTE_DIR\" mkdir \"$REMOTE_DIR\"" >/dev/null 2>&1 || true
-  scp -q "$HERE/windows/desktop.ps1" "$HOST:$REMOTE_DIR\\desktop.ps1"
+  # Forward only, by DESKTOP_PS1_VERSION: a stale checkout's copy has no CEO-hold
+  # check, and an every-call scp put it back (review, 2026-10-09).
+  winbox_deploy "$HERE/windows/desktop.ps1" "$REMOTE_DIR\\desktop.ps1" DESKTOP_PS1_VERSION \
+    || die "could not deploy desktop.ps1 to $HOST"
   ssh -n "$HOST" "powershell -NoProfile -Command \"\
     \$me=[Security.Principal.WindowsIdentity]::GetCurrent().Name;\
     Unregister-ScheduledTask -TaskName '$TASK' -Confirm:\$false -ErrorAction SilentlyContinue;\
@@ -72,6 +78,11 @@ esac
 # So the script asks. ~3-4 s (an ssh round trip), on every screen-touching call.
 if [[ "${WINBOX_NO_LEASE:-0}" != "1" ]]; then
   "$HERE/scripts/pc-lease.sh" gate || exit 3
+else
+  # WINBOX_NO_LEASE skips the farm's lease, never the CEO's hold: it exists so a
+  # script can drive the screen while Cookie Run is broken, and it used to wave
+  # every such script past him too (review, 2026-10-09).
+  "$HERE/scripts/pc-lease.sh" ceo-check || exit 3
 fi
 
 case "${1:-shot}" in

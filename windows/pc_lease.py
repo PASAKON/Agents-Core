@@ -70,7 +70,7 @@ PIPE = "http://127.0.0.1:8794"
 # any stale checkout put an older pc_lease.py back -- one that knows nothing of
 # the CEO's hold). An edit without a bump stays on your machine and the wrapper
 # says so. scripts/lib/winbox_deploy.sh reads the line by this exact shape.
-LEASE_VERSION = 2
+LEASE_VERSION = 3
 
 DEFAULT_MINUTES = 120         # "others need 1-2 hours" -- CEO 2026-09-14
 MAX_MINUTES = 480
@@ -967,6 +967,30 @@ def cmd_extend(args) -> int:
     return 0
 
 
+def refuse_for_ceo_hold() -> bool:
+    """True, with the refusal on stderr, when the CEO holds the PC."""
+    hold = read_ceo_hold()
+    if hold is None:
+        return False
+    say = lambda t="": print(t, file=sys.stderr)
+    say(f"REFUSED: the CEO is using the winbox screen (since {hhmm(hold['since'])}).")
+    say("  Hands off until he presses the release button on his desktop. No")
+    say("  lease, --as, --force or WINBOX_NO_LEASE gets past this.")
+    return True
+
+
+def cmd_ceo_check(_args) -> int:
+    """Exit 3 when the CEO holds the PC, else 0. Stdout empty, always.
+
+    gate minus the farm: what a caller runs when WINBOX_NO_LEASE=1 has
+    switched the lease check off. That override exists for the farm -- a
+    script must be able to drive the screen while Cookie Run is broken -- but it
+    used to switch off the CEO's hold with it, so any script with the variable
+    exported drove the desktop under his hands (review, 2026-10-09).
+    """
+    return 3 if refuse_for_ceo_hold() else 0
+
+
 def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     """Exit 0 if it is safe to touch the screen, 3 if a tenant is farming
     unleased or the CEO holds the PC.
@@ -991,16 +1015,7 @@ def cmd_gate(_args) -> int:  # noqa: C901 -- _args carries --as; see main()
     refused; a new code would be one a hand-written `[[ $? == 3 ]]` check reads
     as a pass. --as does not get a holder past it: the CEO is not a lease.
     """
-    hold = read_ceo_hold()
-    if hold is not None:
-        # Local import like the two below: they make `sys` a local name for the
-        # whole function, so the module-level one is not visible up here.
-        import sys
-        say = lambda t="": print(t, file=sys.stderr)
-        say(f"REFUSED: the CEO is using the winbox screen (since {hhmm(hold['since'])}).")
-        say("  Hands off until he presses the release button on his desktop. No")
-        say("  lease, --as or --force gets past this - and do not reach for")
-        say("  WINBOX_NO_LEASE: it exists for the farm, and he is at the keyboard.")
+    if refuse_for_ceo_hold():
         return 3
 
     lease = read_lease()
@@ -1180,6 +1195,39 @@ def settle_after_stop() -> bool:
             run_fn("bot_stop")
             wait_until_stopped()
     return not farm_active(status())
+
+
+CEO_BUTTON_ENV = "PC_LEASE_CEO_BUTTON"
+
+
+def ceo_button_guard(name: str, fn):
+    """ceo-on / ceo-off run only from his button, or with his words.
+
+    The button (ceo_button.ps1) sets PC_LEASE_CEO_BUTTON=1. Anything else must
+    pass --ceo-said "<what the CEO said>", which pc-lease.sh fills from
+    PC_LEASE_CEO_SAID. Before this, an agent his hold had locked out was one
+    `pc_lease.py ceo-off` over ssh away from lifting it, and the box-side
+    command checked nothing (review, 2026-10-09).
+
+    Not a security boundary -- anything that can run this can set a variable.
+    It is a speed bump and a record: every non-button run is logged with the
+    words it claimed.
+    """
+    def guarded(args) -> int:
+        said = ascii_only(str(getattr(args, "ceo_said", "") or "")).strip()
+        if os.environ.get(CEO_BUTTON_ENV) == "1":
+            return fn(args)
+        if said:
+            log(f"{name}: run outside the button, citing the CEO: {said[:200]!r}")
+            return fn(args)
+        log(f"{name}: REFUSED - run outside the button with no words from the CEO")
+        print(f"REFUSED: {name} is the CEO's desktop button, not an agent command.",
+              file=sys.stderr)
+        print("  Only if he asked for it in words: "
+              f'--ceo-said "<his words>" (pc-lease.sh: PC_LEASE_CEO_SAID).',
+              file=sys.stderr)
+        return 2
+    return guarded
 
 
 def cmd_ceo_on(_args) -> int:
@@ -1400,7 +1448,9 @@ def _ceo_off_farm(hold: dict) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(description="who owns the winbox screen")
-    sub = p.add_subparsers(dest="cmd", required=True)
+    sub = p.add_subparsers(
+        dest="cmd", required=True,
+        metavar="{status,take,give-back,extend,gate,ceo-check,clear-screen,tick}")
 
     sub.add_parser("status").set_defaults(fn=cmd_status)
 
@@ -1423,9 +1473,15 @@ def main() -> int:
     g.add_argument("--as", dest="as_who", default="",
                    help="who is calling; suppresses the NOTE when it is the lease holder")
     g.set_defaults(fn=cmd_gate)
+    sub.add_parser("ceo-check").set_defaults(fn=cmd_ceo_check)
     sub.add_parser("tick").set_defaults(fn=cmd_tick)
-    sub.add_parser("ceo-on", help="the CEO's 'use PC' button").set_defaults(fn=cmd_ceo_on)
-    sub.add_parser("ceo-off", help="the CEO's 'done' button").set_defaults(fn=cmd_ceo_off)
+    # The CEO's two buttons. Left out of --help on purpose (no help=, and the
+    # metavar above lists only the agent verbs): an agent the hold has locked
+    # out should not find the way to lift it in the usage line.
+    for name, fn in (("ceo-on", cmd_ceo_on), ("ceo-off", cmd_ceo_off)):
+        c = sub.add_parser(name)
+        c.add_argument("--ceo-said", default="", help=argparse.SUPPRESS)
+        c.set_defaults(fn=ceo_button_guard(name, fn))
 
     args = p.parse_args()
     return args.fn(args)
