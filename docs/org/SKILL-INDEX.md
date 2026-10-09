@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-52 org skills by kind — Rules 7 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 5 · Gate 5 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
+53 org skills by kind — Rules 7 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 6 · Gate 5 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -71,6 +71,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
 | `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีมีมี่» — who Mimi the black dog is, the CEO's… |
 | `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
+| `CMO_Standard_TheOldTelling_Script` | CMO | cmo, cto, script_writer | The road map for writing the script of a The Old Telling episode (the mythology and folklore series on the ILAG Studio YouTube channel) in… |
 | `CTO_Standard_Bedrock_WorkLayout` | CTO | cto | How to lay out Minecraft Bedrock add-on work for workers: split, brief, runner, evidence, review. |
 
 ## Gate
