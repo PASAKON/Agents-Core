@@ -1,0 +1,54 @@
+# The Old Telling EP1, first minute: PLAN v0
+
+STATUS: CEO 2026-10-10 wants to read the FULL Thai script before approving spend, one ACT at a time (SCRIPT-TH-FULL.md: 6 ACTs, 10 min). ACT 1 = the minute he already read; ACT 2 drafted and sent; ACT 3 to 6 wait for his pass on ACT 2. Money still frozen: nothing bought or fired since the 13.88 CU. The first-minute ask (voice <= $0.07, H3 <= 1.6 CU) stays open. Last agent: cmo-f76492bf, 2026-10-10.
+
+CEO order 2026-10-09: "ลองทำ ฉากจริง สไตล์ภาพจริง เนื้อเรื่องจริง เสียงภาพจริง (เฉพาะภาษาไทยก่อน). ทำมา 1 นาทีให้ดูเลย. ใช้ Skill การทำภาพยนตร์เลย. ถ้าจำเป็นต้องมีเสียงพูดของตัวละคร ให้ใช้เทคนิคเดียวกับเสียงภาพของละครสั้น เพียงแต่ปรับเปลี่ยนเป็น Eleven Lab v4 อย่างเดียว. ทำ 1080P 15s x 4."
+
+## How it is made (CMO_Workflow_ShortFilm steps, only the ones this minute needs)
+
+| Step | What | Tool | Cost | Gate / CEO time |
+|---|---|---|---|---|
+| 0 Brief | this plan | | $0 | CEO OK on the 4 questions |
+| 2 Story | script + scene-engine audit (SCRIPT-TH.md v3) + 3-reader comprehension gate | | $0 | three Thai readers pass the gate, then CEO approves the script, 5 min |
+| 3 Plates | 6 pictures, one photograph each: Orpheus face, Orpheus full body, lyre, underworld stair, Teller's room, dusk river with the far ridge. New entities in a new group "The Old Telling", none from the library | ChatGPT runner on winbox 9224 (`tools/chatgpt_images.py`) | $0 | contact sheet, CEO approves by number, 10 min |
+| 4 Shot plan | 4 shots = 4 clips, 4 independent cards, hard cuts in the edit (no chain: clip 1 changes room) | continuity table | $0 | none |
+| 5 Previz | skipped: no hard camera move | | | |
+| 6 Prompts | house format, generated from data, dry run + 60-second check + `shotsheet_lint.py`; entity refs counted by `savedRefs` | CMO_Standard_Film_PromptFormat | $0 | cost table to the CEO (HARD) |
+| voice | Teller narration + Orpheus' line, ElevenLabs v4 Thai only. Audition 3 stock voices on one sentence, CEO picks by ear | fal `elevenlabs/tts/eleven-v4` (script from the 2026-10-09 test) | cap $0.25 | CEO listens, 5 min |
+| 7 Wave 1 | one back-to-back batch of 4 cards at quality 1080p (mode r2v_max, 1920x1088), 15 s each, on Colab. Queue all 4 before it starts, so the VM never idles | `POST /api/scenes/enqueue`, one-card batches | about 11 CU | none |
+| 8 QC | one numbered contact sheet, start / middle / end frame per clip, eye check then numbers (`CMO_Knowledge_Film_Production` section 8); ASR check that his line was said | `tools/film_transcript.py` | $0 | CEO marks keepers |
+| 9 Edit | assemble 4 clips, lay Teller narration over (not bound to H3), mix, grade with a house LUT, first-3-seconds test, Thai subtitle file; deliver 1080p master + 540p preview | ffmpeg, `film_cut_assemble.py`, `film_music_mix.sh` (no music) | $0 | CEO watches the minute |
+
+## The voice technique (same as the short dramas, path B, with ElevenLabs v4)
+
+- Path B (CEO 2026-10-05, measured 10-05 and 10-07): the character's spoken line is synthesised first, passed to H3 as a reference audio with marker `fully_copy`, the prompt carries a `Speech timing:` block, and H3 moves the mouth during the render. No lip-sync post pass.
+- What changes: the studio's automatic voice step calls Seed Audio on fal. Here the line is made by the ElevenLabs v4 script and attached to the card through the studio's `audios` field, so Seed Audio is not called and no code change is needed. If the card route refuses it, the Mac CTO swaps the provider (his lane).
+- Only the character's line goes into H3. **The Teller's narration is never bound to H3**: it is a voice-over, and bound audio would make the people on screen mouth it. Narration is mixed in the edit. Prompt carries `non_diegetic_music: none` and its own soundscape block.
+- Voice casting: three stock voices on one sentence, CEO chooses by ear. The Teller and Orpheus get different voices.
+
+## Money (HARD: nothing fires before the CEO says yes to these numbers)
+
+| Item | Estimate | Basis | Cap I ask for |
+|---|---|---|---|
+| ElevenLabs v4 voice | $0.041 for one full narration read (515 characters at $0.08 per 1,000) | measured price, 2026-10-09 | **$0.25** (3 reads, audition, Orpheus line, takes) |
+| Plates | $0 | free runner | $0 |
+| H3 on Colab, 4 clips at 1080p | about 2.6 CU per clip, 10.4 CU, plus about 0.5 CU VM setup = **about 11 CU** | **ESTIMATE [A].** 540p measured 0.74 CU and 297 s per 15 s clip; 1080p on RunPod measured 1,033 s median (n=30), 3.5 times longer. 1080p has never run on Colab | **25 CU** (one retake round of 2 clips included). Balance read live today: 887.48 CU, so 2.8% of it |
+| Fallback if 1080p fails on Colab | RunPod: 4 x about $0.94 + about $0.38 pod boot = **about $4.15** | RunPod median 1,033 s per clip at $3.29/h | not requested; needs the CEO to open the pod |
+
+Plan for the unknown: the first card is queued alone as a probe. If it fails or runs out of memory I stop and report; I do not re-fire (a refire is a new spend).
+
+## Risks
+
+- **1080p on Colab is untested.** Biggest unknown. Probe first.
+- Face and prop consistency across 4 independent cards: identity comes from the entity refs, plus one signature prop (lyre) and one lighting rule (the only warm light is on him).
+- Thai lip-sync of one short word on ElevenLabs audio: n=0 for ElevenLabs, n=1 for Gemini TTS. Drop the line if the mouth fails; the cut still works with narration only.
+- Thai names read by the voice (ออร์เฟอุส, ยูริไดซี) are my spelling; the CEO's ear decides.
+- Studio state today: :4100 up, pod off, Colab off, balance 887.48. The Mac CTO owns the UI and the API; I only queue my own cards.
+
+## Questions for the CEO (recommended answer first)
+
+0. **Thai first story.** Evidence from World of Legend: every top video is a name the Thai viewer already owns; Orpheus is not. Keep Orpheus (plates and script ready, weak Thai pull) or switch the Thai test to Medusa (a monster with a backstory, about 1.47M views on that channel, needs new plates and a new script)? Recommend: ask before any spend; if the goal is Thai views, Medusa.
+1. Script v3 OK, or edit? It must pass the 3-reader gate first (SCRIPT-TH.md). Recommend: OK, then change words by ear after the voice audition.
+2. Orpheus speaks one word ("ยูริไดซี!") with H3 lip-sync? Recommend: yes, it is the cheapest test of path B with ElevenLabs.
+3. Money: voice cap $0.25, Colab cap 25 CU (about 11 expected). Recommend: yes.
+4. 16:9 for this minute (the series is long-form)? Recommend: yes; a 9:16 teaser is a later cut.
