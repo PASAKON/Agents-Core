@@ -230,6 +230,7 @@ def test_start_clevel_fresh_registers_one_interactive_one_shot_task(win):
 
 
 def test_start_clevel_resume_passes_the_full_uuid_as_a_resume_flag(win, monkeypatch):
+    monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": nd._self_host()})
     monkeypatch.setattr(session_status, "resume_target", lambda role, sid: UUID)
     out, code = nd._run("start_clevel", ["cto", "--resume", "1234abcd"])
     assert code == 0, out
