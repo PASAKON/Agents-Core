@@ -578,10 +578,13 @@ git -C '$wt' push -q origin $Branch
         # polls for it further down), so there is nothing to bake in yet. ---
         $finishPs1Body = @"
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
-    Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
-if (`$procs) {
-    `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
-    taskkill /PID `$workerPid /T /F
+    Where-Object {
+        `$_.Name -eq 'claude.exe' -and
+        `$_.Name -notin @('WindowsTerminal.exe', 'OpenConsole.exe', 'explorer.exe') -and
+        `$_.CommandLine -and `$_.CommandLine -like "*$Task*"
+    }
+foreach (`$proc in `$procs) {
+    Stop-Process -Id `$proc.ProcessId -Force -ErrorAction SilentlyContinue
 }
 "@
         Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
@@ -630,9 +633,16 @@ exit 0
         # action is one bare path (PowerShell -> schtasks quoting is unreliable).
         $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
         $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
+        $terminalCount = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        if ($terminalCount -gt 0) {
+            $wtWindowArgs = '-w 0'
+        } else {
+            $wtWindowArgs = '-w new'
+        }
+        Write-Output "WindowsTerminal launch: $wtWindowArgs; running=$($terminalCount -gt 0); count=$terminalCount"
         @"
 @echo off
-start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+start "" "$wtExe" $wtWindowArgs nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
 "@ | Set-Content -Path $wrapper -Encoding ASCII
     }
     elseif ($Runner -eq 'codex') {
@@ -846,10 +856,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         }
     }
     if (-not $workerPid) {
-        throw ("$Runner did not appear within 60s for task $Task -- the " +
-               "interactive scheduled task may not have started (needs an " +
-               "interactive desktop session; verify one exists over this " +
-               "SSH connection type). See ADDENDUM 1 in the task brief.")
+        $terminalCount = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        $lastTaskResult = 'unavailable'
+        try {
+            $lastTaskResult = (Get-ScheduledTaskInfo -TaskName $stName -ErrorAction Stop).LastTaskResult
+        } catch {}
+        throw ("$Runner did not appear within 60s for task $Task -- " +
+               "WindowsTerminal running=$($terminalCount -gt 0); count=$terminalCount; " +
+               "scheduled task=$stName; LastTaskResult=$lastTaskResult")
     }
 
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue
