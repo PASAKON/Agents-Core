@@ -53,6 +53,22 @@ Binding on every session and worker that touches Bedrock work. The place is repo
    and `notes` points at it.
 7. **Workers too.** A brief that hands a worker a reference link quotes this rule. The worker's report lists the rows
    it added (`L0xx`).
+8. **Ours from the start, and what is ours is stated from the files.** CEO ruling 2026-10-11 05:2x, after my account
+   of the tour look cost a rebuild: *"ทุกๆ สิ่งทุกๆ อย่างที่เราทำมันคือของเราหมดเลย"* · *"อย่าหใ้เกิดเหตุการแบบนี้อีกนะมันเสียเวลามาก"* ·
+   *"รอบหน้าเวลาจะเริ่มทำอะไร ให้ทำเป็นของเราตั้งแต่ต้น ของคนอื่นดูได้เอามาเป็น ไอเดียได้ และเอามา Build ในแบบของเรา ดีกว่าเยอะ"*.
+   - Start every piece of work in our own files. Never install or load someone else's pack as the base we tune on.
+     Look at theirs, take the idea, build it our way. Rule 5's number exception still stands: numbers go into our
+     generator, never their pack under ours.
+   - A test build that loads a studied pack (the RV demo and tour rig) is a test rig, not our pack. Never say our pack
+     is built on, uses or takes from a studied pack.
+   - Before any sentence to the CEO about what our pack contains or where it came from, run the copy check on the
+     shipping ref and give him the table: files, files of theirs, licence text. The check is `rvbase_review.py <repo>
+     <ref>` (sha256, reformatted JSON, renamed ids, number overlap against the studied pack's original archive). It
+     sits in Assets `sky/scratch-cto-369faf85-2026-10-10/rvmap/`, not yet in a repo.
+   - Never propose a rebuild or a change of direction on such a claim before that check has printed.
+
+   **Why:** time. On 10-11 04:3x "the approved look ran on RV's base" led to a rebuild from 0 against a 12:00 deadline.
+   The ship pack 6c7824f then measured 604 files: 0 of RV's and 0 licence text.
 
 ## The check
 
