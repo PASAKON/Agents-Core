@@ -1696,6 +1696,7 @@ def _stub_levels(monkeypatch, calls):
     monkeypatch.setattr(m, "check_sec", lambda to: calls.append(("SEC", to)) or m._green())
     monkeypatch.setattr(m, "l5_probe", lambda frm, to: calls.append(("L5", frm, to)) or m._green())
     monkeypatch.setattr(m, "l6_probe", lambda h: calls.append(("L6", h)) or m._green())
+    monkeypatch.setattr(m, "l9_probe", lambda frm, to: calls.append(("L9", frm, to)) or m._green())
 
     def l7(cases):
         calls.append(("L7", tuple(c[0] for c in cases)))
