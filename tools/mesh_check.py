@@ -2,7 +2,7 @@
 
 Prints the wiring matrix from the design doc's §1 measured tables and exits
 1 when a cell that is expected green for the given `--expect` wave is red.
-Every later wave adds its own level; this file builds the frame + L0-L8, the
+Every later wave adds its own level; this file builds the frame + L0-L9, the
 SEC (dispatch-key security) row and the one-poller invariant.
 
     python3 -m tools.mesh_check --expect w0 [--live] [--no-merge]
@@ -39,10 +39,13 @@ Levels:
                  (`needs: always_on` -> contabo, `needs: win_gui` -> winbox).
   L8 join drill— reads state/mesh-check/join-drill.json, or with no file the newest
                  `join_drill` events row (scripts/drill-join.sh writes both); > 7 days = red.
+  L9 spawn+resume — --live only: start a CTO probe, give it a turn, stop, resume,
+                 and stop again. Skip at the cap of 3. Transcripts are not compared;
+                 refusal without a resumable UUID proves resume found a conversation.
   SEC          — --live only: the dispatch key gets `probe` and no shell.
   INV          — read-only: every in-progress remote row has exactly one poller.
 
-A mesh cell (SEC, L5, L6) keeps three answers apart: green, red (the far side
+A mesh cell (SEC, L5, L6, L9) keeps three answers apart: green, red (the far side
 answered wrong) and unreachable (`lib.mesh.MeshUnreachable`: no answer, so
 nothing is known). Unknown is never green. A mesh cell whose target has no
 `mesh_ssh` in config/hosts.yaml renders "closed (by design)" and never counts.
@@ -54,7 +57,7 @@ checkout or piped raw over ssh stdin when the tool isn't deployed there yet
 context for lib/config.py degrades to "n/a" instead of crashing). L3/L4 need
 either a long-lived MCP session (L3) or a real cross-host round trip (L4),
 so they are never collected remotely — only computed for this process's own
-host. The same own-seat rule covers SEC, L5 and the L6 of a remote host: they
+host. The same own-seat rule covers SEC, L5, L9 and the L6 of a remote host: they
 are computed from the host this process runs on, for its outbound row.
 """
 from __future__ import annotations
@@ -105,14 +108,14 @@ except Exception:
 AGENTS_PROJECT_KEY = "mooniex-agents"
 
 WAVES = ["w0", "w1", "w2", "w3", "w4", "w5"]
-LEVELS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "SEC", "INV"]
+LEVELS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "SEC", "INV"]
 
 # Levels whose cells are one verdict for the whole hub, not a from x to matrix.
 # Their one cell is keyed (level, "all", "all").
 SINGLE_LEVELS = {"L8": "join drill", "INV": "one poller per remote row"}
 # Off-diagonal levels that dial the target through its `mesh_ssh`: a target
 # with none (the Mac until G2) is "closed (by design)", whoever runs the tool.
-MESH_PAIR_LEVELS = ("SEC", "L5")
+MESH_PAIR_LEVELS = ("SEC", "L5", "L9")
 
 
 def _wave_index(w: str) -> int:
@@ -240,6 +243,10 @@ EXPECT: dict[tuple[str, str, str], str] = {
 # ---------------------------------------------------------------------------
 # Small helpers shared by every level
 # ---------------------------------------------------------------------------
+
+EXPECT.update({("L9", frm, to): wave for (level, frm, to), wave in list(EXPECT.items())
+               if level == "L5"})
+
 
 def _venv_python(root: Path) -> Path:
     if os.name == "nt":
@@ -994,6 +1001,91 @@ def l5_probe(from_host: str, to_host: str) -> dict:
     return cell
 
 
+def l9_probe(from_host: str, to_host: str) -> dict:
+    """Own-seat spawn/resume acceptance, with best-effort cleanup on every exit."""
+    if from_host != _self_host_or_none():
+        return _na()
+    if not _mesh_ssh_for(to_host):
+        return _closed()
+    from lib import db as db_mod
+    from tools import session_status
+    mesh = _mesh()
+    if not mesh.enabled():
+        return _red("ORG_MESH_DISPATCH is disabled")
+    started, stopped, stop_errors = [], set(), []
+    lid = None
+    cell = _red("probe incomplete")
+
+    def stop(sid):
+        try:
+            reply = mesh.dispatch(to_host, "stop_clevel", "cto", sid)
+            if reply.get("ok") is not True or (reply.get("result") or {}).get("stopped") is not True:
+                raise ValueError("stop refused or session not stopped")
+            stopped.add(sid)
+            return True
+        except Exception as e:
+            detail = f"stop {sid}: {type(e).__name__}: {str(e)[:200]}"
+            stop_errors.append(detail)
+            print(f"L9 {to_host}: {detail}", file=sys.stderr)
+            return False
+
+    def start(*args):
+        reply = mesh.dispatch(to_host, "start_clevel", "cto", *args, "--probe")
+        result = reply.get("result") or {}
+        sid = result.get("session_id")
+        if isinstance(sid, str) and re.fullmatch(r"[0-9a-f]{8}", sid):
+            started.append(sid)
+        if reply.get("ok") is not True or sid not in started:
+            raise ValueError("start_clevel refused or missing session_id")
+        return sid, result
+
+    def registered(sid):
+        deadline = time.monotonic() + 120
+        while True:
+            row = session_status.get("cto", sid)
+            if row and row.get("host") == to_host:
+                return
+            if time.monotonic() >= deadline:
+                raise ValueError(f"session {sid} not registered on {to_host} within 120s")
+            time.sleep(5)
+
+    try:
+        live = [r for r in session_status.list_sessions(status="open")
+                if r.get("role") == "cto" and r.get("host") == to_host]
+        if len(live) >= 3:
+            return {"ok": False, "kind": "skip", "reason": "cap"}
+        s1, _ = start()
+        registered(s1)
+        lid = db_mod.create_letter(
+            to_host, "cto", "mesh_check L9 probe: reply with the single word ok, run no tools, do nothing else.",
+            to_session=s1, from_role=L5_FROM_ROLE,
+            from_session=f"mesh-check-{uuid.uuid4().hex[:8]}", from_host=from_host)
+        reply = mesh.dispatch(to_host, "deliver_letter", str(lid))
+        if reply.get("ok") is not True:
+            raise ValueError("probe letter delivery refused")
+        time.sleep(60)
+        if not stop(s1):
+            raise ValueError("first session could not be stopped")
+        s2, result = start("--resume", s1)
+        if s2 == s1 or result.get("resumed_from") != s1:
+            raise ValueError("resume did not fork the requested session")
+        registered(s2)
+        cell = _green(f"spawn {s1}, resume {s1} -> {s2}, both stopped")
+    except mesh.MeshUnreachable as e:
+        cell = _unreachable(str(e))
+    except Exception as e:
+        cell = _red(f"{type(e).__name__}: {e}")
+    finally:
+        for sid in dict.fromkeys(started):
+            if sid not in stopped:
+                stop(sid)
+        if lid is not None:
+            _abandon_letter(db_mod, lid)
+    if stop_errors:
+        return _red("; ".join(stop_errors))
+    return cell
+
+
 def _is_windows_host(host: str) -> bool:
     try:
         return config.host(host).get("os") == "windows"
@@ -1599,7 +1691,7 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
 
 
 def _run_mesh_levels(combined: dict, running_host: str, expect: str) -> None:
-    """SEC, L5, L6 and L7 for this host's own row, only the cells `expect`
+    """SEC, L5, L6, L7 and L9, only the cells `expect`
     already claims (a cell not claimed yet is never dialled and writes no
     letter). Order matters: L6's probes write the `hosts` rows L7 then reads."""
     for to in HOSTS:
@@ -1610,6 +1702,8 @@ def _run_mesh_levels(combined: dict, running_host: str, expect: str) -> None:
         # A pair whose L5 already ran inside L3's window is not asked twice.
         if _in_scope("L5", running_host, to, expect) and combined["L5"][running_host].get(to) is None:
             combined["L5"][running_host][to] = l5_probe(running_host, to)
+        if _in_scope("L9", running_host, to, expect):
+            combined["L9"][running_host][to] = l9_probe(running_host, to)
     for h in HOSTS:
         if _in_scope("L6", h, h, expect):
             combined["L6"][h][h] = l6_probe(h)
@@ -1636,6 +1730,8 @@ def _judge(computed: dict) -> tuple[str, str]:
     cell (target has no mesh_ssh) is "closed (by design)" and never counts; an
     "n/a" cell (L1 to this host itself) reads "n/a" and never counts either."""
     kind = computed.get("kind")
+    if kind == "skip":
+        return f"skip: {computed['reason']}", "skip"
     if kind == "n/a":
         return "n/a", "skip"
     if kind == "closed":
@@ -1717,7 +1813,9 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--expect", choices=WAVES, help="wave to judge cells against (e.g. w0)")
     ap.add_argument("--live", action="store_true",
-                    help="run real L3 delegate probes and the dispatch-key levels (SEC, L5, L6, L7)")
+                    help="run real L3 delegate probes and dispatch-key levels (SEC, L5, L6, L7, L9); "
+                         "L9 starts/stops CTO probes; transcripts are not compared, resume's "
+                         "refusal without a resumable UUID proves it found the conversation")
     ap.add_argument("--no-merge", action="store_true", help="L3: skip merge_task after delegate")
     ap.add_argument("--local", action="store_true", help="print this host's L0-L2 cells only")
     ap.add_argument("--json", action="store_true", help="with --local, JSON output (default)")

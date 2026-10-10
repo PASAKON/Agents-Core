@@ -282,3 +282,36 @@ Also ruled on 2026-09-28: the mesh probes commit to Agents-Core itself (only
 `docs/ops/mesh-probe/<from>-<to>.md`, prefix `mesh-probe:`), and a new
 machine signs in to claude with a long-lived token from `claude setup-token`
 kept in Infisical, so a join has no login step.
+
+## L9 spawn + resume and remote C-level starts (#241)
+
+`mesh_check --live` includes L9 for the same pairs and waves as L5, computed
+only from the caller's own host. It starts a CTO probe on the target, waits
+up to 120 seconds for its hub registration, delivers a one-word-reply letter,
+waits 60 seconds for a transcript, stops it, then resumes it into a new session.
+The new id must name the first id in `resumed_from` and appear in the hub.
+Every known session started by the probe is stopped in `finally`; stop failures
+are printed and fail the cell. Three open CTO rows on the target produce
+`skip: cap`, counted as neither pass nor fail. Transcripts are not compared:
+the start verb's refusal when no resumable UUID exists is the evidence that
+resume found the conversation.
+
+The org tool `start_clevel_remote(host, role, resume_session_id="")` and CLI
+`python -m tools.start_clevel_remote <host> <role> [--resume <sid>]` share one
+implementation. Only callers whose `CXO_ROLE` is a C-level may call it; the
+target role must be a live, non-singleton C-level. The host must be a different
+registered host with `mesh_ssh`, and a resume id must be eight lowercase hex
+characters. Before dispatch, an atomic local budget in
+`state/start-clevel-remote.json` reserves at most one start per host/role per
+10 minutes and six per rolling hour across this host. Failed or uncertain
+dispatches consume the reservation too. Missing/corrupt JSON starts empty;
+concurrent calls are serialized by an exclusive lock file (a stale lock fails
+closed and needs local removal after confirming no writer remains).
+
+Every allowed or refused call attempts an `events` row with actor
+`start_clevel_remote`, kind `mesh_start`, target, resume source, caller identity
+and outcome, without transport stderr or secrets. An audit hub failure never
+hides the dispatch result. Both L9 and the tool require `ORG_MESH_DISPATCH`
+and the dispatch key on the caller's host; they cannot perform remote starts
+until those are in place. Live proof on each claimed pair remains a deployment
+acceptance step, including the remote probe/start/resume/stop verbs.
