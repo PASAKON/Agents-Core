@@ -326,6 +326,35 @@ live tmux session and every tmux call exited 0. Otherwise it answers `"woke": fa
 a `why`. The letter stays delivered either way. `mesh_check` L5 reads `woke`
 (`docs/ops/mesh-check.md`).
 
+## Periodic host probe (#238)
+
+The watchdog probes every other configured host with a non-null `mesh_ssh`,
+using `lib.mesh.dispatch(host, "probe")`. It needs the dispatch key at
+`~/.ssh/org_dispatch` on the box running the watchdog. Missing keys skip the
+pass; `ORG_MESH_PROBE=0` disables it. `ORG_MESH_DISPATCH` does not gate it.
+
+The default interval is 900 seconds, checked on each watchdog scan. Override
+with `ORG_MESH_PROBE_INTERVAL_S` (a whole number >= 60; invalid values fall
+back to 900). Each call uses mesh's 30-second probe timeout without retries,
+and stamps the far host's `hosts` row and `events` audit. Results are `ok`,
+`refused/error` (the host answered with a failure, or the client raised an
+unexpected error), or `unreachable` (no valid answer, including SSH auth failure).
+
+Two consecutive bad probes produce an error log and one GitHub issue in
+`mooniex-agents`, labelled `watchdog` and `agent`, using the same critical-alert
+channel as stalled tasks. Subsequent bad probes only warn. Recovery logs
+`host X reachable again after N min` once, without a letter. Error details use
+node_dispatch's credential redactor and are limited to 200 characters.
+The interval, failure streaks and reported-outage flags survive restarts in
+`state/watchdog-mesh-probe.json`, replaced atomically. Missing/corrupt state
+starts fresh. A failed alert delivery is logged and retried on a later bad probe.
+
+`python -m runners.watchdog --mesh-probe` probes now, bypassing the interval
+but respecting the key check and off switch. It prints one line per host:
+`<host> <class> <detail>` (detail <=120 characters). Exit codes: 0 if every
+probed host is ok, 1 if any is bad, 2 if disabled or no dispatch key. Normal
+`scan_once()` results include `mesh_probe: {host: class}` (empty when skipped).
+
 ## Audit
 
 Every call, refusals included, writes one `events` row: `actor=node_dispatch`,
