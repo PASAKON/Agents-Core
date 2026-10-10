@@ -1,5 +1,6 @@
 # The Old Telling EP1, first minute: PLAN v0
 
+STATUS UPDATE 2026-10-10 (later): ACT 1 v2 sent (CEO caught the missing voice on the 'Seven months later' card; Teller line added, commit d783474f; rule 'picture text that matters is also spoken' in BRAND.md). ACT 2 picture planned as 14 new H3 shots (90.75 s requested, 1080p) plus a 6 s montage cut from the owned clips: `build_act2.py` writes `shots2/` (dry run clean, grep clean). NOT fired: waiting for the CEO's OK on the CU figure (expected about 9.6 CU, cap 15, of the 25 approved, 15.1 left). Colab off.
 STATUS: 2026-10-10 ACT 1 and ACT 2 Thai scripts PASSED by the CEO; Thai TTS for both made (voice $0.1167 this batch, cumulative about $0.186 of the $0.25 cap). ACT 1 Thai cut DONE and sent (61.6 s, ACT1-th-provenance.json): king shot e05 rendered on Colab (0.43 CU by balance, guard estimate max 0.91), Colab OFF confirmed 08:42. Waiting for the CEO to watch ACT 1 and hear ACT 2. ACT 3 to 6 not written (need his pass and a new voice cap: about $0.27 vs $0.064 left). Last agent: cmo-f76492bf, 2026-10-10.
 
 CEO order 2026-10-09: "ลองทำ ฉากจริง สไตล์ภาพจริง เนื้อเรื่องจริง เสียงภาพจริง (เฉพาะภาษาไทยก่อน). ทำมา 1 นาทีให้ดูเลย. ใช้ Skill การทำภาพยนตร์เลย. ถ้าจำเป็นต้องมีเสียงพูดของตัวละคร ให้ใช้เทคนิคเดียวกับเสียงภาพของละครสั้น เพียงแต่ปรับเปลี่ยนเป็น Eleven Lab v4 อย่างเดียว. ทำ 1080P 15s x 4."
