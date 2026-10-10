@@ -43,6 +43,11 @@ Binding on every session and worker that touches Bedrock work. The place is repo
    - Promo images fetched to look at stay in the session scratchpad.
 5. **Licence on every row.** "All Rights Reserved" means ideas only: never copy or trace pixels. A paid product (price
    in Minecoins or $) is not bought to study without the CEO's OK (money).
+   **Exception, CEO ruling 2026-10-11 05:1x** (Dreamy Skies, Re-imagined Visuals): *"สามารถ Copy ของเขาได้ไหม ทำได้แค่บางตัวเลข
+   ปรับเลขเป็นของเราเอง ขยับจุดไปใกล้เคียงได้"*. A studied pack's NUMBERS (lighting, atmospherics, colour grading) may
+   seed our own files. Our generator writes them in our own structure, values resampled onto our grid and rounded, then
+   tuned in game. Never ship a whole file, a texture, a cubemap or any art of theirs. Each provenance row names the pack
+   and this ruling. It covers that one pack and that layer; another pack needs the CEO again.
 6. **The analysis says what we learned and what we could not see.** For example: the technique, how it is attached,
    numbers, and what would settle an open question. A long write-up goes in a design doc or a wiki research note,
    and `notes` points at it.
