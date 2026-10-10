@@ -331,7 +331,7 @@ a `why`. The letter stays delivered either way. `mesh_check` L5 reads `woke`
 The watchdog probes every other configured host with a non-null `mesh_ssh`,
 using `lib.mesh.dispatch(host, "probe")`. It needs the dispatch key at
 `~/.ssh/org_dispatch` on the box running the watchdog. Missing keys skip the
-pass; `ORG_MESH_PROBE=0` disables it. `ORG_MESH_DISPATCH` does not gate it.
+pass; `ORG_MESH_PROBE=0` disables it. It stays off while `ORG_MESH_DISPATCH` is off; tests force it off through the root conftest.
 
 The default interval is 900 seconds, checked on each watchdog scan. Override
 with `ORG_MESH_PROBE_INTERVAL_S` (a whole number >= 60; invalid values fall

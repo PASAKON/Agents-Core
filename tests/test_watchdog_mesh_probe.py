@@ -1,5 +1,6 @@
 """Periodic mesh probes: fake dispatch, key, clock and alert channel only."""
 import json
+import os
 from unittest.mock import Mock
 
 import pytest
@@ -9,9 +10,8 @@ from tools import gh_issue
 
 
 @pytest.fixture(autouse=True)
-def isolated(monkeypatch, tmp_path):
-    monkeypatch.setenv("ORG_MESH_PROBE", "1")
-    monkeypatch.setenv("ORG_MESH_DISPATCH", "0")
+def isolated(monkeypatch, tmp_path, _mesh_probe_off):
+    monkeypatch.setenv("ORG_MESH_DISPATCH", "1")
     monkeypatch.delenv("ORG_MESH_PROBE_INTERVAL_S", raising=False)
     monkeypatch.setattr(w, "MESH_PROBE_STATE", tmp_path / "state/probe.json")
     monkeypatch.setattr(w, "_mesh_probe_state", None)
@@ -28,23 +28,35 @@ def isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(gh_issue, "create_issue", Mock(return_value="issue-url"))
     for name in ("info", "warn", "error", "success"):
         monkeypatch.setattr(w, name, Mock())
+    # Observe the root default with a valid fake key and mesh enabled, before opting in.
+    root_default = (os.environ["ORG_MESH_PROBE"], w._mesh_probe_available())
+    monkeypatch.setenv("ORG_MESH_PROBE", "1")
+    return root_default
 
 
 def test_selection_and_dispatch_flag():
+    assert w._mesh_probe_available()
     assert w._probe_mesh_hosts() == {"peer": "ok"}
     w.mesh.dispatch.assert_called_once_with("peer", "probe")
+    assert w.MESH_PROBE_STATE.is_file()
 
 
-@pytest.mark.parametrize("disabled", [True, False])
+@pytest.mark.parametrize("disabled", ["probe", "mesh", "key"])
 def test_skip(monkeypatch, tmp_path, disabled):
-    if disabled:
+    if disabled == "probe":
         monkeypatch.setenv("ORG_MESH_PROBE", "0")
+    elif disabled == "mesh":
+        monkeypatch.setenv("ORG_MESH_DISPATCH", "0")
     else:
         monkeypatch.setattr(w.mesh, "SSH_KEY", str(tmp_path / "absent"))
+    assert not w._mesh_probe_available()
+    assert w._probe_mesh_hosts() == {}
     assert w._probe_mesh_hosts(force=True) == {}
     assert w._probe_mesh_hosts(force=True) == {}
     w.mesh.dispatch.assert_not_called()
-    w.info.assert_called_once()
+    gh_issue.create_issue.assert_not_called()
+    w.info.assert_called_once_with(
+        "watchdog: mesh probe skipped (ORG_MESH_PROBE=0, ORG_MESH_DISPATCH off, or no dispatch key)")
     assert not w.MESH_PROBE_STATE.exists()
 
 
@@ -223,3 +235,18 @@ def test_public_issue_sanitizes_host_labels(monkeypatch):
     assert host not in title + body
     assert "<tailnet-name>" in title
     assert "<tailnet-name>" in body
+
+
+def test_root_conftest_probe_default(isolated):
+    assert isolated == ("0", False)
+
+
+def test_cli_mesh_off(monkeypatch, capsys):
+    monkeypatch.setenv("ORG_MESH_DISPATCH", "0")
+    monkeypatch.setattr(w.sys, "argv", ["watchdog", "--mesh-probe"])
+    monkeypatch.setattr(w.db, "init", Mock(side_effect=AssertionError("no DB init")))
+    assert w.main() == 2
+    assert capsys.readouterr().out == ""
+    w.mesh.dispatch.assert_not_called()
+    gh_issue.create_issue.assert_not_called()
+    assert not w.MESH_PROBE_STATE.exists()
