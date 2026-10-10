@@ -31,7 +31,11 @@ def test_nonclaude_prompt_and_contract(runner):
     assert '# Codex / AGY Remote Worker Contract' not in prompt
     assert 'mcp__org__' not in contract
     assert 'date -u' not in contract
-    assert 'READ MAILBOX.md with your file tool if the file' in contract
+    assert 'READ MAILBOX.md if the file' in contract
+    assert 'For codex, read files with shell commands (cat, sed -n, rg, git diff)' in contract
+    assert 'with apply_patch; run the tests the brief names.' in contract
+    assert 'Use your file tools' not in contract
+    assert 'For AGY, use file tools only; leave shell validation to the review process.' in contract
     assert '## Blockers' in contract
     assert '## Skill learning' in contract
     assert 'launcher owns HEARTBEAT' in contract

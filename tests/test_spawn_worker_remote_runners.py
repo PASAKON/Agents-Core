@@ -144,6 +144,34 @@ def test_agy_dry_run_prints_runner_command():
     assert "<launch.sh running agy>" in out
 
 
+@pytest.mark.parametrize("runner", ["codex", "agy"])
+def test_worker_contract_never_committed(runner, tmp_path):
+    source = SCRIPT.read_text()
+    excludes = re.search(r'^ANCHORED_EXCLUDES="([^"]+)"', source, re.M).group(1).split()
+    guard = re.search(r'^GIT_RESET_GUARD="([^"]+)"', source, re.M).group(1).split()
+    assert '/WORKER.md' in excludes
+    assert 'WORKER.md' in guard
+    result = _run_dry_run(runner)
+    assert result.returncode == 0, result.stderr
+    never = next(line for line in result.stdout.splitlines()
+                 if line.startswith('[dry-run] never_committed:'))
+    assert 'WORKER.md' in never.split()
+
+    # A different repo has no .gitignore protecting the generated contract.
+    subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    exclude_file = tmp_path / '.git/info/exclude'
+    exclude_file.write_text('\n'.join(excludes) + '\n')
+    (tmp_path / 'WORKER.md').write_text('remote contract\n')
+    subprocess.run(['git', 'check-ignore', '-q', 'WORKER.md'], cwd=tmp_path, check=True)
+    exclude_file.write_text('')
+    (tmp_path / 'code.py').write_text('print(1)\n')
+    subprocess.run(['git', 'add', '-A'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'reset', '-q', '--', *guard], cwd=tmp_path, check=True)
+    staged = subprocess.run(['git', 'diff', '--cached', '--name-only'], cwd=tmp_path,
+                            capture_output=True, text=True, check=True).stdout.splitlines()
+    assert staged == ['code.py']
+
+
 def test_unknown_runner_rejected():
     """An unknown runner must exit non-zero and print the refusal to stderr."""
     r = _run_dry_run("nonexistent_runner")
@@ -469,7 +497,6 @@ def test_media_allow_in_working_tree_only_is_ignored(tmp_path):
     ).stdout
     assert "media not committed: textures/pack.png" in report
     assert "media kept:" not in report
-
 
 
 
