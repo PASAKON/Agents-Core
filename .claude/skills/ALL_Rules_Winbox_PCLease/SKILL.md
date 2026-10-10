@@ -227,4 +227,7 @@ One thing this cost, so you know the price: the round that was in flight ended
 the partial round dropped downstream. That is the intended trade, not a fault.
 
 Related: [[CTO_Knowledge_Winbox_DesktopGUI]] — how to make a click on that machine real.
+
+## Field notes
+
 - 2026-10-10 [MISSING] §rollout — installing the CEO hold buttons (install_ceo_buttons.sh) makes the box copy of pc_lease.py read-only. Every checkout without bf556e14's pc-lease.sh then fails on every verb, give-back included, with "scp: dest open … Permission denied". At install time the Mac main tree (100 behind) and the Contabo checkout (aef6ac3c) both lacked it. Install only after every machine's checkout carries the new wrapper, or give runners a detached worktree at origin/main · evidence: cto-f39cb080 install 13:5x; Contabo CTO e106b78b told · status: pending
