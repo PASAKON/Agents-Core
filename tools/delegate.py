@@ -38,7 +38,11 @@ from tools import send_to_cto
 from tools import storage_policy
 from tools import tmux_session as tmux
 from tools import workdir
-from tools.worktree import _exclude_in_worktree, branch_name, create_worktree
+from tools.worktree import (
+    _exclude_in_worktree, branch_name, create_worktree, restore_worktree,
+)
+
+CLAUDE_CONFIG_PATH = Path.home() / ".claude.json"
 
 # Every CLI the org knows how to drive a worker with (task-adbc6f43). Kept
 # local to this module rather than lib/config.py — that file is not a
@@ -452,7 +456,7 @@ def _build_spawn_applescript(cmd: str, task_id: str,
     """Compose the AppleScript that picks the right window and tab.
 
     Resolution order:
-      1. Any iTerm tab title contains `(<task_id>)` already → select it
+      1. An iTerm tab title contains `(<task_id>)` and runs tmux → select it
          and emit `reused`. No new tab, no command typed.
       2. Window whose id matches `owner_winid` (recorded at boot by
          cto-claude.sh / cxo-claude.sh) → immune to title flicker.
@@ -466,7 +470,7 @@ def _build_spawn_applescript(cmd: str, task_id: str,
          other's window.
       4. Any tab whose title contains `<DISPLAY> Chat #` or `<DISPLAY> #`
          — keeps single-session setups working when owner_cto is unset.
-      5. Current window, or a fresh window if none exist.
+      5. A fresh window when no owner window can be identified.
 
     Built in Python so tests can grep the literal strings without
     invoking osascript.
@@ -511,7 +515,7 @@ tell application "iTerm"
         try
           set sessName to name of current session of t
         end try
-        if (tabName contains "({task_id})") or (sessName contains "({task_id})") then
+        if ((tabName contains "({task_id})") or (sessName contains "({task_id})")) and ((tabName contains "(tmux)") or (sessName contains "(tmux)")) then
           tell w to select
           tell t to select
           return "reused"
@@ -578,7 +582,7 @@ tell application "iTerm"
       end tell
       return "spawned"
     else
-      set targetWin to current window
+      set targetWin to (create window with default profile)
     end if
   end if
   tell targetWin
@@ -713,6 +717,10 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
 
     try:
         await asyncio.sleep(KICKOFF_DELAY_S)
+        task = db.get_task(task_id)
+        if task and (task.get("status") == "failed" or
+                     await _trust_prompt(task, task.get("tmux_session"))):
+            return
         result = await asyncio.to_thread(send_to_worker_send, task_id, message)
         info(f"kickoff task={task_id}: {result}")
     except Exception as e:
@@ -881,6 +889,9 @@ async def _verify_claimed(task_id: str, role_name: str,
     cause, and tmux discards it the instant the session's command exits."""
     await asyncio.sleep(CLAIM_VERIFY_DELAY_S)
     t = db.get_task(task_id)
+    if t and t["status"] in ("pending", "in_progress"):
+        if await _trust_prompt(t, tmux_sess):
+            return
     if not t or t["status"] != "pending" or t.get("assigned_agent"):
         return  # claimed (or moved on) — the normal path
 
@@ -1744,6 +1755,41 @@ def _write_task_sidecar(worktree: str | Path | None, meta: dict) -> Path | None:
     return path
 
 
+def _trust_worktree(worktree: str, config_path: Path | None = None) -> None:
+    """Preserve Claude settings and atomically accept this exact workspace."""
+    path = config_path if config_path is not None else CLAUDE_CONFIG_PATH
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    entry = data.setdefault("projects", {}).setdefault(str(Path(worktree).resolve()), {})
+    entry["hasTrustDialogAccepted"] = True
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                         prefix=path.name + ".", delete=False) as f:
+            temporary = Path(f.name)
+            json.dump(data, f, indent=2)
+            f.write("\n")
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+async def _trust_prompt(task: dict, tmux_sess: str | None) -> bool:
+    if not tmux_sess:
+        return False
+    try:
+        pane = await asyncio.to_thread(tmux.capture, tmux_sess)
+    except Exception:
+        return False
+    if "Yes, I trust this folder" not in pane:
+        return False
+    db.update_status(task["id"], "failed", actor="cto",
+                     delegate_log="Claude trust prompt: Yes, I trust this folder\n" + pane[-2000:])
+    db.release_task_locks(task["id"], task["project"])
+    return True
+
+
 async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
                        touches: list | tuple = ()) -> dict:
     """Start a DEV on THIS host and return the task row.
@@ -1788,6 +1834,21 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
     # ADR 0030 / Work/RULES.md rule 1-2: pilot scope only.
     work_dir_path = _work_dir_for(task_id, owner_cto)
 
+    if on_darwin and owner_cto and _owner_window_id(owner_cto, owner_role) is None:
+        current = (db.get_task(task_id) or {}).get("delegate_log") or ""
+        warning = f"WARNING: owner {owner_role}-{owner_cto} has no usable .winid; owner window may be unidentified"
+        db.set_fields(task_id, delegate_log=f"{current}\n{warning}".strip(), actor="cto")
+    if (task.get("runner") or "claude") == "claude":
+        worktree = (db.get_task(task_id) or task).get("worktree")
+        if worktree:
+            try:
+                _trust_worktree(worktree)
+            except (OSError, ValueError, TypeError) as e:
+                db.update_status(task_id, "failed", actor="cto",
+                                 delegate_log=f"worktree trust setup failed: {e}")
+                db.release_task_locks(task_id, project_key)
+                return db.get_task(task_id)
+
     if backend == "tmux":
         tmux_sess = tmux.session_name_for(task_id)
         # Record the tmux session BEFORE the DEV process exists. The DEV
@@ -1800,10 +1861,11 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
         try:
             tmux.create(tmux_sess, cwd=ROOT, cmd=dev_cmd)
             info(f"tmux session created: {tmux_sess}")
-        except subprocess.CalledProcessError as e:
-            error(f"tmux create failed for {task_id}: {e.stderr or e}")
+        except (subprocess.CalledProcessError, RuntimeError) as e:
+            error(f"tmux create failed for {task_id}: {getattr(e, 'stderr', None) or e}")
             db.update_status(task_id, "failed",
                              delegate_log=f"tmux create failed: {e}", actor="cto")
+            db.release_task_locks(task_id, project_key)
             return db.get_task(task_id)
 
         web_ui = (proj.get("web_ui") or "off").lower()
@@ -2268,10 +2330,15 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             )
             return db.get_task(task_id)
 
-    if not task.get("worktree"):
+    if not task.get("worktree") or not Path(task["worktree"]).exists():
         sparse_applies = _scope_applies("sparse_worktree", task.get("owner_cto"))
-        wt_info = create_worktree(project_key, role_name, task_id,
-                                  sparse=sparse_applies)
+        wt_info = None
+        if task.get("worktree") or task.get("branch"):
+            wt_info = restore_worktree(project_key, role_name, task_id,
+                                       path=task.get("worktree"), branch=task.get("branch"))
+        if wt_info is None:
+            wt_info = create_worktree(project_key, role_name, task_id,
+                                      sparse=sparse_applies)
         db.update_status(task_id, "pending",
                          worktree=wt_info["worktree"],
                          branch=wt_info["branch"],
@@ -2381,7 +2448,7 @@ async def delegate_task(task_id: str, *, wait: bool = False,
         return row
 
     if not wait:
-        success(f"DEV spawned task={task_id} (fire-and-forget)")
+        info(f"spawn started task={task_id} (fire-and-forget)")
         return row
 
     final = await _wait_for_terminal(task_id, timeout_s)
