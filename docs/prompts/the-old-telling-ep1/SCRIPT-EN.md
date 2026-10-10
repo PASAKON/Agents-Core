@@ -28,7 +28,7 @@ STATUS: draft. Step 5 of `CMO_Standard_TheOldTelling_Script` done; step 6 (3 nat
 | C2 | ORPHEUS | Eurydice! | 0.8 | e03 8.4 to 9.2 s: his mouth already opens here; H3's own garbled word muted, English line laid in |
 | C3 | EURYDICE (voice only, off-screen) | Farewell. | 0.8 | e03 smoke dissolve at 12 s: silhouette only, never a face |
 | N8 | narr | She did not blame him. She was gone. | 3.3 | e03 last 2 s: empty stair, light |
-| T1 | card | Seven months later | 2.2 | black card, ember text, 2.2 s, made by hand (CEO: time passing = black picture with writing) |
+| T1 | card + narr | Seven months later | 2.2 | black card, ember text, 2.2 s, made by hand (CEO: time passing = black picture with writing). The Teller also says the line aloud (CEO 2026-10-10: picture text that matters to the story needs a voice), laid 0.2 s after N8 ends |
 | N9 | narr | Orpheus sat by the river, weeping. | 3.7 | e04 grey meadow, hands over his face |
 | N10 | narr | And this is only the first half. His real ending is far worse. | 5.3 | e04 pull back to the ridge with the torches, hold |
 

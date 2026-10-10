@@ -35,6 +35,7 @@ PLACE = {"N1": 3.05, "N2": 7.25, "N3": 10.85, "N4": 15.40, "N5": 20.40,
 KING_AT = starts["e05"] + 0.6          # H3 mouth window of the king shot opens 0.6 s in (the audio hint was padded to that)
 ORPH_AT = starts["e03"] + 8.62         # clip 3: he turns at ~7.5-8.0 s, the lips open at 8.45 s; the call lands 0.17 s after, N7 ends just before
 EURY_AT = starts["e03"] + 11.30        # the silhouette comes apart at ~11 s
+T1_AT = 47.55                          # spoken 'seven months later' (CEO 2026-10-10): after N8 ends (47.35), card fully lit from 47.22, before N9 (49.45)
 MUTE = {"e03": [(8.2, 9.4)], "e05": [(0.65, 2.05), (2.9, 4.3)]}  # H3's own voicing (clip seconds), muted; the real line is laid instead
 # measured on the rendered e05 (RMS of its own track): H3 voiced 0.8-1.9 s and 3.0-4.0 s and the lips follow that; the real Thai king line has
 # phrase 1 at 0.05-0.92 s, a 0.43 s pause, phrase 2 at 1.35-2.55 s, so it is cut at 1.15 s and each phrase is laid on its own mouth burst.
@@ -47,7 +48,7 @@ def main():
         end = PLACE[a] + (N[a]["end"] - N[a]["start"])
         assert end <= PLACE[b] + 0.001, ("narration overlap", a, b, round(end, 2), PLACE[b])
     placement = {"standin_e05": STANDIN, "total": TOTAL, "starts": starts, "place": PLACE, "king_at": KING_AT, "orpheus_at": ORPH_AT,
-                 "eurydice_at": EURY_AT, "mute": MUTE,
+                 "eurydice_at": EURY_AT, "t1_at": T1_AT, "mute": MUTE,
                  "narration_ends": {k: round(PLACE[k] + N[k]["end"] - N[k]["start"], 2) for k in PLACE}}
     (OUT / "placement.json").write_text(json.dumps(placement, indent=1), encoding="utf-8")
     if "--dry" in sys.argv:
@@ -60,7 +61,8 @@ def main():
     cmd += ["-loop", "1", "-framerate", "24", "-t", "3.4", "-i", str(TITLE)]          # 5
     cmd += ["-loop", "1", "-framerate", "24", "-t", "2.2", "-i", str(T1)]             # 6
     cmd += ["-i", str(V / "act1_teller_daniel.mp3"), "-i", str(V / "act1_c1_king_brian.mp3"),   # 7 8
-            "-i", str(S / "voice1/out/orpheus_liam.mp3"), "-i", str(V / "act1_c3_eurydice.mp3")]  # 9 10
+            "-i", str(S / "voice1/out/orpheus_liam.mp3"), "-i", str(V / "act1_c3_eurydice.mp3"),  # 9 10
+            "-i", str(V / "act1_t1_teller_daniel.mp3")]  # 11
     fc = []
     idx = {"e01": 0, "e02": 1, "e05": 2, "e03": 3, "e04": 4}
     vl = []
@@ -95,7 +97,7 @@ def main():
     for k, (a0, a1, at0) in enumerate(KING_PIECES):
         ms = int(round((starts["e05"] + at0) * 1000))
         fc.append(f"[8:a]atrim=start={a0}:end={a1},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,afade=t=in:d=0.02,adelay={ms}|{ms}[king{k}]"); parts.append(f"[king{k}]")
-    for lab, i, at in (("orph", 9, ORPH_AT), ("eury", 10, EURY_AT)):
+    for lab, i, at in (("orph", 9, ORPH_AT), ("eury", 10, EURY_AT), ("t1", 11, T1_AT)):
         ms = int(round(at * 1000))
         fc.append(f"[{i}:a]aresample=48000,aformat=channel_layouts=stereo,silenceremove=start_periods=1:start_threshold=-45dB,adelay={ms}|{ms}[{lab}]"); parts.append(f"[{lab}]")
     fc.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,apad=whole_dur={TOTAL:.3f}[bus]")  # pad: sidechaincompress ends with its shorter input, which cut the last 4.3 s of ambient

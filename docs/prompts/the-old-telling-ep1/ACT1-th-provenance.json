@@ -3,7 +3,8 @@
   "date": "2026-10-10",
   "task": "cmo-f76492bf",
   "ceo_order": "อณุมติงบ ทำ ART 1 ออกมาได้เลย (2026-10-10)",
-  "review_state": "pending CEO eye and ear",
+  "review_state": "v2 pending CEO eye and ear (v1 caught by the CEO: card 'Seven months later' had no spoken line)",
+  "revision": {"v2": "2026-10-10 added Teller line 'เจ็ดเดือนต่อมา.' on the T1 card, act1_t1_teller_daniel (Daniel, 15 chars, est USD 0.0012, ledger row in voice-th/ledger.json), laid at 47.55 s; v1 kept as ACT1_th_final_v1_*.mp4 in the scratchpad"},
   "length_s": 61.625,
   "picture": [
     {"seg": "e01", "source": "H3 cobijada 1080p clip, owned (CEO-approved earlier)", "from_s": 0.0, "frames": 362},

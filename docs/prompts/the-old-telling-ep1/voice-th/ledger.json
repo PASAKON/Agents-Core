@@ -73,5 +73,20 @@
   "status": "ok",
   "bytes": 94085,
   "sha256": "305a52aa2688624e"
+ },
+ {
+  "date": "2026-10-10T13:32:05+0700",
+  "task": "cmo-f76492bf",
+  "runner": "make_voice_t1.py",
+  "endpoint": "elevenlabs/tts/eleven-v4",
+  "name": "act1_t1_teller_daniel",
+  "voice": "Daniel",
+  "chars": 15,
+  "input_sha256": "538fe4422f5da81c",
+  "est_usd": 0.0012,
+  "review": "pending CEO ear",
+  "status": "ok",
+  "bytes": 23868,
+  "sha256": "40c20cc13d5da7ea"
  }
 ]
