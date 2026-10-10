@@ -193,6 +193,25 @@ def _repo_path(project_key: str) -> Path:
     return Path(project_path_for_host(project_key, self_host()))
 
 
+def restore_worktree(project_key: str, role: str, task_id: str, *,
+                     path: str | None = None, branch: str | None = None) -> dict | None:
+    """Restore a missing checkout without deleting its unmerged branch."""
+    repo = _repo_path(project_key)
+    branch = branch or branch_name(role, task_id)
+    result = subprocess.run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"],
+                            cwd=str(repo), capture_output=True, text=True)
+    if result.returncode == 1:
+        return None
+    if result.returncode != 0:
+        raise GitError(result.stderr)
+    wt = Path(path) if path else worktree_path(project_key, role, task_id)
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    _run(["git", "worktree", "prune"], cwd=repo)
+    _run(["git", "worktree", "add", str(wt), branch], cwd=repo)
+    provision_worktree(repo, wt)
+    return {"worktree": str(wt), "branch": branch}
+
+
 def create_worktree(project_key: str, role: str, task_id: str, *,
                     sparse: bool = False) -> dict:
     """Create isolated worktree on new branch from default branch.
