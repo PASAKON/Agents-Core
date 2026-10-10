@@ -150,7 +150,8 @@ CODEX_TRANSCRIPT="$LAUNCH_DIR/codex-events.jsonl"
 AGY_LOG="$LAUNCH_DIR/agy-events.log"
 
 # Files a codex/agy run must never put on the branch (W0.6): the launcher's own
-# bookkeeping, the CTO's scratch file, logs, and a ROOT REPORT.md/BLOCKER.md
+# bookkeeping (including WORKER.md), the CTO's scratch file, logs, and a ROOT
+# REPORT.md/BLOCKER.md
 # (the report goes to docs/reports/<task-id>/REPORT.md instead). Two guards:
 # ANCHORED_EXCLUDES go into the clone's info/exclude, GIT_RESET_GUARD is
 # `git reset`-ed after `git add -A` in the generated launch.sh.
@@ -160,8 +161,8 @@ AGY_LOG="$LAUNCH_DIR/agy-events.log"
 #    by every worktree of the clone, and claude workers here commit a root
 #    REPORT.md/BLOCKER.md through `git add -A` (roles/_worker_remote.md). Only
 #    the codex/agy launch.sh, which runs solely for those runners, resets them.
-ANCHORED_EXCLUDES=".worker.pid /TASK.md /.org-task.json /.org-worker.mcp.json /CTO-FEEDBACK.md /*.log"
-GIT_RESET_GUARD=".worker.pid TASK.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md :(glob)*.log"
+ANCHORED_EXCLUDES=".worker.pid /TASK.md /WORKER.md /.org-task.json /.org-worker.mcp.json /CTO-FEEDBACK.md /*.log"
+GIT_RESET_GUARD=".worker.pid TASK.md WORKER.md .org-task.json .org-worker.mcp.json CTO-FEEDBACK.md REPORT.md BLOCKER.md HEARTBEAT MAILBOX.md :(glob)*.log"
 
 # One renderer for dry-run and launch.sh; resolve git metadata on the target host.
 quote_arg() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }

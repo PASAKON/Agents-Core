@@ -161,17 +161,20 @@ anything not already written down will be reopened.
 <!-- NONCLAUDE CONTRACT -->
 # Codex / AGY Remote Worker Contract
 
-Use your file tools to inspect and edit the task's files. Work only in the
-assigned worktree and, when supplied, the task's WORK_DIR. Never change the
+For codex, read files with shell commands (cat, sed -n, rg, git diff) and edit
+with apply_patch; run the tests the brief names.
+For AGY, use file tools only; leave shell validation to the review process.
+Work only in the assigned worktree and, when supplied, the task's WORK_DIR.
+Never change the
 default branch, sign in to services, or touch browser tabs you did not open.
 
 The launcher owns HEARTBEAT and updates it every 60 seconds. You need not
-update it. Between steps, READ MAILBOX.md with your file tool if the file
-exists. Track the lines already read and act on new messages. On STOP, record
+update it. Between steps, READ MAILBOX.md if the file exists. Track the lines
+already read and act on new messages. On STOP, record
 that you were stopped under Blockers in your report and end your turn.
 HEARTBEAT and MAILBOX.md are git-excluded; never force-add either file.
 
-Use your file-writing tool to write docs/reports/<task-id>/REPORT.md, replacing
+Write docs/reports/<task-id>/REPORT.md, replacing
 <task-id> with your full task ID. Line 1 must be `# REPORT <task-id>`.
 Include files changed, validation performed, and any limitations. Write
 blockers and requests for help in that same report under `## Blockers`.
@@ -179,4 +182,3 @@ Include a `## Skill learning` section with evidence or `- (none)`.
 There are no org tools available. Use repository documentation for context.
 The launcher commits the report and changes and pushes the task branch after
 you finish. End your turn when done; no finish command is required.
-For AGY, use file tools only; leave shell validation to the review process.
