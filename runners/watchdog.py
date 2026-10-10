@@ -82,6 +82,7 @@ def _mesh_probe_interval() -> int:
 
 def _mesh_probe_available() -> bool:
     return (os.environ.get("ORG_MESH_PROBE") != "0"
+            and mesh.enabled()
             and Path(mesh.SSH_KEY).expanduser().is_file())
 
 
@@ -157,7 +158,7 @@ def _probe_mesh_hosts(*, force: bool = False) -> dict[str, str]:
     _mesh_probe_details = {}
     if not _mesh_probe_available():
         if not _mesh_probe_skip_noted:
-            info("watchdog: mesh probe skipped (disabled or no dispatch key)")
+            info("watchdog: mesh probe skipped (ORG_MESH_PROBE=0, ORG_MESH_DISPATCH off, or no dispatch key)")
             _mesh_probe_skip_noted = True
         return {}
     if _mesh_probe_state is None:
