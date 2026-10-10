@@ -79,3 +79,4 @@ Binding on every session and worker that touches Bedrock work. The place is repo
 ## Field notes
 
 - 2026-10-07 [MISSING] §3 — minecraft.net Marketplace pages return only an app shell to curl (title "Minecraft DLC Marketplace"), and a headless Chromium navigation timed out; bedrockexplorer.com served the same offer as plain HTML with price, rating and image URLs · evidence: ledger row L001, session cto-369faf85 · status: pending
+- 2026-10-11 [COSTLY] §rule 8 — the light was tuned with Re-imagined Visuals installed underneath; my account then mixed the test rig with our pack, the CEO believed our pack used their work and ordered a rebuild from 0 against a 12:00 deadline; the ship pack measured 604 files, 0 of RV's, 0 licence text · evidence: rvbase_review.py on 6c7824f, CEO 05:2x-05:3x ruling, rule 8 in 81b7a88e · status: promoted
