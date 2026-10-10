@@ -286,5 +286,23 @@
   ],
   "routeCostUsd": 0,
   "h3Model": "cobijada"
+ },
+ {
+  "clip": "s06a",
+  "ids": [
+   "8bk368gr"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
  }
 ]

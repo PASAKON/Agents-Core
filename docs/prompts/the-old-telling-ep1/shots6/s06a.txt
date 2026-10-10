@@ -19,7 +19,7 @@ THE FRAME: Medium wide shot from behind and low at ORPHEUS's shoulder: ORPHEUS s
 
 WHAT HAPPENS:
 [0s] ORPHEUS stands still before the thrones, THE LYRE hanging from his hand.
-[2s] A faint pale outline of a woman forms in the mist between him and the thrones, thin and flat like a painted veil.
+[2s] A pale translucent woman-shaped silhouette in a long veil forms in the mist between him and the thrones, a grey-white outline with no face and no detail, thin and flat like a painted veil.
 [4s] He steps forward and reaches out for it.
 [5.5s] The outline thins and dissolves into drifting mist as his fingers reach it.
 [7s] Hold: his hand stays stretched into the empty mist, no new action.
@@ -29,7 +29,7 @@ non_diegetic_music: none.
 
 Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
 
-CRITICAL NEGATIVES: no face visible on ORPHEUS, no real woman, no speech or singing, no skulls, no fire, no blood, nothing new starts after 7 seconds.
+CRITICAL NEGATIVES: no face visible on ORPHEUS, no face, no eyes, no nose and no mouth on the pale outline, no real woman, no speech or singing, no skulls, no fire, no blood, nothing new starts after 7 seconds.
 
 House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
 
