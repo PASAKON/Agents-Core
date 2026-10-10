@@ -75,6 +75,18 @@ if [ -z "$ROLE" ]; then
   exit 2
 fi
 
+# Resolve explicit resume targets before any session or tab side effects.
+for ((i=0; i<${#ARGS[@]}; i++)); do
+  case "${ARGS[i]}" in
+    -r|--resume)
+      if ((i+1 < ${#ARGS[@]})) && [[ "${ARGS[i+1]}" != -* ]]; then
+        ARGS[i+1]="$(bash "$ROOT/scripts/resolve-resume-id.sh" "$ROLE" "${ARGS[i+1]}")" || exit 2
+        i=$((i+1))
+      fi
+      ;;
+  esac
+done
+
 # --- SomPong (the COO): ONE session, on Contabo only (CEO 2026-10-01) ---------
 # docs/design/sompong-coo-session.md "Singleton + spawn". Checked before anything
 # else, even --dry-run: no lock, no DB row, no venv. The host comes from
@@ -520,10 +532,10 @@ export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 
 # ADR 0013 Phase 5 — org wiki root on a non-Mac box.
 # config/wikis.yaml carries Mac absolute paths; Contabo keeps its copy at
-# /opt/MoonieXHQ/Agents/Rules since the HQ move (2026-09-23) — /opt/agents-wikis
-# is the compat link for a week. No-op on the Mac, where neither path exists.
+# /opt/MoonieXHQ/Agents/Rules since the HQ move (2026-09-23).
+# No-op on the Mac, where this path does not exist.
 if [ -z "${WIKI_ROOT_ORG:-}" ]; then
-  for d in /opt/MoonieXHQ/Agents/Rules /opt/agents-wikis; do
+  for d in /opt/MoonieXHQ/Agents/Rules; do
     if [ -d "$d" ]; then export WIKI_ROOT_ORG="$d"; break; fi
   done
 fi
@@ -533,7 +545,7 @@ fi
 # mooniex is the default namespace. Same rsync-not-clone shape as agents-wikis,
 # so reads work and there is no git remote to push back to. No-op on the Mac.
 if [ -z "${WIKI_ROOT_MOONIEX:-}" ]; then
-  for d in /opt/MoonieXHQ/Agents/Wikis /opt/mooniex-wikis; do
+  for d in /opt/MoonieXHQ/Agents/Wikis; do
     if [ -d "$d" ]; then export WIKI_ROOT_MOONIEX="$d"; break; fi
   done
 fi

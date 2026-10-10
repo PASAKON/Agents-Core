@@ -85,6 +85,41 @@ if (-not (Test-Path $venvPy)) {
     exit 2
 }
 
+# Resolve explicit resume targets before writing session state or tab titles.
+$uuidPattern = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+for ($i = 0; $i -lt $RemainingArgs.Count; $i++) {
+    if ($RemainingArgs[$i] -notin @('-r', '--resume')) { continue }
+    if ($i + 1 -ge $RemainingArgs.Count -or $RemainingArgs[$i + 1].StartsWith('-')) { continue }
+    $i++
+    $resumeId = $RemainingArgs[$i]
+    if ($resumeId -cmatch $uuidPattern) { continue }
+    if ($resumeId -cnotmatch '^[0-9a-f]{8}$') {
+        [Console]::Error.WriteLine('refuse to resume: expected 8 lowercase hex characters or a full UUID')
+        exit 2
+    }
+    $resumeFile = Join-Path $root "state\locks\$Role-$resumeId.uuid"
+    $resumeTarget = ''
+    if (Test-Path $resumeFile) {
+        $resumeTarget = (Get-Content -Raw -Path $resumeFile -ErrorAction SilentlyContinue) -replace '\s', ''
+    }
+    if ($resumeTarget -cnotmatch $uuidPattern) {
+        Push-Location $root
+        try {
+            $resumeTarget = (& $venvPy -m tools.session_status resume --role $Role --session-id $resumeId 2>$null) -join "`n"
+            $resumeTarget = $resumeTarget.Trim()
+        } catch {
+            $resumeTarget = ''
+        } finally {
+            Pop-Location
+        }
+    }
+    if ($resumeTarget -cnotmatch $uuidPattern) {
+        [Console]::Error.WriteLine("refuse to resume $Role-${resumeId}: no resumable UUID found; checked $resumeFile and c_level_sessions.resume_uuid via tools.session_status resume (role=$Role, session_id=$resumeId)")
+        exit 2
+    }
+    $RemainingArgs[$i] = $resumeTarget
+}
+
 # venv on PATH, python3 resolvable for the repo hooks (same as win-cto.ps1):
 # the hooks call `python3`, which on Windows is the Microsoft Store stub.
 $py3 = Join-Path $venvScripts 'python3.exe'
