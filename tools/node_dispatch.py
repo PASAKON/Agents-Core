@@ -20,6 +20,8 @@ Output  exactly one JSON line on stdout:
 Exit    0 ok, 2 refusal (nothing ran), 1 a verb that ran and failed.
 Audit   every call, refusals included, writes one `events` row (actor
         node_dispatch, kind dispatch) through lib.db.log_event.
+start_clevel --probe marks sessions for stop_clevel cleanup within two hours.
+Stop is probe-only: the dispatch key must never end a person's live session.
 
 In-process API for W2.3: `dispatch(verb, args) -> dict`. It is synchronous and
 some verbs call asyncio.run(), so call it from async code through
@@ -51,6 +53,7 @@ sys.path.insert(0, str(ROOT))
 from lib import config, db, mailbox, proc  # noqa: E402
 
 ACTOR = "node_dispatch"
+MESH_PROBE_DIR = ROOT / "state" / "mesh-probe"
 MAX_COMMAND_CHARS = 256
 MAX_LOG_ARGS = 8
 MAX_ERROR_CHARS = 500
@@ -966,8 +969,20 @@ def _live_clevel_count(role: str) -> int:
     return live
 
 
-def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
+def verb_start_clevel(role: str, resume_sid: str | None, probe: bool = False) -> dict:
     host = _self_host()
+    if resume_sid:
+        from tools import session_status
+        try:
+            row = session_status.get(role, resume_sid)
+        except Exception as e:
+            raise Failure(f"session host lookup failed: {e}") from e
+        recorded_host = (row or {}).get("host")
+        if recorded_host and recorded_host != host:
+            raise Refusal(f"session {role}-{resume_sid} lives on {recorded_host}; resume it there")
+        if not recorded_host and not (session_status.LOCKS / f"{role}-{resume_sid}.uuid").is_file():
+            raise Refusal(f"session {role}-{resume_sid} has no host on record and no local .uuid; "
+                          "resume it on the machine where it ran")
     key = f"clevel:{host}:{role}:start"
     token = _claim(key, CLEVEL_START_CLAIM_TTL_S)
     if token is None:
@@ -984,6 +999,21 @@ def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
             result = _start_clevel_iterm(role, resume_sid)
         else:
             result = _start_clevel_tmux(role, resume_sid)
+        if probe:
+            sid = result["session_id"]
+            if not isinstance(sid, str) or not SESSION_ID_RE.fullmatch(sid):
+                raise Failure("probe launcher returned no valid session id")
+            marker = {"role": role, "session_id": sid, "host": host,
+                      "started_at": datetime.now(timezone.utc).isoformat(),
+                      "tmux_session": result.get("tmux_session"), "via": result["via"]}
+            MESH_PROBE_DIR.mkdir(parents=True, exist_ok=True)
+            path = MESH_PROBE_DIR / f"{role}-{sid}.json"
+            temp = path.with_suffix(f".{uuid.uuid4().hex}.tmp")
+            try:
+                temp.write_text(json.dumps(marker), encoding="utf-8")
+                os.replace(temp, path)
+            finally:
+                temp.unlink(missing_ok=True)
     except BaseException:
         _release(key, token)
         raise
@@ -991,18 +1021,68 @@ def verb_start_clevel(role: str, resume_sid: str | None) -> dict:
     return result
 
 
-def _parse_start_clevel(args: list[str]) -> tuple[str, str | None]:
+def _parse_start_clevel(args: list[str]) -> tuple[str, str | None, bool]:
+    probe = bool(args and args[-1] == "--probe")
+    if probe:
+        args = args[:-1]
     if len(args) not in (1, 3):
-        raise Refusal("start_clevel takes <role> [--resume <sid>]")
+        raise Refusal("start_clevel takes <role> [--resume <sid>] [--probe]")
     if args[0] not in config.live_c_level_roles():
         raise Refusal(f"start_clevel: unknown role {_show(args[0])}")
     if len(args) == 1:
-        return args[0], None
+        return args[0], None, probe
     if args[1] != "--resume":
         raise Refusal(f"start_clevel: unexpected argument {_show(args[1])}")
     if not SESSION_ID_RE.fullmatch(args[2]):
         raise Refusal(f"start_clevel: malformed session id {_show(args[2])}")
-    return args[0], args[2]
+    return args[0], args[2], probe
+
+
+def verb_stop_clevel(role: str, sid: str) -> dict:
+    from tools import send_to_cxo, session_name, session_status, tmux_session
+    host = _self_host()
+    path = MESH_PROBE_DIR / f"{role}-{sid}.json"
+    refusal = (f"not a probe session started on {host}; "
+               "stop_clevel only stops sessions started with --probe")
+    try:
+        marker = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise Refusal(refusal)
+    if (marker.get("host"), marker.get("role"), marker.get("session_id")) != (host, role, sid):
+        raise Refusal(refusal)
+    try:
+        started = datetime.fromisoformat(marker["started_at"])
+        age = datetime.now(timezone.utc) - started
+    except (KeyError, TypeError, ValueError) as e:
+        raise Refusal("invalid probe started_at") from e
+    if age > timedelta(hours=2):
+        raise Refusal("stale probe marker; a human may be using it now")
+    if _os_name() == "darwin":
+        raise Refusal("stop_clevel is not built for darwin yet")
+    stopped = False
+    if _is_windows():
+        try:
+            pid = int((Path(send_to_cxo.LOCKS_DIR) / f"{role}-{sid}.lock").read_text().strip())
+        except FileNotFoundError:
+            pid = None
+        if _pid_is_alive(pid):
+            r = subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"],
+                               capture_output=True, text=True, timeout=30)
+            if r.returncode != 0 and _pid_is_alive(pid):
+                raise Failure(f"taskkill failed: {r.stderr or r.stdout}")
+            stopped = r.returncode == 0
+    else:
+        name = marker.get("tmux_session") or session_name.tmux_name(role, sid)
+        if tmux_session.has_session(name):
+            r = subprocess.run([tmux_session.tmux_bin(), "kill-session", "-t", name],
+                               capture_output=True, text=True, timeout=30)
+            if r.returncode != 0 and tmux_session.has_session(name):
+                raise Failure(f"tmux kill-session failed: {r.stderr or r.stdout}")
+            stopped = r.returncode == 0
+    session_status.record_close(role, sid, "closed", note="mesh probe stopped")
+    path.unlink()
+    return {"role": role, "session_id": sid, "stopped": stopped,
+            "detail": "stopped" if stopped else "already gone"}
 
 
 # ---------------------------------------------------------------------------
@@ -1279,6 +1359,7 @@ HANDLERS = {
     "spawn_worker": verb_spawn_worker,
     "kill_worker": verb_kill_worker,
     "start_clevel": verb_start_clevel,
+    "stop_clevel": verb_stop_clevel,
     "deliver_letter": verb_deliver_letter,
     "publish_branch": verb_publish_branch,
 }
@@ -1289,6 +1370,7 @@ _ARGSPEC = {
     "pid_alive": (TASK_ID_RE,),
     "spawn_worker": (TASK_ID_RE,),
     "kill_worker": (TASK_ID_RE,),
+    "stop_clevel": (_SAFE_TOKEN_RE, SESSION_ID_RE),
     "deliver_letter": (LETTER_ID_RE,),
     "publish_branch": (TASK_ID_RE,),
 }
@@ -1304,6 +1386,8 @@ def _check_args(verb: str, args: list[str]) -> tuple:
     for arg, pattern in zip(args, spec):
         if not pattern.fullmatch(arg):
             raise Refusal(f"{verb}: malformed argument {_show(arg)}")
+    if verb == "stop_clevel" and args[0] not in config.live_c_level_roles():
+        raise Refusal(f"stop_clevel: unknown role {_show(args[0])}")
     return tuple(args)
 
 
