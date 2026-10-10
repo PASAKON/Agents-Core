@@ -504,6 +504,18 @@ that day — list the folder, compare `name → md5` against the local file, upl
 only what differs (under the next free `_vN`, never trashing the old one), then
 re-list to prove the diff is empty.
 
+**Every take is backed up to Drive automatically, while the film is still being made (CEO 2026-10-10).**
+His words: *"ต้องสำรองเสมอเพราะ Take เก่าเอามาใช้ได้"*, *"ทำให้มันเป็น กฏได้ไหม ให้สำรองตลอด จะได้ไม่ต้องถามอีก"*, and
+*"พยายามอย่าใส่คลิปซ้ำๆ ในเครื่อง Local เยอะเพราะมันเปลืองพื้นที่ ใส่เฉพาะที่เอาไว้ตัดต่อ เมื่อทำเสร็จสำรองเสมอ"*.
+- **Do not ask.** Every take a runner downloads goes up to the film's `All Scene/S<n>/` with an md5 check by id and a
+  `logs.txt` line, failed and superseded takes included: an old take is often reused in a later cut. Wire it into the
+  runner so it happens without a model (THE LAST BELL: `lb_drive_backup.py`, called from the queue guard).
+- **Local disk keeps only what the current edit uses**, plus takes not yet reviewed. Any other take is moved to the
+  Trash once its md5 matches on Drive. When an old take is needed again, download it back from Drive.
+- The scene folders `S<n>` of a film whose project folder already exists may be created without asking, following
+  the StoryBoard's scene numbers. A new project folder still needs the ask (rule 3).
+- Never back up a take whose md5 has not been read back; never move a local take to the Trash without that read-back.
+
 **When a film is finished, clear it off every machine it was made on (CEO 2026-09-27).**
 *"เก็บ backup ไว้เสมอ เมื่อจบงาน ให้เคลียร์ออกจากเครื่องที่ทำไว้ เพื่อประหยัด Disk ไว้ทำงานต่อไป"*.
 "Finished" means posted. Do it in the same session as the post, without being asked:
