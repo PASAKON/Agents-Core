@@ -59,7 +59,8 @@ SHOTS = [
                 "[5s] Hold: everyone stays where they are, no speech, no new action; only wind in the grass and the slow river."],
          sound="overall_soundscape: only the sounds of the place: wind in tall grass, slow river water, cloth moving. No voices, no speech, no singing.\nnon_diegetic_music: none.",
          crit=("CRITICAL NEGATIVES: no faces on any silhouette, no smiles, no kiss, no second bride, no animals, no speech or singing, nothing new starts after 5 seconds."), hold="5s"),
-    dict(key="s04", title="S04 THE TORCH THAT WILL NOT LIGHT", sec=7, refs=[], line="2.07",
+    dict(key="s04", title="S04 THE TORCH THAT WILL NOT LIGHT", sec=7, refs=["MEADOW"], line="2.07",
+         refover={"MEADOW": "@MEADOW: THE RIVER MEADOW AT DUSK, used only as the far, soft, out-of-focus background behind the torch: its dusk sky, its light and its tall grass. Nothing of it is in sharp focus; the torch and the hand are the subject."},
          header="7s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera static, close; no zoom, no cut.",
          heading="A TORCH THAT WILL NOT CATCH FIRE. Thick smoke, weak sparks, and no flame however it is waved.",
          frame=("Close shot, slightly low, of one wooden torch held upright in a bare dark hand against a dusk sky; the head of the torch is wrapped in pitch-soaked cloth. "
@@ -126,10 +127,10 @@ SHOTS = [
                 "[3.5s] Hold: nothing new appears; only the grass and the river."],
          sound="overall_soundscape: only the sounds of the place: wind in tall grass, slow river water. No voices, no speech, no singing.\nnon_diegetic_music: none.",
          crit="CRITICAL NEGATIVES: no person, no animal, no silhouette, no bird, nothing new starts after 3.5 seconds.", hold="3.5s"),
-    dict(key="s10", title="S10 THE DEAD HIVES", sec=6, refs=[], line="2.13",
+    dict(key="s10", title="S10 THE DEAD HIVES", sec=6, refs=["MEADOW_GREY"], line="2.13",
          header="6s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera drifting slowly along the row toward screen-right; no zoom, no cut.",
          heading="A ROW OF EMPTY BEEHIVES. Dead bees lie thick on the boards. Nothing is alive.",
-         frame=("Medium shot of a row of old woven-straw beehives on a long low wooden stand in a grey orchard at dusk. The hives are silent; hundreds of dead bees lie scattered on the boards and the ground in front of them as small dark specks; "
+         frame=("Medium shot of a row of old woven-straw beehives on a long low wooden stand at the edge of THE RIVER MEADOW AFTER THE SUN IS GONE, beside the old olive trees. The hives are silent; hundreds of dead bees lie scattered on the boards and the ground in front of them as small dark specks; "
                 "no living bee flies. The only warm light is a faint ember glow low at the left."),
          beats=["[0s] The row stands still; the wind stirs the dry straw.",
                 "[2s] The camera drifts slowly along the row; a few dead bees roll on the boards in the wind.",
@@ -170,7 +171,8 @@ SHOTS = [
                 "[3.5s] Hold: he stays where he is, no new action; only the waves."],
          sound="overall_soundscape: only the sounds of the place: small waves on pebbles, pebbles shifting under sandals, a thin sea wind. No voices, no speech, no singing.\nnon_diegetic_music: none.",
          crit="CRITICAL NEGATIVES: no second person, no speech or singing, no lyre played, nothing new starts after 3.5 seconds.", hold="3.5s"),
-    dict(key="s14", title="S14 THE CAVE AT TAENARUS", sec=7, refs=[], line="2.17",
+    dict(key="s14", title="S14 THE CAVE AT TAENARUS", sec=7, refs=["MEADOW_GREY"], line="2.17",
+         refover={"MEADOW_GREY": "@MEADOW_GREY: LIGHT AND SKY ONLY: the dull grey-green sky and the one last faint ember glow on dark water. Take nothing else from it: no grass, no stone, no olive trees, no river, no ridge."},
          header="7s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera drifting slowly toward the cliff; no zoom, no cut.",
          heading="THE SOUTHERN TIP OF GREECE AT LAST LIGHT. A sea cliff with a black cave mouth that the old tellers call a gate to the dead.",
          frame=("Wide shot of a tall grey sea cliff at the southern tip of Greece at last light: the rock face rises from a dark sea, waves break white-grey at its foot, "
@@ -199,7 +201,8 @@ SHOTS = [
 def paste_block(s):
     parts = [s["header"], "", s["heading"], ""]
     if s["refs"]:
-        parts += ["REFERENCES, each with a job:", "\n".join(build.REFS[k] for k in s["refs"]), ""]
+        over = s.get("refover", {})
+        parts += ["REFERENCES, each with a job:", "\n".join(over.get(k, build.REFS[k]) for k in s["refs"]), ""]
     parts += ["THE FRAME: " + s["frame"], "", "WHAT HAPPENS:", "\n".join(s["beats"]), "", s["sound"]]
     if s.get("audio"):
         parts += ["", SPEECH]

@@ -1,6 +1,6 @@
 === NOTES · DO NOT PASTE ANY OF THIS ===
 S04 THE TORCH THAT WILL NOT LIGHT · 7s request (175 frames, 7.29 s) · 1080p · 16:9 · The Old Telling EP1 ACT 2 · covers sentences 2.07
-Entities (group 'The Old Telling'): none. Audio bound: none.
+Entities (group 'The Old Telling'): @MEADOW. Audio bound: none.
 Narration is NOT in this clip; it is mixed in the edit.
 === END NOTES ===
 
@@ -9,6 +9,9 @@ Narration is NOT in this clip; it is mixed in the edit.
 7s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera static, close; no zoom, no cut.
 
 A TORCH THAT WILL NOT CATCH FIRE. Thick smoke, weak sparks, and no flame however it is waved.
+
+REFERENCES, each with a job:
+@MEADOW: THE RIVER MEADOW AT DUSK, used only as the far, soft, out-of-focus background behind the torch: its dusk sky, its light and its tall grass. Nothing of it is in sharp focus; the torch and the hand are the subject.
 
 THE FRAME: Close shot, slightly low, of one wooden torch held upright in a bare dark hand against a dusk sky; the head of the torch is wrapped in pitch-soaked cloth. It gives off thick grey-black smoke and a few weak sparks but never catches into a flame. Behind it, far out of focus, the dark silhouettes of wedding guests stand in a row. The only warm light is the faint ember sparks.
 
