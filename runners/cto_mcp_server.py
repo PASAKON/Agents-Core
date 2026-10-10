@@ -220,6 +220,12 @@ def decide(site: str, state: str, provider: str = "") -> str:
     return reg.dispatch_sync("decide", site=site, state=state, provider=provider)
 
 
+@mcp.tool(description=reg.BY_NAME["start_clevel_remote"].description)
+async def start_clevel_remote(host: str, role: str, resume_session_id: str = "") -> str:
+    return await reg.dispatch("start_clevel_remote", host=host, role=role,
+                              resume_session_id=resume_session_id)
+
+
 @mcp.tool(description=reg.BY_NAME["ask_run"].description)
 async def ask_run(
     host: str,
