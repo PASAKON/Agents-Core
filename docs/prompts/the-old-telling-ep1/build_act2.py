@@ -5,7 +5,7 @@
     .venv/bin/python -I docs/prompts/the-old-telling-ep1/build_act2.py --fire [--only s03,s04]   # queue on the studio (needs CEO CU OK)
 
 Picture plan = one shot per sentence group of the passed Thai ACT 2 (SCRIPT-TH-FULL.md), lengths on the H3 grid 5+17k frames at 24 fps
-(4 s request = 107 f = 4.46 s, 5 = 124 f, 6 = 158 f, 7 = 175 f, 8 = 192 f, 15 = 362 f). 2.04 (field, cave, river) is cut from the four clips
+(4 s request = 107 f = 4.46 s, 5 = 124 f, 6 = 141 f (measured 2026-10-10), 7 = 175 f, 8 = 192 f, 15 = 362 f). 2.04 (field, cave, river) is cut from the four clips
 we already own, so it is not here. Narration is never bound to H3; only s12 carries the Orpheus line as <Audio 1> (path B: H3 voices the hint
 itself and lip-syncs to it; the edit mutes that and lays the real line on each mouth burst, as for the king).
 Rules reused from build.py: each @ref exactly once, adults 18+, no blush or red ears, the studio h3Model must equal --model (CEO owns it),
@@ -20,7 +20,7 @@ import h3_setup as h
 
 OUT = HERE / "shots2"; OUT.mkdir(exist_ok=True)
 QUALITY, ASPECT = "1080p", "16:9"
-GRID = {4: 107, 5: 124, 6: 158, 7: 175, 8: 192, 15: 362}  # request seconds -> frames (rules.ts)
+GRID = {4: 107, 5: 124, 6: 141, 7: 175, 8: 192, 15: 362}  # request seconds -> frames (rules.ts)
 SCRATCH = pathlib.Path("/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad")
 LINE = SCRATCH / "voice2/out/act2_215_orpheus_liam.mp3"  # 5.88 s: bursts 0-0.49, 1.0-3.06, 3.6-5.64
 HINT = OUT / "act2_215_hint.mp3"
@@ -46,32 +46,32 @@ SHOTS = [
          sound="overall_soundscape: only the sounds of the place: dry paper unrolling, the lamp's soft hiss, a faint creak of wood. No voices, no singing.\nnon_diegetic_music: none.",
          crit=("CRITICAL NEGATIVES: no face, no body, no hands other than the two aged hands, no readable writing or letters on the scrolls (only soft dark ink marks), "
                "no speech or singing, nothing new starts after 12 seconds."), hold="12s"),
-    dict(key="s03", title="S03 THE WEDDING GUESTS", sec=6, refs=["MEADOW", "EURYDICE"], line="2.05-2.06",
-         header="6s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low wide camera drifting very slowly toward screen-right; no zoom, no cut.",
-         heading="A WEDDING AT DUSK BESIDE THE SLOW RIVER. The guests stand as dark silhouettes. The god of marriage arrives with a torch, and nobody smiles.",
+    dict(key="s03", title="S03 THE WEDDING GUESTS", sec=7, refs=["MEADOW", "EURYDICE"], line="2.05-2.06",
+         header="7s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low wide camera drifting very slowly toward screen-right; no zoom, no cut.",
+         heading="A WEDDING AT DUSK BESIDE THE SLOW RIVER. The guests stand as dark silhouettes. The god of marriage arrives with a dead, unlit torch, and nobody smiles.",
          frame=("Wide and low across THE RIVER MEADOW at dusk. Near the river in the middle of the frame, about twenty wedding guests stand in a loose half circle as dark silhouettes with no faces and no detail; "
                 "at the centre the bride stands in THE DRESS, a long pale linen dress with a long pale veil, only a silhouette. "
-                "At the right edge a tall dark silhouette, THE GOD OF MARRIAGE in a long dark cloak, steps into the meadow holding one unlit torch, his face in deep shadow. "
-                "Every figure is no taller than one fifth of the frame height. The only warm light is a faint ember glow on the river and on the torch."),
+                "At the right edge a tall dark silhouette, THE GOD OF MARRIAGE in a long dark cloak, steps into the meadow holding one dead torch: its head of pitch-soaked cloth is black and cold, with no flame and no glow, and it is never lit. His face is in deep shadow. "
+                "Every figure is no taller than one fifth of the frame height. The only warm light is a faint ember glow on the river, none of it from the torch."),
          beats=["[0s] The guests stand still in the half circle, the bride at the centre; the grass moves in the wind.",
-                "[2s] THE GOD OF MARRIAGE walks slowly in from screen-right, the torch held low; no guest moves or lifts a hand to greet him.",
-                "[4s] He stops at the edge of the group and raises the torch a little.",
-                "[5s] Hold: everyone stays where they are, no speech, no new action; only wind in the grass and the slow river."],
+                "[2s] THE GOD OF MARRIAGE walks slowly in from screen-right, the dead torch held low, its head black and dark; no guest moves or lifts a hand to greet him.",
+                "[4.5s] He stops at the edge of the group and raises the dark torch a little; it stays unlit.",
+                "[6s] Hold: everyone stays where they are, no speech, no new action; only wind in the grass and the slow river."],
          sound="overall_soundscape: only the sounds of the place: wind in tall grass, slow river water, cloth moving. No voices, no speech, no singing.\nnon_diegetic_music: none.",
-         crit=("CRITICAL NEGATIVES: no faces on any silhouette, no smiles, no kiss, no second bride, no animals, no speech or singing, nothing new starts after 5 seconds."), hold="5s"),
+         crit=("CRITICAL NEGATIVES: no flame, no fire, no lit torch, no glow on the torch, no faces on any silhouette, no smiles, no kiss, no second bride, no animals, no speech or singing, nothing new starts after 6 seconds."), hold="6s"),
     dict(key="s04", title="S04 THE TORCH THAT WILL NOT LIGHT", sec=7, refs=["MEADOW"], line="2.07",
          refover={"MEADOW": "@MEADOW: THE RIVER MEADOW AT DUSK, used only as the far, soft, out-of-focus background behind the torch: its dusk sky, its light and its tall grass. Nothing of it is in sharp focus; the torch and the hand are the subject."},
          header="7s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera static, close; no zoom, no cut.",
-         heading="A TORCH THAT WILL NOT CATCH FIRE. Thick smoke, weak sparks, and no flame however it is waved.",
-         frame=("Close shot, slightly low, of one wooden torch held upright in a bare dark hand against a dusk sky; the head of the torch is wrapped in pitch-soaked cloth. "
-                "It gives off thick grey-black smoke and a few weak sparks but never catches into a flame. Behind it, far out of focus, the dark silhouettes of wedding guests stand in a row. "
-                "The only warm light is the faint ember sparks."),
-         beats=["[0s] The torch head sputters, small sparks jump, thick grey smoke rolls upward.",
-                "[2s] The hand sweeps the torch slowly left and right through the air; the smoke streams out along the sweep; no flame appears.",
+         heading="A TORCH THAT WILL NOT CATCH FIRE. Thick smoke, a few weak sparks that die at once, and never a flame however it is waved.",
+         frame=("Close shot, slightly low, of one wooden torch held upright in a bare dark hand against a dusk sky; the head of the torch is wrapped in black, wet, pitch-soaked cloth that only smoulders like a dull dead coal. "
+                "It gives off thick grey-black smoke and a few tiny weak sparks that die at once; it is a torch that will not light and no flame ever forms on it. Behind it, far out of focus, the dark featureless silhouettes of ancient Greek wedding guests stand in a row in long plain robes and cloaks, only dark shapes with no detail of cloth or faces. "
+                "The only warm light is a faint dull red from the smouldering coal."),
+         beats=["[0s] The black torch head smoulders and sputters, a few tiny sparks jump and die, thick grey smoke rolls upward; there is no flame.",
+                "[2s] The hand sweeps the torch slowly left and right through the air; the smoke streams out along the sweep; the head stays a dull dark coal and no flame appears.",
                 "[5s] The hand lowers the torch; the smoke drifts across the lens and fills the upper half of the frame.",
                 "[6s] Hold: the hand stays where it is, no flame, no new action; only drifting smoke."],
          sound="overall_soundscape: only the sounds of the place: the dry crackle and hiss of a torch that will not light, a soft breath of wind. No voices, no speech, no singing.\nnon_diegetic_music: none.",
-         crit=("CRITICAL NEGATIVES: no flame, no face, no body beyond the hand, no fire anywhere in the frame, no speech or singing, nothing new starts after 6 seconds."), hold="6s"),
+         crit=("CRITICAL NEGATIVES: no flame at any moment, no burning fire, no orange fire, no blaze, no suits, no ties, no bow ties, no tuxedos, no modern clothing, no face, no body beyond the hand, no speech or singing, nothing new starts after 6 seconds."), hold="6s"),
     dict(key="s05", title="S05 THE BRIDE FALLS IN THE GRASS", sec=8, refs=["MEADOW", "EURYDICE"], line="2.08",
          header="8s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low wide camera drifting very slowly toward screen-left; no zoom, no cut.",
          heading="IN THE TALL GRASS ON THE RIVER BANK THE BRIDE WALKS WITH A COMPANION. She stops, bends to her ankle, sinks into the grass and does not rise.",

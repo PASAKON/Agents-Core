@@ -250,5 +250,59 @@
   ],
   "routeCostUsd": 0,
   "h3Model": "cobijada"
+ },
+ {
+  "clip": "s03",
+  "ids": [
+   "o6uaxs3h"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04",
+  "ids": [
+   "lf1f96v6"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04",
+  "ids": [
+   "aibs9zh3"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
  }
 ]
