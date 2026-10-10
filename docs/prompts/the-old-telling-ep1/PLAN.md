@@ -1,6 +1,6 @@
 # The Old Telling EP1, first minute: PLAN v0
 
-STATUS: CEO 2026-10-10 wants to read the FULL Thai script before approving spend, one ACT at a time (SCRIPT-TH-FULL.md: 6 ACTs, 10 min). ACT 1 = the minute he already read; ACT 2 drafted and sent; ACT 3 to 6 wait for his pass on ACT 2. Money still frozen: nothing bought or fired since the 13.88 CU. The first-minute ask (voice <= $0.07, H3 <= 1.6 CU) stays open. Last agent: cmo-f76492bf, 2026-10-10.
+STATUS: 2026-10-10 ACT 1 and ACT 2 Thai scripts PASSED by the CEO; Thai TTS for both made (voice $0.1167 this batch, cumulative about $0.186 of the $0.25 cap). ACT 1 Thai cut DONE and sent (61.6 s, ACT1-th-provenance.json): king shot e05 rendered on Colab (0.43 CU by balance, guard estimate max 0.91), Colab OFF confirmed 08:42. Waiting for the CEO to watch ACT 1 and hear ACT 2. ACT 3 to 6 not written (need his pass and a new voice cap: about $0.27 vs $0.064 left). Last agent: cmo-f76492bf, 2026-10-10.
 
 CEO order 2026-10-09: "ลองทำ ฉากจริง สไตล์ภาพจริง เนื้อเรื่องจริง เสียงภาพจริง (เฉพาะภาษาไทยก่อน). ทำมา 1 นาทีให้ดูเลย. ใช้ Skill การทำภาพยนตร์เลย. ถ้าจำเป็นต้องมีเสียงพูดของตัวละคร ให้ใช้เทคนิคเดียวกับเสียงภาพของละครสั้น เพียงแต่ปรับเปลี่ยนเป็น Eleven Lab v4 อย่างเดียว. ทำ 1080P 15s x 4."
 
