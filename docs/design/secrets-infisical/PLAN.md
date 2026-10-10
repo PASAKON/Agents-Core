@@ -79,6 +79,7 @@ plan); the permission wall stays the project.
 | MoonieX-ComfyRunpod | | read | | |
 | MoonieX-CookierunBot | | | read | |
 | MoonieX-WebApp | | (later) | | prod |
+| MoonieX-Bedrock | read | read | | |
 | LungNote-MCP | read | read | | |
 | LungNote-Webapp, WarpClip-Webapp, LinkReed-Webapp | | | | prod |
 

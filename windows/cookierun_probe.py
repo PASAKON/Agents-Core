@@ -51,6 +51,23 @@ VK_BACK = 0x08
 # overlay showed the word -- while the field underneath still read "Combi".
 VK_RETURN = 0x0D
 
+# The CEO's hold (pc_lease.py ceo-on, his "use PC" desktop button). Its
+# existence is the signal; a broken file counts as held. While it is on this
+# presses nothing, shoots nothing and minimises nothing. Checked before the
+# first step AND before every step: a plan can run for minutes, and he may press
+# his button in the middle of it (review, 2026-10-09).
+CEO_HOLD = Path.home() / "Documents" / "CookieRunScript" / "modelplay" / "CEO_HOLD.json"
+
+
+def ceo_holds_the_pc() -> bool:
+    try:
+        CEO_HOLD.stat()
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return True
+    return True
+
 
 
 def SKIP_TITLES(t) -> bool:
@@ -148,6 +165,8 @@ def clear_screen() -> str:
     still want it. BlueStacks' own windows are matched by title so the player,
     the keymap overlay and any BlueStacks dialog all survive.
     """
+    if ceo_holds_the_pc():
+        return "REFUSED - the CEO holds the PC; minimised nothing"
     import ctypes.wintypes
 
     u = ctypes.windll.user32
@@ -193,6 +212,10 @@ def main() -> int:
         print(line)
 
     steps = json.loads(plan_path.read_text(encoding="utf-8"))
+    if ceo_holds_the_pc():
+        say("ABORT: the CEO is using this PC (CEO hold) - nothing done")
+        log.close()
+        return 4
 
     # Only demand the game window if a step actually needs it. A full-desktop
     # screenshot does not, and refusing to take one because BlueStacks is closed
@@ -208,6 +231,10 @@ def main() -> int:
               if rect else None)
 
     for i, step in enumerate(steps):
+        if ceo_holds_the_pc():
+            say(f"ABORT: the CEO pressed his use-PC button - stopped before step {i}")
+            log.close()
+            return 4
         if "fullshot" in step:
             # The whole desktop, not the game rect. A worker that stalled is
             # stalled in its own terminal window, which resolve_region() has no

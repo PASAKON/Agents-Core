@@ -135,6 +135,7 @@ DEV's work ("push คือด่านออกของ spoke").
 ```bash
 python3 -m tools.memory_sync push
 ```
+- Push merges a moved remote and exits 1 on a conflict, blocking the close until fixed.
 - **Exit 0** (incl. "nothing changed") → continue normally.
 - **Non-zero** → this is **not** a 🏁. Record it as `force_saved` with the
   reason named, same as any other unmet gate — don't silently drop to

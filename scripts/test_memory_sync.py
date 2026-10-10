@@ -14,6 +14,8 @@ import subprocess
 import sys
 import tempfile
 import traceback
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -149,10 +151,51 @@ def test_pull_diverged_does_not_fail_and_does_not_block(tmp_path: Path) -> None:
     _commit_file(writer, "MEMORY.md", "v2-from-elsewhere\n", "elsewhere update")
     _git(writer, "push", "-q", "origin", "HEAD")
 
-    # --ff-only must fail here (diverged histories) — pull() must swallow it
+    # --ff-only fails, then a clean merge preserves both sessions' work.
     assert memory_sync.pull(memory_dir) == 0
-    # the local unpushed commit is untouched, proving nothing was force-merged
     assert (stale / "local-note.md").read_text() == "orphaned\n"
+    assert (stale / "MEMORY.md").read_text() == "v2-from-elsewhere\n"
+    assert len(_git(stale, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert not _git(stale, "status", "--porcelain").stdout.strip()
+
+
+def _diverged_repos(tmp_path: Path) -> tuple[Path, Path, Path]:
+    bare = _init_bare(tmp_path)
+    writer = _clone(bare, tmp_path, "writer")
+    _commit_file(writer, "MEMORY.md", "base\n", "init")
+    _git(writer, "push", "-q", "origin", "HEAD")
+    local = _clone(bare, tmp_path, "local")
+    _commit_file(writer, "MEMORY.md", "private remote lesson\n", "remote update")
+    _git(writer, "push", "-q", "origin", "HEAD")
+    return bare, local, _symlink_memory_dir(tmp_path, local)
+
+
+def test_pull_conflict_aborts_and_degrades(tmp_path: Path) -> None:
+    bare, local, memory_dir = _diverged_repos(tmp_path)
+    _commit_file(local, "MEMORY.md", "private local lesson\n", "local update")
+    before = _git(local, "rev-parse", "HEAD").stdout
+    output = StringIO()
+    with redirect_stdout(output):
+        assert memory_sync.pull(memory_dir) == 0
+    assert "MEMORY.md" in output.getvalue()
+    assert "spawn is not blocked" in output.getvalue()
+    assert "private local lesson" not in output.getvalue()
+    assert "private remote lesson" not in output.getvalue()
+    assert _git(local, "rev-parse", "HEAD").stdout == before
+    assert (local / "MEMORY.md").read_text() == "private local lesson\n"
+    assert not (local / ".git" / "MERGE_HEAD").exists()
+    assert not _git(local, "status", "--porcelain").stdout.strip()
+
+
+def test_pull_dirty_divergence_keeps_local_changes(tmp_path: Path) -> None:
+    bare, local, memory_dir = _diverged_repos(tmp_path)
+    _commit_file(local, "note.md", "local note\n", "local update")
+    (local / "note.md").write_text("uncommitted note\n")
+    before = _git(local, "rev-parse", "HEAD").stdout
+    assert memory_sync.pull(memory_dir) == 0
+    assert _git(local, "rev-parse", "HEAD").stdout == before
+    assert (local / "note.md").read_text() == "uncommitted note\n"
+    assert (local / "MEMORY.md").read_text() == "base\n"
 
 
 # --------------------------------------------------------------------------
@@ -207,6 +250,34 @@ def test_push_fails_loudly_when_remote_unreachable(tmp_path: Path) -> None:
     # the commit was still made locally — only the push leg failed
     log = _git(broken, "log", "--oneline", "-1").stdout
     assert "memory:" in log
+
+
+def test_push_diverged_merges_and_lands(tmp_path: Path) -> None:
+    bare, local, memory_dir = _diverged_repos(tmp_path)
+    (local / "note.md").write_text("local note\n")
+    assert memory_sync.push(memory_dir) == 0
+    assert _git(bare, "rev-parse", "HEAD").stdout == _git(local, "rev-parse", "HEAD").stdout
+    assert _git(bare, "show", "HEAD:note.md").stdout == "local note\n"
+    assert _git(bare, "show", "HEAD:MEMORY.md").stdout == "private remote lesson\n"
+    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert not _git(local, "status", "--porcelain").stdout.strip()
+
+
+def test_push_conflict_aborts_and_fails_with_filename(tmp_path: Path) -> None:
+    bare, local, memory_dir = _diverged_repos(tmp_path)
+    remote_before = _git(bare, "rev-parse", "HEAD").stdout
+    (local / "MEMORY.md").write_text("private local lesson\n")
+    output = StringIO()
+    with redirect_stdout(output):
+        assert memory_sync.push(memory_dir) == 1
+    assert "MEMORY.md" in output.getvalue()
+    assert "private local lesson" not in output.getvalue()
+    assert "private remote lesson" not in output.getvalue()
+    assert _git(bare, "rev-parse", "HEAD").stdout == remote_before
+    assert (local / "MEMORY.md").read_text() == "private local lesson\n"
+    assert "memory:" in _git(local, "log", "-1", "--oneline").stdout
+    assert not (local / ".git" / "MERGE_HEAD").exists()
+    assert not _git(local, "status", "--porcelain").stdout.strip()
 
 
 # --------------------------------------------------------------------------

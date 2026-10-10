@@ -3,7 +3,7 @@ name: ALL_Rules_Winbox_PCLease
 kind: rules
 owner: CTO
 aka: [winbox-pc-lease]
-description: "RULES — Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any agent that needs the desktop takes priority over it, but must claim the screen instead of fighting it for the foreground. Trigger on /ALL_Rules_Winbox_PCLease and ALWAYS before the first click, keystroke, screenshot or app launch on winbox — and whenever someone says 'Cookie Run is running', 'มีบอทวิ่งอยู่', 'ยืมคอม', 'ขอใช้เครื่อง winbox', 'หยุดบอทก่อน', 'the bot is using the screen', 'something else is on that machine', or a screenshot of winbox shows a game or an app you did not start. Do NOT fire for headless winbox work (ssh, ffmpeg, rclone, git, file copies) — that never touches the screen and needs no lease."
+description: "RULES — Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any agent that needs the desktop takes priority over it, but must claim the screen instead of fighting it for the foreground. Trigger on /ALL_Rules_Winbox_PCLease and ALWAYS before the first click, keystroke, screenshot or app launch on winbox — and whenever someone says 'Cookie Run is running', 'มีบอทวิ่งอยู่', 'ยืมคอม', 'ขอใช้เครื่อง winbox', 'หยุดบอทก่อน', 'the bot is using the screen', 'something else is on that machine', 'PC: CEO', 'CEO hold', 'ใช้คอม', 'เลิกใช้คอม', or a screenshot of winbox shows a game or an app you did not start. Do NOT fire for headless winbox work (ssh, ffmpeg, rclone, git, file copies) — that never touches the screen and needs no lease."
 created_by: agent
 author: {role: cto, date: "2026-09-14"}
 audience: [cto, cmo, cgo, cfo, browser_operator, developer]
@@ -38,8 +38,46 @@ how it runs, not how to restart it. Three commands is the whole interface.
 Default lease is **120 minutes**; `--minutes N` to change it, `extend --minutes N`
 if you run long.
 
+If `status` opens with `PC: CEO`, **the CEO is at that PC. Hands off** until he
+presses his release button — see the next section. Nothing below gets past it.
+
 That is the whole skill. Everything below is why the details are the way they
 are.
+
+---
+
+## The CEO's hold — above every lease
+
+The CEO has two buttons on the winbox desktop: **ใช้คอม** ("use PC") and
+**เลิกใช้คอม** ("done"). Twice (2026-10-07, 2026-10-09) an agent found the lease
+FREE and relaunched an app over the game he was playing. A FREE lease is not a
+free screen; his button is the only thing that says he is there.
+
+While his hold is on:
+
+- `status` opens with `PC: CEO - the CEO is using this PC since HH:MM`.
+- `take` and `extend` refuse, **exit 2, `--force` included**. `gate` and
+  `ceo-check` refuse, **exit 3**, stdout still empty.
+- `WINBOX_NO_LEASE=1` does **not** get past it: under that override
+  `winbox-desktop.sh` and `winbox-line-send.sh` still run `pc-lease.sh
+  ceo-check`. On the box, `desktop.ps1`, `line-send.ps1` and
+  `cookierun_probe.py` check the hold file themselves and refuse.
+- The watchdog resumes nothing and minimises nothing. If Cookie Run is running
+  under the hold anyway, it stops it (`bot_stop`, never ESC) within 5 minutes.
+- `give-back` releases your lease but clears no window and restarts nothing; the
+  farm comes back when he presses เลิกใช้คอม.
+
+**HARD — his press does not stop a run you already started.** It marks your lease
+as bumped, and your next `take`, `extend` or `gate` is refused. Nothing reaches a
+script that took the lease once and keeps clicking. So a runner that holds a lease
+across stages (join, tour, capture, ...) **calls `pc-lease.sh gate --as "<who>"`
+before every stage and stops on exit 3.** Without that, he presses his button and
+watches your script carry on over his game.
+
+**HARD — never run `ceo-on` / `ceo-off` yourself.** They are his buttons. Only if
+he asked for it in words: `PC_LEASE_CEO_SAID="<his words>" ./scripts/pc-lease.sh
+ceo-off`. Without the words it is refused, on the Mac and on the box, and every
+run that cites his words is logged with them.
 
 ---
 
@@ -86,8 +124,9 @@ are.
 0. **The scripts enforce this now — you will be refused, not reminded.**
    `winbox-desktop.sh` and `winbox-line-send.sh` call `pc-lease.sh gate` before
    they touch anything, and exit 3 with instructions if the tenant is farming
-   and you hold no lease. `WINBOX_NO_LEASE=1` overrides it for a genuine
-   emergency.
+   and you hold no lease, or the CEO holds the PC. `WINBOX_NO_LEASE=1` overrides
+   the farm check for a genuine emergency — never the CEO's hold (the scripts
+   then run `pc-lease.sh ceo-check`, which refuses only on his hold).
 
    **Why it is a gate and not a paragraph:** a session drove this desktop for
    three hours with the tenant live underneath. Every command returned OK. The
@@ -199,9 +238,23 @@ are.
 | Lease file | `…\Documents\CookieRunScript\modelplay\PC_LEASE.json` |
 | Audit log — every take, give-back and watchdog action | `…\modelplay\pc_lease.log` |
 | Watchdog, every 5 min | scheduled task `MooniexPCLease` |
+| The CEO's hold — exists = held, unreadable = held | `…\modelplay\CEO_HOLD.json` |
+| "Cookie Run is being put back" — revive stands down while fresh | `…\modelplay\FARM_RESUMING.json` |
+| His two buttons | `windows/desktop/` → desktop, by `install_ceo_buttons.sh` |
 
-`pc-lease.sh` md5-compares and redeploys `pc_lease.py` on every call, so editing
-the local copy is the whole deploy step.
+`pc-lease.sh` redeploys `pc_lease.py` only when your copy's `LEASE_VERSION` is
+**higher** than the box's (`scripts/lib/winbox_deploy.sh`), and keeps the box
+copy read-only. An edit to `pc_lease.py` must bump `LEASE_VERSION` or it stays
+on your machine — the wrapper says so on stderr. A checkout *behind* the box
+runs the box's newer copy and is told to `git pull`; it can no longer put an
+older file back. (Before 2026-10-09 this was an md5 compare, and any stale
+worktree's first call replaced the hold-aware file with one that knew nothing
+of the CEO's hold.) `cookierun_health.py` works the same way with
+`HEALTH_VERSION`, `desktop.ps1` with `DESKTOP_PS1_VERSION` and `line-send.ps1`
+with `LINE_SEND_PS1_VERSION`. `cookierun_revive.py` (`REVIVE_VERSION`) is deployed
+only by `install_ceo_buttons.sh`, which installs only a HEAD that is on
+origin/main, deploys and verifies every one of these first, and puts the buttons
+on the desktop last.
 
 The watchdog refuses to resume if a human ESC hold appeared while you held the
 lease — a person's stop outranks an expiring lease. After 3 failed resume
@@ -227,3 +280,8 @@ One thing this cost, so you know the price: the round that was in flight ended
 the partial round dropped downstream. That is the intended trade, not a fault.
 
 Related: [[CTO_Knowledge_Winbox_DesktopGUI]] — how to make a click on that machine real.
+
+## Field notes
+
+- 2026-10-09 [MISSING] §The CEO's hold — the skill knew no CEO hold: his buttons, what refuses under it, that WINBOX_NO_LEASE no longer bypasses it, and that a bumped run is not stopped (runners call gate --as before every stage) · evidence: branch ceo-pc-hold 947800b2 + 4aa46d7a, tests/test_pc_lease_ceo_hold.py · status: promoted
+- 2026-10-09 [WRONG] §Under the hood — "pc-lease.sh md5-compares and redeploys on every call": any stale checkout put an older pc_lease.py back on the box, one blind to the hold; replaced by a forward-only versioned deploy onto a read-only box copy · evidence: review of ceo-pc-hold 2026-10-09, 1224af88 · status: promoted

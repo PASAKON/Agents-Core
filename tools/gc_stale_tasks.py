@@ -154,6 +154,9 @@ def _reclaim_worktree(task: dict, *, dry_run: bool) -> dict | None:
 
     try:
         remove_worktree(task["project"], task["role"], task["id"])
+        if wt.exists():
+            raise RuntimeError(f"worktree still exists after removal: {wt}")
+        db.set_fields(task["id"], worktree=None, actor="gc_stale_tasks")
         print(f"[gc] removed worktree for {task['id']}: {wt}", file=sys.stderr)
         return {"task_id": task["id"], "worktree": wt_str, "action": "removed"}
     except Exception as e:

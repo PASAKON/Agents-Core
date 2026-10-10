@@ -56,6 +56,7 @@ from lib.notify import info, warn
 from lib.task_ownership import is_mine, foreign_msg
 from tools import ask_run as ask_run_tool
 from tools import email_ceo as email_ceo_tool
+from tools import start_clevel_remote as start_clevel_remote_tool
 from tools import decide as decide_tool
 from tools import wiki as wiki_tools
 from tools.inject_prompt import _build_task_md, _write_task_md
@@ -369,7 +370,22 @@ async def _h_email_ceo(*, kind: str, title: str, need: str = "", why: str = "", 
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
+async def _h_start_clevel_remote(*, host: str, role: str, resume_session_id: str = "") -> str:
+    return await asyncio.to_thread(
+        start_clevel_remote_tool.start_clevel_remote, host, role, resume_session_id)
+
+
 REGISTRY: tuple[ToolSpec, ...] = (
+    ToolSpec(
+        name="start_clevel_remote",
+        description="Start or resume a non-singleton C-level on another mesh host. C-level callers only; "
+                    "requires ORG_MESH_DISPATCH and the dispatch key. Limited to one start per "
+                    "host/role per 10 minutes and six per hour; every call is audited.",
+        params=(Param("host", str), Param("role", str), Param("resume_session_id", str, "")),
+        handler=_h_start_clevel_remote,
+        is_async=True,
+        response_format="text",
+    ),
     ToolSpec(
         name="wiki_read",
         description=(

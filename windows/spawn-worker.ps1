@@ -410,6 +410,39 @@ git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-wo
 `$mediaExts = @('png','jpg','jpeg','gif','webp','heic','mp4','mov','webm','mkv','avi','mp3','wav','m4a','aac','flac','ogg')
 `$stagedFiles = @(git -C '$wt' diff --cached --name-only)
 `$mediaBlockers = @()
+`$mediaKept = @()
+
+`$allowFile = Join-Path `$reportDir '.media_allow_all'
+`$allowLargeFile = Join-Path `$reportDir '.media_allow_large'
+`$hasAllow = `$false
+`$hasAllowLarge = `$false
+Remove-Item -LiteralPath `$allowFile -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath `$allowLargeFile -Force -ErrorAction SilentlyContinue
+
+`$allowRaw = @(git -C '$wt' show "origin/$Base:.media-allow" 2>`$null)
+if (`$LASTEXITCODE -eq 0 -and `$allowRaw.Count -gt 0) {
+    `$allPats = @()
+    `$largePats = @()
+    foreach (`$rawLine in `$allowRaw) {
+        `$line = `$rawLine.Trim().Replace('\', '/')
+        if (-not `$line -or `$line.StartsWith('#')) { continue }
+        if (`$line -match '\s+!large$') {
+            `$pat = (`$line -replace '\s+!large$', '').Trim()
+            `$allPats += `$pat
+            `$largePats += `$pat
+        } else {
+            `$allPats += `$line
+        }
+    }
+    if (`$allPats.Count -gt 0) {
+        [System.IO.File]::WriteAllLines(`$allowFile, `$allPats, `$noBom)
+        `$hasAllow = `$true
+    }
+    if (`$largePats.Count -gt 0) {
+        [System.IO.File]::WriteAllLines(`$allowLargeFile, `$largePats, `$noBom)
+        `$hasAllowLarge = `$true
+    }
+}
 
 foreach (`$f in `$stagedFiles) {
     if (-not `$f) { continue }
@@ -427,17 +460,43 @@ foreach (`$f in `$stagedFiles) {
         }
     }
     if (`$isMedia -or `$isLargeBinary) {
-        git -C '$wt' reset -q -- `$f
-        `$hsz = if (`$sz -ge 1048576) {
-            "{0:0.0} MB" -f (`$sz / 1048576.0)
-        } elseif (`$sz -ge 1024) {
-            "{0:0.0} KB" -f (`$sz / 1024.0)
-        } else {
-            "`$sz B"
+        `$isAllowed = `$false
+        if (`$hasAllow) {
+            `$matched = git -C '$wt' ls-files --cached --ignored "--exclude-from=`$allowFile" -- `$f 2>`$null
+            if (`$matched) {
+                `$isAllowed = `$true
+            }
         }
-        `$mediaBlockers += "media not committed: `$f (`$hsz) -- upload per CXO_Rules_GDrive_Filing and put the link here"
+        if (`$isAllowed -and (`$sz -gt 1048576)) {
+            `$hasLargeMatch = `$false
+            if (`$hasAllowLarge) {
+                `$matchedLarge = git -C '$wt' ls-files --cached --ignored "--exclude-from=`$allowLargeFile" -- `$f 2>`$null
+                if (`$matchedLarge) {
+                    `$hasLargeMatch = `$true
+                }
+            }
+            if (-not `$hasLargeMatch) {
+                `$isAllowed = `$false
+            }
+        }
+        if (`$isAllowed) {
+            `$mediaKept += `$f
+        } else {
+            git -C '$wt' reset -q -- `$f
+            `$hsz = if (`$sz -ge 1048576) {
+                "{0:0.0} MB" -f (`$sz / 1048576.0)
+            } elseif (`$sz -ge 1024) {
+                "{0:0.0} KB" -f (`$sz / 1024.0)
+            } else {
+                "`$sz B"
+            }
+            `$mediaBlockers += "media not committed: `$f (`$hsz) -- upload per CXO_Rules_GDrive_Filing and put the link here"
+        }
     }
 }
+
+Remove-Item -LiteralPath `$allowFile -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath `$allowLargeFile -Force -ErrorAction SilentlyContinue
 
 if (`$mediaBlockers.Count -gt 0) {
     `$repText = [System.IO.File]::ReadAllText(`$reportPath, `$noBom)
@@ -463,9 +522,22 @@ if (`$mediaBlockers.Count -gt 0) {
     git -C '$wt' add 'docs/reports/$Task/REPORT.md'
 }
 
+if (`$mediaKept.Count -gt 0) {
+    `$repText = [System.IO.File]::ReadAllText(`$reportPath, `$noBom)
+    `$keptLines = (`$mediaKept | ForEach-Object { "media kept: `$_" }) -join `$nl
+    `$repText = `$repText.TrimEnd() + `$nl + `$nl + `$keptLines + `$nl
+    [System.IO.File]::WriteAllText(`$reportPath, `$repText, `$noBom)
+    git -C '$wt' add 'docs/reports/$Task/REPORT.md'
+}
+
 git -C '$wt' diff --cached --quiet
 if (`$LASTEXITCODE -ne 0) {
-    git -C '$wt' commit -q -m "${Runner}: task $Task"
+    if (`$mediaKept.Count -gt 0) {
+        `$keptBody = (`$mediaKept | ForEach-Object { "media kept: `$_" }) -join `$nl
+        git -C '$wt' commit -q -m "${Runner}: task $Task" -m `$keptBody
+    } else {
+        git -C '$wt' commit -q -m "${Runner}: task $Task"
+    }
 }
 git -C '$wt' push -q origin $Branch
 "@
@@ -506,10 +578,13 @@ git -C '$wt' push -q origin $Branch
         # polls for it further down), so there is nothing to bake in yet. ---
         $finishPs1Body = @"
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
-    Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
-if (`$procs) {
-    `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
-    taskkill /PID `$workerPid /T /F
+    Where-Object {
+        `$_.Name -eq 'claude.exe' -and
+        `$_.Name -notin @('WindowsTerminal.exe', 'OpenConsole.exe', 'explorer.exe') -and
+        `$_.CommandLine -and `$_.CommandLine -like "*$Task*"
+    }
+foreach (`$proc in `$procs) {
+    Stop-Process -Id `$proc.ProcessId -Force -ErrorAction SilentlyContinue
 }
 "@
         Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
@@ -558,9 +633,16 @@ exit 0
         # action is one bare path (PowerShell -> schtasks quoting is unreliable).
         $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
         $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
+        $terminalCount = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        if ($terminalCount -gt 0) {
+            $wtWindowArgs = '-w 0'
+        } else {
+            $wtWindowArgs = '-w new'
+        }
+        Write-Output "WindowsTerminal launch: $wtWindowArgs; running=$($terminalCount -gt 0); count=$terminalCount"
         @"
 @echo off
-start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+start "" "$wtExe" $wtWindowArgs nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
 "@ | Set-Content -Path $wrapper -Encoding ASCII
     }
     elseif ($Runner -eq 'codex') {
@@ -774,10 +856,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         }
     }
     if (-not $workerPid) {
-        throw ("$Runner did not appear within 60s for task $Task -- the " +
-               "interactive scheduled task may not have started (needs an " +
-               "interactive desktop session; verify one exists over this " +
-               "SSH connection type). See ADDENDUM 1 in the task brief.")
+        $terminalCount = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        $lastTaskResult = 'unavailable'
+        try {
+            $lastTaskResult = (Get-ScheduledTaskInfo -TaskName $stName -ErrorAction Stop).LastTaskResult
+        } catch {}
+        throw ("$Runner did not appear within 60s for task $Task -- " +
+               "WindowsTerminal running=$($terminalCount -gt 0); count=$terminalCount; " +
+               "scheduled task=$stName; LastTaskResult=$lastTaskResult")
     }
 
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue

@@ -367,6 +367,8 @@ class Hub:
 
 @pytest.fixture
 def pg(monkeypatch):
+    # These role/HTTP tests simulate an authenticated caller; whois has its own suite.
+    monkeypatch.setattr(node_token_api, "_check_caller", lambda source, host, local: None)
     if not ORG_TEST_DB_URL or not shutil.which("psql"):
         pytest.skip("ORG_TEST_DB_URL and psql needed")
     for var in ("ORG_NODE_TOKEN_DB_URL", "CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE"):

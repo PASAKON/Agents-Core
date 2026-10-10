@@ -80,6 +80,12 @@ def _no_real_org_db_env(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _mesh_probe_off(monkeypatch):
+    """Keep watchdog tests from probing real hosts or filing mesh alerts."""
+    monkeypatch.setenv("ORG_MESH_PROBE", "0")
+
+
+@pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
     quota read is an ssh to Contabo plus the agy CLI. No test may reach
@@ -279,4 +285,3 @@ def pinned_mac_host(monkeypatch, tmp_path):
     config.self_host.cache_clear()
     yield "mac"
     config.self_host.cache_clear()
-

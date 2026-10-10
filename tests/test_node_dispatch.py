@@ -386,6 +386,7 @@ def test_kill_worker_refuses_other_host(rec):
 # ---------------------------------------------------------------------------
 
 def test_start_clevel_darwin_uses_the_existing_launchers(rec, monkeypatch):
+    monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": nd._self_host()})
     monkeypatch.setattr(nd, "_os_name", lambda: "darwin")
     cxo = str(ROOT / "scripts" / "spawn-cxo.sh")
     cto = str(ROOT / "scripts" / "spawn-cto.sh")
@@ -427,6 +428,7 @@ def test_start_clevel_linux_spawns_cxo_claude_in_tmux(rec, monkeypatch):
 
 
 def test_start_clevel_linux_resume_passes_a_full_uuid(rec, monkeypatch):
+    monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": nd._self_host()})
     monkeypatch.setattr(nd, "_os_name", lambda: "linux")
     monkeypatch.setattr(session_status, "resume_target", lambda role, sid: UUID)
     out, code = nd.run_command("start_clevel cto --resume 1234abcd")

@@ -14,7 +14,7 @@
 # <credential-source-file> is a path ON CONTABO to an existing env file that
 # already holds GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET /
 # GOOGLE_OAUTH_REFRESH_TOKEN (e.g. claudeflow's .env) -- e.g.:
-#   scripts/install-share-broker.sh install /root/projects/mooniex-claudeflow/.env
+#   scripts/install-share-broker.sh install /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow/.env
 #
 # This script contains no secret and never prints one. It copies ONLY the
 # three GOOGLE_OAUTH_* lines (never the whole source file, which may hold
