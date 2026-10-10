@@ -221,7 +221,7 @@ def plan(act, est):
     return dict(act=act, total=round(t, 3), segments=segs, narration_at=place, lines=lines, notes=notes, est=bool(est)), TH
 
 
-def render(P, TH, act):
+def render(P, TH, act, tag="th"):
     segs, place, lines, total = P["segments"], P["narration_at"], P["lines"], P["total"]
     files = []
     for s in segs:
@@ -261,14 +261,14 @@ def render(P, TH, act):
     fc.append("[bus]asplit=2[bus_sc][bus_mix]")
     fc.append("[ambient][bus_sc]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[duck]")
     fc.append(f"[duck][bus_mix]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:st=0:d=0.5,afade=t=out:st={total - 1.0:.3f}:d=1.0[aout]")
-    master = OUT / f"ACT{act}_th_1080p.mp4"
+    master = OUT / f"ACT{act}_{tag}_1080p.mp4"
     cmd += ["-filter_complex", ";".join(fc), "-map", "[vout]", "-map", "[aout]", "-t", f"{total:.3f}",
             "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "24", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
             "-movflags", "+faststart", str(master)]
     (OUT / f"ffmpeg_cmd_act{act}.txt").write_text(" ".join(cmd), encoding="utf-8")
     subprocess.run(cmd, check=True)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(master), "-vf", "scale=960:540:flags=lanczos", "-c:v", "libx264", "-preset", "medium", "-crf", "24",
-                    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(OUT / f"ACT{act}_th_540p.mp4")], check=True)
+                    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(OUT / f"ACT{act}_{tag}_540p.mp4")], check=True)
     print("done", master.name, "total", round(total, 3))
 
 
@@ -286,19 +286,25 @@ def join():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--act", type=int, choices=[4, 5, 6]); ap.add_argument("--dry", action="store_true"); ap.add_argument("--est", action="store_true"); ap.add_argument("--join", action="store_true")
+    ap.add_argument("--act", type=int, choices=[4, 5, 6]); ap.add_argument("--dry", action="store_true"); ap.add_argument("--est", action="store_true"); ap.add_argument("--join", action="store_true"); ap.add_argument("--smoke", action="store_true")
     a = ap.parse_args()
     if a.join:
         return join()
     if not a.act:
         sys.exit("--act 4|5|6 or --join")
+    if a.smoke:  # free filter-graph test: stand-in sine narration and character lines, reading-speed timings, output ACT<n>_smoke_*.mp4
+        global V
+        V = OUT / "smoke-voice"; V.mkdir(exist_ok=True); a.est = True
+        (V / "sentences-act456.json").write_bytes((S / "voice456" / "sentences-act456.json").read_bytes())
+        for name, secs in [(f"act{a.act}_teller_daniel", 200)] + [(v, 3) for v in LINES.values()]:
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"sine=frequency=180:duration={secs}", "-af", "volume=-24dB", str(V / f"{name}.mp3")], check=True)
     P, TH = plan(a.act, a.est)
     (OUT / f"placement-act{a.act}{'-est' if a.est else ''}.json").write_text(json.dumps(P, indent=1, ensure_ascii=False), encoding="utf-8")
     print(json.dumps({k: P[k] for k in ("total", "lines", "notes")}, indent=1, ensure_ascii=False))
     print("narration_at", json.dumps(P["narration_at"], ensure_ascii=False))
-    if a.dry or a.est:
+    if a.dry or (a.est and not a.smoke):
         return
-    render(P, TH, act=a.act)
+    render(P, TH, act=a.act, tag="smoke" if a.smoke else "th")
 
 
 main()
