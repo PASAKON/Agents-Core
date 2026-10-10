@@ -52,6 +52,8 @@ needs_age = pytest.mark.skipif(not (shutil.which("age") and shutil.which("age-ke
 
 @pytest.fixture(params=["sqlite", "pg"], autouse=True)
 def hub(request, monkeypatch, tmp_path):
+    # These route/DB tests simulate an authenticated caller; whois has its own suite.
+    monkeypatch.setattr(node_token_api, "_check_caller", lambda source, host: None)
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("ORG_CHARTER_GATE", "off")

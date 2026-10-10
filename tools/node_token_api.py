@@ -16,12 +16,13 @@ nodes only: THIS process still gets its own values through `infisical run`
                             node made up for this request and is echoed only when sent;
                             node_token.py always sends one and refuses an answer without it, so
                             an old sealed answer cannot be played back to it. Sealing is the authentication: only H's
-                            age identity (on H, root 0600) opens it, so any other caller learns
-                            nothing, and the tailnet-only bind is the second wall.
+                            age identity (on H, root 0600) opens it. The caller must also
+                            resolve through tailscale whois to H before its row is read.
                             403 {"error": code} unless the row is approved and its status is one
                             that issues: unknown_host (no such host, or it never joined through
                             hq_join), left (it is leaving or has left: for good, R4),
-                            not_approved (approved_at is NULL), not_issuing (any other status,
+                            node_mismatch (caller names another node), whois_unavailable
+                            (identity lookup failed), not_approved (approved_at is NULL), not_issuing (any other status,
                             for example pending_identity). `?name=` picks one of
                             infisical_setup.NODE_SECRET_NAMES; the default is the first.
                             503 {"error": "hub_unavailable"} when the hub database does not
@@ -90,6 +91,9 @@ LEFT_STATUSES = (hq_join.STATUS_LEAVING, hq_join.STATUS_LEFT)
 RATE_LIMIT = 30          # requests per source address, and per host, per RATE_WINDOW_S
 RATE_WINDOW_S = 60.0
 REQUEST_TIMEOUT_S = 15
+WHOIS_TIMEOUT_S = 3
+DRILL_BRIDGE = ipaddress.ip_network("172.17.0.0/16")
+DRILL_HOST_RE = re.compile(r"drill-[0-9]{8}-[0-9]{6}")
 DB_SLOTS = 2             # requests inside a database section at once (role org_node_token allows 3)
 DB_WAIT_S = 2.0
 MAX_VALUE_LEN = 4096     # a secret longer than this is a mistake in what was put in Infisical
@@ -236,6 +240,45 @@ def decide(row) -> str | None:
     return None
 
 
+def _whois(source: str) -> str:
+    """Return the authoritative node name; never expose subprocess output on failure."""
+    try:
+        source = str(ipaddress.ip_address(source))
+        result = subprocess.run(["tailscale", "whois", "--json", source],
+                                capture_output=True, timeout=WHOIS_TIMEOUT_S,
+                                check=False, env=AGE_ENV)
+        if result.returncode != 0:
+            raise ValueError
+        node = json.loads(result.stdout)["Node"]
+        name = node["Name"]
+        if not isinstance(name, str) or not name:
+            raise ValueError
+        # Node.Name is the MagicDNS name, with an optional trailing dot.
+        labels = name.removesuffix(".").split(".")
+        if any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+               for label in labels):
+            raise ValueError
+        short = labels[0]
+        if not hq_join.HOST_RE.fullmatch(short):
+            raise ValueError
+        return short
+    except (OSError, subprocess.TimeoutExpired, ValueError, KeyError, TypeError, RecursionError):
+        raise _Refuse(403, "whois_unavailable") from None
+
+
+def _check_caller(source: str, host: str) -> None:
+    # DRILL_HUB_ENV is the drill's existing re-exec flag. It must be set in the
+    # service environment too; a request cannot enable this exception.
+    address = ipaddress.ip_address(source)
+    if (os.environ.get("DRILL_HUB_ENV") == "1" and DRILL_HOST_RE.fullmatch(host)
+            and address in DRILL_BRIDGE):
+        return
+    if address not in TAILNET_NET:
+        raise _Refuse(403, "whois_unavailable")
+    if _whois(source) != host:
+        raise _Refuse(403, "node_mismatch")
+
+
 def _route_token(h: "_Handler"):
     q = _query(h.path, ("host", "name", "nonce"))
     host = _loggable_host(q.get("host"))
@@ -247,6 +290,7 @@ def _route_token(h: "_Handler"):
     nonce = q.get("nonce")
     if nonce is not None and not NONCE_RE.fullmatch(nonce):
         raise _Refuse(400, "bad_nonce")
+    _check_caller(h.client_address[0], host)
     with _hub() as conn:
         row = conn.execute("SELECT status, pubkey, approved_at FROM hosts WHERE host = ?",
                            (host,)).fetchone()

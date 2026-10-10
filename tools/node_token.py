@@ -27,7 +27,7 @@ a root process must not import files a user can write.
 
 Exit: 2 = bad usage or node.yaml; 3 = the hub refused (403: the node is not approved, or left);
 4 = the hub or the network failed; 5 = the answer could not be opened, or was stale or for another
-request; 127 = the command could not
+request; 6 = caller node does not match host; 7 = hub identity lookup unavailable; 127 = the command could not
 start; otherwise the command's own (on Windows) or none (the command replaces this process).
 """
 from __future__ import annotations
@@ -177,7 +177,7 @@ def fetch_ciphertext(url: str, host: str, name: str, nonce: str, *, opener=None)
             code = _hub_code(e)
             detail = f"hub answered HTTP {e.code}" + (f" ({code})" if code else "")
             if e.code == 403:
-                raise TokenError(detail, 3) from None
+                raise TokenError(detail, {"node_mismatch": 6, "whois_unavailable": 7}.get(code, 3)) from None
             if e.code < 500 and e.code != 429:
                 raise TokenError(detail, 4) from None
             last = detail

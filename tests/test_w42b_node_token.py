@@ -34,7 +34,7 @@ from pathlib import Path
 import pytest
 
 from lib import db
-from tools import hq_join, node_token
+from tools import hq_join, node_token, node_token_api
 
 from test_w42b_node_token_api import Api, NAME, TOKEN, _keygen, _row, needs_age
 
@@ -552,6 +552,8 @@ def test_main_with_a_node_that_never_joined_is_exit_2(tmp_path, capsys):
 
 @pytest.fixture
 def served(monkeypatch):
+    # Simulate an authenticated node for these loopback client/sealing tests.
+    monkeypatch.setattr(node_token_api, "_check_caller", lambda source, host: None)
     # The service under test listens on loopback. A node accepts only a tailnet address, so these tests
     # (and only these) widen the range the CLIENT accepts to loopback; production code has no such knob.
     monkeypatch.setattr(node_token, "TOKEN_NET", ipaddress.ip_network("127.0.0.0/8"))
