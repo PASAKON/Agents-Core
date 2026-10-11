@@ -1,340 +1,400 @@
 {
- "asset": "ACT2_th_1080p.mp4 + ACT2_th_540p.mp4 (scratchpad edit3, NOT yet filed)",
- "sha256_1080p": "a2e42a43f80ec42080b0db335db4ed63e4789748b8c61e6962d828b7bbff574c",
- "date": "2026-10-10",
- "task": "cmo-f76492bf ACT 2",
- "ceo_order": "ทำ ART2 ต่อ; อณุมัต 100CU (cap)",
- "review_state": "sent to CEO, not yet watched",
- "length_s": 99.417,
- "picture": {
-  "s01": {
-   "jobId": "7lve5s30",
-   "takeId": "crdir9rn0",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
+  "asset": "ACT2_th_1080p.mp4 + ACT2_th_540p.mp4 (scratchpad edit3, NOT yet filed)",
+  "sha256_1080p": "a2e42a43f80ec42080b0db335db4ed63e4789748b8c61e6962d828b7bbff574c",
+  "date": "2026-10-10",
+  "task": "cmo-f76492bf ACT 2",
+  "ceo_order": "ทำ ART2 ต่อ; อณุมัต 100CU (cap)",
+  "review_state": "v2 pending CEO eye and ear (see edit_v2); v1 kept on Drive",
+  "length_s": 99.417,
+  "picture": {
+    "s01": {
+      "jobId": "7lve5s30",
+      "takeId": "crdir9rn0",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s03": {
+      "jobId": "h5swrgoz",
+      "takeId": "cf9hs4g68",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final_jobId": "903njplq",
+      "final_takeId": "csax7ey0w",
+      "note": "take 1 lit the torch; final = take 2 (retake), cut at 6.3 s because a small flame shows at the tip from 6.4 s"
+    },
+    "s04": {
+      "jobId": "cru68ah3",
+      "takeId": "c428lhtlh",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final_jobId": "ka4pxmtv",
+      "note": "take 1 and take 2 (cvggk0tc) lit the torch / drew modern suits on the guests; final = take 3, ancient robes, flame glow only in the first ~1.6 s, left in"
+    },
+    "s05": {
+      "jobId": "inp7b2i2",
+      "takeId": "ctwcn1g58",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s06": {
+      "jobId": "3aic53zr",
+      "takeId": "c6by91jcw",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s07": {
+      "jobId": "q06r2l87",
+      "takeId": "ck2yx6isz",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s08": {
+      "jobId": "xrk8u71z",
+      "takeId": "cko8b6qpo",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s09": {
+      "jobId": "nqydudvz",
+      "takeId": "cos50tf6m",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s10": {
+      "jobId": "ksr9tbyq",
+      "takeId": "c2y9ji8dh",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s11": {
+      "jobId": "lbiyhi8q",
+      "takeId": "cbmi3d8u5",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s12": {
+      "jobId": "00cbw76u",
+      "takeId": "csc4vq1jx",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s13": {
+      "jobId": "4mu8jgz9",
+      "takeId": "ch0c6m2cu",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s14": {
+      "jobId": "syu6dl9h",
+      "takeId": "cc78i6qfc",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "s15": {
+      "jobId": "h0z96du3",
+      "takeId": "ctynghyd1",
+      "source": "H3 cobijada 1080p on Colab (studio :4100)"
+    },
+    "montage_2.04": "cut from owned clips e01..e04 of ACT 1 (no new spend)"
   },
-  "s03": {
-   "jobId": "h5swrgoz",
-   "takeId": "cf9hs4g68",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "final_jobId": "903njplq",
-   "final_takeId": "csax7ey0w",
-   "note": "take 1 lit the torch; final = take 2 (retake), cut at 6.3 s because a small flame shows at the tip from 6.4 s"
-  },
-  "s04": {
-   "jobId": "cru68ah3",
-   "takeId": "c428lhtlh",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "final_jobId": "ka4pxmtv",
-   "note": "take 1 and take 2 (cvggk0tc) lit the torch / drew modern suits on the guests; final = take 3, ancient robes, flame glow only in the first ~1.6 s, left in"
-  },
-  "s05": {
-   "jobId": "inp7b2i2",
-   "takeId": "ctwcn1g58",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s06": {
-   "jobId": "3aic53zr",
-   "takeId": "c6by91jcw",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s07": {
-   "jobId": "q06r2l87",
-   "takeId": "ck2yx6isz",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s08": {
-   "jobId": "xrk8u71z",
-   "takeId": "cko8b6qpo",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s09": {
-   "jobId": "nqydudvz",
-   "takeId": "cos50tf6m",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s10": {
-   "jobId": "ksr9tbyq",
-   "takeId": "c2y9ji8dh",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s11": {
-   "jobId": "lbiyhi8q",
-   "takeId": "cbmi3d8u5",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s12": {
-   "jobId": "00cbw76u",
-   "takeId": "csc4vq1jx",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s13": {
-   "jobId": "4mu8jgz9",
-   "takeId": "ch0c6m2cu",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s14": {
-   "jobId": "syu6dl9h",
-   "takeId": "cc78i6qfc",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "s15": {
-   "jobId": "h0z96du3",
-   "takeId": "ctynghyd1",
-   "source": "H3 cobijada 1080p on Colab (studio :4100)"
-  },
-  "montage_2.04": "cut from owned clips e01..e04 of ACT 1 (no new spend)"
- },
- "voice": "ElevenLabs v4 Thai (see voice2/out/timings.json act2 rows, 17 ids; 2.15 is Orpheus' line, H3 path B on s12)",
- "lay": {
-  "total": 99.417,
-  "segments": [
-   {
-    "key": "s01",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s01.mp4",
-    "a": 0,
-    "n": 362,
-    "hold": 0.08333333333333333,
-    "mute": [],
-    "start": 0.0
-   },
-   {
-    "key": "m1",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s09.mp4",
-    "a": 7,
-    "n": 46,
-    "hold": 0.0,
-    "mute": [],
-    "start": 15.167
-   },
-   {
-    "key": "m2",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s14.mp4",
-    "a": 58,
-    "n": 62,
-    "hold": 0.0,
-    "mute": [],
-    "start": 17.083
-   },
-   {
-    "key": "m3",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips/e04.mp4",
-    "a": 216,
-    "n": 53,
-    "hold": 0.0,
-    "mute": [],
-    "start": 19.667
-   },
-   {
-    "key": "s03",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s03.mp4",
-    "a": 0,
-    "n": 151,
-    "hold": 0.625,
-    "mute": [],
-    "start": 21.875
-   },
-   {
-    "key": "s04",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s04.mp4",
-    "a": 0,
-    "n": 175,
-    "hold": 0.5,
-    "mute": [],
-    "start": 28.792
-   },
-   {
-    "key": "s05",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s05.mp4",
-    "a": 0,
-    "n": 192,
-    "hold": 0.0,
-    "mute": [],
-    "start": 36.583
-   },
-   {
-    "key": "s06",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s06.mp4",
-    "a": 0,
-    "n": 107,
-    "hold": 0.0,
-    "mute": [],
-    "start": 44.583
-   },
-   {
-    "key": "s07",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s07.mp4",
-    "a": 0,
-    "n": 107,
-    "hold": 0.0,
-    "mute": [],
-    "start": 49.042
-   },
-   {
-    "key": "s08",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s08.mp4",
-    "a": 0,
-    "n": 124,
-    "hold": 0.5416666666666666,
-    "mute": [],
-    "start": 53.5
-   },
-   {
-    "key": "s09",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s09.mp4",
-    "a": 0,
-    "n": 107,
-    "hold": 0.0,
-    "mute": [],
-    "start": 59.208
-   },
-   {
-    "key": "s10",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s10.mp4",
-    "a": 0,
-    "n": 141,
-    "hold": 0.7916666666666666,
-    "mute": [],
-    "start": 63.667
-   },
-   {
-    "key": "s11",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s11.mp4",
-    "a": 0,
-    "n": 107,
-    "hold": 0.0,
-    "mute": [],
-    "start": 70.333
-   },
-   {
-    "key": "s12",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s12.mp4",
-    "a": 0,
-    "n": 192,
-    "hold": 0.0,
-    "mute": [
-     [
-      0.9800000000000001,
-      2.46
-     ],
-     [
-      2.9,
-      5.1
-     ]
+  "voice": "ElevenLabs v4 Thai (see voice2/out/timings.json act2 rows, 17 ids; 2.15 is Orpheus' line, H3 path B on s12)",
+  "lay": {
+    "total": 99.417,
+    "segments": [
+      {
+        "key": "s01",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s01.mp4",
+        "a": 0,
+        "n": 362,
+        "hold": 0.08333333333333333,
+        "mute": [],
+        "start": 0.0
+      },
+      {
+        "key": "m1",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s09.mp4",
+        "a": 7,
+        "n": 46,
+        "hold": 0.0,
+        "mute": [],
+        "start": 15.167
+      },
+      {
+        "key": "m2",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s14.mp4",
+        "a": 58,
+        "n": 62,
+        "hold": 0.0,
+        "mute": [],
+        "start": 17.083
+      },
+      {
+        "key": "m3",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips/e04.mp4",
+        "a": 216,
+        "n": 53,
+        "hold": 0.0,
+        "mute": [],
+        "start": 19.667
+      },
+      {
+        "key": "s03",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s03.mp4",
+        "a": 0,
+        "n": 151,
+        "hold": 0.625,
+        "mute": [],
+        "start": 21.875
+      },
+      {
+        "key": "s04",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s04.mp4",
+        "a": 0,
+        "n": 175,
+        "hold": 0.5,
+        "mute": [],
+        "start": 28.792
+      },
+      {
+        "key": "s05",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s05.mp4",
+        "a": 0,
+        "n": 192,
+        "hold": 0.0,
+        "mute": [],
+        "start": 36.583
+      },
+      {
+        "key": "s06",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s06.mp4",
+        "a": 0,
+        "n": 107,
+        "hold": 0.0,
+        "mute": [],
+        "start": 44.583
+      },
+      {
+        "key": "s07",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s07.mp4",
+        "a": 0,
+        "n": 107,
+        "hold": 0.0,
+        "mute": [],
+        "start": 49.042
+      },
+      {
+        "key": "s08",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s08.mp4",
+        "a": 0,
+        "n": 124,
+        "hold": 0.5416666666666666,
+        "mute": [],
+        "start": 53.5
+      },
+      {
+        "key": "s09",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s09.mp4",
+        "a": 0,
+        "n": 107,
+        "hold": 0.0,
+        "mute": [],
+        "start": 59.208
+      },
+      {
+        "key": "s10",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s10.mp4",
+        "a": 0,
+        "n": 141,
+        "hold": 0.7916666666666666,
+        "mute": [],
+        "start": 63.667
+      },
+      {
+        "key": "s11",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s11.mp4",
+        "a": 0,
+        "n": 107,
+        "hold": 0.0,
+        "mute": [],
+        "start": 70.333
+      },
+      {
+        "key": "s12",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s12.mp4",
+        "a": 0,
+        "n": 192,
+        "hold": 0.0,
+        "mute": [
+          [
+            0.9800000000000001,
+            2.46
+          ],
+          [
+            2.9,
+            5.1
+          ]
+        ],
+        "start": 74.792
+      },
+      {
+        "key": "s13",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s13.mp4",
+        "a": 0,
+        "n": 107,
+        "hold": 0.0,
+        "mute": [],
+        "start": 82.792
+      },
+      {
+        "key": "s14",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s14.mp4",
+        "a": 0,
+        "n": 175,
+        "hold": 0.4166666666666667,
+        "mute": [],
+        "start": 87.25
+      },
+      {
+        "key": "s15",
+        "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s15.mp4",
+        "a": 0,
+        "n": 107,
+        "hold": 0.0,
+        "mute": [],
+        "start": 94.958
+      }
     ],
-    "start": 74.792
-   },
-   {
-    "key": "s13",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s13.mp4",
-    "a": 0,
-    "n": 107,
-    "hold": 0.0,
-    "mute": [],
-    "start": 82.792
-   },
-   {
-    "key": "s14",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s14.mp4",
-    "a": 0,
-    "n": 175,
-    "hold": 0.4166666666666667,
-    "mute": [],
-    "start": 87.25
-   },
-   {
-    "key": "s15",
-    "file": "/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad/clips2/s15.mp4",
-    "a": 0,
-    "n": 107,
-    "hold": 0.0,
-    "mute": [],
-    "start": 94.958
-   }
-  ],
-  "narration_at": {
-   "2.01": 0.05,
-   "2.02": 3.65,
-   "2.03": 10.85,
-   "2.05": 22.225,
-   "2.06": 24.065,
-   "2.07": 29.142,
-   "2.08": 36.933,
-   "2.09": 44.933,
-   "2.10": 49.392,
-   "2.11": 53.85,
-   "2.12": 59.558,
-   "2.13": 64.017,
-   "2.14": 70.683,
-   "2.16": 83.142,
-   "2.17": 87.6,
-   "2.18": 95.308,
-   "2.04": 15.467
+    "narration_at": {
+      "2.01": 0.05,
+      "2.02": 3.65,
+      "2.03": 10.85,
+      "2.05": 22.225,
+      "2.06": 24.065,
+      "2.07": 29.142,
+      "2.08": 36.933,
+      "2.09": 44.933,
+      "2.10": 49.392,
+      "2.11": 53.85,
+      "2.12": 59.558,
+      "2.13": 64.017,
+      "2.14": 70.683,
+      "2.16": 83.142,
+      "2.17": 87.6,
+      "2.18": 95.308,
+      "2.04": 15.467
+    },
+    "orpheus": {
+      "clip_bursts": [
+        [
+          1.06,
+          2.38
+        ],
+        [
+          2.98,
+          5.02
+        ]
+      ],
+      "line_bursts": [
+        [
+          0.12,
+          0.48
+        ],
+        [
+          1.0,
+          2.98
+        ],
+        [
+          3.6,
+          5.58
+        ]
+      ],
+      "matched": false,
+      "lay_in_clip_s": [
+        1.06,
+        1.65,
+        4.06
+      ],
+      "voice_after_lips_s": 1.1
+    },
+    "orpheus_pieces": [
+      [
+        0.09,
+        0.53,
+        75.852
+      ],
+      [
+        0.97,
+        3.03,
+        76.442
+      ],
+      [
+        3.5700000000000003,
+        5.63,
+        78.852
+      ]
+    ],
+    "notes": []
   },
-  "orpheus": {
-   "clip_bursts": [
-    [
-     1.06,
-     2.38
-    ],
-    [
-     2.98,
-     5.02
-    ]
-   ],
-   "line_bursts": [
-    [
-     0.12,
-     0.48
-    ],
-    [
-     1.0,
-     2.98
-    ],
-    [
-     3.6,
-     5.58
-    ]
-   ],
-   "matched": false,
-   "lay_in_clip_s": [
-    1.06,
-    1.65,
-    4.06
-   ],
-   "voice_after_lips_s": 1.1
+  "colab": {
+    "balance_before": 843.91,
+    "balance_after": 832.05,
+    "spent_cu": 11.86,
+    "first_batch_14_shots_cu": 8.91,
+    "retakes_cu": 2.95,
+    "retakes": "s03 v2, s04 v2, s04 v3",
+    "cap_cu": 100,
+    "colab_final_state": "off (confirmed 2026-10-10 16:1x)"
   },
-  "orpheus_pieces": [
-   [
-    0.09,
-    0.53,
-    75.852
-   ],
-   [
-    0.97,
-    3.03,
-    76.442
-   ],
-   [
-    3.5700000000000003,
-    5.63,
-    78.852
-   ]
-  ],
-  "notes": []
- },
- "colab": {
-  "balance_before": 843.91,
-  "balance_after": 832.05,
-  "spent_cu": 11.86,
-  "first_batch_14_shots_cu": 8.91,
-  "retakes_cu": 2.95,
-  "retakes": "s03 v2, s04 v2, s04 v3",
-  "cap_cu": 100,
-  "colab_final_state": "off (confirmed 2026-10-10 16:1x)"
- },
- "audio_qc": {
-  "integrated_lufs": -17.0,
-  "true_peak_dbfs": -1.2,
-  "av_duration_match": true
- }
+  "audio_qc": {
+    "integrated_lufs": -17.0,
+    "true_peak_dbfs": -1.2,
+    "av_duration_match": true
+  },
+  "edit_v2": {
+    "date": "2026-10-11",
+    "task": "cmo-f76492bf",
+    "why": "CEO 2026-10-11: sound jerky at the cuts (cut by time, not at measured silence) and frames stalled before the next shot (last-frame holds)",
+    "asset": "edit8/ACT2_th_1080p.mp4 (scratchpad), sha256 c4a040facaab898c6653e30939e52d7c20611c28d5407f49c9544c0816e84dcb",
+    "length_s": 96.468,
+    "length_s_v1": 99.4,
+    "method": "docs/prompts/the-old-telling-ep1/edit_lib.py + build_act2_edit.py",
+    "picture_change": "no frame holds; shots lengthened with the clip's own frames, narration spills into the next shot (L-cut); last shot of the ACT may hold under the closing fade",
+    "audit_old_vs_new": {
+      "narr_edges_in_speech": {
+        "old": 4,
+        "new": 0,
+        "of": 34
+      },
+      "narr_window_overlaps": {
+        "old": 3,
+        "new": 0,
+        "of": 16
+      },
+      "bed_steps_over_12db": {
+        "old": 4,
+        "new": 1,
+        "of": 16
+      },
+      "bed_steps_over_6db": {
+        "old": 13,
+        "new": 1,
+        "of": 16
+      },
+      "bed_step_median_db": {
+        "old": 9.9,
+        "new": 2.0
+      },
+      "bed_step_max_db": {
+        "old": 20.0,
+        "new": 12.6
+      },
+      "shot_level_steps_over_12db": {
+        "old": 3,
+        "new": 0,
+        "of": 16
+      },
+      "cut_click_ratio_max": 7.1,
+      "hold_seconds": 0.0,
+      "lufs": -16.2,
+      "true_peak_db": -1.0
+    },
+    "full_cut_v2": {
+      "file": "EP1_Orpheus_TH_full_1080p_v2.mp4",
+      "drive": "https://drive.google.com/file/d/1Mznp7A7rEA_D9OkruWn3vk1m1L5ySrDN/view",
+      "md5": "81c672b3c9f2e5be61fd1f8a4271fcdb",
+      "sha256": "e4a6f44d75b462a23e616be75c3e28a36c54c34d121f5b0767121c79928419a8",
+      "length_s": 604.622,
+      "strict_freeze": "2 stops, both intentional (title 0.52 s + 1.96 s, black card 47.23 s + 1.67 s)",
+      "lufs": -16.1,
+      "lra_lu": 4.8
+    },
+    "review_state": "v2 on Drive Final Draft, pending CEO ear and eye; v1 kept as history (Drive rule 11)"
+  }
 }

@@ -7,11 +7,17 @@
 No paid call. Picture: e01 (0 to 15.08), e02 (0 to 12.5), e05 king (4.46), e03 (0 to 15.08), black card 2.2, e04 (0 to 12.5).
 Thai sentences are laid on the picture; no time-stretch (CEO 2026-10-09: a longer line may run on, a shorter one gets air).
 Without --e05 a STAND-IN (tail of e02) is used so the sound timing can be checked; the output is then marked standin.
+v2 (2026-10-11): the picture stream of the v1 master is copied; only the sound is rebuilt with edit_lib (narration cut at measured silence, beds level-matched and crossfaded).
 """
 import json, pathlib, subprocess, sys
 
+HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import edit_lib as E  # noqa: E402  (v2, 2026-10-11: sound rebuilt on measured silence; the picture of v1 is kept as it is, ACT 1 had no frozen frames)
+
 S = pathlib.Path("/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad")
-OUT = S / "edit2"; OUT.mkdir(exist_ok=True)
+OUT = S / "edit8"; OUT.mkdir(exist_ok=True)
+V1_PICTURE = S / "edit2" / "ACT1_th_final_1080p.mp4"   # the v1 master: its picture stream is copied (ACT 1 has no hold, nothing to re-cut)
 V = S / "voice2" / "out"
 FPS = 24
 CLIP = {k: S / "clips" / f"{k}.mp4" for k in ("e01", "e02", "e03", "e04")}
@@ -50,70 +56,29 @@ def main():
     placement = {"standin_e05": STANDIN, "total": TOTAL, "starts": starts, "place": PLACE, "king_at": KING_AT, "orpheus_at": ORPH_AT,
                  "eurydice_at": EURY_AT, "t1_at": T1_AT, "mute": MUTE,
                  "narration_ends": {k: round(PLACE[k] + N[k]["end"] - N[k]["start"], 2) for k in PLACE}}
-    (OUT / "placement.json").write_text(json.dumps(placement, indent=1), encoding="utf-8")
+    (OUT / "ACT1_placement.json").write_text(json.dumps(placement, indent=1), encoding="utf-8")
     if "--dry" in sys.argv:
         print(json.dumps(placement, indent=1)); return
 
-    inputs = [CLIP["e01"], CLIP["e02"], E05, CLIP["e03"], CLIP["e04"]]
-    cmd = ["ffmpeg", "-v", "error", "-y"]
-    for p in inputs:
-        cmd += ["-i", str(p)]
-    cmd += ["-loop", "1", "-framerate", "24", "-t", "3.4", "-i", str(TITLE)]          # 5
-    cmd += ["-loop", "1", "-framerate", "24", "-t", "2.2", "-i", str(T1)]             # 6
-    cmd += ["-i", str(V / "act1_teller_daniel.mp3"), "-i", str(V / "act1_c1_king_brian.mp3"),   # 7 8
-            "-i", str(S / "voice1/out/orpheus_liam.mp3"), "-i", str(V / "act1_c3_eurydice.mp3"),  # 9 10
-            "-i", str(V / "act1_t1_teller_daniel.mp3")]  # 11
-    fc = []
-    idx = {"e01": 0, "e02": 1, "e05": 2, "e03": 3, "e04": 4}
-    vl = []
+    assert not STANDIN, "v2 sound is built for the real king clip: pass --e05 <clips/e05.mp4>"
+    video = OUT / "ACT1_video.mp4"
+    if not video.exists():
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(V1_PICTURE), "-an", "-c:v", "copy", "-movflags", "+faststart", str(video)], check=True)
+    files = {"e01": CLIP["e01"], "e02": CLIP["e02"], "e05": E05, "e03": CLIP["e03"], "e04": CLIP["e04"]}
+    segs = []
     for name, a, n in SEG:
         if name == "card":
-            fc.append("[6:v]scale=1920:1080,setsar=1,fps=24,format=yuv420p,fade=t=in:st=0:d=0.3,fade=t=out:st=1.9:d=0.3[vc]"); vl.append("[vc]"); continue
-        i = idx[name]
-        fc.append(f"[{i}:v]trim=start_frame={a}:end_frame={a + n},setpts=PTS-STARTPTS,crop=1920:1080:0:4,setsar=1,fps=24,format=yuv420p[v{name}]"); vl.append(f"[v{name}]")
-    fc.append("".join(vl) + f"concat=n={len(vl)}:v=1:a=0[base]")
-    fc.append("[5:v]scale=1920:1080,format=rgba,fade=t=in:st=0:d=0.5,fade=t=out:st=2.4:d=0.8:alpha=1[ti]")
-    fc.append("[base][ti]overlay=0:0:eof_action=pass[vt]")
-    fc.append(f"[vt]fade=t=out:st={TOTAL - 1.2:.3f}:d=1.2,format=yuv420p[vout]")
-    # ambient from the clips (H3's own voicing muted), silence under the card
-    al = []
-    for name, a, n in SEG:
-        if name == "card":
-            fc.append(f"aevalsrc=0:d={n / FPS:.4f}:s=48000:c=stereo[ac]"); al.append("[ac]"); continue
-        i, s0 = idx[name], a / FPS
-        f = f"[{i}:a]atrim=start={s0:.4f}:end={s0 + n / FPS:.4f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo"
-        if name in MUTE:
-            if not (STANDIN and name == "e05"):
-                for m0, m1 in MUTE[name]:
-                    f += f",volume=0:enable='between(t,{m0},{m1})'"
-        fc.append(f + f"[a{name}]"); al.append(f"[a{name}]")
-    fc.append("".join(al) + "concat=n=6:v=0:a=1,volume=4dB[ambient]")
-    # voices
-    parts = []
-    for sid, r in N.items():
-        a0, a1 = max(0.0, r["start"] - 0.03), r["end"] + 0.10
-        ms = int(round((PLACE[sid] - 0.03) * 1000))
-        fc.append(f"[7:a]atrim=start={a0:.3f}:end={a1:.3f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,adelay={ms}|{ms}[n{sid}]"); parts.append(f"[n{sid}]")
-    for k, (a0, a1, at0) in enumerate(KING_PIECES):
-        ms = int(round((starts["e05"] + at0) * 1000))
-        fc.append(f"[8:a]atrim=start={a0}:end={a1},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,afade=t=in:d=0.02,adelay={ms}|{ms}[king{k}]"); parts.append(f"[king{k}]")
-    for lab, i, at in (("orph", 9, ORPH_AT), ("eury", 10, EURY_AT), ("t1", 11, T1_AT)):
-        ms = int(round(at * 1000))
-        fc.append(f"[{i}:a]aresample=48000,aformat=channel_layouts=stereo,silenceremove=start_periods=1:start_threshold=-45dB,adelay={ms}|{ms}[{lab}]"); parts.append(f"[{lab}]")
-    fc.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,apad=whole_dur={TOTAL:.3f}[bus]")  # pad: sidechaincompress ends with its shorter input, which cut the last 4.3 s of ambient
-    fc.append("[bus]asplit=2[bus_sc][bus_mix]")
-    fc.append("[ambient][bus_sc]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[duck]")
-    fc.append(f"[duck][bus_mix]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:st=0:d=0.8,afade=t=out:st={TOTAL - 1.5:.3f}:d=1.5[aout]")
-    tag = "standin" if STANDIN else "final"
-    master = OUT / f"ACT1_th_{tag}_1080p.mp4"
-    cmd += ["-filter_complex", ";".join(fc), "-map", "[vout]", "-map", "[aout]", "-t", f"{TOTAL:.3f}",
-            "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "24", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
-            "-movflags", "+faststart", str(master)]
-    (OUT / f"ffmpeg_cmd_{tag}.txt").write_text(" ".join(cmd), encoding="utf-8")
-    subprocess.run(cmd, check=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(master), "-vf", "scale=960:540:flags=lanczos", "-c:v", "libx264", "-preset", "medium", "-crf", "24",
-                    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(OUT / f"ACT1_th_{tag}_540p.mp4")], check=True)
-    print("done", master.name, "total", round(TOTAL, 3), "standin" if STANDIN else "")
-
+            segs.append(dict(key=name, a=0, n=n, hold=0.0, mute=[], silence=True)); continue
+        segs.append(dict(key=name, file=str(files[name]), a=a, n=n, hold=0.0, mute=[] if (STANDIN and name == "e05") else list(MUTE.get(name, []))))
+    items = [(sid, r["start"], r["end"]) for sid, r in N.items()]
+    lines = [dict(path=V / "act1_c1_king_brian.mp3", a0=a0, a1=a1, at=starts["e05"] + at0) for a0, a1, at0 in KING_PIECES]
+    lines += [dict(path=S / "voice1/out/orpheus_liam.mp3", a0=None, at=ORPH_AT), dict(path=V / "act1_c3_eurydice.mp3", a0=None, at=EURY_AT),
+              dict(path=V / "act1_t1_teller_daniel.mp3", a0=None, at=T1_AT)]
+    A = E.build_audio(OUT, "ACT1", segs, TOTAL, V / "act1_teller_daniel.mp3", items, PLACE, lines, fade_in=0.8, fade_out=1.5)
+    master = OUT / "ACT1_th_final_1080p.mp4"
+    E.mux(video, A["audio"], master, TOTAL)
+    E.preview540(master, OUT / "ACT1_th_final_540p.mp4")
+    print(json.dumps(A["audit"], indent=1))
+    print("done", master.name, "total", round(TOTAL, 3))
 
 main()

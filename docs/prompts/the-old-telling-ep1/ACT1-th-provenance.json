@@ -3,17 +3,53 @@
   "date": "2026-10-10",
   "task": "cmo-f76492bf",
   "ceo_order": "อณุมติงบ ทำ ART 1 ออกมาได้เลย (2026-10-10)",
-  "review_state": "v2 pending CEO eye and ear (v1 caught by the CEO: card 'Seven months later' had no spoken line)",
-  "revision": {"v2": "2026-10-10 added Teller line 'เจ็ดเดือนต่อมา.' on the T1 card, act1_t1_teller_daniel (Daniel, 15 chars, est USD 0.0012, ledger row in voice-th/ledger.json), laid at 47.55 s; v1 kept as ACT1_th_final_v1_*.mp4 in the scratchpad"},
+  "review_state": "v2 pending CEO eye and ear (see edit_v2); v1 kept on Drive",
+  "revision": {
+    "v2": "2026-10-10 added Teller line 'เจ็ดเดือนต่อมา.' on the T1 card, act1_t1_teller_daniel (Daniel, 15 chars, est USD 0.0012, ledger row in voice-th/ledger.json), laid at 47.55 s; v1 kept as ACT1_th_final_v1_*.mp4 in the scratchpad"
+  },
   "length_s": 61.625,
   "picture": [
-    {"seg": "e01", "source": "H3 cobijada 1080p clip, owned (CEO-approved earlier)", "from_s": 0.0, "frames": 362},
-    {"seg": "e02", "source": "H3 clip, owned", "from_s": 0.0, "frames": 295},
-    {"seg": "e05 king line", "source": "NEW H3 cobijada 1080p, 4 s request = 107 frames, queue item 5x8d9u9r, take csg9p2bf0, job ow1n6r8p", "frames": 107, "cost_cu_balance_drop": 0.43, "cost_cu_guard_estimate_max": 0.91, "note": "cold VM, render_total 314.8 s, upload 24.2 s"},
-    {"seg": "e03", "source": "H3 clip, owned", "from_s": 0.0, "frames": 362},
-    {"seg": "T1 card", "source": "hand-made PNG (Playwright), render_cards.py, no image-gen API", "frames": 53},
-    {"seg": "e04", "source": "H3 clip, owned", "from_s": 0.0, "frames": 300},
-    {"seg": "title card", "source": "hand-made PNG, overlay 0 to 3.4 s, English picture text"}
+    {
+      "seg": "e01",
+      "source": "H3 cobijada 1080p clip, owned (CEO-approved earlier)",
+      "from_s": 0.0,
+      "frames": 362
+    },
+    {
+      "seg": "e02",
+      "source": "H3 clip, owned",
+      "from_s": 0.0,
+      "frames": 295
+    },
+    {
+      "seg": "e05 king line",
+      "source": "NEW H3 cobijada 1080p, 4 s request = 107 frames, queue item 5x8d9u9r, take csg9p2bf0, job ow1n6r8p",
+      "frames": 107,
+      "cost_cu_balance_drop": 0.43,
+      "cost_cu_guard_estimate_max": 0.91,
+      "note": "cold VM, render_total 314.8 s, upload 24.2 s"
+    },
+    {
+      "seg": "e03",
+      "source": "H3 clip, owned",
+      "from_s": 0.0,
+      "frames": 362
+    },
+    {
+      "seg": "T1 card",
+      "source": "hand-made PNG (Playwright), render_cards.py, no image-gen API",
+      "frames": 53
+    },
+    {
+      "seg": "e04",
+      "source": "H3 clip, owned",
+      "from_s": 0.0,
+      "frames": 300
+    },
+    {
+      "seg": "title card",
+      "source": "hand-made PNG, overlay 0 to 3.4 s, English picture text"
+    }
   ],
   "voice": {
     "endpoint": "fal elevenlabs/tts/eleven-v4",
@@ -24,16 +60,113 @@
     "reused": "orpheus_liam.mp3 (voice1, earlier batch)"
   },
   "lay": {
-    "narration_start_s": {"N1": 3.05, "N2": 7.25, "N3": 10.85, "N4": 15.40, "N5": 20.40, "N6": 31.72, "N7": 36.27, "N8": 44.55, "N9": 49.45, "N10": 52.60},
+    "narration_start_s": {
+      "N1": 3.05,
+      "N2": 7.25,
+      "N3": 10.85,
+      "N4": 15.4,
+      "N5": 20.4,
+      "N6": 31.72,
+      "N7": 36.27,
+      "N8": 44.55,
+      "N9": 49.45,
+      "N10": 52.6
+    },
     "king_phrase_1_at_s": 28.175,
     "king_phrase_2_at_s": 30.175,
     "orpheus_call_at_s": 40.455,
     "eurydice_at_s": 43.133,
-    "h3_own_voicing_muted": {"e05_clip_s": [[0.65, 2.05], [2.9, 4.3]], "e03_clip_s": [[8.2, 9.4]]},
+    "h3_own_voicing_muted": {
+      "e05_clip_s": [
+        [
+          0.65,
+          2.05
+        ],
+        [
+          2.9,
+          4.3
+        ]
+      ],
+      "e03_clip_s": [
+        [
+          8.2,
+          9.4
+        ]
+      ]
+    },
     "no_time_stretch": true,
     "no_burned_subtitles": true
   },
-  "audio_qc": {"integrated_lufs": -16.3, "note": "narration and line gaps >= 0.03 s; N7 tail overlaps the Orpheus call by about 0.06 s"},
-  "colab": {"stopped": true, "state_after": "off", "cu_balance_before": 844.34, "cu_balance_after": 843.91, "ceo_jobs_untouched": true},
-  "script": "docs/prompts/the-old-telling-ep1/build_edit_th.py"
+  "audio_qc": {
+    "integrated_lufs": -16.3,
+    "note": "narration and line gaps >= 0.03 s; N7 tail overlaps the Orpheus call by about 0.06 s"
+  },
+  "colab": {
+    "stopped": true,
+    "state_after": "off",
+    "cu_balance_before": 844.34,
+    "cu_balance_after": 843.91,
+    "ceo_jobs_untouched": true
+  },
+  "script": "docs/prompts/the-old-telling-ep1/build_edit_th.py",
+  "edit_v2": {
+    "date": "2026-10-11",
+    "task": "cmo-f76492bf",
+    "why": "CEO 2026-10-11: sound jerky at the cuts (cut by time, not at measured silence) and frames stalled before the next shot (last-frame holds)",
+    "asset": "edit8/ACT1_th_final_1080p.mp4 (scratchpad), sha256 35edcd2477ef3f001f0b01afbc5f32e19dfa53d76c411ff429bd74d747542398",
+    "length_s": 61.643,
+    "length_s_v1": 61.625,
+    "method": "docs/prompts/the-old-telling-ep1/edit_lib.py + build_edit_th.py (v1 picture stream copied, sound rebuilt)",
+    "picture_change": "none (ACT 1 had no holds)",
+    "audit_old_vs_new": {
+      "narr_edges_in_speech": {
+        "old": 0,
+        "new": 0,
+        "of": 20
+      },
+      "narr_window_overlaps": {
+        "old": 1,
+        "new": 0,
+        "of": 9
+      },
+      "bed_steps_over_12db": {
+        "old": 3,
+        "new": 2,
+        "of": 5
+      },
+      "bed_steps_over_6db": {
+        "old": 4,
+        "new": 3,
+        "of": 5
+      },
+      "bed_step_median_db": {
+        "old": 12.7,
+        "new": 6.3
+      },
+      "bed_step_max_db": {
+        "old": 131.0,
+        "new": 138.9
+      },
+      "shot_level_steps_over_12db": {
+        "old": 0,
+        "new": 0,
+        "of": 4
+      },
+      "cut_click_ratio_max": 2.4,
+      "hold_seconds": 0.0,
+      "lufs": -16.0,
+      "true_peak_db": -1.3
+    },
+    "full_cut_v2": {
+      "file": "EP1_Orpheus_TH_full_1080p_v2.mp4",
+      "drive": "https://drive.google.com/file/d/1Mznp7A7rEA_D9OkruWn3vk1m1L5ySrDN/view",
+      "md5": "81c672b3c9f2e5be61fd1f8a4271fcdb",
+      "sha256": "e4a6f44d75b462a23e616be75c3e28a36c54c34d121f5b0767121c79928419a8",
+      "length_s": 604.622,
+      "strict_freeze": "2 stops, both intentional (title 0.52 s + 1.96 s, black card 47.23 s + 1.67 s)",
+      "lufs": -16.1,
+      "lra_lu": 4.8
+    },
+    "review_state": "v2 on Drive Final Draft, pending CEO ear and eye; v1 kept as history (Drive rule 11)"
+  }
 }

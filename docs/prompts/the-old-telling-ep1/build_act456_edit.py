@@ -2,20 +2,24 @@
 """The Old Telling EP1 ACT 4 to 6 (Thai): picture of the H3 shots (clipsN/<key>.mp4) + Thai narration (Daniel) + voice-only character lines. No paid call.
 
     .venv/bin/python -I docs/prompts/the-old-telling-ep1/build_act456_edit.py --act 4 [--dry] [--est]
-    .venv/bin/python -I docs/prompts/the-old-telling-ep1/build_act456_edit.py --join        # ACT 1-3 master + ACT 4, 5, 6 masters -> EP1 full cut (concat, no re-encode)
+    .venv/bin/python -I docs/prompts/the-old-telling-ep1/build_act456_edit.py --join        # ACT 1 to 6 masters (edit8) -> EP1 full cut (concat, no re-encode)
 
 Same method as build_act3_edit.py. Picture is the master, hard cuts. Each shot carries the narration sentences it was planned for (act*_shots.py `line`, split into
 sub-sentences by SUBS where one sentence spans two or three shots), the first sentence LEAD seconds after the cut, the rest at their natural gaps. No time-stretch (CEO 2026-10-09):
-a sentence longer than its shot makes the shot hold its last frame for at most HOLD_MAX seconds, a shorter one leaves air; a shot longer than its sentence is cut at DUR
-when the action is finished. Character lines (Eurydice, the Thracian woman, the head) have no lips on screen (voice only, CEO 2026-10-10): they are laid after the
+a sentence longer than its shot (v2, 2026-10-11) lengthens the shot with the clip's own next frames, and what still does not fit spills into the next shot as an L-cut;
+only the last shot of an ACT may hold its last frame (under the closing fade). A shot longer than its sentence is cut at DUR when the action is finished. Character lines (Eurydice, the Thracian woman, the head) have no lips on screen (voice only, CEO 2026-10-10): they are laid after the
 narration sentence that introduces them, token "@name" at the end of a group. No picture text in ACT 4 to 6 (BRAND.md: text that carries story meaning is spoken).
 --est: no purchased voice yet, estimate timings from reading speed (about 10.15 characters per second + 0.35 s per sentence); prints the plan only, never renders.
 """
 import argparse, difflib, json, math, pathlib, subprocess, sys
 import numpy as np
 
+HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import edit_lib as E  # noqa: E402  (v2, 2026-10-11: shots extend instead of freezing; narration cut at measured silence; beds level-matched and crossfaded)
+
 S = pathlib.Path("/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad")
-OUT = S / "edit7"; OUT.mkdir(exist_ok=True)
+OUT = S / "edit8"; OUT.mkdir(exist_ok=True)
 V = S / "voice456"
 FPS, LEAD, TAIL, HOLD_MAX = 24, 0.35, 0.15, 1.0
 CPS, GAP = 10.15, 0.35
@@ -180,15 +184,16 @@ def plan(act, est):
     TH = timings(act, est)
     segs, place, notes, t = [], {}, [], 0.0
     lines = []
-    for grp in GROUPS[act]:
+    carry = 0.0   # when the narration so far ends (s): the next sentence waits for it (an L-cut over the next shot) instead of the shot freezing
+    for gi, grp in enumerate(GROUPS[act]):
         f = grp["file"]
         if not f.exists():
             sys.exit(f"{grp['key']}: {f} is not rendered yet")
         n_full = nframes(f); a = int(round(grp["in_s"] * FPS)); n = int(round(grp["dur"] * FPS)) if grp["dur"] else n_full - a
         assert a + n <= n_full, (grp["key"], "asks past the end of the clip", a + n, n_full)
-        seg = dict(key=grp["key"], file=str(f), a=a, n=n, hold=0.0, start=round(t, 3), crop=grp["crop"])
+        seg = dict(key=grp["key"], file=str(f), a=a, n=n, hold=0.0, mute=[], start=round(t, 3), crop=grp["crop"])
         seg_end = t + n / FPS
-        at = t + grp["lead"]; prev = None; last_end = 0.0
+        at = max(t + grp["lead"], carry + 0.30 if carry else 0.0); prev = None; last_end = 0.0
         for k_sid, sid in enumerate(grp["sids"]):
             if sid.startswith("@"):
                 lf = line_file(sid)
@@ -204,15 +209,19 @@ def plan(act, est):
             if k_sid:
                 at = max(at, last_end + 0.30)
             place[sid] = round(at, 3); last_end = at + TH[sid]["end"] - TH[sid]["start"]; prev = sid
-        need = last_end + TAIL - seg_end
-        if need > 0:
-            seg["hold"] = min(HOLD_MAX, math.ceil(need * FPS) / FPS)
-            if need > HOLD_MAX:
-                notes.append(f"{grp['key']}: narration runs {need - HOLD_MAX:.2f} s past the shot even after a {HOLD_MAX} s hold")
-        air = seg_end + seg["hold"] - last_end
+        carry = last_end
+        n0 = seg["n"]
+        seg_end, spill = E.settle(seg, t, last_end, n_full, TAIL, is_last=gi == len(GROUPS[act]) - 1, hold_max=HOLD_MAX)
+        if seg["n"] != n0:
+            notes.append(f"{grp['key']}: lengthened {(seg['n'] - n0) / FPS:.2f} s with the clip's own frames (no freeze)")
+        if spill > 0.02:
+            notes.append(f"{grp['key']}: narration runs {spill:.2f} s into the next shot (L-cut)")
+        if seg["hold"]:
+            notes.append(f"{grp['key']}: last shot of the ACT holds {seg['hold']:.2f} s under the closing fade")
+        air = seg_end - last_end
         if air > 3.0:
             notes.append(f"{grp['key']}: {air:.1f} s of air after the last sentence (consider a shorter dur)")
-        segs.append(seg); t = seg_end + seg["hold"]
+        segs.append(seg); t = seg_end
     order = sorted(place, key=lambda x: place[x])
     for a_, b_ in zip(order, order[1:]):
         end = place[a_] + TH[a_]["end"] - TH[a_]["start"]
@@ -227,53 +236,36 @@ def render(P, TH, act, tag="th"):
     for s in segs:
         if s["file"] not in files:
             files.append(s["file"])
-    narr = V / f"act{act}_teller_daniel.mp3"
     cmd = ["ffmpeg", "-v", "error", "-y"]
     for f in files:
         cmd += ["-i", f]
-    i_narr = len(files); cmd += ["-i", str(narr)]
-    extra = {}
-    for ln in lines:
-        extra[ln["token"]] = len(files) + 1 + len(extra); cmd += ["-i", ln["file"]]
-    fc, vl, al = [], [], []
+    fc, vl = [], []
     for k, s in enumerate(segs):
-        i = files.index(s["file"]); a0, dur = s["a"] / FPS, s["n"] / FPS + s["hold"]
+        i = files.index(s["file"])
         v = f"[{i}:v]trim=start_frame={s['a']}:end_frame={s['a'] + s['n']},setpts=PTS-STARTPTS,{s['crop']},setsar=1,fps=24,format=yuv420p"
         if s["hold"]:
             v += f",tpad=stop_mode=clone:stop_duration={s['hold']:.4f}"
         fc.append(v + f"[v{k}]"); vl.append(f"[v{k}]")
-        au = f"[{i}:a]atrim=start={a0:.4f}:end={a0 + s['n'] / FPS:.4f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo"
-        fc.append(au + f",apad=whole_dur={dur:.4f},atrim=end={dur:.4f}[a{k}]"); al.append(f"[a{k}]")
     fc.append("".join(vl) + f"concat=n={len(vl)}:v=1:a=0[base]")
     fc.append(f"[base]fade=t=in:st=0:d=0.4,fade=t=out:st={total - 1.0:.3f}:d=1.0,format=yuv420p[vout]")
-    fc.append("".join(al) + f"concat=n={len(al)}:v=0:a=1,volume=4dB[ambient]")
-    parts = []
-    for sid in sorted(place, key=lambda x: place[x]):
-        r = TH[sid]; a0, a1 = max(0.0, r["start"] - 0.03), r["end"] + 0.10; ms = int(round((place[sid] - 0.03) * 1000))
-        lab = "n" + sid.replace(".", "_")
-        fc.append(f"[{i_narr}:a]atrim=start={a0:.3f}:end={a1:.3f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,adelay={ms}|{ms}[{lab}]")
-        parts.append(f"[{lab}]")
-    for k, ln in enumerate(lines):
-        ms = int(round(ln["at"] * 1000))
-        fc.append(f"[{extra[ln['token']]}:a]atrim=start={ln['a0']:.3f}:end={ln['a1']:.3f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,afade=t=in:d=0.02,adelay={ms}|{ms}[ln{k}]")
-        parts.append(f"[ln{k}]")
-    fc.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,apad=whole_dur={total:.3f}[bus]")
-    fc.append("[bus]asplit=2[bus_sc][bus_mix]")
-    fc.append("[ambient][bus_sc]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[duck]")
-    fc.append(f"[duck][bus_mix]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:st=0:d=0.5,afade=t=out:st={total - 1.0:.3f}:d=1.0[aout]")
+    video = OUT / f"ACT{act}_{tag}_video.mp4"
+    cmd += ["-filter_complex", ";".join(fc), "-map", "[vout]", "-an", "-t", f"{total:.3f}",
+            "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "24", "-movflags", "+faststart", str(video)]
+    (OUT / f"ffmpeg_cmd_act{act}_video.txt").write_text(" ".join(cmd), encoding="utf-8")
+    if not ("--reuse-video" in sys.argv and video.exists()):   # --reuse-video: the picture is already encoded, redo only the sound (minutes saved)
+        subprocess.run(cmd, check=True)
+    items = [(sid, TH[sid]["start"], TH[sid]["end"]) for sid in sorted(place, key=lambda x: place[x])]
+    lns = [dict(path=ln["file"], a0=ln["a0"], a1=ln["a1"], at=ln["at"]) for ln in lines]
+    A = E.build_audio(OUT, f"ACT{act}", P["segments"], total, V / f"act{act}_teller_daniel.mp3", items, place, lns, fade_in=0.5, fade_out=1.0)
     master = OUT / f"ACT{act}_{tag}_1080p.mp4"
-    cmd += ["-filter_complex", ";".join(fc), "-map", "[vout]", "-map", "[aout]", "-t", f"{total:.3f}",
-            "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "24", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
-            "-movflags", "+faststart", str(master)]
-    (OUT / f"ffmpeg_cmd_act{act}.txt").write_text(" ".join(cmd), encoding="utf-8")
-    subprocess.run(cmd, check=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(master), "-vf", "scale=960:540:flags=lanczos", "-c:v", "libx264", "-preset", "medium", "-crf", "24",
-                    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(OUT / f"ACT{act}_{tag}_540p.mp4")], check=True)
+    E.mux(video, A["audio"], master, total)
+    E.preview540(master, OUT / f"ACT{act}_{tag}_540p.mp4")
+    print(json.dumps(A["audit"], indent=1))
     print("done", master.name, "total", round(total, 3))
 
 
 def join():
-    parts = [S / "edit6" / "ACT1-3_th_1080p.mp4"] + [OUT / f"ACT{n}_th_1080p.mp4" for n in (4, 5, 6)]
+    parts = [OUT / "ACT1_th_final_1080p.mp4"] + [OUT / f"ACT{n}_th_1080p.mp4" for n in (2, 3, 4, 5, 6)]
     for p in parts:
         assert p.exists(), p
     lst = OUT / "join_1080p.txt"; lst.write_text("".join(f"file '{p}'\n" for p in parts), encoding="utf-8")
@@ -286,7 +278,7 @@ def join():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--act", type=int, choices=[4, 5, 6]); ap.add_argument("--dry", action="store_true"); ap.add_argument("--est", action="store_true"); ap.add_argument("--join", action="store_true"); ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--act", type=int, choices=[4, 5, 6]); ap.add_argument("--dry", action="store_true"); ap.add_argument("--est", action="store_true"); ap.add_argument("--join", action="store_true"); ap.add_argument("--smoke", action="store_true"); ap.add_argument("--reuse-video", action="store_true")
     a = ap.parse_args()
     if a.join:
         return join()

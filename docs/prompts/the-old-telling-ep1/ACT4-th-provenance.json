@@ -1,208 +1,268 @@
 {
- "asset": "ACT4_th_1080p.mp4 + ACT4_th_540p.mp4 (scratchpad edit7); in the full cut on Drive Final Draft/",
- "sha256_1080p": "d9ada9e24dfe50c74fab9cb0276efb895123e3561ee4af77973406a0dc2e772b",
- "date": "2026-10-11",
- "task": "cmo-f76492bf ACT 4 to 6",
- "ceo_order": [
-  "ทำ ARCT 4-6 ต่อได้เลย อณุมติ CU เพิ่มอีก 200 ใช้เสร็จแล้วปิดให้ด้วย พรุ่งนี้ติ่นมาเอาตัดต่อมารวมกันได้เลย ฉันจะมาตรวจงานทีเดียว ไว้ใจคุณ สามารถ แก้ คลิปได้ ไม่เกิน 1 ครั้ง ต่อฉาก เฉพราะฉากที่เสียไม่เข้าเกนณ ตามกฏ",
-  "OK เสียง $0.2282",
-  "ถ้าตัดเสร็จแล้วเอาลง Final Google Drive ได้เลย และส่งมาเป็นลิ้ง"
- ],
- "review_state": "full cut on Drive, link sent to CEO, not yet watched",
- "length_s": 110.292,
- "picture": {
-  "s01": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "el1ul1op"
-   ],
-   "drive_name": "ACT4_s01.mp4",
-   "md5": "9baead67e990857b5fee413b1fa12509"
+  "asset": "ACT4_th_1080p.mp4 + ACT4_th_540p.mp4 (scratchpad edit7); in the full cut on Drive Final Draft/",
+  "sha256_1080p": "d9ada9e24dfe50c74fab9cb0276efb895123e3561ee4af77973406a0dc2e772b",
+  "date": "2026-10-11",
+  "task": "cmo-f76492bf ACT 4 to 6",
+  "ceo_order": [
+    "ทำ ARCT 4-6 ต่อได้เลย อณุมติ CU เพิ่มอีก 200 ใช้เสร็จแล้วปิดให้ด้วย พรุ่งนี้ติ่นมาเอาตัดต่อมารวมกันได้เลย ฉันจะมาตรวจงานทีเดียว ไว้ใจคุณ สามารถ แก้ คลิปได้ ไม่เกิน 1 ครั้ง ต่อฉาก เฉพราะฉากที่เสียไม่เข้าเกนณ ตามกฏ",
+    "OK เสียง $0.2282",
+    "ถ้าตัดเสร็จแล้วเอาลง Final Google Drive ได้เลย และส่งมาเป็นลิ้ง"
+  ],
+  "review_state": "v2 pending CEO eye and ear (see edit_v2); v1 kept on Drive",
+  "length_s": 110.292,
+  "picture": {
+    "s01": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "el1ul1op"
+      ],
+      "drive_name": "ACT4_s01.mp4",
+      "md5": "9baead67e990857b5fee413b1fa12509"
+    },
+    "s02": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "t8aegdxb"
+      ],
+      "drive_name": "ACT4_s02.mp4",
+      "md5": "20a128f165116463db2a12c24530b0bc"
+    },
+    "s03a": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "dpfentr4"
+      ],
+      "drive_name": "ACT4_s03a.mp4",
+      "md5": "1466791d95965b647a97147bafccf8ab"
+    },
+    "s03b": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "7iurfq7s"
+      ],
+      "drive_name": "ACT4_s03b.mp4",
+      "md5": "926eeaa528072c526c16065547d1b1fe"
+    },
+    "s04a": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "9qw9uo0f"
+      ],
+      "drive_name": "ACT4_s04a.mp4",
+      "md5": "a8be545396668da3ac5880fabc4f51ee"
+    },
+    "s04b": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "7wvohfa6"
+      ],
+      "drive_name": "ACT4_s04b.mp4",
+      "md5": "0092f2d479b9992c6c36000d0a137aa1"
+    },
+    "s05": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "2kjk27vt"
+      ],
+      "drive_name": "ACT4_s05.mp4",
+      "md5": "e07ef129120dfe0b63e1ec751cf35ba4"
+    },
+    "s06": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "pmpjj1nu"
+      ],
+      "drive_name": "ACT4_s06.mp4",
+      "md5": "060a7ea456f21cd54fa29b29ad88c171"
+    },
+    "s07": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "bo2ek85f"
+      ],
+      "drive_name": "ACT4_s07.mp4",
+      "md5": "0b58cb27562f16cf29c742ca7dfaa8d0"
+    },
+    "s08": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "ofi4ep7g"
+      ],
+      "drive_name": "ACT4_s08.mp4",
+      "md5": "f5bf9c2c14d338bf0e3049ad62900c8a"
+    },
+    "s09": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "kkdga5ai"
+      ],
+      "drive_name": "ACT4_s09.mp4",
+      "md5": "6c093b4f4ddb24e1290f87fc3522d89b"
+    },
+    "s10": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "8krmmmb6"
+      ],
+      "drive_name": "ACT4_s10.mp4",
+      "md5": "1962557ed9e37fb2c696d5a606960fde"
+    },
+    "s11": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "76q833dg"
+      ],
+      "drive_name": "ACT4_s11.mp4",
+      "md5": "acb50cd1ff718d86c587075c893a3b29"
+    },
+    "s12a": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "x8r1xji0"
+      ],
+      "drive_name": "ACT4_s12a.mp4",
+      "md5": "8edebd0c942914d40f640dadc0557ddf"
+    },
+    "s12b": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "bwyeontu"
+      ],
+      "drive_name": "ACT4_s12b.mp4",
+      "md5": "f0ca25e21fc9b374adb96b0ca41bc871"
+    },
+    "s13": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "queueIds": [
+        "bqwqrs5k"
+      ],
+      "drive_name": "ACT4_s13.mp4",
+      "md5": "21e12e67b49641b8b85796ba775ac7d9"
+    }
   },
-  "s02": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "t8aegdxb"
-   ],
-   "drive_name": "ACT4_s02.mp4",
-   "md5": "20a128f165116463db2a12c24530b0bc"
+  "qc": [
+    "ACT4 s01 s02 s03a s03b s04a s04b: PASS (sheet 1) retakes 0",
+    "ACT4 s05 s06 s07 s08 s10 s11 s12a s12b s13: PASS (sheets 2-3) retakes 0",
+    "ACT4 s09: PASS WITH EDIT FIX: two small skulls bottom-left of frame (HOUSE_NEG no skulls); crop bottom 6 pct + right 6 pct in edit, verify on final frame; no retake used",
+    "ACT4 notes: s12a tigers look photographic vs painterly (style drift, not a rule); s05 thunder flicker warm/cool = lightning, third small figure on stairs ambiguous (tiny)"
+  ],
+  "voice": [
+    {
+      "date": "2026-10-11T09:52:40+0700",
+      "task": "cmo-f76492bf",
+      "runner": "make_voice_act456.py",
+      "endpoint": "elevenlabs/tts/eleven-v4",
+      "name": "act4_teller_daniel",
+      "voice": "Daniel",
+      "chars": 881,
+      "input_sha256": "83901aa5c5530a50",
+      "est_usd": 0.0705,
+      "review": "pending CEO ear",
+      "status": "ok",
+      "bytes": 1243473,
+      "sha256": "556747eb98a334da"
+    },
+    {
+      "date": "2026-10-11T09:53:32+0700",
+      "task": "cmo-f76492bf",
+      "runner": "make_voice_act456.py",
+      "endpoint": "elevenlabs/tts/eleven-v4",
+      "name": "act4_406_eurydice",
+      "voice": "Alice",
+      "chars": 84,
+      "input_sha256": "37fee6aa9f0f3e86",
+      "est_usd": 0.0067,
+      "review": "pending CEO ear",
+      "status": "ok",
+      "bytes": 135045,
+      "sha256": "b6aefe75fb2e3219"
+    }
+  ],
+  "colab_cost": {
+    "colab_cu_acts_4_to_6": 39.15,
+    "balance_before": 814.78,
+    "balance_after": 775.63,
+    "shots_requested": 51,
+    "requested_seconds": 348,
+    "cu_per_requested_second": 0.112,
+    "note": "one figure for ACT 4 to 6 together, incl. 1 re-run (ACT 5 s09b) and 1 retake (ACT 6 s06a); series total 68.28 of 300 CU cap; Colab OFF after the run"
   },
-  "s03a": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "dpfentr4"
-   ],
-   "drive_name": "ACT4_s03a.mp4",
-   "md5": "1466791d95965b647a97147bafccf8ab"
+  "full_cut": {
+    "file": "EP1_th_full_1080p.mp4 (scratchpad edit7) = Drive EP1_Orpheus_TH_full_1080p.mp4",
+    "sha256": "4f589f5fa3e95bf78962fef0df2a77181a5264f1427d1382711dfc62d5e9c315",
+    "md5": "9e812b2ae33e9eee9b5cda8563e5b25d",
+    "drive": "https://drive.google.com/file/d/1jfsGUNpNfrCY1dSaSFHOoYYLxU_dxE9K/view",
+    "length_s": 610.02,
+    "parts_s": {
+      "ACT1-3": 268.19,
+      "ACT4": 110.29,
+      "ACT5": 131.58,
+      "ACT6": 99.96
+    },
+    "loudness_lufs": -16.5,
+    "lra_lu": 5.3,
+    "checks": "A/V durations within 20 ms, 1920x1080 24 fps, no black frame run over 0.5 s, no silence over 2.5 s"
   },
-  "s03b": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "7iurfq7s"
-   ],
-   "drive_name": "ACT4_s03b.mp4",
-   "md5": "926eeaa528072c526c16065547d1b1fe"
-  },
-  "s04a": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "9qw9uo0f"
-   ],
-   "drive_name": "ACT4_s04a.mp4",
-   "md5": "a8be545396668da3ac5880fabc4f51ee"
-  },
-  "s04b": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "7wvohfa6"
-   ],
-   "drive_name": "ACT4_s04b.mp4",
-   "md5": "0092f2d479b9992c6c36000d0a137aa1"
-  },
-  "s05": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "2kjk27vt"
-   ],
-   "drive_name": "ACT4_s05.mp4",
-   "md5": "e07ef129120dfe0b63e1ec751cf35ba4"
-  },
-  "s06": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "pmpjj1nu"
-   ],
-   "drive_name": "ACT4_s06.mp4",
-   "md5": "060a7ea456f21cd54fa29b29ad88c171"
-  },
-  "s07": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "bo2ek85f"
-   ],
-   "drive_name": "ACT4_s07.mp4",
-   "md5": "0b58cb27562f16cf29c742ca7dfaa8d0"
-  },
-  "s08": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "ofi4ep7g"
-   ],
-   "drive_name": "ACT4_s08.mp4",
-   "md5": "f5bf9c2c14d338bf0e3049ad62900c8a"
-  },
-  "s09": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "kkdga5ai"
-   ],
-   "drive_name": "ACT4_s09.mp4",
-   "md5": "6c093b4f4ddb24e1290f87fc3522d89b"
-  },
-  "s10": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "8krmmmb6"
-   ],
-   "drive_name": "ACT4_s10.mp4",
-   "md5": "1962557ed9e37fb2c696d5a606960fde"
-  },
-  "s11": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "76q833dg"
-   ],
-   "drive_name": "ACT4_s11.mp4",
-   "md5": "acb50cd1ff718d86c587075c893a3b29"
-  },
-  "s12a": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "x8r1xji0"
-   ],
-   "drive_name": "ACT4_s12a.mp4",
-   "md5": "8edebd0c942914d40f640dadc0557ddf"
-  },
-  "s12b": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "bwyeontu"
-   ],
-   "drive_name": "ACT4_s12b.mp4",
-   "md5": "f0ca25e21fc9b374adb96b0ca41bc871"
-  },
-  "s13": {
-   "source": "H3 cobijada 1080p on Colab (studio :4100)",
-   "queueIds": [
-    "bqwqrs5k"
-   ],
-   "drive_name": "ACT4_s13.mp4",
-   "md5": "21e12e67b49641b8b85796ba775ac7d9"
+  "takes_on_drive": "1SXtSBj4E5SBN0SACU0Jj9yPMVH3q6lgZ",
+  "build": "docs/prompts/the-old-telling-ep1/build_act456_edit.py --act 4 (placement json in scratchpad edit7)",
+  "edit_v2": {
+    "date": "2026-10-11",
+    "task": "cmo-f76492bf",
+    "why": "CEO 2026-10-11: sound jerky at the cuts (cut by time, not at measured silence) and frames stalled before the next shot (last-frame holds)",
+    "asset": "edit8/ACT4_th_1080p.mp4 (scratchpad), sha256 6f0f23641a8b30cc4c525cef8c0d98c6cd8db1b0f21db89621a18c83099cf488",
+    "length_s": 110.3,
+    "length_s_v1": 110.292,
+    "method": "docs/prompts/the-old-telling-ep1/edit_lib.py + build_act456_edit.py --act 4",
+    "picture_change": "no frame holds; shots lengthened with the clip's own frames, narration spills into the next shot (L-cut); last shot of the ACT may hold under the closing fade",
+    "audit_old_vs_new": {
+      "narr_edges_in_speech": {
+        "old": 16,
+        "new": 0,
+        "of": 32
+      },
+      "narr_window_overlaps": {
+        "old": 10,
+        "new": 0,
+        "of": 15
+      },
+      "bed_steps_over_12db": {
+        "old": 7,
+        "new": 2,
+        "of": 15
+      },
+      "bed_steps_over_6db": {
+        "old": 11,
+        "new": 4,
+        "of": 15
+      },
+      "bed_step_median_db": {
+        "old": 11.9,
+        "new": 3.8
+      },
+      "bed_step_max_db": {
+        "old": 37.0,
+        "new": 27.0
+      },
+      "shot_level_steps_over_12db": {
+        "old": 3,
+        "new": 0,
+        "of": 15
+      },
+      "cut_click_ratio_max": 0.8,
+      "hold_seconds": 0.0,
+      "lufs": -16.0,
+      "true_peak_db": -1.4
+    },
+    "full_cut_v2": {
+      "file": "EP1_Orpheus_TH_full_1080p_v2.mp4",
+      "drive": "https://drive.google.com/file/d/1Mznp7A7rEA_D9OkruWn3vk1m1L5ySrDN/view",
+      "md5": "81c672b3c9f2e5be61fd1f8a4271fcdb",
+      "sha256": "e4a6f44d75b462a23e616be75c3e28a36c54c34d121f5b0767121c79928419a8",
+      "length_s": 604.622,
+      "strict_freeze": "2 stops, both intentional (title 0.52 s + 1.96 s, black card 47.23 s + 1.67 s)",
+      "lufs": -16.1,
+      "lra_lu": 4.8
+    },
+    "review_state": "v2 on Drive Final Draft, pending CEO ear and eye; v1 kept as history (Drive rule 11)"
   }
- },
- "qc": [
-  "ACT4 s01 s02 s03a s03b s04a s04b: PASS (sheet 1) retakes 0",
-  "ACT4 s05 s06 s07 s08 s10 s11 s12a s12b s13: PASS (sheets 2-3) retakes 0",
-  "ACT4 s09: PASS WITH EDIT FIX: two small skulls bottom-left of frame (HOUSE_NEG no skulls); crop bottom 6 pct + right 6 pct in edit, verify on final frame; no retake used",
-  "ACT4 notes: s12a tigers look photographic vs painterly (style drift, not a rule); s05 thunder flicker warm/cool = lightning, third small figure on stairs ambiguous (tiny)"
- ],
- "voice": [
-  {
-   "date": "2026-10-11T09:52:40+0700",
-   "task": "cmo-f76492bf",
-   "runner": "make_voice_act456.py",
-   "endpoint": "elevenlabs/tts/eleven-v4",
-   "name": "act4_teller_daniel",
-   "voice": "Daniel",
-   "chars": 881,
-   "input_sha256": "83901aa5c5530a50",
-   "est_usd": 0.0705,
-   "review": "pending CEO ear",
-   "status": "ok",
-   "bytes": 1243473,
-   "sha256": "556747eb98a334da"
-  },
-  {
-   "date": "2026-10-11T09:53:32+0700",
-   "task": "cmo-f76492bf",
-   "runner": "make_voice_act456.py",
-   "endpoint": "elevenlabs/tts/eleven-v4",
-   "name": "act4_406_eurydice",
-   "voice": "Alice",
-   "chars": 84,
-   "input_sha256": "37fee6aa9f0f3e86",
-   "est_usd": 0.0067,
-   "review": "pending CEO ear",
-   "status": "ok",
-   "bytes": 135045,
-   "sha256": "b6aefe75fb2e3219"
-  }
- ],
- "colab_cost": {
-  "colab_cu_acts_4_to_6": 39.15,
-  "balance_before": 814.78,
-  "balance_after": 775.63,
-  "shots_requested": 51,
-  "requested_seconds": 348,
-  "cu_per_requested_second": 0.112,
-  "note": "one figure for ACT 4 to 6 together, incl. 1 re-run (ACT 5 s09b) and 1 retake (ACT 6 s06a); series total 68.28 of 300 CU cap; Colab OFF after the run"
- },
- "full_cut": {
-  "file": "EP1_th_full_1080p.mp4 (scratchpad edit7) = Drive EP1_Orpheus_TH_full_1080p.mp4",
-  "sha256": "4f589f5fa3e95bf78962fef0df2a77181a5264f1427d1382711dfc62d5e9c315",
-  "md5": "9e812b2ae33e9eee9b5cda8563e5b25d",
-  "drive": "https://drive.google.com/file/d/1jfsGUNpNfrCY1dSaSFHOoYYLxU_dxE9K/view",
-  "length_s": 610.02,
-  "parts_s": {
-   "ACT1-3": 268.19,
-   "ACT4": 110.29,
-   "ACT5": 131.58,
-   "ACT6": 99.96
-  },
-  "loudness_lufs": -16.5,
-  "lra_lu": 5.3,
-  "checks": "A/V durations within 20 ms, 1920x1080 24 fps, no black frame run over 0.5 s, no silence over 2.5 s"
- },
- "takes_on_drive": "1SXtSBj4E5SBN0SACU0Jj9yPMVH3q6lgZ",
- "build": "docs/prompts/the-old-telling-ep1/build_act456_edit.py --act 4 (placement json in scratchpad edit7)"
 }

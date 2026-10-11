@@ -13,9 +13,13 @@ Picture text that matters is spoken (BRAND.md): ACT 3 has no picture text.
 import json, math, pathlib, subprocess, sys
 import numpy as np
 
+HERE = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import edit_lib as E  # noqa: E402  (v2, 2026-10-11: shots extend instead of freezing; narration cut at measured silence; beds level-matched and crossfaded)
+
 S = pathlib.Path("/private/tmp/claude-501/-Users-gob-MoonieXHQ-Agents-Core/4f1a10f5-0427-4c0c-bbaf-d71cf76492bf/scratchpad")
-HERE = pathlib.Path(__file__).parent
-OUT = S / "edit5"; OUT.mkdir(exist_ok=True)
+OUT = S / "edit8"; OUT.mkdir(exist_ok=True)
+NOEXT = set()  # shots that must never be lengthened past their cut (none in ACT 3: every dur is where the action ends, and a longer narration may use the clip's own next frames)
 C3, V = S / "clips3", S / "voice3"
 FPS, LEAD, TAIL, HOLD_MAX = 24, 0.35, 0.15, 1.0
 TH = {r["id"]: r for r in json.loads((V / "timings.json").read_text(encoding="utf-8"))["act3"]}
@@ -76,27 +80,34 @@ def main():
     dry = "--dry" in sys.argv
     segs, place, notes, t = [], {}, [], 0.0
     orph = {}
-    for key, f, in_s, dur, sids, lead in GROUPS:
+    carry = 0.0   # when the narration so far ends (s): the next sentence waits for it, an L-cut over the next shot instead of a frozen last frame
+    carry_in_s09 = 0.0
+    for gi, (key, f, in_s, dur, sids, lead) in enumerate(GROUPS):
         n_full = nframes(f); a = int(round(in_s * FPS)); n = int(round(dur * FPS)) if dur else n_full - a
         assert a + n <= n_full, (key, "asks past the end of the clip", a + n, n_full)
         seg = dict(key=key, file=f, a=a, n=n, hold=0.0, mute=[], start=round(t, 3))
         seg_end = t + n / FPS
+        if key == "s09":
+            carry_in_s09 = carry
         if sids:
-            at = t + lead; prev = None; last_end = 0.0
+            at = max(t + lead, carry + 0.30 if carry else 0.0); prev = None; last_end = 0.0
             for sid in sids:
                 if prev is not None:
                     at = place[prev] + (TH[sid]["start"] - TH[prev]["start"])
                 place[sid] = round(at, 3); last_end = at + TH[sid]["end"] - TH[sid]["start"]; prev = sid
-            need = last_end + TAIL - seg_end
-            if need > 0:
-                seg["hold"] = min(HOLD_MAX, math.ceil(need * FPS) / FPS)
-                if need > HOLD_MAX:
-                    notes.append(f"{key}: narration runs {need - HOLD_MAX:.2f} s past the shot even after a {HOLD_MAX} s hold")
+            carry = last_end
+            seg_end, spill = E.settle(seg, t, last_end, n_full, TAIL, noext=key in NOEXT, is_last=gi == len(GROUPS) - 1, hold_max=HOLD_MAX)
+            if seg["n"] != n:
+                notes.append(f"{key}: lengthened {(seg['n'] - n) / FPS:.2f} s with the clip's own frames (no freeze)")
+            if spill > 0.02:
+                notes.append(f"{key}: narration runs {spill:.2f} s into the next shot (L-cut)")
+            if seg["hold"]:
+                notes.append(f"{key}: last shot of the ACT holds {seg['hold']:.2f} s under the closing fade")
         if key == "s09":
             hb, lb = bursts(f), bursts(LINE)
             orph = dict(clip_bursts=hb, line_bursts=lb)
             seg["mute"] = [(max(0.0, b0 - 0.08), b1 + 0.08) for b0, b1 in hb]
-        segs.append(seg); t = seg_end + seg["hold"]
+        segs.append(seg); t = seg_end
     total = t
     order = sorted(place, key=lambda x: place[x])
     for a_, b_ in zip(order, order[1:]):
@@ -117,9 +128,11 @@ def main():
         notes.append("s09: clip bursts / line bursts are not the >=3 / 4 this lay was written for; line laid whole from the first lip movement. CHECK BY EAR.")
         t1 = cb[0][0] if cb else 0.6
         orph_pieces.append((0.0, 6.0, round(s09["start"] + t1, 3)))
+    if carry_in_s09 > orph_pieces[0][2] - 0.15:
+        notes.append(f"s09: the narration before it ends {carry_in_s09:.2f}, Orpheus' line starts {orph_pieces[0][2]:.2f}: they touch. CHECK BY EAR.")
     placement = dict(total=round(total, 3), segments=[{k: (str(v) if isinstance(v, pathlib.Path) else v) for k, v in s.items()} for s in segs],
                      narration_at=place, orpheus=orph, orpheus_pieces=orph_pieces, notes=notes)
-    (OUT / "placement.json").write_text(json.dumps(placement, indent=1, default=str), encoding="utf-8")
+    (OUT / "ACT3_placement.json").write_text(json.dumps(placement, indent=1, default=str), encoding="utf-8")
     print(json.dumps({k: placement[k] for k in ("total", "narration_at", "orpheus", "orpheus_pieces", "notes")}, indent=1, default=str))
     if dry:
         return
@@ -131,46 +144,30 @@ def main():
     cmd = ["ffmpeg", "-v", "error", "-y"]
     for f in files:
         cmd += ["-i", str(f)]
-    i_narr, i_line = len(files), len(files) + 1
-    cmd += ["-i", str(NARR), "-i", str(LINE)]
-    fc, vl, al = [], [], []
+    fc, vl = [], []
     for k, s in enumerate(segs):
-        i = files.index(s["file"]); a0, dur = s["a"] / FPS, s["n"] / FPS + s["hold"]
+        i = files.index(s["file"])
         # new H3 clips carry black rounded corners: crop 4.3 % in and scale back
         fit = "crop=1840:1035:40:26,scale=1920:1080:flags=lanczos"
         v = f"[{i}:v]trim=start_frame={s['a']}:end_frame={s['a'] + s['n']},setpts=PTS-STARTPTS,{fit},setsar=1,fps=24,format=yuv420p"
         if s["hold"]:
             v += f",tpad=stop_mode=clone:stop_duration={s['hold']:.4f}"
         fc.append(v + f"[v{k}]"); vl.append(f"[v{k}]")
-        au = f"[{i}:a]atrim=start={a0:.4f}:end={a0 + s['n'] / FPS:.4f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo"
-        for m0_, m1_ in s["mute"]:
-            au += f",volume=0:enable='between(t,{m0_:.3f},{m1_:.3f})'"
-        fc.append(au + f",apad=whole_dur={dur:.4f},atrim=end={dur:.4f}[a{k}]"); al.append(f"[a{k}]")
     fc.append("".join(vl) + f"concat=n={len(vl)}:v=1:a=0[base]")
     fc.append(f"[base]fade=t=in:st=0:d=0.4,fade=t=out:st={total - 1.0:.3f}:d=1.0,format=yuv420p[vout]")
-    fc.append("".join(al) + f"concat=n={len(al)}:v=0:a=1,volume=4dB[ambient]")
-    parts = []
-    for sid in order:
-        r = TH[sid]; a0, a1 = max(0.0, r["start"] - 0.03), r["end"] + 0.10; ms = int(round((place[sid] - 0.03) * 1000))
-        lab = "n" + sid.replace(".", "_")
-        fc.append(f"[{i_narr}:a]atrim=start={a0:.3f}:end={a1:.3f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,adelay={ms}|{ms}[{lab}]")
-        parts.append(f"[{lab}]")
-    for k, (a0, a1, at) in enumerate(orph_pieces):
-        ms = int(round(at * 1000))
-        fc.append(f"[{i_line}:a]atrim=start={a0:.3f}:end={a1:.3f},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=stereo,afade=t=in:d=0.02,adelay={ms}|{ms}[orph{k}]")
-        parts.append(f"[orph{k}]")
-    fc.append("".join(parts) + f"amix=inputs={len(parts)}:normalize=0:duration=longest,apad=whole_dur={total:.3f}[bus]")
-    fc.append("[bus]asplit=2[bus_sc][bus_mix]")
-    fc.append("[ambient][bus_sc]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[duck]")
-    fc.append(f"[duck][bus_mix]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,afade=t=in:st=0:d=0.5,afade=t=out:st={total - 1.0:.3f}:d=1.0[aout]")
+    video = OUT / "ACT3_video.mp4"
+    cmd += ["-filter_complex", ";".join(fc), "-map", "[vout]", "-an", "-t", f"{total:.3f}",
+            "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "24", "-movflags", "+faststart", str(video)]
+    (OUT / "ffmpeg_cmd_act3_video.txt").write_text(" ".join(cmd), encoding="utf-8")
+    if not ("--reuse-video" in sys.argv and video.exists()):   # --reuse-video: the picture is already encoded, redo only the sound (minutes saved)
+        subprocess.run(cmd, check=True)
+    items = [(sid, TH[sid]["start"], TH[sid]["end"]) for sid in order]
+    lines = [dict(path=LINE, a0=a0, a1=a1, at=at) for a0, a1, at in orph_pieces]
+    A = E.build_audio(OUT, "ACT3", segs, total, NARR, items, place, lines, fade_in=0.5, fade_out=1.0)
     master = OUT / "ACT3_th_1080p.mp4"
-    cmd += ["-filter_complex", ";".join(fc), "-map", "[vout]", "-map", "[aout]", "-t", f"{total:.3f}",
-            "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "24", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
-            "-movflags", "+faststart", str(master)]
-    (OUT / "ffmpeg_cmd_act3.txt").write_text(" ".join(cmd), encoding="utf-8")
-    subprocess.run(cmd, check=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(master), "-vf", "scale=960:540:flags=lanczos", "-c:v", "libx264", "-preset", "medium", "-crf", "24",
-                    "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(OUT / "ACT3_th_540p.mp4")], check=True)
+    E.mux(video, A["audio"], master, total)
+    E.preview540(master, OUT / "ACT3_th_540p.mp4")
+    print(json.dumps(A["audit"], indent=1))
     print("done", master.name, "total", round(total, 3))
 
 
