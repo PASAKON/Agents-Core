@@ -23,6 +23,14 @@ P = {
  # Rendered 2026-10-02 after EP4 existed; the thu_tpl stand-in is retired.
  "thu": dict(img="thu", oy="250", bB="EP.4", bS="ศุกร์นี้", q="อยากได้คืน ต้องลุกมาเอาเอง",
              l1="พรุ่งนี้", l2="19:30 ตอนใหม่", c1="บ้านนี้มีมีมี่", c2=""),
+ # Week 2 (decided for CEO 2026-10-11: Mon-Thu stay the page's rhythm, 0 credits). Frames = real stills (frames\\w2*.png, 720x1280, cut at 4 s from
+ # the episode clips). Facts only from the posted first comments: EP4 brother works from home / Mimi coaxes him outside; EP5 the sister really comes home at 7 pm.
+ "w2mon": dict(img="w2mon", oy="380", bB="?", bS="ถามหน่อย", l1="ช็อตไหนใน 5 ตอน", l2="ที่คุณชอบที่สุด?",
+               c1="รวมช็อตเด็ดอยู่ที่หน้าเพจ", c2="เล่าให้มีมี่ฟังใต้โพสต์นี้"),
+ "w2tue": dict(img="w2tue", oy="520", bB="EP.4", bS="เบื้องหลัง", l1="พี่ชายทำงานที่บ้าน", l2="มีมี่ชอบอ้อนให้พาออกไป",
+               c1="เรื่องจริงจากบ้านเรา เล่าเป็นตอนที่ 4", c2="18 ช็อต ต่อกันเป็น 3 นาที"),
+ "w2wed": dict(img="w2wed", oy="300", bB="EP.5", bS="เบื้องหลัง", l1="น้องสาวกลับบ้านทุ่มหนึ่ง", l2="ทุกวัน เป็นเรื่องจริง",
+               c1="ส่วนที่เหลือเราแต่งเป็นเรื่องเล่า", c2="ตอนที่ 5 · 18 ช็อต 3 นาที"),
 }
 keys = sys.argv[1:] or list(P)
 for key in keys:
