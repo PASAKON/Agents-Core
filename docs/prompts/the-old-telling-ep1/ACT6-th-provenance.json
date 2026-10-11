@@ -1,0 +1,193 @@
+{
+ "asset": "ACT6_th_1080p.mp4 + ACT6_th_540p.mp4 (scratchpad edit7); in the full cut on Drive Final Draft/",
+ "sha256_1080p": "c3f5498f8fd3902601697e8e639b473750e1b0081f0d37198b7f2ca4f9a76bf5",
+ "date": "2026-10-11",
+ "task": "cmo-f76492bf ACT 4 to 6",
+ "ceo_order": [
+  "ทำ ARCT 4-6 ต่อได้เลย อณุมติ CU เพิ่มอีก 200 ใช้เสร็จแล้วปิดให้ด้วย พรุ่งนี้ติ่นมาเอาตัดต่อมารวมกันได้เลย ฉันจะมาตรวจงานทีเดียว ไว้ใจคุณ สามารถ แก้ คลิปได้ ไม่เกิน 1 ครั้ง ต่อฉาก เฉพราะฉากที่เสียไม่เข้าเกนณ ตามกฏ",
+  "OK เสียง $0.2282",
+  "ถ้าตัดเสร็จแล้วเอาลง Final Google Drive ได้เลย และส่งมาเป็นลิ้ง"
+ ],
+ "review_state": "full cut on Drive, link sent to CEO, not yet watched",
+ "length_s": 99.958,
+ "picture": {
+  "s01": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "c9ozou8v"
+   ],
+   "drive_name": "ACT6_s01.mp4",
+   "md5": "30a89a54f4b01ab34e28dec1ac272a95"
+  },
+  "s02a": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "fvou6ein"
+   ],
+   "drive_name": "ACT6_s02a.mp4",
+   "md5": "68fad6edf9f5d2e266c89de7c56c8773"
+  },
+  "s02b": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "evm9zoeq"
+   ],
+   "drive_name": "ACT6_s02b.mp4",
+   "md5": "6d12a1e307b597fce87c756043b9950f"
+  },
+  "s03a": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "fho1tjbg"
+   ],
+   "drive_name": "ACT6_s03a.mp4",
+   "md5": "95c9b7e1e5e110cf491fbdfcf0cc98de"
+  },
+  "s03b": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "f346wk24"
+   ],
+   "drive_name": "ACT6_s03b.mp4",
+   "md5": "34437d926c2b0004d695d988568bef98"
+  },
+  "s05": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "cx4olwat"
+   ],
+   "drive_name": "ACT6_s05.mp4",
+   "md5": "428a8c65dbe2f4d158ed603c83deec9c"
+  },
+  "s06a": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "tdwr5g5w",
+    "8bk368gr"
+   ],
+   "drive_name": "ACT6_s06a.mp4",
+   "md5": "6795bf3780a4819240d958a1689c6541",
+   "note": "retake: take 1 (ACT6_s06a_v1.mp4 on Drive) drew a detailed face; the retake is ACT6_s06a.mp4"
+  },
+  "s06b": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "2hwp5aiu"
+   ],
+   "drive_name": "ACT6_s06b.mp4",
+   "md5": "777b065e97ceb30a31f70ce060bc2654"
+  },
+  "s07a": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "vdgd2ttp"
+   ],
+   "drive_name": "ACT6_s07a.mp4",
+   "md5": "ac1c483a5f463e2de1e8ccfcb720b653"
+  },
+  "s07b": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "88de4qux"
+   ],
+   "drive_name": "ACT6_s07b.mp4",
+   "md5": "93c87a70f9203f7f90268d1ed47d4315"
+  },
+  "s08": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "cl5z05v6"
+   ],
+   "drive_name": "ACT6_s08.mp4",
+   "md5": "4c8956705cc6c89841560078ad126a02"
+  },
+  "s09": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "0w76itmh"
+   ],
+   "drive_name": "ACT6_s09.mp4",
+   "md5": "1b25efe11e8f7408bcab7971373f68fc"
+  },
+  "s10": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "mwzkatgn"
+   ],
+   "drive_name": "ACT6_s10.mp4",
+   "md5": "91a56bce9bdc5da06e7cad9b7a24e30e"
+  },
+  "s11": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "krzlqvgs"
+   ],
+   "drive_name": "ACT6_s11.mp4",
+   "md5": "c19c1e21eecd54c80920c2663e4489c6"
+  },
+  "s12a": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "b7tcue95"
+   ],
+   "drive_name": "ACT6_s12a.mp4",
+   "md5": "a4b4f384ff2aa44aaae1efb62165917a"
+  },
+  "s12b": {
+   "source": "H3 cobijada 1080p on Colab (studio :4100)",
+   "queueIds": [
+    "myqyvk18"
+   ],
+   "drive_name": "ACT6_s12b.mp4",
+   "md5": "39fc7ff47ba7bbdeaeb263ebae6ac6d4"
+  }
+ },
+ "qc": [
+  "ACT6 s01 s02a s02b s03b s05 s06b s07a s07b s08 s09 s10 s11 s12a s12b: PASS retakes 0 ACT6 s03a: PASS WITH EDIT FIX: woman's face faintly visible in profile first ~1 s; start clip at 1.2 s (embrace hides face) ACT6 s06a: RULE BREAK (phantom shows detailed woman's face 2.7-5.3 s, CEO rule Eurydice silhouette only): RETAKE 1 of 1 fired with 'no face, no detail' silhouette wording ACT6 notes: s05 one dark moment (~2 s) shows a dark torso behind the hands; accepted",
+  "ACT6 s06a retake (job xeefb4su): PASS veiled translucent figure, no face visible; retakes used overall: 1 (s06a). take 1 kept as clips6/s06a_take1.mp4"
+ ],
+ "voice": [
+  {
+   "date": "2026-10-11T09:53:17+0700",
+   "task": "cmo-f76492bf",
+   "runner": "make_voice_act456.py",
+   "endpoint": "elevenlabs/tts/eleven-v4",
+   "name": "act6_teller_daniel",
+   "voice": "Daniel",
+   "chars": 784,
+   "input_sha256": "321905d3093f62b0",
+   "est_usd": 0.0627,
+   "review": "pending CEO ear",
+   "status": "ok",
+   "bytes": 1170748,
+   "sha256": "8e3c2337c7d6a0aa"
+  }
+ ],
+ "colab_cost": {
+  "colab_cu_acts_4_to_6": 39.15,
+  "balance_before": 814.78,
+  "balance_after": 775.63,
+  "shots_requested": 51,
+  "requested_seconds": 348,
+  "cu_per_requested_second": 0.112,
+  "note": "one figure for ACT 4 to 6 together, incl. 1 re-run (ACT 5 s09b) and 1 retake (ACT 6 s06a); series total 68.28 of 300 CU cap; Colab OFF after the run"
+ },
+ "full_cut": {
+  "file": "EP1_th_full_1080p.mp4 (scratchpad edit7) = Drive EP1_Orpheus_TH_full_1080p.mp4",
+  "sha256": "4f589f5fa3e95bf78962fef0df2a77181a5264f1427d1382711dfc62d5e9c315",
+  "md5": "9e812b2ae33e9eee9b5cda8563e5b25d",
+  "drive": "https://drive.google.com/file/d/1jfsGUNpNfrCY1dSaSFHOoYYLxU_dxE9K/view",
+  "length_s": 610.02,
+  "parts_s": {
+   "ACT1-3": 268.19,
+   "ACT4": 110.29,
+   "ACT5": 131.58,
+   "ACT6": 99.96
+  },
+  "loudness_lufs": -16.5,
+  "lra_lu": 5.3,
+  "checks": "A/V durations within 20 ms, 1920x1080 24 fps, no black frame run over 0.5 s, no silence over 2.5 s"
+ },
+ "takes_on_drive": "1_8Os3zL4ljWk5qLAkj3um-NeedpoW3sv",
+ "build": "docs/prompts/the-old-telling-ep1/build_act456_edit.py --act 6 (placement json in scratchpad edit7)"
+}
