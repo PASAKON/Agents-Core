@@ -23,9 +23,12 @@ PILOT_CTO_ID = "0e8d80b8"
 
 
 def run_installer(repo):
+    # ALLOW_NO_GITLEAKS: the installer exits 2 on a box without gitleaks
+    # (test_install_git_hooks_gitleaks.py); these tests are about media-guard.
     return subprocess.run(
         ["sh", str(INSTALLER)],
         cwd=repo,
+        env={**os.environ, "ALLOW_NO_GITLEAKS": "1"},
         capture_output=True,
         text=True,
     )
