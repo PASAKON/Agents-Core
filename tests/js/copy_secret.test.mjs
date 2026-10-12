@@ -100,15 +100,19 @@ async function fakeBrowser({ path = '/org/org-1111aaaa/secret-manager', auth = {
 
 // ------------------------------------------------------------------ fake Infisical
 // world: { folders, folderStatus: {path: status}, targetExists, writeStatus, corrupt }
+// --find worlds: { projects, tree: {'<pid>|<env>': folders}, status: {'<pid>|<env>|<path>|folders|secrets': s},
+//                  projectStatus: {'<pid>': s}, limited: {'<pid>|<env>|<path>': n 429s first} }
 async function fakeInfisical(world = {}) {
   const calls = [];
   const folders = world.folders ?? ONE_FAL;
   const store = new Map();
   if (world.targetExists) store.set('p-bed|prod|/|FAL_API_KEY', { secretKey: 'FAL_API_KEY', secretValue: OTHER, secretMetadata: [] });
-  const projects = [
+  const projects = world.projects ?? [
     { id: 'p-infra', name: 'Org-Infra', slug: 'org-infra', environments: [{ slug: 'prod', name: 'Production', id: 'e1' }] },
     { id: 'p-bed', name: 'MoonieX-Bedrock', slug: 'mooniex-bedrock-x1y2', environments: [{ slug: 'dev', name: 'Development', id: 'e2' }, { slug: 'prod', name: 'Production', id: 'e3' }] },
   ];
+  const treeOf = (pid, env) => (world.tree ? world.tree[`${pid}|${env}`] : pid === 'p-infra' && env === 'prod' ? folders : undefined);
+  const limited = { ...(world.limited || {}) };
   const server = createServer(async (req, res) => {
     const u = new URL(req.url, 'http://fake');
     let raw = ''; for await (const c of req) raw += c;
@@ -124,19 +128,33 @@ async function fakeInfisical(world = {}) {
     if (req.method === 'POST' && u.pathname === '/api/v3/auth/select-organization') return send(200, { token: TOKEN_SELECTED });
     if (!withOrg) return send(403, { message: 'select an organization first', error: 'Forbidden' });
     if (req.method === 'GET' && u.pathname === '/api/v2/organizations/org-1111aaaa/workspaces') return send(200, { workspaces: projects });
+    const proj = u.pathname.match(/^\/api\/v1\/projects\/([\w-]+)$/);
+    if (req.method === 'GET' && proj) {
+      if (world.projectStatus?.[proj[1]]) return send(world.projectStatus[proj[1]], { message: `denied ${VALUE}`, error: 'Forbidden' });
+      const p = projects.find((x) => x.id === proj[1]);
+      return p ? send(200, { project: { ...p, environments: p.envs ?? [] } }) : send(404, { message: 'no project', error: 'NotFound' });
+    }
+    if (req.method === 'GET' && (u.pathname === '/api/v2/folders' || u.pathname === '/api/v3/secrets/raw')) {
+      const lk = `${q.projectId ?? q.workspaceId}|${q.environment}|${q.path ?? q.secretPath}`;
+      if (limited[lk] > 0) { limited[lk]--; res.setHeader('retry-after', '0'); return send(429, { message: `slow down ${VALUE}`, error: 'TooManyRequests' }); }
+      const st = world.status?.[`${lk}|${u.pathname === '/api/v2/folders' ? 'folders' : 'secrets'}`];
+      if (st) return send(st, { message: `denied while reading ${VALUE}`, error: 'Forbidden' });
+    }
     if (req.method === 'GET' && u.pathname === '/api/v2/folders') {
       if (world.foldersStatus) return send(world.foldersStatus, { message: 'denied', error: 'Forbidden' });
-      if (q.projectId !== 'p-infra' || q.environment !== 'prod') return send(404, { message: 'no such env', error: 'NotFound' });
+      const tree = treeOf(q.projectId, q.environment);
+      if (!tree) return send(404, { message: 'no such env', error: 'NotFound' });
       const base = q.path === '/' ? '' : q.path;
-      const kids = Object.keys(folders).filter((k) => k !== '/' && k.startsWith(`${base}/`) && !k.slice(base.length + 1).includes('/'));
+      const kids = Object.keys(tree).filter((k) => k !== '/' && k.startsWith(`${base}/`) && !k.slice(base.length + 1).includes('/'));
       return send(200, { folders: kids.map((k) => ({ id: `f${k}`, name: k.slice(base.length + 1) })) });
     }
     if (req.method === 'GET' && u.pathname === '/api/v3/secrets/raw') {
-      if (q.workspaceId !== 'p-infra' || q.environment !== 'prod') return send(404, { message: 'no such env', error: 'NotFound' });
+      const tree = treeOf(q.workspaceId, q.environment);
+      if (!tree) return send(404, { message: 'no such env', error: 'NotFound' });
       const status = world.folderStatus?.[q.secretPath];
       if (status) return send(status, { message: `denied while reading ${VALUE}`, error: 'Forbidden' });
-      if (!folders[q.secretPath]) return send(404, { message: `Folder with path '${q.secretPath}' not found`, error: 'NotFound' });
-      return send(200, { secrets: folders[q.secretPath], imports: [] });
+      if (!tree[q.secretPath]) return send(404, { message: `Folder with path '${q.secretPath}' not found`, error: 'NotFound' });
+      return send(200, { secrets: tree[q.secretPath], imports: [] });
     }
     if (one) {
       const key = `${q.workspaceId}|${q.environment ?? body?.environment}|${q.secretPath ?? body?.secretPath}|${one[1]}`;
@@ -164,14 +182,14 @@ async function run(args, { browser, world, env = {}, cdp } = {}) {
   const child = spawn(process.execPath, [...NODE_FLAGS, SCRIPT, cdp ?? b.url, ...args], {
     env: { ...process.env, INFISICAL_API_URL: inf.url, CTO_SESSION_ID: '', CXO_SESSION_ID: '', ORG_TASK_ID: 'task-test0001', ...env },
   });
-  let text = '';
-  child.stdout.on('data', (d) => { text += d; });
-  child.stderr.on('data', (d) => { text += d; });
-  const code = await new Promise((r) => child.on('exit', (c) => r(c)));
+  let text = '', out = '', err = '';
+  child.stdout.on('data', (d) => { text += d; out += d; });
+  child.stderr.on('data', (d) => { text += d; err += d; });
+  const code = await new Promise((r) => child.on('close', (c) => r(c)));
   b.close(); inf.close();
   NEVER_PRINTED.forEach((x, i) => assert.ok(!text.includes(x), `forbidden string #${i} reached the output`));
   const writes = inf.calls.filter((c) => c.method === 'POST' && c.path.startsWith('/api/v3/secrets/raw'));
-  return { code, text, calls: inf.calls, writes, store: inf.store, cdpHits: b.hits };
+  return { code, text, out, err, calls: inf.calls, writes, store: inf.store, cdpHits: b.hits };
 }
 
 // ------------------------------------------------------------------ the five required cases
@@ -349,4 +367,124 @@ test('the token and the value never leave for a non-loopback host', async () => 
   r = await run(REAL, { cdp: 'http://10.0.0.5:9281' });
   assert.equal(r.code, 64, r.text);
   assert.match(r.text, /<cdp-url> must be a loopback/);
+});
+
+// ------------------------------------------------------------------ --find: every project, env and folder, names only
+
+const FIND_PROJECTS = [
+  { id: 'p-infra', name: 'Org-Infra', slug: 'org-infra', environments: [{ slug: 'prod', name: 'Production', id: 'e1' }] },
+  { id: 'p-flow', name: 'MoonieX-ClaudeFlow', slug: 'mooniex-claudeflow', type: 'secret-manager', environments: [{ slug: 'dev', id: 'e4' }, { slug: 'prod', id: 'e5' }] },
+  { id: 'p-web', name: 'MoonieX-Webapp', slug: 'mooniex-webapp', environments: [{ slug: 'prod', id: 'e6' }] },
+  { id: 'p-bed', name: 'MoonieX-Bedrock', slug: 'mooniex-bedrock-x1y2', environments: [{ slug: 'dev', id: 'e2' }, { slug: 'prod', id: 'e3' }] },
+  { id: 'p-kms', name: 'MoonieX-Keys', slug: 'mooniex-keys', type: 'kms', environments: [] },
+];
+const findTree = (adminValue = VALUE) => ({
+  'p-infra|prod': { '/': [], '/dns': [s('CLOUDFLARE_DNS_CONTABO_TOKEN_RW', OTHER)] },
+  'p-flow|dev': { '/': [s('OPENAI_API_KEY', OTHER)] },
+  'p-flow|prod': { '/': [s('FAL_KEY', VALUE), s('KLING_API_KEY', OTHER), s('FAL_PERSONAL_KEY', OTHER, 'personal')], '/video': [], '/video/fal': [s('FAL_ADMIN_KEY', adminValue)] },
+  'p-web|prod': { '/': [s('fal_lower_api_key', VALUE)] },
+  'p-bed|dev': { '/': [] },
+  'p-bed|prod': { '/': [s('LUMINA_SEED_TOKEN', OTHER)] },
+});
+const FIND = ['--find', '/FAL/i'];
+// stdout of --find holds names, paths, statuses and counts — nothing else
+const FIND_LINE = /^(?:[\w-]+\/[\w.-]+(?:\/[\w.-]+)*\/\w+|[\w-]+(?:\/[\w.-]+)*\/?: (?:HTTP \d+|more than \d+ folders, walk stopped)|scanned: \d+ projects · \d+ envs · \d+ folders · \d+ names · \d+ match · \d+ unreadable|values identical across matches: (?:yes|no|n\/a \(0 matches\))|value group \d+: .+)$/;
+const findRun = async (args, world) => {
+  const r = await run(args, { world: { projects: FIND_PROJECTS, tree: findTree(), ...world } });
+  const lines = r.out.split('\n').filter(Boolean);
+  for (const l of lines) assert.match(l, FIND_LINE, `unexpected stdout line in --find: ${l}`);
+  for (const l of r.err.split('\n').filter(Boolean)) assert.match(l, /^\[find\] /, `unexpected stderr line in --find: ${l}`);
+  assert.equal(r.calls.filter((c) => c.method !== 'GET').length, 0, '--find sent a write');
+  return { ...r, lines };
+};
+
+test('--find: every project, env and nested folder; one stdout line per match; identical values say yes; exit 0', async () => {
+  const r = await findRun(FIND);
+  assert.equal(r.code, 0, r.text);
+  assert.deepEqual(r.lines.filter((l) => !/^(scanned|values identical)/.test(l)),
+    ['MoonieX-ClaudeFlow/prod/FAL_KEY', 'MoonieX-ClaudeFlow/prod/video/fal/FAL_ADMIN_KEY', 'MoonieX-Webapp/prod/fal_lower_api_key']);
+  assert.ok(r.lines.includes('scanned: 4 projects · 6 envs · 9 folders · 7 names · 3 match · 0 unreadable'), r.out);
+  assert.equal(r.lines.at(-1), 'values identical across matches: yes');
+  const listed = new Set(r.calls.filter((c) => c.path === '/api/v3/secrets/raw').map((c) => `${c.query.workspaceId}|${c.query.environment}|${c.query.secretPath}`));
+  for (const want of ['p-infra|prod|/', 'p-infra|prod|/dns', 'p-flow|dev|/', 'p-flow|prod|/video/fal', 'p-web|prod|/', 'p-bed|dev|/', 'p-bed|prod|/']) assert.ok(listed.has(want), want);
+  assert.ok(![...listed].some((k) => k.startsWith('p-kms|')), 'a kms project was listed');
+  assert.match(r.err, /\[find\] MoonieX-Keys: project type kms, not a secret manager; skipped/);
+  assert.match(r.err, /\[find\] MoonieX-ClaudeFlow\/prod: 3 folder\(s\) · 3 names · 2 match/);
+  assert.ok(!r.out.includes('FAL_PERSONAL_KEY'), 'a personal secret was reported');
+});
+
+test('--find: matches with different values say no and name the groups (equality only)', async () => {
+  const r = await findRun(FIND, { tree: findTree(OTHER) });
+  assert.equal(r.code, 0, r.text);
+  assert.ok(r.lines.includes('values identical across matches: no'), r.out);
+  assert.ok(r.lines.includes('value group 1: MoonieX-ClaudeFlow/prod/FAL_KEY MoonieX-Webapp/prod/fal_lower_api_key'), r.out);
+  assert.ok(r.lines.includes('value group 2: MoonieX-ClaudeFlow/prod/video/fal/FAL_ADMIN_KEY'), r.out);
+});
+
+test('--find: a plain regex is case-sensitive; one match says yes; zero matches say n/a', async () => {
+  let r = await findRun(['--find', '^FAL_ADMIN']);
+  assert.equal(r.code, 0, r.text);
+  assert.deepEqual(r.lines.slice(0, 1), ['MoonieX-ClaudeFlow/prod/video/fal/FAL_ADMIN_KEY']);
+  assert.equal(r.lines.at(-1), 'values identical across matches: yes');
+  r = await findRun(['--find', 'fal_lower|^FAL_KEY$']);
+  assert.deepEqual(r.lines.slice(0, 2), ['MoonieX-ClaudeFlow/prod/FAL_KEY', 'MoonieX-Webapp/prod/fal_lower_api_key']);
+  r = await findRun(['--find', '/^NOTHING_LIKE_THIS$/']);
+  assert.equal(r.code, 0, r.text);
+  assert.deepEqual(r.lines, ['scanned: 4 projects · 6 envs · 9 folders · 7 names · 0 match · 0 unreadable', 'values identical across matches: n/a (0 matches)']);
+});
+
+test('--find: an unreadable project or folder prints <project>/<env>/<path>: HTTP <status>, the walk goes on, exit 13', async () => {
+  const projects = FIND_PROJECTS.map((p) => (p.id === 'p-web' ? { ...p, environments: undefined } : p));
+  const r = await findRun(FIND, {
+    projects,
+    projectStatus: { 'p-web': 403 },                        // its env list cannot be read
+    status: { 'p-flow|prod|/video|folders': 403,            // a subfolder's children cannot be listed
+      'p-infra|prod|/|secrets': 403,                        // a root's secrets cannot be listed (body echoes the value)
+      'p-bed|dev|/|folders': 500 },
+  });
+  assert.equal(r.code, 13, r.text);
+  for (const want of ['MoonieX-Webapp: HTTP 403', 'MoonieX-ClaudeFlow/prod/video: HTTP 403', 'Org-Infra/prod/: HTTP 403', 'MoonieX-Bedrock/dev/: HTTP 500']) {
+    assert.ok(r.lines.includes(want), `${want}\n${r.out}`);
+  }
+  assert.ok(r.lines.includes('MoonieX-ClaudeFlow/prod/FAL_KEY'), 'the walk stopped at the first unreadable path');
+  assert.ok(!r.lines.includes('MoonieX-ClaudeFlow/prod/video/fal/FAL_ADMIN_KEY'));
+  assert.ok(r.lines.includes('scanned: 4 projects · 5 envs · 6 folders · 5 names · 1 match · 4 unreadable'), r.out);
+  const listed = r.calls.filter((c) => c.path === '/api/v3/secrets/raw').map((c) => `${c.query.workspaceId}|${c.query.environment}|${c.query.secretPath}`);
+  assert.ok(listed.includes('p-bed|prod|/') && listed.includes('p-infra|prod|/dns'), 'later projects and folders were not walked');
+});
+
+test('--find: a 429 is retried and the walk completes', async () => {
+  const r = await findRun(FIND, { limited: { 'p-flow|prod|/': 2, 'p-flow|prod|/video': 1 } });
+  assert.equal(r.code, 0, r.text);
+  assert.ok(r.lines.includes('MoonieX-ClaudeFlow/prod/FAL_KEY'), r.out);
+  assert.ok(r.lines.includes('MoonieX-ClaudeFlow/prod/video/fal/FAL_ADMIN_KEY'), r.out);
+  assert.ok(r.lines.includes('values identical across matches: yes'), r.out);
+});
+
+test('--find: leak check: the fake value, its last 4 and its length never reach stdout or stderr', async () => {
+  const r = await findRun(FIND, { tree: findTree(OTHER), status: { 'p-bed|prod|/|secrets': 403 } });
+  assert.equal(r.code, 13, r.text);
+  for (const v of [VALUE, OTHER]) {
+    assert.ok(!r.text.includes(v) && !r.text.includes(v.slice(-4)), 'a value or its last 4 reached the output');
+    assert.ok(!new RegExp(`\\b${v.length}\\b`).test(r.text), 'a value length reached the output');
+  }
+  assert.ok(!/secretValue|denied while reading|slow down/.test(r.text), 'an API body reached the output');
+});
+
+test('--find refusals exit 64 before the browser is touched', async () => {
+  const cases = [
+    [[...FIND, ...FROM], /--find runs alone/],
+    [[...FIND, '--dry'], /--find runs alone/],
+    [[...FIND, '--meta', 'scope=x'], /--find runs alone/],
+    [['--find', '/FAL/g'], /flags may be i, m, s and u/],
+    [['--find', '/FAL/ii'], /flags may be i, m, s and u/],
+    [['--find', '(['], /does not compile/],
+    [['--find'], /--find needs a value/],
+  ];
+  for (const [args, re] of cases) {
+    const r = await run(args);
+    assert.equal(r.code, 64, `${args.join(' ')}\n${r.text}`);
+    assert.match(r.text, re);
+    assert.equal(r.cdpHits.list, 0);
+  }
 });

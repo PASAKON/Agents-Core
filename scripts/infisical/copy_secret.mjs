@@ -5,6 +5,13 @@
 //
 //   node copy_secret.mjs <cdp-url> --from <Project>:<env>:<name-regex> --to <Project>:<env>:<NAME>
 //        --comment "<purpose>" [--meta k=v ...] [--dry]
+//   node copy_secret.mjs <cdp-url> --find <regex | /regex/flags>
+//
+// --find writes nothing. It walks every project the session sees, every env of each and every folder of
+// each env, and prints to stdout one line per shared secret whose NAME matches: `<Project>/<env>[/<path>]/<NAME>`.
+// An unreadable project or folder prints `<Project>: HTTP <s>` or `<Project>/<env>/<path>: HTTP <s>` and the
+// walk goes on. Then `scanned: …` and `values identical across matches: yes|no|n/a (0 matches)`; on `no`, one
+// `value group <n>: <refs>` line per distinct value (equality only, compared in memory). Progress goes to stderr.
 //
 // Session: borrowed from the CEO's logged-in app.infisical.com tab exactly as
 // bootstrap_setup_identity.mjs does — ONE in-page POST /api/v1/auth/token (the refresh token is an
@@ -24,18 +31,22 @@
 // Output: names, paths, HTTP statuses, MATCH / MISMATCH. Never a response body (an API error message
 // can echo its input). Exit: 0 done (or dry ok) · 64 usage/refused · 3 CDP · 4 no signed-in tab ·
 // 5 token · 6 org · 7 project/env/listing · 8 not exactly one match · 9 target exists ·
-// 10 target state unknown · 11 write failed · 12 verify MISMATCH.
+// 10 target state unknown · 11 write failed · 12 verify MISMATCH · 13 --find done, but some path was unreadable.
+// A GET answered 429 is retried up to 4 times (Retry-After, else 1-2-4-8 s); a POST never is.
 // Node 22+, or node 20 with --experimental-websocket. Tests: tests/js/copy_secret.test.mjs.
 // INFISICAL_API_URL (tests only) may point the API at a loopback server, nowhere else.
 
-const USAGE = 'usage: copy_secret.mjs <cdp-url> --from <Project>:<env>:<name-regex> --to <Project>:<env>:<NAME> --comment "<purpose>" [--meta k=v ...] [--dry]';
+const USAGE = 'usage: copy_secret.mjs <cdp-url> --from <Project>:<env>:<name-regex> --to <Project>:<env>:<NAME> --comment "<purpose>" [--meta k=v ...] [--dry]\n'
+  + '       copy_secret.mjs <cdp-url> --find <regex | /regex/flags>';
 const ORG_INFRA = 'Org-Infra';
+const FIND_MAX_FOLDERS = 200; // per env; a walk that hits it says so and counts as unreadable
 const ORG_INFRA_FOLDERS = ['/', '/dns', '/deploy', '/repo', '/net', '/db', '/vault']; // PLAN §3b closed list
 const SET_HERE = ['source', 'rotate_with', 'owner', 'created', 'status'];
 const NEEDED_META = ['provider_name', 'console_url', 'scope', 'expires']; // + owner, set here (PLAN §4c)
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 const AUTH_PATH = /^\/(login|signup|signin|verify-email|verify|mfa|password-reset|reset-password|email-not-verified|cli-redirect)(\/|$)/i;
-const log = (...a) => console.log('[copy]', ...a);
+let toStderr = false; // --find keeps stdout for its result lines
+const log = (...a) => (toStderr ? console.error : console.log)(toStderr ? '[find]' : '[copy]', ...a);
 const die = (code, msg) => { console.error('[copy]', msg); process.exit(code); };
 const usage = (msg) => die(64, `${msg}\n${USAGE}`);
 const isOrgInfra = (name) => String(name).toLowerCase() === ORG_INFRA.toLowerCase();
@@ -52,11 +63,12 @@ function spec(flag, raw, last) {
 }
 
 const argv = process.argv.slice(2);
-const opt = { cdp: null, from: null, to: null, comment: null, meta: [], dry: false };
+const opt = { cdp: null, from: null, to: null, comment: null, meta: [], dry: false, find: null };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   const val = () => { if (i + 1 >= argv.length) usage(`${a} needs a value`); return argv[++i]; };
   if (a === '--dry') opt.dry = true;
+  else if (a === '--find') opt.find = val();
   else if (a === '--from') opt.from = val();
   else if (a === '--to') opt.to = val();
   else if (a === '--comment') opt.comment = val();
@@ -66,14 +78,29 @@ for (let i = 0; i < argv.length; i++) {
   else usage(`unexpected argument ${a}`);
 }
 if (!opt.cdp) usage('missing <cdp-url>');
-if (!opt.from || !opt.to) usage('need --from and --to');
 
-const from = spec('--from', opt.from, '<name-regex>');
-try { from.re = new RegExp(from.rest); } catch { usage('--from: the name regex does not compile'); }
-const to = spec('--to', opt.to, '<NAME>');
-to.name = to.rest;
-if (!/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(to.name)) usage('--to: NAME must be UPPER_SNAKE_CASE with at least two parts (PLAN §4b)');
-if (isOrgInfra(to.project)) usage('refused: Org-Infra is never a target — only the CEO writes there (PLAN §3b rule 1)');
+// --find <regex> or --find /regex/flags (flags i m s u; g and y would make .test() stateful)
+let findRe = null;
+if (opt.find !== null) {
+  if (opt.from || opt.to || opt.comment !== null || opt.meta.length || opt.dry) usage('--find runs alone: drop --from, --to, --comment, --meta and --dry');
+  const lit = /^\/(.+)\/([a-z]*)$/s.exec(opt.find);
+  const [source, flags] = lit ? [lit[1], lit[2]] : [opt.find, ''];
+  if (!source) usage('--find: empty regex');
+  if (!/^[imsu]*$/.test(flags) || new Set(flags).size !== flags.length) usage('--find: flags may be i, m, s and u, each once');
+  try { findRe = new RegExp(source, flags); } catch { usage('--find: the regex does not compile'); }
+  toStderr = true;
+}
+
+let from = null, to = null;
+if (!findRe) {
+  if (!opt.from || !opt.to) usage('need --from and --to (or --find <regex>)');
+  from = spec('--from', opt.from, '<name-regex>');
+  try { from.re = new RegExp(from.rest); } catch { usage('--from: the name regex does not compile'); }
+  to = spec('--to', opt.to, '<NAME>');
+  to.name = to.rest;
+  if (!/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(to.name)) usage('--to: NAME must be UPPER_SNAKE_CASE with at least two parts (PLAN §4b)');
+  if (isOrgInfra(to.project)) usage('refused: Org-Infra is never a target — only the CEO writes there (PLAN §3b rule 1)');
+}
 
 const meta = {};
 for (const item of opt.meta) {
@@ -83,7 +110,7 @@ for (const item of opt.meta) {
   if (k in meta) usage(`--meta ${k} given twice`);
   meta[k] = v;
 }
-if (!opt.dry) {
+if (!opt.dry && !findRe) {
   const missing = NEEDED_META.filter((k) => !(k in meta));
   if (missing.length || !opt.comment || !opt.comment.trim()) {
     usage(`refused: a new secret needs --comment <purpose> and --meta ${missing.map((k) => `${k}=…`).join(' ') || '(all given)'} (PLAN §4c)`);
@@ -128,8 +155,14 @@ const api = async (method, path, query, body) => {
   const url = new URL(API + path);
   for (const [k, v] of Object.entries(query || {})) url.searchParams.set(k, v);
   let r;
-  try { r = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }); }
-  catch { return { status: 0, json: null }; }
+  for (let attempt = 0; ; attempt++) {
+    try { r = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }); }
+    catch { return { status: 0, json: null }; }
+    if (r.status !== 429 || method !== 'GET' || attempt >= 4) break;
+    await r.arrayBuffer().catch(() => null);
+    const after = Number(r.headers.get('retry-after'));
+    await new Promise((ok) => setTimeout(ok, Number.isFinite(after) && after >= 0 ? Math.min(after, 30) * 1000 : 1000 * 2 ** attempt));
+  }
   let json = null; try { json = await r.json(); } catch { /* no body */ }
   return { status: r.status, json };
 };
@@ -159,6 +192,74 @@ async function project(want, env) {
   if (!envs.some((e) => e.slug === env)) die(7, `project ${p.name} has no environment ${env}`);
   return { ...p, envSlugs: envs.map((e) => e.slug) };
 }
+
+// --- 3b. --find: every project, every env, every folder; names only, writes nothing ------------------
+if (findRe) {
+  const hits = [];
+  const said = new Set();
+  const unreadable = (line) => { if (!said.has(line)) { said.add(line); console.log(line); } };
+  const n = { projects: 0, envs: 0, folders: 0, names: 0 };
+  for (const p of projects) {
+    if (!p || typeof p.name !== 'string' || !p.id) continue;
+    if (p.type && p.type !== 'secret-manager') { log(`${p.name}: project type ${p.type}, not a secret manager; skipped`); continue; }
+    n.projects++;
+    let envs = Array.isArray(p.environments) ? p.environments : null;
+    if (!envs) {
+      const r = await api('GET', `/api/v1/projects/${encodeURIComponent(p.id)}`);
+      if (r.status !== 200 || !Array.isArray(r.json?.project?.environments)) { unreadable(`${p.name}: HTTP ${r.status}`); continue; }
+      envs = r.json.project.environments;
+    }
+    for (const e of envs) {
+      const env = e && e.slug;
+      if (typeof env !== 'string' || !/^[\w.-]{1,64}$/.test(env)) continue;
+      n.envs++;
+      const queue = ['/'];
+      let names = 0, matched = 0, capped = false;
+      for (let i = 0; i < queue.length; i++) {
+        const folder = queue[i];
+        const at = `${p.name}/${env}${folder}`;          // the root reads `<Project>/<env>/`
+        const kids = await api('GET', '/api/v2/folders', { projectId: p.id, environment: env, path: folder });
+        if (kids.status !== 200 || !Array.isArray(kids.json?.folders)) unreadable(`${at}: HTTP ${kids.status}`);
+        else {
+          for (const f of kids.json.folders) {
+            if (!f || typeof f.name !== 'string' || !/^[\w.-]{1,64}$/.test(f.name)) continue;
+            if (queue.length >= FIND_MAX_FOLDERS) { capped = true; break; }
+            queue.push(`${folder === '/' ? '' : folder}/${f.name}`);
+          }
+        }
+        const r = await api('GET', '/api/v3/secrets/raw', { workspaceId: p.id, environment: env, secretPath: folder, expandSecretReferences: 'true', include_imports: 'false' });
+        if (r.status !== 200 || !Array.isArray(r.json?.secrets)) { unreadable(`${at}: HTTP ${r.status}`); continue; }
+        n.folders++;
+        const shared = r.json.secrets.filter((s) => s && typeof s.secretKey === 'string' && s.type !== 'personal');
+        names += shared.length;
+        for (const s of shared) {
+          if (!findRe.test(s.secretKey)) continue;
+          matched++;
+          const ref = `${p.name}/${env}${folder === '/' ? '' : folder}/${s.secretKey}`;
+          hits.push({ ref, value: typeof s.secretValue === 'string' ? s.secretValue : null });
+          console.log(ref);
+        }
+        r.json = null;
+      }
+      if (capped) unreadable(`${p.name}/${env}: more than ${FIND_MAX_FOLDERS} folders, walk stopped`);
+      log(`${p.name}/${env}: ${queue.length} folder(s) · ${names} names · ${matched} match`);
+      n.names += names;
+    }
+  }
+  // equality only, in memory: which matches hold the same value, never what it is
+  const groups = [];
+  for (const h of hits) {
+    const g = groups.find((x) => x.value === h.value);
+    if (g) g.refs.push(h.ref); else groups.push({ value: h.value, refs: [h.ref] });
+    h.value = null;
+  }
+  console.log(`scanned: ${n.projects} projects · ${n.envs} envs · ${n.folders} folders · ${n.names} names · ${hits.length} match · ${said.size} unreadable`);
+  console.log(`values identical across matches: ${hits.length === 0 ? 'n/a (0 matches)' : groups.length === 1 ? 'yes' : 'no'}`);
+  if (groups.length > 1) groups.forEach((g, i) => console.log(`value group ${i + 1}: ${g.refs.join(' ')}`));
+  for (const g of groups) g.value = null;
+  process.exit(said.size ? 13 : 0);
+}
+
 const src = await project(from.project, from.env);
 const dst = await project(to.project, to.env);
 if (isOrgInfra(dst.name)) die(64, 'refused: Org-Infra is never a target — only the CEO writes there (PLAN §3b rule 1)');

@@ -27,4 +27,4 @@ def test_copy_secret_node_suite():
                          capture_output=True, text=True, timeout=180, cwd=ROOT)
     summary = {k: int(v) for k, v in re.findall(r"^[ℹ#]\s*(pass|fail|skipped)\s+(\d+)", run.stdout + run.stderr, re.M)}
     assert run.returncode == 0, (run.stdout + run.stderr)[-4000:]
-    assert summary.get("fail", 1) == 0 and summary.get("pass", 0) >= 17, summary
+    assert summary.get("fail", 1) == 0 and summary.get("pass", 0) >= 24, summary
