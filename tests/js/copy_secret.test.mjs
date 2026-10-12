@@ -124,6 +124,13 @@ async function fakeInfisical(world = {}) {
     if (req.method === 'POST' && u.pathname === '/api/v3/auth/select-organization') return send(200, { token: TOKEN_SELECTED });
     if (!withOrg) return send(403, { message: 'select an organization first', error: 'Forbidden' });
     if (req.method === 'GET' && u.pathname === '/api/v2/organizations/org-1111aaaa/workspaces') return send(200, { workspaces: projects });
+    if (req.method === 'GET' && u.pathname === '/api/v2/folders') {
+      if (world.foldersStatus) return send(world.foldersStatus, { message: 'denied', error: 'Forbidden' });
+      if (q.projectId !== 'p-infra' || q.environment !== 'prod') return send(404, { message: 'no such env', error: 'NotFound' });
+      const base = q.path === '/' ? '' : q.path;
+      const kids = Object.keys(folders).filter((k) => k !== '/' && k.startsWith(`${base}/`) && !k.slice(base.length + 1).includes('/'));
+      return send(200, { folders: kids.map((k) => ({ id: `f${k}`, name: k.slice(base.length + 1) })) });
+    }
     if (req.method === 'GET' && u.pathname === '/api/v3/secrets/raw') {
       if (q.workspaceId !== 'p-infra' || q.environment !== 'prod') return send(404, { message: 'no such env', error: 'NotFound' });
       const status = world.folderStatus?.[q.secretPath];
@@ -280,6 +287,30 @@ test('the borrow is one in-page fetch; a token without an org selects MoonieX an
   assert.equal(r.calls.find((c) => c.path === '/api/v3/auth/select-organization').body.organizationId, 'org-1111aaaa');
   assert.equal(r.writes[0].auth, `Bearer ${TOKEN_SELECTED}`);
   assert.match(r.text, /organization selected: MoonieX/);
+});
+
+test('a key in a nested folder outside the §3b list is found by the folder walk', async () => {
+  const r = await run(REAL, { world: { folders: { '/': [], '/dns': [], '/api': [], '/api/fal': [s('FAL_API_KEY_ADMIN', VALUE)] } } });
+  assert.equal(r.code, 0, r.text);
+  assert.equal(r.writes.length, 1);
+  const md = Object.fromEntries(r.writes[0].body.secretMetadata.map((m) => [m.key, m.value]));
+  assert.equal(md.source, 'Org-Infra/prod/api/fal/FAL_API_KEY_ADMIN');
+  assert.match(r.text, /outside the §3b list: \/api \/api\/fal/);
+  const listed = r.calls.filter((c) => c.path === '/api/v3/secrets/raw').map((c) => c.query.secretPath);
+  assert.deepEqual(listed, ['/', '/dns', '/api', '/api/fal', '/deploy', '/repo', '/net', '/db', '/vault']);
+});
+
+test('a folder tree that cannot be read refuses (exit 7), nothing written', async () => {
+  const r = await run(REAL, { world: { foldersStatus: 403 } });
+  assert.equal(r.code, 7, r.text);
+  assert.equal(r.writes.length, 0);
+  assert.match(r.text, /cannot list the folders of Org-Infra\/prod \(HTTP 403\)/);
+});
+
+test('zero matches name the source environments, so a key in the wrong env is visible', async () => {
+  const r = await run(REAL, { world: { folders: { '/': [] } } });
+  assert.equal(r.code, 8, r.text);
+  assert.match(r.text, /source project Org-Infra has environments: prod/);
 });
 
 test('personal secrets do not count as matches', async () => {

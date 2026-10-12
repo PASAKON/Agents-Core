@@ -11,7 +11,7 @@
 // httpOnly cookie), then plain HTTPS with that bearer token. Nothing is typed, clicked, read off the
 // DOM or screenshotted.
 //
-// Source: every folder of the source env (Org-Infra: the PLAN §3b closed list, any other project: /);
+// Source: every folder the source env has (walked by name), plus, for Org-Infra, the PLAN §3b closed list;
 // only shared secrets whose NAME matches the regex count, and exactly one must match or nothing is
 // written (the matching names are printed, names only). One unreadable folder refuses too: the match
 // could not be proven unique.
@@ -157,7 +157,7 @@ async function project(want, env) {
   let envs = Array.isArray(p.environments) ? p.environments : null;
   if (!envs) { const r = await api('GET', `/api/v1/projects/${encodeURIComponent(p.id)}`); envs = r.json?.project?.environments || []; }
   if (!envs.some((e) => e.slug === env)) die(7, `project ${p.name} has no environment ${env}`);
-  return p;
+  return { ...p, envSlugs: envs.map((e) => e.slug) };
 }
 const src = await project(from.project, from.env);
 const dst = await project(to.project, to.env);
@@ -165,8 +165,26 @@ if (isOrgInfra(dst.name)) die(64, 'refused: Org-Infra is never a target — only
 const where = (p, env, folder) => `${p.name}/${env}${folder === '/' ? '' : folder}`;
 
 // --- 4. the source: exactly one name matches ----------------------------------------------------------
+// Every folder the env really has (GET /api/v2/folders returns folder names, never a value), plus, for
+// Org-Infra, the §3b closed list. A tree that cannot be read refuses: the match could not be proven unique.
+async function folderTree(p, env) {
+  const seen = ['/'];
+  for (let i = 0; i < seen.length; i++) {
+    const r = await api('GET', '/api/v2/folders', { projectId: p.id, environment: env, path: seen[i] });
+    if (r.status !== 200 || !Array.isArray(r.json?.folders)) die(7, `cannot list the folders of ${where(p, env, seen[i])} (HTTP ${r.status}); nothing written`);
+    for (const f of r.json.folders) {
+      if (!f || typeof f.name !== 'string' || !/^[\w.-]{1,64}$/.test(f.name)) continue;
+      seen.push(`${seen[i] === '/' ? '' : seen[i]}/${f.name}`);
+    }
+    if (seen.length > 64) die(7, `${where(p, env, '/')} has more than 64 folders; narrow the search first — nothing written`);
+  }
+  return seen;
+}
+const tree = await folderTree(src, from.env);
+const extra = tree.filter((f) => isOrgInfra(src.name) && !ORG_INFRA_FOLDERS.includes(f));
+log(`source ${where(src, from.env, '/')}: ${tree.length} folder(s)${extra.length ? ` · outside the §3b list: ${extra.join(' ')}` : ''}`);
 const hits = [];
-for (const folder of isOrgInfra(src.name) ? ORG_INFRA_FOLDERS : ['/']) {
+for (const folder of isOrgInfra(src.name) ? [...new Set([...tree, ...ORG_INFRA_FOLDERS])] : tree) {
   const r = await api('GET', '/api/v3/secrets/raw', { workspaceId: src.id, environment: from.env, secretPath: folder, expandSecretReferences: 'true', include_imports: 'false' });
   if (r.status === 404) { log(`source ${where(src, from.env, folder)}: HTTP 404 (no such folder)`); continue; }
   if (r.status !== 200 || !Array.isArray(r.json?.secrets)) die(7, `cannot list ${where(src, from.env, folder)} (HTTP ${r.status}); a folder that cannot be read means the match cannot be proven unique — nothing written`);
@@ -177,6 +195,7 @@ for (const folder of isOrgInfra(src.name) ? ORG_INFRA_FOLDERS : ['/']) {
 }
 if (hits.length !== 1) {
   for (const h of hits) { log(`  match: ${where(src, from.env, h.folder)} ${h.name}`); h.value = null; }
+  if (!hits.length) log(`source project ${src.name} has environments: ${src.envSlugs.join(' ')}`);
   die(8, `${hits.length} names match /${from.rest}/ — need exactly one; nothing written`);
 }
 const hit = hits.pop();
