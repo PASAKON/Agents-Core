@@ -46,6 +46,7 @@ ROOT = Path(__file__).resolve().parent.parent
 POLICY_PATH = ROOT / "config" / "agy-browse.yaml"
 OUTPUT_CAP = 2000
 CALL_TIMEOUT_S = 30
+HUB_TIMEOUT_S = 3       # the best-effort hub copy of a log line (append_log)
 VERB_TIMEOUT_MS = 10_000
 SHOT_MAX_WIDTH = 1280
 
@@ -252,15 +253,54 @@ def allowed_command(cmd: str) -> bool:
 # log, rate limit, fire cooldown
 # --------------------------------------------------------------------------
 
+def _main_checkout(root: Path) -> Path:
+    """The main checkout behind a git worktree, or `root` itself.
+
+    A worktree's `.git` is a file, `gitdir: <main>/.git/worktrees/<name>`. Read
+    it instead of running git: this runs on every call."""
+    try:
+        line = (root / ".git").read_text(encoding="utf-8").strip()
+    except OSError:  # a directory (the main checkout) or no git at all
+        return root
+    if not line.startswith("gitdir:"):
+        return root
+    gitdir = Path(line.split(":", 1)[1].strip())
+    if gitdir.parent.name != "worktrees" or gitdir.parent.parent.name != ".git":
+        return root
+    main = gitdir.parent.parent.parent
+    return main if (main / "state").is_dir() else root
+
+
 def _state_dir() -> Path:
-    # A worker runs from its worktree; ORG_ROOT (set at spawn) is the hub
-    # checkout, so every worktree shares one log and one rate limit.
-    base = os.environ.get("ORG_ROOT") or str(ROOT)
-    return Path(base) / "state"
+    # A worker runs from its worktree and the launcher does not set ORG_ROOT,
+    # so without the fallback its lines landed in the worktree's own state/ and
+    # left with the worktree (tool-value plan 2026-10-13 §2.0). ORG_ROOT still
+    # wins; otherwise every worktree shares the main checkout's log and limit.
+    base = os.environ.get("ORG_ROOT")
+    return (Path(base) if base else _main_checkout(ROOT)) / "state"
 
 
 def log_path() -> Path:
     return _state_dir() / "agy-browse.jsonl"
+
+
+def _hub_event(rec: dict) -> None:
+    """Best effort: the same line as a hub event, so a call on any host reaches the Monday report
+    (tools/tool_value.py unions both by ts|verb|port). Only when the process has the hub env; a
+    hub that is slow or down costs at most HUB_TIMEOUT_S and never changes the exit code."""
+    if not os.environ.get("ORG_DB_URL"):
+        return
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        import socket
+        from lib import db
+        payload = {**rec, "schema": 1, "machine": socket.gethostname(),
+                   "task_id": os.environ.get("WORKER_TASK_ID") or None}
+        with db.get_conn(timeout=HUB_TIMEOUT_S) as conn:
+            db.log_event(conn, payload["task_id"], "agy_browse", "agy_browse", payload)
+    except Exception:
+        pass
 
 
 def append_log(verb: str, port: int | None, host: str, args: list[str], code: int) -> None:
@@ -274,6 +314,7 @@ def append_log(verb: str, port: int | None, host: str, args: list[str], code: in
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     except OSError:
         pass  # a log failure never turns a refusal into a success or vice versa
+    _hub_event(rec)
 
 
 def calls_in_last_minute(port: int, now: float) -> int:

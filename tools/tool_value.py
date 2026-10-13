@@ -5,6 +5,7 @@ Plan: docs/plans/tool-value-weekly-and-enforcement-2026-10-13.md (CEO order 13 O
 
     bash scripts/hub/org-python.sh tools/tool_value.py collect [--week D] [--as-of T] [--dry-run]
     bash scripts/hub/org-python.sh tools/tool_value.py report  [--week D] [--as-of T] [--dry-run] [--no-send]
+    bash scripts/hub/org-python.sh tools/tool_value.py context-delta --what TEXT --before N --after N --method TEXT --evidence TEXT --by TEXT
 
 collect  reads every source of plan §2.0 that exists on this host, read-only, and writes ONE hub event per
          window: events(task_id NULL, actor=<host>, kind='tool_usage_week', payload=<json>). It writes the
@@ -72,6 +73,16 @@ TASK_ID = re.compile(r"task-[0-9a-f]{8}")
 OVERRIDE_LINE = re.compile(r"^[ \t]*override:[ \t]*(\S.*)$", re.IGNORECASE | re.MULTILINE)
 HAIKU_55 = "claude-haiku-5-5"   # the model the CEO asks about ("Haiku ช่วยเราได้มากขึ้นแค่ไหน")
 CAP_EPS = 0.005                # weekly_remaining at or under this = at the cap
+RESET_JUMP = 0.2
+RUNNER_SKILLS = {"codex": "CTO_Knowledge_Codex", "agy-gemini": "CTO_Knowledge_AGY",
+                 "agy-claude": "CTO_Knowledge_AGY", "jules": "CTO_Knowledge_Jules",
+                 "jev": "ALL_Knowledge_Jev", "claude-haiku": "CTO_Knowledge_Haiku"}
+# COO's draft gate (CEO roadmap 14 Oct, phase 1 → 2); COO_Procedure_ToolValueWeekly owns final numbers.
+PHASE_FIRST_PASS = 80
+PHASE_MIN_JOBS = 10
+PHASE_STABLE_DAYS = 14
+RULE_COMMIT = re.compile(r"^skill\(([^)]*)\):\s*(rule|flip)\b")
+ANTHROPIC_PRICE_CONFIRMED = datetime(2026, 10, 14, tzinfo=BKK)
 MAX_GAP = timedelta(hours=2)   # a longer gap between quota samples is not counted as time at the cap
 OUTSIDE_RUNNERS = ("codex", "agy")
 # Proposed floors (plan §4.3 M3); the CEO sets the real ones (§7 Q1). Shown as "เกณฑ์ที่เสนอ".
@@ -82,9 +93,22 @@ TH_MONTHS = ("ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "
 LABEL_TH = {"measured": "วัดจริง", "estimate": "ประมาณการ", "lower": "ขั้นต่ำ", "bound": "เพดาน", "none": "ไม่มีข้อมูล"}
 FIRST_REPORT_QUESTIONS = (
     "1. เกณฑ์ขั้นต่ำ: AGY/Codex ≥50% ของโควตาสัปดาห์ · Jules ≥10 session/สัปดาห์ · JEV ≥1 ครั้งต่อ site ใช้ได้ไหม",
-    "2. แพ็กเกจ Google ที่จ่ายจริงคืออะไร ($100 ใน plans.yaml หรือ AI Ultra ตาม skill Jules) — CFO ยืนยัน",
+    "2. เครดิต Google Cloud รายเดือนที่มากับ Google AI Ultra จะใช้ได้ต่อเมื่อเปิด billing account (บัญชีเดิมปิดตั้งแต่ 4 ส.ค.)"
+    " — เปิดใช้ไหม (ต้องผูกบัตร · ตั้ง budget ฿300 ทันที)",
     "3. เครดิต OpenRouter: JEV และ Haiku fallback หยุดเมื่อเครดิตหมด การเติมเงินเป็นการตัดสินใจของ CEO",
     "4. กฎ 'ใช้ runner นอกก่อน' (IRON §59 ข้อ 7) และการเปิดโหมดบล็อกของ hook Agent รอ CEO ดูตัวเลขสัปดาห์นี้ก่อน",
+)
+
+
+# Claude plan price -> usage multiple of Pro, by the plans' own names (Pro, Max 5x, Max 20x). Anthropic does not
+# publish weekly limits as numbers, so anything computed from this is an estimate.
+CLAUDE_USAGE_X = {20: 1, 100: 5, 200: 20}
+PROVIDER_TH = {"anthropic": "Claude", "google": "Google AI Ultra", "openai": "ChatGPT"}
+# Parts of the Ultra bundle the CEO calls under-used (14 Oct, via SomPong) that no source measures yet.
+ULTRA_UNMEASURED = (
+    "Google Flow Music: ไม่มีแหล่งวัด (CEO บอกว่าใช้น้อย)",
+    "เครดิต Google Cloud รายเดือนที่มากับแพ็กเกจ ($40–100 ตามแหล่งข่าว ยังไม่ยืนยัน): ยังไม่ได้เปิดใช้ ต้องมี billing account"
+    " ที่เปิดอยู่ (บัญชีเดิมปิดตั้งแต่ 4 ส.ค.) · docs/research/2026-10-14-google-ai-subscription-cloud-credits.md",
 )
 
 
@@ -224,9 +248,13 @@ def quota_usage(path: Path, win: Window) -> dict:
     """% of each weekly bucket used inside `win` = sum of drops between consecutive samples inside it
     (plan §3.1; handles mid-week resets), hours spent at the cap, and the reset dates seen."""
     by_bucket: dict[str, list[tuple[datetime, float, str | None]]] = {}
+    history: dict[str, list[tuple[datetime, float, str | None]]] = {}
     errors: dict[str, int] = {}
     for row in _jsonl(path):
         ts = parse_ts(row.get("ts"))
+        if ts is not None and ts < win.end and not row.get("error") and row.get("weekly_remaining") is not None:
+            history.setdefault(row.get("provider") or "?", []).append(
+                (ts, float(row["weekly_remaining"]), row.get("weekly_resets_at")))
         if not win.contains(ts):
             continue
         b = row.get("provider") or "?"
@@ -267,6 +295,24 @@ def quota_usage(path: Path, win: Window) -> dict:
             "resets_seen": resets,
             "last_remaining_pct": round(rows[-1][1] * 100, 1),
         }
+    if "claude" in out:
+        for samples in history.values():
+            samples.sort(key=lambda s: s[0])
+        resets = []
+        full_since = None
+        rows = history["claude"]
+        for (t0, w0, _), (t1, w1, _) in zip(rows, rows[1:]):
+            full_since = (full_since or iso(t0)) if w0 <= CAP_EPS else None
+            if win.contains(t1) and w1 - w0 >= RESET_JUMP:
+                others = {}
+                for bucket, samples in history.items():
+                    eligible = [s for s in samples if s[0] <= t1]
+                    if bucket != "claude" and eligible:
+                        ts, w, _ = eligible[-1]
+                        others[bucket] = {"used_pct": round((1 - w) * 100, 1), "sample_ts": iso(ts)}
+                resets.append({"at": iso(t1), "claude_used_pct": round((1 - w0) * 100, 1),
+                               "full_since": full_since, "others": others})
+        out["claude"]["resets"] = resets
     return out
 
 
@@ -279,7 +325,8 @@ def _first_block_override(description: str | None) -> str | None:
 def _reason_code(reason: str) -> str:
     """First word of an override reason, lower-case, for grouping (gate v2 makes it a closed list)."""
     word = re.split(r"[\s:;,.()—–]+", reason.strip().lower(), maxsplit=1)[0]
-    return word or "?"
+    from tools.route import REASON_CODES
+    return word if word in REASON_CODES else "free-text"
 
 
 def hub_tasks_summary(tasks: list[dict], events: list[dict], win: Window) -> dict:
@@ -300,22 +347,32 @@ def hub_tasks_summary(tasks: list[dict], events: list[dict], win: Window) -> dic
         runner = (t.get("runner") or "").strip() or "unrouted"
         r = out.setdefault(runner, {"tasks": 0, "status": {}, "reopens": 0, "routed": 0,
                                     "override": 0, "override_codes": {}, "roles": {},
-                                    "seed_claude_pct_done": 0.0, "done_sizes": {}})
+                                    "seed_claude_pct_done": 0.0, "done_sizes": {}, "done_clean": 0,
+                                    "iter_sum": 0, "iter_n": 0, "router_skipped": 0})
         r["tasks"] += 1
         st = t.get("status") or "?"
         r["status"][st] = r["status"].get(st, 0) + 1
         role = t.get("role") or "?"
         r["roles"][role] = r["roles"].get(role, 0) + 1
         seq = statuses.get(t.get("id"), [])
-        r["reopens"] += sum(1 for a, b in zip(seq, seq[1:]) if a == "review" and b in ("in_progress", "pending"))
+        reopens = sum(1 for a, b in zip(seq, seq[1:]) if a == "review" and b in ("in_progress", "pending"))
+        r["reopens"] += reopens
         if "router:" in (t.get("delegate_log") or ""):
             r["routed"] += 1
         reason = _first_block_override(t.get("description"))
+        if runner != "unrouted" and "router:" not in (t.get("delegate_log") or "") and not reason:
+            r["router_skipped"] += 1
         if reason:
             r["override"] += 1
             code = _reason_code(reason)
             r["override_codes"][code] = r["override_codes"].get(code, 0) + 1
         if st == "done":
+            iteration = t.get("iteration") or 0
+            r["iter_sum"] += iteration + 1
+            r["iter_n"] += 1
+            reopened = any(a in ("review", "done") and b in ("in_progress", "pending") for a, b in zip(seq, seq[1:]))
+            clean = not reopened and iteration == 0
+            r["done_clean"] += int(clean)
             touches = t.get("touches")
             if isinstance(touches, str):
                 try:
@@ -324,7 +381,8 @@ def hub_tasks_summary(tasks: list[dict], events: list[dict], win: Window) -> dic
                     touches = []
             size = forecast.infer_size(touches or [], t.get("description") or "")
             r["done_sizes"][size] = r["done_sizes"].get(size, 0) + 1
-            r["seed_claude_pct_done"] += float(seeds[size])
+            if clean:
+                r["seed_claude_pct_done"] += float(seeds[size])
     for r in out.values():
         r["seed_claude_pct_done"] = round(r["seed_claude_pct_done"], 1)
     return out
@@ -338,7 +396,7 @@ def fetch_hub(win: Window) -> tuple[list[dict], list[dict]]:
     with db.get_conn(readonly=True) as conn:
         tasks = [dict(r) for r in conn.execute(
             "SELECT id, role, runner, runner_model, model_hint, status, description, delegate_log, touches,"
-            " host, created_at FROM tasks WHERE created_at >= ? AND created_at < ?", (lo, hi)).fetchall()]
+            " host, created_at, iteration FROM tasks WHERE created_at >= ? AND created_at < ?", (lo, hi)).fetchall()]
         ids = [t["id"] for t in tasks]
         events: list[dict] = []
         for i in range(0, len(ids), 200):
@@ -354,7 +412,7 @@ def transcript_usage(homes: Iterable[Path], win: Window) -> tuple[dict, list[dic
     """Assistant messages and tokens per model family in Claude Code transcripts, deduped by message.id
     (Claude Code rewrites one message several times; a plain sum double-counts about 2x). Streams line
     by line; keeps one small record per message id. Returns (summary, missing)."""
-    seen: dict[str, list] = {}   # id -> [model, out, in, cache_create, cache_read, sidechain, home]
+    seen: dict[str, list] = {}   # id -> [model, out, in, cache_create, cache_read, sidechain, home, kind, task]
     missing: list[dict] = []
     files = 0
     homes_read: list[str] = []
@@ -370,6 +428,8 @@ def transcript_usage(homes: Iterable[Path], win: Window) -> tuple[dict, list[dic
             continue
         homes_read.append(str(home))
         for p in paths:
+            task = TASK_ID.search(str(p.relative_to(home)))
+            kind = "worker" if task else "clevel"
             files += 1
             try:
                 fh = p.open("rb")
@@ -398,7 +458,8 @@ def transcript_usage(homes: Iterable[Path], win: Window) -> tuple[dict, list[dic
                             ("output_tokens", "input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")]
                     cur = seen.get(mid)
                     if cur is None:
-                        seen[mid] = [model, *vals, bool(row.get("isSidechain")), str(home)]
+                        seen[mid] = [model, *vals, bool(row.get("isSidechain")), str(home), kind,
+                                     task.group() if task else None]
                     else:
                         for i, v in enumerate(vals, start=1):
                             cur[i] = max(cur[i], v)
@@ -407,7 +468,14 @@ def transcript_usage(homes: Iterable[Path], win: Window) -> tuple[dict, list[dic
     fams: dict[str, dict] = {}
     models: dict[str, dict] = {}
     per_home: dict[str, int] = {}
-    for model, out_t, in_t, cc, cr, side, home in seen.values():
+    by_kind = {k: dict(messages=0, output_tokens=0, input_tokens=0, cache_creation_tokens=0)
+               for k in ("worker", "clevel")}
+    task_ids = set()
+    for model, out_t, in_t, cc, cr, side, home, kind, task in seen.values():
+        for key, value in zip(by_kind[kind], (1, out_t, in_t, cc)):
+            by_kind[kind][key] += value
+        if task:
+            task_ids.add(task)
         m = models.setdefault(model, {"messages": 0, "output_tokens": 0})
         m["messages"] += 1
         m["output_tokens"] += out_t
@@ -422,7 +490,8 @@ def transcript_usage(homes: Iterable[Path], win: Window) -> tuple[dict, list[dic
             f["sidechain_messages"] += 1
             f["sidechain_output_tokens"] += out_t
         per_home[home] = per_home.get(home, 0) + 1
-    return {"families": fams, "models": models, "files_scanned": files, "homes_read": homes_read, "messages_per_home": per_home}, missing
+    return {"families": fams, "models": models, "files_scanned": files, "homes_read": homes_read,
+            "messages_per_home": per_home, "by_kind": by_kind, "worker_task_ids": sorted(task_ids)}, missing
 
 
 def codex_usage(root: Path, win: Window) -> dict:
@@ -535,6 +604,25 @@ def agy_browse_usage(paths: Iterable[Path], win: Window) -> dict:
     return {"calls": len(keys), "failed": len(failed), "verbs": verbs, "files": read, "keys": sorted(keys)[:2000]}
 
 
+def fetch_agy_browse_hub(win: Window) -> dict:
+    """agy_browse calls a process with the hub env also wrote as hub events (tools/agy_browse.py
+    _hub_event). Same key as the file lines, so build_rows unions the two without double counting."""
+    from lib import db
+    lo, hi = iso(win.start - timedelta(days=1)), iso(win.end + timedelta(days=1))
+    with db.get_conn(readonly=True) as conn:
+        rows = conn.execute("SELECT payload FROM events WHERE kind=? AND ts >= ? AND ts < ?",
+                            ("agy_browse", lo, hi)).fetchall()
+    keys = set()
+    for row in rows:
+        try:
+            p = json.loads(row["payload"]) if isinstance(row["payload"], str) else row["payload"]
+        except ValueError:
+            continue
+        if isinstance(p, dict) and win.contains(parse_ts(p.get("ts"))):
+            keys.add(f"{p.get('ts')}|{p.get('verb')}|{p.get('port')}")
+    return {"calls": len(keys), "keys": sorted(keys)[:2000]}
+
+
 def agy_browse_paths(root: Path = DATA_ROOT) -> list[Path]:
     paths = [root / "state" / "agy-browse.jsonl"]
     wt = root / "worktrees"
@@ -645,6 +733,130 @@ def jules_github(repos: Iterable[str], win: Window, run: Callable[[list[str]], s
             "repos_read": ok, "repos_failed": failed}
 
 
+def _git(args: list[str]) -> str:
+    return subprocess.run(["git", "-C", str(ROOT), *args], check=True, timeout=30,
+                          capture_output=True, text=True).stdout
+
+
+def skill_commits(win: Window, run: Callable[[list[str]], str] = _git) -> dict:
+    """Skill presence and commits on the published main branch."""
+    skills = {}
+    since = iso(min(win.start, win.end - timedelta(days=PHASE_STABLE_DAYS)))
+    for skill in sorted(set(RUNNER_SKILLS.values())):
+        path = f".claude/skills/{skill}/SKILL.md"
+        exists = True
+        try:
+            run(["cat-file", "-e", f"origin/main:{path}"])
+        except subprocess.CalledProcessError:
+            exists = False
+        try:
+            log = run(["log", "origin/main", f"--since={since}", f"--until={iso(win.end)}",
+                       "--format=%cI%x09%s", "--", path])
+        except (subprocess.SubprocessError, OSError) as e:
+            raise SourceMissing(f"git log {skill}: {e}") from e
+        commits = []
+        for line in log.splitlines():
+            ts, sep, subject = line.partition("\t")
+            if sep and parse_ts(ts) is not None:
+                commits.append({"ts": iso(parse_ts(ts)), "subject": subject})
+        skills[skill] = {"exists": exists, "commits": commits}
+    return {"ref": "origin/main", "skills": skills}
+
+
+def _event_payload(value) -> dict | None:
+    try:
+        p = json.loads(value) if isinstance(value, str) else value
+    except ValueError:
+        return None
+    return p if isinstance(p, dict) and p.get("schema") == SCHEMA else None
+
+
+def fetch_runner_fit(until: datetime) -> list[dict]:
+    """Recent finished jobs, including history needed by the phase gate."""
+    from lib import db
+    with db.get_conn(readonly=True) as conn:
+        rows = conn.execute("SELECT ts, task_id, payload FROM events WHERE kind=? AND ts < ? ORDER BY ts, id",
+                            ("runner_fit", iso(until))).fetchall()
+    records = []
+    keys = ("runner", "model", "bucket", "job_type", "result", "fail_reason", "first_pass",
+            "reviewer_fix", "iteration", "minutes")
+    for row in rows:
+        p = _event_payload(row["payload"])
+        ts = parse_ts(row["ts"])
+        if p is not None and ts is not None and ts < until:
+            records.append(dict(ts=iso(ts), task_id=row["task_id"], **{k: p.get(k) for k in keys}))
+    return sorted(records, key=lambda r: r["ts"])[-2000:]
+
+
+def fetch_context_deltas(win: Window) -> list[dict]:
+    """Measurements are selected by measurement time, not event creation time."""
+    from lib import db
+    with db.get_conn(readonly=True) as conn:
+        rows = conn.execute("SELECT payload FROM events WHERE kind=? ORDER BY ts, id",
+                            ("context_delta",)).fetchall()
+    records = []
+    for row in rows:
+        p = _event_payload(row["payload"])
+        if p is not None and win.contains(parse_ts(p.get("at"))):
+            records.append(p)
+    return sorted(records, key=lambda p: parse_ts(p["at"]))
+
+
+def cell_key(rec: dict) -> str:
+    if rec["runner"] == "claude":
+        family = _family(rec.get("model"))
+        return "claude-" + family if family else "claude"
+    return rec.get("bucket") or rec["runner"]
+
+
+def fit_cells(records: list[dict], skills_src: dict | None, win: Window) -> tuple[list[dict], dict]:
+    """Window outcomes and the draft phase gate per runner and job type."""
+    groups = {}
+    for rec in records:
+        ts = parse_ts(rec.get("ts"))
+        if ts is not None and ts < win.end:
+            groups.setdefault((cell_key(rec), rec["job_type"]), []).append(rec)
+    rows = []
+    for (cell, job), history in sorted(groups.items()):
+        history.sort(key=lambda r: parse_ts(r["ts"]))
+        current = [r for r in history if win.contains(parse_ts(r["ts"]))]
+        if not current:
+            continue
+        last = history[-PHASE_MIN_JOBS:]
+        pct = lambda rs: int(round(100 * sum(bool(r.get("first_pass")) for r in rs) / len(rs)))
+        skill = RUNNER_SKILLS.get(cell)
+        info = (skills_src.get("skills", {}).get(skill) if skills_src is not None else None)
+        commits = info.get("commits", []) if info else []
+        stable = Window(win.end - timedelta(days=PHASE_STABLE_DAYS), win.end)
+        change = None if skills_src is None else any(
+            stable.contains(parse_ts(c["ts"])) and (m := RULE_COMMIT.match(c["subject"]))
+            and skill in [s.strip() for s in m.group(1).split(",")] for c in commits)
+        if len(last) < PHASE_MIN_JOBS:
+            why = f"ยังไม่ถึง 10 งาน ({len(last)})"
+        elif pct(last) < PHASE_FIRST_PASS:
+            why = f"first-pass {pct(last)}% < 80%"
+        elif skill and change:
+            why = "skill เปลี่ยน rule ใน 14 วัน"
+        elif skill and change is None:
+            why = "ไม่มีข้อมูล skill"
+        else:
+            why = "ผ่านเกณฑ์"
+        minutes = [r["minutes"] for r in current if r.get("minutes") is not None]
+        rows.append(dict(cell=cell, job_type=job, jobs=len(current),
+                         **{k: sum(r["result"] == k for r in current) for k in ("pass", "redo", "fail")},
+                         first_pass_pct=pct(current),
+                         redo_pct=int(round(100 * sum(r["result"] == "redo" for r in current) / len(current))),
+                         iter_avg=round(statistics.mean((r.get("iteration") or 0) + 1 for r in current), 1),
+                         minutes_avg=round(statistics.mean(minutes), 1) if minutes else None,
+                         last10_n=len(last), last10_first_pass_pct=pct(last), skill=skill,
+                         skill_exists=info.get("exists") if info else None,
+                         skill_edits=sum(win.contains(parse_ts(c["ts"])) for c in commits) if skills_src is not None else None,
+                         rule_change=change, phase=2 if why == "ผ่านเกณฑ์" else 1, why=why))
+    passed = sum(r["phase"] == 2 for r in rows)
+    return rows, {"used": len(rows), "passed": passed,
+                  "phase": 3 if rows and passed == len(rows) else 2 if passed else 1}
+
+
 # ---------------------------------------------------------------------------------------------- collect
 
 def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
@@ -668,6 +880,10 @@ def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
         return summary
 
     if org:
+        run("runner_fit", lambda: {"records": fetch_runner_fit(win.end)})
+        run("skill_commits", lambda: skill_commits(win, run=_git))
+        run("context_deltas", lambda: {"records": fetch_context_deltas(win)})
+        run("agy_browse_hub", lambda: fetch_agy_browse_hub(win))
         run("quota", lambda: quota_usage(QUOTA_HISTORY, win))
         run("hub_tasks", lambda: hub_tasks_summary(*fetch_hub(win), win))
         run("jules_github", lambda: jules_github(jules_repos(), win, run=_gh))
@@ -682,10 +898,10 @@ def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
             "collected_at": iso(now or datetime.now(timezone.utc)), "sources": sources, "missing": missing}
 
 
-def write_event(payload: dict) -> None:
+def write_event(payload: dict, *, kind: str = EVENT_KIND) -> None:
     from lib import db
     with db.get_conn() as conn:
-        db.log_event(conn, None, payload["host"], EVENT_KIND, payload)
+        db.log_event(conn, None, payload["by"] if kind == "context_delta" else payload["host"], kind, payload)
 
 
 def read_events(since: datetime) -> list[dict]:
@@ -773,14 +989,78 @@ def _scope(got: list[str], gone: list[str]) -> str:
     return " · ".join(parts)
 
 
-def _plan_usd_week(provider: str, at: datetime, plans: dict) -> float | None:
-    prov = (plans.get("providers") or {}).get(provider) or {}
+def _plan_usd_month(entries, at: datetime) -> float | None:
+    """The monthly price in force at `at` from a list of {usd, from} entries, or None."""
     usd = None
-    for p in prov.get("plans") or []:
+    for p in entries or []:
         frm = parse_ts(str(p.get("from")))
         if frm is not None and frm <= at:
             usd = float(p.get("usd"))
+    return usd
+
+
+def _plan_usd_week(provider: str, at: datetime, plans: dict) -> float | None:
+    prov = (plans.get("providers") or {}).get(provider) or {}
+    usd = _plan_usd_month(prov.get("plans"), at)
     return usd * 12 / 52 if usd is not None else None
+
+
+def _target_usd(target) -> float | None:
+    """A target is a goal, not a price history: it shows in every window, whatever its `from` date."""
+    return float(target["usd"]) if isinstance(target, dict) and target.get("usd") is not None else None
+
+
+def subscription_lines(cur: dict[str, dict], sources: dict, plans: dict, win: Window) -> list[str]:
+    """Monthly plan cost at the end of `win` against the CEO's target (plans.yaml `targets`, CEO 14 Oct),
+    and the weekly signs of the gap. Empty when no target is configured."""
+    targets = plans.get("targets") or {}
+    if not targets:
+        return []
+    providers = plans.get("providers") or {}
+    lines = ["", "ค่าแพ็กเกจต่อเดือน เทียบเป้าของ CEO (14 ต.ค.):",
+             "| บริการ | ตอนนี้ $ | เป้า $ | ห่าง $ |", "|---|---|---|---|"]
+    now_sum = goal_sum = 0.0
+    complete = True
+    for prov, t in targets.items():
+        now = _plan_usd_month((providers.get(prov) or {}).get("plans"), win.end)
+        goal = _target_usd(t)
+        if now is None or goal is None:
+            complete = False
+            lines.append(f"| {PROVIDER_TH.get(prov, prov)} | {_fmt(now)} | {_fmt(goal)} | ไม่มีข้อมูล |")
+            continue
+        now_sum += now
+        goal_sum += goal
+        lines.append(f"| {PROVIDER_TH.get(prov, prov)} | {now:,.0f} | {goal:,.0f} | {now - goal:,.0f} |")
+    if complete:
+        lines.append(f"| รวม | {now_sum:,.0f} | {goal_sum:,.0f} | {now_sum - goal_sum:,.0f} |")
+
+    ht = _org_src(sources, "hub_tasks")
+    if ht is None:
+        lines.append("- งาน worker ที่ไม่ได้ใช้ Claude: " + _org_missing(sources, "hub_tasks"))
+    else:
+        total = sum(r.get("tasks", 0) for r in ht.values())
+        off = sum((ht.get(r) or {}).get("tasks", 0) for r in OUTSIDE_RUNNERS)
+        share = f" ({100 * off / total:.0f}%)" if total else ""
+        lines.append(f"- งาน worker ที่ไม่ได้ใช้ Claude: {off}/{total}{share} · วัดจริง (codex + agy ÷ ทุกงานใน hub)")
+
+    now_c = _plan_usd_month((providers.get("anthropic") or {}).get("plans"), win.end)
+    goal_c = _target_usd(targets.get("anthropic"))
+    used = (cur.get("claude_used_pct") or {}).get("value")
+    hours = (cur.get("claude_cap_hours") or {}).get("value")
+    x_now, x_goal = CLAUDE_USAGE_X.get(int(now_c or 0)), CLAUDE_USAGE_X.get(int(goal_c or 0))
+    if x_now and x_goal and x_goal < x_now and used is not None:
+        room = 100 * x_goal / x_now
+        cap = f" · ชนเพดาน {_fmt(hours)} ชม. (วัดจริง)" if hours is not None else ""
+        lines.append(f"- Claude ที่ ${goal_c:,.0f} ใช้ได้ราว {room:.0f}% ของโควตาสัปดาห์ของแพ็กเกจ ${now_c:,.0f} · "
+                     f"ช่วงนี้ใช้ {_fmt(used)}% → ต้องลดราว {used / room:.0f} เท่า{cap} · ประมาณการ: ตามชื่อแพ็กเกจ"
+                     " (Pro 1x, Max 5x, Max 20x) Anthropic ไม่ได้ประกาศโควตาเป็นตัวเลข")
+    elif x_now and x_goal and x_goal >= x_now:
+        lines.append(f"- Claude: แพ็กเกจ ${now_c:,.0f} ไม่เกินเป้า ${goal_c:,.0f} แล้ว (ตาม plans.yaml ณ สิ้นช่วง)")
+    elif goal_c is not None:
+        lines.append("- Claude เทียบเป้า: ไม่มีข้อมูล (ไม่รู้ราคาแพ็กเกจหรือโควตาที่ใช้ในช่วงนี้)")
+    lines.append("- ส่วนของ Ultra ที่ CEO บอกว่าใช้น้อย: Jules (ดูแถว Jules ในตาราง)")
+    lines += [f"  - {x}" for x in ULTRA_UNMEASURED]
+    return lines
 
 
 def build_rows(rows: dict[str, dict], win: Window, hosts: Iterable[str], plans: dict) -> dict[str, dict]:
@@ -812,7 +1092,8 @@ def build_rows(rows: dict[str, dict], win: Window, hosts: Iterable[str], plans: 
     if ht is not None:
         cl = ht.get("claude") or {}
         codes = cl.get("override_codes") or {}
-        top = ", ".join(f"{k} {v}" for k, v in sorted(codes.items(), key=lambda kv: -kv[1])[:4])
+        top = ", ".join(f"{'ข้อความอิสระ' if k == 'free-text' else k} {v}"
+                        for k, v in sorted(codes.items(), key=lambda kv: -kv[1]))
         c["claude_pinned"] = _cell(cl.get("override", 0), "measured", top)
         redo = []
         for runner in ("claude", "codex", "agy"):
@@ -827,6 +1108,40 @@ def build_rows(rows: dict[str, dict], win: Window, hosts: Iterable[str], plans: 
     else:
         for k in ("claude_pinned", "redo", "claude_saved_seed"):
             c[k] = _none(_org_missing(rows, "hub_tasks"))
+
+    for key, label, note in (
+        ("worthwhile", "measured", "เสร็จโดยไม่ reopen และ iteration 0 / เสร็จทั้งหมด"),
+        ("iterations", "measured", "เฉลี่ย (iteration+1) ของงานที่เสร็จ"),
+        ("router_skipped", "estimate", "runner ตั้งเอง ไม่มีบรรทัด router: และไม่มี override · นับเกิน: log ถูกเขียนทับตอน retry"),
+    ):
+        parts = []
+        available = ht is not None
+        for runner in ("claude", "codex", "agy"):
+            r = (ht or {}).get(runner, {})
+            required = {"worthwhile": "done_clean", "iterations": "iter_n", "router_skipped": "router_skipped"}[key]
+            if r and required not in r:
+                available = False
+            if key == "worthwhile":
+                value = f"{r.get('done_clean', 0)}/{r.get('status', {}).get('done', 0)}"
+            elif key == "iterations":
+                value = f"{r['iter_sum'] / r['iter_n']:.1f}" if r.get("iter_n") else "—"
+            else:
+                value = str(r.get("router_skipped", 0))
+            parts.append(f"{runner} {value}")
+        c[key] = _cell(" · ".join(parts), label, note) if available else _none(_org_missing(rows, "hub_tasks"))
+
+    for kind in ("worker", "clevel"):
+        v, got, gone = _host_sum(rows, "transcripts",
+                                lambda s: s.get("by_kind", {}).get(kind, {}).get("output_tokens"), hosts)
+        if kind == "worker":
+            ids = set().union(*[set((_src(rows, h, "transcripts") or {}).get("worker_task_ids", [])) for h in got])
+            n = len(ids)
+            note = f"{n} งานที่มี transcript · " + _scope(got, gone)
+        else:
+            n = sum(r["tasks"] for r in ht.values()) if ht is not None else 0
+            note = f"แบ่งเท่ากันทุกงาน ไม่ได้แยกตามงานจริง · {n} งาน · " + _scope(got, gone)
+        c[f"tokens_per_job_{kind}"] = _cell(int(round(v / n)), "measured" if kind == "worker" else "estimate", note) \
+            if v is not None and n else _none("ไม่มีข้อมูล · " + _scope(got, gone))
 
     def fam(f: str, key: str):
         return lambda s: ((s.get("families") or {}).get(f) or {}).get(key, 0)
@@ -911,7 +1226,14 @@ def build_rows(rows: dict[str, dict], win: Window, hosts: Iterable[str], plans: 
     else:
         c["openrouter_left"] = _none(_org_missing(rows, "openrouter"))
 
-    for prov, buckets in (("anthropic", ("claude",)), ("openai", ("codex",)), ("google", ("agy_gemini", "agy_claude"))):
+    for usd in (20, 200):
+        pct = c["claude_used_pct"]["value"]
+        usd_win = usd * 12 / 52 * win.days / 7
+        note = ("ราคาแพ็กเกจสัปดาห์นั้นไม่ได้บันทึก (CEO บอกว่าตอนนี้ $200)"
+                if win.start < ANTHROPIC_PRICE_CONFIRMED else "CEO ยืนยัน $200 ตั้งแต่ 14 ต.ค.")
+        c[f"usd_per_pct_anthropic_{usd}"] = _cell(round(usd_win / pct, 2) if pct > 0 else None, "estimate",
+            f"${usd_win:.2f} ต่อช่วงนี้ ÷ {pct:.1f}% · " + note) if pct is not None else _none(_org_missing(rows, "quota"))
+    for prov, buckets in (("openai", ("codex",)), ("google", ("agy_gemini", "agy_claude"))):
         usd = _plan_usd_week(prov, win.start, plans)
         used = [c[f"{b}_used_pct"]["value"] for b in buckets if c[f"{b}_used_pct"]["value"] is not None]
         if usd is None or not used:
@@ -953,7 +1275,13 @@ ROW_ORDER = (
     ("JEV", "ตอน BL ที่ให้ Jev ช่วยตัด", "bl_episodes"),
     ("OpenRouter", "เครดิตคงเหลือ $", "openrouter_left"),
     ("ความคุ้ม", "โควตา Claude ที่ runner นอกประหยัด %", "claude_saved_seed"),
-    ("ความคุ้ม", "$ ต่อ 1% (Anthropic)", "usd_per_pct_anthropic"),
+    ("ความคุ้ม", "งานที่คุ้มค่า", "worthwhile"),
+    ("ความคุ้ม", "รอบเฉลี่ย", "iterations"),
+    ("ความคุ้ม", "งานที่ข้าม router", "router_skipped"),
+    ("ความคุ้ม", "output tokens / งาน worker", "tokens_per_job_worker"),
+    ("ความคุ้ม", "output tokens C-level / งาน", "tokens_per_job_clevel"),
+    ("ความคุ้ม", "$ ต่อ 1% (Anthropic $20)", "usd_per_pct_anthropic_20"),
+    ("ความคุ้ม", "$ ต่อ 1% (Anthropic $200)", "usd_per_pct_anthropic_200"),
     ("ความคุ้ม", "$ ต่อ 1% (OpenAI)", "usd_per_pct_openai"),
     ("ความคุ้ม", "$ ต่อ 1% (Google)", "usd_per_pct_google"),
     ("ความคุ้ม", "งานพัง/แก้ซ้ำ ต่อ runner", "redo"),
@@ -1044,7 +1372,7 @@ def summary_th(prev: dict, cur: dict, pw: Window, cw: Window, idle: list[dict]) 
 
 
 def render(prev: dict, cur: dict, pw: Window, cw: Window, idle: list[dict], *, first: bool,
-           missing: list[str]) -> str:
+           missing: list[str], sources: dict[str, dict] | None = None, plans: dict | None = None) -> str:
     lines = [f"รายงานความคุ้มค่าเครื่องมือ — สัปดาห์ {cw.label()} เทียบ {pw.label()}", ""]
     lines += summary_th(prev, cur, pw, cw, idle)
     lines += ["", f"| เครื่องมือ | ตัววัด | {pw.label()} | {cw.label()} | ต่าง | ป้าย |", "|---|---|---|---|---|---|"]
@@ -1054,6 +1382,55 @@ def render(prev: dict, cur: dict, pw: Window, cw: Window, idle: list[dict], *, f
         note = b["note"] if b["label"] != "none" and b["note"] else ""
         lines.append(f"| {tool} | {metric} | {_cell_text(a, pw, key)} | {_cell_text(b, cw, key)}"
                      f"{' · ' + note if note else ''} | {_delta(a, b)} | {label} |")
+    sources = sources or {}
+    lines += subscription_lines(cur, sources, plans or {}, cw)
+    q = _org_src(sources, "quota")
+    lines += ["", "ณ เวลาที่ Claude รีเซ็ตโควตาสัปดาห์ (วัดจริง จาก quota-history):"]
+    resets = (q or {}).get("claude", {}).get("resets", [])
+    def when(ts):
+        return f"{parse_ts(ts).astimezone(BKK):%d/%m %H:%M}"
+    if q is None or "resets" not in q.get("claude", {}):
+        lines.append("- " + _org_missing(sources, "quota"))
+    elif not resets:
+        lines.append("- ไม่มีการรีเซ็ตในช่วงนี้")
+    for reset in resets:
+        full = "เต็มตั้งแต่ " + when(reset["full_since"]) if reset["full_since"] else "ไม่เต็ม"
+        line = f"- {when(reset['at'])}: Claude ใช้ {_fmt(reset['claude_used_pct'])}% ({full})"
+        for bucket, label in (("codex", "Codex"), ("agy-gemini", "AGY Gemini"), ("agy-claude", "AGY Claude")):
+            sample = reset["others"].get(bucket)
+            value = _fmt(sample["used_pct"]) + "%" if sample else "ไม่มีข้อมูล"
+            line += f" · {label} {value}"
+        lines.append(line)
+    lines += ["", "runner-fit (cell = runner × ประเภทงาน · เกณฑ์ร่าง COO: first-pass ≥80% ใน 10 งานล่าสุด และ skill ไม่เปลี่ยน rule 14 วัน):"]
+    fit = _org_src(sources, "runner_fit")
+    cells, org = fit_cells(fit["records"] if fit is not None else [], _org_src(sources, "skill_commits"), cw)
+    if fit is None:
+        lines.append(_org_missing(sources, "runner_fit"))
+    elif not cells:
+        lines.append("ยังไม่มีบันทึก runner_fit ในช่วงนี้ (เริ่มบันทึก 13 ต.ค.)")
+    else:
+        lines += ["| cell | ประเภทงาน | งาน | ผ่าน/แก้ซ้ำ/ล้ม | first-pass % | แก้ซ้ำ % | รอบเฉลี่ย | นาทีเฉลี่ย | first-pass 10 งานล่าสุด | skill แก้ในสัปดาห์ | เฟส |",
+                  "|---|---|---|---|---|---|---|---|---|---|---|"]
+        for r in cells:
+            lines.append(f"| {r['cell']} | {r['job_type']} | {r['jobs']} | {r['pass']}/{r['redo']}/{r['fail']} | "
+                         f"{r['first_pass_pct']} | {r['redo_pct']} | {r['iter_avg']:.1f} | {_fmt(r['minutes_avg'])} | "
+                         f"{r['last10_first_pass_pct']}% ({r['last10_n']}) | {_fmt(r['skill_edits'])} | {r['phase']} ({r['why']}) |")
+        lines.append(f"เฟสองค์กร: {org['phase']} — cell ที่ผ่านเกณฑ์ {org['passed']}/{org['used']}")
+    lines += ["", "ขนาดข้อความที่โหลดทุกครั้ง (วัดจริง: claude -p delta):"]
+    context = _org_src(sources, "context_deltas")
+    if context is None:
+        lines.append("- " + _org_missing(sources, "context_deltas"))
+    elif not context["records"]:
+        lines.append("- ไม่มีบันทึกในช่วงนี้")
+    else:
+        total = 0
+        for r in context["records"]:
+            delta = r["after"] - r["before"]
+            total += delta
+            pct = f"{100 * delta / r['before']:+.0f}%" if r["before"] else "ไม่มีข้อมูล"
+            lines.append(f"- {r['what']}: {r['before']:,} → {r['after']:,} tokens ({delta:+,}, {pct}) · "
+                         f"{r.get('per') or ''} · {r['by']} · {r['evidence']}")
+        lines.append(f"รวม {total:+,} tokens")
     lines.append("")
     if idle:
         lines.append(f"ต่ำกว่าเกณฑ์ที่เสนอ (CEO ยังไม่ได้กำหนดเกณฑ์) → เจ้าของ + งานที่ต้องย้าย ภายใน {idle[0]['due']}:")
@@ -1094,9 +1471,14 @@ def build_report(prev_rows: dict[str, dict], cur_rows: dict[str, dict], pw: Wind
     prev = build_rows(prev_rows, pw, hosts, plans)
     cur = build_rows(cur_rows, cw, hosts, plans)
     idle = idle_list(cur, cw)
-    text = render(prev, cur, pw, cw, idle, first=first, missing=_missing_lines((prev_rows, cur_rows), hosts))
+    fit = _org_src(cur_rows, "runner_fit")
+    cells, phase = fit_cells(fit["records"] if fit is not None else [], _org_src(cur_rows, "skill_commits"), cw)
+    quota = _org_src(cur_rows, "quota")
+    text = render(prev, cur, pw, cw, idle, first=first, missing=_missing_lines((prev_rows, cur_rows), hosts), sources=cur_rows,
+                  plans=plans)
     return {"previous": {"window": pw.as_json(), "cells": prev}, "current": {"window": cw.as_json(), "cells": cur},
-            "idle": idle, "text": text}
+            "idle": idle, "text": text, "claude_resets": (quota or {}).get("claude", {}).get("resets", []),
+            "fit_cells": cells if fit is not None else None, "org_phase": phase if fit is not None else None}
 
 
 # ---------------------------------------------------------------------------------------------- delivery
@@ -1155,6 +1537,12 @@ def _rows_for(win: Window, events: list[dict], host: str, *, live: bool) -> dict
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
+    p = sub.add_parser("context-delta")
+    for name in ("what", "before", "after", "method", "evidence", "by"):
+        p.add_argument("--" + name, required=True)
+    p.add_argument("--per", default="")
+    p.add_argument("--at")
+    p.add_argument("--dry-run", action="store_true")
     for name in ("collect", "report"):
         p = sub.add_parser(name)
         p.add_argument("--week", type=date.fromisoformat, help="current window starts this BKK date (7 days)")
@@ -1166,6 +1554,25 @@ def main(argv: list[str] | None = None) -> int:
             p.add_argument("--no-send", action="store_true", help="write the files, do not send to SomPong")
             p.add_argument("--force-send", action="store_true", help="send even if this week was already sent")
     a = ap.parse_args(argv)
+
+    if a.cmd == "context-delta":
+        try:
+            before, after = int(a.before), int(a.after)
+            if before < 0 or after < 0:
+                raise ValueError("before and after must be non-negative integers")
+            at = parse_ts(a.at) if a.at else datetime.now(timezone.utc)
+            if at is None:
+                raise ValueError("at must be an ISO timestamp")
+        except ValueError as e:
+            print(str(e).replace("\n", " "), file=sys.stderr)
+            return 2
+        payload = dict(schema=SCHEMA, what=a.what, before=before, after=after, method=a.method,
+                       evidence=a.evidence, by=a.by, per=a.per, at=iso(at))
+        if a.dry_run:
+            print(json.dumps(payload, ensure_ascii=False))
+        else:
+            write_event(payload, kind="context_delta")
+        return 0
 
     real_now = datetime.now(timezone.utc)
     as_of = real_now
