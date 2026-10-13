@@ -330,7 +330,7 @@ def build():
     _, mb = page("raw-example", "tm-raw-example", (0, 798, 1055, 320), 0.9, 800, (792, 1130), None, zmax=0.9,
                  note="CONTEXT-1/2: Tickmill Raw page, the worked example paragraph (1 lot EURUSD, contract size 100,000 EUR)")
     PLATES["raw-example"]["boxes"] = {"lot": box_out(mb, (0, 798, 1055, 60)),
-                                      "size": box_out(mb, (0, 863, 600, 60))}
+                                      "size": box_out(mb, (0, 863, 650, 60))}
 
     # MAIN-6: the Raw page's own `0.0 pips` line and the channel's own spread row for the Raw card under it
     p = Plate("raw-para-calc", (255, 255, 255))
@@ -389,11 +389,11 @@ def build():
         centered(d, 662, "คิดจากเลข “เริ่มที่” บนหน้าเว็บ", font(38, "Medium"), MUTED)
         for i, (nm, v) in enumerate((("Classic", "$16.00"), ("Raw", "$6.00"))):
             x = 84 + i * 464
-            d.rounded_rectangle((x, 770, x + 448, 1000), 24, fill=CARD_BG, outline=RULE, width=3)
+            d.rounded_rectangle((x, 770, x + 448, 1030), 24, fill=CARD_BG, outline=RULE, width=3)
             T(d, (x + 224, 790), nm, font(44, "Bold"), INK, "ma")
-            T(d, (x + 224, 860), v, font(76, "ExtraBold"), INK, "ma")
+            T(d, (x + 224, 855), v, font(76, "ExtraBold"), INK, "ma")
             T(d, (x + 224, 960), "ขั้นต่ำ", font(32, "Medium"), MUTED, "ma")
-        return {"all": (84, 770, 912, 230)}
+        return {"all": (84, 770, 912, 260)}
     own_plate("floor", d_floor, "CURIOSITY-3: both totals are floors computed from the advertised `from` numbers", box="all")
 
     # CURIOSITY-2: Classic card sentence + the table row (two crops of one still, on white)

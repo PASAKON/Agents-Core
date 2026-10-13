@@ -21,6 +21,10 @@ HERE = Path(__file__).resolve().parent
 WORK = Path("/opt/MoonieXHQ/Work/bl-ep61")
 CREDIT = "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
 BRAND_DISPLAY = {"ติ๊กมิลล์": " Tickmill "}
+# The render's Chrome has no Thai dictionary and breaks a full line anywhere (template index.html, `.nb`): these words are
+# wrapped in <span class="nb"> so a caption never splits one (EP61 arm B sheet: ส|เปรด, เจ้า|ไหน, ข้อ|ความ). The words are
+# unchanged; only the markup around them.
+NO_BREAK = ["สเปรด", "คอมมิชชัน", "สว็อป", "เจ้าไหน", "ข้อความ", "หน้าเขา", "ล็อต", "Tickmill"]
 FPS = 30
 AUDIO_SECONDS = 68.0174          # decoded length of audio-hq-decoded.wav
 
@@ -100,7 +104,10 @@ def load_captions():
             tag, text = l.split("\t")[0], l.split("\t")[1]
             for k, v in BRAND_DISPLAY.items():
                 text = text.replace(k, v)
-            out[tag] = " ".join(text.split())
+            text = " ".join(text.split())
+            for w in NO_BREAK:
+                text = text.replace(w, f'<span class="nb">{w}</span>')
+            out[tag] = text
     return out
 
 

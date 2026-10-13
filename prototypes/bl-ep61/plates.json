@@ -411,7 +411,7 @@
    "size": [
     54,
     707,
-    556,
+    601,
     70
    ]
   }
@@ -651,7 +651,7 @@
    84,
    770,
    912,
-   230
+   260
   ],
   "take": null,
   "note": "CURIOSITY-3: both totals are floors computed from the advertised `from` numbers",
