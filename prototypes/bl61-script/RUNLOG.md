@@ -1,4 +1,4 @@
-IB status of Tickmill: UNCONFIRMED. Tickmill runs an Introducing Broker programme (its own footer lists it). Nothing in the repo or wiki says the channel has a relationship with it. CEO to confirm before posting. Nothing in the script depends on it (no link, rebate, IB mention or account CTA).
+IB status of Tickmill: CONFIRMED by the CEO 2026-10-13 ("ไม่เคย ใช้ชื่อได้": the channel has never earned from Tickmill). Posting gate cleared; the record of his answer is STATUS.md (Approval, Q1). Nothing in the script depends on it (no link, rebate, IB mention or account CTA).
 
 # EP61 RUNLOG - what one order really costs, Tickmill's own pages (task-d002e35e, script_writer, stage 1 of 3)
 

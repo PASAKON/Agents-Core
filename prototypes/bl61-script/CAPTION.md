@@ -31,5 +31,5 @@ kit's `.bl-legal`, not mine to write.)
 - The date in the caption (13 ต.ค. 2569) is the capture date. If the post goes out later, re-capture the
   Tickmill stills and re-run `prototypes/bl61-script/cost_check.py` against what the pages say then.
   Broker pages change their numbers without notice.
-- The IB status of Tickmill is unconfirmed (RUNLOG.md, top). The CEO should confirm before posting.
+- The IB status of Tickmill is confirmed: the CEO said "ไม่เคย ใช้ชื่อได้" on 13 Oct 2026 (STATUS.md, Approval Q1).
 - The caption names Tickmill once, as the page the numbers come from. It does not say whose account is better.
