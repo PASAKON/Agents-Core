@@ -331,6 +331,85 @@ def test_registry_send_to_cxo_passes_subject(cxo, on):
     assert _raw(mailbox.INBOX_ROOT / "cfo-f1")[0]["subject"] == "mcp subject"
 
 
+def test_send_to_cxo_stores_kind_and_prio(cxo, on):
+    sc.send("cfo", "spend is over plan", subject="over plan", kind="blocker", prio="normal")
+    sc.send("cfo", "which budget line?", subject="which line", kind="ask")
+    sc.send("cfo", "weekly numbers", subject="weekly", kind="report")
+    got = sorted((l["kind"], l["prio"]) for l in _raw(mailbox.INBOX_ROOT / "cfo-f1"))
+    assert got == [("ask", "urgent"), ("blocker", "normal"), ("report", "normal")]
+
+
+def test_send_to_cxo_an_ask_wakes_at_once_a_report_waits(cxo, on, sweeper):
+    sc.send("cfo", "weekly numbers", subject="weekly", kind="report")
+    assert cxo == [], "a normal letter waits for the batch"
+    sc.send("cfo", "which budget line?", subject="which line", kind="ask")
+    assert len(cxo) == 1, "an ask with no prio is urgent and wakes at once"
+    sc.send("cfo", "fyi only", subject="fyi", kind="fyi", prio="urgent")
+    assert len(cxo) == 2, "the sender's urgent wakes at once"
+
+
+@pytest.mark.parametrize("flag", [False, True])
+@pytest.mark.parametrize("kw,needle", [
+    ({"kind": "order"}, "relay_to_session"),
+    ({"kind": "notice"}, "unknown letter kind"),
+    ({"prio": "high"}, "unknown letter prio"),
+])
+def test_send_to_cxo_refuses_order_and_unknown_values_writes_nothing(cxo, monkeypatch, flag, kw, needle):
+    if flag:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    with pytest.raises(ValueError, match=needle):
+        sc.send("cfo", "do this now", subject="s", **kw)
+    with pytest.raises(ValueError, match=needle):
+        sc.spawn("cfo", "do this now", subject="s", **kw)
+    assert not (mailbox.INBOX_ROOT / "cfo-f1").exists() and cxo == []
+
+
+def test_send_to_cxo_flag_off_kind_and_prio_are_ignored(cxo):
+    out = sc.send("cfo", "weekly numbers", kind="report", prio="normal")
+    assert "warning" not in out
+    assert [w[:2] for w in cxo] == [("cfo", "f1")], "flag off: every letter wakes at once"
+    assert set(_raw(mailbox.INBOX_ROOT / "cfo-f1")[0]) == LEGACY_KEYS
+
+
+def test_send_to_cxo_to_a_project_head_carries_kind_and_prio(cxo, on, monkeypatch):
+    from tools import clevel_gate
+    monkeypatch.setattr(clevel_gate, "live_lock", lambda *a, **kw: 4242)
+    out = sc.send("project_head-0a1b2c3d", "start the dry run", subject="dry run", kind="ask")
+    assert out.startswith("queued to Project Head #0a1b2c3d")
+    [letter] = _raw(mailbox.INBOX_ROOT / "project_head-0a1b2c3d")
+    assert (letter["kind"], letter["prio"]) == ("ask", "urgent")
+    assert [w[:2] for w in cxo] == [("project_head", "0a1b2c3d")], "urgent: woken at once"
+
+
+def test_send_to_cxo_cli_kind_and_prio(cxo, on, monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["send_to_cxo", "--kind", "blocker", "--prio", "normal",
+                                      "--subject", "from the CLI", "cfo", "hello"])
+    assert sc.main() == 0
+    letter = _raw(mailbox.INBOX_ROOT / "cfo-f1")[0]
+    assert (letter["kind"], letter["prio"]) == ("blocker", "normal")
+    monkeypatch.setattr(sys, "argv", ["send_to_cxo", "--kind", "order", "cfo", "hello"])
+    assert sc.main() == 2
+    assert "relay_to_session" in capsys.readouterr().err
+
+
+def test_registry_send_to_cxo_passes_kind_and_prio(cxo, on):
+    from lib import org_tools_registry as reg
+    reg.dispatch_sync("send_to_cxo", role="cfo", message="via mcp", subject="a", kind="report",
+                      prio="urgent")
+    reg.dispatch_sync("send_to_cxo", role="cfo", message="via mcp", subject="b")
+    got = sorted((l["subject"], l["kind"], l["prio"]) for l in _raw(mailbox.INBOX_ROOT / "cfo-f1"))
+    assert got == [("a", "report", "urgent"), ("b", "message", "normal")]
+    assert {"kind", "prio"} <= {p.name for p in reg.BY_NAME["send_to_cxo"].params}
+
+
+def test_letter_prio_is_the_one_rule_the_mailbox_stores(inbox, on):
+    for kind in mailbox.KINDS:
+        for prio in (None, *mailbox.PRIOS):
+            stored = json.loads(mailbox.send("cto", "s1", "x", "cmo", "c1", subject="s",
+                                             kind=kind, prio=prio).read_text())["prio"]
+            assert stored == mailbox.letter_prio(kind, prio)
+
+
 # ---------------------------------------------------------------- send_to_cto
 
 
