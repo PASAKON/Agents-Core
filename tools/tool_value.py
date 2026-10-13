@@ -670,7 +670,7 @@ def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
     if org:
         run("quota", lambda: quota_usage(QUOTA_HISTORY, win))
         run("hub_tasks", lambda: hub_tasks_summary(*fetch_hub(win), win))
-        run("jules_github", lambda: jules_github(jules_repos(), win))
+        run("jules_github", lambda: jules_github(jules_repos(), win, run=_gh))
         run("openrouter", lambda: openrouter_balance(OPENROUTER_BALANCE, win))
     run("transcripts", transcripts)
     run("codex_rollouts", lambda: codex_usage(CODEX_SESSIONS, win))
