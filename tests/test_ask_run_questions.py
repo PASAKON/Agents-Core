@@ -24,6 +24,7 @@ import json
 import pathlib
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import pytest
@@ -230,6 +231,13 @@ REFUSAL_CASES = SECRET_CASES and [
     ("control character in why", {"why": "line" + chr(0x07) + "bell"}, "invalid_why"),
     ("command-shaped question", {"question": "Run git push origin main"}, "command_shaped"),
     ("command-shaped label", {"options": ["Tonight", "./deploy"]}, "command_shaped"),
+    # round 3 (§5 as amended 2026-10-13): every line of `why`, and Unicode spaces count as spaces
+    ("command on the second line of why", {"question": "Go ahead with the plan below?", "options": ["Yes", "No"],
+                                           "why": "The fix is tested.\nRun sudo systemctl restart nginx"},
+     "command_shaped"),
+    ("NBSP in a command question", {"question": "git\u00a0push origin main"}, "command_shaped"),
+    ("thin space in a command label", {"options": ["Tonight", "sudo\u2009systemctl restart nginx"]},
+     "command_shaped"),
     ("money in the question", {"question": "Spend $5 on ads?"}, "money_needs_command_card"),
     ("money in a label", {"options": ["Tonight", "50 credits"]}, "money_needs_command_card"),
     ("command wins over money", {"question": "rm -rf /x for $5"}, "command_shaped"),
@@ -240,7 +248,8 @@ REFUSAL_CASES = SECRET_CASES and [
 CLEAN_CASES = [
     ("plain two-option question", {}),
     ("four options, recommended, no free text", {"options": list("ABCD"), "recommended": 2, "no_free_text": True}),
-    ("money and a command in why are context, not checked", {"why": "It costs $5 a month; run ./deploy.sh after"}),
+    ("money in why is context, not checked", {"why": "It costs $5 a month, about 500 baht\nOr 100 GBP a year"}),
+    ("a why that only talks about the restart", {"why": "The fix is tested.\nTonight means a restart at 22:00."}),
     ("Thai options", {"question": "ส่งวันนี้หรือพรุ่งนี้?", "options": ["วันนี้", "ส่งพรุ่งนี้เช้า"]}),
     ("env name only", {"why": "set it with GITHUB_TOKEN=$GITHUB_TOKEN in the unit"}),
     *[(f"role {r}", {"role": r, "session": f"{r}-x"}) for r in POLICY_C_LEVEL],
@@ -412,14 +421,25 @@ COMMAND_ALLOWED = [
     "ส่งพรุ่งนี้เช้า", "Use the B version - it is cleaner", "50% / 50% split",
     "Git push is fine", "Run the tests tonight", "ls", "Fix the make target",
 ]
-# §6 has no table in the contract; this one is derived from its four rules.
+# §6's table (added 2026-10-13) first, then one case per rule and per currency word.
 MONEY_REFUSED = [
+    "Approve 100 GBP for ads?", "Pay ₹500?", "Spend 100 bucks?", "Buy 2k credits?", "$  50",
     "$5", "฿500", "€ 20", "£3", "¥100", "Pay 100 USD", "1,500 baht", "500บาท", "5 ดอลลาร์", "20 dollars",
     "usd 50", "THB100", "eur 7", "10 credits", "20 เครดิต", "1 credit",
+    "₹ 500", "inr 500", "10 INR", "gbp50", "3 pounds", "2M credits", "2 m credits", "5K USD", "1.5m baht",
+    "2,000 bucks", "$\u00a0\u00a050", "Spend 100\u00a0bucks", "5 ดอลล่าร์",
 ]
 MONEY_ALLOWED = [
-    "Tonight", "Option 1", "Plan B is cheaper", "2 options", "50% / 50% split", "Tomorrow 09:00",
+    "Tonight", "Option 2", "Keep 3 posters", "50% / 50% split",
+    "Option 1", "Plan B is cheaper", "2 options", "Tomorrow 09:00",
     "Version 2", "Use credits wisely", "Spend nothing", "ส่งพรุ่งนี้เช้า", "Make it bigger",
+]
+# QUESTIONS.md §6, rule by rule (the pattern text is part of the contract: JS and Python carry the same four).
+CONTRACT_MONEY_PATTERNS = [
+    r"[$฿€£¥₹]\s*\d",
+    r"\d[\d,.]*\s*[kKmM]?\s*(?:usd|thb|baht|eur|gbp|inr|dollars?|bucks?|pounds?|บาท|ดอลลาร์|ดอลล่าร์)",
+    r"\b(?:usd|thb|eur|gbp|inr)\s*\d",
+    r"\d[\d,.]*\s*[kKmM]?\s*(?:credits?|เครดิต)",
 ]
 
 
@@ -438,6 +458,9 @@ def test_the_rule_lists_are_the_contracts():
     assert list(ask_run._PS_WORDS) == ["Remove-Item", "Set-Item", "Invoke-WebRequest", "Invoke-Expression",
                                        "iwr", "iex"]
     assert len(ask_run._COMMAND_SHAPES) == 8 and len(ask_run._MONEY_SHAPES) == 4
+    # §6 as amended 2026-10-13: the four patterns letter for letter; rule 1 is case-sensitive, 2-4 are not
+    assert [rx.pattern for _, rx in ask_run._MONEY_SHAPES] == CONTRACT_MONEY_PATTERNS
+    assert [bool(rx.flags & re.IGNORECASE) for _, rx in ask_run._MONEY_SHAPES] == [False, True, True, True]
     # every word is a refusal when it leads (lowercase), and prose capitalisation passes
     for word in CONTRACT_COMMAND_WORDS:
         assert ask_run.command_shaped(f"{word} now"), word
@@ -457,6 +480,13 @@ def test_command_shaped_texts_are_refused_in_the_question_and_in_every_label(hub
         assert ask_run.main(_argv({"options": options}, dry=False)) == 2
         message = _refusal(capsys.readouterr().err)
         assert _code(message) == "command_shaped" and f"options[{index}].label" in message
+    # round 3: and on any line of why, each line on its own (CRLF too)
+    for why in (text, f"The fix is tested.\n{text}", f"{text}\nThe fix is tested.",
+                f"One.\r\n{text}\r\nTwo.", f"One.\n\n  {text}  \nTwo."):
+        assert ask_run.main(_argv({"why": why}, dry=False)) == 2, why
+        message = _refusal(capsys.readouterr().err)
+        assert _code(message) == "command_shaped" and message.split(":")[1].split()[0] == "why", message
+        assert text not in message
     assert hub.requests == []
 
 
@@ -464,6 +494,8 @@ def test_command_shaped_texts_are_refused_in_the_question_and_in_every_label(hub
 def test_ordinary_prose_is_not_command_shaped(capsys, text):
     assert ask_run.command_shaped(text) is None, text
     assert ask_run.main(_argv({"question": text, "options": [text, "Other"]})) == 0, capsys.readouterr().err
+    assert ask_run.main(_argv({"why": f"The fix is tested.\n{text}\nTonight means a restart at 22:00."})) == 0, \
+        capsys.readouterr().err
 
 
 @pytest.mark.parametrize("text", MONEY_REFUSED)
@@ -479,6 +511,8 @@ def test_money_is_refused_in_the_question_and_in_every_label(hub, capsys, text):
         message = _refusal(capsys.readouterr().err)
         assert _code(message) == "money_needs_command_card" and f"options[{index}].label" in message
     assert hub.requests == []
+    # §6 is not applied to why: context may mention cost
+    assert ask_run.main(_argv({"why": f"It costs\n{text}"})) == 0, capsys.readouterr().err
 
 
 @pytest.mark.parametrize("text", MONEY_ALLOWED)
@@ -868,3 +902,264 @@ def test_org_ask_run_wait_returns_a_question_record(srv, hub):
     hub.on("GET", QPATH, (404, {"error": "not_found"}))
     assert _org(srv, "ask_run_wait", {"id": QID}).startswith("ERROR: hub refused (404")
     assert _org(srv, "ask_run_wait", {"id": "Q-1"}).startswith("ERROR: refused: not a Run Inbox id")
+
+
+# ===================================================================== round 3
+# The security review of the landing branch (2026-10-13) and the contract's amendments of the same day:
+# 1. §5 also runs on every line of `why`; 2. every Zs character is a space; 3. §6 as amended;
+# 4. a worker cannot claim a C-level role, whatever CXO_ROLE says; 5. the hub address is bare.
+# Each test below failed on the round-2 code (REPORT.md, "Round 3", shows both runs).
+ALL_ZS = [chr(c) for c in range(sys.maxunicode + 1) if unicodedata.category(chr(c)) == "Zs"]
+
+
+# ------------------------------------------------ 1. command-shaped `why`, line by line
+def test_a_command_in_why_is_refused_before_any_call(hub, capsys):
+    """The review's breaking input: a harmless Yes/No question, the command on the second line of why."""
+    case = {"question": "Go ahead with the plan below?", "options": ["Yes", "No"],
+            "why": "The fix is tested.\nRun sudo systemctl restart nginx"}
+    assert ask_run.main(_argv(case, dry=False)) == 2
+    message = _refusal(capsys.readouterr().err)
+    assert _code(message) == "command_shaped" and "why" in message and "sudo" not in message
+    assert hub.requests == []
+    assert ask_run.main(_argv(case)) == 2          # --dry-run refuses it too: the body would never be valid
+    capsys.readouterr()
+
+
+def test_the_contracts_why_example_stays_allowed(hub, capsys):
+    """§5: `The fix is tested.\\nTonight means a restart at 22:00.` is allowed (it is the pinned example's why)."""
+    assert ask_run.main(_argv({"why": "The fix is tested.\nTonight means a restart at 22:00."})) == 0
+    assert json.loads(capsys.readouterr().out)["why"] == "The fix is tested.\nTonight means a restart at 22:00."
+    hub.on("POST", "/api/run/questions", (201, CREATED))
+    assert ask_run.main(_argv({"why": WHY}, dry=False)) == 0
+
+
+def test_the_message_for_a_why_line_names_the_line_and_never_the_text(hub, capsys):
+    why = "fine\nalso fine\nsudo rm -rf /srv/secret-looking-name\nfine again"
+    assert ask_run.main(_argv({"why": why}, dry=False)) == 2
+    message = _refusal(capsys.readouterr().err)
+    assert message.startswith("command_shaped: why (line 3) looks like a command"), message
+    assert "srv" not in message and "sudo" not in message
+
+
+def test_org_refuses_a_command_in_why_the_way_the_cli_does(srv, capsys):
+    case = {"question": "Go ahead with the plan below?", "options": ["Yes", "No"],
+            "why": "The fix is tested.\nRun sudo systemctl restart nginx"}
+    assert ask_run.main(_argv(case)) == 2
+    cli_message = _refusal(capsys.readouterr().err)
+    assert _org(srv, "ask_ceo", _mcp_args(case)) == "ERROR: refused: " + cli_message
+
+
+# ------------------------------------------------ 2. every Unicode space is a space
+def test_the_zs_list_is_not_vacuous():
+    assert {"\u00a0", "\u2009", "\u3000", "\u202f", "\u1680"} <= set(ALL_ZS) and len(ALL_ZS) >= 17
+
+
+@pytest.mark.parametrize("space", [s for s in ALL_ZS if s != " "], ids=lambda s: f"U+{ord(s):04X}")
+def test_every_zs_character_counts_as_a_space_in_the_command_rules(hub, capsys, space):
+    for command in ("git{s}push origin main", "sudo{s}systemctl restart nginx", "Run{s}git push origin main",
+                    "rm{s}-rf /tmp/x"):
+        text = command.format(s=space)
+        assert ask_run.command_shaped(text), text
+        assert ask_run.main(_argv({"question": text}, dry=False)) == 2
+        assert _code(_refusal(capsys.readouterr().err)) == "command_shaped"
+        assert ask_run.main(_argv({"options": ["Other", text]}, dry=False)) == 2
+        assert _code(_refusal(capsys.readouterr().err)) == "command_shaped"
+        assert ask_run.main(_argv({"why": f"fine\n{text}"}, dry=False)) == 2
+        assert _code(_refusal(capsys.readouterr().err)) == "command_shaped"
+    assert hub.requests == []
+
+
+@pytest.mark.parametrize("space", [s for s in ALL_ZS if s != " "], ids=lambda s: f"U+{ord(s):04X}")
+def test_every_zs_character_counts_as_a_space_in_the_money_rules(space):
+    for text in ("Spend 100{s}bucks?", "Approve 100{s}GBP for ads?", "Buy 2k{s}credits?", "Pay{s}$50", "usd{s}50"):
+        assert ask_run.money_shaped(text.format(s=space)), (text, hex(ord(space)))
+
+
+def test_the_contracts_two_space_cases_are_refused_end_to_end(hub, capsys):
+    for text in ("git\u00a0push origin main", "sudo\u2009systemctl restart nginx"):
+        assert ask_run.main(_argv({"question": text}, dry=False)) == 2
+        assert _code(_refusal(capsys.readouterr().err)) == "command_shaped"
+    assert hub.requests == []
+
+
+def test_a_space_in_ordinary_prose_still_passes(capsys):
+    for text in ("Keep\u00a0the old poster", "Tomorrow\u200909:00", "50%\u3000/\u300050% split"):
+        assert ask_run.command_shaped(text) is None and ask_run.money_shaped(text) is None, text
+        assert ask_run.main(_argv({"question": text, "options": [text, "Other"]})) == 0, capsys.readouterr().err
+
+
+# ------------------------------------------------ 3. §6 money, as the contract now has it
+@pytest.mark.parametrize("text, rule", [
+    ("Approve 100 GBP for ads?", 1), ("Pay ₹500?", 0), ("Spend 100 bucks?", 1), ("Buy 2k credits?", 3),
+    ("$  50", 0), ("5K USD", 1), ("2 pounds", 1), ("inr 50", 2),
+])
+def test_money_rules_name_the_rule_that_matched(text, rule):
+    assert ask_run.money_shaped(text) == ask_run._MONEY_SHAPES[rule][0]
+
+
+# ------------------------------------------------ 4. a worker cannot claim a C-level role
+def _worker_argv(role_flag: str | None) -> list[str]:
+    argv = ["ask", "--question", QUESTION, "--option", "A", "--option", "B", "--why", "x", "--host", "contabo"]
+    return argv + (["--role", role_flag, "--session", f"{role_flag}-x"] if role_flag else
+                   ["--session", "x-session"])
+
+
+WORKER_ENV_CASES = [
+    # (label, CXO_ROLE for this case or None = use the C-level role under test, pass --role?)
+    ("CXO_ROLE=dev and --role says the C-level role", "dev", True),
+    ("CXO_ROLE is the C-level role, no --role", None, False),
+    ("CXO_ROLE and --role both the C-level role", None, True),
+]
+
+
+@pytest.mark.parametrize("order", ["worker first", "CXO_ROLE first"])
+@pytest.mark.parametrize("label, cxo, flag", WORKER_ENV_CASES, ids=[c[0] for c in WORKER_ENV_CASES])
+@pytest.mark.parametrize("role", POLICY_C_LEVEL)
+def test_a_worker_cannot_claim_a_c_level_role_whatever_cxo_role_says(
+        hub, monkeypatch, capsys, role, label, cxo, flag, order):
+    hub.on("POST", "/api/run/questions", (201, CREATED))
+    monkeypatch.delenv("CXO_ROLE", raising=False)
+    setting = [("WORKER_TASK_ID", "task-8669cf28"), ("CXO_ROLE", cxo or role)]
+    for name, value in (setting if order == "worker first" else setting[::-1]):
+        monkeypatch.setenv(name, value)
+    rc = ask_run.main(_worker_argv(role if flag else None))
+    out, err = capsys.readouterr()
+    assert rc == 2 and "a worker cannot claim role" in err and out == "", (out, err)
+    assert hub.requests == []
+
+
+@pytest.mark.parametrize("order", ["worker first", "CXO_ROLE first"])
+def test_the_requester_resolver_refuses_in_both_env_orders(order):
+    base = [("WORKER_TASK_ID", "task-8669cf28"), ("CXO_ROLE", "dev"), ("CTO_SESSION_ID", "6ebacd0e")]
+    env = dict(base if order == "worker first" else [base[1], base[0], base[2]])
+    with pytest.raises(ask_run.Refused, match="a worker cannot claim role 'cto'"):
+        ask_run.resolve_requester(None, "cto", None, env)
+    with pytest.raises(ask_run.Refused, match="a worker cannot claim role 'cto'"):
+        ask_run.resolve_requester(None, None, None, {**env, "CXO_ROLE": "cto"})
+    # a non-C-level role is still a plain requester (the card gate refuses it later), and so is no worker at all
+    assert ask_run.resolve_requester(None, None, None, env)["role"] == "dev"
+    for unset in ({k: v for k, v in env.items() if k != "WORKER_TASK_ID"}, {**env, "WORKER_TASK_ID": ""}):
+        assert ask_run.resolve_requester(None, "cto", None, {**unset, "CXO_ROLE": "cto"})["role"] == "cto"
+
+
+@pytest.mark.parametrize("order", ["worker first", "CXO_ROLE first"])
+def test_the_mcp_tool_refuses_a_worker_claiming_a_c_level_role(srv, hub, monkeypatch, order):
+    monkeypatch.delenv("CXO_ROLE", raising=False)
+    setting = [("WORKER_TASK_ID", "task-1"), ("CXO_ROLE", "dev")]
+    for name, value in (setting if order == "worker first" else setting[::-1]):
+        monkeypatch.setenv(name, value)
+    text = _org(srv, "ask_ceo", {**_mcp_args({"role": "cto", "session": "cto-x"}), "dry_run": False})
+    assert text.startswith("ERROR: refused: ") and "a worker cannot claim role 'cto'" in text
+    with pytest.raises(ask_run.Refused, match="a worker cannot claim role 'cto'"):
+        ask_run.mcp_ask_ceo({**_mcp_args({"role": "cto", "session": "cto-x"})},
+                            {"WORKER_TASK_ID": "task-1", "CXO_ROLE": "dev"})
+    assert hub.requests == []
+
+
+def test_a_c_level_session_without_a_worker_id_still_asks(monkeypatch, capsys):
+    for name in ("WORKER_TASK_ID", "WORKER_ROLE"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("CXO_ROLE", "cto")
+    assert ask_run.main(_worker_argv("cto") + ["--dry-run"]) == 0, capsys.readouterr().err
+    monkeypatch.setenv("WORKER_TASK_ID", "")          # set but empty: not a worker
+    assert ask_run.main(_worker_argv("cto") + ["--dry-run"]) == 0, capsys.readouterr().err
+
+
+def test_the_same_function_guards_command_cards(hub, monkeypatch, capsys):
+    """resolve_requester is shared with `create`, so the hole is closed for command cards too."""
+    monkeypatch.setenv("WORKER_TASK_ID", "task-8669cf28")
+    monkeypatch.setenv("CXO_ROLE", "dev")
+    rc = ask_run.main(["create", "--host", "contabo", "--command", "uptime", "--why", "load",
+                       "--role", "cto", "--session", "cto-x"])
+    assert rc == 2 and "a worker cannot claim role 'cto'" in capsys.readouterr().err
+    assert hub.requests == []
+
+
+# ------------------------------------------------ 5. the hub address is bare for the question verbs
+def _bad_bases(url: str) -> list[tuple[str, str]]:
+    return [
+        ("the answer route with a query", f"{url}/api/run/questions/{QID}/answer?x="),
+        ("a path", f"{url}/api"),
+        ("a path and a slash", f"{url}/console/"),
+        ("a query on the host", f"{url}?x=1"),
+        ("a query on the slash", f"{url}/?x=1"),
+        ("an empty query", f"{url}?"),
+        ("a fragment", f"{url}#frag"),
+        ("an empty fragment", f"{url}#"),
+        ("two trailing slashes", f"{url}//"),
+        ("a backslash", f"{url}\\x"),
+        ("credentials", url.replace("://", "://user@", 1)),
+    ]
+
+
+BASE_LABELS = [label for label, _ in _bad_bases("http://127.0.0.1:1")]
+
+
+def _question_verbs() -> list[tuple[str, list[str]]]:
+    return [("ask", _argv(dry=False)), ("ask --dry-run", _argv()), ("wait", ["wait", QID, "--max-wait", "1"]),
+            ("cancel", ["cancel", QID]), ("list --questions", ["list", "--questions"])]
+
+
+@pytest.mark.parametrize("which", range(len(BASE_LABELS)), ids=BASE_LABELS)
+def test_every_question_verb_refuses_a_hub_address_with_more_than_host_and_port(hub, monkeypatch, capsys, which):
+    """RUN_INBOX_URL=https://host/api/run/questions/Q-…/answer?x= made `ask` POST to the answer route."""
+    label, bad = _bad_bases(hub.url)[which]
+    hub.on("POST", "/api/run/questions", (201, CREATED))
+    monkeypatch.setenv("RUN_INBOX_URL", bad)
+    for verb, argv in _question_verbs():
+        assert ask_run.main(argv) == 2, (label, verb)
+        out, err = capsys.readouterr()
+        lines = err.strip().splitlines()
+        assert len(lines) == 1 and lines[0].startswith("ask_run: refused: RUN_INBOX_URL"), (verb, err)
+        assert "127.0.0.1" not in err and "x=" not in err and out == "", (verb, out, err)   # never echoes the value
+    assert hub.requests == [], [r["path"] for r in hub.requests]
+
+
+@pytest.mark.parametrize("which", range(len(BASE_LABELS)), ids=BASE_LABELS)
+def test_the_mcp_tools_refuse_it_the_same_way(srv, hub, monkeypatch, which):
+    label, bad = _bad_bases(hub.url)[which]
+    hub.on("POST", "/api/run/questions", (201, CREATED))
+    hub.on("GET", QPATH, _record("answered", answer=ANSWER))
+    monkeypatch.setenv("RUN_INBOX_URL", bad)
+    for dry in (True, False):
+        text = _org(srv, "ask_ceo", {**_mcp_args(), "dry_run": dry})
+        assert text.startswith("ERROR: ") and "RUN_INBOX_URL" in text and hub.url not in text, (label, dry, text)
+    text = _org(srv, "ask_run_wait", {"id": QID, "max_wait_s": 1})
+    assert text.startswith("ERROR: ") and "RUN_INBOX_URL" in text, (label, text)
+    assert hub.requests == []
+
+
+def test_a_bare_address_still_works_with_one_trailing_slash(hub, monkeypatch, capsys):
+    hub.on("POST", "/api/run/questions", (201, CREATED))
+    hub.on("GET", QPATH, _record("answered", answer=ANSWER))
+    for url in (hub.url, hub.url + "/"):
+        monkeypatch.setenv("RUN_INBOX_URL", url)
+        assert ask_run.main(_argv(dry=False)) == 0
+        out = capsys.readouterr().out
+        assert out.splitlines()[1] == f"{hub.url}/run#{QID}", out
+        assert ask_run.main(["wait", QID]) == 0
+        capsys.readouterr()
+    assert {r["path"] for r in hub.requests} == {"/api/run/questions", QPATH}
+
+
+def test_the_check_sits_in_the_one_function_every_call_goes_through(monkeypatch):
+    """wait/cancel/list/ask all reach the hub through _request; it refuses before it opens a connection."""
+    def _no_network(*a, **k):
+        raise AssertionError("opened a connection")
+    monkeypatch.setattr(ask_run._OPENER, "open", _no_network)
+    monkeypatch.setenv("RUN_INBOX_TOKEN", "tok-" + "unused")
+    monkeypatch.setenv("RUN_INBOX_URL", "http://127.0.0.1:9/api/run/questions/" + QID + "/answer?x=")
+    for method, path in (("GET", ask_run.QUESTIONS_PATH), ("POST", ask_run.QUESTIONS_PATH),
+                         ("GET", QPATH), ("POST", QPATH + "/cancel")):
+        with pytest.raises(ask_run.Refused, match="RUN_INBOX_URL"):
+            ask_run._request(method, path, body={} if method == "POST" else None)
+
+
+def test_command_cards_are_not_touched_by_the_new_rule(hub, monkeypatch, capsys):
+    """Scope: the question verbs only. No config, test or doc in this repo sets a path on RUN_INBOX_URL, but the
+    variable is set outside it on three machines, so `create` / `wait RUN-…` keep working with one."""
+    monkeypatch.setenv("RUN_INBOX_URL", hub.url + "/console")
+    assert ask_run.base_url() == hub.url + "/console"
+    assert ask_run.main(["create", "--host", "contabo", "--command", "uptime", "--why", "load",
+                         "--role", "cto", "--session", "cto-x", "--dry-run"]) == 0
+    assert hub.url + "/console/api/run/asks" in capsys.readouterr().err

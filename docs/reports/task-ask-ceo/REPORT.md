@@ -196,3 +196,126 @@ description from the registry, so the parity harness still agrees.
 **Skill learning (round 2).**
 - WRONG [no owner] : "copy the fixture from the contract's example record" — the §3.3 example carries an illustrative value (`answered_by: "ceo"`) the live hub never sends (`"CEO"`), so a test built from it proved nothing about the live shape · evidence: task-4a53167b round 1 `answered_by == "ceo"` check, CTO feedback iter 1 · fix: when a fixture comes from a spec example, check the field against one live record (or read the producer's source) before asserting on its exact value; assert on markers the producer sets, not on identity strings.
 - COSTLY [no owner] : a fail-closed check on an identity value is the kind that fails closed on every success; it needs a test that feeds the realistic *good* input as well as the bad ones, and the good input must come from the live system, not from my own reading of the contract · evidence: task-4a53167b round 1 had 4 bad-input cases and the one good case used my own value · prevented by: the "check passes on real input" case is written first.
+
+## Round 3 (CTO feedback iter 2 — security review of the landing branch)
+
+Contract re-read in full from the live checkout (`/opt/MoonieXHQ/Agents/Core/docs/design/run-inbox/QUESTIONS.md`;
+the worktree has no copy, so "diff vs your copy" was done by reading it again): §5 header + the Zs paragraph +
+the added test rows, §6 regexes + the table, §3.3 (`answered_by` "whatever its case; never compare it").
+Commit `1f1a5fc6` (`tools/ask_run.py`, `tests/test_ask_run_questions.py`). Nothing pushed, nothing merged.
+
+### The five fixes
+
+| # | What was wrong (round-2 code) | Fix in `tools/ask_run.py` |
+|---|---|---|
+| 1 | §5 ran on the question and the labels only. "Go ahead with the plan below?" / Yes / No with `why` = `The fix is tested.` + newline + `Run sudo systemctl restart nginx` was accepted and sent. | `check_question`: §5 also runs on `why.split("\n")`, each line as its own text; the message says `why (line N)` (one-line why: `why`) and never the text. §6 is still not applied to `why`. |
+| 2 | `git<NBSP>push origin main` and `sudo<thin space>systemctl restart nginx` passed: the command-word rule wants an ASCII space after the word. | `_ascii_spaces()`: every Zs character becomes " " first, in `command_shaped()` and `money_shaped()` (so §5 and §6, and every caller). |
+| 3 | §6 lacked ₹, gbp, inr, bucks, pounds, the k/K/m/M multiplier; used `\s?`. | `_MONEY_SHAPES` are the contract's four patterns letter for letter; a test compares the pattern text to the contract's (`CONTRACT_MONEY_PATTERNS`). |
+| 4 | `WORKER_TASK_ID=task-x CXO_ROLE=dev ask --role cto` was accepted: the worker check was skipped whenever `CXO_ROLE` was set. | `resolve_requester`: if `WORKER_TASK_ID` is non-empty, any C-level role is refused, whatever `CXO_ROLE` says (`if worker and role in c_level_roles()`). This is the shared function, so `create` (command cards) closes the same hole. |
+| 5 | `RUN_INBOX_URL=https://host/api/run/questions/Q-…/answer?x=` made `ask` POST to that route (the query swallowed the rest). | `question_base_url()`: refused unless the address is `http(s)://host[:port]` plus at most one trailing `/` (regex `fullmatch`, so a trailing newline cannot slip past; no path, query, fragment, credentials or backslash). The one choke point is `_request`, for every path under `/api/run/questions` (ask, wait, cancel, list --questions, ask_ceo, ask_run_wait on a Q- id); `ask` / `ask_ceo` also check before the dry-run print. Exit 2, one line, names the part (`a path and a query`), never the value. |
+
+**Fix 5 scope — question verbs only, and why.** I grepped the worktree (every file type, hidden dirs included) for
+`RUN_INBOX_URL`: it appears only in `tools/ask_run.py`, the tests (`http://127.0.0.1:9`, the FakeHub's
+`http://127.0.0.1:<port>`), and three docs that name the default (`DESIGN.md:193`, `ALL_Protocol_RunInbox/SKILL.md:62`,
+`run-inbox-p1b-core.md:10`). No config, launcher, plist, unit or MCP setting in the repo sets it, and `printenv
+RUN_INBOX_URL` is empty in this process. So nothing *in the repo* relies on a path. But the variable is set outside
+the repo (Infisical / launchd / systemd on three machines) where I cannot look, so I applied the rule to the question
+verbs only, as you allowed, and left `create` / `wait RUN-…` / `cancel RUN-…` / `list` / `tail` on `base_url()`
+(a test, `test_command_cards_are_not_touched_by_the_new_rule`, pins that). Widening it to command cards is one line in
+`_request` if you want it.
+
+### Each fix with a test that fails on the round-2 code
+
+Method: `git show HEAD~1:tools/ask_run.py > tools/ask_run.py` (the round-2 module) with the new tests in place, run,
+then `git checkout HEAD -- tools/ask_run.py` (restored; `git status` clean). Whole file on the round-2 module:
+**161 failed, 182 passed**; on this commit: **343 passed**.
+
+| # | Headline test (`tests/test_ask_run_questions.py::`) | round-2 module | this commit |
+|---|---|---|---|
+| 1 | `test_a_command_in_why_is_refused_before_any_call` | 1 failed (`assert 3 == 2`: the question reached the hub and got its 404) | 1 passed |
+| 2 | `test_the_contracts_two_space_cases_are_refused_end_to_end` | 1 failed | 1 passed |
+| 3 | `test_money_is_refused_in_the_question_and_in_every_label` | 17 failed, 17 passed | 34 passed |
+| 4 | `test_a_worker_cannot_claim_a_c_level_role_whatever_cxo_role_says` | 36 failed (`assert 0 == 2`: the ask was accepted, id + URL printed) | 36 passed |
+| 5 | `test_every_question_verb_refuses_a_hub_address_with_more_than_host_and_port` | 11 failed (`assert 3 == 2` on `ask`: it went out and got a 404) | 11 passed |
+
+Failures on the round-2 module by fix (161 in all): #1 35 (31 command texts × the new why positions, the breaking
+input, the message test, the MCP twin, the refusal-table row), #2 19 (16 Zs characters, the contract's two cases, two
+table rows), #3 42 (17 + 8 rule-name + 1 pattern-text + 16 money-with-Zs, which fail on `gbp`/`bucks`), #4 41, #5 23,
+plus 1 shared table test (`test_org_refusals_match_the_cli_case_for_case`).
+
+What the new tests cover:
+- **#1** the CTO's breaking input, refused with 0 requests; each of the 31 `COMMAND_REFUSED` texts as the first, middle and
+  last line of `why`, with CRLF and with blank/indented lines; the pinned example's `why` still allowed; every
+  `COMMAND_ALLOWED` text allowed as a `why` line; every `MONEY_REFUSED` text allowed in `why`; the MCP tool gives the
+  CLI's message word for word.
+- **#2** every non-ASCII Zs code point in the interpreter's Unicode database (16, enumerated at import, asserted
+  non-vacuous) × `git push …`, `sudo systemctl …`, `Run git push …`, `rm -rf …` in the question, a label and a `why` line;
+  the same characters in four money texts; prose with NBSP / thin / ideographic spaces still passes.
+- **#3** the contract's table (refused: `Approve 100 GBP for ads?`, `Pay ₹500?`, `Spend 100 bucks?`, `Buy 2k credits?`,
+  `$  50`; allowed: `Tonight`, `50% / 50% split`, `Option 2`, `Keep 3 posters`), plus one case per new word/multiplier, each
+  rule named, the four patterns compared to the contract's text.
+- **#4** every C-level role in `policies/agents.yaml` × three ways of claiming it (`--role cto` with `CXO_ROLE=dev`; role
+  from `CXO_ROLE` alone; flag and `CXO_ROLE` agreeing) × both env set-orders (worker id first / `CXO_ROLE` first), live
+  ask, FakeHub saw 0 requests; `resolve_requester` directly with both dict orders; the MCP tool (`ask_ceo`, in-process
+  and through FastMCP); `create` (command card); and the negatives: a C-level session with no `WORKER_TASK_ID`, or with it
+  set to the empty string, still asks.
+- **#5** 11 bad addresses (the review's answer-route-with-query, a path, path + slash, `?x=1` on the host and on the slash,
+  an empty `?`, `#frag`, an empty `#`, `//`, a backslash, credentials) × five CLI calls (`ask` live and `--dry-run`, `wait`,
+  `cancel`, `list --questions`) with 0 requests, one stderr line, no echo of the value; × the MCP tools (`ask_ceo` live +
+  dry-run, `ask_run_wait` on a Q- id); the bare address with and without one trailing `/` still works; `_request` itself
+  refuses before opening a connection.
+
+Hand smoke (Contabo, `env -u WORKER_TASK_ID …`): the breaking `why` → `refused: command_shaped: why (line 2) looks like a
+command …` rc 2; `RUN_INBOX_URL=https://terminal.mooniex.com/api/x?y=1` → `refused: RUN_INBOX_URL must be the hub's address
+only … it has a path and a query` rc 2; `WORKER_TASK_ID=task-x CXO_ROLE=dev … --role cto` → `a worker cannot claim role 'cto'` rc 2.
+
+### Totals (interpreter `/opt/MoonieXHQ/Agents/Core/.venv/bin/python`, worktree cwd)
+
+| command | before round 3 | after |
+|---|---|---|
+| `python -m pytest tests/test_ask_run.py tests/test_ask_run_questions.py tests/test_w42b_node_token_cards.py scripts/test_cto_mcp_server.py` | 344 passed | **482 passed** (+138; `test_ask_run_questions.py` 205 → 343, the other three files 139 unchanged) |
+| `python scripts/test_org_tools_registry.py` | ALL PASS (30 PASS lines, 0 FAIL) | ALL PASS (30 PASS lines, 0 FAIL) |
+| `python scripts/test_tool_parity.py` | ALL PASS | ALL PASS |
+
+One existing table row changed: `CLEAN_CASES` had "money **and a command** in why are context, not checked" with
+`run ./deploy.sh after` in `why`; §5 now covers `why`, so that row is now money-only (a `why` with `$5` / `500 baht` /
+`100 GBP`) — the contract allows money in `why`, not a command.
+
+### For the reviewer
+- Files touched in round 3: `tools/ask_run.py`, `tests/test_ask_run_questions.py`, this report. Not touched: the registry, the
+  MCP stub, the COO allow-list, `tests/test_ask_run.py` or any other test file.
+- **Fix 4 changes a real path, not only a hole.** `runners/worker_init.py:509` builds a worker's env from
+  `os.environ.copy()` (minus `ORG_DB_URL`) and adds `WORKER_TASK_ID`/`WORKER_ROLE`; a worker therefore carries whatever the
+  spawner's env had, `CXO_ROLE` included when the spawner is a C-level process (read, not run). Round 2 let such a worker
+  file cards as the C-level role without `--role` (that is the hole). Now it is refused, so a worker must pass
+  `--role <its own role>` (WORKER_ROLE). I did not change the message to say so ("keep everything else").
+- Known §5 edge on `why` lines (the contract's "deterrent, not the boundary" paragraph): a prose line that starts with `/` and a
+  non-space (`/health is fine`) or contains a flag-shaped word (`use -v here`) is refused. Reword the line.
+- `answered_by` is still never compared (round 2); nothing in this round touches `verify_question_record`.
+- I do not know what field name the hub puts in `command_shaped {field}` for a `why` line; locally it reads `why` /
+  `why (line N)`. Only the local message uses mine.
+
+## Not checked / risk
+
+- **The Console's JS twin.** I did not open `src/run/questions*.js` (projects talk through APIs only). The Python side
+  carries the contract's text, and the contract says both sides share one test table; whether the Console's matcher also
+  maps Zs and scans `why` line by line is the other builder's to confirm. A hub that is looser than this tool is harmless
+  (the tool refuses first); a hub that is stricter shows up as a hub 400 `command_shaped`.
+- **`RUN_INBOX_URL` on the three machines** (Mac, winbox, Contabo: Infisical / launchd / systemd) was not inspected. If any
+  sets a path or a query, the question verbs on that machine now exit 2 until the variable is the bare address. Command
+  cards are unchanged on purpose.
+- **Workers that inherited `CXO_ROLE`.** I read `runners/worker_init.py` but did not spawn a worker. A worker that calls
+  `ask_run create` with no `--role` and an inherited `CXO_ROLE=cto` now exits 2 where it used to file as `cto`. Also not
+  checked: whether any launcher can leave `WORKER_TASK_ID` in a *C-level* pane's env (a tmux server first started from a
+  worker pane): that session would now be refused for `ask` and `create`.
+- **`why` false positives** were not measured against real `why` texts; the contract accepts them as edges.
+- **Not run:** the full suite, `tests/test_spawn_coo.py` (untouched since round 1, which recorded 1 pre-existing hub-env
+  failure), and anything against the live Console: every test talks to a FakeHub on 127.0.0.1.
+
+## Skill learning (round 3)
+
+- MISSING [ALL_Protocol_RunInbox §hub URL / environment]: the skill names `RUN_INBOX_URL` (default `https://terminal.mooniex.com`) but not that the question verbs (`ask`, `wait`/`cancel` Q-, `list --questions`, `ask_ceo`) now refuse any address with a path, query, fragment or credentials, so a path-prefixed hub address works for command cards and not for questions · evidence: task-4a53167b 1f1a5fc6
+- MISSING [no owner]: "CXO_ROLE is set" does not prove "this process is a C-level session": `runners/worker_init.py` copies `os.environ`, so a worker inherits `CXO_ROLE` when the process that spawned it has one. Any identity check has to key on the worker marker (`WORKER_TASK_ID`), never on a role variable the worker may have inherited · evidence: task-4a53167b 1f1a5fc6, `runners/worker_init.py:509`
+- COSTLY [no owner]: the Edit tool decodes ` `-style escapes typed in `new_string` into the raw character, so the test file silently got raw NBSP / thin-space characters (invisible in review, and not what a source reader sees). Found only by a `unicodedata` scan of the file; re-escaped them · evidence: task-4a53167b tests/test_ask_run_questions.py before 1f1a5fc6 · prevented by: after editing a file that carries invisible-character fixtures, scan it for non-ASCII Zs/Cf, or build such fixtures with `chr()`.
+- COSTLY [no owner]: a source-scan test (`"/answer" not in source`) failed on my own new docstring that described the bug by quoting the forbidden route; docstrings in a scanned file may not spell the thing the scan forbids · evidence: task-4a53167b test_no_source_builds_an_answer_url, first full run of round 3
+- COSTLY [no owner]: the task said "diff vs your copy" of the contract, but the worktree has no copy (the file exists only in the live checkout), so the diff was impossible and the whole contract had to be re-read; a worker brief that says "re-read §X" should name the section list, not rely on a diff · evidence: task-4a53167b round 3 start

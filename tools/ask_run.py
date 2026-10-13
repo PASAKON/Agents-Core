@@ -56,9 +56,14 @@ Refused here, BEFORE any network call (exit 2):
 Refused here for `ask` too (QUESTIONS.md §3.2; exit 2, one stderr line each):
 secret shapes in any field; a role that is not C-level (the hub: 403
 question_needs_c_level); 2-4 options and the question / why / label limits;
-a command-shaped (§5) or money-naming (§6) question or option label.
+a command-shaped (§5: the question, every label, every line of why) or
+money-naming (§6: the question and every label) text, Unicode spaces read as
+spaces; a worker process (WORKER_TASK_ID set) claiming a C-level role.
 
-Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com
+Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com. For the question
+       verbs (ask, wait/cancel Q-..., list --questions) it must be the bare
+       address, http(s)://host[:port] and at most one trailing "/": a path,
+       query or fragment would move where those calls go, so it is refused.
 Token: RUN_INBOX_TOKEN, else ~/.config/mooniex/run-inbox.token (mode 0600).
        Never printed, never logged, never sent anywhere but the hub: a
        redirect is refused, not followed (urllib would copy the
@@ -344,7 +349,7 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
         raise Refused("cannot tell this session's role: pass --role "
                       "(your C-level role, or dev for a worker)")
     worker = env.get("WORKER_TASK_ID")
-    if worker and not env.get("CXO_ROLE") and role in c_level_roles():
+    if worker and role in c_level_roles():   # whatever CXO_ROLE says: a worker env is never C-level
         raise Refused(f"this process is worker {worker} (WORKER_TASK_ID is set); "
                       f"a worker cannot claim role {role!r}")
     session = (session or "").strip()
@@ -450,12 +455,14 @@ _COMMAND_SHAPES = (
     ("a command line", re.compile(r"^(?:(?i:run|execute|exec|รัน|สั่ง)\s+)?(?:" + _any_of(_CMD_WORDS)
                                   + "|(?i:" + _any_of(_PS_WORDS) + ")) ")),
 )
+# §6 as amended 2026-10-13, pattern for pattern (tests/test_ask_run_questions.py pins the text).
 _MONEY_SHAPES = (
-    ("a currency sign before a digit", re.compile(r"[$฿€£¥]\s?\d")),
+    ("a currency sign before a digit", re.compile(r"[$฿€£¥₹]\s*\d")),
     ("an amount in a currency", re.compile(
-        r"\d[\d,.]*\s?(?:usd|thb|baht|eur|dollars?|บาท|ดอลลาร์|ดอลล่าร์)", re.IGNORECASE)),
-    ("a currency code before a digit", re.compile(r"\b(?:usd|thb|eur)\s?\d", re.IGNORECASE)),
-    ("an amount of credits", re.compile(r"\d[\d,.]*\s?(?:credits?|เครดิต)", re.IGNORECASE)),
+        r"\d[\d,.]*\s*[kKmM]?\s*(?:usd|thb|baht|eur|gbp|inr|dollars?|bucks?|pounds?|บาท|ดอลลาร์|ดอลล่าร์)",
+        re.IGNORECASE)),
+    ("a currency code before a digit", re.compile(r"\b(?:usd|thb|eur|gbp|inr)\s*\d", re.IGNORECASE)),
+    ("an amount of credits", re.compile(r"\d[\d,.]*\s*[kKmM]?\s*(?:credits?|เครดิต)", re.IGNORECASE)),
 )
 # Characters the CEO cannot see on the card but a string compare would: control
 # and format characters (zero-width, bidi overrides), line / paragraph
@@ -463,9 +470,17 @@ _MONEY_SHAPES = (
 _HIDDEN_CATEGORIES = ("Cc", "Cf", "Cs", "Zl", "Zp")
 
 
+def _ascii_spaces(text: str) -> str:
+    """Every Unicode space (category Zs: NBSP, thin space, ideographic space ...)
+    becomes an ASCII space before §5 / §6 match (QUESTIONS.md §5): the rules
+    look for a literal space after a command word, and `git\\u00a0push` is a
+    command the CEO reads as `git push`."""
+    return "".join(" " if unicodedata.category(c) == "Zs" else c for c in text)
+
+
 def command_shaped(text: str) -> str | None:
     """The name of the first §5 rule `text` matches, else None."""
-    text = text.strip()
+    text = _ascii_spaces(text).strip()
     for name, rx in _COMMAND_SHAPES:
         if rx.search(text):
             return name
@@ -474,6 +489,7 @@ def command_shaped(text: str) -> str | None:
 
 def money_shaped(text: str) -> str | None:
     """The name of the first §6 rule `text` matches, else None."""
+    text = _ascii_spaces(text)
     for name, rx in _MONEY_SHAPES:
         if rx.search(text):
             return name
@@ -595,7 +611,11 @@ def check_question(body: dict, args: argparse.Namespace) -> None:
         if _has_hidden_char(text, newline_ok=field == "why"):
             raise Refused(f"{hidden_code.get(field, 'invalid_options')}: {field} has a hidden "
                           "character (control, zero-width or bidi)")
-    for field, text in fields:
+    # §5 runs on the question, every label and every line of why, each line as its own text;
+    # §6 (money) never on why: context may mention cost.
+    why_lines = [(f"why (line {n})" if "\n" in why else "why", line)
+                 for n, line in enumerate(why.split("\n"), 1)]
+    for field, text in fields + why_lines:
         rule = command_shaped(text)
         if rule:
             raise Refused(f"command_shaped: {field} looks like a command ({rule}); a question is not a "
@@ -623,11 +643,44 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
 
 
 # ------------------------------------------------------------ hub access
+def _raw_base_url() -> str:
+    return (os.environ.get(URL_ENV) or "").strip() or DEFAULT_URL
+
+
 def base_url() -> str:
-    url = (os.environ.get(URL_ENV) or "").strip() or DEFAULT_URL
+    url = _raw_base_url()
     if urllib.parse.urlsplit(url).scheme not in ("http", "https"):
         raise HubError(f"{URL_ENV} must be an http(s) URL (got {url!r})")
     return url.rstrip("/")
+
+
+# scheme://host[:port] and at most one trailing "/": nothing the question routes could be steered by.
+_BARE_HUB_RE = re.compile(r"https?://[^\s/\\?#@\x00-\x1f]+/?", re.IGNORECASE)
+
+
+def question_base_url() -> str:
+    """base_url() for the question verbs: the hub's address and nothing after
+    host[:port] but an optional trailing "/". A base with a path, query or
+    fragment moves where `ask` / `wait` / `cancel` / `list --questions` really
+    go (a base ending in a question's own route plus `?x=` made `ask` POST
+    to that route; security review 2026-10-13). Command cards keep base_url():
+    no config here sets a path, but RUN_INBOX_URL lives outside this repo on
+    three machines. The message names the part, never the value (a query can
+    carry a secret)."""
+    try:
+        base_url()                               # the scheme error first, as for every verb
+        raw = _raw_base_url()
+        if _BARE_HUB_RE.fullmatch(raw):
+            return base_url()
+        parts = urllib.parse.urlsplit(raw)
+    except ValueError:                           # urlsplit: "Invalid IPv6 URL" and the like
+        raise Refused(f"{URL_ENV} is not a URL of the form http(s)://host[:port]") from None
+    extras = [name for name, present in (
+        ("a path", parts.path not in ("", "/")), ("a query", "?" in raw), ("a fragment", "#" in raw),
+        ("credentials", "@" in parts.netloc)) if present]
+    raise Refused(f"{URL_ENV} must be the hub's address only (http(s)://host[:port], at most one trailing "
+                  f"'/'), but it has {' and '.join(extras) or 'more after the host'}: question cards "
+                  "are sent to fixed routes under it, so a longer address would send them somewhere else")
 
 
 def token_path() -> Path:
@@ -723,10 +776,17 @@ def _hub_error(e: urllib.error.HTTPError) -> HubError:
     return HubError(msg, status=e.code, code=code, transient=e.code >= 500 or e.code == 429)
 
 
+def _is_question_path(path: str) -> bool:
+    return path == QUESTIONS_PATH or path.startswith(QUESTIONS_PATH + "/")
+
+
 def _request(method: str, path: str, *, body: Any = None, query: dict | None = None,
              accept: str = "application/json", timeout: float | None = HTTP_TIMEOUT_S):
+    # every question call (ask, wait, cancel, list --questions) passes the strict address check here,
+    # before the token is read and before a connection is opened
+    base = question_base_url() if _is_question_path(path) else base_url()
     token = load_token()
-    url = base_url() + path
+    url = base + path
     if query:
         url += "?" + urllib.parse.urlencode(query)
     headers = {"Authorization": "Bearer " + token, "Accept": accept, "User-Agent": USER_AGENT}
@@ -1060,10 +1120,11 @@ def mcp_ask_ceo(arguments: dict, env: dict | None = None) -> dict:
     try:
         ns = _mcp_question_namespace(arguments)
         payload = prepare_question(ns, env)
+        base = question_base_url()
     except Refused as e:
         raise Refused(f"refused: {e}") from None
     if ns.dry_run:
-        return {"dry_run": True, "would_post": base_url() + QUESTIONS_PATH, "payload": payload}
+        return {"dry_run": True, "would_post": base + QUESTIONS_PATH, "payload": payload}
     resp = submit_question(payload)
     return {"id": resp["id"], "url": resp["url"], "expires_at": resp.get("expires_at")}
 
@@ -1118,10 +1179,11 @@ def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
 
 def cmd_ask(args: argparse.Namespace) -> int:
     payload = prepare_question(args)
+    base = question_base_url()
     if args.dry_run:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         sys.stdout.flush()
-        _say(f"dry run: nothing sent (would POST {base_url()}{QUESTIONS_PATH})")
+        _say(f"dry run: nothing sent (would POST {base}{QUESTIONS_PATH})")
         return EXIT_OK
     resp = submit_question(payload)
     question_id = resp["id"]
