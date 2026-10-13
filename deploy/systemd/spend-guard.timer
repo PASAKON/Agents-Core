@@ -1,0 +1,13 @@
+# Installed at /etc/systemd/system/spend-guard.timer. Every 15 minutes, on the quarter hour.
+# Check with: systemctl list-timers spend-guard.timer
+[Unit]
+Description=Run spend-guard.service every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+AccuracySec=1min
+Persistent=false
+Unit=spend-guard.service
+
+[Install]
+WantedBy=timers.target
