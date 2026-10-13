@@ -360,3 +360,35 @@ def test_send_to_coo(monkeypatch):
     assert os.environ["CXO_ROLE"] == "cfo"
     assert os.environ["CXO_SESSION_ID"] == "original-session"
     assert os.environ["WORKER_TASK_ID"] == "original-task"
+
+
+def test_send_from_a_deploy_checkout_uses_the_live_cli(monkeypatch, tmp_path):
+    """deploy/systemd/tool-value-*.service run a pinned worktree with ORG_ROOT = the live checkout:
+    the letter must go through the live checkout's send_to_cxo, never this tree's."""
+    live = tmp_path / "live"
+    live.mkdir()
+    monkeypatch.setattr(tv, "send_to_coo", SEND_TO_COO)
+    monkeypatch.setattr(tv, "DATA_ROOT", live)
+    monkeypatch.setenv("WORKER_TASK_ID", "task-00000000")
+    seen = {}
+
+    def run(cmd, **kw):
+        seen.update(cmd=cmd, **kw)
+        return SimpleNamespace(returncode=0, stdout="queued to SomPong #x: [CTO tool-value] : r\n", stderr="")
+
+    monkeypatch.setattr(tv.subprocess, "run", run)
+    assert tv.send_to_coo("fixture report").startswith("queued to SomPong")
+    assert seen["cmd"][1:] == ["-m", "tools.send_to_cxo", "--from", "CTO tool-value", "coo", "fixture report"]
+    assert seen["cwd"] == str(live)
+    env = seen["env"]
+    assert (env["CXO_ROLE"], env["CXO_SESSION_ID"], env["ORG_ROOT"]) == ("cto", "tool-value", str(live))
+    assert "WORKER_TASK_ID" not in env
+
+
+def test_send_from_a_deploy_checkout_raises_on_failure(monkeypatch, tmp_path):
+    monkeypatch.setattr(tv, "send_to_coo", SEND_TO_COO)
+    monkeypatch.setattr(tv, "DATA_ROOT", tmp_path)
+    monkeypatch.setattr(tv.subprocess, "run", lambda cmd, **kw: SimpleNamespace(
+        returncode=2, stdout="", stderr="no active SomPong session found. Spawn one first"))
+    with pytest.raises(RuntimeError, match="exit 2: no active SomPong"):
+        tv.send_to_coo("fixture report")

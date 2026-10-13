@@ -1,22 +1,29 @@
 [Unit]
 Description=MoonieX tool-value weekly collect (plan 2026-10-13 T2)
-# Writes this host's tool-value row for the week to the hub
-# (docs/plans/tool-value-weekly-and-enforcement-2026-10-13.md §3.3). Triggered
-# by tool-value-collect.timer, not started directly.
+# Writes this host's tool-value row for the week to the hub as one
+# tool_usage_week event (docs/plans/tool-value-weekly-and-enforcement-2026-10-13.md
+# §3.3). Started by tool-value-collect.timer, not directly.
 #
-# ORG_DB_URL comes from scripts/hub/with-org-db-env.sh, not an
-# EnvironmentFile: Contabo's /root/.config/mooniex/org-db.env carries only
-# POSTGRES_*, so the URL is read through this host's Infisical identity
-# (wrapper leg b). With EnvironmentFile alone the collect no-ops as
-# "hub not configured".
+# The code runs from a pinned deploy worktree, worktrees/tool-value-deploy, checked
+# out detached at the origin/main sha the gate landed. Contabo's local main is held
+# (a60f1744) and has no tools/tool_value.py. ORG_ROOT points every data path (state/,
+# ledgers, mailbox) at the live checkout, and the letter goes through that checkout's
+# own tools/send_to_cxo.py. Once local main carries tool_value.py, point ExecStart at
+# /opt/MoonieXHQ/Agents/Core/tools/tool_value.py and remove the worktree
+# (docs/ops/tool-value-timers.md).
+#
+# ORG_DB_URL comes from scripts/hub/with-org-db-env.sh (this host's Infisical
+# identity), not from an EnvironmentFile. Without it lib.db lands on the archived
+# state/tasks.db and raises ArchivedDB, so the run fails and logs the error.
 After=network-online.target docker.service
 Wants=network-online.target
 
 [Service]
 Type=oneshot
 User=root
+Environment=ORG_ROOT=/opt/MoonieXHQ/Agents/Core
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Nice=10
 MemoryMax=300M
 TimeoutStartSec=15min
-ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/tool_value.py collect
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/worktrees/tool-value-deploy/tools/tool_value.py collect
