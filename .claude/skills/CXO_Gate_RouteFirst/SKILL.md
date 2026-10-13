@@ -61,12 +61,17 @@ refusal costs one edited line, and you know where the code is blind. Plan:
   - the older markers: psql, docker, systemctl, ssh, curl, `npm `, `bash `, …
 - The one exception is `tools/agy_browse.py` on the browser_agy lane.
 - **agy on Contabo is file-only.** Headless agy denies every command, so a brief whose first step
-  runs one ends with exit 0 and no output (task-0156526f).
-  - An agy brief asks for files only and says "the reviewer runs the tests".
-  - Never name pytest or a git verb in it, not even as text to avoid.
+  runs one ends with exit 0 and no output (task-0156526f, task-0ae05245).
+  - Read-only git, grep, md5sum and cat are commands too. The detector lets read-only git through,
+    and agy still refuses it.
+  - An agy brief asks for files only and says "the reviewer runs the tests" (or does the checks).
 - **The detector reads text, not intent.** A brief that quotes a shell word reads as a shell job,
-  even when the word appears only as text about the job (task-7b431b10).
-  - When you must quote one, pin the runner yourself (Gate 1, `ceo-order`).
+  even when the word appears only as text about the job: `npm ` inside a backtick span of a
+  translation, or a "no git, npm" ban line (task-7b431b10, task-3f99545e).
+  - Put `edit-only: <why>` in the header (the lines before the first blank line). The whole
+    brief then reads as not-shell, whatever words it quotes. A bare `edit-only:` with no reason
+    is ignored.
+  - A wrong marker costs one agy run: record it as runner_fit fail `no-shell`.
 - **Evidence:** the `router:` line names a runner that can do what the brief asks.
 
 ### Gate 3 — read the router's line after every delegate (code: `route.plan`, pressure rule)
@@ -87,6 +92,10 @@ refusal costs one edited line, and you know where the code is blind. Plan:
   branch with `quota-handoff`, keeping the partial work.
 - Its runner_fit says fail = limit and the % done (Q-20261013-1748-5efe).
 - Never re-pin it to Claude by hand without the code.
+- **The command:** `bash scripts/hub/org-python.sh tools/quota_handoff.py <task-id> [--pct-done N]`.
+  It finds the limit text in the run's logs, records the runner_fit and fails the old task, which
+  releases its locks. It then creates the successor (header line 1 `override: quota-handoff`,
+  line 2 the merge) and delegates it. `--dry-run` prints the plan and writes nothing.
 - **Evidence:** a new task whose line 1 is `override: quota-handoff …` and whose line 2 merges the
   outside branch.
 
@@ -96,6 +105,11 @@ refusal costs one edited line, and you know where the code is blind. Plan:
   - pass / redo / fail and the fail reason
   - why, minutes, iteration
   - `first_pass`: a merge with no reopen and no reviewer fix
+- **The command:** `bash scripts/hub/org-python.sh tools/runner_fit.py task <task-id> --job <type>
+  --result pass|redo|fail [--fail-reason R] [--reviewer-fix] [--why "…"]`. It reads runner, model,
+  bucket, minutes and iteration from the row and its status events, and works out `first_pass`.
+  `manual …` records a job with no hub row (an in-session Codex or Jules run). `list` prints what is
+  recorded.
 - A failure becomes a field note in that runner's Knowledge skill (n=1), and a rule only at n≥2
   (ADR 0026).
 - **Evidence:** one `runner_fit` event per closed outside task.
