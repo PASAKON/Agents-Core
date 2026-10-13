@@ -69,6 +69,9 @@ SESSION = "cto-spend-guard"   # the timer's own name in the hub's mail ledger (c
 ROLE = "cto"
 OPENROUTER = "https://openrouter.ai/api/v1"
 FAL = "https://api.fal.ai/v1"
+# The legacy balance call. api.fal.ai answers a Vercel challenge (HTTP 403, HTML) from Contabo's IP
+# even with no key (task-b1b251f0, 2026-10-14), so this one is read first.
+FAL_REST = "https://rest.alpha.fal.ai"
 LINKS = {"openrouter": "https://openrouter.ai/settings/credits",
          "openrouter-keys": "https://openrouter.ai/settings/keys",
          "fal": "https://fal.ai/dashboard/billing",
@@ -275,8 +278,23 @@ def read_openrouter(key: str, http: Http) -> dict:
 
 
 def read_fal(key: str, http: Http) -> dict:
-    """Prepaid balance. Needs a key with billing:usage:read (preset BILLING)."""
-    got = _get_json(http, f"{FAL}/account/billing?expand=credits", {"Authorization": f"Key {key}"}, "billing")
+    """Prepaid balance. Needs a key with billing:usage:read (preset BILLING).
+
+    `rest.alpha.fal.ai/billing/user_balance` answers a bare JSON number and is read first; the documented
+    `api.fal.ai/v1/account/billing` is the fallback (challenged from Contabo, see FAL_REST)."""
+    auth = {"Authorization": f"Key {key}"}
+    try:
+        status, got = http("GET", f"{FAL_REST}/billing/user_balance", auth, None)
+        bal = _num(got) if status == 200 else None
+        if bal is not None:
+            return {"ok": True, "balance": bal, "currency": "USD", "account": ""}
+        first = f"user_balance HTTP {status}" if status != 200 else "user_balance: not a number"
+    except ProviderError as e:
+        first = f"user_balance {e}"
+    try:
+        got = _get_json(http, f"{FAL}/account/billing?expand=credits", auth, "billing")
+    except ProviderError as e:
+        raise ProviderError(f"{first}; {e}") from None
     credits = got.get("credits") or {}
     bal = _num(credits.get("current_balance"))
     if bal is None:
