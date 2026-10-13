@@ -1,0 +1,744 @@
+{
+ "raw-spread": {
+  "file": "real/d-raw-spread.png",
+  "box": [
+   123,
+   580,
+   814,
+   91
+  ],
+  "take": "lip_a",
+  "note": "HOOK-2: Tickmill Raw card, table row `Spreads From 0.0 pips`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-raw.png",
+    "crop": [
+     150,
+     1368,
+     740,
+     1447
+    ],
+    "zoom": 1.5,
+    "at": [
+     98,
+     566
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true,
+  "z": 1.5
+ },
+ "head-logo": {
+  "file": "real/d-head-logo.png",
+  "box": [
+   420,
+   590,
+   272,
+   74
+  ],
+  "take": "lip_a",
+  "note": "HOOK-3: Tickmill's page header, logo only (crop x 0-250, y 62-132: no photo, no TradingView card)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-header.png",
+    "crop": [
+     0,
+     62,
+     250,
+     132
+    ],
+    "zoom": 1.6,
+    "at": [
+     340,
+     572
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true,
+  "z": 1.6
+ },
+ "head-pair": {
+  "file": "real/d-head-pair.png",
+  "box": [
+   90,
+   596,
+   736,
+   59
+  ],
+  "take": "lip_a",
+  "note": "HOOK-4: headings of the first two account cards, CLASSIC ACCOUNT and RAW ACCOUNT (crop x 15-715 stops short of the TradingView card at x 724)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-header.png",
+    "crop": [
+     15,
+     1098,
+     715,
+     1142
+    ],
+    "zoom": 1.35,
+    "at": [
+     68,
+     595
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true,
+  "z": 1.35
+ },
+ "formula-line": {
+  "file": "real/d-formula-line.png",
+  "box": [
+   81,
+   592,
+   836,
+   69
+  ],
+  "take": "lip_a",
+  "note": "PATTERN-1: Tickmill FAQ formula `Trade Cost = Spread x Trade Size x Pip Value`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-formula.png",
+    "crop": [
+     28,
+     862,
+     470,
+     898
+    ],
+    "zoom": 2.1990950226244346,
+    "at": [
+     54,
+     587
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true,
+  "z": 2.199
+ },
+ "swaps-rows": {
+  "file": "real/d-swaps-rows.png",
+  "box": [
+   118,
+   561,
+   845,
+   130
+  ],
+  "take": "lip_a",
+  "note": "PATTERN-2: Tickmill FAQ `What are swaps?` answer, first sentence in two rows: swaps are overnight interest charges applied when you hold a position past 00:00 platform time",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-swaps.png",
+    "crop": [
+     40,
+     913,
+     488,
+     941
+    ],
+    "zoom": 1.85,
+    "at": [
+     126,
+     569
+    ]
+   },
+   {
+    "src": "real/tm-swaps.png",
+    "crop": [
+     488,
+     913,
+     806,
+     941
+    ],
+    "zoom": 1.85,
+    "at": [
+     246,
+     631
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   693
+  ],
+  "fits": true,
+  "z": 1.85
+ },
+ "classic-para": {
+  "file": "real/d-classic-para.png",
+  "box": [
+   54,
+   580,
+   930,
+   128
+  ],
+  "take": "lip_b",
+  "note": "MAIN-3: Tickmill Classic page: `... with variable spreads starting from 1.6 pips and no commissions.`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-classic-para.png",
+    "crop": [
+     0,
+     990,
+     1080,
+     1130
+    ],
+    "zoom": 0.9,
+    "at": [
+     62,
+     584
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   729
+  ],
+  "fits": true,
+  "z": 0.9,
+  "rows": [
+   990,
+   1130
+  ]
+ },
+ "ex-commission": {
+  "file": "real/d-ex-commission.png",
+  "box": [
+   54,
+   610,
+   966,
+   70
+  ],
+  "take": "lip_b",
+  "note": "MAIN-7: Raw page example: `... commission per side would be 3 USD and 6 USD`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-raw-example.png",
+    "crop": [
+     0,
+     867,
+     1080,
+     996
+    ],
+    "zoom": 0.9,
+    "at": [
+     62,
+     561
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   729
+  ],
+  "fits": true,
+  "z": 0.9,
+  "rows": [
+   867,
+   996
+  ]
+ },
+ "ex-round": {
+  "file": "real/d-ex-round.png",
+  "box": [
+   54,
+   580,
+   966,
+   128
+  ],
+  "take": "lip_b",
+  "note": "MAIN-8: Raw page example: `... would be 3 USD and 6 USD round turn (or the equivalent amount in the`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-raw-example.png",
+    "crop": [
+     0,
+     924,
+     1080,
+     1062
+    ],
+    "zoom": 0.9,
+    "at": [
+     62,
+     583
+    ]
+   }
+  ],
+  "zone": [
+   560.0,
+   729
+  ],
+  "fits": true,
+  "z": 0.9,
+  "rows": [
+   924,
+   1062
+  ]
+ },
+ "recap-strip": {
+  "file": "real/d-recap-strip.png",
+  "box": [
+   60,
+   576,
+   960,
+   204
+  ],
+  "take": "lip_c",
+  "note": "SUMMARY-5: the three checks as a strip (the channel's own words)",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "SUMMARY-5: the three checks as a strip (the channel's own words)"
+   }
+  ],
+  "own_graphic": true,
+  "zone": [
+   560.0,
+   789
+  ],
+  "fits": true
+ },
+ "cta-strip": {
+  "file": "real/d-cta-strip.png",
+  "box": [
+   60,
+   576,
+   960,
+   204
+  ],
+  "take": "lip_c",
+  "note": "SUMMARY-6: the CTA word (the channel's own words)",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "SUMMARY-6: the CTA word (the channel's own words)"
+   }
+  ],
+  "own_graphic": true,
+  "zone": [
+   560.0,
+   789
+  ],
+  "fits": true
+ },
+ "date-strip": {
+  "file": "real/d-date-strip.png",
+  "box": [
+   60,
+   576,
+   960,
+   204
+  ],
+  "take": "lip_c",
+  "note": "SUMMARY-7: the date the figures were read (the channel's own words)",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "SUMMARY-7: the date the figures were read (the channel's own words)"
+   }
+  ],
+  "own_graphic": true,
+  "zone": [
+   560.0,
+   789
+  ],
+  "fits": true
+ },
+ "raw-example": {
+  "file": "real/d-raw-example.png",
+  "box": [
+   54,
+   648,
+   966,
+   304
+  ],
+  "take": null,
+  "note": "CONTEXT-1/2: Tickmill Raw page, the worked example paragraph (1 lot EURUSD, contract size 100,000 EUR)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-raw-example.png",
+    "crop": [
+     0,
+     792,
+     1080,
+     1130
+    ],
+    "zoom": 0.9,
+    "at": [
+     62,
+     651
+    ]
+   }
+  ],
+  "z": 0.9,
+  "rows": [
+   792,
+   1130
+  ],
+  "boxes": {
+   "lot": [
+    54,
+    648,
+    966,
+    70
+   ],
+   "size": [
+    54,
+    707,
+    556,
+    70
+   ]
+  }
+ },
+ "raw-para-calc": {
+  "file": "real/d-raw-para-calc.png",
+  "box": [
+   54,
+   634,
+   866,
+   66
+  ],
+  "take": null,
+  "note": "MAIN-6: Raw page line `fluctuating spreads starting from 0.0 pips.` and the channel's own spread row 0.0 x 1 x $10 = $0.00",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-raw-example.png",
+    "crop": [
+     0,
+     398,
+     1080,
+     462
+    ],
+    "zoom": 0.9,
+    "at": [
+     62,
+     640
+    ]
+   }
+  ],
+  "boxes": {
+   "spread": [
+    98,
+    872,
+    884,
+    110
+   ]
+  }
+ },
+ "logo-date": {
+  "file": "real/d-logo-date.png",
+  "box": [
+   364,
+   670,
+   400,
+   102
+  ],
+  "take": null,
+  "note": "CONTEXT-3: Tickmill logo (header crop) and the capture date, the channel's own words under it",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-header.png",
+    "crop": [
+     0,
+     62,
+     250,
+     132
+    ],
+    "zoom": 2.4,
+    "at": [
+     240,
+     640
+    ]
+   }
+  ]
+ },
+ "formula-faq": {
+  "file": "real/d-formula-faq.png",
+  "box": [
+   68,
+   778,
+   944,
+   79
+  ],
+  "take": null,
+  "note": "MAIN-1: Tickmill FAQ `How do you calculate your transaction cost?` and the formula line `Trade Cost = Spread x Trade Size x Pip Value`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-formula.png",
+    "crop": [
+     28,
+     780,
+     470,
+     815
+    ],
+    "zoom": 2.1,
+    "at": [
+     76,
+     672
+    ]
+   },
+   {
+    "src": "real/tm-formula.png",
+    "crop": [
+     28,
+     864,
+     470,
+     894
+    ],
+    "zoom": 2.1,
+    "at": [
+     76,
+     786
+    ]
+   }
+  ],
+  "z": 2.1
+ },
+ "formula-own": {
+  "file": "real/d-formula-own.png",
+  "box": [
+   84,
+   840,
+   912,
+   250
+  ],
+  "take": null,
+  "note": "MAIN-2: the page's formula rows and the channel's own arithmetic card 100,000 x 0.0001 = $10 per pip (not on the page)",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-formula.png",
+    "crop": [
+     28,
+     780,
+     470,
+     815
+    ],
+    "zoom": 2.1,
+    "at": [
+     76,
+     590
+    ]
+   },
+   {
+    "src": "real/tm-formula.png",
+    "crop": [
+     28,
+     864,
+     470,
+     894
+    ],
+    "zoom": 2.1,
+    "at": [
+     76,
+     693
+    ]
+   }
+  ],
+  "boxes": {
+   "card": [
+    84,
+    840,
+    912,
+    250
+   ]
+  }
+ },
+ "calc-classic": {
+  "file": "real/d-calc-classic.png",
+  "box": [
+   84,
+   600,
+   912,
+   372
+  ],
+  "take": null,
+  "note": "MAIN-4/5: calc card 1 (Classic): 1.6 x 1 x $10 = $16.00, commission $0.00, total $16.00 (cost_check.py)",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "MAIN-4/5: calc card 1 (Classic): 1.6 x 1 x $10 = $16.00, commission $0.00, total $16.00 (cost_check.py)"
+   }
+  ],
+  "own_graphic": true,
+  "boxes": {
+   "spread": [
+    98,
+    682,
+    884,
+    110
+   ],
+   "comm": [
+    98,
+    792,
+    884,
+    74
+   ],
+   "total": [
+    98,
+    866,
+    884,
+    104
+   ]
+  }
+ },
+ "calc-both": {
+  "file": "real/d-calc-both.png",
+  "box": [
+   84,
+   590,
+   912,
+   568
+  ],
+  "take": null,
+  "note": "MAIN-9: both calc cards (compact), Classic $16.00 and Raw $6.00, same size, same ink, no arrow",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "MAIN-9: both calc cards (compact), Classic $16.00 and Raw $6.00, same size, same ink, no arrow"
+   }
+  ],
+  "own_graphic": true,
+  "boxes": {
+   "classic_total": [
+    98,
+    780,
+    884,
+    84
+   ],
+   "raw_total": [
+    98,
+    1072,
+    884,
+    84
+   ]
+  }
+ },
+ "floor": {
+  "file": "real/d-floor.png",
+  "box": [
+   84,
+   770,
+   912,
+   230
+  ],
+  "take": null,
+  "note": "CURIOSITY-3: both totals are floors computed from the advertised `from` numbers",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "CURIOSITY-3: both totals are floors computed from the advertised `from` numbers"
+   }
+  ],
+  "own_graphic": true
+ },
+ "classic-card": {
+  "file": "real/d-classic-card.png",
+  "box": [
+   163,
+   988,
+   754,
+   90
+  ],
+  "take": null,
+  "note": "CURIOSITY-2: Tickmill Classic card: the sentence and the table row `Spreads From 1.6 pips`",
+  "credit": true,
+  "parts": [
+   {
+    "src": "real/tm-classic.png",
+    "crop": [
+     85,
+     362,
+     830,
+     598
+    ],
+    "zoom": 1.2,
+    "at": [
+     93,
+     690
+    ]
+   },
+   {
+    "src": "real/tm-classic.png",
+    "crop": [
+     85,
+     1372,
+     700,
+     1434
+    ],
+    "zoom": 1.2,
+    "at": [
+     171,
+     996
+    ]
+   }
+  ],
+  "z": 1.2
+ },
+ "checklist": {
+  "file": "real/d-checklist.png",
+  "box": null,
+  "take": null,
+  "note": "SUMMARY-2/3/4: the three checks as one card, one row boxed per beat (the channel's own words)",
+  "credit": false,
+  "parts": [
+   {
+    "src": null,
+    "own_graphic": "SUMMARY-2/3/4: the three checks as one card, one row boxed per beat (the channel's own words)"
+   }
+  ],
+  "own_graphic": true,
+  "boxes": {
+   "1": [
+    84,
+    720,
+    912,
+    126
+   ],
+   "2": [
+    84,
+    870,
+    912,
+    126
+   ],
+   "3": [
+    84,
+    1020,
+    912,
+    126
+   ]
+  }
+ }
+}
