@@ -55,6 +55,17 @@ SHELL_PATTERNS: list[str] = [
     "crontab",
     "launchctl",
     "ffmpeg",
+    "infisical run",
+    "org-python.sh",
+    "with-org-db-env.sh",
+    "git fetch",
+    "git pull",
+    "git merge",
+    "git rebase",
+    "git cherry-pick",
+    "git archive",
+    "git checkout -b",
+    "git worktree",
 ]
 
 
@@ -68,12 +79,24 @@ MAKE_COMMAND = re.compile(
     r"[a-z0-9_/-](?:[a-z0-9_./-]*[a-z0-9_/-])?(?=[ \t]*(?:$|&&|;|\||`)))",
     re.MULTILINE)
 
+PYTHON_COMMAND = re.compile(
+    r"\b(?:python3?|\.venv/bin/python)\s+(?:-m\s+(?!pytest\b)[\w.]+|-c\b|[\w./-]+\.py\b)",
+    re.IGNORECASE,
+)
+
 def needs_shell(brief: str | None) -> bool:
-    """Return True if brief tells the worker to run commands other than pytest/read-only git."""
+    """Return True if brief tells the worker to run commands other than pytest/read-only git.
+
+    pytest and read-only git (log, diff, show, status) stay not-shell, as now: the reviewer runs tests.
+    """
     if not brief:
         return False
     lower = brief.lower()
-    return any(p.lower() in lower for p in SHELL_PATTERNS) or bool(MAKE_COMMAND.search(lower))
+    return (
+        any(p.lower() in lower for p in SHELL_PATTERNS)
+        or bool(MAKE_COMMAND.search(lower))
+        or bool(PYTHON_COMMAND.search(lower))
+    )
 
 
 def infer_size(touches: list | tuple | None = None, brief: str | None = None) -> str:

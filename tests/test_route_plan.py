@@ -88,7 +88,7 @@ def test_plan_claude_will_hit_5h_and_agy_ok(mock_cfg, default_limits, monkeypatc
     assert p_agy.choice.runner == "agy"
     assert p_agy.choice.model == "gemini-3.8-flash-high"
     assert p_agy.verdict == "ok"
-    assert p_agy.why == "reserve 10% ok"
+    assert p_agy.why == "reserve 6.7% ok, pressure: claude 67% left, reserve 10%→6.7%"
     assert p_agy.after == pytest.approx(0.977)
 
     # claude is will_hit last with 5h 8% < min 30%
@@ -101,7 +101,7 @@ def test_plan_claude_will_hit_5h_and_agy_ok(mock_cfg, default_limits, monkeypatc
 
     # Check plan_line formatting
     agy_line = plan_line(p_agy)
-    assert agy_line == "agy gemini-3.8-flash-high · bucket agy-gemini 98.7%→97.7% (M ≈1%) reserve 10% ok"
+    assert agy_line == "agy gemini-3.8-flash-high · bucket agy-gemini 98.7%→97.7% (M ≈1%) reserve 6.7% ok, pressure: claude 67% left, reserve 10%→6.7%"
 
     claude_line = plan_line(p_claude)
     assert claude_line == "claude claude-sonnet-5-5 · bucket claude 67%→59% (M ≈8%) will_hit: 5h 8% < min 30%"
@@ -110,10 +110,10 @@ def test_plan_claude_will_hit_5h_and_agy_ok(mock_cfg, default_limits, monkeypatc
 def test_pick_runner_fallback_when_all_will_hit(mock_cfg, default_limits, monkeypatch):
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy"])
 
-    # Both will hit reserve: claude after 42% < 50%, agy after 5% < 10%
+    # Both will hit reserve: claude after 42% < 50%, agy after 4% < 5% (with pressure rule reserve 10% scaled by 0.5 = 5%)
     quotas = {
         "claude": Quota(provider="claude", weekly_remaining=0.50, daily_remaining=0.50),
-        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.06, daily_remaining=0.50),
+        "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.05, daily_remaining=0.50),
     }
 
     plans = plan(
@@ -163,7 +163,7 @@ def test_cli_plan(mock_cfg, default_limits, monkeypatch, capsys):
     out = capsys.readouterr().out.strip().splitlines()
     assert len(out) >= 2
     assert out[0].startswith("1. agy gemini-3.8-flash-high")
-    assert "reserve 10% ok" in out[0]
+    assert "reserve 6.7% ok" in out[0]
     assert out[1].startswith("2. claude claude-sonnet-5-5")
     assert "will_hit: 5h 8% < min 30%" in out[1]
 
@@ -300,4 +300,178 @@ def test_cli_plan_needs_shell(mock_cfg, default_limits, monkeypatch, capsys):
     assert "reserve 50% ok" in out[0]
     assert out[1].startswith("2. agy gemini-3.8-flash-high")
     assert "cannot: needs shell; agy is edit-only" in out[1]
+
+
+def test_pressure_case_1_codex_picked_on_dev_shell(mock_cfg, default_limits, monkeypatch):
+    """Pressure case 1 (task-88e23258): claude 0.86 and codex 0.69 left, a shell job (dev_shell) of size L -> codex is picked."""
+    monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "codex"])
+
+    quotas = {
+        "claude": Quota(provider="claude", weekly_remaining=0.86, daily_remaining=0.86),
+        "codex": Quota(provider="codex", weekly_remaining=0.69, daily_remaining=0.69),
+    }
+
+    choice = pick_runner(
+        "tester",
+        "mac",
+        size="L",
+        cfg=mock_cfg,
+        quotas=quotas,
+        skill={},
+        limits=default_limits,
+    )
+    assert choice is not None
+    assert choice.runner == "codex"
+
+    plans = plan(
+        "tester",
+        size="L",
+        host="mac",
+        cfg=mock_cfg,
+        quotas=quotas,
+        skill={},
+        limits=default_limits,
+    )
+    assert len(plans) == 2
+    assert plans[0].choice.runner == "codex"
+    assert plans[0].verdict == "ok"
+    assert "pressure: claude 86% left, reserve 20%→17.2%" in plans[0].why
+    assert plans[1].choice.runner == "claude"
+    assert plans[1].verdict == "ok"
+
+
+def test_pressure_case_2_codex_will_hit_vs_ok_based_on_claude(mock_cfg, default_limits, monkeypatch):
+    """Pressure case 2: codex 0.25 left, reserve 20, and an L cost of 8%
+    -> will_hit with claude at 1.0 left (claude is picked)
+    -> ok with claude at 0.5 left (codex is picked).
+    """
+    monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "codex"])
+
+    # Subcase A: Claude at 1.0 left -> codex eff reserve is 20%. after 17% < 20% -> will_hit. Claude picked.
+    quotas_a = {
+        "claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
+        "codex": Quota(provider="codex", weekly_remaining=0.25, daily_remaining=0.25),
+    }
+    choice_a = pick_runner(
+        "tester",
+        "mac",
+        size="L",
+        cfg=mock_cfg,
+        quotas=quotas_a,
+        skill={},
+        limits=default_limits,
+    )
+    assert choice_a is not None
+    assert choice_a.runner == "claude"
+
+    plans_a = plan(
+        "tester",
+        size="L",
+        host="mac",
+        cfg=mock_cfg,
+        quotas=quotas_a,
+        skill={},
+        limits=default_limits,
+    )
+    assert plans_a[0].choice.runner == "claude"
+    assert plans_a[0].verdict == "ok"
+    codex_plan_a = [p for p in plans_a if p.choice.runner == "codex"][0]
+    assert codex_plan_a.verdict == "will_hit"
+    assert "pressure: claude 100% left, reserve 20%→20%" in codex_plan_a.why
+
+    # Subcase B: Claude at 0.5 left -> codex eff reserve is 10%. after 17% >= 10% -> ok. Codex picked.
+    quotas_b = {
+        "claude": Quota(provider="claude", weekly_remaining=0.5, daily_remaining=0.5),
+        "codex": Quota(provider="codex", weekly_remaining=0.25, daily_remaining=0.25),
+    }
+    choice_b = pick_runner(
+        "tester",
+        "mac",
+        size="L",
+        cfg=mock_cfg,
+        quotas=quotas_b,
+        skill={},
+        limits=default_limits,
+    )
+    assert choice_b is not None
+    assert choice_b.runner == "codex"
+
+    plans_b = plan(
+        "tester",
+        size="L",
+        host="mac",
+        cfg=mock_cfg,
+        quotas=quotas_b,
+        skill={},
+        limits=default_limits,
+    )
+    assert plans_b[0].choice.runner == "codex"
+    assert plans_b[0].verdict == "ok"
+    assert "pressure: claude 50% left, reserve 20%→10%" in plans_b[0].why
+
+
+def test_pressure_rule_false_gives_old_order(mock_cfg, default_limits, monkeypatch):
+    """pressure_rule: false disables pressure scaling and outside-first ordering."""
+    monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "codex"])
+
+    cfg_no_pressure = dict(mock_cfg)
+    cfg_no_pressure["pressure_rule"] = False
+
+    quotas = {
+        "claude": Quota(provider="claude", weekly_remaining=0.86, daily_remaining=0.86),
+        "codex": Quota(provider="codex", weekly_remaining=0.69, daily_remaining=0.69),
+    }
+
+    choice = pick_runner(
+        "tester",
+        "mac",
+        size="L",
+        cfg=cfg_no_pressure,
+        quotas=quotas,
+        skill={},
+        limits=default_limits,
+    )
+    # Old order picked claude purely on headroom
+    assert choice is not None
+    assert choice.runner == "claude"
+
+    plans = plan(
+        "tester",
+        size="L",
+        host="mac",
+        cfg=cfg_no_pressure,
+        quotas=quotas,
+        skill={},
+        limits=default_limits,
+    )
+    assert len(plans) == 2
+    assert plans[0].choice.runner == "claude"
+    assert plans[1].choice.runner == "codex"
+    assert "pressure:" not in plans[1].why
+
+
+def test_pressure_rule_claude_quota_unknown_no_scaling(mock_cfg, default_limits, monkeypatch):
+    """Claude quota unknown -> outside reserves are not scaled."""
+    monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "codex"])
+
+    # Claude quota has error / unknown
+    quotas_unknown = {
+        "claude": Quota(provider="claude", error="quota read timed out"),
+        "codex": Quota(provider="codex", weekly_remaining=0.25, daily_remaining=0.25),
+    }
+
+    plans = plan(
+        "tester",
+        size="L",
+        host="mac",
+        cfg=mock_cfg,
+        quotas=quotas_unknown,
+        skill={},
+        limits=default_limits,
+    )
+    codex_plan = [p for p in plans if p.choice.runner == "codex"][0]
+    # Reserve not scaled (stays 20%), so 0.25 - 0.08 = 0.17 < 20% -> will_hit
+    assert codex_plan.verdict == "will_hit"
+    assert "pressure:" not in codex_plan.why
+
 

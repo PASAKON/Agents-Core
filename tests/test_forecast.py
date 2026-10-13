@@ -236,3 +236,20 @@ def test_needs_shell_make_is_a_command_not_the_verb():
     assert forecast.needs_shell("make install") is True
     assert forecast.needs_shell("make build && ./run") is True
     assert forecast.needs_shell("`make dist/app.tar`") is True
+
+
+def test_needs_shell_markers_v2():
+    # Shell markers and Python commands
+    assert forecast.needs_shell("bash scripts/hub/org-python.sh tools/x.py") is True
+    assert forecast.needs_shell("infisical run -- python tools/a.py") is True
+    assert forecast.needs_shell("python tools/tool_value.py report") is True
+    assert forecast.needs_shell(".venv/bin/python -c 'print(1)'") is True
+    assert forecast.needs_shell("git fetch origin x && git merge origin/x") is True
+
+    # Stays not-shell: pytest and read-only git
+    assert forecast.needs_shell("python -m pytest tests/test_x.py") is False
+    assert forecast.needs_shell("run pytest") is False
+    assert forecast.needs_shell("git log -1") is False
+    assert forecast.needs_shell("git diff main") is False
+    assert forecast.needs_shell("make sure it works") is False
+
