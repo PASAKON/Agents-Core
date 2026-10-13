@@ -260,6 +260,28 @@ def test_every_local_refusal_happens_before_any_http_call(hub, capsys, label, ca
     assert _val(12) not in out + err and "Q" * 16 not in out + err   # a secret value is never echoed
 
 
+def test_local_refusals_run_in_the_contracts_order(hub, capsys):
+    """secret shapes, then the role gate, then the §3.1 limits, then §5 command-shaped, then §6 money."""
+    secret = f"GITHUB_TOKEN={_val()}"
+    every_fault = {"role": NOT_C_LEVEL[0], "session": f"{NOT_C_LEVEL[0]}-x", "question": f"rm -rf /x {secret} $5",
+                   "options": ["only one `ls`"], "why": ""}
+    chain = [
+        ("secret_shaped_value", every_fault),
+        ("question_needs_c_level", {**every_fault, "question": "rm -rf /x $5"}),
+        # the §3.1 limits (question, why, options, expiry — their own order is the code's, not the contract's)
+        ("why_required", {**every_fault, "role": "cto", "session": "cto-t", "question": "rm -rf /x $5"}),
+        ("invalid_options", {**every_fault, "role": "cto", "session": "cto-t", "question": "rm -rf /x $5",
+                             "why": "ok"}),
+        ("command_shaped", {**every_fault, "role": "cto", "session": "cto-t", "question": "rm -rf /x $5",
+                            "options": ["A", "B"], "why": "ok"}),
+        ("money_needs_command_card", {"question": "Spend $5?"}),
+    ]
+    for code, case in chain:
+        assert ask_run.main(_argv(case, dry=False)) == 2, code
+        assert _code(_refusal(capsys.readouterr().err)) == code
+    assert hub.requests == []
+
+
 @pytest.mark.parametrize("label, case, field", SECRET_CASES, ids=[c[0] for c in SECRET_CASES])
 def test_secret_refusal_names_the_field_and_never_the_value(hub, capsys, label, case, field):
     assert ask_run.main(_argv(case, dry=False)) == 2
