@@ -496,6 +496,108 @@ def test_state_is_truncated_to_max_state_chars(tmp_path, monkeypatch):
     assert d.choice == "a"  # only matches if truncated to exactly "abcde"
 
 
+# ── Haiku 5.5 price-cliff flag (task-d4498b47, log-only) ─────────────────
+
+_DECISION_FIELDS = [
+    "choice", "probs", "provider", "tokens_in", "tokens_out", "latency_ms",
+    "cost_usd", "counterfactual_usd", "ledger_id", "calibrated", "error",
+]
+
+
+def _openrouter_resp(prompt_tokens: int) -> "_FakeResp":
+    return _FakeResp({
+        "choices": [{"message": {"content": json.dumps({"choice": "idle", "confidence": 0.9})}}],
+        "usage": {"prompt_tokens": prompt_tokens, "completion_tokens": 8},
+    })
+
+
+@pytest.mark.parametrize("n, want", [
+    (0, None), (2000, None), (79999, None),
+    (80000, "near"), (90000, "near"), (100000, "near"),
+    (100001, "over"), (500000, "over"), (100000.5, "over"),
+    (-5, None), (None, None), ("x", None), ("150000", None),
+    (True, None), (False, None), (float("nan"), None), (float("inf"), None),
+])
+def test_prompt_cliff_label_boundaries(n, want):
+    assert decide_mod.prompt_cliff_label(n) == want
+
+
+def test_prompt_cliff_constants():
+    assert decide_mod.PROMPT_CLIFF_TOKENS == 100000
+    assert decide_mod.PROMPT_CLIFF_NEAR == 80000
+
+
+def test_over_cliff_row_is_flagged_and_logged_to_stderr(monkeypatch, capsys):
+    _enable_openrouter(monkeypatch)
+    resp = _openrouter_resp(120000)
+    d = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE,
+        provider="openrouter", _http_post=lambda *a, **k: resp,
+    )
+    rows = decision_ledger.read_month()
+    assert len(rows) == 1
+    assert rows[0]["prompt_cliff"] == "over"
+    assert rows[0]["tokens_in"] == 120000
+    err = capsys.readouterr().err
+    assert (
+        "[price-cliff] decide site=browser.page_state provider=openrouter "
+        "tokens_in=120000 > 100000 — billed at the >100k rate if this model is Haiku 5.5"
+    ) in err
+    # The returned Decision is exactly what it was: same fields, same values.
+    assert list(d.to_dict()) == _DECISION_FIELDS
+    assert d.choice == "idle"
+    assert d.provider == "openrouter"
+    assert d.tokens_in == 120000 and d.tokens_out == 8
+    assert d.error is None
+
+
+def test_near_cliff_row_is_flagged_without_stderr(monkeypatch, capsys):
+    _enable_openrouter(monkeypatch)
+    resp = _openrouter_resp(85000)
+    d = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE,
+        provider="openrouter", _http_post=lambda *a, **k: resp,
+    )
+    rows = decision_ledger.read_month()
+    assert rows[0]["prompt_cliff"] == "near"
+    assert "price-cliff" not in capsys.readouterr().err
+    assert d.choice == "idle" and d.tokens_in == 85000
+
+
+def test_small_request_has_no_prompt_cliff_key(monkeypatch, capsys):
+    _enable_openrouter(monkeypatch)
+    resp = _openrouter_resp(2000)
+    decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE,
+        provider="openrouter", _http_post=lambda *a, **k: resp,
+    )
+    rows = decision_ledger.read_month()
+    assert "prompt_cliff" not in rows[0]
+    assert "price-cliff" not in capsys.readouterr().err
+
+
+def test_free_rules_row_has_no_prompt_cliff_key():
+    decide_mod.decide("browser.page_state", "generating now")
+    assert "prompt_cliff" not in decision_ledger.read_month()[0]
+
+
+def test_cliff_flag_can_never_break_decide(monkeypatch):
+    _enable_openrouter(monkeypatch)
+
+    def _boom(_n):
+        raise RuntimeError("label blew up")
+
+    monkeypatch.setattr(decide_mod, "prompt_cliff_label", _boom)
+    resp = _openrouter_resp(120000)
+    d = decide_mod.decide(
+        "browser.page_state", NEUTRAL_STATE,
+        provider="openrouter", _http_post=lambda *a, **k: resp,
+    )
+    assert d.choice == "idle"
+    rows = decision_ledger.read_month()
+    assert len(rows) == 1 and "prompt_cliff" not in rows[0]
+
+
 # ── MCP registration (both servers) ──────────────────────────────────────
 
 def test_decide_registered_in_cto_mcp_server():
