@@ -604,6 +604,25 @@ def agy_browse_usage(paths: Iterable[Path], win: Window) -> dict:
     return {"calls": len(keys), "failed": len(failed), "verbs": verbs, "files": read, "keys": sorted(keys)[:2000]}
 
 
+def fetch_agy_browse_hub(win: Window) -> dict:
+    """agy_browse calls a process with the hub env also wrote as hub events (tools/agy_browse.py
+    _hub_event). Same key as the file lines, so build_rows unions the two without double counting."""
+    from lib import db
+    lo, hi = iso(win.start - timedelta(days=1)), iso(win.end + timedelta(days=1))
+    with db.get_conn(readonly=True) as conn:
+        rows = conn.execute("SELECT payload FROM events WHERE kind=? AND ts >= ? AND ts < ?",
+                            ("agy_browse", lo, hi)).fetchall()
+    keys = set()
+    for row in rows:
+        try:
+            p = json.loads(row["payload"]) if isinstance(row["payload"], str) else row["payload"]
+        except ValueError:
+            continue
+        if isinstance(p, dict) and win.contains(parse_ts(p.get("ts"))):
+            keys.add(f"{p.get('ts')}|{p.get('verb')}|{p.get('port')}")
+    return {"calls": len(keys), "keys": sorted(keys)[:2000]}
+
+
 def agy_browse_paths(root: Path = DATA_ROOT) -> list[Path]:
     paths = [root / "state" / "agy-browse.jsonl"]
     wt = root / "worktrees"
@@ -864,6 +883,7 @@ def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
         run("runner_fit", lambda: {"records": fetch_runner_fit(win.end)})
         run("skill_commits", lambda: skill_commits(win, run=_git))
         run("context_deltas", lambda: {"records": fetch_context_deltas(win)})
+        run("agy_browse_hub", lambda: fetch_agy_browse_hub(win))
         run("quota", lambda: quota_usage(QUOTA_HISTORY, win))
         run("hub_tasks", lambda: hub_tasks_summary(*fetch_hub(win), win))
         run("jules_github", lambda: jules_github(jules_repos(), win, run=_gh))

@@ -25,7 +25,7 @@ def forbidden(*args, **kwargs):
 @pytest.fixture(autouse=True)
 def isolate(monkeypatch):
     for name in ("fetch_hub", "read_events", "write_event", "_gh", "send_to_coo", "_self_host",
-                 "fetch_runner_fit", "fetch_context_deltas", "_git"):
+                 "fetch_runner_fit", "fetch_context_deltas", "_git", "fetch_agy_browse_hub"):
         monkeypatch.setattr(tv, name, forbidden)
     # Also catch any captured subprocess default without executing a command.
     monkeypatch.setattr(tv.subprocess, "run", forbidden)
@@ -61,6 +61,7 @@ def local(tmp_path, monkeypatch):
     monkeypatch.setattr(tv, "fetch_runner_fit", lambda until: json.loads((root / "runner_fit.json").read_text()))
     monkeypatch.setattr(tv, "fetch_context_deltas", lambda win: json.loads((root / "context_deltas.json").read_text()))
     monkeypatch.setattr(tv, "_git", lambda args: "")
+    monkeypatch.setattr(tv, "fetch_agy_browse_hub", lambda win: {"calls": 0, "keys": []})
     return root
 
 
@@ -740,3 +741,35 @@ def test_subscription_lines_claude_already_at_target():
                                                  "anthropic": {"plans": [{"usd": 20, "from": "2026-09-01"}]}}}
     lines = tv.subscription_lines({"claude_used_pct": tv._cell(50.0, "measured")}, {}, plans, W)
     assert "- Claude: แพ็กเกจ $20 ไม่เกินเป้า $20 แล้ว (ตาม plans.yaml ณ สิ้นช่วง)" in lines
+
+
+
+REAL_FETCH_AGY_BROWSE_HUB = tv.fetch_agy_browse_hub  # bound at import, before `isolate` replaces it
+
+
+def test_agy_browse_hub_keys_union_with_the_file(monkeypatch):
+    rows = [{"payload": json.dumps({"ts": "2026-10-07T03:00:00.000001Z", "verb": "read", "port": 9280})},
+            {"payload": {"ts": "2026-10-07T03:00:00.000001Z", "verb": "read", "port": 9280}},  # same call twice
+            {"payload": json.dumps({"ts": "2026-10-14T03:00:00.000001Z", "verb": "read", "port": 9280})},  # outside W
+            {"payload": "not json"}]
+    seen = []
+
+    class Conn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def execute(self, sql, args):
+            seen.append((sql, args))
+            return type("R", (), {"fetchall": lambda self: rows})()
+
+    import lib.db
+    monkeypatch.setattr(lib.db, "get_conn", lambda **kw: Conn())
+    assert REAL_FETCH_AGY_BROWSE_HUB(W) == {"calls": 1, "keys": ["2026-10-07T03:00:00.000001Z|read|9280"]}
+    assert "kind=?" in seen[0][0] and seen[0][1][0] == "agy_browse"
+    # build_rows unions file keys and hub keys: the same call counted once.
+    payload = {"org": True, "sources": {"agy_browse": {"keys": ["2026-10-07T03:00:00.000001Z|read|9280", "x|tabs|9280"]},
+                                        "agy_browse_hub": {"keys": ["2026-10-07T03:00:00.000001Z|read|9280"]}}}
+    assert tv.build_rows({"contabo": payload}, W, ("contabo",), {})["agy_browse_calls"]["value"] == 2
