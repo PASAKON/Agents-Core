@@ -106,6 +106,10 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
 - Design: `docs/design/tasks-db-hub.md`. Machines and cross-machine calls:
   `docs/design/org-mesh.md`; health check `tools/mesh_check.py` (`docs/ops/mesh-check.md`).
 
+## Messaging another session (CEO 2026-10-13, every C-level, every machine)
+
+Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (one call, every host, under 1k tokens) and send only to a name it prints, verbatim — never to a name from memory or an old ListAgents list; "N agents are named X" → re-send with the `[ref]` the error marks active. Design + rollout: `docs/ops/live-sessions.md`.
+
 ## Contabo — one tmux server holds every session
 
 - Every C-level, worker and SomPong pane runs in ONE root tmux server (`/tmp/tmux-0/default`).

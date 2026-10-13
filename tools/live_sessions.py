@@ -293,14 +293,24 @@ def _row_from_file(path: Path) -> dict | None:
         return None
 
 
+def _proc_start(raw) -> int | None:
+    """procStart as Linux writes it (/proc stat field 22: an int or a digit
+    string), else None. Claude Code on macOS writes a date string ("Tue Oct 13
+    11:55:05 2026"); it is only compared on Linux, so it must not drop the row."""
+    if isinstance(raw, int) and not isinstance(raw, bool):
+        return raw
+    if isinstance(raw, str) and raw.isascii() and raw.isdigit():
+        return int(raw)
+    return None
+
+
 def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
     """The row for one session record (a file's JSON, or an entry the winbox
     pull returns, whose liveness the far side already checked), or None."""
     try:
         pid = int(data["pid"])
         session_id = _clean(data["sessionId"], 64)
-        proc_start = data.get("procStart")
-        proc_start = int(proc_start) if proc_start is not None else None
+        proc_start = _proc_start(data.get("procStart"))
     except (KeyError, TypeError, ValueError, AttributeError):
         return None
     # pid is an INTEGER column: one out-of-range value would fail the whole host's publish
