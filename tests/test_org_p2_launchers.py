@@ -593,3 +593,12 @@ def test_an_agy_worker_knows_it_is_a_worker():
     agy = src.index('if runner == "agy":')
     assert -1 < src.find('os.environ["WORKER_TASK_ID"] = task_id') < agy
     assert -1 < src.find('os.environ["WORKER_ROLE"] = role') < agy
+
+
+def test_a_project_head_runs_opus_at_medium():
+    # CEO 2026-10-14: the PH directs workers, so it gets a strong model at
+    # medium effort. cxo-claude.sh passes these two fields as --model/--effort.
+    from lib.config import role as get_role
+    r = get_role(PH)
+    assert (r["model"], r["effort"]) == ("claude-opus-5-5[1m]", "medium")
+    assert (get_role("cto")["model"], get_role("cto")["effort"]) == ("claude-opus-5-5[1m]", "xhigh")

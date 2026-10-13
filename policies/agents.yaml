@@ -112,9 +112,12 @@ roles:
   project_head:
     display: Project Head
     level: m
-    model: "claude-sonnet-5-5[1m]"   # plan §3.2: Sonnet 5.5 at xhigh
+    # Opus 5.5 at medium: the one who directs the workers must be a strong
+    # model (CEO 2026-10-14 ~04:20 TH via SomPong, relayed by CTO #e106b78b;
+    # replaces plan §3.2's Sonnet 5.5 at xhigh). C-levels stay Opus xhigh.
+    model: "claude-opus-5-5[1m]"
     fallback_model: "claude-fable-5"
-    effort: "xhigh"
+    effort: "medium"
     can_write_wiki: false
     can_create_task: true
     can_merge: false

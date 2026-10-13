@@ -43,7 +43,8 @@ card caps: the CEO declined them (Q-20261013-2045-0404) and Console #27 was reve
 - Name: `<MACHINE> Project Head (<LANE>) #<id> (<Project>)`, e.g.
   `CONTABO Project Head (CTO) #3c1f65ae (OrgRestructure)` (the machine prefix is the CEO's
   2026-08-30 rule). `tools/live_sessions.py` reads that shape as role `project_head`.
-- Policy row: `policies/agents.yaml` `project_head` — Sonnet 5.5 (1M) at xhigh, `can_merge: false`,
+- Policy row: `policies/agents.yaml` `project_head` — Opus 5.5 (1M) at effort medium (CEO
+  2026-10-14, replacing the plan's Sonnet 5.5 at xhigh; C-levels stay Opus at xhigh), `can_merge: false`,
   `can_ask_ceo: false`, `max_workers: 2`. Role doc `roles/project_head.md` is the COO's to write
   (plan §13); the launcher refuses `--role project_head` until it exists.
 
