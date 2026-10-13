@@ -1,0 +1,27 @@
+# Installed at /etc/systemd/system/contabo-invoice-reminder.service (Contabo; copy this file).
+#
+# Emails the CEO to top up Contabo (€8.00 a month) 3 days and 1 day before the month-end invoice, so he
+# never pays the ~$5 restore fee (CEO order 2026-10-12, relayed by SomPong). One kind=action mail per
+# fire through the Console's CEO mail API (tools/contabo_invoice_reminder.py → tools/email_ceo.py, skill
+# ALL_Protocol_EmailCEO), as session cto-contabo-invoice. No model, no Contabo login, no card detail.
+# The Run token comes from root's ~/.config/mooniex/run-inbox.token (tools/ask_run.py).
+# Started by contabo-invoice-reminder.timer. Exit 3 (hub down) is retried; exit 2 (a cap or a
+# duplicate) is the hub's answer and is not.
+[Unit]
+Description=Contabo invoice reminder mail to the CEO
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=4h
+StartLimitBurst=12
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+ExecStart=/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/contabo_invoice_reminder.py
+Restart=on-failure
+RestartSec=15min
+RestartPreventExitStatus=2
+TimeoutStartSec=120
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
