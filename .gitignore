@@ -12,6 +12,7 @@ state/session-diagrams/
 state/logs/*.log
 state/logs/*_latest.log
 state/locks/*.lock
+state/locks/live_sessions.spawned
 state/locks/*.log
 state/locks/*.winid
 state/locks/*-active
