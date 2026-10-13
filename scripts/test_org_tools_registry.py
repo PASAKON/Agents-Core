@@ -419,7 +419,7 @@ def main() -> int:
     db.init()
 
     print("== registry shape ==")
-    _mark(test_registry_names_match_prod(), "registry has exactly the 26 cto_mcp_server.py tool names")
+    _mark(test_registry_names_match_prod(), "registry has exactly the 27 cto_mcp_server.py tool names")
 
     print("== owner_cto regression (point 1) ==")
     ok, seed_tid = test_owner_cto_regression()
