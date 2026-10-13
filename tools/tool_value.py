@@ -57,6 +57,7 @@ SITES_DIR = ROOT / "config" / "decisions"
 CREDIT_LEDGER = DATA_ROOT / "docs" / "ops" / "credit-ledger.jsonl"
 OPENROUTER_BALANCE = DATA_ROOT / "docs" / "ops" / "jev-lab-2026-09-23" / "balance.jsonl"
 PROTOTYPES_DIR = DATA_ROOT / "prototypes"
+AGENT_CALLS = DATA_ROOT / "state" / "reports" / "agent-calls.jsonl"   # T4 hook spool, scripts/hook-agent-route-log.py
 REPORT_DIR = DATA_ROOT / "state" / "reports" / "tool-value"
 JULES_CONFIG = ROOT / "config" / "jules.yaml"
 PLANS_CONFIG = ROOT / "config" / "plans.yaml"
@@ -577,6 +578,42 @@ def decision_usage(ledger_dir: Path, sites_dir: Path, win: Window) -> dict:
             "saved_usd": round(counterfactual - cost, 6)}
 
 
+def agent_calls_usage(path: Path, win: Window) -> dict:
+    """Agent/Task tool calls in C-level sessions, from the log-only hook's spool (plan §4.3 M2, T4).
+
+    `unrouted` is what block mode would refuse: not a read-only subagent type and no `route:` / `override:`
+    on the prompt's first line. `first_ts` is the spool's first line, so a window that ends before the hook
+    started reads ไม่มีข้อมูล, never zero. Streams the file; keeps counts and a session set only."""
+    first = None
+    calls = read_only = unrouted = routed = overridden = background = 0
+    types: dict[str, int] = {}
+    sessions: set[str] = set()
+    for row in _jsonl(path):
+        ts = parse_ts(row.get("ts"))
+        if ts is None:
+            continue
+        first = ts if first is None or ts < first else first
+        if not win.contains(ts):
+            continue
+        calls += 1
+        sessions.add(str(row.get("session_id") or ""))
+        kind = str(row.get("subagent_type") or "general-purpose")
+        types[kind] = types.get(kind, 0) + 1
+        background += bool(row.get("background"))
+        if row.get("read_only"):
+            read_only += 1
+        elif row.get("route"):
+            routed += 1
+        elif row.get("override"):
+            overridden += 1
+        else:
+            unrouted += 1
+    return {"calls": calls, "read_only": read_only, "routed": routed, "override": overridden,
+            "unrouted": unrouted, "background": background, "sessions": len(sessions - {""}),
+            "types": dict(sorted(types.items(), key=lambda kv: -kv[1])[:8]),
+            "first_ts": iso(first) if first else None}
+
+
 def agy_browse_usage(paths: Iterable[Path], win: Window) -> dict:
     """agy_browse calls in `win` from the main log and every worktree copy still on disk. Each call keeps
     its timestamp as a key so the report can union hosts and hub events without double counting."""
@@ -621,6 +658,51 @@ def fetch_agy_browse_hub(win: Window) -> dict:
         if isinstance(p, dict) and win.contains(parse_ts(p.get("ts"))):
             keys.add(f"{p.get('ts')}|{p.get('verb')}|{p.get('port')}")
     return {"calls": len(keys), "keys": sorted(keys)[:2000]}
+
+
+def router_off_summary(rows: list[dict], win: Window) -> dict:
+    """delegate_task calls that skipped the router: hub kind `router_off`, written by tools/delegate.py
+    _log_router_off (PH P2), payload {reason, runner, model_hint, pinned}. Counts distinct tasks in `win`.
+    `first_ts` is the earliest such event in `rows`, so a window before the first one reads ไม่มีข้อมูล."""
+    first = None
+    tasks: set[str] = set()
+    pinned: set[str] = set()
+    reasons: dict[str, int] = {}
+    runners: dict[str, int] = {}
+    for i, r in enumerate(rows):
+        ts = parse_ts(r.get("ts"))
+        if ts is None:
+            continue
+        first = ts if first is None or ts < first else first
+        if not win.contains(ts):
+            continue
+        try:
+            pl = json.loads(r["payload"]) if isinstance(r.get("payload"), str) else r.get("payload")
+        except ValueError:
+            pl = None
+        pl = pl if isinstance(pl, dict) else {}
+        key = r.get("task_id") or f"event-{i}"
+        if key in tasks:
+            continue  # a retried delegate logs again; one task counts once
+        tasks.add(key)
+        if pl.get("pinned"):
+            pinned.add(key)
+        why = str(pl.get("reason") or "").strip()
+        code = _reason_code(why) if why else "ไม่ระบุ"
+        reasons[code] = reasons.get(code, 0) + 1
+        runner = str(pl.get("runner") or "?")
+        runners[runner] = runners.get(runner, 0) + 1
+    order = lambda d: dict(sorted(d.items(), key=lambda kv: (-kv[1], kv[0])))
+    return {"tasks": len(tasks), "pinned": len(pinned), "reasons": order(reasons), "runners": order(runners),
+            "first_ts": iso(first) if first else None}
+
+
+def fetch_router_off(win: Window) -> dict:
+    from lib import db
+    with db.get_conn(readonly=True) as conn:
+        rows = conn.execute("SELECT ts, task_id, payload FROM events WHERE kind=? AND ts < ? ORDER BY ts, id",
+                            ("router_off", iso(win.end))).fetchall()
+    return router_off_summary([dict(r) for r in rows], win)
 
 
 def agy_browse_paths(root: Path = DATA_ROOT) -> list[Path]:
@@ -884,6 +966,7 @@ def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
         run("skill_commits", lambda: skill_commits(win, run=_git))
         run("context_deltas", lambda: {"records": fetch_context_deltas(win)})
         run("agy_browse_hub", lambda: fetch_agy_browse_hub(win))
+        run("router_off", lambda: fetch_router_off(win))
         run("quota", lambda: quota_usage(QUOTA_HISTORY, win))
         run("hub_tasks", lambda: hub_tasks_summary(*fetch_hub(win), win))
         run("jules_github", lambda: jules_github(jules_repos(), win, run=_gh))
@@ -892,6 +975,7 @@ def collect(win: Window, host: str, *, org: bool, now: datetime | None = None,
     run("codex_rollouts", lambda: codex_usage(CODEX_SESSIONS, win))
     run("decisions", lambda: decision_usage(DECISIONS_DIR, SITES_DIR, win))
     run("agy_browse", lambda: agy_browse_usage(agy_browse_paths(), win))
+    run("agent_calls", lambda: agent_calls_usage(AGENT_CALLS, win))
     run("credit_ledger", lambda: credit_usage(CREDIT_LEDGER, win))
     run("bl_jev", lambda: bl_jev_usage(PROTOTYPES_DIR, win))
     return {"schema": SCHEMA, "host": host, "org": org, "window": win.as_json(),
@@ -1166,6 +1250,41 @@ def build_rows(rows: dict[str, dict], win: Window, hosts: Iterable[str], plans: 
         rows, "transcripts",
         lambda s: sum(x.get("sidechain_output_tokens", 0) for x in (s.get("families") or {}).values()), hosts))
 
+    # T4 hook spool: a host whose hook had not started by the window's end has no number (not a zero).
+    def hooked(field):
+        def get(s):
+            first = parse_ts(s.get("first_ts"))
+            return s.get(field) if first is not None and first < win.end else None
+        return get
+    v, got, gone = _host_sum(rows, "agent_calls", hooked("calls"), hosts)
+    starts = [parse_ts(_src(rows, h, "agent_calls")["first_ts"]) for h in got]
+    late = [s for s in starts if s > win.start]
+    since = f"เริ่มเก็บ {min(late).astimezone(BKK):%d/%m %H:%M}" if late else ""
+    if v is not None:
+        ro, _, _ = _host_sum(rows, "agent_calls", hooked("read_only"), got)
+        ss, _, _ = _host_sum(rows, "agent_calls", hooked("sessions"), got)
+        since = " · ".join(x for x in (f"อ่านอย่างเดียว {ro}", f"{ss} session", since) if x)
+    c["agent_calls"] = measured(v, got, gone, since)
+
+    ro = _org_src(rows, "router_off")
+    first = parse_ts(ro.get("first_ts")) if ro is not None else None
+    if ro is None:
+        c["router_off"] = _none(_org_missing(rows, "router_off"))
+    elif first is None or first >= win.end:
+        c["router_off"] = _none("ยังไม่มี event router_off เลย (P2 ยังไม่ลง หรือยังไม่มีใครปิด router)")
+    else:
+        why = " ".join(f"{k} {v}" for k, v in (ro.get("reasons") or {}).items())
+        c["router_off"] = _cell(ro.get("tasks"), "measured", " · ".join(x for x in (
+            f"pin อยู่แล้ว {ro.get('pinned')}", f"เหตุผล: {why}" if why else "",
+            f"เริ่มเก็บ {first.astimezone(BKK):%d/%m %H:%M}" if first > win.start else "") if x))
+    v, got, gone = _host_sum(rows, "agent_calls", hooked("unrouted"), hosts)
+    if v is not None:
+        rt, _, _ = _host_sum(rows, "agent_calls", hooked("routed"), got)
+        ov, _, _ = _host_sum(rows, "agent_calls", hooked("override"), got)
+        c["agent_calls_unrouted"] = measured(v, got, gone, f"มี route: {rt} · มี override: {ov} · hook ยังไม่บล็อก")
+    else:
+        c["agent_calls_unrouted"] = measured(None, got, gone)
+
     v, got, gone = _host_sum(rows, "codex_rollouts", lambda s: s.get("sessions"), hosts)
     c["codex_sessions"] = _cell(v, "measured", _scope(got, gone)) if v is not None else _none(_scope(got, gone))
     v, got, gone = _host_sum(rows, "codex_rollouts", lambda s: (s.get("tokens") or {}).get("output_tokens"), hosts)
@@ -1256,6 +1375,8 @@ ROW_ORDER = (
     ("Claude", "output tokens Opus", "opus_out_tokens"),
     ("Claude", "output tokens Sonnet", "sonnet_out_tokens"),
     ("Claude", "output tokens ใน subagent (ทุกรุ่น)", "sidechain_out"),
+    ("Claude", "เรียก Agent ใน session C-level", "agent_calls"),
+    ("Claude", "Agent ที่จะโดนบล็อก (ไม่มี route:/override:)", "agent_calls_unrouted"),
     ("Haiku 5.5", "ข้อความ assistant", "haiku_messages"),
     ("Haiku 5.5", "สัดส่วน output tokens ของตระกูล Claude %", "haiku_share"),
     ("Codex/ChatGPT", "โควตาสัปดาห์ที่ใช้ %", "codex_used_pct"),
@@ -1278,6 +1399,7 @@ ROW_ORDER = (
     ("ความคุ้ม", "งานที่คุ้มค่า", "worthwhile"),
     ("ความคุ้ม", "รอบเฉลี่ย", "iterations"),
     ("ความคุ้ม", "งานที่ข้าม router", "router_skipped"),
+    ("ความคุ้ม", "งานที่ปิด router (router_off)", "router_off"),
     ("ความคุ้ม", "output tokens / งาน worker", "tokens_per_job_worker"),
     ("ความคุ้ม", "output tokens C-level / งาน", "tokens_per_job_clevel"),
     ("ความคุ้ม", "$ ต่อ 1% (Anthropic $20)", "usd_per_pct_anthropic_20"),
@@ -1287,7 +1409,8 @@ ROW_ORDER = (
     ("ความคุ้ม", "งานพัง/แก้ซ้ำ ต่อ runner", "redo"),
 )
 COUNT_ROWS = {"tasks_claude", "claude_pinned", "tasks_unrouted", "haiku_messages", "tasks_codex", "codex_sessions",
-              "tasks_agy", "agy_browse_calls", "jules_prs", "jules_sessions", "jev_calls", "bl_episodes"}
+              "tasks_agy", "agy_browse_calls", "jules_prs", "jules_sessions", "jev_calls", "bl_episodes",
+              "agent_calls", "agent_calls_unrouted", "router_off"}
 
 
 def _fmt(v) -> str:
