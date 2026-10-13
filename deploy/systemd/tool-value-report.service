@@ -1,0 +1,23 @@
+[Unit]
+Description=MoonieX tool-value weekly report to SomPong (plan 2026-10-13 T2)
+# Builds the report from the hub rows and sends one letter to SomPong (COO),
+# who takes it to the CEO (docs/plans/tool-value-weekly-and-enforcement-2026-10-13.md §3.3).
+# The report reads "ไม่มีข้อมูล" for a host with no row and never guesses.
+# Triggered by tool-value-report.timer, not started directly.
+#
+# ORG_DB_URL comes from scripts/hub/with-org-db-env.sh, not an
+# EnvironmentFile: Contabo's /root/.config/mooniex/org-db.env carries only
+# POSTGRES_*, so the URL is read through this host's Infisical identity
+# (wrapper leg b). With EnvironmentFile alone the report no-ops as
+# "hub not configured".
+After=network-online.target docker.service tool-value-collect.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Nice=10
+MemoryMax=300M
+TimeoutStartSec=15min
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/tool_value.py report
