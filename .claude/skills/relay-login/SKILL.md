@@ -142,7 +142,13 @@ the site's own dashboard is the success (§5).
   **Why hard:** a credential in a transcript cannot be unshown.
 - **QR logins** (TikTok, LINE): the relay switches to QR mode itself; TikTok
   then needs an in-app confirm tap and the QR lives 1–2 min — start the Chrome
-  only when the CEO is holding the phone.
+  only when the CEO is holding the phone. After the scan TikTok may ask for
+  more on the SAME path (`/login/qrcode`): "send a code by email", then 6
+  digits. Since Console 6ce00f9 the post-scan wait takes input (taps open the
+  phone keyboard, the mirror and type box run), and a text input or an SPA
+  route change switches it to the form view. Before 6ce00f9 the page froze
+  there (rq-2bebfe9f, rq-ea4f57fd). If a later step still freezes, read host +
+  path + title, not the screen, and file it against Console with the request id.
 - **"กดไม่ติด"**: read the tab's host+path first (`node scripts/relay-inspect.mjs
   --port N` on the Console host), then think about coordinates.
 
@@ -167,6 +173,18 @@ never a value, cookie or QR payload.
 
 ## 5. After the login
 
+- **Done is checked only where a cookie rule exists** (Console 6ce00f9,
+  `src/relay/sites.js`: TikTok `sessionid` @ `.tiktok.com`, Google `SID` @
+  `.google.com`). On those sites the CEO's เสร็จแล้ว closes the request only
+  when the cookie is there (matched by name and domain, never the value).
+  Otherwise his phone shows "ยังไม่เสร็จ" and the request stays open. `wait`
+  prints what backed the close: `<id> done (by operator:CEO; cookie sessionid
+  @ .tiktok.com) — continue`. `not verified (no site rule)` means a site with
+  no rule; confirm it yourself before going on. Do not use a "logged-in URL"
+  as the signal for TikTok: a logged-OUT Chrome stays on
+  `www.tiktok.com/tiktokstudio`, title "TikTok Studio", with no redirect
+  (probed 2026-10-13 for 15 s, task-531ef8d0). Before 6ce00f9 a Done closed
+  the request with no check, and rq-2bebfe9f read "done" with no session.
 - Confirm from your side (the site's API/page), not from the relay's banner.
 - Quit a Mac Chrome you started — the process, never its profile (§1). Leave
   winbox/Contabo ones only if the task keeps using them; say which port you left up.
@@ -222,5 +240,5 @@ never a value, cookie or QR payload.
 - 2026-10-03 [MISSING] §intro CLI logins — second sighting, new shape: a Colab CLI sign-in rewritten to use a localhost redirect (InstalledAppFlow.run_local_server, the sign-in tab opened in a relay Browser Home over CDP, so no agent would see the code or the token) was still refused by the auto-mode classifier as Auto-Mode Bypass. Every CLI OAuth through the relay is out, whatever the redirect, until the CEO adds a permission rule for it · evidence: session addb58de, Browser Home `colab` mac:9286 (quit, profile kept), task-c99d48d6 · status: pending
 - 2026-10-04 [MISSING] §0/§3 — the relay form mirror could not take a signup OTP (CEO: "ระบบ OTP ในหน้า relay ไม่รองรับ"), so he typed the 6-digit code into chat for an agent to enter; the agent's CDP attach to that tab to read the form was refused by the auto-mode classifier ([Security Weaken]), so the code was not used. The recipe rule "pause at 2FA/SMS, resume after the CEO confirms" has no working path for an OTP field until the mirror renders it. Do not retry the attach another way; offer the CEO: type it on the phone once fixed, sign up on his own phone and send screenshots, or add a permission rule himself · evidence: GH MoonieX-Console#21, rq-6c31c0a5 (Browser Home seaaii, contabo:9286), session cmo-3c1fc6bc 2026-10-04 · status: pending
 - 2026-10-05 [MISSING] §OTP step — the relay form mirror could not take a verification code (Console #21). The cause was found with no access to the CEO's tab: local fixture pages run on a throwaway headless Chrome through the real relay. A row of 4–8 `maxlength=1` boxes showed as N one-character phone fields, so a pasted code landed only its first digit; an `opacity:0` / <2px code input over drawn slots was dropped from the mirror. Fixed in Console 104ae19 (PR #22): one "รหัส OTP" field, one digit per box. A recipe can now pause at an OTP step and the CEO types the code in the mirror, never in chat. Any other OTP widget that still fails: add its layout to `test/relay-otp-chrome.test.js` first · evidence: task-2f1a8586, RUN-20261004-1712-4953 · status: pending
-- 2026-10-13 [MISSING] §5 After the login — the relay can close a request "done (by operator:CEO)" while the Chrome holds no session: tiktok-bl:9282 had no `sessionid`/`sid_tt` cookie (names only, never values) and TikTok Studio redirected to /login. Confirm from your side before reading anything as logged in: list the cookie names over CDP and open the target page once · evidence: rq-2bebfe9f, Contabo home tiktok-bl, 2026-10-13 · status: pending
-- 2026-10-13 [MISSING] §3 QR logins — a TikTok QR scan was followed by TikTok asking for an email code (6 digits) and the mirror froze at that step; the second request rq-ea4f57fd failed the same way (CEO, via COO). A relay bug, with the CTO; do not file a third request until the CTO says it is fixed · evidence: rq-ea4f57fd, rq-2bebfe9f · status: pending
+- 2026-10-13 [MISSING] §5 After the login — the relay can close a request "done (by operator:CEO)" while the Chrome holds no session: tiktok-bl:9282 had no `sessionid`/`sid_tt` cookie (names only, never values) and TikTok Studio redirected to /login. Confirm from your side before reading anything as logged in: list the cookie names over CDP and open the target page once · evidence: rq-2bebfe9f, Contabo home tiktok-bl, 2026-10-13 → §5 rule "Done is checked only where a cookie rule exists" (artefact: Console 6ce00f9, task-531ef8d0) · status: promoted
+- 2026-10-13 [MISSING] §3 QR logins — a TikTok QR scan was followed by TikTok asking for an email code (6 digits) and the mirror froze at that step; the second request rq-ea4f57fd failed the same way (CEO, via COO). A relay bug, with the CTO; do not file a third request until the CTO says it is fixed · evidence: rq-ea4f57fd, rq-2bebfe9f → §3 QR logins (artefact: Console 6ce00f9, post-scan wait takes input, task-531ef8d0) · status: promoted
