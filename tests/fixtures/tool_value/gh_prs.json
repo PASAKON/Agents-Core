@@ -1,0 +1,6 @@
+[
+ {"number": 11, "headRefName": "fix-flaky-tests-14095231269944185041", "createdAt": "2026-10-07T23:15:26Z", "mergedAt": "2026-10-08T01:00:00Z", "state": "MERGED"},
+ {"number": 12, "headRefName": "feat/tool-value-t1", "createdAt": "2026-10-08T23:15:26Z", "mergedAt": null, "state": "OPEN"},
+ {"number": 10, "headRefName": "jules/storage-j1-14005965001470967651", "createdAt": "2026-09-22T22:35:01Z", "mergedAt": "2026-10-09T01:00:00Z", "state": "MERGED"},
+ {"number": 9, "headRefName": "agent/codex-task-12345678", "createdAt": "2026-10-07T00:00:00Z", "mergedAt": null, "state": "OPEN"}
+]
