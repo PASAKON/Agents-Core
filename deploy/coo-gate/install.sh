@@ -66,6 +66,7 @@ case "${1:-}" in
       rm -f "$UNIT_DIR/$u.service"
     done
     systemctl daemon-reload
+    rm -rf /run/org-coo-gate
     if id -u "$GATE_USER" >/dev/null 2>&1; then userdel "$GATE_USER"; fi
     echo "removed: ${UNITS[*]} and user $GATE_USER (coo tasks already in the hub stay; nothing starts them)"
     ;;

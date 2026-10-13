@@ -274,6 +274,16 @@ def test_box_cannot_reach_a_dir_closed_to_others(tmp_path):
     assert coo_worker.box_can_reach(closed / "inner" / "f")
 
 
+def test_gate_unit_makes_the_socket_dir_its_own():
+    # systemd chowns a RuntimeDirectory back to the unit's User= before every command, which undid a
+    # chown pre-step on the first install (RUN-20261013-2142-7e3b): the dir comes from a "+" step.
+    unit = (ROOT / "deploy" / "coo-gate" / "org-coo-gate.service").read_text()
+    sock_dir = os.path.dirname(coo_gate.DEFAULT_SOCKET)
+    assert not re.search(r"^RuntimeDirectory", unit, re.M)
+    assert f"ExecStartPre=+/usr/bin/install -d -o org-coo-gate -g org-coo-gate -m 0755 {sock_dir}\n" in unit
+    assert re.search(rf"^ReadWritePaths=(.* )?{re.escape(sock_dir)}( |$)", unit, re.M)
+
+
 # --------------------------------------------------------------------------- MCP side
 
 def test_mcp_wait_task_polls_until_the_report(monkeypatch):
