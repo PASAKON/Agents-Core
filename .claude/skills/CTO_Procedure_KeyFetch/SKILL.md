@@ -88,6 +88,14 @@ Done also means: the task report holds no value, no length, no screenshot of the
    `docs/ops/keyfetch/<provider>.md` (deep link, --tab, --click, --match + --field or --dom, quirks); the next
    key is a replay with no exploration — `BROWSER_OPERATOR_Protocol_Playbook`: every repeatable flow leaves a
    replay script.
+7. **HARD — a key that a scan or review finds is reported by place, never by value.** Write `path:line`, the
+   key type and the scanner's rule id. Never quote the value, a prefix of it or its last4: a found key has no
+   Infisical entry to compare against, so last4 proves nothing and only leaks more. Run the scanner with
+   `--redact` (gitleaks) and never `cat` or `grep -o` the line. If the key is real, tag it `leaked` in
+   Infisical and rotate it (new key at the provider → Infisical through this procedure → verify → revoke the
+   old one). **Why hard:** irreversible, for the same reason as rule 1. It applies the CEO's secrets rule of
+   2026-09-25/26 to scan hits (`CTO_Gate_MergeChecklist` Gate 2b). The 2026-10-10 scan of the held Contabo
+   commits was reported at file level, and the classifier refused to read the value.
 
 ## Output format (the operator's report)
 
