@@ -88,8 +88,11 @@ card red).
 
 - The card: host · risk colour · your `--why` and `--expected` · the exact command (a script shows
   its first 40 lines and its `repo@sha`) · the "sha256 ตรวจแล้ว" label. Buttons: Run · Deny · ask back.
-- Clocks: pending expires **30 min** after creation; approved but not started within 60 s goes back
-  to pending ("กดรันอีกครั้ง"); the run itself is killed at `--timeout` (default 300 s, max 21600).
+- Clocks: a pending card expires by the risk the hub gives it: **green 24 h, amber 8 h, red 1 h**
+  (CEO 2026-10-13, question card Q-20261013-2052-3bee). A claim the hub raises gets the shorter life.
+  The API takes `expires_in_s` (at least 600): less is kept, more is cut to green 7 d, amber 24 h,
+  red 4 h. `ask_run.py` sends none, so a card gets its risk's default. Approved but not started
+  within 60 s goes back to pending ("กดรันอีกครั้ง"); the run itself is killed at `--timeout` (default 300 s, max 21600).
 - The result: a mailbox letter `state/inbox/<session>/RUN-<id>.json` on the hub's box (Contabo),
   drained by hook-inbox on your next prompt; `wait` prints the redacted output tail (64 KB max).
   Email threads are P3 — today the hub only writes an outbox stub.
@@ -131,9 +134,12 @@ card red).
 
    **Why hard:** irreversible exposure of a credential.
 
-3. A card lives 30 minutes. Issue it when the CEO is holding the phone (one chat line with the id),
-   or it expires unread — the first live card did exactly that on 2026-09-25 (created 00:32
-   Bangkok, expired 01:02, CEO asleep). Expired = re-issue once he says he is there; never nag.
+3. A card lives by its risk: green 24 h, amber 8 h, red 1 h. A green or amber card can wait for him
+   to come back. A red card is short on purpose, because a root command written hours ago may no
+   longer fit the box: issue it when the CEO is holding the phone (one chat line with the id).
+   Expired = re-issue once he says he is there; never nag. `[SUPERSEDED 2026-10-13]` "A card lives
+   30 minutes. Issue it when the CEO is holding the phone … or it expires unread" — beaten by the
+   CEO's ruling on Q-20261013-2052-3bee: at 30 min, 31 of 96 cards had expired unread (Console 810b108).
 
 4. One action per card, and `--why` / `--expected` written for a thumb on a phone: one line each,
    the outcome, no jargon (CEO 2026-09-25: "กระชับเท่านั้น"). The hub caps each at 500 characters
