@@ -178,6 +178,8 @@ projects:
     name: Mooniex Agents (meta-repo)
     path: /Users/gob/MoonieXHQ/Agents/Core
     remote: https://github.com/PASAKON/mooniex-agents.git
+    # GitHub renamed the repo, and the remote URL still says mooniex-agents.
+    jules_repo: PASAKON/Agents-Core
     default_branch: main
     stack: [python]
     # Explicit list, not *default_workers: probe (Org Mesh T0.2) is scoped to this repo only.

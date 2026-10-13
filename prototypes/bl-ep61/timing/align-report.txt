@@ -1,0 +1,30 @@
+HOOK-1         0.22-  2.22 (2.00s) asr_t0=  0.00 speech=0.95 start      script=หน้าบัญชีติ๊กมิลล์เขียนว่าคอมมิชชันศูนย์ | heard=หนาบัญชี TickMill เขียนวา Commission 0
+HOOK-2         2.61-  4.17 (1.56s) asr_t0=  2.48 speech=0.94 pause      script=อีกบัญชีเขียนว่าสเปรดเริ่มศูนย์ | heard=อีกบัญชีเขียนวา Spread เริม 0
+HOOK-3         4.61-  6.41 (1.80s) asr_t0=  4.50 speech=0.88 pause      script=สองเลขนี้ไม่ใช่ราคาที่จ่ายจริง | heard=สองเลขเนี้ย ไมใชราคาที่จายจริง
+HOOK-4         6.84-  7.82 (0.98s) asr_t0=  6.72 speech=0.85 pause      script=กูคิดเลขจริงให้ดู | heard=กูคิดเลขจริงใหดู
+PATTERN-1      8.40- 11.37 (2.97s) asr_t0=  8.36 speech=0.70 pause      script=ต้นทุนหนึ่งออเดอร์ สเปรด คอมมิชชัน สว็อป | heard=ตนทุน 1 OrderSpreadCommissionSwap
+PATTERN-2     12.02- 13.83 (1.81s) asr_t0= 11.92 speech=0.92 pause      script=หน้าเขาว่าสว็อปคิดตอนถือข้ามคืน | heard=หนาเขาวา Swap คิดตอนถือขามคืน
+PATTERN-3     14.29- 16.05 (1.76s) asr_t0= 14.26 speech=0.83 pause      script=ตัวอย่างนี้จบในวัน ไม่มีสว็อป | heard=ตัวอยางนี้จบในวัน ไมมี Swap
+CONTEXT-1     16.78- 18.72 (1.94s) asr_t0= 16.66 speech=0.87 pause      script=หนึ่งล็อตมาตรฐาน คู่ยูโรดอลลาร์ | heard=1 Lot มาตถาน คู่ Euro Dollar
+CONTEXT-2     19.24- 21.04 (1.80s) asr_t0= 18.98 speech=0.90 pause      script=หน้าสเปกว่าหนึ่งล็อตคือแสนยูโร | heard=หนา Speck วา 1 Lot คือ 100,000 Euro
+CONTEXT-3     21.53- 23.66 (2.13s) asr_t0= 21.20 speech=0.80 pause      script=เลขจากหน้าเขาเอง จดวันที่สิบสามตุลา | heard=เลขจากหนาเขาเอง จดวันที่ 13 ตุลา
+MAIN-1        24.05- 26.70 (2.65s) asr_t0= 23.92 speech=0.79 pause      script=สูตรหน้าเขา สเปรดคูณขนาดคูณค่าพิป | heard=สูตรหนาเขา สเปรด คุณขนาด คุณคาพิป
+MAIN-2        27.07- 28.80 (1.73s) asr_t0= 26.96 speech=0.79 pause      script=พิปละสิบดอลลาร์ต่อล็อต กูคิดเอง | heard=พิปและ 10 ดลลาดตอรถกูคิดเอง
+MAIN-3        29.24- 29.76 (0.52s) asr_t0= 29.10 speech=1.00 pause      script=บัญชีแรก สเปรดเริ่มหนึ่งจุดหก | heard=บัญชีแรก สเปรดเริม
+MAIN-4        30.05- 33.09 (3.04s) asr_t0= 30.60 CHECK speech=0.70 pause      script=หนึ่งจุดหกคูณสิบ สิบหกดอลลาร์ | heard=1.61.6 คุณ 10 สิบ 16 เดาลา
+MAIN-5        33.47- 34.74 (1.27s) asr_t0= 33.40 speech=0.87 pause      script=คอมมิชชันศูนย์ รวมสิบหก | heard=คอมมิชัน 0ลวม 16
+MAIN-6        35.37- 36.97 (1.60s) asr_t0= 35.40 speech=0.84 pause      script=บัญชีสอง สเปรดเริ่มศูนย์ | heard=บัญชี 2 สเปรดเวทรเริมสูญ
+MAIN-7        37.30- 38.62 (1.32s) asr_t0= 37.36 speech=0.99 pause      script=แต่คอมมิชชันข้างละสามดอลลาร์ | heard=แตคอมมิชันขางละ 3 เดาลลา
+MAIN-8        38.97- 40.99 (2.02s) asr_t0= 38.70 speech=0.85 pause      script=เปิดปิดสองข้าง หน้าเขาเขียนหกดอลลาร์ | heard=เปิดปิด 2 ขาง หนาเขาเขียน 6 ดลลา
+MAIN-9        41.18- 41.87 (0.69s) asr_t0= 41.28 speech=0.94 pause      script=รวมหกดอลลาร์ | heard=รวม 6 ดลลา
+CURIOSITY-1   42.41- 44.10 (1.69s) asr_t0= 42.36 speech=0.89 pause      script=ศูนย์ทั้งคู่ แต่ไม่ฟรีทั้งคู่ | heard=สูญทั้งคู่ แตไมฟรีทั้งคู่
+CURIOSITY-2   44.60- 46.73 (2.13s) asr_t0= 44.56 speech=0.75 pause      script=คำว่าเริ่ม คือต่ำสุด ไม่ใช่ทุกครั้ง | heard=คำวาเริมคือตำสุด ไมใชทุกครั้ง
+CURIOSITY-3   47.22- 49.28 (2.06s) asr_t0= 47.24 speech=0.84 pause      script=เลขที่กูคิด จึงเป็นขั้นต่ำเท่านั้น | heard=เลขที่กูคิด
+SUMMARY-1     49.78- 51.38 (1.60s) asr_t0= 49.58 speech=0.82 pause      script=ก่อนเทรด เช็กสามอย่างเอง | heard=กอนเทรต ชิค 3สามอยางเอง
+SUMMARY-2     51.88- 53.93 (2.05s) asr_t0= 51.76 speech=0.76 pause      script=หนึ่ง อ่านหน้าประเภทบัญชีให้จบ | heard=หน1. อานหนาประเภทบัญชีใหจบ
+SUMMARY-3     54.47- 56.90 (2.43s) asr_t0= 54.70 speech=0.75 pause      script=สอง บวกสเปรดกับคอมมิชชันตามล็อต | heard=2. บวกสเปรดกับคอมิชันตาม
+SUMMARY-4     56.90- 60.18 (3.28s) asr_t0= 56.68 speech=0.69 contiguous script=สาม ถามโบรกเป็นข้อความว่าสว็อปเท่าไหร่ | heard=รถ3. ถามโรคเปนขอความวาสวอปเทาไหร
+SUMMARY-5     60.80- 63.34 (2.54s) asr_t0= 60.76 speech=0.87 pause      script=กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น | heard=กูไมไดแนะนำเจาไหน แคชีวิธีดูใหเปน
+SUMMARY-6     63.86- 65.48 (1.62s) asr_t0= 63.88 speech=0.74 pause      script=คอมเมนต์ เช็กลิสต์ ถ้าอยากได้ | heard=คอมเมนต เชคลิสถาอยากได
+SUMMARY-7     66.02- 67.72 (1.70s) asr_t0= 66.04 speech=0.77 pause      script=เลขเปลี่ยนได้ เช็กวันที่ด้วย | heard=เลขเปลี่ยนได เชควันที่ดวย
+speech threshold -46.0 dB (Otsu on the 10 ms dB histogram); audio decoded length 68.0174s
