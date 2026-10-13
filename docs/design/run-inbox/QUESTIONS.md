@@ -97,7 +97,7 @@ when sent. `done` = `answered` + `expired` + `cancelled`.
    `invalid_requester_task`.
 5. `question_required` · `invalid_question` · `why_required` · `invalid_why` · `invalid_options {detail}` ·
    `invalid_free_text` · `invalid_expires_in_s`.
-6. `command_shaped {field}`: §5 matched the question or an option label.
+6. `command_shaped {field}`: §5 matched the question, an option label or a line of `why` (`field` is `why`, no line index).
 7. `money_needs_command_card {field}`: §6 matched the question or an option label.
 8. `429 too_many_open_questions`: 50 pending questions already (all sessions), or 5 pending from this
    `requester.session`. `429 too_many_questions`: 10 created by this `requester.session`, or 30 in all, in the
