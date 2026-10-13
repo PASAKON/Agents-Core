@@ -1,0 +1,6 @@
+{"schema": 1, "ts": "2026-10-07T03:00:00+00:00", "session_id": "s1", "role": "cto", "tool": "Agent", "subagent_type": "general-purpose", "model": "", "prompt_chars": 900, "read_only": false, "background": true, "route": "", "override": ""}
+{"schema": 1, "ts": "2026-10-07T04:00:00+00:00", "session_id": "s1", "role": "cto", "tool": "Agent", "subagent_type": "Explore", "model": "", "prompt_chars": 300, "read_only": true, "background": false, "route": "", "override": ""}
+{"schema": 1, "ts": "2026-10-08T05:00:00+00:00", "session_id": "s2", "role": "cmo", "tool": "Task", "subagent_type": "general-purpose", "model": "sonnet", "prompt_chars": 1200, "read_only": false, "background": false, "route": "task-0123abcd", "override": ""}
+{"schema": 1, "ts": "2026-10-09T06:00:00+00:00", "session_id": "s2", "role": "cmo", "tool": "Agent", "subagent_type": "general-purpose", "model": "", "prompt_chars": 700, "read_only": false, "background": false, "route": "", "override": "security"}
+not json
+{"schema": 1, "ts": "2026-10-14T01:00:00+00:00", "session_id": "s3", "role": "cto", "tool": "Agent", "subagent_type": "general-purpose", "model": "", "prompt_chars": 500, "read_only": false, "background": false, "route": "", "override": ""}
