@@ -54,6 +54,7 @@ SPAWN_GAP_S = 60          # ensure_publisher spawns at most once per this
 STALE_DAYS = 1            # a host's rows older than this are deleted
 STMT_TIMEOUT_MS = 10_000  # a hung hub must not wedge the lock holder
 DEFAULT_TTL_S = 150       # reader: 2 missed refreshes + slack
+STALE_SHOW_S = STALE_DAYS * 86400   # reader: a silent host's last rows stay listed, marked stale
 
 # Thailand has no DST, so a fixed offset needs no tz database (winbox has none).
 TH = timezone(timedelta(hours=7))
@@ -82,6 +83,9 @@ _O_SAFE = (getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
 
 FOOTER = ('send: SendMessage(to=<text after the status>, verbatim). '
           '"N agents are named X" → re-send with the [ref] the error marks active.')
+STALE_NOTE = ('stale = its host stopped reporting (header); the session may still be live — '
+              'send, and trust the send\'s answer over this list.')
+STATUS_RANK = {"running": 0, "idle": 1, "unknown": 2, "stale": 3}
 
 _UPSERT_SESSION = (
     "INSERT INTO live_sessions (host, uuid, sid, role, name, address, status, pid,"
@@ -728,24 +732,30 @@ def ensure_publisher(root: Path = ROOT) -> bool:
 # ---------------------------------------------------------------------------
 
 def _snapshot_from_hub(conn, ttl_s: float) -> dict:
-    """Rows seen within ``ttl_s`` plus each host's publish age. Ages come from
-    the hub's clock (now() - stored), so host clock skew never shows."""
-    rows = []
-    for r in conn.execute(
-            "SELECT host, uuid, sid, role, name, address, status, pid,"
-            " EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
-            " ORDER BY host, name").fetchall():
-        age = float(r["age"])
-        if age <= ttl_s:
-            rows.append({"host": r["host"], "uuid": r["uuid"], "sid": r["sid"],
-                         "role": r["role"], "name": r["name"], "address": r["address"],
-                         "status": r["status"], "pid": r["pid"], "age": age})
+    """Rows seen within ``ttl_s`` plus each host's publish age. A host whose own
+    publish is older than ``ttl_s`` keeps its last rows (up to STALE_SHOW_S old)
+    with status "stale": a silent publisher is not proof its sessions ended.
+    Ages come from the hub's clock (now() - stored), so host clock skew never shows."""
     hosts = {}
     for r in conn.execute(
             "SELECT host, published_at, error,"
             " EXTRACT(EPOCH FROM now() - published_at) AS age FROM live_hosts").fetchall():
         hosts[r["host"]] = {"age": float(r["age"]), "published_at": r["published_at"],
                             "error": r["error"]}
+    rows = []
+    for r in conn.execute(
+            "SELECT host, uuid, sid, role, name, address, status, pid,"
+            " EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
+            " ORDER BY host, name").fetchall():
+        age = float(r["age"])
+        info = hosts.get(r["host"])
+        host_stale = info is None or info["age"] > ttl_s
+        if (age > STALE_SHOW_S) if host_stale else (age > ttl_s):
+            continue
+        rows.append({"host": r["host"], "uuid": r["uuid"], "sid": r["sid"],
+                     "role": r["role"], "name": r["name"], "address": r["address"],
+                     "status": "stale" if host_stale else r["status"], "pid": r["pid"],
+                     "age": age, "stale": host_stale})
     return {"rows": rows, "hosts": hosts, "local": False}
 
 
@@ -782,7 +792,7 @@ def _line(row: dict) -> str:
 
 
 def _sort_key(row: dict):
-    return (row["status"] != "running", row["host"], row["name"])
+    return (STATUS_RANK.get(row["status"], 2), row["host"], row["name"])
 
 
 def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S,
@@ -803,11 +813,14 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
                 parts.append(f"{host} none (no publisher yet)")
             continue
         if info["age"] > ttl_s:
+            n_stale = sum(1 for r in rows if r["host"] == host and is_c_level(r["role"]))
             if info.get("error"):
                 since = _fmt_since(info["published_at"], now.astimezone(TH).date())
-                parts.append(f"{host} unreachable ({info['error']}) since {since}")
+                why = f"unreachable ({info['error']}) since {since}"
             else:
-                parts.append(f"{host} none (no publisher since {_fmt_since(info['published_at'])})")
+                why = f"no publisher since {_fmt_since(info['published_at'])}"
+            parts.append(f"{host} {n_stale} stale ({why})" if n_stale
+                         else (f"{host} {why}" if info.get("error") else f"{host} none ({why})"))
             continue
         mine = [r for r in rows if r["host"] == host]
         c_level = sum(1 for r in mine if is_c_level(r["role"]))
@@ -816,7 +829,8 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
         extra = f"+{workers} workers, " if workers else ""
         parts.append(f"{host} {c_level} ({extra}{age})")
     shown = sorted((r for r in rows if all_roles or is_c_level(r["role"])), key=_sort_key)
-    return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER])
+    notes = [STALE_NOTE] if any(r.get("stale") for r in shown) else []
+    return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER] + notes)
 
 
 def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> str:
@@ -830,7 +844,7 @@ def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> s
                   | ({"error": i["error"]} if i.get("error") else {})
                   for h, i in snap["hosts"].items()},
         "sessions": [{k: r[k] for k in ("host", "sid", "role", "status", "address")}
-                     | {"age_s": int(r["age"])} for r in rows],
+                     | {"age_s": int(r["age"]), "stale": bool(r.get("stale"))} for r in rows],
     }, ensure_ascii=False)
 
 

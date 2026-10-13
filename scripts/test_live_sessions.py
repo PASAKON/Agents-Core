@@ -406,6 +406,50 @@ def test_render_reads_rows_within_the_ttl_only():
     assert "error" in [q for q in hub.sql if "FROM live_hosts" in q][0]
 
 
+def test_a_silent_hosts_last_rows_are_listed_stale_not_dropped():
+    """A host whose publisher went quiet keeps its last rows, marked stale (up to a
+    day old): "mac none" read as "no Mac sessions" while 4 were live (2026-10-13)."""
+    mac_live = dict(_row("mac", "cto", "MAC CTO #671f688f", "idle"), age=600.0)
+    mac_gone = dict(_row("mac", "cto", "MAC CTO #00000001"), age=ls.STALE_SHOW_S + 1)
+    fresh = dict(_row("contabo", "cto", "CONTABO CTO #e106b78b"), age=4.0)
+    old = dict(_row("contabo", "cto", "CONTABO CTO #00000000"), age=151.0)
+    hub = FakeHub([fresh, old, mac_live, mac_gone], [
+        {"host": "contabo", "published_at": NOW, "age": 4.0, "error": None},
+        {"host": "mac", "published_at": NOW - timedelta(minutes=10), "age": 600.0, "error": None}])
+    lines = ls.render(hub).splitlines()
+    assert "contabo 1 (4s)" in lines[0]
+    assert "mac 1 stale (no publisher since 10-13 18:32)" in lines[0]
+    assert lines[1:] == ["running  CONTABO CTO #e106b78b", "stale    MAC CTO #671f688f",
+                         ls.FOOTER, ls.STALE_NOTE]
+
+
+def test_an_unreachable_host_keeps_its_last_rows_stale():
+    rows = [dict(_row("winbox", "cto", "WINDOWS CTO #33b0a9d5", "idle"), age=360.0)]
+    hub = FakeHub(rows, [{"host": "winbox", "published_at": NOW - timedelta(minutes=6),
+                          "age": 360.0, "error": "ssh timeout"}])
+    text = ls.render(hub)
+    assert "winbox 1 stale (unreachable (ssh timeout) since 18:36)" in text
+    assert "stale    WINDOWS CTO #33b0a9d5" in text
+
+
+def test_stale_rows_sort_last_and_carry_the_flag_in_json():
+    snap = _snap([dict(_row("mac", "cto", "MAC CTO #aaaaaaaa"), status="stale", stale=True),
+                  _row("contabo", "cto", "CONTABO CTO #bbbbbbbb", "idle"),
+                  _row("contabo", "coo", "CONTABO COO #cccccccc", "unknown")],
+                 {"contabo": _fresh(4.0),
+                  "mac": {"age": 600.0, "published_at": NOW - timedelta(minutes=10)}})
+    lines = ls.format_snapshot(snap, now=NOW).splitlines()
+    assert [l.split()[0] for l in lines[1:4]] == ["idle", "unknown", "stale"]
+    data = json.loads(ls._to_json(snap))
+    assert {s["sid"]: s["stale"] for s in data["sessions"]} == {
+        "aaaaaaaa": True, "bbbbbbbb": False, "cccccccc": False}
+
+
+def test_no_stale_note_when_every_host_is_fresh():
+    snap = _snap([_row("contabo", "cto", "CONTABO CTO #e106b78b")], {"contabo": _fresh(4.0)})
+    assert ls.format_snapshot(snap, now=NOW).splitlines()[-1] == ls.FOOTER
+
+
 # ---------------------------------------------------------------------------
 # publishing
 # ---------------------------------------------------------------------------

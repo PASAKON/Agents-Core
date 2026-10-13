@@ -1,0 +1,150 @@
+# BLACK LIQUIDITY EP61 -- one order's real cost, Tickmill's own pages -- real-footage shot list
+# Run with: python tools/bl_realfootage.py run --shots prototypes/bl61-realfootage/shots.yaml --episode bl61
+#
+# Sources (all public pages of the broker itself, no login, see prototypes/bl61-script/RUNLOG.md):
+#   acc  = https://www.tickmill.com/trading/accounts-overview   (Classic + Raw cards)
+#   raw  = https://www.tickmill.com/trading/raw-account         (commission paragraph + 1-lot EURUSD example)
+#   cls  = https://www.tickmill.com/trading/classic-account     (variable spreads from 1.6 pips)
+#   ss   = https://www.tickmill.com/conditions/spreads-swaps    (FAQ: cost formula, swaps; FAQ items are collapsed, click_texts opens them)
+#
+# No other broker is named on any of these crops. Tickmill's own calls to action (Create account, Start trading,
+# demo, welcome-account promo) are pixelated; the cookie banner is hidden. The sentence "Our standard commission is
+# one of the lowest in the world" (raw page) is a ranking claim by the broker: its paragraph is hidden in the
+# tm-raw-example shot so it never reaches the frame.
+
+censor_profiles:
+  promo:
+    - {label: "Tickmill sign-up / create-account / open-account buttons (selector, exact element)", kind: full, selector: "a[href*='my.tickmill.com/sign-up']"}
+    - {label: "Tickmill demo-account buttons", kind: full, selector: "a[href*='/trading/demo-account']"}
+    - {label: "Tickmill welcome-account promo links", kind: full, selector: "a[href*='welcome-account']"}
+
+shots:
+  # -- header of the account-types page: Tickmill logo + hero
+  - id: tm-header
+    url: "https://www.tickmill.com/trading/accounts-overview"
+    action: capture
+    kind: still
+    covers: [HOOK-3, HOOK-4, CONTEXT-3]
+    wait_ms: 3000
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+    censor_profiles: [promo]
+    source_note: "Tickmill name and logo on its own account-types page; no number in frame"
+
+  # -- Classic card
+  - id: tm-classic
+    url: "https://www.tickmill.com/trading/accounts-overview"
+    action: capture
+    kind: still
+    covers: [HOOK-1, CURIOSITY-2]
+    wait_ms: 3000
+    settle_ms: 3000
+    crop:
+      selector: ".swiper-wrapper > .swiper-slide:nth-child(1) .card"
+      pad: 1.0
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+    censor_profiles: [promo]
+    source_note: "Classic card: Spreads From 1.6 pips, Zero Commissions, as Tickmill writes them"
+
+  # -- Raw card
+  - id: tm-raw
+    url: "https://www.tickmill.com/trading/accounts-overview"
+    action: capture
+    kind: still
+    covers: [HOOK-2]
+    wait_ms: 3000
+    settle_ms: 3000
+    crop:
+      selector: ".swiper-wrapper > .swiper-slide:nth-child(2) .card"
+      pad: 1.0
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+    censor_profiles: [promo]
+    source_note: "Raw card: Spreads From 0.0 pips, $3 per lot per side, as Tickmill writes them"
+
+  # -- Classic account page paragraph
+  - id: tm-classic-para
+    url: "https://www.tickmill.com/trading/classic-account"
+    action: capture
+    kind: still
+    covers: [MAIN-3]
+    wait_ms: 3000
+    crop:
+      selector: ".lead.mb-lg-auto > p:nth-of-type(1)"
+      pad: 1.0
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+    censor_profiles: [promo]
+    source_note: "Classic page: variable spreads starting from 1.6 pips and no commissions"
+
+  # -- Raw account page: 1-lot EURUSD example
+  - id: tm-raw-example
+    url: "https://www.tickmill.com/trading/raw-account"
+    action: capture
+    kind: still
+    covers: [CONTEXT-1, CONTEXT-2, MAIN-6, MAIN-7, MAIN-8]
+    wait_ms: 3000
+    crop:
+      selector: ".lead.mb-lg-auto > p:nth-of-type(3)"
+      pad: 1.0
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+      - ".lead.mb-lg-auto > p:nth-of-type(2)"
+    censor_profiles: [promo]
+    source_note: "Raw page: fluctuating spreads from 0.0 pips; commission 3 USD per side, 6 USD round turn on 1 lot EURUSD, contract size 100,000 EUR"
+
+  # -- spreads-and-swaps page: cost formula (FAQ opened)
+  - id: tm-formula
+    url: "https://www.tickmill.com/conditions/spreads-swaps"
+    action: capture
+    kind: still
+    covers: [PATTERN-1, MAIN-1, MAIN-2]
+    wait_ms: 3000
+    click_texts:
+      - "How do you calculate your transaction cost?"
+    crop:
+      selector: ".collapse:has(input:checked)"
+      frame_only: true
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+    censor_profiles: [promo]
+    source_note: "Tickmill FAQ: Trade Cost = Spread x Trade Size x Pip Value (mini-lot example, pip value $1)"
+
+  # -- spreads-and-swaps page: what a swap is (FAQ opened)
+  - id: tm-swaps
+    url: "https://www.tickmill.com/conditions/spreads-swaps"
+    action: capture
+    kind: still
+    covers: [PATTERN-2]
+    wait_ms: 3000
+    click_texts:
+      - "What are swaps?"
+    crop:
+      selector: ".collapse:has(input:checked)"
+      frame_only: true
+    hide_selectors:
+      - ".sticky-cookie-policy"
+      - "#hubspot-messages-iframe-container"
+      - "#hs-web-interactives-top-anchor"
+      - "#hs-web-interactives-bottom-anchor"
+    censor_profiles: [promo]
+    source_note: "Tickmill FAQ: swaps are overnight interest charges applied past 00:00 platform time"

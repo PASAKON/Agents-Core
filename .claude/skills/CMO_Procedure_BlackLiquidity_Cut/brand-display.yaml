@@ -13,5 +13,6 @@
 ไซเซค: CySEC
 โกลเดนเบิร์ก: Goldenburg
 เอไอ: AI
+ติ๊กมิลล์: Tickmill
 # Not mapped on purpose: ไลน์ (too common a Thai word to substring-replace safely),
 # place names (they may stay in Thai).
