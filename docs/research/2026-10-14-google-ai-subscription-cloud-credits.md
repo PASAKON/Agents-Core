@@ -26,5 +26,5 @@ labels: [M] Google official page · [3] third party · [O] our own record
 Activating needs an open billing account with a payment method: that is the CEO's call. Our order said read-only, no billing account. After activation, set the ฿300 budget alert at once, as the 2026-08-04 note says.
 
 ## Open
-- The real balance and expiry. These need the CEO's Google console (pass.gob1@gmail.com, or whichever account holds the subscription).
+- The real balance and expiry. These need the CEO's Google console (whichever of his accounts holds the subscription).
 - Whether the subscription is on the same Google account as the closed billing accounts.
