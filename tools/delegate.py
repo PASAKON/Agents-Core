@@ -2138,7 +2138,7 @@ def _ph_cap_refusal(task: dict) -> str | None:
         return f"Project Head worker cap: malformed owner {owner!r} on {task.get('id')!r}"
     slots = Path(_PH_SLOTS_DIR)
     slots.mkdir(parents=True, exist_ok=True)
-    with open(slots / f".{owner}.flock", "w") as fh:
+    with open(slots / f".{owner}.flock", "w", encoding="utf-8") as fh:
         fcntl.flock(fh, fcntl.LOCK_EX)
         try:
             live = {
