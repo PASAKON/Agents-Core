@@ -44,7 +44,7 @@ LOCK_NAME = "live_sessions.publisher.lock"
 SPAWN_STAMP = "live_sessions.spawned"
 LOCK_PATH = ROOT / "state" / "locks" / LOCK_NAME
 
-CONNECT_TIMEOUT_S = 3     # the thread and the reader both give up fast
+CONNECT_TIMEOUT_S = 3     # the publisher and the reader both give up fast
 POLL_S = 5                # holder: how often the registry signature is read
 REFRESH_S = 60            # holder: publish at least this often (dead pids drop out)
 RETRY_S = 30              # backoff after a failed publish or connect
