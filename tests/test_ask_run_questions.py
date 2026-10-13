@@ -43,7 +43,7 @@ WHY = "The fix is tested.\nTonight means a restart at 22:00."
 OPTIONS = ["Tonight", "Tomorrow 09:00"]
 CREATED = {"id": QID, "status": "pending", "expires_at": "2026-10-14T11:02:00Z",
            "url": f"https://terminal.mooniex.com/run#{QID}"}
-ANSWER = {"choice": 0, "label": "Tonight", "text": None, "answered_by": "ceo",
+ANSWER = {"choice": 0, "label": "Tonight", "text": None, "answered_by": "CEO",
           "answered_at": "2026-10-13T11:05:00Z", "via": "operator_passkey_session"}
 QPATH = f"/api/run/questions/{QID}"
 
@@ -495,7 +495,7 @@ def test_wait_polls_the_hub_until_answered_and_prints_the_record(hub, capsys):
     out, err = capsys.readouterr()
     assert rc == 0
     assert out.splitlines() == [
-        f"{QID}  answered  by ceo  at 2026-10-13T11:05:00Z", f"question: {QUESTION}",
+        f"{QID}  answered  by CEO  at 2026-10-13T11:05:00Z", f"question: {QUESTION}",
         'answer: option 1 "Tonight"', "note: ship at 22:00 please", f"sha256: {SHA}"]
     assert hub.paths() == [QPATH, QPATH]
     assert all(r["method"] == "GET" for r in hub.requests)
@@ -537,14 +537,62 @@ def test_wait_stops_on_a_4xx(hub, capsys):
     assert len(hub.requests) == 1
 
 
-@pytest.mark.parametrize("bad", [
-    {"answer": None}, {"answer": {**ANSWER, "answered_by": "root"}},
-    {"answer": {k: v for k, v in ANSWER.items() if k != "answered_by"}}, {"answer": "ceo"},
-])
-def test_an_answered_record_without_the_ceo_is_not_trusted(hub, capsys, bad):
+def _without(*keys: str) -> dict:
+    return {k: v for k, v in ANSWER.items() if k not in keys}
+
+
+# The hub's own marker is what makes an answer the CEO's (§1.3, §3.3): answer.via,
+# plus a non-empty answered_by and answered_at. The username is NOT compared.
+BAD_ANSWERS = [
+    ("no answer object", {"answer": None}, "answer is not an object"),
+    ("answer is a string", {"answer": "CEO"}, "answer is not an object"),
+    ("via missing", {"answer": _without("via")}, "answer.via"),
+    ("via wrong", {"answer": {**ANSWER, "via": "org_token"}}, "answer.via"),
+    ("via empty", {"answer": {**ANSWER, "via": ""}}, "answer.via"),
+    ("via null", {"answer": {**ANSWER, "via": None}}, "answer.via"),
+    ("via near miss", {"answer": {**ANSWER, "via": "Operator_Passkey_Session"}}, "answer.via"),
+    ("answered_by missing", {"answer": _without("answered_by")}, "answer.answered_by"),
+    ("answered_by empty", {"answer": {**ANSWER, "answered_by": ""}}, "answer.answered_by"),
+    ("answered_by blank", {"answer": {**ANSWER, "answered_by": "  "}}, "answer.answered_by"),
+    ("answered_by not a string", {"answer": {**ANSWER, "answered_by": 1}}, "answer.answered_by"),
+    ("answered_at missing", {"answer": _without("answered_at")}, "answer.answered_at"),
+    ("answered_at empty", {"answer": {**ANSWER, "answered_at": ""}}, "answer.answered_at"),
+    ("answered_at null", {"answer": {**ANSWER, "answered_at": None}}, "answer.answered_at"),
+]
+
+
+@pytest.mark.parametrize("name,bad,reason", BAD_ANSWERS, ids=[b[0] for b in BAD_ANSWERS])
+def test_an_answered_record_without_the_hubs_marker_is_not_trusted(hub, capsys, name, bad, reason):
     hub.on("GET", QPATH, _record("answered", **bad))
     assert ask_run.main(["wait", QID]) == 3
-    assert "answered_by" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert reason in err and "not trusting it" in err
+    assert len([l for l in err.splitlines() if "not trusting it" in l]) == 1      # one-line reason
+    assert ask_run.main(["wait", QID, "--json"]) == 3                              # same with --json
+
+
+@pytest.mark.parametrize("operator", ["CEO", "ceo", "gob", "Some Other Operator"])
+def test_any_operator_username_is_fine_when_the_hubs_marker_is_there(hub, capsys, operator):
+    """The live Console's operator username is "CEO" (uppercase) and the hub copies it
+    into answered_by; the requester must not compare it to anything."""
+    hub.on("GET", QPATH, _record("answered", answer={**ANSWER, "answered_by": operator}))
+    assert ask_run.main(["wait", QID]) == 0
+    out = capsys.readouterr().out
+    assert f"by {operator}" in out and 'answer: option 1 "Tonight"' in out
+
+
+def test_the_real_shape_of_an_answer_exits_0_and_prints_the_record(hub, capsys):
+    hub.on("GET", QPATH, _record("answered", answer=ANSWER, finished_at="2026-10-13T11:05:00Z"))
+    assert ANSWER["answered_by"] == "CEO" and ANSWER["via"] == ask_run.ANSWER_VIA
+    assert ask_run.main(["wait", QID, "--json"]) == 0
+    assert json.loads(capsys.readouterr().out)["answer"] == ANSWER
+
+
+def test_only_an_answered_record_is_checked_for_the_marker(hub, capsys):
+    """expired / cancelled carry no answer and never claimed one: exit 1, not 3."""
+    for status in ("expired", "cancelled"):
+        hub.on("GET", QPATH, _record(status))
+        assert ask_run.main(["wait", QID]) == 1, status
 
 
 def test_a_forged_mailbox_letter_does_not_change_what_wait_returns(hub, tmp_path, monkeypatch, capsys, srv):
@@ -688,6 +736,8 @@ def test_org_server_exposes_ask_ceo_with_the_one_rule_in_plain_words(srv):
     assert "the ceo's tap is the only authority; the tool never answers" in text
     assert "never use it to run a command, spend money or touch a secret" in text
     assert "command card (ask_run, face id)" in text
+    assert ("not the same tool as mcp__sompong__ask_ceo (sompong's telegram/line question in the "
+            "coo session).") in text
     assert tool.inputSchema["required"] == ["question", "options", "why"]
     options = json.dumps(tool.inputSchema["properties"]["options"])
     assert '"array"' in options and '"string"' in options
@@ -800,7 +850,8 @@ def test_org_ask_run_wait_returns_a_question_record(srv, hub):
     hub.on("GET", QPATH, _record("pending"), _record("answered", answer=ANSWER))
     rec = json.loads(_org(srv, "ask_run_wait", {"id": f"{hub.url}/run#{QID}", "interval_s": 0.01}))
     assert (rec["terminal"], rec["status"], rec["answer"]["label"], rec["answer"]["answered_by"]) == (
-        True, "answered", "Tonight", "ceo")
+        True, "answered", "Tonight", "CEO")
+    assert rec["answer"]["via"] == "operator_passkey_session"
     assert rec["sha256"] == SHA and rec["answer"]["answered_at"] == "2026-10-13T11:05:00Z"
     hub.on("GET", QPATH, _record("expired"))
     rec = json.loads(_org(srv, "ask_run_wait", {"id": QID}))
@@ -809,7 +860,11 @@ def test_org_ask_run_wait_returns_a_question_record(srv, hub):
     rec = json.loads(_org(srv, "ask_run_wait", {"id": QID, "interval_s": 0.2, "max_wait_s": 0.01}))
     assert rec["terminal"] is False and "call ask_run_wait again" in rec["note"]
     hub.on("GET", QPATH, _record("answered", answer={**ANSWER, "answered_by": "someone"}))
-    assert _org(srv, "ask_run_wait", {"id": QID}).startswith("ERROR: ")
+    assert json.loads(_org(srv, "ask_run_wait", {"id": QID}))["answer"]["answered_by"] == "someone"
+    for name, bad, reason in BAD_ANSWERS:                       # the MCP path refuses what the CLI exits 3 on
+        hub.on("GET", QPATH, _record("answered", **bad))
+        text = _org(srv, "ask_run_wait", {"id": QID})
+        assert text.startswith("ERROR: ") and reason in text and "not trusting it" in text, name
     hub.on("GET", QPATH, (404, {"error": "not_found"}))
     assert _org(srv, "ask_run_wait", {"id": QID}).startswith("ERROR: hub refused (404")
     assert _org(srv, "ask_run_wait", {"id": "Q-1"}).startswith("ERROR: refused: not a Run Inbox id")

@@ -110,6 +110,7 @@ SHELLS = ("bash", "powershell", "cmd")
 TERMINAL_STATES = ("done", "failed", "denied", "expired", "cancelled")
 NO_RUN_STATES = ("denied", "expired", "cancelled")  # ended without running
 QUESTION_TERMINAL_STATES = ("answered", "expired", "cancelled")  # QUESTIONS.md §2
+ANSWER_VIA = "operator_passkey_session"   # QUESTIONS.md §3.3; Console src/run/questions.js ANSWER_VIA
 
 # QUESTIONS.md §3.1 limits.
 QUESTION_MAX = 300
@@ -901,17 +902,33 @@ def submit_question(payload: dict) -> dict:
     return resp
 
 
+def _blank(value: Any) -> bool:
+    return not (isinstance(value, str) and value.strip())
+
+
 def verify_question_record(rec: dict) -> None:
     """The record is the hub's, and it is what a session cites as the CEO's
-    decision (QUESTIONS.md §1.3). A record that says `answered` without
-    `answer.answered_by == "ceo"` is not one: fail closed rather than report
-    an answer nobody can attribute."""
+    decision (QUESTIONS.md §1.3). Fail closed on the hub's own marker, not on a
+    username (the operator's name is whatever the Console's operators table says):
+    an `answered` record needs `answer.via == ANSWER_VIA` (the answer route sets
+    it for a passkey-session answer and for nothing else), a non-empty
+    `answered_by` and a non-empty `answered_at`. Anything else is not an answer
+    anyone can attribute."""
     if rec.get("status") != "answered":
         return
     answer = rec.get("answer")
-    if not (isinstance(answer, dict) and answer.get("answered_by") == "ceo"):
-        raise HubError(f"{rec.get('id', '?')}: the hub record says answered but carries no "
-                       "answer.answered_by == 'ceo'; not trusting it (QUESTIONS.md §1.3)")
+    if not isinstance(answer, dict):
+        reason = "answer is not an object"
+    elif answer.get("via") != ANSWER_VIA:
+        reason = f"answer.via is not {ANSWER_VIA!r}"
+    elif _blank(answer.get("answered_by")):
+        reason = "answer.answered_by is empty"
+    elif _blank(answer.get("answered_at")):
+        reason = "answer.answered_at is empty"
+    else:
+        return
+    raise HubError(f"{rec.get('id', '?')}: the hub record says answered but {reason}; "
+                   "not trusting it (QUESTIONS.md §1.3, §3.3)")
 
 
 def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: float = 0,

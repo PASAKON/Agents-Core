@@ -797,7 +797,9 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "(it returns the hub's record, which is what you cite as the CEO's "
             "decision; the mailbox letter is only a wake-up). dry_run=True "
             "returns the JSON body and sends nothing. Same code as "
-            "tools/ask_run.py ask (docs/design/run-inbox/QUESTIONS.md §9)."
+            "tools/ask_run.py ask (docs/design/run-inbox/QUESTIONS.md §9). "
+            "Not the same tool as mcp__sompong__ask_ceo (SomPong's Telegram/LINE "
+            "question in the COO session)."
         ),
         params=(
             Param("question", str), Param("options", list[str]), Param("why", str),
