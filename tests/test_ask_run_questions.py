@@ -772,12 +772,17 @@ def test_org_server_exposes_ask_ceo_with_the_one_rule_in_plain_words(srv):
     assert "command card (ask_run, face id)" in text
     assert ("not the same tool as mcp__sompong__ask_ceo (sompong's telegram/line question in the "
             "coo session).") in text
-    assert tool.inputSchema["required"] == ["question", "options", "why"]
+    # one card (question/options/why) or one group (questions): neither set is required by the schema,
+    # the tool refuses a call that gives neither or both (test_ask_ceo_takes_one_card_or_one_group)
+    assert not tool.inputSchema.get("required")
     options = json.dumps(tool.inputSchema["properties"]["options"])
     assert '"array"' in options and '"string"' in options
+    group = json.dumps(tool.inputSchema["properties"]["questions"])
+    assert '"array"' in group and '"object"' in group
+    assert "questions=[{question, why, options, recommended, free_text}, ...] (1-6)" in tool.description
     assert set(tool.inputSchema["properties"]) == {
         "question", "options", "why", "recommended", "free_text", "expires_h", "session", "role",
-        "host", "task", "dry_run"}
+        "host", "task", "dry_run", "questions"}
     assert "q-" in " ".join(tools["ask_run_wait"].description.lower().split())
     assert "answer" not in " ".join(tools) and "answer" not in tools["ask_ceo"].name
 
@@ -1163,3 +1168,193 @@ def test_command_cards_are_not_touched_by_the_new_rule(hub, monkeypatch, capsys)
     assert ask_run.main(["create", "--host", "contabo", "--command", "uptime", "--why", "load",
                          "--role", "cto", "--session", "cto-x", "--dry-run"]) == 0
     assert hub.url + "/console/api/run/asks" in capsys.readouterr().err
+
+
+# ======================================== several questions, one group (QUESTIONS.md §10)
+GID = "QG-20261014-0400-c0de"
+QID2 = "Q-20261014-0400-b4e0"
+QID1 = "Q-20261014-0400-a3f9"
+GPATH = f"/api/run/question-groups/{GID}"
+ITEMS = [
+    {"question": QUESTION, "why": WHY, "options": OPTIONS, "recommended": 1},
+    {"question": "Close the tab after the merge?", "why": "Nothing is left open.",
+     "options": ["Yes", "No"], "free_text": False},
+]
+GROUP_CREATED = {"group_id": GID, "status": "pending", "expires_at": "2026-10-15T04:00:00Z",
+                 "url": f"https://terminal.mooniex.com/run#{GID}",
+                 "questions": [{"id": QID1, "status": "pending", "expires_at": "2026-10-15T04:00:00Z"},
+                               {"id": QID2, "status": "pending", "expires_at": "2026-10-15T04:00:00Z"}]}
+
+
+def _batch(tmp_path, items=ITEMS) -> str:
+    path = tmp_path / "questions.json"
+    path.write_text(json.dumps(items, ensure_ascii=False), encoding="utf-8")
+    return str(path)
+
+
+def _batch_argv(path: str, *, dry: bool = True, extra: list[str] | None = None) -> list[str]:
+    return (["ask"] + (["--dry-run"] if dry else []) + ["--batch", path] + (extra or [])
+            + ["--session", "cto-t", "--role", "cto", "--host", "contabo"])
+
+
+def _group_record(statuses=("pending", "pending")) -> tuple[int, dict]:
+    qs = []
+    for qid, status in zip((QID1, QID2), statuses):
+        rec = _record(status, **({"answer": dict(ANSWER)} if status == "answered" else {}))[1]  # forged per test
+        qs.append({**rec, "id": qid, "group_id": GID})
+    return (200, {"id": GID, "kind": "question_group",
+                  "status": "done" if all(x != "pending" for x in statuses) else "pending",
+                  "requester": qs[0]["requester"], "total": 2,
+                  "answered": sum(x == "answered" for x in statuses),
+                  "open": sum(x == "pending" for x in statuses), "questions": qs})
+
+
+def test_batch_dry_run_is_one_group_body_with_each_item_checked_like_a_lone_ask(hub, tmp_path, capsys):
+    rc = ask_run.main(_batch_argv(_batch(tmp_path)))
+    out, err = capsys.readouterr()
+    assert rc == 0 and hub.requests == []
+    assert "/api/run/question-groups" in err
+    assert json.loads(out) == {
+        "questions": [
+            {"question": QUESTION, "why": WHY,
+             "options": [{"label": "Tonight", "recommended": True}, {"label": "Tomorrow 09:00"}],
+             "free_text": True},
+            {"question": "Close the tab after the merge?", "why": "Nothing is left open.",
+             "options": [{"label": "Yes"}, {"label": "No"}], "free_text": False},
+        ],
+        "expires_in_s": 86400,
+        "requester": {"session": "cto-t", "role": "cto", "host": "contabo"},
+    }
+
+
+def test_batch_posts_once_and_prints_the_group_and_every_question(hub, tmp_path, capsys):
+    hub.on("POST", "/api/run/question-groups", (201, GROUP_CREATED))
+    assert ask_run.main(_batch_argv(_batch(tmp_path), dry=False)) == 0
+    out, err = capsys.readouterr()
+    assert hub.paths() == ["/api/run/question-groups"]
+    assert len(hub.requests[0]["body"]["questions"]) == 2
+    assert out.split() == [GID, f"{hub.url}/run#{GID}", QID1, QID2]
+    assert f"wait {GID}" in err and "one letter" in err
+
+
+@pytest.mark.parametrize("label, items, code, where", [
+    ("seven", [ITEMS[0]] * 7, "invalid_questions", ""),
+    ("none", [], "invalid_questions", ""),
+    ("not a list", {"question": QUESTION}, "invalid_questions", ""),
+    ("item carries a requester", [ITEMS[0], {**ITEMS[1], "requester": {"session": "x"}}], "invalid_questions", "questions[1]"),
+    ("item carries an expiry", [{**ITEMS[0], "expires_h": 2}], "invalid_questions", "questions[0]"),
+    ("item carries an answer", [{**ITEMS[0], "answer": {"choice": 0}}], "invalid_questions", "questions[0]"),
+    ("one option", [ITEMS[0], {**ITEMS[1], "options": ["Yes"]}], "invalid_options", "questions[1]"),
+    ("command-shaped", [ITEMS[0], {**ITEMS[1], "question": "rm -rf /tmp/x now?"}], "command_shaped", "questions[1]"),
+    ("money", [{**ITEMS[0], "options": ["Pay $50", "Wait"]}], "money_needs_command_card", "questions[0]"),
+    ("secret", [{**ITEMS[0], "why": f"client_secret: {_val()}"}], "secret_shaped_value", "questions[0]"),
+])
+def test_a_bad_item_refuses_the_whole_batch_before_any_call(hub, tmp_path, capsys, label, items, code, where):
+    rc = ask_run.main(_batch_argv(_batch(tmp_path, items), dry=False))
+    message = _refusal(capsys.readouterr().err)
+    assert rc == 2, label
+    assert _code(message) == code, message
+    assert where in message
+    assert hub.requests == []
+
+
+def test_batch_refuses_a_worker_role_and_a_bad_file_before_any_call(hub, tmp_path, capsys):
+    argv = _batch_argv(_batch(tmp_path), dry=False)
+    argv[argv.index("--role") + 1] = NOT_C_LEVEL[0]
+    assert ask_run.main(argv) == 2
+    assert _code(_refusal(capsys.readouterr().err)) == "question_needs_c_level"
+    bad = tmp_path / "bad.json"
+    bad.write_text("[{", encoding="utf-8")
+    assert ask_run.main(_batch_argv(str(bad), dry=False)) == 2
+    assert _code(_refusal(capsys.readouterr().err)) == "invalid_questions"
+    assert ask_run.main(_batch_argv(str(tmp_path / "missing.json"), dry=False)) == 2
+    assert hub.requests == []
+
+
+@pytest.mark.parametrize("extra", [["--question", "q"], ["--option", "A"], ["--why", "x"],
+                                   ["--recommended", "1"], ["--no-free-text"]])
+def test_batch_with_a_lone_card_flag_is_a_usage_error(hub, tmp_path, extra):
+    with pytest.raises(SystemExit) as exc:
+        ask_run.main(_batch_argv(_batch(tmp_path), extra=extra))
+    assert exc.value.code == 2
+    assert hub.requests == []
+
+
+def test_wait_on_a_group_reads_the_group_record_until_none_is_pending(hub, capsys):
+    hub.on("GET", GPATH, _group_record(), _group_record(("answered", "pending")),
+           _group_record(("answered", "answered")))
+    assert ask_run.main(["wait", GID, "--interval", "0"]) == 0
+    out = capsys.readouterr().out
+    assert hub.paths() == [GPATH] * 3
+    assert out.splitlines()[0] == f"{GID}  done  2 of 2 answered"
+    assert out.count('answer: option 1 "Tonight"') == 2
+
+
+def test_wait_on_a_group_with_an_unanswered_question_exits_1(hub, capsys):
+    hub.on("GET", GPATH, _group_record(("answered", "expired")))
+    assert ask_run.main(["wait", f"https://terminal.mooniex.com/run#{GID}"]) == 1
+    assert "1 of 2 answered" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("label, forge", [
+    ("an answer without the passkey marker", lambda r: r["questions"][0]["answer"].update(via="clevel")),
+    ("a question from another group", lambda r: r["questions"][1].update(group_id="QG-20261014-0400-ffff")),
+    ("done with a pending question", lambda r: r["questions"][1].update(status="pending", answer=None)),
+    ("no questions", lambda r: r.update(questions=[])),
+])
+def test_wait_on_a_group_fails_closed_on_a_record_it_cannot_attribute(hub, capsys, label, forge):
+    status, rec = _group_record(("answered", "answered"))
+    forge(rec)
+    hub.on("GET", GPATH, (status, rec))
+    assert ask_run.main(["wait", GID, "--max-wait", "5"]) in (3, 4), label
+    assert "Tonight" not in capsys.readouterr().out
+
+
+def test_a_group_has_no_cancel_and_no_tail(hub, capsys):
+    assert ask_run.main(["cancel", GID]) == 2
+    assert "Q- id" in capsys.readouterr().err
+    assert ask_run.main(["tail", GID]) == 2
+    assert hub.requests == []
+
+
+def test_group_calls_need_the_bare_hub_address(hub, monkeypatch, capsys, tmp_path):
+    monkeypatch.setenv("RUN_INBOX_URL", hub.url + "/steer")
+    for argv in (["wait", GID], _batch_argv(_batch(tmp_path), dry=False)):
+        assert ask_run.main(argv) == 2, argv
+        assert capsys.readouterr().err.startswith("ask_run: refused: RUN_INBOX_URL"), argv
+    assert hub.requests == []
+
+
+def test_ask_ceo_with_questions_is_the_batch_body(srv, hub, tmp_path, capsys):
+    assert ask_run.main(_batch_argv(_batch(tmp_path))) == 0
+    cli_body = json.loads(capsys.readouterr().out)
+    args = {"questions": ITEMS, "session": "cto-t", "role": "cto", "host": "contabo", "dry_run": True}
+    text = _org(srv, "ask_ceo", args)
+    assert text.startswith("{"), text
+    result = json.loads(text)
+    assert result["payload"] == cli_body
+    assert result["would_post"].endswith("/api/run/question-groups")
+    hub.on("POST", "/api/run/question-groups", (201, GROUP_CREATED))
+    text = _org(srv, "ask_ceo", {**args, "dry_run": False})
+    assert text.startswith("{"), text
+    made = json.loads(text)
+    assert made == {"group_id": GID, "url": f"{hub.url}/run#{GID}", "expires_at": "2026-10-15T04:00:00Z",
+                    "questions": [{"id": QID1, "url": f"{hub.url}/run#{QID1}"},
+                                  {"id": QID2, "url": f"{hub.url}/run#{QID2}"}]}
+    hub.on("GET", GPATH, _group_record(("answered", "answered")))
+    text = _org(srv, "ask_run_wait", {"id": GID})
+    assert text.startswith("{"), text
+    waited = json.loads(text)
+    assert waited["terminal"] is True and [q["status"] for q in waited["questions"]] == ["answered"] * 2
+
+
+@pytest.mark.parametrize("label, args", [
+    ("both", {"questions": ITEMS, "question": QUESTION}),
+    ("both, options", {"questions": ITEMS, "options": OPTIONS}),
+    ("neither", {}),
+    ("too many", {"questions": [ITEMS[0]] * 7}),
+])
+def test_ask_ceo_takes_one_card_or_one_group(srv, hub, label, args):
+    text = _org(srv, "ask_ceo", {**args, "session": "cto-t", "role": "cto", "host": "contabo"})
+    assert "refused" in text, label
+    assert hub.requests == []

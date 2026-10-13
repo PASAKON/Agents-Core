@@ -24,9 +24,22 @@ Verbs:
     python3 tools/ask_run.py list --questions
     python3 tools/ask_run.py cancel Q-...
 
+    python3 tools/ask_run.py ask --batch questions.json   # 1-6 questions, one group
+    python3 tools/ask_run.py wait QG-...   # until every question in the group has ended
+
 `create --dry-run` and `ask --dry-run` print the JSON body and call nothing (no
-token needed). `<id>` is RUN-YYYYMMDD-HHMM-xxxx (a command card) or
-Q-YYYYMMDD-HHMM-xxxx (a question card), or the phone URL that ends in #<id>.
+token needed). `<id>` is RUN-YYYYMMDD-HHMM-xxxx (a command card),
+Q-YYYYMMDD-HHMM-xxxx (a question card) or QG-YYYYMMDD-HHMM-xxxx (a group of
+questions), or the phone URL that ends in #<id>.
+
+Several questions at once (CEO 2026-10-14, QUESTIONS.md §10): `ask --batch FILE`
+(FILE is a JSON list, `-` = stdin) raises up to 6 questions as one group, shown
+together on /run. Each item is {"question", "why", "options": [labels],
+"recommended": 1-based or 0, "free_text": true|false}; the requester, host and
+expiry are the group's (the flags), never an item's. Every item gets the same
+checks as a lone `ask`. The CEO answers them and sends once: you get ONE letter
+for everything he sent you, so one wake. `wait` on any Q- id in the group works
+as before; `wait QG-...` returns when every question in it has ended.
 
 A QUESTION card (docs/design/run-inbox/QUESTIONS.md, the contract this half
 builds against) is a 2-4 option question the CEO answers with one tap on /run.
@@ -126,6 +139,11 @@ EXPIRES_DEFAULT_H = 24.0
 EXPIRES_MIN_S, EXPIRES_MAX_S = 600, 604800   # 10 min .. 7 days (§2)
 ASKS_PATH = "/api/run/asks"
 QUESTIONS_PATH = "/api/run/questions"
+GROUPS_PATH = "/api/run/question-groups"   # QUESTIONS.md §10
+GROUP_MAX = 6                              # questions in one group (§10)
+GROUP_TERMINAL_STATES = ("done",)          # a group is done when none of its questions is pending
+GROUP_ITEM_KEYS = ("question", "why", "options", "recommended", "free_text")
+BATCH_FILE_MAX = 64 * 1024
 
 DEFAULT_RISK = "amber"          # DESIGN §6 signature: risk="amber"
 DEFAULT_TIMEOUT_S = 300         # DESIGN §4: 300 s run timeout
@@ -149,6 +167,7 @@ _REPO_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 _SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
 _ID_RE = re.compile(r"^RUN-[A-Za-z0-9][A-Za-z0-9-]{3,63}$")
 _QID_RE = re.compile(r"^Q-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}\Z")   # QUESTIONS.md §2
+_GID_RE = re.compile(r"^QG-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}\Z")  # QUESTIONS.md §10
 
 
 class Refused(Exception):
@@ -777,7 +796,7 @@ def _hub_error(e: urllib.error.HTTPError) -> HubError:
 
 
 def _is_question_path(path: str) -> bool:
-    return path == QUESTIONS_PATH or path.startswith(QUESTIONS_PATH + "/")
+    return any(path == base or path.startswith(base + "/") for base in (QUESTIONS_PATH, GROUPS_PATH))
 
 
 def _request(method: str, path: str, *, body: Any = None, query: dict | None = None,
@@ -830,15 +849,20 @@ def normalize_id(raw: str) -> str:
     s = (raw or "").strip()
     if "#" in s:  # the phone URL .../run#RUN-... or .../run#Q-...
         s = s.rsplit("#", 1)[1]
-    if not (_ID_RE.match(s) or _QID_RE.match(s)):
+    if not (_ID_RE.match(s) or _QID_RE.match(s) or _GID_RE.match(s)):
         raise Refused(f"not a Run Inbox id: {raw!r} (expected RUN-YYYYMMDD-HHMM-xxxx, "
-                      "Q-YYYYMMDD-HHMM-xxxx, or its /run#... URL)")
+                      "Q-YYYYMMDD-HHMM-xxxx, QG-YYYYMMDD-HHMM-xxxx, or its /run#... URL)")
     return s
 
 
 def is_question_id(ask_id: str) -> bool:
     """A question card's id (Q-...), as opposed to a command card's (RUN-...)."""
     return ask_id.startswith("Q-")
+
+
+def is_group_id(ask_id: str) -> bool:
+    """A group of questions (QG-...), raised by `ask --batch` / ask_ceo(questions=...)."""
+    return ask_id.startswith("QG-")
 
 
 def card_url(ask_id: str) -> str:
@@ -853,8 +877,14 @@ def _question_path(question_id: str, suffix: str = "") -> str:
     return f"{QUESTIONS_PATH}/{urllib.parse.quote(question_id, safe='')}{suffix}"
 
 
+def _group_path(group_id: str) -> str:
+    return f"{GROUPS_PATH}/{urllib.parse.quote(group_id, safe='')}"
+
+
 def _record_path(ask_id: str) -> str:
-    """GET path of a card or a question, by the id's prefix."""
+    """GET path of a card, a question or a group, by the id's prefix."""
+    if is_group_id(ask_id):
+        return _group_path(ask_id)
     return _question_path(ask_id) if is_question_id(ask_id) else _ask_path(ask_id)
 
 
@@ -991,6 +1021,97 @@ def verify_question_record(rec: dict) -> None:
                    "not trusting it (QUESTIONS.md §1.3, §3.3)")
 
 
+def load_batch_file(path: str) -> Any:
+    """`ask --batch FILE`: the JSON list of questions (`-` = stdin). A bad file
+    is a refusal, before any network call."""
+    try:
+        raw = sys.stdin.read(BATCH_FILE_MAX + 1) if path == "-" else \
+            Path(path).read_text(encoding="utf-8")[:BATCH_FILE_MAX + 1]
+    except (OSError, UnicodeDecodeError) as e:
+        raise Refused(f"invalid_questions: cannot read --batch {path!r}: {e.__class__.__name__}") from None
+    if len(raw) > BATCH_FILE_MAX:
+        raise Refused(f"invalid_questions: --batch file is over {BATCH_FILE_MAX // 1024} KB")
+    try:
+        return json.loads(raw)
+    except ValueError as e:
+        raise Refused(f"invalid_questions: --batch is not JSON (line {getattr(e, 'lineno', '?')})") from None
+
+
+def _item_refusal(index: int, err: Refused) -> Refused:
+    """An item's refusal, with the item named and the rule code still first."""
+    text = str(err)
+    m = re.match(r"([a-z_]+)[:;]\s*(.*)\Z", text, re.S)
+    code, rest = (m.group(1), m.group(2)) if m else ("invalid_questions", text)
+    return Refused(f"{code}: questions[{index}]: {rest}")
+
+
+def prepare_question_group(items: Any, args: argparse.Namespace, env: dict | None = None) -> dict:
+    """The POST /api/run/question-groups body (QUESTIONS.md §10): every item
+    through prepare_question(), the same checks as a lone `ask`, then one body
+    that carries the requester and expiry once. An item may not set its own
+    requester, host or expiry: the group has one asker and one deadline."""
+    if isinstance(items, dict) and set(items) == {"questions"}:
+        items = items["questions"]
+    if not isinstance(items, list) or not 1 <= len(items) <= GROUP_MAX:
+        raise Refused(f"invalid_questions: a group is a list of 1 to {GROUP_MAX} questions"
+                      + (f" (got {len(items)})" if isinstance(items, list) else ""))
+    bodies = []
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise Refused(f"invalid_questions: questions[{i}] is not an object")
+        extra = sorted(set(item) - set(GROUP_ITEM_KEYS))
+        if extra:
+            raise Refused(f"invalid_questions: questions[{i}] has {', '.join(extra)}; an item carries only "
+                          f"{', '.join(GROUP_ITEM_KEYS)} (requester, host and expiry are the group's)")
+        shared = {"session": args.session, "role": args.role, "host": args.host,
+                  "task": getattr(args, "task", None), "expires_h": args.expires_h}
+        try:
+            body = prepare_question(_mcp_question_namespace({**item, **shared}), env)
+        except Refused as e:
+            raise _item_refusal(i, e) from None
+        bodies.append(body)
+    payload = {
+        "questions": [{k: b[k] for k in ("question", "why", "options", "free_text")} for b in bodies],
+        "expires_in_s": bodies[0]["expires_in_s"],
+        "requester": bodies[0]["requester"],
+    }
+    hits = find_secret_shapes(payload)
+    if hits:  # each item was checked; this is the body as sent
+        raise Refused("secret_shaped_value; nothing was sent: " + "; ".join(hits))
+    return payload
+
+
+def submit_question_group(payload: dict) -> dict:
+    """POST the group; the hub's answer with the phone URL of the group and of each question."""
+    resp = _unwrap(_call("POST", GROUPS_PATH, body=payload))
+    group_id = resp.get("group_id")
+    if not isinstance(group_id, str) or not _GID_RE.match(group_id):
+        raise HubError(f"hub accepted the group but returned no group id: {json.dumps(resp)[:200]}")
+    questions = resp.get("questions")
+    if not isinstance(questions, list) or len(questions) != len(payload["questions"]) or not all(
+            isinstance(q, dict) and isinstance(q.get("id"), str) and _QID_RE.match(q["id"]) for q in questions):
+        raise HubError(f"hub accepted group {group_id} but its question ids are malformed")
+    return {**resp, "url": card_url(group_id),
+            "questions": [{**q, "url": card_url(q["id"])} for q in questions]}
+
+
+def verify_group_record(rec: dict) -> None:
+    """A group's record is its questions' records; each one is checked like a
+    lone answer (verify_question_record), and a group the hub calls done must
+    have no question still pending."""
+    questions = rec.get("questions")
+    if not isinstance(questions, list) or not questions or not all(isinstance(q, dict) for q in questions):
+        raise HubError(f"{rec.get('id', '?')}: the hub's group record has no questions; not trusting it")
+    for q in questions:
+        if not _QID_RE.match(str(q.get("id", ""))) or (rec.get("id") and q.get("group_id") != rec.get("id")):
+            raise HubError(f"{rec.get('id', '?')}: a question in the group record is not one of its own")
+        verify_question_record(q)
+    if rec.get("status") in GROUP_TERMINAL_STATES and any(
+            q.get("status") not in QUESTION_TERMINAL_STATES for q in questions):
+        raise HubError(f"{rec.get('id', '?')}: the hub says the group is done but a question is still "
+                       "pending; not trusting it")
+
+
 def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: float = 0,
                    on_status: Callable[[str, dict], None] | None = None,
                    on_retry: Callable[[HubError, int], None] | None = None,
@@ -1001,7 +1122,8 @@ def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: 
     MAX_POLL_FAILURES transient errors in a row; anything else raises at once."""
     interval = max(interval, MIN_INTERVAL_S)
     deadline = time.monotonic() + max_wait if max_wait and max_wait > 0 else None
-    terminal = QUESTION_TERMINAL_STATES if is_question_id(ask_id) else TERMINAL_STATES
+    terminal = (GROUP_TERMINAL_STATES if is_group_id(ask_id)
+                else QUESTION_TERMINAL_STATES if is_question_id(ask_id) else TERMINAL_STATES)
     last_rec: dict | None = None
     last_status = None
     failures = 0
@@ -1113,11 +1235,47 @@ def _mcp_question_namespace(a: dict) -> argparse.Namespace:
         dry_run=bool(a.get("dry_run")), json=False)
 
 
+def _mcp_ask_ceo_group(arguments: dict, env: dict | None) -> dict:
+    """MCP `ask_ceo` with `questions`: the same checks and the same POST as
+    `ask --batch`. The one-card fields must be empty: a call is one card or one group."""
+    try:
+        lone = [k for k in ("question", "why") if (arguments.get(k) or "").strip()]
+        if arguments.get("options"):
+            lone.append("options")
+        if arguments.get("recommended"):
+            lone.append("recommended")
+        if arguments.get("free_text", True) is not True:
+            lone.append("free_text")
+        if lone:
+            raise Refused(f"invalid_questions: give questions (a group) or {', '.join(lone)} (one card), "
+                          "not both; each item of questions carries its own question, why, options, "
+                          "recommended and free_text")
+        ns = argparse.Namespace(session=arguments.get("session") or None, role=arguments.get("role") or None,
+                                host=arguments.get("host") or None, task=arguments.get("task") or None,
+                                expires_h=arguments.get("expires_h", EXPIRES_DEFAULT_H))
+        payload = prepare_question_group(arguments.get("questions"), ns, env)
+        base = question_base_url()
+    except Refused as e:
+        raise Refused(f"refused: {e}") from None
+    if arguments.get("dry_run"):
+        return {"dry_run": True, "would_post": base + GROUPS_PATH, "payload": payload}
+    resp = submit_question_group(payload)
+    return {"group_id": resp["group_id"], "url": resp["url"], "expires_at": resp.get("expires_at"),
+            "questions": [{"id": q["id"], "url": q["url"]} for q in resp["questions"]]}
+
+
 def mcp_ask_ceo(arguments: dict, env: dict | None = None) -> dict:
     """MCP `ask_ceo`: the same checks and the same POST as `ask`. Returns
     {id, url, expires_at}, or {dry_run, would_post, payload}. It creates the
-    question and nothing else: no path here answers one (QUESTIONS.md §1.1)."""
+    question and nothing else: no path here answers one (QUESTIONS.md §1.1).
+    With `questions` (1-6 items) it raises one group instead, like `ask --batch`,
+    and returns {group_id, url, expires_at, questions: [{id, url}]}."""
+    if arguments.get("questions") not in (None, "", []):
+        return _mcp_ask_ceo_group(arguments, env)
     try:
+        if arguments.get("options") in (None, "") and not (arguments.get("question") or "").strip():
+            raise Refused("question_required: give question, options and why (one card), or questions "
+                          f"(a group of up to {GROUP_MAX})")
         ns = _mcp_question_namespace(arguments)
         payload = prepare_question(ns, env)
         base = question_base_url()
@@ -1134,7 +1292,9 @@ def wait_result(ask_id: str, *, max_wait_s: float = WAIT_DEFAULT_S,
     """MCP `ask_run_wait`: `wait`, bounded so one tool call never outlives the
     client (max_wait_s, default 600, at most 3600). terminal=False = call again.
     The output tail is cut to its last `tail_lines_n` lines (0 = all). A Q-...
-    id waits on a question card: the hub's record, {terminal, status, answer, ...}."""
+    id waits on a question card: the hub's record, {terminal, status, answer, ...}.
+    A QG-... id waits on a group: terminal once no question in it is pending,
+    with every question's record under `questions`."""
     try:
         ask_id = normalize_id(ask_id)
     except Refused as e:
@@ -1145,6 +1305,8 @@ def wait_result(ask_id: str, *, max_wait_s: float = WAIT_DEFAULT_S,
     rec = dict(rec or {"id": ask_id})
     if is_question_id(ask_id):
         verify_question_record(rec)
+    elif is_group_id(ask_id) and rec.get("questions") is not None:
+        verify_group_record(rec)
     out: dict[str, Any] = {"terminal": ended}
     if not ended:
         out["note"] = f"still {rec.get('status', 'unknown')} after {max_wait:g} s; call ask_run_wait again"
@@ -1177,7 +1339,32 @@ def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
     return EXIT_OK
 
 
+def cmd_ask_batch(args: argparse.Namespace) -> int:
+    payload = prepare_question_group(load_batch_file(args.batch), args)
+    base = question_base_url()
+    if args.dry_run:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        sys.stdout.flush()
+        _say(f"dry run: nothing sent (would POST {base}{GROUPS_PATH})")
+        return EXIT_OK
+    resp = submit_question_group(payload)
+    group_id = resp["group_id"]
+    if args.json:
+        print(json.dumps(resp, indent=2, ensure_ascii=False))
+    else:
+        print(group_id)
+        print(resp["url"])
+        for q in resp["questions"]:
+            print(q["id"])
+    _say(f"{resp.get('status', 'pending')} · {len(resp['questions'])} questions · expires "
+         f"{resp.get('expires_at', '?')}. Only the CEO's tap on /run answers them; what he sends you "
+         f"at once comes as one letter. Next: python3 tools/ask_run.py wait {group_id}")
+    return EXIT_OK
+
+
 def cmd_ask(args: argparse.Namespace) -> int:
+    if args.batch:
+        return cmd_ask_batch(args)
     payload = prepare_question(args)
     base = question_base_url()
     if args.dry_run:
@@ -1223,6 +1410,19 @@ def print_question_result(rec: dict, *, as_json: bool = False) -> None:
         print(f"nobody answered before {rec.get('expires_at', '?')}")
 
 
+def print_group_result(rec: dict, *, as_json: bool = False) -> None:
+    """A group: whole as JSON, else one header line and each question's lines."""
+    if as_json:
+        print(json.dumps(rec, indent=2, ensure_ascii=False))
+        return
+    questions = rec.get("questions") or []
+    answered = sum(1 for q in questions if q.get("status") == "answered")
+    print(f"{rec.get('id', '?')}  {rec.get('status', '?')}  {answered} of {len(questions)} answered")
+    for q in questions:
+        print()
+        print_question_result(q)
+
+
 def cmd_wait(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
     rec, ended = poll_until_end(
@@ -1237,6 +1437,10 @@ def cmd_wait(args: argparse.Namespace) -> int:
         verify_question_record(rec)
         print_question_result(rec, as_json=args.json)
         return EXIT_OK if rec.get("status") == "answered" else EXIT_ENDED_BADLY
+    if is_group_id(ask_id):
+        verify_group_record(rec)
+        print_group_result(rec, as_json=args.json)
+        return EXIT_OK if all(q.get("status") == "answered" for q in rec["questions"]) else EXIT_ENDED_BADLY
     print_result(rec, lines=args.lines, as_json=args.json)
     return EXIT_OK if rec.get("status") == "done" else EXIT_ENDED_BADLY
 
@@ -1296,6 +1500,9 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 def cmd_cancel(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
+    if is_group_id(ask_id):
+        raise Refused("a group has no cancel of its own: cancel each question by its Q- id "
+                      f"(python3 tools/ask_run.py wait {ask_id} --max-wait 1 lists them)")
     path = _question_path(ask_id, "/cancel") if is_question_id(ask_id) else _ask_path(ask_id, "/cancel")
     resp = _unwrap(_call("POST", path, body={}))
     print(f"{resp.get('id', ask_id)} {resp.get('status', 'cancelled')}")
@@ -1328,7 +1535,7 @@ def _sse_events(lines: Iterable[bytes]) -> Iterator[tuple[str, str]]:
 
 def cmd_tail(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
-    if is_question_id(ask_id):
+    if is_question_id(ask_id) or is_group_id(ask_id):
         raise Refused("a question card runs nothing and has no output to tail: "
                       f"use `wait {ask_id}` for the CEO's answer")
     resp = _request("GET", _ask_path(ask_id, "/events"), accept="text/event-stream",
@@ -1407,12 +1614,17 @@ def _parser() -> argparse.ArgumentParser:
     q = sub.add_parser("ask", help="ask the CEO a 2-4 option question (one tap on /run); prints its id "
                                    "and the phone URL. Never for a command, money or a secret: those go "
                                    "on a command card (create)")
-    q.add_argument("--question", required=True, help=f"one line, at most {QUESTION_MAX} characters")
-    q.add_argument("--option", action="append", required=True, metavar="LABEL",
+    q.add_argument("--question", help=f"one line, at most {QUESTION_MAX} characters")
+    q.add_argument("--option", action="append", metavar="LABEL",
                    help=f"an answer the CEO can tap; repeat {OPTIONS_MIN} to {OPTIONS_MAX} times")
     q.add_argument("--recommended", type=int, metavar="N",
                    help="1-based: the option that carries the recommended badge")
-    q.add_argument("--why", required=True, help=f"context the CEO reads before tapping (at most {WHY_MAX} characters)")
+    q.add_argument("--why", help=f"context the CEO reads before tapping (at most {WHY_MAX} characters)")
+    q.add_argument("--batch", metavar="FILE",
+                   help=f"1 to {GROUP_MAX} questions as one group (a JSON list, - = stdin; each item "
+                        "{question, why, options, recommended, free_text}); replaces "
+                        "--question/--option/--why/--recommended/--no-free-text. One send from the "
+                        "CEO = one letter to you")
     q.add_argument("--no-free-text", action="store_true",
                    help="an option is required and the CEO gets no text box (default: he may add a note)")
     q.add_argument("--expires-h", type=float, default=EXPIRES_DEFAULT_H, metavar="HOURS",
@@ -1424,8 +1636,9 @@ def _parser() -> argparse.ArgumentParser:
     q.add_argument("--dry-run", action="store_true", help="print the JSON body, send nothing")
     q.add_argument("--json", action="store_true", help="print the hub's answer as JSON")
 
-    w = sub.add_parser("wait", help="poll an ask (RUN-...) or a question (Q-...) until it ends; exit 0 done / "
-                                    "answered, 1 failed/denied/expired/cancelled")
+    w = sub.add_parser("wait", help="poll an ask (RUN-...), a question (Q-...) or a group (QG-...) until it "
+                                    "ends; exit 0 done / answered (a group: every question answered), "
+                                    "1 failed/denied/expired/cancelled")
     w.add_argument("id")
     w.add_argument("--interval", type=float, default=POLL_INTERVAL_S, metavar="SECONDS")
     w.add_argument("--max-wait", type=float, default=0, metavar="SECONDS",
@@ -1460,6 +1673,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if script_args and args.verb != "create":
         parser.error("`-- args...` only go with create --script")
+    if args.verb == "ask":
+        lone = [flag for flag, given in (("--question", args.question is not None),
+                                         ("--option", args.option is not None),
+                                         ("--why", args.why is not None),
+                                         ("--recommended", args.recommended is not None),
+                                         ("--no-free-text", args.no_free_text)) if given]
+        if args.batch is not None and lone:
+            parser.error(f"--batch carries every question; drop {', '.join(lone)}")
+        missing = [f for f in ("--question", "--option", "--why") if f not in lone]
+        if args.batch is None and missing:
+            parser.error(f"the following arguments are required: {', '.join(missing)} (or --batch FILE)")
     try:
         if args.verb == "create":
             return cmd_create(args, script_args)

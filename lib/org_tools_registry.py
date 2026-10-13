@@ -352,13 +352,14 @@ async def _h_ask_run(*, host: str, why: str, script: str = "", args: list[str] |
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
-async def _h_ask_ceo(*, question: str, options: list[str], why: str, recommended: int = 0,
-                     free_text: bool = True, expires_h: float = 24.0, session: str = "",
-                     role: str = "", host: str = "", task: str = "", dry_run: bool = False) -> str:
+async def _h_ask_ceo(*, question: str = "", options: list[str] | None = None, why: str = "",
+                     recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
+                     session: str = "", role: str = "", host: str = "", task: str = "",
+                     dry_run: bool = False, questions: list[dict] | None = None) -> str:
     arguments = {
         "question": question, "options": options, "why": why, "recommended": recommended,
         "free_text": free_text, "expires_h": expires_h, "session": session, "role": role,
-        "host": host, "task": task, "dry_run": dry_run,
+        "host": host, "task": task, "dry_run": dry_run, "questions": questions,
     }
     result = await asyncio.to_thread(ask_run_tool.mcp_ask_ceo, arguments)
     return json.dumps(result, indent=2, ensure_ascii=False)
@@ -798,15 +799,22 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "decision; the mailbox letter is only a wake-up). dry_run=True "
             "returns the JSON body and sends nothing. Same code as "
             "tools/ask_run.py ask (docs/design/run-inbox/QUESTIONS.md §9). "
+            "Several questions at once: pass questions=[{question, why, options, "
+            "recommended, free_text}, ...] (1-6) instead of question/options/why; "
+            "they show together on /run, the CEO answers and sends once, and you "
+            "get one letter (one wake) for everything he sent you. Returns "
+            "{group_id, url, expires_at, questions: [{id, url}]}; ask_run_wait "
+            "on the QG- id returns when all of them have ended "
+            "(QUESTIONS.md §10). "
             "Not the same tool as mcp__sompong__ask_ceo (SomPong's Telegram/LINE "
             "question in the COO session)."
         ),
         params=(
-            Param("question", str), Param("options", list[str]), Param("why", str),
+            Param("question", str, ""), Param("options", list[str], None), Param("why", str, ""),
             Param("recommended", int, 0), Param("free_text", bool, True),
             Param("expires_h", float, 24.0), Param("session", str, ""),
             Param("role", str, ""), Param("host", str, ""), Param("task", str, ""),
-            Param("dry_run", bool, False),
+            Param("dry_run", bool, False), Param("questions", list[dict], None),
         ),
         handler=_h_ask_ceo,
         is_async=True,
@@ -817,8 +825,10 @@ REGISTRY: tuple[ToolSpec, ...] = (
         description=(
             "Wait for a Run Inbox ask or question to end (polls every 5 s) and "
             "return its record: terminal=true once a command card (RUN-...) is "
-            "done/failed/denied/expired/cancelled, or a question (Q-..., from "
-            "ask_ceo) is answered/expired/cancelled; terminal=false if "
+            "done/failed/denied/expired/cancelled, a question (Q-..., from "
+            "ask_ceo) is answered/expired/cancelled, or a group (QG-..., from "
+            "ask_ceo with questions) has no question still pending, with every "
+            "question's record under questions; terminal=false if "
             "max_wait_s (default 600, max 3600) ran out first; then call "
             "again. A question's record carries status and answer "
             "{choice, label, text, answered_by, answered_at}: that hub record, "

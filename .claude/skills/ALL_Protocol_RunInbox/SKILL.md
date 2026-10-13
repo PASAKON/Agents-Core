@@ -175,6 +175,19 @@ python3 tools/ask_run.py wait Q-20261013-1102-a3f9   # 0 answered · 1 expired/c
 MCP: `ask_ceo(question, options, why, recommended)`, then `ask_run_wait(id)` (it takes `Q-…` ids).
 Contract: `docs/design/run-inbox/QUESTIONS.md`.
 
+**Several questions → one group (CEO 2026-10-14: "ตอบให้ครบแล้ว กดส่ง trigger แค่รอบเดียวพอ ประหยัด token
+ด้วย").** Two to six questions you have at the same time go in ONE call, not one card each:
+
+```bash
+python3 tools/ask_run.py ask --batch questions.json   # [{question, why, options:[…], recommended, free_text}, …]
+python3 tools/ask_run.py wait QG-20261014-0400-c0de   # returns when none is pending; 0 = all answered
+```
+
+MCP: `ask_ceo(questions=[{question, why, options, recommended, free_text}, …])`, then
+`ask_run_wait(QG-…)`. He answers them on /run and sends once; you get ONE letter (one wake) for
+everything he sent you. Each question still has its own `Q-…` id and record: cite that id for
+each decision (QUESTIONS.md §10).
+
 1. **HARD — a question card never stands in for a command card.** Anything that runs a command, spends
    money or touches a secret goes on a command card (`ask_run`; red = fresh Face ID). That holds even
    after the CEO has said yes to a question about it. The tool and the hub refuse a question or option

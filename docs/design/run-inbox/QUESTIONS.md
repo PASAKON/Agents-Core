@@ -261,3 +261,51 @@ Test table (both sides, added 2026-10-13): refused — `Approve 100 GBP for ads?
   returns `{terminal, status, answer, …}`.
 - `requester.host`: `--host`, else `ORG_HOST`, else `lib.config.self_host()` when importable, else the
   lowercased short hostname.
+
+## 10. Several questions, one send (CEO 14 Oct)
+
+**Order:** CEO 14 Oct ~03:55 TH via SomPong: "เวลามีมากกว่า 1 คำถาม ระบบจะส่งมาทีละอันเวลากด … อยากให้มีการส่ง
+คำถามแบบเป็นชุด … ตอบให้ครบแล้ว กดส่ง trigger แค่รอบเดียวพอ ประหยัด token ด้วย". Each answer used to write its
+own letter, and each letter wakes its asker for a model turn: N answers cost N wakes. The CEO's tap is now the
+boundary: what he sends at once reaches each asker as one letter. No time window.
+
+- **Group.** `POST /api/run/question-groups` `{questions:[{question, why, options, free_text?}…] (1–6),
+  expires_in_s?, requester}` → `201 {group_id, status:"pending", expires_at, url, questions:[{id, status,
+  expires_at, url}…]}`. Group id `QG-YYYYMMDD-HHMM-xxxx`. All or nothing: every item passes §3.2 exactly as a
+  lone question (a refusal adds `index`), an item may not carry `requester` or `expires_in_s`, and nothing is
+  stored if one item fails. Every question keeps its own row, id, sha256 (§4, unchanged) and record; a grouped
+  record adds `group_id` as its last key, a lone record has no such key. One `new` mail lists every question.
+  `GET /api/run/question-groups/:id` → `{id, kind:"question_group", status:"pending"|"done", requester, total,
+  answered, open, questions:[record…]}` (own / operator, like a question). There is no group cancel: cancel each
+  `Q-…`.
+- **Caps (§3.2 item 8).** The per-session open cap (5) counts cards (a group is one card); the 50 open, 30/h and
+  10/h per session caps count questions (a group of 6 counts 6).
+- **One send.** `POST /api/run/questions/answers` `{answers:[{id, sha256, choice?, text?}…] (1–50)}`, operator
+  only, like §3.4. Every item is checked first (§3.4 per item, plus `invalid_id`, `duplicate_id`, `not_found`);
+  one bad item refuses the whole send with `{index, id}` and writes nothing. Then one transaction. A question
+  that ended in the meantime is reported, not refused: `{id, status:"expired"}` (expired on the spot) or
+  `{id, status, error:"not_pending"}`. → `200 {answered, results, letters}`.
+- **Letters (§7).** The rows that changed are grouped by `requester.session`. One row → the §7 letter
+  (`<Q-id>.json`), unchanged. Several → one letter `QB-YYYYMMDD-HHMM-xxxx.json`, `kind:"question_batch"`,
+  `questions:[{id, group_id, status, answer}]`, and a one-line summary (`the CEO answered k of n questions in one
+  send on /run: … — records: ask_run wait QG-…`). One letter = one wake. The 60 s sweep writes the same batch
+  letter when a group's questions expire together. A grouped question answered on its own card gets its own
+  §7 letter. The letter still only wakes: the record is the hub's (§1.3).
+- **Page (§8).** A pick is a draft until sent. `#Q-…` sends one, as before. `#questions` (every pending question)
+  and `#QG-…` (one group) list the drafts card by card (a group under one asker line) with **ส่งทั้งหมด (k)**,
+  which sends every ready draft in one request, each with the sha256 the page computed for what it showed. The
+  inbox shows **ตอบทั้งชุด · N ข้อ** from two pending questions, **ส่งร่างทั้งหมด (k)** once drafts exist, and a
+  `ร่าง:` line on a drafted row. Only the picked option survives a reload (localStorage, best effort); typed text
+  stays in the page.
+- **Requester (§9).** `ask_run.py ask --batch FILE` (a JSON list, `-` = stdin; each item `{question, why,
+  options:[labels], recommended (1-based, 0 = none), free_text}`; the flags give requester, host and expiry once;
+  `--batch` with `--question/--option/--why/--recommended/--no-free-text` is a usage error) prints the group id,
+  its URL and each question id. Every item gets every local check of a lone `ask`, before any call. `wait QG-…`
+  polls the group until none is pending (exit 0 all answered, 1 otherwise), checks every question as §1.3 and
+  fails closed on a question from another group or a "done" group with a pending question. MCP:
+  `ask_ceo(questions=[…], session, role, host, task, expires_h, dry_run)` → `{group_id, url, expires_at,
+  questions:[{id, url}]}`; giving `questions` and a one-card field is refused. `ask_run_wait` takes `QG-…`.
+- **Code + tests.** Console `src/run/questions.js` (`createQuestionGroup`, `answerBatch`, `sendLetters`),
+  `src/run/notify.js` (`writeQuestionBatchLetter`), `test/run-questions-batch.test.js` (3 questions from 2
+  sessions → one send → one letter per session). Agents-Core `tools/ask_run.py`,
+  `tests/test_ask_run_questions.py` §groups.
