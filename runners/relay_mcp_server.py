@@ -1276,7 +1276,9 @@ def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) ->
         return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)
     # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
     from tools import clevel_gate
-    refusal = clevel_gate.refusal(role, session_id=resume_session_id, host=host)
+    # No session id: a resume starts under a new id (node_dispatch), so the
+    # session being resumed counts as another live one.
+    refusal = clevel_gate.refusal(role, host=host)
     if refusal:
         _audit("spawn_c_level", role, "rejected", f"single C-level, host={host}")
         return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)

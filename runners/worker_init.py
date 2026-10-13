@@ -465,6 +465,13 @@ def main() -> None:
     if role == "web_designer":
         prompt += db.designer_kickoff_suffix(task.get("description") or "")
 
+    # Who this process is, for every runner. An agy worker left from here
+    # before the env block below, so its tools ran with no WORKER_TASK_ID and
+    # the relay role gate could not tell it was a worker (agy_local passes
+    # os.environ through). Org restructure P2, security review of the gate.
+    os.environ["WORKER_TASK_ID"] = task_id
+    os.environ["WORKER_ROLE"] = role
+
     if runner == "agy":
         sys.exit(agy_local.run_agy_task(task, worktree, prompt + "\n\n" + role_doc, role))
 

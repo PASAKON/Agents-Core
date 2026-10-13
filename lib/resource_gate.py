@@ -7,7 +7,8 @@ most `ORG_SPAWN_DISK_MAX_PCT` (90) % used. One more Claude session costs about
 330-520 MB (measured on Contabo 2026-10-13: 325-525 MB per session tree), and
 on 2026-10-01 one OOM kill took every Contabo session down at once.
 
-Off unless `ORG_SPAWN_GATE=1` on the host: `check()` then returns None without
+Off unless the host flag ORG_SPAWN_GATE is on (`/etc/org-flags/ORG_SPAWN_GATE` or
+`ORG_SPAWN_GATE=1`; lib/org_flags): `check()` then returns None without
 reading anything, so a host that has not opted in behaves exactly as before.
 
 RAM is MemAvailable from /proc/meminfo, the kernel's own estimate of what a new
@@ -36,8 +37,10 @@ MEMINFO = Path("/proc/meminfo")
 
 
 def gate_on() -> bool:
-    """True when this host gates spawns on resources (ORG_SPAWN_GATE=1)."""
-    return os.environ.get("ORG_SPAWN_GATE", "").strip() == "1"
+    """True when this host gates spawns on resources (host flag ORG_SPAWN_GATE,
+    lib/org_flags: the file /etc/org-flags/ORG_SPAWN_GATE or the env)."""
+    from lib import org_flags
+    return org_flags.on("ORG_SPAWN_GATE")
 
 
 def _env_number(name: str, default: float) -> float:

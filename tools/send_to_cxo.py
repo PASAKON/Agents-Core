@@ -186,11 +186,27 @@ def _owner_of(identity: Identity) -> Identity | None:
     p = _spawn_record_path(identity.role, identity.session_id)
     if not p.exists():
         return None
+    if identity.role == PH_ROLE and not _trusted_record(p):
+        return None  # fails closed: a Project Head with no owner can send nothing
     parts = p.read_text().strip().split(":", 2)
     if len(parts) != 3:
         return None
     kind, role, sid = parts
     return Identity(kind, role, sid or None)
+
+
+def _trusted_record(path: Path) -> bool:
+    """A Project Head's owner record counts only when root or this process's
+    own user wrote it. state/locks is group-writable (the secretary's group),
+    and the record decides who a Project Head reports to. No euid (Windows):
+    no such group, trusted."""
+    geteuid = getattr(os, "geteuid", None)
+    if geteuid is None:
+        return True
+    try:
+        return path.stat().st_uid in (0, geteuid())
+    except OSError:
+        return False
 
 
 def _chain(identity: Identity) -> list[Identity]:
@@ -274,11 +290,30 @@ def authorize(sender: Identity, target_role: str, target_session_id: str | None,
                 f"sessions only, not {target_role!r}"
             )
         return
+    if target_role == PH_ROLE and sender.kind == "cxo" and not spawning:
+        # A Project Head takes briefs from its own lane (and the CEO); another
+        # lane's C-level would get no answer, because the PH replies only to
+        # its owner's lane. A PH with no owner record takes none.
+        ph_owner = (_owner_of(Identity("cxo", PH_ROLE, target_session_id))
+                    if target_session_id else None)
+        if ph_owner is None or ph_owner.role != sender.role:
+            raise PermissionError(
+                f"refused: {sender.label()} may brief only a Project Head of its own lane; "
+                f"Project Head #{target_session_id or '?'} belongs to "
+                f"{display_for(ph_owner.role) if ph_owner else 'no lane on record'}")
     owner = _owner_of(sender)
     if owner is None:
         return  # root: free peer messaging, and free to spawn a level-2 child
     if spawning:
-        depth = len(_chain(sender)) + 1
+        chain = _chain(sender)
+        if any(i.kind == "cxo" and i.role == PH_ROLE for i in chain):
+            # A Project Head's worker is two hops down, so the hop cap alone
+            # would let it start a C-level session (plan §3.2: a PH and
+            # everything under it starts no session).
+            raise PermissionError(
+                f"refused: {sender.label()} works under a Project Head; nothing under a "
+                f"Project Head starts a session (plan §3.2). Chain: {_chain_str(sender)}")
+        depth = len(chain) + 1
         if depth > MAX_HOPS:
             raise PermissionError(
                 f"refused: hop {depth} exceeds max {MAX_HOPS} delegation "
@@ -530,7 +565,7 @@ def spawn(role: str, message: str, sender: str | None = None, *,
         raise ValueError(refusal)
     sender_identity = current_identity()
     authorize(sender_identity, role, None, spawning=True)
-    label = sender or _resolve_sender_role()
+    label = _sender_label(sender_identity, sender)
     display = display_for(role)
     topic_slug = _make_topic_slug(message)
     # Attribute the actual sender — a CMO→CFO request must not read "<- CTO".
@@ -753,7 +788,7 @@ def send(role: str, message: str, sender: str | None = None, *,
         sid = remote[1]
     sender_identity = current_identity()
     authorize(sender_identity, role, sid, spawning=False)
-    label = sender or _resolve_sender_role()
+    label = _sender_label(sender_identity, sender)
     _log_hop(sender_identity, role, sid)
     from_role, from_sid = _mailbox_identity(sender_identity)
     if remote is not None:
@@ -787,6 +822,15 @@ def send(role: str, message: str, sender: str | None = None, *,
 PH_TARGET_RE = re.compile(rf"{PH_ROLE}-([0-9a-f]{{8}})")
 
 
+def _sender_label(identity: Identity, sender: str | None) -> str:
+    """The name in the recipient's `[New message from …]` line. A Project Head
+    cannot choose it: `--from` is free text, typed into the owner's pane, and
+    a PH must not read as the CEO there (security review 2026-10-13)."""
+    if identity.kind == "cxo" and identity.role == PH_ROLE:
+        return _resolve_sender_role()
+    return sender or _resolve_sender_role()
+
+
 def _ph_owner_session(role: str) -> str | None:
     """For a Project Head sender writing to its lane: the session that started
     it while that session is still live, else None (the lane's active one)."""
@@ -795,19 +839,21 @@ def _ph_owner_session(role: str) -> str | None:
     owner = _owner_of(current_identity())
     if owner is None or owner.role != role or not owner.session_id:
         return None
-    return owner.session_id if (LOCKS_DIR / f"{role}-{owner.session_id}.lock").exists() else None
+    from tools import clevel_gate  # noqa: PLC0415
+    return owner.session_id if clevel_gate.live_lock(role, owner.session_id, LOCKS_DIR) else None
 
 
 def _send_to_ph(sid: str, message: str, sender: str | None = None, *,
                 subject: str | None = None) -> str:
     """Queue a letter in a live Project Head's box (org restructure P2).
     Same-host only: a Project Head runs where its C-level started it."""
-    if not (LOCKS_DIR / f"{PH_ROLE}-{sid}.lock").exists():
+    from tools import clevel_gate  # noqa: PLC0415
+    if not clevel_gate.live_lock(PH_ROLE, sid, LOCKS_DIR):
         raise ValueError(f"no live Project Head #{sid} on this host "
                          f"(bash scripts/live-sessions.sh lists the live ones)")
     sender_identity = current_identity()
     authorize(sender_identity, PH_ROLE, sid, spawning=False)
-    label = sender or _resolve_sender_role()
+    label = _sender_label(sender_identity, sender)
     _log_hop(sender_identity, PH_ROLE, sid)
     from_role, from_sid = _mailbox_identity(sender_identity)
     chain = _chain_ids(sender_identity) + [f"{PH_ROLE}:{sid}"]

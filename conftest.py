@@ -97,6 +97,17 @@ def _mail_envelope_off(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _org_flags_off(tmp_path, monkeypatch):
+    """Org restructure P2 host flags (lib/org_flags.py): on from
+    /etc/org-flags/<NAME> or the env. A test must see neither the host's flag
+    files nor the shell's flags; the P2 tests turn on what they test."""
+    from lib import org_flags
+    monkeypatch.setattr(org_flags, "FLAGS_DIR", tmp_path / "no-org-flags")
+    for var in ("ORG_SINGLE_CLEVEL", "ORG_PH_ROLES", "ORG_SPAWN_GATE", "ORG_SESSION_SCOPE"):
+        monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
     quota read is an ssh to Contabo plus the agy CLI. No test may reach

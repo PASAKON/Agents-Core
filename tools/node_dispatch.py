@@ -634,7 +634,9 @@ def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
     command runners/relay_mcp_server.spawn_c_level runs on Contabo, in tmux."""
     from tools import clevel_gate, session_status, tmux_session
     # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
-    why = clevel_gate.refusal(role, session_id=resume_sid)
+    # No session id: the resumed conversation starts under a NEW id, so the
+    # session being resumed counts as another live one (it must not run twice).
+    why = clevel_gate.refusal(role)
     if why:
         raise Refusal(why)
     launcher = ROOT / "scripts" / "cxo-claude.sh"

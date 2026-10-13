@@ -71,14 +71,16 @@ def c_level_displays() -> tuple[str, ...]:
 # owned by its lane's C-level. Its session carries CXO_ROLE=project_head plus
 # ORG_PH_LANE (the owning C-level role) and ORG_PH_PROJECT (the project name);
 # docs/design/org-restructure-p2.md is the contract. Nothing here is live
-# unless ORG_PH_ROLES=1 on the host.
+# unless the host flag ORG_PH_ROLES is on (lib/org_flags).
 PH_ROLE = "project_head"
-PH_PROJECT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,39}")
+# Anchored as well as used with fullmatch: a later .match() must not accept "Name;x".
+PH_PROJECT_RE = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9_-]{0,39}\Z")
 
 
 def ph_roles_on() -> bool:
-    """True when this host runs the Project Head layer (ORG_PH_ROLES=1)."""
-    return os.environ.get("ORG_PH_ROLES", "").strip() == "1"
+    """True when this host runs the Project Head layer (host flag ORG_PH_ROLES)."""
+    from lib import org_flags
+    return org_flags.on("ORG_PH_ROLES")
 
 
 def is_project_head(role: str | None) -> bool:
@@ -105,9 +107,12 @@ def ph_project_refusal(project: str) -> str | None:
             f"with a letter or digit (got {project!r})")
 
 
-# browser_operator and Project Head (org restructure P2: short one-off browser
-# jobs, CEO via SomPong 2026-10-14). Still narrower than the full Chrome surface: no
-# gif_creator, no shortcuts_execute, no browser switching.
+# browser_operator and Project Head (org restructure P2: a PH does short one-off
+# browser jobs itself; CEO 2026-10-13 "เอาตามนี้" on the peer proposal, relayed by
+# CTO #e106b78b). Still narrower than the full Chrome surface: no gif_creator, no
+# shortcuts_execute. select_browser/switch_browser stay (see the note at the end
+# of the list); which Chrome a PH may use (one browser home per PH) is its role
+# doc's rule, roles/project_head.md, written by the COO.
 #
 # Upload was withheld at first on exfiltration grounds and granted 2026-08-10
 # (CEO) because reference images are the job — the C-level names the path in

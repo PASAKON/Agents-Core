@@ -45,6 +45,21 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Org restructure P2: a Project Head never starts a session (plan §3.2), and
+# the launcher is where every start passes. Its session carries
+# CXO_ROLE=project_head, so a launch from inside one is refused here, before
+# anything else. A guard for an agent that follows the rules, not a sandbox: a
+# shell that clears the variable gets past it.
+if [ "${CXO_ROLE:-}" = "project_head" ]; then
+  echo "a Project Head cannot start a session (org restructure P2, plan §3.2); ask its C-level" >&2
+  exit 2
+fi
+# Host flags (lib/org_flags.py): on when /etc/org-flags/<NAME> exists or the env
+# says 1. A session started from tmux, the relay or node_dispatch takes the tmux
+# server's environment, so the file is what reaches every launch.
+ORG_FLAGS_DIR=/etc/org-flags
+org_flag() { [ "${!1:-}" = "1" ] || [ -f "$ORG_FLAGS_DIR/$1" ]; }
+
 ROLE=""
 SESSION_OVERRIDE=""
 INITIAL_PROMPT=""
@@ -122,22 +137,40 @@ if [ "$ROLE" = "coo" ]; then
 fi
 
 # --- Project Head (org restructure P2, plan §3.2) ------------------------------
-# Off unless ORG_PH_ROLES=1 on this host. Lane and project are checked by
-# lib/roles.py (the same rules spawn-ph.sh applies). The role doc is the COO's to
-# write (plan §13); until it exists a Project Head does not start.
+# Off unless the host flag ORG_PH_ROLES is on. Lane and project are checked by
+# lib/roles.py (the same rules spawn-ph.sh applies). The session must have been
+# started by scripts/spawn-ph.sh: its owner record (state/locks/project_head-<id>
+# .spawned_by, written by root or this user before tmux started) names the lane.
+# The role doc is the COO's to write (plan §13); until it exists a Project Head
+# does not start.
 IS_PH=0
 if [ "$ROLE" = "project_head" ]; then
   IS_PH=1
-  if [ "${ORG_PH_ROLES:-0}" != "1" ]; then
-    echo "project_head is off on this host (ORG_PH_ROLES=1 turns it on; org restructure P2)" >&2
+  if ! org_flag ORG_PH_ROLES; then
+    echo "project_head is off on this host (host flag ORG_PH_ROLES turns it on; org restructure P2)" >&2
     exit 2
   fi
   PH_LANE="$(printf '%s' "$PH_LANE" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
   PH_PY="$ROOT/.venv/bin/python"; [ -x "$PH_PY" ] || PH_PY=python3
-  if ! PH_PROBLEM="$(cd "$ROOT" && PH_LANE="$PH_LANE" PH_PROJECT="$PH_PROJECT" "$PH_PY" -c '
-import os, sys
+  if ! PH_PROBLEM="$(cd "$ROOT" && PH_LANE="$PH_LANE" PH_PROJECT="$PH_PROJECT" \
+        PH_SID="${CXO_SESSION_ID:-}" PH_LOCKS="$ROOT/state/locks" "$PH_PY" -c '
+import os, re, sys
 from lib.roles import ph_lane_refusal, ph_project_refusal
-why = ph_lane_refusal(os.environ["PH_LANE"]) or ph_project_refusal(os.environ["PH_PROJECT"])
+lane, sid = os.environ["PH_LANE"], os.environ["PH_SID"]
+why = ph_lane_refusal(lane) or ph_project_refusal(os.environ["PH_PROJECT"])
+if not why and not re.fullmatch(r"[0-9a-f]{8}", sid):
+    why = "no CXO_SESSION_ID from scripts/spawn-ph.sh; start a Project Head with it"
+if not why:
+    rec = os.path.join(os.environ["PH_LOCKS"], f"project_head-{sid}.spawned_by")
+    try:
+        st = os.stat(rec)
+        kind, owner_lane, owner = open(rec).read().strip().split(":", 2)
+    except (OSError, ValueError):
+        kind = owner_lane = owner = ""
+        st = None
+    if st is None or st.st_uid not in (0, os.geteuid()) or kind != "cxo" or owner_lane != lane or not owner:
+        why = (f"no owner record for project_head-{sid} naming lane {lane}; "
+               "start a Project Head with scripts/spawn-ph.sh")
 print(why or "")
 sys.exit(1 if why else 0)
 ')"; then
@@ -159,18 +192,19 @@ fi
 # Resolve display name + model + effort from policies/agents.yaml so the
 # tab title/log lines and the spawned model match the canonical config —
 # per-role, not hardcoded (decisions/0009-model-routing-policy.md).
-IFS=$'\t' read -r DISPLAY MODEL EFFORT <<<"$(cd "$ROOT" && source .venv/bin/activate && PH_LANE="$PH_LANE" python3 -c "
+IFS=$'\t' read -r DISPLAY MODEL EFFORT <<<"$(cd "$ROOT" && source .venv/bin/activate && PH_LANE="$PH_LANE" ROLE_ARG="$ROLE" python3 -c "
 from lib.config import display_for, is_c_level, role as get_role
 from lib.roles import is_project_head, ph_display
 import os, sys
-if is_project_head('$ROLE'):
+role = os.environ['ROLE_ARG']
+if is_project_head(role):
     display = ph_display(os.environ.get('PH_LANE', ''))
-elif not is_c_level('$ROLE'):
-    print(f'role $ROLE is not a C-level role', file=sys.stderr)
+elif not is_c_level(role):
+    print(f'role {role} is not a C-level role', file=sys.stderr)
     sys.exit(2)
 else:
-    display = display_for('$ROLE')
-r = get_role('$ROLE')
+    display = display_for(role)
+r = get_role(role)
 model = r.get('model') or 'claude-opus-5-5[1m]'
 effort = r.get('effort') or 'xhigh'
 print(display, model, effort, sep='\t')
@@ -405,7 +439,7 @@ fi
 # check-then-lock one step against a second launcher starting in the same second;
 # it is released as soon as this session's own lock is written below.
 SINGLE_FD_OPEN=0
-if [ "${ORG_SINGLE_CLEVEL:-0}" = "1" ] && [ "$IS_PH" = "0" ]; then
+if org_flag ORG_SINGLE_CLEVEL && [ "$IS_PH" = "0" ]; then
   if command -v flock >/dev/null 2>&1; then
     exec 9>"$LOCKS_DIR/.single-$ROLE.flock"
     SINGLE_FD_OPEN=1
@@ -566,8 +600,11 @@ cleanup() {
   # An empty SomPong mailbox box is not worth keeping per restart; rmdir leaves
   # one that still holds an unread letter (the next launch picks those up).
   if [ "$ROLE" = "coo" ]; then rmdir "$ROOT/state/inbox/$ROLE-$CXO_SESSION_ID" 2>/dev/null || true; fi
-  # A Project Head's project claim (tools/spawn_ph.py) ends with the session.
-  if [ "$IS_PH" = "1" ]; then rm -f "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.project"; fi
+  # A Project Head's project claim and owner record (tools/spawn_ph.py) end
+  # with the session: a later launch under the same id is not its continuation.
+  if [ "$IS_PH" = "1" ]; then
+    rm -f "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.project" "$LOCKS_DIR/$ROLE-$CXO_SESSION_ID.spawned_by"
+  fi
   # Only clear the active pointer if it still points at us and we wrote it.
   if [ -z "$SESSION_OVERRIDE" ] && [ "$IS_PH" = "0" ] && [ -e "$ACTIVE_FILE" ]; then
     current="$(tr -d '[:space:]' <"$ACTIVE_FILE" 2>/dev/null || true)"
@@ -792,35 +829,29 @@ if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
 # Root with systemd-run only; anywhere else this is a no-op. A scope that cannot
 # be created makes systemd-run fail, so the session does not start silently
 # unlimited: unset the flag to start it the old way.
-SCOPE_ARGS=()
-if [ "${ORG_SESSION_SCOPE:-0}" = "1" ] && [ "$(id -u)" = "0" ] && command -v systemd-run >/dev/null 2>&1; then
-  SCOPE_ARGS=(systemd-run --scope --quiet --collect
+if org_flag ORG_SESSION_SCOPE && [ "$(id -u)" = "0" ] && command -v systemd-run >/dev/null 2>&1; then
+  _SCOPE=(systemd-run --scope --quiet --collect
     --unit "org-$ROLE-$CXO_SESSION_ID"
     -p "MemoryHigh=${ORG_SESSION_MEM_HIGH:-1536M}"
     -p "MemoryMax=${ORG_SESSION_MEM_MAX:-2560M}" --)
-  if [ "$ROLE" != "coo" ]; then
-    SCOPE_ARGS+=("$(command -v claude)")
+  if [ "$ROLE" = "coo" ]; then
+    # SomPong's claude is the function above (runuser + env -i), which systemd-run
+    # cannot exec; the scope wraps the runuser/env inside it instead.
+    claude() {
+      if [ "$(id -u)" = "$COO_UID" ]; then
+        "${_SCOPE[@]}" env -i ${COO_ENV[@]+"${COO_ENV[@]}"} "$COO_CLAUDE_BIN" "$@"
+      else
+        "${_SCOPE[@]}" "$COO_RUNUSER" -u "$COO_UNIX_USER" -- env -i ${COO_ENV[@]+"${COO_ENV[@]}"} "$COO_CLAUDE_BIN" "$@"
+      fi
+    }
+  else
+    _SCOPE+=("$(type -P claude)")
+    claude() { "${_SCOPE[@]}" "$@"; }
   fi
-fi
-if [ "$ROLE" = "coo" ] && [ "${#SCOPE_ARGS[@]}" -gt 0 ]; then
-  # SomPong's claude is the function above (runuser + env -i), which systemd-run
-  # cannot exec; the scope wraps the runuser/env inside it instead.
-  _COO_SCOPE=("${SCOPE_ARGS[@]}")
-  SCOPE_ARGS=()
-  claude() {
-    if [ "$(id -u)" = "$COO_UID" ]; then
-      "${_COO_SCOPE[@]}" env -i ${COO_ENV[@]+"${COO_ENV[@]}"} "$COO_CLAUDE_BIN" "$@"
-    else
-      "${_COO_SCOPE[@]}" "$COO_RUNUSER" -u "$COO_UNIX_USER" -- env -i ${COO_ENV[@]+"${COO_ENV[@]}"} "$COO_CLAUDE_BIN" "$@"
-    fi
-  }
-fi
-if [ "${#SCOPE_ARGS[@]}" -eq 0 ] || [ "$ROLE" = "coo" ]; then
-  SCOPE_ARGS=(claude)
 fi
 
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
-"${SCOPE_ARGS[@]}" \
+claude \
   -n "$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
