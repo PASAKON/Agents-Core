@@ -1,4 +1,6 @@
 # Subscriptions. Append a new entry when a plan changes; never delete old ones (history).
+# Router pressure rule (IRON §59 rule 7 / Q-20261013-1745-f56c): outside runners first.
+pressure_rule: true
 providers:
   anthropic: {runner: claude, plans: [{usd: 200, from: "2026-08-29"}, {usd: 20, from: "2026-09-29T10:00:00Z"}]}
   google:    {runner: agy,    plans: [{usd: 100, from: "2026-09-01"}]}
