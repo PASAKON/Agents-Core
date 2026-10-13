@@ -164,3 +164,6 @@ spent: $<cash> API · <turns> turns
 ```
 
 ## Field notes
+- 2026-10-13 [WRONG] §Step 1 length forecast — "the rate is falling" (14.2, 12.1, 11.5, 11.4) broke on EP61: 852 spoken characters came out at 68.0 s after the pipeline's 1.15x speed-up, 12.5 chars/s. The series is not monotone; forecast with the 11.4 to 12.5 range and expect 68 to 75 s for 852 characters · evidence: Mac CTO 671f688f report on row 487a79be (voice md5 4e8cd994), EP61 task-d002e35e · status: pending
+- 2026-10-13 [MISSING] §Step 4 voice gate — "within 5% of the forecast, a bigger miss goes back to the CEO" stopped EP61 for a CEO question although the voice was SHORTER (68.0 s against 74.7 s), inside the 75 s cap and cheaper (lipsync bills on seconds). A miss that is longer than forecast or over the cap goes to the CEO; a shorter one inside the cap is the CMO's call, logged as decided-for-CEO · evidence: EP61 hold 13 Oct, CMO decision to the Mac CTO · status: pending
+- 2026-10-13 [MISSING] §Step 3 to 9 who runs it — every paid stage has `host: mac` in flow.yaml, so a Contabo CMO cannot run them; the hand-off to the live Mac CTO is a message with the origin/main sha of the approved script, the exact approved spend, the stop rule (balance delta passes the approved total) and the voice gate. Say so in the steps · evidence: EP61 hand-off to Mac CTO 671f688f, a16ca562 · status: pending
