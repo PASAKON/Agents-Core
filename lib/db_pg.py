@@ -132,6 +132,33 @@ CREATE TABLE IF NOT EXISTS letters (
     last_error    TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_letters_to_host_status ON letters(to_host, status);
+
+-- Live Claude Code sessions (tools/live_sessions.py, docs/ops/live-sessions.md).
+-- One publisher per host rewrites its rows from <config>/sessions/<pid>.json;
+-- the reader treats a row older than its ttl as absent. Postgres only: no
+-- SQLite twin, the read-only snapshot has nothing to say about live processes.
+CREATE TABLE IF NOT EXISTS live_sessions (
+    host         TEXT NOT NULL,
+    uuid         TEXT NOT NULL,
+    sid          TEXT,
+    role         TEXT,
+    name         TEXT,
+    address      TEXT,
+    status       TEXT,
+    pid          INTEGER,
+    former_name  TEXT,
+    renamed_at   TIMESTAMPTZ,
+    seen_at      TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (host, uuid)
+);
+
+CREATE TABLE IF NOT EXISTS live_hosts (
+    host          TEXT PRIMARY KEY,
+    published_at  TIMESTAMPTZ NOT NULL,
+    publisher     TEXT,
+    n_sessions    INTEGER,
+    error         TEXT
+);
 """
 
 
