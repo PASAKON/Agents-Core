@@ -21,13 +21,16 @@ import { fileURLToPath } from 'node:url';
 //                               §3); mints a 365-day client secret and saves it on THIS box as the
 //                               machine's read-only credential. Run it on the machine that will use
 //                               it, after the CEO's relay login there (skill CTO_Procedure_KeyFetch).
+//   --revoke                    mint nothing: revoke every live client secret of --identity through the same
+//                               borrowed session (close out a short --ttl-days run). Prints counts only.
 //   --scope user                Windows node where nothing runs elevated (option B, CEO 2026-10-02):
 //                               `save --scope user`, the file goes under %LOCALAPPDATA%\MoonieX\Infisical.
 const argv = process.argv.slice(2);
-const opt = { identity: 'setup', ttl: null, dry: false, cdp: 'http://127.0.0.1:9281', scope: 'machine' };
+const opt = { identity: 'setup', ttl: null, dry: false, revoke: false, cdp: 'http://127.0.0.1:9281', scope: 'machine' };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--dry') opt.dry = true;
+  else if (a === '--revoke') opt.revoke = true;
   else if (a === '--identity') opt.identity = argv[++i] || '';
   else if (a === '--ttl-days') opt.ttl = Number(argv[++i]);
   else if (a === '--scope') opt.scope = argv[++i] || '';
@@ -95,6 +98,19 @@ if (listed.status !== 200) die(7, `cannot list identities (HTTP ${listed.status}
 let ident = (listed.json?.identities || []).map((m) => m.identity).find((i) => i && i.name === IDENTITY);
 log(ident ? `identity ${IDENTITY} exists (${ident.id.slice(0, 8)})` : `identity ${IDENTITY} missing`);
 if (DRY) { log('dry run: stopping before any change'); process.exit(0); }
+if (opt.revoke) {
+  if (!ident) die(7, `identity ${IDENTITY} does not exist; nothing to revoke`);
+  const secrets = await api('GET', `/api/v1/auth/universal-auth/identities/${ident.id}/client-secrets`);
+  if (secrets.status !== 200) die(9, `cannot list client secrets (HTTP ${secrets.status})`);
+  const live = (secrets.json?.clientSecretData || []).filter((c) => c && !c.isClientSecretRevoked);
+  let done = 0;
+  for (const c of live) {
+    const r = await api('POST', `/api/v1/auth/universal-auth/identities/${ident.id}/client-secrets/${c.id}/revoke`, {});
+    if (r.status === 200) done++;
+  }
+  log(`revoked ${done} of ${live.length} live client secret(s) of ${IDENTITY}`);
+  process.exit(done === live.length ? 0 : 9);
+}
 if (!ident && !IS_SETUP) die(7, `identity ${IDENTITY} does not exist — run \`infisical_setup.py apply\` first; this script never creates a machine identity`);
 if (!ident) {
   const made = await api('POST', '/api/v1/identities', { name: IDENTITY, organizationId: orgId, role: 'admin' });

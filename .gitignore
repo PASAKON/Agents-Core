@@ -189,3 +189,5 @@ state/wake/
 
 # spend guard runtime state (tools/spend_guard.py): alerts, snapshots, events — no credentials, not for git
 state/spend_guard/
+# SomPong's research workers: each task's brief, report and runner logs (runners/coo_worker.py)
+state/coo-work/
