@@ -93,7 +93,11 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                           renamed "ID Card - <Full Name>.jpeg" to
 │   │   │                           avoid all colliding as "line_item.jpeg")
 │   │   ├── Banners/              → Economic Calendar/
-│   │   └── Policy .PDF File/     → Thai Version./, English Version./
+│   │   ├── Policy .PDF File/     → Thai Version./, English Version./
+│   │   └── Bedrock Builds/       NEW 2026-10-13 (CEO picked "สร้าง Bedrock Builds" — session
+│   │                             cto-f39cb080): MoonieX Minecraft Bedrock add-on builds (.mcaddon)
+│   │                             handed to testers, one file per V (lumina_skies_V2.5.mcaddon …),
+│   │                             flat, each shared anyone-with-the-link view. No sub-folders.
 │   ├── LUNGNOTE/
 │   ├── BRAND PROMPT/
 │   ├── WARPCLIP/
@@ -459,6 +463,7 @@ Google Drive (root) — pass.gob1@gmail.com
 | `UNKNOWN` (root) | `1PIha6ByPigaVZQG89qZI9uCGW_Lw6ePA` | Fallback — file here when nothing else fits, or no folder exists yet. Max 1 sub-folder level (existing folders moved in wholesale are exempt — see Rule 5). Same-batch files from CEO can be filed without asking (Rule-1 exception) — see "UNKNOWN — filing protocol" above for the required `(name) (D-M-YYYY) (SID:xxxx)` tag. Contains (moved 2026-08-04): `claudeflow-media-archive`, `Media (สื่อ)`, `_Review (ไม่มีชื่อ)`. |
 | `PROJECT` (root) | `1HVLTPS09R4WvhYyOPW_0HHrfWxWGF-hQ` | Important-but-not-video stuff per project: images, ideas, text/svg, government docs, company data, billing. **No video ever.** Max depth 4 (see Rule 8): project-name folder → category folder → optional bundle folder. One sub-folder per project, name = PROJECT NAME IN CAPS. |
 | `PROJECT/MOONIEX` | `1NjXdmQM2Fx0Payd-rqL5hW7B1DDQJSXY` | Merged 2026-08-04 from the old root-level `MoonieX` folder (renamed in place, so its ~19 pre-existing sub-folders like Company & Legal, Broker Info & Data, Mooniex Finance, Proposals, etc. came along and are NOT yet individually re-defined). |
+| `PROJECT/MOONIEX/Bedrock Builds` | `1Jqme99Pu-Jp5FgqiupeKllWZhwRJFlu1` | NEW 2026-10-13, created by Drive REST from the Mac (session cto-f39cb080) after the CEO picked "สร้าง Bedrock Builds (Recommended)", offered as: MoonieX Minecraft add-on files (.mcaddon) sent to testers, one file per version (V2.5, V2.6 …), no sub-folders. Each file is shared anyone-with-the-link view. First file: `lumina_skies_V2.5.mcaddon` (id `<shared file id redacted>`, md5 `d0ac0401…` read back by id), for the tester Champ. |
 | `PROJECT/LUNGNOTE` | `113iaRrHorZ7Z8be2bAGbw59tIPbdoWjB` | Empty, awaiting first files. |
 | `PROJECT/BRAND PROMPT` | `1A306O59m-X20MrqCsT_bZocAJ73RNAWT` | Empty, awaiting first files. |
 | `PROJECT/WARPCLIP` | `1K4d6daPrWr_IGiqMYM8KIEE4X8lOMueF` | Empty, awaiting first files. |
