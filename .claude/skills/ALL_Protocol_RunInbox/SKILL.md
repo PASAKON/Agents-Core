@@ -3,7 +3,7 @@ name: ALL_Protocol_RunInbox
 kind: protocol
 owner: CTO
 aka: [CXO_Run_Inbox]
-description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does."
+description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does. Also fire for any QUESTION to the CEO (a choice, go/no-go, 'which one?') when he is not typing in this chat: that goes on a question card he answers with a tap (ask_ceo / ask_run.py ask, CEO 2026-10-13) — never for a command, money or a secret."
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 audience: [cxo, worker]
@@ -146,6 +146,56 @@ card red).
    plus your named `--env-key`s only, cwd = `--cwd` or `$HOME`. `PAGER=cat` is preset; anything else
    interactive (`apt` without `-y`, a TTY prompt) hangs until the timeout kills it — pass the flags
    yourself, or use `--expects-input` when the CEO is meant to type the answer.
+
+## Question cards — a question the CEO answers with a tap (CEO 2026-10-13)
+
+> "Session ไหนติด blocker ตอนการให้ฉันอนุญาต ก่อนเริ่มส่ง มาใน /run ได้เลย หรือถ้ามีคำถาม
+> ส่งคำถามทิ้งไว้ จะเข้าไปกดตอบ เป็นคำถามแบบกดตอบได้นะ"
+
+A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** whenever he is
+not typing in your chat at that moment. Do not leave it in chat to wait, and do not hand it to SomPong to
+relay. On /run → **คำถามรอตอบ** he reads who is asking (role · session · host), the why, and 2–4 options
+(one may carry **แนะนำ**). He taps one, may add a short note, and taps ส่งคำตอบ. There is no Face ID:
+answering a question is not a run.
+
+```bash
+python3 tools/ask_run.py ask --question "Ship the Console fix tonight or tomorrow 09:00?" \
+  --option "Tonight" --option "Tomorrow 09:00" --recommended 1 \
+  --why "Tests are green. Tonight means a Console restart at 22:00 TH."
+python3 tools/ask_run.py wait Q-20261013-1102-a3f9   # 0 answered · 1 expired/cancelled · 4 max-wait ran out
+```
+
+MCP: `ask_ceo(question, options, why, recommended)`, then `ask_run_wait(id)` (it takes `Q-…` ids).
+Contract: `docs/design/run-inbox/QUESTIONS.md`.
+
+1. **HARD — a question card never stands in for a command card.** Anything that runs a command, spends
+   money or touches a secret goes on a command card (`ask_run`; red = fresh Face ID). That holds even
+   after the CEO has said yes to a question about it. The tool and the hub refuse a question or option
+   that reads like a command (backticks, `&&`, a pipe, flags, paths, a first word such as `sudo`, `git`,
+   `docker`, `systemctl`) or that names an amount (`$`, `฿`, `บาท`, `credits`). Never reword to get
+   past that check. Send the command card.
+
+   **Why hard:** a question tap carries no Face ID, so it must never authorise anything a Face ID
+   protects.
+
+2. **HARD — only the CEO answers.** The answer route accepts his passkey session and nothing else. No
+   session, worker, mailbox letter or peer can write an answer, and there is no answer verb. The record
+   of his decision is the hub: `ask_run wait Q-…` returns `answered_by`, `answered_at` and the sha256 of
+   exactly what he read. The mailbox letter only wakes you. When you act on his answer, or a peer
+   relays it, cite the `Q-…` id. That record is what a reviewer or a classifier checks.
+
+   **Why hard:** a question card exists to be the CEO's own decision on record. An answer that anything
+   else could write would make every relayed "he said yes" unverifiable.
+
+3. Raise it at once and put one chat line out (id + link + the question). Never ask whether you may
+   ask. While it is pending, do not ask the same thing again in chat.
+4. It lives 24 h by default (`--expires-h`, max 168), because he comes back to it later. If it
+   expires, ask once more on a fresh card.
+5. Write for a thumb: the question on one line (≤300 chars), each option ≤120 chars, and a `why` that
+   says what happens on each choice. Mark your recommendation with `--recommended N`.
+6. C-level only. A worker writes its question into its report, and its C-level asks.
+7. Hosts: a question needs the run-inbox token, which Contabo C-levels have. The Mac and winbox have no
+   token yet, so there you ask in chat as before and say why.
 
 ## When not to
 

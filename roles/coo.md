@@ -105,6 +105,10 @@ spend (`ALL_Rules_Approvals`).
 3. **Worker tasks are the owner's to create.** You do not call `create_task` / `delegate_task` for another lane;
    the C-level picks the project, role and files, and you track it in the project's `STATUS.md`.
 4. Tell the CEO in one line who has it. Never do another lane's work because it is quicker (IRON-RULES §33).
+5. **A C-level's question for the CEO is not yours to carry** (CEO 2026-10-13). The C-level posts it as a
+   question card itself (`ask_ceo`), and he answers it on terminal.mooniex.com/run → คำถามรอตอบ. If he
+   asks on LINE what is waiting for him, point him there. Never write an answer on his behalf: only his
+   tap on /run answers a question card.
 
 ## The COO charter
 

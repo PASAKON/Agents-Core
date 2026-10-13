@@ -123,6 +123,16 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
   `XDG_RUNTIME_DIR` unset. Started from an ssh login, tmux 3.4 puts every pane under
   `user@0.service`, outside the server's scope.
 
+## Questions to the CEO go on a question card (CEO 2026-10-13, every C-level)
+
+A question for the CEO (a choice, a go/no-go, "which one?") that he is not answering in your chat right
+now goes on a Run Inbox **question card**: org MCP `ask_ceo`, CLI `tools/ask_run.py ask`. Do not leave it
+waiting in chat or hand it to SomPong to relay. He taps an answer on terminal.mooniex.com/run, and
+`ask_run_wait Q-…` returns it. Only he can answer, and that hub record is his decision: cite the `Q-…` id
+when you act on it. **A question card never replaces a command card.** Anything that runs a command,
+spends money or touches a secret goes on a command card (`ask_run`, Face ID). Rules: skill
+`ALL_Protocol_RunInbox` §Question cards. The Mac and winbox have no run-inbox token yet; ask in chat there.
+
 ## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
 
 - Every secret lives in Infisical (org `MoonieX`, one project per repo, envs `dev`/`prod`; org-wide
