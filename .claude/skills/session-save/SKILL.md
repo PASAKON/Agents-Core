@@ -130,12 +130,19 @@ park has already written this run's lessons to `MEMORY.md`, and those are
 lost the moment the process ends if they never left this machine:
 ```bash
 python3 -m tools.memory_sync push
-bash scripts/session-rename.sh --prefix "⏸" "<topic, short>"
+bash scripts/session-rename.sh --prefix "⏸" "<job> — <state>"
 bash scripts/session-kill.sh --status saved
 ```
 A non-zero `memory_sync push` doesn't block the park (the CEO's "walk away
 and free RAM" still happens) — name the failure in the report instead, same
 as any other best-effort step here.
+**The saved name says the job and where it stopped** (CEO 2026-10-13), e.g.
+`"LAST BELL รอ CEO ตอบ 4 ข้อ"`, so he can tell from the list which session to
+resume. The script cuts the topic at 40 characters. If the rename is refused
+(auto-mode classifier, "Self-Modification"), put the exact
+`/rename <MACHINE> <ROLE> #<id> (<job> — <state>)` line in the report and park
+anyway; never work around the refusal. One job per session: a session whose
+job is done closes instead of parking ([[session-open]] §3 "Name = current job").
 The rename call stamps the CEO's Claude app entry with ⏸ (task-bbdfa8d1, CEO
 2026-09-11 "เช็คไม่ได้เลยว่ามี session เปิดจริงไหม") BEFORE the kill takes the
 pane away — this is the only moment left to change what the app shows, since

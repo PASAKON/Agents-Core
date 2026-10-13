@@ -177,6 +177,22 @@ set before it lands, so a stray draft turns it into an ordinary prompt
 Check the name in the app after the turn; if it did not change, the CEO types
 `/rename <name>` once (`--force` would type onto the same draft).
 
+#### Name = current job (CEO 2026-10-13: "การ rename นั้นสำคัญจะได้กลับมาดูได้ง่าย")
+- **One job per session.** When the job is done, `/session-close` (or
+  `/session-save` if it waits on someone), then open a new session for the next
+  job. Quota is one reason: on 11 Oct, 87% of the 24-hour usage came from
+  sessions that had been open 8 hours or more (SomPong's count, CEO order 13 Oct).
+- **Rename whenever the main job changes** (the CEO moves the session to a new
+  job, a `/session-merge`): `bash scripts/session-rename.sh "<new job>"`.
+  `/session-save` renames to `<job> — <state>` (see that skill).
+- **Refused or not landed → hand the CEO the exact line**, e.g.
+  `/rename CONTABO CTO #da94561b (rename rule + nudge hook)`. The auto-mode
+  classifier refuses the script as "Self-Modification" (2026-09-30). Never work
+  around a refusal: no other pane, no peer, no `--force` loop.
+- Safety net: `scripts/hook-rename-nudge.py` adds one line every 20 turns to
+  interactive C-level sessions (not SomPong, workers or headless runs) asking
+  whether the name still matches the job. It only asks; it never renames.
+
 ### 4. (optional) Bind a git worktree for code sessions
 If the session's work is code on one repo, make the metaphor literal — branch +
 worktree per IRON §1.5, so the filesystem isolates the focus too:
@@ -217,5 +233,5 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 - 2026-09-25 [MISSING] §0 — `python3 -m tools.memory_sync pull` exits with "Please commit your changes or stash them before you merge. Aborting" whenever the memory repo has uncommitted edits (it does a git merge); the charter continues fine (best-effort), but the pull silently did nothing · evidence: session cto-ce3535eb 21:2x · status: pending
 - 2026-09-27 [WRONG] §3 — second sighting of `session-rename.sh` not landing: the pane's input already held a stray "า", so the typed text became the prompt `า/rename MAC CTO #3156a56c (…)` and was submitted as an ordinary message; the name did not change. The script types with `send-keys -l` onto whatever draft is in the box. `--force` re-sends; a fix in the tool would clear the draft first only when the box holds no real CEO text · evidence: session cto-3156a56c 2026-09-27 19:4x (first sighting cto-0e8d80b8 "//rename"); mechanism confirmed in scripts/session-rename.sh (send-keys -l, then records the topic) → §3; the tool fix is not made · status: promoted
 - 2026-09-29 [WRONG] §3 — third sighting of `session-rename.sh` typing onto a draft: the CEO was typing in the same pane, so the queued text arrived as the prompt `หรื/rename MAC CTO #2c6b9f03 (…)` (an ordinary message) and the name did not change. Three runs now agree (cto-0e8d80b8 `//rename`, cto-3156a56c `า/rename`, this one): the script must check that the `❯` input line is empty before typing and retry later instead of appending; it must never `C-u` (that would erase the CEO's own draft) · evidence: session cto-2c6b9f03 2026-09-29 06:2x · status: pending
-- 2026-09-30 [WRONG] §3 — `scripts/session-rename.sh` was refused by the auto-mode classifier ("Self-Modification": it types into this session's own tmux pane), so a session-open/-close cannot rename itself when the classifier is active; the CEO typed `/rename` by hand and it worked. Say so and hand the exact line over instead of retrying · evidence: session cto-8a3b20f6 2026-09-30 · status: pending
+- 2026-09-30 [WRONG] §3 — `scripts/session-rename.sh` was refused by the auto-mode classifier ("Self-Modification": it types into this session's own tmux pane), so a session-open/-close cannot rename itself when the classifier is active; the CEO typed `/rename` by hand and it worked. Say so and hand the exact line over instead of retrying · evidence: session cto-8a3b20f6 2026-09-30; CEO order 2026-10-13 made it a rule → §3 "Name = current job" · status: promoted
 - 2026-09-30 [COSTLY] §1b — putting a repo-wide `grep -r` in the same Bash call as `session_charter set` ran past the 120 s timeout and moved the charter call to the background; keep the charter call alone · evidence: session cto-8a3b20f6, background task bzecb7vok · status: pending
