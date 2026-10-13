@@ -63,6 +63,23 @@ dismisses it on the phone. Every new request also emails him as a reminder.
 
 ## 1. Expose the Chrome (one per account, a dedicated profile)
 
+**First, find a login that already exists (CEO 2026-10-14, Q-20261013-1917-0fa2; IRON §60 step 1).** Before you
+create, launch or ask for anything, run `node scripts/relay-inventory.mjs --site <site>`. It covers every box the
+relay reaches. Each row gives host:port, the home, signed in | signed OUT | unknown, when the site's own page last
+showed it, and who holds it (a lock, the phone relay, an open request).
+- Idle and signed in on another box: the job moves there, not the login. ChatGPT images:
+  `tools/chatgpt_images.py --cdp-url http://127.0.0.1:<port>`, run on that host. Wrap the run in
+  `with home_lock("home:<host>:<port>", purpose=…)`, or use `tools/home_lock.py acquire` / `release`. A lock lasts
+  1800 s unless it is renewed, and only its owner releases it.
+- Another box cannot start the job on that host yet (#238). Run it there yourself if you can; otherwise tell the CEO
+  where the login is.
+- UNREACHABLE means that box was not checked. It does not mean "not logged in".
+- `relay-request.mjs open` refuses with exit 3 while an idle signed-in Chrome exists. Forcing past it takes
+  `--force "<reason>"`, and the reason is stored and shown.
+- Evidence comes only from titles and host+path. A cookie never counts. TikTok Studio's title proves nothing.
+
+Only when no idle signed-in Chrome exists does the rest of this section apply.
+
 **Preferred since 2026-09-25: a Browser Home** — a headless Chrome the Console
 on that box launches and owns, with every out-of-page prompt disabled, so the
 relay sees 100% of what the site shows (Console docs/relay.md §8):

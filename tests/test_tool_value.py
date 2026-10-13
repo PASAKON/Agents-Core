@@ -24,7 +24,8 @@ def forbidden(*args, **kwargs):
 
 @pytest.fixture(autouse=True)
 def isolate(monkeypatch):
-    for name in ("fetch_hub", "read_events", "write_event", "_gh", "send_to_coo", "_self_host"):
+    for name in ("fetch_hub", "read_events", "write_event", "_gh", "send_to_coo", "_self_host",
+                 "fetch_runner_fit", "fetch_context_deltas", "_git", "fetch_agy_browse_hub"):
         monkeypatch.setattr(tv, name, forbidden)
     # Also catch any captured subprocess default without executing a command.
     monkeypatch.setattr(tv.subprocess, "run", forbidden)
@@ -57,6 +58,10 @@ def local(tmp_path, monkeypatch):
     hub = json.loads((root / "hub.json").read_text())
     monkeypatch.setattr(tv, "fetch_hub", lambda win: (hub["tasks"], hub["events"]))
     monkeypatch.setattr(tv, "_gh", fake_gh)
+    monkeypatch.setattr(tv, "fetch_runner_fit", lambda until: json.loads((root / "runner_fit.json").read_text()))
+    monkeypatch.setattr(tv, "fetch_context_deltas", lambda win: json.loads((root / "context_deltas.json").read_text()))
+    monkeypatch.setattr(tv, "_git", lambda args: "")
+    monkeypatch.setattr(tv, "fetch_agy_browse_hub", lambda win: {"calls": 0, "keys": []})
     return root
 
 
@@ -107,13 +112,19 @@ def test_parse_ts(value, expected):
 
 def test_quota():
     result = tv.quota_usage(F / "quota-history.jsonl", W)
-    expected = dict(used_pct=60.0, at_cap_hours=2.0,
-                    cap_starts=["2026-10-06T01:00:00+00:00"], errors=1, samples=7,
+    expected = dict(used_pct=60.0, at_cap_hours=3.0,
+                    cap_starts=["2026-10-06T01:00:00+00:00"], errors=1, samples=8,
                     resets_seen=["2026-10-06", "2026-10-13"])
     assert {k: result["claude"][k] for k in expected} == expected
     assert result["codex"]["used_pct"] == 20.0
     assert result["codex"]["resets_seen"] == ["2026-10-10", "2026-10-17"]
     assert result["agy-gemini"]["used_pct"] == 2.0
+    assert result["claude"]["resets"] == [{
+        "at": "2026-10-06T10:00:00+00:00", "claude_used_pct": 100.0,
+        "full_since": "2026-10-06T01:00:00+00:00", "others": {
+            "codex": {"used_pct": 10.0, "sample_ts": "2026-10-06T00:00:00+00:00"},
+            "agy-gemini": {"used_pct": 0.0, "sample_ts": "2026-10-06T00:00:00+00:00"}}}]
+    assert tv.quota_usage(F / "quota-history.jsonl", tv.Window(W.start, tv.parse_ts("2026-10-06T09:00:00Z")))["claude"]["resets"] == []
     with pytest.raises(tv.SourceMissing):
         tv.quota_usage(F / "quota-history.jsonl", tv.Window(tv.bkk_midnight(date(2026, 1, 1)), tv.bkk_midnight(date(2026, 1, 8))))
 
@@ -121,14 +132,18 @@ def test_quota():
 def test_transcripts(local, tmp_path):
     result, missing = tv.transcript_usage([*homes(local), tmp_path / "nope"], W)
     families = result["families"]
-    for family, messages, tokens in [("opus", 1, 150), ("sonnet", 2, 100), ("haiku", 2, 15)]:
+    for family, messages, tokens in [("opus", 1, 150), ("sonnet", 4, 600), ("haiku", 2, 15)]:
         assert families[family]["messages"] == messages
         assert families[family]["output_tokens"] == tokens
     assert families["opus"]["cache_creation_tokens"] == 1000
     assert families["sonnet"]["sidechain_messages"] == 1
     assert families["sonnet"]["sidechain_output_tokens"] == 40
     assert result["models"]["claude-haiku-5-5"] == {"messages": 1, "output_tokens": 10}
-    assert sum(m["messages"] for m in result["models"].values()) == 5
+    assert sum(m["messages"] for m in result["models"].values()) == 7
+    assert result["by_kind"] == {
+        "worker": dict(messages=2, output_tokens=500, input_tokens=50, cache_creation_tokens=120),
+        "clevel": dict(messages=5, output_tokens=265, input_tokens=29, cache_creation_tokens=1000)}
+    assert result["worker_task_ids"] == ["task-4a53167b"]
     assert "<synthetic>" not in result["models"]
     assert missing == [{"source": f"transcripts:{tmp_path / 'nope'}", "reason": "ไม่มีโฟลเดอร์"}]
     stamp(local / "transcripts/home2/proj/other.jsonl", "2026-09-01T00:00:00Z")
@@ -207,15 +222,22 @@ def test_jules():
 def test_hub_tasks():
     hub = json.loads((F / "hub.json").read_text())
     result = tv.hub_tasks_summary(hub["tasks"], hub["events"], W)
-    expected = dict(tasks=3, status={"done": 1, "cancelled": 1, "review": 1}, override=2,
-                    override_codes={"in-session": 1, "review": 1}, reopens=1, routed=1, seed_claude_pct_done=3.0)
+    expected = dict(tasks=4, status={"done": 2, "cancelled": 1, "review": 1}, override=2,
+                    override_codes={"free-text": 1, "review": 1}, reopens=1, routed=1, seed_claude_pct_done=6.0,
+                    done_clean=2, iter_sum=2, iter_n=2, router_skipped=1)
     assert {k: result["claude"][k] for k in expected} == expected
-    assert result["codex"]["tasks"] == result["codex"]["routed"] == 1
+    assert result["codex"]["tasks"] == 2
+    assert result["codex"]["routed"] == 1
     assert result["codex"]["seed_claude_pct_done"] == 3.0
-    assert result["agy"]["tasks"] == 1
+    assert result["agy"]["tasks"] == 2
     assert result["agy"]["seed_claude_pct_done"] == 8.0
     assert result["unrouted"]["tasks"] == 1
     assert result["unrouted"]["roles"] == {"video_editor": 1}
+    for runner, clean, iterations, codes in [("codex", 1, 3, {"ceo-order": 1}), ("agy", 1, 2, {"free-text": 1})]:
+        assert {k: result[runner][k] for k in ("done_clean", "iter_sum", "iter_n", "router_skipped", "override_codes")} == dict(
+            done_clean=clean, iter_sum=iterations, iter_n=2, router_skipped=0, override_codes=codes)
+    assert result["codex"]["done_sizes"] == {"S": 2}
+    assert result["agy"]["done_sizes"] == {"S": 1, "M": 1}
 
 
 def test_missing_rows():
@@ -237,6 +259,27 @@ def test_build_report(payload, first):
     assert "Mac ไม่ส่ง" in report["text"]
     assert all(metric in report["text"] for _, metric, _ in tv.ROW_ORDER)
     assert ("คำถามถึง CEO" in report["text"]) is first
+    assert "usd_per_pct_anthropic" not in cells
+    for usd in (20, 200):
+        assert "ไม่ได้บันทึก" in cells[f"usd_per_pct_anthropic_{usd}"]["note"]
+        assert cells[f"usd_per_pct_anthropic_{usd}"]["value"] == round(usd * 12 / 52 / 60, 2)
+    assert cells["worthwhile"]["value"] == "claude 2/2 · codex 1/2 · agy 1/2"
+    assert cells["iterations"]["value"] == "claude 1.0 · codex 1.5 · agy 1.0"
+    assert cells["router_skipped"]["value"] == "claude 1 · codex 0 · agy 0"
+    assert cells["tokens_per_job_worker"]["value"] == 500
+    assert cells["tokens_per_job_clevel"]["value"] == 29  # 265 / 9 tasks
+    assert "ข้อความอิสระ 1" in cells["claude_pinned"]["note"]
+    text = report["text"]
+    assert "ณ เวลาที่ Claude รีเซ็ตโควตาสัปดาห์ (วัดจริง จาก quota-history):" in text
+    assert "- 06/10 17:00: Claude ใช้ 100% (เต็มตั้งแต่ 06/10 08:00) · Codex 10% · AGY Gemini 0% · AGY Claude ไม่มีข้อมูล" in text
+    assert "runner-fit (cell = runner × ประเภทงาน" in text
+    assert "| cell | ประเภทงาน | งาน | ผ่าน/แก้ซ้ำ/ล้ม |" in text
+    assert "เฟสองค์กร: 2 — cell ที่ผ่านเกณฑ์ 1/2" in text
+    assert "ขนาดข้อความที่โหลดทุกครั้ง (วัดจริง: claude -p delta):" in text
+    assert "- roles §32 Tab Title: 1,496 → 986 tokens (-510, -34%) · ทุก turn · CTO · fixture evidence" in text
+    assert "รวม -510 tokens" in text
+    assert report["claude_resets"] == payload["sources"]["quota"]["claude"]["resets"]
+    assert report["org_phase"] == dict(used=2, passed=1, phase=2)
 
 
 def test_missing_transcripts_report(payload):
@@ -392,3 +435,341 @@ def test_send_from_a_deploy_checkout_raises_on_failure(monkeypatch, tmp_path):
         returncode=2, stdout="", stderr="no active SomPong session found. Spawn one first"))
     with pytest.raises(RuntimeError, match="exit 2: no active SomPong"):
         tv.send_to_coo("fixture report")
+
+
+def test_fit_cells():
+    records = json.loads((F / "runner_fit.json").read_text())
+    skills = {"skills": {s: {"exists": True, "commits": []} for s in set(tv.RUNNER_SKILLS.values())}}
+    rows, org = tv.fit_cells(records, skills, W)
+    assert org == dict(used=2, passed=1, phase=2)
+    b, a = rows
+    assert a == dict(cell="codex", job_type="code", jobs=5, **{"pass": 5}, redo=0, fail=0,
+                     first_pass_pct=100, redo_pct=0, iter_avg=1.0, minutes_avg=10.0,
+                     last10_n=10, last10_first_pass_pct=100, skill="CTO_Knowledge_Codex",
+                     skill_exists=True, skill_edits=0, rule_change=False, phase=2, why="ผ่านเกณฑ์")
+    assert b == dict(cell="agy-gemini", job_type="docs", jobs=3, **{"pass": 1}, redo=1, fail=1,
+                     first_pass_pct=33, redo_pct=33, iter_avg=2.0, minutes_avg=20.0,
+                     last10_n=3, last10_first_pass_pct=33, skill="CTO_Knowledge_AGY",
+                     skill_exists=True, skill_edits=0, rule_change=False, phase=1, why="ยังไม่ถึง 10 งาน (3)")
+    skills["skills"]["CTO_Knowledge_Codex"]["commits"] = [
+        {"ts": tv.iso(W.end - timedelta(days=3)), "subject": "skill(CTO_Knowledge_Codex): rule — x"}]
+    rows, org = tv.fit_cells(records, skills, W)
+    assert rows[1]["why"] == "skill เปลี่ยน rule ใน 14 วัน"
+    assert rows[1]["skill_edits"] == 1
+    assert org == dict(used=2, passed=0, phase=1)
+    rows, org = tv.fit_cells(records, None, W)
+    assert rows[1]["why"] == "ไม่มีข้อมูล skill"
+    assert rows[1]["rule_change"] is rows[1]["skill_exists"] is rows[1]["skill_edits"] is None
+    assert org == dict(used=2, passed=0, phase=1)
+    codex = [r for r in records if r["runner"] == "codex"]
+    for r in codex:
+        r["runner"] = "claude"
+        r["model"] = "claude-opus-5-5"
+    rows, org = tv.fit_cells(codex, None, W)
+    assert rows[0]["cell"] == "claude-opus"
+    assert rows[0]["phase"] == 2
+    assert org == dict(used=1, passed=1, phase=3)
+    for r in codex[:3]:
+        r["first_pass"] = False
+    rows, org = tv.fit_cells(codex, None, W)
+    assert rows[0]["why"] == "first-pass 70% < 80%"
+    assert org == dict(used=1, passed=0, phase=1)
+    assert tv.fit_cells([], None, W) == ([], dict(used=0, passed=0, phase=1))
+
+
+@pytest.mark.parametrize("subject, days, changed", [
+    ("skill(CTO_Knowledge_Codex, CTO_Knowledge_AGY): flip x", 14, True),
+    ("skill(CTO_Knowledge_Codex): rule x", 0, False),
+    ("skill(CTO_Knowledge_Codex): rule x", 15, False),
+    ("skill(CTO_Knowledge_AGY): rule x", 3, False),
+    ("skill(CTO_Knowledge_Codex): docs x", 3, False),
+])
+def test_rule_changes(subject, days, changed):
+    records = json.loads((F / "runner_fit.json").read_text())
+    skills = {"skills": {"CTO_Knowledge_Codex": {"exists": False, "commits": [
+        {"ts": tv.iso(W.end - timedelta(days=days)), "subject": subject}]}}}
+    rows, _ = tv.fit_cells(records, skills, W)
+    assert rows[1]["rule_change"] is changed
+    assert rows[1]["phase"] == (1 if changed else 2)
+
+
+def test_skill_commits():
+    calls = []
+    def run(args):
+        calls.append(args)
+        if args[0] == "cat-file":
+            if "CTO_Knowledge_Jules" in args[-1]:
+                raise tv.subprocess.CalledProcessError(1, args)
+            return ""
+        assert args[1:5] == ["origin/main", "--since=2026-09-28T17:00:00+00:00",
+                             "--until=2026-10-12T17:00:00+00:00", "--format=%cI%x09%s"]
+        return "2026-10-08T07:00:00+07:00\tskill(test): docs\n"
+    result = tv.skill_commits(W, run=run)
+    assert result["ref"] == "origin/main"
+    assert len(calls) == 2 * len(set(tv.RUNNER_SKILLS.values()))
+    for name, info in result["skills"].items():
+        assert info == {"exists": name != "CTO_Knowledge_Jules", "commits": [
+            {"ts": "2026-10-08T00:00:00+00:00", "subject": "skill(test): docs"}]}
+    def fail(args):
+        if args[0] == "log":
+            raise tv.subprocess.CalledProcessError(1, args)
+        return ""
+    with pytest.raises(tv.SourceMissing, match="git log"):
+        tv.skill_commits(W, run=fail)
+
+
+CONTEXT_ARGS = ["context-delta", "--what", "roles §32 Tab Title", "--before", "1496", "--after", "986",
+                "--method", "claude -p input-total delta", "--evidence", "fixture evidence", "--by", "CTO",
+                "--per", "ทุก turn", "--at", "2026-10-08T00:00:00Z"]
+
+
+@pytest.mark.parametrize("flag,value", [("--before", "-1"), ("--after", "-2"), ("--before", "1.5"),
+                                       ("--after", "bad"), ("--at", "bad")])
+def test_context_bad_arguments(flag, value, capsys):
+    args = CONTEXT_ARGS.copy()
+    args[args.index(flag) + 1] = value
+    assert tv.main(args) == 2
+    captured = capsys.readouterr()
+    assert len(captured.err.splitlines()) == 1
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize("dry", [True, False])
+def test_context_payload(monkeypatch, capsys, dry):
+    writes = []
+    monkeypatch.setattr(tv, "write_event", lambda p, **kw: writes.append((p, kw)))
+    assert tv.main(CONTEXT_ARGS + (["--dry-run"] if dry else [])) == 0
+    expected = json.loads((F / "context_deltas.json").read_text())[0]
+    if dry:
+        assert writes == []
+        assert json.loads(capsys.readouterr().out) == expected
+    else:
+        assert writes == [(expected, {"kind": "context_delta"})]
+
+
+def test_context_defaults(monkeypatch):
+    writes = []
+    monkeypatch.setattr(tv, "write_event", lambda p, **kw: writes.append(p))
+    args = CONTEXT_ARGS[:CONTEXT_ARGS.index("--per")]
+    args[args.index("--before") + 1] = "0"
+    before = datetime.now(timezone.utc).replace(microsecond=0)
+    assert tv.main(args) == 0
+    assert before <= tv.parse_ts(writes[0]["at"]) <= datetime.now(timezone.utc)
+    assert writes[0]["before"] == 0
+    assert writes[0]["per"] == ""
+
+
+FETCH_FIT = tv.fetch_runner_fit
+FETCH_CONTEXT = tv.fetch_context_deltas
+WRITE_EVENT = tv.write_event
+
+
+def fake_db(monkeypatch, records):
+    class Conn:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            pass
+        def execute(self, sql, args):
+            self.sql, self.args = sql, args
+            return self
+        def fetchall(self):
+            return records
+    from lib import db
+    conn = Conn()
+    monkeypatch.setattr(db, "get_conn", lambda **kw: conn)
+    return conn
+
+
+def test_fetch_sources(monkeypatch):
+    p = json.loads((F / "runner_fit.json").read_text())[0]
+    rows = [{"ts": "2026-10-08T00:00:00Z", "task_id": str(i),
+             "payload": dict(p, schema=1, extra="ignored")} for i in range(2002)]
+    rows[-1]["payload"] = json.dumps(rows[-1]["payload"])
+    rows.append(dict(ts=tv.iso(W.end), task_id="future", payload=dict(p, schema=1)))
+    rows.append(dict(ts=tv.iso(W.start), task_id="bad", payload="bad"))
+    conn = fake_db(monkeypatch, rows)
+    result = FETCH_FIT(W.end)
+    assert conn.args == ("runner_fit", tv.iso(W.end))
+    assert len(result) == 2000
+    assert result[0]["task_id"] == "2"
+    assert result[-1]["task_id"] == "2001"
+    assert set(result[0]) == {"ts", "task_id", "runner", "model", "bucket", "job_type", "result",
+                              "fail_reason", "first_pass", "reviewer_fix", "iteration", "minutes"}
+    measurement = json.loads((F / "context_deltas.json").read_text())[0]
+    fake_db(monkeypatch, [{"payload": json.dumps(measurement)},
+                         {"payload": dict(measurement, at=tv.iso(W.end))}, {"payload": "bad"}])
+    assert FETCH_CONTEXT(W) == [measurement]
+
+
+def test_context_event_envelope(monkeypatch):
+    from lib import db
+    conn = fake_db(monkeypatch, [])
+    calls = []
+    monkeypatch.setattr(db, "log_event", lambda *args: calls.append(args))
+    payload = json.loads((F / "context_deltas.json").read_text())[0]
+    WRITE_EVENT(payload, kind="context_delta")
+    assert calls == [(conn, None, "CTO", "context_delta", payload)]
+
+
+def test_new_sources_missing_and_empty(payload):
+    rows = {"contabo": copy.deepcopy(payload)}
+    for name in ("quota", "runner_fit", "context_deltas"):
+        del rows["contabo"]["sources"][name]
+        rows["contabo"]["missing"].append(dict(source=name, reason=name + " unavailable"))
+    report = tv.build_report(rows, rows, W, W, plans={})
+    for name in ("quota", "runner_fit", "context_deltas"):
+        assert f"ไม่มีข้อมูล ({name} unavailable)" in report["text"]
+    assert report["fit_cells"] is report["org_phase"] is None
+    rows["contabo"]["sources"].update(runner_fit={"records": []}, context_deltas={"records": []})
+    report = tv.build_report(rows, rows, W, W, plans={})
+    assert "ยังไม่มีบันทึก runner_fit ในช่วงนี้ (เริ่มบันทึก 13 ต.ค.)" in report["text"]
+    assert "- ไม่มีบันทึกในช่วงนี้" in report["text"]
+
+
+def test_quota_reset_boundaries(tmp_path):
+    path = tmp_path / "quota.jsonl"
+    samples = [
+        dict(provider="codex", ts=tv.iso(W.start - timedelta(hours=4)), weekly_remaining=0.7),
+        dict(provider="claude", ts=tv.iso(W.start - timedelta(hours=3)), weekly_remaining=0),
+        dict(provider="claude", ts=tv.iso(W.start - timedelta(hours=2)), weekly_remaining=0),
+        dict(provider="claude", ts=tv.iso(W.start), weekly_remaining=0.2),
+        dict(provider="claude", ts=tv.iso(W.start + timedelta(hours=1)), weekly_remaining=0.5),
+        dict(provider="claude", ts=tv.iso(W.end), weekly_remaining=1),
+    ]
+    path.write_text("\n".join(json.dumps(s) for s in reversed(samples)))
+    resets = tv.quota_usage(path, W)["claude"]["resets"]
+    assert resets == [
+        dict(at=tv.iso(W.start), claude_used_pct=100.0, full_since=tv.iso(W.start - timedelta(hours=3)),
+             others={"codex": dict(used_pct=30.0, sample_ts=tv.iso(W.start - timedelta(hours=4)))}),
+        dict(at=tv.iso(W.start + timedelta(hours=1)), claude_used_pct=80.0, full_since=None,
+             others={"codex": dict(used_pct=30.0, sample_ts=tv.iso(W.start - timedelta(hours=4)))})]
+
+
+def test_tokens_across_hosts(payload):
+    rows = {"contabo": payload, "mac": copy.deepcopy(payload)}
+    rows["mac"]["org"] = False
+    cells = tv.build_rows(rows, W, tv.HOSTS, {})
+    assert cells["tokens_per_job_worker"]["value"] == 1000  # shared task id counted once
+    assert cells["tokens_per_job_clevel"]["value"] == 59
+    assert "1 งานที่มี transcript" in cells["tokens_per_job_worker"]["note"]
+    assert "ไม่มีข้อมูล (winbox)" in cells["tokens_per_job_worker"]["note"]
+    del rows["contabo"]["sources"]["hub_tasks"]
+    cells = tv.build_rows(rows, W, tv.HOSTS, {})
+    assert cells["tokens_per_job_clevel"]["label"] == "none"
+    assert cells["tokens_per_job_worker"]["value"] == 1000
+
+
+def test_collect_new_source_failures(local, monkeypatch):
+    def missing(*args, **kwargs):
+        raise tv.SourceMissing("fixture offline")
+    for name in ("fetch_runner_fit", "fetch_context_deltas", "_git"):
+        monkeypatch.setattr(tv, name, missing)
+    result = tv.collect(W, "contabo", org=True, homes=homes(local))
+    assert {m["source"]: m["reason"] for m in result["missing"]} == {
+        "runner_fit": "fixture offline", "context_deltas": "fixture offline", "skill_commits": "fixture offline"}
+    assert not {"runner_fit", "context_deltas", "skill_commits"} & result["sources"].keys()
+
+
+def test_context_zero_baseline_and_confirmed_price(payload):
+    payload["sources"]["context_deltas"]["records"][0].update(before=0, after=10)
+    later = tv.Window(tv.bkk_midnight(date(2026, 10, 14)), tv.bkk_midnight(date(2026, 10, 21)))
+    rows = {"contabo": payload}
+    report = tv.build_report(rows, rows, later, later, plans={})
+    assert "tokens (+10, ไม่มีข้อมูล)" in report["text"]
+    assert "รวม +10 tokens" in report["text"]
+    for usd in (20, 200):
+        assert "CEO ยืนยัน $200 ตั้งแต่ 14 ต.ค." in report["current"]["cells"][f"usd_per_pct_anthropic_{usd}"]["note"]
+
+
+PLANS_WITH_TARGETS = {
+    "providers": {"anthropic": {"plans": [{"usd": 20, "from": "2026-09-29T10:00:00Z"}, {"usd": 200, "from": "2026-10-10"}]},
+                  "google": {"plans": [{"usd": 100, "from": "2026-09-01"}]},
+                  "openai": {"plans": [{"usd": 20, "from": "2026-09-01"}]}},
+    "targets": {"anthropic": {"usd": 20, "from": "2026-10-10"}, "google": {"usd": 100, "from": "2026-10-10"},
+                "openai": {"usd": 20, "from": "2026-10-10"}},
+}
+
+
+def test_subscription_lines_now_vs_target():
+    cur = {"claude_used_pct": tv._cell(104.0, "measured"), "claude_cap_hours": tv._cell(22.9, "measured")}
+    sources = {"contabo": {"org": True, "sources": {"hub_tasks": {
+        "claude": {"tasks": 33}, "codex": {"tasks": 17}, "agy": {"tasks": 5}, "unrouted": {"tasks": 5}}}}}
+    lines = tv.subscription_lines(cur, sources, PLANS_WITH_TARGETS, W)
+    assert lines[:8] == [
+        "", "ค่าแพ็กเกจต่อเดือน เทียบเป้าของ CEO (14 ต.ค.):",
+        "| บริการ | ตอนนี้ $ | เป้า $ | ห่าง $ |", "|---|---|---|---|",
+        "| Claude | 200 | 20 | 180 |", "| Google AI Ultra | 100 | 100 | 0 |", "| ChatGPT | 20 | 20 | 0 |",
+        "| รวม | 320 | 140 | 180 |"]
+    assert lines[8] == "- งาน worker ที่ไม่ได้ใช้ Claude: 22/60 (37%) · วัดจริง (codex + agy ÷ ทุกงานใน hub)"
+    # Max 20x -> Pro = 5% of today's weekly quota; 104% used -> about 21x too much (estimate, labelled).
+    assert lines[9].startswith("- Claude ที่ $20 ใช้ได้ราว 5% ของโควตาสัปดาห์ของแพ็กเกจ $200 · ช่วงนี้ใช้ 104% → ต้องลดราว 21 เท่า"
+                               " · ชนเพดาน 22.9 ชม. (วัดจริง) · ประมาณการ")
+    assert lines[10] == "- ส่วนของ Ultra ที่ CEO บอกว่าใช้น้อย: Jules (ดูแถว Jules ในตาราง)"
+    assert [x.strip("- ").split(":")[0] for x in lines[11:]] == ["Google Flow Music", "เครดิต Google Cloud รายเดือนที่มากับแพ็กเกจ ($40–100 ตามแหล่งข่าว ยังไม่ยืนยัน)"]
+
+
+def test_subscription_lines_missing_sources_and_no_targets():
+    assert tv.subscription_lines({}, {}, {"providers": PLANS_WITH_TARGETS["providers"]}, W) == []
+    late = {**PLANS_WITH_TARGETS, "targets": {"anthropic": {"usd": 20, "from": "2027-01-01"}}}
+    assert "| Claude | 200 | 20 | 180 |" in tv.subscription_lines({}, {}, late, W)  # a goal shows before its date
+    plans = {"providers": {"google": {"plans": [{"usd": 100, "from": "2026-09-01"}]}},
+             "targets": PLANS_WITH_TARGETS["targets"]}
+    lines = tv.subscription_lines({"claude_used_pct": tv._none("x")}, {}, plans, W)
+    assert "| Claude | — | 20 | ไม่มีข้อมูล |" in lines
+    assert not any(x.startswith("| รวม") for x in lines)  # no total while one price is unknown
+    assert any(x.startswith("- งาน worker ที่ไม่ได้ใช้ Claude: ไม่มีข้อมูล") for x in lines)
+    assert "- Claude เทียบเป้า: ไม่มีข้อมูล (ไม่รู้ราคาแพ็กเกจหรือโควตาที่ใช้ในช่วงนี้)" in lines
+
+
+def test_build_report_carries_the_subscription_section(payload):
+    rows = {"contabo": payload}
+    text = tv.build_report(rows, rows, W, W, plans=PLANS_WITH_TARGETS)["text"]
+    assert "ค่าแพ็กเกจต่อเดือน เทียบเป้าของ CEO (14 ต.ค.):" in text
+    assert text.index("ค่าแพ็กเกจต่อเดือน") < text.index("ณ เวลาที่ Claude รีเซ็ต")
+    assert "ค่าแพ็กเกจต่อเดือน" not in tv.build_report(rows, rows, W, W, plans={})["text"]
+
+
+def test_live_plans_yaml_targets_total_140():
+    plans = tv._load_yaml(tv.PLANS_CONFIG)
+    assert sum(t["usd"] for t in plans["targets"].values()) == 140
+    assert set(plans["targets"]) <= set(plans["providers"])
+
+
+def test_subscription_lines_claude_already_at_target():
+    plans = {**PLANS_WITH_TARGETS, "providers": {**PLANS_WITH_TARGETS["providers"],
+                                                 "anthropic": {"plans": [{"usd": 20, "from": "2026-09-01"}]}}}
+    lines = tv.subscription_lines({"claude_used_pct": tv._cell(50.0, "measured")}, {}, plans, W)
+    assert "- Claude: แพ็กเกจ $20 ไม่เกินเป้า $20 แล้ว (ตาม plans.yaml ณ สิ้นช่วง)" in lines
+
+
+
+REAL_FETCH_AGY_BROWSE_HUB = tv.fetch_agy_browse_hub  # bound at import, before `isolate` replaces it
+
+
+def test_agy_browse_hub_keys_union_with_the_file(monkeypatch):
+    rows = [{"payload": json.dumps({"ts": "2026-10-07T03:00:00.000001Z", "verb": "read", "port": 9280})},
+            {"payload": {"ts": "2026-10-07T03:00:00.000001Z", "verb": "read", "port": 9280}},  # same call twice
+            {"payload": json.dumps({"ts": "2026-10-14T03:00:00.000001Z", "verb": "read", "port": 9280})},  # outside W
+            {"payload": "not json"}]
+    seen = []
+
+    class Conn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def execute(self, sql, args):
+            seen.append((sql, args))
+            return type("R", (), {"fetchall": lambda self: rows})()
+
+    import lib.db
+    monkeypatch.setattr(lib.db, "get_conn", lambda **kw: Conn())
+    assert REAL_FETCH_AGY_BROWSE_HUB(W) == {"calls": 1, "keys": ["2026-10-07T03:00:00.000001Z|read|9280"]}
+    assert "kind=?" in seen[0][0] and seen[0][1][0] == "agy_browse"
+    # build_rows unions file keys and hub keys: the same call counted once.
+    payload = {"org": True, "sources": {"agy_browse": {"keys": ["2026-10-07T03:00:00.000001Z|read|9280", "x|tabs|9280"]},
+                                        "agy_browse_hub": {"keys": ["2026-10-07T03:00:00.000001Z|read|9280"]}}}
+    assert tv.build_rows({"contabo": payload}, W, ("contabo",), {})["agy_browse_calls"]["value"] == 2
