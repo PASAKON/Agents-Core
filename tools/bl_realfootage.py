@@ -275,6 +275,8 @@ class Shot:
     also_clean: bool = False    # also deliver an UNCENSORED reference copy (e.g. the broker logo)
     hide_selectors: list[str] = field(default_factory=list)  # CSS selectors to hide before capture
     hide_texts: list[str] = field(default_factory=list)      # text-anchored hides (unstable build-hash classes)
+    click_texts: list[str] = field(default_factory=list)     # expand a public accordion by its exact label (DOM click, never a form)
+    settle_ms: int = 900        # wait after the scroll-into-view; a page with smooth scrolling needs longer (Tickmill EP61)
     source_note: str | None = None
     note: str = ""
 
@@ -299,6 +301,8 @@ class Shot:
             also_clean=bool(d.get("also_clean", False)),
             hide_selectors=list(d.get("hide_selectors") or []),
             hide_texts=list(d.get("hide_texts") or []),
+            click_texts=list(d.get("click_texts") or []),
+            settle_ms=int(d.get("settle_ms", 900)),
             source_note=d.get("source_note"),
             note=d.get("note", ""),
         )
@@ -310,6 +314,8 @@ class Shot:
             "wait_ms": self.wait_ms, "crop": self.crop, "animate": self.animate,
             "scroll_to_frac": self.scroll_to_frac, "also_clean": self.also_clean,
             "hide_selectors": self.hide_selectors, "hide_texts": self.hide_texts,
+            "click_texts": self.click_texts,
+            "settle_ms": self.settle_ms,
             "censor": [c.__dict__ for c in self.censor],
         }
 
@@ -782,6 +788,21 @@ class RealFootageRunner:
                 pass
         page.wait_for_timeout(shot.wait_ms)
 
+        # expand collapsed FAQ items whose text is in the DOM but not on screen (Tickmill EP61).
+        # A DOM click, so a cookie banner cannot intercept it; a label with no match is skipped.
+        for label in shot.click_texts:
+            try:
+                # a DaisyUI collapse opens through the checkbox beside its title, so click that when there is one
+                loc = page.get_by_text(label, exact=True)
+                if loc.count() == 0:  # the label has extra text or an icon around it
+                    loc = page.get_by_text(label)
+                loc.first.evaluate(
+                    "e => { const i = e.parentElement && e.parentElement.querySelector('input[type=checkbox],input[type=radio]'); (i || e).click(); }",
+                    timeout=4000)
+                page.wait_for_timeout(500)
+            except Exception as exc:
+                print(f"click_texts: could not open {label!r}: {str(exc)[:120]}", file=sys.stderr)
+
         if shot.hide_selectors or shot.hide_texts:
             try:
                 page.evaluate(HIDE_JS, {"selectors": shot.hide_selectors, "texts": shot.hide_texts})
@@ -862,7 +883,7 @@ class RealFootageRunner:
         if scroll_anchor and (scroll_anchor.get("text") or scroll_anchor.get("selector")):
             scrolled = page.evaluate(SCROLL_INTO_VIEW_JS, scroll_anchor)
             if scrolled:
-                page.wait_for_timeout(900)  # let scroll-triggered lazy content (charts etc.) settle -- measured
+                page.wait_for_timeout(shot.settle_ms)  # let scroll-triggered lazy content (charts etc.) settle -- measured
                 # 2026-09-23: 500ms was flaky, wikifx-profile-score-reason lost its crop target one run in a few
 
         if shot.hide_selectors or shot.hide_texts:
@@ -885,7 +906,7 @@ class RealFootageRunner:
                     # Re-issuing the same scroll right before measuring
                     # corrects any such drift.
                     page.evaluate(SCROLL_INTO_VIEW_JS, scroll_anchor)
-                    page.wait_for_timeout(200)
+                    page.wait_for_timeout(max(200, shot.settle_ms - 700))
             except Exception:
                 pass
 
@@ -905,7 +926,10 @@ class RealFootageRunner:
         captured_at = datetime.now(TH_TZ).isoformat(timespec="seconds")
 
         final_crop = None
-        if shot.crop and crop_box is not None:
+        # crop: {frame_only: true} scrolls to and measures the target but keeps the whole 1080x1920 frame,
+        # for content wider than the 9:16 crop cap (a full-width FAQ row, Tickmill EP61)
+        frame_only = bool(shot.crop and shot.crop.get("frame_only"))
+        if shot.crop and crop_box is not None and not frame_only:
             final_crop = nine_sixteen_crop_around(crop_box, img.width, img.height,
                                                    shot.crop.get("pad", 1.8))
 
@@ -966,7 +990,7 @@ class RealFootageRunner:
             })
 
         return {"outputs": outputs, "manifest_entries": manifest_entries,
-                "crop_missing": bool(shot.crop and final_crop is None)}
+                "crop_missing": bool(shot.crop and not frame_only and final_crop is None)}
 
     def _run_scroll(self, page, shot: Shot) -> dict:
         shot_dir = self.out_dir / shot.id
