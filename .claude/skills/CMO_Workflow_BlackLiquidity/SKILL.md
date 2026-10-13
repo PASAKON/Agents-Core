@@ -164,3 +164,4 @@ spent: $<cash> API · <turns> turns
 ```
 
 ## Field notes
+- 2026-10-13 [WRONG] Step 4 voice gate — the forecast in STATUS.md is made from the raw speaking rate (11.4 chars/s, 74.7 s for 852 chars), but the pipeline speeds the joined track up 1.15x with ffmpeg before upload (`[videotts] FFmpeg speed 1.15x`), so the delivered voice ran 68.0 s (raw 78.2 s), -8.9% and outside the ±5% gate. Measured delivered rate: 852 / 68.0 = 12.5 chars/s. Forecast against the delivered track (chars / 12.5), or gate on the raw length the log prints · evidence: EP61 row 487a79be, Drive voice md5 4e8cd994…, session cto-671f688f · status: pending
