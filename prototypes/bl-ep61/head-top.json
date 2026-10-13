@@ -54,31 +54,31 @@
     "lip_b": {
       "used": {
         "range": [
-          0.36,
+          0.3,
           12.4
         ],
-        "frames": 301,
-        "top": 169,
-        "top_at": 0.36,
-        "min_top_0_5s": null,
+        "frames": 303,
+        "top": 158,
+        "top_at": 0.3,
+        "min_top_0_5s": 248,
         "source_bounds": [
-          50,
-          169,
-          964,
+          42,
+          158,
+          971,
           1101
         ],
-        "canvas_top": 939.44,
+        "canvas_top": 933.28,
         "comp_box": [
-          -9,
-          939,
-          513,
-          523
+          -13,
+          933,
+          521,
+          529
         ],
         "ff_box": [
-          50,
-          169,
-          914,
-          932
+          42,
+          158,
+          929,
+          943
         ]
       },
       "whole_take": {
@@ -95,13 +95,13 @@
     "lip_c": {
       "used": {
         "range": [
-          6.75,
+          6.7,
           13.7
         ],
-        "frames": 174,
+        "frames": 175,
         "top": 277,
-        "top_at": 7.9833,
-        "min_top_0_5s": null,
+        "top_at": 7.9667,
+        "min_top_0_5s": 279,
         "source_bounds": [
           150,
           277,
