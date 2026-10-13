@@ -206,6 +206,22 @@ roles:
     workspace_only: true
     skills_profile: worker-baseline
 
+  researcher:
+    display: Researcher
+    level: w
+    # SomPong's research worker (CEO card Q-20261013-1948-4a33, 2026-10-14): web search, our
+    # research notes first, repos read-only, ONE markdown report. Never edits, PRs, pushes or paid
+    # APIs. Runs in runners/coo_worker.py's read-only box, outside runners first (config/plans.yaml
+    # class `research`: codex, Argon, then this model). roles/researcher.md.
+    model: "claude-sonnet-5-5"   # the Sonnet fallback; codex/agy go first
+    effort: "medium"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+    skills_profile: worker-baseline
+
   prompt_engineer:
     display: Prompt Engineer
     level: w

@@ -20,7 +20,7 @@ from pathlib import Path
 
 # lib.config is imported lazily (in create_task): it pulls in PyYAML, and the
 # PreToolUse hooks import lib.db under the system python3, which may not have it.
-from lib import db_pg
+from lib import coo_policy, db_pg
 
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
@@ -1035,6 +1035,9 @@ def create_task(
     # Stamp the spawning C-level session so DEV reports route back to that
     # session's tab instead of broadcasting to every open CTO chat.
     owner_cto, owner_role = resolve_session_owner(owner_cto, owner_role)
+    # A coo-owned task may only be a research-side role (CEO card
+    # Q-20261013-1948-4a33). Before anything is written, on every create path.
+    coo_policy.check_role(owner_role, role)
     tid = new_task_id()
     if not owner_cto:
         # Don't hard-fail (tests + ad-hoc rows create ownerless tasks), but make
