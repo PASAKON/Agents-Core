@@ -25,7 +25,8 @@ def forbidden(*args, **kwargs):
 @pytest.fixture(autouse=True)
 def isolate(monkeypatch):
     for name in ("fetch_hub", "read_events", "write_event", "_gh", "send_to_coo", "_self_host",
-                 "fetch_runner_fit", "fetch_context_deltas", "_git", "fetch_agy_browse_hub"):
+                 "fetch_runner_fit", "fetch_context_deltas", "_git", "fetch_agy_browse_hub",
+                 "fetch_router_off"):
         monkeypatch.setattr(tv, name, forbidden)
     # Also catch any captured subprocess default without executing a command.
     monkeypatch.setattr(tv.subprocess, "run", forbidden)
@@ -48,7 +49,7 @@ def local(tmp_path, monkeypatch):
         "QUOTA_HISTORY": "quota-history.jsonl", "DECISIONS_DIR": "decisions",
         "SITES_DIR": "sites", "CREDIT_LEDGER": "credit-ledger.jsonl",
         "OPENROUTER_BALANCE": "balance.jsonl", "PROTOTYPES_DIR": "prototypes",
-        "REPORT_DIR": "reports", "CODEX_SESSIONS": "codex",
+        "REPORT_DIR": "reports", "CODEX_SESSIONS": "codex", "AGENT_CALLS": "agent-calls.jsonl",
     }
     for name, relative in paths.items():
         monkeypatch.setattr(tv, name, root / relative)
@@ -62,6 +63,8 @@ def local(tmp_path, monkeypatch):
     monkeypatch.setattr(tv, "fetch_context_deltas", lambda win: json.loads((root / "context_deltas.json").read_text()))
     monkeypatch.setattr(tv, "_git", lambda args: "")
     monkeypatch.setattr(tv, "fetch_agy_browse_hub", lambda win: {"calls": 0, "keys": []})
+    monkeypatch.setattr(tv, "fetch_router_off", lambda win: {"tasks": 0, "pinned": 0, "reasons": {}, "runners": {},
+                                                            "first_ts": None})
     return root
 
 
@@ -324,7 +327,8 @@ def test_collect_local_failure(local, monkeypatch):
     monkeypatch.setattr(tv, "credit_usage", broken)
     result = tv.collect(W, "contabo", org=False, homes=homes(local))
     assert not {"quota", "hub_tasks", "jules_github", "openrouter"} & result["sources"].keys()
-    assert set(result["sources"]) == {"transcripts", "codex_rollouts", "decisions", "agy_browse", "bl_jev"}
+    assert set(result["sources"]) == {"transcripts", "codex_rollouts", "decisions", "agy_browse", "bl_jev",
+                                      "agent_calls"}
     assert result["missing"] == [{"source": "credit_ledger", "reason": "ValueError: fixture failure"}]
 
 
@@ -773,3 +777,66 @@ def test_agy_browse_hub_keys_union_with_the_file(monkeypatch):
     payload = {"org": True, "sources": {"agy_browse": {"keys": ["2026-10-07T03:00:00.000001Z|read|9280", "x|tabs|9280"]},
                                         "agy_browse_hub": {"keys": ["2026-10-07T03:00:00.000001Z|read|9280"]}}}
     assert tv.build_rows({"contabo": payload}, W, ("contabo",), {})["agy_browse_calls"]["value"] == 2
+
+
+def test_agent_calls_usage_counts_the_t4_spool():
+    got = tv.agent_calls_usage(F / "agent-calls.jsonl", W)
+    assert {k: got[k] for k in ("calls", "read_only", "routed", "override", "unrouted", "background", "sessions")} == \
+        {"calls": 4, "read_only": 1, "routed": 1, "override": 1, "unrouted": 1, "background": 1, "sessions": 2}
+    assert got["types"] == {"general-purpose": 3, "Explore": 1}
+    assert got["first_ts"] == tv.iso(tv.parse_ts("2026-10-07T03:00:00Z"))   # the 14 Oct line is outside W
+    with pytest.raises(tv.SourceMissing):
+        tv.agent_calls_usage(F / "no-such-spool.jsonl", W)
+
+
+def _agent_rows(first_ts, **counts):
+    src = {"calls": 4, "read_only": 1, "routed": 1, "override": 1, "unrouted": 1, "background": 1, "sessions": 2,
+           "types": {}, "first_ts": first_ts, **counts}
+    return {"contabo": {"host": "contabo", "org": True, "sources": {"agent_calls": src}, "missing": []}}
+
+
+def test_agent_call_cells_started_mid_window():
+    c = tv.build_rows(_agent_rows("2026-10-07T03:00:00Z"), W, ("contabo",), {})
+    assert c["agent_calls"]["value"] == 4 and c["agent_calls"]["label"] == "measured"
+    assert "อ่านอย่างเดียว 1" in c["agent_calls"]["note"] and "2 session" in c["agent_calls"]["note"]
+    assert "เริ่มเก็บ 07/10 10:00" in c["agent_calls"]["note"]                # BKK, so a partial week shows
+    assert c["agent_calls_unrouted"]["value"] == 1
+    assert "มี route: 1 · มี override: 1" in c["agent_calls_unrouted"]["note"]
+
+
+def test_agent_call_cells_before_the_hook_are_no_data_not_zero():
+    for first in ("2026-10-14T01:00:00Z", None):                         # started after W, or an empty spool
+        c = tv.build_rows(_agent_rows(first, calls=0, unrouted=0), W, ("contabo",), {})
+        assert c["agent_calls"]["label"] == "none" and c["agent_calls"]["value"] is None
+        assert c["agent_calls_unrouted"]["label"] == "none"
+    c = tv.build_rows({"contabo": {"host": "contabo", "org": True, "sources": {}, "missing": []}}, W, ("contabo",), {})
+    assert c["agent_calls"]["label"] == "none"                             # the host never sent the source
+
+
+def test_router_off_summary_counts_tasks_once():
+    ev = lambda ts, task, **p: {"ts": ts, "task_id": task, "payload": json.dumps(p)}
+    rows = [ev("2026-10-01T00:00:00Z", "task-00000000", reason="", runner="claude"),               # before W: first_ts only
+            ev("2026-10-07T00:00:00Z", "task-11111111", reason="security: creds", runner="claude", pinned=True),
+            ev("2026-10-07T00:05:00Z", "task-11111111", reason="security: creds", runner="claude", pinned=True),  # retry
+            ev("2026-10-08T00:00:00Z", "task-22222222", reason="", runner="agy"),
+            ev("2026-10-09T00:00:00Z", None, reason="just because", runner="claude"),
+            {"ts": "2026-10-10T00:00:00Z", "task_id": "task-33333333", "payload": "not json"}]
+    got = tv.router_off_summary(rows, W)
+    assert got["tasks"] == 4 and got["pinned"] == 1
+    assert got["reasons"] == {"ไม่ระบุ": 2, "free-text": 1, "security": 1}
+    assert got["runners"] == {"claude": 2, "?": 1, "agy": 1}
+    assert got["first_ts"] == tv.iso(tv.parse_ts("2026-10-01T00:00:00Z"))
+
+
+def test_router_off_cell_is_no_data_until_the_first_event():
+    row = lambda src: {"contabo": {"host": "contabo", "org": True, "sources": {"router_off": src}, "missing": []}}
+    base = {"tasks": 0, "pinned": 0, "reasons": {}, "runners": {}}
+    for first in (None, "2026-10-14T00:00:00Z"):
+        c = tv.build_rows(row({**base, "first_ts": first}), W, ("contabo",), {})
+        assert c["router_off"]["label"] == "none" and "router_off" in c["router_off"]["note"]
+    c = tv.build_rows(row({**base, "first_ts": "2026-10-01T00:00:00Z"}), W, ("contabo",), {})
+    assert c["router_off"] == {"value": 0, "label": "measured", "note": "pin อยู่แล้ว 0"}  # a real zero once it exists
+    c = tv.build_rows(row({**base, "tasks": 2, "pinned": 1, "reasons": {"security": 2},
+                           "first_ts": "2026-10-07T03:00:00Z"}), W, ("contabo",), {})
+    assert c["router_off"]["value"] == 2
+    assert c["router_off"]["note"] == "pin อยู่แล้ว 1 · เหตุผล: security 2 · เริ่มเก็บ 07/10 10:00"
