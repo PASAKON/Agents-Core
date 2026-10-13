@@ -83,6 +83,9 @@ refusal costs one edited line, and you know where the code is blind. Plan:
     the deeper outside runners may go.
   - An `ok` outside runner always ranks ahead of an `ok` Claude.
   - With Claude's quota unreadable, there is no scaling.
+- **Job type → runner (CEO 2026-10-14):** developer S/M, file-scoped → an agy-gemini runner before any Claude
+  worker; pin by hand to Argon (`agy`, `gemini-4-argon-high`), always with a review and a test run. Rules:
+  `CTO_Knowledge_AGY` §Argon. The router's `dev_general` order (flash, then Argon) is unchanged.
 - **Check:** `delegate_log` reads `router: <runner> <model> [<bucket>] — …`.
   - If it names claude while an outside runner fits the job, stop the worker at once (tmux session
     + pid), cancel the row and re-create it pinned with `override: ceo-order`.
