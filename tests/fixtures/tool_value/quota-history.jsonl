@@ -4,7 +4,8 @@
 {"provider": "claude", "ts": "2026-10-06T01:00:00+00:00", "weekly_remaining": 0.0, "error": null, "weekly_resets_at": "2026-10-06T10:00:00+00:00"}
 {"provider": "claude", "ts": "2026-10-06T02:00:00+00:00", "weekly_remaining": 0.0, "error": null, "weekly_resets_at": "2026-10-06T10:00:00+00:00"}
 {"provider": "claude", "ts": "2026-10-06T03:00:00+00:00", "weekly_remaining": 0.0, "error": null, "weekly_resets_at": "2026-10-06T10:00:00+00:00"}
-{"provider": "claude", "ts": "2026-10-06T10:00:00+00:00", "weekly_remaining": 1.0, "error": null, "weekly_resets_at": "2026-10-13T10:00:00+00:00"}
+{"provider": "claude", "ts": "2026-10-06T04:00:00+00:00", "weekly_remaining": 0.0, "error": null, "weekly_resets_at": "2026-10-06T10:00:00+00:00"}
+{"provider": "claude", "ts": "2026-10-06T10:00:00+00:00", "weekly_remaining": 1.0, "error": null, "weekly_resets_at": "2026-10-06T10:00:00+00:00"}
 {"provider": "claude", "ts": "2026-10-06T11:00:00+00:00", "weekly_remaining": null, "error": "usage.json unreadable", "weekly_resets_at": null}
 {"provider": "claude", "ts": "2026-10-07T10:00:00+00:00", "weekly_remaining": 0.80, "error": null, "weekly_resets_at": "2026-10-13T10:00:00+00:00"}
 {"provider": "claude", "ts": "2026-10-12T18:00:00+00:00", "weekly_remaining": 0.70, "error": null, "weekly_resets_at": "2026-10-13T10:00:00+00:00"}
