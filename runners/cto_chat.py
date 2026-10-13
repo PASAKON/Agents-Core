@@ -154,7 +154,7 @@ def _build_options(*, resume: str | None = None) -> ClaudeAgentOptions:
             },
         },
         allowed_tools=(
-            [f"mcp__org__{spec.name}" for spec in registry.REGISTRY]
+            [f"mcp__org__{name}" for name in registry.served_names()]
             + [
                 "mcp__lungnote__list_todos", "mcp__lungnote__add_todo",
                 "mcp__lungnote__complete_todo", "mcp__lungnote__cancel_todo",

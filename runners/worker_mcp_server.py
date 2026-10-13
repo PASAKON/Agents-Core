@@ -231,9 +231,12 @@ def request_human_handoff(
             f"  issue: {issue or '(none)'}\n"
             "  Reply `resume` after solving."
         )
-        from lib import cto_session
+        from lib import cto_session, mailbox
+        # envelope mail: a handoff is an urgent blocker letter (wakes at once)
+        kw = ({"subject": f"blocker {TASK_ID}: NEEDS HUMAN ({kind})", "kind": "blocker",
+               "prio": "urgent"} if mailbox.envelope_on() else {})
         send_to_cto(TASK_ID, attn, role=ROLE, cto_id=cto_session.current_id(),
-                    owner_role=os.environ.get("WORKER_CTO_ROLE", "cto"))
+                    owner_role=os.environ.get("WORKER_CTO_ROLE", "cto"), **kw)
     except Exception as e:
         info(f"request_human_handoff chat relay failed: {e}")
 
@@ -346,6 +349,31 @@ def skill_objection(skill: str, conflict: str, did_instead: str, blocked: bool =
         return f"ERROR: {e}"
     return f"OK — objection raised for {skill!r}, routed to {result['author']}"
 
+
+
+# Envelope mail (org restructure P1): the worker's own mailbox, read back. Served
+# only when ORG_MAIL_ENVELOPE is on in this server's env (runners/worker_init.py
+# allows the two names under the same flag); off, the tool list is unchanged.
+def read_letter(id: str) -> str:
+    """Read one letter from this task's own mailbox in full, by the id its
+    envelope line shows (`[m-...]`). A body over 400 characters is printed as
+    an envelope line only; this reads it. Read letters are kept 7 days."""
+    from tools import letters
+    return letters.read_text(id)
+
+
+def list_letters(unread_only: bool = False, limit: int = 20) -> str:
+    """List this task's own mailbox, newest first, one line per letter: id,
+    kind/prio, sender, time, size, unread or when read, subject. No bodies."""
+    from tools import letters
+    return letters.list_text(unread_only=unread_only, limit=limit)
+
+
+from lib import mailbox as _mailbox  # noqa: E402
+
+if _mailbox.envelope_on():
+    mcp.tool()(read_letter)
+    mcp.tool()(list_letters)
 
 if __name__ == "__main__":
     db.init()

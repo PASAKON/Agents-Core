@@ -28,8 +28,12 @@ Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1):
   * tasks.session_id / last_checkpoint / rate-limit state are still written
     on every turn, with the hub call capped at HUB_TIMEOUT_S.
   * The log line and the relay to the owning C-level happen only on a turn
-    that called submit_report, dev_message or a blocker tool (or hit a rate
-    limit). Every other turn stays in the worker's own transcript.
+    that called submit_report, dev_message or file_blocker_issue (or hit a
+    rate limit). Every other turn stays in the worker's own transcript.
+    request_human_handoff is not on the list: the tool sends its own letter.
+  * The relay is an envelope letter: a report or a blocker is urgent (wakes
+    the C-level at once), a dev_message or a rate-limit notice is normal (the
+    wake is debounced, lib.mailbox.wake_due), with a one-line subject.
 Off, everything is exactly as before.
 """
 from __future__ import annotations
@@ -58,8 +62,19 @@ EVENT_TOOLS = {
     "submit_report": "report",
     "dev_message": "message",
     "file_blocker_issue": "blocker",
-    "request_human_handoff": "blocker",
 }
+
+
+def _letter_kind(events: list[str]) -> tuple[str, str]:
+    """(kind, prio) of the relay letter for this turn's events."""
+    kinds = {EVENT_TOOLS[e] for e in events}
+    if "blocker" in kinds:
+        return "blocker", "urgent"
+    if "report" in kinds:
+        return "report", "urgent"
+    if "message" in kinds:
+        return "message", "normal"
+    return "fyi", "normal"         # a rate limit with no event
 
 
 def _log_for(cto_id: str | None) -> Path:
@@ -226,9 +241,13 @@ def main() -> int:
     _persist(task_id, session_id, rate_limited)
 
     last_text = (last_text or "").strip()
+    letter_kw: dict = {}
     if ENVELOPE:
         if not events and not rate_limited:
             return 0          # nothing to report: the turn stays in the worker's transcript
+        kind, prio = _letter_kind(events)
+        gist = " ".join(last_text.split()) or ("rate limited" if rate_limited else "see the task report")
+        letter_kw = {"subject": f"{kind} {task_id}: {gist}"[:80], "kind": kind, "prio": prio}
         if events:
             last_text = f"[{', '.join(events)}] " + (last_text or "(no closing text; see the task report)")
     if not last_text and not rate_limited:
@@ -272,7 +291,7 @@ def main() -> int:
             sys.path.insert(0, str(ROOT))
             from tools.send_to_cto import send as send_to_cto
             send_to_cto(task_id, relay, role=role, cto_id=cto_id,
-                        owner_role=owner_role)
+                        owner_role=owner_role, **letter_kw)
         except Exception:
             pass
 

@@ -380,7 +380,8 @@ def test_relay_tool_takes_no_sender_argument():
     secretary/sompong identity is pinned server-side (see the letter test
     above), and no parameter exists to influence it."""
     params = inspect.signature(rms.relay_to_session).parameters
-    assert set(params) == {"target_role", "message", "wait", "target_session_id"}
+    # `subject` (envelope mail, org restructure P1) names the order, not its sender
+    assert set(params) == {"target_role", "message", "wait", "target_session_id", "subject"}
 
 
 # ---------------------------------------------------------------------------

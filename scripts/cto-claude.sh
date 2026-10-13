@@ -5,6 +5,21 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Org restructure P2: a Project Head never starts a session (plan §3.2), and
+# the launcher is where every start passes. Its session carries
+# CXO_ROLE=project_head, so a launch from inside one is refused here, before
+# anything else. A guard for an agent that follows the rules, not a sandbox: a
+# shell that clears the variable gets past it.
+if [ "${CXO_ROLE:-}" = "project_head" ]; then
+  echo "a Project Head cannot start a session (org restructure P2, plan §3.2); ask its C-level" >&2
+  exit 2
+fi
+# Host flags (lib/org_flags.py): on when /etc/org-flags/<NAME> exists or the env
+# says 1. A session started from tmux, the relay or node_dispatch takes the tmux
+# server's environment, so the file is what reaches every launch.
+ORG_FLAGS_DIR=/etc/org-flags
+org_flag() { [ "${!1:-}" = "1" ] || [ -f "$ORG_FLAGS_DIR/$1" ]; }
+
 # --session <id>: mirrors cxo-claude.sh's SESSION_OVERRIDE exactly (task
 # task-f4c64dc6, gap 2 — until now only cxo-claude.sh registered a session
 # at all). When set, this is an ephemeral spawn: CTO_SESSION_ID is forced to
@@ -129,6 +144,27 @@ mkdir -p "$LOCKS_DIR"
 UUID_FILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.uuid"
 printf '%s\n' "$CTO_UUID" >"$UUID_FILE"
 
+# One live CTO session on Contabo only (org restructure P2, plan §3.1) when
+# ORG_SINGLE_CLEVEL=1; tools/clevel_gate.py decides, under a flock released as
+# soon as this session's lock is written. Same block as cxo-claude.sh.
+SINGLE_FD_OPEN=0
+if org_flag ORG_SINGLE_CLEVEL; then
+  if command -v flock >/dev/null 2>&1; then
+    exec 9>"$LOCKS_DIR/.single-cto.flock"
+    SINGLE_FD_OPEN=1
+    if ! flock -w 20 9; then
+      rm -f "$MCP_CONFIG" "$UUID_FILE"
+      echo "another CTO launcher holds the start lock for over 20 s — try again" >&2
+      exit 1
+    fi
+  fi
+  GATE_PY="$ROOT/.venv/bin/python"; [ -x "$GATE_PY" ] || GATE_PY=python3
+  if ! (cd "$ROOT" && "$GATE_PY" -m tools.clevel_gate check --role cto \
+          --session "$CTO_SESSION_ID" --locks-dir "$LOCKS_DIR"); then
+    rm -f "$MCP_CONFIG" "$UUID_FILE"
+    exit 1
+  fi
+fi
 LOCKFILE="$LOCKS_DIR/cto-$CTO_SESSION_ID.lock"
 if [ -e "$LOCKFILE" ]; then
   existing_pid="$(tr -d '[:space:]' <"$LOCKFILE" 2>/dev/null || true)"
@@ -139,6 +175,10 @@ if [ -e "$LOCKFILE" ]; then
   rm -f "$LOCKFILE"
 fi
 echo "$$" >"$LOCKFILE"
+if [ "$SINGLE_FD_OPEN" = "1" ]; then
+  flock -u 9 2>/dev/null || true
+  exec 9>&-
+fi
 
 # Find the iTerm window id whose session shares our TTY, then record it
 # so tools/delegate.py can target this exact window when spawning DEV
@@ -454,6 +494,16 @@ fi
 if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
   (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
     python3 -m tools.memory_sync pull) || true
+fi
+
+# Per-session memory scope (org restructure P2, plan §7) when
+# ORG_SESSION_SCOPE=1; same block as cxo-claude.sh, which explains it.
+if org_flag ORG_SESSION_SCOPE && [ "$(id -u)" = "0" ] && command -v systemd-run >/dev/null 2>&1; then
+  _SCOPE=(systemd-run --scope --quiet --collect
+    --unit "org-cto-$CTO_SESSION_ID"
+    -p "MemoryHigh=${ORG_SESSION_MEM_HIGH:-1536M}"
+    -p "MemoryMax=${ORG_SESSION_MEM_MAX:-2560M}" -- "$(type -P claude)")
+  claude() { "${_SCOPE[@]}" "$@"; }
 fi
 
 # `exec` would replace the shell and skip the EXIT trap, leaving a

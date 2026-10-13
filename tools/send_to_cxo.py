@@ -85,7 +85,7 @@ from lib import mailbox
 from lib import mesh
 from lib import notify
 from lib.config import display_for, is_c_level, self_host
-from lib.roles import SINGLETON_ROLES, c_level_roles, singleton_refusal
+from lib.roles import PH_ROLE, SINGLETON_ROLES, c_level_roles, singleton_refusal
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
@@ -186,11 +186,27 @@ def _owner_of(identity: Identity) -> Identity | None:
     p = _spawn_record_path(identity.role, identity.session_id)
     if not p.exists():
         return None
+    if identity.role == PH_ROLE and not _trusted_record(p):
+        return None  # fails closed: a Project Head with no owner can send nothing
     parts = p.read_text().strip().split(":", 2)
     if len(parts) != 3:
         return None
     kind, role, sid = parts
     return Identity(kind, role, sid or None)
+
+
+def _trusted_record(path: Path) -> bool:
+    """A Project Head's owner record counts only when root or this process's
+    own user wrote it. state/locks is group-writable (the secretary's group),
+    and the record decides who a Project Head reports to. No euid (Windows):
+    no such group, trusted."""
+    geteuid = getattr(os, "geteuid", None)
+    if geteuid is None:
+        return True
+    try:
+        return path.stat().st_uid in (0, geteuid())
+    except OSError:
+        return False
 
 
 def _chain(identity: Identity) -> list[Identity]:
@@ -242,6 +258,24 @@ def authorize(sender: Identity, target_role: str, target_session_id: str | None,
     its own branch, never a dressed-up C-level identity: impersonation is
     the one thing this guard exists to prevent.
     """
+    if sender.kind == "cxo" and sender.role == PH_ROLE:
+        # A Project Head (org restructure P2, plan §3.2) never starts a
+        # session and writes only to the lane of the C-level that started it
+        # (scripts/spawn-ph.sh records that). Any session of that role: under
+        # ORG_SINGLE_CLEVEL the lane's session id changes when it restarts.
+        owner = _owner_of(sender)
+        if owner is None:
+            raise PermissionError(
+                f"refused: {sender.label()} has no recorded owner "
+                f"({_spawn_record_path(PH_ROLE, sender.session_id or '?').name}); a Project "
+                f"Head reports only to the C-level that started it (scripts/spawn-ph.sh)")
+        if spawning:
+            raise PermissionError(f"refused: {sender.label()} cannot start a session (plan §3.2)")
+        if target_role != owner.role:
+            raise PermissionError(
+                f"refused: {sender.label()} writes only to its own C-level "
+                f"({display_for(owner.role)}), not {target_role}. Chain: {_chain_str(sender)}")
+        return
     if sender.kind == "secretary":
         # Enforce exactly what the docstring above promises: the CEO's
         # proxy may reach a C-level target, and nothing else — not a DEV
@@ -256,11 +290,30 @@ def authorize(sender: Identity, target_role: str, target_session_id: str | None,
                 f"sessions only, not {target_role!r}"
             )
         return
+    if target_role == PH_ROLE and sender.kind == "cxo" and not spawning:
+        # A Project Head takes briefs from its own lane (and the CEO); another
+        # lane's C-level would get no answer, because the PH replies only to
+        # its owner's lane. A PH with no owner record takes none.
+        ph_owner = (_owner_of(Identity("cxo", PH_ROLE, target_session_id))
+                    if target_session_id else None)
+        if ph_owner is None or ph_owner.role != sender.role:
+            raise PermissionError(
+                f"refused: {sender.label()} may brief only a Project Head of its own lane; "
+                f"Project Head #{target_session_id or '?'} belongs to "
+                f"{display_for(ph_owner.role) if ph_owner else 'no lane on record'}")
     owner = _owner_of(sender)
     if owner is None:
         return  # root: free peer messaging, and free to spawn a level-2 child
     if spawning:
-        depth = len(_chain(sender)) + 1
+        chain = _chain(sender)
+        if any(i.kind == "cxo" and i.role == PH_ROLE for i in chain):
+            # A Project Head's worker is two hops down, so the hop cap alone
+            # would let it start a C-level session (plan §3.2: a PH and
+            # everything under it starts no session).
+            raise PermissionError(
+                f"refused: {sender.label()} works under a Project Head; nothing under a "
+                f"Project Head starts a session (plan §3.2). Chain: {_chain_str(sender)}")
+        depth = len(chain) + 1
         if depth > MAX_HOPS:
             raise PermissionError(
                 f"refused: hop {depth} exceeds max {MAX_HOPS} delegation "
@@ -348,6 +401,43 @@ def attempt_wake(role: str, session_id: str, label: str) -> bool:
 # the old private name; both names must stay the SAME function object so a
 # monkeypatch on either is observed by every caller.
 _attempt_wake = attempt_wake
+
+
+def wake_for_letter(role: str, session_id: str, label: str, prio: str = "normal") -> bool | None:
+    """Envelope mail's debounced wake (org restructure P1). Flag off this is
+    `_attempt_wake()`, every time. On, `lib.mailbox.wake_due()` decides: an
+    urgent letter wakes at once, a normal one waits until 3 are waiting or the
+    oldest has waited ORG_WAKE_DEBOUNCE_S, and tools/mail_wake_sweep.py fires
+    that late wake. Returns None when the wake was deferred; otherwise what
+    `_attempt_wake()` returned. Never raises."""
+    try:
+        if not mailbox.wake_due(role, session_id, prio):
+            try:
+                notify.info(f"[send_to_cxo] wake deferred (debounce): {role}-{session_id}")
+            except Exception:
+                pass
+            return None
+    except Exception:
+        pass
+    woke = _attempt_wake(role, session_id, label)
+    if mailbox.envelope_on():
+        mailbox.note_wake(role, session_id)
+    return woke
+
+
+def _envelope_kw(subject: str | None, **extra) -> dict:
+    """Keyword args for mailbox.send: the envelope fields when the flag is on,
+    none when it is off, so a flag-off call is exactly the call it was."""
+    return {"subject": subject, **extra} if mailbox.envelope_on() else {}
+
+
+def _subject_note(subject: str | None, message: str) -> str:
+    """The warning a sender sees when envelope mail stood the message's first
+    80 characters in for a missing subject; empty otherwise."""
+    if not mailbox.envelope_on():
+        return ""
+    warning = mailbox.resolve_subject(subject, message)[1]
+    return f"\nwarning: {warning}" if warning else ""
 
 
 # ---------------------------------------------------------------------------
@@ -454,7 +544,8 @@ end tell
         raise
 
 
-def spawn(role: str, message: str, sender: str | None = None) -> str:
+def spawn(role: str, message: str, sender: str | None = None, *,
+          subject: str | None = None) -> str:
     """Ephemeral-spawn path: open a new tab for this request.
 
     Dedupe-checked: if an alive ephemeral tab with the same topic-slug
@@ -468,9 +559,13 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
     refusal = singleton_refusal(role)
     if refusal:
         raise ValueError(refusal)
+    from tools import clevel_gate  # noqa: PLC0415
+    refusal = clevel_gate.refusal(role, locks_dir=LOCKS_DIR)  # ORG_SINGLE_CLEVEL; the launcher re-checks
+    if refusal:
+        raise ValueError(refusal)
     sender_identity = current_identity()
     authorize(sender_identity, role, None, spawning=True)
-    label = sender or _resolve_sender_role()
+    label = _sender_label(sender_identity, sender)
     display = display_for(role)
     topic_slug = _make_topic_slug(message)
     # Attribute the actual sender — a CMO→CFO request must not read "<- CTO".
@@ -511,10 +606,15 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
             reused_sid = lock_file.stem[len(role) + 1:]
             from_role, from_sid = _mailbox_identity(sender_identity)
             chain = _chain_ids(sender_identity) + [f"{role}:{reused_sid}"]
-            mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain)
-            _attempt_wake(role, reused_sid, label)
+            mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain,
+                         **_envelope_kw(subject))
+            if mailbox.envelope_on():
+                wake_for_letter(role, reused_sid, label)
+            else:
+                _attempt_wake(role, reused_sid, label)
             _log_hop(sender_identity, role, reused_sid)
-            return f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
+            return (f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
+                    + _subject_note(subject, message))
         except OSError:
             continue
 
@@ -634,7 +734,8 @@ def dispatch_letter(letter_id: int) -> str:
     return outcome
 
 
-def send(role: str, message: str, sender: str | None = None) -> str:
+def send(role: str, message: str, sender: str | None = None, *,
+         subject: str | None = None) -> str:
     """Programmatic API (legacy path). Returns one-line summary string.
 
     Task task-de2cdc15 (CEO directive 2026-08-14, option A): queues the
@@ -657,16 +758,24 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     latter is not an error, the watchdog retries the row. Flag off: this
     paragraph does not exist.
 
+    Envelope mail (ORG_MAIL_ENVELOPE on): `subject` is stored on the letter
+    (a missing one becomes the message's first 80 characters, and the return
+    string ends with a warning line), and the wake is debounced
+    (`wake_for_letter`). Off, `subject` is ignored.
+
     Contract: queued or raised, never "probably". Raises ValueError when
     the target role has no registered session (unchanged failure mode --
     see `_active_session_id()`). Raises PermissionError when the routing
     guard refuses the hop (see `authorize()`); a refusal writes nothing.
     """
+    ph_target = PH_TARGET_RE.fullmatch((role or "").strip().lower())
+    if ph_target:
+        return _send_to_ph(ph_target.group(1), message, sender, subject=subject)
     if not is_c_level(role):
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
-    sid = _active_session_id(role)
+    sid = _ph_owner_session(role) or _active_session_id(role)
     remote = None
     if not sid:
         remote = _remote_target(role)  # None unless ORG_MESH_DISPATCH names one other host
@@ -679,7 +788,7 @@ def send(role: str, message: str, sender: str | None = None) -> str:
         sid = remote[1]
     sender_identity = current_identity()
     authorize(sender_identity, role, sid, spawning=False)
-    label = sender or _resolve_sender_role()
+    label = _sender_label(sender_identity, sender)
     _log_hop(sender_identity, role, sid)
     from_role, from_sid = _mailbox_identity(sender_identity)
     if remote is not None:
@@ -688,16 +797,74 @@ def send(role: str, message: str, sender: str | None = None) -> str:
                                from_role=from_role, from_session=from_sid,
                                from_host=self_host())
         target = f"{display_for(role)} #{sid}"
+        # the letters row has no subject column: the far side stands the
+        # body's first 80 characters in (node_dispatch._write_clevel_letter)
+        note = _subject_note(None, message)
         if dispatch_letter(lid) == "delivered":
-            return f"delivered to {target} on {host}: [{label}] : {message}"
+            return f"delivered to {target} on {host}: [{label}] : {message}" + note
         # Not an error: the row stays pending and the watchdog retries it.
-        return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}"
+        return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}" + note
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
-    letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain,
+                          **_envelope_kw(subject))
     if role in SINGLETON_ROLES:
         _share_letter(letter)
-    _attempt_wake(role, sid, label)
-    return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+    if mailbox.envelope_on():
+        wake_for_letter(role, sid, label)
+    else:
+        _attempt_wake(role, sid, label)
+    return (f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+            + _subject_note(subject, message))
+
+
+# Org restructure P2: a C-level briefs a Project Head as role
+# "project_head-<id>" (the name bash scripts/live-sessions.sh prints it under).
+PH_TARGET_RE = re.compile(rf"{PH_ROLE}-([0-9a-f]{{8}})")
+
+
+def _sender_label(identity: Identity, sender: str | None) -> str:
+    """The name in the recipient's `[New message from …]` line. A Project Head
+    cannot choose it: `--from` is free text, typed into the owner's pane, and
+    a PH must not read as the CEO there (security review 2026-10-13)."""
+    if identity.kind == "cxo" and identity.role == PH_ROLE:
+        return _resolve_sender_role()
+    return sender or _resolve_sender_role()
+
+
+def _ph_owner_session(role: str) -> str | None:
+    """For a Project Head sender writing to its lane: the session that started
+    it while that session is still live, else None (the lane's active one)."""
+    if not agent_transport._is_ph_env():
+        return None
+    owner = _owner_of(current_identity())
+    if owner is None or owner.role != role or not owner.session_id:
+        return None
+    from tools import clevel_gate  # noqa: PLC0415
+    return owner.session_id if clevel_gate.live_lock(role, owner.session_id, LOCKS_DIR) else None
+
+
+def _send_to_ph(sid: str, message: str, sender: str | None = None, *,
+                subject: str | None = None) -> str:
+    """Queue a letter in a live Project Head's box (org restructure P2).
+    Same-host only: a Project Head runs where its C-level started it."""
+    from tools import clevel_gate  # noqa: PLC0415
+    if not clevel_gate.live_lock(PH_ROLE, sid, LOCKS_DIR):
+        raise ValueError(f"no live Project Head #{sid} on this host "
+                         f"(bash scripts/live-sessions.sh lists the live ones)")
+    sender_identity = current_identity()
+    authorize(sender_identity, PH_ROLE, sid, spawning=False)
+    label = _sender_label(sender_identity, sender)
+    _log_hop(sender_identity, PH_ROLE, sid)
+    from_role, from_sid = _mailbox_identity(sender_identity)
+    chain = _chain_ids(sender_identity) + [f"{PH_ROLE}:{sid}"]
+    mailbox.send(PH_ROLE, sid, message, from_role, from_sid, chain=chain,
+                 **_envelope_kw(subject))
+    if mailbox.envelope_on():
+        wake_for_letter(PH_ROLE, sid, label)
+    else:
+        _attempt_wake(PH_ROLE, sid, label)
+    return (f"queued to Project Head #{sid}: [{label}] : {message}"
+            + _subject_note(subject, message))
 
 
 def _share_letter(letter: Path | None) -> None:
@@ -723,7 +890,8 @@ def _share_letter(letter: Path | None) -> None:
 
 def _usage() -> str:
     return (
-        'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] <target_role> "<message>"\n'
+        'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] [--subject "<one line>"] '
+        '<target_role> "<message>"\n'
         f"  <target_role>: {'|'.join(c_level_roles())}"
     )
 
@@ -732,6 +900,7 @@ def main() -> int:
     argv = sys.argv[1:]
     sender_override = None
     do_spawn = False
+    subject = None
 
     remaining: list[str] = []
     i = 0
@@ -749,6 +918,12 @@ def main() -> int:
             r = argv[i + 1]
             sender_override = display_for(r) if is_c_level(r) else r
             i += 1
+        elif a == "--subject":
+            if i + 1 >= len(argv):
+                print("--subject requires a value", file=sys.stderr)
+                return 1
+            subject = argv[i + 1]
+            i += 1
         else:
             remaining.append(a)
         i += 1
@@ -760,9 +935,9 @@ def main() -> int:
     role, message = argv[0], argv[1]
     try:
         if do_spawn:
-            result = spawn(role, message, sender_override)
+            result = spawn(role, message, sender_override, subject=subject)
         else:
-            result = send(role, message, sender_override)
+            result = send(role, message, sender_override, subject=subject)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2

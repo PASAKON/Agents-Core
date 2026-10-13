@@ -102,8 +102,12 @@ def run_agy_subprocess(
     log_path: Path,
     timeout: int = 3600,
     model: str | None = None,
+    worker_env: dict[str, str] | None = None,
 ) -> int:
-    """Run agy headless with stdout and stderr appended to log_path."""
+    """Run agy headless with stdout and stderr appended to log_path.
+    `worker_env` (WORKER_TASK_ID, WORKER_ROLE) goes into the agent's env only:
+    the relay role gate marks a worker by them, and an agy worker leaves
+    runners/worker_init.py before the claude env block that sets them."""
     effective_model = model if model else (os.environ.get("AGY_MODEL") or "gemini-3.8-flash-high")
     cmd = [agy_bin, "-p", prompt, "--model", effective_model, "--mode", "accept-edits", "--add-dir", worktree]
     work_dir = os.environ.get("WORK_DIR")
@@ -118,7 +122,7 @@ def run_agy_subprocess(
                 cwd=worktree,
                 # The hub URL stays with this process (it reports through
                 # lib.db); the agent's shell never gets it (task-1b8ef857).
-                env=env_without_org_db(dict(os.environ)),
+                env={**env_without_org_db(dict(os.environ)), **(worker_env or {})},
                 stdin=subprocess.DEVNULL,
                 stdout=f,
                 stderr=subprocess.STDOUT,
@@ -153,6 +157,7 @@ def run_agy_task(task: dict, worktree: str, prompt: str, role: str) -> int:
         log_path,
         timeout=3600,
         model=(task.get("runner_model") or None),
+        worker_env={"WORKER_TASK_ID": task_id, "WORKER_ROLE": role},
     )
 
     # Git stage: add all, unstage the run log, check cached diff
