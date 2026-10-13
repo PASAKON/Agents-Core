@@ -14,7 +14,7 @@ Nothing here carries a link, a rebate, an IB mention or an account CTA.
 ใบอนุญาตเป็นที่ปรึกษาการลงทุนจาก ก.ล.ต. การลงทุนมีความเสี่ยง ผู้ลงทุนควรศึกษาข้อมูล
 และตรวจสอบใบอนุญาตของผู้ให้บริการก่อนตัดสินใจทุกครั้ง
 
-#Tickmill #ต้นทุนเทรด #เช็กโบรก #ความรู้ฟอเร็กซ์
+#ต้นทุนเทรด #เช็กโบรก #ความรู้ฟอเร็กซ์
 
 (The second paragraph is the full §6b caption disclaimer from `CMO_Procedure_BlackLiquidity_Cut`,
 copied verbatim from `prototypes/bl60-script/CAPTION.md`. The short label on every frame is the
