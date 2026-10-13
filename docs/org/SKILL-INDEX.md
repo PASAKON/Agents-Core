@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-49 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 9 · Standard 4 · Gate 6 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+50 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 4 · Gate 6 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -58,6 +58,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
+| `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
 | `CTO_Procedure_KeyFetch` | CTO | cxo, browser_operator, developer | A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. |
 | `CXO_Procedure_GDrive_BulkTransfer` | COO | cxo, worker | Move gigabytes into the CEO's Google Drive and run moves / renames / deletes through the bridge: batches, md5 verification by file id, the… |
 
@@ -178,3 +179,4 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on… |
+| `humanizer` | - | - | Rewrite AI-sounding text so it reads like the writer without changing what it says. Use when editing or reviewing prose for AI tells… |
