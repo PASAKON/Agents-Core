@@ -51,7 +51,7 @@ CEO order 13 Oct 2026; subscription target 14 Oct ($320 → $140 a month).
    - If the table is long, put the 5 lines inline and send the rest as the file.
    - *Stop:* sent, in one turn.
 3. **Questions** (19 Oct, and any week that carries them).
-   - Ask each one once: on a question card (`ask_ceo`) if your org MCP works, otherwise in the same message. Never repeat a pending question.
+   - Ask each one once on a /run question card (`python3 tools/ask_run.py ask … --recommended N`): one card per question, ≤4 options. This works for coo today. Never repeat a pending question.
    - Send each answer word for word to the CTO on duty:
      - floors → `FLOORS` in `tools/tool_value.py`;
      - the Rules line and the Agent-hook block mode → plan §5 and §4.3 M2.
@@ -73,6 +73,20 @@ CEO order 13 Oct 2026; subscription target 14 Oct ($320 → $140 a month).
 | JEV | ≥1 call per wired site a week | jev_lab balance |
 
 They print as `เกณฑ์ที่เสนอ` until the CEO rules. A missing source never trips a floor.
+
+## Phase gates (CEO 14 Oct 2026, per runner × job type, from runner_fit)
+
+| Phase | What | Gate to next |
+|---|---|---|
+| 1 Use it up + learn | outside quota first, think→send→fix loops expected | first_pass ≥80–90% over ≥10 jobs and the runner's skill unchanged 2 weeks |
+| 2 Route direct | job types ≥90% go straight to that runner; a PH can call it simply | cell holds ≥90% for 4 weeks |
+| 3 Prove the gain | compare quality + cost vs the Claude-only baseline (6–12 Oct) | flow = think→order→done→test→merge, ~1 iteration/task |
+
+Each Monday the relay adds one line: cells that moved phase this week. Haiku 5.5 is a learning lane on the Claude subscription, not an outside bucket.
+
+CTO note (2026-10-14): the report's runner-fit table computes only the 1→2 gate today, at 80% first pass over ≥10 jobs
+with the runner's skill unchanged for 14 days (`PHASE_*` in `tools/tool_value.py`). The 2→3 gate (≥90% held for
+4 weeks) is not computed yet. Until it is, a cell's phase 3 is the COO's reading of four Monday reports.
 
 ## Verify a number the CEO doubts
 
