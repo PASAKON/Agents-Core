@@ -113,6 +113,10 @@ ROLE_SERVERS: dict[str, tuple[str, ...]] = {
     # CTO/CFO lane), no meta-ads (CGO/CMO), no meigen (creative, CMO); and
     # mooniex-coord stays opt-in as for everyone (CXO_EXTRA_MCP).
     "coo": BASE_SERVERS,
+    # Project Head (org restructure P2): BASE only. The org server itself
+    # withholds the tools a PH may not use (PH_WITHHELD_TOOLS in
+    # lib/org_tools_registry.py), and the allowlist below follows it.
+    "project_head": BASE_SERVERS,
 }
 
 # Tools each server contributes to --allowed-tools, WITHOUT the mcp__<server>__
@@ -185,7 +189,7 @@ def _venv_python(root: str) -> Path:
     return windows if _is_windows() else posix
 
 
-def _org_tool_names(root: str) -> tuple[str, ...]:
+def _org_tool_names(root: str, role: str = "") -> tuple[str, ...]:
     """org's tool names, straight from the registry that defines them.
 
     Resolved in a subprocess under the venv interpreter, not by importing
@@ -199,7 +203,7 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     code = (
         "import sys; sys.path.insert(0, %r);"
         "from lib.org_tools_registry import served_names;"
-        "print(' '.join(served_names()))" % str(root)
+        "print(' '.join(served_names(%r)))" % (str(root), role or None)
     )
     proc = subprocess.run(
         [str(venv) if venv.exists() else sys.executable, "-c", code],
@@ -512,13 +516,16 @@ def _names_for(role: str, explicit: str = "") -> list[str]:
     return [n for n in names if n not in skip]
 
 
-def _allowed_for(servers: list[str], root: str, builtins: bool = True) -> list[str]:
-    """--allowed-tools entries for exactly the servers that got emitted."""
+def _allowed_for(servers: list[str], root: str, builtins: bool = True,
+                 role: str = "") -> list[str]:
+    """--allowed-tools entries for exactly the servers that got emitted.
+    `role`: the session's role, so a Project Head's org list leaves out the
+    tools its server withholds; "" reads CXO_ROLE from the env."""
     tools: list[str] = []
     for name in servers:
         base = SERVER_TOOLS.get(name, ())
         if name == "org":
-            base = _org_tool_names(root)
+            base = _org_tool_names(root, role)
         tools += [f"mcp__{name}__{t}" for t in base]
     if builtins:
         tools += list(BUILTIN_TOOLS)
@@ -583,7 +590,8 @@ def main() -> int:
         return 1
 
     if args.print_allowed:
-        print(" ".join(_allowed_for(list(servers), args.root, not args.no_builtins)))
+        print(" ".join(_allowed_for(list(servers), args.root, not args.no_builtins,
+                                    role=args.role)))
         return 0
 
     Path(args.out).write_text(

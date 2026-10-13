@@ -351,6 +351,14 @@ def _ff_runtime_checkout(repo: Path, base: str) -> dict:
     return {"runtime_updated": False, "runtime_reason": reason}
 
 
+def _role_can_merge(role: str) -> bool:
+    try:
+        from lib.config import role as _role_cfg
+        return bool(_role_cfg(role).get("can_merge"))
+    except ValueError:  # a role with no policy row cannot merge
+        return False
+
+
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                push: bool | None = None, cleanup: bool = True,
                gate_tests: bool = False, override_touches_check: bool = False) -> dict:
@@ -390,6 +398,11 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
     """
     if not is_c_level(role):
         raise PermissionError(f"only C-level can merge. got: {role}")
+    # The policy row is the rule (org restructure P2, plan §1.2): before this,
+    # can_merge in policies/agents.yaml was read by no code at all. Every
+    # C-level row says true today, so no C-level loses anything.
+    if not _role_can_merge(role):
+        raise PermissionError(f"can_merge is false for role {role} in policies/agents.yaml")
 
     task = db.get_task(task_id)
     if not task:

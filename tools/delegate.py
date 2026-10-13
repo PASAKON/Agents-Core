@@ -33,6 +33,8 @@ from lib.config import (
 )
 from lib.notify import info, success, error, warn
 from lib.proc import pid_alive
+from lib import resource_gate
+from lib import roles as org_roles
 from tools import disk_queue
 from tools import send_to_cto
 from tools import storage_policy
@@ -1950,6 +1952,33 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
     return db.get_task(task_id)
 
 
+def _delegating_actor() -> str:
+    """`<role>-<session id>` of the session delegating, else "cto"."""
+    role = (os.environ.get("CXO_ROLE") or "").strip()
+    sid = (os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID") or "").strip()
+    if role and sid:
+        return f"{role}-{sid}"
+    return f"cto-{sid}" if sid else "cto"
+
+
+def _log_router_off(task: dict, pinned: bool) -> None:
+    """One hub event per delegate that ORG_ROUTER=off sent past the router
+    (plan §4.3 M1, Q-20261013-1745-f56c): the weekly tool-value report counts
+    them beside the hand pins. `pinned`: a runner pin or model_hint=claude
+    would have skipped the router anyway. Never blocks the delegate."""
+    payload = {
+        "reason": os.environ.get("ORG_ROUTER_REASON", ""),
+        "runner": task.get("runner"),
+        "model_hint": task.get("model_hint"),
+        "pinned": pinned,
+    }
+    try:
+        with db.get_conn() as conn:
+            db.log_event(conn, task.get("id"), _delegating_actor(), "router_off", payload)
+    except Exception as e:  # noqa: BLE001 — logging must never stop a spawn
+        warn(f"router_off event not logged task={task.get('id')}: {e}")
+
+
 def _route_runner(task: dict, role_name: str, host: str) -> str | None:
     from tools import route  # noqa: PLC0415 — outside try so PermissionError escapes
     refusal = route.check_override(task)
@@ -1958,9 +1987,12 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         warn(refusal)
         raise PermissionError(refusal)
     try:
-        if (task.get("runner")
-                or (task.get("model_hint") or "").strip().lower() == "claude"
-                or os.environ.get("ORG_ROUTER", "").strip().lower() == "off"):
+        router_off = os.environ.get("ORG_ROUTER", "").strip().lower() == "off"
+        pinned = bool(task.get("runner")
+                      or (task.get("model_hint") or "").strip().lower() == "claude")
+        if router_off:
+            _log_router_off(task, pinned)
+        if pinned or router_off:
             return None
 
         touches = task.get("touches")
@@ -2012,6 +2044,64 @@ def _keep_host_line(task_id: str, line: str) -> None:
     if line not in current:
         db.set_fields(task_id, delegate_log=f"{line}\n{current}" if current else line,
                       actor="cto")
+
+
+# Org restructure P2 (docs/design/org-restructure-p2.md) — a Project Head's
+# worker cap (plan §3.2). Live = a worker that is running or waiting out a rate
+# limit. A delegate that passed the cap reserves its slot until its row leaves
+# 'pending' (or 120 s pass), so two delegates started together — the model's
+# parallel tool calls, delegate_parallel — cannot both take the last slot.
+_PH_LIVE_STATUSES = ("in_progress", "rate_limited")
+_PH_RESERVE_S = 120.0
+_PH_RESERVED: dict[str, dict[str, float]] = {}
+
+
+def _ph_max_workers() -> int:
+    try:
+        from lib.config import role as _role
+        return int(_role(org_roles.PH_ROLE).get("max_workers", 2))
+    except (ValueError, TypeError, KeyError, OSError):
+        return 2
+
+
+def _ph_cap_refusal(task: dict) -> str | None:
+    """None, or why this Project Head may not start another worker now.
+    Off unless ORG_PH_ROLES=1; applies only to a task a Project Head owns.
+    Synchronous from the count to the reservation: no await in between."""
+    if not org_roles.ph_roles_on() or not org_roles.is_project_head(task.get("owner_role")):
+        return None
+    owner = task.get("owner_cto") or ""
+    live = {
+        t["id"]
+        for status in _PH_LIVE_STATUSES
+        for t in db.list_tasks(status=status, owner_cto=owner, limit=500)
+        if org_roles.is_project_head(t.get("owner_role"))
+    }
+    now = time.monotonic()
+    held = _PH_RESERVED.setdefault(owner, {})
+    for tid, at in list(held.items()):
+        row = db.get_task(tid) if tid not in live else None
+        if tid not in live and (now - at > _PH_RESERVE_S or not row or row.get("status") != "pending"):
+            held.pop(tid, None)
+    others = (live | set(held)) - {task["id"]}
+    cap = _ph_max_workers()
+    if len(others) >= cap:
+        return (f"Project Head worker cap: {len(others)}/{cap} workers live for "
+                f"project_head-{owner} ({', '.join(sorted(others))}) — plan §3.2. "
+                f"Wait for one to report, then delegate again.")
+    held[task["id"]] = now
+    return None
+
+
+def _p2_spawn_refusal(task: dict, resolved_host: str | None, this_host: str | None) -> str | None:
+    """Org restructure P2 gates, each off unless its flag is set: the resource
+    gate (ORG_SPAWN_GATE, plan §7.3) for a spawn on this machine, then a
+    Project Head's worker cap (ORG_PH_ROLES, plan §3.2)."""
+    if resolved_host == this_host:
+        why = resource_gate.check()
+        if why:
+            return why
+    return _ph_cap_refusal(task)
 
 
 async def delegate_task(task_id: str, *, wait: bool = False,
@@ -2187,6 +2277,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             )
         except Exception as e:  # never let a mailbox failure break the refusal
             warn(f"disk queue: notify owner failed task={task_id}: {e}")
+        return db.get_task(task_id)
+
+    p2_refusal = _p2_spawn_refusal(task, resolved_host, this_host)
+    if p2_refusal:
+        warn(f"P2 gate blocked task={task_id}: {p2_refusal}")
+        db.set_fields(task_id, delegate_log=p2_refusal, actor="cto")
         return db.get_task(task_id)
 
     role_name = task["role"]

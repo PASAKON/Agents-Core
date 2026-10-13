@@ -305,6 +305,13 @@ if _mailbox.envelope_on():
         mcp.tool(description=reg.BY_NAME[_fn.__name__].description)(_fn)
 
 
+# Org restructure P2 (plan §3.2): a Project Head session is not served the
+# tools it may not use; registry dispatch refuses them for it as well.
+_registered = {_t.name for _t in mcp._tool_manager.list_tools()}
+for _name in sorted((reg.PH_WITHHELD_TOOLS - set(reg.served_names())) & _registered):
+    mcp.remove_tool(_name)
+
+
 if __name__ == "__main__":
     db.init()
     mcp.run()

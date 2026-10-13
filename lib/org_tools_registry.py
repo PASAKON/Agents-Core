@@ -48,6 +48,7 @@ from lib import ceo_report
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
+from lib import roles as org_roles
 from lib import router
 from lib import telegram_out
 from lib import toon
@@ -250,7 +251,11 @@ def _h_review_diff(*, task_id: str, full: bool = False) -> str:
 
 
 def _h_merge_task(*, task_id: str, override_touches_check: bool = False) -> dict:
-    return do_merge(task_id, role=ROLE, override_touches_check=override_touches_check)
+    # Org restructure P2 (plan §1.2, T9): with ORG_PH_ROLES on, merge_task
+    # judges the calling session's own role (its CXO_ROLE) against can_merge
+    # in policies/agents.yaml. Off, every caller merges as "cto", as before.
+    role = (caller_role() or ROLE) if org_roles.ph_roles_on() else ROLE
+    return do_merge(task_id, role=role, override_touches_check=override_touches_check)
 
 
 def _h_close_dev(*, task_id: str, reason: str = "cto: manual close") -> dict:
@@ -312,6 +317,16 @@ async def _h_revert_task_tool(*, task_id: str, force: bool = False) -> dict:
 
 
 def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False, subject: str = "") -> str:
+    # A Project Head talks only to the C-level of its own lane and never
+    # starts a session (plan §3.2).
+    if org_roles.is_project_head(caller_role()):
+        lane = (os.environ.get("ORG_PH_LANE") or "").strip().lower()
+        if spawn:
+            raise PermissionError("a Project Head cannot start a C-level session (plan §3.2)")
+        if (role or "").strip().lower() != lane:
+            raise PermissionError(
+                f"a Project Head writes only to its own C-level ({lane or 'ORG_PH_LANE unset'}), "
+                f"not {role!r}; ask your C-level to pass it on (plan §3.2)")
     kw = {"subject": subject} if subject else {}  # no subject: exactly the old call
     if spawn:
         return send_to_cxo_mod.spawn(role, message, **kw)
@@ -885,15 +900,37 @@ BY_NAME: dict[str, ToolSpec] = {s.name: s for s in REGISTRY}
 # was before them.
 ENVELOPE_TOOLS = frozenset({"read_letter", "list_letters"})
 
+# Org restructure P2 (plan §3.2, §4.1): a Project Head does not ask or write to
+# the CEO, raise Run cards, merge, revert, write the wiki or start a C-level.
+# A session whose CXO_ROLE is project_head is never served these, and a call
+# that reaches dispatch anyway is refused. No session has that role today, so
+# no existing session's tool set changes; ORG_PH_ROLES gates launching one.
+PH_WITHHELD_TOOLS = frozenset({
+    "ask_ceo", "ask_run", "ask_run_wait", "report_to_ceo",
+    "send_media_to_ceo", "send_media_batch_to_ceo",
+    "merge_task", "revert_task_tool", "wiki_write", "start_clevel_remote",
+})
 
-def served_names() -> tuple[str, ...]:
+
+def caller_role() -> str:
+    """CXO_ROLE of the session this process serves, lower-cased; "" if unset."""
+    return (os.environ.get("CXO_ROLE") or "").strip().lower()
+
+
+def served_names(role: str | None = None) -> tuple[str, ...]:
     """The org tool names a session gets under this process's env: the
-    registry, less ENVELOPE_TOOLS while the flag is off. Every surface follows
-    it: the C-level allowlist (scripts/lib/cxo_mcp_config.py),
-    runners/cto_mcp_server.py, runners/cto.py and runners/cto_chat.py."""
+    registry, less ENVELOPE_TOOLS while the flag is off, less
+    PH_WITHHELD_TOOLS for a Project Head (`role`, default this process's
+    CXO_ROLE). Every surface follows it: the C-level allowlist
+    (scripts/lib/cxo_mcp_config.py), runners/cto_mcp_server.py,
+    runners/cto.py and runners/cto_chat.py."""
     from lib import mailbox
     on = mailbox.envelope_on()
-    return tuple(s.name for s in REGISTRY if on or s.name not in ENVELOPE_TOOLS)
+    ph = org_roles.is_project_head(caller_role() if role is None else role)
+    return tuple(
+        s.name for s in REGISTRY
+        if (on or s.name not in ENVELOPE_TOOLS) and not (ph and s.name in PH_WITHHELD_TOOLS)
+    )
 
 assert len(REGISTRY) == len(BY_NAME), (
     f"duplicate tool name in REGISTRY: {len(REGISTRY)} entries, "
@@ -924,6 +961,10 @@ def _prepare(spec: ToolSpec, kwargs: dict) -> tuple[str | None, dict]:
         for p in spec.params
         if p.name in kwargs or not p.required
     }
+
+    if spec.name in PH_WITHHELD_TOOLS and org_roles.is_project_head(caller_role()):
+        return (f"ERROR: {spec.name} is not a Project Head tool (plan §3.2) — "
+                f"send it to your C-level as an ask letter"), merged
 
     if spec.needs_ownership_check:
         task_id = merged.get("task_id") or kwargs.get("task_id")
