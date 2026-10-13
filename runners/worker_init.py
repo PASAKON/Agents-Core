@@ -42,7 +42,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.roles import CHROME_TOOLS
 from lib.config import (
     get_project,
     host as get_host,
@@ -71,10 +70,46 @@ _BASE_WORKER_TOOLS = (
     "Read Write Edit Bash Glob Grep Skill"
 ).split()
 
-# The Chrome surface a browser_operator (and, from org restructure P2, a
-# Project Head) is allowed: lib/roles.py CHROME_TOOLS, which keeps why
-# each tool is in or out.
-_CHROME_TOOLS = list(CHROME_TOOLS)
+# browser_operator only. Still narrower than the full Chrome surface: no
+# gif_creator, no shortcuts_execute, no browser switching.
+#
+# Upload was withheld at first on exfiltration grounds and granted 2026-08-10
+# (CEO) because reference images are the job — the C-level names the path in
+# the task. Two guardrails make that safe enough: file_upload is restricted by
+# the harness itself to files shared with the session, and the role doc forbids
+# uploading any path the task did not name.
+#
+# resize_window is load-bearing, not optional — an image costs
+# ceil(w/28) * ceil(h/28) visual tokens with no client-side cap (measured
+# 2026-08-10: neither MAX_MCP_OUTPUT_TOKENS nor
+# CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS truncates an image result), so
+# shrinking the window is the only lever that bounds screenshot cost. It works
+# — a 1024x768 resize produced a 1024x591 screenshot — but it can silently
+# no-op on a window the OS will not resize (a fullscreen one) while still
+# returning success, so the skill requires verifying the result.
+_CHROME_TOOLS = (
+    "mcp__claude-in-chrome__tabs_context_mcp "
+    "mcp__claude-in-chrome__tabs_create_mcp "
+    "mcp__claude-in-chrome__tabs_close_mcp "
+    "mcp__claude-in-chrome__navigate "
+    "mcp__claude-in-chrome__read_page "
+    "mcp__claude-in-chrome__get_page_text "
+    "mcp__claude-in-chrome__find "
+    "mcp__claude-in-chrome__resize_window "
+    "mcp__claude-in-chrome__computer "
+    "mcp__claude-in-chrome__form_input "
+    "mcp__claude-in-chrome__file_upload "
+    "mcp__claude-in-chrome__upload_image "
+    "mcp__claude-in-chrome__javascript_tool "
+    "mcp__claude-in-chrome__browser_batch "
+    "mcp__claude-in-chrome__read_console_messages "
+    "mcp__claude-in-chrome__read_network_requests "
+    # Browser selection: with several Chromes paired to the account the CLI
+    # refuses every browser action until one is chosen (2026-09-07, winbox).
+    "mcp__claude-in-chrome__list_connected_browsers "
+    "mcp__claude-in-chrome__select_browser "
+    "mcp__claude-in-chrome__switch_browser"
+).split()
 
 
 def clean_title(title: str | None) -> str:
@@ -464,13 +499,6 @@ def main() -> None:
     # brand/theme to match — the same context the CEO's Web UI flow has.
     if role == "web_designer":
         prompt += db.designer_kickoff_suffix(task.get("description") or "")
-
-    # Who this process is, for every runner. An agy worker left from here
-    # before the env block below, so its tools ran with no WORKER_TASK_ID and
-    # the relay role gate could not tell it was a worker (agy_local passes
-    # os.environ through). Org restructure P2, security review of the gate.
-    os.environ["WORKER_TASK_ID"] = task_id
-    os.environ["WORKER_ROLE"] = role
 
     if runner == "agy":
         sys.exit(agy_local.run_agy_task(task, worktree, prompt + "\n\n" + role_doc, role))

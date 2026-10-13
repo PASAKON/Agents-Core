@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -84,6 +85,14 @@ def fake_launcher(tmp_path):
     def start(role="cto"):
         p = subprocess.Popen(["bash", str(script), "--role", role])
         procs.append(p)
+        # Popen can return before the kernel has set the child's argv: right
+        # after a spawn, /proc/<pid>/cmdline reads empty about 1 time in 5.
+        cmdline = Path(f"/proc/{p.pid}/cmdline")
+        deadline = time.monotonic() + 5
+        while cmdline.parent.is_dir() and time.monotonic() < deadline:
+            if cmdline.read_bytes():
+                break
+            time.sleep(0.01)
         return p.pid
 
     yield start
@@ -582,17 +591,39 @@ def test_live_sessions_parses_a_ph_name():
                                     "x" * 36) == ("cto", OWNER)
 
 
-def test_an_agy_worker_knows_it_is_a_worker():
-    # agy_local passes os.environ through; the relay role gate marks a worker by
-    # WORKER_TASK_ID / WORKER_ROLE. Before this, the agy branch left main()
-    # ahead of the env block that set them. Read from the source because
-    # main() needs the hub, a task row and a worktree to reach that branch.
-    import inspect
-    import runners.worker_init as worker_init
-    src = inspect.getsource(worker_init.main)
-    agy = src.index('if runner == "agy":')
-    assert -1 < src.find('os.environ["WORKER_TASK_ID"] = task_id') < agy
-    assert -1 < src.find('os.environ["WORKER_ROLE"] = role') < agy
+def test_an_agy_worker_knows_it_is_a_worker(tmp_path, monkeypatch):
+    # The relay role gate marks a worker by WORKER_TASK_ID / WORKER_ROLE. An agy
+    # worker leaves worker_init.main() before the env block that sets them, so
+    # its agent ran without them. They go into the agent's env, not os.environ.
+    from runners import agy_local
+    monkeypatch.delenv("WORKER_TASK_ID", raising=False)
+    monkeypatch.delenv("WORKER_ROLE", raising=False)
+    seen = {}
+
+    class _Done:
+        returncode = 0
+
+    monkeypatch.setattr(agy_local.subprocess, "run", lambda cmd, **kw: seen.update(kw) or _Done())
+    agy_local.run_agy_subprocess("agy", "p", str(tmp_path), tmp_path / "agy.log",
+                                 worker_env={"WORKER_TASK_ID": "task-1234abcd",
+                                             "WORKER_ROLE": "developer"})
+    assert seen["env"]["WORKER_TASK_ID"] == "task-1234abcd"
+    assert seen["env"]["WORKER_ROLE"] == "developer"
+    assert "WORKER_TASK_ID" not in os.environ
+
+    class _Stop(Exception):
+        pass
+
+    def _capture(*a, **kw):
+        seen["task_env"] = kw.get("worker_env")
+        raise _Stop
+
+    monkeypatch.setattr(agy_local, "_update_status", lambda *a, **k: None)
+    monkeypatch.setattr(agy_local, "find_agy_binary", lambda: "agy")
+    monkeypatch.setattr(agy_local, "run_agy_subprocess", _capture)
+    with pytest.raises(_Stop):
+        agy_local.run_agy_task({"id": "task-1234abcd"}, str(tmp_path), "p", "developer")
+    assert seen["task_env"] == {"WORKER_TASK_ID": "task-1234abcd", "WORKER_ROLE": "developer"}
 
 
 def test_a_project_head_runs_opus_at_medium():
