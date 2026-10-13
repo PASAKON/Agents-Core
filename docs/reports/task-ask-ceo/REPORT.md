@@ -75,8 +75,8 @@ Interpreter `/opt/MoonieXHQ/Agents/Core/.venv/bin/python`, worktree cwd, plain `
      options, expiry, hidden characters — the contract leaves it open.
   4. **No `--task` flag on the CLI** (§9 lists none); the task comes from `WORKER_TASK_ID`. The MCP tool has
      a `task` parameter, as `ask_run` does.
-  5. **Extra fail-closed check.** An `answered` record whose `answer.answered_by` is not `"ceo"` is refused
-     (exit 3), because the whole point is that only the CEO's tap counts.
+  5. **Extra fail-closed check.** [SUPERSEDED in round 2, see below: it compared `answered_by` to `"ceo"`,
+     which refuses every real answer.] An `answered` record without the hub's own marker is refused (exit 3).
   6. **`_hub_error` now appends ` in <field>`** when the hub's error body carries a string `field`
      (affects command cards too; the text is only longer).
 
@@ -139,3 +139,60 @@ Interpreter `/opt/MoonieXHQ/Agents/Core/.venv/bin/python`, worktree cwd, plain `
 - MISSING [no owner] : the worker shell exports `WORKER_TASK_ID`, so `tools/ask_run.py ask --role cto` by hand is correctly refused ("a worker cannot claim role 'cto'"); a worker smoke-testing a C-level-only verb must run it with `env -u WORKER_TASK_ID -u WORKER_ROLE -u ORG_SESSION_ID`. Nothing says so · evidence: task-4a53167b, first dry-run
 - COSTLY [no owner] : a hook (`hook-self-repo-guard.py`) blocks opaque Bash writes (a Python heredoc that writes a file) inside the worktree with "would write to ." — it names the worktree root, not the file, so it looks like a path bug; use Edit/Write · evidence: task-4a53167b, first write of tools/ask_run.py
 - WRONG [no owner] : my own base-total note ("62 passed" for `tests/test_spawn_coo.py`) was a miscount; the file has 63 collected items. Recording base totals by eye from a pytest tail is error-prone — compare `--collect-only` item counts, or the pass count plus the non-pass count · evidence: task-4a53167b WORKLOG, corrected above
+
+## Round 2 (CTO feedback iter 1)
+
+**What was wrong.** `verify_question_record` refused an `answered` record unless `answer.answered_by == "ceo"`.
+The live Console's operator username is `"CEO"` (uppercase, from the operators table) and the hub copies
+`req.operator.username` into `answered_by`, so every real tap would have exited 3. I took the lowercase
+`"ceo"` from the example record in QUESTIONS.md §3.3 and built the FakeHub fixture from the same example, so
+my tests passed on a value the live hub never sends.
+
+**The fix** (commit 306ecf1e, `tools/ask_run.py`). No username is compared. An `answered` record is trusted only
+if all of these hold, else exit 3 (CLI) or `ERROR: …` (MCP `ask_run_wait`) with a one-line reason that names the
+field and never echoes the hub's value:
+- `answer` is an object;
+- `answer.via == ANSWER_VIA` = `"operator_passkey_session"` (new constant, QUESTIONS.md §3.3; the same value as
+  Console `src/run/questions.js` `ANSWER_VIA` — I did not open the Console file, the CTO named the constant);
+- `answer.answered_by` is a non-empty (non-blank) string;
+- `answer.answered_at` is a non-empty (non-blank) string.
+Other statuses (`pending`, `expired`, `cancelled`) are not checked; `expired` and `cancelled` still exit 1.
+
+**The wording fix** (`lib/org_tools_registry.py`). The `ask_ceo` ToolSpec description now ends with: "Not the same
+tool as mcp__sompong__ask_ceo (SomPong's Telegram/LINE question in the COO session)." The MCP stub takes its
+description from the registry, so the parity harness still agrees.
+
+**Tests** (`tests/test_ask_run_questions.py`).
+- FakeHub fixture `ANSWER` is now `answered_by: "CEO"`, `via: "operator_passkey_session"`.
+- `answered_by` "CEO" + the right via → `wait` exits 0 and prints the record; also `ceo`, `gob`, `Some Other Operator`
+  (the username is not compared); `--json` returns the record unchanged.
+- 14 bad-record cases exit 3 on the CLI (and with `--json`) with a one-line "not trusting it" reason naming the
+  field: no answer object, answer a string, `via` missing / wrong / empty / null / case-different, `answered_by`
+  missing / empty / blank / not a string, `answered_at` missing / empty / null.
+- The MCP path (`ask_run_wait`) returns `ERROR: …` with the same reason for every one of those 14, and the record
+  for a good answer with another username.
+- The ToolSpec sentence is asserted word for word.
+- **Proof the tests bite:** `tools/ask_run.py` put back to the round-1 version (`git show 306ecf1e~1:…`) → 19 failed,
+  186 passed in `tests/test_ask_run_questions.py` (the real-shape answer exits 3 there); fix restored → all pass.
+
+**Totals** (interpreter `/opt/MoonieXHQ/Agents/Core/.venv/bin/python`, worktree cwd):
+
+| command | before round 2 | after |
+|---|---|---|
+| `python -m pytest tests/test_ask_run.py tests/test_ask_run_questions.py scripts/test_cto_mcp_server.py` | 312 passed | 328 passed (+16) |
+| `python scripts/test_org_tools_registry.py` | ALL PASS (30 PASS lines, 0 FAIL) | ALL PASS (30 PASS lines, 0 FAIL) |
+| `python scripts/test_tool_parity.py` | ALL PASS | ALL PASS |
+
+**For the reviewer.**
+- **QUESTIONS.md §3.3's example shows `"answered_by": "ceo"` (lowercase); the live hub sends `"CEO"`.** That
+  example is what misled round 1. I may not write the contract; the CTO may want it changed to `"CEO"` or to
+  `"<operator username>"`.
+- `via` is what the requester can check, not proof: the hub sets it, and a record the hub serves is the hub's word
+  (§1.3). A hub that lied would defeat any client-side check; this one closes the case where a record has no
+  answer provenance at all.
+- Files touched in round 2: `tools/ask_run.py`, `lib/org_tools_registry.py`, `tests/test_ask_run_questions.py`,
+  this report. No change to the registry parameters, the MCP stub, the COO allowlist or any other test file.
+
+**Skill learning (round 2).**
+- WRONG [no owner] : "copy the fixture from the contract's example record" — the §3.3 example carries an illustrative value (`answered_by: "ceo"`) the live hub never sends (`"CEO"`), so a test built from it proved nothing about the live shape · evidence: task-4a53167b round 1 `answered_by == "ceo"` check, CTO feedback iter 1 · fix: when a fixture comes from a spec example, check the field against one live record (or read the producer's source) before asserting on its exact value; assert on markers the producer sets, not on identity strings.
+- COSTLY [no owner] : a fail-closed check on an identity value is the kind that fails closed on every success; it needs a test that feeds the realistic *good* input as well as the bad ones, and the good input must come from the live system, not from my own reading of the contract · evidence: task-4a53167b round 1 had 4 bad-input cases and the one good case used my own value · prevented by: the "check passes on real input" case is written first.
