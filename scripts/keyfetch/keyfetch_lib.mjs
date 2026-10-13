@@ -72,12 +72,23 @@ export function walkPath(node, path) {
   return node;
 }
 
+// A wire extractor is one path, or several: `a|b` takes the first alternative that yields a value (a
+// guess about the field name costs no second key), `a+b` joins the values with ':' (fal's key is
+// `key_id:key_secret`). Paths use `.` and `[n]` only, so `|` and `+` are free.
+export function resolveSrc(body, src) {
+  for (const alt of src.split('|')) {
+    const vals = alt.split('+').map(path => walkPath(body, path));
+    if (vals.every(v => typeof v === 'string' && v.length)) return vals.join(':');
+  }
+  return undefined;
+}
+
 // Pull every wanted value out of one parsed JSON body. Returns the entries found and the NAMES
 // (never values) of the ones that were not there.
 export function pickFields(body, extractors) {
   const entries = [], missing = [];
   for (const e of extractors) {
-    const v = walkPath(body, e.src);
+    const v = resolveSrc(body, e.src);
     if (typeof v === 'string' && v.length) entries.push({ name: e.name, value: v }); else missing.push(e.name);
   }
   return { entries, missing };

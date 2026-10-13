@@ -113,10 +113,12 @@ ORG_JOIN_FOLDER = "org-join"
 # W4.2b: the hub's node-token service reads ONLY this folder of Agents-Core prod
 # (ORG_NODE_TOKEN_DB_URL, the DSN of the Postgres role `org_node_token`).
 NODE_TOKEN_FOLDER = "node-token"
+# tools/spend_guard.py reads OPENROUTER_API_KEY_ADMIN + FAL_BILLING_API_KEY_RO here (docs/ops/spend-guard.md).
+SPEND_GUARD_FOLDER = "spend-guard"
 # project -> folders `apply` creates in its prod environment (none of these hold a value yet)
 PROJECT_FOLDERS: dict[str, list[str]] = {
     ORG_INFRA: ORG_INFRA_FOLDERS,
-    "Agents-Core": [ORG_JOIN_FOLDER, NODE_TOKEN_FOLDER],
+    "Agents-Core": [ORG_JOIN_FOLDER, NODE_TOKEN_FOLDER, SPEND_GUARD_FOLDER],
 }
 
 # PLAN.md §3: machine identity -> projects it may read (viewer). On Free a viewer sees every
@@ -644,6 +646,10 @@ def _get_secret(org: Org, project_id: str, env: str, name: str, path: str = "/")
         return org.get(f"/api/v3/secrets/raw/{name}", workspaceId=project_id, environment=env,
                        secretPath=path)["secret"]
     except ApiError as exc:
+        # A missing FOLDER is not a missing secret: `--new-only` would call the path free and the
+        # provider would mint a key that `put` then cannot store (task-b1b251f0, 2026-10-13).
+        if re.search(r"folder .*not found", str(exc), re.I):
+            raise
         if "HTTP 404" in str(exc) or "not found" in str(exc).lower():
             return None
         raise

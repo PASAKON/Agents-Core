@@ -75,7 +75,14 @@ class Providers:
             if method == "DELETE":
                 self.keys.pop(hsh)
                 return 200, {"deleted": True}
-        if "fal.ai" in url:
+        if "rest.alpha.fal.ai" in url:
+            if "fal" in self.down or "fal-rest" in self.down:
+                return 503, {"detail": "service unavailable"}
+            assert headers["Authorization"] == f"Key {FAL_KEY}"
+            return 200, self.fal                      # a bare JSON number
+        if "api.fal.ai" in url:
+            if "fal-challenge" in self.down:
+                return 403, None                      # Vercel challenge page: HTML, no JSON
             if "fal" in self.down:
                 return 503, {"detail": "service unavailable"}
             assert headers["Authorization"] == f"Key {FAL_KEY}"
@@ -482,7 +489,8 @@ def test_fal_http_error_and_a_missing_key_are_blind(store):
     code, summary = check(store, fake, hub, CFO_AT, env=env)
     assert code == sg.EXIT_BLIND
     assert "no OPENROUTER_API_KEY_ADMIN" in summary["providers"]["openrouter"]["blind"]
-    assert summary["providers"]["fal"]["blind"] == "billing HTTP 503: service unavailable"
+    assert summary["providers"]["fal"]["blind"] == ("user_balance HTTP 503; "
+                                                    "billing HTTP 503: service unavailable")
     assert {"openrouter/blind", "fal/blind"} <= set(summary["mail"])
 
 
@@ -618,3 +626,27 @@ def test_the_units():
     assert re.search(r"^OnCalendar=\*:0/15$", tmr, re.M) and "Unit=spend-guard.service" in tmr
     for text in (svc, tmr):
         assert not re.search(r"\b100\.\d+\.\d+\.\d+\b", text)          # no tailnet address in a public repo
+
+
+def test_fal_reads_the_legacy_balance_and_never_touches_the_challenged_host():
+    fake = Providers()
+    fake.down.add("fal-challenge")
+    got = sg.read_fal(FAL_KEY, fake)
+    assert got["balance"] == fake.fal
+    assert not [c for c in fake.calls if "api.fal.ai" in c[1]]
+
+
+def test_fal_falls_back_to_v1_billing_when_the_legacy_call_fails():
+    fake = Providers()
+    fake.down.add("fal-rest")
+    assert sg.read_fal(FAL_KEY, fake)["balance"] == fake.fal
+    assert [c for c in fake.calls if "api.fal.ai" in c[1]]
+
+
+def test_fal_challenged_and_legacy_down_is_blind_with_both_reasons():
+    fake = Providers()
+    fake.down |= {"fal-rest", "fal-challenge"}
+    with pytest.raises(sg.ProviderError) as e:
+        sg.read_fal(FAL_KEY, fake)
+    assert str(e.value) == "user_balance HTTP 503; billing HTTP 403"
+    assert FAL_KEY not in str(e.value)
