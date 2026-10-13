@@ -982,6 +982,7 @@ def _root(tmp_path: Path) -> Path:
 def _victim(tmp_path: Path) -> Path:
     v = tmp_path / "victim"
     v.write_text("precious")
+    os.utime(v, (1, 1))     # old: a followed link must not be refused for looking like a fresh stamp
     return v
 
 
