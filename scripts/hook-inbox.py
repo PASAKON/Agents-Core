@@ -18,9 +18,18 @@ Draining is exactly-once (`lib.mailbox.drain`), so the same letter is
 never printed twice. Prints nothing when the box is empty -- this runs on
 every prompt of every session, so silence (the common case) must cost
 nothing.
+
+Also, for a C-level session only, makes sure the host's live-sessions
+publisher is running (`tools.live_sessions.ensure_publisher`, task-9c563bea).
+A hook SCRIPT is read from disk on every prompt, unlike the hook CONFIG, which
+Claude Code snapshots at startup -- so a `git pull` is the whole rollout: the
+next prompt on that host starts the publisher. One open + flock when it is
+already alive; nothing printed, nothing raised.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import sys
@@ -43,12 +52,32 @@ def _current_box() -> tuple[str, str] | None:
     return None
 
 
+def _ensure_live_publisher() -> None:
+    """C-level sessions only (CXO_ROLE set, no WORKER_TASK_ID). Ignores the
+    result and every error: this must never cost a prompt anything."""
+    try:
+        if not os.environ.get("CXO_ROLE") or os.environ.get("WORKER_TASK_ID"):
+            return
+        # scripts/test_mailbox.py drives main() with CXO_ROLE set; a test run
+        # must not start a publisher against the real hub
+        if os.environ.get("PYTEST_CURRENT_TEST"):
+            return
+        # a hook's stdout becomes the model's context on EVERY prompt: whatever the
+        # call writes, it never reaches it
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            from tools import live_sessions
+            live_sessions.ensure_publisher()
+    except Exception:
+        pass
+
+
 def main() -> int:
     try:
         json.load(sys.stdin)
     except Exception:
         pass
 
+    _ensure_live_publisher()    # before the drain: an empty box still runs it
     box = _current_box()
     if box is None:
         return 0
