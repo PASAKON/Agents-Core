@@ -3,6 +3,8 @@
 Source of truth for tools/build_shotsheet.py (pattern: docs/scripts/khaoniao-ep5-ACT1.data.py).
 
 CEO 2026-10-13 (via COO): EP6 airs Sat 17 Oct 19:30, <=330 credits; hook B (CCTV cold-open, composed in post) chosen.
+Real facts from the CEO the same day: Mimi barks at and chases the vegetable truck and passing cars (people are scared),
+wanders off while Mom shops (grass, cats, cars) but ALWAYS comes back when Mom calls; the front camera is public.
 Dialogue and manner tags are read from docs/scripts/khaoniao-ep6-SCRIPT-v1.md at import time. Plates reused as they
 are: mimi__dry, mother__home, mother__out, brother__wfh, seller__truck, loc__living, loc__dining, loc__street.
 The sister, Ryo, the father and the grandmother are NOT in this episode.
@@ -15,7 +17,7 @@ slowly past far away at screen-LEFT with nobody visible in it. Mimi never talks 
 understand her.
 
 The loc__street plate was made for EP1 under flood water: every street shot says the road is DRY and carries NOFLOOD;
-shot 9 is the 360p test for it (script ช่อง credits).
+shot 9 was the 360p test for it (2026-10-13: road rendered dry, passed).
 """
 import re
 from pathlib import Path
@@ -96,6 +98,7 @@ NOT = {
  "nopics": "No framed pictures or photographs hang on any wall or stand on any shelf.",
  "nonumber": "No house number, no plaque and no sign appears on the door or anywhere else in the frame.",
  "noflood": "There is no flood, no puddle and no water on the ground anywhere: the road is completely dry.",
+ "nophone": "The phone screen faces away from the camera: no picture and no text on it is visible.",
  "nodriver": "No driver and no passenger is visible in any vehicle: the windows are tinted dark.",
 }
 
@@ -181,87 +184,88 @@ _META = {
 
  9: (10, "Medium wide shot from the road side across the dry street: the woman walks at screen-centre toward "
      "screen-right with her basket on her arm, her face in profile; the small dog trots beside her on the road side "
-     "nearest the camera, her face in profile and her whole face and moving mouth visible; the blue vegetable truck "
-     "stands at the roadside far ahead at screen-right; far behind them at screen-left a white pickup truck rolls slowly "
-     "along the road",
+     "nearest the camera, her face in profile turned toward screen-left and her whole face and moving mouth visible; "
+     "the blue vegetable truck stands at the roadside far ahead at screen-right; far behind them at screen-left a "
+     "white pickup truck rolls slowly along the road",
      ["mimi_d", "mom_o"], "street", T_ST,
-     "the small dog, whispering and focused, trots with her ears pricked, flicking her eyes left toward the far pickup "
-     "and right toward the road ahead, and keeps her body between the woman and the road edge while she says the line; "
-     "the woman with the wooden ladle in her bun, silent, strolls humming and swinging her basket",
+     "the small dog, whispering and thrilled, trots with her ears pricked staring at the far white pickup at screen-left, "
+     "her whole body quivering, then on the last words breaks into a sprint toward screen-left along the road with her ears "
+     "flying back; the woman with the wooden ladle in her bun, silent, keeps strolling toward the truck humming and "
+     "swinging her basket",
      _NS),
 
  10: (10, "Medium wide shot at the truck: the blue pickup stands at screen-right with the seller at its tailgate "
-      "facing screen-left in three-quarter profile, the woman stands at screen-centre facing screen-right in "
-      "three-quarter profile choosing vegetables, and the small dog sits at her feet on the road side looking toward "
-      "screen-left; the seller talks to the woman",
-      ["man", "mom_o", "mimi_d"], "street", T_ST,
-      "the lean man in the straw hat, cheerful and puzzled, holds up a bunch of green morning glory toward the woman "
-      "with a big grin, then points his chin toward the small dog while he speaks; the woman with the wooden ladle in her "
-      "bun, silent, reaches out for the bunch of morning glory; the small dog at her feet keeps her gaze fixed past the truck "
-      "toward the road at screen-left", _NS),
+      "facing screen-left in three-quarter profile with his eyes on the road far beyond the left edge, the woman stands at "
+      "screen-centre facing screen-right in three-quarter profile choosing vegetables; the small dog is not in the frame; "
+      "the seller talks to the woman",
+      ["man", "mom_o"], "street", T_ST,
+      "the lean man in the straw hat, cheerful and worried, holds up a bunch of green morning glory toward the woman "
+      "while he cranes his neck to look down the road toward screen-left, then points toward screen-left with his chin "
+      "and shakes his head as he speaks and chuckles nervously; the woman with the wooden ladle in her bun, silent, reaches "
+      "out for the bunch of morning glory with a calm smile", _NS),
 
- 11: (10, "Medium close shot at the roadside from the front: the small dog stands on the road edge at screen-centre in "
-      "three-quarter profile facing screen-left toward the road, her whole face and moving mouth visible, the woman and "
-      "the blue truck blurred behind her at screen-right; far down the road at screen-left a white pickup rolls "
-      "slowly toward them",
-      ["mimi_d", "mom_o"], "street", T_ST,
-      "the small dog, fierce and tiny, plants all four paws wide, puffs out her chest and barks and scolds toward the "
-      "far pickup with her ears flat back and her teeth showing, stamping one front paw on every word, while the woman "
-      "behind her, silent, keeps choosing vegetables", _NS),
+ 11: (10, "Medium close tracking shot from the front: the small dog sprints along the dry road toward screen-left, "
+      "her face in three-quarter profile and her whole face and moving mouth visible, her ears flying back; far ahead at "
+      "screen-left a white pickup truck with tinted windows rolls away down the road",
+      ["mimi_d"], "street", T_ST,
+      "the small dog, fierce and tiny, sprints flat out with her tongue flapping, her chest out and her tail whipping, "
+      "barking and scolding at the far pickup on every word, her paws drumming on the concrete", _NS),
 
- 12: (10, "Medium shot at the truck: the seller leans on the tailgate at screen-right facing screen-left in "
-      "three-quarter profile, the woman stands at screen-centre with her back half turned, and the small dog stands "
-      "at the roadside at screen-centre-left; the seller talks to the woman",
-      ["man", "mom_o", "mimi_d"], "street", T_ST,
-      "the lean man in the straw hat, startled and joking, flaps his hat at the dog and then holds a bundle of long "
-      "beans out to the woman, wagging a finger toward the dog while he speaks and laughing out loud; the woman with the "
-      "wooden ladle in her bun, silent, smiles and shakes her head; the small dog, silent, keeps her chest out and watches "
-      "the road", _NS),
-
- 13: (10, "Medium close shot at the roadside from the front: the small dog trots beside the woman's boots at screen-"
-      "centre toward screen-left on the way home, her face in three-quarter profile turned up toward the woman, her whole "
-      "face and moving mouth visible; the woman's boots and the basket full of green vegetables at the right edge",
-      ["mimi_d", "mom_o"], "street", T_ST,
-      "the small dog, relieved and soft, lets her ears relax and her tail swing, looks up at the woman with a tender "
-      "smile and leans the side of her body against the woman's boot as she says the line while they walk; the woman, "
-      "silent, hums with her basket full of vegetables", _NS),
-
- 14: (10, "Medium shot in the living room from the front: the stocky man sits at the desk at screen-left in "
-      "three-quarter profile with the laptop open and angled away from the camera, one hand on the mouse, his eyes narrowed "
-      "at the screen; the closed front door stands at the far right edge with a few grains of rice still scattered on the floor",
+ 12: (10, "Medium shot in the living room from the front: the stocky man sits at the desk at screen-left in "
+      "three-quarter profile holding his phone in one hand with its screen facing away from the camera, a white mug beside "
+      "the laptop, the closed front door at the far right edge",
       ["bro"], "living", T_AM,
-      "the stocky man in the navy blazer, suspicious and grumbling, leans toward the laptop, drums his fingers on the desk "
-      "and mutters his line, raising one eyebrow, and clicks the mouse twice on the last words", _N),
+      "the stocky man in the navy blazer, stifled and resigned, tilts the phone toward himself and watches it, winces, drags "
+      "his free hand down his face, then shakes his head slowly while he mutters his line and sets the phone on the desk "
+      "with a sigh", _N + ["nophone"]),
 
- 15: (10, "Medium close shot of the stocky man at the desk at screen-left from the front: his face in three-quarter profile "
-      "lit softly from the side by the laptop, which faces away from the camera, his eyes widening as he watches it",
+ 13: (10, "Medium close shot from the front on a dry grassy verge beside the road: the small dog stands at screen-centre in "
+      "three-quarter profile with a mouthful of grass blades hanging from her mouth, her whole face and moving mouth visible; "
+      "a low garden wall stands behind her at screen-left",
+      ["mimi_d"], "street", T_ST,
+      "the small dog, dreamy then alarmed, chews a blade of grass with her eyes half closed, then her ears shoot straight up "
+      "and her eyes widen at something small passing out of frame behind the garden wall at screen-left, the grass drops "
+      "from her mouth and she crouches ready to pounce as she says the last words", _NS),
+
+ 14: (10, "Medium shot at the truck from in front of the woman: she stands at screen-centre-right holding the basket "
+      "now full of green morning glory and chillies, her face in three-quarter profile turned toward screen-left toward "
+      "the road, one hand cupped beside her mouth, and she calls toward it; the blue truck with its loudspeaker behind her "
+      "at screen-right; far down the road at screen-left a tiny black dog is just visible",
+      ["mom_o", "mimi_d"], "street", T_ST,
+      "the woman with the wooden ladle in her bun, warm and clear, cups one hand beside her mouth and waves her basket "
+      "hand in a come-here wave toward screen-left while she calls, then beams; far down the road the tiny black dog "
+      "skids to a stop and spins around toward her", _NS),
+
+ 15: (10, "Medium wide shot along the road from the front: the small dog charges toward the camera and screen-right along "
+      "the road at full speed with her ears flying and her tongue out, her whole face and moving mouth visible, the woman "
+      "with her basket and the blue truck at screen-right ahead of her",
+      ["mimi_d", "mom_o"], "street", T_ST,
+      "the small dog, breathless and delighted, runs flat out toward the woman at screen-right with her whole body "
+      "wagging, skids to a halt at her pink rain boots, jumps up with her front paws on the woman's knee and looks up at "
+      "her as she says the line; the woman with the wooden ladle in her bun, silent, laughs and pats the dog's head",
+      _NS),
+
+ 16: (10, "Medium close shot in the living room from the front: the stocky man sits at the desk at screen-left in "
+      "three-quarter profile holding his phone in both hands with its screen facing away from the camera, his face lit softly "
+      "from the side by the phone, his eyes wide",
       ["bro"], "living", T_AM,
-      "the stocky man in the navy blazer, slowly realising and hushed, leans closer to the laptop, his eyes widening and his "
-      "mouth falling open a little, lifts one finger to point at the screen and then presses the hand to his chest as he "
-      "speaks", _N),
+      "the stocky man in the navy blazer, slowly realising and soft, leans closer to the phone with his eyes widening "
+      "and his mouth falling open a little, presses one hand to his chest and then lowers the phone slowly to his lap as he "
+      "says the line, looking toward the dog bed in the corner at screen-right", _N + ["nophone"]),
 
- 16: (10, "Medium wide shot in the living room from the front: the front door at the far right edge stands open and the "
-      "woman stands on the threshold with the basket of vegetables, the small dog sits on the doormat beside her; the stocky "
-      "man walks over from the desk and crouches in front of the dog at screen-centre, his face in three-quarter profile "
-      "turned toward her, and talks to her",
-      ["bro", "mom_h", "mimi_d"], "living", T_AM,
-      "the stocky man in the navy blazer, soft and sorry, crouches down to the small dog, bows his head a little and "
-      "rests one hand gently on her head as he says the line; the woman with the wooden ladle in her bun, silent, holds the "
-      "basket and watches with a tender smile; the small dog sits very still with her ears up, silent", _N),
-
- 17: (10, "Medium close shot in the living room from the front: the woman stands at screen-centre holding the basket of "
-      "green vegetables against her hip, her face in three-quarter profile turned toward the small dog who sits at "
-      "screen-right on the doormat, and she talks to her",
+ 17: (10, "Medium close shot in the living room from the front: the woman stands at the open front door at the far right "
+      "edge holding the basket of green vegetables against her hip, her face in three-quarter profile turned toward the "
+      "small dog who sits at her feet on the doormat, and she talks to her",
       ["mom_h", "mimi_d"], "living", T_AM,
       "the woman with the wooden ladle in her bun and the tartan cloth over her shoulder, her pink-and-green floral "
       "sarong showing at her knees, voice breaking and tender, dabs the corner of her eye with the tartan cloth and "
-      "presses her other hand to her heart as she speaks; the small dog on the doormat at the right edge, silent, looks "
-      "back at her with her head tilted", _N),
+      "presses her other hand to her heart as she speaks; the small dog on the doormat, silent, looks up at her with her "
+      "head tilted", _N),
 
  18: (10, "Medium wide shot in the living room from the front: the small dog sits on the doormat at screen-right with "
-      "the empty rice bowl beside her, her head turned toward screen-left in three-quarter profile toward the stocky man "
-      "and the woman who sit on the floor beside her, her whole face and moving mouth visible; the front door stands "
-      "closed at the far right edge",
+      "the empty rice bowl lying on its side beside her, her head turned toward screen-left in three-quarter profile toward "
+      "the stocky man and the woman who sit on the floor beside her, her whole face and moving mouth visible; the front "
+      "door stands closed at the far right edge",
       ["mimi_d", "bro", "mom_h"], "living", T_AM,
       "the small dog, cheeky and sleepy, licks her chops with her tongue out, pats the floor beside her with one paw "
       "to invite them and yawns on the last words; the stocky man in the navy blazer and the woman with the wooden "
