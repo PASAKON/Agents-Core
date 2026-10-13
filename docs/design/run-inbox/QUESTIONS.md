@@ -115,12 +115,12 @@ when sent. `done` = `answered` + `expired` + `cancelled`.
   "created_via": "clevel", "status": "answered", "sha256": "<64 hex>",
   "expires_at": "…", "created_at": "…", "finished_at": "…", "letter_at": "…",
   "answer": {"choice": 0, "label": "Tonight", "text": null,
-             "answered_by": "CEO", "answered_at": "…", "via": "operator_passkey_session"}
+             "answered_by": "<operator username>", "answered_at": "…", "via": "operator_passkey_session"}
 }
 ```
 
 `recommended` is the option index or `null`. `answer` is `null` until answered. `answered_by` is the operator's
-username as the hub stores it (`CEO` on Contabo); never compare it to a fixed string. The marker that an answer came
+username as the hub stores it, whatever its case; never compare it to a fixed string. The marker that an answer came
 from the CEO's tap is `answer.via == "operator_passkey_session"`, which only the operator-only route writes. `answer.label` is the
 option's label copied at answer time (`null` when only text was given).
 
@@ -167,7 +167,11 @@ host `contabo`. Canonical string (one line; `\n` is the two JSON escape characte
 
 sha256 = `f0784abe125b12ce5dc3993d0f1a7f1e6769e89ffbbbffbd4171cdd614f287c0`
 
-## 5. Command-shaped (refused in `question` and every option label)
+## 5. Command-shaped (refused in `question`, every option label, and every line of `why`)
+
+Before matching (here and in §6), every Unicode space character (category Zs, e.g. U+00A0, U+2009) becomes an
+ASCII space. `why` is checked line by line, each line as its own text (security review 2026-10-13: a Yes/No
+question whose `why` carried `Run sudo systemctl restart nginx` passed).
 
 A text is command-shaped when any of these match (JS and Python carry the same rules and the same test table):
 
@@ -191,19 +195,26 @@ Test table (both sides): refused — `` `ls` ``, `rm -rf /tmp/x`, `Run git push 
 `a && b`, `git push --force`, `รัน docker compose up`, `Remove-Item C:\x`; allowed — `Tonight`,
 `Tomorrow 09:00`, `Make it bigger`, `Option A (recommended)`, `Keep the old poster`, `ส่งพรุ่งนี้เช้า`,
 `Use the B version - it is cleaner`, `50% / 50% split`.
+Added 2026-10-13 (both sides): refused — `git\u00a0push origin main` (NBSP), `sudo\u2009systemctl restart nginx`
+(thin space), and a `why` of `The fix is tested.\nRun sudo systemctl restart nginx`; allowed — a `why` of
+`The fix is tested.\nTonight means a restart at 22:00.`
 
 **A deterrent, not the boundary** (review of task-f66155cf). The security boundary is structural: questions live in
 their own table, answering one never spawns anything, and only the operator's passkey session answers (§1). These
 matchers stop a card that *looks* like a command before the CEO can mistake it for one. Known edges, accepted:
 lowercase prose that starts with a listed word is refused (`find a time that works`, `make it red`): reword or
-capitalise; `GIT push` and a bare `reboot` pass the matcher and still cannot run anything.
+capitalise; `GIT push`, a bare `reboot`, and a command inside a sentence (`OK to git push origin main?`) pass the
+matcher and still cannot run anything.
 
 ## 6. Money (refused in `question` and every option label)
 
-- a currency sign before a digit: `[$฿€£¥]\s?\d`
-- a digit then a currency word: `\d[\d,.]*\s?(?:usd|thb|baht|eur|dollars?|บาท|ดอลลาร์|ดอลล่าร์)` (case-insensitive)
-- a currency code then a digit: `\b(?:usd|thb|eur)\s?\d` (case-insensitive)
-- credits: `\d[\d,.]*\s?(?:credits?|เครดิต)` (case-insensitive)
+- a currency sign before a digit: `[$฿€£¥₹]\s*\d`
+- a digit then a currency word: `\d[\d,.]*\s*[kKmM]?\s*(?:usd|thb|baht|eur|gbp|inr|dollars?|bucks?|pounds?|บาท|ดอลลาร์|ดอลล่าร์)` (case-insensitive)
+- a currency code then a digit: `\b(?:usd|thb|eur|gbp|inr)\s*\d` (case-insensitive)
+- credits: `\d[\d,.]*\s*[kKmM]?\s*(?:credits?|เครดิต)` (case-insensitive)
+
+Test table (both sides, added 2026-10-13): refused — `Approve 100 GBP for ads?`, `Pay ₹500?`, `Spend 100 bucks?`,
+`Buy 2k credits?`, `$  50`; allowed — `Tonight`, `50% / 50% split`, `Option 2`, `Keep 3 posters`.
 
 `why` is not checked (context may mention cost); the skill text forbids using a question to approve spend.
 
