@@ -103,7 +103,8 @@ def _org_flags_off(tmp_path, monkeypatch):
     files nor the shell's flags; the P2 tests turn on what they test."""
     from lib import org_flags
     monkeypatch.setattr(org_flags, "FLAGS_DIR", tmp_path / "no-org-flags")
-    for var in ("ORG_SINGLE_CLEVEL", "ORG_PH_ROLES", "ORG_SPAWN_GATE", "ORG_SESSION_SCOPE"):
+    for var in ("ORG_SINGLE_CLEVEL", "ORG_PH_ROLES", "ORG_SPAWN_GATE", "ORG_SESSION_SCOPE",
+                "ORG_WORKER_TOKEN_ONLY"):
         monkeypatch.delenv(var, raising=False)
 
 

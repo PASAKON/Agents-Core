@@ -106,6 +106,14 @@ DEFAULT_URL = "https://terminal.mooniex.com"
 URL_ENV = "RUN_INBOX_URL"
 TOKEN_ENV = "RUN_INBOX_TOKEN"
 TOKEN_FILE = Path(".config") / "mooniex" / "run-inbox.token"  # under the user's home
+# Org restructure P2 (security review of Console task-fabda3b9, 2026-10-14): the
+# token file is the C-level's. A Contabo worker has no token of its own, so it
+# fell back to that file and the hub saw a C-level token: the Console's worker
+# checks (freeform_needs_c_level, RUN_INBOX_WORKER_SCRIPTS=0) never met a
+# worker. With this host flag on (lib/org_flags.py), a worker process uses
+# RUN_INBOX_TOKEN (a worker token) or nothing. An honest-path guard: a worker
+# running as the same unix user can still read the file itself.
+WORKER_TOKEN_FLAG = "ORG_WORKER_TOKEN_ONLY"
 
 # CEO decision 1 (DESIGN §11): freeform commands are for C-level roles only.
 # The list is the org's own `c_level` key (see c_level_roles), never a copy here.
@@ -687,12 +695,37 @@ def token_path() -> Path:
     return Path.home() / TOKEN_FILE
 
 
+def _is_worker_process(env: dict | None = None) -> bool:
+    """WORKER_TASK_ID or WORKER_ROLE set to any value, even empty: the rule the
+    Console's relay role gate uses too (src/relay/roleGate.js callerFromEnv)."""
+    env = os.environ if env is None else env
+    return "WORKER_TASK_ID" in env or "WORKER_ROLE" in env
+
+
+def _host_flag_on(name: str) -> bool:
+    """lib.org_flags.on(name); the repo root goes on the END of sys.path, as in
+    _self_host_id. A checkout whose `lib` cannot load reads the flag as on: the
+    guard fails closed for a worker, never open."""
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.append(str(ROOT))
+        from lib import org_flags
+        return org_flags.on(name)
+    except Exception:  # noqa: BLE001 - see docstring
+        return True
+
+
 def load_token() -> str:
     """RUN_INBOX_TOKEN, else the token file (0600). The value goes into the
-    Authorization header and nowhere else — no message here names it."""
+    Authorization header and nowhere else — no message here names it. A worker
+    process gets no file fallback while WORKER_TOKEN_FLAG is on."""
     val = (os.environ.get(TOKEN_ENV) or "").strip()
     if val:
         return val
+    if _is_worker_process() and _host_flag_on(WORKER_TOKEN_FLAG):
+        raise HubError(f"a worker process (WORKER_TASK_ID / WORKER_ROLE set) needs its own token in "
+                       f"{TOKEN_ENV}; the token file is the C-level's (host flag {WORKER_TOKEN_FLAG}). "
+                       f"Report the step to your Project Head or C-level instead")
     path = token_path()
     try:
         mode = path.stat().st_mode
