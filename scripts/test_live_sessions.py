@@ -79,6 +79,23 @@ def test_a_reused_pid_with_another_starttime_is_skipped(tmp_path):
     assert ls.read_registry([tmp_path]) == []
 
 
+def test_a_macos_date_string_procstart_does_not_drop_the_row(tmp_path):
+    """Claude Code on macOS writes procStart as a date string; every Mac row was
+    dropped by int() before the liveness check (Mac run 2026-10-13: mac 0)."""
+    _write(tmp_path, os.getpid(), procStart="Tue Oct 13 11:55:05 2026")
+    assert [r["pid"] for r in ls.read_registry([tmp_path])] == [os.getpid()]
+
+
+@linux_only
+def test_a_digit_string_procstart_is_still_compared(tmp_path):
+    """Linux writes procStart as a digit string ('233790594'): a reused pid
+    still fails on it."""
+    _write(tmp_path, os.getpid(), procStart=str(ls._proc_starttime(os.getpid()) + 1))
+    assert ls.read_registry([tmp_path]) == []
+    _write(tmp_path, os.getpid(), procStart=str(ls._proc_starttime(os.getpid())))
+    assert [r["pid"] for r in ls.read_registry([tmp_path])] == [os.getpid()]
+
+
 def test_corrupt_and_odd_files_are_skipped_silently(tmp_path):
     (tmp_path / "111.json").write_text("{not json", encoding="utf-8")
     (tmp_path / "112.json").write_text("[]", encoding="utf-8")
