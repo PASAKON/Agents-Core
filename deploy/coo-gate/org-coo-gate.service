@@ -1,0 +1,43 @@
+# Rendered by deploy/coo-gate/install.sh into /etc/systemd/system/org-coo-gate.service (Contabo).
+# @ROOT@, @ALLOWED_UIDS@ and @SECRET_PATH@ are filled in there; do not copy this file by hand.
+#
+# The COO gate (runners/coo_gate.py): SomPong's only door to the org hub (CEO card
+# Q-20261013-1948-4a33). root fetches the narrow org_coo URL from Infisical (Org-Coo prod, folder
+# @SECRET_PATH@) and setpriv drops to the system user org-coo-gate before any code of ours runs, so
+# the URL lives in one unprivileged process that SomPong (uid sompong) cannot read. The socket
+# answers only the uids in COO_GATE_ALLOWED_UIDS, plus root. deploy/coo-gate/README.md.
+[Unit]
+Description=COO gate: SomPong's narrow door to the org hub
+After=network-online.target docker.service
+Wants=network-online.target
+StartLimitIntervalSec=10min
+StartLimitBurst=10
+
+[Service]
+Type=simple
+WorkingDirectory=@ROOT@
+Environment=PYTHONUNBUFFERED=1
+Environment=ORG_HOST=contabo
+Environment=COO_GATE_ALLOWED_UIDS=@ALLOWED_UIDS@
+# The socket directory comes from a "+" (fully privileged, unsandboxed) pre-step, not from
+# RuntimeDirectory=: systemd chowns a RuntimeDirectory back to the unit's User= (root here) before
+# every command it starts (systemd.exec(5)), which undid a chown pre-step and left bind() with
+# EACCES on the first install (RUN-20261013-2142-7e3b). ReadWritePaths opens only this directory.
+ExecStartPre=+/usr/bin/install -d -o org-coo-gate -g org-coo-gate -m 0755 /run/org-coo-gate
+ReadWritePaths=/run/org-coo-gate
+ExecStart=/usr/bin/python3 @ROOT@/tools/infisical_setup.py run Org-Coo prod --path @SECRET_PATH@ --as contabo -- /usr/bin/setpriv --reuid=org-coo-gate --regid=org-coo-gate --init-groups --no-new-privs -- @ROOT@/.venv/bin/python -m runners.coo_gate
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID
+
+[Install]
+WantedBy=multi-user.target

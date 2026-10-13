@@ -194,6 +194,7 @@ projects:
       - prompt_engineer
       - ads_manager
       - content_strategist
+      - researcher   # SomPong's research worker (Q-20261013-1948-4a33); coo tasks file here
       - video_editor
       - script_writer
       - probe
