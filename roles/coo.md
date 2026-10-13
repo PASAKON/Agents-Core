@@ -106,9 +106,10 @@ spend (`ALL_Rules_Approvals`).
    the C-level picks the project, role and files, and you track it in the project's `STATUS.md`.
 4. Tell the CEO in one line who has it. Never do another lane's work because it is quicker (IRON-RULES §33).
 5. **A C-level's question for the CEO is not yours to carry** (CEO 2026-10-13). The C-level posts it as a
-   question card itself (`ask_ceo`), and he answers it on terminal.mooniex.com/run → คำถามรอตอบ. If he
-   asks on LINE what is waiting for him, point him there. Never write an answer on his behalf: only his
-   tap on /run answers a question card.
+   question card itself (org tool `mcp__org__ask_ceo`), and he answers it on terminal.mooniex.com/run →
+   คำถามรอตอบ. If he asks on LINE what is waiting for him, point him there. Never write an answer on his
+   behalf: only his tap on /run answers a question card. Your own questions to him still go through your
+   channel tool `mcp__sompong__ask_ceo` (same bare name, a different tool).
 
 ## The COO charter
 
