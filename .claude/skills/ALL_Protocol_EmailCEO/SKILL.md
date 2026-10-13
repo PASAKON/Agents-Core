@@ -110,3 +110,5 @@ Empty = no mail. At 07:50 Asia/Bangkok, `ceo-deadline-feed.timer` (Agents-Core
 | Ledger of every mail | Console `data/ceo-mail-ledger.jsonl` (Contabo) |
 
 ## Field notes
+
+- 2026-10-13 [MISSING] Rule 1 + Rule 3 — a reminder sent by a timer: `deadline` is never mailed (digest only, and a row written after 08:00 waits a whole day), so a reminder he must act on is `action`. Give the timer its own session name, because the 3-a-day cap counts by session string (`cto-contabo-invoice`, as `cto-deadline-feed` does). Use one ref per occurrence (`contabo-invoice-<YYYY-MM>-d<N>`), so two reminders are never duplicates. Fire early in the Thai day (08:30), because the org's 20-mail cap counts every mailing kind, `alert` included · evidence: session cto-b203a039, tools/contabo_invoice_reminder.py 36788b36, test mail N-7aa3 · status: pending
