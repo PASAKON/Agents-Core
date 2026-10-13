@@ -190,6 +190,12 @@ Test table (both sides): refused — `` `ls` ``, `rm -rf /tmp/x`, `Run git push 
 `Tomorrow 09:00`, `Make it bigger`, `Option A (recommended)`, `Keep the old poster`, `ส่งพรุ่งนี้เช้า`,
 `Use the B version - it is cleaner`, `50% / 50% split`.
 
+**A deterrent, not the boundary** (review of task-f66155cf). The security boundary is structural: questions live in
+their own table, answering one never spawns anything, and only the operator's passkey session answers (§1). These
+matchers stop a card that *looks* like a command before the CEO can mistake it for one. Known edges, accepted:
+lowercase prose that starts with a listed word is refused (`find a time that works`, `make it red`): reword or
+capitalise; `GIT push` and a bare `reboot` pass the matcher and still cannot run anything.
+
 ## 6. Money (refused in `question` and every option label)
 
 - a currency sign before a digit: `[$฿€£¥]\s?\d`
