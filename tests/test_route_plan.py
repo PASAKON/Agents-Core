@@ -264,7 +264,7 @@ def test_pick_runner_no_shell_returns_agy(mock_cfg, default_limits, monkeypatch)
     choice = pick_runner(
         "developer",
         "mac",
-        brief="edit tools/x.py; run pytest",
+        brief="edit tools/x.py; the reviewer runs the tests",
         cfg=mock_cfg,
         quotas=quotas,
         skill={},
@@ -274,6 +274,11 @@ def test_pick_runner_no_shell_returns_agy(mock_cfg, default_limits, monkeypatch)
     assert choice is not None
     assert choice.runner == "agy"
     assert choice.model == "gemini-3.8-flash-high"
+
+    # A brief that runs pytest is a shell job since 2026-10-14: agy is ruled out.
+    shell = pick_runner("developer", "mac", brief="edit tools/x.py; run pytest",
+                        cfg=mock_cfg, quotas=quotas, skill={}, limits=default_limits)
+    assert shell is None or shell.runner != "agy"
 
 
 def test_cli_plan_needs_shell(mock_cfg, default_limits, monkeypatch, capsys):

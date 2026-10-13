@@ -675,7 +675,7 @@ _OVERRIDE_LINE_RE = re.compile(r"^[ \t]*override:[ \t]*(\S.*)$", re.IGNORECASE)
 
 
 def _find_override_directive(header_text: str) -> tuple[str, str] | None:
-    """Return (line, rest) for the first line matching ^[ \t]*override:[ \t]*(\S.*)$."""
+    """Return (line, rest) for the first header line that matches _OVERRIDE_LINE_RE."""
     for line in header_text.splitlines():
         m = _OVERRIDE_LINE_RE.match(line)
         if m:
@@ -701,7 +701,8 @@ def reason_code(description: str | None) -> str | None:
 
 _CODES_STR = ", ".join(REASON_CODES)
 _IRON_59_MSG = (
-    "IRON §59 rule 7: runner/model_hint pinned by hand. Line 1–5 of the description must read `override: <code> <why>`."
+    "IRON §59 rule 7: runner/model_hint pinned by hand. Line 1–5 of the description"
+    " (the block before the first blank line; one further down is ignored) must read `override: <code> <why>`."
     f" Codes: {_CODES_STR}."
     " `in-session` is not a code. Or leave runner and model_hint empty and let the router pick."
 )
@@ -745,7 +746,11 @@ def check_override(task: dict, cfg: dict | None = None) -> str | None:
         # runner_model is NULL, OR runner == "codex" with runner_model == ""
         # and no "router:" in delegate_log.
         v1_pin = bool(model_hint) or (bool(runner) and runner_model is None)
-        codex_hand_pin = runner == "codex" and runner_model == "" and "router:" not in delegate_log
+        # A row that already has a worktree passed this gate at its first delegate; a
+        # failure path (timeout, spawn refused) overwrites delegate_log, so its re-delegate
+        # must not read as a hand pin for want of the "router:" line.
+        codex_hand_pin = (runner == "codex" and runner_model == ""
+                          and "router:" not in delegate_log and not task.get("worktree"))
         is_manual_pin = v1_pin or codex_hand_pin
         if not is_manual_pin:
             return None

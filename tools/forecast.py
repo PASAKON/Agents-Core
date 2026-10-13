@@ -66,6 +66,11 @@ SHELL_PATTERNS: list[str] = [
     "git archive",
     "git checkout -b",
     "git worktree",
+    # pytest is a command too (CTO #e106b78b 2026-10-14): the Contabo agy launcher is
+    # file-only and denies every command, so a brief that runs pytest ended agy at its
+    # first step with no output (task-0156526f). A plain substring, like the git ones:
+    # a file-only brief says "the reviewer runs the tests" and never names pytest.
+    "pytest",
 ]
 
 
@@ -79,15 +84,21 @@ MAKE_COMMAND = re.compile(
     r"[a-z0-9_/-](?:[a-z0-9_./-]*[a-z0-9_/-])?(?=[ \t]*(?:$|&&|;|\||`)))",
     re.MULTILINE)
 
+# Running Python: a script, `-m <module>` or `-c`. tools/agy_browse.py is left out on
+# purpose: the browser_agy lane's brief runs it on agy by design (GH #188,
+# tools/route.class_for), so it must not rule agy out.
 PYTHON_COMMAND = re.compile(
-    r"\b(?:python3?|\.venv/bin/python)\s+(?:-m\s+(?!pytest\b)[\w.]+|-c\b|[\w./-]+\.py\b)",
+    r"\b(?:python3?|\.venv/bin/python)\s+"
+    r"(?:-m\s+[\w.]+|-c\b|(?![\w./-]*agy_browse\.py\b)[\w./-]+\.py\b)",
     re.IGNORECASE,
 )
 
 def needs_shell(brief: str | None) -> bool:
-    """Return True if brief tells the worker to run commands other than pytest/read-only git.
+    """Return True if brief tells the worker to run a command.
 
-    pytest and read-only git (log, diff, show, status) stay not-shell, as now: the reviewer runs tests.
+    Read-only git (log, diff, show, status) stays not-shell. pytest, git fetch/merge and
+    running Python count as shell (CTO #e106b78b 2026-10-14, task-0156526f); the one
+    exception is tools/agy_browse.py on the browser_agy lane.
     """
     if not brief:
         return False

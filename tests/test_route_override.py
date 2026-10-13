@@ -206,6 +206,12 @@ def test_codex_hand_pin(monkeypatch):
     task_routed = _task(runner="codex", runner_model="", delegate_log="router: codex  [codex] — reserve ok")
     assert check_override(task_routed, _CFG) is None
 
+    # A routed row re-delegated after a failure overwrote delegate_log still passes:
+    # it has a worktree, so it went through this gate on its first delegate.
+    task_retry = _task(runner="codex", runner_model="", delegate_log="DEV timed out after 3600s",
+                       worktree="/opt/x/worktrees/task-1")
+    assert check_override(task_retry, _CFG) is None
+
 
 # ---------------------------------------------------------------------------
 # Jules hint tests
