@@ -150,9 +150,10 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
 
 
 @mcp.tool(description=reg.BY_NAME["send_to_cxo"].description)
-def send_to_cxo(role: str, message: str, spawn: bool = False, subject: str = "") -> str:
+def send_to_cxo(role: str, message: str, spawn: bool = False, subject: str = "",
+                kind: str = "", prio: str = "") -> str:
     return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn,
-                             subject=subject)
+                             subject=subject, kind=kind, prio=prio)
 
 
 @mcp.tool(description=reg.BY_NAME["report_to_ceo"].description)

@@ -121,7 +121,7 @@ def send(
     envelope = None
     if envelope_on():
         kind = kind or "message"
-        prio = prio or ("urgent" if kind in URGENT_KINDS else "normal")
+        prio = letter_prio(kind, prio)
         if kind not in KINDS:
             raise ValueError(f"unknown letter kind {kind!r}; one of {', '.join(KINDS)}")
         if prio not in PRIOS:
@@ -423,6 +423,12 @@ def envelope_on() -> bool:
 def default_subject(body: str) -> str:
     """The first SUBJECT_MAX characters of the body, whitespace collapsed."""
     return " ".join(str(body or "").split())[:SUBJECT_MAX]
+
+
+def letter_prio(kind: str | None, prio: str | None) -> str:
+    """The prio a letter is stored and woken with: the sender's, else urgent
+    for an order, ask or blocker and normal for every other kind."""
+    return prio or ("urgent" if (kind or "message") in URGENT_KINDS else "normal")
 
 
 def resolve_subject(subject: str | None, body: str) -> tuple[str, str | None]:

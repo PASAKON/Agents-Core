@@ -316,7 +316,8 @@ async def _h_revert_task_tool(*, task_id: str, force: bool = False) -> dict:
     return revert_task(task_id, force=force)
 
 
-def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False, subject: str = "") -> str:
+def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False, subject: str = "",
+                   kind: str = "", prio: str = "") -> str:
     # A Project Head talks only to the C-level of its own lane and never
     # starts a session (plan §3.2).
     if org_roles.is_project_head(caller_role()):
@@ -327,7 +328,8 @@ def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False, subject: str
             raise PermissionError(
                 f"a Project Head writes only to its own C-level ({lane or 'ORG_PH_LANE unset'}), "
                 f"not {role!r}; ask your C-level to pass it on (plan §3.2)")
-    kw = {"subject": subject} if subject else {}  # no subject: exactly the old call
+    # an empty field is left out, so a call without them is exactly the old call
+    kw = {k: v for k, v in (("subject", subject), ("kind", kind), ("prio", prio)) if v}
     if spawn:
         return send_to_cxo_mod.spawn(role, message, **kw)
     return send_to_cxo_mod.send(role, message, **kw)
@@ -670,13 +672,22 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "subject: one line, at most 80 characters, saying what the letter "
             "is about; the recipient sees it in the envelope line before the "
             "body. Leave it out and, in envelope mail, the first 80 characters "
-            "of the message stand in and the result carries a warning."
+            "of the message stand in and the result carries a warning.\n\n"
+            "kind: ask, blocker, report, fyi, answer or message (default). "
+            "'order' is refused: an order is the CEO's, made only by "
+            "relay_to_session. prio: normal or urgent; leave it out and an ask "
+            "or blocker is urgent (wakes the reader at once), anything else "
+            "normal (the wake may wait for the next batch). Both are stored "
+            "only in envelope mail (ORG_MAIL_ENVELOPE); otherwise they are "
+            "checked and ignored."
         ),
         params=(
             Param("role", str),
             Param("message", str),
             Param("spawn", bool, False),
             Param("subject", str, ""),
+            Param("kind", str, ""),
+            Param("prio", str, ""),
         ),
         handler=_h_send_to_cxo,
         response_format="text",
