@@ -669,7 +669,7 @@ def raise_pause_card(hsh: str, name: str, reason: str, consumers: list[str], env
     why = (f"Spend guard พักคีย์ OpenRouter «{name}» แล้ว: {reason}. ใช้โดย: {used}. "
            f"พิมพ์ 1 = เปิดคืน, 2 ตามด้วยจำนวนเงิน USD = ตั้งเพดานใหม่แล้วเปิด, 3 revoke = ลบถาวร. ไม่ทำอะไร = พักต่อ")
     return create({"host": "contabo", "command": card_command(hsh), "why": why[:430],
-                   "expected": "resumed / limit set / revoked", "risk": "amber", "timeout_s": 1800,
+                   "expected": "resumed / limit set / revoked", "risk": "red", "timeout_s": 1800,
                    "expects_input": True, "session": SESSION, "role": ROLE})
 
 

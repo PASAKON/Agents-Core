@@ -42,7 +42,7 @@ sends on Telegram too, with no code change. No new bot.
 - **Alert-only for the first 24 h of live runs.** The guard logs `would pause <name> (<hash8>)`, and the mail
   says so.
 - **Then armed.** At 100 % of a key's limit, or on a key's spike, it sends `PATCH /keys/{hash} {"disabled": true}`,
-  checks the answer, and raises an amber Run card (expects input, 1800 s):
+  checks the answer, and raises a red Run card (root on Contabo; option 3 deletes a key; expects input, 1800 s):
   - `1`: resume
   - `2 <USD>`: set that limit and resume
   - `3 revoke`: delete the key for good
@@ -87,7 +87,7 @@ env ORG_ROOT=/opt/MoonieXHQ/Agents/Core /opt/MoonieXHQ/Agents/Core/.venv/bin/pyt
   /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/worktrees/spend-guard-deploy/tools/spend_guard.py <verb>
 ```
 
-An agent session never runs that itself: the secret-env guard refuses it. It goes on a Run card.
+An agent session never runs that itself: the secret-env guard refuses it. It goes on a red Run card: it runs as root and reads the management key.
 
 ## Install (Contabo, one Run card, after the branch lands at `<SHA>`)
 
@@ -118,7 +118,7 @@ only if they changed and run `systemctl daemon-reload`.
 
 - **Arm before 24 h:** `pause.mode: armed` in the config, then land and move the deploy worktree.
 - **Never pause:** `pause.mode: alert_only`.
-- **Map a key:** run `keys` on a card. Under `providers.openrouter.keys` add `"<name>": {consumers: [...]}`,
+- **Map a key:** run `keys` on a red Run card (root, reads the management key). Under `providers.openrouter.keys` add `"<name>": {consumers: [...]}`,
   or `pause: false` for a key that must never stop.
 - **Health:** `systemctl status spend-guard.service`. `spend_guard.py status` reads files only and needs no
   key. Exit 1 means a provider is blind (already mailed). Exit 3 means the hub did not take the mail (the next

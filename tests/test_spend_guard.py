@@ -325,7 +325,7 @@ def test_armed_pauses_verifies_and_raises_the_card(store):
     assert fake.writes() == [("PATCH", f"{sg.OPENROUTER}/keys/{H1}", {"disabled": True})]
     assert fake.keys[H1]["disabled"] is True
     [card] = hub.cards
-    assert card["expects_input"] is True and card["risk"] == "amber" and card["timeout_s"] == 1800
+    assert card["expects_input"] is True and card["risk"] == "red" and card["timeout_s"] == 1800
     assert card["command"].endswith(f"decide {H1}") and "--path /spend-guard" in card["command"]
     assert "ORG_ROOT=" in card["command"] and len(card["why"]) <= 430
     assert "1 = เปิดคืน" in card["why"] and "jev-secretary" in card["why"]

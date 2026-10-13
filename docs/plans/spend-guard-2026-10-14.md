@@ -49,7 +49,7 @@ and the secretary key's usage stays constant, so on 13 Oct one key (Jev/secretar
 **What is not known yet:** which OpenRouter key name sits behind each env file. Only the management key lists
 the names, together with `last_used_at` and per-day usage. So:
 
-1. After the keys land, run `spend_guard.py keys` on a green Run card. It prints names, hash8 and usage, never a value.
+1. After the keys land, run `spend_guard.py keys` on a red Run card (root, reads the management key). It prints names, hash8 and usage, never a value.
 2. Fill `providers.openrouter.keys` in `config/spend_guard.yaml` with `consumers:` for each key. The key that
    serves LuNar and Option gets `pause: false` until the broker (§3) splits it. A customer chatbot going quiet
    costs more than a few dollars of overspend.
