@@ -532,3 +532,4 @@ needs to see at a glance which are the sharp ones.
 | `SomPong Share` (root) | `1Qn7B0e6Pa7y8gS5bjUfs-f5ewMIERUsR` | NEW 2026-09-26. Path and definition from the CEO: "root/SomPong Share/{SomPong เอาไฟล์มาใส่ไว้ที่นี่ได้ก่อนแชร์}", created on his "อนุมัติทั้ง 2" (session cto-aa2e4242, bridge `create_folder`). The one folder the EA shares files out of Drive from, as anyone-with-the-link view links posted in LINE. Only the CEO may ask for a share. Reached through a broker locked to this id; the EA holds no Drive token. |
 
 ## Field notes
+- 2026-10-13 [MISSING] §tree — no folder held builds sent to outside testers; the CEO picked the offered `PROJECT/MOONIEX/Bedrock Builds/` (row + tree line added in 13c41cf4) · evidence: Drive 1Jqme99Pu-Jp5FgqiupeKllWZhwRJFlu1 · status: promoted
