@@ -90,6 +90,9 @@ def test_registry_names_match_prod() -> bool:
         # Run Inbox P1b: thin async wrappers over tools/ask_run.py, covered by
         # tests/test_ask_run.py through FastMCP's own call_tool.
         "ask_run", "ask_run_wait", "start_clevel_remote",
+        # Run Inbox question cards (docs/design/run-inbox/QUESTIONS.md §9): the
+        # requester side, covered by tests/test_ask_run_questions.py.
+        "ask_ceo",
     }
     names = set(reg.BY_NAME)
     return names == expected and all(callable(getattr(srv, n, None)) for n in names)
@@ -416,7 +419,7 @@ def main() -> int:
     db.init()
 
     print("== registry shape ==")
-    _mark(test_registry_names_match_prod(), "registry has exactly the 26 cto_mcp_server.py tool names")
+    _mark(test_registry_names_match_prod(), "registry has exactly the 27 cto_mcp_server.py tool names")
 
     print("== owner_cto regression (point 1) ==")
     ok, seed_tid = test_owner_cto_regression()
