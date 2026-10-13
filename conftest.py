@@ -86,6 +86,17 @@ def _mesh_probe_off(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _mail_envelope_off(monkeypatch):
+    """Envelope mail (ORG_MAIL_ENVELOPE, org restructure P1) changes the
+    letter, the hook output, the senders' results and the served tools. A test
+    run from a session that has it on must still see today's mail; the
+    envelope tests (tests/test_mail_envelope_letters.py,
+    tests/test_org_mail_envelope.py) set it themselves."""
+    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    monkeypatch.delenv("ORG_WAKE_DEBOUNCE_S", raising=False)
+
+
+@pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
     quota read is an ssh to Contabo plus the agy CLI. No test may reach

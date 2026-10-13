@@ -27,6 +27,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -38,13 +39,17 @@ from lib.roles import c_level_roles  # noqa: E402
 
 
 def _newest_sender(box: Path) -> str:
-    """Upper-case role of the newest unread letter's sender, for the wake marker."""
+    """Upper-case role of the newest unread letter's sender, for the wake
+    marker. Read no-follow (`mailbox._read_regular`: this runs as root over
+    the COO's writable box) and cut to a plain token, because the label is
+    typed into the session's pane."""
     for p in sorted(box.glob("*.json"), reverse=True):
         try:
-            frm = json.loads(p.read_text(encoding="utf-8")).get("from") or {}
+            frm = json.loads(mailbox._read_regular(p) or "").get("from") or {}
         except Exception:
             continue
-        return str(frm.get("role") or "mail").upper()
+        label = re.sub(r"[^A-Z0-9_-]", "", str(frm.get("role") or "").upper())[:24]
+        return label or "MAIL"
     return "MAIL"
 
 
@@ -58,7 +63,7 @@ def sweep(*, root: Path | None = None, now: float | None = None) -> list[dict]:
     roles = set(c_level_roles())
     out = []
     try:
-        boxes = sorted(p for p in base.iterdir() if p.is_dir())
+        boxes = sorted(p for p in base.iterdir() if p.is_dir() and not p.is_symlink())
     except OSError:
         return out
     from tools import send_to_cxo   # lazy: a flag-off run never imports it

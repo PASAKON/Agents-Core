@@ -53,8 +53,9 @@ def _build_tool(spec: registry.ToolSpec) -> "SdkMcpTool[Any]":
     return tool(spec.name, spec.description, input_schema)(handler)
 
 
+_SERVED = set(registry.served_names())   # the envelope tools only under ORG_MAIL_ENVELOPE
 ALL_TOOLS: dict[str, "SdkMcpTool[Any]"] = {
-    spec.name: _build_tool(spec) for spec in registry.REGISTRY
+    spec.name: _build_tool(spec) for spec in registry.REGISTRY if spec.name in _SERVED
 }
 
 # scripts/test_owner_cto_routing.py drives the ownership gate directly

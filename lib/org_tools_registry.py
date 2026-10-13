@@ -888,8 +888,9 @@ ENVELOPE_TOOLS = frozenset({"read_letter", "list_letters"})
 
 def served_names() -> tuple[str, ...]:
     """The org tool names a session gets under this process's env: the
-    registry, less ENVELOPE_TOOLS while the flag is off. The C-level allowlist
-    (scripts/lib/cxo_mcp_config.py) and runners/cto_mcp_server.py both follow it."""
+    registry, less ENVELOPE_TOOLS while the flag is off. Every surface follows
+    it: the C-level allowlist (scripts/lib/cxo_mcp_config.py),
+    runners/cto_mcp_server.py, runners/cto.py and runners/cto_chat.py."""
     from lib import mailbox
     on = mailbox.envelope_on()
     return tuple(s.name for s in REGISTRY if on or s.name not in ENVELOPE_TOOLS)

@@ -50,6 +50,7 @@ import json
 import os
 import re
 import secrets
+import stat
 import tempfile
 import time
 from datetime import datetime, timezone
@@ -120,12 +121,15 @@ def send(
     envelope = None
     if envelope_on():
         kind = kind or "message"
-        prio = prio or "normal"
+        prio = prio or ("urgent" if kind in URGENT_KINDS else "normal")
         if kind not in KINDS:
             raise ValueError(f"unknown letter kind {kind!r}; one of {', '.join(KINDS)}")
         if prio not in PRIOS:
             raise ValueError(f"unknown letter prio {prio!r}; one of {', '.join(PRIOS)}")
-        envelope = {"id": _new_id(), "subject": resolve_subject(subject, body)[0],
+        subj = resolve_subject(subject, body)[0]
+        if kind != "order" and subj.lower().startswith("order #"):
+            subj = ("re: " + subj)[:SUBJECT_MAX]   # only relay_to_session names an order
+        envelope = {"id": _new_id(), "subject": subj,
                     "kind": kind, "prio": prio, "read_at": None}
     box = _box(to_role, to_session_id, root)
     box.mkdir(parents=True, exist_ok=True)
@@ -198,8 +202,11 @@ def drain(role: str, session_id: str, *, root: Path | None = None) -> list[dict]
 # ---------------------------------------------------------------------------
 
 ENVELOPE_ENV = "ORG_MAIL_ENVELOPE"
-KINDS = ("message", "order", "report", "blocker", "answer", "notice")
+# kinds and prios as the org restructure plan's §6.2 names them (order, ask,
+# blocker, report, fyi), plus message (no kind given) and answer (a reply to an ask)
+KINDS = ("message", "order", "ask", "blocker", "report", "answer", "fyi")
 PRIOS = ("normal", "urgent")
+URGENT_KINDS = ("order", "ask", "blocker")   # their prio when the sender gives none
 SUBJECT_MAX = 80
 RETAIN_DAYS = 7
 READ_DIR = "read"
@@ -209,6 +216,202 @@ SWEEP_STALE_S = 180.0         # a sweeper heartbeat older than this is dead
 LAST_WAKE_FILE = ".last_wake"  # in the box; not *.json, so no reader sees it
 SWEEP_BEAT_FILE = ".wake-sweep"  # in INBOX_ROOT, touched by every sweep
 _ID_RE = re.compile(r"[A-Za-z0-9_.-]{1,96}")
+_READ_CAP = 1 << 20           # a marker or letter read by a root process, at most
+
+# Root processes (a C-level sender, the wake sweep) touch the files below in
+# boxes the unprivileged COO user can write (its box is group/ACL-writable).
+# So every such read or write is no-follow and non-blocking: a planted symlink
+# or FIFO named `.last_wake`, `read` or `*.json` must never make root write,
+# delete or hang outside the box.
+_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
+_NONBLOCK = getattr(os, "O_NONBLOCK", 0)
+_O_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
+_DIRFD_OK = all(f in os.supports_dir_fd for f in (os.open, os.stat, os.unlink, os.mkdir, os.rename))
+
+
+def _read_regular(path: Path) -> str | None:
+    """Text of `path` if it is a regular file (not a symlink, FIFO or device),
+    at most _READ_CAP bytes; None otherwise. Never raises."""
+    try:
+        fd = os.open(str(path), os.O_RDONLY | _NOFOLLOW | _NONBLOCK)
+    except OSError:
+        return None
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            return None
+        return os.read(fd, _READ_CAP).decode("utf-8", "replace")
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+
+
+def _open_dir(path: Path, *, dir_fd: int | None = None) -> int | None:
+    """An fd on directory `path` (relative to `dir_fd` when given), opened
+    no-follow: None when it is missing, a symlink or not a directory."""
+    try:
+        return os.open(str(path), os.O_RDONLY | _O_DIRECTORY | _NOFOLLOW, dir_fd=dir_fd)
+    except OSError:
+        return None
+
+
+def _open_read_dir_at(bfd: int, *, create: bool, owned: bool = True) -> int | None:
+    """An fd on `read/` inside the open box `bfd`, opened no-follow. `owned`:
+    only a directory this process's user owns, so nothing is archived into or
+    read from a `read/` another user planted. None when it cannot be had;
+    never raises."""
+    if create:
+        try:
+            os.mkdir(READ_DIR, dir_fd=bfd)
+        except FileExistsError:
+            pass
+        except OSError:
+            return None
+    dfd = _open_dir(Path(READ_DIR), dir_fd=bfd)
+    if dfd is not None and owned:
+        try:
+            mine = os.fstat(dfd).st_uid == os.geteuid()
+        except OSError:
+            mine = False
+        if not mine:
+            os.close(dfd)
+            return None
+    return dfd
+
+
+def _open_read_dir(box: Path, *, create: bool, owned: bool = True) -> int | None:
+    """`_open_read_dir_at` from a path: the box is opened no-follow first (the
+    COO user's ACL reaches every box and the inbox root, so a box could be
+    swapped for a link too)."""
+    bfd = _open_dir(box)
+    if bfd is None:
+        return None
+    try:
+        return _open_read_dir_at(bfd, create=create, owned=owned)
+    finally:
+        os.close(bfd)
+
+
+def _read_at(dfd: int, name: str) -> str | None:
+    """`_read_regular` for an entry of an open directory."""
+    try:
+        fd = os.open(name, os.O_RDONLY | _NOFOLLOW | _NONBLOCK, dir_fd=dfd)
+    except OSError:
+        return None
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            return None
+        return os.read(fd, _READ_CAP).decode("utf-8", "replace")
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+
+
+def _write_at(dfd: int, name: str, text: str, mode: int) -> None:
+    """Write entry `name` of an open directory by atomic rename. Raises OSError."""
+    tmp = f".{secrets.token_hex(6)}.tmp"
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | _NOFOLLOW, mode, dir_fd=dfd)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        os.replace(tmp, name, src_dir_fd=dfd, dst_dir_fd=dfd)
+    except BaseException:
+        try:
+            os.unlink(tmp, dir_fd=dfd)
+        except OSError:
+            pass
+        raise
+
+
+def _iter_dir(dfd: int, where: Path):
+    """(filename, letter) for each `*.json` letter of an open directory, oldest
+    first, each read no-follow relative to it; anything else is skipped."""
+    try:
+        names = sorted(n for n in os.listdir(dfd) if n.endswith(".json"))
+    except OSError:
+        return
+    for name in names:
+        try:
+            letter = json.loads(_read_at(dfd, name) or "")
+        except Exception:
+            continue
+        if isinstance(letter, dict):
+            yield name, _fill(letter, where / name)
+
+
+def _iter_paths(paths):
+    """`_iter_dir` by path, for an OS without dir_fd (Windows: no unprivileged
+    user shares a box there)."""
+    for f in paths:
+        try:
+            letter = json.loads(_read_regular(f) or "")
+        except Exception:
+            continue
+        if isinstance(letter, dict):
+            yield f.name, _fill(letter, f)
+
+
+class _BoxView:
+    """One box's unread letters, read and archived without following a link:
+    relative to the box opened no-follow, so swapping the box for a symlink
+    mid-pass changes nothing (a root drain of a box the COO can rename).
+    `ok` is False for a missing box or one that is a symlink."""
+
+    def __init__(self, box: Path) -> None:
+        self.box = box
+        self.fd = _open_dir(box) if _DIRFD_OK else None
+        self.ok = self.fd is not None if _DIRFD_OK else (box.is_dir() and not box.is_symlink())
+
+    def __enter__(self) -> "_BoxView":
+        return self
+
+    def __exit__(self, *exc) -> None:
+        if self.fd is not None:
+            os.close(self.fd)
+
+    def letters(self):
+        if not self.ok:
+            return iter(())
+        if self.fd is not None:
+            return _iter_dir(self.fd, self.box)
+        return _iter_paths(sorted(self.box.glob("*.json")))
+
+    def archive(self, name: str, letter: dict) -> None:
+        if self.fd is not None:
+            _archive_at(self.fd, name, letter)
+        else:
+            _archive(self.box / name, letter)
+
+
+def _read_dir_letters(box: Path) -> list[tuple[str, dict]]:
+    """(filename, letter) for each read letter in `<box>/read/` this user owns."""
+    if not _DIRFD_OK:
+        rd = _read_box(box)
+        if box.is_symlink() or rd.is_symlink() or not rd.is_dir():
+            return []
+        return list(_iter_paths(sorted(rd.glob("*.json"))))
+    dfd = _open_read_dir(box, create=False)
+    if dfd is None:
+        return []
+    try:
+        return list(_iter_dir(dfd, box / READ_DIR))
+    finally:
+        os.close(dfd)
+
+
+def _replace_file(dirpath: Path, name: str, text: str) -> None:
+    """Write `dirpath/name` by atomic rename: a planted symlink or hard link at
+    that name is replaced, never written through. Raises OSError."""
+    fd, tmp = tempfile.mkstemp(dir=str(dirpath), suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, dirpath / name)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
 
 
 def envelope_on() -> bool:
@@ -234,7 +437,8 @@ def resolve_subject(subject: str | None, body: str) -> tuple[str, str | None]:
 
 
 def _new_id() -> str:
-    return "m-" + secrets.token_hex(4)
+    """`L-MMDD-HHMM-xxxx` (UTC, 4 random hex), the plan's §6.2 letter id."""
+    return f"L-{datetime.now(timezone.utc):%m%d-%H%M}-{secrets.token_hex(2)}"
 
 
 def _iso_now() -> str:
@@ -243,12 +447,18 @@ def _iso_now() -> str:
 
 def _fill(letter: dict, path: Path) -> dict:
     """Envelope fields for a letter written before envelope mode (or by a
-    sender running with the flag off): the filename stem is its id."""
-    letter.setdefault("id", path.stem)
-    if not letter.get("subject"):
-        letter["subject"] = default_subject(letter.get("body", ""))
-    letter.setdefault("kind", "message")
-    letter.setdefault("prio", "normal")
+    sender running with the flag off): the filename stem is its id. Also
+    normalises what a reader prints, whoever wrote the file: a non-token id
+    becomes the stem, the subject one line of at most 80 characters, an
+    unknown kind or prio the default."""
+    if not isinstance(letter.get("id"), str) or not _ID_RE.fullmatch(letter["id"]):
+        letter["id"] = path.stem
+    subject = " ".join(str(letter.get("subject") or "").split())[:SUBJECT_MAX]
+    letter["subject"] = subject or default_subject(letter.get("body", ""))
+    if letter.get("kind") not in KINDS:
+        letter["kind"] = "message"
+    if letter.get("prio") not in PRIOS:
+        letter["prio"] = "normal"
     letter.setdefault("read_at", None)
     return letter
 
@@ -257,26 +467,46 @@ def _read_box(box: Path) -> Path:
     return box / READ_DIR
 
 
+def _archive_at(bfd: int, name: str, letter: dict) -> None:
+    """Move unread letter `name` of the open box `bfd` to its `read/`, carrying
+    `read_at`. Never raises: if the read copy cannot be written the letter is
+    removed anyway, because a letter that stays unread would be delivered
+    again on every prompt (exactly-once wins over keeping a copy). A `read`
+    that is a symlink or not this user's keeps no copy."""
+    try:
+        mode = os.stat(name, dir_fd=bfd, follow_symlinks=False).st_mode & 0o777
+        dfd = _open_read_dir_at(bfd, create=True)
+        if dfd is not None:
+            try:
+                _write_at(dfd, name, json.dumps(letter, ensure_ascii=False, indent=2), mode)
+            finally:
+                os.close(dfd)
+    except Exception:
+        pass
+    try:
+        os.unlink(name, dir_fd=bfd)
+    except OSError:
+        pass
+
+
 def _archive(path: Path, letter: dict) -> None:
-    """Move one unread letter to `<box>/read/` carrying `read_at`. Never
-    raises: if the read copy cannot be written the letter is removed anyway,
-    because a letter that stays unread would be delivered again on every
-    prompt (exactly-once wins over keeping a copy)."""
+    """`_archive_at` by path, for an OS without dir_fd."""
     try:
         rd = _read_box(path.parent)
-        rd.mkdir(exist_ok=True)
-        fd, tmp = tempfile.mkstemp(dir=str(rd), suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                json.dump(letter, fh, ensure_ascii=False, indent=2)
+        if not rd.is_symlink():
+            rd.mkdir(exist_ok=True)
+            fd, tmp = tempfile.mkstemp(dir=str(rd), suffix=".tmp")
             try:
-                os.chmod(tmp, path.stat().st_mode & 0o777)
-            except OSError:
-                pass
-            os.replace(tmp, rd / path.name)
-        except BaseException:
-            Path(tmp).unlink(missing_ok=True)
-            raise
+                with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                    json.dump(letter, fh, ensure_ascii=False, indent=2)
+                try:
+                    os.chmod(tmp, path.lstat().st_mode & 0o777)
+                except OSError:
+                    pass
+                os.replace(tmp, rd / path.name)
+            except BaseException:
+                Path(tmp).unlink(missing_ok=True)
+                raise
     except Exception:
         pass
     path.unlink(missing_ok=True)
@@ -284,34 +514,60 @@ def _archive(path: Path, letter: dict) -> None:
 
 def prune(box: Path, *, now: float | None = None) -> int:
     """Delete read letters older than RETAIN_DAYS (by the time they were
-    read: the archive file's mtime). Returns how many went. Never raises."""
+    read: the archive file's mtime). Returns how many went. Never raises.
+
+    The wake sweep runs this as root over every box, the COO's included, so
+    `read/` is opened no-follow and every entry is stat'ed and unlinked
+    relative to that open directory: a `read` symlink planted in the box
+    points the prune nowhere, and swapping it mid-pass changes nothing."""
     cutoff = (now if now is not None else time.time()) - RETAIN_DAYS * 86400
+    rd = _read_box(box)
     gone = 0
+    if not _DIRFD_OK:  # Windows: no dir_fd; no unprivileged box there either
+        try:
+            if rd.is_symlink():
+                return 0
+            for f in rd.glob("*.json"):
+                try:
+                    if f.lstat().st_mtime < cutoff:
+                        f.unlink(missing_ok=True)
+                        gone += 1
+                except OSError:
+                    continue
+        except Exception:
+            pass
+        return gone
+    dfd = _open_read_dir(box, create=False, owned=False)
+    if dfd is None:
+        return 0
     try:
-        for f in _read_box(box).glob("*.json"):
+        for name in os.listdir(dfd):
+            if not name.endswith(".json"):
+                continue
             try:
-                if f.stat().st_mtime < cutoff:
-                    f.unlink(missing_ok=True)
+                if os.stat(name, dir_fd=dfd, follow_symlinks=False).st_mtime < cutoff:
+                    os.unlink(name, dir_fd=dfd)
                     gone += 1
             except OSError:
                 continue
     except Exception:
         pass
+    finally:
+        os.close(dfd)
     return gone
 
 
 def _drain_envelope(role: str, session_id: str, root: Path | None) -> list[dict]:
+    box = _box(role, session_id, root)
     out = []
-    for p in _letters(role, session_id, root):
-        try:
-            letter = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        _fill(letter, p)
-        letter["read_at"] = _iso_now()
-        _archive(p, letter)
-        out.append(letter)
-    prune(_box(role, session_id, root))
+    with _BoxView(box) as view:
+        if not view.ok:
+            return out        # no box, or one swapped for a link: nobody's box
+        for name, letter in view.letters():   # malformed / not a regular file: left in place
+            letter["read_at"] = _iso_now()
+            view.archive(name, letter)
+            out.append(letter)
+    prune(box)
     return out
 
 
@@ -344,25 +600,15 @@ def _summary(letter: dict, unread: bool) -> dict:
     }
 
 
-def _parsed(paths) -> list[tuple[Path, dict]]:
-    out = []
-    for p in paths:
-        try:
-            out.append((p, _fill(json.loads(p.read_text(encoding="utf-8")), p)))
-        except Exception:
-            continue
-    return out
-
-
 def list_letters(role: str, session_id: str, *, root: Path | None = None,
                  include_read: bool = True, limit: int = 50) -> list[dict]:
     """Summaries (no body) of the box's letters, newest first: the unread
     ones, then (include_read) those read in the last RETAIN_DAYS."""
-    items = [_summary(l, True) for _, l in _parsed(_letters(role, session_id, root))]
+    box = _box(role, session_id, root)
+    with _BoxView(box) as view:
+        items = [_summary(l, True) for _, l in view.letters()]
     if include_read:
-        rd = _read_box(_box(role, session_id, root))
-        if rd.is_dir():
-            items += [_summary(l, False) for _, l in _parsed(sorted(rd.glob("*.json")))]
+        items += [_summary(l, False) for _, l in _read_dir_letters(box)]
     items.sort(key=lambda d: (str(d.get("sent_at") or ""), str(d.get("id") or "")), reverse=True)
     return items[:max(0, int(limit))]
 
@@ -374,17 +620,17 @@ def read_letter(role: str, session_id: str, letter_id: str, *,
     never joined into a path, and one that is not a plain token is refused."""
     if not isinstance(letter_id, str) or not _ID_RE.fullmatch(letter_id):
         return None
-    for p, letter in _parsed(_letters(role, session_id, root)):
-        if letter["id"] == letter_id:
-            if envelope_on():
-                letter["read_at"] = _iso_now()
-                _archive(p, letter)
-            return letter
-    rd = _read_box(_box(role, session_id, root))
-    if rd.is_dir():
-        for _, letter in _parsed(sorted(rd.glob("*.json"))):
+    box = _box(role, session_id, root)
+    with _BoxView(box) as view:
+        for name, letter in view.letters():
             if letter["id"] == letter_id:
+                if envelope_on():
+                    letter["read_at"] = _iso_now()
+                    view.archive(name, letter)
                 return letter
+    for _, letter in _read_dir_letters(box):
+        if letter["id"] == letter_id:
+            return letter
     return None
 
 
@@ -404,7 +650,13 @@ def note_sweep(*, root: Path | None = None) -> None:
     base = root if root is not None else INBOX_ROOT
     try:
         base.mkdir(parents=True, exist_ok=True)
-        (base / SWEEP_BEAT_FILE).touch()
+        fd = os.open(str(base / SWEEP_BEAT_FILE),
+                     os.O_WRONLY | os.O_CREAT | _NOFOLLOW | _NONBLOCK, 0o644)
+        try:
+            if stat.S_ISREG(os.fstat(fd).st_mode):
+                os.utime(fd if os.utime in os.supports_fd else str(base / SWEEP_BEAT_FILE))
+        finally:
+            os.close(fd)
     except OSError:
         pass
 
@@ -412,16 +664,18 @@ def note_sweep(*, root: Path | None = None) -> None:
 def sweeper_alive(*, root: Path | None = None, now: float | None = None) -> bool:
     base = root if root is not None else INBOX_ROOT
     try:
-        age = (now if now is not None else time.time()) - (base / SWEEP_BEAT_FILE).stat().st_mtime
+        st = (base / SWEEP_BEAT_FILE).lstat()
     except OSError:
         return False
-    return age <= SWEEP_STALE_S
+    if not stat.S_ISREG(st.st_mode):
+        return False
+    return (now if now is not None else time.time()) - st.st_mtime <= SWEEP_STALE_S
 
 
 def _last_wake(box: Path) -> float:
     try:
-        return float((box / LAST_WAKE_FILE).read_text(encoding="utf-8").strip())
-    except Exception:
+        return float((_read_regular(box / LAST_WAKE_FILE) or "").strip())
+    except ValueError:
         return 0.0
 
 
@@ -431,9 +685,8 @@ def note_wake(role: str, session_id: str, *, root: Path | None = None,
     count toward the next wake. Never raises."""
     box = _box(role, session_id, root)
     try:
-        if box.is_dir():
-            (box / LAST_WAKE_FILE).write_text(
-                repr(now if now is not None else time.time()), encoding="utf-8")
+        if box.is_dir() and not box.is_symlink():
+            _replace_file(box, LAST_WAKE_FILE, repr(now if now is not None else time.time()))
     except OSError:
         pass
 
@@ -446,7 +699,7 @@ def waiting_since_wake(role: str, session_id: str, *, root: Path | None = None) 
     out = []
     for p in _letters(role, session_id, root):
         try:
-            m = p.stat().st_mtime
+            m = p.lstat().st_mtime
         except OSError:
             continue
         if m > last:

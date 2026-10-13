@@ -1192,13 +1192,17 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
                 **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
     # Envelope mail (ORG_MAIL_ENVELOPE on; org restructure P1). The letters row
     # carries no subject, so the body's first 80 characters stand in and the
-    # result says so. A letter SomPong relayed for the CEO is an urgent order.
+    # result says so. A letter SomPong relayed for the CEO wakes at once
+    # (urgent), but is not labelled an order here: the row's sender is
+    # whatever its writer put in it (any holder of ORG_DB_URL), so only
+    # runners/relay_mcp_server.relay_to_session, whose sender is pinned,
+    # makes kind "order". A forged urgent costs one early wake, nothing more.
     body = letter["body"]
     subject, warning = mailbox.resolve_subject(letter.get("subject"), body)
-    order = from_role == "secretary" and str(body).startswith("[CEO via SomPong]")
-    prio = "urgent" if order else "normal"
+    ceo = from_role == "secretary" and str(body).startswith("[CEO via SomPong]")
+    prio = "urgent" if ceo else "normal"
     path = mailbox.send(role, sid, body, from_role, from_sid, subject=subject,
-                        kind="order" if order else "message", prio=prio)
+                        kind="message", prio=prio)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
     out: dict = {"to": f"{role}-{sid}"}

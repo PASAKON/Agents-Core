@@ -52,21 +52,28 @@ def _envelope_on() -> bool:
     return os.environ.get("ORG_MAIL_ENVELOPE", "").strip().lower() in ("1", "true", "yes", "on")
 
 
+def _one_line(value, cap: int) -> str:
+    """A field a sender wrote, as one bounded line: a newline in a subject or a
+    sender name must not print a second envelope line."""
+    return " ".join(str(value if value is not None else "").split())[:cap]
+
+
 def _print_envelopes(letters: list[dict]) -> None:
     print(f"## Mailbox — {len(letters)} letter(s), marked read "
           f"(a body over {ENVELOPE_BODY_MAX} chars: read_letter(\"<id>\") "
           f"or `python -m tools.letters read <id>`)")
     print()
     for letter in letters:
-        frm = letter.get("from") or {}
-        who = f"{str(frm.get('role') or '?').upper()} {frm.get('session_id', '?')}"
-        kind = str(letter.get("kind") or "message")
-        prio = str(letter.get("prio") or "normal")
+        frm = letter.get("from") if isinstance(letter.get("from"), dict) else {}
+        who = (f"{_one_line(frm.get('role') or '?', 24).upper()} "
+               f"{_one_line(frm.get('session_id', '?'), 40)}")
+        kind = _one_line(letter.get("kind") or "message", 16)
+        prio = _one_line(letter.get("prio") or "normal", 16)
         tag = (kind if prio == "normal" else f"{kind}/{prio}").upper()
-        lid = letter.get("id") or "?"
+        lid = _one_line(letter.get("id") or "?", 96)
         body = str(letter.get("body") or "")
-        subject = letter.get("subject") or " ".join(body.split())[:80]
-        print(f"- [{lid}] {tag} from {who} · {letter.get('sent_at', '')} · {subject}")
+        subject = _one_line(letter.get("subject") or body, 80)
+        print(f"- [{lid}] {tag} from {who} · {_one_line(letter.get('sent_at', ''), 32)} · {subject}")
         if len(body) <= ENVELOPE_BODY_MAX:
             for ln in body.splitlines() or [""]:
                 print(f"    {ln}")

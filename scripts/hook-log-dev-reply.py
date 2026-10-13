@@ -74,7 +74,7 @@ def _letter_kind(events: list[str]) -> tuple[str, str]:
         return "report", "urgent"
     if "message" in kinds:
         return "message", "normal"
-    return "notice", "normal"      # a rate limit with no event
+    return "fyi", "normal"         # a rate limit with no event
 
 
 def _log_for(cto_id: str | None) -> Path:
