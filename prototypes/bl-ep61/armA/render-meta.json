@@ -1,0 +1,76 @@
+{
+ "task": "task-03f18aab",
+ "episode": "BL EP61 Tickmill 1 ล็อต จ่ายจริงเท่าไหร่",
+ "arm": "A",
+ "final": "/opt/MoonieXHQ/Work/bl-ep61/armA/v1/final-ep61-armA-v1.mp4",
+ "sheet": "/opt/MoonieXHQ/Work/bl-ep61/armA/v1/sheet-ep61-armA-v1.jpg",
+ "bytes": 9776250,
+ "duration_s": 68.0,
+ "fps": "30/1",
+ "size": "1080x1920",
+ "frames": 2040,
+ "video_codec": "h264",
+ "loudness_lufs": -15.51,
+ "modes": {
+  "COMP": 13,
+  "KIN": 3,
+  "EVID": 14
+ },
+ "beats": 30,
+ "windows": 9,
+ "window_render": "tools/bl_compose.py --t0/--t-max via prototypes/bl-ep61/armA/render_window.py, frame-aligned, merged with tools/bl_merge.py --beats against audio-hq-decoded.wav",
+ "verify": "VERIFY PASSED",
+ "checker_pass": true,
+ "brand_mark": {
+  "ok": true,
+  "side": "left",
+  "min_opacity": 0.95,
+  "steady_level": 191.89,
+  "frames": 2040,
+  "min_ratio": 0.9926,
+  "min_time": 51.833,
+  "failing_frames": 0,
+  "failing_times": [],
+  "failing_ranges": []
+ },
+ "checker": {
+  "pass": true,
+  "empty_frames": [],
+  "empty_frames_excused": [],
+  "out_of_safe_area": [],
+  "text_over_face": [],
+  "comp_evidence_landing": [],
+  "credit_missing": [],
+  "extra_caption_styles": [],
+  "kinetic_overflow": [],
+  "headline": []
+ },
+ "merge_gates": {
+  "frame_count": {
+   "ok": true,
+   "actual": 2040,
+   "expected": 2040,
+   "tolerance": 1
+  },
+  "empty_frames": [],
+  "seam_failures": [],
+  "audio_offset": {
+   "ok": true,
+   "offset_s": 0.0,
+   "max_offset_s": 0.04
+  },
+  "extra_caption_styles": [],
+  "empty_frames_excused": []
+ },
+ "part_frame_counts": {
+  "seg01": 249,
+  "seg02": 251,
+  "seg03": 218,
+  "seg04": 221,
+  "seg05": 227,
+  "seg06": 247,
+  "seg07": 218,
+  "seg08": 190,
+  "seg09": 219
+ }
+}
