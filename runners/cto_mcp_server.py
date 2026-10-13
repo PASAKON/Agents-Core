@@ -253,6 +253,27 @@ async def ask_run(
     )
 
 
+@mcp.tool(description=reg.BY_NAME["ask_ceo"].description)
+async def ask_ceo(
+    question: str,
+    options: list[str],
+    why: str,
+    recommended: int = 0,
+    free_text: bool = True,
+    expires_h: float = 24.0,
+    session: str = "",
+    role: str = "",
+    host: str = "",
+    task: str = "",
+    dry_run: bool = False,
+) -> str:
+    return await reg.dispatch(
+        "ask_ceo", question=question, options=options, why=why, recommended=recommended,
+        free_text=free_text, expires_h=expires_h, session=session, role=role, host=host,
+        task=task, dry_run=dry_run,
+    )
+
+
 @mcp.tool(description=reg.BY_NAME["ask_run_wait"].description)
 async def ask_run_wait(
     id: str, max_wait_s: float = 600.0, interval_s: float = 5.0, tail_lines: int = 40,
