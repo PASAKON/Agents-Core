@@ -352,6 +352,18 @@ async def _h_ask_run(*, host: str, why: str, script: str = "", args: list[str] |
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
+async def _h_ask_ceo(*, question: str, options: list[str], why: str, recommended: int = 0,
+                     free_text: bool = True, expires_h: float = 24.0, session: str = "",
+                     role: str = "", host: str = "", task: str = "", dry_run: bool = False) -> str:
+    arguments = {
+        "question": question, "options": options, "why": why, "recommended": recommended,
+        "free_text": free_text, "expires_h": expires_h, "session": session, "role": role,
+        "host": host, "task": task, "dry_run": dry_run,
+    }
+    result = await asyncio.to_thread(ask_run_tool.mcp_ask_ceo, arguments)
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
 async def _h_ask_run_wait(*, id: str, max_wait_s: float = 600.0, interval_s: float = 5.0,
                           tail_lines: int = 40) -> str:
     result = await asyncio.to_thread(
@@ -765,13 +777,51 @@ REGISTRY: tuple[ToolSpec, ...] = (
         response_format="text",
     ),
     ToolSpec(
+        name="ask_ceo",
+        description=(
+            "Ask the CEO a question with 2-4 answers he taps on his phone "
+            "(Run Inbox question card, /run). Use it for ANY question to the CEO "
+            "instead of asking in chat: the card is the question, with your why "
+            "and your options. The CEO's tap is the only authority; the tool "
+            "never answers. NEVER use it to run a command, spend money or touch "
+            "a secret: those go on a command card (ask_run, Face ID), and a "
+            "command-shaped or money-naming question or option is refused.\n\n"
+            "options: 2-4 labels, one line each, 1-120 chars, unique; "
+            "recommended: 1-based option number, 0 = none; free_text: false "
+            "means an option is required and the CEO gets no text box; "
+            "expires_h: 24 by default, from 10 minutes to 7 days. C-level "
+            "sessions only. A secret-shaped value anywhere is refused before "
+            "anything is sent. session/role/host/task default to this session's "
+            "env (host: ORG_HOST, else the machine's own name). Returns {id, url, "
+            "expires_at} at once; read the answer with ask_run_wait on the id "
+            "(it returns the hub's record, which is what you cite as the CEO's "
+            "decision; the mailbox letter is only a wake-up). dry_run=True "
+            "returns the JSON body and sends nothing. Same code as "
+            "tools/ask_run.py ask (docs/design/run-inbox/QUESTIONS.md §9)."
+        ),
+        params=(
+            Param("question", str), Param("options", list[str]), Param("why", str),
+            Param("recommended", int, 0), Param("free_text", bool, True),
+            Param("expires_h", float, 24.0), Param("session", str, ""),
+            Param("role", str, ""), Param("host", str, ""), Param("task", str, ""),
+            Param("dry_run", bool, False),
+        ),
+        handler=_h_ask_ceo,
+        is_async=True,
+        response_format="text",
+    ),
+    ToolSpec(
         name="ask_run_wait",
         description=(
-            "Wait for a Run Inbox ask to end (polls every 5 s) and return its "
-            "record: terminal=true once it is done/failed/denied/expired/"
-            "cancelled, terminal=false if max_wait_s (default 600, max 3600) "
-            "ran out first; then call again. The CEO's tap is the only "
-            "authority; the tool never approves."
+            "Wait for a Run Inbox ask or question to end (polls every 5 s) and "
+            "return its record: terminal=true once a command card (RUN-...) is "
+            "done/failed/denied/expired/cancelled, or a question (Q-..., from "
+            "ask_ceo) is answered/expired/cancelled; terminal=false if "
+            "max_wait_s (default 600, max 3600) ran out first; then call "
+            "again. A question's record carries status and answer "
+            "{choice, label, text, answered_by, answered_at}: that hub record, "
+            "not a mailbox letter, is the CEO's decision. The CEO's tap is the "
+            "only authority; the tool never approves or answers."
         ),
         params=(
             Param("id", str), Param("max_wait_s", float, 600.0),
