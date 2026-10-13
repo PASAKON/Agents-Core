@@ -99,7 +99,10 @@ when sent. `done` = `answered` + `expired` + `cancelled`.
    `invalid_free_text` · `invalid_expires_in_s`.
 6. `command_shaped {field}`: §5 matched the question or an option label.
 7. `money_needs_command_card {field}`: §6 matched the question or an option label.
-8. `429 too_many_open_questions`: 50 pending questions already.
+8. `429 too_many_open_questions`: 50 pending questions already (all sessions), or 5 pending from this
+   `requester.session`. `429 too_many_questions`: 10 created by this `requester.session`, or 30 in all, in the
+   last 60 minutes, counting every status (a cancelled question still counts). Security review 2026-10-13: a
+   create → cancel loop kept the open count at 0, and every create queued a `new` mail that buzzes the CEO.
 
 `field` names the place: `question`, `options[1].label`, never the value.
 
