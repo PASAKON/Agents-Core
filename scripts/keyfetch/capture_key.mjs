@@ -13,6 +13,8 @@
 //        extractor as <src>=<VAR>, e.g.  --field id=TAILSCALE_OAUTH_CLIENT_ID --field key=TAILSCALE_OAUTH_CLIENT_SECRET
 //        or  --dom 'input#cid=X_CLIENT_ID' --dom 'input#sec=X_CLIENT_SECRET'. Every value is captured
 //        first; the puts run in the order given, each its own `put --stdin`.
+//        wire paths: `a|b` = first alternative that yields a value; `a+b` = both values joined with ':'
+//        (fal: --field 'key_id+key_secret=FAL_API_KEY'). A wrong guess otherwise leaves a key at the provider.
 //        [--click <button label regex>]   default: ^(create|generate|new|add)\b (in the open dialog)
 //        [--wait]   do not click: a person clicks Create within 5 min (the script only listens)
 //        [--check]  attach, find the tab and the button, print what was found, click nothing

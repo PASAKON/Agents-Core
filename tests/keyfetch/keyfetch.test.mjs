@@ -100,6 +100,16 @@ test('pickFields returns both, and on a miss names (never values) of what is abs
   assert.deepEqual(r.missing, ['B_SECRET', 'C_TOKEN', 'D_URL']);
 });
 
+test('pickFields: a|b takes the first alternative that yields, a+b joins with a colon, a miss names only the variable', () => {
+  const body = { key_id: ID, key_secret: SECRET, data: { secret: 'inner' }, empty: '' };
+  const one = (src) => pickFields(body, [{ src, name: 'X_KEY' }]);
+  assert.equal(one('key_id+key_secret').entries[0].value, `${ID}:${SECRET}`);
+  assert.equal(one('key|data.key|data.secret').entries[0].value, 'inner');
+  assert.equal(one('empty|key_secret').entries[0].value, SECRET);
+  assert.deepEqual(one('key_id+nope').missing, ['X_KEY']);   // a join needs every part
+  assert.deepEqual(one('nope|empty').entries, []);
+});
+
 // ------------------------------------------------------------------ puts and the pre-check (stub tool)
 
 function workdir() {
