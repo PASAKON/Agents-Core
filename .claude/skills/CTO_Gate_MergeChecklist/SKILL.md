@@ -32,6 +32,7 @@ Run these gates before `merge_task(task_id)`. **Refuse merge if any gate fails.*
 ### 1. DEV report present + structured
 - [ ] Report includes: files changed, tests run, blockers.
 - [ ] Status is `done` (not `failed`, not `conflict`, not `in_progress`).
+- [ ] The report has a `## Not checked / risk` section (`roles/_worker_shared.md`, since 2026-10-13), and it is not a bare "none". Each risk it names is either checked by you now or carried into the merge line.
 - If `failed` → do NOT merge. Investigate first (memory: never auto-merge failed task).
 
 ### 2. Tests green
@@ -39,12 +40,22 @@ Run these gates before `merge_task(task_id)`. **Refuse merge if any gate fails.*
 - [ ] All tests DEV ran passed. Quote the output count.
 - [ ] No tests skipped/xfailed without justification.
 - [ ] **A pass that cannot fail proves nothing.** `scripts/test_mcp_role_config.py` counts failures instead of asserting, so pytest reports it "passed" whatever happens, and `scripts/test_org_tools_registry.py` is `--ignore`d in `pytest.ini`. On any org-tool change run both with python directly and quote their own verdict line. Seen twice: `scripts/test_tool_parity.py` (fixed 0cf98ec5, 2026-08-15), then the Run Inbox P1b worker (b2830b3c, 2026-09-25).
+- [ ] **A bug-fix test must fail without the fix.** Run the branch's new test against the base code, using either of two methods. (1) In the worktree, `git checkout <base> -- <fixed paths>`, run the test, then `git checkout <branch> -- <fixed paths>` to restore. (2) Copy the test next to the base code and run it there. Quote both result lines: it fails on base and passes on the branch. A test that is green on both proves nothing; this is the general form of the bullet above. A test that is meant to pass on both (a regression guard) is named as one. First run: 214b1816, where 4 of the 6 new tests failed on the old installer and the 2 guards passed. (Idea from Superpowers, MIT.)
 - [ ] **No test reaches a live API.** `conftest.py` at the repo root (not `tests/`) seals the `.env` reader for every test (`@pytest.mark.allow_dotenv` opts out). On a branch that calls an outside service, run the suite once with `HTTPS_PROXY=http://127.0.0.1:9 NO_PROXY=localhost,127.0.0.1`: a live call fails loudly instead of passing quietly (task-a6129a75; 2 live Jev calls per run on main, 2026-09-22).
 - [ ] **New test files import only what `requirements.txt` has.** CI installs that file alone (`.github/workflows/ci.yml`); a package only the local `.venv` carries stops collection, and CI runs zero tests for every PR (task-67f82679, main red until 47f9d942). `git diff --name-only <base>...<branch> -- tests/`, then read each new file's imports.
 - [ ] **No invisible characters in the diff.** The Write tool can land a typed `\uXXXX` escape as the literal code point: U+2028 inside a regex broke an import, bidi controls reached a source file (Run Inbox P1a + P1b, 2026-09-25). Every line this prints is a finding to judge:
       `git diff <base>...<branch> | python3 -c 'import sys,unicodedata as u; [print(n, hex(ord(c))) for n,l in enumerate(sys.stdin.buffer.read().decode("utf-8","replace").split("\n"),1) for c in l if u.category(c) in ("Cf","Zl","Zp","Co","Cn") or (u.category(c)=="Cc" and c not in "\t\r")]'`
 - **Read the failing path before calling a rerun red — the review environment is not the worker's.** A worktree's `node_modules` may be a symlink to a main checkout installed `--omit=dev` (`ERR_MODULE_NOT_FOUND`, Console task-94755874) or already deleted by the worker (`./node_modules/.bin/next` missing, 0 checks run, ComfyRunpod task-97ce5459): give it a working one (`npm ci`, or link main's), rerun, remove the link before `merge_task`. A Next.js `tsc` error under `<app>/.next/` on main is a stale build cache: `rm -rf <app>/.next/types`, rerun (ComfyRunpod 3bf4ddf, rc 2 → 0).
 - If tests fail → reopen task with feedback, do not merge.
+
+### 2b. Security pass on a sensitive branch — HARD (born 2026-10-13, CEO OK on plan 327f7664)
+This applies when the branch touches any of: auth or permissions; secret handling (Infisical, `.env` readers, key capture); HTTP routes or webhooks; hooks (`scripts/hook-*`, `.claude/settings.json`, git hooks); `.github/`; or any file in a public repo (Agents-Core, Agents-Rules).
+- [ ] Run `/security-review` on the branch's own diff. Judge each finding against the code, then paste the verdict line: the findings kept, and each one dismissed with its reason.
+- [ ] Scan only the branch's commits with gitleaks: `gitleaks git --log-opts="<base>..<branch>" --redact --no-banner`. Exit 0 passes. Paste the summary line.
+- [ ] Report a hit as `path:line` and the rule id only. Never quote the value, not even a prefix (`CTO_Procedure_KeyFetch` rule 7). If the hit is real, rewrite the branch before it lands, then tag the key `leaked` in Infisical and rotate it.
+- `/security-review` reads the text it reviews and can be steered by it. Run it on our own branches only, never on an outside contributor's PR, and never let it fix or push.
+- If the box has no gitleaks, HOLD. The hook installer says so since 214b1816.
+**Why hard:** irreversible. A secret pushed to a public repo stays public, whatever is rewritten later. A credential-shaped literal in a local Contabo commit was caught only by a hand scan, and that push has been held since 2026-10-10.
 
 ### 3. Path conflicts cleared
 - [ ] No in-flight task locks the same paths (`check_collisions(project, touches)`).
@@ -96,7 +107,8 @@ Applies to any task whose report shows the **same operation performed more than 
 ```
 Gate 0 (Dirty base)           : PASS — clean / parked <path> md5=… restored identical / left in place, hand-merged <sha> / N/A
 Gate 1 (DEV report)           : PASS — status=done, files=N, tests=ok
-Gate 2 (Tests green)          : PASS — 113 passed, 0 failed · new imports in requirements.txt · no invisible chars
+Gate 2 (Tests green)          : PASS — 113 passed, 0 failed · new test fails on base · new imports in requirements.txt · no invisible chars
+Gate 2b (Security pass)       : PASS — /security-review 0 kept · gitleaks 0 leaks in <base>..<branch> / N/A — no sensitive path
 Gate 3 (Path conflicts)       : PASS — no overlap with in-flight
 Gate 4 (Acceptance criteria)  : PASS — all 3 criteria met
 Gate 4b (Guard is on the path) : PASS — resume-video.js -> stage-runner -> runTTS -> assertBudget / N/A — no guard added
@@ -240,3 +252,4 @@ Verdict: MERGE  /  REOPEN with feedback  /  HOLD pending <reason>
 - 2026-10-04 [MISSING] §9 — a fast-forward card for the Contabo live checkout went stale within an hour: another session committed to the live checkout (c36d7b10) before the card was tapped, so its target was no longer a descendant of HEAD. Before re-posting an expired card, re-read the live HEAD and rebuild the trial merge on it (detached worktree, merge origin/main, union field-note conflicts, regenerate SKILL-INDEX, test) · evidence: RUN-20261004-0621-f4d7 → rebuilt as c952dd7f for RUN-20261004-0721-9d0a · status: pending
 - 2026-10-05 [MISSING] deploy rule — a Run card on Contabo runs inside `mooniex-console.service` (src/run/executor.js spawns it with node-pty from the Console process). A card that runs `systemctl restart mooniex-console` therefore kills itself mid-run and loses its result. Schedule the restart outside the unit instead: `systemd-run --on-active=5 --unit=<name> systemctl restart mooniex-console`, then confirm a new MainPID and the new file served on :8443 · evidence: RUN-20261004-1712-4953 (Console GH #21 deploy) · status: pending
 - 2026-10-05 [COSTLY] §2 + §9 — the full Agents-Core suite on Contabo is now 8,008 tests and takes ~35 min (load ~2.6). A trial run with a 20-min background limit was killed at 75% with no failure printed, which reads like a hang; a verbose rerun with `-o faulthandler_timeout=90` showed no test over 90 s, it was only slow (reached 98% at the 1,700 s `timeout`). Give a full trial run ≥2,400 s, or run the files after the cut-off from `pytest --collect-only` (per-file list, in run order) to finish a killed run. Its 3 failures (test_skill_visibility baseline keys, test_wiki_multiroot namespaced read, test_keyfetch_node_suite) fail identically on the live HEAD in a detached worktree: environment, not the merge · evidence: trial 16c88853 (bdh71bqhg killed, b0of3d843 rc=124, rest 250 passed), card RUN-20261005-0105-0226 · status: pending
+- 2026-10-13 [MISSING] §4 — concrete-case review (outside source: Ponytail v5, MIT; not yet seen in our own runs): read the callers of every changed function, and make each review finding name the input or state that breaks it (`X=… → wrong Y`). A finding without a breaking input is a question for the worker, not a reason to reopen. Promote to a §4c rule when two of our own reviews show a vague finding costing a round · evidence: plan 327f7664 item 5, CEO OK 2026-10-13 (option A via SomPong) · status: pending
