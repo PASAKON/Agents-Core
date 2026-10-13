@@ -1,53 +1,53 @@
-# winbox — ท่อที่ทดสอบจริงแล้ว
+# winbox — Pipes tested live
 
-**ซ้อมเสร็จ 11 ก.ย. 2026 23:45 น. — รวมการรีบูตจริงหนึ่งรอบ**
-ทุกบรรทัด**ใช้ท่อจริง** ไม่ได้อ่านค่า config แล้วเชื่อ
+**Drill completed 11 Sep 2026 23:45 — including one real reboot**
+Every line **uses the real pipe** — it does not read config values and trust them
 
-เช็คซ้ำได้ทุกเมื่อ: `bash scripts/winbox-drill.sh` (ไม่ถึงนาที)
+Re-check anytime: `bash scripts/winbox-drill.sh` (under a minute)
 
 ---
 
-## ✅ ผ่านทั้งหมด — 14 ข้อ · ไม่มีข้อตก
+## ✅ All passed — 14 checks · none failed
 
-| # | ท่อ | พิสูจน์ด้วย |
+| # | Pipe | Proven by |
 |---|---|---|
-| 1 | SSH เข้า winbox | เครื่องตอบชื่อ `DESKTOP-3NQB2QO` |
-| 2 | Tailscale ทนรีบูต | **ทดสอบรีบูตจริง กลับมาเอง** |
-| 3 | sshd ทนรีบูต | **ทดสอบรีบูตจริง กลับมาเอง** |
-| 4 | เครื่องไม่หลับเอง | Sleep on AC = Never |
-| 5 | **เครื่องบูตเข้าเดสก์ท็อปเองโดยไม่ต้องพิมพ์อะไร** | **รีบูตจริง → `UsEr` ล็อกอินอยู่ ไม่มีคนแตะ** |
-| 6 | ดิสก์พอ | 174 GB |
-| 7 | MACHINE-LOCK ว่าง | อ่านไฟล์จริง |
-| 8 | Codex ติดตั้งอยู่ | `codex-cli 0.153.4` |
-| 9 | ล็อกอิน ChatGPT ยังอยู่ | `Logged in using ChatGPT` |
-| 10 | **สั่ง Astra ได้** | ตอบ `DRILL OK` |
-| 11 | **Astra ไม่ต้องพึ่งแอป** | ฆ่า process แอปแล้วยังตอบ `APP CLOSED OK` |
-| 12 | VNC ทนรีบูต | **รีบูตจริง → Running** |
-| 13 | VNC ต่อได้ในวง Tailscale | ยิงพอร์ต 5900 จาก Contabo ทะลุ |
-| 14 | **CEO เข้าหน้าจอจากมือถือได้จริง** | **CEO ต่อเองสำเร็จ เมาส์ขยับได้** |
+| 1 | SSH into winbox | Machine answered with name `DESKTOP-3NQB2QO` |
+| 2 | Tailscale survives reboot | **Tested with a real reboot; came back on its own** |
+| 3 | sshd survives reboot | **Tested with a real reboot; came back on its own** |
+| 4 | Machine does not sleep on its own | Sleep on AC = Never |
+| 5 | **Machine boots to desktop on its own without typing anything** | **Real reboot → `UsEr` logged in, no one touched it** |
+| 6 | Enough disk space | 174 GB |
+| 7 | MACHINE-LOCK is free | Read the actual file |
+| 8 | Codex is installed | `codex-cli 0.153.4` |
+| 9 | ChatGPT login still present | `Logged in using ChatGPT` |
+| 10 | **Can command Astra** | Answered `DRILL OK` |
+| 11 | **Astra does not depend on the app** | Killed the app process and it still answered `APP CLOSED OK` |
+| 12 | VNC survives reboot | **Real reboot → Running** |
+| 13 | VNC connects within Tailscale | Probed port 5900 from Contabo; got through |
+| 14 | **CEO can reach the screen from phone** | **CEO connected himself; mouse moved** |
 
-**ผลรีบูตจริง 23:34 น. — SSH กลับมาใน 125 วินาที ทุกอย่างขึ้นครบเอง ไม่มีมนุษย์แตะ**
+**Real reboot result at 23:34 — SSH came back in 125 seconds, everything came up on its own, no human touched it**
 
 ---
 
-## 🔴 สิ่งที่สำคัญที่สุดที่เจอคืนนี้ — ท่อส่งกลับของ worker
+## 🔴 Most important finding tonight — worker return pipe
 
-**CEO จับได้จากการนั่งดูหน้าจอผ่าน VNC** ว่า worker ทำงานเสร็จแล้ว ทั้งที่ CTO เห็นว่า "ไม่มีรายงาน"
+**The CEO caught by watching the screen over VNC** that the worker had finished its work, even though the CTO saw "no report"
 
-สัญญาของระบบคือ: worker push branch พร้อม `REPORT.md` → `runners/branch_poller.py` ฝั่ง hub จับ →
-เปลี่ยนสถานะเป็น `review`
+The system contract is: worker pushes branch with `REPORT.md` → `runners/branch_poller.py` on the hub side catches it →
+changes status to `review`
 
 | | |
 |---|---|
-| worker push ขึ้น GitHub ได้ไหม | ✅ **ได้** (`git ls-remote` ผ่าน) |
-| คำเตือน `GITHUB_SSH_ROUTE=unreachable` ตอน spawn | ❌ **เตือนผิด** ตัวตรวจสอบบั๊ก ไม่ใช่เน็ตพัง |
-| `branch_poller.py` | ❌ **ไม่เคยรันเลย** ← ตัวจริง |
+| Can the worker push to GitHub? | ✅ **Yes** (`git ls-remote` passed) |
+| `GITHUB_SSH_ROUTE=unreachable` warning at spawn | ❌ **False alarm** — buggy check, not broken network |
+| `branch_poller.py` | ❌ **Never ran at all** ← the real culprit |
 
-**ถ้าไม่เจอ ตลอด 7 วัน worker จะทำงานเสร็จแล้วไม่มีใครรู้เลยสักตัว**
+**If not caught, for all 7 days workers would have finished their work without anyone knowing about a single one**
 
-**แก้แล้ว:** poller รันเป็น daemon · เช็คทุก 60 วินาที · log ที่ `state/logs/branch_poller.log`
+**Fixed:** poller runs as a daemon · checks every 60 seconds · logs at `state/logs/branch_poller.log`
 
-ถ้าสงสัยว่ามันตาย:
+If you suspect it died:
 ```bash
 pgrep -af "runners.branch_poller"
 # ถ้าไม่ขึ้น ให้รันใหม่:
@@ -56,44 +56,44 @@ cd /opt/mooniex-agents && setsid nohup python3 -m runners.branch_poller >> state
 
 ---
 
-## ค่าใช้จ่ายจริงของการคุยกับ Astra
+## Actual cost of talking to Astra
 
 | | token |
 |---|---|
-| พื้นของ Codex เอง (ลดไม่ได้) | 3,839 |
-| + `AGENTS.md` เดิม 11 KB | 6,492 |
-| **+ `AGENTS.md` ใหม่ 3.3 KB** | **4,689** |
+| Codex's own baseline (cannot be reduced) | 3,839 |
+| + old `AGENTS.md` 11 KB | 6,492 |
+| **+ new `AGENTS.md` 3.3 KB** | **4,689** |
 
-**ตัดไฟล์แล้วประหยัด 1,803 ทุกครั้ง = 28%**
-**ค่าพื้นเสียเท่ากันไม่ว่าถามสั้นถามยาว → รวบคำถามส่งทีเดียว ประหยัดได้ถึง 9 เท่า**
+**Trimming the file saves 1,803 every time = 28%**
+**The base cost is paid the same whether the question is short or long → batch questions and send at once to save up to 9x**
 
 ---
 
-## ข้อควรระวัง — เมาส์ตัวเดียว
+## Caution — one mouse
 
-เดสก์ท็อปมีชุดเดียว **ถ้า worker กำลังคลิกอยู่แล้ว CEO เข้า VNC ไปขยับเมาส์พร้อมกัน มันชนกัน**
-`MACHINE-LOCK.txt` คุมได้แค่ระหว่าง agent **ไม่ได้คุมคนที่เข้ามาทาง VNC**
+There is only one desktop — **if a worker is clicking and the CEO connects over VNC and moves the mouse at the same time, they collide**
+`MACHINE-LOCK.txt` only coordinates between agents — **it does not control someone coming in via VNC**
 
-ก่อนเข้า VNC:
+Before entering VNC:
 ```bash
 ssh -n winbox 'powershell -NoProfile -Command "Get-Content C:\mooniex\MACHINE-LOCK.txt"'
 ```
-มีชื่อค้าง = มี agent ทำงานอยู่ → รอ หรือบอก CTO ให้หยุดก่อน
+Name present = an agent is working → wait, or tell the CTO to stop it first
 
 ---
 
-## สิ่งที่ไม่มีทางแก้จากมือถือ
+## Things that cannot be fixed from a phone
 
-- **ไฟดับ / เครื่องดับ** → ขอคุณแม่กดปุ่มเปิด **แค่นั้น เครื่องบูตเข้าเดสก์ท็อปเอง**
-- **เน็ตบ้านล่ม** → ขอคุณแม่ถอดปลั๊กเราเตอร์ รอ 10 วิ เสียบกลับ
-- **รหัส MFA / กด consent ครั้งแรก / จ่ายเงิน** → ต้องเป็น CEO
+- **Power outage / machine off** → ask Mom to press the power button — **that's all, the machine boots to the desktop on its own**
+- **Home internet down** → ask Mom to unplug the router, wait 10s, plug it back in
+- **MFA code / first-time consent click / payment** → must be the CEO
 
 ---
 
-## การ์ดฉุกเฉิน — เก็บไว้ในมือถือ
+## Emergency card — keep on phone
 
 ```
-VNC      100.123.83.75   รหัส bowhdyzw   (เปิด Tailscale ก่อน)
+VNC      100.123.83.75   รหัส: CEO เก็บไว้   (เปิด Tailscale ก่อน)
 สุขภาพ    bash scripts/winbox-drill.sh
 กู้ระบบ   docs/runbooks/winbox-recovery.md
 poller   pgrep -af "runners.branch_poller"
