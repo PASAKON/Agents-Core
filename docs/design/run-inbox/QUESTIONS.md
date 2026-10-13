@@ -115,11 +115,13 @@ when sent. `done` = `answered` + `expired` + `cancelled`.
   "created_via": "clevel", "status": "answered", "sha256": "<64 hex>",
   "expires_at": "…", "created_at": "…", "finished_at": "…", "letter_at": "…",
   "answer": {"choice": 0, "label": "Tonight", "text": null,
-             "answered_by": "ceo", "answered_at": "…", "via": "operator_passkey_session"}
+             "answered_by": "CEO", "answered_at": "…", "via": "operator_passkey_session"}
 }
 ```
 
-`recommended` is the option index or `null`. `answer` is `null` until answered. `answer.label` is the
+`recommended` is the option index or `null`. `answer` is `null` until answered. `answered_by` is the operator's
+username as the hub stores it (`CEO` on Contabo); never compare it to a fixed string. The marker that an answer came
+from the CEO's tap is `answer.via == "operator_passkey_session"`, which only the operator-only route writes. `answer.label` is the
 option's label copied at answer time (`null` when only text was given).
 
 ### 3.4 Answer body
