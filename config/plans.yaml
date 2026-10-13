@@ -1,4 +1,6 @@
 # Subscriptions. Append a new entry when a plan changes; never delete old ones (history).
+# Router pressure rule (IRON §59 rule 7 / Q-20261013-1745-f56c): outside runners first.
+pressure_rule: true
 providers:
   # 2026-10-14: the CEO gave $200 (session banners say Claude Max). When the $200 plan
   # started is not recorded, so "from" is the day he said it, not the start date.

@@ -1101,21 +1101,42 @@ def build_report(prev_rows: dict[str, dict], cur_rows: dict[str, dict], pw: Wind
 
 # ---------------------------------------------------------------------------------------------- delivery
 
+COO_SENDER = "CTO tool-value"
+
+
 def send_to_coo(text: str) -> str:
-    """One letter to SomPong as the timer's own identity (cto / tool-value), never as the CEO."""
+    """One letter to SomPong as the timer's own identity (cto / tool-value), never as the CEO.
+
+    Run from a deploy checkout (ORG_ROOT names another tree, deploy/systemd/tool-value-*.service),
+    the letter goes through the live checkout's own CLI. tools/send_to_cxo.py finds SomPong's session
+    under its own checkout's state/locks, which a deploy worktree does not have, and the live CLI
+    writes the mailbox format the live inbox hook reads."""
+    if DATA_ROOT.resolve() != ROOT.resolve():
+        return _send_via_live_checkout(text)
     from tools import send_to_cxo
     saved = {k: os.environ.get(k) for k in ("CXO_ROLE", "CXO_SESSION_ID", "WORKER_TASK_ID")}
     os.environ["CXO_ROLE"] = "cto"
     os.environ["CXO_SESSION_ID"] = "tool-value"
     os.environ.pop("WORKER_TASK_ID", None)
     try:
-        return send_to_cxo.send("coo", text, sender="CTO tool-value")
+        return send_to_cxo.send("coo", text, sender=COO_SENDER)
     finally:
         for k, v in saved.items():
             if v is None:
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+
+
+def _send_via_live_checkout(text: str) -> str:
+    env = {k: v for k, v in os.environ.items() if k != "WORKER_TASK_ID"}
+    env.update(CXO_ROLE="cto", CXO_SESSION_ID="tool-value", ORG_ROOT=str(DATA_ROOT))
+    # subprocess.run is looked up at call time, so the tests' guard on it applies.
+    p = subprocess.run([sys.executable, "-m", "tools.send_to_cxo", "--from", COO_SENDER, "coo", text],
+            cwd=str(DATA_ROOT), env=env, capture_output=True, text=True, timeout=120)
+    if p.returncode != 0:
+        raise RuntimeError(f"send_to_cxo ({DATA_ROOT}) exit {p.returncode}: {(p.stderr or '').strip()[:300]}")
+    return (p.stdout or "").strip()
 
 
 def _self_host() -> str:
