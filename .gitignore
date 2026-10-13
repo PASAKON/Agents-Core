@@ -56,6 +56,8 @@ state/decisions/
 # Per-session turn counter for scripts/hook-memory-nudge.py (ADR 0019 §1).
 # Runtime state; state/*.db already covers the search index beside it.
 state/session-nudge-counters.json
+# Per-session turn counter for scripts/hook-rename-nudge.py (CEO 2026-10-13).
+state/rename-nudge-counters.json
 state/watchdog.log
 # machine_doctor.py's weekly cron/launchd/schtasks log (machine-contract phase 1,
 # docs/ops/machine-contract-schedules.md) -- runtime output, not committed.

@@ -43,6 +43,11 @@
           },
           {
             "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-rename-nudge.py",
+            "timeout": 3
+          },
+          {
+            "type": "command",
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-inbox.py"
           }
         ]
