@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-50 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 4 · Gate 6 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+53 org skills by kind — Rules 6 · Knowledge 15 · Workflow 4 · Procedure 10 · Standard 4 · Gate 6 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -32,7 +32,10 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Knowledge_MiniMax_H3` | CMO | cmo, cto, browser_operator, developer | Everything measured about generating video with MiniMax H3 through our own ComfyRunpod studio (the Mac, reached over the tailnet): adding… |
 | `CMO_Knowledge_Seedance2.5_Higgsfield` | CMO | cto, cmo, cfo, cgo, browser_operator | Everything measured about generating with Seedance on Higgsfield.ai: Seedance 2.5 (Unlimited and credit lanes), the 2.0 / 2.0 Fast / 2.0… |
 | `CMO_Knowledge_Wan3.0_TopView` | CMO | cmo, cto, browser_operator | Generating with Wan 3.0 on TopView (topview.ai): how references are written (positional, no Element library), the 20,000-character… |
+| `CTO_Knowledge_AGY` | CTO | cxo | What Antigravity (agy) is in the org (its two weekly buckets, the file-only headless contract, the agy_browse lane) and how it has… |
+| `CTO_Knowledge_Codex` | CTO | cxo | What Codex CLI is in the org (where it runs, its weekly bucket, that it can run a shell) and how it has measured as a worker, per job… |
 | `CTO_Knowledge_CookieRun_Labeling` | CTO | cto, worker | How to label frames and train the Cookie Run obstacle detector without repeating the mistakes of 2026-09-02 (owned by CTO). Read this… |
+| `CTO_Knowledge_Haiku` | CTO | cxo | What Claude Haiku 5.5 is in the org (a learning lane on the Claude subscription, CEO 14 Oct), what its one trial measured, how it is used… |
 | `CTO_Knowledge_Jules` | CTO | cto, cxo | How the org uses Jules — what to give it (a task menu, so the 300/day quota is used), the 8-line brief that measured 7 clean passes vs 3… |
 | `CTO_Knowledge_Winbox_DesktopGUI` | CTO | cto, browser_operator | Driving a real desktop app (LINE, Resolve, Chrome) on the winbox Windows machine from a C-level or operator session: how to reach session… |
 | `CXO_Knowledge_GDrive_FolderMap` | COO | cxo, worker | The CEO's Google Drive folder tree and the ID table every Drive action resolves against (IDs are the truth, names are labels). |
