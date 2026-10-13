@@ -140,6 +140,7 @@ the wall shelf in IMG_4405 — never draw, caption or post either; crop or blur 
 - [ ] The "from:" line names a fact in §1 or a habit in §4.
 - [ ] **Who bathes whom:** the mother bathes Mimi, never the brother. The sister does not pet or talk to Mimi unless the script marks it [แต่ง] and the CEO approved it (EP1 shot 18 broke this).
 - [ ] **Hook:** read shot 1 alone (0–3 s). A stranger can say what is wrong or what they want to know, Mimi's face is visible, and the same question is the cover line and the caption's first line (§2 item 10).
+- [ ] **Voice:** caption and first comment passed `CMO_Standard_HumanVoice_TH` (character gate clean, disclosure line word for word, no new fact).
 - [ ] No fact about a real person appears that is not in §1 (a new one goes to the CEO as a question first).
 - [ ] Mimi is black and female in every line and every picture prompt (**never brown**, never "he").
 - [ ] Nobody is shown doing something the CEO has not said they do, unless it is marked as invented.

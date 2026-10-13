@@ -589,7 +589,7 @@ The approved example, film 2 (`docs/scripts/taachang-first-comment.txt`):
 - Nothing from the ending. The comment is read before the film is watched.
 - No engagement bait: no "พิมพ์ 1", "แท็กเพื่อน" or "แชร์เลย", because Facebook ranks those posts lower.
 - Promise only what is true. Do not write "ทุกสัปดาห์" while there is no schedule.
-- Run it through `scripts/check-post-text.sh` (docs/promo/WRITING-RULES.md).
+- Run it through `scripts/check-post-text.sh` (docs/promo/WRITING-RULES.md), after the last pass `CMO_Standard_HumanVoice_TH`.
 
 ## Field notes
 

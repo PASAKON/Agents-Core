@@ -79,7 +79,7 @@ D−1 by 18:00. Send the 540p file and the poster contact sheet; ask one questio
 final «กำหนดเวลา» press (the permission layer refuses it otherwise). No OK by D−1 22:00 → do not schedule; use the fallback (§7).
 
 ### Step 9 · Schedule on the Page [node: schedule]
-D−1. Reel from the Page profile (not Business Suite) with `tools/fb_cdp_do.py` on winbox :9281, AI label ON, date by the calendar popup
+D−1. Caption through `CMO_Standard_HumanVoice_TH` first (`check-post-text.sh` clean). Reel from the Page profile (not Business Suite) with `tools/fb_cdp_do.py` on winbox :9281, AI label ON, date by the calendar popup
 (`clickvis` the day number), time by `fill` + Tab. Read the Manage posts list back: «กำหนดเวลาแล้ว». One of my own hung tabs times out
 the attach: check `tools/flow_tabs_health.py --port 9281` first.
 
@@ -101,6 +101,8 @@ D 19:35 and onward (§6). Done when the post is public, the first comment is up,
   a real frame. Never fake progress; a post that cannot be true tonight moves to the next slot.
 - A fan post asks one concrete question about the fan's own dog; replies go out as the Page in the page's voice, the CEO's rules
   for tone and language (his name, the commenter's language, no crude words) apply.
+- **Last pass on every caption and comment text** (CEO 2026-10-14): `CMO_Standard_HumanVoice_TH` (humanizer in embedded mode, then the Thai tells, then
+  `scripts/check-post-text.sh`). Facts, the AI-disclosure line and «ดัดแปลงจากเรื่องจริง» stay word for word; a clean text goes out unchanged.
 - Privacy on every poster and caption: no gatepost house-number plate, no framed picture on the shelf, no real-person faces other than the cartoon cast.
 - Zero-credit bank for fallback days: stills and covers of finished episodes, clips from `Assets/Agents/Core/khaoniao-family/ep*/clips`,
   the schedule poster, a «ขอบคุณ» poster. Keep the bank list in the calendar file.
@@ -127,6 +129,7 @@ and the **promise of the next episode computed from the calendar, never copied f
 | Saturday | Sunday | «พรุ่งนี้ 19:30 มีตอนใหม่» |
 | Sunday | next Friday | «ศุกร์นี้ 19:30 มีตอนใหม่ ระหว่างนี้จันทร์–พฤหัสมีโพสต์ใหม่ทุกวัน 19:30» |
 
+- The comment text takes the same last pass (`CMO_Standard_HumanVoice_TH`) before it is armed, and stays ONE paragraph (a newline may send it early).
 - Thursday's teaser says «พรุ่งนี้ 19:30»; Monday–Wednesday posts say «ศุกร์นี้».
 - **Mechanism today = a session-only one-shot cron** (`CronCreate recurring:false`, Contabo local time = Thai − 5 h). It dies with the session
   and `durable` has no effect; recurring jobs expire after 7 days. So: re-arm at every session start (`CronList` first), and every Friday
@@ -173,3 +176,4 @@ The CMO report format applies (answer first, ≤12 lines, the `## Skill learning
 - 2026-10-12 [COSTLY] §6 photo-post scheduling — three traps cost ~6 min and one repeated composer draft: (1) `schedule_photo_post.py` takes the poster FILENAME (it prepends `C:\mooniex\khaoniao\sched\`); a full path failed the upload and left a typed draft open; (2) when the post is for today/tomorrow Facebook words the date «พรุ่งนี้ เวลา 19:30» / «วันนี้ …», so the old string gate and the list row finder both missed it (fixed in 3 tools commit b30f2cb8); a miss AFTER the press means the post IS scheduled — never re-run the schedule script (duplicate), run `fix_post_caption.py`; (3) the «กำหนดเวลาแล้ว» tab can toggle back to «เผยแพร่แล้ว» when it was already open, a 0-row read is a tab problem, click it once more before concluding · evidence: week-2 Mon–Wed run 12 Oct 00:0x, calendar §สัปดาห์ที่ 2 · status: pending
 - 2026-10-13 [MISSING] §D−1 browser (2nd sighting of the 10-10 note) — Tue 13 Oct 17:49 Thai `:9281` refused again and `relay-home.mjs list` showed ALL four Browser Homes (fb-dorsine 9281, github-win 9282, google-win 9280, infisical-win 9283) stopped, i.e. the winbox side restarted, not just one Home. Same relaunch worked (one-off Interactive scheduled task running `relay-home.mjs launch fb-dorsine`; login state intact, `home.php` loaded logged in). Scheduled posts are server-side so nothing was lost, but every read-back/first-comment duty needs the port: make the §D−1 health check a standing step each morning, not only before an episode day · evidence: cmo-c7879552, `flow_tabs_health.py --port 9281` refused 17:49, ok after relaunch · status: pending (n=2, rule body unchanged until a CEO ruling or a 3rd sighting)
 - 2026-10-13 [MISSING] §6 photo-post scheduling — after «บันทึก» on an EDITED scheduled post Facebook shows the interstitial «หากคุณกำลังจะจัดงานกิจกรรม» (ดำเนินการต่อ / เผยแพร่โพสต์ดั้งเดิม); it is NOT caused by date/time words in the caption (a clean caption still showed it). `fix_post_caption.py` navigated away within ~7 s and the edit was lost 3×; one custom run (edit → type → AI chip → บันทึก → wait 3.5 s, NO navigation in the same call) saved the caption and the post stayed scheduled Thu 19:30. n=1, cause unproven — try the no-navigation wait first, and read the list view in a LATER call · evidence: cmo-c7879552 fb/w2thue/f/h, Thu EP6 teaser poster · status: pending
+- 2026-10-13 [MISSING] §3 and Step 9 — no step ran the character gate before a caption was scheduled, so «—» went into the Tue 13 and Wed 14 Oct captions and «·» into every disclosure line, against the CEO's WRITING-RULES (2026-09-17). Now Step 9 and §3 call `CMO_Standard_HumanVoice_TH` (gate included). Published Tue and scheduled Wed and Thu captions are unedited: editing a scheduled post lost 3 of 4 edits to Facebook's interstitial, so a fix waits for the CEO or a quiet slot with the 3.5 s no-navigation recipe · evidence: `bash scripts/check-post-text.sh docs/scripts/mimi-post-w2-tue-caption.txt` · status: pending
