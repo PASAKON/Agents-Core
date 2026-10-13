@@ -35,6 +35,37 @@ allow-list spelling, are in `CXO_Protocol_DelegateExternal`, not here.
 - **The browse lane:** `tools/agy_browse.py`. Since 1116f7c8 its audit line lands in the main checkout's log and as a
   hub event, so worker calls are no longer lost with their worktrees.
 
+## Argon (Gemini 4): when and how to use it (CEO ruling 2026-10-14)
+
+The CEO, via SomPong, 14 Oct about 04:25 Thai time: "เขียนลง skill และกดเลยว่าจะใช้ argon ได้เมื่อไหร่ยังไงบ้าง".
+Evidence: `docs/ops/argon-trial-2026-10/RESULTS.md`, 9 real jobs, all measured:
+- on 4 paired developer jobs, the blind Opus judge gave Argon 8 points and Sonnet 5.5 6 (USABLE 2 / CORRECT 1 / WRONG 0);
+- strict first pass: developer 2/5, Thai→English 1/3, analysis 0/1;
+- Argon took 2–6× Sonnet's wall time.
+
+- **Use Argon** (`agy`, `gemini-4-argon-high`; it bills `agy-gemini` and leaves Claude quota untouched) for:
+  - developer S/M jobs that are file-scoped, with a brief that lists the files, the interface and the done-test. It
+    is the first choice over a Claude developer;
+  - refactors, docs from code, boilerplate and test scaffolds where a reviewer can run the tests. These have the
+    same shape but were not measured in the trial.
+- **Always:**
+  - a CTO or PH review and a test run before the merge. No job type has reached phase 2;
+  - the reviewer runs every command Argon cannot. Headless agy runs only the `config/agy-settings.json` allow-list
+    (above).
+- **Do not use Argon for:**
+  - jobs that need a command off the allow-list, MCP, a browser, secrets, deploy, money or security. On Contabo agy
+    has no MCP server configured (`agy mcp list`, 14 Oct);
+  - the PH or C-level seat. A PH runs Opus 5.5 at effort medium and a C-level runs Opus 5.5 at xhigh (CEO 2026-10-14);
+  - Thai→English translation, until the brief names what stays Thai (1/3 first pass; see the 2026-10-14 field note
+    in `CXO_Protocol_DelegateExternal`);
+  - anything urgent, since it takes 2–6× Sonnet's wall time.
+- **Budget:**
+  - a large job took 15–16 points of `gemini-5h` (D3 14.6, A1 16.3, measured); a small one took 0.1–3;
+  - that allows about 5 large jobs per 5-hour window (estimate);
+  - read `agy -p /usage` before starting one.
+- **Phase 2** (routing without the extra review) comes only when a job type reaches ≥90 % strict first pass over
+  ≥10 jobs in `runner_fit`.
+
 ## Use (measured, quota-history)
 
 | Window | agy-gemini used | agy-claude used |
@@ -76,5 +107,5 @@ This is the org's largest idle gap (plan §2.3).
 
 ## Field notes
 - 2026-10-14 [MISSING] measurement — `runner_fit` has no brief-fault flag: a reviewer fix caused by the brief still sets `first_pass: false`, so agy-gemini code reads 0% first pass on 2 passes whose fixes were brief faults. Either record `brief_fault` or count first pass as "no fix to the runner's own work" · evidence: task-f3f80ab6, task-30206a64 runner_fit 13 Oct · status: pending
-- 2026-10-14 [MISSING] measured fit, Gemini 4 Argon — `gemini-4-argon-high` (listed on Contabo and the Mac, agy 1.3.4) on 9 real jobs: on 4 paired developer S/M jobs the blind Opus judge gave Argon 8 points and Sonnet 5.5 6 (ratio 1.33; Sonnet WRONG on Console#27); strict first pass developer 2/5, translation 1/3, analysis 0/1; 2–6× Sonnet's wall time; one large job takes 15–16 points of `gemini-5h`. Route developer S/M with a CTO review; no type reaches phase 2 yet · evidence: argon-trial-2026-10, docs/ops/argon-trial-2026-10/RESULTS.md, 13 runner_fit events `argon-trial-*` · status: pending
+- 2026-10-14 [MISSING] measured fit, Gemini 4 Argon — `gemini-4-argon-high` (listed on Contabo and the Mac, agy 1.3.4) on 9 real jobs: on 4 paired developer S/M jobs the blind Opus judge gave Argon 8 points and Sonnet 5.5 6 (ratio 1.33; Sonnet WRONG on Console#27); strict first pass developer 2/5, translation 1/3, analysis 0/1; 2–6× Sonnet's wall time; one large job takes 15–16 points of `gemini-5h`. Route developer S/M with a CTO review; no type reaches phase 2 yet · evidence: argon-trial-2026-10, docs/ops/argon-trial-2026-10/RESULTS.md, 13 runner_fit events `argon-trial-*`; CEO ruling 2026-10-14 made it a rule → §Argon · status: promoted
 - 2026-10-14 [MISSING] headless contract — agy `--output-format json` returning `status: "ERROR"` ("exceeded the output token limit") does not mean the run produced nothing: on job A1 agy had already written both files complete when its final reply hit the cap. Read the worktree diff before throwing away an ERROR run · evidence: argon-trial-2026-10 A1 (24.44 min, 164k output tokens), landing commit 0761c9a8 · status: pending
