@@ -103,7 +103,7 @@ D 19:35 and onward (§6). Done when the post is public, the first comment is up,
   for tone and language (his name, the commenter's language, no crude words) apply.
 - **Last pass on every caption and comment text** (CEO 2026-10-14): `CMO_Standard_HumanVoice_TH` (humanizer in embedded mode, then the Thai tells, then
   `scripts/check-post-text.sh`). Facts, the AI-disclosure line and «ดัดแปลงจากเรื่องจริง» stay word for word; a clean text goes out unchanged.
-- Privacy on every poster and caption: no gatepost house-number plate, no framed picture on the shelf, no real-person faces other than the cartoon cast.
+- Privacy on every poster and caption: no gatepost house-number plate, no framed picture on the shelf, no real-person faces other than the cartoon cast. A real photo (any `IMG_*` ref) is never posted without asking the CEO first (HARD, `CMO_Standard_Story_FamilyDogSeries` §1).
 - Zero-credit bank for fallback days: stills and covers of finished episodes, clips from `Assets/Agents/Core/khaoniao-family/ep*/clips`,
   the schedule poster, a «ขอบคุณ» poster. Keep the bank list in the calendar file.
 
