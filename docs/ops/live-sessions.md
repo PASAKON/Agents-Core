@@ -43,6 +43,15 @@ every prompt). The CTO applies `GRANT SELECT ON live_sessions, live_hosts TO org
 (`deploy/hub/org_coo_role.sql` is not in this base). Nothing is written to the hub before that run.
 
 ## Stop
-`ORG_LIVE_SESSIONS=off` stops the hook spawning. The lock file holds the loop's pid:
-`kill $(cat state/locks/live_sessions.publisher.lock)`. The loop also exits by itself, code 0, when
-`tools/live_sessions.py` changes on disk, and the next prompt respawns it on the new code.
+`ORG_LIVE_SESSIONS=off` stops the hook spawning. Stop the loop with
+`pkill -f 'tools.live_sessions publish --loop'`. The lock file also holds its pid for reading; never
+feed a file's content to `kill`. The loop exits by itself, code 0, when `tools/live_sessions.py`
+changes on disk, and the next prompt respawns it on the new code.
+
+## Hostile input
+The loop runs as root over paths other accounts can write (`state/` is group-writable by the
+secretary service; the `sompong` user writes its own registry dir). So: the lock, the spawn stamp and
+the log open with O_NOFOLLOW + O_NONBLOCK and must be regular single-link files, else no spawn (log:
+child stderr goes to /dev/null). Registry files must be regular, not a symlink, at most 64 KiB. Names
+lose control, bidi and line-separator characters and are cut at 120 characters; status is only
+running, idle or unknown. A hook run from a worktree never starts a publisher, only the main checkout.
