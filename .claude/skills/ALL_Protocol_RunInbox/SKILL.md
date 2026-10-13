@@ -224,7 +224,9 @@ each decision (QUESTIONS.md §10).
 4. It lives 24 h by default (`--expires-h`, max 168), because he comes back to it later. If it
    expires, ask once more on a fresh card.
 5. Write for a thumb: the question on one line (≤300 chars), each option ≤120 chars, and a `why` that
-   says what happens on each choice. Mark your recommendation with `--recommended N`.
+   says what happens on each choice. Mark your recommendation with `--recommended N`. `ask` refuses a
+   longer or multi-line question (`invalid_question`) for every item of a `--batch` too: put the detail
+   in `why`, which may run to several lines.
 6. C-level only. A worker writes its question into its report, and its C-level asks.
 7. Hosts: a question needs the run-inbox token, which Contabo C-levels have. The Mac and winbox have no
    token yet, so there you ask in chat as before and say why.
@@ -264,3 +266,4 @@ each decision (QUESTIONS.md §10).
 - 2026-10-14 [MISSING] §Question cards — `ask` refuses a card whose `why` holds a CLI flag (`refused: command_shaped … a CLI flag`), even when the flag is only described inside a rule summary. Write the flag in words ("a written force reason") · evidence: Q-20261013-1917-0fa2, first attempt refused · status: pending
 - 2026-10-14 [MISSING] §Question cards — a question card cannot be amended after it is raised, and the CEO can tap within seconds (one answer came 22 s after the raise). A condition sent in chat after the card is not part of what he agreed to. Put every condition in the card's question or why before raising · evidence: session cto-e106b78b, the 2026-10-13 17:4x cards · status: pending
 - 2026-10-14 [MISSING] §Rules — a card whose why said "add the two keys in Infisical first, then tap" was tapped before the keys were added, and it failed ("has no secret …", RUN-20261013-2023-62fe, 03:25 Thai). The CEO reads the card as the whole job. Raise a verify card only after he has done the step (a question card first), or make the card itself the step · evidence: session cto-e2f1563f, followed by Q-20261013-2026-f2ac · status: pending
+- 2026-10-14 [MISSING] rule 5 — the rule gave the 300-character limit but not that `ask` refuses a longer or multi-line question with `invalid_question` (each item of a `--batch` too), nor where the detail goes (`why`, which may hold newlines); a peer asked for it once the batch went live · evidence: tools/ask_run.py:601 (QUESTION_MAX = 300, :134), `why` newline allowance :630-636, SomPong letter 2026-10-14, session cto-2235643e → rule 5 · status: promoted

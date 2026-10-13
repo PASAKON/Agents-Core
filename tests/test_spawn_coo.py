@@ -715,11 +715,11 @@ needs_root_and_nobody = pytest.mark.skipif(
 @needs_root_and_nobody
 def test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_write_the_shared_db() -> None:
     # The deploy prerequisite for the unprivileged COO: tasks.db and state/ shared with the session user's group.
-    from lib.org_tools_registry import REGISTRY
+    from lib.org_tools_registry import served_names
 
     names, err = _serve_tools_as_nobody(state_mode=0o2775, db_mode=0o664, group=NOBODY_UID)
     assert names is not None, err
-    assert {s.name for s in REGISTRY} <= set(names)
+    assert set(served_names()) <= set(names)   # envelope-mail tools only under ORG_MAIL_ENVELOPE
     assert {"ask_run", "ask_run_wait"} <= set(names)
 
 

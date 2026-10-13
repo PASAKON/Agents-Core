@@ -204,6 +204,10 @@ def worker_tool_grants(role: str) -> tuple[list[str], list[str]]:
     adding `--chrome` makes them resolve while strict MCP stays on.
     """
     allowed = list(_BASE_WORKER_TOOLS)
+    # envelope mail (org restructure P1): the worker MCP server serves these two
+    # only under the same flag
+    if os.environ.get("ORG_MAIL_ENVELOPE", "").strip().lower() in ("1", "true", "yes", "on"):
+        allowed += ["mcp__org__read_letter", "mcp__org__list_letters"]
     flags: list[str] = []
     if role == "browser_operator":
         allowed.extend(_CHROME_TOOLS)

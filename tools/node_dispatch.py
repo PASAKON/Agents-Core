@@ -632,7 +632,13 @@ def _start_clevel_iterm(role: str, resume_sid: str | None) -> dict:
 def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
     """Linux: spawn-cxo.sh ends in osascript, so it cannot run here. Same
     command runners/relay_mcp_server.spawn_c_level runs on Contabo, in tmux."""
-    from tools import session_status, tmux_session
+    from tools import clevel_gate, session_status, tmux_session
+    # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
+    # No session id: the resumed conversation starts under a NEW id, so the
+    # session being resumed counts as another live one (it must not run twice).
+    why = clevel_gate.refusal(role)
+    if why:
+        raise Refusal(why)
     launcher = ROOT / "scripts" / "cxo-claude.sh"
     if not launcher.exists():
         raise Failure(f"missing {launcher.name}")
@@ -1181,14 +1187,45 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     # runners/mac_agent.do_relay refuses the same way.
     if not _clevel_session_live(role, sid):
         raise ValueError(f"no live session {role}-{sid} on this host")
-    path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
+    if not mailbox.envelope_on():
+        path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
+        if not path.is_file():
+            raise ValueError(f"letter not on disk after write: {path}")
+        if _is_windows():
+            return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
+        # best effort, never changes the outcome (same rule as send_to_cxo)
+        return {"to": f"{role}-{sid}",
+                **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
+    # Envelope mail (ORG_MAIL_ENVELOPE on; org restructure P1). The letters row
+    # carries no subject, so the body's first 80 characters stand in and the
+    # result says so. A letter SomPong relayed for the CEO wakes at once
+    # (urgent), but is not labelled an order here: the row's sender is
+    # whatever its writer put in it (any holder of ORG_DB_URL), so only
+    # runners/relay_mcp_server.relay_to_session, whose sender is pinned,
+    # makes kind "order". A forged urgent costs one early wake, nothing more.
+    body = letter["body"]
+    subject, warning = mailbox.resolve_subject(letter.get("subject"), body)
+    ceo = from_role == "secretary" and str(body).startswith("[CEO via SomPong]")
+    prio = "urgent" if ceo else "normal"
+    path = mailbox.send(role, sid, body, from_role, from_sid, subject=subject,
+                        kind="message", prio=prio)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
+    out: dict = {"to": f"{role}-{sid}"}
+    if warning:
+        out["warning"] = warning
+    try:
+        due = mailbox.wake_due(role, sid, prio)
+    except Exception:
+        due = True
+    if not due:
+        return {**out, "woke": False, "why": "deferred by ORG_WAKE_DEBOUNCE_S (the wake sweep fires it)"}
     if _is_windows():
-        return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
-    # best effort, never changes the outcome (same rule as send_to_cxo)
-    return {"to": f"{role}-{sid}",
-            **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
+        woke = _windows_wake(role, sid, from_role)
+    else:
+        woke = _posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))
+    mailbox.note_wake(role, sid)
+    return {**out, **woke}
 
 
 def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str) -> dict:

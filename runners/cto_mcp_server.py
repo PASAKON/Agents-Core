@@ -150,8 +150,9 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
 
 
 @mcp.tool(description=reg.BY_NAME["send_to_cxo"].description)
-def send_to_cxo(role: str, message: str, spawn: bool = False) -> str:
-    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn)
+def send_to_cxo(role: str, message: str, spawn: bool = False, subject: str = "") -> str:
+    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn,
+                             subject=subject)
 
 
 @mcp.tool(description=reg.BY_NAME["report_to_ceo"].description)
@@ -303,6 +304,36 @@ async def email_ceo(
         "email_ceo", kind=kind, title=title, need=need, why=why, if_not=if_not, link=link,
         ref=ref, due=due, session=session, role=role, dry_run=dry_run,
     )
+
+
+# Envelope mail (org restructure P1): the two letter readers are served only
+# when ORG_MAIL_ENVELOPE is on in this server's env, so with the flag off a
+# session's tool list is what it was. Defined either way, so the registry
+# parity check (scripts/test_org_tools_registry.py) still finds them.
+def read_letter(id: str) -> str:
+    return reg.dispatch_sync("read_letter", id=id)
+
+
+def list_letters(unread_only: bool = False, limit: int = 20) -> str:
+    return reg.dispatch_sync("list_letters", unread_only=unread_only, limit=limit)
+
+
+from lib import mailbox as _mailbox  # noqa: E402
+from lib import roles as _org_roles  # noqa: E402
+
+if _mailbox.envelope_on():
+    for _fn in (read_letter, list_letters):
+        assert _fn.__name__ in reg.ENVELOPE_TOOLS
+        mcp.tool(description=reg.BY_NAME[_fn.__name__].description)(_fn)
+
+
+# Org restructure P2 (plan §3.2): a Project Head session is served only
+# reg.PH_TOOLS, including any tool registered here outside the registry;
+# registry dispatch refuses the rest for it as well.
+if _org_roles.is_project_head(reg.caller_role()):
+    _served = set(reg.served_names())
+    for _name in sorted({_t.name for _t in mcp._tool_manager.list_tools()} - _served):
+        mcp.remove_tool(_name)
 
 
 if __name__ == "__main__":

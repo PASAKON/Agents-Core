@@ -40,6 +40,7 @@ sys.path.insert(0, str(ROOT))
 
 from lib import db as db_lib  # noqa: E402
 from lib import mailbox  # noqa: E402
+from lib.config import is_c_level  # noqa: E402
 from tools.agent_transport import current_identity  # noqa: E402
 from tools.org_inspector import detect_host  # noqa: E402
 
@@ -344,7 +345,9 @@ def report_to_ceo(order_id: int, status: str, detail: str) -> str:
         )
 
     identity = current_identity()
-    if identity.kind != "cxo":
+    # kind "cxo" alone is not enough: a Project Head (org restructure P2) has
+    # kind "cxo" with role project_head, and only a C-level answers an order.
+    if identity.kind != "cxo" or not is_c_level(identity.role):
         return (
             "rejected: report_to_ceo must be called from a C-level session "
             f"(current identity: {identity.label()}) -- nothing written"
