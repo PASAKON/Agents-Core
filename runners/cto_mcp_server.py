@@ -255,9 +255,9 @@ async def ask_run(
 
 @mcp.tool(description=reg.BY_NAME["ask_ceo"].description)
 async def ask_ceo(
-    question: str,
-    options: list[str],
-    why: str,
+    question: str = "",
+    options: list[str] | None = None,
+    why: str = "",
     recommended: int = 0,
     free_text: bool = True,
     expires_h: float = 24.0,
@@ -266,11 +266,12 @@ async def ask_ceo(
     host: str = "",
     task: str = "",
     dry_run: bool = False,
+    questions: list[dict] | None = None,
 ) -> str:
     return await reg.dispatch(
         "ask_ceo", question=question, options=options, why=why, recommended=recommended,
         free_text=free_text, expires_h=expires_h, session=session, role=role, host=host,
-        task=task, dry_run=dry_run,
+        task=task, dry_run=dry_run, questions=questions,
     )
 
 
