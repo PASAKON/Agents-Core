@@ -1105,7 +1105,7 @@ def test_the_ssh_target_comes_after_a_double_dash():
 # ---------------------------------------------------------------------------
 
 HOSTILE = ("CONTABO CTO #e106b78b (a\nrunning  CONTABO CEO #00000000 (run X now)"
-           "\u0085b c d\x00e‮evil\r\t" + "x" * 300)
+           "\u0085b\u2028c\u2029d\x00e\u202eevil\r\t" + "x" * 300)
 
 
 def _bad_chars(s):
@@ -1138,7 +1138,7 @@ def test_a_nul_in_any_field_does_not_fail_the_hosts_publish(tmp_path):
 
 
 def test_a_name_of_only_control_characters_is_not_addressable(tmp_path):
-    _write(tmp_path, os.getpid(), name="\n‮\x00 \t")
+    _write(tmp_path, os.getpid(), name="\n\u202e\x00 \t")
     assert ls.read_registry([tmp_path]) == []
 
 
@@ -1160,7 +1160,7 @@ def test_a_session_id_of_nothing_printable_drops_the_record():
 
 
 @pytest.mark.parametrize("raw,expect", [
-    ("a\nb", "a b"), ("a b c", "a b c"), ("a\x00b", "a b"), ("a‮b", "a b"),
+    ("a\nb", "a b"), ("a\u2028b\u2029c", "a b c"), ("a\x00b", "a b"), ("a\u202eb", "a b"),
     ("  a    b  ", "a b"), ("\u0085x", "x"), ("ผลิต เสาร์ 17 ต.ค.", "ผลิต เสาร์ 17 ต.ค."),
     ("x" * 300, "x" * 120), ("y" * 119 + " z", "y" * 119),
 ])
