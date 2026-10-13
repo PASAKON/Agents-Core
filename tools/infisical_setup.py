@@ -646,6 +646,10 @@ def _get_secret(org: Org, project_id: str, env: str, name: str, path: str = "/")
         return org.get(f"/api/v3/secrets/raw/{name}", workspaceId=project_id, environment=env,
                        secretPath=path)["secret"]
     except ApiError as exc:
+        # A missing FOLDER is not a missing secret: `--new-only` would call the path free and the
+        # provider would mint a key that `put` then cannot store (task-b1b251f0, 2026-10-13).
+        if re.search(r"folder .*not found", str(exc), re.I):
+            raise
         if "HTTP 404" in str(exc) or "not found" in str(exc).lower():
             return None
         raise
