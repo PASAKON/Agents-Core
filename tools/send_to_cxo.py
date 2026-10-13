@@ -350,6 +350,43 @@ def attempt_wake(role: str, session_id: str, label: str) -> bool:
 _attempt_wake = attempt_wake
 
 
+def wake_for_letter(role: str, session_id: str, label: str, prio: str = "normal") -> bool | None:
+    """Envelope mail's debounced wake (org restructure P1). Flag off this is
+    `_attempt_wake()`, every time. On, `lib.mailbox.wake_due()` decides: an
+    urgent letter wakes at once, a normal one waits until 3 are waiting or the
+    oldest has waited ORG_WAKE_DEBOUNCE_S, and tools/mail_wake_sweep.py fires
+    that late wake. Returns None when the wake was deferred; otherwise what
+    `_attempt_wake()` returned. Never raises."""
+    try:
+        if not mailbox.wake_due(role, session_id, prio):
+            try:
+                notify.info(f"[send_to_cxo] wake deferred (debounce): {role}-{session_id}")
+            except Exception:
+                pass
+            return None
+    except Exception:
+        pass
+    woke = _attempt_wake(role, session_id, label)
+    if mailbox.envelope_on():
+        mailbox.note_wake(role, session_id)
+    return woke
+
+
+def _envelope_kw(subject: str | None, **extra) -> dict:
+    """Keyword args for mailbox.send: the envelope fields when the flag is on,
+    none when it is off, so a flag-off call is exactly the call it was."""
+    return {"subject": subject, **extra} if mailbox.envelope_on() else {}
+
+
+def _subject_note(subject: str | None, message: str) -> str:
+    """The warning a sender sees when envelope mail stood the message's first
+    80 characters in for a missing subject; empty otherwise."""
+    if not mailbox.envelope_on():
+        return ""
+    warning = mailbox.resolve_subject(subject, message)[1]
+    return f"\nwarning: {warning}" if warning else ""
+
+
 # ---------------------------------------------------------------------------
 # Spawn-path helpers (--spawn flag, Phase 2)
 # ---------------------------------------------------------------------------
@@ -454,7 +491,8 @@ end tell
         raise
 
 
-def spawn(role: str, message: str, sender: str | None = None) -> str:
+def spawn(role: str, message: str, sender: str | None = None, *,
+          subject: str | None = None) -> str:
     """Ephemeral-spawn path: open a new tab for this request.
 
     Dedupe-checked: if an alive ephemeral tab with the same topic-slug
@@ -511,10 +549,15 @@ def spawn(role: str, message: str, sender: str | None = None) -> str:
             reused_sid = lock_file.stem[len(role) + 1:]
             from_role, from_sid = _mailbox_identity(sender_identity)
             chain = _chain_ids(sender_identity) + [f"{role}:{reused_sid}"]
-            mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain)
-            _attempt_wake(role, reused_sid, label)
+            mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain,
+                         **_envelope_kw(subject))
+            if mailbox.envelope_on():
+                wake_for_letter(role, reused_sid, label)
+            else:
+                _attempt_wake(role, reused_sid, label)
             _log_hop(sender_identity, role, reused_sid)
-            return f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
+            return (f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
+                    + _subject_note(subject, message))
         except OSError:
             continue
 
@@ -634,7 +677,8 @@ def dispatch_letter(letter_id: int) -> str:
     return outcome
 
 
-def send(role: str, message: str, sender: str | None = None) -> str:
+def send(role: str, message: str, sender: str | None = None, *,
+         subject: str | None = None) -> str:
     """Programmatic API (legacy path). Returns one-line summary string.
 
     Task task-de2cdc15 (CEO directive 2026-08-14, option A): queues the
@@ -656,6 +700,11 @@ def send(role: str, message: str, sender: str | None = None) -> str:
     string says "delivered to ... on <host>" or "queued for <host>" -- the
     latter is not an error, the watchdog retries the row. Flag off: this
     paragraph does not exist.
+
+    Envelope mail (ORG_MAIL_ENVELOPE on): `subject` is stored on the letter
+    (a missing one becomes the message's first 80 characters, and the return
+    string ends with a warning line), and the wake is debounced
+    (`wake_for_letter`). Off, `subject` is ignored.
 
     Contract: queued or raised, never "probably". Raises ValueError when
     the target role has no registered session (unchanged failure mode --
@@ -688,16 +737,24 @@ def send(role: str, message: str, sender: str | None = None) -> str:
                                from_role=from_role, from_session=from_sid,
                                from_host=self_host())
         target = f"{display_for(role)} #{sid}"
+        # the letters row has no subject column: the far side stands the
+        # body's first 80 characters in (node_dispatch._write_clevel_letter)
+        note = _subject_note(None, message)
         if dispatch_letter(lid) == "delivered":
-            return f"delivered to {target} on {host}: [{label}] : {message}"
+            return f"delivered to {target} on {host}: [{label}] : {message}" + note
         # Not an error: the row stays pending and the watchdog retries it.
-        return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}"
+        return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}" + note
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
-    letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain)
+    letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain,
+                          **_envelope_kw(subject))
     if role in SINGLETON_ROLES:
         _share_letter(letter)
-    _attempt_wake(role, sid, label)
-    return f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+    if mailbox.envelope_on():
+        wake_for_letter(role, sid, label)
+    else:
+        _attempt_wake(role, sid, label)
+    return (f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+            + _subject_note(subject, message))
 
 
 def _share_letter(letter: Path | None) -> None:
@@ -723,7 +780,8 @@ def _share_letter(letter: Path | None) -> None:
 
 def _usage() -> str:
     return (
-        'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] <target_role> "<message>"\n'
+        'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] [--subject "<one line>"] '
+        '<target_role> "<message>"\n'
         f"  <target_role>: {'|'.join(c_level_roles())}"
     )
 
@@ -732,6 +790,7 @@ def main() -> int:
     argv = sys.argv[1:]
     sender_override = None
     do_spawn = False
+    subject = None
 
     remaining: list[str] = []
     i = 0
@@ -749,6 +808,12 @@ def main() -> int:
             r = argv[i + 1]
             sender_override = display_for(r) if is_c_level(r) else r
             i += 1
+        elif a == "--subject":
+            if i + 1 >= len(argv):
+                print("--subject requires a value", file=sys.stderr)
+                return 1
+            subject = argv[i + 1]
+            i += 1
         else:
             remaining.append(a)
         i += 1
@@ -760,9 +825,9 @@ def main() -> int:
     role, message = argv[0], argv[1]
     try:
         if do_spawn:
-            result = spawn(role, message, sender_override)
+            result = spawn(role, message, sender_override, subject=subject)
         else:
-            result = send(role, message, sender_override)
+            result = send(role, message, sender_override, subject=subject)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2

@@ -150,8 +150,9 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
 
 
 @mcp.tool(description=reg.BY_NAME["send_to_cxo"].description)
-def send_to_cxo(role: str, message: str, spawn: bool = False) -> str:
-    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn)
+def send_to_cxo(role: str, message: str, spawn: bool = False, subject: str = "") -> str:
+    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn,
+                             subject=subject)
 
 
 @mcp.tool(description=reg.BY_NAME["report_to_ceo"].description)
@@ -282,6 +283,26 @@ async def ask_run_wait(
         "ask_run_wait", id=id, max_wait_s=max_wait_s, interval_s=interval_s,
         tail_lines=tail_lines,
     )
+
+
+# Envelope mail (org restructure P1): the two letter readers are served only
+# when ORG_MAIL_ENVELOPE is on in this server's env, so with the flag off a
+# session's tool list is what it was. Defined either way, so the registry
+# parity check (scripts/test_org_tools_registry.py) still finds them.
+def read_letter(id: str) -> str:
+    return reg.dispatch_sync("read_letter", id=id)
+
+
+def list_letters(unread_only: bool = False, limit: int = 20) -> str:
+    return reg.dispatch_sync("list_letters", unread_only=unread_only, limit=limit)
+
+
+from lib import mailbox as _mailbox  # noqa: E402
+
+if _mailbox.envelope_on():
+    for _fn in (read_letter, list_letters):
+        assert _fn.__name__ in reg.ENVELOPE_TOOLS
+        mcp.tool(description=reg.BY_NAME[_fn.__name__].description)(_fn)
 
 
 if __name__ == "__main__":

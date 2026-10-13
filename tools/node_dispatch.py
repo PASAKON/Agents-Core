@@ -1181,14 +1181,41 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     # runners/mac_agent.do_relay refuses the same way.
     if not _clevel_session_live(role, sid):
         raise ValueError(f"no live session {role}-{sid} on this host")
-    path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
+    if not mailbox.envelope_on():
+        path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
+        if not path.is_file():
+            raise ValueError(f"letter not on disk after write: {path}")
+        if _is_windows():
+            return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
+        # best effort, never changes the outcome (same rule as send_to_cxo)
+        return {"to": f"{role}-{sid}",
+                **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
+    # Envelope mail (ORG_MAIL_ENVELOPE on; org restructure P1). The letters row
+    # carries no subject, so the body's first 80 characters stand in and the
+    # result says so. A letter SomPong relayed for the CEO is an urgent order.
+    body = letter["body"]
+    subject, warning = mailbox.resolve_subject(letter.get("subject"), body)
+    order = from_role == "secretary" and str(body).startswith("[CEO via SomPong]")
+    prio = "urgent" if order else "normal"
+    path = mailbox.send(role, sid, body, from_role, from_sid, subject=subject,
+                        kind="order" if order else "message", prio=prio)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
+    out: dict = {"to": f"{role}-{sid}"}
+    if warning:
+        out["warning"] = warning
+    try:
+        due = mailbox.wake_due(role, sid, prio)
+    except Exception:
+        due = True
+    if not due:
+        return {**out, "woke": False, "why": "deferred by ORG_WAKE_DEBOUNCE_S (the wake sweep fires it)"}
     if _is_windows():
-        return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
-    # best effort, never changes the outcome (same rule as send_to_cxo)
-    return {"to": f"{role}-{sid}",
-            **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
+        woke = _windows_wake(role, sid, from_role)
+    else:
+        woke = _posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))
+    mailbox.note_wake(role, sid)
+    return {**out, **woke}
 
 
 def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str) -> dict:

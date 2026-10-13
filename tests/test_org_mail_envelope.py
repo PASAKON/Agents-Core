@@ -167,14 +167,31 @@ def test_a_turn_without_an_event_relays_nothing_but_records_the_session(
     assert db_mod.get_task(ledger)["session_id"] == "sess-0001"
 
 
-@pytest.mark.parametrize("name", ["dev_message", "file_blocker_issue", "request_human_handoff"])
-def test_message_and_blocker_turns_relay(tmp_path, monkeypatch, ledger, relays, name):
+@pytest.mark.parametrize("name,kind,prio", [("dev_message", "message", "normal"),
+                                            ("file_blocker_issue", "blocker", "urgent"),
+                                            ("submit_report", "report", "urgent")])
+def test_message_and_blocker_turns_relay(tmp_path, monkeypatch, ledger, relays, name, kind, prio):
     monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
     root = checkout(tmp_path)
     mod = load(root / "scripts" / DEV_HOOK.name, f"devhook_{name}")
     tp = transcript(tmp_path, [[msg("user", "go", "p9"), msg("assistant", tool(name))]])
     assert run_dev(mod, monkeypatch, tp, ledger) == 0
     assert len(relays) == 1 and relays[0][1].startswith(f"[{name}] (no closing text")
+    kw = relays[0][2]
+    assert (kw["kind"], kw["prio"]) == (kind, prio)
+    assert kw["subject"].startswith(f"{kind} {ledger}: ") and len(kw["subject"]) <= 80
+
+
+def test_human_handoff_turn_is_not_relayed_again(tmp_path, monkeypatch, ledger, relays):
+    """request_human_handoff sends its own urgent letter (worker_mcp_server);
+    the hook relaying the same turn too would be a second letter."""
+    monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    root = checkout(tmp_path)
+    mod = load(root / "scripts" / DEV_HOOK.name, "devhook_handoff")
+    tp = transcript(tmp_path, [[msg("user", "go", "p9"),
+                                msg("assistant", tool("request_human_handoff"))]])
+    assert run_dev(mod, monkeypatch, tp, ledger) == 0
+    assert relays == []
 
 
 def test_hub_and_mailbox_down_fail_open(tmp_path, monkeypatch, ledger):
@@ -198,6 +215,7 @@ def test_flag_off_still_relays_every_turn(tmp_path, monkeypatch, ledger, relays)
     tp = transcript(tmp_path, [report_turn(), plain_turn()])
     assert run_dev(mod, monkeypatch, tp, ledger) == 0
     assert [r[1] for r in relays] == ["still working"]
+    assert "subject" not in relays[0][2] and "kind" not in relays[0][2]   # the old call
 
 
 def test_scan_scopes_events_to_the_current_turn(tmp_path, monkeypatch):

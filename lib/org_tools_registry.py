@@ -311,10 +311,21 @@ async def _h_revert_task_tool(*, task_id: str, force: bool = False) -> dict:
     return revert_task(task_id, force=force)
 
 
-def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False) -> str:
+def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False, subject: str = "") -> str:
+    kw = {"subject": subject} if subject else {}  # no subject: exactly the old call
     if spawn:
-        return send_to_cxo_mod.spawn(role, message)
-    return send_to_cxo_mod.send(role, message)
+        return send_to_cxo_mod.spawn(role, message, **kw)
+    return send_to_cxo_mod.send(role, message, **kw)
+
+
+def _h_read_letter(*, id: str) -> str:
+    from tools import letters
+    return letters.read_text(id)
+
+
+def _h_list_letters(*, unread_only: bool = False, limit: int = 20) -> str:
+    from tools import letters
+    return letters.list_text(unread_only=unread_only, limit=limit)
 
 
 def _h_report_to_ceo(*, order_id: int, status: str, detail: str) -> str:
@@ -636,12 +647,17 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "routine cross-role request this tool exists for.\n\n"
             "You OWN the outcome of what you delegate here: if the C-level "
             "you ask gets it wrong, that is on you, not them -- asking "
-            "someone else to do it never transfers accountability for it."
+            "someone else to do it never transfers accountability for it.\n\n"
+            "subject: one line, at most 80 characters, saying what the letter "
+            "is about; the recipient sees it in the envelope line before the "
+            "body. Leave it out and, in envelope mail, the first 80 characters "
+            "of the message stand in and the result carries a warning."
         ),
         params=(
             Param("role", str),
             Param("message", str),
             Param("spawn", bool, False),
+            Param("subject", str, ""),
         ),
         handler=_h_send_to_cxo,
         response_format="text",
@@ -833,9 +849,50 @@ REGISTRY: tuple[ToolSpec, ...] = (
         is_async=True,
         response_format="text",
     ),
+    ToolSpec(
+        name="read_letter",
+        description=(
+            "Read one letter from THIS session's own mailbox in full, by the id "
+            "its envelope line shows (`[m-...]`). Envelope mail prints a body "
+            "over 400 characters as an envelope line only; this is how you read "
+            "it. Read letters are kept 7 days. The box is this session's own, "
+            "from its env; no argument can open another session's box. Same as "
+            "`python -m tools.letters read <id>`."
+        ),
+        params=(Param("id", str),),
+        handler=_h_read_letter,
+        response_format="text",
+    ),
+    ToolSpec(
+        name="list_letters",
+        description=(
+            "List THIS session's own mailbox, newest first: one line per letter "
+            "with id, kind/prio, sender, time, size, unread or when read, and "
+            "subject; no bodies (read_letter reads one). unread_only=True skips "
+            "the read ones; read letters are kept 7 days. Same as "
+            "`python -m tools.letters list`."
+        ),
+        params=(Param("unread_only", bool, False), Param("limit", int, 20)),
+        handler=_h_list_letters,
+        response_format="text",
+    ),
 )
 
 BY_NAME: dict[str, ToolSpec] = {s.name: s for s in REGISTRY}
+
+# Envelope mail (org restructure P1): tools a session is served, and allowed,
+# only while ORG_MAIL_ENVELOPE is on in its env. Off, the served set is what it
+# was before them.
+ENVELOPE_TOOLS = frozenset({"read_letter", "list_letters"})
+
+
+def served_names() -> tuple[str, ...]:
+    """The org tool names a session gets under this process's env: the
+    registry, less ENVELOPE_TOOLS while the flag is off. The C-level allowlist
+    (scripts/lib/cxo_mcp_config.py) and runners/cto_mcp_server.py both follow it."""
+    from lib import mailbox
+    on = mailbox.envelope_on()
+    return tuple(s.name for s in REGISTRY if on or s.name not in ENVELOPE_TOOLS)
 
 assert len(REGISTRY) == len(BY_NAME), (
     f"duplicate tool name in REGISTRY: {len(REGISTRY)} entries, "

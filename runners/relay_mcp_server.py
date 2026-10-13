@@ -804,7 +804,7 @@ def _tail_pane_text(raw: str, cap: int) -> str:
 
 @mcp.tool()
 def relay_to_session(target_role: str, message: str, wait: bool = False,
-                      target_session_id: str | None = None) -> str:
+                      target_session_id: str | None = None, subject: str = "") -> str:
     """Queue or deliver an order to a C-level session, on the CEO's behalf.
 
     `target_role` must be one of cto/cmo/cgo/cfo/coo -- anything else is
@@ -879,6 +879,14 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
     Mac-queue path below, now carrying `target_session_id` in the queued
     payload so `runners/mac_agent.py::do_relay` (task-689fc721 D2) can
     honour it there too, with the identical no-fallback rule.
+
+    `subject` (envelope mail, ORG_MAIL_ENVELOPE on in this server's env): one
+    line saying what the order is about. The letter is stored as kind
+    `order`, prio `urgent` (it wakes at once), with the subject prefixed
+    "order #<id>: " so the envelope line names the order to report on. A
+    missing subject becomes the message's first 80 characters and the result
+    carries `warning`. Off, `subject` is ignored. The Mac-queue path carries
+    no subject.
     """
     rejection = _reject_unknown_role("relay_to_session", target_role)
     if rejection:
@@ -927,10 +935,17 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
         # _order_open's docstring for why insert-first beats send-first.
         order_id = _order_open(target_role, session_id, "contabo", message)
         full_message = f"{RELAY_PREFIX}{message}{_order_footer(order_id)}"
+        envelope_kw: dict = {}
+        subject_warning = None
+        if mailbox.envelope_on():
+            subj, subject_warning = mailbox.resolve_subject(subject, message)
+            envelope_kw = {"subject": f"order #{order_id}: {subj}"[:mailbox.SUBJECT_MAX],
+                           "kind": "order", "prio": "urgent"}
         try:
             letter_path = mailbox.send(
                 target_role, session_id, full_message,
                 SECRETARY_FROM_ROLE, SECRETARY_FROM_SESSION_ID,
+                **envelope_kw,
             )
             letter_on_disk = letter_path.is_file()
         except Exception as e:
@@ -959,6 +974,8 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
         # recipient's next prompt either way.
         try:
             attempt_wake(target_role, session_id, SECRETARY_WAKE_LABEL)
+            if envelope_kw:  # an urgent letter always wakes; the debounce counts from here
+                mailbox.note_wake(target_role, session_id)
         except Exception as e:
             _audit("relay_to_session", target_role, "wake_failed", str(e))
         _audit("relay_to_session", target_role, "delivered",
@@ -970,6 +987,8 @@ def relay_to_session(target_role: str, message: str, wait: bool = False,
             "letter_path": str(letter_path),
             "order_id": order_id,
         }
+        if subject_warning:
+            result["warning"] = subject_warning
         if wait:
             time.sleep(RELAY_WAIT_SECONDS)
             raw = _capture_pane(tmux_name)

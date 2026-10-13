@@ -724,7 +724,8 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
         if task and (task.get("status") == "failed" or
                      await _trust_prompt(task, task.get("tmux_session"))):
             return
-        result = await asyncio.to_thread(send_to_worker_send, task_id, message)
+        result = await asyncio.to_thread(send_to_worker_send, task_id, message,
+                                         **_letter_subject(f"kickoff {task_id}"))
         info(f"kickoff task={task_id}: {result}")
     except Exception as e:
         warn(f"kickoff failed task={task_id}: {e}")
@@ -828,6 +829,13 @@ def _live_worker_alive(task: dict) -> bool:
         return False
 
 
+def _letter_subject(subject: str) -> dict:
+    """`subject=` for send_to_worker under envelope mail (ORG_MAIL_ENVELOPE);
+    nothing when the flag is off, so the call is exactly the old one."""
+    from lib import mailbox
+    return {"subject": subject} if mailbox.envelope_on() else {}
+
+
 REOPEN_LIVE_MSG = (
     "The CTO reopened this task (iteration {iteration}). TASK.md was rewritten "
     "with the CTO feedback on top -- re-read it, act on the feedback, then "
@@ -860,7 +868,9 @@ async def _resume_live_worker(task: dict, role_name: str) -> dict | None:
     from tools.send_to_worker import send as send_to_worker_send
     msg = REOPEN_LIVE_MSG.format(iteration=task.get("iteration"))
     try:
-        await asyncio.to_thread(send_to_worker_send, task_id, msg)
+        await asyncio.to_thread(
+            send_to_worker_send, task_id, msg,
+            **_letter_subject(f"reopen {task_id}: iteration {task.get('iteration')}"))
         note = "reopen pointer queued to its mailbox"
     except Exception as e:  # the claim stands; the CTO must message it
         note = f"mailbox send FAILED ({e}) -- message the worker yourself"

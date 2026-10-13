@@ -198,8 +198,8 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     venv = _venv_python(root)
     code = (
         "import sys; sys.path.insert(0, %r);"
-        "from lib.org_tools_registry import REGISTRY;"
-        "print(' '.join(s.name for s in REGISTRY))" % str(root)
+        "from lib.org_tools_registry import served_names;"
+        "print(' '.join(served_names()))" % str(root)
     )
     proc = subprocess.run(
         [str(venv) if venv.exists() else sys.executable, "-c", code],

@@ -153,11 +153,13 @@ def test_g1_allowed_matches_servers() -> None:
 def test_org_tools_come_from_registry() -> None:
     print("org tool names are the registry's, not a copy")
     sys.path.insert(0, str(ROOT))
-    from lib.org_tools_registry import REGISTRY  # noqa: PLC0415
+    from lib.org_tools_registry import served_names  # noqa: PLC0415
 
-    expected = {f"mcp__org__{s.name}" for s in REGISTRY}
+    # served_names(): the registry, less the envelope-mail tools while
+    # ORG_MAIL_ENVELOPE is off in this env (the allowlist subprocess inherits it)
+    expected = {f"mcp__org__{n}" for n in served_names()}
     got = {t for t in _allowed("cto") if t.startswith("mcp__org__")}
-    _mark(got == expected, f"all {len(expected)} registry tools present, no extras")
+    _mark(got == expected, f"all {len(expected)} served registry tools present, no extras")
 
 
 def test_launchers_derive_allowed() -> None:
