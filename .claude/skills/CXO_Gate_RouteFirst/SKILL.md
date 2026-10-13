@@ -29,6 +29,9 @@ refusal costs one edited line, and you know where the code is blind. Plan:
 - **To pass:** write `override: <code> <why>` on **line 1** of the description.
   - The rule says line 1. The code also accepts any line of the first block (lines 1–5, before the
     first blank line).
+  - That tolerance is on purpose (CTO #e106b78b, 14 Oct). `reopen_task` puts its feedback above the
+    old text and pushes the override line down, so a line-1-only check would refuse every
+    re-delegate. Writers still put it on line 1.
   - A line below a blank line is ignored.
   - The first word must be a code from this closed list:
 
@@ -115,12 +118,15 @@ refusal costs one edited line, and you know where the code is blind. Plan:
 - **Evidence:** one `runner_fit` event per closed outside task.
 
 ## What the code does not catch (the Monday report shows it instead)
-- **A hand pin that also writes `runner_model`** looks routed.
-  - The report lists tasks that have a `runner` and no `router:` line.
-- **`ORG_ROUTER=off`** turns the gate and the router off, for repair only. It is **not logged
-  yet**, though plan §4.3 M1 says it should be.
-  - The place to log it is `tools/delegate.py:_route_runner`. Agree the order with whoever holds
-    delegate.py before editing it.
+- **A hand pin that also writes `runner_model`** looks routed to the gate.
+  - The Monday report counts tasks that have a `runner`, no `router:` line and no override line.
+    That is enough for now (CTO #e106b78b, 14 Oct).
+  - It over-counts: a failure path overwrites `delegate_log`, so a routed task that timed out loses
+    its `router:` line.
+- **`ORG_ROUTER=off`** turns the gate (route.py:737) and the router off, for repair only. It is **not logged yet**, though
+  plan §4.3 M1 says it should be.
+  - Asked of PH #3c1f65ae, who holds `tools/delegate.py`, for P2: a `router_off` hub event in
+    `_route_runner` (14 Oct). Until it lands, nothing records the skip.
 - **A C-level's own `Agent` calls** never reach `delegate_task`.
   - The M2 hook logs them for 3 days, then blocks a dev-shaped call without a reason (Q-20261013-1745-f56c).
 - **The C-level session's own tokens:** no router touches them. The lever is one job per session.
