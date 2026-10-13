@@ -115,7 +115,14 @@ When done, end your turn with this exact structure:
 
 ## Notes for Reviewer
 - <anything CTO should check>
+
+## Not checked / risk
+- <1–2 lines: what you did not verify, and what could break because of it>
 ```
+
+`Not checked / risk` is never empty. Write `none — <why>` only when you can
+say why (for example, "every path the change touches is under a test that
+failed before the fix"). (Idea from Ponytail v5, MIT.)
 
 CTO will parse this. Missing sections = your work fails review automatically.
 

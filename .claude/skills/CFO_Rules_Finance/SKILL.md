@@ -48,6 +48,18 @@ past CFO session — so you don't rediscover them from scratch every time.
    traceable to a specific source: a Gmail receipt ID, a migration file, a
    wiki decision doc, or a live dashboard screenshot — not a remembered
    figure from a prior session.
+6. **Haiku 5.5 price cliff** (rule: published price + CEO order 2026-10-13,
+   ADR 0009 addendum 2026-10-13). **Haiku 5.5 only for requests ≤100k total
+   input incl. cache; measure; otherwise price at the 5× rate.**
+   - Each request is priced on its own: ≤100k is $0.10 in / $0.50 out per
+     MTok, and >100k is $0.50 / $2.50, with cache reads and writes ×5 as well.
+   - Measure per request, never as a turn sum.
+   - Never size Thai as chars/4: it runs about 0.85 tokens/char.
+   - Applies only to calls paid per token (API key or OpenRouter). The
+     subscription and Haiku 4.5 (flat $1 / $5) are not affected.
+   - Rows over the line carry `tags.prompt_cliff = 'over'` in
+     `webapp_cfo_api_events`, or `prompt_cliff` in the `decide()` ledger.
+   - Call sites and sizes: `docs/ops/haiku-5-5-price-cliff-2026-10-13.md`.
 
 ---
 
@@ -265,3 +277,9 @@ Code-verified and non-obvious:
 - **Notion** — the CEO's 2026-05-20 cancellation email did **not** cancel it.
   Notion requires an in-app downgrade (Settings → Billing → Change plan → Free →
   Downgrade). The ticket auto-closed while dunning kept firing.
+
+## Field notes
+
+- 2026-10-13 [MISSING] §1 — `webapp_cfo_api_events` rows tagged `agent-run` (ClaudeFlow `agents/base.js`) and `webhook-reply` (`claude.js`) are ONE row per turn that SUMS `prompt_tokens` over up to 10 tool-loop requests. They are upper bounds, not request sizes. Never read them as per-request context (price cliff, window fit). The rows written after task-4b1d7ace carry `tags.cliff_max_request` for the largest single request · evidence: base.js:639, claude.js:1536, cto session 85f57de8 · status: pending
+- 2026-10-13 [MISSING] §1 — how to read `webapp_cfo_api_events` from Contabo without a key in the transcript: pipe a read-only node script that prints counts/percentiles only into `docker exec -i mooniex-claudeflow-claudeflow-webhook-1 node -`. It uses that service's own Supabase env. Listing Infisical secret names to find a key was refused as [Credential Exploration] · evidence: cto session 85f57de8, `claude_usage_agg.js` (2,007 Claude rows) · status: pending
+- 2026-10-13 [MISSING] §1 — OpenRouter's docs do not say whether `usage.prompt_tokens` includes cached tokens. The org treats `prompt_tokens_details.cached_tokens` as a breakdown of it (OpenAI schema). That is inferred, not documented: confirm it on the first Haiku 5.5 call that hits a cache · evidence: docs/ops/haiku-5-5-price-cliff-2026-10-13.md §1 · status: pending

@@ -1,0 +1,15 @@
+# Installed at /etc/systemd/system/contabo-invoice-reminder.timer. 08:30 Bangkok on the 4th-last and
+# 2nd-last day of every month = 3 days and 1 day before the month-end invoice, whatever the month's
+# length (Oct: 28 + 30, Nov: 27 + 29, Feb 2027: 25 + 27) and whatever the box's own zone. Check with:
+#   systemd-analyze calendar --iterations=4 '*-*~04 08:30:00 Asia/Bangkok'
+[Unit]
+Description=Contabo invoice reminder, 3 days and 1 day before month end, 08:30 Asia/Bangkok
+
+[Timer]
+OnCalendar=*-*~04 08:30:00 Asia/Bangkok
+OnCalendar=*-*~02 08:30:00 Asia/Bangkok
+Persistent=true
+Unit=contabo-invoice-reminder.service
+
+[Install]
+WantedBy=timers.target

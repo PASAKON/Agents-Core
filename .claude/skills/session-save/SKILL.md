@@ -49,6 +49,17 @@ A parked session is findable again by its LungNote SID tag and its saved file.
 
 ## How to run it
 
+0. **MEMORY.md size check.** Claude Code loads only the head of the memory
+   index at session start: about 200 lines or 25 KB, whichever comes first.
+   Anything past that is dropped without a warning, so a pointer added at
+   the bottom is a memory no later session sees. (Sources: research
+   `2026-09-25-token-saving-techniques-caveman-survey.md`; SomPong research
+   2026-10-11 on Caveman's memory doctor.) Run
+   `wc -lc ~/.claude/projects/<this project>/memory/MEMORY.md`. Over 180
+   lines or 22 KB: tell the CEO in the save report, and move whole groups
+   into a sub-index file (`reference_index_<topic>.md`, one line left in
+   MEMORY.md) before you add anything. Never trim by deleting memories.
+   Contabo CTO, 2026-10-12: 104 lines, 16.8 KB.
 1. **Local file** — prefer delegating to the **`ecc:save-session`** skill (or
    `/save-session` command) so file mechanics stay in sync with ECC. If it's
    unreachable, use the inlined fallback below to produce an identical file.
