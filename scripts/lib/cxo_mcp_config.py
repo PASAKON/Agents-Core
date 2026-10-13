@@ -114,8 +114,8 @@ ROLE_SERVERS: dict[str, tuple[str, ...]] = {
     # mooniex-coord stays opt-in as for everyone (CXO_EXTRA_MCP).
     "coo": BASE_SERVERS,
     # Project Head (org restructure P2): BASE only. The org server itself
-    # withholds the tools a PH may not use (PH_WITHHELD_TOOLS in
-    # lib/org_tools_registry.py), and the allowlist below follows it.
+    # serves a PH only its allowlist (PH_TOOLS in lib/org_tools_registry.py),
+    # and the --allowed-tools list below follows it.
     "project_head": BASE_SERVERS,
 }
 

@@ -354,7 +354,8 @@ def _ff_runtime_checkout(repo: Path, base: str) -> dict:
 def _role_can_merge(role: str) -> bool:
     try:
         from lib.config import role as _role_cfg
-        return bool(_role_cfg(role).get("can_merge"))
+        # `is True`: a quoted "false" in the YAML is a truthy string
+        return _role_cfg(role).get("can_merge") is True
     except ValueError:  # a role with no policy row cannot merge
         return False
 

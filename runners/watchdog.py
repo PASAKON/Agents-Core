@@ -918,10 +918,20 @@ def _drain_disk_queue() -> dict | None:
             continue
         disk_queue.pop(task_id)
         try:
-            asyncio.run(delegate.delegate_task(task_id))
+            row = asyncio.run(delegate.delegate_task(task_id))
         except Exception as e:
             error(f"watchdog: disk queue spawn failed for {task_id}: {e}")
             return {"task": task_id, "error": str(e)}
+        if isinstance(row, dict) and row.get("status") == "pending":
+            # A later gate refused it (org restructure P2: RAM, a Project
+            # Head's worker cap): not a spawn. Back to the tail, so it is
+            # tried again once the cap or the RAM frees and does not hold up
+            # the entries behind it. enqueue is idempotent if delegate_task
+            # already re-queued it for disk.
+            why = (row.get("delegate_log") or "").strip().splitlines()[-1:] or ["?"]
+            disk_queue.enqueue(task_id, task.get("owner_cto"))
+            warn(f"watchdog: disk queue {task_id} still pending, re-queued: {why[0]}")
+            return {"task": task_id, "refused": why[0]}
         success(f"watchdog: disk queue spawning {task_id} "
                f"(free {free_gb:.1f} GB >= {orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:.1f} GB)")
         # No letter here (CEO 2026-09-23: permanent watchdog letters only when

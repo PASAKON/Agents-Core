@@ -298,6 +298,7 @@ def list_letters(unread_only: bool = False, limit: int = 20) -> str:
 
 
 from lib import mailbox as _mailbox  # noqa: E402
+from lib import roles as _org_roles  # noqa: E402
 
 if _mailbox.envelope_on():
     for _fn in (read_letter, list_letters):
@@ -305,11 +306,13 @@ if _mailbox.envelope_on():
         mcp.tool(description=reg.BY_NAME[_fn.__name__].description)(_fn)
 
 
-# Org restructure P2 (plan §3.2): a Project Head session is not served the
-# tools it may not use; registry dispatch refuses them for it as well.
-_registered = {_t.name for _t in mcp._tool_manager.list_tools()}
-for _name in sorted((reg.PH_WITHHELD_TOOLS - set(reg.served_names())) & _registered):
-    mcp.remove_tool(_name)
+# Org restructure P2 (plan §3.2): a Project Head session is served only
+# reg.PH_TOOLS, including any tool registered here outside the registry;
+# registry dispatch refuses the rest for it as well.
+if _org_roles.is_project_head(reg.caller_role()):
+    _served = set(reg.served_names())
+    for _name in sorted({_t.name for _t in mcp._tool_manager.list_tools()} - _served):
+        mcp.remove_tool(_name)
 
 
 if __name__ == "__main__":

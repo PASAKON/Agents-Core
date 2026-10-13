@@ -902,13 +902,18 @@ ENVELOPE_TOOLS = frozenset({"read_letter", "list_letters"})
 
 # Org restructure P2 (plan §3.2, §4.1): a Project Head does not ask or write to
 # the CEO, raise Run cards, merge, revert, write the wiki or start a C-level.
-# A session whose CXO_ROLE is project_head is never served these, and a call
-# that reaches dispatch anyway is refused. No session has that role today, so
-# no existing session's tool set changes; ORG_PH_ROLES gates launching one.
-PH_WITHHELD_TOOLS = frozenset({
-    "ask_ceo", "ask_run", "ask_run_wait", "report_to_ceo",
-    "send_media_to_ceo", "send_media_batch_to_ceo",
-    "merge_task", "revert_task_tool", "wiki_write", "start_clevel_remote",
+# An ALLOWLIST, so a tool added to the registry later is withheld from a PH
+# until someone adds it here on purpose (security review of f73fa02f: local
+# main's email_ceo would have reached a PH through the old denylist). A session
+# whose CXO_ROLE is project_head is served only these, and a call that reaches
+# dispatch anyway is refused. No session has that role today, so no existing
+# session's tool set changes; ORG_PH_ROLES gates launching one.
+PH_TOOLS = frozenset({
+    "check_collisions", "close_dev", "create_task", "decide",
+    "delegate_parallel_tasks", "delegate_task", "get_task", "list_projects",
+    "recall", "reflect", "reopen_task", "review_diff", "send_to_cxo", "stats",
+    "wiki_list", "wiki_read", "wiki_search",
+    "read_letter", "list_letters",  # envelope mail: still only under ORG_MAIL_ENVELOPE
 })
 
 
@@ -920,8 +925,8 @@ def caller_role() -> str:
 def served_names(role: str | None = None) -> tuple[str, ...]:
     """The org tool names a session gets under this process's env: the
     registry, less ENVELOPE_TOOLS while the flag is off, less
-    PH_WITHHELD_TOOLS for a Project Head (`role`, default this process's
-    CXO_ROLE). Every surface follows it: the C-level allowlist
+    every tool outside PH_TOOLS for a Project Head (`role`, default this
+    process's CXO_ROLE). Every surface follows it: the C-level allowlist
     (scripts/lib/cxo_mcp_config.py), runners/cto_mcp_server.py,
     runners/cto.py and runners/cto_chat.py."""
     from lib import mailbox
@@ -929,8 +934,14 @@ def served_names(role: str | None = None) -> tuple[str, ...]:
     ph = org_roles.is_project_head(caller_role() if role is None else role)
     return tuple(
         s.name for s in REGISTRY
-        if (on or s.name not in ENVELOPE_TOOLS) and not (ph and s.name in PH_WITHHELD_TOOLS)
+        if (on or s.name not in ENVELOPE_TOOLS) and not (ph and s.name not in PH_TOOLS)
     )
+
+# PH tools that act on a task but carry no needs_ownership_check of their own.
+PH_OWN_TASK_TOOLS = frozenset({"close_dev"})
+
+# The registry tools a Project Head is not served (derived; PH_TOOLS decides).
+PH_WITHHELD_TOOLS = frozenset(BY_NAME) - PH_TOOLS
 
 assert len(REGISTRY) == len(BY_NAME), (
     f"duplicate tool name in REGISTRY: {len(REGISTRY)} entries, "
@@ -962,9 +973,15 @@ def _prepare(spec: ToolSpec, kwargs: dict) -> tuple[str | None, dict]:
         if p.name in kwargs or not p.required
     }
 
-    if spec.name in PH_WITHHELD_TOOLS and org_roles.is_project_head(caller_role()):
+    if spec.name not in PH_TOOLS and org_roles.is_project_head(caller_role()):
         return (f"ERROR: {spec.name} is not a Project Head tool (plan §3.2) — "
                 f"send it to your C-level as an ask letter"), merged
+    # close_dev checks no owner for anyone; a Project Head may close only its
+    # own workers (delegate/reopen get the same rule through is_mine below).
+    if spec.name in PH_OWN_TASK_TOOLS and org_roles.is_project_head(caller_role()):
+        t = db.get_task(merged.get("task_id") or kwargs.get("task_id"))
+        if t and not is_mine(t):
+            return foreign_msg(t), merged
 
     if spec.needs_ownership_check:
         task_id = merged.get("task_id") or kwargs.get("task_id")
