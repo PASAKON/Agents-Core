@@ -34,8 +34,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import stat
 import sys
 import time
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -69,6 +71,14 @@ _NAME_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)\s+#([0-9a-f]{6,12})\b")
 _C_LEVEL_RE = re.compile(r"^c[a-z]o$")
 _SESSION_FILE_RE = re.compile(r"^\d+\.json$")   # not <pid>.<hash>.key
+
+MAX_SESSION_BYTES = 64 * 1024   # a real record is under 2 KiB; a bigger file is not one
+MAX_NAME_CHARS = 120
+_BAD_CHARS = ("Cc", "Cf", "Zl", "Zp")   # controls, bidi/format, line and paragraph separators
+# O_NOFOLLOW: never through a planted symlink. O_NONBLOCK: a FIFO cannot hold the
+# open. The getattr keeps Windows (which has neither) importing.
+_O_SAFE = (getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+           | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_BINARY", 0))
 
 FOOTER = ('send: SendMessage(to=<text after the status>, verbatim). '
           '"N agents are named X" → re-send with the [ref] the error marks active.')
@@ -112,12 +122,25 @@ def is_c_level(role: str) -> bool:
 
 
 def map_status(raw) -> str:
+    """Only running / idle / unknown ever leave this: the status is printed
+    right above the "send verbatim" footer, so a value a session file chose
+    must not be able to carry text."""
     raw = str(raw or "").strip()
     if raw == "idle":
         return "idle"
     if raw in ("busy", "shell"):
         return "running"
-    return raw or "unknown"
+    return "unknown"
+
+
+def _clean(text, limit: int) -> str:
+    """One printable line: control, format (bidi) and line/paragraph separator
+    characters become a space, runs of spaces collapse, at most ``limit``
+    characters. A session file is written by whoever owns the registry dir (the
+    sompong user, a root worker, winbox), and the name is printed as an address
+    the model is told to send to verbatim: a "\\n" in it would forge a row."""
+    s = "".join(" " if unicodedata.category(c) in _BAD_CHARS else c for c in str(text))
+    return re.sub(r" {2,}", " ", s).strip()[:limit].rstrip()
 
 
 def _config():
@@ -211,11 +234,62 @@ def _former_name(former) -> str | None:
     return str(max(named, key=until)["name"])   # max keeps the first of equal keys
 
 
+def _safe_open(path, flags: int, *, create: bool) -> int | None:
+    """An fd on a regular file at ``path``, or None. The publisher runs as root
+    over paths another account can replace (state/ is group-writable by the
+    secretary service, and sompong writes its own registry dir), so an open must
+    not follow a planted symlink (lock -> /etc/shadow), block on a FIFO, or
+    write through a hard link: O_NOFOLLOW + O_NONBLOCK, then fstat must say a
+    regular file (and, for a file we create, one link). ``create`` also opens the
+    parent dir with O_NOFOLLOW, so a symlinked state/locks is refused too."""
+    dfd = fd = None
+    try:
+        path, kw = os.fspath(path), {}
+        if create and os.open in os.supports_dir_fd:
+            parent, path = os.path.split(path)
+            dfd = os.open(parent or ".", os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | _O_SAFE)
+            kw["dir_fd"] = dfd
+        fd = os.open(path, flags | _O_SAFE | (os.O_CREAT if create else 0), 0o644, **kw)
+        st = os.fstat(fd)
+        if stat.S_ISREG(st.st_mode) and (st.st_nlink == 1 or not create):
+            return fd
+    except OSError:
+        pass
+    finally:
+        if dfd is not None:
+            os.close(dfd)
+    if fd is not None:
+        os.close(fd)
+    return None
+
+
+def _read_session_file(path) -> bytes | None:
+    """The bytes of one registry file, or None. Regular files only (no symlink,
+    no FIFO, no /dev/zero behind a link), at most MAX_SESSION_BYTES: the
+    publisher runs as root over a dir the sompong user also writes."""
+    fd = _safe_open(path, os.O_RDONLY, create=False)
+    if fd is None:
+        return None
+    try:
+        if os.fstat(fd).st_size > MAX_SESSION_BYTES:
+            return None
+        with os.fdopen(fd, "rb", closefd=False) as f:
+            data = f.read(MAX_SESSION_BYTES + 1)   # a file that grew meanwhile
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+    return data if len(data) <= MAX_SESSION_BYTES else None
+
+
 def _row_from_file(path: Path) -> dict | None:
     """One live session row from one file, or None (dead, corrupt, no name)."""
+    raw = _read_session_file(path)
+    if raw is None:
+        return None
     try:
-        return _row_from_data(json.loads(path.read_text(encoding="utf-8")))
-    except (OSError, ValueError):
+        return _row_from_data(json.loads(raw.decode("utf-8")))
+    except (ValueError, RecursionError):    # RecursionError: 60k nested '['
         return None
 
 
@@ -224,22 +298,26 @@ def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
     pull returns, whose liveness the far side already checked), or None."""
     try:
         pid = int(data["pid"])
-        session_id = str(data["sessionId"])
+        session_id = _clean(data["sessionId"], 64)
         proc_start = data.get("procStart")
         proc_start = int(proc_start) if proc_start is not None else None
     except (KeyError, TypeError, ValueError, AttributeError):
         return None
+    # pid is an INTEGER column: one out-of-range value would fail the whole host's publish
+    if not session_id or not 0 < pid < 2 ** 31:
+        return None
     if check_alive and not is_alive(pid, proc_start):
         return None
-    name = str(data.get("name") or "").strip()
+    name = _clean(data.get("name") or "", MAX_NAME_CHARS)
     if not name:
         return None     # nothing to address it by
     role, sid = parse_name(name, session_id)
+    former = _former_name(data.get("formerNames"))
     return {
         "uuid": session_id, "sid": sid, "role": role, "name": name,
         "address": ADDRESS_ALIAS.get(role, name),
         "status": map_status(data.get("status")), "pid": pid,
-        "former_name": _former_name(data.get("formerNames")),
+        "former_name": _clean(former, MAX_NAME_CHARS) if former else None,
         "renamed_at": _ms_to_dt(data.get("nameSince")),
         "_updated": data.get("updatedAt") if isinstance(data.get("updatedAt"), (int, float)) else 0,
     }
@@ -360,7 +438,8 @@ def ps_encoded(script: str = PS_PULL_SCRIPT) -> str:
 
 
 def pull_argv(ssh_target: str) -> list[str]:
-    return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", ssh_target,
+    # "--": the target comes from hosts.yaml, and OpenSSH reads options with getopt
+    return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "--", ssh_target,
             "powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", ps_encoded()]
 
 
@@ -382,7 +461,7 @@ def pull_remote(ssh_target: str, *, timeout: float = PULL_TIMEOUT_S) -> list[dic
     lines = proc.stdout.decode("utf-8-sig", "replace").strip().splitlines()
     try:
         entries = json.loads(lines[-1])
-    except (IndexError, ValueError):
+    except (IndexError, ValueError, RecursionError):
         raise PullError("bad output") from None
     if not isinstance(entries, list) or not all(isinstance(e, dict) for e in entries):
         raise PullError("bad output")
@@ -431,9 +510,13 @@ def acquire_lock(path: Path = LOCK_PATH, *, write_pid: bool = False):
     the file for `cat` (POSIX only: a Windows byte lock blocks readers)."""
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        f = open(path, "a+b")
     except OSError:
         return None
+    # no O_TRUNC: a probe that loses must not wipe the holder's pid
+    fd = _safe_open(path, os.O_RDWR, create=True)
+    if fd is None:
+        return None
+    f = os.fdopen(fd, "r+b")
     if not _try_lock(f):
         f.close()
         return None
@@ -582,23 +665,34 @@ def ensure_publisher(root: Path = ROOT) -> bool:
     The spawn guard (SPAWN_GAP_S, by the mtime of state/locks/live_sessions.spawned)
     stops a crash loop and two prompts racing; a second process that slips
     through exits at once on the lock. Stderr of the child goes to
-    state/live_sessions.log."""
+    state/live_sessions.log.
+
+    Only the main checkout starts a publisher: a hook running from a worktree
+    would put hub credentials behind unreviewed branch code. The lock and the
+    stamp are opened with _safe_open (a planted symlink or FIFO there means no
+    spawn); an unsafe log only costs the child its stderr."""
     if os.environ.get("ORG_LIVE_SESSIONS", "").strip().lower() == "off":
+        return False
+    if "worktrees" in Path(root).resolve().parts:
         return False
     locks = Path(root) / "state" / "locks"
     probe = acquire_lock(locks / LOCK_NAME)
     if probe is None:
         return False
     probe.close()
-    stamp = locks / SPAWN_STAMP
+    fd = _safe_open(locks / SPAWN_STAMP, os.O_WRONLY, create=True)
+    if fd is None:
+        return False
     try:
-        if time.time() - stamp.stat().st_mtime < SPAWN_GAP_S:
+        st = os.fstat(fd)
+        if st.st_size and time.time() - st.st_mtime < SPAWN_GAP_S:   # size 0: just created
             return False
-    except FileNotFoundError:
-        pass
+        os.ftruncate(fd, 0)     # stamped before the spawn: a failing spawn cannot loop
+        os.write(fd, b"1")
     except OSError:
         return False
-    stamp.touch()
+    finally:
+        os.close(fd)
     argv = _spawn_argv(root)
     if argv is None:
         return False
@@ -609,8 +703,13 @@ def ensure_publisher(root: Path = ROOT) -> bool:
         kw["creationflags"] = 0x00000008 | 0x00000200 | 0x08000000
     else:
         kw["start_new_session"] = True
-    with open(Path(root) / "state" / "live_sessions.log", "ab") as log:
-        subprocess.Popen(argv, stderr=log, **kw)
+    log_fd = _safe_open(Path(root) / "state" / "live_sessions.log",
+                        os.O_WRONLY | os.O_APPEND, create=True)
+    try:
+        subprocess.Popen(argv, stderr=subprocess.DEVNULL if log_fd is None else log_fd, **kw)
+    finally:
+        if log_fd is not None:
+            os.close(log_fd)
     return True
 
 
