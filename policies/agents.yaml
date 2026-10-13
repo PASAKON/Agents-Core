@@ -102,6 +102,28 @@ roles:
     can_delete_branch: true
     skills_profile: all
 
+  # Project Head (org restructure P2, plan §3.2; SomPong report
+  # org-restructure-ph-envelope-2026-10-13). Not a C-level and not a worker:
+  # a session that owns ONE project for its lane's C-level, works on it itself,
+  # may spawn at most 2 workers, never merges, deploys or asks the CEO. Usable
+  # only where ORG_PH_ROLES=1 (scripts/spawn-ph.sh, cxo-claude.sh --role
+  # project_head). Display is per lane: "Project Head (CTO)". Role doc
+  # roles/project_head.md is the COO's to write (plan §13).
+  project_head:
+    display: Project Head
+    level: m
+    model: "claude-sonnet-5-5[1m]"   # plan §3.2: Sonnet 5.5 at xhigh
+    fallback_model: "claude-fable-5"
+    effort: "xhigh"
+    can_write_wiki: false
+    can_create_task: true
+    can_merge: false
+    can_push: true            # feature branches; main is the CTO's (plan §3.2)
+    can_delete_branch: false
+    can_ask_ceo: false        # plan §4.1: questions go to its C-level as kind=ask
+    max_workers: 2            # plan §3.2: at most 2 live workers at once
+    skills_profile: all
+
   developer:
     display: Developer
     level: w

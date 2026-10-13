@@ -16,6 +16,9 @@ tests/test_c_level_roles.py fails if any collection misses a role again.
 """
 from __future__ import annotations
 
+import os
+import re
+
 # Only for when policies/agents.yaml cannot be read here (no PyYAML under a
 # system python3, or no policy file on this box). tests/test_c_level_roles.py
 # asserts it holds the same roles as the policy, so it cannot drift silently.
@@ -61,3 +64,42 @@ def c_level_displays() -> tuple[str, ...]:
         return tuple(display_for(r) for r in roles)
     except (ImportError, OSError):
         return tuple(r.upper() for r in roles)
+
+
+# --- Project Head (org restructure P2, plan §3.2) ------------------------------
+# A Project Head is neither a C-level nor a worker: one session per project,
+# owned by its lane's C-level. Its session carries CXO_ROLE=project_head plus
+# ORG_PH_LANE (the owning C-level role) and ORG_PH_PROJECT (the project name);
+# docs/design/org-restructure-p2.md is the contract. Nothing here is live
+# unless ORG_PH_ROLES=1 on the host.
+PH_ROLE = "project_head"
+PH_PROJECT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$")
+
+
+def ph_roles_on() -> bool:
+    """True when this host runs the Project Head layer (ORG_PH_ROLES=1)."""
+    return os.environ.get("ORG_PH_ROLES", "").strip() == "1"
+
+
+def is_project_head(role: str | None) -> bool:
+    return (role or "").strip().lower() == PH_ROLE
+
+
+def ph_display(lane: str) -> str:
+    """The label a Project Head shows everywhere: `Project Head (CTO)`."""
+    return f"Project Head ({(lane or '').strip().upper()})"
+
+
+def ph_lane_refusal(lane: str) -> str | None:
+    """Why `lane` cannot own a Project Head, or None when it can."""
+    if lane in c_level_roles():
+        return None
+    return f"lane must be one of {', '.join(c_level_roles())} (got {lane!r})"
+
+
+def ph_project_refusal(project: str) -> str | None:
+    """Why `project` is not a usable Project Head project name, or None."""
+    if PH_PROJECT_RE.match(project or ""):
+        return None
+    return ("project must be 1-40 chars of letters, digits, _ or -, starting "
+            f"with a letter or digit (got {project!r})")
