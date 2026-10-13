@@ -48,6 +48,18 @@ past CFO session — so you don't rediscover them from scratch every time.
    traceable to a specific source: a Gmail receipt ID, a migration file, a
    wiki decision doc, or a live dashboard screenshot — not a remembered
    figure from a prior session.
+6. **Haiku 5.5 price cliff** (rule: published price + CEO order 2026-10-13,
+   ADR 0009 addendum 2026-10-13). **Haiku 5.5 only for requests ≤100k total
+   input incl. cache; measure; otherwise price at the 5× rate.**
+   - Each request is priced on its own: ≤100k is $0.10 in / $0.50 out per
+     MTok, and >100k is $0.50 / $2.50, with cache reads and writes ×5 as well.
+   - Measure per request, never as a turn sum.
+   - Never size Thai as chars/4: it runs about 0.85 tokens/char.
+   - Applies only to calls paid per token (API key or OpenRouter). The
+     subscription and Haiku 4.5 (flat $1 / $5) are not affected.
+   - Rows over the line carry `tags.prompt_cliff = 'over'` in
+     `webapp_cfo_api_events`, or `prompt_cliff` in the `decide()` ledger.
+   - Call sites and sizes: `docs/ops/haiku-5-5-price-cliff-2026-10-13.md`.
 
 ---
 
