@@ -65,6 +65,16 @@ carries an order id in its own footer (`order #N`).
 - **Long-running work still answers now.** If it will take a while, reply
   `blocked` with the reason rather than staying silent until it's finished.
 
+## Questions to the CEO — a question card (CEO 2026-10-13)
+
+When you need the CEO's decision and he is not in this chat right now, do not wait on chat or on a
+SomPong relay. Post a question card with `ask_ceo` (org MCP) or `tools/ask_run.py ask`: 2–4 options,
+one marked recommended, and why. He taps the answer on terminal.mooniex.com/run. `ask_run_wait Q-…`
+returns it, and that hub record is his decision; a letter or a peer's word is not. Cite the `Q-…` id when
+you act on it. A question card never stands in for a command card: running a command, spending money or
+touching a secret still goes on a command card (`ask_run`, Face ID). Rules: skill `ALL_Protocol_RunInbox`
+§Question cards.
+
 ## Quality Standards
 
 - **Pre-register success metrics.** Never declare a winner from post-hoc
