@@ -463,7 +463,8 @@ def published_paths(root: Path) -> set[str] | None:
 
 
 def not_on_box(hq: Path, present: set[str]) -> list[dict]:
-    """Repos the HQ map knows that have no checkout on this box."""
+    """Repos the HQ map knows that have no checkout on this box. `here` tells a folder
+    that is absent from one that exists without .git (a deploy copy: no PR can start there)."""
     mp = hq / "hq.yaml"
     if not mp.exists():
         return []
@@ -475,8 +476,9 @@ def not_on_box(hq: Path, present: set[str]) -> list[dict]:
             continue
         if repo in present or (hq / r.get("path", "")).joinpath(".git").exists():
             continue
+        here = "folder, no git (deploy copy)" if (hq / r.get("path", "")).is_dir() else "absent"
         out.append({"repo": repo, "path": r.get("path"), "owner": r.get("owner"),
-                    "status": r.get("status", "active")})
+                    "status": r.get("status", "active"), "here": here})
     return out
 
 
@@ -567,13 +569,16 @@ def summarize(rows: list[FileRow], repos: list[tuple[str, Path]], public: set[st
     if len(back) > 60:
         a(f"| … | {len(back) - 60} more in rows.jsonl | | | {sum(r.translate for r in back[60:]):,} | |")
     a("")
-    a("## Not on Contabo (out of scope from this box)")
+    a("## No git checkout on Contabo (out of scope from this box)")
+    a("")
+    a("Not scanned. `absent` = no folder at all; `deploy copy` = the folder exists without .git, "
+      "so a translation PR must start from a clone of origin.")
     a("")
     if missing:
-        a("| repo | HQ path | owner | status |")
-        a("|---|---|---|---|")
+        a("| repo | HQ path | owner | status | on this box |")
+        a("|---|---|---|---|---|")
         for m in missing:
-            a(f"| {m['repo']} | {m['path']} | {m['owner']} | {m['status']} |")
+            a(f"| {m['repo']} | {m['path']} | {m['owner']} | {m['status']} | {m['here']} |")
     else:
         a("(hq.yaml not found or every mapped repo is present)")
     a("")

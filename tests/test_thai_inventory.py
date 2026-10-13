@@ -77,6 +77,18 @@ def test_totals_add_up_for_every_file():
         assert row.translate + row.keep == row.thai
 
 
+def test_not_on_box_tells_a_deploy_copy_from_an_absent_repo(tmp_path):
+    (tmp_path / "Projects" / "Deployed").mkdir(parents=True)
+    (tmp_path / "Projects" / "Cloned" / ".git").mkdir(parents=True)
+    (tmp_path / "hq.yaml").write_text(
+        "folders:\n"
+        "  - {path: Projects/Deployed, repo: PASAKON/X-Deployed, owner: CTO}\n"
+        "  - {path: Projects/Cloned, repo: PASAKON/X-Cloned, owner: CTO}\n"
+        "  - {path: Projects/Gone, repo: PASAKON/X-Gone, owner: CMO}\n", encoding="utf-8")
+    got = {m["repo"]: m["here"] for m in ti.not_on_box(tmp_path, set())}
+    assert got == {"X-Deployed": "folder, no git (deploy copy)", "X-Gone": "absent"}
+
+
 def test_main_writes_public_rows_and_keeps_private_paths_out(tmp_path):
     pub = tmp_path / "Agents-Core"
     priv = tmp_path / "Secret-Repo"
