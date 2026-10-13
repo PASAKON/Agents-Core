@@ -63,6 +63,16 @@
         ]
       },
       {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-agent-route-log.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|Bash",
         "hooks": [
           {
