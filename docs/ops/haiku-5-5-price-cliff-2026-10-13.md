@@ -146,10 +146,16 @@ higher prices even when part of its prompt is a cache hit."
   the CEO's decision (LungNote, cto-4bb20df8; the G0 replay itself is due 2026-10-15). This doc
   does not make it.
 
-## 6. Landed
+## 6. Landed (2026-10-13)
 
-Filled in at landing:
-- ClaudeFlow guard: `<sha>`
-- Agents-Core guard: `<sha>`
-- This doc and the skill rule: `<sha>`
-- ADR 0009 addendum (Agents-Rules): `<sha>`
+- ADR 0009 addendum: Agents-Rules `ae65e65`.
+- Skill rule: `CFO_Rules_Finance` principle 6, `40e59df8`. Field notes `7c8f20fd`.
+- This doc: `477679b8`.
+- Agents-Core guard (task-d4498b47): `482840c6`.
+  - Live when the next process imports `tools/decide.py`.
+  - The live checkout merged origin at `b0b53cb4`.
+- ClaudeFlow guard (task-4b1d7ace): `4534483` on origin, and the live checkout fast-forwarded.
+  - **Not deployed on 2026-10-13.** The webhook runs an image baked on 2026-10-10, and a rebuild
+    restarts live LuNar turns while Contabo RAM is tight.
+  - Nothing live runs Haiku 5.5, so the gap costs nothing.
+  - The tag starts with the next ClaudeFlow image rebuild.
