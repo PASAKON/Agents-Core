@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-48 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 9 · Standard 4 · Gate 5 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+49 org skills by kind — Rules 6 · Knowledge 12 · Workflow 4 · Procedure 9 · Standard 4 · Gate 6 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -79,6 +79,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of «จุดจบของเจ้าหนี้นอกระบบ»… |
 | `CMO_Gate_Story_SceneEngine` | CMO | cmo, script_writer, worker | Write and audit screenplay scenes and sequences using a five-element dramatic engine — Goal, Obstacle, Tactic, Reversal, Value Shift… |
 | `CTO_Gate_MergeChecklist` | CTO | cto | Pre-merge verification gate — refuses merge_task if any check fails. |
+| `CXO_Gate_RouteFirst` | CTO | cxo | Before every delegate_task of a worker job: outside runners first (IRON §59 rule 7). What route.check_override v2 and the router enforce… |
 
 ## Protocol
 
