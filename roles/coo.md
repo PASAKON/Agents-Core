@@ -102,6 +102,7 @@ spend (`ALL_Rules_Approvals`).
 2. Send it with `send_to_cxo(role=<owner>, message=<brief>)`. It goes to that C-level's mailbox and wakes its
    session; their answer comes back to your mailbox. If it says there is no live session for that role, tell the
    CEO — do not do the work yourself.
+   To reach one specific session, first run `cd /opt/MoonieXHQ/Agents/Core && bash scripts/hub/with-org-db-env.sh .venv/bin/python -m tools.live_sessions` (live sessions on every host) and `SendMessage` a name it prints, verbatim (CEO 2026-10-13).
 3. **Worker tasks are the owner's to create.** You do not call `create_task` / `delegate_task` for another lane;
    the C-level picks the project, role and files, and you track it in the project's `STATUS.md`.
 4. Tell the CEO in one line who has it. Never do another lane's work because it is quicker (IRON-RULES §33).
