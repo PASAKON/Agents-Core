@@ -93,9 +93,22 @@ TH_MONTHS = ("ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "
 LABEL_TH = {"measured": "วัดจริง", "estimate": "ประมาณการ", "lower": "ขั้นต่ำ", "bound": "เพดาน", "none": "ไม่มีข้อมูล"}
 FIRST_REPORT_QUESTIONS = (
     "1. เกณฑ์ขั้นต่ำ: AGY/Codex ≥50% ของโควตาสัปดาห์ · Jules ≥10 session/สัปดาห์ · JEV ≥1 ครั้งต่อ site ใช้ได้ไหม",
-    "2. แพ็กเกจ Google ที่จ่ายจริงคืออะไร ($100 ใน plans.yaml หรือ AI Ultra ตาม skill Jules) — CFO ยืนยัน",
+    "2. เครดิต Google Cloud รายเดือนที่มากับ Google AI Ultra จะใช้ได้ต่อเมื่อเปิด billing account (บัญชีเดิมปิดตั้งแต่ 4 ส.ค.)"
+    " — เปิดใช้ไหม (ต้องผูกบัตร · ตั้ง budget ฿300 ทันที)",
     "3. เครดิต OpenRouter: JEV และ Haiku fallback หยุดเมื่อเครดิตหมด การเติมเงินเป็นการตัดสินใจของ CEO",
     "4. กฎ 'ใช้ runner นอกก่อน' (IRON §59 ข้อ 7) และการเปิดโหมดบล็อกของ hook Agent รอ CEO ดูตัวเลขสัปดาห์นี้ก่อน",
+)
+
+
+# Claude plan price -> usage multiple of Pro, by the plans' own names (Pro, Max 5x, Max 20x). Anthropic does not
+# publish weekly limits as numbers, so anything computed from this is an estimate.
+CLAUDE_USAGE_X = {20: 1, 100: 5, 200: 20}
+PROVIDER_TH = {"anthropic": "Claude", "google": "Google AI Ultra", "openai": "ChatGPT"}
+# Parts of the Ultra bundle the CEO calls under-used (14 Oct, via SomPong) that no source measures yet.
+ULTRA_UNMEASURED = (
+    "Google Flow Music: ไม่มีแหล่งวัด (CEO บอกว่าใช้น้อย)",
+    "เครดิต Google Cloud รายเดือนที่มากับแพ็กเกจ ($40–100 ตามแหล่งข่าว ยังไม่ยืนยัน): ยังไม่ได้เปิดใช้ ต้องมี billing account"
+    " ที่เปิดอยู่ (บัญชีเดิมปิดตั้งแต่ 4 ส.ค.) · docs/research/2026-10-14-google-ai-subscription-cloud-credits.md",
 )
 
 
@@ -956,14 +969,78 @@ def _scope(got: list[str], gone: list[str]) -> str:
     return " · ".join(parts)
 
 
-def _plan_usd_week(provider: str, at: datetime, plans: dict) -> float | None:
-    prov = (plans.get("providers") or {}).get(provider) or {}
+def _plan_usd_month(entries, at: datetime) -> float | None:
+    """The monthly price in force at `at` from a list of {usd, from} entries, or None."""
     usd = None
-    for p in prov.get("plans") or []:
+    for p in entries or []:
         frm = parse_ts(str(p.get("from")))
         if frm is not None and frm <= at:
             usd = float(p.get("usd"))
+    return usd
+
+
+def _plan_usd_week(provider: str, at: datetime, plans: dict) -> float | None:
+    prov = (plans.get("providers") or {}).get(provider) or {}
+    usd = _plan_usd_month(prov.get("plans"), at)
     return usd * 12 / 52 if usd is not None else None
+
+
+def _target_usd(target) -> float | None:
+    """A target is a goal, not a price history: it shows in every window, whatever its `from` date."""
+    return float(target["usd"]) if isinstance(target, dict) and target.get("usd") is not None else None
+
+
+def subscription_lines(cur: dict[str, dict], sources: dict, plans: dict, win: Window) -> list[str]:
+    """Monthly plan cost at the end of `win` against the CEO's target (plans.yaml `targets`, CEO 14 Oct),
+    and the weekly signs of the gap. Empty when no target is configured."""
+    targets = plans.get("targets") or {}
+    if not targets:
+        return []
+    providers = plans.get("providers") or {}
+    lines = ["", "ค่าแพ็กเกจต่อเดือน เทียบเป้าของ CEO (14 ต.ค.):",
+             "| บริการ | ตอนนี้ $ | เป้า $ | ห่าง $ |", "|---|---|---|---|"]
+    now_sum = goal_sum = 0.0
+    complete = True
+    for prov, t in targets.items():
+        now = _plan_usd_month((providers.get(prov) or {}).get("plans"), win.end)
+        goal = _target_usd(t)
+        if now is None or goal is None:
+            complete = False
+            lines.append(f"| {PROVIDER_TH.get(prov, prov)} | {_fmt(now)} | {_fmt(goal)} | ไม่มีข้อมูล |")
+            continue
+        now_sum += now
+        goal_sum += goal
+        lines.append(f"| {PROVIDER_TH.get(prov, prov)} | {now:,.0f} | {goal:,.0f} | {now - goal:,.0f} |")
+    if complete:
+        lines.append(f"| รวม | {now_sum:,.0f} | {goal_sum:,.0f} | {now_sum - goal_sum:,.0f} |")
+
+    ht = _org_src(sources, "hub_tasks")
+    if ht is None:
+        lines.append("- งาน worker ที่ไม่ได้ใช้ Claude: " + _org_missing(sources, "hub_tasks"))
+    else:
+        total = sum(r.get("tasks", 0) for r in ht.values())
+        off = sum((ht.get(r) or {}).get("tasks", 0) for r in OUTSIDE_RUNNERS)
+        share = f" ({100 * off / total:.0f}%)" if total else ""
+        lines.append(f"- งาน worker ที่ไม่ได้ใช้ Claude: {off}/{total}{share} · วัดจริง (codex + agy ÷ ทุกงานใน hub)")
+
+    now_c = _plan_usd_month((providers.get("anthropic") or {}).get("plans"), win.end)
+    goal_c = _target_usd(targets.get("anthropic"))
+    used = (cur.get("claude_used_pct") or {}).get("value")
+    hours = (cur.get("claude_cap_hours") or {}).get("value")
+    x_now, x_goal = CLAUDE_USAGE_X.get(int(now_c or 0)), CLAUDE_USAGE_X.get(int(goal_c or 0))
+    if x_now and x_goal and x_goal < x_now and used is not None:
+        room = 100 * x_goal / x_now
+        cap = f" · ชนเพดาน {_fmt(hours)} ชม. (วัดจริง)" if hours is not None else ""
+        lines.append(f"- Claude ที่ ${goal_c:,.0f} ใช้ได้ราว {room:.0f}% ของโควตาสัปดาห์ของแพ็กเกจ ${now_c:,.0f} · "
+                     f"ช่วงนี้ใช้ {_fmt(used)}% → ต้องลดราว {used / room:.0f} เท่า{cap} · ประมาณการ: ตามชื่อแพ็กเกจ"
+                     " (Pro 1x, Max 5x, Max 20x) Anthropic ไม่ได้ประกาศโควตาเป็นตัวเลข")
+    elif x_now and x_goal and x_goal >= x_now:
+        lines.append(f"- Claude: แพ็กเกจ ${now_c:,.0f} ไม่เกินเป้า ${goal_c:,.0f} แล้ว (ตาม plans.yaml ณ สิ้นช่วง)")
+    elif goal_c is not None:
+        lines.append("- Claude เทียบเป้า: ไม่มีข้อมูล (ไม่รู้ราคาแพ็กเกจหรือโควตาที่ใช้ในช่วงนี้)")
+    lines.append("- ส่วนของ Ultra ที่ CEO บอกว่าใช้น้อย: Jules (ดูแถว Jules ในตาราง)")
+    lines += [f"  - {x}" for x in ULTRA_UNMEASURED]
+    return lines
 
 
 def build_rows(rows: dict[str, dict], win: Window, hosts: Iterable[str], plans: dict) -> dict[str, dict]:
@@ -1275,7 +1352,7 @@ def summary_th(prev: dict, cur: dict, pw: Window, cw: Window, idle: list[dict]) 
 
 
 def render(prev: dict, cur: dict, pw: Window, cw: Window, idle: list[dict], *, first: bool,
-           missing: list[str], sources: dict[str, dict] | None = None) -> str:
+           missing: list[str], sources: dict[str, dict] | None = None, plans: dict | None = None) -> str:
     lines = [f"รายงานความคุ้มค่าเครื่องมือ — สัปดาห์ {cw.label()} เทียบ {pw.label()}", ""]
     lines += summary_th(prev, cur, pw, cw, idle)
     lines += ["", f"| เครื่องมือ | ตัววัด | {pw.label()} | {cw.label()} | ต่าง | ป้าย |", "|---|---|---|---|---|---|"]
@@ -1286,6 +1363,7 @@ def render(prev: dict, cur: dict, pw: Window, cw: Window, idle: list[dict], *, f
         lines.append(f"| {tool} | {metric} | {_cell_text(a, pw, key)} | {_cell_text(b, cw, key)}"
                      f"{' · ' + note if note else ''} | {_delta(a, b)} | {label} |")
     sources = sources or {}
+    lines += subscription_lines(cur, sources, plans or {}, cw)
     q = _org_src(sources, "quota")
     lines += ["", "ณ เวลาที่ Claude รีเซ็ตโควตาสัปดาห์ (วัดจริง จาก quota-history):"]
     resets = (q or {}).get("claude", {}).get("resets", [])
@@ -1376,7 +1454,8 @@ def build_report(prev_rows: dict[str, dict], cur_rows: dict[str, dict], pw: Wind
     fit = _org_src(cur_rows, "runner_fit")
     cells, phase = fit_cells(fit["records"] if fit is not None else [], _org_src(cur_rows, "skill_commits"), cw)
     quota = _org_src(cur_rows, "quota")
-    text = render(prev, cur, pw, cw, idle, first=first, missing=_missing_lines((prev_rows, cur_rows), hosts), sources=cur_rows)
+    text = render(prev, cur, pw, cw, idle, first=first, missing=_missing_lines((prev_rows, cur_rows), hosts), sources=cur_rows,
+                  plans=plans)
     return {"previous": {"window": pw.as_json(), "cells": prev}, "current": {"window": cw.as_json(), "cells": cur},
             "idle": idle, "text": text, "claude_resets": (quota or {}).get("claude", {}).get("resets", []),
             "fit_cells": cells if fit is not None else None, "org_phase": phase if fit is not None else None}

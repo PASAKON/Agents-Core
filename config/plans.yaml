@@ -5,8 +5,16 @@ providers:
   # 2026-10-14: the CEO gave $200 (session banners say Claude Max). When the $200 plan
   # started is not recorded, so "from" is the day he said it, not the start date.
   anthropic: {runner: claude, plans: [{usd: 200, from: "2026-08-29"}, {usd: 20, from: "2026-09-29T10:00:00Z"}, {usd: 200, from: "2026-10-14"}]}
+  # 2026-10-14 CEO (via SomPong): Google AI Ultra, $100/mo, kept long term (Colab, Flow 10,000 credits,
+  # Argon via agy, Flow Music). Claude Max $200, ChatGPT $20.
   google:    {runner: agy,    plans: [{usd: 100, from: "2026-09-01"}]}
   openai:    {runner: codex,  plans: [{usd: 20,  from: "2026-09-01"}]}
+# Monthly target once the org settles (CEO 2026-10-14, via SomPong): $320 now -> $140. tools/tool_value.py
+# reports the gap weekly. The router does not read this block.
+targets:
+  anthropic: {usd: 20,  from: "2026-10-14"}
+  google:    {usd: 100, from: "2026-10-14"}
+  openai:    {usd: 20,  from: "2026-10-14"}
 # Free grants / surprise resets: {provider, from, to, note}. While active the provider is treated as weekly=1.0.
 bonuses: []
 buckets:              # one limit that runs out; a candidate "runner:model" belongs to the first bucket whose match prefix it starts with

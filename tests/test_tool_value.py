@@ -679,3 +679,64 @@ def test_context_zero_baseline_and_confirmed_price(payload):
     assert "รวม +10 tokens" in report["text"]
     for usd in (20, 200):
         assert "CEO ยืนยัน $200 ตั้งแต่ 14 ต.ค." in report["current"]["cells"][f"usd_per_pct_anthropic_{usd}"]["note"]
+
+
+PLANS_WITH_TARGETS = {
+    "providers": {"anthropic": {"plans": [{"usd": 20, "from": "2026-09-29T10:00:00Z"}, {"usd": 200, "from": "2026-10-10"}]},
+                  "google": {"plans": [{"usd": 100, "from": "2026-09-01"}]},
+                  "openai": {"plans": [{"usd": 20, "from": "2026-09-01"}]}},
+    "targets": {"anthropic": {"usd": 20, "from": "2026-10-10"}, "google": {"usd": 100, "from": "2026-10-10"},
+                "openai": {"usd": 20, "from": "2026-10-10"}},
+}
+
+
+def test_subscription_lines_now_vs_target():
+    cur = {"claude_used_pct": tv._cell(104.0, "measured"), "claude_cap_hours": tv._cell(22.9, "measured")}
+    sources = {"contabo": {"org": True, "sources": {"hub_tasks": {
+        "claude": {"tasks": 33}, "codex": {"tasks": 17}, "agy": {"tasks": 5}, "unrouted": {"tasks": 5}}}}}
+    lines = tv.subscription_lines(cur, sources, PLANS_WITH_TARGETS, W)
+    assert lines[:8] == [
+        "", "ค่าแพ็กเกจต่อเดือน เทียบเป้าของ CEO (14 ต.ค.):",
+        "| บริการ | ตอนนี้ $ | เป้า $ | ห่าง $ |", "|---|---|---|---|",
+        "| Claude | 200 | 20 | 180 |", "| Google AI Ultra | 100 | 100 | 0 |", "| ChatGPT | 20 | 20 | 0 |",
+        "| รวม | 320 | 140 | 180 |"]
+    assert lines[8] == "- งาน worker ที่ไม่ได้ใช้ Claude: 22/60 (37%) · วัดจริง (codex + agy ÷ ทุกงานใน hub)"
+    # Max 20x -> Pro = 5% of today's weekly quota; 104% used -> about 21x too much (estimate, labelled).
+    assert lines[9].startswith("- Claude ที่ $20 ใช้ได้ราว 5% ของโควตาสัปดาห์ของแพ็กเกจ $200 · ช่วงนี้ใช้ 104% → ต้องลดราว 21 เท่า"
+                               " · ชนเพดาน 22.9 ชม. (วัดจริง) · ประมาณการ")
+    assert lines[10] == "- ส่วนของ Ultra ที่ CEO บอกว่าใช้น้อย: Jules (ดูแถว Jules ในตาราง)"
+    assert [x.strip("- ").split(":")[0] for x in lines[11:]] == ["Google Flow Music", "เครดิต Google Cloud รายเดือนที่มากับแพ็กเกจ ($40–100 ตามแหล่งข่าว ยังไม่ยืนยัน)"]
+
+
+def test_subscription_lines_missing_sources_and_no_targets():
+    assert tv.subscription_lines({}, {}, {"providers": PLANS_WITH_TARGETS["providers"]}, W) == []
+    late = {**PLANS_WITH_TARGETS, "targets": {"anthropic": {"usd": 20, "from": "2027-01-01"}}}
+    assert "| Claude | 200 | 20 | 180 |" in tv.subscription_lines({}, {}, late, W)  # a goal shows before its date
+    plans = {"providers": {"google": {"plans": [{"usd": 100, "from": "2026-09-01"}]}},
+             "targets": PLANS_WITH_TARGETS["targets"]}
+    lines = tv.subscription_lines({"claude_used_pct": tv._none("x")}, {}, plans, W)
+    assert "| Claude | — | 20 | ไม่มีข้อมูล |" in lines
+    assert not any(x.startswith("| รวม") for x in lines)  # no total while one price is unknown
+    assert any(x.startswith("- งาน worker ที่ไม่ได้ใช้ Claude: ไม่มีข้อมูล") for x in lines)
+    assert "- Claude เทียบเป้า: ไม่มีข้อมูล (ไม่รู้ราคาแพ็กเกจหรือโควตาที่ใช้ในช่วงนี้)" in lines
+
+
+def test_build_report_carries_the_subscription_section(payload):
+    rows = {"contabo": payload}
+    text = tv.build_report(rows, rows, W, W, plans=PLANS_WITH_TARGETS)["text"]
+    assert "ค่าแพ็กเกจต่อเดือน เทียบเป้าของ CEO (14 ต.ค.):" in text
+    assert text.index("ค่าแพ็กเกจต่อเดือน") < text.index("ณ เวลาที่ Claude รีเซ็ต")
+    assert "ค่าแพ็กเกจต่อเดือน" not in tv.build_report(rows, rows, W, W, plans={})["text"]
+
+
+def test_live_plans_yaml_targets_total_140():
+    plans = tv._load_yaml(tv.PLANS_CONFIG)
+    assert sum(t["usd"] for t in plans["targets"].values()) == 140
+    assert set(plans["targets"]) <= set(plans["providers"])
+
+
+def test_subscription_lines_claude_already_at_target():
+    plans = {**PLANS_WITH_TARGETS, "providers": {**PLANS_WITH_TARGETS["providers"],
+                                                 "anthropic": {"plans": [{"usd": 20, "from": "2026-09-01"}]}}}
+    lines = tv.subscription_lines({"claude_used_pct": tv._cell(50.0, "measured")}, {}, plans, W)
+    assert "- Claude: แพ็กเกจ $20 ไม่เกินเป้า $20 แล้ว (ตาม plans.yaml ณ สิ้นช่วง)" in lines
