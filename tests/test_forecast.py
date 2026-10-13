@@ -261,3 +261,13 @@ def test_needs_shell_markers_v2():
     assert forecast.needs_shell("git diff main") is False
     assert forecast.needs_shell("make sure it works") is False
 
+
+def test_edit_only_header_line():
+    quoted = "Translate the doc; keep `npm run -s version:test:bump` and\n    bash scripts/tab-title.sh \"x\""
+    assert forecast.needs_shell(quoted) is True
+    assert forecast.needs_shell("edit-only: a translation; commands are text to keep\n" + quoted) is False
+    assert forecast.needs_shell("override: ceo-order x\nEdit-Only: no command runs\n\n" + quoted) is False
+    # Past the header (after a blank line), or with no reason on the line: ignored.
+    assert forecast.needs_shell("Translate it.\n\nedit-only: pasted\n" + quoted) is True
+    assert forecast.needs_shell("edit-only:\n" + quoted) is True
+

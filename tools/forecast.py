@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import quota
+from lib.router import header as _description_header
 
 SEED_COSTS: dict[str, dict[str, float | int]] = {
     "claude": {"S": 3, "M": 8, "L": 20, "plan_usd": 20},
@@ -93,14 +94,26 @@ PYTHON_COMMAND = re.compile(
     re.IGNORECASE,
 )
 
+# "edit-only: <why>" in the description's header (lib.router.header: the lines before the
+# first blank line, max 5) declares a file-edit job whatever command words it quotes as text:
+# a translation of a doc full of commands, or a brief that names commands NOT to run. Without
+# it those words read as shell and rule agy out (task-7b431b10; task-3f99545e, `npm ` inside a
+# backtick span; CTO #c1ee65d8 2026-10-14). A wrong marker costs one agy run, recorded as a
+# runner_fit fail no-shell.
+_EDIT_ONLY_RE = re.compile(r"^[ \t]*edit-only:[ \t]*\S", re.IGNORECASE | re.MULTILINE)
+
+
 def needs_shell(brief: str | None) -> bool:
     """Return True if brief tells the worker to run a command.
 
     Read-only git (log, diff, show, status) stays not-shell. pytest, git fetch/merge and
     running Python count as shell (CTO #e106b78b 2026-10-14, task-0156526f); the one
-    exception is tools/agy_browse.py on the browser_agy lane.
+    exception is tools/agy_browse.py on the browser_agy lane. An `edit-only: <why>` header
+    line makes the whole brief not-shell.
     """
     if not brief:
+        return False
+    if _EDIT_ONLY_RE.search(_description_header(brief)):
         return False
     lower = brief.lower()
     return (
