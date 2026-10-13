@@ -1,0 +1,20 @@
+{
+  "out": "${OUT}/FRI-news-cut-v1.mp4",
+  "size": [720, 1280],
+  "fps": 24,
+  "mid_roll_s": 60,
+  "segments": [
+    {"clip": "${E5}/shot-01.mp4", "ss": 0.5, "dur": 6.2},
+    {"clip": "${E5}/shot-03.mp4", "ss": 0.4, "dur": 7.9},
+    {"clip": "${E5}/shot-06.mp4", "ss": 0.8, "dur": 4.3},
+    {"clip": "${E5}/shot-09.mp4", "ss": 0.4, "dur": 9.0},
+    {"clip": "${E5}/shot-12.mp4", "ss": 0.0, "dur": 6.5}
+  ],
+  "overlays": [
+    {"png": "${NEWS}/n1.png", "segment": 0, "dur": 6.2},
+    {"png": "${NEWS}/n2.png", "segment": 1, "dur": 7.9},
+    {"png": "${NEWS}/n3.png", "segment": 2, "dur": 4.3},
+    {"png": "${NEWS}/n4.png", "segment": 3, "dur": 9.0},
+    {"png": "${NEWS}/n5.png", "segment": 4, "dur": 6.5}
+  ]
+}

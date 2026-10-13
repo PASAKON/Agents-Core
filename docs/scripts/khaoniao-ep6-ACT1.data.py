@@ -212,12 +212,12 @@ _META = {
       "barking and scolding at the far pickup on every word, her paws drumming on the concrete", _NS),
 
  12: (10, "Medium shot in the living room from the front: the stocky man sits at the desk at screen-left in "
-      "three-quarter profile holding his phone in one hand with its screen facing away from the camera, a white mug beside "
-      "the laptop, the closed front door at the far right edge",
+      "three-quarter profile wearing his square black-rimmed glasses, holding his phone in one hand with its screen facing "
+      "away from the camera, a white mug beside the laptop, the closed front door at the far right edge",
       ["bro"], "living", T_AM,
-      "the stocky man in the navy blazer, stifled and resigned, tilts the phone toward himself and watches it, winces, drags "
-      "his free hand down his face, then shakes his head slowly while he mutters his line and sets the phone on the desk "
-      "with a sigh", _N + ["nophone"]),
+      "the stocky man in the navy blazer, stifled and resigned, tilts the phone toward himself and watches it, winces, rubs "
+      "the back of his neck with his free hand, then shakes his head slowly while he mutters his line and sets the phone on "
+      "the desk with a sigh; his square black-rimmed glasses stay on his nose the whole time", _N + ["nophone"]),
 
  13: (10, "Medium close shot from the front on a dry grassy verge beside the road: the small dog stands at screen-centre in "
       "three-quarter profile with a mouthful of grass blades hanging from her mouth, her whole face and moving mouth visible; "
