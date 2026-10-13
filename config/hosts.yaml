@@ -79,6 +79,13 @@ hosts:
     worktrees: /opt/MoonieXHQ/Agents/Core/worktrees
     provides: [always_on, api, ffmpeg, playwright_chromium, node20]
     max_workers: 3
+    # Where Claude Code keeps one <pid>.json per live session (tools/live_sessions.py).
+    # Replaces the default <config>/sessions. SomPong runs as unix user sompong.
+    claude_session_dirs: [/root/.claude/sessions, /home/sompong/.claude/sessions]
+    # Hosts whose registry this host's publisher reads over ssh (hosts.<name>.ssh),
+    # because they have no hub route of their own: winbox has no venv, so
+    # windows_hub_prefix() is None there (tools/live_sessions.py pull_remote).
+    live_sessions_pull: [winbox]
     # 0 until 2026-09-25: Contabo had no Chrome. The Console's Browser Homes (headless Chrome per
     # account, relay-login §1) give it one, so one operator at a time (cto-885ae930, Infisical P1).
     max_browser_operators: 1

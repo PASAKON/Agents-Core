@@ -30,6 +30,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 _ENV_STRIP = (
     "ORG_ROOT", "WORKER_TASK_ID", "WORKER_ROLE",
     "CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
+    # the hook skips its publisher start under pytest; each test says so itself
+    "PYTEST_CURRENT_TEST", "ORG_LIVE_SESSIONS",
 )
 
 
@@ -111,3 +113,101 @@ def test_without_org_root_nothing_drains(tmp_path: Path):
     assert result.returncode == 0, result.stderr
     assert "should never surface without ORG_ROOT" not in result.stdout
     assert letter.exists()                            # never drained
+
+
+# ---------------------------------------------------------------------------
+# live-sessions publisher start (task-9c563bea)
+#
+# The fake worktree gets a STUB tools/live_sessions.py that only records the
+# call: the real ensure_publisher would spawn a process. What is proved here is
+# when the hook calls it and that nothing it does can reach the prompt.
+# ---------------------------------------------------------------------------
+
+_STUB = """\
+import os
+from pathlib import Path
+
+
+def ensure_publisher():
+    Path(os.environ["LS_MARKER"]).write_text("called")
+    if os.environ.get("LS_RAISE"):
+        raise RuntimeError("boom")
+    print("the stub prints, the hook must not")
+    return True
+"""
+
+
+def _with_publisher_stub(tmp_path: Path) -> tuple[Path, Path]:
+    wt = _make_fake_worktree(tmp_path)
+    (wt / "tools").mkdir()
+    (wt / "tools" / "__init__.py").write_text("", encoding="utf-8")
+    (wt / "tools" / "live_sessions.py").write_text(_STUB, encoding="utf-8")
+    return wt, tmp_path / "marker"
+
+
+def _c_level(marker: Path, **extra) -> dict:
+    return {"CXO_ROLE": "cmo", "CXO_SESSION_ID": "c1f1dd67", "LS_MARKER": str(marker), **extra}
+
+
+def test_a_c_level_prompt_starts_the_publisher_even_with_an_empty_box(tmp_path: Path):
+    wt, marker = _with_publisher_stub(tmp_path)
+    result = _run_hook(wt, _c_level(marker, ORG_ROOT=str(tmp_path / "hub")))
+    assert result.returncode == 0, result.stderr
+    assert marker.read_text() == "called"
+    assert result.stdout == ""          # nothing printed, the stub's print included
+
+
+def test_a_c_level_without_a_session_id_still_starts_it(tmp_path: Path):
+    wt, marker = _with_publisher_stub(tmp_path)
+    result = _run_hook(wt, {"CXO_ROLE": "cto", "LS_MARKER": str(marker)})
+    assert result.returncode == 0 and result.stdout == ""
+    assert marker.exists()
+
+
+def test_a_worker_prompt_never_starts_it(tmp_path: Path):
+    wt, marker = _with_publisher_stub(tmp_path)
+    for env in ({"WORKER_TASK_ID": "task-x", "WORKER_ROLE": "developer"},
+                {"WORKER_TASK_ID": "task-x", "CXO_ROLE": "developer", "CXO_SESSION_ID": "s"}):
+        result = _run_hook(wt, {**env, "LS_MARKER": str(marker), "ORG_ROOT": str(tmp_path / "hub")})
+        assert result.returncode == 0, result.stderr
+        assert not marker.exists(), env
+
+
+def test_a_bare_shell_never_starts_it(tmp_path: Path):
+    wt, marker = _with_publisher_stub(tmp_path)
+    result = _run_hook(wt, {"LS_MARKER": str(marker)})
+    assert result.returncode == 0 and result.stdout == ""
+    assert not marker.exists()
+
+
+def test_a_test_run_never_starts_it(tmp_path: Path):
+    """scripts/test_mailbox.py calls main() with CXO_ROLE set."""
+    wt, marker = _with_publisher_stub(tmp_path)
+    result = _run_hook(wt, _c_level(marker, PYTEST_CURRENT_TEST="x::y (call)"))
+    assert result.returncode == 0
+    assert not marker.exists()
+
+
+def test_a_raising_publisher_start_costs_the_prompt_nothing(tmp_path: Path):
+    """The start raises, yet the hook returns 0, prints nothing of it, and still
+    drains and prints the letter."""
+    wt, marker = _with_publisher_stub(tmp_path)
+    hub = tmp_path / "hub"
+    box = hub / "state" / "inbox" / "cmo-c1f1dd67"
+    box.mkdir(parents=True)
+    (box / "20260101T000000000000Z-cto-abc.json").write_text(
+        _letter("letter after a raising start"), encoding="utf-8")
+    result = _run_hook(wt, _c_level(marker, LS_RAISE="1", ORG_ROOT=str(hub)))
+    assert result.returncode == 0, result.stderr
+    assert marker.exists()
+    assert "letter after a raising start" in result.stdout
+    assert "boom" not in result.stdout + result.stderr
+    assert "the stub prints" not in result.stdout
+
+
+def test_a_missing_module_costs_the_prompt_nothing(tmp_path: Path):
+    """A host that has not pulled tools/live_sessions.py yet."""
+    wt = _make_fake_worktree(tmp_path)
+    result = _run_hook(wt, {"CXO_ROLE": "cmo", "CXO_SESSION_ID": "c1f1dd67",
+                            "ORG_ROOT": str(tmp_path / "hub")})
+    assert result.returncode == 0 and result.stdout == "" and result.stderr == ""
