@@ -55,6 +55,10 @@ Settings → System → Recovery → **Reset this PC** → **Remove everything**
 ติดตั้งโปรแกรม 57 ตัวคืน, Python, โค้ดบอท, งานตั้งเวลา 48 ตัว, BlueStacks, ทดสอบฟาร์ม
 พี่จะต้องมา login เอง: Chrome, LINE (มือถือ), BlueStacks + Cookie Run (มือถือ), ChatGPT/Claude, กด Allow ให้ rclone เข้า Drive
 
+CTO ต้องลงตัวส่งค่า disk ให้ widget Disk Monitor บน iPhone ด้วย (งานตั้งเวลา "MoonieX Disk Push" ไม่อยู่ในชุด 48 ตัว
+เพราะต้องใช้ token จาก Contabo): จาก Mac รัน `bash ~/MoonieXHQ/Projects/MoonieX/Scriptable/server/disk-monitor/deploy.sh winbox`
+ไม่รัน = แถว winbox ใน widget ค้างที่ค่าก่อนลงเครื่อง (เกิดจริง 24 ก.ย. – 3 ต.ค. 2026)
+
 หมายเหตุ: Windows เครื่องเดิม**ยังไม่ได้ activate** (มีลายน้ำ "Activate Windows") ลงใหม่ก็จะเป็นแบบเดิม ใช้งานได้ปกติ ถ้าจะให้หายต้องมี product key
 
 ---
