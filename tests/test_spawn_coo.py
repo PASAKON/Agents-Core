@@ -441,8 +441,10 @@ def test_launcher_dry_run_on_contabo_describes_the_session(lroot: Path, tmp_path
     allowed = next(line for line in out.splitlines() if line.startswith("dry-run: allowed-tools="))
     for tool in ("reply", "skip", "send", "ask_ceo", "history", "media"):
         assert f"mcp__sompong__{tool}" in allowed
-    # root work goes through a Run Inbox card: both org tools must be callable in this session
-    assert {"mcp__org__ask_run", "mcp__org__ask_run_wait"} <= set(allowed.split("=", 1)[1].split())
+    # root work goes through a Run Inbox card: both org tools must be callable in this session,
+    # and so must ask_ceo, the question card beside it (the registry feeds every C-level session)
+    assert {"mcp__org__ask_run", "mcp__org__ask_run_wait", "mcp__org__ask_ceo"} <= set(
+        allowed.split("=", 1)[1].split())
     names = next(line for line in out.splitlines() if line.startswith("dry-run: coo env=")).split("=", 1)[1].split()
     assert "SOMPONG_COO_SESSION" in names and "ORG_HOST" in names
     assert not [n for n in names if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", n)]
