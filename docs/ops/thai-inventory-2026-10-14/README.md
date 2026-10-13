@@ -45,8 +45,11 @@ Method: memory `reference_measure_tokens_free_claude_p_delta`. For each text, ru
 | roles/cto.md, whole file | 12,041 | 949 | 5,343 | 12,306 | 79 | 4,833 | −510 (−9.5 %) |
 | CTO always-loaded set: HQ CLAUDE.md + Core CLAUDE.md + roles/cto.md + MEMORY.md | 42,926 | 1,034 | 18,840 | 43,191 | 164 | 18,330 | −510 (−2.7 %) |
 | MoonieX-ClaudeFlow CLAUDE.md | 8,977 | 780 | 4,535 | 9,326 | 25 | 4,029 | **−506 (−11 %)** |
+| IRON-RULES §53 + the §1.5 ClaudeFlow quote, translated | 1,765 | 682 | 1,205 | 2,098 | 0 | 798 | −407 (−34 %) |
+| IRON-RULES §56, amendment added (new rule text + CEO quote) | 1,583 | 52 | 562 | 3,273 | 279 | 1,327 | +765 |
 
 How to read it:
+- IRON-RULES is +358 tokens net per read: the §56 amendment costs more than §53 saves. CTO #e106b78b kept it, because rule 3 requires the CEO's words quoted in the original (they are evidence).
 - The English is 12 % longer in characters but 34 % cheaper in tokens. Replacing 870 Thai characters saved 510 tokens, about 0.59 per Thai character net of the English added.
 - An always-loaded file is paid once when the session starts and then read from the prompt cache on every turn. So each C-level session (CTO, CMO, CGO, CFO) now carries 510 fewer tokens on every turn. A ClaudeFlow session carries 506 fewer.
 
@@ -55,16 +58,16 @@ How to read it:
 2. **The real backlog is on-demand docs.** T3 holds 275,819 translatable Thai characters, paid only when a session opens the file. In public repos and on origin, that is docs 97,554 (262 files), skill bodies 8,353 (36 files) and code comments 10,693 (158 files).
 3. **Keep is larger than translate.** About 1.5 M Thai characters must stay: user-facing scripts and captions, source transcripts, CEO quotes, runtime strings, data and test fixtures.
 4. **Skill descriptions stay as they are.** They hold 2,203 Thai characters, 245 of them outside quotes. A read found trigger phrases written without quotes, proper names and UI labels, all of which are kept.
-5. **IRON-RULES:** 805 translatable characters (most of it §53). This waits on the CEO card Q-20261013-1803-10b5, and the edit goes through a clone of origin Agents-Rules, because the Contabo copy is a snapshot.
+5. **IRON-RULES:** 805 translatable characters (most of it §53). Landed as Agents-Rules `d7f9026` after the CEO confirmed Q-20261013-1803-10b5 (option 1, 2026-10-13T18:52Z): §53 translated, the §1.5 ClaudeFlow quote refreshed, and §56 amended (rule 5, "no bulk translation", superseded). Edited in a clone of origin Agents-Rules; the Contabo snapshot was replaced only after it byte-matched the parent commit.
 6. 46 files with Thai in public repos exist only in Contabo's unpushed local commits (57,306 Thai characters). They count in the repo totals but are left out of `rows.jsonl`.
 
 ## Always-loaded set: status
 | file | Thai to translate | status |
 |---|---:|---|
-| Agents-Core roles/cto.md, cmo.md, cgo.md, cfo.md | 850 each | agy task-0ae05245, verified; branch `agent/agy-task-0ae05245` @ `b75a1b43` on origin, lands through CTO #e106b78b |
+| Agents-Core roles/cto.md, cmo.md, cgo.md, cfo.md | 850 each | agy task-0ae05245, verified; landed on origin/main in merge `6ef89820` (CTO #e106b78b read it for meaning) |
 | MoonieX-ClaudeFlow CLAUDE.md | 755 | agy task-3f99545e, verified; merged `12bc471` on ClaudeFlow main (hand merge, see below) |
-| MoonieX-SomPong CLAUDE.md | 3,287 | SomPong translates his own and shows the CEO (order step 5) |
-| Agents-Rules IRON-RULES.md | 805 | waits on Q-20261013-1803-10b5 |
+| MoonieX-SomPong CLAUDE.md | 3,287 | translated by SomPong, approved by the CEO ("ใช้ได้"); `062a85b` on MoonieX-SomPong |
+| Agents-Rules IRON-RULES.md | 805 | landed `d7f9026` (CEO card Q-20261013-1803-10b5) |
 | roles/coo.md, MEMORY.md | 30 each | read: a name and labels inside CEO-quote paragraphs, so kept |
 | SKILL.md descriptions | 245 | kept (finding 4) |
 
