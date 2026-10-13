@@ -82,7 +82,7 @@ re-checked on `sheet-ep61-v1.jpg` (every beat, listed below) plus a 9-frame shee
 | 5.5 | HOOK-3 | OK: Tickmill logo crop | OK |
 | 7.3 | HOOK-4 | OK: CLASSIC / RAW ACCOUNT headings (no TradingView card) | OK |
 | 9.5 | PATTERN-1 | OK: formula line; caption `สเปรด คอมมิชชัน สว็อป` no mid-word break | OK |
-| 13.0 | PATTERN-2 | OK: swaps sentence, two rows | OK (mid-seam frames also looked at) |
+| 13.0 | PATTERN-2 | OK: swaps sentence, two rows | OK |
 | 15.0 | PATTERN-3 KIN S07 | OK: text mid-animation at this sample | OK |
 | 17.6 / 19.8 | CONTEXT-1/2 | OK: example paragraph, box covers `EUR` | OK |
 | 22.2 | CONTEXT-3 | OK: Tickmill logo, date line | OK |
@@ -104,15 +104,15 @@ re-checked on `sheet-ep61-v1.jpg` (every beat, listed below) plus a 9-frame shee
 
 Not looked at: every beat at a single sample only (one frame per beat, so a fade or text reveal in the middle of a beat
 was not seen); the last 2 frames before 68.0 s; arm A's frames inside HOOK-0 between 0.5 and 1.0 s; the seams at
-31.3, 38.87, 47.1, 54.37 and 60.7 s in arm A (frame counts and the merge's `seam_failures []` stand in for those). The
-arm B seams at 31.3 to 60.7 were seen on the first render only.
+31.3, 38.87, 47.1, 54.37 and 60.7 s in arm A (frame counts and the merge's `seam_failures []` stand in for those). Arm B
+seams were looked at at 8.3 and 16.67 on the final render only.
 
 ## Lip-sync look (3 mouth sheets, 4 frames each from the lipsync parts)
 
-- Part A (0 to 16 s): OK, mouth shapes follow the speech; head moves about 100 px up and sideways, expected.
-- Part B (28.72 to 41.84 s): OK.
-- Part C (53.93 to 67.67 s): OK. At t=1.2 the mouth is closed (a pause) and at 12.2 open: consistent with the script.
-No part looked off. The numbers agree: `verify` lag +0 ms, r 0.989 to 0.991 on all three seats.
+- Part A (0 to 16 s): OK, mouth shapes vary (open, rounded, closed) across the 4 sampled frames (t=1.0, 5.2, 9.4, 13.6).
+- Part B (28.72 to 41.84 s): OK, same check at t=1.2, 4.6, 8.0, 11.6.
+- Part C (53.93 to 67.67 s): OK, t=1.2, 4.6, 8.4, 12.2 (mouth closed at 1.2, open at 12.2).
+No part looked off by eye (4 stills per part, not continuous playback). The numbers agree: `verify` lag +0 ms, r 0.989 to 0.991 on all three seats.
 
 ## Exact Tickmill words each still relies on
 
@@ -136,7 +136,7 @@ The TradingView card and the model photo are cropped out of tm-header and tm-cla
 
 - First glyph clipped at x=0 on the tm-classic-para and tm-raw-example crops (the source stills are cut at the left edge).
 - The matte head scale drifts about 30% over each lipsync part (take drift in the source, not the cut); head tops are measured per take over the used range (`take_table.json`: 903.6 / 933.28 / 999.92).
-- tm-classic does not show the Tickmill name (header is Tickmill-wide only in tm-header); the chip carries the attribution.
+- tm-classic does not show the Tickmill name (arm A backdrop at 0 to 1 s); the stamp and the chip carry the attribution.
 - Brand mark is nearly invisible on white plates (ratio check passes, 0.99).
 - Arm A: the stamp sits tight under the headline's second line.
 - Captions keep `กู` (verbatim from SCRIPT.tsv col 2, brief says keep it). My own on-screen text has no crude word and no em dash.
