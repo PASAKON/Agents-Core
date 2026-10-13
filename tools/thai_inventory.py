@@ -63,7 +63,7 @@ from pathlib import Path
 
 import yaml
 
-THAI = re.compile(r"[฀-๿]")
+THAI = re.compile(r"[\u0e00-\u0e7f]")
 THAI_TOK_PER_CHAR = 0.85  # measured, Haiku 5.5, 2026-10-13
 OTHER_CHARS_PER_TOK = 4.0  # rough English rate (estimate)
 
