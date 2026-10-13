@@ -17,7 +17,9 @@ its TTL.
 
 Key format: `home:<host>:<port>`. The host is the hub `hosts` name (contabo,
 mac, winbox) and the port is the Chrome's CDP port on that host. The owner is a
-session id (cto-xxxx) or a task id. Only the owner renews or releases a lock.
+session id (cto-xxxx) or a task id. Only the owner renews or releases a lock,
+with the same class of token that took it (a worker token cannot release a
+C-level's lock); the CEO's own Console session may release any.
 The default owner comes from this process's env: WORKER_TASK_ID, otherwise
 <role>-<session id>, resolved the way ask_run.py resolves it.
 The TTL defaults to 1800 s and must be between 60 s and 6 h.
@@ -53,7 +55,7 @@ if str(ROOT) not in sys.path:
 
 from tools import ask_run  # noqa: E402
 
-KEY_RE = re.compile(r"^home:[a-z0-9]+:\d{1,5}$")
+KEY_RE = re.compile(r"^home:[a-z0-9]{1,24}:\d{1,5}$")
 OWNER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:@-]{0,63}$")
 TTL_DEFAULT_S = 1800
 TTL_MIN_S, TTL_MAX_S = 60, 6 * 3600
@@ -86,7 +88,7 @@ def default_owner(env: dict | None = None) -> str:
 
 
 def _check(key: str, owner: str, ttl: int | None = None) -> None:
-    if not KEY_RE.match(key or ""):
+    if not KEY_RE.match(key or "") or not 1 <= int(key.rsplit(":", 1)[1]) <= 65535:
         raise ValueError("key must be home:<host>:<port>, e.g. home:winbox:9224")
     if not OWNER_RE.match(owner or ""):
         raise ValueError("owner must be a session or task id (pass --owner, or run inside a session)")
@@ -110,6 +112,8 @@ def _transport(method: str, op: str, body: dict | None = None) -> tuple[int, dic
         with ask_run._OPENER.open(req, timeout=ask_run.HTTP_TIMEOUT_S) as resp:
             return resp.status, json.loads(resp.read() or b"{}")
     except urllib.error.HTTPError as e:
+        if e.code == 429:
+            raise HubError("the front door holds too many locks (256); release yours, or wait for TTLs") from None
         if e.code == 409:
             try:
                 return 409, json.loads(e.read() or b"{}")

@@ -116,7 +116,8 @@ def test_owner_from_env(hub, monkeypatch):
 
 
 def test_bad_arguments_never_reach_the_hub(hub):
-    for bad in (dict(key="winbox:9224", owner="x1"), dict(key=KEY, owner="a b"), dict(key=KEY, owner="x1", ttl=5)):
+    for bad in (dict(key="winbox:9224", owner="x1"), dict(key=KEY, owner="a b"), dict(key=KEY, owner="x1", ttl=5),
+                dict(key="home:winbox:70000", owner="x1"), dict(key="home:" + "a" * 25 + ":9224", owner="x1")):
         with pytest.raises(ValueError):
             home_lock.acquire(**bad)
     with pytest.raises(ValueError, match="owner"):
