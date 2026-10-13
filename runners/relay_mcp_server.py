@@ -1274,6 +1274,12 @@ def spawn_c_level(role: str, host: str, resume_session_id: str | None = None) ->
     if refusal:
         _audit("spawn_c_level", role, "rejected", f"singleton role, host={host}")
         return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)
+    # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
+    from tools import clevel_gate
+    refusal = clevel_gate.refusal(role, session_id=resume_session_id, host=host)
+    if refusal:
+        _audit("spawn_c_level", role, "rejected", f"single C-level, host={host}")
+        return json.dumps({"status": "rejected", "reason": refusal}, ensure_ascii=False)
     if mesh.enabled():
         return _spawn_c_level_mesh(role, host, resume_session_id)
     rejection = _reject_unknown_role("spawn_c_level", role, host=host)

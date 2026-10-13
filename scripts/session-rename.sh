@@ -130,6 +130,11 @@ case "$(uname -s)" in
 esac
 
 ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
+# A Project Head (org restructure P2): "<MACHINE> Project Head (<LANE>) #<id> (<topic>)",
+# the shape tools/live_sessions.py reads back as role project_head.
+if [ "$ROLE" = "project_head" ]; then
+  ROLE_UP="Project Head ($(printf '%s' "${ORG_PH_LANE:-}" | tr -cd 'a-zA-Z' | tr '[:lower:]' '[:upper:]'))"
+fi
 
 BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
 if [ -n "$PREFIX" ]; then

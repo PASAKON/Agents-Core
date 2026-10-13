@@ -73,11 +73,26 @@ def _active_session_id(role: str, locks_dir: Path | None = None) -> str | None:
     return None
 
 
+# A Project Head (org restructure P2) is neither a C-level nor the CEO. Its
+# launcher unsets CTO_SESSION_ID, so without these branches it fell through to
+# "CEO" here and to CEO_IDENTITY in current_identity(): its letters went out as
+# the CEO's and passed authorize() as root.
+PH_ROLE = "project_head"  # lib/roles.PH_ROLE
+
+
+def _is_ph_env() -> bool:
+    return (os.environ.get("CXO_ROLE") or "").strip().lower() == PH_ROLE
+
+
 def _resolve_sender_role() -> str:
     """Best-effort sender label. CEO when no C-level env is set."""
     r = os.environ.get("CXO_ROLE")
     if r and is_c_level(r):
         return display_for(r)
+    if _is_ph_env():
+        lane = (os.environ.get("ORG_PH_LANE") or "").strip().upper()
+        sid = (os.environ.get("CXO_SESSION_ID") or "").strip()
+        return f"Project Head ({lane or '?'}) #{sid or '?'}"
     if os.environ.get("CTO_SESSION_ID"):
         return display_for("cto")
     return "CEO"
@@ -94,7 +109,10 @@ class Identity:
     def label(self) -> str:
         if self.kind == "ceo":
             return "CEO"
-        disp = display_for(self.role) if self.kind == "cxo" else self.role
+        if self.kind == "cxo" and self.role == PH_ROLE:
+            disp = "Project Head"
+        else:
+            disp = display_for(self.role) if self.kind == "cxo" else self.role
         return f"{disp}#{self.session_id}" if self.session_id else disp
 
 
@@ -109,6 +127,12 @@ def current_identity() -> Identity:
         sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
         if sid:
             return Identity("cxo", r, sid)
+    if _is_ph_env():
+        sid = (os.environ.get("CXO_SESSION_ID") or "").strip()
+        if not sid:
+            raise PermissionError("a Project Head session with no CXO_SESSION_ID cannot "
+                                  "send: it would have no identity (org restructure P2)")
+        return Identity("cxo", PH_ROLE, sid)
     task_id = os.environ.get("WORKER_TASK_ID")
     if task_id:
         return Identity("dev", os.environ.get("WORKER_ROLE", "dev"), task_id)

@@ -10,7 +10,7 @@ every session behaves).
 | Flag | Off (today) | On |
 |---|---|---|
 | `ORG_SINGLE_CLEVEL=1` | any number of sessions per C-level role, on any host | the launchers (`cxo-claude.sh`, `cto-claude.sh`) and every spawn path refuse a second live session of a C-level role on this host, and any C-level off Contabo unless `ORG_CLEVEL_EMERGENCY=1` (plan §3.1: Contabo down > 30 min and the CEO typed it) |
-| `ORG_PH_ROLES=1` | `project_head` cannot start | `cxo-claude.sh --role project_head --lane <c-level> --project <Name>` and `scripts/spawn-ph.sh` work; the org MCP serves a PH the reduced tool set; `merge_task` reads `can_merge`; a PH may run at most `max_workers` (2) live workers |
+| `ORG_PH_ROLES=1` | `project_head` cannot start | `cxo-claude.sh --role project_head --lane <c-level> --project <Name>` and `scripts/spawn-ph.sh` work. What limits a PH does not wait for the flag: the PH tool allowlist, acting only on its own tasks, the 2-worker cap and `merge_task` reading `can_merge` hold for any `project_head` session or PH-owned row, on any host (security review of f73fa02f) |
 | `ORG_SPAWN_GATE=1` | only the disk floor (ADR 0030) gates a spawn | `lib/resource_gate.py`: a PH or worker spawn is refused when RAM available < `ORG_SPAWN_RAM_FLOOR_MB` (800) or disk > `ORG_SPAWN_DISK_MAX_PCT` (90 %) |
 | `ORG_SESSION_SCOPE=1` | every claude runs in `org-tmux.scope` with no memory limit | each session's claude runs in its own `systemd-run --scope` with `MemoryHigh` / `MemoryMax` (`ORG_SESSION_MEM_HIGH`, `ORG_SESSION_MEM_MAX`), so the kernel stops only the session that runs away |
 
@@ -38,6 +38,24 @@ project's accounts, `--by` must be the caller's own session; plan §4.2, T12).
 - Policy row: `policies/agents.yaml` `project_head` — Sonnet 5.5 (1M) at xhigh, `can_merge: false`,
   `can_ask_ceo: false`, `max_workers: 2`. Role doc `roles/project_head.md` is the COO's to write
   (plan §13); the launcher refuses `--role project_head` until it exists.
+
+## Starting a Project Head, and who it talks to
+
+- From inside a C-level session: `bash scripts/spawn-ph.sh --project <Name> --brief-file <path>`
+  (`tools/spawn_ph.py`). The caller's role is the lane and its session is the owner. Refused when
+  the flag is off, the caller is not a C-level with a session id, the name is bad, a live PH
+  already holds that project on this host (`state/locks/project_head-<id>.project`), the role doc
+  is missing, or the resource gate says no. The owner record (`project_head-<id>.spawned_by`) is
+  written before the tmux session starts, and removed again if it fails to start.
+- A PH has its own identity (`tools/agent_transport.current_identity`), never the CEO's; with no
+  `CXO_SESSION_ID` it cannot send at all. It writes only to its lane: to the session that started
+  it while that one is live, else the lane's active session. It never starts a session, and it
+  cannot reach another lane or another PH (`tools/send_to_cxo.authorize`).
+- A C-level briefs a PH with `send_to_cxo(role="project_head-<id>")`, the name
+  `bash scripts/live-sessions.sh` prints; the PH must be live on this host.
+- One C-level per role (`tools/clevel_gate.py`): the launchers check under a flock and write their
+  lock before releasing it. `send_to_cxo --spawn`, relay `spawn_c_level` and `node_dispatch`
+  ask the same gate first only to answer early with the reason.
 
 ## What is not in P2
 

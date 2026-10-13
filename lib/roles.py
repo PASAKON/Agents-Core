@@ -73,7 +73,7 @@ def c_level_displays() -> tuple[str, ...]:
 # docs/design/org-restructure-p2.md is the contract. Nothing here is live
 # unless ORG_PH_ROLES=1 on the host.
 PH_ROLE = "project_head"
-PH_PROJECT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$")
+PH_PROJECT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,39}")
 
 
 def ph_roles_on() -> bool:
@@ -99,7 +99,50 @@ def ph_lane_refusal(lane: str) -> str | None:
 
 def ph_project_refusal(project: str) -> str | None:
     """Why `project` is not a usable Project Head project name, or None."""
-    if PH_PROJECT_RE.match(project or ""):
+    if PH_PROJECT_RE.fullmatch(project or ""):
         return None
     return ("project must be 1-40 chars of letters, digits, _ or -, starting "
             f"with a letter or digit (got {project!r})")
+
+
+# browser_operator and Project Head (org restructure P2: short one-off browser
+# jobs, CEO via SomPong 2026-10-14). Still narrower than the full Chrome surface: no
+# gif_creator, no shortcuts_execute, no browser switching.
+#
+# Upload was withheld at first on exfiltration grounds and granted 2026-08-10
+# (CEO) because reference images are the job — the C-level names the path in
+# the task. Two guardrails make that safe enough: file_upload is restricted by
+# the harness itself to files shared with the session, and the role doc forbids
+# uploading any path the task did not name.
+#
+# resize_window is load-bearing, not optional — an image costs
+# ceil(w/28) * ceil(h/28) visual tokens with no client-side cap (measured
+# 2026-08-10: neither MAX_MCP_OUTPUT_TOKENS nor
+# CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS truncates an image result), so
+# shrinking the window is the only lever that bounds screenshot cost. It works
+# — a 1024x768 resize produced a 1024x591 screenshot — but it can silently
+# no-op on a window the OS will not resize (a fullscreen one) while still
+# returning success, so the skill requires verifying the result.
+CHROME_TOOLS: tuple[str, ...] = tuple((
+    "mcp__claude-in-chrome__tabs_context_mcp "
+    "mcp__claude-in-chrome__tabs_create_mcp "
+    "mcp__claude-in-chrome__tabs_close_mcp "
+    "mcp__claude-in-chrome__navigate "
+    "mcp__claude-in-chrome__read_page "
+    "mcp__claude-in-chrome__get_page_text "
+    "mcp__claude-in-chrome__find "
+    "mcp__claude-in-chrome__resize_window "
+    "mcp__claude-in-chrome__computer "
+    "mcp__claude-in-chrome__form_input "
+    "mcp__claude-in-chrome__file_upload "
+    "mcp__claude-in-chrome__upload_image "
+    "mcp__claude-in-chrome__javascript_tool "
+    "mcp__claude-in-chrome__browser_batch "
+    "mcp__claude-in-chrome__read_console_messages "
+    "mcp__claude-in-chrome__read_network_requests "
+    # Browser selection: with several Chromes paired to the account the CLI
+    # refuses every browser action until one is chosen (2026-09-07, winbox).
+    "mcp__claude-in-chrome__list_connected_browsers "
+    "mcp__claude-in-chrome__select_browser "
+    "mcp__claude-in-chrome__switch_browser"
+).split())

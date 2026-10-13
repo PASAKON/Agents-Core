@@ -632,7 +632,11 @@ def _start_clevel_iterm(role: str, resume_sid: str | None) -> dict:
 def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
     """Linux: spawn-cxo.sh ends in osascript, so it cannot run here. Same
     command runners/relay_mcp_server.spawn_c_level runs on Contabo, in tmux."""
-    from tools import session_status, tmux_session
+    from tools import clevel_gate, session_status, tmux_session
+    # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
+    why = clevel_gate.refusal(role, session_id=resume_sid)
+    if why:
+        raise Refusal(why)
     launcher = ROOT / "scripts" / "cxo-claude.sh"
     if not launcher.exists():
         raise Failure(f"missing {launcher.name}")

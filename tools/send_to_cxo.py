@@ -85,7 +85,7 @@ from lib import mailbox
 from lib import mesh
 from lib import notify
 from lib.config import display_for, is_c_level, self_host
-from lib.roles import SINGLETON_ROLES, c_level_roles, singleton_refusal
+from lib.roles import PH_ROLE, SINGLETON_ROLES, c_level_roles, singleton_refusal
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
@@ -242,6 +242,24 @@ def authorize(sender: Identity, target_role: str, target_session_id: str | None,
     its own branch, never a dressed-up C-level identity: impersonation is
     the one thing this guard exists to prevent.
     """
+    if sender.kind == "cxo" and sender.role == PH_ROLE:
+        # A Project Head (org restructure P2, plan §3.2) never starts a
+        # session and writes only to the lane of the C-level that started it
+        # (scripts/spawn-ph.sh records that). Any session of that role: under
+        # ORG_SINGLE_CLEVEL the lane's session id changes when it restarts.
+        owner = _owner_of(sender)
+        if owner is None:
+            raise PermissionError(
+                f"refused: {sender.label()} has no recorded owner "
+                f"({_spawn_record_path(PH_ROLE, sender.session_id or '?').name}); a Project "
+                f"Head reports only to the C-level that started it (scripts/spawn-ph.sh)")
+        if spawning:
+            raise PermissionError(f"refused: {sender.label()} cannot start a session (plan §3.2)")
+        if target_role != owner.role:
+            raise PermissionError(
+                f"refused: {sender.label()} writes only to its own C-level "
+                f"({display_for(owner.role)}), not {target_role}. Chain: {_chain_str(sender)}")
+        return
     if sender.kind == "secretary":
         # Enforce exactly what the docstring above promises: the CEO's
         # proxy may reach a C-level target, and nothing else — not a DEV
@@ -506,6 +524,10 @@ def spawn(role: str, message: str, sender: str | None = None, *,
     refusal = singleton_refusal(role)
     if refusal:
         raise ValueError(refusal)
+    from tools import clevel_gate  # noqa: PLC0415
+    refusal = clevel_gate.refusal(role, locks_dir=LOCKS_DIR)  # ORG_SINGLE_CLEVEL; the launcher re-checks
+    if refusal:
+        raise ValueError(refusal)
     sender_identity = current_identity()
     authorize(sender_identity, role, None, spawning=True)
     label = sender or _resolve_sender_role()
@@ -711,11 +733,14 @@ def send(role: str, message: str, sender: str | None = None, *,
     see `_active_session_id()`). Raises PermissionError when the routing
     guard refuses the hop (see `authorize()`); a refusal writes nothing.
     """
+    ph_target = PH_TARGET_RE.fullmatch((role or "").strip().lower())
+    if ph_target:
+        return _send_to_ph(ph_target.group(1), message, sender, subject=subject)
     if not is_c_level(role):
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
         )
-    sid = _active_session_id(role)
+    sid = _ph_owner_session(role) or _active_session_id(role)
     remote = None
     if not sid:
         remote = _remote_target(role)  # None unless ORG_MESH_DISPATCH names one other host
@@ -754,6 +779,45 @@ def send(role: str, message: str, sender: str | None = None, *,
     else:
         _attempt_wake(role, sid, label)
     return (f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
+            + _subject_note(subject, message))
+
+
+# Org restructure P2: a C-level briefs a Project Head as role
+# "project_head-<id>" (the name bash scripts/live-sessions.sh prints it under).
+PH_TARGET_RE = re.compile(rf"{PH_ROLE}-([0-9a-f]{{8}})")
+
+
+def _ph_owner_session(role: str) -> str | None:
+    """For a Project Head sender writing to its lane: the session that started
+    it while that session is still live, else None (the lane's active one)."""
+    if not agent_transport._is_ph_env():
+        return None
+    owner = _owner_of(current_identity())
+    if owner is None or owner.role != role or not owner.session_id:
+        return None
+    return owner.session_id if (LOCKS_DIR / f"{role}-{owner.session_id}.lock").exists() else None
+
+
+def _send_to_ph(sid: str, message: str, sender: str | None = None, *,
+                subject: str | None = None) -> str:
+    """Queue a letter in a live Project Head's box (org restructure P2).
+    Same-host only: a Project Head runs where its C-level started it."""
+    if not (LOCKS_DIR / f"{PH_ROLE}-{sid}.lock").exists():
+        raise ValueError(f"no live Project Head #{sid} on this host "
+                         f"(bash scripts/live-sessions.sh lists the live ones)")
+    sender_identity = current_identity()
+    authorize(sender_identity, PH_ROLE, sid, spawning=False)
+    label = sender or _resolve_sender_role()
+    _log_hop(sender_identity, PH_ROLE, sid)
+    from_role, from_sid = _mailbox_identity(sender_identity)
+    chain = _chain_ids(sender_identity) + [f"{PH_ROLE}:{sid}"]
+    mailbox.send(PH_ROLE, sid, message, from_role, from_sid, chain=chain,
+                 **_envelope_kw(subject))
+    if mailbox.envelope_on():
+        wake_for_letter(PH_ROLE, sid, label)
+    else:
+        _attempt_wake(PH_ROLE, sid, label)
+    return (f"queued to Project Head #{sid}: [{label}] : {message}"
             + _subject_note(subject, message))
 
 

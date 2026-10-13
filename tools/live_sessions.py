@@ -68,8 +68,12 @@ HOST_ORDER = ("contabo", "mac", "winbox")
 
 # "⏸ MAC CTO #671f688f (topic)": optional leading non-letters, a host word, the
 # role words, then the short id. Anything after the id is the human topic.
+# A Project Head's name carries its lane in brackets before the id,
+# "CONTABO Project Head (CTO) #3c1f65ae (OrgRestructure)" (org restructure P2);
+# the bracket is optional, so every C-level name parses as before.
 _NAME_RE = re.compile(
-    r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)\s+#([0-9a-f]{6,12})\b")
+    r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)"
+    r"(?:\s+\([A-Za-z]{2,5}\))?\s+#([0-9a-f]{6,12})\b")
 _C_LEVEL_RE = re.compile(r"^c[a-z]o$")
 _SESSION_FILE_RE = re.compile(r"^\d+\.json$")   # not <pid>.<hash>.key
 
