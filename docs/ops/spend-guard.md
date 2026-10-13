@@ -10,7 +10,7 @@ Phases 2–3 and the consumer table are in `docs/plans/spend-guard-2026-10-14.md
 | Provider | Call | Key (Infisical `Agents-Core/prod/spend-guard`) |
 |---|---|---|
 | OpenRouter | `GET /api/v1/credits` gives the account balance (total_credits − total_usage). `GET /api/v1/keys?include_disabled=true` gives every key's limit, limit_remaining, usage, and daily/weekly/monthly usage | `OPENROUTER_API_KEY_ADMIN`, a management key. It cannot run inference |
-| fal.ai | `GET /v1/account/billing?expand=credits` gives the prepaid balance | `FAL_BILLING_API_KEY_RO`, preset BILLING (read-only) |
+| fal.ai | `GET rest.alpha.fal.ai/billing/user_balance` gives the prepaid balance as a bare number. The documented `api.fal.ai/v1/account/billing?expand=credits` is the fallback: from Contabo's IP `api.fal.ai` answers a Vercel challenge (403, HTML) even with no key (task-b1b251f0) | `FAL_BILLING_API_KEY_RO`, preset BILLING (read-only) |
 | Google Cloud | nothing yet. No billing account exists (the CEO's call). Plan §5 | — |
 
 A key is always named by its **name** on the provider page and the first 8 characters of its hash. OpenRouter's
