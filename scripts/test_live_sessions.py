@@ -1489,43 +1489,50 @@ def test_the_coo_role_can_read_every_live_sessions_column_the_reader_selects():
     ("\U0001F5A5 PH#e10 (CTO) - X", ("project_head", "e106b78b")),
     ("\U0001F4BB CONTABO CTO #e106b78b (x)", ("cto", "e106b78b")),
     ("\u23f8 \U0001F310 CTO (Kavin) \u2014 t", ("cto", "e106b78b")),
+    # the 15 Oct shapes (plan N): the same id from the UUID tail, role from the name
+    ("\U0001F310 CTO#e10 Main", ("cto", "e106b78b")),
+    ("\u23f8 \U0001F310 CTO#e10 Main", ("cto", "e106b78b")),
+    ("\U0001F310 COO SomPong", ("coo", "e106b78b")),
+    ("\U0001F5A5\ufe0f PH#e10 OrgRestructure", ("project_head", "e106b78b")),
+    ("\U0001F310 Dev\u00b7S#e10 Org: x", ("developer", "e106b78b")),
 ])
 def test_a_host_emoji_never_changes_what_a_name_parses_to(name, expect):
     assert ls.parse_name(name, UUID_A) == expect
 
 
 def test_names_with_emoji_print_verbatim_and_two_hosts_no_longer_collide():
-    rows = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
-            _row("mac", "cto", "\U0001F4BB CTO (Kavin)", "idle", sid="f39cb080")]
+    rows = [_row("contabo", "cto", "\U0001F310 CTO#c34 Main", sid="c34459eb"),
+            _row("mac", "cto", "\U0001F4BB CTO#f39 Main", "idle", sid="f39cb080")]
     lines = ls.format_snapshot(_snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)}),
                                now=NOW).splitlines()
-    assert "running  \U0001F310 CTO (Kavin)" in lines and "idle     \U0001F4BB CTO (Kavin)" in lines
+    assert "running  \U0001F310 CTO#c34 Main" in lines and "idle     \U0001F4BB CTO#f39 Main" in lines
     assert lines[-1] == ls.FOOTER     # different names now: no "same name" line
-    same = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
-            _row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="00000001")]
+    same = [_row("contabo", "cto", "\U0001F310 CTO#c34 Main", sid="c34459eb"),
+            _row("contabo", "cto", "\U0001F310 CTO#c34 Main", sid="c3400001")]
     note = ls.duplicate_notes(same)[0]
-    assert note.startswith('same name on 2 rows: "\U0001F310 CTO (Kavin)"')
+    assert note.startswith('same name on 2 rows: "\U0001F310 CTO#c34 Main"')
 
 
 # --- M10: names enforced ----------------------------------------------------------
 
 def test_every_off_rule_name_gets_a_line_and_rule_names_none(monkeypatch):
-    monkeypatch.setattr(ls, "_rule_context",
-                        lambda role, host: ({"cto": "Kavin", "coo": "SomPong"}.get(role), host == "winbox"))
-    rows = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
-            _row("contabo", "coo", "COO (SomPong)", sid="fde4c4ca"),
+    monkeypatch.setattr(ls, "_rule_context", lambda role, host: (None, host == "winbox"))
+    rows = [_row("contabo", "cto", "\U0001F310 CTO#c34 Main", sid="c34459eb"),
+            _row("contabo", "coo", "COO SomPong", sid="fde4c4ca"),
             _row("mac", "cto", "MAC CTO #f39cb080 (Lumina)", sid="f39cb080"),
-            _row("contabo", "project_head", "\U0001F310 PH#7cf (CTO) - OrgRestructure", sid="7cf528f0"),
-            _row("contabo", "project_head", "\U0001F310 PH#abc (CMO) - MimiPage", sid="36c49776"),
-            _row("winbox", "cto", "\U0001F5A5️ CTO (Ging)", sid="00000001")]
+            _row("contabo", "project_head", "\U0001F310 PH#7cf OrgRestructure", sid="7cf528f0"),
+            _row("contabo", "project_head", "\U0001F310 PH#abc MimiPage", sid="36c49776"),
+            _row("contabo", "project_head", "\U0001F310 PH#f35 (CTO) - CookieRun", sid="f35c0ffe"),
+            _row("winbox", "cto", "\U0001F5A5️ CMO#000 Main", sid="00000001")]
     assert ls.off_rule_notes(rows) == [
-        'name off-rule: "COO (SomPong)" (contabo #fde4c4ca): no host emoji',
-        'name off-rule: "MAC CTO #f39cb080 (Lumina)" (mac #f39cb080): no host emoji',
-        'name off-rule: "\U0001F310 PH#abc (CMO) - MimiPage" (contabo #36c49776): PH#abc is not this session (#36c)',
-        'name off-rule: "\U0001F5A5️ CTO (Ging)" (winbox #00000001): not "CTO (Kavin)"',
+        'name off-rule: "COO SomPong" (contabo #fde4c4ca): no host emoji',
+        'name off-rule: "MAC CTO #f39cb080 (Lumina)" (mac #f39cb080): old shape',
+        'name off-rule: "\U0001F310 PH#abc MimiPage" (contabo #36c49776): PH#abc is not this session (#36c)',
+        'name off-rule: "\U0001F310 PH#f35 (CTO) - CookieRun" (contabo #f35c0ffe): old shape',
+        'name off-rule: "\U0001F5A5️ CMO#000 Main" (winbox #00000001): not "CTO#<id3> <topic>"',
     ]
     text = ls.format_snapshot(_snap(rows, {h: _fresh(4.0) for h in ("contabo", "mac", "winbox")}), now=NOW)
-    assert text.count("name off-rule: ") == 4
+    assert text.count("name off-rule: ") == 5
 
 
 def test_off_rule_lines_are_capped_so_the_list_stays_short(monkeypatch):

@@ -5,8 +5,8 @@ workers, review what they hand back, and report to your C-level. Opus is too cos
 (CEO 2026-10-14, relayed by SomPong: "PH สามารถสั่งงานและคุมงานได้เหมือน CTO เมื่อก่อนได้เลย เพราะว่า PH ใช้ model opus
 มันจะเปลืองถ้าต้องทำงานเอง ให้เป็นเหมือนคน Lead งาน + รายงานกลับ CTO อย่างเดียวก็พอ").
 
-Session name: `PH#<id3> (<LANE>) - <project>` (CEO 2026-10-14), e.g. `PH#7cf (CTO) - OrgRestructure`; your
-workers show as `<Short>#<id3> - <project>: <job>`, e.g. `Dev#afe - OrgRestructure: identity strict`. Peers address you as `project_head-<id>`, which survives
+Session name: `PH#<id3> <Project>` (CEO 2026-10-15; no lane, no persona), e.g. `PH#7cf OrgRestructure`; your
+workers show as `<Short>·<M>#<id3> <Head>: <job>` (M = O, S or H for the worker's model), e.g. `Dev·S#afe Org: identity strict`. Peers address you as `project_head-<id>`, which survives
 renames. Rename yourself with `bash scripts/session-rename.sh "<topic>"`; if it is refused or does not land,
 leave it and never ask anyone (session-open §3, CEO 2026-10-14; fix = Agents-Core issue #272). Model: **Opus 5.5, effort medium** (CEO 2026-10-14: "ต้องมีโมเดลเก่งๆ คอยสั่งงาน"). The launcher reads it
 from `policies/agents.yaml` `project_head`.

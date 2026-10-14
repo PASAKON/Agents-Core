@@ -140,6 +140,44 @@ def test_parse_short(name, expect):
     assert sn.parse_short(name) == expect
 
 
+# the live sessions of plan N.3 (15 Oct 04:42 TH): (old name, what it parses to, new name, what that
+# parses to, the registry's role, sid, host). The Contabo worker's new name is the one the sweep writes
+# from the old name's own, already cut job; the plan's "…sparse wo…" is 33 characters, one over the body limit.
+N2_ROWS = [
+    ("CTO (Kavin) — CTO Main", ("cto", ""), f"{CONTABO} CTO#c34 Main", ("cto", "c34"), "cto", "c34459eb", "contabo"),
+    ("CMO (Ging) — CMO Main", ("cmo", ""), f"{CONTABO} CMO#ef0 Main", ("cmo", "ef0"), "cmo", "ef04792e", "contabo"),
+    ("COO (SomPong)", ("coo", ""), f"{CONTABO} COO SomPong", ("coo", ""), "coo", "fde4c4ca", "contabo"),
+    ("PH#7cf (CTO) - OrgRestructure", ("project_head", "7cf"), f"{CONTABO} PH#7cf OrgRestructure",
+     ("project_head", "7cf"), "project_head", "7cf528f0", "contabo"),
+    ("PH#6c4 (CTO) - SpendGuard", ("project_head", "6c4"), f"{CONTABO} PH#6c4 SpendGuard",
+     ("project_head", "6c4"), "project_head", "6c4a1b2c", "contabo"),
+    ("PH#f35 (CTO) - CookieRun", ("project_head", "f35"), f"{CONTABO} PH#f35 CookieRun",
+     ("project_head", "f35"), "project_head", "f35c0ffe", "contabo"),
+    ("PH#13d (CMO) - BlackLiquidity", ("project_head", "13d"), f"{CONTABO} PH#13d BlackLiquidity",
+     ("project_head", "13d"), "project_head", "13d90a1b", "contabo"),
+    ("PH#36c (CMO) - MimiPage", ("project_head", "36c"), f"{CONTABO} PH#36c MimiPage",
+     ("project_head", "36c"), "project_head", "36c49776", "contabo"),
+    (f"{CONTABO} Dev#49b - OrgRestructure: Item 5: sparse…", ("developer", "49b"),
+     f"{CONTABO} Dev{DOT}S#49b Org: Item 5: sparse…", ("developer", "49b"), "developer", "49b1d2e3", "contabo"),
+    ("MAC CTO #671f688f (PH LastBell + Scriptable)", ("cto", "671"), f"{MAC} CTO#671 LastBell+Scriptable",
+     ("cto", "671"), "cto", "671f688f", "mac"),
+    ("MAC CTO #f39cb080 (PH LuminaSkies V2.6 push + M-R)", ("cto", "f39"), f"{MAC} PH#f39 LuminaSkies",
+     ("project_head", "f39"), "project_head", "f39cb080", "mac"),
+]
+
+
+@pytest.mark.parametrize("old,old_parse,new,new_parse,role,sid,host", N2_ROWS, ids=[r[2] for r in N2_ROWS])
+def test_N2_both_shapes_parse_and_only_the_old_one_is_off_the_rule(old, old_parse, new, new_parse, role, sid, host):
+    assert sn.parse_short(old) == old_parse
+    assert sn.parse_short(new) == new_parse
+    assert sn.rule_problem(old, role, sid, host) == "old shape"
+    assert sn.rule_problem(new, role, sid, host) is None
+    assert len(body(new)) <= sn.NAME_BODY_MAX
+    # a leading state glyph and the host emoji change neither answer
+    assert sn.parse_short("⏸ " + new) == new_parse and sn.rule_problem("⏸ " + new, role, sid, host) is None
+    assert sn.rule_problem("⏸ " + old, role, sid, host) == "old shape"
+
+
 def test_worker_head_reads_the_ph_project_else_the_c_level(tmp_path):
     (tmp_path / "project_head-7cf528f0.project").write_text("OrgRestructure\n", encoding="utf-8")
     (tmp_path / "project_head-0000000b.project").write_text("bad; rm -rf\n", encoding="utf-8")

@@ -743,6 +743,8 @@ def test_the_sweep_leaves_an_on_rule_session_alone(box):
     _set_name(box, U_PH, f"{CONTABO} PH#36c MimiPage")
     assert rs.sweep("contabo", box.pending, 1.0) == []
     assert box.pending == {} and box.sent == []
+
+
 def test_the_sweep_does_not_queue_a_box_that_is_already_waiting(box):
     box.request("cto-c34459eb", "asked by itself")
     asked = dict(box.pending["cto-c34459eb"])
@@ -832,6 +834,8 @@ def test_each_host_gets_its_own_emoji(box, monkeypatch, host, emoji, darwin):
     assert box.pending["project_head-36c49776"]["name"] == f"{emoji} PH#36c MimiPage"
     rs.once(host, box.pending, now=1.0)
     assert ("cto-c34459eb", f"/rename {emoji} CTO#c34 Main") in box.sent
+
+
 # --- plan N (CEO 2026-10-15): the live sessions of 15 Oct 04:42 TH, old name -> new name -------
 
 U_CMO = "00000000-0000-0000-0000-0000ef04792e"

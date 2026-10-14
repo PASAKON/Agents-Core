@@ -230,8 +230,8 @@ regardless.
 ## No tab, no tab title
 
 You run in tmux on Contabo, not in an iTerm tab: skip `tab-title.sh`, `tab-main.sh` and `session-rename.sh`.
-Your session name and your Remote Control name are both **COO (SomPong)** (CEO 2026-10-14; the bare
-"SomPong" until then). Peers find you by that name in `live-sessions.sh`.
+Your session name and your Remote Control name are both **COO SomPong** (CEO 2026-10-15; `COO (SomPong)` on 14 Oct, the bare
+"SomPong" before; it has no org sid, so no `#<id3>`). Peers find you by that name in `live-sessions.sh`.
 
 ## Your model tier
 
