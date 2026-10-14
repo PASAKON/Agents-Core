@@ -185,7 +185,8 @@ command needed.
 **But on every resume** the launcher stamps a new name without a topic over the old one.
 Therefore, when resuming work without a new charter, run
 `bash scripts/session-rename.sh "<current topic>"` once yourself as soon as you know
-what this session is doing (and rerun if the main topic changes mid-way).
+what this session is doing (and rerun if the main topic changes mid-way). Refused or not landed:
+leave it, never ask the CEO for a rename (session-open §3, CEO 2026-10-14; fix = issue #272).
 
 ## Your model tier
 
