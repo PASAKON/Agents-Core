@@ -261,6 +261,22 @@ def host(name: str) -> dict:
     return h
 
 
+def terminal_window(host_name: str) -> bool:
+    """Whether a NEW session on `host_name` opens a terminal window (iTerm on the Mac).
+
+    Reads the per-host `terminal_window` flag in config/hosts.yaml; a missing
+    key means True. False sends every new-session path to a detached tmux
+    session with no iTerm and no osascript (CEO 2026-10-15); `remote_control`
+    is a separate flag and still puts the session in the Claude app. Fails
+    open on an unknown host, the way runners.worker_init.remote_control_args
+    does, so a config typo never changes how a session starts.
+    """
+    try:
+        return bool(host(host_name).get("terminal_window", True))
+    except ValueError:
+        return True
+
+
 # node.yaml is the C1 host-identity file (docs/design/org-mesh.md): a new
 # machine writes its own host key here once, so a session on it never has to
 # guess from a path or hostname. Absent = this source has nothing to say,

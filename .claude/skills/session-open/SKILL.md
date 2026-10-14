@@ -23,25 +23,26 @@ has a clear thing to close. Enforces [IRON-RULES §35](../../../../LLMs/IRON-RUL
 
 ```
 ┌─ OPEN ─ charter ──────────────────────┐
-│ ① Entry Problem (1 ประโยค)            │
-│    "session นี้แก้ ___ ให้จบ"          │
-│ ② Definition of Done (วัดได้/เห็นได้)  │
+│ ① Entry Problem (1 sentence)          │
+│    "this session solves ___ to finish"│
+│ ② Definition of Done (observable)     │
 │ ③ tab: ⏳ <problem>                    │
-│  เขียน 1 ประโยคไม่ได้ = กว้างไป ซอยก่อน │
+│  Cannot write 1 sentence = too broad, │
+│  break down first                     │
 └───────────────┬───────────────────────┘
                 ↓
 ┌─ WORK ─ focus-locked ─────────────────┐
-│  loop:  ทำ → verify → ใกล้ DoD ยัง?    │
-│  เรื่องใหม่เด้งเข้า:                    │
-│   ├ เกี่ยว entry? → ทำต่อ              │
-│   └ ไม่เกี่ยว? → PARK → lungnote todo  │
-│                  ❌ ไม่สลับไปทำ          │
+│  loop:  do → verify → close to DoD?   │
+│  New issue pops up:                   │
+│   ├ relates to entry? → continue      │
+│   └ unrelated? → PARK → lungnote todo │
+│                  ❌ do not switch     │
 └───────────────┬───────────────────────┘
                 ↓
 ┌─ EXIT GATE (/session-close) ──────────┐
-│  entry แก้จบ + DoD ผ่าน + verify ext   │
-│   → 🏁 ปิด  (ไม่จบ = ยังไม่ปิด)         │
-└────────────────────────────────────────┘
+│  entry solved + DoD passed + verify   │
+│   → 🏁 close (not done = don't close) │
+└───────────────────────────────────────┘
 ```
 
 ## Steps to run
