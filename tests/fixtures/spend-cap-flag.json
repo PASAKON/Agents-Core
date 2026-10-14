@@ -1,0 +1,449 @@
+{
+ "about": "Cap-flag cases judged the same way by the Console hub (src/run/spend.js capCheck) and Agents-Core tools/ask_run.py (cap_flag_check): want = null (accepted) or the refusal code. The file is copied byte for byte into both repos; each repo's test pins its sha256, so a change lands in both. Projects talk through APIs only, so neither reads the other's copy.",
+ "cases": [
+  {
+   "command": "python fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd=1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd \"1\"",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd='1'",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1.0",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1.50",
+   "unit": "usd",
+   "cap": 1.5,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1.2345",
+   "unit": "usd",
+   "cap": 1.2345,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 0.004",
+   "unit": "usd",
+   "cap": 0.004,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max-credits 5",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "node champa_fire.mjs --shots 4 --max-credits 60",
+   "unit": "credits",
+   "cap": 60,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --tag '--max-usd 9' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-u\"sd\" 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python -m tools.fal_render --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python -u fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "/usr/bin/python3 fal_render.py --prompt 'a $5 cat; ok' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 ~/out",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python fal_render.py --max-usd 1.0; ls",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "a --max-usd 1 && b --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 && python fal_render.py",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 | tee log",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 > out.txt",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": ">/dev/null echo --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1\n",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py # --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1$(printf 00)",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd `echo 1`",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd $CAP",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd \"$CAP\"",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd=$CAP",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd \\1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --prompt \\' --max-usd 100 --tag \\' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --prompt \\\" --max-usd 100 --tag \\\" --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --prompt $'a\\' --max-usd 100 --tag ' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --x{,=}",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 *.png",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 'unclosed",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "X=1 python fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "X=1 echo --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "echo --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "/bin/echo --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "e\\cho --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "echo \\\n--max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "bash -c \"python fal_render.py --max-usd 100\" x --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "env python fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "sudo python fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "timeout 60 python fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "xargs python fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python -c 'import fal_client' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -Ic 'import fal_client' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "node -e 'x()' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "node --eval=x --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python fal_render.py --ep 62",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_missing"
+  },
+  {
+   "command": "python fal_render.py '--max-usd 1'",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_missing"
+  },
+  {
+   "command": "node x.mjs --max-usd 60",
+   "unit": "credits",
+   "cap": 60,
+   "want": "spend_cap_flag_missing"
+  },
+  {
+   "command": "python fal_render.py -- --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_missing"
+  },
+  {
+   "command": "python fal_render.py --max-usd 2",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max-usd 9",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1e3",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1\"000\"",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1_000",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 0x1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1.0.0",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd=",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max-u 100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max-us=100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max 100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --ma=100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --m 100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max- 100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python fal_render.py --max-usd 1 --max-usd-total 9",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "node x.mjs --max-credits 60 --max-c 900",
+   "unit": "credits",
+   "cap": 60,
+   "want": "spend_cap_flag_ambiguous"
+  }
+ ]
+}

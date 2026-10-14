@@ -27,6 +27,15 @@ Verbs:
     python3 tools/ask_run.py ask --batch questions.json   # 1-6 questions, one group
     python3 tools/ask_run.py wait QG-...   # until every question in the group has ended
 
+A command that SPENDS credit carries a spend label (CEO 2026-10-14, Console docs/run.md §Spend label):
+    python3 tools/ask_run.py create --host contabo --why "render EP62" \
+        --command "python tools/fal_render.py --ep 62 --max-usd 1.5" \
+        --spend-provider fal --spend-estimate 0.9 --spend-cap 1.5 --spend-how "4 x 15 s x $0.015/s"
+The command is ONE simple command (no ; & | redirects $ ` backslash globs, no X=1 / bash / env / sudo /
+echo in front, no python -c) and carries the cap as --max-usd N / --max-credits N; a script ask
+carries it in its args. balance_after defaults to the spend guard's openrouter/fal balance minus
+the cap. A command that only looks like spend: --no-spend "<reason>".
+
 `create --dry-run` and `ask --dry-run` print the JSON body and call nothing (no
 token needed). `<id>` is RUN-YYYYMMDD-HHMM-xxxx (a command card),
 Q-YYYYMMDD-HHMM-xxxx (a question card) or QG-YYYYMMDD-HHMM-xxxx (a group of
@@ -408,6 +417,246 @@ def _one_line(flag: str, value: str) -> str:
     return value
 
 
+# ------------------------------------------------------------ the spend label
+# Console docs/run.md §Spend label (CEO 2026-10-14). A card that spends credit carries provider,
+# kind of credit, estimate, cap ("never more than"), balance left after and how it was computed, and
+# the command carries the cap as --max-usd / --max-credits. The hub runs the same checks and also
+# refuses (RUN_INBOX_SPEND_LABEL=enforce) a command that names a paying provider with no label;
+# these copies fail before anything leaves the box. For openrouter and fal (usd) the balance left
+# after comes from the spend guard's last snapshot (state/spend_guard/snapshots.jsonl) when the
+# requester does not give one.
+SPEND_UNITS = ("usd", "credits")
+SPEND_BILLING = ("api", "account")
+SPEND_GUARD_PROVIDERS = ("openrouter", "fal")
+SPEND_GUARD_MAX_AGE_S = 3600
+_SPEND_PROVIDER_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,39}$")
+_SPEND_MAX = 1e7
+_SPEND_HOW_MAX = 300
+_SPEND_BUDGET_MAX = 200
+_SPEND_KEYS = ("provider", "billing", "unit", "estimate", "cap", "balance_after", "how", "budget")
+
+
+def spend_guard_balance(provider: str, *, root: Path | None = None,
+                        now: datetime | None = None) -> float | None:
+    """The provider's balance in the spend guard's newest snapshot, or None (no file, not read OK,
+    older than an hour). Read only; the guard itself runs on Contabo every 15 minutes."""
+    base = root or Path(os.environ.get("ORG_ROOT") or ROOT)
+    path = base / "state" / "spend_guard" / "snapshots.jsonl"
+    try:
+        with path.open("rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, fh.tell() - 65536))
+            lines = fh.read().decode("utf-8", "replace").splitlines()
+    except OSError:
+        return None
+    for line in reversed(lines):
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        at = _ts(row.get("at"))
+        rec = row.get(provider) or {}
+        if at is None or not rec.get("ok") or not isinstance(rec.get("balance"), (int, float)):
+            continue
+        age = ((now or datetime.now(timezone.utc)) - at).total_seconds()
+        return float(rec["balance"]) if 0 <= age <= SPEND_GUARD_MAX_AGE_S else None
+    return None
+
+
+# A labelled command must be ONE simple command, read by a whitelist (the hub's simpleWords +
+# capCheck, Console src/run/spend.js; cases shared byte for byte in tests/fixtures/spend-cap-flag.json).
+_UNQUOTED_REFUSED = frozenset(";&|()<>\n\r$`\\*?[]{}#")
+_DQUOTE_REFUSED = frozenset("$`\\")
+_WRAPPERS = frozenset({
+    "bash", "sh", "zsh", "dash", "ksh", "fish", "busybox", "env", "eval", "exec", "command", "builtin", "source", ".",
+    "sudo", "su", "runuser", "doas", "setsid", "nohup", "nice", "ionice", "timeout", "stdbuf", "xargs", "parallel",
+    "watch", "time", "chroot", "ssh", "tmux", "screen", "script", "unbuffer", "flock", "systemd-run",
+    "echo", "printf", "cat", "test", "[", "true", "false", ":",
+})
+_INTERPRETER = re.compile(r"^(?:python[0-9.]*|pypy[0-9.]*|node|nodejs|deno|bun|perl|ruby|php|lua|Rscript|osascript)$")
+_CAP_NUMBER = re.compile(r"^[0-9]+(?:\.[0-9]+)?$")
+
+
+def simple_words(command: str) -> tuple[list[str] | None, str | None]:
+    """(words, None) for one simple command, else (None, why it is not one)."""
+    words: list[str] = []
+    word: str | None = None
+    quote = None
+    for c in command:
+        if quote == "'":
+            if c == "'":
+                quote = None
+            else:
+                word += c
+            continue
+        if quote == '"':
+            if c == '"':
+                quote = None
+            elif c in _DQUOTE_REFUSED:
+                return None, f"{c} inside double quotes"
+            else:
+                word += c
+            continue
+        if c in " \t":
+            if word is not None:
+                words.append(word)
+            word = None
+            continue
+        if c in _UNQUOTED_REFUSED:
+            return None, "a line break" if c in "\n\r" else f"an unquoted {c}"
+        if word is None:
+            word = ""
+        if c in "'\"":
+            quote = c
+        else:
+            word += c
+    if quote:
+        return None, "an unclosed quote"
+    if word is not None:
+        words.append(word)
+    if not words:
+        return None, "no program"
+    if re.match(r"[A-Za-z_][A-Za-z0-9_]*=", words[0]):
+        return None, "an env assignment before the program"
+    program = words[0].rsplit("/", 1)[-1]
+    if program in _WRAPPERS:
+        return None, f"{program} runs or prints something else"
+    if _INTERPRETER.match(program):
+        for w in words[1:]:
+            if not w.startswith("-") or w == "-m":
+                break
+            if re.match(r"--(?:eval|print|command|exec)\b", w) or re.match(r"-[A-Za-z]*[cepr]", w):
+                return None, f"{program} {w} runs inline code"
+    return words, None
+
+
+def cap_flag_check(command: str, unit: str, cap: float, *, argv: list[str] | None = None) -> str | None:
+    """None when the command is one simple command whose every flag for `unit` is the plain number
+    `cap`; otherwise the hub's refusal code: spend_command_not_simple | spend_cap_flag_missing |
+    spend_cap_flag_mismatch (1e3, 1_000, no value) | spend_cap_flag_ambiguous (a --word argparse
+    would expand to a cap flag: --max, --ma=100, --max-u, --max-usd-...)."""
+    words, _why = (list(argv), None) if argv else simple_words(command)
+    if words is None:
+        return "spend_command_not_simple"
+    flag = "--max-usd" if unit == "usd" else "--max-credits"
+    other = "--max-credits" if unit == "usd" else "--max-usd"
+    values: list[float | None] = []
+    i = 1
+    while i < len(words):
+        w = words[i]
+        i += 1
+        if w == "--":
+            break
+        if not w.startswith("--") or re.search(r"\s", w):
+            continue
+        name, eq, rest = w.partition("=")
+        if name == other:
+            i += not eq
+            continue
+        if name == flag:
+            if eq:
+                value = rest
+            else:
+                value = words[i] if i < len(words) else None
+                i += 1
+            values.append(float(value) if value is not None and _CAP_NUMBER.match(value) else None)
+            continue
+        if len(name) >= 3 and (flag.startswith(name) or other.startswith(name) or re.match(r"--max-[uc]", name)):
+            return "spend_cap_flag_ambiguous"
+    if not values:
+        return "spend_cap_flag_missing"
+    return "spend_cap_flag_mismatch" if any(v != cap for v in values) else None
+
+
+def _spend_amount(name: str, value: Any, *, allow_negative: bool = False) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != value \
+            or abs(value) > _SPEND_MAX or (value < 0 and not allow_negative):
+        raise Refused(f"invalid_spend: {name} is a number from 0 to {_SPEND_MAX:g}")
+    if abs(round(value, 4) - value) > 1e-12:
+        raise Refused(f"invalid_spend: {name} takes at most 4 decimal places")
+    return float(value)
+
+
+def build_spend(spend: dict | None, no_spend: str | None, command_text: str,
+                *, argv: list[str] | None = None, root: Path | None = None,
+                now: datetime | None = None) -> tuple[str, Any] | None:
+    """('spend', label) | ('no_spend', reason) | None, with the hub's checks run first."""
+    if spend and no_spend:
+        raise Refused("spend_label_conflict: give a spend label or --no-spend, not both")
+    if no_spend is not None:
+        reason = _one_line("--no-spend", no_spend)
+        if len(reason) > _SPEND_HOW_MAX:
+            raise Refused(f"invalid_no_spend: at most {_SPEND_HOW_MAX} characters")
+        return ("no_spend", reason)
+    if not spend:
+        return None
+    unknown = sorted(set(spend) - set(_SPEND_KEYS))
+    if unknown:
+        raise Refused(f"invalid_spend: unknown field {unknown[0]!r} (fields: {', '.join(_SPEND_KEYS)})")
+    provider = str(spend.get("provider") or "").strip().lower()
+    if not _SPEND_PROVIDER_RE.match(provider):
+        raise Refused("invalid_spend: provider is a short lowercase name like fal, openrouter, higgsfield")
+    billing = spend.get("billing") or "api"
+    unit = spend.get("unit") or "usd"
+    if billing not in SPEND_BILLING:
+        raise Refused(f"invalid_spend: billing is {' or '.join(SPEND_BILLING)}")
+    if unit not in SPEND_UNITS:
+        raise Refused(f"invalid_spend: unit is {' or '.join(SPEND_UNITS)}")
+    if spend.get("estimate") is None or spend.get("cap") is None:
+        raise Refused("invalid_spend: estimate and cap are required")
+    estimate = _spend_amount("estimate", spend["estimate"])
+    cap = _spend_amount("cap", spend["cap"])
+    if cap <= 0:
+        raise Refused("invalid_spend: cap is above 0")
+    if estimate > cap:
+        raise Refused("spend_estimate_over_cap: the estimate is above the cap")
+    how = _one_line("spend how", str(spend.get("how") or ""))
+    if len(how) > _SPEND_HOW_MAX:
+        raise Refused(f"invalid_spend: how is at most {_SPEND_HOW_MAX} characters")
+    label: dict[str, Any] = {"provider": provider, "billing": billing, "unit": unit,
+                             "estimate": estimate, "cap": cap, "how": how}
+    if spend.get("balance_after") is not None:
+        label["balance_after"] = _spend_amount("balance_after", spend["balance_after"], allow_negative=True)
+        label["balance_source"] = "declared"
+    elif provider in SPEND_GUARD_PROVIDERS and unit == "usd":
+        bal = spend_guard_balance(provider, root=root, now=now)
+        if bal is not None:
+            label["balance_after"] = round(bal - cap, 4)
+            label["balance_source"] = "spend_guard"
+    if label.get("balance_after") is not None and label["balance_after"] < 0:
+        raise Refused(f"spend_cap_over_balance: a cap of {cap:g} is more than the {provider} balance")
+    if spend.get("budget"):
+        budget = _one_line("spend budget", str(spend["budget"]))
+        if len(budget) > _SPEND_BUDGET_MAX:
+            raise Refused(f"invalid_spend: budget is at most {_SPEND_BUDGET_MAX} characters")
+        label["budget"] = budget
+    want = "--max-usd" if unit == "usd" else "--max-credits"
+    why = {
+        "spend_cap_flag_missing": f"the command must carry {want} {cap:g} (the tool stops there)",
+        "spend_cap_flag_mismatch": f"every {want} in the command must be the plain number {cap:g}",
+        "spend_cap_flag_ambiguous": f"a --word argparse would expand to {want} (--max, --max-u ...) is refused",
+        "spend_command_not_simple": "a labelled command is ONE simple command: no ; & | ( ) < > or line break, "
+                                    "no $ ` \\ globs or # comment, no X=1 before it, no bash/env/sudo/echo wrapper, "
+                                    "no python -c / node -e",
+    }
+    code = cap_flag_check(command_text, unit, cap, argv=argv)
+    if code == "spend_command_not_simple":
+        code_why = simple_words(command_text)[1]
+        raise Refused(f"{code} ({code_why}): {why[code]}")
+    if code:
+        raise Refused(f"{code}: {why[code]}")
+    return ("spend", label)
+
+
+def _spend_from_args(args: argparse.Namespace) -> dict | None:
+    """The create flags (--spend-*) as a label dict; None when none was given. The MCP path sets
+    args.spend directly."""
+    if getattr(args, "spend", None):
+        return args.spend
+    got = {k: getattr(args, f"spend_{k}", None) for k in _SPEND_KEYS}
+    return {k: v for k, v in got.items() if v is not None} or None
+
+
 def build_payload(args: argparse.Namespace, script_args: list[str],
                   env: dict | None = None) -> dict:
     """The POST /api/run/asks body, in the contract's field order. Fields the
@@ -447,6 +696,13 @@ def build_payload(args: argparse.Namespace, script_args: list[str],
     payload["timeout_s"] = args.timeout
     payload["expects_input"] = bool(args.expects_input)
     payload["requester"] = resolve_requester(args.session, args.role, args.task, env)
+    # A script ask's args are an argv the hub quotes itself, so its cap is read from [path, *args]
+    # (the hub renders it as `bash x.sh ...`, which the simple-command rule would refuse).
+    argv = [payload["script"]["path"], *script_args] if payload.get("kind") == "script" else None
+    spent = build_spend(_spend_from_args(args), getattr(args, "no_spend", None),
+                        payload.get("command") or "", argv=argv)
+    if spent:
+        payload[spent[0]] = spent[1]
     return payload
 
 
@@ -1227,7 +1483,12 @@ def _mcp_namespace(a: dict) -> tuple[argparse.Namespace, list[str]]:
         why=a.get("why") or "", expected=a.get("expected") or None, risk=risk, timeout=timeout,
         expects_input=bool(a.get("expects_input")), shell=shell, cwd=a.get("cwd") or None,
         env_key=env_keys, task=a.get("task") or None, session=a.get("session") or None,
-        role=a.get("role") or None, dry_run=bool(a.get("dry_run")), json=False)
+        role=a.get("role") or None, dry_run=bool(a.get("dry_run")), json=False,
+        spend=None, no_spend=(a.get("no_spend") or None))
+    spend = a.get("spend") or None
+    if spend is not None and not isinstance(spend, dict):
+        raise Refused(f"invalid_spend: spend is an object with {', '.join(_SPEND_KEYS)}")
+    ns.spend = spend
     return ns, list(script_args)
 
 
@@ -1641,6 +1902,19 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--task", help="task id (default: WORKER_TASK_ID)")
     c.add_argument("--session", help="your mailbox name <role>-<id>, e.g. cto-6ebacd0e (default: from env)")
     c.add_argument("--role", help="your role (default: CXO_ROLE / WORKER_ROLE)")
+    sp = c.add_argument_group("spend label (a card that spends credit; Console docs/run.md §Spend label)")
+    sp.add_argument("--spend-provider", metavar="NAME", help="fal | openrouter | higgsfield | ... (lowercase)")
+    sp.add_argument("--spend-billing", choices=SPEND_BILLING, help="api credit or account credit (default api)")
+    sp.add_argument("--spend-unit", choices=SPEND_UNITS, help="usd or credits (default usd)")
+    sp.add_argument("--spend-estimate", type=float, metavar="N", help="what it should cost")
+    sp.add_argument("--spend-cap", type=float, metavar="N",
+                    help="never more than; the command must carry --max-usd N / --max-credits N")
+    sp.add_argument("--spend-balance-after", type=float, metavar="N",
+                    help="balance left after (default for openrouter/fal usd: the spend guard's balance - cap)")
+    sp.add_argument("--spend-how", metavar="TEXT", help="one line: how the estimate and cap were computed")
+    sp.add_argument("--spend-budget", metavar="TEXT", help="one line: the budget this comes out of")
+    sp.add_argument("--no-spend", metavar="REASON",
+                    help="the command looks like spend but is not (e.g. a balance read); shown on the card")
     c.add_argument("--dry-run", action="store_true", help="print the JSON body, send nothing")
     c.add_argument("--json", action="store_true", help="print the hub's answer as JSON")
 

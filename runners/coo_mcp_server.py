@@ -218,18 +218,22 @@ def _serve() -> None:
                        args: list[str] | None = None, expected: str = "", risk: str = "amber",
                        timeout_s: int = 300, expects_input: bool = False, shell: str = "",
                        cwd: str = "", env_keys: list[str] | None = None, session: str = "",
-                       role: str = "", task: str = "", dry_run: bool = False) -> str:
+                       role: str = "", task: str = "", dry_run: bool = False,
+                       spend: dict | None = None, no_spend: str = "") -> str:
         """Ask the CEO to run one command on a host via the Run Inbox (a card on his phone, Face
         ID). This is how root work happens (CEO 2026-10-01). The CEO's tap is the only authority.
         Raise it at once when a blocker needs his tap; never ask in chat first. A secret-shaped
         value is refused before anything is sent: name an env var instead (env_keys). Returns
         {id, url, risk, expires_at} at once; read the result with ask_run_wait on the id. `why`
-        stays short (about 500 chars). dry_run=True sends nothing."""
+        stays short (about 500 chars). dry_run=True sends nothing. A command that spends credit
+        carries spend={provider, billing, unit, estimate, cap, how, balance_after?, budget?} and
+        --max-usd/--max-credits equal to the cap in the command; a spend-looking command that is
+        not spend sends no_spend='<reason>' (CEO 2026-10-14)."""
         out = await asyncio.to_thread(ask_run, host=host, why=why, command=command, script=script,
                                       args=args, expected=expected, risk=risk, timeout_s=timeout_s,
                                       expects_input=expects_input, shell=shell, cwd=cwd,
                                       env_keys=env_keys, session=session, role=role, task=task,
-                                      dry_run=dry_run)
+                                      dry_run=dry_run, spend=spend, no_spend=no_spend)
         return json.dumps(out, indent=2, ensure_ascii=False)
 
     @mcp.tool(name="ask_ceo")
