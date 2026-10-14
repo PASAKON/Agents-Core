@@ -12,9 +12,22 @@ says what a session must do; this checks that it happened. Four findings:
             question card from that C-level since, and no letter back to the PH.
   host      a host whose live-sessions publisher went stale.
 
-Each finding nudges the session's C-level (a PH's owner, from .spawned_by; a
-C-level itself) and the COO with one letter, then again at most every RENUDGE_S.
-Host findings go to the COO and every live C-level. Dry run by default:
+A finding is an EPISODE: it starts the first run it is seen and ends the first run
+it is gone. Each episode gets one letter and at most one reminder (REMIND_S later),
+then nothing until it ends (§2b review of #292, B-2):
+
+  waiting   → the COO, and a PH's owner. Never the waiting session itself: it cannot
+              read a letter while a prompt holds it, and a wake would press Enter on
+              that prompt (B-1). Sent at once, kind blocker.
+  blocker   → the C-level holding it and the COO, at once, only while the PH is live.
+  idle      → the COO's digest only (kind fyi, one letter per DIGEST_S, no reminder).
+  host      → the digest of the COO and every live C-level, once per stale period; a
+              host stale longer than HOST_RETIRED_S is a note, not a finding.
+
+A wake follows only a letter sent at once, and only when the recipient's own screen
+is prompt_ready (empty input box, no turn running, no prompt waiting): the same test
+the rename service uses before it types. Letters carry box ids, never a session's
+display name or any text a session wrote (M-1). Dry run by default:
 
     python tools/escalation_watch.py            # print findings, send nothing
     python tools/escalation_watch.py --nudge    # also send the letters
@@ -44,15 +57,19 @@ if str(ROOT) not in sys.path:
 
 from lib import mailbox  # noqa: E402
 from tools import live_sessions as ls  # noqa: E402
-from tools.rename_service import pane_waiting  # noqa: E402,F401  (the same screen test the rename service uses)
+from tools.rename_service import pane_waiting, prompt_ready  # noqa: E402  (the rename service's screen tests)
 
 IDLE_S = 30 * 60
 BLOCKER_S = 15 * 60
-RENUDGE_S = 30 * 60
+REMIND_S = 60 * 60          # the one reminder of an at-once finding
+DIGEST_S = 2 * 60 * 60      # fyi letters: one digest per recipient per 2 h (COO, 14 Oct)
+HOST_RETIRED_S = 24 * 3600  # stale longer than this: a retired host, not a finding
+LINE_MAX = 300
 LOCKS_DIR = ROOT / "state" / "locks"
 STATE_PATH = ROOT / "state" / "escalation_watch.json"
 FROM = ("watchdog", "escalation")
 _BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
+_HOST_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,31}")
 # Root reads files under state/, which the secretary service can write (no sticky
 # bit): no symlink, no FIFO, a size cap (§2b review of #283 v2, B-1, same class).
 META_READ_MAX = 8 * 1024 * 1024
@@ -60,12 +77,17 @@ STATE_READ_MAX = 1024 * 1024
 
 
 def _read_capped(path: Path, limit: int) -> bytes | None:
-    """At most the last `limit` bytes of a regular file, never through a symlink."""
+    """At most the last `limit` bytes of a regular file, never through a symlink, and
+    only one that root (or this user) owns, nobody else can write and has one link:
+    the secretary account can create files in state/ (§2b review of #292, M-2)."""
     fd = ls._safe_open(path, os.O_RDONLY, create=False)
     if fd is None:
         return None
     try:
-        size = os.fstat(fd).st_size
+        st = os.fstat(fd)
+        if st.st_uid not in (0, os.geteuid()) or st.st_mode & 0o022 or st.st_nlink != 1:
+            return None
+        size = st.st_size
         if size > limit:
             os.lseek(fd, size - limit, os.SEEK_SET)
         chunks, left = [], limit
@@ -150,7 +172,7 @@ def question_times() -> dict[str, list[float]] | None:
     try:
         from tools import ask_run
         resp = ask_run._call("GET", ask_run.QUESTIONS_PATH, query={"limit": "200"})
-    except BaseException:   # no token, no route, an HTTP error: the source is unknown
+    except Exception:   # no token, no route, an HTTP error: the source is unknown
         return None
     qs = resp.get("questions") if isinstance(resp, dict) else resp
     out: dict[str, list[float]] = {}
@@ -178,22 +200,27 @@ def coo_box() -> str | None:
 
 # --- findings ----------------------------------------------------------------------
 
-def find(sessions, meta, questions, hosts, now: float, *, panes=capture) -> list[dict]:
+def find(sessions, meta, questions, hosts, now: float, *, panes=capture,
+         live: set[str] | None = None) -> list[dict]:
+    """Findings, each with a stable `subject` (its episode key). `live`: the boxes of
+    live sessions; a blocker from a PH not in it is dropped (B-2). None = unknown, keep."""
     out = []
     for s in sessions:
+        if not _BOX_RE.fullmatch(s["box"]):
+            continue
         screen = panes(s["tmux"]) if s.get("tmux") else None
         if screen is not None and pane_waiting(screen):
-            out.append({"kind": "waiting", "box": s["box"], "name": s["name"],
+            out.append({"kind": "waiting", "box": s["box"], "subject": f"waiting:{s['box']}",
                         "text": "a prompt is waiting on a person (permission or question)"})
         elif s["status"] == "idle" and s["since"] and now - s["since"] >= IDLE_S:
-            out.append({"kind": "idle", "box": s["box"], "name": s["name"],
+            out.append({"kind": "idle", "box": s["box"], "subject": f"idle:{s['box']}:{int(s['since'])}",
                         "text": f"idle {int((now - s['since']) // 60)} min"})
-    for b in [m for m in meta if m.get("kind") == "blocker" and m["from"].startswith("project_head-")
+    for b in [m for m in meta if m.get("kind") == "blocker" and _BOX_RE.fullmatch(m["from"])
+              and m["from"].startswith("project_head-")
               and _BOX_RE.fullmatch(m["to"]) and not m["to"].startswith("project_head-")]:
-        if now - b["t"] < BLOCKER_S:
+        if now - b["t"] < BLOCKER_S or (live is not None and b["from"] not in live):
             continue
-        answered = any(m["from"] == b["to"] and m["to"] == b["from"] and m["t"] >= b["t"] for m in meta)
-        if answered:
+        if any(m["from"] == b["to"] and m["to"] == b["from"] and m["t"] >= b["t"] for m in meta):
             continue
         if questions is None:
             card = "Run Inbox unreadable: card unknown"
@@ -201,59 +228,67 @@ def find(sessions, meta, questions, hosts, now: float, *, panes=capture) -> list
             continue
         else:
             card = "no question card since"
-        out.append({"kind": "blocker", "box": b["to"], "ph": b["from"], "since": b["t"],
+        out.append({"kind": "blocker", "box": b["to"], "ph": b["from"],
+                    "subject": f"blocker:{b['from']}:{b['to']}:{int(b['t'])}",
                     "text": f"holds {b['from']}'s blocker {int((now - b['t']) // 60)} min, "
                             f"no reply to it, {card}"})
     for host, info in hosts.items():
-        if info["age"] > ls.DEFAULT_TTL_S:
-            out.append({"kind": "host", "box": None, "host": host,
-                        "text": f"{host} stopped publishing {int(info['age'] // 60)} min ago: "
-                                f"its sessions may be dead, nothing restarts them"})
+        if not _HOST_RE.fullmatch(str(host)) or not ls.DEFAULT_TTL_S < info["age"] <= HOST_RETIRED_S:
+            continue
+        out.append({"kind": "host", "box": None, "host": host, "subject": f"host:{host}",
+                    "text": f"{host} stopped publishing {int(info['age'] // 60)} min ago: "
+                            f"its sessions may be dead, nothing restarts them"})
     return out
 
 
+AT_ONCE = ("waiting", "blocker")
+
+
 def recipients(f: dict, live_c_levels: list[str]) -> list[str]:
+    """Who hears about a finding; never the session the finding is about."""
     coo = coo_box()
     if f["kind"] == "host":
-        to = live_c_levels
-    elif f["box"].startswith("project_head-"):
-        to = [owner_box(f["box"].split("-", 1)[1])]
-    else:
-        to = [f["box"]]
-    return sorted({b for b in to + [coo] if b})
+        to = list(live_c_levels) + [coo]
+    elif f["kind"] == "idle":
+        to = [coo]
+    elif f["kind"] == "waiting":
+        owner = owner_box(f["box"].split("-", 1)[1]) if f["box"].startswith("project_head-") else None
+        to = [owner, coo] if coo != f["box"] else list(live_c_levels)
+    else:                                   # blocker: the C-level holding it
+        to = [f["box"], coo]
+    about = None if f["kind"] == "blocker" else f.get("box")   # a blocker's box is its holder
+    return sorted({b for b in to if b and _BOX_RE.fullmatch(b) and b != about})
 
 
-def key(f: dict) -> str:
-    return f"{f['kind']}:{f.get('box') or f.get('host')}:{int(f.get('since') or 0)}"
+def line(f: dict) -> str:
+    return f"{f['kind']} {f.get('box') or f.get('host')}: {f['text']}"[:LINE_MAX]
 
 
-def load_state() -> dict:
+_EMPTY_STATE = {"episodes": {}, "digest": {}}
+
+
+def load_state(now: float) -> dict:
+    """{"episodes": {subject: {"start", "sent", "last"}}, "digest": {box: {"last",
+    "lines"}}}. A time after `now` is dropped: a planted future time must not silence
+    the watch (M-2)."""
     raw = _read_capped(STATE_PATH, STATE_READ_MAX)
     try:
         d = json.loads(raw) if raw else {}
     except (ValueError, RecursionError):
-        return {}
-    return {k: v for k, v in d.items() if isinstance(v, (int, float))} if isinstance(d, dict) else {}
+        d = {}
+    if not isinstance(d, dict):
+        d = {}
+    ok = lambda t: isinstance(t, (int, float)) and not isinstance(t, bool) and 0 <= t <= now
+    eps = {k: v for k, v in (d.get("episodes") or {}).items() if isinstance(k, str) and isinstance(v, dict)
+           and ok(v.get("start")) and ok(v.get("last")) and isinstance(v.get("sent"), int)}
+    dig = {k: {"last": v["last"], "lines": [str(x)[:LINE_MAX] for x in v["lines"][:50]]}
+           for k, v in (d.get("digest") or {}).items()
+           if isinstance(k, str) and _BOX_RE.fullmatch(k) and isinstance(v, dict)
+           and ok(v.get("last")) and isinstance(v.get("lines"), list)}
+    return {"episodes": eps, "digest": dig}
 
 
-def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None) -> list[str]:
-    state, sent = load_state(), []
-    for f in findings:
-        k = key(f)
-        if now - state.get(k, 0) < RENUDGE_S:
-            continue
-        who = f.get("name") or f.get("box") or f.get("host")
-        body = (f"blocker · urgent · escalation watch: {who} {f['text']}. "
-                "Rule (CEO 2026-10-14): a PH sends its C-level a blocker at once; a C-level that "
-                "cannot unblock it puts a question card on /run at once (ask_ceo), never a todo.")
-        for box in recipients(f, live_c_levels):
-            role, sid = box.split("-", 1)
-            send(role, sid, body, *FROM)
-            if wake:
-                wake(role, sid)
-            sent.append(f"{box} <- {f['kind']} {who}")
-        state[k] = now
-    state = {k: t for k, t in state.items() if now - t < 2 * 86400}
+def save_state(state: dict) -> None:
     try:
         STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         # mkstemp: O_EXCL on a fresh random name, so no planted .tmp link is followed;
@@ -268,6 +303,59 @@ def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None) 
                 os.unlink(tmp)
     except OSError:
         pass
+
+
+RULE = ("Rule (CEO 2026-10-14): a PH sends its C-level a blocker at once; a C-level that "
+        "cannot unblock it puts a question card on /run at once (ask_ceo), never a todo.")
+
+
+def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None,
+          panes=capture) -> list[str]:
+    """Send what is due and return one line per letter. An at-once finding (waiting,
+    blocker): a letter when its episode starts, one reminder REMIND_S later, then
+    nothing. Others: one digest line per episode, flushed per recipient at most once
+    per DIGEST_S. A wake only after an at-once letter, and only into a screen that is
+    prompt_ready."""
+    state, sent = load_state(now), []
+    eps, dig = state["episodes"], state["digest"]
+    current = {f["subject"] for f in findings}
+    for k in [k for k in eps if k not in current]:      # the episode ended
+        del eps[k]
+    for f in findings:
+        ep = eps.setdefault(f["subject"], {"start": now, "sent": 0, "last": 0})
+        to = recipients(f, live_c_levels)
+        if f["kind"] in AT_ONCE:
+            if ep["sent"] >= 2 or (ep["sent"] == 1 and now - ep["last"] < REMIND_S):
+                continue
+            again = " (reminder; the last one this episode)" if ep["sent"] else ""
+            body = f"blocker · urgent · escalation watch{again}: {line(f)}. {RULE}"
+            for box in to:
+                role, sid = box.split("-", 1)
+                send(role, sid, body, *FROM, kind="blocker",
+                     subject=f"escalation: {f['kind']} {f.get('box') or ''}"[:80])
+                woke = ""
+                if wake:
+                    screen = panes(box)
+                    if screen is not None and prompt_ready(screen):
+                        wake(role, sid)
+                        woke = " +wake"
+                sent.append(f"{box} <- {f['kind']} {f.get('box') or f.get('host')}{woke}")
+        else:
+            if ep["sent"]:
+                continue
+            for box in to:
+                dig.setdefault(box, {"last": 0, "lines": []})["lines"].append(line(f))
+        ep["sent"], ep["last"] = ep["sent"] + 1, now
+    for box, d in dig.items():
+        if d["lines"] and now - d["last"] >= DIGEST_S:
+            role, sid = box.split("-", 1)
+            body = ("fyi · normal · escalation watch digest (no wake; act only if one is yours):\n- "
+                    + "\n- ".join(d["lines"][:50]))
+            send(role, sid, body, *FROM, kind="fyi", subject="escalation watch digest")
+            sent.append(f"{box} <- digest of {len(d['lines'])}")
+            d["lines"], d["last"] = [], now
+    state["digest"] = {b: d for b, d in dig.items() if d["lines"] or now - d["last"] < DIGEST_S}
+    save_state(state)
     return sent
 
 
@@ -294,28 +382,34 @@ def main(argv=None) -> int:
         finally:
             conn.close()
         hosts = snap["hosts"]
+        live = {f"{r['role']}-{r['sid']}" for r in snap["rows"] if not r.get("stale")}
         live_c = sorted({f"{r['role']}-{r['sid']}" for r in snap["rows"]
                          if ls.is_c_level(r["role"]) and r["role"] != "ceo" and not r.get("stale")
                          and r["host"] == host})
     except Exception as e:
-        hosts, live_c = {}, []
+        hosts, live_c, live = {}, [], None
         notes.append(f"hub unreadable ({type(e).__name__}): host check skipped")
     sessions = local_sessions(host)
+    if live is not None:
+        live |= {s["box"] for s in sessions}
     if not live_c:
         live_c = sorted({s["box"] for s in sessions if ls.is_c_level(s["role"])})
     questions = question_times()
     if questions is None:
         notes.append("Run Inbox unreadable: blocker findings cannot see question cards")
-    findings = find(sessions, read_meta(mailbox.meta_path()), questions, hosts, now)
+    findings = find(sessions, read_meta(mailbox.meta_path()), questions, hosts, now, live=live)
     for f in findings:
-        print(f"{f['kind']:<8} {f.get('name') or f.get('box') or f.get('host')}: {f['text']}")
+        print(f"{f['kind']:<8} {f.get('box') or f.get('host')}: {f['text']}")
+    for h, info in hosts.items():
+        if info["age"] > HOST_RETIRED_S:
+            notes.append(f"host {h} stale {int(info['age'] // 3600)} h: retired? not a finding")
     for n in notes:
         print(f"note     {n}")
     if not findings:
         print("ok       nothing stalled")
     if a.nudge and findings:
-        for line in nudge(findings, live_c, now, wake=_wake):
-            print(f"sent     {line}")
+        for out in nudge(findings, live_c, now, wake=_wake):
+            print(f"sent     {out}")
     return 0
 
 

@@ -9,6 +9,9 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+# oneshot has no start timeout by default: a hang would hold the unit activating and
+# the timer would never fire again (§2b review of #292, L-2).
+TimeoutStartSec=120
 User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/escalation_watch.py --nudge
@@ -27,3 +30,7 @@ RestrictSUIDSGID=yes
 LockPersonality=yes
 MemoryMax=256M
 TasksMax=32
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallFilter=@system-service
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_DAC_OVERRIDE CAP_KILL
