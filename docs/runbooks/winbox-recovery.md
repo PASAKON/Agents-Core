@@ -1,7 +1,7 @@
 # winbox — System recovery from phone
 
 **For 12–19 Sep 2026 while the CEO is away**
-Machine: `DESKTOP-3NQB2QO` · Tailscale `window-gob` (MagicDNS; the `winbox` ssh alias. Before the 2026-09-24 reset it was desktop-3nqb2qo)
+Machine: Tailscale `window-gob` (MagicDNS; the `winbox` ssh alias). Before the 2026-09-24 reset it was `DESKTOP-3NQB2QO`
 
 ---
 
