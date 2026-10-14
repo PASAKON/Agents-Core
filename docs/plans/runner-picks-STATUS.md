@@ -9,12 +9,12 @@ Goal: the org can read "which runner:model:effort for which job", built from rev
 | # | Milestone | State | Evidence |
 |---|---|---|---|
 | 1 | Router reads the hub, not the tombstone | done (before this brief) | 2e8cb5a8; `route.load_skill_scores()` returns 9 hub rows 14 Oct |
-| 2 | Recorder: model + effort on every task, reviewer comment, per-model stats | building | task-0e3dd035 (Codex gpt-6-sol); spec `state/handoff/2026-10-14/runner-picks-recorder-spec.md` |
-| 3 | Codex model names settled ("Menium", "JEV") | waiting on CEO | question card Q-20261014-1239-4f5b (expires 17 Oct) |
-| 4 | Skill `ALL_Knowledge_RunnerPicks` (table from ≥3 comments per cell) | not started | |
+| 2 | Model + effort on every task; per-model stats + picks table from `runner_fit` | PR open | PR #320 (task-0e3dd035 Codex gpt-6-sol + PH rework 5de45991). Reviewer verdict = existing `runner_fit` (CTO Main 14 Oct), no second recorder |
+| 3 | Codex model names settled ("Menium", "JEV") | done (Menium open) | Q-20261014-1239-4f5b: "JEV = Jev lab, not a model" → ALL_Knowledge_Jev; Menium unanswered, listed as open in the skill |
+| 4 | Skill `ALL_Knowledge_RunnerPicks` (table from ≥3 comments per cell) | PR open | branch ph/runner-picks; lint clean; SKILL-INDEX regenerated |
 | 5 | Tool-value Monday report reads the same data | not started | due Mon 19 Oct (LungNote) |
 
-Progress: 1/5.
+Progress: 2/5 (1 and 3 done; 2 and 4 in PRs).
 
 ## Findings (14 Oct)
 - **Codex runs at low effort.** 59 of the last 60 Codex rollouts in `/root/.codex/sessions` were gpt-6-astra
@@ -26,7 +26,7 @@ Progress: 1/5.
   codex-auto-review.
 
 ## Blocker
-none (milestone 3 waits on the CEO's card; the rest goes on).
+none.
 
 ## Runner comments
 Format: task · runner:model:effort · job kind · first pass y/n · one line.
@@ -36,3 +36,6 @@ Format: task · runner:model:effort · job kind · first pass y/n · one line.
   bugs with reproductions (pinned-commit bypass, symlinked helper) and 1 LOW; all three held up.
 - codex-r7 (local `codex exec`, not a task) · codex:gpt-6-astra:high · review · y · re-review confirmed both fixes
   with probes and found 2 new real LOWs (comment-tail parse, `--max-c`).
+- task-0e3dd035 · codex:gpt-6-sol:default · code · n (reviewer fix) · built the 4-part spec in 16 min, tests green;
+  PH removed the comment recorder (spec duplicated runner_fit, a spec error) and fixed one Postgres-shape test.
+  Recorded as a runner_fit event.
