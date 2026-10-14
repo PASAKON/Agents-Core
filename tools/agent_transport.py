@@ -35,6 +35,7 @@ from pathlib import Path
 
 from lib import notify
 from lib.config import display_for, is_c_level
+from lib.pane_screen import _squash, box_empty, pane_waiting, typed_text
 from tools import session_name, tmux_session
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -166,6 +167,69 @@ def _safe_label(label: str) -> str:
     return " ".join(out.split())[:80] or "?"
 
 
+class WakeHeld(RuntimeError):
+    """`_wake_tmux_send` typed nothing, or pressed no Enter, because of what the
+    target pane shows or because it could not read the pane. `attempt_wake`
+    catches it like any other wake failure: one "wake failed: <session>: <why>"
+    log line, False, never raised to the sender. The letter is already in the
+    mailbox; the target's UserPromptSubmit hook (scripts/hook-inbox.py) drains
+    it on that session's next prompt."""
+
+
+_WAKE_CAPTURE_TIMEOUT_S = 5
+
+
+def _why_not_type(screen: str) -> str | None:
+    """None when the wake may type: no choice prompt is up and the whole input
+    box is empty. A busy pane (a turn running) passes: typed text queues as a
+    mid-turn message."""
+    if pane_waiting(screen):
+        return "choice prompt on screen"
+    if typed_text(screen) is None:
+        return "no input box on screen"
+    if not box_empty(screen):
+        return "draft in the input box"
+    return None
+
+
+def _why_not_enter(screen: str, typed: str) -> str | None:
+    """None when Enter may be pressed: no choice prompt is up and the input box
+    holds nothing but (the start of) what this wake typed, or nothing at all
+    (the first Enter already submitted it; the rescue Enter then lands on an
+    empty box). Anything else in the box is somebody's keys, which Enter would
+    submit."""
+    if pane_waiting(screen):
+        return "choice prompt on screen"
+    shown = typed_text(screen)
+    if shown is None:
+        return "no input box on screen"
+    if not box_empty(screen) and not _squash(typed).startswith(shown):
+        return "draft in the input box"
+    return None
+
+
+def _look(tmux: str, session: str, typed: str | None, held: str) -> None:
+    """Capture the pane (`capture-pane -p`, on the same target the keys go to)
+    and raise WakeHeld(held.format(why=...)) unless the next key may go: before
+    the typing (`typed` None) `_why_not_type`, before an Enter `_why_not_enter`.
+    Fails closed: a capture that exits non-zero or times out is a reason too."""
+    try:
+        r = subprocess.run(
+            [tmux, "capture-pane", "-p", "-t", session],
+            capture_output=True, text=True, timeout=_WAKE_CAPTURE_TIMEOUT_S,
+        )
+        if r.returncode != 0:
+            why = f"could not read the pane (tmux exit {r.returncode})"
+        elif typed is None:
+            why = _why_not_type(r.stdout or "")
+        else:
+            why = _why_not_enter(r.stdout or "", typed)
+    except (OSError, subprocess.SubprocessError) as e:
+        why = f"could not read the pane ({type(e).__name__})"
+    if why:
+        raise WakeHeld(held.format(why=why))
+
+
 def _wake_tmux_send(session: str, text: str) -> None:
     """Type `text` into tmux `session` and submit it with a settle-delay +
     rescue Enter -- NOT via `tools.tmux_session.send_keys()`.
@@ -181,18 +245,34 @@ def _wake_tmux_send(session: str, text: str) -> None:
     delay 0.3, key again as rescue) rather than the unproven zero-delay path
     GH #70 flagged. `tools.tmux_session.send_keys()` is untouched -- fixing
     it is GH #70's job, out of scope here.
+
+    It looks first (2026-10-14). Enter on a pane showing a Claude Code choice
+    prompt picks the highlighted option, usually "1. Yes", so a peer's letter
+    could approve a permission prompt meant for the CEO; text typed onto his
+    draft would be submitted with it. So the pane is captured (lib.pane_screen,
+    the predicates tools/rename_service.py uses) right before the typing and
+    again right before EACH Enter:
+      * a choice prompt up, a draft in the box, no input box, or a capture
+        that fails or times out before typing -> no key at all;
+      * the same after typing -> no Enter (the marker stays in the box).
+    Either way it raises WakeHeld with the reason. A busy pane (a turn
+    running) with an empty box is woken exactly as before: the typed marker
+    queues as a mid-turn message.
     """
     tmux = tmux_session.tmux_bin()
+    _look(tmux, session, None, "not woken: {why}; nothing typed")
     subprocess.run(
         [tmux, "send-keys", "-t", session, "-l", text],
         capture_output=True, text=True, check=True, timeout=5,
     )
     time.sleep(0.4)
+    _look(tmux, session, text, "not woken: {why} after typing; no Enter")
     subprocess.run(
         [tmux, "send-keys", "-t", session, "Enter"],
         capture_output=True, text=True, check=True, timeout=5,
     )
     time.sleep(0.3)
+    _look(tmux, session, text, "not confirmed: {why} before the rescue Enter; no second Enter")
     subprocess.run(
         [tmux, "send-keys", "-t", session, "Enter"],
         capture_output=True, text=True, check=True, timeout=5,

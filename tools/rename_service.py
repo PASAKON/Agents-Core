@@ -63,6 +63,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import config, session_names  # noqa: E402
+from lib.pane_screen import (  # noqa: E402,F401 - re-exported: the screen predicates moved there
+    _BOX_CHARS, _BUSY_RE, _CHOICE_HINTS, _CHOICE_RE, _PLACEHOLDER_RE, _PROMPT, _box_len, _box_rows,
+    _squash, box_empty, pane_busy, pane_waiting, prompt_line, prompt_ready, typed_text,
+)
 from tools import live_sessions as ls  # noqa: E402
 
 LOCKS_DIR = ROOT / "state" / "locks"
@@ -84,7 +88,6 @@ TYPED_POLL_S = 0.1
 _BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
 _FIXED_TMUX = {"coo": "sompong"}
 _TOPIC_PUNCT = set(" -_.,:()+#&'!?%")   # no ';': tmux strips a trailing one from send-keys
-_PROMPT = "❯"
 
 
 # --- the name ----------------------------------------------------------------------
@@ -151,89 +154,6 @@ def tmux(*args: str) -> subprocess.CompletedProcess:
 def target(tmux_name: str) -> str:
     """An exact tmux target: '=' stops a prefix match on another session's name."""
     return f"={tmux_name}:"
-
-
-# A numbered choice with the cursor on it (maybe inside a │ box), plus a choice footer:
-# a permission prompt or an on-screen question, the app's ✋ "waiting for you".
-_CHOICE_RE = re.compile(r"^[\s\u2502\u2503|]*\u276f\s*\d+\.\s")
-_CHOICE_HINTS = ("Do you want", "Esc to cancel", "to navigate", "Enter to select", "Would you like")
-
-
-def pane_waiting(text: str) -> bool:
-    """True when a pane's screen holds a choice prompt waiting on a person."""
-    tail = text.splitlines()[-30:]
-    return any(_CHOICE_RE.match(l) for l in tail) and any(h in l for l in tail for h in _CHOICE_HINTS)
-
-
-def prompt_line(screen: str) -> str | None:
-    """The text on the last ❯ line, or None when there is none."""
-    lines = [l for l in screen.splitlines() if _PROMPT in l]
-    if not lines:
-        return None
-    return lines[-1].split(_PROMPT, 1)[1].replace("\xa0", " ").strip().strip("".join(_BOX_CHARS)).strip()
-
-
-# Box-drawing (─ │ ╭ ╮ …) and block characters a TUI draws around its input box.
-_BOX_CHARS = {chr(c) for c in range(0x2500, 0x25A0)}
-
-
-def _box_rows(screen: str) -> list[str] | None:
-    """The input box's rows: the text after the last ❯ plus the rows it wrapped onto,
-    up to the box's bottom rule, box characters removed. None with no ❯ line."""
-    lines = screen.splitlines()
-    idx = [i for i, l in enumerate(lines) if _PROMPT in l]
-    if not idx:
-        return None
-    rows = [lines[idx[-1]].split(_PROMPT, 1)[1]]
-    for l in lines[idx[-1] + 1:]:
-        if l.strip() and all(c in _BOX_CHARS or c.isspace() for c in l):
-            break                                   # the rule under the input box
-        rows.append(l)
-    return ["".join(c for c in r if c not in _BOX_CHARS).strip() for r in rows]
-
-
-def typed_text(screen: str) -> str | None:
-    """What sits in the input box with every space and box character removed (a long
-    name wraps at the pane width). None when there is no ❯ line."""
-    rows = _box_rows(screen)
-    return None if rows is None else _squash("".join(rows))
-
-
-def _box_len(screen: str | None) -> int:
-    """At least the number of characters in the input box: its rows plus one space
-    per wrap, which a capture drops."""
-    rows = _box_rows(screen) if screen is not None else None
-    rows = [r for r in rows or [] if r]
-    return sum(len(r) for r in rows) + len(rows)
-
-
-def _squash(text: str) -> str:
-    return "".join(c for c in text if not c.isspace() and c not in _BOX_CHARS)
-
-
-# An empty box in a fresh session shows a dim hint (`Try "fix lint errors"`), which a
-# plain capture cannot tell from typed text (seen on a real pane 14 Oct).
-_PLACEHOLDER_RE = re.compile(r'Try"[^"]{1,80}"')
-# A turn is running: the footer says so, or the spinner line "✽ Computing… (11s · …)".
-_BUSY_RE = re.compile(r"esc to interrupt|…\s*\(\d+[sm]\b")
-
-
-def box_empty(screen: str) -> bool:
-    """The WHOLE input box is empty, not only its ❯ row: a draft can start with an
-    empty first row (Shift+Enter) and hold text below it (review round 4, M-1)."""
-    text = typed_text(screen)
-    return text is not None and (text == "" or bool(_PLACEHOLDER_RE.fullmatch(text)))
-
-
-def pane_busy(screen: str) -> bool:
-    """A turn is running: Enter could land on a dialog that opens a moment later."""
-    return bool(_BUSY_RE.search(screen))
-
-
-def prompt_ready(screen: str) -> bool:
-    """The whole input box is empty, no turn is running and no choice prompt
-    (permission / question) is up."""
-    return not pane_waiting(screen) and not pane_busy(screen) and box_empty(screen)
 
 
 def pane_pids(tmux_name: str) -> set[int]:
