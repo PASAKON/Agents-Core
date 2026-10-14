@@ -39,6 +39,7 @@ SSH = ["ssh", "-T", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-
 VNC_PORT = 5900
 TAILNET = ipaddress.ip_network("100.64.0.0/10")
 FIREWALL_FAILED = 6                 # the PS script's exit code when the new password is live but the rules are not narrowed
+BOX_TIMED_OUT = 7                   # the box step hung; whether the password changed is proven by the auth check
 PW_RE = re.compile(r"[\x21-\x7e]{8}")
 # TightVNC/RFB store and authenticate with DES keyed by bit-reversed bytes. This is the fixed key every
 # VNC server uses to obscure the stored password: {23,82,107,6,35,78,88,7}, bit-reversed per byte.
@@ -69,16 +70,28 @@ if ((Open-Vnc $back) -cne $pw) {
 $names = (Get-ItemProperty -Path $reg).PSObject.Properties.Name
 foreach ($n in 'PasswordViewOnly', 'ControlPassword') { if ($names -contains $n) { 'WARN: ' + $n + ' is set and was left unchanged' } }
 $exe = 'C:\Program Files\TightVNC\tvnserver.exe'
-& $exe -controlservice -reload
-'service: reload exit ' + $LASTEXITCODE
+function Invoke-Tvn([string]$verb) {
+  # bounded: an error MessageBox nobody can see would otherwise hang the ssh session
+  $p = Start-Process -FilePath $exe -ArgumentList '-controlservice', $verb -PassThru -WindowStyle Hidden
+  $null = $p.Handle
+  if (-not $p.WaitForExit(15000)) { $p.Kill(); return 'timeout (killed)' }
+  return $p.ExitCode
+}
+'service: reload exit ' + (Invoke-Tvn '-reload')
 Start-Sleep -Seconds 3
-& $exe -controlservice -disconnectall
-'service: disconnect-all exit ' + $LASTEXITCODE + ', tvnserver ' + (Get-Service -Name tvnserver).Status
+'service: disconnect-all exit ' + (Invoke-Tvn '-disconnectall') + ', tvnserver ' + (Get-Service -Name tvnserver -ErrorAction SilentlyContinue).Status
+function Test-VncPort($ports) {
+  foreach ($x in @($ports)) {
+    if ($x -eq '5900' -or $x -eq '5800') { return $true }
+    if ($x -match '^(\d+)-(\d+)$') { foreach ($v in 5800, 5900) { if ([int]$matches[1] -le $v -and [int]$matches[2] -ge $v) { return $true } } }
+  }
+  return $false
+}
 $tailnet = @('100.64.0.0/10', 'fd7a:115c:a1e0::/48')
 try {
   $found = @(Get-NetFirewallRule -DisplayName 'TightVNC' -ErrorAction SilentlyContinue)
   $found += @(Get-NetFirewallApplicationFilter | Where-Object { $_.Program -like '*\tvnserver.exe' } | Get-NetFirewallRule)
-  $found += @(Get-NetFirewallPortFilter | Where-Object { @($_.LocalPort) -contains '5900' -or @($_.LocalPort) -contains '5800' } | Get-NetFirewallRule)
+  $found += @(Get-NetFirewallPortFilter | Where-Object { Test-VncPort $_.LocalPort } | Get-NetFirewallRule)
   $rules = @($found | Where-Object { $_.Direction -eq 'Inbound' -and $_.Action -eq 'Allow' -and $_.Enabled -eq 'True' } | Sort-Object -Property Name -Unique)
   if ($rules.Count -eq 0) { 'firewall: no enabled inbound Allow rule for tvnserver.exe or port 5900/5800 (nothing narrowed)' }
   foreach ($r in $rules) {
@@ -102,15 +115,20 @@ def read_password(stream, say=print) -> str:
     """Exactly 8 printable ASCII characters. On a terminal (the Run card's), echo goes off first and only
     then "ready" is said; anything already waiting by then was echoed into the card's output, so it is refused."""
     fd = old = None
+    waiting = 0
     if stream.isatty():
         fd = stream.fileno()
         old = termios.tcgetattr(fd)
+        raw = termios.tcgetattr(fd)
+        raw[3] &= ~(termios.ECHO | termios.ICANON)       # with ICANON on, FIONREAD misses a line not yet ended
+        termios.tcsetattr(fd, termios.TCSANOW, raw)
+        waiting = _pending(fd)
         quiet = termios.tcgetattr(fd)
-        quiet[3] &= ~termios.ECHO
+        quiet[3] = (quiet[3] | termios.ICANON) & ~termios.ECHO
         termios.tcsetattr(fd, termios.TCSANOW, quiet)
     try:
         if fd is not None:
-            if _pending(fd):
+            if waiting:
                 raise SystemExit("refused: something was typed before 'ready' and the card may have shown it;"
                                  " nothing changed. Run the card again with a different password")
             say("ready: type the new 8-character password now (it is not shown)", flush=True)
@@ -133,9 +151,20 @@ def redact(text: str, pw: str) -> str:
     return text.replace(pw, "<redacted>") if pw else text
 
 
+def _text(out) -> str:
+    return out.decode("utf-8", "replace") if isinstance(out, bytes) else (out or "")
+
+
 def apply_on_box(pw: str, run=subprocess.run) -> int:
-    proc = run([*SSH, HOST_ALIAS, ps_command()], input=pw + "\r\n", capture_output=True,
-               text=True, errors="replace", timeout=300)
+    try:
+        proc = run([*SSH, HOST_ALIAS, ps_command()], input=pw + "\r\n", capture_output=True,
+                   text=True, errors="replace", timeout=300)
+    except subprocess.TimeoutExpired as exc:
+        for line in _text(exc.stdout).splitlines():
+            if line.strip():
+                print(redact(line.strip(), pw))
+        print("winbox step timed out after 300 s; the VNC auth check below says whether the new password is live")
+        return BOX_TIMED_OUT
     for line in (proc.stdout or "").splitlines():
         line = line.strip()
         if line:
@@ -202,7 +231,7 @@ def main(argv=None) -> int:
     pw = read_password(sys.stdin)
     ip = box_ip()
     rc = apply_on_box(pw)
-    if rc not in (0, FIREWALL_FAILED):
+    if rc not in (0, FIREWALL_FAILED, BOX_TIMED_OUT):
         print(f"winbox step exited {rc}; VNC auth check skipped")
         return rc
     try:

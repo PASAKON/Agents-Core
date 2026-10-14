@@ -206,7 +206,7 @@ def test_typing_before_ready_is_refused_because_it_was_echoed():
     os.close(master), os.close(slave)
 
 
-@pytest.mark.parametrize("host,ok", [("100.124.196.11", True), ("192.168.1.20", False), ("winbox", False), ("", False)])
+@pytest.mark.parametrize("host,ok", [("100.64.0.9", True), ("100.127.255.254", True), ("192.168.1.20", False), ("winbox", False), ("", False)])
 def test_the_box_address_must_be_on_the_tailnet(monkeypatch, host, ok):
     class P:
         stdout = f"user x\nhostname {host}\nport 22\n"
@@ -238,3 +238,37 @@ def test_the_box_script_refuses_the_old_password_reloads_then_disconnects_then_n
     uses = [l for l in ps.splitlines() if "$pw" in l]
     assert all(("-cnotmatch" in l or "-ceq $pw" in l or "-cne $pw" in l or "GetBytes($pw)" in l
                 or l.startswith("$pw = ")) for l in uses)
+
+
+def test_a_line_typed_before_ready_without_enter_is_still_refused():
+    # R2-M1: with ICANON on, FIONREAD counts only finished lines; the half line had already been echoed.
+    master, slave = pty.openpty()
+    os.write(master, PW.encode())                          # no newline yet
+    time.sleep(0.2)
+    stream = os.fdopen(slave, "r", closefd=False)
+    with pytest.raises(SystemExit) as exc:
+        vr.read_password(stream, say=lambda *a, **k: pytest.fail("said ready with a half line waiting"))
+    assert "before 'ready'" in str(exc.value)
+    attrs = termios.tcgetattr(slave)[3]
+    assert attrs & termios.ECHO and attrs & termios.ICANON   # the terminal is put back as it was
+    os.close(master), os.close(slave)
+
+
+def test_a_hung_box_step_prints_what_it_has_and_still_runs_the_auth_check(monkeypatch, capsys):
+    def hang(args, **kw):
+        raise subprocess.TimeoutExpired(args, 300, output=b"registry: Password replaced, readback matches\n")
+
+    assert vr.apply_on_box(PW, run=hang) == vr.BOX_TIMED_OUT
+    out = capsys.readouterr().out
+    assert "readback matches" in out and "timed out" in out
+    monkeypatch.setattr(vr.sys, "stdin", io.StringIO(PW + "\n"))
+    monkeypatch.setattr(vr, "box_ip", lambda: "100.64.0.9")
+    monkeypatch.setattr(vr, "apply_on_box", lambda pw: vr.BOX_TIMED_OUT)
+    monkeypatch.setattr(vr, "vnc_auth", lambda ip, pw: True)
+    assert vr.main([]) == vr.BOX_TIMED_OUT
+    assert "vnc auth OK" in capsys.readouterr().out
+
+
+def test_tvnserver_calls_are_bounded_and_port_ranges_count():
+    assert "WaitForExit(15000)" in vr.PS_SCRIPT and "& $exe" not in vr.PS_SCRIPT
+    assert "Test-VncPort $_.LocalPort" in vr.PS_SCRIPT
