@@ -36,9 +36,10 @@ script>.js or python3 -m tools.|scripts.|runners.<module>; no ; & | redirects $ 
 and carries the cap as --max-usd N / --max-credits N; a script ask
 carries it in its args. balance_after defaults to the spend guard's openrouter/fal balance minus
 the cap (with the snapshot time, balance_at). A command that only looks like spend: --no-spend "<reason>".
-Under the hub's enforce mode a label runs only on a --script card with no --cwd (a command card
-cannot tie the program to our repo); under warn (the default) a labelled command card is posted
-with the reason it was not checked.
+Under the hub's enforce mode a label runs only on a --script card with no --cwd, for a .py listed in
+config/spend-tools.txt, pinned to origin/main's tip (a command card or a wrapper cannot tie the cap
+to our reviewed tool); under warn (the default) any other labelled card is posted with the reason
+it was not checked.
 
 `create --dry-run` and `ask --dry-run` print the JSON body and call nothing (no
 token needed). `<id>` is RUN-YYYYMMDD-HHMM-xxxx (a command card),
