@@ -120,8 +120,11 @@ if [ -f "$TTY_FILE" ]; then
 fi
 
 # 2) AppleScript fallback by window id + title-substring match (only if the
-#    direct tty write didn't land).
-if [ "$_TITLE_SET" != "1" ]; then
+#    direct tty write didn't land). Not on a host with terminal_window=false
+#    (config/hosts.yaml, CEO 2026-10-15): there is no iTerm window to retitle,
+#    and osascript would only launch iTerm. Anything but a clear 0 keeps it.
+_TW_PY="$ROOT/.venv/bin/python"; [ -x "$_TW_PY" ] || _TW_PY=python3
+if [ "$_TITLE_SET" != "1" ] && [ "$("$_TW_PY" "$ROOT/scripts/lib/coo_host.py" terminal-window 2>/dev/null || echo 1)" != "0" ]; then
 osascript - "$TITLE" "$BASE" "#$SID" "${WINID:-0}" <<'APPLEEOF' >/dev/null 2>&1 || true
 on run argv
   set newTitle to item 1 of argv

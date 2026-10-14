@@ -492,7 +492,16 @@ MY_TTY="$(tty 2>/dev/null || true)"
 # `client_tty` is the attached client, i.e. the iTerm tab; spawn-cxo.sh
 # attaches from iTerm as the session is created, so poll briefly rather than
 # giving up on the first read.
-if [ -n "${TMUX:-}" ]; then
+# terminal_window=false (config/hosts.yaml, CEO 2026-10-15): spawn-cxo.sh started this
+# session detached, so no client will attach and there is no iTerm window to
+# find. Skip the client_tty wait and the iTerm lookup (osascript would launch
+# iTerm on the Mac just to be told "no such tty") and keep the pane's own tty,
+# the way Contabo already runs. Anything but a clear 0 keeps the old path.
+_TW_PY="$ROOT/.venv/bin/python"; [ -x "$_TW_PY" ] || _TW_PY=python3
+TERMINAL_WINDOW="$("$_TW_PY" "$ROOT/scripts/lib/coo_host.py" terminal-window 2>/dev/null || echo 1)"
+[ "$TERMINAL_WINDOW" = "0" ] || TERMINAL_WINDOW=1
+
+if [ "$TERMINAL_WINDOW" = "1" ] && [ -n "${TMUX:-}" ]; then
   for _ in 1 2 3 4 5 6 7 8 9 10; do
     CLIENT_TTY="$(tmux display-message -p '#{client_tty}' 2>/dev/null | tr -d '[:space:]')"
     if [ -n "$CLIENT_TTY" ]; then
@@ -503,7 +512,7 @@ if [ -n "${TMUX:-}" ]; then
   done
 fi
 
-if [ -n "$MY_TTY" ]; then
+if [ "$TERMINAL_WINDOW" = "1" ] && [ -n "$MY_TTY" ]; then
   WINID="$(osascript 2>/dev/null <<APPLE || true
 tell application "iTerm"
   repeat with w in windows

@@ -1,0 +1,10 @@
+[Unit]
+Description=Run escalation-watch.service every 5 minutes (M11)
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

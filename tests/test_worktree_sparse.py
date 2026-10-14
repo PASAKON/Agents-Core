@@ -29,6 +29,7 @@ updated to match the current scope-map terminology.
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -270,3 +271,324 @@ def test_default_is_full_checkout_when_sparse_not_requested(wired):
     wt = Path(info["worktree"])
     assert (wt / "docs" / "reports" / "big_video.mp4").exists()
     assert (wt / THAI_FILE).exists()
+
+
+# ---------------------------------------------------------------------------
+# One sparse step for every spawn path (task-49b623ed): restore_worktree and
+# the shell launcher use the same apply_sparse as create_worktree.
+# 300 KB mp4 = just over the 256 KiB min_bytes, the size the brief names.
+# ---------------------------------------------------------------------------
+
+CLIP = "docs/clip.mp4"
+SKILL_TEMPLATE = ".claude/skills/x/template.mp4"
+CLIP_BYTES = b"\0" * 300_000
+
+
+@pytest.fixture()
+def wired300k(tmp_path, monkeypatch):
+    origin = tmp_path / "origin300"
+    origin.mkdir()
+    _git(["init", "-b", "main"], origin)
+    _git(["config", "user.email", "t@example.com"], origin)
+    _git(["config", "user.name", "Test"], origin)
+    _write(origin, "src/a.py", b"print('hi')\n")
+    _write(origin, CLIP, CLIP_BYTES)
+    _write(origin, "docs/small.mp4", b"\0" * 1024)
+    _write(origin, SKILL_TEMPLATE, CLIP_BYTES)
+    _git(["add", "-A"], origin)
+    _git(["commit", "-m", "init"], origin)
+    repo = tmp_path / "repo300"
+    _git(["clone", str(origin), str(repo)], tmp_path)
+    # a task branch that already exists, as restore_worktree finds it
+    _git(["branch", "agent/developer-t10", "origin/main"], repo)
+    _git(["branch", "agent/video_editor-t11", "origin/main"], repo)
+
+    policy = tmp_path / "storage-policy300.yaml"
+    policy.write_text(
+        "media_guard:\n  extensions: [mp4]\n"
+        "sparse_worktree:\n  min_bytes: 262144\n  full_checkout_roles: [\"video_editor\"]\n"
+        "  keep_paths: [\".claude/skills/*\"]\n")
+    monkeypatch.setattr(worktree_mod, "STORAGE_POLICY", policy)
+    monkeypatch.setattr(worktree_mod, "WORKTREE_DIR", tmp_path / "worktrees300")
+    monkeypatch.setattr(worktree_mod, "get_project",
+                        lambda key: {"path": str(repo), "default_branch": "main"})
+    monkeypatch.setattr(worktree_mod, "project_path_for_host", lambda key, host: str(repo))
+    return {"repo": repo}
+
+
+def test_restore_worktree_sparse_excludes_300kb_mp4(wired300k):
+    info = worktree_mod.restore_worktree("p", "developer", "t10", sparse=True)
+    wt = Path(info["worktree"])
+
+    assert not (wt / CLIP).exists(), "a 300 KB tracked mp4 must be absent from a restored sparse worktree"
+    assert (wt / "docs/small.mp4").exists()
+    assert (wt / "src/a.py").exists()
+    assert (wt / SKILL_TEMPLATE).exists(), "keep_paths (.claude/skills/*) stay on disk"
+    assert _git(["status", "--porcelain"], wt) == "", "an excluded file must not show up as deleted"
+
+    # exact-path negations: a new file beside the excluded one still adds cleanly
+    (wt / "docs" / "NEW.md").write_text("new\n")
+    assert subprocess.run(["git", "add", "-A"], cwd=str(wt), capture_output=True).returncode == 0
+    assert worktree_mod.commit_worktree(str(wt), "test: new file")["committed"] is True
+
+
+def test_restore_worktree_default_stays_full(wired300k):
+    wt = Path(worktree_mod.restore_worktree("p", "developer", "t10")["worktree"])
+    assert (wt / CLIP).exists()
+
+
+def test_restore_worktree_sparse_video_editor_stays_full(wired300k):
+    wt = Path(worktree_mod.restore_worktree("p", "video_editor", "t11", sparse=True)["worktree"])
+    assert (wt / CLIP).exists()
+    assert (wt / SKILL_TEMPLATE).exists()
+
+
+def test_apply_sparse_is_a_noop_when_nothing_is_excluded(wired300k):
+    """Full-checkout role: returns [] and writes no sparse config at all."""
+    repo = wired300k["repo"]
+    wt = repo.parent / "wt-noop"
+    _git(["worktree", "add", "--no-checkout", "-b", "noop", str(wt), "origin/main"], repo)
+
+    assert worktree_mod.apply_sparse(repo, wt, "origin/main", "video_editor") == []
+
+    cfg = subprocess.run(["git", "config", "--get", "extensions.worktreeConfig"],
+                         cwd=str(repo), capture_output=True, text=True)
+    assert cfg.returncode != 0, "a no-op must not touch the repo config"
+    _git(["checkout", "noop"], wt)
+    assert (wt / CLIP).exists()
+
+
+def test_failing_sparse_step_falls_back_to_full_checkout(wired300k, monkeypatch, capsys):
+    """The sparse step dies after `sparse-checkout init` (which leaves the
+    root-files-only default list). The spawn must still succeed with the whole
+    tree on disk -- src/a.py is below the root, so it proves sparse was undone."""
+    real_run = worktree_mod._run
+
+    def flaky(cmd, cwd=None):
+        if cmd[1:3] == ["sparse-checkout", "set"]:
+            raise worktree_mod.GitError("simulated sparse-checkout set failure")
+        return real_run(cmd, cwd=cwd)
+
+    monkeypatch.setattr(worktree_mod, "_run", flaky)
+    wt = Path(worktree_mod.create_worktree("p", "developer", "t12", sparse=True)["worktree"])
+
+    assert (wt / CLIP).exists() and (wt / "src/a.py").exists()
+    assert "sparse step failed" in capsys.readouterr().err
+    assert _git(["status", "--porcelain"], wt) == ""
+
+
+def test_failing_exclusion_scan_falls_back_in_restore(wired300k, monkeypatch, capsys):
+    def boom(*a, **k):
+        raise worktree_mod.GitError("simulated ls-tree failure")
+
+    monkeypatch.setattr(worktree_mod, "_large_tracked_media", boom)
+    wt = Path(worktree_mod.restore_worktree("p", "developer", "t10", sparse=True)["worktree"])
+
+    assert (wt / CLIP).exists()
+    assert "sparse step failed" in capsys.readouterr().err
+
+
+def test_apply_sparse_cli_prints_marker_and_fails_cleanly(wired300k, capsys):
+    repo = wired300k["repo"]
+    wt = repo.parent / "wt-cli"
+    _git(["worktree", "add", "--no-checkout", "-b", "cli", str(wt), "origin/main"], repo)
+    args = ["apply-sparse", "--repo", str(repo), "--wt", str(wt),
+            "--start-point", "origin/main", "--role", "developer"]
+
+    assert worktree_mod._main(args) == 0
+    assert "SPARSE_APPLIED excluded=1" in capsys.readouterr().out
+    _git(["checkout", "cli"], wt)
+    assert not (wt / CLIP).exists() and (wt / "src/a.py").exists()
+
+    bad = args[:]
+    bad[bad.index("--start-point") + 1] = "no-such-ref"
+    assert worktree_mod._main(bad) == 1
+    assert "apply-sparse failed" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# scripts/spawn-worker-remote.sh -- the router path (Codex / AGY / Claude
+# remote spawn) used to run a bare `git worktree add` (~985 MB per Agents-Core
+# worktree). It now adds with --no-checkout, runs `python -m tools.worktree
+# apply-sparse`, then checks out; a failing helper falls back to a full
+# checkout with a stderr warning, never a failed spawn. These tests run the
+# real script (not --dry-run) in a fake agents root: scratch repos under
+# tmp_path only, tmux and claude replaced by stubs on PATH.
+# ---------------------------------------------------------------------------
+
+REMOTE_SCRIPT = ROOT / "scripts" / "spawn-worker-remote.sh"
+SH = "/bin/bash"
+
+
+def _sgit(cwd: Path, *args: str) -> str:
+    r = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True)
+    assert r.returncode == 0, f"git {args} failed:\n{r.stdout}\n{r.stderr}"
+    return r.stdout.strip()
+
+
+def _swrite(base: Path, rel: str, data: bytes | str) -> None:
+    p = base / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_bytes(data if isinstance(data, bytes) else data.encode())
+
+
+@pytest.fixture()
+def box(tmp_path):
+    """A spoke in miniature: a fake agents root holding the script + the
+    helper it calls, a project clone with origin/main, stub tmux and claude."""
+    root = tmp_path / "agents_root"
+    (root / "scripts").mkdir(parents=True)
+    (root / "scripts" / "spawn-worker-remote.sh").write_text(REMOTE_SCRIPT.read_text())
+    (root / "roles").mkdir()
+    for doc in ("_worker_remote.md", "_worker_shared.md", "developer.md", "video_editor.md"):
+        (root / "roles" / doc).write_text(f"# {doc}\n")
+    # the helper, as a real file so its ROOT (and so config/storage-policy.yaml)
+    # is the fake root; lib/ is the repo's own (lib.config needs lib.session_names)
+    (root / "tools").mkdir()
+    (root / "tools" / "__init__.py").write_text("")
+    (root / "tools" / "worktree.py").write_text((ROOT / "tools" / "worktree.py").read_text())
+    (root / "lib").symlink_to(ROOT / "lib")
+    (root / "config").mkdir()
+    (root / "config" / "storage-policy.yaml").write_text(
+        "media_guard:\n  extensions: [mp4]\n"
+        "sparse_worktree:\n  min_bytes: 262144\n  full_checkout_roles: [\"video_editor\"]\n"
+        "  keep_paths: [\".claude/skills/*\"]\n")
+    # python the script finds first: the venv slot of the fake root
+    (root / ".venv" / "bin").mkdir(parents=True)
+    (root / ".venv" / "bin" / "python").symlink_to(sys.executable)
+
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    _sgit(origin, "init", "-q", "-b", "main")
+    _sgit(origin, "config", "user.email", "t@example.com")
+    _sgit(origin, "config", "user.name", "Test")
+    _swrite(origin, "src/a.py", "print('hi')\n")
+    _swrite(origin, CLIP, CLIP_BYTES)
+    _swrite(origin, "docs/small.mp4", b"\0" * 1024)
+    _swrite(origin, SKILL_TEMPLATE, CLIP_BYTES)
+    _sgit(origin, "add", "-A")
+    _sgit(origin, "commit", "-qm", "init")
+    repo = tmp_path / "repo"
+    _sgit(tmp_path, "clone", "-q", str(origin), str(repo))
+
+    stubs = tmp_path / "bin"
+    stubs.mkdir()
+    (stubs / "tmux").write_text(
+        "#!/bin/sh\n"
+        'case "$1" in\n'
+        "  list-panes) echo 4242 ;;\n"
+        "esac\n"
+        "exit 0\n")
+    (stubs / "claude").write_text("#!/bin/sh\nexit 0\n")
+    for stub in (stubs / "tmux", stubs / "claude"):
+        stub.chmod(0o755)
+
+    env = dict(os.environ)
+    env.update(PATH=f"{stubs}:{env['PATH']}", HOME=str(tmp_path / "home"))
+    return {"root": root, "repo": repo, "wts": tmp_path / "wts", "env": env}
+
+
+def _spawn(box, *, task="task-sp01", role="developer", extra=()):
+    branch = f"agent/{role}-{task}"
+    args = [
+        SH, str(box["root"] / "scripts" / "spawn-worker-remote.sh"),
+        "--task", task, "--project", "scratch", "--role", role, "--branch", branch,
+        "--base", "main", "--repo-url", "unused", "--repo-path", str(box["repo"]),
+        "--worktree-root", str(box["wts"]), "--claude-args", "--model m",
+        "--model", "m", "--effort", "high", "--session-name", "s", *extra,
+    ]
+    r = subprocess.run(args, input="task text\n", capture_output=True, text=True,
+                       env=box["env"], timeout=120)
+    return r, box["wts"] / f"scratch__{role}__{task}"
+
+
+def _assert_spawned(r):
+    assert r.returncode == 0, f"stdout:\n{r.stdout}\nstderr:\n{r.stderr}"
+    assert r.stdout.strip().splitlines()[-1].startswith("SPAWNED pid=4242"), r.stdout
+
+
+def test_spawn_is_sparse_for_a_developer(box):
+    r, wt = _spawn(box)
+    _assert_spawned(r)
+
+    assert "SPARSE_APPLIED excluded=1" in r.stdout
+    assert not (wt / CLIP).exists(), "a 300 KB tracked mp4 must stay off disk"
+    assert (wt / "docs/small.mp4").exists()
+    assert (wt / "src/a.py").exists()
+    assert (wt / SKILL_TEMPLATE).exists(), "keep_paths (.claude/skills/*) stay"
+    assert _sgit(wt, "status", "--porcelain") == "", "excluded file must not read as deleted"
+
+    # exact-path negations: a new file beside the excluded one still adds
+    (wt / "docs" / "NEW.md").write_text("new\n")
+    _sgit(wt, "add", "-A")
+    assert "NEW.md" in _sgit(wt, "status", "--porcelain")
+    # the repo's own checkout is untouched
+    assert (box["repo"] / CLIP).exists()
+
+
+def test_spawn_video_editor_stays_full(box):
+    r, wt = _spawn(box, role="video_editor", task="task-sp02")
+    _assert_spawned(r)
+    assert "SPARSE_APPLIED excluded=0" in r.stdout
+    assert (wt / CLIP).exists() and (wt / SKILL_TEMPLATE).exists()
+
+
+def test_spawn_no_sparse_flag_keeps_full_checkout(box):
+    r, wt = _spawn(box, task="task-sp03", extra=("--no-sparse",))
+    _assert_spawned(r)
+    assert "SPARSE_APPLIED" not in r.stdout
+    assert (wt / CLIP).exists()
+
+
+def test_spawn_falls_back_to_full_checkout_when_helper_is_missing(box):
+    (box["root"] / "tools" / "worktree.py").unlink()
+    r, wt = _spawn(box, task="task-sp04")
+    _assert_spawned(r)
+    assert "WARNING sparse step failed" in r.stderr
+    assert (wt / CLIP).exists() and (wt / "src/a.py").exists()
+
+
+def test_spawn_falls_back_when_helper_dies_after_sparse_init(box):
+    """A helper killed part-way leaves `sparse-checkout init`'s root-files-only
+    list behind; the launcher must switch sparse off before it checks out."""
+    (box["root"] / "tools" / "worktree.py").write_text(
+        "import subprocess, sys\n"
+        "wt = sys.argv[sys.argv.index('--wt') + 1]\n"
+        "subprocess.run(['git', 'config', 'extensions.worktreeConfig', 'true'], cwd=wt)\n"
+        "subprocess.run(['git', 'sparse-checkout', 'init', '--no-cone'], cwd=wt)\n"
+        "sys.exit(1)\n")
+    r, wt = _spawn(box, task="task-sp05")
+    _assert_spawned(r)
+    assert "WARNING sparse step failed" in r.stderr
+    assert (wt / CLIP).exists()
+    assert (wt / "src/a.py").exists(), "sparse list must be undone, not left at root-files-only"
+    assert _sgit(wt, "status", "--porcelain").count("D ") == 0
+
+
+def test_spawn_reuses_a_prior_worktree_and_is_sparse_again(box):
+    r, wt = _spawn(box, task="task-sp07")
+    _assert_spawned(r)
+    r2, wt2 = _spawn(box, task="task-sp07")
+    _assert_spawned(r2)
+    assert wt2 == wt and not (wt / CLIP).exists() and (wt / "src/a.py").exists()
+
+
+def _dry_run(box, *extra):
+    r = subprocess.run(
+        [SH, str(REMOTE_SCRIPT), "--dry-run", "--task", "task-d1", "--project", "scratch",
+         "--role", "developer", "--branch", "agent/developer-task-d1", "--base", "main",
+         "--repo-url", "u", "--repo-path", "/r", "--worktree-root", "/w",
+         "--claude-args", "--model m", "--model", "m", "--effort", "high",
+         "--session-name", "s", *extra],
+        capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    return r.stdout
+
+
+def test_dry_run_shows_the_sparse_step(box):
+    out = _dry_run(box)
+    assert "sparse_step=on" in out
+    assert "worktree add --no-checkout" in out
+    assert "python -m tools.worktree apply-sparse" in out
+    assert "--role developer" in out
+    assert "sparse_step=off" in _dry_run(box, "--no-sparse")

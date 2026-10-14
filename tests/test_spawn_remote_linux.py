@@ -106,6 +106,20 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
     assert "spawn-worker.ps1" not in log
 
 
+def test_contabo_launcher_is_sparse_unless_the_scope_excludes_the_owner(temp_db, monkeypatch):
+    """ADR 0030: the launcher is sparse by default; a task outside the
+    `sparse_worktree` scope gets --no-sparse and so a full checkout."""
+    monkeypatch.setattr(delegate, "_scope_applies", lambda feature, owner: True)
+    log = asyncio.run(delegate.delegate_task(_new_task(temp_db), host="contabo",
+                                             dry_run=True))["delegate_log"]
+    assert "--no-sparse" not in log
+
+    monkeypatch.setattr(delegate, "_scope_applies", lambda feature, owner: False)
+    log = asyncio.run(delegate.delegate_task(_new_task(temp_db), host="contabo",
+                                             dry_run=True))["delegate_log"]
+    assert "--no-sparse" in log
+
+
 def test_contabo_dry_run_renders_task_meta_b64_with_declared_touches(temp_db):
     """GH #180 (task-378523bb): the hub hands the spoke its own declared
     touches at spawn time — assert the flag is present and its decoded JSON

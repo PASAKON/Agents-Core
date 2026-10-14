@@ -158,9 +158,9 @@ the same verdict as the teaser the day before.
 The measurement that explained it:
 
 ```
-บทที่เขียน   ~7 พยางค์ ต่อช็อต 8 วินาที   =  พูด ~2 วิ  เงียบ ~6 วิ
-คนไทยคุยปกติ  ~4-5 พยางค์/วินาที          =  ช็อต 8 วิ พูดเต็มได้ ~32-40 พยางค์
-→ พูดแค่ 21% ของเวลา  ·  26 จาก 38 ช็อต มีบทไม่เกิน 8 พยางค์
+Written script   ~7 syllables per 8-second shot   =  speaking ~2 s  silent ~6 s
+Normal Thai conversation  ~4-5 syllables/second   =  8-second shot can speak ~32-40 syllables
+→ Speaking only 21% of the time  ·  26 of 38 shots had no more than 8 syllables
 ```
 
 **One short line per shot is dead air with a word in it.** The rule the CEO gave —

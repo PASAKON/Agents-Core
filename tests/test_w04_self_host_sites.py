@@ -153,7 +153,9 @@ def test_stall_closes_the_iterm_tab_only_on_darwin(darwin, host_is, monkeypatch)
 
 
 @pytest.mark.parametrize("darwin", [True, False], ids=["darwin", "linux"])
-def test_finished_dev_reap_pass_runs_only_on_darwin(darwin, host_is, monkeypatch):
+def test_finished_dev_reap_pass_runs_on_every_platform(darwin, host_is, monkeypatch):
+    """Was darwin-only until 2026-10-14 (Contabo reaped nothing). Off a Mac the close also
+    needs an idle pane; tests/test_watchdog_linux_reap.py covers that proof."""
     host_is("contabo")
     row = {"id": "task-fin00001", "host": None, "status": "review",
            "updated_at": _iso(120), "pid": 77}
@@ -161,13 +163,14 @@ def test_finished_dev_reap_pass_runs_only_on_darwin(darwin, host_is, monkeypatch
     closes = []
     monkeypatch.setattr(watchdog, "_mac_surfaces", lambda: darwin)
     monkeypatch.setattr(watchdog, "_pid_alive", lambda pid: True)
+    monkeypatch.setattr(watchdog, "_capture_pane", lambda session: "out\n❯ \n")  # idle prompt
     monkeypatch.setattr(watchdog, "close_dev",
                         lambda tid, reason: closes.append(tid) or {})
 
     out = watchdog.scan_once()
 
-    assert closes == (["task-fin00001"] if darwin else [])
-    assert len(out["reaped"]) == (1 if darwin else 0)
+    assert closes == ["task-fin00001"]
+    assert len(out["reaped"]) == 1
 
 
 def test_mac_surfaces_follows_sys_platform(monkeypatch):
@@ -179,7 +182,7 @@ def test_mac_surfaces_follows_sys_platform(monkeypatch):
 
 @pytest.mark.parametrize("darwin", [True, False], ids=["darwin", "linux"])
 @pytest.mark.parametrize("this,local,remote", CASES)
-def test_terminal_sweep_local_half_is_darwin_only_remote_half_is_not(
+def test_terminal_sweep_local_half_runs_on_every_platform_remote_half_is_host_scoped(
         this, local, remote, darwin, host_is, monkeypatch):
     host_is(this)
     status = watchdog.TERMINAL_SURFACE_STATUSES[0]
@@ -205,7 +208,7 @@ def test_terminal_sweep_local_half_is_darwin_only_remote_half_is_not(
 
     assert sorted(remote_seen) == sorted(remote)
     local_ids = [r["id"] for r in rows if r["host"] in local]
-    assert sorted(local_closed) == (sorted(local_ids) if darwin else [])
+    assert sorted(local_closed) == sorted(local_ids)
 
 
 # ---------------------------------------------------------------------------
