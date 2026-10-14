@@ -46,3 +46,7 @@ PH leads: hands-on only for short browser jobs (≤10 min: read-backs, the FB wr
 ## Decided for CEO
 - 14 Oct: EP7 voices = prompt-line voices as in EP1–6 (no Flow character generator); Riao = warm slow sleepy mid-low male. Because: same method as the 6 aired episodes, $0, no face re-render. CEO ear-checks on the 360p test.
 - 14 Oct: EP7 360p test = shots 2 + 4, not 1 + 4. Because: it covers mother__night (in 5 of 12 shots) as well as cat__riao, at the same 12 cr.
+
+## 14 Oct 15:1x TH — group-1 replies + Page restriction
+- Group-1 post (6 h old): **0 comments**. Nothing to log, no reply drafts. Group asks paused (decided for CEO: the Professional Dashboard says the Page is limited «เพื่อเป็นมาตรการความปลอดภัย เนื่องจากกิจกรรมของคุณอาจไม่เป็นไปตามกฎของเรา» — activity-based, and group joins/asks as the Page are the likeliest trigger).
+- Restriction read (all read-only): violations none · account status none · Recommendations ถูกระงับ, no review button («ดูรายละเอียด» loops back) · 28 d: 460 views, 23 engagements, 3 follows. Options put to the CEO in chat 14 Oct: Meta Business Support ticket (needs his typed «go ยื่น Meta») or wait.
