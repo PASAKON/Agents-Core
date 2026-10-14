@@ -167,7 +167,13 @@ print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['P
                       os.environ['PH_HOST']))" 2>/dev/null)" \
     && [ -n "$PH_BASE" ]; then
   # "PH#<id3> (<LANE>) - <Project> — <topic>" (CEO 2026-10-14, lib/config.ph_session_name)
-  BASE_NAME="$PH_BASE — $TOPIC"
+  # No topic, or the topic is the project itself: the name already says it
+  # (CMO 2026-10-14: "PH#36c (CMO) - MimiPage — MimiPage").
+  if [ -z "$TOPIC" ] || [ "$TOPIC" = "${ORG_PH_PROJECT:-}" ]; then
+    BASE_NAME="$PH_BASE"
+  else
+    BASE_NAME="$PH_BASE — $TOPIC"
+  fi
 else
   BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
 fi

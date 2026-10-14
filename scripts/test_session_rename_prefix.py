@@ -172,3 +172,18 @@ def test_the_host_emoji_comes_from_self_host_and_none_when_unresolved(tmp_path: 
     assert r.returncode == 0, r.stderr
     sent = r.stdout.split("queued: /rename ", 1)[1].split(" (executes", 1)[0]
     assert sent.startswith("⏸ " + lead + " ") and sent.endswith(" — park it")
+
+
+@pytest.mark.parametrize("topic,expect", [
+    ("MimiPage", "\U0001F310 PH#36c (CMO) - MimiPage"),                 # CMO's doubling bug
+    ("EP6 clip", "\U0001F310 PH#36c (CMO) - MimiPage — EP6 clip"),
+])
+def test_a_ph_name_does_not_repeat_its_project_as_the_topic(tmp_path: Path, topic, expect) -> None:
+    fake_root, script = _stage_with_lib(tmp_path)
+    bin_dir, log = _tmux_stub(tmp_path)
+    env = _env(bin_dir, sid="36c49776", role="project_head")
+    env.update(ORG_HOST="contabo", ORG_PH_LANE="cmo", ORG_PH_PROJECT="MimiPage")
+    r = _run(script, [topic], env)
+    assert r.returncode == 0, r.stderr
+    sent = r.stdout.split("queued: /rename ", 1)[1].split(" (executes", 1)[0]
+    assert sent == expect
