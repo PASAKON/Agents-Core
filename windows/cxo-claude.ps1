@@ -11,6 +11,8 @@
 #
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File windows\cxo-claude.ps1 -Role cto
+#   powershell -ExecutionPolicy Bypass -File windows\cxo-claude.ps1 -Role project_head `
+#       -Lane cto -Project <Name> -Session <8 hex>    # only as tools\spawn_ph.py starts it
 #   powershell -ExecutionPolicy Bypass -File windows\cxo-claude.ps1 -Role cmo `
 #       -Session req-1234abcd -InitialPrompt "..." -TabTitle "CMO ephemeral"
 #
@@ -59,13 +61,25 @@
 #     (tools.register_cxo / tools.session_reconcile), so gate 4 could never
 #     see a Windows CTO session even in hub mode. Added, hub-mode only.
 #
+# Project Head (org restructure M13c, CEO 2026-10-14): `-Role project_head` is
+# started by tools\spawn_ph.py in a Windows Terminal tab, never by hand. A wt tab
+# takes the Terminal's environment, not the spawner's, so nothing rides in the
+# environment: -Session names the owner record spawn_ph wrote
+# (state\locks\project_head-<id>.spawned_by), which gives the owner, and the first
+# prompt is rebuilt from it (tools.spawn_ph.first_prompt). Refused unless the host
+# flag ORG_PH_ROLES is on (%ProgramData%\org-flags\ORG_PH_ROLES, lib/org_flags.py),
+# the lane, project and owner record check out, and roles\project_head.md exists.
+# Same rules as scripts/cxo-claude.sh's project_head branch.
+#
 # Deployed to the Agents clone under this Windows user's own profile --
 # never a hardcoded profile name; see $root below, which resolves from this
 # script's own location instead.
 
 param(
-    [Parameter(Mandatory = $true)][ValidateSet('cto', 'cmo', 'cgo', 'cfo')][string]$Role,
+    [Parameter(Mandatory = $true)][ValidateSet('cto', 'cmo', 'cgo', 'cfo', 'project_head')][string]$Role,
     [string]$Session = '',
+    [string]$Lane = '',
+    [string]$Project = '',
     [string]$InitialPrompt = '',
     [string]$TabTitle = '',
     # Any claude.exe flags not recognized above (e.g. -r/--resume) ride
@@ -74,6 +88,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# A Project Head starts no session (same refusal as scripts/cxo-claude.sh).
+if ($env:CXO_ROLE -eq 'project_head') {
+    [Console]::Error.WriteLine('refuse: a Project Head starts no session')
+    exit 2
+}
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $venvScripts = Join-Path $root '.venv\Scripts'
@@ -120,6 +140,61 @@ for ($i = 0; $i -lt $RemainingArgs.Count; $i++) {
     $RemainingArgs[$i] = $resumeTarget
 }
 
+# Project Head checks, before anything is written (see the header note).
+$isPh = $Role -eq 'project_head'
+$phOwner = ''
+$phPrompt = ''
+if ($isPh) {
+    $flagRoot = $env:ProgramData
+    if (-not $flagRoot) { $flagRoot = 'C:\ProgramData' }
+    if ($env:ORG_PH_ROLES -ne '1' -and -not (Test-Path -LiteralPath (Join-Path $flagRoot 'org-flags\ORG_PH_ROLES'))) {
+        [Console]::Error.WriteLine('project_head is off on this host (host flag ORG_PH_ROLES turns it on; org restructure P2)')
+        exit 2
+    }
+    $env:PH_ROOT = $root
+    $env:PH_LANE = $Lane.Trim().ToLower()
+    $env:PH_PROJECT = $Project
+    $env:PH_SID = $Session
+    $env:PH_LOCKS = Join-Path $root 'state\locks'
+    # Single quotes only: PS 5.1 mangles a native argument holding a double quote.
+    $phCode = @'
+import os, re, sys
+sys.path.insert(0, os.environ['PH_ROOT'])
+from lib.roles import ph_lane_refusal, ph_project_refusal
+lane, sid, project = os.environ['PH_LANE'], os.environ['PH_SID'], os.environ['PH_PROJECT']
+why = ph_lane_refusal(lane) or ph_project_refusal(project)
+owner = ''
+if not why and not re.fullmatch(r'[0-9a-f]{8}', sid):
+    why = 'no -Session from tools/spawn_ph.py; start a Project Head with it'
+if not why:
+    rec = os.path.join(os.environ['PH_LOCKS'], 'project_head-' + sid + '.spawned_by')
+    try:
+        kind, owner_lane, owner = open(rec).read().strip().split(':', 2)
+    except (OSError, ValueError):
+        kind = owner_lane = owner = ''
+    if kind != 'cxo' or owner_lane != lane or not re.fullmatch(r'[A-Za-z0-9_-]{1,40}', owner):
+        why = 'no owner record for project_head-' + sid + ' naming lane ' + lane + '; start a Project Head with tools/spawn_ph.py'
+if why:
+    print(why)
+    sys.exit(1)
+from tools.spawn_ph import first_prompt
+print(owner)
+print(first_prompt(sid, lane, project, owner))
+'@
+    $phLines = @(& $venvPy -c $phCode 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        [Console]::Error.WriteLine("project_head: $($phLines -join ' ')")
+        exit 2
+    }
+    $Lane = $env:PH_LANE
+    $phOwner = "$($phLines[0])".Trim()
+    $phPrompt = "$($phLines[1])".Trim()
+    if (-not (Test-Path (Join-Path $root 'roles\project_head.md'))) {
+        [Console]::Error.WriteLine('project_head: roles\project_head.md does not exist yet -- the COO writes it (plan sec. 13)')
+        exit 2
+    }
+}
+
 # venv on PATH, python3 resolvable for the repo hooks (same as win-cto.ps1):
 # the hooks call `python3`, which on Windows is the Microsoft Store stub.
 $py3 = Join-Path $venvScripts 'python3.exe'
@@ -142,25 +217,35 @@ $rolePrompt = Get-Content -Raw -Encoding UTF8 $roleDocPath
 # defaults. ValidateSet above already narrows -Role to real C-level keys, so
 # this mainly guards the day that set drifts from policies/agents.yaml's own
 # `c_level:` list.
-$pyRoleCode = @"
-import sys
-sys.path.insert(0, r'$root')
+# Tab-separated: a Project Head's display name holds spaces.
+$env:ROLE_ARG = $Role
+$env:ROLE_ROOT = $root
+$env:PH_LANE = $Lane
+$pyRoleCode = @'
+import os, sys
+sys.path.insert(0, os.environ['ROLE_ROOT'])
 from lib.config import display_for, is_c_level, role as get_role
-if not is_c_level('$Role'):
-    print('role $Role is not a C-level role', file=sys.stderr)
+from lib.roles import is_project_head, ph_display
+role = os.environ['ROLE_ARG']
+if is_project_head(role):
+    display = ph_display(os.environ.get('PH_LANE', ''))
+elif is_c_level(role):
+    display = display_for(role)
+else:
+    print('role ' + role + ' is not a C-level role', file=sys.stderr)
     sys.exit(2)
-r = get_role('$Role')
+r = get_role(role)
 model = r.get('model') or 'claude-opus-5-5[1m]'
 fallback = r.get('fallback_model') or 'claude-fable-5'
 effort = r.get('effort') or 'xhigh'
-print(display_for('$Role'), model, fallback, effort)
-"@
+print(display, model, fallback, effort, sep='\t')
+'@
 $roleLine = & $venvPy -c $pyRoleCode 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[cxo-claude] $roleLine" -ForegroundColor Red
     exit 2
 }
-$roleParts = "$roleLine".Trim() -split '\s+'
+$roleParts = "$roleLine".Trim() -split "`t"
 $display = $roleParts[0]
 $model = $roleParts[1]
 $fallbackModel = $roleParts[2]
@@ -180,6 +265,14 @@ $env:CXO_SESSION = '1'
 $env:CXO_SESSION_ID = $sid
 $env:ORG_HOST = 'winbox'
 $hostKey = 'winbox'
+if ($isPh) {
+    # Its own identity, never the CTO's (tools/agent_transport).
+    Remove-Item Env:CTO_SESSION, Env:CTO_SESSION_ID -ErrorAction SilentlyContinue
+    $env:ORG_PH_ROLES = '1'
+    $env:ORG_PH_LANE = $Lane
+    $env:ORG_PH_PROJECT = $Project
+    $env:ORG_PH_OWNER = $phOwner
+}
 if ($Role -eq 'cto') {
     $env:CTO_SESSION = '1'
     $env:CTO_SESSION_ID = $sid
@@ -267,6 +360,11 @@ if ($hubRoute -eq 'infisical') {
     $allowedLine = & $venvPy (Join-Path $root 'scripts\lib\cxo_mcp_config.py') --role $Role --root $root --print-allowed
     if ($LASTEXITCODE -ne 0) { throw "cxo_mcp_config --print-allowed failed (exit $LASTEXITCODE)" }
     $allowedTools = @("$allowedLine".Trim() -split '\s+' | Where-Object { $_ -ne '' })
+    if ($isPh) {
+        # The browser surface a Project Head has (lib/roles.py CHROME_TOOLS), as in cxo-claude.sh.
+        $chromeLine = & $venvPy -c "import sys; sys.path.insert(0, r'$root'); from lib.roles import CHROME_TOOLS; print(' '.join(CHROME_TOOLS))"
+        $allowedTools += @("$chromeLine".Trim() -split '\s+' | Where-Object { $_ -ne '' })
+    }
 
     # Register + reconcile against c_level_sessions on the hub, hub mode
     # only: both tools write through lib.db, which falls back to a LOCAL
@@ -353,6 +451,7 @@ if (-not (Test-Path $claude)) { $claude = 'claude' }
 $positional = @()
 foreach ($a in $RemainingArgs) { $positional += $a }
 if ($InitialPrompt) { $positional += $InitialPrompt }
+elseif ($phPrompt) { $positional += $phPrompt }
 
 $modelArgs = @('--model', $model, '--fallback-model', $fallbackModel, '--effort', $effort)
 $machineLabel = 'WINDOWS'
@@ -361,22 +460,36 @@ $machineLabel = 'WINDOWS'
 # allowed-tools (variadic -- must be immediately followed by a "--flag", not
 # by another bare token, so it stops consuming at --session-id), session-id,
 # fork, positional prompt.
+$chromeArgs = @()
+if ($isPh) { $chromeArgs = @('--chrome') }
 $fullArgs = @('-n', "$machineLabel $resolvedTabTitle") + $modelArgs +
     @('--permission-mode', 'auto', '--append-system-prompt', $rolePrompt) +
-    $mcpArgs + $remoteControlArgs + $allowedToolsArgs +
+    $mcpArgs + $remoteControlArgs + $chromeArgs + $allowedToolsArgs +
     @('--session-id', $cxoUuid) + $forkArgs + $positional
 
 # `exec` has no PowerShell equivalent that still lets the finally block below
 # run -- claude runs as a child, matching cxo-claude.sh's own comment on why
 # it never execs claude either (stale lock on exit otherwise).
+# M12: `& $claude @fullArgs` hands claude.exe an argument holding a double quote
+# unescaped on PS 5.1 (the role prompt has many), so the command line is built
+# by windows\native-args.ps1 instead. The TUI keeps this console.
+. (Join-Path $PSScriptRoot 'native-args.ps1')
+if (-not (Test-Path $claude)) {
+    $found = Get-Command claude.exe -ErrorAction SilentlyContinue
+    if ($found) { $claude = $found.Source }
+}
 $code = 1
 try {
-    & $claude @fullArgs
+    Invoke-NativeExe -Exe $claude -Arguments $fullArgs
     $code = $LASTEXITCODE
 } finally {
     if ($mcpConfig) { Remove-Item -Force -ErrorAction SilentlyContinue $mcpConfig }
     Remove-Item -Force -ErrorAction SilentlyContinue $lockFile
     Remove-Item -Force -ErrorAction SilentlyContinue $uuidFile
+    # A Project Head's claim and owner record end with the session (as in cxo-claude.sh).
+    if ($isPh) {
+        Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $locksDir "project_head-$sid.project"), (Join-Path $locksDir "project_head-$sid.spawned_by")
+    }
     if ($wroteActive -and (Test-Path $activeFile)) {
         $current = (Get-Content -Raw -Path $activeFile -ErrorAction SilentlyContinue)
         if ($current) { $current = $current.Trim() }
