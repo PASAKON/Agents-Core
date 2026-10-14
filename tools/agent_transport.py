@@ -27,13 +27,16 @@ import json
 import os
 import re
 import secrets
+import socket
+import stat
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
-from lib import notify
+from lib import notify, org_flags
 from lib.config import display_for, is_c_level
 from tools import session_name, tmux_session
 
@@ -139,7 +142,78 @@ def current_identity() -> Identity:
     cto_sid = os.environ.get("CTO_SESSION_ID")
     if cto_sid:
         return Identity("cxo", "cto", cto_sid)
+    # No identity env at all: a cron job, a hand-run CLI, a hook under system
+    # python3, a stripped env. Only ORG_CEO_CALLER=1 makes that the CEO on
+    # purpose; everything else is logged, and refused once ORG_IDENTITY_STRICT
+    # is on (LungNote 09d85a20).
+    if os.environ.get("ORG_CEO_CALLER") == "1":
+        return CEO_IDENTITY
+    _record_ceo_fallback()
+    if org_flags.on("ORG_IDENTITY_STRICT"):
+        raise PermissionError(
+            "no identity: this process has no CXO_ROLE / WORKER_TASK_ID / CTO_SESSION_ID "
+            "and no ORG_CEO_CALLER marker (ORG_IDENTITY_STRICT, LungNote 09d85a20)")
     return CEO_IDENTITY
+
+
+# Who still reaches the CEO fallback above: one JSON line per process, read
+# before ORG_IDENTITY_STRICT is turned on. Only argv[0] is kept, never the rest
+# of argv (a claude argv carries a whole brief), never an env value, never the
+# full cwd. Gitignored by state/reports/*.
+IDENTITY_FALLBACK_LOG = ROOT / "state" / "reports" / "identity-fallback.jsonl"
+IDENTITY_FALLBACK_MAX_BYTES = 5 * 1024 * 1024
+_fallback_recorded = False
+
+
+def _in_repo(p: str | os.PathLike) -> bool:
+    try:
+        return Path(p).resolve().is_relative_to(ROOT)
+    except (OSError, ValueError, RuntimeError):
+        return False
+
+
+def _record_ceo_fallback() -> None:
+    """Append this process's line to IDENTITY_FALLBACK_LOG. At most once per
+    process; never raises. Does not follow a symlink, does not block on a
+    FIFO, writes nothing once the file is over IDENTITY_FALLBACK_MAX_BYTES."""
+    global _fallback_recorded
+    if _fallback_recorded:
+        return
+    _fallback_recorded = True
+    try:
+        ppid = os.getppid()
+        try:
+            with open(f"/proc/{ppid}/comm", encoding="utf-8", errors="replace") as f:
+                parent_comm = f.read(64).strip() or None
+        except OSError:
+            parent_comm = None
+        argv0 = sys.argv[0] if sys.argv and sys.argv[0] else ""
+        try:
+            cwd_in_repo = _in_repo(os.getcwd())
+        except OSError:
+            cwd_in_repo = False
+        line = json.dumps({
+            "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "pid": os.getpid(),
+            "ppid": ppid,
+            "parent_comm": parent_comm,
+            "exe": os.path.basename(argv0)[:200] or None,
+            "script": argv0 if argv0 and os.path.isfile(argv0) and _in_repo(argv0) else None,
+            "cwd_in_repo": cwd_in_repo,
+            "host": socket.gethostname(),
+        }) + "\n"
+        path = Path(IDENTITY_FALLBACK_LOG)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW
+                     | os.O_NONBLOCK | os.O_CLOEXEC, 0o600)
+        try:
+            st = os.fstat(fd)
+            if stat.S_ISREG(st.st_mode) and st.st_size <= IDENTITY_FALLBACK_MAX_BYTES:
+                os.write(fd, line.encode("utf-8"))
+        finally:
+            os.close(fd)
+    except Exception:  # noqa: BLE001 - a log line must never change who the caller is
+        pass
 
 
 # ---------------------------------------------------------------------------
