@@ -1,0 +1,33 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S07 THE RUN ALONG THE RIVER · 4s request (107 frames, 4.46 s) · 1080p · 16:9 · The Old Telling EP1 ACT 2 · covers sentences 2.10
+Entities (group 'The Old Telling'): @MEADOW, @EURYDICE. Audio bound: none.
+Narration is NOT in this clip; it is mixed in the edit.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ ===
+
+4s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Low wide camera tracking slowly toward screen-left; no zoom, no cut.
+
+THE BRIDE RUNS ALONG THE RIVER BANK. A man far behind her follows. Nothing violent happens.
+
+REFERENCES, each with a job:
+@MEADOW: THE RIVER MEADOW: a wide river meadow at dusk, a slow river bending through tall grass, a few old olive trees on the bank, a long low ridge on the far horizon, one large flat grey stone lying in the tall grass in the left third near the camera. Take the whole place and its light from it.
+@EURYDICE: HER DRESS: a long pale undyed linen ancient Greek dress with a long pale veil draped over it. Cloth shape and colour only; she is only ever a dark silhouette with no face and no detail; take nothing of the background.
+
+THE FRAME: Wide and low along the bank of THE RIVER MEADOW at dusk. In the middle distance a woman runs toward screen-left as a dark silhouette in THE DRESS, a long pale linen dress with a long pale veil streaming behind her, no face and no detail. Far behind her at the right, much smaller, a man's dark silhouette runs after her and never gets closer. Neither is taller than one fifth of the frame height. The only warm light is a faint ember glow on the river.
+
+WHAT HAPPENS:
+[0s] She runs along the bank toward screen-left, the veil streaming, her head turned ahead, not back.
+[1.5s] The man's tiny silhouette runs after her at the far right; the distance between them stays the same.
+[3.5s] Hold: both keep their places in the frame, no new action; only wind in the grass.
+
+overall_soundscape: only the sounds of the place: running steps on soft ground, wind in tall grass, slow river water. No voices, no screams, no speech, no singing.
+non_diegetic_music: none.
+
+Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
+
+CRITICAL NEGATIVES: no face on any silhouette, no violence, no grabbing, no weapon, no third person, no speech or screams, nothing new starts after 3.5 seconds.
+
+House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

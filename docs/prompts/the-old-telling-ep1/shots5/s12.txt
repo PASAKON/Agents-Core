@@ -1,0 +1,36 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S12 THE RIVER TAKES THE LYRE · 15s request (362 frames, 15.08 s) · 1080p · 16:9 · The Old Telling EP1 ACT 5 · covers sentences 5.12
+Entities (group 'The Old Telling'): @LYRE, @MEADOW_GREY. Audio bound: none.
+Narration is NOT in this clip; it is mixed in the edit.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ ===
+
+15s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera low across the water, then drifting slowly downstream along the bank; no zoom, no cut.
+
+THE RIVER HEBRUS CARRIES THE LYRE AND A BAND OF OLIVE LEAVES AWAY; THE STRINGS SOUND BY THEMSELVES AND THE BANKS HUSH.
+
+REFERENCES, each with a job:
+@LYRE: THE LYRE, his ancient Greek lyre: aged dark-amber wood, a deep rounded body, two curved arms ending in small scrolls, a straight crossbar, seven strings. Shape and wood only; take nothing of the background.
+@MEADOW_GREY: LIGHT AND SKY ONLY: the dull grey-green sky and the one last faint ember glow low on the horizon. Take nothing else from it: no grass, no stone, no olive trees, no river, no ridge.
+
+THE FRAME: Wide low shot across a dark river at dusk with mist on the water, between two grassy banks: THE LYRE floats on the current at the centre of the frame, a wreath band of olive leaves floating beside it, drifting slowly away from the camera downstream; ripples ring out from the lyre. Dull grey-green dusk light with a faint ember glow low on the far horizon.
+
+WHAT HAPPENS:
+[0s] THE LYRE and the band of olive leaves float together at the middle of the river.
+[3s] A string vibrates by itself with a soft note and a ring of ripples spreads on the water.
+[6s] The current turns them slowly; the camera drifts along the bank with them.
+[9s] Another string sounds, softer; more ripples.
+[12s] The reeds on both banks lie silent and still.
+[13s] Hold: they drift on, no new action.
+
+overall_soundscape: only the sounds of the place: a lone plucked string ringing over water, a river running, reeds in a faint breeze. No voices, no speech, no singing.
+non_diegetic_music: none.
+
+Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
+
+CRITICAL NEGATIVES: no person, no hand, no head, no body, no blood, no wound, no speech or singing, nothing new starts after 13 seconds.
+
+House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

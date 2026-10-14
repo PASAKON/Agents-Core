@@ -1,0 +1,33 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S12B THE LAMP GOES OUT · 5s request (124 frames, 5.17 s) · 1080p · 16:9 · The Old Telling EP1 ACT 6 · covers sentences 6.14
+Entities (group 'The Old Telling'): @TELLER_ROOM. Audio bound: none.
+Narration is NOT in this clip; it is mixed in the edit.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ ===
+
+5s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera static, close; no zoom, no cut.
+
+THE TELLER'S ROOM. An aged hand reaches toward the lamp; the flame bends and sinks to a small ember.
+
+REFERENCES, each with a job:
+@TELLER_ROOM: THE TELLER'S ROOM: a dark room, a small oil lamp on a worn wooden table, a tall shelf of identical leather-bound books with blank spines, two aged hands with ink-stained fingertips and one plain iron ring on the right ring finger resting on an open book. Take the whole place and its light from it.
+
+THE FRAME: Close shot of the small oil lamp on the worn wooden table in THE TELLER'S ROOM, one aged weathered hand with ink-stained fingertips and one plain iron ring on the right ring finger at the edge of the frame, no face and no body; the shelf of blank leather books dark behind. The only warm light is the lamp.
+
+WHAT HAPPENS:
+[0s] The lamp flame burns steadily; the aged hand rests beside it.
+[1.5s] The hand moves toward the lamp; the flame bends away.
+[3s] The flame sinks to a small ember and the room goes nearly dark.
+[4s] Hold: one small ember glows in the dark, no new action.
+
+overall_soundscape: only the sounds of the place: the lamp's soft hiss dying away, a faint creak of wood. No voices, no singing.
+non_diegetic_music: none.
+
+Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
+
+CRITICAL NEGATIVES: no face, no body, no second hand, no readable writing, no speech or singing, nothing new starts after 4 seconds.
+
+House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-53 org skills by kind — Rules 6 · Knowledge 15 · Workflow 4 · Procedure 10 · Standard 4 · Gate 6 · Protocol 8 · commands the CEO types 11 · imported 9 · redirect stubs 38
+58 org skills by kind — Rules 7 · Knowledge 15 · Workflow 4 · Procedure 11 · Standard 6 · Gate 6 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -19,6 +19,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `ALL_Rules_HQ_Filing` | COO | all | Filing rules for MoonieX HQ — read before creating/moving/cloning/renaming/deleting any project folder on the Mac, before `git clone`… |
 | `ALL_Rules_Winbox_PCLease` | CTO | cto, cmo, cgo, cfo, browser_operator, developer | Borrow the winbox screen from the job that farms it all night, and give it back. winbox runs an unattended workload around the clock; any… |
 | `CFO_Rules_Finance` | CFO | cfo | The org's finance authority — budget, runway, burn, subscriptions, /admin/finance, and the webapp_cfo_* tables. |
+| `CTO_Rules_Bedrock_References` | CTO | cto, worker | Every link, picture, video, pack or data file handed over as a reference for Minecraft Bedrock work is recorded with its URL and our… |
 | `CXO_Rules_GDrive_Filing` | COO | cxo | Filing rules for the CEO's Google Drive — read before ANY Drive action (create/upload/move/rename/delete, rclone, the gdrive-bridge, the… |
 
 ## Knowledge
@@ -62,6 +63,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
 | `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
+| `CTO_Procedure_Bedrock_SkyScene` | CTO | cto | Make one Minecraft Bedrock sky scene match its concept image in the running game, scored against a 90 target. |
 | `CTO_Procedure_KeyFetch` | CTO | cxo, browser_operator, developer | A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. |
 | `CXO_Procedure_GDrive_BulkTransfer` | COO | cxo, worker | Move gigabytes into the CEO's Google Drive and run moves / renames / deletes through the bridge: batches, md5 verification by file id, the… |
 
@@ -73,6 +75,8 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Standard_Film_PromptFormat` | CMO | cmo, cto, script_writer, prompt_engineer, browser_operator | How a shot prompt file is written, for every video engine: two zones (notes / paste block), the order of the paste block, one name per… |
 | `CMO_Standard_Story_FamilyDogSeries` | CMO | cmo, script_writer, content_strategist, browser_operator | The story bible and writing rules for the real-family dog series on the FB page «บ้านนี้มีมีมี่» — who Mimi the black dog is, the CEO's… |
 | `CMO_Standard_Story_ThaiMoralDrama` | CMO | cmo, cto, script_writer | The story format for the ILAG Studio Facebook page «ละครสั้นคุณธรรม» — Thai stand-alone moral short films in the ฟ้ามีตา tradition, 8–12… |
+| `CMO_Standard_TheOldTelling_Script` | CMO | cmo, cto, script_writer | The road map for writing the script of a The Old Telling episode (the mythology and folklore series on the ILAG Studio YouTube channel) in… |
+| `CTO_Standard_Bedrock_WorkLayout` | CTO | cto | How to lay out Minecraft Bedrock add-on work for workers: split, brief, runner, evidence, review. |
 
 ## Gate
 
@@ -96,6 +100,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CTO_Protocol_SpawnWebDesigner` | CTO | cto | Open the Web Designer surface for the CEO to design directly. |
 | `CXO_Protocol_DelegateExternal` | CTO | cxo, worker | Hand a task to an agent that is NOT Claude Code — Codex CLI, Antigravity, or a human — by writing a self-contained brief, shipping only… |
 | `CXO_Protocol_DevSpawn` | CTO | cxo, cto | Required steps when CTO spawns a DEV agent. |
+| `CXO_Protocol_OvernightSelfWake` | CTO | cxo | Keep a C-level session working and waking itself while the CEO sleeps: decide alone what is yours, wake on events plus a heartbeat with a… |
 | `VIDEO_EDITOR_Protocol_Playbook` | CMO | video_editor, worker | MoonieX org process layer for the `video_editor` role (owned by CMO, created 2026-08-03). Use this whenever a video_editor task arrives… |
 
 ## Commands the CEO types
@@ -105,7 +110,7 @@ Short names kept on purpose (CEO 2026-09-27); the kind lives in the frontmatter 
 | name | kind | owner | audience | what it is |
 |---|---|---|---|---|
 | `relay-login` | Protocol | CTO | cto, cxo, browser_operator, devops_engineer, developer, tester | Get a login done by the CEO from his phone via the Console login relay. |
-| `session-change-model` | Protocol | CTO | cxo | Put a C-level session back on the org standard model (Opus 5.5 1M @ xhigh) when it is running lighter, and wait for CEO confirmation. |
+| `session-change-model` | Protocol | CTO | cxo | Put a C-level session back on the org standard model (Opus 5.5 1M; effort is the CEO's own call, medium at spawn) when it is running a… |
 | `session-close` | Gate | CTO | cxo | Verify a session's Entry Problem is actually solved before closing it 🏁. |
 | `session-list` | Protocol | CTO | cxo | List past CTO/CXO sessions still open, with state, blocker, and age. |
 | `session-merge` | Protocol | CTO | cxo | Carry another session's context into this one, then mark it merged. |
