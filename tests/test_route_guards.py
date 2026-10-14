@@ -1,4 +1,6 @@
 import json
+import io
+import runpy
 import os
 from pathlib import Path
 import sqlite3
@@ -13,11 +15,97 @@ from tools.runner_share import summary
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize("year", [1970, 2026, 9999])
+def test_log_at_any_clock(tmp_path, monkeypatch, capsys, year):
+    hook = runpy.run_path(str(ROOT / "scripts/hook-agent-route.py"))
+    class Clock:
+        @staticmethod
+        def now(tz):
+            return datetime(year, 1, 1, tzinfo=tz)
+    hook["main"].__globals__["datetime"] = Clock
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text("mode: log\n")
+    spool = tmp_path / "route.jsonl"
+    monkeypatch.setenv("AGENT_ROUTE_CONFIG", str(cfg))
+    monkeypatch.setenv("AGENT_ROUTE_PATH", str(spool))
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(agent())))
+    assert hook["main"]() == 0
+    assert json.loads(spool.read_text())["decision"] == "log"
+    assert not capsys.readouterr().err
+
+
+@pytest.mark.parametrize("script", ["hook-agent-route.py", "hook-ph-handson.py"])
+def test_permission_failure_is_silent(monkeypatch, capsys, tmp_path, script):
+    hook = runpy.run_path(str(ROOT / "scripts" / script))
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text("mode: enforce\n")
+    monkeypatch.setenv("AGENT_ROUTE_CONFIG", str(cfg))
+    monkeypatch.setenv("CXO_ROLE", "project_head")
+    payload = agent() if script == "hook-agent-route.py" else dict(
+        session_id="s1", tool_name="Write", tool_input={"file_path": "x.py"})
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    original = Path.open
+    def denied(path, mode="r", *args, **kwargs):
+        if "a" in mode:
+            raise PermissionError("read-only reports")
+        return original(path, mode, *args, **kwargs)
+    monkeypatch.setattr(Path, "open", denied)
+    assert hook["main"]() == 0
+    captured = capsys.readouterr()
+    assert captured.out == captured.err == ""
+
+
+@pytest.mark.parametrize("command", ["git commit -m example", "git -C repo commit -m example"])
+def test_commit_is_not_handson(invoke, tmp_path, command):
+    result = invoke("hook-ph-handson.py", dict(session_id="s1", tool_name="Bash",
+                    tool_input={"command": command}), ph=True)
+    assert result.returncode == 0 and not result.stdout and not result.stderr
+    assert not (tmp_path / "ph-handson.jsonl").exists()
+
+
+def test_large_spool_bounded_read(tmp_path, monkeypatch, capsys):
+    spool = tmp_path / "ph.jsonl"
+    recent = json.dumps(dict(session_id="s1", reminded=True,
+                            ts=datetime.now(timezone.utc).isoformat())).encode() + b"\n"
+    spool.write_bytes((b"x" * 1000 + b"\n") * 2048 + recent)
+    size = spool.stat().st_size
+    hook = runpy.run_path(str(ROOT / "scripts/hook-ph-handson.py"))
+    original = Path.open
+    reads = []
+    class Bounded:
+        def __init__(self, stream):
+            self.stream = stream
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            self.stream.close()
+        def __getattr__(self, name):
+            return getattr(self.stream, name)
+        def read(self, n=-1):
+            reads.append((self.stream.tell(), n))
+            assert 0 <= n <= 65536
+            return self.stream.read(n)
+    def tracked(path, *args, **kwargs):
+        stream = original(path, *args, **kwargs)
+        return Bounded(stream) if path == spool else stream
+    monkeypatch.setattr(Path, "open", tracked)
+    monkeypatch.setenv("PH_HANDSON_PATH", str(spool))
+    monkeypatch.setenv("CXO_ROLE", "project_head")
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(dict(
+        session_id="s1", tool_name="Write", tool_input={"file_path": "x.py"}))))
+    assert hook["main"]() == 0
+    assert reads == [(size - 65536, 65536)]
+    assert spool.stat().st_size > size
+    assert not capsys.readouterr().out
+
+
 @pytest.fixture
 def invoke(tmp_path):
-    def run(script, payload, mode="log", ph=False, deadline="2999-01-01T00:00:00Z"):
+    def run(script, payload, mode="log", ph=False, config=None):
         cfg = tmp_path / "config.yaml"
-        cfg.write_text(f'mode: {mode}\nenforce_after: "{deadline}"\n')
+        cfg.write_text(f'mode: {mode}\n' if config is None else config)
+        if config == "missing":
+            cfg.unlink()
         env = dict(os.environ, AGENT_ROUTE_CONFIG=str(cfg),
                    AGENT_ROUTE_PATH=str(tmp_path / "agent-route.jsonl"),
                    PH_HANDSON_PATH=str(tmp_path / "ph-handson.jsonl"),
@@ -57,8 +145,11 @@ def test_reason(invoke, prompt, code):
     assert invoke("hook-agent-route.py", agent(prompt), "enforce").returncode == code
 
 
-def test_expired(invoke):
-    assert invoke("hook-agent-route.py", agent(), deadline="2000-01-01T00:00:00Z").returncode == 2
+@pytest.mark.parametrize("config", ["missing", "[", "null", "[]", "mode: bogus", "mode: enforce\nextra: ["])
+def test_bad_config(invoke, tmp_path, config):
+    result = invoke("hook-agent-route.py", agent(), config=config)
+    assert result.returncode == 0 and not result.stderr
+    assert json.loads((tmp_path / "agent-route.jsonl").read_text())["decision"] == "error_allow"
 
 
 @pytest.mark.parametrize("payload", ["garbage", "[]", '{"tool_input":null}'])
@@ -77,7 +168,7 @@ def test_edit(invoke, tmp_path, ph, ext, flag):
 
 
 @pytest.mark.parametrize("command", ["sed -i x.py", "echo secret > x.ts", "tee x.sh <<'EOF'\nsecret\nEOF",
-    "cat <<'EOF' > x.sql\nsecret\nEOF", "git commit -m secret", 'sed -i "s/a/b/" "my file.py"'])
+    "cat <<'EOF' > x.sql\nsecret\nEOF", 'sed -i "s/a/b/" "my file.py"'])
 def test_shell(invoke, tmp_path, command):
     p = dict(session_id="s1", tool_name="Bash", tool_input={"command": command})
     assert invoke("hook-ph-handson.py", p, ph=True).stdout

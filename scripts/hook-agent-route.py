@@ -36,8 +36,7 @@ def main():
             "AGENT_ROUTE_CONFIG", ROOT / "config/agent-route.yaml")).read_text())
         if cfg["mode"] not in {"log", "enforce"}:
             raise ValueError("mode")
-        deadline = datetime.fromisoformat(str(cfg["enforce_after"]).replace("Z", "+00:00"))
-        enforce = cfg["mode"] == "enforce" or datetime.now(timezone.utc) >= deadline
+        enforce = cfg["mode"] == "enforce"
         missing = row["subagent_type"] not in READ_ONLY and not row["has_reason"]
         row["decision"] = "deny" if enforce and missing else "log" if missing else "allow"
         append(path, row)
@@ -50,7 +49,7 @@ def main():
         try:
             append(path, row)
         except Exception:
-            print("agent-route: audit write failed; allowing", file=sys.stderr)
+            pass
     return 0
 
 

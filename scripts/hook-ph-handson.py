@@ -16,7 +16,7 @@ EXTS = {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".ps1", ".go", ".rs"
 def shell_ext(command):
     tokens = shlex.split(command, posix=True)
     if re.search(r"\bgit\s+(?:-[^;|&]+\s+)?commit\b", command):
-        return ""
+        return None
     # Redirections, including attached destinations and heredoc output paths.
     targets = re.findall(r">>?\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|<>]+))", command)
     paths = [next(v for v in group if v) for group in targets]
@@ -49,11 +49,17 @@ def main():
         spool = Path(os.environ.get("PH_HANDSON_PATH", ROOT / "state/reports/ph-handson.jsonl"))
         spool.parent.mkdir(parents=True, exist_ok=True)
         # Lock the spool so simultaneous tools cannot both emit a reminder.
-        with spool.open("a+", encoding="utf-8") as stream:
+        with spool.open("a+b") as stream:
             fcntl.flock(stream, fcntl.LOCK_EX)
-            stream.seek(0)
+            stream.seek(0, os.SEEK_END)
+            start = max(0, stream.tell() - 64 * 1024)
+            stream.seek(start)
+            tail = stream.read(64 * 1024)
+            if start:
+                # The first record may be truncated, including inside UTF-8.
+                tail = tail.partition(b"\n")[2]
             remind = bool(sid)
-            for line in stream:
+            for line in tail.splitlines():
                 try:
                     row = json.loads(line)
                     if row.get("session_id") == sid and row.get("reminded") and (
@@ -62,7 +68,7 @@ def main():
                 except (ValueError, TypeError, KeyError):
                     continue
             stream.write(json.dumps(dict(ts=now.isoformat(), session_id=sid, tool=tool,
-                                         path=path, ext=ext, reminded=remind)) + "\n")
+                                         path=path, ext=ext, reminded=remind)).encode("utf-8") + b"\n")
         if remind:
             print(json.dumps({"systemMessage": "PH = lead only, delegate code with delegate_task."}))
     except Exception:

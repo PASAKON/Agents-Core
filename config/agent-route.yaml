@@ -1,3 +1,2 @@
-# Merge owner: replace this provisional timestamp with actual merge time + 24h.
+# Enable refusal only in a separate, reviewed change after 24 hours of logs.
 mode: log
-enforce_after: "2026-10-15T09:46:35Z"
