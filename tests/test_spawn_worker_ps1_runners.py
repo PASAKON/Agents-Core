@@ -309,7 +309,7 @@ def test_report_step_media_allow_gate():
     body = _report_step_body()
 
     # Must read .media-allow from origin/<base>, never from working tree
-    assert 'git -C \'$wt\' show "origin/$Base:.media-allow"' in body
+    assert 'git -C \'$wt\' show "origin/${Base}:.media-allow"' in body
     assert "mediaKept" in body
     assert "!large" in body
     assert "--exclude-from" in body
