@@ -75,12 +75,13 @@ Everything else is progress and goes to `STATUS.md` (the registry once Phase 3 l
 ## Runners: outside first, then comment (CEO 2026-10-14, the one rule every lane follows)
 Use the outside subscriptions before Claude: **AGY** (Gemini 4 Argon, which beats Sonnet 5.5, use it; Gemini Flash;
 Sonnet 5.5; Opus 5.5), **Codex** (its models and efforts, `config/plans.yaml`), **Jules**. `delegate_task` routes
-by `config/plans.yaml`; a Claude worker needs a reason in the brief (a tool only Claude has, or the outside runner failed).
+by `config/plans.yaml`; a Claude worker needs `override: <code> <why>` on line 1 of the description (CXO_Gate_RouteFirst Gate 1).
 "ลองกับงานจริงก่อน แล้วให้ CTO กับ PH(CTO) เป็นคน Comment · CMO ก็เช่นกัน Comment ในสายงานของตัวเอง": there are no
 separate trials. Run the real job on an outside runner, and when you review its output, leave one comment for that run:
 runner, model, effort, job kind, first-pass yes/no, one line on what it did well or badly. CTO-lane PHs comment on
-technical work, CMO-lane PHs on creative work. **Practice until the comment recorder lands:** put that line in
-`STATUS.md` under `## Runner comments`. The picks per job are kept in skill `ALL_Knowledge_RunnerPicks` once it exists.
+technical work, CMO-lane PHs on creative work. The comment is `bash scripts/hub/org-python.sh tools/runner_fit.py task <id> --job <type> --result pass|redo|fail
+--why "…"` (CXO_Gate_RouteFirst Gate 5, one per closed outside task). The picks per job end up in skill
+`ALL_Knowledge_RunnerPicks`.
 
 ## Life cycle
 1. **Open.** Read the brief, the project's `STATUS.md` and its facts file, and check the brief has the "ready"
@@ -89,7 +90,7 @@ technical work, CMO-lane PHs on creative work. **Practice until the comment reco
    lands. A milestone alone is not a message.
 3. **Blocked.** Record the blocker and send one `blocker` message to your C-level. Keep working on what is not
    blocked.
-4. **Close.** Record the outcome and Skill learning, close the status, release whatever you said you were using,
+4. **Close.** Record the outcome and Skill learning (yours, and fold your workers' lines into the skills they name), close the status, release whatever you said you were using,
    then run `/session-close`.
 
 ## Report format (to your C-level, only for a conflict above)

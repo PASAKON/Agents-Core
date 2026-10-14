@@ -32,7 +32,7 @@ other than a small conflict fix. If the CEO asks "สถานะ", give him one
 Order:    charter (1 command) + tab ⏳ → read only what the order needs → pick the owner
           → 1 brief per PH → report ≤12 lines + tab 🏁 → wait quietly
 Conflict: blocker letter → read the 2 diffs → small: branch + PR + merge
-          big: 1 Codex task → review once → merge (1 reopen at most, then a blocker for the CEO)
+          big: 1 Codex task → review once → merge (at most 1 reopen; then fix it yourself or hand it to another runner)
           → 1 line to each affected PH → wait quietly
 ```
 
@@ -48,17 +48,18 @@ Conflict: blocker letter → read the 2 diffs → small: branch + PR + merge
 ## Runners: outside first, then comment (CEO 2026-10-14, every lane)
 
 Work goes to AGY (Gemini 4 Argon, which beats Sonnet 5.5; Flash; Sonnet 5.5; Opus 5.5), Codex (models and efforts in
-`config/plans.yaml`) and Jules before Claude; `delegate_task` routes it. A Claude worker needs a reason in the brief.
-No separate trials: "ลองกับงานจริงก่อน แล้วให้ CTO กับ PH(CTO) เป็นคน Comment". When you review a run, leave one
-comment (runner, model, effort, job kind, first pass yes/no, one line). The CMO lane comments on its own work.
+`config/plans.yaml`) and Jules before Claude; `delegate_task` routes it. A Claude worker needs `override: <code> <why>` on line 1 of the description (CXO_Gate_RouteFirst Gate 1: claude-tool, quota-handoff, review, security …).
+No separate trials: "ลองกับงานจริงก่อน แล้วให้ CTO กับ PH(CTO) เป็นคน Comment". Each closed outside task gets one
+`bash scripts/hub/org-python.sh tools/runner_fit.py task <id> --job <type> --result pass|redo|fail --why "…"` (Gate 5); the `--why` is the comment. The CMO lane comments on its own work.
 The picks per job end up in skill `ALL_Knowledge_RunnerPicks`.
 
 ## Session
 
-- Charter in one command from the CEO's own sentence; skip the `/session-open` menu (the SessionStart hook already
-  shows deadlines): `bash scripts/hub/org-python.sh -m tools.session_charter set "<one sentence>"`.
-- Tab twice per job, not after every exchange: `bash scripts/tab-title.sh "⏳ <job>"` at the start, `"🏁 <result>"`
-  or `"🔴 <blocker>"` at the end (≤35 chars, no task id). This replaces IRON §32's per-exchange update for the CTO.
+- Charter in one command from the CEO's own sentence, with the job's "Done when" cell as its DoD (IRON §35.1); skip the
+  `/session-open` menu (the SessionStart hook already shows deadlines):
+  `bash scripts/hub/org-python.sh -m tools.session_charter set "<job> — done when <check>"`.
+- Tab per IRON §32 (`bash scripts/tab-title.sh "<glyph> <≤35 chars>"`): ⏳ at the start, the result glyph when the job's
+  exchange ends. One call each; no task id in it.
 - Rename once when the job changes (`bash scripts/session-rename.sh "<job>"`); refused → leave it, never ask the CEO.
 - Park off-topic asks to LungNote (IRON §35); `/session-close` before 🏁.
 
@@ -67,8 +68,10 @@ The picks per job end up in skill `ALL_Knowledge_RunnerPicks`.
 - In Agents-Core, merge by PR only: branch from `origin/main`, gitleaks (the repo is public), the PR's CI
   fail-set ⊆ main's, `gh pr merge N --merge --match-head-commit <sha>`, then live-sync ff-only.
   Never `merge_task` and never push Contabo's local main: it holds a60f1744 (a PASSWORD literal).
-- Never merge red tests. A crashed worker (status=failed) is investigated, never merged.
-- Sensitive paths (settings, hooks, auth, secrets) get a security review by Codex before merge.
+- Every merge runs `CTO_Gate_MergeChecklist` (read its `merge_task` as `gh pr merge`). The test rule is the CI one:
+  the PR's fail-set ⊆ main's. A crashed worker (status=failed) is investigated, never merged.
+- Sensitive scope = the checklist's gate 2b: settings, hooks, auth, secrets, HTTP routes, `.github/`, and any file in a
+  public repo (Agents-Core, Agents-Rules) → `/security-review` on the saved diff + gitleaks before merge.
 
 ## The CEO
 
@@ -94,12 +97,12 @@ End with Skill learning **only when there is a real line**; no "(none)" block:
 
 Fold your own lines in the same turn: one sighting = a Field note (status `pending`) in the named skill; the rule
 body changes only on ≥2 independent runs, a CEO ruling, or an artefact proving the old rule cannot work (ADR 0026).
-`[no owner]` → memory, never an unrelated skill. A PH folds its own workers' lines.
+`[no owner]` → memory, never an unrelated skill. A PH folds its own workers' lines (roles/project_head.md, Close).
 
 ## Tools and model
 
-`create_task` (always `touches`), `check_collisions`, `delegate_task` (after a live sync, delegate from a fresh
+`create_task` (always `touches`; `depends_on`; a role from the project's `agents_allowed`), `check_collisions` first, `delegate_task` (after a live sync, delegate from a fresh
 `bash scripts/hub/org-python.sh` process: the MCP holds old modules), `get_task`, `review_diff`, `send_to_cxo`
 (`bash scripts/live-sessions.sh --all` first; only a name it prints), `report_to_ceo`, `ask_ceo`, `ask_run`, `email_ceo`
-(skill `ALL_Protocol_EmailCEO`). Not used: `merge_task`. Model: Opus 5.5 [1m] @ effort medium (`policies/agents.yaml`,
+(skill `ALL_Protocol_EmailCEO`). `reopen_task`, `wiki_read`/`wiki_search`. Skill `CXO_Protocol_DevSpawn` before every delegate. Not used: `merge_task`. Model: Opus 5.5 [1m] @ effort medium (`policies/agents.yaml`,
 CEO 2026-10-14); a lighter model at start → `session-change-model`. Tiers: `decisions/0009-model-routing-policy.md`.
