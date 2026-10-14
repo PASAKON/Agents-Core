@@ -15,6 +15,8 @@ import os
 import re
 import shutil
 import socket
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -312,3 +314,81 @@ def test_cxo_config_gives_coo_the_gate_server_and_only_its_tools(tmp_path):
     allowed = cxo_mcp_config._allowed_for(["org"], str(tmp_path), False, "coo")
     assert allowed == [f"mcp__org__{n}" for n in coo_mcp_server.TOOL_NAMES]
     assert "mcp__org__merge_task" not in allowed
+
+
+# --------------------------------------------------------------------------- Run Inbox on the COO server
+# SomPong's root work goes through a Run card (CEO 2026-10-01) and its questions through question
+# cards; the gate server must serve ask_run / ask_ceo / ask_run_wait itself (PH #adb2edb0, 2026-10-14).
+
+def test_coo_server_serves_the_run_inbox_tools():
+    assert {"ask_run", "ask_ceo", "ask_run_wait"} <= set(coo_mcp_server.TOOL_NAMES)
+
+
+def test_coo_server_loads_with_the_stdlib_only(tmp_path):
+    # cxo_mcp_config reads TOOL_NAMES under the launcher's system python3: the import must not pull
+    # tools.ask_run, mcp or the hub db in at load time.
+    code = ("import importlib.util, sys; "
+            f"spec = importlib.util.spec_from_file_location('m', {str(ROOT / 'runners' / 'coo_mcp_server.py')!r}); "
+            "m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); "
+            "bad = [k for k in sys.modules if k.split('.')[0] in ('tools', 'mcp', 'lib', 'psycopg')]; "
+            "print(len(m.TOOL_NAMES), bad)")
+    r = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.strip() == f"{len(coo_mcp_server.TOOL_NAMES)} []"
+
+
+def test_run_inbox_path_holds_no_hub_credential():
+    # The ask tools are HTTPS to the Run Inbox with the session user's own token; nothing on the way
+    # reads the Postgres hub or its DSN.
+    src = (ROOT / "tools" / "ask_run.py").read_text()
+    assert "ORG_DB_URL" not in src and "from lib import db" not in src and "psycopg" not in src
+
+
+def test_coo_ask_run_dry_run_builds_the_card_and_sends_nothing(monkeypatch):
+    from tools import ask_run as ask_run_tool
+    monkeypatch.setenv("CXO_ROLE", "coo")
+    monkeypatch.setenv("CXO_SESSION_ID", "coo-test0001")
+    monkeypatch.delenv("WORKER_TASK_ID", raising=False)
+    monkeypatch.delenv("WORKER_ROLE", raising=False)
+    monkeypatch.setattr(ask_run_tool, "submit", lambda payload: pytest.fail("dry_run posted"))
+    out = coo_mcp_server.ask_run(host="contabo", why="restart the inbox after a deploy",
+                                 command="systemctl status mooniex-sompong.service", dry_run=True)
+    assert out["ok"] is True and out["dry_run"] is True
+    assert out["payload"]["command"] == "systemctl status mooniex-sompong.service"
+
+
+def test_coo_ask_run_refusal_comes_back_as_ok_false(monkeypatch):
+    from tools import ask_run as ask_run_tool
+    monkeypatch.setenv("CXO_ROLE", "coo")
+    monkeypatch.setenv("CXO_SESSION_ID", "coo-test0001")
+    monkeypatch.setattr(ask_run_tool, "submit", lambda payload: pytest.fail("a refused ask posted"))
+    out = coo_mcp_server.ask_run(host="contabo", why="x",
+                                 command="echo ghp_" + "A" * 36, dry_run=False)
+    assert out["ok"] is False and "refused" in out["error"]
+    assert "A" * 36 not in out["error"]
+
+
+def test_coo_ask_ceo_and_wait_go_to_ask_run(monkeypatch):
+    from tools import ask_run as ask_run_tool
+    seen = {}
+    monkeypatch.setattr(ask_run_tool, "mcp_ask_ceo",
+                        lambda arguments: seen.setdefault("ask", arguments) and {"id": "Q-1", "url": "u"})
+    monkeypatch.setattr(ask_run_tool, "wait_result",
+                        lambda i, **kw: {"terminal": True, "status": "answered", "id": i, **kw})
+    out = coo_mcp_server.ask_ceo(question="Which one?", options=["a", "b"], why="w")
+    assert out == {"ok": True, "id": "Q-1", "url": "u"} and seen["ask"]["options"] == ["a", "b"]
+    w = coo_mcp_server.ask_run_wait("Q-1", max_wait_s=30)
+    assert w["ok"] is True and w["status"] == "answered" and w["max_wait_s"] == 30
+    assert w["tail_lines_n"] == 40
+
+
+def test_coo_ask_run_hub_error_comes_back_as_ok_false(monkeypatch):
+    from tools import ask_run as ask_run_tool
+
+    def boom(payload):
+        raise ask_run_tool.HubError("the hub is unreachable")
+    monkeypatch.setenv("CXO_ROLE", "coo")
+    monkeypatch.setenv("CXO_SESSION_ID", "coo-test0001")
+    monkeypatch.setattr(ask_run_tool, "submit", boom)
+    out = coo_mcp_server.ask_run(host="contabo", why="check the unit", command="uptime")
+    assert out == {"ok": False, "error": "the hub is unreachable"}

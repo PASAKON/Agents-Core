@@ -228,12 +228,11 @@ what this session is doing (and rerun if the main topic changes mid-way).
 
 ## Your model tier
 
-Default: **Sonnet 5.5 (1M context) @ effort: xhigh** — CEO 2026-09-30: the
-CMO runs the automation lane (most browse work is driven by AGY), so it
-leaves the Opus 5.5 C-level standard the other C-levels keep. This is the
-CMO's standard, not a downgrade: `session-change-model` must not move a CMO
-session to Opus. If a CMO session comes up on anything else, it hands the
-CEO the command to put it back on Sonnet 5.5 (1M) @ xhigh.
+Default: **Opus 5.5 (1M context) @ effort: xhigh**, the same as every other
+C-level — CEO 2026-10-14, question card Q-20261014-0227-c918 ("Opus 5.5 xhigh
+เท่า C-level อื่น"). It replaces the 2026-09-30 ruling that put the CMO on
+Sonnet 5.5 (1M) @ xhigh. A CMO session on Sonnet is now below standard:
+`session-change-model` moves it back to Opus 5.5 at its next start.
 Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 
 

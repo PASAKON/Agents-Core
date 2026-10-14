@@ -504,6 +504,18 @@ that day — list the folder, compare `name → md5` against the local file, upl
 only what differs (under the next free `_vN`, never trashing the old one), then
 re-list to prove the diff is empty.
 
+**Every take is backed up to Drive automatically, while the film is still being made (CEO 2026-10-10).**
+His words: *"ต้องสำรองเสมอเพราะ Take เก่าเอามาใช้ได้"*, *"ทำให้มันเป็น กฏได้ไหม ให้สำรองตลอด จะได้ไม่ต้องถามอีก"*, and
+*"พยายามอย่าใส่คลิปซ้ำๆ ในเครื่อง Local เยอะเพราะมันเปลืองพื้นที่ ใส่เฉพาะที่เอาไว้ตัดต่อ เมื่อทำเสร็จสำรองเสมอ"*.
+- **Do not ask.** Every take a runner downloads goes up to the film's `All Scene/S<n>/` with an md5 check by id and a
+  `logs.txt` line, failed and superseded takes included: an old take is often reused in a later cut. Wire it into the
+  runner so it happens without a model (THE LAST BELL: `lb_drive_backup.py`, called from the queue guard).
+- **Local disk keeps only what the current edit uses**, plus takes not yet reviewed. Any other take is moved to the
+  Trash once its md5 matches on Drive. When an old take is needed again, download it back from Drive.
+- The scene folders `S<n>` of a film whose project folder already exists may be created without asking, following
+  the StoryBoard's scene numbers. A new project folder still needs the ask (rule 3).
+- Never back up a take whose md5 has not been read back; never move a local take to the Trash without that read-back.
+
 **When a film is finished, clear it off every machine it was made on (CEO 2026-09-27).**
 *"เก็บ backup ไว้เสมอ เมื่อจบงาน ให้เคลียร์ออกจากเครื่องที่ทำไว้ เพื่อประหยัด Disk ไว้ทำงานต่อไป"*.
 "Finished" means posted. Do it in the same session as the post, without being asked:
@@ -585,3 +597,4 @@ deleted it and it came back from the iCloud Trash, 23/23 by md5.
 - 2026-09-27 [MISSING] §Hard rules 3 + §Film work — film 3 reached its Desktop clean-up with no Drive folder, so nothing was backed up; the CEO ruled: ask for the folder + full path when a story starts, always keep a backup, and clear every machine it was made on when the film is finished (winbox held a second 491 MB copy). Rule body changed on the CEO's ruling. The Mac Drive REST upload (ilag_sync helpers, 16 MB resumable chunks) moved 1.0 GB and 115 files in ~12 min with 0 retries · evidence: task-c816fbc0, Drive 15cGRMSGUdpn-K_PAw0823lQ-eTpLB8Ur, 369a6c92 · status: promoted
 - 2026-09-30 [MISSING] rule 3 — no wording for the folder ask, so a session asked "may I create a Drive folder for the character sheets?" without the path and the CEO's "อนุญาตสร้าง folder" did not satisfy rule 3 (it names the folder AND its full path, then waits); the ask had to be sent again with the path. One line covers it: `<full Drive path>/` + its sub-folders + "สร้างเลยไหม" · evidence: CMO c7879552 turn of 2026-09-30, CEO chat; KhaoNiao page folder proposal · status: pending
 - 2026-10-02 [MISSING] §ilag_rest helper — `ilag_rest.upload(path,name,parent)` returns `(info, created)`, not a file id, and `flink(fid)` is the FOLDER url while `link(fid)` is the file url; a bulk uploader that logged `flink(upload(...))` wrote ~5–7 malformed-link ADD lines into the EP1 `logs.txt` (append-only, so they stay; the re-run appended correct lines marked as superseding). Unpack the tuple and use `link()` for files before the first log line · evidence: cmo-c7879552, drive_up.log 110/110 failed [] · status: pending
+- 2026-10-10 [MISSING] §Film work — no rule said when takes go to Drive while a film is still being shot; THE LAST BELL ran 5 days with 150 takes on the Mac and none on Drive, and the CEO asked to clear old takes. CEO ruling the same day: back up every take automatically with md5, never ask; local keeps only the takes the edit uses · evidence: session cto-671f688f, lb_drive_backup.py + lb_queue_guard.py, Drive All Scene 1pT0rGcZqnbWE6-fTEdt5nkibzViGfkoV · status: promoted

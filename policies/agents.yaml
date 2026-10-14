@@ -68,10 +68,11 @@ roles:
   cmo:
     display: CMO
     level: c
-    # CEO 2026-09-30: CMO leaves the Opus C-level standard for Sonnet 5.5
-    # (1M) @ xhigh — it runs the automation lane (browse work driven by AGY).
-    # Smoke-tested headless the same day: claude -p answered OK on this id.
-    model: "claude-sonnet-5-5[1m]"
+    # CEO 2026-10-14 Q-20261014-0227-c918 (choice 0, "Opus 5.5 xhigh เท่า
+    # C-level อื่น"): CMO back on the org standard. Supersedes the 2026-09-30
+    # ruling that moved it to Sonnet 5.5 (1M) @ xhigh. A running CMO picks it
+    # up on its next start (session-change-model).
+    model: "claude-opus-5-5[1m]"
     fallback_model: "claude-fable-5"
     effort: "xhigh"
     can_write_wiki: true

@@ -298,6 +298,49 @@ def test_the_exact_format_and_order():
     assert ls.format_snapshot(snap, all_roles=True, now=NOW).count("\n") == 6
 
 
+def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers():
+    rows = [
+        _row("contabo", "project_head", "CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)"),
+        _row("contabo", "cto", "CONTABO CTO #c34459eb"),
+        _row("contabo", "project_head", "CONTABO Project Head (CMO) #36c49776 (MimiPage)", "idle"),
+        _row("contabo", "developer", "CONTABO Developer #f66155cf (x)"),
+    ]
+    snap = _snap(rows, {"contabo": _fresh(4.0)})
+    assert ls.format_snapshot(snap, now=NOW).splitlines() == [
+        "live 18:42 TH · contabo 1 (+2 PH, +1 workers, 4s) · mac none (no publisher yet)"
+        " · winbox none (no publisher yet)",
+        "running  CONTABO CTO #c34459eb",
+        "running  CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)",
+        "idle     CONTABO Project Head (CMO) #36c49776 (MimiPage)",
+        ls.FOOTER,
+    ]
+    assert "CONTABO Developer #f66155cf (x)" in ls.format_snapshot(snap, all_roles=True, now=NOW)
+    js = json.loads(ls._to_json(snap))
+    assert [s["role"] for s in js["sessions"]] == ["cto", "project_head", "project_head"]
+
+
+def test_a_host_with_only_project_heads_has_no_workers_count():
+    rows = [_row("contabo", "project_head", "CONTABO Project Head (CTO) #7cf528f0 (x)")]
+    header = ls.format_snapshot(_snap(rows, {"contabo": _fresh(2.0)}), now=NOW).splitlines()[0]
+    assert "contabo 0 (+1 PH, 2s)" in header and "workers" not in header
+
+
+def test_a_stale_hosts_project_heads_count_as_stale_rows():
+    rows = [_row("mac", "project_head", "MAC Project Head (CTO) #12345678 (x)", "stale")]
+    rows[0]["stale"] = True
+    snap = _snap(rows, {"mac": {"age": ls.DEFAULT_TTL_S + 1, "published_at": NOW}})
+    text = ls.format_snapshot(snap, now=NOW)
+    assert "mac 1 stale" in text and "MAC Project Head (CTO) #12345678 (x)" in text
+
+
+@pytest.mark.parametrize("role,expect", [
+    ("cto", True), ("coo", True), ("project_head", True),
+    ("developer", False), ("browser_operator", False), ("unknown", False),
+])
+def test_is_listed_is_c_levels_and_project_heads(role, expect):
+    assert ls.is_listed(role) is expect
+
+
 def test_a_host_with_no_row_in_live_hosts_says_no_publisher_yet():
     text = ls.format_snapshot(_snap([], {"contabo": _fresh(1.0)}), now=NOW)
     header = text.splitlines()[0]
@@ -399,7 +442,7 @@ def test_render_reads_rows_within_the_ttl_only():
     hub = FakeHub([fresh, old], [
         {"host": "contabo", "published_at": NOW, "age": 4.0, "error": None},
         {"host": "winbox", "published_at": NOW - timedelta(minutes=6), "age": 360.0, "error": "ssh timeout"}])
-    text = ls.render(hub)
+    text = ls.render(hub, now=NOW)   # "since 18:36" is today only on NOW's date
     assert "e106b78b" in text and "00000000" not in text
     assert "contabo 1 (4s)" in text
     assert "winbox unreachable (ssh timeout) since 18:36" in text
@@ -427,7 +470,7 @@ def test_an_unreachable_host_keeps_its_last_rows_stale():
     rows = [dict(_row("winbox", "cto", "WINDOWS CTO #33b0a9d5", "idle"), age=360.0)]
     hub = FakeHub(rows, [{"host": "winbox", "published_at": NOW - timedelta(minutes=6),
                           "age": 360.0, "error": "ssh timeout"}])
-    text = ls.render(hub)
+    text = ls.render(hub, now=NOW)
     assert "winbox 1 stale (unreachable (ssh timeout) since 18:36)" in text
     assert "stale    WINDOWS CTO #33b0a9d5" in text
 
