@@ -513,10 +513,16 @@ if org_flag ORG_SESSION_SCOPE && [ "$(id -u)" = "0" ] && command -v systemd-run 
   claude() { "${_SCOPE[@]}" "$@"; }
 fi
 
+# The birth name is the rule's, written only by lib/session_names.py (CEO 2026-10-15,
+# plan N): "<H> CTO#<id3> Main", no persona in it. If the lookup fails the bare role
+# stands in and the rename service's sweep rebuilds it ("old shape").
+CTO_SESSION_NAME="$("$HOST_PY" "$ROOT/lib/session_names.py" clevel cto "$CTO_SESSION_ID" \
+    "${SELF_HOST:-}" 2>/dev/null)" || CTO_SESSION_NAME="${HOST_EMOJI:+$HOST_EMOJI }CTO"
+
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
-  -n "${HOST_EMOJI:+$HOST_EMOJI }CTO${CTO_PERSONA:+ ($CTO_PERSONA)}" \
+  -n "$CTO_SESSION_NAME" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

@@ -171,7 +171,7 @@ def _rebuild_worker(role: str, sid: str, host: str, body: str, windows: bool) ->
     letter it already shows, else the role's model in policies/agents.yaml."""
     parts = session_names.worker_parts(body)
     head, job = (parts[1], parts[2]) if parts else ("", clean_topic(body))
-    m = session_names.WORKER_NAME_RE.match(body)
+    m = session_names.WORKER_NAME_RE.match(body) if parts else None
     letter = (m.group("model") if m else "") or ""
     if not letter:
         try:

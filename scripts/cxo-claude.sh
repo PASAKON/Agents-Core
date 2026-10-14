@@ -775,11 +775,13 @@ print('1' if remote_control_args('$HOST_KEY') else '0')
 " 2>/dev/null || echo 1)" != "0" ]; then
   REMOTE_CONTROL_ARGS=(--remote-control)
 fi
-# SomPong's Remote Control name is its session name, "COO (SomPong)" (CEO
-# 2026-10-14; it was the bare "SomPong" until then). The flag takes an optional
-# value, so the name is appended to the array built above.
+# SomPong's Remote Control name is its session name, "COO SomPong" (CEO 2026-10-14
+# "COO (SomPong)"; 2026-10-15 the new shape, written by lib/session_names.py; it was the
+# bare "SomPong" before). The flag takes an optional value, so the name is appended to
+# the array built above.
 if [ "$ROLE" = "coo" ] && [ "${#REMOTE_CONTROL_ARGS[@]}" -gt 0 ]; then
-  REMOTE_CONTROL_ARGS+=("${HOST_EMOJI:+$HOST_EMOJI }COO${PERSONA:+ ($PERSONA)}")
+  REMOTE_CONTROL_ARGS+=("$("$HOST_PY" "$ROOT/lib/session_names.py" clevel coo "$CXO_SESSION_ID" \
+      "${SELF_HOST:-}" "$PERSONA" 2>/dev/null || printf '%s' "${HOST_EMOJI:+$HOST_EMOJI }COO")")
 fi
 
 # Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1) — same
@@ -831,22 +833,24 @@ fi
 # (below); NAME_SUFFIX is the old long form, kept as the fallback.
 NAME_SUFFIX=""
 if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
-# A C-level primary session is "<ROLE> (<Name>)", or the bare "<ROLE>" without a
-# persona: no machine, no #id (CEO 2026-10-14). tools/live_sessions.py finds its role
-# and id in the tmux name and the session UUID instead. TAB_TITLE and its .base stay
-# as they are (routing); a Project Head and an ephemeral session keep the long form.
-# A Project Head is "PH#<id3> (<LANE>) - <Project>" (CEO 2026-10-14); the rule lives
-# in lib/config.ph_session_name. The long form stays if that lookup fails.
+# The birth name is the rule's, written only by lib/session_names.py (CEO 2026-10-15,
+# plan N): a C-level is "<H> <ROLE>#<id3> Main" (the COO, which has no org sid, is
+# "<H> COO <persona>"), a Project Head "<H> PH#<id3> <Project>". No persona and no lane
+# in it: the persona only tuned the tone and the project says the lane.
+# tools/live_sessions.py still finds a C-level's role and id in the tmux name and the
+# session UUID. TAB_TITLE and its .base stay as they are (routing); an ephemeral session
+# keeps the long form. If the lookup fails, the bare role (a PH: the long form) stands in
+# and the rename service's sweep rebuilds it ("old shape").
 SESSION_NAME="$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX"
 if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ]; then
-  SESSION_NAME="${HOST_EMOJI:+$HOST_EMOJI }$DISPLAY${PERSONA:+ ($PERSONA)}"
+  _NAME_PERSONA=""
+  if [ "$ROLE" = "coo" ]; then _NAME_PERSONA="$PERSONA"; fi
+  SESSION_NAME="$("$HOST_PY" "$ROOT/lib/session_names.py" clevel "$ROLE" "$CXO_SESSION_ID" \
+      "${SELF_HOST:-}" "$_NAME_PERSONA" 2>/dev/null)" \
+    || SESSION_NAME="${HOST_EMOJI:+$HOST_EMOJI }$DISPLAY"
 elif [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" = "1" ]; then
-  _PH_NAME="$(cd "$ROOT" && PH_SID="$CXO_SESSION_ID" PH_LANE="$PH_LANE" PH_PROJECT="$PH_PROJECT" \
-    PH_HOST="${SELF_HOST:-}" .venv/bin/python -c "
-import os
-from lib.config import ph_session_name
-print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT'],
-                      os.environ['PH_HOST']))" 2>/dev/null)" \
+  _PH_NAME="$("$HOST_PY" "$ROOT/lib/session_names.py" ph "$CXO_SESSION_ID" "${SELF_HOST:-}" \
+      "$PH_PROJECT" 2>/dev/null)" \
     && [ -n "$_PH_NAME" ] && SESSION_NAME="$_PH_NAME"
 fi
 

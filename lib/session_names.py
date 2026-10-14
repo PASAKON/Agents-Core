@@ -83,8 +83,8 @@ _C_LEVEL_BODY_RE = re.compile(
 # the first long form: "MAC CTO #671f688f (topic)", "CONTABO COO (SomPong) #a7eb4963" (same shape as
 # tools/live_sessions._NAME_RE, plus the "( )" topic after the id)
 _MACHINE_LONG_RE = re.compile(
-    r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+[A-Za-z][A-Za-z ]*?"
-    r"(?:\s+\([A-Za-z]{2,32}\))?\s+#[0-9a-f]{6,12}\b(?:\s*\((?P<topic>.*)\))?")
+    r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+(?P<role>[A-Za-z][A-Za-z ]*?)"
+    r"(?:\s+\([A-Za-z]{2,32}\))?\s+#(?P<id>[0-9a-f]{6,12})\b(?:\s*\((?P<topic>.*)\))?")
 _WATCH_RE = re.compile(r"^Watch#(?P<id3>[0-9a-f]{3}) \S")
 _HEAD_TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,39}")   # a Project Head's project: one word
 _NO_ID_ROLES = ("COO",)    # SomPong has no org sid
@@ -199,23 +199,30 @@ def split_name(name: str) -> tuple[str, str, str]:
 
 
 def parse_short(name: str) -> tuple[str, str] | None:
-    """(role, id3) from a PH, worker, C-level or Watch name, old or new shape, else None.
+    """(role, id3) from a PH, worker, C-level or Watch name, old shape or new, else None.
     A worker's short word must be one of WORKER_SHORT's, so "PH#…" and look-alikes never read
-    as one. A name with no id (the COO's "COO SomPong") gives an empty id3; an old C-level
-    name ("CTO (Kavin)") gives None: tools/live_sessions reads those by the record instead."""
+    as one. A name with no id (the COO's "COO SomPong", the old "CTO (Kavin)") gives an empty
+    id3: tools/live_sessions takes those ids from the record instead. The old long form
+    ("MAC CTO #671f688f (topic)") gives the first 3 hex of its id."""
     body = split_name(name)[2]
-    if PH_NAME_RE.match(body):
-        return "project_head", PH_NAME_RE.match(body).group("id3")
+    m = PH_NAME_RE.match(body)
+    if m:
+        return "project_head", m.group("id3")
     m = WORKER_NAME_RE.match(body)
     if m and m.group("short") in SHORT_TO_ROLE:
         return SHORT_TO_ROLE[m.group("short")], m.group("id3")
     m = _WATCH_RE.match(body)
     if m:
         return "watch", m.group("id3")
+    m = _MACHINE_LONG_RE.match(body)
+    if m and m.group("role").strip().upper() != "CEO":
+        return m.group("role").strip().lower().replace(" ", "_"), m.group("id")[:3]
     m = _C_LEVEL_BODY_RE.match(body)
-    if m and m.group("topic") is not None and m.group("role") != "CEO":
-        if m.group("id3") or m.group("role") in _NO_ID_ROLES:
-            return m.group("role").lower(), m.group("id3") or ""
+    if m and m.group("role") != "CEO":
+        if m.group("id3"):
+            return m.group("role").lower(), m.group("id3")
+        if m.group("topic") is None or m.group("role") in _NO_ID_ROLES:   # "CTO (Kavin)", "CFO", "COO SomPong"
+            return m.group("role").lower(), ""
     return None
 
 
@@ -258,7 +265,7 @@ def worker_parts(body: str) -> tuple[str, str, str] | None:
     """(Short, head, job) of a worker body in either shape, else None. Only a one-word
     text before the first ": " is a head ("Item 5: sparse" has none)."""
     m = WORKER_NAME_RE.match(body)
-    if not m:
+    if not m or m.group("short") not in SHORT_TO_ROLE:
         return None
     rest = m.group("rest") or ""
     rest = rest[2:] if rest.startswith("- ") else rest
