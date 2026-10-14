@@ -18,12 +18,43 @@ Verbs:
     python3 tools/ask_run.py cancel <id>   # your own pending ask only
     python3 tools/ask_run.py tail <id>     # live output (SSE) to stdout
 
-`create --dry-run` prints the JSON body and calls nothing (no token needed).
-`<id>` is RUN-YYYYMMDD-HHMM-xxxx, or the phone URL that ends in #RUN-...
+    python3 tools/ask_run.py ask --question "Ship tonight or tomorrow?" \\
+        --option "Tonight" --option "Tomorrow 09:00" --recommended 1 --why "..."
+    python3 tools/ask_run.py wait Q-...    # polls the hub for the CEO's tap
+    python3 tools/ask_run.py list --questions
+    python3 tools/ask_run.py cancel Q-...
 
-The org MCP tools `ask_run` / `ask_run_wait` (lib/org_tools_registry.py,
-served by runners/cto_mcp_server.py in every C-level session) call
-`mcp_ask()` / `wait_result()` below: one implementation, same checks.
+    python3 tools/ask_run.py ask --batch questions.json   # 1-6 questions, one group
+    python3 tools/ask_run.py wait QG-...   # until every question in the group has ended
+
+`create --dry-run` and `ask --dry-run` print the JSON body and call nothing (no
+token needed). `<id>` is RUN-YYYYMMDD-HHMM-xxxx (a command card),
+Q-YYYYMMDD-HHMM-xxxx (a question card) or QG-YYYYMMDD-HHMM-xxxx (a group of
+questions), or the phone URL that ends in #<id>.
+
+Several questions at once (CEO 2026-10-14, QUESTIONS.md §10): `ask --batch FILE`
+(FILE is a JSON list, `-` = stdin) raises up to 6 questions as one group, shown
+together on /run. Each item is {"question", "why", "options": [labels],
+"recommended": 1-based or 0, "free_text": true|false}; the requester, host and
+expiry are the group's (the flags), never an item's. Every item gets the same
+checks as a lone `ask`. The CEO answers them and sends once: you get ONE letter
+for everything he sent you, so one wake. `wait` on any Q- id in the group works
+as before; `wait QG-...` returns when every question in it has ended.
+
+A QUESTION card (docs/design/run-inbox/QUESTIONS.md, the contract this half
+builds against) is a 2-4 option question the CEO answers with one tap on /run.
+The same one rule holds: this tool creates, reads and cancels its own
+question and has no verb that answers. The CEO's tap is the only authority:
+the hub takes an answer from his passkey session only, and `wait Q-...` reads
+THAT record from the hub (never the mailbox letter, which is a wake-up call
+any process on the box could forge). A question never stands in for a command
+card: anything that runs a command, spends money or touches a secret goes on
+a command card (red = fresh Face ID).
+
+The org MCP tools `ask_run` / `ask_ceo` / `ask_run_wait`
+(lib/org_tools_registry.py, served by runners/cto_mcp_server.py in every
+C-level session) call `mcp_ask()` / `mcp_ask_ceo()` / `wait_result()` below:
+one implementation, same checks.
 
 Refused here, BEFORE any network call (exit 2):
   - a secret-shaped value anywhere in the ask: the key family of
@@ -35,8 +66,17 @@ Refused here, BEFORE any network call (exit 2):
   - --command from a role that is not C-level: `c_level` in
     policies/agents.yaml, the list lib/config.is_c_level reads (CEO decision
     1, DESIGN §11). The hub runs the same gate (403 freeform_needs_c_level).
+Refused here for `ask` too (QUESTIONS.md §3.2; exit 2, one stderr line each):
+secret shapes in any field; a role that is not C-level (the hub: 403
+question_needs_c_level); 2-4 options and the question / why / label limits;
+a command-shaped (§5: the question, every label, every line of why) or
+money-naming (§6: the question and every label) text, Unicode spaces read as
+spaces; a worker process (WORKER_TASK_ID set) claiming a C-level role.
 
-Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com
+Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com. For the question
+       verbs (ask, wait/cancel Q-..., list --questions) it must be the bare
+       address, http(s)://host[:port] and at most one trailing "/": a path,
+       query or fragment would move where those calls go, so it is refused.
 Token: RUN_INBOX_TOKEN, else ~/.config/mooniex/run-inbox.token (mode 0600).
        Never printed, never logged, never sent anywhere but the hub: a
        redirect is refused, not followed (urllib would copy the
@@ -49,9 +89,10 @@ state/inbox/<requester.session>/, and scripts/hook-inbox.py drains exactly
 CXO_SESSION_ID / CTO_SESSION_ID / WORKER_TASK_ID the way hook-inbox.py
 resolves the session's own box.
 
-Exit codes: 0 ok (wait/tail: the ask ended `done`) · 1 the ask ended failed/
-denied/expired/cancelled · 2 refused here or bad arguments · 3 no token,
-hub unreachable, or hub error · 4 wait --max-wait elapsed first.
+Exit codes: 0 ok (wait/tail: the ask ended `done`, the question `answered`) ·
+1 the ask ended failed/denied/expired/cancelled (a question: expired or
+cancelled) · 2 refused here or bad arguments · 3 no token, hub unreachable,
+or hub error · 4 wait --max-wait elapsed first.
 
 stdlib only (urllib) and Python 3.9+, so it runs on any box's python3.
 """
@@ -61,9 +102,11 @@ import argparse
 import json
 import os
 import re
+import socket
 import stat
 import sys
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -76,6 +119,14 @@ DEFAULT_URL = "https://terminal.mooniex.com"
 URL_ENV = "RUN_INBOX_URL"
 TOKEN_ENV = "RUN_INBOX_TOKEN"
 TOKEN_FILE = Path(".config") / "mooniex" / "run-inbox.token"  # under the user's home
+# Org restructure P2 (security review of Console task-fabda3b9, 2026-10-14): the
+# token file is the C-level's. A Contabo worker has no token of its own, so it
+# fell back to that file and the hub saw a C-level token: the Console's worker
+# checks (freeform_needs_c_level, RUN_INBOX_WORKER_SCRIPTS=0) never met a
+# worker. With this host flag on (lib/org_flags.py), a worker process uses
+# RUN_INBOX_TOKEN (a worker token) or nothing. An honest-path guard: a worker
+# running as the same unix user can still read the file itself.
+WORKER_TOKEN_FLAG = "ORG_WORKER_TOKEN_ONLY"
 
 # CEO decision 1 (DESIGN §11): freeform commands are for C-level roles only.
 # The list is the org's own `c_level` key (see c_level_roles), never a copy here.
@@ -84,6 +135,23 @@ RISKS = ("green", "amber", "red")
 SHELLS = ("bash", "powershell", "cmd")
 TERMINAL_STATES = ("done", "failed", "denied", "expired", "cancelled")
 NO_RUN_STATES = ("denied", "expired", "cancelled")  # ended without running
+QUESTION_TERMINAL_STATES = ("answered", "expired", "cancelled")  # QUESTIONS.md §2
+ANSWER_VIA = "operator_passkey_session"   # QUESTIONS.md §3.3; Console src/run/questions.js ANSWER_VIA
+
+# QUESTIONS.md §3.1 limits.
+QUESTION_MAX = 300
+WHY_MAX = 1000
+LABEL_MAX = 120
+OPTIONS_MIN, OPTIONS_MAX = 2, 4
+EXPIRES_DEFAULT_H = 24.0
+EXPIRES_MIN_S, EXPIRES_MAX_S = 600, 604800   # 10 min .. 7 days (§2)
+ASKS_PATH = "/api/run/asks"
+QUESTIONS_PATH = "/api/run/questions"
+GROUPS_PATH = "/api/run/question-groups"   # QUESTIONS.md §10
+GROUP_MAX = 6                              # questions in one group (§10)
+GROUP_TERMINAL_STATES = ("done",)          # a group is done when none of its questions is pending
+GROUP_ITEM_KEYS = ("question", "why", "options", "recommended", "free_text")
+BATCH_FILE_MAX = 64 * 1024
 
 DEFAULT_RISK = "amber"          # DESIGN §6 signature: risk="amber"
 DEFAULT_TIMEOUT_S = 300         # DESIGN §4: 300 s run timeout
@@ -106,6 +174,8 @@ _ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _REPO_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 _SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
 _ID_RE = re.compile(r"^RUN-[A-Za-z0-9][A-Za-z0-9-]{3,63}$")
+_QID_RE = re.compile(r"^Q-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}\Z")   # QUESTIONS.md §2
+_GID_RE = re.compile(r"^QG-[0-9]{8}-[0-9]{4}-[0-9a-f]{4}\Z")  # QUESTIONS.md §10
 
 
 class Refused(Exception):
@@ -306,7 +376,7 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
         raise Refused("cannot tell this session's role: pass --role "
                       "(your C-level role, or dev for a worker)")
     worker = env.get("WORKER_TASK_ID")
-    if worker and not env.get("CXO_ROLE") and role in c_level_roles():
+    if worker and role in c_level_roles():   # whatever CXO_ROLE says: a worker env is never C-level
         raise Refused(f"this process is worker {worker} (WORKER_TASK_ID is set); "
                       f"a worker cannot claim role {role!r}")
     session = (session or "").strip()
@@ -380,24 +450,301 @@ def build_payload(args: argparse.Namespace, script_args: list[str],
     return payload
 
 
+# ------------------------------------------------------- the question card
+# QUESTIONS.md §5 and §6, carried here as the same rule lists and the same test
+# table (tests/test_ask_run_questions.py) the Console's JS copy is held to. The
+# hub refuses the same texts (command_shaped / money_needs_command_card); this
+# copy makes the refusal happen before anything leaves the box. A rule is
+# named in the message, the text itself never is.
+_CMD_WORDS = (
+    "sudo rm mv cp chmod chown kill pkill killall systemctl service journalctl docker kubectl git gh "
+    "npm npx node pnpm yarn pip pip3 python python3 bash sh zsh ssh scp rsync curl wget tmux crontab "
+    "launchctl brew apt apt-get dnf yum infisical psql mysql sqlite3 dropdb createdb make terraform "
+    "ansible pwsh powershell cmd schtasks taskkill reg eval exec export source cd ls cat echo tee dd "
+    "mkfs shutdown reboot ln find sed awk xargs openssl ufw iptables").split()
+_PS_WORDS = "Remove-Item Set-Item Invoke-WebRequest Invoke-Expression iwr iex".split()
+
+
+def _any_of(words: list[str]) -> str:
+    return "(?:" + "|".join(re.escape(w) for w in words) + ")"
+
+
+_COMMAND_SHAPES = (
+    ("a backtick, $( or ${", re.compile(r"`|\$\(|\$\{")),
+    ("&& or ||", re.compile(r"&&|\|\|")),
+    ("a pipe into a word", re.compile(r"(^|\s)\|\s*[A-Za-z]")),
+    ("a redirect to a path", re.compile(r"(^|\s)>>?\s*[/~.]")),
+    ("a CLI flag", re.compile(r"(^|\s)--[A-Za-z]|(^|\s)-[A-Za-z]{1,4}(?=\s|$)")),
+    ("a path", re.compile(r"^(?:\.{1,2}|~)?/\S")),
+    ("a shell script name", re.compile(r"\b[\w.-]+\.(?:sh|ps1|bat)\b", re.IGNORECASE)),
+    # an optional lead word (any case), then a lowercase command word, or a
+    # PowerShell one in any case, then a space: "Make it bigger" passes.
+    ("a command line", re.compile(r"^(?:(?i:run|execute|exec|รัน|สั่ง)\s+)?(?:" + _any_of(_CMD_WORDS)
+                                  + "|(?i:" + _any_of(_PS_WORDS) + ")) ")),
+)
+# §6 as amended 2026-10-13, pattern for pattern (tests/test_ask_run_questions.py pins the text).
+_MONEY_SHAPES = (
+    ("a currency sign before a digit", re.compile(r"[$฿€£¥₹]\s*\d")),
+    ("an amount in a currency", re.compile(
+        r"\d[\d,.]*\s*[kKmM]?\s*(?:usd|thb|baht|eur|gbp|inr|dollars?|bucks?|pounds?|บาท|ดอลลาร์|ดอลล่าร์)",
+        re.IGNORECASE)),
+    ("a currency code before a digit", re.compile(r"\b(?:usd|thb|eur|gbp|inr)\s*\d", re.IGNORECASE)),
+    ("an amount of credits", re.compile(r"\d[\d,.]*\s*[kKmM]?\s*(?:credits?|เครดิต)", re.IGNORECASE)),
+)
+# Characters the CEO cannot see on the card but a string compare would: control
+# and format characters (zero-width, bidi overrides), line / paragraph
+# separators. A newline is the one allowed exception, and only inside `why`.
+_HIDDEN_CATEGORIES = ("Cc", "Cf", "Cs", "Zl", "Zp")
+
+
+def _ascii_spaces(text: str) -> str:
+    """Every Unicode space (category Zs: NBSP, thin space, ideographic space ...)
+    becomes an ASCII space before §5 / §6 match (QUESTIONS.md §5): the rules
+    look for a literal space after a command word, and `git\\u00a0push` is a
+    command the CEO reads as `git push`."""
+    return "".join(" " if unicodedata.category(c) == "Zs" else c for c in text)
+
+
+def command_shaped(text: str) -> str | None:
+    """The name of the first §5 rule `text` matches, else None."""
+    text = _ascii_spaces(text).strip()
+    for name, rx in _COMMAND_SHAPES:
+        if rx.search(text):
+            return name
+    return None
+
+
+def money_shaped(text: str) -> str | None:
+    """The name of the first §6 rule `text` matches, else None."""
+    text = _ascii_spaces(text)
+    for name, rx in _MONEY_SHAPES:
+        if rx.search(text):
+            return name
+    return None
+
+
+def _has_hidden_char(text: str, *, newline_ok: bool = False) -> bool:
+    return any(unicodedata.category(c) in _HIDDEN_CATEGORIES and not (newline_ok and c == "\n")
+               for c in text)
+
+
+def _self_host_id() -> str | None:
+    """lib.config.self_host(), when this checkout's `lib` is importable and
+    resolves (PyYAML + config/hosts.yaml); None on any failure. The repo root
+    goes on the END of sys.path so `python3 tools/ask_run.py` can find `lib`
+    without it shadowing anything already importable."""
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.append(str(ROOT))
+        from lib.config import self_host
+        return str(self_host()).strip().lower() or None
+    except Exception:  # noqa: BLE001 - any failure means "fall back to the hostname"
+        return None
+
+
+def resolve_host(flag: str | None, env: dict | None = None) -> str:
+    """requester.host (QUESTIONS.md §9): --host, else ORG_HOST, else
+    lib.config.self_host() when importable, else the lowercased short hostname."""
+    env = os.environ if env is None else env
+    host = ((flag or "").strip() or (env.get("ORG_HOST") or "").strip() or _self_host_id()
+            or socket.gethostname().split(".")[0]).strip().lower()
+    if not _HOST_RE.match(host):
+        raise Refused(f"cannot tell which machine this session runs on (got {host!r}): "
+                      "pass --host contabo | mac | winbox")
+    return host
+
+
+def _expires_s(hours: Any) -> int:
+    if isinstance(hours, bool) or not isinstance(hours, (int, float)) or hours != hours \
+            or hours in (float("inf"), float("-inf")):
+        raise Refused("invalid_expires_in_s: --expires-h is a number of hours (default 24)")
+    return int(round(hours * 3600))
+
+
+def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
+    """The POST /api/run/questions body (QUESTIONS.md §3.1), in the contract's
+    field order, before the content checks. Only the fields §3.1 names are
+    ever set: there is no field here that could carry an answer (§1.2), and
+    `--recommended N` (1-based) becomes `recommended: true` on that option."""
+    who = resolve_requester(args.session, args.role, getattr(args, "task", None), env)
+    requester: dict[str, Any] = {"session": who["session"], "role": who["role"],
+                                 "host": resolve_host(args.host, env)}
+    if "task" in who:
+        requester["task"] = who["task"]
+    options = []
+    for i, label in enumerate(args.option or []):
+        option: dict[str, Any] = {"label": (label or "").strip()}
+        if args.recommended == i + 1:
+            option["recommended"] = True
+        options.append(option)
+    return {
+        "question": (args.question or "").strip(),
+        "why": (args.why or "").replace("\r\n", "\n").replace("\r", "\n").strip(),
+        "options": options,
+        "free_text": not args.no_free_text,
+        "expires_in_s": _expires_s(args.expires_h),
+        "requester": requester,
+    }
+
+
+def check_question_role_gate(body: dict) -> None:
+    """QUESTIONS.md §1.6: C-level only. The hub answers a worker's token with
+    403 question_needs_c_level; this refuses the role before sending."""
+    roles = c_level_roles()
+    role = body["requester"]["role"]
+    if role not in roles:
+        raise Refused(
+            f"question_needs_c_level: a question card is for C-level sessions ({'/'.join(roles)}, "
+            f"policies/agents.yaml c_level); this requester is role {role!r}. A worker reports to "
+            "its C-level session, which asks the CEO.")
+
+
+def check_question(body: dict, args: argparse.Namespace) -> None:
+    """QUESTIONS.md §3.1 limits, then §5 (command_shaped), then §6
+    (money_needs_command_card), in the order §3.2 lists the hub's refusals.
+    Messages name the field and the rule, never the text."""
+    question, why, options = body["question"], body["why"], body["options"]
+    if not question:
+        raise Refused("question_required: --question is empty")
+    if "\n" in question or "\r" in question or len(question) > QUESTION_MAX:
+        raise Refused(f"invalid_question: one line, at most {QUESTION_MAX} characters "
+                      f"(got {len(question)})")
+    if not why:
+        raise Refused("why_required: --why is empty (the CEO reads it before tapping)")
+    if len(why) > WHY_MAX:
+        raise Refused(f"invalid_why: at most {WHY_MAX} characters (got {len(why)})")
+    if not OPTIONS_MIN <= len(options) <= OPTIONS_MAX:
+        raise Refused(f"invalid_options: {OPTIONS_MIN} to {OPTIONS_MAX} options "
+                      f"(--option, repeatable), got {len(options)}")
+    seen: dict[str, int] = {}
+    for i, option in enumerate(options):
+        label = option["label"]
+        if not label or "\n" in label or "\r" in label or len(label) > LABEL_MAX:
+            raise Refused(f"invalid_options: options[{i}].label is one line of 1 to {LABEL_MAX} characters")
+        if label.casefold() in seen:
+            raise Refused(f"invalid_options: options[{i}].label repeats options[{seen[label.casefold()]}]"
+                          " (labels are unique, case-insensitive)")
+        seen[label.casefold()] = i
+    rec = args.recommended
+    if rec is not None and (isinstance(rec, bool) or not isinstance(rec, int)
+                            or not 1 <= rec <= len(options)):
+        raise Refused(f"invalid_options: --recommended is an option number, 1 to {len(options)}")
+    if not EXPIRES_MIN_S <= body["expires_in_s"] <= EXPIRES_MAX_S:
+        raise Refused(f"invalid_expires_in_s: --expires-h is {EXPIRES_MIN_S / 3600:.2g} to "
+                      f"{EXPIRES_MAX_S / 3600:g} hours (got {body['expires_in_s'] / 3600:g})")
+    fields = [("question", question)] + [(f"options[{i}].label", o["label"]) for i, o in enumerate(options)]
+    hidden_code = {"question": "invalid_question", "why": "invalid_why"}
+    for field, text in fields + [("why", why)]:
+        if _has_hidden_char(text, newline_ok=field == "why"):
+            raise Refused(f"{hidden_code.get(field, 'invalid_options')}: {field} has a hidden "
+                          "character (control, zero-width or bidi)")
+    # §5 runs on the question, every label and every line of why, each line as its own text;
+    # §6 (money) never on why: context may mention cost.
+    why_lines = [(f"why (line {n})" if "\n" in why else "why", line)
+                 for n, line in enumerate(why.split("\n"), 1)]
+    for field, text in fields + why_lines:
+        rule = command_shaped(text)
+        if rule:
+            raise Refused(f"command_shaped: {field} looks like a command ({rule}); a question is not a "
+                          "command. Anything that runs a command, spends money or touches a secret "
+                          "goes on a command card (ask_run create, Face ID).")
+    for field, text in fields:
+        rule = money_shaped(text)
+        if rule:
+            raise Refused(f"money_needs_command_card: {field} names an amount ({rule}); a question never "
+                          "approves spend. Money goes on a command card (ask_run create, Face ID).")
+
+
+def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
+    """The POST body with every local refusal already run, in §3.2's order:
+    secret shapes over the whole body, the C-level gate, then the content
+    checks. `ask` and the MCP tool `ask_ceo` both come here."""
+    body = build_question(args, env)
+    hits = find_secret_shapes(body)
+    if hits:
+        raise Refused("secret_shaped_value; nothing was sent: " + "; ".join(hits)
+                      + ". A question carries no secret, ever (DESIGN §6).")
+    check_question_role_gate(body)
+    check_question(body, args)
+    return body
+
+
 # ------------------------------------------------------------ hub access
+def _raw_base_url() -> str:
+    return (os.environ.get(URL_ENV) or "").strip() or DEFAULT_URL
+
+
 def base_url() -> str:
-    url = (os.environ.get(URL_ENV) or "").strip() or DEFAULT_URL
+    url = _raw_base_url()
     if urllib.parse.urlsplit(url).scheme not in ("http", "https"):
         raise HubError(f"{URL_ENV} must be an http(s) URL (got {url!r})")
     return url.rstrip("/")
+
+
+# scheme://host[:port] and at most one trailing "/": nothing the question routes could be steered by.
+_BARE_HUB_RE = re.compile(r"https?://[^\s/\\?#@\x00-\x1f]+/?", re.IGNORECASE)
+
+
+def question_base_url() -> str:
+    """base_url() for the question verbs: the hub's address and nothing after
+    host[:port] but an optional trailing "/". A base with a path, query or
+    fragment moves where `ask` / `wait` / `cancel` / `list --questions` really
+    go (a base ending in a question's own route plus `?x=` made `ask` POST
+    to that route; security review 2026-10-13). Command cards keep base_url():
+    no config here sets a path, but RUN_INBOX_URL lives outside this repo on
+    three machines. The message names the part, never the value (a query can
+    carry a secret)."""
+    try:
+        base_url()                               # the scheme error first, as for every verb
+        raw = _raw_base_url()
+        if _BARE_HUB_RE.fullmatch(raw):
+            return base_url()
+        parts = urllib.parse.urlsplit(raw)
+    except ValueError:                           # urlsplit: "Invalid IPv6 URL" and the like
+        raise Refused(f"{URL_ENV} is not a URL of the form http(s)://host[:port]") from None
+    extras = [name for name, present in (
+        ("a path", parts.path not in ("", "/")), ("a query", "?" in raw), ("a fragment", "#" in raw),
+        ("credentials", "@" in parts.netloc)) if present]
+    raise Refused(f"{URL_ENV} must be the hub's address only (http(s)://host[:port], at most one trailing "
+                  f"'/'), but it has {' and '.join(extras) or 'more after the host'}: question cards "
+                  "are sent to fixed routes under it, so a longer address would send them somewhere else")
 
 
 def token_path() -> Path:
     return Path.home() / TOKEN_FILE
 
 
+def _is_worker_process(env: dict | None = None) -> bool:
+    """WORKER_TASK_ID or WORKER_ROLE set to any value, even empty: the rule the
+    Console's relay role gate uses too (src/relay/roleGate.js callerFromEnv)."""
+    env = os.environ if env is None else env
+    return "WORKER_TASK_ID" in env or "WORKER_ROLE" in env
+
+
+def _host_flag_on(name: str) -> bool:
+    """lib.org_flags.on(name); the repo root goes on the END of sys.path, as in
+    _self_host_id. A checkout whose `lib` cannot load reads the flag as on: the
+    guard fails closed for a worker, never open."""
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.append(str(ROOT))
+        from lib import org_flags
+        return org_flags.on(name)
+    except Exception:  # noqa: BLE001 - see docstring
+        return True
+
+
 def load_token() -> str:
     """RUN_INBOX_TOKEN, else the token file (0600). The value goes into the
-    Authorization header and nowhere else — no message here names it."""
+    Authorization header and nowhere else — no message here names it. A worker
+    process gets no file fallback while WORKER_TOKEN_FLAG is on."""
     val = (os.environ.get(TOKEN_ENV) or "").strip()
     if val:
         return val
+    if _is_worker_process() and _host_flag_on(WORKER_TOKEN_FLAG):
+        raise HubError(f"a worker process (WORKER_TASK_ID / WORKER_ROLE set) needs its own token in "
+                       f"{TOKEN_ENV}; the token file is the C-level's (host flag {WORKER_TOKEN_FLAG}). "
+                       f"Report the step to your Project Head or C-level instead")
     path = token_path()
     try:
         mode = path.stat().st_mode
@@ -431,6 +778,11 @@ _HINTS = {
     "secret_shaped_value": "remove the value; reference an env var name or an Infisical path",
     "freeform_needs_c_level": "workers ask with --script repo@sha:path at a pushed commit",
     "peer_exec_not_yet": "that host has no executor yet (P2); only the hub's own host runs cards today",
+    "question_needs_c_level": "only C-level sessions ask the CEO a question; a worker reports to its C-level session",
+    "command_shaped": "a question is not a command: commands go on a command card (ask_run create, Face ID)",
+    "money_needs_command_card": "a question never approves spend: money goes on a command card (ask_run create, Face ID)",
+    "answer_not_allowed": "a question cannot carry its own answer; only the CEO's tap on /run answers",
+    "too_many_open_questions": "50 questions already wait on the CEO; cancel stale ones (list --questions, cancel Q-...)",
     401: f"the hub did not accept the org token ({TOKEN_ENV} or ~/{TOKEN_FILE.as_posix()})",
     403: "the org token may not do that (it can create, read its own asks and cancel its own pending ask)",
     404: "no such ask, or not yours (the org token only sees its own asks)",
@@ -466,6 +818,8 @@ def _hub_error(e: urllib.error.HTTPError) -> HubError:
     elif raw:
         detail = raw[:200].decode("utf-8", "replace")
     msg = f"hub refused ({e.code}{': ' + code if code else ''})"
+    if isinstance(body, dict) and isinstance(body.get("field"), str):
+        msg += f" in {body['field'][:60]}"   # where, never the value (QUESTIONS.md §3.2)
     if detail:
         msg += f" {detail}"
     hint = _HINTS.get(code) or _HINTS.get(e.code)
@@ -474,10 +828,17 @@ def _hub_error(e: urllib.error.HTTPError) -> HubError:
     return HubError(msg, status=e.code, code=code, transient=e.code >= 500 or e.code == 429)
 
 
+def _is_question_path(path: str) -> bool:
+    return any(path == base or path.startswith(base + "/") for base in (QUESTIONS_PATH, GROUPS_PATH))
+
+
 def _request(method: str, path: str, *, body: Any = None, query: dict | None = None,
              accept: str = "application/json", timeout: float | None = HTTP_TIMEOUT_S):
+    # every question call (ask, wait, cancel, list --questions) passes the strict address check here,
+    # before the token is read and before a connection is opened
+    base = question_base_url() if _is_question_path(path) else base_url()
     token = load_token()
-    url = base_url() + path
+    url = base + path
     if query:
         url += "?" + urllib.parse.urlencode(query)
     headers = {"Authorization": "Bearer " + token, "Accept": accept, "User-Agent": USER_AGENT}
@@ -519,11 +880,22 @@ def _unwrap(rec: Any) -> dict:
 
 def normalize_id(raw: str) -> str:
     s = (raw or "").strip()
-    if "#" in s:  # the phone URL .../run#RUN-...
+    if "#" in s:  # the phone URL .../run#RUN-... or .../run#Q-...
         s = s.rsplit("#", 1)[1]
-    if not _ID_RE.match(s):
-        raise Refused(f"not a Run Inbox id: {raw!r} (expected RUN-YYYYMMDD-HHMM-xxxx or its /run#... URL)")
+    if not (_ID_RE.match(s) or _QID_RE.match(s) or _GID_RE.match(s)):
+        raise Refused(f"not a Run Inbox id: {raw!r} (expected RUN-YYYYMMDD-HHMM-xxxx, "
+                      "Q-YYYYMMDD-HHMM-xxxx, QG-YYYYMMDD-HHMM-xxxx, or its /run#... URL)")
     return s
+
+
+def is_question_id(ask_id: str) -> bool:
+    """A question card's id (Q-...), as opposed to a command card's (RUN-...)."""
+    return ask_id.startswith("Q-")
+
+
+def is_group_id(ask_id: str) -> bool:
+    """A group of questions (QG-...), raised by `ask --batch` / ask_ceo(questions=...)."""
+    return ask_id.startswith("QG-")
 
 
 def card_url(ask_id: str) -> str:
@@ -531,7 +903,22 @@ def card_url(ask_id: str) -> str:
 
 
 def _ask_path(ask_id: str, suffix: str = "") -> str:
-    return f"/api/run/asks/{urllib.parse.quote(ask_id, safe='')}{suffix}"
+    return f"{ASKS_PATH}/{urllib.parse.quote(ask_id, safe='')}{suffix}"
+
+
+def _question_path(question_id: str, suffix: str = "") -> str:
+    return f"{QUESTIONS_PATH}/{urllib.parse.quote(question_id, safe='')}{suffix}"
+
+
+def _group_path(group_id: str) -> str:
+    return f"{GROUPS_PATH}/{urllib.parse.quote(group_id, safe='')}"
+
+
+def _record_path(ask_id: str) -> str:
+    """GET path of a card, a question or a group, by the id's prefix."""
+    if is_group_id(ask_id):
+        return _group_path(ask_id)
+    return _question_path(ask_id) if is_question_id(ask_id) else _ask_path(ask_id)
 
 
 # ------------------------------------------------------------- rendering
@@ -621,13 +1008,141 @@ def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | No
     return payload
 
 
-def submit(payload: dict) -> dict:
+def submit(payload: dict, path: str = ASKS_PATH) -> dict:
     """POST the ask; the hub's answer plus the phone URL of the card."""
-    resp = _unwrap(_call("POST", "/api/run/asks", body=payload))
+    resp = _unwrap(_call("POST", path, body=payload))
     ask_id = resp.get("id")
     if not isinstance(ask_id, str) or not ask_id:
         raise HubError(f"hub accepted the ask but returned no id: {json.dumps(resp)[:200]}")
     return {**resp, "url": card_url(ask_id)}
+
+
+def submit_question(payload: dict) -> dict:
+    """POST the question; the hub's answer plus the phone URL of the card."""
+    resp = submit(payload, QUESTIONS_PATH)
+    if not _QID_RE.match(resp["id"]):
+        raise HubError(f"hub accepted the question but returned a malformed id: {resp['id'][:80]!r}")
+    return resp
+
+
+def _blank(value: Any) -> bool:
+    return not (isinstance(value, str) and value.strip())
+
+
+def verify_question_record(rec: dict) -> None:
+    """The record is the hub's, and it is what a session cites as the CEO's
+    decision (QUESTIONS.md §1.3). Fail closed on the hub's own marker, not on a
+    username (the operator's name is whatever the Console's operators table says):
+    an `answered` record needs `answer.via == ANSWER_VIA` (the answer route sets
+    it for a passkey-session answer and for nothing else), a non-empty
+    `answered_by` and a non-empty `answered_at`. Anything else is not an answer
+    anyone can attribute."""
+    if rec.get("status") != "answered":
+        return
+    answer = rec.get("answer")
+    if not isinstance(answer, dict):
+        reason = "answer is not an object"
+    elif answer.get("via") != ANSWER_VIA:
+        reason = f"answer.via is not {ANSWER_VIA!r}"
+    elif _blank(answer.get("answered_by")):
+        reason = "answer.answered_by is empty"
+    elif _blank(answer.get("answered_at")):
+        reason = "answer.answered_at is empty"
+    else:
+        return
+    raise HubError(f"{rec.get('id', '?')}: the hub record says answered but {reason}; "
+                   "not trusting it (QUESTIONS.md §1.3, §3.3)")
+
+
+def load_batch_file(path: str) -> Any:
+    """`ask --batch FILE`: the JSON list of questions (`-` = stdin). A bad file
+    is a refusal, before any network call."""
+    try:
+        raw = sys.stdin.read(BATCH_FILE_MAX + 1) if path == "-" else \
+            Path(path).read_text(encoding="utf-8")[:BATCH_FILE_MAX + 1]
+    except (OSError, UnicodeDecodeError) as e:
+        raise Refused(f"invalid_questions: cannot read --batch {path!r}: {e.__class__.__name__}") from None
+    if len(raw) > BATCH_FILE_MAX:
+        raise Refused(f"invalid_questions: --batch file is over {BATCH_FILE_MAX // 1024} KB")
+    try:
+        return json.loads(raw)
+    except ValueError as e:
+        raise Refused(f"invalid_questions: --batch is not JSON (line {getattr(e, 'lineno', '?')})") from None
+
+
+def _item_refusal(index: int, err: Refused) -> Refused:
+    """An item's refusal, with the item named and the rule code still first."""
+    text = str(err)
+    m = re.match(r"([a-z_]+)[:;]\s*(.*)\Z", text, re.S)
+    code, rest = (m.group(1), m.group(2)) if m else ("invalid_questions", text)
+    return Refused(f"{code}: questions[{index}]: {rest}")
+
+
+def prepare_question_group(items: Any, args: argparse.Namespace, env: dict | None = None) -> dict:
+    """The POST /api/run/question-groups body (QUESTIONS.md §10): every item
+    through prepare_question(), the same checks as a lone `ask`, then one body
+    that carries the requester and expiry once. An item may not set its own
+    requester, host or expiry: the group has one asker and one deadline."""
+    if isinstance(items, dict) and set(items) == {"questions"}:
+        items = items["questions"]
+    if not isinstance(items, list) or not 1 <= len(items) <= GROUP_MAX:
+        raise Refused(f"invalid_questions: a group is a list of 1 to {GROUP_MAX} questions"
+                      + (f" (got {len(items)})" if isinstance(items, list) else ""))
+    bodies = []
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise Refused(f"invalid_questions: questions[{i}] is not an object")
+        extra = sorted(set(item) - set(GROUP_ITEM_KEYS))
+        if extra:
+            raise Refused(f"invalid_questions: questions[{i}] has {', '.join(extra)}; an item carries only "
+                          f"{', '.join(GROUP_ITEM_KEYS)} (requester, host and expiry are the group's)")
+        shared = {"session": args.session, "role": args.role, "host": args.host,
+                  "task": getattr(args, "task", None), "expires_h": args.expires_h}
+        try:
+            body = prepare_question(_mcp_question_namespace({**item, **shared}), env)
+        except Refused as e:
+            raise _item_refusal(i, e) from None
+        bodies.append(body)
+    payload = {
+        "questions": [{k: b[k] for k in ("question", "why", "options", "free_text")} for b in bodies],
+        "expires_in_s": bodies[0]["expires_in_s"],
+        "requester": bodies[0]["requester"],
+    }
+    hits = find_secret_shapes(payload)
+    if hits:  # each item was checked; this is the body as sent
+        raise Refused("secret_shaped_value; nothing was sent: " + "; ".join(hits))
+    return payload
+
+
+def submit_question_group(payload: dict) -> dict:
+    """POST the group; the hub's answer with the phone URL of the group and of each question."""
+    resp = _unwrap(_call("POST", GROUPS_PATH, body=payload))
+    group_id = resp.get("group_id")
+    if not isinstance(group_id, str) or not _GID_RE.match(group_id):
+        raise HubError(f"hub accepted the group but returned no group id: {json.dumps(resp)[:200]}")
+    questions = resp.get("questions")
+    if not isinstance(questions, list) or len(questions) != len(payload["questions"]) or not all(
+            isinstance(q, dict) and isinstance(q.get("id"), str) and _QID_RE.match(q["id"]) for q in questions):
+        raise HubError(f"hub accepted group {group_id} but its question ids are malformed")
+    return {**resp, "url": card_url(group_id),
+            "questions": [{**q, "url": card_url(q["id"])} for q in questions]}
+
+
+def verify_group_record(rec: dict) -> None:
+    """A group's record is its questions' records; each one is checked like a
+    lone answer (verify_question_record), and a group the hub calls done must
+    have no question still pending."""
+    questions = rec.get("questions")
+    if not isinstance(questions, list) or not questions or not all(isinstance(q, dict) for q in questions):
+        raise HubError(f"{rec.get('id', '?')}: the hub's group record has no questions; not trusting it")
+    for q in questions:
+        if not _QID_RE.match(str(q.get("id", ""))) or (rec.get("id") and q.get("group_id") != rec.get("id")):
+            raise HubError(f"{rec.get('id', '?')}: a question in the group record is not one of its own")
+        verify_question_record(q)
+    if rec.get("status") in GROUP_TERMINAL_STATES and any(
+            q.get("status") not in QUESTION_TERMINAL_STATES for q in questions):
+        raise HubError(f"{rec.get('id', '?')}: the hub says the group is done but a question is still "
+                       "pending; not trusting it")
 
 
 def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: float = 0,
@@ -640,13 +1155,15 @@ def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: 
     MAX_POLL_FAILURES transient errors in a row; anything else raises at once."""
     interval = max(interval, MIN_INTERVAL_S)
     deadline = time.monotonic() + max_wait if max_wait and max_wait > 0 else None
+    terminal = (GROUP_TERMINAL_STATES if is_group_id(ask_id)
+                else QUESTION_TERMINAL_STATES if is_question_id(ask_id) else TERMINAL_STATES)
     last_rec: dict | None = None
     last_status = None
     failures = 0
     while True:
         rec = None
         try:
-            rec = _unwrap(_call("GET", _ask_path(ask_id)))
+            rec = _unwrap(_call("GET", _record_path(ask_id)))
             failures = 0
         except HubError as e:
             failures += 1
@@ -662,7 +1179,7 @@ def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: 
                 last_status = status
                 if on_status:
                     on_status(status, rec)
-            if status in TERMINAL_STATES:
+            if status in terminal:
                 return rec, True
         pause = interval
         if deadline is not None:
@@ -674,9 +1191,9 @@ def poll_until_end(ask_id: str, *, interval: float = POLL_INTERVAL_S, max_wait: 
 
 
 # ------------------------------------------------------------ the MCP tools
-# lib/org_tools_registry.py `ask_run` / `ask_run_wait` call these (in a worker
-# thread, so the org server's event loop never blocks). Nothing here prints:
-# that server's stdout is its JSON-RPC channel.
+# lib/org_tools_registry.py `ask_run` / `ask_ceo` / `ask_run_wait` call these
+# (in a worker thread, so the org server's event loop never blocks). Nothing
+# here prints: that server's stdout is its JSON-RPC channel.
 WAIT_DEFAULT_S = 600.0
 WAIT_MAX_S = 3600.0
 
@@ -729,11 +1246,88 @@ def mcp_ask(arguments: dict, env: dict | None = None) -> dict:
             "expires_at": resp.get("expires_at")}
 
 
+def _mcp_question_namespace(a: dict) -> argparse.Namespace:
+    """MCP `ask_ceo` arguments -> the Namespace `ask` parses, so both run one
+    path. `recommended` is 1-based, 0 = none; an empty string means "not given"."""
+    options = a.get("options")
+    if not isinstance(options, list) or not all(isinstance(x, str) for x in options):
+        raise Refused(f"invalid_options: options is a list of {OPTIONS_MIN} to {OPTIONS_MAX} strings")
+    recommended = a.get("recommended") or 0
+    if isinstance(recommended, float) and recommended.is_integer():
+        recommended = int(recommended)
+    if isinstance(recommended, bool) or not isinstance(recommended, int) or recommended < 0:
+        raise Refused("invalid_options: recommended is an option number, 1-based (0 = none)")
+    free_text = a.get("free_text", True)
+    if not isinstance(free_text, bool):
+        raise Refused("invalid_free_text: free_text is true or false")
+    return argparse.Namespace(
+        question=a.get("question") or "", option=list(options), recommended=recommended or None,
+        why=a.get("why") or "", no_free_text=not free_text,
+        expires_h=a.get("expires_h", EXPIRES_DEFAULT_H), session=a.get("session") or None,
+        role=a.get("role") or None, host=a.get("host") or None, task=a.get("task") or None,
+        dry_run=bool(a.get("dry_run")), json=False)
+
+
+def _mcp_ask_ceo_group(arguments: dict, env: dict | None) -> dict:
+    """MCP `ask_ceo` with `questions`: the same checks and the same POST as
+    `ask --batch`. The one-card fields must be empty: a call is one card or one group."""
+    try:
+        lone = [k for k in ("question", "why") if (arguments.get(k) or "").strip()]
+        if arguments.get("options"):
+            lone.append("options")
+        if arguments.get("recommended"):
+            lone.append("recommended")
+        if arguments.get("free_text", True) is not True:
+            lone.append("free_text")
+        if lone:
+            raise Refused(f"invalid_questions: give questions (a group) or {', '.join(lone)} (one card), "
+                          "not both; each item of questions carries its own question, why, options, "
+                          "recommended and free_text")
+        ns = argparse.Namespace(session=arguments.get("session") or None, role=arguments.get("role") or None,
+                                host=arguments.get("host") or None, task=arguments.get("task") or None,
+                                expires_h=arguments.get("expires_h", EXPIRES_DEFAULT_H))
+        payload = prepare_question_group(arguments.get("questions"), ns, env)
+        base = question_base_url()
+    except Refused as e:
+        raise Refused(f"refused: {e}") from None
+    if arguments.get("dry_run"):
+        return {"dry_run": True, "would_post": base + GROUPS_PATH, "payload": payload}
+    resp = submit_question_group(payload)
+    return {"group_id": resp["group_id"], "url": resp["url"], "expires_at": resp.get("expires_at"),
+            "questions": [{"id": q["id"], "url": q["url"]} for q in resp["questions"]]}
+
+
+def mcp_ask_ceo(arguments: dict, env: dict | None = None) -> dict:
+    """MCP `ask_ceo`: the same checks and the same POST as `ask`. Returns
+    {id, url, expires_at}, or {dry_run, would_post, payload}. It creates the
+    question and nothing else: no path here answers one (QUESTIONS.md §1.1).
+    With `questions` (1-6 items) it raises one group instead, like `ask --batch`,
+    and returns {group_id, url, expires_at, questions: [{id, url}]}."""
+    if arguments.get("questions") not in (None, "", []):
+        return _mcp_ask_ceo_group(arguments, env)
+    try:
+        if arguments.get("options") in (None, "") and not (arguments.get("question") or "").strip():
+            raise Refused("question_required: give question, options and why (one card), or questions "
+                          f"(a group of up to {GROUP_MAX})")
+        ns = _mcp_question_namespace(arguments)
+        payload = prepare_question(ns, env)
+        base = question_base_url()
+    except Refused as e:
+        raise Refused(f"refused: {e}") from None
+    if ns.dry_run:
+        return {"dry_run": True, "would_post": base + QUESTIONS_PATH, "payload": payload}
+    resp = submit_question(payload)
+    return {"id": resp["id"], "url": resp["url"], "expires_at": resp.get("expires_at")}
+
+
 def wait_result(ask_id: str, *, max_wait_s: float = WAIT_DEFAULT_S,
                 interval_s: float = POLL_INTERVAL_S, tail_lines_n: int = TAIL_LINES) -> dict:
     """MCP `ask_run_wait`: `wait`, bounded so one tool call never outlives the
     client (max_wait_s, default 600, at most 3600). terminal=False = call again.
-    The output tail is cut to its last `tail_lines_n` lines (0 = all)."""
+    The output tail is cut to its last `tail_lines_n` lines (0 = all). A Q-...
+    id waits on a question card: the hub's record, {terminal, status, answer, ...}.
+    A QG-... id waits on a group: terminal once no question in it is pending,
+    with every question's record under `questions`."""
     try:
         ask_id = normalize_id(ask_id)
     except Refused as e:
@@ -742,6 +1336,10 @@ def wait_result(ask_id: str, *, max_wait_s: float = WAIT_DEFAULT_S,
     rec, ended = poll_until_end(ask_id, interval=float(interval_s or POLL_INTERVAL_S),
                                 max_wait=max_wait)
     rec = dict(rec or {"id": ask_id})
+    if is_question_id(ask_id):
+        verify_question_record(rec)
+    elif is_group_id(ask_id) and rec.get("questions") is not None:
+        verify_group_record(rec)
     out: dict[str, Any] = {"terminal": ended}
     if not ended:
         out["note"] = f"still {rec.get('status', 'unknown')} after {max_wait:g} s; call ask_run_wait again"
@@ -774,6 +1372,90 @@ def cmd_create(args: argparse.Namespace, script_args: list[str]) -> int:
     return EXIT_OK
 
 
+def cmd_ask_batch(args: argparse.Namespace) -> int:
+    payload = prepare_question_group(load_batch_file(args.batch), args)
+    base = question_base_url()
+    if args.dry_run:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        sys.stdout.flush()
+        _say(f"dry run: nothing sent (would POST {base}{GROUPS_PATH})")
+        return EXIT_OK
+    resp = submit_question_group(payload)
+    group_id = resp["group_id"]
+    if args.json:
+        print(json.dumps(resp, indent=2, ensure_ascii=False))
+    else:
+        print(group_id)
+        print(resp["url"])
+        for q in resp["questions"]:
+            print(q["id"])
+    _say(f"{resp.get('status', 'pending')} · {len(resp['questions'])} questions · expires "
+         f"{resp.get('expires_at', '?')}. Only the CEO's tap on /run answers them; what he sends you "
+         f"at once comes as one letter. Next: python3 tools/ask_run.py wait {group_id}")
+    return EXIT_OK
+
+
+def cmd_ask(args: argparse.Namespace) -> int:
+    if args.batch:
+        return cmd_ask_batch(args)
+    payload = prepare_question(args)
+    base = question_base_url()
+    if args.dry_run:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        sys.stdout.flush()
+        _say(f"dry run: nothing sent (would POST {base}{QUESTIONS_PATH})")
+        return EXIT_OK
+    resp = submit_question(payload)
+    question_id = resp["id"]
+    if args.json:
+        print(json.dumps(resp, indent=2, ensure_ascii=False))
+    else:
+        print(question_id)
+        print(resp["url"])
+    _say(f"{resp.get('status', 'pending')} · expires {resp.get('expires_at', '?')}. Only the CEO's tap "
+         f"on /run answers it. Next: python3 tools/ask_run.py wait {question_id}")
+    return EXIT_OK
+
+
+def print_question_result(rec: dict, *, as_json: bool = False) -> None:
+    """The §3.3 record: whole as JSON, else the lines a session cites as the
+    CEO's decision (id, status, who answered and when, the option, the note,
+    the sha256 the page verified)."""
+    if as_json:
+        print(json.dumps(rec, indent=2, ensure_ascii=False))
+        return
+    answer = rec.get("answer") if isinstance(rec.get("answer"), dict) else None
+    parts = [str(rec.get("id", "?")), str(rec.get("status", "?"))]
+    if answer:
+        parts += [f"by {answer.get('answered_by', '?')}", f"at {answer.get('answered_at', '?')}"]
+    print("  ".join(parts))
+    if rec.get("question"):
+        print(f"question: {rec['question']}")
+    if answer:
+        choice = answer.get("choice")
+        if isinstance(choice, int) and not isinstance(choice, bool):
+            print(f"answer: option {choice + 1} \"{answer.get('label')}\"")
+        if answer.get("text"):
+            print(f"note: {answer['text']}")
+        if rec.get("sha256"):
+            print(f"sha256: {rec['sha256']}")
+    elif rec.get("status") == "expired":
+        print(f"nobody answered before {rec.get('expires_at', '?')}")
+
+
+def print_group_result(rec: dict, *, as_json: bool = False) -> None:
+    """A group: whole as JSON, else one header line and each question's lines."""
+    if as_json:
+        print(json.dumps(rec, indent=2, ensure_ascii=False))
+        return
+    questions = rec.get("questions") or []
+    answered = sum(1 for q in questions if q.get("status") == "answered")
+    print(f"{rec.get('id', '?')}  {rec.get('status', '?')}  {answered} of {len(questions)} answered")
+    for q in questions:
+        print()
+        print_question_result(q)
+
+
 def cmd_wait(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
     rec, ended = poll_until_end(
@@ -784,11 +1466,48 @@ def cmd_wait(args: argparse.Namespace) -> int:
         last = (rec or {}).get("status") or "unknown"
         _say(f"{ask_id} still {last} after {args.max_wait:g} s; run wait again later")
         return EXIT_STILL_WAITING
+    if is_question_id(ask_id):
+        verify_question_record(rec)
+        print_question_result(rec, as_json=args.json)
+        return EXIT_OK if rec.get("status") == "answered" else EXIT_ENDED_BADLY
+    if is_group_id(ask_id):
+        verify_group_record(rec)
+        print_group_result(rec, as_json=args.json)
+        return EXIT_OK if all(q.get("status") == "answered" for q in rec["questions"]) else EXIT_ENDED_BADLY
     print_result(rec, lines=args.lines, as_json=args.json)
     return EXIT_OK if rec.get("status") == "done" else EXIT_ENDED_BADLY
 
 
+def cmd_list_questions(args: argparse.Namespace) -> int:
+    query = {}
+    if args.status:
+        query["status"] = args.status
+    if args.limit:
+        query["limit"] = str(args.limit)
+    resp = _call("GET", QUESTIONS_PATH, query=query)
+    questions = resp.get("questions") if isinstance(resp, dict) else resp
+    questions = [q for q in (questions or []) if isinstance(q, dict)]
+    if args.json:
+        print(json.dumps(questions, indent=2, ensure_ascii=False))
+        return EXIT_OK
+    if not questions:
+        print("(no questions)")
+        return EXIT_OK
+    for q in questions:
+        who = q.get("requester") if isinstance(q.get("requester"), dict) else {}
+        text = str(q.get("question", "?"))
+        row = (f"{q.get('id', '?')}  {str(q.get('status', '?')):<9} "
+               f"{who.get('session', '?')}@{who.get('host', '?')}  "
+               f"{text if len(text) <= 70 else text[:67] + '...'}")
+        if q.get("status") == "pending" and q.get("expires_at"):
+            row += f"  (expires {q['expires_at']})"
+        print(row)
+    return EXIT_OK
+
+
 def cmd_list(args: argparse.Namespace) -> int:
+    if args.questions:
+        return cmd_list_questions(args)
     query = {}
     if args.status:
         query["status"] = args.status
@@ -814,7 +1533,11 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 def cmd_cancel(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
-    resp = _unwrap(_call("POST", _ask_path(ask_id, "/cancel"), body={}))
+    if is_group_id(ask_id):
+        raise Refused("a group has no cancel of its own: cancel each question by its Q- id "
+                      f"(python3 tools/ask_run.py wait {ask_id} --max-wait 1 lists them)")
+    path = _question_path(ask_id, "/cancel") if is_question_id(ask_id) else _ask_path(ask_id, "/cancel")
+    resp = _unwrap(_call("POST", path, body={}))
     print(f"{resp.get('id', ask_id)} {resp.get('status', 'cancelled')}")
     return EXIT_OK
 
@@ -845,6 +1568,9 @@ def _sse_events(lines: Iterable[bytes]) -> Iterator[tuple[str, str]]:
 
 def cmd_tail(args: argparse.Namespace) -> int:
     ask_id = normalize_id(args.id)
+    if is_question_id(ask_id) or is_group_id(ask_id):
+        raise Refused("a question card runs nothing and has no output to tail: "
+                      f"use `wait {ask_id}` for the CEO's answer")
     resp = _request("GET", _ask_path(ask_id, "/events"), accept="text/event-stream",
                     timeout=args.idle_timeout)
     final = None
@@ -918,7 +1644,34 @@ def _parser() -> argparse.ArgumentParser:
     c.add_argument("--dry-run", action="store_true", help="print the JSON body, send nothing")
     c.add_argument("--json", action="store_true", help="print the hub's answer as JSON")
 
-    w = sub.add_parser("wait", help="poll an ask until it ends; exit 0 done, 1 failed/denied/expired/cancelled")
+    q = sub.add_parser("ask", help="ask the CEO a 2-4 option question (one tap on /run); prints its id "
+                                   "and the phone URL. Never for a command, money or a secret: those go "
+                                   "on a command card (create)")
+    q.add_argument("--question", help=f"one line, at most {QUESTION_MAX} characters")
+    q.add_argument("--option", action="append", metavar="LABEL",
+                   help=f"an answer the CEO can tap; repeat {OPTIONS_MIN} to {OPTIONS_MAX} times")
+    q.add_argument("--recommended", type=int, metavar="N",
+                   help="1-based: the option that carries the recommended badge")
+    q.add_argument("--why", help=f"context the CEO reads before tapping (at most {WHY_MAX} characters)")
+    q.add_argument("--batch", metavar="FILE",
+                   help=f"1 to {GROUP_MAX} questions as one group (a JSON list, - = stdin; each item "
+                        "{question, why, options, recommended, free_text}); replaces "
+                        "--question/--option/--why/--recommended/--no-free-text. One send from the "
+                        "CEO = one letter to you")
+    q.add_argument("--no-free-text", action="store_true",
+                   help="an option is required and the CEO gets no text box (default: he may add a note)")
+    q.add_argument("--expires-h", type=float, default=EXPIRES_DEFAULT_H, metavar="HOURS",
+                   help="how long the question waits (default 24, from 10 minutes to 7 days)")
+    q.add_argument("--host", help="the machine this session runs on: contabo | mac | winbox "
+                                  "(default: ORG_HOST, else this checkout's self_host, else the hostname)")
+    q.add_argument("--session", help="your mailbox name <role>-<id>, e.g. cto-6ebacd0e (default: from env)")
+    q.add_argument("--role", help="your role (default: CXO_ROLE / WORKER_ROLE)")
+    q.add_argument("--dry-run", action="store_true", help="print the JSON body, send nothing")
+    q.add_argument("--json", action="store_true", help="print the hub's answer as JSON")
+
+    w = sub.add_parser("wait", help="poll an ask (RUN-...), a question (Q-...) or a group (QG-...) until it "
+                                    "ends; exit 0 done / answered (a group: every question answered), "
+                                    "1 failed/denied/expired/cancelled")
     w.add_argument("id")
     w.add_argument("--interval", type=float, default=POLL_INTERVAL_S, metavar="SECONDS")
     w.add_argument("--max-wait", type=float, default=0, metavar="SECONDS",
@@ -926,12 +1679,14 @@ def _parser() -> argparse.ArgumentParser:
     w.add_argument("--lines", type=int, default=TAIL_LINES, help="output tail lines to print (0 = all)")
     w.add_argument("--json", action="store_true", help="print the final record as JSON")
 
-    ls = sub.add_parser("list", help="your own asks")
-    ls.add_argument("--status", help="pending | running | done | all (the hub's filter)")
+    ls = sub.add_parser("list", help="your own asks (or, with --questions, your own questions)")
+    ls.add_argument("--questions", action="store_true", help="list question cards instead of command cards")
+    ls.add_argument("--status", help="pending | running | done | all (the hub's filter); "
+                                     "with --questions: pending | answered | done | all")
     ls.add_argument("--limit", type=int, default=50)
     ls.add_argument("--json", action="store_true")
 
-    x = sub.add_parser("cancel", help="cancel your own pending ask")
+    x = sub.add_parser("cancel", help="cancel your own pending ask or question (RUN-... / Q-...)")
     x.add_argument("id")
 
     t = sub.add_parser("tail", help="stream an ask's live output (SSE) to stdout")
@@ -951,9 +1706,22 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if script_args and args.verb != "create":
         parser.error("`-- args...` only go with create --script")
+    if args.verb == "ask":
+        lone = [flag for flag, given in (("--question", args.question is not None),
+                                         ("--option", args.option is not None),
+                                         ("--why", args.why is not None),
+                                         ("--recommended", args.recommended is not None),
+                                         ("--no-free-text", args.no_free_text)) if given]
+        if args.batch is not None and lone:
+            parser.error(f"--batch carries every question; drop {', '.join(lone)}")
+        missing = [f for f in ("--question", "--option", "--why") if f not in lone]
+        if args.batch is None and missing:
+            parser.error(f"the following arguments are required: {', '.join(missing)} (or --batch FILE)")
     try:
         if args.verb == "create":
             return cmd_create(args, script_args)
+        if args.verb == "ask":
+            return cmd_ask(args)
         if args.verb == "wait":
             return cmd_wait(args)
         if args.verb == "list":

@@ -439,8 +439,10 @@ def test_launcher_dry_run_on_contabo_describes_the_session(lroot: Path, tmp_path
     allowed = next(line for line in out.splitlines() if line.startswith("dry-run: allowed-tools="))
     for tool in ("reply", "skip", "send", "ask_ceo", "history", "media"):
         assert f"mcp__sompong__{tool}" in allowed
-    # root work goes through a Run Inbox card: both org tools must be callable in this session
-    assert {"mcp__org__ask_run", "mcp__org__ask_run_wait"} <= set(allowed.split("=", 1)[1].split())
+    # root work goes through a Run Inbox card: both org tools must be callable in this session,
+    # and so must ask_ceo, the question card beside it (the registry feeds every C-level session)
+    assert {"mcp__org__ask_run", "mcp__org__ask_run_wait", "mcp__org__ask_ceo"} <= set(
+        allowed.split("=", 1)[1].split())
     names = next(line for line in out.splitlines() if line.startswith("dry-run: coo env=")).split("=", 1)[1].split()
     assert "SOMPONG_COO_SESSION" in names and "ORG_HOST" in names
     assert not [n for n in names if re.search(r"KEY|TOKEN|SECRET|PASSWORD|INFISICAL", n)]
@@ -493,7 +495,11 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
 
     assert after("--dangerously-load-development-channels") == "server:sompong"
     assert after("--permission-mode") == "auto"
-    assert after("--remote-control") == "SomPong"  # its own name in the Claude app
+    # CEO 2026-10-14: the app name and the session name are both "COO (SomPong)",
+    # with no machine and no #id (tools/live_sessions.py reads those from the tmux name).
+    # CEO 2026-10-14 (M9): the host's emoji leads it, ORG_HOST=contabo here
+    assert after("--remote-control") == "\U0001F310 COO (SomPong)"
+    assert after("-n") == "\U0001F310 COO (SomPong)"
     assert after("--add-dir") == str(lroot)
     assert args.count("--mcp-config") == 2 and f"{sompong['repo']}/.mcp.json" in args
     assert "--strict-mcp-config" in args  # still strict: org + lungnote + sompong only
@@ -711,11 +717,11 @@ needs_root_and_nobody = pytest.mark.skipif(
 @needs_root_and_nobody
 def test_org_mcp_server_starts_and_lists_its_tools_for_a_uid_that_can_write_the_shared_db() -> None:
     # The deploy prerequisite for the unprivileged COO: tasks.db and state/ shared with the session user's group.
-    from lib.org_tools_registry import REGISTRY
+    from lib.org_tools_registry import served_names
 
     names, err = _serve_tools_as_nobody(state_mode=0o2775, db_mode=0o664, group=NOBODY_UID)
     assert names is not None, err
-    assert {s.name for s in REGISTRY} <= set(names)
+    assert set(served_names()) <= set(names)   # envelope-mail tools only under ORG_MAIL_ENVELOPE
     assert {"ask_run", "ask_run_wait"} <= set(names)
 
 

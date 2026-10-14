@@ -48,7 +48,7 @@ One map, one link per session; on a phone it scrolls sideways — horizontal onl
 
 Vocabulary, so every session's map reads the same:
 
-- **Goal** = one thing the CEO asked for in this session (เรื่องที่ CEO สั่ง). The charter's Entry
+- **Goal** = one thing the CEO asked for in this session (what the CEO ordered). The charter's Entry
   Problem is usually `G1`; a second ask mid-session is a new goal. `depends_on` when a goal needs
   another finished first; no `depends_on` = a separate line.
 - **Task** = a step inside a goal — the worktree nodes, numbered by the script. `type` is one of
@@ -153,7 +153,7 @@ Lead with what changed for the company; the technical thing goes in parentheses 
 | refactor | จัดระเบียบของเดิมให้เร็ว/สะอาดขึ้น (ผลเหมือนเดิม) |
 | deploy blocked / merge conflict | ยังขึ้นจริงไม่ได้ เพราะ… |
 
-Rule of thumb: **"ลูกค้า/ธุรกิจได้อะไร"** มาก่อนเสมอ.
+Rule of thumb: **"what the customer/business gets"** always comes first.
 
 ```
 📊 goals 2/4 · tasks 9/14 · 🔴 1 · ↪ 1 detour · ⏱ 1h 25m        ← the script's lines, as-is
@@ -215,7 +215,7 @@ Print it only when the CEO asks for the text tree — it costs the tokens the ma
    world ([[orphan_recovery_verify_external_state]]).
 5. **Blockers are loud.** A blocked task carries `blocked_on`; the status block lists every 🔴;
    a real external blocker also carries a GitHub issue. A session with an open 🔴 cannot 🏁.
-6. **Recap = zero jargon.** Every line passes the "CEO ไม่ต้อง Google" test. Outcome first,
+6. **Recap = zero jargon.** Every line passes the "CEO doesn't have to Google" test. Outcome first,
    mechanism never. Code register stays normal inside code/commits.
 7. **🔴 in the recap = an ask, stated plainly.** Name exactly what you need: a yes/no, a budget
    ($ amount — never spend before the OK, [[ask_before_paid_api]]), a key, or an answer.

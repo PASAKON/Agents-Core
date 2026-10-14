@@ -96,8 +96,36 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
     agent_transport.attempt_wake(session, label, "send_to_cto", send_fn=_wake_tmux_send)
 
 
+def _wake(role: str, session_id: str, label: str, prio: str | None) -> None:
+    """Envelope mail (ORG_MAIL_ENVELOPE on): the debounced wake -- urgent at
+    once, normal once 3 letters wait or the oldest has waited
+    ORG_WAKE_DEBOUNCE_S (lib.mailbox.wake_due; tools/mail_wake_sweep.py fires
+    the late one). Off: `_attempt_wake()` every time, as before."""
+    if not mailbox.envelope_on():
+        _attempt_wake(role, session_id, label)
+        return
+    try:
+        due = mailbox.wake_due(role, session_id, prio or "normal")
+    except Exception:
+        due = True
+    if not due:
+        return
+    _attempt_wake(role, session_id, label)
+    mailbox.note_wake(role, session_id)
+
+
+def _envelope_kw(subject: str | None, kind: str | None, prio: str | None) -> dict:
+    """The envelope fields for mailbox.send when the flag is on; none when off,
+    so a flag-off call is exactly the call it was."""
+    if not mailbox.envelope_on():
+        return {}
+    return {"subject": subject, "kind": kind, "prio": prio}
+
+
 def send(from_id: str, message: str, role: str | None = None,
-         cto_id: str | None = None, owner_role: str = "cto") -> bool:
+         cto_id: str | None = None, owner_role: str = "cto", *,
+         subject: str | None = None, kind: str | None = None,
+         prio: str | None = None) -> bool:
     """Queue `message` into the owning C-level's mailbox, then attempt a
     wake. Returns `True` once the letter is queued.
 
@@ -116,14 +144,20 @@ def send(from_id: str, message: str, role: str | None = None,
     `False` is returned, no broadcast, unless `SEND_TO_CTO_BROADCAST=1` is
     set, in which case it queues+wakes every live C-level session instead
     of the old broadcast-by-typing.
+
+    `subject` / `kind` / `prio`: envelope mail only (ORG_MAIL_ENVELOPE on);
+    stored on the letter, and the letter's prio drives the debounced wake
+    (`_wake`): an ask or blocker with no prio is urgent, as it is stored
+    (`mailbox.letter_prio`). Off, they are ignored.
     """
     label = display_for(role) if role else "Dev"
     from_role = role or "dev"
     wake_label = f"{label} {from_id}"
 
     if cto_id:
-        mailbox.send(owner_role, cto_id, message, from_role, from_id)
-        _attempt_wake(owner_role, cto_id, wake_label)
+        mailbox.send(owner_role, cto_id, message, from_role, from_id,
+                     **_envelope_kw(subject, kind, prio))
+        _wake(owner_role, cto_id, wake_label, mailbox.letter_prio(kind, prio))
         return True
 
     if os.environ.get("SEND_TO_CTO_BROADCAST") != "1":
@@ -140,8 +174,9 @@ def send(from_id: str, message: str, role: str | None = None,
         sid = agent_transport._active_session_id(r)
         if not sid:
             continue
-        mailbox.send(r, sid, message, from_role, from_id)
-        _attempt_wake(r, sid, wake_label)
+        mailbox.send(r, sid, message, from_role, from_id,
+                     **_envelope_kw(subject, kind, prio))
+        _wake(r, sid, wake_label, mailbox.letter_prio(kind, prio))
         delivered_any = True
     return delivered_any
 

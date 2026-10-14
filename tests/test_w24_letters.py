@@ -151,6 +151,18 @@ def test_cross_host_writes_a_row_and_dispatches(monkeypatch, flag_on):
     assert fake.calls == [("contabo", "deliver_letter", (str(row["id"]),))]
 
 
+def test_cross_host_kind_and_prio_warn_they_do_not_travel(monkeypatch, flag_on):
+    _remote_session()
+    _install(monkeypatch, _ok)
+    assert "kind and prio" not in sc.send("cmo", "budget question", kind="ask"), \
+        "envelope mail off: nothing is stored anywhere, so nothing to warn about"
+    monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    assert "kind and prio" not in sc.send("cmo", "budget question", subject="budget")
+    out = sc.send("cmo", "budget question", subject="budget", kind="ask")
+    assert out.endswith("warning: kind and prio do not reach another host; "
+                        "it is filed as message/normal")
+
+
 def test_cross_host_writes_nothing_into_this_hosts_mailbox(monkeypatch, flag_on, tmp_path):
     _remote_session()
     _install(monkeypatch, _ok)

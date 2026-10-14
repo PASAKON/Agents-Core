@@ -1,0 +1,18 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot B06 · scene B · target length in the cut 12 s · grade storm
+References in upload order: @ภาพ1=loc_yai_house-2, @ภาพ2=ch_yai_a, @ภาพ3=ch_kaew_a, @ภาพ4=prop_mallet
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, camera locked at mat height.
+YAI'S HOUSE in the storm. YAI BUA, too weak to climb, gives KAEW THE MALLET.
+REFERENCES: @ภาพ1 — YAI'S HOUSE, a poor stilt house inside: rusted zinc roof, patched plank walls. @ภาพ2 — YAI BUA: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ3 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ4 — THE MALLET: dark wood, red thread on the handle; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot. YAI BUA, frail Thai grandmother about 78, silver bun with jasmine, faded indigo shirt, brass wrist bells.
+THE FRAME: Close two-shot at floor level: YAI BUA lies on her mat at screen-left, head toward screen-right, in profile; KAEW kneels at screen-right facing screen-left toward her, soaked; an oil lamp between them; rain leaking through the zinc roof.
+STATE: YAI BUA weak, lying on the mat; KAEW wet from the rain.
+WHAT HAPPENS: [0s] YAI BUA presses THE MALLET into KAEW's hands, holding on for a moment. [4s] YAI BUA, weak, looking into KAEW's eyes: "If you ring it, ring it right." [9s] KAEW nods once, holding THE MALLET to her chest.
+SOUND: Rain on zinc, drips into a tin bowl, the oil lamp fluttering, YAI BUA's thin voice.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no stage directions spoken aloud, nothing spoken outside the quotes; YAI BUA does not stand up; no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

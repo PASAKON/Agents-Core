@@ -49,6 +49,17 @@ A parked session is findable again by its LungNote SID tag and its saved file.
 
 ## How to run it
 
+0. **MEMORY.md size check.** Claude Code loads only the head of the memory
+   index at session start: about 200 lines or 25 KB, whichever comes first.
+   Anything past that is dropped without a warning, so a pointer added at
+   the bottom is a memory no later session sees. (Sources: research
+   `2026-09-25-token-saving-techniques-caveman-survey.md`; SomPong research
+   2026-10-11 on Caveman's memory doctor.) Run
+   `wc -lc ~/.claude/projects/<this project>/memory/MEMORY.md`. Over 180
+   lines or 22 KB: tell the CEO in the save report, and move whole groups
+   into a sub-index file (`reference_index_<topic>.md`, one line left in
+   MEMORY.md) before you add anything. Never trim by deleting memories.
+   Contabo CTO, 2026-10-12: 104 lines, 16.8 KB.
 1. **Local file** — prefer delegating to the **`ecc:save-session`** skill (or
    `/save-session` command) so file mechanics stay in sync with ECC. If it's
    unreachable, use the inlined fallback below to produce an identical file.
@@ -130,12 +141,20 @@ park has already written this run's lessons to `MEMORY.md`, and those are
 lost the moment the process ends if they never left this machine:
 ```bash
 python3 -m tools.memory_sync push
-bash scripts/session-rename.sh --prefix "⏸" "<topic, short>"
+bash scripts/session-rename.sh --prefix "⏸" "<job> — <state>"
 bash scripts/session-kill.sh --status saved
 ```
 A non-zero `memory_sync push` doesn't block the park (the CEO's "walk away
 and free RAM" still happens) — name the failure in the report instead, same
 as any other best-effort step here.
+**The saved name says the job and where it stopped** (CEO 2026-10-13), e.g.
+`"LAST BELL รอ CEO ตอบ 4 ข้อ"`, so he can tell from the list which session to
+resume. The script cuts the topic at 40 characters. If the rename is refused
+(auto-mode classifier, "Self-Modification"), put the exact
+`/rename <ROLE> (<Name>) — <job> — <state>` line (a C-level; a PH or worker keeps
+`<MACHINE> <ROLE> #<id> (<job> — <state>)`) in the report and park
+anyway; never work around the refusal. One job per session: a session whose
+job is done closes instead of parking ([[session-open]] §3 "Name = current job").
 The rename call stamps the CEO's Claude app entry with ⏸ (task-bbdfa8d1, CEO
 2026-09-11 "เช็คไม่ได้เลยว่ามี session เปิดจริงไหม") BEFORE the kill takes the
 pane away — this is the only moment left to change what the app shows, since

@@ -203,10 +203,12 @@ def test_projection():
 
 def test_needs_shell():
     assert forecast.needs_shell("run psql -f x.sql then systemd-run …") is True
-    assert forecast.needs_shell("run /…/python -m pytest -q") is False
+    # pytest counts as shell since 2026-10-14 (CTO #e106b78b; agy on Contabo runs no command)
+    assert forecast.needs_shell("run /…/python -m pytest -q") is True
     assert forecast.needs_shell(None) is False
     assert forecast.needs_shell("") is False
-    assert forecast.needs_shell("run pytest and git status") is False
+    assert forecast.needs_shell("run pytest and git status") is True
+    assert forecast.needs_shell("edit it; the reviewer runs the tests; git status") is False
 
     # Test patterns case-insensitively
     assert forecast.needs_shell("run PSQL -c 'SELECT 1'") is True
@@ -218,4 +220,54 @@ def test_needs_shell():
     assert forecast.needs_shell("git push origin main") is True
     assert forecast.needs_shell("git commit -m 'update'") is True
     assert forecast.needs_shell("ffmpeg -i in.mp4 out.mp4") is True
+
+
+
+def test_needs_shell_make_is_a_command_not_the_verb():
+    # 67 of 254 developer/tester briefs (20 Sep - 4 Oct) were judged shell-only by a bare "make ":
+    # task-541e46b2, task-7da0e6e4, task-d4c1f234 (COO investigation, CEO 2026-10-04)
+    assert forecast.needs_shell("make sure the tests pass") is False
+    assert forecast.needs_shell("1. NO render yet. Make face_box.py parametric (read the av") is False
+    assert forecast.needs_shell("  - Make the L2 provider a setting (`jev` default)") is False
+    assert forecast.needs_shell("Make the 90 s and 30 s windows env-tunable") is False
+    assert forecast.needs_shell("we make it.") is False
+    assert forecast.needs_shell("then make sure") is False
+    # the command still counts
+    assert forecast.needs_shell("run `make test` before the report") is True
+    assert forecast.needs_shell("make -C build") is True
+    assert forecast.needs_shell("make install") is True
+    assert forecast.needs_shell("make build && ./run") is True
+    assert forecast.needs_shell("`make dist/app.tar`") is True
+
+
+def test_needs_shell_markers_v2():
+    # Shell markers and Python commands
+    assert forecast.needs_shell("bash scripts/hub/org-python.sh tools/x.py") is True
+    assert forecast.needs_shell("infisical run -- python tools/a.py") is True
+    assert forecast.needs_shell("python tools/tool_value.py report") is True
+    assert forecast.needs_shell(".venv/bin/python -c 'print(1)'") is True
+    assert forecast.needs_shell("git fetch origin x && git merge origin/x") is True
+
+    # pytest is shell (CTO #e106b78b 2026-10-14: agy on Contabo runs no command, task-0156526f)
+    assert forecast.needs_shell("python -m pytest tests/test_x.py") is True
+    assert forecast.needs_shell("run pytest") is True
+    # The browser_agy lane runs tools/agy_browse.py on agy by design (GH #188)
+    assert forecast.needs_shell(
+        "Use only `/x/.venv/bin/python tools/agy_browse.py --port 9280 <verb>`.") is False
+    assert forecast.needs_shell("python3 tools/agy_browse.py --port 9280 shot") is False
+
+    # Stays not-shell: read-only git
+    assert forecast.needs_shell("git log -1") is False
+    assert forecast.needs_shell("git diff main") is False
+    assert forecast.needs_shell("make sure it works") is False
+
+
+def test_edit_only_header_line():
+    quoted = "Translate the doc; keep `npm run -s version:test:bump` and\n    bash scripts/tab-title.sh \"x\""
+    assert forecast.needs_shell(quoted) is True
+    assert forecast.needs_shell("edit-only: a translation; commands are text to keep\n" + quoted) is False
+    assert forecast.needs_shell("override: ceo-order x\nEdit-Only: no command runs\n\n" + quoted) is False
+    # Past the header (after a blank line), or with no reason on the line: ignored.
+    assert forecast.needs_shell("Translate it.\n\nedit-only: pasted\n" + quoted) is True
+    assert forecast.needs_shell("edit-only:\n" + quoted) is True
 

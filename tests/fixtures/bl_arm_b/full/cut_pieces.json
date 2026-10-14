@@ -20,7 +20,7 @@
   "check_override_js": [],
   "caps_js": [
     "caption(0.0, 2.0, \"Hook line\");",
-    "caption(2.0, 4.0, \"Comp caption\");",
+    "caption(2.0, 4.0, \"Comp caption\", 797);",
     "caption(4.0, 6.0, \"Evidence caption\");",
     "caption(10.0, 12.0, \"Last\");"
   ],

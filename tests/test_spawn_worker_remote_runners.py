@@ -112,12 +112,14 @@ def test_codex_dry_run_prints_runner_command():
 
     wt = f"/opt/MoonieXHQ/Agents/Core/worktrees/mooniex-agents__developer__{task_id}"
     launch_dir = f"{ROOT}/.launch-{task_id}"
-    expected_cmd = (
-        f'codex exec "$(cat TASK.md)" -C "{wt}" -s workspace-write '
-        f'--skip-git-repo-check --json -o {launch_dir}/codex-final.txt '
-        f'> {launch_dir}/codex-events.jsonl 2>&1'
-    )
-    assert expected_cmd in out
+    import shlex
+    command = out.split("[dry-run] cmd=", 1)[1].splitlines()[0]
+    argv = shlex.split(command)
+    assert argv[:3] == ['codex', 'exec', '$(cat TASK.md)']
+    assert argv[argv.index('-C') + 1] == wt
+    assert argv[argv.index('-s') + 1] == 'workspace-write'
+    assert argv[argv.index('-o') + 1] == f'{launch_dir}/codex-final.txt'
+    assert '--add-dir' not in argv  # no WORK_DIR here, and never a root under .git (task-2f1a8586)
     assert "<launch.sh running codex>" in out
 
 
@@ -140,6 +142,34 @@ def test_agy_dry_run_prints_runner_command():
     )
     assert expected_cmd in out
     assert "<launch.sh running agy>" in out
+
+
+@pytest.mark.parametrize("runner", ["codex", "agy"])
+def test_worker_contract_never_committed(runner, tmp_path):
+    source = SCRIPT.read_text()
+    excludes = re.search(r'^ANCHORED_EXCLUDES="([^"]+)"', source, re.M).group(1).split()
+    guard = re.search(r'^GIT_RESET_GUARD="([^"]+)"', source, re.M).group(1).split()
+    assert '/WORKER.md' in excludes
+    assert 'WORKER.md' in guard
+    result = _run_dry_run(runner)
+    assert result.returncode == 0, result.stderr
+    never = next(line for line in result.stdout.splitlines()
+                 if line.startswith('[dry-run] never_committed:'))
+    assert 'WORKER.md' in never.split()
+
+    # A different repo has no .gitignore protecting the generated contract.
+    subprocess.run(['git', 'init', '-q', str(tmp_path)], check=True)
+    exclude_file = tmp_path / '.git/info/exclude'
+    exclude_file.write_text('\n'.join(excludes) + '\n')
+    (tmp_path / 'WORKER.md').write_text('remote contract\n')
+    subprocess.run(['git', 'check-ignore', '-q', 'WORKER.md'], cwd=tmp_path, check=True)
+    exclude_file.write_text('')
+    (tmp_path / 'code.py').write_text('print(1)\n')
+    subprocess.run(['git', 'add', '-A'], cwd=tmp_path, check=True)
+    subprocess.run(['git', 'reset', '-q', '--', *guard], cwd=tmp_path, check=True)
+    staged = subprocess.run(['git', 'diff', '--cached', '--name-only'], cwd=tmp_path,
+                            capture_output=True, text=True, check=True).stdout.splitlines()
+    assert staged == ['code.py']
 
 
 def test_unknown_runner_rejected():
@@ -186,3 +216,289 @@ def test_script_source_checks_commit_logic():
     # Dangerous flags must NEVER be present
     assert "--dangerously-skip-permissions" not in code
     assert "--dangerously-bypass-approvals-and-sandbox" not in code
+
+
+@pytest.mark.parametrize("work_dir", [None, "/tmp/Work folder/task's output", r"C:\Work folder\task"])
+def test_codex_writable_dirs(tmp_path, work_dir):
+    import shlex
+    repo = tmp_path / "repo with spaces"
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    flags = {"repo_path": str(repo)}
+    if work_dir is not None:
+        flags["work_dir"] = work_dir
+    else:
+        flags["work_dir"] = ""  # do not inherit the test process's WORK_DIR
+    result = _run_dry_run("codex", **flags)
+    assert result.returncode == 0, result.stderr
+    command = result.stdout.split("[dry-run] cmd=", 1)[1].splitlines()[0]
+    args = shlex.split(command)
+    dirs = [args[i + 1] for i, arg in enumerate(args) if arg == "--add-dir"]
+    assert dirs == ([work_dir] if work_dir else [])  # never a root under .git (task-2f1a8586)
+    assert "danger-full-access" not in result.stdout
+    assert "dangerously-bypass" not in result.stdout
+    source = SCRIPT.read_text()
+    assert source.count('emit_codex_command') == 3  # definition, dry-run, real launch
+    assert 'git-common-dir' not in source
+
+
+@pytest.mark.parametrize("runner", ["codex", "agy"])
+def test_heartbeat_body_cleanup_executes(tmp_path, runner):
+    result = _run_dry_run(runner)
+    body = result.stdout.split("heartbeat_pid=\n", 1)[1]
+    body = "heartbeat_pid=\n" + body.replace("CLI_RC=$?; cleanup_heartbeat", "sleep 0.1; CLI_RC=$?; cleanup_heartbeat")
+    # Execute only the generated supervisor fragment, never a worker or tmux.
+    process = subprocess.run(["bash", "-c", body], cwd=tmp_path,
+                             capture_output=True, text=True, timeout=5)
+    assert process.returncode == 0, process.stderr
+    assert 'kill "$heartbeat_pid"' in body
+    assert 'wait "$heartbeat_pid"' in body
+    assert 'sleep 60 &' in body
+    assert 'trap cleanup_runner EXIT' in body
+    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\n', (tmp_path / 'HEARTBEAT').read_text())
+
+
+@pytest.mark.parametrize('exit_mode', ['exit 7', 'kill -TERM $$'])
+def test_heartbeat_cleanup_on_exit(tmp_path, exit_mode):
+    source = SCRIPT.read_text()
+    body = source.split("cat <<'HEARTBEAT_START'\n", 1)[1].split('\nHEARTBEAT_START', 1)[0]
+    script = body + '\nprintf "%s" "$heartbeat_pid" > heartbeat.pid\nsleep 0.1\n' + exit_mode
+    result = subprocess.run(['bash', '-c', script], cwd=tmp_path, timeout=5)
+    assert result.returncode in (7, 143)
+    import os
+    with pytest.raises(ProcessLookupError):
+        os.kill(int((tmp_path / 'heartbeat.pid').read_text()), 0)
+
+
+def test_codex_linked_worktree_gets_no_git_root(tmp_path):
+    import shlex
+    repo = tmp_path / 'common repo'
+    trees = tmp_path / 'work trees'
+    subprocess.run(['git', 'init', str(repo)], check=True, capture_output=True)
+    subprocess.run(['git', '-C', str(repo), '-c', 'user.name=Test',
+                    '-c', 'user.email=test@example.invalid', 'commit',
+                    '--allow-empty', '-m', 'fixture'], check=True, capture_output=True)
+    wt = trees / 'mooniex-agents__developer__task-linked'
+    subprocess.run(['git', '-C', str(repo), 'worktree', 'add', '-b', 'fixture', str(wt)],
+                   check=True, capture_output=True)
+    result = _run_dry_run('codex', task='task-linked', repo_path=str(repo),
+                          worktree_root=str(trees), work_dir='')
+    args = shlex.split(result.stdout.split('[dry-run] cmd=', 1)[1].splitlines()[0])
+    assert '--add-dir' not in args  # codex's bwrap sandbox fails to start with a root under .git
+    assert args[args.index('-C') + 1] == str(wt)
+
+
+# ---------------------------------------------------------------------------
+# .media-allow gate tests (scripts/spawn-worker-remote.sh emit_report_commit_push)
+# ---------------------------------------------------------------------------
+
+def _generate_report_step_script(task: str = "task-media01", branch: str = "agent/developer-task-media01",
+                                base: str = "main", runner: str = "codex") -> str:
+    script_text = SCRIPT.read_text(encoding="utf-8")
+    sh_quote_idx = script_text.index("sh_quote() {")
+    eof_idx = script_text.index("REPORT_STEP_EOF\n}") + len("REPORT_STEP_EOF\n}")
+    fn_text = script_text[sh_quote_idx:eof_idx]
+    generator = f"""
+TASK={task!r}
+BRANCH={branch!r}
+BASE={base!r}
+GIT_RESET_GUARD='.worker.pid TASK.md'
+{fn_text}
+emit_report_commit_push {runner} "" "" "" "{runner}: task {task}"
+"""
+    res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True, check=True)
+    return res.stdout
+
+
+def _setup_media_test_repo(tmp_path: Path, origin_media_allow: str | None = None, task: str = "task-media01"):
+    origin = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(origin)], check=True)
+
+    seed = tmp_path / "seed"
+    subprocess.run(["git", "init", "-q", str(seed)], check=True)
+    subprocess.run(["git", "-C", str(seed), "checkout", "-q", "-b", "main"], check=True)
+    (seed / "README.md").write_text("seed\n", encoding="utf-8")
+    if origin_media_allow is not None:
+        (seed / ".media-allow").write_text(origin_media_allow, encoding="utf-8")
+    subprocess.run(["git", "-C", str(seed), "add", "-A"], check=True)
+    subprocess.run([
+        "git", "-C", str(seed),
+        "-c", "user.name=test", "-c", "user.email=test@example.invalid",
+        "commit", "-q", "-m", "seed"
+    ], check=True)
+    subprocess.run(["git", "-C", str(seed), "remote", "add", "origin", str(origin)], check=True)
+    subprocess.run(["git", "-C", str(seed), "push", "-q", "origin", "main"], check=True)
+
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "clone", "-q", str(origin), str(wt)], check=True)
+    branch = f"agent/developer-{task}"
+    subprocess.run(["git", "-C", str(wt), "checkout", "-q", "-b", branch, "origin/main"], check=True)
+    subprocess.run(["git", "-C", str(wt), "config", "user.name", "test"], check=True)
+    subprocess.run(["git", "-C", str(wt), "config", "user.email", "test@example.invalid"], check=True)
+
+    return origin, wt, branch
+
+
+def _run_report_step(wt: Path, script_body: str) -> subprocess.CompletedProcess:
+    script_path = wt / "run_report.sh"
+    script_path.write_text(script_body, encoding="utf-8")
+    return subprocess.run([BASH3, str(script_path)], cwd=wt, capture_output=True, text=True)
+
+
+def test_media_allow_allowed_png_is_kept(tmp_path):
+    task = "task-kept01"
+    origin, wt, branch = _setup_media_test_repo(
+        tmp_path, origin_media_allow="# allow Minecraft textures\n\ntextures/**\n", task=task
+    )
+    (wt / "textures").mkdir()
+    (wt / "textures" / "pack.png").write_bytes(b"pack data")
+    (wt / "code.py").write_text("print(1)\n", encoding="utf-8")
+
+    script = _generate_report_step_script(task=task, branch=branch)
+    res = _run_report_step(wt, script)
+    assert res.returncode == 0, f"script failed: {res.stderr}\nstdout: {res.stdout}"
+
+    tree = subprocess.run(
+        ["git", "-C", str(origin), "ls-tree", "-r", "--name-only", branch],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+
+    assert "textures/pack.png" in tree
+    assert "code.py" in tree
+    assert f"docs/reports/{task}/REPORT.md" in tree
+
+    report_content = subprocess.run(
+        ["git", "-C", str(origin), "show", f"{branch}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/pack.png" in report_content
+    assert "Blockers" not in report_content
+
+    log_body = subprocess.run(
+        ["git", "-C", str(origin), "log", "-1", "--format=%B", branch],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/pack.png" in log_body
+
+
+def test_media_allow_unallowed_png_is_reset(tmp_path):
+    task = "task-reset01"
+    origin, wt, branch = _setup_media_test_repo(
+        tmp_path, origin_media_allow="textures/**\n", task=task
+    )
+    (wt / "unallowed.png").write_bytes(b"image data")
+    (wt / "code.py").write_text("print(1)\n", encoding="utf-8")
+
+    script = _generate_report_step_script(task=task, branch=branch)
+    res = _run_report_step(wt, script)
+    assert res.returncode == 0, f"script failed: {res.stderr}\nstdout: {res.stdout}"
+
+    tree = subprocess.run(
+        ["git", "-C", str(origin), "ls-tree", "-r", "--name-only", branch],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+
+    assert "unallowed.png" not in tree
+    assert "code.py" in tree
+
+    report_content = subprocess.run(
+        ["git", "-C", str(origin), "show", f"{branch}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media not committed: unallowed.png" in report_content
+    assert "media kept:" not in report_content
+
+
+def test_media_allow_large_file_reset_without_bang_large_and_kept_with_it(tmp_path):
+    task = "task-large01"
+    # Part A: Without !large
+    dir_a = tmp_path / "part_a"
+    dir_a.mkdir()
+    origin_a, wt_a, branch_a = _setup_media_test_repo(
+        dir_a, origin_media_allow="textures/**\n", task=task
+    )
+    (wt_a / "textures").mkdir()
+    (wt_a / "textures" / "big.png").write_bytes(b"x" * 1572864)  # 1.5 MB
+
+    script_a = _generate_report_step_script(task=task, branch=branch_a)
+    res_a = _run_report_step(wt_a, script_a)
+    assert res_a.returncode == 0, res_a.stderr
+
+    tree_a = subprocess.run(
+        ["git", "-C", str(origin_a), "ls-tree", "-r", "--name-only", branch_a],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    assert "textures/big.png" not in tree_a
+
+    report_a = subprocess.run(
+        ["git", "-C", str(origin_a), "show", f"{branch_a}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert re.search(r"media not committed: textures/big\.png \(1[.,]5 MB\)", report_a)
+    assert "media kept:" not in report_a
+
+    # Part B: With !large
+    dir_b = tmp_path / "part_b"
+    dir_b.mkdir()
+    origin_b, wt_b, branch_b = _setup_media_test_repo(
+        dir_b, origin_media_allow="textures/** !large\n", task=task
+    )
+    (wt_b / "textures").mkdir()
+    (wt_b / "textures" / "big.png").write_bytes(b"x" * 1572864)  # 1.5 MB
+
+    script_b = _generate_report_step_script(task=task, branch=branch_b)
+    res_b = _run_report_step(wt_b, script_b)
+    assert res_b.returncode == 0, res_b.stderr
+
+    tree_b = subprocess.run(
+        ["git", "-C", str(origin_b), "ls-tree", "-r", "--name-only", branch_b],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    assert "textures/big.png" in tree_b
+
+    report_b = subprocess.run(
+        ["git", "-C", str(origin_b), "show", f"{branch_b}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/big.png" in report_b
+    assert "Blockers" not in report_b
+
+    log_b = subprocess.run(
+        ["git", "-C", str(origin_b), "log", "-1", "--format=%B", branch_b],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media kept: textures/big.png" in log_b
+
+
+def test_media_allow_in_working_tree_only_is_ignored(tmp_path):
+    task = "task-wt01"
+    # No .media-allow in origin
+    origin, wt, branch = _setup_media_test_repo(
+        tmp_path, origin_media_allow=None, task=task
+    )
+    # Worker creates .media-allow in worktree only
+    (wt / ".media-allow").write_text("textures/**\n", encoding="utf-8")
+    (wt / "textures").mkdir()
+    (wt / "textures" / "pack.png").write_bytes(b"pack data")
+
+    script = _generate_report_step_script(task=task, branch=branch)
+    res = _run_report_step(wt, script)
+    assert res.returncode == 0, res.stderr
+
+    tree = subprocess.run(
+        ["git", "-C", str(origin), "ls-tree", "-r", "--name-only", branch],
+        capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+
+    assert "textures/pack.png" not in tree
+
+    report = subprocess.run(
+        ["git", "-C", str(origin), "show", f"{branch}:docs/reports/{task}/REPORT.md"],
+        capture_output=True, text=True, check=True
+    ).stdout
+    assert "media not committed: textures/pack.png" in report
+    assert "media kept:" not in report
+
+
+
+
+

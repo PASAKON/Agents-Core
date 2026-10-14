@@ -94,25 +94,58 @@ def live_c_level_roles() -> tuple[str, ...]:
 _HOST_MACHINE_LABEL = {"mac": "MAC", "winbox": "WINDOWS", "contabo": "CONTABO"}
 
 
-def worker_session_name(host_name: str, role_name: str, task_id: str,
-                        title: str) -> str:
-    """`<MACHINE> <ROLE> #<task-id-8> (<title, truncated ~40>)`.
+# Session names (CEO 2026-10-14): the shapes live in lib/session_names.py (stdlib
+# only, read by tools/live_sessions.py too); these are re-exported for callers.
+from lib.session_names import (  # noqa: E402
+    HOST_EMOJI, WORKER_JOB_MAX, WORKER_SHORT, host_prefix, ph_session_name, short_id,
+    strip_host, with_host, worker_name,
+)
 
-    e.g. `WINDOWS Browser Operator #4a59a1a4 (SHOOT the teaser)`. Single
-    source of truth for this shape — the Windows launcher (spawn-worker.ps1)
-    receives the fully-rendered string from tools/delegate.py rather than
-    recomputing the truncation/label logic itself, and a follow-up task can
-    switch runners/worker_init.py's Mac-side `-n` to call this too.
+
+def worker_short(role_name: str) -> str:
+    """The worker's short role word; a role missing from WORKER_SHORT gets its
+    display name's first word, so a new role still has a name."""
+    if role_name in WORKER_SHORT:
+        return WORKER_SHORT[role_name]
+    first = (display_for(role_name).split() or [role_name])[0]
+    return re.sub(r"[^A-Za-z]", "", first)[:10].capitalize() or "Worker"
+
+
+def worker_head(task: dict, locks_dir: Path | None = None) -> str:
+    """The "<Head>" of a worker's name: its Project Head's project (read from
+    state/locks/project_head-<sid>.project, written by spawn-ph), else the owning
+    C-level's role in capitals, else ""."""
+    role_ = str(task.get("owner_role") or "")
+    owner = str(task.get("owner_cto") or "")
+    if role_ == "project_head" and re.fullmatch(r"[0-9a-f]{8}", owner):
+        f = (locks_dir or ROOT / "state" / "locks") / f"project_head-{owner}.project"
+        try:
+            name = f.read_text(encoding="utf-8").strip().splitlines()[0][:40]
+        except (OSError, IndexError, UnicodeDecodeError):
+            name = ""
+        if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 _.-]*", name or ""):
+            return name
+    return role_.upper() if re.fullmatch(r"c[a-z]o", role_) else ""
+
+
+def worker_session_name(host_name: str, role_name: str, task_id: str,
+                        title: str, head: str = "") -> str:
+    """`<emoji> <Short>#<id3> - <Head>: <title, truncated ~40>` (CEO 2026-10-14), e.g.
+    `🌐 Dev#afe - OrgRestructure: identity strict log-only`; no head gives
+    `Dev#afe - <title>`, no title `Dev#afe - <Head>`. The emoji is host_name's
+    (session_names.HOST_EMOJI); a Windows host or a host not in hosts.yaml gets
+    none, because that name crosses cmd.exe and an ASCII-only pattern.
+
+    Single source of truth for this shape: the Windows launcher
+    (spawn-worker.ps1) receives the fully-rendered string from tools/delegate.py
+    and tools/node_dispatch.py rather than recomputing it.
     """
-    machine = _HOST_MACHINE_LABEL.get(host_name, host_name.upper())
-    short_id = task_id[len("task-"):] if task_id.startswith("task-") else task_id
-    short_id = short_id[:8]
-    display = display_for(role_name)
-    trimmed = (title or "").strip()
-    if len(trimmed) > 40:
-        trimmed = trimmed[:40].rstrip() + "…"
-    suffix = f" ({trimmed})" if trimmed else ""
-    return f"{machine} {display} #{short_id}{suffix}"
+    try:
+        windows = host(host_name).get("os") == "windows"
+    except ValueError:
+        windows = True      # unknown host: no emoji
+    name = worker_name(worker_short(role_name), task_id, head, title)
+    return name if windows else host_prefix(host_name) + name
 
 
 def display_for(role_name: str) -> str:
@@ -127,6 +160,16 @@ def display_for(role_name: str) -> str:
     except ValueError:
         return role_name
     return r.get("display") or role_name
+
+
+def persona_for(role_name: str) -> str:
+    """The C-level's persona name for its session name, "<ROLE> (<Name>)"
+    (CEO 2026-10-14: CTO Kavin, CMO Ging, COO SomPong). "" when the role has none."""
+    try:
+        r = role(role_name)
+    except ValueError:
+        return ""
+    return str(r.get("persona") or "")
 
 
 def get_project(key: str) -> dict:

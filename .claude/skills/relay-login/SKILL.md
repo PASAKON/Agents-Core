@@ -57,6 +57,23 @@ into a relay Chrome was refused by the auto-mode classifier as a bypass
 
 ## 1. Expose the Chrome (one per account, a dedicated profile)
 
+**First, find a login that already exists (CEO 2026-10-14, Q-20261013-1917-0fa2; IRON §60 step 1).** Before you
+create, launch or ask for anything, run `node scripts/relay-inventory.mjs --site <site>`. It covers every box the
+relay reaches. Each row gives host:port, the home, signed in | signed OUT | unknown, when the site's own page last
+showed it, and who holds it (a lock, the phone relay, an open request).
+- Idle and signed in on another box: the job moves there, not the login. ChatGPT images:
+  `tools/chatgpt_images.py --cdp-url http://127.0.0.1:<port>`, run on that host. Wrap the run in
+  `with home_lock("home:<host>:<port>", purpose=…)`, or use `tools/home_lock.py acquire` / `release`. A lock lasts
+  1800 s unless it is renewed, and only its owner releases it.
+- Another box cannot start the job on that host yet (#238). Run it there yourself if you can; otherwise tell the CEO
+  where the login is.
+- UNREACHABLE means that box was not checked. It does not mean "not logged in".
+- `relay-request.mjs open` refuses with exit 3 while an idle signed-in Chrome exists. Forcing past it takes
+  `--force "<reason>"`, and the reason is stored and shown.
+- Evidence comes only from titles and host+path. A cookie never counts. TikTok Studio's title proves nothing.
+
+Only when no idle signed-in Chrome exists does the rest of this section apply.
+
 **Preferred since 2026-09-25: a Browser Home** — a headless Chrome the Console
 on that box launches and owns, with every out-of-page prompt disabled, so the
 relay sees 100% of what the site shows (Console docs/relay.md §8):
@@ -136,7 +153,13 @@ the site's own dashboard is the success (§5).
   **Why hard:** a credential in a transcript cannot be unshown.
 - **QR logins** (TikTok, LINE): the relay switches to QR mode itself; TikTok
   then needs an in-app confirm tap and the QR lives 1–2 min — start the Chrome
-  only when the CEO is holding the phone.
+  only when the CEO is holding the phone. After the scan TikTok may ask for
+  more on the SAME path (`/login/qrcode`): "send a code by email", then 6
+  digits. Since Console 6ce00f9 the post-scan wait takes input (taps open the
+  phone keyboard, the mirror and type box run), and a text input or an SPA
+  route change switches it to the form view. Before 6ce00f9 the page froze
+  there (rq-2bebfe9f, rq-ea4f57fd). If a later step still freezes, read host +
+  path + title, not the screen, and file it against Console with the request id.
 - **"กดไม่ติด"**: read the tab's host+path first (`node scripts/relay-inspect.mjs
   --port N` on the Console host), then think about coordinates.
 
@@ -161,6 +184,18 @@ never a value, cookie or QR payload.
 
 ## 5. After the login
 
+- **Done is checked only where a cookie rule exists** (Console 6ce00f9,
+  `src/relay/sites.js`: TikTok `sessionid` @ `.tiktok.com`, Google `SID` @
+  `.google.com`). On those sites the CEO's เสร็จแล้ว closes the request only
+  when the cookie is there (matched by name and domain, never the value).
+  Otherwise his phone shows "ยังไม่เสร็จ" and the request stays open. `wait`
+  prints what backed the close: `<id> done (by operator:CEO; cookie sessionid
+  @ .tiktok.com) — continue`. `not verified (no site rule)` means a site with
+  no rule; confirm it yourself before going on. Do not use a "logged-in URL"
+  as the signal for TikTok: a logged-OUT Chrome stays on
+  `www.tiktok.com/tiktokstudio`, title "TikTok Studio", with no redirect
+  (probed 2026-10-13 for 15 s, task-531ef8d0). Before 6ce00f9 a Done closed
+  the request with no check, and rq-2bebfe9f read "done" with no session.
 - Confirm from your side (the site's API/page), not from the relay's banner.
 - Quit a Mac Chrome you started — the process, never its profile (§1). Leave
   winbox/Contabo ones only if the task keeps using them; say which port you left up.
@@ -212,6 +247,11 @@ never a value, cookie or QR payload.
 - 2026-10-01 [MISSING] §2 — since Console task-0601cec6 (merged 2026-10-01 03:49) the phone lists a Chrome only while it has an open **login request**; a Chrome up on its port with a TikTok login tab (mac:9224) was invisible to the CEO until `node scripts/relay-request.mjs open --port <port> --account "<which>" --why "<clause>" --by <session>` was run from that box's Console checkout (Console docs/relay.md §10). §2 should say: open the request right after the Chrome is up, then name the pill; `relay-request.mjs wait <rq-id>` is the zero-model wait · evidence: session 671f688f, rq-e6e84b4c, CMO c4432bad report "CEO does not see the pill" · status: pending
 - 2026-10-01 [MISSING] §3 "Sign in to Chrome" intercept — on contabo:9284 (Tailscale via Google) `/json/close/<id>` answered "Target is closing" but the `signin-dice-web-intercept.top-chrome` page stayed listed; it cannot be closed over CDP, so pick the real tab by host instead. `/json/close` also needs the FULL target id, the 8-char prefix silently does nothing · evidence: session e6754203, Browser Home `tailscale` · status: pending
 - 2026-10-03 [MISSING] §intro CLI logins — second sighting, new shape: a Colab CLI sign-in rewritten to use a localhost redirect (InstalledAppFlow.run_local_server, the sign-in tab opened in a relay Browser Home over CDP, so no agent would see the code or the token) was still refused by the auto-mode classifier as Auto-Mode Bypass. Every CLI OAuth through the relay is out, whatever the redirect, until the CEO adds a permission rule for it · evidence: session addb58de, Browser Home `colab` mac:9286 (quit, profile kept), task-c99d48d6 · status: pending
+- 2026-10-05 [MISSING] §OTP step — the relay form mirror could not take a verification code (Console #21). The cause was found with no access to the CEO's tab: local fixture pages run on a throwaway headless Chrome through the real relay. A row of 4–8 `maxlength=1` boxes showed as N one-character phone fields, so a pasted code landed only its first digit; an `opacity:0` / <2px code input over drawn slots was dropped from the mirror. Fixed in Console 104ae19 (PR #22): one "รหัส OTP" field, one digit per box. A recipe can now pause at an OTP step and the CEO types the code in the mirror, never in chat. Any other OTP widget that still fails: add its layout to `test/relay-otp-chrome.test.js` first · evidence: task-2f1a8586, RUN-20261004-1712-4953 · status: pending
 - 2026-10-05 [MISSING] §0 scope — a native Windows app sign-in (Xbox app / WAM dialog, needed to install Minecraft Bedrock, a GDK game not in winget) on winbox is outside the relay, which only screencasts Chrome pages. Routes: Windows SSO when the logged-in Windows Microsoft account owns the product, or a person at the desk · evidence: session cto-f39cb080, winbox account check 2026-10-05 · status: pending
 - 2026-10-06 [MISSING] §0 — a Contabo worker owned by a Mac CTO cannot letter it through `lib.mailbox` (host-local); SendMessage to the ListAgents Remote Control name (`MAC CTO #f39cb080 (...)`) delivered the relay-login line · evidence: task-ab26b241, msg 0707ce9e · status: pending
+- 2026-10-13 [MISSING] §5 After the login — the relay can close a request "done (by operator:CEO)" while the Chrome holds no session: tiktok-bl:9282 had no `sessionid`/`sid_tt` cookie (names only, never values) and TikTok Studio redirected to /login. Confirm from your side before reading anything as logged in: list the cookie names over CDP and open the target page once · evidence: rq-2bebfe9f, Contabo home tiktok-bl, 2026-10-13 → §5 rule "Done is checked only where a cookie rule exists" (artefact: Console 6ce00f9, task-531ef8d0) · status: promoted
+- 2026-10-13 [MISSING] §3 QR logins — a TikTok QR scan was followed by TikTok asking for an email code (6 digits) and the mirror froze at that step; the second request rq-ea4f57fd failed the same way (CEO, via COO). A relay bug, with the CTO; do not file a third request until the CTO says it is fixed · evidence: rq-ea4f57fd, rq-2bebfe9f → §3 QR logins (artefact: Console 6ce00f9, post-scan wait takes input, task-531ef8d0) · status: promoted
 - 2026-10-13 [MISSING] §1 keep the profile — a Browser Home that was signed in goes stale with no signal: the Clerk `__session` cookie is still present while every account page redirects to `/auth/sign-in` (Higgsfield mac:9281, signed in 10-01, signed out by 10-13). Check sign-in by loading an account URL and reading where it lands, never by cookie names; `relay-request.mjs open --home <id>` + `wait <id>` in a background shell then wakes the session when the CEO taps เสร็จแล้ว (rq-46287e64, exit 0) · evidence: session cto-671f688f 19:00–19:10 ICT · status: pending
+- 2026-10-14 [MISSING] §5 / wait — `relay-request.mjs wait <id>` exits 0 only when the CEO finished (`done`), 2 on timeout; run in the background with a trailing `echo "wait-exit=$?"` the harness reports "completed (exit code 0)" even on a timeout, so read the `wait-exit=` line (or the "done by operator" line) before acting; then confirm the cookie by NAME from your side. A request waiting on TikTok's "Verify it's really you" stayed open ~10 h across two mirror fixes (Console d0aa72d, 82350ac) before the CEO's tap landed, so give `--timeout` up to 7000 and re-arm instead of re-filing · evidence: rq-eec4d7ae, CMO c4432bad 13–14 Oct (done 19:53 CEST by operator:CEO) · status: pending
+- 2026-10-14 [MISSING] §0 / Console docs/relay.md §10 — once the Console role gate is on (the marker file `data/relay-role-gate.on` next to relay-requests.json; the env no longer switches it; built on agent/developer-task-fabda3b9 e56e500 + 8521bb0, off until the CEO's OK), `relay-request.mjs open|close --by` must be the caller's own id: `"$CXO_ROLE-$CXO_SESSION_ID"`, and for a CTO session from cto-claude.sh (no CXO_SESSION_ID) `"cto-$CTO_SESSION_ID"`. Any other id is refused (exit 4), a worker cannot open or close at all, and a Project Head opens only an account its C-level put on the project's list (`relay-request.mjs allow --project P --site S --account A --home H`), naming the Chrome with `--home` only (`--port`/`--via` refused), and closes only its own requests. Rewrite §0's `--by <sid>` before the marker file is created, or every session is locked out · evidence: task-fabda3b9 report, Console e56e500, 8521bb0 (CTO id, found at PH review) · status: pending

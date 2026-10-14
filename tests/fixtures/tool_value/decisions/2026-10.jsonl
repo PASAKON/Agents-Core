@@ -1,0 +1,5 @@
+{"ts": "2026-10-01T05:14:44+00:00", "site": "sompong.route", "provider": "jev", "cost_usd": 0.0001, "counterfactual_usd": 0.05}
+{"ts": "2026-10-07T05:00:00+00:00", "site": "sompong.route", "provider": "jev", "cost_usd": 0.0001, "counterfactual_usd": 0.05}
+{"ts": "2026-10-08T05:00:00+00:00", "site": "bl.beat", "provider": "rules", "cost_usd": 0.0, "counterfactual_usd": 0.01}
+{"ts": "2026-10-08T06:00:00+00:00", "site": "not.wired", "provider": "rules", "cost_usd": 0.0, "counterfactual_usd": 0.0}
+garbage

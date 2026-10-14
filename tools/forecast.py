@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -16,6 +17,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import quota
+from lib.router import header as _description_header
 
 SEED_COSTS: dict[str, dict[str, float | int]] = {
     "claude": {"S": 3, "M": 8, "L": 20, "plan_usd": 20},
@@ -49,21 +51,76 @@ SHELL_PATTERNS: list[str] = [
     "curl ",
     "git push",
     "git commit",
-    "make ",
     "bash ",
     "sh -c",
     "crontab",
     "launchctl",
     "ffmpeg",
+    "infisical run",
+    "org-python.sh",
+    "with-org-db-env.sh",
+    "git fetch",
+    "git pull",
+    "git merge",
+    "git rebase",
+    "git cherry-pick",
+    "git archive",
+    "git checkout -b",
+    "git worktree",
+    # pytest is a command too (CTO #e106b78b 2026-10-14): the Contabo agy launcher is
+    # file-only and denies every command, so a brief that runs pytest ended agy at its
+    # first step with no output (task-0156526f). A plain substring, like the git ones:
+    # a file-only brief says "the reviewer runs the tests" and never names pytest.
+    "pytest",
 ]
 
 
+# `make` as a command, not the English verb: a flag (`make -C x`), or ONE target word that ends the
+# command (line end, `&&`, `;`, `|`, a closing backtick) and is not a
+# word English puts after the verb (sure, it, them ...). A bare "make " matched "make sure" and
+# "Make face_box.py parametric", so 67 of 254 developer/tester briefs (20 Sep - 4 Oct) were judged
+# shell-only and AGY was ruled out (task-541e46b2, task-7da0e6e4, task-d4c1f234; COO, CEO 2026-10-04).
+MAKE_COMMAND = re.compile(
+    r"\bmake\s+(?:-[a-z]|(?!(?:sure|it|them|this|that|sense|certain|clear)\b)"
+    r"[a-z0-9_/-](?:[a-z0-9_./-]*[a-z0-9_/-])?(?=[ \t]*(?:$|&&|;|\||`)))",
+    re.MULTILINE)
+
+# Running Python: a script, `-m <module>` or `-c`. tools/agy_browse.py is left out on
+# purpose: the browser_agy lane's brief runs it on agy by design (GH #188,
+# tools/route.class_for), so it must not rule agy out.
+PYTHON_COMMAND = re.compile(
+    r"\b(?:python3?|\.venv/bin/python)\s+"
+    r"(?:-m\s+[\w.]+|-c\b|(?![\w./-]*agy_browse\.py\b)[\w./-]+\.py\b)",
+    re.IGNORECASE,
+)
+
+# "edit-only: <why>" in the description's header (lib.router.header: the lines before the
+# first blank line, max 5) declares a file-edit job whatever command words it quotes as text:
+# a translation of a doc full of commands, or a brief that names commands NOT to run. Without
+# it those words read as shell and rule agy out (task-7b431b10; task-3f99545e, `npm ` inside a
+# backtick span; CTO #c1ee65d8 2026-10-14). A wrong marker costs one agy run, recorded as a
+# runner_fit fail no-shell.
+_EDIT_ONLY_RE = re.compile(r"^[ \t]*edit-only:[ \t]*\S", re.IGNORECASE | re.MULTILINE)
+
+
 def needs_shell(brief: str | None) -> bool:
-    """Return True if brief tells the worker to run commands other than pytest/read-only git."""
+    """Return True if brief tells the worker to run a command.
+
+    Read-only git (log, diff, show, status) stays not-shell. pytest, git fetch/merge and
+    running Python count as shell (CTO #e106b78b 2026-10-14, task-0156526f); the one
+    exception is tools/agy_browse.py on the browser_agy lane. An `edit-only: <why>` header
+    line makes the whole brief not-shell.
+    """
     if not brief:
         return False
+    if _EDIT_ONLY_RE.search(_description_header(brief)):
+        return False
     lower = brief.lower()
-    return any(p.lower() in lower for p in SHELL_PATTERNS)
+    return (
+        any(p.lower() in lower for p in SHELL_PATTERNS)
+        or bool(MAKE_COMMAND.search(lower))
+        or bool(PYTHON_COMMAND.search(lower))
+    )
 
 
 def infer_size(touches: list | tuple | None = None, brief: str | None = None) -> str:

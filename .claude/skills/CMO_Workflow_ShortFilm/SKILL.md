@@ -119,6 +119,23 @@ and the CEO's own edit needs a day.
   3-native-reader gate before spend; CEO 2026-10-09).
 - Write the story bible and the script with every spoken line locked; plan length as shots × seconds and
   turn it into a first credit estimate. Examples: `docs/promo/topview-trailer/BIBLE.md`, `SCRIPT.md`.
+- **Know what the viewer must understand before anything is shot (CEO 2026-10-04).** Write it in one line for the
+  whole film and one line per scene: what the audience learns there. A scene that tells the viewer nothing the story
+  needs is cut, however good it looks.
+- **Set up the ordinary world before the story starts (CEO 2026-10-04).** His words: "ช่วงเริ่มต้นเริ่มการปูตัวละคร
+  … คนดูต้องรู้ว่า กิจวัตรประจำวันของตัวละครที่เรากำลังจะเล่าเขาทำอะไร เมืองที่เราเล่า ฉากแต่ละฉาก ทำไมเป็นแบบนั้น
+  ความสัมพันธ์ของแต่ละตัวละครเป็นยังไง ผ่านบทพูดและการกระทำ … อยู่ๆ มาก็เข้าเรื่องเลย". Before the inciting
+  incident the viewer must already know, from dialogue and action and never from a caption:
+  1. the hero's daily routine: what they do every day, and why it matters to the people around them;
+  2. who each main character is and how they are related to the hero;
+  3. the place: what it is, why it looks the way it does, and the background the plot will use. Show it through a
+     custom only this place has, something its people do every day, never through still scenery or stock-style
+     footage (CEO, same night: "เรื่องความเป็นอยู่ของเมืองออกแบบมาให้น่าสนใจมากกว่าที่จะเป็นฉากนิ่งๆ + footage ทั่วไป");
+  4. the antagonist's motive, shown in one act before his big move, so the move is in character;
+  5. why it has to be the hero: the reason nobody else can do the job, planted before it is needed (CEO, same
+     night: "ทำไมต้องเป็นเด็กเท่านั้นที่ขึ้นไปตีระฆัง คนอื่นตีไม่ได้หรอ").
+  Plan these as setup shots in the first act; if one of the five has no shot, the story jumps in too early.
+  Evidence: THE LAST BELL v1 opened on the bell, the boat and the Governor with none of the four set up.
 - **Output:** BIBLE.md, SCRIPT.md, beat list. **Gate:** the CEO approves the script.
 
 ### Step 3 · Characters, locations and props (the @Element registry)
@@ -139,6 +156,19 @@ and the CEO's own edit needs a day.
   `tools/shotsheet_lint.py`). Say the tolerance out loud (§5).
   Shot size, angle, move, lens, light and colour per shot: `CMO_Knowledge_Cinematography_ShortMovie`
   (Short Movie only; ละครสั้น / lakorn never borrows from it, CEO 2026-10-03).
+- **Every cut from shot A to shot B must be explainable (CEO 2026-10-04).** His words: *"การทำหนัง 1 เรื่องเราต้อง
+  รู้ก่อนว่าจะสื่ออะไรให้คนดูได้รู้ และ A -> B ได้ยังไง สมเหตุสมผลหรือป่าว ถ้าอธิบายไม่ได้ แปลว่า เราทำมันได้ไม่ดี"*.
+  His example, THE LAST BELL: the girl sits with her grandmother, and the next shot has her already in a boat. Who
+  called her, did she get up, did she climb aboard? Write a cut-logic table in cut order, one row per pair: the IN
+  and OUT of each shot (place, who, doing what, light), then the one line that takes the viewer from A to B. Accepted
+  links: the same action continues; B is caused by A; the move between places is shown (gets up, leaves, boards,
+  arrives); a look or a sound in A motivates B; time passing is marked (light change, a dissolve). A row without
+  a link is a missing **bridge shot**: add it to the shot list (a call from outside, getting up, boarding, arriving),
+  4–7 s of cut, generated like any other shot. Run the table on the shot list before prompts and again on the real
+  takes' first and last frames before the edit, because a take can start somewhere the board did not say.
+  The table assumes one story line running straight (CEO 2026-10-04: "กฏนี้จะใช้ได้กับเนื้อเรื่องที่เดินเป็นเส้นตรง").
+  How to cut a film with several lines (main, secondary, a past, a dream) is not recorded yet: the CEO asked for
+  his method to be tested on a real film before it becomes a rule.
 - **Output:** STORYBOARD.md + continuity table. **Gate:** every open question asked at once, each with a
   recommended answer; the CEO's answers written into the notes before any prompt changes.
 
@@ -281,6 +311,9 @@ Last agent: <session id> · Next action: <one line>
 
 ## Field notes
 
+- 2026-10-03 [MISSING] Step 4 output — plates have `Element/Character|Location|Prop`, but key art (a poster-style frame that is not an element) has no folder in the YT: ILAG layout. THE LAST BELL's two key frames went to the film root · evidence: docs/prompts/last-bell/NOTES.md (key_bell_naga, key_storm_city), session 671f688f · status: pending
+- 2026-10-03 [MISSING] engine limits before writing prompts — champa Seedance 2.0 takes at most 9 reference images and a 2,000-character prompt (2,001 is refused with "ข้อมูลไม่ถูกต้อง"; the textarea itself keeps 12,000+). A storyboard written before measuring would have overflowed: the first build of THE LAST BELL had shots up to 2,846 characters. Measure the engine's slot and length caps with free jobs before the storyboard step, and have the build script assert them · evidence: docs/prompts/last-bell/REFS.md, build_shots.py LIMIT, lb_out/queue.jsonl reject rows lb-t3-len2001…len8000 · status: pending
+- 2026-10-03 [MISSING] before a render wave, read the engine's quality default and per-quality price into REFS — on champa Seedance 2.0 the menu defaults to 720p (480p/720p free on Unlimited, 1080p = 106 credits per 15 s clip), and card meta reads `Standard` whatever is picked; the CTO first told the CEO the clips were 480p, a claim nobody had measured · evidence: last-bell NOTES §Rough cut v1, 47 clips fired before the check · status: pending
 - 2026-10-04 [MISSING] Step 8 — the step named only the Flow lakorn gate; a champa Seedance short movie fails in the picture (weather from a reference, creature geometry, named states) where that gate's cheap stage is blind: 0 defects at stage 1 vs 15 of 41 shots failing by eye on THE LAST BELL. Pointer added to the new gate CMO_Gate_Champa_Seedance2.0_ShortMovieQC · evidence: session cto-671f688f, commit e5e898f3 · status: promoted
 - 2026-10-04 [COSTLY] Step 2 — THE LAST BELL went to the queue (40 shots, 2026-10-03) on a bible still marked "plot draft v1, not yet a locked script" and without `CMO_Gate_Story_SceneEngine`; the audit found scenes A, C and D failing (inert twist: the Naga only hurt the villain, the storm came before the bell, the chain broke after the Naga was loose). Round 2 needed 9 new shots plus re-cuts. Prevented by: the builder (`build_shots.py`) refusing to emit prompts while BIBLE.md says draft or no per-scene engine table exists · evidence: docs/prompts/last-bell/STORY-AUDIT-2026-10-04.md, STORY-V2.md (origin 2d339689) · status: pending
 - 2026-10-09 [WRONG] Step 2, multi-language scripts — the Thai script v0 for The Old Telling EP1 was a literal translation of English ideas ("the version they softened" became "ฉบับก่อนถูกทำให้เบาลง", which a native reader takes as "made lighter in weight"); the CEO, a native Thai reader, could not follow it. Rule candidate (n=1, so a note, not a rule): write ONE beat sheet (facts, image order, hook shape, turn, ending), then write each language fresh from the beat sheet, never from another language's text, and give each language its own tagline and its own "what everybody already knows" anchor. Check: the CEO reads Thai; ES, DE, JA need a native reviewer or a Thai back-translation for the CEO · evidence: docs/prompts/the-old-telling-ep1/SCRIPT-TH.md v0 vs v1, wiki decisions/2026-10-09-the-old-telling-mythology-series.md section Localisation · status: promoted (into CMO_Standard_TheOldTelling_Script, CEO 2026-10-09)
@@ -296,3 +329,4 @@ Last agent: <session id> · Next action: <one line>
 - 2026-10-09 [MISSING] Step 3 · Plates (H3) — plates on a neutral grey ground, one face plate first, states as same-chat continue edits, location plates for day and dusk separately: all four independent H3 cards kept Orpheus' face, wreath, tunic, cloak stripe and lyre; by eye at full resolution on one frame per clip his skin was natural olive in warm, cold and cave light, no red. Two misses: the words 'no taller than one fifth of the frame' were ignored (he fills the left half in e01), and the `ashen` state is weak in e04 (the tunic reads clean). Colour and light came from the prompt's grade block, not from the plates. n=1 film · evidence: cmo-f76492bf e01..e04 · status: pending
 - 2026-10-09 [MISSING] Step 4 / Step 7 — a shot need not be 15 s (CEO): make the B-roll for the sentence and fit its length to the voice. H3 accepts 4 to 15 s, but the frame count is on the grid 5 + 17k at 24 fps (`studio/src/lib/rules.ts`): 107, 124, 141, 158, 175, 192 ... 362 frames = 4.46, 5.17, 5.88, 6.58, 7.29, 8.00 ... 15.08 s, steps of 0.71 s. Order: write the script, read the voice, take the sentence times from the ElevenLabs timestamps, give each shot the next grid length above its sentence time, trim in the edit. Shorter than 4.46 s still renders 4.46 s. Cost per second is about 0.15 CU at 1080p on a warm VM [A, from 2.23 CU per 15 s] plus take overhead, so total cost follows the seconds of picture, not the number of shots · evidence: CEO message 2026-10-09, rules.ts lines 33 to 69 · status: pending
 - 2026-10-09 [MISSING] Step 9 · Edit — CEO rules for a YouTube long-form cut: no burned-in subtitles (YouTube auto captions do it); time passing is a black card with writing (made by hand, Pillow or HTML to Playwright); a character may speak a few short lines, in the language of the master, and the line is laid over the clip at the mouth opening; dubs are separate audio tracks per language, never baked into the master · evidence: CEO message 2026-10-09 · status: pending
+

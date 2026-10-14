@@ -230,6 +230,7 @@ def test_start_clevel_fresh_registers_one_interactive_one_shot_task(win):
 
 
 def test_start_clevel_resume_passes_the_full_uuid_as_a_resume_flag(win, monkeypatch):
+    monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": nd._self_host()})
     monkeypatch.setattr(session_status, "resume_target", lambda role, sid: UUID)
     out, code = nd._run("start_clevel", ["cto", "--resume", "1234abcd"])
     assert code == 0, out
@@ -355,7 +356,7 @@ def test_spawn_worker_on_windows_runs_the_launcher_and_writes_the_row(spawn):
                    "-RepoUrl 'git@github.com:PASAKON/mooniex-agents.git'",
                    "-RepoPath 'C:\\Users\\passg\\mooniex\\repo\\MoonieX-Agents'",
                    f"-WorktreeRoot '{_WORKTREE_ROOT}'", "-ClaudeArgs '--model ",
-                   "--allowed-tools ", "-SessionName 'WINDOWS Developer #", "(Fix the thing)",
+                   "--allowed-tools ", f"-SessionName 'Dev#{tid[5:8]} - ", "Fix the thing'",
                    f"-TaskFile '{repo / 'state' / f'.remote-task-{tid}.md'}'",
                    "-Runner 'claude'", f"-AgentsRoot '{repo}'"):
         assert needle in script, needle

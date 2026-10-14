@@ -395,6 +395,20 @@ def _close_claimed_chrome_tabs(task_id: str) -> list[str]:
     return closed
 
 
+def _close_iterm_tab(task_id: str, *, allow_pid: bool) -> bool:
+    """`close_tab` on a Mac; False anywhere else, where there is no iTerm and
+    no osascript. Never raises: on Contabo `close_tab` raised FileNotFoundError
+    for osascript and close_dev stopped before its tmux, ttyd and Chrome steps
+    (task-fabda3b9, 2026-10-14)."""
+    if sys.platform != "darwin":
+        return False
+    try:
+        return close_tab(task_id, allow_pid=allow_pid)
+    except Exception as e:
+        warn(f"worker_reap: closing the iTerm tab of {task_id} failed: {e}")
+        return False
+
+
 def close_dev(task_id: str, *, reason: str) -> dict:
     """End a DEV's process + tmux/ttyd + tab + claimed Chrome tab(s) for
     `task_id`. See module docstring.
@@ -459,7 +473,7 @@ def close_dev(task_id: str, *, reason: str) -> dict:
     # tab still gets closed — but by title only. Reaching the pid path here
     # would close whichever tab now holds a pid we just refused to trust: the
     # same harm as killing it, moved to the other half of the job.
-    result["closed_tab"] = close_tab(task_id, allow_pid=matched)
+    result["closed_tab"] = _close_iterm_tab(task_id, allow_pid=matched)
     result.update(_cleanup_tmux_ttyd(task))
 
     # ADDENDUM 1 (task-92118d4e): Chrome tabs are a surface too. Only ever

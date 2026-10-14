@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-53 org skills by kind — Rules 7 · Knowledge 12 · Workflow 4 · Procedure 10 · Standard 6 · Gate 5 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
+58 org skills by kind — Rules 7 · Knowledge 15 · Workflow 4 · Procedure 11 · Standard 6 · Gate 6 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -33,7 +33,10 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Knowledge_MiniMax_H3` | CMO | cmo, cto, browser_operator, developer | Everything measured about generating video with MiniMax H3 through our own ComfyRunpod studio (the Mac, reached over the tailnet): adding… |
 | `CMO_Knowledge_Seedance2.5_Higgsfield` | CMO | cto, cmo, cfo, cgo, browser_operator | Everything measured about generating with Seedance on Higgsfield.ai: Seedance 2.5 (Unlimited and credit lanes), the 2.0 / 2.0 Fast / 2.0… |
 | `CMO_Knowledge_Wan3.0_TopView` | CMO | cmo, cto, browser_operator | Generating with Wan 3.0 on TopView (topview.ai): how references are written (positional, no Element library), the 20,000-character… |
+| `CTO_Knowledge_AGY` | CTO | cxo | What Antigravity (agy) is in the org (its two weekly buckets, the file-only headless contract, the agy_browse lane) and how it has… |
+| `CTO_Knowledge_Codex` | CTO | cxo | What Codex CLI is in the org (where it runs, its weekly bucket, that it can run a shell) and how it has measured as a worker, per job… |
 | `CTO_Knowledge_CookieRun_Labeling` | CTO | cto, worker | How to label frames and train the Cookie Run obstacle detector without repeating the mistakes of 2026-09-02 (owned by CTO). Read this… |
+| `CTO_Knowledge_Haiku` | CTO | cxo | What Claude Haiku 5.5 is in the org (a learning lane on the Claude subscription, CEO 14 Oct), what its one trial measured, how it is used… |
 | `CTO_Knowledge_Jules` | CTO | cto, cxo | How the org uses Jules — what to give it (a task menu, so the 300/day quota is used), the 8-line brief that measured 7 clean passes vs 3… |
 | `CTO_Knowledge_Winbox_DesktopGUI` | CTO | cto, browser_operator | Driving a real desktop app (LINE, Resolve, Chrome) on the winbox Windows machine from a C-level or operator session: how to reach session… |
 | `CXO_Knowledge_GDrive_FolderMap` | COO | cxo, worker | The CEO's Google Drive folder tree and the ID table every Drive action resolves against (IDs are the truth, names are labels). |
@@ -59,6 +62,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Procedure_ChatGPTImage_LakornCover` | CMO | cmo, cto, browser_operator | Make the cover of a ละครสั้นคุณธรรม / ILAG drama episode the way the CEO approved on «จุดจบของเจ้าหนี้นอกระบบ» (2026-09-24): people from… |
 | `CMO_Procedure_RealFootageCapture` | CMO | cmo, cto, developer, browser_operator, video_editor | Capture REAL web footage for a video — a company's logo, its live website, a watchdog page such as WikiFX with the real numbers — as… |
 | `CMO_Procedure_ReelEditor_TH` | CMO | cmo, worker | Turn a talking-head clip (a single person to camera, usually shot on a phone) into a finished vertical 9:16 Thai-subtitled… |
+| `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
 | `CTO_Procedure_Bedrock_SkyScene` | CTO | cto | Make one Minecraft Bedrock sky scene match its concept image in the running game, scored against a 90 target. |
 | `CTO_Procedure_KeyFetch` | CTO | cxo, browser_operator, developer | A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. |
 | `CXO_Procedure_GDrive_BulkTransfer` | COO | cxo, worker | Move gigabytes into the CEO's Google Drive and run moves / renames / deletes through the bridge: batches, md5 verification by file id, the… |
@@ -83,6 +87,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `CMO_Gate_Flow_Omni1.1_FilmQC` | CMO | cmo, cto, browser_operator, video_editor, tester | Quality control for an AI film shot in Google Flow (Omni 1.1 Flash): the per-act loop that found every defect of «จุดจบของเจ้าหนี้นอกระบบ»… |
 | `CMO_Gate_Story_SceneEngine` | CMO | cmo, script_writer, worker | Write and audit screenplay scenes and sequences using a five-element dramatic engine — Goal, Obstacle, Tactic, Reversal, Value Shift… |
 | `CTO_Gate_MergeChecklist` | CTO | cto | Pre-merge verification gate — refuses merge_task if any check fails. |
+| `CXO_Gate_RouteFirst` | CTO | cxo | Before every delegate_task of a worker job: outside runners first (IRON §59 rule 7). What route.check_override v2 and the router enforce… |
 
 ## Protocol
 
@@ -105,7 +110,7 @@ Short names kept on purpose (CEO 2026-09-27); the kind lives in the frontmatter 
 | name | kind | owner | audience | what it is |
 |---|---|---|---|---|
 | `relay-login` | Protocol | CTO | cto, cxo, browser_operator, devops_engineer, developer, tester | Get a login done by the CEO from his phone via the Console login relay. |
-| `session-change-model` | Protocol | CTO | cxo | Put a C-level session back on the org standard model (Opus 5.5 1M @ xhigh) when it is running lighter, and wait for CEO confirmation. |
+| `session-change-model` | Protocol | CTO | cxo | Put a C-level session back on the org standard model (Opus 5.5 1M; effort is the CEO's own call, medium at spawn) when it is running a… |
 | `session-close` | Gate | CTO | cxo | Verify a session's Entry Problem is actually solved before closing it 🏁. |
 | `session-list` | Protocol | CTO | cxo | List past CTO/CXO sessions still open, with state, blocker, and age. |
 | `session-merge` | Protocol | CTO | cxo | Carry another session's context into this one, then mark it merged. |
@@ -182,3 +187,4 @@ Delete through `scripts/skill-curator.py archive <old>` once the date has passed
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `CTO_ILAG_LakornTheme` | - | cto, browser_operator, developer | The one look of the ILAG ละครสั้นคุณธรรม channel (Page «ละครสั้นคุณธรรม by ILAG Studio»): navy + gold, approved by the CEO 2026-09-28 on… |
+| `humanizer` | - | - | Rewrite AI-sounding text so it reads like the writer without changing what it says. Use when editing or reviewing prose for AI tells… |

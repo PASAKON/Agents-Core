@@ -7,6 +7,8 @@ CTO split it into its own private repo and, on the Mac, replaced the real
 (``/Users/gob/MoonieXHQ/Agents/Memory``). This module is the sync half: pull it
 fresh before a C-level session reads `MEMORY.md` into context, push it before
 one ends so the next session (on ANY host) sees what this one learned.
+This module owns Agents-Memory sync: commit session edits and merge a moved
+remote at session close, with best-effort merges at spawn.
 
 Two hard constraints shape every function here:
 
@@ -109,7 +111,7 @@ def _session_label() -> str:
 # hold a spawn open — the launcher relies on this instead of the shell's own
 # `timeout`/`gtimeout`, which this box doesn't have (IRON-RULES §12: BSD
 # userland, verify before assuming a GNU coreutil exists). Comfortably under
-# the launcher's ~20s foreground budget even if pull needs two git calls.
+# the launcher's ~20s foreground budget for the two network calls on divergence.
 GIT_TIMEOUT_SECONDS = 8.0
 
 
@@ -118,6 +120,7 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
         return subprocess.run(
             ["git", "-C", str(repo), *args],
             capture_output=True, text=True, timeout=GIT_TIMEOUT_SECONDS,
+            env={**os.environ, "LC_ALL": "C"},
         )
     except subprocess.TimeoutExpired:
         return subprocess.CompletedProcess(
@@ -126,12 +129,25 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
         )
 
 
+def _merge_remote(repo: Path, command: str) -> subprocess.CompletedProcess:
+    result = _git(repo, "pull", "--no-rebase", "--no-edit")
+    if result.returncode != 0:
+        conflicts = _git(repo, "diff", "--name-only", "--diff-filter=U")
+        if conflicts.stdout.strip():
+            print(f"[memory_sync] {command}: merge conflict:")
+            print(conflicts.stdout.strip())
+            aborted = _git(repo, "merge", "--abort")
+            # Do not print merge output: memory file contents must stay private.
+            detail = "merge conflict; merge aborted" if aborted.returncode == 0 else "merge conflict; abort failed"
+            return subprocess.CompletedProcess(result.args, 1, stdout="", stderr=detail)
+    return result
+
+
 def pull(memory_dir: Path | None = None) -> int:
     """``git pull --ff-only`` the memory repo. Always exits 0 — never blocks a spawn.
 
-    A non-fast-forward pull (a crashed prior session's local commit never
-    pushed) or a network failure both just print a warning and fall through:
-    the session runs with whatever memory is already on disk.
+    Clean divergence gets a merge attempt. Conflicts or network failures
+    warn and continue with whatever memory is already on disk.
     """
     memory_dir = memory_dir or default_memory_dir()
 
@@ -145,6 +161,10 @@ def pull(memory_dir: Path | None = None) -> int:
         return 0
 
     result = _git(repo, "pull", "--ff-only")
+    if result.returncode != 0 and "not possible to fast-forward" in result.stderr.lower():
+        status = _git(repo, "status", "--porcelain")
+        if status.returncode == 0 and not status.stdout.strip():
+            result = _merge_remote(repo, "pull")
     if result.returncode == 0:
         print(f"[memory_sync] pull: {result.stdout.strip() or 'already up to date'}")
         return 0
@@ -197,6 +217,11 @@ def push(memory_dir: Path | None = None) -> int:
         return 1
 
     pushed = _git(repo, "push")
+    if pushed.returncode != 0 and any(
+        reason in pushed.stderr for reason in ("(fetch first)", "(non-fast-forward)")
+    ):
+        merged = _merge_remote(repo, "push")
+        pushed = _git(repo, "push") if merged.returncode == 0 else merged
     if pushed.returncode != 0:
         print(f"[memory_sync] push: FAILED to push {repo} — memory stays local-only")
         detail = (pushed.stderr or pushed.stdout).strip()

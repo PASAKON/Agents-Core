@@ -1,0 +1,17 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+Shot B07 · scene B · target length in the cut 6 s · grade storm
+References in upload order: @ภาพ1=loc_yai_house-2, @ภาพ2=ch_kaew_a, @ภาพ3=prop_mallet
+Built by build_shots.py; edit the table there and rebuild.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+15 seconds · 720p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS, no zoom, a slow tilt down.
+Insert: THE MALLET in KAEW's hands.
+REFERENCES: @ภาพ1 — YAI'S HOUSE, a poor stilt house inside: rusted zinc roof, patched plank walls. @ภาพ2 — KAEW: face, hair, clothes, colours; ignore the sheet layout and background. @ภาพ3 — THE MALLET: dark wood, red thread on the handle; ignore the sheet layout and background.
+WHO: KAEW, Thai girl about 12, crimson tunic, indigo chong kraben, black bob with a crimson-thread topknot, barefoot.
+THE FRAME: Extreme close-up of KAEW's hands closing around THE MALLET, the red thread wound on its handle, lamp light flickering.
+WHAT HAPPENS: [0s] Her fingers tighten on the red thread. [3s] She tucks THE MALLET into the waistband of her chong kraben.
+SOUND: Rain, a heartbeat-slow drum of drips, the lamp.
+Grade: storm: black-green clouds, yellow lightning, rain lit chartreuse, gold only from lamps and the bell, high contrast, photoreal. NOT blue, NOT orange-and-teal. 35mm anamorphic, film grain.
+CRITICAL NEGATIVES: no text, no subtitles, no watermark; no sheet panels, no white backdrop, no split screen; nothing modern.
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

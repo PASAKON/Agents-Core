@@ -22,7 +22,7 @@
 # The nine steps, in order. Each is safe to repeat: run the same command again after a failure.
 #   1 check the arguments             6 join the tailnet
 #   2 make the node's keys            7 clone Agents-Core over the deploy key, build the venv
-#   3 accept: hand the hub the token  8 open the sealed identity, save it, write node.yaml
+#   3 accept: hand the hub the token  8 open the sealed bundle (token URL), write node.yaml
 #   4 install what is missing         9 probe
 #   5 wait for the operator's approval and the sealed identity
 # Keys and accept come BEFORE the long installs: the token is used within seconds of being typed,
@@ -33,22 +33,25 @@
 # machine on the tailnet. Nothing before it needs the tailnet: the installs come from public
 # package repositories, the hub is called at its public URL, and the clone is over GitHub.
 # The deploy key only works once the operator approved this node and the hub provisioned it (step
-# 5), and the save in step 8 is a script from the clone, so the clone comes between the tailnet
-# and the save.
+# 5), so the clone comes after the wait. Step 9 runs two programs from the clone.
 #
 # No secret is typed, written to disk by this script, or put on a command line of a process that
-# lives longer than a moment. The token travels in a request body on stdin. The node's identity
-# (client id + secret) is age-encrypted to a key that never leaves this machine; it flows
-# age -> python -> infisical_setup.py through pipes and is stored only by that last program,
-# under /etc/infisical (root, 0600).
+# lives longer than a moment. The token travels in a request body on stdin. The sealed answer
+# (step 5) holds no secret since W4.2b (CEO 2026-10-03): it is age-encrypted to a key that never
+# leaves this machine and carries only the URL of the hub's token service. The node has no
+# Infisical identity. When it runs something that needs the Claude token it asks the hub for it
+# (tools/node_token.py run -- <command>): the hub hands it over only to a node the operator
+# approved and that has not left, and the value goes into that command's environment and nowhere
+# else. Nothing is saved under /etc/infisical.
 #
-# Needs root for: installing packages, `tailscale up`, and saving the identity. On Linux and
-# macOS that is sudo (asked for when first needed). Run it as your own user, not as root, on a Mac.
+# Needs root for: installing packages and `tailscale up`. On Linux and macOS that is sudo (asked
+# for when first needed). Run it as your own user, not as root, on a Mac.
 #
 # Every python this script starts runs as `python -I`: isolated mode, so no user site-packages
 # (.pth files), no PYTHON* variables and no current directory on sys.path. As root that keeps a
 # file the node's user can write from being loaded into a root process. The checkout itself is
-# still user-owned code that root runs (step 8, 9): see deploy/join/README.md, "What root runs".
+# still user-owned code, and since W4.2b root runs none of it after step 6: see
+# deploy/join/README.md, "What root runs".
 
 set -u
 
@@ -227,8 +230,8 @@ banner() {
   say "host $HOST ($OS), hub $HUB"
   say "HQ root $HQ_ROOT  (checkout: $CORE)"
   say "keys go under $CONF_DIR (age identity, deploy key) and $HOME/.ssh (dispatch key)"
-  say "ROOT NEEDED for three things: installing packages (2, 4), tailscale up (6), saving the node's"
-  say "identity under /etc/infisical (8). $(root_need_text)"
+  say "ROOT NEEDED for two things: installing packages (2, 4) and tailscale up (6). Nothing is saved"
+  say "under /etc/infisical: this node has no Infisical identity. $(root_need_text)"
   if [ "$DRY_RUN" -eq 1 ]; then
     say "DRY RUN: every step below is printed, nothing is changed, nothing is contacted"
   fi
@@ -659,63 +662,69 @@ do_clone() {
   "$CORE/.venv/bin/python" -I -m pip install -q -r "$CORE/requirements.txt" </dev/null || die "pip install -r requirements.txt failed"
 }
 
-# ---------------------------------------------------------------- 8: identity + node.yaml
+# ---------------------------------------------------------------- 8: sealed bundle + node.yaml
 
 yq() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/''/g")"; }
 
+# node.yaml: who this node is (host, os, hq_root: lib/config.py) and how it gets the Claude token
+# (token_url, age_identity: tools/node_token.py). $1 is the hub's token URL, from the sealed bundle.
 write_node_yaml() {
   _f=$CONF_DIR/node.yaml
   if [ -f "$_f" ] && ! grep -Eq "^host: '?$HOST'?\$" "$_f"; then
     die "$_f already names another host; remove it if this machine really is $HOST"
   fi
-  { printf 'host: %s\n' "$(yq "$HOST")"; printf 'os: %s\n' "$OS"; printf 'hq_root: %s\n' "$(yq "$HQ_ROOT")"; } > "$_f.tmp" \
+  { printf 'host: %s\n' "$(yq "$HOST")"; printf 'os: %s\n' "$OS"; printf 'hq_root: %s\n' "$(yq "$HQ_ROOT")"
+    printf 'token_url: %s\n' "$(yq "$1")"; printf 'age_identity: %s\n' "$(yq "$AGE_ID")"; } > "$_f.tmp" \
     || die "could not write $_f"
   mv "$_f.tmp" "$_f" || die "could not write $_f"
 }
 
-do_identity() {
-  step 8 "open the sealed identity, save it under /etc/infisical, write node.yaml"
-  say "age -d -i $AGE_ID | (json: client_id, client_secret) | $(root_prefix)python3 -I tools/infisical_setup.py save $HOST --stdin"
-  say "the plaintext only ever flows through those pipes"
-  say "node.yaml: host, os, hq_root -> $CONF_DIR/node.yaml (where lib/config.py reads it)"
+do_bundle() {
+  step 8 "open the sealed bundle, write node.yaml (no secret is stored on this machine)"
+  say "age -d -i $AGE_ID | (json: v 2, host, token_url) -> the hub's token URL"
+  say "node.yaml: host, os, hq_root, token_url, age_identity -> $CONF_DIR/node.yaml (lib/config.py and tools/node_token.py read it)"
+  say "nothing goes under /etc/infisical and no token is fetched here: tools/node_token.py asks the hub for it when a command needs it"
   [ "$DRY_RUN" -eq 1 ] && return 0
-  [ "$(id -u)" -eq 0 ] || sudo -v || die "sudo did not accept the password"
-  # No pipefail in sh: if age or the extractor fails, `save` reads nothing (or a login that
-  # fails) and exits non-zero itself ("empty input" / "login failed"), so the status of the
-  # last stage is the status of the whole.
-  printf '%s\n' "$CIPHER" \
+  # No pipefail in sh: if age fails the reader gets nothing, finds no JSON and exits non-zero
+  # itself, so the status of the last stage is the status of the whole. It prints only fixed
+  # sentences and the URL: never a field of the bundle it could not read.
+  _turl=$(printf '%s\n' "$CIPHER" \
     | age -d -i "$AGE_ID" \
-    | "$PY" -I -c 'import json, sys
-d = json.load(sys.stdin)
-print(d["client_id"])
-print(d["client_secret"])' 2>/dev/null \
-    | as_root "$PY" -I "$CORE/tools/infisical_setup.py" save "$HOST" --stdin \
-    || die "could not save the node's identity (the decrypt, the parse or the Infisical login failed; nothing was stored)"
+    | "$PY" -I -c 'import json, re, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    sys.exit("the sealed answer is not a JSON bundle")
+if not isinstance(d, dict) or d.get("v") != 2:
+    sys.exit("the sealed answer is not a v2 bundle: the hub is older than W4.2b, ask the operator to update it")
+if d.get("host") != sys.argv[1]:
+    sys.exit("the sealed answer was made for another host")
+u = d.get("token_url")
+if not isinstance(u, str) or not re.fullmatch(r"https?://[A-Za-z0-9][A-Za-z0-9.-]{0,98}(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]{0,100})?", u):
+    sys.exit("the sealed answer has no usable token_url")
+sys.stdout.write(u)' "$HOST") \
+    || die "could not open the sealed bundle (the decrypt or the parse failed; nothing was written)"
   CIPHER=""
-  write_node_yaml
+  write_node_yaml "$_turl"
 }
 
 # ---------------------------------------------------------------- 9: probe
 
-# Returns 0 when the probe passed, 1 when it did not. Not fatal: by now the node IS joined and
-# its identity is saved, and the probe's own message says what is left to fix.
+# Returns 0 when the probe passed, 1 when it did not. Not fatal: by now the node IS joined, and the
+# probe's own message says what is left to fix.
 do_probe() {
-  step 9 "probe: measure this node through its own identity"
-  say "$(root_prefix)env HOME=$HOME ORG_HOST=$HOST python3 -I -B tools/infisical_setup.py run Org-Node prod --as $HOST -- .venv/bin/python -I -B tools/node_dispatch.py probe"
-  say "HOME=$HOME is handed on explicitly: the probe reads $CONF_DIR/node.yaml, the file step 8 wrote"
+  step 9 "probe: fetch the Claude token from the hub, then measure this node"
+  say "env ORG_HOST=$HOST python3 -I tools/node_token.py run -- .venv/bin/python -I -B tools/node_dispatch.py probe"
+  say "as $(id -un), not root: node_token.py reads $CONF_DIR/node.yaml (written by step 8) and asks the hub for the token, which exists only in the probe's environment"
   [ "$DRY_RUN" -eq 1 ] && return 0
-  # node.yaml was written under this script's $HOME (CONF_DIR), and lib/config.py finds it through
-  # the probe's own HOME. Under sudo that HOME is often root's, where node.yaml is not, and ORG_HOST
-  # alone names a host without an os or an hq_root. So HOME is part of the command, not inherited:
-  # `env` sets it after sudo has had its say. ORG_HOST stays, it is what makes the probe use $HOST.
-  # Both pythons are root here, so both run isolated (-I: no user site-packages or .pth, no PYTHON*
-  # variables, no current directory on sys.path), and -B keeps root from writing root-owned .pyc
-  # files into the user's clone (the PYTHONDONTWRITEBYTECODE variable that used to do that is one
-  # of the variables -I ignores). -I also drops the current directory, which is how
-  # `-m tools.node_dispatch` found the `tools` package, so the probe is started by its path: the
-  # file puts the checkout on sys.path itself (tools/node_dispatch.py, `sys.path.insert(0, ROOT)`).
-  # The probe's stderr is left on the terminal; only its one JSON line is read.
-  _res=$(cd "$CORE" && as_root env HOME="$HOME" ORG_HOST="$HOST" "$PY" -I -B "$CORE/tools/infisical_setup.py" run Org-Node prod --as "$HOST" \
+  # Both pythons run isolated (-I: no user site-packages or .pth, no PYTHON* variables, no current
+  # directory on sys.path) and -B keeps them from writing .pyc files into the clone. node_token.py
+  # is stdlib only and replaces itself with the probe, so the probe's stdout is this command's.
+  # `-I` also drops the current directory, so the probe is started by its path: the file puts the
+  # checkout on sys.path itself (tools/node_dispatch.py, `sys.path.insert(0, ROOT)`). ORG_HOST is
+  # what makes the probe use $HOST. The probe's stderr stays on the terminal, with node_token's own
+  # one-line reason when the hub refuses; only the probe's one JSON line is read.
+  _res=$(cd "$CORE" && ORG_HOST="$HOST" "$PY" -I -B "$CORE/tools/node_token.py" run \
     -- "$CORE/.venv/bin/python" -I -B "$CORE/tools/node_dispatch.py" probe </dev/null) || true
   printf '%s\n' "$_res" | "$PY" -I -c 'import json, sys
 last = [l for l in sys.stdin.read().splitlines() if l.strip()][-1:]
@@ -743,11 +752,11 @@ finish() {
   if [ "$1" -eq 0 ]; then
     printf 'join: %s is a node.\n' "$HOST"
   else
-    printf 'join: %s is joined and its identity is saved, but the probe did not pass (above).\n' "$HOST"
+    printf 'join: %s is joined, but the probe did not pass (above).\n' "$HOST"
   fi
   say "dispatch public key (for the ssh mesh, W2.8): $DISPATCH_KEY.pub"
-  say "claude: nothing to sign in to here. The node reads CLAUDE_CODE_OAUTH_TOKEN at run time through"
-  say "  infisical_setup.py run Org-Node prod --as $HOST -- <command>   (once the CEO has put it there)"
+  say "claude: nothing to sign in to here. A command that needs CLAUDE_CODE_OAUTH_TOKEN runs as"
+  say "  python3 -I $CORE/tools/node_token.py run -- <command>   (the hub hands it over while this node is approved; it is never stored here)"
 }
 
 main() {
@@ -760,7 +769,7 @@ main() {
   do_wait_sealed
   do_tailscale
   do_clone
-  do_identity
+  do_bundle
   _probe=0
   do_probe || _probe=1
   finish "$_probe"

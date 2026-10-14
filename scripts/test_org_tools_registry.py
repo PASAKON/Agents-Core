@@ -89,7 +89,14 @@ def test_registry_names_match_prod() -> bool:
         "send_media_to_ceo", "send_media_batch_to_ceo",
         # Run Inbox P1b: thin async wrappers over tools/ask_run.py, covered by
         # tests/test_ask_run.py through FastMCP's own call_tool.
-        "ask_run", "ask_run_wait",
+        "ask_run", "ask_run_wait", "start_clevel_remote",
+        # Run Inbox question cards (docs/design/run-inbox/QUESTIONS.md §9): the
+        # requester side, covered by tests/test_ask_run_questions.py.
+        "ask_ceo",
+        # Envelope mail (org restructure P1): the session's own mailbox read
+        # back, covered by scripts/test_mail_envelope.py. The server serves
+        # them only under ORG_MAIL_ENVELOPE but defines them either way.
+        "read_letter", "list_letters",
     }
     names = set(reg.BY_NAME)
     return names == expected and all(callable(getattr(srv, n, None)) for n in names)
@@ -416,7 +423,7 @@ def main() -> int:
     db.init()
 
     print("== registry shape ==")
-    _mark(test_registry_names_match_prod(), "registry has exactly the 25 cto_mcp_server.py tool names")
+    _mark(test_registry_names_match_prod(), "registry has exactly the 27 cto_mcp_server.py tool names")
 
     print("== owner_cto regression (point 1) ==")
     ok, seed_tid = test_owner_cto_regression()

@@ -47,6 +47,7 @@ from lib.config import (
     host as get_host,
     role as get_role,
     self_host,
+    worker_head,
     worker_session_name,
 )
 from lib.worker_mcp_config import env_without_org_db, reexec_with_org_db_url, write_for_worktree
@@ -204,6 +205,10 @@ def worker_tool_grants(role: str) -> tuple[list[str], list[str]]:
     adding `--chrome` makes them resolve while strict MCP stays on.
     """
     allowed = list(_BASE_WORKER_TOOLS)
+    # envelope mail (org restructure P1): the worker MCP server serves these two
+    # only under the same flag
+    if os.environ.get("ORG_MAIL_ENVELOPE", "").strip().lower() in ("1", "true", "yes", "on"):
+        allowed += ["mcp__org__read_letter", "mcp__org__list_letters"]
     flags: list[str] = []
     if role == "browser_operator":
         allowed.extend(_CHROME_TOOLS)
@@ -553,7 +558,8 @@ def main() -> None:
     effort_args = ["--effort", get_role(role).get("effort") or "high"]
 
     host_name = current_host()
-    session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")))
+    session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")),
+                                       head=worker_head(task))
 
     os.chdir(worktree)
     os.execvpe(

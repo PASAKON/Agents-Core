@@ -4,13 +4,13 @@ kind: protocol
 owner: CTO
 origin: mooniex-org
 scope: >-
-  Puts a C-level session back on the org standard model (Opus 5.5, 1M context,
-  effort xhigh — CEO 2026-09-23) when it is running on anything lighter, by
+  Puts a C-level session back on the org standard model (Opus 5.5, 1M context —
+  CEO 2026-09-23) when it is running on a lighter model, by
   handing the CEO the exact /model and /effort commands to type. No tool lets
   the assistant switch its own model, and /model keeps the full session
   history. Shared by CTO/CFO/CGO/CMO. Tier table in
   decisions/0009-model-routing-policy.md.
-description: PROTOCOL — Put a C-level session back on the org standard model (Opus 5.5 1M @ xhigh) when it is running lighter, and wait for CEO confirmation. Trigger on /session-change-model, when a C-level notices it is on Sonnet/an older Opus/GLM (old launcher, restart onto a stale default, a /model downgrade), or when a new model ships and the CEO asks to move to it.
+description: PROTOCOL — Put a C-level session back on the org standard model (Opus 5.5 1M; effort is the CEO's own call, medium at spawn) when it is running a lighter model, and wait for CEO confirmation. Trigger on /session-change-model, when a C-level notices it is on Sonnet/an older Opus/GLM (old launcher, restart onto a stale default, a /model downgrade), or when a new model ships and the CEO asks to move to it.
 created_by: human
 audience: [cxo]
 ---
@@ -18,11 +18,13 @@ audience: [cxo]
 # Session Change Model — propose, confirm, hand off the exact command
 
 **Standard since 2026-09-23 (CEO):** every C-level runs **Opus 5.5 with the 1M
-context window at effort xhigh** (`claude-opus-5-5[1m]`, `policies/agents.yaml`).
-**Exception (CEO 2026-09-30): the CMO** runs `claude-sonnet-5-5[1m]` @ xhigh —
-it owns the automation lane. A CMO on Sonnet 5.5 is at its standard; never
-propose moving it to Opus. Always read the role's row in `policies/agents.yaml`
-before calling a session "below standard".
+context window** (`claude-opus-5-5[1m]`, `policies/agents.yaml`). **Effort is not part
+of the standard to restore:** every C-level and PH spawns at medium since 2026-10-14
+(CEO, replaces xhigh: "ปรับเองด้วยมือ"), and the CEO raises or lowers it by hand. Never
+propose an effort change.
+The CMO is included again since 2026-10-14 (CEO, Q-20261014-0227-c918); its
+2026-09-30 Sonnet 5.5 exception is over. Always read the role's row in
+`policies/agents.yaml` before calling a session "below standard".
 Workers keep their own tiers — Sonnet workers run Sonnet 5.5 (since 2026-09-29); the two
 Opus workers (security_engineer, devops_engineer) run `claude-opus-5-5` @ xhigh.
 
@@ -46,7 +48,6 @@ the switch happened until the CEO has typed it.
 - [ ] Came back from `/terminal-restart` or a resume onto an older default
 - [ ] Someone switched it down with `/model` for a cheap stretch of work
 - [ ] Running on a GLM/other-provider offload (`CXO_MODEL_PROVIDER` set)
-- [ ] Effort below xhigh (`/effort` shows the live value)
 
 One match is enough to mention it. Surfacing it costs one line; the CEO can
 decline.
@@ -55,7 +56,7 @@ decline.
 
 ```
 session นี้วิ่งอยู่บน <โมเดล/effort ปัจจุบัน> — ต่ำกว่ามาตรฐาน org
-(Opus 5.5 1M @ xhigh ตั้งแต่ 23 ก.ย.)
+(Opus 5.5 1M ตั้งแต่ 23 ก.ย.)
 ต้องการให้เปลี่ยนไหม?
 ```
 
@@ -68,7 +69,6 @@ Hand over the literal commands — this is the one step only the human can do:
 ```
 พิมพ์ตอนนี้ได้เลย:
   /model claude-opus-5-5[1m]
-  /effort xhigh
 
 (หรือพิมพ์ /model เปล่าๆ แล้วเลือก "Opus 5.5 (1M context)" จาก picker)
 ```
@@ -76,7 +76,8 @@ Hand over the literal commands — this is the one step only the human can do:
 History carries over in full; only the prompt cache resets, so the first
 turn after the switch is slower and costs more — that is expected, not a bug.
 `/effort` changes the live effort directly (verified 2026-09-23: the CEO ran
-`/effort` → xhigh and it applied to the running session).
+`/effort` → xhigh and it applied to the running session). Effort is the CEO's own
+choice since 2026-10-14: leave it out of the handoff unless he asks.
 
 ## On CEO decline
 
@@ -88,7 +89,7 @@ output. Don't re-propose on the same task unless its scope changes.
 One short acknowledgment, then continue:
 
 ```
-อยู่บน Opus 5.5 (1M) @ xhigh ต่อจากนี้
+อยู่บน Opus 5.5 (1M) ต่อจากนี้
 ```
 
 ## Output format
@@ -96,7 +97,7 @@ One short acknowledgment, then continue:
 ```
 🔼 MODEL — below org standard
 Current : <model> @ <effort>
-Standard: Opus 5.5 (1M) @ xhigh
+Standard: Opus 5.5 (1M) (effort: the CEO's call, medium at spawn)
 Status  : PROPOSED — waiting for CEO confirm
 ```
 
@@ -121,3 +122,4 @@ After resolution, append one line: `Resolved: SWITCHED` / `Resolved: DECLINED`.
 - 2026-09-23 [MISSING] §On CEO confirm — the old text said effort could not be changed live ("may need a relaunch with --effort"); `/effort` does change it in the running session · evidence: CEO ran `/effort` → "Set effort level to xhigh" in this session · status: promoted
 - 2026-09-29 [MISSING] §whole skill — the description fires "when a new model ships and the CEO asks to move to it", but the body only covers C-level sessions; moving a WORKER tier to a new model touched 13 files, and the pins sit outside agents.yaml: `tools/delegate.py` fallback id, `claude-home/settings.json` modelSettings, `tools/token_profile.py` PRICES (exact-key lookup, so a new id prices as None), `scripts/hook-cache-cold-warn.py` label, `scripts/mcp-borrow.sh` + `tools/cookierun_teachers.py` `claude -p` pins, `policies/permissions.md` mirror, `roles/_worker_shared.md` + `roles/cto.md` tier text. `git grep -nE "claude-<old-id>([\"' ]|$)"` minus docs/results finds them all; finished A/Bs (tools/rtk_ab) keep the old id · evidence: af89076a (Sonnet 5 → 5.5, CEO 2026-09-29) · status: pending
 - 2026-09-30 [SUPERSEDED] §Standard "every C-level runs Opus 5.5" — CEO ruling: the CMO runs Sonnet 5.5 (1M) @ xhigh because it owns the automation lane; body now carries the CMO exception and the rule to read the role's agents.yaml row before calling a session below standard · evidence: CEO order in session cto-92788a12, commit d8caa8cf (agents.yaml cmo row, roles/cmo.md), claude -p smoke OK · status: promoted
+- 2026-10-14 [SUPERSEDED] §Standard "Opus 5.5 with the 1M context window at effort xhigh" — CEO ruling 10:05 TH via SomPong: every new C-level and PH spawns at medium and the CEO sets effort by hand ("ปรับเองด้วยมือ"); the skill no longer treats effort as part of the standard or proposes an /effort change · evidence: policies/agents.yaml cto/cmo/cgo/cfo/coo effort medium, branch cto-c34459eb/ceo-rulings-1000 · status: superseded

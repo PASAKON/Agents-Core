@@ -1,0 +1,476 @@
+[
+ {
+  "tag": "HOOK-0",
+  "t0": 0.0,
+  "mode": "FF",
+  "extra": {}
+ },
+ {
+  "tag": "HOOK-1",
+  "t0": 1.0,
+  "mode": "FF",
+  "extra": {
+   "cap": "หน้าบัญชี <span class=\"nb\">Tickmill</span> เขียนว่า<span class=\"nb\">คอมมิชชัน</span>ศูนย์"
+  }
+ },
+ {
+  "tag": "HOOK-2",
+  "t0": 2.5,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-raw-spread.png",
+   "cap": "อีกบัญชีเขียนว่า<span class=\"nb\">สเปรด</span>เริ่มศูนย์",
+   "box": [
+    123,
+    580,
+    814,
+    91
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "HOOK-3",
+  "t0": 4.5,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-head-logo.png",
+   "cap": "สองเลขนี้ไม่ใช่ราคาที่จ่ายจริง",
+   "box": [
+    420,
+    590,
+    272,
+    74
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "HOOK-4",
+  "t0": 6.7333,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-head-pair.png",
+   "cap": "กูคิดเลขจริงให้ดู",
+   "box": [
+    90,
+    596,
+    736,
+    59
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "PATTERN-1",
+  "t0": 8.3,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-formula-line.png",
+   "cap": "ต้นทุนหนึ่งออเดอร์ <span class=\"nb\">สเปรด</span> <span class=\"nb\">คอมมิชชัน</span> <span class=\"nb\">สว็อป</span>",
+   "box": [
+    81,
+    592,
+    836,
+    69
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "PATTERN-2",
+  "t0": 11.9,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-swaps-rows.png",
+   "cap": "<span class=\"nb\">หน้าเขา</span>ว่า<span class=\"nb\">สว็อป</span>คิดตอนถือข้ามคืน",
+   "box": [
+    118,
+    561,
+    845,
+    130
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 797
+  }
+ },
+ {
+  "tag": "PATTERN-3",
+  "t0": 14.1667,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S07.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ตัวอย่างนี้"
+    ],
+    [
+     "bl-lg",
+     "จบในวัน"
+    ],
+    [
+     "bl-lg",
+     "ไม่มีสว็อป"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "CONTEXT-1",
+  "t0": 16.6667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-raw-example.png",
+   "cap": "หนึ่ง<span class=\"nb\">ล็อต</span>มาตรฐาน คู่ยูโรดอลลาร์",
+   "box": [
+    54,
+    648,
+    966,
+    70
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "CONTEXT-2",
+  "t0": 19.1333,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-raw-example.png",
+   "cap": "หน้าสเปกว่าหนึ่ง<span class=\"nb\">ล็อต</span>คือแสนยูโร",
+   "box": [
+    54,
+    707,
+    601,
+    70
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "CONTEXT-3",
+  "t0": 21.4,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-logo-date.png",
+   "cap": "เลขจาก<span class=\"nb\">หน้าเขา</span>เอง จดวันที่สิบสามตุลา",
+   "box": [
+    364,
+    670,
+    400,
+    102
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "MAIN-1",
+  "t0": 23.9333,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-formula-faq.png",
+   "cap": "สูตร<span class=\"nb\">หน้าเขา</span> <span class=\"nb\">สเปรด</span>คูณขนาดคูณค่าพิป",
+   "box": [
+    68,
+    778,
+    944,
+    79
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "MAIN-2",
+  "t0": 26.9667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-formula-own.png",
+   "cap": "พิปละสิบดอลลาร์ต่อ<span class=\"nb\">ล็อต</span> กูคิดเอง",
+   "box": [
+    84,
+    840,
+    912,
+    250
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "MAIN-3",
+  "t0": 29.0667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-classic-para.png",
+   "cap": "บัญชีแรก <span class=\"nb\">สเปรด</span>เริ่มหนึ่งจุดหก",
+   "box": [
+    54,
+    578,
+    930,
+    128
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 827
+  }
+ },
+ {
+  "tag": "MAIN-4",
+  "t0": 31.3,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-calc-classic.png",
+   "cap": "หนึ่งจุดหกคูณสิบ สิบหกดอลลาร์",
+   "box": [
+    98,
+    682,
+    884,
+    110
+   ]
+  }
+ },
+ {
+  "tag": "MAIN-5",
+  "t0": 33.3667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-calc-classic.png",
+   "cap": "<span class=\"nb\">คอมมิชชัน</span>ศูนย์ รวมสิบหก",
+   "box": [
+    98,
+    866,
+    884,
+    104
+   ]
+  }
+ },
+ {
+  "tag": "MAIN-6",
+  "t0": 35.2667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-raw-para-calc.png",
+   "cap": "บัญชีสอง <span class=\"nb\">สเปรด</span>เริ่มศูนย์",
+   "box": [
+    54,
+    634,
+    866,
+    66
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "MAIN-7",
+  "t0": 37.2,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-ex-commission.png",
+   "cap": "แต่<span class=\"nb\">คอมมิชชัน</span>ข้างละสามดอลลาร์",
+   "box": [
+    54,
+    606,
+    966,
+    70
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 827
+  }
+ },
+ {
+  "tag": "MAIN-8",
+  "t0": 38.8667,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-ex-round.png",
+   "cap": "เปิดปิดสองข้าง <span class=\"nb\">หน้าเขา</span>เขียนหกดอลลาร์",
+   "box": [
+    54,
+    577,
+    966,
+    128
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569",
+   "cap_cy": 827
+  }
+ },
+ {
+  "tag": "MAIN-9",
+  "t0": 41.0667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-calc-both.png",
+   "cap": "รวมหกดอลลาร์",
+   "box": [
+    98,
+    1072,
+    884,
+    84
+   ]
+  }
+ },
+ {
+  "tag": "CURIOSITY-1",
+  "t0": 42.3,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S20.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ศูนย์ทั้งคู่"
+    ],
+    [
+     "bl-lg",
+     "แต่ไม่ฟรีทั้งคู่"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "CURIOSITY-2",
+  "t0": 44.5,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-classic-card.png",
+   "cap": "คำว่าเริ่ม คือต่ำสุด ไม่ใช่ทุกครั้ง",
+   "box": [
+    163,
+    988,
+    754,
+    90
+   ],
+   "credit": "ที่มา: เว็บไซต์ Tickmill ณ 13 ต.ค. 2569"
+  }
+ },
+ {
+  "tag": "CURIOSITY-3",
+  "t0": 47.1,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-floor.png",
+   "cap": "เลขที่กูคิด จึงเป็นขั้นต่ำเท่านั้น",
+   "box": [
+    84,
+    770,
+    912,
+    260
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-1",
+  "t0": 49.6667,
+  "mode": "KIN",
+  "extra": {
+   "broll": "broll/S23.mp4",
+   "lines": [
+    [
+     "bl-lg",
+     "ก่อนเทรด"
+    ],
+    [
+     "bl-lg",
+     "เช็กสามอย่างเอง"
+    ]
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-2",
+  "t0": 51.7667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-checklist.png",
+   "cap": "หนึ่ง อ่านหน้าประเภทบัญชีให้จบ",
+   "box": [
+    84,
+    720,
+    912,
+    126
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-3",
+  "t0": 54.3667,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-checklist.png",
+   "cap": "สอง บวก<span class=\"nb\">สเปรด</span>กับ<span class=\"nb\">คอมมิชชัน</span>ตาม<span class=\"nb\">ล็อต</span>",
+   "box": [
+    84,
+    870,
+    912,
+    126
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-4",
+  "t0": 57.2333,
+  "mode": "EVID",
+  "extra": {
+   "img": "real/d-checklist.png",
+   "cap": "สาม ถามโบรกเป็น<span class=\"nb\">ข้อความ</span>ว่า<span class=\"nb\">สว็อป</span>เท่าไหร่",
+   "box": [
+    84,
+    1020,
+    912,
+    126
+   ]
+  }
+ },
+ {
+  "tag": "SUMMARY-5",
+  "t0": 60.7,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-recap-strip.png",
+   "cap": "กูไม่ได้แนะนำ<span class=\"nb\">เจ้าไหน</span> แค่ชี้วิธีดูให้เป็น",
+   "box": [
+    60,
+    576,
+    960,
+    204
+   ],
+   "cap_cy": 893
+  }
+ },
+ {
+  "tag": "SUMMARY-6",
+  "t0": 63.7333,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-cta-strip.png",
+   "cap": "คอมเมนต์ เช็กลิสต์ ถ้าอยากได้",
+   "box": [
+    60,
+    576,
+    960,
+    204
+   ],
+   "cap_cy": 893
+  }
+ },
+ {
+  "tag": "SUMMARY-7",
+  "t0": 65.9,
+  "mode": "COMP",
+  "extra": {
+   "img": "real/d-date-strip.png",
+   "cap": "เลขเปลี่ยนได้ เช็กวันที่ด้วย",
+   "box": [
+    60,
+    576,
+    960,
+    204
+   ],
+   "cap_cy": 893,
+   "avatar_until": 67.55
+  }
+ }
+]

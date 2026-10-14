@@ -80,6 +80,35 @@ def _no_real_org_db_env(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _mesh_probe_off(monkeypatch):
+    """Keep watchdog tests from probing real hosts or filing mesh alerts."""
+    monkeypatch.setenv("ORG_MESH_PROBE", "0")
+
+
+@pytest.fixture(autouse=True)
+def _mail_envelope_off(monkeypatch):
+    """Envelope mail (ORG_MAIL_ENVELOPE, org restructure P1) changes the
+    letter, the hook output, the senders' results and the served tools. A test
+    run from a session that has it on must still see today's mail; the
+    envelope tests (tests/test_mail_envelope_letters.py,
+    tests/test_org_mail_envelope.py) set it themselves."""
+    monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    monkeypatch.delenv("ORG_WAKE_DEBOUNCE_S", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _org_flags_off(tmp_path, monkeypatch):
+    """Org restructure P2 host flags (lib/org_flags.py): on from
+    /etc/org-flags/<NAME> or the env. A test must see neither the host's flag
+    files nor the shell's flags; the P2 tests turn on what they test."""
+    from lib import org_flags
+    monkeypatch.setattr(org_flags, "FLAGS_DIR", tmp_path / "no-org-flags")
+    for var in ("ORG_SINGLE_CLEVEL", "ORG_PH_ROLES", "ORG_SPAWN_GATE", "ORG_SESSION_SCOPE",
+                "ORG_WORKER_TOKEN_ONLY"):
+        monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture(autouse=True)
 def _router_off(monkeypatch):
     """delegate_task routes a NULL-runner row through tools.route, whose
     quota read is an ssh to Contabo plus the agy CLI. No test may reach
@@ -279,4 +308,3 @@ def pinned_mac_host(monkeypatch, tmp_path):
     config.self_host.cache_clear()
     yield "mac"
     config.self_host.cache_clear()
-

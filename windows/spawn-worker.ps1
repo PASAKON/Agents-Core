@@ -58,6 +58,7 @@ param(
     [ValidateSet('claude', 'codex', 'agy')][string]$Runner = 'claude',
     [string]$TaskMetaB64 = '',
     [string]$RunnerModel = '',
+    [string]$WorkDir = $env:WORK_DIR,
     # W3.3 (task-782936c0): the folder that holds roles\ and receives the
     # .launch-<task> dir + launch-<task>.cmd wrapper. Empty (the ssh deploy
     # path, unchanged) = this script's own folder, because the deploy step
@@ -275,6 +276,8 @@ try {
     $sharedDocPath = Join-Path $rolesDir '_worker_shared.md'
     $roleDocPath = Join-Path $rolesDir "$Role.md"
     $remoteContract = Get-Content -Raw -Path $remoteContractPath -Encoding UTF8
+    $contracts = $remoteContract -split '<!-- NONCLAUDE CONTRACT -->\r?\n', 2
+    $remoteContract = if ($Runner -ne 'claude') { $contracts[1] } else { $contracts[0] }
     Set-Content -Path (Join-Path $wt 'WORKER.md') -Value $remoteContract -NoNewline -Encoding UTF8
 
     # --- 5. System prompt: shared conventions + role doc + remote contract,
@@ -283,6 +286,34 @@ try {
     $sharedDoc = Get-Content -Raw -Path $sharedDocPath -Encoding UTF8
     $roleDoc = Get-Content -Raw -Path $roleDocPath -Encoding UTF8
     $systemPrompt = "$sharedDoc`n`n$roleDoc`n`n$remoteContract"
+    if ($Runner -ne 'claude') {
+        $remoteContract = $remoteContract.Replace('<task-id>', $Task)
+        $systemPrompt = $remoteContract
+        $taskContent = ($taskContent -split '(?m)^1\. Read your role doc \(already in your system prompt\)\.\r?$', 2)[0]
+        $taskContent = $taskContent -replace 'mcp__org__\w+', 'unavailable org tool (use report file)'
+    }
+
+    # Literal runtime body shared by both external runners. finally stops and
+    # waits for the heartbeat job even if invocation throws or returns nonzero.
+    $heartbeatStart = @'
+$heartbeatJob = Start-Job -ArgumentList $heartbeatPath, $PID -ScriptBlock {
+    param($path, $launcherPid)
+    while (Get-Process -Id $launcherPid -ErrorAction SilentlyContinue) {
+        [System.IO.File]::WriteAllText($path, [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"))
+        Start-Sleep -Seconds 60
+    }
+}
+try {
+'@
+    $heartbeatStop = @'
+} finally {
+    Stop-Job -Job $heartbeatJob -ErrorAction SilentlyContinue
+    Wait-Job -Job $heartbeatJob -ErrorAction SilentlyContinue | Out-Null
+    Remove-Job -Job $heartbeatJob -Force -ErrorAction SilentlyContinue
+}
+'@
+    $workDirLiteral = ([string]$WorkDir).Replace("'", "''")
+    $heartbeatPathLiteral = (Join-Path $wt 'HEARTBEAT').Replace("'", "''")
 
     # --- 6. Launch the worker CLI via a one-shot interactive scheduled task
     # (session-0 rule: SSH lands in Windows session 0, never the logged-in
@@ -379,6 +410,39 @@ git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-wo
 `$mediaExts = @('png','jpg','jpeg','gif','webp','heic','mp4','mov','webm','mkv','avi','mp3','wav','m4a','aac','flac','ogg')
 `$stagedFiles = @(git -C '$wt' diff --cached --name-only)
 `$mediaBlockers = @()
+`$mediaKept = @()
+
+`$allowFile = Join-Path `$reportDir '.media_allow_all'
+`$allowLargeFile = Join-Path `$reportDir '.media_allow_large'
+`$hasAllow = `$false
+`$hasAllowLarge = `$false
+Remove-Item -LiteralPath `$allowFile -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath `$allowLargeFile -Force -ErrorAction SilentlyContinue
+
+`$allowRaw = @(git -C '$wt' show "origin/$Base:.media-allow" 2>`$null)
+if (`$LASTEXITCODE -eq 0 -and `$allowRaw.Count -gt 0) {
+    `$allPats = @()
+    `$largePats = @()
+    foreach (`$rawLine in `$allowRaw) {
+        `$line = `$rawLine.Trim().Replace('\', '/')
+        if (-not `$line -or `$line.StartsWith('#')) { continue }
+        if (`$line -match '\s+!large$') {
+            `$pat = (`$line -replace '\s+!large$', '').Trim()
+            `$allPats += `$pat
+            `$largePats += `$pat
+        } else {
+            `$allPats += `$line
+        }
+    }
+    if (`$allPats.Count -gt 0) {
+        [System.IO.File]::WriteAllLines(`$allowFile, `$allPats, `$noBom)
+        `$hasAllow = `$true
+    }
+    if (`$largePats.Count -gt 0) {
+        [System.IO.File]::WriteAllLines(`$allowLargeFile, `$largePats, `$noBom)
+        `$hasAllowLarge = `$true
+    }
+}
 
 foreach (`$f in `$stagedFiles) {
     if (-not `$f) { continue }
@@ -396,17 +460,43 @@ foreach (`$f in `$stagedFiles) {
         }
     }
     if (`$isMedia -or `$isLargeBinary) {
-        git -C '$wt' reset -q -- `$f
-        `$hsz = if (`$sz -ge 1048576) {
-            "{0:0.0} MB" -f (`$sz / 1048576.0)
-        } elseif (`$sz -ge 1024) {
-            "{0:0.0} KB" -f (`$sz / 1024.0)
-        } else {
-            "`$sz B"
+        `$isAllowed = `$false
+        if (`$hasAllow) {
+            `$matched = git -C '$wt' ls-files --cached --ignored "--exclude-from=`$allowFile" -- `$f 2>`$null
+            if (`$matched) {
+                `$isAllowed = `$true
+            }
         }
-        `$mediaBlockers += "media not committed: `$f (`$hsz) -- upload per CXO_Rules_GDrive_Filing and put the link here"
+        if (`$isAllowed -and (`$sz -gt 1048576)) {
+            `$hasLargeMatch = `$false
+            if (`$hasAllowLarge) {
+                `$matchedLarge = git -C '$wt' ls-files --cached --ignored "--exclude-from=`$allowLargeFile" -- `$f 2>`$null
+                if (`$matchedLarge) {
+                    `$hasLargeMatch = `$true
+                }
+            }
+            if (-not `$hasLargeMatch) {
+                `$isAllowed = `$false
+            }
+        }
+        if (`$isAllowed) {
+            `$mediaKept += `$f
+        } else {
+            git -C '$wt' reset -q -- `$f
+            `$hsz = if (`$sz -ge 1048576) {
+                "{0:0.0} MB" -f (`$sz / 1048576.0)
+            } elseif (`$sz -ge 1024) {
+                "{0:0.0} KB" -f (`$sz / 1024.0)
+            } else {
+                "`$sz B"
+            }
+            `$mediaBlockers += "media not committed: `$f (`$hsz) -- upload per CXO_Rules_GDrive_Filing and put the link here"
+        }
     }
 }
+
+Remove-Item -LiteralPath `$allowFile -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath `$allowLargeFile -Force -ErrorAction SilentlyContinue
 
 if (`$mediaBlockers.Count -gt 0) {
     `$repText = [System.IO.File]::ReadAllText(`$reportPath, `$noBom)
@@ -432,9 +522,22 @@ if (`$mediaBlockers.Count -gt 0) {
     git -C '$wt' add 'docs/reports/$Task/REPORT.md'
 }
 
+if (`$mediaKept.Count -gt 0) {
+    `$repText = [System.IO.File]::ReadAllText(`$reportPath, `$noBom)
+    `$keptLines = (`$mediaKept | ForEach-Object { "media kept: `$_" }) -join `$nl
+    `$repText = `$repText.TrimEnd() + `$nl + `$nl + `$keptLines + `$nl
+    [System.IO.File]::WriteAllText(`$reportPath, `$repText, `$noBom)
+    git -C '$wt' add 'docs/reports/$Task/REPORT.md'
+}
+
 git -C '$wt' diff --cached --quiet
 if (`$LASTEXITCODE -ne 0) {
-    git -C '$wt' commit -q -m "${Runner}: task $Task"
+    if (`$mediaKept.Count -gt 0) {
+        `$keptBody = (`$mediaKept | ForEach-Object { "media kept: `$_" }) -join `$nl
+        git -C '$wt' commit -q -m "${Runner}: task $Task" -m `$keptBody
+    } else {
+        git -C '$wt' commit -q -m "${Runner}: task $Task"
+    }
 }
 git -C '$wt' push -q origin $Branch
 "@
@@ -475,10 +578,13 @@ git -C '$wt' push -q origin $Branch
         # polls for it further down), so there is nothing to bake in yet. ---
         $finishPs1Body = @"
 `$procs = Get-CimInstance Win32_Process -Filter "Name = 'claude.exe'" |
-    Where-Object { `$_.CommandLine -and `$_.CommandLine -like "*$Task*" }
-if (`$procs) {
-    `$workerPid = (`$procs | Sort-Object CreationDate -Descending | Select-Object -First 1).ProcessId
-    taskkill /PID `$workerPid /T /F
+    Where-Object {
+        `$_.Name -eq 'claude.exe' -and
+        `$_.Name -notin @('WindowsTerminal.exe', 'OpenConsole.exe', 'explorer.exe') -and
+        `$_.CommandLine -and `$_.CommandLine -like "*$Task*"
+    }
+foreach (`$proc in `$procs) {
+    Stop-Process -Id `$proc.ProcessId -Force -ErrorAction SilentlyContinue
 }
 "@
         Set-Content -Path $finishPs1Path -Value $finishPs1Body -Encoding UTF8
@@ -527,9 +633,16 @@ exit 0
         # action is one bare path (PowerShell -> schtasks quoting is unreliable).
         $SessionName = ($SessionName -replace "[^\x20-\x7E]", "-")   # .cmd is ASCII; keep the title readable
         $wtExe = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe'
+        $terminalCount = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        if ($terminalCount -gt 0) {
+            $wtWindowArgs = '-w 0'
+        } else {
+            $wtWindowArgs = '-w new'
+        }
+        Write-Output "WindowsTerminal launch: $wtWindowArgs; running=$($terminalCount -gt 0); count=$terminalCount"
         @"
 @echo off
-start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
+start "" "$wtExe" $wtWindowArgs nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
 "@ | Set-Content -Path $wrapper -Encoding ASCII
     }
     elseif ($Runner -eq 'codex') {
@@ -550,6 +663,10 @@ start "" "$wtExe" -w 0 nt --title "$SessionName" --tabColor "#0078d4" -d "$wt" p
         if ($RunnerModel) {
             $argList += @('-m', [string]$RunnerModel)
         }
+        # No writable root under .git (same as spawn-worker-remote.sh): codex's Linux sandbox
+        # refuses to start with one (task-2f1a8586 probe); the commit step after codex exits
+        # commits and pushes the worker's changes.
+        if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }
         $argList += @('-C', [string]$wt, '-s', 'workspace-write',
                       '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
@@ -587,8 +704,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$exe = '$codexExe'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
 Remove-Item -LiteralPath '$codexFinalMsg' -Force -ErrorAction SilentlyContinue
+`$env:WORK_DIR = '$workDirLiteral'
+`$heartbeatPath = '$heartbeatPathLiteral'
+$heartbeatStart
 & `$exe @argArray *> '$codexJsonLog'
 `$cliExit = `$LASTEXITCODE
+$heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$codexJsonLog'
 
 $reportStepBody
@@ -608,8 +729,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         # sec.6b, THE CONTRACT: agy in print mode cannot run ANY shell command --
         # a RunCommand step is soft-denied, and the denial is not partial, it
         # ABANDONS THE WHOLE TURN (asked to fix a bug AND `git commit`, it
-        # committed nothing AND left the file unedited). So agy's prompt must
-        # NEVER include $remoteContract (roles/_worker_remote.md instructs
+        # committed nothing AND left the file unedited). The Claude contract
+        # must never reach AGY (it instructs
         # `git add -A && git commit && git push`) or any part of $taskContent
         # that asks for a commit/test/submit_report -- that would silently
         # abandon the file edits too, not just the git step. Widening agy's
@@ -632,8 +753,7 @@ instruction below that tells you to commit, push, run tests, or submit a
 report through a tool: a separate process (not you) does all of that after
 you finish editing.
 
-Optionally create or update REPORT.md in this directory using your
-file-editing tool (not a shell command) to summarize what you changed.
+$remoteContract
 
 ---
 
@@ -687,8 +807,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 # PowerShell has no '<' input-redirect operator (that's cmd.exe syntax) --
 # piping `$null` in is the equivalent of the proven `< /dev/null`
 # (docs/ops/agent-runners.md sec.6) that keeps agy from blocking on stdin.
+`$env:WORK_DIR = '$workDirLiteral'
+`$heartbeatPath = '$heartbeatPathLiteral'
+$heartbeatStart
 `$null | & `$exe @argArray *> '$agyLog'
 `$cliExit = `$LASTEXITCODE
+$heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'
 
 $reportStepBody
@@ -732,10 +856,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$launcherPath"
         }
     }
     if (-not $workerPid) {
-        throw ("$Runner did not appear within 60s for task $Task -- the " +
-               "interactive scheduled task may not have started (needs an " +
-               "interactive desktop session; verify one exists over this " +
-               "SSH connection type). See ADDENDUM 1 in the task brief.")
+        $terminalCount = @(Get-Process -Name WindowsTerminal -ErrorAction SilentlyContinue).Count
+        $lastTaskResult = 'unavailable'
+        try {
+            $lastTaskResult = (Get-ScheduledTaskInfo -TaskName $stName -ErrorAction Stop).LastTaskResult
+        } catch {}
+        throw ("$Runner did not appear within 60s for task $Task -- " +
+               "WindowsTerminal running=$($terminalCount -gt 0); count=$terminalCount; " +
+               "scheduled task=$stName; LastTaskResult=$lastTaskResult")
     }
 
     Unregister-ScheduledTask -TaskName $stName -Confirm:$false -ErrorAction SilentlyContinue

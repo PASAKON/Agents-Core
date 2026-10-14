@@ -47,6 +47,7 @@ the switch: it predates the cutover.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -113,6 +114,10 @@ ROLE_SERVERS: dict[str, tuple[str, ...]] = {
     # CTO/CFO lane), no meta-ads (CGO/CMO), no meigen (creative, CMO); and
     # mooniex-coord stays opt-in as for everyone (CXO_EXTRA_MCP).
     "coo": BASE_SERVERS,
+    # Project Head (org restructure P2): BASE only. The org server itself
+    # serves a PH only its allowlist (PH_TOOLS in lib/org_tools_registry.py),
+    # and the --allowed-tools list below follows it.
+    "project_head": BASE_SERVERS,
 }
 
 # Tools each server contributes to --allowed-tools, WITHOUT the mcp__<server>__
@@ -185,7 +190,7 @@ def _venv_python(root: str) -> Path:
     return windows if _is_windows() else posix
 
 
-def _org_tool_names(root: str) -> tuple[str, ...]:
+def _org_tool_names(root: str, role: str = "") -> tuple[str, ...]:
     """org's tool names, straight from the registry that defines them.
 
     Resolved in a subprocess under the venv interpreter, not by importing
@@ -198,8 +203,8 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
     venv = _venv_python(root)
     code = (
         "import sys; sys.path.insert(0, %r);"
-        "from lib.org_tools_registry import REGISTRY;"
-        "print(' '.join(s.name for s in REGISTRY))" % str(root)
+        "from lib.org_tools_registry import served_names;"
+        "print(' '.join(served_names(%r)))" % (str(root), role or None)
     )
     proc = subprocess.run(
         [str(venv) if venv.exists() else sys.executable, "-c", code],
@@ -214,6 +219,26 @@ def _org_tool_names(root: str) -> tuple[str, ...]:
             f"lib.org_tools_registry: {proc.stderr.strip().splitlines()[-1:] or ['no output']}"
         )
     return names
+
+
+# The COO session (SomPong, unix user `sompong`) gets its own "org" server: runners/
+# coo_mcp_server.py holds no hub credential and only talks to the COO gate's socket, and it serves
+# only the worker tools CEO card Q-20261013-1948-4a33 gives SomPong (researcher, data_analyst,
+# browser_operator). Its tool names come from the server itself, so the two cannot drift.
+COO_ROLE = "coo"
+COO_ORG_MODULE = "runners.coo_mcp_server"
+
+
+def _coo_tool_names(root: str) -> tuple[str, ...]:
+    """coo_mcp_server.TOOL_NAMES. That module imports only the stdlib at load time, so it loads
+    under the launcher's system python3 (unlike lib.org_tools_registry, see _org_tool_names)."""
+    path = Path(root) / "runners" / "coo_mcp_server.py"
+    spec = importlib.util.spec_from_file_location("_coo_mcp_server_names", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cxo_mcp_config: cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return tuple(module.TOOL_NAMES)
 
 
 WRAPPER_NAME = "with-org-db-env.sh"
@@ -402,18 +427,30 @@ def wrap_org_entry(entry: dict, root: str) -> dict:
     return {**entry, "command": wrapper, "args": [entry["command"], *entry.get("args", [])]}
 
 
-def _build(name: str, root: str) -> dict | None:
+def _build(name: str, root: str, role: str = "") -> dict | None:
     """Return the MCP entry for `name`, or None when it isn't installed here."""
     if name == "org":
+        # PYTHONPATH, not only "cwd": Claude Code 2.1.296 starts a stdio server in the SESSION's
+        # cwd and does not apply the entry's "cwd", so `-m runners.<server>` from SomPong's
+        # Projects/MoonieX/SomPong could not import `runners` and the org server closed at start
+        # (CONNECTION_CLOSED, SomPong restart 2026-10-14 10:04 TH).
         python = _venv_python(root)
         if not python.exists():
             return None
+        if role == COO_ROLE:
+            # No hub credential anywhere in this process tree: not wrapped (COO_ORG_MODULE above).
+            return {
+                "command": str(python),
+                "args": ["-m", COO_ORG_MODULE],
+                "cwd": root,
+                "env": {"PYTHONUNBUFFERED": "1", "PYTHONPATH": root},
+            }
         return wrap_org_entry(
             {
                 "command": str(python),
                 "args": ["-m", "runners.cto_mcp_server"],
                 "cwd": root,
-                "env": {"PYTHONUNBUFFERED": "1"},
+                "env": {"PYTHONUNBUFFERED": "1", "PYTHONPATH": root},
             },
             root,
         )
@@ -512,13 +549,16 @@ def _names_for(role: str, explicit: str = "") -> list[str]:
     return [n for n in names if n not in skip]
 
 
-def _allowed_for(servers: list[str], root: str, builtins: bool = True) -> list[str]:
-    """--allowed-tools entries for exactly the servers that got emitted."""
+def _allowed_for(servers: list[str], root: str, builtins: bool = True,
+                 role: str = "") -> list[str]:
+    """--allowed-tools entries for exactly the servers that got emitted.
+    `role`: the session's role, so a Project Head's org list leaves out the
+    tools its server withholds; "" reads CXO_ROLE from the env."""
     tools: list[str] = []
     for name in servers:
         base = SERVER_TOOLS.get(name, ())
         if name == "org":
-            base = _org_tool_names(root)
+            base = _coo_tool_names(root) if role == COO_ROLE else _org_tool_names(root, role)
         tools += [f"mcp__{name}__{t}" for t in base]
     if builtins:
         tools += list(BUILTIN_TOOLS)
@@ -558,7 +598,7 @@ def main() -> int:
     servers: dict[str, dict] = {}
     missing: list[str] = []
     for name in _names_for(args.role, args.servers):
-        entry = _build(name, args.root)
+        entry = _build(name, args.root, args.role)
         if entry is None:
             missing.append(name)
         else:
@@ -583,7 +623,8 @@ def main() -> int:
         return 1
 
     if args.print_allowed:
-        print(" ".join(_allowed_for(list(servers), args.root, not args.no_builtins)))
+        print(" ".join(_allowed_for(list(servers), args.root, not args.no_builtins,
+                                    role=args.role)))
         return 0
 
     Path(args.out).write_text(

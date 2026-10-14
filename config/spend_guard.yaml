@@ -1,0 +1,50 @@
+# Spend guard (tools/spend_guard.py) — thresholds and per-key pause policy.
+# Money numbers here are the CFO's to set (SomPong design §5); until the CFO sets one, a monthly
+# cap stays null and only the key limits, the prepaid balance and runway alert.
+# Plan + consumer table: docs/plans/spend-guard-2026-10-14.md. Ops: docs/ops/spend-guard.md.
+
+levels: [50, 80, 100]            # % of a key's limit / of the balance after the last top-up / of a monthly cap
+
+spike:
+  factor: 3.0                    # last hour >= 3x the hourly average of the last 7 days
+  min_usd_per_hour: 0.5          # and >= this, so cents on an idle key never page the CEO
+  window_min: [45, 90]           # "an hour ago" = the snapshot 45-90 min back, nearest to 60
+  min_baseline_hours: 24         # own history needed; before that the provider's month/week counters stand in
+
+runway:
+  days: 3.0                      # balance / (7-day average x 24) under this = alert, again every 24 h
+  urgent_days: 1.0               # under this the alert escalates (mails again at once)
+
+pause:
+  # auto       = alert-only for the first alert_only_hours of live runs ("would pause <key>" in the log
+  #              and the mail), then armed (CEO brief 2026-10-14: arm after day 1 unless he says otherwise).
+  # alert_only = never pause.  armed = pause from the first run.
+  mode: auto
+  alert_only_hours: 24
+  unmapped_keys: alert           # a key with no row under providers.openrouter.keys is never auto-paused
+                                 # (who it would take down is unknown); `pause` lifts that
+  resume_grace_hours: 24         # after the CEO resumes a key on the card, no auto-pause for this long
+  card_every_hours: 24           # a key still paused gets a fresh card (and a reminder mail) this often;
+                                 # an untapped card expires in 30 min, the key stays paused
+
+providers:
+  openrouter:
+    key_env: OPENROUTER_API_KEY_ADMIN    # management key, Infisical Agents-Core/prod/spend-guard
+    account: MoonieX
+    monthly_cap_usd: null                # CFO
+    # Per key, by its NAME on openrouter.ai (never the value, never the `label` field).
+    # pause: false = alert only for that key. consumers = what goes down when it is paused.
+    # Mapped 2026-10-14 from `spend_guard.py keys` (RUN-20261014-0206-7cb1) and plan §2. MoonieX is the one
+    # shared value behind the customer chatbot, so it never auto-pauses until the phase-2 broker splits it.
+    # WarpClip, LungNote and NO-HUNMAN carry no spend and stay unmapped (unmapped = alert, never pause).
+    keys:
+      MoonieX:
+        consumers:
+          - claudeflow-webhook (LuNar customer chatbot, SomPong brain, autogen)
+          - mooniex-option-channel (trade-signal parser)
+          - mooniex-secretary (Jev)
+        pause: false
+  fal:
+    key_env: FAL_BILLING_API_KEY_RO      # preset BILLING, Infisical Agents-Core/prod/spend-guard
+    account: MoonieX
+    monthly_cap_usd: null                # CFO

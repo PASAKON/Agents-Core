@@ -229,8 +229,89 @@ The table above is the design of 2026-09-28. These moves change it:
    secret (`tools/infisical_setup.py`). `org-node` reads only the `Org-Node`
    project, which holds `CLAUDE_CODE_OAUTH_TOKEN`; the CEO enters the value at
    gate G3 (W4.6c, review task-79219f24).
+   **Changed 2026-10-03 (CEO): no `org-node` identity at all; the hub hands the
+   node its token.** Run 5 of the join drill (RUN-20261003-1425-1343) found
+   the premise wrong: Free allows 5 identities and the CEO's own user account
+   is one of them, so contabo, mac, winbox and setup already fill the org and
+   `POST /api/v1/identities` answers 400. The fifth slot stays free for
+   KeyFetch. Ruling, verbatim: "Hub ส่ง token ให้ — ฟรี ไม่ต้องสร้าง identity
+   ใหม่ ให้ identity contabo อ่านโปรเจกต์ Org-Node ได้ แล้ว hub ส่ง token ให้
+   เฉพาะ node ที่คุณ approve แล้ว token ไม่ถูกเก็บเป็นไฟล์บน node และ node ที่
+   leave แล้วขอใหม่ไม่ได้ เป็นข้อยกเว้นของกฎ 'อ่าน secret ผ่าน infisical run'
+   สำหรับ node". Built in W4.2b (`tools/node_token_api.py`, `tools/node_token.py`,
+   `deploy/node-token/`). What it must keep true:
+   - **R1** no new identity. The hub's own `contabo` identity reads `Org-Node`.
+   - **R2** the hub hands the token only to a node the CEO approved
+     (`hosts.status` is `identity_ready` or `online`, with `approved_at` set).
+     Anything else is a 403 with one error word.
+   - **R3** the token is never a file on the node. The answer is the token
+     sealed (age) to that node's own key; `node_token.py` opens it in memory
+     and puts it in the child's environment only.
+   - **R4** a node that has left cannot ask again. `hq_join leave` writes
+     `leaving` as its first step, before any revocation, so the refusal starts
+     before the first credential is touched; `left` follows only when every
+     step is ok.
+   - **R5** the exception is for nodes only. The hub itself still reads every
+     secret through `infisical run`. The service has its own DB role
+     (`org_node_token`, which may read four columns of `hosts` and nothing
+     else) and its own DSN in Agents-Core prod `/node-token`.
+
+   Cost: the node trusts the hub's answer and the tailnet path to it, where it
+   used to hold a credential of its own. A stolen node key can read the token
+   until `leave` runs, as a stolen client secret could; `leave` now needs one
+   DB write, not a call to Infisical.
+
+   **Decided for CEO 2026-10-04** (his standing order of that day: "decide what
+   the owning C-level can decide, don't stop to ask", relayed by the COO). Both
+   are logged to the COO.
+   - **1a: rotate the token after every live leave.** A node that left still
+     holds a working bearer token for the CEO's Claude account, and the token
+     is shared by every node. `leave --live` prints the rotation as required.
+     The new token is a secret step, so the CTO raises a Run card for the CEO
+     at once. The leave counts as finished only when the old token is revoked.
+   - **2a: the service listens on port 792, not 8792.** The answer is sealed,
+     not signed, so a process that binds the port while the service is down
+     can answer a node with a token of its own. Contabo has
+     `ip_unprivileged_port_start = 1024`, so below 1024 only root (or
+     CAP_NET_BIND_SERVICE) can take the port. The service keeps that one
+     capability through `setpriv --ambient-caps`, measured on Contabo under
+     NoNewPrivileges. Root on the hub can still do it; signing would close
+     that and is not built.
 
 Also ruled on 2026-09-28: the mesh probes commit to Agents-Core itself (only
 `docs/ops/mesh-probe/<from>-<to>.md`, prefix `mesh-probe:`), and a new
 machine signs in to claude with a long-lived token from `claude setup-token`
 kept in Infisical, so a join has no login step.
+
+## L9 spawn + resume and remote C-level starts (#241)
+
+`mesh_check --live` includes L9 for the same pairs and waves as L5, computed
+only from the caller's own host. It starts a CTO probe on the target, waits
+up to 120 seconds for its hub registration, delivers a one-word-reply letter,
+waits 60 seconds for a transcript, stops it, then resumes it into a new session.
+The new id must name the first id in `resumed_from` and appear in the hub.
+Every known session started by the probe is stopped in `finally`; stop failures
+are printed and fail the cell. Three open CTO rows on the target produce
+`skip: cap`, counted as neither pass nor fail. Transcripts are not compared:
+the start verb's refusal when no resumable UUID exists is the evidence that
+resume found the conversation.
+
+The org tool `start_clevel_remote(host, role, resume_session_id="")` and CLI
+`python -m tools.start_clevel_remote <host> <role> [--resume <sid>]` share one
+implementation. Only callers whose `CXO_ROLE` is a C-level may call it; the
+target role must be a live, non-singleton C-level. The host must be a different
+registered host with `mesh_ssh`, and a resume id must be eight lowercase hex
+characters. Before dispatch, an atomic local budget in
+`state/start-clevel-remote.json` reserves at most one start per host/role per
+10 minutes and six per rolling hour across this host. Failed or uncertain
+dispatches consume the reservation too. Missing/corrupt JSON starts empty;
+concurrent calls are serialized by an exclusive lock file (a stale lock fails
+closed and needs local removal after confirming no writer remains).
+
+Every allowed or refused call attempts an `events` row with actor
+`start_clevel_remote`, kind `mesh_start`, target, resume source, caller identity
+and outcome, without transport stderr or secrets. An audit hub failure never
+hides the dispatch result. Both L9 and the tool require `ORG_MESH_DISPATCH`
+and the dispatch key on the caller's host; they cannot perform remote starts
+until those are in place. Live proof on each claimed pair remains a deployment
+acceptance step, including the remote probe/start/resume/stop verbs.

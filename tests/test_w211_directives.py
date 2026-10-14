@@ -145,13 +145,25 @@ def test_pasted_block_with_needs_does_not_pin_a_host(monkeypatch):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("desc", [
-    "override: runner=claude (security review)",                       # line 1, the real shape
-    "override: CEO order\n\nPlan: ...",                                # body after a blank line
-    "Do the thing.\noverride: CEO order\nMore text.",                  # line 2
-    "a\nb\nc\nd\n  Override:   A/B test",                              # line 5, case + indent
+    "override: security runner=claude (security review)",              # line 1, the real shape
+    "override: ceo-order CEO order\n\nPlan: ...",                      # body after a blank line
+    "Do the thing.\noverride: ceo-order\nMore text.",                  # line 2
+    "a\nb\nc\nd\n  Override:   ab-test A/B test",                      # line 5, case + indent
 ])
 def test_override_in_header_is_honoured(desc):
     assert check_override(pinned(desc), _CFG) is None
+
+
+# v2 (IRON §59 rule 7, Q-20261013-1745-f56c): the first word must be a code from the
+# closed list; the v1 free-text reasons above are refused and the refusal names the word.
+@pytest.mark.parametrize("desc, word", [
+    ("override: runner=claude (security review)", "runner=claude"),
+    ("override: CEO order\n\nPlan: ...", "ceo"),
+    ("a\nb\nc\nd\n  Override:   A/B test", "a/b"),
+])
+def test_free_text_reason_is_refused_in_v2(desc, word):
+    got = check_override(pinned(desc), _CFG)
+    assert got.startswith(_IRON_59_MSG) and f'"{word}" is not a reason code.' in got
 
 
 @pytest.mark.parametrize("desc", [
@@ -177,7 +189,7 @@ def test_override_needs_its_reason_on_the_same_line(desc):
 
 
 def test_refusal_message_names_the_header_rule():
-    assert "first lines" in _IRON_59_MSG and "blank line" in _IRON_59_MSG
+    assert "Line 1–5" in _IRON_59_MSG and "blank line" in _IRON_59_MSG
 
 
 def test_no_pin_means_no_gate_whatever_the_description():
@@ -207,7 +219,7 @@ def test_add_needs_line_lands_in_the_header(desc, needs, want):
 
 
 def test_add_needs_line_keeps_an_override_directive_honoured():
-    got = router.add_needs_line("override: CEO order\n\nPlan...", "gpu")
+    got = router.add_needs_line("override: ceo-order CEO order\n\nPlan...", "gpu")
     assert check_override(pinned(got), _CFG) is None
 
 
@@ -276,12 +288,22 @@ def test_fixture_shape_matches_what_the_report_quotes(sample):
     assert {k: v for k, v in needs.items() if v} == {"task-10136806": [15]}
 
 
-def test_gate_verdict_on_real_descriptions_is_unchanged(sample):
+def test_gate_verdict_on_real_descriptions_v2(sample):
+    """v2 changes the verdict on purpose (Q-20261013-1745-f56c): all 10 override lines of
+    30 Sep are free text, so v2 refuses all 10 (this _CFG routes every role; with the live
+    plans.yaml the security_engineer one is not routed, so 9). No description passes v2
+    that v1 refused."""
+    refused = []
     for d in sample:
         old_allows = bool(OLD_OVERRIDE_RE.search(d["description"]))
         new = check_override(pinned(d["description"], d["role"]), _CFG)
-        assert (new is None) == old_allows, d["id"]
-        assert new in (None, _IRON_59_MSG), d["id"]
+        if new is None:
+            assert old_allows or d["role"] not in _CFG["role_classes"], d["id"]
+        else:
+            assert new.startswith(_IRON_59_MSG), d["id"]
+            if old_allows:
+                refused.append(d["id"])
+    assert len(refused) == 10
 
 
 def test_needs_on_real_descriptions_is_unchanged_except_the_prose_line(sample):

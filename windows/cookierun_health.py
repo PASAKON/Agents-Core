@@ -7,12 +7,16 @@ more expensive than the last (IRON-RULES 42). This answers from logs, file
 mtimes and the app pipe instead, and only tells a human to go look when there is
 something to look at.
 
-    VERDICT: OK | PARKED | DOWN | STUCK | STALLING | NO-APP
+    VERDICT: OK | PARKED | DOWN | STUCK | STALLING | NO-APP | RUNNING-UNDER-HOLD
 
 The distinction that matters most is PARKED vs DOWN. Cookie Run is *supposed*
 to be off while another agent holds the screen lease -- a check that cannot tell
 those apart will either cry wolf every time someone borrows the machine, or
 worse, "fix" it by starting the bot on top of their work.
+
+RUNNING-UNDER-HOLD is the one fault the CEO's hold does not hide: he pressed
+his "use PC" button, and the bot is alive anyway -- pressing keys into whatever
+he is doing. The watchdog stops it within 5 minutes; this names it meanwhile.
 
 Exit 0 = nothing to do (OK or PARKED). Exit 1 = needs attention.
 """
@@ -33,9 +37,18 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# BUMP THIS ON EVERY CHANGE TO THIS FILE. scripts/cookierun-health.sh copies it
+# to the box only when this number is higher than the box copy's -- an md5
+# compare let a stale checkout put back a check that calls the CEO's parked
+# farm DOWN (scripts/lib/winbox_deploy.sh).
+HEALTH_VERSION = 2
+
 DATA = Path.home() / "Documents" / "CookieRunScript"
 TOKEN = DATA / "modelplay" / "pipe_token"
 LEASE = DATA / "modelplay" / "PC_LEASE.json"
+# The CEO's own hold (pc_lease.py ceo-on / ceo-off, his desktop buttons).
+# Existence is the signal; an unreadable file still counts as held.
+CEO_HOLD = DATA / "modelplay" / "CEO_HOLD.json"
 MODELPLAY = DATA / "modelplay"
 STALLS = Path.home() / "cookierun-bot" / "label_review" / "stalls"
 
@@ -65,7 +78,31 @@ def lease_now():
         d = json.loads(LEASE.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    return d if d.get("expires_at", 0) > time.time() else None
+    try:
+        exp = float(d.get("expires_at", 0))
+    except (AttributeError, TypeError, ValueError):
+        return None                    # [] or {"expires_at": "noon"}: no usable lease
+    return {**d, "expires_at": exp} if exp > time.time() else None
+
+
+def ceo_hold_since():
+    """Epoch the CEO's hold began, or None when there is no hold file.
+
+    Fails closed like pc_lease.read_ceo_hold: a file that exists but cannot be
+    read still counts as held (the file's mtime stands in for "since")."""
+    try:
+        st = CEO_HOLD.stat()
+    except FileNotFoundError:
+        return None
+    except OSError:
+        return time.time()
+    try:
+        since = json.loads(CEO_HOLD.read_text(encoding="utf-8")).get("since")
+        if isinstance(since, (int, float)):
+            return since
+    except (OSError, ValueError, AttributeError):
+        pass
+    return st.st_mtime
 
 
 def window_over_game():
@@ -234,6 +271,7 @@ def free_gb():
 def main() -> int:
     s = pipe_status()
     lease = lease_now()
+    ceo_since = ceo_hold_since()
     sess, runs, last_progress, started = newest_session()
     stalls_total, stalls_recent = recent_stalls()
     gb = free_gb()
@@ -264,7 +302,28 @@ def main() -> int:
     elif s is not None and not s.get("bot_alive") and not s.get("job"):
         faults.append("the bot is not running")
 
-    if lease:
+    if ceo_since is not None and s is not None and not s.get("esc_hold") and (
+            s.get("bot_alive") or s.get("job") == "preflight"):
+        # The hold says the farm is off and it is not. Reported as PARKED, the
+        # check that exists to catch exactly this said "nothing to do" while the
+        # bot played on top of him (review, 2026-10-09).
+        verdict = "RUNNING-UNDER-HOLD"
+        reason = (f"the CEO pressed his use-PC button at "
+                  f"{time.strftime('%H:%M', time.localtime(ceo_since))} but Cookie Run is "
+                  f"running (job={s.get('job')}) - stop it with bot_stop, never esc, and "
+                  f"touch no window; the pc_lease watchdog does this within 5 min")
+    elif ceo_since is not None:
+        # Above even a held lease: the CEO pressed his "use PC" button, which
+        # stopped the farm on purpose. Reported as DOWN, an hourly check would
+        # hand someone an instruction to start the bot over whatever he is
+        # doing -- the exact thing his button exists to stop.
+        verdict = "PARKED"
+        reason = (f"the CEO is using this PC (CEO hold since "
+                  f"{time.strftime('%H:%M', time.localtime(ceo_since))}) - hands off; "
+                  f"Cookie Run comes back when he presses his release button")
+        if faults:
+            reason += " - NOTE, to deal with once he releases it: " + "; ".join(faults)
+    elif lease:
         verdict = "PARKED"
         reason = (f"screen lent to {lease.get('who', '?')} until "
                   f"{time.strftime('%H:%M', time.localtime(lease['expires_at']))}")
@@ -317,6 +376,9 @@ def main() -> int:
         lines.append(f"bot    : alive={s.get('bot_alive')} job={s.get('job')} "
                      f"guard={s.get('night_guard')} esc_hold={s.get('esc_hold')} "
                      f"played_24h={s.get('played_fraction_24h')}")
+    if ceo_since is not None:
+        lines.append(f"ceo    : HOLD since {time.strftime('%H:%M', time.localtime(ceo_since))}"
+                     " - the CEO is using the PC")
     lines.append(f"lease  : {'held by ' + str(lease.get('who')) if lease else 'free'}")
     lines.append(f"rounds : {sess} runs={runs} last_round={age_min} min ago")
     # These files are NOT all unrecognised screens, whatever the function that

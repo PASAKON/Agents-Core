@@ -311,7 +311,9 @@
          style on the beat's mode. The `caption()` generator below has no such
          branch, so every call produces exactly this. Do not add a modifier
          class or an inline style override back in -- that is how the bug
-         happened the first time. */
+         happened the first time. The one exception is `caption()`'s optional 4th
+         argument, the pill's centre y: a COMP beat's caption sits above the
+         avatar's head instead of on its face (task-f35f2935, §6f). */
       .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
              top: 0; transform: translateY(-50%);
              text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
@@ -531,9 +533,10 @@
          the text to at most two lines; a `caplayer` line-height + two-line
          .cap already fits inside the standing safe box (§6c) at this size. */
       var CAPN = 0;
-      function caption(at, out, text) {
+      function caption(at, out, text, cy) {
         var id = "cap" + (++CAPN);
         var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        if (cy !== undefined) d.style.top = (cy - 1300) + "px";   /* the pill's CENTRE y; .caplayer is at 1300 (§6f) */
         document.getElementById("caps").appendChild(d);
         show("#" + id, at); hide("#" + id, out - 0.20);
         return { id: id };

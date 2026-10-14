@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "read_file(/opt/MoonieXHQ)",
+      "read_file(/work)",
+      "read_url(*)"
+    ],
+    "deny": [
+      "command(*)",
+      "write_file(/)",
+      "mcp(*)"
+    ]
+  }
+}

@@ -23,6 +23,7 @@ Usage:
     python -m runners.watchdog                   # one-shot scan
     python -m runners.watchdog --loop            # forever, sleep INTERVAL_S
     python -m runners.watchdog --interval 300    # custom sleep
+    python -m runners.watchdog --mesh-probe      # probe peers now
 """
 from __future__ import annotations
 
@@ -34,6 +35,7 @@ import re
 import subprocess
 import sys
 import time
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -63,6 +65,145 @@ _ORG_TAB_DOMAINS = ("higgsfield.ai", "flow.google.com", "grok.com")
 PING_AFTER_S = 10 * 60
 STALL_AFTER_S = 30 * 60
 INTERVAL_S = 300
+MESH_PROBE_INTERVAL_S = 900
+MESH_PROBE_STATE = Path(__file__).resolve().parent.parent / "state/watchdog-mesh-probe.json"
+_mesh_probe_state: dict | None = None
+_mesh_probe_skip_noted = False
+_mesh_probe_details: dict[str, str] = {}
+
+
+def _mesh_probe_interval() -> int:
+    try:
+        value = int(os.environ.get("ORG_MESH_PROBE_INTERVAL_S", ""))
+    except ValueError:
+        return MESH_PROBE_INTERVAL_S
+    return value if value >= 60 else MESH_PROBE_INTERVAL_S
+
+
+def _mesh_probe_available() -> bool:
+    return (os.environ.get("ORG_MESH_PROBE") != "0"
+            and mesh.enabled()
+            and Path(mesh.SSH_KEY).expanduser().is_file())
+
+
+def _mesh_probe_detail(value: object) -> str:
+    try:
+        from tools.node_dispatch import _redact
+    except ImportError:
+        return "detail unavailable (credential redactor unavailable)"
+    return " ".join(_redact(str(value)).split())[-200:]
+
+
+def _public_detail(text: str) -> str:
+    """Remove SSH identities and network addresses from public issue text."""
+    text = re.sub(r"\S+@\S+", "<user>@<addr>", text)
+    text = re.sub(r"\b(?:[\w-]+\.)+ts\.net\b", "<tailnet-name>", text, flags=re.I)
+    # Match IPv6 before IPv4 so IPv4-mapped IPv6 is removed as one address.
+    text = re.sub(r"\[?[\da-fA-F]*:[\da-fA-F:.]*:[\da-fA-F:.]*(?:%[\w.-]+)?\]?",
+                  "<ipv6>", text)
+    return re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "<ipv4>", text)
+
+
+def _load_mesh_probe_state() -> dict:
+    try:
+        state = json.loads(MESH_PROBE_STATE.read_text(encoding="utf-8"))
+        if not (isinstance(state, dict) and isinstance(state["hosts"], dict)
+                and isinstance(state["last_probe"], (int, float))):
+            raise ValueError("invalid mesh probe state")
+        for row in state["hosts"].values():
+            if not (isinstance(row, dict)
+                    and type(row["bad_count"]) is int and row["bad_count"] >= 0
+                    and type(row["alerted"]) is bool
+                    and isinstance(row["bad_since"], (int, float))):
+                raise ValueError("invalid mesh probe host state")
+        return state
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"last_probe": 0, "hosts": {}}
+
+
+def _save_mesh_probe_state() -> None:
+    MESH_PROBE_STATE.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",
+                                         dir=MESH_PROBE_STATE.parent,
+                                         delete=False) as f:
+            temporary = f.name
+            json.dump(_mesh_probe_state, f)
+        os.replace(temporary, MESH_PROBE_STATE)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def _alert_mesh_probe(host: str, classification: str, detail: str) -> None:
+    # Same durable CTO/CEO-visible channel as _file_stalled_issue; no task
+    # owns a host outage, so _send_ping's worker mailbox is not appropriate.
+    from tools.gh_issue import create_issue
+    create_issue("mooniex-agents", _public_detail(f"watchdog: mesh host {host} {classification}"),
+                 _public_detail(f"Mesh probe from {self_host()} failed twice consecutively.\n\n"
+                 f"Host: {host}\nClass: {classification}\nDetail: {detail}\n\n"
+                 "This blocks remote spawns, letters and C-level starts. "
+                 "Check the dispatch key and the host's mesh service."),
+                 labels=["watchdog", "agent"])
+
+
+def _probe_mesh_hosts(*, force: bool = False) -> dict[str, str]:
+    """Probe configured peers, debounce outages and remember reported ones.
+
+    dispatch's probe timeout is 30 s (including the ssh dial); no retries.
+    force bypasses only the interval, never the key check or off switch.
+    """
+    global _mesh_probe_state, _mesh_probe_skip_noted, _mesh_probe_details
+    _mesh_probe_details = {}
+    if not _mesh_probe_available():
+        if not _mesh_probe_skip_noted:
+            info("watchdog: mesh probe skipped (ORG_MESH_PROBE=0, ORG_MESH_DISPATCH off, or no dispatch key)")
+            _mesh_probe_skip_noted = True
+        return {}
+    if _mesh_probe_state is None:
+        _mesh_probe_state = _load_mesh_probe_state()
+    now = time.time()
+    if not force and now - _mesh_probe_state["last_probe"] < _mesh_probe_interval():
+        return {}
+    _mesh_probe_state["last_probe"] = now
+    result = {}
+    for host, config in all_hosts().items():
+        if host == self_host() or not config.get("mesh_ssh"):
+            continue
+        try:
+            reply = mesh.dispatch(host, "probe")
+            classification = "ok" if reply.get("ok") is True else "refused/error"
+            detail = "probe succeeded" if classification == "ok" else reply.get("error", "probe failed")
+        except mesh.MeshUnreachable as e:
+            classification, detail = "unreachable", e
+        except Exception as e:
+            classification, detail = "refused/error", e
+        detail = _mesh_probe_detail(detail)
+        result[host] = classification
+        _mesh_probe_details[host] = detail
+        row = _mesh_probe_state["hosts"].setdefault(
+            host, {"bad_count": 0, "bad_since": 0, "alerted": False})
+        if classification == "ok":
+            if row["bad_count"]:
+                success(f"host {host} reachable again after {int((now - row['bad_since']) / 60)} min")
+            row.update(bad_count=0, bad_since=0, alerted=False)
+        else:
+            if not row["bad_count"]:
+                row["bad_since"] = now
+            row["bad_count"] += 1
+            if row["bad_count"] >= 2 and not row["alerted"]:
+                error(f"watchdog: mesh host {host} {classification}: {detail}")
+                try:
+                    _alert_mesh_probe(host, classification, detail)
+                    row["alerted"] = True
+                except Exception as e:
+                    warn(f"watchdog: mesh alert failed: {_mesh_probe_detail(e)}")
+            else:
+                warn(f"watchdog: mesh host {host} {classification}: {detail}")
+    _save_mesh_probe_state()
+    return result
+
 
 # Layer 2 floor (task-78ab64ba): a DEV whose task reached review/done but
 # whose process is still alive gets reaped after this long with no C-level
@@ -777,10 +918,20 @@ def _drain_disk_queue() -> dict | None:
             continue
         disk_queue.pop(task_id)
         try:
-            asyncio.run(delegate.delegate_task(task_id))
+            row = asyncio.run(delegate.delegate_task(task_id))
         except Exception as e:
             error(f"watchdog: disk queue spawn failed for {task_id}: {e}")
             return {"task": task_id, "error": str(e)}
+        if isinstance(row, dict) and row.get("status") == "pending":
+            # A later gate refused it (org restructure P2: RAM, a Project
+            # Head's worker cap): not a spawn. Back to the tail, so it is
+            # tried again once the cap or the RAM frees and does not hold up
+            # the entries behind it. enqueue is idempotent if delegate_task
+            # already re-queued it for disk.
+            why = (row.get("delegate_log") or "").strip().splitlines()[-1:] or ["?"]
+            disk_queue.enqueue(task_id, task.get("owner_cto"))
+            warn(f"watchdog: disk queue {task_id} still pending, re-queued: {why[0]}")
+            return {"task": task_id, "refused": why[0]}
         success(f"watchdog: disk queue spawning {task_id} "
                f"(free {free_gb:.1f} GB >= {orange_gb + DISK_QUEUE_RESUME_MARGIN_GB:.1f} GB)")
         # No letter here (CEO 2026-09-23: permanent watchdog letters only when
@@ -802,11 +953,15 @@ _unapproved_noted_until: dict[str, float] = {}
 
 
 def _provision_identities() -> list[dict]:
-    """W4.2: give every `pending_identity` host its identity (tools.hq_join.provision:
-    Infisical client secret under org-node, sealed to the host's key, GitHub deploy
-    key). Off unless ORG_W42_PROVISION=1 AND this box holds the admin identity file;
-    hq_join.provision_pending checks both and does nothing otherwise. One bad row
-    never stops the others, and a failed one waits PROVISION_BACKOFF_S."""
+    """W4.2 / W4.2b: provision every approved `pending_identity` host (tools.hq_join.provision):
+    seal it a bundle {v: 2, host, token_url} to its age key and register its GitHub deploy
+    key. It makes no Infisical call and creates no Infisical identity: the node asks the hub's
+    token service (tools/node_token_api.py) at token_url for the Claude token. Off unless
+    ORG_W42_PROVISION=1 (hq_join.provision_pending does nothing otherwise). token_url is read
+    from ORG_NODE_TOKEN_URL (http://<hub tailnet IPv4>:792/v1/token); without it every row fails
+    as `no_token_url`, which the loop below logs and retries after PROVISION_BACKOFF_S. A row
+    without `approved_at` is skipped as `not_approved`, not failed. One bad row never stops the
+    others."""
     from tools import hq_join  # lazy: keeps the watchdog's import list untouched
     now = time.time()
     results = hq_join.provision_pending(
@@ -1080,6 +1235,13 @@ def scan_once() -> dict:
     except Exception as e:
         warn(f"watchdog identity provision error: {e}")
 
+    # Sixth-e pass — periodic mesh reachability, independent of dispatch flag.
+    try:
+        mesh_probe = _probe_mesh_hosts()
+    except Exception as e:
+        warn(f"watchdog mesh probe error: {_mesh_probe_detail(e)}")
+        mesh_probe = {}
+
     # Seventh pass — Work/ watcher (Work/RULES.md rules 7-8, ADR 0030 §D,
     # task-dbe47b9b): alert the owning CTO or raise a LungNote to-do for any
     # Work/<task-id>/ folder whose task ended (or whose worker died) with
@@ -1095,16 +1257,27 @@ def scan_once() -> dict:
             "scanned": len(rows) + len(human_rows),
             "gc_cancelled": len(gc_cancelled),
             "disk_queue_spawned": disk_queue_spawned,
+            "mesh_probe": mesh_probe,
             "work_watch": work_watch_result}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Watchdog for stuck DEV tasks")
+    ap.add_argument("--mesh-probe", action="store_true",
+                    help="probe mesh hosts now, ignoring the interval")
     ap.add_argument("--loop", action="store_true",
                     help="run forever, sleep --interval between scans")
     ap.add_argument("--interval", type=int, default=INTERVAL_S,
                     help=f"loop sleep seconds (default {INTERVAL_S})")
     args = ap.parse_args()
+
+    if args.mesh_probe:
+        if not _mesh_probe_available():
+            return 2
+        out = _probe_mesh_hosts(force=True)
+        for host, classification in out.items():
+            print(f"{host} {classification} {_mesh_probe_details[host][:120]}")
+        return 0 if all(value == "ok" for value in out.values()) else 1
 
     db.init()
     if not args.loop:

@@ -174,6 +174,8 @@ def _oracle(raw: str) -> list[str] | None:
     verb, args = parts[0], parts[1:]
     if verb == "start_clevel":
         roles = set(config_mod.live_c_level_roles())
+        if args[-1:] == ["--probe"]:                 # optional trailing flag (mesh probe)
+            args = args[:-1]
         if len(args) == 1 and args[0] in roles:
             return parts
         if (len(args) == 3 and args[0] in roles and args[1] == "--resume"
@@ -312,7 +314,9 @@ def test_fuzz_run_command_refuses_or_runs_exactly_the_allow_listed_call(monkeypa
         assert (code, out["ok"]) == (0, True), (raw, out)
         verb, args = expect[0], expect[1:]
         if verb == "start_clevel":
-            args = [args[0], args[2] if len(args) == 3 else None]
+            probe = args[-1:] == ["--probe"]
+            core = args[:-1] if probe else args
+            args = [core[0], core[2] if len(core) == 3 else None, probe]
         assert seen[calls_before:] == [(verb, args)], raw
         for token in expect:
             assert _TOKEN_OK.fullmatch(token), (raw, token)
@@ -486,6 +490,8 @@ def test_fuzz_start_clevel_on_windows_builds_only_the_fixed_argument(monkeypatch
     config_mod.self_host.cache_clear()
     monkeypatch.setattr(nd, "_is_windows", lambda: True)
     monkeypatch.setattr(session_status, "resume_target", lambda role, sid: UUID)
+    # a resume is checked against the session's recorded host first (it must be this one)
+    monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": "winbox"})
     scripts = []
 
     def fake_ps(script, timeout=None):
@@ -1208,7 +1214,9 @@ def _locks_rows() -> list[dict]:
         return [dict(r) for r in conn.execute("SELECT * FROM locks")]
 
 
-def test_start_clevel_refuses_a_fourth_live_session_of_the_role(clevel):
+def test_start_clevel_refuses_a_fourth_live_session_of_the_role(clevel, monkeypatch):
+    # the resume below is recorded on this host, so it reaches the limit check
+    monkeypatch.setattr(session_status, "get", lambda role, sid: {"host": nd._self_host()})
     for i, sid in enumerate(("aaaa0001", "aaaa0002", "aaaa0003")):
         _clevel_lock(f"cto-{sid}.lock", f"{1001 + i}\n")
     out, code = nd.run_command("start_clevel cto")

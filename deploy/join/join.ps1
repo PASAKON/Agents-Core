@@ -23,7 +23,7 @@
 # The nine steps, in order (same as join.sh). Each is safe to repeat.
 #   1 check the arguments             6 join the tailnet
 #   2 make the node's keys            7 clone Agents-Core over the deploy key, build the venv
-#   3 accept: hand the hub the token  8 open the sealed identity, save it, write node.yaml
+#   3 accept: hand the hub the token  8 open the sealed bundle (token URL), write node.yaml
 #   4 install what is missing         9 probe
 #   5 wait for the operator's approval and the sealed identity
 # Keys and accept come BEFORE the long installs: the token is used within seconds of being typed,
@@ -35,8 +35,12 @@
 # public URL, GitHub for the clone).
 #
 # No secret is typed, written to disk by this script, or put on the command line of a process
-# that lives longer than a moment. The node's identity is age-decrypted and handed to
-# infisical_setup.py by ONE python process over pipes; PowerShell never holds the plaintext.
+# that lives longer than a moment. The sealed answer (step 5) holds no secret since W4.2b (CEO
+# 2026-10-03): it is age-encrypted to a key that never leaves this machine and carries only the URL
+# of the hub's token service. The node has no Infisical identity. A command that needs the Claude
+# token runs as `python tools\node_token.py run -- <command>`: the hub hands the token over only to
+# a node the operator approved and that has not left, and it goes into that command's environment
+# and nowhere else. Nothing is saved under ProgramData\Infisical.
 
 # Continue, not Stop: Windows PowerShell 5.1 turns a native program's stderr into a terminating
 # error under Stop (age-keygen prints its public key there). Cmdlets that matter say
@@ -164,8 +168,8 @@ function Show-Banner {
     Say ('host ' + $script:HostName + ' (windows), hub ' + $script:Hub)
     Say ('HQ root ' + $script:HqRoot + '  (checkout: ' + $script:Core + ')')
     Say ('keys go under ' + $script:ConfDir + ' (age identity, deploy key) and ' + $script:SshDir + ' (dispatch key)')
-    Say 'ELEVATION NEEDED for three things: installing packages (2, 4), tailscale up (6), saving the'
-    Say "node's identity under C:\ProgramData\Infisical (8)."
+    Say 'ELEVATION NEEDED for two things: installing packages (2, 4) and tailscale up (6). Nothing is saved'
+    Say 'under ProgramData\Infisical: this node has no Infisical identity.'
     if (Test-Admin) {
         Say 'This window is elevated: fine.'
     } elseif ($script:DryRun) {
@@ -472,7 +476,7 @@ function Wait-Sealed {
 
 # StrictHostKeyChecking=yes against a known_hosts that Write-KnownHosts filled from GitHub itself:
 # the first clone is no longer trust-on-first-use, so a network in the middle cannot hand this
-# node a fake Agents-Core whose tools\infisical_setup.py then runs with the node's identity.
+# node a fake Agents-Core whose tools\node_token.py then runs with this node's age identity.
 function Get-GitSshCommand {
     $k = $script:DeployKey -replace '\\', '/'
     $kh = ($script:ConfDir -replace '\\', '/') + '/known_hosts'
@@ -534,35 +538,41 @@ function Copy-Core {
     if ($LASTEXITCODE -ne 0) { Die 'pip install -r requirements.txt failed' }
 }
 
-# ---------------------------------------------------------------- 8: identity + node.yaml
+# ---------------------------------------------------------------- 8: sealed bundle + node.yaml
 
-# One python process does age -d, the JSON parse and the hand-off to `save`, all over pipes.
-# PowerShell pipelines re-encode and add CRLF, which would corrupt a secret, so none is used.
-# The ciphertext (harmless by design: only this node's age key opens it) comes in an env var.
-$script:SaveHelper = @'
-import json, os, subprocess, sys
-age_id, setup, host, py = sys.argv[1:5]
-cipher = os.environ.pop("ORG_JOIN_CIPHER", "")
+# One python process does age -d and the JSON parse and prints only the hub's token URL: the bundle
+# holds no secret, but it is still opened over pipes, and an old (v1) bundle that does hold one is
+# refused with fixed sentences, never echoed. Single quotes only: Windows PowerShell 5.1 mangles an
+# embedded double quote in a native command's argument. The ciphertext (harmless by design: only
+# this node's age key opens it) comes in an env var.
+$script:BundleHelper = @'
+import json, os, re, subprocess, sys
+age_id, host = sys.argv[1:3]
+cipher = os.environ.pop('ORG_JOIN_CIPHER', '')
 if not cipher:
-    sys.exit("no ciphertext")
-dec = subprocess.run(["age", "-d", "-i", age_id], input=cipher.encode("ascii"), capture_output=True)
+    sys.exit('no ciphertext')
+dec = subprocess.run(['age', '-d', '-i', age_id], input=cipher.encode('ascii'), capture_output=True)
 if dec.returncode != 0:
-    sys.exit("age could not open the sealed identity")
+    sys.exit('age could not open the sealed bundle')
 try:
     d = json.loads(dec.stdout)
-    pair = (d["client_id"] + "\n" + d["client_secret"] + "\n").encode("utf-8")
 except Exception:
-    sys.exit("the sealed identity is not in the expected shape")
-save = subprocess.run([py, setup, "save", host, "--stdin"], input=pair, capture_output=True)
-sys.stdout.write(save.stdout.decode("utf-8", "replace"))
-if save.returncode != 0:
-    sys.stderr.write(save.stderr.decode("utf-8", "replace")[:500])
-    sys.exit(save.returncode)
+    sys.exit('the sealed answer is not a JSON bundle')
+if not isinstance(d, dict) or d.get('v') != 2:
+    sys.exit('the sealed answer is not a v2 bundle: the hub is older than W4.2b, ask the operator to update it')
+if d.get('host') != host:
+    sys.exit('the sealed answer was made for another host')
+u = d.get('token_url')
+if not isinstance(u, str) or not re.fullmatch(r'https?://[A-Za-z0-9][A-Za-z0-9.-]{0,98}(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~/-]{0,100})?', u):
+    sys.exit('the sealed answer has no usable token_url')
+sys.stdout.write(u)
 '@
 
 function ConvertTo-YamlScalar($s) { return ("'" + ($s -replace "'", "''") + "'") }
 
-function Write-NodeYaml {
+# node.yaml: who this node is (host, os, hq_root: lib/config.py) and how it gets the Claude token
+# (token_url, age_identity: tools\node_token.py).
+function Write-NodeYaml($tokenUrl) {
     $f = Join-Path $script:ConfDir 'node.yaml'
     if (Test-Path -LiteralPath $f) {
         $have = Get-Content -LiteralPath $f -Raw -ErrorAction Stop
@@ -571,48 +581,50 @@ function Write-NodeYaml {
     $lines = @(
         ('host: ' + (ConvertTo-YamlScalar $script:HostName)),
         'os: windows',
-        ('hq_root: ' + (ConvertTo-YamlScalar $script:HqRoot))
+        ('hq_root: ' + (ConvertTo-YamlScalar $script:HqRoot)),
+        ('token_url: ' + (ConvertTo-YamlScalar $tokenUrl)),
+        ('age_identity: ' + (ConvertTo-YamlScalar $script:AgeId))
     )
     # No-BOM UTF-8: a BOM breaks the YAML loader.
     [IO.File]::WriteAllLines(($f + '.tmp'), $lines, (New-Object Text.UTF8Encoding($false)))
     Move-Item -Force -LiteralPath ($f + '.tmp') -Destination $f -ErrorAction Stop
 }
 
-function Save-Identity {
-    Step 8 'open the sealed identity, save it under ProgramData\Infisical, write node.yaml'
-    Say ('age -d -i ' + $script:AgeId + ' | (json: client_id, client_secret) | python tools\infisical_setup.py save ' + $script:HostName + ' --stdin')
-    Say 'the plaintext only ever flows through pipes inside one python process'
-    Say ('node.yaml: host, os, hq_root -> ' + $script:ConfDir + '\node.yaml (where lib/config.py reads it)')
+function Open-Bundle {
+    Step 8 'open the sealed bundle, write node.yaml (no secret is stored on this machine)'
+    Say ('age -d -i ' + $script:AgeId + ' | (json: v 2, host, token_url) -> the hub token URL')
+    Say ('node.yaml: host, os, hq_root, token_url, age_identity -> ' + $script:ConfDir + '\node.yaml (lib/config.py and tools\node_token.py read it)')
+    Say 'nothing goes under ProgramData\Infisical and no token is fetched here: tools\node_token.py asks the hub for it when a command needs it'
     if ($script:DryRun) { return }
     $venvPy = Join-Path $script:Core '.venv\Scripts\python.exe'
     $env:ORG_JOIN_CIPHER = $script:Cipher
     try {
-        & $venvPy -c $script:SaveHelper $script:AgeId (Join-Path $script:Core 'tools\infisical_setup.py') $script:HostName $venvPy
-        if ($LASTEXITCODE -ne 0) { Die "could not save the node's identity (the decrypt, the parse or the Infisical login failed; nothing was stored)" }
+        $tokenUrl = (& $venvPy -c $script:BundleHelper $script:AgeId $script:HostName | Out-String).Trim()
+        if ($LASTEXITCODE -ne 0) { Die 'could not open the sealed bundle (the decrypt or the parse failed; nothing was written)' }
     } finally {
         Remove-Item Env:ORG_JOIN_CIPHER -ErrorAction SilentlyContinue
     }
     $script:Cipher = ''
-    Write-NodeYaml
+    Write-NodeYaml $tokenUrl
 }
 
 # ---------------------------------------------------------------- 9: probe
 
-# Returns $true when the probe passed. Not fatal: by now the node IS joined and its identity is
-# saved, and the probe's own message says what is left to fix.
+# Returns $true when the probe passed. Not fatal: by now the node IS joined, and the probe's own
+# message says what is left to fix.
 function Invoke-Probe {
-    Step 9 'probe: measure this node through its own identity'
-    Say ('python tools\infisical_setup.py run Org-Node prod --as ' + $script:HostName + ' -- .venv\Scripts\python.exe -m tools.node_dispatch probe')
+    Step 9 'probe: fetch the Claude token from the hub, then measure this node'
+    Say 'python tools\node_token.py run -- .venv\Scripts\python.exe -m tools.node_dispatch probe'
     # No hop here, unlike join.sh's sudo: the probe is a child of this window, so it inherits the
     # USERPROFILE that ConfDir (where step 8 wrote node.yaml) was built from, and Python's
     # Path.home() reads that same variable on Windows. Nothing to pass on; the dry run says so.
-    Say ('the probe reads ' + (Join-Path $script:ConfDir 'node.yaml') + ' (USERPROFILE ' + $env:USERPROFILE + ', the same window and user that step 8 wrote it under)')
+    Say ('the probe reads ' + (Join-Path $script:ConfDir 'node.yaml') + ' (USERPROFILE ' + $env:USERPROFILE + ', the same window and user that step 8 wrote it under) and asks the hub for the token, which exists only in the probe environment')
     if ($script:DryRun) { return $true }
     $venvPy = Join-Path $script:Core '.venv\Scripts\python.exe'
     Push-Location $script:Core
     try {
         $env:ORG_HOST = $script:HostName
-        $out = & $venvPy (Join-Path $script:Core 'tools\infisical_setup.py') run Org-Node prod --as $script:HostName -- $venvPy -m tools.node_dispatch probe 2>$null
+        $out = & $venvPy -I (Join-Path $script:Core 'tools\node_token.py') run -- $venvPy -m tools.node_dispatch probe 2>$null
     } finally {
         Remove-Item Env:ORG_HOST -ErrorAction SilentlyContinue
         Pop-Location
@@ -620,7 +632,7 @@ function Invoke-Probe {
     $last = @($out | Where-Object { ([string]$_).Trim() }) | Select-Object -Last 1
     $d = $null
     try { $d = [string]$last | ConvertFrom-Json } catch { $d = $null }
-    if ($null -eq $d) { Say 'probe: FAILED: no JSON answer'; return $false }
+    if ($null -eq $d) { Say 'probe: FAILED: no JSON answer (run the command above by hand to see why)'; return $false }
     if ($d.ok) {
         Say ('probe: ok host=' + $d.result.host + ' os=' + $d.result.os + ' free_gb=' + $d.result.free_gb)
         return $true
@@ -642,15 +654,15 @@ function Join-OrgNode($argList) {
     Wait-Sealed
     Join-Tailnet
     Copy-Core
-    Save-Identity
+    Open-Bundle
     $probeOk = Invoke-Probe
     Write-Host ''
     if ($script:DryRun) { Write-Host 'join: dry run finished. Nothing was changed.'; return }
     if ($probeOk) { Write-Host ('join: ' + $script:HostName + ' is a node.') }
-    else { Write-Host ('join: ' + $script:HostName + ' is joined and its identity is saved, but the probe did not pass (above).') }
+    else { Write-Host ('join: ' + $script:HostName + ' is joined, but the probe did not pass (above).') }
     Say ('dispatch public key (for the ssh mesh, W2.8): ' + $script:DispatchKey + '.pub')
-    Say 'claude: nothing to sign in to here. The node reads CLAUDE_CODE_OAUTH_TOKEN at run time through'
-    Say ('  infisical_setup.py run Org-Node prod --as ' + $script:HostName + ' -- <command>   (once the CEO has put it there)')
+    Say 'claude: nothing to sign in to here. A command that needs CLAUDE_CODE_OAUTH_TOKEN runs as'
+    Say ('  python ' + (Join-Path $script:Core 'tools\node_token.py') + ' run -- <command>   (the hub hands it over while this node is approved; it is never stored here)')
 }
 
 try {

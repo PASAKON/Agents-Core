@@ -145,7 +145,7 @@ def test_codex_never_gates_on_its_own_exit_code():
     # compared against 0 anywhere in this branch.
     assert "LASTEXITCODE" in codex_branch
     assert "-eq 0" not in codex_branch
-    assert "-ne 0" not in codex_branch
+    assert "`$cliExit -ne 0" not in codex_branch
 
 
 def test_agy_argv_matches_measured_table():
@@ -163,19 +163,14 @@ def test_agy_argv_matches_measured_table():
     assert "--dangerously-skip-permissions" not in agy_branch
 
 
-def test_agy_prompt_never_includes_the_git_remote_contract():
-    """docs/ops/agent-runners.md §6b (2026-09-22): agy in print mode cannot
-    run ANY shell command -- a RunCommand step is soft-denied and the denial
-    is not partial, it abandons the WHOLE turn (planned edits included).
-    $remoteContract (roles/_worker_remote.md) instructs `git add -A && git
-    commit && git push` -- if that text ever reaches agy's prompt, a single
-    run silently loses every file edit it also planned. Regression guard for
-    exactly that."""
+def test_agy_prompt_includes_only_the_nonclaude_contract():
+    """AGY receives the file-only contract, never Claude's shell instructions."""
     code = _code_only()
     codex_start = code.index("elseif ($Runner -eq 'codex')")
     agy_start = code.index("else {", codex_start)
     agy_branch = code[agy_start:code.index("$stAct = New-ScheduledTaskAction")]
-    assert "$remoteContract" not in agy_branch
+    assert "$remoteContract" in agy_branch
+    assert "$contracts[1]" in code
     assert "$agyPrompt" in agy_branch
 
 
@@ -304,6 +299,23 @@ def test_report_step_resets_the_never_commit_files():
                  ".org-worker.mcp.json", "CTO-FEEDBACK.md", "REPORT.md",
                  "BLOCKER.md", ":(glob)*.log"):
         assert name in reset_line, f"{name!r} missing from the git reset guard"
+
+
+def test_report_step_media_allow_gate():
+    """task-2506e4fd: the report step in windows/spawn-worker.ps1 must read
+    .media-allow from origin/$Base, keep allowed media files, honor !large for
+    files > 1 MB, and record kept media in REPORT.md and commit message."""
+    body = _report_step_body()
+
+    # Must read .media-allow from origin/<base>, never from working tree
+    assert 'git -C \'$wt\' show "origin/$Base:.media-allow"' in body
+    assert "mediaKept" in body
+    assert "!large" in body
+    assert "--exclude-from" in body
+    assert "1048576" in body
+    assert "media kept:" in body
+    assert 'commit -q -m "${Runner}: task $Task" -m `$keptBody' in body
+
 
 
 def test_info_exclude_lists_never_commit_names_anchored_and_spares_root_reports():
@@ -847,3 +859,21 @@ def test_check_task_null_runner_bypasses_gate_like_claude(
     branch_poller.check_task(temp_db_for_poller.get_task("task-real05"))
 
     assert temp_db_for_poller.get_task("task-real05")["status"] == "review"
+
+
+def test_codex_scoped_writes_and_heartbeat_cleanup():
+    source = _text()
+    assert "[string]$WorkDir = $env:WORK_DIR" in source
+    assert "git-common-dir" not in source  # no writable root under .git (task-2f1a8586)
+    assert "$gitCommonDir" not in source
+    assert "if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }" in source
+    assert "'-s', 'workspace-write'" in source
+    assert "danger-full-access" not in source
+    assert "dangerously-bypass" not in source
+    assert "[DateTime]::UtcNow.ToString" in source
+    assert "Start-Sleep -Seconds 60" in source
+    assert "} finally {" in source
+    assert "Stop-Job -Job $heartbeatJob" in source
+    assert "Wait-Job -Job $heartbeatJob" in source
+    assert source.count("$heartbeatStart\n") == 2
+    assert source.count("$heartbeatStop\n") == 2

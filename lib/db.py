@@ -20,7 +20,7 @@ from pathlib import Path
 
 # lib.config is imported lazily (in create_task): it pulls in PyYAML, and the
 # PreToolUse hooks import lib.db under the system python3, which may not have it.
-from lib import db_pg
+from lib import coo_policy, db_pg
 
 def _resolve_root() -> Path:
     """Hub checkout root. `ORG_ROOT` (set by runners/worker_init.py on every
@@ -357,6 +357,12 @@ _HOSTS_JOIN_MIGRATION = [
 # A row written before this column has from_host NULL and is retried by nobody.
 _LETTERS_MIGRATION = [
     ("from_host", "TEXT"),
+]
+
+# live_sessions.verified (M8, 2026-10-14): true when the session's tmux name, not
+# its display name, gave the role. Postgres only, like the table.
+_LIVE_SESSIONS_MIGRATION = [
+    ("verified", "BOOLEAN"),
 ]
 
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
@@ -731,7 +737,8 @@ def _pg_schema_current(conn) -> bool:
     wanted = {"tasks": _MIGRATION_COLUMNS,
               "c_level_sessions": _C_LEVEL_SESSION_MIGRATION,
               "hosts": _HOSTS_MIGRATION + _HOSTS_JOIN_MIGRATION,
-              "letters": _LETTERS_MIGRATION}
+              "letters": _LETTERS_MIGRATION,
+              "live_sessions": _LIVE_SESSIONS_MIGRATION}
     have: dict[str, set[str]] = {}
     for table, column in conn.execute(
             "SELECT table_name, column_name FROM information_schema.columns"
@@ -739,6 +746,13 @@ def _pg_schema_current(conn) -> bool:
             (list(wanted),)).fetchall():
         have.setdefault(table, set()).add(column)
     if "claudesign_project_id" in have.get("tasks", set()):
+        return False
+    triggers = {r[0] for r in conn.execute(
+        "SELECT t.tgname FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid"
+        " JOIN pg_namespace n ON n.oid = c.relnamespace"
+        " WHERE n.nspname = current_schema() AND NOT t.tgisinternal"
+        " AND c.relname = 'project_events' AND t.tgenabled IN ('O', 'A')").fetchall()}
+    if not set(db_pg.PORTFOLIO_TRIGGER_NAMES) <= triggers:
         return False
     return all({col for col, _ in cols} <= have.get(table, set())
                for table, cols in wanted.items())
@@ -748,6 +762,10 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
     """init_schema()'s DDL: the backend's schema, the join and secret tables,
     then the forward-only column migrations."""
     conn.executescript(db_pg.PG_SCHEMA if is_pg else SCHEMA)
+    if is_pg:
+        # Org restructure P3-A: one statement each, never split on ";".
+        for stmt in db_pg.PORTFOLIO_GUARDS:
+            conn.execute(stmt)
     conn.executescript(JOIN_TOKENS_SCHEMA)
     conn.executescript(NODE_SECRETS_SCHEMA)
     existing = {r["name"] for r in conn.execute(
@@ -785,6 +803,12 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
     for col, coltype in _LETTERS_MIGRATION:
         if col not in letters_existing:
             conn.execute(f"ALTER TABLE letters ADD COLUMN {col} {coltype}")
+    if is_pg:
+        live_existing = {r["name"] for r in conn.execute(
+            "PRAGMA table_info(live_sessions)").fetchall()}
+        for col, coltype in _LIVE_SESSIONS_MIGRATION:
+            if col not in live_existing:
+                conn.execute(f"ALTER TABLE live_sessions ADD COLUMN {col} {coltype}")
 
 
 def init_schema(conn, *, is_pg: bool) -> None:
@@ -1035,6 +1059,9 @@ def create_task(
     # Stamp the spawning C-level session so DEV reports route back to that
     # session's tab instead of broadcasting to every open CTO chat.
     owner_cto, owner_role = resolve_session_owner(owner_cto, owner_role)
+    # A coo-owned task may only be a research-side role (CEO card
+    # Q-20261013-1948-4a33). Before anything is written, on every create path.
+    coo_policy.check_role(owner_role, role)
     tid = new_task_id()
     if not owner_cto:
         # Don't hard-fail (tests + ad-hoc rows create ownerless tasks), but make

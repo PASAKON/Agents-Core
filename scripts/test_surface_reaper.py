@@ -17,7 +17,8 @@ and `close_dev` are stubbed for the sweep tests; `scripts.browser.
 tab_registry.all_claims` and `_log_unclaimed_org_tabs` are stubbed in every
 sweep test so a real (and possibly non-empty, shared-across-the-org) claim
 registry or a real Chrome never gets touched; `close_tab` and
-tmux_session.kill are stubbed for the close_dev no-pid test; `subprocess.run`
+tmux_session.kill are stubbed for the close_dev no-pid test (on a pretend Mac:
+close_dev calls close_tab only on darwin); `subprocess.run`
 is stubbed for the close_remote and Chrome-tab tests (no real SSH/osascript).
 
 Tests:
@@ -273,7 +274,7 @@ def test_sweep_idempotent_second_run() -> bool:
 def test_close_dev_no_pid_still_closes_tmux_and_tab() -> bool:
     tid = _insert_task(status="done", pid=None, tmux_session_name="wd-fake")
     fake_close_tab = mock.Mock(return_value=True)
-    with mock.patch.object(worker_reap, "close_tab", fake_close_tab), \
+    with mock.patch.object(sys, "platform", "darwin"), mock.patch.object(worker_reap, "close_tab", fake_close_tab), \
          mock.patch("tools.tmux_session.kill", mock.Mock(return_value=True)):
         r = worker_reap.close_dev(tid, reason="test")
     return (r["refused"] is None and r["pid"] is None and r["signal"] is None
@@ -654,7 +655,7 @@ def test_close_dev_closes_claimed_chrome_tabs_and_clears_registry() -> bool:
     from scripts.browser.tab_registry import cmd_claim, tabs_for
     cmd_claim(tid, "424242", "https://higgsfield.ai/gen")
     fake_close_chrome = mock.Mock(return_value=["424242"])
-    with mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=False)), \
+    with mock.patch.object(sys, "platform", "darwin"), mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=False)), \
          mock.patch("tools.tmux_session.kill", mock.Mock(return_value=True)), \
          mock.patch.object(worker_reap, "_close_chrome_tabs", fake_close_chrome):
         r = worker_reap.close_dev(tid, reason="test")
@@ -666,7 +667,7 @@ def test_close_dev_closes_claimed_chrome_tabs_and_clears_registry() -> bool:
 def test_close_dev_no_claim_never_touches_chrome() -> bool:
     tid = _insert_task(status="done", pid=None)
     fake_close_chrome = mock.Mock(return_value=[])
-    with mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=False)), \
+    with mock.patch.object(sys, "platform", "darwin"), mock.patch.object(worker_reap, "close_tab", mock.Mock(return_value=False)), \
          mock.patch("tools.tmux_session.kill", mock.Mock(return_value=True)), \
          mock.patch.object(worker_reap, "_close_chrome_tabs", fake_close_chrome):
         r = worker_reap.close_dev(tid, reason="test")

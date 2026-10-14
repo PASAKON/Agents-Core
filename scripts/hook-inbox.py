@@ -18,9 +18,25 @@ Draining is exactly-once (`lib.mailbox.drain`), so the same letter is
 never printed twice. Prints nothing when the box is empty -- this runs on
 every prompt of every session, so silence (the common case) must cost
 nothing.
+
+Also, for a C-level session only, makes sure the host's live-sessions
+publisher is running (`tools.live_sessions.ensure_publisher`, task-9c563bea).
+A hook SCRIPT is read from disk on every prompt, unlike the hook CONFIG, which
+Claude Code snapshots at startup -- so a `git pull` is the whole rollout: the
+next prompt on that host starts the publisher. One open + flock when it is
+already alive; nothing printed, nothing raised.
+
+Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1): one
+envelope line per letter (id, kind/prio, sender, time, subject), with the body
+inline only when it is ENVELOPE_BODY_MAX characters or fewer; a longer one is
+read with `read_letter("<id>")` (org MCP) or `python -m tools.letters read <id>`.
+`lib.mailbox.drain` then marks the letters read instead of deleting them.
+Off, the output is exactly as before.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import sys
@@ -28,6 +44,42 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+
+ENVELOPE_BODY_MAX = 400
+
+
+def _envelope_on() -> bool:
+    return os.environ.get("ORG_MAIL_ENVELOPE", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _one_line(value, cap: int) -> str:
+    """A field a sender wrote, as one bounded line: a newline in a subject or a
+    sender name must not print a second envelope line."""
+    return " ".join(str(value if value is not None else "").split())[:cap]
+
+
+def _print_envelopes(letters: list[dict]) -> None:
+    print(f"## Mailbox — {len(letters)} letter(s), marked read "
+          f"(a body over {ENVELOPE_BODY_MAX} chars: read_letter(\"<id>\") "
+          f"or `python -m tools.letters read <id>`)")
+    print()
+    for letter in letters:
+        frm = letter.get("from") if isinstance(letter.get("from"), dict) else {}
+        who = (f"{_one_line(frm.get('role') or '?', 24).upper()} "
+               f"{_one_line(frm.get('session_id', '?'), 40)}")
+        kind = _one_line(letter.get("kind") or "message", 16)
+        prio = _one_line(letter.get("prio") or "normal", 16)
+        tag = (kind if prio == "normal" else f"{kind}/{prio}").upper()
+        lid = _one_line(letter.get("id") or "?", 96)
+        body = str(letter.get("body") or "")
+        subject = _one_line(letter.get("subject") or body, 80)
+        print(f"- [{lid}] {tag} from {who} · {_one_line(letter.get('sent_at', ''), 32)} · {subject}")
+        if len(body) <= ENVELOPE_BODY_MAX:
+            for ln in body.splitlines() or [""]:
+                print(f"    {ln}")
+        else:
+            print(f"    ({len(body)} chars, not shown: read_letter(\"{lid}\"))")
+    print()
 
 
 def _current_box() -> tuple[str, str] | None:
@@ -43,12 +95,32 @@ def _current_box() -> tuple[str, str] | None:
     return None
 
 
+def _ensure_live_publisher() -> None:
+    """C-level sessions only (CXO_ROLE set, no WORKER_TASK_ID). Ignores the
+    result and every error: this must never cost a prompt anything."""
+    try:
+        if not os.environ.get("CXO_ROLE") or os.environ.get("WORKER_TASK_ID"):
+            return
+        # scripts/test_mailbox.py drives main() with CXO_ROLE set; a test run
+        # must not start a publisher against the real hub
+        if os.environ.get("PYTEST_CURRENT_TEST"):
+            return
+        # a hook's stdout becomes the model's context on EVERY prompt: whatever the
+        # call writes, it never reaches it
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            from tools import live_sessions
+            live_sessions.ensure_publisher()
+    except Exception:
+        pass
+
+
 def main() -> int:
     try:
         json.load(sys.stdin)
     except Exception:
         pass
 
+    _ensure_live_publisher()    # before the drain: an empty box still runs it
     box = _current_box()
     if box is None:
         return 0
@@ -60,6 +132,10 @@ def main() -> int:
     except Exception:
         return 0
     if not letters:
+        return 0
+
+    if _envelope_on():
+        _print_envelopes(letters)
         return 0
 
     print(f"## Mailbox — {len(letters)} letter(s) delivered (drained; each arrives once)")

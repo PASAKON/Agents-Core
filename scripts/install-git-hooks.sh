@@ -19,8 +19,12 @@
 #   1. gitleaks secret guard  -- matches what was already live in this repo's
 #      hook (added 2026-07-20); reproduced here so it also survives a fresh
 #      clone, not only the skill-lint half this task actually asked for.
-#      Still BLOCKS the commit on a real finding, same as before.
-#   2. skill-lint             -- ADR 0022 Wave 1. Runs scripts/skill-lint.py
+#      Still BLOCKS the commit on a real finding, same as before. Without
+#      gitleaks on PATH the hook says so on every commit, and this installer
+#      exits 2 after writing the hook (2026-10-12: Contabo had no gitleaks and
+#      nothing said so). ALLOW_NO_GITLEAKS=1 accepts that and exits 0. The
+#      stanza is REPLACED on every run, like media-guard.
+#   2. skill-lint            -- ADR 0022 Wave 1. Runs scripts/skill-lint.py
 #      only when staged paths touch .claude/skills/, and NEVER blocks the
 #      commit regardless of what it finds (`|| true`) -- CEO decisions 4 and
 #      10 forbid an authoring gate, and a blocking pre-commit hook is a gate
@@ -68,7 +72,19 @@ if [ "$last_line" = "exit 0" ]; then
   sed '$d' "$hook" > "$tmp" && mv "$tmp" "$hook"
 fi
 
-if ! grep -q -e 'BEGIN gitleaks guard' -e 'gitleaks protect --staged' "$hook" 2>/dev/null; then
+# gitleaks is REPLACED on every run (same reason as media-guard below): a hook
+# written before the missing-gitleaks warning existed would stay silent. A
+# hand-written, unmarked `gitleaks protect --staged` line is left alone.
+if grep -q 'BEGIN gitleaks guard' "$hook" 2>/dev/null; then
+  tmp="$(mktemp)"
+  awk '
+    /--- BEGIN gitleaks guard /{skip=1}
+    skip { if (/--- END gitleaks guard ---/) skip=0; next }
+    { print }
+  ' "$hook" > "$tmp" && mv "$tmp" "$hook"
+fi
+
+if ! grep -q 'gitleaks protect --staged' "$hook" 2>/dev/null; then
   cat >> "$hook" <<'GITLEAKS_EOF'
 
 # --- BEGIN gitleaks guard (Mooniex, added 2026-07-20; tracked via scripts/install-git-hooks.sh) ---
@@ -82,10 +98,12 @@ if command -v gitleaks >/dev/null 2>&1; then
   if ! gitleaks protect --staged --redact --no-banner; then
     echo ""
     echo "gitleaks: possible secret in staged changes -- commit BLOCKED."
-    echo "   - real secret?  remove it; put it in .env / Vercel env instead."
+    echo "   - real secret?  remove it; put it in Infisical instead (CLAUDE.md, section Secrets), then rotate it."
     echo "   - false positive (test fixture)?  bypass once: git commit --no-verify"
     exit 1
   fi
+else
+  echo "gitleaks: NOT on PATH -- secret guard SKIPPED for this commit (see scripts/install-git-hooks.sh)" >&2
 fi
 # --- END gitleaks guard ---
 GITLEAKS_EOF
@@ -201,3 +219,11 @@ fi
 
 chmod +x "$hook"
 echo "pre-commit hook ready: $hook"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "" >&2
+  echo "WARNING: gitleaks is NOT on PATH -- the secret guard in this hook is OFF on this machine." >&2
+  echo "  Install a pinned gitleaks release (checksum verified), then re-run this script." >&2
+  echo "  To accept a hook without it: ALLOW_NO_GITLEAKS=1 sh scripts/install-git-hooks.sh" >&2
+  [ "${ALLOW_NO_GITLEAKS:-}" = "1" ] || exit 2
+fi

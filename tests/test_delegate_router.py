@@ -82,7 +82,7 @@ def test_explicit_choice_skips_router(task, pick_runner, field, value):
     with db_mod.get_conn() as conn:
         conn.execute(
             f"UPDATE tasks SET {field}=?, description=? WHERE id=?",
-            (value, "override: test\n" + (task["description"] or ""), task["id"]),
+            (value, "override: review — test\n" + (task["description"] or ""), task["id"]),
         )
         conn.commit()
     before = db_mod.get_task(task["id"])

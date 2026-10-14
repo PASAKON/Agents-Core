@@ -7,7 +7,7 @@
 # to compete for his bandwidth.
 set -uo pipefail
 cd /root/idm-packs || exit 1
-log=/root/idm-fetch.log
+log=/opt/MoonieXHQ/Assets/MoonieX/CookierunBot/idm-fetch.log
 # "already here" means readable, not merely present. A scp killed mid-file
 # leaves a shard of the right name and nearly the right size; skipping it on
 # existence alone is how train_006.npz stayed truncated at 203 MB against a

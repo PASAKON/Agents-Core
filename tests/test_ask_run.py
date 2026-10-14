@@ -435,6 +435,71 @@ def test_token_env_wins_over_file_then_file_is_used(hub, monkeypatch, capsys):
     assert file_token not in out + err and hub.token not in out + err
 
 
+# Org restructure P2: with ORG_WORKER_TOKEN_ONLY on, a worker never falls back to
+# the C-level's token file (security review of Console task-fabda3b9).
+def _worker_script_create() -> list[str]:
+    return ["create", "--host", "contabo", "--script", SCRIPT_SPEC, "--why", "capture",
+            "--role", "developer", "--session", "developer-task-8669cf28"]
+
+
+@pytest.mark.parametrize("worker_env", [
+    {"WORKER_TASK_ID": "task-8669cf28", "WORKER_ROLE": "developer"},
+    {"WORKER_TASK_ID": "task-8669cf28"},
+    {"WORKER_ROLE": ""},
+])
+def test_flag_on_a_worker_never_uses_the_token_file(hub, monkeypatch, capsys, worker_env):
+    monkeypatch.delenv("RUN_INBOX_TOKEN")
+    file_token = "clevel-" + "token-value"
+    hub.accepted.add(file_token)
+    _token_file(0o600, file_token)
+    monkeypatch.setenv("ORG_WORKER_TOKEN_ONLY", "1")
+    for k, v in worker_env.items():
+        monkeypatch.setenv(k, v)
+    rc = ask_run.main(_worker_script_create())
+    out, err = capsys.readouterr()
+    assert rc == 3
+    assert "the token file is the C-level's" in err and file_token not in out + err
+    assert hub.requests == []
+
+
+def test_flag_on_from_the_host_file_too(hub, monkeypatch, capsys, tmp_path):
+    from lib import org_flags
+    flags = tmp_path / "org-flags"
+    flags.mkdir()
+    (flags / "ORG_WORKER_TOKEN_ONLY").touch()
+    monkeypatch.setattr(org_flags, "FLAGS_DIR", flags)
+    monkeypatch.delenv("RUN_INBOX_TOKEN")
+    _token_file(0o600, "clevel-" + "token-value")
+    monkeypatch.setenv("WORKER_TASK_ID", "task-8669cf28")
+    monkeypatch.setenv("ORG_WORKER_TOKEN_ONLY", "0")  # the env can never turn a host flag off
+    assert ask_run.main(_worker_script_create()) == 3
+    assert hub.requests == []
+
+
+def test_flag_on_a_worker_with_its_own_token_still_asks(hub, monkeypatch):
+    monkeypatch.setenv("ORG_WORKER_TOKEN_ONLY", "1")
+    monkeypatch.setenv("WORKER_TASK_ID", "task-8669cf28")
+    hub.on("POST", "/api/run/asks", (201, CREATED))
+    assert ask_run.main(_worker_script_create()) == 0
+    assert hub.requests[-1]["auth"] == f"Bearer {hub.token}"
+
+
+def test_flag_on_a_c_level_still_reads_the_file_and_flag_off_a_worker_does_too(hub, monkeypatch):
+    # regression guards: the flag changes only a worker's fallback
+    monkeypatch.delenv("RUN_INBOX_TOKEN")
+    file_token = "clevel-" + "token-value"
+    hub.accepted.add(file_token)
+    _token_file(0o600, file_token)
+    hub.on("POST", "/api/run/asks", (201, CREATED))
+    monkeypatch.setenv("ORG_WORKER_TOKEN_ONLY", "1")
+    assert ask_run.main(_create()) == 0
+    assert hub.requests[-1]["auth"] == f"Bearer {file_token}"
+    monkeypatch.delenv("ORG_WORKER_TOKEN_ONLY")
+    monkeypatch.setenv("WORKER_TASK_ID", "task-8669cf28")
+    assert ask_run.main(_worker_script_create()) == 0
+    assert hub.requests[-1]["auth"] == f"Bearer {file_token}"
+
+
 @pytest.mark.skipif(os.name != "posix", reason="POSIX file modes")
 def test_token_file_readable_by_others_is_refused(hub, monkeypatch, capsys):
     monkeypatch.delenv("RUN_INBOX_TOKEN")
