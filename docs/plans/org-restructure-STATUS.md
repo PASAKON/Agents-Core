@@ -9,14 +9,16 @@ feature branch with tests; CTO Main lands it, the PH never merges.
 
 | # | Milestone | State | Evidence |
 |---|---|---|---|
-| M1 | live-sessions prints PH rows by default, "+N workers" counts real workers | pushed | branch `ph-7cf528f0/live-sessions-ph-rows` 0bba6e15 |
-| M2 | P2 doc: status line, ORG_SESSION_SCOPE evidence, "Starting a Project Head" lesson | pushed | branch `ph-7cf528f0/p2-doc-status` (this file's branch) |
-| M3 | Session names `<HOST> <ROLE> (<Name>) #<id>` + personas (Kavin, Ging), `_NAME_RE` | open | — |
-| M4 | CMO model → Opus 5.5 xhigh (Q-20261014-0227-c918) | open | — |
-| M5 | P3 plan incl. Project Monitor backend (plan only, to CTO Main before building) | open | — |
+| M1 | live-sessions prints PH rows by default, "+N workers" counts real workers | landed | 0bba6e15, on origin/main via PR #255 (CTO Main) |
+| M2 | P2 doc: status line, ORG_SESSION_SCOPE evidence, "Starting a Project Head" lesson | landed | a5e969a4, on origin/main via PR #255 |
+| M3 | Session names `<HOST> <ROLE> (<Name>) #<id>` + `_NAME_RE` (persona text landed in 975c2ebb by CTO Main) | pushed | branch `ph-7cf528f0/session-names-persona` 4e69c207 |
+| M4 | CMO model → Opus 5.5 xhigh (Q-20261014-0227-c918) | landed | eb6c3fa4, merge 626d60fe |
+| M5 | P3 plan incl. Project Monitor backend (plan only, to CTO Main before building) | pushed, waiting go | branch `ph-7cf528f0/p3-plan`, docs/plans/org-restructure-p3-plan.md |
 | M6 | Close-out with Skill learning | open | — |
 
-Blocker: none.
+Blocker: security worker task-afe57b21 cannot spawn: two dead rows (task-2c589d17 pending, task-a4911174 conflict) still hold its paths; waiting on CTO Main to cancel them, since 14 Oct ~10:00 TH.
+
+Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), go from CTO Main 02:44Z.
 
 Decided for CEO: none yet.
 
