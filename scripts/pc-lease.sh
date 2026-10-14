@@ -29,7 +29,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$HERE/windows/pc_lease.py"
 REMOTE_DIR='C:\mooniex\pclease'
 REMOTE_PY="$REMOTE_DIR\\pc_lease.py"
-PYEXE='C:\Users\UsEr\cookierun-bot\.venv\Scripts\python.exe'
+PYEXE='C:\Users\passg\cookierun-bot\.venv\Scripts\python.exe'
 
 die() { printf '\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 
