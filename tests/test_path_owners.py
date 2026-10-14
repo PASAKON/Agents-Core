@@ -154,6 +154,9 @@ def test_no_glob_is_listed_twice_in_the_seeded_map():
     (".claude/skills/CMO_Workflow_MimiPage_Weekly/SKILL.md", "MimiPage"),
     ("config/hosts.yaml", "shared"),
     ("tools/delegate.py", "shared"),
+    ("runners/watchdog.py", "shared"),
+    ("scripts/cto-claude.sh", "shared"),
+    ("tests/test_terminal_window.py", "OrgRestructure"),
     ("lib/config.py", "shared"),
     ("roles/project_head.md", "shared"),
     (".claude/settings.json", "shared"),
@@ -246,21 +249,31 @@ def _gh_runner(view_files, api_lines=None, fail=False):
     return run
 
 
-def test_cli_pr_327_for_org_restructure_has_no_foreign_path(capsys):
+LAUNCHERS_327 = ["scripts/cto-claude.sh", "scripts/cxo-claude.sh", "scripts/spawn-cto.sh",
+                 "scripts/spawn-cxo.sh", "scripts/tab-title.sh"]
+
+
+def _shared_lines(*paths):
+    return [f"SHARED   {p}  shared, tell CTO Main" for p in paths]
+
+
+def test_cli_pr_327_for_org_restructure_has_no_foreign_path_and_the_launchers_are_shared(capsys):
     run = _gh_runner(PR_327)
     code, out, err = _run(["327", "--project", "OrgRestructure"], capsys, run)
     assert code == 0, out
-    assert out.splitlines() == ["SHARED   config/hosts.yaml  shared, tell CTO Main",
-                                "SHARED   lib/config.py  shared, tell CTO Main",
-                                "SHARED   tools/delegate.py  shared, tell CTO Main"]
+    assert not [ln for ln in out.splitlines() if ln.startswith("FOREIGN")]
+    assert out.splitlines() == _shared_lines("config/hosts.yaml", "lib/config.py", *LAUNCHERS_327,
+                                             "tools/delegate.py")
     assert run.calls == [["gh", "pr", "view", "327", "--repo", "PASAKON/Agents-Core", "--json", "files"]]
-    assert "15 path(s), 0 foreign, 3 shared" in err
+    assert "15 path(s), 0 foreign, 8 shared" in err
 
 
-def test_cli_pr_327_for_another_project_flags_the_launchers(capsys):
+def test_cli_pr_327_for_another_project_flags_only_the_terminal_window_test(capsys):
     code, out, _ = _run(["#327", "--project", "SpendGuard"], capsys, _gh_runner(PR_327))
     assert code == 1
-    assert "FOREIGN  scripts/cto-claude.sh  owned by OrgRestructure" in out.splitlines()
+    assert out.splitlines() == (["FOREIGN  tests/test_terminal_window.py  owned by OrgRestructure"]
+                                + _shared_lines("config/hosts.yaml", "lib/config.py", *LAUNCHERS_327,
+                                                "tools/delegate.py"))
 
 
 def test_cli_pr_with_100_files_is_re_read_through_the_paginated_api(capsys):

@@ -33,8 +33,8 @@ OrgRestructure:
   - scripts/test_live_sessions.py                # its tests
   - docs/ops/live-sessions.md                    # its ops doc
   - docs/reports/live-sessions-2026-10-13/**     # the rollout report
-  - lib/run_liveness.py                          # PH liveness (named in the brief; not on main yet)
-  - tools/run_watch.py                           # run watcher (named in the brief; not on main yet)
+  - lib/run_liveness.py                          # run liveness
+  - tools/run_watch.py                           # run watcher
   # --- Project Head layer (P2, P3) ---
   - tools/spawn_ph.py                            # spawn a Project Head
   - scripts/spawn-ph.sh                          # its shell entry
@@ -42,7 +42,7 @@ OrgRestructure:
   - lib/org_flags.py                             # the ORG_* host flags
   - tests/test_org_p2_gates.py                   # P2 gates in Core
   - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
-  - tests/test_terminal_window.py                # terminal_window flag tests (PR 327; not on main yet)
+  - tests/test_terminal_window.py                # terminal_window flag tests (PR 327)
   - tests/test_portfolio_schema.py               # P3-A portfolio tables (tables themselves live in lib/db*.py = shared)
   - docs/plans/fixtures/portfolio-monitor-v1.json  # P3 portfolio fixture
   - docs/plans/org-restructure-*                 # STATUS + P3 plan
