@@ -833,16 +833,19 @@ def cmd_perms(org: Org, project: str) -> None:
     seen = org.projects()
     print(f"{org.identity} sees {len(seen)} project(s): {json.dumps(sorted(seen), ensure_ascii=True)}")
     p = _project(org, project)
-    # Infisical Cloud answers 404 on /api/v1/workspace/<id>/permissions (card c8a4, 2026-10-14), so
-    # the current route goes first and each 404 falls through; any other error still raises.
+    # Infisical Cloud answers 404 on /api/v1/workspace/<id>/permissions (card c8a4, 2026-10-14) and
+    # 403 on /api/v1/projects/<id>/permissions for an identity it will not show its rules to (card
+    # 86de, same day), so the current route goes first and a 404 or 403 falls through to the next
+    # route and then the membership row; any other error still raises.
     data, route = {}, None
     for tmpl in PERMS_ROUTES:
         try:
             out = org.get(tmpl.format(id=p["id"]))
         except ApiError as exc:
-            if "HTTP 404" not in str(exc):
+            code = next((c for c in ("404", "403") if f"HTTP {c}" in str(exc)), None)
+            if code is None:
                 raise
-            print(f"  (404 on {tmpl.split('{')[0]}<id>/permissions)")
+            print(f"  ({code} on {tmpl.split('{')[0]}<id>/permissions)")
             continue
         route = tmpl
         data = out.get("data", out) if isinstance(out, dict) else None
@@ -863,7 +866,13 @@ def cmd_perms(org: Org, project: str) -> None:
              for r in (member_roles if isinstance(member_roles, list) else []) if isinstance(r, dict)]
     print(f"{json.dumps(p.get('name'), ensure_ascii=True)} (slug {json.dumps(p.get('slug'), ensure_ascii=True)}, "
           f"id {str(p.get('id'))[:8]}): roles={json.dumps([r for r in roles if r], ensure_ascii=True)}")
-    if route is None:
+    if route is None and not any(roles):
+        # Nothing answered: the project list comes from the org role, so seeing a project there
+        # does not prove a project membership. Name the one place a human can check.
+        print(f"  no permissions route and no membership row answered: in Infisical open "
+              f"{json.dumps(p.get('name'), ensure_ascii=True)} -> Access Control -> Machine Identities and "
+              f"check that {json.dumps(org.identity, ensure_ascii=True)} is listed there with a role")
+    elif route is None:
         print("  no permissions route answered; roles above come from the membership row")
     rules = data.get("permissions")
     for rule in (rules if isinstance(rules, list) else []):

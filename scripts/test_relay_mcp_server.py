@@ -1197,6 +1197,9 @@ def test_exactly_one_tmux_wake_sequence_repo_wide():
       * tools/tmux_session.py -- the send_keys PRIMITIVE GH #70 tracks (it
         types with -l but submits with C-m, no Enter keyname, no sleeps);
         fixing it is GH #70's job, not a second wake.
+      * tools/rename_service.py -- types ONE "/rename <name>" into an empty
+        prompt and presses Enter only once the box shows exactly that line;
+        no settle delay, no rescue Enter (Agents-Core #272, #283). Not a wake.
       * test files -- they assert on the sequence, they don't implement it.
     """
     shape_owners = []
@@ -1207,7 +1210,7 @@ def test_exactly_one_tmux_wake_sequence_repo_wide():
         for p in base.rglob("*.py"):
             if p.name.startswith("test_") or p.name == "mac_agent.py":
                 continue
-            if p == ROOT / "tools" / "tmux_session.py":
+            if p in (ROOT / "tools" / "tmux_session.py", ROOT / "tools" / "rename_service.py"):
                 continue
             text = p.read_text(encoding="utf-8", errors="replace")
             if "send-keys" in text and '"-l"' in text and '"Enter"' in text:

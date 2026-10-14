@@ -21,7 +21,7 @@ worker on it (memory: *Mac sleeps mid-render*).
 
 ## 2. What each machine can actually do (measured 2026-09-07)
 
-| | **Mac** | **winbox** (Win11, Tailscale 100.123.83.75) | **Contabo** (mooniex-vps) |
+| | **Mac** | **winbox** (Win11, Tailscale `window-gob`) | **Contabo** (mooniex-vps) |
 |---|---|---|---|
 | Reachable from Mac | — | ✅ `ssh winbox` | ✅ `ssh mooniex-vps` |
 | Reaches the Mac | — | not needed | ❌ closed by design (`mac_agent` dials out) |
