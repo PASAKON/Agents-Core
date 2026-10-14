@@ -35,7 +35,6 @@ OrgRestructure:
   - docs/reports/live-sessions-2026-10-13/**     # the rollout report
   - lib/run_liveness.py                          # PH liveness (named in the brief; not on main yet)
   - tools/run_watch.py                           # run watcher (named in the brief; not on main yet)
-  - runners/watchdog.py                          # the org watchdog (named in the brief; P2 gates touch it)
   # --- Project Head layer (P2, P3) ---
   - tools/spawn_ph.py                            # spawn a Project Head
   - scripts/spawn-ph.sh                          # its shell entry
@@ -43,19 +42,13 @@ OrgRestructure:
   - lib/org_flags.py                             # the ORG_* host flags
   - tests/test_org_p2_gates.py                   # P2 gates in Core
   - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
+  - tests/test_terminal_window.py                # terminal_window flag tests (PR 327; not on main yet)
   - tests/test_portfolio_schema.py               # P3-A portfolio tables (tables themselves live in lib/db*.py = shared)
   - docs/plans/fixtures/portfolio-monitor-v1.json  # P3 portfolio fixture
   - docs/plans/org-restructure-*                 # STATUS + P3 plan
   - docs/design/org-restructure-*                # P2 design
   - docs/ops/ph-anywhere.md                      # PH on any host
   - docs/ops/state-dir-perms.md                  # sticky bit on state/
-  # --- launchers and the terminal flag (PR 327) ---
-  - scripts/cto-claude.sh                        # CTO launcher
-  - scripts/cxo-claude.sh                        # C-level / PH launcher
-  - scripts/spawn-cto.sh                         # spawn a CTO
-  - scripts/spawn-cxo.sh                         # spawn another C-level
-  - scripts/tab-title.sh                         # tab title
-  - tests/test_terminal_window.py                # terminal_window flag tests (PR 327)
 
 SpendGuard:
   - tools/spend*                                 # spend_guard.py and any spend_* sibling
@@ -113,6 +106,12 @@ shared:
   - lib/path_owners.py                           # this map's reader
   - lib/ceo_text.py                              # CEO text rules
   - tools/delegate.py                            # worker delegation
+  - runners/watchdog.py                          # org watchdog: the Steward and Watch both build on it
+  - scripts/cto-claude.sh                        # CTO launcher, every lane runs it
+  - scripts/cxo-claude.sh                        # C-level / PH launcher, every lane runs it
+  - scripts/spawn-cto.sh                         # spawn a CTO, every lane runs it
+  - scripts/spawn-cxo.sh                         # spawn a C-level, every lane runs it
+  - scripts/tab-title.sh                         # tab title, every lane runs it
   - tools/git_ops.py                             # merge and collision core
   - tools/node_dispatch.py                       # cross-host dispatch
   - tools/ask_run.py                             # Run Inbox cards
