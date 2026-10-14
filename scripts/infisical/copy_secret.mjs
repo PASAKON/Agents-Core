@@ -131,7 +131,9 @@ let pages;
 try { pages = (await (await fetch(`${cdpUrl}/json/list`)).json()).filter((t) => t.type === 'page'); }
 catch { die(3, `cannot reach CDP at ${cdpUrl}`); }
 const tab = pages.find((t) => { try { const u = new URL(t.url); return u.host === 'app.infisical.com' && u.pathname !== '/' && !AUTH_PATH.test(u.pathname); } catch { return false; } });
-if (!tab) die(4, `no signed-in app.infisical.com tab — the CEO signs in through the relay (tabs: ${pages.map((t) => { try { const u = new URL(t.url); return u.host + u.pathname; } catch { return '?'; } }).join(' | ') || 'none'})`);
+// Count only: a tab's path can carry a capability token (an invite or reset link), and this line lands in chat and cards.
+const onInfisical = pages.filter((t) => { try { return new URL(t.url).host === 'app.infisical.com'; } catch { return false; } }).length;
+if (!tab) die(4, `no signed-in app.infisical.com tab — the CEO signs in through the relay (${pages.length} tab(s), ${onInfisical} on app.infisical.com)`);
 log(`tab ${String(tab.id).slice(0, 8)} at ${new URL(tab.url).pathname}`);
 
 const ws = new WebSocket(tab.webSocketDebuggerUrl);
@@ -156,7 +158,7 @@ const api = async (method, path, query, body) => {
   for (const [k, v] of Object.entries(query || {})) url.searchParams.set(k, v);
   let r;
   for (let attempt = 0; ; attempt++) {
-    try { r = await fetch(url, { method, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }); }
+    try { r = await fetch(url, { method, redirect: 'error', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) }); }
     catch { return { status: 0, json: null }; }
     if (r.status !== 429 || method !== 'GET' || attempt >= 4) break;
     await r.arrayBuffer().catch(() => null);

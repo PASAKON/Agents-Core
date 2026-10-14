@@ -289,6 +289,8 @@ test('a failed write: exit 11, status and error class only, never the echoing bo
 test('signed out: a /login tab, or a 401 token refresh, is exit 4 and nothing reaches the API', async () => {
   let r = await run(REAL, { browser: { path: '/login' } });
   assert.equal(r.code, 4, r.text);
+  assert.match(r.text, /\(2 tab\(s\), 1 on app\.infisical\.com\)/);
+  assert.doesNotMatch(r.text, /\/login/, 'a tab path can carry a capability token: count only');
   assert.equal(r.cdpHits.evals.length, 0);
   assert.equal(r.calls.length, 0);
   r = await run(REAL, { browser: { auth: { status: 401, body: null } } });
