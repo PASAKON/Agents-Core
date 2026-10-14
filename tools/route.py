@@ -184,7 +184,9 @@ def rank(
     for idx, cand_str in enumerate(raw_candidates):
         parts = cand_str.split(":")
         runner = parts[0]
-        model = parts[1] if len(parts) > 1 else ""
+        model = ":".join(parts[1:]) if len(parts) > 1 else ""
+        if runner == "codex" and not model:
+            model = "gpt-6-astra:default"
 
         if available_runners is not None and runner not in available_runners:
             continue
@@ -198,8 +200,6 @@ def rank(
 
         # Look up skill score
         skill_val = skill.get((runner, model))
-        if skill_val is None and len(parts) > 2:
-            skill_val = skill.get((runner, ":".join(parts[1:])))
 
         if isinstance(skill_val, tuple):
             score, count = skill_val

@@ -439,6 +439,31 @@ def test_script_dry_run_parses_every_flag():
         assert expected in out, f"missing {expected!r} in dry-run output: {out}"
 
 
+@pytest.mark.parametrize("runner_model,expected,effort", [
+    ("sol:xhigh", "-m 'gpt-6-sol'", "-c 'model_reasoning_effort=xhigh'"),
+    ("gpt-5.5", "-m 'gpt-5.5'", None),
+    ("", None, None),
+    ("gpt-6-astra:default", None, None),
+])
+def test_codex_model_and_effort_dry_run(runner_model, expected, effort):
+    args = [BASH3, str(SCRIPT), "--dry-run", "--task", "t", "--project", "p",
+            "--role", "developer", "--branch", "b", "--base", "main",
+            "--repo-url", "u", "--repo-path", "/tmp/p", "--worktree-root", "/tmp/wt",
+            "--claude-args", "", "--model", "m", "--effort", "high",
+            "--session-name", "S", "--runner", "codex", "--runner-model", runner_model]
+    r = subprocess.run(args, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    cmd = next(line for line in r.stdout.splitlines() if line.startswith("[dry-run] cmd="))
+    if expected:
+        assert expected in cmd
+    else:
+        assert " -m " not in cmd
+    if effort:
+        assert effort in cmd
+    else:
+        assert " -c " not in cmd
+
+
 def test_script_dry_run_mentions_sidecar_write_and_node_path_prepend():
     """GH #180 (task-378523bb): --dry-run must describe the two new
     pre-launch steps — decoding --task-meta-b64 into the worktree's

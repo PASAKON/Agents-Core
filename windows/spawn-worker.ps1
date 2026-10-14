@@ -672,7 +672,20 @@ start "" "$wtExe" $wtWindowArgs nt --title "$SessionName" --tabColor "#0078d4" -
                                        (New-Object System.Text.UTF8Encoding $false))
         $argList = @('exec', '-')
         if ($RunnerModel) {
-            $argList += @('-m', [string]$RunnerModel)
+            $parts = ([string]$RunnerModel).Split(':', 2)
+            $codexModel = $parts[0]
+            switch ($codexModel) {
+                'sol' { $codexModel = 'gpt-6-sol' }
+                'astra' { $codexModel = 'gpt-6-astra' }
+                'luna' { $codexModel = 'gpt-6-luna' }
+                'terra' { $codexModel = 'gpt-5.6-terra' }
+            }
+            if ($RunnerModel -ne 'gpt-6-astra:default') {
+                $argList += @('-m', $codexModel)
+            }
+            if ($parts.Count -gt 1 -and $parts[1] -and $parts[1] -ne 'default') {
+                $argList += @('-c', "model_reasoning_effort=$($parts[1])")
+            }
         }
         # No writable root under .git (same as spawn-worker-remote.sh): codex's Linux sandbox
         # refuses to start with one (task-2f1a8586 probe); the commit step after codex exits

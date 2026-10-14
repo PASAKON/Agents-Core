@@ -168,7 +168,21 @@ GIT_RESET_GUARD=".worker.pid TASK.md WORKER.md .org-task.json .org-worker.mcp.js
 quote_arg() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
 emit_codex_command() {
   printf 'codex exec "$(cat TASK.md)"'
-  if [ -n "$RUNNER_MODEL" ]; then printf ' -m %s' "$(quote_arg "$RUNNER_MODEL")"; fi
+  if [ -n "$RUNNER_MODEL" ]; then
+    codex_model="${RUNNER_MODEL%%:*}"
+    codex_effort=""
+    if [ "$codex_model" != "$RUNNER_MODEL" ]; then codex_effort="${RUNNER_MODEL#*:}"; fi
+    case "$codex_model" in
+      sol|astra|luna) codex_model="gpt-6-$codex_model" ;;
+      terra) codex_model="gpt-5.6-terra" ;;
+    esac
+    if [ "$RUNNER_MODEL" != "gpt-6-astra:default" ]; then
+      printf ' -m %s' "$(quote_arg "$codex_model")"
+    fi
+    if [ -n "$codex_effort" ] && [ "$codex_effort" != "default" ]; then
+      printf ' -c %s' "$(quote_arg "model_reasoning_effort=$codex_effort")"
+    fi
+  fi
   # No writable root under .git: codex 0.155's Linux sandbox (bwrap) masks <root>/.git in every
   # writable root and fails to start ("Can't mkdir <git dir>/.git", task-2f1a8586 probe), and
   # without one .git stays read-only. The worker leaves its changes uncommitted; launch.sh

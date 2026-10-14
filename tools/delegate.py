@@ -2055,7 +2055,9 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         # set_fields, not update_status: the status must not be rewritten
         # from this (possibly stale) dict or logged as a transition.
         db.set_fields(task["id"], runner=choice.runner,
-                      runner_model=choice.model, delegate_log=line,
+                      runner_model=(choice.model or "gpt-6-astra:default")
+                      if choice.runner == "codex" else choice.model,
+                      delegate_log=line,
                       actor="cto")
         info(line)
         return choice.runner
@@ -2447,6 +2449,8 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         warn(f"runner rejected task={task_id}: {e}")
         db.update_status(task_id, "failed", delegate_log=f"runner rejected: {e}", actor="cto")
         return db.get_task(task_id)
+    if resolved_runner == "codex" and not (db.get_task(task_id) or {}).get("runner_model"):
+        db.set_fields(task_id, runner_model="gpt-6-astra:default", actor="cto")
 
     # ADDENDUM 3 (CTO 2026-09-07) — CEO rule: one browser_operator, one
     # Chrome tab, never a pile-up. Four operators sharing the Mac's Chrome

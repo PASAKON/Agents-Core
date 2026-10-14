@@ -108,15 +108,26 @@ def review_diff(task_id: str, full: bool = False) -> str:
 
 
 @mcp.tool(description=reg.BY_NAME["merge_task"].description)
-def merge_task(task_id: str, override_touches_check: bool = False) -> str:
+def merge_task(task_id: str, override_touches_check: bool = False,
+               comment: str = "", kind: str = "", first_pass: str = "") -> str:
     return reg.dispatch_sync(
         "merge_task", task_id=task_id, override_touches_check=override_touches_check,
+        comment=comment, kind=kind, first_pass=first_pass,
     )
 
 
 @mcp.tool(description=reg.BY_NAME["close_dev"].description)
-def close_dev(task_id: str, reason: str = "cto: manual close") -> str:
-    return reg.dispatch_sync("close_dev", task_id=task_id, reason=reason)
+def close_dev(task_id: str, reason: str = "cto: manual close",
+              comment: str = "", kind: str = "", first_pass: str = "") -> str:
+    return reg.dispatch_sync("close_dev", task_id=task_id, reason=reason,
+                             comment=comment, kind=kind, first_pass=first_pass)
+
+
+@mcp.tool(description=reg.BY_NAME["runner_comment"].description)
+def runner_comment(task_id: str, kind: str, first_pass: str, line: str,
+                   lane: str = "", by: str = "") -> str:
+    return reg.dispatch_sync("runner_comment", task_id=task_id, kind=kind,
+                             first_pass=first_pass, line=line, lane=lane, by=by)
 
 
 @mcp.tool(description=reg.BY_NAME["reopen_task"].description)
