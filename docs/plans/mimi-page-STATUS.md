@@ -25,8 +25,10 @@ Per-slot detail lives in `mimi-weekly-calendar.md`; this file holds milestones, 
 
 Progress: 0/5.
 
+EP7 $0 prep: `mimi-ep7-prep.md` (live balance 348 on 14 Oct 09:4x Thai; test shots 2+4; cut plan).
+
 ## Blocker
-- CEO answers owed (asked by cmo-c7879552 in chat, 14 Oct morning): Page Recommendations suspended (review request?), group-2 wording + identity, Thu poster image swap, Fri clip go, EP6 go, EP7 go ยิง, video watermark pick. Waiting on CEO via cmo-ef04792e since 2026-10-14 09:2x Thai. Question cards: Q-20261014-0221-988c (group-2 wording + profile), Q-20261014-0221-5f44 (Thu/Wed poster swap), Q-20261014-0221-8d1b (Recommendations review); Fri clip/EP6/watermark: second card group, ids pending. Until answers: read-only, $0, no group post, no swap, no review request, no Flow spend, no relay (no account allowed yet).
+- CEO answers owed (asked by cmo-c7879552 in chat, 14 Oct morning): Page Recommendations suspended (review request?), group-2 wording + identity, Thu poster image swap, Fri clip go, EP6 go, EP7 go ยิง, video watermark pick. Waiting on CEO via cmo-ef04792e since 2026-10-14 09:2x Thai. Question cards: Q-20261014-0221-988c (group-2 wording + profile), Q-20261014-0221-5f44 (Thu/Wed poster swap), Q-20261014-0221-8d1b (Recommendations review); Group 2 QG-20261014-0225-db74: Q-20261014-0225-41ed (Fri clip go), Q-20261014-0225-3e78 (EP6 go, Hook B + cover 1), Q-20261014-0225-c960 (watermark v3). EP7 «go ยิง» = spend → needs his typed word in chat, carried by cmo-ef04792e, needed by Thu 15 evening TH; PH preps $0 only. Until answers: read-only, $0, no group post, no swap, no review request, no Flow spend, no relay (no account allowed yet).
 
 ## Decided for CEO
-- (none yet this PH)
+- 14 Oct: EP7 360p test = shots 2 + 4, not 1 + 4. Because: it covers mother__night (in 5 of 12 shots) as well as cat__riao, at the same 12 cr.
