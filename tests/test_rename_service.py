@@ -36,8 +36,19 @@ class FakeTmux:
 
     def __init__(self):
         self.screens, self.calls, self.sent, self.panes = {}, [], [], {}
+        self.box = {}               # what is in each input box
+        self.width = 200            # the pane width the box wraps at
+        self.lag = 0                # captures that still show the screen from before the typing
         self.after_capture = None   # called after each capture-pane (a CEO typing)
         self.after_type = None      # called after the literal send (a key pressed right then)
+        self._old = {}
+
+    def draw(self, name):
+        text, w = self.box.get(name, ""), self.width - 4
+        rows = [text[i:i + w] for i in range(0, len(text), w)] or [""]
+        rule = "─" * self.width
+        self.screens[name] = "\n".join(["out", rule, "│ ❯ " + rows[0] + " │",
+                                         *("│   " + r + " │" for r in rows[1:]), rule, "  ? for shortcuts", ""])
 
     def __call__(self, *args):
         self.calls.append(args)
@@ -45,7 +56,11 @@ class FakeTmux:
         assert t.startswith("=") and t.endswith(":"), f"not an exact target: {t}"
         name, out = t[1:-1], ""
         if args[0] == "capture-pane":
-            out = self.screens.get(name, EMPTY)
+            if self._old.get(name, 0) > 0:          # the TUI has not redrawn yet
+                self._old[name] -= 1
+                out = EMPTY
+            else:
+                out = self.screens.get(name, EMPTY)
             if self.after_capture:
                 self.after_capture(self)
         elif args[0] == "list-panes":
@@ -53,11 +68,16 @@ class FakeTmux:
         elif args[0] == "send-keys":
             self.sent.append((name, args[-1]))
             if "-l" in args:
-                self.screens[name] = f"out\n❯ {args[-1]}\n"
+                self.box[name] = self.box.get(name, "") + args[-1]
+                self._old[name] = self.lag
                 if self.after_type:
                     self.after_type(self, name)
-            else:
-                self.screens[name] = EMPTY
+            elif args[-1] == "BSpace":
+                n = int(args[args.index("-N") + 1]) if "-N" in args else 1
+                self.box[name] = self.box.get(name, "")[:-n]
+            else:                                    # Enter submits the box
+                self.box[name] = ""
+            self.draw(name)
         else:
             raise AssertionError(f"tmux {args[0]} is never used: {args}")
         return subprocess.CompletedProcess(["tmux", *args], 0, out, "")
@@ -73,6 +93,8 @@ def box(tmp_path, monkeypatch):
         monkeypatch.setattr(mod, "LOCKS_DIR", locks)
     fake = FakeTmux()
     monkeypatch.setattr(rs, "tmux", fake)
+    monkeypatch.setattr(rs, "TYPED_WAIT_S", 0.2)
+    monkeypatch.setattr(rs, "TYPED_POLL_S", 0.01)
     n = [0]
     pending = {}
 
@@ -117,7 +139,7 @@ def box(tmp_path, monkeypatch):
 def test_no_payload_in_a_topic_reaches_the_pane_beyond_one_rename_line(box, topic):
     box.request("cto-c34459eb", topic)
     rs.once("contabo", box.pending, now=1000.0)
-    typed = [t for _, t in box.sent if t != "Enter"]
+    typed = [t for _, t in box.sent if t not in ("Enter", "BSpace")]
     assert len(typed) == 1 and [t for _, t in box.sent].count("Enter") == 1
     line = typed[0]
     assert line.startswith(f"/rename {CONTABO} CTO (Kavin)")
@@ -443,9 +465,53 @@ def test_a_key_pressed_while_typing_is_never_submitted(box):
     box.request("cto-c34459eb", "x")
 
     def ceo_presses(fake, name):
-        fake.screens[name] = fake.screens[name].rstrip("\n") + "k\n"
+        fake.box[name] += "k"
 
     box.after_type = ceo_presses
     assert rs.once("contabo", box.pending, now=1.0) == [
-        "held     cto-c34459eb: the prompt line is not exactly the rename; no Enter"]
-    assert [t for _, t in box.sent] == [f"/rename {CONTABO} CTO (Kavin) — x"]
+        "held     cto-c34459eb: the input box did not show exactly the rename; took it back, no Enter"]
+    line = f"/rename {CONTABO} CTO (Kavin) — x"
+    assert [t for _, t in box.sent] == [line, "BSpace"]
+    bs = [c for c in box.calls if c[-1] == "BSpace"][0]
+    assert int(bs[bs.index("-N") + 1]) >= len(line) + 1  # ours plus the one key, never C-u
+    assert not any("C-u" in c for c in box.calls)
+    assert box.box["cto-c34459eb"] == ""                 # no leading "/" left for the next message
+
+
+def test_a_slow_redraw_still_gets_its_enter(box):
+    box.lag = 3                                          # 3 captures still show the old screen
+    box.request("cto-c34459eb", "x")
+    assert rs.once("contabo", box.pending, now=1.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — x"]
+    assert [t for _, t in box.sent][-1] == "Enter" and box.box["cto-c34459eb"] == ""
+
+
+def test_a_long_name_that_wraps_at_phone_width_still_gets_its_enter(box):
+    box.width = 50
+    box.request("project_head-36c49776", "a topic long enough to wrap the input box twice")
+    out = rs.once("contabo", box.pending, now=1.0)
+    assert out[0].startswith("renamed  project_head-36c49776")
+    assert [t for _, t in box.sent][-1] == "Enter"
+
+
+def test_a_redraw_that_never_comes_takes_the_text_back(box):
+    box.lag = 10_000
+    box.request("cto-c34459eb", "x")
+    assert rs.once("contabo", box.pending, now=1.0)[0].startswith("held")
+    assert box.box["cto-c34459eb"] == "" and "Enter" not in [t for _, t in box.sent]
+
+
+def test_typed_text_reads_a_wrapped_box_and_stops_at_its_rule():
+    screen = "out\n╭────╮\n│ ❯ /rename PH#36c │\n│   (CMO) - Mimi │\n╰────╯\n  ? for shortcuts\n"
+    assert rs.typed_text(screen) == "/renamePH#36c(CMO)-Mimi"
+    assert rs.typed_text("no prompt here") is None
+
+
+@pytest.mark.parametrize("kind", ["group-writable", "hard-linked"])
+def test_a_lock_file_renamed_or_linked_in_from_elsewhere_is_not_trusted(box, kind, tmp_path):
+    # state/logs/* are root-owned and group-writable: secretary can move or link one in (round 3, L-1).
+    lock = box.locks / "project_head-36c49776.project"
+    if kind == "group-writable":
+        lock.chmod(0o664)
+    else:
+        os.link(lock, tmp_path / "elsewhere")
+    assert box.request("project_head-36c49776", "x") == "refused: no rule name for project_head-36c49776"

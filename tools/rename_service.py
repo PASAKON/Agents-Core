@@ -69,6 +69,8 @@ PREFIXES = ("", "✅", "⏸", "⛔")        # ✅ close, ⏸ save, ⛔ merged
 RETRY_S = 120                                      # a sent rename that did not land is sent again
 MAX_SENDS = 3
 INTERVAL_S = 15
+TYPED_WAIT_S = 1.0       # how long the typed line may take to show before it is taken back
+TYPED_POLL_S = 0.1
 _BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
 _FIXED_TMUX = {"coo": "sompong"}
 _TOPIC_PUNCT = set(" -_.,:()+#&'!?%")   # no ';': tmux strips a trailing one from send-keys
@@ -155,7 +157,47 @@ def pane_waiting(text: str) -> bool:
 def prompt_line(screen: str) -> str | None:
     """The text on the last ❯ line, or None when there is none."""
     lines = [l for l in screen.splitlines() if _PROMPT in l]
-    return lines[-1].split(_PROMPT, 1)[1].replace("\xa0", " ").strip() if lines else None
+    if not lines:
+        return None
+    return lines[-1].split(_PROMPT, 1)[1].replace("\xa0", " ").strip().strip("".join(_BOX_CHARS)).strip()
+
+
+# Box-drawing (─ │ ╭ ╮ …) and block characters a TUI draws around its input box.
+_BOX_CHARS = {chr(c) for c in range(0x2500, 0x25A0)}
+
+
+def _box_rows(screen: str) -> list[str] | None:
+    """The input box's rows: the text after the last ❯ plus the rows it wrapped onto,
+    up to the box's bottom rule, box characters removed. None with no ❯ line."""
+    lines = screen.splitlines()
+    idx = [i for i, l in enumerate(lines) if _PROMPT in l]
+    if not idx:
+        return None
+    rows = [lines[idx[-1]].split(_PROMPT, 1)[1]]
+    for l in lines[idx[-1] + 1:]:
+        if l.strip() and all(c in _BOX_CHARS or c.isspace() for c in l):
+            break                                   # the rule under the input box
+        rows.append(l)
+    return ["".join(c for c in r if c not in _BOX_CHARS).strip() for r in rows]
+
+
+def typed_text(screen: str) -> str | None:
+    """What sits in the input box with every space and box character removed (a long
+    name wraps at the pane width). None when there is no ❯ line."""
+    rows = _box_rows(screen)
+    return None if rows is None else _squash("".join(rows))
+
+
+def _box_len(screen: str | None) -> int:
+    """At least the number of characters in the input box: its rows plus one space
+    per wrap, which a capture drops."""
+    rows = _box_rows(screen) if screen is not None else None
+    rows = [r for r in rows or [] if r]
+    return sum(len(r) for r in rows) + len(rows)
+
+
+def _squash(text: str) -> str:
+    return "".join(c for c in text if not c.isspace() and c not in _BOX_CHARS)
 
 
 def prompt_ready(screen: str) -> bool:
@@ -358,16 +400,38 @@ def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
     # Twice, the second right before typing: a draft started in between must stop it.
     if not _ready(sess["pane"]) or not _ready(sess["pane"]):
         return f"wait     {box}: prompt not empty", False
-    line = f"/rename {name}"
-    a = tmux("send-keys", "-t", target(sess["pane"]), "-l", line)
     job["sends"], job["sent_at"] = sends + 1, now
-    # Enter only when the ❯ line holds exactly what was typed: a key pressed after
-    # the last look must never be submitted with it (review v2, L-2).
-    screen = _screen(sess["pane"]) if a.returncode == 0 else None
-    if screen is None or prompt_line(screen) != line:
-        return f"held     {box}: the prompt line is not exactly the rename; no Enter", False
-    tmux("send-keys", "-t", target(sess["pane"]), "Enter")
-    return f"renamed  {box}: {name}", False
+    if type_rename(sess["pane"], f"/rename {name}"):
+        return f"renamed  {box}: {name}", False
+    return f"held     {box}: the input box did not show exactly the rename; took it back, no Enter", False
+
+
+def type_rename(pane: str, line: str) -> bool:
+    """Type `line` into the pane, then press Enter only once the input box shows
+    exactly it (re-read for up to TYPED_WAIT_S: the TUI redraws a moment later, and
+    a long line wraps). Otherwise take back only what was typed (one BSpace per
+    character, never C-u, which would also erase a person's own keys) and say so
+    (review round 3, M-1): our text must never sit in the box for the next message."""
+    t = target(pane)
+    if tmux("send-keys", "-t", t, "-l", line).returncode != 0:
+        return False
+    want = _squash(line)
+    deadline = time.monotonic() + TYPED_WAIT_S
+    screen = None
+    while True:
+        screen = _screen(pane)
+        if screen is not None and not pane_waiting(screen) and typed_text(screen) == want:
+            tmux("send-keys", "-t", t, "Enter")
+            return True
+        if time.monotonic() >= deadline:
+            break
+        time.sleep(TYPED_POLL_S)
+    # The box was empty before we typed (checked twice), so all of it is our line plus
+    # any key pressed in this second. Take back at least our own length; when the box
+    # shows more, take that too: leaving our leading "/" would turn the person's next
+    # message into a slash command. BSpace on an empty box does nothing.
+    tmux("send-keys", "-t", t, "-N", str(max(len(line), _box_len(screen))), "BSpace")
+    return False
 
 
 def once(host: str, pending: dict, now: float | None = None) -> list[str]:

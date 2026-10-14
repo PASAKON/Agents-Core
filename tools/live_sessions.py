@@ -183,13 +183,15 @@ def read_lock(path, limit: int = 256) -> str:
     by the secretary service with no sticky bit, so a root reader must not follow a
     planted symlink (to /dev/zero, a FIFO or a root-only token): a regular file only
     (_safe_open), at most `limit` bytes, owned by root or by this reader (§2b review
-    of #283 v2, B-1)."""
+    of #283 v2, B-1), not group/other writable and with one link, so a root-owned
+    group-writable file (state/logs/*) renamed or hard-linked in is refused (round 3, L-1)."""
     fd = _safe_open(path, os.O_RDONLY, create=False)
     if fd is None:
         return ""
     try:
         st = os.fstat(fd)
-        if st.st_size > limit or st.st_uid not in (0, os.geteuid()):
+        if (st.st_size > limit or st.st_uid not in (0, os.geteuid())
+                or st.st_mode & 0o022 or st.st_nlink != 1):
             return ""
         data = os.read(fd, limit + 1)
     except OSError:
