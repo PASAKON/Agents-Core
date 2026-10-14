@@ -50,7 +50,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import config, db, mailbox, proc  # noqa: E402
+from lib import config, db, mailbox, proc, session_names  # noqa: E402
 
 ACTOR = "node_dispatch"
 MESH_PROBE_DIR = ROOT / "state" / "mesh-probe"
@@ -632,7 +632,13 @@ def _start_clevel_iterm(role: str, resume_sid: str | None) -> dict:
 def _start_clevel_tmux(role: str, resume_sid: str | None) -> dict:
     """Linux: spawn-cxo.sh ends in osascript, so it cannot run here. Same
     command runners/relay_mcp_server.spawn_c_level runs on Contabo, in tmux."""
-    from tools import session_status, tmux_session
+    from tools import clevel_gate, session_status, tmux_session
+    # Org restructure P2 (ORG_SINGLE_CLEVEL): answer early; the launcher re-checks.
+    # No session id: the resumed conversation starts under a NEW id, so the
+    # session being resumed counts as another live one (it must not run twice).
+    why = clevel_gate.refusal(role)
+    if why:
+        raise Refusal(why)
     launcher = ROOT / "scripts" / "cxo-claude.sh"
     if not launcher.exists():
         raise Failure(f"missing {launcher.name}")
@@ -790,8 +796,11 @@ def _start_clevel_schtask(role: str, resume_sid: str | None) -> dict:
 _PS_TOKEN_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 _PS_REF_RE = re.compile(r"[A-Za-z0-9._/-]{1,100}")
 _PS_REPO_URL_RE = re.compile(r"git@[A-Za-z0-9.-]{1,64}:[A-Za-z0-9._-]{1,64}/[A-Za-z0-9._-]{1,100}")
-_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,600}")
-_PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#() -]{1,120}")
+# 4000, not 600: a browser_operator's --allowed-tools list is ~1,500 characters
+# (M8, 2026-10-14). The bound keeps the whole command under cmd.exe's 8191.
+_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,4000}")
+# ":" (worker names, CEO 2026-10-14) is plain text inside the single quotes it is passed in.
+_PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#():+ -]{1,120}")
 _PS_MODEL_RE = re.compile(r"[A-Za-z0-9_.:/-]{1,100}")
 _WORKER_RUNNERS = ("claude", "codex", "agy")
 _SPAWN_WORKER_TIMEOUT_S = 300  # delegate.REMOTE_LAUNCH_TIMEOUT_S: a clone can be slow
@@ -852,7 +861,7 @@ def _spawn_worker_values(task: dict) -> dict:
         raise Refusal(f"spawn_worker: {e}")
     # The title is free text a person typed. Keep the readable part and cut the
     # rest; worker_session_name would only add "..." past 40 characters.
-    title = re.sub(r"[^A-Za-z0-9 ._-]", "", task.get("title") or "")[:40].strip()
+    title = session_names.windows_safe(task.get("title") or "", session_names.WORKER_JOB_MAX)
     return {
         "Task": task["id"], "Project": project_key, "Role": role, "Branch": branch,
         "Base": proj.get("default_branch"), "RepoUrl": repo_url, "RepoPath": repo_path,
@@ -860,7 +869,9 @@ def _spawn_worker_values(task: dict) -> dict:
         "ClaudeArgs": claude_args,
         "Model": role_cfg.get("model") or "claude-sonnet-5-5",
         "Effort": role_cfg.get("effort") or "high",
-        "SessionName": config.worker_session_name(host, role, task["id"], title),
+        "SessionName": config.worker_session_name(
+            host, role, task["id"], title,
+            head=session_names.windows_safe(config.worker_head(task))),
         "Runner": runner,
         "RunnerModel": str(task.get("runner_model") or ""),
         "AgentsRoot": str(ROOT),
@@ -1181,14 +1192,45 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     # runners/mac_agent.do_relay refuses the same way.
     if not _clevel_session_live(role, sid):
         raise ValueError(f"no live session {role}-{sid} on this host")
-    path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
+    if not mailbox.envelope_on():
+        path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
+        if not path.is_file():
+            raise ValueError(f"letter not on disk after write: {path}")
+        if _is_windows():
+            return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
+        # best effort, never changes the outcome (same rule as send_to_cxo)
+        return {"to": f"{role}-{sid}",
+                **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
+    # Envelope mail (ORG_MAIL_ENVELOPE on; org restructure P1). The letters row
+    # carries no subject, so the body's first 80 characters stand in and the
+    # result says so. A letter SomPong relayed for the CEO wakes at once
+    # (urgent), but is not labelled an order here: the row's sender is
+    # whatever its writer put in it (any holder of ORG_DB_URL), so only
+    # runners/relay_mcp_server.relay_to_session, whose sender is pinned,
+    # makes kind "order". A forged urgent costs one early wake, nothing more.
+    body = letter["body"]
+    subject, warning = mailbox.resolve_subject(letter.get("subject"), body)
+    ceo = from_role == "secretary" and str(body).startswith("[CEO via SomPong]")
+    prio = "urgent" if ceo else "normal"
+    path = mailbox.send(role, sid, body, from_role, from_sid, subject=subject,
+                        kind="message", prio=prio)
     if not path.is_file():
         raise ValueError(f"letter not on disk after write: {path}")
+    out: dict = {"to": f"{role}-{sid}"}
+    if warning:
+        out["warning"] = warning
+    try:
+        due = mailbox.wake_due(role, sid, prio)
+    except Exception:
+        due = True
+    if not due:
+        return {**out, "woke": False, "why": "deferred by ORG_WAKE_DEBOUNCE_S (the wake sweep fires it)"}
     if _is_windows():
-        return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
-    # best effort, never changes the outcome (same rule as send_to_cxo)
-    return {"to": f"{role}-{sid}",
-            **_posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))}
+        woke = _windows_wake(role, sid, from_role)
+    else:
+        woke = _posix_wake(lambda: send_to_cxo.attempt_wake(role, sid, from_role.upper()))
+    mailbox.note_wake(role, sid)
+    return {**out, **woke}
 
 
 def _append_worker_mailbox(task: dict, body: str, from_role: str, from_sid: str) -> dict:

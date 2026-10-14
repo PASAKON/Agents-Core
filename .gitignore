@@ -12,6 +12,7 @@ state/session-diagrams/
 state/logs/*.log
 state/logs/*_latest.log
 state/locks/*.lock
+state/locks/live_sessions.spawned
 state/locks/*.log
 state/locks/*.winid
 state/locks/*-active
@@ -56,6 +57,8 @@ state/decisions/
 # Per-session turn counter for scripts/hook-memory-nudge.py (ADR 0019 §1).
 # Runtime state; state/*.db already covers the search index beside it.
 state/session-nudge-counters.json
+# Per-session turn counter for scripts/hook-rename-nudge.py (CEO 2026-10-13).
+state/rename-nudge-counters.json
 state/watchdog.log
 # machine_doctor.py's weekly cron/launchd/schtasks log (machine-contract phase 1,
 # docs/ops/machine-contract-schedules.md) -- runtime output, not committed.
@@ -183,3 +186,8 @@ launch-*.cmd
 
 # W3.5 wake requests/results written at runtime by tools/agent_transport.py + windows/wake-request.ps1
 state/wake/
+
+# spend guard runtime state (tools/spend_guard.py): alerts, snapshots, events — no credentials, not for git
+state/spend_guard/
+# SomPong's research workers: each task's brief, report and runner logs (runners/coo_worker.py)
+state/coo-work/

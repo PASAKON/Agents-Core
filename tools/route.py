@@ -387,6 +387,20 @@ def plan(
         if limits is None:
             limits = limits_mod.load_limits()
 
+        pressure_rule = cfg.get("pressure_rule", True)
+        claude_bucket = None
+        for b_name, b_info in (cfg.get("buckets") or {}).items():
+            if b_info.get("provider") == "anthropic":
+                claude_bucket = b_name
+                break
+
+        claude_q = quotas.get(claude_bucket) if claude_bucket else None
+        cw = (
+            claude_q.weekly_remaining
+            if (claude_q and claude_q.error is None and claude_q.weekly_remaining is not None)
+            else None
+        )
+
         choices = rank(role_cls, quotas, skill, host=host, cfg=cfg)
         plans: list[Plan] = []
         for c in choices:
@@ -398,10 +412,36 @@ def plan(
                 if (bucket and limits)
                 else (None, "no cost data")
             )
-            v, after, why = forecast.verdict(q, cost, limit_row)
-            rate = forecast.burn_rate(bucket, now=now) if bucket else None
-            reserve_pct = limit_row.get("reserve_pct", 0)
-            proj = forecast.projection(bucket, q, rate, reserve_pct, now=now) if (bucket and q) else None
+            is_claude = bool(
+                bucket
+                and (cfg.get("buckets") or {}).get(bucket, {}).get("provider") == "anthropic"
+            )
+            if pressure_rule and not is_claude and cw is not None:
+                eff_limit_row = dict(limit_row)
+                orig_reserve = limit_row.get("reserve_pct", 0)
+                eff_reserve = round(orig_reserve * cw, 4)
+                eff_limit_row["reserve_pct"] = eff_reserve
+                v, after, why = forecast.verdict(q, cost, eff_limit_row)
+                pressure_suffix = (
+                    f"pressure: claude {cw * 100:.0f}% left, "
+                    f"reserve {forecast.fmt_pct(orig_reserve)}→{forecast.fmt_pct(eff_reserve)}"
+                )
+                why = f"{why}, {pressure_suffix}"
+                rate = forecast.burn_rate(bucket, now=now) if bucket else None
+                proj = (
+                    forecast.projection(bucket, q, rate, eff_reserve, now=now)
+                    if (bucket and q)
+                    else None
+                )
+            else:
+                v, after, why = forecast.verdict(q, cost, limit_row)
+                rate = forecast.burn_rate(bucket, now=now) if bucket else None
+                reserve_pct = limit_row.get("reserve_pct", 0)
+                proj = (
+                    forecast.projection(bucket, q, rate, reserve_pct, now=now)
+                    if (bucket and q)
+                    else None
+                )
             if needs_shell and c.runner not in shell_runners:
                 v = "cannot"
                 why = f"needs shell; {c.runner} is edit-only"
@@ -422,6 +462,26 @@ def plan(
         unknown_plans = [p for p in plans if p.verdict == "unknown"]
         will_hit_plans = [p for p in plans if p.verdict == "will_hit"]
         cannot_plans = [p for p in plans if p.verdict == "cannot"]
+
+        if pressure_rule:
+            ok_outside = [
+                p
+                for p in ok_plans
+                if not (
+                    p.choice.bucket
+                    and (cfg.get("buckets") or {}).get(p.choice.bucket, {}).get("provider") == "anthropic"
+                )
+            ]
+            ok_claude = [
+                p
+                for p in ok_plans
+                if bool(
+                    p.choice.bucket
+                    and (cfg.get("buckets") or {}).get(p.choice.bucket, {}).get("provider") == "anthropic"
+                )
+            ]
+            return ok_outside + ok_claude + unknown_plans + will_hit_plans + cannot_plans
+
         return ok_plans + unknown_plans + will_hit_plans + cannot_plans
     except Exception:
         return []
@@ -587,19 +647,64 @@ if __name__ == "__main__":
     main()
 
 
-# Matched against the description's header only (lib.router.header: the lines
-# before the first blank line, max 5), so text pasted further down cannot satisfy
-# the gate (W2.7 review F11). The reason must sit on the same line: `[ \t]`, not
-# `\s`, which would let "override:" plus a pasted next line count as a reason.
-_OVERRIDE_RE = re.compile(r"^[ \t]*override:[ \t]*\S", re.IGNORECASE | re.MULTILINE)
+REASON_CODES = (
+    "review",
+    "security",
+    "silent-wrong",
+    "claude-tool",
+    "ceo-order",
+    "ab-test",
+    "box-bound",
+    "quota-handoff",
+)
 
+JULES_CONFIG_PATH = ROOT / "config" / "jules.yaml"
+
+
+def load_jules_config(path: Path | str | None = None) -> dict:
+    """Load config/jules.yaml safely."""
+    import yaml
+
+    p = Path(path) if path else JULES_CONFIG_PATH
+    if not p.is_file():
+        return {}
+    return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+
+
+_OVERRIDE_LINE_RE = re.compile(r"^[ \t]*override:[ \t]*(\S.*)$", re.IGNORECASE)
+
+
+def _find_override_directive(header_text: str) -> tuple[str, str] | None:
+    """Return (line, rest) for the first header line that matches _OVERRIDE_LINE_RE."""
+    for line in header_text.splitlines():
+        m = _OVERRIDE_LINE_RE.match(line)
+        if m:
+            return line, m.group(1)
+    return None
+
+
+def reason_code(description: str | None) -> str | None:
+    """Extract and validate the override reason code from the description's header."""
+    hdr = _description_header(description)
+    if not hdr:
+        return None
+    found = _find_override_directive(hdr)
+    if not found:
+        return None
+    _, rest = found
+    tokens = [t for t in re.split(r"[\s:;,.()—–]+", rest) if t]
+    if not tokens:
+        return None
+    tok = tokens[0].lower()
+    return tok if tok in REASON_CODES else None
+
+
+_CODES_STR = ", ".join(REASON_CODES)
 _IRON_59_MSG = (
-    "IRON §59: runner/model_hint pinned by hand without a reason — add a line"
-    ' "override: <reason>" to the first lines of the task description'
-    " (the block before the first blank line, max 5 lines; one further down is ignored)"
-    " (reasons: review/repair of another agent's code, security,"
-    " silent-wrong-answer risk, Claude-only tool, CEO order, A/B test,"
-    " box-bound job), or leave runner and model_hint empty and let the router pick."
+    "IRON §59 rule 7: runner/model_hint pinned by hand. Line 1–5 of the description"
+    " (the block before the first blank line; one further down is ignored) must read `override: <code> <why>`."
+    f" Codes: {_CODES_STR}."
+    " `in-session` is not a code. Or leave runner and model_hint empty and let the router pick."
 )
 
 
@@ -611,19 +716,21 @@ def check_override(task: dict, cfg: dict | None = None) -> str | None:
     - ORG_ROUTER env var is "off" (repair mode).
     - No manual pin is detected.
     - A manual pin is detected but the description's header (the lines before
-      the first blank line, max 5) contains an override line with a reason on it.
+      the first blank line, max 5) contains a valid reason_code.
 
-    Returns the IRON §59 error string otherwise.
+    Returns the IRON §59 refusal string otherwise (with invalid token and Jules hint if applicable).
     Never raises: any internal error -> None.
     """
     try:
+        import json as _json
         import os as _os
+        from lib import config as _lib_config
 
         if cfg is None:
             cfg = load_plans()
 
         role = (task.get("role") or "").strip()
-        role_classes = (cfg.get("role_classes") or {})
+        role_classes = cfg.get("role_classes") or {}
         if role not in role_classes:
             return None
 
@@ -633,18 +740,84 @@ def check_override(task: dict, cfg: dict | None = None) -> str | None:
         model_hint = (task.get("model_hint") or "").strip()
         runner = (task.get("runner") or "").strip()
         runner_model = task.get("runner_model")
+        delegate_log = task.get("delegate_log") or ""
 
         # A manual pin is: model_hint non-empty, OR runner non-empty while
-        # runner_model is NULL. The router always writes runner AND
-        # runner_model together; for "codex:" it writes "" (CLI default), so
-        # only NULL means nobody routed this row.
-        is_manual_pin = bool(model_hint) or (bool(runner) and runner_model is None)
+        # runner_model is NULL, OR runner == "codex" with runner_model == ""
+        # and no "router:" in delegate_log.
+        v1_pin = bool(model_hint) or (bool(runner) and runner_model is None)
+        # A row that already has a worktree passed this gate at its first delegate; a
+        # failure path (timeout, spawn refused) overwrites delegate_log, so its re-delegate
+        # must not read as a hand pin for want of the "router:" line.
+        codex_hand_pin = (runner == "codex" and runner_model == ""
+                          and "router:" not in delegate_log and not task.get("worktree"))
+        is_manual_pin = v1_pin or codex_hand_pin
         if not is_manual_pin:
             return None
 
-        if _OVERRIDE_RE.search(_description_header(task.get("description"))):
+        desc = task.get("description")
+        code = reason_code(desc)
+        if code is not None:
             return None
 
-        return _IRON_59_MSG
+        refusal = _IRON_59_MSG
+        hdr = _description_header(desc)
+        found = _find_override_directive(hdr) if hdr else None
+        if found:
+            _, rest = found
+            tokens = [t for t in re.split(r"[\s:;,.()—–]+", rest) if t]
+            if tokens:
+                tok = tokens[0].lower()
+                refusal = f'{refusal} "{tok}" is not a reason code.'
+
+        # Jules hint
+        try:
+            proj_key = task.get("project")
+            if proj_key:
+                proj = _lib_config.get_project(proj_key)
+                j_repo = proj.get("jules_repo")
+                if j_repo:
+                    j_cfg = load_jules_config()
+                    allowed_repos = [
+                        r.get("repo")
+                        for r in (j_cfg.get("repos") or [])
+                        if isinstance(r, dict)
+                    ]
+                    if j_repo in allowed_repos:
+                        touches = task.get("touches")
+                        if isinstance(touches, str):
+                            try:
+                                touches = _json.loads(touches)
+                            except Exception:
+                                touches = []
+                        elif touches is None:
+                            touches = []
+                        desc_str = desc or ""
+                        size = forecast.infer_size(touches, desc_str)
+                        if size in ("S", "M"):
+                            desc_lower = desc_str.lower()
+                            forbidden = (
+                                "secret",
+                                "token",
+                                "credential",
+                                "infisical",
+                                ".env",
+                                "deploy",
+                                "prod",
+                                "systemctl",
+                                "password",
+                            )
+                            if not any(kw in desc_lower for kw in forbidden):
+                                repo_name = j_repo.split("/")[-1]
+                                title = task.get("title") or ""
+                                jules_line = (
+                                    f"Jules can take this (size S/M, allowlisted repo): "
+                                    f'python tools/jules.py create --repo {repo_name} --title "{title}" --brief brief.md'
+                                )
+                                refusal = f"{refusal}\n{jules_line}"
+        except Exception:
+            pass
+
+        return refusal
     except Exception:
         return None

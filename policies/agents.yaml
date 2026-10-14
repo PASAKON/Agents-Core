@@ -17,18 +17,20 @@ roles:
 
   cto:
     display: CTO
+    persona: Kavin   # session name <HOST> CTO (Kavin) #<id> (CEO 2026-10-14)
     level: c
     # Claude only: the GLM/Z.ai/9Router offload was removed 2026-09-23 (CEO,
     # 2026-09-20). A non-Claude id here would go straight to the Anthropic API.
     # Org standard since 2026-09-23 (CEO): every C-level runs Opus 5.5 with
-    # the 1M context window at xhigh — the same pick the CEO makes with
-    # /model. Workers already on Sonnet stay on Sonnet. ADR 0009 addendum
+    # the 1M context window. Effort at spawn is medium since 2026-10-14 (CEO,
+    # replaces xhigh): the CEO raises or lowers it by hand with /effort when a
+    # job is hard; nothing raises it automatically. Workers already on Sonnet stay on Sonnet. ADR 0009 addendum
     # 2026-09-23 (decisions/0009-model-routing-policy.md). Sonnet workers
     # moved Sonnet 5 -> Sonnet 5.5 on 2026-09-29 (CEO): same $2/$10 price,
     # same tokenizer; smoke-tested on Claude Code 2.1.284 (1M context).
     model: "claude-opus-5-5[1m]"
     fallback_model: "claude-fable-5"
-    effort: "xhigh"
+    effort: "medium"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -44,7 +46,7 @@ roles:
     level: c
     model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
     fallback_model: "claude-fable-5"
-    effort: "xhigh"
+    effort: "medium"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -57,7 +59,7 @@ roles:
     level: c
     model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
     fallback_model: "claude-fable-5"
-    effort: "xhigh"
+    effort: "medium"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -67,13 +69,15 @@ roles:
 
   cmo:
     display: CMO
+    persona: Ging   # session name <HOST> CMO (Ging) #<id> (CEO 2026-10-14)
     level: c
-    # CEO 2026-09-30: CMO leaves the Opus C-level standard for Sonnet 5.5
-    # (1M) @ xhigh — it runs the automation lane (browse work driven by AGY).
-    # Smoke-tested headless the same day: claude -p answered OK on this id.
-    model: "claude-sonnet-5-5[1m]"
+    # CEO 2026-10-14 Q-20261014-0227-c918 (choice 0, "Opus 5.5 xhigh เท่า
+    # C-level อื่น"): CMO back on the org standard. Supersedes the 2026-09-30
+    # ruling that moved it to Sonnet 5.5 (1M) @ xhigh. A running CMO picks it
+    # up on its next start (session-change-model).
+    model: "claude-opus-5-5[1m]"
     fallback_model: "claude-fable-5"
-    effort: "xhigh"
+    effort: "medium"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
@@ -91,15 +95,42 @@ roles:
   # fails if any spot misses it.
   coo:
     display: COO
+    persona: SomPong   # session name <HOST> COO (SomPong) #<id> (CEO 2026-10-14)
     level: c
     model: "claude-opus-5-5[1m]"   # org standard 2026-09-23, see cto
     fallback_model: "claude-fable-5"
-    effort: "xhigh"
+    effort: "medium"
     can_write_wiki: true
     can_create_task: true
     can_merge: true
     can_push: true
     can_delete_branch: true
+    skills_profile: all
+
+  # Project Head (org restructure P2, plan §3.2; SomPong report
+  # org-restructure-ph-envelope-2026-10-13). Not a C-level and not a worker:
+  # a session that owns ONE project for its lane's C-level, works on it itself,
+  # may spawn at most 2 workers, never merges, deploys or asks the CEO. Usable
+  # only where ORG_PH_ROLES=1 (scripts/spawn-ph.sh, cxo-claude.sh --role
+  # project_head). Display is per lane: "Project Head (CTO)". Role doc
+  # roles/project_head.md is the COO's to write (plan §13).
+  project_head:
+    display: Project Head
+    level: m
+    # Opus 5.5 at medium: the one who directs the workers must be a strong
+    # model (CEO 2026-10-14 ~04:20 TH via SomPong, relayed by CTO #e106b78b;
+    # replaces plan §3.2's Sonnet 5.5 at xhigh). C-levels spawn at medium too
+    # since 2026-10-14 (CEO).
+    model: "claude-opus-5-5[1m]"
+    fallback_model: "claude-fable-5"
+    effort: "medium"
+    can_write_wiki: false
+    can_create_task: true
+    can_merge: false
+    can_push: true            # feature branches; main is the CTO's (plan §3.2)
+    can_delete_branch: false
+    can_ask_ceo: false        # plan §4.1: questions go to its C-level as kind=ask
+    max_workers: 2            # plan §3.2: at most 2 live workers at once
     skills_profile: all
 
   developer:
@@ -198,6 +229,22 @@ roles:
     display: Data Analytics
     level: w
     model: "claude-sonnet-5-5"   # Sonnet workers -> Sonnet 5.5 (CEO 2026-09-29), same price as Sonnet 5
+    effort: "medium"
+    can_write_wiki: false
+    can_create_task: false
+    can_merge: false
+    can_push: false
+    workspace_only: true
+    skills_profile: worker-baseline
+
+  researcher:
+    display: Researcher
+    level: w
+    # SomPong's research worker (CEO card Q-20261013-1948-4a33, 2026-10-14): web search, our
+    # research notes first, repos read-only, ONE markdown report. Never edits, PRs, pushes or paid
+    # APIs. Runs in runners/coo_worker.py's read-only box, outside runners first (config/plans.yaml
+    # class `research`: codex, Argon, then this model). roles/researcher.md.
+    model: "claude-sonnet-5-5"   # the Sonnet fallback; codex/agy go first
     effort: "medium"
     can_write_wiki: false
     can_create_task: false

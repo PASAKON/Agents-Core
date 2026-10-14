@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Rename THIS C-level session's Claude display name (the one the mobile app /
-# Remote Control list shows) to "<MACHINE> <ROLE> #<id> (<topic>)".
+# Remote Control list shows). A C-level: "<ROLE> (<Name>) — <topic>", no machine
+# and no #id (CEO 2026-10-14). A Project Head: "PH#<id3> (<LANE>) - <Project> — <topic>".
+# Anything else: "<MACHINE> <ROLE> #<id> (<topic>)".
 #
 # Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool.
 # But every C-level chat runs inside tmux (spawn-cto.sh / spawn-cxo.sh), so we
@@ -10,7 +12,7 @@
 # Claude Code v2.1.221+).
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
-#   → /rename MAC CTO #c670eb50 (หัวข้อของ session)
+#   → /rename CTO (Kavin) — หัวข้อของ session
 #         bash scripts/session-rename.sh --force "<topic>"   # resend even if unchanged
 #         bash scripts/session-rename.sh --show              # print the recorded topic, no send
 #
@@ -130,8 +132,37 @@ case "$(uname -s)" in
 esac
 
 ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
+# A Project Head (org restructure P2): "<MACHINE> Project Head (<LANE>) #<id> (<topic>)",
+# the shape tools/live_sessions.py reads back as role project_head.
+if [ "$ROLE" = "project_head" ]; then
+  ROLE_UP="Project Head ($(printf '%s' "${ORG_PH_LANE:-}" | tr -cd 'a-zA-Z' | tr '[:lower:]' '[:upper:]'))"
+fi
+# A C-level (CEO 2026-10-14): "<ROLE> (<Name>) — <topic>", the persona from
+# policies/agents.yaml. Any failure leaves the name without one; never an error.
+# tools/live_sessions.py reads its role and id from the tmux name and session UUID.
+if [ "$ROLE" != "project_head" ]; then
+  _PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
+  PERSONA="$(cd "$ROOT" && ROLE_ARG="$ROLE" "$_PY" -c "
+import os
+from lib.config import persona_for
+print(persona_for(os.environ['ROLE_ARG']))" 2>/dev/null | tr -cd 'a-zA-Z')" || PERSONA=""
+  if [ -n "$PERSONA" ]; then ROLE_UP="$ROLE_UP ($PERSONA)"; fi
+fi
 
-BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
+_PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
+if [[ "$ROLE" =~ ^c[a-z]o$ ]]; then
+  BASE_NAME="$ROLE_UP — $TOPIC"
+elif [ "$ROLE" = "project_head" ] && [ -n "$SID" ] && PH_BASE="$(cd "$ROOT" && PH_SID="$SID" \
+    PH_LANE="${ORG_PH_LANE:-}" PH_PROJECT="${ORG_PH_PROJECT:-}" "$_PY" -c "
+import os
+from lib.config import ph_session_name
+print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT']))" 2>/dev/null)" \
+    && [ -n "$PH_BASE" ]; then
+  # "PH#<id3> (<LANE>) - <Project> — <topic>" (CEO 2026-10-14, lib/config.ph_session_name)
+  BASE_NAME="$PH_BASE — $TOPIC"
+else
+  BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
+fi
 if [ -n "$PREFIX" ]; then
   NEW_NAME="$PREFIX $BASE_NAME"
 else

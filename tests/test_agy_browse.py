@@ -29,6 +29,14 @@ from tools import agy_browse as ab  # noqa: E402
 VENV = "/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python"
 
 
+@pytest.fixture(autouse=True)
+def _own_state_dir(tmp_path, monkeypatch):
+    # Without ORG_ROOT, agy_browse now writes to the main checkout behind a worktree:
+    # a test must never append to the live audit log (or reach the hub).
+    monkeypatch.setenv("ORG_ROOT", str(tmp_path))
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+
+
 # --------------------------------------------------------------------------
 # the agy allow-rule
 # --------------------------------------------------------------------------
@@ -427,3 +435,67 @@ def test_live_rate_limit(call):
     assert call("text", "h1")[0] == ab.OK
     code, out = call("text", "h1")
     assert code == ab.REFUSED and "rate limit" in out
+
+
+
+# --------------------------------------------------------------------------
+# where the log goes (tool-value plan 2026-10-13 §2.0: worktree lines were lost)
+# --------------------------------------------------------------------------
+
+def _worktree(tmp_path):
+    main = tmp_path / "main"
+    (main / "state").mkdir(parents=True)
+    (main / ".git" / "worktrees" / "task-1").mkdir(parents=True)
+    wt = main / "worktrees" / "task-1"
+    wt.mkdir(parents=True)
+    (wt / ".git").write_text(f"gitdir: {main / '.git' / 'worktrees' / 'task-1'}\n")
+    return main, wt
+
+
+def test_a_worktree_logs_to_its_main_checkout(tmp_path, monkeypatch):
+    main, wt = _worktree(tmp_path)
+    assert ab._main_checkout(wt) == main
+    assert ab._main_checkout(main) == main          # .git is a directory
+    assert ab._main_checkout(tmp_path / "none") == tmp_path / "none"
+    monkeypatch.delenv("ORG_ROOT")
+    monkeypatch.setattr(ab, "ROOT", wt)
+    assert ab.log_path() == main / "state" / "agy-browse.jsonl"
+    monkeypatch.setenv("ORG_ROOT", str(tmp_path / "hub"))  # ORG_ROOT still wins
+    assert ab.log_path() == tmp_path / "hub" / "state" / "agy-browse.jsonl"
+
+
+def test_a_foreign_gitdir_or_a_main_without_state_keeps_the_worktree(tmp_path):
+    main, wt = _worktree(tmp_path)
+    (main / "state").rmdir()
+    assert ab._main_checkout(wt) == wt
+    (wt / ".git").write_text("gitdir: /somewhere/else/modules/x\n")
+    assert ab._main_checkout(wt) == wt
+
+
+def test_hub_copy_only_with_the_hub_env_and_never_raises(tmp_path, monkeypatch):
+    import lib.db
+    calls = []
+
+    class Conn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(lib.db, "get_conn", lambda **kw: (calls.append(("conn", kw)), Conn())[1])
+    monkeypatch.setattr(lib.db, "log_event", lambda conn, task, actor, kind, payload: calls.append(
+        (task, actor, kind, payload)))
+    ab.append_log("read", 9280, "champa.io", ["h1"], 0)
+    assert calls == []                                   # no ORG_DB_URL: file only
+    monkeypatch.setenv("ORG_DB_URL", "postgresql://unused")
+    monkeypatch.setenv("WORKER_TASK_ID", "task-0123abcd")
+    ab.append_log("read", 9280, "champa.io", ["h1"], 0)
+    assert calls[0] == ("conn", {"timeout": ab.HUB_TIMEOUT_S})
+    task, actor, kind, payload = calls[1]
+    assert (task, actor, kind) == ("task-0123abcd", "agy_browse", "agy_browse")
+    lines = [json.loads(x) for x in ab.log_path().read_text().splitlines()]
+    assert {k: payload[k] for k in lines[-1]} == lines[-1]   # same record, so the report's key matches
+    monkeypatch.setattr(lib.db, "get_conn", lambda **kw: (_ for _ in ()).throw(RuntimeError("hub down")))
+    ab.append_log("read", 9280, "champa.io", ["h1"], 0)    # a dead hub never raises
+    assert len(ab.log_path().read_text().splitlines()) == 3

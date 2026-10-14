@@ -1,0 +1,12 @@
+[Unit]
+Description=Run tool-value-report.service every Monday 08:00 Bangkok time
+# The time zone sits in the calendar spec, so the Contabo clock
+# (CEST until 25 Oct, then CET) needs no +5/+6 h arithmetic.
+
+[Timer]
+OnCalendar=Mon *-*-* 08:00:00 Asia/Bangkok
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

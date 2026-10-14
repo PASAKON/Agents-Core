@@ -260,7 +260,7 @@ def _attempt_wake(tmux_sess: str | None, label: str) -> None:
     agent_transport.attempt_wake(tmux_sess, label, "send_to_worker", send_fn=_wake_tmux_send)
 
 
-def send(task_id: str, message: str) -> str:
+def send(task_id: str, message: str, *, subject: str | None = None) -> str:
     """Queue `message` into the DEV's mailbox, then attempt a wake.
 
     Contract: queued/delivered or raised, never "probably" (GH #60's
@@ -286,6 +286,12 @@ def send(task_id: str, message: str) -> str:
     already wraps this call in try/except and warns rather than propagating
     (untouched here -- not in this task's touches), so a raise surfaces
     loudly without blocking the spawn.
+
+    Envelope mail (ORG_MAIL_ENVELOPE on): `subject` is stored on the letter;
+    a missing one becomes the message's first 80 characters, and the return
+    string ends with a warning line. A worker's wake is never debounced: a
+    worker waits on its C-level's letter. Off, `subject` is ignored. The
+    remote paths (mesh letter row, MAILBOX.md) carry no subject.
     """
     db.init()
     task = db.get_task(task_id)
@@ -319,19 +325,29 @@ def send(task_id: str, message: str) -> str:
         return _send_remote(task, message, from_role=from_role,
                             from_sid=from_sid, label=label)
 
-    mailbox.send(role, tid, message, from_role, from_sid)
+    note = ""
+    if mailbox.envelope_on():
+        mailbox.send(role, tid, message, from_role, from_sid, subject=subject)
+        warning = mailbox.resolve_subject(subject, message)[1]
+        note = f"\nwarning: {warning}" if warning else ""
+    else:
+        mailbox.send(role, tid, message, from_role, from_sid)
     _attempt_wake(task.get("tmux_session"), label)
-    return f"queued to {display_for(role)} ({tid}): [{label}] : {message}"
+    return f"queued to {display_for(role)} ({tid}): [{label}] : {message}" + note
 
 
 def main() -> int:
-    if len(sys.argv) < 3:
-        print('usage: python -m tools.send_to_worker <task_id_or_prefix> "<message>"',
-              file=sys.stderr)
+    argv = sys.argv[1:]
+    subject = None
+    if len(argv) >= 2 and argv[0] == "--subject":
+        subject, argv = argv[1], argv[2:]
+    if len(argv) < 2:
+        print('usage: python -m tools.send_to_worker [--subject "<one line>"] '
+              '<task_id_or_prefix> "<message>"', file=sys.stderr)
         return 1
-    needle, message = sys.argv[1], sys.argv[2]
+    needle, message = argv[0], argv[1]
     try:
-        result = send(needle, message)
+        result = send(needle, message, subject=subject) if subject else send(needle, message)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2

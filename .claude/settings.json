@@ -43,6 +43,11 @@
           },
           {
             "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-rename-nudge.py",
+            "timeout": 3
+          },
+          {
+            "type": "command",
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-inbox.py"
           }
         ]
@@ -54,6 +59,16 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-browser-guard.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-agent-route-log.py",
+            "timeout": 5
           }
         ]
       },

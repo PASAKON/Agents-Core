@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from lib import db
-from lib.config import get_project, role as get_role, worker_session_name
+from lib.config import get_project, role as get_role, worker_head, worker_session_name
 from lib.worker_mcp_config import env_without_org_db, reexec_with_org_db_url, write_for_worktree
 from runners.worker_init import (  # type: ignore
     _write_dev_settings,
@@ -109,7 +109,8 @@ def main() -> None:
     effort_args = ["--effort", "max"]
 
     host_name = current_host()
-    session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")))
+    session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")),
+                                       head=worker_head(task))
 
     os.chdir(worktree)
     os.execvpe(

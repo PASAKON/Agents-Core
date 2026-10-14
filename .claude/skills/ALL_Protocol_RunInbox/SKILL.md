@@ -3,7 +3,7 @@ name: ALL_Protocol_RunInbox
 kind: protocol
 owner: CTO
 aka: [CXO_Run_Inbox]
-description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does."
+description: "PROTOCOL — Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact bytes, taps Run, it runs on that host, and the result comes back to your session as a mailbox letter. Trigger on /ALL_Protocol_RunInbox and whenever a step needs a human at the machine — a '!' command, a CLI login (claude /login, gh auth login, a device code), a script that must run as the operator, anything the auto-mode classifier refuses (secrets into .env, systemctl restart, a deploy) — or the moment you are about to write 'CEO please run this on <box>' or 'พิมพ์คำสั่งนี้'. Do NOT fire for browser logins (that is the login relay, terminal.mooniex.com/relay) or for commands your own sandbox can run. CEO 2026-09-26: the CEO runs commands from the phone ONLY — never hand a '!' command in chat; the Stop hook scripts/hook-phone-only-commands.py blocks a reply that does. Also fire for any QUESTION to the CEO (a choice, go/no-go, 'which one?') when he is not typing in this chat: that goes on a question card he answers with a tap (ask_ceo / ask_run.py ask, CEO 2026-10-13) — never for a command, money or a secret."
 created_by: agent
 author: {role: cto, date: "2026-09-25"}
 audience: [cxo, worker]
@@ -88,8 +88,11 @@ card red).
 
 - The card: host · risk colour · your `--why` and `--expected` · the exact command (a script shows
   its first 40 lines and its `repo@sha`) · the "sha256 ตรวจแล้ว" label. Buttons: Run · Deny · ask back.
-- Clocks: pending expires **30 min** after creation; approved but not started within 60 s goes back
-  to pending ("กดรันอีกครั้ง"); the run itself is killed at `--timeout` (default 300 s, max 21600).
+- Clocks: a pending card expires by the risk the hub gives it: **green 24 h, amber 8 h, red 1 h**
+  (CEO 2026-10-13, question card Q-20261013-2052-3bee). A claim the hub raises gets the shorter life.
+  The API takes `expires_in_s` (at least 600): less is kept, more is cut to green 7 d, amber 24 h,
+  red 4 h. `ask_run.py` sends none, so a card gets its risk's default. Approved but not started
+  within 60 s goes back to pending ("กดรันอีกครั้ง"); the run itself is killed at `--timeout` (default 300 s, max 21600).
 - The result: a mailbox letter `state/inbox/<session>/RUN-<id>.json` on the hub's box (Contabo),
   drained by hook-inbox on your next prompt; `wait` prints the redacted output tail (64 KB max).
   Email threads are P3 — today the hub only writes an outbox stub.
@@ -131,12 +134,16 @@ card red).
 
    **Why hard:** irreversible exposure of a credential.
 
-3. A card lives 30 minutes. Issue it when the CEO is holding the phone (one chat line with the id),
-   or it expires unread — the first live card did exactly that on 2026-09-25 (created 00:32
-   Bangkok, expired 01:02, CEO asleep). Expired = re-issue once he says he is there; never nag.
+3. A card lives by its risk: green 24 h, amber 8 h, red 1 h. A green or amber card can wait for him
+   to come back. A red card is short on purpose, because a root command written hours ago may no
+   longer fit the box: issue it when the CEO is holding the phone (one chat line with the id).
+   Expired = re-issue once he says he is there; never nag. `[SUPERSEDED 2026-10-13]` "A card lives
+   30 minutes. Issue it when the CEO is holding the phone … or it expires unread" — beaten by the
+   CEO's ruling on Q-20261013-2052-3bee: at 30 min, 31 of 96 cards had expired unread (Console 810b108).
 
 4. One action per card, and `--why` / `--expected` written for a thumb on a phone: one line each,
-   the outcome, no jargon (CEO 2026-09-25: "กระชับเท่านั้น").
+   the outcome, no jargon (CEO 2026-09-25: "กระชับเท่านั้น"). The hub caps each at 500 characters
+   (Console `src/run/create.js` `MAX_TEXT`): longer is refused `400 invalid_why` / `invalid_expected`.
 
 5. A script beats a long command line. The card pins `repo@sha:path` and shows the first 40 lines,
    so the reviewer reads what the CTO merged — a shell one-liner carries quoting traps the phone
@@ -146,6 +153,71 @@ card red).
    plus your named `--env-key`s only, cwd = `--cwd` or `$HOME`. `PAGER=cat` is preset; anything else
    interactive (`apt` without `-y`, a TTY prompt) hangs until the timeout kills it — pass the flags
    yourself, or use `--expects-input` when the CEO is meant to type the answer.
+
+## Question cards — a question the CEO answers with a tap (CEO 2026-10-13)
+
+> "Session ไหนติด blocker ตอนการให้ฉันอนุญาต ก่อนเริ่มส่ง มาใน /run ได้เลย หรือถ้ามีคำถาม
+> ส่งคำถามทิ้งไว้ จะเข้าไปกดตอบ เป็นคำถามแบบกดตอบได้นะ"
+
+A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** whenever he is
+not typing in your chat at that moment. Do not leave it in chat to wait, and do not hand it to SomPong to
+relay. On /run → **คำถามรอตอบ** he reads who is asking (role · session · host), the why, and 2–4 options
+(one may carry **แนะนำ**). He taps one, may add a short note, and taps ส่งคำตอบ. There is no Face ID:
+answering a question is not a run.
+
+```bash
+python3 tools/ask_run.py ask --question "Ship the Console fix tonight or tomorrow 09:00?" \
+  --option "Tonight" --option "Tomorrow 09:00" --recommended 1 \
+  --why "Tests are green. Tonight means a Console restart at 22:00 TH."
+python3 tools/ask_run.py wait Q-20261013-1102-a3f9   # 0 answered · 1 expired/cancelled · 4 max-wait ran out
+```
+
+MCP: `ask_ceo(question, options, why, recommended)`, then `ask_run_wait(id)` (it takes `Q-…` ids).
+Contract: `docs/design/run-inbox/QUESTIONS.md`.
+
+**Several questions → one group (CEO 2026-10-14: "ตอบให้ครบแล้ว กดส่ง trigger แค่รอบเดียวพอ ประหยัด token
+ด้วย").** Two to six questions you have at the same time go in ONE call, not one card each:
+
+```bash
+python3 tools/ask_run.py ask --batch questions.json   # [{question, why, options:[…], recommended, free_text}, …]
+python3 tools/ask_run.py wait QG-20261014-0400-c0de   # returns when none is pending; 0 = all answered
+```
+
+MCP: `ask_ceo(questions=[{question, why, options, recommended, free_text}, …])`, then
+`ask_run_wait(QG-…)`. He answers them on /run and sends once; you get ONE letter (one wake) for
+everything he sent you. Each question still has its own `Q-…` id and record: cite that id for
+each decision (QUESTIONS.md §10).
+
+1. **HARD — a question card never stands in for a command card.** Anything that runs a command, spends
+   money or touches a secret goes on a command card (`ask_run`; red = fresh Face ID). That holds even
+   after the CEO has said yes to a question about it. The tool and the hub refuse a question or option
+   that reads like a command (backticks, `&&`, a pipe, flags, paths, a first word such as `sudo`, `git`,
+   `docker`, `systemctl`) or that names an amount (`$`, `฿`, `บาท`, `credits`). Never reword to get
+   past that check. Send the command card.
+
+   **Why hard:** a question tap carries no Face ID, so it must never authorise anything a Face ID
+   protects.
+
+2. **HARD — only the CEO answers.** The answer route accepts his passkey session and nothing else. No
+   session, worker, mailbox letter or peer can write an answer, and there is no answer verb. The record
+   of his decision is the hub: `ask_run wait Q-…` returns `answered_by`, `answered_at` and the sha256 of
+   exactly what he read. The mailbox letter only wakes you. When you act on his answer, or a peer
+   relays it, cite the `Q-…` id. That record is what a reviewer or a classifier checks.
+
+   **Why hard:** a question card exists to be the CEO's own decision on record. An answer that anything
+   else could write would make every relayed "he said yes" unverifiable.
+
+3. Raise it at once and put one chat line out (id + link + the question). Never ask whether you may
+   ask. While it is pending, do not ask the same thing again in chat.
+4. It lives 24 h by default (`--expires-h`, max 168), because he comes back to it later. If it
+   expires, ask once more on a fresh card.
+5. Write for a thumb: the question on one line (≤300 chars), each option ≤120 chars, and a `why` that
+   says what happens on each choice. Mark your recommendation with `--recommended N`. `ask` refuses a
+   longer or multi-line question (`invalid_question`) for every item of a `--batch` too: put the detail
+   in `why`, which may run to several lines.
+6. C-level only. A worker writes its question into its report, and its C-level asks.
+7. Hosts: a question needs the run-inbox token, which Contabo C-levels have. The Mac and winbox have no
+   token yet, so there you ask in chat as before and say why.
 
 ## When not to
 
@@ -172,3 +244,13 @@ card red).
 - 2026-10-02 [MISSING] §Risk — `red` makes the CEO look twice at `systemctl restart|stop`, but nothing says what a restart on Contabo can take with it: every C-level, worker and SomPong pane runs in ONE root tmux server, and `systemctl restart mooniex-sompong.service` at 02:38:35Z (session e106b78b, after card RUN-20261002-0234-f4ec) killed 5 C-levels and worker task-cc55e620, because sompong-supervise.sh had started that server inside the service's cgroup. Before a card (or a command) that restarts or stops a Contabo service, run the two cgroup one-liners in Agents-Core CLAUDE.md §"Contabo — one tmux server holds every session"; if the service holds the server or any pane, do not send it, tell the CEO · evidence: session cto-e6754203 (diagnosis from the journal; live server moved into org-tmux.scope 16:27 TH without a restart; hook scripts/org-tmux-adopt.sh) · status: pending
 - 2026-10-03 [MISSING] §Hosts mac — on the Mac, `ask_run` fails in the client before the hub's 501: "ERROR: no token: set RUN_INBOX_TOKEN or create /Users/gob/.config/mooniex/run-inbox.token (mode 0600)". Same outcome as the table (no card on the Mac until P2), different first error; do not go looking for the token · evidence: task-c99d48d6 Colab CLI sign-in, session addb58de · status: pending
 - 2026-10-03 [MISSING] §Hosts mac — a copy-paste CLI OAuth the Mac needs can be done on CONTABO instead: install the CLI there (`python3 -m venv /opt/colab-cli && /opt/colab-cli/bin/pip install google-colab-cli==0.7.4`), send an `--expects-input --timeout 1800 --risk amber` card that runs the login (`colab sessions 2>&1`), the CEO opens the printed URL on the phone and pastes the code into the card, then pull the token file from the Mac (`scp -p mooniex-vps:/root/.config/colab-cli/token.json ~/.config/colab-cli/` + chmod 600; Mac sshd is off so Contabo cannot push). Worked first try in 49 s; no agent saw the code or the token · evidence: RUN-20261002-2027-e98e, task-c99d48d6 unblocked (session cto-addb58de) · status: pending
+- 2026-10-13 [MISSING] rule 4 — a command card whose `why` ran to ~620 characters came back `400 invalid_why`; 290 and 470 were accepted. The hub's limit is 500 characters for `why` and `expected` (Console `src/run/create.js` `MAX_TEXT = 500`, JS string length); a question card allows `why` ≤ 1000 and `question` ≤ 300 · evidence: CTO #268a7843 (RUN-20261013-1303-0ff6, RUN-20261013-1229-496a), Console 397e4ca create.js:25,98 → rule 4 · status: promoted
+- 2026-10-14 [MISSING] §Question cards — `ask` refuses a card whose `why` holds a CLI flag (`refused: command_shaped … a CLI flag`), even when the flag is only described inside a rule summary. Write the flag in words ("a written force reason") · evidence: Q-20261013-1917-0fa2, first attempt refused · status: pending
+- 2026-10-14 [MISSING] §Question cards — a question card cannot be amended after it is raised, and the CEO can tap within seconds (one answer came 22 s after the raise). A condition sent in chat after the card is not part of what he agreed to. Put every condition in the card's question or why before raising · evidence: session cto-e106b78b, the 2026-10-13 17:4x cards · status: pending
+- 2026-10-14 [MISSING] §Rules — a card whose why said "add the two keys in Infisical first, then tap" was tapped before the keys were added, and it failed ("has no secret …", RUN-20261013-2023-62fe, 03:25 Thai). The CEO reads the card as the whole job. Raise a verify card only after he has done the step (a question card first), or make the card itself the step · evidence: session cto-e2f1563f, followed by Q-20261013-2026-f2ac · status: pending
+- 2026-10-14 [MISSING] rule 5 — the rule gave the 300-character limit but not that `ask` refuses a longer or multi-line question with `invalid_question` (each item of a `--batch` too), nor where the detail goes (`why`, which may hold newlines); a peer asked for it once the batch went live · evidence: tools/ask_run.py:601 (QUESTION_MAX = 300, :134), `why` newline allowance :630-636, SomPong letter 2026-10-14, session cto-2235643e → rule 5 · status: promoted
+- 2026-10-14 [MISSING] waiting — `ask_run_wait` with `max_wait_s` above 1800 dies in the background with "MCP server \"org\" tool \"ask_run_wait\" sent no response or progress for 1800s; aborting": the tool sends no progress while it waits, and the client's MCP idle timeout is 1800 s. Seen twice (max_wait_s 2940 and 3540). Keep `max_wait_s` ≤ 1500, or re-check with a short wait (5 s) at a set time (one-shot CronCreate) instead of one long wait · evidence: RUN-20261013-2150-e745, RUN-20261013-2214-e175 (cto-afe760fe) · status: pending
+- 2026-10-14 [MISSING] §Question cards — the "CEO's window" (taps within 30 min until 04:00 TH, then ~13:00–14:00 TH) matters for red Run cards, which live 1 h; a question card lives 24 h by default (`expires_h` up to 7 days), so it goes up at once with `expires_h` set to the decision's deadline, not held for the window. A PH asked for its arming question to be raised "in the 13:00–14:00 window"; raised at 09:37 TH instead with expires_h=23 · evidence: Q-20261014-0237-7d8b (CTO Main cto-c34459eb, PH SpendGuard #6c487e37) · status: pending
+- 2026-10-14 [MISSING] §Question cards — `ask_ceo` refuses a `why` that contains `&&` or `||` ("command_shaped … a question is not a command"), even when the command is one the CEO must type himself on a machine with no Run card (the Mac). Put such lines in the chat report, and have the card say "the 2 lines in the CTO chat" · evidence: refusal then Q-20261014-0402-6bd9 (Mac resume of #f39cb080/#671f688f), CTO Main cto-c34459eb · status: pending
+- 2026-10-14 [MISSING] §Question cards — a "yes, the permission is set" answer is a decision, not proof: Q-a5bb was answered "ตั้งแล้ว — ยกการ์ด M4 มาเลย", and the re-raised red card RUN-20261014-0455-4cf9 still stopped at its first step with the same Infisical 403 ("not allowed to create on secret-folders"). Before re-raising a red card that depends on a grant, put the grant's read-only probe as the card's first step (fail closed, nothing changed), and put the exact UI path to the missing permission in the question's `why` (Q-20261014-0545-71bb did) · evidence: cto-c34459eb, cards c80d → 4cf9 → b407 · status: pending
+- 2026-10-14 [MISSING] §When to raise — an action a PEER's classifier refused (PH CookieRun: app pipe `night {clear_hold:true}` refused [Auto-Mode Bypass], even with the CEO's question-card answer as its source) goes on the C-level's Run card, never run by the C-level itself: the peer writes the exact bytes to a file and proves the transport with a read-only verb, then the C-level pins any script the line calls by sha256 (certutil -hashfile on winbox) and raises the card verbatim · evidence: cto-c34459eb, Q-20261014-0512-a5df → RUN-20261014-0549-4910 · status: pending

@@ -98,7 +98,7 @@ if command -v gitleaks >/dev/null 2>&1; then
   if ! gitleaks protect --staged --redact --no-banner; then
     echo ""
     echo "gitleaks: possible secret in staged changes -- commit BLOCKED."
-    echo "   - real secret?  remove it; put it in .env / Vercel env instead."
+    echo "   - real secret?  remove it; put it in Infisical instead (CLAUDE.md, section Secrets), then rotate it."
     echo "   - false positive (test fixture)?  bypass once: git commit --no-verify"
     exit 1
   fi

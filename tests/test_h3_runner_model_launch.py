@@ -154,8 +154,8 @@ def test_winbox_ssh_command_carries_runner_model_for_agy(tmp_path, monkeypatch):
     import asyncio
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "tasks.db")
     db.init()
-    _insert_task("task-winrm01", "agy", "claude-sonnet-4-6", "winbox")
-    task = dict(db.get_task("task-winrm01"))
+    _insert_task("task-0000a001", "agy", "claude-sonnet-4-6", "winbox")
+    task = dict(db.get_task("task-0000a001"))
     task["runner_model"] = None if "agy" != "claude" else task["runner_model"]
     task["runner"] = "agy"
     res = asyncio.run(delegate._spawn_remote(task, "winbox", dry_run=True))
@@ -167,8 +167,8 @@ def test_winbox_ssh_command_has_no_runner_model_for_claude(tmp_path, monkeypatch
     import asyncio
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "tasks.db")
     db.init()
-    _insert_task("task-winrm02", "claude", "claude-sonnet-4-6", "winbox")
-    task = dict(db.get_task("task-winrm02"))
+    _insert_task("task-0000a002", "claude", "claude-sonnet-4-6", "winbox")
+    task = dict(db.get_task("task-0000a002"))
     task["runner_model"] = None if "claude" != "claude" else task["runner_model"]
     task["runner"] = "claude"
     res = asyncio.run(delegate._spawn_remote(task, "winbox", dry_run=True))

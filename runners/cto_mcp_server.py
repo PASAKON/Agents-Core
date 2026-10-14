@@ -150,8 +150,10 @@ async def revert_task_tool(task_id: str, force: bool = False) -> str:
 
 
 @mcp.tool(description=reg.BY_NAME["send_to_cxo"].description)
-def send_to_cxo(role: str, message: str, spawn: bool = False) -> str:
-    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn)
+def send_to_cxo(role: str, message: str, spawn: bool = False, subject: str = "",
+                kind: str = "", prio: str = "") -> str:
+    return reg.dispatch_sync("send_to_cxo", role=role, message=message, spawn=spawn,
+                             subject=subject, kind=kind, prio=prio)
 
 
 @mcp.tool(description=reg.BY_NAME["report_to_ceo"].description)
@@ -253,6 +255,28 @@ async def ask_run(
     )
 
 
+@mcp.tool(description=reg.BY_NAME["ask_ceo"].description)
+async def ask_ceo(
+    question: str = "",
+    options: list[str] | None = None,
+    why: str = "",
+    recommended: int = 0,
+    free_text: bool = True,
+    expires_h: float = 24.0,
+    session: str = "",
+    role: str = "",
+    host: str = "",
+    task: str = "",
+    dry_run: bool = False,
+    questions: list[dict] | None = None,
+) -> str:
+    return await reg.dispatch(
+        "ask_ceo", question=question, options=options, why=why, recommended=recommended,
+        free_text=free_text, expires_h=expires_h, session=session, role=role, host=host,
+        task=task, dry_run=dry_run, questions=questions,
+    )
+
+
 @mcp.tool(description=reg.BY_NAME["ask_run_wait"].description)
 async def ask_run_wait(
     id: str, max_wait_s: float = 600.0, interval_s: float = 5.0, tail_lines: int = 40,
@@ -261,6 +285,36 @@ async def ask_run_wait(
         "ask_run_wait", id=id, max_wait_s=max_wait_s, interval_s=interval_s,
         tail_lines=tail_lines,
     )
+
+
+# Envelope mail (org restructure P1): the two letter readers are served only
+# when ORG_MAIL_ENVELOPE is on in this server's env, so with the flag off a
+# session's tool list is what it was. Defined either way, so the registry
+# parity check (scripts/test_org_tools_registry.py) still finds them.
+def read_letter(id: str) -> str:
+    return reg.dispatch_sync("read_letter", id=id)
+
+
+def list_letters(unread_only: bool = False, limit: int = 20) -> str:
+    return reg.dispatch_sync("list_letters", unread_only=unread_only, limit=limit)
+
+
+from lib import mailbox as _mailbox  # noqa: E402
+from lib import roles as _org_roles  # noqa: E402
+
+if _mailbox.envelope_on():
+    for _fn in (read_letter, list_letters):
+        assert _fn.__name__ in reg.ENVELOPE_TOOLS
+        mcp.tool(description=reg.BY_NAME[_fn.__name__].description)(_fn)
+
+
+# Org restructure P2 (plan §3.2): a Project Head session is served only
+# reg.PH_TOOLS, including any tool registered here outside the registry;
+# registry dispatch refuses the rest for it as well.
+if _org_roles.is_project_head(reg.caller_role()):
+    _served = set(reg.served_names())
+    for _name in sorted({_t.name for _t in mcp._tool_manager.list_tools()} - _served):
+        mcp.remove_tool(_name)
 
 
 if __name__ == "__main__":

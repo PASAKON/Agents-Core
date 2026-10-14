@@ -48,6 +48,7 @@ from lib import ceo_report
 from lib import db
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
+from lib import roles as org_roles
 from lib import router
 from lib import telegram_out
 from lib import toon
@@ -250,7 +251,11 @@ def _h_review_diff(*, task_id: str, full: bool = False) -> str:
 
 
 def _h_merge_task(*, task_id: str, override_touches_check: bool = False) -> dict:
-    return do_merge(task_id, role=ROLE, override_touches_check=override_touches_check)
+    # Org restructure P2 (plan §1.2, T9): with ORG_PH_ROLES on, merge_task
+    # judges the calling session's own role (its CXO_ROLE) against can_merge
+    # in policies/agents.yaml. Off, every caller merges as "cto", as before.
+    role = (caller_role() or ROLE) if org_roles.ph_roles_on() else ROLE
+    return do_merge(task_id, role=role, override_touches_check=override_touches_check)
 
 
 def _h_close_dev(*, task_id: str, reason: str = "cto: manual close") -> dict:
@@ -311,10 +316,33 @@ async def _h_revert_task_tool(*, task_id: str, force: bool = False) -> dict:
     return revert_task(task_id, force=force)
 
 
-def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False) -> str:
+def _h_send_to_cxo(*, role: str, message: str, spawn: bool = False, subject: str = "",
+                   kind: str = "", prio: str = "") -> str:
+    # A Project Head talks only to the C-level of its own lane and never
+    # starts a session (plan §3.2).
+    if org_roles.is_project_head(caller_role()):
+        lane = (os.environ.get("ORG_PH_LANE") or "").strip().lower()
+        if spawn:
+            raise PermissionError("a Project Head cannot start a C-level session (plan §3.2)")
+        if (role or "").strip().lower() != lane:
+            raise PermissionError(
+                f"a Project Head writes only to its own C-level ({lane or 'ORG_PH_LANE unset'}), "
+                f"not {role!r}; ask your C-level to pass it on (plan §3.2)")
+    # an empty field is left out, so a call without them is exactly the old call
+    kw = {k: v for k, v in (("subject", subject), ("kind", kind), ("prio", prio)) if v}
     if spawn:
-        return send_to_cxo_mod.spawn(role, message)
-    return send_to_cxo_mod.send(role, message)
+        return send_to_cxo_mod.spawn(role, message, **kw)
+    return send_to_cxo_mod.send(role, message, **kw)
+
+
+def _h_read_letter(*, id: str) -> str:
+    from tools import letters
+    return letters.read_text(id)
+
+
+def _h_list_letters(*, unread_only: bool = False, limit: int = 20) -> str:
+    from tools import letters
+    return letters.list_text(unread_only=unread_only, limit=limit)
 
 
 def _h_report_to_ceo(*, order_id: int, status: str, detail: str) -> str:
@@ -349,6 +377,19 @@ async def _h_ask_run(*, host: str, why: str, script: str = "", args: list[str] |
         "session": session, "role": role, "task": task, "dry_run": dry_run,
     }
     result = await asyncio.to_thread(ask_run_tool.mcp_ask, arguments)
+    return json.dumps(result, indent=2, ensure_ascii=False)
+
+
+async def _h_ask_ceo(*, question: str = "", options: list[str] | None = None, why: str = "",
+                     recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
+                     session: str = "", role: str = "", host: str = "", task: str = "",
+                     dry_run: bool = False, questions: list[dict] | None = None) -> str:
+    arguments = {
+        "question": question, "options": options, "why": why, "recommended": recommended,
+        "free_text": free_text, "expires_h": expires_h, "session": session, "role": role,
+        "host": host, "task": task, "dry_run": dry_run, "questions": questions,
+    }
+    result = await asyncio.to_thread(ask_run_tool.mcp_ask_ceo, arguments)
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
@@ -622,14 +663,31 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "the whole chain. A primary (non-spawned) C-level session may "
             "always reach another primary C-level as a peer -- that is the "
             "routine cross-role request this tool exists for.\n\n"
+            "role='project_head-<id>' writes to a live Project Head on this "
+            "host (the name bash scripts/live-sessions.sh prints). A Project "
+            "Head itself writes only to its own C-level.\n\n"
             "You OWN the outcome of what you delegate here: if the C-level "
             "you ask gets it wrong, that is on you, not them -- asking "
-            "someone else to do it never transfers accountability for it."
+            "someone else to do it never transfers accountability for it.\n\n"
+            "subject: one line, at most 80 characters, saying what the letter "
+            "is about; the recipient sees it in the envelope line before the "
+            "body. Leave it out and, in envelope mail, the first 80 characters "
+            "of the message stand in and the result carries a warning.\n\n"
+            "kind: ask, blocker, report, fyi, answer or message (default). "
+            "'order' is refused: an order is the CEO's, made only by "
+            "relay_to_session. prio: normal or urgent; leave it out and an ask "
+            "or blocker is urgent (wakes the reader at once), anything else "
+            "normal (the wake may wait for the next batch). Both are stored "
+            "only in envelope mail (ORG_MAIL_ENVELOPE); otherwise they are "
+            "checked and ignored."
         ),
         params=(
             Param("role", str),
             Param("message", str),
             Param("spawn", bool, False),
+            Param("subject", str, ""),
+            Param("kind", str, ""),
+            Param("prio", str, ""),
         ),
         handler=_h_send_to_cxo,
         response_format="text",
@@ -765,13 +823,62 @@ REGISTRY: tuple[ToolSpec, ...] = (
         response_format="text",
     ),
     ToolSpec(
+        name="ask_ceo",
+        description=(
+            "Ask the CEO a question with 2-4 answers he taps on his phone "
+            "(Run Inbox question card, /run). Use it for ANY question to the CEO "
+            "instead of asking in chat: the card is the question, with your why "
+            "and your options. The CEO's tap is the only authority; the tool "
+            "never answers. NEVER use it to run a command, spend money or touch "
+            "a secret: those go on a command card (ask_run, Face ID), and a "
+            "command-shaped or money-naming question or option is refused.\n\n"
+            "options: 2-4 labels, one line each, 1-120 chars, unique; "
+            "recommended: 1-based option number, 0 = none; free_text: false "
+            "means an option is required and the CEO gets no text box; "
+            "expires_h: 24 by default, from 10 minutes to 7 days. C-level "
+            "sessions only. A secret-shaped value anywhere is refused before "
+            "anything is sent. session/role/host/task default to this session's "
+            "env (host: ORG_HOST, else the machine's own name). Returns {id, url, "
+            "expires_at} at once; read the answer with ask_run_wait on the id "
+            "(it returns the hub's record, which is what you cite as the CEO's "
+            "decision; the mailbox letter is only a wake-up). dry_run=True "
+            "returns the JSON body and sends nothing. Same code as "
+            "tools/ask_run.py ask (docs/design/run-inbox/QUESTIONS.md §9). "
+            "Several questions at once: pass questions=[{question, why, options, "
+            "recommended, free_text}, ...] (1-6) instead of question/options/why; "
+            "they show together on /run, the CEO answers and sends once, and you "
+            "get one letter (one wake) for everything he sent you. Returns "
+            "{group_id, url, expires_at, questions: [{id, url}]}; ask_run_wait "
+            "on the QG- id returns when all of them have ended "
+            "(QUESTIONS.md §10). "
+            "Not the same tool as mcp__sompong__ask_ceo (SomPong's Telegram/LINE "
+            "question in the COO session)."
+        ),
+        params=(
+            Param("question", str, ""), Param("options", list[str], None), Param("why", str, ""),
+            Param("recommended", int, 0), Param("free_text", bool, True),
+            Param("expires_h", float, 24.0), Param("session", str, ""),
+            Param("role", str, ""), Param("host", str, ""), Param("task", str, ""),
+            Param("dry_run", bool, False), Param("questions", list[dict], None),
+        ),
+        handler=_h_ask_ceo,
+        is_async=True,
+        response_format="text",
+    ),
+    ToolSpec(
         name="ask_run_wait",
         description=(
-            "Wait for a Run Inbox ask to end (polls every 5 s) and return its "
-            "record: terminal=true once it is done/failed/denied/expired/"
-            "cancelled, terminal=false if max_wait_s (default 600, max 3600) "
-            "ran out first; then call again. The CEO's tap is the only "
-            "authority; the tool never approves."
+            "Wait for a Run Inbox ask or question to end (polls every 5 s) and "
+            "return its record: terminal=true once a command card (RUN-...) is "
+            "done/failed/denied/expired/cancelled, a question (Q-..., from "
+            "ask_ceo) is answered/expired/cancelled, or a group (QG-..., from "
+            "ask_ceo with questions) has no question still pending, with every "
+            "question's record under questions; terminal=false if "
+            "max_wait_s (default 600, max 3600) ran out first; then call "
+            "again. A question's record carries status and answer "
+            "{choice, label, text, answered_by, answered_at}: that hub record, "
+            "not a mailbox letter, is the CEO's decision. The CEO's tap is the "
+            "only authority; the tool never approves or answers."
         ),
         params=(
             Param("id", str), Param("max_wait_s", float, 600.0),
@@ -781,9 +888,84 @@ REGISTRY: tuple[ToolSpec, ...] = (
         is_async=True,
         response_format="text",
     ),
+    ToolSpec(
+        name="read_letter",
+        description=(
+            "Read one letter from THIS session's own mailbox in full, by the id "
+            "its envelope line shows (`[m-...]`). Envelope mail prints a body "
+            "over 400 characters as an envelope line only; this is how you read "
+            "it. Read letters are kept 7 days. The box is this session's own, "
+            "from its env; no argument can open another session's box. Same as "
+            "`python -m tools.letters read <id>`."
+        ),
+        params=(Param("id", str),),
+        handler=_h_read_letter,
+        response_format="text",
+    ),
+    ToolSpec(
+        name="list_letters",
+        description=(
+            "List THIS session's own mailbox, newest first: one line per letter "
+            "with id, kind/prio, sender, time, size, unread or when read, and "
+            "subject; no bodies (read_letter reads one). unread_only=True skips "
+            "the read ones; read letters are kept 7 days. Same as "
+            "`python -m tools.letters list`."
+        ),
+        params=(Param("unread_only", bool, False), Param("limit", int, 20)),
+        handler=_h_list_letters,
+        response_format="text",
+    ),
 )
 
 BY_NAME: dict[str, ToolSpec] = {s.name: s for s in REGISTRY}
+
+# Envelope mail (org restructure P1): tools a session is served, and allowed,
+# only while ORG_MAIL_ENVELOPE is on in its env. Off, the served set is what it
+# was before them.
+ENVELOPE_TOOLS = frozenset({"read_letter", "list_letters"})
+
+# Org restructure P2 (plan §3.2, §4.1): a Project Head does not ask or write to
+# the CEO, raise Run cards, merge, revert, write the wiki or start a C-level.
+# An ALLOWLIST, so a tool added to the registry later is withheld from a PH
+# until someone adds it here on purpose (security review of f73fa02f: local
+# main's email_ceo would have reached a PH through the old denylist). A session
+# whose CXO_ROLE is project_head is served only these, and a call that reaches
+# dispatch anyway is refused. No session has that role today, so no existing
+# session's tool set changes; ORG_PH_ROLES gates launching one.
+PH_TOOLS = frozenset({
+    "check_collisions", "close_dev", "create_task", "decide",
+    "delegate_parallel_tasks", "delegate_task", "get_task", "list_projects",
+    "recall", "reflect", "reopen_task", "review_diff", "send_to_cxo", "stats",
+    "wiki_list", "wiki_read", "wiki_search",
+    "read_letter", "list_letters",  # envelope mail: still only under ORG_MAIL_ENVELOPE
+})
+
+
+def caller_role() -> str:
+    """CXO_ROLE of the session this process serves, lower-cased; "" if unset."""
+    return (os.environ.get("CXO_ROLE") or "").strip().lower()
+
+
+def served_names(role: str | None = None) -> tuple[str, ...]:
+    """The org tool names a session gets under this process's env: the
+    registry, less ENVELOPE_TOOLS while the flag is off, less
+    every tool outside PH_TOOLS for a Project Head (`role`, default this
+    process's CXO_ROLE). Every surface follows it: the C-level allowlist
+    (scripts/lib/cxo_mcp_config.py), runners/cto_mcp_server.py,
+    runners/cto.py and runners/cto_chat.py."""
+    from lib import mailbox
+    on = mailbox.envelope_on()
+    ph = org_roles.is_project_head(caller_role() if role is None else role)
+    return tuple(
+        s.name for s in REGISTRY
+        if (on or s.name not in ENVELOPE_TOOLS) and not (ph and s.name not in PH_TOOLS)
+    )
+
+# PH tools that act on a task but carry no needs_ownership_check of their own.
+PH_OWN_TASK_TOOLS = frozenset({"close_dev"})
+
+# The registry tools a Project Head is not served (derived; PH_TOOLS decides).
+PH_WITHHELD_TOOLS = frozenset(BY_NAME) - PH_TOOLS
 
 assert len(REGISTRY) == len(BY_NAME), (
     f"duplicate tool name in REGISTRY: {len(REGISTRY)} entries, "
@@ -814,6 +996,16 @@ def _prepare(spec: ToolSpec, kwargs: dict) -> tuple[str | None, dict]:
         for p in spec.params
         if p.name in kwargs or not p.required
     }
+
+    if spec.name not in PH_TOOLS and org_roles.is_project_head(caller_role()):
+        return (f"ERROR: {spec.name} is not a Project Head tool (plan §3.2) — "
+                f"send it to your C-level as an ask letter"), merged
+    # close_dev checks no owner for anyone; a Project Head may close only its
+    # own workers (delegate/reopen get the same rule through is_mine below).
+    if spec.name in PH_OWN_TASK_TOOLS and org_roles.is_project_head(caller_role()):
+        t = db.get_task(merged.get("task_id") or kwargs.get("task_id"))
+        if t and not is_mine(t):
+            return foreign_msg(t), merged
 
     if spec.needs_ownership_check:
         task_id = merged.get("task_id") or kwargs.get("task_id")

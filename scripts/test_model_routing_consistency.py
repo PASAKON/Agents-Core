@@ -48,7 +48,7 @@ def main() -> int:
           "cto-claude.sh does not hardcode the model literal")
     _mark("--effort xhigh" not in sh_text,
           "cto-claude.sh does not hardcode the effort literal")
-    _mark('from lib.config import role as get_role' in sh_text,
+    _mark(re.search(r'from lib\.config import [\w, ]*\brole as get_role\b', sh_text) is not None,
           "cto-claude.sh resolves via lib.config.role() like cxo-claude.sh")
 
     # --- 2: cto-claude.sh's resolver snippet, actually run, matches the yaml ---
@@ -64,7 +64,9 @@ def main() -> int:
         )
         out = r.stdout.strip()
         _mark(r.returncode == 0, f"resolver snippet runs cleanly (stderr: {r.stderr[:200]!r})")
-        expected = f"{c_model} {c_fallback} {c_effort}"
+        # A 4th field is the CTO's persona for the session name (CEO 2026-10-14).
+        from lib.config import persona_for
+        expected = " ".join(x for x in (c_model, c_fallback, c_effort, persona_for("cto")) if x)
         _mark(out == expected,
               f"resolver snippet output matches agents.yaml: got {out!r}, want {expected!r}")
 

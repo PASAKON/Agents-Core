@@ -28,6 +28,7 @@ Run via:  python scripts/test_tool_parity.py
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -41,6 +42,18 @@ from runners import cto_mcp_server as srv  # noqa: E402
 
 _failures = 0
 
+# cto_mcp_server and cto.ALL_TOOLS are built at import from ORG_MAIL_ENVELOPE
+# (registry.served_names); the root conftest unsets that flag for each test.
+# Compare under the env the surfaces were imported with.
+_ENVELOPE_AT_IMPORT = os.environ.get("ORG_MAIL_ENVELOPE")
+
+
+def _as_imported(monkeypatch) -> None:
+    if _ENVELOPE_AT_IMPORT is None:
+        monkeypatch.delenv("ORG_MAIL_ENVELOPE", raising=False)
+    else:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", _ENVELOPE_AT_IMPORT)
+
 
 def _mark(ok: bool, msg: str) -> None:
     global _failures
@@ -50,7 +63,9 @@ def _mark(ok: bool, msg: str) -> None:
 
 
 def _expected() -> set[str]:
-    return {spec.name for spec in reg.REGISTRY}
+    # the served set: REGISTRY less the envelope-mail tools while
+    # ORG_MAIL_ENVELOPE is off (org restructure P1)
+    return set(reg.served_names())
 
 
 def _cto_mcp_server_names() -> set[str]:
@@ -100,7 +115,8 @@ def _names_unique() -> bool:
     return len(reg.REGISTRY) == len(reg.BY_NAME)
 
 
-def test_parity() -> None:
+def test_parity(monkeypatch) -> None:
+    _as_imported(monkeypatch)
     expected = _expected()
     mcp_names = _cto_mcp_server_names()
     cto_names = _cto_py_names()

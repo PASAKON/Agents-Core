@@ -42,35 +42,39 @@ def _clear_self_host_cache():
 # 1. worker_session_name shape per host/role + truncation
 # ---------------------------------------------------------------------------
 
+# CEO 2026-10-14 (card QG-20261014-0326-8968): "<Short>#<id3> - <Head>: <job>",
+# no machine; the shapes live in lib/session_names.py.
 def test_session_name_shape_mac_developer():
-    name = config.worker_session_name("mac", "developer", "task-af5268b3", "SHOOT the teaser")
-    assert name == "MAC Developer #af5268b3 (SHOOT the teaser)"
+    name = config.worker_session_name("mac", "developer", "task-af5268b3", "SHOOT the teaser",
+                                      head="OrgRestructure")
+    assert name == "Dev#af5 - OrgRestructure: SHOOT the teaser"
 
 
 def test_session_name_shape_winbox_browser_operator():
     name = config.worker_session_name(
         "winbox", "browser_operator", "task-4a59a1a4", "SHOOT the teaser")
-    assert name == "WINDOWS Browser Operator #4a59a1a4 (SHOOT the teaser)"
+    assert name == "Browser#4a5 - SHOOT the teaser"
 
 
 def test_session_name_shape_contabo_unknown_role_falls_back_to_raw_key():
     # display_for() falls back to the raw role key for a role with no
     # policies/agents.yaml entry -- worker_session_name must not raise.
     name = config.worker_session_name("contabo", "some_new_role", "task-00000000", "x")
-    assert name.startswith("CONTABO some_new_role #00000000")
+    assert name == "Somenewrol#000 - x"
 
 
 def test_session_name_no_title_omits_parens():
-    name = config.worker_session_name("mac", "developer", "task-af5268b3", "")
-    assert name == "MAC Developer #af5268b3"
+    assert config.worker_session_name("mac", "developer", "task-af5268b3", "") == "Dev#af5"
+    assert config.worker_session_name("mac", "developer", "task-af5268b3", "",
+                                      head="CTO") == "Dev#af5 - CTO"
 
 
 def test_session_name_truncates_long_title_to_40_chars():
     long_title = "x" * 80
     name = config.worker_session_name("mac", "developer", "task-abcd1234", long_title)
     assert "…" in name
-    title_part = name.split("(", 1)[1]
-    assert len(title_part) <= 42  # 40 chars + ellipsis + ")"
+    job = name.split(" - ", 1)[1]
+    assert len(job) <= 41  # 40 chars + ellipsis
 
 
 def test_clean_title_strips_newlines():
@@ -91,24 +95,25 @@ def test_session_name_via_clean_title_has_no_newline():
 # 2. The task id stays parseable back out of the rendered name.
 # ---------------------------------------------------------------------------
 
-_SHORT_ID_RE = re.compile(r"#([0-9a-fA-F]{8})\b")
+_SHORT_ID_RE = re.compile(r"#([0-9a-f]{3})\b")
 
 
 def test_short_id_is_findable_in_new_form():
+    # The name shows 3 hex for the eye; the full id lives in the tmux name and the
+    # hub, and tools/live_sessions.py restores it from there.
     task_id = "task-af5268b3"
     name = config.worker_session_name("mac", "developer", task_id, "some title")
     m = _SHORT_ID_RE.search(name)
-    assert m is not None
-    assert m.group(1) == "af5268b3"
+    assert m is not None and m.group(1) == "af5"
 
 
-def test_short_id_matches_task_id_suffix_for_every_host():
+def test_short_id_matches_task_id_prefix_for_every_host():
     task_id = "task-4a59a1a4"
     for host in ("mac", "winbox", "contabo"):
         name = config.worker_session_name(host, "developer", task_id, "t")
         m = _SHORT_ID_RE.search(name)
         assert m is not None
-        assert task_id.endswith(m.group(1))
+        assert task_id[len("task-"):].startswith(m.group(1))
 
 
 # ---------------------------------------------------------------------------

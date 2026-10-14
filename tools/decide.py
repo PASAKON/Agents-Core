@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import sys
@@ -65,6 +66,12 @@ from lib.config import _read_dotenv_var  # noqa: E402
 
 DECISIONS_DIR = ROOT / "config" / "decisions"
 PROVIDERS_FILE = DECISIONS_DIR / "_providers.yaml"
+
+# Haiku 5.5 bills a request at 5x when its total input (cache reads and writes
+# included) is over 100k tokens. A decide() call is one request, so its
+# tokens_in is the request size. Log-only flag on the ledger row (task-d4498b47).
+PROMPT_CLIFF_TOKENS = 100000  # strictly greater -> "over"
+PROMPT_CLIFF_NEAR = 80000     # >= this and not over -> "near"
 
 MAX_OPTIONS = 255  # Jev's cardinality cap (research/2026-09-22-typesafe-jev-system-one-models.md)
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -106,6 +113,39 @@ def _provider_gate(rung: str) -> None:
             f"{setting or '(unset)'!r}; set DECIDE_PROVIDER=jev or "
             f"openrouter to enable {rung})"
         )
+
+
+def prompt_cliff_label(tokens_in) -> str | None:
+    """Return 'over', 'near' or None for one request's input tokens. A bool, a
+    non-number, a negative or a non-finite value gets no label."""
+    if isinstance(tokens_in, bool) or not isinstance(tokens_in, (int, float)):
+        return None
+    if not math.isfinite(tokens_in) or tokens_in < 0:
+        return None
+    if tokens_in > PROMPT_CLIFF_TOKENS:
+        return "over"
+    if tokens_in >= PROMPT_CLIFF_NEAR:
+        return "near"
+    return None
+
+
+def _flag_price_cliff(row: dict) -> None:
+    """Log-only: tag the ledger row (and warn on stderr when over). Never
+    raises, never blocks, never changes what decide() returns."""
+    try:
+        label = prompt_cliff_label(row.get("tokens_in"))
+        if label is None:
+            return
+        row["prompt_cliff"] = label
+        if label == "over":
+            print(
+                f"[price-cliff] decide site={row.get('site')} provider={row.get('provider')} "
+                f"tokens_in={row.get('tokens_in')} > {PROMPT_CLIFF_TOKENS} "
+                "— billed at the >100k rate if this model is Haiku 5.5",
+                file=sys.stderr,
+            )
+    except Exception:  # noqa: BLE001 - telemetry must not take down the decision
+        pass
 
 
 class DecisionError(Exception):
@@ -571,6 +611,7 @@ def decide(
         "error": result.get("error"),
         "extra": result.get("extra"),
     }
+    _flag_price_cliff(row)
     decision_ledger.append(row)
 
     return Decision(

@@ -29,10 +29,13 @@ from lib import router as host_router
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
-    self_host, worker_session_name as get_worker_session_name,
+    self_host, worker_head, worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
 from lib.proc import pid_alive
+from lib import resource_gate
+from lib import roles as org_roles
+from lib import session_names
 from tools import disk_queue
 from tools import send_to_cto
 from tools import storage_policy
@@ -724,7 +727,8 @@ async def _auto_kickoff(task_id: str, message: str) -> None:
         if task and (task.get("status") == "failed" or
                      await _trust_prompt(task, task.get("tmux_session"))):
             return
-        result = await asyncio.to_thread(send_to_worker_send, task_id, message)
+        result = await asyncio.to_thread(send_to_worker_send, task_id, message,
+                                         **_letter_subject(f"kickoff {task_id}"))
         info(f"kickoff task={task_id}: {result}")
     except Exception as e:
         warn(f"kickoff failed task={task_id}: {e}")
@@ -828,6 +832,13 @@ def _live_worker_alive(task: dict) -> bool:
         return False
 
 
+def _letter_subject(subject: str) -> dict:
+    """`subject=` for send_to_worker under envelope mail (ORG_MAIL_ENVELOPE);
+    nothing when the flag is off, so the call is exactly the old one."""
+    from lib import mailbox
+    return {"subject": subject} if mailbox.envelope_on() else {}
+
+
 REOPEN_LIVE_MSG = (
     "The CTO reopened this task (iteration {iteration}). TASK.md was rewritten "
     "with the CTO feedback on top -- re-read it, act on the feedback, then "
@@ -860,7 +871,9 @@ async def _resume_live_worker(task: dict, role_name: str) -> dict | None:
     from tools.send_to_worker import send as send_to_worker_send
     msg = REOPEN_LIVE_MSG.format(iteration=task.get("iteration"))
     try:
-        await asyncio.to_thread(send_to_worker_send, task_id, msg)
+        await asyncio.to_thread(
+            send_to_worker_send, task_id, msg,
+            **_letter_subject(f"reopen {task_id}: iteration {task.get('iteration')}"))
         note = "reopen pointer queued to its mailbox"
     except Exception as e:  # the claim stands; the CTO must message it
         note = f"mailbox send FAILED ({e}) -- message the worker yourself"
@@ -982,6 +995,21 @@ def _ps_quote(value: str) -> str:
     quoting rules, not Python's."""
     escaped = value.replace("`", "``").replace('"', '`"').replace("$", "`$")
     return f'"{escaped}"'
+
+
+def _check_windows_spawn_values(values: dict) -> None:
+    """Raise ValueError unless every value fullmatches the pattern
+    tools/node_dispatch.py holds spawn-worker.ps1's parameters to. The ssh
+    command to winbox is parsed by cmd.exe first, so no value may carry a
+    character cmd.exe acts on ('"', '&', '|', '%', '^', '<', '>')."""
+    from tools import node_dispatch as nd  # lazy: node_dispatch imports this module
+    patterns = dict(nd._SPAWN_PARAMS)
+    patterns.update(Launcher=nd._PS_SAFE_RE, WorkDir=nd._PS_SAFE_RE)
+    for name, value in values.items():
+        if name in ("RunnerModel", "WorkDir") and not value:
+            continue
+        if not isinstance(value, str) or not patterns[name].fullmatch(value):
+            raise ValueError(f"{name} {value!r:.80} is not safe to send to winbox; nothing was sent")
 
 
 def _local_sha256(path: Path) -> str:
@@ -1468,14 +1496,31 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # once here (single source of truth) and handed to the launcher rather
     # than recomputed in PowerShell.
     session_name = get_worker_session_name(host_name, role_name, task_id,
-                                           task.get("title") or "")
+                                           task.get("title") or "",
+                                           head=worker_head(task))
 
     if os_name == "windows":
+        # The command below crosses winbox's cmd.exe, which ignores _ps_quote's
+        # backticks: a '"' or '&' in the title ran a command there. Free text goes
+        # in filtered, and every value is checked before anything is sent.
+        session_name = get_worker_session_name(
+            host_name, role_name, task_id,
+            session_names.windows_safe(task.get("title") or "", session_names.WORKER_JOB_MAX),
+            head=session_names.windows_safe(worker_head(task)))
+        remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
+        remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+        _check_windows_spawn_values({
+            "Launcher": remote_ps1, "Task": task_id, "Project": project_key,
+            "Role": role_name, "Branch": branch, "Base": base, "RepoUrl": repo_url,
+            "RepoPath": repo_path, "WorktreeRoot": worktree_root,
+            "ClaudeArgs": claude_args, "Model": model, "Effort": effort,
+            "TaskFile": remote_task_file, "SessionName": session_name, "Runner": runner,
+            "RunnerModel": str(task.get("runner_model") or ""),
+            "WorkDir": str(work_dir or ""),
+        })
         deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
 
         prompt = _remote_runner_prompt(task, proj, remote_worktree, runner)
-        remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
-        remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
 
         remote_cmd = (
             f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "
@@ -1940,6 +1985,42 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
     return db.get_task(task_id)
 
 
+_ACTOR_PART_RE = re.compile(r"[A-Za-z0-9_-]{1,40}")
+_ROUTER_REASON_MAX = 200
+
+
+def _delegating_actor() -> str:
+    """`<role>-<session id>` of the session delegating, else the role alone,
+    else "cto". A part that is not a short plain token is dropped, so the env
+    cannot write a newline or a page of text into events.actor."""
+    role = (os.environ.get("CXO_ROLE") or "").strip()
+    sid = (os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID") or "").strip()
+    role = role if _ACTOR_PART_RE.fullmatch(role) else ""
+    sid = sid if _ACTOR_PART_RE.fullmatch(sid) else ""
+    if sid:
+        return f"{role or 'cto'}-{sid}"
+    return role or "cto"
+
+
+def _log_router_off(task: dict, pinned: bool) -> None:
+    """One hub event per delegate that ORG_ROUTER=off sent past the router
+    (plan §4.3 M1, Q-20261013-1745-f56c): the weekly tool-value report counts
+    them beside the hand pins. `pinned`: a runner pin or model_hint=claude
+    would have skipped the router anyway. Never blocks the delegate."""
+    payload = {
+        "reason": "".join(c for c in os.environ.get("ORG_ROUTER_REASON", "")
+                          if c.isprintable())[:_ROUTER_REASON_MAX],
+        "runner": task.get("runner"),
+        "model_hint": task.get("model_hint"),
+        "pinned": pinned,
+    }
+    try:
+        with db.get_conn() as conn:
+            db.log_event(conn, task.get("id"), _delegating_actor(), "router_off", payload)
+    except Exception as e:  # noqa: BLE001 — logging must never stop a spawn
+        warn(f"router_off event not logged task={task.get('id')}: {e}")
+
+
 def _route_runner(task: dict, role_name: str, host: str) -> str | None:
     from tools import route  # noqa: PLC0415 — outside try so PermissionError escapes
     refusal = route.check_override(task)
@@ -1948,9 +2029,12 @@ def _route_runner(task: dict, role_name: str, host: str) -> str | None:
         warn(refusal)
         raise PermissionError(refusal)
     try:
-        if (task.get("runner")
-                or (task.get("model_hint") or "").strip().lower() == "claude"
-                or os.environ.get("ORG_ROUTER", "").strip().lower() == "off"):
+        router_off = os.environ.get("ORG_ROUTER", "").strip().lower() == "off"
+        pinned = bool(task.get("runner")
+                      or (task.get("model_hint") or "").strip().lower() == "claude")
+        if router_off:
+            _log_router_off(task, pinned)
+        if pinned or router_off:
             return None
 
         touches = task.get("touches")
@@ -2004,7 +2088,152 @@ def _keep_host_line(task_id: str, line: str) -> None:
                       actor="cto")
 
 
+# Org restructure P2 (docs/design/org-restructure-p2.md) — a Project Head's
+# worker cap (plan §3.2). Live = a worker that is running, waiting out a rate
+# limit, queued for a mesh host or stalled. Enforced on every delegate of a task
+# a Project Head owns, whatever this process's ORG_PH_ROLES says (the watchdog's
+# disk-queue drain and the mesh far side delegate too); the flag only gates
+# launching a Project Head.
+#
+# A delegate that passes the cap writes a slot marker, state/locks/ph-slots/
+# <owner>--<task id>, holding its pid, and delegate_task removes it when it
+# returns. Counting and writing happen under one flock per owner, so two
+# delegates started together — the model's parallel tool calls,
+# delegate_parallel, the watchdog beside the MCP server — cannot both take the
+# last slot. A marker whose pid is dead or whose row has left 'pending' no
+# longer counts. Same host only: a Project Head and its workers run on Contabo
+# (cross-host is plan Phase 4).
+_PH_LIVE_STATUSES = ("in_progress", "rate_limited", "queued_remote", "stalled")
+_PH_SLOTS_DIR = ROOT / "state" / "locks" / "ph-slots"
+_PH_ID_RE = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+def _ph_max_workers() -> int:
+    try:
+        from lib.config import role as _role
+        return int(_role(org_roles.PH_ROLE).get("max_workers", 2))
+    except (ValueError, TypeError, KeyError, OSError):
+        return 2
+
+
+def _ph_caller() -> str | None:
+    """The session id of the Project Head this process serves ("" if it has
+    none), or None when the caller is not a Project Head."""
+    if not org_roles.is_project_head(os.environ.get("CXO_ROLE")):
+        return None
+    return (os.environ.get("CXO_SESSION_ID") or "").strip()
+
+
+def _ph_ownership_refusal(task: dict) -> str | None:
+    """A Project Head delegates only a task stamped with its own role and id
+    (security review of f73fa02f: its launcher unsets CTO_SESSION_ID, so the
+    CTO ownership rule would let it start anyone's worker)."""
+    me = _ph_caller()
+    if me is None:
+        return None
+    if me and task.get("owner_cto") == me and org_roles.is_project_head(task.get("owner_role")):
+        return None
+    return (f"a Project Head delegates only its own tasks: {task.get('id')} belongs to "
+            f"{task.get('owner_role') or 'cto'}-{task.get('owner_cto') or '?'}, you are "
+            f"project_head-{me or '?'} (plan §3.2). Ask its owner instead.")
+
+
+def _ph_slot_name(owner: str, task_id: str) -> str:
+    return f"{owner}--{task_id}"
+
+
+def _ph_held_slots(slots: Path, owner: str, live: set[str]) -> set[str]:
+    """Task ids holding a slot marker for `owner` that still count."""
+    held = set()
+    for m in slots.glob(f"{owner}--*"):
+        tid = m.name.split("--", 1)[1]
+        try:
+            pid = int(m.read_text(encoding="ascii").strip())
+        except (OSError, ValueError):
+            pid = 0
+        row = db.get_task(tid) if tid not in live else None
+        if tid in live or pid <= 1 or not pid_alive(pid) or not row or row.get("status") != "pending":
+            m.unlink(missing_ok=True)  # counted by the hub already, or nobody holds it
+            continue
+        held.add(tid)
+    return held
+
+
+def _ph_cap_refusal(task: dict) -> str | None:
+    """None, or why this Project Head may not start another worker now.
+    Applies only to a task a Project Head owns. On None this delegate holds a
+    slot marker until `_ph_release_slot` (delegate_task's finally)."""
+    if not org_roles.is_project_head(task.get("owner_role")):
+        return None
+    import fcntl  # noqa: PLC0415 — POSIX only; a PH runs on Contabo
+    owner = task.get("owner_cto") or ""
+    if not _PH_ID_RE.fullmatch(owner) or not _PH_ID_RE.fullmatch(task.get("id") or ""):
+        return f"Project Head worker cap: malformed owner {owner!r} on {task.get('id')!r}"
+    slots = Path(_PH_SLOTS_DIR)
+    slots.mkdir(parents=True, exist_ok=True)
+    with open(slots / f".{owner}.flock", "w", encoding="utf-8") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            live = {
+                t["id"]
+                for status in _PH_LIVE_STATUSES
+                for t in db.list_tasks(status=status, owner_cto=owner, limit=500)
+                if org_roles.is_project_head(t.get("owner_role"))
+            }
+            others = (live | _ph_held_slots(slots, owner, live)) - {task["id"]}
+            cap = _ph_max_workers()
+            if len(others) >= cap:
+                return (f"Project Head worker cap: {len(others)}/{cap} workers live for "
+                        f"project_head-{owner} ({', '.join(sorted(others))}) — plan §3.2. "
+                        f"Wait for one to report, then delegate again.")
+            (slots / _ph_slot_name(owner, task["id"])).write_text(str(os.getpid()), encoding="ascii")
+            return None
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
+def _ph_release_slot(task_id: str) -> None:
+    """Drop the slot marker this process wrote for `task_id`. Never raises."""
+    try:
+        if not _PH_ID_RE.fullmatch(task_id or "") or not Path(_PH_SLOTS_DIR).is_dir():
+            return
+        for m in Path(_PH_SLOTS_DIR).glob(f"*--{task_id}"):
+            try:
+                if int(m.read_text(encoding="ascii").strip()) == os.getpid():
+                    m.unlink(missing_ok=True)
+            except (OSError, ValueError):
+                continue
+    except Exception as e:  # noqa: BLE001 — a release must never fail a delegate
+        warn(f"Project Head slot not released task={task_id}: {e}")
+
+
+def _p2_spawn_refusal(task: dict, resolved_host: str | None, this_host: str | None) -> str | None:
+    """Org restructure P2 gates: the resource gate (ORG_SPAWN_GATE, plan §7.3)
+    for a spawn on this machine, then a Project Head's worker cap (plan §3.2)."""
+    if resolved_host == this_host:
+        why = resource_gate.check()
+        if why:
+            return why
+    return _ph_cap_refusal(task)
+
+
 async def delegate_task(task_id: str, *, wait: bool = False,
+                         timeout_s: float = DEFAULT_TIMEOUT_S,
+                         kickoff: str | None = None,
+                         host: str | None = None,
+                         dry_run: bool = False) -> dict:
+    """Open DEV in a new iTerm tab. Fire-and-forget by default.
+
+    (The body is `_delegate_task`; this wrapper only releases a Project
+    Head's worker slot marker however the body returns or raises.)"""
+    try:
+        return await _delegate_task(task_id, wait=wait, timeout_s=timeout_s,
+                                    kickoff=kickoff, host=host, dry_run=dry_run)
+    finally:
+        _ph_release_slot(task_id)
+
+
+async def _delegate_task(task_id: str, *, wait: bool = False,
                          timeout_s: float = DEFAULT_TIMEOUT_S,
                          kickoff: str | None = None,
                          host: str | None = None,
@@ -2042,6 +2271,11 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             f"task {task_id} already {task['status']} — refusing to re-delegate "
             f"merged work (use reopen_task if a redo is intended)"
         )
+    # Before the disk queue below: a refused task must not be parked there for
+    # the watchdog to start later under its own identity.
+    not_yours = _ph_ownership_refusal(task)
+    if not_yours:
+        raise PermissionError(not_yours)
 
     # Host resolution (Phase 1): explicit arg > tasks.host > self_host(). Computed
     # here, ahead of storage reclaim/disk-floor below (task-a5c0549d,
@@ -2177,6 +2411,12 @@ async def delegate_task(task_id: str, *, wait: bool = False,
             )
         except Exception as e:  # never let a mailbox failure break the refusal
             warn(f"disk queue: notify owner failed task={task_id}: {e}")
+        return db.get_task(task_id)
+
+    p2_refusal = _p2_spawn_refusal(task, resolved_host, this_host)
+    if p2_refusal:
+        warn(f"P2 gate blocked task={task_id}: {p2_refusal}")
+        db.set_fields(task_id, delegate_log=p2_refusal, actor="cto")
         return db.get_task(task_id)
 
     role_name = task["role"]

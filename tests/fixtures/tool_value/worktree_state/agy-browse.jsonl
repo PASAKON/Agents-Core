@@ -1,0 +1,2 @@
+{"ts": "2026-10-07T10:11:03.790204Z", "verb": "text", "port": 9283, "host": "example.org", "args": ["body"], "exit": 0}
+{"ts": "2026-10-09T09:00:00.000000Z", "verb": "shot", "port": 9283, "host": "example.org", "args": [], "exit": 0}

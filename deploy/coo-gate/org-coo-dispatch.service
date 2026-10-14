@@ -1,0 +1,31 @@
+# Rendered by deploy/coo-gate/install.sh into /etc/systemd/system/org-coo-dispatch.service (Contabo).
+# @ROOT@ is filled in there; do not copy this file by hand.
+#
+# The COO dispatcher (runners/coo_dispatch.py), root: starts the workers SomPong's gate requests
+# queue (CEO cards Q-20261013-1948-4a33, Q-20261013-2010-091c), one at a time, only with >= 1 GB
+# free. data_analyst and browser_operator stay held (Q-20261013-2111-5ff5) until they have a box.
+#
+# No PrivateTmp: workers go into the shared root tmux server (/tmp/tmux-0/default) as new
+# sessions, so they live in the server's cgroup (org-tmux.scope), never in this unit's. The
+# dispatcher refuses to start a server itself. Restarting this unit kills no worker.
+[Unit]
+Description=COO dispatcher: starts SomPong's research workers
+After=network-online.target org-coo-gate.service
+Wants=network-online.target
+StartLimitIntervalSec=10min
+StartLimitBurst=10
+
+[Service]
+Type=simple
+WorkingDirectory=@ROOT@
+Environment=PYTHONUNBUFFERED=1
+Environment=ORG_HOST=contabo
+ExecStart=@ROOT@/scripts/hub/with-org-db-env.sh @ROOT@/.venv/bin/python -m runners.coo_dispatch
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+
+[Install]
+WantedBy=multi-user.target

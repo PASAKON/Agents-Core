@@ -1,0 +1,30 @@
+# Installed at /etc/systemd/system/spend-guard.service (Contabo; copy this file). Started by spend-guard.timer.
+#
+# Spend guard, phase 1 (CEO card Q-20261013-1958-bc81): every 15 min, read OpenRouter (credits + every key)
+# and fal (balance), mail the CEO on 50/80/100 % of a cap, a 3x burn spike or under 3 days of runway, and
+# pause a runaway OpenRouter key once armed. No model call. Ops + install: docs/ops/spend-guard.md.
+#
+# `timer` holds no secret: it runs `spend_guard.py check` under `infisical_setup.py run Agents-Core prod
+# --path /spend-guard` (OPENROUTER_API_KEY_ADMIN, FAL_BILLING_API_KEY_RO), and mails "guard blind" itself
+# when that never started. Mail goes through the Console's CEO mail API as session cto-spend-guard (the Run
+# token is root's ~/.config/mooniex/run-inbox.token). Code runs from a deploy worktree pinned at the landed
+# sha; data lives under ORG_ROOT/state/spend_guard. Exit 1 = a provider is blind (already mailed),
+# 3 = the mail could not be delivered (the next run retries).
+[Unit]
+Description=Spend guard: OpenRouter + fal spend check (tools/spend_guard.py)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=ORG_ROOT=/opt/MoonieXHQ/Agents/Core
+Environment=ORG_MACHINE=contabo
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/worktrees/spend-guard-deploy/tools/spend_guard.py timer
+Nice=10
+MemoryMax=200M
+TimeoutStartSec=240
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full

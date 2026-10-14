@@ -182,7 +182,11 @@ def test_nothing_in_python_registers_the_wake_task():
 # tmux nudge went through) instead of None. Same calls, same log lines, same
 # never-raise; only the `return`s and the docstring changed. Was
 # 6648aaf8eb1d72ca1aa7bfd282083718339bb259f0b8acdf06e05d37857ee7d2.
-_ATTEMPT_WAKE_POSIX_SHA = "57f3750deaf1475da905c867b6e049025dbdf39073815208caa596b9b8f50d5f"
+# Re-pinned by the org restructure P2 security review (PH #3c1f65ae): the marker
+# line types `_safe_label(label)`, so a sender's label can carry no CR or bracket
+# into a pane. That one line is the only change. Was
+# 57f3750deaf1475da905c867b6e049025dbdf39073815208caa596b9b8f50d5f.
+_ATTEMPT_WAKE_POSIX_SHA = "ad3f00dd37a00ef378553c9213fe525997fcb4b3bf7f26317a95a9137073804f"
 _WAKE_TMUX_SEND_SHA = "05bb50d29eff03c0a8792b5c82497b786d28104d0c29d20a86ef5896ee84c42b"
 
 

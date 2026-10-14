@@ -106,6 +106,10 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
 - Design: `docs/design/tasks-db-hub.md`. Machines and cross-machine calls:
   `docs/design/org-mesh.md`; health check `tools/mesh_check.py` (`docs/ops/mesh-check.md`).
 
+## Messaging another session (CEO 2026-10-13, every C-level, every machine)
+
+Before any `SendMessage` or `send_to_cxo`, run `bash scripts/live-sessions.sh` (one call, every host, under 1k tokens) and send only to a name it prints, verbatim — never to a name from memory or an old ListAgents list; "N agents are named X" → re-send with the `[ref]` the error marks active. Design + rollout: `docs/ops/live-sessions.md`.
+
 ## Contabo — one tmux server holds every session
 
 - Every C-level, worker and SomPong pane runs in ONE root tmux server (`/tmp/tmux-0/default`).
@@ -122,6 +126,16 @@ Whenever a repo is cloned onto (or removed from) the Contabo box, update BOTH:
 - Start a new shared server from a service, or with `DBUS_SESSION_BUS_ADDRESS` and
   `XDG_RUNTIME_DIR` unset. Started from an ssh login, tmux 3.4 puts every pane under
   `user@0.service`, outside the server's scope.
+
+## Questions to the CEO go on a question card (CEO 2026-10-13, every C-level)
+
+A question for the CEO (a choice, a go/no-go, "which one?") that he is not answering in your chat right
+now goes on a Run Inbox **question card**: org MCP `ask_ceo`, CLI `tools/ask_run.py ask`. Do not leave it
+waiting in chat or hand it to SomPong to relay. He taps an answer on terminal.mooniex.com/run, and
+`ask_run_wait Q-…` returns it. Only he can answer, and that hub record is his decision: cite the `Q-…` id
+when you act on it. **A question card never replaces a command card.** Anything that runs a command,
+spends money or touches a secret goes on a command card (`ask_run`, Face ID). Rules: skill
+`ALL_Protocol_RunInbox` §Question cards. The Mac and winbox have no run-inbox token yet; ask in chat there.
 
 ## Secrets — Infisical rules in force (CEO 2026-09-25/26, every role, every machine)
 

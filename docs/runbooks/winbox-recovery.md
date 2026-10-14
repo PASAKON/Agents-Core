@@ -1,170 +1,170 @@
-# winbox — กู้ระบบจากมือถือ
+# winbox — System recovery from phone
 
-**สำหรับช่วง 12–19 ก.ย. 2026 ที่ CEO ไม่อยู่**
-เครื่อง: `DESKTOP-3NQB2QO` · Tailscale `100.123.83.75`
+**For 12–19 Sep 2026 while the CEO is away**
+Machine: `DESKTOP-3NQB2QO` · Tailscale `100.123.83.75`
 
 ---
 
-## 👵 ถ้าต้องขอให้คุณแม่ช่วย — พูดแค่นี้พอ
+## 👵 If you need to ask Mom for help — say only this
 
-**ยืนยันแล้ว: มีคุณแม่อยู่บ้านตลอด 7 วัน** นั่นปิดช่องว่างเรื่อง "ไม่มีใครกดปุ่ม"
+**Confirmed: Mom is home all 7 days.** That closes the "no one to press the button" gap.
 
-**สิ่งเดียวที่ควรขอ:**
+**The only thing to ask:**
 
-> "แม่ครับ ช่วยกดปุ่มเปิดคอมเครื่องใหญ่ในห้องให้หน่อย แล้วปล่อยไว้เฉย ๆ ไม่ต้องทำอะไรต่อ"
+> "แม่ครับ ช่วยกดปุ่มเปิดคอมเครื่องใหญ่ในห้องให้หน่อย แล้วปล่อยไว้เฉย ๆ ไม่ต้องทำอะไรต่อ" (Mom, please press the power button on the big computer in the room, then leave it alone.)
 
-หรือถ้าเน็ตมีปัญหา:
+Or if the internet has a problem:
 
-> "แม่ครับ ช่วยถอดปลั๊กเราเตอร์ รอ 10 วินาที แล้วเสียบกลับ"
+> "แม่ครับ ช่วยถอดปลั๊กเราเตอร์ รอ 10 วินาที แล้วเสียบกลับ" (Mom, please unplug the router, wait 10 seconds, then plug it back in.)
 
-**เท่านั้น ห้ามขอมากกว่านี้** — ห้ามให้พิมพ์คำสั่ง ห้ามให้อ่านหน้าจอแล้วบอกว่าเขียนว่าอะไร
-ห้ามให้กดอะไรในหน้าจอ ทุกอย่างที่เหลือ CTO ทำต่อเองได้จากระยะไกล **ขอแค่ให้เครื่องมีไฟ**
+**That is all — do not ask for more than this** — do not ask her to type commands, do not ask her to read the screen and tell you what it says,
+do not ask her to click anything on the screen. The CTO can handle everything else remotely. **Just get power to the machine.**
 
-⚠️ **ถ้า auto-logon ยังปิดอยู่** กดปุ่มเปิดแล้วเครื่องจะไปค้างที่หน้าใส่รหัส Windows
-แปลว่าต้องมีคนพิมพ์รหัส ซึ่งเป็นสิ่งที่เราไม่อยากขอจากคุณแม่
-**เปิด auto-logon แล้วปัญหานี้หายไป — กดปุ่มเดียวจบ**
+⚠️ **If auto-logon is still off**, pressing the power button leaves the machine stuck at the Windows password screen.
+That means someone has to type the password, which is what we do not want to ask Mom to do.
+**Turn on auto-logon and this problem disappears — one button press is all it takes.**
 
-## รากของทุกปัญหาบนเครื่องนี้ — Session 0 กับ Session 1
+## Root of every problem on this machine — Session 0 vs Session 1
 
-วัดจริงเมื่อ 11 ก.ย. 22:05 ขณะที่ Astra กำลังทำงาน:
+Measured on 11 Sep at 22:05 while Astra was working:
 
 | process | SessionId |
 |---|---|
-| `codex.exe` ที่ CTO เรียกผ่าน SSH | **0** |
-| คำสั่ง SSH ของ CTO เอง | **0** |
-| คนที่ล็อกอินหน้าจอจริง | `DESKTOP-3NQB2QO\UsEr` (Session **1**) |
-| หน้าต่างที่มองเห็นได้จากฝั่ง SSH | **0 หน้าต่าง** |
+| `codex.exe` called by CTO via SSH | **0** |
+| CTO's own SSH commands | **0** |
+| User logged in on the physical screen | `DESKTOP-3NQB2QO\UsEr` (Session **1**) |
+| Windows visible from the SSH side | **0 windows** |
 
-**Windows แยกสองฝั่งนี้ขาดจากกันตั้งแต่ Vista (Session 0 Isolation)**
-Session 0 คือฝั่งบริการ — ไม่มีเดสก์ท็อป วาดหน้าต่างไม่ได้ แคปหน้าจอไม่ได้
-**SSH ลงที่ Session 0 เสมอ**
+**Windows has completely isolated these two sides since Vista (Session 0 Isolation)**
+Session 0 is the service side — no desktop, cannot draw windows, cannot capture the screen.
+**SSH always lands in Session 0.**
 
-**นี่คือคำอธิบายเดียวของทุกอาการที่เจอ:**
-- ทำไม Astra ไม่มีหน้าต่าง terminal เหมือน worker ตัวอื่น → มันอยู่ในฝั่งที่วาดหน้าต่างไม่ได้
-- ทำไมเครื่องมืออ่าน/เขียนไฟล์ของ Astra ค้าง (`timed out connecting runner pipe-in`)
-- ทำไม Resolve และ Chrome สั่งจาก SSH ตรง ๆ ไม่ได้
+**This is the single explanation for every symptom seen:**
+- Why Astra has no terminal window like other workers → it is on the side that cannot draw windows
+- Why Astra's file read/write tools hang (`timed out connecting runner pipe-in`)
+- Why Resolve and Chrome cannot be launched directly from SSH
 
-**ไม่ใช่การตั้งค่าผิด และแก้ด้วยการตั้งค่าไม่ได้**
+**This is not a misconfiguration, and it cannot be fixed by configuration.**
 
-### ยิงข้ามไป Session 1 ได้ — พิสูจน์แล้ว
+### Crossing into Session 1 works — proven
 
-scheduled task แบบ interactive (`schtasks /Create ... /IT` แล้ว `/Run`) รันใน Session 1 จริง
-ทดสอบ 11 ก.ย. 22:08 ได้ผล `session=1 user=desktop-3nqb2qo\user`
+An interactive scheduled task (`schtasks /Create ... /IT` then `/Run`) actually runs in Session 1.
+Tested on 11 Sep at 22:08 with result `session=1 user=desktop-3nqb2qo\user`.
 
-**นี่คือท่อที่จะทำให้ Astra ใช้ computer use ได้ และทำให้สั่ง Resolve/Chrome ได้โดยไม่ต้องมีคน**
-แต่ **ยังไม่ได้เปิดใช้** — ต้องให้ CEO อนุมัติก่อน เพราะเท่ากับปล่อย AI เข้าคุมเดสก์ท็อปเต็มสิทธิ์
+**This is the pipe that will let Astra use computer use and let us run Resolve/Chrome without a human**
+But it is **not enabled yet** — it needs CEO approval first, because it gives AI full control of the desktop.
 
-## อ่านตรงนี้ก่อน 10 วินาที
+## Read this first — 10 seconds
 
-**ท่อที่ทนรีบูตได้เองโดยไม่ต้องมีคน:**
+**Pipes that survive a reboot on their own without a human:**
 
-| ท่อ | รอดไหม | เพราะ |
+| Pipe | Survives? | Why |
 |---|---|---|
-| SSH จาก CTO | ✅ | `sshd` เป็น Automatic service |
-| Tailscale | ✅ | Automatic service เหมือนกัน |
-| สั่ง Astra / Codex | ✅ | ทำงานผ่าน SSH ไม่ต้องใช้หน้าจอ |
-| Browser worker / Resolve | ❌ | ต้องมี desktop session |
+| SSH from CTO | ✅ | `sshd` is an Automatic service |
+| Tailscale | ✅ | Also an Automatic service |
+| Calling Astra / Codex | ✅ | Works over SSH, needs no screen |
+| Browser worker / Resolve | ❌ | Needs a desktop session |
 
-**แปลว่า: ไฟดับแล้วเครื่องกลับมา → ผมยังสั่งงานได้ และ Astra ยังทำงานได้**
-สิ่งที่หายคือ **งานที่ต้องใช้หน้าจอ** จนกว่าจะมีคน login
+**Meaning: power goes out and the machine comes back → I can still dispatch work and Astra can still work**
+What is lost is **work that needs the screen** until someone logs in.
 
 ---
 
-## เช็คสุขภาพ — คำสั่งเดียว
+## Health check — one command
 
 ```bash
 bash scripts/winbox-drill.sh
 ```
 
-รันได้ทุกเมื่อ ใช้เวลาไม่ถึงนาที มันไม่ได้อ่านค่า config แล้วเชื่อ — **มันใช้ท่อจริงทุกท่อ**
-เพราะ service ที่ขึ้นว่า "Automatic" แต่ค้างอยู่ มองจาก registry แล้วเหมือนกันเป๊ะ
+Can be run anytime and takes under a minute. It does not just read config values and trust them — **it tests every real pipe**,
+because a service marked "Automatic" that is actually hung looks identical from the registry.
 
-`--quick` = ข้ามการเรียก Astra (ประหยัด token ฝั่ง ChatGPT)
+`--quick` = skip calling Astra (saves ChatGPT tokens)
 
 ---
 
-## อาการ → วิธีแก้
+## Symptoms → Fixes
 
-### 1. SSH เข้าไม่ได้
+### 1. Cannot connect via SSH
 
 ```
 ssh: connect to host 100.123.83.75 port 22: Connection timed out
 ```
 
-**ไล่ตามลำดับ ห้ามข้าม:**
+**Follow in order — do not skip:**
 
-1. **รอ 5 นาทีก่อน** — ถ้าเครื่องเพิ่งรีบูต Tailscale ใช้เวลาขึ้นสักพัก เคยเจอมาแล้ววันที่ 11 ก.ย.
-   ตอนนั้นคิดว่าเครื่องตาย แต่ที่จริงแค่ยังบูตไม่เสร็จ
-2. เช็คว่าเครื่องยังอยู่ในวง Tailscale ไหม — จากเครื่องไหนก็ได้ที่อยู่ในวง:
+1. **Wait 5 minutes first** — if the machine just rebooted, Tailscale takes a moment to come up. We saw this on 11 Sep:
+   at the time we thought the machine was dead, but it just had not finished booting.
+2. Check whether the machine is still on the Tailscale network — from any machine on the network:
    ```bash
    tailscale status | grep desktop-3nqb2qo
    ```
-   - **ขึ้นแต่ offline** = เครื่องดับ หรือเน็ตบ้านล่ม → ต้องมีคนที่บ้านกดเปิด
-   - **ไม่ขึ้นเลย** = Tailscale ถูกถอด/logout → ต้องมีคนที่หน้าเครื่อง
-3. ถ้ามีคนอยู่ที่บ้าน: ให้กดปุ่ม power แล้วรอ 3 นาที **ไม่ต้องทำอะไรอีก** SSH กับ Tailscale
-   จะขึ้นเองทั้งคู่
+   - **Listed as offline** = machine is off or home internet is down → someone at home must press power
+   - **Not listed at all** = Tailscale was removed/logged out → someone must be at the physical machine
+3. If someone is at home: have them press the power button and wait 3 minutes. **Nothing else needed.** Both SSH and Tailscale
+   will come up on their own.
 
-**⚠️ ไม่มีทางแก้จากมือถือถ้าเครื่องดับสนิท** — นี่คือขีดจำกัดที่แก้ไม่ได้ด้วยซอฟต์แวร์
+**⚠️ There is no fix from a phone if the machine is completely off** — this is a limit that software cannot solve.
 
-### 2. SSH เข้าได้ แต่ Astra ไม่ตอบ
+### 2. SSH connects, but Astra does not respond
 
 ```bash
 ssh -n winbox 'codex login status'
 ```
 
-- **`Logged in using ChatGPT`** → ท่อดี ปัญหาอยู่ที่ prompt หรือโควต้า
-- **ไม่ใช่ข้อความนั้น** → **token หลุด ต้อง login ใหม่ ซึ่งต้องใช้คนกด**
-  → ต้องเข้าหน้าจอ (ดูข้อ 4) หรือรอ CEO กลับ
+- **`Logged in using ChatGPT`** → pipe is fine; the problem is the prompt or quota
+- **Anything else** → **token expired; must log in again, which requires a human to click**
+  → must access the screen (see item 4) or wait for the CEO to return
 
-**แอป Codex ปิดอยู่ = ไม่เป็นไร พิสูจน์แล้ว**
-CLI ที่ CTO เรียก (`AppData\Roaming\npm\codex.ps1`) เป็นคนละตัวกับแอป
-(`AppData\Local\OpenAI\Codex\bin\codex.exe`) **แชร์กันแค่ไฟล์ล็อกอิน `~/.codex/auth.json`**
-ทดสอบเมื่อ 11 ก.ย. 21:59 — ฆ่า process ของแอปทิ้งแล้วสั่ง Astra ใหม่ **ตอบกลับปกติ**
-และ **Codex ไม่ได้อยู่ในรายการเปิดเองตอน login** ดังนั้นหลังรีบูตแอปจะไม่กลับมา — ซึ่งไม่มีผล
-**อย่าไปพยายามเปิดแอปให้ ไม่จำเป็น**
+**Codex app closed = fine, proven**
+The CLI that the CTO calls (`AppData\Roaming\npm\codex.ps1`) is separate from the app
+(`AppData\Local\OpenAI\Codex\bin\codex.exe`). **They only share the login file `~/.codex/auth.json`.**
+Tested on 11 Sep at 21:59 — killed the app process and called Astra again: **responded normally**.
+Also, **Codex is not in the startup list at login**, so after a reboot the app will not come back — which has no effect.
+**Do not try to open the app; it is unnecessary.**
 
-**อาการที่ไม่ใช่ปัญหา:** Astra บอกว่าอ่านไฟล์ไม่ได้
-(`timed out connecting to the Windows sandbox runner`) — **อันนี้ปกติ**
-เครื่องมือของมันใช้ไม่ได้ผ่าน SSH ตั้งแต่แรก `scripts/astra.sh` เลยส่งเนื้อโจทย์เข้าไปตรง ๆ
-แทนที่จะให้มันไปอ่านไฟล์เอง **ห้ามไปไล่แก้เรื่องนี้ มันไม่ใช่ของเสีย**
+**Symptom that is not a problem:** Astra says it cannot read files
+(`timed out connecting to the Windows sandbox runner`) — **this is normal**.
+Its tools never worked over SSH in the first place, so `scripts/astra.sh` passes the prompt body directly
+instead of having it read files itself. **Do not try to fix this; it is not broken.**
 
-### 3. เครื่องเต็ม / ช้า
+### 3. Disk full / machine slow
 
 ```bash
 ssh -n winbox 'powershell -NoProfile -Command "[math]::Round((Get-PSDrive C).Free/1GB,1)"'
 ```
 
-ต่ำกว่า 30 GB = อันตราย · ของที่กินที่คือข้อมูล Cookie Run
-(`play_rec`, `modelplay`, `playset`) — **อ่าน `cookierun-bot/docs/DATA-STEWARD.md` ก่อนลบอะไร
-และต้องได้ CEO อนุมัติ ห้ามลบเอง**
+Under 30 GB = danger · What takes up space is Cookie Run data
+(`play_rec`, `modelplay`, `playset`) — **read `cookierun-bot/docs/DATA-STEWARD.md` before deleting anything,
+and get CEO approval; do not delete on your own.**
 
-### 4. ต้องมีคนกดหน้าจอ (login, OAuth, MFA, CAPTCHA)
+### 4. Someone must click on the screen (login, OAuth, MFA, CAPTCHA)
 
-**⚠️ ณ 11 ก.ย. 21:50 ยังไม่มีทางนี้ — VNC ยังไม่ได้ติดตั้ง**
+**⚠️ As of 11 Sep 21:50, this path does not exist yet — VNC is not installed**
 
-ถ้าติดตั้งแล้ว วิธีใช้จากมือถือ:
-1. เปิดแอป Tailscale บนมือถือ ให้แน่ใจว่าเชื่อมต่ออยู่
-2. เปิดแอป VNC (RealVNC Viewer / bVNC) → ต่อไปที่ `100.123.83.75`
-3. ใส่รหัส (CEO เก็บไว้)
-4. กดที่ต้องกด แล้วปิดแอป
+Once installed, how to use from a phone:
+1. Open the Tailscale app on the phone and make sure it is connected
+2. Open the VNC app (RealVNC Viewer / bVNC) → connect to `100.123.83.75`
+3. Enter the password (kept by the CEO)
+4. Click what is needed, then close the app
 
-**ไม่ต้องเปิดพอร์ตออกเน็ต ไม่มีลิงก์สาธารณะ** — มือถือ CEO อยู่ในวง Tailscale เดียวกันอยู่แล้ว
+**No need to open ports to the internet, no public links** — the CEO's phones are already on the same Tailscale network
 (`iphone-14-pro-max` `100.121.168.30`, `iphone-14-pro` `100.71.47.58`)
 
-### 5. MACHINE-LOCK ค้าง
+### 5. MACHINE-LOCK stuck
 
 ```bash
 ssh -n winbox 'powershell -NoProfile -Command "Get-Content C:\mooniex\MACHINE-LOCK.txt"'
 ```
 
-ถ้ามีชื่อค้างแต่ไม่มีอะไรรันอยู่จริง (เช่น worker ตายกลางคัน):
+If a name is left behind but nothing is actually running (e.g. a worker died mid-run):
 
 ```bash
 ssh -n winbox 'powershell -NoProfile -Command "Set-Content C:\mooniex\MACHINE-LOCK.txt -Value \"\""'
 ```
 
-**ห้ามเคลียร์ถ้าเวลาที่ประทับไว้ยังสด** — วันที่ 11 ก.ย. worker ตัวหนึ่งปฏิเสธไม่ยอมเขียนทับ
-lock ของ Astra ทั้งที่บรีฟสั่งให้เขียนทับ **มันทำถูก** เช็คก่อนว่ามี process จริงไหม:
+**Do not clear it if the timestamp is still fresh** — on 11 Sep, a worker refused to overwrite
+Astra's lock even though its brief told it to overwrite. **It did the right thing.** Check first whether a real process is running:
 
 ```bash
 ssh -n winbox 'powershell -NoProfile -Command "(Get-Process Resolve,chrome -ErrorAction SilentlyContinue).Count"'
@@ -172,19 +172,19 @@ ssh -n winbox 'powershell -NoProfile -Command "(Get-Process Resolve,chrome -Erro
 
 ---
 
-## สิ่งที่ยังไม่มีทางแก้ ไม่ว่าจะออกแบบยังไง
+## Things with no workaround, regardless of design
 
-พูดตรง ๆ ไว้ จะได้ไม่ไปวางแผนบนสิ่งที่เป็นไปไม่ได้:
+Stated plainly so we do not plan around the impossible:
 
-- **ไฟดับ / เครื่องดับสนิท** → ต้องมีคนกดปุ่ม
-- **เน็ตที่บ้านล่ม** → ต้องมีคนที่บ้าน
-- **รหัส MFA ที่เข้ามือถือ CEO** → ต้องเป็น CEO
-- **กด consent OAuth ครั้งแรก** → ต้องเป็นคน ตามการออกแบบ
-- **จ่ายเงิน / ต่ออายุ** → กฎองค์กร ไม่ใช่ข้อจำกัดทางเทคนิค
+- **Power outage / machine completely off** → someone must press the button
+- **Home internet down** → someone must be at home
+- **MFA code sent to the CEO's phone** → must be the CEO
+- **First-time OAuth consent click** → must be a human, by design
+- **Payments / renewals** → company rule, not a technical limit
 
 ---
 
-## ผลซ้อมล่าสุด — 11 ก.ย. 21:51
+## Latest drill result — 11 Sep 21:51
 
 ```
 PASS 12 · WARN 1 · FAIL 1

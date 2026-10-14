@@ -1,0 +1,23 @@
+{"tasks": [
+ {"id":"task-00000008","role":"developer","runner":"codex","status":"done","iteration":1,"description":"override: ceo-order test","created_at":"2026-10-08T01:00:00Z","touches":["a.py"]},
+ {"id":"task-00000009","role":"developer","runner":"agy","status":"done","iteration":0,"description":"override: personal preference","created_at":"2026-10-08T01:00:00Z","touches":["a.py"]},
+ {"id":"task-0000000a","role":"developer","runner":"claude","status":"done","iteration":null,"description":"Hand pinned","created_at":"2026-10-08T01:00:00Z","touches":["a.py"]},
+ {"id": "task-00000001", "role": "developer", "runner": "claude", "runner_model": null, "model_hint": "", "status": "done", "description": "override: in-session Agent run by CTO\n\nDo the thing.", "delegate_log": "", "touches": "[\"a.py\"]", "host": "contabo", "created_at": "2026-10-07T01:00:00+00:00"},
+ {"id": "task-00000002", "role": "developer", "runner": "claude", "runner_model": null, "model_hint": "", "status": "cancelled", "description": "Fix it.\noverride: review of a codex PR\n\nbody", "delegate_log": "", "touches": "[]", "host": "contabo", "created_at": "2026-10-08T01:00:00+00:00"},
+ {"id": "task-00000003", "role": "developer", "runner": "codex", "runner_model": "", "model_hint": "", "status": "done", "description": "Small change.", "delegate_log": "router: codex: (dev_general)", "touches": "[\"b.py\"]", "host": "contabo", "created_at": "2026-10-08T02:00:00+00:00"},
+ {"id": "task-00000004", "role": "developer", "runner": "agy", "runner_model": "gemini-3.8-flash-high", "model_hint": "", "status": "done", "description": "Medium change.", "delegate_log": "router: agy:gemini-3.8-flash-high", "touches": "[\"a\", \"b\", \"c\", \"d\"]", "host": "contabo", "created_at": "2026-10-09T02:00:00+00:00"},
+ {"id": "task-00000005", "role": "video_editor", "runner": null, "runner_model": null, "model_hint": null, "status": "done", "description": "Cut.", "delegate_log": null, "touches": "[]", "host": "contabo", "created_at": "2026-10-09T03:00:00+00:00"},
+ {"id": "task-00000006", "role": "developer", "runner": "claude", "runner_model": null, "model_hint": "", "status": "done", "description": "Old.", "delegate_log": "", "touches": "[]", "host": "contabo", "created_at": "2026-10-01T03:00:00+00:00"},
+ {"id": "task-00000007", "role": "developer", "runner": "claude", "runner_model": "claude-sonnet-5-5", "model_hint": "", "status": "review", "description": "Text\n\noverride: below the header does not count", "delegate_log": "router: claude:claude-sonnet-5-5", "touches": "[]", "host": "contabo", "created_at": "2026-10-10T03:00:00+00:00"}
+],
+"events": [
+ {"id":7,"task_id":"task-00000009","kind":"status_review","ts":"2026-10-08T02:00:00Z"},
+ {"id":8,"task_id":"task-00000009","kind":"status_pending","ts":"2026-10-08T03:00:00Z"},
+ {"id":9,"task_id":"task-00000009","kind":"status_done","ts":"2026-10-08T04:00:00Z"},
+ {"id": 1, "task_id": "task-00000007", "kind": "status_in_progress", "ts": "2026-10-10T03:01:00+00:00"},
+ {"id": 2, "task_id": "task-00000007", "kind": "status_review", "ts": "2026-10-10T04:00:00+00:00"},
+ {"id": 3, "task_id": "task-00000007", "kind": "status_in_progress", "ts": "2026-10-10T05:00:00+00:00"},
+ {"id": 4, "task_id": "task-00000007", "kind": "status_review", "ts": "2026-10-10T06:00:00+00:00"},
+ {"id": 5, "task_id": "task-00000003", "kind": "status_review", "ts": "2026-10-08T03:00:00+00:00"},
+ {"id": 6, "task_id": "task-00000003", "kind": "status_done", "ts": "2026-10-08T04:00:00+00:00"}
+]}

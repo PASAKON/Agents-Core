@@ -16,6 +16,11 @@ Multi-CTO filtering: DEV lines are surfaced only when the task belongs
 to this session (tasks.owner_cto) or has no owner; CTO-event lines
 tagged `CTO-event[LEVEL][<sid>]` by lib/notify are dropped when the sid
 is another session's. Untagged legacy lines pass through.
+
+Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1): at
+most ENVELOPE_MAX_LINES lines of cto.log, one event per line -- the header
+line, trimmed, with a pointer to the log when a body follows it. The newest
+events win; older ones are counted in a single line. Off, unchanged.
 """
 from __future__ import annotations
 
@@ -60,6 +65,10 @@ TS_RE = re.compile(r"^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\]")
 # Per-record cap, so one enormous report cannot crowd out the others. The
 # remainder is never lost, only left in the log with a pointer to it.
 MAX_BODY_LINES = 30
+
+ENVELOPE = os.environ.get("ORG_MAIL_ENVELOPE", "").strip().lower() in ("1", "true", "yes", "on")
+ENVELOPE_MAX_LINES = 10
+ENVELOPE_LINE_CHARS = 300
 
 
 def _read_offset(log_size: int) -> int:
@@ -158,6 +167,24 @@ def _group_records(lines: list[str]) -> list[list[str]]:
     return records
 
 
+def _one_line_per_event(records: list[list[str]]) -> list[str]:
+    """Envelope rendering: one line per record, newest last, at most
+    ENVELOPE_MAX_LINES lines in all. Nothing is lost: the body and any older
+    event stay in LOG, and the line says so."""
+    lines = []
+    for r in records:
+        head = r[0]
+        if len(head) > ENVELOPE_LINE_CHARS:
+            head = head[:ENVELOPE_LINE_CHARS] + " ..."
+        if len(r) > 1:
+            head += f" [+{len(r) - 1} lines in {LOG}]"
+        lines.append(head)
+    if len(lines) > ENVELOPE_MAX_LINES:
+        keep = ENVELOPE_MAX_LINES - 1
+        lines = [f"(+{len(lines) - keep} earlier events in {LOG})"] + lines[-keep:]
+    return lines
+
+
 def main() -> int:
     if os.environ.get("CTO_SESSION") != "1":
         return 0
@@ -184,21 +211,24 @@ def main() -> int:
     kept_headers = set(_filter_for_session([r[0] for r in records]))
     records = [r for r in records if r[0] in kept_headers]
 
-    # Trim whole records from the front, never a header away from its body.
-    rendered: list[list[str]] = []
-    budget = MAX_LINES
-    for r in reversed(records):
-        body = r[1:]
-        if len(body) > MAX_BODY_LINES:
-            body = body[:MAX_BODY_LINES] + [
-                f"    ... +{len(r) - 1 - MAX_BODY_LINES} more lines - full text in {LOG}"
-            ]
-        block = [r[0]] + body
-        if budget - len(block) < 0 and rendered:
-            break
-        budget -= len(block)
-        rendered.append(block)
-    surfaced = [l for block in reversed(rendered) for l in block]
+    if ENVELOPE:
+        surfaced = _one_line_per_event(records)
+    else:
+        # Trim whole records from the front, never a header away from its body.
+        rendered: list[list[str]] = []
+        budget = MAX_LINES
+        for r in reversed(records):
+            body = r[1:]
+            if len(body) > MAX_BODY_LINES:
+                body = body[:MAX_BODY_LINES] + [
+                    f"    ... +{len(r) - 1 - MAX_BODY_LINES} more lines - full text in {LOG}"
+                ]
+            block = [r[0]] + body
+            if budget - len(block) < 0 and rendered:
+                break
+            budget -= len(block)
+            rendered.append(block)
+        surfaced = [l for block in reversed(rendered) for l in block]
 
     LOG.parent.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")

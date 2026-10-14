@@ -115,7 +115,14 @@ When done, end your turn with this exact structure:
 
 ## Notes for Reviewer
 - <anything CTO should check>
+
+## Not checked / risk
+- <1–2 lines: what you did not verify, and what could break because of it>
 ```
+
+`Not checked / risk` is never empty. Write `none — <why>` only when you can
+say why (for example, "every path the change touches is under a test that
+failed before the fix"). (Idea from Ponytail v5, MIT.)
 
 CTO will parse this. Missing sections = your work fails review automatically.
 
@@ -123,7 +130,7 @@ CTO will parse this. Missing sections = your work fails review automatically.
 
 | Tier | Used by | Best for | Weak at |
 |---|---|---|---|
-| **Opus 5.5 @ xhigh** | security_engineer, devops_engineer (always); every C-level except CMO (org standard since 2026-09-23; CMO = Sonnet 5.5 1M @ xhigh since 2026-09-30, CEO) | architecture, security review, prod-deploy, ambiguous judgment | nothing notable — strongest tier, costs the most quota |
+| **Opus 5.5** | security_engineer, devops_engineer (always, @ xhigh); every C-level (org standard since 2026-09-23, @ medium at spawn since 2026-10-14; the CMO again since 2026-10-14, Q-20261014-0227-c918, after a Sonnet 5.5 spell from 2026-09-30) | architecture, security review, prod-deploy, ambiguous judgment | nothing notable — strongest tier, costs the most quota |
 | **Sonnet 5.5** (since 2026-09-29) | developer, tester, web_designer, browser_operator, video_editor, data_analyst, prompt_engineer, ads_manager, content_strategist, script_writer (default) | routine coding/testing/content — "near-Opus on coding" per Anthropic | open-ended ambiguous judgment, adversarial/security reasoning, very long multi-step planning |
 | **GLM-5.2** | any role, opt-in for bulk/templated tasks only | high-volume repetitive work, zero Claude-quota impact | no image input (text-only); avoid for anything needing real judgment |
 

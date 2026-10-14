@@ -93,7 +93,11 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                           renamed "ID Card - <Full Name>.jpeg" to
 │   │   │                           avoid all colliding as "line_item.jpeg")
 │   │   ├── Banners/              → Economic Calendar/
-│   │   └── Policy .PDF File/     → Thai Version./, English Version./
+│   │   ├── Policy .PDF File/     → Thai Version./, English Version./
+│   │   └── Bedrock Builds/       NEW 2026-10-13 (CEO picked "สร้าง Bedrock Builds" — session
+│   │                             cto-f39cb080): MoonieX Minecraft Bedrock add-on builds (.mcaddon)
+│   │                             handed to testers, one file per V (lumina_skies_V2.5.mcaddon …),
+│   │                             flat, each shared anyone-with-the-link view. No sub-folders.
 │   ├── LUNGNOTE/
 │   ├── BRAND PROMPT/
 │   ├── WARPCLIP/
@@ -132,7 +136,10 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │                             no fix needed
 │   ├── BLACK LIQUIDITY/          ~20 numbered clip folders — each one has
 │   │   └── <clip title>/         AI Drafts (or Final Draft) / Audio / Rawcut /
-│   │                             Thumbnail / Convert to .mp3 inside
+│   │       │                     Thumbnail / Convert to .mp3 inside
+│   │       └── real/             NEW 2026-10-14 (CEO, Q-20261014-0226-6ec3): raw
+│   │                             Tickmill stills for the real-footage step;
+│   │                             first one in BL EP61 (12m_nlbLZ2zp…)
 │   ├── MYPASAKON/                50-90+ clip folders — same production-stage
 │   │   └── <clip title>/         pattern (AI Drafts / Audio / Finals) inside.
 │   │                             14 folders here had "myPasakon" casing
@@ -444,6 +451,7 @@ Google Drive (root) — pass.gob1@gmail.com
 | `UNKNOWN` (root) | `1PIha6ByPigaVZQG89qZI9uCGW_Lw6ePA` | Fallback — file here when nothing else fits, or no folder exists yet. Max 1 sub-folder level (existing folders moved in wholesale are exempt — see Rule 5). Same-batch files from CEO can be filed without asking (Rule-1 exception) — see "UNKNOWN — filing protocol" above for the required `(name) (D-M-YYYY) (SID:xxxx)` tag. Contains (moved 2026-08-04): `claudeflow-media-archive`, `Media (สื่อ)`, `_Review (ไม่มีชื่อ)`. |
 | `PROJECT` (root) | `1HVLTPS09R4WvhYyOPW_0HHrfWxWGF-hQ` | Important-but-not-video stuff per project: images, ideas, text/svg, government docs, company data, billing. **No video ever.** Max depth 4 (see Rule 8): project-name folder → category folder → optional bundle folder. One sub-folder per project, name = PROJECT NAME IN CAPS. |
 | `PROJECT/MOONIEX` | `1NjXdmQM2Fx0Payd-rqL5hW7B1DDQJSXY` | Merged 2026-08-04 from the old root-level `MoonieX` folder (renamed in place, so its ~19 pre-existing sub-folders like Company & Legal, Broker Info & Data, Mooniex Finance, Proposals, etc. came along and are NOT yet individually re-defined). |
+| `PROJECT/MOONIEX/Bedrock Builds` | `1Jqme99Pu-Jp5FgqiupeKllWZhwRJFlu1` | NEW 2026-10-13, created by Drive REST from the Mac (session cto-f39cb080) after the CEO picked "สร้าง Bedrock Builds (Recommended)", offered as: MoonieX Minecraft add-on files (.mcaddon) sent to testers, one file per version (V2.5, V2.6 …), no sub-folders. Each file is shared anyone-with-the-link view. First file: `lumina_skies_V2.5.mcaddon` (id `1U_4l… (full id: Drive, not in this public repo)`, md5 `d0ac0401…` read back by id), for the tester Champ. |
 | `PROJECT/LUNGNOTE` | `113iaRrHorZ7Z8be2bAGbw59tIPbdoWjB` | Empty, awaiting first files. |
 | `PROJECT/BRAND PROMPT` | `1A306O59m-X20MrqCsT_bZocAJ73RNAWT` | Empty, awaiting first files. |
 | `PROJECT/WARPCLIP` | `1K4d6daPrWr_IGiqMYM8KIEE4X8lOMueF` | Empty, awaiting first files. |
@@ -462,6 +470,7 @@ Google Drive (root) — pass.gob1@gmail.com
 | `ALL DRAFT/AI Assets/MYPASAKON (16:9)` | `1jpsoZi11u9WVZmmR0UxBQDCRKvATolRE` | Empty, created 2026-08-04, ready for future 16:9 footage. |
 | `ALL DRAFT/BLACK LIQUIDITY` | `1nH2aZ6B8wuI9KoxMSS4hAk77cGq0Z1WY` | AI-Avatar short-video channel (TikTok @black_liquidity). **Two files sit at this root on purpose and are not clip folders:** the lipsync reference videos the claudeflow pipeline feeds to Sync Labs — `main.mp4` (640x1024, the original, and the reason every episode before 2026-09-18 has a soft face) and `(BL-avatar-lipsync-reference) (18-9-2026) (OmniHuman 1.5).mp4` `1jTFDDm3f8MLVGubSo9xubIyX8AYJCR47` (1080x1920, 20 s, the one `VIDEO_REFERENCE_FILE_ID` now points at). The CEO chose this location — "ข้างๆ อันเก่า". The channel logo lives here too, on the same instruction: `(BL-logo-cropped-transparent) (18-9-2026).png` `1UcCowYlq3OyV-pj-SrAYjNUunmyraxdw` (698x256, already transparent — the one the cut template uses) and `(BL-logo-source) (18-9-2026) (CEO).png` `1-09cf5YQJy5s1-IhBzvZPHs_UVv92YIr` (1080x603 uncropped original). Inside: **one sub-folder per clip** — docs, script, footage/b-roll, MANIFEST — the editor/script-writer's workspace for that clip. |
 | `ALL DRAFT/MYPASAKON` | `10L6KFHfi-rOnTqh9F1PRJDTGYh603Ajg` | Main channel, CEO's own trading content, 80K+ followers. Same per-clip sub-folder structure as above. Renamed 2026-08-04 from `MY PASAKON` to match the CEO's no-space PROJECT-naming convention; 14 sub-folders/clip-titles with "myPasakon" casing also fixed to "MYPASAKON" the same day. |
+| `ALL DRAFT/BLACK LIQUIDITY/<clip>/real` | `12m_nlbLZ2zpfacdzjRIqSJq0ZzFCoNfj` (in `BLACK LIQUIDITY [60] \| BL EP61 — Tickmill 1 ล็อต จ่ายจริงเท่าไหร่` `1gHdCEl7HBs1ztN25keagz9UXZLPTp43e`) | Defined by the CEO 2026-10-14 on question card Q-20261014-0226-6ec3: «กำหนดเป็น real/ = ภาพนิ่ง Tickmill ดิบสำหรับขั้นฟุตเทจจริง แล้วเพิ่มในแผนผัง» — raw Tickmill stills for the real-footage step of a BL clip. Created 2026-10-13 by CMO c4432bad before it had a definition (rules 3 and 7), recorded here once he ruled. EP61's holds 7 PNG stills (tm-classic, tm-classic-para, tm-formula, tm-header, tm-raw, tm-raw-example, tm-swaps) + `REAL_MANIFEST.json` + `shots.yaml` (listed 2026-10-14). |
 | `ALL DRAFT/YT: MYPASAKON` | `1YnVptu-1dhwblIf3nojXu7Fnn24X353a` | Confirmed 2026-08-05 — same pattern as `BLACK LIQUIDITY` (below), just a different channel: YouTube-specific cut of MYPASAKON content. One sub-folder per clip, named for the clip's topic; inside each, production-stage sub-folders (AI Drafts/Final Draft, Audio, Rawcut, Thumbnail, Convert to .mp3). Renamed 2026-08-04 (was "YT: MY PASAKON"). |
 | `ALL DRAFT/LUNGNOTE` | `1luO-_NW1eKmT7gfbQbKMDSrcpoG9iyKG` | Video project folder for LungNote (real Mooniex project name — was misspelled `LUNENOTE`, fixed 2026-08-04). Same name as `PROJECT/LUNGNOTE` on purpose: that one holds LungNote's non-video docs/images/billing, this one holds its video/footage — same split pattern as MOONIEX. Confirmed 2026-08-05 — same per-clip / production-stage pattern as `BLACK LIQUIDITY`; `DAY0/` already shows the Audio/Finals structure. |
 | `ALL DRAFT/TRADE TO THE MOON` | `11YGzdDAtKyJVSS9VkKyX9on8_AmQ6A18` | Confirmed 2026-08-05 — same pattern as `BLACK LIQUIDITY`: one sub-folder per clip (TTTM-titled), production-stage sub-folders inside each. |
@@ -527,3 +536,6 @@ needs to see at a glance which are the sharp ones.
 | `SomPong Share` (root) | `1Qn7B0e6Pa7y8gS5bjUfs-f5ewMIERUsR` | NEW 2026-09-26. Path and definition from the CEO: "root/SomPong Share/{SomPong เอาไฟล์มาใส่ไว้ที่นี่ได้ก่อนแชร์}", created on his "อนุมัติทั้ง 2" (session cto-aa2e4242, bridge `create_folder`). The one folder the EA shares files out of Drive from, as anyone-with-the-link view links posted in LINE. Only the CEO may ask for a share. Reached through a broker locked to this id; the EA holds no Drive token. |
 
 ## Field notes
+
+- 2026-10-14 [MISSING] §Folder map — a Drive folder name that contains " | " (BL EP61: `BLACK LIQUIDITY [60] | BL EP61 — …`) splits the ID-table row into extra cells unless the pipe is escaped as `\|`; escape it whenever a folder name is quoted inside the table (n=1) · evidence: caf094bd · status: pending
+- 2026-10-13 [MISSING] §tree — no folder held builds sent to outside testers; the CEO picked the offered `PROJECT/MOONIEX/Bedrock Builds/` (row + tree line added in 13c41cf4) · evidence: Drive 1Jqme99Pu-Jp5FgqiupeKllWZhwRJFlu1 · status: promoted
