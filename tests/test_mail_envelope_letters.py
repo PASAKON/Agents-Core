@@ -345,7 +345,9 @@ def test_send_to_cxo_an_ask_wakes_at_once_a_report_waits(cxo, on, sweeper):
     sc.send("cfo", "which budget line?", subject="which line", kind="ask")
     assert len(cxo) == 1, "an ask with no prio is urgent and wakes at once"
     sc.send("cfo", "fyi only", subject="fyi", kind="fyi", prio="urgent")
-    assert len(cxo) == 2, "the sender's urgent wakes at once"
+    assert len(cxo) == 1, "a fyi never wakes a C-level box, urgent or not"
+    sc.send("cfo", "stuck", subject="stuck", kind="blocker", prio="urgent")
+    assert len(cxo) == 2, "the sender's urgent blocker wakes at once"
 
 
 @pytest.mark.parametrize("flag", [False, True])
@@ -365,7 +367,7 @@ def test_send_to_cxo_refuses_order_and_unknown_values_writes_nothing(cxo, monkey
 
 
 def test_send_to_cxo_flag_off_kind_and_prio_are_ignored(cxo):
-    out = sc.send("cfo", "weekly numbers", kind="report", prio="normal")
+    out = sc.send("cfo", "which line?", kind="ask", prio="normal")
     assert "warning" not in out
     assert [w[:2] for w in cxo] == [("cfo", "f1")], "flag off: every letter wakes at once"
     assert set(_raw(mailbox.INBOX_ROOT / "cfo-f1")[0]) == LEGACY_KEYS
@@ -419,11 +421,11 @@ def test_send_to_cto_stores_kind_and_debounces_normal(inbox, on, sweeper, monkey
     assert s2cto.send("task-1", "fyi", role="developer", cto_id="t1",
                       subject="message task-1: fyi", kind="message", prio="normal")
     assert wakes == []
-    assert s2cto.send("task-1", "done", role="developer", cto_id="t1",
-                      subject="report task-1: done", kind="report", prio="urgent")
+    assert s2cto.send("task-1", "stuck", role="developer", cto_id="t1",
+                      subject="blocker task-1: stuck", kind="blocker", prio="urgent")
     assert len(wakes) == 1
     kinds = sorted((l["kind"], l["prio"]) for l in _raw(inbox / "cto-t1"))
-    assert kinds == [("message", "normal"), ("report", "urgent")]
+    assert kinds == [("blocker", "urgent"), ("message", "normal")]
 
 
 def test_send_to_cto_an_ask_without_prio_wakes_at_once_as_stored(inbox, on, sweeper, monkeypatch):
@@ -442,7 +444,7 @@ def test_send_to_cto_flag_off_unchanged(inbox, monkeypatch):
     wakes = []
     monkeypatch.setattr(s2cto, "_attempt_wake", lambda *a: wakes.append(a))
     mailbox.note_sweep(root=inbox)
-    assert s2cto.send("task-1", "fyi", role="developer", cto_id="t1", subject="s", kind="report")
+    assert s2cto.send("task-1", "fyi", role="developer", cto_id="t1", subject="s", kind="ask")
     assert len(wakes) == 1 and set(_raw(inbox / "cto-t1")[0]) == LEGACY_KEYS
 
 
@@ -948,3 +950,276 @@ def test_plan_kinds_are_accepted_and_get_their_default_prio(inbox, on, kind, pri
     assert (m["kind"], m["prio"]) == (kind, prio)
     n = json.loads(mailbox.send("cto", "s1", "x", "ph", "p1", subject="s", kind=kind, prio="normal").read_text())
     assert n["prio"] == "normal"
+
+
+# ---------------------------------------------------------------- fyi / report never wake a C-level box
+# CTO Main brief 2026-10-14 item 2: kind fyi or report to a C-level box does not wake it,
+# urgent or not, flag on or off. A Project Head, a worker, any other kind and a letter with
+# no kind behave as before.
+
+
+def _wakes_on(monkeypatch, module, name="_attempt_wake"):
+    wakes = []
+    monkeypatch.setattr(module, name, lambda *a: wakes.append(a) or True)
+    return wakes
+
+
+@pytest.mark.parametrize("flag", [False, True])
+@pytest.mark.parametrize("prio", ["normal", "urgent"])
+@pytest.mark.parametrize("kind", ["fyi", "report"])
+def test_wake_due_fyi_and_report_never_wake_a_c_level_box(inbox, monkeypatch, flag, prio, kind):
+    if flag:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    mailbox.note_sweep(root=inbox)
+    for role in ("cto", "cmo", "coo"):
+        assert mailbox.wake_due(role, "s1", prio, kind=kind) is False
+
+
+@pytest.mark.parametrize("kind", ["ask", "blocker", "answer", "order", "message"])
+def test_wake_due_other_kinds_wake_a_c_level_box_as_before(inbox, on, sweeper, kind):
+    mailbox.send("cto", "s1", "x", "cmo", "c1", subject="s", kind=kind)
+    due = mailbox.wake_due("cto", "s1", mailbox.letter_prio(kind, None), kind=kind)
+    assert due is (kind in mailbox.URGENT_KINDS), "urgent kinds wake at once; the rest wait for the batch"
+
+
+def test_wake_due_urgent_ask_and_blocker_wake_with_the_flag_off_too(inbox):
+    assert mailbox.wake_due("cto", "s1", "urgent", kind="ask") is True
+    assert mailbox.wake_due("cto", "s1", "normal", kind="blocker") is True
+
+
+@pytest.mark.parametrize("flag", [False, True])
+@pytest.mark.parametrize("box", [("project_head", "0a1b2c3d"), ("developer", "task-1"), ("dev", "task-2")])
+@pytest.mark.parametrize("kind", ["fyi", "report"])
+def test_wake_due_fyi_and_report_still_wake_a_project_head_or_worker_box(inbox, monkeypatch, flag, box, kind):
+    if flag:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    mailbox.note_sweep(root=inbox)
+    assert mailbox.wake_due(*box, "urgent", kind=kind) is True
+    assert mailbox.wake_due(*box, "normal", kind=kind) is (not flag), "normal still debounces as before"
+
+
+def test_wake_due_missing_or_unknown_kind_is_as_before(inbox, on, sweeper):
+    mailbox.send("cto", "s1", "a", "cmo", "c1")
+    for kind in (None, "notice", "", "FYI"):
+        assert mailbox.wake_due("cto", "s1", "urgent", kind=kind) is True
+        assert mailbox.wake_due("cto", "s1", "normal", kind=kind) is False
+
+
+def test_wake_due_an_unreadable_roster_wakes(inbox, on, monkeypatch):
+    import lib.config as cfg
+
+    def boom(role):
+        raise OSError("agents.yaml unreadable")
+    monkeypatch.setattr(cfg, "is_c_level", boom)
+    assert mailbox.wake_due("cto", "s1", "urgent", kind="fyi") is True
+
+
+@pytest.mark.parametrize("body,expect", [
+    ("fyi · normal · using the studio until 18:00", "fyi"),
+    ("report · normal · X done: merged · evidence: abc123", "report"),
+    ("  REPORT ·normal", "report"),
+    ("blocker · urgent · stuck", "blocker"),
+    ("Report on the build is attached", None),      # prose, not the `kind ·` format
+    ("fyi", None),
+    ("the fyi · is not first", None),
+    ("", None),
+    (None, None),
+])
+def test_body_kind_is_the_first_word_before_a_middle_dot(body, expect):
+    assert mailbox.body_kind(body) == expect
+
+
+def test_letter_kind_envelope_wins_and_message_defers_to_the_body():
+    assert mailbox.letter_kind("ask", "fyi · normal · x") == "ask"
+    assert mailbox.letter_kind("fyi", "ask · urgent · x") == "fyi"
+    assert mailbox.letter_kind("message", "fyi · normal · x") == "fyi"
+    assert mailbox.letter_kind(None, "report · normal · x") == "report"
+    assert mailbox.letter_kind("notice", "plain") is None
+
+
+def test_flag_on_letter_carries_its_kind_before_the_body(inbox, on):
+    p = mailbox.send("cto", "s1", "b" * 5000, "cmo", "c1", subject="s", kind="report")
+    head = p.read_text(encoding="utf-8")[:mailbox.HEAD_BYTES]
+    assert '"kind": "report"' in head, "a long letter's kind must be inside the sweep's 1 KB read"
+    assert mailbox._head_kind(head) == "report"
+
+
+def test_head_kind_of_a_letter_cut_mid_string_and_of_a_legacy_one():
+    long_fyi = json.dumps({"from": {"role": "ph"}, "body": "fyi · normal · " + "x" * 3000},
+                          indent=2, ensure_ascii=False)   # as every writer of a letter does
+    assert mailbox._head_kind(long_fyi[:mailbox.HEAD_BYTES]) == "fyi", "legacy: the body's first word"
+    forged = json.dumps({"from": {"role": "ph"}, "kind": "ask",
+                         "body": 'x\n  "kind": "fyi",' + "x" * 3000}, indent=2, ensure_ascii=False)
+    assert mailbox._head_kind(forged[:mailbox.HEAD_BYTES]) == "ask", "a body cannot forge the kind line"
+    assert mailbox._head_kind("") is None and mailbox._head_kind("not json {") is None
+
+
+def test_waiting_since_wake_skips_fyi_and_report_for_a_c_level_box_only(inbox, on):
+    for role, sid in (("cto", "s1"), ("project_head", "p1")):
+        mailbox.send(role, sid, "a", "cmo", "c1", subject="a", kind="fyi")
+        mailbox.send(role, sid, "b", "cmo", "c1", subject="b", kind="report")
+        mailbox.send(role, sid, "c", "cmo", "c1", subject="c", kind="ask")
+    mailbox.send("cto", "s1", "fyi · normal · from a flag-off sender", "cmo", "c1")
+    assert len(mailbox.waiting_since_wake("cto", "s1")) == 1, "only the ask counts"
+    assert len(mailbox.waiting_since_wake("project_head", "p1")) == 3, "a PH box counts all"
+
+
+def test_waiting_since_wake_reads_only_the_head_of_each_letter(inbox, on, monkeypatch):
+    mailbox.send("cto", "s1", "x" * 200_000, "cmo", "c1", subject="big", kind="ask")
+    seen = []
+    real = mailbox._read_regular
+    monkeypatch.setattr(mailbox, "_read_regular",
+                        lambda p, cap=mailbox._READ_CAP: seen.append((Path(p).suffix, cap)) or real(p, cap))
+    assert len(mailbox.waiting_since_wake("cto", "s1")) == 1
+    assert [cap for suffix, cap in seen if suffix == ".json"] == [mailbox.HEAD_BYTES]
+
+
+# --- the callers pass the kind
+
+
+def test_send_to_cxo_fyi_and_report_never_wake_a_c_level_box_flag_on_or_off(cxo, monkeypatch):
+    for flag in (False, True):
+        if flag:
+            monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+            mailbox.note_sweep(root=mailbox.INBOX_ROOT)
+        sc.send("cfo", "x", subject="s", kind="fyi", prio="urgent")
+        sc.send("cfo", "x", subject="s", kind="report", prio="urgent")
+        sc.send("cfo", "fyi · normal · using the studio", subject="s")
+        sc.send("cfo", "report · normal · done: merged", subject="s")
+        assert cxo == [], f"flag {'on' if flag else 'off'}: nothing woke"
+    assert len(_raw(mailbox.INBOX_ROOT / "cfo-f1")) == 8, "every letter is still delivered"
+    sc.send("cfo", "which line?", subject="s", kind="ask")
+    assert len(cxo) == 1
+    sc.send("cfo", "stuck", subject="s", kind="blocker")
+    assert len(cxo) == 2
+
+
+def test_send_to_cxo_passes_the_kind_to_wake_due(cxo, on, sweeper, monkeypatch):
+    seen = []
+    real = mailbox.wake_due
+    monkeypatch.setattr(mailbox, "wake_due", lambda *a, **kw: seen.append(kw.get("kind")) or real(*a, **kw))
+    sc.send("cfo", "x", subject="s", kind="fyi")
+    sc.send("cfo", "x", subject="s", kind="ask")
+    sc.send("cfo", "report · normal · y", subject="s")
+    sc.send("cfo", "plain", subject="s")
+    assert seen == ["fyi", "ask", "report", None]
+
+
+def test_send_to_cxo_fyi_to_a_project_head_still_wakes(cxo, on, monkeypatch):
+    from tools import clevel_gate
+    monkeypatch.setattr(clevel_gate, "live_lock", lambda *a, **kw: 4242)
+    sc.send("project_head-0a1b2c3d", "fyi · normal · x", subject="s", kind="fyi", prio="urgent")
+    assert [w[:2] for w in cxo] == [("project_head", "0a1b2c3d")]
+
+
+def test_send_to_cxo_spawn_reusing_a_tab_passes_the_kind(cxo, locks, on, monkeypatch):
+    monkeypatch.setattr(sc, "_get_live_winids", lambda: {"w1"})
+    (locks / "cfo-req-aaaa1111.winid").write_text("w1")
+    (locks / "cfo-req-aaaa1111.topic").write_text(sc._make_topic_slug("quarterly numbers"))
+    sc.spawn("cfo", "quarterly numbers", subject="s", kind="report", prio="urgent")
+    assert cxo == [], "a report does not wake the reused C-level tab"
+    assert len(_raw(mailbox.INBOX_ROOT / "cfo-req-aaaa1111")) == 1
+    sc.spawn("cfo", "quarterly numbers", subject="s", kind="ask")
+    assert [w[:2] for w in cxo] == [("cfo", "req-aaaa1111")]
+
+
+@pytest.mark.parametrize("flag", [False, True])
+def test_send_to_cto_fyi_and_report_never_wake_a_c_level_box(inbox, monkeypatch, flag):
+    wakes = _wakes_on(monkeypatch, s2cto)
+    if flag:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    mailbox.note_sweep(root=inbox)
+    for kind in ("fyi", "report"):
+        assert s2cto.send("task-1", "x", role="developer", cto_id="t1", subject="s", kind=kind, prio="urgent")
+    assert s2cto.send("task-1", "report · normal · done", role="developer", cto_id="t1", subject="s")
+    assert wakes == [] and len(_raw(inbox / "cto-t1")) == 3
+    assert s2cto.send("task-1", "which branch?", role="developer", cto_id="t1", subject="s", kind="ask")
+    assert s2cto.send("task-1", "stuck", role="developer", cto_id="t1", subject="s", kind="blocker")
+    assert len(wakes) == 2
+
+
+def test_send_to_cto_passes_the_kind_to_wake_due_and_a_ph_owner_still_wakes(inbox, on, sweeper, monkeypatch):
+    wakes = _wakes_on(monkeypatch, s2cto)
+    seen = []
+    real = mailbox.wake_due
+    monkeypatch.setattr(mailbox, "wake_due", lambda *a, **kw: seen.append(kw.get("kind")) or real(*a, **kw))
+    s2cto.send("task-1", "x", role="developer", cto_id="t1", subject="s", kind="report")
+    s2cto.send("task-1", "fyi · normal · y", role="developer", cto_id="t1", subject="s")
+    s2cto.send("task-1", "z", role="developer", cto_id="p1", owner_role="project_head",
+               subject="s", kind="report", prio="urgent")
+    assert seen == ["report", "fyi", "report"]
+    assert [w[:2] for w in wakes] == [("project_head", "p1")], "only the PH box woke"
+
+
+@pytest.mark.parametrize("flag", [False, True])
+def test_node_dispatch_fyi_and_report_from_another_host_never_wake_a_c_level_box(far_side, inbox, monkeypatch, flag):
+    if flag:
+        monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    mailbox.note_sweep(root=inbox)
+    for body in ("fyi · normal · using the studio", "report · urgent · done: merged"):
+        out = nd._write_clevel_letter({"to_session": "s1", "body": body, "from_role": "cmo",
+                                       "from_session": "c1"}, "cto")
+        assert out["woke"] is False and "fyi or report" in out["why"]
+    assert far_side == [] and len(_raw(inbox / "cto-s1")) == 2, "delivered, not woken"
+    out = nd._write_clevel_letter({"to_session": "s1", "body": "ask · urgent · which branch?",
+                                   "from_role": "cmo", "from_session": "c1"}, "cto")
+    # as before: a far-side letter is stored message/normal, so flag on it waits for the batch
+    assert out["woke"] is (not flag) and len(far_side) == (0 if flag else 1)
+    if flag:
+        assert "ORG_WAKE_DEBOUNCE_S" in out["why"], "held by the debounce, not by the fyi/report rule"
+
+
+def test_node_dispatch_passes_the_kind_to_wake_due(far_side, inbox, on, sweeper, monkeypatch):
+    seen = []
+    real = mailbox.wake_due
+    monkeypatch.setattr(mailbox, "wake_due", lambda *a, **kw: seen.append(kw.get("kind")) or real(*a, **kw))
+    for body in ("fyi · normal · x", "plain"):
+        nd._write_clevel_letter({"to_session": "s1", "body": body, "from_role": "cmo",
+                                 "from_session": "c1"}, "cto")
+    assert seen == ["fyi", None]
+
+
+# --- the sweeper
+
+
+def _age_box(inbox, box, seconds):
+    for p in (inbox / box).glob("*.json"):
+        _age(p, seconds)
+
+
+def test_sweep_never_wakes_a_c_level_box_holding_only_fyi_and_report_letters(inbox, on, sweep_wakes):
+    for i in range(5):
+        mailbox.send("cto", "s1", f"fyi · normal · {i}", "cmo", "c1", subject="s",
+                     kind="fyi" if i % 2 else "report")
+    _age_box(inbox, "cto-s1", mailbox.DEFAULT_DEBOUNCE_S + 5)
+    assert sweep_mod.sweep() == [] and sweep_wakes == []
+    assert len(mailbox.peek("cto", "s1")) == 5, "they stay for the box's next prompt"
+    mailbox.send("cto", "s1", "which branch?", "cmo", "c1", subject="s", kind="ask")
+    _age_box(inbox, "cto-s1", mailbox.DEFAULT_DEBOUNCE_S + 5)
+    assert sweep_mod.sweep() == [{"box": "cto-s1", "woke": True}]
+    assert sweep_wakes == [("cto", "s1", "CMO")]
+
+
+def test_sweep_quiet_letters_neither_fill_a_batch_nor_start_the_clock(inbox, on, sweep_wakes):
+    for i in range(5):
+        mailbox.send("cto", "s1", "x", "cmo", "c1", subject="s", kind="fyi")
+    _age_box(inbox, "cto-s1", mailbox.DEFAULT_DEBOUNCE_S + 5)
+    mailbox.send("cto", "s1", "fresh ask", "cmo", "c1", subject="s", kind="ask")   # just arrived
+    assert sweep_mod.sweep() == [], "one fresh ask: the 5 old fyi do not make it a batch or an old wait"
+    assert sweep_wakes == []
+
+
+def test_sweep_still_wakes_a_project_head_box_nothing_changed_for_it(inbox, on, sweep_wakes):
+    mailbox.send("project_head", "p1", "x", "cmo", "c1", subject="s", kind="fyi")
+    _age_box(inbox, "project_head-p1", mailbox.DEFAULT_DEBOUNCE_S + 5)
+    assert sweep_mod.sweep() == [], "the sweep only visits C-level boxes, as before"
+    assert sweep_wakes == []
+
+
+def test_sweep_reads_the_kind_of_a_long_and_of_a_flag_off_letter(inbox, on, monkeypatch, sweep_wakes):
+    mailbox.send("cto", "s1", "report body " * 400, "cmo", "c1", subject="s", kind="report")
+    monkeypatch.delenv("ORG_MAIL_ENVELOPE")
+    mailbox.send("cto", "s1", "fyi · normal · written with the flag off " + "x" * 3000, "cmo", "c1")
+    monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
+    _age_box(inbox, "cto-s1", mailbox.DEFAULT_DEBOUNCE_S + 5)
+    assert sweep_mod.sweep() == [] and sweep_wakes == []

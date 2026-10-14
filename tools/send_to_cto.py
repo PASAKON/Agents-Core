@@ -96,22 +96,23 @@ def _attempt_wake(role: str, session_id: str, label: str) -> None:
     agent_transport.attempt_wake(session, label, "send_to_cto", send_fn=_wake_tmux_send)
 
 
-def _wake(role: str, session_id: str, label: str, prio: str | None) -> None:
-    """Envelope mail (ORG_MAIL_ENVELOPE on): the debounced wake -- urgent at
-    once, normal once 3 letters wait or the oldest has waited
-    ORG_WAKE_DEBOUNCE_S (lib.mailbox.wake_due; tools/mail_wake_sweep.py fires
-    the late one). Off: `_attempt_wake()` every time, as before."""
-    if not mailbox.envelope_on():
-        _attempt_wake(role, session_id, label)
-        return
+def _wake(role: str, session_id: str, label: str, prio: str | None,
+          kind: str | None = None) -> None:
+    """The wake for a just-written letter. `kind` (`mailbox.letter_kind` of it):
+    fyi and report never wake a C-level box, flag on or off. Envelope mail
+    (ORG_MAIL_ENVELOPE on): the debounced wake -- urgent at once, normal once 3
+    letters wait or the oldest has waited ORG_WAKE_DEBOUNCE_S
+    (lib.mailbox.wake_due; tools/mail_wake_sweep.py fires the late one). Off:
+    `_attempt_wake()` every time, as before."""
     try:
-        due = mailbox.wake_due(role, session_id, prio or "normal")
+        due = mailbox.wake_due(role, session_id, prio or "normal", kind=kind)
     except Exception:
         due = True
     if not due:
         return
     _attempt_wake(role, session_id, label)
-    mailbox.note_wake(role, session_id)
+    if mailbox.envelope_on():
+        mailbox.note_wake(role, session_id)
 
 
 def _envelope_kw(subject: str | None, kind: str | None, prio: str | None) -> dict:
@@ -148,7 +149,10 @@ def send(from_id: str, message: str, role: str | None = None,
     `subject` / `kind` / `prio`: envelope mail only (ORG_MAIL_ENVELOPE on);
     stored on the letter, and the letter's prio drives the debounced wake
     (`_wake`): an ask or blocker with no prio is urgent, as it is stored
-    (`mailbox.letter_prio`). Off, they are ignored.
+    (`mailbox.letter_prio`). Off, they are ignored, except that a fyi or
+    report letter (the `kind`, else the body's first word, as in
+    `report · normal · …`) never wakes a C-level box, flag on or off: it waits
+    for the session's next prompt (`mailbox.quiet_for`).
     """
     label = display_for(role) if role else "Dev"
     from_role = role or "dev"
@@ -157,7 +161,8 @@ def send(from_id: str, message: str, role: str | None = None,
     if cto_id:
         mailbox.send(owner_role, cto_id, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
-        _wake(owner_role, cto_id, wake_label, mailbox.letter_prio(kind, prio))
+        _wake(owner_role, cto_id, wake_label, mailbox.letter_prio(kind, prio),
+              mailbox.letter_kind(kind, message))
         return True
 
     if os.environ.get("SEND_TO_CTO_BROADCAST") != "1":
@@ -176,7 +181,8 @@ def send(from_id: str, message: str, role: str | None = None,
             continue
         mailbox.send(r, sid, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
-        _wake(r, sid, wake_label, mailbox.letter_prio(kind, prio))
+        _wake(r, sid, wake_label, mailbox.letter_prio(kind, prio),
+              mailbox.letter_kind(kind, message))
         delivered_any = True
     return delivered_any
 
