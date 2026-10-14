@@ -37,8 +37,9 @@ Where a run writes (measured 2026-10-15, not assumed):
     every 60 s from a side loop whether or not the CLI is doing anything, so
     reading it would make a hung codex look alive forever.
 
-Rules that keep this from crying wolf (CEO 2026-10-15: "รู้ว่าพัง/ตายเมื่อไหร่"
-only helps if a red light is true):
+Rules that keep this from crying wolf. The CEO asked (2026-10-15) to see
+whether a run is working and to know when it broke or died: "พัง หรือ ตายเมื่อไหร่
+ต้องรู้และ เชคได้". That only helps if a red light is true:
 
   * `dead` needs positive proof: the pid probe says gone AND no tmux session
     answers. A pid we may not signal (EPERM) counts as alive -- this is a
