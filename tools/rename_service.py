@@ -32,6 +32,13 @@ tmux server, and root running code from a checkout that user can write would
 hand every session root. Its socket is ~/.rename-service/sock (0700 dir); there is
 no /proc, so ancestry and uids come from `ps`.
 
+The sweep (M10d, CEO 2026-10-15: every live session's name carries its host emoji):
+a session that started before M9 never asks, so each pass first looks at this
+host's live sessions and queues, for one whose name fails the rule only with "no
+host emoji", the same job a request queues: its own name, byte for byte, with the
+emoji added. Typing is still _one() alone. Nothing else is fixed (logged once), and a
+box already tried under the same pid and name is not queued again.
+
 The request carries no name, so nothing a session sends can reach the pane except
 a topic: clean_topic() keeps letters, marks, digits, spaces and a few punctuation
 marks, drops every control and format character (newline, ESC), strips a leading
@@ -138,10 +145,14 @@ def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
         return None
     name = base + (f" — {topic}" if topic else "")
     name = f"{prefix} {name}" if prefix else name
-    if (len(name) > NAME_MAX or name.startswith("/")
-            or any(unicodedata.category(c)[0] == "C" or c in "\n\r" for c in name)):
-        return None
-    return name
+    return name if _typable(name) else None
+
+
+def _typable(name: str) -> bool:
+    """True when `name` may follow "/rename " in a pane: one line, short, no leading "/",
+    no control, format or line/paragraph-separator character."""
+    return (len(name) <= NAME_MAX and not name.startswith("/")
+            and not any(unicodedata.category(c)[0] == "C" or c in "\n\r  " for c in name))
 
 
 # --- the panes ---------------------------------------------------------------------
@@ -345,8 +356,91 @@ def handle(conn: socket.socket, host: str, pending: dict, peer_ids: tuple[int, i
         return f"refused: no rule name for {box}"
     if box not in pending and len(pending) >= PENDING_MAX:
         return "refused: too many renames waiting"
-    pending[box] = {"name": name, "pid": sess["pid"], "sends": 0, "sent_at": 0.0}
+    pending[box] = _job(name, sess["pid"])
     return f"queued {box}: {name}"
+
+
+def _job(name: str, pid: int) -> dict:
+    return {"name": name, "pid": pid, "sends": 0, "sent_at": 0.0}
+
+
+# --- the sweep (M10d) -----------------------------------------------------------------
+
+# {box: (pid, name)}: this process already queued that session under that name, or
+# decided not to. The same pid under the same name is not looked at again; a new pid
+# (a restarted session) or a new name (it renamed itself) is. Memory only.
+_DECIDED: dict[str, tuple[int, str]] = {}
+_NOTED: dict[str, tuple[int, str]] = {}      # {box: (pid, problem)} already logged
+
+
+def _with_host_after_state(host: str, name: str) -> str:
+    """session_names.with_host, but a leading state glyph ("⏸ ", session-rename.sh's
+    prefix) stays first, as build_name writes it: "⏸ 🌐 CTO (Kavin)"."""
+    lead = session_names._STATE_LEAD_RE.match(name).group(0)
+    return lead + session_names.with_host(host, name[len(lead):])
+
+
+def _sweep_one(box: str, row: dict, host: str, pending: dict) -> str | None:
+    role, sid = box.split("-", 1)
+    persona, windows = ls._rule_context(role, host)
+
+    def problem(name: str) -> str | None:
+        return session_names.rule_problem(name, role, sid, host, persona=persona, windows=windows)
+
+    pid, shown = row["pid"], row["name"]
+    why = problem(shown)
+    if why is None:
+        _DECIDED.pop(box, None)
+        _NOTED.pop(box, None)
+        return None
+    if why != "no host emoji":
+        if _NOTED.get(box) == (pid, why):
+            return None
+        _NOTED[box] = (pid, why)
+        return f'skip     {box}: "{shown}" is off-rule ({why}); the sweep only adds the host emoji'
+    if box in pending or _DECIDED.get(box) == (pid, shown) or len(pending) >= PENDING_MAX:
+        return None
+    sess = session_of(box, host)            # the record the owner checks trust, not the listing
+    if sess is None or sess["pid"] != pid or problem(sess["name"]) != "no host emoji":
+        return None
+    new = _with_host_after_state(host, sess["name"])
+    _DECIDED[box] = (pid, shown)
+    if not _typable(new):
+        return f"skip     {box}: its name has a character or a length that cannot be typed; left alone"
+    if (after := problem(new)) is not None:      # the emoji must leave it ON the rule
+        return f'skip     {box}: "{shown}" is off-rule in more than the emoji ({after}); left alone'
+    pending[box] = _job(new, pid)
+    return f"sweep    {box}: {sess['name']} -> {new}"
+
+
+def sweep(host: str, pending: dict, now: float | None = None) -> list[str]:
+    """Queue the host emoji for every live C-level/PH session of this host whose name
+    lacks only that (rule_problem == "no host emoji"): sessions that started before
+    M9 never ask. The job is the one handle() queues, so _one() types it unchanged
+    (empty box only, two _ready checks, never C-u). The name is the session's own,
+    byte for byte, with the emoji added. A box already waiting, or already tried under
+    this pid and name, is left alone; so is every other rule_problem, logged once.
+    `now` is unused: it keeps the call like once()'s."""
+    try:
+        rows = ls.demote_untmuxed(ls.read_registry(ls.session_dirs(host)), host)
+    except Exception as e:  # noqa: BLE001 - a bad registry must not stop the service
+        return [f"error    sweep: {type(e).__name__}: {e}"]
+    out, live = [], set()
+    for row in sorted(rows, key=lambda r: r["uuid"]):
+        box = f"{row['role']}-{row['sid']}"
+        if not row.get("verified") or not _BOX_RE.fullmatch(box):
+            continue                        # a worker, or a name only: no pane to type into
+        live.add(box)
+        try:
+            line = _sweep_one(box, row, host, pending)
+        except Exception as e:  # noqa: BLE001 - one bad session must not stop the others
+            line = f"error    sweep {box}: {type(e).__name__}: {e}"
+        if line:
+            out.append(line)
+    for seen in (_DECIDED, _NOTED):         # a session that has gone leaves no entry behind
+        for box in set(seen) - live:
+            del seen[box]
+    return out
 
 
 # --- one pass ----------------------------------------------------------------------
@@ -475,7 +569,7 @@ def serve(host: str, path: Path = SOCK) -> None:
     while True:
         now = time.time()
         if now >= next_pass:
-            for line in once(host, pending, now):
+            for line in [*sweep(host, pending, now), *once(host, pending, now)]:
                 print(line, flush=True)
             next_pass = now + INTERVAL_S
         ready, _, _ = select.select([srv], [], [], max(0.1, next_pass - time.time()))

@@ -73,6 +73,8 @@ stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub dow
 | who is asking | SO_PEERCRED, ancestry from /proc | LOCAL_PEERPID + LOCAL_PEERCRED, ancestry from `ps` |
 | log | `journalctl -u rename-service` | `~/Library/Logs/mooniex-rename-service.log` |
 
+Sweep (M10d, CEO 2026-10-15): each pass, before the queue, the service also queues the host emoji for a live C-level or PH on this host whose name fails the rule *only* with `no host emoji` (sessions that started before M9 never send a request). It adds the emoji to the session's own name and nothing else, and `_one()` types it like any request. Any other off-rule name is left alone and logged once (`skip  <box>: …`); a box already tried under the same pid and name is not queued again (memory only, so a restart tries once more). Log lines: `sweep    <box>: <old> -> <new>`.
+
 Install, after the PR lands. Contabo: a Run card (bytes in docs/plans/org-restructure-STATUS.md). Mac, the CEO
 pastes one line in a Mac terminal (no Run Inbox executor there yet), after a smoke test on a throwaway pane.
 The line is pinned: the Mac checkout must already hold `<MERGE_SHA>` (main after the PR lands; reach it with
