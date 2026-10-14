@@ -23,6 +23,15 @@ WORKER_SHORT = {
 }
 SHORT_TO_ROLE = {v: k for k, v in WORKER_SHORT.items()}
 WORKER_JOB_MAX = 40
+# A worker name that goes to winbox crosses cmd.exe and PowerShell (tools/delegate.py,
+# tools/node_dispatch.py): keep only these characters of the free text in it.
+_WINDOWS_UNSAFE_RE = re.compile(r"[^A-Za-z0-9 ._-]")
+
+
+def windows_safe(text: str, limit: int | None = None) -> str:
+    """`text` with every character outside [A-Za-z0-9 ._-] removed, cut to `limit`."""
+    out = _WINDOWS_UNSAFE_RE.sub("", text or "")
+    return (out[:limit] if limit else out).strip()
 
 PH_NAME_RE = re.compile(r"^[\W_]*PH#([0-9a-f]{3}) \(([A-Z]{3})\)(?: - .*)?$")
 WORKER_NAME_RE = re.compile(r"^[\W_]*([A-Z][A-Za-z]{1,9})#([0-9a-f]{3})(?: - .*)?$")

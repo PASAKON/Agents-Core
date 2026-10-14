@@ -253,32 +253,51 @@ def test_a_short_c_level_name_gives_the_role_and_the_uuid_tail(name, role):
 
 @pytest.mark.parametrize("tmux,uuid,name,expect", [
     # the launcher's tmux name wins, whatever the display name says
-    ("cto-e106b78b:@276.%276", UUID_A, "CTO (Kavin)", ("cto", "e106b78b")),
-    ("cto-e106b78b:@276.%276", UUID_A, "anything the CEO typed", ("cto", "e106b78b")),
+    ("cto-e106b78b:@276.%276", UUID_A, "CTO (Kavin)", ("cto", "e106b78b", True)),
+    ("cto-e106b78b:@276.%276", UUID_A, "anything the CEO typed", ("cto", "e106b78b", True)),
     ("project_head-e106b78b:@1.%1", UUID_A, "CONTABO Project Head (CTO) #e106b78b (X)",
-     ("project_head", "e106b78b")),
-    # a sid the session UUID does not end in is not trusted: the name decides
-    ("cto-aaaaaaaa:@1.%1", UUID_A, "renamed", ("unknown", "e106b78b")),
+     ("project_head", "e106b78b", True)),
+    # a sid the session UUID does not end in is not trusted, and neither is the name then
+    ("cto-aaaaaaaa:@1.%1", UUID_A, "renamed", ("unknown", "e106b78b", False)),
+    ("cto-aaaaaaaa:@1.%1", UUID_A, "CTO (Kavin)", ("unknown", "e106b78b", False)),
     # a worker's tmux says nothing about its role; a fake "ceo" tmux is not a C-level
     ("wd-e106b78b:@282.%282", UUID_A, "CONTABO Security Engineer #e106b78b (x)",
-     ("security_engineer", "e106b78b")),
-    ("ceo-e106b78b:@1.%1", UUID_A, "x", ("unknown", "e106b78b")),
-    (None, UUID_A, "CTO (Kavin)", ("cto", "e106b78b")),
-    (7, UUID_A, "CTO (Kavin)", ("cto", "e106b78b")),
+     ("security_engineer", "e106b78b", True)),
+    ("ceo-e106b78b:@1.%1", UUID_A, "x", ("unknown", "e106b78b", False)),
+    # no tmux (winbox, a bare terminal): the name decides, unverified
+    (None, UUID_A, "CTO (Kavin)", ("cto", "e106b78b", False)),
+    (7, UUID_A, "CTO (Kavin)", ("cto", "e106b78b", False)),
+    # SomPong's launcher tmux is "sompong"
+    ("sompong:@3.%3", UUID_A, "COO (SomPong)", ("coo", "e106b78b", True)),
+    ("sompong:@3.%3", UUID_A, "CTO (Kavin)", ("coo", "e106b78b", True)),
 ])
 def test_role_and_sid_come_from_the_tmux_name_first(tmux, uuid, name, expect):
     assert ls._ids_from_record({"tmux": tmux}, name, uuid) == expect
 
 
+# M8 (CTO Main security pass): a session in another tmux never takes a C-level or
+# PH role from a name it chose itself.
+@pytest.mark.parametrize("tmux,name", [
+    ("wd-afe57b21:@282.%282", "CTO (Kavin)"),
+    ("wd-afe57b21:@282.%282", "PH#7cf (CTO) - OrgRestructure"),
+    ("mooniex-task-37ff8810:@1.%1", "CONTABO CTO #e106b78b"),
+    ("scratch:@9.%9", "COO (SomPong)"),
+])
+def test_a_renamed_worker_is_not_listed_as_a_c_level_or_ph(tmux, name):
+    role, sid, verified = ls._ids_from_record({"tmux": tmux}, name, UUID_A)
+    assert role == "unknown" and not verified and not ls.is_listed(role)
+
+
 @pytest.mark.parametrize("tmux,uuid,name,expect", [
     # a PH: the UUID tail is the full id when it agrees with the 3 hex shown
     (None, "00000000-0000-0000-0000-00007cf528f0", "PH#7cf (CTO) - OrgRestructure",
-     ("project_head", "7cf528f0")),
-    (None, UUID_A, "PH#7cf (CTO) - OrgRestructure", ("project_head", "7cf")),
+     ("project_head", "7cf528f0", False)),
+    (None, UUID_A, "PH#7cf (CTO) - OrgRestructure", ("project_head", "7cf", False)),
     # a worker: the full id comes from its tmux name
-    ("wd-afe57b21:@282.%282", UUID_A, "Sec#afe - OrgRestructure: x", ("security_engineer", "afe57b21")),
-    ("mooniex-task-37ff8810:@1.%1", UUID_A, "Dev#37f - P3-A", ("developer", "37ff8810")),
-    ("wd-00000000:@1.%1", UUID_A, "Dev#37f - P3-A", ("developer", "37f")),
+    ("wd-afe57b21:@282.%282", UUID_A, "Sec#afe - OrgRestructure: x",
+     ("security_engineer", "afe57b21", True)),
+    ("mooniex-task-37ff8810:@1.%1", UUID_A, "Dev#37f - P3-A", ("developer", "37ff8810", True)),
+    ("wd-00000000:@1.%1", UUID_A, "Dev#37f - P3-A", ("developer", "37f", False)),
 ])
 def test_ph_and_worker_short_names(tmux, uuid, name, expect):
     assert ls._ids_from_record({"tmux": tmux}, name, uuid) == expect
@@ -328,9 +347,10 @@ def test_a_short_named_coo_is_addressed_by_its_name(tmp_path):
 # the reader's text
 # ---------------------------------------------------------------------------
 
-def _row(host, role, name, status="running", sid=None, age=4.0):
+def _row(host, role, name, status="running", sid=None, age=4.0, verified=True):
     return {"host": host, "uuid": f"u-{host}-{name}", "sid": sid or name[-8:], "role": role,
-            "name": name, "address": name, "status": status, "pid": 1, "age": age}
+            "name": name, "address": name, "status": status, "pid": 1, "age": age,
+            "verified": verified}
 
 
 def _snap(rows, hosts, local=False):
@@ -374,8 +394,15 @@ def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim():
     lines = ls.format_snapshot(snap, now=NOW).splitlines()
     assert lines[1:4] == ["running  CMO (Ging)", "running  CTO (Kavin)", "idle     CTO (Kavin)"]
     assert lines[4] == ls.FOOTER
-    assert lines[5].startswith('same name on 2 rows: "CTO (Kavin)" (contabo #c34459eb, mac #f39cb080)')
+    assert lines[5].startswith('same name on 2 rows: "CTO (Kavin)" '
+                               '(contabo #c34459eb tmux-confirmed, mac #f39cb080 tmux-confirmed)')
     assert "[ref]" in lines[5] and len(lines) == 6
+    # M8: the note says which row a launcher tmux confirms; name-only rows get a line
+    rows[1] = {**rows[1], "verified": False}
+    lines = ls.format_snapshot(_snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)}),
+                               now=NOW).splitlines()
+    assert "(contabo #c34459eb tmux-confirmed, mac #f39cb080 name only)" in lines[5]
+    assert lines[6] == "name only (no launcher tmux confirms the role): mac #f39cb080"
     one = _snap(rows[:1] + rows[2:], {"contabo": _fresh(4.0)})
     assert not any(l.startswith("same name") for l in ls.format_snapshot(one, now=NOW).splitlines())
 
@@ -495,14 +522,18 @@ class _Rows:
 
 
 class FakeHub:
-    """Answers the reader's two SELECTs and records every statement."""
+    """Answers the reader's two SELECTs and records every statement except the
+    live_sessions.verified column probe, which it answers from `has_verified`."""
 
-    def __init__(self, sessions=(), hosts=()):
+    def __init__(self, sessions=(), hosts=(), has_verified=False):
         self.sessions, self.hosts, self.sql, self.params = list(sessions), list(hosts), [], []
+        self.has_verified = has_verified
         self.committed = 0
         self.closed = False
 
     def execute(self, sql, params=()):
+        if "information_schema.columns" in sql:
+            return _Rows([(1,)] if self.has_verified else [])
         self.sql.append(" ".join(sql.split()))
         self.params.append(tuple(params))
         if "FROM live_sessions" in sql:
@@ -1114,7 +1145,8 @@ def test_local_mode_reads_the_registry_and_never_the_hub(monkeypatch, tmp_path, 
     assert lines[0].startswith("live ") and "contabo 1 (local)" in lines[0]
     assert "mac" not in lines[0]
     assert lines[1] == "running  SomPong"
-    assert lines[-1] == ls.FOOTER
+    assert lines[-2] == ls.FOOTER    # the record carries no tmux: name only (M8)
+    assert lines[-1] == "name only (no launcher tmux confirms the role): contabo #a7eb4963"
 
 
 def test_json_output_parses_and_carries_the_address(monkeypatch, tmp_path, capsys):
@@ -1306,10 +1338,11 @@ def test_a_hostile_name_is_one_short_line_with_its_row_published(tmp_path):
     assert row["address"] == row["name"]
     assert row["role"] == "cto" and row["sid"] == "e106b78b"      # the real prefix survives
     assert row["former_name"] == "old name"
-    # as the reader prints it: header, ONE row, footer
+    # as the reader prints it: header, ONE row, footer, the name-only note (no tmux)
     r = {**row, "host": "contabo", "age": 3.0}
     text = ls.format_snapshot(_snap([r], {"contabo": _fresh(3.0)}), now=NOW)
-    assert len(text.splitlines()) == 3
+    assert len(text.splitlines()) == 4
+    assert text.splitlines()[3] == "name only (no launcher tmux confirms the role): contabo #e106b78b"
     assert text.splitlines()[1].startswith("running  CONTABO CTO #e106b78b (a running")
 
 
@@ -1397,3 +1430,19 @@ def test_the_size_cap_is_exactly_64_kib(tmp_path, registry):
 def test_deeply_nested_json_is_skipped_not_a_crash(tmp_path, registry):
     (registry / "666.json").write_text("[" * 60000)
     assert [r["uuid"] for r in ls.read_registry([registry])] == [UUID_A]
+
+
+def test_publish_and_read_carry_verified_once_the_column_exists(tmp_path):
+    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@1.%1")
+    hub = FakeHub(has_verified=True)
+    ls.publish_once(hub, "contabo", [tmp_path], set())
+    [(sql, params)] = [(q, p) for q, p in zip(hub.sql, hub.params)
+                       if q.startswith("INSERT INTO live_sessions")]
+    assert "verified = EXCLUDED.verified" in sql and params[-1] is True
+    old = FakeHub(has_verified=False)    # a hub that has not run init() since M8
+    ls.publish_once(old, "contabo", [tmp_path], set())
+    assert not any("verified" in q for q in old.sql)
+    reader = FakeHub([dict(_row("contabo", "cto", "CTO (Kavin)"), verified=None)],
+                     [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}])
+    assert "name only" in ls.render(reader, now=NOW)
+    assert "NULL AS verified" in [q for q in reader.sql if "FROM live_sessions" in q][0]

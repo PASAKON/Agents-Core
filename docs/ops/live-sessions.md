@@ -34,6 +34,10 @@ launcher's tmux name `<role>-<sid>` in the session record, else from the name pl
 8 hex (the launchers make it the short id). One name on two rows (a Mac and a Contabo `CTO (Kavin)`) adds a
 `same name on N rows` line with each host and sid: take the `[ref]` from the ListAgents row whose
 `tmux` ends `-<sid>`, or use `send_to_cxo(role=…)`, which routes by tmux name, not display name.
+A session in any other tmux (a worker's `wd-<sid>`) never takes a C-level or PH role from its own name:
+it is listed as `unknown` (M8, 2026-10-14). A row no launcher tmux confirms (winbox, a bare terminal, an old
+publisher) still prints, and a `name only (no launcher tmux confirms the role): <host> #<sid>` line names it;
+the `same name` line marks each row `tmux-confirmed` or `name only`. Stored in `live_sessions.verified`.
 Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 

@@ -35,6 +35,7 @@ from lib.notify import info, success, error, warn
 from lib.proc import pid_alive
 from lib import resource_gate
 from lib import roles as org_roles
+from lib import session_names
 from tools import disk_queue
 from tools import send_to_cto
 from tools import storage_policy
@@ -996,6 +997,24 @@ def _ps_quote(value: str) -> str:
     return f'"{escaped}"'
 
 
+def _check_windows_spawn_values(values: dict) -> None:
+    """Raise ValueError unless every value fullmatches the pattern
+    tools/node_dispatch.py holds spawn-worker.ps1's parameters to. The ssh
+    command to winbox is parsed by cmd.exe first, so no value may carry a
+    character cmd.exe acts on ('"', '&', '|', '%', '^', '<', '>')."""
+    from tools import node_dispatch as nd  # lazy: node_dispatch imports this module
+    patterns = dict(nd._SPAWN_PARAMS)
+    # ClaudeArgs: the same characters with no length cap (a browser_operator's
+    # --allowed-tools list runs past node_dispatch's 600).
+    patterns.update(Launcher=nd._PS_SAFE_RE, WorkDir=nd._PS_SAFE_RE,
+                    ClaudeArgs=re.compile(r"[A-Za-z0-9_.,: -]*"))
+    for name, value in values.items():
+        if name in ("RunnerModel", "WorkDir") and not value:
+            continue
+        if not isinstance(value, str) or not patterns[name].fullmatch(value):
+            raise ValueError(f"{name} {value!r:.80} is not safe to send to winbox; nothing was sent")
+
+
 def _local_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
@@ -1484,11 +1503,27 @@ async def _spawn_remote(task: dict, host_name: str, *,
                                            head=worker_head(task))
 
     if os_name == "windows":
+        # The command below crosses winbox's cmd.exe, which ignores _ps_quote's
+        # backticks: a '"' or '&' in the title ran a command there. Free text goes
+        # in filtered, and every value is checked before anything is sent.
+        session_name = get_worker_session_name(
+            host_name, role_name, task_id,
+            session_names.windows_safe(task.get("title") or "", session_names.WORKER_JOB_MAX),
+            head=session_names.windows_safe(worker_head(task)))
+        remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
+        remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
+        _check_windows_spawn_values({
+            "Launcher": remote_ps1, "Task": task_id, "Project": project_key,
+            "Role": role_name, "Branch": branch, "Base": base, "RepoUrl": repo_url,
+            "RepoPath": repo_path, "WorktreeRoot": worktree_root,
+            "ClaudeArgs": claude_args, "Model": model, "Effort": effort,
+            "TaskFile": remote_task_file, "SessionName": session_name, "Runner": runner,
+            "RunnerModel": str(task.get("runner_model") or ""),
+            "WorkDir": str(work_dir or ""),
+        })
         deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
 
         prompt = _remote_runner_prompt(task, proj, remote_worktree, runner)
-        remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
-        remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
 
         remote_cmd = (
             f"powershell -NoProfile -ExecutionPolicy Bypass -File {_ps_quote(remote_ps1)} "

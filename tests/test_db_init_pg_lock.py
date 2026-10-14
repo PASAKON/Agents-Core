@@ -57,6 +57,7 @@ def _complete_catalog():
     columns |= {("c_level_sessions", c) for c, _ in db_mod._C_LEVEL_SESSION_MIGRATION}
     columns |= {("hosts", c) for c, _ in db_mod._HOSTS_MIGRATION + db_mod._HOSTS_JOIN_MIGRATION}
     columns |= {("letters", c) for c, _ in db_mod._LETTERS_MIGRATION}
+    columns |= {("live_sessions", c) for c, _ in db_mod._LIVE_SESSIONS_MIGRATION}
     return relations, columns
 
 
@@ -74,6 +75,12 @@ def test_a_missing_table_or_index_is_not_current(missing):
 
 def test_a_missing_portfolio_trigger_is_not_current():
     assert db_mod._pg_schema_current(_Catalog(*_complete_catalog(), triggers=())) is False
+
+
+def test_a_missing_live_sessions_verified_column_is_not_current():
+    relations, columns = _complete_catalog()
+    columns.discard(("live_sessions", "verified"))
+    assert db_mod._pg_schema_current(_Catalog(relations, columns)) is False
 
 
 def test_a_missing_migration_column_is_not_current():
