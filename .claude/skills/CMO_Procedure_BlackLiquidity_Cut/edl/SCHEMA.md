@@ -10,11 +10,11 @@ layers into `index.html`. No AI writes HTML any more.
 
 | layer | file | phase |
 |---|---|---|
-| P1 | `p1_layout.json` | เลือก B-Roll + Footage + Avatar ก่อนว่าจะวางช่วงไหน วินาทีที่เท่าไหร่ เป็นการวางดิบแบบไม่มี Animation |
-| P2 | `p2_focus.json` | เริ่มใส่ Animation การย่อลง การ Highlight การ zoom fade in fade out เพื่อให้คนดู Focus ที่จุดที่เราจะนำเสนอเท่านั้น |
-| P3 | `p3_text.json` | เริ่มใส่ Text เพื่ออธิบาย ใส่ตรงไหน เหลือที่วางเท่าไหร่ ไม่บังจุด Focus และไม่ติดขอบ |
-| P4 | `p4_audio.json` | เสียง Effect VFX + Soundtrack ให้ตรงกับทุก transaction ใน P1 - P3 |
-| P5 | (constant, in `template/index.html`) | ลายน้ำ Blackliquidity — §6a brand bug, §6b legal label |
+| P1 | `p1_layout.json` | Select B-Roll + Footage + Avatar first, deciding where to place them and at which second; raw placement without Animation |
+| P2 | `p2_focus.json` | Start adding Animation: shrinking down, Highlighting, zoom fade in fade out so viewers Focus only on the point we want to present |
+| P3 | `p3_text.json` | Start adding Text to explain: where to put it, how much space is left, without covering the Focus point and not touching edges |
+| P4 | `p4_audio.json` | Sound Effect VFX + Soundtrack matching every transaction in P1 - P3 |
+| P5 | (constant, in `template/index.html`) | Blackliquidity watermark — §6a brand bug, §6b legal label |
 
 P5 needs no layer file: it never changes per episode except the bug's date,
 which `bl_compose.py` reads off P1's `episode.bug_date`.

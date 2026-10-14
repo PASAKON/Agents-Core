@@ -4,7 +4,7 @@
 
 ## Why this exists
 
-Claude Max = องค์กรจ่ายก้อนใหญ่สุด (~$100–200/mo) แต่เดิม **ไม่มี telemetry ใน CFO DB**.
+Claude Max = the organization's largest expense (~$100–200/mo); previously **there was no telemetry in the CFO DB**.
 This feed pushes **daily utilization %** so `/admin/cfo` can show how hard the
 Max seat is being worked — *without* touching the dollar ledger.
 
