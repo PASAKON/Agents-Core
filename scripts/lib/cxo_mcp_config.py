@@ -430,6 +430,10 @@ def wrap_org_entry(entry: dict, root: str) -> dict:
 def _build(name: str, root: str, role: str = "") -> dict | None:
     """Return the MCP entry for `name`, or None when it isn't installed here."""
     if name == "org":
+        # PYTHONPATH, not only "cwd": Claude Code 2.1.296 starts a stdio server in the SESSION's
+        # cwd and does not apply the entry's "cwd", so `-m runners.<server>` from SomPong's
+        # Projects/MoonieX/SomPong could not import `runners` and the org server closed at start
+        # (CONNECTION_CLOSED, SomPong restart 2026-10-14 10:04 TH).
         python = _venv_python(root)
         if not python.exists():
             return None
@@ -439,14 +443,14 @@ def _build(name: str, root: str, role: str = "") -> dict | None:
                 "command": str(python),
                 "args": ["-m", COO_ORG_MODULE],
                 "cwd": root,
-                "env": {"PYTHONUNBUFFERED": "1"},
+                "env": {"PYTHONUNBUFFERED": "1", "PYTHONPATH": root},
             }
         return wrap_org_entry(
             {
                 "command": str(python),
                 "args": ["-m", "runners.cto_mcp_server"],
                 "cwd": root,
-                "env": {"PYTHONUNBUFFERED": "1"},
+                "env": {"PYTHONUNBUFFERED": "1", "PYTHONPATH": root},
             },
             root,
         )
