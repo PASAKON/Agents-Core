@@ -5,6 +5,11 @@ Built by PH (CTO) #3c1f65ae, landed by CTO #e106b78b. Every piece is behind a fl
 is off on every host until the CEO's OK at deploy (launchers, roles and hooks change how
 every session behaves).
 
+**Status: on on Contabo since 2026-10-14 07:53 TH (Q-20261014-0012-e365).** All five flags below
+have their `/etc/org-flags/` file there; Mac and winbox stay off. Rollback:
+`rm -f /etc/org-flags/ORG_*` (a root command, so a Run card). Evidence of the first real spawns:
+§"Switched on: evidence".
+
 ## Flags (per host)
 
 A flag is on for a host when the file `/etc/org-flags/<NAME>` exists (root-owned; the deploy
@@ -82,6 +87,39 @@ card caps: the CEO declined them (Q-20261013-2045-0404) and Console #27 was reve
   (`cxo-claude.sh --role <role>` or `cto-claude.sh` in argv[0] or argv[1]). `send_to_cxo --spawn`,
   relay `spawn_c_level` and `node_dispatch` ask the same gate first only to answer early with the
   reason; a resume there counts the resumed session as live, because it restarts under a new id.
+
+- Starting the one-per-role C-levels (the move of 2026-10-14, lesson): a C-level cannot start a
+  C-level from its own session. The auto-mode classifier refuses it as [Permission Grant], and
+  under `ORG_SINGLE_CLEVEL` the new CTO could not start anyway while the old CTO session was still
+  live. So the start of both Mains went on ONE Run card (RUN-20261014-0219-f576, CEO tap 02:19:57Z):
+  it started the CMO Main at once and parked the CTO Main in a script that waits on
+  `clevel_gate check --role cto` and then execs `cto-claude.sh`; the CTO Main came up when the
+  last old CTO (#3c1f65ae) closed. Reuse that shape whenever a C-level must replace a live one.
+
+## Switched on: evidence (2026-10-14, Contabo; Thai time = Contabo CEST + 5 h)
+
+`ORG_SESSION_SCOPE`: `cxo-claude.sh` wraps claude in
+`systemd-run --scope --quiet --collect --unit "org-$ROLE-$CXO_SESSION_ID" -p MemoryHigh=… -p MemoryMax=… --`.
+With `--quiet` it prints nothing on success, and `spawn-ph.sh` prints only its JSON line, so the
+evidence is the claude pid's cgroup and `systemctl show` of the scope, not a printed line.
+
+| Session | Spawn (`spawn-ph.sh` JSON) | claude cgroup | `systemctl show` |
+|---|---|---|---|
+| PH MimiPage #36c49776 (owner CMO Main), 09:21:58 TH | `session_id 36c49776`, owner `cmo-ef04792e`, exit 0 | `/system.slice/org-project_head-36c49776.scope`; its MCP children (python, node) in the same scope | MemoryHigh=1610612736 (1.5 GiB), MemoryMax=2684354560 (2.5 GiB), MemoryCurrent ~331 MB, active |
+| PH SpendGuard #6c487e37 (owner CTO Main), 09:33:04 TH | `session_id 6c487e37`, owner `cto-c34459eb`, exit 0 | `0::/system.slice/org-project_head-6c487e37.scope` | MemoryHigh=1610612736, MemoryMax=2684354560, MemoryCurrent=325382144, ActiveState=active |
+| CMO Main #ef04792e | Run card RUN-20261014-0219-f576 | `/system.slice/org-cmo-ef04792e.scope` | — |
+
+The pane shells stay in `org-tmux.scope`, as designed (SpendGuard: the pane shell and its bash in
+`0::/system.slice/org-tmux.scope`, claude in its own scope). The PH banner read "Opus 5.5 (1M
+context) with medium effort", with no trust dialog. Real order test: CTO Main sent SpendGuard an
+`ask` with `send_to_cxo(role="project_head-6c487e37")` at 09:33:49 TH ("queued to Project Head
+#6c487e37"; wake logged 09:33:43–44 TH) and had the 3-line reply at 09:34:06 TH, its numbers
+matching `state/spend_guard/events.jsonl`. Full capture: Contabo
+`state/handoff/2026-10-14/test-cto-main.md` (CTO Main) and `test-cmo-main.md` (CMO Main); both
+stay out of git (`state/`).
+
+Gap the move found: `live-sessions.sh` printed a PH only with `--all` and counted it as a worker.
+Fixed on branch `ph-7cf528f0/live-sessions-ph-rows` (PH rows by default, header `+N PH`).
 
 ## What is not in P2
 
