@@ -146,8 +146,9 @@ def send(from_id: str, message: str, role: str | None = None,
     of the old broadcast-by-typing.
 
     `subject` / `kind` / `prio`: envelope mail only (ORG_MAIL_ENVELOPE on);
-    stored on the letter, and `prio` drives the debounced wake (`_wake`).
-    Off, they are ignored.
+    stored on the letter, and the letter's prio drives the debounced wake
+    (`_wake`): an ask or blocker with no prio is urgent, as it is stored
+    (`mailbox.letter_prio`). Off, they are ignored.
     """
     label = display_for(role) if role else "Dev"
     from_role = role or "dev"
@@ -156,7 +157,7 @@ def send(from_id: str, message: str, role: str | None = None,
     if cto_id:
         mailbox.send(owner_role, cto_id, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
-        _wake(owner_role, cto_id, wake_label, prio)
+        _wake(owner_role, cto_id, wake_label, mailbox.letter_prio(kind, prio))
         return True
 
     if os.environ.get("SEND_TO_CTO_BROADCAST") != "1":
@@ -175,7 +176,7 @@ def send(from_id: str, message: str, role: str | None = None,
             continue
         mailbox.send(r, sid, message, from_role, from_id,
                      **_envelope_kw(subject, kind, prio))
-        _wake(r, sid, wake_label, prio)
+        _wake(r, sid, wake_label, mailbox.letter_prio(kind, prio))
         delivered_any = True
     return delivered_any
 

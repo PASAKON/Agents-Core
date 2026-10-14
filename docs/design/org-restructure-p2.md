@@ -90,3 +90,18 @@ card caps: the CEO declined them (Q-20261013-2045-0404) and Console #27 was reve
 - Everything on Contabo runs as root, so a role check is a guard against an honest mistake, not
   against a session that wants around it (it can read any token and set any env). The real
   boundary between sessions stays the permission classifier and the CEO's cards.
+
+## Next security item, after `ORG_WORKER_TOKEN_ONLY`
+
+**A process with no identity in its env is the CEO.** `tools/agent_transport.current_identity` maps a
+process with `CXO_ROLE`, `WORKER_TASK_ID` and `CTO_SESSION_ID` all unset to `CEO_IDENTITY`. So any session
+with a shell can run `env -u CXO_ROLE -u CXO_SESSION_ID python -m tools.send_to_cxo --from CEO …`. The
+letter goes in as `ceo:ceo` to any lane, `authorize()` passes it as a root peer, `--spawn` is allowed,
+and the reader sees "from CEO". With envelope mail on, the kind/prio tag rides along too. This predates
+P2 (security review of the send_to_cxo kind/prio branch, 2026-10-14) and is logged for the CEO by CTO
+#e106b78b. Direction: an env with no identity is refused, and the CEO identity needs something a session
+cannot set: the relay's pinned sender, or a root-only marker the CEO's own terminal carries. Two LOW items
+from the same review go with it:
+- `lib/mailbox.py` still writes `kind: order` for any caller in the same process. The COO user has an
+  ACL on every box, so `hook-inbox` should show "order" only for a letter it can verify.
+- The subject guard catches only a subject starting `order #`.
