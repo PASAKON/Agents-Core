@@ -49,8 +49,10 @@ def test_roles_and_launch_files_hang_off_the_one_root():
     assert "Join-Path $agentsRootDir 'roles'" in code
     assert 'Join-Path $agentsRootDir ".launch-$Task"' in code
     assert re.search(r'Join-Path \$agentsRootDir \("launch-" \+ \$Task \+ "\.cmd"\)', code)
-    # The only remaining reads of the script's own folder are the fallback line.
-    assert len(re.findall(r"\$PSScriptRoot|\$PSCommandPath", code)) == 1
+    # The only remaining reads of the script's own folder: the fallback line, and
+    # native-args.ps1 (M12), which sits beside the script in both deploy shapes.
+    assert len(re.findall(r"\$PSScriptRoot|\$PSCommandPath", code)) == 2
+    assert "Join-Path $PSScriptRoot 'native-args.ps1'" in code
 
 
 def test_still_launches_through_a_one_shot_interactive_scheduled_task():

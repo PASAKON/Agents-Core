@@ -101,9 +101,9 @@ def test_claude_launcher_line_is_not_piped():
     Claude Code (Ink TUI) drops into --print mode and exits immediately on a
     non-TTY stdout, killing every winbox spawn."""
     text = _text()
-    m = re.search(r"^&\s*`\$claudeExe\s+@argArray.*$", text, re.MULTILINE)
+    m = re.search(r"^Invoke-NativeExe -Exe `\$claudeExe -Arguments `\$argArray.*$", text, re.MULTILINE)
     assert m, "launcher invocation of $claudeExe not found"
-    assert "|" not in m.group(0)
+    assert "|" not in m.group(0) and "-LogPath" not in m.group(0)
 
 
 def test_claude_branch_is_still_wt_exe_windows_terminal():
@@ -205,7 +205,7 @@ def test_agy_launcher_has_the_hub_commit_push_not_the_agent():
     text = _text()
     agy_start = text.index("else {\n        # agy")
     agy_branch = text[agy_start:text.index("$stAct = New-ScheduledTaskAction")]
-    invoke_idx = agy_branch.index("$null | & `$exe @argArray")
+    invoke_idx = agy_branch.index("Invoke-NativeExe -Exe `$exe -Arguments `$argArray -LogPath '$agyLog' -NullStdin")
     embed_idx = agy_branch.index("$reportStepBody\nexit 0")
     assert invoke_idx < embed_idx
     assert "New-ReportStepBody '' $agyLog" in agy_branch
@@ -280,7 +280,8 @@ def test_report_step_shared_by_codex_and_agy_launchers():
     assert "New-ReportStepBody $codexFinalMsg ''" in codex_branch
     assert "$reportStepBody\nexit 0" in codex_branch
     assert "`$cliExit = `$LASTEXITCODE" in codex_branch
-    assert codex_branch.index("& `$exe @argArray *> '$codexJsonLog'") < codex_branch.index("`$cliExit = `$LASTEXITCODE")
+    assert codex_branch.index("Invoke-WithStdin -Exe `$exe -Arguments `$argArray") < codex_branch.index("`$cliExit = `$LASTEXITCODE")
+    assert "*> '$codexJsonLog'" in codex_branch
     assert "Remove-Item -LiteralPath '$codexFinalMsg'" in codex_branch  # no stale message
 
     assert "`$cliExit = `$LASTEXITCODE" in agy_branch
@@ -342,7 +343,7 @@ def test_agy_uses_pipe_not_angle_bracket_for_stdin():
     agy_branch = text[text.index("else {\n        # agy"):text.index("$stAct = New-ScheduledTaskAction")]
     assert "< NUL" not in agy_branch
     assert "< $null" not in agy_branch
-    assert "$null | & `$exe @argArray" in agy_branch
+    assert "-NullStdin" in agy_branch
 
 
 def test_pid_poll_filter_is_runner_specific():
@@ -877,3 +878,100 @@ def test_codex_scoped_writes_and_heartbeat_cleanup():
     assert "Wait-Job -Job $heartbeatJob" in source
     assert source.count("$heartbeatStart\n") == 2
     assert source.count("$heartbeatStop\n") == 2
+
+
+# --- M12: no free text through a shell's argument parsing -------------------------------
+
+def test_no_launcher_starts_a_runner_with_a_bare_call_operator():
+    """M12 (winbox probe 2026-10-14): `& exe @argArray` split a TASK.md argument at an
+    embedded " (5.1) and `& codex.cmd @argArray` ran a '&' from it (cmd.exe). Every
+    runner now starts through windows/native-args.ps1."""
+    code = _code_only()
+    assert "@argArray *>" not in code and "& `$claudeExe" not in code
+    assert not re.search(r"^&\s*`\$\w+\s+@argArray", _text(), re.MULTILINE)
+    assert code.count(". '$nativeArgsPath'") == 3
+
+
+def test_codex_prompt_goes_on_stdin_and_its_other_args_are_cmd_safe():
+    code = _code_only()
+    codex_start = code.index("elseif ($Runner -eq 'codex')")
+    codex_branch = code[codex_start:code.index("else {", codex_start)]
+    assert "$argList = @('exec', '-')" in codex_branch
+    assert "[string]$codexPrompt)" not in codex_branch.split("$argList = @('exec', '-')")[1].split("\n")[0]
+    assert "Assert-CmdSafe $argList" in codex_branch
+    assert codex_branch.index("Assert-CmdSafe $argList") > codex_branch.index("'-o', [string]$codexFinalMsg")
+
+
+def test_native_args_helper_rules():
+    helper = (ROOT / "windows" / "native-args.ps1").read_text(encoding="utf-8")
+    assert "UseShellExecute = $false" in helper
+    assert "\\.(cmd|bat)$" in helper                      # a batch file is refused
+    assert "$global:OutputEncoding" in helper              # the probe: a local one sent '?'
+    assert '["&|<>^%!()\\r\\n]' in helper
+
+
+def test_delegate_deploys_native_args_beside_the_script():
+    assert ("windows/native-args.ps1", "native-args.ps1") in delegate._REMOTE_DEPLOY_FILES
+
+
+def _msvcrt_split(line: str) -> list[str]:
+    """CommandLineToArgvW's rules (post-2008 MSVCRT), for checking the quoting
+    algorithm without Windows."""
+    out, cur, i, inq, have = [], [], 0, False, False
+    while i < len(line):
+        c = line[i]
+        if c == "\\":
+            j = i
+            while j < len(line) and line[j] == "\\":
+                j += 1
+            n = j - i
+            if j < len(line) and line[j] == '"':
+                cur.append("\\" * (n // 2))
+                if n % 2:
+                    cur.append('"')
+                    i = j + 1
+                else:
+                    i = j
+                have = True
+                continue
+            cur.append("\\" * n)
+            i, have = j, True
+            continue
+        if c == '"':
+            if inq and i + 1 < len(line) and line[i + 1] == '"':
+                cur.append('"')
+                i += 2
+                continue
+            inq, have, i = not inq, True, i + 1
+            continue
+        if c in " \t" and not inq:
+            if have:
+                out.append("".join(cur))
+            cur, have, i = [], False, i + 1
+            continue
+        cur.append(c)
+        have, i = True, i + 1
+    if have:
+        out.append("".join(cur))
+    return out
+
+
+def _convert(value: str) -> str:
+    """Python mirror of ConvertTo-NativeArg in windows/native-args.ps1."""
+    if value != "" and not re.search(r'[\s"]', value):
+        return value
+    e = re.sub(r'(\\*)"', lambda m: m.group(1) * 2 + '\\"', value)
+    e = re.sub(r"(\\+)$", lambda m: m.group(1) * 2, e)
+    return '"' + e + '"'
+
+
+CORPUS = ["plain", 'a "b" c', 'x" --dangerously-skip-permissions "y', "C:\\dir\\", "C:\\my dir\\",
+          'a\\"b', 'a\\\\"b c', 'ทำ "งาน" นี้', 'line1\nline2 "q"\n/exit', '"', "\\", "tab\there",
+          "%PATH% & echo hi | x ^ <y> !x!", "ends with space ", '""', " lead", 'a\\\\\\\\" b\\\\', ""]
+
+
+def test_the_quoting_round_trips_the_hostile_corpus():
+    """Same corpus that passed 18/18 through node.exe on winbox (windows/test-native-args.ps1)."""
+    assert _msvcrt_split(" ".join(_convert(v) for v in CORPUS)) == CORPUS
+    helper = (ROOT / "windows" / "native-args.ps1").read_text(encoding="utf-8")
+    assert "'(\\\\*)\"'" in helper and "'(\\\\+)$'" in helper   # the same two regexes
