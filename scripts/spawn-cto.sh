@@ -2,6 +2,11 @@
 # Spawn an iTerm2 window with the CTO chat tab (default).
 #   tab 1: Claude Code CLI w/ CTO role (scripts/cto-claude.sh)
 #
+# On a host whose config/hosts.yaml says `terminal_window: false` (the Mac since
+# CEO 2026-10-15) no window opens: the session starts as a detached tmux session
+# (`tmux new-session -d`), still visible in the Claude app via Remote Control.
+# Add a window later with `bash scripts/terminal-open.sh <id>`.
+#
 # CTO + Dev log tabs are NOT opened by default — CEO does not watch them;
 # the AI consumes logs via hooks. Pass --with-logs to also open them, or
 # tail on demand: `tail -F state/logs/cto.log`.
@@ -89,6 +94,14 @@ if ! [ -d "$ROOT/.venv" ]; then
   echo "venv not found at $ROOT/.venv — run scripts/setup.sh first" >&2
   exit 1
 fi
+
+# Window or no window: config/hosts.yaml `terminal_window` for THIS host, read
+# through lib.config (scripts/lib/coo_host.py). Anything but a clear 0 — a host
+# that will not resolve, a Python that will not run — keeps the old behaviour
+# and opens the window.
+HOST_PY="$ROOT/.venv/bin/python"; [ -x "$HOST_PY" ] || HOST_PY=python3
+TERMINAL_WINDOW="$("$HOST_PY" "$ROOT/scripts/lib/coo_host.py" terminal-window 2>/dev/null || echo 1)"
+[ "$TERMINAL_WINDOW" = "0" ] || TERMINAL_WINDOW=1
 
 # Generate a short CTO session ID so DEV reports route only to this CTO.
 # Injected as CTO_SESSION_ID env into cto-claude.sh + MCP server.
@@ -285,6 +298,17 @@ tmux set-option -g extended-keys on 2>/dev/null || true
 CHAT_CMD="tmux new-session -A -s '$TMUX_SESSION' -c '$ROOT' bash '$RUN_FILE'"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/cto-$CTO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
+
+# terminal_window=false: no iTerm, no osascript. Detached, so no client is
+# attached and cto-claude.sh finds no client_tty — it reads the same flag and
+# skips that lookup, the way it falls back on Contabo, where nothing attaches
+# either.
+if [ "$TERMINAL_WINDOW" = "0" ]; then
+  tmux new-session -d -s "$TMUX_SESSION" -c "$ROOT" bash "$RUN_FILE"
+  [ "$WITH_LOGS" = "1" ] && echo "--with-logs ignored: terminal_window=false for this host (no windows to put them in)" >&2
+  echo "spawned detached tmux session $TMUX_SESSION id=$CTO_SESSION_ID (no iTerm window: terminal_window=false; logs at state/logs/cto-$CTO_SESSION_ID.log). Window on demand: bash scripts/terminal-open.sh $CTO_SESSION_ID"
+  exit 0
+fi
 
 EXTRA_TABS=""
 if [ "$WITH_LOGS" = "1" ]; then
