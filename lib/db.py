@@ -743,7 +743,8 @@ def _pg_schema_current(conn) -> bool:
     triggers = {r[0] for r in conn.execute(
         "SELECT t.tgname FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid"
         " JOIN pg_namespace n ON n.oid = c.relnamespace"
-        " WHERE n.nspname = current_schema() AND NOT t.tgisinternal").fetchall()}
+        " WHERE n.nspname = current_schema() AND NOT t.tgisinternal"
+        " AND c.relname = 'project_events' AND t.tgenabled IN ('O', 'A')").fetchall()}
     if not set(db_pg.PORTFOLIO_TRIGGER_NAMES) <= triggers:
         return False
     return all({col for col, _ in cols} <= have.get(table, set())

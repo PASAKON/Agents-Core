@@ -269,8 +269,15 @@ PORTFOLIO_GUARDS: tuple[str, ...] = (
     "CREATE OR REPLACE TRIGGER project_events_append_only"
     " BEFORE UPDATE OR DELETE ON project_events"
     " FOR EACH ROW EXECUTE FUNCTION project_events_append_only()",
+    # A row trigger never fires on TRUNCATE (nor on TRUNCATE projects CASCADE).
+    "CREATE OR REPLACE TRIGGER project_events_no_truncate"
+    " BEFORE TRUNCATE ON project_events"
+    " FOR EACH STATEMENT EXECUTE FUNCTION project_events_append_only()",
 )
-PORTFOLIO_TRIGGER_NAMES = ("project_events_append_only",)
+# Accident guard only: the hub role `org` owns the table and is a superuser, so it
+# can drop or disable these. True append-only is the INSERT-only writer role
+# (P3 grants piece).
+PORTFOLIO_TRIGGER_NAMES = ("project_events_append_only", "project_events_no_truncate")
 
 
 # ---------------------------------------------------------------------------

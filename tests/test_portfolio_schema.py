@@ -34,12 +34,13 @@ def test_every_portfolio_table_is_in_pg_schema_and_not_in_sqlite():
 
 
 def test_guards_are_single_statements_that_never_return_new():
-    assert len(db_pg.PORTFOLIO_GUARDS) == 2
-    fn, trig = db_pg.PORTFOLIO_GUARDS
+    assert len(db_pg.PORTFOLIO_GUARDS) == 3
+    fn, row, trunc = db_pg.PORTFOLIO_GUARDS
     assert "RAISE EXCEPTION" in fn and "RETURN NEW" not in fn.upper()
-    assert "BEFORE UPDATE OR DELETE ON project_events" in trig
-    for name in db_pg.PORTFOLIO_TRIGGER_NAMES:
-        assert name in trig
+    assert "BEFORE UPDATE OR DELETE ON project_events" in row
+    assert "BEFORE TRUNCATE ON project_events" in trunc
+    for name, stmt in zip(db_pg.PORTFOLIO_TRIGGER_NAMES, (row, trunc)):
+        assert name in stmt
 
 
 def test_no_portfolio_column_is_named_like_a_secret():
@@ -95,8 +96,9 @@ def test_init_creates_tables_and_trigger_and_is_idempotent(pg):
     assert db_mod._pg_schema_current(pg)
     db_mod.init()
     db_mod.init()
-    n = pg.execute("SELECT count(*) FROM pg_trigger WHERE tgname = 'project_events_append_only'").fetchone()[0]
-    assert n == 1
+    for name in db_pg.PORTFOLIO_TRIGGER_NAMES:
+        n = pg.execute("SELECT count(*) FROM pg_trigger WHERE tgname = ?", (name,)).fetchone()[0]
+        assert n == 1, name
 
 
 @needs_pg
@@ -106,6 +108,36 @@ def test_schema_is_not_current_without_the_trigger(pg):
     assert not db_mod._pg_schema_current(pg)
     db_mod.init()
     assert db_mod._pg_schema_current(pg)
+
+
+@needs_pg
+@pytest.mark.parametrize("name", ["project_events_append_only", "project_events_no_truncate"])
+def test_a_disabled_trigger_is_not_current_and_init_reenables_it(pg, name):
+    pg.execute(f"ALTER TABLE project_events DISABLE TRIGGER {name}")
+    pg.commit()
+    assert not db_mod._pg_schema_current(pg)
+    db_mod.init()
+    assert db_mod._pg_schema_current(pg)
+    assert pg.execute("SELECT tgenabled FROM pg_trigger WHERE tgname = ?", (name,)).fetchone()[0] == "O"
+
+
+@needs_pg
+def test_a_same_named_trigger_on_another_table_does_not_count(pg):
+    pg.execute("DROP TRIGGER project_events_no_truncate ON project_events")
+    pg.execute("CREATE TRIGGER project_events_no_truncate BEFORE TRUNCATE ON milestones"
+               " FOR EACH STATEMENT EXECUTE FUNCTION project_events_append_only()")
+    pg.commit()
+    assert not db_mod._pg_schema_current(pg)
+
+
+@needs_pg
+def test_truncate_is_refused(pg):
+    _project(pg)
+    pg.execute("INSERT INTO project_events (project_id, kind, actor) VALUES ('p1', 'opened', 'ph')")
+    pg.commit()
+    assert "append-only" in _fails(pg, "TRUNCATE project_events")
+    assert "append-only" in _fails(pg, "TRUNCATE projects CASCADE")
+    assert pg.execute("SELECT count(*) FROM project_events").fetchone()[0] == 1
 
 
 @needs_pg
