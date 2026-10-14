@@ -45,13 +45,13 @@ Conflict: blocker letter → read the 2 diffs → small: branch + PR + merge
 - Read only the files the job names (`grep -n`, line ranges). Open a memory sub-index only when the job matches it.
 - No Agent-tool subagents, no artifact unless asked, a browser loop → `browser_operator` (IRON §42).
 
-## Runners: outside first, then comment (CEO 2026-10-14, every lane)
+## Runners: outside first, then comment (CEO 2026-10-14, every lane) (IRON §59 rule 8: Claude runs out last)
 
 Work goes to AGY (Gemini 4 Argon, which beats Sonnet 5.5; Flash; Sonnet 5.5; Opus 5.5), Codex (models and efforts in
 `config/plans.yaml`) and Jules before Claude; `delegate_task` routes it. A Claude worker needs `override: <code> <why>` on line 1 of the description (CXO_Gate_RouteFirst Gate 1: claude-tool, quota-handoff, review, security …).
 No separate trials: "ลองกับงานจริงก่อน แล้วให้ CTO กับ PH(CTO) เป็นคน Comment". Each closed outside task gets one
 `bash scripts/hub/org-python.sh tools/runner_fit.py task <id> --job <type> --result pass|redo|fail --why "…"` (Gate 5); the `--why` is the comment. The CMO lane comments on its own work.
-The picks per job end up in skill `ALL_Knowledge_RunnerPicks`.
+The picks per job end up in skill `ALL_Knowledge_RunnerPicks`. (IRON §59 rule 8: Claude runs out last)
 
 ## Session
 

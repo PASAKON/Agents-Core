@@ -341,6 +341,20 @@ def cached_quotas(
     return quotas
 
 
+def _is_claude(plan: Plan | Choice | str | None, cfg: dict | None) -> bool:
+    """Return True if candidate plan/choice belongs to an anthropic bucket."""
+    if isinstance(plan, Plan):
+        bucket = plan.choice.bucket
+    elif isinstance(plan, Choice):
+        bucket = plan.bucket
+    else:
+        bucket = plan
+    return bool(
+        bucket
+        and ((cfg or {}).get("buckets") or {}).get(bucket, {}).get("provider") == "anthropic"
+    )
+
+
 def plan(
     role: str,
     size: str | None = None,
@@ -355,6 +369,7 @@ def plan(
     table: dict | None = None,
     now: datetime | None = None,
     needs_shell: bool | None = None,
+    needs_claude_tool: bool | None = None,
 ) -> list[Plan]:
     """Plan candidate runners for role with quota forecasts and verdicts."""
     try:
@@ -375,6 +390,9 @@ def plan(
 
         if needs_shell is None:
             needs_shell = forecast.needs_shell(brief)
+
+        if needs_claude_tool is None:
+            needs_claude_tool = forecast.needs_claude_tool(brief)
 
         shell_runners = cfg.get("shell_runners")
         if shell_runners is None:
@@ -412,10 +430,7 @@ def plan(
                 if (bucket and limits)
                 else (None, "no cost data")
             )
-            is_claude = bool(
-                bucket
-                and (cfg.get("buckets") or {}).get(bucket, {}).get("provider") == "anthropic"
-            )
+            is_claude = _is_claude(c, cfg)
             if pressure_rule and not is_claude and cw is not None:
                 eff_limit_row = dict(limit_row)
                 orig_reserve = limit_row.get("reserve_pct", 0)
@@ -442,9 +457,15 @@ def plan(
                     if (bucket and q)
                     else None
                 )
+            if c.reason == "exhausted":
+                v = "cannot"
+                why = "exhausted"
             if needs_shell and c.runner not in shell_runners:
                 v = "cannot"
                 why = f"needs shell; {c.runner} is edit-only"
+            if needs_claude_tool and not is_claude:
+                v = "cannot"
+                why = f"needs a Claude-only tool; {c.runner} has none"
             plans.append(
                 Plan(
                     choice=c,
@@ -464,23 +485,21 @@ def plan(
         cannot_plans = [p for p in plans if p.verdict == "cannot"]
 
         if pressure_rule:
-            ok_outside = [
-                p
-                for p in ok_plans
-                if not (
-                    p.choice.bucket
-                    and (cfg.get("buckets") or {}).get(p.choice.bucket, {}).get("provider") == "anthropic"
-                )
-            ]
-            ok_claude = [
-                p
-                for p in ok_plans
-                if bool(
-                    p.choice.bucket
-                    and (cfg.get("buckets") or {}).get(p.choice.bucket, {}).get("provider") == "anthropic"
-                )
-            ]
-            return ok_outside + ok_claude + unknown_plans + will_hit_plans + cannot_plans
+            ok_outside = [p for p in ok_plans if not _is_claude(p, cfg)]
+            ok_claude = [p for p in ok_plans if _is_claude(p, cfg)]
+            unknown_outside = [p for p in unknown_plans if not _is_claude(p, cfg)]
+            unknown_claude = [p for p in unknown_plans if _is_claude(p, cfg)]
+            will_hit_outside = [p for p in will_hit_plans if not _is_claude(p, cfg)]
+            will_hit_claude = [p for p in will_hit_plans if _is_claude(p, cfg)]
+            return (
+                ok_outside
+                + unknown_outside
+                + will_hit_outside
+                + ok_claude
+                + unknown_claude
+                + will_hit_claude
+                + cannot_plans
+            )
 
         return ok_plans + unknown_plans + will_hit_plans + cannot_plans
     except Exception:
@@ -548,6 +567,7 @@ def pick_runner(
     table: dict | None = None,
     now: datetime | None = None,
     needs_shell: bool | None = None,
+    needs_claude_tool: bool | None = None,
 ) -> Choice | None:
     try:
         cfg = cfg or load_plans()
@@ -570,7 +590,24 @@ def pick_runner(
             table=table,
             now=now,
             needs_shell=needs_shell,
+            needs_claude_tool=needs_claude_tool,
         )
+
+        claude_plans = [p for p in plans if _is_claude(p, cfg)]
+        every_claude_will_hit = (
+            all(p.verdict != "ok" for p in claude_plans)
+            if claude_plans
+            else not any(p.verdict == "ok" for p in plans)
+        )
+        if cfg.get("pressure_rule", True):
+            for p in plans:
+                if p.verdict != "cannot" and "exhausted" not in p.choice.reason:
+                    if p.verdict == "ok" or not every_claude_will_hit:
+                        p.choice.reason = plan_line(p)
+                    else:
+                        p.choice.reason = f"no ok candidate, fallback: {p.choice.reason}"
+                    return p.choice
+            return None
 
         for p in plans:
             if p.verdict == "ok":

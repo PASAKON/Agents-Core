@@ -496,6 +496,8 @@ emit_report_commit_push() {
   printf 'GIT_ID_ARGS=%s\n' "$(sh_quote "$4")"
   printf 'COMMIT_MSG=%s\n' "$(sh_quote "$5")"
   printf 'GIT_RESET_GUARD=%s\n' "$(sh_quote "$GIT_RESET_GUARD")"
+  printf 'AGENTS_ROOT=%s\n' "$(sh_quote "$ROOT")"
+  printf 'LAUNCH_DIR=%s\n' "$(sh_quote "$LAUNCH")"
   cat <<'REPORT_STEP_EOF'
 R_DIR="docs/reports/$TASK_ID"
 R="$R_DIR/REPORT.md"
@@ -662,6 +664,13 @@ if ! git diff --cached --quiet; then
 fi
 rm -f "$ALLOW_FILE" "$ALLOW_LARGE_FILE" "$MEDIA_KEPT_FILE"
 git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
+if [ -n "${AGENTS_ROOT:-}" ] && [ -f "$AGENTS_ROOT/tools/quota_handoff.py" ]; then
+  if [ -x "$AGENTS_ROOT/scripts/hub/org-python.sh" ]; then
+    bash "$AGENTS_ROOT/scripts/hub/org-python.sh" "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" >/dev/null 2>&1 || true
+  else
+    python3 "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" >/dev/null 2>&1 || true
+  fi
+fi
 REPORT_STEP_EOF
 }
 

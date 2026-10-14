@@ -27,9 +27,8 @@ shell_runners: [claude, codex]
 # Candidate list per job class, in the CEO's order. "runner:model[:effort]".
 roles:
   # 2026-10-14: agy dropped claude-sonnet-4-6 ("not recognized", exit 1), so it is now claude-sonnet-5-5-high.
-  # gemini-4-argon-high shares the agy-gemini bucket with flash; at a quota tie the higher skill score wins,
-  # and Argon has none yet, so it ranks behind flash until the Argon trial scores it (docs/ops/argon-trial-2026-10).
-  dev_general:    ["agy:gemini-3.8-flash-high", "agy:gemini-4-argon-high", "agy:claude-sonnet-5-5-high", "codex:", "claude:claude-sonnet-5-5"]
+  # The Argon trial is done (9c078b65); CEO ruled 15 Oct that Argon beats Sonnet and goes first.
+  dev_general:    ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "agy:claude-sonnet-5-5-high", "codex:", "claude:claude-sonnet-5-5"]
   # Jobs that must run shell commands (shell_runners only). "codex:" with an empty model = the CLI default;
   # a model label here would reach the launcher as `-m <label>` (H3, 8db9213f).
   dev_shell:      ["codex:", "claude:claude-sonnet-5-5"]
@@ -39,8 +38,7 @@ roles:
   # GH #188: browser_operator tasks whose brief uses tools/agy_browse.py and names a
   # Browser Home CDP URL (tools/route.class_for). Not a role_classes entry on purpose.
   browser_agy:    ["agy:gemini-3.8-flash-high"]
-  # Docs and translation (edit-only: no shell). No role maps here yet, so it routes nothing;
-  # mapping a role to it waits on the Argon trial result (CEO order 14 Oct via SomPong).
+  # Docs, copy, scripts and translation (edit-only: no shell). Maps content_strategist and script_writer.
   doc_text:       ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "claude:claude-sonnet-5-5"]
   # SomPong's researcher workers (CEO card Q-20261013-1948-4a33): web search + read-only reading inside
   # runners/coo_worker.py's box, report only. codex first (`--search`), Argon second until the Argon trial
@@ -57,6 +55,9 @@ role_classes:
   # 2026-10-04); routing devops_engineer here waits for the CEO.
   tester:    dev_shell
   researcher: research   # SomPong's research workers (Q-20261013-1948-4a33), run by runners/coo_worker.py
+  content_strategist: doc_text  # copy, voice, positioning text; its skills are writing guides, not tools
+  script_writer: doc_text       # scripts are text; a BL brief that also asks for footage capture or a browser is caught by needs_claude_tool and falls to Claude
+  # NOT prompt_engineer: its job includes MCP servers, tool schemas and running evals (shell + code).
 router:
   tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
   min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown

@@ -123,6 +123,42 @@ def needs_shell(brief: str | None) -> bool:
     )
 
 
+CLAUDE_TOOL_PATTERNS: list[str] = [
+    "chrome",
+    "browser",
+    "playwright",
+    "screenshot",
+    "capture",
+    "screen record",
+    "mcp__",
+    "higgsfield",
+    "seedance",
+    "veo ",
+    "kling",
+    "image gen",
+    "generate image",
+    "generate video",
+]
+
+_AGY_BROWSE_RE = re.compile(r"(?<![\w/])tools/agy_browse\.py\b", re.IGNORECASE)
+
+
+def needs_claude_tool(brief: str | None) -> bool:
+    """Return True if brief asks the worker to drive a browser or a media tool.
+
+    Follows the same `edit-only:` header escape and `tools/agy_browse.py`
+    exception as `needs_shell`.
+    """
+    if not brief:
+        return False
+    if _EDIT_ONLY_RE.search(_description_header(brief)):
+        return False
+    if _AGY_BROWSE_RE.search(brief):
+        return False
+    lower = brief.lower()
+    return any(p.lower() in lower for p in CLAUDE_TOOL_PATTERNS)
+
+
 def infer_size(touches: list | tuple | None = None, brief: str | None = None) -> str:
     """Infer task size S, M, or L based on touch count and brief length.
 

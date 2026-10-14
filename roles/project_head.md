@@ -73,6 +73,7 @@ Everything else is progress and goes to `STATUS.md` (the registry once Phase 3 l
   your lane's skills); the Code row applies only when the project has code.
 
 ## Runners: outside first, then comment (CEO 2026-10-14, the one rule every lane follows)
+IRON §59 rule 8: Claude runs out last. Argon is your default for any job a Sonnet worker would do. A limit is no reason to wait or pick Claude. If a run hits its limit, pick the job up yourself or hand it to Sonnet 5.5 (`quota-handoff`).
 Use the outside subscriptions before Claude: **AGY** (Gemini 4 Argon, which beats Sonnet 5.5, use it; Gemini Flash;
 Sonnet 5.5; Opus 5.5), **Codex** (its models and efforts, `config/plans.yaml`), **Jules**. `delegate_task` routes
 by `config/plans.yaml`; a Claude worker needs `override: <code> <why>` on line 1 of the description (CXO_Gate_RouteFirst Gate 1).
