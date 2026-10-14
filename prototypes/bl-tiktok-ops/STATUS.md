@@ -24,7 +24,7 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 | M4 | real read, 2 per arm, reported | 18 Oct 22:00, check 22:13 | open | |
 
 | M5 | EP62 (CXM cent-account case) script, approved | 14 Oct ~13:15 | done | v2 4e6e2421 approved by CMO Main 13:3x TH |
-| M6 | EP62 final filed + posted | 14 Oct 20:00 TH (check 20:10) | scheduled; live check open | final v2 md5 b0e66f89…, Drive 1K6pOQH9FdxrwCXH5rk2lRTuC_cKhUHzz; Studio list Oct 14 3:00 PM CEST, 01:07, Everyone |
+| M6 | EP62 final filed + posted | 14 Oct 20:00 TH (check 20:10) | done | https://www.tiktok.com/@black_liquidity/video/7696497006512000263 (live 20:1x TH); final v2 md5 b0e66f89…, Drive 1K6pOQH9FdxrwCXH5rk2lRTuC_cKhUHzz; Studio list Oct 14 3:00 PM CEST, 01:07, Everyone |
 
 EP62 added 14 Oct 10:41 TH (CEO order via CMO Main). EP62 ran on Contabo by CTO ruling 14 Oct (CTO Main c34459eb 10:45 TH: «option (b) … nothing in these stages needs the Mac»), ClaudeFlow checkout /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow @4208690, node /opt/node-v22/bin/node, work dir /opt/MoonieXHQ/Work/bl-ep62.
 EP62 probe 14 Oct 10:5x TH ($0): row cc13ea6b-4009-4050-aaa1-da208294d711 (MANUAL_RUN), drive_setup done, Drive folder `BLACK LIQUIDITY [61] | BL EP62 — CXM ไม่จ่ายกำไรบัญชี Cent เกือบ 6 ล้าน` 1fOlTvVs555AODyN0ReD0qj5ZISMC1DjR, row.script byte-equal to the DRAFT probe (re-insert the approved script with --row before tts).
