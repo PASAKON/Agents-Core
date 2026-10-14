@@ -11,21 +11,44 @@ from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
 EXTS = {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".ps1", ".go", ".rs", ".sql"}
+MAX_COMMAND = 4096  # a Bash command is cut here before any regex or shlex: their cost grows with length
+HEREDOC = re.compile(r"(?<!<)<<(?!<)-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1")
+SEPARATOR = re.compile(r"&&|[;|]")
+GIT = re.compile(r"\bgit\b")
+COMMIT = re.compile(r"\bcommit\b")
+REDIRECT = re.compile(r">>?\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|<>]+))")
+IN_PLACE = re.compile(r"-(?!-)[A-Za-z]*i|--in-place")
+
+
+def segments(command):
+    """Command segments of the first MAX_COMMAND chars; heredoc bodies are content, not commands."""
+    waiting = []  # heredoc delimiters whose body has not ended yet
+    for line in command[:MAX_COMMAND].split("\n"):
+        if waiting:
+            if line.strip() == waiting[0]:
+                waiting.pop(0)
+            continue
+        waiting = [m.group(2) for m in HEREDOC.finditer(line)]
+        yield from SEPARATOR.split(line)
 
 
 def shell_ext(command):
-    tokens = shlex.split(command, posix=True)
-    if re.search(r"\bgit\s+(?:-[^;|&]+\s+)?commit\b", command):
-        return None
-    # Redirections, including attached destinations and heredoc output paths.
-    targets = re.findall(r">>?\s*(?:\"([^\"]+)\"|'([^']+)'|([^\s;&|<>]+))", command)
-    paths = [next(v for v in group if v) for group in targets]
-    if re.search(r"\bsed\s+[^;|&]*?(?:-i\b|--in-place\b)", command) or "tee" in tokens:
-        paths.extend(tokens)
-    for path in paths:
-        ext = Path(path).suffix.lower()
-        if ext in EXTS:
-            return ext
+    for segment in segments(command):
+        git = GIT.search(segment)
+        if git and COMMIT.search(segment, git.end()):
+            continue  # this segment is a git commit; the others still count
+        try:
+            tokens = shlex.split(segment, posix=True)
+        except ValueError:  # e.g. an unbalanced quote
+            tokens = segment.split()
+        # Redirections, including attached destinations and heredoc output paths.
+        paths = [next(v for v in group if v) for group in REDIRECT.findall(segment)]
+        if "tee" in tokens or ("sed" in tokens and any(IN_PLACE.match(t) for t in tokens)):
+            paths.extend(tokens)
+        for path in paths:
+            ext = Path(path).suffix.lower()
+            if ext in EXTS:
+                return ext
     return None
 
 

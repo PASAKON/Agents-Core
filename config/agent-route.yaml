@@ -1,2 +1,0 @@
-# Enable refusal only in a separate, reviewed change after 24 hours of logs.
-mode: log

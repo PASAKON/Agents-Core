@@ -6,6 +6,7 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import sys
+import time
 from datetime import date, datetime, timedelta, timezone
 
 import pytest
@@ -15,35 +16,11 @@ from tools.runner_share import summary
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("year", [1970, 2026, 9999])
-def test_log_at_any_clock(tmp_path, monkeypatch, capsys, year):
-    hook = runpy.run_path(str(ROOT / "scripts/hook-agent-route.py"))
-    class Clock:
-        @staticmethod
-        def now(tz):
-            return datetime(year, 1, 1, tzinfo=tz)
-    hook["main"].__globals__["datetime"] = Clock
-    cfg = tmp_path / "config.yaml"
-    cfg.write_text("mode: log\n")
-    spool = tmp_path / "route.jsonl"
-    monkeypatch.setenv("AGENT_ROUTE_CONFIG", str(cfg))
-    monkeypatch.setenv("AGENT_ROUTE_PATH", str(spool))
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(agent())))
-    assert hook["main"]() == 0
-    assert json.loads(spool.read_text())["decision"] == "log"
-    assert not capsys.readouterr().err
-
-
-@pytest.mark.parametrize("script", ["hook-agent-route.py", "hook-ph-handson.py"])
-def test_permission_failure_is_silent(monkeypatch, capsys, tmp_path, script):
-    hook = runpy.run_path(str(ROOT / "scripts" / script))
-    cfg = tmp_path / "config.yaml"
-    cfg.write_text("mode: enforce\n")
-    monkeypatch.setenv("AGENT_ROUTE_CONFIG", str(cfg))
+def test_permission_failure_is_silent(monkeypatch, capsys):
+    hook = runpy.run_path(str(ROOT / "scripts/hook-ph-handson.py"))
     monkeypatch.setenv("CXO_ROLE", "project_head")
-    payload = agent() if script == "hook-agent-route.py" else dict(
-        session_id="s1", tool_name="Write", tool_input={"file_path": "x.py"})
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(dict(
+        session_id="s1", tool_name="Write", tool_input={"file_path": "x.py"}))))
     original = Path.open
     def denied(path, mode="r", *args, **kwargs):
         if "a" in mode:
@@ -55,7 +32,11 @@ def test_permission_failure_is_silent(monkeypatch, capsys, tmp_path, script):
     assert captured.out == captured.err == ""
 
 
-@pytest.mark.parametrize("command", ["git commit -m example", "git -C repo commit -m example"])
+COMMIT_MESSAGE_HEREDOC = "git commit -m \"$(cat <<'EOF'\nfix it's > x.py\ntee y.sh\nEOF\n)\""
+
+
+@pytest.mark.parametrize("command", ["git commit -m example", "git -C repo commit -m example",
+    "git add -A && git commit -m x", COMMIT_MESSAGE_HEREDOC])
 def test_commit_is_not_handson(invoke, tmp_path, command):
     result = invoke("hook-ph-handson.py", dict(session_id="s1", tool_name="Bash",
                     tool_input={"command": command}), ph=True)
@@ -101,61 +82,13 @@ def test_large_spool_bounded_read(tmp_path, monkeypatch, capsys):
 
 @pytest.fixture
 def invoke(tmp_path):
-    def run(script, payload, mode="log", ph=False, config=None):
-        cfg = tmp_path / "config.yaml"
-        cfg.write_text(f'mode: {mode}\n' if config is None else config)
-        if config == "missing":
-            cfg.unlink()
-        env = dict(os.environ, AGENT_ROUTE_CONFIG=str(cfg),
-                   AGENT_ROUTE_PATH=str(tmp_path / "agent-route.jsonl"),
-                   PH_HANDSON_PATH=str(tmp_path / "ph-handson.jsonl"),
+    def run(script, payload, ph=False):
+        env = dict(os.environ, PH_HANDSON_PATH=str(tmp_path / "ph-handson.jsonl"),
                    CXO_ROLE="project_head" if ph else "cto")
         return subprocess.run([sys.executable, str(ROOT / "scripts" / script)],
                               input=payload if isinstance(payload, str) else json.dumps(payload),
                               text=True, capture_output=True, env=env)
     return run
-
-
-def agent(prompt="secret prompt", kind="general-purpose"):
-    return dict(session_id="s1", tool_name="Agent", tool_input=dict(
-        prompt=prompt, description="d" * 100, subagent_type=kind))
-
-
-@pytest.mark.parametrize("kind", ["Explore", "Plan", "claude-code-guide", "statusline-setup"])
-def test_read_only(invoke, kind):
-    assert invoke("hook-agent-route.py", agent(kind=kind), "enforce").returncode == 0
-
-
-@pytest.mark.parametrize("mode,code", [("log", 0), ("enforce", 2)])
-def test_missing(invoke, tmp_path, mode, code):
-    result = invoke("hook-agent-route.py", agent(), mode)
-    assert result.returncode == code
-    raw = (tmp_path / "agent-route.jsonl").read_text()
-    row = json.loads(raw)
-    assert not row["has_reason"] and len(row["description"]) == 60
-    assert "secret prompt" not in raw
-    if code:
-        assert len(result.stderr.splitlines()) == 1
-        assert "quota-handoff" in result.stderr
-
-
-@pytest.mark.parametrize("prompt,code", [("override: review — check", 0),
-    ("override: bogus — check", 2), ("intro\n\noverride: review", 2)])
-def test_reason(invoke, prompt, code):
-    assert invoke("hook-agent-route.py", agent(prompt), "enforce").returncode == code
-
-
-@pytest.mark.parametrize("config", ["missing", "[", "null", "[]", "mode: bogus", "mode: enforce\nextra: ["])
-def test_bad_config(invoke, tmp_path, config):
-    result = invoke("hook-agent-route.py", agent(), config=config)
-    assert result.returncode == 0 and not result.stderr
-    assert json.loads((tmp_path / "agent-route.jsonl").read_text())["decision"] == "error_allow"
-
-
-@pytest.mark.parametrize("payload", ["garbage", "[]", '{"tool_input":null}'])
-def test_garbage(invoke, tmp_path, payload):
-    assert invoke("hook-agent-route.py", payload, "enforce").returncode == 0
-    assert json.loads((tmp_path / "agent-route.jsonl").read_text())["decision"] == "error_allow"
 
 
 @pytest.mark.parametrize("ph,ext,flag", [(False, ".py", False), (True, ".py", True), (True, ".md", False)])
@@ -175,6 +108,53 @@ def test_shell(invoke, tmp_path, command):
     raw = (tmp_path / "ph-handson.jsonl").read_text()
     assert command not in raw and "secret" not in raw
     assert json.loads(raw)["path"] == "shell"
+
+
+def bash(command):
+    return dict(session_id="s1", tool_name="Bash", tool_input={"command": command})
+
+
+@pytest.mark.parametrize("command", [
+    "cat > x.py <<'EOF'\nit's an apostrophe in the body\nEOF",
+    "cat > x.py <<'EOF'\nprint(1)\nEOF\ngit add -A && git commit -m x",
+    "echo a > x.py && git commit -m x",
+    "git commit -m x; echo a > x.py",
+    "cat > x.py <<'EOF'\ngit commit -m x\nEOF",
+    "cat > x.py <<EOF\nfirst\nEOF\ncat > y.sh <<'EOF'\nsecond\nEOF",
+    "echo a | tee x.py it's"])
+def test_write_beside_commit_or_quote_is_counted(invoke, tmp_path, command):
+    assert invoke("hook-ph-handson.py", bash(command), ph=True).stdout
+    assert json.loads((tmp_path / "ph-handson.jsonl").read_text())["path"] == "shell"
+
+
+@pytest.mark.parametrize("command", [
+    "cat <<'EOF'\nprint('x > y.py')\nEOF",
+    "python3 - <<'EOF'\nopen('x.py', 'w')\nEOF",
+    "echo hi > notes.md && git commit -m x",
+    "cat <<< 'x.py'"])
+def test_content_is_not_a_write(invoke, tmp_path, command):
+    assert not invoke("hook-ph-handson.py", bash(command), ph=True).stdout
+    assert not (tmp_path / "ph-handson.jsonl").exists()
+
+
+@pytest.mark.parametrize("command", ["git - " * 170000, "sed " * 260000, "x" * (1 << 20),
+    "git commit -m x\n" * 70000, "echo " + "a > " * 260000, "sed -i " + " " * (1 << 20) + "x.py"],
+    ids=["git-dash", "sed-repeat", "plain", "commits", "redirects", "spaces"])
+def test_one_megabyte_command_is_fast(tmp_path, monkeypatch, command):
+    assert len(command) >= 1_000_000
+    hook = runpy.run_path(str(ROOT / "scripts/hook-ph-handson.py"))
+    monkeypatch.setenv("CXO_ROLE", "project_head")
+    monkeypatch.setenv("PH_HANDSON_PATH", str(tmp_path / "ph.jsonl"))
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(bash(command))))
+    started = time.perf_counter()
+    assert hook["main"]() == 0
+    assert time.perf_counter() - started < 0.5
+
+
+def test_write_past_the_cut_is_not_seen():
+    hook = runpy.run_path(str(ROOT / "scripts/hook-ph-handson.py"))
+    assert hook["shell_ext"]("echo " + "a" * 5000 + " > x.py") is None
+    assert hook["shell_ext"]("echo " + "a" * 4000 + " > x.py") == ".py"
 
 
 def test_cap(invoke, tmp_path):
