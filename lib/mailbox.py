@@ -151,7 +151,56 @@ def send(
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
+    _log_meta(letter["sent_at"], f"{from_role}-{from_session_id}", f"{to_role}-{to_session_id}",
+              kind if envelope else (kind or body_kind(body)), root)
     return final
+
+
+# Who wrote to whom, when, and the kind: never the body (M11, the escalation watch,
+# tools/escalation_watch.py). A drained letter is gone with the envelope off, so this
+# is the only record that a PH's blocker was sent and whether its C-level answered.
+META_NAME = "letters-meta.jsonl"
+META_MAX_BYTES = 5 * 1024 * 1024
+# "blocker · urgent · …" (roles/project_head.md: the kind is plain text until the
+# envelope flag is on), after an optional "[From …] :" marker the MCP tool prepends
+_BODY_KIND_RE = re.compile(r"^\s*(?:\[[^\]]{0,120}\]\s*:\s*)?([a-z]+)\s*\u00b7")
+
+
+def body_kind(body: str) -> str | None:
+    m = _BODY_KIND_RE.match(body or "")
+    return m.group(1) if m and m.group(1) in KINDS else None
+
+
+def meta_path(root: Path | None = None) -> Path:
+    """ORG_LETTERS_META wins (every test points it into its tmp_path), else
+    state/reports/ next to the inbox root the letter went to."""
+    override = os.environ.get("ORG_LETTERS_META", "").strip()
+    if override:
+        return Path(override)
+    return (root if root is not None else INBOX_ROOT).parent / "reports" / META_NAME
+
+
+def _log_meta(sent_at: str, from_box: str, to_box: str, kind: str | None,
+              root: Path | None = None) -> None:
+    """Append one line; never raises (a letter is delivered whether or not this lands)."""
+    try:
+        path = meta_path(root)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            if path.stat().st_size > META_MAX_BYTES:
+                os.replace(path, path.with_suffix(".jsonl.1"))
+        except FileNotFoundError:
+            pass
+        line = json.dumps({"sent_at": sent_at, "from": from_box, "to": to_box,
+                           "kind": kind or "message"}, ensure_ascii=False) + "\n"
+        fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT
+                     | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0), 0o600)
+        try:
+            os.write(fd, line.encode("utf-8"))
+        finally:
+            os.close(fd)
+    except Exception:
+        pass
 
 
 def _letters(role: str, session_id: str, root: Path | None) -> list[Path]:
