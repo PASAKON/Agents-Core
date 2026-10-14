@@ -7,8 +7,9 @@
 # Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool,
 # and a session may not type into its own pane (Agents-Core #272: an allow rule for
 # that would let it type any slash command into its own prompt). So this script
-# writes a rename REQUEST (topic + state glyph) and tools/rename_service.py, a root
-# service, types "/rename <name>" into this session's pane when its prompt is empty.
+# sends a rename REQUEST (topic + state glyph) over a unix socket to
+# tools/rename_service.py, a root service, which checks that the caller belongs to
+# that session and types "/rename <name>" into its pane when its prompt is empty.
 # Name changes propagate to claude.ai + the mobile app (Claude Code v2.1.221+).
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
@@ -122,10 +123,11 @@ if [ "$FORCE" != "1" ] && [ -n "$TOPIC_FILE" ] && [ -f "$TOPIC_FILE" ]; then
 fi
 
 # M10b (Agents-Core #272, CEO 2026-10-14): a session never types into its own pane.
-# This script only writes a REQUEST (the topic and the state glyph, never a name)
-# to state/rename-requests/<role>-<sid>.json; tools/rename_service.py (root,
-# systemd) builds the name with lib/session_names and types "/rename <name>" into
-# this session's pane once its prompt line is empty. No tmux call here at all.
+# This script only sends a REQUEST (the topic and the state glyph, never a name)
+# to /run/rename-service/sock; tools/rename_service.py (root, systemd) checks with
+# SO_PEERCRED that this process descends from that session's Claude process, builds
+# the name with lib/session_names and types "/rename <name>" into the pane once its
+# prompt line is empty. No tmux call and no file under state/ for the request.
 PY="$ROOT/.venv/bin/python"
 [ -x "$PY" ] || PY="python3"
 if [ -z "$SID" ] || ! [[ "$SID" =~ ^[0-9a-f]{8}$ ]] || ! [[ "$ROLE" =~ ^(c[a-z]o|project_head)$ ]]; then
@@ -138,16 +140,16 @@ if [ -z "$PREVIEW" ]; then
   echo "no rule name for $ROLE-$SID (a PH needs its .project/.spawned_by; --prefix is one of ✅ ⏸ ⛔): nothing requested" >&2
   exit 1
 fi
-REQ_DIR="$ROOT/state/rename-requests"
-mkdir -p "$REQ_DIR"
-"$PY" - "$REQ_DIR/$ROLE-$SID.json" "$TOPIC" "$PREFIX" <<'PYEOF'
-import json, os, sys, tempfile, time
-path, topic, prefix = sys.argv[1:4]
-fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
-with os.fdopen(fd, "w", encoding="utf-8") as fh:
-    json.dump({"topic": topic, "prefix": prefix, "at": time.time()}, fh, ensure_ascii=False)
-os.replace(tmp, path)
-PYEOF
+set +e
+REPLY="$(cd "$ROOT" && "$PY" tools/rename_service.py request --role "$ROLE" --sid "$SID" \
+  --topic "$TOPIC" --prefix "$PREFIX" 2>&1)"
+RC=$?
+set -e
+if [ "$RC" -ne 0 ]; then
+  # Not recorded: a later call with the same topic must try again.
+  echo "not requested ($REPLY) — rename by hand: /rename $PREVIEW"
+  exit 0
+fi
 echo "requested: /rename $PREVIEW (the rename service types it once this session's prompt is empty)"
 
 if [ -n "$TOPIC_FILE" ]; then

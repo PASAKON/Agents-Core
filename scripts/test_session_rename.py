@@ -1,9 +1,10 @@
-"""scripts/session-rename.sh after M10b (Agents-Core #272): it writes a rename
-request and never touches tmux; tools/rename_service.py applies it.
+"""scripts/session-rename.sh after M10b (Agents-Core #272): it sends a rename
+request to tools/rename_service.py over its unix socket and never touches tmux.
 
 The script runs from a staged root (its own copy, lib/tools/config/policies linked
 from the repo) with a fake `tmux` first on PATH that logs any call: the log must
-stay empty in every test.
+stay empty in every test. A stand-in service on a socket under /tmp
+(RENAME_SERVICE_SOCK) records each request and answers "queued".
 
 Run via:   pytest scripts/test_session_rename.py
 """
@@ -11,8 +12,10 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import subprocess
 import sys
+import threading
 from pathlib import Path
 
 import pytest
@@ -39,10 +42,35 @@ def stage(tmp_path):
     (bin_dir / "tmux").write_text(f'#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "{log}"\n')
     (bin_dir / "tmux").chmod(0o755)
 
+    sock = Path("/tmp") / f"sr-test-{os.getpid()}-{id(tmp_path)}.sock"
+    sock.unlink(missing_ok=True)
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(str(sock))
+    srv.listen(8)
+    srv.settimeout(0.2)
+    requests, stop = [], threading.Event()
+
+    def serve():
+        while not stop.is_set():
+            try:
+                conn, _ = srv.accept()
+            except OSError:
+                continue
+            with conn:
+                buf = b""
+                while chunk := conn.recv(4096):
+                    buf += chunk
+                req = json.loads(buf)
+                requests.append(req)
+                conn.sendall(f"queued {req['role']}-{req['sid']}: x\n".encode())
+
+    t = threading.Thread(target=serve, daemon=True)
+    t.start()
+
     def run(*args, role="cto", sid="c34459eb", host="contabo", extra=None):
         env = dict(os.environ)
         env.update(PATH=f"{bin_dir}:{env.get('PATH', '')}", TMUX="/tmp/fake,1,0",
-                   CXO_ROLE=role, ORG_HOST=host)
+                   CXO_ROLE=role, ORG_HOST=host, RENAME_SERVICE_SOCK=str(sock))
         env.pop("CXO_SESSION_ID", None)
         env.pop("CTO_SESSION_ID", None)
         if sid:
@@ -51,23 +79,28 @@ def stage(tmp_path):
         return subprocess.run(["bash", str(script), *args], env=env, capture_output=True,
                               text=True, timeout=30)
 
-    run.root, run.log = root, log
-    return run
+    run.root, run.log, run.requests, run.sock = root, log, requests, sock
+    yield run
+    stop.set()
+    t.join(2)
+    srv.close()
+    sock.unlink(missing_ok=True)
 
 
-def _req(run, box="cto-c34459eb"):
-    return json.loads((run.root / "state" / "rename-requests" / f"{box}.json").read_text())
+def _req(run):
+    return run.requests[-1]
 
 
 def _no_tmux(run):
     assert not run.log.exists(), run.log.read_text()
 
 
-def test_a_request_is_written_and_tmux_is_never_called(stage):
+def test_a_request_is_sent_and_tmux_is_never_called(stage):
     r = stage("ดูแล org")
     assert r.returncode == 0, r.stderr
     assert r.stdout.startswith(f"requested: /rename {CONTABO} CTO (Kavin) — ดูแล org")
-    assert _req(stage)["topic"] == "ดูแล org" and _req(stage)["prefix"] == ""
+    assert _req(stage) == {"role": "cto", "sid": "c34459eb", "topic": "ดูแล org", "prefix": ""}
+    assert not (stage.root / "state" / "rename-requests").exists()
     assert (stage.root / "state" / "locks" / "cto-c34459eb.topic").read_text() == "ดูแล org"
     _no_tmux(stage)
 
@@ -103,5 +136,14 @@ def test_no_session_id_or_a_bad_prefix_requests_nothing(stage):
     assert r.returncode == 0 and "nothing requested" in r.stdout
     r = stage("--prefix", "/exit", "x")
     assert r.returncode == 1 and "nothing requested" in r.stderr
-    assert not (stage.root / "state" / "rename-requests" / "cto-c34459eb.json").exists()
+    assert stage.requests == []
+    _no_tmux(stage)
+
+
+def test_with_no_service_it_says_so_and_records_nothing(stage):
+    r = stage("x", extra={"RENAME_SERVICE_SOCK": "/tmp/no-such-rename.sock"})
+    assert r.returncode == 0
+    assert r.stdout.startswith("not requested (rename service not reachable")
+    assert r.stdout.rstrip().endswith(f"rename by hand: /rename {CONTABO} CTO (Kavin) — x")
+    assert not (stage.root / "state" / "locks" / "cto-c34459eb.topic").exists()   # the next call tries again
     _no_tmux(stage)

@@ -2,30 +2,43 @@
 
 CEO 2026-10-14 11:50 (via CMO): sessions rename themselves and never ask him. A
 session may not type into its own pane: an allow rule for that would let it type
-any slash command into its own prompt. So `scripts/session-rename.sh` only writes
-a request, the topic and a state glyph, to state/rename-requests/<role>-<sid>.json.
-This service (root on Contabo, systemd, installed by one Run card) reads them, builds
-the name itself with lib/session_names, and types exactly one line, "/rename <name>",
-then Enter, into THAT session's pane, and only when its prompt line (❯) is empty
-and no choice prompt is up. Otherwise it leaves the request for the next pass. It
-never types onto a draft, never sends C-u, and never starts or moves the tmux
-server (client commands only: capture-pane, send-keys).
+any slash command into its own prompt. So `scripts/session-rename.sh` only sends a
+request, the topic and a state glyph, to this service (root on Contabo, systemd,
+installed by one Run card) over the unix socket /run/rename-service/sock. The
+service builds the name itself with lib/session_names and types exactly one line,
+"/rename <name>", then Enter, into THAT session's pane, and only when its prompt
+line (❯) is empty and no choice prompt is up; otherwise it tries again on the next
+pass. It never types onto a draft, never sends C-u, and never starts or moves the
+tmux server (client commands only: capture-pane, send-keys).
 
-The request carries no name, so nothing a session writes can reach the pane except
+Who may ask (§2b review of #283): the kernel says who is on the other end of the
+socket (SO_PEERCRED). A request for <role>-<sid> is accepted only when that
+session's Claude process (its live session record) is an ancestor of the
+connecting process and runs as the same uid. So a session renames only itself,
+and a process with no session (a service user such as `secretary`) renames
+nothing. Requests live in this process's memory: root writes no file a non-root
+user could plant a symlink for.
+
+The request carries no name, so nothing a session sends can reach the pane except
 a topic: clean_topic() keeps letters, marks, digits, spaces and a few punctuation
 marks, drops every control and format character (newline, ESC), strips a leading
 "/", and cuts it to 40 characters.
 
-    python tools/rename_service.py once          # one pass (tests, a manual run)
-    python tools/rename_service.py run           # the service: a pass every 15 s
+    python tools/rename_service.py run           # the service
+    python tools/rename_service.py request --role cto --sid c34459eb --topic "x" [--prefix ✅]
     python tools/rename_service.py preview --role cto --sid c34459eb --topic "x"
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import re
+import select
+import socket
+import stat
+import struct
 import subprocess
 import sys
 import time
@@ -40,7 +53,10 @@ from lib import config, session_names  # noqa: E402
 from tools import live_sessions as ls  # noqa: E402
 
 LOCKS_DIR = ROOT / "state" / "locks"
-REQUESTS_DIR = ROOT / "state" / "rename-requests"
+SOCK = Path(os.environ.get("RENAME_SERVICE_SOCK") or "/run/rename-service/sock")
+PROC = Path("/proc")
+REQUEST_MAX = 4096
+PENDING_MAX = 64
 TOPIC_MAX = 40
 NAME_MAX = 120
 PREFIXES = ("", "✅", "⏸", "⛔")        # ✅ close, ⏸ save, ⛔ merged
@@ -164,89 +180,225 @@ def session_of(box: str, host: str) -> dict | None:
             if role == "coo" and not ls._launcher_uuid("coo", uuid):
                 continue
             hits.append({"name": str(data.get("name") or ""), "pane": str(data["tmux"]).split(":", 1)[0],
-                         "uuid": uuid})
+                         "uuid": uuid, "pid": pid})
     return hits[0] if len(hits) == 1 else None
 
 
-# --- one pass ----------------------------------------------------------------------
+# --- who is asking ----------------------------------------------------------------
 
-def _load(path: Path) -> dict | None:
+def _status(pid: int) -> dict[str, str]:
     try:
-        if path.is_symlink() or path.stat().st_size > 4096:
-            return None
-        d = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, UnicodeDecodeError):
+        text = (PROC / str(pid) / "status").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return {}
+    return dict(l.split(":", 1) for l in text.splitlines() if ":" in l)
+
+
+def _uid(pid: int) -> int | None:
+    try:
+        return int(_status(pid)["Uid"].split()[0])
+    except (KeyError, ValueError, IndexError):
+        return None
+
+
+def ancestors(pid: int, limit: int = 64) -> list[int]:
+    """pid, its parent, its grandparent … up to init (at most `limit`)."""
+    chain = []
+    while pid > 1 and len(chain) < limit:
+        chain.append(pid)
+        try:
+            pid = int(_status(pid)["PPid"].strip())
+        except (KeyError, ValueError):
+            break
+    return chain
+
+
+def owner_refusal(peer_pid: int, peer_uid: int, sess: dict) -> str | None:
+    """None when the connecting process belongs to `sess`: the session's Claude
+    process is its ancestor and runs as the same uid."""
+    if sess["pid"] not in ancestors(peer_pid):
+        return "that session is not an ancestor of the caller (a session renames only itself)"
+    if _uid(sess["pid"]) != peer_uid:
+        return "the caller runs as another user than that session"
+    return None
+
+
+def peer(conn: socket.socket) -> tuple[int, int]:
+    pid, uid, _gid = struct.unpack("3i", conn.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED,
+                                                         struct.calcsize("3i")))
+    return pid, uid
+
+
+def _read_request(conn: socket.socket) -> dict | None:
+    conn.settimeout(1.0)
+    buf = b""
+    try:
+        while len(buf) <= REQUEST_MAX:
+            chunk = conn.recv(REQUEST_MAX + 1 - len(buf))
+            if not chunk:
+                break
+            buf += chunk
+    except OSError:
+        return None
+    if len(buf) > REQUEST_MAX:
+        return None
+    try:
+        d = json.loads(buf.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
         return None
     return d if isinstance(d, dict) else None
 
 
-def _save(path: Path, d: dict) -> None:
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
-    os.replace(tmp, path)
+def handle(conn: socket.socket, host: str, pending: dict, peer_ids: tuple[int, int] | None = None) -> str:
+    """One request on the socket: queue the rename for the caller's own session, or say why not."""
+    peer_pid, peer_uid = peer_ids or peer(conn)
+    req = _read_request(conn)
+    if req is None:
+        return "refused: unreadable request"
+    box = f"{req.get('role')}-{req.get('sid')}"
+    if not _BOX_RE.match(box):
+        return "refused: not an org session"
+    role, sid = box.split("-", 1)
+    name = build_name(role, sid, req.get("topic"), req.get("prefix"), host)
+    if name is None:
+        return f"refused: no rule name for {box}"
+    sess = session_of(box, host)
+    if sess is None:
+        return f"refused: no single live session for {box} in its tmux"
+    why = owner_refusal(peer_pid, peer_uid, sess)
+    if why:
+        return f"refused: {why}"
+    if box not in pending and len(pending) >= PENDING_MAX:
+        return "refused: too many renames waiting"
+    pending[box] = {"name": name, "pid": sess["pid"], "sends": 0, "sent_at": 0.0}
+    return f"queued {box}: {name}"
 
 
-def once(host: str, now: float | None = None) -> list[str]:
+# --- one pass ----------------------------------------------------------------------
+
+def _ready(pane: str) -> bool:
+    screen = tmux("capture-pane", "-p", "-t", pane)
+    return screen.returncode == 0 and prompt_ready(screen.stdout)
+
+
+def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
+    """(log line, finished) for one waiting rename."""
+    name = job["name"]
+    sess = session_of(box, host)
+    if sess is None or sess["pid"] != job["pid"]:
+        return f"drop     {box}: the session that asked has gone", True
+    if sess["name"] == name:
+        return f"done     {box}: {name}", True
+    sends = job["sends"]
+    if sends and now - job["sent_at"] < RETRY_S:
+        return f"sent     {box}: waiting for it to land", False
+    if sends >= MAX_SENDS:
+        return f"gave up  {box}: {MAX_SENDS} sends did not land", True
+    # Twice, the second right before typing: a draft started in between must stop it.
+    if not _ready(sess["pane"]) or not _ready(sess["pane"]):
+        return f"wait     {box}: prompt not empty", False
+    a = tmux("send-keys", "-t", sess["pane"], "-l", f"/rename {name}")
+    if a.returncode == 0:
+        tmux("send-keys", "-t", sess["pane"], "Enter")
+    job["sends"], job["sent_at"] = sends + 1, now
+    return f"renamed  {box}: {name}", False
+
+
+def once(host: str, pending: dict, now: float | None = None) -> list[str]:
     now = time.time() if now is None else now
     out = []
-    try:
-        paths = sorted(p for p in REQUESTS_DIR.iterdir() if p.suffix == ".json")
-    except OSError:
-        return out
-    for path in paths:
-        box = path.stem
-        req = _load(path)
-        if req is None or not _BOX_RE.match(box):
-            out.append(f"drop     {box}: unreadable or not an org session")
-            path.unlink(missing_ok=True)
-            continue
-        role, sid = box.split("-", 1)
-        name = build_name(role, sid, req.get("topic"), req.get("prefix"), host)
-        if name is None:
-            out.append(f"drop     {box}: no rule name for it")
-            path.unlink(missing_ok=True)
-            continue
-        sess = session_of(box, host)
-        if sess is None:
-            out.append(f"wait     {box}: no single live session in its tmux")
-            continue
-        if sess["name"] == name:
-            out.append(f"done     {box}: {name}")
-            path.unlink(missing_ok=True)
-            continue
-        sends = int(req.get("sends") or 0)
-        if sends and now - float(req.get("sent_at") or 0) < RETRY_S:
-            out.append(f"sent     {box}: waiting for it to land")
-            continue
-        if sends >= MAX_SENDS:
-            out.append(f"gave up  {box}: {MAX_SENDS} sends did not land")
-            path.unlink(missing_ok=True)
-            continue
-        screen = tmux("capture-pane", "-p", "-t", sess["pane"])
-        if screen.returncode != 0 or not prompt_ready(screen.stdout):
-            out.append(f"wait     {box}: prompt not empty")
-            continue
-        a = tmux("send-keys", "-t", sess["pane"], "-l", f"/rename {name}")
-        if a.returncode == 0:
-            tmux("send-keys", "-t", sess["pane"], "Enter")
-        _save(path, {**req, "sends": sends + 1, "sent_at": now})
-        out.append(f"renamed  {box}: {name}")
+    for box in sorted(pending):
+        try:
+            line, finished = _one(box, pending[box], host, now)
+        except Exception as e:  # noqa: BLE001 - one bad rename must not stop the others
+            line, finished = f"error    {box}: {type(e).__name__}: {e}", True
+        out.append(line)
+        if finished:
+            pending.pop(box, None)
     return out
+
+
+# --- the socket ----------------------------------------------------------------------
+
+def listen(path: Path = SOCK) -> socket.socket:
+    """Bind the request socket. Its directory must be root's and not writable by
+    group or other (systemd RuntimeDirectory=rename-service makes it 0755 root)."""
+    st = os.lstat(path.parent)
+    if not stat.S_ISDIR(st.st_mode) or st.st_uid != os.geteuid() or st.st_mode & 0o022:
+        raise SystemExit(f"{path.parent} must be a directory owned by this user with no group/other write")
+    with contextlib.suppress(OSError):
+        if stat.S_ISSOCK(os.lstat(path).st_mode):
+            os.unlink(path)
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(str(path))
+    os.chmod(path, 0o666)   # any local user may ask; only for its own session (owner_refusal)
+    srv.listen(16)
+    return srv
+
+
+def serve(host: str, path: Path = SOCK) -> None:
+    srv = listen(path)
+    pending: dict = {}
+    next_pass = 0.0
+    while True:
+        now = time.time()
+        if now >= next_pass:
+            for line in once(host, pending, now):
+                print(line, flush=True)
+            next_pass = now + INTERVAL_S
+        ready, _, _ = select.select([srv], [], [], max(0.1, next_pass - time.time()))
+        if not ready:
+            continue
+        try:
+            conn, _ = srv.accept()
+        except OSError:
+            continue
+        with conn:
+            try:
+                reply = handle(conn, host, pending)
+            except Exception as e:  # noqa: BLE001
+                reply = f"refused: {type(e).__name__}"
+            print(reply, flush=True)
+            try:
+                conn.sendall((reply + "\n").encode("utf-8"))
+            except OSError:
+                pass
+
+
+def send_request(role: str, sid: str, topic: str, prefix: str, path: Path | None = None) -> str:
+    """The client side, used by scripts/session-rename.sh."""
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.settimeout(5)
+    with s:
+        s.connect(str(path or SOCK))
+        s.sendall(json.dumps({"role": role, "sid": sid, "topic": topic, "prefix": prefix},
+                             ensure_ascii=False).encode("utf-8"))
+        s.shutdown(socket.SHUT_WR)
+        return s.recv(4096).decode("utf-8", "replace").strip()
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("once")
     sub.add_parser("run")
-    pv = sub.add_parser("preview")
-    pv.add_argument("--role", required=True)
-    pv.add_argument("--sid", required=True)
-    pv.add_argument("--topic", default="")
-    pv.add_argument("--prefix", default="")
-    pv.add_argument("--host")
-    pv.add_argument("--locks-dir", help="the calling checkout's state/locks")
+    for cmd in ("preview", "request"):
+        pv = sub.add_parser(cmd)
+        pv.add_argument("--role", required=True)
+        pv.add_argument("--sid", required=True)
+        pv.add_argument("--topic", default="")
+        pv.add_argument("--prefix", default="")
+        if cmd == "preview":
+            pv.add_argument("--host")
+            pv.add_argument("--locks-dir", help="the calling checkout's state/locks")
     a = ap.parse_args(argv)
+    if a.cmd == "request":
+        try:
+            reply = send_request(a.role, a.sid, a.topic, a.prefix)
+        except OSError as e:
+            print(f"rename service not reachable at {SOCK} ({e.strerror or e})")
+            return 2
+        print(reply)
+        return 0 if reply.startswith("queued") else 1
     if a.cmd == "preview":
         if a.locks_dir:
             global LOCKS_DIR
@@ -258,13 +410,8 @@ def main(argv=None) -> int:
         name = build_name(a.role, a.sid, a.topic, a.prefix, host)
         print(name or "")
         return 0 if name else 1
-    host = config.self_host()
-    while True:
-        for line in once(host):
-            print(line, flush=True)
-        if a.cmd == "once":
-            return 0
-        time.sleep(INTERVAL_S)
+    serve(config.self_host())
+    return 0
 
 
 if __name__ == "__main__":

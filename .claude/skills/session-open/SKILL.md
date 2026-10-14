@@ -166,12 +166,14 @@ The clock runs itself from here (shared 60s daemon). The goal and the progress
 numbers do not — they move only when `tab-main.sh` is called again, which
 `/session-worktree` and `/session-close` do.
 
-`session-rename.sh` never types into a pane (Agents-Core #272). It writes a rename request (the topic and
-the state glyph) to `state/rename-requests/<role>-<sid>.json` and prints the name it asked for, e.g.
+`session-rename.sh` never types into a pane (Agents-Core #272). It sends a rename request (the topic and
+the state glyph) to the rename service's socket and prints the name it asked for, e.g.
 `requested: /rename 🌐 CTO (Kavin) — <topic>` or `🌐 PH#7cf (CTO) - OrgRestructure — <topic>`. The rename
 service (`tools/rename_service.py`, root on Contabo) builds that name itself with `lib/session_names` and
 types `/rename <name>` into this session's pane once its `❯` line is empty and no permission prompt is up,
-so it never lands on a draft. The new name syncs to claude.ai + the mobile app (CEO 2026-08-30). No
+so it never lands on a draft. The service checks the request comes from this session's own process
+tree, so a session can rename only itself. If the service is down the script prints
+`not requested (…) — rename by hand: /rename <name>`. The new name syncs to claude.ai + the mobile app (CEO 2026-08-30). No
 session id (a plain terminal, a worker): nothing is requested.
 
 #### Name = current job (CEO 2026-10-13: "การ rename นั้นสำคัญจะได้กลับมาดูได้ง่าย")

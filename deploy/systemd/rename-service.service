@@ -1,10 +1,11 @@
 [Unit]
 Description=MoonieX rename service: apply sessions' rename requests to their tmux panes (M10b, #272)
-# Reads state/rename-requests/<role>-<sid>.json (written by scripts/session-rename.sh)
-# and types "/rename <rule name>" + Enter into that session's pane only when its
-# prompt line is empty (tools/rename_service.py). A tmux CLIENT only (capture-pane,
-# send-keys): it never starts, stops or moves the shared server, so restarting this
-# unit cannot touch the sessions (CLAUDE.md "one tmux server"). Installed by one Run card.
+# Takes requests on /run/rename-service/sock (sent by scripts/session-rename.sh) and
+# types "/rename <rule name>" + Enter into the asking session's pane only when its
+# prompt line is empty (tools/rename_service.py). SO_PEERCRED: a session renames only
+# itself. A tmux CLIENT only (capture-pane, send-keys): it never starts, stops or moves
+# the shared server, so restarting this unit cannot touch the sessions (CLAUDE.md
+# "one tmux server"). Installed by one Run card.
 After=network-online.target
 
 [Service]
@@ -12,9 +13,27 @@ Type=simple
 User=root
 WorkingDirectory=/opt/MoonieXHQ/Agents/Core
 Environment=TMUX_TMPDIR=/tmp
+Environment=PYTHONDONTWRITEBYTECODE=1
 ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/rename_service.py run
+RuntimeDirectory=rename-service
+RuntimeDirectoryMode=0755
 Restart=on-failure
 RestartSec=30
+# Hardening (§2b review of #283): the whole file system is read-only but
+# /run/rename-service. Probed on Contabo 14 Oct with a transient unit carrying exactly
+# these properties: tmux list-sessions works, /root/.claude and /home/sompong/.claude
+# session records read, /proc/<pid>/status reads, a write under state/ is refused.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX
+LockPersonality=yes
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH
 
 [Install]
 WantedBy=multi-user.target
