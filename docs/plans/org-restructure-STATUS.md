@@ -5,20 +5,27 @@ Goal: close out org restructure P2 after the move to one CTO Main + one CMO Main
 move found, ship the CEO's session-name/persona and CMO-model orders. Each milestone = a pushed
 feature branch with tests; CTO Main lands it, the PH never merges.
 
-% = milestones with evidence ÷ 6.
+% = milestones with evidence ÷ 13 (M7–M12 and P3-A added by CTO Main orders on 14 Oct). Landed 7/13 = 54%.
 
 | # | Milestone | State | Evidence |
 |---|---|---|---|
-| M1 | live-sessions prints PH rows by default, "+N workers" counts real workers | landed | 0bba6e15, on origin/main via PR #255 (CTO Main) |
-| M2 | P2 doc: status line, ORG_SESSION_SCOPE evidence, "Starting a Project Head" lesson | landed | a5e969a4, on origin/main via PR #255 |
-| M3 | Session names `<HOST> <ROLE> (<Name>) #<id>` + `_NAME_RE` (persona text landed in 975c2ebb by CTO Main) | landed | 4e69c207 via PR #258 = 2bd6e650 (with C-level effort medium); live Core 4c6d62b7 |
+| M1 | live-sessions prints PH rows by default, "+N workers" counts real workers | landed | 0bba6e15, PR #255 |
+| M2 | P2 doc: status line, ORG_SESSION_SCOPE evidence, "Starting a Project Head" lesson | landed | a5e969a4, PR #255 |
+| M3 | Session names + `_NAME_RE` | landed | 4e69c207 via PR #258 |
 | M4 | CMO model → Opus 5.5 xhigh (Q-20261014-0227-c918) | landed | eb6c3fa4, merge 626d60fe |
-| M5 | P3 plan incl. Project Monitor backend (plan only, to CTO Main before building) | pushed, waiting go | branch `ph-7cf528f0/p3-plan`, docs/plans/org-restructure-p3-plan.md |
+| M5 | P3 plan incl. Project Monitor backend | landed | docs/plans/org-restructure-p3-plan.md |
+| M7 | Short names (`Dev#<id3> - ` etc.) | landed | PR #263 |
+| P3-A | P3 phase A | landed | PR #264 |
+| M8 | winbox title + role; node_dispatch args cap 4000; COO `verified` grant | PR open, CI rerun | PR #268, branch `ph-7cf528f0/m8-winbox-title-and-role` |
+| M9 | Host emoji in names; session-rename PH topic not doubled | pushed after #268 | branch `ph-7cf528f0/m9-host-emoji` |
+| M10 | Names enforced in live-sessions (M10a) + rename request file and root rename service (M10b, #272) | pushed after M9 | branch `ph-7cf528f0/m10-names-enforced`; deploy = Run card (rename-service.service) |
+| M11 | Escalation watch (CEO order 14 Oct ~11:45 TH) | pushed after M10 | branch `ph-7cf528f0/m11-escalation-watch`; deploy = Run card (escalation-watch.timer) |
+| M12 | winbox runners: no task text through shell argv parsing | pushed after M11 | branch `ph-7cf528f0/m12-winbox-argv`; winbox self-test 8/8 PASS |
 | M6 | Close-out with Skill learning | open | — |
 
-Blocker: none (the dead rows were cancelled by CTO Main 02:54Z).
+Blocker: none. Winbox delegation stays paused until M12 lands and a first live spawn checks the claude TUI.
 
-Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), go from CTO Main 02:44Z; task-afe57b21 security_engineer running since 09:54 TH (tmux wd-afe57b21), PH reviews and pushes.
+Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), task-afe57b21: PR #269, CTO lands it after #268.
 
 
 Decided for CEO: none yet.
