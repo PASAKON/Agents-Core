@@ -102,8 +102,9 @@ def test_credits_label_needs_max_credits_and_never_reads_the_guard(capsys, tmp_p
 @pytest.mark.parametrize("extra,command,want", [
     (FAL, "python tools/bl_render.py --ep 62", "spend_cap_flag_missing"),
     (FAL, "python tools/bl_render.py --max-usd 2", "spend_cap_flag_mismatch"),
-    (FAL, "a --max-usd 1.5 --max-usd 9", "spend_cap_flag_mismatch"),
-    (FAL, "a --max-usd 1.5 && b --max-usd 9", "spend_command_not_simple (an unquoted &)"),
+    (FAL, "python3 r.py --max-usd 1.5 --max-usd 9", "spend_cap_flag_mismatch"),
+    (FAL, "python3 a.py --max-usd 1.5 && python3 b.py --max-usd 9", "spend_command_not_simple (an unquoted &)"),
+    (FAL, "uv run python3 -c x --max-usd 1.5", "spend_command_not_simple (only python3"),
     (FAL, "python fal_render.py --max-usd 1.5 --max 100", "spend_cap_flag_ambiguous"),
     (("--spend-provider", "fal", "--spend-estimate", "2", "--spend-cap", "1.5", "--spend-how", "x"), RENDER,
      "spend_estimate_over_cap"),
@@ -141,7 +142,7 @@ def test_a_script_ask_reads_the_cap_from_its_argv(capsys):
 # One list of cases, judged the same way by the Console hub (src/run/spend.js capFlag, its
 # test/run-spend-capflag.test.js reads a byte-for-byte copy). The sha256 is pinned on both sides.
 FIXTURES = ROOT / "tests" / "fixtures" / "spend-cap-flag.json"
-FIXTURES_SHA256 = "939024645bff59032a8087c411ad142bb246d13b8fb41336c108ad19fe3ad2cf"
+FIXTURES_SHA256 = "07f371baa2ab116e44ce3ba5191e2b1b0c81ad9a12f006d564a1c651c1aafe17"
 CASES = json.loads(FIXTURES.read_text(encoding="utf-8"))["cases"]
 
 

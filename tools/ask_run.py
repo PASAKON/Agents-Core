@@ -31,8 +31,9 @@ A command that SPENDS credit carries a spend label (CEO 2026-10-14, Console docs
     python3 tools/ask_run.py create --host contabo --why "render EP62" \
         --command "python tools/fal_render.py --ep 62 --max-usd 1.5" \
         --spend-provider fal --spend-estimate 0.9 --spend-cap 1.5 --spend-how "4 x 15 s x $0.015/s"
-The command is ONE simple command (no ; & | redirects $ ` backslash globs, no X=1 / bash / env / sudo /
-echo in front, no python -c) and carries the cap as --max-usd N / --max-credits N; a script ask
+The command is ONE simple command running one of our tools (python3 <repo script>.py, node <repo
+script>.js or python3 -m tools.|scripts.|runners.<module>; no ; & | redirects $ ` backslash globs)
+and carries the cap as --max-usd N / --max-credits N; a script ask
 carries it in its args. balance_after defaults to the spend guard's openrouter/fal balance minus
 the cap. A command that only looks like spend: --no-spend "<reason>".
 
@@ -463,22 +464,32 @@ def spend_guard_balance(provider: str, *, root: Path | None = None,
     return None
 
 
-# A labelled command must be ONE simple command, read by a whitelist (the hub's simpleWords +
-# capCheck, Console src/run/spend.js; cases shared byte for byte in tests/fixtures/spend-cap-flag.json).
+# A labelled command must be ONE simple command running one of our tools, read by allowlists (the
+# hub's simpleWords + capCheck, Console src/run/spend.js; cases shared byte for byte in
+# tests/fixtures/spend-cap-flag.json): python3 <repo script>.py, node <repo script>.js or
+# python3 -m tools.|scripts.|runners.<module>, plain words and quotes, no space or control
+# character other than the ASCII space.
 _UNQUOTED_REFUSED = frozenset(";&|()<>\n\r$`\\*?[]{}#")
 _DQUOTE_REFUSED = frozenset("$`\\")
-_WRAPPERS = frozenset({
-    "bash", "sh", "zsh", "dash", "ksh", "fish", "busybox", "env", "eval", "exec", "command", "builtin", "source", ".",
-    "sudo", "su", "runuser", "doas", "setsid", "nohup", "nice", "ionice", "timeout", "stdbuf", "xargs", "parallel",
-    "watch", "time", "chroot", "ssh", "tmux", "screen", "script", "unbuffer", "flock", "systemd-run",
-    "echo", "printf", "cat", "test", "[", "true", "false", ":",
-})
-_INTERPRETER = re.compile(r"^(?:python[0-9.]*|pypy[0-9.]*|node|nodejs|deno|bun|perl|ruby|php|lua|Rscript|osascript)$")
+_PYTHON = frozenset({"python3", "python"})
+_SCRIPT_PATH = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_./-]*$")
+_MODULE = re.compile(r"^(?:tools|scripts|runners)(?:\.[A-Za-z_][A-Za-z0-9_]*)+$")
 _CAP_NUMBER = re.compile(r"^[0-9]+(?:\.[0-9]+)?$")
+_ODD_SPACE_WHY = "a space or control character other than the ASCII space"
+
+
+def _odd_space(c: str) -> bool:
+    r"""The JS class [\s\p{Cc}\p{Cf}\p{Z}] the hub refuses (the ASCII space aside)."""
+    import unicodedata
+    return c != " " and (c.isspace() or c == "﻿" or unicodedata.category(c) in ("Cc", "Cf", "Zs", "Zl", "Zp"))
+
+
+def _repo_script(path: str, ext: str) -> bool:
+    return bool(_SCRIPT_PATH.match(path)) and ".." not in path.split("/") and bool(re.search(ext, path))
 
 
 def simple_words(command: str) -> tuple[list[str] | None, str | None]:
-    """(words, None) for one simple command, else (None, why it is not one)."""
+    """(words, None) for one simple command running one of our tools, else (None, why not)."""
     words: list[str] = []
     word: str | None = None
     quote = None
@@ -486,6 +497,8 @@ def simple_words(command: str) -> tuple[list[str] | None, str | None]:
         if quote == "'":
             if c == "'":
                 quote = None
+            elif _odd_space(c):
+                return None, _ODD_SPACE_WHY
             else:
                 word += c
             continue
@@ -494,6 +507,8 @@ def simple_words(command: str) -> tuple[list[str] | None, str | None]:
                 quote = None
             elif c in _DQUOTE_REFUSED:
                 return None, f"{c} inside double quotes"
+            elif _odd_space(c):
+                return None, _ODD_SPACE_WHY
             else:
                 word += c
             continue
@@ -504,6 +519,8 @@ def simple_words(command: str) -> tuple[list[str] | None, str | None]:
             continue
         if c in _UNQUOTED_REFUSED:
             return None, "a line break" if c in "\n\r" else f"an unquoted {c}"
+        if _odd_space(c):
+            return None, _ODD_SPACE_WHY
         if word is None:
             word = ""
         if c in "'\"":
@@ -516,40 +533,56 @@ def simple_words(command: str) -> tuple[list[str] | None, str | None]:
         words.append(word)
     if not words:
         return None, "no program"
-    if re.match(r"[A-Za-z_][A-Za-z0-9_]*=", words[0]):
-        return None, "an env assignment before the program"
-    program = words[0].rsplit("/", 1)[-1]
-    if program in _WRAPPERS:
-        return None, f"{program} runs or prints something else"
-    if _INTERPRETER.match(program):
-        for w in words[1:]:
-            if not w.startswith("-") or w == "-m":
-                break
-            if re.match(r"--(?:eval|print|command|exec)\b", w) or re.match(r"-[A-Za-z]*[cepr]", w):
-                return None, f"{program} {w} runs inline code"
+    program, first, second = (words + [None, None])[:3]
+    allowed = ((program in _PYTHON and first == "-m" and second is not None and _MODULE.match(second))
+               or (program in _PYTHON and first is not None and _repo_script(first, r"\.py$"))
+               or (program == "node" and first is not None and _repo_script(first, r"\.(?:mjs|cjs|js)$")))
+    if not allowed:
+        return None, ("only python3 <repo script>.py, python3 -m tools.|scripts.|runners.<module> or "
+                      f"node <repo script>.js runs under a label (got {program[:40]})")
     return words, None
 
 
 def cap_flag_check(command: str, unit: str, cap: float, *, argv: list[str] | None = None) -> str | None:
-    """None when the command is one simple command whose every flag for `unit` is the plain number
-    `cap`; otherwise the hub's refusal code: spend_command_not_simple | spend_cap_flag_missing |
-    spend_cap_flag_mismatch (1e3, 1_000, no value) | spend_cap_flag_ambiguous (a --word argparse
-    would expand to a cap flag: --max, --ma=100, --max-u, --max-usd-...)."""
-    words, _why = (list(argv), None) if argv else simple_words(command)
-    if words is None:
-        return "spend_command_not_simple"
+    """None when the command is one simple command of ours whose every flag for `unit` is the plain
+    number `cap`; otherwise the hub's refusal code: spend_command_not_simple |
+    spend_cap_flag_missing | spend_cap_flag_mismatch (1e3, '100 ', no value) |
+    spend_cap_flag_ambiguous (a name argparse would expand to a cap flag: --max, --ma=100, --max-u,
+    --max-usd-..., or any cap-like word after a bare --). Words split at the first = like argparse.
+    `argv` (a script ask: [path, *args]) skips the program reading."""
+    if argv:
+        if any(_odd_space(c) for w in argv for c in str(w)):
+            return "spend_command_not_simple"
+        words = [str(w) for w in argv]
+    else:
+        words, _why = simple_words(command)
+        if words is None:
+            return "spend_command_not_simple"
     flag = "--max-usd" if unit == "usd" else "--max-credits"
     other = "--max-credits" if unit == "usd" else "--max-usd"
+
+    def cap_like(name: str) -> bool:
+        return len(name) >= 3 and (flag.startswith(name) or other.startswith(name)
+                                   or bool(re.match(r"--max-[uc]", name)))
+
     values: list[float | None] = []
+    positional = False
     i = 1
     while i < len(words):
         w = words[i]
         i += 1
-        if w == "--":
-            break
-        if not w.startswith("--") or re.search(r"\s", w):
+        if not w.startswith("--"):
+            continue
+        if w == "--" and not positional:
+            positional = True
             continue
         name, eq, rest = w.partition("=")
+        if " " in name:
+            continue
+        if positional:
+            if cap_like(name):
+                return "spend_cap_flag_ambiguous"
+            continue
         if name == other:
             i += not eq
             continue
@@ -561,7 +594,7 @@ def cap_flag_check(command: str, unit: str, cap: float, *, argv: list[str] | Non
                 i += 1
             values.append(float(value) if value is not None and _CAP_NUMBER.match(value) else None)
             continue
-        if len(name) >= 3 and (flag.startswith(name) or other.startswith(name) or re.match(r"--max-[uc]", name)):
+        if cap_like(name):
             return "spend_cap_flag_ambiguous"
     if not values:
         return "spend_cap_flag_missing"
@@ -635,13 +668,13 @@ def build_spend(spend: dict | None, no_spend: str | None, command_text: str,
         "spend_cap_flag_missing": f"the command must carry {want} {cap:g} (the tool stops there)",
         "spend_cap_flag_mismatch": f"every {want} in the command must be the plain number {cap:g}",
         "spend_cap_flag_ambiguous": f"a --word argparse would expand to {want} (--max, --max-u ...) is refused",
-        "spend_command_not_simple": "a labelled command is ONE simple command: no ; & | ( ) < > or line break, "
-                                    "no $ ` \\ globs or # comment, no X=1 before it, no bash/env/sudo/echo wrapper, "
-                                    "no python -c / node -e",
+        "spend_command_not_simple": "a labelled command is ONE simple command: python3 <repo script>.py, "
+                                    "node <repo script>.js or python3 -m tools.|scripts.|runners.<module>, "
+                                    "no ; & | redirects $ ` backslash globs # or odd spaces",
     }
     code = cap_flag_check(command_text, unit, cap, argv=argv)
     if code == "spend_command_not_simple":
-        code_why = simple_words(command_text)[1]
+        code_why = _ODD_SPACE_WHY if argv else simple_words(command_text)[1]
         raise Refused(f"{code} ({code_why}): {why[code]}")
     if code:
         raise Refused(f"{code}: {why[code]}")

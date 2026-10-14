@@ -1,5 +1,5 @@
 {
- "about": "Cap-flag cases judged the same way by the Console hub (src/run/spend.js capCheck) and Agents-Core tools/ask_run.py (cap_flag_check): want = null (accepted) or the refusal code. The file is copied byte for byte into both repos; each repo's test pins its sha256, so a change lands in both. Projects talk through APIs only, so neither reads the other's copy.",
+ "about": "Cap-flag cases judged the same way by the Console hub (src/run/spend.js capCheck / simpleWords) and Agents-Core tools/ask_run.py (cap_flag_check): want = null (accepted) or the refusal code. The file is copied byte for byte into both repos; each repo's test pins its sha256, so a change lands in both. Projects talk through APIs only, so neither reads the other's copy.",
  "cases": [
   {
    "command": "python fal_render.py --max-usd 1",
@@ -89,10 +89,10 @@
    "command": "python -u fal_render.py --max-usd 1",
    "unit": "usd",
    "cap": 1,
-   "want": null
+   "want": "spend_command_not_simple"
   },
   {
-   "command": "/usr/bin/python3 fal_render.py --prompt 'a $5 cat; ok' --max-usd 1",
+   "command": "python3 tools/fal_render.py --prompt 'a $5 cat; ok' --max-usd 1",
    "unit": "usd",
    "cap": 1,
    "want": null
@@ -341,7 +341,7 @@
    "command": "python fal_render.py -- --max-usd 1",
    "unit": "usd",
    "cap": 1,
-   "want": "spend_cap_flag_missing"
+   "want": "spend_cap_flag_ambiguous"
   },
   {
    "command": "python fal_render.py --max-usd 2",
@@ -444,6 +444,210 @@
    "unit": "credits",
    "cap": 60,
    "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "/usr/bin/python3 fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 fal_render.py '--max-usd=100 '",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd 1 '--max=100 '",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python3 fal_render.py '--max-usd= 100'",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd=100 ",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd=100 ",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 fal_render.py '--max-usd=1 '",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 fal_render.py \"--max-usd=1\t\"",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd 1​",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "rbash -c 'python3 x.py --max-usd 100' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "/proc/self/exe -c 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "awk 'BEGIN{system(\"x\")}' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "npx -c 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "perl -E 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "deno eval 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "uv run python3 -c 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -X dev -c 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -W ignore -c 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -m timeit 'x' --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -m tools",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -m tools.fal_render --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python3 -m scripts.champa.champa_fire --max-credits 60",
+   "unit": "credits",
+   "cap": 60,
+   "want": null
+  },
+  {
+   "command": "node runners/champa_fire.mjs --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "node runners/champa_fire.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 runners/x.mjs --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 /opt/x/fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 ../fal_render.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 tools/../../x.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 -fal.py --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "ruby fal.rb --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd 1 -- --max-usd 100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd 1 -- --max=100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python3 fal_render.py --max-usd 1 -- --tag --",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
   }
  ]
 }
