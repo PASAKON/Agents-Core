@@ -266,3 +266,12 @@ def test_every_c_level_runs_the_org_standard_model() -> None:
            if r.get("level") == "c" and name != "ceo"
            and (r.get("model"), r.get("effort")) != ("claude-opus-5-5[1m]", "medium")}
     assert not off, f"C-level rows off the Opus 5.5 [1m] medium standard: {off}"
+
+
+@pytest.mark.parametrize("role_name,persona", [
+    ("cto", "Kavin"), ("cmo", "Ging"), ("coo", "SomPong"),
+    ("cfo", ""), ("cgo", ""), ("project_head", ""), ("no_such_role", ""),
+])
+def test_persona_for_names_the_three_personas_only(role_name: str, persona: str) -> None:
+    # CEO 2026-10-14: session names "<HOST> <ROLE> (<Name>) #<id>"
+    assert config.persona_for(role_name) == persona
