@@ -1,0 +1,177 @@
+[
+ {
+  "atId": "ORPHEUS",
+  "serverAtId": "ORPHEUS",
+  "id": "vvqfnfzj",
+  "kind": "character",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "mpmet683.png",
+    "plate": "ORPHEUS__face.png",
+    "md5": "7d73c095f2c44c9c3be0e18f09dad687"
+   },
+   {
+    "upload": "4qusu8z9.png",
+    "plate": "ORPHEUS__wanderer.png",
+    "md5": "6e6a31b5ed0e634ad6631d0ceabc8d6a"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "ORPHEUS_ASHEN",
+  "serverAtId": "ORPHEUS_ASHEN",
+  "id": "7t40pzmg",
+  "kind": "character",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "8062ximr.png",
+    "plate": "ORPHEUS__face.png",
+    "md5": "7d73c095f2c44c9c3be0e18f09dad687"
+   },
+   {
+    "upload": "u9s6qafy.png",
+    "plate": "ORPHEUS__ashen.png",
+    "md5": "548d5a2e7879f346e5432c24b06cadf3"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "KING",
+  "serverAtId": "KING",
+  "id": "juklvjaa",
+  "kind": "character",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "3emx7d54.png",
+    "plate": "KING__face.png",
+    "md5": "b7fe52fdb1e3a204339b5f407b080a39"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "EURYDICE",
+  "serverAtId": "EURYDICE",
+  "id": "6p2g8xvs",
+  "kind": "prop",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "d8rhw1yj.png",
+    "plate": "EURYDICE__dress.png",
+    "md5": "c2fca7418ea885d607f8a0ab82ec1fa5"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "ANIMALS",
+  "serverAtId": "ANIMALS",
+  "id": "cclrh60f",
+  "kind": "character",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "umdys9gr.png",
+    "plate": "ANIMALS__three.png",
+    "md5": "5fd18b48d8147f3806525b5fad169291"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "LYRE",
+  "serverAtId": "LYRE",
+  "id": "gtnras8j",
+  "kind": "prop",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "qmv2nbfq.png",
+    "plate": "lyre2.png",
+    "md5": "374beb197083807467451bf456f8cb2a"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "MEADOW",
+  "serverAtId": "MEADOW",
+  "id": "f72qi8s8",
+  "kind": "location",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "uuur5244.png",
+    "plate": "MEADOW__dusk.png",
+    "md5": "b13fd8e28fb9108dfc0cc655545f2b23"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "MEADOW_GREY",
+  "serverAtId": "MEADOW_GREY",
+  "id": "vp67u8xp",
+  "kind": "location",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "ivptcqce.png",
+    "plate": "MEADOW__grey.png",
+    "md5": "38fd11aefb800ec41ea4477c7b40ed01"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "TELLER_ROOM",
+  "serverAtId": "TELLER_ROOM",
+  "id": "jgdk0auy",
+  "kind": "location",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "6mwqu46v.png",
+    "plate": "TELLER_ROOM__ring.png",
+    "md5": "9f62455dde9b87b01db10b29166ff7fd"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "THRONES",
+  "serverAtId": "THRONES",
+  "id": "jap476ol",
+  "kind": "location",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "c8kqlkic.png",
+    "plate": "thrones.png",
+    "md5": "26e39705f178d31b0e9d410e406dfec1"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ },
+ {
+  "atId": "STAIR",
+  "serverAtId": "STAIR",
+  "id": "8g69r596",
+  "kind": "location",
+  "group": "The Old Telling",
+  "refs": [
+   {
+    "upload": "2dtnvigw.png",
+    "plate": "underworld_stair.png",
+    "md5": "c9d2dbb13708d52724e575a9b5add2ed"
+   }
+  ],
+  "source": "ChatGPT web plate via tools/chatgpt_images_bg.py, CEO approved 2026-10-09"
+ }
+]

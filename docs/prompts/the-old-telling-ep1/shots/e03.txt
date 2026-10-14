@@ -1,0 +1,41 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+E03 THE LOOK BACK · 15s · 1080p · 16:9 · The Old Telling EP1 first minute (Thai)
+Entities (group 'The Old Telling'): @STAIR, @ORPHEUS_ASHEN, @LYRE, @EURYDICE. Audio bound: ['orpheus_word_15s.mp3'].
+Narration is NOT in this clip; it is mixed in the edit.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ · everything above is notes, never paste it ===
+
+15s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera at the side of the stair, tracking slowly toward screen-right and rising with him; no zoom, no cut.
+
+A DARK STAIR OUT OF THE LAND OF THE DEAD, THE LAST STEPS BELOW THE DAYLIGHT. ORPHEUS climbs with a silhouette behind him. He turns to look back, speaks one word, and she dissolves.
+
+REFERENCES, each with a job:
+@STAIR: THE STAIR: a narrow rough-cut wet stone stair climbing steeply through a dark cavern toward a small opening of pale daylight at the top. Take the whole place and its light from it.
+@ORPHEUS_ASHEN: ORPHEUS after the climb out of the cave, an adult man in his late twenties: the same face, curly hair and short dark beard as always, the olive-leaf band slipped a little to one side, the plain wool tunic and the dark cloak with its amber-ochre border stripe now dusted grey with cave dust and damp at the hem, a faint grey smudge on one cheek, leather sandals. Face, body and clothes only; take nothing of the background.
+@LYRE: THE LYRE, his ancient Greek lyre: aged dark-amber wood, a deep rounded body, two curved arms ending in small scrolls, a straight crossbar, seven strings. Shape and wood only; take nothing of the background.
+@EURYDICE: HER DRESS: a long pale undyed linen ancient Greek dress with a long pale veil draped over it. Cloth shape and colour only; she is only ever a dark silhouette with no face and no detail; take nothing of the background.
+
+THE FRAME: Side view of THE STAIR, climbing from the lower left up to the pale opening of daylight at the upper right. ORPHEUS climbs toward screen-right and upward, THE LYRE hanging from one hand, his shoulder toward the camera. Two steps below him at screen-left, a woman's dark silhouette follows, a pale outline in the mist, no face, no detail. ORPHEUS is no taller than one third of the frame height. The only warm light falls on ORPHEUS and THE LYRE; the daylight opening is cold and pale.
+
+WHAT HAPPENS:
+[0s] ORPHEUS climbs the wet steps toward screen-right and upward, steady, THE LYRE in his hand; the silhouette follows two steps behind him, silent. Mist drifts across the stone.
+[5s] Near the top, daylight reaches ORPHEUS. He slows and stops; his shoulders tighten and his free hand closes. The silhouette stays two steps behind, motionless.
+[8s] ORPHEUS turns his head and shoulders toward screen-left and looks down at the silhouette, his face in three-quarter profile toward screen-left, lips visible. From 9.5 to 10.6 seconds he speaks one word, his eyes on her, not on the camera.
+[11s] The silhouette comes apart like smoke and drifts down the stair. ORPHEUS reaches toward screen-left with his free hand; his fingers close on empty mist.
+[12s] Hold: ORPHEUS stays where he is, no speech, no new action; only drips of water and a thin wind from the opening.
+
+overall_soundscape: only the sounds of the place and ORPHEUS's own: slow footsteps on wet stone, dripping water, a thin wind from the opening above, his breath, and the one spoken word from <Audio 1>. No other voices, no singing.
+non_diegetic_music: none.
+
+<Audio 1> is the finished dialogue track of this shot.
+<Audio 1>: fully_copy - the soundtrack plays <Audio 1> exactly as given: the same voice, the same word, the same timing.
+Speech timing: ORPHEUS speaks from 9.5 s to 10.6 s. ORPHEUS moves the lips only inside that window and keeps the mouth closed at every other moment.
+
+Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
+
+CRITICAL NEGATIVES: no face on the silhouette, no second ORPHEUS, no people other than ORPHEUS and the one silhouette, no skulls, no bones, no speaking anything except the one word in <Audio 1>, no stage directions spoken aloud, no singing, nothing new starts after 12 seconds.
+
+House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ · everything below is notes, never paste it ===

@@ -425,3 +425,20 @@ projects:
       mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Option
       contabo: /opt/MoonieXHQ/Projects/MoonieX/Option
     spawn_backend: tmux
+
+  - key: mooniex-bedrock
+    name: MoonieX Bedrock (Minecraft Bedrock Marketplace add-ons)
+    path: /Users/gob/MoonieXHQ/Projects/MoonieX/Bedrock
+    remote: https://github.com/PASAKON/MoonieX-Bedrock.git
+    default_branch: main
+    stack: [python, json, javascript]
+    agents_allowed: *default_workers
+    # PRIVATE repo, hq.yaml row approved by the CEO 2026-10-05. Pack rules (namespace,
+    # no vanilla overrides, size budget) live in the repo's CLAUDE.md. In-game tests run
+    # on winbox only when the CEO hands over the screen; workers stay headless.
+    auto_push: true
+    review_required: true
+    spawn_backend: tmux
+    paths:
+      mac: /Users/gob/MoonieXHQ/Projects/MoonieX/Bedrock
+      contabo: /opt/MoonieXHQ/Projects/MoonieX/Bedrock   # worker clone only (codex lane), CEO 2026-10-05 'ส่ง Worker ... Codex AGY'

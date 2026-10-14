@@ -1,0 +1,20 @@
+[
+ {
+  "batchTitle": "The Old Telling EP1 e05",
+  "aspect": "16:9",
+  "card": {
+   "originalIndex": 1,
+   "title": "E05 THE KING SPEAKS",
+   "prompt": "4s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera static, very slow drift toward the king; no zoom, no cut.\n\nTHE HALL OF THE DEAD. THE KING OF THE DEAD sits on his black stone throne, looks at a visitor we do not see, and speaks one short line.\n\nREFERENCES, each with a job:\n@THRONES: THE THRONES: two tall rough-cut black stone thrones side by side in a dark hall, THE KING OF THE DEAD seated on the left one and THE QUEEN OF THE DEAD on the right one, both in plain black stone crowns and long black robes, ash-grey skin. Take the thrones, the two seated figures and the hall's light from it.\n@KING: THE KING OF THE DEAD, a tall pale adult man in his forties, ash-grey skin, stern lean face, short dark hair, plain black stone crown, long black robe with a high collar. Face and clothes only; take nothing of the background.\n\nTHE FRAME: Medium shot across a vast dark cavern hall. THE KING OF THE DEAD sits on the left black stone throne, centre-left of the frame, seen from the knees up, his body and face in three-quarter view toward screen-left, toward a visitor who is out of frame. THE QUEEN OF THE DEAD sits on the right throne at the right edge, still, her face half in shadow, also turned toward screen-left. THE KING fills about half of the frame height. The only warm light is a faint ember glow from screen-left on THE KING's face; the hall is cold verdigris dark.\n\nWHAT HAPPENS:\n[0s] THE KING sits still and stern, his eyes on the visitor at screen-left; THE QUEEN does not move. A cold wind stirs the hem of his robe.\n[0.6s] THE KING speaks one line to the visitor: his jaw and lips move, his eyes toward screen-left, his voice low and even. His right hand rests on the arm of the throne.\n[3.4s] THE KING lowers his chin in one slow nod; his right hand lifts a little toward screen-left and settles again.\n[3.8s] Hold: everyone stays where they are, no speech, no new action; only a low cold wind.\n\noverall_soundscape: only the sounds of the place and of THE KING: a low cold wind in a stone hall, the faint move of heavy cloth, and the one spoken line from <Audio 1>. No other voices, no singing.\nnon_diegetic_music: none.\n\n<Audio 1> is the finished dialogue track of this shot.\n<Audio 1>: fully_copy - the soundtrack plays <Audio 1> exactly as given: the same voice, the same line, the same timing.\nSpeech timing: THE KING OF THE DEAD speaks from 0.6 s to 3.4 s. He moves the lips only inside that window and keeps the mouth closed at every other moment.\n\nColour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.\n\nCRITICAL NEGATIVES: no ORPHEUS in the shot, no third person, no second king, no skulls, no bones, no fire pits, no demons, no speaking anything except the line in <Audio 1>, no stage directions spoken aloud, no singing, nothing new starts after 3.8 seconds.\n\nHouse negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.",
+   "include": true,
+   "linkAbove": false,
+   "seconds": 4,
+   "quality": "1080p",
+   "rating": "safe",
+   "ratedSha256": "ddde289370484656d4e1e1d1631fb52d7df86a60f1c0484e971b96dafec92692",
+   "audios": [
+    "king_line_4s.mp3"
+   ]
+  }
+ }
+]

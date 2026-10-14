@@ -46,6 +46,9 @@ function parseCommand(cmd) {
   while (/^[A-Z_][A-Z0-9_]*=\S+\s+/.test(cmd)) cmd = cmd.replace(/^[A-Z_][A-Z0-9_]*=\S+\s+/, "");
   cmd = cmd.replace(/^sudo\s+/, "").replace(/^timeout\s+\S+\s+/, "");
   const toks = cmd.split(/\s+/);
+  // `WT=/path/wt-foo; git ...` leaves the bare assignment as the first segment; its basename
+  // ("wt-foo") is a folder, not a command, and an allow rule for it would never match anything.
+  if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(toks[0] || "")) return null;
   let c = (toks[0] || "").replace(/.*\//, "");
   if (!c) return null;
   if (!/^[a-zA-Z][\w-]*$/.test(c)) return null;
