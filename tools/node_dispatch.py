@@ -50,7 +50,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import config, db, mailbox, proc  # noqa: E402
+from lib import config, db, mailbox, proc, session_names  # noqa: E402
 
 ACTOR = "node_dispatch"
 MESH_PROBE_DIR = ROOT / "state" / "mesh-probe"
@@ -796,7 +796,9 @@ def _start_clevel_schtask(role: str, resume_sid: str | None) -> dict:
 _PS_TOKEN_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 _PS_REF_RE = re.compile(r"[A-Za-z0-9._/-]{1,100}")
 _PS_REPO_URL_RE = re.compile(r"git@[A-Za-z0-9.-]{1,64}:[A-Za-z0-9._-]{1,64}/[A-Za-z0-9._-]{1,100}")
-_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,600}")
+# 4000, not 600: a browser_operator's --allowed-tools list is ~1,500 characters
+# (M8, 2026-10-14). The bound keeps the whole command under cmd.exe's 8191.
+_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,4000}")
 # ":" (worker names, CEO 2026-10-14) is plain text inside the single quotes it is passed in.
 _PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#():+ -]{1,120}")
 _PS_MODEL_RE = re.compile(r"[A-Za-z0-9_.:/-]{1,100}")
@@ -859,7 +861,7 @@ def _spawn_worker_values(task: dict) -> dict:
         raise Refusal(f"spawn_worker: {e}")
     # The title is free text a person typed. Keep the readable part and cut the
     # rest; worker_session_name would only add "..." past 40 characters.
-    title = re.sub(r"[^A-Za-z0-9 ._-]", "", task.get("title") or "")[:40].strip()
+    title = session_names.windows_safe(task.get("title") or "", session_names.WORKER_JOB_MAX)
     return {
         "Task": task["id"], "Project": project_key, "Role": role, "Branch": branch,
         "Base": proj.get("default_branch"), "RepoUrl": repo_url, "RepoPath": repo_path,
@@ -869,7 +871,7 @@ def _spawn_worker_values(task: dict) -> dict:
         "Effort": role_cfg.get("effort") or "high",
         "SessionName": config.worker_session_name(
             host, role, task["id"], title,
-            head=re.sub(r"[^A-Za-z0-9 ._-]", "", config.worker_head(task))),
+            head=session_names.windows_safe(config.worker_head(task))),
         "Runner": runner,
         "RunnerModel": str(task.get("runner_model") or ""),
         "AgentsRoot": str(ROOT),

@@ -359,6 +359,12 @@ _LETTERS_MIGRATION = [
     ("from_host", "TEXT"),
 ]
 
+# live_sessions.verified (M8, 2026-10-14): true when the session's tmux name, not
+# its display name, gave the role. Postgres only, like the table.
+_LIVE_SESSIONS_MIGRATION = [
+    ("verified", "BOOLEAN"),
+]
+
 # c_level_sessions lifecycle columns (task-728e4741). Same forward-only
 # ALTER-TABLE pattern as _MIGRATION_COLUMNS above, applied in init() so the
 # existing 76-row DB migrates without a migration framework. `status` carries
@@ -731,7 +737,8 @@ def _pg_schema_current(conn) -> bool:
     wanted = {"tasks": _MIGRATION_COLUMNS,
               "c_level_sessions": _C_LEVEL_SESSION_MIGRATION,
               "hosts": _HOSTS_MIGRATION + _HOSTS_JOIN_MIGRATION,
-              "letters": _LETTERS_MIGRATION}
+              "letters": _LETTERS_MIGRATION,
+              "live_sessions": _LIVE_SESSIONS_MIGRATION}
     have: dict[str, set[str]] = {}
     for table, column in conn.execute(
             "SELECT table_name, column_name FROM information_schema.columns"
@@ -796,6 +803,12 @@ def _create_and_migrate(conn, *, is_pg: bool) -> None:
     for col, coltype in _LETTERS_MIGRATION:
         if col not in letters_existing:
             conn.execute(f"ALTER TABLE letters ADD COLUMN {col} {coltype}")
+    if is_pg:
+        live_existing = {r["name"] for r in conn.execute(
+            "PRAGMA table_info(live_sessions)").fetchall()}
+        for col, coltype in _LIVE_SESSIONS_MIGRATION:
+            if col not in live_existing:
+                conn.execute(f"ALTER TABLE live_sessions ADD COLUMN {col} {coltype}")
 
 
 def init_schema(conn, *, is_pg: bool) -> None:

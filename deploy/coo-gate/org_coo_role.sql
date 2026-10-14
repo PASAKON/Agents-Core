@@ -95,7 +95,9 @@ GRANT SELECT (role, session_id, status, host, charter), UPDATE (charter)
 -- Read-only: the live-session list SomPong checks before any SendMessage (CEO 2026-10-13,
 -- tools/live_sessions.render through the gate's live_sessions op).
 GRANT SELECT (host, published_at, error) ON live_hosts TO org_coo;
-GRANT SELECT (host, uuid, sid, role, name, address, status, pid, seen_at) ON live_sessions TO org_coo;
+-- verified (M8): the column must exist first, i.e. lib.db.init() has run on this hub.
+GRANT SELECT (host, uuid, sid, role, name, address, status, pid, seen_at, verified)
+  ON live_sessions TO org_coo;
 
 -- 5. Row guards for this role only (see the header).
 CREATE OR REPLACE FUNCTION org_coo_tasks_guard() RETURNS trigger

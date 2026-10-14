@@ -47,7 +47,7 @@ def _clear_self_host_cache():
 def test_session_name_shape_mac_developer():
     name = config.worker_session_name("mac", "developer", "task-af5268b3", "SHOOT the teaser",
                                       head="OrgRestructure")
-    assert name == "Dev#af5 - OrgRestructure: SHOOT the teaser"
+    assert name == "\U0001F4BB Dev#af5 - OrgRestructure: SHOOT the teaser"   # M9: host emoji
 
 
 def test_session_name_shape_winbox_browser_operator():
@@ -60,13 +60,13 @@ def test_session_name_shape_contabo_unknown_role_falls_back_to_raw_key():
     # display_for() falls back to the raw role key for a role with no
     # policies/agents.yaml entry -- worker_session_name must not raise.
     name = config.worker_session_name("contabo", "some_new_role", "task-00000000", "x")
-    assert name == "Somenewrol#000 - x"
+    assert name == "\U0001F310 Somenewrol#000 - x"
 
 
 def test_session_name_no_title_omits_parens():
-    assert config.worker_session_name("mac", "developer", "task-af5268b3", "") == "Dev#af5"
+    assert config.worker_session_name("mac", "developer", "task-af5268b3", "") == "\U0001F4BB Dev#af5"
     assert config.worker_session_name("mac", "developer", "task-af5268b3", "",
-                                      head="CTO") == "Dev#af5 - CTO"
+                                      head="CTO") == "\U0001F4BB Dev#af5 - CTO"
 
 
 def test_session_name_truncates_long_title_to_40_chars():

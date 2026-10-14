@@ -90,6 +90,8 @@ _SHORT_NAME_RE = re.compile(
 _TMUX_ID_RE = re.compile(r"^([a-z][a-z_]{1,30})-([0-9a-f]{8}):")
 # A worker's tmux session: "wd-<sid>" or "<project>-task-<sid>" (tools/delegate.py).
 _WORKER_TMUX_RE = re.compile(r"^(?:wd|[a-z0-9][a-z0-9_-]{0,40}-task)-([0-9a-f]{8}):")
+# A launcher tmux name that is not "<role>-<sid>" but still names the role.
+_FIXED_TMUX_ROLE = {"sompong": "coo"}
 _C_LEVEL_RE = re.compile(r"^c[a-z]o$")
 _SESSION_FILE_RE = re.compile(r"^\d+\.json$")   # not <pid>.<hash>.key
 
@@ -115,6 +117,18 @@ _UPSERT_SESSION = (
     " name = EXCLUDED.name, address = EXCLUDED.address, status = EXCLUDED.status,"
     " pid = EXCLUDED.pid, former_name = EXCLUDED.former_name,"
     " renamed_at = EXCLUDED.renamed_at, seen_at = now()")
+# The same with live_sessions.verified, once lib.db.init() has added the column
+# (M8). Until then publishers and readers run without it: a row reads unverified.
+_UPSERT_SESSION_V = (
+    _UPSERT_SESSION.replace(" renamed_at, seen_at)", " renamed_at, seen_at, verified)")
+    .replace("?, now())", "?, now(), ?)")
+    + ", verified = EXCLUDED.verified")
+
+
+def _has_verified(conn) -> bool:
+    return bool(conn.execute(
+        "SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema()"
+        " AND table_name = 'live_sessions' AND column_name = 'verified'").fetchall())
 _UPSERT_HOST = (
     "INSERT INTO live_hosts (host, published_at, publisher, n_sessions, error)"
     " VALUES (?, now(), ?, ?, NULL)"
@@ -137,17 +151,19 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     carries both; a short C-level name ("CTO (Kavin)") carries the role and
     the id is the last 8 hex of the session UUID, which the launchers make
     end in the short id (cxo-claude.sh CXO_UUID). No match is role
-    ``unknown`` with the same UUID tail."""
-    m = _NAME_RE.match(name or "")
+    ``unknown`` with the same UUID tail. A leading host emoji ("🌐 CTO (Kavin)",
+    CEO 2026-10-14) is dropped first; a name without one parses the same."""
+    from lib import session_names   # stdlib only, safe under the hook's python3
+    name = session_names.strip_host(name or "")
+    m = _NAME_RE.match(name)
     if m:
         return m.group(1).strip().lower().replace(" ", "_"), m.group(2)
-    m = _SHORT_NAME_RE.match(name or "")
+    m = _SHORT_NAME_RE.match(name)
     if m:
         return m.group(1).lower(), session_id[-8:]
     # "PH#6c4 (CTO) - SpendGuard" / "Dev#afe - OrgRestructure: …" (lib/session_names):
     # the name shows 3 hex; the full id is the UUID tail when it agrees, else the 3.
-    from lib import session_names   # stdlib only, safe under the hook's python3
-    short = session_names.parse_short(name or "")
+    short = session_names.parse_short(name)
     if short:
         role, id3 = short
         tail = session_id[-8:]
@@ -155,27 +171,36 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     return "unknown", session_id[-8:]
 
 
-def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str]:
-    """(role, short id) for one session record. The launcher's tmux session
-    name "<role>-<sid>" wins, so an org session is found whatever its display
-    name says; a sid that the session UUID does not end in is not trusted
-    (a hand-made tmux session with an org-looking name). Otherwise the name.
-    Workers keep the name: their tmux name carries no role."""
+def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
+    """(role, short id, verified) for one session record. The launcher's tmux
+    session name "<role>-<sid>" wins, so an org session is found whatever its
+    display name says; a sid that the session UUID does not end in is not
+    trusted (a hand-made tmux session with an org-looking name). Otherwise the
+    name, and `verified` is False. A session in some other tmux (a worker's
+    "wd-<sid>") never gets a C-level or PH role from its name: a worker that
+    /renames itself "CTO (Kavin)" is listed as "unknown" (M8, 2026-10-14)."""
     tmux = data.get("tmux")
-    m = _TMUX_ID_RE.match(tmux) if isinstance(tmux, str) else None
+    tmux = tmux if isinstance(tmux, str) and tmux else None
+    m = _TMUX_ID_RE.match(tmux) if tmux else None
     # Only a listed role: a worker's tmux ("wd-<sid>") says nothing about its role.
     if m and is_listed(m.group(1)) and m.group(1) != "ceo" and session_id.endswith(m.group(2)):
-        return m.group(1), m.group(2)
+        return m.group(1), m.group(2), True
     role, sid = parse_name(name, session_id)
+    fixed = _FIXED_TMUX_ROLE.get(tmux.split(":", 1)[0]) if tmux else None
+    if fixed:
+        return fixed, (sid if role == fixed else session_id[-8:]), True
+    w = _WORKER_TMUX_RE.match(tmux) if tmux else None
+    if tmux and is_listed(role):
+        return "unknown", (w.group(1) if w else session_id[-8:]), False
     # a worker's short name shows 3 hex; its tmux name has all 8
-    w = _WORKER_TMUX_RE.match(tmux) if isinstance(tmux, str) else None
-    if w and len(sid) == 3 and w.group(1).startswith(sid):
-        sid = w.group(1)
-    return role, sid
+    if w and (sid == w.group(1) or (len(sid) == 3 and w.group(1).startswith(sid))):
+        return role, w.group(1), True
+    return role, sid, False
 
 
 def address_for(role: str, name: str) -> str:
-    """What SendMessage takes: the name, or the COO's alias for an old-style name."""
+    """What SendMessage takes: the name as it is (host emoji included), or the COO's
+    alias for an old-style name."""
     if role in ADDRESS_ALIAS and "#" in name:
         return ADDRESS_ALIAS[role]
     return name
@@ -394,10 +419,10 @@ def _row_from_data(data, *, check_alive: bool = True) -> dict | None:
     name = _clean(data.get("name") or "", MAX_NAME_CHARS)
     if not name:
         return None     # nothing to address it by
-    role, sid = _ids_from_record(data, name, session_id)
+    role, sid, verified = _ids_from_record(data, name, session_id)
     former = _former_name(data.get("formerNames"))
     return {
-        "uuid": session_id, "sid": sid, "role": role, "name": name,
+        "uuid": session_id, "sid": sid, "role": role, "name": name, "verified": verified,
         "address": address_for(role, name),
         "status": map_status(data.get("status")), "pid": pid,
         "former_name": _clean(former, MAX_NAME_CHARS) if former else None,
@@ -472,10 +497,14 @@ def publish_rows(conn, host: str, rows, prev_uuids, publisher: str | None = None
     published last time and are gone now, upsert ``live_hosts``, and delete this
     host's rows older than a day. Returns the uuids now published."""
     now_uuids = {r["uuid"] for r in rows}
+    with_v = _has_verified(conn)
     for r in rows:
-        conn.execute(_UPSERT_SESSION, (
-            host, r["uuid"], r["sid"], r["role"], r["name"], r["address"],
-            r["status"], r["pid"], r["former_name"], r["renamed_at"]))
+        args = (host, r["uuid"], r["sid"], r["role"], r["name"], r["address"],
+                r["status"], r["pid"], r["former_name"], r["renamed_at"])
+        if with_v:
+            conn.execute(_UPSERT_SESSION_V, args + (bool(r.get("verified")),))
+        else:
+            conn.execute(_UPSERT_SESSION, args)
     gone = sorted(set(prev_uuids) - now_uuids)
     if gone:
         conn.execute("DELETE FROM live_sessions WHERE host = ? AND uuid = ANY(?)",
@@ -812,8 +841,9 @@ def _snapshot_from_hub(conn, ttl_s: float) -> dict:
         hosts[r["host"]] = {"age": float(r["age"]), "published_at": r["published_at"],
                             "error": r["error"]}
     rows = []
+    verified = "verified" if _has_verified(conn) else "NULL AS verified"
     for r in conn.execute(
-            "SELECT host, uuid, sid, role, name, address, status, pid,"
+            "SELECT host, uuid, sid, role, name, address, status, pid, " + verified + ","
             " EXTRACT(EPOCH FROM now() - seen_at) AS age FROM live_sessions"
             " ORDER BY host, name").fetchall():
         age = float(r["age"])
@@ -824,7 +854,7 @@ def _snapshot_from_hub(conn, ttl_s: float) -> dict:
         rows.append({"host": r["host"], "uuid": r["uuid"], "sid": r["sid"],
                      "role": r["role"], "name": r["name"], "address": r["address"],
                      "status": "stale" if host_stale else r["status"], "pid": r["pid"],
-                     "age": age, "stale": host_stale})
+                     "verified": bool(r.get("verified")), "age": age, "stale": host_stale})
     return {"rows": rows, "hosts": hosts, "local": False}
 
 
@@ -833,7 +863,8 @@ def _snapshot_local() -> dict:
     host = _config().self_host()
     rows = [{"host": host, "uuid": r["uuid"], "sid": r["sid"], "role": r["role"],
              "name": r["name"], "address": r["address"], "status": r["status"],
-             "pid": r["pid"], "age": 0.0} for r in read_registry(session_dirs(host))]
+             "pid": r["pid"], "verified": r.get("verified", False), "age": 0.0}
+            for r in read_registry(session_dirs(host))]
     return {"rows": rows, "hosts": {host: {"age": 0.0, "published_at": None}}, "local": True}
 
 
@@ -901,6 +932,9 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
         parts.append(f"{host} {c_level} ({extra}{age})")
     shown = sorted((r for r in rows if all_roles or is_listed(r["role"])), key=_sort_key)
     notes = [STALE_NOTE] if any(r.get("stale") for r in shown) else []
+    unverified = [f"{r['host']} #{r['sid']}" for r in shown if not r.get("verified")]
+    if unverified:
+        notes.append("name only (no launcher tmux confirms the role): " + ", ".join(unverified))
     return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER]
                      + duplicate_notes(shown) + notes)
 
@@ -918,7 +952,9 @@ def duplicate_notes(rows) -> list[str]:
     for group in by_addr.values():
         if len(group) < 2:
             continue
-        where = ", ".join(f"{r['host']} #{r['sid']}" for r in group)
+        where = ", ".join(f"{r['host']} #{r['sid']} "
+                          + ("tmux-confirmed" if r.get("verified") else "name only")
+                          for r in group)
         out.append(f'same name on {len(group)} rows: "{group[0]["address"]}" ({where}) — '
                    f'SendMessage needs "<name> [ref]": take the ref from the ListAgents '
                    f'row whose tmux ends "-<sid>", or use send_to_cxo(role=…).')
@@ -936,6 +972,7 @@ def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> s
                   | ({"error": i["error"]} if i.get("error") else {})
                   for h, i in snap["hosts"].items()},
         "sessions": [{k: r[k] for k in ("host", "sid", "role", "status", "address")}
+                     | {"verified": bool(r.get("verified"))}
                      | {"age_s": int(r["age"]), "stale": bool(r.get("stale"))} for r in rows],
     }, ensure_ascii=False)
 
