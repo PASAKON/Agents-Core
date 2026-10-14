@@ -55,7 +55,14 @@ Order (`config/plans.yaml` class `research`): codex, Argon, Sonnet. A run with n
    `python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py --grants-only`
 2. Rotation (the old org_coo password leaked: `/run/sompong-coo/org-db.url` is readable by `sompong`,
    and commit a60f1744 holds a literal). Needs contabo write on Infisical Org-Coo (card
-   Q-20261013-2053-bf0f). Folder `/gate`, so nothing that reads Org-Coo's root path receives the new value:
+   Q-20261013-2053-bf0f). Folder `/gate`, so nothing that reads Org-Coo's root path receives the new value.
+   **Probe first, on the same card:** `org_coo_role.py` changes the Postgres password BEFORE `put` stores
+   the URL, so a 403 on `put` would lose the new password and the running gate would fail on its next
+   reconnect. `python3 tools/infisical_setup.py mkdir Org-Coo prod gate --as contabo` makes the folder if
+   missing, then always creates and deletes a nested `probe-<hex>` folder (fail-closed: an existing
+   `/gate` cannot skip the write): chain it with `&&` in front of the rotation so a missing grant stops the
+   card before anything changes. If `put` still fails after the rotation, run the same card again (mkdir
+   is idempotent; the rotation mints a fresh password). Then:
    `python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py | python3 tools/infisical_setup.py put Org-Coo prod ORG_DB_URL --stdin --path /gate --as contabo --comment "COO gate hub URL (role org_coo)" --meta provider_name=org-postgres-org_coo --meta console_url=- --meta scope=org_coo --meta expires=never --meta owner=cto`
 3. Install or re-point: `bash deploy/coo-gate/install.sh install /opt/MoonieXHQ/Agents/Core /gate`
    Rollback: `bash deploy/coo-gate/install.sh uninstall`. Status: `install.sh status`.
