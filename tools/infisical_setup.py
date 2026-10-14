@@ -821,16 +821,27 @@ def cmd_perms(org: Org, project: str) -> None:
     said to show Developer (CTO #c34459eb, 2026-10-14); the `setup` identity that `status` needs is
     retired, so this is the only way to read the role from a machine."""
     seen = org.projects()
-    print(f"{org.identity} sees {len(seen)} project(s): {', '.join(sorted(seen))}")
+    print(f"{org.identity} sees {len(seen)} project(s): {json.dumps(sorted(seen), ensure_ascii=True)}")
     p = _project(org, project)
     out = org.get(f"/api/v1/workspace/{p['id']}/permissions")
-    data = out.get("data", out) if isinstance(out, dict) else {}
-    member = data.get("membership") or {}
-    roles = [r.get("customRoleSlug") or r.get("role") for r in member.get("roles", []) if isinstance(r, dict)]
-    print(f"{p['name']} (slug {p.get('slug')}, id {str(p.get('id'))[:8]}): roles={','.join(r for r in roles if r) or '?'}")
-    for rule in data.get("permissions", []):
-        print("  rule " + json.dumps(rule, ensure_ascii=True)[:300])
-
+    data = out.get("data", out) if isinstance(out, dict) else None
+    data = data if isinstance(data, dict) else {}
+    member = data.get("membership")
+    member = member if isinstance(member, dict) else {}
+    member_roles = member.get("roles")
+    roles = [r.get("customRoleSlug") or r.get("role")
+             for r in (member_roles if isinstance(member_roles, list) else []) if isinstance(r, dict)]
+    print(f"{json.dumps(p.get('name'), ensure_ascii=True)} (slug {json.dumps(p.get('slug'), ensure_ascii=True)}, "
+          f"id {str(p.get('id'))[:8]}): roles={json.dumps([r for r in roles if r], ensure_ascii=True)}")
+    rules = data.get("permissions")
+    for rule in (rules if isinstance(rules, list) else []):
+        # A packed CASL rule is [action, subject, conditions, inverted, ...]; the deny flag goes
+        # first so truncating long conditions can never turn a deny into what reads as an allow.
+        if isinstance(rule, list):
+            deny = len(rule) > 3 and bool(rule[3])
+        else:
+            deny = isinstance(rule, dict) and bool(rule.get("inverted"))
+        print(("  DENY  " if deny else "  allow ") + json.dumps(rule, ensure_ascii=True)[:300])
 
 def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> None:
     p = _project(org, project)
@@ -943,6 +954,8 @@ def main(argv: list[str] | None = None) -> None:
         elif args.cmd == "retire-setup":
             cmd_retire_setup(Org())
         elif args.cmd == "perms":
+            if not NAME_RE.match(args.identity):
+                sys.exit(f"bad identity name {args.identity!r}")
             cmd_perms(Org(args.identity), args.project)
         elif args.cmd == "put":
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
