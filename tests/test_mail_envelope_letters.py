@@ -426,6 +426,18 @@ def test_send_to_cto_stores_kind_and_debounces_normal(inbox, on, sweeper, monkey
     assert kinds == [("message", "normal"), ("report", "urgent")]
 
 
+def test_send_to_cto_an_ask_without_prio_wakes_at_once_as_stored(inbox, on, sweeper, monkeypatch):
+    wakes = []
+    monkeypatch.setattr(s2cto, "_attempt_wake", lambda *a: wakes.append(a))
+    s2cto.send("task-1", "which branch?", role="developer", cto_id="t1",
+               subject="ask task-1: which branch", kind="ask")
+    assert len(wakes) == 1, "stored urgent, so it must wake at once, not wait for the batch"
+    s2cto.send("task-1", "done", role="developer", cto_id="t1", subject="report", kind="report")
+    assert len(wakes) == 1, "a report with no prio is normal and waits"
+    got = sorted((l["kind"], l["prio"]) for l in _raw(inbox / "cto-t1"))
+    assert got == [("ask", "urgent"), ("report", "normal")]
+
+
 def test_send_to_cto_flag_off_unchanged(inbox, monkeypatch):
     wakes = []
     monkeypatch.setattr(s2cto, "_attempt_wake", lambda *a: wakes.append(a))
