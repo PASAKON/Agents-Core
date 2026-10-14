@@ -1,6 +1,6 @@
 # Live sessions — who can I SendMessage to right now
 
-`python -m tools.live_sessions` prints ONE list of the live C-level sessions on Contabo, Mac and
+`python -m tools.live_sessions` prints ONE list of the live C-level and Project Head sessions on Contabo, Mac and
 winbox (~1.3k chars for 15 rows, under 1k tokens) so a sender does not call ListAgents (83 rows,
 ~70 dead, ~5k tokens) or send to a name from memory. Built for task-9c563bea (CEO question 13 Oct).
 
@@ -24,10 +24,11 @@ clock, so host clock skew never shows. Tables are created by `PG_SCHEMA` on the 
 `scripts/live-sessions.sh [--all] [--id <sid>] [--json] [--local]` (org-python, infisical banner
 filtered). Without a hub route, or to see this box only: `--local`. Windows: run
 `windows_hub_prefix(ROOT)` (scripts/lib/cxo_mcp_config.py) + `python -m tools.live_sessions`.
-Rows: `running|idle  <address>`, running first, then host, then name. Send with
+Rows: `running|idle  <address>`, running first, then host, C-levels before Project Heads, then name.
+Workers show only with `--all` (a PH was hidden until 2026-10-14, PH OrgRestructure). Send with
 `SendMessage(to=<text after the status>, verbatim)`. "N agents are named X" → re-send with the `[ref]`
 the error marks active. The COO's address is `SomPong` (its own name returns "not found"; CTO 13 Oct).
-Header per host: `contabo 6 (+4 workers, 4s)`; stale: `winbox none (no publisher since 10-12 21:03)`;
+Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 
 ## winbox

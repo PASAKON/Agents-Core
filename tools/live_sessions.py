@@ -4,7 +4,7 @@ Senders used to call ListAgents (83 rows, ~70 dead, ~5k tokens) and some sent
 to names from memory. Claude Code keeps one file per live process,
 ``<config>/sessions/<pid>.json``; this module reads them, publishes the live
 ones to the hub (``live_sessions`` + ``live_hosts``), and prints the C-level
-sessions of every host in under 1k tokens.
+and Project Head sessions of every host in under 1k tokens (workers: --all).
 
     python3 -m tools.live_sessions [--all] [--id <sid>] [--json] [--local]
     python3 -m tools.live_sessions publish --once      # prints a count only
@@ -127,6 +127,15 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
 
 def is_c_level(role: str) -> bool:
     return bool(_C_LEVEL_RE.match(role))
+
+
+PH_ROLE = "project_head"
+
+
+def is_listed(role: str) -> bool:
+    """Printed without --all: the C-levels and the Project Heads, the sessions a
+    C-level or a PH sends orders to (org restructure P2). Workers need --all."""
+    return is_c_level(role) or role == PH_ROLE
 
 
 def map_status(raw) -> str:
@@ -796,7 +805,8 @@ def _line(row: dict) -> str:
 
 
 def _sort_key(row: dict):
-    return (STATUS_RANK.get(row["status"], 2), row["host"], row["name"])
+    # a Project Head sorts after the C-levels of its status and host
+    return (STATUS_RANK.get(row["status"], 2), row["host"], row["role"] == PH_ROLE, row["name"])
 
 
 def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S,
@@ -817,7 +827,7 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
                 parts.append(f"{host} none (no publisher yet)")
             continue
         if info["age"] > ttl_s:
-            n_stale = sum(1 for r in rows if r["host"] == host and is_c_level(r["role"]))
+            n_stale = sum(1 for r in rows if r["host"] == host and is_listed(r["role"]))
             if info.get("error"):
                 since = _fmt_since(info["published_at"], now.astimezone(TH).date())
                 why = f"unreachable ({info['error']}) since {since}"
@@ -828,18 +838,19 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
             continue
         mine = [r for r in rows if r["host"] == host]
         c_level = sum(1 for r in mine if is_c_level(r["role"]))
-        workers = len(mine) - c_level
+        heads = sum(1 for r in mine if r["role"] == PH_ROLE)
+        workers = len(mine) - c_level - heads
         age = "local" if snap["local"] else f"{int(info['age'])}s"
-        extra = f"+{workers} workers, " if workers else ""
+        extra = (f"+{heads} PH, " if heads else "") + (f"+{workers} workers, " if workers else "")
         parts.append(f"{host} {c_level} ({extra}{age})")
-    shown = sorted((r for r in rows if all_roles or is_c_level(r["role"])), key=_sort_key)
+    shown = sorted((r for r in rows if all_roles or is_listed(r["role"])), key=_sort_key)
     notes = [STALE_NOTE] if any(r.get("stale") for r in shown) else []
     return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER] + notes)
 
 
 def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> str:
     rows = sorted((r for r in snap["rows"]
-                   if all_roles or sid is not None or is_c_level(r["role"])), key=_sort_key)
+                   if all_roles or sid is not None or is_listed(r["role"])), key=_sort_key)
     if sid is not None:
         want = sid.strip().lstrip("#").lower()
         rows = [r for r in rows if want and (r["sid"] == want or r["uuid"].endswith(want))]
@@ -852,10 +863,11 @@ def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> s
     }, ensure_ascii=False)
 
 
-def render(conn, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> str:
+def render(conn, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S,
+           now: datetime | None = None) -> str:
     """The list: a header line, one line per live session, a footer."""
     return format_snapshot(_snapshot_from_hub(conn, ttl_s), all_roles=all_roles,
-                           sid=sid, ttl_s=ttl_s)
+                           sid=sid, ttl_s=ttl_s, now=now)
 
 
 def _unreachable(exc: BaseException) -> str:
@@ -899,7 +911,7 @@ def render_for_tool(id: str = "", all: bool = False) -> str:
 def _parser():
     import argparse
     ap = argparse.ArgumentParser(prog="python3 -m tools.live_sessions", description=__doc__.splitlines()[0])
-    ap.add_argument("--all", action="store_true", help="include workers")
+    ap.add_argument("--all", action="store_true", help="include workers (C-levels and Project Heads always show)")
     ap.add_argument("--id", dest="sid", help="one session by its short id")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--local", action="store_true", help="this host's registry, no hub")
