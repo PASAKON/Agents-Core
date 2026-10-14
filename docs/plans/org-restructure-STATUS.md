@@ -35,3 +35,25 @@ PH row in Agents-Rules (Mac-only, reminder only).
 
 Learning for close-out: `scripts/test_model_routing_consistency.py` is a script (`main()`, no `test_*`), so
 passing it to pytest runs nothing; M3 broke it and CTO Main fixed it in PR #258. Run it with python directly.
+
+## Run cards for CTO Main after landing (copy verbatim; each runs as root on Contabo from the live Core)
+
+None of these restarts an existing unit or touches the tmux server (both new units are tmux clients only).
+
+**M8: org_coo grant on `live_sessions.verified`** (after #268 lands and Core is live-synced; `lib.db.init()`
+must have created the column, which any org tool start does):
+```
+cd /opt/MoonieXHQ/Agents/Core && python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py --grants-only
+```
+
+**M10b: rename service** (after the M10 PR lands and Core is live-synced):
+```
+cd /opt/MoonieXHQ/Agents/Core && install -m 0644 deploy/systemd/rename-service.service /etc/systemd/system/rename-service.service && systemctl daemon-reload && systemctl enable --now rename-service.service && sleep 20 && systemctl --no-pager --lines=10 status rename-service.service
+```
+
+**M11: escalation watch** (after the M11 PR lands and Core is live-synced). It runs once dry first. Its first
+`--nudge` pass will mail the COO and the live C-levels about any finding then present (on 14 Oct: "host mac
+stopped publishing"):
+```
+cd /opt/MoonieXHQ/Agents/Core && bash scripts/hub/with-org-db-env.sh .venv/bin/python tools/escalation_watch.py && install -m 0644 deploy/systemd/escalation-watch.service deploy/systemd/escalation-watch.timer /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now escalation-watch.timer && systemctl --no-pager list-timers escalation-watch.timer
+```
