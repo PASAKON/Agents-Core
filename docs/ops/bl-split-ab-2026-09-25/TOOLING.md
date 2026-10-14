@@ -87,7 +87,7 @@ is the whole point of the A/B (PLAN.md: "both arms must start from it").
 
 ## Commands in order
 
-### Arm 1 — ต่อเนื่อง (one editor, the whole episode)
+### Arm 1 — Continuous (one editor, the whole episode)
 
 ```bash
 # 1. stage the full-episode fixture (once, shared by Arm 1 and every Arm 2 segment)
@@ -104,7 +104,7 @@ python3 tools/bl_ab_run.py spawn-full
 #    tools/bl_compose.py per BRIEF-arm1.md, delivers final-arm1.mp4.
 ```
 
-### Arm 2 — ช่วยกัน (N editors, one segment each, CTO merges)
+### Arm 2 — Collaborative (N editors, one segment each, CTO merges)
 
 ```bash
 # 1. same fixture-full as Arm 1 (idempotent, safe to re-run)
