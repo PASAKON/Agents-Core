@@ -47,6 +47,15 @@ const q = new URLSearchParams(location.search);
 const g = (k, d = '') => q.get(k) || d;
 const TOP = +g('top', 850), FIT = 940;
 if (g('mw')) document.querySelector('.mark').style.width = g('mw') + 'px';   // watermark size test (CEO 2026-10-14); default stays 470
+// mirror test (CEO 2026-10-14): vw = visible width of the mark, vr = its right margin, vc = centre y, plate = backing padding.
+// The logo box is 1600x520 with the visible lockup at x 495..1099, y 119..387, so the box is placed from the VISIBLE edges.
+if (g('vw')) {
+  const vw = +g('vw'), vr = +g('vr', 48), vc = +g('vc', 136), bw = vw * 1600 / 604, vh = vw * 268 / 604, m = document.querySelector('.mark');
+  m.style.width = bw + 'px'; m.style.right = 'auto'; m.style.left = (1080 - vr - 1099 / 1600 * bw) + 'px'; m.style.top = (vc - vh / 2 - 119 / 1600 * bw) + 'px';
+  if (g('plate')) { const pd = +g('plate'), p = document.createElement('div');
+    p.style.cssText = `position:absolute;left:${1080 - vr - vw - pd}px;top:${vc - vh / 2 - pd}px;width:${vw + 2 * pd}px;height:${vh + 2 * pd}px;border-radius:${pd + 14}px;background:rgba(8,16,32,.5)`;
+    m.parentNode.insertBefore(p, m); }
+}
 document.getElementById('pic').style.backgroundImage = `url(file:///C:/mooniex/khaoniao/poster/frames/${g('img')}.png)`;
 document.getElementById('pic').style.backgroundPosition = `0 -${+g('oy', 250)}px`;
 document.getElementById('bB').textContent = g('bB'); document.getElementById('bS').textContent = g('bS');

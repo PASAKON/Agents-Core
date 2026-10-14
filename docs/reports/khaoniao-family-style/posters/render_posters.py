@@ -3,7 +3,7 @@ Same renderer as ../cover/render.py (poster.html + Chrome headless, real Itim, f
 The picture is a real frame cut from an episode (frames\\<img>.png, 720x1280); the text below IS the post's lettering —
 edit it here and re-render, never retouch a PNG. Facts in the text must be true on the day it is posted:
 tue (aired) is true only after EP3 is live; tue_prep is the fallback if EP3 is late. See docs/plans/mimi-week1-posts.md."""
-import subprocess, sys, pathlib, tempfile, shutil
+import re, subprocess, sys, pathlib, tempfile, shutil
 from urllib.parse import quote
 CH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 D = pathlib.Path(r"C:\mooniex\khaoniao\poster"); OUT = D / "out"; OUT.mkdir(exist_ok=True)
@@ -36,7 +36,7 @@ keys = sys.argv[1:] or list(P)
 for arg in keys:
     key, _, extra = arg.partition("@")   # KEY@mw=700 -> poster-KEY-mw700.png (size test)
     q = "&".join(f"{k}={quote(v)}" for k, v in P[key].items()) + ("&" + extra if extra else "")
-    out = OUT / f"poster-{key}{('-' + extra.replace('=', '')) if extra else ''}.png"; prof = tempfile.mkdtemp(prefix="pt")
+    out = OUT / f"poster-{key}{('-' + re.sub(r'[^A-Za-z0-9]+', '', extra)) if extra else ''}.png"; prof = tempfile.mkdtemp(prefix="pt")
     subprocess.run([CH, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
                     "--window-size=1080,1350", f"--user-data-dir={prof}", "--virtual-time-budget=12000",
                     "--allow-file-access-from-files", f"--screenshot={out}", f"file:///C:/mooniex/khaoniao/poster/poster.html?{q}"],
