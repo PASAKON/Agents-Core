@@ -531,3 +531,5 @@ needs to see at a glance which are the sharp ones.
 | `SomPong Share` (root) | `1Qn7B0e6Pa7y8gS5bjUfs-f5ewMIERUsR` | NEW 2026-09-26. Path and definition from the CEO: "root/SomPong Share/{SomPong เอาไฟล์มาใส่ไว้ที่นี่ได้ก่อนแชร์}", created on his "อนุมัติทั้ง 2" (session cto-aa2e4242, bridge `create_folder`). The one folder the EA shares files out of Drive from, as anyone-with-the-link view links posted in LINE. Only the CEO may ask for a share. Reached through a broker locked to this id; the EA holds no Drive token. |
 
 ## Field notes
+
+- 2026-10-14 [MISSING] §Folder map — a Drive folder name that contains " | " (BL EP61: `BLACK LIQUIDITY [60] | BL EP61 — …`) splits the ID-table row into extra cells unless the pipe is escaped as `\|`; escape it whenever a folder name is quoted inside the table (n=1) · evidence: caf094bd · status: pending
