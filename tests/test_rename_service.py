@@ -30,19 +30,34 @@ PERMISSION = " Do you want to proceed?\n ❯ 1. Yes\n   2. No\n❯ \n"
 
 
 class FakeTmux:
+    """Root's tmux server: every pane of every session has this test's pid (so this
+    process is "in" each session) unless `panes` says otherwise. Typed text shows
+    on the ❯ line; Enter clears it."""
+
     def __init__(self):
-        self.screens, self.calls, self.sent = {}, [], []
+        self.screens, self.calls, self.sent, self.panes = {}, [], [], {}
         self.after_capture = None   # called after each capture-pane (a CEO typing)
+        self.after_type = None      # called after the literal send (a key pressed right then)
 
     def __call__(self, *args):
         self.calls.append(args)
-        out = ""
+        t = args[args.index("-t") + 1]
+        assert t.startswith("=") and t.endswith(":"), f"not an exact target: {t}"
+        name, out = t[1:-1], ""
         if args[0] == "capture-pane":
-            out = self.screens.get(args[args.index("-t") + 1], EMPTY)
+            out = self.screens.get(name, EMPTY)
             if self.after_capture:
                 self.after_capture(self)
+        elif args[0] == "list-panes":
+            out = "".join(f"{pid}\n" for pid in self.panes.get(name, [os.getpid()]))
         elif args[0] == "send-keys":
-            self.sent.append((args[args.index("-t") + 1], args[-1]))
+            self.sent.append((name, args[-1]))
+            if "-l" in args:
+                self.screens[name] = f"out\n❯ {args[-1]}\n"
+                if self.after_type:
+                    self.after_type(self, name)
+            else:
+                self.screens[name] = EMPTY
         else:
             raise AssertionError(f"tmux {args[0]} is never used: {args}")
         return subprocess.CompletedProcess(["tmux", *args], 0, out, "")
@@ -61,10 +76,13 @@ def box(tmp_path, monkeypatch):
     n = [0]
     pending = {}
 
-    def record(uuid, name, tmux, pid=None):
+    def record(uuid, name, tmux, pid=None, **extra):
         n[0] += 1
-        (sessions / f"{n[0]}.json").write_text(json.dumps(
-            {"pid": pid or os.getpid(), "sessionId": uuid, "name": name, "tmux": tmux}))
+        pid = pid or os.getpid()
+        f = sessions / f"{n[0]}.json"
+        f.write_text(json.dumps({"pid": pid, "sessionId": uuid, "name": name, "tmux": tmux,
+                                 "procStart": str(ls._proc_starttime(pid)), **extra}))
+        return f
 
     def request(box_name, topic, prefix="", peer=None):
         """A request from this test process (a descendant of every record's pid)."""
@@ -108,7 +126,7 @@ def test_no_payload_in_a_topic_reaches_the_pane_beyond_one_rename_line(box, topi
     assert len(line) <= len("/rename ") + rs.NAME_MAX
     topic_part = line.split(" — ", 1)[1] if " — " in line else ""
     assert not topic_part.startswith("/") and len(topic_part) <= rs.TOPIC_MAX + 1
-    assert all(c[0] in ("capture-pane", "send-keys") for c in box.calls)
+    assert all(c[0] in ("capture-pane", "send-keys", "list-panes") for c in box.calls)
 
 
 def test_it_types_only_into_an_empty_prompt_and_retries_later(box):
@@ -211,9 +229,9 @@ def test_a_caller_with_no_session_is_refused(box):
     assert box.pending == {}
 
 
-def test_a_caller_running_as_another_user_is_refused(box, monkeypatch):
-    monkeypatch.setattr(rs, "_uid", lambda pid: 1001)
-    assert box.request("cto-c34459eb", "x") == "refused: the caller runs as another user than that session"
+def test_a_caller_running_as_another_user_is_refused(box):
+    assert box.request("cto-c34459eb", "x", peer=(os.getpid(), os.geteuid() + 1)) == (
+        "refused: the caller runs as another user than that session")
     assert box.pending == {}
 
 
@@ -281,7 +299,7 @@ def test_a_tmux_error_on_one_rename_does_not_stop_the_others(box):
     real = rs.tmux
 
     def flaky(*args):
-        if "cto-c34459eb" in args:
+        if any("cto-c34459eb" in a for a in args):
             raise subprocess.TimeoutExpired("tmux", 10)
         return real(*args)
 
@@ -325,6 +343,7 @@ def test_listen_refuses_a_group_writable_socket_directory(tmp_path):
 @pytest.mark.parametrize("raw,clean", [
     ("ดูแล org  ทั้งหมด", "ดูแล org ทั้งหมด"), ("a\nb", "a b"), ("//x", "x"), ("  ", ""),
     ("M10: names (ok) + #272", "M10: names (ok) + #272"), ("a\x1b[2Jb", "a 2Jb"),
+    ("a; b;", "a b"),                       # tmux strips a trailing ';' from send-keys
 ])
 def test_clean_topic(raw, clean):
     assert rs.clean_topic(raw) == clean
@@ -335,3 +354,98 @@ def test_preview_is_what_the_service_would_type(box, capsys):
                     "--host", "contabo"]) == 0
     assert capsys.readouterr().out.strip() == f"{CONTABO} CTO (Kavin) — x"
     assert rs.main(["preview", "--role", "developer", "--sid", "afe57b21", "--host", "contabo"]) == 1
+
+
+# --- §2b re-review of #283 (v2) ---------------------------------------------------------
+
+def test_no_lock_file_is_read_for_a_caller_that_is_not_that_session(box, monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("build_name ran before the owner check")
+
+    monkeypatch.setattr(rs, "build_name", boom)
+    monkeypatch.setattr(ls, "read_lock", boom)
+    assert box.request("project_head-36c49776", "x", peer=(os.getppid(), os.getuid())).startswith(
+        "refused: that session is not an ancestor")
+
+
+@pytest.mark.parametrize("kind", ["dev-zero", "fifo", "big", "symlink-to-file"])
+def test_a_planted_lock_file_is_never_followed_or_read_whole(box, kind, tmp_path):
+    lock = box.locks / "project_head-36c49776.project"
+    lock.unlink()
+    if kind == "dev-zero":
+        lock.symlink_to("/dev/zero")
+    elif kind == "fifo":
+        os.mkfifo(lock)
+    elif kind == "big":
+        lock.write_text("MimiPage" + " " * 300)
+    else:
+        (tmp_path / "token").write_text("MimiPage")
+        lock.symlink_to(tmp_path / "token")
+    t0 = time.monotonic()
+    assert box.request("project_head-36c49776", "x") == "refused: no rule name for project_head-36c49776"
+    assert time.monotonic() - t0 < 2
+    (box.locks / "coo-fde4c4ca.uuid").symlink_to("/dev/zero")
+    assert ls._launcher_uuid("coo", U_COO) is False
+
+
+def test_a_lock_file_owned_by_another_user_is_not_trusted(box):
+    if os.geteuid() != 0:
+        pytest.skip("needs root to chown")
+    os.chown(box.locks / "project_head-36c49776.project", 1001, -1)
+    assert box.request("project_head-36c49776", "x") == "refused: no rule name for project_head-36c49776"
+
+
+def test_a_record_written_by_another_user_speaks_for_no_session(box, monkeypatch):
+    # sompong writes its own registry dir: a record naming a root pid is not his to write.
+    real = rs._uid
+    monkeypatch.setattr(rs, "_uid", lambda pid: os.geteuid() + 1 if pid == os.getpid() else real(pid))
+    assert box.request("cto-c34459eb", "x").startswith("refused: no single live session")
+
+
+def test_a_record_not_running_in_that_tmux_session_is_refused(box, stranger):
+    box.panes["cto-c34459eb"] = [stranger]     # root's tmux says that session's panes are elsewhere
+    assert box.request("cto-c34459eb", "x").startswith("refused: no single live session")
+    assert box.request("project_head-36c49776", "x").startswith("queued")
+
+
+def test_a_record_without_proc_start_is_refused(box):
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        d.pop("procStart")
+        f.write_text(json.dumps(d))
+    assert box.request("cto-c34459eb", "x").startswith("refused: no single live session")
+
+
+def test_a_deeply_nested_record_breaks_nothing(box):
+    (box.sessions / "999.json").write_text("[" * 100_000)
+    assert box.request("cto-c34459eb", "x").startswith("queued")
+
+
+def test_a_slow_caller_holds_the_service_two_seconds_at_most(box):
+    a, b = socket.socketpair()
+    with a, b:
+        a.sendall(b'{"role": "cto", ')        # and then nothing, never a shutdown
+        t0 = time.monotonic()
+        assert rs.handle(b, "contabo", box.pending, (os.getpid(), os.getuid())) == "refused: unreadable request"
+        assert time.monotonic() - t0 < rs.REQUEST_DEADLINE_S + 1
+
+
+@pytest.mark.parametrize("sid", ["c34459eb\n", "c34459eb ", "C34459EB", "c34459eb-x"])
+def test_a_sid_must_match_whole(box, sid):
+    a, b = socket.socketpair()
+    with a, b:
+        a.sendall(json.dumps({"role": "cto", "sid": sid, "topic": "x"}).encode())
+        a.shutdown(socket.SHUT_WR)
+        assert rs.handle(b, "contabo", box.pending, (os.getpid(), os.getuid())) == "refused: not an org session"
+
+
+def test_a_key_pressed_while_typing_is_never_submitted(box):
+    box.request("cto-c34459eb", "x")
+
+    def ceo_presses(fake, name):
+        fake.screens[name] = fake.screens[name].rstrip("\n") + "k\n"
+
+    box.after_type = ceo_presses
+    assert rs.once("contabo", box.pending, now=1.0) == [
+        "held     cto-c34459eb: the prompt line is not exactly the rename; no Enter"]
+    assert [t for _, t in box.sent] == [f"/rename {CONTABO} CTO (Kavin) — x"]

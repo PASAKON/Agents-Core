@@ -14,10 +14,15 @@ tmux server (client commands only: capture-pane, send-keys).
 Who may ask (§2b review of #283): the kernel says who is on the other end of the
 socket (SO_PEERCRED). A request for <role>-<sid> is accepted only when that
 session's Claude process (its live session record) is an ancestor of the
-connecting process and runs as the same uid. So a session renames only itself,
-and a process with no session (a service user such as `secretary`) renames
-nothing. Requests live in this process's memory: root writes no file a non-root
-user could plant a symlink for.
+connecting process and runs as the same effective uid. So a session renames only
+itself, and a process with no session (a service user such as `secretary`)
+renames nothing. That check runs BEFORE any lock file is read. A session record
+counts only when its pid descends from a pane of that session's own tmux session
+(read from root's tmux server), it carries procStart, and the file's owner is
+the pid's uid: a user who writes its own registry dir (sompong) cannot claim
+another session's pane (review v2, M-1). Requests live in this process's memory:
+root writes no file a non-root user could plant a symlink for, and lock files are
+read with ls.read_lock (no symlink, no FIFO, at most 256 bytes, root-owned).
 
 The request carries no name, so nothing a session sends can reach the pane except
 a topic: clean_topic() keeps letters, marks, digits, spaces and a few punctuation
@@ -56,6 +61,7 @@ LOCKS_DIR = ROOT / "state" / "locks"
 SOCK = Path(os.environ.get("RENAME_SERVICE_SOCK") or "/run/rename-service/sock")
 PROC = Path("/proc")
 REQUEST_MAX = 4096
+REQUEST_DEADLINE_S = 2.0          # for the whole request, not per recv (review v2, L-1)
 PENDING_MAX = 64
 TOPIC_MAX = 40
 NAME_MAX = 120
@@ -63,9 +69,9 @@ PREFIXES = ("", "✅", "⏸", "⛔")        # ✅ close, ⏸ save, ⛔ merged
 RETRY_S = 120                                      # a sent rename that did not land is sent again
 MAX_SENDS = 3
 INTERVAL_S = 15
-_BOX_RE = re.compile(r"^(c[a-z]o|project_head)-([0-9a-f]{8})$")
+_BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
 _FIXED_TMUX = {"coo": "sompong"}
-_TOPIC_PUNCT = set(" -_.,:;()+#&'!?%")
+_TOPIC_PUNCT = set(" -_.,:()+#&'!?%")   # no ';': tmux strips a trailing one from send-keys
 _PROMPT = "❯"
 
 
@@ -89,10 +95,7 @@ def clean_topic(text) -> str:
 
 
 def _read(name: str) -> str:
-    try:
-        return (LOCKS_DIR / name).read_text(encoding="utf-8").strip()
-    except (OSError, UnicodeDecodeError):
-        return ""
+    return ls.read_lock(LOCKS_DIR / name)
 
 
 def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
@@ -132,6 +135,11 @@ def tmux(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["tmux", *args], capture_output=True, text=True, timeout=10)
 
 
+def target(tmux_name: str) -> str:
+    """An exact tmux target: '=' stops a prefix match on another session's name."""
+    return f"={tmux_name}:"
+
+
 # A numbered choice with the cursor on it (maybe inside a │ box), plus a choice footer:
 # a permission prompt or an on-screen question, the app's ✋ "waiting for you".
 _CHOICE_RE = re.compile(r"^[\s\u2502\u2503|]*\u276f\s*\d+\.\s")
@@ -144,21 +152,54 @@ def pane_waiting(text: str) -> bool:
     return any(_CHOICE_RE.match(l) for l in tail) and any(h in l for l in tail for h in _CHOICE_HINTS)
 
 
+def prompt_line(screen: str) -> str | None:
+    """The text on the last ❯ line, or None when there is none."""
+    lines = [l for l in screen.splitlines() if _PROMPT in l]
+    return lines[-1].split(_PROMPT, 1)[1].replace("\xa0", " ").strip() if lines else None
+
+
 def prompt_ready(screen: str) -> bool:
     """The last ❯ line is empty and no choice prompt (permission / question) is up."""
-    if pane_waiting(screen):
-        return False
-    lines = [l for l in screen.splitlines() if _PROMPT in l]
-    return bool(lines) and lines[-1].split(_PROMPT, 1)[1].replace("\xa0", " ").strip() == ""
+    return not pane_waiting(screen) and prompt_line(screen) == ""
+
+
+def pane_pids(tmux_name: str) -> set[int]:
+    """The pids of every pane of that tmux session, from this (root's) tmux server."""
+    r = tmux("list-panes", "-s", "-t", target(tmux_name), "-F", "#{pane_pid}")
+    if r.returncode != 0:
+        return set()
+    return {int(x) for x in r.stdout.split() if x.isdigit()}
+
+
+def _record(p: Path) -> tuple[dict, int] | None:
+    """(record, file owner uid) for one registry file, read like ls does it."""
+    fd = ls._safe_open(p, os.O_RDONLY, create=False)
+    if fd is None:
+        return None
+    try:
+        st = os.fstat(fd)
+        if st.st_size > ls.MAX_SESSION_BYTES:
+            return None
+        data = os.read(fd, ls.MAX_SESSION_BYTES + 1)
+    except OSError:
+        return None
+    finally:
+        os.close(fd)
+    try:
+        rec = json.loads(data.decode("utf-8"))
+    except (ValueError, RecursionError):       # RecursionError: a planted deep nest (L-5)
+        return None
+    return (rec, st.st_uid) if isinstance(rec, dict) else None
 
 
 def session_of(box: str, host: str) -> dict | None:
     """The one live session record in this box's launcher tmux, or None."""
-    m = _BOX_RE.match(box)
+    m = _BOX_RE.fullmatch(box)
     if not m:
         return None
     role, sid = m.groups()
     tmux_name = _FIXED_TMUX.get(role, box)
+    panes = None
     hits = []
     for d in ls.session_dirs(host):
         try:
@@ -166,16 +207,25 @@ def session_of(box: str, host: str) -> dict | None:
         except OSError:
             continue
         for p in files:
-            raw = ls._read_session_file(p)
+            got = _record(p)
+            if got is None:
+                continue
+            data, owner = got
             try:
-                data = json.loads(raw) if raw else None
                 pid = int(data["pid"])
             except (ValueError, KeyError, TypeError):
                 continue
-            if not isinstance(data, dict) or str(data.get("tmux") or "").split(":", 1)[0] != tmux_name:
+            if str(data.get("tmux") or "").split(":", 1)[0] != tmux_name:
                 continue
             uuid = str(data.get("sessionId") or "")
-            if not uuid.endswith(sid) or not ls.is_alive(pid, ls._proc_start(data.get("procStart"))):
+            start = ls._proc_start(data.get("procStart"))
+            if not uuid.endswith(sid) or start is None or not ls.is_alive(pid, start):
+                continue
+            if owner != _uid(pid):          # a record speaks only for its writer's own process
+                continue
+            if panes is None:
+                panes = pane_pids(tmux_name)
+            if not panes.intersection(ancestors(pid)):   # it really runs in that tmux session
                 continue
             if role == "coo" and not ls._launcher_uuid("coo", uuid):
                 continue
@@ -195,8 +245,9 @@ def _status(pid: int) -> dict[str, str]:
 
 
 def _uid(pid: int) -> int | None:
+    """The effective uid (SO_PEERCRED reports the effective one too; review v2, L-6)."""
     try:
-        return int(_status(pid)["Uid"].split()[0])
+        return int(_status(pid)["Uid"].split()[1])
     except (KeyError, ValueError, IndexError):
         return None
 
@@ -230,10 +281,14 @@ def peer(conn: socket.socket) -> tuple[int, int]:
 
 
 def _read_request(conn: socket.socket) -> dict | None:
-    conn.settimeout(1.0)
+    deadline = time.monotonic() + REQUEST_DEADLINE_S
     buf = b""
     try:
         while len(buf) <= REQUEST_MAX:
+            left = deadline - time.monotonic()
+            if left <= 0:
+                return None
+            conn.settimeout(left)
             chunk = conn.recv(REQUEST_MAX + 1 - len(buf))
             if not chunk:
                 break
@@ -244,7 +299,7 @@ def _read_request(conn: socket.socket) -> dict | None:
         return None
     try:
         d = json.loads(buf.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError):
+    except (UnicodeDecodeError, ValueError, RecursionError):
         return None
     return d if isinstance(d, dict) else None
 
@@ -256,18 +311,19 @@ def handle(conn: socket.socket, host: str, pending: dict, peer_ids: tuple[int, i
     if req is None:
         return "refused: unreadable request"
     box = f"{req.get('role')}-{req.get('sid')}"
-    if not _BOX_RE.match(box):
+    if not _BOX_RE.fullmatch(box):
         return "refused: not an org session"
     role, sid = box.split("-", 1)
-    name = build_name(role, sid, req.get("topic"), req.get("prefix"), host)
-    if name is None:
-        return f"refused: no rule name for {box}"
+    # Who is asking first: no lock file is read for a caller that is not that session.
     sess = session_of(box, host)
     if sess is None:
         return f"refused: no single live session for {box} in its tmux"
     why = owner_refusal(peer_pid, peer_uid, sess)
     if why:
         return f"refused: {why}"
+    name = build_name(role, sid, req.get("topic"), req.get("prefix"), host)
+    if name is None:
+        return f"refused: no rule name for {box}"
     if box not in pending and len(pending) >= PENDING_MAX:
         return "refused: too many renames waiting"
     pending[box] = {"name": name, "pid": sess["pid"], "sends": 0, "sent_at": 0.0}
@@ -276,9 +332,14 @@ def handle(conn: socket.socket, host: str, pending: dict, peer_ids: tuple[int, i
 
 # --- one pass ----------------------------------------------------------------------
 
+def _screen(pane: str) -> str | None:
+    r = tmux("capture-pane", "-p", "-t", target(pane))
+    return r.stdout if r.returncode == 0 else None
+
+
 def _ready(pane: str) -> bool:
-    screen = tmux("capture-pane", "-p", "-t", pane)
-    return screen.returncode == 0 and prompt_ready(screen.stdout)
+    screen = _screen(pane)
+    return screen is not None and prompt_ready(screen)
 
 
 def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
@@ -297,10 +358,15 @@ def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
     # Twice, the second right before typing: a draft started in between must stop it.
     if not _ready(sess["pane"]) or not _ready(sess["pane"]):
         return f"wait     {box}: prompt not empty", False
-    a = tmux("send-keys", "-t", sess["pane"], "-l", f"/rename {name}")
-    if a.returncode == 0:
-        tmux("send-keys", "-t", sess["pane"], "Enter")
+    line = f"/rename {name}"
+    a = tmux("send-keys", "-t", target(sess["pane"]), "-l", line)
     job["sends"], job["sent_at"] = sends + 1, now
+    # Enter only when the ❯ line holds exactly what was typed: a key pressed after
+    # the last look must never be submitted with it (review v2, L-2).
+    screen = _screen(sess["pane"]) if a.returncode == 0 else None
+    if screen is None or prompt_line(screen) != line:
+        return f"held     {box}: the prompt line is not exactly the rename; no Enter", False
+    tmux("send-keys", "-t", target(sess["pane"]), "Enter")
     return f"renamed  {box}: {name}", False
 
 

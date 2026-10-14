@@ -178,15 +178,38 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     return "unknown", session_id[-8:]
 
 
+def read_lock(path, limit: int = 256) -> str:
+    """The stripped text of a small lock file, or "". state/locks is group-writable
+    by the secretary service with no sticky bit, so a root reader must not follow a
+    planted symlink (to /dev/zero, a FIFO or a root-only token): a regular file only
+    (_safe_open), at most `limit` bytes, owned by root or by this reader (§2b review
+    of #283 v2, B-1)."""
+    fd = _safe_open(path, os.O_RDONLY, create=False)
+    if fd is None:
+        return ""
+    try:
+        st = os.fstat(fd)
+        if st.st_size > limit or st.st_uid not in (0, os.geteuid()):
+            return ""
+        data = os.read(fd, limit + 1)
+    except OSError:
+        return ""
+    finally:
+        os.close(fd)
+    if len(data) > limit:
+        return ""
+    try:
+        return data.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        return ""
+
+
 def _launcher_uuid(role: str, session_id: str) -> bool:
     """True when the launcher's <role>-<sid>.uuid file names exactly this session."""
     tail = session_id[-8:]
     if not re.fullmatch(r"[0-9a-f]{8}", tail):
         return False
-    try:
-        return (LOCKS_DIR / f"{role}-{tail}.uuid").read_text(encoding="utf-8").strip() == session_id
-    except (OSError, UnicodeDecodeError):
-        return False
+    return read_lock(LOCKS_DIR / f"{role}-{tail}.uuid") == session_id
 
 
 def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:

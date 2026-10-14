@@ -34,6 +34,12 @@ RestrictSUIDSGID=yes
 RestrictAddressFamilies=AF_UNIX
 LockPersonality=yes
 CapabilityBoundingSet=CAP_DAC_READ_SEARCH
+# Review v2: no network at all (the tmux socket is a file, so it still connects), the
+# common service syscalls only, and a cap on memory and tasks.
+PrivateNetwork=yes
+SystemCallFilter=@system-service
+MemoryMax=128M
+TasksMax=16
 
 [Install]
 WantedBy=multi-user.target
