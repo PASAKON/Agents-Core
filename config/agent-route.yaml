@@ -1,0 +1,3 @@
+# Merge owner: replace this provisional timestamp with actual merge time + 24h.
+mode: log
+enforce_after: "2026-10-15T09:46:35Z"
