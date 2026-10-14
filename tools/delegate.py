@@ -1498,7 +1498,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # than recomputed in PowerShell.
     session_name = get_worker_session_name(host_name, role_name, task_id,
                                            task.get("title") or "",
-                                           head=worker_head(task))
+                                           head=worker_head(task), model=model)
 
     if os_name == "windows":
         # The command below crosses winbox's cmd.exe, which ignores _ps_quote's
@@ -1507,7 +1507,7 @@ async def _spawn_remote(task: dict, host_name: str, *,
         session_name = get_worker_session_name(
             host_name, role_name, task_id,
             session_names.windows_safe(task.get("title") or "", session_names.WORKER_JOB_MAX),
-            head=session_names.windows_safe(worker_head(task)))
+            head=session_names.windows_safe(worker_head(task)), model=model)
         remote_task_file = f"{host_cfg['agents_root']}\\.task-{task_id}.md"
         remote_ps1 = f"{host_cfg['agents_root']}\\spawn-worker.ps1"
         _check_windows_spawn_values({
