@@ -151,17 +151,19 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     carries both; a short C-level name ("CTO (Kavin)") carries the role and
     the id is the last 8 hex of the session UUID, which the launchers make
     end in the short id (cxo-claude.sh CXO_UUID). No match is role
-    ``unknown`` with the same UUID tail."""
-    m = _NAME_RE.match(name or "")
+    ``unknown`` with the same UUID tail. A leading host emoji ("🌐 CTO (Kavin)",
+    CEO 2026-10-14) is dropped first; a name without one parses the same."""
+    from lib import session_names   # stdlib only, safe under the hook's python3
+    name = session_names.strip_host(name or "")
+    m = _NAME_RE.match(name)
     if m:
         return m.group(1).strip().lower().replace(" ", "_"), m.group(2)
-    m = _SHORT_NAME_RE.match(name or "")
+    m = _SHORT_NAME_RE.match(name)
     if m:
         return m.group(1).lower(), session_id[-8:]
     # "PH#6c4 (CTO) - SpendGuard" / "Dev#afe - OrgRestructure: …" (lib/session_names):
     # the name shows 3 hex; the full id is the UUID tail when it agrees, else the 3.
-    from lib import session_names   # stdlib only, safe under the hook's python3
-    short = session_names.parse_short(name or "")
+    short = session_names.parse_short(name)
     if short:
         role, id3 = short
         tail = session_id[-8:]
@@ -197,7 +199,8 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
 
 
 def address_for(role: str, name: str) -> str:
-    """What SendMessage takes: the name, or the COO's alias for an old-style name."""
+    """What SendMessage takes: the name as it is (host emoji included), or the COO's
+    alias for an old-style name."""
     if role in ADDRESS_ALIAS and "#" in name:
         return ADDRESS_ALIAS[role]
     return name

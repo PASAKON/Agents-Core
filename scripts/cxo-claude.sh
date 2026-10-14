@@ -569,6 +569,13 @@ HOST_PY="$ROOT/.venv/bin/python"; [ -x "$HOST_PY" ] || HOST_PY=python3
 if SELF_HOST="$("$HOST_PY" "$ROOT/scripts/lib/coo_host.py" host 2>/dev/null)" && [ -n "$SELF_HOST" ]; then
   HOST_KEY="$SELF_HOST"
 fi
+# The session name starts with this host's emoji (CEO 2026-10-14, lib/session_names.py
+# HOST_EMOJI). Only from self_host() above, never from MACHINE_LABEL's guess: an
+# unresolved host gets no emoji.
+HOST_EMOJI=""
+if [ -n "${SELF_HOST:-}" ]; then
+  HOST_EMOJI="$("$HOST_PY" "$ROOT/lib/session_names.py" prefix "$SELF_HOST" 2>/dev/null)" || HOST_EMOJI=""
+fi
 
 # Reconcile c_level_sessions BEFORE registering this new row (task-9ff9263f):
 # marks any 'open' row on this host whose tmux is actually dead as
@@ -772,7 +779,7 @@ fi
 # 2026-10-14; it was the bare "SomPong" until then). The flag takes an optional
 # value, so the name is appended to the array built above.
 if [ "$ROLE" = "coo" ] && [ "${#REMOTE_CONTROL_ARGS[@]}" -gt 0 ]; then
-  REMOTE_CONTROL_ARGS+=("COO${PERSONA:+ ($PERSONA)}")
+  REMOTE_CONTROL_ARGS+=("${HOST_EMOJI:+$HOST_EMOJI }COO${PERSONA:+ ($PERSONA)}")
 fi
 
 # Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1) — same
@@ -832,13 +839,14 @@ if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
 # in lib/config.ph_session_name. The long form stays if that lookup fails.
 SESSION_NAME="$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX"
 if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ]; then
-  SESSION_NAME="$DISPLAY${PERSONA:+ ($PERSONA)}"
+  SESSION_NAME="${HOST_EMOJI:+$HOST_EMOJI }$DISPLAY${PERSONA:+ ($PERSONA)}"
 elif [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" = "1" ]; then
   _PH_NAME="$(cd "$ROOT" && PH_SID="$CXO_SESSION_ID" PH_LANE="$PH_LANE" PH_PROJECT="$PH_PROJECT" \
-    .venv/bin/python -c "
+    PH_HOST="${SELF_HOST:-}" .venv/bin/python -c "
 import os
 from lib.config import ph_session_name
-print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT']))" 2>/dev/null)" \
+print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT'],
+                      os.environ['PH_HOST']))" 2>/dev/null)" \
     && [ -n "$_PH_NAME" ] && SESSION_NAME="$_PH_NAME"
 fi
 

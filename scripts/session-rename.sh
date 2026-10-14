@@ -150,13 +150,21 @@ print(persona_for(os.environ['ROLE_ARG']))" 2>/dev/null | tr -cd 'a-zA-Z')" || P
 fi
 
 _PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
+# This host's emoji leads the name (CEO 2026-10-14), from self_host() only: an
+# unresolved host gets none. Same lookup as the launchers.
+SELF_HOST="$("$_PY" "$ROOT/scripts/lib/coo_host.py" host 2>/dev/null)" || SELF_HOST=""
+HOST_EMOJI=""
+if [ -n "$SELF_HOST" ]; then
+  HOST_EMOJI="$("$_PY" "$ROOT/lib/session_names.py" prefix "$SELF_HOST" 2>/dev/null)" || HOST_EMOJI=""
+fi
 if [[ "$ROLE" =~ ^c[a-z]o$ ]]; then
-  BASE_NAME="$ROLE_UP — $TOPIC"
+  BASE_NAME="${HOST_EMOJI:+$HOST_EMOJI }$ROLE_UP — $TOPIC"
 elif [ "$ROLE" = "project_head" ] && [ -n "$SID" ] && PH_BASE="$(cd "$ROOT" && PH_SID="$SID" \
-    PH_LANE="${ORG_PH_LANE:-}" PH_PROJECT="${ORG_PH_PROJECT:-}" "$_PY" -c "
+    PH_LANE="${ORG_PH_LANE:-}" PH_PROJECT="${ORG_PH_PROJECT:-}" PH_HOST="$SELF_HOST" "$_PY" -c "
 import os
 from lib.config import ph_session_name
-print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT']))" 2>/dev/null)" \
+print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT'],
+                      os.environ['PH_HOST']))" 2>/dev/null)" \
     && [ -n "$PH_BASE" ]; then
   # "PH#<id3> (<LANE>) - <Project> — <topic>" (CEO 2026-10-14, lib/config.ph_session_name)
   BASE_NAME="$PH_BASE — $TOPIC"

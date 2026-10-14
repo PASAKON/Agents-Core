@@ -66,3 +66,67 @@ def test_a_worker_name_passes_the_windows_launcher_pattern():
                                       "SHOOT the teaser", head="MimiPage")
     assert node_dispatch._PS_SESSION_NAME_RE.fullmatch(name)
     assert not node_dispatch._PS_SESSION_NAME_RE.fullmatch("Dev#abc - it's")
+
+
+# --- M9: host emoji (CEO 2026-10-14, relayed by COO SomPong) ------------------------
+
+MAC, CONTABO, WINBOX = "\U0001F4BB", "\U0001F310", "\U0001F5A5\uFE0F"
+
+
+def test_the_host_emoji_table():
+    assert sn.HOST_EMOJI == {"mac": MAC, "contabo": CONTABO, "winbox": WINBOX}
+    assert sn.host_prefix("contabo") == CONTABO + " "
+    for unknown in ("", None, "MAC", "laptop", "contabo "):
+        assert sn.host_prefix(unknown) == ""
+
+
+@pytest.mark.parametrize("name,bare", [
+    (CONTABO + " CTO (Kavin)", "CTO (Kavin)"),
+    (WINBOX + " PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"),
+    ("\U0001F5A5 PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"),     # typed without FE0F
+    (MAC + "Dev#afe - x", "Dev#afe - x"),                                    # no space
+    ("PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"),               # no emoji
+    ("\u23f8 " + CONTABO + " CTO (Kavin) \u2014 t", "\u23f8 CTO (Kavin) \u2014 t"),  # state glyph kept
+    (CONTABO + " " + MAC + " CTO", MAC + " CTO"),                            # only one is stripped
+    ("CONTABO CTO #e106b78b (x)", "CONTABO CTO #e106b78b (x)"),
+])
+def test_strip_host_drops_one_leading_host_emoji(name, bare):
+    assert sn.strip_host(name) == bare
+
+
+@pytest.mark.parametrize("name", [
+    CONTABO + " PH#f35 (CTO) - CookieRun", WINBOX + " PH#f35 (CTO) - CookieRun",
+    "\U0001F5A5 PH#f35 (CTO) - CookieRun", "PH#f35 (CTO) - CookieRun"])
+def test_a_ph_name_parses_with_any_emoji_or_none(name):
+    assert sn.parse_short(name) == ("project_head", "f35")
+
+
+def test_writers_put_the_right_emoji_and_none_for_an_unknown_host():
+    assert config.ph_session_name("f35aaaaa", "cto", "CookieRun", "contabo") == \
+        CONTABO + " PH#f35 (CTO) - CookieRun"
+    assert config.ph_session_name("f35aaaaa", "cto", "CookieRun") == "PH#f35 (CTO) - CookieRun"
+    assert config.ph_session_name("f35aaaaa", "cto", "CookieRun", "nowhere") == \
+        "PH#f35 (CTO) - CookieRun"
+    assert sn.with_host("winbox", CONTABO + " CTO (Kavin)") == WINBOX + " CTO (Kavin)"
+    assert config.worker_session_name("contabo", "developer", "task-afe57b21", "x",
+                                      head="OrgRestructure") == CONTABO + " Dev#afe - OrgRestructure: x"
+    assert config.worker_session_name("nowhere", "developer", "task-afe57b21", "x") == "Dev#afe - x"
+
+
+def test_a_windows_worker_name_has_no_emoji_and_still_passes_the_ascii_pattern():
+    # winbox spawns cross cmd.exe (tools/delegate.py) and node_dispatch's ASCII-only
+    # pattern; neither is widened for the emoji (M8's fullmatch stays as it was).
+    name = config.worker_session_name("winbox", "browser_operator", "task-4a59a1a4",
+                                      "SHOOT the teaser", head="MimiPage")
+    assert name == "Browser#4a5 - MimiPage: SHOOT the teaser"
+    assert node_dispatch._PS_SESSION_NAME_RE.fullmatch(name)
+    assert not node_dispatch._PS_SESSION_NAME_RE.fullmatch(WINBOX + " " + name)
+
+
+def test_the_cli_prints_only_a_known_hosts_emoji():
+    import subprocess
+    run = lambda h: subprocess.run([sys.executable, str(ROOT / "lib" / "session_names.py"), "prefix", h],
+                                   capture_output=True)
+    assert run("contabo").stdout == CONTABO.encode()
+    assert run("winbox").stdout == WINBOX.encode()
+    assert run("guess").stdout == b"" and run("guess").returncode == 0

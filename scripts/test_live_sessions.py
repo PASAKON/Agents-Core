@@ -1457,3 +1457,29 @@ def test_the_coo_role_can_read_every_live_sessions_column_the_reader_selects():
     granted = {c.strip() for c in m.group(1).split(",")}
     assert {"host", "uuid", "sid", "role", "name", "address", "status", "pid",
             "seen_at", "verified"} <= granted
+
+
+# M9 (CEO 2026-10-14): a host emoji leads every name; parsing ignores it, the list
+# prints it as-is (the "send: … verbatim" footer stays true).
+@pytest.mark.parametrize("name,expect", [
+    ("\U0001F310 CTO (Kavin)", ("cto", "e106b78b")),
+    ("\U0001F5A5\uFE0F PH#e10 (CTO) - X", ("project_head", "e106b78b")),
+    ("\U0001F5A5 PH#e10 (CTO) - X", ("project_head", "e106b78b")),
+    ("\U0001F4BB CONTABO CTO #e106b78b (x)", ("cto", "e106b78b")),
+    ("\u23f8 \U0001F310 CTO (Kavin) \u2014 t", ("cto", "e106b78b")),
+])
+def test_a_host_emoji_never_changes_what_a_name_parses_to(name, expect):
+    assert ls.parse_name(name, UUID_A) == expect
+
+
+def test_names_with_emoji_print_verbatim_and_two_hosts_no_longer_collide():
+    rows = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
+            _row("mac", "cto", "\U0001F4BB CTO (Kavin)", "idle", sid="f39cb080")]
+    lines = ls.format_snapshot(_snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)}),
+                               now=NOW).splitlines()
+    assert "running  \U0001F310 CTO (Kavin)" in lines and "idle     \U0001F4BB CTO (Kavin)" in lines
+    assert lines[-1] == ls.FOOTER     # different names now: no "same name" line
+    same = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
+            _row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="00000001")]
+    note = ls.duplicate_notes(same)[0]
+    assert note.startswith('same name on 2 rows: "\U0001F310 CTO (Kavin)"')

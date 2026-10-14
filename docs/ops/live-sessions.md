@@ -38,6 +38,10 @@ A session in any other tmux (a worker's `wd-<sid>`) never takes a C-level or PH 
 it is listed as `unknown` (M8, 2026-10-14). A row no launcher tmux confirms (winbox, a bare terminal, an old
 publisher) still prints, and a `name only (no launcher tmux confirms the role): <host> #<sid>` line names it;
 the `same name` line marks each row `tmux-confirmed` or `name only`. Stored in `live_sessions.verified`.
+Every name starts with its host's emoji (CEO 2026-10-14): 💻 Mac, 🌐 Contabo, 🖥️ winbox, e.g. `🌐 CTO (Kavin)`,
+`🌐 PH#f35 (CTO) - CookieRun`. The list prints it as part of the name (send it verbatim); parsing drops it first
+(`lib/session_names.strip_host`, U+FE0F optional), so a name without one still resolves. The launchers take the
+host from `self_host()` only; an unresolved host gets no emoji. Workers spawned on winbox get none (cmd.exe path).
 Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 
