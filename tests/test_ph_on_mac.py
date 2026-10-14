@@ -497,3 +497,19 @@ def test_windows_launchers_are_ascii_and_keep_the_ph_rules():
     # The inline python goes to python.exe as one native argument: no double quote in it.
     for block in re.findall(r"@'\r?\n(.*?)\r?\n'@", ps, re.S):
         assert '"' not in block
+
+
+@pytest.mark.parametrize("role,lane,display", [("project_head", "cto", "Project Head (CTO)"),
+                                               ("cto", "", None)])
+def test_the_windows_role_line_splits_on_tabs(role, lane, display):
+    ps = (ROOT / "windows" / "cxo-claude.ps1").read_text()
+    code = re.search(r"\$pyRoleCode = @'\r?\n(.*?)\r?\n'@", ps, re.S).group(1)
+    env = {**os.environ, "ROLE_ARG": role, "ROLE_ROOT": str(ROOT), "PH_LANE": lane}
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env,
+                       timeout=60)
+    assert r.returncode == 0, r.stderr
+    parts = r.stdout.strip().split("\t")
+    assert len(parts) == 4, parts
+    if display:
+        assert parts[0] == display
+    assert parts[2] and parts[3]
