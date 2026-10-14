@@ -337,10 +337,22 @@ def c_level_roles(path: Path | None = None) -> tuple[str, ...]:
     raise Refused(f"no readable `c_level:` list in {path}; refusing rather than guessing who is C-level")
 
 
+# A Project Head raises Run cards like a C-level (CEO 2026-10-14 ~17:35 TH, in CTO Main's chat:
+# "PH ควรจบงานได้ด้วยตัวเอง ส่ง RUN ได้ทำได้เหมือน CXO ทุกอย่าง"). The hub still decides by token
+# (src/run/create.js: via operator|clevel), and the CEO's tap stays the authority. Kept as a
+# literal so this tool needs nothing beyond the stdlib (lib.roles.PH_ROLE).
+PH_ROLE = "project_head"
+
+
+def card_roles(path: Path | None = None) -> tuple[str, ...]:
+    """The roles that may raise a Run card: the C-level list plus the Project Head."""
+    return c_level_roles(path) + (PH_ROLE,)
+
+
 def check_role_gate(payload: dict) -> None:
     if payload["kind"] != "command":
         return
-    roles = c_level_roles()
+    roles = card_roles()
     role = payload["requester"]["role"]
     if role not in roles:
         raise Refused(
@@ -392,7 +404,7 @@ def resolve_requester(session: str | None, role: str | None, task: str | None,
         raise Refused("cannot tell this session's role: pass --role "
                       "(your C-level role, or dev for a worker)")
     worker = env.get("WORKER_TASK_ID")
-    if worker and role in c_level_roles():   # whatever CXO_ROLE says: a worker env is never C-level
+    if worker and role in card_roles():   # whatever CXO_ROLE says: a worker env is never C-level or a PH
         raise Refused(f"this process is worker {worker} (WORKER_TASK_ID is set); "
                       f"a worker cannot claim role {role!r}")
     session = (session or "").strip()
@@ -899,7 +911,7 @@ def build_question(args: argparse.Namespace, env: dict | None = None) -> dict:
 def check_question_role_gate(body: dict) -> None:
     """QUESTIONS.md §1.6: C-level only. The hub answers a worker's token with
     403 question_needs_c_level; this refuses the role before sending."""
-    roles = c_level_roles()
+    roles = card_roles()
     role = body["requester"]["role"]
     if role not in roles:
         raise Refused(
