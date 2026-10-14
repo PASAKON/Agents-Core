@@ -61,7 +61,7 @@ post, deploy, email, payment, upload.
       report it as HOLD (not 🏁). If the CEO closes anyway it lands as **force_saved**
       with that unverified item named in the note — it is not left running by default.
 
-### 4. Capture every CEO action-item + park open work → LungNote (สำคัญมาก)
+### 4. Capture every CEO action-item + park open work → LungNote (very important)
 Two things land in LungNote here. Anything that lives only in the chat is lost
 the moment the tab closes — so save it now, with dates.
 
