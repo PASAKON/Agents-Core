@@ -784,6 +784,22 @@ def cmd_import_env(org: Org, project: str, env: str, file: str, only: list[str],
         print(_write_secret(org, p, env, name, values[name], comment, md, existing, path=path))
 
 
+def cmd_mkdir(org: Org, project: str, env: str, folder: str) -> None:
+    """Create one top-level folder in <project>/<env> as this identity; say so when it exists.
+    Doubles as the write probe before a rotation (deploy/coo-gate/README.md step 2): the identity's
+    folder create needs the same write role as `put`, so a 403 here stops the card before any
+    password changes (PH CooGate #adb2edb0, 2026-10-14). Never touches a value."""
+    name = folder.strip("/")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name):
+        sys.exit(f"refused: folder {folder!r}: one level, letters/digits/_/- only")
+    p = _target(org, project, env)
+    if name in org.folders(p["id"], env):
+        print(f"= {p['name']}/{env}: folder /{name} exists")
+        return
+    org.send("POST", "/api/v2/folders", {"projectId": p["id"], "environment": env, "name": name, "path": "/"})
+    print(f"+ {p['name']}/{env}: folder /{name} created")
+
+
 def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> None:
     p = _project(org, project)
     s = _get_secret(org, p["id"], env, name, path)
@@ -849,10 +865,12 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--mint", metavar="HOST")
     sub.add_parser("status")
     sub.add_parser("retire-setup")
-    for cmd in ("put", "last4", "import-env", "run"):
+    for cmd in ("put", "last4", "import-env", "run", "mkdir"):
         c = sub.add_parser(cmd)
         c.add_argument("project")
         c.add_argument("env")
+        if cmd == "mkdir":
+            c.add_argument("folder", help="one top-level folder, e.g. gate")
         if cmd in ("put", "last4"):
             c.add_argument("name")
         if cmd == "import-env":
@@ -895,6 +913,8 @@ def main(argv: list[str] | None = None) -> None:
             only = [n for n in args.only.split(",") if n]
             cmd_import_env(Org(args.identity), args.project, args.env, args.file, only,
                            args.comment, args.meta, args.legacy, path=args.path)
+        elif args.cmd == "mkdir":
+            cmd_mkdir(Org(args.identity), args.project, args.env, args.folder)
         elif args.cmd == "last4":
             cmd_last4(Org(args.identity), args.project, args.env, args.name, path=args.path)
         elif args.cmd == "run":
