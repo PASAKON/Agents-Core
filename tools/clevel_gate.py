@@ -11,7 +11,7 @@ exactly as before. On:
   `ORG_CLEVEL_EMERGENCY=1`. A host that cannot be resolved counts as "not
   Contabo" (fails closed).
 - A second live session of the same role on this host is refused. Live = a lock
-  `state/locks/<role>-<id>.lock` whose pid is alive and, where /proc exists, is
+  `state/locks/<role>-<id>.lock` whose pid is alive and (from /proc, or `ps` on the Mac) is
   still that role's launcher: argv[0] or argv[1] is cxo-claude.sh started with
   `--role <role>`, or cto-claude.sh for the CTO (a recycled pid, or a process
   that only mentions the launcher in its arguments, is not a session). A resume
@@ -35,6 +35,8 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -90,21 +92,43 @@ def _launcher_role(argv: list[str]) -> str | None:
     return None
 
 
+def _ps_argv(pid: int) -> list[str] | None:
+    """argv of `pid` from `ps` where there is no /proc (the Mac, M13a), or None
+    when ps cannot say: ps missing, ps exiting non-zero, no output, or only the
+    `(name)` macOS prints when this user may not read another user's argv. The
+    caller has already seen the pid alive, so None means "count it live" (fail
+    closed, as before M13a). ps joins argv with spaces, so an argument holding a
+    space splits; the launcher paths hold none. Without this a pid the OS reused
+    after a Project Head ended kept its project held."""
+    try:
+        out = subprocess.run(["ps", "-ww", "-o", "command=", "-p", str(pid)],
+                             capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    argv = out.stdout.split()
+    if out.returncode != 0 or not argv or re.fullmatch(r"\(.*\)", " ".join(argv)):
+        return None
+    return argv
+
+
 def _pid_is_launcher(pid: int, role: str | None = None) -> bool:
-    """`pid` is alive and, where /proc exists, is a launcher (of `role`, when given)."""
+    """`pid` is alive and is a launcher (of `role`, when given), read from /proc or ps."""
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
         return False
     except PermissionError:
         pass  # alive, owned by another user
-    if not PROC.is_dir():
-        return True  # no /proc (the Mac): an alive pid counts
-    try:
-        raw = (PROC / str(pid) / "cmdline").read_bytes()
-    except OSError:
-        return False  # gone between the kill and the read
-    argv = [a.decode("utf-8", "replace") for a in raw.split(b"\0") if a]
+    if PROC.is_dir():
+        try:
+            raw = (PROC / str(pid) / "cmdline").read_bytes()
+        except OSError:
+            return False  # gone between the kill and the read
+        argv = [a.decode("utf-8", "replace") for a in raw.split(b"\0") if a]
+    else:
+        argv = _ps_argv(pid)
+        if argv is None:
+            return True  # ps cannot read it (or no ps: Windows): an alive pid counts
     found = _launcher_role(argv)
     if found is None:
         return False
