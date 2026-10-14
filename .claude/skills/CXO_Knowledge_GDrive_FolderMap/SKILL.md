@@ -122,12 +122,12 @@ Google Drive (root) — pass.gob1@gmail.com
 │   │   │                                   clips renamed 2026-08-04.
 │   │   │   MYPASAKON (9:16)/, MYPASAKON (16:9)/ — same pattern, currently
 │   │   │   empty, created 2026-08-04 ready for future footage
-│   │   ├── Audio/                NEW 2026-09-18 (CEO). เสียงที่ใช้ร่วมกันข้ามช่อง —
+│   │   ├── Audio/                NEW 2026-09-18 (CEO). Audio shared across channels —
 │   │   │   │                     CEO: "Audio อาจจะมี /SFX หรืออื่นๆ ได้อีก เป็น
 │   │   │   │                     Sound Effect ที่ใช้รวมกัน"
-│   │   │   ├── Voice Library/    คลังตัวอย่างเสียง TTS ไว้ฟังเลือกผู้บรรยาย ก่อนพากย์จริง
-│   │   │   └── SFX/              นิยามไว้แล้วตามที่ CEO บอก ยังไม่ได้สร้าง —
-│   │   │                         สร้างเมื่อมีไฟล์แรกจริง (กฎข้อ 3)
+│   │   │   ├── Voice Library/    TTS sample voice library for auditioning and selecting narrators before actual recording
+│   │   │   └── SFX/              Defined as stated by the CEO, not created yet —
+│   │   │                         create when a real first file exists (Rule 3)
 │   │   ├── XM Assets/            → sub-folder per real-world EVENT (e.g.
 │   │   │                         "XM GALA DINER 2024"), holding every
 │   │   │                         photo/video shot during that event —
