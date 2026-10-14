@@ -796,7 +796,9 @@ def _start_clevel_schtask(role: str, resume_sid: str | None) -> dict:
 _PS_TOKEN_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 _PS_REF_RE = re.compile(r"[A-Za-z0-9._/-]{1,100}")
 _PS_REPO_URL_RE = re.compile(r"git@[A-Za-z0-9.-]{1,64}:[A-Za-z0-9._-]{1,64}/[A-Za-z0-9._-]{1,100}")
-_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,600}")
+# 4000, not 600: a browser_operator's --allowed-tools list is ~1,500 characters
+# (M8, 2026-10-14). The bound keeps the whole command under cmd.exe's 8191.
+_PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,4000}")
 # ":" (worker names, CEO 2026-10-14) is plain text inside the single quotes it is passed in.
 _PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#():+ -]{1,120}")
 _PS_MODEL_RE = re.compile(r"[A-Za-z0-9_.:/-]{1,100}")

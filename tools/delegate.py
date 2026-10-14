@@ -1004,10 +1004,7 @@ def _check_windows_spawn_values(values: dict) -> None:
     character cmd.exe acts on ('"', '&', '|', '%', '^', '<', '>')."""
     from tools import node_dispatch as nd  # lazy: node_dispatch imports this module
     patterns = dict(nd._SPAWN_PARAMS)
-    # ClaudeArgs: the same characters with no length cap (a browser_operator's
-    # --allowed-tools list runs past node_dispatch's 600).
-    patterns.update(Launcher=nd._PS_SAFE_RE, WorkDir=nd._PS_SAFE_RE,
-                    ClaudeArgs=re.compile(r"[A-Za-z0-9_.,: -]*"))
+    patterns.update(Launcher=nd._PS_SAFE_RE, WorkDir=nd._PS_SAFE_RE)
     for name, value in values.items():
         if name in ("RunnerModel", "WorkDir") and not value:
             continue

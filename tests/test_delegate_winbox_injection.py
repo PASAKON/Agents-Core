@@ -97,3 +97,12 @@ def test_a_refused_value_fails_the_task_and_sends_no_ssh(env, monkeypatch):
     assert result["status"] == "failed"
     assert "not safe to send to winbox" in result["delegate_log"]
     assert not any(c[0] in ("ssh", "scp") for c in env)
+
+
+def test_a_browser_operators_claude_args_pass_both_winbox_paths():
+    # ~1,500 characters of --allowed-tools: node_dispatch's old 600 cap refused it.
+    from tools import node_dispatch as nd
+    args = delegate._render_remote_runner_args("browser_operator", "winbox", "claude")
+    assert len(args) > 600
+    assert nd._PS_CLAUDE_ARGS_RE.fullmatch(args)
+    assert not nd._PS_CLAUDE_ARGS_RE.fullmatch(args + ' & calc')

@@ -1446,3 +1446,14 @@ def test_publish_and_read_carry_verified_once_the_column_exists(tmp_path):
                      [{"host": "contabo", "published_at": NOW, "age": 4.0, "error": None}])
     assert "name only" in ls.render(reader, now=NOW)
     assert "NULL AS verified" in [q for q in reader.sql if "FROM live_sessions" in q][0]
+
+
+def test_the_coo_role_can_read_every_live_sessions_column_the_reader_selects():
+    """org_coo's column GRANT hides an ungranted column from information_schema too,
+    so a missing `verified` made every row read "name only" for SomPong (M8 #8)."""
+    import re as _re
+    sql = (Path(__file__).resolve().parent.parent / "deploy" / "coo-gate" / "org_coo_role.sql").read_text()
+    m = _re.search(r"GRANT SELECT \(([^)]*)\)\s+ON live_sessions TO org_coo", sql)
+    granted = {c.strip() for c in m.group(1).split(",")}
+    assert {"host", "uuid", "sid", "role", "name", "address", "status", "pid",
+            "seen_at", "verified"} <= granted
