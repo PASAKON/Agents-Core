@@ -170,8 +170,10 @@ def test_redelegate_restores_or_creates(local_spawn, temp_db, monkeypatch, tmp_p
     monkeypatch.setattr(d, "info", info)
     monkeypatch.setattr(d, "success", success)
     row = asyncio.run(d.delegate_task(tid))
+    # a restored checkout is as sparse as a fresh one (ADR 0030 scope map)
     restore.assert_called_once_with("test-project", "developer", tid,
-                                    path=missing if recorded_path else None, branch="agent/saved")
+                                    path=missing if recorded_path else None, branch="agent/saved",
+                                    sparse=d._scope_applies("sparse_worktree", "test-owner"))
     assert create.call_count == (0 if existing_branch else 1)
     assert row["worktree"] == str(local_spawn.worktree)
     assert len(local_spawn.tmux_created) == 1

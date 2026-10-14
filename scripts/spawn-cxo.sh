@@ -3,6 +3,11 @@
 # Generalization of spawn-cto.sh — all C-levels share the same spawn
 # machinery and only differ in role doc + tab title + lock prefix.
 #
+# On a host whose config/hosts.yaml says `terminal_window: false` (the Mac since
+# CEO 2026-10-15) no window opens: the session starts as a detached tmux session
+# (`tmux new-session -d`), still visible in the Claude app via Remote Control.
+# Add a window later with `bash scripts/terminal-open.sh <id>`.
+#
 # Usage:
 #   bash scripts/spawn-cxo.sh --role cfo                    # fresh session
 #   bash scripts/spawn-cxo.sh --role cmo --last             # claude -c
@@ -112,6 +117,12 @@ if ! [ -d "$ROOT/.venv" ]; then
   echo "venv not found at $ROOT/.venv — run scripts/setup.sh first" >&2
   exit 1
 fi
+
+# Window or no window: same lookup as spawn-cto.sh (config/hosts.yaml
+# `terminal_window` for THIS host). Anything but a clear 0 opens the window.
+HOST_PY="$ROOT/.venv/bin/python"; [ -x "$HOST_PY" ] || HOST_PY=python3
+TERMINAL_WINDOW="$("$HOST_PY" "$ROOT/scripts/lib/coo_host.py" terminal-window 2>/dev/null || echo 1)"
+[ "$TERMINAL_WINDOW" = "0" ] || TERMINAL_WINDOW=1
 
 # Resolve display name (CTO / CMO / CGO / CFO / COO) for tab title + log file.
 DISPLAY="$(cd "$ROOT" && source .venv/bin/activate && python3 -c "
@@ -252,6 +263,17 @@ tmux set-option -g extended-keys on 2>/dev/null || true
 CHAT_CMD="tmux new-session -A -s '$TMUX_SESSION' -c '$ROOT' bash '$RUN_FILE'"
 LOG_CMD="cd '$ROOT' && tail -F state/logs/$ROLE-$CXO_SESSION_ID.log"
 DEV_CMD="cd '$ROOT' && bash scripts/tail-dev-logs.sh"
+
+# terminal_window=false: no iTerm, no osascript. Detached, so no client is
+# attached and cxo-claude.sh finds no client_tty — it reads the same flag and
+# skips that lookup, the way it falls back on Contabo, where nothing attaches
+# either.
+if [ "$TERMINAL_WINDOW" = "0" ]; then
+  tmux new-session -d -s "$TMUX_SESSION" -c "$ROOT" bash "$RUN_FILE"
+  [ "$WITH_LOGS" = "1" ] && echo "--with-logs ignored: terminal_window=false for this host (no windows to put them in)" >&2
+  echo "spawned detached tmux session $TMUX_SESSION id=$CXO_SESSION_ID (no iTerm window: terminal_window=false; logs at state/logs/$ROLE-$CXO_SESSION_ID.log). Window on demand: bash scripts/terminal-open.sh $CXO_SESSION_ID"
+  exit 0
+fi
 
 EXTRA_TABS=""
 if [ "$WITH_LOGS" = "1" ]; then

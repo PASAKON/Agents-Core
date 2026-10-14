@@ -41,7 +41,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from lib import db, mesh
+from lib import db, mesh, pane_screen
 from lib.notify import info, success, warn, error
 from lib.config import host as get_host, hosts as all_hosts, self_host
 from tools.worker_reap import (_cleanup_tmux_ttyd, _pid_alive, close_dev,
@@ -253,10 +253,11 @@ SWEEP_CAP = 20
 
 def _mac_surfaces() -> bool:
     """iTerm tabs, osascript and the Chrome tab-claim registry exist only on
-    the Mac. On any other platform the passes that close those surfaces
-    (stall tab-close, finished-DEV reap, the local half of the terminal
-    sweep) are skipped rather than left to raise on a missing `osascript`
-    (Org Mesh W0.4; W1.5 gives Linux its own local duties)."""
+    the Mac. On any other platform the code that touches those surfaces
+    (the stall tab-close, the sweep's tab list and claim registry) is skipped
+    rather than left to raise on a missing `osascript` (Org Mesh W0.4). The
+    pid and the tmux session are not Mac-only: the finished-DEV reap and the
+    terminal sweep run on Linux too, on pid + tmux alone."""
     return sys.platform == "darwin"
 
 
@@ -341,6 +342,50 @@ def _live_tmux_sessions() -> set[str]:
     if r.returncode != 0:
         return set()
     return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
+
+
+def _task_tmux_names(t: dict) -> list[str]:
+    """The tmux sessions a task's worker may live in: the name recorded on its
+    row (`mooniex-task-<id>` from the remote launcher) and the `wd-<id>`
+    convention -- the same two `worker_reap._cleanup_tmux_ttyd` kills, so what
+    is probed here is exactly what close_dev will close."""
+    return [n for n in dict.fromkeys(
+        (t.get("tmux_session"), tmux_session.session_name_for(t["id"]))) if n]
+
+
+def _capture_pane(session: str) -> str | None:
+    """What a tmux session's pane shows now (`capture-pane -p`, the visible
+    screen only: an old spinner in the scrollback must not hold a close), or
+    None when it cannot be read -- no such session, tmux gone, a timeout."""
+    try:
+        r = subprocess.run(
+            [tmux_session.tmux_bin(), "capture-pane", "-p", "-t", session],
+            capture_output=True, text=True, timeout=5,
+        )
+    except Exception as e:
+        warn(f"watchdog: capture-pane {session} failed: {e}")
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+def _why_not_idle(t: dict) -> str | None:
+    """None when the task's pane sits at an idle Claude prompt; otherwise why
+    that is not proven (session-steward design, principle 2: close on proof,
+    never on silence alone). Idle = the screen is readable, shows an input
+    prompt, no turn is running and no choice prompt is waiting. Anything
+    unreadable counts as not proven."""
+    for name in _task_tmux_names(t):
+        screen = _capture_pane(name)
+        if screen is None:
+            continue
+        if pane_screen.pane_busy(screen):
+            return f"{name}: a turn is running"
+        if pane_screen.pane_waiting(screen):
+            return f"{name}: a choice prompt is waiting"
+        if pane_screen.prompt_line(screen) is None:
+            return f"{name}: no input prompt on screen"
+        return None
+    return "no readable tmux pane"
 
 
 def _live_task_tab_ids() -> set[str]:
@@ -483,7 +528,10 @@ def sweep_terminal_surfaces() -> list[dict]:
     direct sqlite edit, a cancel — was never reaped, unlike a mac one).
     Local (`is_local_row`: host is None or self_host()): the existing pid/
     tmux/tab/Chrome-tab-claim liveness probe below, gated on an actual live
-    surface being found. Darwin only -- see `_mac_surfaces`.
+    surface being found. Off a Mac there are no tabs and no claims, so the
+    probe is pid + tmux alone (`_mac_surfaces`); before 2026-10-14 a Linux
+    box skipped every local row here and left finished workers running for
+    hours.
     Remote (`is_remote_row`: host is another box AND this box dispatched it,
     W1.5): this machine cannot see winbox's/contabo's process table, tmux
     server or terminal, so there is no liveness probe to gate on — every
@@ -495,9 +543,9 @@ def sweep_terminal_surfaces() -> list[dict]:
     skipped: on a shared ledger each row has one owner per duty.
 
     Runs close_dev — already idempotent, never raises — on every terminal-
-    status task that still shows a live pid, live `wd-<id>` tmux session, an
-    open iTerm tab, OR a claimed Chrome tab in the browser-tabs registry
-    (ADDENDUM 1: "Chrome tabs are a surface too" — close_dev itself closes
+    status task that still shows a live pid, a live tmux session (`wd-<id>` or
+    the one recorded on the row), an open iTerm tab, OR a claimed Chrome tab
+    in the browser-tabs registry (ADDENDUM 1: "Chrome tabs are a surface too" — close_dev itself closes
     the claimed tab(s) by id and clears the claim). Logs one line per task
     actually acted on; a clean task (nothing left to close) produces no log
     line at all, so re-running this after a clean sweep is silent —
@@ -551,10 +599,8 @@ def sweep_terminal_surfaces() -> list[dict]:
                 if remote_reap is not None:
                     reaped.append(remote_reap)
             continue
-        if not mac:
-            continue
         pid_alive = _pid_alive(t.get("pid"))
-        tmux_alive = tmux_session.session_name_for(task_id) in live_tmux
+        tmux_alive = bool(live_tmux & set(_task_tmux_names(t)))
         tab_open = task_id in live_tab_ids
         tab_claimed = task_id in claimed_task_ids
         if not (pid_alive or tmux_alive or tab_open or tab_claimed):
@@ -985,6 +1031,54 @@ def _provision_identities() -> list[dict]:
     return results
 
 
+def _reap_finished_workers() -> list[dict]:
+    """Third watchdog pass — layer 2 floor (task-78ab64ba): a DEV whose task
+    reached review/done but whose process is still alive with no C-level
+    decision in FINISHED_REAP_AFTER_S. Layer 1 (merge_task -> close_dev) is the
+    normal path; this only fires when that never happened at all. Does
+    NOT touch task status — the task is already terminal, the reap is
+    recorded here and in the log, not in tasks.db.
+
+    Runs on every platform, on this box's own rows only (W1.5: the pid and the
+    tmux session are this machine's process table; `is_local_row`). close_dev
+    skips the iTerm tab and the Chrome claim off a Mac (`_close_iterm_tab`,
+    `_chrome_running`). Until 2026-10-14 the rows were built only on a Mac, so
+    Contabo reaped nothing: four finished workers ran 5-11 h.
+
+    Off a Mac the close also needs proof that the worker is idle
+    (session-steward design, principle 2): `_why_not_idle` reads the pane, and
+    a busy pane, a waiting dialog or a capture that fails means skip until the
+    next tick. A Mac keeps its old rule, the silence floor alone.
+    """
+    reaped = []
+    finished_rows = [t for t in (db.list_tasks(status="review", limit=200)
+                                 + db.list_tasks(status="done", limit=200))
+                     if is_local_row(t)]
+    for t in finished_rows:
+        pid = t.get("pid")
+        if not pid or not _pid_alive(pid):
+            continue
+        silent = _silent_seconds(t["updated_at"])
+        if silent < FINISHED_REAP_AFTER_S:
+            continue
+        if not _mac_surfaces():
+            why = _why_not_idle(t)
+            if why:
+                info(f"watchdog: not reaping {t['id']} status={t['status']} "
+                     f"silent={int(silent/60)}min: {why}")
+                continue
+        reap = close_dev(t["id"], reason="watchdog: no C-level decision in 60 min")
+        reaped.append({"task": t["id"], "status": t["status"],
+                       "silent_s": int(silent), **reap})
+        error(
+            f"REAPED {t['id']} status={t['status']} silent={int(silent/60)}min "
+            f"pid={pid} pid_matched={reap.get('pid_matched')} "
+            f"signal={reap.get('signal')} tmux_killed={reap.get('tmux_killed')} "
+            f"tab_closed={reap.get('closed_tab')}"
+        )
+    return reaped
+
+
 def scan_once() -> dict:
     pinged = []
     stalled = []
@@ -1136,37 +1230,8 @@ def scan_once() -> dict:
             f"silent={int(silent/3600)}h issue={issue}"
         )
 
-    # Third pass — layer 2 floor (task-78ab64ba): a DEV whose task reached
-    # review/done but whose process is still alive with no C-level decision
-    # in FINISHED_REAP_AFTER_S. Layer 1 (merge_task -> close_dev) is the
-    # normal path; this only fires when that never happened at all. Does
-    # NOT touch task status — the task is already terminal, the reap is
-    # recorded here and in the log, not in tasks.db.
-    reaped = []
-    # close_dev closes an iTerm tab and Chrome tabs via osascript, so this
-    # pass is Darwin-only (`_mac_surfaces`).
-    finished_rows = []
-    if _mac_surfaces():
-        # W1.5: pid + tab are this box's own process table, so local rows only
-        # (before, another box's pid could match a stranger's process here).
-        finished_rows = [t for t in (db.list_tasks(status="review", limit=200)
-                                     + db.list_tasks(status="done", limit=200))
-                         if is_local_row(t)]
-    for t in finished_rows:
-        pid = t.get("pid")
-        if not pid or not _pid_alive(pid):
-            continue
-        silent = _silent_seconds(t["updated_at"])
-        if silent < FINISHED_REAP_AFTER_S:
-            continue
-        reap = close_dev(t["id"], reason="watchdog: no C-level decision in 60 min")
-        reaped.append({"task": t["id"], "status": t["status"],
-                       "silent_s": int(silent), **reap})
-        error(
-            f"REAPED {t['id']} status={t['status']} silent={int(silent/60)}min "
-            f"pid={pid} pid_matched={reap.get('pid_matched')} "
-            f"signal={reap.get('signal')} tab_closed={reap.get('closed_tab')}"
-        )
+    # Third pass — layer 2 floor (task-78ab64ba): see _reap_finished_workers.
+    reaped = _reap_finished_workers()
 
     # GC pass: cancel stale pending/conflict/rate_limited tasks and free locks.
     try:
