@@ -951,8 +951,10 @@ PH_TOOLS = frozenset({
     "wiki_list", "wiki_read", "wiki_search",
     "read_letter", "list_letters",  # envelope mail: still only under ORG_MAIL_ENVELOPE
     # CEO 2026-10-14 ~13:20 TH: a PH posts its CEO-only question on /run itself (no PH → C-level →
-    # CEO relay). Question cards only: ask_run (command cards) and email_ceo stay C-level tools.
-    "ask_ceo", "ask_run_wait",
+    # CEO relay). CEO 2026-10-14 ~17:35 TH: "ส่ง RUN ได้ทำได้เหมือน CXO ทุกอย่าง" — command cards too
+    # (ask_run; the CEO's Face-ID tap stays the authority). email_ceo stays a C-level tool, and
+    # merge_task stays withheld: a PH merges by PR (gh pr merge), never by pushing a local main.
+    "ask_ceo", "ask_run", "ask_run_wait",
 })
 
 
