@@ -283,7 +283,9 @@ def test_gate_unit_makes_the_socket_dir_its_own():
     sock_dir = os.path.dirname(coo_gate.DEFAULT_SOCKET)
     assert not re.search(r"^RuntimeDirectory", unit, re.M)
     assert f"ExecStartPre=+/usr/bin/install -d -o org-coo-gate -g org-coo-gate -m 0755 {sock_dir}\n" in unit
-    assert re.search(rf"^ReadWritePaths=(.* )?{re.escape(sock_dir)}( |$)", unit, re.M)
+    # "-": a missing entry would fail the "+" pre-step's namespace before it creates the directory
+    # (226/NAMESPACE, RUN-20261014-0237-2c9e)
+    assert re.search(rf"^ReadWritePaths=(.* )?-{re.escape(sock_dir)}( |$)", unit, re.M)
 
 
 # --------------------------------------------------------------------------- MCP side
