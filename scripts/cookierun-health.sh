@@ -21,7 +21,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$HERE/windows/cookierun_health.py"
 REMOTE_DIR='C:\mooniex\pclease'
 REMOTE_PY="$REMOTE_DIR\\cookierun_health.py"
-PYEXE='C:\Users\UsEr\cookierun-bot\.venv\Scripts\python.exe'
+PYEXE='C:\Users\passg\cookierun-bot\.venv\Scripts\python.exe'
 
 [[ -f "$SRC" ]] || { echo "missing $SRC" >&2; exit 2; }
 

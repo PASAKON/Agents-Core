@@ -6,9 +6,10 @@ from tools import infisical_setup
 
 class _Org:
     identity = "contabo"
+    setup_identity = "ident-abcdef12"
 
-    def __init__(self, out):
-        self.out, self.gets, self.sent = out, [], []
+    def __init__(self, out, routes=None):
+        self.out, self.gets, self.sent, self.routes = out, [], [], routes or {}
 
     def projects(self):
         return {"org-coo": {"id": "pid-123456789", "name": "Org-Coo", "slug": "org-coo"},
@@ -16,7 +17,10 @@ class _Org:
 
     def get(self, route, **query):
         self.gets.append(route)
-        return self.out
+        hit = next((v for k, v in self.routes.items() if route.startswith(k)), None)
+        if isinstance(hit, Exception):
+            raise hit
+        return hit if hit is not None else self.out
 
     def send(self, *a, **k):  # perms must never write
         self.sent.append(a)
@@ -31,15 +35,52 @@ def test_perms_prints_role_and_rules_and_never_writes(capsys):
     assert 'contabo sees 2 project(s): ["agents-core", "org-coo"]' in out
     assert '"Org-Coo" (slug "org-coo", id pid-1234): roles=["viewer"]' in out
     assert '  allow ["read", "secret-folders"]' in out
-    assert org.gets == ["/api/v1/workspace/pid-123456789/permissions"]
+    assert org.gets == ["/api/v1/projects/pid-123456789/permissions"]
     assert org.sent == []
 
 
 def test_perms_custom_role_slug_wins_and_missing_membership_is_empty(capsys):
     infisical_setup.cmd_perms(_Org({"data": {"membership": {"roles": [{"role": "custom", "customRoleSlug": "gate-writer"}]}}}), "org-coo")
     assert 'roles=["gate-writer"]' in capsys.readouterr().out
-    infisical_setup.cmd_perms(_Org({"data": {}}), "Org-Coo")
+    infisical_setup.cmd_perms(_Org({"data": {}}, {"/api/v1/projects/pid-123456789/identity-memberships/": {}}), "Org-Coo")
     assert "roles=[]" in capsys.readouterr().out
+
+
+def _404(route):
+    return infisical_setup.ApiError(f"Route GET:{route} not found: GET {route} -> HTTP 404")
+
+
+def test_perms_falls_through_a_404_route_and_reads_the_membership_row(capsys):
+    org = _Org({}, {"/api/v1/projects/pid-123456789/permissions": _404("/api/v1/projects/x/permissions"),
+                    "/api/v1/workspace/pid-123456789/permissions": _404("/api/v1/workspace/x/permissions"),
+                    "/api/v1/projects/pid-123456789/identity-memberships/ident-abcdef12":
+                        {"identityMembership": {"roles": [{"role": "developer"}]}}})
+    infisical_setup.cmd_perms(org, "Org-Coo")
+    out = capsys.readouterr().out
+    assert 'roles=["developer"]' in out
+    assert "no permissions route answered" in out
+    assert org.gets[-1] == "/api/v1/projects/pid-123456789/identity-memberships/ident-abcdef12"
+
+
+def test_perms_second_route_answers_after_a_404(capsys):
+    org = _Org({}, {"/api/v1/projects/pid-123456789/permissions": _404("/api/v1/projects/x/permissions"),
+                    "/api/v1/workspace/pid-123456789/permissions":
+                        {"data": {"membership": {"roles": [{"role": "admin"}]}, "permissions": [["create", "secret-folders"]]}}})
+    infisical_setup.cmd_perms(org, "Org-Coo")
+    out = capsys.readouterr().out
+    assert 'roles=["admin"]' in out and '  allow ["create", "secret-folders"]' in out
+    assert "no permissions route" not in out
+
+
+def test_perms_a_non_404_error_still_raises():
+    org = _Org({}, {"/api/v1/projects/pid-123456789/permissions":
+                    infisical_setup.ApiError("GET /x -> HTTP 403: forbidden")})
+    try:
+        infisical_setup.cmd_perms(org, "Org-Coo")
+    except infisical_setup.ApiError as exc:
+        assert "403" in str(exc)
+    else:
+        raise AssertionError("403 swallowed")
 
 
 def test_perms_deny_flag_survives_truncation(capsys):

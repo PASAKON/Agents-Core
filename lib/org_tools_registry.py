@@ -983,6 +983,9 @@ PH_TOOLS = frozenset({
     "recall", "reflect", "reopen_task", "review_diff", "send_to_cxo", "stats",
     "wiki_list", "wiki_read", "wiki_search",
     "read_letter", "list_letters",  # envelope mail: still only under ORG_MAIL_ENVELOPE
+    # CEO 2026-10-14 ~13:20 TH: a PH posts its CEO-only question on /run itself (no PH → C-level →
+    # CEO relay). Question cards only: ask_run (command cards) and email_ceo stay C-level tools.
+    "ask_ceo", "ask_run_wait",
 })
 
 

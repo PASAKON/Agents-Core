@@ -290,7 +290,7 @@ class InfisicalSetupTest(unittest.TestCase):
         # and (W4.2b) the /node-token folder. No identity named org-node exists anywhere.
         self.assertEqual(projects["Org-Node"]["envs"].keys(), {"prod"})
         self.assertEqual(projects["Org-Node"]["folders"].get("prod", set()), set())
-        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join", "node-token"})
+        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join", "node-token", "spend-guard"})
         for name, x in projects.items():
             self.assertNotIn("org-node", x["idents"], name)
         for host, allowed in self.mod.MACHINES.items():
