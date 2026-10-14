@@ -6,21 +6,21 @@ Nothing here spends. Shooting waits for the CEO's typed «go ยิง» in chat
 | Item | Credits |
 |---|---|
 | Live Flow balance (`flow_balance_ws.py --reload`, winbox :9226) | **348** (ledger said 298 after EP6 → +50 since 13 Oct 19:20, source unknown; read live again right before the shoot) |
-| 360p test, 2 shots × 6 | 12 |
+| 360p test, 2 shots × 7 (10 s; skill §Measured costs: 360p 8 s = 6, 10 s = 7) | 14 |
 | 720p production, 12 shots × 15 | 180 |
 | Reshoot ceiling (≤3 shots) | ≤45 |
-| Worst case total | 237 → balance ≥111 |
-| Expected (no reshoot) | 192 → balance 156 |
+| Worst case total | 239 → from 298 leaves 59 |
+| Expected (no reshoot) | 194 → from 298 leaves 104 |
 | Episode cap | ≤330 ✓ · reserve 250 ✗ (bent knowingly, needs his go) |
-`--credit-cap 237` on the runner.
+`--credit-cap 239` total on the runner.
 
-## Test (360p, real 10 s, 12 cr)
-**Decided for CEO: shots 2 + 4 instead of the handoff's 1 + 4.** Because: shot 2 puts both new night characters' first test (mother__night with voice + mimi) on the new momroom_night plate, shot 4 tests cat__riao (new character, new man's sleepy voice) on living_night. 1 + 4 left mother__night untested, and she is in 5 of 12 shots (2, 5, 6, 8, 12). Same cost.
+## Test (360p, real 10 s, 14 cr)
+**Decided for CEO: shots 2 + 4 instead of the handoff's 1 + 4.** Because: shot 2 puts both new night characters' first test (mother__night with voice + mimi) on the new momroom_night plate, shot 4 tests cat__riao (new character, new man's sleepy voice) on living_night. 1 + 4 left mother__night untested, and she is in 5 of 12 shots (2, 5, 6, 8, 12). Same cost (14).
 Pass = night reads as night (not a day plate), the right mouth speaks the line, the voice is right (cat = a man's slow sleepy voice), no text, no extra people/animals, mother in pale-blue pyjamas.
 Untested before production: loc__landing_night (shot 9), loc__broroom_night (shots 10, 11), so read those two first in QC.
 
 ## Dry run result (14 Oct 09:30–09:39 TH, balance 348 before = 348 after)
-All 12 shots `needs_model`: **none of the 6 new plates is in Flow** (picker finds no row for mother__night, cat__riao, loc__momroom_night, loc__living_night, loc__landing_night, loc__broroom_night). mimi__dry and brother__wfh attach. Plan with 298 (C-level), not 348: worst case 237 leaves 61.
+All 12 shots `needs_model`: **none of the 6 new plates is in Flow** (picker finds no row for mother__night, cat__riao, loc__momroom_night, loc__living_night, loc__landing_night, loc__broroom_night). mimi__dry and brother__wfh attach. Plan with 298 (C-level), not 348: worst case 239 leaves 59.
 
 ## Upload + dry run 2 (14 Oct 09:45–09:52 TH, balance 348 before = 348 after)
 The 6 plates were uploaded into the Mimi Flow project (29b3326b) with `tools/flow_upload_element.py`, renamed to their handles, and their chips bound. Dry run `--only N` for shots 1–12: **12/12 DRY-RUN OK**, each with the sheet's exact chips, Omni, องค์ประกอบ, 9:16, x1, 720p, 10 s, estimate 15 cr. Note: `--dry-run` stops after the first passing shot, so check one shot at a time; `--credit-cap 0` stops before attach.

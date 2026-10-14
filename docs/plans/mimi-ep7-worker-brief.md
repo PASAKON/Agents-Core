@@ -1,13 +1,13 @@
 # Worker brief: EP7 shoot + QC + cut (MimiPage, PH #36c49776)
 
-**Status: DRAFT. It goes to cmo-ef04792e first, and is delegated only after the CEO types «go ยิง» in the PH chat.**
+**Status: APPROVED by cmo-ef04792e 14 Oct (with 4 fixes, applied). Delegated only once BOTH the CEO's «go ยิง» AND his engine answer (Flow, or the Higgsfield Seedance 2.0 free lane) have reached the PH through the C-level. If the engine is Higgsfield, this brief is rewritten first (`CMO_Knowledge_Seedance2.5_Higgsfield`).**
 
 ## Job (one line)
 SHOOT EP7 «ทำไมมีมี่ไม่ยอมนอนกับแม่ ต้องรอพี่ชายกลับดึก?» in Google Flow (12 shots, 720p, 10 s), QC it, CUT it to `EP7-cut-v1.mp4`, and hand the PH a 540p file **by Sat 17 Oct 15:00 Thai** (the PH reviews it, and the CEO gets it by 18:00).
 
 ## Authority + money
-- CEO «go ยิง» quoted by the PH at delegation, budget per brief: ≤330 cr/episode. This episode: **test 14 cr + production 180 cr + reshoot ≤3 shots/≤45 cr; `--credit-cap` = 239 total.**
-- Plan on a balance of 298 (the live read was 348 on 14 Oct; the +50 is unexplained). Read the balance live (`tools/flow_balance_ws.py --reload` on winbox) **before the test, after the test, and after production**, and write a ledger row in `docs/ops/credit-ledger.jsonl` for each spend (`who: <worker id> for project_head-36c49776`).
+- CEO «go ยิง» quoted by the PH at delegation, budget per brief: ≤330 cr/episode. This episode: **test 14 cr (2 × 7, 360p 10 s) + production 180 cr (12 × 15) + reshoot ≤3 shots/≤45 cr = `--credit-cap` 239 total.**
+- Plan on a balance of 298 (the live read was 348 on 14 Oct; the +50 is unexplained). Read the balance live (`tools/flow_balance_ws.py --reload` on winbox) **before the test, after the test, and after production**, and write a ledger row in `docs/ops/credit-ledger.jsonl` for each spend (`who: <worker id> for project_head-36c49776`). **Write the rows on your own branch from origin/main (a worktree) and open a PR. Never commit to Contabo's local main, never push to main** (local main has uncommitted ledger edits and a held commit).
 - A second test round, or a 4th reshoot, needs a new OK from the PH. Stop at any dialog that shows a credit cost you did not expect.
 
 ## Inputs (all ready, checked 14 Oct)
@@ -20,8 +20,8 @@ SHOOT EP7 «ทำไมมีมี่ไม่ยอมนอนกับแ�
 1. Balance read. Then a **360p test, shots 2 + 4** (`--resolution 360p --only 2,4`, separate ledger `ledger_test`). Pass = night reads as night, the right mouth speaks, the mother's and Riao's voices fit the line, no text, no extra people or animals. Send the PH both clips. **Wait for the PH's OK** (the CEO ear-checks the voices).
 2. Production: shots 1–12 at 720p, `--credit-cap` = what is left of 239.
 3. QC per `CMO_Gate_Flow_Omni1.1_FilmQC`: transcript per shot (≥0.82 like EP6), and a contact sheet. Read the untested plates first: landing_night (shot 9), broroom_night (10, 11). Fail list → the PH, who decides the reshoots (≤3).
-4. Cut per the plan: 120 s plus a ~2.5 s title card after shot 6, M1 piano, logo per the CEO's watermark pick (if he has not picked: the poster logo rule). Output 720×1280 24 fps, plus a 540p file.
-5. Hand-off: the paths of `EP7-cut-v1.mp4` and the 540p, the QC sheet, the ledger rows, and the balance reads.
+4. Cut per the plan: 120 s plus a ~2.5 s title card after shot 6, M1 piano, **NO watermark or logo burned in**: the CEO answered «ขอดูก่อน» on Q-20261014-0225-c960, so deliver a clean cut and say so in the hand-off. Output 720×1280 24 fps, plus a 540p file.
+5. Hand-off: the note «clean cut, no watermark (waits CEO pick c960)», the paths of `EP7-cut-v1.mp4` and the 540p, the QC sheet, the ledger rows, and the balance reads.
 
 ## Never
 - Schedule or post anything on Facebook: the PH does that after the CEO says go.
