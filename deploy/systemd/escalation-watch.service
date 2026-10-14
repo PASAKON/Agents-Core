@@ -1,0 +1,29 @@
+[Unit]
+Description=MoonieX escalation watch: nudge on stalled sessions, held blockers, stale hosts (M11)
+# CEO order 2026-10-14 ~11:45 TH (docs/ops/escalation-watch.md). Triggered by
+# escalation-watch.timer. It reads tmux panes with capture-pane (a client only:
+# it never starts, stops or moves the tmux server, CLAUDE.md "one tmux server").
+# ORG_DB_URL through with-org-db-env.sh, like org-snapshot.service.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/with-org-db-env.sh /opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/escalation_watch.py --nudge
+# Hardening (probed 14 Oct with a transient unit carrying exactly these properties,
+# print-only: infisical run, the hub, the Run Inbox and tmux capture-pane all work).
+# Letters and its own state file are under state/, the only writable path.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/MoonieXHQ/Agents/Core/state
+ProtectHome=read-only
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryMax=256M
+TasksMax=32
