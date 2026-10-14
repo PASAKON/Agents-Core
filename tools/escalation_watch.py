@@ -74,30 +74,53 @@ _HOST_RE = re.compile(r"[a-z0-9][a-z0-9-]{0,31}")
 # bit): no symlink, no FIFO, a size cap (§2b review of #283 v2, B-1, same class).
 META_READ_MAX = 8 * 1024 * 1024
 STATE_READ_MAX = 1024 * 1024
+# The saved state is bounded (§2b review of #292 round 2, item 4): the newest of each
+# are kept, and what is written is always small enough for load_state to read back.
+MAX_EPISODES = 500
+MAX_DIGESTS = 200
+DIGEST_LINES = 50
+AT_ONCE_SENDS = 2           # a letter and one reminder; an episode's `sent` never exceeds it
 
 
-def _read_capped(path: Path, limit: int) -> bytes | None:
+class StateUnusable(Exception):
+    """The state file cannot be read or saved, so a letter could not be remembered and
+    would repeat on every run: nothing is sent. `sent`: the letters that had already
+    gone out when it was found (only a failed final save has any)."""
+
+    def __init__(self, msg: str):
+        super().__init__(msg)
+        self.sent: list[str] = []
+
+
+def _read_capped(path: Path, limit: int, *, whole: bool = False) -> bytes | None:
     """At most the last `limit` bytes of a regular file, never through a symlink, and
     only one that root (or this user) owns, nobody else can write and has one link:
-    the secretary account can create files in state/ (§2b review of #292, M-2)."""
+    the secretary account can create files in state/ (§2b review of #292, M-2).
+    `whole`: the file is parsed as one document, so one over `limit` is not read at all
+    (StateUnusable); half a JSON file is never parsed."""
     fd = ls._safe_open(path, os.O_RDONLY, create=False)
     if fd is None:
         return None
     try:
         st = os.fstat(fd)
+        if whole and st.st_size > limit:
+            raise StateUnusable(f"{path.name} is {st.st_size} bytes, over the {limit} byte cap: not parsed")
         if st.st_uid not in (0, os.geteuid()) or st.st_mode & 0o022 or st.st_nlink != 1:
             return None
         size = st.st_size
-        if size > limit:
+        if size > limit and not whole:
             os.lseek(fd, size - limit, os.SEEK_SET)
-        chunks, left = [], limit
+        chunks, left = [], limit + 1 if whole else limit
         while left > 0:
             b = os.read(fd, min(left, 1 << 20))
             if not b:
                 break
             chunks.append(b)
             left -= len(b)
-        return b"".join(chunks)
+        data = b"".join(chunks)
+        if whole and len(data) > limit:                  # it grew while we read it
+            raise StateUnusable(f"{path.name} grew past the {limit} byte cap while it was read")
+        return data
     except OSError:
         return None
     finally:
@@ -269,26 +292,48 @@ _EMPTY_STATE = {"episodes": {}, "digest": {}}
 
 def load_state(now: float) -> dict:
     """{"episodes": {subject: {"start", "sent", "last"}}, "digest": {box: {"last",
-    "lines"}}}. A time after `now` is dropped: a planted future time must not silence
-    the watch (M-2)."""
-    raw = _read_capped(STATE_PATH, STATE_READ_MAX)
+    "lines"}}}. A time after `now` means the clock stepped back (or a bad value): it is
+    clamped to `now` and the counters stay, so a step back never resets a rate limit
+    (round 2, item 3). A `sent` we could not have written is dropped with its episode.
+    Raises StateUnusable for a file over STATE_READ_MAX."""
+    raw = _read_capped(STATE_PATH, STATE_READ_MAX, whole=True)
     try:
         d = json.loads(raw) if raw else {}
     except (ValueError, RecursionError):
         d = {}
     if not isinstance(d, dict):
         d = {}
-    ok = lambda t: isinstance(t, (int, float)) and not isinstance(t, bool) and 0 <= t <= now
-    eps = {k: v for k, v in (d.get("episodes") or {}).items() if isinstance(k, str) and isinstance(v, dict)
-           and ok(v.get("start")) and ok(v.get("last")) and isinstance(v.get("sent"), int)}
-    dig = {k: {"last": v["last"], "lines": [str(x)[:LINE_MAX] for x in v["lines"][:50]]}
+    ok = lambda t: isinstance(t, (int, float)) and not isinstance(t, bool) and t >= 0
+    count = lambda n: isinstance(n, int) and not isinstance(n, bool) and 0 <= n <= AT_ONCE_SENDS
+    eps = {k: {"start": min(v["start"], now), "sent": v["sent"], "last": min(v["last"], now)}
+           for k, v in (d.get("episodes") or {}).items() if isinstance(k, str) and isinstance(v, dict)
+           and ok(v.get("start")) and ok(v.get("last")) and count(v.get("sent"))}
+    dig = {k: {"last": min(v["last"], now), "lines": [str(x)[:LINE_MAX] for x in v["lines"][:DIGEST_LINES]]}
            for k, v in (d.get("digest") or {}).items()
            if isinstance(k, str) and _BOX_RE.fullmatch(k) and isinstance(v, dict)
            and ok(v.get("last")) and isinstance(v.get("lines"), list)}
     return {"episodes": eps, "digest": dig}
 
 
+def _bounded(state: dict) -> str:
+    """The state as JSON text: the newest MAX_EPISODES episodes and MAX_DIGESTS digest
+    boxes, and never more than STATE_READ_MAX (ASCII, so chars are bytes), the oldest
+    digest box and then the oldest episode dropped first."""
+    eps = dict(sorted(state["episodes"].items(), key=lambda kv: kv[1]["start"])[-MAX_EPISODES:])
+    dig = {b: {"last": d["last"], "lines": d["lines"][:DIGEST_LINES]}
+           for b, d in sorted(state["digest"].items(), key=lambda kv: kv[1]["last"])[-MAX_DIGESTS:]}
+    blob = json.dumps({"episodes": eps, "digest": dig})
+    while len(blob) > STATE_READ_MAX and (dig or eps):
+        victim = dig or eps
+        del victim[next(iter(victim))]                  # insertion order = oldest first
+        blob = json.dumps({"episodes": eps, "digest": dig})
+    return blob
+
+
 def save_state(state: dict) -> None:
+    """Write the state atomically. Raises StateUnusable when it cannot be written: a
+    letter that cannot be remembered repeats on every run, so the caller must not send."""
+    blob = _bounded(state)
     try:
         STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         # mkstemp: O_EXCL on a fresh random name, so no planted .tmp link is followed;
@@ -296,13 +341,15 @@ def save_state(state: dict) -> None:
         fd, tmp = tempfile.mkstemp(dir=STATE_PATH.parent, prefix=".escalation_watch.", suffix=".tmp")
         try:
             with os.fdopen(fd, "w") as fh:
-                json.dump(state, fh)
+                fh.write(blob)
             os.replace(tmp, STATE_PATH)
         except OSError:
             with contextlib.suppress(OSError):
                 os.unlink(tmp)
-    except OSError:
-        pass
+            raise
+    except OSError as e:
+        raise StateUnusable(f"state file {STATE_PATH} cannot be saved ({type(e).__name__}: "
+                            f"{e.strerror or e})") from e
 
 
 RULE = ("Rule (CEO 2026-10-14): a PH sends its C-level a blocker at once; a C-level that "
@@ -321,11 +368,15 @@ def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None,
     current = {f["subject"] for f in findings}
     for k in [k for k in eps if k not in current]:      # the episode ended
         del eps[k]
+    # Tracked episodes first: past MAX_EPISODES a new one waits, so the cap never drops an
+    # episode that is still running (it would fire again on the next run).
+    findings = sorted(findings, key=lambda f: f["subject"] not in eps)[:MAX_EPISODES]
+    save_state(state)       # before any letter: a state that cannot be saved sends nothing
     for f in findings:
         ep = eps.setdefault(f["subject"], {"start": now, "sent": 0, "last": 0})
         to = recipients(f, live_c_levels)
         if f["kind"] in AT_ONCE:
-            if ep["sent"] >= 2 or (ep["sent"] == 1 and now - ep["last"] < REMIND_S):
+            if ep["sent"] >= AT_ONCE_SENDS or (ep["sent"] == 1 and now - ep["last"] < REMIND_S):
                 continue
             again = " (reminder; the last one this episode)" if ep["sent"] else ""
             body = f"blocker · urgent · escalation watch{again}: {line(f)}. {RULE}"
@@ -355,7 +406,11 @@ def nudge(findings, live_c_levels, now: float, *, send=mailbox.send, wake=None,
             sent.append(f"{box} <- digest of {len(d['lines'])}")
             d["lines"], d["last"] = [], now
     state["digest"] = {b: d for b, d in dig.items() if d["lines"] or now - d["last"] < DIGEST_S}
-    save_state(state)
+    try:
+        save_state(state)
+    except StateUnusable as e:
+        e.sent = sent           # the letters are out; main prints them with the note
+        raise
     return sent
 
 
@@ -407,8 +462,15 @@ def main(argv=None) -> int:
         print(f"note     {n}")
     if not findings:
         print("ok       nothing stalled")
-    if a.nudge and findings:
-        for out in nudge(findings, live_c, now, wake=_wake):
+    if a.nudge:     # also on an empty scan: ended episodes are pruned, a due digest flushes
+        try:
+            sent = nudge(findings, live_c, now, wake=_wake)
+        except StateUnusable as e:
+            for out in e.sent:
+                print(f"sent     {out}")
+            print(f"note     {e}; no letter goes out until it is fixed")
+            return 1
+        for out in sent:
             print(f"sent     {out}")
     return 0
 

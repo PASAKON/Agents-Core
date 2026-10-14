@@ -24,7 +24,15 @@ cannot be read gets no wake. A digest never wakes anyone. Letters carry box ids 
 session's display name or text a session wrote; a `from` or `to` that is not a box id is skipped.
 
 The state file and the letter log are read only when root (or the reader) owns them, nobody else can write
-them and they have one link (`state/` is group-writable by `secretary`); a time later than now is dropped.
+them and they have one link (`state/` is group-writable by `secretary`). A state time later than now (the clock
+stepped back) is clamped to now and its counters stay, so a step back never resets a rate limit.
+
+**The state must be saveable, or nothing is sent.** Every `--nudge` run (also one with no findings, so ended
+episodes are pruned and a due digest flushes) saves the state before its first letter. If that save fails (for
+example a group member pre-created `state/escalation_watch.json` as a directory) or the file is over 1 MB (it is
+never parsed from its tail), the run prints `note     state file … cannot be saved …`, sends nothing and exits 1,
+so systemd shows the unit failed. Remove the planted path to recover. The saved state is bounded: the newest 500
+episodes and 200 digest boxes, never more than the 1 MB the next run will read.
 
 Sources: hub `live_sessions`/`live_hosts`; this host's session records; `tmux capture-pane`; the Run Inbox question
 list (`tools/ask_run`); `state/reports/letters-meta.jsonl`, which `lib/mailbox.send` appends for every letter

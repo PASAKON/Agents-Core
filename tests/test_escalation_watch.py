@@ -191,6 +191,8 @@ def test_text_a_session_wrote_never_reaches_a_letter(org):
 
 def test_a_future_time_in_the_state_file_does_not_silence_the_watch(org):
     # M-2: the secretary account could plant the file before root first writes it.
+    # Round 2: a future time alone is now clamped with its counters kept (see the clock
+    # tests below); this planted `sent: 9` is one we could not have written, so it is dropped.
     org.path.joinpath("state.json").write_text(json.dumps(
         {"episodes": {"blocker:p:c:1": {"start": NOW + 1e9, "sent": 9, "last": NOW + 1e9}}, "digest": {}}))
     org.run([_f("blocker", "cmo-ef04792e", subject="blocker:p:c:1")], NOW)
@@ -275,3 +277,165 @@ def test_the_state_file_never_writes_through_a_planted_link(tmp_path, monkeypatc
                                                                   "cto-c34459eb <- blocker cto-c34459eb"]
     assert target.read_text() == "keep" and json.loads(st.read_text())
     assert not [p for p in st.parent.iterdir() if p.name.startswith(".escalation_watch.")]
+
+
+# --- round 2 of the §2b review of #292 -------------------------------------------------
+# state that cannot be saved, empty scans, a clock stepped back, a bounded state file
+
+@pytest.fixture
+def watch(org, monkeypatch):
+    """main() with every source stubbed: `sessions` and `screens` are what the sources
+    show right now, `run(at)` is one --nudge run at the time `at`."""
+    import functools
+    from lib import config
+
+    class Watch:
+        sessions, screens, clock = [], {}, NOW
+
+        def run(self, at, sessions=None):
+            self.clock = at
+            if sessions is not None:
+                self.sessions = sessions
+            return ew.main(["--nudge"])
+
+    w = Watch()
+    w.sessions, w.screens = [], {}
+    monkeypatch.setattr(config, "self_host", lambda: "contabo")
+
+    def no_hub():
+        raise RuntimeError("no hub in tests")
+
+    monkeypatch.setattr(ew.ls, "_open_hub", no_hub)
+    monkeypatch.setattr(ew, "local_sessions", lambda host: list(w.sessions))
+    monkeypatch.setattr(ew, "question_times", lambda: {})
+    monkeypatch.setattr(ew, "read_meta", lambda path: [])
+    monkeypatch.setattr(ew, "_now", lambda: w.clock)
+    monkeypatch.setattr(ew, "find", functools.partial(ew.find, panes=lambda t: w.screens.get(t, INPUT)))
+    monkeypatch.setattr(ew, "nudge", functools.partial(ew.nudge, send=org.send, panes=org.panes))
+    monkeypatch.setattr(ew, "_wake", org.wake)
+    return w
+
+
+def test_a_state_path_that_cannot_be_saved_sends_nothing(org):
+    # A group member pre-creates state/escalation_watch.json as a directory. Before the
+    # fix every run re-sent: save_state swallowed the failure (probe: 6 letters in 3 runs).
+    (org.path / "state.json").mkdir()
+    f = [_f("blocker", "cto-c34459eb", subject="blocker:p:c:1")]
+    for i in range(3):
+        with pytest.raises(ew.StateUnusable, match="state.json"):
+            org.run(f, NOW + i * 60)
+    assert org.sent == [] and org.woke == []
+
+
+def test_main_names_the_unsaveable_state_and_exits_non_zero(org, watch, capsys):
+    (org.path / "state.json").mkdir()
+    watch.screens = {"cto-c34459eb": PERMISSION}
+    rc = watch.run(NOW, [_s("cto-c34459eb", status="running", since=NOW, tmux="cto-c34459eb")])
+    out = capsys.readouterr().out
+    assert rc != 0 and org.sent == [] and org.woke == []
+    assert "waiting  cto-c34459eb" in out                     # the finding is still printed
+    assert any(l.startswith("note ") and "state.json" in l and "cannot be saved" in l for l in out.splitlines())
+    assert "sent " not in out
+
+
+def test_a_planted_symlink_at_the_state_path_is_replaced_not_followed(org):
+    victim = org.path / "victim"
+    victim.write_text("keep")
+    (org.path / "state.json").symlink_to(victim)
+    org.run([_f("blocker", "cto-c34459eb", subject="blocker:p:c:1")], NOW)
+    st = org.path / "state.json"
+    assert org.sent and victim.read_text() == "keep" and st.is_file() and not st.is_symlink()
+
+
+def test_an_oversized_state_file_is_unusable_and_never_tail_parsed(org, watch, monkeypatch, capsys):
+    monkeypatch.setattr(ew, "STATE_READ_MAX", 2048)
+    st = org.path / "state.json"
+    st.write_text('{"episodes": {"pad": "' + "x" * 10_000 + '"}, "digest": {}}')
+    before = st.read_bytes()
+    with pytest.raises(ew.StateUnusable, match="over the 2048"):
+        org.run([_f("blocker", "cto-c34459eb", subject="blocker:p:c:1")], NOW)
+    assert org.sent == [] and st.read_bytes() == before       # nothing sent, nothing overwritten
+    watch.screens = {"cto-c34459eb": PERMISSION}
+    rc = watch.run(NOW, [_s("cto-c34459eb", status="running", since=NOW, tmux="cto-c34459eb")])
+    assert rc != 0 and org.sent == []
+    assert any(l.startswith("note ") and "over the 2048" in l for l in capsys.readouterr().out.splitlines())
+
+
+def test_a_cleared_prompt_that_comes_back_alerts_again(org, watch):
+    # The empty scan used to skip nudge(), so the exhausted episode was never pruned and
+    # the same subject coming back was taken for the old one.
+    waiting = [_s("cto-c34459eb", status="running", since=NOW, tmux="cto-c34459eb")]
+    watch.screens = {"cto-c34459eb": PERMISSION}
+    assert watch.run(NOW, waiting) == 0
+    watch.run(NOW + ew.REMIND_S, waiting)                     # the one reminder: now exhausted
+    assert [b for b, _, _ in org.sent] == ["coo-fde4c4ca"] * 2
+    watch.run(NOW + 2 * ew.REMIND_S, [])                      # the prompt cleared: an empty scan
+    watch.run(NOW + 3 * ew.REMIND_S, waiting)                 # same subject, a new episode
+    assert [b for b, _, _ in org.sent] == ["coo-fde4c4ca"] * 3
+
+
+def test_a_pending_digest_goes_out_on_an_empty_scan(org, watch):
+    idle = lambda box, ago: [_s(box, since=NOW - ago, tmux=None)]
+    watch.run(NOW, idle("cmo-ef04792e", 3600))                # the first digest goes at once
+    watch.run(NOW + 600, idle("cto-c34459eb", 3000))          # queued: the next one is not due
+    assert len(org.sent) == 1
+    watch.run(NOW + ew.DIGEST_S + 1, [])                      # nothing stalled, but the digest is due
+    assert len(org.sent) == 2 and "idle cto-c34459eb" in org.sent[-1][1]
+
+
+def test_a_clock_stepped_back_does_not_reset_the_rate_limits(org):
+    # The review's probe: two digest letters after a 1-second step back.
+    a, b = _f("idle", "cmo-ef04792e", subject="idle:a:1"), _f("idle", "cto-c34459eb", subject="idle:b:1")
+    org.run([a], NOW)
+    org.run([a, b], NOW - 1)
+    assert [k for _, _, k in org.sent].count("fyi") == 1
+    # the same for an at-once episode: counters survive, the reminder keeps its spacing
+    blk = [_f("blocker", "cto-c34459eb", subject="blocker:p:c:1")]
+    t = NOW + 10 * 3600
+    org.run(blk, t)                                           # (also flushes b's queued digest line, 2 h on)
+    n = len(org.sent)
+    org.run(blk, t - 1)
+    assert len(org.sent) == n
+    org.run(blk, t - 1 + ew.REMIND_S)                         # the reminder, measured from the clamped time
+    assert len(org.sent) == n + 2 and "reminder" in org.sent[-1][1]       # two recipients
+    org.run(blk, t - 2 + 2 * ew.REMIND_S)
+    org.run(blk, t - 3 + 3 * ew.REMIND_S)
+    assert len(org.sent) == n + 2                             # one letter and one reminder, then nothing
+
+
+def test_load_state_clamps_future_times_and_keeps_the_counters(org):
+    org.path.joinpath("state.json").write_text(json.dumps({
+        "episodes": {"a": {"start": NOW + 50, "sent": 1, "last": NOW + 90}},
+        "digest": {"cmo-ef04792e": {"last": NOW + 5, "lines": ["x"]}}}))
+    st = ew.load_state(NOW)
+    assert st["episodes"] == {"a": {"start": NOW, "sent": 1, "last": NOW}}
+    assert st["digest"] == {"cmo-ef04792e": {"last": NOW, "lines": ["x"]}}
+
+
+def test_the_saved_state_keeps_the_newest_episodes_and_digest_boxes(org):
+    eps = {f"e{i}": {"start": NOW - 1000 + i, "sent": 1, "last": NOW - 1000 + i} for i in range(ew.MAX_EPISODES + 100)}
+    dig = {f"cmo-{i:08x}": {"last": NOW - 1000 + i, "lines": ["l"]} for i in range(ew.MAX_DIGESTS + 50)}
+    ew.save_state({"episodes": eps, "digest": dig})
+    st = ew.load_state(NOW)
+    assert (ew.MAX_EPISODES, ew.MAX_DIGESTS) == (500, 200)
+    assert len(st["episodes"]) == 500 and "e99" not in st["episodes"] and "e100" in st["episodes"]
+    assert len(st["digest"]) == 200 and f"cmo-{49:08x}" not in st["digest"] and f"cmo-{50:08x}" in st["digest"]
+
+
+def test_what_is_saved_can_always_be_read_back(org, monkeypatch):
+    monkeypatch.setattr(ew, "STATE_READ_MAX", 40_000)         # a full box (50 lines of 300) is ~15 kB
+    dig = {f"cmo-{i:08x}": {"last": NOW - 100 + i, "lines": ["y" * ew.LINE_MAX] * 50} for i in range(20)}
+    ew.save_state({"episodes": {}, "digest": dig})
+    assert (org.path / "state.json").stat().st_size <= 40_000
+    kept = ew.load_state(NOW)["digest"]                       # not oversized, so not "unusable" on the next run
+    assert kept and f"cmo-{19:08x}" in kept and f"cmo-{0:08x}" not in kept     # the newest boxes survive
+
+
+def test_more_findings_than_the_cap_do_not_re_fire_every_run(org, monkeypatch):
+    monkeypatch.setattr(ew, "MAX_EPISODES", 5)
+    fs = [_f("blocker", "cto-c34459eb", subject=f"blocker:p:c:{i}") for i in range(8)]
+    org.run(fs, NOW)
+    first = len(org.sent)
+    org.run(fs, NOW + 60)
+    org.run(fs, NOW + 120)
+    assert first == 5 * 2 and len(org.sent) == first          # the tracked five stay tracked
