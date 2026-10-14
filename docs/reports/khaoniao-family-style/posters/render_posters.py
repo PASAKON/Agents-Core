@@ -33,9 +33,10 @@ P = {
                c1="ส่วนที่เหลือเราแต่งเป็นเรื่องเล่า", c2="ตอนที่ 5 · 18 ช็อต 3 นาที"),
 }
 keys = sys.argv[1:] or list(P)
-for key in keys:
-    q = "&".join(f"{k}={quote(v)}" for k, v in P[key].items())
-    out = OUT / f"poster-{key}.png"; prof = tempfile.mkdtemp(prefix="pt")
+for arg in keys:
+    key, _, extra = arg.partition("@")   # KEY@mw=700 -> poster-KEY-mw700.png (size test)
+    q = "&".join(f"{k}={quote(v)}" for k, v in P[key].items()) + ("&" + extra if extra else "")
+    out = OUT / f"poster-{key}{('-' + extra.replace('=', '')) if extra else ''}.png"; prof = tempfile.mkdtemp(prefix="pt")
     subprocess.run([CH, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
                     "--window-size=1080,1350", f"--user-data-dir={prof}", "--virtual-time-budget=12000",
                     "--allow-file-access-from-files", f"--screenshot={out}", f"file:///C:/mooniex/khaoniao/poster/poster.html?{q}"],

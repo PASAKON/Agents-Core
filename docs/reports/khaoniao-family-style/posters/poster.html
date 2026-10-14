@@ -46,6 +46,7 @@ html,body{margin:0;padding:0;background:#10203a;overflow:hidden}
 const q = new URLSearchParams(location.search);
 const g = (k, d = '') => q.get(k) || d;
 const TOP = +g('top', 850), FIT = 940;
+if (g('mw')) document.querySelector('.mark').style.width = g('mw') + 'px';   // watermark size test (CEO 2026-10-14); default stays 470
 document.getElementById('pic').style.backgroundImage = `url(file:///C:/mooniex/khaoniao/poster/frames/${g('img')}.png)`;
 document.getElementById('pic').style.backgroundPosition = `0 -${+g('oy', 250)}px`;
 document.getElementById('bB').textContent = g('bB'); document.getElementById('bS').textContent = g('bS');
