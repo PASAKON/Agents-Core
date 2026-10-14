@@ -1,0 +1,35 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S01 HALF A STEP FROM THE DAYLIGHT · 6s request (141 frames, 5.88 s) · 1080p · 16:9 · The Old Telling EP1 ACT 4 · covers sentences 4.01
+Entities (group 'The Old Telling'): @STAIR, @ORPHEUS, @LYRE, @EURYDICE. Audio bound: none.
+Narration is NOT in this clip; it is mixed in the edit.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ ===
+
+6s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera at the side of the stair, tracking slowly toward screen-right and rising with him; no zoom, no cut.
+
+ORPHEUS CLIMBS THE LAST STEPS OF THE STAIR; THE DAYLIGHT OPENING IS NOW RIGHT ABOVE HIM; A SILENT SILHOUETTE FOLLOWS TWO STEPS BEHIND.
+
+REFERENCES, each with a job:
+@STAIR: THE STAIR: a narrow rough-cut wet stone stair climbing steeply through a dark cavern toward a small opening of pale daylight at the top. Take the whole place and its light from it.
+@ORPHEUS: ORPHEUS, an adult man in his late twenties, a Thracian musician: dark curly shoulder-length hair held by a band of olive leaves, short dark beard, plain undyed wool tunic with a rope belt, dark wool cloak over one shoulder with a narrow amber-ochre border stripe, leather sandals. Face, body and clothes only; take nothing of the background.
+@LYRE: THE LYRE, his ancient Greek lyre: aged dark-amber wood, a deep rounded body, two curved arms ending in small scrolls, a straight crossbar, seven strings. Shape and wood only; take nothing of the background.
+@EURYDICE: HER DRESS: a long pale undyed linen ancient Greek dress with a long pale veil draped over it. Cloth shape and colour only; she is only ever a dark silhouette with no face and no detail; take nothing of the background.
+
+THE FRAME: Side view of THE STAIR near its top, climbing from the lower left toward the upper right, where a bright opening of pale cream daylight now fills the top of the frame. ORPHEUS climbs toward screen-right and upward, THE LYRE hanging from one hand, his head facing forward, never turned. Two steps below him at screen-left, a woman's dark silhouette in THE DRESS follows, a pale outline in the mist, no face, no detail. ORPHEUS is no taller than one third of the frame height. The only warm light falls on ORPHEUS and THE LYRE.
+
+WHAT HAPPENS:
+[0s] ORPHEUS climbs the last wet steps toward the opening, steady; the silhouette follows two steps behind, silent.
+[3s] He reaches the last step below the opening; the daylight grows on his shoulder; he stands still, head facing forward.
+[5s] Hold: no look back, no speech, no new action.
+
+overall_soundscape: only the sounds of the place: slow footsteps on wet stone, dripping water, his breath. There is no second set of footsteps. No voices, no speech, no singing.
+non_diegetic_music: none.
+
+Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
+
+CRITICAL NEGATIVES: no face on the silhouette, ORPHEUS never turns his head, no second ORPHEUS, no speech or singing, no skulls, no bones, nothing new starts after 5 seconds.
+
+House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

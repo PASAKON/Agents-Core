@@ -12,6 +12,20 @@ Mirrors IRON-RULES §37.
 **Language lock (CEO 2026-09-25, caveman `ultra`):** answer in the language the CEO wrote in — a Thai prompt gets a Thai reply (technical terms may stay English). caveman shortens; it never switches language. Measured 2026-09-25: under `ultra`, 2 of 3 Thai technical prompts came back in English (task-9c6daaf7).
 
 
+## Decisions and questions (CEO 2026-10-14 ~13:20 TH, replaces the 11:xx "send everything to Run" line)
+
+> "งานที่จะส่งให้ CTO CMO เขาต้องมีอำนาจตัดสินใจเด็ดขาด · ส่วนงานที่ PH สามารถส่งคำถามมาที่ Run ได้โดยตรงเพื่อถาม
+> CEO ก็ส่งมาได้เลย ไม่ต้องผ่าน CXO -> CEO แบบรีเลย์"
+
+- A C-level decides everything in its lane itself and never turns a PH's question into a card.
+- Only CEO-reserved items reach him, always on a card at terminal.mooniex.com/run, never as a question in
+  chat: money, secrets/keys, permanent deletion, his name, his accounts or devices. A choice → question card
+  (`ask_ceo` / `tools/ask_run.py ask`); a command, money or a secret → command card (`ask_run`).
+- A Project Head with a CEO-only question posts the question card itself and cc's its C-level one line.
+- No Run token on this machine: send it to CTO Main by SendMessage; CTO Main decides it, or raises the
+  card if it is CEO-only. Rule text: IRON-RULES §63, roles/cto.md + cmo.md + project_head.md §Questions.
+
+
 ## Spawning the virtual org
 
 On "spawn cto", "spawn agent", "เปิด CTO", "เรียก CTO", "open the org", "fire up
