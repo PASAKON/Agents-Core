@@ -12,7 +12,7 @@ Design by the CTO, from a live survey of the box. **Nothing here has been implem
 
 | | State (measured 2026-09-11) |
 |---|---|
-| Tailscale | ✅ up — `desktop-3nqb2qo` `100.123.83.75` |
+| Tailscale | ✅ up — `window-gob` (MagicDNS; desktop-3nqb2qo before the 2026-09-24 reset) |
 | **CEO's phones on the tailnet** | ✅ **`iphone-14-pro-max` `100.121.168.30`, `iphone-14-pro` `100.71.47.58`** |
 | Contabo (me) on the tailnet | ✅ `100.118.171.23`, direct |
 | Auto-logon | ❌ **`AutoAdminLogon = 0`** |
@@ -87,7 +87,7 @@ disconnects, and the session carries on untouched.
 
 - Server: **TightVNC** or **UltraVNC** on winbox, bound to the Tailscale interface only, never
   to `0.0.0.0`.
-- Phone: any VNC client (RealVNC Viewer, bVNC) → `100.123.83.75`.
+- Phone: any VNC client (RealVNC Viewer, bVNC) → `window-gob` (MagicDNS).
 - Exposure: **none.** Tailscale is already the only path in, and both phones are already on it.
 
 Fallback if a VNC client proves awkward on iOS: Chrome Remote Desktop has the better phone app,

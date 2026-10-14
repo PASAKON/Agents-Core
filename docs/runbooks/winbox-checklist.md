@@ -93,7 +93,7 @@ Name present = an agent is working → wait, or tell the CTO to stop it first
 ## Emergency card — keep on phone
 
 ```
-VNC      100.123.83.75   รหัส: CEO เก็บไว้   (เปิด Tailscale ก่อน)
+VNC      window-gob      รหัส: CEO เก็บไว้   (เปิด Tailscale ก่อน)
 สุขภาพ    bash scripts/winbox-drill.sh
 กู้ระบบ   docs/runbooks/winbox-recovery.md
 poller   pgrep -af "runners.branch_poller"
