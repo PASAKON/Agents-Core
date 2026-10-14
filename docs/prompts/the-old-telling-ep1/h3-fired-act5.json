@@ -1,0 +1,362 @@
+[
+ {
+  "clip": "s01",
+  "ids": [
+   "e15xisrn"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s02",
+  "ids": [
+   "f71tpe10"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s03",
+  "ids": [
+   "7qupe8wv"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04a",
+  "ids": [
+   "wmo0q1fp"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04b",
+  "ids": [
+   "19859zdi"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s05",
+  "ids": [
+   "ukbz8bi8"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s06",
+  "ids": [
+   "7kaiod8y"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s07",
+  "ids": [
+   "zsflt9t5"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s08a",
+  "ids": [
+   "eemp623v"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s08b",
+  "ids": [
+   "1g2pnamt"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s09a",
+  "ids": [
+   "8uc7ejsl"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s09b",
+  "ids": [
+   "yibhomge"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s10",
+  "ids": [
+   "d9y5pnhe"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s11",
+  "ids": [
+   "8ew5mp95"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s12",
+  "ids": [
+   "bsym31zr"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s14",
+  "ids": [
+   "sftausb4"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s15a",
+  "ids": [
+   "fgievi8r"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s15b",
+  "ids": [
+   "zefp9e1c"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s16",
+  "ids": [
+   "izzcleve"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s09b",
+  "ids": [
+   "3l7tgfaf"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ }
+]

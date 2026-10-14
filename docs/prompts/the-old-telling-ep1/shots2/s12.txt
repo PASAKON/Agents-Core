@@ -1,0 +1,38 @@
+=== NOTES · DO NOT PASTE ANY OF THIS ===
+S12 ORPHEUS SINGS TO HER · 8s request (192 frames, 8.00 s) · 1080p · 16:9 · The Old Telling EP1 ACT 2 · covers sentences 2.15
+Entities (group 'The Old Telling'): @ORPHEUS, @LYRE. Audio bound: ['act2_215_hint.mp3'].
+Narration is NOT in this clip; it is mixed in the edit.
+=== END NOTES ===
+
+=== ↓↓↓ PASTE FROM HERE ↓↓↓ ===
+
+8s · 1080p · 16:9 · ONE CONTINUOUS TAKE, NO CUTS. Camera static with a very slow push toward ORPHEUS; no zoom, no cut.
+
+THE SAME LONE SHORE. ORPHEUS speaks low to the sea, to her, at dawn and then at dusk, in one take.
+
+REFERENCES, each with a job:
+@ORPHEUS: ORPHEUS, an adult man in his late twenties, a Thracian musician: dark curly shoulder-length hair held by a band of olive leaves, short dark beard, plain undyed wool tunic with a rope belt, dark wool cloak over one shoulder with a narrow amber-ochre border stripe, leather sandals. Face, body and clothes only; take nothing of the background.
+@LYRE: THE LYRE, his ancient Greek lyre: aged dark-amber wood, a deep rounded body, two curved arms ending in small scrolls, a straight crossbar, seven strings. Shape and wood only; take nothing of the background.
+
+THE FRAME: Medium-wide shot of a flat pebble shore beside a still grey sea under a pale sky, one weathered driftwood log, nothing else on the shore and no other person. ORPHEUS sits on the driftwood log in the left third of the frame, in three-quarter view toward the sea at screen-right, THE LYRE across his knees, both hands resting still on it. His face and lips are visible. He fills about one third of the frame height. At the start the light is pale grey dawn with a faint ember glow on the horizon.
+
+WHAT HAPPENS:
+[0s] ORPHEUS sits still in the pale dawn, looking at the sea.
+[0.6s] ORPHEUS speaks his line to the sea in a low voice: his lips move, his eyes on the horizon; his hands stay still on THE LYRE.
+[3.5s] Within the same take the light turns: the sky darkens to ember dusk over the sea while ORPHEUS goes on speaking, his eyes on the horizon.
+[6.8s] Hold: he lowers his head, his hands stay on THE LYRE, no speech, no new action; only the waves in the dusk.
+
+overall_soundscape: only the sounds of the place and of ORPHEUS: small waves on pebbles, a thin sea wind, and the one spoken line from <Audio 1>. No other voices, no singing, no lyre notes.
+non_diegetic_music: none.
+
+<Audio 1> is the finished dialogue track of this shot.
+<Audio 1>: fully_copy - the soundtrack plays <Audio 1> exactly as given: the same voice, the same line, the same timing.
+Speech timing: ORPHEUS speaks from 0.6 s to 6.5 s. ORPHEUS moves the lips only inside that window and keeps the mouth closed at every other moment.
+
+Colour grade: a moving classical oil painting. Hearth-ember orange firelight is the only warm light; cold deep verdigris green-black everywhere else; parchment-cream highlights; near-black shadows; no pure white, no pure black. Fine film grain, soft anamorphic edges. Photographed, not glossy CGI.
+
+CRITICAL NEGATIVES: no second person, no boat, no birds, no lyre played, no speaking anything except the line in <Audio 1>, no stage directions spoken aloud, no singing, nothing new starts after 6.8 seconds.
+
+House negatives: no text, no subtitles, no captions, no logos, no watermark; no grid, no split screen, no panels, no collage; no cartoon, no anime, no plastic skin, no glossy CGI; no gore, no blood, no wounds, no skulls; no nudity; no child, no minor; no modern objects; no neon; no music, no score, no choir; no lens flare, no dutch angle; no blush, no red cheeks, no red ears, even natural skin tone.
+
+=== ↑↑↑ PASTE STOPS HERE ↑↑↑ ===

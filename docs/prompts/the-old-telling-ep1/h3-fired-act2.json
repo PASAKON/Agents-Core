@@ -1,0 +1,308 @@
+[
+ {
+  "clip": "s01",
+  "ids": [
+   "2njsswlw"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s03",
+  "ids": [
+   "dir1v7on"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04",
+  "ids": [
+   "oyiakvks"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s05",
+  "ids": [
+   "v20igvn5"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s06",
+  "ids": [
+   "hdrv8yto"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s07",
+  "ids": [
+   "vglr3x8a"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s08",
+  "ids": [
+   "wc6omdso"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s09",
+  "ids": [
+   "ajlcwheo"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s10",
+  "ids": [
+   "2fdegtup"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s11",
+  "ids": [
+   "zb4gh151"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s12",
+  "ids": [
+   "l2kugnrp"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s13",
+  "ids": [
+   "dowj3pge"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s14",
+  "ids": [
+   "kgg3mpt4"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s15",
+  "ids": [
+   "fi1d1unk"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s03",
+  "ids": [
+   "o6uaxs3h"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04",
+  "ids": [
+   "lf1f96v6"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "s04",
+  "ids": [
+   "aibs9zh3"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ }
+]
