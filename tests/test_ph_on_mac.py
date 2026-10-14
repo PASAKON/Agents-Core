@@ -17,6 +17,7 @@ tests run the spawn path with each of those taken away:
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -185,3 +186,250 @@ def test_when_ps_cannot_read_argv_an_alive_pid_counts(mac, procs, monkeypatch, r
                         lambda *a, **k: subprocess.CompletedProcess(a, rc, out, ""))
     assert clevel_gate._ps_argv(pid) is None
     assert clevel_gate._pid_is_launcher(pid, PH)
+
+
+# --- M13b: a Contabo C-level starts a Project Head on the Mac through one Run card ---
+# (§2b review of #280: pinned code only, exact args, C-level raised, single-use nonce)
+
+NONCE = "0123456789abcdef"
+SHA = "d4ff2ae0" + "0" * 32
+ARGS = ["--project", "LuminaSkies", "--from-card", NONCE, "--sha", SHA, "--brief", "b"]
+
+
+def _card(**over):
+    card = {"id": "RUN-20261014-1300-ab12", "status": "running", "host": "mac", "kind": "script",
+            "created_via": "clevel",
+            "script": {"repo": "Agents-Core", "sha": SHA, "path": "scripts/spawn-ph.sh", "args": list(ARGS)},
+            "requester": {"session": f"cto-{OWNER}", "role": "cto"}}
+    card.update(over)
+    return card
+
+
+@pytest.fixture()
+def hub(monkeypatch):
+    import lib.config
+    import tools.ask_run as ask_run
+    cards = []
+    seen = {}
+
+    def call(method, path, *, body=None, query=None):
+        seen.update(method=method, path=path, query=query)
+        return {"asks": cards}
+
+    monkeypatch.setattr(ask_run, "_call", call)
+    monkeypatch.setattr(lib.config, "self_host", lambda: "mac")
+    monkeypatch.setattr(spawn_ph, "clone_refusal", lambda sha: None)   # tested on its own below
+    return cards, seen
+
+
+def test_the_card_requester_is_the_owner(mac, hub, monkeypatch):
+    cards, seen = hub
+    monkeypatch.setenv("ORG_PH_ROLES", "1")  # the executor has no C-level env at all
+    cards.append(_card())
+    assert spawn_ph.card_owner(ARGS) == ("cto", OWNER)
+    assert seen["query"]["status"] == "running"
+    out = spawn_ph.spawn("LuminaSkies", "b", dry_run=True, card=ARGS)
+    assert out["owner"] == f"cto-{OWNER}"
+    assert f"ORG_PH_OWNER={OWNER}" in out["command"]
+
+
+def _script(**kw):
+    return {"repo": "Agents-Core", "sha": SHA, "path": "scripts/spawn-ph.sh", "args": list(ARGS), **kw}
+
+
+@pytest.mark.parametrize("over", [
+    {"status": "approved"}, {"status": "pending"}, {"host": "winbox"}, {"kind": "command"},
+    {"script": _script(path="scripts/other.sh")},
+    {"script": _script(repo="Fork")},
+    {"script": _script(sha="e" * 40)},                                   # another commit
+    {"script": _script(args=ARGS[:-2])},                                 # the CEO saw no brief
+    {"script": _script(args=ARGS[:-1] + ["a brief the CEO never saw"])},
+    {"script": _script(args=["--project", "Other", *ARGS[2:]])},
+    {"script": _script(args=[*ARGS[:3], "f" * 16, *ARGS[4:]])},
+])
+def test_a_card_that_is_not_exactly_this_run_is_refused(mac, hub, over):
+    cards, _ = hub
+    cards.append(_card(**over))
+    with pytest.raises(spawn_ph.Refused, match="no single running Run Inbox card"):
+        spawn_ph.card_owner(ARGS)
+
+
+@pytest.mark.parametrize("over", [
+    {"requester": {"session": f"project_head-{PH_SID}", "role": "project_head"}},
+    {"requester": {"session": f"cmo-{OWNER}", "role": "cto"}},
+    {"requester": {"session": "task-1234", "role": "worker"}},
+    {"created_via": "worker"},                    # a role claim alone is not enough
+    {"created_via": None},
+])
+def test_a_card_not_raised_by_a_c_level_is_refused(mac, hub, over):
+    cards, _ = hub
+    cards.append(_card(**over))
+    with pytest.raises(spawn_ph.Refused, match="not raised by a C-level"):
+        spawn_ph.card_owner(ARGS)
+
+
+def test_two_matching_cards_are_refused(mac, hub):
+    cards, _ = hub
+    cards += [_card(), _card(id="RUN-2")]
+    with pytest.raises(spawn_ph.Refused, match=r"\(2 found\)"):
+        spawn_ph.card_owner(ARGS)
+
+
+@pytest.mark.parametrize("argv", [
+    ARGS + ["--dry-run"], ARGS[:4], ["--from-card", NONCE, "--project", "LuminaSkies", "--sha", SHA],
+    [*ARGS[:6], "--brief-file", "/etc/passwd"], [*ARGS[:3], "x", *ARGS[4:]], [*ARGS[:5], "main"],
+])
+def test_a_card_run_takes_exactly_the_card_shape(argv):
+    with pytest.raises(spawn_ph.Refused):
+        spawn_ph.parse_card_args(argv)
+
+
+def test_the_nonce_is_single_use(mac, hub, monkeypatch):
+    cards, _ = hub
+    cards.append(_card())
+    spawn_ph.use_nonce(NONCE)
+    with pytest.raises(spawn_ph.Refused, match="already used"):
+        spawn_ph.use_nonce(NONCE)
+
+
+def test_no_hub_is_refused(mac, monkeypatch):
+    import lib.config
+    import tools.ask_run as ask_run
+    monkeypatch.setattr(lib.config, "self_host", lambda: "mac")
+    monkeypatch.setattr(spawn_ph, "clone_refusal", lambda sha: None)
+
+    def down(*a, **k):
+        raise ask_run.HubError("no token")
+
+    monkeypatch.setattr(ask_run, "_call", down)
+    with pytest.raises(spawn_ph.Refused, match="cannot read the Run Inbox hub"):
+        spawn_ph.card_owner(ARGS)
+
+
+def test_card_command_shape():
+    cmd = spawn_ph.card_command("mac", "LuminaSkies", "brief text", SHA, nonce=NONCE)
+    i = cmd.index("create")
+    assert cmd[i:i + 3] == ["create", "--host", "mac"]
+    assert f"Agents-Core@{SHA}:scripts/spawn-ph.sh" in cmd
+    assert cmd[cmd.index("--") + 1:] == [*ARGS[:-1], "brief text"]
+    for bad in (dict(project="../x"), dict(sha="d4ff2ae0"), dict(sha="main"),
+                dict(brief="line one\nline two"), dict(brief="x" * (spawn_ph.CARD_BRIEF_MAX + 1))):
+        kw = {"project": "LuminaSkies", "brief": "", "sha": SHA, **bad}
+        with pytest.raises(spawn_ph.Refused):
+            spawn_ph.card_command("mac", kw["project"], kw["brief"], kw["sha"])
+
+
+def test_raising_a_card_needs_a_c_level(mac, monkeypatch, capsys):
+    monkeypatch.setenv("ORG_PH_ROLES", "1")
+    assert spawn_ph.main(["card", "--host", "mac", "--project", "LuminaSkies", "--sha", SHA]) == 1
+    assert "only a C-level" in capsys.readouterr().err
+    monkeypatch.setenv("CXO_ROLE", "cto")
+    monkeypatch.setenv("CTO_SESSION_ID", OWNER)
+    assert spawn_ph.main(["card", "--host", "mac", "--project", "LuminaSkies", "--sha", SHA]) == 0
+    assert f"Agents-Core@{SHA}:scripts/spawn-ph.sh" in capsys.readouterr().out
+
+
+def test_card_command_passes_ask_run_checks():
+    import tools.ask_run as ask_run  # noqa: F401
+    cmd = spawn_ph.card_command("mac", "LuminaSkies", "Read README.md.", SHA, nonce=NONCE)
+    env = {"CXO_ROLE": "cto", "CTO_SESSION_ID": OWNER}
+    r = subprocess.run([*cmd[:3], "--dry-run", *cmd[3:]], capture_output=True, text=True,
+                       env={**__import__("os").environ, **env}, timeout=60)
+    assert r.returncode == 0, r.stderr
+    assert '"path": "scripts/spawn-ph.sh"' in r.stdout and NONCE in r.stdout
+
+
+# The COPIED script (§2b review of #280, finding 1): the executor runs the pinned
+# bytes from data/run-tmp/<id>/, next to whatever someone planted in data/run-tmp.
+
+def _git(*a, cwd):
+    subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True,
+                   env={**__import__("os").environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+                        "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"})
+
+
+@pytest.fixture()
+def card_run(tmp_path):
+    """A fixed clone (a tiny repo whose tools/spawn_ph.py says it ran), and the
+    executor's run-tmp holding a copy of spawn-ph.sh pointed at that clone, plus
+    planted look-alikes beside it."""
+    clone = tmp_path / "clone"
+    (clone / "tools").mkdir(parents=True)
+    (clone / "lib").mkdir()
+    (clone / "tools" / "spawn_ph.py").write_text(
+        "import sys, json\nprint('CLONE RAN', json.dumps(sys.argv[1:]), 'isolated=%d' % sys.flags.isolated)\n")
+    _git("init", "-q", cwd=clone)
+    _git("add", "-A", cwd=clone)
+    _git("commit", "-qm", "c", cwd=clone)
+    sha = subprocess.run(["git", "-C", str(clone), "rev-parse", "HEAD"], capture_output=True,
+                         text=True).stdout.strip()
+    run_tmp = tmp_path / "data" / "run-tmp"
+    (run_tmp / "RUN-1").mkdir(parents=True)
+    text = (ROOT / "scripts" / "spawn-ph.sh").read_text()
+    assert text.count("CLONE_LINUX=/opt/MoonieXHQ/Agents/Core\n") == 1
+    text = text.replace("CLONE_LINUX=/opt/MoonieXHQ/Agents/Core\n", f"CLONE_LINUX={clone}\n")
+    script = run_tmp / "RUN-1" / "spawn-ph.sh"
+    script.write_text(text)
+    for planted in (run_tmp / "tools" / "spawn_ph.py", run_tmp / ".venv" / "bin" / "python"):
+        planted.parent.mkdir(parents=True, exist_ok=True)
+        planted.write_text("#!/bin/sh\necho PWNED\nprint('PWNED')\n")
+        planted.chmod(0o755)
+
+    def run(args):
+        return subprocess.run(["bash", str(script), *args], capture_output=True, text=True, timeout=30,
+                              cwd=run_tmp / "RUN-1")
+
+    run.clone, run.sha = clone, sha
+    return run
+
+
+def _card_args(sha):
+    return ["--project", "LuminaSkies", "--from-card", NONCE, "--sha", sha]
+
+
+def test_the_copied_script_runs_the_clone_isolated_never_a_planted_file(card_run):
+    r = card_run(_card_args(card_run.sha))
+    assert "PWNED" not in r.stdout + r.stderr
+    assert r.returncode == 0, r.stderr
+    assert r.stdout.startswith("CLONE RAN") and "isolated=1" in r.stdout
+    assert json.loads(r.stdout.split(" ", 2)[2].rsplit(" ", 1)[0]) == _card_args(card_run.sha)
+
+
+def test_the_copied_script_refuses_a_clone_at_another_commit(card_run):
+    r = card_run(_card_args("e" * 40))
+    assert r.returncode == 2 and "the card is " + "e" * 40 in r.stderr and "CLONE RAN" not in r.stdout
+
+
+def test_the_copied_script_refuses_a_changed_clone(card_run):
+    (card_run.clone / "tools" / "spawn_ph.py").write_text("print('EDITED')\n")
+    r = card_run(_card_args(card_run.sha))
+    assert r.returncode == 2 and "changed tracked files" in r.stderr and "EDITED" not in r.stdout
+
+
+@pytest.mark.parametrize("rel", ["json.py", "tools/clevel_gate.py", "lib/deep/x.py"])
+def test_the_copied_script_refuses_untracked_python_it_would_import(card_run, rel):
+    (card_run.clone / rel).parent.mkdir(parents=True, exist_ok=True)
+    (card_run.clone / rel).write_text("print('PWNED')\n")
+    r = card_run(_card_args(card_run.sha))
+    assert r.returncode == 2 and "untracked Python" in r.stderr and "PWNED" not in r.stdout
+
+
+def test_a_card_run_without_a_full_sha_is_refused(card_run):
+    r = card_run(["--project", "LuminaSkies", "--from-card", NONCE])
+    assert r.returncode == 2 and "needs --sha" in r.stderr
+
+
+def test_the_python_side_checks_the_clone_too(card_run, monkeypatch):
+    monkeypatch.setattr(spawn_ph, "ROOT", card_run.clone)
+    assert spawn_ph.clone_refusal(card_run.sha) is None
+    assert "the card is " + "e" * 40 in spawn_ph.clone_refusal("e" * 40)
+    (card_run.clone / "tools" / "spawn_ph.py").write_text("x = 1\n")
+    assert "changed tracked files" in spawn_ph.clone_refusal(card_run.sha)
+
+
+def test_a_spawn_must_use_the_cards_project_and_brief(mac, hub):
+    cards, _ = hub
+    cards.append(_card())
+    for project, brief in (("Other", "b"), ("LuminaSkies", "another brief")):
+        with pytest.raises(spawn_ph.Refused, match="must be the card's"):
+            spawn_ph.spawn(project, brief, dry_run=True, card=ARGS)
