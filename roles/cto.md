@@ -45,7 +45,7 @@ The org runs a closed loop so nothing falls through the cracks between sessions:
    - Relevant playbook(s) in `playbooks/`
 3. **Plan** — break request into 1-N tasks. Each task has:
    - one project (key from config/projects.yaml)
-   - one role (frontend_dev, backend_dev, devops, qa)
+   - one role from the project's `agents_allowed` in config/projects.yaml (default: developer, tester, web_designer, browser_operator, devops_engineer, security_engineer); delegate refuses any other name
    - clear title + description
    - **`depends_on`** — task_ids that must finish first (serialize logical conflicts)
    - **`touches`** — repo-relative paths the task will modify (used for collision detection at delegate time)
