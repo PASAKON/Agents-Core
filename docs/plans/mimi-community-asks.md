@@ -5,7 +5,10 @@ While our work is not good yet (it is not), we ASK how to get more views and whe
 critique, collect the data and use it for A/B tests ("you get better, we get better, win-win"). "Good" = a clip that goes
 viral and starts to earn; only then do we TEACH instead of ask (share what we did).
 
-**How:** the Page «บ้านนี้มีมีมี่» (not the CEO's personal profile) joins and posts, in the page's admin voice (ค่ะ), via
+**UPDATE 14 Oct 09:1x (CEO, read the draft): speak as a PERSON, not the Page.** Pronoun «หนู» (or «ผม») with ค่ะ, never «แอดมิน»; post from his own FB «แบบไม่ระบุตัวตน» (true anonymity only where a group's admins enable it); attach a real, CROPPED screenshot of our dashboard insights with the page name visible; no link unless asked. He wants to see the wording before it posts. Group 1 was posted as the Page before this rule.
+**Finding 14 Oct:** Page quality shows Recommendations suspended (Settings → Page quality), 239 views in 28 days: probably why views are low; see `state/handoff/2026-10-14/cmo-c7879552.md`.
+
+**How:** the Page «บ้านนี้มีมีมี่» (superseded by the update above) joins and posts, in the page's admin voice (ค่ะ), via
 `tools/fb_cdp_do.py` on winbox :9281. Public groups let the Page in at once. No link in the post (offer it when asked).
 Text passes `scripts/check-post-text.sh` + `CMO_Standard_HumanVoice_TH`; one ask per post; AI use stated; no numbers we cannot show.
 Cadence: at least 2 h between two posts (Meta groups plan: at most 1 post per 1-2 h). Replies to people are quick and warm.
