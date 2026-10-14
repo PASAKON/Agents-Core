@@ -650,3 +650,13 @@ def test_fal_challenged_and_legacy_down_is_blind_with_both_reasons():
         sg.read_fal(FAL_KEY, fake)
     assert str(e.value) == "user_balance HTTP 503; billing HTTP 403"
     assert FAL_KEY not in str(e.value)
+
+
+def test_shipped_config_never_auto_pauses_the_shared_moonie_x_key():
+    """config/spend_guard.yaml: MoonieX serves the customer chatbot, so it is mapped and pause: false
+    until the phase-2 broker gives each service its own key (docs/plans/spend-guard-2026-10-14.md §2)."""
+    cfg = sg.load_config(REPO / "config" / "spend_guard.yaml")
+    keys = cfg["providers"]["openrouter"]["keys"]
+    assert keys["MoonieX"]["pause"] is False
+    assert any("claudeflow-webhook" in c for c in keys["MoonieX"]["consumers"])
+    assert cfg["pause"]["unmapped_keys"] == "alert"
