@@ -409,8 +409,7 @@ def _close_iterm_tab(task_id: str, *, allow_pid: bool) -> bool:
         return False
 
 
-def close_dev(task_id: str, *, reason: str, comment: str = "",
-              kind: str = "", first_pass: str = "") -> dict:
+def close_dev(task_id: str, *, reason: str) -> dict:
     """End a DEV's process + tmux/ttyd + tab + claimed Chrome tab(s) for
     `task_id`. See module docstring.
 
@@ -449,10 +448,6 @@ def close_dev(task_id: str, *, reason: str, comment: str = "",
             f"status={task['status']!r} not in {REAPABLE_STATUSES}"
         )
         return result
-
-    if comment:
-        from tools.runner_comment import write_comment
-        write_comment(task_id, kind=kind, first_pass=first_pass, line=comment)
 
     pid = task.get("pid")
     matched = False

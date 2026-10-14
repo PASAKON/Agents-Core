@@ -26,3 +26,14 @@
 ## Skill learning
 
 - (none)
+
+## PH rework (project_head-6c487e37, 14 Oct)
+
+CTO Main, 14 Oct: `tools/runner_fit.py` (CXO_Gate_RouteFirst Gate 5) already records the reviewer's verdict per
+closed task as hub event `runner_fit` (job, pass/redo/fail, first_pass, why). The comment recorder duplicated it,
+so it is removed: `tools/runner_comment.py`, the `runner_comment` MCP tool, and the comment args on `close_dev` and
+`merge_task` are gone. `model_stats` takes first-pass from `runner_fit` events; `tools/runner_picks.py` builds the
+table from them. The effort plumbing (route keeps `model:effort`, launchers pass `-c model_reasoning_effort`) is
+kept as the worker built it; `runner_fit.from_task` copies `runner_model`, so the effort reaches the event too.
+Tests: tests/test_runner_picks.py replaces tests/test_runner_comment_picks.py; the Postgres-shape test in
+tests/test_g1_worker_org_db_reexec.py follows the new query.

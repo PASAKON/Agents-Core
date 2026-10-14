@@ -33,9 +33,24 @@ class RunnerStat:
         return self.first_pass_y / total if total else None
 
 
+def _first_pass_by_task(conn) -> dict[str, bool]:
+    """The reviewer's verdict per task: the newest runner_fit event (tools/runner_fit.py,
+    CXO_Gate_RouteFirst Gate 5). A task nobody reviewed has no first-pass value."""
+    out = {}
+    for task_id, payload in conn.execute(
+            "SELECT task_id, payload FROM events WHERE kind = 'runner_fit' ORDER BY ts").fetchall():
+        try:
+            value = json.loads(payload or "{}").get("first_pass")
+        except (ValueError, TypeError, AttributeError):
+            continue
+        if task_id and isinstance(value, bool):
+            out[task_id] = value
+    return out
+
+
 def _compute(db_path, task_class=None, *, by_class=False):
-    """Aggregate in Python so review JSON works on SQLite and Postgres."""
-    query = ("SELECT runner, runner_model, role, status, iteration, review FROM tasks "
+    """Aggregate in Python so the same code runs on SQLite and Postgres."""
+    query = ("SELECT runner, runner_model, role, status, iteration, id FROM tasks "
              "WHERE status IN ('done', 'merged', 'failed')")
     params = []
     if task_class is not None:
@@ -43,6 +58,7 @@ def _compute(db_path, task_class=None, *, by_class=False):
         params.append(task_class)
     with db_lib.get_conn(path=Path(db_path), readonly=True) as conn:
         rows = conn.execute(query, params).fetchall()
+        fit = _first_pass_by_task(conn)
     groups = defaultdict(list)
     for row in rows:
         runner, model, role, *_ = tuple(row)
@@ -52,19 +68,12 @@ def _compute(db_path, task_class=None, *, by_class=False):
         passed = sum(t[3] in ("done", "merged") for t in tasks)
         failed = sum(t[3] == "failed" for t in tasks)
         iterations = [int(t[4] or 0) for t in tasks]
-        first_pass = []
-        for task in tasks:
-            try:
-                value = json.loads(task[5] or "{}").get("runner_comment", {}).get("first_pass")
-            except (ValueError, TypeError, AttributeError):
-                value = None
-            if value in ("y", "n"):
-                first_pass.append(value)
+        first_pass = [fit[t[5]] for t in tasks if t[5] in fit]
         score = sum(1 / (1 + i) if t[3] in ("done", "merged") else 0
                     for t, i in zip(tasks, iterations)) / len(tasks)
         result.append(RunnerStat(runner, model, role, len(tasks), passed, failed,
                                  sum(iterations) / len(tasks), round(score, 4),
-                                 first_pass.count("y"), first_pass.count("n")))
+                                 first_pass.count(True), first_pass.count(False)))
     return result
 
 

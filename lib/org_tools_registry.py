@@ -250,27 +250,16 @@ def _h_review_diff(*, task_id: str, full: bool = False) -> str:
     return out
 
 
-def _h_merge_task(*, task_id: str, override_touches_check: bool = False,
-                  comment: str = "", kind: str = "", first_pass: str = "") -> dict:
+def _h_merge_task(*, task_id: str, override_touches_check: bool = False) -> dict:
     # Org restructure P2 (plan §1.2, T9): with ORG_PH_ROLES on, merge_task
     # judges the calling session's own role (its CXO_ROLE) against can_merge
     # in policies/agents.yaml. Off, every caller merges as "cto", as before.
     role = (caller_role() or ROLE) if org_roles.ph_roles_on() else ROLE
-    return do_merge(task_id, role=role, override_touches_check=override_touches_check,
-                    comment=comment, kind=kind, first_pass=first_pass)
+    return do_merge(task_id, role=role, override_touches_check=override_touches_check)
 
 
-def _h_close_dev(*, task_id: str, reason: str = "cto: manual close",
-                 comment: str = "", kind: str = "", first_pass: str = "") -> dict:
-    return do_close_dev(task_id, reason=reason, comment=comment,
-                        kind=kind, first_pass=first_pass)
-
-
-def _h_runner_comment(*, task_id: str, kind: str, first_pass: str, line: str,
-                      lane: str = "", by: str = "") -> dict:
-    from tools.runner_comment import write_comment
-    return write_comment(task_id, kind=kind, first_pass=first_pass, line=line,
-                         lane=lane, by=by)
+def _h_close_dev(*, task_id: str, reason: str = "cto: manual close") -> dict:
+    return do_close_dev(task_id, reason=reason)
 
 
 def _h_reopen_task(*, task_id: str, feedback: str) -> str:
@@ -566,9 +555,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "with review_diff, then retry with override_touches_check=True "
             "once you've confirmed the extra files are legitimate."
         ),
-        params=(Param("task_id", str), Param("override_touches_check", bool, False),
-                Param("comment", str, ""), Param("kind", str, ""),
-                Param("first_pass", str, "")),
+        params=(Param("task_id", str), Param("override_touches_check", bool, False)),
         handler=_h_merge_task,
         needs_ownership_check=True,
         response_format="toon",
@@ -587,20 +574,8 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "recycled pid is never signalled, only its tab is closed). "
             "Idempotent — safe to call twice on the same task."
         ),
-        params=(Param("task_id", str), Param("reason", str, "cto: manual close"),
-                Param("comment", str, ""), Param("kind", str, ""),
-                Param("first_pass", str, "")),
+        params=(Param("task_id", str), Param("reason", str, "cto: manual close")),
         handler=_h_close_dev,
-        needs_ownership_check=True,
-        response_format="toon",
-    ),
-    ToolSpec(
-        name="runner_comment",
-        description="Record one review comment and first-pass outcome for a finished task.",
-        params=(Param("task_id", str), Param("kind", str),
-                Param("first_pass", str), Param("line", str),
-                Param("lane", str, ""), Param("by", str, "")),
-        handler=_h_runner_comment,
         needs_ownership_check=True,
         response_format="toon",
     ),
@@ -970,7 +945,7 @@ ENVELOPE_TOOLS = frozenset({"read_letter", "list_letters"})
 # dispatch anyway is refused. No session has that role today, so no existing
 # session's tool set changes; ORG_PH_ROLES gates launching one.
 PH_TOOLS = frozenset({
-    "check_collisions", "close_dev", "runner_comment", "create_task", "decide",
+    "check_collisions", "close_dev", "create_task", "decide",
     "delegate_parallel_tasks", "delegate_task", "get_task", "list_projects",
     "recall", "reflect", "reopen_task", "review_diff", "send_to_cxo", "stats",
     "wiki_list", "wiki_read", "wiki_search",

@@ -362,8 +362,7 @@ def _role_can_merge(role: str) -> bool:
 
 def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                push: bool | None = None, cleanup: bool = True,
-               gate_tests: bool = False, override_touches_check: bool = False,
-               comment: str = "", kind: str = "", first_pass: str = "") -> dict:
+               gate_tests: bool = False, override_touches_check: bool = False) -> dict:
     """Merge agent branch into project default branch. CTO only.
 
     Host-aware (Org Mesh W0.2, docs/design/org-mesh.md C5): when the project
@@ -513,16 +512,12 @@ def merge_task(task_id: str, *, role: str = "cto", strategy: str = "no-ff",
                         "branch": branch, "base": base, "project": proj["key"]}
 
     if not has_origin:
-        result = _merge_local(task_id, task, proj, repo, base, branch, merge_ref,
-                              worktree, strategy, push, cleanup, host)
-    else:
-        result = _merge_via_temp_worktree(task_id, task, proj, repo, base, branch,
-                                          merge_ref, worktree, strategy, push,
-                                          cleanup, host)
-    if result.get("merged") and comment:
-        from tools.runner_comment import write_comment
-        write_comment(task_id, kind=kind, first_pass=first_pass, line=comment)
-    return result
+        return _merge_local(task_id, task, proj, repo, base, branch, merge_ref,
+                            worktree, strategy, push, cleanup, host)
+
+    return _merge_via_temp_worktree(task_id, task, proj, repo, base, branch,
+                                    merge_ref, worktree, strategy, push,
+                                    cleanup, host)
 
 
 def _merge_local(task_id: str, task: dict, proj: dict, repo: Path, base: str,

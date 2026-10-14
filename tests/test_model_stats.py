@@ -22,13 +22,20 @@ def db(tmp_path):
     with closing(sqlite3.connect(path)) as conn:
         conn.execute("CREATE TABLE tasks (id TEXT, role TEXT, status TEXT, iteration INTEGER, runner TEXT, runner_model TEXT, review TEXT)")
         conn.executemany("INSERT INTO tasks VALUES (?, ?, ?, ?, ?, ?, ?)", [
-            ("t1", "developer", "done", 0, "agy", "gemini-3.8-flash-high", '{"runner_comment":{"first_pass":"y"}}'),
-            ("t2", "developer", "done", 1, "agy", "gemini-3.8-flash-high", '{"runner_comment":{"first_pass":"n"}}'),
+            ("t1", "developer", "done", 0, "agy", "gemini-3.8-flash-high", None),
+            ("t2", "developer", "done", 1, "agy", "gemini-3.8-flash-high", None),
             ("t3", "developer", "failed", 0, "agy", "gemini-3.8-flash-high", None),
             ("t4", "developer", "cancelled", 0, "agy", "gemini-3.8-flash-high", None),
             ("t5", "tester", "merged", 0, None, "claude-sonnet-5", None),
             ("t6", "tester", "done", 0, "claude", "claude-sonnet-5", None),
             ("t7", "developer", "review", 0, "codex", "astra:xhigh", None),
+        ])
+        # The reviewer's verdict lives in runner_fit events (tools/runner_fit.py), not on the row.
+        conn.execute("CREATE TABLE events (task_id TEXT, actor TEXT, kind TEXT, payload TEXT, ts TEXT)")
+        conn.executemany("INSERT INTO events VALUES (?, 'cto', ?, ?, ?)", [
+            ("t1", "runner_fit", '{"first_pass": true}', "2026-10-14T01:00:00Z"),
+            ("t2", "runner_fit", '{"first_pass": false}', "2026-10-14T02:00:00Z"),
+            ("t3", "status_failed", '{}', "2026-10-14T03:00:00Z"),
         ])
         conn.commit()
     before = path.read_bytes()

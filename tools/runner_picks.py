@@ -1,4 +1,10 @@
-"""Print observed runner picks from finished tasks with reviewer comments."""
+"""Print the job × runner:model:effort table from reviewed runs (hub events `runner_fit`).
+
+The reviewer's verdict is recorded once, by tools/runner_fit.py (CXO_Gate_RouteFirst Gate 5):
+job type, pass/redo/fail, first_pass and a one-line `why`. This only reads those events.
+A cell with fewer than MIN_RUNS reviewed runs prints "—": not enough runs to pick from.
+Skill ALL_Knowledge_RunnerPicks is written from this table.
+"""
 from __future__ import annotations
 
 import argparse
@@ -12,41 +18,54 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from lib import db  # noqa: E402
 
+MIN_RUNS = 3
 
-def build_table(db_path: Path) -> str:
+
+def _payloads(db_path: Path, since: str | None) -> list[dict]:
+    query = "SELECT payload FROM events WHERE kind = 'runner_fit'"
+    params: list = []
+    if since:
+        query += " AND ts >= ?"
+        params.append(since)
+    query += " ORDER BY ts DESC"
     with db.get_conn(path=db_path, readonly=True) as conn:
-        rows = conn.execute(
-            "SELECT runner, runner_model, review FROM tasks "
-            "WHERE status IN ('done', 'merged', 'failed') ORDER BY updated_at DESC"
-        ).fetchall()
-    groups = defaultdict(list)
-    for row in rows:
-        runner, model, raw = tuple(row)
+        rows = conn.execute(query, params).fetchall()
+    out = []
+    for (raw,) in (tuple(r) for r in rows):
         try:
-            comment = json.loads(raw or "{}").get("runner_comment")
-        except (ValueError, TypeError, AttributeError):
+            p = json.loads(raw or "{}")
+        except (ValueError, TypeError):
             continue
-        if isinstance(comment, dict) and comment.get("kind") and comment.get("line"):
-            groups[(comment["kind"], f"{runner or 'claude'}:{model or 'unknown'}")].append(comment)
-    lines = ["| Job kind | Runner:model:effort | Runs | First-pass y/n | Last 3 comments |",
-             "| --- | --- | ---: | ---: | --- |"]
-    for (kind, model), comments in sorted(groups.items()):
-        if len(comments) < 3:
-            lines.append(f"| {kind} | {model} | — | — | — |")
+        if isinstance(p, dict) and p.get("runner") and p.get("job_type"):
+            out.append(p)
+    return out
+
+
+def build_table(db_path: Path, since: str | None = None) -> str:
+    groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for p in _payloads(db_path, since):
+        groups[(p["job_type"], f"{p['runner']}:{p.get('model') or 'unknown'}")].append(p)
+    lines = ["| Job | Runner:model:effort | Runs | Pass/redo/fail | First pass | Last 3 comments |",
+             "| --- | --- | ---: | --- | ---: | --- |"]
+    for (job, pick), runs in sorted(groups.items()):
+        if len(runs) < MIN_RUNS:
+            lines.append(f"| {job} | {pick} | {len(runs)} | — | — | — |")
             continue
-        yes = sum(c.get("first_pass") == "y" for c in comments)
-        no = sum(c.get("first_pass") == "n" for c in comments)
-        recent = "; ".join(str(c["line"]).replace("|", "\\|") for c in comments[:3])
-        lines.append(f"| {kind} | {model} | {len(comments)} | {yes}/{no} | {recent} |")
+        res = "/".join(str(sum(r.get("result") == k for r in runs)) for k in ("pass", "redo", "fail"))
+        first = sum(r.get("first_pass") is True for r in runs)
+        recent = "; ".join(str(r.get("why") or "").replace("|", "\\|").replace("\n", " ")[:120]
+                           for r in runs[:3])
+        lines.append(f"| {job} | {pick} | {len(runs)} | {res} | {first}/{len(runs)} | {recent} |")
     return "\n".join(lines) + "\n"
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", type=Path, default=ROOT / "state" / "tasks.db")
+    parser.add_argument("--since", help="ISO date; only runs reviewed from then on")
     parser.add_argument("--write", type=Path)
     args = parser.parse_args()
-    table = build_table(args.db)
+    table = build_table(args.db, args.since)
     if args.write:
         args.write.write_text(table, encoding="utf-8")
     else:
