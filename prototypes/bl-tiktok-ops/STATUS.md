@@ -23,8 +23,8 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 | M3 | EP60 (B) live + pair-1 read | 16 Oct 22:00, check 22:12 | open | |
 | M4 | real read, 2 per arm, reported | 18 Oct 22:00, check 22:13 | open | |
 
-| M5 | EP62 (CXM cent-account case) script, CEO-approved | 14 Oct ~13:15 | in progress (W1 script_writer, branch ph-13db8720/bl62-script) | |
-| M6 | EP62 final + caption to CMO Main, then posted | 14 Oct 18:00 (post default 19:00) | open | |
+| M5 | EP62 (CXM cent-account case) script, approved | 14 Oct ~13:15 | done | v2 4e6e2421 approved by CMO Main 13:3x TH |
+| M6 | EP62 final filed + posted | 14 Oct 20:00 TH (check 20:10) | scheduled; live check open | final v2 md5 b0e66f89…, Drive 1K6pOQH9FdxrwCXH5rk2lRTuC_cKhUHzz; Studio list Oct 14 3:00 PM CEST, 01:07, Everyone |
 
 EP62 added 14 Oct 10:41 TH (CEO order via CMO Main). EP62 ran on Contabo by CTO ruling 14 Oct (CTO Main c34459eb 10:45 TH: «option (b) … nothing in these stages needs the Mac»), ClaudeFlow checkout /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow @4208690, node /opt/node-v22/bin/node, work dir /opt/MoonieXHQ/Work/bl-ep62.
 EP62 probe 14 Oct 10:5x TH ($0): row cc13ea6b-4009-4050-aaa1-da208294d711 (MANUAL_RUN), drive_setup done, Drive folder `BLACK LIQUIDITY [61] | BL EP62 — CXM ไม่จ่ายกำไรบัญชี Cent เกือบ 6 ล้าน` 1fOlTvVs555AODyN0ReD0qj5ZISMC1DjR, row.script byte-equal to the DRAFT probe (re-insert the approved script with --row before tts).
@@ -34,6 +34,10 @@ EP62 money approval (Run card RUN-20261014-0742-f99a, line in /opt/MoonieXHQ/Wor
 EP62 stages 14 Oct 14:4x–15:1x TH: tts done (raw 78.0 s ÷ 1.15 = 67.8 s delivered vs 70.5 s forecast, −3.8%, gate passes), scene_prompts 26, transcript, lipsync 3/3, editor_handoff → row DONE.
 EP62 SPEND OVERRUN: scenes stage generated S01–S03 with Seedream + Kling because BROLL_CATALOG_DIR is unset on Contabo — $1.78 outside the GO. Row total actual $2.37 (kling 1.68, sync_labs 0.513, seedream 0.10, gemini_tts 0.045, whisper 0.034) + OpenRouter prompts; fal 2.71 → 0.44. Reported to CMO Main 14 Oct ~15:2x TH; CMO reports it to the CEO. CMO hard stop: no paid call for the rest of EP62. Kling clips usable in the cut only if they pass eye QC and don't read as evidence (CMO creative call).
 EP62 cut: W2 (in-session agent, worktree) briefed 15:3x TH, /opt/MoonieXHQ/Work/bl-ep62/W2-BRIEF.md, due 17:45 TH; final 18:30, post 19:30 TH. Progress = done / 6. Paid stages (~$0.90) wait on the CEO GO and a host (Mac stale since 13 Oct 19:55; CTO asked).
+
+EP62 v2 cut 14 Oct ~19:07 TH ($0): W2 branch ph-13db8720/bl62-cut @70b3eee8; checker pass=true (out_of_safe_area []), lipsync A/B/C lag 0 ms r>=0.993 VERIFY PASSED, merge 2033 frames, -15.40 LUFS. v1 failed my review (cards cut off, no end legal card, PATTERN-2 out of safe area); v2 fixes all three. PATTERN-2 box now on the profit-terms paragraph (the 22 Sep line sits below the safe area); caption attributed. PH frame review: identity blurred, hook text right, all 15 KIN cards complete, end = avatar + legal label. Kling S01-S03 not used.
+EP62 filed 14 Oct ~19:1x TH: Drive EP62 Finals 1Q6vdzsMEqNjUJ3cUqFguiRBQHXdGXQ5p ← BL-EP62_final-v2_2026-10-14.mp4 1K6pOQH9FdxrwCXH5rk2lRTuC_cKhUHzz (Drive md5 = local b0e66f891a25b6fed94fac084a1ecd09) + BL-EP62_lastframes-v2_2026-10-14.jpg 1k3zuxfKNny6Yimzo1MEtoKR8lMzsk0I7.
+EP62 scheduled 14 Oct 19:19 TH for 20:00 TH (15:00 CEST): studio_post_flow.py + studio_post_confirm.py 'checks: ALL MATCH', caption 11/11 blocks = CAPTION.md, AI label ON, Everyone, no link. Before it, the Browser Home's old tiktokstudio/content tab was hung (no CDP answer, Playwright attach timed out ×2); I closed that one tab (Target.closeTarget), nothing else touched.
 
 Session check-ins (session-only crons, re-made 14 Oct after the CEO rulings): a0dee140 (M1), 3e92f242 (M2), 9d45b221 (M3), ba4bf228 (M4).
 
