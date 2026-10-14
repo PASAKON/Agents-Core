@@ -598,3 +598,24 @@ def test_a_take_back_that_leaves_text_stops_that_session(box):
         rs.tmux = real
     assert out[0].startswith("stopped  cto-c34459eb") and "cto-c34459eb" not in box.pending
     assert box.box["cto-c34459eb"] == "his new words"        # left alone
+
+
+def test_a_half_redrawn_screen_at_the_deadline_still_takes_back_the_whole_line(box, monkeypatch):
+    # Review follow-up to round 4: the last capture shows only a prefix of what we typed.
+    line = f"/rename {CONTABO} CTO (Kavin) — x"
+    monkeypatch.setattr(rs, "_ok_to_enter", lambda screen, want: False)
+    real_screen = rs._screen
+    calls = {"n": 0}
+
+    def half(pane):
+        calls["n"] += 1
+        s = real_screen(pane)
+        if box.box.get(pane) == line:               # before the take-back: a partial redraw
+            return s.replace(line[10:], "")
+        return s
+
+    monkeypatch.setattr(rs, "_screen", half)
+    assert rs.type_rename("cto-c34459eb", line) == "held"
+    bs = [c for c in box.calls if c[-1] == "BSpace"][0]
+    assert int(bs[bs.index("-N") + 1]) >= len(line)
+    assert box.box["cto-c34459eb"] == ""
