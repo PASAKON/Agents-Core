@@ -29,7 +29,8 @@ from lib import router as host_router
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
-    self_host, worker_head, worker_session_name as get_worker_session_name,
+    self_host, terminal_window, worker_head,
+    worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
 from lib.proc import pid_alive
@@ -1850,8 +1851,11 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
     Mac (`sys.platform == "darwin"`): unchanged — the project's
     `spawn_backend` decides between a plain iTerm tab and tmux + an attached
     iTerm tab. Any other platform: tmux only, no iTerm/osascript/`open` at
-    all. A spawn that fails leaves the row `failed` (the caller returns it
-    as is); otherwise the claim watchdog is already scheduled."""
+    all. So is a Mac whose `terminal_window` is false in config/hosts.yaml
+    (CEO 2026-10-15): the same tmux-only branch Contabo takes, whatever the
+    project's `spawn_backend` says. A spawn that fails leaves the row
+    `failed` (the caller returns it as is); otherwise the claim watchdog is
+    already scheduled."""
     task_id = task["id"]
     role_name = task["role"]
     project_key = task["project"]
@@ -1873,9 +1877,10 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
                         _task_meta(task, self_host()))
     # iTerm, osascript and `open` exist on the Mac only (IRON-RULES §29: the
     # Mac keeps its visible iTerm tab). Every other platform runs the worker
-    # detached in the tmux backend and never touches them (task-6f6e5179).
-    on_darwin = sys.platform == "darwin"
-    backend = (proj.get("spawn_backend") or "iterm").lower() if on_darwin else "tmux"
+    # detached in the tmux backend and never touches them (task-6f6e5179). A
+    # Mac with terminal_window=false (CEO 2026-10-15) is treated the same way.
+    show_window = sys.platform == "darwin" and terminal_window(self_host())
+    backend = (proj.get("spawn_backend") or "iterm").lower() if show_window else "tmux"
     tmux_sess: str | None = None
     ttyd_port: int | None = None
     ttyd_pid: int | None = None
@@ -1887,7 +1892,7 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
     # ADR 0030 / Work/RULES.md rule 1-2: pilot scope only.
     work_dir_path = _work_dir_for(task_id, owner_cto)
 
-    if on_darwin and owner_cto and _owner_window_id(owner_cto, owner_role) is None:
+    if show_window and owner_cto and _owner_window_id(owner_cto, owner_role) is None:
         current = (db.get_task(task_id) or {}).get("delegate_log") or ""
         warning = f"WARNING: owner {owner_role}-{owner_cto} has no usable .winid; owner window may be unidentified"
         db.set_fields(task_id, delegate_log=f"{current}\n{warning}".strip(), actor="cto")
@@ -1928,7 +1933,7 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
                 ttyd_pid = tmux.start_ttyd(tmux_sess, ttyd_port, writable=True)
                 info(f"ttyd up pid={ttyd_pid} url={tmux.url_for(ttyd_port)}")
                 # Best-effort open in default browser (Mac only).
-                if on_darwin:
+                if show_window:
                     subprocess.run(["open", tmux.url_for(ttyd_port)], check=False)
             except Exception as e:
                 warn(f"ttyd start failed (continuing without web UI): {e}")
@@ -1940,7 +1945,7 @@ async def _spawn_local(task: dict, proj: dict, *, kickoff: str | None = None,
                           actor="cto")
 
     spawn_result = "spawned"
-    if on_darwin:
+    if show_window:
         try:
             spawn_result = _spawn_iterm_tab(role_name, task_id,
                                             tmux_attach=tmux_sess,

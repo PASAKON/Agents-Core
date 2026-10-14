@@ -224,14 +224,32 @@ def test_notify_desktop_banner_runs_osascript_on_darwin_only(monkeypatch, platfo
 
 
 def test_darwin_keeps_the_iterm_tab(local_spawn, temp_db, monkeypatch):
-    """The Mac path must not change: the iTerm tab is spawned."""
+    """A Mac that opens windows (terminal_window true) is unchanged: the iTerm tab is spawned."""
     monkeypatch.setattr(delegate, "self_host", lambda: "mac")
+    monkeypatch.setattr(delegate, "terminal_window", lambda host: True)
     monkeypatch.setattr(sys, "platform", "darwin")
     tid = _new_task(temp_db)
 
     asyncio.run(delegate.delegate_task(tid))
 
     assert len(local_spawn.iterm_calls) == 1
+
+
+def test_darwin_with_terminal_window_false_never_runs_osascript_or_open_and_uses_tmux(
+        local_spawn, temp_db, monkeypatch):
+    """CEO 2026-10-15: config/hosts.yaml has the Mac at terminal_window=false (read for real here,
+    not patched). Even for a project whose spawn_backend is "iterm" with web_ui on, the Mac takes
+    Contabo's tmux-only branch: no iTerm tab, no osascript, no `open` of the ttyd URL."""
+    monkeypatch.setattr(delegate, "self_host", lambda: "mac")
+    monkeypatch.setattr(sys, "platform", "darwin")
+    tid = _new_task(temp_db)
+
+    asyncio.run(delegate.delegate_task(tid))
+
+    assert local_spawn.iterm_calls == [], "terminal_window=false must not open an iTerm tab"
+    binaries = {a[0] for a in local_spawn.subprocess_argv if a}
+    assert "osascript" not in binaries and "open" not in binaries
+    assert len(local_spawn.tmux_created) == 1 and tid in local_spawn.tmux_created[0]["cmd"]
 
 
 # ---------------------------------------------------------------------------
