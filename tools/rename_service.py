@@ -200,9 +200,29 @@ def _squash(text: str) -> str:
     return "".join(c for c in text if not c.isspace() and c not in _BOX_CHARS)
 
 
+# An empty box in a fresh session shows a dim hint (`Try "fix lint errors"`), which a
+# plain capture cannot tell from typed text (seen on a real pane 14 Oct).
+_PLACEHOLDER_RE = re.compile(r'Try"[^"]{1,80}"')
+# A turn is running: the footer says so, or the spinner line "✽ Computing… (11s · …)".
+_BUSY_RE = re.compile(r"esc to interrupt|…\s*\(\d+[sm]\b")
+
+
+def box_empty(screen: str) -> bool:
+    """The WHOLE input box is empty, not only its ❯ row: a draft can start with an
+    empty first row (Shift+Enter) and hold text below it (review round 4, M-1)."""
+    text = typed_text(screen)
+    return text is not None and (text == "" or bool(_PLACEHOLDER_RE.fullmatch(text)))
+
+
+def pane_busy(screen: str) -> bool:
+    """A turn is running: Enter could land on a dialog that opens a moment later."""
+    return bool(_BUSY_RE.search(screen))
+
+
 def prompt_ready(screen: str) -> bool:
-    """The last ❯ line is empty and no choice prompt (permission / question) is up."""
-    return not pane_waiting(screen) and prompt_line(screen) == ""
+    """The whole input box is empty, no turn is running and no choice prompt
+    (permission / question) is up."""
+    return not pane_waiting(screen) and not pane_busy(screen) and box_empty(screen)
 
 
 def pane_pids(tmux_name: str) -> set[int]:
@@ -401,37 +421,57 @@ def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
     if not _ready(sess["pane"]) or not _ready(sess["pane"]):
         return f"wait     {box}: prompt not empty", False
     job["sends"], job["sent_at"] = sends + 1, now
-    if type_rename(sess["pane"], f"/rename {name}"):
+    result = type_rename(sess["pane"], f"/rename {name}")
+    if result == "renamed":
         return f"renamed  {box}: {name}", False
-    return f"held     {box}: the input box did not show exactly the rename; took it back, no Enter", False
+    if result == "held":
+        return f"held     {box}: the input box did not show exactly the rename; took it back, no Enter", False
+    return (f"stopped  {box}: after taking the rename back the input box is not empty; "
+            "no more keys for this session"), True
 
 
-def type_rename(pane: str, line: str) -> bool:
-    """Type `line` into the pane, then press Enter only once the input box shows
-    exactly it (re-read for up to TYPED_WAIT_S: the TUI redraws a moment later, and
-    a long line wraps). Otherwise take back only what was typed (one BSpace per
-    character, never C-u, which would also erase a person's own keys) and say so
-    (review round 3, M-1): our text must never sit in the box for the next message."""
+def _ok_to_enter(screen: str | None, want: str) -> bool:
+    return (screen is not None and not pane_waiting(screen) and not pane_busy(screen)
+            and typed_text(screen) == want)
+
+
+def type_rename(pane: str, line: str) -> str:
+    """Type `line` into a pane whose whole box is empty (the caller checked twice),
+    then press Enter only once the box shows exactly it with no turn running and no
+    dialog up, checked again right before the Enter (re-read for up to TYPED_WAIT_S:
+    the TUI redraws a moment later, and a long line wraps). "renamed".
+
+    Otherwise take back what was added since the box was empty: one BSpace per
+    character (a real Claude box deletes a whole emoji per BSpace), never C-u. "held"
+    when the box is empty again; "stopped" when it is not (someone typed in that
+    second, or the take-back fell short): the caller sends no more keys there
+    (review round 4, M-1)."""
     t = target(pane)
     if tmux("send-keys", "-t", t, "-l", line).returncode != 0:
-        return False
+        return "held"
     want = _squash(line)
     deadline = time.monotonic() + TYPED_WAIT_S
     screen = None
     while True:
         screen = _screen(pane)
-        if screen is not None and not pane_waiting(screen) and typed_text(screen) == want:
+        if _ok_to_enter(screen, want) and _ok_to_enter(_screen(pane), want):
             tmux("send-keys", "-t", t, "Enter")
-            return True
+            return "renamed"
         if time.monotonic() >= deadline:
             break
         time.sleep(TYPED_POLL_S)
-    # The box was empty before we typed (checked twice), so all of it is our line plus
-    # any key pressed in this second. Take back at least our own length; when the box
-    # shows more, take that too: leaving our leading "/" would turn the person's next
-    # message into a slash command. BSpace on an empty box does nothing.
-    tmux("send-keys", "-t", t, "-N", str(max(len(line), _box_len(screen))), "BSpace")
-    return False
+    # The box was empty before we typed, so all of it was added since: our line plus
+    # any key pressed in this second. A screen that never redrew still holds our line.
+    added = _box_len(screen) if screen is not None and not box_empty(screen) else len(line)
+    tmux("send-keys", "-t", t, "-N", str(max(added, 1)), "BSpace")
+    deadline = time.monotonic() + TYPED_WAIT_S
+    while True:
+        time.sleep(TYPED_POLL_S)
+        after = _screen(pane)
+        if after is not None and box_empty(after):
+            return "held"
+        if time.monotonic() >= deadline:
+            return "stopped"
 
 
 def once(host: str, pending: dict, now: float | None = None) -> list[str]:

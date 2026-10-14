@@ -24,8 +24,13 @@ CONTABO = "\U0001F310"
 U_CTO = "00000000-0000-0000-0000-0000c34459eb"
 U_PH = "00000000-0000-0000-0000-000036c49776"
 U_COO = "00000000-0000-0000-0000-0000fde4c4ca"
-EMPTY = "out\n❯ \n  ? for shortcuts\n"
-DRAFT = "out\n❯ half a sentence the CEO is typing\n"
+RULE = "─" * 50
+# The layout a real Claude pane shows (14 Oct, 50 columns): rules above and below the box.
+EMPTY = f"out\n{RULE}\n❯ \n{RULE}\n  ⏵⏵ auto mode on (shift+tab to cycle) · esc to…\n"
+FRESH = f"out\n{RULE}\n❯ Try \"fix lint errors\"\n{RULE}\n  ? for shortcuts\n"
+DRAFT = f"out\n{RULE}\n❯ half a sentence the CEO is typing\n{RULE}\n"
+DRAFT_BELOW = f"out\n{RULE}\n❯ \n  second row of a draft (Shift+Enter first)\n{RULE}\n"
+BUSY = f"out\n✽ Computing… (11s · ↓ 302 tokens · thinking)\n{RULE}\n❯ \n{RULE}\n  esc to interrupt\n"
 PERMISSION = " Do you want to proceed?\n ❯ 1. Yes\n   2. No\n❯ \n"
 
 
@@ -515,3 +520,81 @@ def test_a_lock_file_renamed_or_linked_in_from_elsewhere_is_not_trusted(box, kin
     else:
         os.link(lock, tmp_path / "elsewhere")
     assert box.request("project_head-36c49776", "x") == "refused: no rule name for project_head-36c49776"
+
+
+
+# --- review round 4 ------------------------------------------------------------------
+
+@pytest.mark.parametrize("screen,ready", [
+    (EMPTY, True), (FRESH, True),                 # a fresh session's dim hint counts as empty
+    (DRAFT, False), (DRAFT_BELOW, False),         # the whole box, not only its ❯ row
+    (BUSY, False), (PERMISSION, False), ("no prompt", False),
+])
+def test_ready_means_the_whole_box_is_empty_and_no_turn_runs(screen, ready):
+    assert rs.prompt_ready(screen) is ready
+
+
+def test_a_draft_below_an_empty_first_row_is_never_typed_onto(box):
+    box.screens["cto-c34459eb"] = DRAFT_BELOW
+    box.request("cto-c34459eb", "x")
+    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: prompt not empty"]
+    assert box.sent == []
+
+
+def test_no_typing_while_a_turn_runs(box):
+    box.screens["cto-c34459eb"] = BUSY
+    box.request("cto-c34459eb", "x")
+    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: prompt not empty"]
+    assert box.sent == []
+
+
+def test_a_turn_or_dialog_that_starts_after_typing_gets_no_enter(box):
+    box.request("cto-c34459eb", "x")
+
+    def a_turn_starts(fake, name):
+        fake.draw(name)
+        fake.screens[name] = "✽ Computing… (1s · thinking)\n" + fake.screens[name]
+        fake.after_type = None
+
+    box.after_type = a_turn_starts
+    real_draw = box.draw
+
+    def keep_busy(name):
+        real_draw(name)
+        box.screens[name] = "✽ Computing… (1s · thinking)\n" + box.screens[name]
+
+    box.draw = keep_busy
+    out = rs.once("contabo", box.pending, now=1.0)
+    assert "Enter" not in [t for _, t in box.sent]
+    assert out[0].startswith("held") and box.box["cto-c34459eb"] == ""
+
+
+def test_the_take_back_counts_what_was_added_not_the_whole_line_twice(box):
+    box.request("cto-c34459eb", "x")
+    box.after_type = lambda fake, name: fake.box.__setitem__(name, fake.box[name] + "k")
+    rs.once("contabo", box.pending, now=1.0)
+    bs = [c for c in box.calls if c[-1] == "BSpace"][0]
+    line = f"/rename {CONTABO} CTO (Kavin) — x"
+    assert len(line) + 1 <= int(bs[bs.index("-N") + 1]) <= len(line) + 1 + 2   # ours + the key (+wrap slack)
+    assert box.box["cto-c34459eb"] == ""
+
+
+def test_a_take_back_that_leaves_text_stops_that_session(box):
+    box.request("cto-c34459eb", "x")
+    real = rs.tmux
+
+    def short_backspace(*args):
+        if args[-1] == "BSpace":                     # the CEO keeps typing during the take-back
+            box.box[args[args.index("-t") + 1][1:-1]] = "his new words"
+            box.draw(args[args.index("-t") + 1][1:-1])
+            return subprocess.CompletedProcess(args, 0, "", "")
+        return real(*args)
+
+    box.after_type = lambda fake, name: fake.box.__setitem__(name, fake.box[name] + "k")
+    rs.tmux = short_backspace
+    try:
+        out = rs.once("contabo", box.pending, now=1.0)
+    finally:
+        rs.tmux = real
+    assert out[0].startswith("stopped  cto-c34459eb") and "cto-c34459eb" not in box.pending
+    assert box.box["cto-c34459eb"] == "his new words"        # left alone
