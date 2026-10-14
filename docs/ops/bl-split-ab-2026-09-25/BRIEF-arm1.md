@@ -1,4 +1,4 @@
-# Brief -- Arm 1 (ต่อเนื่อง, one editor, whole episode) -- task-99f3d2e8
+# Brief -- Arm 1 (Continuous, one editor, whole episode) -- task-99f3d2e8
 
 CTO ruling 2026-09-25 (docs/ops/bl-split-ab-2026-09-25/PLAN.md): both arms
 of the split-editor A/B now use Arm A's own route
