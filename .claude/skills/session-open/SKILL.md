@@ -166,7 +166,8 @@ The clock runs itself from here (shared 60s daemon). The goal and the progress
 numbers do not — they move only when `tab-main.sh` is called again, which
 `/session-worktree` and `/session-close` do.
 
-`session-rename.sh` types `/rename <MACHINE> <ROLE> #<id> (<topic>)` into this
+`session-rename.sh` types `/rename <ROLE> (<Name>) — <topic>` (a C-level, CEO 2026-10-14: no machine,
+no #id; a Project Head or worker keeps `<MACHINE> <ROLE> #<id> (<topic>)`) into this
 session's own tmux pane — the command queues and executes right after the
 current turn ends, and the new name syncs to claude.ai + the mobile app
 (CEO 2026-08-30). Run it as the LAST tool call of the charter turn so nothing
@@ -186,7 +187,7 @@ Check the name in the app after the turn; if it did not change, the CEO types
   job, a `/session-merge`): `bash scripts/session-rename.sh "<new job>"`.
   `/session-save` renames to `<job> — <state>` (see that skill).
 - **Refused or not landed → hand the CEO the exact line**, e.g.
-  `/rename CONTABO CTO #da94561b (rename rule + nudge hook)`. The auto-mode
+  `/rename CTO (Kavin) — rename rule + nudge hook`. The auto-mode
   classifier refuses the script as "Self-Modification" (2026-09-30). Never work
   around a refusal: no other pane, no peer, no `--force` loop.
 - Safety net: `scripts/hook-rename-nudge.py` adds one line every 20 turns to

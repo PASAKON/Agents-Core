@@ -29,7 +29,7 @@ from lib import router as host_router
 from lib.config import (
     display_for, get_project, host as get_host,
     project_path_for_host, role as get_role,
-    self_host, worker_session_name as get_worker_session_name,
+    self_host, worker_head, worker_session_name as get_worker_session_name,
 )
 from lib.notify import info, success, error, warn
 from lib.proc import pid_alive
@@ -1480,7 +1480,8 @@ async def _spawn_remote(task: dict, host_name: str, *,
     # once here (single source of truth) and handed to the launcher rather
     # than recomputed in PowerShell.
     session_name = get_worker_session_name(host_name, role_name, task_id,
-                                           task.get("title") or "")
+                                           task.get("title") or "",
+                                           head=worker_head(task))
 
     if os_name == "windows":
         deploy_actions = _ensure_remote_deploy(host_cfg, role_name, dry_run=dry_run)
