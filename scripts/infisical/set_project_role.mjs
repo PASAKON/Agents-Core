@@ -3,6 +3,9 @@
 //
 //   node set_project_role.mjs [<cdp-url>] --identity contabo --role developer --project Org-Coo [--project …] [--go]
 //
+// Role names are the UI's: Developer is the built-in slug `member` (a PATCH with "developer" answers 404,
+// RUN-20261014-0954-e61a), Viewer is `viewer`. The script sends the slug and compares slugs.
+//
 // Why it exists: a worker clicking the role in the UI was refused by the auto-mode classifier as a
 // [Permission Grant] (task-0bbb27f9, 2026-10-14), and a permission grant is the CEO's to make. So the
 // change runs only from a Run card he taps (ALL_Protocol_RunInbox): his tap is the authority.
@@ -21,9 +24,10 @@ for (let i = 0; i < argv.length; i++) {
   else if (!a.startsWith('--')) opt.cdp = a;
   else { console.error(`[role] unknown flag ${a}`); process.exit(64); }
 }
-const ROLES = ['viewer', 'developer'];
+const ROLES = { viewer: 'viewer', developer: 'member', member: 'member' };
 if (!/^[a-z][a-z0-9-]{1,30}$/.test(opt.identity)) { console.error('[role] --identity <name> required'); process.exit(64); }
-if (!ROLES.includes(opt.role)) { console.error(`[role] --role must be one of ${ROLES.join('|')}`); process.exit(64); }
+if (!Object.hasOwn(ROLES, opt.role)) { console.error(`[role] --role must be one of ${Object.keys(ROLES).join('|')}`); process.exit(64); }
+const SLUG = ROLES[opt.role];
 if (!opt.projects.length || opt.projects.some((p) => !/^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/.test(p))) { console.error('[role] --project <exact name> required'); process.exit(64); }
 const API = 'https://app.infisical.com';
 const AUTH_PATH = /^\/(login|signup|signin|verify-email|verify|mfa|password-reset|reset-password|email-not-verified|cli-redirect)(\/|$)/i;
@@ -86,15 +90,17 @@ for (const name of opt.projects) {
   const before = await rolesOf(p.id);
   const now = JSON.stringify(before.roles);
   if (before.status !== 200 || !before.roles) { log(`${name}: ${opt.identity} membership not readable (HTTP ${before.status}) — skipped`); bad++; continue; }
-  if (now === JSON.stringify([opt.role])) { log(`${name}: ${opt.identity} already ${now} — nothing to do`); continue; }
+  if (now === JSON.stringify([SLUG])) { log(`${name}: ${opt.identity} already ${now} — nothing to do`); continue; }
   if (now !== JSON.stringify(['viewer'])) { log(`${name}: ${opt.identity} has ${now}, not ["viewer"] — left alone`); bad++; continue; }
-  if (!opt.go) { log(`${name}: ${opt.identity} ${now} -> ["${opt.role}"] (dry run, not changed)`); continue; }
-  const body = { roles: [{ role: opt.role, isTemporary: false }] };
+  if (!opt.go) { log(`${name}: ${opt.identity} ${now} -> ["${SLUG}"] (dry run, not changed)`); continue; }
+  const body = { roles: [{ role: SLUG, isTemporary: false }] };
   let res = await api('PATCH', `/api/v1/projects/${p.id}/identity-memberships/${ident.id}`, body);
   if (res.status === 404) res = await api('PATCH', `/api/v2/workspace/${p.id}/identity-memberships/${ident.id}`, body);
   const after = await rolesOf(p.id);
-  const ok = res.status === 200 && JSON.stringify(after.roles) === JSON.stringify([opt.role]);
-  log(`${name}: ${opt.identity} ${now} -> ${JSON.stringify(after.roles)} (HTTP ${res.status}) ${ok ? 'OK' : 'FAILED'}`);
+  const ok = res.status === 200 && JSON.stringify(after.roles) === JSON.stringify([SLUG]);
+  // Infisical's error text names the route or the role, never a value; capped so nothing long is echoed.
+  const why = ok ? '' : ` · ${String(res.json?.message || '').replace(/[^\x20-\x7e]/g, '?').slice(0, 120)}`;
+  log(`${name}: ${opt.identity} ${now} -> ${JSON.stringify(after.roles)} (HTTP ${res.status}) ${ok ? 'OK' : 'FAILED'}${why}`);
   if (!ok) bad++;
 }
 token = null;
