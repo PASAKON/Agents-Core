@@ -85,6 +85,9 @@ question_needs_c_level); 2-4 options and the question / why / label limits;
 a command-shaped (§5: the question, every label, every line of why) or
 money-naming (§6: the question and every label) text, Unicode spaces read as
 spaces; a worker process (WORKER_TASK_ID set) claiming a C-level role.
+Refused for every card (CEO 2026-10-14, lib/ceo_text.py): more than the CEO
+reads, 5 lines of 90 characters (a command card: why + expected, the command
+itself exempt; a question card and each item of a group: question + why).
 
 Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com. For the question
        verbs (ask, wait/cancel Q-..., list --questions) it must be the bare
@@ -961,6 +964,19 @@ def check_question(body: dict, args: argparse.Namespace) -> None:
                           "approves spend. Money goes on a command card (ask_run create, Face ID).")
 
 
+def check_ceo_text(fields: Any) -> None:
+    """lib/ceo_text.py: the CEO reads at most 5 lines of 90 characters on a card or a mail
+    (CEO 2026-10-14). Refused when the text is longer; no flag skips it. The repo root goes on the
+    END of sys.path, as in _self_host_id; a checkout that cannot load it fails closed (ImportError)."""
+    if str(ROOT) not in sys.path:
+        sys.path.append(str(ROOT))
+    from lib import ceo_text
+    try:
+        ceo_text.check_ceo_text(fields)
+    except ceo_text.TooLong as e:
+        raise Refused(str(e)) from None
+
+
 def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
     """The POST body with every local refusal already run, in §3.2's order:
     secret shapes over the whole body, the C-level gate, then the content
@@ -972,6 +988,7 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
                       + ". A question carries no secret, ever (DESIGN §6).")
     check_question_role_gate(body)
     check_question(body, args)
+    check_ceo_text([("question", body["question"]), ("why", body["why"])])
     return body
 
 
@@ -1302,8 +1319,9 @@ def tail_lines(rec: dict, lines: int = TAIL_LINES) -> tuple[list[str], int]:
 
 # ------------------------------------------------- shared by the CLI and MCP
 def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | None = None) -> dict:
-    """The POST body with both local refusals already run: secret shapes
-    first, then the C-level gate. `create` and the MCP tool both come here."""
+    """The POST body with the local refusals already run: secret shapes
+    first, then the C-level gate, then the CEO's 5 lines (why + expected).
+    `create` and the MCP tool both come here."""
     payload = build_payload(args, script_args, env)
     hits = find_secret_shapes(payload)
     if hits:
@@ -1311,6 +1329,7 @@ def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | No
                       + "\nReference an env var by name ($NAME, --env-key NAME) or an Infisical path "
                         "instead (DESIGN §6).")
     check_role_gate(payload)
+    check_ceo_text([("why", payload["why"]), ("expected", payload.get("expected"))])
     return payload
 
 

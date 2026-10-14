@@ -37,7 +37,7 @@ def notify_ceo(session, line, waiting_minutes):
             [sys.executable, str(helper), "send", "--kind", "action",
              "--title", f"Session waiting on a permission dialog: {session}"[:90],
              "--need", "open the session and answer the dialog",
-             "--why", f"{line[:200]} (waiting {waiting_minutes} min)",
+             "--why", f"{line[:64]} (waiting {waiting_minutes} min)",  # ≤90 chars: lib/ceo_text.py
              "--if-not", "the session stays stopped until someone answers",
              "--ref", f"pane-dialog:{session}"],
             env={**os.environ, "CXO_ROLE": "cto", "CXO_SESSION_ID": "dialog-watch"},

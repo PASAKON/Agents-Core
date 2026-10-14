@@ -99,8 +99,8 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
    ```bash
    python3 tools/ask_run.py create --host contabo --risk green \
        --script Agents-Core@<sha>:tools/infisical_setup.py \
-       --why "W4.2b: show what apply would change (contabo viewer on Org-Node, folder /node-token). Read-only." \
-       --expected "plan lists: contabo -> Org-Node viewer, Agents-Core prod folder /node-token. No identity is created." \
+       --why "W4.2b: preview apply (contabo viewer on Org-Node, folder /node-token). Read-only." \
+       --expected "plan lists contabo -> Org-Node viewer, Agents-Core prod /node-token; no new identity" \
        -- plan
    ```
 
@@ -111,7 +111,7 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
    ```bash
    python3 tools/ask_run.py create --host contabo --risk amber \
        --script Agents-Core@<sha>:tools/infisical_setup.py \
-       --why "W4.2b (CEO ruling 2026-10-03): contabo reads project Org-Node so the hub can hand the Claude token to approved nodes. No new identity." \
+       --why "W4.2b (CEO 2026-10-03): contabo reads Org-Node to hand the Claude token to nodes" \
        --expected "apply output names the Org-Node membership and the /node-token folder; no error" \
        -- apply
    ```
@@ -128,8 +128,8 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
 
    ```bash
    python3 tools/ask_run.py create --host contabo --risk red --cwd <worktree> \
-       --why "W4.2b: create the hub role org_node_token (SELECT on four columns of hosts, nothing else) and store its URL as ORG_NODE_TOKEN_DB_URL in Agents-Core prod /node-token" \
-       --expected "one line from put: ORG_NODE_TOKEN_DB_URL, its last four characters, the expiry. No URL printed." \
+       --why "W4.2b: hub role org_node_token (SELECT 4 hosts columns); URL into /node-token" \
+       --expected "put prints ORG_NODE_TOKEN_DB_URL, last 4 chars, expiry; never the URL" \
        --command "python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/node-token/org_node_token_role.py | python3 tools/infisical_setup.py put Agents-Core prod ORG_NODE_TOKEN_DB_URL --path /node-token --stdin --comment 'hub Postgres URL of the org_node_token role (node token service only)' --meta provider_name=org_node_token --meta console_url=https://terminal.mooniex.com --meta scope=hub-postgres-node-token-service --meta expires=<YYYY-MM-DD> --meta owner=cto"
    ```
 
@@ -143,8 +143,8 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
 
    ```bash
    python3 tools/ask_run.py create --host contabo --risk red --cwd <worktree> \
-       --why "W4.2b: install and start org-node-token.service (the hub hands the Claude token, sealed, to approved nodes; tailnet address only, port 792)" \
-       --expected "active (running); GET /health on the tailnet address answers ok true, token_loaded true, db true" \
+       --why "W4.2b: install + start org-node-token.service (sealed token to nodes, tailnet :792)" \
+       --expected "active (running); /health on the tailnet says ok, token_loaded, db all true" \
        --command "id org-node-token >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin org-node-token; setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- test -r /opt/MoonieXHQ/Agents/Core/tools/node_token_api.py && setpriv --reuid=org-node-token --regid=org-node-token --init-groups -- test -x /opt/MoonieXHQ/Agents/Core/.venv/bin/python && cp deploy/node-token/org-node-token.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable --now org-node-token && sleep 5 && systemctl is-active org-node-token"
    ```
 
@@ -152,7 +152,7 @@ script's stdout goes by pipe straight into `put`), **unit install and start** (c
 
    ```bash
    python3 tools/ask_run.py create --host contabo --risk green \
-       --why "W4.2b: is the node token service up, and does it hold the token and reach the hub database?" \
+       --why "W4.2b: is the node token service up, holding the token, reaching the hub DB?" \
        --expected "one JSON line: ok, token_loaded and db are all true (booleans only, never a value)" \
        --command 'test "$(sysctl -n net.ipv4.ip_unprivileged_port_start)" -ge 1024 && curl -fsS -m 5 http://$(tailscale ip -4 | head -n 1):792/health'
    ```

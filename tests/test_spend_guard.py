@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pytest
 
+from lib import ceo_text
 from tools import email_ceo
 from tools import spend_guard as sg
 
@@ -167,7 +168,7 @@ def test_cfo_fixture_runway_fires_and_the_key_cap_does_not(store, capsys):
     assert mail["kind"] == "alert" and mail["session"] == sg.SESSION and mail["role"] == "cto"
     # this week's counter: $12.74 over 40 h = ~$7.6/day (the CFO measured ~$7.4) -> ~0.9 days
     assert "~0.9 วัน" in mail["title"] and "OpenRouter" in mail["title"] and "$6.75" in mail["title"]
-    assert "ประมาณจากยอดสัปดาห์นี้" in mail["why"]
+    assert "จากยอดสัปดาห์นี้" in mail["why"]
     assert mail["need"].startswith("ตัดสินใจเติมเงิน OpenRouter")
     assert hub.cards == [] and fake.writes() == []
 
@@ -335,7 +336,7 @@ def test_armed_pauses_verifies_and_raises_the_card(store):
     assert card["expects_input"] is True and card["risk"] == "red" and card["timeout_s"] == 1800
     assert card["command"].endswith(f"decide {H1}") and "--path /spend-guard" in card["command"]
     assert "ORG_ROOT=" in card["command"] and len(card["why"]) <= 430
-    assert "1 = เปิดคืน" in card["why"] and "jev-secretary" in card["why"]
+    assert "1 เปิดคืน" in card["why"] and "jev-secretary" in card["why"]
     [mail] = hub.mails
     assert "พักคีย์แล้ว การ์ด RUN-TEST-1" in mail["why"] and mail["link"].endswith("#RUN-TEST-1")
     assert mail["need"].startswith("เปิดการ์ด")
@@ -347,7 +348,7 @@ def test_armed_never_pauses_a_key_nobody_mapped(store, capsys):
     hub = Hub()
     check(store, fake, hub, CFO_AT, cfg=config(pause={"mode": "armed"}))
     assert fake.writes() == [] and hub.cards == []
-    assert "ยังไม่ได้บันทึกว่าบริการไหนใช้คีย์นี้" in hub.mails[0]["why"]
+    assert "ไม่พัก: ยังไม่ระบุว่าใครใช้คีย์นี้" in hub.mails[0]["why"]
     fake2 = seed(sg.Store(store.root.parent / "b"), CFO_AT, rate=0.1, last_hour=0.6)
     check(sg.Store(store.root.parent / "b"), fake2, Hub(), CFO_AT)
     assert "would pause jev-secretary (3f9c2a7b): spike once its consumers are listed" in capsys.readouterr().out
@@ -414,7 +415,7 @@ def test_a_paused_key_is_reminded_and_re_carded_daily_until_answered(store):
     cfg = config(runway={"days": 0.0})
     check(store, Providers(keys=keys), hub, CFO_AT, cfg=cfg)
     assert [c["command"].split()[-1] for c in hub.cards] == [H1]
-    assert "ถูก spend guard พักไว้" in hub.mails[0]["title"] and "RUN-TEST-1" in hub.mails[0]["why"]
+    assert "ถูกพักไว้" in hub.mails[0]["title"] and "RUN-TEST-1" in hub.mails[0]["why"]
     check(store, Providers(keys=keys), hub, CFO_AT + timedelta(minutes=15), cfg=cfg)
     assert len(hub.cards) == 1 and len(hub.mails) == 1
 
@@ -564,7 +565,8 @@ def test_compose_orders_by_urgency_and_the_ref_follows_the_alert_set():
     c = sg.Finding("x/cap", "cap", 50, "cap 50", "openrouter")
     got = sg.compose([a, c, b])
     assert got["title"] == "openrouter blind (+2 เรื่อง)"
-    assert got["why"].splitlines() == ["- openrouter blind", "- fal runway", "- cap 50"]
+    # blind needs no action yet, so `need` takes a line: the list leaves out the one the title names
+    assert got["why"].splitlines() == ["- fal runway", "- cap 50"]
     assert sg.compose([c, b, a])["ref"] == got["ref"]
     assert sg.compose([a, b, sg.Finding("x/cap", "cap", 80, "cap 80", "openrouter")])["ref"] != got["ref"]
     many = [sg.Finding(f"k{i}", "cap", 50, "x" * 60, "fal") for i in range(12)]
@@ -660,3 +662,41 @@ def test_shipped_config_never_auto_pauses_the_shared_moonie_x_key():
     assert keys["MoonieX"]["pause"] is False
     assert any("claudeflow-webhook" in c for c in keys["MoonieX"]["consumers"])
     assert cfg["pause"]["unmapped_keys"] == "alert"
+
+
+# ------------------------------------------------------------------ CEO 2026-10-14: ≤5 lines of ≤90
+def _worst_findings() -> list[list[sg.Finding]]:
+    long_name = "k" * 120
+    kinds = ["pause", "cap100", "runway", "blind", "spike", "cap", "paused"]
+    one_each = [sg.Finding(f"x/{k}", k, 1, f"OpenRouter key «{long_name}» ({k}): " + "ใช้ไป 100% " * 12
+                           + " · พักคีย์แล้ว การ์ด RUN-20261014-0900-abcd", "openrouter",
+                           link="https://terminal.mooniex.com/run#RUN-20261014-0900-abcd") for k in kinds]
+    return [one_each[:1], one_each[:2], one_each[:3], one_each, one_each * 3,
+            [sg.Finding("fal/blind", "blind", 1, "fal อ่านไม่ได้", "fal")],
+            [sg.Finding(f"k{i}", "cap", 50, "x" * 200, "fal") for i in range(12)]]
+
+
+@pytest.mark.parametrize("test_mail", [False, True])
+def test_every_mail_fits_the_ceo_five_line_rule(test_mail):
+    for findings in _worst_findings():
+        got = sg.compose(findings, test=test_mail)
+        ceo_text.check_ceo_text([(k, got.get(k)) for k in email_ceo.CEO_READS])
+        assert got["title"] and got["why"]
+
+
+def test_every_pause_card_fits_the_ceo_five_line_rule():
+    made = []
+    for name, reason, consumers in [("jev-secretary", "short", ["a"]), ("n" * 150, "ใช้พุ่ง " * 40, []),
+                                    ("MoonieX", "x" * 500 + " · พักคีย์แล้ว", ["a", "b", "c"] * 20)]:
+        sg.raise_pause_card("3f9c2a7b" * 8, name, reason, consumers, ENV, lambda b: made.append(b) or {})
+    for card in made:
+        ceo_text.check_ceo_text([("why", card["why"]), ("expected", card["expected"])])
+        assert "1 เปิดคืน" in card["why"]
+
+
+def test_the_full_lines_go_to_the_events_file(store):
+    fake, hub = Providers(), Hub()
+    check(store, fake, hub, CFO_AT)
+    rows = [json.loads(x) for x in store.event_path.read_text(encoding="utf-8").splitlines()]
+    mails = [r for r in rows if r["what"] == "mail"]
+    assert mails and mails[0]["ref"] == hub.mails[0]["ref"] and mails[0]["lines"]
