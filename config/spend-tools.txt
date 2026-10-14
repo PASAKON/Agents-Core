@@ -1,7 +1,8 @@
 # Declared spend tools (MoonieX-Console docs/run.md §Spend label, review #29 round 5 MED-1).
 #
 # A labelled Run card counts as cap-checked only when it is a script card (repo@sha:path) for a .py
-# listed here, at a commit on origin/main. The hub reads this file at origin/main's tip.
+# listed here, pinned to origin/main's tip (an older commit of a listed tool may predate its fix).
+# The hub reads this file at that tip.
 #
 # One line per tool:  <repo path> <--max-usd | --max-credits>
 #

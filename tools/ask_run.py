@@ -37,7 +37,7 @@ and carries the cap as --max-usd N / --max-credits N; a script ask
 carries it in its args. balance_after defaults to the spend guard's openrouter/fal balance minus
 the cap (with the snapshot time, balance_at). A command that only looks like spend: --no-spend "<reason>".
 Under the hub's enforce mode a label runs only on a --script card with no --cwd, for a .py listed in
-config/spend-tools.txt at a commit on origin/main (a command card or a wrapper cannot tie the cap
+config/spend-tools.txt, pinned to origin/main's tip (a command card or a wrapper cannot tie the cap
 to our reviewed tool); under warn (the default) any other labelled card is posted with the reason
 it was not checked.
 

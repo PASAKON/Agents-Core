@@ -818,7 +818,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "sends no_spend='<reason>'. A spend-shaped command with neither is posted "
             "with a warning on the card (RUN_INBOX_SPEND_LABEL=warn, the default); "
             "under enforce the hub refuses it, and a label runs only on a script "
-            "card with no cwd, for a .py listed in config/spend-tools.txt on main."
+            "card with no cwd, for a .py listed in config/spend-tools.txt, pinned to main's tip."
         ),
         params=(
             Param("host", str), Param("why", str), Param("script", str, ""),
