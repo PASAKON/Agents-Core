@@ -1,7 +1,8 @@
 # Org restructure P3 — project registry, GO register, resource locks, Project Monitor backend
 
-PLAN ONLY: nothing is built until CTO Main reads it and says go. Written by PH OrgRestructure #7cf528f0,
-14 Oct 2026.
+Written by PH OrgRestructure #7cf528f0, 14 Oct 2026. **GO from CTO Main 03:04Z** (cto-c34459eb), in the order
+below (P3-A and 09d85a20 first, ≤2 workers). Every Agents-Core and Console piece lands as a PR that CTO Main
+merges; nothing is pushed to main. Workers remove their worktree once landed (Contabo disk).
 
 Sources: SomPong `docs/reports/org-restructure-ph-envelope-2026-10-13.md` §4.3, §5, §7, §9 Phase 3, and
 `docs/reports/project-monitor-widget-2026-10-14.md` (v2). CEO GOs: P3 itself sits in the restructure plan the
@@ -23,7 +24,8 @@ and workers (Phase 4), and the Console web page `/portfolio` (listed as P3-F bel
 ## Pieces (each one is a worker-sized job with its own branch, tests and review)
 
 ### P3-A Hub tables (Agents-Core `lib/db_pg.py`, ADR 0008 rules: plain `CREATE TABLE IF NOT EXISTS`, indexes for each read path, no secret columns)
-- `projects`: `id` (slug, PK), `name`, `lane` (cto/cmo/…), `owner_session`, `ph_session`, `host`, `stage`
+- `projects`: `id` (slug, PK), `name`, `lane` (cto/cmo/…), `owner_session`, `ph_session`, `host`, `repos`
+  (json list, P3-H), `stage`
   (`idea|brainstorm|ready|active|review|closed|parked|cancelled`), `goal`, `done_criteria`, `budget_usd`,
   `relay_accounts` (json list), `blocker_what`, `blocker_on` (`ceo|clevel|external|resource`),
   `blocker_since`, `opened_at`, `ready_at`, `closed_at`, `outcome`, `hq_row`, `last_active`.
@@ -87,6 +89,43 @@ and workers (Phase 4), and the Console web page `/portfolio` (listed as P3-F bel
 - "Generating" in v1 reads only signals that exist today: an H3 job API call and a running worker task of
   that project. Flow, Higgsfield and pipeline runs come later, one per adapter.
 
+#### P3-E contract (fixed before either side builds; a change is a versioned `v`)
+`GET https://terminal.mooniex.com/api/portfolio/monitor.json`, header `Authorization: Bearer <read-only token>`.
+`200`, `Content-Type: application/json`, `Cache-Control: no-store`:
+```json
+{
+  "v": 1,
+  "generated_at": "2026-10-14T03:20:00Z",
+  "counts": {"in_progress": 7, "parked": 2},
+  "projects": [
+    {
+      "id": "black-liquidity",
+      "name": "BLACK LIQUIDITY",
+      "lane": "cmo",
+      "pct": 75,
+      "milestones": {"done": 6, "total": 8},
+      "state": "generating",
+      "state_since": "2026-10-14T03:02:00Z",
+      "last_active": "2026-10-14T03:19:40Z",
+      "active_today_s": 6000,
+      "blocker": null,
+      "parked": false
+    }
+  ]
+}
+```
+- `state` is one of `working | generating | waiting_ceo | waiting | idle | stalled | parked` (v2 design rules,
+  first match wins). `pct` is an integer 0–100 = `round(100 * done / total)`, and `0` when `total` is 0.
+- `blocker` is `null` or `{"on": "ceo|clevel|external|resource", "since": "<ISO>"}`. It never carries the
+  blocker's text (the widget has no room, and the text can name accounts).
+- Times are UTC ISO-8601 with `Z`; `active_today_s` counts from 00:00 Asia/Bangkok.
+- Order: every non-parked row by `last_active` desc, then parked rows by `last_active` desc. The server
+  sends at most 20 rows; the widget cuts from the bottom.
+- `401` without a valid token, `503` `{"v":1,"error":"hub unreachable"}` when the hub is down. Never a
+  stack trace, a card's command bytes, chat text or an account name.
+- Tests on both sides read one fixture file, `docs/plans/fixtures/portfolio-monitor-v1.json` (Agents-Core),
+  copied into Console's tests, so the shape cannot drift silently.
+
 ### P3-F Console `/portfolio` page (phone, read-only)
 - By lane: active projects with % and blocker, the number waiting on the CEO, the idea box, and projects
   closed this week or month. Console repo, after P3-E (same query).
@@ -96,6 +135,23 @@ and workers (Phase 4), and the Console web page `/portfolio` (listed as P3-F bel
   projects (SpendGuard, CooGate, OrgRestructure, MimiPage, BlackLiquidity). The COO seeds from `hq.yaml`,
   `config/projects.yaml`, LungNote `[SID:]` todos and live sessions, and flags incomplete rows for the
   owning C-level. The `STATUS.md` milestone tables that PHs keep today are imported once.
+
+### P3-H `can_merge` scoped per project (CEO ruling ~10:00 TH 14 Oct, now in roles/project_head.md)
+- `projects.repos` (json list of `PASAKON/<repo>`) holds the PH's own repos, set by its C-level at
+  `open`/`ready`.
+- `merge_task` (and any PH merge path) lets a `project_head` caller merge only when all of these hold:
+  - the task's repo is in its project's `repos`;
+  - `CTO_Gate_MergeChecklist` passes;
+  - the tests the task names pass;
+  - a second reviewer's session id is recorded on the task (`review_by`, not the PH itself and not the
+    worker that wrote it).
+- Refused for a PH whatever `repos` says: Agents-Core, Agents-Rules, Console, and any path under hooks,
+  launchers (`scripts/*-claude.sh`, `spawn-*.sh`) or MCP servers. Those land through the lane's C-level.
+- Behind `ORG_PH_REGISTRY` with the rest, log-only first: the check runs and logs its verdict, and
+  `can_merge` stays as today until CTO Main switches it on. Depends on P3-A (the `repos` column) and
+  09d85a20 (the caller's identity cannot fall back to the CEO).
+- Tests: each refusal reason, the second-reviewer rule, a shared-system repo listed in `repos` still
+  refused, and the C-level path unchanged.
 
 ## Order and size (estimates, not measured)
 | Step | Depends on | Repo | Size | Runner (CXO_Gate_RouteFirst) |
@@ -107,6 +163,7 @@ and workers (Phase 4), and the Console web page `/portfolio` (listed as P3-F bel
 | P3-D project_id, Agents-Core side | — | Agents-Core | S | Argon |
 | P3-D/E/F Console side | A, D | Console | M | Console lane, own branch; PH review on the API contract |
 | P3-G seed | B | — | S | COO, through `portfolio` |
+| P3-H per-project `can_merge` (log-only) | A, 09d85a20 | Agents-Core | M | Opus worker (`override: security`); PH review |
 | Widget | E | Scriptable (Mac) | — | Mac Scriptable lane |
 Total about 4–6 working days for workers plus review. The PH stays at ≤2 workers at a time.
 
@@ -118,9 +175,7 @@ Total about 4–6 working days for workers plus review. The PH stays at ≤2 wor
   The tables stay (no data loss).
 - Root steps on Contabo (flag file, a Postgres role) go on Run cards that CTO Main raises.
 
-## Open questions for CTO Main (and the CEO only where marked)
-1. Should the endpoint live in Console (as above) or as a tiny read-only service in Agents-Core? Console is
-   proposed because it already holds the domain, TLS and the card tables.
-2. Should `credit-ledger.jsonl` stay a file in P3 (read-only from the report), or move to the hub now?
-   Proposed: stay a file.
-3. CEO, only if CTO Main wants it: should an idea row need anything beyond one line? The plan says no.
+## Answers (CTO Main 03:04Z)
+1. The endpoint lives in Console. The contract above comes first, before either side builds.
+2. `credit-ledger.jsonl` stays a file in P3.
+3. An idea row is one line. This is not a CEO question.
