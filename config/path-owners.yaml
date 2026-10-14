@@ -1,0 +1,131 @@
+# Who owns which paths in Agents-Core (lib/path_owners.py, tools/pr_owner_check.py, check_collisions).
+#
+# CEO 2026-10-14: each Project Head merges its own project's paths; CTO Main steps in only on a conflict.
+# A PH runs `tools/pr_owner_check.py <PR#> --project <Name>` before merging: a path another project owns
+# is a conflict (exit 1 → write CTO Main kind blocker); a `shared` path belongs to no PH (printed, exit 0,
+# tell CTO Main). A path matching no glob is unowned and free for anyone.
+#
+# Keys are the Project Head project names (the strings in state/locks/project_head-*.project) plus the
+# reserved key `shared`. Values are fnmatch globs over repo-relative paths; `*` also crosses `/`, so
+# `dir/**` and `dir/*` both mean "everything under dir". The LONGEST matching glob wins, so a narrow glob
+# under a broad one carves an exception out of it (e.g. a project skill inside `.claude/skills/`).
+# Seeded 2026-10-15 from docs/plans/*-STATUS.md and the 80 most recent merged PRs; an entry for a file
+# that does not exist yet says so. A project not listed here (CooGate, ...) owns nothing and so is
+# "foreign" on every owned path. Add a glob when a project grows a new area; one glob under one key.
+
+OrgRestructure:
+  # --- session names + rename service (M9, M10, M10c) ---
+  - tools/rename_service.py                      # the rename service
+  - tests/test_rename_service.py                 # its tests
+  - deploy/systemd/rename-service.service        # Linux unit
+  - deploy/launchd/com.mooniex.rename-service.plist   # Mac LaunchDaemon (M10c)
+  - docs/SESSION-RENAME-STATE.md                 # rename state design
+  - lib/session_names.py                         # the name shape: host emoji, PH#id3, short names
+  - tests/test_session_names.py                  # its tests
+  - tests/test_worker_naming.py                  # worker display names
+  - scripts/session-rename.sh                    # a session renames itself
+  - scripts/hook-rename-nudge.py                 # the rename nudge hook script
+  - tests/test_hook_rename_nudge.py              # its tests
+  - scripts/test_session_rename*.py              # rename + prefix tests
+  # --- live sessions + liveness (M13a) ---
+  - tools/live_sessions.py                       # live-sessions publisher and reader
+  - scripts/live-sessions.sh                     # its one-call wrapper
+  - scripts/test_live_sessions.py                # its tests
+  - docs/ops/live-sessions.md                    # its ops doc
+  - docs/reports/live-sessions-2026-10-13/**     # the rollout report
+  - lib/run_liveness.py                          # PH liveness (named in the brief; not on main yet)
+  - tools/run_watch.py                           # run watcher (named in the brief; not on main yet)
+  - runners/watchdog.py                          # the org watchdog (named in the brief; P2 gates touch it)
+  # --- Project Head layer (P2, P3) ---
+  - tools/spawn_ph.py                            # spawn a Project Head
+  - scripts/spawn-ph.sh                          # its shell entry
+  - tools/clevel_gate.py                         # C-level spawn gate (Run card)
+  - lib/org_flags.py                             # the ORG_* host flags
+  - tests/test_org_p2_gates.py                   # P2 gates in Core
+  - tests/test_ph_on_mac.py                      # PH on the Mac (M13a)
+  - tests/test_portfolio_schema.py               # P3-A portfolio tables (tables themselves live in lib/db*.py = shared)
+  - docs/plans/fixtures/portfolio-monitor-v1.json  # P3 portfolio fixture
+  - docs/plans/org-restructure-*                 # STATUS + P3 plan
+  - docs/design/org-restructure-*                # P2 design
+  - docs/ops/ph-anywhere.md                      # PH on any host
+  - docs/ops/state-dir-perms.md                  # sticky bit on state/
+  # --- launchers and the terminal flag (PR 327) ---
+  - scripts/cto-claude.sh                        # CTO launcher
+  - scripts/cxo-claude.sh                        # C-level / PH launcher
+  - scripts/spawn-cto.sh                         # spawn a CTO
+  - scripts/spawn-cxo.sh                         # spawn another C-level
+  - scripts/tab-title.sh                         # tab title
+  - tests/test_terminal_window.py                # terminal_window flag tests (PR 327)
+
+SpendGuard:
+  - tools/spend*                                 # spend_guard.py and any spend_* sibling
+  - config/spend*                                # spend_guard.yaml, spend-tools.txt
+  - deploy/spend-guard/**                        # deploy tree (none yet; reserved)
+  - deploy/systemd/spend-guard.*                 # service + timer
+  - docs/ops/spend-guard.md                      # ops doc
+  - docs/plans/spend-guard-*                     # plan + STATUS
+  - docs/research/*spend-monitor*                # provider-API research
+  - tests/test_spend_guard.py                    # guard tests
+  - tests/test_ask_run_spend.py                  # ask_run spend label (S3)
+  - tests/fixtures/spend-cap-flag.json           # its fixture
+
+CookieRun:
+  - windows/cookierun_*                          # winbox bot, probe, labelling, IDM train, health
+  - scripts/cookierun-*                          # health + pipe scripts
+  - tools/cookierun_teachers.py                  # teacher model runs
+  - docs/COOKIERUN-COMBI.md                      # combi notes
+  - docs/ops/cookierun-*                         # teacher runs, briefs
+  - docs/ops/briefs/cookierun-*                  # hits-overflow cap brief
+  - docs/ops/contabo-hq-migration-note-cookierun-teachers.md   # teacher data move note
+  - .claude/skills/CTO_Knowledge_CookieRun_Labeling/**   # labelling skill
+  - .claude/skills/cookierun-labeling/**         # labelling skill (short name)
+  - state/winbox-blueprint-*/tasks/*CookieRun*   # winbox scheduled tasks of the bot
+
+BlackLiquidity:
+  - .claude/skills/*BlackLiquidity*/**           # cut, Jev editor, script, workflow skills
+  - .claude/skills/blackliquidity-*/**           # short-name skills
+  - scripts/bl_*.py                              # check, compose, EDL
+  - scripts/bl-tiktok/**                         # TikTok ops scripts
+  - tests/test_bl_*.py                           # BL tests
+  - tests/bl_mark_clips.py                       # clip-mark helper
+  - tests/fixtures/bl_*/**                       # BL fixtures
+  - prototypes/bl*                               # episode cuts, B-roll catalogue, scoreboard, reply packs
+  - docs/ops/bl-*                                # A/B + split runs
+  - docs/briefs/cmo-workflow-blackliquidity-*    # workflow brief
+  - docs/research/*-bl-*                         # BL research notes
+
+MimiPage:
+  - .claude/skills/CMO_Workflow_MimiPage_Weekly/**   # weekly workflow skill
+  - docs/plans/mimi-*                            # STATUS, calendar, week-1 posts, EP7 prep
+  - docs/scripts/mimi-*                          # captions + first comments
+  - tools/mimi_fb_post/**                        # Page post helpers
+
+# Org-wide paths: they belong to no PH. A PR touching one is reported "shared, tell CTO Main" (exit 0).
+shared:
+  - config/hosts.yaml                            # host registry and flags
+  - config/projects.yaml                         # project registry
+  - config/path-owners.yaml                      # this file
+  - lib/config.py                                # config loader
+  - lib/db.py                                    # hub schema and queries
+  - lib/db_pg.py                                 # Postgres backend
+  - lib/roles.py                                 # role registry
+  - lib/org_tools_registry.py                    # the org MCP tool registry
+  - lib/path_owners.py                           # this map's reader
+  - lib/ceo_text.py                              # CEO text rules
+  - tools/delegate.py                            # worker delegation
+  - tools/git_ops.py                             # merge and collision core
+  - tools/node_dispatch.py                       # cross-host dispatch
+  - tools/ask_run.py                             # Run Inbox cards
+  - tools/email_ceo.py                           # CEO mail
+  - tools/pr_owner_check.py                      # this map's PR check
+  - runners/cto_mcp_server.py                    # CTO org MCP server
+  - runners/coo_mcp_server.py                    # COO org MCP server
+  - windows/spawn-worker.ps1                     # winbox worker spawn (CTO Main and OrgRestructure both edit it)
+  - windows/native-args.ps1                      # its argv helper
+  - roles/**                                     # role files
+  - policies/**                                  # permissions and agents.yaml
+  - .claude/settings.json                        # hooks and permissions
+  - .github/**                                   # CI
+  - pytest.ini                                   # test config
+  - conftest.py                                  # test config
+  - CLAUDE.md                                    # entry file
