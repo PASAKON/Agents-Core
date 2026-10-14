@@ -218,6 +218,13 @@ def test_contabo_lists_both_unix_users():
     ("CONTABO Developer #f66155cf (Run Inbox … bou……", "developer", "f66155cf"),
     ("CONTABO Script Writer #d002e35e (…)", "script_writer", "d002e35e"),
     ("CONTABO COO #a7eb4963", "coo", "a7eb4963"),
+    # CEO 2026-10-14: "<HOST> <ROLE> (<Name>) #<id>" for C-levels; the PH shape unchanged
+    ("CONTABO COO (SomPong) #a7eb4963", "coo", "a7eb4963"),
+    ("CONTABO CTO (Kavin) #c34459eb (คุม org)", "cto", "c34459eb"),
+    ("MAC CMO (Ging) #ef04792e", "cmo", "ef04792e"),
+    ("⏸ CONTABO CTO (Kavin) #c34459eb", "cto", "c34459eb"),
+    ("CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)", "project_head", "7cf528f0"),
+    ("CONTABO CFO #12345678", "cfo", "12345678"),
 ])
 def test_role_and_sid_come_from_the_name(name, role, sid):
     assert ls.parse_name(name, UUID_A) == (role, sid)
@@ -226,6 +233,7 @@ def test_role_and_sid_come_from_the_name(name, role, sid):
 @pytest.mark.parametrize("name", [
     "scratchpad-c2", "SomPong", "", "CONTABO CTO", "CONTABO CTO #zzz", "CONTABO CTO #abc",
     "CONTABO CTO #e106b78bxx", "CONTABO CTO #0123456789abcdef", "LINUX CTO #e106b78b",
+    "CONTABO CTO (Kavin)", "CONTABO CTO (Kavin 2) #c34459eb",
 ])
 def test_a_name_that_does_not_match_is_unknown_with_the_uuid_tail(name):
     assert ls.parse_name(name, UUID_A) == ("unknown", "1ce1e106b78b"[-8:])

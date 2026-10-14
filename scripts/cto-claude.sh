@@ -417,10 +417,10 @@ disown $!
 # accessor cxo-claude.sh uses (decisions/0009-model-routing-policy.md).
 # Previously hardcoded here independently of the yaml; the two only stayed
 # in sync by someone remembering to edit both files on every policy change.
-IFS=' ' read -r CTO_MODEL CTO_FALLBACK CTO_EFFORT <<<"$(source "$ROOT/.venv/bin/activate" 2>/dev/null && python3 -c "
-from lib.config import role as get_role
+IFS=' ' read -r CTO_MODEL CTO_FALLBACK CTO_EFFORT CTO_PERSONA <<<"$(source "$ROOT/.venv/bin/activate" 2>/dev/null && python3 -c "
+from lib.config import persona_for, role as get_role
 r = get_role('cto')
-print(r.get('model') or 'claude-opus-5-5[1m]', r.get('fallback_model') or 'claude-fable-5', r.get('effort') or 'xhigh')
+print(r.get('model') or 'claude-opus-5-5[1m]', r.get('fallback_model') or 'claude-fable-5', r.get('effort') or 'xhigh', persona_for('cto'))
 ")"
 
 MODEL_ARGS=(--model "$CTO_MODEL" --fallback-model "$CTO_FALLBACK" --effort "$CTO_EFFORT")
@@ -509,7 +509,7 @@ fi
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
-  -n "$MACHINE_LABEL CTO #$CTO_SESSION_ID" \
+  -n "$MACHINE_LABEL CTO${CTO_PERSONA:+ ($CTO_PERSONA)} #$CTO_SESSION_ID" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

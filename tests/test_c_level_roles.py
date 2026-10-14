@@ -256,3 +256,12 @@ def test_no_partial_roster_literal_in_runtime_code() -> None:
     assert not offenders, (
         "hardcoded C-level list(s) missing a role -- read lib/roles.py instead "
         "(or add the role):\n  " + "\n  ".join(offenders))
+
+
+@pytest.mark.parametrize("role_name,persona", [
+    ("cto", "Kavin"), ("cmo", "Ging"), ("coo", "SomPong"),
+    ("cfo", ""), ("cgo", ""), ("project_head", ""), ("no_such_role", ""),
+])
+def test_persona_for_names_the_three_personas_only(role_name: str, persona: str) -> None:
+    # CEO 2026-10-14: session names "<HOST> <ROLE> (<Name>) #<id>"
+    assert config.persona_for(role_name) == persona
