@@ -23,8 +23,12 @@ Environment=COO_GATE_ALLOWED_UIDS=@ALLOWED_UIDS@
 # RuntimeDirectory=: systemd chowns a RuntimeDirectory back to the unit's User= (root here) before
 # every command it starts (systemd.exec(5)), which undid a chown pre-step and left bind() with
 # EACCES on the first install (RUN-20261013-2142-7e3b). ReadWritePaths opens only this directory.
+# Its "-" is load-bearing: systemd builds the mount namespace for the "+" pre-step too, and a missing
+# ReadWritePaths entry fails it with 226/NAMESPACE before install can create the directory (fresh
+# boot or first start: RUN-20261014-0237-2c9e). With "-" the pre-step runs, and ExecStart's own
+# namespace, built after it, finds the directory and makes it writable (probed on Contabo 2026-10-14).
 ExecStartPre=+/usr/bin/install -d -o org-coo-gate -g org-coo-gate -m 0755 /run/org-coo-gate
-ReadWritePaths=/run/org-coo-gate
+ReadWritePaths=-/run/org-coo-gate
 ExecStart=/usr/bin/python3 @ROOT@/tools/infisical_setup.py run Org-Coo prod --path @SECRET_PATH@ --as contabo -- /usr/bin/setpriv --reuid=org-coo-gate --regid=org-coo-gate --init-groups --no-new-privs -- @ROOT@/.venv/bin/python -m runners.coo_gate
 Restart=on-failure
 RestartSec=5
