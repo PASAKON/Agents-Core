@@ -15,7 +15,7 @@ Cadence: at least 2 h between two posts (Meta groups plan: at most 1 post per 1-
 | # | Group (id) | Members | When | Status |
 |---|---|---|---|---|
 | 1 | สร้างละครสั้นด้วย Ai หรือมือถือ แบ่งปันเทคนิค (2214946398974915) | 57k, 583 posts/day | 14 Oct 08:5x | **ASKED** https://www.facebook.com/groups/2214946398974915/posts/2539368299866055/ text `docs/scripts/community-asks/ask-1-ai-drama-techniques.txt` |
-| 2 | ละครสั้นสะท้อนชีวิต (1539019761132557) | 6.2k, 253/day | 14 Oct about 11:03 | text ready `ask-2-life-drama.txt`, cron set |
+| 2 | ละครสั้นสะท้อนชีวิต (1539019761132557) | 6.2k, 253/day | HOLD 14 Oct | auto-post cron cancelled 09:05 Thai: the CEO asked to SEE the wording first (ค่ะ stays) and said to post from HIS FB anonymously. Texts: `ask-2-life-drama.txt` (as the Page, admin voice) and `ask-2-life-drama-anon.txt` (anonymous member voice, no link offer). Group 1's composer showed no anonymous option; check this group's composer read-only before any post |
 | 3 | ละครAI หนังสั้น reel โปรโมทไม่อั้น (2462042090983645) | 6.1k | next | promo allowed: link in post is fine |
 | 4 | คลิปสั้น คลิปReels สร้างรายได้Facebook (1654570511663221) | 4.7k | next | monetisation Q&A |
 | 5 | ละคร หนังสั้น (741484657714148) | 62k | later | |
