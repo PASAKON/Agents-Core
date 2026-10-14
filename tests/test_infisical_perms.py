@@ -72,15 +72,30 @@ def test_perms_second_route_answers_after_a_404(capsys):
     assert "no permissions route" not in out
 
 
-def test_perms_a_non_404_error_still_raises():
+def test_perms_an_error_other_than_404_or_403_still_raises():
     org = _Org({}, {"/api/v1/projects/pid-123456789/permissions":
-                    infisical_setup.ApiError("GET /x -> HTTP 403: forbidden")})
+                    infisical_setup.ApiError("GET /x -> HTTP 500: boom")})
     try:
         infisical_setup.cmd_perms(org, "Org-Coo")
     except infisical_setup.ApiError as exc:
-        assert "403" in str(exc)
+        assert "500" in str(exc)
     else:
-        raise AssertionError("403 swallowed")
+        raise AssertionError("500 swallowed")
+
+
+def test_perms_a_403_falls_through_to_the_membership_row(capsys):
+    # card 86de (2026-10-14): Infisical answered 403 on the caller's own permissions route
+    deny = infisical_setup.ApiError("You are not allowed to access this resource: GET /x -> HTTP 403")
+    org = _Org({}, {"/api/v1/projects/pid-123456789/permissions": deny,
+                    "/api/v1/workspace/pid-123456789/permissions": deny,
+                    "/api/v1/projects/pid-123456789/identity-memberships/":
+                        {"identityMembership": {"roles": [{"role": "member"}]}}})
+    infisical_setup.cmd_perms(org, "Org-Coo")
+    out = capsys.readouterr().out
+    assert "(403 on /api/v1/projects/<id>/permissions)" in out
+    assert 'roles=["member"]' in out
+    assert "roles above come from the membership row" in out
+    assert org.sent == []
 
 
 def test_perms_deny_flag_survives_truncation(capsys):
