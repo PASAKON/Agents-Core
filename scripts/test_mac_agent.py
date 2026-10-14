@@ -235,7 +235,9 @@ def test_relay_no_keystroke_carries_the_body(relay_env, monkeypatch):
     def run(argv, **kw):
         argv = [str(c) for c in argv]
         argvs.append(argv)
-        return subprocess.CompletedProcess(argv, 0, "", "")
+        # The wake reads the pane before each key: show an empty input box.
+        out = ("out\n" + "─" * 50 + "\n❯ \n" + "─" * 50 + "\n") if argv[1:2] == ["capture-pane"] else ""
+        return subprocess.CompletedProcess(argv, 0, out, "")
 
     monkeypatch.setattr(ma.subprocess, "run", run)
     monkeypatch.setattr(ma.time, "sleep", lambda s: None)
