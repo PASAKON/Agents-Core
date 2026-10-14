@@ -293,6 +293,13 @@ HOST_PY="$ROOT/.venv/bin/python"; [ -x "$HOST_PY" ] || HOST_PY=python3
 if SELF_HOST="$("$HOST_PY" "$ROOT/scripts/lib/coo_host.py" host 2>/dev/null)" && [ -n "$SELF_HOST" ]; then
   HOST_KEY="$SELF_HOST"
 fi
+# The session name starts with this host's emoji (CEO 2026-10-14, lib/session_names.py
+# HOST_EMOJI). Only from self_host() above, never from MACHINE_LABEL's guess: an
+# unresolved host gets no emoji.
+HOST_EMOJI=""
+if [ -n "${SELF_HOST:-}" ]; then
+  HOST_EMOJI="$("$HOST_PY" "$ROOT/lib/session_names.py" prefix "$SELF_HOST" 2>/dev/null)" || HOST_EMOJI=""
+fi
 
 # Reconcile c_level_sessions BEFORE registering this new row (task-9ff9263f):
 # marks any 'open' row on this host whose tmux is actually dead as
@@ -509,7 +516,7 @@ fi
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
-  -n "CTO${CTO_PERSONA:+ ($CTO_PERSONA)}" \
+  -n "${HOST_EMOJI:+$HOST_EMOJI }CTO${CTO_PERSONA:+ ($CTO_PERSONA)}" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

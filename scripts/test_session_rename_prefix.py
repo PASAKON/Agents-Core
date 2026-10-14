@@ -143,3 +143,47 @@ def test_no_prefix_matches_legacy_shape(tmp_path: Path) -> None:
     assert not sent.startswith(("✅", "⏸", "⛔"))
     assert sent.startswith("CTO") and sent.endswith(" — legacy topic")
     assert "#" not in sent and "CONTABO" not in sent and "MAC" not in sent
+
+
+# M9 (CEO 2026-10-14): the host's emoji leads the name, from self_host() only.
+def _stage_with_lib(tmp_path: Path) -> tuple[Path, Path]:
+    import sys
+    fake_root, script = _stage(tmp_path)
+    for rel in ("lib", "config", "policies", "roles"):
+        if (REAL_ROOT / rel).exists():
+            (fake_root / rel).symlink_to(REAL_ROOT / rel)
+    (fake_root / "scripts" / "lib").symlink_to(REAL_ROOT / "scripts" / "lib")
+    (fake_root / ".venv" / "bin").mkdir(parents=True)
+    (fake_root / ".venv" / "bin" / "python").symlink_to(sys.executable)
+    return fake_root, script
+
+
+import pytest  # noqa: E402
+
+
+@pytest.mark.parametrize("host,lead", [("contabo", "\U0001F310 CTO"), ("mac", "\U0001F4BB CTO"),
+                                       ("winbox", "\U0001F5A5️ CTO"), ("bogus", "CTO")])
+def test_the_host_emoji_comes_from_self_host_and_none_when_unresolved(tmp_path: Path, host, lead) -> None:
+    fake_root, script = _stage_with_lib(tmp_path)
+    bin_dir, log = _tmux_stub(tmp_path)
+    env = _env(bin_dir, sid=f"emo{host[:3]}")
+    env["ORG_HOST"] = host
+    r = _run(script, ["--prefix", "⏸", "park it"], env)
+    assert r.returncode == 0, r.stderr
+    sent = r.stdout.split("queued: /rename ", 1)[1].split(" (executes", 1)[0]
+    assert sent.startswith("⏸ " + lead + " ") and sent.endswith(" — park it")
+
+
+@pytest.mark.parametrize("topic,expect", [
+    ("MimiPage", "\U0001F310 PH#36c (CMO) - MimiPage"),                 # CMO's doubling bug
+    ("EP6 clip", "\U0001F310 PH#36c (CMO) - MimiPage — EP6 clip"),
+])
+def test_a_ph_name_does_not_repeat_its_project_as_the_topic(tmp_path: Path, topic, expect) -> None:
+    fake_root, script = _stage_with_lib(tmp_path)
+    bin_dir, log = _tmux_stub(tmp_path)
+    env = _env(bin_dir, sid="36c49776", role="project_head")
+    env.update(ORG_HOST="contabo", ORG_PH_LANE="cmo", ORG_PH_PROJECT="MimiPage")
+    r = _run(script, [topic], env)
+    assert r.returncode == 0, r.stderr
+    sent = r.stdout.split("queued: /rename ", 1)[1].split(" (executes", 1)[0]
+    assert sent == expect
