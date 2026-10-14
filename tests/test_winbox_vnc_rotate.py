@@ -4,8 +4,13 @@ from __future__ import annotations
 import base64
 import io
 import os
+import pty
+import select
 import socket
+import subprocess
+import termios
 import threading
+import time
 
 import pytest
 
@@ -59,13 +64,15 @@ def test_password_goes_over_stdin_never_argv_and_output_is_redacted(capsys):
     assert vr.apply_on_box(PW, run=run) == 0
     assert all(PW not in a for a in seen["args"])
     assert seen["kw"]["input"] == PW + "\r\n"
-    assert seen["args"][:2] == ["ssh", "-o"] and vr.HOST_ALIAS in seen["args"]
+    assert seen["args"][:2] == ["ssh", "-T"] and vr.HOST_ALIAS in seen["args"]   # -T: no remote pty to echo stdin
+    assert "StrictHostKeyChecking=yes" in seen["args"] and "BatchMode=yes" in seen["args"]
     out = capsys.readouterr().out
     assert PW not in out and "<redacted>" in out
 
 
 def test_a_failed_box_step_skips_the_auth_check(monkeypatch, capsys):
     monkeypatch.setattr(vr.sys, "stdin", io.StringIO(PW + "\n"))
+    monkeypatch.setattr(vr, "box_ip", lambda: "100.64.0.9")
     monkeypatch.setattr(vr, "apply_on_box", lambda pw: 3)
     monkeypatch.setattr(vr, "vnc_auth", lambda *a, **k: pytest.fail("auth ran after a failed box step"))
     assert vr.main([]) == 3
@@ -74,6 +81,7 @@ def test_a_failed_box_step_skips_the_auth_check(monkeypatch, capsys):
 
 def test_a_refused_password_never_calls_ssh(monkeypatch):
     monkeypatch.setattr(vr.sys, "stdin", io.StringIO("short\n"))
+    monkeypatch.setattr(vr, "box_ip", lambda: pytest.fail("ssh -G ran on a refused password"))
     monkeypatch.setattr(vr, "apply_on_box", lambda pw: pytest.fail("ssh ran on a refused password"))
     with pytest.raises(SystemExit):
         vr.main([])
@@ -145,6 +153,88 @@ def test_the_restart_call_carries_no_input():
 
     class P:
         stdout = "service: tvnserver Running\n"
+        returncode = 0
 
     vr.restart_service(run=lambda args, **kw: seen.update(args=args, kw=kw) or P())
     assert "input" not in seen["kw"]
+    assert seen["kw"]["stdin"] is subprocess.DEVNULL   # never inherits the card's terminal
+
+
+def _drain(fd: int) -> bytes:
+    out = b""
+    while select.select([fd], [], [], 0.3)[0]:
+        try:
+            chunk = os.read(fd, 4096)
+        except OSError:
+            break
+        if not chunk:
+            break
+        out += chunk
+    return out
+
+
+def test_on_the_cards_terminal_the_typed_password_is_never_echoed():
+    # The Run card's stdin box types into a pty whose output the hub stores (B1 of the review).
+    master, slave = pty.openpty()
+    stream = os.fdopen(slave, "r", closefd=False)
+    ready, got = threading.Event(), {}
+
+    def say(*a, **k):
+        ready.set()
+
+    t = threading.Thread(target=lambda: got.update(pw=vr.read_password(stream, say=say)), daemon=True)
+    t.start()
+    assert ready.wait(5), "never said ready"
+    assert not termios.tcgetattr(slave)[3] & termios.ECHO
+    os.write(master, (PW + "\n").encode())
+    t.join(5)
+    assert got["pw"] == PW
+    assert PW.encode() not in _drain(master)
+    assert termios.tcgetattr(slave)[3] & termios.ECHO      # echo is back afterwards
+    os.close(master), os.close(slave)
+
+
+def test_typing_before_ready_is_refused_because_it_was_echoed():
+    master, slave = pty.openpty()
+    os.write(master, (PW + "\n").encode())                 # echo is still on: the terminal shows it
+    time.sleep(0.2)
+    stream = os.fdopen(slave, "r", closefd=False)
+    with pytest.raises(SystemExit) as exc:
+        vr.read_password(stream, say=lambda *a, **k: pytest.fail("said ready with input waiting"))
+    assert "before 'ready'" in str(exc.value)
+    assert termios.tcgetattr(slave)[3] & termios.ECHO
+    os.close(master), os.close(slave)
+
+
+@pytest.mark.parametrize("host,ok", [("100.124.196.11", True), ("192.168.1.20", False), ("winbox", False), ("", False)])
+def test_the_box_address_must_be_on_the_tailnet(monkeypatch, host, ok):
+    class P:
+        stdout = f"user x\nhostname {host}\nport 22\n"
+
+    monkeypatch.setattr(vr.subprocess, "run", lambda *a, **k: P())
+    if ok:
+        assert vr.box_ip() == host
+    else:
+        with pytest.raises(SystemExit) as exc:
+            vr.box_ip()
+        assert "nothing changed" in str(exc.value)
+
+
+def test_a_firewall_failure_still_proves_the_new_password_and_exits_6(monkeypatch, capsys):
+    monkeypatch.setattr(vr.sys, "stdin", io.StringIO(PW + "\n"))
+    monkeypatch.setattr(vr, "box_ip", lambda: "100.64.0.9")
+    monkeypatch.setattr(vr, "apply_on_box", lambda pw: vr.FIREWALL_FAILED)
+    monkeypatch.setattr(vr, "vnc_auth", lambda ip, pw: True)
+    assert vr.main([]) == vr.FIREWALL_FAILED
+    assert "vnc auth OK" in capsys.readouterr().out
+
+
+def test_the_box_script_refuses_the_old_password_reloads_then_disconnects_then_narrows():
+    ps = vr.PS_SCRIPT
+    assert "that is the current password; nothing changed" in ps
+    assert ps.index("-reload") < ps.index("-disconnectall") < ps.index("Set-NetFirewallAddressFilter")
+    assert "trap {" in ps and "fd7a:115c:a1e0::/48" in ps and "'undo: " in ps
+    # $pw is only compared and encoded on the box, never printed
+    uses = [l for l in ps.splitlines() if "$pw" in l]
+    assert all(("-cnotmatch" in l or "-ceq $pw" in l or "-cne $pw" in l or "GetBytes($pw)" in l
+                or l.startswith("$pw = ")) for l in uses)
