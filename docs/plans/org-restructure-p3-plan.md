@@ -32,11 +32,14 @@ and workers (Phase 4), and the Console web page `/portfolio` (listed as P3-F bel
 - `project_events`: append-only (`id`, `project_id`, `at`, `kind`, `actor`, `body` json). Kinds: opened, stage,
   milestone, blocker, unblocked, decided_for_ceo, ceo_go, spend, closed, heartbeat_rollup. Enforced with a
   `BEFORE UPDATE OR DELETE` trigger that raises. (Memory note: a BEFORE DELETE trigger must raise, not
-  `RETURN NEW`; NEW is NULL on DELETE.)
+  `RETURN NEW`; NEW is NULL on DELETE.) A second, statement-level trigger refuses `TRUNCATE`. Both stop
+  accidents only: the hub role `org` is a superuser and owns the table, so it can disable or drop them.
+  True append-only needs the INSERT-only writer role from the grants piece.
 - `milestones`: `project_id`, `n`, `title`, `done_at`, `evidence` (required when `done_at` is set: sha,
   Drive id, URL or path; a CHECK constraint).
 - `ceo_gos`: `id`, `words` (verbatim), `source` (`run:Q-…`, `run:RUN-…` or `chat:<session>`),
-  `project_id`, `action`, `max_usd`, `given_at`, `expires_at`, `used_by`, `used_at`.
+  `project_id`, `action`, `max_usd`, `given_at`, `expires_at`, `used_by`, `used_at`. The CHECK on `source`
+  validates the format only; the tools piece must look each `Q-`/`RUN-` id up in the Run Inbox before writing.
 - `resource_locks`: `resource` (PK, e.g. `browser_home:contabo:3`, `render_slot:h3`), `holder_session`,
   `project_id`, `since`, `until`. A stale lock (past `until`) is free.
 - `post_ledger`: `platform`, `account`, `url`, `posted_at`, `views_48h`, `read_at`, `project_id`.
