@@ -104,6 +104,53 @@ def parse_short(name: str) -> tuple[str, str] | None:
     return None
 
 
+# --- M10: the rule, as a check (CEO 2026-10-14: names enforced) ------------------
+# A state glyph from session-rename.sh's --prefix ("⏸ ", "✅ ") may lead, and a C-level
+# or PH name may end in " — <topic>"; neither is part of the rule.
+_STATE_LEAD_RE = re.compile(r"^[^\w\U0001F4BB\U0001F310\U0001F5A5]*")
+_HOST_LEAD_RE = re.compile(r"(\U0001F4BB|\U0001F310|\U0001F5A5)\uFE0F? ?")
+_C_LEVEL_BODY_RE = re.compile(r"^(C[A-Z]O)(?: \(([A-Za-z]{2,32})\))?$")
+
+
+def rule_problem(name: str, role: str, sid: str, host: str | None,
+                 persona: str | None = None, windows: bool = False) -> str | None:
+    """Why `name` is off the rule for a session of `role`/`sid` on `host`, or None.
+    Roles with no rule ("unknown", "ceo") are never off it. `persona` (when the
+    caller knows it, policies/agents.yaml) pins a C-level's "(<Name>)"; `windows`
+    is True on a Windows host, where a worker's name carries no emoji."""
+    is_worker = role in WORKER_SHORT
+    is_c_level = bool(re.fullmatch(r"c[a-z]o", role or "")) and role != "ceo"
+    if role != "project_head" and not is_worker and not is_c_level:
+        return None
+    rest = _STATE_LEAD_RE.sub("", name or "", count=1)
+    want = "" if (is_worker and windows) else HOST_EMOJI.get(host or "", "")
+    m = _HOST_LEAD_RE.match(rest)
+    got = m.group(1) if m else ""
+    if want and not got:
+        return "no host emoji"
+    if got and got != want.rstrip("\uFE0F"):
+        return "wrong host emoji" if want else "a host emoji where none belongs"
+    body = rest[m.end():] if m else rest
+    if role == "project_head":
+        pm = PH_NAME_RE.match(body.split(" — ", 1)[0])
+        if not pm:
+            return 'not "PH#<id3> (<LANE>) - <Project>"'
+        if sid and pm.group(1) != sid[:3]:
+            return f"PH#{pm.group(1)} is not this session (#{sid[:3]})"
+        return None
+    if is_worker:
+        wm = WORKER_NAME_RE.match(body)
+        if not wm or wm.group(1) != WORKER_SHORT[role]:
+            return f'not "{WORKER_SHORT[role]}#<id3> - <Head>: <job>"'
+        if sid and wm.group(2) != sid[:3]:
+            return f"{wm.group(1)}#{wm.group(2)} is not this session (#{sid[:3]})"
+        return None
+    cm = _C_LEVEL_BODY_RE.match(body.split(" — ", 1)[0])
+    if not cm or cm.group(1) != role.upper() or (persona and cm.group(2) != persona):
+        return f'not "{role.upper()} ({persona or "<Name>"})"'
+    return None
+
+
 if __name__ == "__main__":   # `python lib/session_names.py prefix <host>`: the emoji, or nothing
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "prefix":

@@ -35,9 +35,18 @@ launcher's tmux name `<role>-<sid>` in the session record, else from the name pl
 `same name on N rows` line with each host and sid: take the `[ref]` from the ListAgents row whose
 `tmux` ends `-<sid>`, or use `send_to_cxo(role=…)`, which routes by tmux name, not display name.
 A session in any other tmux (a worker's `wd-<sid>`) never takes a C-level or PH role from its own name:
-it is listed as `unknown` (M8, 2026-10-14). A row no launcher tmux confirms (winbox, a bare terminal, an old
-publisher) still prints, and a `name only (no launcher tmux confirms the role): <host> #<sid>` line names it;
-the `same name` line marks each row `tmux-confirmed` or `name only`. Stored in `live_sessions.verified`.
+it is listed as `unknown` (M8, 2026-10-14). The launcher's tmux name CLAIMS a role; it proves nothing about
+who started that tmux, so the list says "claimed", never "confirmed". SomPong's fixed tmux `sompong` claims
+`coo` only for the session whose UUID the launcher wrote to `state/locks/coo-<sid>.uuid` (M10).
+A row no launcher tmux claims ends in `  [name only]` on its own line (strip it before sending), and one
+note line explains the mark. On Contabo and the Mac, where every launcher starts a tmux, such a row also
+loses its C-level or PH role (`unknown`, so role routing never lands on it) but still prints, counted in the
+header as `+N name only`; on winbox (no tmux) it keeps the role the name gives. The `same name` line marks
+each row `tmux-claimed` or `name only`. Stored in `live_sessions.verified`.
+Names off the CEO's rule (M10, checked by `lib/session_names.rule_problem`: host emoji, `<ROLE> (<Persona>)`
+from `policies/agents.yaml`, `PH#<id3> (<LANE>) - <Project>`, `<Short>#<id3> - <Head>: <job>`, the id3
+matching the session) each get a `name off-rule: "<name>" (<host> #<sid>): <why>` line, at most 5 and then
+`+N more`. A leading state glyph (`⏸`) and a ` — <topic>` tail are allowed.
 Every name starts with its host's emoji (CEO 2026-10-14): 💻 Mac, 🌐 Contabo, 🖥️ winbox, e.g. `🌐 CTO (Kavin)`,
 `🌐 PH#f35 (CTO) - CookieRun`. The list prints it as part of the name (send it verbatim); parsing drops it first
 (`lib/session_names.strip_host`, U+FE0F optional), so a name without one still resolves. The launchers take the

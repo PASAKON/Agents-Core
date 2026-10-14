@@ -130,3 +130,44 @@ def test_the_cli_prints_only_a_known_hosts_emoji():
     assert run("contabo").stdout == CONTABO.encode()
     assert run("winbox").stdout == WINBOX.encode()
     assert run("guess").stdout == b"" and run("guess").returncode == 0
+
+
+# --- M10: rule_problem, the validator live-sessions flags names with -----------------
+
+@pytest.mark.parametrize("name,role,sid,host,persona,why", [
+    (CONTABO + " CTO (Kavin)", "cto", "c34459eb", "contabo", "Kavin", None),
+    ("⏸ " + CONTABO + " CTO (Kavin) — t", "cto", "c34459eb", "contabo", "Kavin", None),
+    (WINBOX + " CTO (Kavin)", "cto", "x", "winbox", "Kavin", None),
+    ("\U0001F5A5 CTO (Kavin)", "cto", "x", "winbox", "Kavin", None),            # typed, no FE0F
+    ("CTO (Kavin)", "cto", "x", "nowhere", "Kavin", None),                      # unknown host: none
+    (CONTABO + " PH#7cf (CTO) - OrgRestructure — M10", "project_head", "7cf528f0", "contabo", None, None),
+    ("Browser#4a5 - MimiPage: x", "browser_operator", "4a59a1a4", "winbox", None, None),
+    (CONTABO + " Dev#afe - OrgRestructure: x", "developer", "afe57b21", "contabo", None, None),
+    ("anything", "unknown", "x", "contabo", None, None),
+    ("CEO", "ceo", "x", "contabo", None, None),
+    ("CTO (Kavin)", "cto", "x", "contabo", "Kavin", "no host emoji"),
+    ("CONTABO CTO #e106b78b (x)", "cto", "e106b78b", "contabo", None, "no host emoji"),
+    (MAC + " CTO (Kavin)", "cto", "x", "contabo", "Kavin", "wrong host emoji"),
+    (CONTABO + " CMO (Ging)", "cto", "x", "contabo", None, 'not "CTO (<Name>)"'),
+    (CONTABO + " CTO (Ging)", "cto", "x", "contabo", "Kavin", 'not "CTO (Kavin)"'),
+    (CONTABO + " PH#abc (CTO) - X", "project_head", "7cf528f0", "contabo", None,
+     "PH#abc is not this session (#7cf)"),
+    (CONTABO + " Project Head #7cf528f0", "project_head", "7cf528f0", "contabo", None,
+     'not "PH#<id3> (<LANE>) - <Project>"'),
+    (WINBOX + " Browser#4a5 - M: x", "browser_operator", "4a59a1a4", "winbox", None,
+     "a host emoji where none belongs"),
+    (CONTABO + " Test#afe - x", "developer", "afe57b21", "contabo", None,
+     'not "Dev#<id3> - <Head>: <job>"'),
+])
+def test_rule_problem(name, role, sid, host, persona, why):
+    assert sn.rule_problem(name, role, sid, host, persona=persona,
+                           windows=(host == "winbox")) == why
+
+
+def test_every_name_the_writers_make_is_on_the_rule():
+    assert sn.rule_problem(config.ph_session_name("7cf528f0", "cto", "OrgRestructure", "contabo"),
+                           "project_head", "7cf528f0", "contabo") is None
+    for host in ("mac", "contabo", "winbox"):
+        name = config.worker_session_name(host, "developer", "task-afe57b21", "x", head="H")
+        assert sn.rule_problem(name, "developer", "afe57b21", host,
+                               windows=(host == "winbox")) is None, name
