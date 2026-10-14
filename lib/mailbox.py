@@ -767,7 +767,7 @@ def waiting_since_wake(role: str, session_id: str, *, root: Path | None = None) 
     fill a batch nor start the debounce clock."""
     box = _box(role, session_id, root)
     last = _last_wake(box)
-    skip_quiet = quiet_for(role, QUIET_KINDS[0])
+    skip_quiet = quiet_for(role, "fyi")   # is this a box that does not wake for them
     out = []
     for p in _letters(role, session_id, root):
         try:
