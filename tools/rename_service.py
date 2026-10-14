@@ -461,9 +461,11 @@ def type_rename(pane: str, line: str) -> str:
             break
         time.sleep(TYPED_POLL_S)
     # The box was empty before we typed, so all of it was added since: our line plus
-    # any key pressed in this second. A screen that never redrew still holds our line.
-    added = _box_len(screen) if screen is not None and not box_empty(screen) else len(line)
-    tmux("send-keys", "-t", t, "-N", str(max(added, 1)), "BSpace")
+    # any key pressed in this second. Never fewer than our own line: a screen caught
+    # half redrawn shows less than we typed, and a leftover "/rename…" would start the
+    # person's next message. More is harmless: BSpace on an empty box does nothing.
+    added = _box_len(screen) if screen is not None and not box_empty(screen) else 0
+    tmux("send-keys", "-t", t, "-N", str(max(added, len(line))), "BSpace")
     deadline = time.monotonic() + TYPED_WAIT_S
     while True:
         time.sleep(TYPED_POLL_S)
