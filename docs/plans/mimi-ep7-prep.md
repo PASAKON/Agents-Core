@@ -19,6 +19,9 @@ Nothing here spends. Shooting waits for the CEO's typed «go ยิง» in chat
 Pass = night reads as night (not a day plate), the right mouth speaks the line, the voice is right (cat = a man's slow sleepy voice), no text, no extra people/animals, mother in pale-blue pyjamas.
 Untested before production: loc__landing_night (shot 9), loc__broroom_night (shots 10, 11), so read those two first in QC.
 
+## Dry run result (14 Oct 09:30–09:39 TH, balance 348 before = 348 after)
+All 12 shots `needs_model`: **none of the 6 new plates is in Flow** (picker finds no row for mother__night, cat__riao, loc__momroom_night, loc__living_night, loc__landing_night, loc__broroom_night). mimi__dry and brother__wfh attach. Plan with 298 (C-level), not 348: worst case 237 leaves 61.
+
 ## Before the shoot ($0, needs a Flow tab, so it waits for the C-level's OK to touch it)
 1. Check the 6 new plates exist in Flow as named assets: mother__night, cat__riao, loc__momroom_night, loc__living_night, loc__landing_night, loc__broroom_night. Also check that mother__night and cat__riao have their **voices bound** (skill CMO_Knowledge_Flow_Omni1.1 §voices: a voice must be bound at character creation, before any shot).
 2. Run `flow_shoot.py run --dry-run` on the EP7 sheet. It attaches chips and reads settings, at no cost. Shots 8 and 9 carry 4 chips: that is fine (cap 10; the sheet header line "chip ไม่เกิน 3" is the known stale template line, skill note 2026-09-27).
