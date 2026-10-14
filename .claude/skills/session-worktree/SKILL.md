@@ -123,7 +123,7 @@ next `D` id, `dod` the next `F`); `workers` ties delegated tasks to a goal. A ty
    runs call it with the same path and no favicon, which republishes the same URL.
 4. **Last line = the link:** `🖼 https://claude.ai/code/artifact/<id>`. No Artifact tool in this
    runtime (the inline `cto_chat` REPL) → the last line is the file path and why:
-   `🖼 state/session-diagrams/<session>.html · this runtime has no Artifact tool`.
+   `🖼 state/session-diagrams/<session>.html · runtime นี้ไม่มี Artifact tool`.
 5. **Titlebar:** `bash scripts/tab-main.sh "" <goals done>/<goals>` (numbers from the 📊 line) and
    `bash scripts/session-rename.sh "<entry problem, short>"` (silent when unchanged).
 
@@ -145,12 +145,12 @@ Lead with what changed for the company; the technical thing goes in parentheses 
 |---|---|
 | merged PR / pushed to main | ขึ้นระบบจริงแล้ว / รวมเข้างานหลักแล้ว |
 | deployed | ปล่อยใช้งานจริงบนเว็บแล้ว |
-| branch / worktree / sha / commit | *(skip entirely — CEO does not need to know)* |
+| branch / worktree / sha / commit | *(ข้ามไปเลย — CEO ไม่ต้องรู้)* |
 | bug / exception / stack trace | จุดที่พัง / ระบบคำนวณผิด |
 | schema / migration / database | โครงสร้างข้อมูล |
 | API / endpoint | ช่องเชื่อมต่อระบบ |
 | env / API key / secret / token | กุญแจเชื่อมต่อระบบ |
-| refactor | จัดระเบียบของเดิมให้เร็ว/สะอาดขึ้น (same result) |
+| refactor | จัดระเบียบของเดิมให้เร็ว/สะอาดขึ้น (ผลเหมือนเดิม) |
 | deploy blocked / merge conflict | ยังขึ้นจริงไม่ได้ เพราะ… |
 
 Rule of thumb: **"what the customer/business gets"** always comes first.
@@ -160,13 +160,13 @@ Rule of thumb: **"what the customer/business gets"** always comes first.
 📍 G2.3 — <task title>
 🔴 G4.1 — รอ <what>
 ────────────────────────────────────────────────────────
-📋 สรุปแบบบ้านๆ — <date>   (~30 sec read)
-🎯 เรื่องหลัก: <single sentence, plain language>
-✅ เสร็จแล้ว: <business outcome> · <…>
-🔄 กำลังทำ: <what · what it is waiting for>
-🔴 ต้องให้ CEO ตัดสินใจ: <plain problem> → request: <approval / key / $X budget / answer>
-💡 แปลว่า: <business impact, 1 line>
-💰 ค่าใช้จ่าย: ~<N> agent tasks / $<X>   (include only when actual numbers are known)
+📋 สรุปแบบบ้านๆ — <date>   (อ่าน ~30 วิ)
+🎯 เรื่องหลัก: <ประโยคเดียว ภาษาคน>
+✅ เสร็จแล้ว: <ผลลัพธ์ที่ธุรกิจได้> · <…>
+🔄 กำลังทำ: <อะไร · รออะไรอยู่>
+🔴 ต้องให้ CEO ตัดสินใจ: <ปัญหาแบบเข้าใจง่าย> → ขอ: <อนุมัติ / กุญแจ / เงิน $X / คำตอบ>
+💡 แปลว่า: <ผลต่อธุรกิจ 1 บรรทัด>
+💰 ค่าใช้จ่าย: ~<N> งานเอเจนต์ / $<X>   (ใส่เมื่อรู้ตัวเลขจริงเท่านั้น)
 🖼 https://claude.ai/code/artifact/<id>
 ```
 
