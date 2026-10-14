@@ -1,0 +1,49 @@
+[
+ {
+  "file": "real/cxm-post-full.png",
+  "kind": "still",
+  "covers": ["PATTERN-2"],
+  "source_file": "Assets/Agents/Core/bl-realfootage/bl62-cxm-source/fb-post-text.jpg",
+  "source_note": "CEO screenshot of the poster's Facebook post (1179x1628), scaled to 1080 wide, centred on a 1080x1920 dark canvas. Made by a PIL script (not tools/bl_realfootage.py: the source is a CEO-supplied image, not a page capture).",
+  "captured_at": "2026-10-14T10:41:00+07:00",
+  "seconds": 2,
+  "censored": [
+   {"what": "poster's profile photo (avatar)", "rule": "pixelate 28 px + gaussian 14"},
+   {"what": "poster's name above the AI label", "rule": "pixelate 28 px + gaussian 14"},
+   {"what": "the post's first two lines (title with the word Scammer, and her crude line)", "rule": "pixelate 28 px + gaussian 14"}
+  ],
+  "left_visible": ["CXM / CXM Direct in the body (CEO ruling)", "Facebook's 'เนื้อหาที่สร้างโดย AI' label and '17 ชม.'"],
+  "evidence_box": [],
+  "evidence_box_source": "not drawn; the editor reads the lines off the full-size still"
+ },
+ {
+  "file": "real/cxm-post-claim.png",
+  "kind": "still",
+  "covers": ["HOOK-1", "HOOK-2", "PATTERN-4"],
+  "source_file": "Assets/Agents/Core/bl-realfootage/bl62-cxm-source/fb-post-text.jpg",
+  "source_note": "crop y 330-690 of the source: the 'Ep1..' headline and the phone / 2 hours paragraph; header (name, photo) and title lines are outside the crop",
+  "captured_at": "2026-10-14T10:41:00+07:00",
+  "seconds": 0,
+  "censored": [
+   {"what": "poster's profile photo, name and title lines: cropped out AND blurred in the source before cropping", "rule": "crop + pixelate/gaussian"}
+  ],
+  "left_visible": ["CXM in the headline and body"],
+  "evidence_box": [],
+  "evidence_box_source": "not drawn"
+ },
+ {
+  "file": "real/cxm-post-account.png",
+  "kind": "still",
+  "covers": ["HOOK-3", "PATTERN-1", "CONTEXT-3"],
+  "source_file": "Assets/Agents/Core/bl-realfootage/bl62-cxm-source/fb-post-text.jpg",
+  "source_note": "crop y 1070-1500 of the source: the 'บัญชี Cent กับโบรกเกอร์ CXM Direct' paragraph and the own-money paragraph",
+  "captured_at": "2026-10-14T10:41:00+07:00",
+  "seconds": 1,
+  "censored": [
+   {"what": "poster's profile photo, name and title lines: cropped out AND blurred in the source before cropping", "rule": "crop + pixelate/gaussian"}
+  ],
+  "left_visible": ["CXM Direct"],
+  "evidence_box": [],
+  "evidence_box_source": "not drawn"
+ }
+]

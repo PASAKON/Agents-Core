@@ -1,0 +1,26 @@
+HOOK-1	เธอเล่าว่าซีเอ็กซ์เอ็มไม่จ่ายกำไรเกือบหกล้านบาท	cxm-post-claim	show	FIRST FRAME: the post headline line with CXM visible (her name, photo and the post's own title lines are blurred). Subject + attributed claim inside 3 s. On-screen label: ภาพจากโพสต์ต้นทาง. 'เธอ' = a Thai woman trader; on screen: เทรดเดอร์หญิงคนหนึ่งเล่าว่า
+HOOK-2	เธอว่าเทรดทองเองบนมือถือ ถือออเดอร์สองชั่วโมง	cxm-post-claim	show	same still, Ken-Burns onto the line about the phone and the 2 hours (her words, attributed)
+HOOK-3	ซีเอ็กซ์เอ็มแจ้งในอีเมลว่าเป็นท็อกซิกเทรดดิ้ง	cxm-post-account	show	still with the CXM Direct line. Text card over it: 'Toxic Trading / Latency Arbitrage' as the post quotes the email (label: ตามที่เธอเล่า). No verdict
+HOOK-4	เธอเลยถามสามข้อที่ยังไร้คำตอบ		verdict	avatar full frame. Sets up the three questions (MAIN-1..3)
+PATTERN-1	เธอเล่าว่าเปิดบัญชีเซนต์กับซีเอ็กซ์เอ็ม	cxm-post-account	show	still with 'บัญชี Cent กับโบรกเกอร์ CXM Direct' (her words)
+PATTERN-2	ยี่สิบสองกันยายน เธอว่าไม่ใช้บอทเลย	cxm-post-full	show	full post still, slow zoom on the date line '22 กันยายน 2026'. Attributed to her; the channel has not checked it
+CONTEXT-1	กำไรที่เธอเล่า ราวหนึ่งแสนแปดหมื่นสี่พันดอลลาร์		show	TEXT CARD (no real footage, not the AI infographic): 'เธอเล่าว่า: กำไร 18,484,191.83 US cent (ราว 184,841.92 ดอลลาร์)'. The exact cent figure is the post's; spoken rounded
+CONTEXT-2	ขอถอนสามหมื่นดอลลาร์ แต่ถูกปฏิเสธ		show	TEXT CARD: 'เธอเล่าว่า: ขอถอน 30,000 ดอลลาร์ ถูกปฏิเสธ'. Attributed
+CONTEXT-3	เหตุผลในอีเมลคือเลเทนซีอาร์บิทราจ ตามที่เธอเล่า	cxm-post-account	show	CXM still again. Attributed: the post says CXM's email said this. The channel has not seen the email
+CONTEXT-4	คือใช้ประโยชน์จากราคาที่ล่าช้า		show	TEXT CARD: the post's own gloss 'ใช้ประโยชน์จากราคาที่ล่าช้าของระบบซื้อขาย'. Label: ตามโพสต์ต้นทาง
+CONTEXT-5	เธอเล่าว่าได้คืนแต่เงินต้น		show	TEXT CARD: 'เธอเล่าว่า: ได้คืนเฉพาะเงินต้น กำไรยังไม่ได้'. Attributed
+MAIN-1	ข้อหนึ่ง ออเดอร์ไหนที่ผิด		show	GRAPHIC question card 1/3: 'ออเดอร์ไหนผิด?' (her question, post wording)
+MAIN-2	ข้อสอง ล่าช้ากี่มิลลิวินาที		show	GRAPHIC question card 2/3
+MAIN-3	ข้อสาม ผิดกฎข้อไหน		show	GRAPHIC question card 3/3
+MAIN-4	เธอเล่าว่ามีบันทึกเทรดหนึ่งร้อยสิบหกหน้า		show	TEXT CARD: 'เธอเล่าว่า: MT5 Journal 116 หน้า'. Attributed
+MAIN-5	ฝั่งซีเอ็กซ์เอ็ม กูยังไม่ได้ฟัง		verdict	avatar full frame. States the limit: only her account is on the table; nothing here is a verdict
+CURIOSITY-1	ก่อนเปิดบัญชี เคยอ่านข้อตกลงข้อนี้ไหม		verdict	avatar full frame. A question to the viewer, no claim about any broker
+CURIOSITY-2	ใครตัดสินว่าอะไรคือท็อกซิก และดูจากอะไร		verdict	avatar full frame
+SUMMARY-1	ก่อนเปิดบัญชีเซนต์ เช็กสี่อย่าง		verdict	avatar full frame
+SUMMARY-2	หนึ่ง อ่านข้อตกลงเรื่องท็อกซิกให้จบ		show	GRAPHIC checklist card 1/4 (no real footage)
+SUMMARY-3	สอง ลองถอนก้อนเล็กก่อน		show	GRAPHIC checklist card 2/4
+SUMMARY-4	สาม เก็บบันทึกเทรดกับภาพหน้าจอทุกวัน		show	GRAPHIC checklist card 3/4
+SUMMARY-5	สี่ ตรวจบริษัทและหน่วยกำกับของบัญชี		show	GRAPHIC checklist card 4/4
+SUMMARY-6	กูไม่ได้แนะนำเจ้าไหน แค่ชี้วิธีดูให้เป็น		verdict	avatar full frame, compliance line, verbatim from EP61 SUMMARY-5
+SUMMARY-7	คอมเมนต์ เช็กลิสต์ ถ้าอยากได้		cta	avatar full frame, knowledge-only CTA. No link, no account CTA, no rebate
+SUMMARY-8	ยังฟังฝั่งเดียว เช็กก่อนเชื่อ		verdict	avatar full frame, close; then the standard BL warning card (.bl-legal) held to the last frame as in EP61
