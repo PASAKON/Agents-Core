@@ -149,6 +149,7 @@ CREATE TABLE IF NOT EXISTS live_sessions (
     former_name  TEXT,
     renamed_at   TIMESTAMPTZ,
     seen_at      TIMESTAMPTZ NOT NULL,
+    verified     BOOLEAN,
     PRIMARY KEY (host, uuid)
 );
 

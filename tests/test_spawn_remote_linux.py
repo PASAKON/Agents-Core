@@ -99,7 +99,8 @@ def test_contabo_dry_run_renders_ssh_command_with_every_flag(temp_db):
     assert "--branch agent/developer-" in log
     assert "--repo-url" in log and "--repo-path" in log
     assert "--claude-args" in log and "--allowed-tools" in log
-    assert "--session-name" in log and "CONTABO Developer" in log
+    # CEO 2026-10-14 names (#263): "Dev#<id3> - <head>: <title>", no machine word
+    assert "--session-name" in log and "Dev#" in log
     # never the windows shape
     assert "powershell" not in log
     assert "spawn-worker.ps1" not in log
