@@ -102,6 +102,7 @@ def test_sufficient_disk_proceeds_to_spawn_step(temp_db, monkeypatch, tmp_path):
     # The iTerm spawn path runs only on darwin (tools/delegate._spawn_local);
     # pin it so this passes on the Linux CI runner too.
     monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(delegate, "terminal_window", lambda host: True)  # config/hosts.yaml has the Mac at false; this test is the windowed path
     monkeypatch.setattr(delegate, "_free_gb", lambda path="/": 6.0)
 
     fake_project = {
