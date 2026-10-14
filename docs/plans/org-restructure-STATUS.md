@@ -5,7 +5,7 @@ Goal: close out org restructure P2 after the move to one CTO Main + one CMO Main
 move found, ship the CEO's session-name/persona and CMO-model orders. Each milestone = a pushed
 feature branch with tests; CTO Main lands it, the PH never merges.
 
-% = milestones with evidence ÷ 13 (M7–M12 and P3-A added by CTO Main orders on 14 Oct). Landed 7/13 = 54%.
+% = milestones with evidence ÷ 14 (M7–M13 and P3-A added by CTO Main orders on 14 Oct). Landed 9/14 = 64%.
 
 | # | Milestone | State | Evidence |
 |---|---|---|---|
@@ -16,14 +16,17 @@ feature branch with tests; CTO Main lands it, the PH never merges.
 | M5 | P3 plan incl. Project Monitor backend | landed | docs/plans/org-restructure-p3-plan.md |
 | M7 | Short names (`Dev#<id3> - ` etc.) | landed | PR #263 |
 | P3-A | P3 phase A | landed | PR #264 |
-| M8 | winbox title + role; node_dispatch args cap 4000; COO `verified` grant | PR open, CI rerun | PR #268, branch `ph-7cf528f0/m8-winbox-title-and-role` |
-| M9 | Host emoji in names; session-rename PH topic not doubled | pushed after #268 | branch `ph-7cf528f0/m9-host-emoji` |
-| M10 | Names enforced in live-sessions (M10a) + rename request file and root rename service (M10b, #272) | pushed after M9 | branch `ph-7cf528f0/m10-names-enforced`; deploy = Run card (rename-service.service) |
+| M8 | winbox title + role; node_dispatch args cap 4000; COO `verified` grant | landed; grant = Run card | PR #268, merge d4ff2ae0 |
+| M9 | Host emoji in names; session-rename PH topic not doubled | landed | PR #275 |
+| M10 | Names enforced in live-sessions (M10a) + rename request file and root rename service (M10b, #272) | PR open | PR #283; branch `ph-7cf528f0/m10-names-enforced`; deploy = Run card (rename-service.service) |
 | M11 | Escalation watch (CEO order 14 Oct ~11:45 TH) | pushed after M10 | branch `ph-7cf528f0/m11-escalation-watch`; deploy = Run card (escalation-watch.timer) |
 | M12 | winbox runners: no task text through shell argv parsing | pushed after M11 | branch `ph-7cf528f0/m12-winbox-argv`; winbox self-test 8/8 PASS |
+| M13 | A Project Head on the Mac and winbox (CEO 14 Oct 13:00 TH via COO): a Mac local, b Contabo→Mac card, c winbox | a+b PR open; c(3) draft (stacked); c(2) blocked | PR #280 (a+b), PR #282 (c3); docs/ops/ph-anywhere.md has the install bytes |
 | M6 | Close-out with Skill learning | open | — |
 
-Blocker: none. Winbox delegation stays paused until M12 lands and a first live spawn checks the claude TUI.
+Blocker: M13c(2) #238, the winbox org_dispatch key. Committing its installer was refused by the classifier
+[Unauthorized Persistence] (14 Oct); waiting on the CEO, via CTO Main, since 14 Oct 08:20 (Contabo clock).
+Winbox delegation stays paused until M12 lands and a first live spawn checks the claude TUI.
 
 Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), task-afe57b21: PR #269, CTO lands it after #268.
 
