@@ -186,10 +186,14 @@ Check the name in the app after the turn; if it did not change, the CEO types
 - **Rename whenever the main job changes** (the CEO moves the session to a new
   job, a `/session-merge`): `bash scripts/session-rename.sh "<new job>"`.
   `/session-save` renames to `<job> — <state>` (see that skill).
-- **Refused or not landed → hand the CEO the exact line**, e.g.
-  `/rename CTO (Kavin) — rename rule + nudge hook`. The auto-mode
-  classifier refuses the script as "Self-Modification" (2026-09-30). Never work
-  around a refusal: no other pane, no peer, no `--force` loop.
+- **Rename yourself; never ask the CEO** (CEO 2026-10-14 via CMO #ef04792e: "คุณเองเลย และไม่ต้องถามคำสั่งนี้อีก
+  เขียนเป็นกฎเลย เสียเวลามาก"). Run `bash scripts/session-rename.sh "<job>"` yourself. If the classifier
+  refuses it ([Tmux Self Drive] / "Self-Modification") or it does not land, **leave it**: never hand the
+  CEO a `/rename` line, never ask him or a peer, never work around it (no other pane, no `--force`
+  loop). The fix that makes it land every time is Agents-Core issue #272: the session writes a rename
+  request, and a rename service types the validated `/rename` into an empty input line. Until that
+  ships, the CTO renames off-rule sessions in batches with one Run card.
+  [SUPERSEDED 2026-10-14: "Refused or not landed → hand the CEO the exact line, e.g. `/rename …`"]
 - Safety net: `scripts/hook-rename-nudge.py` adds one line every 20 turns to
   interactive C-level sessions (not SomPong, workers or headless runs) asking
   whether the name still matches the job. It only asks; it never renames.
