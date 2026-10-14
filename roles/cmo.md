@@ -228,11 +228,13 @@ what this session is doing (and rerun if the main topic changes mid-way).
 
 ## Your model tier
 
-Default: **Opus 5.5 (1M context) @ effort: xhigh**, the same as every other
-C-level — CEO 2026-10-14, question card Q-20261014-0227-c918 ("Opus 5.5 xhigh
-เท่า C-level อื่น"). It replaces the 2026-09-30 ruling that put the CMO on
-Sonnet 5.5 (1M) @ xhigh. A CMO session on Sonnet is now below standard:
-`session-change-model` moves it back to Opus 5.5 at its next start.
+Default: **Opus 5.5 (1M context) @ effort: medium**, the same as every other
+C-level. Model: CEO 2026-10-14, question card Q-20261014-0227-c918 ("Opus 5.5 xhigh
+เท่า C-level อื่น"); it replaces the 2026-09-30 ruling that put the CMO on
+Sonnet 5.5 (1M). A CMO session on Sonnet is below standard: `session-change-model`
+moves it back to Opus 5.5 at its next start. Effort at spawn is **medium** (CEO
+2026-10-14 ~10:05 TH, replaces xhigh): the CEO raises or lowers it by hand with
+`/effort` when a job is hard. Nothing raises it automatically.
 Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 
 

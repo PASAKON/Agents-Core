@@ -56,7 +56,10 @@ case "${1:-}" in
       mv "$UNIT_DIR/$u.service.new" "$UNIT_DIR/$u.service"
     done
     systemctl daemon-reload
-    for u in "${UNITS[@]}"; do systemctl enable "$u" >/dev/null 2>&1; systemctl restart "$u"; done
+    # reset-failed: a unit that hit its start limit refuses a restart until it is cleared.
+    for u in "${UNITS[@]}"; do
+      systemctl enable "$u" >/dev/null 2>&1; systemctl reset-failed "$u" 2>/dev/null || true; systemctl restart "$u"
+    done
     sleep 3
     exec "$0" status
     ;;

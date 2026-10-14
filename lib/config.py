@@ -129,6 +129,16 @@ def display_for(role_name: str) -> str:
     return r.get("display") or role_name
 
 
+def persona_for(role_name: str) -> str:
+    """The C-level's persona name for its session name, "<HOST> <ROLE> (<Name>) #<id>"
+    (CEO 2026-10-14: CTO Kavin, CMO Ging, COO SomPong). "" when the role has none."""
+    try:
+        r = role(role_name)
+    except ValueError:
+        return ""
+    return str(r.get("persona") or "")
+
+
 def get_project(key: str) -> dict:
     p = projects().get(key)
     if not p:

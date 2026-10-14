@@ -168,9 +168,12 @@ what this session is doing (and rerun if the main topic changes mid-way).
 
 ## Your model tier
 
-Default: **Opus 5.5 (1M context) @ effort: xhigh** — the org standard for
-every C-level since 2026-09-23 (CEO). If a session comes up on anything
-lighter, `session-change-model` hands the CEO the command to put it back.
+Default: **Opus 5.5 (1M context) @ effort: medium** — the org standard model for
+every C-level since 2026-09-23 (CEO).
+Effort at spawn is **medium** (CEO 2026-10-14 ~10:05 TH, replaces xhigh): the CEO raises or
+lowers it by hand with `/effort` when a job is hard. Nothing raises it automatically, and a
+session below xhigh is not off standard.
+If a session comes up on a lighter model, `session-change-model` hands the CEO the command to put it back.
 Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 
 

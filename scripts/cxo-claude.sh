@@ -192,11 +192,12 @@ fi
 # Resolve display name + model + effort from policies/agents.yaml so the
 # tab title/log lines and the spawned model match the canonical config —
 # per-role, not hardcoded (decisions/0009-model-routing-policy.md).
-IFS=$'\t' read -r DISPLAY MODEL EFFORT <<<"$(cd "$ROOT" && source .venv/bin/activate && PH_LANE="$PH_LANE" ROLE_ARG="$ROLE" python3 -c "
-from lib.config import display_for, is_c_level, role as get_role
+IFS=$'\t' read -r DISPLAY MODEL EFFORT PERSONA <<<"$(cd "$ROOT" && source .venv/bin/activate && PH_LANE="$PH_LANE" ROLE_ARG="$ROLE" python3 -c "
+from lib.config import display_for, is_c_level, persona_for, role as get_role
 from lib.roles import is_project_head, ph_display
 import os, sys
 role = os.environ['ROLE_ARG']
+persona = ''
 if is_project_head(role):
     display = ph_display(os.environ.get('PH_LANE', ''))
 elif not is_c_level(role):
@@ -204,10 +205,11 @@ elif not is_c_level(role):
     sys.exit(2)
 else:
     display = display_for(role)
+    persona = persona_for(role)
 r = get_role(role)
 model = r.get('model') or 'claude-opus-5-5[1m]'
-effort = r.get('effort') or 'xhigh'
-print(display, model, effort, sep='\t')
+effort = r.get('effort') or 'medium'
+print(display, model, effort, persona, sep='\t')   # persona last: empty is fine there
 ")"
 [ -n "$DISPLAY" ] || exit 2
 
@@ -821,6 +823,12 @@ fi
 # "<MACHINE> Project Head (<LANE>) #<id> (<Project>)" (tools/live_sessions.py).
 NAME_SUFFIX=""
 if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
+# A C-level primary session carries its persona (CEO 2026-10-14 session names):
+# "<MACHINE> <ROLE> (<Name>) #<id>". TAB_TITLE and its .base stay as they are (routing).
+SESSION_NAME="$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX"
+if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ] && [ -n "${PERSONA:-}" ]; then
+  SESSION_NAME="$MACHINE_LABEL $DISPLAY ($PERSONA) #$CXO_SESSION_ID"
+fi
 
 # Per-session memory scope (org restructure P2, plan §7) when ORG_SESSION_SCOPE=1:
 # claude runs in its own transient systemd scope with MemoryHigh/MemoryMax, so
@@ -852,7 +860,7 @@ fi
 
 # `exec` would skip the EXIT trap → stale lock. Run claude as child.
 claude \
-  -n "$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX" \
+  -n "$SESSION_NAME" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

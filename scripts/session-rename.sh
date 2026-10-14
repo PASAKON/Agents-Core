@@ -135,6 +135,16 @@ ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
 if [ "$ROLE" = "project_head" ]; then
   ROLE_UP="Project Head ($(printf '%s' "${ORG_PH_LANE:-}" | tr -cd 'a-zA-Z' | tr '[:lower:]' '[:upper:]'))"
 fi
+# A C-level's persona (CEO 2026-10-14): "<MACHINE> <ROLE> (<Name>) #<id> (<topic>)",
+# from policies/agents.yaml. Any failure leaves the name without one; never an error.
+if [ "$ROLE" != "project_head" ]; then
+  _PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
+  PERSONA="$(cd "$ROOT" && ROLE_ARG="$ROLE" "$_PY" -c "
+import os
+from lib.config import persona_for
+print(persona_for(os.environ['ROLE_ARG']))" 2>/dev/null | tr -cd 'a-zA-Z')" || PERSONA=""
+  if [ -n "$PERSONA" ]; then ROLE_UP="$ROLE_UP ($PERSONA)"; fi
+fi
 
 BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
 if [ -n "$PREFIX" ]; then
