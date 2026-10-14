@@ -1684,6 +1684,10 @@ async def _spawn_remote(task: dict, host_name: str, *,
     ]
     if work_dir:
         script_args.extend(["--work-dir", str(work_dir)])
+    # The launcher is sparse by default (ADR 0030); a task outside the
+    # `sparse_worktree` scope opts out, as it does for a local worktree.
+    if not _scope_applies("sparse_worktree", task.get("owner_cto")):
+        script_args.append("--no-sparse")
     transport = "local" if local else "ssh"
     if local:
         cmd = ["bash", remote_script, *script_args]
@@ -2583,7 +2587,8 @@ async def _delegate_task(task_id: str, *, wait: bool = False,
         wt_info = None
         if task.get("worktree") or task.get("branch"):
             wt_info = restore_worktree(project_key, role_name, task_id,
-                                       path=task.get("worktree"), branch=task.get("branch"))
+                                       path=task.get("worktree"), branch=task.get("branch"),
+                                       sparse=sparse_applies)
         if wt_info is None:
             wt_info = create_worktree(project_key, role_name, task_id,
                                       sparse=sparse_applies)
