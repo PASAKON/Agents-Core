@@ -27,7 +27,9 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 | M6 | EP62 final + caption to CMO Main, then posted | 14 Oct 18:00 (post default 19:00) | open | |
 
 EP62 added 14 Oct 10:41 TH (CEO order via CMO Main). EP62 ran on Contabo by CTO ruling 14 Oct (CTO Main c34459eb 10:45 TH: «option (b) … nothing in these stages needs the Mac»), ClaudeFlow checkout /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow @4208690, node /opt/node-v22/bin/node, work dir /opt/MoonieXHQ/Work/bl-ep62.
-EP62 probe 14 Oct 10:5x TH ($0): row cc13ea6b-4009-4050-aaa1-da208294d711 (MANUAL_RUN), drive_setup done, Drive folder `BLACK LIQUIDITY [61] | BL EP62 — CXM ไม่จ่ายกำไรบัญชี Cent เกือบ 6 ล้าน` 1fOlTvVs555AODyN0ReD0qj5ZISMC1DjR, row.script byte-equal to the DRAFT probe (re-insert the approved script with --row before tts). Progress = done / 6. Paid stages (~$0.90) wait on the CEO GO and a host (Mac stale since 13 Oct 19:55; CTO asked).
+EP62 probe 14 Oct 10:5x TH ($0): row cc13ea6b-4009-4050-aaa1-da208294d711 (MANUAL_RUN), drive_setup done, Drive folder `BLACK LIQUIDITY [61] | BL EP62 — CXM ไม่จ่ายกำไรบัญชี Cent เกือบ 6 ล้าน` 1fOlTvVs555AODyN0ReD0qj5ZISMC1DjR, row.script byte-equal to the DRAFT probe (re-insert the approved script with --row before tts).
+EP62 approve gate: script approval decided by CMO Main #ef04792e, 14 Oct 13:3x TH, under the CEO ruling of 13:20 TH (a C-level decides in its lane): «อนุมัติ v2 4e6e2421 (md5 9967e48e) ตามนี้». Card Q-20261014-0604-4c84 cancelled by the CMO. v2 = branch ph-13db8720/bl62-script @4e6e2421, 26 lines, 881 non-space chars, forecast 70.5 s.
+EP62 v2 loaded 14 Oct ~13:2x TH ($0): run-bl-script.js --row=cc13ea6b… (needs --title too); row.script byte-equal to /opt/MoonieXHQ/Work/bl-ep62/v2-script.txt, md5 9967e48efb9d8a1b115ce4687137a4c2, Drive folder unchanged. Paid stages wait for the CEO's typed GO (money). Progress = done / 6. Paid stages (~$0.90) wait on the CEO GO and a host (Mac stale since 13 Oct 19:55; CTO asked).
 
 Session check-ins (session-only crons, re-made 14 Oct after the CEO rulings): a0dee140 (M1), 3e92f242 (M2), 9d45b221 (M3), ba4bf228 (M4).
 
