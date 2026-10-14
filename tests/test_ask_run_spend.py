@@ -79,6 +79,9 @@ def test_cli_balance_after_comes_from_the_spend_guard(capsys, tmp_path, monkeypa
     body = _body(capsys, _cli(*FAL))
     assert body["spend"]["balance_after"] == 41.1
     assert body["spend"]["balance_source"] == "spend_guard"
+    # the snapshot's time travels so the card can show its age (hub review round 4 L2)
+    at = datetime.fromisoformat(body["spend"]["balance_at"].replace("Z", "+00:00"))
+    assert abs((datetime.now(timezone.utc) - at).total_seconds()) < 120
 
 
 def test_spend_guard_balance_ignores_stale_or_unread_snapshots(tmp_path):
@@ -88,6 +91,7 @@ def test_spend_guard_balance_ignores_stale_or_unread_snapshots(tmp_path):
     assert ask_run.spend_guard_balance("fal", root=root, now=NOW + timedelta(hours=2)) is None
     assert ask_run.spend_guard_balance("openrouter", root=root, now=NOW) is None
     assert ask_run.spend_guard_balance("fal", root=tmp_path / "nowhere", now=NOW) is None
+    assert ask_run.spend_guard_reading("fal", root=root, now=NOW) == (42.6, "2026-10-14T07:00:00Z")
 
 
 def test_credits_label_needs_max_credits_and_never_reads_the_guard(capsys, tmp_path):
@@ -142,7 +146,7 @@ def test_a_script_ask_reads_the_cap_from_its_argv(capsys):
 # One list of cases, judged the same way by the Console hub (src/run/spend.js capFlag, its
 # test/run-spend-capflag.test.js reads a byte-for-byte copy). The sha256 is pinned on both sides.
 FIXTURES = ROOT / "tests" / "fixtures" / "spend-cap-flag.json"
-FIXTURES_SHA256 = "07f371baa2ab116e44ce3ba5191e2b1b0c81ad9a12f006d564a1c651c1aafe17"
+FIXTURES_SHA256 = "2946738997005484770eb7e98c4d48cfc6ceb450a33f3a4d364fdaacd170375a"
 CASES = json.loads(FIXTURES.read_text(encoding="utf-8"))["cases"]
 
 
@@ -150,9 +154,11 @@ def test_the_fixtures_file_is_the_pinned_copy():
     assert hashlib.sha256(FIXTURES.read_bytes()).hexdigest() == FIXTURES_SHA256
 
 
-@pytest.mark.parametrize("case", CASES, ids=[repr(c["command"])[:60] for c in CASES])
+@pytest.mark.parametrize("case", CASES, ids=[repr(c.get("command", c.get("argv")))[:60] for c in CASES])
 def test_cap_flag_judged_like_the_hub(case):
-    assert ask_run.cap_flag_check(case["command"], case["unit"], case["cap"]) == case["want"]
+    """A case with `argv` is a script card's [path, *args] (hub review round 4 L4)."""
+    got = ask_run.cap_flag_check(case.get("command", ""), case["unit"], case["cap"], argv=case.get("argv"))
+    assert got == case["want"]
 
 
 def test_amounts_take_at_most_four_decimal_places(capsys):

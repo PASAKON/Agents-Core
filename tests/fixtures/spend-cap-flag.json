@@ -1,5 +1,5 @@
 {
- "about": "Cap-flag cases judged the same way by the Console hub (src/run/spend.js capCheck / simpleWords) and Agents-Core tools/ask_run.py (cap_flag_check): want = null (accepted) or the refusal code. The file is copied byte for byte into both repos; each repo's test pins its sha256, so a change lands in both. Projects talk through APIs only, so neither reads the other's copy.",
+ "about": "Cap-flag cases judged the same way by the Console hub (src/run/spend.js capCheck / simpleWords) and Agents-Core tools/ask_run.py (cap_flag_check): want = null (accepted) or the refusal code. The file is copied byte for byte into both repos; each repo's test pins its sha256, so a change lands in both. Projects talk through APIs only, so neither reads the other's copy. A case with `argv` instead of `command` is a script card's [path, ...args], judged with capCheck(null, unit, cap, argv) / cap_flag_check('', unit, cap, argv=argv).",
  "cases": [
   {
    "command": "python fal_render.py --max-usd 1",
@@ -648,6 +648,152 @@
    "unit": "usd",
    "cap": 1,
    "want": null
+  },
+  {
+   "command": "python3 tools/x.py --max-usd 1 --max-credits --max-usd=100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python3 tools/x.py --max-usd 1 --max-credits --max-usd 100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "command": "python3 tools/x.py --max-usd 1 --max-credits --max=100",
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "command": "python3 tools/x.py --max-credits 5 --max-usd 1",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "python3 tools/x.py --max-usd 1 --max-credits -5",
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "command": "node runners/c.mjs --max-credits 60 --max-usd --max-credits=999",
+   "unit": "credits",
+   "cap": 60,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--prompt",
+    "a cat; it's $5",
+    "--max-usd",
+    "1"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--prompt",
+    "$(rm -rf ~)",
+    "--max-usd=1"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd",
+    "1",
+    "--max",
+    "100"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd",
+    "1",
+    "--max-credits",
+    "--max-usd=100"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd",
+    "1 "
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_command_not_simple"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd=1 "
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd 9",
+    "--max-usd",
+    "1"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": null
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd",
+    "1",
+    "--",
+    "--max-usd",
+    "100"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_ambiguous"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--prompt",
+    "x"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_missing"
+  },
+  {
+   "argv": [
+    "scripts/fal_batch.sh",
+    "--max-usd",
+    "1e3"
+   ],
+   "unit": "usd",
+   "cap": 1,
+   "want": "spend_cap_flag_mismatch"
   }
  ]
 }

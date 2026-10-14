@@ -815,8 +815,10 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "command itself carries the cap as --max-usd N / --max-credits N (CEO "
             "2026-10-14). balance_after defaults to the spend guard's balance for "
             "openrouter/fal. A command that only looks like spend (a balance read) "
-            "sends no_spend='<reason>'. The hub refuses a spend-shaped command with "
-            "neither."
+            "sends no_spend='<reason>'. A spend-shaped command with neither is posted "
+            "with a warning on the card (RUN_INBOX_SPEND_LABEL=warn, the default); "
+            "under enforce the hub refuses it, and a label runs only on a script "
+            "card with no cwd."
         ),
         params=(
             Param("host", str), Param("why", str), Param("script", str, ""),
