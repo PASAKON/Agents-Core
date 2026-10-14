@@ -26,7 +26,8 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 | M5 | EP62 (CXM cent-account case) script, CEO-approved | 14 Oct ~13:15 | in progress (W1 script_writer, branch ph-13db8720/bl62-script) | |
 | M6 | EP62 final + caption to CMO Main, then posted | 14 Oct 18:00 (post default 19:00) | open | |
 
-EP62 added 14 Oct 10:41 TH (CEO order via CMO Main). Progress = done / 6. Paid stages (~$0.90) wait on the CEO GO and a host (Mac stale since 13 Oct 19:55; CTO asked).
+EP62 added 14 Oct 10:41 TH (CEO order via CMO Main). EP62 ran on Contabo by CTO ruling 14 Oct (CTO Main c34459eb 10:45 TH: «option (b) … nothing in these stages needs the Mac»), ClaudeFlow checkout /opt/MoonieXHQ/Projects/MoonieX/ClaudeFlow @4208690, node /opt/node-v22/bin/node, work dir /opt/MoonieXHQ/Work/bl-ep62.
+EP62 probe 14 Oct 10:5x TH ($0): row cc13ea6b-4009-4050-aaa1-da208294d711 (MANUAL_RUN), drive_setup done, Drive folder `BLACK LIQUIDITY [61] | BL EP62 — CXM ไม่จ่ายกำไรบัญชี Cent เกือบ 6 ล้าน` 1fOlTvVs555AODyN0ReD0qj5ZISMC1DjR, row.script byte-equal to the DRAFT probe (re-insert the approved script with --row before tts). Progress = done / 6. Paid stages (~$0.90) wait on the CEO GO and a host (Mac stale since 13 Oct 19:55; CTO asked).
 
 Session check-ins (session-only crons, re-made 14 Oct after the CEO rulings): a0dee140 (M1), 3e92f242 (M2), 9d45b221 (M3), ba4bf228 (M4).
 
