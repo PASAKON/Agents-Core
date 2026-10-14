@@ -431,6 +431,33 @@ def _envelope_kw(subject: str | None, **extra) -> dict:
     return {"subject": subject, **extra} if mailbox.envelope_on() else {}
 
 
+# The kinds a session may put on a letter: every envelope kind but "order".
+# An order is the CEO's, made only by relay_to_session, whose sender is pinned
+# server-side (lib/mailbox.py, org restructure P1 security pass 83d0b315).
+SENDER_KINDS = tuple(k for k in mailbox.KINDS if k != "order")
+
+
+def check_kind_prio(kind: str | None, prio: str | None) -> None:
+    """Refuse a kind or prio the letter cannot carry, before anything is
+    written, flag on or off (off, a valid pair is accepted and ignored)."""
+    if kind == "order":
+        raise ValueError("kind 'order' is the CEO's: only relay_to_session makes one. "
+                         f"Use one of {', '.join(SENDER_KINDS)}")
+    if kind and kind not in SENDER_KINDS:
+        raise ValueError(f"unknown letter kind {kind!r}; one of {', '.join(SENDER_KINDS)}")
+    if prio and prio not in mailbox.PRIOS:
+        raise ValueError(f"unknown letter prio {prio!r}; one of {', '.join(mailbox.PRIOS)}")
+
+
+def _remote_kind_note(kind: str | None, prio: str | None) -> str:
+    """The warning a sender sees when a kind or prio cannot travel: a letter to
+    another host is a hub `letters` row, which has no kind or prio column, and
+    the far side files it as message/normal (node_dispatch._write_clevel_letter)."""
+    if not mailbox.envelope_on() or not (kind or prio):
+        return ""
+    return "\nwarning: kind and prio do not reach another host; it is filed as message/normal"
+
+
 def _subject_note(subject: str | None, message: str) -> str:
     """The warning a sender sees when envelope mail stood the message's first
     80 characters in for a missing subject; empty otherwise."""
@@ -545,13 +572,18 @@ end tell
 
 
 def spawn(role: str, message: str, sender: str | None = None, *,
-          subject: str | None = None) -> str:
+          subject: str | None = None, kind: str | None = None,
+          prio: str | None = None) -> str:
     """Ephemeral-spawn path: open a new tab for this request.
 
     Dedupe-checked: if an alive ephemeral tab with the same topic-slug
     was created within the last 10 minutes, reuse it instead of opening
     a second tab. Does NOT write the `<role>-active` pointer.
+
+    `kind` / `prio` go on the letter a reused tab gets (envelope mail, as in
+    `send()`); a new tab takes the message as its first prompt, with no letter.
     """
+    check_kind_prio(kind, prio)
     if not is_c_level(role):
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
@@ -607,9 +639,9 @@ def spawn(role: str, message: str, sender: str | None = None, *,
             from_role, from_sid = _mailbox_identity(sender_identity)
             chain = _chain_ids(sender_identity) + [f"{role}:{reused_sid}"]
             mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain,
-                         **_envelope_kw(subject))
+                         **_envelope_kw(subject, kind=kind, prio=prio))
             if mailbox.envelope_on():
-                wake_for_letter(role, reused_sid, label)
+                wake_for_letter(role, reused_sid, label, mailbox.letter_prio(kind, prio))
             else:
                 _attempt_wake(role, reused_sid, label)
             _log_hop(sender_identity, role, reused_sid)
@@ -735,7 +767,8 @@ def dispatch_letter(letter_id: int) -> str:
 
 
 def send(role: str, message: str, sender: str | None = None, *,
-         subject: str | None = None) -> str:
+         subject: str | None = None, kind: str | None = None,
+         prio: str | None = None) -> str:
     """Programmatic API (legacy path). Returns one-line summary string.
 
     Task task-de2cdc15 (CEO directive 2026-08-14, option A): queues the
@@ -761,16 +794,22 @@ def send(role: str, message: str, sender: str | None = None, *,
     Envelope mail (ORG_MAIL_ENVELOPE on): `subject` is stored on the letter
     (a missing one becomes the message's first 80 characters, and the return
     string ends with a warning line), and the wake is debounced
-    (`wake_for_letter`). Off, `subject` is ignored.
+    (`wake_for_letter`). Off, `subject` is ignored. `kind` (any of
+    SENDER_KINDS; "order" is refused, it is the CEO's) and `prio` (normal or
+    urgent) are stored the same way, and the letter's prio drives the wake:
+    an ask or blocker with no prio is urgent and wakes at once
+    (`mailbox.letter_prio`). Off, they are checked and ignored.
 
     Contract: queued or raised, never "probably". Raises ValueError when
     the target role has no registered session (unchanged failure mode --
     see `_active_session_id()`). Raises PermissionError when the routing
     guard refuses the hop (see `authorize()`); a refusal writes nothing.
     """
+    check_kind_prio(kind, prio)
     ph_target = PH_TARGET_RE.fullmatch((role or "").strip().lower())
     if ph_target:
-        return _send_to_ph(ph_target.group(1), message, sender, subject=subject)
+        return _send_to_ph(ph_target.group(1), message, sender, subject=subject,
+                           kind=kind, prio=prio)
     if not is_c_level(role):
         raise ValueError(
             f"{role} is not a C-level role. Known C-level: {', '.join(c_level_roles())}"
@@ -799,18 +838,18 @@ def send(role: str, message: str, sender: str | None = None, *,
         target = f"{display_for(role)} #{sid}"
         # the letters row has no subject column: the far side stands the
         # body's first 80 characters in (node_dispatch._write_clevel_letter)
-        note = _subject_note(None, message)
+        note = _subject_note(None, message) + _remote_kind_note(kind, prio)
         if dispatch_letter(lid) == "delivered":
             return f"delivered to {target} on {host}: [{label}] : {message}" + note
         # Not an error: the row stays pending and the watchdog retries it.
         return f"queued for {host}: {target} (letter {lid}): [{label}] : {message}" + note
     chain = _chain_ids(sender_identity) + [f"{role}:{sid}"]
     letter = mailbox.send(role, sid, message, from_role, from_sid, chain=chain,
-                          **_envelope_kw(subject))
+                          **_envelope_kw(subject, kind=kind, prio=prio))
     if role in SINGLETON_ROLES:
         _share_letter(letter)
     if mailbox.envelope_on():
-        wake_for_letter(role, sid, label)
+        wake_for_letter(role, sid, label, mailbox.letter_prio(kind, prio))
     else:
         _attempt_wake(role, sid, label)
     return (f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
@@ -844,7 +883,8 @@ def _ph_owner_session(role: str) -> str | None:
 
 
 def _send_to_ph(sid: str, message: str, sender: str | None = None, *,
-                subject: str | None = None) -> str:
+                subject: str | None = None, kind: str | None = None,
+                prio: str | None = None) -> str:
     """Queue a letter in a live Project Head's box (org restructure P2).
     Same-host only: a Project Head runs where its C-level started it."""
     from tools import clevel_gate  # noqa: PLC0415
@@ -858,9 +898,9 @@ def _send_to_ph(sid: str, message: str, sender: str | None = None, *,
     from_role, from_sid = _mailbox_identity(sender_identity)
     chain = _chain_ids(sender_identity) + [f"{PH_ROLE}:{sid}"]
     mailbox.send(PH_ROLE, sid, message, from_role, from_sid, chain=chain,
-                 **_envelope_kw(subject))
+                 **_envelope_kw(subject, kind=kind, prio=prio))
     if mailbox.envelope_on():
-        wake_for_letter(PH_ROLE, sid, label)
+        wake_for_letter(PH_ROLE, sid, label, mailbox.letter_prio(kind, prio))
     else:
         _attempt_wake(PH_ROLE, sid, label)
     return (f"queued to Project Head #{sid}: [{label}] : {message}"
@@ -891,7 +931,8 @@ def _share_letter(letter: Path | None) -> None:
 def _usage() -> str:
     return (
         'usage: python -m tools.send_to_cxo [--spawn] [--from <role>] [--subject "<one line>"] '
-        '<target_role> "<message>"\n'
+        '[--kind <kind>] [--prio normal|urgent] <target_role> "<message>"\n'
+        f"  <kind>: {'|'.join(SENDER_KINDS)} (stored with ORG_MAIL_ENVELOPE on)\n"
         f"  <target_role>: {'|'.join(c_level_roles())}"
     )
 
@@ -901,6 +942,7 @@ def main() -> int:
     sender_override = None
     do_spawn = False
     subject = None
+    envelope: dict[str, str] = {}
 
     remaining: list[str] = []
     i = 0
@@ -924,6 +966,12 @@ def main() -> int:
                 return 1
             subject = argv[i + 1]
             i += 1
+        elif a in ("--kind", "--prio"):
+            if i + 1 >= len(argv):
+                print(f"{a} requires a value", file=sys.stderr)
+                return 1
+            envelope[a[2:]] = argv[i + 1]
+            i += 1
         else:
             remaining.append(a)
         i += 1
@@ -935,9 +983,9 @@ def main() -> int:
     role, message = argv[0], argv[1]
     try:
         if do_spawn:
-            result = spawn(role, message, sender_override, subject=subject)
+            result = spawn(role, message, sender_override, subject=subject, **envelope)
         else:
-            result = send(role, message, sender_override, subject=subject)
+            result = send(role, message, sender_override, subject=subject, **envelope)
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
