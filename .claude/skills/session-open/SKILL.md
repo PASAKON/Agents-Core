@@ -186,10 +186,14 @@ Check the name in the app after the turn; if it did not change, the CEO types
 - **Rename whenever the main job changes** (the CEO moves the session to a new
   job, a `/session-merge`): `bash scripts/session-rename.sh "<new job>"`.
   `/session-save` renames to `<job> — <state>` (see that skill).
-- **Refused or not landed → hand the CEO the exact line**, e.g.
-  `/rename CTO (Kavin) — rename rule + nudge hook`. The auto-mode
-  classifier refuses the script as "Self-Modification" (2026-09-30). Never work
-  around a refusal: no other pane, no peer, no `--force` loop.
+- **Rename yourself; never ask the CEO** (CEO 2026-10-14 via CMO #ef04792e: "คุณเองเลย และไม่ต้องถามคำสั่งนี้อีก
+  เขียนเป็นกฎเลย เสียเวลามาก"). Run `bash scripts/session-rename.sh "<job>"` yourself. If the classifier
+  refuses it ([Tmux Self Drive] / "Self-Modification") or it does not land, **leave it**: never hand the
+  CEO a `/rename` line, never ask him or a peer, never work around it (no other pane, no `--force`
+  loop). The fix that makes it land every time is Agents-Core issue #272: the session writes a rename
+  request, and a rename service types the validated `/rename` into an empty input line. Until that
+  ships, the CTO renames off-rule sessions in batches with one Run card.
+  [SUPERSEDED 2026-10-14: "Refused or not landed → hand the CEO the exact line, e.g. `/rename …`"]
 - Safety net: `scripts/hook-rename-nudge.py` adds one line every 20 turns to
   interactive C-level sessions (not SomPong, workers or headless runs) asking
   whether the name still matches the job. It only asks; it never renames.
@@ -244,3 +248,5 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 - 2026-10-14 [MISSING] §0 — fifth sighting of `python3 -m tools.memory_sync pull` failing at charter time, in a fourth wording: "fatal: Cannot fast-forward to multiple branches" (Contabo memory repo). The charter went on and the pull did nothing. It needs the same tool fix as the four notes above · evidence: session cto-e2f1563f (spend guard charter, 2026-10-14 Thai) · status: pending
 - 2026-10-14 [MISSING] §0 — sixth sighting of `python3 -m tools.memory_sync pull` doing nothing at charter time ("fatal: Not possible to fast-forward, aborting", Contabo memory repo diverged); the charter went on. Same tool fix as the notes above · evidence: session cto-2235643e (question batch, 2026-10-14 Thai) · status: pending
 - 2026-10-14 [MISSING] §0 — another sighting of `python3 -m tools.memory_sync pull` failing at charter time (Contabo memory repo diverged); the charter went on and the pull did nothing. Same tool fix as the notes above · evidence: session cto-afe760fe (COO research workers charter, 2026-10-14 Thai) · status: pending
+- 2026-10-14 [WRONG] §3 — after the session-name SHAPE changed (PR #263, short names), `session-rename.sh "<same topic>"` printed `unchanged` and sent nothing: it compares only the recorded topic, not the full name it would build. `--force` sent `/rename CTO (Kavin) — CTO Main`, which landed. Fix in the tool: compare the full name, not the topic · evidence: CTO Main cto-c34459eb, 14 Oct 11:03 TH · status: pending
+- 2026-10-14 [MISSING] §3 — self-rename was refused [Tmux Self Drive] in 2 of 3 sessions (CMO Main, PH#13d; PH#36c was allowed). One amber Run card renamed several sessions on the box with one tap. For each tmux pane: read the `❯` line with `tmux capture-pane -p`; if it's empty, `tmux send-keys -t <pane> -l "/rename <name>"` then Enter; skip any pane that holds a draft. A pinned script for it is PH OrgRestructure M10 · evidence: cto-c34459eb card RUN-20261014-0440-c195; CMO letter 2026-10-14T04:38Z · status: pending
