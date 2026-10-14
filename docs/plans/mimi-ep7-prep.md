@@ -22,6 +22,10 @@ Untested before production: loc__landing_night (shot 9), loc__broroom_night (sho
 ## Dry run result (14 Oct 09:30–09:39 TH, balance 348 before = 348 after)
 All 12 shots `needs_model`: **none of the 6 new plates is in Flow** (picker finds no row for mother__night, cat__riao, loc__momroom_night, loc__living_night, loc__landing_night, loc__broroom_night). mimi__dry and brother__wfh attach. Plan with 298 (C-level), not 348: worst case 237 leaves 61.
 
+## Upload + dry run 2 (14 Oct 09:45–09:52 TH, balance 348 before = 348 after)
+The 6 plates were uploaded into the Mimi Flow project (29b3326b) with `tools/flow_upload_element.py`, renamed to their handles, and their chips bound. Dry run `--only N` for shots 1–12: **12/12 DRY-RUN OK**, each with the sheet's exact chips, Omni, องค์ประกอบ, 9:16, x1, 720p, 10 s, estimate 15 cr. Note: `--dry-run` stops after the first passing shot, so check one shot at a time; `--credit-cap 0` stops before attach.
+Voices, decided for CEO: follow EP1–6 practice. Characters are plain named images and the voice comes from the prompt line (the mother: «warm, slow, slightly nasal voice of a Thai woman in her late fifties», as in EP1–6; Riao: «warm, slow, sleepy, mid-low voice of a lazy Thai man»). Flow's «สร้างตัวละคร» generator was not used: it re-renders the face, and its cost is unverified. Ear-check by the CEO on the 360p test (shots 2 + 4).
+
 ## Before the shoot ($0, needs a Flow tab, so it waits for the C-level's OK to touch it)
 1. Check the 6 new plates exist in Flow as named assets: mother__night, cat__riao, loc__momroom_night, loc__living_night, loc__landing_night, loc__broroom_night. Also check that mother__night and cat__riao have their **voices bound** (skill CMO_Knowledge_Flow_Omni1.1 §voices: a voice must be bound at character creation, before any shot).
 2. Run `flow_shoot.py run --dry-run` on the EP7 sheet. It attaches chips and reads settings, at no cost. Shots 8 and 9 carry 4 chips: that is fine (cap 10; the sheet header line "chip ไม่เกิน 3" is the known stale template line, skill note 2026-09-27).
