@@ -47,6 +47,11 @@ Names off the CEO's rule (M10, checked by `lib/session_names.rule_problem`: host
 from `policies/agents.yaml`, `PH#<id3> (<LANE>) - <Project>`, `<Short>#<id3> - <Head>: <job>`, the id3
 matching the session) each get a `name off-rule: "<name>" (<host> #<sid>): <why>` line, at most 5 and then
 `+N more`. A leading state glyph (`⏸`) and a ` — <topic>` tail are allowed.
+To fix them: `tools/rename_to_rule.py` (dry run; `--apply` types `/rename <rule name>` into each launcher
+tmux pane whose ❯ line is empty, never onto a draft). A session cannot rename itself under the classifier
+([Tmux Self Drive]), so it runs from a Run card pinned by sha. It skips workers, a PH with no
+`.project`/`.spawned_by`, and a `sompong` tmux whose session is not the one in `coo-<sid>.uuid`; SomPong's
+own records sit in its user's home, which it does not read, so SomPong takes its name at its next start.
 Every name starts with its host's emoji (CEO 2026-10-14): 💻 Mac, 🌐 Contabo, 🖥️ winbox, e.g. `🌐 CTO (Kavin)`,
 `🌐 PH#f35 (CTO) - CookieRun`. The list prints it as part of the name (send it verbatim); parsing drops it first
 (`lib/session_names.strip_host`, U+FE0F optional), so a name without one still resolves. The launchers take the
