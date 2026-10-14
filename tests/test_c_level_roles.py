@@ -275,3 +275,28 @@ def test_every_c_level_runs_the_org_standard_model() -> None:
 def test_persona_for_names_the_three_personas_only(role_name: str, persona: str) -> None:
     # CEO 2026-10-14: session names "<HOST> <ROLE> (<Name>) #<id>"
     assert config.persona_for(role_name) == persona
+
+
+@pytest.mark.parametrize("role_name", ["coo", "cto"])
+def test_org_server_starts_from_a_session_cwd_outside_the_repo(role_name: str, tmp_path) -> None:
+    """2026-10-14: SomPong's session runs in Projects/MoonieX/SomPong, and Claude Code does not
+    apply an entry's "cwd", so `-m runners.<server>` must import through PYTHONPATH. Start the
+    server exactly as Claude would (command, args, env; cwd = somewhere else) and expect an
+    initialize answer."""
+    import json as _json
+    import os as _os
+    import subprocess as _sp
+    mod = _cxo_mcp_config()
+    entry = mod._build("org", str(ROOT), role=role_name)
+    if entry is None:
+        pytest.skip("no venv python here")
+    assert entry["env"].get("PYTHONPATH") == str(ROOT)
+    if role_name != "coo":
+        return  # the CTO entry is wrapped for the hub env; the import path is the same
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), **entry["env"]}
+    init = _json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+        "protocolVersion": "2025-06-18", "capabilities": {},
+        "clientInfo": {"name": "test", "version": "0"}}}) + "\n"
+    r = _sp.run([entry["command"], *entry["args"]], input=init, capture_output=True, text=True,
+                cwd=str(tmp_path), env=env, timeout=30)
+    assert '"serverInfo"' in r.stdout, (r.stdout[-300:], r.stderr[-500:])

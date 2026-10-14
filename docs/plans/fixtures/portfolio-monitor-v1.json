@@ -1,0 +1,23 @@
+{
+  "v": 1,
+  "generated_at": "2026-10-14T03:20:00Z",
+  "counts": {"in_progress": 3, "parked": 1},
+  "projects": [
+    {"id": "black-liquidity", "name": "BLACK LIQUIDITY", "lane": "cmo", "pct": 75,
+     "milestones": {"done": 6, "total": 8}, "state": "generating",
+     "state_since": "2026-10-14T03:02:00Z", "last_active": "2026-10-14T03:19:40Z",
+     "active_today_s": 6000, "blocker": null, "parked": false},
+    {"id": "org-restructure", "name": "Org restructure", "lane": "cto", "pct": 67,
+     "milestones": {"done": 4, "total": 6}, "state": "waiting_ceo",
+     "state_since": "2026-10-14T02:40:00Z", "last_active": "2026-10-14T03:10:00Z",
+     "active_today_s": 4200, "blocker": {"on": "ceo", "since": "2026-10-14T02:40:00Z"}, "parked": false},
+    {"id": "mimi-page", "name": "Mimi", "lane": "cmo", "pct": 0,
+     "milestones": {"done": 0, "total": 0}, "state": "idle",
+     "state_since": "2026-10-14T01:00:00Z", "last_active": "2026-10-14T01:00:00Z",
+     "active_today_s": 0, "blocker": null, "parked": false},
+    {"id": "film-2", "name": "Film 2 (8 min)", "lane": "cmo", "pct": 10,
+     "milestones": {"done": 1, "total": 10}, "state": "parked",
+     "state_since": "2026-10-08T09:00:00Z", "last_active": "2026-10-08T09:00:00Z",
+     "active_today_s": 0, "blocker": null, "parked": true}
+  ]
+}

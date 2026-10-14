@@ -30,6 +30,13 @@ EP7 $0 prep: `mimi-ep7-prep.md` (live balance 348 on 14 Oct 09:4x Thai; test sho
 ## Blocker
 - CEO answers owed (asked by cmo-c7879552 in chat, 14 Oct morning): Page Recommendations suspended (review request?), group-2 wording + identity, Thu poster image swap, Fri clip go, EP6 go, EP7 go ยิง, video watermark pick. Waiting on CEO via cmo-ef04792e since 2026-10-14 09:2x Thai. Question cards: Q-20261014-0221-988c (group-2 wording + profile), Q-20261014-0221-5f44 (Thu/Wed poster swap), Q-20261014-0221-8d1b (Recommendations review); Group 2 QG-20261014-0225-db74: Q-20261014-0225-41ed (Fri clip go), Q-20261014-0225-3e78 (EP6 go, Hook B + cover 1), Q-20261014-0225-c960 (watermark v3). EP7 «go ยิง» = spend → needs his typed word in chat, carried by cmo-ef04792e, needed by Thu 15 evening TH; PH preps $0 only. Until answers: read-only, $0, no group post, no swap, no review request, no Flow spend, no relay (no account allowed yet).
 
+## Working mode (CEO rulings 14 Oct, roles/project_head.md @2bd6e650)
+PH leads: hands-on only for short browser jobs (≤10 min: read-backs, the FB writes that need the CEO's typed word in THIS chat). Long jobs (EP7 shoot + QC + cut, group-reply logging, watermark burn-in) → worker briefs (≤2). Messages to C-level only for blocked / shared resource / done. Commits go on branch ph-36c49776/mimi-2026-10-14 (PR #256), never local main.
+
+## Shared resources in use
+- winbox Chrome :9281 Browser Home fb-dorsine: 15:05–15:20 TH (group-1 replies read), 19:41–19:50 TH (Wed publish check), plus FB writes once the CEO's word lands
+- winbox Flow Chrome :9226 (Mimi project 29b3326b): used 09:29–09:52 TH for upload + dry run, released
+
 ## CEO answers (via cmo-ef04792e)
 - Recommendations restriction (Q-20261014-0221-8d1b): «ไม่น่าเกี่ยวกับเพจนี่นะ เพราะ dorsine green ไม่โดนอะไร» → no review request, no digging.
 - Group 2 (Q-20261014-0221-988c): option 1, his personal profile, profile name not given yet → no post until named.
