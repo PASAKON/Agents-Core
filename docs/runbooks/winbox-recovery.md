@@ -188,8 +188,8 @@ Stated plainly so we do not plan around the impossible:
 
 ```
 PASS 12 · WARN 1 · FAIL 1
-✅ SSH · Tailscale(Auto) · sshd(Auto) · ไม่หลับ · ดิสก์ 175 GB · lock ว่าง
-✅ codex-cli 0.153.4 · Logged in using ChatGPT · Astra ตอบ "DRILL OK"
-⚠️ auto-logon ปิด — รีบูตแล้วงานที่ต้องใช้หน้าจอจะหยุดจนกว่าจะมีคน login
-❌ ไม่มี VNC — ถ้ามีหน้าจอ login โผล่ ไม่มีใครเข้าถึงได้จากมือถือ
+✅ SSH · Tailscale(Auto) · sshd(Auto) · does not sleep · disk 175 GB · lock free
+✅ codex-cli 0.153.4 · Logged in using ChatGPT · Astra replied "DRILL OK"
+⚠️ auto-logon off — after reboot GUI tasks will pause until someone logs in
+❌ no VNC — if a login screen appears, nobody can reach it from a phone
 ```
