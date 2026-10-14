@@ -16,9 +16,11 @@ feature branch with tests; CTO Main lands it, the PH never merges.
 | M5 | P3 plan incl. Project Monitor backend (plan only, to CTO Main before building) | pushed, waiting go | branch `ph-7cf528f0/p3-plan`, docs/plans/org-restructure-p3-plan.md |
 | M6 | Close-out with Skill learning | open | — |
 
-Blocker: security worker task-afe57b21 cannot spawn: two dead rows (task-2c589d17 pending, task-a4911174 conflict) still hold its paths; waiting on CTO Main to cancel them, since 14 Oct ~10:00 TH.
+Blocker: none (the dead rows were cancelled by CTO Main 02:54Z).
 
-Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), go from CTO Main 02:44Z.
+Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), go from CTO Main 02:44Z; task-afe57b21 security_engineer running since 09:54 TH (tmux wd-afe57b21), PH reviews and pushes.
+
+Landing note: CTO Main lands its C-level effort-medium branch first, then M3 4e69c207 on top (CTO Main resolves).
 
 Decided for CEO: none yet.
 
