@@ -206,7 +206,7 @@ else:
     display = display_for(role)
 r = get_role(role)
 model = r.get('model') or 'claude-opus-5-5[1m]'
-effort = r.get('effort') or 'xhigh'
+effort = r.get('effort') or 'medium'
 print(display, model, effort, sep='\t')
 ")"
 [ -n "$DISPLAY" ] || exit 2

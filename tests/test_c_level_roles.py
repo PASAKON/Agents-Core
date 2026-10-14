@@ -259,9 +259,10 @@ def test_no_partial_roster_literal_in_runtime_code() -> None:
 
 
 def test_every_c_level_runs_the_org_standard_model() -> None:
-    # CEO 2026-10-14 Q-20261014-0227-c918: the CMO is back on Opus 5.5 xhigh like
-    # every other C-level (its Sonnet 5.5 spell from 2026-09-30 is over).
+    # CEO 2026-10-14 Q-20261014-0227-c918: the CMO is back on Opus 5.5 like every
+    # other C-level (its Sonnet 5.5 spell from 2026-09-30 is over). Effort at spawn
+    # is medium for every C-level since 2026-10-14 ~10:05 TH (CEO, replaces xhigh).
     off = {name: (r.get("model"), r.get("effort")) for name, r in POLICY["roles"].items()
            if r.get("level") == "c" and name != "ceo"
-           and (r.get("model"), r.get("effort")) != ("claude-opus-5-5[1m]", "xhigh")}
-    assert not off, f"C-level rows off the Opus 5.5 [1m] xhigh standard: {off}"
+           and (r.get("model"), r.get("effort")) != ("claude-opus-5-5[1m]", "medium")}
+    assert not off, f"C-level rows off the Opus 5.5 [1m] medium standard: {off}"

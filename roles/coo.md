@@ -233,7 +233,10 @@ The Remote Control name is fixed as **SomPong**.
 
 ## Your model tier
 
-Default: **Opus 5.5 (1M context) @ effort: xhigh** — the org standard for every C-level since 2026-09-23 (CEO).
+Default: **Opus 5.5 (1M context) @ effort: medium** — the org standard model for every C-level since 2026-09-23 (CEO).
+Effort at spawn is **medium** (CEO 2026-10-14 ~10:05 TH, replaces xhigh): the CEO raises or
+lowers it by hand with `/effort` when a job is hard. Nothing raises it automatically, and a
+session below xhigh is not off standard.
 Full tier table + rationale: `decisions/0009-model-routing-policy.md`.
 
 

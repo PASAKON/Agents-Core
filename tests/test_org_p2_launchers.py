@@ -632,4 +632,4 @@ def test_a_project_head_runs_opus_at_medium():
     from lib.config import role as get_role
     r = get_role(PH)
     assert (r["model"], r["effort"]) == ("claude-opus-5-5[1m]", "medium")
-    assert (get_role("cto")["model"], get_role("cto")["effort"]) == ("claude-opus-5-5[1m]", "xhigh")
+    assert (get_role("cto")["model"], get_role("cto")["effort"]) == ("claude-opus-5-5[1m]", "medium")
