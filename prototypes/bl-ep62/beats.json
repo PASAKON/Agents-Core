@@ -84,10 +84,10 @@
   "extra": {
    "img": "real/cxm-post-full.png",
    "box": [
-    120,
-    1622,
-    720,
-    62
+    60,
+    1395,
+    960,
+    100
    ],
    "cap": "<span class=\"nb\">22 กันยายน</span> <span class=\"nb\">เธอว่า</span> <span class=\"nb\">ไม่ใช้บอทเลย</span>",
    "credit": "ตามที่เจ้าของโพสต์เล่า"
@@ -469,24 +469,6 @@
   "mode": "FF",
   "extra": {
    "cap": "<span class=\"nb\">ยังฟังฝั่งเดียว</span> <span class=\"nb\">เช็กก่อนเชื่อ</span>"
-  }
- },
- {
-  "tag": "SUMMARY-9",
-  "t0": 67.2667,
-  "mode": "KIN",
-  "extra": {
-   "broll": false,
-   "lines": [
-    [
-     "bl-lg",
-     "ยังฟัง<span class=\"y\">ฝั่งเดียว</span>"
-    ],
-    [
-     "bl-lg",
-     "เช็กก่อนเชื่อ"
-    ]
-   ]
   }
  }
 ]
