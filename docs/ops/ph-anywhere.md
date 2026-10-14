@@ -128,10 +128,11 @@ decision; nothing here works around it.
 **Install on winbox** (Contabo Run card, host contabo; creates one empty file):
 
 ```
-ssh -o BatchMode=yes winbox "powershell -NoProfile -Command New-Item -ItemType Directory -Force -Path C:\ProgramData\org-flags | Out-Null; New-Item -ItemType File -Force -Path C:\ProgramData\org-flags\ORG_PH_ROLES | Out-Null; Test-Path C:\ProgramData\org-flags\ORG_PH_ROLES"
+ssh -o BatchMode=yes winbox "powershell -NoProfile -Command \$null = New-Item -ItemType Directory -Force -Path C:\ProgramData\org-flags; \$null = New-Item -ItemType File -Force -Path C:\ProgramData\org-flags\ORG_PH_ROLES; Test-Path -Path C:\ProgramData\org-flags\ORG_PH_ROLES"
 ```
 
-Expected output `True`. Roll back: delete that file. The winbox checkout must be on a
+Expected output `True`. No `|` or `>`: the remote shell is cmd, which would split on them.
+Read-only twin run 2026-10-14 (same quoting, `Test-Path` only): `False` `False` (neither exists yet). Roll back: delete that file. The winbox checkout must be on a
 commit with M12 + M13c (`git -C C:\Users\passg\mooniex\repo\MoonieX-Agents pull --ff-only`).
 
 **First live spawn** (CTO, read-only brief): from a winbox C-level, or a winbox Run card
