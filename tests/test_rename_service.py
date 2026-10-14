@@ -383,6 +383,55 @@ def test_preview_is_what_the_service_would_type(box, capsys):
     assert rs.main(["preview", "--role", "developer", "--sid", "afe57b21", "--host", "contabo"]) == 1
 
 
+# --- the Mac (M10c): no /proc, LOCAL_PEERPID + LOCAL_PEERCRED, launchd ------------------
+
+def test_without_proc_ancestry_and_uid_come_from_ps(monkeypatch, tmp_path):
+    with_proc = rs.ancestors(os.getpid())
+    monkeypatch.setattr(rs, "PROC", tmp_path / "no-proc")
+    assert rs.ancestors(os.getpid()) == with_proc
+    assert rs._uid(os.getpid()) == os.getuid()
+    gone = subprocess.Popen(["true"])
+    gone.wait()
+    assert rs._proc_info(gone.pid) is None
+
+
+def test_the_darwin_peer_credentials_are_read_from_the_kernel_structs():
+    pid_raw = (4242).to_bytes(4, sys.byteorder, signed=True)
+    cred_raw = (0).to_bytes(4, sys.byteorder) + (501).to_bytes(4, sys.byteorder) + bytes(rs._XUCRED_SIZE - 8)
+    assert rs.darwin_peer(pid_raw, cred_raw) == (4242, 501)
+
+
+def test_tmux_is_found_where_launchd_cannot_see_it(monkeypatch):
+    import tools.tmux_session as ts
+    seen = []
+    monkeypatch.setattr(ts, "tmux_bin", lambda: "/opt/homebrew/bin/tmux")
+    monkeypatch.setattr(rs.subprocess, "run", lambda argv, **k: seen.append(argv) or
+                        subprocess.CompletedProcess(argv, 0, "", ""))
+    rs.tmux("capture-pane", "-p", "-t", "x")
+    assert seen[0][0] == "/opt/homebrew/bin/tmux"
+
+
+def test_listen_makes_its_missing_directory_private_to_this_user(tmp_path):
+    srv = rs.listen(tmp_path / "new" / "sock")
+    srv.close()
+    st = (tmp_path / "new").stat()
+    assert st.st_uid == os.geteuid() and not st.st_mode & 0o022
+
+
+def test_the_mac_launch_daemon_runs_this_service_as_the_sessions_user():
+    import plistlib
+    path = rs.ROOT / "deploy" / "launchd" / "com.mooniex.rename-service.plist"
+    d = plistlib.loads(path.read_bytes())
+    assert d["Label"] == path.stem
+    assert d["UserName"] == "gob"                       # never root: see the plist comment
+    core = "/Users/gob/MoonieXHQ/Agents/Core"
+    assert d["ProgramArguments"] == [f"{core}/.venv/bin/python", f"{core}/tools/rename_service.py", "run"]
+    assert d["WorkingDirectory"] == core
+    assert d["EnvironmentVariables"]["HOME"] == "/Users/gob"
+    assert d["EnvironmentVariables"]["ORG_HOST"] == "mac" and "mac" in ls._config().hosts()
+    assert "/opt/homebrew/bin" in d["EnvironmentVariables"]["PATH"].split(":")
+    assert d["KeepAlive"] is True and d["RunAtLoad"] is True
+
 # --- §2b re-review of #283 (v2) ---------------------------------------------------------
 
 def test_no_lock_file_is_read_for_a_caller_that_is_not_that_session(box, monkeypatch):
@@ -521,6 +570,19 @@ def test_a_lock_file_renamed_or_linked_in_from_elsewhere_is_not_trusted(box, kin
         os.link(lock, tmp_path / "elsewhere")
     assert box.request("project_head-36c49776", "x") == "refused: no rule name for project_head-36c49776"
 
+
+def test_on_the_mac_a_date_proc_start_counts_and_a_missing_one_does_not(box, monkeypatch):
+    monkeypatch.setattr(rs, "DARWIN", True)
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        d["procStart"] = "Tue Oct 13 11:55:05 2026"     # what Claude Code writes on macOS
+        f.write_text(json.dumps(d))
+    assert box.request("cto-c34459eb", "x").startswith("queued")
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        d.pop("procStart")
+        f.write_text(json.dumps(d))
+    assert box.request("project_head-36c49776", "x").startswith("refused: no single live session")
 
 
 # --- review round 4 ------------------------------------------------------------------
