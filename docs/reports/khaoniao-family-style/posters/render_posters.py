@@ -31,6 +31,10 @@ P = {
                c1="เรื่องจริงจากบ้านเรา เล่าเป็นตอนที่ 4", c2="18 ช็อต ต่อกันเป็น 3 นาที"),
  "w2wed": dict(img="w2wed", oy="300", bB="EP.5", bS="เบื้องหลัง", l1="น้องสาวกลับบ้านทุ่มหนึ่ง", l2="ทุกวัน เป็นเรื่องจริง",
                c1="ส่วนที่เหลือเราแต่งเป็นเรื่องเล่า", c2="ตอนที่ 5 · 18 ช็อต 3 นาที"),
+ # Thu 15 Oct (CEO 13 Oct: schedule the EP6 teaser; EP6 airs Sat 17 Oct 19:30, Fri 16 Oct = special clip). Frame = EP6 shot 11 @4 s (real still, frames\\w2thu.png).
+ # Text uses only the CEO's real facts (Mimi barks and chases passing cars/veg trucks; people nearby are afraid), nothing from the made-up half of the story.
+ "w2thu": dict(img="w2thu", oy="420", bB="EP.6", bS="เสาร์นี้", l1="มีมี่วิ่งไล่รถขายผัก", l2="ทุกวัน ใครๆ ก็กลัว",
+               c1="ตอนใหม่ เสาร์นี้ 19:30 น.", c2="ศุกร์นี้ 19:30 มีคลิปพิเศษ"),
 }
 keys = sys.argv[1:] or list(P)
 for arg in keys:

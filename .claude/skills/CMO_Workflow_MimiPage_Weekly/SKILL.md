@@ -95,6 +95,13 @@ D 19:35 and onward (§6). Done when the post is public, the first comment is up,
 - One post = one **poster** (1080×1350, 4:5) + caption + (Thursday only) a first-comment line. Poster lettering is set in real Thai fonts
   by HTML → headless Chrome on winbox (`docs/reports/khaoniao-family-style/cover/`), with the real Itim font, the L3 logo mark
   (`page-art/logo/logo-3-mark.png`) and **real episode frames** — never an image model (Thai text garbles; brand rule).
+- **Logo placement on every poster (CEO ruling 2026-10-14, mockup tile 3: «ชอบแบบ 3 … ทุกโปสเตอร์ทำตามนี้»):** the logo mirrors the left
+  episode badge. The VISIBLE lockup is 176 px wide, centre y 136, its dark backing plate (rgba 8,16,32,.5, 14 px padding) ends 48 px from the
+  right edge, exactly the badge's 48 px left margin and centre y 136. This is the template's DEFAULT (`poster.html`: `vw=176&vr=62&vc=136&plate=14`),
+  so a poster rendered with no parameters is right; never hand-place the mark and never use the old `.mark{right:36px;width:470px}` box (it left the
+  mark 183 px from the right edge). `mk=old` in the query restores the old placement for comparison only.
+  [SUPERSEDED 2026-10-14] the old 470 px box at right:36px, from the first poster (2 Oct) until the CEO's pick.
+  After a template edit: render `w2mon` with no parameters and diff it against `Assets/Agents/Core/khaoniao-family/watermark/p4_vw176vr62vc136plate14.png` (must be identical).
 - Posters per week: Monday schedule/«ถามแฟนเพจ», Tuesday update, Wednesday fan, Thursday teaser. Build all four in one winbox render
   pass; look at the contact sheet once; fix by number.
 - **Update posts say true things about our work**: the real number of shots done, the real credit cost bracket (never the balance),
