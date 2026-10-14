@@ -270,6 +270,20 @@ def test_role_and_sid_come_from_the_tmux_name_first(tmux, uuid, name, expect):
     assert ls._ids_from_record({"tmux": tmux}, name, uuid) == expect
 
 
+@pytest.mark.parametrize("tmux,uuid,name,expect", [
+    # a PH: the UUID tail is the full id when it agrees with the 3 hex shown
+    (None, "00000000-0000-0000-0000-00007cf528f0", "PH#7cf (CTO) - OrgRestructure",
+     ("project_head", "7cf528f0")),
+    (None, UUID_A, "PH#7cf (CTO) - OrgRestructure", ("project_head", "7cf")),
+    # a worker: the full id comes from its tmux name
+    ("wd-afe57b21:@282.%282", UUID_A, "Sec#afe - OrgRestructure: x", ("security_engineer", "afe57b21")),
+    ("mooniex-task-37ff8810:@1.%1", UUID_A, "Dev#37f - P3-A", ("developer", "37ff8810")),
+    ("wd-00000000:@1.%1", UUID_A, "Dev#37f - P3-A", ("developer", "37f")),
+])
+def test_ph_and_worker_short_names(tmux, uuid, name, expect):
+    assert ls._ids_from_record({"tmux": tmux}, name, uuid) == expect
+
+
 def test_a_short_named_c_level_is_listed_with_its_launcher_id(tmp_path):
     _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@276.%276")
     [row] = ls.read_registry([tmp_path])

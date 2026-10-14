@@ -88,6 +88,8 @@ _SHORT_NAME_RE = re.compile(
 # (cxo-claude.sh, cto-claude.sh, spawn-ph.sh); Claude Code records it in the
 # session file as "<tmux session>:@<window>.%<pane>".
 _TMUX_ID_RE = re.compile(r"^([a-z][a-z_]{1,30})-([0-9a-f]{8}):")
+# A worker's tmux session: "wd-<sid>" or "<project>-task-<sid>" (tools/delegate.py).
+_WORKER_TMUX_RE = re.compile(r"^(?:wd|[a-z0-9][a-z0-9_-]{0,40}-task)-([0-9a-f]{8}):")
 _C_LEVEL_RE = re.compile(r"^c[a-z]o$")
 _SESSION_FILE_RE = re.compile(r"^\d+\.json$")   # not <pid>.<hash>.key
 
@@ -142,6 +144,14 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     m = _SHORT_NAME_RE.match(name or "")
     if m:
         return m.group(1).lower(), session_id[-8:]
+    # "PH#6c4 (CTO) - SpendGuard" / "Dev#afe - OrgRestructure: …" (lib/session_names):
+    # the name shows 3 hex; the full id is the UUID tail when it agrees, else the 3.
+    from lib import session_names   # stdlib only, safe under the hook's python3
+    short = session_names.parse_short(name or "")
+    if short:
+        role, id3 = short
+        tail = session_id[-8:]
+        return role, tail if tail.startswith(id3) else id3
     return "unknown", session_id[-8:]
 
 
@@ -156,7 +166,12 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str]:
     # Only a listed role: a worker's tmux ("wd-<sid>") says nothing about its role.
     if m and is_listed(m.group(1)) and m.group(1) != "ceo" and session_id.endswith(m.group(2)):
         return m.group(1), m.group(2)
-    return parse_name(name, session_id)
+    role, sid = parse_name(name, session_id)
+    # a worker's short name shows 3 hex; its tmux name has all 8
+    w = _WORKER_TMUX_RE.match(tmux) if isinstance(tmux, str) else None
+    if w and len(sid) == 3 and w.group(1).startswith(sid):
+        sid = w.group(1)
+    return role, sid
 
 
 def address_for(role: str, name: str) -> str:

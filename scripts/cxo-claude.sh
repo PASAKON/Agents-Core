@@ -820,17 +820,26 @@ if [ "$ROLE" = "coo" ]; then
   }
 fi
 
-# Project Head: the project rides in the session name from the first second,
-# "<MACHINE> Project Head (<LANE>) #<id> (<Project>)" (tools/live_sessions.py).
+# Project Head: the project rides in the session name from the first second
+# (below); NAME_SUFFIX is the old long form, kept as the fallback.
 NAME_SUFFIX=""
 if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
 # A C-level primary session is "<ROLE> (<Name>)", or the bare "<ROLE>" without a
 # persona: no machine, no #id (CEO 2026-10-14). tools/live_sessions.py finds its role
 # and id in the tmux name and the session UUID instead. TAB_TITLE and its .base stay
 # as they are (routing); a Project Head and an ephemeral session keep the long form.
+# A Project Head is "PH#<id3> (<LANE>) - <Project>" (CEO 2026-10-14); the rule lives
+# in lib/config.ph_session_name. The long form stays if that lookup fails.
 SESSION_NAME="$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX"
 if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ]; then
   SESSION_NAME="$DISPLAY${PERSONA:+ ($PERSONA)}"
+elif [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" = "1" ]; then
+  _PH_NAME="$(cd "$ROOT" && PH_SID="$CXO_SESSION_ID" PH_LANE="$PH_LANE" PH_PROJECT="$PH_PROJECT" \
+    .venv/bin/python -c "
+import os
+from lib.config import ph_session_name
+print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT']))" 2>/dev/null)" \
+    && [ -n "$_PH_NAME" ] && SESSION_NAME="$_PH_NAME"
 fi
 
 # Per-session memory scope (org restructure P2, plan §7) when ORG_SESSION_SCOPE=1:
