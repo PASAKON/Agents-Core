@@ -21,6 +21,13 @@ Tools (mcp__org__<name> inside the session):
   wait_task(task_id, timeout_s)                 poll until the worker reports (or the timeout)
   close_task(task_id, result, why)              done; result pass|fail scores the runner
   live_sessions(all)                            who is live on every host: run before SendMessage
+  ask_run / ask_ceo / ask_run_wait              Run Inbox command and question cards for the CEO's
+                                                tap (root work goes through ask_run, CEO 2026-10-01)
+
+The three Run Inbox tools do not go through the gate and touch no hub database: they are
+tools/ask_run.py (the same code as every other C-level's org server), plain HTTPS to the Run Inbox
+with SomPong's own token, ~/.config/mooniex/run-inbox.token (0600, owned by sompong). The COO is a
+C-level (policies/agents.yaml c_level), so the hub lets it raise command and question cards.
 
 CLI for tests and for SomPong's own Bash (no MCP needed):
   .venv/bin/python -m runners.coo_mcp_server --cli create_task '{"role": "researcher", ...}'
@@ -43,7 +50,7 @@ RUNNING = ("pending", "in_progress", "rate_limited", "conflict", "queued_remote"
 # The tool names this server serves, in order. cxo_mcp_config builds the coo session's
 # --allowed-tools from this tuple (mcp__org__<name>), so the two never drift.
 TOOL_NAMES = ("set_charter", "create_task", "delegate_task", "get_task", "list_tasks",
-              "wait_task", "close_task", "live_sessions")
+              "wait_task", "close_task", "live_sessions", "ask_run", "ask_ceo", "ask_run_wait")
 
 
 def session_id() -> str:
@@ -124,7 +131,36 @@ def live_sessions(all: bool = False) -> dict:
     return call("live_sessions", all=bool(all))
 
 
+# Run Inbox. tools.ask_run is imported here, not at the top: cxo_mcp_config loads this module under
+# the launcher's system python3 to read TOOL_NAMES, so nothing outside the stdlib may load with it.
+# A refusal or a hub error comes back as ok:false like every other tool here; ask_run's messages
+# name the field and the kind of value, never the value.
+
+def _run_inbox(fn_name: str, *args, **kwargs) -> dict:
+    from tools import ask_run as ask_run_tool
+    try:
+        out = getattr(ask_run_tool, fn_name)(*args, **kwargs)
+    except (ask_run_tool.Refused, ask_run_tool.HubError, ValueError) as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, **out}
+
+
+def ask_run(**arguments) -> dict:
+    return _run_inbox("mcp_ask", arguments)
+
+
+def ask_ceo(**arguments) -> dict:
+    return _run_inbox("mcp_ask_ceo", arguments)
+
+
+def ask_run_wait(id: str, max_wait_s: float = 600.0, interval_s: float = 5.0,
+                 tail_lines: int = 40) -> dict:
+    return _run_inbox("wait_result", id, max_wait_s=max_wait_s, interval_s=interval_s,
+                      tail_lines_n=tail_lines)
+
+
 def _serve() -> None:
+    import asyncio
     from mcp.server.fastmcp import FastMCP
 
     mcp = FastMCP("org")
@@ -177,6 +213,51 @@ def _serve() -> None:
         out = live_sessions(all)
         return out.get("text") if out.get("ok") and out.get("text") else json.dumps(out, ensure_ascii=False)
 
+    @mcp.tool(name="ask_run")
+    async def _ask_run(host: str, why: str, command: str = "", script: str = "",
+                       args: list[str] | None = None, expected: str = "", risk: str = "amber",
+                       timeout_s: int = 300, expects_input: bool = False, shell: str = "",
+                       cwd: str = "", env_keys: list[str] | None = None, session: str = "",
+                       role: str = "", task: str = "", dry_run: bool = False) -> str:
+        """Ask the CEO to run one command on a host via the Run Inbox (a card on his phone, Face
+        ID). This is how root work happens (CEO 2026-10-01). The CEO's tap is the only authority.
+        Raise it at once when a blocker needs his tap; never ask in chat first. A secret-shaped
+        value is refused before anything is sent: name an env var instead (env_keys). Returns
+        {id, url, risk, expires_at} at once; read the result with ask_run_wait on the id. `why`
+        stays short (about 500 chars). dry_run=True sends nothing."""
+        out = await asyncio.to_thread(ask_run, host=host, why=why, command=command, script=script,
+                                      args=args, expected=expected, risk=risk, timeout_s=timeout_s,
+                                      expects_input=expects_input, shell=shell, cwd=cwd,
+                                      env_keys=env_keys, session=session, role=role, task=task,
+                                      dry_run=dry_run)
+        return json.dumps(out, indent=2, ensure_ascii=False)
+
+    @mcp.tool(name="ask_ceo")
+    async def _ask_ceo(question: str = "", options: list[str] | None = None, why: str = "",
+                       recommended: int = 0, free_text: bool = True, expires_h: float = 24.0,
+                       session: str = "", role: str = "", host: str = "", task: str = "",
+                       dry_run: bool = False, questions: list[dict] | None = None) -> str:
+        """Ask the CEO a question with 2-4 answers he taps on /run (a question card). Never for a
+        command, money or a secret (that is ask_run). options: 2-4 one-line labels; recommended:
+        1-based, 0 = none; expires_h 24 by default. Several at once: questions=[{question, why,
+        options, recommended, free_text}, ...] (1-6). Returns {id, url, expires_at} (or a QG-
+        group id); read the answer with ask_run_wait: that hub record is his decision. Not the
+        same tool as mcp__sompong__ask_ceo (Telegram/LINE)."""
+        out = await asyncio.to_thread(ask_ceo, question=question, options=options, why=why,
+                                      recommended=recommended, free_text=free_text,
+                                      expires_h=expires_h, session=session, role=role, host=host,
+                                      task=task, dry_run=dry_run, questions=questions)
+        return json.dumps(out, indent=2, ensure_ascii=False)
+
+    @mcp.tool(name="ask_run_wait")
+    async def _ask_run_wait(id: str, max_wait_s: float = 600.0, interval_s: float = 5.0,
+                            tail_lines: int = 40) -> str:
+        """Wait for a RUN-..., Q-... or QG-... id to end (polls every 5 s) and return its record:
+        terminal=true once it is done/failed/denied/expired/cancelled or answered; terminal=false
+        when max_wait_s ran out first (default 600, keep it at or under 1500): call again."""
+        out = await asyncio.to_thread(ask_run_wait, id, max_wait_s, interval_s, tail_lines)
+        return json.dumps(out, indent=2, ensure_ascii=False)
+
     mcp.run()
 
 
@@ -194,7 +275,7 @@ def _cli(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # tools.ask_run
     if len(sys.argv) > 1 and sys.argv[1] == "--cli":
         sys.exit(_cli(sys.argv[2:]))
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     _serve()
