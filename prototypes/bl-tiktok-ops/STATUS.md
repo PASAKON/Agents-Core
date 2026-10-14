@@ -18,7 +18,7 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 ## Milestones (progress = done / 6)
 | # | milestone | due (Thai) | state | evidence |
 |---|---|---|---|---|
-| M1 | EP61 (B) live | 14 Oct 22:00, check 22:10 | open | |
+| M1 | EP61 (B) live | 14 Oct 22:00, check 22:10 | done | https://www.tiktok.com/@black_liquidity/video/7696265373473197320 · 22:10 TH Studio row 01:08, Oct 14 5:00 PM CEST, Everyone, 2 views; profile grid label gone |
 | M2 | EP59 (A) live | 15 Oct 22:00, check 22:11 | open | |
 | M3 | EP60 (B) live + pair-1 read | 16 Oct 22:00, check 22:12 | open | |
 | M4 | real read, 2 per arm, reported | 18 Oct 22:00, check 22:13 | open | |
