@@ -10,14 +10,22 @@ never off: with the file present, `<NAME>=0` or an empty value changes nothing.
 
 The launchers read the same file in bash (`scripts/cxo-claude.sh`,
 `scripts/cto-claude.sh`: `[ -e /etc/org-flags/<NAME> ]`), so keep the path in
-step with FLAGS_DIR.
+step with FLAGS_DIR. On Windows (winbox, M13c) the directory is
+`%ProgramData%\org-flags`, which `windows/cxo-claude.ps1` reads the same way.
 """
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
-FLAGS_DIR = Path("/etc/org-flags")
+def flags_dir_for(os_name: str, program_data: str | None) -> str:
+    """Where the host flag files live on an OS (`os.name`)."""
+    if os_name == "nt":
+        return (program_data or r"C:\ProgramData").rstrip("\\") + r"\org-flags"
+    return "/etc/org-flags"
+
+
+FLAGS_DIR = Path(flags_dir_for(os.name, os.environ.get("ProgramData")))
 
 
 def on(name: str) -> bool:

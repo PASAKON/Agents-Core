@@ -87,6 +87,11 @@ _SID_RE = re.compile(r"[0-9a-f]{8}")
 BRIEF_MAX = 20_000
 CLAIM_GRACE_S = 60
 SPAWN_SCRIPT = "scripts/spawn-ph.sh"
+WIN_SPAWN_SCRIPT = "windows/spawn-ph.ps1"
+WIN_LAUNCHER = ROOT / "windows" / "cxo-claude.ps1"
+# windows/pc_lease.py CEO_HOLD: the CEO's "use PC" button. While it is on no
+# window opens on winbox (a Project Head's tab over his game is the 2026-10-07 bug).
+CEO_HOLD = Path.home() / "Documents" / "CookieRunScript" / "modelplay" / "CEO_HOLD.json"
 _NONCE_RE = re.compile(r"[0-9a-f]{16}")
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
 CARD_BRIEF_MAX = 300
@@ -119,6 +124,11 @@ def _caller() -> tuple[str, str]:
     except PermissionError as e:
         raise Refused(str(e)) from e
     return ident.role, sid
+
+
+def spawn_script(host: str) -> str:
+    """The script a spawn card runs on `host`: the PowerShell twin on winbox."""
+    return WIN_SPAWN_SCRIPT if host == "winbox" else SPAWN_SCRIPT
 
 
 def parse_card_args(args: list[str]) -> dict:
@@ -181,7 +191,7 @@ def card_owner(args: list[str]) -> tuple[str, str]:
         sc_ = c.get("script") if isinstance(c.get("script"), dict) else {}
         if (c.get("status") == "running" and str(c.get("host", "")).lower() == host
                 and c.get("kind") == "script" and sc_.get("repo") == "Agents-Core"
-                and sc_.get("path") == SPAWN_SCRIPT and sc_.get("sha") == a["sha"]
+                and sc_.get("path") == spawn_script(host) and sc_.get("sha") == a["sha"]
                 and sc_.get("args") == list(args)):
             hits.append(c)
     if len(hits) != 1:
@@ -282,6 +292,65 @@ def refusal(project: str, *, locks_dir: Path | None = None,
     return resource_gate.check()
 
 
+def first_prompt(sid: str, lane: str, project: str, owner: str) -> str:
+    """The one-line first prompt a Project Head starts with (the Windows
+    launcher asks for it too, so both hosts say the same thing)."""
+    brief_path = BRIEFS_DIR / f"{roles.PH_ROLE}-{sid}.md"
+    return (f"You are {roles.ph_display(lane)} #{sid} for project {project}; you report to "
+            f"{lane}-{owner}. Your brief is {brief_path}. Read it, run /session-open, then start.")
+
+
+def windows_launch_argv(sid: str, lane: str, project: str, *, wt: str, new_window: bool) -> list[str]:
+    """argv that opens the Project Head in a new Windows Terminal tab (M13c).
+    No environment rides along (a wt tab takes the Terminal's, not ours) and no
+    prompt text: windows/cxo-claude.ps1 rebuilds both from -Session and the
+    owner record. Every token is a bare word or this checkout's path."""
+    title = f"{roles.ph_display(lane)} #{sid} {project}"
+    return [wt, "-w", "new" if new_window else "0", "nt", "--title", title, "-d", str(ROOT),
+            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(WIN_LAUNCHER),
+            "-Role", roles.PH_ROLE, "-Lane", lane, "-Project", project, "-Session", sid]
+
+
+def _windows_session_id() -> int | None:
+    try:
+        import ctypes
+        out = ctypes.c_ulong()
+        k32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        if k32.ProcessIdToSessionId(k32.GetCurrentProcessId(), ctypes.byref(out)):
+            return int(out.value)
+    except (OSError, AttributeError, ImportError):
+        pass
+    return None
+
+
+def windows_refusal(session_id: int | None, ceo_hold: Path | None = None) -> str | None:
+    """Why no Project Head window may open on this Windows desktop now."""
+    if Path(ceo_hold or CEO_HOLD).exists():
+        return ("the CEO is using this PC (CEO hold, windows/pc_lease.py ceo-on); no window "
+                "opens until he presses his release button")
+    if session_id in (None, 0):
+        return ("this process is in Windows session 0 (an ssh shell or a service), which "
+                "never reaches the desktop; start the Project Head from a desktop session "
+                "(a winbox C-level, or a winbox Run card)")
+    return None
+
+
+def _launch_windows(name: str, plan: dict) -> None:
+    why = windows_refusal(_windows_session_id())
+    if why:
+        raise Refused(why)
+    wt = str(Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WindowsApps" / "wt.exe")
+    try:
+        running = "WindowsTerminal.exe" in subprocess.run(
+            ["tasklist", "/FI", "IMAGENAME eq WindowsTerminal.exe", "/NH"],
+            capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        running = False
+    argv = windows_launch_argv(plan["session_id"], plan["lane"], plan["project"],
+                               wt=wt, new_window=not running)
+    subprocess.Popen(argv, cwd=str(ROOT), close_fds=True)
+
+
 def launch_command(sid: str, lane: str, project: str, owner: str, prompt: str) -> str:
     env = {
         "CXO_SESSION_ID": sid, "ORG_PH_ROLES": "1",
@@ -304,8 +373,7 @@ def _plan(project: str, brief: str, card: list[str] | None = None) -> dict:
     sid = uuid.uuid4().hex[:8]
     name = f"{roles.PH_ROLE}-{sid}"
     brief_path = BRIEFS_DIR / f"{name}.md"
-    prompt = (f"You are {roles.ph_display(lane)} #{sid} for project {project}; you report to "
-              f"{lane}-{owner}. Your brief is {brief_path}. Read it, run /session-open, then start.")
+    prompt = first_prompt(sid, lane, project, owner)
     return {"session_id": sid, "tmux_session": name, "lane": lane, "project": project,
             "owner": f"{lane}-{owner}", "brief": str(brief_path),
             "command": launch_command(sid, lane, project, owner, prompt)}
@@ -340,11 +408,16 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
         send_to_cxo.record_spawn(Identity("cxo", lane, owner), roles.PH_ROLE, plan["session_id"])
     cmd = plan.pop("command")
     try:
+        if os.name == "nt":
+            _launch_windows(name, plan)
+            return {**plan, "window": "windows-terminal"}
         tmux_session.create(name, ROOT, cmd)
     except Exception as e:  # noqa: BLE001
         for p in (LOCKS_DIR / f"{name}.project", LOCKS_DIR / f"{name}.spawned_by"):
             p.unlink(missing_ok=True)
-        raise Refused(f"tmux spawn failed: {e}") from e
+        if isinstance(e, Refused):
+            raise
+        raise Refused(f"{'window' if os.name == 'nt' else 'tmux'} spawn failed: {e}") from e
     dismissed: bool | None = False
     try:
         time.sleep(SPAWN_PROMPT_DELAY_S)
@@ -375,11 +448,12 @@ def card_command(host: str, project: str, brief: str, sha: str, nonce: str | Non
         args += ["--brief", brief]
     if len(" ".join(args)) > CARD_ARGS_MAX:
         raise Refused(f"the card's args are over {CARD_ARGS_MAX} characters; shorten the brief")
+    script = spawn_script(host)
     return [sys.executable, str(ROOT / "tools" / "ask_run.py"), "create", "--host", host,
-            "--why", f"start a Project Head for {project} on {host} (spawn-ph, M13b)",
-            "--expected", f"one JSON line naming tmux project_head-<id> for {project}",
+            "--why", f"start a Project Head for {project} on {host} (spawn-ph, M13)",
+            "--expected", f"one JSON line naming project_head-<id> for {project}",
             "--risk", "amber", "--timeout", "120",
-            "--script", f"Agents-Core@{sha}:{SPAWN_SCRIPT}", "--", *args]
+            "--script", f"Agents-Core@{sha}:{script}", "--", *args]
 
 
 def _card_main(argv: list[str]) -> int:
