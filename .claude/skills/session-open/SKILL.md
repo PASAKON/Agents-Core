@@ -166,17 +166,13 @@ The clock runs itself from here (shared 60s daemon). The goal and the progress
 numbers do not — they move only when `tab-main.sh` is called again, which
 `/session-worktree` and `/session-close` do.
 
-`session-rename.sh` types `/rename <ROLE> (<Name>) — <topic>` (a C-level, CEO 2026-10-14: no machine,
-no #id; a Project Head or worker keeps `<MACHINE> <ROLE> #<id> (<topic>)`) into this
-session's own tmux pane — the command queues and executes right after the
-current turn ends, and the new name syncs to claude.ai + the mobile app
-(CEO 2026-08-30). Run it as the LAST tool call of the charter turn so nothing
-else interleaves; skip silently if not under tmux (script handles it).
-It types onto whatever already sits in the input box and records the name as
-set before it lands, so a stray draft turns it into an ordinary prompt
-(`//rename …`, `า/rename …` — seen twice) and a re-run answers `unchanged`.
-Check the name in the app after the turn; if it did not change, the CEO types
-`/rename <name>` once (`--force` would type onto the same draft).
+`session-rename.sh` never types into a pane (Agents-Core #272). It writes a rename request (the topic and
+the state glyph) to `state/rename-requests/<role>-<sid>.json` and prints the name it asked for, e.g.
+`requested: /rename 🌐 CTO (Kavin) — <topic>` or `🌐 PH#7cf (CTO) - OrgRestructure — <topic>`. The rename
+service (`tools/rename_service.py`, root on Contabo) builds that name itself with `lib/session_names` and
+types `/rename <name>` into this session's pane once its `❯` line is empty and no permission prompt is up,
+so it never lands on a draft. The new name syncs to claude.ai + the mobile app (CEO 2026-08-30). No
+session id (a plain terminal, a worker): nothing is requested.
 
 #### Name = current job (CEO 2026-10-13: "การ rename นั้นสำคัญจะได้กลับมาดูได้ง่าย")
 - **One job per session.** When the job is done, `/session-close` (or
@@ -190,9 +186,9 @@ Check the name in the app after the turn; if it did not change, the CEO types
   เขียนเป็นกฎเลย เสียเวลามาก"). Run `bash scripts/session-rename.sh "<job>"` yourself. If the classifier
   refuses it ([Tmux Self Drive] / "Self-Modification") or it does not land, **leave it**: never hand the
   CEO a `/rename` line, never ask him or a peer, never work around it (no other pane, no `--force`
-  loop). The fix that makes it land every time is Agents-Core issue #272: the session writes a rename
-  request, and a rename service types the validated `/rename` into an empty input line. Until that
-  ships, the CTO renames off-rule sessions in batches with one Run card.
+  loop). Since #272 the script only writes a request, so there is nothing for the classifier to refuse;
+  the rename service applies it. On a host with no rename service yet (the Mac, winbox) the request
+  waits there.
   [SUPERSEDED 2026-10-14: "Refused or not landed → hand the CEO the exact line, e.g. `/rename …`"]
 - Safety net: `scripts/hook-rename-nudge.py` adds one line every 20 turns to
   interactive C-level sessions (not SomPong, workers or headless runs) asking

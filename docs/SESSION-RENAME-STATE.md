@@ -1,9 +1,12 @@
 # Session Rename State (task-460f3eaf)
 
 `scripts/session-rename.sh` sets a C-level session's Claude display name (the
-third naming layer — the one the mobile app and Remote Control show) by
-typing a literal `/rename ...` into the session's own tmux pane, because
-`/rename` is TUI-only and an agent cannot call it as a tool. Before this
+third naming layer — the one the mobile app and Remote Control show).
+`/rename` is TUI-only and an agent cannot call it as a tool. Since M10b
+(Agents-Core #272) the script writes a request to
+`state/rename-requests/<role>-<sid>.json` and `tools/rename_service.py` types
+the validated `/rename` into the session's pane when its prompt is empty; the
+`.topic` record below is kept as the script's own dedupe. Before this
 change the script was write-only: it queued the keystroke every time and
 recorded nothing, so nobody could tell whether a rename had landed, and the
 script could not be called routinely (every call retyped the command). This
