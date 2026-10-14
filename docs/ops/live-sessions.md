@@ -27,7 +27,13 @@ filtered). Without a hub route, or to see this box only: `--local`. Windows: run
 Rows: `running|idle  <address>`, running first, then host, C-levels before Project Heads, then name.
 Workers show only with `--all` (a PH was hidden until 2026-10-14, PH OrgRestructure). Send with
 `SendMessage(to=<text after the status>, verbatim)`. "N agents are named X" → re-send with the `[ref]`
-the error marks active. The COO's address is `SomPong` (its own name returns "not found"; CTO 13 Oct).
+the error marks active. The COO's address is `SomPong` (its own name returns "not found"; CTO 13 Oct) while
+it runs under an old-style name; from its first start with the CEO's 14 Oct names it is `COO (SomPong)`.
+C-level names (CEO 2026-10-14) are `<ROLE> (<Name>)`, no machine, no #id: the role and the id come from the
+launcher's tmux name `<role>-<sid>` in the session record, else from the name plus the session UUID's last
+8 hex (the launchers make it the short id). One name on two rows (a Mac and a Contabo `CTO (Kavin)`) adds a
+`same name on N rows` line with each host and sid: take the `[ref]` from the ListAgents row whose
+`tmux` ends `-<sid>`, or use `send_to_cxo(role=…)`, which routes by tmux name, not display name.
 Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 

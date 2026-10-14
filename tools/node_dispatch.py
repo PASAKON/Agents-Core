@@ -797,7 +797,8 @@ _PS_TOKEN_RE = re.compile(r"[A-Za-z0-9_.-]{1,64}")
 _PS_REF_RE = re.compile(r"[A-Za-z0-9._/-]{1,100}")
 _PS_REPO_URL_RE = re.compile(r"git@[A-Za-z0-9.-]{1,64}:[A-Za-z0-9._-]{1,64}/[A-Za-z0-9._-]{1,100}")
 _PS_CLAUDE_ARGS_RE = re.compile(r"[A-Za-z0-9_.,: -]{0,600}")
-_PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#() -]{1,120}")
+# ":" (worker names, CEO 2026-10-14) is plain text inside the single quotes it is passed in.
+_PS_SESSION_NAME_RE = re.compile(r"[A-Za-z0-9_.#():+ -]{1,120}")
 _PS_MODEL_RE = re.compile(r"[A-Za-z0-9_.:/-]{1,100}")
 _WORKER_RUNNERS = ("claude", "codex", "agy")
 _SPAWN_WORKER_TIMEOUT_S = 300  # delegate.REMOTE_LAUNCH_TIMEOUT_S: a clone can be slow
@@ -866,7 +867,9 @@ def _spawn_worker_values(task: dict) -> dict:
         "ClaudeArgs": claude_args,
         "Model": role_cfg.get("model") or "claude-sonnet-5-5",
         "Effort": role_cfg.get("effort") or "high",
-        "SessionName": config.worker_session_name(host, role, task["id"], title),
+        "SessionName": config.worker_session_name(
+            host, role, task["id"], title,
+            head=re.sub(r"[^A-Za-z0-9 ._-]", "", config.worker_head(task))),
         "Runner": runner,
         "RunnerModel": str(task.get("runner_model") or ""),
         "AgentsRoot": str(ROOT),

@@ -151,7 +151,8 @@ as any other best-effort step here.
 `"LAST BELL รอ CEO ตอบ 4 ข้อ"`, so he can tell from the list which session to
 resume. The script cuts the topic at 40 characters. If the rename is refused
 (auto-mode classifier, "Self-Modification"), put the exact
-`/rename <MACHINE> <ROLE> #<id> (<job> — <state>)` line in the report and park
+`/rename <ROLE> (<Name>) — <job> — <state>` line (a C-level; a PH or worker keeps
+`<MACHINE> <ROLE> #<id> (<job> — <state>)`) in the report and park
 anyway; never work around the refusal. One job per session: a session whose
 job is done closes instead of parking ([[session-open]] §3 "Name = current job").
 The rename call stamps the CEO's Claude app entry with ⏸ (task-bbdfa8d1, CEO

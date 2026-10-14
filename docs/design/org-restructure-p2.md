@@ -46,9 +46,10 @@ card caps: the CEO declined them (Q-20261013-2045-0404) and Console #27 was reve
 - tmux session `project_head-<id>`; lock `state/locks/project_head-<id>.lock`; mailbox box
   `state/inbox/project_head-<id>/`. A worker it delegates is stamped `owner_role=project_head`,
   `owner_cto=<id>`, so the worker's report reaches the PH's box.
-- Name: `<MACHINE> Project Head (<LANE>) #<id> (<Project>)`, e.g.
-  `CONTABO Project Head (CTO) #3c1f65ae (OrgRestructure)` (the machine prefix is the CEO's
-  2026-08-30 rule). `tools/live_sessions.py` reads that shape as role `project_head`.
+- Name: `PH#<id3> (<LANE>) - <Project>`, e.g. `PH#3c1 (CTO) - OrgRestructure` (CEO 2026-10-14,
+  card QG-20261014-0326-8968; until then `<MACHINE> Project Head (<LANE>) #<id> (<Project>)`).
+  The shapes live in `lib/session_names.py`. `tools/live_sessions.py` reads the role and full
+  id from the tmux name `project_head-<id>`, else from the name plus the session UUID's tail.
 - Policy row: `policies/agents.yaml` `project_head` — Opus 5.5 (1M) at effort medium (CEO
   2026-10-14, replacing the plan's Sonnet 5.5 at xhigh; C-levels stay Opus at xhigh), `can_merge: false`,
   `can_ask_ceo: false`, `max_workers: 2`. Role doc `roles/project_head.md` is the COO's to write
