@@ -424,7 +424,7 @@ git -C '$wt' reset -q -- .worker.pid .worker.json TASK.md .org-task.json .org-wo
 Remove-Item -LiteralPath `$allowFile -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath `$allowLargeFile -Force -ErrorAction SilentlyContinue
 
-`$allowRaw = @(git -C '$wt' show "origin/$Base:.media-allow" 2>`$null)
+`$allowRaw = @(git -C '$wt' show "origin/${Base}:.media-allow" 2>`$null)
 if (`$LASTEXITCODE -eq 0 -and `$allowRaw.Count -gt 0) {
     `$allPats = @()
     `$largePats = @()
