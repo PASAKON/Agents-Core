@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-58 org skills by kind — Rules 7 · Knowledge 15 · Workflow 4 · Procedure 11 · Standard 6 · Gate 6 · Protocol 9 · commands the CEO types 11 · imported 9 · redirect stubs 38
+59 org skills by kind — Rules 7 · Knowledge 15 · Workflow 4 · Procedure 11 · Standard 6 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -93,6 +93,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 
 | name | owner | audience | what it is |
 |---|---|---|---|
+| `ALL_Protocol_EmailCEO` | CTO | cxo | Email the CEO (pass.gob1@gmail.com) through the org MCP tool `email_ceo` / tools/email_ceo.py, the only sanctioned way. Four kinds only… |
 | `ALL_Protocol_RunInbox` | CTO | cxo, worker | Put one shell command or one repo script on the CEO's phone for a tap (Run Inbox, terminal.mooniex.com/run): the CEO reads the exact… |
 | `ALL_Protocol_SkillAuthor` | COO | all | Create, update, rename, split or retire an org skill — the 7 kinds, the <ROLE>_<Kind>_<Topic> name, step-by-step procedures and a body… |
 | `BROWSER_OPERATOR_Protocol_Playbook` | CTO | browser_operator | Cost-disciplined browser driving for the org's `browser_operator` role — the step order that keeps a browser task from burning context… |
