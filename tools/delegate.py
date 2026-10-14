@@ -981,6 +981,7 @@ REMOTE_LAUNCH_TIMEOUT_S = 300
 # one file that depends on which task is being spawned.
 _REMOTE_DEPLOY_FILES = (
     ("windows/spawn-worker.ps1", "spawn-worker.ps1"),
+    ("windows/native-args.ps1", "native-args.ps1"),   # M12: every launcher starts its runner through it
     ("roles/_worker_shared.md", "roles/_worker_shared.md"),
     ("roles/_worker_remote.md", "roles/_worker_remote.md"),
 )

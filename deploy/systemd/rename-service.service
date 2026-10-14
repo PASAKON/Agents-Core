@@ -1,0 +1,20 @@
+[Unit]
+Description=MoonieX rename service: apply sessions' rename requests to their tmux panes (M10b, #272)
+# Reads state/rename-requests/<role>-<sid>.json (written by scripts/session-rename.sh)
+# and types "/rename <rule name>" + Enter into that session's pane only when its
+# prompt line is empty (tools/rename_service.py). A tmux CLIENT only (capture-pane,
+# send-keys): it never starts, stops or moves the shared server, so restarting this
+# unit cannot touch the sessions (CLAUDE.md "one tmux server"). Installed by one Run card.
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=TMUX_TMPDIR=/tmp
+ExecStart=/opt/MoonieXHQ/Agents/Core/.venv/bin/python /opt/MoonieXHQ/Agents/Core/tools/rename_service.py run
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

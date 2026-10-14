@@ -4,16 +4,16 @@
 # and no #id (CEO 2026-10-14). A Project Head: "PH#<id3> (<LANE>) - <Project> — <topic>".
 # Anything else: "<MACHINE> <ROLE> #<id> (<topic>)".
 #
-# Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool.
-# But every C-level chat runs inside tmux (spawn-cto.sh / spawn-cxo.sh), so we
-# type the command into our OWN pane. The keys land in the input box and submit;
-# while the agent is mid-turn they queue and execute right after the turn ends.
-# Name changes propagate to claude.ai + the mobile app (bidirectional sync,
-# Claude Code v2.1.221+).
+# Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool,
+# and a session may not type into its own pane (Agents-Core #272: an allow rule for
+# that would let it type any slash command into its own prompt). So this script
+# writes a rename REQUEST (topic + state glyph) and tools/rename_service.py, a root
+# service, types "/rename <name>" into this session's pane when its prompt is empty.
+# Name changes propagate to claude.ai + the mobile app (Claude Code v2.1.221+).
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
-#   → /rename CTO (Kavin) — หัวข้อของ session
-#         bash scripts/session-rename.sh --force "<topic>"   # resend even if unchanged
+#   → requested: /rename 🌐 CTO (Kavin) — หัวข้อของ session
+#         bash scripts/session-rename.sh --force "<topic>"   # request again even if unchanged
 #         bash scripts/session-rename.sh --show              # print the recorded topic, no send
 #
 # State (task-460f3eaf): this used to be write-only — every call queued a
@@ -31,11 +31,10 @@
 # below makes repeat calls a no-op whenever nothing actually changed.
 #
 # Guards:
-#   - no $TMUX (e.g. Windows phase-1, plain terminal) → print what WOULD run,
-#     exit 0 — the CEO can Ctrl+R-rename manually; never a hard failure. This
-#     branch never writes the record: nothing was actually applied, so there
-#     is nothing to remember as "sent".
-#   - topic trimmed to 40 chars so the app list stays scannable.
+#   - no org session id (a plain terminal, a worker) → nothing requested, exit 0;
+#     never a hard failure, and no record is written.
+#   - topic trimmed to 40 chars here; the service cleans it again (it trusts
+#     nothing a session wrote).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -122,77 +121,34 @@ if [ "$FORCE" != "1" ] && [ -n "$TOPIC_FILE" ] && [ -f "$TOPIC_FILE" ]; then
   fi
 fi
 
-# Same machine-label logic as cto-claude.sh / cxo-claude.sh — keep in sync.
-case "$(uname -s)" in
-  Darwin) MACHINE_LABEL="MAC" ;;
-  Linux)  if [ -d /opt/MoonieXHQ/Agents/Core ]; then MACHINE_LABEL="CONTABO"
-          else MACHINE_LABEL="$(hostname -s 2>/dev/null | tr '[:lower:]' '[:upper:]')"; fi ;;
-  MINGW*|MSYS*|CYGWIN*) MACHINE_LABEL="WINDOWS" ;;
-  *) MACHINE_LABEL="$(uname -s | tr '[:lower:]' '[:upper:]')" ;;
-esac
-
-ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
-# A Project Head (org restructure P2): "<MACHINE> Project Head (<LANE>) #<id> (<topic>)",
-# the shape tools/live_sessions.py reads back as role project_head.
-if [ "$ROLE" = "project_head" ]; then
-  ROLE_UP="Project Head ($(printf '%s' "${ORG_PH_LANE:-}" | tr -cd 'a-zA-Z' | tr '[:lower:]' '[:upper:]'))"
-fi
-# A C-level (CEO 2026-10-14): "<ROLE> (<Name>) — <topic>", the persona from
-# policies/agents.yaml. Any failure leaves the name without one; never an error.
-# tools/live_sessions.py reads its role and id from the tmux name and session UUID.
-if [ "$ROLE" != "project_head" ]; then
-  _PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
-  PERSONA="$(cd "$ROOT" && ROLE_ARG="$ROLE" "$_PY" -c "
-import os
-from lib.config import persona_for
-print(persona_for(os.environ['ROLE_ARG']))" 2>/dev/null | tr -cd 'a-zA-Z')" || PERSONA=""
-  if [ -n "$PERSONA" ]; then ROLE_UP="$ROLE_UP ($PERSONA)"; fi
-fi
-
-_PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
-# This host's emoji leads the name (CEO 2026-10-14), from self_host() only: an
-# unresolved host gets none. Same lookup as the launchers.
-SELF_HOST="$("$_PY" "$ROOT/scripts/lib/coo_host.py" host 2>/dev/null)" || SELF_HOST=""
-HOST_EMOJI=""
-if [ -n "$SELF_HOST" ]; then
-  HOST_EMOJI="$("$_PY" "$ROOT/lib/session_names.py" prefix "$SELF_HOST" 2>/dev/null)" || HOST_EMOJI=""
-fi
-if [[ "$ROLE" =~ ^c[a-z]o$ ]]; then
-  BASE_NAME="${HOST_EMOJI:+$HOST_EMOJI }$ROLE_UP — $TOPIC"
-elif [ "$ROLE" = "project_head" ] && [ -n "$SID" ] && PH_BASE="$(cd "$ROOT" && PH_SID="$SID" \
-    PH_LANE="${ORG_PH_LANE:-}" PH_PROJECT="${ORG_PH_PROJECT:-}" PH_HOST="$SELF_HOST" "$_PY" -c "
-import os
-from lib.config import ph_session_name
-print(ph_session_name(os.environ['PH_SID'], os.environ['PH_LANE'], os.environ['PH_PROJECT'],
-                      os.environ['PH_HOST']))" 2>/dev/null)" \
-    && [ -n "$PH_BASE" ]; then
-  # "PH#<id3> (<LANE>) - <Project> — <topic>" (CEO 2026-10-14, lib/config.ph_session_name)
-  # No topic, or the topic is the project itself: the name already says it
-  # (CMO 2026-10-14: "PH#36c (CMO) - MimiPage — MimiPage").
-  if [ -z "$TOPIC" ] || [ "$TOPIC" = "${ORG_PH_PROJECT:-}" ]; then
-    BASE_NAME="$PH_BASE"
-  else
-    BASE_NAME="$PH_BASE — $TOPIC"
-  fi
-else
-  BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
-fi
-if [ -n "$PREFIX" ]; then
-  NEW_NAME="$PREFIX $BASE_NAME"
-else
-  NEW_NAME="$BASE_NAME"
-fi
-
-if [ -z "${TMUX:-}" ]; then
-  echo "not inside tmux — rename manually: /rename $NEW_NAME"
+# M10b (Agents-Core #272, CEO 2026-10-14): a session never types into its own pane.
+# This script only writes a REQUEST (the topic and the state glyph, never a name)
+# to state/rename-requests/<role>-<sid>.json; tools/rename_service.py (root,
+# systemd) builds the name with lib/session_names and types "/rename <name>" into
+# this session's pane once its prompt line is empty. No tmux call here at all.
+PY="$ROOT/.venv/bin/python"
+[ -x "$PY" ] || PY="python3"
+if [ -z "$SID" ] || ! [[ "$SID" =~ ^[0-9a-f]{8}$ ]] || ! [[ "$ROLE" =~ ^(c[a-z]o|project_head)$ ]]; then
+  echo "no org session id here (CTO_SESSION_ID / CXO_SESSION_ID): nothing requested — rename by hand: /rename $TOPIC"
   exit 0
 fi
-
-SESS="$(tmux display-message -p '#S')"
-# -l = literal (no key-name expansion of the text), then a real Enter.
-tmux send-keys -t "$SESS" -l "/rename $NEW_NAME"
-tmux send-keys -t "$SESS" Enter
-echo "queued: /rename $NEW_NAME (executes when the current turn ends)"
+PREVIEW="$(cd "$ROOT" && "$PY" tools/rename_service.py preview --role "$ROLE" --sid "$SID" \
+  --topic "$TOPIC" --prefix "$PREFIX" --locks-dir "$LOCKS_DIR" 2>/dev/null)" || PREVIEW=""
+if [ -z "$PREVIEW" ]; then
+  echo "no rule name for $ROLE-$SID (a PH needs its .project/.spawned_by; --prefix is one of ✅ ⏸ ⛔): nothing requested" >&2
+  exit 1
+fi
+REQ_DIR="$ROOT/state/rename-requests"
+mkdir -p "$REQ_DIR"
+"$PY" - "$REQ_DIR/$ROLE-$SID.json" "$TOPIC" "$PREFIX" <<'PYEOF'
+import json, os, sys, tempfile, time
+path, topic, prefix = sys.argv[1:4]
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
+with os.fdopen(fd, "w", encoding="utf-8") as fh:
+    json.dump({"topic": topic, "prefix": prefix, "at": time.time()}, fh, ensure_ascii=False)
+os.replace(tmp, path)
+PYEOF
+echo "requested: /rename $PREVIEW (the rename service types it once this session's prompt is empty)"
 
 if [ -n "$TOPIC_FILE" ]; then
   mkdir -p "$LOCKS_DIR"

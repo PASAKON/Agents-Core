@@ -119,9 +119,9 @@ def test_launcher_line_is_not_piped():
     when using --print" -- measured to kill every winbox spawn within ~12s.
     """
     text = _text()
-    m = re.search(r"^&\s*`\$claudeExe\s+@argArray.*$", text, re.MULTILINE)
+    m = re.search(r"^Invoke-NativeExe -Exe `\$claudeExe -Arguments `\$argArray.*$", text, re.MULTILINE)
     assert m, "launcher invocation of $claudeExe not found"
-    assert "|" not in m.group(0), (
+    assert "|" not in m.group(0) and "-LogPath" not in m.group(0), (
         f"launcher line pipes claude.exe's output -- this kills the worker: {m.group(0)!r}"
     )
 

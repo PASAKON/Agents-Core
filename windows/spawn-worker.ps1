@@ -335,6 +335,11 @@ try {
     $logsDir = Join-Path (Split-Path $WorktreeRoot -Parent) 'logs'
     if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
     $argsJsonPath = Join-Path $launchDir 'args.json'
+    # M12: every launcher starts its runner through windows/native-args.ps1, never
+    # `& exe @args` (5.1 split an argument at an embedded "; a .cmd shim ran a '&').
+    $nativeArgsPath = Join-Path $launchDir 'native-args.ps1'
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'native-args.ps1') -Destination $nativeArgsPath -Force
+    . $nativeArgsPath
     $finishPs1Path = Join-Path $launchDir "finish-$Task.ps1"
     $finishCmdPath = Join-Path $launchDir "finish-$Task.cmd"
     $launcherPath = Join-Path $launchDir 'launch.ps1'
@@ -610,7 +615,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$claudeExe = '$claude'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
-& `$claudeExe @argArray
+. '$nativeArgsPath'
+Invoke-NativeExe -Exe `$claudeExe -Arguments `$argArray
 # Windows Terminal's default closeOnExit is "graceful": the tab stays open
 # when its process exits NON-zero, which is exactly what a hub-side
 # `taskkill /T /F` produces. Exit 0 here so the tab closes with the worker
@@ -659,7 +665,11 @@ start "" "$wtExe" $wtWindowArgs nt --title "$SessionName" --tabColor "#0078d4" -
         $codexPrompt = "$taskContent`n`n$remoteContract"
         $codexFinalMsg = Join-Path $launchDir 'codex-final.txt'
         $codexJsonLog = Join-Path $launchDir 'codex-events.jsonl'
-        $argList = @('exec', [string]$codexPrompt)
+        # M12: the prompt goes on stdin ('-'), never through codex.cmd's cmd.exe parsing.
+        $codexPromptPath = Join-Path $launchDir 'codex-prompt.txt'
+        [System.IO.File]::WriteAllText($codexPromptPath, [string]$codexPrompt,
+                                       (New-Object System.Text.UTF8Encoding $false))
+        $argList = @('exec', '-')
         if ($RunnerModel) {
             $argList += @('-m', [string]$RunnerModel)
         }
@@ -669,6 +679,7 @@ start "" "$wtExe" $wtWindowArgs nt --title "$SessionName" --tabColor "#0078d4" -
         if ($WorkDir) { $argList += @('--add-dir', [string]$WorkDir) }
         $argList += @('-C', [string]$wt, '-s', 'workspace-write',
                       '--skip-git-repo-check', '--json', '-o', [string]$codexFinalMsg)
+        Assert-CmdSafe $argList
         [System.IO.File]::WriteAllText($argsJsonPath, ($argList | ConvertTo-Json -Depth 2),
                                        (New-Object System.Text.UTF8Encoding $false))
 
@@ -707,7 +718,8 @@ Remove-Item -LiteralPath '$codexFinalMsg' -Force -ErrorAction SilentlyContinue
 `$env:WORK_DIR = '$workDirLiteral'
 `$heartbeatPath = '$heartbeatPathLiteral'
 $heartbeatStart
-& `$exe @argArray *> '$codexJsonLog'
+. '$nativeArgsPath'
+Invoke-WithStdin -Exe `$exe -Arguments `$argArray -Text ([System.IO.File]::ReadAllText('$codexPromptPath')) *> '$codexJsonLog'
 `$cliExit = `$LASTEXITCODE
 $heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$codexJsonLog'
@@ -804,13 +816,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$finishPs1Path"
 `$env:ORG_WORKER_FINISH = '$finishCmdPath'
 `$exe = '$agyExe'
 `$argArray = @(Get-Content -Raw -Path '$argsJsonPath' -Encoding UTF8 | ConvertFrom-Json)
-# PowerShell has no '<' input-redirect operator (that's cmd.exe syntax) --
-# piping `$null` in is the equivalent of the proven `< /dev/null`
-# (docs/ops/agent-runners.md sec.6) that keeps agy from blocking on stdin.
+# -NullStdin gives agy an empty, closed stdin: the proven `< /dev/null`
+# (docs/ops/agent-runners.md sec.6) that keeps it from blocking on stdin.
 `$env:WORK_DIR = '$workDirLiteral'
 `$heartbeatPath = '$heartbeatPathLiteral'
 $heartbeatStart
-`$null | & `$exe @argArray *> '$agyLog'
+. '$nativeArgsPath'
+Invoke-NativeExe -Exe `$exe -Arguments `$argArray -LogPath '$agyLog' -NullStdin
 `$cliExit = `$LASTEXITCODE
 $heartbeatStop
 "EXITCODE=`$cliExit" | Add-Content -Path '$agyLog'

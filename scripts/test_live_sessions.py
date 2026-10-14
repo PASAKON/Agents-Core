@@ -267,12 +267,25 @@ def test_a_short_c_level_name_gives_the_role_and_the_uuid_tail(name, role):
     # no tmux (winbox, a bare terminal): the name decides, unverified
     (None, UUID_A, "CTO (Kavin)", ("cto", "e106b78b", False)),
     (7, UUID_A, "CTO (Kavin)", ("cto", "e106b78b", False)),
-    # SomPong's launcher tmux is "sompong"
+    # SomPong's launcher tmux is "sompong" (tied to its sid by the uuid file below)
     ("sompong:@3.%3", UUID_A, "COO (SomPong)", ("coo", "e106b78b", True)),
     ("sompong:@3.%3", UUID_A, "CTO (Kavin)", ("coo", "e106b78b", True)),
 ])
-def test_role_and_sid_come_from_the_tmux_name_first(tmux, uuid, name, expect):
+def test_role_and_sid_come_from_the_tmux_name_first(tmux, uuid, name, expect, tmp_path, monkeypatch):
+    monkeypatch.setattr(ls, "LOCKS_DIR", tmp_path)
+    (tmp_path / "coo-e106b78b.uuid").write_text(UUID_A + "\n")
     assert ls._ids_from_record({"tmux": tmux}, name, uuid) == expect
+
+
+# M10 #7: the "sompong" tmux claims coo only for the session cxo-claude.sh wrote the
+# uuid file for; any other session in a tmux of that name is not the COO.
+@pytest.mark.parametrize("content", [None, "00000000-0000-0000-0000-0000e106b78b", ""])
+def test_the_sompong_tmux_claims_coo_only_for_its_launchers_uuid(content, tmp_path, monkeypatch):
+    monkeypatch.setattr(ls, "LOCKS_DIR", tmp_path)
+    if content is not None:
+        (tmp_path / "coo-e106b78b.uuid").write_text(content)
+    role, _, verified = ls._ids_from_record({"tmux": "sompong:@3.%3"}, "COO (SomPong)", UUID_A)
+    assert role == "unknown" and not verified
 
 
 # M8 (CTO Main security pass): a session in another tmux never takes a C-level or
@@ -361,7 +374,14 @@ def _fresh(age):
     return {"age": age, "published_at": NOW}
 
 
-def test_the_exact_format_and_order():
+@pytest.fixture
+def quiet_rule(monkeypatch):
+    """For tests about layout, not names: the old-shape fixture names would each add a
+    "name off-rule" line (M10), which tests of its own cover."""
+    monkeypatch.setattr(ls, "off_rule_notes", lambda rows: [])
+
+
+def test_the_exact_format_and_order(quiet_rule):
     rows = [
         _row("contabo", "coo", "CONTABO COO #a7eb4963", "idle"),
         _row("contabo", "cto", "CONTABO CTO #e106b78b (คุม CTO 4 session จนจบ)"),
@@ -384,7 +404,7 @@ def test_the_exact_format_and_order():
     assert ls.format_snapshot(snap, all_roles=True, now=NOW).count("\n") == 6
 
 
-def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim():
+def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim(quiet_rule):
     rows = [
         _row("contabo", "cto", "CTO (Kavin)", sid="c34459eb"),
         _row("mac", "cto", "CTO (Kavin)", "idle", sid="f39cb080"),
@@ -395,19 +415,20 @@ def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim():
     assert lines[1:4] == ["running  CMO (Ging)", "running  CTO (Kavin)", "idle     CTO (Kavin)"]
     assert lines[4] == ls.FOOTER
     assert lines[5].startswith('same name on 2 rows: "CTO (Kavin)" '
-                               '(contabo #c34459eb tmux-confirmed, mac #f39cb080 tmux-confirmed)')
+                               '(contabo #c34459eb tmux-claimed, mac #f39cb080 tmux-claimed)')
     assert "[ref]" in lines[5] and len(lines) == 6
     # M8: the note says which row a launcher tmux confirms; name-only rows get a line
     rows[1] = {**rows[1], "verified": False}
     lines = ls.format_snapshot(_snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)}),
                                now=NOW).splitlines()
-    assert "(contabo #c34459eb tmux-confirmed, mac #f39cb080 name only)" in lines[5]
-    assert lines[6] == "name only (no launcher tmux confirms the role): mac #f39cb080"
+    assert "(contabo #c34459eb tmux-claimed, mac #f39cb080 name only)" in lines[5]
+    assert lines[3] == "idle     CTO (Kavin)  [name only]"     # M10 #6: on the row line
+    assert lines[6] == ls.NAME_ONLY_NOTE
     one = _snap(rows[:1] + rows[2:], {"contabo": _fresh(4.0)})
     assert not any(l.startswith("same name") for l in ls.format_snapshot(one, now=NOW).splitlines())
 
 
-def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers():
+def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers(quiet_rule):
     rows = [
         _row("contabo", "project_head", "CONTABO Project Head (CTO) #7cf528f0 (OrgRestructure)"),
         _row("contabo", "cto", "CONTABO CTO #c34459eb"),
@@ -492,7 +513,7 @@ def test_a_stale_host_without_an_error_still_says_no_publisher_since():
     assert "winbox none (no publisher since 10-13 18:36)" in ls.format_snapshot(snap, now=NOW)
 
 
-def test_fifteen_c_level_rows_and_a_header_fit_in_3000_chars():
+def test_fifteen_c_level_rows_and_a_header_fit_in_3000_chars(quiet_rule):
     topic = "คุม CTO 4 session จนจบ งานยาวมาก ๆ รีวิว"
     rows = [_row(h, "cto", f"{h.upper()} CTO #{i:08x} ({topic})", sid=f"{i:08x}")
             for h in ("contabo", "mac", "winbox") for i in range(5)]
@@ -562,7 +583,7 @@ def test_render_reads_rows_within_the_ttl_only():
     assert "error" in [q for q in hub.sql if "FROM live_hosts" in q][0]
 
 
-def test_a_silent_hosts_last_rows_are_listed_stale_not_dropped():
+def test_a_silent_hosts_last_rows_are_listed_stale_not_dropped(quiet_rule, ):
     """A host whose publisher went quiet keeps its last rows, marked stale (up to a
     day old): "mac none" read as "no Mac sessions" while 4 were live (2026-10-13)."""
     mac_live = dict(_row("mac", "cto", "MAC CTO #671f688f", "idle"), age=600.0)
@@ -601,7 +622,7 @@ def test_stale_rows_sort_last_and_carry_the_flag_in_json():
         "aaaaaaaa": True, "bbbbbbbb": False, "cccccccc": False}
 
 
-def test_no_stale_note_when_every_host_is_fresh():
+def test_no_stale_note_when_every_host_is_fresh(quiet_rule):
     snap = _snap([_row("contabo", "cto", "CONTABO CTO #e106b78b")], {"contabo": _fresh(4.0)})
     assert ls.format_snapshot(snap, now=NOW).splitlines()[-1] == ls.FOOTER
 
@@ -1134,7 +1155,7 @@ def test_render_for_tool_opens_one_connection_and_closes_it(monkeypatch):
     assert hub.closed
 
 
-def test_local_mode_reads_the_registry_and_never_the_hub(monkeypatch, tmp_path, capsys):
+def test_local_mode_reads_the_registry_and_never_the_hub(monkeypatch, tmp_path, capsys, quiet_rule):
     _write(tmp_path, os.getpid(), name="CONTABO COO #a7eb4963")
     monkeypatch.setattr(cfg, "self_host", lambda: "contabo")
     monkeypatch.setattr(ls, "session_dirs", lambda host: [tmp_path])
@@ -1142,11 +1163,12 @@ def test_local_mode_reads_the_registry_and_never_the_hub(monkeypatch, tmp_path, 
     monkeypatch.setattr(ls, "_open_hub", lambda: pytest.fail("--local must not open the hub"))
     assert ls.main(["--local"]) == 0
     lines = capsys.readouterr().out.splitlines()
-    assert lines[0].startswith("live ") and "contabo 1 (local)" in lines[0]
+    # M10 #6: no launcher tmux on Contabo -> not the COO, but shown, marked on its line
+    assert lines[0].startswith("live ") and "contabo 0 (+1 name only, local)" in lines[0]
     assert "mac" not in lines[0]
-    assert lines[1] == "running  SomPong"
-    assert lines[-2] == ls.FOOTER    # the record carries no tmux: name only (M8)
-    assert lines[-1] == "name only (no launcher tmux confirms the role): contabo #a7eb4963"
+    assert lines[1] == "running  CONTABO COO #a7eb4963  [name only]"
+    assert lines[-2] == ls.FOOTER
+    assert lines[-1] == ls.NAME_ONLY_NOTE
 
 
 def test_json_output_parses_and_carries_the_address(monkeypatch, tmp_path, capsys):
@@ -1330,7 +1352,7 @@ def _bad_chars(s):
     return [c for c in s if unicodedata.category(c) in ("Cc", "Cf", "Zl", "Zp")]
 
 
-def test_a_hostile_name_is_one_short_line_with_its_row_published(tmp_path):
+def test_a_hostile_name_is_one_short_line_with_its_row_published(tmp_path, quiet_rule):
     _write(tmp_path, os.getpid(), name=HOSTILE, formerNames=[{"name": "old\nname\x00", "until": 1}])
     [row] = ls.read_registry([tmp_path])
     assert len(row["name"]) <= ls.MAX_NAME_CHARS
@@ -1342,7 +1364,7 @@ def test_a_hostile_name_is_one_short_line_with_its_row_published(tmp_path):
     r = {**row, "host": "contabo", "age": 3.0}
     text = ls.format_snapshot(_snap([r], {"contabo": _fresh(3.0)}), now=NOW)
     assert len(text.splitlines()) == 4
-    assert text.splitlines()[3] == "name only (no launcher tmux confirms the role): contabo #e106b78b"
+    assert text.splitlines()[3] == ls.NAME_ONLY_NOTE
     assert text.splitlines()[1].startswith("running  CONTABO CTO #e106b78b (a running")
 
 
@@ -1483,3 +1505,52 @@ def test_names_with_emoji_print_verbatim_and_two_hosts_no_longer_collide():
             _row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="00000001")]
     note = ls.duplicate_notes(same)[0]
     assert note.startswith('same name on 2 rows: "\U0001F310 CTO (Kavin)"')
+
+
+# --- M10: names enforced ----------------------------------------------------------
+
+def test_every_off_rule_name_gets_a_line_and_rule_names_none(monkeypatch):
+    monkeypatch.setattr(ls, "_rule_context",
+                        lambda role, host: ({"cto": "Kavin", "coo": "SomPong"}.get(role), host == "winbox"))
+    rows = [_row("contabo", "cto", "\U0001F310 CTO (Kavin)", sid="c34459eb"),
+            _row("contabo", "coo", "COO (SomPong)", sid="fde4c4ca"),
+            _row("mac", "cto", "MAC CTO #f39cb080 (Lumina)", sid="f39cb080"),
+            _row("contabo", "project_head", "\U0001F310 PH#7cf (CTO) - OrgRestructure", sid="7cf528f0"),
+            _row("contabo", "project_head", "\U0001F310 PH#abc (CMO) - MimiPage", sid="36c49776"),
+            _row("winbox", "cto", "\U0001F5A5️ CTO (Ging)", sid="00000001")]
+    assert ls.off_rule_notes(rows) == [
+        'name off-rule: "COO (SomPong)" (contabo #fde4c4ca): no host emoji',
+        'name off-rule: "MAC CTO #f39cb080 (Lumina)" (mac #f39cb080): no host emoji',
+        'name off-rule: "\U0001F310 PH#abc (CMO) - MimiPage" (contabo #36c49776): PH#abc is not this session (#36c)',
+        'name off-rule: "\U0001F5A5️ CTO (Ging)" (winbox #00000001): not "CTO (Kavin)"',
+    ]
+    text = ls.format_snapshot(_snap(rows, {h: _fresh(4.0) for h in ("contabo", "mac", "winbox")}), now=NOW)
+    assert text.count("name off-rule: ") == 4
+
+
+def test_off_rule_lines_are_capped_so_the_list_stays_short(monkeypatch):
+    monkeypatch.setattr(ls, "_rule_context", lambda role, host: (None, False))
+    rows = [_row("contabo", "cto", f"CONTABO CTO #0000000{i}", sid=f"0000000{i}") for i in range(8)]
+    notes = ls.off_rule_notes(rows)
+    assert len(notes) == ls.OFF_RULE_LINES + 1 and notes[-1] == "name off-rule: +3 more"
+
+
+@pytest.mark.parametrize("host,role", [("contabo", "unknown"), ("mac", "unknown"),
+                                       ("winbox", "cto"), ("nowhere", "cto")])
+def test_no_launcher_tmux_drops_the_role_only_where_launchers_use_tmux(host, role):
+    rows = [{"role": "cto", "name": "CTO (Kavin)", "address": "CTO (Kavin)", "verified": False},
+            {"role": "cto", "name": "x", "address": "x", "verified": True}]
+    out = ls.demote_untmuxed(rows, host)
+    assert out[0]["role"] == role and out[1]["role"] == "cto"
+
+
+def test_a_claimed_role_with_no_tmux_still_prints_marked_and_in_json(quiet_rule):
+    r = _row("contabo", "unknown", "CTO (Kavin)", sid="e106b78b", verified=False)
+    r["uuid"] = UUID_A
+    snap = _snap([r], {"contabo": _fresh(4.0)})
+    lines = ls.format_snapshot(snap, now=NOW).splitlines()
+    assert "contabo 0 (+1 name only, 4s)" in lines[0]
+    assert lines[1] == "running  CTO (Kavin)  [name only]"
+    assert json.loads(ls._to_json(snap))["sessions"][0]["role"] == "unknown"
+    plain = _row("contabo", "unknown", "scratch shell", sid="e106b78b", verified=False)
+    assert "scratch" not in ls.format_snapshot(_snap([plain], {"contabo": _fresh(4.0)}), now=NOW)
