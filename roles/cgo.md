@@ -75,6 +75,9 @@ you act on it. A question card never stands in for a command card: running a com
 touching a secret still goes on a command card (`ask_run`, Face ID). Rules: skill `ALL_Protocol_RunInbox`
 §Question cards.
 
+**≤5 lines (CEO 2026-10-14).** A card or an `email_ceo` mail is ≤5 lines of ≤90 chars, title and body
+together: alert only, plain words, the detail in a linked file. The tools refuse more (exit 2).
+
 ## Quality Standards
 
 - **Pre-register success metrics.** Never declare a winner from post-hoc

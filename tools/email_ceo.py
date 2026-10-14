@@ -19,7 +19,9 @@ The org MCP tool `email_ceo` (lib/org_tools_registry.py) calls mcp_send(): one p
 
 Caps live in the hub: 3 mails per session per Thai day (an alert is exempt), 20 for the org, the same
 kind + ref within 6 h is a duplicate. Refused here before any network call: a secret-shaped value
-(the tools/ask_run.py rules), a worker process, a role that is not C-level.
+(the tools/ask_run.py rules), a worker process, a role that is not C-level, and more than the CEO
+reads: title + need + why + if_not + link + due over 5 lines or a line over 90 characters
+(CEO 2026-10-14, lib/ceo_text.py; ref is the hub's dedupe key and does not count).
 
 Hub + token: the Run hub's (tools/ask_run.py): RUN_INBOX_URL (default https://terminal.mooniex.com),
 RUN_INBOX_TOKEN or ~/.config/mooniex/run-inbox.token. The token never appears in output.
@@ -47,6 +49,7 @@ from tools import ask_run  # noqa: E402
 
 KINDS = ("action", "alert", "done", "deadline")
 FIELDS = ("title", "need", "why", "if_not", "link", "ref", "due")
+CEO_READS = ("title", "need", "why", "if_not", "link", "due")   # ≤5 lines together, title = line 1
 PATH = "/api/notify/ceo"
 THAI = timezone(timedelta(hours=7))
 FEED_SESSION = "cto-deadline-feed"  # the timer's own name in the ledger; caps are per session
@@ -88,6 +91,7 @@ def build_payload(fields: dict, *, kind: str, session: str = "", role: str = "",
     hits = ask_run.find_secret_shapes(body)
     if hits:
         raise Refused(f"secret-shaped value in {hits[0]}: a secret never goes in a mail")
+    ask_run.check_ceo_text([(name, body.get(name)) for name in CEO_READS])
     return body
 
 
@@ -208,7 +212,8 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--kind", required=True, choices=KINDS)
     s.add_argument("--title", required=True, help="one line, ≤90 chars: what this is about")
     s.add_argument("--need", default="", help="the ONE thing he must do (action: required)")
-    s.add_argument("--why", default="", help="why / what happened / the result (≤500 chars)")
+    s.add_argument("--why", default="", help="why / what happened / the result; the whole mail is "
+                   "≤5 lines of ≤90 chars, title included (detail goes in a linked file)")
     s.add_argument("--if-not", dest="if_not", default="", help="what happens if he does nothing")
     s.add_argument("--link", default="", help="one URL that opens the thing itself")
     s.add_argument("--ref", default="", help="task id / issue / slug; same kind+ref within 6 h = duplicate")
