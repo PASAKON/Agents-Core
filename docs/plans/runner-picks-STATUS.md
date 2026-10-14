@@ -12,9 +12,9 @@ Goal: the org can read "which runner:model:effort for which job", built from rev
 | 2 | Model + effort on every task; per-model stats + picks table from `runner_fit` | PR open | PR #320 (task-0e3dd035 Codex gpt-6-sol + PH rework 5de45991). Reviewer verdict = existing `runner_fit` (CTO Main 14 Oct), no second recorder |
 | 3 | Codex model names settled ("Menium", "JEV") | done (Menium open) | Q-20261014-1239-4f5b: "JEV = Jev lab, not a model" → ALL_Knowledge_Jev; Menium unanswered, listed as open in the skill |
 | 4 | Skill `ALL_Knowledge_RunnerPicks` (table from ≥3 comments per cell) | PR open | branch ph/runner-picks; lint clean; SKILL-INDEX regenerated |
-| 5 | Tool-value Monday report reads the same data | not started | due Mon 19 Oct (LungNote) |
+| 5 | Tool-value Monday report reads the same data | done | `tools/tool_value.py report --dry-run --week 2026-10-13` renders 11 runner-fit cells from the same `runner_fit` events (14 Oct); cells are per bucket, the per-model view is `tools/runner_picks.py` |
 
-Progress: 2/5 (1 and 3 done; 2 and 4 in PRs).
+Progress: 3/5 (1, 3, 5 done; 2 and 4 in PRs #320/#321).
 
 ## Findings (14 Oct)
 - **Codex runs at low effort.** 59 of the last 60 Codex rollouts in `/root/.codex/sessions` were gpt-6-astra
