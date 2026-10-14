@@ -86,6 +86,11 @@ $P $A create --host contabo --script Agents-Core@<sha>:scripts/contabo_blueprint
 $P $A wait RUN-20260925-1632-0bfe --max-wait 1800
 ```
 
+**≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
+file).** `--why` + `--expected` together are at most 5 lines of at most 90 chars; an empty line counts,
+a lone link may run to 200, and the command bytes do not count (the CEO approves them as they are).
+`create` and the MCP `ask_run` refuse more (exit 2); no flag skips it (`lib/ceo_text.py`).
+
 `create` prints the id and the phone URL — put both in one chat line so the CEO knows a card is
 waiting. Other verbs: `list` (own cards), `cancel <id>` (own, pending only), `tail <id>` (live
 output over SSE), `--dry-run` (prints the JSON, sends nothing), `--expects-input` when the process
@@ -171,6 +176,10 @@ card red).
 > "Session ไหนติด blocker ตอนการให้ฉันอนุญาต ก่อนเริ่มส่ง มาใน /run ได้เลย หรือถ้ามีคำถาม
 > ส่งคำถามทิ้งไว้ จะเข้าไปกดตอบ เป็นคำถามแบบกดตอบได้นะ"
 
+**≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
+file).** The question + `why` together are at most 5 lines of at most 90 chars, for a lone card and for
+each item of a group. Option labels are buttons and keep their own limit. `ask` / `ask_ceo` refuse more.
+
 A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** whenever he is
 not typing in your chat at that moment. Do not leave it in chat to wait, and do not hand it to SomPong to
 relay. On /run → **คำถามรอตอบ** he reads who is asking (role · session · host), the why, and 2–4 options
@@ -223,10 +232,10 @@ each decision (QUESTIONS.md §10).
    ask. While it is pending, do not ask the same thing again in chat.
 4. It lives 24 h by default (`--expires-h`, max 168), because he comes back to it later. If it
    expires, ask once more on a fresh card.
-5. Write for a thumb: the question on one line (≤300 chars), each option ≤120 chars, and a `why` that
+5. Write for a thumb: the question on one line (≤90 chars), each option ≤120 chars, and a `why` that
    says what happens on each choice. Mark your recommendation with `--recommended N`. `ask` refuses a
-   longer or multi-line question (`invalid_question`) for every item of a `--batch` too: put the detail
-   in `why`, which may run to several lines.
+   longer or multi-line question (`invalid_question`) for every item of a `--batch` too: question +
+   `why` stay within 5 lines, and the detail goes in a linked file.
 6. C-level only. A worker writes its question into its report, and its C-level asks.
 7. Hosts: a question needs the run-inbox token, which Contabo C-levels have. The Mac and winbox have no
    token yet, so there you ask in chat as before and say why.

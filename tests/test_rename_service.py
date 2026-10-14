@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -355,8 +357,17 @@ def test_the_service_writes_no_file(box, tmp_path):
     assert sorted(p for p in tmp_path.rglob("*")) == before
 
 
-def test_listen_refuses_a_group_writable_socket_directory(tmp_path):
-    d = tmp_path / "run"
+@pytest.fixture
+def short_dir():
+    """A socket path must fit sun_path (104 bytes on macOS, 108 on Linux). The Mac's
+    pytest tmp_path (/var/folders/…/pytest-of-<user>/…/<test name>/) does not."""
+    d = Path(tempfile.mkdtemp(prefix="rs-", dir="/tmp"))
+    yield d
+    shutil.rmtree(d, ignore_errors=True)
+
+
+def test_listen_refuses_a_group_writable_socket_directory(short_dir):
+    d = short_dir / "run"
     d.mkdir()
     d.chmod(0o775)
     with pytest.raises(SystemExit):
@@ -382,6 +393,55 @@ def test_preview_is_what_the_service_would_type(box, capsys):
     assert capsys.readouterr().out.strip() == f"{CONTABO} CTO (Kavin) — x"
     assert rs.main(["preview", "--role", "developer", "--sid", "afe57b21", "--host", "contabo"]) == 1
 
+
+# --- the Mac (M10c): no /proc, LOCAL_PEERPID + LOCAL_PEERCRED, launchd ------------------
+
+def test_without_proc_ancestry_and_uid_come_from_ps(monkeypatch, tmp_path):
+    with_proc = rs.ancestors(os.getpid())
+    monkeypatch.setattr(rs, "PROC", tmp_path / "no-proc")
+    assert rs.ancestors(os.getpid()) == with_proc
+    assert rs._uid(os.getpid()) == os.getuid()
+    gone = subprocess.Popen(["true"])
+    gone.wait()
+    assert rs._proc_info(gone.pid) is None
+
+
+def test_the_darwin_peer_credentials_are_read_from_the_kernel_structs():
+    pid_raw = (4242).to_bytes(4, sys.byteorder, signed=True)
+    cred_raw = (0).to_bytes(4, sys.byteorder) + (501).to_bytes(4, sys.byteorder) + bytes(rs._XUCRED_SIZE - 8)
+    assert rs.darwin_peer(pid_raw, cred_raw) == (4242, 501)
+
+
+def test_tmux_is_found_where_launchd_cannot_see_it(monkeypatch):
+    import tools.tmux_session as ts
+    seen = []
+    monkeypatch.setattr(ts, "tmux_bin", lambda: "/opt/homebrew/bin/tmux")
+    monkeypatch.setattr(rs.subprocess, "run", lambda argv, **k: seen.append(argv) or
+                        subprocess.CompletedProcess(argv, 0, "", ""))
+    rs.tmux("capture-pane", "-p", "-t", "x")
+    assert seen[0][0] == "/opt/homebrew/bin/tmux"
+
+
+def test_listen_makes_its_missing_directory_private_to_this_user(short_dir):
+    srv = rs.listen(short_dir / "new" / "sock")
+    srv.close()
+    st = (short_dir / "new").stat()
+    assert st.st_uid == os.geteuid() and not st.st_mode & 0o022
+
+
+def test_the_mac_launch_daemon_runs_this_service_as_the_sessions_user():
+    import plistlib
+    path = rs.ROOT / "deploy" / "launchd" / "com.mooniex.rename-service.plist"
+    d = plistlib.loads(path.read_bytes())
+    assert d["Label"] == path.stem
+    assert d["UserName"] == "gob"                       # never root: see the plist comment
+    core = "/Users/gob/MoonieXHQ/Agents/Core"
+    assert d["ProgramArguments"] == [f"{core}/.venv/bin/python", f"{core}/tools/rename_service.py", "run"]
+    assert d["WorkingDirectory"] == core
+    assert d["EnvironmentVariables"]["HOME"] == "/Users/gob"
+    assert d["EnvironmentVariables"]["ORG_HOST"] == "mac" and "mac" in ls._config().hosts()
+    assert "/opt/homebrew/bin" in d["EnvironmentVariables"]["PATH"].split(":")
+    assert d["KeepAlive"] is True and d["RunAtLoad"] is True
 
 # --- §2b re-review of #283 (v2) ---------------------------------------------------------
 
@@ -521,6 +581,19 @@ def test_a_lock_file_renamed_or_linked_in_from_elsewhere_is_not_trusted(box, kin
         os.link(lock, tmp_path / "elsewhere")
     assert box.request("project_head-36c49776", "x") == "refused: no rule name for project_head-36c49776"
 
+
+def test_on_the_mac_a_date_proc_start_counts_and_a_missing_one_does_not(box, monkeypatch):
+    monkeypatch.setattr(rs, "DARWIN", True)
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        d["procStart"] = "Tue Oct 13 11:55:05 2026"     # what Claude Code writes on macOS
+        f.write_text(json.dumps(d))
+    assert box.request("cto-c34459eb", "x").startswith("queued")
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        d.pop("procStart")
+        f.write_text(json.dumps(d))
+    assert box.request("project_head-36c49776", "x").startswith("refused: no single live session")
 
 
 # --- review round 4 ------------------------------------------------------------------

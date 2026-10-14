@@ -35,7 +35,10 @@ The command is ONE simple command running one of our tools (python3 <repo script
 script>.js or python3 -m tools.|scripts.|runners.<module>; no ; & | redirects $ ` backslash globs)
 and carries the cap as --max-usd N / --max-credits N; a script ask
 carries it in its args. balance_after defaults to the spend guard's openrouter/fal balance minus
-the cap. A command that only looks like spend: --no-spend "<reason>".
+the cap (with the snapshot time, balance_at). A command that only looks like spend: --no-spend "<reason>".
+Under the hub's enforce mode a label runs only on a --script card with no --cwd (a command card
+cannot tie the program to our repo); under warn (the default) a labelled command card is posted
+with the reason it was not checked.
 
 `create --dry-run` and `ask --dry-run` print the JSON body and call nothing (no
 token needed). `<id>` is RUN-YYYYMMDD-HHMM-xxxx (a command card),
@@ -82,6 +85,9 @@ question_needs_c_level); 2-4 options and the question / why / label limits;
 a command-shaped (§5: the question, every label, every line of why) or
 money-naming (§6: the question and every label) text, Unicode spaces read as
 spaces; a worker process (WORKER_TASK_ID set) claiming a C-level role.
+Refused for every card (CEO 2026-10-14, lib/ceo_text.py): more than the CEO
+reads, 5 lines of 90 characters (a command card: why + expected, the command
+itself exempt; a question card and each item of a group: question + why).
 
 Hub:   RUN_INBOX_URL, default https://terminal.mooniex.com. For the question
        verbs (ask, wait/cancel Q-..., list --questions) it must be the bare
@@ -441,6 +447,13 @@ def spend_guard_balance(provider: str, *, root: Path | None = None,
                         now: datetime | None = None) -> float | None:
     """The provider's balance in the spend guard's newest snapshot, or None (no file, not read OK,
     older than an hour). Read only; the guard itself runs on Contabo every 15 minutes."""
+    got = spend_guard_reading(provider, root=root, now=now)
+    return got[0] if got else None
+
+
+def spend_guard_reading(provider: str, *, root: Path | None = None,
+                        now: datetime | None = None) -> tuple[float, str] | None:
+    """(balance, snapshot time as ISO UTC) from the spend guard's newest snapshot, or None."""
     base = root or Path(os.environ.get("ORG_ROOT") or ROOT)
     path = base / "state" / "spend_guard" / "snapshots.jsonl"
     try:
@@ -460,7 +473,9 @@ def spend_guard_balance(provider: str, *, root: Path | None = None,
         if at is None or not rec.get("ok") or not isinstance(rec.get("balance"), (int, float)):
             continue
         age = ((now or datetime.now(timezone.utc)) - at).total_seconds()
-        return float(rec["balance"]) if 0 <= age <= SPEND_GUARD_MAX_AGE_S else None
+        if not 0 <= age <= SPEND_GUARD_MAX_AGE_S:
+            return None
+        return float(rec["balance"]), at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     return None
 
 
@@ -584,7 +599,10 @@ def cap_flag_check(command: str, unit: str, cap: float, *, argv: list[str] | Non
                 return "spend_cap_flag_ambiguous"
             continue
         if name == other:
-            i += not eq
+            # its value is skipped only when it is one: a following -word is a flag of its own
+            # (hub review round 4 MED-2)
+            if not eq and i < len(words) and not words[i].startswith("-"):
+                i += 1
             continue
         if name == flag:
             if eq:
@@ -652,10 +670,12 @@ def build_spend(spend: dict | None, no_spend: str | None, command_text: str,
         label["balance_after"] = _spend_amount("balance_after", spend["balance_after"], allow_negative=True)
         label["balance_source"] = "declared"
     elif provider in SPEND_GUARD_PROVIDERS and unit == "usd":
-        bal = spend_guard_balance(provider, root=root, now=now)
-        if bal is not None:
-            label["balance_after"] = round(bal - cap, 4)
+        got = spend_guard_reading(provider, root=root, now=now)
+        if got is not None:
+            label["balance_after"] = round(got[0] - cap, 4)
+            # the hub shows this as the requester's reading, with the snapshot's age (round 4 L1, L2)
             label["balance_source"] = "spend_guard"
+            label["balance_at"] = got[1]
     if label.get("balance_after") is not None and label["balance_after"] < 0:
         raise Refused(f"spend_cap_over_balance: a cap of {cap:g} is more than the {provider} balance")
     if spend.get("budget"):
@@ -944,6 +964,19 @@ def check_question(body: dict, args: argparse.Namespace) -> None:
                           "approves spend. Money goes on a command card (ask_run create, Face ID).")
 
 
+def check_ceo_text(fields: Any) -> None:
+    """lib/ceo_text.py: the CEO reads at most 5 lines of 90 characters on a card or a mail
+    (CEO 2026-10-14). Refused when the text is longer; no flag skips it. The repo root goes on the
+    END of sys.path, as in _self_host_id; a checkout that cannot load it fails closed (ImportError)."""
+    if str(ROOT) not in sys.path:
+        sys.path.append(str(ROOT))
+    from lib import ceo_text
+    try:
+        ceo_text.check_ceo_text(fields)
+    except ceo_text.TooLong as e:
+        raise Refused(str(e)) from None
+
+
 def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
     """The POST body with every local refusal already run, in §3.2's order:
     secret shapes over the whole body, the C-level gate, then the content
@@ -955,6 +988,7 @@ def prepare_question(args: argparse.Namespace, env: dict | None = None) -> dict:
                       + ". A question carries no secret, ever (DESIGN §6).")
     check_question_role_gate(body)
     check_question(body, args)
+    check_ceo_text([("question", body["question"]), ("why", body["why"])])
     return body
 
 
@@ -1285,8 +1319,9 @@ def tail_lines(rec: dict, lines: int = TAIL_LINES) -> tuple[list[str], int]:
 
 # ------------------------------------------------- shared by the CLI and MCP
 def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | None = None) -> dict:
-    """The POST body with both local refusals already run: secret shapes
-    first, then the C-level gate. `create` and the MCP tool both come here."""
+    """The POST body with the local refusals already run: secret shapes
+    first, then the C-level gate, then the CEO's 5 lines (why + expected).
+    `create` and the MCP tool both come here."""
     payload = build_payload(args, script_args, env)
     hits = find_secret_shapes(payload)
     if hits:
@@ -1294,6 +1329,7 @@ def prepare_ask(args: argparse.Namespace, script_args: list[str], env: dict | No
                       + "\nReference an env var by name ($NAME, --env-key NAME) or an Infisical path "
                         "instead (DESIGN §6).")
     check_role_gate(payload)
+    check_ceo_text([("why", payload["why"]), ("expected", payload.get("expected"))])
     return payload
 
 

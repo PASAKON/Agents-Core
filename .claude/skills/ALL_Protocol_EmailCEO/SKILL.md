@@ -36,6 +36,11 @@ next one, and then the ACTION that mattered is missed. So the channel is narrow 
 
 ## Rule 2 — the format (fixed; the hub builds it from your fields)
 
+**≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
+file).** `title` + `need` + `why` + `if_not` + `link` + `due` together are at most 5 lines of at most
+90 chars; the title is line 1, an empty line counts, a lone link may run to 200. `ref` and the hub's
+`จาก:` line do not count. The tool refuses more (exit 2) and no flag skips it (`lib/ceo_text.py`).
+
 Subject: `[KIND][ROLE] <title> — N-xxxx`. From: `MoonieX <ROLE>`. Body: one labelled fact per line.
 
 ```
@@ -53,7 +58,7 @@ Subject: `[KIND][ROLE] <title> — N-xxxx`. From: `MoonieX <ROLE>`. Body: one la
 |---|---|
 | `title` | One line, ≤ 90 chars. Start with the verb of what he must do or what happened: "อนุมัติ…", "เลือก…", "โพสต์ EP2 แล้ว". |
 | `need` | **The ONE action**, phrased so he can do it from the phone. Required for `action`. |
-| `why` | ≤ 500 chars, plain Thai, no jargon he must look up. For `done` this is the result. |
+| `why` | ≤ 90 chars a line, plain Thai, no jargon he must look up. For `done` this is the result. |
 | `if_not` | What happens if he does nothing, with a time. Strongly advised for `action`. |
 | `link` | One URL that opens the thing itself: the card, the PR, the Drive file, the session. Never a home page. Required except for `deadline`. |
 | `ref` | Task id, issue or slug. The same kind + ref within 6 h is a duplicate. |

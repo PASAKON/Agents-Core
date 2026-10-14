@@ -235,4 +235,4 @@ def test_email_title_and_pane_text_limits(tmp_path, monkeypatch):
     assert watch.notify_ceo('cto-' + 's' * 200, 'x' * 500, 8)['ok']
     args = calls[0]
     assert len(args[args.index('--title') + 1]) == 90
-    assert args[args.index('--why') + 1] == 'x' * 200 + ' (waiting 8 min)'
+    assert args[args.index('--why') + 1] == 'x' * 64 + ' (waiting 8 min)'
