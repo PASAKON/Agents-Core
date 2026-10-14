@@ -32,3 +32,4 @@ Progress = milestones done / 5.
 - 2026-10-14 09:49 TH: PR #254 landed (batch PR #255 = 3d9f9c61), live Core 475515d3 serves 11 coo tools; CTO Main re-raised the restart card RUN-20261014-0249-a97d.
 - 2026-10-14 09:47 TH: gate card ran; org-coo-gate hit its start limit with 226/NAMESPACE (ReadWritePaths on a missing /run dir kills the + pre-step's namespace). Probed and fixed with `ReadWritePaths=-…` + reset-failed in install.sh: 25a55d10, PR #257.
 - 2026-10-14 10:04 TH: M1 + M2 done (gate on Core, SomPong restarted, ping ok). Units re-pointed to Core already (M4 half); secret path still / until rotation.
+- 2026-10-14 10:19 TH: M3 try 1 failed at step 1: SomPong's org MCP CONNECTION_CLOSED (Claude Code 2.1.296 ignores the MCP entry's cwd → ModuleNotFoundError 'runners'). CTO Main fixed it with PYTHONPATH on the org entries (4b50e9e3, PR #261, Core 340ba2cb); restart card RUN-20261014-0319-56d7. Disk was 91%: removed my two merged worktrees → 88%.
