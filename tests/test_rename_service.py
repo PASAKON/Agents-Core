@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
@@ -355,8 +357,17 @@ def test_the_service_writes_no_file(box, tmp_path):
     assert sorted(p for p in tmp_path.rglob("*")) == before
 
 
-def test_listen_refuses_a_group_writable_socket_directory(tmp_path):
-    d = tmp_path / "run"
+@pytest.fixture
+def short_dir():
+    """A socket path must fit sun_path (104 bytes on macOS, 108 on Linux). The Mac's
+    pytest tmp_path (/var/folders/…/pytest-of-<user>/…/<test name>/) does not."""
+    d = Path(tempfile.mkdtemp(prefix="rs-", dir="/tmp"))
+    yield d
+    shutil.rmtree(d, ignore_errors=True)
+
+
+def test_listen_refuses_a_group_writable_socket_directory(short_dir):
+    d = short_dir / "run"
     d.mkdir()
     d.chmod(0o775)
     with pytest.raises(SystemExit):
@@ -411,10 +422,10 @@ def test_tmux_is_found_where_launchd_cannot_see_it(monkeypatch):
     assert seen[0][0] == "/opt/homebrew/bin/tmux"
 
 
-def test_listen_makes_its_missing_directory_private_to_this_user(tmp_path):
-    srv = rs.listen(tmp_path / "new" / "sock")
+def test_listen_makes_its_missing_directory_private_to_this_user(short_dir):
+    srv = rs.listen(short_dir / "new" / "sock")
     srv.close()
-    st = (tmp_path / "new").stat()
+    st = (short_dir / "new").stat()
     assert st.st_uid == os.geteuid() and not st.st_mode & 0o022
 
 
