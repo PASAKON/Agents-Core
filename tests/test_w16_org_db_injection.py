@@ -99,7 +99,8 @@ def _plain_cxo_org(root: Path) -> dict:
         "command": _py(root),
         "args": ["-m", "runners.cto_mcp_server"],
         "cwd": str(root),
-        "env": {"PYTHONUNBUFFERED": "1"},
+        # PYTHONPATH since #261: Claude Code ignores an entry's "cwd" (the worker entry runs a file path).
+        "env": {"PYTHONUNBUFFERED": "1", "PYTHONPATH": str(root)},
     }
 
 
@@ -131,7 +132,7 @@ def test_cxo_org_entry_uses_the_wrapper_when_the_hub_is_live(root, hub_on):
     assert entry["command"] == _wrapper(root)
     assert entry["args"] == [_py(root), "-m", "runners.cto_mcp_server"]
     assert entry["cwd"] == str(root)
-    assert entry["env"] == {"PYTHONUNBUFFERED": "1"}
+    assert entry["env"] == {"PYTHONUNBUFFERED": "1", "PYTHONPATH": str(root)}
     assert SENTINEL not in json.dumps(entry)
 
 

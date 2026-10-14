@@ -55,7 +55,8 @@ def test_only_contabo_reads_org_node_and_no_node_identity_is_planned():
 
 
 def test_the_join_and_node_token_folders_are_planned_in_agents_core_prod_only():
-    assert infisical_setup.PROJECT_FOLDERS["Agents-Core"] == ["org-join", "node-token"]
+    # spend-guard: tools/spend_guard.py's read-only billing keys (1eb6f846)
+    assert infisical_setup.PROJECT_FOLDERS["Agents-Core"] == ["org-join", "node-token", "spend-guard"]
     assert "Org-Node" not in infisical_setup.PROJECT_FOLDERS          # one secret at /, no folders
     assert infisical_setup.PROJECT_FOLDERS["Org-Infra"] == infisical_setup.ORG_INFRA_FOLDERS
 
