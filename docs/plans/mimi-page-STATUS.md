@@ -17,11 +17,11 @@ Per-slot detail lives in `mimi-weekly-calendar.md`; this file holds milestones, 
 ## Milestones (week 2, % = done ÷ 5)
 | # | Milestone | State | Evidence |
 |---|---|---|---|
-| 1 | Wed 14 poster «เบื้องหลัง EP5» published 19:30 | scheduled · check 19:41 (cron 4815940b) | — |
-| 2 | Thu 15 EP6-teaser poster published 19:30 | scheduled (old logo; swap needs CEO typed word) | — |
-| 3 | Fri 16 «ข่าวด่วนในบ้าน» clip published 19:30 | waits CEO go before Fri 18:00 | `ep6-session-files/news/cut/FRI-news-540p.mp4` |
-| 4 | Sat 17 EP6 Reel + first comment 19:33 | waits CEO review + go | `ep6-session-files/cut/EP6-cut-v1.mp4` |
-| 5 | Sun 18 EP7 published | waits CEO «go ยิง» (~180 cr) | `docs/scripts/khaoniao-ep7-*` |
+| 1 | Wed 14 poster «เบื้องหลัง EP5» published 19:30 | scheduled (row 2 of «กำหนดเวลาแล้ว»), OLD logo. CEO said swap (Q-20261014-0221-5f44 «สลับ ใช้อันใหม่ตั้งแต่วันนี้»); new file rendered `winbox poster\out\poster-w2wed.png`; swap run REFUSED by permission layer 14 Oct 09:5x TH (needs CEO typed word in the acting session) · check 19:41 (cron 4815940b) | — |
+| 2 | Thu 15 EP6-teaser poster published 19:30 | scheduled (row 1), old logo; CEO said swap (Q-…5f44), same refusal as Wed | — |
+| 3 | Fri 16 «ข่าวด่วนในบ้าน» clip published 19:30 | CEO GO (Q-20261014-0225-41ed «ตั้งเวลาศุกร์ 16 ต.ค. 19:30 ตามที่ตัดไว้»); scheduling waits the acting-session word (same wall expected) | `ep6-session-files/news/cut/FRI-news-540p.mp4` |
+| 4 | Sat 17 EP6 Reel + first comment 19:33 | CEO GO (Q-20261014-0225-3e78 «go: ตั้งเวลาเสาร์ 17 ต.ค. 19:30 ด้วย Hook B + ปก 1»); EP6 end card dash: «ปล่อยไว้» (Q-20261014-0047-bf84), no v2 | `ep6-session-files/cut/EP6-cut-v1.mp4` |
+| 5 | Sun 18 EP7 published | waits CEO «go ยิง» (typed, in chat). Dry run 14 Oct: all 6 new plates NOT in Flow (balance 348 = 348) → upload + bind voices ($0) waits C-level OK | `docs/scripts/khaoniao-ep7-*` |
 
 Progress: 0/5.
 
@@ -29,6 +29,12 @@ EP7 $0 prep: `mimi-ep7-prep.md` (live balance 348 on 14 Oct 09:4x Thai; test sho
 
 ## Blocker
 - CEO answers owed (asked by cmo-c7879552 in chat, 14 Oct morning): Page Recommendations suspended (review request?), group-2 wording + identity, Thu poster image swap, Fri clip go, EP6 go, EP7 go ยิง, video watermark pick. Waiting on CEO via cmo-ef04792e since 2026-10-14 09:2x Thai. Question cards: Q-20261014-0221-988c (group-2 wording + profile), Q-20261014-0221-5f44 (Thu/Wed poster swap), Q-20261014-0221-8d1b (Recommendations review); Group 2 QG-20261014-0225-db74: Q-20261014-0225-41ed (Fri clip go), Q-20261014-0225-3e78 (EP6 go, Hook B + cover 1), Q-20261014-0225-c960 (watermark v3). EP7 «go ยิง» = spend → needs his typed word in chat, carried by cmo-ef04792e, needed by Thu 15 evening TH; PH preps $0 only. Until answers: read-only, $0, no group post, no swap, no review request, no Flow spend, no relay (no account allowed yet).
+
+## CEO answers (via cmo-ef04792e)
+- Recommendations restriction (Q-20261014-0221-8d1b): «ไม่น่าเกี่ยวกับเพจนี่นะ เพราะ dorsine green ไม่โดนอะไร» → no review request, no digging.
+- Group 2 (Q-20261014-0221-988c): option 1, his personal profile, profile name not given yet → no post until named.
+- Watermark (Q-20261014-0225-c960): «ขอดูก่อน» → no burn-in.
+- +50 credits (298 → 348) source unknown; plan with 298.
 
 ## Decided for CEO
 - 14 Oct: EP7 360p test = shots 2 + 4, not 1 + 4. Because: it covers mother__night (in 5 of 12 shots) as well as cat__riao, at the same 12 cr.
