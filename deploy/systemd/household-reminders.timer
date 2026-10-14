@@ -1,0 +1,16 @@
+# Installed at /etc/systemd/system/household-reminders.timer. 09:00 Asia/Bangkok every day, whatever the
+# box's own zone (Contabo runs Europe/Berlin, so this is 03:00 CET / 04:00 CEST there). The service decides
+# which rows are due; a day with nothing due sends nothing. Persistent=true: a run missed while the box
+# was down happens at the next boot, and the rows' grace_days lets it catch up. Check with:
+#   systemd-analyze calendar --iterations=3 '*-*-* 09:00:00 Asia/Bangkok'
+#   systemctl list-timers household-reminders.timer
+[Unit]
+Description=Household reminders, daily at 09:00 Asia/Bangkok
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 Asia/Bangkok
+Persistent=true
+Unit=household-reminders.service
+
+[Install]
+WantedBy=timers.target

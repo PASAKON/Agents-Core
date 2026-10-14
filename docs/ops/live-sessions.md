@@ -61,6 +61,32 @@ host from `self_host()` only; an unresolved host gets no emoji. Workers spawned 
 Header per host: `contabo 3 (+5 PH, +1 workers, 4s)` (3 C-levels; workers = neither C-level nor PH); stale: `winbox none (no publisher since 10-12 21:03)`;
 stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub down: one line, exit 0.
 
+## Rename service
+
+`tools/rename_service.py` behind `scripts/session-rename.sh`, one per host, same code and same rules.
+
+| | Contabo | Mac (M10c) |
+|---|---|---|
+| runs as | root (the sessions are root) | `gob` (the sessions are gob's; root would run code gob can edit) |
+| unit | `deploy/systemd/rename-service.service`, hardened | `deploy/launchd/com.mooniex.rename-service.plist`, LaunchDaemon with `UserName` |
+| socket | `/run/rename-service/sock` (RuntimeDirectory, 0755 root) | `~/.rename-service/sock` (dir 0700) |
+| who is asking | SO_PEERCRED, ancestry from /proc | LOCAL_PEERPID + LOCAL_PEERCRED, ancestry from `ps` |
+| log | `journalctl -u rename-service` | `~/Library/Logs/mooniex-rename-service.log` |
+
+Install, after the PR lands. Contabo: a Run card (bytes in docs/plans/org-restructure-STATUS.md). Mac, the CEO
+pastes one line in a Mac terminal (no Run Inbox executor there yet), after a smoke test on a throwaway pane.
+The line is pinned: the Mac checkout must already hold `<MERGE_SHA>` (main after the PR lands; reach it with
+the Mac's own sync first) and carry no local change under the code the daemon runs. No `git pull` in it:
+
+```
+cd /Users/gob/MoonieXHQ/Agents/Core && git merge-base --is-ancestor <MERGE_SHA> HEAD && git diff --quiet HEAD -- tools lib config policies deploy && sudo install -m 0644 -o root -g wheel deploy/launchd/com.mooniex.rename-service.plist /Library/LaunchDaemons/com.mooniex.rename-service.plist && sudo launchctl bootstrap system /Library/LaunchDaemons/com.mooniex.rename-service.plist && sleep 5 && sudo launchctl print system/com.mooniex.rename-service | grep -E "^\s+(state|pid) =" && tail -3 ~/Library/Logs/mooniex-rename-service.log
+```
+
+Expected: `state = running` and a pid. Remove: `sudo launchctl bootout system/com.mooniex.rename-service &&
+sudo rm /Library/LaunchDaemons/com.mooniex.rename-service.plist`. Check from a Mac session:
+`bash scripts/session-rename.sh "<job>"` prints `requested: …`; with the service down it prints
+`not requested (rename service not reachable …) — rename by hand: /rename <name>`.
+
 ## winbox
 winbox has no venv, so no hub route. Contabo's loop pulls its registry over ssh once a minute
 (`hosts.contabo.live_sessions_pull: [winbox]`, ssh target `hosts.winbox.ssh`): `ssh -o BatchMode=yes

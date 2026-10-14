@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "rows": [
+    {
+      "id": "water-mwa",
+      "platform": "line",
+      "target": "C00000000000000000000000000000000",
+      "from": "2026-11-01",
+      "until": null,
+      "grace_days": 1,
+      "fires": [
+        {"day": 10, "text": "แจ้งเตือน: บิลค่าน้ำประปาออกแล้ว บัญชี 0000000000 ชำระได้ถึงวันที่ 15"},
+        {"day": 15, "text": "แจ้งเตือน: วันนี้วันสุดท้ายชำระค่าน้ำประปา บัญชี 0000000000"}
+      ]
+    },
+    {
+      "id": "example-month-end",
+      "platform": "line",
+      "target": "C00000000000000000000000000000001",
+      "from": "2026-12-01",
+      "until": "2027-12-31",
+      "grace_days": 1,
+      "fires": [
+        {"day": -1, "text": "Example: the last day of every month, Dec 2026 to Dec 2027."}
+      ]
+    }
+  ]
+}

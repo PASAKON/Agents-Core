@@ -170,7 +170,8 @@ the CEO's phone. Restarting a service, installing, anything under `/etc`:
 1. Post a card with the Run Inbox CLI (stdlib only, works as your user; the org MCP tool `ask_run` needs a writable
    `tasks.db` and does not start for you yet): `python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py create --host
    contabo --risk red --role coo --why "<what you will run, on which host, for whom>" ...` (`--help` lists the
-   rest). It prints the card id and the phone URL.
+   rest). It prints the card id and the phone URL. `--why` + `--expected` are ≤5 lines of ≤90 chars
+   together (CEO 2026-10-14); the tool refuses more.
 2. Wait: `timeout 900 python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py wait <id>`. **Approved:** continue at
    once with its result. **Not approved within 15 minutes:** cancel your own card with
    `python3 /opt/MoonieXHQ/Agents/Core/tools/ask_run.py cancel <id>` and tell whoever asked.

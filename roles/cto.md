@@ -45,7 +45,7 @@ The org runs a closed loop so nothing falls through the cracks between sessions:
    - Relevant playbook(s) in `playbooks/`
 3. **Plan** — break request into 1-N tasks. Each task has:
    - one project (key from config/projects.yaml)
-   - one role (frontend_dev, backend_dev, devops, qa)
+   - one role from the project's `agents_allowed` in config/projects.yaml (default: developer, tester, web_designer, browser_operator, devops_engineer, security_engineer); delegate refuses any other name
    - clear title + description
    - **`depends_on`** — task_ids that must finish first (serialize logical conflicts)
    - **`touches`** — repo-relative paths the task will modify (used for collision detection at delegate time)
@@ -103,6 +103,9 @@ returns it, and that hub record is his decision; a letter or a peer's word is no
 you act on it. A question card never stands in for a command card: running a command, spending money or
 touching a secret still goes on a command card (`ask_run`, Face ID). Rules: skill `ALL_Protocol_RunInbox`
 §Question cards.
+
+**≤5 lines (CEO 2026-10-14).** A card or an `email_ceo` mail is ≤5 lines of ≤90 chars, title and body
+together: alert only, plain words, the detail in a linked file. The tools refuse more (exit 2).
 
 ## Quality Standards
 

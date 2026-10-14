@@ -1,0 +1,45 @@
+# Installed at /etc/systemd/system/household-reminders.service (Contabo; copy this file). Started by
+# household-reminders.timer, once a day at 09:00 Asia/Bangkok.
+#
+# Household reminders: posts the plain-text reminders that are due today (Bangkok date) from
+# /etc/mooniex/household-reminders.json into their allowlisted LINE chat, through ClaudeFlow's SomPong
+# internal API (POST 127.0.0.1:3011/internal/sompong/send), the send path the COO session uses. No model.
+# Code: tools/household_reminders.py. Rows schema: deploy/household-reminders.example.json. The next bill
+# is one more row in that JSON file (root:root 0600), not a new unit. Try a row before its day with
+#   /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/household_reminders.py --dry-run --date YYYY-MM-DD
+#
+# Key: SOMPONG_INTERNAL_KEY comes from Infisical MoonieX-SomPong/prod through `infisical_setup.py run`, as
+# for sompong-inbox.service (SomPong ops/README.md). Nothing on disk. Root, because the machine identity
+# /etc/infisical/contabo.env is root 0600. Ledger of sent fires: /var/lib/household-reminders/sent.jsonl
+# (StateDirectory), so a retry or a catch-up never posts the same fire twice.
+# Exit 3 (no key, ClaudeFlow down, timeout, 5xx, 401/408, 429 rate_limited) is retried every 15 min.
+# Exit 2 (403 target not on the allowlist, 429 push_quota_guard, 400 bad body) and exit 4 (rows file
+# refused) are not. An Infisical failure exits 1 (retried); an empty Infisical folder exits 2 (not).
+#
+# Install (root, on Contabo):
+#   install -m 0644 deploy/systemd/household-reminders.service deploy/systemd/household-reminders.timer /etc/systemd/system/
+#   systemctl daemon-reload && systemctl enable --now household-reminders.timer
+# Remove: systemctl disable --now household-reminders.timer && rm /etc/systemd/system/household-reminders.{service,timer}
+[Unit]
+Description=Household reminders into LINE (tools/household_reminders.py)
+After=network-online.target docker.service
+Wants=network-online.target
+StartLimitIntervalSec=4h
+StartLimitBurst=12
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/infisical_setup.py run MoonieX-SomPong prod --as contabo -- /usr/bin/python3 /opt/MoonieXHQ/Agents/Core/tools/household_reminders.py
+Restart=on-failure
+RestartSec=15min
+RestartPreventExitStatus=2 4
+TimeoutStartSec=300
+StateDirectory=household-reminders
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes

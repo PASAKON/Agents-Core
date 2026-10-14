@@ -353,6 +353,8 @@ def test_relay_no_keystroke_carries_the_body(queue_env, monkeypatch):
         argvs.append([str(c) for c in cmd])
         if cmd[:2] == ["tmux", "has-session"]:
             return FakeCompleted(0 if cmd[3] == "cto-abc123" else 1)
+        if cmd[:2] == ["tmux", "capture-pane"]:   # the wake reads the pane first: an empty box
+            return FakeCompleted(0, stdout="out\n" + "─" * 50 + "\n❯ \n" + "─" * 50 + "\n")
         return FakeCompleted(0, stdout="")
 
     monkeypatch.setattr(rms.subprocess, "run", _run)

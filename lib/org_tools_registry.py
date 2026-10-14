@@ -369,12 +369,14 @@ async def _h_ask_run(*, host: str, why: str, script: str = "", args: list[str] |
                      command: str = "", expected: str = "", risk: str = "amber",
                      timeout_s: int = 300, expects_input: bool = False, shell: str = "",
                      cwd: str = "", env_keys: list[str] | None = None, session: str = "",
-                     role: str = "", task: str = "", dry_run: bool = False) -> str:
+                     role: str = "", task: str = "", dry_run: bool = False,
+                     spend: dict | None = None, no_spend: str = "") -> str:
     arguments = {
         "host": host, "why": why, "script": script, "args": args, "command": command,
         "expected": expected, "risk": risk, "timeout_s": timeout_s,
         "expects_input": expects_input, "shell": shell, "cwd": cwd, "env_keys": env_keys,
         "session": session, "role": role, "task": task, "dry_run": dry_run,
+        "spend": spend, "no_spend": no_spend,
     }
     result = await asyncio.to_thread(ask_run_tool.mcp_ask, arguments)
     return json.dumps(result, indent=2, ensure_ascii=False)
@@ -807,7 +809,16 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "session/role/task default to this session's env. Returns {id, url, "
             "risk, expires_at} at once; dry_run=True returns the JSON body and "
             "sends nothing. Same code as tools/ask_run.py "
-            "(docs/design/run-inbox/DESIGN.md §13)."
+            "(docs/design/run-inbox/DESIGN.md §13).\n\n"
+            "A command that SPENDS credit carries spend={provider, billing: api|account, "
+            "unit: usd|credits, estimate, cap, how, balance_after?, budget?} and the "
+            "command itself carries the cap as --max-usd N / --max-credits N (CEO "
+            "2026-10-14). balance_after defaults to the spend guard's balance for "
+            "openrouter/fal. A command that only looks like spend (a balance read) "
+            "sends no_spend='<reason>'. A spend-shaped command with neither is posted "
+            "with a warning on the card (RUN_INBOX_SPEND_LABEL=warn, the default); "
+            "under enforce the hub refuses it, and a label runs only on a script "
+            "card with no cwd, for a .py listed in config/spend-tools.txt, pinned to main's tip."
         ),
         params=(
             Param("host", str), Param("why", str), Param("script", str, ""),
@@ -817,6 +828,7 @@ REGISTRY: tuple[ToolSpec, ...] = (
             Param("shell", str, ""), Param("cwd", str, ""),
             Param("env_keys", list[str], None), Param("session", str, ""),
             Param("role", str, ""), Param("task", str, ""), Param("dry_run", bool, False),
+            Param("spend", dict, None), Param("no_spend", str, ""),
         ),
         handler=_h_ask_run,
         is_async=True,
@@ -939,8 +951,10 @@ PH_TOOLS = frozenset({
     "wiki_list", "wiki_read", "wiki_search",
     "read_letter", "list_letters",  # envelope mail: still only under ORG_MAIL_ENVELOPE
     # CEO 2026-10-14 ~13:20 TH: a PH posts its CEO-only question on /run itself (no PH → C-level →
-    # CEO relay). Question cards only: ask_run (command cards) and email_ceo stay C-level tools.
-    "ask_ceo", "ask_run_wait",
+    # CEO relay). CEO 2026-10-14 ~17:35 TH: "ส่ง RUN ได้ทำได้เหมือน CXO ทุกอย่าง" — command cards too
+    # (ask_run; the CEO's Face-ID tap stays the authority). email_ceo stays a C-level tool, and
+    # merge_task stays withheld: a PH merges by PR (gh pr merge), never by pushing a local main.
+    "ask_ceo", "ask_run", "ask_run_wait",
 })
 
 

@@ -12,7 +12,8 @@ pass. It never types onto a draft, never sends C-u, and never starts or moves th
 tmux server (client commands only: capture-pane, send-keys).
 
 Who may ask (§2b review of #283): the kernel says who is on the other end of the
-socket (SO_PEERCRED). A request for <role>-<sid> is accepted only when that
+socket (SO_PEERCRED on Linux, LOCAL_PEERPID + LOCAL_PEERCRED on macOS). A
+request for <role>-<sid> is accepted only when that
 session's Claude process (its live session record) is an ancestor of the
 connecting process and runs as the same effective uid. So a session renames only
 itself, and a process with no session (a service user such as `secretary`)
@@ -23,6 +24,13 @@ the pid's uid: a user who writes its own registry dir (sompong) cannot claim
 another session's pane (review v2, M-1). Requests live in this process's memory:
 root writes no file a non-root user could plant a symlink for, and lock files are
 read with ls.read_lock (no symlink, no FIFO, at most 256 bytes, root-owned).
+
+On the Mac (M10c, CEO 2026-10-14 13:38) the same code runs from a LaunchDaemon
+(deploy/launchd/com.mooniex.rename-service.plist) as the user the sessions run as,
+not root: it only reads that user's session records and talks to that user's own
+tmux server, and root running code from a checkout that user can write would
+hand every session root. Its socket is ~/.rename-service/sock (0700 dir); there is
+no /proc, so ancestry and uids come from `ps`.
 
 The request carries no name, so nothing a session sends can reach the pane except
 a topic: clean_topic() keeps letters, marks, digits, spaces and a few punctuation
@@ -55,10 +63,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from lib import config, session_names  # noqa: E402
+from lib.pane_screen import (  # noqa: E402,F401 - re-exported: the screen predicates moved there
+    _BOX_CHARS, _BUSY_RE, _CHOICE_HINTS, _CHOICE_RE, _PLACEHOLDER_RE, _PROMPT, _box_len, _box_rows,
+    _squash, box_empty, pane_busy, pane_waiting, prompt_line, prompt_ready, typed_text,
+)
 from tools import live_sessions as ls  # noqa: E402
 
 LOCKS_DIR = ROOT / "state" / "locks"
-SOCK = Path(os.environ.get("RENAME_SERVICE_SOCK") or "/run/rename-service/sock")
+DARWIN = sys.platform == "darwin"
+SOCK = Path(os.environ.get("RENAME_SERVICE_SOCK")
+            or (Path.home() / ".rename-service" / "sock" if DARWIN else "/run/rename-service/sock"))
 PROC = Path("/proc")
 REQUEST_MAX = 4096
 REQUEST_DEADLINE_S = 2.0          # for the whole request, not per recv (review v2, L-1)
@@ -74,7 +88,6 @@ TYPED_POLL_S = 0.1
 _BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
 _FIXED_TMUX = {"coo": "sompong"}
 _TOPIC_PUNCT = set(" -_.,:()+#&'!?%")   # no ';': tmux strips a trailing one from send-keys
-_PROMPT = "❯"
 
 
 # --- the name ----------------------------------------------------------------------
@@ -134,95 +147,13 @@ def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
 # --- the panes ---------------------------------------------------------------------
 
 def tmux(*args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["tmux", *args], capture_output=True, text=True, timeout=10)
+    from tools.tmux_session import tmux_bin   # launchd's PATH has no /opt/homebrew/bin
+    return subprocess.run([tmux_bin(), *args], capture_output=True, text=True, timeout=10)
 
 
 def target(tmux_name: str) -> str:
     """An exact tmux target: '=' stops a prefix match on another session's name."""
     return f"={tmux_name}:"
-
-
-# A numbered choice with the cursor on it (maybe inside a │ box), plus a choice footer:
-# a permission prompt or an on-screen question, the app's ✋ "waiting for you".
-_CHOICE_RE = re.compile(r"^[\s\u2502\u2503|]*\u276f\s*\d+\.\s")
-_CHOICE_HINTS = ("Do you want", "Esc to cancel", "to navigate", "Enter to select", "Would you like")
-
-
-def pane_waiting(text: str) -> bool:
-    """True when a pane's screen holds a choice prompt waiting on a person."""
-    tail = text.splitlines()[-30:]
-    return any(_CHOICE_RE.match(l) for l in tail) and any(h in l for l in tail for h in _CHOICE_HINTS)
-
-
-def prompt_line(screen: str) -> str | None:
-    """The text on the last ❯ line, or None when there is none."""
-    lines = [l for l in screen.splitlines() if _PROMPT in l]
-    if not lines:
-        return None
-    return lines[-1].split(_PROMPT, 1)[1].replace("\xa0", " ").strip().strip("".join(_BOX_CHARS)).strip()
-
-
-# Box-drawing (─ │ ╭ ╮ …) and block characters a TUI draws around its input box.
-_BOX_CHARS = {chr(c) for c in range(0x2500, 0x25A0)}
-
-
-def _box_rows(screen: str) -> list[str] | None:
-    """The input box's rows: the text after the last ❯ plus the rows it wrapped onto,
-    up to the box's bottom rule, box characters removed. None with no ❯ line."""
-    lines = screen.splitlines()
-    idx = [i for i, l in enumerate(lines) if _PROMPT in l]
-    if not idx:
-        return None
-    rows = [lines[idx[-1]].split(_PROMPT, 1)[1]]
-    for l in lines[idx[-1] + 1:]:
-        if l.strip() and all(c in _BOX_CHARS or c.isspace() for c in l):
-            break                                   # the rule under the input box
-        rows.append(l)
-    return ["".join(c for c in r if c not in _BOX_CHARS).strip() for r in rows]
-
-
-def typed_text(screen: str) -> str | None:
-    """What sits in the input box with every space and box character removed (a long
-    name wraps at the pane width). None when there is no ❯ line."""
-    rows = _box_rows(screen)
-    return None if rows is None else _squash("".join(rows))
-
-
-def _box_len(screen: str | None) -> int:
-    """At least the number of characters in the input box: its rows plus one space
-    per wrap, which a capture drops."""
-    rows = _box_rows(screen) if screen is not None else None
-    rows = [r for r in rows or [] if r]
-    return sum(len(r) for r in rows) + len(rows)
-
-
-def _squash(text: str) -> str:
-    return "".join(c for c in text if not c.isspace() and c not in _BOX_CHARS)
-
-
-# An empty box in a fresh session shows a dim hint (`Try "fix lint errors"`), which a
-# plain capture cannot tell from typed text (seen on a real pane 14 Oct).
-_PLACEHOLDER_RE = re.compile(r'Try"[^"]{1,80}"')
-# A turn is running: the footer says so, or the spinner line "✽ Computing… (11s · …)".
-_BUSY_RE = re.compile(r"esc to interrupt|…\s*\(\d+[sm]\b")
-
-
-def box_empty(screen: str) -> bool:
-    """The WHOLE input box is empty, not only its ❯ row: a draft can start with an
-    empty first row (Shift+Enter) and hold text below it (review round 4, M-1)."""
-    text = typed_text(screen)
-    return text is not None and (text == "" or bool(_PLACEHOLDER_RE.fullmatch(text)))
-
-
-def pane_busy(screen: str) -> bool:
-    """A turn is running: Enter could land on a dialog that opens a moment later."""
-    return bool(_BUSY_RE.search(screen))
-
-
-def prompt_ready(screen: str) -> bool:
-    """The whole input box is empty, no turn is running and no choice prompt
-    (permission / question) is up."""
-    return not pane_waiting(screen) and not pane_busy(screen) and box_empty(screen)
 
 
 def pane_pids(tmux_name: str) -> set[int]:
@@ -281,7 +212,9 @@ def session_of(box: str, host: str) -> dict | None:
                 continue
             uuid = str(data.get("sessionId") or "")
             start = ls._proc_start(data.get("procStart"))
-            if not uuid.endswith(sid) or start is None or not ls.is_alive(pid, start):
+            if not data.get("procStart") or (not DARWIN and start is None):
+                continue                    # Linux: an int; macOS writes a date (kill(0) only)
+            if not uuid.endswith(sid) or not ls.is_alive(pid, start):
                 continue
             if owner != _uid(pid):          # a record speaks only for its writer's own process
                 continue
@@ -298,20 +231,29 @@ def session_of(box: str, host: str) -> dict | None:
 
 # --- who is asking ----------------------------------------------------------------
 
-def _status(pid: int) -> dict[str, str]:
+def _proc_info(pid: int) -> tuple[int, int] | None:
+    """(parent pid, effective uid) of `pid` from /proc, or from `ps` where there is
+    none (the Mac: its `uid` column is the effective one); None when unreadable."""
+    if PROC.is_dir():
+        try:
+            text = (PROC / str(pid) / "status").read_text(encoding="utf-8", errors="replace")
+            st = dict(l.split(":", 1) for l in text.splitlines() if ":" in l)
+            return int(st["PPid"].strip()), int(st["Uid"].split()[1])
+        except (OSError, KeyError, ValueError, IndexError):
+            return None
     try:
-        text = (PROC / str(pid) / "status").read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return {}
-    return dict(l.split(":", 1) for l in text.splitlines() if ":" in l)
+        out = subprocess.run(["ps", "-o", "ppid=", "-o", "uid=", "-p", str(pid)],
+                             capture_output=True, text=True, timeout=5)
+        ppid, uid = out.stdout.split()
+        return int(ppid), int(uid)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
 
 
 def _uid(pid: int) -> int | None:
     """The effective uid (SO_PEERCRED reports the effective one too; review v2, L-6)."""
-    try:
-        return int(_status(pid)["Uid"].split()[1])
-    except (KeyError, ValueError, IndexError):
-        return None
+    info = _proc_info(pid)
+    return info[1] if info else None
 
 
 def ancestors(pid: int, limit: int = 64) -> list[int]:
@@ -319,10 +261,10 @@ def ancestors(pid: int, limit: int = 64) -> list[int]:
     chain = []
     while pid > 1 and len(chain) < limit:
         chain.append(pid)
-        try:
-            pid = int(_status(pid)["PPid"].strip())
-        except (KeyError, ValueError):
+        info = _proc_info(pid)
+        if info is None:
             break
+        pid = info[0]
     return chain
 
 
@@ -336,7 +278,22 @@ def owner_refusal(peer_pid: int, peer_uid: int, sess: dict) -> str | None:
     return None
 
 
+# macOS <sys/un.h>: SOL_LOCAL, LOCAL_PEERCRED (struct xucred), LOCAL_PEERPID.
+_SOL_LOCAL, _LOCAL_PEERCRED, _LOCAL_PEERPID = 0, 0x001, 0x002
+_XUCRED_SIZE = 76   # u_int cr_version; uid_t cr_uid; short cr_ngroups; gid_t cr_groups[16]
+
+
+def darwin_peer(pid_raw: bytes, cred_raw: bytes) -> tuple[int, int]:
+    (pid,) = struct.unpack_from("i", pid_raw)
+    _version, uid = struct.unpack_from("II", cred_raw)
+    return pid, uid
+
+
 def peer(conn: socket.socket) -> tuple[int, int]:
+    """(pid, uid) of the process on the other end, from the kernel."""
+    if DARWIN:
+        return darwin_peer(conn.getsockopt(_SOL_LOCAL, _LOCAL_PEERPID, 4),
+                           conn.getsockopt(_SOL_LOCAL, _LOCAL_PEERCRED, _XUCRED_SIZE))
     pid, uid, _gid = struct.unpack("3i", conn.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED,
                                                          struct.calcsize("3i")))
     return pid, uid
@@ -461,9 +418,11 @@ def type_rename(pane: str, line: str) -> str:
             break
         time.sleep(TYPED_POLL_S)
     # The box was empty before we typed, so all of it was added since: our line plus
-    # any key pressed in this second. A screen that never redrew still holds our line.
-    added = _box_len(screen) if screen is not None and not box_empty(screen) else len(line)
-    tmux("send-keys", "-t", t, "-N", str(max(added, 1)), "BSpace")
+    # any key pressed in this second. Never fewer than our own line: a screen caught
+    # half redrawn shows less than we typed, and a leftover "/rename…" would start the
+    # person's next message. More is harmless: BSpace on an empty box does nothing.
+    added = _box_len(screen) if screen is not None and not box_empty(screen) else 0
+    tmux("send-keys", "-t", t, "-N", str(max(added, len(line))), "BSpace")
     deadline = time.monotonic() + TYPED_WAIT_S
     while True:
         time.sleep(TYPED_POLL_S)
@@ -491,8 +450,11 @@ def once(host: str, pending: dict, now: float | None = None) -> list[str]:
 # --- the socket ----------------------------------------------------------------------
 
 def listen(path: Path = SOCK) -> socket.socket:
-    """Bind the request socket. Its directory must be root's and not writable by
-    group or other (systemd RuntimeDirectory=rename-service makes it 0755 root)."""
+    """Bind the request socket. Its directory must be this user's and not
+    writable by group or other: systemd RuntimeDirectory=rename-service makes it
+    0755 root on Contabo; on the Mac this makes ~/.rename-service 0700."""
+    if not os.path.lexists(path.parent):
+        os.mkdir(path.parent, 0o700 if DARWIN else 0o755)
     st = os.lstat(path.parent)
     if not stat.S_ISDIR(st.st_mode) or st.st_uid != os.geteuid() or st.st_mode & 0o022:
         raise SystemExit(f"{path.parent} must be a directory owned by this user with no group/other write")

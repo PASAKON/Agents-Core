@@ -268,6 +268,19 @@ def test_command_allowed_for_c_level(role, capsys):
                          "--why", "load", "--session", f"{role}-x", "--role", role]) == 0
 
 
+def test_a_project_head_raises_command_cards(capsys):
+    # CEO 2026-10-14 ~17:35 TH: a PH sends Run cards like a C-level.
+    assert ask_run.main(["create", "--dry-run", "--host", "contabo", "--command", "uptime",
+                         "--why", "load", "--session", "project_head-7cf528f0",
+                         "--role", "project_head"]) == 0
+
+
+def test_a_worker_cannot_claim_the_project_head_role(monkeypatch):
+    monkeypatch.setenv("WORKER_TASK_ID", "task-1")
+    with pytest.raises(ask_run.Refused, match="cannot claim role 'project_head'"):
+        ask_run.resolve_requester("project_head-x", "project_head", None)
+
+
 @pytest.mark.parametrize("role", NOT_C_LEVEL)
 def test_command_refused_for_other_roles_before_any_call(hub, role, capsys):
     rc = ask_run.main(["create", "--host", "contabo", "--command", "uptime", "--why", "load",

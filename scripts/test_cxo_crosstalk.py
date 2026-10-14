@@ -481,12 +481,19 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
     `_wake_tmux_send`'s real implementation lives in `tools.agent_transport`
     (task task-eb0d9863 moved it there, out of send_to_cxo.py) -- this
     calls it directly (not through `sc.send()`'s wrapper), so the
-    `subprocess`/`time` patches target that module, not `sc`."""
+    `subprocess`/`time` patches target that module, not `sc`.
+
+    Since 2026-10-14 it reads the pane (`capture-pane -p`) before the typing
+    and before each Enter, and sends no key over a choice prompt or a draft
+    (tests/test_wake_screen_gate.py). Here the pane shows an empty input box."""
     calls = []
+    rule = "\u2500" * 50
+    empty_box = f"out\n{rule}\n\u276f \n{rule}\n"
 
     def fake_run(cmd, **kw):
         calls.append(cmd)
-        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+        out = empty_box if cmd[1] == "capture-pane" else ""
+        return types.SimpleNamespace(returncode=0, stdout=out, stderr="")
 
     sleeps = []
     monkeypatch.setattr(agent_transport.subprocess, "run", fake_run)
@@ -494,9 +501,13 @@ def test_wake_tmux_send_uses_settle_delay_rescue_sequence_not_send_keys(monkeypa
 
     agent_transport._wake_tmux_send("cfo-sess1234", ".")
 
+    look = ["tmux", "capture-pane", "-p", "-t", "cfo-sess1234"]
     assert calls == [
+        look,
         ["tmux", "send-keys", "-t", "cfo-sess1234", "-l", "."],
+        look,
         ["tmux", "send-keys", "-t", "cfo-sess1234", "Enter"],
+        look,
         ["tmux", "send-keys", "-t", "cfo-sess1234", "Enter"],
     ]
     assert sleeps == [0.4, 0.3]
