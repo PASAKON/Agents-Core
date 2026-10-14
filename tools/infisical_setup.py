@@ -814,6 +814,35 @@ def cmd_mkdir(org: Org, project: str, env: str, folder: str) -> None:
         print(f"! /{name}/{probe} left in place (delete refused: {exc})", file=sys.stderr)
 
 
+def cmd_perms(org: Org, project: str) -> None:
+    """Read-only: what THIS identity may do in <project>, as Infisical evaluates it right now.
+    Prints the projects it can see, its role(s) there and its permission rules. Never a value.
+    Written after the M4 rotation card hit the same folder-create 403 four times while the UI was
+    said to show Developer (CTO #c34459eb, 2026-10-14); the `setup` identity that `status` needs is
+    retired, so this is the only way to read the role from a machine."""
+    seen = org.projects()
+    print(f"{org.identity} sees {len(seen)} project(s): {json.dumps(sorted(seen), ensure_ascii=True)}")
+    p = _project(org, project)
+    out = org.get(f"/api/v1/workspace/{p['id']}/permissions")
+    data = out.get("data", out) if isinstance(out, dict) else None
+    data = data if isinstance(data, dict) else {}
+    member = data.get("membership")
+    member = member if isinstance(member, dict) else {}
+    member_roles = member.get("roles")
+    roles = [r.get("customRoleSlug") or r.get("role")
+             for r in (member_roles if isinstance(member_roles, list) else []) if isinstance(r, dict)]
+    print(f"{json.dumps(p.get('name'), ensure_ascii=True)} (slug {json.dumps(p.get('slug'), ensure_ascii=True)}, "
+          f"id {str(p.get('id'))[:8]}): roles={json.dumps([r for r in roles if r], ensure_ascii=True)}")
+    rules = data.get("permissions")
+    for rule in (rules if isinstance(rules, list) else []):
+        # A packed CASL rule is [action, subject, conditions, inverted, ...]; the deny flag goes
+        # first so truncating long conditions can never turn a deny into what reads as an allow.
+        if isinstance(rule, list):
+            deny = len(rule) > 3 and bool(rule[3])
+        else:
+            deny = isinstance(rule, dict) and bool(rule.get("inverted"))
+        print(("  DENY  " if deny else "  allow ") + json.dumps(rule, ensure_ascii=True)[:300])
+
 def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> None:
     p = _project(org, project)
     s = _get_secret(org, p["id"], env, name, path)
@@ -879,6 +908,10 @@ def main(argv: list[str] | None = None) -> None:
     a.add_argument("--mint", metavar="HOST")
     sub.add_parser("status")
     sub.add_parser("retire-setup")
+    pm = sub.add_parser("perms", help="read-only: this identity's role + rules in a project")
+    pm.add_argument("project")
+    pm.add_argument("--as", dest="identity", default=self_host(),
+                    help=f"identity whose file under {CRED_DIR} logs in (default: this machine)")
     for cmd in ("put", "last4", "import-env", "run", "mkdir"):
         c = sub.add_parser(cmd)
         c.add_argument("project")
@@ -920,6 +953,10 @@ def main(argv: list[str] | None = None) -> None:
             cmd_status(Org())
         elif args.cmd == "retire-setup":
             cmd_retire_setup(Org())
+        elif args.cmd == "perms":
+            if not NAME_RE.match(args.identity):
+                sys.exit(f"bad identity name {args.identity!r}")
+            cmd_perms(Org(args.identity), args.project)
         elif args.cmd == "put":
             cmd_put(Org(args.identity), args.project, args.env, args.name, args.comment,
                     args.meta, args.multiline, legacy=args.legacy, path=args.path)
