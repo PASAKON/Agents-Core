@@ -16,7 +16,8 @@ existing OpenRouter balance. Run it on a Run card, under the management key that
 Steps, each one stops the run on failure:
   1. refuse when a key with this name already exists (no duplicates, no second spend line);
   2. POST /keys with the name, the USD limit and the reset period;
-  3. pipe the new key on stdin to `infisical_setup.py put … --as setup` (the write identity);
+  3. pipe the new key on stdin to `infisical_setup.py put … --as <--put-as>` (default contabo, which must be
+     a Developer on the target project; the temporary `setup` identity is retired, PLAN §3);
   4. if the put fails, DELETE the new key at OpenRouter, so no key exists that nobody holds;
   5. read the stored value's last 4 back with `infisical_setup.py last4` and compare.
 It prints the key's name, hash prefix, limit and "last4 match" — never the key, never the management key.
@@ -88,9 +89,10 @@ def _clean_env() -> dict:
     return {k: v for k, v in os.environ.items() if not k.startswith("OPENROUTER_")}
 
 
-def put(target: tuple[str, str, str], key: str, comment: str, meta: list[str], run: Run) -> None:
+def put(target: tuple[str, str, str], key: str, comment: str, meta: list[str], run: Run,
+        identity: str = "contabo") -> None:
     project, env, var = target
-    argv = [sys.executable, SETUP, "put", project, env, var, "--stdin", "--as", "setup", "--comment", comment]
+    argv = [sys.executable, SETUP, "put", project, env, var, "--stdin", "--as", identity, "--comment", comment]
     for m in meta:
         argv += ["--meta", m]
     p = run(argv, input=key + "\n", text=True, capture_output=True, env=_clean_env(), timeout=120)
@@ -100,9 +102,9 @@ def put(target: tuple[str, str, str], key: str, comment: str, meta: list[str], r
         raise MintError(f"infisical put exit {p.returncode}: {tail[0][:160]}")
 
 
-def stored_last4(target: tuple[str, str, str], run: Run) -> str:
+def stored_last4(target: tuple[str, str, str], run: Run, identity: str = "contabo") -> str:
     project, env, var = target
-    p = run([sys.executable, SETUP, "last4", project, env, var, "--as", "setup"],
+    p = run([sys.executable, SETUP, "last4", project, env, var, "--as", identity],
             text=True, capture_output=True, env=_clean_env(), timeout=60)
     if p.returncode != 0:
         raise MintError(f"infisical last4 exit {p.returncode}")
@@ -126,7 +128,7 @@ def mint(args: argparse.Namespace, *, http: Http = urllib_http, run: Run = subpr
     key, hsh = create(admin, args.name, args.limit, args.reset, http)
     print(f"created {args.name} hash={hsh[:8]} limit=${args.limit:g}/{args.reset}", file=out)
     try:
-        put(target_t, key, args.comment, args.meta, run)
+        put(target_t, key, args.comment, args.meta, run, args.put_as)
     except (MintError, OSError, subprocess.SubprocessError) as e:
         try:
             delete_key(admin, hsh, http)
@@ -136,7 +138,7 @@ def mint(args: argparse.Namespace, *, http: Http = urllib_http, run: Run = subpr
                   "https://openrouter.ai/settings/keys", file=out)
         raise MintError(str(e)) from None
     print(f"stored in Infisical {args.to}", file=out)
-    got = stored_last4(target_t, run)
+    got = stored_last4(target_t, run, args.put_as)
     ok = bool(got) and got == key[-4:]
     del key
     print(f"last4 match: {'yes' if ok else 'NO'}", file=out)
@@ -151,9 +153,13 @@ def parse(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--to", required=True, metavar="Project/env/VAR", help="where the key goes in Infisical")
     ap.add_argument("--comment", required=True, help="purpose (PLAN §4c)")
     ap.add_argument("--meta", action="append", default=[], metavar="k=v", help="metadata for the put")
+    ap.add_argument("--put-as", default="contabo", metavar="IDENTITY",
+                    help="Infisical identity that writes the key (needs Developer on the target project)")
     a = ap.parse_args(argv)
     if not NAME_RE.match(a.name):
         ap.error(f"--name {a.name!r}: lower-case letters, digits and '-', 3–40 chars")
+    if not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", a.put_as):
+        ap.error(f"--put-as {a.put_as!r}: an identity name")
     if not 0 < a.limit <= MAX_LIMIT_USD:
         ap.error(f"--limit must be > 0 and ≤ {MAX_LIMIT_USD:g} USD")
     return a

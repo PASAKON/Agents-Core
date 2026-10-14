@@ -69,7 +69,8 @@ def test_happy_path_creates_capped_key_and_files_it_without_printing_it():
     assert post[0][3] == {"name": "mooniex-sompong-prod-jev-exp2027-01-14", "limit": 1.0, "limit_reset": "monthly"}
     put_argv, put_kw = run.calls[0]
     assert put_argv[2:6] == ["put", "MoonieX-SomPong", "prod", "OPENROUTER_API_KEY_JEV"]
-    assert put_argv[put_argv.index("--as") + 1] == "setup"
+    assert put_argv[put_argv.index("--as") + 1] == "contabo"
+    assert run.calls[1][0][run.calls[1][0].index("--as") + 1] == "contabo"   # last4 reads as the same identity
     assert put_kw["input"] == NEW + "\n"                       # value only on stdin
     assert NEW not in " ".join(put_argv)                        # never in argv
     assert not any(k.startswith("OPENROUTER_") for k in put_kw["env"])  # no provider key in the child
