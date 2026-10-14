@@ -34,8 +34,16 @@ providers:
     monthly_cap_usd: null                # CFO
     # Per key, by its NAME on openrouter.ai (never the value, never the `label` field).
     # pause: false = alert only for that key. consumers = what goes down when it is paused.
-    # Filled once the management key lists the names (docs/plans/spend-guard-2026-10-14.md §2).
-    keys: {}
+    # Mapped 2026-10-14 from `spend_guard.py keys` (RUN-20261014-0206-7cb1) and plan §2. MoonieX is the one
+    # shared value behind the customer chatbot, so it never auto-pauses until the phase-2 broker splits it.
+    # WarpClip, LungNote and NO-HUNMAN carry no spend and stay unmapped (unmapped = alert, never pause).
+    keys:
+      MoonieX:
+        consumers:
+          - claudeflow-webhook (LuNar customer chatbot, SomPong brain, autogen)
+          - mooniex-option-channel (trade-signal parser)
+          - mooniex-secretary (Jev)
+        pause: false
   fal:
     key_env: FAL_BILLING_API_KEY_RO      # preset BILLING, Infisical Agents-Core/prod/spend-guard
     account: MoonieX
