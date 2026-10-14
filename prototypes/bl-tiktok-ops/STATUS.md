@@ -4,6 +4,10 @@ Owner: CMO Main #ef04792e · PH: project_head-13db8720 · host: Contabo (tiktok-
 Budget: $0 · CEO GO: Q-20261013-2041-ae68 (post all three, 22:00 TH), Q-20261013-2044-865f (post EP59/EP60 as is, risk accepted),
 Q-20261013-2114-267a (AI label ON for all three). Ledger of ids and times: `AB_POSTS.md` (this folder).
 
+## How this project lands (CEO 14 Oct via CMO Main, 2bd6e650)
+Agents-Core is an org shared system, so ledger and STATUS updates go on branch `ph-13db8720/blackliquidity-ab` (one open PR) and the CTO merges.
+Shared resource: tiktok-bl Browser Home (CDP 127.0.0.1:9282), read-only list reads at ~22:10-22:20 TH on 14, 15, 16 and 18 Oct.
+
 ## Goal
 Run the BLACK LIQUIDITY TikTok A/B on @black_liquidity (EP58 to EP61, arm A = headline plate, arm B = today's look) and read the result.
 
