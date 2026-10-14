@@ -40,10 +40,11 @@ passing it to pytest runs nothing; M3 broke it and CTO Main fixed it in PR #258.
 
 None of these restarts an existing unit or touches the tmux server (both new units are tmux clients only).
 
-**M8: org_coo grant on `live_sessions.verified`** (after #268 lands and Core is live-synced; `lib.db.init()`
-must have created the column, which any org tool start does):
+**M8: org_coo grant on `live_sessions.verified`** (after #268 lands and Core is live-synced). Checked
+read-only 14 Oct 06:05Z: the hub has no `verified` column yet, so the card runs `lib.db.init()` first
+(forward-only `ALTER … ADD COLUMN`, under the init advisory lock, safe to repeat):
 ```
-cd /opt/MoonieXHQ/Agents/Core && python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py --grants-only
+cd /opt/MoonieXHQ/Agents/Core && bash scripts/hub/org-python.sh -c "from lib import db; db.init()" && python3 tools/infisical_setup.py run Agents-Core prod --as contabo -- .venv/bin/python deploy/coo-gate/org_coo_role.py --grants-only
 ```
 
 **M10b: rename service** (after the M10 PR lands and Core is live-synced):
