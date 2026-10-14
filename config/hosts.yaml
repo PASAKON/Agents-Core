@@ -16,6 +16,13 @@
 #
 # `agents_root` / `worktrees` are host-native absolute paths (Windows paths
 # use backslashes, quoted so YAML doesn't need double-escaping).
+#
+# `terminal_window` (CEO 2026-10-15): false = a NEW session on this host starts
+# as a detached tmux session and opens no terminal window (no iTerm, no
+# osascript); it still shows in the Claude app through `remote_control`. A
+# missing key means true. Running sessions are never touched. To get a window
+# for a session anyway: scripts/terminal-open.sh <id>, on that host.
+# Read by lib.config.terminal_window().
 
 hosts:
   mac:
@@ -23,6 +30,7 @@ hosts:
     chrome_name: mac-chrome
     os: darwin
     remote_control: true   # session shows in the CEO Claude app
+    terminal_window: false   # CEO 2026-10-15: works from the Claude app, travels; no iTerm window on a new session
     ssh: null
     # Mac sshd stays closed until G2 (Remote Login + sshd hardening, at the end).
     mesh_ssh: null
