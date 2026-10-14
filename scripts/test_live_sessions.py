@@ -234,9 +234,46 @@ def test_role_and_sid_come_from_the_name(name, role, sid):
     "scratchpad-c2", "SomPong", "", "CONTABO CTO", "CONTABO CTO #zzz", "CONTABO CTO #abc",
     "CONTABO CTO #e106b78bxx", "CONTABO CTO #0123456789abcdef", "LINUX CTO #e106b78b",
     "CONTABO CTO (Kavin)", "CONTABO CTO (Kavin 2) #c34459eb",
+    # short-form look-alikes (CEO 2026-10-14 names): never a C-level
+    "CEO", "CEO (Gob)", "CTO (Kavin 2)", "CTO Kavin", "CTOX", "cto (Kavin)", "CTO (Kavin) extra",
 ])
 def test_a_name_that_does_not_match_is_unknown_with_the_uuid_tail(name):
     assert ls.parse_name(name, UUID_A) == ("unknown", "1ce1e106b78b"[-8:])
+
+
+# CEO 2026-10-14: "<ROLE> (<Name>)" with no machine and no #id; the id is the
+# session UUID's tail, which the launchers make the short id.
+@pytest.mark.parametrize("name,role", [
+    ("CTO (Kavin)", "cto"), ("COO (SomPong)", "coo"), ("CMO (Ging)", "cmo"), ("CFO", "cfo"),
+    ("CTO (Kavin) — คุม org", "cto"), ("⏸ CTO (Kavin) — LAST BELL", "cto"),
+])
+def test_a_short_c_level_name_gives_the_role_and_the_uuid_tail(name, role):
+    assert ls.parse_name(name, UUID_A) == (role, "e106b78b")
+
+
+@pytest.mark.parametrize("tmux,uuid,name,expect", [
+    # the launcher's tmux name wins, whatever the display name says
+    ("cto-e106b78b:@276.%276", UUID_A, "CTO (Kavin)", ("cto", "e106b78b")),
+    ("cto-e106b78b:@276.%276", UUID_A, "anything the CEO typed", ("cto", "e106b78b")),
+    ("project_head-e106b78b:@1.%1", UUID_A, "CONTABO Project Head (CTO) #e106b78b (X)",
+     ("project_head", "e106b78b")),
+    # a sid the session UUID does not end in is not trusted: the name decides
+    ("cto-aaaaaaaa:@1.%1", UUID_A, "renamed", ("unknown", "e106b78b")),
+    # a worker's tmux says nothing about its role; a fake "ceo" tmux is not a C-level
+    ("wd-e106b78b:@282.%282", UUID_A, "CONTABO Security Engineer #e106b78b (x)",
+     ("security_engineer", "e106b78b")),
+    ("ceo-e106b78b:@1.%1", UUID_A, "x", ("unknown", "e106b78b")),
+    (None, UUID_A, "CTO (Kavin)", ("cto", "e106b78b")),
+    (7, UUID_A, "CTO (Kavin)", ("cto", "e106b78b")),
+])
+def test_role_and_sid_come_from_the_tmux_name_first(tmux, uuid, name, expect):
+    assert ls._ids_from_record({"tmux": tmux}, name, uuid) == expect
+
+
+def test_a_short_named_c_level_is_listed_with_its_launcher_id(tmp_path):
+    _write(tmp_path, os.getpid(), name="CTO (Kavin)", tmux="cto-e106b78b:@276.%276")
+    [row] = ls.read_registry([tmp_path])
+    assert (row["role"], row["sid"], row["address"]) == ("cto", "e106b78b", "CTO (Kavin)")
 
 
 @pytest.mark.parametrize("role,expect", [
@@ -264,6 +301,13 @@ def test_the_coo_is_addressed_as_sompong_and_nobody_else_is_aliased(tmp_path):
     assert by_role["coo"]["address"] == "SomPong"
     assert by_role["coo"]["name"] == "CONTABO COO #a7eb4963"
     assert by_role["cto"]["address"] == "CONTABO CTO #e106b78b"
+
+
+def test_a_short_named_coo_is_addressed_by_its_name(tmp_path):
+    # from the CEO's 14 Oct ruling SomPong's Remote Control name is "COO (SomPong)"
+    _write(tmp_path, os.getpid(), name="COO (SomPong)", tmux="coo-e106b78b:@9.%9")
+    [row] = ls.read_registry([tmp_path])
+    assert (row["role"], row["address"]) == ("coo", "COO (SomPong)")
 
 
 # ---------------------------------------------------------------------------
@@ -304,6 +348,22 @@ def test_the_exact_format_and_order():
         ls.FOOTER,
     ]
     assert ls.format_snapshot(snap, all_roles=True, now=NOW).count("\n") == 6
+
+
+def test_one_name_on_two_hosts_gets_a_note_and_its_lines_stay_verbatim():
+    rows = [
+        _row("contabo", "cto", "CTO (Kavin)", sid="c34459eb"),
+        _row("mac", "cto", "CTO (Kavin)", "idle", sid="f39cb080"),
+        _row("contabo", "cmo", "CMO (Ging)", sid="ef04792e"),
+    ]
+    snap = _snap(rows, {"contabo": _fresh(4.0), "mac": _fresh(9.0)})
+    lines = ls.format_snapshot(snap, now=NOW).splitlines()
+    assert lines[1:4] == ["running  CMO (Ging)", "running  CTO (Kavin)", "idle     CTO (Kavin)"]
+    assert lines[4] == ls.FOOTER
+    assert lines[5].startswith('same name on 2 rows: "CTO (Kavin)" (contabo #c34459eb, mac #f39cb080)')
+    assert "[ref]" in lines[5] and len(lines) == 6
+    one = _snap(rows[:1] + rows[2:], {"contabo": _fresh(4.0)})
+    assert not any(l.startswith("same name") for l in ls.format_snapshot(one, now=NOW).splitlines())
 
 
 def test_project_heads_are_listed_by_default_after_the_c_levels_and_are_not_workers():

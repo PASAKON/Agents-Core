@@ -82,10 +82,10 @@ def test_prefix_lands_in_front_of_machine_role(tmp_path: Path) -> None:
     r = _run(script, ["--prefix", "✅", "close it"], env)
     assert r.returncode == 0
     assert "queued: /rename ✅ " in r.stdout
-    # prefix precedes the machine label, not trailing after the topic paren
+    # prefix precedes the role, not trailing after the topic
     body = r.stdout.split("queued: /rename ", 1)[1]
-    assert body.startswith("✅ ")
-    assert "(close it)" in body
+    assert body.startswith("✅ CTO")
+    assert "— close it" in body
 
 
 def test_show_reports_prefix_plus_topic(tmp_path: Path) -> None:
@@ -130,9 +130,9 @@ def test_prefix_change_alone_sends_again(tmp_path: Path) -> None:
 
 
 def test_no_prefix_matches_legacy_shape(tmp_path: Path) -> None:
-    """Omitting --prefix entirely must stay byte-identical to the
-    pre-task-bbdfa8d1 name shape: '<MACHINE> <ROLE> #<id> (<topic>)', no
-    leading glyph or stray space."""
+    """Omitting --prefix gives no leading glyph or stray space. A C-level's
+    shape since the CEO's 14 Oct names: '<ROLE> (<Name>) — <topic>' (no machine,
+    no #id); a Project Head keeps '<MACHINE> <ROLE> #<id> (<topic>)'."""
     fake_root, script = _stage(tmp_path)
     bin_dir, log = _tmux_stub(tmp_path)
     env = _env(bin_dir, sid="pfx05")
@@ -141,4 +141,5 @@ def test_no_prefix_matches_legacy_shape(tmp_path: Path) -> None:
     assert r.returncode == 0
     sent = r.stdout.split("queued: /rename ", 1)[1].split(" (executes", 1)[0]
     assert not sent.startswith(("✅", "⏸", "⛔"))
-    assert sent.endswith("(legacy topic)")
+    assert sent.startswith("CTO") and sent.endswith(" — legacy topic")
+    assert "#" not in sent and "CONTABO" not in sent and "MAC" not in sent

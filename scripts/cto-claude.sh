@@ -509,7 +509,7 @@ fi
 # `exec` would replace the shell and skip the EXIT trap, leaving a
 # stale lock. Run claude as a child instead and propagate its exit code.
 claude \
-  -n "$MACHINE_LABEL CTO${CTO_PERSONA:+ ($CTO_PERSONA)} #$CTO_SESSION_ID" \
+  -n "CTO${CTO_PERSONA:+ ($CTO_PERSONA)}" \
   "${MODEL_ARGS[@]}" \
   --permission-mode auto \
   --append-system-prompt "$ROLE_PROMPT" \

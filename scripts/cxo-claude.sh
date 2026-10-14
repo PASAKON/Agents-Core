@@ -768,10 +768,11 @@ print('1' if remote_control_args('$HOST_KEY') else '0')
 " 2>/dev/null || echo 1)" != "0" ]; then
   REMOTE_CONTROL_ARGS=(--remote-control)
 fi
-# SomPong shows in the Claude app under its own name, not "COO #<id>": the flag
-# takes an optional value, so the name is appended to the array built above.
+# SomPong's Remote Control name is its session name, "COO (SomPong)" (CEO
+# 2026-10-14; it was the bare "SomPong" until then). The flag takes an optional
+# value, so the name is appended to the array built above.
 if [ "$ROLE" = "coo" ] && [ "${#REMOTE_CONTROL_ARGS[@]}" -gt 0 ]; then
-  REMOTE_CONTROL_ARGS+=(SomPong)
+  REMOTE_CONTROL_ARGS+=("COO${PERSONA:+ ($PERSONA)}")
 fi
 
 # Pull the auto-memory repo BEFORE claude starts (task-8d37c0f1) — same
@@ -823,11 +824,13 @@ fi
 # "<MACHINE> Project Head (<LANE>) #<id> (<Project>)" (tools/live_sessions.py).
 NAME_SUFFIX=""
 if [ "$IS_PH" = "1" ]; then NAME_SUFFIX=" ($PH_PROJECT)"; fi
-# A C-level primary session carries its persona (CEO 2026-10-14 session names):
-# "<MACHINE> <ROLE> (<Name>) #<id>". TAB_TITLE and its .base stay as they are (routing).
+# A C-level primary session is "<ROLE> (<Name>)", or the bare "<ROLE>" without a
+# persona: no machine, no #id (CEO 2026-10-14). tools/live_sessions.py finds its role
+# and id in the tmux name and the session UUID instead. TAB_TITLE and its .base stay
+# as they are (routing); a Project Head and an ephemeral session keep the long form.
 SESSION_NAME="$MACHINE_LABEL $TAB_TITLE$NAME_SUFFIX"
-if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ] && [ -n "${PERSONA:-}" ]; then
-  SESSION_NAME="$MACHINE_LABEL $DISPLAY ($PERSONA) #$CXO_SESSION_ID"
+if [ -z "$TAB_TITLE_OVERRIDE" ] && [ "$IS_PH" != "1" ]; then
+  SESSION_NAME="$DISPLAY${PERSONA:+ ($PERSONA)}"
 fi
 
 # Per-session memory scope (org restructure P2, plan §7) when ORG_SESSION_SCOPE=1:

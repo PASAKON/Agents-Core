@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Rename THIS C-level session's Claude display name (the one the mobile app /
-# Remote Control list shows) to "<MACHINE> <ROLE> #<id> (<topic>)".
+# Remote Control list shows). A C-level: "<ROLE> (<Name>) — <topic>", no machine
+# and no #id (CEO 2026-10-14). A Project Head or a worker: "<MACHINE> <ROLE> #<id> (<topic>)".
 #
 # Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool.
 # But every C-level chat runs inside tmux (spawn-cto.sh / spawn-cxo.sh), so we
@@ -10,7 +11,7 @@
 # Claude Code v2.1.221+).
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
-#   → /rename MAC CTO #c670eb50 (หัวข้อของ session)
+#   → /rename CTO (Kavin) — หัวข้อของ session
 #         bash scripts/session-rename.sh --force "<topic>"   # resend even if unchanged
 #         bash scripts/session-rename.sh --show              # print the recorded topic, no send
 #
@@ -135,8 +136,9 @@ ROLE_UP="$(printf '%s' "$ROLE" | tr '[:lower:]' '[:upper:]')"
 if [ "$ROLE" = "project_head" ]; then
   ROLE_UP="Project Head ($(printf '%s' "${ORG_PH_LANE:-}" | tr -cd 'a-zA-Z' | tr '[:lower:]' '[:upper:]'))"
 fi
-# A C-level's persona (CEO 2026-10-14): "<MACHINE> <ROLE> (<Name>) #<id> (<topic>)",
-# from policies/agents.yaml. Any failure leaves the name without one; never an error.
+# A C-level (CEO 2026-10-14): "<ROLE> (<Name>) — <topic>", the persona from
+# policies/agents.yaml. Any failure leaves the name without one; never an error.
+# tools/live_sessions.py reads its role and id from the tmux name and session UUID.
 if [ "$ROLE" != "project_head" ]; then
   _PY="$ROOT/.venv/bin/python"; [ -x "$_PY" ] || _PY=python3
   PERSONA="$(cd "$ROOT" && ROLE_ARG="$ROLE" "$_PY" -c "
@@ -146,7 +148,11 @@ print(persona_for(os.environ['ROLE_ARG']))" 2>/dev/null | tr -cd 'a-zA-Z')" || P
   if [ -n "$PERSONA" ]; then ROLE_UP="$ROLE_UP ($PERSONA)"; fi
 fi
 
-BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
+if [[ "$ROLE" =~ ^c[a-z]o$ ]]; then
+  BASE_NAME="$ROLE_UP — $TOPIC"
+else
+  BASE_NAME="$MACHINE_LABEL $ROLE_UP${SID:+ #$SID} ($TOPIC)"
+fi
 if [ -n "$PREFIX" ]; then
   NEW_NAME="$PREFIX $BASE_NAME"
 else
