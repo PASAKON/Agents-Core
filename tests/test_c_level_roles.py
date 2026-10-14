@@ -109,11 +109,12 @@ def test_session_name_regex_accepts_every_role() -> None:
 
 def test_itermtab_never_touches_any_c_level_tab() -> None:
     from tools import itermtab
-    assert itermtab._CLEVEL_PREFIXES == tuple(f"{d} " for d in DISPLAYS)
+    assert itermtab._CLEVEL_PREFIXES == tuple(f"{d}{sep}" for d in DISPLAYS for sep in (" ", "#"))
     guard = itermtab._clevel_title_guard()
     for d in DISPLAYS:
-        assert f'and not (nm contains "{d} ")' in guard
-        assert f'and not (tn contains "{d} ")' in guard
+        for sep in (" ", "#"):    # "CTO (Kavin)" and the 15 Oct "CTO#c34 Main"
+            assert f'and not (nm contains "{d}{sep}")' in guard
+            assert f'and not (tn contains "{d}{sep}")' in guard
 
 
 def _cxo_mcp_config():
