@@ -42,6 +42,7 @@ if str(ROOT) not in sys.path:
 
 from lib import mailbox  # noqa: E402
 from tools import live_sessions as ls  # noqa: E402
+from tools.rename_service import pane_waiting  # noqa: E402,F401  (the same screen test the rename service uses)
 
 IDLE_S = 30 * 60
 BLOCKER_S = 15 * 60
@@ -50,9 +51,6 @@ LOCKS_DIR = ROOT / "state" / "locks"
 STATE_PATH = ROOT / "state" / "escalation_watch.json"
 FROM = ("watchdog", "escalation")
 _BOX_RE = re.compile(r"^(c[a-z]o|project_head)-([0-9a-f]{8})$")
-# A numbered choice with the cursor on it, plus the footer of a choice prompt.
-_CHOICE_RE = re.compile(r"^[\s│┃|]*❯\s*\d+\.\s")   # it may sit inside a │ box
-_CHOICE_HINTS = ("Do you want", "Esc to cancel", "to navigate", "Enter to select", "Would you like")
 
 
 def _now() -> float:
@@ -60,12 +58,6 @@ def _now() -> float:
 
 
 # --- sources -----------------------------------------------------------------------
-
-def pane_waiting(text: str) -> bool:
-    """True when a pane's last screen holds a choice prompt waiting on a person."""
-    tail = text.splitlines()[-30:]
-    return any(_CHOICE_RE.match(l) for l in tail) and any(h in l for l in tail for h in _CHOICE_HINTS)
-
 
 def capture(tmux_target: str) -> str | None:
     try:
