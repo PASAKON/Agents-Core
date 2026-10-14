@@ -23,7 +23,7 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 | M3 | EP60 (B) live + pair-1 read | 16 Oct 22:00, check 22:12 | open | |
 | M4 | real read, 2 per arm, reported | 18 Oct 22:00, check 22:13 | open | |
 
-Session check-ins (session-only crons; the first letter to CMO Main misnamed the M4 one as "4ffc…"): b2422ab3 (M1), 7dc2c1b0 (M2), 61bc4516 (M3), 6ee44373 (M4).
+Session check-ins (session-only crons, re-made 14 Oct after the CEO rulings): a0dee140 (M1), 3e92f242 (M2), 9d45b221 (M3), ba4bf228 (M4).
 
 ## Blocker
 none.
