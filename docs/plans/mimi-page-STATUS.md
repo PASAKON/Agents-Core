@@ -21,7 +21,7 @@ Per-slot detail lives in `mimi-weekly-calendar.md`; this file holds milestones, 
 | 2 | Thu 15 EP6-teaser poster published 19:30 | scheduled (row 1), old logo; CEO said swap (Q-…5f44), same refusal as Wed | — |
 | 3 | Fri 16 «ข่าวด่วนในบ้าน» clip published 19:30 | CEO GO (Q-20261014-0225-41ed «ตั้งเวลาศุกร์ 16 ต.ค. 19:30 ตามที่ตัดไว้»); scheduling waits the acting-session word (same wall expected) | `ep6-session-files/news/cut/FRI-news-540p.mp4` |
 | 4 | Sat 17 EP6 Reel + first comment 19:33 | CEO GO (Q-20261014-0225-3e78 «go: ตั้งเวลาเสาร์ 17 ต.ค. 19:30 ด้วย Hook B + ปก 1»); EP6 end card dash: «ปล่อยไว้» (Q-20261014-0047-bf84), no v2 | `ep6-session-files/cut/EP6-cut-v1.mp4` |
-| 5 | Sun 18 EP7 published | waits CEO «go ยิง» (typed, in chat). Dry run 14 Oct: all 6 new plates NOT in Flow (balance 348 = 348) → upload + bind voices ($0) waits C-level OK | `docs/scripts/khaoniao-ep7-*` |
+| 5 | Sun 18 EP7 published | waits CEO «go ยิง» (typed, in chat). 6 plates uploaded to Flow + dry run 12/12 OK 14 Oct 09:52 TH (balance 348 = 348); ready to shoot on his go | `docs/scripts/khaoniao-ep7-*` |
 
 Progress: 0/5.
 
@@ -37,4 +37,5 @@ EP7 $0 prep: `mimi-ep7-prep.md` (live balance 348 on 14 Oct 09:4x Thai; test sho
 - +50 credits (298 → 348) source unknown; plan with 298.
 
 ## Decided for CEO
+- 14 Oct: EP7 voices = prompt-line voices as in EP1–6 (no Flow character generator); Riao = warm slow sleepy mid-low male. Because: same method as the 6 aired episodes, $0, no face re-render. CEO ear-checks on the 360p test.
 - 14 Oct: EP7 360p test = shots 2 + 4, not 1 + 4. Because: it covers mother__night (in 5 of 12 shots) as well as cat__riao, at the same 12 cr.
