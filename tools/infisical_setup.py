@@ -52,6 +52,7 @@ import getpass
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -785,19 +786,32 @@ def cmd_import_env(org: Org, project: str, env: str, file: str, only: list[str],
 
 
 def cmd_mkdir(org: Org, project: str, env: str, folder: str) -> None:
-    """Create one top-level folder in <project>/<env> as this identity; say so when it exists.
-    Doubles as the write probe before a rotation (deploy/coo-gate/README.md step 2): the identity's
-    folder create needs the same write role as `put`, so a 403 here stops the card before any
-    password changes (PH CooGate #adb2edb0, 2026-10-14). Never touches a value."""
+    """Create one top-level folder in <project>/<env> as this identity (idempotent), then PROVE write.
+    It is the write probe before a rotation (deploy/coo-gate/README.md step 2), so it fails closed:
+    every run creates a nested `probe-<8 hex>` folder under the target and deletes it again, whether or
+    not the target already existed. A 403 on either write raises before any password changes
+    (PH CooGate #adb2edb0, 2026-10-14; review by CTO #c34459eb). Never touches a value."""
     name = folder.strip("/")
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name):
         sys.exit(f"refused: folder {folder!r}: one level, letters/digits/_/- only")
     p = _target(org, project, env)
     if name in org.folders(p["id"], env):
         print(f"= {p['name']}/{env}: folder /{name} exists")
-        return
-    org.send("POST", "/api/v2/folders", {"projectId": p["id"], "environment": env, "name": name, "path": "/"})
-    print(f"+ {p['name']}/{env}: folder /{name} created")
+    else:
+        org.send("POST", "/api/v2/folders", {"projectId": p["id"], "environment": env, "name": name, "path": "/"})
+        print(f"+ {p['name']}/{env}: folder /{name} created")
+    probe = f"probe-{secrets.token_hex(4)}"
+    made = org.send("POST", "/api/v2/folders",
+                    {"projectId": p["id"], "environment": env, "name": probe, "path": f"/{name}"}) or {}
+    folder_id = (made.get("folder") or {}).get("id") or probe
+    print(f"+ write proven: /{name}/{probe} created")
+    try:
+        org.send("DELETE", f"/api/v2/folders/{folder_id}",
+                 {"projectId": p["id"], "environment": env, "path": f"/{name}"})
+        print(f"- /{name}/{probe} removed")
+    except ApiError as exc:
+        # Write is already proven; an empty probe folder left behind is harmless but should be seen.
+        print(f"! /{name}/{probe} left in place (delete refused: {exc})", file=sys.stderr)
 
 
 def cmd_last4(org: Org, project: str, env: str, name: str, path: str = "/") -> None:
