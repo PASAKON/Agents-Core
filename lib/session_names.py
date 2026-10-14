@@ -232,13 +232,14 @@ def _tidy_topic(topic: str, role: str) -> str:
 
 
 def clevel_topic(body: str, role: str) -> str:
-    """The topic a C-level body carries in any shape ("" when it carries none)."""
+    """The topic a C-level body carries in any shape ("" when it carries none). A body in
+    no known shape (a name someone typed by hand) is all topic: "Console fix" stays."""
     m = _C_LEVEL_BODY_RE.match(body)
     if m:
         topic = m.group("topic") or (m.group("otopic") or "")[len(" — "):]
     else:
         lm = _MACHINE_LONG_RE.match(body)
-        topic = (lm.group("topic") or "") if lm else ""
+        topic = (lm.group("topic") or "") if lm else body
     return _tidy_topic(topic, role)
 
 

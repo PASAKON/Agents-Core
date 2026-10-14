@@ -32,12 +32,17 @@ tmux server, and root running code from a checkout that user can write would
 hand every session root. Its socket is ~/.rename-service/sock (0700 dir); there is
 no /proc, so ancestry and uids come from `ps`.
 
-The sweep (M10d, CEO 2026-10-15: every live session's name carries its host emoji):
-a session that started before M9 never asks, so each pass first looks at this
-host's live sessions and queues, for one whose name fails the rule only with "no
-host emoji", the same job a request queues: its own name, byte for byte, with the
-emoji added. Typing is still _one() alone. Nothing else is fixed (logged once), and a
-box already tried under the same pid and name is not queued again.
+The sweep (M10d, CEO 2026-10-15: every live session's name carries its host emoji and,
+from the same day, the new shape of lib/session_names, "CTO#c34 Main"): a session that
+started before M9, or under the old shape, never asks, so each pass first looks at this
+host's live sessions and queues, for one whose name fails the rule (old shape, no or the
+wrong host emoji, a name someone typed by hand), the same job a request queues: the rule
+name for that session with the topic its old name carried (rebuild()). Claude workers
+(`wd-<sid>`) are swept too: the service has no hub route (PrivateNetwork), so a worker's
+role comes from its name, its model letter from policies/agents.yaml and its head and
+job from the old name. Typing is still _one() alone. A name that cannot be rebuilt on
+the rule is logged once, and a box already tried under the same pid and name is not
+looked at again (fixed once or reported once, never a loop).
 
 The request carries no name, so nothing a session sends can reach the pane except
 a topic: clean_topic() keeps letters, marks, digits, spaces and a few punctuation
@@ -93,6 +98,7 @@ INTERVAL_S = 15
 TYPED_WAIT_S = 1.0       # how long the typed line may take to show before it is taken back
 TYPED_POLL_S = 0.1
 _BOX_RE = re.compile(r"(c[a-z]o|project_head)-([0-9a-f]{8})")   # always fullmatch
+_WORKER_BOX_RE = re.compile(r"(wd)-([0-9a-f]{8})")   # only the sweep types into a worker (never a request)
 _FIXED_TMUX = {"coo": "sompong"}
 _TOPIC_PUNCT = set(" -_.,:()+#&'!?%")   # no ';': tmux strips a trailing one from send-keys
 
@@ -122,30 +128,61 @@ def _read(name: str) -> str:
 
 def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
     """The rule name for a C-level or PH plus the cleaned topic, or None (no rule
-    for this role, a PH with no project record, a prefix not in PREFIXES)."""
+    for this role, a PH with no project record, a prefix not in PREFIXES). A C-level's
+    topic defaults to "Main" (the COO's to its persona), a PH's to its project; a topic
+    a PH gives takes the project's place. The persona and a PH's lane are not in the name."""
     prefix = str(prefix or "")
     if prefix not in PREFIXES:
         return None
     topic = clean_topic(topic)
     if role == "project_head":
         project = _read(f"project_head-{sid}.project")
-        spawned = _read(f"project_head-{sid}.spawned_by").split(":")   # cxo:<lane>:<sid>
-        lane = spawned[1] if len(spawned) == 3 else ""
-        if not re.fullmatch(r"[A-Za-z0-9_]{1,40}", project) or not re.fullmatch(r"c[a-z]o", lane):
+        if not re.fullmatch(r"[A-Za-z0-9_]{1,40}", project):
             return None
-        base = config.ph_session_name(sid, lane, project, host)
-        if topic == project:
-            topic = ""
+        name = session_names.ph_session_name(sid, project, host, "" if topic == project else topic)
     elif re.fullmatch(r"c[a-z]o", role) and role != "ceo":
-        persona = config.persona_for(role)
-        if persona and not re.fullmatch(r"[A-Za-z]{2,32}", persona):
-            return None
-        base = session_names.with_host(host, f"{role.upper()} ({persona})" if persona else role.upper())
+        persona = config.persona_for(role) if role == "coo" else ""
+        name = session_names.clevel_name(role, sid, topic, host,
+                                         persona if re.fullmatch(r"[A-Za-z]{2,32}", persona or "") else "")
     else:
         return None
-    name = base + (f" — {topic}" if topic else "")
     name = f"{prefix} {name}" if prefix else name
     return name if _typable(name) else None
+
+
+def rebuild(role: str, sid: str, host: str, shown: str, windows: bool = False) -> str | None:
+    """The rule name for a live session whose `shown` name is off the rule, keeping what
+    `shown` says about the job: a C-level's or PH's topic (" — topic", the "( )" of
+    "MAC CTO #671f688f (topic)", or the project), a worker's head and job. A leading state
+    glyph (⏸ ✅ ⛔) stays first. None when there is no rule name (a PH with no project
+    record, a role with no rule)."""
+    lead, _emoji, body = session_names.split_name(shown)
+    glyph = lead.strip() if lead.strip() in PREFIXES else ""
+    if role in session_names.WORKER_SHORT:
+        return _rebuild_worker(role, sid, host, body, windows)
+    if role == "project_head":
+        projects, topic = session_names.ph_topic(body)
+        return build_name(role, sid, topic or projects, glyph, host)
+    return build_name(role, sid, session_names.clevel_topic(body, role), glyph, host)
+
+
+def _rebuild_worker(role: str, sid: str, host: str, body: str, windows: bool) -> str | None:
+    """`<Short>·<M>#<id3> <Head>: <job>` for a Claude worker from its old name: the model
+    letter it already shows, else the role's model in policies/agents.yaml."""
+    parts = session_names.worker_parts(body)
+    head, job = (parts[1], parts[2]) if parts else ("", clean_topic(body))
+    m = session_names.WORKER_NAME_RE.match(body)
+    letter = (m.group("model") if m else "") or ""
+    if not letter:
+        try:
+            letter = session_names.model_letter(config.role(role).get("model"))
+        except ValueError:
+            letter = ""
+    if windows:
+        head, job = session_names.windows_safe(head), session_names.windows_safe(job)
+    name = session_names.worker_name(session_names.WORKER_SHORT[role], sid, config.head_short(head),
+                                     job, letter, windows=windows)
+    return name if windows else session_names.host_prefix(host) + name
 
 
 def _typable(name: str) -> bool:
@@ -198,7 +235,7 @@ def _record(p: Path) -> tuple[dict, int] | None:
 
 def session_of(box: str, host: str) -> dict | None:
     """The one live session record in this box's launcher tmux, or None."""
-    m = _BOX_RE.fullmatch(box)
+    m = _BOX_RE.fullmatch(box) or _WORKER_BOX_RE.fullmatch(box)
     if not m:
         return None
     role, sid = m.groups()
@@ -225,7 +262,8 @@ def session_of(box: str, host: str) -> dict | None:
             start = ls._proc_start(data.get("procStart"))
             if not data.get("procStart") or (not DARWIN and start is None):
                 continue                    # Linux: an int; macOS writes a date (kill(0) only)
-            if not uuid.endswith(sid) or not ls.is_alive(pid, start):
+            # a worker's session UUID is not made from its id: the tmux name is the claim
+            if (role != "wd" and not uuid.endswith(sid)) or not ls.is_alive(pid, start):
                 continue
             if owner != _uid(pid):          # a record speaks only for its writer's own process
                 continue
@@ -367,21 +405,24 @@ def _job(name: str, pid: int) -> dict:
 # --- the sweep (M10d) -----------------------------------------------------------------
 
 # {box: (pid, name)}: this process already queued that session under that name, or
-# decided not to. The same pid under the same name is not looked at again; a new pid
-# (a restarted session) or a new name (it renamed itself) is. Memory only.
+# decided it cannot. The same pid under the same name is not looked at again, so a name
+# is fixed once or reported once and never loops; a new pid (a restarted session) or a
+# new name (it renamed itself) is looked at. Memory only: a restart tries once more.
 _DECIDED: dict[str, tuple[int, str]] = {}
-_NOTED: dict[str, tuple[int, str]] = {}      # {box: (pid, problem)} already logged
 
 
-def _with_host_after_state(host: str, name: str) -> str:
-    """session_names.with_host, but a leading state glyph ("⏸ ", session-rename.sh's
-    prefix) stays first, as build_name writes it: "⏸ 🌐 CTO (Kavin)"."""
-    lead = session_names._STATE_LEAD_RE.match(name).group(0)
-    return lead + session_names.with_host(host, name[len(lead):])
+def _box_of(row: dict) -> str | None:
+    """The tmux box this registry row is typed through: `<role>-<sid>` for a C-level or PH,
+    `wd-<sid>` for a Claude worker; None for a row no launcher tmux claims."""
+    if not row.get("verified"):
+        return None
+    box = (f"wd-{row['sid']}" if row["role"] in session_names.WORKER_SHORT
+           else f"{row['role']}-{row['sid']}")
+    return box if (_BOX_RE.fullmatch(box) or _WORKER_BOX_RE.fullmatch(box)) else None
 
 
 def _sweep_one(box: str, row: dict, host: str, pending: dict) -> str | None:
-    role, sid = box.split("-", 1)
+    role, sid = row["role"], row["sid"]
     persona, windows = ls._rule_context(role, host)
 
     def problem(name: str) -> str | None:
@@ -391,45 +432,41 @@ def _sweep_one(box: str, row: dict, host: str, pending: dict) -> str | None:
     why = problem(shown)
     if why is None:
         _DECIDED.pop(box, None)
-        _NOTED.pop(box, None)
         return None
-    if why != "no host emoji":
-        if _NOTED.get(box) == (pid, why):
-            return None
-        _NOTED[box] = (pid, why)
-        return f'skip     {box}: "{shown}" is off-rule ({why}); the sweep only adds the host emoji'
     if box in pending or _DECIDED.get(box) == (pid, shown) or len(pending) >= PENDING_MAX:
         return None
     sess = session_of(box, host)            # the record the owner checks trust, not the listing
-    if sess is None or sess["pid"] != pid or problem(sess["name"]) != "no host emoji":
+    if sess is None or sess["pid"] != pid or problem(sess["name"]) is None:
         return None
-    new = _with_host_after_state(host, sess["name"])
+    new = rebuild(role, sid, host, sess["name"], windows)
     _DECIDED[box] = (pid, shown)
+    if new is None:
+        return f'skip     {box}: "{shown}" is off-rule ({why}) and there is no rule name for it; left alone'
     if not _typable(new):
-        return f"skip     {box}: its name has a character or a length that cannot be typed; left alone"
-    if (after := problem(new)) is not None:      # the emoji must leave it ON the rule
-        return f'skip     {box}: "{shown}" is off-rule in more than the emoji ({after}); left alone'
+        return f'skip     {box}: "{shown}" is off-rule ({why}); its rule name has a character or a length that cannot be typed; left alone'
+    if (after := problem(new)) is not None:      # never type a name that is still off the rule
+        return f'skip     {box}: "{shown}" is off-rule ({why}); its rule name "{new}" is too ({after}); left alone'
     pending[box] = _job(new, pid)
     return f"sweep    {box}: {sess['name']} -> {new}"
 
 
 def sweep(host: str, pending: dict, now: float | None = None) -> list[str]:
-    """Queue the host emoji for every live C-level/PH session of this host whose name
-    lacks only that (rule_problem == "no host emoji"): sessions that started before
-    M9 never ask. The job is the one handle() queues, so _one() types it unchanged
-    (empty box only, two _ready checks, never C-u). The name is the session's own,
-    byte for byte, with the emoji added. A box already waiting, or already tried under
-    this pid and name, is left alone; so is every other rule_problem, logged once.
-    `now` is unused: it keeps the call like once()'s."""
+    """Queue the rule name for every live C-level, PH and Claude worker session of this
+    host whose name is off the rule (old shape, no or the wrong host emoji, typed by hand):
+    sessions that started before M9, or under the old shape, never ask. The job is the one
+    handle() queues, so _one() types it unchanged (empty box only, two _ready checks, never
+    C-u). The name is rebuild()'s: the rule shape with the topic the old name carried. A box
+    already waiting, or already looked at under this pid and name, is left alone; a name that
+    cannot be rebuilt on the rule is logged once. `now` is unused: it keeps the call like once()'s."""
     try:
         rows = ls.demote_untmuxed(ls.read_registry(ls.session_dirs(host)), host)
     except Exception as e:  # noqa: BLE001 - a bad registry must not stop the service
         return [f"error    sweep: {type(e).__name__}: {e}"]
     out, live = [], set()
     for row in sorted(rows, key=lambda r: r["uuid"]):
-        box = f"{row['role']}-{row['sid']}"
-        if not row.get("verified") or not _BOX_RE.fullmatch(box):
-            continue                        # a worker, or a name only: no pane to type into
+        box = _box_of(row)
+        if box is None:
+            continue                        # no pane to type into, or a role with no rule
         live.add(box)
         try:
             line = _sweep_one(box, row, host, pending)
@@ -437,9 +474,8 @@ def sweep(host: str, pending: dict, now: float | None = None) -> list[str]:
             line = f"error    sweep {box}: {type(e).__name__}: {e}"
         if line:
             out.append(line)
-    for seen in (_DECIDED, _NOTED):         # a session that has gone leaves no entry behind
-        for box in set(seen) - live:
-            del seen[box]
+    for box in set(_DECIDED) - live:        # a session that has gone leaves no entry behind
+        del _DECIDED[box]
     return out
 
 
