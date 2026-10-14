@@ -6,9 +6,9 @@ CEO: "การคุยมีการเปลี่ยนแปลงไป�
 The rule itself is event-based and lives in session-open §3 and session-save:
 rename whenever the main job changes, and at /session-save. This hook is only
 the safety net for a job that drifted without anyone noticing. It prints ONE
-line every N turns and nothing otherwise. It never renames (an agent typing
-into its own pane is refused by the auto-mode classifier as Self-Modification,
-session-open field note 2026-09-30) and never blocks a prompt.
+line every N turns and nothing otherwise. It never renames (session-rename.sh
+writes the request; tools/rename_service.py applies it, Agents-Core #272) and
+never blocks a prompt.
 
 Shape deliberately matches scripts/hook-memory-nudge.py: event JSON on stdin,
 one line on stdout, fail silent with return 0 on any error.

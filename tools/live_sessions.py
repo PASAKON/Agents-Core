@@ -92,6 +92,11 @@ _TMUX_ID_RE = re.compile(r"^([a-z][a-z_]{1,30})-([0-9a-f]{8}):")
 _WORKER_TMUX_RE = re.compile(r"^(?:wd|[a-z0-9][a-z0-9_-]{0,40}-task)-([0-9a-f]{8}):")
 # A launcher tmux name that is not "<role>-<sid>" but still names the role.
 _FIXED_TMUX_ROLE = {"sompong": "coo"}
+# cxo-claude.sh writes the session's full UUID to <role>-<sid>.uuid here; the
+# fixed tmux claims its role only for the session that file names (M10 #7).
+LOCKS_DIR = ROOT / "state" / "locks"
+NAME_ONLY = "[name only]"
+OFF_RULE_LINES = 5
 _C_LEVEL_RE = re.compile(r"^c[a-z]o$")
 _SESSION_FILE_RE = re.compile(r"^\d+\.json$")   # not <pid>.<hash>.key
 
@@ -103,10 +108,12 @@ _BAD_CHARS = ("Cc", "Cf", "Zl", "Zp")   # controls, bidi/format, line and paragr
 _O_SAFE = (getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
            | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_BINARY", 0))
 
-FOOTER = ('send: SendMessage(to=<text after the status>, verbatim). '
+FOOTER = ('send: SendMessage(to=<text after the status, without a trailing [name only]>, verbatim). '
           '"N agents are named X" → re-send with the [ref] the error marks active.')
 STALE_NOTE = ('stale = its host stopped reporting (header); the session may still be live — '
               'send, and trust the send\'s answer over this list.')
+NAME_ONLY_NOTE = ('[name only] = no launcher tmux claims the role; the role is read from '
+                  'the name, which any session can set.')
 STATUS_RANK = {"running": 0, "idle": 1, "unknown": 2, "stale": 3}
 
 _UPSERT_SESSION = (
@@ -171,8 +178,46 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     return "unknown", session_id[-8:]
 
 
+def read_lock(path, limit: int = 256) -> str:
+    """The stripped text of a small lock file, or "". state/locks is group-writable
+    by the secretary service with no sticky bit, so a root reader must not follow a
+    planted symlink (to /dev/zero, a FIFO or a root-only token): a regular file only
+    (_safe_open), at most `limit` bytes, owned by root or by this reader (§2b review
+    of #283 v2, B-1), not group/other writable and with one link, so a root-owned
+    group-writable file (state/logs/*) renamed or hard-linked in is refused (round 3, L-1)."""
+    fd = _safe_open(path, os.O_RDONLY, create=False)
+    if fd is None:
+        return ""
+    try:
+        st = os.fstat(fd)
+        if (st.st_size > limit or st.st_uid not in (0, os.geteuid())
+                or st.st_mode & 0o022 or st.st_nlink != 1):
+            return ""
+        data = os.read(fd, limit + 1)
+    except OSError:
+        return ""
+    finally:
+        os.close(fd)
+    if len(data) > limit:
+        return ""
+    try:
+        return data.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        return ""
+
+
+def _launcher_uuid(role: str, session_id: str) -> bool:
+    """True when the launcher's <role>-<sid>.uuid file names exactly this session."""
+    tail = session_id[-8:]
+    if not re.fullmatch(r"[0-9a-f]{8}", tail):
+        return False
+    return read_lock(LOCKS_DIR / f"{role}-{tail}.uuid") == session_id
+
+
 def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
-    """(role, short id, verified) for one session record. The launcher's tmux
+    """(role, short id, verified) for one session record. "verified" means the
+    launcher's tmux CLAIMS the role, not that anything proves it: a tmux name is
+    only as good as whoever started it. The launcher's tmux
     session name "<role>-<sid>" wins, so an org session is found whatever its
     display name says; a sid that the session UUID does not end in is not
     trusted (a hand-made tmux session with an org-looking name). Otherwise the
@@ -187,7 +232,7 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
         return m.group(1), m.group(2), True
     role, sid = parse_name(name, session_id)
     fixed = _FIXED_TMUX_ROLE.get(tmux.split(":", 1)[0]) if tmux else None
-    if fixed:
+    if fixed and _launcher_uuid(fixed, session_id):
         return fixed, (sid if role == fixed else session_id[-8:]), True
     w = _WORKER_TMUX_RE.match(tmux) if tmux else None
     if tmux and is_listed(role):
@@ -492,10 +537,32 @@ def publish_once(conn, host: str, dirs, prev_uuids) -> set[str]:
     return publish_rows(conn, host, read_registry(dirs), prev_uuids)
 
 
+def _windows_host(host: str) -> bool:
+    try:
+        return _config().host(host).get("os") == "windows"
+    except Exception:   # an unknown host, or no config here: no launcher tmux to expect
+        return True
+
+
+def demote_untmuxed(rows, host: str) -> list[dict]:
+    """On a host whose launchers always start a tmux (Contabo, the Mac), a session
+    with no launcher tmux claiming its role is not given a C-level or PH role from
+    its name alone: role "unknown" (M10 #6). Windows hosts have no tmux; their rows
+    keep the name's role, marked name only."""
+    if _windows_host(host):
+        return rows
+    for r in rows:
+        if not r.get("verified") and is_listed(r["role"]):
+            r["role"] = "unknown"
+            r["address"] = address_for("unknown", r["name"])
+    return rows
+
+
 def publish_rows(conn, host: str, rows, prev_uuids, publisher: str | None = None) -> set[str]:
     """One transaction: upsert every live row, delete this host's rows that were
     published last time and are gone now, upsert ``live_hosts``, and delete this
     host's rows older than a day. Returns the uuids now published."""
+    rows = demote_untmuxed(rows, host)
     now_uuids = {r["uuid"] for r in rows}
     with_v = _has_verified(conn)
     for r in rows:
@@ -864,7 +931,7 @@ def _snapshot_local() -> dict:
     rows = [{"host": host, "uuid": r["uuid"], "sid": r["sid"], "role": r["role"],
              "name": r["name"], "address": r["address"], "status": r["status"],
              "pid": r["pid"], "verified": r.get("verified", False), "age": 0.0}
-            for r in read_registry(session_dirs(host))]
+            for r in demote_untmuxed(read_registry(session_dirs(host)), host)]
     return {"rows": rows, "hosts": {host: {"age": 0.0, "published_at": None}}, "local": True}
 
 
@@ -888,7 +955,38 @@ def _fmt_since(dt, today=None) -> str:
 
 
 def _line(row: dict) -> str:
-    return f"{row['status']:<7}  {row['address']}"
+    mark = "" if row.get("verified") else f"  {NAME_ONLY}"
+    return f"{row['status']:<7}  {row['address']}{mark}"
+
+
+def _claims_listed(row: dict) -> bool:
+    """An "unknown" row whose name reads as a C-level or a PH (M10 #6): shown, marked."""
+    return row["role"] == "unknown" and is_listed(parse_name(row["name"], row["uuid"])[0])
+
+
+def _rule_context(role: str, host: str) -> tuple[str | None, bool]:
+    try:
+        cfg = _config()
+        persona = cfg.persona_for(role) if is_c_level(role) else None
+    except Exception:
+        persona = None
+    return persona or None, _windows_host(host)
+
+
+def off_rule_notes(rows) -> list[str]:
+    """One line per name that breaks the CEO's 14 Oct naming rule (M10), checked by
+    lib/session_names.rule_problem. Rows with no role ("unknown") are not judged."""
+    from lib import session_names
+    out = []
+    for r in rows:
+        persona, windows = _rule_context(r["role"], r["host"])
+        why = session_names.rule_problem(r["name"], r["role"], r["sid"], r["host"],
+                                         persona=persona, windows=windows)
+        if why:
+            out.append(f'name off-rule: "{r["name"]}" ({r["host"]} #{r["sid"]}): {why}')
+    if len(out) > OFF_RULE_LINES:   # the list stays under ~1k tokens
+        out = out[:OFF_RULE_LINES] + [f"name off-rule: +{len(out) - OFF_RULE_LINES} more"]
+    return out
 
 
 def _sort_key(row: dict):
@@ -926,17 +1024,19 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
         mine = [r for r in rows if r["host"] == host]
         c_level = sum(1 for r in mine if is_c_level(r["role"]))
         heads = sum(1 for r in mine if r["role"] == PH_ROLE)
-        workers = len(mine) - c_level - heads
+        claims = sum(1 for r in mine if _claims_listed(r))
+        workers = len(mine) - c_level - heads - claims
         age = "local" if snap["local"] else f"{int(info['age'])}s"
-        extra = (f"+{heads} PH, " if heads else "") + (f"+{workers} workers, " if workers else "")
+        extra = ((f"+{heads} PH, " if heads else "") + (f"+{claims} name only, " if claims else "")
+                 + (f"+{workers} workers, " if workers else ""))
         parts.append(f"{host} {c_level} ({extra}{age})")
-    shown = sorted((r for r in rows if all_roles or is_listed(r["role"])), key=_sort_key)
+    shown = sorted((r for r in rows if all_roles or is_listed(r["role"]) or _claims_listed(r)),
+                   key=_sort_key)
     notes = [STALE_NOTE] if any(r.get("stale") for r in shown) else []
-    unverified = [f"{r['host']} #{r['sid']}" for r in shown if not r.get("verified")]
-    if unverified:
-        notes.append("name only (no launcher tmux confirms the role): " + ", ".join(unverified))
+    if any(not r.get("verified") for r in shown):
+        notes.append(NAME_ONLY_NOTE)
     return "\n".join([" · ".join(parts)] + [_line(r) for r in shown] + [FOOTER]
-                     + duplicate_notes(shown) + notes)
+                     + duplicate_notes(shown) + off_rule_notes(shown) + notes)
 
 
 def duplicate_notes(rows) -> list[str]:
@@ -953,7 +1053,7 @@ def duplicate_notes(rows) -> list[str]:
         if len(group) < 2:
             continue
         where = ", ".join(f"{r['host']} #{r['sid']} "
-                          + ("tmux-confirmed" if r.get("verified") else "name only")
+                          + ("tmux-claimed" if r.get("verified") else "name only")
                           for r in group)
         out.append(f'same name on {len(group)} rows: "{group[0]["address"]}" ({where}) — '
                    f'SendMessage needs "<name> [ref]": take the ref from the ListAgents '
@@ -963,7 +1063,8 @@ def duplicate_notes(rows) -> list[str]:
 
 def _to_json(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_S) -> str:
     rows = sorted((r for r in snap["rows"]
-                   if all_roles or sid is not None or is_listed(r["role"])), key=_sort_key)
+                   if all_roles or sid is not None or is_listed(r["role"]) or _claims_listed(r)),
+                  key=_sort_key)
     if sid is not None:
         want = sid.strip().lstrip("#").lower()
         rows = [r for r in rows if want and (r["sid"] == want or r["uuid"].endswith(want))]
