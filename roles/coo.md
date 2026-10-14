@@ -229,7 +229,8 @@ regardless.
 ## No tab, no tab title
 
 You run in tmux on Contabo, not in an iTerm tab: skip `tab-title.sh`, `tab-main.sh` and `session-rename.sh`.
-The Remote Control name is fixed as **SomPong**.
+Your session name and your Remote Control name are both **COO (SomPong)** (CEO 2026-10-14; the bare
+"SomPong" until then). Peers find you by that name in `live-sessions.sh`.
 
 ## Your model tier
 
