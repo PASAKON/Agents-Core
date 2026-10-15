@@ -39,3 +39,18 @@ Implemented IRON §59 rule 8 ("Claude runs out last") across routing, forecastin
 
 ## Skill learning
 - (none)
+
+## PH review and rework (project_head-6c487e37, 15 Oct)
+- The worker could not run tests (AGY is edit-only). Its tests mocked functions that do not exist
+  (`forecast.estimate_cost`, `route.load_config`, `db.list_stale_locks`); tests/test_route_claude_last.py is
+  rewritten against the real API.
+- tools/forecast.py: a slice error left two pattern lists; fixed. Bare "browser"/"chrome"/"capture" dropped from
+  CLAUDE_TOOL_PATTERNS: frontend dev briefs say them about the product, which would push dev jobs to Claude.
+- tools/worker_reap.py reverted: the launcher hook (launch.sh → `quota_handoff.py --check-stop`) covers the limit
+  stop; close_dev and the reaper keep their semantics. branch_poller only moves `in_progress` rows, so a
+  `rate_limited` row stays parked.
+- Added (CTO Main, CEO 15 Oct): plans.yaml `small_first` (Flash leads size-S dev_general; Argon leads M/L and
+  doc_text) and the Codex bonus (3 full resets, until 7 Nov 04:28 TH).
+- tests/test_route_plan.py: two assertions follow the new rule (a will_hit outside runner now beats ok Claude).
+- Live `route.py --plan` (15 Oct 09:4x TH): developer M → codex, agy-sonnet, Argon, Flash, Claude (will_hit);
+  developer S → Flash before Argon; tester M → codex ok; content_strategist M → Argon, Flash, Claude.

@@ -1,238 +1,164 @@
+"""IRON §59 rule 8 (CEO 15 Oct): Claude runs out last.
+
+With pressure_rule on, every usable outside candidate (ok, unknown, will_hit) ranks ahead of Claude; only a
+`cannot` one falls behind it. Argon leads dev_general and doc_text, Flash leads a size-S dev job, the CMO text
+roles route to doc_text, a brief that needs a Claude-only tool keeps outside runners off it, the Codex bonus
+holds Codex at full until 7 Nov, and a run that stops on its limit is parked as rate_limited for the PH.
+"""
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import json
-import sys
 from pathlib import Path
-from unittest.mock import patch
+import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from lib import db
-from tools import forecast, gc_stale_tasks, quota_handoff, route, worker_reap
+from tools import forecast, quota_handoff  # noqa: E402
+from tools.quota import Quota, apply_bonuses, load_plans  # noqa: E402
+import tools.route as route  # noqa: E402
+from tools.route import pick_runner, plan  # noqa: E402
+
+LIMITS = {
+    "claude": {"plan_usd": 20, "reserve_pct": 50, "min_5h_pct": 30},
+    "agy-gemini": {"plan_usd": 100, "reserve_pct": 10, "min_5h_pct": 10},
+    "codex": {"plan_usd": 20, "reserve_pct": 20, "min_5h_pct": 0},
+}
 
 
-def _cfg() -> dict:
+@pytest.fixture
+def cfg():
     return {
-        "buckets": {
-            "agy-gemini": {
-                "provider": "google",
-                "runner": "agy",
-                "models": ["gemini-4-argon-high", "gemini-3.8-flash-high"],
-            },
-            "agy-claude": {
-                "provider": "anthropic",
-                "runner": "agy",
-                "models": ["claude-sonnet-5-5-high"],
-            },
-            "codex": {
-                "provider": "openai",
-                "runner": "codex",
-                "models": [""],
-            },
-            "claude": {
-                "provider": "anthropic",
-                "runner": "claude",
-                "models": ["claude-sonnet-5-5"],
-            },
-        },
+        "pressure_rule": True,
         "shell_runners": ["claude", "codex"],
-        "roles": {
-            "dev_general": [
-                "agy:gemini-4-argon-high",
-                "agy:gemini-3.8-flash-high",
-                "agy:claude-sonnet-5-5-high",
-                "codex:",
-                "claude:claude-sonnet-5-5",
-            ],
+        "buckets": {
+            "claude": {"provider": "anthropic", "match": ["claude:"]},
+            "codex": {"provider": "openai", "match": ["codex:"]},
+            "agy-gemini": {"provider": "google", "match": ["agy:gemini-"]},
         },
-        "role_classes": {"developer": "dev_general"},
+        "roles": {
+            "dev_general": ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "claude:claude-sonnet-5-5"],
+            "doc_text": ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "claude:claude-sonnet-5-5"],
+        },
+        "role_classes": {"developer": "dev_general", "script_writer": "doc_text"},
+        "small_first": {"dev_general": "agy:gemini-3.8-flash-high"},
         "router": {"tie_points": 5, "min_samples": 5},
     }
 
 
-def _snap(*, agy_gemini_rem=50.0, agy_claude_rem=80.0, codex_rem=50.0, claude_rem=80.0) -> dict:
-    buckets = {}
-    if agy_gemini_rem is not None:
-        buckets["agy-gemini"] = {"weekly_rem": agy_gemini_rem, "daily_rem": agy_gemini_rem, "stale": False}
-    if agy_claude_rem is not None:
-        buckets["agy-claude"] = {"weekly_rem": agy_claude_rem, "daily_rem": agy_claude_rem, "stale": False}
-    if codex_rem is not None:
-        buckets["codex"] = {"weekly_rem": codex_rem, "daily_rem": codex_rem, "stale": False}
-    if claude_rem is not None:
-        buckets["claude"] = {"weekly_rem": claude_rem, "daily_rem": claude_rem, "stale": False}
-    return {"buckets": buckets}
+@pytest.fixture(autouse=True)
+def _hosts(monkeypatch):
+    monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "agy", "codex"])
 
 
-def test_pressure_rule_on_ranks_outside_will_hit_and_unknown_before_ok_claude():
-    cfg = _cfg()
-    # agy-gemini is low (5% rem) -> will_hit (cost 20% > 5% rem)
-    # codex has no snapshot -> unknown
-    # agy-claude and claude have 80% rem -> ok
-    snap = _snap(agy_gemini_rem=5.0, agy_claude_rem=80.0, codex_rem=None, claude_rem=80.0)
-    cost_by = {
-        "agy-gemini": {"cost": 20.0, "n": 5, "basis": "runner=agy"},
-        "codex": {"cost": 10.0, "n": 5, "basis": "runner=codex"},
-        "agy-claude": {"cost": 10.0, "n": 5, "basis": "runner=agy"},
-        "claude": {"cost": 10.0, "n": 5, "basis": "runner=claude"},
-    }
-    with patch.object(forecast, "estimate_cost", side_effect=lambda **kw: cost_by[kw["bucket"]]):
-        plans = route.plan(
-            "dev_general",
-            cfg=cfg,
-            snap=snap,
-            scores={},
-            needs_shell=False,
-            needs_claude_tool=False,
-            pressure_rule=True,
-        )
-
-    by_bucket_verdict = [(p.bucket, p.verdict, route._is_claude(p, cfg)) for p in plans]
-    # All outside candidates (unknown codex, will_hit agy-gemini) must precede ok Claude candidates
-    first_claude_idx = next(i for i, (_, _, is_c) in enumerate(by_bucket_verdict) if is_c)
-    outside_indices = [i for i, (_, _, is_c) in enumerate(by_bucket_verdict) if not is_c]
-    assert max(outside_indices) < first_claude_idx
-
-    codex_idx = next(i for i, (b, v, _) in enumerate(by_bucket_verdict) if b == "codex" and v == "unknown")
-    agy_gem_idx = next(i for i, (b, v, _) in enumerate(by_bucket_verdict) if b == "agy-gemini" and v == "will_hit")
-    assert codex_idx < agy_gem_idx < first_claude_idx
+def _plan(cfg, quotas, role="developer", size="M", **kw):
+    return plan(role, size=size, host="contabo", cfg=cfg, quotas=quotas, skill={}, limits=LIMITS, **kw)
 
 
-def test_cannot_outside_ranks_after_every_claude_candidate():
-    cfg = _cfg()
-    snap = _snap(agy_gemini_rem=80.0, agy_claude_rem=5.0, codex_rem=80.0, claude_rem=5.0)
-    cost_by = {
-        "agy-gemini": {"cost": 10.0, "n": 5, "basis": "runner=agy"},
-        "codex": {"cost": 10.0, "n": 5, "basis": "runner=codex"},
-        "agy-claude": {"cost": 20.0, "n": 5, "basis": "runner=agy"},
-        "claude": {"cost": 20.0, "n": 5, "basis": "runner=claude"},
-    }
-    # needs_shell=True -> agy candidates (including agy-gemini) are `cannot`, while codex is ok_outside
-    # and claude is will_hit_claude. Wait: with needs_claude_tool=True, ALL non-claude (agy-gemini, codex)
-    # get verdict='cannot' and must rank after every Claude candidate (even will_hit Claude).
-    with patch.object(forecast, "estimate_cost", side_effect=lambda **kw: cost_by[kw["bucket"]]):
-        plans = route.plan(
-            "dev_general",
-            cfg=cfg,
-            snap=snap,
-            scores={},
-            needs_shell=False,
-            needs_claude_tool=True,
-            pressure_rule=True,
-        )
-
-    claude_indices = [i for i, p in enumerate(plans) if route._is_claude(p, cfg)]
-    cannot_outside_indices = [
-        i for i, p in enumerate(plans) if not route._is_claude(p, cfg) and p.verdict == "cannot"
-    ]
-    assert claude_indices and cannot_outside_indices
-    assert max(claude_indices) < min(cannot_outside_indices)
-    for idx in cannot_outside_indices:
-        assert plans[idx].why == f"needs a Claude-only tool; {plans[idx].runner} has none"
+def _runners(plans):
+    return [f"{p.choice.runner}:{p.choice.model}:{p.verdict}" for p in plans]
 
 
-def test_pressure_rule_off_keeps_order_unchanged():
-    cfg = _cfg()
-    snap = _snap(agy_gemini_rem=5.0, agy_claude_rem=80.0, codex_rem=None, claude_rem=80.0)
-    cost_by = {
-        "agy-gemini": {"cost": 20.0, "n": 5, "basis": "runner=agy"},
-        "codex": {"cost": 10.0, "n": 5, "basis": "runner=codex"},
-        "agy-claude": {"cost": 10.0, "n": 5, "basis": "runner=agy"},
-        "claude": {"cost": 10.0, "n": 5, "basis": "runner=claude"},
-    }
-    with patch.object(forecast, "estimate_cost", side_effect=lambda **kw: cost_by[kw["bucket"]]):
-        plans_off = route.plan(
-            "dev_general",
-            cfg=cfg,
-            snap=snap,
-            scores={},
-            needs_shell=False,
-            needs_claude_tool=False,
-            pressure_rule=False,
-        )
-
-    # Without pressure_rule, rank() order is preserved (ok buckets with 80% rem beat 5% rem / unknown)
-    assert [f"{p.runner}:{p.model}" for p in plans_off[:2]] == [
-        "agy:claude-sonnet-5-5-high",
-        "claude:claude-sonnet-5-5",
-    ]
+def test_outside_will_hit_ranks_ahead_of_ok_claude(cfg):
+    quotas = {"claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
+              "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.05, daily_remaining=0.5)}
+    plans = _plan(cfg, quotas)
+    assert [p.verdict for p in plans] == ["will_hit", "will_hit", "ok"], _runners(plans)
+    assert plans[-1].choice.runner == "claude"
+    choice = pick_runner("developer", "contabo", size="M", cfg=cfg, quotas=quotas, skill={}, limits=LIMITS)
+    assert choice.runner == "agy"
+    assert not choice.reason.startswith("no ok candidate")  # Claude itself is ok: no CEO alarm
 
 
-def test_needs_claude_tool():
-    assert forecast.needs_claude_tool("capture the footage in Chrome") is True
-    assert forecast.needs_claude_tool("write the script") is False
-    assert forecast.needs_claude_tool("edit-only: the PH runs the tests\ncapture the footage in Chrome") is False
-    assert (
-        forecast.needs_claude_tool(
-            "Use tools/agy_browse.py against http://127.0.0.1:9222 to capture a screenshot in browser"
-        )
-        is False
-    )
+def test_outside_unknown_ranks_ahead_of_ok_claude(cfg):
+    quotas = {"claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0)}
+    plans = _plan(cfg, quotas)
+    assert plans[0].choice.runner == "agy" and plans[0].verdict == "unknown", _runners(plans)
+    assert plans[-1].choice.runner == "claude"
 
 
-def test_plans_yaml_roles_and_role_classes():
-    cfg = route.load_config(ROOT / "config" / "plans.yaml")
-    role_classes = cfg["role_classes"]
-    assert role_classes.get("content_strategist") == "doc_text"
-    assert role_classes.get("script_writer") == "doc_text"
-    assert "prompt_engineer" not in role_classes
+def test_cannot_outside_ranks_after_claude(cfg):
+    quotas = {"claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
+              "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.9, daily_remaining=0.9)}
+    plans = _plan(cfg, quotas, needs_claude_tool=True)
+    assert plans[0].choice.runner == "claude", _runners(plans)
+    assert all(p.verdict == "cannot" for p in plans[1:])
+    assert "needs a Claude-only tool" in plans[1].why
+
+
+def test_pressure_rule_off_keeps_the_old_order(cfg):
+    cfg["pressure_rule"] = False
+    quotas = {"claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
+              "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.05, daily_remaining=0.5)}
+    plans = _plan(cfg, quotas)
+    assert plans[0].choice.runner == "claude" and plans[0].verdict == "ok", _runners(plans)
+
+
+def test_argon_leads_m_and_flash_leads_s(cfg):
+    quotas = {"claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
+              "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.9, daily_remaining=0.9)}
+    assert _plan(cfg, quotas, size="M")[0].choice.model == "gemini-4-argon-high"
+    assert _plan(cfg, quotas, size="L")[0].choice.model == "gemini-4-argon-high"
+    assert _plan(cfg, quotas, size="S")[0].choice.model == "gemini-3.8-flash-high"
+    # doc_text has no small_first entry: Argon first at every size
+    assert _plan(cfg, quotas, role="script_writer", size="S")[0].choice.model == "gemini-4-argon-high"
+
+
+@pytest.mark.parametrize("brief,want", [
+    ("Capture the footage in Chrome and save the clips", True),
+    ("Use mcp__claude-in-chrome__navigate to open the page", True),
+    ("Generate image of the cover with Higgsfield", True),
+    ("Write the EP62 script and the reply pack", False),
+    ("Fix the browser compatibility bug in src/app.js", False),  # the product's browser, not the worker's
+    ("edit-only: text only\n\nCapture the footage in Chrome", False),
+    ("python3 tools/agy_browse.py --cdp http://x screenshot the page", False),
+])
+def test_needs_claude_tool(brief, want):
+    assert forecast.needs_claude_tool(brief) is want
+
+
+def test_live_plans_yaml():
+    cfg = load_plans()
     assert cfg["roles"]["dev_general"][0] == "agy:gemini-4-argon-high"
+    assert cfg["roles"]["doc_text"][0] == "agy:gemini-4-argon-high"
+    assert cfg["roles"]["browser_agy"][0] == "agy:gemini-3.8-flash-high"
+    assert cfg["small_first"]["dev_general"] == "agy:gemini-3.8-flash-high"
+    assert cfg["role_classes"]["content_strategist"] == "doc_text"
+    assert cfg["role_classes"]["script_writer"] == "doc_text"
+    assert "prompt_engineer" not in cfg["role_classes"]
 
 
-def test_quota_stop_sets_rate_limited_and_gc_skips_it(tmp_path, monkeypatch):
-    task_id = "task-1234abcd"
-    launch_dir = tmp_path / f".launch-{task_id}"
-    launch_dir.mkdir()
-    (launch_dir / "agy-events.log").write_text("step 1\nError: RESOURCE_EXHAUSTED: quota exceeded\n")
+def test_codex_bonus_holds_codex_full_until_7_nov():
+    bonuses = load_plans()["bonuses"]
+    q = lambda: Quota(provider="codex", weekly_remaining=0.03, daily_remaining=0.03)  # noqa: E731
+    assert apply_bonuses(q(), bonuses, datetime(2026, 10, 20, tzinfo=timezone.utc)).weekly_remaining == 1.0
+    assert apply_bonuses(q(), bonuses, datetime(2026, 11, 6, 21, 0, tzinfo=timezone.utc)).weekly_remaining == 1.0
+    assert apply_bonuses(q(), bonuses, datetime(2026, 11, 8, tzinfo=timezone.utc)).weekly_remaining == 0.03
 
-    task_row = {
-        "id": task_id,
-        "project": "mooniex-agents",
-        "role": "developer",
-        "title": "Test quota stop",
-        "status": "in_progress",
-        "runner": "agy",
-        "runner_model": "gemini-4-argon-high",
-        "branch": f"worker/{task_id}",
-        "review": None,
-        "retry_after_ts": None,
-        "updated_at": "2026-10-14T00:00:00+00:00",
-        "pid": None,
-    }
 
-    def fake_get_task(tid):
-        return task_row if tid == task_id else None
+def test_a_limit_stop_parks_the_task_for_the_ph(tmp_path, monkeypatch):
+    launch = tmp_path / ".launch-task-x"
+    launch.mkdir()
+    (launch / "agy-events.log").write_text("step 1\nError: RESOURCE_EXHAUSTED: quota exceeded\n")
+    task = {"id": "task-x", "runner": "agy", "review": json.dumps({"merge_sha": None, "keep": 1})}
+    seen = {}
+    monkeypatch.setattr(quota_handoff.db, "update_status",
+                        lambda tid, status, **kw: seen.update(tid=tid, status=status, **kw))
+    assert quota_handoff.record_limit_stop(task, launch_dir=launch) == "RESOURCE_EXHAUSTED"
+    assert seen["tid"] == "task-x" and seen["status"] == "rate_limited"
+    review = json.loads(seen["review"])
+    assert review["quota_stop"] == "RESOURCE_EXHAUSTED" and review["keep"] == 1
+    assert "quota_handoff.py task-x" in review["next"]
 
-    def fake_update_status(tid, status, **kwargs):
-        assert tid == task_id
-        task_row["status"] = status
-        if "review" in kwargs:
-            task_row["review"] = kwargs["review"]
-        if "retry_after_ts" in kwargs:
-            task_row["retry_after_ts"] = kwargs["retry_after_ts"]
 
-    monkeypatch.setattr(db, "get_task", fake_get_task)
-    monkeypatch.setattr(db, "update_status", fake_update_status)
-
-    reap_res = worker_reap.close_dev(task_id, reason="launcher exited", launch_dir=launch_dir)
-    assert reap_res.get("quota_stop") == "RESOURCE_EXHAUSTED"
-    assert task_row["status"] == "rate_limited"
-    assert task_row["retry_after_ts"] is None
-    rev = json.loads(task_row["review"])
-    assert rev["quota_stop"] == "RESOURCE_EXHAUSTED"
-    assert f"python3 tools/quota_handoff.py {task_id}" in rev["next"]
-
-    # Now verify gc_stale_tasks skips this rate_limited row because review.quota_stop is set
-    monkeypatch.setattr(
-        db,
-        "list_tasks",
-        lambda status=None, limit=500: [task_row] if status == "rate_limited" else [],
-    )
-    monkeypatch.setattr(db, "list_stale_locks", lambda max_age_minutes=30: [])
-    monkeypatch.setattr(gc_stale_tasks, "is_local_row", lambda t: True)
-    monkeypatch.setattr(gc_stale_tasks, "_alive_for_gc", lambda t: False)
-
-    cancelled = gc_stale_tasks.gc_stale_tasks(ratelimit_minutes=1)
-    assert cancelled == []
-    assert task_row["status"] == "rate_limited"
+def test_no_limit_text_leaves_the_task_alone(tmp_path, monkeypatch):
+    launch = tmp_path / ".launch-task-y"
+    launch.mkdir()
+    (launch / "agy-events.log").write_text("all done\n")
+    monkeypatch.setattr(quota_handoff.db, "update_status", lambda *a, **k: pytest.fail("must not write"))
+    assert quota_handoff.record_limit_stop({"id": "task-y", "runner": "agy"}, launch_dir=launch) is None
+    assert quota_handoff.record_limit_stop({"id": "task-z", "runner": "claude"}, launch_dir=launch) is None

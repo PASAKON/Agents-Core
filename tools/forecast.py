@@ -123,12 +123,21 @@ def needs_shell(brief: str | None) -> bool:
     )
 
 
+# Phrases that ask the worker itself to drive a browser or a media tool. Bare "browser" or "chrome"
+# are left out on purpose: frontend dev briefs say them about the product, not the worker's tools.
 CLAUDE_TOOL_PATTERNS: list[str] = [
-    "chrome",
-    "browser",
-    "playwright",
+    "claude-in-chrome",
+    "chrome mcp",
+    "in chrome",
+    "browser_operator",
+    "open the browser",
+    "drive the browser",
+    "browser tab",
     "screenshot",
-    "capture",
+    "screen capture",
+    "capture the footage",
+    "capture footage",
+    "footage capture",
     "screen record",
     "mcp__",
     "higgsfield",

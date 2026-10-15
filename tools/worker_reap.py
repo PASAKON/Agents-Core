@@ -409,7 +409,7 @@ def _close_iterm_tab(task_id: str, *, allow_pid: bool) -> bool:
         return False
 
 
-def close_dev(task_id: str, *, reason: str, launch_dir: str | Path | None = None) -> dict:
+def close_dev(task_id: str, *, reason: str) -> dict:
     """End a DEV's process + tmux/ttyd + tab + claimed Chrome tab(s) for
     `task_id`. See module docstring.
 
@@ -443,18 +443,9 @@ def close_dev(task_id: str, *, reason: str, launch_dir: str | Path | None = None
         result["refused"] = "task not found"
         return result
 
-    orig_status = task["status"]
-    quota_stop = None
-    if (task.get("runner") or "").strip().lower() in ("codex", "agy"):
-        from tools import quota_handoff
-        quota_stop = quota_handoff.record_limit_stop(task, launch_dir=launch_dir)
-        if quota_stop:
-            result["quota_stop"] = quota_stop
-            task = db.get_task(task_id) or task
-
-    if orig_status not in REAPABLE_STATUSES and not quota_stop:
+    if task["status"] not in REAPABLE_STATUSES:
         result["refused"] = (
-            f"status={orig_status!r} not in {REAPABLE_STATUSES}"
+            f"status={task['status']!r} not in {REAPABLE_STATUSES}"
         )
         return result
 
@@ -623,8 +614,7 @@ def _remote_kill_command(task_id: str, pid: int | None, os_kind: str) -> list[st
 
 def close_remote(task: dict, *,
                  reason: str = "reaper: terminal status with live surface",
-                 allow_review: bool = False,
-                 launch_dir: str | Path | None = None) -> dict:
+                 allow_review: bool = False) -> dict:
     """End a remote (winbox/contabo) DEV's worker over SSH. See module note
     above and docs/design/multi-host-workers.md.
 
@@ -690,20 +680,9 @@ def close_remote(task: dict, *,
         "stderr": None,
     }
 
-    orig_status = task.get("status")
-    quota_stop = None
-    if task_id and (task.get("runner") or "").strip().lower() in ("codex", "agy"):
-        from tools import quota_handoff
-        quota_stop = quota_handoff.record_limit_stop(task, launch_dir=launch_dir)
-        if quota_stop:
-            result["quota_stop"] = quota_stop
-            fresh_after = db.get_task(task_id)
-            if fresh_after is not None:
-                task = fresh_after
-
-    status = orig_status
+    status = task.get("status")
     allowed_statuses = _TERMINAL_SURFACE_STATUSES | ({"review"} if allow_review else set())
-    if status not in allowed_statuses and not quota_stop:
+    if status not in allowed_statuses:
         result["refused"] = f"status {status} is not terminal"
         return result
 

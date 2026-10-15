@@ -419,7 +419,13 @@ def plan(
             else None
         )
 
-        choices = rank(role_cls, quotas, skill, host=host, cfg=cfg)
+        # plans.yaml small_first: {<class>: <candidate>} puts that candidate first for a size-S job
+        # (CEO 15 Oct: Flash 3.8 is the fast, cheap one; Argon, the smart one, leads M and L).
+        rank_cfg = cfg
+        small = (cfg.get("small_first") or {}).get(role_cls)
+        if size == "S" and small in (roles.get(role_cls) or []):
+            rank_cfg = {**cfg, "roles": {**roles, role_cls: [small] + [c for c in roles[role_cls] if c != small]}}
+        choices = rank(role_cls, quotas, skill, host=host, cfg=rank_cfg)
         plans: list[Plan] = []
         for c in choices:
             bucket = c.bucket

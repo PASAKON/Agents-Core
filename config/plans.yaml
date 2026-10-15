@@ -16,7 +16,8 @@ targets:
   google:    {usd: 100, from: "2026-10-14"}
   openai:    {usd: 20,  from: "2026-10-14"}
 # Free grants / surprise resets: {provider, from, to, note}. While active the provider is treated as weekly=1.0.
-bonuses: []
+bonuses:
+  - {provider: openai, from: "2026-10-15", to: "2026-11-07T04:28:00+07:00", note: "Codex: 3 full resets (exp 23 Oct 02:22, 30 Oct 00:34, 7 Nov 04:28 TH), auto reset below 10% (CEO 15 Oct)"}
 buckets:              # one limit that runs out; a candidate "runner:model" belongs to the first bucket whose match prefix it starts with
   claude:     {provider: anthropic, match: ["claude:"]}
   codex:      {provider: openai,    match: ["codex:"]}
@@ -58,6 +59,10 @@ role_classes:
   content_strategist: doc_text  # copy, voice, positioning text; its skills are writing guides, not tools
   script_writer: doc_text       # scripts are text; a BL brief that also asks for footage capture or a browser is caught by needs_claude_tool and falls to Claude
   # NOT prompt_engineer: its job includes MCP servers, tool schemas and running evals (shell + code).
+# size-S jobs in these classes put this candidate first (tools/route.plan). CEO 15 Oct: Flash 3.8 is the fast,
+# cheap one, Argon the smart one; Argon leads M and L. doc_text keeps Argon first at every size.
+small_first:
+  dev_general: "agy:gemini-3.8-flash-high"
 router:
   tie_points: 5          # weekly remaining within 5 percentage points = tie, go to daily
   min_samples: 5         # skill score needs >= 5 reviewed tasks, else treated as unknown
