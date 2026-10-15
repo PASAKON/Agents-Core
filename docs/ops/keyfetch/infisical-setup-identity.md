@@ -15,3 +15,4 @@ Task-b1b251f0, 2026-10-13. What the keyfetch runs need from Infisical, and what 
   `PROJECT_FOLDERS`. `/spend-guard` in Agents-Core prod was created with a one-off call (`Org.send POST /api/v2/folders`) because it
   is not in that table yet; add it there if `apply` should own it.
 - Do not open `/etc/infisical/*.env`; the tools read them.
+- 2026-10-15 (task-fb4b47df): on Contabo (Node 20.20) the script dies with `ReferenceError: WebSocket is not defined`; run it with `NODE_OPTIONS=--experimental-websocket`. Browser Home `infisical` was on :9281 and still signed in; dry, mint, 2 puts and revoke (1 of 1) all passed.
