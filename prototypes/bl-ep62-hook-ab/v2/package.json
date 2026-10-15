@@ -1,0 +1,17 @@
+{
+  "name": "bl-ep62-hook-v2",
+  "private": true,
+  "scripts": {
+    "render": "remotion render src/index.ts Hook out/hook-v2.mp4 --codec h264 --concurrency 1"
+  },
+  "dependencies": {
+    "remotion": "4.0.532",
+    "@remotion/cli": "4.0.532",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/react": "18.3.12"
+  }
+}

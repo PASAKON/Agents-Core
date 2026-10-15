@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* ============================ BL KIT ============================
+         BLACK LIQUIDITY video kit. Catalogue and rationale: BL-KIT.md
+         Theme (CEO 2026-09-18): black / red / white, red always emissive neon.
+         Motion grammar is measured off the reference edit, not chosen:
+         every reveal is expo.out, text arrives by clip-path wipe (never a
+         fade), rules scale from a left or top origin.
+         ================================================================ */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      :root {
+        --ink:    #07080A;
+        --red:    #E0202F;
+        --neon:   #FF2D40;
+        --white:  #F4F6F7;
+        --yellow: #F4DF14;
+        --muted:  #98A0A8;
+        --line:   rgba(255,255,255,.12);
+        --glow-s: 0 0 10px rgba(255,45,64,.55);
+        --glow-m: 0 0 22px rgba(255,45,64,.55), 0 0 44px rgba(255,45,64,.22);
+        --outline: 0 0 10px rgba(0,0,0,.95), 0 4px 18px rgba(0,0,0,.9),
+                   2px 2px 0 rgba(0,0,0,.92), -2px 2px 0 rgba(0,0,0,.92),
+                   2px -2px 0 rgba(0,0,0,.92), -2px -2px 0 rgba(0,0,0,.92);
+
+        /* TikTok safe area, in this canvas's own pixels. TikTok's published
+           spec is a 540x960 reference with margins 126 top / 60 left /
+           120 right / 378 bottom; doubled, that is what sits below. Measured
+           against a real post on the CEO's phone (1188x2576, 2026-09-18):
+           a 9:16 video is scaled to COVER a 19.5:9 screen, so 97px of each
+           side is cropped off the frame entirely and never seen, the app's
+           own top nav sits over y 138-186, the right rail over x 873-983
+           below y ~960, and the scrub bar over y ~1789. Nothing the audience
+           must read may leave this box. */
+        --safe-top:    252px;
+        --safe-left:   120px;
+        --safe-right:  240px;   /* right rail: content must end by x=840 */
+        --safe-bottom: 756px;   /* caption + scrub bar: end by y=1164 */
+      }
+
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
+      #root { position: relative; width: 100%; height: 100%;
+              background: var(--ink); color: var(--white); font-family: Kanit, sans-serif; }
+
+      .clip { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+      video.clip { object-fit: cover; }
+
+      /* Avatar composite — matted avatar over a real-footage/B-roll plate.
+         Measured off the CEO's paid (฿1300) editor cut (task-4bce29e5,
+         2026-09-23; contact sheet + numbers in the skill's field notes),
+         n=10 composite frames: height 55.8% ±3.1 of the 1920 frame (min
+         52.9 max 64.0), top edge at 44.2% ±3.1 down the frame (y≈850px),
+         x-center ≈37% (left of centre), ALWAYS cut off by the frame
+         bottom — chest-up only, never full body. Full-frame avatar shots
+         measured separately at 88.7% height / 11.3% top / 52.4% x-center
+         (n=2) for comparison — that is the OTHER mode, not this one; do
+         not blend the two.
+         Use a <video class="avatar-comp" src="media/matte/lip_a-matte.webm">
+         made by `bl_tools.py matte`, layered above the plate (z-index 2)
+         and below kinetic text (.stage is z-index 30) so a block can still
+         wipe in over the avatar's head, same as the reference. */
+      .avatar-comp { position: absolute; left: 0; bottom: 0; z-index: 2;
+                     height: 56%; width: auto; object-fit: contain;
+                     object-position: left bottom; transform: translateX(-6%); }
+      /* Darken+blur a B-roll/chart plate behind a composited avatar —
+         measured mean luminance ~20-40/255 on those plates (naturally dark
+         source, not necessarily graded darker; verify before assuming).
+         Do NOT apply this to a real-footage screenshot plate (rule 5a) —
+         measured those at ~230+/255, essentially undarkened, because the
+         text on them has to stay legible. Apply by hand, never blindly. */
+      .plate-darkened { filter: brightness(.4) saturate(.85) blur(1.5px); }
+
+      .bl-bg { position: absolute; inset: 0; z-index: 0; opacity: 1;   /* under the clips: footage covers it, text plates show it */
+               background: radial-gradient(130% 62% at 50% 6%, rgba(224,32,47,.20), transparent 62%),
+                           var(--ink); }
+      .bl-bg .grid { position: absolute; inset: 0; opacity: .5;
+        background-image: linear-gradient(rgba(255,45,64,.07) 2px, transparent 2px),
+                          linear-gradient(90deg, rgba(255,45,64,.07) 2px, transparent 2px);
+        background-size: 108px 108px; }
+      .bl-bg .scan { position: absolute; inset: 0; opacity: .35;
+        background: repeating-linear-gradient(rgba(255,255,255,.035) 0 2px, transparent 2px 6px); }
+
+      .stage { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+      /* Every overlay block lives inside the TikTok safe box. left was 62 and
+         right was 62 until 2026-09-18: 62 is inside the 97px the phone crops,
+         so the first characters of a left-aligned line were physically cut
+         off the screen, and the right edge ran under the like/comment rail. */
+      .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             opacity: 0; text-align: center; }
+      /* Thai writes without spaces between words, and the render's Chrome has no
+         ICU Thai dictionary, so it breaks a line wherever it runs out of room —
+         on EP54 that split สเปรด as "...ของส" / "เปรด...". `lang="th"` is set and
+         does NOT prevent this: the breaking happens in the render's Chrome.
+         `word-break: keep-all` does not prevent it either — CSS Text 3 scopes
+         keep-all to the CJK line-break classes (NU/AL/AI/ID); Thai is class SA
+         and is untouched. Measured, not assumed: the identical break rendered
+         with and without keep-all, and a ZWSP only ADDS a break opportunity
+         without removing the others.
+         What works is white-space: nowrap on the run itself. Wrap any Thai word
+         that must never split in <span class="nb">…</span>. No gate can see a
+         mid-word break — read the Thai in the rendered frame, as words. */
+      .nb { white-space: nowrap; }
+      /* Only for a block that ENDS above y=900 — above the rail the right
+         margin can come back in to 120. Never on anything lower. */
+      .blk.wide { right: var(--safe-left); }
+      .blk.l { text-align: left; }
+
+      .bl-xl { font-weight: 800; font-size: 104px; line-height: 1.26; text-shadow: var(--outline); }
+      .bl-lg { font-weight: 800; font-size:  82px; line-height: 1.28; text-shadow: var(--outline); }
+      .bl-md { font-weight: 800; font-size:  62px; line-height: 1.32; text-shadow: var(--outline); }
+      .bl-sm { font-weight: 600; font-size:  44px; line-height: 1.38; text-shadow: var(--outline); }
+      .bl-xs { font-weight: 600; font-size:  34px; line-height: 1.30; color: var(--muted); }
+      .y { color: var(--yellow); }
+      .n { color: var(--neon); text-shadow: var(--outline), var(--glow-s); }
+      .wipe { display: inline-block; clip-path: inset(0 100% 0 0); }
+
+      .bl-rule  { display: block; height: 8px; border-radius: 4px; background: var(--neon);
+                  box-shadow: var(--glow-m); transform: scaleX(0); transform-origin: left center; }
+      .bl-vline { position: absolute; width: 7px; border-radius: 4px;
+                  background: linear-gradient(var(--red), var(--neon));
+                  box-shadow: var(--glow-s); transform: scaleY(0); transform-origin: top center; }
+
+      .bl-card { position: relative; background: rgba(10,11,13,.78);
+                 border: 2px solid var(--line); border-left: 10px solid var(--neon);
+                 border-radius: 20px; padding: 26px 32px; text-align: left;
+                 box-shadow: 0 22px 50px rgba(0,0,0,.55), -14px 0 26px -12px rgba(255,45,64,.55); }
+      .bl-card .nm { font-family: Archivo, sans-serif; font-weight: 800; font-size: 52px;
+                     letter-spacing: -.01em; line-height: 1.20; }
+      .bl-card .cl { font-weight: 600; font-size: 38px; color: #D7DCE0; margin-top: 6px; }
+      .bl-card .badge { position: absolute; right: 24px; top: 22px; background: var(--red);
+                        color: #fff; font-weight: 800; font-size: 24px; padding: 7px 15px;
+                        border-radius: 10px; letter-spacing: .04em; box-shadow: var(--glow-s); }
+
+      .bl-rulecard .idx { width: 118px; height: 118px; border-radius: 50%;
+                          border: 4px solid var(--neon); box-shadow: var(--glow-m);
+                          display: flex; align-items: center; justify-content: center;
+                          font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                          color: var(--neon); }
+      .bl-rulecard .hd  { font-weight: 800; font-size: 72px; line-height: 1.30;
+                          margin-top: 28px; text-shadow: var(--outline); }
+      .bl-rulecard .dt  { font-weight: 600; font-size: 44px; line-height: 1.34;
+                          color: #CBD2D8; margin-top: 18px; }
+
+      .bl-row { display: flex; align-items: flex-start; gap: 22px; text-align: left;
+                background: rgba(10,11,13,.78); border: 2px solid var(--line);
+                border-radius: 18px; padding: 22px 26px; }
+      .bl-row .tick { flex: none; width: 46px; height: 46px; border-radius: 50%;
+                      background: var(--neon); box-shadow: var(--glow-s); color: #12060A;
+                      font-family: Archivo, sans-serif; font-weight: 800; font-size: 26px;
+                      display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+      .bl-row .tx { font-weight: 600; font-size: 42px; line-height: 1.26; }
+
+      .bl-stat .big { font-family: Archivo, sans-serif; font-weight: 800; font-size: 156px;
+                      line-height: .96; color: var(--neon); text-shadow: var(--outline), var(--glow-m); }
+      .bl-stat .lb  { font-weight: 600; font-size: 42px; color: #D7DCE0; margin-top: 12px;
+                      text-shadow: var(--outline); }   /* was missing; failed contrast over bright plates (BL50) */
+
+
+      /* Standing legal label — on every frame of every episode, never animated.
+         The CEO ruled on 2026-09-17 that a ป้ายเตือน goes on every Forex surface,
+         and the statute this answers to is the one aimed at the marketing layer:
+         BOT's 25 Jun 2026 statement puts anyone who "โฆษณา ประกาศ หรือชักชวน
+         ประชาชน" to trade FOREX under พ.ร.ก. การกู้ยืมเงินที่เป็นการฉ้อโกงประชาชน
+         2527, with no carve-out for promising no returns. A label does not cure
+         conduct — it states intent, and the script has to match it. */
+      /* y was 1790 until 2026-09-18. Measured on a real post on the CEO's own
+         phone that same day: TikTok's scrub bar sits at video y~1789 and its
+         caption block starts at y~1550, so a label at 1790 is drawn under the
+         player's own chrome and cannot be read. 1430 is the lowest line that
+         is still clear of both and still inside the frame the CEO drew. */
+      .bl-legal { position: absolute; left: var(--safe-left); right: var(--safe-right);
+                  top: 1430px; z-index: 45;
+                  font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
+                  line-height: 1.35; text-align: center; color: #B9C0C6;
+                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1);
+                  /* A text-shadow (even the kit's own --outline 4-way stroke) does
+                     NOT satisfy hyperframes check's WCAG contrast pass against a
+                     bright plate — verified 2026-09-23 (task-4bce29e5): swapping to
+                     --outline alone still failed at 1.6:1. Only an actual opaque
+                     backing works, same trick .bl-card/.bl-row already use. Only
+                     needed once a real-footage plate (rule 5a) can fill the WHOLE
+                     frame bright behind this label; harmless on the kit's normal
+                     dark backgrounds. */
+                  background: rgba(7,8,10,.72); padding: 8px 24px;
+                  border-radius: 10px; width: fit-content; margin: 0 auto; }
+      /* Brand bug — the channel's real logo, same place on every clip.
+         `left/top` and the logo height are fixed: the audience recognises the
+         mark by where it sits, and a bug that drifts between episodes reads as
+         a different channel. The date is the day the episode was MADE, not the
+         day it is posted — posting lands 0-2 days later and the made-on date is
+         what everything else references. */
+      .bug { position: absolute; right: 150px; top: 310px; z-index: 40;
+             display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+      .bug .logo { height: 60px; width: auto; display: block;
+                   filter: drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
+      .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                 letter-spacing: .06em; color: #fff; text-shadow: var(--outline); line-height: .92; }
+      .bug .b2 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 54px;
+                 letter-spacing: .10em; color: var(--neon); line-height: .92;
+                 text-shadow: var(--outline), var(--glow-s); }
+      .bug .rl { width: 74px; height: 5px; background: var(--neon); border-radius: 3px;
+                 box-shadow: var(--glow-s); }
+      .bug .dt2 { font-weight: 600; font-size: 24px; color: #E8EAEC; letter-spacing: .02em;
+                  text-shadow: var(--outline);
+                  /* same contrast gap and same fix as .bl-legal above - the
+                     stroke alone does not pass over a bright real-footage plate. */
+                  background: rgba(7,8,10,.72); padding: 3px 10px; border-radius: 6px; }
+
+      /* y was 1600: that is inside TikTok's own caption + username block
+         (measured y 1550-1700 on a real post, 2026-09-18), so the subtitle was
+         being read through the app's text. 1300 keeps it low in frame and clear. */
+      .caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+      /* ONE caption look, every mode -- SKILL.md §6f, CEO ruling 2026-09-25.
+         EP55's approved `.cap.band` (prototypes/bl55-cut/index.html:291-292),
+         now the template's only `.cap`: EP57 shipped three different looks
+         (a 38px chip whose height changed per line, a flat full-width strip,
+         plain outlined text with no backing) because its generator branched
+         style on the beat's mode. The `caption()` generator below has no such
+         branch, so every call produces exactly this. Do not add a modifier
+         class or an inline style override back in -- that is how the bug
+         happened the first time. The one exception is `caption()`'s optional 4th
+         argument, the pill's centre y: a COMP beat's caption sits above the
+         avatar's head instead of on its face (task-f35f2935, §6f). */
+      .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             top: 0; transform: translateY(-50%);
+             text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
+             line-height: 1.28; text-shadow: var(--outline);
+             /* balance: never a one-word last line (EP58 "ไม่ได้", "ถอน"; CMO ruling 2026-10-01) */
+             text-wrap: balance;
+             background: rgba(5,6,8,.90); padding: 20px 30px;
+             border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
+
+      /* EP62 Hook V1 styles */
+      .top-grad {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 640px;
+        background: linear-gradient(180deg, rgba(7,8,10,0.88) 0%, rgba(7,8,10,0.68) 60%, rgba(7,8,10,0) 100%);
+        z-index: 25;
+        pointer-events: none;
+      }
+      .hl-box {
+        position: absolute;
+        border: 6px solid #FFD60A;
+        border-radius: 8px;
+        background: rgba(255,214,10,0.10);
+        box-shadow: 0 0 18px rgba(255,214,10,0.45);
+        z-index: 5;
+        pointer-events: none;
+        transform-origin: left center;
+      }
+      .hl-banner {
+        position: absolute;
+        left: 120px;
+        top: 300px;
+        width: 636px;
+        text-align: left;
+        background: linear-gradient(180deg, rgba(7,8,10,0.86) 0%, rgba(7,8,10,0.68) 100%);
+        padding: 16px 24px 18px 24px;
+        border-radius: 18px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.55);
+      }
+      .hl-l1 {
+        font-family: Kanit, sans-serif;
+        font-weight: 800;
+        font-size: 76px;
+        line-height: 1.14;
+        color: #FFFFFF;
+        text-shadow: var(--outline);
+        white-space: nowrap;
+      }
+      .hl-l2 {
+        font-family: Kanit, sans-serif;
+        font-weight: 800;
+        font-size: 92px;
+        line-height: 1.14;
+        color: #FFD60A;
+        text-shadow: var(--outline);
+        white-space: nowrap;
+        margin-top: 2px;
+      }
+      .hl-credit {
+        font-family: Kanit, sans-serif;
+        font-weight: 600;
+        font-size: 30px;
+        line-height: 1.28;
+        color: rgba(255,255,255,0.85);
+        text-shadow: var(--outline);
+        white-space: nowrap;
+        margin-top: 8px;
+      }
+      .hl-small-line {
+        font-family: Kanit, sans-serif;
+        font-weight: 800;
+        font-size: 52px;
+        line-height: 1.20;
+        color: #FFFFFF;
+        text-shadow: var(--outline);
+        white-space: nowrap;
+      }
+      .pill-box {
+        display: inline-block;
+        max-width: 720px;
+        background: rgba(5,6,8,0.72);
+        padding: 18px 28px;
+        border-radius: 20px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+      }
+      .clock-pill {
+        display: inline-block;
+        background: rgba(5,6,8,0.64);
+        padding: 10px 34px;
+        border-radius: 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+      }
+      .clock-tx {
+        font-family: Archivo, Kanit, sans-serif;
+        font-weight: 800;
+        font-size: 150px;
+        line-height: 1.05;
+        color: #FFFFFF;
+        text-shadow: var(--outline);
+        white-space: nowrap;
+      }
+      .stamp-label {
+        display: inline-block;
+        font-family: Archivo, sans-serif;
+        font-weight: 800;
+        font-size: 64px;
+        line-height: 1.08;
+        letter-spacing: 0.04em;
+        color: #E5202E;
+        border: 6px solid #E5202E;
+        border-radius: 12px;
+        padding: 12px 30px;
+        background: rgba(7,8,10,0.84);
+        text-shadow: var(--outline);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.65), 0 0 22px rgba(229,32,46,0.35);
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="15"
+         data-width="1080" data-height="1920">
+
+      <!-- VIDEO TRACK -->
+      <!-- OPEN: 0.00 - 1.00 -->
+      <img id="plate-open" class="clip" src="media/cxm-post-claim.png"
+           style="top:0;left:0;width:1080px;height:1920px;filter:brightness(0.55)"
+           data-start="0" data-duration="1.00" data-track-index="0">
+
+      <!-- HOOK-1: 1.00 - 3.57 -->
+      <video id="plate-hook1" class="clip" src="media/broll-12.mp4" muted playsinline
+             style="filter:brightness(0.50)"
+             data-start="1.00" data-duration="2.57" data-media-start="0" data-track-index="0"></video>
+
+      <!-- HOOK-2: 3.57 - 6.43 -->
+      <div id="wrap-hook2" class="clip" style="top:0;left:0;width:1080px;height:1920px">
+        <img id="plate-hook2" class="clip" src="media/cxm-post-claim.png"
+             style="top:0;left:0;width:1080px;height:1920px;filter:brightness(0.80)"
+             data-start="3.57" data-duration="2.86" data-track-index="0">
+        <div id="hl-hook2" class="hl-box" style="left:120px;top:850px;width:720px;height:60px"></div>
+      </div>
+
+      <!-- HOOK-3: 6.43 - 9.27 -->
+      <div id="wrap-hook3" class="clip" style="top:0;left:0;width:1080px;height:1920px">
+        <img id="plate-hook3" class="clip" src="media/cxm-post-account.png"
+             style="top:0;left:0;width:1080px;height:1920px;filter:brightness(0.80)"
+             data-start="6.43" data-duration="2.84" data-track-index="0">
+        <div id="hl-hook3" class="hl-box" style="left:120px;top:818px;width:720px;height:55px"></div>
+      </div>
+
+      <!-- HOOK-4: 9.27 - 11.67 -->
+      <video id="plate-hook4" class="clip" src="media/avatar.mp4" muted playsinline
+             style="top:0;left:0;width:1080px;height:1920px;object-fit:cover;object-position:center center"
+             data-start="9.27" data-duration="2.40" data-media-start="9.27" data-track-index="0"></video>
+
+      <!-- PATTERN-1: 11.67 - 13.97 -->
+      <video id="plate-pattern1" class="clip" src="media/broll-29.mp4" muted playsinline
+             style="filter:brightness(0.60)"
+             data-start="11.67" data-duration="2.30" data-media-start="0" data-track-index="0"></video>
+      <div id="card-pattern1"
+           style="position:absolute;left:110px;top:600px;width:860px;height:313px;overflow:hidden;border-radius:24px;border:2px solid rgba(255,255,255,0.20);box-shadow:0 20px 48px rgba(0,0,0,0.60);z-index:2"
+           data-start="11.67" data-duration="2.30" data-track-index="1">
+        <img src="media/cxm-post-account.png"
+             style="position:absolute;left:0;top:-607.6px;width:860px;height:1528.9px;display:block"
+             data-start="11.67" data-duration="2.30" data-track-index="1">
+      </div>
+
+      <!-- PATTERN-2: 13.97 - 15.00 -->
+      <img id="plate-pattern2" class="clip" src="media/cxm-post-full.png"
+           style="top:0;left:0;width:1080px;height:1920px;filter:brightness(0.80)"
+           data-start="13.97" data-duration="1.03" data-track-index="0">
+
+      <audio id="va" src="media/audio-0-15.wav" data-start="0" data-duration="15"
+             data-track-index="5" data-volume="1"></audio>
+
+      <div class="bl-bg" id="bg"><div class="grid"></div><div class="scan"></div></div>
+      <div class="top-grad" id="top-grad"></div>
+    <!-- legal label: present on every frame, never animated, never moved -->
+    <div class="bl-legal">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</div>
+
+      <div class="stage" id="stage"></div>
+
+      <div class="bug" id="bug">
+        <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
+        <div class="rl"></div>
+        <div class="dt2">14 ต.ค. 69</div>
+      </div>
+
+      <div class="caplayer" id="caps"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var stage = document.getElementById("stage");
+      var tl = gsap.timeline({ paused: true });
+      var E = "expo.out";
+
+      function el(h) { var d = document.createElement("div"); d.innerHTML = h; return d.firstElementChild; }
+      function show(s, at) { tl.to(s, { opacity: 1, duration: 0.12, ease: "power1.out" }, at); }
+      function hide(s, at) { tl.to(s, { opacity: 0, duration: 0.18, ease: "power1.in" }, at); }
+      function wipe(s, at, d) {
+        tl.fromTo(s, { clipPath: "inset(0 100% 0 0)" },
+                     { clipPath: "inset(0 0% 0 0)", duration: d || 0.60, ease: E }, at); }
+      function sweep(s, at, d) { tl.fromTo(s, { scaleX: 0 }, { scaleX: 1, duration: d || 0.8, ease: E }, at); }
+      function grow(s, at, d)  { tl.fromTo(s, { scaleY: 0 }, { scaleY: 1, duration: d || 0.9, ease: E }, at); }
+      function slide(s, at, d) { tl.fromTo(s, { opacity: 0, x: -64 }, { opacity: 1, x: 0, duration: d || 0.7, ease: E }, at); }
+      function drop(s, at, d)  { tl.fromTo(s, { opacity: 0, y: 44 }, { opacity: 1, y: 0, duration: d || 0.6, ease: "power3.out" }, at); }
+
+      /* CONTENT: the background is only up where no video plate is underneath.
+         One [start, end] pair per uncovered stretch. If no plate returns before
+         the end of the cut, use a bare show() with no matching hide(). */
+      // #bg is always on and under the clips (z 0) - no window list, see the CSS note.
+
+      var B = 0;
+      function block(cls, top, at, out) {
+        var id = "b" + (++B);
+        var d = el('<div class="blk ' + (cls || "") + '" id="' + id + '" style="top:' + top + 'px"></div>');
+        stage.appendChild(d); show("#" + id, at); if (out) hide("#" + id, out);
+        return { id: id, node: d };
+      }
+
+      // Never wrap mid-word (SKILL.md §6b: the render's Chrome has no ICU
+      // Thai dictionary, so a line that's allowed to wrap breaks wherever
+      // it runs out of room, mid-syllable -- "วิกิ"/"เอฟเอ็กซ์",
+      // "เช็"/"ก", task-9a4f1029's own pilot). Each `lines[]` entry is
+      // meant to be ONE line by design ("1-3 lines of headline text") --
+      // force that with nowrap so it can never silently re-wrap, then
+      // shrink the line's own font-size to fit the safe box, down to a
+      // floor. A line that still doesn't fit at the floor throws instead
+      // of shipping a clipped or overflowing frame.
+      var KINETIC_FONT_FLOOR = 32; // px -- .bl-xs (34px) is the kit's own smallest readable size
+      function fitKineticLine(span, safeW) {
+        span.style.whiteSpace = "nowrap";
+        var size = parseFloat(window.getComputedStyle(span).fontSize);
+        for (var i = 0; i < 8; i++) {
+          var w = span.getBoundingClientRect().width;
+          if (w <= safeW) return;
+          if (size <= KINETIC_FONT_FLOOR) break;
+          size = Math.max(KINETIC_FONT_FLOOR, Math.floor(size * (safeW / w) * 0.97));
+          span.style.fontSize = size + "px";
+        }
+        var finalW = span.getBoundingClientRect().width;
+        if (finalW > safeW) {
+          throw new Error('kinetic(): line "' + span.textContent + '" is ' + Math.round(finalW) +
+            'px wide, still over the ' + Math.round(safeW) + 'px safe box at the ' +
+            KINETIC_FONT_FLOOR + 'px floor -- split it into more kinetic lines.');
+        }
+      }
+
+      function kinetic(top, at, out, lines, ruleW) {
+        var b = block("", top, at, out), t = at + 0.05;
+        var safeW = b.node.getBoundingClientRect().width;
+        lines.forEach(function (ln, i) {
+          var w = b.id + "w" + i;
+          b.node.appendChild(el('<div class="' + ln.c + '" style="margin-top:' + (i ? 18 : 0) + 'px">' +
+            '<span class="wipe" id="' + w + '">' + ln.h + '</span></div>'));
+          fitKineticLine(document.getElementById(w), safeW);
+          wipe("#" + w, t, ln.d || 0.60); t += (ln.g || 0.62); });
+        if (ruleW) {
+          var r = b.id + "r";
+          b.node.appendChild(el('<div style="position:relative;height:8px;margin:24px auto 0;width:' +
+            ruleW + 'px"><span class="bl-rule" id="' + r + '"></span></div>'));
+          sweep("#" + r, t, 0.85); }
+        return b;
+      }
+
+      function cards(top, at, out, title, items, visible) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        /* the stack scrolls; without a clipped window the oldest cards ride up
+           over the brand bug, which the layout inspector catches as overlap */
+        var wrap = el('<div style="margin-top:30px;overflow:hidden"></div>');
+        var inner = el('<div id="' + b.id + 'i" style="display:flex;flex-direction:column;gap:18px"></div>');
+        wrap.appendChild(inner); b.node.appendChild(wrap);
+        items.forEach(function (it, i) {
+          var c = b.id + "c" + i;
+          inner.appendChild(el('<div class="bl-card" id="' + c + '"><div class="badge">อ้าง</div>' +
+            '<div class="nm">' + it.n + '</div><div class="cl">' + it.c + '</div></div>'));
+          tl.set("#" + c, { opacity: 0 }, 0);
+          slide("#" + c, it.t, 0.62);
+          if (i > 0) tl.to("#" + b.id + "c" + (i - 1), { opacity: 0.4, duration: 0.4, ease: "power2.inOut" }, it.t);
+        });
+        /* pitch has to come from the rendered card, not a guess - see the clipped
+           half-cards the layout pass caught when this was hard-coded */
+        var pitch = inner.children.length > 1
+          ? inner.children[1].offsetTop - inner.children[0].offsetTop
+          : inner.children[0].offsetHeight + 18;
+        wrap.style.height = (pitch * visible) + "px";
+        items.forEach(function (it, i) {
+          if (i >= visible) tl.to("#" + b.id + "i",
+            { y: -(i - visible + 1) * pitch, duration: 0.6, ease: E }, it.t); });
+        return b;
+      }
+
+      function check(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var box = el('<div style="margin-top:28px;display:flex;flex-direction:column;gap:16px"></div>');
+        b.node.appendChild(box);
+        items.forEach(function (it, i) {
+          var r = b.id + "r" + i;
+          box.appendChild(el('<div class="bl-row" id="' + r + '"><div class="tick">' +
+            (it.k || (i + 1)) + '</div><div class="tx">' + it.x + '</div></div>'));
+          tl.set("#" + r, { opacity: 0 }, 0); slide("#" + r, it.t, 0.55); });
+        return b;
+      }
+
+      function rules(top, items) {
+        items.forEach(function (it) {
+          var b = block("l", top, it.t - 0.10, it.o);
+          var i2 = b.id + "i", h2 = b.id + "h", d2 = b.id + "d", r2 = b.id + "u";
+          b.node.appendChild(el('<div class="bl-rulecard">' +
+            '<div class="idx" id="' + i2 + '">' + it.n + '</div>' +
+            '<div class="hd"><span class="wipe" id="' + h2 + '">' + it.h + '</span></div>' +
+            '<div class="dt"><span class="wipe" id="' + d2 + '">' + it.d + '</span></div>' +
+            '<div style="position:relative;height:8px;margin:26px 0 0;width:460px">' +
+            '<span class="bl-rule" id="' + r2 + '"></span></div></div>'));
+          tl.fromTo("#" + i2, { scale: 0.55, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)", transformOrigin: "50% 50%" }, it.t);
+          wipe("#" + h2, it.t + 0.22, 0.62);
+          wipe("#" + d2, it.t + 0.72, 0.60);
+          sweep("#" + r2, it.t + 1.10, 0.8); });
+      }
+
+      function stats(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var row = el('<div style="margin-top:44px;display:flex;justify-content:center;gap:54px"></div>');
+        b.node.appendChild(row);
+        items.forEach(function (it, i) {
+          var s = b.id + "s" + i;
+          row.appendChild(el('<div class="bl-stat" id="' + s + '"><div class="big">' + it.b +
+            '</div><div class="lb">' + it.l + '</div></div>'));
+          tl.set("#" + s, { opacity: 0 }, 0);
+          tl.fromTo("#" + s, { opacity: 0, y: 40, scale: 0.86 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)", transformOrigin: "50% 50%" }, it.t); });
+        return b;
+      }
+
+      var CAPN = 0;
+      function caption(at, out, text, cy) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        if (cy !== undefined) d.style.top = (cy - 1300) + "px";   /* the pill's CENTRE y; .caplayer is at 1300 (§6f) */
+        document.getElementById("caps").appendChild(d);
+        show("#" + id, at); hide("#" + id, out - 0.20);
+        return { id: id };
+      }
+
+      /* ======================== THE CUT ========================
+         Everything above is the kit and stays as it is. Everything below is
+         this clip's content: video plates, background windows and blocks.
+         Replace it, do not rewrite the generators.
+
+         Worked example with all five block types and real timings:
+         Agents repo, prototypes/bl51-first30/index.html
+         ========================================================== */
+
+      // The brand mark is on from frame 0 and never animates (CMO ruling 2026-10-01). A range
+      // render replays everything at local t=0 in every window, so an entrance here blinked the
+      // logo + date chip at t=0 and at every seam (EP58: 11 seams, absent 8 frames, then a 0.3 s fade).
+      // Keep the line below as it is: tools/bl_compose.py finds it to splice the cut's calls in.
+      tl.set("#bug", { x: 0, opacity: 1 }, 0);
+
+      var _origSeek = tl.seek.bind(tl);
+      tl.seek = function (position, suppressEvents) {
+        return _origSeek(position, suppressEvents === undefined ? false : suppressEvents);
+      };
+
+      function bindWindow(target, t0, t1) {
+        if (t0 > 0) {
+          tl.set(target, { autoAlpha: 0 }, 0);
+          tl.set(target, { autoAlpha: 1 }, t0);
+        } else {
+          tl.set(target, { autoAlpha: 1 }, 0);
+        }
+        if (t1 < 15.0) {
+          tl.set(target, { autoAlpha: 0 }, t1);
+        }
+      }
+
+      // --- TOP HEADLINES (0.00..9.27 full 2-line, 9.27..11.67 hidden, 11.67..15.00 small 1-line) ---
+      var hlMain = el(
+        '<div class="hl-banner" id="headline-main">' +
+          '<div class="hl-l1"><span class="nb" id="hl-main-1">CXM ไม่จ่ายกำไร</span></div>' +
+          '<div class="hl-l2"><span class="nb" id="hl-main-2">เกือบ 6 ล้านบาท</span></div>' +
+          '<div class="hl-credit"><span class="nb" id="hl-main-3">ตามที่เจ้าของโพสต์เล่า</span></div>' +
+        '</div>'
+      );
+      stage.appendChild(hlMain);
+      fitKineticLine(document.getElementById("hl-main-1"), 588);
+      fitKineticLine(document.getElementById("hl-main-2"), 588);
+      fitKineticLine(document.getElementById("hl-main-3"), 588);
+
+      // Frame 0 already shows image AND headline; lands in first 0.4s (slide up + scale 1.08 -> 1.0)
+      tl.set("#headline-main", { autoAlpha: 1, transformOrigin: "left top" }, 0);
+      tl.fromTo("#headline-main",
+        { y: 28, scale: 1.08 },
+        { y: 0, scale: 1.0, duration: 0.40, ease: E },
+        0
+      );
+      tl.set("#headline-main", { autoAlpha: 0 }, 9.27);
+
+      // Top soft dark gradient follows headline visibility
+      tl.set("#top-grad", { autoAlpha: 1 }, 0);
+      tl.set("#top-grad", { autoAlpha: 0 }, 9.27);
+      tl.set("#top-grad", { autoAlpha: 1 }, 11.67);
+
+      var hlSmall = el(
+        '<div class="hl-banner" id="headline-small">' +
+          '<div class="hl-small-line"><span class="nb" id="hl-small-1">CXM ไม่จ่ายกำไร <span class="y" style="color:#FFD60A">เกือบ 6 ล้าน</span></span></div>' +
+        '</div>'
+      );
+      stage.appendChild(hlSmall);
+      fitKineticLine(document.getElementById("hl-small-1"), 588);
+      tl.set("#headline-small", { autoAlpha: 0, transformOrigin: "left top" }, 0);
+      tl.set("#headline-small", { autoAlpha: 1 }, 11.67);
+      tl.fromTo("#headline-small",
+        { y: 20, scale: 1.05 },
+        { y: 0, scale: 1.0, duration: 0.25, ease: E, immediateRender: false },
+        11.67
+      );
+
+      // --- BEAT 1: OPEN (0.00 - 1.00) ---
+      bindWindow("#plate-open", 0.00, 1.00);
+      tl.set("#plate-open", { transformOrigin: "540px 960px" }, 0);
+      tl.fromTo("#plate-open",
+        { scale: 1.00 },
+        { scale: 1.06, duration: 1.00, ease: "none" },
+        0.00
+      );
+
+      // --- BEAT 2: HOOK-1 (1.00 - 3.57) ---
+      bindWindow("#plate-hook1", 1.00, 3.57);
+
+      var hook1Clock = el(
+        '<div class="blk" id="hook1-clock-blk" style="top:860px;opacity:1">' +
+          '<div class="clock-pill">' +
+            '<div class="clock-tx"><span class="nb" id="hook1-clock-span"><span id="hook1-clock-val">2:00</span> ชม.</span></div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(hook1Clock);
+      fitKineticLine(document.getElementById("hook1-clock-span"), 650);
+      var clockValEl = document.getElementById("hook1-clock-val");
+      clockValEl.textContent = "0:00";
+
+      bindWindow("#hook1-clock-blk", 1.00, 3.57);
+      tl.fromTo("#hook1-clock-blk",
+        { scale: 0.90, y: 20 },
+        { scale: 1.00, y: 0, duration: 0.22, ease: E, immediateRender: false },
+        1.00
+      );
+
+      var clockObj = { mins: 0 };
+      function syncClock() {
+        var m = Math.max(0, Math.min(120, Math.round(clockObj.mins)));
+        var h = Math.floor(m / 60);
+        var r = m % 60;
+        clockValEl.textContent = h + ":" + (r < 10 ? "0" + r : r);
+      }
+      tl.fromTo(clockObj,
+        { mins: 0 },
+        { mins: 120, duration: 1.60, ease: "power2.out", onUpdate: syncClock, immediateRender: false },
+        1.00
+      );
+      tl.to(clockObj,
+        { mins: 120, duration: 0.97, ease: "none", onUpdate: syncClock },
+        2.60
+      );
+
+      var hook1Cap = el(
+        '<div class="blk" id="hook1-cap" style="top:1120px;opacity:1">' +
+          '<div class="pill-box">' +
+            '<div style="font-weight:800;font-size:58px;line-height:1.22;text-shadow:var(--outline)">' +
+              '<span class="nb" id="hook1-cap-l1">ถือ 2 ชม. → โดนข้อหา <span style="color:#FFD60A">"เร็วเกิน"</span></span>' +
+            '</div>' +
+            '<div class="hl-credit" style="text-align:center">' +
+              '<span class="nb" id="hook1-cap-l2">ตามที่เจ้าของโพสต์เล่า</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(hook1Cap);
+      fitKineticLine(document.getElementById("hook1-cap-l1"), 650);
+      fitKineticLine(document.getElementById("hook1-cap-l2"), 650);
+      bindWindow("#hook1-cap", 1.00, 3.57);
+      tl.fromTo("#hook1-cap",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.22, ease: E, immediateRender: false },
+        1.00
+      );
+
+      // --- BEAT 3: HOOK-2 (3.57 - 6.43) ---
+      bindWindow("#wrap-hook2", 3.57, 6.43);
+      tl.set("#wrap-hook2", { transformOrigin: "480px 880px" }, 0);
+      tl.fromTo("#wrap-hook2",
+        { scale: 1.00 },
+        { scale: 1.08, duration: 2.86, ease: "none", immediateRender: false },
+        3.57
+      );
+      tl.set("#hl-hook2", { clipPath: "inset(0 100% 0 0)", scaleX: 0 }, 0);
+      tl.fromTo("#hl-hook2",
+        { clipPath: "inset(0 100% 0 0)", scaleX: 0 },
+        { clipPath: "inset(0 0% 0 0)", scaleX: 1, duration: 0.50, ease: "power2.out", immediateRender: false },
+        3.80
+      );
+
+      var hook2Cap = el(
+        '<div class="blk" id="hook2-cap" style="top:1100px;opacity:1">' +
+          '<div class="pill-box">' +
+            '<div style="font-weight:800;font-size:50px;line-height:1.22;color:#FFFFFF;text-shadow:var(--outline)">' +
+              '<span class="nb" id="hook2-cap-l1">เธอเล่าว่า CXM ไม่จ่ายกำไร</span>' +
+            '</div>' +
+            '<div style="font-weight:800;font-size:96px;line-height:1.14;color:#FFD60A;text-shadow:var(--outline);margin-top:4px">' +
+              '<span class="nb" id="hook2-cap-l2">เกือบ <span id="hook2-num">6</span> ล้านบาท</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(hook2Cap);
+      fitKineticLine(document.getElementById("hook2-cap-l1"), 650);
+      fitKineticLine(document.getElementById("hook2-cap-l2"), 650);
+      var hook2NumEl = document.getElementById("hook2-num");
+      hook2NumEl.textContent = "0";
+
+      bindWindow("#hook2-cap", 3.57, 6.43);
+      tl.fromTo("#hook2-cap",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.22, ease: E, immediateRender: false },
+        3.57
+      );
+
+      var claimObj = { val: 0 };
+      function syncClaim() {
+        hook2NumEl.textContent = String(Math.max(0, Math.min(6, Math.round(claimObj.val))));
+      }
+      tl.fromTo(claimObj,
+        { val: 0 },
+        { val: 6, duration: 1.63, ease: "power1.out", onUpdate: syncClaim, immediateRender: false },
+        3.57
+      );
+      tl.to(claimObj,
+        { val: 6, duration: 1.23, ease: "none", onUpdate: syncClaim },
+        5.20
+      );
+
+      // --- BEAT 4: HOOK-3 (6.43 - 9.27) ---
+      bindWindow("#wrap-hook3", 6.43, 9.27);
+      tl.set("#wrap-hook3", { transformOrigin: "480px 845px" }, 0);
+      tl.fromTo("#wrap-hook3",
+        { scale: 1.00 },
+        { scale: 1.07, duration: 2.84, ease: "none", immediateRender: false },
+        6.43
+      );
+      tl.set("#hl-hook3", { clipPath: "inset(0 100% 0 0)", scaleX: 0 }, 0);
+      tl.fromTo("#hl-hook3",
+        { clipPath: "inset(0 100% 0 0)", scaleX: 0 },
+        { clipPath: "inset(0 0% 0 0)", scaleX: 1, duration: 0.40, ease: "power2.out", immediateRender: false },
+        6.50
+      );
+
+      var hook3Stamp = el(
+        '<div class="blk" id="hook3-stamp" style="top:1050px;opacity:1">' +
+          '<div class="stamp-label" id="hook3-stamp-box"><span class="nb" id="hook3-stamp-tx">TOXIC TRADING?</span></div>' +
+        '</div>'
+      );
+      stage.appendChild(hook3Stamp);
+      fitKineticLine(document.getElementById("hook3-stamp-tx"), 640);
+      bindWindow("#hook3-stamp", 7.00, 9.27);
+      tl.fromTo("#hook3-stamp-box",
+        { scale: 1.40, rotation: 0 },
+        { scale: 1.00, rotation: -4, duration: 0.22, ease: "back.out(2)", immediateRender: false },
+        7.00
+      );
+
+      var hook3Cap = el(
+        '<div class="blk" id="hook3-cap" style="top:1185px;opacity:1">' +
+          '<div class="pill-box" style="padding:14px 26px">' +
+            '<div style="font-weight:600;font-size:36px;line-height:1.28;color:#FFFFFF;text-shadow:var(--outline)">' +
+              '<span class="nb" id="hook3-cap-l1">ตามที่เธอเล่า: CXM แจ้งในอีเมล</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(hook3Cap);
+      fitKineticLine(document.getElementById("hook3-cap-l1"), 650);
+      bindWindow("#hook3-cap", 6.43, 9.27);
+      tl.fromTo("#hook3-cap",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.22, ease: E, immediateRender: false },
+        6.43
+      );
+
+      // --- BEAT 5: HOOK-4 (9.27 - 11.67) ---
+      bindWindow("#plate-hook4", 9.27, 11.67);
+
+      var hook4Cap = el(
+        '<div class="blk" id="hook4-cap" style="top:1265px;opacity:1">' +
+          '<div class="pill-box">' +
+            '<div style="font-weight:800;font-size:54px;line-height:1.22;color:#FFFFFF;text-shadow:var(--outline)">' +
+              '<span class="nb" id="hook4-cap-l1">เธอเลยถาม <span id="hook4-three" style="display:inline-block;color:#FFD60A;font-family:Archivo,Kanit,sans-serif;font-weight:800;font-size:1.55em;line-height:1;margin:0 8px;vertical-align:-6px">3</span> ข้อที่ยังไร้คำตอบ</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(hook4Cap);
+      fitKineticLine(document.getElementById("hook4-cap-l1"), 650);
+      bindWindow("#hook4-cap", 9.27, 11.67);
+      tl.fromTo("#hook4-cap",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.20, ease: E, immediateRender: false },
+        9.27
+      );
+      tl.set("#hook4-three", { scale: 0, transformOrigin: "50% 50%" }, 0);
+      tl.fromTo("#hook4-three",
+        { scale: 0 },
+        { scale: 1.15, duration: 0.18, ease: "power2.out", immediateRender: false },
+        9.35
+      );
+      tl.to("#hook4-three",
+        { scale: 1.00, duration: 0.14, ease: "power2.inOut" },
+        9.53
+      );
+
+      // --- BEAT 6: PATTERN-1 (11.67 - 13.97) ---
+      bindWindow("#plate-pattern1", 11.67, 13.97);
+      tl.set("#card-pattern1", { autoAlpha: 0, y: 80 }, 0);
+      tl.fromTo("#card-pattern1",
+        { autoAlpha: 0, y: 80 },
+        { autoAlpha: 1, y: 0, duration: 0.35, ease: "power3.out", immediateRender: false },
+        11.67
+      );
+      tl.set("#card-pattern1", { autoAlpha: 0 }, 13.97);
+
+      var pat1Cap = el(
+        '<div class="blk" id="pat1-cap" style="top:1290px;opacity:1">' +
+          '<div class="pill-box">' +
+            '<div style="font-weight:800;font-size:52px;line-height:1.24;color:#FFFFFF;text-shadow:var(--outline)">' +
+              '<span class="nb" id="pat1-cap-l1">เธอเล่าว่า <span style="color:#FFD60A">เปิดบัญชีเซนต์</span> กับ CXM</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(pat1Cap);
+      fitKineticLine(document.getElementById("pat1-cap-l1"), 650);
+      bindWindow("#pat1-cap", 11.67, 13.97);
+      tl.fromTo("#pat1-cap",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.22, ease: E, immediateRender: false },
+        11.67
+      );
+
+      // --- BEAT 7: PATTERN-2 (13.97 - 15.00) ---
+      bindWindow("#plate-pattern2", 13.97, 15.00);
+      tl.set("#plate-pattern2", { transformOrigin: "540px 1100px" }, 0);
+      tl.fromTo("#plate-pattern2",
+        { scale: 1.00 },
+        { scale: 1.06, duration: 1.03, ease: "none", immediateRender: false },
+        13.97
+      );
+
+      var pat2Cap = el(
+        '<div class="blk" id="pat2-cap" style="top:1240px;opacity:1">' +
+          '<div class="pill-box">' +
+            '<div style="font-weight:800;font-size:52px;line-height:1.22;color:#FFFFFF;text-shadow:var(--outline)">' +
+              '<span class="nb" id="pat2-cap-l1">22 กันยายน · เธอว่า <span style="color:#FFD60A">"ไม่ใช้บอทเลย"</span></span>' +
+            '</div>' +
+            '<div class="hl-credit" style="text-align:center">' +
+              '<span class="nb" id="pat2-cap-l2">ตามที่เจ้าของโพสต์เล่า</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+      stage.appendChild(pat2Cap);
+      fitKineticLine(document.getElementById("pat2-cap-l1"), 650);
+      fitKineticLine(document.getElementById("pat2-cap-l2"), 650);
+      bindWindow("#pat2-cap", 13.97, 15.00);
+      tl.fromTo("#pat2-cap",
+        { clipPath: "inset(0 100% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.20, ease: E, immediateRender: false },
+        13.97
+      );
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
