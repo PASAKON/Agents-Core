@@ -85,8 +85,49 @@ def _is_ph_env() -> bool:
     return (os.environ.get("CXO_ROLE") or "").strip().lower() == PH_ROLE
 
 
+# The CEO is never the default. A process whose env named no session used to
+# resolve to CEO_IDENTITY here and to "CEO" in _resolve_sender_role(), so a cron
+# job, a hook or any bare shell sent as the CEO and passed authorize() as root
+# (docs/design/org-restructure-p2.md, "Next security item"). Such a process is
+# refused now. The CEO's own command names itself with CEO_MARKER=1, written into
+# the command line he approves on a Run Inbox card. The mark counts only in an
+# env that holds none of _SESSION_ENV_KEYS, whatever their value: every key a
+# launcher gives a C-level, a Project Head or a worker, plus CLAUDECODE, which
+# Claude Code sets in every command it runs. So no session, and nothing a session
+# starts, carries it by accident.
+CEO_MARKER = "ORG_AS_CEO"
+_SESSION_ENV_KEYS = (
+    "CXO_ROLE", "CXO_SESSION_ID", "CXO_SESSION", "CTO_SESSION_ID", "CTO_SESSION",
+    "ORG_SESSION_ID", "ORG_PH_LANE", "ORG_PH_PROJECT", "ORG_PH_OWNER",
+    "WORKER_TASK_ID", "WORKER_ROLE", "WORKER_CTO_ID", "WORKER_CTO_ROLE",
+    "CLAUDECODE",
+)
+
+
+def _is_ceo_env(env=None) -> bool:
+    """True only for the CEO's own marked command (see CEO_MARKER above)."""
+    env = os.environ if env is None else env
+    if (env.get(CEO_MARKER) or "").strip() != "1":
+        return False
+    return not any(k in env for k in _SESSION_ENV_KEYS)
+
+
+def _no_identity() -> PermissionError:
+    r = (os.environ.get("CXO_ROLE") or "").strip()
+    if r and is_c_level(r):
+        return PermissionError(
+            f"refused: CXO_ROLE={r} but this process has no CXO_SESSION_ID or "
+            f"CTO_SESSION_ID, so it has no identity and cannot send")
+    return PermissionError(
+        "refused: this process has no org identity (no CXO_ROLE with a session id, "
+        "no WORKER_TASK_ID, no CTO_SESSION_ID), so it cannot send. A session gets "
+        "these from its launcher; a bare process is not the CEO "
+        "(tools/agent_transport.py, CEO_MARKER)")
+
+
 def _resolve_sender_role() -> str:
-    """Best-effort sender label. CEO when no C-level env is set."""
+    """Sender label. "CEO" only for the CEO's marked command (_is_ceo_env);
+    a process with no identity is refused, as in current_identity()."""
     r = os.environ.get("CXO_ROLE")
     if r and is_c_level(r):
         return display_for(r)
@@ -96,7 +137,12 @@ def _resolve_sender_role() -> str:
         return f"Project Head ({lane or '?'}) #{sid or '?'}"
     if os.environ.get("CTO_SESSION_ID"):
         return display_for("cto")
-    return "CEO"
+    task_id = os.environ.get("WORKER_TASK_ID")
+    if task_id:  # a worker's letter used to read "CEO" too
+        return Identity("dev", os.environ.get("WORKER_ROLE", "dev"), task_id).label()
+    if _is_ceo_env():
+        return "CEO"
+    raise _no_identity()
 
 
 @dataclass(frozen=True)
@@ -122,7 +168,9 @@ CEO_IDENTITY = Identity("ceo", "CEO", None)
 
 def current_identity() -> Identity:
     """Who is calling send_to_cxo/send_to_worker/send_to_cto right now,
-    resolved from process env -- never from anything the caller passes in."""
+    resolved from process env -- never from anything the caller passes in.
+    Raises PermissionError for a process with no identity: CEO_IDENTITY only
+    for the CEO's marked command (_is_ceo_env)."""
     r = os.environ.get("CXO_ROLE")
     if r and is_c_level(r):
         sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
@@ -140,7 +188,9 @@ def current_identity() -> Identity:
     cto_sid = os.environ.get("CTO_SESSION_ID")
     if cto_sid:
         return Identity("cxo", "cto", cto_sid)
-    return CEO_IDENTITY
+    if _is_ceo_env():
+        return CEO_IDENTITY
+    raise _no_identity()
 
 
 # ---------------------------------------------------------------------------

@@ -42,7 +42,8 @@ Usage:
 `<role>` = target C-level (cto|cmo|cgo|cfo|coo -- the `c_level` roster in
 policies/agents.yaml, via lib/roles.py).
 Sender role auto-detected from $CXO_ROLE env when invoked from within a
-C-level chat tab; falls back to "CEO" when nothing is set.
+C-level chat tab. A process with no identity is refused (exit 4); "CEO" only
+for the CEO's marked command (tools/agent_transport.py, CEO_MARKER).
 
 --spawn (default OFF for Phase 2): open a new ephemeral iTerm tab for
 the request instead of typing into the primary tab. Dedupe-checked:

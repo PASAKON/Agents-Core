@@ -42,9 +42,16 @@ roles:
   # Docs, copy, scripts and translation (edit-only: no shell). Maps content_strategist and script_writer.
   doc_text:       ["agy:gemini-4-argon-high", "agy:gemini-3.8-flash-high", "claude:claude-sonnet-5-5"]
   # SomPong's researcher workers (CEO card Q-20261013-1948-4a33): web search + read-only reading inside
-  # runners/coo_worker.py's box, report only. codex first (`--search`), Argon second until the Argon trial
-  # gives it a research score (cto-d1a121af, 2026-10-14), Sonnet last. coo_worker tries them in this order.
-  research:       ["codex:", "agy:gemini-4-argon-high", "claude:claude-sonnet-5-5"]
+  # runners/coo_worker.py's box, report only. codex first (`--search`). ArgonEval 15 Oct (R1, R2): Argon
+  # invented quotes and a "verbatim" code block on 2 of 2 jobs; agy Sonnet passed both with every quote
+  # checked, at $0 Claude. Argon is dropped here; agy Sonnet second, Claude Code Sonnet last.
+  research:       ["codex:", "agy:claude-sonnet-5-5-high", "claude:claude-sonnet-5-5"]
+  # Tests written edits-only, then run by the reviewer (ArgonEval T1, T2: 2/2 first pass, every seeded
+  # revert red). The reviewer MUST run them: Argon cannot (B2 shipped a test with a bad import).
+  tests_edit:     ["agy:gemini-4-argon-high", "codex:", "claude:claude-sonnet-5-5"]
+  # Numbers from a file or an export the brief hands over (ArgonEval A1, A2: 2/2 first pass, every
+  # number re-derived by the reviewer). The reviewer re-derives the headline numbers.
+  analysis:       ["agy:gemini-4-argon-high", "codex:", "claude:claude-sonnet-5-5"]
 # Worker role (tasks.role) -> router class above. A role not listed stays on claude, no routing.
 # Browser, video, design and security roles need Claude-only tools: never list them here.
 # (A browser_operator brief that uses tools/agy_browse.py routes to browser_agy instead.)
@@ -54,7 +61,13 @@ role_classes:
   # devops_engineer is NOT listed: it is an Opus worker (policies/agents.yaml, CEO 2026-09-23) and
   # dev_shell would move it to codex/Sonnet. The old key `devops` matched no role (removed
   # 2026-10-04); routing devops_engineer here waits for the CEO.
-  tester:    dev_shell
+  # ArgonEval 15 Oct: a tester's job is writing tests; the reviewer runs them. dev_shell stays for
+  # briefs that need a shell inside the run (tools/forecast.needs_shell, read by tools/route.plan, drops non-shell runners then).
+  tester:    tests_edit
+  data_analyst: analysis
+  # security_engineer and devops_engineer stay on Claude Opus (ArgonEval: security 1 of 3 first pass,
+  # missed ~40 callers on the big one; devops 1 of 2, a global logger flip). Argon + review only for
+  # a scoped list of LOW fixes, picked by hand.
   researcher: research   # SomPong's research workers (Q-20261013-1948-4a33), run by runners/coo_worker.py
   content_strategist: doc_text  # copy, voice, positioning text; its skills are writing guides, not tools
   script_writer: doc_text       # scripts are text; a BL brief that also asks for footage capture or a browser is caught by needs_claude_tool and falls to Claude

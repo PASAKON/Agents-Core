@@ -57,6 +57,10 @@ _HOOK_SPEC.loader.exec_module(hook_inbox)
 # fixtures -- everything lives under tmp_path / monkeypatched module state.
 # ---------------------------------------------------------------------------
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 @pytest.fixture(autouse=True)
 def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
     """current_identity()/_current_box() read process env -- start every

@@ -56,10 +56,12 @@ def five_states():
 
 
 @pytest.fixture(autouse=True)
-def _defaults(monkeypatch):
+def _defaults(monkeypatch, tmp_path):
     for name in ("RUN_WATCH_QUIET_S", "RUN_WATCH_BATCH_S", "RUN_WATCH_ENDED_S",
                  "RUN_WATCH_SPAWN_GRACE_S", "RUN_WATCH_REPORT_GRACE_S", "RUN_WATCH_POLL_S"):
         monkeypatch.delenv(name, raising=False)
+    # `status` records acks; keep them out of the checkout's state/.
+    monkeypatch.setattr(rw, "STATE_ROOT", tmp_path / "run-watch")
 
 
 # --- B1: all five states, through the whole status path --------------------

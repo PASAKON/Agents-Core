@@ -121,6 +121,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
+import logging
 import os
 import shutil
 import signal
@@ -797,11 +798,69 @@ def _build_family_system_prompt(now: datetime | None = None) -> str:
 _LOGGER: object | None = None
 
 
+# ---------------------------------------------------------------------------
+# Journal levels (task-4c7b0b9d). Under systemd every get_logger() stdout line
+# lands at PRIORITY=6 (info) with no level word in the text, so neither
+# `journalctl -p err` nor a grep for ERROR can see an error (measured
+# 2026-10-15: a branch_poller WARNING in the mooniex-watchdog journal had
+# PRIORITY=6). When stdout IS the journal, prefix "<N>" -- journald strips it
+# and stores it as PRIORITY (systemd.exec(5) SyslogLevelPrefix=, on by
+# default) -- and add the level name. Anywhere else (terminal, pipe, pytest)
+# the line format is unchanged. runners/secretary_waker.py reuses this.
+# ---------------------------------------------------------------------------
+
+_SYSLOG_PRIORITY = (
+    (logging.CRITICAL, 2), (logging.ERROR, 3), (logging.WARNING, 4), (logging.INFO, 6),
+)
+
+
+class _JournalFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        prio = next((p for lvl, p in _SYSLOG_PRIORITY if record.levelno >= lvl), 7)
+        return f"<{prio}>" + super().format(record)
+
+
+def stream_is_journal(stream) -> bool:
+    """True when `stream` is the journald socket systemd connected the unit to.
+
+    systemd exports JOURNAL_STREAM=<dev>:<ino> for that socket; matching it
+    against the stream's own fd is the documented check (systemd.exec(5)
+    $JOURNAL_STREAM), since a child can inherit the variable with its output
+    pointed elsewhere."""
+    dev, _, ino = os.environ.get("JOURNAL_STREAM", "").partition(":")
+    if not (dev.isdigit() and ino.isdigit()):
+        return False
+    try:
+        st = os.fstat(stream.fileno())
+    except (AttributeError, OSError, ValueError):  # no real fd: not the journal
+        return False
+    return st.st_dev == int(dev) and st.st_ino == int(ino)
+
+
+def use_journal_levels(logger: logging.Logger) -> logging.Logger:
+    """Give `logger`'s stdout handler journal priorities when stdout is the journal."""
+    for h in logger.handlers:
+        if isinstance(h, logging.FileHandler) or not isinstance(h, logging.StreamHandler):
+            continue
+        if stream_is_journal(h.stream):
+            h.setFormatter(_JournalFormatter(f"[{logger.name}] %(levelname)s %(message)s"))
+    return logger
+
+
 def _log():
     global _LOGGER
     if _LOGGER is None:
-        _LOGGER = get_logger("secretary")
+        _LOGGER = use_journal_levels(get_logger("secretary"))
     return _LOGGER
+
+
+def _exc_brief(exc: BaseException) -> str:
+    """Exception class plus strerror for an OSError -- never str(exc). A requests
+    error's text carries the full URL, and an image URL can be a signed storage
+    link whose token must not reach the journal."""
+    if isinstance(exc, OSError) and exc.strerror:
+        return f"{type(exc).__name__} (errno {exc.errno}: {exc.strerror})"
+    return type(exc).__name__
 
 
 # ---------------------------------------------------------------------------
@@ -994,7 +1053,9 @@ def _claude_auth_status() -> tuple[bool, str]:
                 or Path.home() / ".claude" / ".credentials.json")
     try:
         oauth = json.loads(path.read_text(encoding="utf-8"))["claudeAiOauth"]
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        # Class and errno only: the file is a credential, never echo its bytes.
+        _log().warning("secretary: claude credential %s unusable: %s", path, _exc_brief(exc))
         return False, "claude credential unusable (file missing, unreadable, or malformed)"
 
     def _as_float(value: object) -> float | None:
@@ -1028,7 +1089,9 @@ def _claude_auth_available() -> bool:
     conservative default as the status check itself."""
     try:
         return _claude_auth_status()[0]
-    except Exception:
+    except Exception as exc:
+        _log().warning("secretary: claude auth check raised %s -- answering False",
+                       _exc_brief(exc))
         return False
 
 
@@ -1119,10 +1182,12 @@ def _run_claude_once(prompt: str, session_id: str | None,
         try:
             os.killpg(proc.pid, signal.SIGKILL)
         except ProcessLookupError:
-            pass
+            _log().info("secretary: claude pgid %s already gone at SIGKILL", proc.pid)
         try:
             stdout, stderr = proc.communicate(timeout=5)
         except subprocess.TimeoutExpired:
+            _log().warning("secretary: claude pid %s still open 5s after SIGKILL -- "
+                           "its output is dropped", proc.pid)
             stdout, stderr = "", ""
         return -1, stdout, stderr, True
 
@@ -1380,6 +1445,8 @@ def check_api_key_or_exit() -> None:
     if not SECRETARY_API_KEY:
         print("SECRETARY_API_KEY is not set - refusing to start unauthenticated.",
              file=sys.stderr)
+        # The print lands in the journal at info; this gives the refusal an error priority.
+        _log().error("secretary: SECRETARY_API_KEY is not set - refusing to start")
         raise SystemExit(1)
 
 
@@ -1494,8 +1561,10 @@ def _download_image(url: str, dest_dir: Path, index: int) -> tuple[Path | None, 
                 url, timeout=SECRETARY_IMAGE_TIMEOUT_SECONDS, stream=True,
             )
         except requests.exceptions.Timeout:
+            _log().warning("secretary: image %s: download timed out", index)
             return None, f"image {index}: timeout"
         except requests.exceptions.RequestException as e:
+            _log().warning("secretary: image %s: download failed: %s", index, _exc_brief(e))
             return None, f"image {index}: download failed ({e})"
 
         try:
@@ -1520,9 +1589,12 @@ def _download_image(url: str, dest_dir: Path, index: int) -> tuple[Path | None, 
         try:
             dest.write_bytes(bytes(content))
         except OSError as e:
+            _log().error("secretary: image %s: could not save to %s: %s",
+                         index, dest, _exc_brief(e))
             return None, f"image {index}: could not save to disk ({e})"
         return dest, None
     except Exception as e:  # last-resort net, matches read_link's "never raises"
+        _log().error("secretary: image %s: internal error: %s", index, _exc_brief(e))
         return None, f"image {index}: internal error ({e!r})"
 
 
@@ -1566,7 +1638,21 @@ def cleanup_staging_dir(staging_dir: Path | None) -> None:
     unhandled exception -- so a failed turn never leaves images on disk."""
     if staging_dir is None:
         return
-    shutil.rmtree(staging_dir, ignore_errors=True)
+
+    # Same best-effort removal ignore_errors=True gave (keep going past a
+    # failure), but every failure leaves one line -- the CEO's photos would
+    # otherwise pile up on disk with no trace. onexc is 3.12+, onerror before.
+    def _report(func, path, exc) -> None:
+        err = exc[1] if isinstance(exc, tuple) else exc
+        if isinstance(err, FileNotFoundError):  # already gone is what we wanted
+            return
+        _log().warning("secretary: could not remove image staging path %s: %s",
+                       path, _exc_brief(err))
+
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(staging_dir, onexc=_report)
+    else:
+        shutil.rmtree(staging_dir, onerror=_report)
 
 
 _IMAGES_ATTACHED_MARK = "[แนบรูปภาพ]"
@@ -1697,10 +1783,40 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(404, {"error": {"message": "not found"}})
 
 
+# One INFO line per hour even when idle (task-4c7b0b9d). Without it an idle
+# server writes nothing after its start line, journald rotates that out within
+# days, and "0 errors in the last 24 h" over an empty journal cannot fail.
+# A check counts heartbeats first: none in 24 h means the logging path is dead.
+HEARTBEAT_SECONDS = 3600
+
+
+class _Server(ThreadingHTTPServer):
+    """ThreadingHTTPServer plus the heartbeat. serve_forever() calls
+    service_actions() on every poll (0.5 s), so no extra thread is needed."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._started = time.monotonic()
+        self._next_heartbeat = self._started + HEARTBEAT_SECONDS
+
+    def service_actions(self) -> None:
+        super().service_actions()
+        now = time.monotonic()
+        if now >= self._next_heartbeat:
+            self._next_heartbeat = now + HEARTBEAT_SECONDS
+            _log().info("secretary heartbeat: up %ds, %d turn(s) in flight",
+                        now - self._started, _pending)
+
+
 def main() -> None:
+    # First, before anything that can refuse or crash, so every start leaves a
+    # line. No env values: pid, uid, interpreter and bind address only.
+    _log().info("secretary started (pid=%s uid=%s python=%s bind=%s:%s)",
+                os.getpid(), os.geteuid(), sys.version.split()[0],
+                SECRETARY_HOST, SECRETARY_PORT)
     check_api_key_or_exit()
     ensure_mcp_config()
-    server = ThreadingHTTPServer((SECRETARY_HOST, SECRETARY_PORT), Handler)
+    server = _Server((SECRETARY_HOST, SECRETARY_PORT), Handler)
     _log().info("secretary listening on %s:%s (max_concurrent=%s workdir=%s)",
                SECRETARY_HOST, SECRETARY_PORT, SECRETARY_MAX_CONCURRENT, SECRETARY_WORKDIR)
     try:

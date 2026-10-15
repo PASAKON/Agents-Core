@@ -207,7 +207,8 @@ def test_clevel_briefs_a_live_ph(locks, inbox, monkeypatch, fake_launcher):
     assert _boxes(inbox) == [f"{PH}-{PH_SID}"]
 
 
-def test_only_its_own_lane_or_the_ceo_briefs_a_ph(locks, inbox, monkeypatch, fake_launcher):
+def test_only_its_own_lane_or_the_ceo_briefs_a_ph(locks, inbox, monkeypatch, fake_launcher,
+                                                  ceo_command):
     sc.record_spawn(Identity("cxo", "cto", OWNER), PH, PH_SID)
     (locks / f"{PH}-{PH_SID}.lock").write_text(str(fake_launcher(PH)))
     monkeypatch.setenv("CXO_ROLE", "cmo")
@@ -216,7 +217,7 @@ def test_only_its_own_lane_or_the_ceo_briefs_a_ph(locks, inbox, monkeypatch, fak
         sc.send(f"{PH}-{PH_SID}", "do my thing")
     assert _boxes(inbox) == []
     monkeypatch.delenv("CXO_ROLE")
-    monkeypatch.delenv("CXO_SESSION_ID")  # a bare shell is the CEO
+    monkeypatch.delenv("CXO_SESSION_ID")  # the CEO's marked command (ceo_command)
     sc.send(f"{PH}-{PH_SID}", "from the CEO")
     assert _boxes(inbox) == [f"{PH}-{PH_SID}"]
 

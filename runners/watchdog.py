@@ -1327,6 +1327,10 @@ def scan_once() -> dict:
 
 
 def main() -> int:
+    # Org senders refuse a process with no identity (tools/agent_transport.py); the
+    # watchdog's pings and kickoff letters go out as cto/watchdog, never as the CEO.
+    if not (os.environ.get("CTO_SESSION_ID") or os.environ.get("CXO_ROLE")):
+        os.environ["CTO_SESSION_ID"] = "watchdog"
     ap = argparse.ArgumentParser(description="Watchdog for stuck DEV tasks")
     ap.add_argument("--mesh-probe", action="store_true",
                     help="probe mesh hosts now, ignoring the interval")

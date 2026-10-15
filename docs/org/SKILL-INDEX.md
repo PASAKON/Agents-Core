@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-61 org skills by kind — Rules 7 · Knowledge 16 · Workflow 4 · Procedure 11 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+62 org skills by kind — Rules 7 · Knowledge 16 · Workflow 4 · Procedure 12 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -66,6 +66,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | `COO_Procedure_ToolValueWeekly` | COO | coo, cto | Relay the Monday "are our tools worth it" report (tools/tool_value.py) to the CEO unchanged, have a doubted number checked, and turn each… |
 | `CTO_Procedure_Bedrock_SkyScene` | CTO | cto | Make one Minecraft Bedrock sky scene match its concept image in the running game, scored against a 90 target. |
 | `CTO_Procedure_KeyFetch` | CTO | cxo, browser_operator, developer | A worker creates a new API key and pipes it straight into Infisical; the CEO only logs in via the relay; no model ever sees the value. |
+| `CTO_Procedure_RunWatch` | CTO | worker | Answer short CEO run-status questions in the RunWatch session (runwatch-<host>) with tools/run_watch.py only. |
 | `CXO_Procedure_GDrive_BulkTransfer` | COO | cxo, worker | Move gigabytes into the CEO's Google Drive and run moves / renames / deletes through the bridge: batches, md5 verification by file id, the… |
 
 ## Standard

@@ -134,6 +134,7 @@ def test_raise_objection_completes_when_lungnote_is_down(
     """The DB event is durable; a LungNote outage must not take the call
     down with it (fail-open, matches request_human_handoff's chat relay)."""
     monkeypatch.setattr(so, "_skill_dir", lambda name: None)
+    monkeypatch.setenv("WORKER_TASK_ID", "task-aaa11111")  # a bare env has no identity
 
     def _boom(*a, **kw):
         raise RuntimeError("lungnote is down")

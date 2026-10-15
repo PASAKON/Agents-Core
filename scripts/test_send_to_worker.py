@@ -44,6 +44,10 @@ import tools.agent_transport as agent_transport  # noqa: E402
 import tools.send_to_worker as sd  # noqa: E402
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 @pytest.fixture()
 def isolated_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Point lib.db at a throwaway sqlite file for this test only.
