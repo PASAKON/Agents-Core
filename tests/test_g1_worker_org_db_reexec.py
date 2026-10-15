@@ -379,33 +379,39 @@ def test_model_stats_reads_through_lib_db_not_a_raw_sqlite_open(tmp_path):
 
 def test_model_stats_sql_and_rows_fit_the_postgres_backend(monkeypatch):
     from contextlib import contextmanager
-    from decimal import Decimal
 
     from lib.db_pg import Row
     from tools import model_stats
 
-    seen: dict = {}
+    seen: list = []
+    tasks = [("claude", None, "dev", "done", 0, "t1"), ("claude", None, "dev", "done", 2, "t2"),
+             ("claude", None, "dev", "failed", 1, "t3")]
+    events = [("t1", '{"first_pass": true}'), ("t2", '{"first_pass": false}')]
 
     class _Conn:
         def execute(self, sql, params=()):
-            seen["sql"], seen["params"] = sql, list(params)
-            cols = ["runner", "role", "n", "ok", "bad", "it", "score"]
-            vals = ("claude", "*", 3, 2, 1, Decimal("1.5"), Decimal("0.444444444"))
+            seen.append(sql)
+            if "FROM events" in sql:
+                cols, rows = ["task_id", "payload"], events
+            else:
+                cols, rows = ["runner", "runner_model", "role", "status", "iteration", "id"], tasks
 
             class _Cur:
                 def fetchall(self_inner):
-                    return [Row(cols, vals)]
+                    return [Row(cols, r) for r in rows]
             return _Cur()
+
+    kw_seen: dict = {}
 
     @contextmanager
     def fake_get_conn(**kw):
-        seen["kw"] = kw
+        kw_seen.update(kw)
         yield _Conn()
 
     monkeypatch.setattr(model_stats.db_lib, "get_conn", fake_get_conn)
     (stat,) = model_stats.compute_stats("ignored.db").values()
-    assert stat == model_stats.RunnerStat("claude", "*", 3, 2, 1, 1.5, 0.4444)
+    assert stat == model_stats.RunnerStat("claude", "", "*", 3, 2, 1, 1.0, 0.4444, 1, 1)
+    assert all("?" not in q or "role = ?" in q for q in seen)  # no typed parameter in a select list
     assert isinstance(stat.mean_iteration, float) and isinstance(stat.score, float)
-    assert "SUM(status" not in seen["sql"]  # Postgres has no sum(boolean)
-    assert "CAST(? AS TEXT)" in seen["sql"]
-    assert seen["kw"]["readonly"] is True
+    assert not any("SUM(" in q for q in seen)  # aggregated in Python: Postgres has no sum(boolean)
+    assert kw_seen["readonly"] is True

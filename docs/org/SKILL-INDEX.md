@@ -8,7 +8,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 (`scripts/skill-lint.py check` code 16 reports a stale copy). How a skill is made:
 `ALL_Protocol_SkillAuthor`; the kinds: `docs/org/SKILL-KINDS-2026-09-27.md`.
 
-60 org skills by kind — Rules 7 · Knowledge 15 · Workflow 4 · Procedure 11 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
+61 org skills by kind — Rules 7 · Knowledge 16 · Workflow 4 · Procedure 11 · Standard 7 · Gate 6 · Protocol 10 · commands the CEO types 11 · imported 9 · redirect stubs 38
 
 ## Rules
 
@@ -27,6 +27,7 @@ Do not edit by hand: when a skill's name, kind, owner, audience or description c
 | name | owner | audience | what it is |
 |---|---|---|---|
 | `ALL_Knowledge_Jev` | CTO | all | How to get the most out of Jev for the least money — the decisions it fits, the choice/score/noul question types, the cost formula… |
+| `ALL_Knowledge_RunnerPicks` | CTO | all | Which runner:model:effort to send each job kind to (code, fix, review, research, docs, decision …), read from reviewers' verdicts on real… |
 | `CMO_Knowledge_Cinematography_ShortMovie` | CMO | cmo, cto, cxo, script_writer, browser_operator | Professional cinematography for a SHORT MOVIE (หนังสั้น, cinema grammar) made with AI video engines: lighting setups, portrait patterns… |
 | `CMO_Knowledge_Film_Production` | CMO | cmo, cto, cxo, script_writer | How to run a multi-shot AI film on any engine so it stays one film: the story gate, CAST.md from day one, reference plates, what to… |
 | `CMO_Knowledge_Flow_Omni1.1` | CMO | cmo, cto, browser_operator, developer, script_writer | Operating Google Flow (flow.google.com, Omni 1.1 Flash and Veo 3.1) on the CEO's Google AI Ultra account: the model-scope block the three… |

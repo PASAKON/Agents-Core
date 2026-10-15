@@ -334,6 +334,17 @@ def gc_stale_tasks(
 
     # Category 3: rate_limited tasks whose retry_after_ts is overdue
     for t in db.list_tasks(status="rate_limited", limit=500):
+        rev = t.get("review")
+        if rev:
+            if isinstance(rev, dict) and rev.get("quota_stop"):
+                continue
+            if isinstance(rev, str):
+                try:
+                    parsed_rev = json.loads(rev)
+                    if isinstance(parsed_rev, dict) and parsed_rev.get("quota_stop"):
+                        continue
+                except ValueError:
+                    pass
         # W1.5: _alive_for_gc reads None ("not ours") and this branch cancels on
         # anything but a definite True, so a row that is neither local nor
         # dispatched here must be skipped before the liveness call.

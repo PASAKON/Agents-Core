@@ -53,6 +53,67 @@ def detect(runner, launch_dir, report_text=""):
     return None
 
 
+def record_limit_stop(
+    task_id,
+    launch_dir=None,
+    report_text: str = "",
+    *,
+    runner: str | None = None,
+    root=ROOT,
+) -> str | None:
+    """If an outside run ended on a quota limit, set status='rate_limited' and record quota_stop in review JSON."""
+    if isinstance(task_id, dict):
+        task = task_id
+        task_id = task.get("id")
+    else:
+        task = db.get_task(task_id) if task_id else None
+    if not task_id or task is None:
+        return None
+    resolved_runner = (runner or task.get("runner") or "").strip().lower()
+    if resolved_runner not in ("codex", "agy"):
+        return None
+    resolved_launch = Path(launch_dir) if launch_dir is not None else Path(root) / f".launch-{task_id}"
+    if not report_text:
+        report_text = task.get("report") or ""
+    if not report_text and task.get("worktree"):
+        report_text = _read(Path(task["worktree"]) / "docs" / "reports" / task_id / "REPORT.md")
+    matched = detect(resolved_runner, resolved_launch, report_text)
+    if not matched:
+        return None
+    existing_review = task.get("review")
+    review_obj: dict = {}
+    if isinstance(existing_review, dict):
+        review_obj.update(existing_review)
+    elif isinstance(existing_review, str) and existing_review.strip():
+        try:
+            parsed = json.loads(existing_review)
+            if isinstance(parsed, dict):
+                review_obj.update(parsed)
+            else:
+                review_obj["previous"] = parsed
+        except ValueError:
+            review_obj["previous"] = existing_review
+    review_obj["quota_stop"] = matched
+    review_obj["next"] = f"PH: pick it up on the branch, or python3 tools/quota_handoff.py {task_id}"
+    db.update_status(task_id, "rate_limited", review=json.dumps(review_obj))
+    return matched
+
+
+def record_dead_run(task_id, reason: str) -> bool:
+    """A run that did no turn (codex: no turn.completed; agy: the jetski no-output stub) ends failed,
+    never in review/done. Only a row still in_progress moves: one the PH or the poller already moved
+    is left alone."""
+    task = db.get_task(task_id) if task_id else None
+    if task is None or task.get("status") != "in_progress":
+        return False
+    db.update_status(task_id, "failed", delegate_log=f"dead run: {reason}")
+    return True
+
+
+check_limit_stop = record_limit_stop
+mark_quota_stop = record_limit_stop
+
+
 def _git(root, *args):
     return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
 
@@ -122,11 +183,33 @@ def main(argv=None):
     parser.add_argument("--limit-text")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--no-delegate", dest="delegate", action="store_false")
+    parser.add_argument("--check-stop", action="store_true")
+    parser.add_argument("--launch-dir")
+    parser.add_argument("--report-file")
+    parser.add_argument("--runner")
+    parser.add_argument("--dead", help="with --check-stop: the launcher saw a run that did no turn")
     args = parser.parse_args(argv)
+    kw = vars(args)
+    check_stop = kw.pop("check_stop", False)
+    launch_dir = kw.pop("launch_dir", None)
+    report_file = kw.pop("report_file", None)
+    runner = kw.pop("runner", None)
+    dead = kw.pop("dead", None)
     try:
+        if check_stop:
+            report_text = _read(Path(report_file)) if report_file else ""
+            matched = record_limit_stop(
+                kw["task_id"],
+                launch_dir=launch_dir,
+                report_text=report_text,
+                runner=runner,
+            )
+            failed = bool(dead) and not matched and record_dead_run(kw["task_id"], dead)
+            print(json.dumps({"task_id": kw["task_id"], "quota_stop": matched, "dead_run_failed": failed}))
+            return 0
         # Registry/delegate diagnostics must not corrupt the JSON result line.
         with redirect_stdout(sys.stderr):
-            result = handoff(**vars(args))
+            result = handoff(**kw)
         print(json.dumps(result))
         return 0
     except ValueError as exc:

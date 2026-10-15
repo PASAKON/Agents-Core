@@ -292,7 +292,8 @@ def media_gate_env(tmp_path):
     tmux_bin.chmod(0o755)
 
     fake_runner = bindir / "fake_runner"
-    fake_runner.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+    # A finished codex round prints turn.completed into the --json transcript; without it no report lands.
+    fake_runner.write_text("#!/bin/bash\necho '{\"type\":\"turn.completed\"}'\nexit 0\n", encoding="utf-8")
     fake_runner.chmod(0o755)
     # --runner codex makes the script look for a `codex` before it writes launch.sh and, when there is
     # none, print SPAWN_REFUSED=codex-not-found on STDOUT and exit 1. The Mac has one, ubuntu CI does not.

@@ -138,7 +138,8 @@ def test_pick_runner_fallback_when_all_will_hit(mock_cfg, default_limits, monkey
         limits=default_limits,
     )
     assert choice is not None
-    assert choice.runner == "claude"
+    # IRON §59 rule 8 (CEO 15 Oct): Claude runs out last, so a will_hit outside runner goes first.
+    assert choice.runner == "agy"
     assert choice.reason.startswith("no ok candidate, fallback: ")
 
 
@@ -347,12 +348,12 @@ def test_pressure_case_1_codex_picked_on_dev_shell(mock_cfg, default_limits, mon
 
 def test_pressure_case_2_codex_will_hit_vs_ok_based_on_claude(mock_cfg, default_limits, monkeypatch):
     """Pressure case 2: codex 0.25 left, reserve 20, and an L cost of 8%
-    -> will_hit with claude at 1.0 left (claude is picked)
+    -> will_hit with claude at 1.0 left (codex is still picked: IRON §59 rule 8, Claude runs out last)
     -> ok with claude at 0.5 left (codex is picked).
     """
     monkeypatch.setattr(route, "_host_runners", lambda host: ["claude", "codex"])
 
-    # Subcase A: Claude at 1.0 left -> codex eff reserve is 20%. after 17% < 20% -> will_hit. Claude picked.
+    # Subcase A: Claude at 1.0 left -> codex eff reserve is 20%. after 17% < 20% -> will_hit, ranked ahead of Claude.
     quotas_a = {
         "claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
         "codex": Quota(provider="codex", weekly_remaining=0.25, daily_remaining=0.25),
@@ -367,7 +368,7 @@ def test_pressure_case_2_codex_will_hit_vs_ok_based_on_claude(mock_cfg, default_
         limits=default_limits,
     )
     assert choice_a is not None
-    assert choice_a.runner == "claude"
+    assert choice_a.runner == "codex"
 
     plans_a = plan(
         "tester",
@@ -378,8 +379,8 @@ def test_pressure_case_2_codex_will_hit_vs_ok_based_on_claude(mock_cfg, default_
         skill={},
         limits=default_limits,
     )
-    assert plans_a[0].choice.runner == "claude"
-    assert plans_a[0].verdict == "ok"
+    assert plans_a[0].choice.runner == "codex"
+    assert plans_a[-1].choice.runner == "claude" and plans_a[-1].verdict == "ok"
     codex_plan_a = [p for p in plans_a if p.choice.runner == "codex"][0]
     assert codex_plan_a.verdict == "will_hit"
     assert "pressure: claude 100% left, reserve 20%→20%" in codex_plan_a.why

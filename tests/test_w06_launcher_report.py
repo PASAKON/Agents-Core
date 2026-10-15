@@ -85,6 +85,9 @@ case "$mode" in
     while [ "$i" -le 500 ]; do printf 'L%03d\n' "$i"; i=$((i + 1)); done ;;
   none) : ;;
 esac
+# Real codex --json ends a finished round with turn.completed (stdout is the launch's transcript);
+# a round without it commits no report.
+if [ "$(basename "$0")" = codex ]; then echo '{"type":"turn.completed"}'; fi
 exit "${FAKE_EXIT:-0}"
 """
 

@@ -668,6 +668,119 @@ def pull_targets(host: str) -> list[tuple[str, str]]:
         return []
 
 
+# Project Monitor push (org restructure P3-E): the hub host runs tools/portfolio_push.py once a
+# minute under `infisical_setup run MoonieX-Console prod`, which holds PORTFOLIO_PUSH_TOKEN.
+PUSH_HOSTS = ("contabo",)     # the hub host: its config/hosts.yaml key, as self_host() returns it
+PUSH_TIMEOUT_S = 30       # a push still alive after this is killed (portfolio_push's own cap is 10 s)
+PUSH_PREFIX = "portfolio_push: "
+PUSH_EXIT = {2: "not configured", 3: "hub unreachable", 4: "console refused or unreachable"}
+
+
+def push_enabled(host: str) -> bool:
+    """Only the hub host pushes: the Mac and winbox publish sessions and nothing else."""
+    return host in PUSH_HOSTS
+
+
+def push_argv(root: Path = ROOT) -> list[str]:
+    venv_python = Path(root) / ".venv" / "bin" / "python"
+    python = str(venv_python) if venv_python.exists() else sys.executable
+    return [python, str(Path(root) / "tools" / "infisical_setup.py"), "run", "MoonieX-Console", "prod",
+            "--", python, str(Path(root) / "tools" / "portfolio_push.py")]
+
+
+class PortfolioPush:
+    """One push per REFRESH_S, never two at once, never in the publisher's way. ``tick`` starts
+    the subprocess and returns; the next tick reaps it. It cannot raise: a failure is handed to
+    ``report`` (the loop's deduplicated log line), and a push alive past PUSH_TIMEOUT_S is killed.
+    The child inherits the loop's environment (`infisical_setup run` keeps it and adds the
+    project's secrets), so ORG_DB_URL reaches portfolio_push.py. Only a line the child prefixed
+    with ``portfolio_push: `` is ever forwarded, never the rest of its output."""
+
+    def __init__(self, argv, *, cwd=ROOT, report=None, popen=None, clock=time.monotonic):
+        self.argv, self.cwd, self.report, self.clock = list(argv), str(cwd), report, clock
+        self._popen = popen
+        self.proc = None
+        self.started = 0.0
+        self.next_at = 0.0
+        self.failing = False
+
+    def _say(self, what: str) -> None:
+        if self.report:
+            try:
+                self.report(f"portfolio push {what}")
+            except Exception:
+                pass
+
+    def _spawn(self):
+        import subprocess
+        popen = self._popen or subprocess.Popen
+        return popen(self.argv, cwd=self.cwd, env=dict(os.environ), stdin=subprocess.DEVNULL,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, start_new_session=True)
+
+    def _kill(self) -> None:
+        proc, self.proc = self.proc, None
+        if proc is None:
+            return
+        try:
+            proc.kill()
+            proc.wait(timeout=5)
+        except Exception:
+            pass
+        try:
+            proc.stderr.close()
+        except Exception:
+            pass
+
+    def _own_line(self, proc) -> str:
+        try:
+            text = proc.stderr.read(4096).decode("utf-8", "replace")
+            proc.stderr.close()
+        except Exception:
+            return ""
+        lines = [ln[len(PUSH_PREFIX):] for ln in text.splitlines() if ln.startswith(PUSH_PREFIX)]
+        return _clean(lines[-1], 120) if lines else ""
+
+    def _reap(self) -> bool:
+        """False while a push is still in flight."""
+        rc = self.proc.poll()
+        if rc is None:
+            if self.clock() - self.started > PUSH_TIMEOUT_S:
+                self._kill()
+                self.failing = True
+                self._say(f"timed out after {PUSH_TIMEOUT_S}s")
+                return True
+            return False
+        line, self.proc = self._own_line(self.proc), None
+        if rc != 0:
+            self.failing = True
+            self._say(f"exit {rc} ({PUSH_EXIT.get(rc, 'failed')})" + (f": {line}" if line else ""))
+        elif self.failing:
+            self.failing = False
+            self._say("ok again")
+        return True
+
+    def tick(self) -> None:
+        try:
+            if self.proc is not None and not self._reap():
+                return
+            now = self.clock()
+            if now < self.next_at:
+                return
+            self.next_at = now + REFRESH_S      # a failed spawn waits a full period too
+            self.proc, self.started = self._spawn(), now
+        except Exception as exc:
+            self.proc = None
+            self.failing = True
+            self._say(f"error ({type(exc).__name__})")
+
+    def close(self) -> None:
+        self._kill()
+
+
+def make_push(host: str, report=None) -> PortfolioPush | None:
+    return PortfolioPush(push_argv(), report=report) if push_enabled(host) else None
+
+
 def _try_lock(f) -> bool:
     try:
         if sys.platform == "win32":
@@ -736,10 +849,12 @@ class Publisher:
     def __init__(self, url, host, dirs, *, stop=None, lock_path=LOCK_PATH,
                  on_error=None, connect=None, code_path=Path(__file__),
                  pull=(), pull_fn=None, fold_fn=None,
-                 fold_path=Path(__file__).with_name("heartbeat_fold.py")):
+                 fold_path=Path(__file__).with_name("heartbeat_fold.py"),
+                 push=None):
         import threading
         self.url, self.host, self.dirs = url, host, list(dirs)
         self.pull, self._pull_fn = list(pull), pull_fn or pull_remote
+        self.push = push        # PortfolioPush on the hub host, else None
         self._pulled_at: dict[str, float] = {}
         self._pulled_prev: dict[str, set[str]] = {}
         self.stop = stop or threading.Event()
@@ -770,6 +885,8 @@ class Publisher:
                     self.stop.wait(RETRY_S)
             return 0
         finally:
+            if self.push:
+                self.push.close()
             lock.close()
 
     def _report(self, what: str) -> None:
@@ -828,6 +945,8 @@ class Publisher:
                     last_sig, last_pub = sig, time.monotonic()
                 self._pull_due(conn)
                 self._fold_due(conn)
+                if self.push:
+                    self.push.tick()
                 self.stop.wait(POLL_S)
         finally:
             try:
@@ -1185,7 +1304,8 @@ def _cmd_publish(args) -> int:
                 print(f"{stamp} live_sessions: publish failed ({what})", file=sys.stderr, flush=True)
         url = (os.environ.get("ORG_DB_URL") or "").strip()
         try:
-            return Publisher(url, host, dirs, on_error=err, pull=pull_targets(host)).run()
+            return Publisher(url, host, dirs, on_error=err, pull=pull_targets(host),
+                             push=make_push(host, err)).run()
         except KeyboardInterrupt:
             return 0
     except Exception as exc:

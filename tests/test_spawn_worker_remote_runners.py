@@ -502,3 +502,99 @@ def test_media_allow_in_working_tree_only_is_ignored(tmp_path):
 
 
 
+
+
+def test_report_step_generates_under_set_u_with_the_scripts_own_vars():
+    """The real script runs `set -uo pipefail`: the report step may only print variables the script
+    defines (AGENTS_ROOT, LAUNCH_DIR). #343 first printed $ROOT/$LAUNCH, which aborts the generator."""
+    script_text = SCRIPT.read_text(encoding="utf-8")
+    fn_text = script_text[script_text.index("sh_quote() {"):
+                          script_text.index("REPORT_STEP_EOF\n}") + len("REPORT_STEP_EOF\n}")]
+    generator = f"""set -uo pipefail
+TASK=task-setu01
+BRANCH=agent/developer-task-setu01
+BASE=main
+GIT_RESET_GUARD='.worker.pid TASK.md'
+AGENTS_ROOT=/opt/agents
+LAUNCH_DIR=/opt/agents/.launch-task-setu01
+{fn_text}
+emit_report_commit_push codex "" "" "" "codex: task task-setu01"
+"""
+    res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+    assert "AGENTS_ROOT='/opt/agents'\n" in res.stdout
+    assert "LAUNCH_DIR='/opt/agents/.launch-task-setu01'\n" in res.stdout
+
+
+def _report_step_with_launch(task: str, branch: str, runner: str, launch_dir: Path, log_tail: str = "") -> str:
+    script_text = SCRIPT.read_text(encoding="utf-8")
+    fn_text = script_text[script_text.index("sh_quote() {"):
+                          script_text.index("REPORT_STEP_EOF\n}") + len("REPORT_STEP_EOF\n}")]
+    generator = f"""set -uo pipefail
+TASK={task!r}
+BRANCH={branch!r}
+BASE=main
+GIT_RESET_GUARD='.worker.pid TASK.md'
+AGENTS_ROOT=/nonexistent-agents-root
+LAUNCH_DIR={str(launch_dir)!r}
+{fn_text}
+emit_report_commit_push {runner} "" {log_tail!r} "" "{runner}: task {task}"
+"""
+    res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True, check=True)
+    return "CLI_RC=0\n" + res.stdout
+
+
+def _branch_files(wt: Path, branch: str) -> list[str]:
+    out = subprocess.run(["git", "-C", str(wt), "ls-tree", "-r", "--name-only", f"origin/{branch}"],
+                         capture_output=True, text=True, check=True).stdout
+    return out.split()
+
+
+@pytest.mark.parametrize("turn_completed", [False, True])
+def test_codex_round_without_turn_completed_commits_no_report(tmp_path, turn_completed):
+    task = "task-dead01"
+    origin, wt, branch = _setup_media_test_repo(tmp_path, task=task)
+    launch = tmp_path / "launch"
+    launch.mkdir()
+    events = '{"type":"thread.started"}\n' + ('{"type":"turn.completed"}\n' if turn_completed else "")
+    (launch / "codex-events.jsonl").write_text(events, encoding="utf-8")
+    (wt / "REPORT.md").write_text(f"# REPORT {task}\n\nstale\n", encoding="utf-8")
+    (wt / "code.py").write_text("print(1)\n", encoding="utf-8")
+
+    res = _run_report_step(wt, _report_step_with_launch(task, branch, "codex", launch))
+    assert res.returncode == 0, res.stderr
+    files = _branch_files(wt, branch)
+    assert "code.py" in files  # partial work stays on the branch for the PH
+    assert (f"docs/reports/{task}/REPORT.md" in files) is turn_completed
+    assert "REPORT.md" not in files
+
+
+def test_agy_jetski_stub_commits_no_report(tmp_path):
+    task = "task-dead02"
+    origin, wt, branch = _setup_media_test_repo(tmp_path, task=task)
+    launch = tmp_path / "launch"
+    launch.mkdir()
+    log = launch / "agy-events.log"
+    log.write_text('jetski: no output produced — a tool required the "command" permission that headless '
+                   "mode cannot prompt for, so it was auto-denied.\n", encoding="utf-8")
+    (wt / "notes.md").write_text("x\n", encoding="utf-8")
+
+    res = _run_report_step(wt, _report_step_with_launch(task, branch, "agy", launch, str(log)))
+    assert res.returncode == 0, res.stderr
+    files = _branch_files(wt, branch)
+    assert f"docs/reports/{task}/REPORT.md" not in files
+    assert "notes.md" in files
+
+
+def test_agy_normal_log_still_builds_the_report(tmp_path):
+    task = "task-live03"
+    origin, wt, branch = _setup_media_test_repo(tmp_path, task=task)
+    launch = tmp_path / "launch"
+    launch.mkdir()
+    log = launch / "agy-events.log"
+    log.write_text("edited notes.md\ndone\n", encoding="utf-8")
+    (wt / "notes.md").write_text("x\n", encoding="utf-8")
+
+    res = _run_report_step(wt, _report_step_with_launch(task, branch, "agy", launch, str(log)))
+    assert res.returncode == 0, res.stderr
+    assert f"docs/reports/{task}/REPORT.md" in _branch_files(wt, branch)
