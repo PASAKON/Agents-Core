@@ -198,6 +198,7 @@ def test_secretary_relay_path_works_on_bare_env(isolated_env, monkeypatch):
     (locks / "cfo-active").write_text("cfosess1")
     monkeypatch.setattr(mac_agent, "find_session_for_role", lambda r: "cfo-cfosess1")
     monkeypatch.setattr(mac_agent, "attempt_wake", lambda *a, **k: True)
+    monkeypatch.setattr(mac_agent, "_live_session", lambda name: True)
 
     ok, detail = mac_agent.do_relay("cfo", {"message": "[CEO via SomPong]: check budget"})
     assert ok is True

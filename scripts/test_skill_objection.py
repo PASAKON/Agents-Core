@@ -138,6 +138,8 @@ def test_raise_objection_completes_when_lungnote_is_down(
     def _boom(*a, **kw):
         raise RuntimeError("lungnote is down")
     monkeypatch.setattr(so.subprocess, "run", _boom)
+    # Identity resolution fails closed on a bare env: raise it as a session.
+    monkeypatch.setenv("CTO_SESSION_ID", "testsess")
 
     payload = so.raise_objection("some-skill", "conflict", "did instead")
     assert payload["author"] == "cto"
