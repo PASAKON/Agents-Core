@@ -496,8 +496,8 @@ emit_report_commit_push() {
   printf 'GIT_ID_ARGS=%s\n' "$(sh_quote "$4")"
   printf 'COMMIT_MSG=%s\n' "$(sh_quote "$5")"
   printf 'GIT_RESET_GUARD=%s\n' "$(sh_quote "$GIT_RESET_GUARD")"
-  printf 'AGENTS_ROOT=%s\n' "$(sh_quote "$ROOT")"
-  printf 'LAUNCH_DIR=%s\n' "$(sh_quote "$LAUNCH")"
+  printf 'AGENTS_ROOT=%s\n' "$(sh_quote "$AGENTS_ROOT")"
+  printf 'LAUNCH_DIR=%s\n' "$(sh_quote "$LAUNCH_DIR")"
   cat <<'REPORT_STEP_EOF'
 R_DIR="docs/reports/$TASK_ID"
 R="$R_DIR/REPORT.md"

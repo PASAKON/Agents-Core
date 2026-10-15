@@ -502,3 +502,25 @@ def test_media_allow_in_working_tree_only_is_ignored(tmp_path):
 
 
 
+
+
+def test_report_step_generates_under_set_u_with_the_scripts_own_vars():
+    """The real script runs `set -uo pipefail`: the report step may only print variables the script
+    defines (AGENTS_ROOT, LAUNCH_DIR). #343 first printed $ROOT/$LAUNCH, which aborts the generator."""
+    script_text = SCRIPT.read_text(encoding="utf-8")
+    fn_text = script_text[script_text.index("sh_quote() {"):
+                          script_text.index("REPORT_STEP_EOF\n}") + len("REPORT_STEP_EOF\n}")]
+    generator = f"""set -uo pipefail
+TASK=task-setu01
+BRANCH=agent/developer-task-setu01
+BASE=main
+GIT_RESET_GUARD='.worker.pid TASK.md'
+AGENTS_ROOT=/opt/agents
+LAUNCH_DIR=/opt/agents/.launch-task-setu01
+{fn_text}
+emit_report_commit_push codex "" "" "" "codex: task task-setu01"
+"""
+    res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+    assert "AGENTS_ROOT=/opt/agents\n" in res.stdout
+    assert "LAUNCH_DIR=/opt/agents/.launch-task-setu01\n" in res.stdout
