@@ -32,7 +32,8 @@ Usage:
 
 Sender label: resolved from the calling process's env the same way
 `send_to_cxo._resolve_sender_role()` does (`CXO_ROLE` -> that C-level's
-display name, else "CEO") rather than the old hardcoded "[CTO]:" --
+display name; "CEO" only for the CEO's marked command, and a process with no
+identity is refused, exit 4) rather than the old hardcoded "[CTO]:" --
 `tasks.owner_role` already lets a CFO/CMO/CGO/COO own a DEV task directly, so
 a CFO-delegated kickoff now correctly reads "[CFO]:" instead of lying
 "[CTO]:" like it used to.
@@ -351,6 +352,9 @@ def main() -> int:
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
+    except PermissionError as e:  # no identity in this env (agent_transport.current_identity)
+        print(str(e), file=sys.stderr)
+        return 4
     print(result)
     return 0
 

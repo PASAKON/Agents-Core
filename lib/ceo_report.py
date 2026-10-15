@@ -344,7 +344,10 @@ def report_to_ceo(order_id: int, status: str, detail: str) -> str:
             f"got {status!r} -- nothing written"
         )
 
-    identity = current_identity()
+    try:
+        identity = current_identity()
+    except PermissionError as exc:
+        return f"rejected: report_to_ceo needs a C-level session ({exc}) -- nothing written"
     # kind "cxo" alone is not enough: a Project Head (org restructure P2) has
     # kind "cxo" with role project_head, and only a C-level answers an order.
     if identity.kind != "cxo" or not is_c_level(identity.role):
