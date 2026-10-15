@@ -42,7 +42,6 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-_DEFAULT_ROOT = ROOT
 sys.path.insert(0, str(ROOT))
 
 from lib import db_pg, run_liveness, session_names  # noqa: E402
@@ -69,8 +68,6 @@ LIGHT_ASCII = {
 }
 
 STATE_ROOT = ROOT / "state" / "run-watch"
-_DEFAULT_STATE_ROOT = STATE_ROOT
-_TEST_MEM_STATE: dict[tuple[str, str], dict] = {}
 
 EXIT_NO_TASK = 1
 EXIT_HUB = 3
@@ -356,25 +353,10 @@ def state_file(host: str | None = None, state_dir: Path | str | None = None) -> 
     if env_dir:
         p = Path(env_dir)
         return p if p.suffix == ".json" else (p / "ack.json" if p.name == h else p / h / "ack.json")
-    base = STATE_ROOT if STATE_ROOT != _DEFAULT_STATE_ROOT else (ROOT / "state" / "run-watch")
-    return base / h / "ack.json"
-
-
-def _use_mem_state(path: Path) -> bool:
-    """Keep pytest runs that did not pass tmp_path from dirtying the checkout."""
-    if "PYTEST_CURRENT_TEST" not in os.environ:
-        return False
-    try:
-        return path.resolve().is_relative_to(_DEFAULT_STATE_ROOT.resolve())
-    except Exception:  # noqa: BLE001
-        return False
+    return STATE_ROOT / h / "ack.json"
 
 
 def _load_ack_state(path: Path) -> dict:
-    if _use_mem_state(path):
-        key = (os.environ.get("PYTEST_CURRENT_TEST", ""), str(path))
-        saved = _TEST_MEM_STATE.get(key)
-        return {"bad": dict(saved.get("bad", {})), "acked": dict(saved.get("acked", {}))} if saved else {"bad": {}, "acked": {}}
     if not path.exists():
         return {"bad": {}, "acked": {}}
     try:
@@ -390,13 +372,6 @@ def _load_ack_state(path: Path) -> dict:
 
 
 def _save_ack_state(path: Path, data: dict) -> None:
-    if _use_mem_state(path):
-        key = (os.environ.get("PYTEST_CURRENT_TEST", ""), str(path))
-        _TEST_MEM_STATE[key] = {
-            "bad": dict(data.get("bad") or {}),
-            "acked": dict(data.get("acked") or {}),
-        }
-        return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 

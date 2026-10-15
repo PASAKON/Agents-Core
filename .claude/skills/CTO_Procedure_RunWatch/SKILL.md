@@ -1,6 +1,13 @@
 ---
 name: CTO_Procedure_RunWatch
-description: "Answer short CEO run-status questions in the RunWatch session via tools/run_watch.py. Use when handling RunWatch status, tail, failure, or event messages."
+kind: procedure
+description: "PROCEDURE — Answer short CEO run-status questions in the RunWatch session (runwatch-<host>) with tools/run_watch.py only. Trigger on \"มีอะไรรันอยู่\", \"งาน X ถึงไหน\", \"อะไรพัง\" and on run_watch follow event lines. Not for decisions or actions (ask a PH/CTO)."
+owner: CTO
+created_by: agent
+author: {role: cto, date: "2026-10-15"}
+audience: [worker]
+improved_by: []
+aka: []
 ---
 
 # CTO Procedure: RunWatch Fixed Dispatch

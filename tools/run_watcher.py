@@ -19,7 +19,6 @@ from collections.abc import Sequence
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-_DEFAULT_ROOT = ROOT
 sys.path.insert(0, str(ROOT))
 
 from lib import run_liveness  # noqa: E402
@@ -34,8 +33,6 @@ ALLOWED_TOOL = "Bash(bash scripts/hub/org-python.sh tools/run_watch.py *)"
 PROMPT_FILE = "roles/run_watch.md"
 
 STEWARD_ROOT = ROOT / "state" / "steward"
-_DEFAULT_STEWARD_ROOT = STEWARD_ROOT
-_TEST_MEM_OPEN: dict[tuple[str, str], list[str]] = {}
 
 quiet_s = run_liveness.quiet_s
 batch_s = run_liveness.batch_s
@@ -117,17 +114,7 @@ def steward_open_file(
     if env_dir:
         p = Path(env_dir)
         return p if p.suffix == ".md" else (p / "open.md" if p.name == h else p / h / "open.md")
-    base = STEWARD_ROOT if STEWARD_ROOT != _DEFAULT_STEWARD_ROOT else (ROOT / "state" / "steward")
-    return base / h / "open.md"
-
-
-def _use_mem_open(path: Path) -> bool:
-    if "PYTEST_CURRENT_TEST" not in os.environ:
-        return False
-    try:
-        return path.resolve().is_relative_to(_DEFAULT_STEWARD_ROOT.resolve())
-    except Exception:  # noqa: BLE001
-        return False
+    return STEWARD_ROOT / h / "open.md"
 
 
 def record_give_up(
@@ -147,10 +134,6 @@ def record_give_up(
         f"giving up until next run cycle.\n"
     )
     path = steward_open_file(h, open_md=open_md, state_root=state_root)
-    if _use_mem_open(path):
-        key = (os.environ.get("PYTEST_CURRENT_TEST", ""), str(path))
-        _TEST_MEM_OPEN.setdefault(key, []).append(line)
-        return path
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
         fh.write(line)

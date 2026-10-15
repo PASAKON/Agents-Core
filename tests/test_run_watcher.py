@@ -53,7 +53,10 @@ def stubs(alive=(), logs=None):
 
 
 @pytest.fixture(autouse=True)
-def _clean_env(monkeypatch):
+def _clean_env(monkeypatch, tmp_path):
+    # Anything that writes state lands under tmp_path, never the checkout.
+    monkeypatch.setattr(rw, "STATE_ROOT", tmp_path / "run-watch")
+    monkeypatch.setattr(watcher, "STEWARD_ROOT", tmp_path / "steward")
     for name in (
         "RUN_WATCH_QUIET_S",
         "RUN_WATCH_CLOSE_AFTER_S",
