@@ -39,9 +39,29 @@ class _LazyRotatingFileHandler(RotatingFileHandler):
             if self._latest_path.is_symlink() or self._latest_path.exists():
                 self._latest_path.unlink()
             self._latest_path.symlink_to(path.name)
-        except OSError:
-            pass
+        except OSError as exc:
+            sys.stderr.write(
+                f"[logger] could not update latest symlink {self._latest_path}: {exc}\n"
+            )
+            sys.stderr.flush()
         return stream
+
+
+class _StdoutStreamHandler(logging.StreamHandler):
+    """StreamHandler that resolves sys.stdout at emit/flush time so pytest's
+    capsys fixture captures output even when the logger was cached in an
+    earlier test."""
+
+    def __init__(self) -> None:
+        super().__init__(sys.stdout)
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.stream = sys.stdout
+        super().emit(record)
+
+    def flush(self) -> None:
+        self.stream = sys.stdout
+        super().flush()
 
 
 def get_logger(role: str, task_id: str | None = None, stdout: bool = True) -> logging.Logger:
@@ -52,7 +72,7 @@ def get_logger(role: str, task_id: str | None = None, stdout: bool = True) -> lo
     if logger.handlers:
         return logger
     logger.setLevel(logging.INFO)
-    logger.propagate = False
+    logger.propagate = True
 
     fh = _LazyRotatingFileHandler(
         log_path, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT,
@@ -65,8 +85,9 @@ def get_logger(role: str, task_id: str | None = None, stdout: bool = True) -> lo
     logger.addHandler(fh)
 
     if stdout:
-        sh = logging.StreamHandler(sys.stdout)
+        sh = _StdoutStreamHandler()
         sh.setFormatter(logging.Formatter(f"[{name}] %(message)s"))
         logger.addHandler(sh)
 
     return logger
+

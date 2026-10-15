@@ -994,13 +994,21 @@ def _claude_auth_status() -> tuple[bool, str]:
                 or Path.home() / ".claude" / ".credentials.json")
     try:
         oauth = json.loads(path.read_text(encoding="utf-8"))["claudeAiOauth"]
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        _log().warning(
+            "secretary: claude credential check failed (%s): %s",
+            type(exc).__name__,
+            exc if isinstance(exc, OSError) else "unusable credential format",
+        )
         return False, "claude credential unusable (file missing, unreadable, or malformed)"
 
     def _as_float(value: object) -> float | None:
+        if value is None:
+            return None
         try:
             return float(value)  # type: ignore[arg-type]
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            _log().warning("secretary: invalid credential expiry field (%s)", type(exc).__name__)
             return None
 
     now_ms = time.time() * 1000
@@ -1028,7 +1036,8 @@ def _claude_auth_available() -> bool:
     conservative default as the status check itself."""
     try:
         return _claude_auth_status()[0]
-    except Exception:
+    except Exception as exc:
+        _log().warning("secretary: _claude_auth_available failed (%s): %s", type(exc).__name__, exc)
         return False
 
 
@@ -1118,11 +1127,14 @@ def _run_claude_once(prompt: str, session_id: str | None,
     except subprocess.TimeoutExpired:
         try:
             os.killpg(proc.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+        except ProcessLookupError as exc:
+            _log().warning("secretary: claude process group %s already exited before SIGKILL: %s",
+                           proc.pid, exc)
         try:
             stdout, stderr = proc.communicate(timeout=5)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            _log().warning("secretary: claude process %s did not exit within 5s after SIGKILL: %s",
+                           proc.pid, exc)
             stdout, stderr = "", ""
         return -1, stdout, stderr, True
 
@@ -1169,7 +1181,9 @@ def _extract_api_error(stdout: str) -> str | None:
     """
     try:
         data = json.loads(stdout)
-    except (json.JSONDecodeError, TypeError):
+    except (json.JSONDecodeError, TypeError) as exc:
+        _log().warning("secretary: stdout on failed claude run is not JSON (%s)",
+                       type(exc).__name__)
         return None
     if not isinstance(data, dict):
         return None
@@ -1493,9 +1507,11 @@ def _download_image(url: str, dest_dir: Path, index: int) -> tuple[Path | None, 
             resp = requests.get(
                 url, timeout=SECRETARY_IMAGE_TIMEOUT_SECONDS, stream=True,
             )
-        except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout as e:
+            _log().warning("secretary: image %s download timed out: %s", index, e)
             return None, f"image {index}: timeout"
         except requests.exceptions.RequestException as e:
+            _log().warning("secretary: image %s download failed: %s", index, e)
             return None, f"image {index}: download failed ({e})"
 
         try:
@@ -1520,9 +1536,11 @@ def _download_image(url: str, dest_dir: Path, index: int) -> tuple[Path | None, 
         try:
             dest.write_bytes(bytes(content))
         except OSError as e:
+            _log().error("secretary: image %s could not save to disk (%s): %s", index, dest, e)
             return None, f"image {index}: could not save to disk ({e})"
         return dest, None
     except Exception as e:  # last-resort net, matches read_link's "never raises"
+        _log().error("secretary: image %s internal error: %r", index, e)
         return None, f"image {index}: internal error ({e!r})"
 
 
@@ -1566,7 +1584,10 @@ def cleanup_staging_dir(staging_dir: Path | None) -> None:
     unhandled exception -- so a failed turn never leaves images on disk."""
     if staging_dir is None:
         return
-    shutil.rmtree(staging_dir, ignore_errors=True)
+    try:
+        shutil.rmtree(staging_dir)
+    except OSError as exc:
+        _log().warning("secretary: could not remove staging dir %s: %s", staging_dir, exc)
 
 
 _IMAGES_ATTACHED_MARK = "[แนบรูปภาพ]"
@@ -1625,7 +1646,8 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length) if length else b""
         try:
             body = json.loads(raw or b"{}")
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
+            _log().warning("secretary: invalid JSON body on POST %s: %s", self.path, exc)
             self._send_json(400, {"error": {"message": "invalid JSON body"}})
             return
 
@@ -1701,12 +1723,12 @@ def main() -> None:
     check_api_key_or_exit()
     ensure_mcp_config()
     server = ThreadingHTTPServer((SECRETARY_HOST, SECRETARY_PORT), Handler)
-    _log().info("secretary listening on %s:%s (max_concurrent=%s workdir=%s)",
+    _log().info("secretary started — listening on %s:%s (max_concurrent=%s workdir=%s)",
                SECRETARY_HOST, SECRETARY_PORT, SECRETARY_MAX_CONCURRENT, SECRETARY_WORKDIR)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        pass
+        _log().info("secretary stopped (KeyboardInterrupt)")
     finally:
         server.server_close()
 

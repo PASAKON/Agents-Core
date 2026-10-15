@@ -1567,5 +1567,162 @@ def test_http_model_light_returns_400_not_a_silent_profile(running_server) -> No
     assert payload["error"] == "unknown model profile"
 
 
+# ---------------------------------------------------------------------------
+# task-08129e34 -- systemd journal drop-in + startup/OSError logging seams
+# ---------------------------------------------------------------------------
+
+def test_secretary_journal_dropins_configure_journal_and_unbuffered_python() -> None:
+    for unit in ("mooniex-secretary", "mooniex-secretary-waker"):
+        dropin = ROOT / "deploy" / "systemd" / f"{unit}.service.d" / "journal.conf"
+        assert dropin.is_file(), f"missing {dropin}"
+        lines = [
+            ln.strip()
+            for ln in dropin.read_text(encoding="utf-8").splitlines()
+            if ln.strip() and not ln.strip().startswith("#")
+        ]
+        assert "[Service]" in lines
+        assert "StandardOutput=journal" in lines
+        assert "StandardError=journal" in lines
+        assert "Environment=PYTHONUNBUFFERED=1" in lines
+
+
+def test_main_emits_secretary_started_log_line_without_secrets(
+    tmp_path, monkeypatch, caplog, capsys,
+) -> None:
+    secret_key = "super-secret-api-key-never-log-me"
+    monkeypatch.setattr(ss, "SECRETARY_API_KEY", secret_key)
+    monkeypatch.setattr(ss, "MCP_CONFIG_PATH", tmp_path / "secretary.mcp.json")
+    monkeypatch.setattr(ss, "SECRETARY_HOST", "127.0.0.1")
+    monkeypatch.setattr(ss, "SECRETARY_PORT", 18643)
+
+    class _DummyServer:
+        def __init__(self, addr, handler):
+            self.addr = addr
+            self.closed = False
+
+        def serve_forever(self):
+            raise KeyboardInterrupt
+
+        def server_close(self):
+            self.closed = True
+
+    monkeypatch.setattr(ss, "ThreadingHTTPServer", _DummyServer)
+
+    with caplog.at_level(logging.INFO):
+        ss.main()
+
+    captured = capsys.readouterr()
+    assert "secretary started" in caplog.text
+    assert "127.0.0.1:18643" in caplog.text
+    assert "secretary started" in captured.out
+    assert secret_key not in caplog.text
+    assert secret_key not in captured.out
+    assert secret_key not in captured.err
+
+
+def test_caught_oserror_in_claude_auth_status_is_logged_via_caplog_and_capsys(
+    tmp_path, monkeypatch, caplog, capsys,
+) -> None:
+    missing = tmp_path / "no-such-credentials.json"
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(missing))
+
+    with caplog.at_level(logging.WARNING):
+        ok, reason = ss._claude_auth_status()
+
+    captured = capsys.readouterr()
+    assert ok is False
+    assert "unusable" in reason
+    assert "claude credential check failed (FileNotFoundError)" in caplog.text
+    assert "claude credential check failed (FileNotFoundError)" in captured.out
+
+    # Also verify a malformed credential file containing secret material logs
+    # the failure without leaking the token value.
+    secret_token = "sk-ant-oat01-SECRET-TOKEN-DO-NOT-LEAK"
+    bad_file = tmp_path / "bad-creds.json"
+    bad_file.write_text(f'{{"accessToken": "{secret_token}"}}', encoding="utf-8")
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(bad_file))
+    caplog.clear()
+
+    with caplog.at_level(logging.WARNING):
+        ok2, _ = ss._claude_auth_status()
+
+    captured2 = capsys.readouterr()
+    assert ok2 is False
+    assert "claude credential check failed (KeyError)" in caplog.text
+    assert "claude credential check failed (KeyError)" in captured2.out
+    assert secret_token not in caplog.text
+    assert secret_token not in captured2.out
+    assert secret_token not in captured2.err
+
+
+def test_caught_oserror_in_cleanup_staging_dir_is_logged_via_caplog_and_capsys(
+    tmp_path, caplog, capsys,
+) -> None:
+    missing_dir = tmp_path / "nonexistent-staging-dir"
+    with caplog.at_level(logging.WARNING):
+        ss.cleanup_staging_dir(missing_dir)
+
+    captured = capsys.readouterr()
+    assert "could not remove staging dir" in caplog.text
+    assert "could not remove staging dir" in captured.out
+
+
+def test_caught_oserror_in_download_image_write_is_logged_via_caplog_and_capsys(
+    tmp_path, monkeypatch, caplog, capsys,
+) -> None:
+    monkeypatch.setattr(ss, "check_url_safe", lambda url: None)
+
+    class _FakeResp:
+        status_code = 200
+        headers = {"Content-Type": "image/png"}
+
+        def iter_content(self, chunk_size=65536):
+            yield b"\x89PNG\r\n"
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(ss.requests, "get", lambda *a, **kw: _FakeResp())
+    # Point dest_dir at a non-existent directory so dest.write_bytes raises OSError
+    unwritable_dir = tmp_path / "does-not-exist" / "nested"
+
+    with caplog.at_level(logging.ERROR):
+        path, failure = ss._download_image("https://example.com/a.png", unwritable_dir, 1)
+
+    captured = capsys.readouterr()
+    assert path is None
+    assert failure is not None and "could not save to disk" in failure
+    assert "image 1 could not save to disk" in caplog.text
+    assert "image 1 could not save to disk" in captured.out
+
+
+def test_lazy_rotating_file_handler_logs_symlink_oserror_to_stderr(
+    tmp_path, monkeypatch, capsys,
+) -> None:
+    from lib import logger as org_logger
+
+    log_file = tmp_path / "logs" / "sec_test.log"
+    latest_link = tmp_path / "logs" / "sec_latest.log"
+    handler = org_logger._LazyRotatingFileHandler(
+        log_file, maxBytes=1024, backupCount=1, encoding="utf-8",
+        delay=True, latest_path=latest_link,
+    )
+
+    def _boom_symlink_to(self, target):
+        raise OSError("read-only symlink target")
+
+    monkeypatch.setattr(Path, "symlink_to", _boom_symlink_to)
+    try:
+        stream = handler._open()
+        stream.close()
+    finally:
+        handler.close()
+
+    captured = capsys.readouterr()
+    assert "could not update latest symlink" in captured.err
+    assert "read-only symlink target" in captured.err
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))
+

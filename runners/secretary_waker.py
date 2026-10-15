@@ -129,15 +129,20 @@ def _try_lock(path: Path):
     if another tick already holds it (or flock is unavailable)."""
     if fcntl is None:
         return None
-    path.parent.mkdir(parents=True, exist_ok=True)
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)
         fd = os.open(str(path), os.O_CREAT | os.O_RDWR, 0o644)
-    except OSError:
+    except OSError as exc:
+        _log().error("could not open lock file %s: %s", path, exc)
         return None
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError:
-        os.close(fd)
+    except OSError as exc:
+        _log().warning("could not acquire flock on %s: %s", path, exc)
+        try:
+            os.close(fd)
+        except OSError as close_exc:
+            _log().warning("could not close lock fd on %s: %s", path, close_exc)
         return None
     return fd
 
@@ -147,8 +152,8 @@ def _unlock(fd) -> None:
         return
     try:
         os.close(fd)  # releases the flock too
-    except OSError:
-        pass
+    except OSError as exc:
+        _log().warning("could not close lock fd: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +180,8 @@ def _peek_with_paths(root: Path | None = None) -> list[tuple[Path, dict]]:
     for p in sorted(box.glob("*.json")):
         try:
             letter = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
+        except Exception as exc:
+            _log().warning("skipping unreadable or malformed letter %s: %s", p, exc)
             continue
         out.append((p, letter))
     return out
@@ -191,7 +197,8 @@ def _peek_with_paths(root: Path | None = None) -> list[tuple[Path, dict]]:
 def _load_failcounts(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except Exception as exc:
+        _log().warning("could not load failcounts from %s: %s", path, exc)
         return {}
 
 
@@ -214,7 +221,7 @@ def _record_failure(paths: list[Path], box: Path, failcount_path: Path,
     """Bump the consecutive-failure count for every letter in a failed batch
     attempt. Any that reach the cap move to failed/ instead of being retried
     forever -- the failure mode to design out against a paid API."""
-    counts = _load_failcounts(failcount_path)
+    counts = _load_failcounts(failcount_path) if failcount_path.exists() else {}
     for p in paths:
         n = counts.get(p.name, 0) + 1
         if n >= max_retries:
@@ -227,6 +234,8 @@ def _record_failure(paths: list[Path], box: Path, failcount_path: Path,
 
 
 def _clear_failures(paths: list[Path], failcount_path: Path) -> None:
+    if not failcount_path.exists():
+        return
     counts = _load_failcounts(failcount_path)
     changed = False
     for p in paths:
@@ -311,6 +320,7 @@ def _invoke_secretary(prompt: str) -> tuple[bool, str]:
             timeout=SECRETARY_TIMEOUT_SECONDS,
         )
     except requests.RequestException as e:
+        _log().error("secretary request failed: %s", e)
         return False, f"secretary request failed: {e}"
 
     if not r.ok:
@@ -318,12 +328,15 @@ def _invoke_secretary(prompt: str) -> tuple[bool, str]:
 
     try:
         data = r.json()
-    except ValueError:
+    except ValueError as e:
+        _log().error("secretary returned non-JSON response: %s", e)
         return False, "secretary returned non-JSON response"
 
     try:
         content = data["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError):
+    except (KeyError, IndexError, TypeError) as e:
+        _log().error("secretary response missing content (%s): %s",
+                     type(e).__name__, json.dumps(data)[:300])
         return False, f"secretary response missing content: {json.dumps(data)[:300]}"
 
     if not content or not str(content).strip():
@@ -385,7 +398,7 @@ def _tick_locked() -> int:
 
 def main() -> None:
     once = "--once" in sys.argv
-    _log().info("secretary_waker starting (poll=%ss max_batch=%s once=%s)",
+    _log().info("secretary started (secretary_waker poll=%ss max_batch=%s once=%s)",
                 POLL_SECONDS, MAX_BATCH, once)
     while True:
         try:

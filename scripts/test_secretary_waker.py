@@ -286,5 +286,103 @@ def test_invoke_secretary_empty_content_is_failure(waker_env, monkeypatch):
     assert ok is False
 
 
+# ---------------------------------------------------------------------------
+# task-08129e34 -- startup log line and caught OSError/exception logging seams
+# ---------------------------------------------------------------------------
+
+def test_waker_main_emits_secretary_started_log_line(
+    waker_env, monkeypatch, caplog, capsys,
+):
+    import logging
+
+    secret_key = "waker-secret-api-key-never-log"
+    monkeypatch.setattr(secretary_server, "SECRETARY_API_KEY", secret_key)
+    monkeypatch.setattr(sys, "argv", ["secretary_waker.py", "--once"])
+
+    with caplog.at_level(logging.INFO):
+        w.main()
+
+    captured = capsys.readouterr()
+    assert "secretary started" in caplog.text
+    assert "secretary started" in captured.out
+    assert secret_key not in caplog.text
+    assert secret_key not in captured.out
+    assert secret_key not in captured.err
+
+
+def test_waker_try_lock_logs_oserror_via_caplog_and_capsys(
+    waker_env, monkeypatch, caplog, capsys,
+):
+    import logging
+
+    def _boom_open(*a, **kw):
+        raise PermissionError("permission denied opening waker.lock")
+
+    monkeypatch.setattr(w.os, "open", _boom_open)
+
+    with caplog.at_level(logging.ERROR):
+        fd = w._try_lock(w.LOCK_PATH)
+
+    captured = capsys.readouterr()
+    assert fd is None
+    assert "could not open lock file" in caplog.text
+    assert "permission denied opening waker.lock" in caplog.text
+    assert "could not open lock file" in captured.out
+
+
+def test_waker_unlock_logs_oserror_via_caplog_and_capsys(
+    waker_env, monkeypatch, caplog, capsys,
+):
+    import logging
+
+    def _boom_close(fd):
+        raise OSError("bad file descriptor")
+
+    monkeypatch.setattr(w.os, "close", _boom_close)
+
+    with caplog.at_level(logging.WARNING):
+        w._unlock(99999)
+
+    captured = capsys.readouterr()
+    assert "could not close lock fd" in caplog.text
+    assert "bad file descriptor" in caplog.text
+    assert "could not close lock fd" in captured.out
+
+
+def test_waker_peek_with_paths_logs_malformed_letter_via_caplog_and_capsys(
+    waker_env, caplog, capsys,
+):
+    import logging
+
+    box = w._box()
+    box.mkdir(parents=True, exist_ok=True)
+    bad = box / "0001-corrupt.json"
+    bad.write_text("{not valid json", encoding="utf-8")
+
+    with caplog.at_level(logging.WARNING):
+        out = w._peek_with_paths()
+
+    captured = capsys.readouterr()
+    assert out == []
+    assert "skipping unreadable or malformed letter" in caplog.text
+    assert "skipping unreadable or malformed letter" in captured.out
+
+
+def test_waker_load_failcounts_logs_oserror_via_caplog_and_capsys(
+    waker_env, caplog, capsys,
+):
+    import logging
+
+    missing = waker_env / "no-such-failcounts.json"
+    with caplog.at_level(logging.WARNING):
+        counts = w._load_failcounts(missing)
+
+    captured = capsys.readouterr()
+    assert counts == {}
+    assert "could not load failcounts" in caplog.text
+    assert "could not load failcounts" in captured.out
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-v"]))
+
