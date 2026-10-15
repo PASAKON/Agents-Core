@@ -1,4 +1,4 @@
-"""Host flags for the org restructure (P2): on from a root-owned file, not only the env.
+r"""Host flags for the org restructure (P2): on from a root-owned file, not only the env.
 
 A flag is on for this host when `/etc/org-flags/<NAME>` exists, or when the
 process's own environment says `<NAME>=1`. The file is the deploy switch: a
