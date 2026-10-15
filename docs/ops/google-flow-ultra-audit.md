@@ -5,7 +5,7 @@ generations fired.** Credit balance read at start and end of session was
 **identical: 9,413 → 9,413.** No task-triggered spend occurred.
 
 Concurrent-spend note per task brief: another CTO session was running two
-shooters on this same account (task-abc83ea2, task-f0f67322, «บัญชี» องก์ 1)
+shooters on this same account (task-abc83ea2, task-f0f67322, «บัญชี» Act 1)
 during this window. The balance did not move between my start and end reads,
 so either those shooters were between generations at both check-ins, or their
 spend landed outside this window. Either way: **the delta is 0, and every

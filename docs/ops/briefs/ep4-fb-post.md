@@ -11,7 +11,7 @@ The CTO has audited the film and written the caption.
 | what | path |
 |---|---|
 | video (1080×1920, 9:56, 75 clips) | `/Users/gob/MoonieXHQ/Work/task-c816fbc0/out/ep4-FINAL-v1.mp4` |
-| cover | `/Users/gob/MoonieXHQ/Work/task-c816fbc0/cover/out/poster-b-rice.png` (CEO pick 2026-09-28: แบบที่ 2 รวงข้าวทอง) |
+| cover | `/Users/gob/MoonieXHQ/Work/task-c816fbc0/cover/out/poster-b-rice.png` (CEO pick 2026-09-28: option 2, golden rice ears) |
 | caption | `docs/scripts/ep4-reels-caption.txt` |
 | first comment | `docs/scripts/ep4-first-comment.txt` |
 
