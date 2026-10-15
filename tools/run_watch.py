@@ -3,21 +3,25 @@
     bash scripts/hub/org-python.sh tools/run_watch.py status [--json] [--bad]
     bash scripts/hub/org-python.sh tools/run_watch.py tail <task> [-n 15]
     bash scripts/hub/org-python.sh tools/run_watch.py follow
+    bash scripts/hub/org-python.sh tools/run_watch.py light [--json]
 
   status   one row per active run, and per run that ended in the last 30 min,
            on THIS host. A header line plus a row each. --bad keeps quiet /
            failed / dead; --json prints {"host", "at", "runs": [...]}.
+           Showing a failed or dead run acknowledges it for `light`.
   tail     the last lines the task's worker wrote (its transcript or CLI log),
            secrets masked.
   follow   one line per state change (start, done, failed, dead, quiet,
            resumed) and nothing else. Changes are held and printed together at
            most once per RUN_WATCH_BATCH_S. State lives in memory only: a
            restarted `follow` starts from what it sees, so ask `status` first.
+  light    prints the session Watch name via lib/session_names.watch_name
+           (ASCII form on winbox through windows_safe).
 
 The state of a run comes from lib/run_liveness.py (one reader for every tool).
-Thresholds: RUN_WATCH_QUIET_S (900), RUN_WATCH_BATCH_S (120), RUN_WATCH_ENDED_S
-(1800), RUN_WATCH_SPAWN_GRACE_S (90), RUN_WATCH_REPORT_GRACE_S (180),
-RUN_WATCH_POLL_S (10).
+Thresholds: RUN_WATCH_QUIET_S (900), RUN_WATCH_CLOSE_AFTER_S (600),
+RUN_WATCH_BATCH_S (120), RUN_WATCH_ENDED_S (1800), RUN_WATCH_SPAWN_GRACE_S (90),
+RUN_WATCH_REPORT_GRACE_S (180), RUN_WATCH_POLL_S (10).
 
 If the hub cannot be read the whole output is the single line
 `hub unreachable` and the exit code is 3. The ledger is opened straight from
@@ -37,12 +41,15 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+_DEFAULT_ROOT = ROOT
+sys.path.insert(0, str(ROOT))
 
-from lib import db_pg, run_liveness  # noqa: E402
+from lib import db_pg, run_liveness, session_names  # noqa: E402
 
 HUB_CONNECT_TIMEOUT_S = 3
 POLL_S_DEFAULT = 10
+CLOSE_AFTER_S_DEFAULT = 600
 TITLE_MAX = 40
 TAIL_BYTES = 256 * 1024
 TAIL_LINE_MAX = 200
@@ -50,10 +57,28 @@ TAIL_LINE_MAX = 200
 # Worst first, so the line that needs a human is the first one.
 _SEVERITY = {"dead": 0, "failed": 1, "quiet": 2, "running": 3, "done": 4}
 BAD_STATES = frozenset({"dead", "failed", "quiet"})
+FAIL_STATES = frozenset({"dead", "failed"})
+ACTIVE_STATES = frozenset({"running", "quiet"})
+
+LIGHT_OK, LIGHT_QUIET, LIGHT_BAD, LIGHT_IDLE = session_names.LIGHTS
+LIGHT_ASCII = {
+    LIGHT_OK: "ok",
+    LIGHT_QUIET: "quiet",
+    LIGHT_BAD: "FAIL",
+    LIGHT_IDLE: "idle",
+}
+
+STATE_ROOT = ROOT / "state" / "run-watch"
+_DEFAULT_STATE_ROOT = STATE_ROOT
+_TEST_MEM_STATE: dict[tuple[str, str], dict] = {}
 
 EXIT_NO_TASK = 1
 EXIT_HUB = 3
 EXIT_HOST = 4
+
+
+def close_after_s() -> int:
+    return run_liveness._env_int("RUN_WATCH_CLOSE_AFTER_S", CLOSE_AFTER_S_DEFAULT)
 
 
 class HubUnreachable(RuntimeError):
@@ -318,6 +343,211 @@ def cmd_tail(args) -> int:
 
 
 # --------------------------------------------------------------------------
+# light and count (with sticky red state under state/run-watch/<host>/)
+# --------------------------------------------------------------------------
+
+def state_file(host: str | None = None, state_dir: Path | str | None = None) -> Path:
+    """Path to the per-host ack file under state/run-watch/<host>/ack.json."""
+    h = host or "local"
+    if state_dir is not None:
+        p = Path(state_dir)
+        return p if p.suffix == ".json" else p / "ack.json"
+    env_dir = (os.environ.get("RUN_WATCH_STATE_DIR") or "").strip()
+    if env_dir:
+        p = Path(env_dir)
+        return p if p.suffix == ".json" else (p / "ack.json" if p.name == h else p / h / "ack.json")
+    base = STATE_ROOT if STATE_ROOT != _DEFAULT_STATE_ROOT else (ROOT / "state" / "run-watch")
+    return base / h / "ack.json"
+
+
+def _use_mem_state(path: Path) -> bool:
+    """Keep pytest runs that did not pass tmp_path from dirtying the checkout."""
+    if "PYTEST_CURRENT_TEST" not in os.environ:
+        return False
+    try:
+        return path.resolve().is_relative_to(_DEFAULT_STATE_ROOT.resolve())
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _load_ack_state(path: Path) -> dict:
+    if _use_mem_state(path):
+        key = (os.environ.get("PYTEST_CURRENT_TEST", ""), str(path))
+        saved = _TEST_MEM_STATE.get(key)
+        return {"bad": dict(saved.get("bad", {})), "acked": dict(saved.get("acked", {}))} if saved else {"bad": {}, "acked": {}}
+    if not path.exists():
+        return {"bad": {}, "acked": {}}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            return {
+                "bad": dict(raw.get("bad") or {}),
+                "acked": dict(raw.get("acked") or {}),
+            }
+    except Exception:  # noqa: BLE001
+        pass
+    return {"bad": {}, "acked": {}}
+
+
+def _save_ack_state(path: Path, data: dict) -> None:
+    if _use_mem_state(path):
+        key = (os.environ.get("PYTEST_CURRENT_TEST", ""), str(path))
+        _TEST_MEM_STATE[key] = {
+            "bad": dict(data.get("bad") or {}),
+            "acked": dict(data.get("acked") or {}),
+        }
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _run_sig(item: dict) -> dict[str, str]:
+    """Fingerprint a task's current delegation attempt (status + started/spawned_at)."""
+    status = str(item.get("status") or "")
+    spawned = item.get("spawned_at")
+    if spawned is not None:
+        ts = run_liveness.parse_ts(spawned)
+        started = run_liveness.iso(ts) if ts is not None else str(spawned)
+    else:
+        started = str(item.get("started") or "")
+        if not started and "created_at" in item:
+            ts = run_liveness.started_at(item)
+            started = run_liveness.iso(ts) or str(item.get("created_at") or "")
+    return {"status": status, "started": started}
+
+
+def acknowledge_runs(
+    runs: list[dict],
+    *,
+    host: str | None = None,
+    state_dir: Path | str | None = None,
+) -> Path:
+    """Record an ack for any failed or dead runs shown in a status answer."""
+    path = state_file(host, state_dir)
+    data = _load_ack_state(path)
+    bad: dict[str, dict] = data.setdefault("bad", {})
+    acked: dict[str, dict] = data.setdefault("acked", {})
+    changed = False
+    for r in runs:
+        tid = str(r.get("task") or r.get("id") or "")
+        if not tid:
+            continue
+        if r.get("state") in FAIL_STATES:
+            sig = _run_sig(r)
+            if acked.get(tid) != sig or tid in bad:
+                acked[tid] = sig
+                bad.pop(tid, None)
+                changed = True
+    if changed:
+        _save_ack_state(path, data)
+    return path
+
+
+ack_runs = acknowledge_runs
+
+
+def compute_light(
+    runs: list[dict],
+    *,
+    host: str | None = None,
+    state_dir: Path | str | None = None,
+    tasks: list[dict] | None = None,
+) -> tuple[int, str]:
+    """From `collect_runs` output, compute `(n_active, light)`:
+    🟢 all running · 🟡 any quiet >15 min · 🔴 any failed or dead · ⚪ 0 runs.
+    🔴 is sticky until acknowledged by `status` or re-delegated (status/spawned_at changes).
+    """
+    path = state_file(host, state_dir)
+    data = _load_ack_state(path)
+    bad: dict[str, dict] = data.setdefault("bad", {})
+    acked: dict[str, dict] = data.setdefault("acked", {})
+    changed = False
+
+    for r in runs:
+        tid = str(r.get("task") or r.get("id") or "")
+        if not tid:
+            continue
+        sig = _run_sig(r)
+        state = r.get("state")
+        if state in FAIL_STATES:
+            if acked.get(tid) == sig:
+                if tid in bad:
+                    bad.pop(tid, None)
+                    changed = True
+            else:
+                if bad.get(tid) != sig:
+                    bad[tid] = sig
+                    changed = True
+                if tid in acked and acked.get(tid) != sig:
+                    acked.pop(tid, None)
+                    changed = True
+        else:
+            if tid in bad:
+                bad.pop(tid, None)
+                changed = True
+            if tid in acked and acked.get(tid) != sig:
+                acked.pop(tid, None)
+                changed = True
+
+    if tasks:
+        by_id = {str(t.get("id") or t.get("task") or ""): t for t in tasks}
+        for tid in list(bad.keys()):
+            t = by_id.get(tid)
+            if t is not None and _run_sig(t) != bad[tid]:
+                bad.pop(tid, None)
+                changed = True
+
+    if changed:
+        _save_ack_state(path, data)
+
+    n_active = sum(1 for r in runs if r.get("state") in ACTIVE_STATES)
+    if bad:
+        light = LIGHT_BAD
+    elif n_active == 0:
+        light = LIGHT_IDLE
+    elif any(r.get("state") == "quiet" for r in runs if r.get("state") in ACTIVE_STATES):
+        light = LIGHT_QUIET
+    else:
+        light = LIGHT_OK
+    return n_active, light
+
+
+light_and_count = compute_light
+
+
+def _is_windows_host(host: str | None) -> bool:
+    if not host:
+        return False
+    if host.strip().lower() == "winbox":
+        return True
+    try:
+        from lib import config
+        return config.host(host).get("os") == "windows"
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def format_watch_name(
+    n_active: int,
+    light: str,
+    *,
+    sid: str | None = None,
+    host: str | None = None,
+) -> str:
+    """Format the Watch session name via session_names.watch_name.
+    Uses ASCII form through session_names.windows_safe on winbox.
+    """
+    sid_val = sid or os.environ.get("RUN_WATCH_SID") or "000"
+    if _is_windows_host(host):
+        word = session_names.windows_safe(LIGHT_ASCII.get(light, str(light)))
+        return session_names.watch_name(sid_val, n_active, f" {word}", host=None)
+    return session_names.watch_name(sid_val, n_active, light, host=host)
+
+
+watch_light_name = format_watch_name
+
+
+# --------------------------------------------------------------------------
 # entry point
 # --------------------------------------------------------------------------
 
@@ -327,17 +557,23 @@ def _parser() -> argparse.ArgumentParser:
     st = sub.add_parser("status", help="active and just-ended runs on this host")
     st.add_argument("--json", action="store_true")
     st.add_argument("--bad", action="store_true", help="quiet, failed, dead only")
+    st.add_argument("--state-dir", default=None, help="override state/run-watch/<host> dir")
     tl = sub.add_parser("tail", help="the last lines a task's worker wrote")
     tl.add_argument("task")
     tl.add_argument("-n", type=int, default=15)
     sub.add_parser("follow", help="one line per state change")
+    lt = sub.add_parser("light", help="Watch session name with run count and light")
+    lt.add_argument("--json", action="store_true")
+    lt.add_argument("--sid", default=None, help="session id for Watch#<id3>")
+    lt.add_argument("--host", default=None, help="override host name")
+    lt.add_argument("--state-dir", default=None, help="override state/run-watch/<host> dir")
     return p
 
 
 def main(argv=None) -> int:
     args = _parser().parse_args(argv)
     try:
-        host = this_host()
+        host = getattr(args, "host", None) or this_host()
     except HostUnknown as exc:
         print(f"host unknown: {exc}")
         return EXIT_HOST
@@ -346,12 +582,30 @@ def main(argv=None) -> int:
             return run_follow()
         if args.cmd == "tail":
             return cmd_tail(args)
-        runs = collect_runs(fetch_tasks())
+        tasks = fetch_tasks()
+        runs = collect_runs(tasks)
     except HubUnreachable:
         print("hub unreachable")
         return EXIT_HUB
+    if args.cmd == "light":
+        n_active, light = compute_light(
+            runs, host=host, state_dir=args.state_dir, tasks=tasks,
+        )
+        name = format_watch_name(n_active, light, sid=args.sid, host=host)
+        if args.json:
+            print(json.dumps({
+                "host": host,
+                "n_active": n_active,
+                "light": light,
+                "state": LIGHT_ASCII.get(light, light),
+                "name": name,
+            }, ensure_ascii=False))
+        else:
+            print(name)
+        return 0
     if args.bad:
         runs = [r for r in runs if r["state"] in BAD_STATES]
+    acknowledge_runs(runs, host=host, state_dir=args.state_dir)
     if args.json:
         print(json.dumps({"host": host, "at": run_liveness.iso(time.time()),
                           "runs": runs}, ensure_ascii=False))
