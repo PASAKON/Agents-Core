@@ -60,6 +60,10 @@ import tools.agent_transport as agent_transport  # noqa: E402
 import tools.send_to_cxo as sc  # noqa: E402
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 def _fake_result(returncode: int, stdout: str) -> types.SimpleNamespace:
     return types.SimpleNamespace(returncode=returncode, stdout=stdout)
 

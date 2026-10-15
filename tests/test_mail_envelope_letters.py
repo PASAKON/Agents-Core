@@ -50,6 +50,10 @@ ENVELOPE_KEYS = LEGACY_KEYS | {"id", "subject", "kind", "prio", "read_at"}
 LONG = "word " * 120          # 600 characters
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 @pytest.fixture(autouse=True)
 def clean_env(monkeypatch):
     for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID", "WORKER_TASK_ID",

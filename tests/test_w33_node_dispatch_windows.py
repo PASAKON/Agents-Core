@@ -36,6 +36,10 @@ UUID = "12345678-1234-1234-1234-123456789abc"
 _TID = "task-1234abcd"
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 class Runs:
     """subprocess.run, replaced. `calls` is every argv that reached it."""
 
