@@ -29,6 +29,32 @@ not this process's. It also:
   one-line prompt that points at it;
 - dismisses Claude Code's new-MCP-servers screen when the pane shows it (a
   blind Escape would interrupt the PH's first turn).
+
+On another host (M13b, CEO 2026-10-14 "ทำให้ CXO spawn PH บน Mac และ Windows ได้เลย"):
+there is no ssh to the Mac by design, so a C-level raises a Run Inbox card for
+that host and the CEO taps it (one tap per spawn):
+
+    bash scripts/hub/org-python.sh -m tools.spawn_ph card --host mac --project <Name> \
+        --brief "<one line>" [--sha <pushed Agents-Core commit>] [--send]
+
+The card runs the pinned scripts/spawn-ph.sh with exactly
+`--project <Name> --from-card <nonce> --sha <sha> [--brief <one line>]`. Checks
+(§2b review of #280):
+
+- the executor runs a COPY of the pinned script from a temp dir, so the script
+  switches to this host's fixed clone and refuses unless that clone's HEAD is the
+  card's sha, its tracked files are unchanged and no untracked .py sits where
+  Python would import it; Python then runs isolated (-I) with an empty
+  pycache_prefix, so nothing outside the pinned commit is loaded (the venv
+  excepted: it is the same trust as every launcher on that host);
+- the owner is the requester of the ONE running card on the hub whose host is
+  this host, whose script is Agents-Core@<that sha>:scripts/spawn-ph.sh, whose
+  args equal this run's argv exactly, and which a C-level session raised
+  (created_via "clevel", requester role = lane); no flag names the owner;
+- the nonce is single-use: a marker created with O_EXCL under the claim lock;
+- raising the card (`card`) runs the same C-level check as a local spawn
+  (_caller, send_to_cxo.authorize spawning=True). The brief is one line of at most
+  CARD_BRIEF_MAX characters (the hub caps script args); the owner sends the rest.
 """
 from __future__ import annotations
 
@@ -41,6 +67,7 @@ import shlex
 import subprocess
 import sys
 import time
+import unicodedata
 import uuid
 from pathlib import Path
 
@@ -59,6 +86,11 @@ SPAWN_PROMPT_DELAY_S = float(os.environ.get("SPAWN_PH_PROMPT_DELAY_S", "12"))
 _SID_RE = re.compile(r"[0-9a-f]{8}")
 BRIEF_MAX = 20_000
 CLAIM_GRACE_S = 60
+SPAWN_SCRIPT = "scripts/spawn-ph.sh"
+_NONCE_RE = re.compile(r"[0-9a-f]{16}")
+_SHA_RE = re.compile(r"[0-9a-f]{40}")
+CARD_BRIEF_MAX = 300
+CARD_ARGS_MAX = 480     # the hub refuses script args over 500 characters
 MCP_SCREEN_RE = re.compile(r"MCP server", re.IGNORECASE)
 
 
@@ -87,6 +119,96 @@ def _caller() -> tuple[str, str]:
     except PermissionError as e:
         raise Refused(str(e)) from e
     return ident.role, sid
+
+
+def parse_card_args(args: list[str]) -> dict:
+    """A card run's argv, which must be exactly `--project P --from-card N --sha S`
+    plus an optional `--brief B`: nothing the CEO did not see on the card."""
+    args = list(args)
+    keys = args[0:6:2]
+    if keys != ["--project", "--from-card", "--sha"] or len(args) not in (6, 8) \
+            or (len(args) == 8 and args[6] != "--brief"):
+        raise Refused("a card run takes exactly --project <P> --from-card <nonce> --sha <sha> "
+                      "[--brief <one line>]")
+    out = {"project": args[1], "nonce": args[3], "sha": args[5], "brief": args[7] if len(args) == 8 else ""}
+    if not _NONCE_RE.fullmatch(out["nonce"]):
+        raise Refused("--from-card takes the 16-hex nonce the card was raised with")
+    if not _SHA_RE.fullmatch(out["sha"]):
+        raise Refused("--sha takes the card's full 40-hex Agents-Core commit")
+    return out
+
+
+def _git(*args: str) -> str:
+    r = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True, timeout=30)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def clone_refusal(sha: str) -> str | None:
+    """None when this checkout is exactly the card's commit (spawn-ph.sh checks it
+    too, before any Python of this checkout runs)."""
+    head = _git("rev-parse", "HEAD")
+    if head != sha:
+        return f"{ROOT} is at {head or '?'}, the card is {sha}: pull it to that commit first"
+    if subprocess.run(["git", "-C", str(ROOT), "diff", "--quiet", "HEAD", "--"],
+                      capture_output=True, timeout=30).returncode != 0:
+        return f"{ROOT} has changed tracked files; the card runs only a clean checkout"
+    return None
+
+
+def card_owner(args: list[str]) -> tuple[str, str]:
+    """(lane, owner session id) from the running Run Inbox card that started
+    this spawn-ph.sh run on this host (M13b). The CEO's tap on that card is the
+    authority; its requester is the owner."""
+    a = parse_card_args(args)
+    why = clone_refusal(a["sha"])
+    if why:
+        raise Refused(why)
+    from tools import ask_run
+    try:
+        from lib.config import self_host
+        host = str(self_host()).strip().lower()
+    except Exception as e:  # noqa: BLE001
+        raise Refused(f"cannot tell which host this is, so no card can be matched ({e})") from e
+    try:
+        resp = ask_run._call("GET", ask_run.ASKS_PATH, query={"status": "running", "limit": "50"})
+    except Exception as e:  # noqa: BLE001 - no token, hub down: refuse
+        raise Refused(f"cannot read the Run Inbox hub to find the card ({e})") from e
+    asks = resp.get("asks") if isinstance(resp, dict) else resp
+    hits = []
+    for c in asks or []:
+        if not isinstance(c, dict):
+            continue
+        sc_ = c.get("script") if isinstance(c.get("script"), dict) else {}
+        if (c.get("status") == "running" and str(c.get("host", "")).lower() == host
+                and c.get("kind") == "script" and sc_.get("repo") == "Agents-Core"
+                and sc_.get("path") == SPAWN_SCRIPT and sc_.get("sha") == a["sha"]
+                and sc_.get("args") == list(args)):
+            hits.append(c)
+    if len(hits) != 1:
+        raise Refused(f"no single running Run Inbox card on host {host} runs exactly this command "
+                      f"({len(hits)} found); a C-level raises one with `python -m tools.spawn_ph card`")
+    card = hits[0]
+    req = card.get("requester") if isinstance(card.get("requester"), dict) else {}
+    lane, _, sid = str(req.get("session", "")).partition("-")
+    if (card.get("created_via") != "clevel" or lane not in roles.c_level_roles()
+            or str(req.get("role", "")).lower() != lane):
+        raise Refused(f"card {card.get('id')} was not raised by a C-level session "
+                      f"(requester {req.get('session')!r}, via {card.get('created_via')!r})")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", sid):
+        raise Refused(f"card {card.get('id')} names no usable owner session id")
+    return lane, sid
+
+
+def use_nonce(nonce: str, locks_dir: Path | None = None) -> None:
+    """Mark a card's nonce used, once: a second run of the same card is refused."""
+    d = Path(locks_dir or LOCKS_DIR)
+    d.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(d / f"ph-card-{nonce}.used",
+                     os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o644)
+    except FileExistsError as e:
+        raise Refused(f"card nonce {nonce} was already used; raise a new card") from e
+    os.close(fd)
 
 
 def live_projects(locks_dir: Path | None = None) -> dict[str, str]:
@@ -133,14 +255,19 @@ def _claim_lock(locks_dir: Path):
             fcntl.flock(fh, fcntl.LOCK_UN)
 
 
+def _owner(card: list[str] | None) -> tuple[str, str]:
+    return card_owner(card) if card is not None else _caller()
+
+
 def refusal(project: str, *, locks_dir: Path | None = None,
-            role_doc: Path | None = None) -> str | None:
-    """None when this caller may start a Project Head for `project` now."""
+            role_doc: Path | None = None, card: list[str] | None = None) -> str | None:
+    """None when this caller (or, with `card`, that card's requester) may start
+    a Project Head for `project` now."""
     role_doc = Path(role_doc or ROLE_DOC)
     if not roles.ph_roles_on():
         return "Project Heads are off on this host (ORG_PH_ROLES=1 turns them on; org restructure P2)"
     try:
-        _caller()
+        _owner(card)
     except Refused as e:
         return str(e)
     why = roles.ph_project_refusal(project)
@@ -167,11 +294,11 @@ def launch_command(sid: str, lane: str, project: str, owner: str, prompt: str) -
             f"--initial-prompt {shlex.quote(prompt)}")
 
 
-def _plan(project: str, brief: str) -> dict:
-    why = refusal(project)
+def _plan(project: str, brief: str, card: list[str] | None = None) -> dict:
+    why = refusal(project, card=card)
     if why:
         raise Refused(why)
-    lane, owner = _caller()
+    lane, owner = _owner(card)
     if len(brief) > BRIEF_MAX:
         raise Refused(f"brief is {len(brief)} characters; keep it under {BRIEF_MAX} or point at a file")
     sid = uuid.uuid4().hex[:8]
@@ -184,15 +311,24 @@ def _plan(project: str, brief: str) -> dict:
             "command": launch_command(sid, lane, project, owner, prompt)}
 
 
-def spawn(project: str, brief: str = "", *, dry_run: bool = False) -> dict:
+def spawn(project: str, brief: str = "", *, dry_run: bool = False,
+          card: list[str] | None = None) -> dict:
+    """`card`: the argv of a Run Inbox card run (M13b); project and brief must be
+    the ones in it."""
+    if card is not None:
+        a = parse_card_args(card)
+        if (a["project"], a["brief"]) != (project, brief):
+            raise Refused("the project and brief must be the card's")
     if dry_run:
-        return {**_plan(project, brief), "dry_run": True}
+        return {**_plan(project, brief, card), "dry_run": True}
 
     from tools import send_to_cxo, tmux_session
     from tools.agent_transport import Identity
 
     with _claim_lock(LOCKS_DIR):
-        plan = _plan(project, brief)
+        plan = _plan(project, brief, card)
+        if card is not None:
+            use_nonce(parse_card_args(card)["nonce"])
         name, lane = plan["tmux_session"], plan["lane"]
         owner = plan["owner"].split("-", 1)[1]
         BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
@@ -221,19 +357,76 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False) -> dict:
     return {**plan, "mcp_screen_dismissed": dismissed}
 
 
+def card_command(host: str, project: str, brief: str, sha: str, nonce: str | None = None) -> list[str]:
+    """argv of the `tools/ask_run.py create` that asks the CEO to start a
+    Project Head on `host` (M13b). Run it from the owning C-level session: the
+    card's requester becomes the owner."""
+    why = roles.ph_project_refusal(project)
+    if why:
+        raise Refused(why)
+    if not _SHA_RE.fullmatch(sha or ""):
+        raise Refused(f"--sha must be a full 40-hex pushed Agents-Core commit (got {sha!r})")
+    if len(brief) > CARD_BRIEF_MAX or any(unicodedata.category(c)[0] == "C" for c in brief):
+        raise Refused(f"a card brief is one line of at most {CARD_BRIEF_MAX} characters "
+                      "(the hub caps script args); send the full brief to the PH once it is up")
+    nonce = nonce or uuid.uuid4().hex[:16]
+    args = ["--project", project, "--from-card", nonce, "--sha", sha]
+    if brief:
+        args += ["--brief", brief]
+    if len(" ".join(args)) > CARD_ARGS_MAX:
+        raise Refused(f"the card's args are over {CARD_ARGS_MAX} characters; shorten the brief")
+    return [sys.executable, str(ROOT / "tools" / "ask_run.py"), "create", "--host", host,
+            "--why", f"start a Project Head for {project} on {host} (spawn-ph, M13b)",
+            "--expected", f"one JSON line naming tmux project_head-<id> for {project}",
+            "--risk", "amber", "--timeout", "120",
+            "--script", f"Agents-Core@{sha}:{SPAWN_SCRIPT}", "--", *args]
+
+
+def _card_main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(prog="python -m tools.spawn_ph card")
+    ap.add_argument("--host", required=True)
+    ap.add_argument("--project", required=True)
+    ap.add_argument("--brief", default="", help=f"one line, at most {CARD_BRIEF_MAX} characters")
+    ap.add_argument("--sha", default=None, help="pushed Agents-Core commit (default: origin/main)")
+    ap.add_argument("--send", action="store_true", help="raise the card (default: print it)")
+    args = ap.parse_args(argv)
+    sha = args.sha or _git("rev-parse", "origin/main")
+    try:
+        _caller()       # only a C-level that may start a session raises one
+        cmd = card_command(args.host, args.project, args.brief, sha)
+    except Refused as e:
+        print(f"spawn-ph card: {e}", file=sys.stderr)
+        return 1
+    if not args.send:
+        print(shlex.join(cmd))
+        return 0
+    return subprocess.run(cmd).returncode
+
+
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["card"]:
+        return _card_main(argv[1:])
     ap = argparse.ArgumentParser(prog="bash scripts/spawn-ph.sh")
     ap.add_argument("--project", required=True)
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--brief", default="")
     g.add_argument("--brief-file", default=None)
+    ap.add_argument("--from-card", default=None,
+                    help="run by a Run Inbox card: the card's requester is the owner (M13b)")
+    ap.add_argument("--sha", default=None, help="with --from-card: the card's commit")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
     brief = args.brief
     if args.brief_file:
         brief = Path(args.brief_file).read_text(encoding="utf-8")
+    card = None
     try:
-        print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run), ensure_ascii=False))
+        if args.from_card is not None or args.sha is not None:
+            card = argv
+            parse_card_args(card)
+        print(json.dumps(spawn(args.project, brief, dry_run=args.dry_run, card=card),
+                         ensure_ascii=False))
     except Refused as e:
         print(f"spawn-ph: {e}", file=sys.stderr)
         return 1
