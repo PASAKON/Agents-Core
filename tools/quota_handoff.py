@@ -110,10 +110,6 @@ def record_dead_run(task_id, reason: str) -> bool:
     return True
 
 
-check_limit_stop = record_limit_stop
-mark_quota_stop = record_limit_stop
-
-
 def _git(root, *args):
     return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
 
