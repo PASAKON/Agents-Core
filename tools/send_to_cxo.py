@@ -403,17 +403,20 @@ def attempt_wake(role: str, session_id: str, label: str) -> bool:
 _attempt_wake = attempt_wake
 
 
-def wake_for_letter(role: str, session_id: str, label: str, prio: str = "normal") -> bool | None:
-    """Envelope mail's debounced wake (org restructure P1). Flag off this is
-    `_attempt_wake()`, every time. On, `lib.mailbox.wake_due()` decides: an
-    urgent letter wakes at once, a normal one waits until 3 are waiting or the
-    oldest has waited ORG_WAKE_DEBOUNCE_S, and tools/mail_wake_sweep.py fires
-    that late wake. Returns None when the wake was deferred; otherwise what
-    `_attempt_wake()` returned. Never raises."""
+def wake_for_letter(role: str, session_id: str, label: str, prio: str = "normal",
+                    kind: str | None = None) -> bool | None:
+    """The wake for a just-written letter. `kind` is `mailbox.letter_kind` of it:
+    fyi and report never wake a C-level box (flag on or off), the letter waits
+    for its next prompt. Flag off, anything else is `_attempt_wake()`, every
+    time. On, `lib.mailbox.wake_due()` decides: an urgent letter wakes at once,
+    a normal one waits until 3 are waiting or the oldest has waited
+    ORG_WAKE_DEBOUNCE_S, and tools/mail_wake_sweep.py fires that late wake.
+    Returns None when the wake was held back; otherwise what `_attempt_wake()`
+    returned. Never raises."""
     try:
-        if not mailbox.wake_due(role, session_id, prio):
+        if not mailbox.wake_due(role, session_id, prio, kind=kind):
             try:
-                notify.info(f"[send_to_cxo] wake deferred (debounce): {role}-{session_id}")
+                notify.info(f"[send_to_cxo] wake held (debounce or fyi/report): {role}-{session_id}")
             except Exception:
                 pass
             return None
@@ -640,10 +643,8 @@ def spawn(role: str, message: str, sender: str | None = None, *,
             chain = _chain_ids(sender_identity) + [f"{role}:{reused_sid}"]
             mailbox.send(role, reused_sid, message, from_role, from_sid, chain=chain,
                          **_envelope_kw(subject, kind=kind, prio=prio))
-            if mailbox.envelope_on():
-                wake_for_letter(role, reused_sid, label, mailbox.letter_prio(kind, prio))
-            else:
-                _attempt_wake(role, reused_sid, label)
+            wake_for_letter(role, reused_sid, label, mailbox.letter_prio(kind, prio),
+                            mailbox.letter_kind(kind, message))
             _log_hop(sender_identity, role, reused_sid)
             return (f"reused {display} ephemeral tab {lock_file.stem}: {full_text}"
                     + _subject_note(subject, message))
@@ -798,7 +799,11 @@ def send(role: str, message: str, sender: str | None = None, *,
     SENDER_KINDS; "order" is refused, it is the CEO's) and `prio` (normal or
     urgent) are stored the same way, and the letter's prio drives the wake:
     an ask or blocker with no prio is urgent and wakes at once
-    (`mailbox.letter_prio`). Off, they are checked and ignored.
+    (`mailbox.letter_prio`). Off, they are checked and stored nowhere.
+
+    A fyi or report letter (the `kind`, else the body's first word, as in
+    `fyi · normal · …`) never wakes a C-level box, flag on or off, whatever its
+    prio: it waits for the session's next prompt (`mailbox.quiet_for`).
 
     Contract: queued or raised, never "probably". Raises ValueError when
     the target role has no registered session (unchanged failure mode --
@@ -848,10 +853,8 @@ def send(role: str, message: str, sender: str | None = None, *,
                           **_envelope_kw(subject, kind=kind, prio=prio))
     if role in SINGLETON_ROLES:
         _share_letter(letter)
-    if mailbox.envelope_on():
-        wake_for_letter(role, sid, label, mailbox.letter_prio(kind, prio))
-    else:
-        _attempt_wake(role, sid, label)
+    wake_for_letter(role, sid, label, mailbox.letter_prio(kind, prio),
+                    mailbox.letter_kind(kind, message))
     return (f"queued to {display_for(role)} #{sid}: [{label}] : {message}"
             + _subject_note(subject, message))
 
@@ -899,10 +902,8 @@ def _send_to_ph(sid: str, message: str, sender: str | None = None, *,
     chain = _chain_ids(sender_identity) + [f"{PH_ROLE}:{sid}"]
     mailbox.send(PH_ROLE, sid, message, from_role, from_sid, chain=chain,
                  **_envelope_kw(subject, kind=kind, prio=prio))
-    if mailbox.envelope_on():
-        wake_for_letter(PH_ROLE, sid, label, mailbox.letter_prio(kind, prio))
-    else:
-        _attempt_wake(PH_ROLE, sid, label)
+    wake_for_letter(PH_ROLE, sid, label, mailbox.letter_prio(kind, prio),
+                    mailbox.letter_kind(kind, message))
     return (f"queued to Project Head #{sid}: [{label}] : {message}"
             + _subject_note(subject, message))
 

@@ -681,7 +681,9 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "or blocker is urgent (wakes the reader at once), anything else "
             "normal (the wake may wait for the next batch). Both are stored "
             "only in envelope mail (ORG_MAIL_ENVELOPE); otherwise they are "
-            "checked and ignored."
+            "checked and ignored. A fyi or report (the kind, else a message "
+            "that opens 'fyi · …' or 'report · …') never wakes a C-level "
+            "reader, urgent or not: it waits for that session's next prompt."
         ),
         params=(
             Param("role", str),
