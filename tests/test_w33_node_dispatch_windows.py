@@ -356,7 +356,7 @@ def test_spawn_worker_on_windows_runs_the_launcher_and_writes_the_row(spawn):
                    "-RepoUrl 'git@github.com:PASAKON/mooniex-agents.git'",
                    "-RepoPath 'C:\\Users\\passg\\mooniex\\repo\\MoonieX-Agents'",
                    f"-WorktreeRoot '{_WORKTREE_ROOT}'", "-ClaudeArgs '--model ",
-                   "--allowed-tools ", f"-SessionName 'Dev#{tid[5:8]} - ", "Fix the thing'",
+                   "--allowed-tools ", "-SessionName 'Dev.", f"#{tid[5:8]} ", "Fix the thing'",
                    f"-TaskFile '{repo / 'state' / f'.remote-task-{tid}.md'}'",
                    "-Runner 'claude'", f"-AgentsRoot '{repo}'"):
         assert needle in script, needle
