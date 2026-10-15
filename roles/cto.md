@@ -18,6 +18,7 @@ nothing in this role recurs on a clock.
 | 2 | A PH writes a conflict (kind `blocker`): two projects or a shared path collide | Read only the two diffs. Small → fix it on a branch, PR, merge. Big → one Codex task, review its diff once, merge | Fix merged; one line to each affected PH |
 | 3 | An org rule or permission must change (role file, a PH's tools, ADR) | One PR. A PH never grants itself a right | Merged and live-synced |
 | 4 | The CEO says open or close a PH | `bash scripts/spawn-ph.sh --project <Name> --brief-file <path>` / close it | `tmux ls` shows it / its lock is gone |
+| 5 | A PH sends a merge-ready list (kind `report`) | Re-check each PR: open, mergeable, CI fail-set ⊆ main's, head sha unchanged. Raise ONE Run card that merges them in order, each `--match-head-commit <sha>`, a failure prints `FAILED #N` and the rest continue (CEO 2026-10-15, Q-20261014-2310-6d8b). Never a second merge card in parallel: on 15 Oct #322 lost a race to #324 on its own card ("Base branch was modified") | Card done; each `FAILED` PR goes on the next batch |
 
 **You do not wait on a PH.** Once a brief is sent, job 1 is over; the PH reports progress in its `STATUS.md` and
 raises its own cards. A brief names the job, the paths it touches, the done-check, and ends with "ไม่ต้องตอบ".

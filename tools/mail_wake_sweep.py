@@ -7,6 +7,11 @@ that late wake when no further letter arrives; this is it. One pass over this
 host's C-level boxes, run every 60 s by a timer
 (`scripts/install-mail-wake-sweep.sh`).
 
+A fyi or report letter never counts toward that: `lib.mailbox.waiting_since_wake`
+skips them for a C-level box (kind from each letter's first 1 KB), so a box holding
+only those is never woken here. They stay in the box; its UserPromptSubmit hook
+drains them on the next real prompt.
+
 Each pass touches the sweeper heartbeat (`state/inbox/.wake-sweep`). A sender
 debounces only while that heartbeat is fresh (`lib.mailbox.sweeper_alive`), so
 on a host with no sweeper, or one whose timer stopped, every letter wakes at

@@ -1180,6 +1180,9 @@ def _posix_wake(nudge) -> dict:
     return {"woke": False, "why": "wake reported no result"}
 
 
+_QUIET_WHY = "a fyi or report letter does not wake a C-level box (its next prompt drains it)"
+
+
 def _write_clevel_letter(letter: dict, role: str) -> dict:
     from tools import send_to_cxo
     sid = letter.get("to_session") or send_to_cxo._active_session_id(role)
@@ -1192,10 +1195,15 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     # runners/mac_agent.do_relay refuses the same way.
     if not _clevel_session_live(role, sid):
         raise ValueError(f"no live session {role}-{sid} on this host")
+    # The letters row carries no kind, so a fyi or report from another host is
+    # known by its body's first word (`fyi · …`); neither wakes a C-level box.
+    kind = mailbox.letter_kind(None, letter["body"])
     if not mailbox.envelope_on():
         path = mailbox.send(role, sid, letter["body"], from_role, from_sid)
         if not path.is_file():
             raise ValueError(f"letter not on disk after write: {path}")
+        if not mailbox.wake_due(role, sid, kind=kind):   # flag off: held only for fyi/report
+            return {"to": f"{role}-{sid}", "woke": False, "why": _QUIET_WHY}
         if _is_windows():
             return {"to": f"{role}-{sid}", **_windows_wake(role, sid, from_role)}
         # best effort, never changes the outcome (same rule as send_to_cxo)
@@ -1220,11 +1228,13 @@ def _write_clevel_letter(letter: dict, role: str) -> dict:
     if warning:
         out["warning"] = warning
     try:
-        due = mailbox.wake_due(role, sid, prio)
+        due = mailbox.wake_due(role, sid, prio, kind=kind)
     except Exception:
         due = True
     if not due:
-        return {**out, "woke": False, "why": "deferred by ORG_WAKE_DEBOUNCE_S (the wake sweep fires it)"}
+        why = (_QUIET_WHY if mailbox.quiet_for(role, kind)
+               else "deferred by ORG_WAKE_DEBOUNCE_S (the wake sweep fires it)")
+        return {**out, "woke": False, "why": why}
     if _is_windows():
         woke = _windows_wake(role, sid, from_role)
     else:
