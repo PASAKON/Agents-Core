@@ -46,6 +46,10 @@ CASES = [
 ]
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 @pytest.fixture
 def host_is(monkeypatch, pinned_mac_host):
     """host_is("mac"|"contabo") makes self_host() answer that, from the real resolver.

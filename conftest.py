@@ -59,10 +59,26 @@ def _clean_session_env(monkeypatch):
     # media-guard hook change behaviour when they are set — a test run from a
     # worker must not inherit them (26 runner tests failed that way,
     # 2026-09-23). Tests that need them set them with monkeypatch.
+    # ORG_AS_CEO (tools/agent_transport.CEO_MARKER): every test starts with
+    # the fail-closed default; a test that means the CEO asks for ceo_command.
     for var in ("CTO_SESSION_ID", "CXO_SESSION_ID", "CXO_ROLE",
                 "CTO_SESSION", "CXO_SESSION", "ORG_DB_URL",
-                "WORK_DIR", "WORKER_CTO_ID", "WORK_EXPECT_GB"):
+                "WORK_DIR", "WORKER_CTO_ID", "WORK_EXPECT_GB", "ORG_AS_CEO"):
         monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture
+def ceo_command(monkeypatch):
+    """This process is the CEO's own marked command (CEO_MARKER in
+    tools/agent_transport.py), which is what a test written as "a bare shell
+    is the CEO" means since a bare env is refused. The mark never counts next
+    to a session key, and a run from a worker shell or a Claude Code session
+    carries some (WORKER_CTO_ROLE, CLAUDECODE), so they all go; a test sets
+    its own after this."""
+    from tools import agent_transport
+    for var in agent_transport._SESSION_ENV_KEYS:
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv(agent_transport.CEO_MARKER, "1")
 
 
 @pytest.fixture(autouse=True)

@@ -37,6 +37,10 @@ from tools import send_to_worker as sw  # noqa: E402
 SID = "aaaa1111"
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 @pytest.fixture(autouse=True)
 def _isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(db_mod, "DB_PATH", tmp_path / "tasks.db")

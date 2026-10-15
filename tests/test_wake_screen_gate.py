@@ -45,6 +45,10 @@ BOXED_PERMISSION = ("╭──────────────────�
 _CHOICE = re.compile(r"^[\s│┃|]*❯\s*\d+\.\s")   # a "❯ 1. Yes" row, never the input line
 
 
+# A bare env is refused (tools/agent_transport.py); these senders are the CEO.
+pytestmark = pytest.mark.usefixtures("ceo_command")
+
+
 class FakePane:
     """One pane behind a fake `subprocess.run`. capture-pane prints `base` with
     whatever is in the input box drawn on its last ❯ line; send-keys -l types

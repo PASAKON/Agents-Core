@@ -566,17 +566,21 @@ def test_create_skill_rejects_path_traversal_name(tmp_path: Path, monkeypatch: p
         curator.create_skill(paths, "../evil", description="x", audience=["all"])
 
 
-def test_skill_actor_defaults_to_ceo_when_no_identity_env_set(
+def test_skill_actor_is_ceo_only_for_the_ceos_marked_command(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    for var in ("WORKER_TASK_ID", "WORKER_ROLE", "CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID"):
+    from tools import agent_transport
+    for var in agent_transport._SESSION_ENV_KEYS:  # a worker or Claude Code run carries some
         monkeypatch.delenv(var, raising=False)
     paths = _make_paths(tmp_path)
 
-    curator.create_skill(paths, "ceo-authored-skill", description="d", audience=["all"])
+    # a bare env has no identity (tools/agent_transport.py fails closed)
+    curator.create_skill(paths, "bare-env-skill", description="d", audience=["all"])
+    assert "Skill-Actor: unknown/-" in _log_text(paths)
 
-    log = _log_text(paths)
-    assert "Skill-Actor: CEO/-" in log
+    monkeypatch.setenv("ORG_AS_CEO", "1")
+    curator.create_skill(paths, "ceo-authored-skill", description="d", audience=["all"])
+    assert _log_text(paths).startswith("skill-curator: create ceo-authored-skill\n\nSkill-Actor: CEO/-")
 
 
 def _boom_module_not_found():
