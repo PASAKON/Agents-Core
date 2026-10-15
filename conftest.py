@@ -66,6 +66,21 @@ def _clean_session_env(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_real_identity_fallback_log(tmp_path, monkeypatch):
+    """LungNote 09d85a20: tools.agent_transport.current_identity() appends a
+    line to <checkout>/state/reports/identity-fallback.jsonl whenever it falls
+    back to the CEO. Any test that sends with no identity env takes that path,
+    and the log is what decides who may keep the fallback before
+    ORG_IDENTITY_STRICT is turned on, so a test run must never write to it.
+    Each test gets its own file and its own once-per-process flag;
+    tests/test_identity_strict.py repoints both again on top."""
+    from tools import agent_transport
+    monkeypatch.setattr(agent_transport, "IDENTITY_FALLBACK_LOG",
+                        tmp_path / "identity-fallback.jsonl")
+    monkeypatch.setattr(agent_transport, "_fallback_recorded", False)
+
+
+@pytest.fixture(autouse=True)
 def _no_real_org_db_env(tmp_path, monkeypatch):
     """Org Mesh W1.6 (task-719e0c56): the MCP config generators
     (scripts/lib/cxo_mcp_config.py, lib/worker_mcp_config.py) route the org
