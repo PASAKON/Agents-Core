@@ -522,5 +522,5 @@ emit_report_commit_push codex "" "" "" "codex: task task-setu01"
 """
     res = subprocess.run([BASH3, "-c", generator], capture_output=True, text=True)
     assert res.returncode == 0, res.stderr
-    assert "AGENTS_ROOT=/opt/agents\n" in res.stdout
-    assert "LAUNCH_DIR=/opt/agents/.launch-task-setu01\n" in res.stdout
+    assert "AGENTS_ROOT='/opt/agents'\n" in res.stdout
+    assert "LAUNCH_DIR='/opt/agents/.launch-task-setu01'\n" in res.stdout
