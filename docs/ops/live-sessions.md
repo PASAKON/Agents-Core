@@ -96,6 +96,25 @@ winbox has no venv, so no hub route. Contabo's loop pulls its registry over ssh 
 On failure the rows stay, `live_hosts.error` is set, `published_at` is kept. If winbox's key becomes
 forced-command-only (issue #238) the pull fails and the reader shows "unreachable".
 
+## Project Monitor push (P3-E)
+On the hub host only (`PUSH_HOSTS = ("contabo",)` in `tools/live_sessions.py`; the Mac and winbox never push) the same
+loop also runs `tools/portfolio_push.py` once a minute, which POSTs `lib.portfolio.monitor_payload()` to
+`${PORTFOLIO_PUSH_URL:-https://terminal.mooniex.com}/api/portfolio/monitor`. Console never reads Agents-Core's files.
+The token is not in Agents-Core: the loop starts `tools/infisical_setup.py run MoonieX-Console prod -- <venv python>
+tools/portfolio_push.py` (`PortfolioPush`), and `run` keeps the loop's environment (`{**os.environ, **secrets}`), so
+`ORG_DB_URL` reaches the child. `PORTFOLIO_PUSH_TOKEN` lives in Infisical MoonieX-Console/prod and the machine
+identity `contabo` must be able to read that project.
+- One push in flight at most, started without waiting for it (the 5 s poll is not held up) and killed after 30 s.
+  Any error, a spawn failure included, is one line in `state/live_sessions.log` and never touches publishing.
+- `portfolio_push.py` exit: 0 pushed (204) · 2 not configured (no token, malformed token, URL not https) · 3 payload
+  not built, hub down, nothing sent (Console then goes stale and answers 503, by design) · 4 Console refused (any
+  status but 204, a redirect included) or unreachable. It logs one `portfolio_push: …` line and never the token or
+  the response body. The loop forwards only that line, once per change: `publish failed (portfolio push exit 4
+  (console refused or unreachable): HTTP 401 (token rejected))`, then `portfolio push ok again` on recovery.
+- By hand: `bash scripts/hub/org-python.sh tools/infisical_setup.py run MoonieX-Console prod -- .venv/bin/python
+  tools/portfolio_push.py; echo $?`. Stop it: `pkill -f 'tools.live_sessions publish --loop'` (the next prompt
+  respawns the loop; to keep it off, empty `PUSH_HOSTS`).
+
 ## Rollout
 `git pull` on each host; the next C-level prompt starts the loop (a hook script is read from disk on
 every prompt). The CTO applies `GRANT SELECT ON live_sessions, live_hosts TO org_coo;` by hand
