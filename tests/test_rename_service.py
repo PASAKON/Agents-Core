@@ -163,9 +163,9 @@ def test_no_payload_in_a_topic_reaches_the_pane_beyond_one_rename_line(box, topi
 
 def test_it_types_only_into_an_empty_prompt_and_retries_later(box):
     box.request("cto-c34459eb", "next job")
-    for screen in (DRAFT, PERMISSION):
+    for screen, why in ((DRAFT, "prompt not empty"), (PERMISSION, "choice prompt up")):
         box.screens["cto-c34459eb"] = screen
-        assert rs.once("contabo", box.pending, now=1000.0) == ["wait     cto-c34459eb: prompt not empty"]
+        assert rs.once("contabo", box.pending, now=1000.0) == [f"wait     cto-c34459eb: {why}"]
         assert box.sent == []
     box.screens["cto-c34459eb"] = EMPTY
     assert rs.once("contabo", box.pending, now=1000.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — next job"]
@@ -620,7 +620,7 @@ def test_a_draft_below_an_empty_first_row_is_never_typed_onto(box):
 def test_no_typing_while_a_turn_runs(box):
     box.screens["cto-c34459eb"] = BUSY
     box.request("cto-c34459eb", "x")
-    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: prompt not empty"]
+    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: turn running"]
     assert box.sent == []
 
 
@@ -875,3 +875,109 @@ def test_serve_sweeps_before_it_types(monkeypatch, capsys):
         rs.serve("contabo")
     assert order == ["sweep", "once"]
     assert capsys.readouterr().out.splitlines() == ["sweep line", "once line"]
+
+
+# --- 15 Oct: the ghost suggestion, and what the sweep does with the live names ------------------------
+
+GHOST = f"out\n{RULE}\n\x1b[39m❯\xa0\x1b[2mรับยอดเกิน $1.78 ได้\x1b[0m\n{RULE}\n  ? for shortcuts\n"
+GREY_BUSY = f"out\n{RULE}\n\x1b[38;5;246m❯\xa0\x1b[39m\n{RULE}\n  \x1b[38;5;246mesc to interrupt\x1b[39m\n"
+
+
+def test_the_screen_is_captured_with_its_attributes(box):
+    """A plain capture-pane cannot tell Claude Code's dim ghost suggestion from a draft, and four
+    idle sessions waited 20+ minutes on one (Contabo, 15 Oct). The one capture the service makes is
+    `capture-pane -p -e`."""
+    box.request("cto-c34459eb", "next job")
+    rs.once("contabo", box.pending, now=1000.0)
+    captures = [c for c in box.calls if c[0] == "capture-pane"]
+    assert captures and all(c[:3] == ("capture-pane", "-p", "-e") for c in captures)
+
+
+def test_a_ghost_suggestion_is_not_a_draft_so_the_rename_is_typed(box):
+    box.screens["cto-c34459eb"] = GHOST
+    box.request("cto-c34459eb", "next job")
+    out = rs.once("contabo", box.pending, now=1000.0)
+    assert out == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — next job"]
+    assert [t for _, t in box.sent if t != "Enter"] == [f"/rename {CONTABO} CTO (Kavin) — next job"]
+
+
+def test_a_swept_emoji_is_typed_over_a_ghost_suggestion_but_never_over_a_draft(box):
+    _set_name(box, U_CTO, "CTO (Kavin) — CTO Main")
+    rs.sweep("contabo", box.pending, 1.0)
+    box.pending.pop("project_head-36c49776")
+    box.screens["cto-c34459eb"] = DRAFT
+    assert rs.once("contabo", box.pending, now=1000.0) == ["wait     cto-c34459eb: prompt not empty"]
+    assert box.sent == []
+    box.screens["cto-c34459eb"] = GHOST
+    assert rs.once("contabo", box.pending, now=1000.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — CTO Main"]
+    assert [t for _, t in box.sent] == [f"/rename {CONTABO} CTO (Kavin) — CTO Main", "Enter"]
+
+
+def test_a_grey_pointer_with_the_interrupt_hint_waits_and_says_a_turn_is_running(box):
+    """The grey ❯ is what a running turn draws (seen on two worker panes 15 Oct); the log names
+    that, not "prompt not empty"."""
+    box.screens["cto-c34459eb"] = GREY_BUSY
+    box.request("cto-c34459eb", "x")
+    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: turn running"]
+    assert box.sent == []
+
+
+# the Contabo registry at 15 Oct 06:25 TH, as the CEO keeps the names: (tmux box, session name, queued as)
+N3_CONTABO = [
+    ("cmo-ef04792e", "CMO (Ging) — CMO Main", f"{CONTABO} CMO (Ging) — CMO Main"),
+    ("cto-c34459eb", f"{CONTABO} CTO (Kavin) — CTO Main", None),
+    ("project_head-13db8720", "PH#13d (CMO) - BlackLiquidity", f"{CONTABO} PH#13d (CMO) - BlackLiquidity"),
+    ("project_head-36c49776", "PH#36c (CMO) - MimiPage", f"{CONTABO} PH#36c (CMO) - MimiPage"),
+    ("project_head-6c487e37", f"{CONTABO} PH#6c4 (CTO) - SpendGuard", None),
+    ("project_head-7cf528f0", f"{CONTABO} PH#7cf (CTO) - OrgRestructure", None),
+    ("project_head-f35affd5", "PH#f35 (CTO) - CookieRun", f"{CONTABO} PH#f35 (CTO) - CookieRun"),
+]
+
+
+def _n3_sessions(box):
+    for f in box.sessions.iterdir():
+        f.unlink()
+    for tmux_box, name, _ in N3_CONTABO:
+        sid = tmux_box.rsplit("-", 1)[1]
+        box.record(f"00000000-0000-0000-0000-0000{sid}", name, f"{tmux_box}:@1.%1")
+    # a Claude worker (its own `wd-` tmux) and a name only: no C-level or PH pane to type into
+    box.record("00000000-0000-0000-0000-0000780c8d2d", f"{CONTABO} Dev#780 - OrgRestructure: Item 6", "wd-780c8d2d:@9.%9")
+    box.record("00000000-0000-0000-0000-00000000aaaa", "CTO (Kavin)", None)
+
+
+def test_N3_the_sweep_adds_the_host_emoji_to_the_names_that_lack_it_and_changes_nothing_else(box):
+    _n3_sessions(box)
+    out = rs.sweep("contabo", box.pending, 1.0)
+    want = {b: new for b, _old, new in N3_CONTABO if new}
+    assert {b: j["name"] for b, j in box.pending.items()} == want
+    assert len(out) == len(want) and all(line.startswith("sweep    ") for line in out)
+    for tmux_box, old, new in N3_CONTABO:
+        if new:
+            assert new == rs.session_names.with_host("contabo", old)       # the emoji, byte for byte, and no other change
+            assert rs.session_names.strip_host(new) == old
+    assert box.sent == []                                                    # the sweep itself types nothing
+
+
+def test_N3_a_name_the_sweep_wrote_is_left_alone_on_the_next_passes(box):
+    _n3_sessions(box)
+    rs.sweep("contabo", box.pending, 1.0)
+    assert rs.sweep("contabo", box.pending, 2.0) == []                       # still waiting: not queued twice
+    for tmux_box, _old, new in N3_CONTABO:                                   # every rename lands
+        if new:
+            _set_name(box, f"00000000-0000-0000-0000-0000{tmux_box.rsplit('-', 1)[1]}", new)
+    assert all(l.startswith("done ") for l in rs.once("contabo", box.pending, now=1000.0))
+    assert box.pending == {}
+    assert rs.sweep("contabo", box.pending, 2000.0) == []                    # no requeue once on the rule
+    assert rs.sweep("contabo", box.pending, 3000.0) == [] and box.pending == {}
+
+
+def test_N9_a_name_is_fixed_once_or_reported_once_never_looped(box):
+    _n3_sessions(box)
+    _set_name(box, "00000000-0000-0000-0000-0000c34459eb", f"{MAC} CTO (Kavin)")     # another host's emoji: not ours
+    first = rs.sweep("contabo", box.pending, 1.0)
+    assert len([l for l in first if l.startswith("skip     cto-c34459eb")]) == 1
+    for job in box.pending.values():                                                # give up on all of them
+        job["sends"], job["sent_at"] = rs.MAX_SENDS, 0.0
+    assert all(l.startswith("gave up") for l in rs.once("contabo", box.pending, now=1000.0))
+    for now in (2000.0, 3000.0, 4000.0):
+        assert rs.sweep("contabo", box.pending, now) == [] and box.pending == {}
