@@ -39,6 +39,13 @@ host emoji", the same job a request queues: its own name, byte for byte, with th
 emoji added. Typing is still _one() alone. Nothing else is fixed (logged once), and a
 box already tried under the same pid and name is not queued again.
 
+A session opened as a C-level and made a Project Head later keeps its box (cto-<sid>,
+CXO_ROLE=cto). When state/locks/project_head-<sid>.project exists for it, effective_role()
+makes build_name and the sweep treat it as a PH (lane from .spawned_by, else the box's own
+role): "💻 PH#f39 (CTO) - LuminaSkies", not CTO Main's persona. Only the name rule changes;
+who may ask is still decided on the original box. The service reads the marker from ITS
+checkout's state/locks (on the Mac, the LaunchDaemon's WorkingDirectory).
+
 The request carries no name, so nothing a session sends can reach the pane except
 a topic: clean_topic() keeps letters, marks, digits, spaces and a few punctuation
 marks, drops every control and format character (newline, ESC), strips a leading
@@ -121,17 +128,41 @@ def _read(name: str) -> str:
     return ls.read_lock(LOCKS_DIR / name)
 
 
+def effective_role(role: str, sid: str) -> str:
+    """The role whose NAME rule a box follows. A session opened as a C-level and made a
+    Project Head later keeps its launcher box (cto-<sid>, CXO_ROLE=cto), so its role says
+    C-level while it is a PH: `project_head` when state/locks holds
+    project_head-<sid>.project for it, else `role` itself. An empty or untrusted file
+    (_read) is no marker.
+
+    Only the name rule moves. Who may ask is decided on the ORIGINAL box (handle():
+    session_of + owner_refusal), and the marker is written by the session itself (each
+    Mac PH writes its own, then calls session-rename.sh), so a session changes only the
+    shape of its OWN name, and only through that owner check. The marker can make a
+    name a PH name; it can never make one a C-level persona: a `project_head` box and a
+    box with no marker keep the rule they have."""
+    if re.fullmatch(r"c[a-z]o", role) and role != "ceo" and _read(f"project_head-{sid}.project"):
+        return "project_head"
+    return role
+
+
 def build_name(role: str, sid: str, topic, prefix, host: str) -> str | None:
     """The rule name for a C-level or PH plus the cleaned topic, or None (no rule
-    for this role, a PH with no project record, a prefix not in PREFIXES)."""
+    for this role, a PH with no project record, a prefix not in PREFIXES). A C-level box
+    with a PH marker (effective_role) is named as the PH it is."""
     prefix = str(prefix or "")
     if prefix not in PREFIXES:
         return None
     topic = clean_topic(topic)
+    box_role, role = role, effective_role(role, sid)
     if role == "project_head":
         project = _read(f"project_head-{sid}.project")
-        spawned = _read(f"project_head-{sid}.spawned_by").split(":")   # cxo:<lane>:<sid>
-        lane = spawned[1] if len(spawned) == 3 else ""
+        spawned_by = _read(f"project_head-{sid}.spawned_by")      # cxo:<lane>:<sid>
+        spawned = spawned_by.split(":")
+        # No .spawned_by at all: a C-level box's own role is its lane (cto → CTO). A
+        # garbled one is not "absent", and a project_head box's own role is no lane
+        # (it fails c[a-z]o below), so neither is guessed.
+        lane = spawned[1] if len(spawned) == 3 else ("" if spawned_by else box_role)
         if not re.fullmatch(r"[A-Za-z0-9_]{1,40}", project) or not re.fullmatch(r"c[a-z]o", lane):
             return None
         base = config.ph_session_name(sid, lane, project, host)
@@ -383,6 +414,7 @@ def _with_host_after_state(host: str, name: str) -> str:
 
 def _sweep_one(box: str, row: dict, host: str, pending: dict) -> str | None:
     role, sid = box.split("-", 1)
+    role = effective_role(role, sid)        # a C-level box made a PH is judged by the PH rule
     persona, windows = ls._rule_context(role, host)
 
     def problem(name: str) -> str | None:

@@ -981,3 +981,179 @@ def test_N9_a_name_is_fixed_once_or_reported_once_never_looped(box):
     assert all(l.startswith("gave up") for l in rs.once("contabo", box.pending, now=1000.0))
     for now in (2000.0, 3000.0, 4000.0):
         assert rs.sweep("contabo", box.pending, now) == [] and box.pending == {}
+
+
+# --- a C-level box made a Project Head (the Mac's cto-f39cb080, cto-671f688f) ------------------
+# Their box is cto-<sid> because CXO_ROLE=cto, so build_name("cto", …) gave CTO Main's persona.
+# state/locks/project_head-<sid>.project makes the box follow the PH rule (effective_role).
+
+U_MAC_PH = "00000000-0000-0000-0000-0000f39cb080"
+MAC_PH_BOX = "cto-f39cb080"
+
+
+def _mark_ph(box, project="LuminaSkies", spawned_by=None, sid="f39cb080"):
+    (box.locks / f"project_head-{sid}.project").write_text(project)
+    if spawned_by is not None:
+        (box.locks / f"project_head-{sid}.spawned_by").write_text(spawned_by)
+
+
+def _on_rule_neighbours(box):
+    """The fixture's other two sessions, on the rule, so a sweep has only the box under test to say."""
+    _set_name(box, U_CTO, f"{CONTABO} CTO (Kavin) — x")
+    _set_name(box, U_PH, f"{CONTABO} PH#36c (CMO) - MimiPage")
+
+
+def test_a_cto_box_with_a_ph_marker_and_spawned_by_is_named_as_a_ph_of_the_spawned_lane(box):
+    _mark_ph(box, spawned_by="cxo:cmo:ef04792e")
+    assert rs.build_name("cto", "f39cb080", "LuminaSkies", "", "mac") == f"{MAC} PH#f39 (CMO) - LuminaSkies"
+    # the PH branch's topic rule: a topic equal to the project is dropped, another one is kept
+    assert rs.build_name("cto", "f39cb080", "ถ่ายทำ ep2", "⏸", "mac") == f"⏸ {MAC} PH#f39 (CMO) - LuminaSkies — ถ่ายทำ ep2"
+    assert rs.build_name("cto", "f39cb080", "", "", "mac") == f"{MAC} PH#f39 (CMO) - LuminaSkies"
+
+
+def test_a_cto_box_with_a_ph_marker_and_no_spawned_by_is_a_ph_of_its_own_lane(box):
+    _mark_ph(box)
+    assert rs.build_name("cto", "f39cb080", "LuminaSkies", "", "mac") == f"{MAC} PH#f39 (CTO) - LuminaSkies"
+    assert rs.build_name("cto", "f39cb080", "next", "", "contabo") == f"{CONTABO} PH#f39 (CTO) - LuminaSkies — next"
+
+
+def test_a_cto_box_with_no_marker_keeps_the_cto_persona_name(box):
+    assert rs.build_name("cto", "f39cb080", "LuminaSkies", "", "mac") == f"{MAC} CTO (Kavin) — LuminaSkies"
+    # .spawned_by alone is no marker; neither is an empty .project
+    (box.locks / "project_head-f39cb080.spawned_by").write_text("cxo:cmo:ef04792e")
+    (box.locks / "project_head-f39cb080.project").write_text("")
+    assert rs.build_name("cto", "f39cb080", "LuminaSkies", "", "mac") == f"{MAC} CTO (Kavin) — LuminaSkies"
+    assert rs.effective_role("cto", "f39cb080") == "cto"
+
+
+def test_the_marker_only_moves_a_c_level_box_to_the_ph_rule_never_a_ph_to_a_persona(box):
+    _mark_ph(box)
+    assert rs.effective_role("cto", "f39cb080") == "project_head"
+    assert rs.effective_role("cfo", "f39cb080") == "project_head"
+    assert rs.effective_role("ceo", "f39cb080") == "ceo"            # no rule for the CEO, marker or not
+    assert rs.effective_role("developer", "f39cb080") == "developer"
+    assert rs.build_name("developer", "f39cb080", "x", "", "mac") is None
+    assert rs.build_name("ceo", "f39cb080", "x", "", "mac") is None
+    assert rs.effective_role("project_head", "f39cb080") == "project_head"
+    # a project_head box with a marker and no .spawned_by still has no lane: refused, as before
+    assert rs.build_name("project_head", "f39cb080", "x", "", "mac") is None
+    # a marker for another sid is not this box's
+    assert rs.effective_role("cto", "c34459eb") == "cto"
+
+
+@pytest.mark.parametrize("project", ["bad project", "x" * 41, "Lumina;Skies", "../x", "Lumina Skies", "ลูมินา"])
+def test_a_bad_project_in_the_marker_gives_no_name_not_the_cto_persona(box, project):
+    _mark_ph(box, project=project, spawned_by="cxo:cmo:ef04792e")
+    assert rs.build_name("cto", "f39cb080", "x", "", "mac") is None
+    _mark_ph(box, project=project)                                  # and with no .spawned_by
+    assert rs.build_name("cto", "f39cb080", "x", "", "mac") is None
+
+
+@pytest.mark.parametrize("spawned_by", ["cxo:ceoo:ef04792e", "cxo:CTO:ef04792e", "garbage", "cxo:cto"])
+def test_a_garbled_spawned_by_is_not_absent_so_the_lane_is_not_guessed(box, spawned_by):
+    _mark_ph(box, spawned_by=spawned_by)
+    assert rs.build_name("cto", "f39cb080", "x", "", "mac") is None
+
+
+def test_the_sweep_judges_a_marked_cto_box_by_the_ph_rule(box):
+    box.record(U_MAC_PH, f"{CONTABO} PH#f39 (CTO) - LuminaSkies", f"{MAC_PH_BOX}:@7.%7")
+    _on_rule_neighbours(box)
+    # no marker: its PH-shaped name is off the rule for role cto, logged once, never typed
+    out = rs.sweep("contabo", box.pending, 1.0)
+    assert len(out) == 1 and out[0].startswith(f"skip     {MAC_PH_BOX}: ") and "off-rule" in out[0]
+    # the marker lands: the same name is on the rule, so there is no "off-rule" line and nothing queued
+    _mark_ph(box)
+    assert rs.sweep("contabo", box.pending, 2.0) == []
+    assert box.pending == {} and box.sent == []
+    # a fresh service process says the same (the verdict does not lean on the sweep's memory)
+    rs._NOTED.clear()
+    rs._DECIDED.clear()
+    assert rs.sweep("contabo", box.pending, 3.0) == []
+
+
+def test_the_sweep_adds_only_the_emoji_to_a_marked_boxs_ph_name(box):
+    box.record(U_MAC_PH, "PH#f39 (CTO) - LuminaSkies — ถ่ายทำ", f"{MAC_PH_BOX}:@7.%7")
+    _on_rule_neighbours(box)
+    _mark_ph(box)
+    out = rs.sweep("contabo", box.pending, 1.0)
+    assert out == [f"sweep    {MAC_PH_BOX}: PH#f39 (CTO) - LuminaSkies — ถ่ายทำ -> "
+                   f"{CONTABO} PH#f39 (CTO) - LuminaSkies — ถ่ายทำ"]
+    assert list(box.pending) == [MAC_PH_BOX]
+    rs.once("contabo", box.pending, now=1000.0)                     # typed into the ORIGINAL box's pane
+    assert box.sent == [(MAC_PH_BOX, f"/rename {CONTABO} PH#f39 (CTO) - LuminaSkies — ถ่ายทำ"),
+                        (MAC_PH_BOX, "Enter")]
+
+
+def test_a_marked_box_still_reads_a_cto_persona_name_as_off_rule_and_leaves_it_alone(box):
+    # the state the two Mac sessions are in today: marker written, name still CTO Main's
+    box.record(U_MAC_PH, f"{CONTABO} CTO (Kavin) — LuminaSkies", f"{MAC_PH_BOX}:@7.%7")
+    _on_rule_neighbours(box)
+    _mark_ph(box)
+    out = rs.sweep("contabo", box.pending, 1.0)
+    assert len(out) == 1 and "off-rule" in out[0] and 'not "PH#<id3> (<LANE>) - <Project>"' in out[0]
+    assert box.pending == {} and box.sent == []
+
+
+def test_the_owner_check_stays_on_the_original_box_a_marker_changes_only_the_name(box, stranger):
+    box.record(U_MAC_PH, "CTO (Kavin)", f"{MAC_PH_BOX}:@7.%7")
+    _mark_ph(box, spawned_by="cxo:cto:ef04792e")
+    # a process that is not that session: refused at the owner check, nothing queued, nothing typed
+    assert box.request(MAC_PH_BOX, "x", peer=(os.getppid(), os.getuid())).startswith(
+        "refused: that session is not an ancestor")
+    assert box.request(MAC_PH_BOX, "x", peer=(os.getpid(), os.geteuid() + 1)) == (
+        "refused: the caller runs as another user than that session")
+    # the marker does not make project_head-f39cb080 a box: no tmux session of that name
+    assert box.request("project_head-f39cb080", "x") == (
+        "refused: no single live session for project_head-f39cb080 in its tmux")
+    # a session that is another box's Claude (its own marker or none) cannot rename this one
+    box.record(U_MAC_PH.replace("f39cb080", "dddddddd"), "CTO (Kavin)", "cto-dddddddd:@8.%8", pid=stranger)
+    assert box.request("cto-dddddddd", "x", peer=(os.getpid(), os.getuid())).startswith(
+        "refused: that session is not an ancestor")
+    assert box.pending == {}
+    rs.once("contabo", box.pending, now=1.0)
+    assert box.sent == []
+    # the session itself: queued under the ORIGINAL box, as the PH name, typed into cto-f39cb080
+    assert box.request(MAC_PH_BOX, "LuminaSkies") == f"queued {MAC_PH_BOX}: {CONTABO} PH#f39 (CTO) - LuminaSkies"
+    assert list(box.pending) == [MAC_PH_BOX]
+    rs.once("contabo", box.pending, now=1.0)
+    assert box.sent == [(MAC_PH_BOX, f"/rename {CONTABO} PH#f39 (CTO) - LuminaSkies"), (MAC_PH_BOX, "Enter")]
+
+
+def test_the_marker_is_read_only_after_the_owner_check(box, monkeypatch):
+    box.record(U_MAC_PH, "CTO (Kavin)", f"{MAC_PH_BOX}:@7.%7")
+    _mark_ph(box)
+
+    def boom(*a, **k):
+        raise AssertionError("the marker was read before the owner check")
+
+    monkeypatch.setattr(rs, "effective_role", boom)
+    assert box.request(MAC_PH_BOX, "x", peer=(os.getppid(), os.getuid())).startswith(
+        "refused: that session is not an ancestor")
+
+
+def test_preview_names_a_marked_cto_box_as_a_ph_with_the_hosts_emoji(box, monkeypatch, capsys):
+    locks = box.locks.parent / "marked-locks"
+    locks.mkdir()
+    (locks / "project_head-f39cb080.project").write_text("LuminaSkies")
+    monkeypatch.setattr(rs, "LOCKS_DIR", locks)          # main() sets it from --locks-dir; restored after
+    argv = ["preview", "--role", "cto", "--sid", "f39cb080", "--topic", "LuminaSkies",
+            "--locks-dir", str(locks)]
+    assert rs.main([*argv, "--host", "mac"]) == 0
+    assert capsys.readouterr().out.strip() == f"{MAC} PH#f39 (CTO) - LuminaSkies"
+    assert rs.main([*argv, "--host", "contabo"]) == 0
+    assert capsys.readouterr().out.strip() == f"{CONTABO} PH#f39 (CTO) - LuminaSkies"
+
+
+def test_preview_cli_picks_the_host_emoji_from_org_host_as_session_rename_sh_runs_it(box, tmp_path):
+    locks = tmp_path / "cli-locks"
+    locks.mkdir()
+    (locks / "project_head-f39cb080.project").write_text("LuminaSkies")
+    run = lambda *extra: subprocess.run(                  # noqa: E731
+        [sys.executable, str(rs.ROOT / "tools" / "rename_service.py"), "preview", "--role", "cto",
+         "--sid", "f39cb080", "--topic", "LuminaSkies", "--locks-dir", str(locks), *extra],
+        capture_output=True, text=True, timeout=60, cwd=rs.ROOT, env={**os.environ, "ORG_HOST": "mac"})
+    r = run()                                             # no --host: config.self_host() → ORG_HOST
+    assert (r.returncode, r.stdout.strip()) == (0, f"{MAC} PH#f39 (CTO) - LuminaSkies"), r.stderr
+    (locks / "project_head-f39cb080.project").unlink()    # the same command with no marker: CTO Main's name
+    r = run()
+    assert (r.returncode, r.stdout.strip()) == (0, f"{MAC} CTO (Kavin) — LuminaSkies"), r.stderr
