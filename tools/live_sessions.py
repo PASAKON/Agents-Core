@@ -725,6 +725,9 @@ class Publisher:
          ``stop`` was set
       1  ORG_DB_URL is unset
 
+    Once a minute it also folds the heartbeat hook's file into the hub
+    (``_fold_due``); a fold error is reported and rolled back, never fatal.
+
     A failed connect or publish is reported through ``on_error(class name)``
     (never the message: a psycopg message can name the host), then RETRY_S of
     quiet with the lock still held, then a fresh connection. Zero live sessions
@@ -732,7 +735,8 @@ class Publisher:
 
     def __init__(self, url, host, dirs, *, stop=None, lock_path=LOCK_PATH,
                  on_error=None, connect=None, code_path=Path(__file__),
-                 pull=(), pull_fn=None):
+                 pull=(), pull_fn=None, fold_fn=None,
+                 fold_path=Path(__file__).with_name("heartbeat_fold.py")):
         import threading
         self.url, self.host, self.dirs = url, host, list(dirs)
         self.pull, self._pull_fn = list(pull), pull_fn or pull_remote
@@ -742,10 +746,13 @@ class Publisher:
         self.lock_path, self.on_error = lock_path, on_error
         self._connect = connect or _connect
         self.code_path, self._code0 = code_path, _code_stamp(code_path)
+        self.fold_path, self._fold0 = fold_path, _code_stamp(fold_path)
+        self._fold_fn, self._folded_at = fold_fn, None
         self.prev: set[str] = set()
 
     def _done(self) -> bool:
-        return self.stop.is_set() or _code_stamp(self.code_path) != self._code0
+        return (self.stop.is_set() or _code_stamp(self.code_path) != self._code0
+                or _code_stamp(self.fold_path) != self._fold0)
 
     def run(self) -> int:
         lock = acquire_lock(self.lock_path, write_pid=True)
@@ -791,6 +798,25 @@ class Publisher:
             self._pulled_prev[name] = publish_rows(
                 conn, name, rows, self._pulled_prev.get(name, set()), label)
 
+    def _fold_due(self, conn) -> None:
+        """Once per REFRESH_S: fold the heartbeat hook's jsonl into the hub (org
+        restructure P3-C, tools/heartbeat_fold.py). Whatever goes wrong here is
+        reported and rolled back, never raised: publishing goes on."""
+        if self._folded_at is not None and time.monotonic() - self._folded_at < REFRESH_S:
+            return
+        self._folded_at = time.monotonic()
+        try:
+            fold = self._fold_fn
+            if fold is None:
+                from tools.heartbeat_fold import fold
+            fold(conn)
+        except Exception as exc:
+            self._report("heartbeat fold " + type(exc).__name__)
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+
     def _hold(self) -> None:
         conn = self._connect(self.url)
         try:
@@ -801,6 +827,7 @@ class Publisher:
                     self.prev = publish_once(conn, self.host, self.dirs, self.prev)
                     last_sig, last_pub = sig, time.monotonic()
                 self._pull_due(conn)
+                self._fold_due(conn)
                 self.stop.wait(POLL_S)
         finally:
             try:
