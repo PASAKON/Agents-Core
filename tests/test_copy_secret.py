@@ -2,8 +2,9 @@
 
 The suite is node:test (tests/js/copy_secret.test.mjs): the script against a fake CDP browser and a fake
 Infisical on 127.0.0.1 — one match writes and prints MATCH, zero/two matches write nothing, an existing
-target and an Org-Infra target are refused, and the fake value, its last 4 and the token never reach the
-output. No Chrome, no Infisical, no secret. This wrapper lets pytest collect it; skipped when node is absent.
+target and an Org-Infra target are refused, and the fake value, its prefix, its last 4, its length and the
+token never reach the output. No Chrome, no Infisical, no secret. This wrapper lets pytest collect it;
+skipped when node is absent.
 
 Run:  .venv/bin/python -m pytest -p no:warnings tests/test_copy_secret.py
 """
@@ -27,4 +28,5 @@ def test_copy_secret_node_suite():
                          capture_output=True, text=True, timeout=180, cwd=ROOT)
     summary = {k: int(v) for k, v in re.findall(r"^[ℹ#]\s*(pass|fail|skipped)\s+(\d+)", run.stdout + run.stderr, re.M)}
     assert run.returncode == 0, (run.stdout + run.stderr)[-4000:]
-    assert summary.get("fail", 1) == 0 and summary.get("pass", 0) >= 24, summary
+    assert summary.get("fail", 1) == 0 and summary.get("pass", 0) >= 30, summary
+
