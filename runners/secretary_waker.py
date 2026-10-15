@@ -138,7 +138,8 @@ def _try_lock(path: Path):
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError as exc:
-        _log().warning("could not acquire flock on %s: %s", path, exc)
+        if not isinstance(exc, BlockingIOError):  # held by the previous tick: normal, not news
+            _log().warning("could not acquire flock on %s: %s", path, exc)
         try:
             os.close(fd)
         except OSError as close_exc:

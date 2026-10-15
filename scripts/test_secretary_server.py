@@ -40,6 +40,27 @@ sys.path.insert(0, str(ROOT))
 import runners.secretary_server as ss  # noqa: E402
 from lib import decision_ledger  # noqa: E402
 
+
+class _LiveStdoutHandler(logging.StreamHandler):
+    """Writes to whatever sys.stdout is at emit time, so capsys sees it."""
+
+    def emit(self, record):
+        self.stream = sys.stdout
+        super().emit(record)
+
+
+@pytest.fixture(autouse=True)
+def _test_logger(monkeypatch, request):
+    """lib.logger loggers do not propagate and keep the stdout of their first
+    caller; give each test a fresh one that caplog and capsys both see."""
+    lg = logging.getLogger(f"test.{ss.__name__}.{request.node.name}")
+    lg.handlers[:] = [_LiveStdoutHandler()]
+    lg.handlers[0].setFormatter(logging.Formatter("[secretary] %(message)s"))
+    lg.setLevel(logging.INFO)
+    lg.propagate = True
+    monkeypatch.setattr(ss, "_LOGGER", lg)
+    yield
+
 API_KEY = "test-secret-key"
 URL_PATH = "/v1/chat/completions"
 

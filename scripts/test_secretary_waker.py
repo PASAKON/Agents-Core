@@ -12,6 +12,7 @@ Or under pytest:  pytest scripts/test_secretary_waker.py
 from __future__ import annotations
 
 import fcntl
+import logging
 import os
 import sys
 from pathlib import Path
@@ -24,6 +25,27 @@ sys.path.insert(0, str(ROOT))
 import runners.secretary_waker as w  # noqa: E402
 from lib import mailbox  # noqa: E402
 from runners import secretary_server  # noqa: E402
+
+
+class _LiveStdoutHandler(logging.StreamHandler):
+    """Writes to whatever sys.stdout is at emit time, so capsys sees it."""
+
+    def emit(self, record):
+        self.stream = sys.stdout
+        super().emit(record)
+
+
+@pytest.fixture(autouse=True)
+def _test_logger(monkeypatch, request):
+    """lib.logger loggers do not propagate and keep the stdout of their first
+    caller; give each test a fresh one that caplog and capsys both see."""
+    lg = logging.getLogger(f"test.{w.__name__}.{request.node.name}")
+    lg.handlers[:] = [_LiveStdoutHandler()]
+    lg.handlers[0].setFormatter(logging.Formatter("[secretary_waker] %(message)s"))
+    lg.setLevel(logging.INFO)
+    lg.propagate = True
+    monkeypatch.setattr(w, "_LOGGER", lg)
+    yield
 
 
 class FakeHttpResponse:
