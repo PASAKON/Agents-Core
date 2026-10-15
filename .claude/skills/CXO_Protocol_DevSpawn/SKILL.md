@@ -21,9 +21,12 @@ Required steps every time CTO spawns a DEV. Memory rule (CEO 2026-05-19, IRON-RU
 
 ### 0. Leave the runner to the router; force Claude only when a cheap miss is expensive (CEO 2026-08-10, 2026-09-29)
 IRON-RULES §59 + `org:playbooks/delegate-by-usage.md`. Leave `tasks.runner` empty:
-`delegate_task` calls `tools/route.py pick_runner` (weekly quota > daily > skill >
-CEO order, `config/plans.yaml`) and logs `router: <runner> — <reason>`. The router
-sees quota only; it cannot see how costly a mistake on this task would be. Before
+`delegate_task` calls `tools/route.py pick_runner` and logs `router: <runner> — <reason>`.
+Since 16 Oct the router follows the CEO's order (`router.order: ceo` in `config/plans.yaml`, PR #378):
+it tries the class list in order, Argon first, then Codex, then Claude, and moves on only when a
+bucket is spent or the job would take it under its reserve. CEO, 16 Oct: "ใช้ Argon ให้หมดก่อน
+หลังจากนั้นก็ ChatGPT และสุดท้ายคือ Claude". The router sees quota only; it cannot see how costly a
+mistake on this task would be. Before
 delegating, force Claude when the work is any of:
 
 - **reviewing, finishing, or repairing someone else's code** (including a DEV
@@ -42,6 +45,9 @@ explicit `tasks.runner` is never overridden (`_route_runner` skips the router);
 `ORG_ROUTER=off` is for router repair only.
 
 **After every `reopen_task`, put the override line back on line 1 before `delegate_task`** (rule, 3 runs: task-03b721a0 2026-10-01, task-1b8ef857 2026-10-02, task-9c563bea 2026-10-13). `reopen_task` prepends `## CTO Feedback (iter N)`, which pushes `override:` out of the first block, so the re-delegate is refused by §59. Fix: `db.set_fields(<id>, description="override: <reason>\n" + <description>)`, then `delegate_task` (on a live worker it restores the claim, no respawn).
+
+`[SUPERSEDED 2026-10-16]` "`pick_runner` (weekly quota > daily > skill > CEO order)": the CEO's
+ruling of 16 Oct put the class list order first (PR #378). `router.order: fullest` is the old rule.
 
 `[SUPERSEDED 2026-10-02]` `sqlite3 state/tasks.db "UPDATE tasks SET model_hint='claude' …"`
 — since the G1 hub cutover `state/tasks.db` is a tombstone, and `db.set_fields`
