@@ -153,7 +153,8 @@ Do not send OSC 0 to set the title yourself — it sets both layers simultaneous
 
 The Claude session name (Remote Control list) is tied to the same charter:
 `/session-open` runs `scripts/session-rename.sh` to set it to
-`<ROLE>#<id3> <topic>` automatically (the launcher puts the host emoji in front; CEO 2026-10-15) — no extra
+`<host emoji> <ROLE> (<Name>) — <topic>` automatically (no machine, no #id: CEO 2026-10-14; the host's emoji
+leads, 2026-10-15) — no extra
 command needed.
 **But on every resume** the launcher stamps a new name without a topic over the old one.
 Therefore, when resuming work without a new charter, run

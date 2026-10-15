@@ -1,26 +1,24 @@
-"""Session-name shapes (CEO 2026-10-15, plan state/handoff/2026-10-15/plan-names-watch-macoff.md
-§N): the one place that writes and reads them. Stdlib only, so tools/live_sessions.py
-(imported by a hook under the system python3) can use it; lib.config re-exports the writers.
+"""Session-name shapes (CEO 2026-10-14, card QG-20261014-0326-8968; 2026-10-15 ruling): the
+one place that writes and reads them. Stdlib only, so tools/live_sessions.py (imported by a
+hook under the system python3) can use it; lib.config re-exports the writers.
 
-Order: host emoji, role, model, #sid, job. The phone app cuts a name from the END, so
-what says who it is comes first. The body after the host emoji is at most NAME_BODY_MAX
-characters, the "…" that marks a cut included.
+  C-level  "<ROLE> (<Name>)[ — <topic>]"                "CTO (Kavin) — CTO Main", bare "CFO"
+  PH       "PH#<id3> (<LANE>) - <Project>[ + <Project>…][ — <topic>]"   "PH#7cf (CTO) - OrgRestructure"
+  worker   "<Short>·<M>#<id3> <Head>: <job>"            "Dev·S#49b Org: sparse worktrees"   (M = O/S/H)
+  Watch    "Watch#<id3> Runs: <N><light>"               "Watch#a1b Runs: 2🟢"
 
-  C-level  "<ROLE>#<id3> <topic>"                     "CTO#c34 Main"   (topic defaults to Main)
-  COO      "COO <topic>"  (no org sid, no #id)        "COO SomPong"    (topic defaults to its persona)
-  PH       "PH#<id3> <Project>[+<Project>]"           "PH#7cf OrgRestructure"
-  worker   "<Short>·<M>#<id3> <Head>: <job>"          "Dev·S#49b Org: sparse worktrees"   (M = O/S/H)
-  Watch    "Watch#<id3> Runs: <N><light>"             "Watch#a1b Runs: 2🟢"
-
-A topic given to session-rename.sh replaces the PH's project ("PH#7cf test"). The persona
-(Kavin, Ging) and the PH's lane are not in the name: the persona only tuned the tone, and
-the project says which lane a PH is in. NAME_BODY_MAX is the one number to change when the
-CEO's phone shows the list; the old shapes ("CTO (Kavin) — topic", "PH#7cf (CTO) - Project",
-"Dev#49b - Head: job", "MAC CTO #671f688f (topic)") are still READ so a live session that
-has not been renamed yet is recognised, and rule_problem calls each one "old shape".
+A session that already has a name keeps it, every part (CEO 2026-10-15, who renamed two live
+sessions by hand to "🌐 CTO (Kavin) — CTO Main" and "🌐 PH#7cf (CTO) - OrgRestructure": the persona
+and the PH's lane stay). The rename service's sweep only ever adds the host emoji to it. The compact
+shape of the 15 Oct plan (state/handoff/2026-10-15/plan-names-watch-macoff.md §N: the phone app cuts
+a name from the END, so what says who it is comes first, in NAME_BODY_MAX characters) is for the
+kinds that had no older name: Watch, and workers, whose old shape was "<Short>#<id3> - <Head>: <job>".
+Only those new names are cut to NAME_BODY_MAX, the "…" of a cut included; an existing name is never.
+The readers take the old shapes, the compact ones and the C-level / PH shapes above; so do the
+checks in rule_problem.
 
 Each starts with the emoji of the host the session runs on (CEO 2026-10-14, relayed by COO
-SomPong): "🌐 CTO#c34 Main". HOST_EMOJI holds them; the host comes from lib.config.self_host()
+SomPong): "🌐 CTO (Kavin)". HOST_EMOJI holds them; the host comes from lib.config.self_host()
 (or the worker's host), never a guess, and an unknown host gets none. A worker started on
 Windows gets none either, writes "." for "·" and "..." for "…": its name crosses cmd.exe
 (tools/delegate.py) and node_dispatch's ASCII-only pattern. Readers strip_host() first.
@@ -43,7 +41,7 @@ WORKER_SHORT = {
 }
 SHORT_TO_ROLE = {v: k for k, v in WORKER_SHORT.items()}
 WORKER_JOB_MAX = 40       # callers cut a free-text title this far before windows_safe(); fit() does the rest
-NAME_BODY_MAX = 32        # CEO 2026-10-15; the "…" of a cut name counts
+NAME_BODY_MAX = 32        # a NEW worker or Watch name, after the host emoji; the "…" of a cut counts
 HEAD_MAX = 10
 # The "<Head>" of a worker's name: a Project Head's project, shortened (CEO 2026-10-15).
 # lib.config.head_short() reads `short:` in config/projects.yaml first.
@@ -66,19 +64,19 @@ def windows_safe(text: str, limit: int | None = None) -> str:
     return (out[:limit] if limit else out).strip()
 
 
-# --- the shapes, as patterns: every reader takes the OLD and the NEW one ----------------
-# PH: new "PH#7cf OrgRestructure"; old "PH#7cf (CTO) - OrgRestructure[ — topic]" (group "lane").
+# --- the shapes, as patterns: every reader takes the old, the compact and the ruling ones ---
+# PH: "PH#7cf (CTO) - OrgRestructure[ — topic]" (group "lane"), or compact "PH#7cf OrgRestructure".
 PH_NAME_RE = re.compile(
     r"^[\W_]*PH#(?P<id3>[0-9a-f]{3}) "
     r"(?:\((?P<lane>[A-Z]{3})\)(?: - (?P<proj>.*?))?(?: — (?P<otopic>.*))?|(?P<text>(?!\()\S.*))$")
-# worker: new "Dev·S#49b Org: job" / "Dev.S#49b …" on Windows / "Dev#49b Org: job" when the model
-# is not Opus, Sonnet or Haiku; old "Dev#49b - Org: job" (no model letter, rest starts "- ").
+# worker: compact "Dev·S#49b Org: job" / "Dev.S#49b …" on Windows / "Dev#49b Org: job" when the model is
+# not Opus, Sonnet or Haiku; old "Dev#49b - Org: job" (no model letter, the rest starts "- ").
 WORKER_NAME_RE = re.compile(
     r"^[\W_]*(?P<short>[A-Z][A-Za-z]{1,9})(?:(?P<sep>[·.])(?P<model>[OSH]))?"
     r"#(?P<id3>[0-9a-f]{3})(?: (?P<rest>.*))?$")
-# C-level body: new "CTO#c34 Main" / "COO SomPong"; old "CTO (Kavin) — topic" / "CFO" (no id, no topic group).
+# C-level: "CTO (Kavin) — topic" / "CFO" (no id, no topic group), or compact "CTO#c34 Main" / "COO SomPong".
 _C_LEVEL_BODY_RE = re.compile(
-    r"^(?P<role>C[A-Z]O)(?:(?P<persona> \([A-Za-z]{2,32}\))?(?P<otopic> — .*)?"
+    r"^(?P<role>C[A-Z]O)(?:(?: \((?P<persona>[A-Za-z]{2,32})\))?(?P<otopic> — .*)?"
     r"|(?:#(?P<id3>[0-9a-f]{3}))? (?P<topic>(?!\()\S.*))$")
 # the first long form: "MAC CTO #671f688f (topic)", "CONTABO COO (SomPong) #a7eb4963" (same shape as
 # tools/live_sessions._NAME_RE, plus the "( )" topic after the id)
@@ -86,9 +84,8 @@ _MACHINE_LONG_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+(?P<role>[A-Za-z][A-Za-z ]*?)"
     r"(?:\s+\([A-Za-z]{2,32}\))?\s+#(?P<id>[0-9a-f]{6,12})\b(?:\s*\((?P<topic>.*)\))?")
 _WATCH_RE = re.compile(r"^Watch#(?P<id3>[0-9a-f]{3}) \S")
-_HEAD_TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,39}")   # a Project Head's project: one word
 _NO_ID_ROLES = ("COO",)    # SomPong has no org sid
-_DOT = "\u00B7"           # the "·" between a worker's short word and its model letter
+_DOT = "·"           # the "·" between a worker's short word and its model letter
 
 
 # --- host emoji -----------------------------------------------------------------------
@@ -145,31 +142,27 @@ def head_short(project: str | None) -> str:
     return HEAD_SHORT.get(p) or p[:HEAD_MAX]
 
 
-def clevel_name(role: str, sid: str | None, topic: str = "", host: str | None = None,
-                persona: str = "") -> str:
-    """"<emoji> <ROLE>#<id3> <topic>"; the topic defaults to "Main". The COO has no org sid,
-    so no "#<id3>", and its default topic is its `persona` ("COO SomPong")."""
-    role = role.upper()
-    tag = role if (role in _NO_ID_ROLES or not sid) else f"{role}#{short_id(sid)}"
-    default = persona if role in _NO_ID_ROLES and persona else "Main"
-    return host_prefix(host) + fit(f"{tag} {(topic or '').strip() or default}")
+def clevel_name(role: str, persona: str = "", host: str | None = None) -> str:
+    """"<emoji> <ROLE> (<Name>)", the bare "<emoji> <ROLE>" without a persona. session-rename.sh
+    appends " — <topic>" later. Never cut: it is the one name a C-level has."""
+    return host_prefix(host) + role.upper() + (f" ({persona})" if persona else "")
 
 
-def ph_session_name(sid: str, projects, host: str | None = None, topic: str = "") -> str:
-    """"<emoji> PH#<id3> <Project>[+<Project>]"; a `topic` takes the projects' place. One
-    project is the usual case, and no `host` (or an unknown one) gives no emoji."""
+def ph_session_name(sid: str, lane: str, projects, host: str | None = None) -> str:
+    """"<emoji> PH#<id3> (<LANE>) - <Project> + <Project>"; one project is the usual
+    case, and no `host` (or an unknown one) gives no emoji."""
     if isinstance(projects, str):
         projects = [projects]
-    names = "+".join(p for p in (str(x).strip() for x in projects) if p)
-    text = (topic or "").strip() or names
-    return host_prefix(host) + fit(f"PH#{short_id(sid)}" + (f" {text}" if text else ""))
+    names = " + ".join(p for p in (str(x).strip() for x in projects) if p)
+    return host_prefix(host) + f"PH#{short_id(sid)} ({lane.upper()}){' - ' + names if names else ''}"
 
 
 def worker_name(short: str, task_id: str, head: str, job: str, model: str = "",
                 windows: bool = False) -> str:
     """"<Short>·<M>#<id3> <Head>: <job>"; no head gives "<Short>·<M>#<id3> <job>", no job
     "<Short>·<M>#<id3> <Head>". `model` is a model id or its letter; one that is not Opus,
-    Sonnet or Haiku leaves the letter out. `windows` writes "." for "·" and "..." for "…"."""
+    Sonnet or Haiku leaves the letter out. `windows` writes "." for "·" and "..." for "…".
+    At most NAME_BODY_MAX characters."""
     letter = model_letter(model)
     head, job = head_short(head), (job or "").strip()
     tail = f"{head}: {job}" if head and job else (head or job)
@@ -190,7 +183,7 @@ _HOST_LEAD_RE = re.compile(r"(\U0001F4BB|\U0001F310|\U0001F5A5)️? ?")
 
 
 def split_name(name: str) -> tuple[str, str, str]:
-    """(state glyph lead, host emoji, body): "⏸ 🌐 CTO#c34 Main" -> ("⏸ ", "🌐", "CTO#c34 Main")."""
+    """(state glyph lead, host emoji, body): "⏸ 🌐 CTO (Kavin)" -> ("⏸ ", "🌐", "CTO (Kavin)")."""
     name = name or ""
     lead = _STATE_LEAD_RE.match(name).group(0)
     rest = name[len(lead):]
@@ -199,10 +192,10 @@ def split_name(name: str) -> tuple[str, str, str]:
 
 
 def parse_short(name: str) -> tuple[str, str] | None:
-    """(role, id3) from a PH, worker, C-level or Watch name, old shape or new, else None.
-    A worker's short word must be one of WORKER_SHORT's, so "PH#…" and look-alikes never read
-    as one. A name with no id (the COO's "COO SomPong", the old "CTO (Kavin)") gives an empty
-    id3: tools/live_sessions takes those ids from the record instead. The old long form
+    """(role, id3) from a PH, worker, C-level or Watch name in any shape, else None. A
+    worker's short word must be one of WORKER_SHORT's, so "PH#…" and look-alikes never read
+    as one. A name with no id (the COO's, the C-level "CTO (Kavin)") gives an empty id3:
+    tools/live_sessions takes those ids from the record instead. The long machine form
     ("MAC CTO #671f688f (topic)") gives the first 3 hex of its id."""
     body = split_name(name)[2]
     m = PH_NAME_RE.match(body)
@@ -226,84 +219,20 @@ def parse_short(name: str) -> tuple[str, str] | None:
     return None
 
 
-def _tidy_topic(topic: str, role: str) -> str:
-    """A topic as the new shape wants it: "CTO Main" -> "Main" (the role is in the name
-    already) and "PH LastBell + Scriptable" -> "LastBell+Scriptable" (a CTO that was
-    labelled by the PH job it did)."""
-    t = " ".join((topic or "").split())
-    m = re.match(r"PH\s+(.+)$", t)
-    if m:
-        return re.sub(r"\s*\+\s*", "+", m.group(1))
-    m = re.match(rf"{re.escape(role.upper())}\s+(.+)$", t, re.IGNORECASE)
-    return m.group(1) if m else t
-
-
-def clevel_topic(body: str, role: str) -> str:
-    """The topic a C-level body carries in any shape ("" when it carries none). A body in
-    no known shape (a name someone typed by hand) is all topic: "Console fix" stays."""
-    m = _C_LEVEL_BODY_RE.match(body)
-    if m:
-        topic = m.group("topic") or (m.group("otopic") or "")[len(" — "):]
-    else:
-        lm = _MACHINE_LONG_RE.match(body)
-        topic = (lm.group("topic") or "") if lm else body
-    return _tidy_topic(topic, role)
-
-
-def ph_topic(body: str) -> tuple[str, str]:
-    """(projects, topic) a PH body carries: old "PH#7cf (CTO) - A + B — t" -> ("A+B", "t");
-    new "PH#7cf text" -> ("", "text") (the project or a topic: the caller knows which)."""
-    m = PH_NAME_RE.match(body)
-    if not m:
-        return "", ""
-    if m.group("lane"):
-        return re.sub(r"\s*\+\s*", "+", (m.group("proj") or "").strip()), (m.group("otopic") or "").strip()
-    return "", m.group("text").strip()
-
-
-def worker_parts(body: str) -> tuple[str, str, str] | None:
-    """(Short, head, job) of a worker body in either shape, else None. Only a one-word
-    text before the first ": " is a head ("Item 5: sparse" has none)."""
-    m = WORKER_NAME_RE.match(body)
-    if not m or m.group("short") not in SHORT_TO_ROLE:
-        return None
-    rest = m.group("rest") or ""
-    rest = rest[2:] if rest.startswith("- ") else rest
-    head, sep, job = rest.partition(": ")
-    if sep and _HEAD_TOKEN_RE.fullmatch(head):
-        return m.group("short"), head, job.strip()
-    return m.group("short"), "", rest.strip()
-
-
-def _is_old_shape(body: str, role: str) -> bool:
-    if _MACHINE_LONG_RE.match(body):
-        return True
-    if role == "project_head":
-        m = PH_NAME_RE.match(body)
-        return bool(m and m.group("lane"))
-    if role in WORKER_SHORT:
-        m = WORKER_NAME_RE.match(body)
-        rest = m and m.group("rest")
-        return bool(m and not m.group("model") and (rest is None or rest.startswith("- ")))
-    m = _C_LEVEL_BODY_RE.match(body)
-    return bool(m and m.group("role") == role.upper() and m.group("id3") is None
-                and m.group("topic") is None)
-
-
 def rule_problem(name: str, role: str, sid: str, host: str | None,
                  persona: str | None = None, windows: bool = False) -> str | None:
     """Why `name` is off the rule for a session of `role`/`sid` on `host`, or None.
-    Roles with no rule ("unknown", "ceo") are never off it. An old-shape name is "old shape",
-    whatever else it lacks: one rename fixes both. `persona` is unused since the persona left
-    the name (15 Oct); it stays so callers do not change. `windows` is True on a Windows
-    host, where a worker's name carries no emoji."""
+    Roles with no rule ("unknown", "ceo") are never off it. A C-level or PH name in the old,
+    the compact or the ruling shape passes, whatever its length (an existing name is never
+    cut); the host emoji, the role, the id and, when the caller knows it (`persona`, from
+    policies/agents.yaml), a C-level's "(<Name>)" must be right. A worker name in the compact
+    shape is cut to NAME_BODY_MAX; its old shape is not. `windows` is True on a Windows host,
+    where a worker's name carries no emoji."""
     is_worker = role in WORKER_SHORT
     is_c_level = bool(re.fullmatch(r"c[a-z]o", role or "")) and role != "ceo"
     if role != "project_head" and not is_worker and not is_c_level:
         return None
     _lead, got, body = split_name(name)
-    if _is_old_shape(body, role):
-        return "old shape"
     want = "" if (is_worker and windows) else HOST_EMOJI.get(host or "", "")
     if want and not got:
         return "no host emoji"
@@ -311,11 +240,12 @@ def rule_problem(name: str, role: str, sid: str, host: str | None,
         return "wrong host emoji" if want else "a host emoji where none belongs"
     if role == "project_head":
         pm = PH_NAME_RE.match(body)
-        if not pm or pm.group("lane"):
-            return 'not "PH#<id3> <Project>"'
+        if not pm:
+            return 'not "PH#<id3> (<LANE>) - <Project>"'
         if sid and pm.group("id3") != sid[:3]:
             return f"PH#{pm.group('id3')} is not this session (#{sid[:3]})"
-    elif is_worker:
+        return None
+    if is_worker:
         wm = WORKER_NAME_RE.match(body)
         sep = "." if windows else _DOT
         if (not wm or wm.group("short") != WORKER_SHORT[role]
@@ -323,34 +253,28 @@ def rule_problem(name: str, role: str, sid: str, host: str | None,
             return f'not "{WORKER_SHORT[role]}{sep}<O|S|H>#<id3> <Head>: <job>"'
         if sid and wm.group("id3") != sid[:3]:
             return f"{wm.group('short')}#{wm.group('id3')} is not this session (#{sid[:3]})"
-    else:
-        cm = _C_LEVEL_BODY_RE.match(body)
-        no_id = role.upper() in _NO_ID_ROLES
-        if (not cm or cm.group("topic") is None or cm.group("role") != role.upper()
-                or bool(cm.group("id3")) == no_id):
-            return f'not "{role.upper()}{"" if no_id else "#<id3>"} <topic>"'
-        if sid and cm.group("id3") and cm.group("id3") != sid[:3]:
-            return f"{role.upper()}#{cm.group('id3')} is not this session (#{sid[:3]})"
-    if len(body) > NAME_BODY_MAX:
-        return f"body is {len(body)} characters (max {NAME_BODY_MAX})"
+        old = (wm.group("rest") or "").startswith("- ")
+        if not old and len(body) > NAME_BODY_MAX:
+            return f"body is {len(body)} characters (max {NAME_BODY_MAX})"
+        return None
+    cm = _C_LEVEL_BODY_RE.match(body)
+    no_id = role.upper() in _NO_ID_ROLES
+    if not cm or cm.group("role") != role.upper():
+        return f'not "{role.upper()} ({persona or "<Name>"})"'
+    if cm.group("topic") is None:                       # old shape: "CTO (Kavin)[ — topic]"
+        if persona and cm.group("persona") != persona:
+            return f'not "{role.upper()} ({persona})"'
+    elif bool(cm.group("id3")) == no_id:                # compact: "CTO#c34 Main" / the COO's "COO SomPong"
+        return f'not "{role.upper()}{"" if no_id else "#<id3>"} <topic>"'
+    elif sid and cm.group("id3") and cm.group("id3") != sid[:3]:
+        return f"{role.upper()}#{cm.group('id3')} is not this session (#{sid[:3]})"
     return None
 
 
-if __name__ == "__main__":
-    # `python lib/session_names.py prefix <host>`: the emoji, or nothing
-    # `python lib/session_names.py clevel <role> <sid> <host> [persona]` / `ph <sid> <host> <project>`: the
-    # birth name the launchers (cto-claude.sh, cxo-claude.sh) pass to `claude -n`, or nothing
+if __name__ == "__main__":   # `python lib/session_names.py prefix <host>`: the emoji, or nothing
     import sys
-    argv = sys.argv[1:]
-    if len(argv) == 2 and argv[0] == "prefix":
-        sys.stdout.write(HOST_EMOJI.get(argv[1], ""))
+    if len(sys.argv) == 3 and sys.argv[1] == "prefix":
+        sys.stdout.write(HOST_EMOJI.get(sys.argv[2], ""))
         sys.exit(0)
-    if len(argv) in (4, 5) and argv[0] == "clevel" and re.fullmatch(r"c[a-z]o", argv[1]) and argv[1] != "ceo":
-        sys.stdout.write(clevel_name(argv[1], argv[2], "", argv[3], argv[4] if len(argv) == 5 else ""))
-        sys.exit(0)
-    if len(argv) == 4 and argv[0] == "ph" and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,39}", argv[3]):
-        sys.stdout.write(ph_session_name(argv[1], argv[3], argv[2]))
-        sys.exit(0)
-    sys.stderr.write("usage: session_names.py prefix <host> | clevel <role> <sid> <host> [persona] "
-                     "| ph <sid> <host> <project>\n")
+    sys.stderr.write("usage: session_names.py prefix <host>\n")
     sys.exit(2)

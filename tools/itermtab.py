@@ -48,13 +48,11 @@ except ImportError:  # pragma: no cover - depends on host setup
 _ROOT = Path(__file__).resolve().parent.parent
 _LOCKS = _ROOT / "state" / "locks"
 
-# "CTO ", "CTO#", "CMO ", ... -- the title prefix of every C-level tab, one per role in
+# "CTO ", "CMO ", ... -- the title prefix of every C-level tab, one per role in
 # policies/agents.yaml `c_level` (lib/roles.py; import-light, since this module
 # is loaded by the system python3 via tools.maintab). A tab carrying one is a
 # C-level chat and is never closed or recoloured as a DEV tab (IRON-RULES §32).
-# Since 15 Oct a C-level's session name is "CTO#c34 Main" (lib/session_names), so the
-# "#" form guards it as the "CTO (Kavin)" one did.
-_CLEVEL_PREFIXES = tuple(f"{d}{sep}" for d in c_level_displays() for sep in (" ", "#"))
+_CLEVEL_PREFIXES = tuple(f"{d} " for d in c_level_displays())
 
 
 def _clevel_title_guard() -> str:

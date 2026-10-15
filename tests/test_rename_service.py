@@ -104,6 +104,7 @@ def box(tmp_path, monkeypatch):
     monkeypatch.setattr(rs, "TYPED_WAIT_S", 0.2)
     monkeypatch.setattr(rs, "TYPED_POLL_S", 0.01)
     monkeypatch.setattr(rs, "_DECIDED", {})          # the sweep's memory is per test
+    monkeypatch.setattr(rs, "_NOTED", {})
     n = [0]
     pending = {}
 
@@ -151,24 +152,24 @@ def test_no_payload_in_a_topic_reaches_the_pane_beyond_one_rename_line(box, topi
     typed = [t for _, t in box.sent if t not in ("Enter", "BSpace")]
     assert len(typed) == 1 and [t for _, t in box.sent].count("Enter") == 1
     line = typed[0]
-    assert line.startswith(f"/rename {CONTABO} CTO#c34 ")
+    assert line.startswith(f"/rename {CONTABO} CTO (Kavin)")
     assert line.count("/") == 1 + line[len("/rename "):].count("/")    # only the command's own slash leads
     assert not any(ord(c) < 32 or 0x7f <= ord(c) < 0xa0 or c in "  ‮​\u0085" for c in line)
     assert len(line) <= len("/rename ") + rs.NAME_MAX
-    body = line[len("/rename "):].split(" ", 1)[1]          # after the host emoji
-    assert len(body) <= rs.session_names.NAME_BODY_MAX and not body.split(" ", 1)[1].startswith("/")
+    topic_part = line.split(" — ", 1)[1] if " — " in line else ""
+    assert not topic_part.startswith("/") and len(topic_part) <= rs.TOPIC_MAX + 1
     assert all(c[0] in ("capture-pane", "send-keys", "list-panes") for c in box.calls)
 
 
 def test_it_types_only_into_an_empty_prompt_and_retries_later(box):
     box.request("cto-c34459eb", "next job")
-    for screen in (DRAFT, PERMISSION):
+    for screen, why in ((DRAFT, "prompt not empty"), (PERMISSION, "choice prompt up")):
         box.screens["cto-c34459eb"] = screen
-        assert rs.once("contabo", box.pending, now=1000.0) == ["wait     cto-c34459eb: prompt not empty"]
+        assert rs.once("contabo", box.pending, now=1000.0) == [f"wait     cto-c34459eb: {why}"]
         assert box.sent == []
     box.screens["cto-c34459eb"] = EMPTY
-    assert rs.once("contabo", box.pending, now=1000.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO#c34 next job"]
-    assert box.sent == [("cto-c34459eb", f"/rename {CONTABO} CTO#c34 next job"),
+    assert rs.once("contabo", box.pending, now=1000.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — next job"]
+    assert box.sent == [("cto-c34459eb", f"/rename {CONTABO} CTO (Kavin) — next job"),
                         ("cto-c34459eb", "Enter")]
 
 
@@ -181,16 +182,16 @@ def test_a_landed_rename_ends_the_request_and_one_that_did_not_is_sent_again(box
     for f in box.sessions.iterdir():                     # now it landed
         d = json.loads(f.read_text())
         if d["sessionId"] == U_CTO:
-            d["name"] = f"{CONTABO} CTO#c34 t"
+            d["name"] = f"{CONTABO} CTO (Kavin) — t"
             f.write_text(json.dumps(d))
-    assert rs.once("contabo", box.pending, now=5000.0) == [f"done     cto-c34459eb: {CONTABO} CTO#c34 t"]
+    assert rs.once("contabo", box.pending, now=5000.0) == [f"done     cto-c34459eb: {CONTABO} CTO (Kavin) — t"]
     assert box.pending == {}
 
 
 def test_it_types_into_that_sessions_pane_only(box):
     box.request("project_head-36c49776", "MimiPage")
     rs.once("contabo", box.pending, now=1.0)
-    assert box.sent[0] == ("project_head-36c49776", f"/rename {CONTABO} PH#36c MimiPage")
+    assert box.sent[0] == ("project_head-36c49776", f"/rename {CONTABO} PH#36c (CMO) - MimiPage")
     box.sent.clear()
     # no session of that id: refused at the socket, nothing typed anywhere
     assert box.request("cto-aaaaaaaa", "x") == "refused: no single live session for cto-aaaaaaaa in its tmux"
@@ -203,7 +204,7 @@ def test_the_coo_needs_its_launcher_uuid_file(box):
     (box.locks / "coo-fde4c4ca.uuid").write_text(U_COO)
     assert box.request("coo-fde4c4ca", "x").startswith("queued")
     rs.once("contabo", box.pending, now=1.0)
-    assert box.sent[0] == ("sompong", f"/rename {CONTABO} COO x")
+    assert box.sent[0] == ("sompong", f"/rename {CONTABO} COO (SomPong) — x")
 
 
 @pytest.mark.parametrize("box_name,body", [
@@ -305,8 +306,8 @@ def test_the_real_socket_reads_the_callers_pid_from_the_kernel(box, tmp_path):
     finally:
         srv.close()
         sock.unlink(missing_ok=True)
-    assert out.stdout.strip() == f"queued cto-c34459eb: {CONTABO} CTO#c34 via socket", out.stderr
-    assert box.pending["cto-c34459eb"]["name"] == f"{CONTABO} CTO#c34 via socket"
+    assert out.stdout.strip() == f"queued cto-c34459eb: {CONTABO} CTO (Kavin) — via socket", out.stderr
+    assert box.pending["cto-c34459eb"]["name"] == f"{CONTABO} CTO (Kavin) — via socket"
 
 
 # --- robustness (§2b review of #283, MED) ------------------------------------------------
@@ -392,7 +393,7 @@ def test_clean_topic(raw, clean):
 def test_preview_is_what_the_service_would_type(box, capsys):
     assert rs.main(["preview", "--role", "cto", "--sid", "c34459eb", "--topic", "x",
                     "--host", "contabo"]) == 0
-    assert capsys.readouterr().out.strip() == f"{CONTABO} CTO#c34 x"
+    assert capsys.readouterr().out.strip() == f"{CONTABO} CTO (Kavin) — x"
     assert rs.main(["preview", "--role", "developer", "--sid", "afe57b21", "--host", "contabo"]) == 1
 
 
@@ -537,7 +538,7 @@ def test_a_key_pressed_while_typing_is_never_submitted(box):
     box.after_type = ceo_presses
     assert rs.once("contabo", box.pending, now=1.0) == [
         "held     cto-c34459eb: the input box did not show exactly the rename; took it back, no Enter"]
-    line = f"/rename {CONTABO} CTO#c34 x"
+    line = f"/rename {CONTABO} CTO (Kavin) — x"
     assert [t for _, t in box.sent] == [line, "BSpace"]
     bs = [c for c in box.calls if c[-1] == "BSpace"][0]
     assert int(bs[bs.index("-N") + 1]) >= len(line) + 1  # ours plus the one key, never C-u
@@ -548,7 +549,7 @@ def test_a_key_pressed_while_typing_is_never_submitted(box):
 def test_a_slow_redraw_still_gets_its_enter(box):
     box.lag = 3                                          # 3 captures still show the old screen
     box.request("cto-c34459eb", "x")
-    assert rs.once("contabo", box.pending, now=1.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO#c34 x"]
+    assert rs.once("contabo", box.pending, now=1.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — x"]
     assert [t for _, t in box.sent][-1] == "Enter" and box.box["cto-c34459eb"] == ""
 
 
@@ -619,7 +620,7 @@ def test_a_draft_below_an_empty_first_row_is_never_typed_onto(box):
 def test_no_typing_while_a_turn_runs(box):
     box.screens["cto-c34459eb"] = BUSY
     box.request("cto-c34459eb", "x")
-    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: prompt not empty"]
+    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: turn running"]
     assert box.sent == []
 
 
@@ -649,7 +650,7 @@ def test_the_take_back_counts_what_was_added_not_the_whole_line_twice(box):
     box.after_type = lambda fake, name: fake.box.__setitem__(name, fake.box[name] + "k")
     rs.once("contabo", box.pending, now=1.0)
     bs = [c for c in box.calls if c[-1] == "BSpace"][0]
-    line = f"/rename {CONTABO} CTO#c34 x"
+    line = f"/rename {CONTABO} CTO (Kavin) — x"
     assert len(line) + 1 <= int(bs[bs.index("-N") + 1]) <= len(line) + 1 + 2   # ours + the key (+wrap slack)
     assert box.box["cto-c34459eb"] == ""
 
@@ -677,7 +678,7 @@ def test_a_take_back_that_leaves_text_stops_that_session(box):
 
 def test_a_half_redrawn_screen_at_the_deadline_still_takes_back_the_whole_line(box, monkeypatch):
     # Review follow-up to round 4: the last capture shows only a prefix of what we typed.
-    line = f"/rename {CONTABO} CTO#c34 x"
+    line = f"/rename {CONTABO} CTO (Kavin) — x"
     monkeypatch.setattr(rs, "_ok_to_enter", lambda screen, want: False)
     real_screen = rs._screen
     calls = {"n": 0}
@@ -696,7 +697,7 @@ def test_a_half_redrawn_screen_at_the_deadline_still_takes_back_the_whole_line(b
     assert box.box["cto-c34459eb"] == ""
 
 
-# --- the sweep (M10d, then the 15 Oct shape): a session on an old or hand-typed name gets the rule name -------
+# --- the sweep (M10d): a session that started before the host emoji gets it added -------
 
 def _set_name(box, uuid, name):
     for f in box.sessions.iterdir():
@@ -715,32 +716,27 @@ def _new_pid(box, pid, name="CTO (Kavin)"):
     box.panes["cto-c34459eb"] = [pid]
 
 
-def test_the_sweep_queues_the_new_shape_and_types_it_through_the_same_path_as_a_request(box):
+def test_the_sweep_queues_the_emoji_and_keeps_the_rest_of_the_name_byte_for_byte(box):
     box.request("cto-c34459eb", "x")                       # the job a session's own request queues
     keys = set(box.pending.pop("cto-c34459eb"))
-    _set_name(box, U_CTO, "CTO (Kavin) — Item 5")
+    name = "CTO (Kavin) — ดูแล org  #272 (ok)…"            # Thai, two spaces, punctuation: all kept
+    _set_name(box, U_CTO, name)
     out = rs.sweep("contabo", box.pending, 1.0)
-    assert box.pending["cto-c34459eb"] == {"name": f"{CONTABO} CTO#c34 Item 5", "pid": os.getpid(),
+    assert box.pending["cto-c34459eb"] == {"name": f"{CONTABO} {name}", "pid": os.getpid(),
                                            "sends": 0, "sent_at": 0.0}
     assert set(box.pending["cto-c34459eb"]) == keys
-    assert box.pending["project_head-36c49776"]["name"] == f"{CONTABO} PH#36c MimiPage"
+    assert box.pending["project_head-36c49776"]["name"] == f"{CONTABO} PH#36c (CMO) - MimiPage — MimiPage"
     assert sorted(box.pending) == ["cto-c34459eb", "project_head-36c49776"]    # the COO is only a name here
     assert len(out) == 2 and all(line.startswith("sweep    ") for line in out)
     assert box.sent == []                                  # queued, nothing typed by the sweep itself
     rs.once("contabo", box.pending, now=1000.0)            # _one() types it: the same path as a request
-    assert ("cto-c34459eb", f"/rename {CONTABO} CTO#c34 Item 5") in box.sent
+    assert ("cto-c34459eb", f"/rename {CONTABO} {name}") in box.sent
     assert [t for n, t in box.sent if n == "cto-c34459eb"].count("Enter") == 1
 
 
-def test_the_sweep_keeps_a_thai_topic_with_punctuation(box):
-    _set_name(box, U_CTO, "CTO (Kavin) — ดูแล org  #272 (ok)")
-    rs.sweep("contabo", box.pending, 1.0)
-    assert box.pending["cto-c34459eb"]["name"] == f"{CONTABO} CTO#c34 ดูแล org #272 (ok)"
-
-
 def test_the_sweep_leaves_an_on_rule_session_alone(box):
-    _set_name(box, U_CTO, f"{CONTABO} CTO#c34 x")
-    _set_name(box, U_PH, f"{CONTABO} PH#36c MimiPage")
+    _set_name(box, U_CTO, f"{CONTABO} CTO (Kavin) — x")
+    _set_name(box, U_PH, f"{CONTABO} PH#36c (CMO) - MimiPage")
     assert rs.sweep("contabo", box.pending, 1.0) == []
     assert box.pending == {} and box.sent == []
 
@@ -775,50 +771,69 @@ def test_a_box_the_sweep_could_not_fix_is_not_queued_again_for_that_pid(box, mon
     assert list(box.pending) == ["cto-c34459eb"] and box.pending["cto-c34459eb"]["pid"] == stranger
 
 
-@pytest.mark.parametrize("name,new", [
-    ("Dev#afe - OrgRestructure: x", f"{CONTABO} CTO#c34 Dev#afe - OrgRestructur…"),   # a worker's shape on a C-level's box
-    ("CTO (Someone)", f"{CONTABO} CTO#c34 Main"),
-    ("CTO", f"{CONTABO} CTO#c34 Main"),
-    ("something else entirely", f"{CONTABO} CTO#c34 something else entirely"),   # N9: typed by hand
-    (f"{MAC} CTO (Kavin)", f"{CONTABO} CTO#c34 Main"),            # the wrong host's emoji
-    ("CTO#aaa Main", f"{CONTABO} CTO#c34 Main"),                  # another session's id3
-    ("⛔ CTO (Kavin) — merged", f"⛔ {CONTABO} CTO#c34 merged"),   # the state glyph stays first
-    ("🔥 CTO (Kavin) — x", f"{CONTABO} CTO#c34 x"),               # a glyph that is not one of ours goes
+def test_a_session_that_renames_itself_off_the_rule_again_is_swept_again(box):
+    rs.sweep("contabo", box.pending, 1.0)
+    for job in box.pending.values():
+        job["sends"], job["sent_at"] = rs.MAX_SENDS, 0.0
+    rs.once("contabo", box.pending, now=1000.0)            # gave up on both
+    _set_name(box, U_CTO, "CTO (Kavin) — a new topic")     # same pid, a name it chose itself
+    rs.sweep("contabo", box.pending, 2000.0)
+    assert list(box.pending) == ["cto-c34459eb"]
+    assert box.pending["cto-c34459eb"]["name"] == f"{CONTABO} CTO (Kavin) — a new topic"
+    # and one that landed, then went back to the very same bare name, is swept as well
+    box.pending.clear()
+    _set_name(box, U_CTO, f"{CONTABO} CTO (Kavin) — a new topic")
+    rs.sweep("contabo", box.pending, 3000.0)               # seen on the rule: the memory is cleared
+    _set_name(box, U_CTO, "CTO (Kavin) — a new topic")
+    rs.sweep("contabo", box.pending, 4000.0)
+    assert list(box.pending) == ["cto-c34459eb"]
+
+
+@pytest.mark.parametrize("name", [
+    "Dev#afe - OrgRestructure: x",       # a worker's shape on a C-level's box
+    "CTO (Someone)",                     # not the persona policies/agents.yaml pins
+    "CTO",
+    "something else entirely",
+    f"{MAC} CTO (Kavin)",                # another host's emoji is not ours to swap
 ])
-def test_the_sweep_rebuilds_any_off_rule_name_once(box, name, new):
+def test_the_sweep_fixes_only_a_missing_emoji_and_says_so_once_for_the_rest(box, name):
     _set_name(box, U_CTO, name)
-    _set_name(box, U_PH, f"{CONTABO} PH#36c MimiPage")
+    _set_name(box, U_PH, f"{CONTABO} PH#36c (CMO) - MimiPage")
     out = rs.sweep("contabo", box.pending, 1.0)
-    assert out == [f"sweep    cto-c34459eb: {name} -> {new}"]
-    assert box.pending["cto-c34459eb"]["name"] == new
-    assert rs.session_names.rule_problem(new, "cto", "c34459eb", "contabo") is None
-    box.pending.clear()                                    # it never landed (or was never tried again):
-    assert rs.sweep("contabo", box.pending, 2.0) == [] and box.pending == {}    # same pid, same name: once
+    assert len(out) == 1 and out[0].startswith("skip     cto-c34459eb: ")
+    assert box.pending == {}
+    assert rs.sweep("contabo", box.pending, 2.0) == []     # logged once per box and pid
     assert box.sent == []
 
 
-@pytest.mark.parametrize("raw,new", [
-    ("CTO (Kavin) — a\x1b[2Jb", f"{CONTABO} CTO#c34 a 2Jb"),        # an ESC would be a key in the pane
-    ("CTO (Kavin) — a\u2028b", f"{CONTABO} CTO#c34 a b"),
-    ("CTO (Kavin) — " + "x" * 105, f"{CONTABO} CTO#c34 " + "x" * 23 + "…"),   # the body is 32 characters, the cut included
+@pytest.mark.parametrize("raw", [
+    "CTO (Kavin) — a\x1b[2Jb",            # an ESC: ls._clean shows it as a space, the pane would get a key
+    "CTO (Kavin) — a\u2028b",
+    "CTO (Kavin) — " + "x" * 105,        # 119 characters: emoji and space would take it to 121 > NAME_MAX
 ])
-def test_the_sweep_never_types_a_character_a_request_could_not(box, raw, new):
+def test_the_sweep_never_types_a_name_it_could_not_type_for_a_request(box, raw):
     _set_name(box, U_CTO, raw)
-    _set_name(box, U_PH, f"{CONTABO} PH#36c MimiPage")
+    _set_name(box, U_PH, f"{CONTABO} PH#36c (CMO) - MimiPage")
     out = rs.sweep("contabo", box.pending, 1.0)
-    assert len(out) == 1 and out[0].startswith("sweep    ")
-    assert box.pending["cto-c34459eb"]["name"] == new and rs._typable(new)
+    assert len(out) == 1 and "cannot be typed" in out[0]
+    assert box.pending == {} and box.sent == []
     assert rs.sweep("contabo", box.pending, 2.0) == []
 
 
-def test_a_ph_with_no_project_record_is_reported_once_and_never_typed(box):
-    (box.locks / "project_head-36c49776.project").unlink()
-    _set_name(box, U_CTO, f"{CONTABO} CTO#c34 Main")
-    out = rs.sweep("contabo", box.pending, 1.0)
-    assert len(out) == 1 and out[0].startswith('skip     project_head-36c49776: "PH#36c (CMO) - MimiPage')
-    assert "no rule name" in out[0] and box.pending == {}
-    assert rs.sweep("contabo", box.pending, 2.0) == []     # N9: reported once, no loop
-    assert box.sent == []
+def test_a_state_glyph_stays_in_front_of_the_emoji(box):
+    _set_name(box, U_CTO, "⏸ CTO (Kavin) — saved")
+    rs.sweep("contabo", box.pending, 1.0)
+    assert box.pending["cto-c34459eb"]["name"] == f"⏸ {CONTABO} CTO (Kavin) — saved"
+    assert rs.session_names.rule_problem(box.pending["cto-c34459eb"]["name"], "cto", "c34459eb",
+                                         "contabo", persona="Kavin") is None
+
+
+def test_the_sweep_reaches_the_coo_in_its_fixed_tmux_once_the_launcher_file_names_it(box):
+    (box.locks / "coo-fde4c4ca.uuid").write_text(U_COO)
+    rs.sweep("contabo", box.pending, 1.0)
+    assert box.pending["coo-fde4c4ca"]["name"] == f"{CONTABO} COO (SomPong)"
+    rs.once("contabo", box.pending, now=1.0)
+    assert ("sompong", f"/rename {CONTABO} COO (SomPong)") in box.sent
 
 
 @pytest.mark.parametrize("host,emoji,darwin", [("contabo", CONTABO, False), ("mac", MAC, True)])
@@ -830,182 +845,10 @@ def test_each_host_gets_its_own_emoji(box, monkeypatch, host, emoji, darwin):
             d["procStart"] = "Tue Oct 13 11:55:05 2026"    # what Claude Code writes on macOS
             f.write_text(json.dumps(d))
     rs.sweep(host, box.pending, 1.0)
-    assert box.pending["cto-c34459eb"]["name"] == f"{emoji} CTO#c34 Main"
-    assert box.pending["project_head-36c49776"]["name"] == f"{emoji} PH#36c MimiPage"
+    assert box.pending["cto-c34459eb"]["name"] == f"{emoji} CTO (Kavin)"
+    assert box.pending["project_head-36c49776"]["name"] == f"{emoji} PH#36c (CMO) - MimiPage — MimiPage"
     rs.once(host, box.pending, now=1.0)
-    assert ("cto-c34459eb", f"/rename {emoji} CTO#c34 Main") in box.sent
-
-
-# --- plan N (CEO 2026-10-15): the live sessions of 15 Oct 04:42 TH, old name -> new name -------
-
-U_CMO = "00000000-0000-0000-0000-0000ef04792e"
-U_WORKER = "99999999-9999-4999-8999-999999999999"        # a worker's session UUID is not made from its id
-PHS = [("7cf528f0", "OrgRestructure", "PH#7cf (CTO) - OrgRestructure", "PH#7cf OrgRestructure"),
-       ("6c4a1b2c", "SpendGuard", "PH#6c4 (CTO) - SpendGuard", "PH#6c4 SpendGuard"),
-       ("f35c0ffe", "CookieRun", "PH#f35 (CTO) - CookieRun", "PH#f35 CookieRun"),
-       ("13d90a1b", "BlackLiquidity", "PH#13d (CMO) - BlackLiquidity", "PH#13d BlackLiquidity")]
-
-
-def _n3_sessions(box):
-    """The Contabo rows of N.3 on top of the fixture's CTO, PH#36c and COO."""
-    _set_name(box, U_CTO, "CTO (Kavin) — CTO Main")
-    _set_name(box, U_PH, "PH#36c (CMO) - MimiPage")
-    box.record(U_CMO, "CMO (Ging) — CMO Main", "cmo-ef04792e:@4.%4")
-    (box.locks / "coo-fde4c4ca.uuid").write_text(U_COO)
-    for sid, project, old, _new in PHS:
-        box.record(f"00000000-0000-0000-0000-0000{sid}", f"{CONTABO} {old}", f"project_head-{sid}:@5.%5")
-        (box.locks / f"project_head-{sid}.project").write_text(project)
-    box.record(U_WORKER, f"{CONTABO} Dev#49b - OrgRestructure: Item 5: sparse…", "wd-49b1d2e3:@6.%6")
-
-
-PANE = {"coo-fde4c4ca": "sompong"}                       # SomPong's tmux has a fixed name; every other box is its own
-
-
-N3_CONTABO = {
-    "cto-c34459eb": f"{CONTABO} CTO#c34 Main",
-    "cmo-ef04792e": f"{CONTABO} CMO#ef0 Main",
-    "coo-fde4c4ca": f"{CONTABO} COO SomPong",
-    "project_head-7cf528f0": f"{CONTABO} PH#7cf OrgRestructure",
-    "project_head-6c4a1b2c": f"{CONTABO} PH#6c4 SpendGuard",
-    "project_head-f35c0ffe": f"{CONTABO} PH#f35 CookieRun",
-    "project_head-13d90a1b": f"{CONTABO} PH#13d BlackLiquidity",
-    "project_head-36c49776": f"{CONTABO} PH#36c MimiPage",
-    "wd-49b1d2e3": f"{CONTABO} Dev\u00b7S#49b Org: Item 5: sparse…",
-}
-
-
-def test_N3_the_sweep_queues_exactly_the_new_names_of_plan_N3_and_not_twice(box):
-    _n3_sessions(box)
-    out = rs.sweep("contabo", box.pending, 1.0)
-    assert {b: j["name"] for b, j in box.pending.items()} == N3_CONTABO
-    assert len(out) == len(N3_CONTABO) and all(l.startswith("sweep    ") for l in out)
-    assert box.sent == []                                   # the sweep only queues
-    for name in N3_CONTABO.values():                        # every one is on the rule
-        assert len(rs.session_names.split_name(name)[2]) <= rs.session_names.NAME_BODY_MAX
-    # still waiting: a second pass queues nothing and replaces nothing
-    assert rs.sweep("contabo", box.pending, 2.0) == []
-    # typed once each, through _one(); then the registry shows the new names and nothing is left to do
-    rs.once("contabo", box.pending, now=1000.0)
-    assert sorted(n for n, t in box.sent if t == "Enter") == sorted(PANE.get(b, b) for b in N3_CONTABO)
-    for f in box.sessions.iterdir():
-        d = json.loads(f.read_text())
-        d["name"] = N3_CONTABO[d["tmux"].split(":")[0] if d["tmux"] != "sompong:@3.%3" else "coo-fde4c4ca"]
-        f.write_text(json.dumps(d))
-    box.pending.clear()
-    assert rs.sweep("contabo", box.pending, 3000.0) == [] and box.pending == {}
-    assert rs.once("contabo", box.pending, now=3000.0) == []
-
-
-def test_N3_the_mac_rows_of_plan_N3(box, monkeypatch):
-    monkeypatch.setattr(rs, "DARWIN", True)
-    for f in box.sessions.iterdir():
-        f.unlink()
-    date = "Tue Oct 13 11:55:05 2026"                       # what Claude Code writes on macOS
-    box.record("00000000-0000-0000-0000-0000671f688f", "MAC CTO #671f688f (PH LastBell + Scriptable)",
-               "cto-671f688f:@1.%1", procStart=date)
-    box.record("00000000-0000-0000-0000-0000f39cb080", "MAC CTO #f39cb080 (PH LuminaSkies V2.6 push + M-R)",
-               "project_head-f39cb080:@2.%2", procStart=date)
-    (box.locks / "project_head-f39cb080.project").write_text("LuminaSkies")
-    for f in box.sessions.iterdir():                        # record() writes procStart itself; keep the date
-        d = json.loads(f.read_text())
-        d["procStart"] = date
-        f.write_text(json.dumps(d))
-    out = rs.sweep("mac", box.pending, 1.0)
-    assert {b: j["name"] for b, j in box.pending.items()} == {
-        "cto-671f688f": f"{MAC} CTO#671 LastBell+Scriptable",
-        "project_head-f39cb080": f"{MAC} PH#f39 LuminaSkies"}
-    assert len(out) == 2 and all(l.startswith("sweep    ") for l in out)
-
-
-def test_N3_a_worker_keeps_its_head_and_job_and_gets_the_model_of_its_role(box):
-    _n3_sessions(box)
-    rs.sweep("contabo", box.pending, 1.0)
-    assert box.pending["wd-49b1d2e3"]["name"] == f"{CONTABO} Dev\u00b7S#49b Org: Item 5: sparse…"
-    rs.once("contabo", box.pending, now=1000.0)
-    assert ("wd-49b1d2e3", f"/rename {CONTABO} Dev\u00b7S#49b Org: Item 5: sparse…") in box.sent
-
-
-@pytest.mark.parametrize("role,sid,old,windows,new", [
-    ("developer", "49b1d2e3", "Dev#49b - OrgRestructure: sparse worktrees", False, "Dev\u00b7S#49b Org: sparse worktrees"),
-    ("developer", "afe57b21", "Dev#afe - CTO: fix", False, "Dev\u00b7S#afe CTO: fix"),
-    ("developer", "afe57b21", "Dev#afe - fix the thing", False, "Dev\u00b7S#afe fix the thing"),   # no head
-    ("developer", "afe57b21", "Dev#afe - OrgRestructure", False, "Dev\u00b7S#afe OrgRestructure"),   # a head, no job
-    ("developer", "afe57b21", "Dev\u00b7O#afe Org: x", False, "Dev\u00b7O#afe Org: x"),              # the letter it shows is kept
-    ("security_engineer", "5ec00000", "Sec#5ec - SpendGuard: audit the wallet path", False,
-     "Sec\u00b7O#5ec Spend: audit the wall…"),
-    ("browser_operator", "4a59a1a4", "Browser#4a5 - MimiPage: SHOOT the teaser \u201cnow\u201d", True,
-     "Browser.S#4a5 Mimi: SHOOT the..."),
-])
-def test_rebuild_of_a_worker_name(role, sid, old, windows, new):
-    got = rs.rebuild(role, sid, "winbox" if windows else "contabo", old, windows)
-    assert got == (new if windows else f"{CONTABO} {new}")
-    assert rs.session_names.rule_problem(got, role, sid, "winbox" if windows else "contabo", windows=windows) is None
-    assert (not windows) or got.isascii()
-
-
-def test_a_worker_on_the_rule_is_left_alone_and_a_request_cannot_reach_it(box):
-    box.record(U_WORKER, f"{CONTABO} Dev\u00b7S#49b Org: x", "wd-49b1d2e3:@6.%6")
-    _set_name(box, U_CTO, f"{CONTABO} CTO#c34 Main")
-    _set_name(box, U_PH, f"{CONTABO} PH#36c MimiPage")
-    assert rs.sweep("contabo", box.pending, 1.0) == [] and box.pending == {}
-    for who in ({"role": "wd", "sid": "49b1d2e3"}, {"role": "developer", "sid": "49b1d2e3"}):
-        a, b = socket.socketpair()
-        with a, b:
-            a.sendall(json.dumps({**who, "topic": "x"}).encode())
-            a.shutdown(socket.SHUT_WR)
-            assert rs.handle(b, "contabo", box.pending, (os.getpid(), os.getuid())).startswith("refused")
-    assert box.pending == {}
-
-
-def test_a_worker_whose_process_is_not_in_its_tmux_panes_is_not_typed_into(box):
-    # the tmux name is the claim for a worker (its UUID says nothing); the pane ancestry still has to hold
-    box.record(U_WORKER, f"{CONTABO} Dev#49b - Org: x", "wd-49b1d2e3:@6.%6")
-    box.panes["wd-49b1d2e3"] = [1]
-    rs.sweep("contabo", box.pending, 1.0)
-    assert "wd-49b1d2e3" not in box.pending
-
-
-@pytest.mark.parametrize("screen", [DRAFT, DRAFT_BELOW, BUSY, PERMISSION])
-def test_N4_a_swept_rename_waits_for_an_empty_prompt_and_types_it_later(box, screen):
-    _n3_sessions(box)
-    rs.sweep("contabo", box.pending, 1.0)
-    for name in box.pending:
-        box.screens[PANE.get(name, name)] = screen
-    out = rs.once("contabo", box.pending, now=1000.0)
-    assert out and all(l.startswith("wait     ") for l in out) and box.sent == []
-    assert len(box.pending) == len(N3_CONTABO)              # next tick tries again
-    for name in list(box.pending):
-        box.screens[PANE.get(name, name)] = EMPTY
-    out = rs.once("contabo", box.pending, now=1100.0)
-    assert all(l.startswith("renamed  ") for l in out)
-    assert [t for _, t in box.sent].count("Enter") == len(N3_CONTABO)
-
-
-def test_N9_a_name_typed_by_hand_is_fixed_once_and_a_name_that_cannot_be_fixed_is_reported_once(box):
-    _set_name(box, U_CTO, "my own label")
-    (box.locks / "project_head-36c49776.project").unlink()      # the PH can not be rebuilt
-    first = rs.sweep("contabo", box.pending, 1.0)
-    assert len(first) == 2
-    assert box.pending["cto-c34459eb"]["name"] == f"{CONTABO} CTO#c34 my own label"
-    assert any(l.startswith("skip     project_head-36c49776") for l in first)
-    for _ in range(3):                                           # no loop, whatever the ticks do
-        assert rs.sweep("contabo", box.pending, 2.0) == []
-    rs.once("contabo", box.pending, now=1000.0)                  # it lands
-    _set_name(box, U_CTO, f"{CONTABO} CTO#c34 my own label")
-    box.pending.clear()
-    assert rs.sweep("contabo", box.pending, 3000.0) == []
-
-
-def test_N7_a_topic_replaces_the_project_of_a_ph_and_the_coo_has_no_id(box):
-    assert rs.build_name("project_head", "36c49776", "test", "", "contabo") == f"{CONTABO} PH#36c test"
-    assert rs.build_name("project_head", "36c49776", "MimiPage", "", "contabo") == f"{CONTABO} PH#36c MimiPage"
-    assert rs.build_name("project_head", "36c49776", "", "⏸", "contabo") == f"⏸ {CONTABO} PH#36c MimiPage"
-    assert rs.build_name("cto", "c34459eb", "", "", "contabo") == f"{CONTABO} CTO#c34 Main"
-    assert rs.build_name("coo", "fde4c4ca", "", "", "contabo") == f"{CONTABO} COO SomPong"
-    assert rs.build_name("coo", "fde4c4ca", "x", "", "mac") == f"{MAC} COO x"
-    assert rs.build_name("developer", "afe57b21", "x", "", "contabo") is None
-    assert rs.build_name("ceo", "afe57b21", "x", "", "contabo") is None
-    assert rs.build_name("cto", "c34459eb", "x", "", "nowhere") == "CTO#c34 x"        # an unknown host: no emoji
+    assert ("cto-c34459eb", f"/rename {emoji} CTO (Kavin)") in box.sent
 
 
 def test_the_sweep_stops_at_the_pending_limit(box):
@@ -1032,3 +875,109 @@ def test_serve_sweeps_before_it_types(monkeypatch, capsys):
         rs.serve("contabo")
     assert order == ["sweep", "once"]
     assert capsys.readouterr().out.splitlines() == ["sweep line", "once line"]
+
+
+# --- 15 Oct: the ghost suggestion, and what the sweep does with the live names ------------------------
+
+GHOST = f"out\n{RULE}\n\x1b[39m❯\xa0\x1b[2mรับยอดเกิน $1.78 ได้\x1b[0m\n{RULE}\n  ? for shortcuts\n"
+GREY_BUSY = f"out\n{RULE}\n\x1b[38;5;246m❯\xa0\x1b[39m\n{RULE}\n  \x1b[38;5;246mesc to interrupt\x1b[39m\n"
+
+
+def test_the_screen_is_captured_with_its_attributes(box):
+    """A plain capture-pane cannot tell Claude Code's dim ghost suggestion from a draft, and four
+    idle sessions waited 20+ minutes on one (Contabo, 15 Oct). The one capture the service makes is
+    `capture-pane -p -e`."""
+    box.request("cto-c34459eb", "next job")
+    rs.once("contabo", box.pending, now=1000.0)
+    captures = [c for c in box.calls if c[0] == "capture-pane"]
+    assert captures and all(c[:3] == ("capture-pane", "-p", "-e") for c in captures)
+
+
+def test_a_ghost_suggestion_is_not_a_draft_so_the_rename_is_typed(box):
+    box.screens["cto-c34459eb"] = GHOST
+    box.request("cto-c34459eb", "next job")
+    out = rs.once("contabo", box.pending, now=1000.0)
+    assert out == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — next job"]
+    assert [t for _, t in box.sent if t != "Enter"] == [f"/rename {CONTABO} CTO (Kavin) — next job"]
+
+
+def test_a_swept_emoji_is_typed_over_a_ghost_suggestion_but_never_over_a_draft(box):
+    _set_name(box, U_CTO, "CTO (Kavin) — CTO Main")
+    rs.sweep("contabo", box.pending, 1.0)
+    box.pending.pop("project_head-36c49776")
+    box.screens["cto-c34459eb"] = DRAFT
+    assert rs.once("contabo", box.pending, now=1000.0) == ["wait     cto-c34459eb: prompt not empty"]
+    assert box.sent == []
+    box.screens["cto-c34459eb"] = GHOST
+    assert rs.once("contabo", box.pending, now=1000.0) == [f"renamed  cto-c34459eb: {CONTABO} CTO (Kavin) — CTO Main"]
+    assert [t for _, t in box.sent] == [f"/rename {CONTABO} CTO (Kavin) — CTO Main", "Enter"]
+
+
+def test_a_grey_pointer_with_the_interrupt_hint_waits_and_says_a_turn_is_running(box):
+    """The grey ❯ is what a running turn draws (seen on two worker panes 15 Oct); the log names
+    that, not "prompt not empty"."""
+    box.screens["cto-c34459eb"] = GREY_BUSY
+    box.request("cto-c34459eb", "x")
+    assert rs.once("contabo", box.pending, now=1.0) == ["wait     cto-c34459eb: turn running"]
+    assert box.sent == []
+
+
+# the Contabo registry at 15 Oct 06:25 TH, as the CEO keeps the names: (tmux box, session name, queued as)
+N3_CONTABO = [
+    ("cmo-ef04792e", "CMO (Ging) — CMO Main", f"{CONTABO} CMO (Ging) — CMO Main"),
+    ("cto-c34459eb", f"{CONTABO} CTO (Kavin) — CTO Main", None),
+    ("project_head-13db8720", "PH#13d (CMO) - BlackLiquidity", f"{CONTABO} PH#13d (CMO) - BlackLiquidity"),
+    ("project_head-36c49776", "PH#36c (CMO) - MimiPage", f"{CONTABO} PH#36c (CMO) - MimiPage"),
+    ("project_head-6c487e37", f"{CONTABO} PH#6c4 (CTO) - SpendGuard", None),
+    ("project_head-7cf528f0", f"{CONTABO} PH#7cf (CTO) - OrgRestructure", None),
+    ("project_head-f35affd5", "PH#f35 (CTO) - CookieRun", f"{CONTABO} PH#f35 (CTO) - CookieRun"),
+]
+
+
+def _n3_sessions(box):
+    for f in box.sessions.iterdir():
+        f.unlink()
+    for tmux_box, name, _ in N3_CONTABO:
+        sid = tmux_box.rsplit("-", 1)[1]
+        box.record(f"00000000-0000-0000-0000-0000{sid}", name, f"{tmux_box}:@1.%1")
+    # a Claude worker (its own `wd-` tmux) and a name only: no C-level or PH pane to type into
+    box.record("00000000-0000-0000-0000-0000780c8d2d", f"{CONTABO} Dev#780 - OrgRestructure: Item 6", "wd-780c8d2d:@9.%9")
+    box.record("00000000-0000-0000-0000-00000000aaaa", "CTO (Kavin)", None)
+
+
+def test_N3_the_sweep_adds_the_host_emoji_to_the_names_that_lack_it_and_changes_nothing_else(box):
+    _n3_sessions(box)
+    out = rs.sweep("contabo", box.pending, 1.0)
+    want = {b: new for b, _old, new in N3_CONTABO if new}
+    assert {b: j["name"] for b, j in box.pending.items()} == want
+    assert len(out) == len(want) and all(line.startswith("sweep    ") for line in out)
+    for tmux_box, old, new in N3_CONTABO:
+        if new:
+            assert new == rs.session_names.with_host("contabo", old)       # the emoji, byte for byte, and no other change
+            assert rs.session_names.strip_host(new) == old
+    assert box.sent == []                                                    # the sweep itself types nothing
+
+
+def test_N3_a_name_the_sweep_wrote_is_left_alone_on_the_next_passes(box):
+    _n3_sessions(box)
+    rs.sweep("contabo", box.pending, 1.0)
+    assert rs.sweep("contabo", box.pending, 2.0) == []                       # still waiting: not queued twice
+    for tmux_box, _old, new in N3_CONTABO:                                   # every rename lands
+        if new:
+            _set_name(box, f"00000000-0000-0000-0000-0000{tmux_box.rsplit('-', 1)[1]}", new)
+    assert all(l.startswith("done ") for l in rs.once("contabo", box.pending, now=1000.0))
+    assert box.pending == {}
+    assert rs.sweep("contabo", box.pending, 2000.0) == []                    # no requeue once on the rule
+    assert rs.sweep("contabo", box.pending, 3000.0) == [] and box.pending == {}
+
+
+def test_N9_a_name_is_fixed_once_or_reported_once_never_looped(box):
+    _n3_sessions(box)
+    _set_name(box, "00000000-0000-0000-0000-0000c34459eb", f"{MAC} CTO (Kavin)")     # another host's emoji: not ours
+    first = rs.sweep("contabo", box.pending, 1.0)
+    assert len([l for l in first if l.startswith("skip     cto-c34459eb")]) == 1
+    for job in box.pending.values():                                                # give up on all of them
+        job["sends"], job["sent_at"] = rs.MAX_SENDS, 0.0
+    assert all(l.startswith("gave up") for l in rs.once("contabo", box.pending, now=1000.0))
+    for now in (2000.0, 3000.0, 4000.0):
+        assert rs.sweep("contabo", box.pending, now) == [] and box.pending == {}

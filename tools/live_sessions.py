@@ -64,8 +64,7 @@ TH = timezone(timedelta(hours=7))
 # reachable". Every other role is reachable under its session name.
 # Applies only to an old-style name (one with "#<id>"): from the CEO's
 # 14 Oct ruling SomPong's Remote Control name and session name are both
-# the session's own name ("COO (SomPong)", from 15 Oct "COO SomPong"), so the name
-# is the address again.
+# "COO (SomPong)", so the name is the address again.
 ADDRESS_ALIAS = {"coo": "SomPong"}
 
 HOST_ORDER = ("contabo", "mac", "winbox")
@@ -79,11 +78,10 @@ HOST_ORDER = ("contabo", "mac", "winbox")
 _NAME_RE = re.compile(
     r"^[\W_]*(?:CONTABO|MAC|WINDOWS|WINBOX)\s+([A-Za-z][A-Za-z ]*?)"
     r"(?:\s+\([A-Za-z]{2,32}\))?\s+#([0-9a-f]{6,12})\b")
-# CEO 2026-10-14: a C-level's name was "<ROLE> (<Name>)", e.g. "CTO (Kavin)", with no
+# CEO 2026-10-14: a C-level's name is "<ROLE> (<Name>)", e.g. "CTO (Kavin)", with no
 # machine and no #id; a role without a persona is the bare role, "CFO". Text after
 # " — " is the human topic (session-rename.sh). The role and id come from the
-# session record instead (_ids_from_record), never from this name alone. The 15 Oct
-# shape ("CTO#c34 Main") is read by lib/session_names.parse_short; this is the old one.
+# session record instead (_ids_from_record), never from this name alone.
 _SHORT_NAME_RE = re.compile(
     r"^[\W_]*(?!CEO\b)(C[A-Z]O)(?:\s+\(([A-Za-z]{2,32})\))?(?:\s+—\s.*)?$")
 # The launchers run every org session in a tmux session named "<role>-<sid>"
@@ -156,14 +154,12 @@ _HOST_ERROR = (
 # ---------------------------------------------------------------------------
 
 def parse_name(name: str, session_id: str) -> tuple[str, str]:
-    """(role, short id) from a session's display name. The long machine form
-    ("MAC CTO #671f688f") carries both; a short old C-level name ("CTO (Kavin)") or
-    the COO's ("COO SomPong") carries the role and the id is the last 8 hex of the
-    session UUID, which the launchers make end in the short id (cxo-claude.sh
-    CXO_UUID); the 15 Oct shapes ("CTO#c34 Main", "PH#7cf OrgRestructure",
-    "Dev·S#49b Org: job") show 3 hex of it. No match is role ``unknown`` with the
-    same UUID tail. A leading host emoji ("🌐 CTO#c34 Main", CEO 2026-10-14) is
-    dropped first; a name without one parses the same."""
+    """(role, short id) from a session's display name. An old-style name
+    carries both; a short C-level name ("CTO (Kavin)") carries the role and
+    the id is the last 8 hex of the session UUID, which the launchers make
+    end in the short id (cxo-claude.sh CXO_UUID). No match is role
+    ``unknown`` with the same UUID tail. A leading host emoji ("🌐 CTO (Kavin)",
+    CEO 2026-10-14) is dropped first; a name without one parses the same."""
     from lib import session_names   # stdlib only, safe under the hook's python3
     name = session_names.strip_host(name or "")
     m = _NAME_RE.match(name)
@@ -172,7 +168,7 @@ def parse_name(name: str, session_id: str) -> tuple[str, str]:
     m = _SHORT_NAME_RE.match(name)
     if m:
         return m.group(1).lower(), session_id[-8:]
-    # "PH#7cf OrgRestructure" / "Dev·S#49b Org: …" / "CTO#c34 Main", old or new (lib/session_names):
+    # "PH#6c4 (CTO) - SpendGuard" / "Dev#afe - OrgRestructure: …" (lib/session_names):
     # the name shows 3 hex; the full id is the UUID tail when it agrees, else the 3.
     short = session_names.parse_short(name)
     if short:
@@ -227,7 +223,7 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
     trusted (a hand-made tmux session with an org-looking name). Otherwise the
     name, and `verified` is False. A session in some other tmux (a worker's
     "wd-<sid>") never gets a C-level or PH role from its name: a worker that
-    /renames itself "CTO#c34 Main" is listed as "unknown" (M8, 2026-10-14)."""
+    /renames itself "CTO (Kavin)" is listed as "unknown" (M8, 2026-10-14)."""
     tmux = data.get("tmux")
     tmux = tmux if isinstance(tmux, str) and tmux else None
     m = _TMUX_ID_RE.match(tmux) if tmux else None
@@ -249,9 +245,8 @@ def _ids_from_record(data, name: str, session_id: str) -> tuple[str, str, bool]:
 
 def address_for(role: str, name: str) -> str:
     """What SendMessage takes: the name as it is (host emoji included), or the COO's
-    alias for an old-style name ("CONTABO COO #a7eb4963"; a "#" in a topic is not one)."""
-    from lib import session_names   # stdlib only, safe under the hook's python3
-    if role in ADDRESS_ALIAS and _NAME_RE.match(session_names.strip_host(name)):
+    alias for an old-style name."""
+    if role in ADDRESS_ALIAS and "#" in name:
         return ADDRESS_ALIAS[role]
     return name
 
@@ -1045,9 +1040,9 @@ def format_snapshot(snap: dict, *, all_roles=False, sid=None, ttl_s=DEFAULT_TTL_
 
 
 def duplicate_notes(rows) -> list[str]:
-    """One line per address that more than one row carries. A name shows only 3
-    hex of the id (CEO 2026-10-15; the old short names none), so a Mac "CTO#c34 Main"
-    and Contabo's can be the same text. The [ref] SendMessage then needs is
+    """One line per address that more than one row carries. A short C-level
+    name has no machine or id in it (CEO 2026-10-14), so a Mac "CTO (Kavin)"
+    and Contabo's are the same text. The [ref] SendMessage then needs is
     ListAgents' own and cannot be computed here; its rows print "tmux
     <role>-<sid>", which the host and sid below match."""
     by_addr: dict[str, list[dict]] = {}

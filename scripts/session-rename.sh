@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Rename THIS C-level session's Claude display name (the one the mobile app /
-# Remote Control list shows). The name is built by tools/rename_service.py from
-# lib/session_names (CEO 2026-10-15), host emoji first: a C-level
-# "<ROLE>#<id3> <topic>" ("🌐 CTO#c34 Main"), the COO "COO <topic>", a Project Head
-# "PH#<id3> <Project>" (a topic replaces the project). There is no other form: the old
-# "<MACHINE> <ROLE> #<id> (<topic>)" is gone, every path goes through the service's
-# preview / request below, and a session with no org id gets nothing.
+# Remote Control list shows). The name is tools/rename_service.py's, built from
+# lib/session_names with the host emoji first (CEO 2026-10-14): a C-level
+# "<ROLE> (<Name>) — <topic>" ("🌐 CTO (Kavin) — CTO Main"), no machine and no #id; a
+# Project Head "PH#<id3> (<LANE>) - <Project> — <topic>". Both keep the persona and the
+# lane (CEO 2026-10-15, who renamed two live sessions that way by hand); the compact
+# "<Short>·<M>#<id3> <Head>: <job>" is for workers only. The old form
+# "<MACHINE> <ROLE> #<id> (<topic>)" is gone: a session with no org id gets nothing.
 #
 # Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool,
 # and a session may not type into its own pane (Agents-Core #272: an allow rule for
@@ -16,7 +17,7 @@
 # Name changes propagate to claude.ai + the mobile app (Claude Code v2.1.221+).
 #
 # Usage:  bash scripts/session-rename.sh "หัวข้อของ session"
-#   → requested: /rename 🌐 CTO#c34 หัวข้อของ session
+#   → requested: /rename 🌐 CTO (Kavin) — หัวข้อของ session
 #         bash scripts/session-rename.sh --force "<topic>"   # request again even if unchanged
 #         bash scripts/session-rename.sh --show              # print the recorded topic, no send
 #

@@ -495,12 +495,11 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
 
     assert after("--dangerously-load-development-channels") == "server:sompong"
     assert after("--permission-mode") == "auto"
-    # CEO 2026-10-14: the app name and the session name are the same, with no machine and no
-    # #id (tools/live_sessions.py reads those from the tmux name); 2026-10-15 the new shape,
-    # "COO SomPong" (no persona brackets). CEO 2026-10-14 (M9): the host's emoji leads it,
-    # ORG_HOST=contabo here
-    assert after("--remote-control") == "\U0001F310 COO SomPong"
-    assert after("-n") == "\U0001F310 COO SomPong"
+    # CEO 2026-10-14: the app name and the session name are both "COO (SomPong)",
+    # with no machine and no #id (tools/live_sessions.py reads those from the tmux name).
+    # CEO 2026-10-14 (M9): the host's emoji leads it, ORG_HOST=contabo here
+    assert after("--remote-control") == "\U0001F310 COO (SomPong)"
+    assert after("-n") == "\U0001F310 COO (SomPong)"
     assert after("--add-dir") == str(lroot)
     assert args.count("--mcp-config") == 2 and f"{sompong['repo']}/.mcp.json" in args
     assert "--strict-mcp-config" in args  # still strict: org + lungnote + sompong only
