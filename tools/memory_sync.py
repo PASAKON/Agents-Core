@@ -43,6 +43,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from datetime import date
 from pathlib import Path
 
@@ -55,6 +56,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 _NOT_A_SLUG_CHAR = re.compile(r"[^A-Za-z0-9]")
 _GITATTRIBUTES_RULE = "MEMORY.md merge=union"
+
+
+class _LockBusy(Exception):
+    """Another memory_sync process holds the repo lock past the wait."""
 
 
 def _claude_project_slug(path: Path) -> str:
@@ -157,7 +162,17 @@ def _repo_lock(repo: Path):
         yield
         return
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX)
+        # Bounded wait: pull runs at spawn and must never block it (module doc).
+        deadline = time.monotonic() + GIT_TIMEOUT_SECONDS
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+                if time.monotonic() >= deadline:
+                    print("[memory_sync] another memory_sync holds the repo lock — skipping")
+                    raise _LockBusy() from None
+                time.sleep(0.5)
         yield
     finally:
         try:
@@ -355,7 +370,9 @@ def _merge_remote(
         attr_status = _git(repo, "status", "--porcelain", "--", ".gitattributes")
         if attr_status.returncode == 0 and attr_status.stdout.strip():
             _git(repo, "add", "--", ".gitattributes")
-            _commit_with_fallback(repo, "--amend", "--no-edit")
+            # A separate commit, never --amend: after a fast-forward HEAD is the
+            # remote's own commit, and rewriting it would re-diverge the repo.
+            _commit_with_fallback(repo, "-m", "memory: add .gitattributes (MEMORY.md merge=union)")
         return result
 
     conflicts = _git(repo, "diff", "--name-only", "--diff-filter=U")
@@ -440,6 +457,13 @@ def _merge_remote(
 
 
 def pull(memory_dir: Path | None = None) -> int:
+    try:
+        return _pull(memory_dir)
+    except _LockBusy:
+        return 0  # never blocks or fails a spawn
+
+
+def _pull(memory_dir: Path | None = None) -> int:
     """Sync and reconcile the memory repo from upstream. Always exits 0 — never blocks a spawn.
 
     Uncommitted local edits are committed first; fast-forward is attempted
@@ -492,6 +516,14 @@ def pull(memory_dir: Path | None = None) -> int:
 
 
 def push(memory_dir: Path | None = None) -> int:
+    try:
+        return _push(memory_dir)
+    except _LockBusy:
+        print("[memory_sync] push: FAILED — repo lock busy; edits stay committed locally")
+        return 1
+
+
+def _push(memory_dir: Path | None = None) -> int:
     """``git add -A && commit && push`` the memory repo.
 
     Nothing changed -> exit 0, silent. A commit or push failure -> exit 1

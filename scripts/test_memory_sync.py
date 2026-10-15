@@ -155,7 +155,7 @@ def test_pull_diverged_does_not_fail_and_does_not_block(tmp_path: Path) -> None:
     assert memory_sync.pull(memory_dir) == 0
     assert (stale / "local-note.md").read_text() == "orphaned\n"
     assert (stale / "MEMORY.md").read_text() == "v2-from-elsewhere\n"
-    assert len(_git(stale, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(stale, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not _git(stale, "status", "--porcelain").stdout.strip()
 
 
@@ -218,7 +218,7 @@ def test_pull_dirty_divergence_commits_and_merges(tmp_path: Path) -> None:
     assert "private remote lesson" not in output.getvalue()
     assert (local / "note.md").read_text() == "uncommitted note\n"
     assert (local / "MEMORY.md").read_text() == "private remote lesson\n"
-    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(local, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not _git(local, "status", "--porcelain").stdout.strip()
 
 
@@ -283,7 +283,7 @@ def test_push_diverged_merges_and_lands(tmp_path: Path) -> None:
     assert _git(bare, "rev-parse", "HEAD").stdout == _git(local, "rev-parse", "HEAD").stdout
     assert _git(bare, "show", "HEAD:note.md").stdout == "local note\n"
     assert _git(bare, "show", "HEAD:MEMORY.md").stdout == "private remote lesson\n"
-    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(local, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not _git(local, "status", "--porcelain").stdout.strip()
 
 

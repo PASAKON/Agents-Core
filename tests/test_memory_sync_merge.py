@@ -171,7 +171,7 @@ def test_pull_diverged_does_not_fail_and_does_not_block(tmp_path: Path) -> None:
     assert memory_sync.pull(memory_dir) == 0
     assert (stale / "local-note.md").read_text() == "orphaned\n"
     assert (stale / "MEMORY.md").read_text() == "v2-from-elsewhere\n"
-    assert len(_git(stale, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(stale, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not _git(stale, "status", "--porcelain").stdout.strip()
 
 
@@ -202,7 +202,7 @@ def test_pull_diverged_memory_md_conflict_merges_by_union(tmp_path: Path) -> Non
 
     assert (local / ".gitattributes").exists()
     assert "MEMORY.md merge=union" in (local / ".gitattributes").read_text()
-    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(local, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not (local / ".git" / "MERGE_HEAD").exists()
     assert not _git(local, "status", "--porcelain").stdout.strip()
 
@@ -275,7 +275,7 @@ def test_pull_topic_file_conflict_keeps_both_versions_and_prints_only_names(
     assert "- [local](reference_new.md)\n" in merged_index
     assert "<<<<<<<" not in merged_index
 
-    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(local, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not (local / ".git" / "MERGE_HEAD").exists()
     assert not _git(local, "status", "--porcelain").stdout.strip()
 
@@ -309,7 +309,7 @@ def test_pull_dirty_tree_still_merges_and_keeps_local_changes(tmp_path: Path) ->
     merged_memory = (local / "MEMORY.md").read_text()
     assert "SECRET_UNCOMMITTED_INDEX_LINE\n" in merged_memory
     assert "private remote lesson\n" in merged_memory
-    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(local, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not _git(local, "status", "--porcelain").stdout.strip()
 
 
@@ -415,7 +415,7 @@ def test_push_diverged_merges_and_lands(tmp_path: Path) -> None:
     assert _git(bare, "rev-parse", "HEAD").stdout == _git(local, "rev-parse", "HEAD").stdout
     assert _git(bare, "show", "HEAD:note.md").stdout == "local note\n"
     assert "private remote lesson\n" in _git(bare, "show", "HEAD:MEMORY.md").stdout
-    assert len(_git(local, "rev-list", "--parents", "-1", "HEAD").stdout.split()) == 3
+    assert _git(local, "rev-list", "--merges", "-n", "1", "HEAD~2..HEAD").stdout.strip()  # merge, maybe + .gitattributes commit
     assert not _git(local, "status", "--porcelain").stdout.strip()
 
 
