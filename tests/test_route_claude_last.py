@@ -19,7 +19,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import forecast, quota_handoff  # noqa: E402
-from tools.quota import Quota, apply_bonuses, load_plans  # noqa: E402
+from tools.quota import (  # noqa: E402
+    Quota, apply_bonuses, apply_limit_hit, load_plans, parse_codex, read_snapshot, write_snapshot,
+)
 import tools.route as route  # noqa: E402
 from tools.route import pick_runner, plan  # noqa: E402
 
@@ -162,3 +164,91 @@ def test_no_limit_text_leaves_the_task_alone(tmp_path, monkeypatch):
     monkeypatch.setattr(quota_handoff.db, "update_status", lambda *a, **k: pytest.fail("must not write"))
     assert quota_handoff.record_limit_stop({"id": "task-y", "runner": "agy"}, launch_dir=launch) is None
     assert quota_handoff.record_limit_stop({"id": "task-z", "runner": "claude"}, launch_dir=launch) is None
+
+
+# --- The provider's own limit stop beats a configured bonus (CTO 15 Oct: Codex hit its weekly limit
+# at 09:33 TH while the bonus still showed it full) ---------------------------------------------------
+
+def _rl(used, resets=1792474078, limit_id="codex"):
+    return json.dumps({"type": "event_msg", "payload": {"type": "token_count", "rate_limits": {
+        "limit_id": limit_id, "primary": {"used_percent": used, "window_minutes": 10080, "resets_at": resets},
+        "secondary": None}}})
+
+
+_PREMIUM_NULL = json.dumps({"type": "event_msg", "payload": {"type": "token_count", "rate_limits": {
+    "limit_id": "premium", "primary": None, "secondary": None}}})
+_STOP = json.dumps({"type": "event_msg", "payload": {"type": "task_complete", "error": {
+    "message": "You've hit your usage limit. ... try again at Oct 20th, 2026 7:27 AM.",
+    "codex_error_info": "usage_limit_exceeded"}}})
+_CLEAN = json.dumps({"type": "event_msg", "payload": {"type": "task_complete", "error": None}})
+_BONUS = [{"provider": "openai", "from": "2026-10-15", "to": "2026-11-07T04:28:00+07:00", "note": "resets"}]
+
+
+def test_window_at_100_is_a_limit_hit_and_a_null_premium_object_is_skipped():
+    q = parse_codex([_rl(100.0), _PREMIUM_NULL])
+    assert q.error is None and q.weekly_remaining == 0.0
+    assert q.limit_hit and q.limit_until == "2026-10-20T05:27:58Z"
+
+
+def test_usage_limit_stop_at_96_percent_zeroes_the_week():
+    q = parse_codex([_rl(96.0), _STOP, _PREMIUM_NULL])
+    assert q.limit_hit and q.weekly_remaining == 0.0 and q.limit_until == "2026-10-20T05:27:58Z"
+
+
+def test_a_clean_turn_after_the_stop_clears_it():
+    q = parse_codex([_rl(96.0), _STOP, _rl(5.0, resets=1793000000), _CLEAN])
+    assert not q.limit_hit and q.weekly_remaining == 0.95
+
+
+def test_limit_hit_beats_the_bonus_until_the_reset_then_the_bonus_applies():
+    before = datetime(2026, 10, 18, tzinfo=timezone.utc)
+    q = apply_bonuses(apply_limit_hit(parse_codex([_rl(100.0)]), before), _BONUS, before)
+    assert q.weekly_remaining == 0.0 and "bonus ignored" in q.source
+
+    after = datetime(2026, 10, 21, tzinfo=timezone.utc)
+    q = apply_limit_hit(parse_codex([_rl(100.0)]), after)
+    assert not q.limit_hit and q.weekly_remaining == 1.0
+    assert apply_bonuses(q, _BONUS, after).weekly_remaining == 1.0
+
+
+def test_a_limit_hit_codex_ranks_cannot(cfg):
+    cfg["roles"]["dev_general"].insert(0, "codex:")
+    now = datetime(2026, 10, 18, tzinfo=timezone.utc)
+    quotas = {"claude": Quota(provider="claude", weekly_remaining=1.0, daily_remaining=1.0),
+              "agy-gemini": Quota(provider="agy-gemini", weekly_remaining=0.9, daily_remaining=0.9),
+              "codex": apply_bonuses(apply_limit_hit(parse_codex([_rl(100.0)]), now), _BONUS, now)}
+    plans = _plan(cfg, quotas)
+    codex = [p for p in plans if p.choice.runner == "codex"][0]
+    assert codex.verdict == "cannot" and plans[-1] is codex, _runners(plans)
+
+
+def test_snapshot_round_trips_the_limit_fields(tmp_path):
+    q = parse_codex([_rl(100.0)])
+    p = write_snapshot({"codex": q}, tmp_path / "snap.json")
+    back = read_snapshot(p)["codex"]
+    assert back.limit_hit and back.limit_until == q.limit_until
+
+
+# --- A dead run ends failed --------------------------------------------------------------------------
+
+def test_dead_run_fails_only_an_in_progress_row(monkeypatch):
+    rows = {"t-a": {"id": "t-a", "status": "in_progress"}, "t-b": {"id": "t-b", "status": "review"}}
+    seen = []
+    monkeypatch.setattr(quota_handoff.db, "get_task", lambda tid: rows.get(tid))
+    monkeypatch.setattr(quota_handoff.db, "update_status", lambda tid, st, **kw: seen.append((tid, st, kw)))
+    assert quota_handoff.record_dead_run("t-a", "codex: no turn.completed") is True
+    assert quota_handoff.record_dead_run("t-b", "codex: no turn.completed") is False
+    assert seen == [("t-a", "failed", {"delegate_log": "dead run: codex: no turn.completed"})]
+
+
+def test_check_stop_cli_prefers_rate_limited_over_failed(tmp_path, monkeypatch, capsys):
+    launch = tmp_path / "launch"
+    launch.mkdir()
+    (launch / "agy-events.log").write_text("RESOURCE_EXHAUSTED\n")
+    row = {"id": "t-c", "status": "in_progress", "runner": "agy"}
+    seen = []
+    monkeypatch.setattr(quota_handoff.db, "get_task", lambda tid: row)
+    monkeypatch.setattr(quota_handoff.db, "update_status", lambda tid, st, **kw: seen.append(st))
+    quota_handoff.main(["t-c", "--check-stop", "--runner", "agy", "--launch-dir", str(launch), "--dead", "x"])
+    assert seen == ["rate_limited"]
+    assert json.loads(capsys.readouterr().out)["dead_run_failed"] is False
