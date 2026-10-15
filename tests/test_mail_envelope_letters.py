@@ -1223,3 +1223,11 @@ def test_sweep_reads_the_kind_of_a_long_and_of_a_flag_off_letter(inbox, on, monk
     monkeypatch.setenv("ORG_MAIL_ENVELOPE", "1")
     _age_box(inbox, "cto-s1", mailbox.DEFAULT_DEBOUNCE_S + 5)
     assert sweep_mod.sweep() == [] and sweep_wakes == []
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX modes only")
+def test_letter_is_group_readable_not_world_readable(inbox):
+    # task-4c7b0b9d: mkstemp's 0600 left a root-sent letter unreadable to the
+    # recipient's user, and the waker raised PermissionError every 60 s.
+    p = mailbox.send("cto", "s1", "hello", "cmo", "c1")
+    assert p.stat().st_mode & 0o777 == mailbox.LETTER_MODE == 0o640

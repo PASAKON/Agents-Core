@@ -97,6 +97,9 @@ def _ts() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
 
 
+LETTER_MODE = 0o640   # owner rw, group/ACL-named reader r, other nothing
+
+
 def send(
     to_role: str,
     to_session_id: str,
@@ -152,6 +155,10 @@ def send(
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
             json.dump(letter, fh, ensure_ascii=False, indent=2)
+        # mkstemp makes 0600, and under a default ACL that masks every named
+        # entry: a root-sent letter to SomPong (user sompong via the box's ACL)
+        # was unreadable and stuck the waker for 12 days (task-4c7b0b9d).
+        os.chmod(tmp, LETTER_MODE)
         os.replace(tmp, final)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
