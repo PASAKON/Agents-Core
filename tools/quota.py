@@ -46,6 +46,10 @@ class Quota:
     daily_resets_at: str | None = None
     source: str = ""
     error: str | None = None
+    # The provider itself said "limit hit" (or a window is at 100%). Until limit_until passes the bucket
+    # stays at 0 whatever config bonuses say: a bonus the provider has not applied is not quota.
+    limit_hit: bool = False
+    limit_until: str | None = None
 
 
 def load_plans(path: Path | str | None = None) -> dict:
@@ -136,12 +140,17 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
       >= 10080 -> weekly
       <= 1440  -> daily (300 min counts as daily)
     Never label by the key name. resets_at is epoch seconds -> ISO 8601 UTC.
+    A rate_limits object with neither window (codex also logs a "premium" one with both null) is skipped.
+    A window at used_percent >= 100, or a task_complete whose error is a usage limit with no clean
+    task_complete after it, sets limit_hit and limit_until (CTO 15 Oct: Codex hit its weekly limit while
+    a configured bonus still showed it full).
     """
     try:
         if isinstance(lines, str):
             lines = lines.splitlines()
 
         last_rate_limits = None
+        stopped = False
         for line in lines:
             line = line.strip()
             if not line:
@@ -154,8 +163,12 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
                 payload = data.get("payload")
                 if isinstance(payload, dict):
                     rl = payload.get("rate_limits")
-                    if rl is not None and isinstance(rl, dict):
+                    if isinstance(rl, dict) and (
+                        isinstance(rl.get("primary"), dict) or isinstance(rl.get("secondary"), dict)
+                    ):
                         last_rate_limits = rl
+                    if payload.get("type") == "task_complete":
+                        stopped = _is_usage_limit_error(payload.get("error"))
 
         if last_rate_limits is None:
             raise ValueError("no payload.rate_limits found in codex session data")
@@ -165,6 +178,7 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
         daily_remaining = None
         daily_resets_at = None
 
+        full_resets: list[str | None] = []
         for window_info in (last_rate_limits.get("primary"), last_rate_limits.get("secondary")):
             if not isinstance(window_info, dict):
                 continue
@@ -184,6 +198,8 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
                 else:
                     resets_at_iso = str(raw_reset)
 
+            if float(up) >= 100.0:
+                full_resets.append(resets_at_iso)
             if wm >= 10080:
                 weekly_remaining = rem
                 weekly_resets_at = resets_at_iso
@@ -194,6 +210,15 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
         if weekly_remaining is None and daily_remaining is None:
             raise ValueError("no valid primary or secondary window found in rate_limits")
 
+        limit_hit = stopped or bool(full_resets)
+        limit_until = None
+        if limit_hit:
+            if not full_resets:  # the stop message came without a 100% window: the weekly one ran out
+                weekly_remaining = 0.0
+                full_resets.append(weekly_resets_at)
+            known = [r for r in full_resets if r]
+            limit_until = max(known) if len(known) == len(full_resets) else None
+
         return Quota(
             provider="codex",
             weekly_remaining=weekly_remaining,
@@ -202,6 +227,8 @@ def parse_codex(lines: Iterable[str] | str, *, source: str = "codex") -> Quota:
             daily_resets_at=daily_resets_at,
             source=source,
             error=None,
+            limit_hit=limit_hit,
+            limit_until=limit_until,
         )
     except Exception as e:
         return Quota(
@@ -337,11 +364,53 @@ def _parse_bonus_time(val: str | datetime | None, is_end: bool = False) -> datet
     return None
 
 
+def _is_usage_limit_error(err) -> bool:
+    if not isinstance(err, dict):
+        return False
+    info = str(err.get("codex_error_info") or "").lower()
+    msg = str(err.get("message") or "").lower()
+    return info.startswith("usage_limit") or "hit your usage limit" in msg
+
+
+def _as_utc(now: datetime | str | None) -> datetime:
+    if now is None:
+        return datetime.now(timezone.utc)
+    if isinstance(now, datetime):
+        return now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
+    return _parse_bonus_time(str(now)) or datetime.now(timezone.utc)
+
+
+def limit_active(quota: Quota, now: datetime | str | None = None) -> bool:
+    """True while the provider's own limit stop holds. With no known reset time it holds until a newer
+    rollout shows the window again."""
+    if not quota.limit_hit:
+        return False
+    until = _parse_bonus_time(quota.limit_until) if quota.limit_until else None
+    return until is None or _as_utc(now) < until
+
+
+def apply_limit_hit(quota: Quota, now: datetime | str | None = None) -> Quota:
+    """Once a limit stop's reset time has passed, the last rollout is stale: count the window as fresh
+    so the runner gets routed (and logs a new rollout) again."""
+    if quota.limit_hit and not limit_active(quota, now):
+        if quota.weekly_remaining == 0.0:
+            quota.weekly_remaining = 1.0
+        if quota.daily_remaining == 0.0:
+            quota.daily_remaining = 1.0
+        quota.limit_hit = False
+        quota.source = f"{quota.source} (limit reset passed {quota.limit_until})".strip()
+    return quota
+
+
 def apply_bonuses(quota: Quota, bonuses: list[dict], now: datetime | str | None = None) -> Quota:
     """Apply free grants / active surprise resets.
 
     While active the provider is treated as weekly_remaining = 1.0, with a note in source.
+    A limit stop the provider reported (limit_active) wins over every bonus.
     """
+    if limit_active(quota, now):
+        quota.source = f"{quota.source} (limit hit until {quota.limit_until or 'unknown'}; bonus ignored)".strip()
+        return quota
     if now is None:
         current_time = datetime.now(timezone.utc)
     elif isinstance(now, datetime):
@@ -519,7 +588,7 @@ def fetch_all_quotas(cfg: dict | None = None, now: datetime | str | None = None)
     agy_quotas = fetch_agy(cfg)
     quotas = {
         "claude": apply_bonuses(fetch_claude(cfg), bonuses, now),
-        "codex": apply_bonuses(fetch_codex(cfg), bonuses, now),
+        "codex": apply_bonuses(apply_limit_hit(fetch_codex(cfg), now), bonuses, now),
         "agy-gemini": apply_bonuses(agy_quotas["agy-gemini"], bonuses, now),
         "agy-claude": apply_bonuses(agy_quotas["agy-claude"], bonuses, now),
     }

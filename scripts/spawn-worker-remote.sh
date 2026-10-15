@@ -519,7 +519,21 @@ build_report() {
     fi
   } > "$R"
 }
-if has_hdr "$R"; then
+# A run that did no turn must not land a report (CTO 15 Oct): a codex round with no turn.completed
+# re-committed the round's REPORT.md (task-15ad9d8e), and an agy headless run whose tool permission
+# was auto-denied committed its "jetski: no output produced" stub (task-3ca93285). Its other edits
+# are still committed; the hook at the end marks the task failed (or rate_limited on a limit stop).
+DEAD_RUN=""
+if [ "$RUNNER_NAME" = codex ] && [ -n "${LAUNCH_DIR:-}" ]; then
+  grep -qs '"type": *"turn\.completed"' "$LAUNCH_DIR/codex-events.jsonl" \
+    || DEAD_RUN="codex: no turn.completed in the --json transcript"
+elif [ "$RUNNER_NAME" = agy ] && [ -n "$LOG_TAIL" ]; then
+  grep -qs 'jetski: no output produced' "$LOG_TAIL" \
+    && DEAD_RUN="agy: headless run produced no output (a tool permission was auto-denied)"
+fi
+if [ -n "$DEAD_RUN" ]; then
+  :
+elif has_hdr "$R"; then
   :
 elif [ -s REPORT.md ]; then
   if git ls-files --error-unmatch REPORT.md >/dev/null 2>&1; then
@@ -531,11 +545,12 @@ elif [ -s REPORT.md ]; then
 elif [ -s "$R" ]; then
   put_hdr "$R"
 fi
-[ -s "$R" ] || build_report
+[ -n "$DEAD_RUN" ] || [ -s "$R" ] || build_report
 git add -A
 set -f
 git reset -q -- $GIT_RESET_GUARD 2>/dev/null || true
 set +f
+[ -z "$DEAD_RUN" ] || git reset -q -- "$R" REPORT.md 2>/dev/null || true
 MEDIA_BLOCKERS_FILE="$R_DIR/.media_blockers"
 MEDIA_KEPT_FILE="$R_DIR/.media_kept"
 ALLOW_FILE="$R_DIR/.media_allow_all"
@@ -622,6 +637,7 @@ git diff --cached --name-only | while IFS= read -r f; do
   fi
 done
 
+[ -z "$DEAD_RUN" ] || rm -f "$MEDIA_BLOCKERS_FILE" "$MEDIA_KEPT_FILE"
 if [ -s "$MEDIA_BLOCKERS_FILE" ]; then
   if grep -qi '^## Blockers' "$R"; then
     awk '
@@ -666,9 +682,9 @@ rm -f "$ALLOW_FILE" "$ALLOW_LARGE_FILE" "$MEDIA_KEPT_FILE"
 git push -u origin "$BRANCH_NAME" || git push origin "$BRANCH_NAME" || true
 if [ -n "${AGENTS_ROOT:-}" ] && [ -f "$AGENTS_ROOT/tools/quota_handoff.py" ]; then
   if [ -x "$AGENTS_ROOT/scripts/hub/org-python.sh" ]; then
-    bash "$AGENTS_ROOT/scripts/hub/org-python.sh" "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" >/dev/null 2>&1 || true
+    bash "$AGENTS_ROOT/scripts/hub/org-python.sh" "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" ${DEAD_RUN:+--dead "$DEAD_RUN"} >/dev/null 2>&1 || true
   else
-    python3 "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" >/dev/null 2>&1 || true
+    python3 "$AGENTS_ROOT/tools/quota_handoff.py" "$TASK_ID" --check-stop --runner "$RUNNER_NAME" --launch-dir "$LAUNCH_DIR" --report-file "$R" ${DEAD_RUN:+--dead "$DEAD_RUN"} >/dev/null 2>&1 || true
   fi
 fi
 REPORT_STEP_EOF
