@@ -1571,7 +1571,7 @@ def test_http_model_light_returns_400_not_a_silent_profile(running_server) -> No
 
 # ---------------------------------------------------------------------------
 # task-4c7b0b9d -- the secretary leaves a trace in the journal: a start line,
-# journal priorities, and one line per caught exception
+# an hourly heartbeat, journal priorities, and one line per caught exception
 # that used to be swallowed silently. The real logger has propagate=False, so
 # `logs` swaps in a propagating one that caplog sees (and that writes no file).
 # ---------------------------------------------------------------------------
@@ -1629,6 +1629,20 @@ def test_started_line_reaches_a_pipe_while_the_server_runs(tmp_path) -> None:
         proc.kill()
         proc.wait(timeout=10)
         reader.join(timeout=5)
+
+
+def test_heartbeat_logs_once_per_interval(logs) -> None:
+    server = ss._Server(("127.0.0.1", 0), ss.Handler)
+    try:
+        server.service_actions()
+        assert not [r for r in logs.records if "heartbeat" in r.getMessage()]
+        server._next_heartbeat = 0.0  # due now
+        server.service_actions()
+        server.service_actions()  # next one is HEARTBEAT_SECONDS away
+        beats = [r.getMessage() for r in logs.records if "heartbeat" in r.getMessage()]
+        assert len(beats) == 1 and beats[0].startswith("secretary heartbeat: up ")
+    finally:
+        server.server_close()
 
 
 def _journal_logger(stream, journal_stream: str, monkeypatch) -> logging.Logger:

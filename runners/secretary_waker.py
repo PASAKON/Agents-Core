@@ -117,6 +117,12 @@ def _log():
     return _LOGGER
 
 
+# One INFO line per hour from the idle loop (task-4c7b0b9d), same reason as
+# secretary_server.HEARTBEAT_SECONDS: an empty box logs nothing, so without it a
+# "0 errors in 24 h" count over this unit's journal cannot fail.
+HEARTBEAT_SECONDS = 3600
+
+
 # ---------------------------------------------------------------------------
 # Single-flight -- non-blocking flock, released by the kernel on exit (even
 # `kill -9`) so a wedged holder can never lock out every future tick. Same
@@ -401,11 +407,20 @@ def main() -> None:
     once = "--once" in sys.argv
     _log().info("secretary_waker starting (pid=%s poll=%ss max_batch=%s once=%s)",
                 os.getpid(), POLL_SECONDS, MAX_BATCH, once)
+    started = time.monotonic()
+    next_heartbeat = started + HEARTBEAT_SECONDS
+    ticks = sent = 0
     while True:
         try:
-            tick()
+            sent += tick()
         except Exception as e:  # one bad tick must never kill the loop
             _log().error("tick failed: %s", e)
+        ticks += 1
+        now = time.monotonic()
+        if now >= next_heartbeat:
+            next_heartbeat = now + HEARTBEAT_SECONDS
+            _log().info("secretary_waker heartbeat: up %ds, %d tick(s), %d letter(s) sent",
+                        now - started, ticks, sent)
         if once:
             return
         time.sleep(POLL_SECONDS)

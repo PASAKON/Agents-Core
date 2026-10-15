@@ -289,7 +289,7 @@ def test_invoke_secretary_empty_content_is_failure(waker_env, monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# task-4c7b0b9d -- start line and one line per caught exception
+# task-4c7b0b9d -- start line, heartbeat, and one line per caught exception
 # that used to be swallowed silently. The real logger has propagate=False, so
 # `logs` swaps in a propagating one that caplog sees (and that writes no file).
 # ---------------------------------------------------------------------------
@@ -312,6 +312,28 @@ def test_main_logs_start_line(waker_env, logs, monkeypatch):
     w.main()
 
     assert _messages(logs, logging.INFO)[0].startswith("secretary_waker starting (pid=")
+
+
+def test_main_logs_heartbeat_when_due(waker_env, logs, monkeypatch):
+    monkeypatch.setattr(w, "HEARTBEAT_SECONDS", 0)
+    monkeypatch.setattr(w, "tick", lambda: 2)
+    monkeypatch.setattr(w.sys, "argv", ["secretary_waker", "--once"])
+
+    w.main()
+
+    beats = [m for m in _messages(logs, logging.INFO) if "heartbeat" in m]
+    assert len(beats) == 1
+    assert beats[0].startswith("secretary_waker heartbeat: up ")
+    assert beats[0].endswith("1 tick(s), 2 letter(s) sent")
+
+
+def test_no_heartbeat_before_the_interval(waker_env, logs, monkeypatch):
+    monkeypatch.setattr(w, "tick", lambda: 0)
+    monkeypatch.setattr(w.sys, "argv", ["secretary_waker", "--once"])
+
+    w.main()
+
+    assert not [m for m in _messages(logs, logging.INFO) if "heartbeat" in m]
 
 
 def test_corrupt_letter_is_logged_not_skipped_silently(waker_env, logs):

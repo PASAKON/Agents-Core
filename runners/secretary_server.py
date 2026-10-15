@@ -1783,6 +1783,31 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(404, {"error": {"message": "not found"}})
 
 
+# One INFO line per hour even when idle (task-4c7b0b9d). Without it an idle
+# server writes nothing after its start line, journald rotates that out within
+# days, and "0 errors in the last 24 h" over an empty journal cannot fail.
+# A check counts heartbeats first: none in 24 h means the logging path is dead.
+HEARTBEAT_SECONDS = 3600
+
+
+class _Server(ThreadingHTTPServer):
+    """ThreadingHTTPServer plus the heartbeat. serve_forever() calls
+    service_actions() on every poll (0.5 s), so no extra thread is needed."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._started = time.monotonic()
+        self._next_heartbeat = self._started + HEARTBEAT_SECONDS
+
+    def service_actions(self) -> None:
+        super().service_actions()
+        now = time.monotonic()
+        if now >= self._next_heartbeat:
+            self._next_heartbeat = now + HEARTBEAT_SECONDS
+            _log().info("secretary heartbeat: up %ds, %d turn(s) in flight",
+                        now - self._started, _pending)
+
+
 def main() -> None:
     # First, before anything that can refuse or crash, so every start leaves a
     # line. No env values: pid, uid, interpreter and bind address only.
@@ -1791,7 +1816,7 @@ def main() -> None:
                 SECRETARY_HOST, SECRETARY_PORT)
     check_api_key_or_exit()
     ensure_mcp_config()
-    server = ThreadingHTTPServer((SECRETARY_HOST, SECRETARY_PORT), Handler)
+    server = _Server((SECRETARY_HOST, SECRETARY_PORT), Handler)
     _log().info("secretary listening on %s:%s (max_concurrent=%s workdir=%s)",
                SECRETARY_HOST, SECRETARY_PORT, SECRETARY_MAX_CONCURRENT, SECRETARY_WORKDIR)
     try:
