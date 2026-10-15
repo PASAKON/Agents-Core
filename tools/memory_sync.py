@@ -38,6 +38,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import os
 import re
 import subprocess
@@ -45,9 +46,15 @@ import sys
 from datetime import date
 from pathlib import Path
 
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows fallback
+    fcntl = None  # type: ignore[assignment]
+
 ROOT = Path(__file__).resolve().parent.parent
 
 _NOT_A_SLUG_CHAR = re.compile(r"[^A-Za-z0-9]")
+_GITATTRIBUTES_RULE = "MEMORY.md merge=union"
 
 
 def _claude_project_slug(path: Path) -> str:
@@ -129,25 +136,316 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
         )
 
 
-def _merge_remote(repo: Path, command: str) -> subprocess.CompletedProcess:
-    result = _git(repo, "pull", "--no-rebase", "--no-edit")
-    if result.returncode != 0:
-        conflicts = _git(repo, "diff", "--name-only", "--diff-filter=U")
-        if conflicts.stdout.strip():
-            print(f"[memory_sync] {command}: merge conflict:")
-            print(conflicts.stdout.strip())
-            aborted = _git(repo, "merge", "--abort")
-            # Do not print merge output: memory file contents must stay private.
-            detail = "merge conflict; merge aborted" if aborted.returncode == 0 else "merge conflict; abort failed"
-            return subprocess.CompletedProcess(result.args, 1, stdout="", stderr=detail)
+@contextlib.contextmanager
+def _repo_lock(repo: Path):
+    """Serialize memory_sync operations on a shared checkout (e.g. Contabo).
+
+    Concurrent ``git pull``/``git fetch`` processes on the same repo both
+    append for-merge lines to ``.git/FETCH_HEAD`` after their network round-
+    trip, which makes ``git pull --ff-only`` fail with ``fatal: Cannot
+    fast-forward to multiple branches``. Locking ``.git/memory_sync.lock``
+    prevents concurrent fetches and merges from racing.
+    """
+    git_dir = repo / ".git"
+    if fcntl is None or not git_dir.is_dir():
+        yield
+        return
+    lock_path = git_dir / "memory_sync.lock"
+    try:
+        fd = os.open(str(lock_path), os.O_CREAT | os.O_RDWR, 0o600)
+    except OSError:
+        yield
+        return
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        except OSError:
+            pass
+        os.close(fd)
+
+
+def _ensure_gitattributes(repo: Path, *, write_worktree: bool = True) -> bool:
+    """Ensure ``MEMORY.md merge=union`` is configured in ``repo``.
+
+    Writes ``.git/info/attributes`` so Git's built-in ``union`` merge driver is
+    active during ``git merge`` even before ``.gitattributes`` is committed,
+    and (when ``write_worktree=True``) ensures ``.gitattributes`` in the
+    working tree contains ``MEMORY.md merge=union`` so the rule travels with
+    the repo. Returns True if ``.gitattributes`` was created or updated.
+    """
+    info_dir = repo / ".git" / "info"
+    if info_dir.is_dir():
+        info_attr = info_dir / "attributes"
+        existing_info = info_attr.read_text() if info_attr.exists() else ""
+        if _GITATTRIBUTES_RULE not in [
+            line.strip() for line in existing_info.splitlines()
+        ]:
+            prefix = "\n" if existing_info and not existing_info.endswith("\n") else ""
+            info_attr.write_text(f"{existing_info}{prefix}{_GITATTRIBUTES_RULE}\n")
+
+    if not write_worktree:
+        return False
+
+    attr_path = repo / ".gitattributes"
+    existing = attr_path.read_text() if attr_path.exists() else None
+    if existing is not None and _GITATTRIBUTES_RULE in [
+        line.strip() for line in existing.splitlines()
+    ]:
+        return False
+    prefix = "\n" if existing and not existing.endswith("\n") else ""
+    attr_path.write_text(f"{existing or ''}{prefix}{_GITATTRIBUTES_RULE}\n")
+    return True
+
+
+def _resolve_upstream(repo: Path) -> tuple[str, str]:
+    """Return ``(remote, remote_branch)`` and repair multi-branch config.
+
+    If ``branch.<branch>.merge`` or ``branch.<branch>.remote`` has multiple
+    values in ``.git/config`` (which causes ``git pull --ff-only`` to abort
+    with ``fatal: Cannot fast-forward to multiple branches``), collapse it in
+    place with ``git config --replace-all``.
+    """
+    head_ref = _git(repo, "symbolic-ref", "--short", "-q", "HEAD")
+    branch = head_ref.stdout.strip() if head_ref.returncode == 0 else ""
+
+    if branch:
+        remote_cfg = _git(repo, "config", "--get-all", f"branch.{branch}.remote")
+        remotes = [r.strip() for r in remote_cfg.stdout.splitlines() if r.strip()]
+        remote = remotes[0] if remotes else "origin"
+        if len(remotes) > 1:
+            _git(repo, "config", "--replace-all", f"branch.{branch}.remote", remote)
+
+        merge_cfg = _git(repo, "config", "--get-all", f"branch.{branch}.merge")
+        merge_refs = [m.strip() for m in merge_cfg.stdout.splitlines() if m.strip()]
+        if len(merge_refs) > 1:
+            preferred = (
+                f"refs/heads/{branch}"
+                if f"refs/heads/{branch}" in merge_refs
+                else merge_refs[0]
+            )
+            _git(repo, "config", "--replace-all", f"branch.{branch}.merge", preferred)
+            merge_refs = [preferred]
+
+        if merge_refs:
+            ref = merge_refs[0]
+            remote_branch = (
+                ref[len("refs/heads/"):] if ref.startswith("refs/heads/") else ref
+            )
+        else:
+            remote_branch = branch
+        return remote, remote_branch
+
+    return "origin", "main"
+
+
+def _fetch_upstream(repo: Path) -> tuple[subprocess.CompletedProcess, str | None]:
+    """Fetch the single upstream branch and return ``(fetch_result, target_ref)``."""
+    remote, remote_branch = _resolve_upstream(repo)
+    fetched = _git(repo, "fetch", remote, remote_branch)
+    if fetched.returncode != 0:
+        return fetched, None
+
+    tracking_ref = f"refs/remotes/{remote}/{remote_branch}"
+    rev = _git(repo, "rev-parse", "--verify", "-q", tracking_ref)
+    if rev.returncode == 0 and rev.stdout.strip():
+        return fetched, f"{remote}/{remote_branch}"
+
+    fh = _git(repo, "rev-parse", "--verify", "-q", "FETCH_HEAD")
+    if fh.returncode == 0 and fh.stdout.strip():
+        return fetched, fh.stdout.splitlines()[0].strip()
+
+    return fetched, f"{remote}/{remote_branch}"
+
+
+def _commit_with_fallback(repo: Path, *commit_args: str) -> subprocess.CompletedProcess:
+    """Run ``git commit`` with a fallback identity if the host has none configured."""
+    commit = _git(repo, "commit", *commit_args)
+    if commit.returncode != 0 and any(
+        phrase in commit.stderr.lower()
+        for phrase in ("unable to auto-detect email address", "please tell me who you are")
+    ):
+        commit = _git(
+            repo,
+            "-c", "user.name=memory_sync",
+            "-c", "user.email=memory_sync@local",
+            "commit", *commit_args,
+        )
+    return commit
+
+
+def _commit_dirty(repo: Path) -> subprocess.CompletedProcess | None:
+    """Commit any uncommitted working-tree or index changes before merging.
+
+    Mirrors ``push``'s own stage+commit step so ``pull`` never hits
+    ``Please commit your changes or stash them before you merge`` or skips
+    ``_merge_remote`` when a crashed/concurrent session left dirty files.
+    """
+    status = _git(repo, "status", "--porcelain")
+    if status.returncode != 0 or not status.stdout.strip():
+        return None
+
+    _ensure_gitattributes(repo, write_worktree=True)
+    add = _git(repo, "add", "-A")
+    if add.returncode != 0:
+        return add
+
+    staged = _git(repo, "diff", "--cached", "--quiet")
+    if staged.returncode == 0:
+        return None
+
+    msg = f"memory: {_session_label()} {date.today().isoformat()}"
+    return _commit_with_fallback(repo, "-m", msg)
+
+
+def _is_ahead_of_upstream(repo: Path) -> bool:
+    ahead = _git(repo, "rev-list", "--count", "@{u}..HEAD")
+    if ahead.returncode == 0:
+        try:
+            return int(ahead.stdout.strip()) > 0
+        except ValueError:
+            return False
+    return False
+
+
+def _theirs_filename(rel_path: str, shortsha: str) -> str:
+    """Return ``<name>.theirs-<shortsha>.md`` next to ``rel_path``."""
+    p = Path(rel_path)
+    suffix = p.suffix or ".md"
+    stem = p.stem if p.suffix else p.name
+    return str(p.with_name(f"{stem}.theirs-{shortsha}{suffix}"))
+
+
+def _union_lines(ours: str, theirs: str) -> str:
+    """Line-by-line union preserving order (ours first, then unseen lines from theirs)."""
+    result: list[str] = []
+    seen: set[str] = set()
+    for text in (ours, theirs):
+        for line in text.splitlines(keepends=True):
+            normalized = line if line.endswith("\n") else f"{line}\n"
+            if normalized not in seen:
+                result.append(normalized)
+                seen.add(normalized)
+    return "".join(result)
+
+
+def _merge_remote(
+    repo: Path, command: str, upstream_ref: str | None = None,
+) -> subprocess.CompletedProcess:
+    """Merge the remote branch into ``HEAD``, resolving conflicts without losing data.
+
+    - ``MEMORY.md`` merges by line union (via ``.gitattributes`` /
+      ``.git/info/attributes`` ``MEMORY.md merge=union``, plus an explicit
+      fallback for add/add conflicts).
+    - Any other conflicting file keeps ours at ``<name>`` and writes theirs
+      next to it as ``<name>.theirs-<shortsha>.md``, then commits the merge.
+    - Prints only file names, never memory file contents.
+    """
+    if upstream_ref is None:
+        fetched, upstream_ref = _fetch_upstream(repo)
+        if fetched.returncode != 0 or not upstream_ref:
+            return fetched
+
+    _ensure_gitattributes(repo, write_worktree=False)
+    result = _git(repo, "merge", "--no-edit", upstream_ref)
+    if result.returncode == 0:
+        _ensure_gitattributes(repo, write_worktree=True)
+        attr_status = _git(repo, "status", "--porcelain", "--", ".gitattributes")
+        if attr_status.returncode == 0 and attr_status.stdout.strip():
+            _git(repo, "add", "--", ".gitattributes")
+            _commit_with_fallback(repo, "--amend", "--no-edit")
+        return result
+
+    conflicts = _git(repo, "diff", "--name-only", "--diff-filter=U")
+    conflict_files = [
+        line.strip() for line in conflicts.stdout.splitlines() if line.strip()
+    ]
+    if conflict_files:
+        sha_proc = _git(repo, "rev-parse", "--short", "MERGE_HEAD")
+        shortsha = sha_proc.stdout.strip()
+        if not shortsha:
+            shortsha = (
+                _git(repo, "rev-parse", "--short", upstream_ref).stdout.strip()
+                or "remote"
+            )
+
+        for rel_path in conflict_files:
+            ours = _git(repo, "show", f":2:{rel_path}")
+            theirs = _git(repo, "show", f":3:{rel_path}")
+            if rel_path == "MEMORY.md":
+                merged_text = _union_lines(
+                    ours.stdout if ours.returncode == 0 else "",
+                    theirs.stdout if theirs.returncode == 0 else "",
+                )
+                (repo / rel_path).write_text(merged_text)
+                _git(repo, "add", "--", rel_path)
+            elif rel_path == ".gitattributes":
+                merged_text = _union_lines(
+                    ours.stdout if ours.returncode == 0 else "",
+                    theirs.stdout if theirs.returncode == 0 else "",
+                )
+                (repo / rel_path).write_text(merged_text)
+                _ensure_gitattributes(repo, write_worktree=True)
+                _git(repo, "add", "--", rel_path)
+            elif ours.returncode == 0 and theirs.returncode == 0:
+                (repo / rel_path).write_text(ours.stdout)
+                theirs_rel = _theirs_filename(rel_path, shortsha)
+                (repo / theirs_rel).parent.mkdir(parents=True, exist_ok=True)
+                (repo / theirs_rel).write_text(theirs.stdout)
+                _git(repo, "add", "--", rel_path, theirs_rel)
+                print(
+                    f"[memory_sync] {command}: merge conflict in {rel_path} "
+                    f"— kept ours, wrote theirs to {theirs_rel}"
+                )
+            elif ours.returncode == 0:
+                (repo / rel_path).write_text(ours.stdout)
+                _git(repo, "add", "--", rel_path)
+                print(
+                    f"[memory_sync] {command}: merge conflict in {rel_path} — kept ours"
+                )
+            elif theirs.returncode == 0:
+                (repo / rel_path).write_text(theirs.stdout)
+                _git(repo, "add", "--", rel_path)
+                print(
+                    f"[memory_sync] {command}: merge conflict in {rel_path} — kept theirs"
+                )
+
+        _ensure_gitattributes(repo, write_worktree=True)
+        _git(repo, "add", "--", ".gitattributes")
+
+        remaining = _git(repo, "diff", "--name-only", "--diff-filter=U")
+        if not remaining.stdout.strip():
+            committed = _commit_with_fallback(repo, "--no-edit")
+            if committed.returncode != 0:
+                committed = _commit_with_fallback(
+                    repo, "-m", f"memory: merge {upstream_ref} ({_session_label()})"
+                )
+            if committed.returncode == 0:
+                return subprocess.CompletedProcess(
+                    result.args, 0, stdout="merged remote changes\n", stderr=""
+                )
+
+        aborted = _git(repo, "merge", "--abort")
+        # Do not print merge output: memory file contents must stay private.
+        detail = (
+            "merge conflict; merge aborted"
+            if aborted.returncode == 0
+            else "merge conflict; abort failed"
+        )
+        return subprocess.CompletedProcess(result.args, 1, stdout="", stderr=detail)
+
     return result
 
 
 def pull(memory_dir: Path | None = None) -> int:
-    """``git pull --ff-only`` the memory repo. Always exits 0 — never blocks a spawn.
+    """Sync and reconcile the memory repo from upstream. Always exits 0 — never blocks a spawn.
 
-    Clean divergence gets a merge attempt. Conflicts or network failures
-    warn and continue with whatever memory is already on disk.
+    Uncommitted local edits are committed first; fast-forward is attempted
+    against the single resolved upstream branch; divergence is merged with
+    ``MEMORY.md`` union-merged and any conflicting topic file preserved on
+    both sides (``<name>`` + ``<name>.theirs-<shortsha>.md``).
     """
     memory_dir = memory_dir or default_memory_dir()
 
@@ -160,11 +458,24 @@ def pull(memory_dir: Path | None = None) -> int:
         print(f"[memory_sync] pull: symlink target {repo} is missing — skipping")
         return 0
 
-    result = _git(repo, "pull", "--ff-only")
-    if result.returncode != 0 and "not possible to fast-forward" in result.stderr.lower():
-        status = _git(repo, "status", "--porcelain")
-        if status.returncode == 0 and not status.stdout.strip():
-            result = _merge_remote(repo, "pull")
+    with _repo_lock(repo):
+        if (repo / ".git" / "MERGE_HEAD").exists():
+            _git(repo, "merge", "--abort")
+
+        _resolve_upstream(repo)
+        _commit_dirty(repo)
+
+        fetched, upstream_ref = _fetch_upstream(repo)
+        if fetched.returncode != 0 or not upstream_ref:
+            result = fetched
+        else:
+            result = _git(repo, "merge", "--ff-only", upstream_ref)
+            if (
+                result.returncode != 0
+                and "not possible to fast-forward" in result.stderr.lower()
+            ):
+                result = _merge_remote(repo, "pull", upstream_ref)
+
     if result.returncode == 0:
         print(f"[memory_sync] pull: {result.stdout.strip() or 'already up to date'}")
         return 0
@@ -199,35 +510,48 @@ def push(memory_dir: Path | None = None) -> int:
         print(f"[memory_sync] push: symlink target {repo} is missing — skipping")
         return 0
 
-    add = _git(repo, "add", "-A")
-    if add.returncode != 0:
-        print(f"[memory_sync] push: FAILED to stage changes in {repo}")
-        print(f"[memory_sync] push:   {add.stderr.strip()}")
-        return 1
+    with _repo_lock(repo):
+        if (repo / ".git" / "MERGE_HEAD").exists():
+            _git(repo, "merge", "--abort")
 
-    staged = _git(repo, "diff", "--cached", "--quiet")
-    if staged.returncode == 0:
-        return 0  # nothing changed — quiet success
+        _resolve_upstream(repo)
 
-    msg = f"memory: {_session_label()} {date.today().isoformat()}"
-    commit = _git(repo, "commit", "-m", msg)
-    if commit.returncode != 0:
-        print(f"[memory_sync] push: FAILED to commit in {repo}")
-        print(f"[memory_sync] push:   {commit.stderr.strip()}")
-        return 1
+        status = _git(repo, "status", "--porcelain")
+        if status.returncode == 0 and status.stdout.strip():
+            _ensure_gitattributes(repo, write_worktree=True)
 
-    pushed = _git(repo, "push")
-    if pushed.returncode != 0 and any(
-        reason in pushed.stderr for reason in ("(fetch first)", "(non-fast-forward)")
-    ):
-        merged = _merge_remote(repo, "push")
-        pushed = _git(repo, "push") if merged.returncode == 0 else merged
-    if pushed.returncode != 0:
-        print(f"[memory_sync] push: FAILED to push {repo} — memory stays local-only")
-        detail = (pushed.stderr or pushed.stdout).strip()
-        if detail:
-            print(f"[memory_sync] push:   {detail}")
-        return 1
+        add = _git(repo, "add", "-A")
+        if add.returncode != 0:
+            print(f"[memory_sync] push: FAILED to stage changes in {repo}")
+            print(f"[memory_sync] push:   {add.stderr.strip()}")
+            return 1
+
+        msg = f"memory: {_session_label()} {date.today().isoformat()}"
+        staged = _git(repo, "diff", "--cached", "--quiet")
+        if staged.returncode != 0:
+            commit = _commit_with_fallback(repo, "-m", msg)
+            if commit.returncode != 0:
+                print(f"[memory_sync] push: FAILED to commit in {repo}")
+                print(f"[memory_sync] push:   {commit.stderr.strip()}")
+                return 1
+        elif not _is_ahead_of_upstream(repo):
+            return 0  # nothing changed — quiet success
+
+        pushed = _git(repo, "push")
+        if pushed.returncode != 0 and any(
+            reason in pushed.stderr
+            for reason in ("(fetch first)", "(non-fast-forward)")
+        ):
+            merged = _merge_remote(repo, "push")
+            pushed = _git(repo, "push") if merged.returncode == 0 else merged
+        if pushed.returncode != 0:
+            print(
+                f"[memory_sync] push: FAILED to push {repo} — memory stays local-only"
+            )
+            detail = (pushed.stderr or pushed.stdout).strip()
+            if detail:
+                print(f"[memory_sync] push:   {detail}")
+            return 1
 
     print(f"[memory_sync] push: committed + pushed ({msg!r})")
     return 0
