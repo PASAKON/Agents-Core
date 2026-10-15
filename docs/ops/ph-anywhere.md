@@ -31,6 +31,11 @@ Then any Mac C-level session (started by `cto-claude.sh` / `cxo-claude.sh`) runs
 `bash scripts/spawn-ph.sh --project <Name> --brief-file <path>`. Roll back:
 `sudo rm -f /etc/org-flags/ORG_PH_ROLES`.
 
+The marker `state/locks/project_head-<sid>.project` is what makes a session a PH to the name rules
+(`tools/rename_service.py`) and to `live-sessions` (a C-level box with a marker is published as
+`project_head`, so other hosts judge it by the PH name). Its value must match `[A-Za-z0-9_]{1,40}`:
+`LastBell + Scriptable` made `build_name` return None and was not read as a PH; use `LastBell_Scriptable`.
+
 **Live test** (a Mac session, on its own host, read-only):
 
 ```

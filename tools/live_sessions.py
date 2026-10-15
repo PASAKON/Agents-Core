@@ -534,7 +534,7 @@ def _publisher_label() -> str:
 
 def publish_once(conn, host: str, dirs, prev_uuids) -> set[str]:
     """publish_rows() for the sessions in this host's own registry dirs."""
-    return publish_rows(conn, host, read_registry(dirs), prev_uuids)
+    return publish_rows(conn, host, promote_project_heads(read_registry(dirs)), prev_uuids)
 
 
 def _windows_host(host: str) -> bool:
@@ -555,6 +555,25 @@ def demote_untmuxed(rows, host: str) -> list[dict]:
         if not r.get("verified") and is_listed(r["role"]):
             r["role"] = "unknown"
             r["address"] = address_for("unknown", r["name"])
+    return rows
+
+
+def promote_project_heads(rows) -> list[dict]:
+    """Role `project_head` for a local C-level box that is a Project Head. A session opened
+    as a C-level and made a PH later keeps its launcher box (cto-<sid>, CXO_ROLE=cto), so
+    the registry says "cto"; only THIS host holds state/locks/project_head-<sid>.project,
+    so only this host can say so, and it does it here, before the row leaves it. Another
+    host judges the name by the role it is sent (off_rule_notes), never by a guess.
+    Only a row the launcher's tmux claims (`verified`) is moved, and only for a marker
+    that is a project name build_name would use; any other value leaves the role as it
+    is. tools/rename_service reads read_registry() directly and keeps the box role."""
+    for r in rows:
+        if (r.get("verified") and is_c_level(r["role"]) and r["role"] != "ceo"
+                and re.fullmatch(r"[0-9a-f]{8}", r["sid"])
+                and re.fullmatch(r"[A-Za-z0-9_]{1,40}",
+                                 read_lock(LOCKS_DIR / f"{PH_ROLE}-{r['sid']}.project"))):
+            r["role"] = PH_ROLE
+            r["address"] = address_for(PH_ROLE, r["name"])
     return rows
 
 
@@ -1077,7 +1096,7 @@ def _snapshot_local() -> dict:
     rows = [{"host": host, "uuid": r["uuid"], "sid": r["sid"], "role": r["role"],
              "name": r["name"], "address": r["address"], "status": r["status"],
              "pid": r["pid"], "verified": r.get("verified", False), "age": 0.0}
-            for r in demote_untmuxed(read_registry(session_dirs(host)), host)]
+            for r in promote_project_heads(demote_untmuxed(read_registry(session_dirs(host)), host))]
     return {"rows": rows, "hosts": {host: {"age": 0.0, "published_at": None}}, "local": True}
 
 

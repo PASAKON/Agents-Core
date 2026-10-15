@@ -46,6 +46,8 @@ state/locks/*.run
 # session spawned a C-level, so reply routing resolves from recorded ownership
 # rather than from a forgeable message envelope. Runtime state, per-session.
 state/locks/*.spawned_by
+# The project a Project Head owns (spawn-ph, or the session itself): per host, per session.
+state/locks/*.project
 # Org mailbox (lib/mailbox.py) — one box per live session, drained by
 # scripts/hook-inbox.py. Letters are in-flight runtime state, never content.
 state/inbox/

@@ -662,6 +662,107 @@ def test_publish_once_only_ever_touches_its_own_host(tmp_path):
             assert "host = ?" in sql and params[0] == "mac"
 
 
+# --- a Project Head that runs as a C-level box (CXO_ROLE=cto) is published as project_head ---
+
+PH_UUID = "00000000-0000-4000-8000-0000671f688f"      # ends in the launcher's sid, as cxo-claude.sh makes it
+PH_NAME = "\U0001F4BB PH#671 (CTO) - LastBell_Scriptable"
+
+
+def _mac_ph_box(tmp_path, monkeypatch, marker=None, tmux="cto-671f688f:@1.%1"):
+    """A Mac registry holding one live session in tmux cto-671f688f, and a locks dir of its
+    own (never state/locks/); `marker` is the text of project_head-671f688f.project, if any."""
+    reg, locks = tmp_path / "reg", tmp_path / "locks"
+    reg.mkdir()
+    locks.mkdir()
+    _write(reg, os.getpid(), sessionId=PH_UUID, name=PH_NAME, tmux=tmux)
+    if marker is not None:
+        mark = locks / "project_head-671f688f.project"
+        mark.write_bytes(marker if isinstance(marker, bytes) else marker.encode("utf-8"))
+        mark.chmod(0o644)
+    monkeypatch.setattr(ls, "LOCKS_DIR", locks)
+    return reg
+
+
+def _published_role(reg, host="mac"):
+    hub = FakeHub()
+    ls.publish_once(hub, host, [reg], set())
+    [args] = [p for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
+    return args[3]
+
+
+def test_a_session_with_a_project_marker_is_published_as_project_head(tmp_path, monkeypatch):
+    reg = _mac_ph_box(tmp_path, monkeypatch, marker="LastBell_Scriptable\n")
+    assert _published_role(reg) == "project_head"
+
+
+def test_the_same_session_without_a_marker_keeps_its_role(tmp_path, monkeypatch):
+    reg = _mac_ph_box(tmp_path, monkeypatch)
+    assert _published_role(reg) == "cto"
+
+
+@pytest.mark.parametrize("marker", [
+    "LastBell + Scriptable",      # build_name returned None for this one
+    "", "   \n", "x" * 41, "../x", "a/b", "Café",
+    b"\xff\xfe", "x" * 300,       # not UTF-8; over read_lock's size limit
+])
+def test_an_invalid_marker_is_no_marker_and_does_not_crash(tmp_path, monkeypatch, marker):
+    reg = _mac_ph_box(tmp_path, monkeypatch, marker=marker)
+    assert _published_role(reg) == "cto"
+
+
+def test_a_marker_that_is_a_symlink_is_no_marker(tmp_path, monkeypatch):
+    reg = _mac_ph_box(tmp_path, monkeypatch)
+    real = tmp_path / "elsewhere"
+    real.write_text("LastBell_Scriptable")
+    (tmp_path / "locks" / "project_head-671f688f.project").symlink_to(real)
+    assert _published_role(reg) == "cto"
+
+
+def test_a_name_only_session_is_not_promoted_by_a_marker(tmp_path, monkeypatch):
+    """No launcher tmux claims the role: the marker alone does not make it a PH
+    (publish_rows then demotes it to unknown, as it does for any unverified C-level)."""
+    reg = _mac_ph_box(tmp_path, monkeypatch, marker="LastBell_Scriptable", tmux="not-a-launcher:@1.%1")
+    assert _published_role(reg) == "unknown"
+
+
+def test_a_marker_never_turns_another_hosts_rows_into_project_heads(tmp_path, monkeypatch):
+    """publish_rows (the winbox pull) is not publish_once: this host's markers say nothing there."""
+    _mac_ph_box(tmp_path, monkeypatch, marker="LastBell_Scriptable")
+    row = {"uuid": PH_UUID, "sid": "671f688f", "role": "cto", "name": PH_NAME, "address": PH_NAME,
+           "status": "running", "pid": 1, "former_name": None, "renamed_at": None, "verified": True}
+    hub = FakeHub()
+    ls.publish_rows(hub, "winbox", [row], set())
+    [args] = [p for q, p in zip(hub.sql, hub.params) if q.startswith("INSERT INTO live_sessions")]
+    assert args[3] == "cto"
+
+
+def test_the_published_ph_row_draws_no_off_rule_line_and_the_cto_row_did(tmp_path, monkeypatch):
+    monkeypatch.setattr(ls, "_rule_context", lambda role, host: ({"cto": "Kavin"}.get(role), False))
+    reg = _mac_ph_box(tmp_path, monkeypatch, marker="LastBell_Scriptable")
+    [promoted] = ls.promote_project_heads(ls.read_registry([reg]))
+    as_cto = dict(promoted, role="cto", host="mac")
+    assert ls.off_rule_notes([as_cto]) == [
+        f'name off-rule: "{PH_NAME}" (mac #671f688f): not "CTO (Kavin)"']
+    assert promoted["role"] == "project_head" and promoted["address"] == PH_NAME
+    assert ls.off_rule_notes([dict(promoted, host="mac")]) == []
+
+
+def test_the_local_snapshot_reads_a_marked_session_as_project_head(tmp_path, monkeypatch):
+    reg = _mac_ph_box(tmp_path, monkeypatch, marker="LastBell_Scriptable")
+
+    class Cfg:
+        def self_host(self):
+            return "mac"
+
+        def host(self, name):
+            return {"os": "macos"}
+
+    monkeypatch.setattr(ls, "_config", lambda: Cfg())
+    monkeypatch.setattr(ls, "session_dirs", lambda host: [reg])
+    [row] = ls._snapshot_local()["rows"]
+    assert row["role"] == "project_head" and row["verified"] is True
+
+
 # ---------------------------------------------------------------------------
 # ensure_publisher: the hook's call
 # ---------------------------------------------------------------------------
