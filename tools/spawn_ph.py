@@ -403,12 +403,96 @@ def _card_main(argv: list[str]) -> int:
     return subprocess.run(cmd).returncode
 
 
+def resume_command(sid: str, lane: str, project: str, owner: str) -> str:
+    """Resume the saved conversation without submitting an initial prompt."""
+    env = {
+        "CXO_SESSION_ID": sid, "ORG_PH_ROLES": "1",
+        "ORG_PH_LANE": lane, "ORG_PH_PROJECT": project, "ORG_PH_OWNER": owner,
+    }
+    exports = " ".join(f"{k}={shlex.quote(v)}" for k, v in env.items())
+    return (f"unset CTO_SESSION CTO_SESSION_ID CXO_ROLE; export {exports} && "
+            f"exec bash {shlex.quote(str(LAUNCHER))} --role {roles.PH_ROLE} "
+            f"--lane {shlex.quote(lane)} --project {shlex.quote(project)} "
+            f"--resume {shlex.quote(sid)}")
+
+
+def resume_plan(sid: str) -> dict:
+    """Read the existing identity and check liveness without changing state."""
+    from tools import clevel_gate, tmux_session
+    from tools.send_to_cxo import _trusted_record
+
+    if not _SID_RE.fullmatch(sid):
+        raise Refused("--resume takes an 8-character lowercase hex session id")
+    name = f"{roles.PH_ROLE}-{sid}"
+    records = [LOCKS_DIR / f"{name}.{suffix}" for suffix in ("project", "spawned_by")]
+    values = []
+    for path in records:
+        try:
+            value = path.read_text(encoding="utf-8").strip()
+        except (OSError, UnicodeError) as e:
+            raise Refused(f"cannot resume {name}: missing or unreadable {path.name}") from e
+        if not _trusted_record(path):
+            raise Refused(f"cannot resume {name}: untrusted {path.name}")
+        values.append(value)
+    project, record = values
+    parts = record.split(":", 2)
+    if (len(parts) != 3 or parts[0] != "cxo" or parts[1] not in roles.c_level_roles()
+            or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", parts[2])):
+        raise Refused(f"cannot resume {name}: invalid spawned_by owner/lane")
+    _, lane, owner = parts
+    why = roles.ph_project_refusal(project)
+    if why:
+        raise Refused(why)
+    if tmux_session.has_session(name) or clevel_gate.live_lock(roles.PH_ROLE, sid, LOCKS_DIR):
+        raise Refused(f"cannot resume {name}: session is already running")
+    held = live_projects(LOCKS_DIR).get(project.casefold())
+    if held and held != sid:
+        raise Refused(f"project {project} already has a live Project Head #{held}")
+    # A fresh claim for this sid can mask another holder in live_projects' dict.
+    for other, _pid in clevel_gate.live_sessions(roles.PH_ROLE, LOCKS_DIR, exclude=sid):
+        try:
+            other_project = (LOCKS_DIR / f"{roles.PH_ROLE}-{other}.project").read_text().strip()
+        except OSError:
+            continue
+        if other_project.casefold() == project.casefold():
+            raise Refused(f"project {project} already has a live Project Head #{other}")
+    return {"session_id": sid, "tmux_session": name, "lane": lane,
+            "project": project, "owner": f"{lane}-{owner}",
+            "command": resume_command(sid, lane, project, owner)}
+
+
+def resume(sid: str, dry_run: bool = False) -> dict:
+    """Relaunch a stopped Project Head, preserving its ownership records."""
+    if dry_run:
+        return {**resume_plan(sid), "dry_run": True}
+    from tools import tmux_session
+
+    with _claim_lock(LOCKS_DIR):
+        plan = resume_plan(sid)
+        name = plan["tmux_session"]
+        try:
+            tmux_session.create(name, ROOT, plan.pop("command"))
+        except Exception as e:  # noqa: BLE001
+            raise Refused(f"tmux resume failed: {e}") from e
+    dismissed: bool | None = False
+    try:
+        time.sleep(SPAWN_PROMPT_DELAY_S)
+        if MCP_SCREEN_RE.search(tmux_session.capture(name, 60)):
+            subprocess.run([tmux_session.tmux_bin(), "send-keys", "-t", name, "Escape"],
+                           capture_output=True, text=True, timeout=10)
+            dismissed = True
+    except (OSError, subprocess.SubprocessError):
+        dismissed = None
+    return {**plan, "mcp_screen_dismissed": dismissed}
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     if argv[:1] == ["card"]:
         return _card_main(argv[1:])
     ap = argparse.ArgumentParser(prog="bash scripts/spawn-ph.sh")
-    ap.add_argument("--project", required=True)
+    ap.add_argument("--project")
+    ap.add_argument("--resume", help="resume a stopped Project Head's 8-hex session id")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--brief", default="")
     g.add_argument("--brief-file", default=None)
@@ -417,6 +501,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--sha", default=None, help="with --from-card: the card's commit")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args(argv)
+    if args.resume is not None:
+        if args.project is not None or args.brief or args.brief_file or args.from_card or args.sha:
+            ap.error("--resume takes only a session id and optional --dry-run")
+        try:
+            print(json.dumps(resume(args.resume, dry_run=args.dry_run), ensure_ascii=False))
+        except Refused as e:
+            print(f"spawn-ph: {e}", file=sys.stderr)
+            return 1
+        return 0
+    if args.project is None:
+        ap.error("the following arguments are required: --project")
     brief = args.brief
     if args.brief_file:
         brief = Path(args.brief_file).read_text(encoding="utf-8")
