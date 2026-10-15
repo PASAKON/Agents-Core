@@ -34,7 +34,7 @@
 // 10 target state unknown · 11 write failed · 12 verify MISMATCH · 13 --find done, but some path was unreadable.
 // A GET answered 429 is retried up to 4 times (Retry-After, else 1-2-4-8 s); a POST never is.
 // Node 22+, or node 20 with --experimental-websocket. Tests: tests/js/copy_secret.test.mjs.
-// INFISICAL_API_URL (tests only) may point the API at a loopback server, nowhere else.
+// INFISICAL_API_URL (with COPY_SECRET_TEST=1, tests only) may point the API at a loopback server, nowhere else.
 
 const USAGE = 'usage: copy_secret.mjs <cdp-url> --from <Project>:<env>:<name-regex> --to <Project>:<env>:<NAME> --comment "<purpose>" [--meta k=v ...] [--dry]\n'
   + '       copy_secret.mjs <cdp-url> --find <regex | /regex/flags>';
@@ -44,10 +44,21 @@ const ORG_INFRA_FOLDERS = ['/', '/dns', '/deploy', '/repo', '/net', '/db', '/vau
 const SET_HERE = ['source', 'rotate_with', 'owner', 'created', 'status'];
 const NEEDED_META = ['provider_name', 'console_url', 'scope', 'expires']; // + owner, set here (PLAN §4c)
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
+const SAFE_NAME = /^[\w.-]{1,256}$/;
+const safeName = (s) => typeof s === 'string' && SAFE_NAME.test(s);
+const HTTP_ERRORS = new Map([
+  'BadRequest', 'Bad Request', 'Unauthorized', 'PaymentRequired', 'Payment Required',
+  'Forbidden', 'PermissionDenied', 'Permission Denied', 'NotFound', 'Not Found',
+  'MethodNotAllowed', 'Method Not Allowed', 'Conflict', 'Gone', 'PayloadTooLarge', 'Payload Too Large',
+  'UnprocessableEntity', 'Unprocessable Entity', 'ValidationError', 'Validation Error',
+  'TooManyRequests', 'Too Many Requests', 'InternalServerError', 'Internal Server Error',
+  'BadGateway', 'Bad Gateway', 'ServiceUnavailable', 'Service Unavailable',
+  'GatewayTimeout', 'Gateway Timeout',
+].map((name) => [name, name]));
 const AUTH_PATH = /^\/(login|signup|signin|verify-email|verify|mfa|password-reset|reset-password|email-not-verified|cli-redirect)(\/|$)/i;
 let toStderr = false; // --find keeps stdout for its result lines
 const log = (...a) => (toStderr ? console.error : console.log)(toStderr ? '[find]' : '[copy]', ...a);
-const die = (code, msg) => { console.error('[copy]', msg); process.exit(code); };
+const die = (code, msg) => { console.error(toStderr ? '[find]' : '[copy]', msg); process.exit(code); };
 const usage = (msg) => die(64, `${msg}\n${USAGE}`);
 const isOrgInfra = (name) => String(name).toLowerCase() === ORG_INFRA.toLowerCase();
 
@@ -117,13 +128,18 @@ if (!opt.dry && !findRe) {
   }
 }
 
+const portOf = (u) => u.port || (u.protocol === 'https:' || u.protocol === 'wss:' ? '443' : '80');
 const loopback = (raw, what) => {
   let u; try { u = new URL(raw); } catch { usage(`${what} is not a URL`); }
   if (!['http:', 'https:'].includes(u.protocol) || !LOOPBACK.has(u.hostname)) usage(`${what} must be a loopback http(s) URL`);
-  return u.origin;
+  return u;
 };
-const cdpUrl = loopback(opt.cdp, '<cdp-url>');   // the token comes back over this socket in clear
-const API = process.env.INFISICAL_API_URL ? loopback(process.env.INFISICAL_API_URL, 'INFISICAL_API_URL') : 'https://app.infisical.com';
+const cdp = loopback(opt.cdp, '<cdp-url>');   // the token comes back over this socket in clear
+const cdpUrl = cdp.origin;
+if (process.env.INFISICAL_API_URL && process.env.COPY_SECRET_TEST !== '1') {
+  usage('refused: INFISICAL_API_URL requires COPY_SECRET_TEST=1 (tests only)');
+}
+const API = process.env.INFISICAL_API_URL ? loopback(process.env.INFISICAL_API_URL, 'INFISICAL_API_URL').origin : 'https://app.infisical.com';
 if (typeof WebSocket === 'undefined') die(64, 'this node has no global WebSocket: use node 22+, or node 20 with --experimental-websocket');
 
 // --- 1. the logged-in tab (bootstrap_setup_identity.mjs §1) -------------------------------------------
@@ -134,9 +150,14 @@ const tab = pages.find((t) => { try { const u = new URL(t.url); return u.host ==
 // Count only: a tab's path can carry a capability token (an invite or reset link), and this line lands in chat and cards.
 const onInfisical = pages.filter((t) => { try { return new URL(t.url).host === 'app.infisical.com'; } catch { return false; } }).length;
 if (!tab) die(4, `no signed-in app.infisical.com tab — the CEO signs in through the relay (${pages.length} tab(s), ${onInfisical} on app.infisical.com)`);
-log(`tab ${String(tab.id).slice(0, 8)} at ${new URL(tab.url).pathname}`);
+log(`tab ${String(tab.id).replace(/[^\w.-]/g, '').slice(0, 8)} at ${new URL(tab.url).pathname}`);
 
-const ws = new WebSocket(tab.webSocketDebuggerUrl);
+let wsUrl;
+try { wsUrl = typeof tab.webSocketDebuggerUrl === 'string' ? new URL(tab.webSocketDebuggerUrl) : null; } catch { wsUrl = null; }
+if (!wsUrl || !['ws:', 'wss:'].includes(wsUrl.protocol) || !LOOPBACK.has(wsUrl.hostname) || portOf(wsUrl) !== portOf(cdp)) {
+  die(3, 'refused: webSocketDebuggerUrl must be a loopback ws(s) URL on the same port as <cdp-url>');
+}
+const ws = new WebSocket(wsUrl.href);
 await new Promise((ok, no) => { ws.onopen = ok; ws.onerror = () => no(new Error('ws')); }).catch(() => die(3, 'cannot open the tab websocket'));
 let seq = 0; const pending = new Map();
 ws.onmessage = (ev) => { const m = JSON.parse(ev.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); } };
@@ -150,8 +171,9 @@ if (auth && (auth.status === 401 || auth.status === 403)) die(4, `the tab is sig
 if (!auth || auth.status !== 200 || !auth.body || typeof auth.body.token !== 'string') die(5, `session token refresh failed (HTTP ${auth ? auth.status : '?'})`);
 let token = auth.body.token;
 const claims = (t) => { try { const p = t.split('.')[1]; return JSON.parse(Buffer.from(p + '='.repeat((4 - (p.length % 4)) % 4), 'base64url').toString()); } catch { return {}; } };
-let orgId = claims(token).organizationId || auth.body.organizationId || null;
-log(`session token OK · org ${orgId ? String(orgId).slice(0, 8) : 'not yet selected'}`);
+const rawOrgId = claims(token).organizationId || auth.body.organizationId || null;
+let orgId = safeName(rawOrgId) ? rawOrgId : null;
+log(`session token OK · org ${orgId ? orgId.slice(0, 8) : 'not yet selected'}`);
 
 const api = async (method, path, query, body) => {
   const url = new URL(API + path);
@@ -170,11 +192,12 @@ const api = async (method, path, query, body) => {
 };
 
 if (!orgId) {
+  if (findRe || opt.dry) die(6, 'session token has no organizationId; --find and --dry write nothing (no select-organization)');
   const orgs = await api('GET', '/api/v1/organization');
-  const list = orgs.json?.organizations || [];
+  const list = (orgs.json?.organizations || []).filter((o) => o && safeName(o.id) && safeName(o.name));
   const org = list.find((o) => o.name === 'MoonieX') || (list.length === 1 ? list[0] : null);
   if (!org) die(6, `cannot pick the organization (${list.length} listed)`);
-  const sel = await api('POST', '/api/v3/auth/select-organization', { }, { organizationId: org.id });
+  const sel = await api('POST', '/api/v3/auth/select-organization', {}, { organizationId: org.id });
   if (sel.status !== 200 || typeof sel.json?.token !== 'string') die(6, `select-organization failed (HTTP ${sel.status})`);
   token = sel.json.token; orgId = org.id;
   log(`organization selected: ${org.name}`);
@@ -183,14 +206,16 @@ if (!orgId) {
 // --- 3. both projects, by name -----------------------------------------------------------------------
 const listed = await api('GET', `/api/v2/organizations/${encodeURIComponent(orgId)}/workspaces`);
 if (listed.status !== 200) die(7, `cannot list projects (HTTP ${listed.status})`);
-const projects = Array.isArray(listed.json?.workspaces) ? listed.json.workspaces : [];
+const projects = (Array.isArray(listed.json?.workspaces) ? listed.json.workspaces : [])
+  .filter((p) => p && safeName(p.name) && safeName(p.id));
 async function project(want, env) {
   const lc = want.toLowerCase();
   const p = projects.find((x) => x.name === want) || projects.find((x) => String(x.name).toLowerCase() === lc)
-    || projects.find((x) => String(x.slug).toLowerCase() === lc);
+    || projects.find((x) => safeName(x.slug) && x.slug.toLowerCase() === lc);
   if (!p) die(7, `no project ${want} visible to this session (have: ${projects.map((x) => x.name).join(', ') || 'none'})`);
   let envs = Array.isArray(p.environments) ? p.environments : null;
   if (!envs) { const r = await api('GET', `/api/v1/projects/${encodeURIComponent(p.id)}`); envs = r.json?.project?.environments || []; }
+  envs = envs.filter((e) => e && safeName(e.slug));
   if (!envs.some((e) => e.slug === env)) die(7, `project ${p.name} has no environment ${env}`);
   return { ...p, envSlugs: envs.map((e) => e.slug) };
 }
@@ -202,8 +227,7 @@ if (findRe) {
   const unreadable = (line) => { if (!said.has(line)) { said.add(line); console.log(line); } };
   const n = { projects: 0, envs: 0, folders: 0, names: 0 };
   for (const p of projects) {
-    if (!p || typeof p.name !== 'string' || !p.id) continue;
-    if (p.type && p.type !== 'secret-manager') { log(`${p.name}: project type ${p.type}, not a secret manager; skipped`); continue; }
+    if (p.type && p.type !== 'secret-manager') { log(`${p.name}: project type ${safeName(p.type) ? p.type : 'unknown'}, not a secret manager; skipped`); continue; }
     n.projects++;
     let envs = Array.isArray(p.environments) ? p.environments : null;
     if (!envs) {
@@ -232,13 +256,14 @@ if (findRe) {
         const r = await api('GET', '/api/v3/secrets/raw', { workspaceId: p.id, environment: env, secretPath: folder, expandSecretReferences: 'true', include_imports: 'false' });
         if (r.status !== 200 || !Array.isArray(r.json?.secrets)) { unreadable(`${at}: HTTP ${r.status}`); continue; }
         n.folders++;
-        const shared = r.json.secrets.filter((s) => s && typeof s.secretKey === 'string' && s.type !== 'personal');
+        const shared = r.json.secrets.filter((s) => s && safeName(s.secretKey) && s.type !== 'personal');
         names += shared.length;
         for (const s of shared) {
           if (!findRe.test(s.secretKey)) continue;
           matched++;
           const ref = `${p.name}/${env}${folder === '/' ? '' : folder}/${s.secretKey}`;
-          hits.push({ ref, value: typeof s.secretValue === 'string' ? s.secretValue : null });
+          const hidden = s.secretValueHidden === true;
+          hits.push({ ref, hidden, value: !hidden && typeof s.secretValue === 'string' ? s.secretValue : null });
           console.log(ref);
         }
         r.json = null;
@@ -248,16 +273,19 @@ if (findRe) {
       n.names += names;
     }
   }
-  // equality only, in memory: which matches hold the same value, never what it is
+  // equality only, in memory: which matches hold the same value, never what it is; masked values (secretValueHidden===true) are left out
   const groups = [];
+  let hiddenCount = 0;
   for (const h of hits) {
+    if (h.hidden) { hiddenCount++; h.value = null; continue; }
     const g = groups.find((x) => x.value === h.value);
     if (g) g.refs.push(h.ref); else groups.push({ value: h.value, refs: [h.ref] });
     h.value = null;
   }
+  const identical = hits.length === 0 ? 'n/a (0 matches)' : hiddenCount === 0 && groups.length === 1 ? 'yes' : 'no';
   console.log(`scanned: ${n.projects} projects · ${n.envs} envs · ${n.folders} folders · ${n.names} names · ${hits.length} match · ${said.size} unreadable`);
-  console.log(`values identical across matches: ${hits.length === 0 ? 'n/a (0 matches)' : groups.length === 1 ? 'yes' : 'no'}`);
-  if (groups.length > 1) groups.forEach((g, i) => console.log(`value group ${i + 1}: ${g.refs.join(' ')}`));
+  console.log(`values identical across matches: ${identical}`);
+  if (identical === 'no') groups.forEach((g, i) => console.log(`value group ${i + 1}: ${g.refs.join(' ')}`));
   for (const g of groups) g.value = null;
   process.exit(said.size ? 13 : 0);
 }
@@ -291,10 +319,10 @@ for (const folder of isOrgInfra(src.name) ? [...new Set([...tree, ...ORG_INFRA_F
   const r = await api('GET', '/api/v3/secrets/raw', { workspaceId: src.id, environment: from.env, secretPath: folder, expandSecretReferences: 'true', include_imports: 'false' });
   if (r.status === 404) { log(`source ${where(src, from.env, folder)}: HTTP 404 (no such folder)`); continue; }
   if (r.status !== 200 || !Array.isArray(r.json?.secrets)) die(7, `cannot list ${where(src, from.env, folder)} (HTTP ${r.status}); a folder that cannot be read means the match cannot be proven unique — nothing written`);
-  const shared = r.json.secrets.filter((s) => s && typeof s.secretKey === 'string' && s.type !== 'personal');
+  const shared = r.json.secrets.filter((s) => s && safeName(s.secretKey) && s.type !== 'personal');
   const matched = shared.filter((s) => from.re.test(s.secretKey));
   log(`source ${where(src, from.env, folder)}: HTTP 200 · ${shared.length} names · ${matched.length} match`);
-  for (const s of matched) hits.push({ folder, name: s.secretKey, value: s.secretValue });
+  for (const s of matched) hits.push({ folder, name: s.secretKey, value: s.secretValue, hidden: s.secretValueHidden === true });
 }
 if (hits.length !== 1) {
   for (const h of hits) { log(`  match: ${where(src, from.env, h.folder)} ${h.name}`); h.value = null; }
@@ -302,8 +330,10 @@ if (hits.length !== 1) {
   die(8, `${hits.length} names match /${from.rest}/ — need exactly one; nothing written`);
 }
 const hit = hits.pop();
-let value = typeof hit.value === 'string' && hit.value !== '' ? hit.value : null;
+const hidden = hit.hidden;
+let value = !hidden && typeof hit.value === 'string' && hit.value !== '' ? hit.value : null;
 hit.value = null;
+if (hidden) die(8, `source ${where(src, from.env, hit.folder)} ${hit.name} has secretValueHidden=true; refusing to copy a masked value`);
 if (value === null) die(8, `source ${where(src, from.env, hit.folder)} ${hit.name} holds no value; nothing written`);
 const sourceRef = `${src.name}/${from.env}${hit.folder === '/' ? '' : hit.folder}/${hit.name}`;
 log(`source match: ${sourceRef} (exactly one)`);
@@ -326,13 +356,14 @@ const wrote = await api('POST', `/api/v3/secrets/raw/${encodeURIComponent(to.nam
 });
 if (wrote.status !== 200) {
   value = null;
-  const kind = typeof wrote.json?.error === 'string' && /^[A-Za-z ]{1,40}$/.test(wrote.json.error) ? ` ${wrote.json.error}` : '';
+  const errName = typeof wrote.json?.error === 'string' ? HTTP_ERRORS.get(wrote.json.error) : undefined;
+  const kind = errName ? ` ${errName}` : '';
   die(11, `write ${dstWhere} ${to.name} failed (HTTP ${wrote.status}${kind}); rerun once the cause is fixed (a rerun refuses if it did land)`);
 }
 log(`write ${dstWhere} ${to.name}: HTTP 200 · metadata ${Object.keys(metadata).join(' ')}`);
 
 const back = await api('GET', `/api/v3/secrets/raw/${encodeURIComponent(to.name)}`, at);
-let got = back.status === 200 && typeof back.json?.secret?.secretValue === 'string' ? back.json.secret.secretValue : null;
+let got = back.status === 200 && back.json?.secret?.secretValueHidden !== true && typeof back.json?.secret?.secretValue === 'string' ? back.json.secret.secretValue : null;
 const same = got !== null && got === value;
 const stored = new Set((back.json?.secret?.secretMetadata || []).map((m) => m && m.key));
 value = null; got = null; back.json = null;

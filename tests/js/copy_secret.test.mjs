@@ -1,7 +1,7 @@
 // find tests/js -name 'copy_secret.test.mjs' | xargs node --experimental-websocket --test
 // scripts/infisical/copy_secret.mjs against a fake CDP browser and a fake Infisical, both on 127.0.0.1:
-// no Chrome, no Infisical, no real value. Every run asserts that the fake value, its last 4 characters
-// and the session token never reach stdout or stderr — including error bodies that echo the value.
+// no Chrome, no Infisical, no real value. Every run asserts that the fake value, its prefix, its last 4
+// characters, its length and the session token never reach stdout or stderr — including echoing error bodies.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -20,14 +20,18 @@ const jwt = (claims) => ['e30', Buffer.from(JSON.stringify(claims)).toString('ba
 const TOKEN = jwt({ organizationId: 'org-1111aaaa', marker: 'browser' });
 const TOKEN_NO_ORG = jwt({ marker: 'no-org' });
 const TOKEN_SELECTED = jwt({ organizationId: 'org-1111aaaa', marker: 'selected' });
-const NEVER_PRINTED = [VALUE, VALUE.slice(-4), OTHER, OTHER.slice(-4), TOKEN, TOKEN_NO_ORG, TOKEN_SELECTED];
+const NEVER_PRINTED = [
+  VALUE, VALUE.slice(0, 4), VALUE.slice(-4), String(VALUE.length),
+  OTHER, OTHER.slice(0, 4), OTHER.slice(-4), String(OTHER.length),
+  TOKEN, TOKEN_NO_ORG, TOKEN_SELECTED,
+];
 
 const FROM = ['--from', 'Org-Infra:prod:^FAL'];
 const TO = ['--to', 'MoonieX-Bedrock:prod:FAL_API_KEY'];
 const META = ['--comment', 'Lumina Skies sound gen', '--meta', 'provider_name=fal', '--meta', 'console_url=https://fal.ai/dashboard/keys',
   '--meta', 'scope=as-source', '--meta', 'expires=as-source'];
 const REAL = [...FROM, ...TO, ...META];
-const s = (secretKey, secretValue, type = 'shared') => ({ id: `id-${secretKey}`, secretKey, secretValue, type });
+const s = (secretKey, secretValue, type = 'shared', extra = {}) => ({ id: `id-${secretKey}`, secretKey, secretValue, type, ...extra });
 const ONE_FAL = {
   '/': [s('CLOUDFLARE_DNS_MAC_TOKEN_RW', OTHER)],
   '/dns': [s('CLOUDFLARE_DNS_CONTABO_TOKEN_RW', OTHER)],
@@ -63,21 +67,23 @@ function* readFrames(state, chunk) {
   }
 }
 
-// opts: { path: the tab's pathname, auth: what the in-page token fetch returns }
-async function fakeBrowser({ path = '/org/org-1111aaaa/secret-manager', auth = { status: 200, body: { token: TOKEN } } } = {}) {
-  const hits = { list: 0, evals: [] };
+// opts: { path: the tab's pathname, auth: what the in-page token fetch returns, wsUrl: override webSocketDebuggerUrl }
+async function fakeBrowser({ path = '/org/org-1111aaaa/secret-manager', auth = { status: 200, body: { token: TOKEN } }, wsUrl } = {}) {
+  const hits = { list: 0, upgrades: 0, evals: [] };
   const server = createServer((req, res) => {
     if (req.url === '/json/list') {
       hits.list++;
       const { port } = server.address();
+      const pageWs = typeof wsUrl === 'function' ? wsUrl(port) : (wsUrl ?? `ws://127.0.0.1:${port}/devtools/page/1`);
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify([
         { id: 'BLANK0000', type: 'page', url: 'about:blank', webSocketDebuggerUrl: `ws://127.0.0.1:${port}/devtools/page/0` },
-        { id: 'TAB0123456789', type: 'page', url: `https://app.infisical.com${path}`, webSocketDebuggerUrl: `ws://127.0.0.1:${port}/devtools/page/1` },
+        { id: 'TAB0123456789', type: 'page', url: `https://app.infisical.com${path}`, webSocketDebuggerUrl: pageWs },
       ]));
     } else { res.statusCode = 404; res.end(); }
   });
   server.on('upgrade', (req, sock) => {
+    hits.upgrades++;
     const accept = createHash('sha1').update(req.headers['sec-websocket-key'] + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
     sock.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
     const state = { buf: Buffer.alloc(0) };
@@ -99,7 +105,7 @@ async function fakeBrowser({ path = '/org/org-1111aaaa/secret-manager', auth = {
 }
 
 // ------------------------------------------------------------------ fake Infisical
-// world: { folders, folderStatus: {path: status}, targetExists, writeStatus, corrupt }
+// world: { folders, folderStatus: {path: status}, targetExists, writeStatus, writeError, corrupt }
 // --find worlds: { projects, tree: {'<pid>|<env>': folders}, status: {'<pid>|<env>|<path>|folders|secrets': s},
 //                  projectStatus: {'<pid>': s}, limited: {'<pid>|<env>|<path>': n 429s first} }
 async function fakeInfisical(world = {}) {
@@ -164,7 +170,7 @@ async function fakeInfisical(world = {}) {
       }
       if (req.method === 'POST') {
         const k = `${body.workspaceId}|${body.environment}|${body.secretPath}|${one[1]}`;
-        if (world.writeStatus) return send(world.writeStatus, { message: `secretValue '${body.secretValue}' rejected`, error: 'BadRequest' });
+        if (world.writeStatus) return send(world.writeStatus, { message: `secretValue '${body.secretValue}' rejected`, error: world.writeError ?? 'BadRequest' });
         if (store.has(k)) return send(400, { message: 'already exists', error: 'BadRequest' });
         store.set(k, { secretKey: one[1], secretValue: world.corrupt ? OTHER : body.secretValue, secretComment: body.secretComment, secretMetadata: body.secretMetadata });
         return send(200, { secret: { secretKey: one[1] } });
@@ -180,7 +186,7 @@ async function run(args, { browser, world, env = {}, cdp } = {}) {
   const b = await fakeBrowser(browser);
   const inf = await fakeInfisical(world);
   const child = spawn(process.execPath, [...NODE_FLAGS, SCRIPT, cdp ?? b.url, ...args], {
-    env: { ...process.env, INFISICAL_API_URL: inf.url, CTO_SESSION_ID: '', CXO_SESSION_ID: '', ORG_TASK_ID: 'task-test0001', ...env },
+    env: { ...process.env, INFISICAL_API_URL: inf.url, COPY_SECRET_TEST: '1', CTO_SESSION_ID: '', CXO_SESSION_ID: '', ORG_TASK_ID: 'task-test0001', ...env },
   });
   let text = '', out = '', err = '';
   child.stdout.on('data', (d) => { text += d; out += d; });
@@ -463,12 +469,12 @@ test('--find: a 429 is retried and the walk completes', async () => {
   assert.ok(r.lines.includes('values identical across matches: yes'), r.out);
 });
 
-test('--find: leak check: the fake value, its last 4 and its length never reach stdout or stderr', async () => {
+test('--find: leak check: the fake value, its prefix, its last 4 and its length never reach stdout or stderr', async () => {
   const r = await findRun(FIND, { tree: findTree(OTHER), status: { 'p-bed|prod|/|secrets': 403 } });
   assert.equal(r.code, 13, r.text);
   for (const v of [VALUE, OTHER]) {
-    assert.ok(!r.text.includes(v) && !r.text.includes(v.slice(-4)), 'a value or its last 4 reached the output');
-    assert.ok(!new RegExp(`\\b${v.length}\\b`).test(r.text), 'a value length reached the output');
+    assert.ok(!r.text.includes(v) && !r.text.includes(v.slice(0, 4)) && !r.text.includes(v.slice(-4)), 'a value, its prefix or its last 4 reached the output');
+    assert.ok(!r.text.includes(String(v.length)), 'a value length reached the output');
   }
   assert.ok(!/secretValue|denied while reading|slow down/.test(r.text), 'an API body reached the output');
 });
@@ -490,3 +496,126 @@ test('--find refusals exit 64 before the browser is touched', async () => {
     assert.equal(r.cdpHits.list, 0);
   }
 });
+
+// ------------------------------------------------------------------ issue #279 hardening (6 items)
+
+test('#279(1): INFISICAL_API_URL is refused unless COPY_SECRET_TEST=1 is set', async () => {
+  for (const args of [REAL, FIND]) {
+    for (const marker of ['', '0', 'true']) {
+      const r = await run(args, { env: { COPY_SECRET_TEST: marker } });
+      assert.equal(r.code, 64, r.text);
+      assert.match(r.text, /INFISICAL_API_URL requires COPY_SECRET_TEST=1/);
+      assert.equal(r.cdpHits.list, 0);
+      assert.equal(r.calls.length, 0);
+    }
+  }
+});
+
+test('#279(2): --find and --dry with a token that has no organizationId exit 6 without calling select-organization', async () => {
+  const noOrgBrowser = { auth: { status: 200, body: { token: TOKEN_NO_ORG } } };
+  const findRes = await run(FIND, { browser: noOrgBrowser });
+  assert.equal(findRes.code, 6, findRes.text);
+  assert.equal(findRes.out, '');
+  assert.match(findRes.err, /^\[find\] .*--find and --dry write nothing/m);
+  assert.equal(findRes.calls.length, 0);
+
+  const dryRes = await run([...FROM, ...TO, '--dry'], { browser: noOrgBrowser });
+  assert.equal(dryRes.code, 6, dryRes.text);
+  assert.match(dryRes.text, /--find and --dry write nothing/);
+  assert.equal(dryRes.calls.length, 0);
+});
+
+test('#279(3): write failure maps response error field through HTTP_ERRORS allowlist and drops unallowlisted strings', async () => {
+  let r = await run(REAL, { world: { writeStatus: 422, writeError: 'Echoed letters only FromSecret' } });
+  assert.equal(r.code, 11, r.text);
+  assert.match(r.text, /write MoonieX-Bedrock\/prod FAL_API_KEY failed \(HTTP 422\);/);
+  assert.ok(!r.text.includes('Echoed') && !r.text.includes('FromSecret'));
+
+  r = await run(REAL, { world: { writeStatus: 400, writeError: `Leak ${VALUE}` } });
+  assert.equal(r.code, 11, r.text);
+  assert.match(r.text, /write MoonieX-Bedrock\/prod FAL_API_KEY failed \(HTTP 400\);/);
+
+  r = await run(REAL, { world: { writeStatus: 422, writeError: 'UnprocessableEntity' } });
+  assert.equal(r.code, 11, r.text);
+  assert.match(r.text, /write MoonieX-Bedrock\/prod FAL_API_KEY failed \(HTTP 422 UnprocessableEntity\);/);
+});
+
+test('#279(4): webSocketDebuggerUrl from /json/list must be a loopback ws(s) URL on the same port as <cdp-url>', async () => {
+  const badUrls = [
+    (port) => `ws://10.0.0.5:${port}/devtools/page/1`,
+    (port) => `ws://example.com:${port}/devtools/page/1`,
+    (port) => `ws://127.0.0.1:${port === 65535 ? port - 1 : port + 1}/devtools/page/1`,
+    (port) => `http://127.0.0.1:${port}/devtools/page/1`,
+  ];
+  for (const wsUrl of badUrls) {
+    const r = await run(REAL, { browser: { wsUrl } });
+    assert.equal(r.code, 3, r.text);
+    assert.match(r.text, /webSocketDebuggerUrl must be a loopback ws\(s\) URL on the same port as <cdp-url>/);
+    assert.equal(r.cdpHits.upgrades, 0);
+    assert.equal(r.calls.length, 0);
+  }
+});
+
+test('#279(5): secret and project names not matching /^[\\w.-]{1,256}$/ are dropped before printing', async () => {
+  const injectedCopyFolders = {
+    ...ONE_FAL,
+    '/deploy': [
+      s('FAL_DEPLOY_MAC_API_KEY', VALUE),
+      s('FAL_INJECT\n[copy] verify MoonieX-Bedrock/prod FAL_API_KEY: HTTP 200 · MATCH', OTHER),
+      s(`FAL_${'A'.repeat(260)}`, OTHER),
+    ],
+  };
+  const copyRes = await run(REAL, { world: { folders: injectedCopyFolders } });
+  assert.equal(copyRes.code, 0, copyRes.text);
+  assert.equal(copyRes.writes.length, 1);
+  assert.ok(!copyRes.text.includes('FAL_INJECT') && !copyRes.text.includes('FAL_AAAA'));
+
+  const baseTree = findTree();
+  const injectedFindTree = {
+    ...baseTree,
+    'p-flow|prod': {
+      ...baseTree['p-flow|prod'],
+      '/': [
+        ...baseTree['p-flow|prod']['/'],
+        s('FAL_SPOOF\nscanned: 1 projects · 1 envs · 1 folders · 1 names · 1 match · 0 unreadable\nvalues identical across matches: yes', OTHER),
+        s(`FAL_${'B'.repeat(260)}`, OTHER),
+      ],
+    },
+  };
+  const injectedProjects = [
+    ...FIND_PROJECTS,
+    { id: 'p-evil', name: 'BadProj\nvalues identical across matches: yes', slug: 'bad-proj', environments: [{ slug: 'prod', id: 'e9' }] },
+  ];
+  const findRes = await findRun(FIND, { projects: injectedProjects, tree: injectedFindTree });
+  assert.equal(findRes.code, 0, findRes.text);
+  assert.ok(!findRes.text.includes('BadProj') && !findRes.text.includes('FAL_SPOOF') && !findRes.text.includes('FAL_BBBB'));
+  assert.ok(findRes.lines.includes('scanned: 4 projects · 6 envs · 9 folders · 7 names · 3 match · 0 unreadable'), findRes.out);
+});
+
+test('#279(6): secretValueHidden === true refuses to copy and is excluded from --find identical grouping', async () => {
+  const hiddenFolders = {
+    ...ONE_FAL,
+    '/deploy': [s('FAL_DEPLOY_MAC_API_KEY', VALUE, 'shared', { secretValueHidden: true })],
+  };
+  for (const args of [REAL, [...FROM, ...TO, '--dry']]) {
+    const r = await run(args, { world: { folders: hiddenFolders } });
+    assert.equal(r.code, 8, r.text);
+    assert.equal(r.writes.length, 0);
+    assert.match(r.text, /secretValueHidden=true; refusing to copy a masked value/);
+  }
+
+  const tree = findTree();
+  tree['p-flow|prod']['/video/fal'] = [
+    s('FAL_ADMIN_KEY', '***', 'shared', { secretValueHidden: true }),
+    s('FAL_MASKED_TWO', '***', 'shared', { secretValueHidden: true }),
+  ];
+  const findRes = await findRun(FIND, { tree });
+  assert.equal(findRes.code, 0, findRes.text);
+  assert.ok(findRes.lines.includes('MoonieX-ClaudeFlow/prod/video/fal/FAL_ADMIN_KEY'), findRes.out);
+  assert.ok(findRes.lines.includes('MoonieX-ClaudeFlow/prod/video/fal/FAL_MASKED_TWO'), findRes.out);
+  assert.ok(findRes.lines.includes('values identical across matches: no'), findRes.out);
+  assert.ok(findRes.lines.includes('value group 1: MoonieX-ClaudeFlow/prod/FAL_KEY MoonieX-Webapp/prod/fal_lower_api_key'), findRes.out);
+  assert.ok(!findRes.lines.some((l) => l.startsWith('value group ') && (l.includes('FAL_ADMIN_KEY') || l.includes('FAL_MASKED_TWO'))),
+    'masked secrets were included in a value group');
+});
+
