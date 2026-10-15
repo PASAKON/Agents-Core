@@ -43,10 +43,29 @@ note line explains the mark. On Contabo and the Mac, where every launcher starts
 loses its C-level or PH role (`unknown`, so role routing never lands on it) but still prints, counted in the
 header as `+N name only`; on winbox (no tmux) it keeps the role the name gives. The `same name` line marks
 each row `tmux-claimed` or `name only`. Stored in `live_sessions.verified`.
-Names off the CEO's rule (M10, checked by `lib/session_names.rule_problem`: host emoji, `<ROLE> (<Persona>)`
-from `policies/agents.yaml`, `PH#<id3> (<LANE>) - <Project>`, `<Short>#<id3> - <Head>: <job>`, the id3
-matching the session) each get a `name off-rule: "<name>" (<host> #<sid>): <why>` line, at most 5 and then
-`+N more`. A leading state glyph (`⏸`) and a ` — <topic>` tail are allowed.
+Names off the CEO's rule (M10, checked by `lib/session_names.rule_problem`: the host emoji, then one of the shapes
+in the table below, `<ROLE> (<Persona>)` pinned to `policies/agents.yaml`, the id3 matching the session) each get a
+`name off-rule: "<name>" (<host> #<sid>): <why>` line, at most 5 and then `+N more`. A leading state glyph (`⏸`)
+and a ` — <topic>` tail are allowed.
+
+| kind | shape (after the host emoji) | example |
+|---|---|---|
+| C-level | `<ROLE> (<Name>)[ — <topic>]`; bare `<ROLE>` with no persona | `🌐 CTO (Kavin) — CTO Main` |
+| COO | `COO (SomPong)` | `🌐 COO (SomPong)` |
+| Project Head | `PH#<id3> (<LANE>) - <Project>[ + <Project>…][ — <topic>]` | `🌐 PH#7cf (CTO) - OrgRestructure` |
+| Claude worker (new) | `<Short>·<M>#<id3> <Head>: <job>` (M = O, S or H), at most 32 characters | `🌐 Dev·S#49b Org: sparse worktrees` |
+| Watch (new) | `Watch#<id3> Runs: <N><light>` (🟢🟡🔴⚪), at most 32 characters | `🌐 Watch#a1b Runs: 2🟢` |
+| winbox worker | ASCII only, no emoji, `.` for `·`, `...` for `…` | `Dev.S#49b Org: sparse worktrees` |
+
+CEO 2026-10-15: a session that has a name keeps every part of it, the persona and the PH's lane included (he
+renamed two live sessions that way by hand); only the host emoji is ever added. The compact shape of the 15 Oct
+plan (`CTO#c34 Main`, `PH#7cf OrgRestructure`) is for the kinds that had no older name: Watch, and workers, whose
+old `Dev#49b - Head: job` is still read. A C-level or PH name has no length limit; a new worker or Watch name is
+cut at `NAME_BODY_MAX` (32) with the `…` counted. Every reader (this list, `rule_problem`) accepts the old, the
+compact and the CEO's shapes. `<Head>` is `short:` in `config/projects.yaml`, else the project's first 10
+characters (Org, Spend, BlackLiq, Mimi). The tmux names (`cto-<id>`, `project_head-<id>`, `wd-<id>`, `sompong`)
+never change. Writers: `clevel_name`, `ph_session_name`, `worker_name`, `watch_name` in `lib/session_names.py`;
+`config.worker_session_name` and the rename service call them.
 To fix them: the session runs `bash scripts/session-rename.sh "<job>"`, which sends a rename request over
 `/run/rename-service/sock`, and the rename service (`tools/rename_service.py`, `deploy/systemd/rename-service.service`, Agents-Core #272)
 types `/rename <rule name>` into that session's launcher tmux pane once its ❯ line is empty, never onto a
@@ -73,7 +92,9 @@ stale with a pull error: `winbox unreachable (ssh timeout) since 18:40`. Hub dow
 | who is asking | SO_PEERCRED, ancestry from /proc | LOCAL_PEERPID + LOCAL_PEERCRED, ancestry from `ps` |
 | log | `journalctl -u rename-service` | `~/Library/Logs/mooniex-rename-service.log` |
 
-Sweep (M10d, CEO 2026-10-15): each pass, before the queue, the service also queues the host emoji for a live C-level or PH on this host whose name fails the rule *only* with `no host emoji` (sessions that started before M9 never send a request). It adds the emoji to the session's own name and nothing else, and `_one()` types it like any request. Any other off-rule name is left alone and logged once (`skip  <box>: …`); a box already tried under the same pid and name is not queued again (memory only, so a restart tries once more). Log lines: `sweep    <box>: <old> -> <new>`.
+Sweep (M10d, CEO 2026-10-15; the 15 Oct ruling keeps it this narrow): each pass, before the queue, the service also queues the host emoji for a live C-level or PH on this host whose name fails the rule *only* with `no host emoji` (sessions that started before M9 never send a request). It adds the emoji to the session's own name and nothing else, and `_one()` types it like any request. Any other off-rule name is left alone and logged once (`skip  <box>: …`); a box already tried under the same pid and name is not queued again (memory only, so a restart tries once more). Log lines: `sweep    <box>: <old> -> <new>`.
+
+What "empty" means (15 Oct): the service reads each pane with `tmux capture-pane -p -e` and `lib/pane_screen` treats text after the `❯` that sits entirely inside a dim span (SGR 2) as empty, because that is Claude Code's ghost prompt suggestion, not a draft; only non-dim text counts as one. A plain capture shows both the same, and four idle sessions waited 20+ minutes on a suggestion. While it waits the log says why: `wait     <box>: prompt not empty` (a draft), `turn running` (Claude Code greys the `❯` and shows `esc to interrupt`) or `choice prompt up`.
 
 Install, after the PR lands. Contabo: a Run card (bytes in docs/plans/org-restructure-STATUS.md). Mac, the CEO
 pastes one line in a Mac terminal (no Run Inbox executor there yet), after a smoke test on a throwaway pane.

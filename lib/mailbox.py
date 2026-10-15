@@ -166,16 +166,6 @@ def send(
 # is the only record that a PH's blocker was sent and whether its C-level answered.
 META_NAME = "letters-meta.jsonl"
 META_MAX_BYTES = 5 * 1024 * 1024
-# "blocker · urgent · …" (roles/project_head.md: the kind is plain text until the
-# envelope flag is on), after an optional "[From …] :" marker the MCP tool prepends
-_BODY_KIND_RE = re.compile(r"^\s*(?:\[[^\]]{0,120}\]\s*:\s*)?([a-z]+)\s*\u00b7")
-
-
-def body_kind(body: str) -> str | None:
-    m = _BODY_KIND_RE.match(body or "")
-    return m.group(1) if m and m.group(1) in KINDS else None
-
-
 def meta_path(root: Path | None = None) -> Path:
     """ORG_LETTERS_META wins (every test points it into its tmp_path), else
     state/reports/ next to the inbox root the letter went to."""
@@ -758,16 +748,21 @@ HEAD_BYTES = 1024             # how much of a letter the sweep reads to learn it
 # A body that opens `fyi · …` or `report · normal · …` (the format roles/*.md give
 # senders) names its own kind. The delimiter is required: "Report on the build" is
 # prose, and a wake wrongly withheld costs more than one wrongly given.
-_BODY_KIND_RE = re.compile(r"\s*(" + "|".join(KINDS) + r")\s*·", re.IGNORECASE)
+# "blocker · urgent · …" (roles/project_head.md: the kind is plain text until the
+# envelope flag is on), after an optional "[From …] :" marker the MCP tool prepends
+# (send_to_cxo writes "[Project Head (CTO) #7cf528f0] : blocker · …"). The letter log
+# (M11) and the wake sweep read the kind through this one function.
+_BODY_KIND_RE = re.compile(r"\s*(?:\[[^\]\n]{0,120}\]\s*:\s*)?(" + "|".join(KINDS) + r")\s*·",
+                           re.IGNORECASE)
 # json.dump(indent=2) puts the letter's own keys at two spaces, and a body (one
 # JSON string) never holds a raw newline, so a body cannot forge these lines.
 _KIND_LINE_RE = re.compile(r'^  "kind": "([a-z]+)"', re.MULTILINE)
-_BODY_LINE_RE = re.compile(r'^  "body": "(.{0,80})', re.MULTILINE)
+_BODY_LINE_RE = re.compile(r'^  "body": "(.{0,200})', re.MULTILINE)
 
 
 def body_kind(body) -> str | None:
     """The kind a body names in its first word, or None."""
-    m = _BODY_KIND_RE.match(str(body or "")[:80])
+    m = _BODY_KIND_RE.match(str(body or "")[:200])
     return m.group(1).lower() if m else None
 
 

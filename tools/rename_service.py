@@ -72,7 +72,8 @@ if str(ROOT) not in sys.path:
 from lib import config, session_names  # noqa: E402
 from lib.pane_screen import (  # noqa: E402,F401 - re-exported: the screen predicates moved there
     _BOX_CHARS, _BUSY_RE, _CHOICE_HINTS, _CHOICE_RE, _PLACEHOLDER_RE, _PROMPT, _box_len, _box_rows,
-    _squash, box_empty, pane_busy, pane_waiting, prompt_line, prompt_ready, typed_text,
+    _squash, box_empty, drop_ghost, not_ready_reason, pane_busy, pane_waiting, prompt_line, prompt_ready,
+    strip_ansi, typed_text,
 )
 from tools import live_sessions as ls  # noqa: E402
 
@@ -417,7 +418,7 @@ def sweep(host: str, pending: dict, now: float | None = None) -> list[str]:
     """Queue the host emoji for every live C-level/PH session of this host whose name
     lacks only that (rule_problem == "no host emoji"): sessions that started before
     M9 never ask. The job is the one handle() queues, so _one() types it unchanged
-    (empty box only, two _ready checks, never C-u). The name is the session's own,
+    (empty box only, two _blocked checks, never C-u). The name is the session's own,
     byte for byte, with the emoji added. A box already waiting, or already tried under
     this pid and name, is left alone; so is every other rule_problem, logged once.
     `now` is unused: it keeps the call like once()'s."""
@@ -446,13 +447,17 @@ def sweep(host: str, pending: dict, now: float | None = None) -> list[str]:
 # --- one pass ----------------------------------------------------------------------
 
 def _screen(pane: str) -> str | None:
-    r = tmux("capture-pane", "-p", "-t", target(pane))
+    """The visible screen WITH its attributes (`-e`): lib/pane_screen reads Claude Code's
+    dim ghost suggestion after the ❯ as an empty box, which a plain capture cannot show."""
+    r = tmux("capture-pane", "-p", "-e", "-t", target(pane))
     return r.stdout if r.returncode == 0 else None
 
 
-def _ready(pane: str) -> bool:
+def _blocked(pane: str) -> str | None:
+    """None when the pane's prompt is ready; else why not (pane_screen.not_ready_reason:
+    "choice prompt up", "turn running", "prompt not empty"; an unreadable pane is the last)."""
     screen = _screen(pane)
-    return screen is not None and prompt_ready(screen)
+    return "prompt not empty" if screen is None else not_ready_reason(screen)
 
 
 def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
@@ -469,8 +474,9 @@ def _one(box: str, job: dict, host: str, now: float) -> tuple[str, bool]:
     if sends >= MAX_SENDS:
         return f"gave up  {box}: {MAX_SENDS} sends did not land", True
     # Twice, the second right before typing: a draft started in between must stop it.
-    if not _ready(sess["pane"]) or not _ready(sess["pane"]):
-        return f"wait     {box}: prompt not empty", False
+    why = _blocked(sess["pane"]) or _blocked(sess["pane"])
+    if why:
+        return f"wait     {box}: {why}", False
     job["sends"], job["sent_at"] = sends + 1, now
     result = type_rename(sess["pane"], f"/rename {name}")
     if result == "renamed":

@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # Rename THIS C-level session's Claude display name (the one the mobile app /
-# Remote Control list shows). A C-level: "<ROLE> (<Name>) — <topic>", no machine
-# and no #id (CEO 2026-10-14). A Project Head: "PH#<id3> (<LANE>) - <Project> — <topic>".
-# Anything else: "<MACHINE> <ROLE> #<id> (<topic>)".
+# Remote Control list shows). The name is tools/rename_service.py's, built from
+# lib/session_names with the host emoji first (CEO 2026-10-14): a C-level
+# "<ROLE> (<Name>) — <topic>" ("🌐 CTO (Kavin) — CTO Main"), no machine and no #id; a
+# Project Head "PH#<id3> (<LANE>) - <Project> — <topic>". Both keep the persona and the
+# lane (CEO 2026-10-15, who renamed two live sessions that way by hand); the compact
+# "<Short>·<M>#<id3> <Head>: <job>" is for workers only. The old form
+# "<MACHINE> <ROLE> #<id> (<topic>)" is gone: a session with no org id gets nothing.
 #
 # Mechanism: /rename is a TUI-only command — an agent cannot call it as a tool,
 # and a session may not type into its own pane (Agents-Core #272: an allow rule for

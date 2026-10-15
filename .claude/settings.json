@@ -148,6 +148,15 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${CLAUDE_PROJECT_DIR:-$PWD}\"/scripts/hook-heartbeat.py; [ -n \"$ORG_ROOT\" ] && f=\"$ORG_ROOT\"/scripts/hook-heartbeat.py; [ -f \"$f\" ] && python3 -S \"$f\"; exit 0",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "Stop": [
