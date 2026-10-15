@@ -27,7 +27,7 @@
 | 00:50 | continuity | The mother's footwear by the kitchen door changes from bright pink two-strap slides (in Shot 5, `00:41`–`00:49`) to a brown/tan sandal at the right edge of Shot 6 (`00:50`–`00:58`). |
 | 00:50 | cuts | Dead air at the start of Shot 6 (`00:50`–`00:51`) for ~1.5 seconds before Mimi's line begins. |
 | 00:53 | mouth / voice | Mimi's mouth closes between phrases (`00:53`–`00:54` and `00:56`–`00:58`) while her spoken lines continue on the audio track. |
-| 00:59 | unwanted objects or text | On the Episode 6 title card (`00:59`–`01:01`), the subtitle inside the yellow circle has a Thai typo reading `วิ่งไล่รก` instead of `วิ่งไล่รถ`. |
+| ~~00:59~~ | ~~unwanted objects or text~~ | **[PH review: FALSE. A frame grab at 00:59.8 reads `วิ่งไล่รถ`, spelled correctly.]** ~~On the Episode 6 title card (`00:59`–`01:01`), the subtitle inside the yellow circle has a Thai typo reading `วิ่งไล่รก` instead of `วิ่งไล่รถ`. |~~
 | 01:02 | continuity | Inside the house, the mother is suddenly wearing tall bright pink rain boots instead of the pink slides from Shot 5 (`00:41`) or the brown flip-flops in the very next indoor shot (`01:12`). |
 | 01:02 | continuity | The brother's gold wristwatch, gold tie clip, white pocket square, and the spilled rice/bowl on the floor from Shot 4 (`00:32`–`00:40`) all disappear. |
 | 01:02 | continuity | Mimi's appearance changes to a much smaller, short-coated miniature Schnauzer build compared to the fluffier long-haired dog in Shot 6 (`00:50`–`00:58`). |
@@ -64,6 +64,10 @@
 | 03:02 | cuts | Dead air / complete silence for 3 seconds (`03:02`–`03:04`) over the static outro card after the music cuts off abruptly at `03:01.8`. |
 
 ---
+
+## PH review (16 Oct)
+
+13 rows checked against frame grabs and the audio track: 12 confirmed (00:00 frozen open; 00:12 ears, bowl and room change; 00:22 silver bowl, brother gone; 00:32 overturned bowl, watch, `1079` plaque; 01:02 pink boots; 02:42 and 02:52 breed swaps; 03:02 silence from 03:01.8). 1 false (the 00:59 typo, struck above). The 00:00 still also gains a caption at ~00:01 that the row does not mention. The dialogue-garble rows (02:24, 01:29, 02:00) were not checked by ear.
 
 ## Rating ("Ready to Post"): **3 / 10**
 
