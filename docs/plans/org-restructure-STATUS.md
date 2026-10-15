@@ -5,7 +5,7 @@ Goal: close out org restructure P2 after the move to one CTO Main + one CMO Main
 move found, ship the CEO's session-name/persona and CMO-model orders. Each milestone = a pushed
 feature branch with tests; CTO Main lands it, the PH never merges.
 
-% = milestones with evidence ÷ 15 (M7–M13, M10c and P3-A added by CTO Main orders on 14 Oct). Landed 10/15 = 67%.
+% = milestones with evidence ÷ 22 (rows added by CTO Main orders on 14–15 Oct). Landed 22/22 = 100%; the registry (`tools/portfolio.py show org-restructure`) agrees. Closed 15 Oct 2026.
 
 | # | Milestone | State | Evidence |
 |---|---|---|---|
@@ -20,38 +20,65 @@ feature branch with tests; CTO Main lands it, the PH never merges.
 | M9 | Host emoji in names; session-rename PH topic not doubled | landed | PR #275 |
 | M10 | Names enforced in live-sessions (M10a) + rename service over a unix socket, SO_PEERCRED (M10b, #272) | landed | PR #283 @b7150a88, merge 0e0e8d3e (4 §2b rounds); take-back LOW = PR #299; deploy = Run card (rename-service.service), after the live sync |
 | M10c | The rename service on the Mac (LaunchDaemon as the sessions' user, not root) | landed; install waits on the CEO | PR #289 @fb0d0780, merge 290f7a3b; CTO Main sends the CEO the sha-pinned sudo line after M10d lands (one install brings the sweep too) |
-| M11 | Escalation watch (CEO order 14 Oct ~11:45 TH) | PR ready (round-2 Codex review task-7f12fc4f fixed by task-6603d0c2; B-1 fixed on main by #309), merge on hold | PR #292 @60010200, CI green, 44 escalation tests; its Run card (sha-pinned, install the service + timer) is in the PR body |
+| M11 | Escalation watch (CEO order 14 Oct ~11:45 TH) | landed; timer live | PR #292 merge a700dad9; escalation-watch.timer enabled on RUN-20261015-0338-0546 (fired 06:16:51 CEST) |
 | M12 | winbox runners: no task text through shell argv parsing | landed | PR #293 @c9b8e3b1, merge 698bb894; winbox self-test 8/8 PASS |
-| M13 | A Project Head on the Mac and winbox (CEO 14 Oct 13:00 TH via COO): a Mac local, b Contabo→Mac card, c winbox | a landed; b, c(3) PRs open; c(2) blocked | PR #287 merge 598144d9 (a); PR #290 @5b3276c7 (b); PR #282 @0a03806a (c3); docs/ops/ph-anywhere.md has the install bytes |
-| M10d | Every live session carries its host emoji: the rename service sweeps sessions that lack only it (CEO 15 Oct ~04:25 TH, brief state/handoff/2026-10-15/brief-7cf-names-sweep.md) | PR ready, merge on hold | PR #323 @2fa20adf (task-0a025bd6): 170 tests; a read-only sweep on Contabo queued exactly the 7 names in the brief; deploy = Run card restart of rename-service.service (tmux is in org-tmux.scope, not that unit) |
-| S1 | Session Steward step 1: the watchdog reaps finished workers on Linux (the reap and the sweep were darwin-only) | PR ready, merge on hold | PR #318 @07fba881 (task-e366b1e0): 135 tests; closes only on an idle pane; deploy = Run card restart of mooniex-watchdog.service (tmux not in its cgroup) |
-| B2 | Brief item 2: fyi/report never wake a C-level box | PR ready, merge on hold | PR #322 @afdf27f0 (task-762b6bd2): 938 passed / 1 skipped; no deploy |
-| B5 | Brief item 5: sparse worktrees on every spawn path | PR ready, merge on hold | PR #324 @d8a27223 (task-49b623ed): the cause was scripts/spawn-worker-remote.sh:296 + restore_worktree doing a full add (~985 MB vs 225 MB sparse); 258 passed |
-| QG | PH hands-on flag + runner-share line (quota guard, rework after §2b task-3f66c29c) | PR ready, merge on hold | PR #313 @1209b9af: 37 tests; the merge sha goes to CTO Main for the COO |
-| TH | Thai→English batches (COO item 4/5, due 18 Oct) | 2 PRs ready, merge on hold; B01–B05 not yet re-created | PR #315 (task-234108f6, 1 file); PR #316 (task-b19d57dd, CEO-facing Thai in session-worktree restored by PH fix 1e2eacff) |
-| M6 | Close-out with Skill learning | open | — |
+| M13 | A Project Head on the Mac and winbox (CEO 14 Oct 13:00 TH via COO): a Mac local, b Contabo→Mac card, c winbox | a, b landed; c split out | PR #287 merge 598144d9 (a); PR #290 merge 0bdfb49d (b); c = PR #282 draft, moved to portfolio project `m13c-card-spawn` (CTO Main 15 Oct) |
+| M10d | Every live session carries its host emoji: the rename service sweeps sessions that lack only it (CEO 15 Oct ~04:25 TH, brief state/handoff/2026-10-15/brief-7cf-names-sweep.md) | landed; restarted | PRs #323 merge 755caee1 + #335 ad7fe53c; rename-service restarted on RUN-20261015-0338-0546; PH-marker fix #342 merge 7edd92f3 goes live with the Console deploy card restart |
+| S1 | Session Steward step 1: the watchdog reaps finished workers on Linux (the reap and the sweep were darwin-only) | landed; restarted | PR #318 merge 14181f9e; mooniex-watchdog restarted on RUN-1348 (active) |
+| B2 | Brief item 2: fyi/report never wake a C-level box | landed | PR #322 merge abddc6f4 + kind-parser fix #340 merge bd1cafb2 |
+| B5 | Brief item 5: sparse worktrees on every spawn path | landed | PR #324 merge ad25b44b |
+| QG | PH hands-on flag + runner-share line (quota guard, rework after §2b task-3f66c29c) | landed | PR #313 merge 26b6ec4a |
+| TH | Thai→English batches (COO item 4/5, due 18 Oct) | landed | #315 2bfaa535, #316 ae14b4ba; B01–B05 #326 369a5b4b, #328 2df03000, #329 7d6ea66c; tail #347 2595720c (36 files re-audited, task-72890adb) |
+| M10e | live-sessions checker reads the PH marker on the row's own host (Mac PH#671 off-rule; CTO Main 15 Oct) | landed | PR #352 merge c0df4ef7 (task-0a30e4a0, Sonnet) on RUN-20261015-0510-096f; rename-service on #342 code; Mac pulls via PH#671 |
+| M6 | Close-out with Skill learning | landed | this PR; journal check below; Skill learning below |
 
-Blocker: M13c(2) #238, the winbox org_dispatch key. Committing its installer was refused by the classifier
-[Unauthorized Persistence] (14 Oct); waiting on the CEO, via CTO Main, since 14 Oct 08:20 (Contabo clock).
-Winbox delegation stays paused until M12 lands and a first live spawn checks the claude TUI.
+Blocker: none. M13c (winbox PH, #282 draft, conflicts, needs its own §2b; Codex back after the CEO's reset)
+is now its own portfolio project `m13c-card-spawn`; the winbox org_dispatch key (#238) waits on the CEO there.
+Run Watch (brief state/handoff/2026-10-15/brief-7cf-runwatch-macoff.md) was never one of the 21: portfolio
+project `run-watch`, 2/4 (A #327 fbb564f0, B zero-model #330 8578ccab); CTO Main hands it out.
 
-Worker job: LungNote 09d85a20 phase 1 (log-only ORG_IDENTITY_STRICT), task-afe57b21: PR #269, CTO lands it after #268.
-
+Still open, not mine: PR #269 (LungNote 09d85a20 phase 1, log-only ORG_IDENTITY_STRICT) waits on CTO Main.
 
 Follow-up (CTO order 14 Oct): `state/` sticky bit + `state/locks` g-w. Landed as PR #297 (merge b0444500),
-docs/ops/state-dir-perms.md; card RUN-20261014-0753-cc86 ran (exit 0): state = drwxrwsr-t, state/locks =
-drwxr-sr-x. Secretary permission errors: 0 at 14:57 TH; the 24 h check is due 15 Oct 15:00 TH.
+docs/ops/state-dir-perms.md; card RUN-20261014-0753-cc86 ran (exit 0). Secretary permission errors over the
+24 h from 14 Oct 07:53 UTC (`journalctl -u mooniex-secretary -u mooniex-secretary-waker | grep -ciE
+"permission denied|EPERM|EACCES"`): 0 at 14:03 TH, 15 Oct. That 0 cannot fail: the journal holds no line for
+either unit (they log to /home/secretary/runtime/logs/*.log, untouched since their 1 Oct start, no EACCES there
+either). Both units active, NRestarts=0 since 1 Oct; state = drwxrwsr-t, state/locks = drwxr-sr-x. No rollback
+(`chmod g+w state/locks && chmod -t state` if ever needed). Follow-up for CTO Main: make the units log errors to
+the journal, or point the check at their own files.
 
-Merge hold (14 Oct, after #309 merged as e8ceb77b): the auto-mode classifier refused my next PH merge as
-[Merge Without Review]. Every PR above waits on the user's ruling; no further PH merge until then.
+Merge rule since 14 Oct: one Run card per batch, raised by CTO Main (Q-20261014-2310-6d8b); the PH sends the
+ready list (PR, head sha, CI, reviewed).
 
-Decided for CEO: none yet.
+Decided for CEO: none.
 
 Routed, not done by this PH: security item LungNote 09d85a20 (fix proposal to CTO Main); ADR 0009
-PH row in Agents-Rules (Mac-only, reminder only).
+PH row in Agents-Rules (Mac-only, reminder only); runner bugs (AGY headless "done" with no diff; Codex
+re-commits a stale REPORT with no completed turn) to PH SpendGuard with the router fix.
 
-Learning for close-out: `scripts/test_model_routing_consistency.py` is a script (`main()`, no `test_*`), so
-passing it to pytest runs nothing; M3 broke it and CTO Main fixed it in PR #258. Run it with python directly.
+## Skill learning (ADR 0026)
+
+- `scripts/test_model_routing_consistency.py` is a script (`main()`, no `test_*`): pytest on it runs nothing.
+  Run it with python directly.
+- reopen_task sets the row to pending and does not respawn: delegate_task again. It also prepends the feedback,
+  which pushes an `override:` line out of lines 1–5; re-prepend it.
+- The MCP create_task drops `runner`; pin with `db.set_fields(runner=…)` plus an `override:` line.
+- AGY headless auto-denies every command permission and still reports done with an empty commit. Codex reads
+  files through its shell, so never brief it "no commands". Judge a runner by the target-file diff, never
+  the row status.
+- A Codex round that hits its weekly limit completes no turn; launch.sh re-commits the old REPORT. Check
+  `turn.completed` in the transcript before a reopen.
+- A worker worktree on Contabo is cut from LOCAL main (~290 unpushed commits, incl. the held a60f1744):
+  cherry-pick the worker's own commit onto origin/main; never push its branch as-is (pre-push hook now refuses).
+- A sha-pinned card `HEAD = <MERGE_SHA>` never matches Contabo's local main; pin with
+  `git merge-base --is-ancestor <sha> HEAD`.
+- A duplicate function definition after a merge silently overrides the first (body_kind, #340).
+- Stacked PRs need the base merged first (#339 on #336). CI fail-sets can be tests pinning old name shapes.
+- A grep count over an empty journal is a check that cannot fail: confirm the unit logs to the journal
+  (`journalctl -u X -n 1`) before trusting a 0.
+- A live-sync can conflict on generated files (docs/org/SKILL-INDEX.md): regenerate with
+  `scripts/skill-curator.py index`, never hand-merge.
 
 ## Run cards for CTO Main after landing (copy verbatim; each runs as root on Contabo from the live Core)
 
