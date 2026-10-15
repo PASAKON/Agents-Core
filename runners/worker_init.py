@@ -512,6 +512,19 @@ def main() -> None:
         model = "claude-opus-5-5"
 
     env = env_without_org_db(os.environ.copy())
+    for inherited_var in (
+        "CEO_SESSION",
+        "ORG_CEO_SESSION",
+        "CXO_ROLE",
+        "CXO_SESSION",
+        "CXO_SESSION_ID",
+        "CTO_SESSION",
+        "CTO_SESSION_ID",
+        "ORG_PH_LANE",
+        "ORG_PH_PROJECT",
+        "ORG_PH_OWNER",
+    ):
+        env.pop(inherited_var, None)
     # An "update available" prompt is a startup-level interrupt, not a tool
     # permission check, so neither --permission-mode nor --allowed-tools
     # reaches it -- it would block a worker nobody is watching on a keypress

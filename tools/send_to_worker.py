@@ -81,6 +81,7 @@ from lib import mesh
 from lib.config import display_for, host as get_host, self_host
 from tools import agent_transport
 from tools.agent_transport import (
+    CEO_SESSION_ENV,
     _resolve_sender_role,
     _wake_tmux_send,
     current_identity,
@@ -351,6 +352,9 @@ def main() -> int:
     except ValueError as e:
         print(str(e), file=sys.stderr)
         return 2
+    except PermissionError as e:
+        print(str(e), file=sys.stderr)
+        return 4
     print(result)
     return 0
 

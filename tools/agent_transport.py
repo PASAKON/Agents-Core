@@ -79,24 +79,64 @@ def _active_session_id(role: str, locks_dir: Path | None = None) -> str | None:
 # "CEO" here and to CEO_IDENTITY in current_identity(): its letters went out as
 # the CEO's and passed authorize() as root.
 PH_ROLE = "project_head"  # lib/roles.PH_ROLE
+CEO_SESSION_ENV = "CEO_SESSION"
+_CEO_MARKER_ENVS = (CEO_SESSION_ENV, "ORG_CEO_SESSION")
+_NON_CEO_IDENTITY_ENVS = (
+    "WORKER_TASK_ID",
+    "WORKER_ROLE",
+    "CXO_ROLE",
+    "CXO_SESSION_ID",
+    "CXO_SESSION",
+    "CTO_SESSION_ID",
+    "CTO_SESSION",
+    "ORG_PH_LANE",
+    "ORG_PH_PROJECT",
+    "ORG_PH_OWNER",
+)
 
 
 def _is_ph_env() -> bool:
     return (os.environ.get("CXO_ROLE") or "").strip().lower() == PH_ROLE
 
 
+def _has_ceo_marker() -> bool:
+    """True only when an explicit CEO marker (CEO_SESSION=1 or ORG_CEO_SESSION=1)
+    is set in the process environment and no worker, C-level, or Project Head
+    identity variable is present."""
+    if not any((os.environ.get(k) or "").strip() == "1" for k in _CEO_MARKER_ENVS):
+        return False
+    for var in _NON_CEO_IDENTITY_ENVS:
+        if (os.environ.get(var) or "").strip():
+            return False
+    return True
+
+
 def _resolve_sender_role() -> str:
-    """Best-effort sender label. CEO when no C-level env is set."""
-    r = os.environ.get("CXO_ROLE")
-    if r and is_c_level(r):
-        return display_for(r)
+    """Resolve sender display label from process env; fail closed when unidentifiable."""
+    task_id = (os.environ.get("WORKER_TASK_ID") or "").strip()
+    if task_id:
+        worker_role = (os.environ.get("WORKER_ROLE") or "").strip() or "dev"
+        return display_for(worker_role)
+    r = (os.environ.get("CXO_ROLE") or "").strip()
+    r_low = r.lower()
+    if r_low and is_c_level(r_low) and r_low != "ceo":
+        return display_for(r_low)
     if _is_ph_env():
         lane = (os.environ.get("ORG_PH_LANE") or "").strip().upper()
         sid = (os.environ.get("CXO_SESSION_ID") or "").strip()
         return f"Project Head ({lane or '?'}) #{sid or '?'}"
-    if os.environ.get("CTO_SESSION_ID"):
+    if r_low:
+        raise PermissionError(
+            f"unrecognised or invalid CXO_ROLE={r!r}: cannot resolve sender role"
+        )
+    if (os.environ.get("CTO_SESSION_ID") or "").strip():
         return display_for("cto")
-    return "CEO"
+    if _has_ceo_marker():
+        return "CEO"
+    raise PermissionError(
+        "cannot resolve sender role: no recognised identity in environment "
+        f"(expected CXO_ROLE+CXO_SESSION_ID, CTO_SESSION_ID, WORKER_TASK_ID, or {CEO_SESSION_ENV}=1)"
+    )
 
 
 @dataclass(frozen=True)
@@ -122,25 +162,41 @@ CEO_IDENTITY = Identity("ceo", "CEO", None)
 
 def current_identity() -> Identity:
     """Who is calling send_to_cxo/send_to_worker/send_to_cto right now,
-    resolved from process env -- never from anything the caller passes in."""
-    r = os.environ.get("CXO_ROLE")
-    if r and is_c_level(r):
-        sid = os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID")
-        if sid:
-            return Identity("cxo", r, sid)
+    resolved from process env -- never from anything the caller passes in.
+    Fails closed (PermissionError) when no recognised identity is set."""
+    task_id = (os.environ.get("WORKER_TASK_ID") or "").strip()
+    if task_id:
+        worker_role = (os.environ.get("WORKER_ROLE") or "").strip() or "dev"
+        return Identity("dev", worker_role, task_id)
+    r = (os.environ.get("CXO_ROLE") or "").strip()
+    r_low = r.lower()
+    if r_low and is_c_level(r_low) and r_low != "ceo":
+        sid = (os.environ.get("CXO_SESSION_ID") or os.environ.get("CTO_SESSION_ID") or "").strip()
+        if not sid:
+            raise PermissionError(
+                f"a C-level session (CXO_ROLE={r!r}) with no CXO_SESSION_ID or "
+                "CTO_SESSION_ID cannot send: it would have no identity"
+            )
+        return Identity("cxo", r_low, sid)
     if _is_ph_env():
         sid = (os.environ.get("CXO_SESSION_ID") or "").strip()
         if not sid:
             raise PermissionError("a Project Head session with no CXO_SESSION_ID cannot "
                                   "send: it would have no identity (org restructure P2)")
         return Identity("cxo", PH_ROLE, sid)
-    task_id = os.environ.get("WORKER_TASK_ID")
-    if task_id:
-        return Identity("dev", os.environ.get("WORKER_ROLE", "dev"), task_id)
-    cto_sid = os.environ.get("CTO_SESSION_ID")
+    if r_low:
+        raise PermissionError(
+            f"unrecognised or invalid CXO_ROLE={r!r}: cannot resolve sender identity"
+        )
+    cto_sid = (os.environ.get("CTO_SESSION_ID") or "").strip()
     if cto_sid:
         return Identity("cxo", "cto", cto_sid)
-    return CEO_IDENTITY
+    if _has_ceo_marker():
+        return CEO_IDENTITY
+    raise PermissionError(
+        "cannot resolve sender identity: no recognised identity in environment "
+        f"(expected CXO_ROLE+CXO_SESSION_ID, CTO_SESSION_ID, WORKER_TASK_ID, or {CEO_SESSION_ENV}=1)"
+    )
 
 
 # ---------------------------------------------------------------------------

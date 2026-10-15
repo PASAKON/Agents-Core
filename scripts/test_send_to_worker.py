@@ -69,9 +69,12 @@ def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
     """current_identity()/_resolve_sender_role() read process env -- start
     every test from a blank slate so a stray CXO_ROLE/WORKER_TASK_ID left over
     from this DEV's own harness process can never leak into a test."""
-    for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
-                "WORKER_TASK_ID", "WORKER_ROLE"):
+    for var in ("CXO_ROLE", "CXO_SESSION_ID", "CXO_SESSION", "CTO_SESSION_ID",
+                "CTO_SESSION", "WORKER_TASK_ID", "WORKER_ROLE",
+                "ORG_PH_LANE", "ORG_PH_PROJECT", "ORG_PH_OWNER",
+                "ORG_CEO_SESSION"):
         monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv("CEO_SESSION", "1")
 
 
 def _insert_task(conn, *, task_id: str | None = None, role: str = "developer",

@@ -62,8 +62,10 @@ def clean_identity_env(monkeypatch: pytest.MonkeyPatch):
     """current_identity()/_current_box() read process env -- start every
     test from a blank slate so nothing leaks in from this DEV's own
     harness process or a previous test."""
-    for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID",
-                "WORKER_TASK_ID", "WORKER_ROLE"):
+    for var in ("CXO_ROLE", "CXO_SESSION_ID", "CXO_SESSION", "CTO_SESSION_ID",
+                "CTO_SESSION", "WORKER_TASK_ID", "WORKER_ROLE",
+                "ORG_PH_LANE", "ORG_PH_PROJECT", "ORG_PH_OWNER",
+                "CEO_SESSION", "ORG_CEO_SESSION"):
         monkeypatch.delenv(var, raising=False)
 
 
@@ -347,11 +349,12 @@ def test_main_returns_nonzero_for_unknown_target(isolated_locks, monkeypatch):
 
 
 def test_send_target_registered_writes_letter_no_terminal_typed(
-    isolated_locks, isolated_mailbox_root,
+    isolated_locks, isolated_mailbox_root, monkeypatch,
 ):
     """Target registered -> delivered. Delivered now means "the letter
     exists" -- no osascript/tmux mock is installed anywhere in this test,
     proving nothing tries to type into a terminal."""
+    monkeypatch.setenv("CEO_SESSION", "1")
     (isolated_locks / "cfo-active").write_text("sess1234")
     result = sc.send("cfo", "hello")
     assert "queued to" in result

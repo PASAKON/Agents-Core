@@ -263,6 +263,9 @@ def test_send_to_cxo_still_delivers_the_letter_when_the_wake_is_held(pane, scree
     locks, inbox = tmp_path / "locks", tmp_path / "inbox"
     locks.mkdir()
     (locks / "cfo-active").write_text("sess1234")
+    for var in ("CXO_ROLE", "CXO_SESSION_ID", "CTO_SESSION_ID", "WORKER_TASK_ID", "WORKER_ROLE"):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv("CEO_SESSION", "1")
     monkeypatch.setattr(sc, "LOCKS_DIR", locks)
     monkeypatch.setattr(mailbox, "INBOX_ROOT", inbox)
     monkeypatch.setattr(at, "_is_windows", lambda: False)

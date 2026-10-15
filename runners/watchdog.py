@@ -287,9 +287,12 @@ def _silent_seconds(updated_at: str) -> float:
 
 def _send_ping(task_id: str, message: str) -> bool:
     try:
+        env = dict(os.environ)
+        if not env.get("CTO_SESSION_ID") and not env.get("CXO_ROLE"):
+            env["CTO_SESSION_ID"] = "watchdog"
         r = subprocess.run(
             [sys.executable, "-m", "tools.send_to_worker", task_id, message],
-            capture_output=True, text=True, timeout=15,
+            capture_output=True, text=True, timeout=15, env=env,
         )
         return r.returncode == 0
     except Exception as e:

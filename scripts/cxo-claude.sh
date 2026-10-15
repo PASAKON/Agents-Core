@@ -347,6 +347,7 @@ cd "$ROOT"
 # CXO_* are the canonical env keys for any C-level session.
 # CTO_SESSION_ID is also exported when role=cto so all existing tooling
 # (delegate.py owner_cto, send_to_cto.py routing) keeps working unchanged.
+unset CEO_SESSION ORG_CEO_SESSION
 export CXO_ROLE="$ROLE"
 export CXO_SESSION=1
 if [ "$IS_PH" = "1" ]; then

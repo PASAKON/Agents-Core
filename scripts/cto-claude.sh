@@ -87,6 +87,7 @@ python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role cto --root "$ROOT" --out "$
 ALLOWED="$(python3 "$ROOT/scripts/lib/cxo_mcp_config.py" --role cto --root "$ROOT" --print-allowed)"
 
 cd "$ROOT"
+unset CEO_SESSION ORG_CEO_SESSION
 export CTO_SESSION=1
 # Generate CTO ID if not inherited from spawn-cto.sh (e.g. when running
 # cto-claude.sh standalone). When standalone INSIDE a tmux session — the

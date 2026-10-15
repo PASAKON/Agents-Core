@@ -89,6 +89,7 @@ from lib.roles import PH_ROLE, SINGLETON_ROLES, c_level_roles, singleton_refusal
 from tools import agent_transport, session_name, tmux_session
 from tools.agent_transport import (
     CEO_IDENTITY,
+    CEO_SESSION_ENV,
     Identity,
     _resolve_sender_role,
     _wake_tmux_send,
@@ -869,8 +870,20 @@ def _sender_label(identity: Identity, sender: str | None) -> str:
     cannot choose it: `--from` is free text, typed into the owner's pane, and
     a PH must not read as the CEO there (security review 2026-10-13)."""
     if identity.kind == "cxo" and identity.role == PH_ROLE:
+        if agent_transport._is_ph_env():
+            return _resolve_sender_role()
+        lane = (os.environ.get("ORG_PH_LANE") or "").strip().upper()
+        return f"Project Head ({lane or '?'}) #{identity.session_id or '?'}"
+    if sender:
+        return sender
+    try:
         return _resolve_sender_role()
-    return sender or _resolve_sender_role()
+    except PermissionError:
+        if identity.kind == "ceo":
+            return "CEO"
+        if identity.kind in ("cxo", "dev"):
+            return display_for(identity.role)
+        raise
 
 
 def _ph_owner_session(role: str) -> str | None:
