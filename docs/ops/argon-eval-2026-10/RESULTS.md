@@ -31,10 +31,11 @@ merge batch, or a report PR. "First pass" = no redo and no reviewer fix.
 | devops_engineer | O1 secretary journal logging: redo (a global logger change; the Opus run landed it, #365) · O2 ClaudeFlow #225 CI red (ClaudeFlow #231) pass | 1/2 | 5 | **Keep on Claude**; Argon + review for scoped CI/config fixes |
 | security_engineer | S1 org-mail identity fails closed: fail ×2 (run 0 ended on one denied read; run 1 missed ~40 callers; the Opus run landed it, #366) · S2 six LOW items of #279 (#368) pass | 1/3 runs | 4 | **Keep on Claude**; Argon + review only for a scoped list of LOW fixes |
 | researcher | R1 fact-check of the Argon clip: fail · R2 WebAuthn excludeCredentials, Console #3: fail (Sonnet landed it, Console #38) | 0/2 | 3 | **Not Argon.** agy Sonnet (passed both) |
-| video QC | V1 EP6 render defects | — | — | see "Video QC" below |
+| video QC | V1 EP6 act 1 render, 3:05 (#376): 52 defects with timestamps, 12 of 13 checked true, 1 false (struck by the reviewer) | 0/1 (reviewer fix) | 7 | **Argon + review** (a person checks each defect before a reshoot). Claude Code cannot hear a video's audio, so this is new capacity, not a swap |
 
-Argon totals over 18 scored runs, first pass: 9 pass (A1, A2, T1, T2, X1, L1, L2, S2, O2), 4 redo or
-reviewer fix (G1, B1, B2, O1), 5 fail (D1, S1 run 0, S1 run 1, R1, R2). D2 is not scored.
+Argon totals over 19 scored runs, first pass: 9 pass (A1, A2, T1, T2, X1, L1, L2, S2, O2), 5 redo or
+reviewer fix (G1, B1, B2, O1, V1), 5 fail (D1, S1 run 0, S1 run 1, R1, R2). D2 is not scored. Everything that
+passed review landed as a PR.
 
 ### What the fails were
 - **Researcher (R1, R2): invented sources.** R1 put two quotes on pages that do not carry them and gave a
@@ -79,14 +80,19 @@ blind: the PH reviewed the Argon output first in each pair.
 | 1M context | Held up: two whole-repo jobs (L1, L2) passed with correct file:line evidence |
 | Cyber, finds and patches | Good on a scoped list (S2, 6 of 6 fixed with tests); missed reach on a cross-cutting change (S1) |
 | Dozens of agents ("Team Preview") | Not in agy 1.3.5 (no team or subagent flag; `agy agents` lists nothing). Not tested |
-| Speed | 6–29 min per job; slower than agy Sonnet on every pair |
+| Speed | 5–29 min per job; slower than agy Sonnet on every pair |
+| Multimodal | Real: it watched and heard a 3-minute video (V1) |
 
 ## Video QC
-V1 (defects in a real 3-minute EP6 render) waits for the Gemini 5-hour bucket (below the 25% floor at
-01:00 TH 16 Oct). The result is added here when it runs.
+agy hands Argon an mp4 with its sound (`view_file`). On EP6 act 1 (3:05, 540p) it listed 53 defects in 5
+minutes, with timestamps, and rated the cut 3/10. The reviewer checked 13 rows against frame grabs and ffmpeg:
+12 were true, including small ones (a `1079` room plaque on a home door; music that stops at 03:01.8, which
+ffmpeg puts at 181.8 s). 1 was false: a title-card "typo" that is spelled correctly. The dialogue rows were
+not checked by ear. Use it as a first pass for the CMO lane's film QC, with a person confirming each row
+before anyone pays for a reshoot.
 
 ## Cost
-Subscriptions only, $0 spent. Gemini weekly went from 87% to 43% between 16:46 TH 15 Oct and 01:00 TH 16 Oct
+Subscriptions only, $0 spent. Gemini weekly went from 87% to 43% between 16:46 TH 15 Oct and 02:30 TH 16 Oct
 (other org work drew on the same bucket, so ~2.5 points per Argon job is an upper bound). The S1 run that
 ended early used ~15 points of the 5-hour bucket.
 
@@ -100,6 +106,7 @@ Diff to `config/plans.yaml`, not applied (CTO Main reviews it): `routing-proposa
 - `dev_general` and `doc_text`: unchanged (Argon first already). Do not route wide refactors there.
 
 ## Records
-- One `runner_fit` record per job (`tools/runner_fit.py`), PH comments included.
+- One `runner_fit` record per job (`tools/runner_fit.py`), PH comments included. V1 may hold two identical
+  records: the first write's result could not be confirmed, so it was written again.
 - Raw data (briefs, review notes, usage readings) stays in `state/argon-eval-2026-10/` on Contabo, not committed.
 - Every job above landed as a PR or is counted as a fail.
