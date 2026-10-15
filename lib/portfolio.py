@@ -9,10 +9,11 @@ this layer only checks that the input is well formed and that the transition is 
 Postgres only, like the tables: with ORG_DB_URL unset every call raises PortfolioError
 (run through `bash scripts/hub/org-python.sh`).
 
-Two writes do not append an event, because `project_events.kind` has no value for them
+Three writes do not append an event, because `project_events.kind` has no value for them
 and a new kind is a schema change (P3-A): `lock_take` / `lock_release` (the lock row is
-its own record: holder, since, until) and a `go_add` / `go_use` for a GO that names no
-project (`project_id` is NOT NULL on events).
+its own record: holder, since, until), a `go_add` / `go_use` for a GO that names no
+project (`project_id` is NOT NULL on events), and `edit_project` (it returns the old and
+the new value of every field it changed, so the caller's output is the only trace).
 
 `monitor_rows` / `monitor_payload` are the P3-E v1 contract. The fixture
 docs/plans/fixtures/portfolio-monitor-v1.json and tests/test_portfolio.py pin the shape.
@@ -205,6 +206,46 @@ def set_stage(project_id: str, stage: str, *, actor: str, reason: str | None = N
 def park(project_id: str, *, actor: str, reason: str | None = None,
          now: datetime | None = None, conn=None) -> dict:
     return set_stage(project_id, "parked", actor=actor, reason=reason, now=now, conn=conn)
+
+
+EDITABLE = ("name", "goal", "repos", "done_criteria", "host")
+
+
+def edit_fields(*, name: str | None = None, goal: str | None = None, repos: list[str] | None = None,
+                done_criteria: str | None = None, host: str | None = None) -> dict:
+    """The fields of an edit that were given (not None), checked and cleaned; PortfolioError when
+    none was given or a value is bad. Needs no hub, so a caller can refuse before it connects."""
+    given = {k: v for k, v in (("name", name), ("goal", goal), ("repos", repos),
+                               ("done_criteria", done_criteria), ("host", host)) if v is not None}
+    if not given:
+        flags = ", ".join("--" + f.replace("_", "-") for f in EDITABLE)
+        raise PortfolioError(f"nothing to edit: give at least one of {flags}")
+    for field, value in given.items():
+        if field == "repos":
+            if not isinstance(value, list) or not value or not all(isinstance(x, str) and x.strip() for x in value):
+                raise PortfolioError("repos must be a list of one or more non-empty strings")
+            given[field] = [x.strip() for x in value]
+        else:
+            given[field] = _text(value, field, limit=120 if field in ("name", "host") else MAX_TEXT)
+    return given
+
+
+def edit_project(project_id: str, *, actor: str, name: str | None = None, goal: str | None = None,
+                 repos: list[str] | None = None, done_criteria: str | None = None,
+                 host: str | None = None, conn=None) -> dict:
+    """Change the descriptive fields of a project: only the ones given (not None), and at least
+    one. A value equal to the current one is left alone. Returns {project, changed: {field:
+    {from, to}}}; no event row is written (project_events.kind has no value for it)."""
+    _actor(actor)
+    new = edit_fields(name=name, goal=goal, repos=repos, done_criteria=done_criteria, host=host)
+    with _tx(conn) as c:
+        row = _project(c, project_id, lock=True)
+        changed = {f: {"from": row[f], "to": v} for f, v in new.items() if row[f] != v}
+        if changed:
+            sets = ", ".join(f"{f} = ?" + ("::jsonb" if f == "repos" else "") for f in changed)
+            c.execute(f"UPDATE projects SET {sets} WHERE id = ?",
+                      (*[json.dumps(v["to"]) if f == "repos" else v["to"] for f, v in changed.items()], project_id))
+        return {"project": project_id, "changed": changed}
 
 
 def milestone_add(project_id: str, title: str, *, actor: str, n: int | None = None,
@@ -425,10 +466,51 @@ def _cells(line: str) -> list[str]:
     return [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", body)]
 
 
+_EMPHASIS_RE = re.compile(r"([*_]{1,3})(.+?)\1(.*)", re.S)
+_STATE_WORD_RE = re.compile(r"(done|landed)(?![a-z])(.*)", re.I | re.S)
+_MONTH = (r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|"
+          r"sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?![a-z])\.?")
+_ZONE = r"(?:th|ict|bkk|utc|gmt|cest|cet|z|[+-]\d{2}:?\d{2})(?![a-z])"
+_CLOCK = rf"\d{{1,2}}[:.]\d{{2}}(?::\d{{2}})?(?:\s*[ap]m)?(?:\s*{_ZONE})?"
+_STAMP = (rf"(?:\d{{4}}-\d{{2}}-\d{{2}}(?:[t ]\d{{1,2}}:\d{{2}}(?::\d{{2}})?(?:\s*{_ZONE})?)?"
+          rf"|\d{{1,2}}/\d{{1,2}}(?:/\d{{2,4}})?|\d{{1,2}}\s+{_MONTH}(?:\s+\d{{4}})?"
+          rf"|{_MONTH}\s+\d{{1,2}}(?:,?\s+\d{{4}})?|{_CLOCK})")
+_AFTER_DONE_RE = re.compile(rf"(?:[\s,;:.()@~–—-]*(?:(?:at|on)\s+)?{_STAMP})*[\s.;,)]*", re.I)
+
+
+def _plain_state(state: str) -> str:
+    """A State cell without the Markdown emphasis around it: `**done** 10:04 TH`, `*done*`,
+    `__done__`. Only a balanced pair is removed, so `**done` and `done*` stay as they are."""
+    s = state.strip()
+    for _ in range(3):
+        m = _EMPHASIS_RE.fullmatch(s)
+        if m is None:
+            break
+        s = (m.group(2) + m.group(3)).strip()
+    return s
+
+
+def state_is_done(state: str) -> bool:
+    """Does a State cell say the milestone is finished? The word is `landed` or `done`, in any
+    case and with or without emphasis. After `landed` a note may follow (`landed; install waits
+    on the CEO`), as it always could. After `done` only a time or a date may follow (`done 10:04
+    TH`, `done 2026-10-14`, `done 14 Oct`), so `done?`, `done, but ...` and `done in a branch`
+    are not done; `not done`, `undone` and `planned` do not start with the word. Whether the
+    row also has evidence is the caller's rule."""
+    m = _STATE_WORD_RE.fullmatch(_plain_state(state))
+    if m is None:
+        return False
+    if m.group(1).casefold() == "landed":
+        return not m.group(2).lstrip().startswith("?")
+    return _AFTER_DONE_RE.fullmatch(m.group(2)) is not None
+
+
 def parse_status_milestones(text: str) -> list[dict]:
     """The milestone table(s) of a PH STATUS.md: a header row with Milestone, State and
-    Evidence columns. A row counts as done when its State starts with 'landed' and its
-    Evidence is not empty. Returns [{code, title, state, evidence, done}] in file order."""
+    Evidence columns. A row counts as done when its State says so (state_is_done) and its
+    Evidence is not empty. Returns [{code, title, state, evidence, state_done, done}] in file
+    order; `state_done` is the State alone, so a row with `state_done and not done` is one
+    that says done and shows no evidence."""
     rows: list[dict] = []
     cols: dict[str, int] | None = None
     for line in text.splitlines():
@@ -450,9 +532,10 @@ def parse_status_milestones(text: str) -> list[dict]:
         state, evidence = cells[cols["state"]], cells[cols["evidence"]]
         evidence = "" if evidence in ("-", "—", "–") else evidence
         full = f"{code} {title}".strip() if code and code != "#" else title
+        state_done = state_is_done(state)
         rows.append({"code": code, "title": full if len(full) <= MAX_TITLE else full[:MAX_TITLE - 1] + "…",
                      "state": state, "evidence": evidence[:MAX_TITLE],
-                     "done": state.casefold().startswith("landed") and bool(evidence)})
+                     "state_done": state_done, "done": state_done and bool(evidence)})
     return rows
 
 
@@ -467,7 +550,8 @@ def import_milestones(project_id: str, rows: list[dict], *, actor: str, source: 
         _project(c, project_id, lock=True)
         have = c.execute("SELECT count(*) FROM milestones WHERE project_id = ?", (project_id,)).fetchone()[0]
         if have:
-            raise PortfolioError(f"{project_id} already has {have} milestones; the import runs once")
+            raise PortfolioError(f"{project_id} already has {have} milestones; the import runs once "
+                                 "(--reimport marks the ones the file now shows as done)")
         for n, r in enumerate(rows, 1):
             c.execute("INSERT INTO milestones (project_id, n, title, done_at, evidence) VALUES (?, ?, ?, ?, ?)",
                       (project_id, n, r["title"], now if r["done"] else None, r["evidence"] if r["done"] else None))
@@ -475,6 +559,51 @@ def import_milestones(project_id: str, rows: list[dict], *, actor: str, source: 
         _event(c, project_id, "milestone", actor,
                {"op": "import", "source": source, "total": len(rows), "done": done}, now)
         return {"project": project_id, "total": len(rows), "done": done}
+
+
+def reimport_milestones(project_id: str, rows: list[dict], *, actor: str, source: str,
+                        dry_run: bool = False, now: datetime | None = None, conn=None) -> dict:
+    """Catch a project that was imported earlier up with its STATUS.md. A milestone that is open
+    in the hub and done in the file (with evidence) is marked done at `now` with the file's
+    evidence. Nothing else changes: a done milestone is never reopened or given other evidence,
+    no row is added (so no duplicate), and a file row whose title is not in the hub exactly once
+    (and in the file exactly once) is reported under `unmatched`, not guessed. Milestones are
+    matched by title because that is what import_milestones stored. `dry_run` writes nothing.
+    Returns {project, total, done_in_file, marked: [{n, title, evidence}], already_done,
+    unmatched: [title], dry_run}. One `milestone` event (op reimport) when anything was marked."""
+    now, actor = _utc(now), _actor(actor)
+    if not rows:
+        raise PortfolioError("no milestone rows to import")
+    in_file: dict[str, int] = {}
+    for r in rows:
+        in_file[r["title"]] = in_file.get(r["title"], 0) + 1
+    with _tx(conn) as c:
+        _project(c, project_id, lock=True)
+        have: dict[str, list] = {}
+        for m in c.execute("SELECT n, title, done_at FROM milestones WHERE project_id = ? ORDER BY n",
+                           (project_id,)).fetchall():
+            have.setdefault(m["title"], []).append(m)
+        if not have:
+            raise PortfolioError(f"{project_id} has no milestones; use the import (without --reimport)")
+        marked: list[dict] = []
+        already, unmatched = 0, []
+        for r in rows:
+            if not r["done"]:
+                continue
+            hit = have.get(r["title"], [])
+            if len(hit) != 1 or in_file[r["title"]] != 1:
+                unmatched.append(r["title"])
+            elif hit[0]["done_at"] is not None:
+                already += 1
+            elif dry_run or c.execute("UPDATE milestones SET done_at = ?, evidence = ?"
+                                      " WHERE project_id = ? AND n = ? AND done_at IS NULL RETURNING n",
+                                      (now, r["evidence"], project_id, hit[0]["n"])).fetchone():
+                marked.append({"n": hit[0]["n"], "title": r["title"], "evidence": r["evidence"]})
+        if marked and not dry_run:
+            _event(c, project_id, "milestone", actor,
+                   {"op": "reimport", "source": source, "marked": [m["n"] for m in marked]}, now)
+        return {"project": project_id, "total": len(rows), "done_in_file": sum(1 for r in rows if r["done"]),
+                "marked": marked, "already_done": already, "unmatched": unmatched, "dry_run": dry_run}
 
 
 # ---------------------------------------------------------------------------

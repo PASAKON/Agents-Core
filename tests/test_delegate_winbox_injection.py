@@ -71,7 +71,7 @@ def test_a_hostile_title_reaches_winbox_only_as_plain_text(env, title):
     sent = _spawn_cmd(env)
     assert len(sent) == 1
     name = sent[0][2].split("-SessionName ", 1)[1].split(" -Runner", 1)[0]
-    assert name.startswith('"Dev#') and name.endswith('"')
+    assert name.startswith('"Dev.S#') and name.endswith('"')
     assert not CMD_EXE_ACTIVE & set(name[1:-1])
 
 

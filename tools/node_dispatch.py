@@ -871,7 +871,8 @@ def _spawn_worker_values(task: dict) -> dict:
         "Effort": role_cfg.get("effort") or "high",
         "SessionName": config.worker_session_name(
             host, role, task["id"], title,
-            head=session_names.windows_safe(config.worker_head(task))),
+            head=session_names.windows_safe(config.worker_head(task)),
+            model=role_cfg.get("model") or "claude-sonnet-5-5"),
         "Runner": runner,
         "RunnerModel": str(task.get("runner_model") or ""),
         "AgentsRoot": str(ROOT),

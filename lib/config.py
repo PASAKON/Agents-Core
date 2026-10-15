@@ -97,9 +97,10 @@ _HOST_MACHINE_LABEL = {"mac": "MAC", "winbox": "WINDOWS", "contabo": "CONTABO"}
 # Session names (CEO 2026-10-14): the shapes live in lib/session_names.py (stdlib
 # only, read by tools/live_sessions.py too); these are re-exported for callers.
 from lib.session_names import (  # noqa: E402
-    HOST_EMOJI, WORKER_JOB_MAX, WORKER_SHORT, host_prefix, ph_session_name, short_id,
-    strip_host, with_host, worker_name,
+    HOST_EMOJI, WORKER_JOB_MAX, WORKER_SHORT, clevel_name, host_prefix, ph_session_name, short_id,
+    strip_host, watch_name, with_host, worker_name,
 )
+from lib import session_names as _session_names  # noqa: E402
 
 
 def worker_short(role_name: str) -> str:
@@ -128,13 +129,31 @@ def worker_head(task: dict, locks_dir: Path | None = None) -> str:
     return role_.upper() if re.fullmatch(r"c[a-z]o", role_) else ""
 
 
+def head_short(project: str) -> str:
+    """The "<Head>" a worker's name shows for a Project Head's project: `short:` of the
+    config/projects.yaml entry whose key or name it matches (case and punctuation ignored),
+    else lib/session_names' table (OrgRestructure -> Org), else its first 10 characters."""
+    def norm(text) -> str:
+        return re.sub(r"[^a-z0-9]", "", str(text or "").lower())
+    want = norm(project)
+    try:
+        for key, entry in projects().items():
+            if want and entry.get("short") and want in (norm(key), norm(entry.get("name"))):
+                return str(entry["short"]).strip()[:_session_names.HEAD_MAX]
+    except Exception:  # noqa: BLE001 - a naming helper must not break a spawn
+        pass
+    return _session_names.head_short(project)
+
+
 def worker_session_name(host_name: str, role_name: str, task_id: str,
-                        title: str, head: str = "") -> str:
-    """`<emoji> <Short>#<id3> - <Head>: <title, truncated ~40>` (CEO 2026-10-14), e.g.
-    `🌐 Dev#afe - OrgRestructure: identity strict log-only`; no head gives
-    `Dev#afe - <title>`, no title `Dev#afe - <Head>`. The emoji is host_name's
-    (session_names.HOST_EMOJI); a Windows host or a host not in hosts.yaml gets
-    none, because that name crosses cmd.exe and an ASCII-only pattern.
+                        title: str, head: str = "", model: str | None = None) -> str:
+    """`<emoji> <Short>·<M>#<id3> <Head>: <title>` (CEO 2026-10-15), at most 32 characters
+    after the emoji, e.g. `🌐 Dev·S#49b Org: sparse worktrees`; no head gives
+    `Dev·S#49b <title>`, no title `Dev·S#49b <Head>`. `model` is the model id the worker runs
+    (default: its role's model in policies/agents.yaml); Opus, Sonnet and Haiku give O, S, H.
+    The emoji is host_name's (session_names.HOST_EMOJI); a Windows host or a host not in
+    hosts.yaml gets none and writes "." for "·", because that name crosses cmd.exe and an
+    ASCII-only pattern.
 
     Single source of truth for this shape: the Windows launcher
     (spawn-worker.ps1) receives the fully-rendered string from tools/delegate.py
@@ -144,7 +163,12 @@ def worker_session_name(host_name: str, role_name: str, task_id: str,
         windows = host(host_name).get("os") == "windows"
     except ValueError:
         windows = True      # unknown host: no emoji
-    name = worker_name(worker_short(role_name), task_id, head, title)
+    if model is None:
+        try:
+            model = role(role_name).get("model") or ""
+        except ValueError:
+            model = ""
+    name = worker_name(worker_short(role_name), task_id, head_short(head), title, model, windows=windows)
     return name if windows else host_prefix(host_name) + name
 
 

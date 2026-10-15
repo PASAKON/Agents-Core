@@ -275,14 +275,14 @@ def test_project_path_for_host_webapp_winbox_not_routable():
 def test_worker_session_name_shape():
     name = config.worker_session_name(
         "winbox", "browser_operator", "task-4a59a1a4", "SHOOT the teaser")
-    assert name == "Browser#4a5 - SHOOT the teaser"   # CEO 2026-10-14 names
+    assert name == "Browser.S#4a5 SHOOT the teaser"   # CEO 2026-10-15 names; Windows: no emoji, "." for "·"
 
 
 def test_worker_session_name_truncates_long_title():
     long_title = "x" * 80
     name = config.worker_session_name("mac", "developer", "task-abcd1234", long_title)
-    assert "…" in name
-    assert len(name.split(" - ", 1)[1]) <= 41  # 40 chars + ellipsis
+    body = name.split(" ", 1)[1]                      # after the host emoji
+    assert body.endswith("…") and len(body) == 32      # the cut body, the mark included
 
 
 # ---------------------------------------------------------------------------

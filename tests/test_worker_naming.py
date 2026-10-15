@@ -42,39 +42,38 @@ def _clear_self_host_cache():
 # 1. worker_session_name shape per host/role + truncation
 # ---------------------------------------------------------------------------
 
-# CEO 2026-10-14 (card QG-20261014-0326-8968): "<Short>#<id3> - <Head>: <job>",
-# no machine; the shapes live in lib/session_names.py.
+# CEO 2026-10-15 (plan N): "<H> <Short>·<M>#<id3> <Head>: <job>", at most 32 characters after
+# the emoji, no machine; the shapes live in lib/session_names.py.
 def test_session_name_shape_mac_developer():
     name = config.worker_session_name("mac", "developer", "task-af5268b3", "SHOOT the teaser",
                                       head="OrgRestructure")
-    assert name == "\U0001F4BB Dev#af5 - OrgRestructure: SHOOT the teaser"   # M9: host emoji
+    assert name == "\U0001F4BB Dev\u00b7S#af5 Org: SHOOT the teaser"   # M9: host emoji; S = Sonnet
 
 
 def test_session_name_shape_winbox_browser_operator():
     name = config.worker_session_name(
         "winbox", "browser_operator", "task-4a59a1a4", "SHOOT the teaser")
-    assert name == "Browser#4a5 - SHOOT the teaser"
+    assert name == "Browser.S#4a5 SHOOT the teaser"      # Windows: no emoji, "." for the middle dot
 
 
 def test_session_name_shape_contabo_unknown_role_falls_back_to_raw_key():
     # display_for() falls back to the raw role key for a role with no
     # policies/agents.yaml entry -- worker_session_name must not raise.
     name = config.worker_session_name("contabo", "some_new_role", "task-00000000", "x")
-    assert name == "\U0001F310 Somenewrol#000 - x"
+    assert name == "\U0001F310 Somenewrol#000 x"           # no model on file: no letter
 
 
 def test_session_name_no_title_omits_parens():
-    assert config.worker_session_name("mac", "developer", "task-af5268b3", "") == "\U0001F4BB Dev#af5"
+    assert config.worker_session_name("mac", "developer", "task-af5268b3", "") == "\U0001F4BB Dev\u00b7S#af5"
     assert config.worker_session_name("mac", "developer", "task-af5268b3", "",
-                                      head="CTO") == "\U0001F4BB Dev#af5 - CTO"
+                                      head="CTO") == "\U0001F4BB Dev\u00b7S#af5 CTO"
 
 
-def test_session_name_truncates_long_title_to_40_chars():
+def test_session_name_cuts_the_whole_body_to_32_chars_the_mark_included():
     long_title = "x" * 80
     name = config.worker_session_name("mac", "developer", "task-abcd1234", long_title)
-    assert "…" in name
-    job = name.split(" - ", 1)[1]
-    assert len(job) <= 41  # 40 chars + ellipsis
+    body = name.split(" ", 1)[1]                      # after the host emoji
+    assert body.endswith("…") and len(body) == 32
 
 
 def test_clean_title_strips_newlines():
