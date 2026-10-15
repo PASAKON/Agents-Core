@@ -73,11 +73,15 @@ script that took the lease once and keeps clicking. So a runner that holds a lea
 across stages (join, tour, capture, ...) **calls `pc-lease.sh gate --as "<who>"`
 before every stage and stops on exit 3.** Without that, he presses his button and
 watches your script carry on over his game.
+**Why hard:** irreversible for him — his game is already on screen when your next
+click lands, and nothing at his desk can stop a script that never asks again.
 
 **HARD — never run `ceo-on` / `ceo-off` yourself.** They are his buttons. Only if
 he asked for it in words: `PC_LEASE_CEO_SAID="<his words>" ./scripts/pc-lease.sh
 ceo-off`. Without the words it is refused, on the Mac and on the box, and every
 run that cites his words is logged with them.
+**Why hard:** scope — the hold is his statement that he is using the PC; only he
+can say he is done, and lifting it starts the farm over whatever he is doing.
 
 ---
 
@@ -285,3 +289,6 @@ Related: [[CTO_Knowledge_Winbox_DesktopGUI]] — how to make a click on that mac
 
 - 2026-10-09 [MISSING] §The CEO's hold — the skill knew no CEO hold: his buttons, what refuses under it, that WINBOX_NO_LEASE no longer bypasses it, and that a bumped run is not stopped (runners call gate --as before every stage) · evidence: branch ceo-pc-hold 947800b2 + 4aa46d7a, tests/test_pc_lease_ceo_hold.py · status: promoted
 - 2026-10-09 [WRONG] §Under the hood — "pc-lease.sh md5-compares and redeploys on every call": any stale checkout put an older pc_lease.py back on the box, one blind to the hold; replaced by a forward-only versioned deploy onto a read-only box copy · evidence: review of ceo-pc-hold 2026-10-09, 1224af88 · status: promoted
+- 2026-10-14 [MISSING] §ceo-on/ceo-off — `--ceo-said` passes through `ascii_only()` in `ceo_button_guard`, so the CEO's Thai words become empty and `ceo-off` is REFUSED (exit 2). Cite in ASCII: the question-card id plus his option in English (his Thai stays on the card face). Also `scripts/pc-lease.sh` PYEXE named the pre-reinstall user `UsEr`; every take/give-back from Contabo failed until #277 (passg) · evidence: PH #f35affd5 bytes, RUN-20261014-0622-9d94 exit 0 "PC: released", cto-c34459eb · status: pending
+- 2026-10-10 [MISSING] §rollout — installing the CEO hold buttons (install_ceo_buttons.sh) makes the box copy of pc_lease.py read-only. Every checkout without bf556e14's pc-lease.sh then fails on every verb, give-back included, with "scp: dest open … Permission denied". At install time the Mac main tree (100 behind) and the Contabo checkout (aef6ac3c) both lacked it. Install only after every machine's checkout carries the new wrapper, or give runners a detached worktree at origin/main · evidence: cto-f39cb080 install 13:5x; Contabo CTO e106b78b told · status: pending
+

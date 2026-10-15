@@ -70,15 +70,18 @@ def fields_for(day: date, *, amount: str = AMOUNT, test: bool = False) -> dict:
     inv, left = invoice_date(day), days_left(day)
     when = thai_day(inv)
     title = f"เติมเงิน Contabo {amount} ก่อน {when} ({'วันนี้' if left == 0 else f'อีก {left} วัน'})"
-    why = f"บิล VPS Contabo รายเดือน {amount} ออกวันที่ {when} เติมเงินก่อนได้ราคานี้ ถ้าจ่ายช้ามีค่า Restore ประมาณ $5"
+    # The CEO reads ≤5 lines of ≤90 chars, title included (CEO 2026-10-14, lib/ceo_text.py).
+    why = f"บิล Contabo รายเดือน {amount} ออก {when} เติมก่อนได้ราคานี้ จ่ายช้ามีค่า Restore ~$5"
+    if_not = f"เลย {when} โดนค่า Restore ประมาณ $5"
     ref = f"contabo-invoice-{inv:%Y-%m}-d{left}"
     if test:
         reminders = " และ ".join(thai_day(inv.replace(day=inv.day - n)) for n in SEND_ON)
         title = "ทดสอบ: " + title
-        why += f"\nนี่คืออีเมลทดสอบ ยังไม่ต้องเติมตอนนี้ ระบบจะเตือนจริงวันที่ {reminders} เวลา {FIRE_AT} น."
+        why += f"\nอีเมลทดสอบ ยังไม่ต้องเติม ระบบจะเตือนจริง {reminders} เวลา {FIRE_AT} น."
+        if_not = ""  # the test line takes its place: still 5 lines
         ref = f"contabo-invoice-test-{day:%Y%m%d}"
     return {"title": title, "need": f"เติมเงิน {amount} ที่ Account > Billing & Payment ก่อน {when}",
-            "why": why, "if_not": f"เลย {when} โดนค่า Restore ประมาณ $5", "link": PANEL, "ref": ref}
+            "why": why, "if_not": if_not, "link": PANEL, "ref": ref}
 
 
 def run(*, test: bool = False, dry_run: bool = False, now: datetime | None = None,

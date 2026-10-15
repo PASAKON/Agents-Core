@@ -814,6 +814,9 @@ def cmd_mkdir(org: Org, project: str, env: str, folder: str) -> None:
         print(f"! /{name}/{probe} left in place (delete refused: {exc})", file=sys.stderr)
 
 
+PERMS_ROUTES = ("/api/v1/projects/{id}/permissions", "/api/v1/workspace/{id}/permissions")
+
+
 def cmd_perms(org: Org, project: str) -> None:
     """Read-only: what THIS identity may do in <project>, as Infisical evaluates it right now.
     Prints the projects it can see, its role(s) there and its permission rules. Never a value.
@@ -823,16 +826,47 @@ def cmd_perms(org: Org, project: str) -> None:
     seen = org.projects()
     print(f"{org.identity} sees {len(seen)} project(s): {json.dumps(sorted(seen), ensure_ascii=True)}")
     p = _project(org, project)
-    out = org.get(f"/api/v1/workspace/{p['id']}/permissions")
-    data = out.get("data", out) if isinstance(out, dict) else None
-    data = data if isinstance(data, dict) else {}
+    # Infisical Cloud answers 404 on /api/v1/workspace/<id>/permissions (card c8a4, 2026-10-14) and
+    # 403 on /api/v1/projects/<id>/permissions for an identity it will not show its rules to (card
+    # 86de, same day), so the current route goes first and a 404 or 403 falls through to the next
+    # route and then the membership row; any other error still raises.
+    data, route = {}, None
+    for tmpl in PERMS_ROUTES:
+        try:
+            out = org.get(tmpl.format(id=p["id"]))
+        except ApiError as exc:
+            code = next((c for c in ("404", "403") if f"HTTP {c}" in str(exc)), None)
+            if code is None:
+                raise
+            print(f"  ({code} on {tmpl.split('{')[0]}<id>/permissions)")
+            continue
+        route = tmpl
+        data = out.get("data", out) if isinstance(out, dict) else None
+        data = data if isinstance(data, dict) else {}
+        break
     member = data.get("membership")
     member = member if isinstance(member, dict) else {}
     member_roles = member.get("roles")
+    if not isinstance(member_roles, list) and org.setup_identity:
+        # The identity's own membership row, the route `apply` already writes to.
+        try:
+            out = org.get(f"/api/v1/projects/{p['id']}/identity-memberships/{org.setup_identity}")
+            row = out.get("identityMembership") if isinstance(out, dict) else None
+            member_roles = row.get("roles") if isinstance(row, dict) else None
+        except ApiError as exc:
+            print(f"  (membership read refused: {str(exc)[:160]})")
     roles = [r.get("customRoleSlug") or r.get("role")
              for r in (member_roles if isinstance(member_roles, list) else []) if isinstance(r, dict)]
     print(f"{json.dumps(p.get('name'), ensure_ascii=True)} (slug {json.dumps(p.get('slug'), ensure_ascii=True)}, "
           f"id {str(p.get('id'))[:8]}): roles={json.dumps([r for r in roles if r], ensure_ascii=True)}")
+    if route is None and not any(roles):
+        # Nothing answered: the project list comes from the org role, so seeing a project there
+        # does not prove a project membership. Name the one place a human can check.
+        print(f"  no permissions route and no membership row answered: in Infisical open "
+              f"{json.dumps(p.get('name'), ensure_ascii=True)} -> Access Control -> Machine Identities and "
+              f"check that {json.dumps(org.identity, ensure_ascii=True)} is listed there with a role")
+    elif route is None:
+        print("  no permissions route answered; roles above come from the membership row")
     rules = data.get("permissions")
     for rule in (rules if isinstance(rules, list) else []):
         # A packed CASL rule is [action, subject, conditions, inverted, ...]; the deny flag goes

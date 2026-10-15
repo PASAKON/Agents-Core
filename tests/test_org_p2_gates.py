@@ -320,6 +320,14 @@ def test_project_head_is_not_served_the_withheld_tools():
     assert cto - ph == reg.PH_WITHHELD_TOOLS
 
 
+def test_a_project_head_posts_question_and_command_cards_but_never_merge_task():
+    # CEO 2026-10-14 ~13:20 TH: question cards; ~17:35 TH: command cards too ("ส่ง RUN ได้").
+    # A PH merges by PR; merge_task (local main push) and email_ceo stay withheld.
+    ph = set(reg.served_names(PH))
+    assert {"ask_ceo", "ask_run", "ask_run_wait"} <= ph
+    assert not {"email_ceo", "merge_task"} & ph
+
+
 def test_every_withheld_name_is_a_real_tool():
     assert reg.PH_WITHHELD_TOOLS <= set(reg.BY_NAME)
     assert set(reg.served_names(PH)) <= reg.PH_TOOLS

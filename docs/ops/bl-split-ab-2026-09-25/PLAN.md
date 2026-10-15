@@ -15,7 +15,7 @@ the length of the job, so N short sessions should cost less than one long one. T
 this test can fail.
 
 ## The two arms
-| | Arm 1 — ต่อเนื่อง | Arm 2 — ช่วยกัน |
+| | Arm 1 — Continuous | Arm 2 — Collaborative |
 |---|---|---|
 | editors | 1 video_editor, 0-153 s | N video_editors in parallel, one segment each |
 | N | 1 | falls out of the dead-air split (EP57 estimate 3-5) |

@@ -1,0 +1,13 @@
+# Declared spend tools (MoonieX-Console docs/run.md §Spend label, review #29 round 5 MED-1).
+#
+# A labelled Run card counts as cap-checked only when it is a script card (repo@sha:path) for a .py
+# listed here, pinned to origin/main's tip (an older commit of a listed tool may predate its fix).
+# The hub reads this file at that tip.
+#
+# One line per tool:  <repo path> <--max-usd | --max-credits>
+#
+# Add a line only after review shows the tool:
+#   - stops before it spends more than that flag (it reads the flag itself, no wrapper);
+#   - parses it with argparse allow_abbrev=False, with no short alias and no second cap flag;
+#   - passes no argv on to another program.
+# Candidates and what they still lack: state/handoff/2026-10-14/spend-cap-flag-gaps.md.

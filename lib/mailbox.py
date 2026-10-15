@@ -43,6 +43,11 @@ nothing below changes a byte of what is written or read. On:
     wakes at once, a normal one when 3 are waiting or the oldest has waited
     `ORG_WAKE_DEBOUNCE_S` (600 s). `tools/mail_wake_sweep.py` fires the late
     wake; with no live sweeper every letter wakes at once, as before.
+
+A fyi or report letter never wakes a C-level box, flag on or off, urgent or not
+(`quiet_for`): the kind is the envelope's, or the first word of the body (`fyi · …`),
+and the letter waits for the session's next prompt. `waiting_since_wake` does not
+count such letters toward a batch or the debounce.
 """
 from __future__ import annotations
 
@@ -138,10 +143,10 @@ def send(
         "to": {"role": to_role, "session_id": to_session_id},
         "chain": list(chain) if chain else [f"{from_role}:{from_session_id}"],
         "sent_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "body": body,
     }
     if envelope:
-        letter.update(envelope)
+        letter.update(envelope)   # before the body: the sweep reads only a letter's first HEAD_BYTES
+    letter["body"] = body
     final = box / f"{_ts()}-{from_role}-{from_session_id}.json"
     fd, tmp = tempfile.mkstemp(dir=str(box), suffix=".tmp")
     try:
@@ -151,7 +156,46 @@ def send(
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
+    _log_meta(letter["sent_at"], f"{from_role}-{from_session_id}", f"{to_role}-{to_session_id}",
+              kind if envelope else (kind or body_kind(body)), root)
     return final
+
+
+# Who wrote to whom, when, and the kind: never the body (M11, the escalation watch,
+# tools/escalation_watch.py). A drained letter is gone with the envelope off, so this
+# is the only record that a PH's blocker was sent and whether its C-level answered.
+META_NAME = "letters-meta.jsonl"
+META_MAX_BYTES = 5 * 1024 * 1024
+def meta_path(root: Path | None = None) -> Path:
+    """ORG_LETTERS_META wins (every test points it into its tmp_path), else
+    state/reports/ next to the inbox root the letter went to."""
+    override = os.environ.get("ORG_LETTERS_META", "").strip()
+    if override:
+        return Path(override)
+    return (root if root is not None else INBOX_ROOT).parent / "reports" / META_NAME
+
+
+def _log_meta(sent_at: str, from_box: str, to_box: str, kind: str | None,
+              root: Path | None = None) -> None:
+    """Append one line; never raises (a letter is delivered whether or not this lands)."""
+    try:
+        path = meta_path(root)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            if path.stat().st_size > META_MAX_BYTES:
+                os.replace(path, path.with_suffix(".jsonl.1"))
+        except FileNotFoundError:
+            pass
+        line = json.dumps({"sent_at": sent_at, "from": from_box, "to": to_box,
+                           "kind": kind or "message"}, ensure_ascii=False) + "\n"
+        fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT
+                     | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0), 0o600)
+        try:
+            os.write(fd, line.encode("utf-8"))
+        finally:
+            os.close(fd)
+    except Exception:
+        pass
 
 
 def _letters(role: str, session_id: str, root: Path | None) -> list[Path]:
@@ -229,9 +273,9 @@ _O_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
 _DIRFD_OK = all(f in os.supports_dir_fd for f in (os.open, os.stat, os.unlink, os.mkdir, os.rename))
 
 
-def _read_regular(path: Path) -> str | None:
+def _read_regular(path: Path, cap: int = _READ_CAP) -> str | None:
     """Text of `path` if it is a regular file (not a symlink, FIFO or device),
-    at most _READ_CAP bytes; None otherwise. Never raises."""
+    at most `cap` bytes; None otherwise. Never raises."""
     try:
         fd = os.open(str(path), os.O_RDONLY | _NOFOLLOW | _NONBLOCK)
     except OSError:
@@ -239,7 +283,7 @@ def _read_regular(path: Path) -> str | None:
     try:
         if not stat.S_ISREG(os.fstat(fd).st_mode):
             return None
-        return os.read(fd, _READ_CAP).decode("utf-8", "replace")
+        return os.read(fd, cap).decode("utf-8", "replace")
     except OSError:
         return None
     finally:
@@ -697,31 +741,104 @@ def note_wake(role: str, session_id: str, *, root: Path | None = None,
         pass
 
 
+# --- letter kind, as the wake rules read it ------------------------------------
+
+QUIET_KINDS = ("fyi", "report")   # never wake a C-level box: its next prompt drains them
+HEAD_BYTES = 1024             # how much of a letter the sweep reads to learn its kind
+# A body that opens `fyi · …` or `report · normal · …` (the format roles/*.md give
+# senders) names its own kind. The delimiter is required: "Report on the build" is
+# prose, and a wake wrongly withheld costs more than one wrongly given.
+# "blocker · urgent · …" (roles/project_head.md: the kind is plain text until the
+# envelope flag is on), after an optional "[From …] :" marker the MCP tool prepends
+# (send_to_cxo writes "[Project Head (CTO) #7cf528f0] : blocker · …"). The letter log
+# (M11) and the wake sweep read the kind through this one function.
+_BODY_KIND_RE = re.compile(r"\s*(?:\[[^\]\n]{0,120}\]\s*:\s*)?(" + "|".join(KINDS) + r")\s*·",
+                           re.IGNORECASE)
+# json.dump(indent=2) puts the letter's own keys at two spaces, and a body (one
+# JSON string) never holds a raw newline, so a body cannot forge these lines.
+_KIND_LINE_RE = re.compile(r'^  "kind": "([a-z]+)"', re.MULTILINE)
+_BODY_LINE_RE = re.compile(r'^  "body": "(.{0,200})', re.MULTILINE)
+
+
+def body_kind(body) -> str | None:
+    """The kind a body names in its first word, or None."""
+    m = _BODY_KIND_RE.match(str(body or "")[:200])
+    return m.group(1).lower() if m else None
+
+
+def letter_kind(kind: str | None, body) -> str | None:
+    """The kind the wake rules read: the envelope kind a sender gave, and for
+    none (flag off) or the generic "message" the body's first word."""
+    if kind in KINDS and kind != "message":
+        return kind
+    return body_kind(body)
+
+
+def quiet_for(role: str, kind: str | None) -> bool:
+    """True when a letter of this kind never wakes this box: fyi and report to
+    a C-level. Any other kind, and every other box (a Project Head, a worker),
+    wakes as before; a roster that cannot be read counts as not C-level."""
+    if kind not in QUIET_KINDS:
+        return False
+    try:
+        from lib.config import is_c_level
+        return bool(is_c_level(role))
+    except Exception:
+        return False
+
+
+def _head_kind(head: str) -> str | None:
+    """letter_kind of a letter from its first HEAD_BYTES. A letter that fits is
+    parsed whole; a longer one is cut mid-string, so its `kind` and the start
+    of its `body` are read by their own lines. `send()` writes the envelope
+    before the body, so the kind is in the head; a letter from before that, or
+    one written with the flag off, has none, and the body's first word stands in."""
+    try:
+        letter = json.loads(head)
+    except ValueError:
+        letter = None
+    if isinstance(letter, dict):
+        return letter_kind(letter.get("kind"), letter.get("body"))
+    kind = _KIND_LINE_RE.search(head)
+    body = _BODY_LINE_RE.search(head)
+    return letter_kind(kind.group(1) if kind else None, body.group(1) if body else None)
+
+
 def waiting_since_wake(role: str, session_id: str, *, root: Path | None = None) -> list[float]:
     """Write times (file mtime: sub-second, unlike sent_at) of the unread
-    letters that arrived after the box's last wake."""
+    letters that arrived after the box's last wake. A C-level box does not
+    count its fyi and report letters: they never wake it, so they neither
+    fill a batch nor start the debounce clock."""
     box = _box(role, session_id, root)
     last = _last_wake(box)
+    skip_quiet = quiet_for(role, "fyi")   # is this a box that does not wake for them
     out = []
     for p in _letters(role, session_id, root):
         try:
             m = p.lstat().st_mtime
         except OSError:
             continue
-        if m > last:
-            out.append(m)
+        if m <= last:
+            continue
+        if skip_quiet and _head_kind(_read_regular(p, HEAD_BYTES) or "") in QUIET_KINDS:
+            continue
+        out.append(m)
     return out
 
 
 def wake_due(role: str, session_id: str, prio: str = "normal", *,
              root: Path | None = None, now: float | None = None,
-             sweeping: bool = False) -> bool:
+             sweeping: bool = False, kind: str | None = None) -> bool:
     """Should the box be woken now?
 
-    Flag off, an urgent letter, a debounce of 0, or (for a sender) no live
-    sweeper to fire a late wake: yes, every time, as before. Otherwise yes
-    once WAKE_BATCH letters have arrived since the last wake, or the oldest of
-    them has waited debounce_s()."""
+    `kind` (letter_kind of the letter just written) of fyi or report to a
+    C-level box: never, whatever the prio and the flag; the letter waits for
+    the session's next prompt. Otherwise: flag off, an urgent letter, a
+    debounce of 0, or (for a sender) no live sweeper to fire a late wake: yes,
+    every time, as before. Else yes once WAKE_BATCH letters have arrived since
+    the last wake, or the oldest of them has waited debounce_s()."""
+    if quiet_for(role, kind):
+        return False
     if not envelope_on() or prio == "urgent":
         return True
     window = debounce_s()

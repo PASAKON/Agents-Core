@@ -31,9 +31,11 @@ Envelope mode (`ORG_MAIL_ENVELOPE=1`, default off; org restructure P1):
     that called submit_report, dev_message or file_blocker_issue (or hit a
     rate limit). Every other turn stays in the worker's own transcript.
     request_human_handoff is not on the list: the tool sends its own letter.
-  * The relay is an envelope letter: a report or a blocker is urgent (wakes
-    the C-level at once), a dev_message or a rate-limit notice is normal (the
-    wake is debounced, lib.mailbox.wake_due), with a one-line subject.
+  * The relay is an envelope letter: a report or a blocker is urgent, a
+    dev_message or a rate-limit notice is normal (the wake is debounced,
+    lib.mailbox.wake_due), with a one-line subject. A blocker wakes the C-level
+    at once; a report (like a fyi) never wakes a C-level box, it waits for the
+    session's next prompt (lib.mailbox.quiet_for).
 Off, everything is exactly as before.
 """
 from __future__ import annotations

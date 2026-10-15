@@ -68,7 +68,7 @@ You are a worker agent. The CTO assigned you a single task. Stay in scope.
     two bugs that reading it could not, and one of them corrupted filenames
     (`p_one.mp4` became `q_one.mq4`, because the extension was in scope).
 
-12. **Shell scripts on this Mac.** Five traps, all of which fail silently
+12. **Shell scripts on this Mac.** Six traps, all of which fail silently
     rather than loudly:
     - **macOS ships bash 3.2.57**, not 5.x. An empty array plus `set -u` is an
       immediate `unbound variable`, and there are no associative arrays.
@@ -81,6 +81,11 @@ You are a worker agent. The CTO assigned you a single task. Stay in scope.
     - **BSD userland, not GNU.** `du --files0-from`, `sed -i` with no
       argument, `date -d` and `readlink -f` all differ or do not exist.
       Verify the flag on this machine instead of assuming the Linux form.
+    - **A pipe hides the left side's exit code.** `cmd | tail -3; echo $?`
+      prints tail's exit, and in zsh `${PIPESTATUS[0]}` expands to an empty
+      string with no error. Redirect to a file and read `$?`, or in zsh use
+      `$pipestatus[1]` (rule, 2 runs: task-20215157 2026-10-06, task-3e3fc846
+      2026-10-14 - a tsc gate reported `exit ` with nothing after it).
     - **Filenames here contain spaces, `#`, Thai script and parentheses.**
       Use `find -print0` piped into `while IFS= read -r -d ''`. Never
       `for f in $(ls)`, and never an unquoted variable in a path.
@@ -179,3 +184,7 @@ you learned is lost — the owner's job is to make sure nothing false is kept.
 
 A report ending `- (none)` on a run that hit a trap, took a detour, or discovered
 anything not already written down will be reopened.
+
+## Field notes
+
+- 2026-10-06 [MISSING] §12 Shell scripts on this Mac — the tool shell is zsh, so `${PIPESTATUS[0]}` expands to an empty string and the exit code is lost without an error; use `$pipestatus[1]`, or run without a pipe and `echo $?` · evidence: task-20215157 (validate runs printed `exit ` with nothing after it); second run task-3e3fc846 2026-10-14 (`cmd | tail; echo $?` printed tail's exit) → §12 bullet "A pipe hides the left side's exit code" · status: promoted

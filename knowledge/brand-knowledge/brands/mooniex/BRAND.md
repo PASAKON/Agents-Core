@@ -5,7 +5,7 @@ type in `images/`; add more over time — more refs = more variety for AI to mat
 Captured 2026-06-09.
 
 ## Identity
-- **Name:** MoonieX (Forex trading school / member system; รองรับ **Exness / XM**).
+- **Name:** MoonieX (Forex trading school / member system; supports **Exness / XM**).
 - **Logo:** gold crescent-moon + pagoda mark (`mooniex-webapp/public/brand/logo-mark.png`)
   + **MOONIEX** wordmark. In-folder logo refs:
   `images/logo-lockup-vertical-navy.png` (moon over MOONIEX, vertical) ·

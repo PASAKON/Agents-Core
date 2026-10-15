@@ -1,7 +1,7 @@
 # winbox — System recovery from phone
 
 **For 12–19 Sep 2026 while the CEO is away**
-Machine: `DESKTOP-3NQB2QO` · Tailscale `100.123.83.75`
+Machine: Tailscale `window-gob` (MagicDNS; the `winbox` ssh alias). Before the 2026-09-24 reset it was `DESKTOP-3NQB2QO`
 
 ---
 
@@ -88,7 +88,7 @@ because a service marked "Automatic" that is actually hung looks identical from 
 ### 1. Cannot connect via SSH
 
 ```
-ssh: connect to host 100.123.83.75 port 22: Connection timed out
+ssh: connect to host <winbox tailnet IP> port 22: Connection timed out
 ```
 
 **Follow in order — do not skip:**
@@ -144,7 +144,7 @@ and get CEO approval; do not delete on your own.**
 
 Once installed, how to use from a phone:
 1. Open the Tailscale app on the phone and make sure it is connected
-2. Open the VNC app (RealVNC Viewer / bVNC) → connect to `100.123.83.75`
+2. Open the VNC app (RealVNC Viewer / bVNC) → connect to `window-gob` (MagicDNS)
 3. Enter the password (kept by the CEO)
 4. Click what is needed, then close the app
 
@@ -188,8 +188,8 @@ Stated plainly so we do not plan around the impossible:
 
 ```
 PASS 12 · WARN 1 · FAIL 1
-✅ SSH · Tailscale(Auto) · sshd(Auto) · ไม่หลับ · ดิสก์ 175 GB · lock ว่าง
-✅ codex-cli 0.153.4 · Logged in using ChatGPT · Astra ตอบ "DRILL OK"
-⚠️ auto-logon ปิด — รีบูตแล้วงานที่ต้องใช้หน้าจอจะหยุดจนกว่าจะมีคน login
-❌ ไม่มี VNC — ถ้ามีหน้าจอ login โผล่ ไม่มีใครเข้าถึงได้จากมือถือ
+✅ SSH · Tailscale(Auto) · sshd(Auto) · does not sleep · disk 175 GB · lock free
+✅ codex-cli 0.153.4 · Logged in using ChatGPT · Astra replied "DRILL OK"
+⚠️ auto-logon off — after reboot GUI tasks will pause until someone logs in
+❌ no VNC — if a login screen appears, nobody can reach it from a phone
 ```

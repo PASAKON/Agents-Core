@@ -246,12 +246,14 @@ async def ask_run(
     role: str = "",
     task: str = "",
     dry_run: bool = False,
+    spend: dict | None = None,
+    no_spend: str = "",
 ) -> str:
     return await reg.dispatch(
         "ask_run", host=host, why=why, script=script, args=args, command=command,
         expected=expected, risk=risk, timeout_s=timeout_s, expects_input=expects_input,
         shell=shell, cwd=cwd, env_keys=env_keys, session=session, role=role, task=task,
-        dry_run=dry_run,
+        dry_run=dry_run, spend=spend, no_spend=no_spend,
     )
 
 

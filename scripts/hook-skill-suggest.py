@@ -41,6 +41,13 @@ TRIGGERS: list[tuple[str, str, str]] = [
         "CXO_Protocol_DevSpawn",
         "DEV spawn detected — follow /CXO_Protocol_DevSpawn (touches lock + kickoff ping).",
     ),
+    (
+        # CEO 2026-10-07: "จดไว้เป็น Skill ... ทุกข้อมูลลิ้งที่ส่งให้ เซฟ URL + ข้อมูลที่วิเคาะห์มาแล้ว" /
+        # "บังคับใช้กับทุกลิ้งที่เป็น Reff และข้อมูล"
+        r"(?i)(https?://|\[Image #\d+\]|\breff?\b|เรฟ)",
+        "CTO_Rules_Bedrock_References",
+        "Link/picture detected — if it is a reference for Bedrock work: refs.py find first, then record URL + analysis in MoonieX-Bedrock docs/reference/links.jsonl (refs.py add/note) in this same turn.",
+    ),
 ]
 
 

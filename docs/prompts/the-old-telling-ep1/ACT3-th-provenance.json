@@ -1,0 +1,364 @@
+{
+  "asset": "ACT3_th_1080p.mp4 + ACT3_th_540p.mp4 + ACT1-3_th_1080p.mp4 + ACT1-3_th_540p.mp4 (scratchpad edit5/edit6, NOT yet filed)",
+  "sha256_1080p": "492c5b2919efaadea31c2ef975b2da9d288a0521395e1eeed633ad08aa2fda4b",
+  "sha256_joined_1080p": "b767daec46238f0aacc9a1bcade653ab86f645a08bbaa323663d2af8355b2886",
+  "date": "2026-10-10",
+  "task": "cmo-f76492bf ACT 3",
+  "ceo_order": [
+    "ทำ ARC3 ต่อเลยได้อณุมติงบ",
+    "อณุมัติ CU ลุยได้เลย ACT3",
+    "OK เสียง"
+  ],
+  "review_state": "v2 pending CEO eye and ear (see edit_v2); v1 kept on Drive",
+  "length_s": 107.125,
+  "loudness_lufs": -16.6,
+  "picture": {
+    "s01": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "dj6lc2cw",
+        "jobId": "psihl6i2",
+        "takeId": "c528xqvbi"
+      },
+      "note": "in-point 1.4 s: clip opens warm brown and cools to the cavern grey by about 2 s"
+    },
+    "s03": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "pkqzx8jh",
+        "jobId": "6oggp4cl",
+        "takeId": "cfxwtvb5v"
+      },
+      "earlier_takes": [
+        {
+          "queueId": "8latoqsy",
+          "jobId": "8bpbqs0t",
+          "takeId": "cdh95ilbf"
+        }
+      ],
+      "note": "take 1 (8latoqsy) drew bare-chested bald figures and opened on a lyre close-up; final = retake with robed hooded dead"
+    },
+    "s04": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "askbylb6",
+        "jobId": "ptotnmof",
+        "takeId": "c2e8t6ofc"
+      }
+    },
+    "s05": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "0ow1dwuz",
+        "jobId": "dj68r5qn",
+        "takeId": "cv62zvjfb"
+      }
+    },
+    "s06": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "dnt2fdmd",
+        "jobId": "m0zs8bxu",
+        "takeId": "cpvlv205b"
+      }
+    },
+    "s07": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "qm2yzczu",
+        "jobId": "88nsqrb7",
+        "takeId": "c4ld2zt4d"
+      }
+    },
+    "s08": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "c4uqd2qq",
+        "jobId": "b3lb33k2",
+        "takeId": "cn4mclniy"
+      }
+    },
+    "s09": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "zbzw2uj7",
+        "jobId": "iowcrp2u",
+        "takeId": "cm1glghkp"
+      }
+    },
+    "s10": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "yawdz5pf",
+        "jobId": "iastv2lf",
+        "takeId": "cjg2tzsmb"
+      }
+    },
+    "s11a": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "buwtd5q6",
+        "jobId": "ijim7ycw",
+        "takeId": "chbv7qyol"
+      },
+      "earlier_takes": [
+        {
+          "queueId": "tqihrdfn",
+          "jobId": "rgg27y5j",
+          "takeId": "c6zrtkn95"
+        }
+      ],
+      "note": "take 1 (tqihrdfn) was a flat cutout silhouette; final = retake, painterly man seen from behind"
+    },
+    "s11b": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "7l1mz1og",
+        "jobId": "nysycv9n",
+        "takeId": "ctgekjhq7"
+      },
+      "note": "accepted with small campfires despite \"no fire\" in the prompt (H3 draws what it is told to avoid)"
+    },
+    "s11c": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "zrl27qz5",
+        "jobId": "gh06ut0p",
+        "takeId": "c0y6ckpgb"
+      }
+    },
+    "s12": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "lz71chyf",
+        "jobId": "bjiynn8x",
+        "takeId": "citog0qf5"
+      }
+    },
+    "s13": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "t80k9waj",
+        "jobId": "p8xr8dp2",
+        "takeId": "c8ze1hhq1"
+      }
+    },
+    "s14": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "rp8ir0k5",
+        "jobId": "zyi5x6dh",
+        "takeId": "chge742ch"
+      }
+    },
+    "s15": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "qn483jor",
+        "jobId": "nrqbzoxg",
+        "takeId": "cr4mxyc26"
+      }
+    },
+    "s16": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "4h9cs9de",
+        "jobId": "uvb9wug0",
+        "takeId": "c1yr19o1v"
+      }
+    },
+    "s02": {
+      "source": "H3 cobijada 1080p on Colab (studio :4100)",
+      "final": {
+        "queueId": "px5l5hv6",
+        "jobId": "d8n0jbwz",
+        "takeId": "cwlee8dk4"
+      },
+      "note": "first queue row ijvnomng was routed to RunPod (colab_failed, pod off), sat pending, deleted by CMO; re-queued as px5l5hv6 on Colab"
+    }
+  },
+  "colab_ledger": {
+    "balance_before": 832.05,
+    "balance_after": 814.78,
+    "spent_cu": 17.27,
+    "series_total_cu": 29.13,
+    "cap_cu": 100,
+    "note": "spent includes the failed s02 take and 2 retakes (s03, s11a); Colab stopped and confirmed off 2026-10-10 about 23:00 BKK"
+  },
+  "voice": [
+    {
+      "date": "2026-10-10T20:53:39+0700",
+      "task": "cmo-f76492bf",
+      "runner": "make_voice_act3.py",
+      "endpoint": "elevenlabs/tts/eleven-v4",
+      "name": "act3_309_orpheus_liam",
+      "voice": "Liam",
+      "chars": 66,
+      "input_sha256": "9760484e68eb57ec",
+      "est_usd": 0.0053,
+      "review": "pending CEO ear",
+      "status": "ok",
+      "bytes": 91578,
+      "sha256": "eedd50b2a4c3ba06"
+    },
+    {
+      "date": "2026-10-10T22:42:38+0700",
+      "task": "cmo-f76492bf",
+      "runner": "make_voice_act3.py",
+      "endpoint": "elevenlabs/tts/eleven-v4",
+      "name": "act3_teller_daniel",
+      "voice": "Daniel",
+      "chars": 940,
+      "input_sha256": "5bfbffc0f277f412",
+      "est_usd": 0.0752,
+      "review": "pending CEO ear",
+      "status": "ok",
+      "bytes": 1447019,
+      "sha256": "b1dc2c92d4ba2e61"
+    }
+  ],
+  "voice_spend_usd": 0.0805,
+  "voice_series_total_usd": 0.2675,
+  "edit": {
+    "script": "build_act3_edit.py",
+    "placement": {
+      "3.01": 0.35,
+      "3.02": 7.017,
+      "3.03": 14.975,
+      "3.04": 23.433,
+      "3.05": 29.308,
+      "3.06": 31.725,
+      "3.07": 38.142,
+      "3.08": 49.35,
+      "3.10": 65.558,
+      "3.11a": 68.475,
+      "3.11b": 72.1,
+      "3.11c": 74.892,
+      "3.12": 78.392,
+      "3.13": 82.433,
+      "3.14": 89.517,
+      "3.15": 95.725,
+      "3.16": 101.6
+    },
+    "orpheus_lay": {
+      "clip_bursts": [
+        [
+          0.4,
+          1.2
+        ],
+        [
+          1.58,
+          2.52
+        ],
+        [
+          3.44,
+          4.5
+        ],
+        [
+          5.04,
+          5.72
+        ],
+        [
+          6.04,
+          7.3
+        ]
+      ],
+      "line_bursts": [
+        [
+          0.12,
+          0.9
+        ],
+        [
+          1.32,
+          2.22
+        ],
+        [
+          2.88,
+          3.64
+        ],
+        [
+          4.02,
+          5.38
+        ]
+      ],
+      "lay_in_clip_s": [
+        0.4,
+        3.44
+      ],
+      "voice_ends_before_lips_s": 1.28
+    },
+    "orpheus_pieces": [
+      [
+        0.09,
+        2.27,
+        57.608
+      ],
+      [
+        2.85,
+        5.43,
+        60.648
+      ]
+    ],
+    "method": "picture is master, hard cuts, no time-stretch; narration sentence at 0.35 s after the cut; H3 voicing of s09 muted at its 5 lip bursts and the real Liam line laid on bursts 1 and 3"
+  },
+  "edit_v2": {
+    "date": "2026-10-11",
+    "task": "cmo-f76492bf",
+    "why": "CEO 2026-10-11: sound jerky at the cuts (cut by time, not at measured silence) and frames stalled before the next shot (last-frame holds)",
+    "asset": "edit8/ACT3_th_1080p.mp4 (scratchpad), sha256 8b4f84acbd5e43106f469b295d9b250cb7a5d0996abbe9192425a5d5c09f5395",
+    "length_s": 105.222,
+    "length_s_v1": 107.1,
+    "method": "docs/prompts/the-old-telling-ep1/edit_lib.py + build_act3_edit.py",
+    "picture_change": "no frame holds; shots lengthened with the clip's own frames, narration spills into the next shot (L-cut); last shot of the ACT may hold under the closing fade",
+    "audit_old_vs_new": {
+      "narr_edges_in_speech": {
+        "old": 12,
+        "new": 0,
+        "of": 34
+      },
+      "narr_window_overlaps": {
+        "old": 11,
+        "new": 0,
+        "of": 16
+      },
+      "bed_steps_over_12db": {
+        "old": 8,
+        "new": 3,
+        "of": 17
+      },
+      "bed_steps_over_6db": {
+        "old": 15,
+        "new": 3,
+        "of": 17
+      },
+      "bed_step_median_db": {
+        "old": 11.8,
+        "new": 2.5
+      },
+      "bed_step_max_db": {
+        "old": 46.7,
+        "new": 32.4
+      },
+      "shot_level_steps_over_12db": {
+        "old": 6,
+        "new": 0,
+        "of": 17
+      },
+      "cut_click_ratio_max": 6.9,
+      "hold_seconds": 0.0,
+      "lufs": -16.1,
+      "true_peak_db": -1.3
+    },
+    "full_cut_v2": {
+      "file": "EP1_Orpheus_TH_full_1080p_v2.mp4",
+      "drive": "https://drive.google.com/file/d/1Mznp7A7rEA_D9OkruWn3vk1m1L5ySrDN/view",
+      "md5": "81c672b3c9f2e5be61fd1f8a4271fcdb",
+      "sha256": "e4a6f44d75b462a23e616be75c3e28a36c54c34d121f5b0767121c79928419a8",
+      "length_s": 604.622,
+      "strict_freeze": "2 stops, both intentional (title 0.52 s + 1.96 s, black card 47.23 s + 1.67 s)",
+      "lufs": -16.1,
+      "lra_lu": 4.8
+    },
+    "review_state": "v2 on Drive Final Draft, pending CEO ear and eye; v1 kept as history (Drive rule 11)"
+  }
+}

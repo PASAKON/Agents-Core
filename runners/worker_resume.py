@@ -110,7 +110,7 @@ def main() -> None:
 
     host_name = current_host()
     session_name = worker_session_name(host_name, role, task_id, clean_title(task.get("title")),
-                                       head=worker_head(task))
+                                       head=worker_head(task), model=model)
 
     os.chdir(worktree)
     os.execvpe(

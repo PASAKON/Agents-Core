@@ -40,6 +40,10 @@ class Fake:
         # user has no `user` object, only `inviteEmail`). Free counts these with the identities.
         self.users: list[dict] = [{"role": "admin", "isActive": True,
                                    "user": {"username": "ceo@example.com"}}]
+        # what the caller's own permissions route and membership row answer (`perms`); Infisical
+        # Cloud gave 404 (card c8a4) and 403 (card 86de) on 2026-10-14
+        self.perms_status = 404
+        self.member_status = 200
 
     def nid(self, p):
         return f"{p}-{next(self.ids)}"
@@ -156,7 +160,21 @@ def make_handler(fake: Fake):
                 return self.reply(200, {"identityMemberships": [
                     {"identity": {"name": n}, "roles": [{"role": r} for r in roles]}
                     for n, roles in fake.projects[m[1]]["idents"].items()]})
+            m = re.fullmatch(r"/api/v1/(?:projects|workspace)/([^/]+)/permissions", p)
+            if method == "GET" and m:
+                return self.reply(fake.perms_status, {
+                    "message": "You are not allowed to access this resource", "reqId": "req-fake-2",
+                    "statusCode": fake.perms_status, "error": "PermissionDenied"})
             m = re.fullmatch(r"/api/v1/projects/([^/]+)/identity-memberships/([^/]+)", p)
+            if method == "GET" and m:
+                if fake.member_status != 200:
+                    return self.reply(fake.member_status, {
+                        "message": "You are not allowed to access this resource", "reqId": "req-fake-3",
+                        "statusCode": fake.member_status, "error": "PermissionDenied"})
+                roles = fake.projects[m[1]]["idents"].get(fake.identities[m[2]]["name"])
+                if roles is None:
+                    return self.reply(404, {"message": "Identity membership not found"})
+                return self.reply(200, {"identityMembership": {"roles": [{"role": r} for r in roles]}})
             if method == "POST" and m:
                 fake.projects[m[1]]["idents"][fake.identities[m[2]]["name"]] = [b["role"]]
                 return self.reply(200, {"identityMembership": {}})
@@ -290,7 +308,7 @@ class InfisicalSetupTest(unittest.TestCase):
         # and (W4.2b) the /node-token folder. No identity named org-node exists anywhere.
         self.assertEqual(projects["Org-Node"]["envs"].keys(), {"prod"})
         self.assertEqual(projects["Org-Node"]["folders"].get("prod", set()), set())
-        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join", "node-token"})
+        self.assertEqual(projects["Agents-Core"]["folders"]["prod"], {"org-join", "node-token", "spend-guard"})
         for name, x in projects.items():
             self.assertNotIn("org-node", x["idents"], name)
         for host, allowed in self.mod.MACHINES.items():
@@ -406,6 +424,29 @@ class InfisicalSetupTest(unittest.TestCase):
             self.run_cli("run", "MoonieX-ClaudeFlow", "prod", "--as", "contabo", "--path", "/chatudo",
                          "--", "docker", "compose", "up")
         self.assertEqual(seen["env"]["SUPABASE_URL"], "SECRET-chatudo-bbbb")
+
+    def test_perms_403_falls_through_to_the_membership_row(self):
+        # card 86de (2026-10-14): a 403, not a 404, on the caller's own permissions route crashed
+        # `perms` before it read the membership row
+        self.save_setup()
+        self.run_cli("apply")
+        Path(os.path.join(self.cred_dir, "contabo.env")).write_text(
+            f"INFISICAL_UNIVERSAL_AUTH_CLIENT_ID={SETUP_ID}\nINFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET={SETUP_SECRET}\n")
+        self.fake.perms_status = 403
+        text = self.run_cli("perms", "Agents-Core")
+        self.assertIn("(403 on /api/v1/projects/<id>/permissions)", text)
+        self.assertIn("(403 on /api/v1/workspace/<id>/permissions)", text)
+        self.assertIn('roles=["admin"]', text)
+        self.assertIn("roles above come from the membership row", text)
+        self.fake.member_status = 403
+        text = self.run_cli("perms", "Agents-Core")
+        self.assertIn("membership read refused", text)
+        self.assertIn("roles=[]", text)
+        self.assertIn("-> Access Control -> Machine Identities", text)
+        self.fake.perms_status = 500
+        with self.assertRaises(SystemExit) as raised:
+            self.run_cli("perms", "Agents-Core")
+        self.assertIn("HTTP 500", str(raised.exception))
 
     def test_put_creates_then_updates_and_last4_never_prints_the_value(self):
         self.save_setup()

@@ -50,7 +50,7 @@ changes status to `review`
 If you suspect it died:
 ```bash
 pgrep -af "runners.branch_poller"
-# ถ้าไม่ขึ้น ให้รันใหม่:
+# If not running, restart:
 cd /opt/mooniex-agents && setsid nohup python3 -m runners.branch_poller >> state/logs/branch_poller.log 2>&1 &
 ```
 
@@ -93,8 +93,8 @@ Name present = an agent is working → wait, or tell the CTO to stop it first
 ## Emergency card — keep on phone
 
 ```
-VNC      100.123.83.75   รหัส: CEO เก็บไว้   (เปิด Tailscale ก่อน)
-สุขภาพ    bash scripts/winbox-drill.sh
-กู้ระบบ   docs/runbooks/winbox-recovery.md
+VNC      window-gob      รหัส: CEO เก็บไว้   (open Tailscale first)
+Health   bash scripts/winbox-drill.sh
+Recovery docs/runbooks/winbox-recovery.md
 poller   pgrep -af "runners.branch_poller"
 ```

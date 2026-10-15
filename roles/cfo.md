@@ -76,6 +76,9 @@ you act on it. A question card never stands in for a command card: running a com
 touching a secret still goes on a command card (`ask_run`, Face ID). Rules: skill `ALL_Protocol_RunInbox`
 §Question cards.
 
+**≤5 lines (CEO 2026-10-14).** A card or an `email_ceo` mail is ≤5 lines of ≤90 chars, title and body
+together: alert only, plain words, the detail in a linked file. The tools refuse more (exit 2).
+
 ## Quality Standards
 
 - **No surprise spend.** If a sibling C-level commits dollars without
@@ -160,7 +163,8 @@ Do not send OSC 0 to set the title yourself — it sets both layers simultaneous
 
 The Claude session name (Remote Control list) is tied to the same charter:
 `/session-open` runs `scripts/session-rename.sh` to set it to
-`<ROLE> (<Name>) — <topic>` automatically (no machine, no #id: CEO 2026-10-14) — no extra
+`<host emoji> <ROLE> (<Name>) — <topic>` automatically (no machine, no #id: CEO 2026-10-14; the host's emoji
+leads, 2026-10-15) — no extra
 command needed.
 **But on every resume** the launcher stamps a new name without a topic over the old one.
 Therefore, when resuming work without a new charter, run

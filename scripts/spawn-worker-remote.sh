@@ -14,7 +14,10 @@
 # launcher `exec`s into `claude` (no fork in between).
 #
 # Clones/fetches the project, adds a worktree on a fresh task branch
-# (idempotent: refuses only if a prior occupant left real uncommitted work),
+# (idempotent: refuses only if a prior occupant left real uncommitted work;
+# sparse by default -- large tracked media stays off disk, ADR 0030 -- via
+# tools/worktree.py's apply-sparse, a full checkout with a stderr warning if
+# that step fails),
 # writes TASK.md from stdin, starts `claude` inside a detached tmux session,
 # and prints the pid as part of the LAST line:
 #   SPAWNED pid=<n> session=<tmux-session-name> worktree=<path>
@@ -44,6 +47,7 @@
 set -uo pipefail
 
 DRY_RUN=0
+SPARSE=1   # --no-sparse: a task outside the sparse_worktree scope (ADR 0030) keeps a full checkout
 TASK="" PROJECT="" ROLE="" BRANCH="" BASE="" REPO_URL="" REPO_PATH=""
 WORKTREE_ROOT="" CLAUDE_ARGS="" MODEL="" EFFORT="" SESSION_NAME="" RUNNER="claude"
 TASK_META_B64=""
@@ -73,6 +77,7 @@ while [ $# -gt 0 ]; do
     --work-dir) WORK_DIR="$2"; shift 2 ;;
     --runner-model) RUNNER_MODEL="$2"; shift 2 ;;
     --org-host) ORG_HOST="$2"; shift 2 ;;
+    --no-sparse) SPARSE=0; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     *) echo "spawn-worker-remote.sh: unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -223,6 +228,11 @@ if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] claude_args=$CLAUDE_ARGS"
   echo "[dry-run] session_name=$SESSION_NAME"
   echo "[dry-run] roles_dir=$ROLES_DIR"
+  if [ "$SPARSE" -eq 1 ]; then
+    echo "[dry-run] sparse_step=on: worktree add --no-checkout, then python -m tools.worktree apply-sparse --repo $REPO_PATH --wt $WT --start-point origin/$BASE --role $ROLE (large tracked media left off disk, ADR 0030), then git checkout $BRANCH; step fails -> full checkout + stderr warning"
+  else
+    echo "[dry-run] sparse_step=off (--no-sparse): plain worktree add, full checkout"
+  fi
   if [ -n "$TASK_META_B64" ]; then
     echo "[dry-run] task_meta_b64=$TASK_META_B64"
   fi
@@ -293,9 +303,48 @@ if [ -d "$WT" ]; then
 fi
 git -C "$REPO_PATH" branch -D "$BRANCH" >/dev/null 2>&1 || true
 mkdir -p "$WORKTREE_ROOT"
-if ! git -C "$REPO_PATH" worktree add -b "$BRANCH" "$WT" "origin/$BASE"; then
+
+# Sparse step (ADR 0030): leave large tracked media off disk. Prints
+# SPARSE_APPLIED on success. The helper may fail (stale checkout without
+# tools/worktree.py, no usable python, git error, timeout) -- that costs disk,
+# never the spawn, so the caller falls back to a full checkout.
+run_sparse_step() {
+  for sp_py in "$AGENTS_ROOT/.venv/bin/python" "$(command -v python3 2>/dev/null)"; do
+    [ -n "$sp_py" ] && [ -x "$sp_py" ] || continue
+    if command -v timeout >/dev/null 2>&1; then
+      SPARSE_OUT=$(cd "$AGENTS_ROOT" && timeout 120 "$sp_py" -m tools.worktree apply-sparse \
+        --repo "$REPO_PATH" --wt "$WT" --start-point "origin/$BASE" --role "$ROLE")
+    else
+      SPARSE_OUT=$(cd "$AGENTS_ROOT" && "$sp_py" -m tools.worktree apply-sparse \
+        --repo "$REPO_PATH" --wt "$WT" --start-point "origin/$BASE" --role "$ROLE")
+    fi
+    case "$SPARSE_OUT" in
+      *SPARSE_APPLIED*) echo "spawn-worker-remote.sh: $SPARSE_OUT"; return 0 ;;
+    esac
+  done
+  return 1
+}
+
+WT_ADDED=0
+if [ "$SPARSE" -eq 1 ]; then
+  git -C "$REPO_PATH" worktree add --no-checkout -b "$BRANCH" "$WT" "origin/$BASE" && WT_ADDED=1
+else
+  git -C "$REPO_PATH" worktree add -b "$BRANCH" "$WT" "origin/$BASE" && WT_ADDED=1
+fi
+if [ "$WT_ADDED" -ne 1 ]; then
   echo "spawn-worker-remote.sh: git worktree add failed ($WT on $BRANCH from origin/$BASE)" >&2
   exit 1
+fi
+if [ "$SPARSE" -eq 1 ]; then
+  if ! run_sparse_step; then
+    echo "spawn-worker-remote.sh: WARNING sparse step failed for $WT; full checkout instead" >&2
+    # a helper killed mid-way (timeout) must not leave a half-written sparse list behind
+    git -C "$WT" sparse-checkout disable >/dev/null 2>&1 || true
+  fi
+  if ! git -C "$WT" checkout "$BRANCH"; then
+    echo "spawn-worker-remote.sh: git checkout failed ($WT on $BRANCH)" >&2
+    exit 1
+  fi
 fi
 
 # GH #151 defense-in-depth (same rationale as spawn-worker.ps1): a stale

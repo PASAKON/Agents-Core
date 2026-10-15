@@ -23,25 +23,26 @@ has a clear thing to close. Enforces [IRON-RULES §35](../../../../LLMs/IRON-RUL
 
 ```
 ┌─ OPEN ─ charter ──────────────────────┐
-│ ① Entry Problem (1 ประโยค)            │
-│    "session นี้แก้ ___ ให้จบ"          │
-│ ② Definition of Done (วัดได้/เห็นได้)  │
+│ ① Entry Problem (1 sentence)          │
+│    "this session solves ___ to finish"│
+│ ② Definition of Done (observable)     │
 │ ③ tab: ⏳ <problem>                    │
-│  เขียน 1 ประโยคไม่ได้ = กว้างไป ซอยก่อน │
+│  Cannot write 1 sentence = too broad, │
+│  break down first                     │
 └───────────────┬───────────────────────┘
                 ↓
 ┌─ WORK ─ focus-locked ─────────────────┐
-│  loop:  ทำ → verify → ใกล้ DoD ยัง?    │
-│  เรื่องใหม่เด้งเข้า:                    │
-│   ├ เกี่ยว entry? → ทำต่อ              │
-│   └ ไม่เกี่ยว? → PARK → lungnote todo  │
-│                  ❌ ไม่สลับไปทำ          │
+│  loop:  do → verify → close to DoD?   │
+│  New issue pops up:                   │
+│   ├ relates to entry? → continue      │
+│   └ unrelated? → PARK → lungnote todo │
+│                  ❌ do not switch     │
 └───────────────┬───────────────────────┘
                 ↓
 ┌─ EXIT GATE (/session-close) ──────────┐
-│  entry แก้จบ + DoD ผ่าน + verify ext   │
-│   → 🏁 ปิด  (ไม่จบ = ยังไม่ปิด)         │
-└────────────────────────────────────────┘
+│  entry solved + DoD passed + verify   │
+│   → 🏁 close (not done = don't close) │
+└───────────────────────────────────────┘
 ```
 
 ## Steps to run
@@ -166,17 +167,15 @@ The clock runs itself from here (shared 60s daemon). The goal and the progress
 numbers do not — they move only when `tab-main.sh` is called again, which
 `/session-worktree` and `/session-close` do.
 
-`session-rename.sh` types `/rename <ROLE> (<Name>) — <topic>` (a C-level, CEO 2026-10-14: no machine,
-no #id; a Project Head or worker keeps `<MACHINE> <ROLE> #<id> (<topic>)`) into this
-session's own tmux pane — the command queues and executes right after the
-current turn ends, and the new name syncs to claude.ai + the mobile app
-(CEO 2026-08-30). Run it as the LAST tool call of the charter turn so nothing
-else interleaves; skip silently if not under tmux (script handles it).
-It types onto whatever already sits in the input box and records the name as
-set before it lands, so a stray draft turns it into an ordinary prompt
-(`//rename …`, `า/rename …` — seen twice) and a re-run answers `unchanged`.
-Check the name in the app after the turn; if it did not change, the CEO types
-`/rename <name>` once (`--force` would type onto the same draft).
+`session-rename.sh` never types into a pane (Agents-Core #272). It sends a rename request (the topic and
+the state glyph) to the rename service's socket and prints the name it asked for, e.g.
+`requested: /rename 🌐 CTO (Kavin) — <topic>` or `🌐 PH#7cf (CTO) - OrgRestructure — <topic>`. The rename
+service (`tools/rename_service.py`, root on Contabo) builds that name itself with `lib/session_names` and
+types `/rename <name>` into this session's pane once its `❯` line is empty and no permission prompt is up,
+so it never lands on a draft. The service checks the request comes from this session's own process
+tree, so a session can rename only itself. If the service is down the script prints
+`not requested (…) — rename by hand: /rename <name>`. The new name syncs to claude.ai + the mobile app (CEO 2026-08-30). No
+session id (a plain terminal, a worker): nothing is requested.
 
 #### Name = current job (CEO 2026-10-13: "การ rename นั้นสำคัญจะได้กลับมาดูได้ง่าย")
 - **One job per session.** When the job is done, `/session-close` (or
@@ -190,9 +189,9 @@ Check the name in the app after the turn; if it did not change, the CEO types
   เขียนเป็นกฎเลย เสียเวลามาก"). Run `bash scripts/session-rename.sh "<job>"` yourself. If the classifier
   refuses it ([Tmux Self Drive] / "Self-Modification") or it does not land, **leave it**: never hand the
   CEO a `/rename` line, never ask him or a peer, never work around it (no other pane, no `--force`
-  loop). The fix that makes it land every time is Agents-Core issue #272: the session writes a rename
-  request, and a rename service types the validated `/rename` into an empty input line. Until that
-  ships, the CTO renames off-rule sessions in batches with one Run card.
+  loop). Since #272 the script only writes a request, so there is nothing for the classifier to refuse;
+  the rename service applies it. On a host with no rename service yet (the Mac, winbox) the request
+  waits there.
   [SUPERSEDED 2026-10-14: "Refused or not landed → hand the CEO the exact line, e.g. `/rename …`"]
 - Safety net: `scripts/hook-rename-nudge.py` adds one line every 20 turns to
   interactive C-level sessions (not SomPong, workers or headless runs) asking
@@ -240,6 +239,7 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 - 2026-09-29 [WRONG] §3 — third sighting of `session-rename.sh` typing onto a draft: the CEO was typing in the same pane, so the queued text arrived as the prompt `หรื/rename MAC CTO #2c6b9f03 (…)` (an ordinary message) and the name did not change. Three runs now agree (cto-0e8d80b8 `//rename`, cto-3156a56c `า/rename`, this one): the script must check that the `❯` input line is empty before typing and retry later instead of appending; it must never `C-u` (that would erase the CEO's own draft) · evidence: session cto-2c6b9f03 2026-09-29 06:2x · status: pending
 - 2026-09-30 [WRONG] §3 — `scripts/session-rename.sh` was refused by the auto-mode classifier ("Self-Modification": it types into this session's own tmux pane), so a session-open/-close cannot rename itself when the classifier is active; the CEO typed `/rename` by hand and it worked. Say so and hand the exact line over instead of retrying · evidence: session cto-8a3b20f6 2026-09-30; CEO order 2026-10-13 made it a rule → §3 "Name = current job" · status: promoted
 - 2026-09-30 [COSTLY] §1b — putting a repo-wide `grep -r` in the same Bash call as `session_charter set` ran past the 120 s timeout and moved the charter call to the background; keep the charter call alone · evidence: session cto-8a3b20f6, background task bzecb7vok · status: pending
+- 2026-10-09 [MISSING] §3 — after the 01:29 Mac reboot the restore relaunched this conversation (charter cto-369faf85, fork d5663133) inside another session's pane, and `$CTO_SESSION_ID` held that pane's name `671f688f 7770f9b0-…` (the LAST BELL CTO's id plus a full uuid, with a space). A plain `session-rename.sh` would have named this conversation after that CTO and written its topic into that CTO's lock file. Pass the charter id: `CTO_SESSION_ID=<charter id> bash scripts/session-rename.sh --force "<topic>"` (`--force` because the recorded topic is unchanged while the launcher overwrote the name) (n=2: cto-f39cb080 hit it in the same reboot — its restore landed in the pane of cto-addb58de, `$CTO_SESSION_ID` = `addb58de ee3d04db-…`, and a plain `session-rename.sh` queued `#addb58de ee3d04db-… (Dreamy Skies …)` and wrote a `.topic` under that session's lock name before the charter id was passed; the first rename cannot be unqueued, so pass the charter id on the FIRST call) · evidence: cto-369faf85 2026-10-09, pane %4 in tmux session `cto-671f688f 7770f9b0-…`; cto-f39cb080 2026-10-09 02:08, tmux session `cto-addb58de ee3d04db-…`; same root cause as session-save's 2026-10-09 note (twin 42f79061) · status: pending
 - 2026-10-13 [MISSING] §0 — third sighting of `python3 -m tools.memory_sync pull` failing at charter time, a third wording: "could not fast-forward … merge conflict; merge aborted" (Contabo memory repo diverged). The charter went on; the pull did nothing. Same tool fix as the two notes before (on Contabo's unpushed main: cto-0ebd7ca5 2026-10-11, cto-b203a039 2026-10-13) · evidence: session cto-8fb0f1b1 2026-10-13 19:15 Thai · status: pending
 - 2026-10-14 [MISSING] §0 — fourth sighting of `python3 -m tools.memory_sync pull` failing at charter time ("merge conflict; merge aborted", Contabo memory repo diverged); the charter went on, the pull did nothing. Same tool fix as the three notes above · evidence: session cto-685b012b (login-reuse charter, 2026-10-14 Thai) · status: pending
 - 2026-10-14 [MISSING] §0 — fifth sighting of `python3 -m tools.memory_sync pull` doing nothing at charter time, a fourth wording: "fatal: Cannot fast-forward to multiple branches" (Contabo memory repo). The charter went on fine. Same tool fix as the four notes above · evidence: session cto-7febf1c1 (Scriptable widgets audit, 03:09 Thai) · status: pending
@@ -248,3 +248,5 @@ Then start WORK. From here, anything off-topic is **parked, not pivoted to**
 - 2026-10-14 [MISSING] §0 — another sighting of `python3 -m tools.memory_sync pull` failing at charter time (Contabo memory repo diverged); the charter went on and the pull did nothing. Same tool fix as the notes above · evidence: session cto-afe760fe (COO research workers charter, 2026-10-14 Thai) · status: pending
 - 2026-10-14 [WRONG] §3 — after the session-name SHAPE changed (PR #263, short names), `session-rename.sh "<same topic>"` printed `unchanged` and sent nothing: it compares only the recorded topic, not the full name it would build. `--force` sent `/rename CTO (Kavin) — CTO Main`, which landed. Fix in the tool: compare the full name, not the topic · evidence: CTO Main cto-c34459eb, 14 Oct 11:03 TH · status: pending
 - 2026-10-14 [MISSING] §3 — self-rename was refused [Tmux Self Drive] in 2 of 3 sessions (CMO Main, PH#13d; PH#36c was allowed). One amber Run card renamed several sessions on the box with one tap. For each tmux pane: read the `❯` line with `tmux capture-pane -p`; if it's empty, `tmux send-keys -t <pane> -l "/rename <name>"` then Enter; skip any pane that holds a draft. A pinned script for it is PH OrgRestructure M10 · evidence: cto-c34459eb card RUN-20261014-0440-c195; CMO letter 2026-10-14T04:38Z · status: pending
+- 2026-10-14 [MISSING] §3 Name = current job — another session cannot rename a session either. At the CEO's request, CTO Main asked both Mac PHs to run `session-rename.sh`; the classifier refused both [Tmux Self Drive], and neither retried, which is correct. The CEO ruled the same day that he is never handed a `/rename` line. The only route left is a rename service outside the session (PR #283 Contabo, #289 Mac) · evidence: PH#f39cb080 + PH#671f688f ~13:45 TH, session cto-c34459eb · status: pending
+- 2026-10-14 [MISSING] §3 — third refusal of four sightings: PH#f39 on the Mac typed `/rename 💻 PH#f39 (CTO) - LuminaSkies` into its own pane with `tmux send-keys` (CTO Main relayed the CEO's rename order) and got [Tmux Self Drive]. The Mac's session-rename.sh, before main moved to 4e5fcd09, had no Project Head format at all. Left it as the rule says and told CTO Main in one line · evidence: session cto-f39cb080 · status: pending

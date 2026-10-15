@@ -170,7 +170,7 @@ empty field-note sections 3. The 32 H3 rows include the IR/IC/IB pipeline rows, 
 | HF28 | Findings from the Valder wave (intro) | Five stalls, fixes | SH | none |
 | HF29 | The video Generate button shows a struck-through price | Table again | SH | HF10, HF14 (dup table) |
 | HF30 | SEEDANCE 2.5 TAKES UP TO 50 REFERENCES | Not 9; design scenes accordingly | SH: "Higgsfield ได้มากสุด 50 REF" | AFP §14b ("16", CONFLICT); HF48 ("Seedance 2.0 is 9"); HF18 ("video chip + 10 = 11 accepted"); WF §1 ("Seedance 2.0 on Topview 9/3/3/15") |
-| HF31 | One reference per person | 1 REF / 1 คน / 1 ภาพ, even extras | SH | AFP §1 |
+| HF31 | One reference per person | 1 REF / 1 person / 1 image, even extras | SH | AFP §1 |
 | HF32 | THE EASY WAY: drag in, @Image1 | Positional refs without Elements | SH | HF7 (@Image1 in edit mode); WF §2 (W3 "@Image 1", same mechanic); GFO IMAGE_REF add order (FL); MG slot order (H3) |
 | HF33 | Why this matters more than it sounds | Named path solves problems drag-drop does not have | SH | none |
 | HF34 | When you still want a named Element | Recurring cast/locations/props | SH | none |
@@ -202,7 +202,7 @@ empty field-note sections 3. The 32 H3 rows include the IR/IC/IB pipeline rows, 
 
 | # | Section | Gist | Engine (evidence) | Overlaps with |
 |---|---|---|---|---|
-| TMD1 | ละครสั้นคุณธรรม: the format (intro) | ฟ้ามีตา model; narrator is the brand | AG: "four real ฟ้ามีตา episodes" | none |
+| TMD1 | Moral short drama: the format (intro) | ฟ้ามีตา model; narrator is the brand | AG: "four real ฟ้ามีตา episodes" | none |
 | TMD2 | The nine rules (header) | | AG | none |
 | TMD3 | 1 One episode is one complete story | No arcs | AG | TMD29 item 2 |
 | TMD4 | 2 The wrongdoer has a reason | | AG | none |
@@ -411,14 +411,14 @@ empty field-note sections 3. The 32 H3 rows include the IR/IC/IB pipeline rows, 
 | AR1 | Title / intro | What must not be inside a prompt | SH: "หลัง S1C fail 3 ครั้งติด" | PS1 |
 | AR2 | Corpus sweep summary (16 files) | Real failures: notes in paste, stale text, bans that describe | SH | none |
 | AR3 | PART 1 (header) | File-specific fix list | SH | none |
-| AR4 | ก. urgent (header) | | SH | none |
+| AR4 | A. urgent (header) | | SH | none |
 | AR5 | A1 accident + blocker (s1-angles) | Historical per-line fixes | SH | none |
 | AR6 | A2 stale text contradicts shot | | SH | AR19, AR20 (the general rules) |
 | AR7 | A3 bans that describe the banned | | SH | AR17 (examples re-cited) |
 | AR8 | A4 text leaks into quotes | | SH | PS5; AR22 |
 | AR9 | A5 blocks that paste badly | | SH | AR21, AR23 |
 | AR10 | A6 marker cancelled by its own sentence | | SH | AR15 |
-| AR11 | ข. Hygiene | Token waste classes | SH | AR26 grep |
+| AR11 | B. Hygiene | Token waste classes | SH | AR26 grep |
 | AR12 | PART 2 (header) | Rules | SH | none |
 | AR13 | 1 Two zones only | NOTES vs PASTE | SH/AG | HF17; IR; IB main() |
 | AR14 | 2 Marker format with head and tail | | SH/AG | IB main() (verbatim marker strings) |

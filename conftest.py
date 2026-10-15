@@ -86,6 +86,13 @@ def _mesh_probe_off(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _letters_meta_in_tmp(tmp_path, monkeypatch):
+    """lib.mailbox.send logs every letter's from/to/kind (M11, escalation watch);
+    a test's letters never reach the real state/reports/letters-meta.jsonl."""
+    monkeypatch.setenv("ORG_LETTERS_META", str(tmp_path / "letters-meta.jsonl"))
+
+
+@pytest.fixture(autouse=True)
 def _mail_envelope_off(monkeypatch):
     """Envelope mail (ORG_MAIL_ENVELOPE, org restructure P1) changes the
     letter, the hook output, the senders' results and the served tools. A test

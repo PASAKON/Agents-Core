@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.mooniex.rename-service</string>
+
+  <!-- Rename service on the Mac (M10c, CEO 2026-10-14 13:38): the Mac twin of
+       deploy/systemd/rename-service.service. Same code, tools/rename_service.py:
+       a session asks over ~/.rename-service/sock (scripts/session-rename.sh); the
+       service accepts only a caller whose ancestor is that session's Claude process
+       (LOCAL_PEERPID + LOCAL_PEERCRED, ancestry from ps) and types "/rename <rule
+       name>" into its tmux pane only when the prompt line is empty.
+
+       UserName=gob, not root: the sessions, their records and their tmux server all
+       belong to gob, so root adds nothing, and root running code from gob's
+       writable checkout would hand every session root. A LaunchDaemon (not an
+       agent) so it runs without a GUI login, like the systemd unit.
+
+       Install (the CEO, at the Mac, one line): docs/ops/live-sessions.md §Rename
+       service. No secrets in this file. -->
+  <key>UserName</key>
+  <string>gob</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/.venv/bin/python</string>
+    <string>/Users/gob/MoonieXHQ/Agents/Core/tools/rename_service.py</string>
+    <string>run</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>/Users/gob</string>
+    <key>ORG_HOST</key>
+    <string>mac</string>
+    <key>PYTHONDONTWRITEBYTECODE</key>
+    <string>1</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gob/MoonieXHQ/Agents/Core</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-rename-service.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/gob/Library/Logs/mooniex-rename-service.log</string>
+</dict>
+</plist>

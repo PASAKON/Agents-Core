@@ -187,7 +187,12 @@ def test_nothing_in_python_registers_the_wake_task():
 # into a pane. That one line is the only change. Was
 # 57f3750deaf1475da905c867b6e049025dbdf39073815208caa596b9b8f50d5f.
 _ATTEMPT_WAKE_POSIX_SHA = "ad3f00dd37a00ef378553c9213fe525997fcb4b3bf7f26317a95a9137073804f"
-_WAKE_TMUX_SEND_SHA = "05bb50d29eff03c0a8792b5c82497b786d28104d0c29d20a86ef5896ee84c42b"
+# Re-pinned 2026-10-14 (wake screen gate): _wake_tmux_send reads the pane before
+# the typing and before each Enter and raises WakeHeld over a choice prompt, a
+# draft or a failed capture; the type / 0.4 / Enter / 0.3 / Enter sequence is
+# unchanged (tests/test_wake_screen_gate.py). Was
+# 05bb50d29eff03c0a8792b5c82497b786d28104d0c29d20a86ef5896ee84c42b.
+_WAKE_TMUX_SEND_SHA = "d4d22291e23be7de7093b1d826bac91459065f1a4c271541cd8be628619e0f6e"
 
 
 def _sha(src: str) -> str:
@@ -311,6 +316,12 @@ def test_posix_attempt_wake_returns_false_when_has_session_itself_raises(monkeyp
     assert at.attempt_wake("cto-1234abcd", "CTO", "x", send_fn=lambda s, t: None) is False
 
 
+# What `capture-pane -p` shows for an idle Claude pane with an empty input box: the
+# wake reads the pane before each key (tests/test_wake_screen_gate.py) and types
+# only into an empty box.
+_EMPTY_BOX = "out\n" + "─" * 50 + "\n❯ \n" + "─" * 50 + "\n"
+
+
 def test_real_wake_send_failing_on_a_nonzero_tmux_exit_makes_attempt_wake_false(monkeypatch):
     """_wake_tmux_send runs tmux with check=True, so a non-zero exit raises and
     the nudge is reported as not delivered. The tmux calls themselves are faked."""
@@ -318,6 +329,8 @@ def test_real_wake_send_failing_on_a_nonzero_tmux_exit_makes_attempt_wake_false(
 
     def fake_run(argv, **kw):
         calls.append(list(argv))
+        if argv[1] == "capture-pane":
+            return subprocess.CompletedProcess(argv, 0, _EMPTY_BOX, "")
         rc = 1 if argv[-1] == "Enter" else 0
         return subprocess.CompletedProcess(argv, rc, "", "can't find pane")
 
@@ -334,20 +347,21 @@ def test_real_wake_send_failing_on_a_nonzero_tmux_exit_makes_attempt_wake_false(
     monkeypatch.setattr(tmux_session, "tmux_bin", lambda: "tmux")
     monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
     assert at.attempt_wake("cto-1234abcd", "CTO", "x") is False
-    assert calls and calls[0][:3] == ["tmux", "send-keys", "-t"]
+    assert [c[:3] for c in calls[:2]] == [["tmux", "capture-pane", "-p"], ["tmux", "send-keys", "-t"]]
 
 
 def test_real_wake_send_with_every_tmux_call_exiting_zero_is_true(monkeypatch):
     calls: list[list] = []
     monkeypatch.setattr(subprocess, "run",
-                        lambda argv, **kw: calls.append(list(argv)) or subprocess.CompletedProcess(argv, 0, "", ""))
+                        lambda argv, **kw: calls.append(list(argv)) or subprocess.CompletedProcess(
+                            argv, 0, _EMPTY_BOX if argv[1] == "capture-pane" else "", ""))
     monkeypatch.setattr(at.time, "sleep", lambda s: None)
     monkeypatch.setattr(at, "_is_windows", lambda: False)
     monkeypatch.setattr(tmux_session, "has_session", lambda s: True)
     monkeypatch.setattr(tmux_session, "tmux_bin", lambda: "tmux")
     monkeypatch.setattr(at.notify, "info", lambda m, *a, **k: None)
     assert at.attempt_wake("cto-1234abcd", "CTO", "x") is True
-    assert [c[-1] for c in calls] == ["[New message from CTO]", "Enter", "Enter"]
+    assert [c[-1] for c in calls if c[1] == "send-keys"] == ["[New message from CTO]", "Enter", "Enter"]
 
 
 def test_falsy_session_returns_false_on_both_platforms(monkeypatch):

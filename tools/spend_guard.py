@@ -57,6 +57,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from lib import ceo_text  # noqa: E402
 from tools import ask_run, email_ceo  # noqa: E402
 
 # Data paths follow the live checkout (ORG_ROOT), not the pinned deploy worktree the code runs from.
@@ -397,7 +398,7 @@ def counter_baseline(now: datetime, weekly: float | None, monthly: float | None,
         hours = (now - start).total_seconds() / 3600
         if spent is None or hours < 25:
             continue
-        return max(0.0, spent - (last_hour or 0.0)) / (hours - 1), f"ประมาณจากยอด{word}นี้"
+        return max(0.0, spent - (last_hour or 0.0)) / (hours - 1), f"จากยอด{word}นี้"
     return None
 
 
@@ -520,7 +521,7 @@ def evaluate(readings: dict, snaps: list[dict], state: dict, cfg: dict, now: dat
             tier = 2 if days < rw["urgent_days"] else 1
             plan.findings.append(Finding(
                 f"{prov}/account/runway", "runway", tier,
-                f"{acct}: เหลือ ${bal:.2f} พอใช้อีก ~{days:.1f} วัน (ใช้ ~${base[0] * 24:.2f}/วัน, {base[1]})",
+                f"{acct}: เหลือ ${bal:.2f} พอใช้อีก ~{days:.1f} วัน (~${base[0] * 24:.2f}/วัน {base[1]})",
                 prov, link=LINKS[prov]))
 
         if prov != "openrouter":
@@ -559,8 +560,8 @@ def evaluate(readings: dict, snaps: list[dict], state: dict, cfg: dict, now: dat
             since = parse(rec.get("at"))
             plan.findings.append(Finding(
                 f"openrouter/key/{hsh}/paused", "paused", 1,
-                f"OpenRouter key «{rec.get('name') or hsh[:8]}» ({hsh[:8]}) ถูก spend guard พักไว้"
-                f"{' ตั้งแต่ ' + thai_time(since) if since else ''}: รอ CEO ตัดสิน", prov, pause=hsh,
+                f"OpenRouter key «{rec.get('name') or hsh[:8]}» ({hsh[:8]}) ถูกพักไว้"
+                f"{' ตั้งแต่ ' + thai_time(since) if since else ''} รอ CEO ตัดสิน", prov, pause=hsh,
                 link=LINKS["openrouter-keys"]))
     return plan
 
@@ -683,10 +684,16 @@ def card_command(hsh: str) -> str:
 
 def raise_pause_card(hsh: str, name: str, reason: str, consumers: list[str], env: dict,
                      create: Callable[[dict], dict]) -> dict:
-    used = ", ".join(consumers) if consumers else "ยังไม่รู้ (ดู docs/plans/spend-guard-2026-10-14.md)"
-    why = (f"Spend guard พักคีย์ OpenRouter «{name}» แล้ว: {reason}. ใช้โดย: {used}. "
-           f"พิมพ์ 1 = เปิดคืน, 2 ตามด้วยจำนวนเงิน USD = ตั้งเพดานใหม่แล้วเปิด, 3 revoke = ลบถาวร. ไม่ทำอะไร = พักต่อ")
-    return create({"host": "contabo", "command": card_command(hsh), "why": why[:430],
+    # ≤5 lines of ≤90 characters with `expected` (CEO 2026-10-14): the key and why, the choices, and
+    # the file that lists who uses the key (consumers are not on the card).
+    why = "\n".join([
+        fit(f"พักแล้ว: {reason}"),
+        "พิมพ์ 1 เปิดคืน / 2 <USD> ตั้งเพดานแล้วเปิด / 3 revoke ลบถาวร · ไม่ทำอะไร = พักต่อ",
+        "ใครใช้คีย์นี้: config/spend_guard.yaml" if consumers else
+        "ยังไม่รู้ว่าใครใช้: docs/plans/spend-guard-2026-10-14.md",
+    ])
+    ceo_text.check_ceo_text([("why", why), ("expected", "resumed / limit set / revoked")])
+    return create({"host": "contabo", "command": card_command(hsh), "why": why,
                    "expected": "resumed / limit set / revoked", "risk": "red", "timeout_s": 1800,
                    "expects_input": True, "session": SESSION, "role": ROLE})
 
@@ -716,7 +723,7 @@ def act_on_pauses(plan: Plan, readings: dict, state: dict, cfg: dict, env: dict,
             continue
         resumed = parse((state["resumed"].get(hsh) or {}).get("at"))
         if resumed and now - resumed < grace:
-            f.line += f" · CEO เพิ่งเปิดคืนเมื่อ {thai_time(resumed)} จึงยังไม่พักซ้ำ"
+            f.line += f" · CEO เพิ่งเปิดคืน {thai_time(resumed)} ยังไม่พักซ้ำ"
             continue
         paused = state["paused"].get(hsh)
         if paused:
@@ -740,10 +747,10 @@ def act_on_pauses(plan: Plan, readings: dict, state: dict, cfg: dict, env: dict,
             print(f"would pause {name} ({hsh[:8]}): {f.kind}{tail}")
             if store and not dry_run:
                 store.event(now, "would_pause", key=name, hash8=hsh[:8], kind=f.kind, mapped=mapped)
-            f.line += " · จะพักคีย์นี้เมื่อเปิดใช้ (ตอนนี้โหมดเตือนอย่างเดียว)"
+            f.line += " · จะพักคีย์นี้เมื่อเปิดใช้ (ตอนนี้แค่เตือน)"
             continue
         if not mapped:
-            f.line += " · ยังไม่ได้บันทึกว่าบริการไหนใช้คีย์นี้ จึงไม่พักอัตโนมัติ"
+            f.line += " · ไม่พัก: ยังไม่ระบุว่าใครใช้คีย์นี้"
             continue
         if dry_run:
             print(f"[dry-run] would pause {name} ({hsh[:8]}): {f.kind}")
@@ -773,37 +780,55 @@ def act_on_pauses(plan: Plan, readings: dict, state: dict, cfg: dict, env: dict,
 
 # --------------------------------------------------------------------------- delivery
 
+# What the CEO reads is at most 5 lines of at most 90 characters, title, need, why and link together
+# (CEO 2026-10-14, lib/ceo_text.py; email_ceo refuses more). Every finding's full line goes to
+# state/spend_guard/events.jsonl ("mail" row, same ref); the mail carries what fits.
+EVENTS_PATH = "state/spend_guard/events.jsonl"
+
+
+def fit(line: str, width: int = ceo_text.MAX_CHARS, keep_note: bool = True) -> str:
+    """`line` in at most `width` characters. With keep_note, a status note after ' · ' (paused,
+    card id, would pause) is kept whole when it is short, and the start of the line is cut instead."""
+    if len(line) <= width:
+        return line
+    head, sep, tail = line.rpartition(" · ")
+    if keep_note and sep and len(tail) <= width // 2:
+        return head[:width - len(tail) - len(sep) - 1] + "…" + sep + tail
+    return line[:width - 1] + "…"
+
+
 def compose(findings: list[Finding], test: bool = False) -> dict:
     order = sorted(findings, key=lambda f: (PRIORITY.index(f.kind), -f.level))
     top = order[0]
-    title = top.line if len(order) == 1 else f"{top.line} (+{len(order) - 1} เรื่อง)"
-    if test:
-        title = "ทดสอบ: " + title
-    lines = [f"- {f.line}" for f in order]
-    why = "\n".join(lines)
-    if len(why) > 480:
-        keep, n = [], 0
-        for ln in lines:
-            if n + len(ln) + 1 > 440:
-                break
-            keep.append(ln)
-            n += len(ln) + 1
-        why = "\n".join(keep) + f"\n(+{len(lines) - len(keep)} บรรทัด ใน state/spend_guard/events.jsonl)"
-    if test:
-        why = "นี่คืออีเมลทดสอบของ spend guard ไม่ต้องทำอะไร\n" + why
+    more = f" (+{len(order) - 1} เรื่อง)" if len(order) > 1 else ""
+    title = fit(("ทดสอบ: " if test else "") + top.line, ceo_text.MAX_CHARS - len(more), keep_note=False) + more
     need = ""
-    if any(f.kind == "pause" or "การ์ด RUN-" in f.line for f in order):
+    if test:
+        need = "อีเมลทดสอบของ spend guard ไม่ต้องทำอะไร"
+    elif any(f.kind == "pause" or "การ์ด RUN-" in f.line for f in order):
         need = "เปิดการ์ด แล้วเลือก เปิดคืน / ตั้งเพดานใหม่ / ลบคีย์"
     elif top.kind == "runway":
         need = f"ตัดสินใจเติมเงิน {NAMES[top.provider]} หรือหยุดงานที่ใช้"
     elif top.kind == "blind":
         need = "ไม่ต้องทำอะไรตอนนี้ CTO ดูให้ ถ้ายังมองไม่เห็นนาน = ไม่มีใครเฝ้าเงินก้อนนี้"
+    card = next((f.link for f in order if "/run#" in f.link), "")      # a pause card beats a provider page
+    link = card or top.link or LINKS[top.provider]
+    room = ceo_text.MAX_LINES - 1 - bool(need) - bool(link)
+    # one line per finding while they fit; the title already names the top one, so it is left out
+    # of the list when the list would not fit anyway
+    shown = order if len(order) <= room else order[1:]
+    if len(shown) > room:
+        keep = shown[:room - 1]
+        rest = len(shown) - len(keep)
+        lines = [fit(f"- {f.line}") for f in keep] + [f"(+{rest} เรื่อง ทั้งหมดอยู่ใน {EVENTS_PATH})"]
+    else:
+        lines = [fit(f"- {f.line}") for f in shown]
     keyset = "|".join(sorted(f"{f.key}:{f.level}" for f in order))
     ref = "spend-" + ("test-" if test else "") + hashlib.sha1(keyset.encode()).hexdigest()[:10]
-    card = next((f.link for f in order if "/run#" in f.link), "")      # a pause card beats a provider page
-    out = {"title": title[:90], "why": why, "link": card or top.link or LINKS[top.provider], "ref": ref}
+    out = {"title": title, "why": "\n".join(lines), "link": link, "ref": ref}
     if need:
         out["need"] = need
+    ceo_text.check_ceo_text([(k, out.get(k)) for k in ("title", "need", "why", "link")])
     return out
 
 
@@ -865,7 +890,10 @@ def check(*, env: dict, cfg: dict, store: Store, http: Http = urllib_http, now: 
     code = EXIT_BLIND if any(f.kind == "blind" for f in plan.findings) else EXIT_OK
     if send:
         try:
-            summary["delivery"] = deliver(compose(send), env, post, dry_run,
+            fields = compose(send)
+            if not dry_run:
+                store.event(now, "mail", ref=fields["ref"], lines=[f.line for f in send])
+            summary["delivery"] = deliver(fields, env, post, dry_run,
                                           telegram if telegram is not None else telegram_sender(env))
             if not dry_run:
                 mark_sent(send, state, now)
@@ -1012,7 +1040,9 @@ def timer(*, store: Store, env: dict, run: Callable[[list[str]], int] | None = N
         code = EXIT_BLIND
         if send:
             try:
-                deliver(compose(send), env, post, False, telegram_sender(env))
+                fields = compose(send)
+                store.event(start, "mail", ref=fields["ref"], lines=[f.line for f in send])
+                deliver(fields, env, post, False, telegram_sender(env))
                 mark_sent(send, state, start)
             except (email_ceo.Refused, email_ceo.HubError) as e:
                 print(f"spend_guard: blind alert not delivered: {e}", file=sys.stderr)

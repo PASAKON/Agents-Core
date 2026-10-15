@@ -64,11 +64,13 @@ quoted line is transcribed in auto mode, so unexpected speech shows in `heard`.
   VAD off before it counts as missing (A03, A06, B05 were shouted under music and came back with VAD off).
   `[SUPERSEDED 2026-10-09]` "The language is chosen per line (English for dialogue, Thai for a Thai song)" as the
   only read-back — beaten by 5 Thai-spoken takes in rough cut v3.3 that the forced read-back passed (`lb_out/qc/dialogue-v33.tsv`).
+  **Why hard:** quality — a forced-English read-back translates Thai speech and passes it; 5 takes got through that way.
 - **HARD — lip sync and speaker are checked by eye on every shot with a line (CEO 2026-10-09, same ruling).** One
   image per line: 3 frames tiled inside the line's whisper timestamps (start+0.3, middle, end-0.3). PASS = the
   intended speaker's mouth moves and nobody else's; FAIL = a wrong person mouths it, a visible face stays still
   while the line plays, or two people mouth one line; NOTE = the speaker is off-screen or turned away. The brief
   names the speaker of each line from the prompt and the character reference image, never from memory.
+  **Why hard:** quality — a wrong mouth or a still face on a line is what a viewer sees first; no read-back score catches it.
 - A Thai **sung** line reads back badly (E04 lullaby 0.39, heard as near-Thai syllables). Judge a song by ear.
 - `Thanks for watching!` at 0.0–2.0 s on a music-only clip is a whisper hallucination. Re-read with VAD off before
   calling it speech: C10 and D03 came back as `BOOM!`, the bell and thunder hits.

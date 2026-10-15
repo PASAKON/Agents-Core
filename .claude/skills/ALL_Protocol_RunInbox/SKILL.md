@@ -77,6 +77,11 @@ $P $A create --host contabo --script Agents-Core@<sha>:scripts/contabo_blueprint
 $P $A wait RUN-20260925-1632-0bfe --max-wait 1800
 ```
 
+**≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
+file).** `--why` + `--expected` together are at most 5 lines of at most 90 chars; an empty line counts,
+a lone link may run to 200, and the command bytes do not count (the CEO approves them as they are).
+`create` and the MCP `ask_run` refuse more (exit 2); no flag skips it (`lib/ceo_text.py`).
+
 `create` prints the id and the phone URL — put both in one chat line so the CEO knows a card is
 waiting. Other verbs: `list` (own cards), `cancel <id>` (own, pending only), `tail <id>` (live
 output over SSE), `--dry-run` (prints the JSON, sends nothing), `--expects-input` when the process
@@ -159,6 +164,10 @@ card red).
 > "Session ไหนติด blocker ตอนการให้ฉันอนุญาต ก่อนเริ่มส่ง มาใน /run ได้เลย หรือถ้ามีคำถาม
 > ส่งคำถามทิ้งไว้ จะเข้าไปกดตอบ เป็นคำถามแบบกดตอบได้นะ"
 
+**≤5 lines, enforced (CEO 2026-10-14: ≤5 lines total, alert only, plain words, detail in a linked
+file).** The question + `why` together are at most 5 lines of at most 90 chars, for a lone card and for
+each item of a group. Option labels are buttons and keep their own limit. `ask` / `ask_ceo` refuse more.
+
 A question for the CEO (a choice, a go/no-go, "which one?") goes on a **question card** whenever he is
 not typing in your chat at that moment. Do not leave it in chat to wait, and do not hand it to SomPong to
 relay. On /run → **คำถามรอตอบ** he reads who is asking (role · session · host), the why, and 2–4 options
@@ -211,10 +220,10 @@ each decision (QUESTIONS.md §10).
    ask. While it is pending, do not ask the same thing again in chat.
 4. It lives 24 h by default (`--expires-h`, max 168), because he comes back to it later. If it
    expires, ask once more on a fresh card.
-5. Write for a thumb: the question on one line (≤300 chars), each option ≤120 chars, and a `why` that
+5. Write for a thumb: the question on one line (≤90 chars), each option ≤120 chars, and a `why` that
    says what happens on each choice. Mark your recommendation with `--recommended N`. `ask` refuses a
-   longer or multi-line question (`invalid_question`) for every item of a `--batch` too: put the detail
-   in `why`, which may run to several lines.
+   longer or multi-line question (`invalid_question`) for every item of a `--batch` too: question +
+   `why` stay within 5 lines, and the detail goes in a linked file.
 6. C-level only. A worker writes its question into its report, and its C-level asks.
 7. Hosts: a question needs the run-inbox token, which Contabo C-levels have. The Mac and winbox have no
    token yet, so there you ask in chat as before and say why.
@@ -254,3 +263,12 @@ each decision (QUESTIONS.md §10).
 - 2026-10-14 [MISSING] §Question cards — `ask_ceo` refuses a `why` that contains `&&` or `||` ("command_shaped … a question is not a command"), even when the command is one the CEO must type himself on a machine with no Run card (the Mac). Put such lines in the chat report, and have the card say "the 2 lines in the CTO chat" · evidence: refusal then Q-20261014-0402-6bd9 (Mac resume of #f39cb080/#671f688f), CTO Main cto-c34459eb · status: pending
 - 2026-10-14 [MISSING] §Question cards — a "yes, the permission is set" answer is a decision, not proof: Q-a5bb was answered "ตั้งแล้ว — ยกการ์ด M4 มาเลย", and the re-raised red card RUN-20261014-0455-4cf9 still stopped at its first step with the same Infisical 403 ("not allowed to create on secret-folders"). Before re-raising a red card that depends on a grant, put the grant's read-only probe as the card's first step (fail closed, nothing changed), and put the exact UI path to the missing permission in the question's `why` (Q-20261014-0545-71bb did) · evidence: cto-c34459eb, cards c80d → 4cf9 → b407 · status: pending
 - 2026-10-14 [MISSING] §When to raise — an action a PEER's classifier refused (PH CookieRun: app pipe `night {clear_hold:true}` refused [Auto-Mode Bypass], even with the CEO's question-card answer as its source) goes on the C-level's Run card, never run by the C-level itself: the peer writes the exact bytes to a file and proves the transport with a read-only verb, then the C-level pins any script the line calls by sha256 (certutil -hashfile on winbox) and raises the card verbatim · evidence: cto-c34459eb, Q-20261014-0512-a5df → RUN-20261014-0549-4910 · status: pending
+- 2026-10-14 [MISSING] §How to ask (`--expects-input`) — the stdin box types into the card's pty, and the pty's echo lands in the stored output_tail, the live stream and the requester's letter. A tool that reads a SECRET from a card must turn ECHO off first, print 'ready' only then, and refuse input already waiting (it was typed early and echoed). A plain `readline()` put the test password in the output under a pty · evidence: PR #288 §2b round 1 B1 (`tools/winbox_vnc_rotate.py` read_password), session cto-c34459eb · status: pending
+- 2026-10-14 [COSTLY] §Before the first card — RUN-20261014-0628-c8a4 failed on a 404 because Infisical had moved `/api/v1/workspace/<id>/permissions`. The session cannot call the API as the machine identity to test the route, so a card that calls a third-party route should try the current route and fall through on 404 from the first version · evidence: RUN-c8a4, fix PR #285 (d832d1e0), re-raised RUN-20261014-0653-86de · status: pending
+- 2026-10-14 [MISSING] §Hosts mac — question cards hit the same wall as command cards: origin `tools/ask_run.py ask`/`list --questions` on the Mac fails "no token", also when run through `scripts/hub/with-org-db-env.sh` (the Infisical env does not carry RUN_INBOX_TOKEN), and the Mac main checkout has no `ask_ceo`. Under the CEO 2026-10-14 ruling (every question to Run), a Mac session sends question + 2–4 options to CTO Main, who raises the card · evidence: session cto-671f688f 13:1x TH, claude-home/CLAUDE.md 0b7cc3d9 · status: pending
+- 2026-10-14 [MISSING] §How to ask — an `--expects-input` card whose script waits for a typed value cannot tell "nothing typed yet" from "half a line typed": the pty is in canonical mode (ICANON), so FIONREAD reports 0 bytes until Enter, and a poll on FIONREAD alone times out on a CEO who is still typing. Wait on a line read with a long timeout (≥1800 s, see the input-card memory) and never treat FIONREAD 0 as "no input" · evidence: PR #288 review round 2 M-1 (tools/winbox_vnc_rotate.py), card RUN-20261014-0736-d6b8 · status: pending
+- 2026-10-14 [WRONG] §Rules — a guard inside a card like `pgrep -f 'codex app-server' && { echo 'codex app-server is running'; exit 1; }` matches the card's OWN shell, because the card's argv (and its echo text) contains the phrase, so the card refuses itself on every run. Write the pattern as `[c]odex app-server` and keep the bare phrase out of every echo/why line of that card · evidence: RUN-20261014-0738-1abd failed at the guard with nothing changed; the re-raised RUN-20261014-0739-c9fb with `[c]odex` ran, exit 0 · status: pending
+- 2026-10-14 [MISSING] §Question cards — a money GO cannot go on a question card: `ask_ceo` refuses a question or option that names money, and the tool text sends spend to a command card. The working shape (CMO RUN-20261014-0742-f99a, CTO RUN-20261014-0751-1c3d) is an amber command card whose command only appends a dated line to a ledger file: `printf "%s CEO GO: <what>, cap <$>\n" "$(TZ=Asia/Bangkok date "+%F %H:%M TH")" >> <dir>/CEO-GO.txt`. The tap is the decision and the file is the record that spend code can check · evidence: those two cards · status: pending
+- 2026-10-14 [COSTLY] §expects-input cards — an input card at --timeout 1800 still died E_TIMEOUT at the password prompt ("type the new 8-character password now"): the CEO did not get to it within 30 min. Nothing changed (the tool reads the password before acting), but the whole card had to be re-raised; re-raised at 3600. Second sighting after the 600 s one in memory feedback_run_inbox_input_cards_need_time; a password card wants 3600 s from the start · evidence: RUN-20261014-0736-d6b8 (failed), RUN-20261014-0824-5d06, session cto-c34459eb · status: pending
+- 2026-10-14 [MISSING] §Question cards — a Project Head cannot post a question card: `ask_run.py ask` refuses it with "question_needs_c_level: a question card is for C-level sessions … this requester is role 'project_head'", and `ask_ceo` is not in a PH's tool list. So the CEO-only question a PH needs goes to its C-level, which posts it for the PH, cites the Q- id back, and relays the answer. Don't tell a PH to post its own question card · evidence: PH#f35 CookieRun refusal 08:36Z, posted by the CTO as Q-20261014-0836-cc76, session cto-c34459eb · status: pending
+- 2026-10-14 [MISSING] §create — since the 5-line rule (#305/#306, `lib/ceo_text.py`), `--why` must be ONE line of ≤90 characters, and each Thai character counts as one. Two cards were refused (a 107-char and a 95-char line) before they were raised. Draft the why at ≤80 characters · evidence: cto-c34459eb 14 Oct 16:5x–17:0x TH · status: pending

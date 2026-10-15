@@ -1,0 +1,130 @@
+[
+ {
+  "clip": "e01",
+  "ids": [
+   "3yb81ps6"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada",
+  "note": "ids corrected: the first run recorded the whole queue; only 3yb81ps6 is ours",
+  "enqueuedAtMs": 1791546685712
+ },
+ {
+  "clip": "e01",
+  "ids": [
+   "tcc6pfux"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "e01",
+  "ids": [
+   "ebx8im4g"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "e02",
+  "ids": [
+   "d4xnd4ux"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "e03",
+  "ids": [
+   "rhqolsmp"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "e04",
+  "ids": [
+   "j38wjb67"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ },
+ {
+  "clip": "e05",
+  "ids": [
+   "5x8d9u9r"
+  ],
+  "routes": [
+   {
+    "take": 1,
+    "scenes": [
+     1
+    ],
+    "backend": "colab",
+    "reason": "guards_off"
+   }
+  ],
+  "routeCostUsd": 0,
+  "h3Model": "cobijada"
+ }
+]

@@ -28,8 +28,19 @@ A key is always named by its **name** on the provider page and the first 8 chara
 
 Each run sends at most one mail, with the most urgent alert as the title. In its first 24 h the guard has no
 history of its own, so the baseline comes from OpenRouter's calendar counters: this week since Mon 00:00 UTC,
-or this month when the week is under 25 h old. The mail labels that figure "ประมาณจาก…" (estimated from…).
+or this month when the week is under 25 h old. The mail labels that figure "จากยอด…นี้" (from this week's/month's total).
 fal has no counter, so fal spike and runway start after 24 h of snapshots.
+
+The mail and the pause card each fit the CEO's limit: at most 5 lines of at most 90 characters, in
+`lib/ceo_text.py` (CEO 2026-10-14). The mail is laid out as:
+- the title: the top alert, plus "(+N เรื่อง)" when there are more;
+- one line of what to do, when there is something to do;
+- one line per alert while they fit, then "(+N เรื่อง ทั้งหมดอยู่ใน state/spend_guard/events.jsonl)";
+- the link.
+
+A line that is too long is cut with "…". The status note after ` · ` (paused, card id, would pause) is
+kept whole. Every alert's full line is in `events.jsonl`, in the `mail` row with the same `ref`. The pause
+card has three lines: the key and why it was paused, the choices, and the file that lists who uses the key.
 
 Telegram is off. The only existing send path, `lib/telegram_out.send_to_ceo` (@SSomPongBot), needs
 `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CEO_CHAT_ID`, and on Contabo those live only in the secretary's legacy env

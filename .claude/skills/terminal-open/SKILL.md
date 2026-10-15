@@ -35,6 +35,8 @@ attach` gives the CEO the process that is still executing.
 
 ## Run it
 
+Since 2026-10-15 a new session on the Mac opens no window (`terminal_window: false` in `config/hosts.yaml`): CEO asks for a window on machine X → run `scripts/terminal-open.sh <id>` there.
+
 ```bash
 bash /Users/gob/MoonieXHQ/Agents/Core/scripts/terminal-open.sh            # THIS session
 bash /Users/gob/MoonieXHQ/Agents/Core/scripts/terminal-open.sh --orphan   # newest one with no client
