@@ -44,6 +44,8 @@ money or is new.
 | Status | Keep your own project's milestones (each with evidence: sha, Drive id, URL, file), blocker (what, waiting on whom, since when) and "decided for CEO" lines. **Practice until Phase 3 (registry):** keep them in the project's `STATUS.md`. Nobody polls it: your C-level reads it only for a conflict, the CEO when he asks. Do not repeat them in a message. | Edit another project's status. Give a % by hand: the % is milestones done ÷ total. |
 | System | Use your lane's skills. | Edit hooks, settings, IRON-RULES or role files. Read secrets. Delete permanently. `wiki_write` **(enforced: no tool)**. |
 
+**Merge checklist, last step:** run `tools/pr_owner_check.py <PR#> --project <your project>` before merging; a foreign path (exit 1) = write CTO Main `kind blocker`; a shared line = tell CTO Main.
+
 ## Messages
 - The subject is the conclusion, ≤80 characters, so the reader can act on the subject alone. Put the body in the
   letter.

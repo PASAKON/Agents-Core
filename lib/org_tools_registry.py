@@ -46,6 +46,7 @@ from typing import Any, Callable
 
 from lib import ceo_report
 from lib import db
+from lib import path_owners
 from lib import recall as recall_lib
 from lib import reflect as reflect_lib
 from lib import roles as org_roles
@@ -177,9 +178,26 @@ def _h_create_task(*, project: str, role: str, title: str, description: str,
     return tid
 
 
-def _h_check_collisions(*, project: str, touches: str) -> list[dict]:
+def _h_check_collisions(*, project: str, touches: str) -> list[dict] | dict:
     paths = _parse_list_arg(touches)
-    return db.find_conflicts(project, paths)
+    conflicts = db.find_conflicts(project, paths)
+    # A Project Head session carries ORG_PH_PROJECT (lib/roles.py). Only then is the caller's
+    # project known: it gets {"conflicts": <the bare list>, "path_owner": [...]} so it
+    # sees, before merging, which paths another project or no PH owns (config/path-owners.yaml).
+    # Every other caller keeps the bare list, byte for byte.
+    ph_project = (os.environ.get("ORG_PH_PROJECT") or "").strip()
+    if not ph_project:
+        return conflicts
+    out: dict = {"conflicts": conflicts, "path_owner": []}
+    try:
+        out["path_owner"] = [
+            {"path": p, "owner": o}
+            for p, o in path_owners.owners_for(paths).items()
+            if o and o.casefold() != ph_project.casefold()
+        ]
+    except Exception as e:   # a bad owners file must not hide the conflicts above
+        out["path_owner_error"] = f"{type(e).__name__}: {e}"
+    return out
 
 
 _SLIM_KEYS = (
@@ -488,7 +506,12 @@ REGISTRY: tuple[ToolSpec, ...] = (
             "touches accepts JSON array string or comma-separated paths. "
             "Returns JSON list of in-flight tasks (status "
             "pending/in_progress/rate_limited/conflict) whose touches "
-            "intersect the supplied paths. Empty list = safe to delegate."
+            "intersect the supplied paths. Empty list = safe to delegate.\n\n"
+            "A Project Head (ORG_PH_PROJECT set) gets an object instead: "
+            "{conflicts: <that list>, path_owner: [{path, owner}]}, where owner is "
+            "another project that owns the path or \"shared\" (config/path-owners.yaml); "
+            "its own and unowned paths are left out. Any owner entry = tell CTO Main "
+            "before merging."
         ),
         params=(Param("project", str), Param("touches", str)),
         handler=_h_check_collisions,
