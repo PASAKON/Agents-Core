@@ -28,6 +28,7 @@ needs_pg = pytest.mark.skipif(not ORG_TEST_DB_URL, reason="ORG_TEST_DB_URL not s
 
 FIXTURE = ROOT / "docs" / "plans" / "fixtures" / "portfolio-monitor-v1.json"
 STATUS_MD = ROOT / "docs" / "plans" / "org-restructure-STATUS.md"
+SNAPSHOTS = ROOT / "tests" / "fixtures" / "status_files"        # the four PH STATUS.md files, 15 Oct 2026
 PORTFOLIO = ("projects", "project_events", "milestones", "ceo_gos",
              "resource_locks", "post_ledger", "session_heartbeats")
 UTC = timezone.utc
@@ -107,6 +108,111 @@ def test_import_status_dry_run_needs_no_hub_and_writes_nothing(monkeypatch, caps
     assert out["milestones"][0]["n"] == 1
 
 
+DONE_STATES = [
+    "landed", "Landed", "**landed**", "landed; install waits on the CEO",
+    "done", "Done", "DONE", "**done**", "*done*", "__done__", "_done_",
+    "**done** 10:04 TH", "**Done** 10:27 TH", "done 10:04 TH", "**done 10:27 TH**", "done 10.04 ICT",
+    "done 2026-10-14", "done 2026-10-14 10:04", "done (2026-10-14)", "done 2026-10-14T10:04:00Z",
+    "done 14 Oct", "done 14 Oct 2026", "done Oct 14", "done 14/10", "done at 10:04", "done.",
+]
+NOT_DONE_STATES = [
+    "not done", "Not Done", "undone", "**not done**", "done?", "**done**?", "done ?", "landed?",
+    "planned", "**planned**", "not landed", "not started", "open", "running", "scheduled", "", "—",
+    "**done", "done*", "~~done~~", "parked: done", "**parked: CEO grant not effective**",
+    "PR ready, merge on hold", "done, but the PR is open", "done in a branch", "done; PR ready",
+    "done 3", "done 10:04 THE", "donetsk",
+]
+
+
+@pytest.mark.parametrize("state", DONE_STATES)
+def test_state_is_done_accepts_the_forms_our_status_files_use(state):
+    assert pf.state_is_done(state), state
+
+
+@pytest.mark.parametrize("state", NOT_DONE_STATES)
+def test_state_is_done_refuses_a_state_that_is_not_plainly_done(state):
+    assert not pf.state_is_done(state), state
+
+
+STATUS_FORMS = """\
+| # | Milestone | State | Evidence |
+|---|---|---|---|
+| M1 | bold with a time | **done** 10:04 TH | card RUN-1 |
+| M2 | plain done | done | PR #2 |
+| M3 | dated | Done 2026-10-14 | sha abc |
+| M4 | says done, shows nothing | **done** 10:27 TH | — |
+| M5 | not done | not done | PR #5 |
+| M6 | undone | undone | PR #6 |
+| M7 | unsure | done? | PR #7 |
+| M8 | planned | planned | PR #8 |
+| M9 | parked | **parked: CEO grant not effective** | PR #9 |
+"""
+
+
+def test_parse_reads_done_cells_with_emphasis_a_time_or_a_date_and_still_needs_evidence():
+    rows = pf.parse_status_milestones(STATUS_FORMS)
+    assert [r["done"] for r in rows] == [True, True, True, False, False, False, False, False, False]
+    assert [r["state_done"] for r in rows] == [True, True, True, True, False, False, False, False, False]
+    assert rows[0]["state"] == "**done** 10:04 TH" and rows[3]["evidence"] == ""
+
+
+@pytest.mark.parametrize("name,done,total,done_ns", [
+    ("org-restructure", 12, 21, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13]),       # was 12 / 21
+    ("spend-guard", 3, 5, [1, 2, 3]),                                          # was 0 / 5: a plain `done`
+    ("mimi-page", 0, 5, []),                                                   # was 0 / 5, and rightly
+    ("coo-gate", 3, 5, [1, 2, 3]),                                             # was 0 / 5: `**done** 10:04 TH`
+])
+def test_the_four_real_status_files(name, done, total, done_ns, monkeypatch, capsys):
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    path = SNAPSHOTS / f"{name}-STATUS.md"
+    rows = pf.parse_status_milestones(path.read_text(encoding="utf-8"))
+    assert len(rows) == total and [n for n, r in enumerate(rows, 1) if r["done"]] == done_ns
+    assert all(r["evidence"] for r in rows if r["done"])
+    assert cli.run(["--import-status", str(path), "--project", "x", "--dry-run"]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert (out["done"], out["total"], out["done_state_without_evidence"]) == (done, total, 0)
+
+
+def test_dry_run_says_how_many_rows_claim_done_without_evidence(tmp_path, monkeypatch, capsys):
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    f = tmp_path / "S.md"
+    f.write_text(STATUS_FORMS)
+    assert cli.run(["--import-status", str(f), "--project", "x", "--dry-run"]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert (out["done"], out["total"], out["done_state_without_evidence"]) == (3, 9, 1)
+
+
+def test_reimport_needs_the_hub_a_file_and_a_project(tmp_path, monkeypatch, capsys):
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    f = tmp_path / "S.md"
+    f.write_text(STATUS_FORMS)
+    assert cmd("--reimport") == 2                                                  # no verb, no file
+    assert cmd("--reimport", "show") == 2 and "goes with --import-status" in capsys.readouterr().err
+    assert cmd("--import-status", str(f), "--reimport") == 2                       # no --project
+    assert "needs --project" in capsys.readouterr().err
+    assert cmd("--import-status", str(f), "--project", "x", "--reimport", "--dry-run") == 2
+    assert "ORG_DB_URL is unset" in capsys.readouterr().err                        # the preview reads the hub
+
+
+@pytest.mark.parametrize("kwargs", [
+    {}, {"repos": []}, {"repos": [" "]}, {"name": "  "}, {"goal": ""}, {"host": "h" * 121}, {"name": "n" * 121},
+    {"done_criteria": "d" * 2001},
+])
+def test_edit_project_refuses_nothing_and_bad_values_before_it_touches_the_hub(kwargs, monkeypatch):
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    with pytest.raises(pf.PortfolioError) as e:
+        pf.edit_project("p1", actor="ceo", **kwargs)
+    assert "ORG_DB_URL" not in str(e.value)
+
+
+def test_edit_with_no_field_is_a_usage_error_not_a_hub_call(monkeypatch, capsys):
+    monkeypatch.delenv("ORG_DB_URL", raising=False)
+    assert cmd("edit", "p1") == 2
+    assert "nothing to edit" in capsys.readouterr().err
+    assert cmd("edit", "p1", "--repos", "") == 2                                   # an empty list is no list
+    assert "ORG_DB_URL" not in capsys.readouterr().err
+
+
 @pytest.mark.parametrize("text,delta", [("+90m", timedelta(minutes=90)), ("+2h", timedelta(hours=2)),
                                         ("+1d", timedelta(days=1))])
 def test_parse_when_relative(text, delta):
@@ -135,7 +241,7 @@ def locks(tmp_path):
 
 def test_ceo_and_coo_may_write_every_project(locks):
     for who in (CEO_IDENTITY, COO):
-        for verb in ("open", "stage", "milestone", "go_add", "go_use", "lock", "import"):
+        for verb in ("open", "edit", "stage", "milestone", "go_add", "go_use", "lock", "import", "reimport"):
             assert cli.authorize(who, verb, _project(lane="cmo"), "cmo", locks) is None
 
 
@@ -159,6 +265,16 @@ def test_project_head_writes_its_own_project_only(locks):
     other = Identity("cxo", "project_head", "aaaa1111")
     assert cli.authorize(other, "stage", _project(id_="mimi-page", name="Mimi", lane="cmo"), locks_dir=locks) is None
     assert cli.authorize(other, "stage", _project(), locks_dir=locks)
+
+
+def test_edit_and_reimport_follow_the_lane_and_ownership_rules_of_the_other_writes(locks):
+    for verb in ("edit", "reimport"):
+        assert cli.authorize(CTO, verb, _project(lane="cto"), locks_dir=locks) is None
+        assert "own lane" in cli.authorize(CTO, verb, _project(lane="cmo"), locks_dir=locks)
+        assert cli.authorize(PH, verb, _project(), locks_dir=locks) is None
+        assert cli.authorize(PH, verb, _project(id_="mimi-page", name="Mimi", lane="cmo"), locks_dir=locks)
+        assert "read-only" in cli.authorize(WORKER, verb, _project(), locks_dir=locks)
+        assert cli.authorize(None, verb, _project(), locks_dir=locks)
 
 
 def test_project_head_with_no_record_or_a_bad_session_owns_nothing(locks, tmp_path):
@@ -431,6 +547,172 @@ def test_import_milestones_runs_once(pg):
     mk("p2")
     with pytest.raises(pf.PortfolioError, match="no milestone rows"):
         pf.import_milestones("p2", [], actor="x", source="s")
+
+
+def _imported_with_the_miss(pid="p1"):
+    """A project the way the live hub has it: every row of the file imported, none marked done."""
+    rows = pf.parse_status_milestones(STATUS_FORMS)
+    pf.import_milestones(pid, [{**r, "done": False} for r in rows], actor="coo-f66280fc",
+                         source="STATUS.md", now=at(2))
+    return rows
+
+
+@needs_pg
+def test_reimport_marks_only_open_milestones_that_are_done_in_the_file(pg):
+    mk()
+    rows = _imported_with_the_miss()
+    assert q(pg, "SELECT count(done_at) AS n FROM milestones")[0]["n"] == 0
+    got = pf.reimport_milestones("p1", rows, actor="ceo", source="S.md", now=at(5))
+    assert [m["n"] for m in got["marked"]] == [1, 2, 3] and got["unmatched"] == [] and got["already_done"] == 0
+    assert (got["total"], got["done_in_file"], got["dry_run"]) == (9, 3, False)
+    ms = q(pg, "SELECT n, done_at, evidence FROM milestones ORDER BY n")
+    assert [m["done_at"] == at(5) for m in ms] == [True] * 3 + [False] * 6
+    assert [m["evidence"] for m in ms[:3]] == ["card RUN-1", "PR #2", "sha abc"] and ms[3]["evidence"] is None
+    assert kinds(pg, "p1") == ["opened", "milestone", "milestone"]
+    ev = q(pg, "SELECT actor, body FROM project_events WHERE kind = 'milestone' ORDER BY id DESC")[0]
+    assert ev["actor"] == "ceo" and ev["body"] == {"op": "reimport", "source": "S.md", "marked": [1, 2, 3]}
+    # a second run finds nothing to do: no change, no second event, no duplicate row
+    again = pf.reimport_milestones("p1", rows, actor="ceo", source="S.md", now=at(6))
+    assert again["marked"] == [] and again["already_done"] == 3
+    assert q(pg, "SELECT count(*) AS n FROM milestones")[0]["n"] == 9
+    assert kinds(pg, "p1") == ["opened", "milestone", "milestone"]
+    assert [m["done_at"] for m in q(pg, "SELECT done_at FROM milestones WHERE n <= 3 ORDER BY n")] == [at(5)] * 3
+
+
+@needs_pg
+def test_reimport_never_reopens_or_rewrites_a_done_milestone(pg):
+    mk()
+    rows = _imported_with_the_miss()
+    pf.milestone_done("p1", 1, "my own evidence", actor="ceo", now=at(3))           # done in the hub already
+    pf.milestone_done("p1", 5, "done by hand", actor="ceo", now=at(3))              # open in the file
+    got = pf.reimport_milestones("p1", rows, actor="ceo", source="S.md", now=at(5))
+    assert [m["n"] for m in got["marked"]] == [2, 3] and got["already_done"] == 1
+    ms = {m["n"]: m for m in q(pg, "SELECT n, done_at, evidence FROM milestones")}
+    assert (ms[1]["done_at"], ms[1]["evidence"]) == (at(3), "my own evidence")      # not rewritten
+    assert (ms[5]["done_at"], ms[5]["evidence"]) == (at(3), "done by hand")         # not reopened
+    # a file in which nothing is done changes nothing at all
+    none = pf.reimport_milestones("p1", [{**r, "done": False} for r in rows], actor="ceo", source="S.md", now=at(6))
+    assert none["marked"] == [] and q(pg, "SELECT count(done_at) AS n FROM milestones")[0]["n"] == 4
+
+
+@needs_pg
+def test_reimport_matches_by_title_and_never_adds_or_guesses(pg):
+    mk()
+    rows = _imported_with_the_miss()
+    # the file moved on: M2 was renamed, and a new row appeared that is already done
+    edited = [dict(r) for r in rows] + [{**rows[0], "title": "M10 a new row", "done": True, "evidence": "PR #10"}]
+    edited[1]["title"] = "M2 plain done (renamed)"
+    got = pf.reimport_milestones("p1", edited, actor="ceo", source="S.md", now=at(5))
+    assert [m["n"] for m in got["marked"]] == [1, 3]
+    assert got["unmatched"] == ["M2 plain done (renamed)", "M10 a new row"]
+    assert q(pg, "SELECT count(*) AS n FROM milestones")[0]["n"] == 9                # nothing was added
+    # a title that is in the file twice is ambiguous, so it is left alone
+    pf.milestone_add("p1", "twin", actor="ceo", now=at(5))
+    twin = [{**rows[0], "title": "twin", "done": True, "evidence": "PR #11"}] * 2
+    got = pf.reimport_milestones("p1", twin, actor="ceo", source="S.md", now=at(6))
+    assert got["marked"] == [] and got["unmatched"] == ["twin", "twin"]
+
+
+@needs_pg
+def test_reimport_dry_run_writes_nothing_and_a_project_without_milestones_is_refused(pg):
+    mk()
+    rows = _imported_with_the_miss()
+    got = pf.reimport_milestones("p1", rows, actor="ceo", source="S.md", dry_run=True, now=at(5))
+    assert [m["n"] for m in got["marked"]] == [1, 2, 3] and got["dry_run"] is True
+    assert q(pg, "SELECT count(done_at) AS n FROM milestones")[0]["n"] == 0
+    assert kinds(pg, "p1") == ["opened", "milestone"]
+    mk("p2")
+    with pytest.raises(pf.PortfolioError, match="has no milestones"):
+        pf.reimport_milestones("p2", rows, actor="ceo", source="S.md")
+    with pytest.raises(pf.PortfolioError, match="no such project"):
+        pf.reimport_milestones("nope", rows, actor="ceo", source="S.md")
+    with pytest.raises(pf.PortfolioError, match="no milestone rows"):
+        pf.reimport_milestones("p1", [], actor="ceo", source="S.md")
+
+
+@needs_pg
+def test_cli_reimport_goes_through_the_same_gate_as_the_import(pg, tmp_path, capsys, monkeypatch):
+    mk()
+    f = tmp_path / "S.md"
+    f.write_text(STATUS_FORMS)
+    _imported_with_the_miss()
+    assert cmd("--import-status", str(f), "--project", "p1") == 2                    # the import still runs once
+    err = capsys.readouterr().err
+    assert "runs once" in err and "--reimport" in err
+    assert cmd("--import-status", str(f), "--project", "p1", "--reimport", "--dry-run", who=WORKER) == 0
+    assert json.loads(capsys.readouterr().out)["dry_run"] is True                    # a preview is a read
+    assert q(pg, "SELECT count(done_at) AS n FROM milestones")[0]["n"] == 0
+    monkeypatch.setenv("ORG_PORTFOLIO_ENFORCE", "1")
+    assert cmd("--import-status", str(f), "--project", "p1", "--reimport", who=WORKER) == 1
+    assert "refused" in capsys.readouterr().err and q(pg, "SELECT count(done_at) AS n FROM milestones")[0]["n"] == 0
+    assert cmd("--import-status", str(f), "--project", "p1", "--reimport") == 0
+    out = json.loads(capsys.readouterr().out)
+    assert [m["n"] for m in out["marked"]] == [1, 2, 3] and out["dry_run"] is False
+    assert cmd("--import-status", str(f), "--project", "p1", "--reimport") == 0
+    assert json.loads(capsys.readouterr().out)["marked"] == []
+    assert state_of("p1")["pct"] == 33
+
+
+@needs_pg
+def test_edit_project_changes_only_the_fields_given(pg):
+    mk(goal="old goal", done_criteria="old criteria", host="contabo", repos=["PASAKON/Agents-Core"])
+    got = pf.edit_project("p1", actor="ceo", goal="new goal", repos=[" PASAKON/A ", "PASAKON/B"])
+    assert got == {"project": "p1", "changed": {"goal": {"from": "old goal", "to": "new goal"},
+                                                "repos": {"from": ["PASAKON/Agents-Core"],
+                                                          "to": ["PASAKON/A", "PASAKON/B"]}}}
+    row = pf.get_project("p1")
+    assert (row["name"], row["goal"], row["done_criteria"], row["host"], row["repos"]) == \
+        ("p1", "new goal", "old criteria", "contabo", ["PASAKON/A", "PASAKON/B"])
+    assert (row["stage"], row["lane"]) == ("active", "cto")
+    got = pf.edit_project("p1", actor="ceo", name="P One", done_criteria="new criteria", host="winbox")
+    assert sorted(got["changed"]) == ["done_criteria", "host", "name"]
+    assert pf.edit_project("p1", actor="ceo", name="P One") == {"project": "p1", "changed": {}}   # same value
+    assert kinds(pg, "p1") == ["opened"]                                           # no event kind for it
+    with pytest.raises(pf.PortfolioError, match="no such project"):
+        pf.edit_project("nope", actor="ceo", goal="g")
+    with pytest.raises(pf.PortfolioError, match="nothing to edit"):
+        pf.edit_project("p1", actor="ceo")
+    assert pf.get_project("p1")["name"] == "P One"
+
+
+@needs_pg
+def test_cli_edit_round_trip_and_errors(pg, capsys):
+    mk(goal="old goal")
+    goal = "Mimi page (working title บ้านนี้มีข้าวเหนียว): EP6, weekly posts, poster standard, 90-day roadmap"
+    assert cmd("edit", "p1", "--goal", goal) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out == {"project": "p1", "changed": {"goal": {"from": "old goal", "to": goal}}}
+    assert pf.get_project("p1")["goal"] == goal
+    assert cmd("edit", "p1", "--repos", "PASAKON/A, PASAKON/B", "--host", "contabo", "--name", "P1",
+               "--done-criteria", "five posts") == 0
+    assert sorted(json.loads(capsys.readouterr().out)["changed"]) == ["done_criteria", "host", "name", "repos"]
+    assert cmd("edit", "p1") == 2 and "nothing to edit" in capsys.readouterr().err
+    assert cmd("edit", "nope", "--goal", "g") == 2 and "no such project" in capsys.readouterr().err
+    assert cmd("edit", "p1", "--name", " ") == 2
+    assert pf.get_project("p1")["name"] == "P1" and kinds(pg, "p1") == ["opened"]
+
+
+@needs_pg
+def test_cli_edit_is_gated_and_logged_like_the_other_writes(pg, capsys, monkeypatch, tmp_path):
+    (tmp_path / "locks" / "project_head-7cf528f0.project").write_text("OrgRestructure")
+    mk("org-restructure", name="Org restructure", goal="g0")
+    mk("mimi-page", "cmo", name="Mimi", goal="g0")
+    assert cmd("edit", "mimi-page", "--goal", "g1", who=WORKER) == 0                 # flag off: goes ahead, says so
+    assert "would be refused" in capsys.readouterr().err and pf.get_project("mimi-page")["goal"] == "g1"
+    log = [json.loads(x) for x in (tmp_path / "refusals.jsonl").read_text().splitlines()]
+    assert [(r["verb"], r["project"], r["enforced"]) for r in log] == [("edit", "mimi-page", False)]
+    monkeypatch.setenv("ORG_PORTFOLIO_ENFORCE", "1")
+    assert cmd("edit", "mimi-page", "--goal", "g2", who=WORKER) == 1                 # flag on: refused, unchanged
+    assert cmd("edit", "mimi-page", "--goal", "g2", who=CTO) == 1                    # not CTO's lane
+    assert cmd("edit", "mimi-page", "--goal", "g2", who=PH) == 1                     # not this PH's project
+    assert pf.get_project("mimi-page")["goal"] == "g1"
+    capsys.readouterr()
+    assert cmd("edit", "mimi-page", "--goal", "g2", who=CMO) == 0                    # its own lane
+    assert cmd("edit", "org-restructure", "--goal", "g3", who=PH) == 0               # its own project
+    assert cmd("edit", "mimi-page", "--goal", "g4") == 0                             # the CEO
+    assert [pf.get_project(p)["goal"] for p in ("org-restructure", "mimi-page")] == ["g3", "g4"]
+    refused = [json.loads(x) for x in (tmp_path / "refusals.jsonl").read_text().splitlines()][1:]
+    assert [(r["verb"], r["enforced"]) for r in refused] == [("edit", True)] * 3
 
 
 # --- the monitor --------------------------------------------------------------
