@@ -12,8 +12,10 @@ Or under pytest:  pytest scripts/test_secretary_waker.py
 from __future__ import annotations
 
 import fcntl
+import logging
 import os
 import sys
+import uuid
 from pathlib import Path
 
 import pytest
@@ -284,6 +286,83 @@ def test_invoke_secretary_empty_content_is_failure(waker_env, monkeypatch):
     ok, reason = w._invoke_secretary("x")
 
     assert ok is False
+
+
+# ---------------------------------------------------------------------------
+# task-4c7b0b9d -- start line and one line per caught exception
+# that used to be swallowed silently. The real logger has propagate=False, so
+# `logs` swaps in a propagating one that caplog sees (and that writes no file).
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def logs(monkeypatch, caplog):
+    monkeypatch.setattr(w, "_LOGGER", logging.getLogger(f"test.waker.{uuid.uuid4().hex}"))
+    caplog.set_level(logging.INFO)
+    return caplog
+
+
+def _messages(caplog, level):
+    return [r.getMessage() for r in caplog.records if r.levelno == level]
+
+
+def test_main_logs_start_line(waker_env, logs, monkeypatch):
+    monkeypatch.setattr(w, "tick", lambda: 0)
+    monkeypatch.setattr(w.sys, "argv", ["secretary_waker", "--once"])
+
+    w.main()
+
+    assert _messages(logs, logging.INFO)[0].startswith("secretary_waker starting (pid=")
+
+
+def test_corrupt_letter_is_logged_not_skipped_silently(waker_env, logs):
+    box = w._box()
+    box.mkdir(parents=True)
+    (box / "20261015T000000.json").write_text('{"body": "PRIVATE-LETTER-TEXT', encoding="utf-8")
+
+    assert w._peek_with_paths() == []
+
+    errors = _messages(logs, logging.ERROR)
+    assert errors == ["unreadable letter 20261015T000000.json skipped: JSONDecodeError"]
+    assert "PRIVATE-LETTER-TEXT" not in logs.text
+
+
+def test_lock_open_failure_is_logged(waker_env, logs, tmp_path):
+    lock_is_a_dir = tmp_path / "lockdir"
+    lock_is_a_dir.mkdir()
+
+    assert w._try_lock(lock_is_a_dir) is None
+
+    errors = _messages(logs, logging.ERROR)
+    assert len(errors) == 1
+    assert errors[0].startswith(f"cannot open lock {lock_is_a_dir}: IsADirectoryError")
+
+
+def test_lock_contention_is_not_an_error(waker_env, logs, tmp_path):
+    held = w._try_lock(tmp_path / "busy.lock")
+    assert held is not None
+    try:
+        assert w._try_lock(tmp_path / "busy.lock") is None
+    finally:
+        w._unlock(held)
+    assert _messages(logs, logging.ERROR) == []
+
+
+def test_unlock_failure_is_logged(logs):
+    w._unlock(999999)  # never an open fd here
+
+    warnings = _messages(logs, logging.WARNING)
+    assert warnings == ["closing lock fd 999999 failed: OSError (errno 9: Bad file descriptor)"]
+
+
+def test_failcounts_missing_is_quiet_but_corrupt_is_logged(logs, tmp_path):
+    assert w._load_failcounts(tmp_path / "absent.json") == {}
+    assert logs.records == []
+
+    bad = tmp_path / "failcounts.json"
+    bad.write_text("{not json", encoding="utf-8")
+    assert w._load_failcounts(bad) == {}
+    warnings = _messages(logs, logging.WARNING)
+    assert warnings == [f"failcounts {bad} unreadable, poison-letter counts reset: JSONDecodeError"]
 
 
 if __name__ == "__main__":

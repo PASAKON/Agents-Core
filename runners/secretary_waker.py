@@ -54,6 +54,7 @@ Run:  python -m runners.secretary_waker          (loop)
 """
 from __future__ import annotations
 
+import errno
 import json
 import os
 import sys
@@ -112,7 +113,7 @@ _LOGGER = None
 def _log():
     global _LOGGER
     if _LOGGER is None:
-        _LOGGER = get_logger("secretary_waker")
+        _LOGGER = secretary_server.use_journal_levels(get_logger("secretary_waker"))
     return _LOGGER
 
 
@@ -132,12 +133,16 @@ def _try_lock(path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         fd = os.open(str(path), os.O_CREAT | os.O_RDWR, 0o644)
-    except OSError:
+    except OSError as e:
+        # Not contention: tick() would otherwise only say "still in flight".
+        _log().error("cannot open lock %s: %s", path, secretary_server._exc_brief(e))
         return None
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError:
+    except OSError as e:
         os.close(fd)
+        if e.errno not in (errno.EWOULDBLOCK, errno.EAGAIN):  # those are plain contention
+            _log().error("cannot flock %s: %s", path, secretary_server._exc_brief(e))
         return None
     return fd
 
@@ -147,8 +152,8 @@ def _unlock(fd) -> None:
         return
     try:
         os.close(fd)  # releases the flock too
-    except OSError:
-        pass
+    except OSError as e:
+        _log().warning("closing lock fd %s failed: %s", fd, secretary_server._exc_brief(e))
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +180,12 @@ def _peek_with_paths(root: Path | None = None) -> list[tuple[Path, dict]]:
     for p in sorted(box.glob("*.json")):
         try:
             letter = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
+        except Exception as e:
+            # mailbox.send() writes by atomic rename, so this is a corrupt letter,
+            # not a half-written one: it is skipped on every tick, so it is
+            # logged on every tick. Class only, never the letter's content.
+            _log().error("unreadable letter %s skipped: %s", p.name,
+                         secretary_server._exc_brief(e))
             continue
         out.append((p, letter))
     return out
@@ -191,7 +201,11 @@ def _peek_with_paths(root: Path | None = None) -> list[tuple[Path, dict]]:
 def _load_failcounts(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except FileNotFoundError:  # no failure recorded yet
+        return {}
+    except Exception as e:
+        _log().warning("failcounts %s unreadable, poison-letter counts reset: %s",
+                       path, secretary_server._exc_brief(e))
         return {}
 
 
@@ -385,8 +399,8 @@ def _tick_locked() -> int:
 
 def main() -> None:
     once = "--once" in sys.argv
-    _log().info("secretary_waker starting (poll=%ss max_batch=%s once=%s)",
-                POLL_SECONDS, MAX_BATCH, once)
+    _log().info("secretary_waker starting (pid=%s poll=%ss max_batch=%s once=%s)",
+                os.getpid(), POLL_SECONDS, MAX_BATCH, once)
     while True:
         try:
             tick()

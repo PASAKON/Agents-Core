@@ -23,7 +23,9 @@ import hashlib
 import json
 import logging
 import os
+import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -1565,6 +1567,158 @@ def test_http_model_light_returns_400_not_a_silent_profile(running_server) -> No
     status, payload = _post(url, {"model": "light", "messages": [{"role": "user", "content": "hi"}]})
     assert status == 400
     assert payload["error"] == "unknown model profile"
+
+
+# ---------------------------------------------------------------------------
+# task-4c7b0b9d -- the secretary leaves a trace in the journal: a start line,
+# journal priorities, and one line per caught exception
+# that used to be swallowed silently. The real logger has propagate=False, so
+# `logs` swaps in a propagating one that caplog sees (and that writes no file).
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def logs(monkeypatch, caplog):
+    monkeypatch.setattr(ss, "_LOGGER", logging.getLogger(f"test.secretary.{uuid.uuid4().hex}"))
+    caplog.set_level(logging.INFO)
+    return caplog
+
+
+def test_main_logs_started_before_refusing_without_api_key(logs, monkeypatch) -> None:
+    monkeypatch.setattr(ss, "SECRETARY_API_KEY", "")
+    with pytest.raises(SystemExit):
+        ss.main()
+    msgs = [(r.levelno, r.getMessage()) for r in logs.records]
+    assert msgs[0][0] == logging.INFO and msgs[0][1].startswith("secretary started (pid=")
+    assert (logging.ERROR, "secretary: SECRETARY_API_KEY is not set - refusing to start") in msgs
+
+
+def test_started_line_reaches_a_pipe_while_the_server_runs(tmp_path) -> None:
+    """The journal is a non-tty socket, like this pipe: the line must arrive
+    while the process is still serving, with PYTHONUNBUFFERED unset (the
+    logger flushes every record), not when the process exits."""
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("ORG_DB_URL", "JOURNAL_STREAM", "PYTHONUNBUFFERED")}
+    env.update({
+        "SECRETARY_API_KEY": "test-secret-key", "SECRETARY_HOST": "127.0.0.1",
+        "SECRETARY_PORT": "0", "SECRETARY_MCP_CONFIG": str(tmp_path / "mcp.json"),
+        "SECRETARY_SESSION_DB": str(tmp_path / "sessions.db"),
+        "ORG_LOG_DIR": str(tmp_path / "logs"),
+    })
+    proc = subprocess.Popen([sys.executable, str(ROOT / "runners" / "secretary_server.py")],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env,
+                            cwd=tmp_path, text=True)
+    lines: list[str] = []
+
+    def _read() -> None:
+        for line in proc.stdout:
+            lines.append(line)
+
+    reader = threading.Thread(target=_read, daemon=True)
+    reader.start()
+    try:
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline and not any("secretary listening" in l for l in lines):
+            time.sleep(0.1)
+        assert proc.poll() is None, f"server exited early: {lines}"
+        ours = [l for l in lines if l.startswith("[secretary] ")]
+        assert ours[0].startswith("[secretary] secretary started (pid="), lines
+        assert ours[1].startswith("[secretary] secretary listening on 127.0.0.1:0"), lines
+        assert "test-secret-key" not in "".join(lines)
+        assert (tmp_path / "logs" / "secretary.log").is_file()  # ORG_LOG_DIR honoured
+    finally:
+        proc.kill()
+        proc.wait(timeout=10)
+        reader.join(timeout=5)
+
+
+def _journal_logger(stream, journal_stream: str, monkeypatch) -> logging.Logger:
+    logger = logging.getLogger(f"journal-test-{uuid.uuid4().hex}")
+    logger.propagate = False
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(logging.Formatter(f"[{logger.name}] %(message)s"))
+    logger.addHandler(handler)
+    monkeypatch.setenv("JOURNAL_STREAM", journal_stream)
+    return ss.use_journal_levels(logger)
+
+
+def test_journal_levels_prefix_priority_when_stdout_is_the_journal(tmp_path, monkeypatch) -> None:
+    with open(tmp_path / "stream", "w+", encoding="utf-8") as f:
+        st = os.fstat(f.fileno())
+        logger = _journal_logger(f, f"{st.st_dev}:{st.st_ino}", monkeypatch)
+        logger.error("boom")
+        logger.warning("careful")
+        logger.info("fine")
+        f.seek(0)
+        out = f.read().splitlines()
+    name = logger.name
+    assert out == [f"<3>[{name}] ERROR boom", f"<4>[{name}] WARNING careful",
+                   f"<6>[{name}] INFO fine"]
+
+
+def test_journal_levels_leave_the_format_alone_off_the_journal(tmp_path, monkeypatch) -> None:
+    with open(tmp_path / "stream", "w+", encoding="utf-8") as f:
+        logger = _journal_logger(f, "1:2", monkeypatch)  # some other socket
+        logger.error("boom")
+        f.seek(0)
+        assert f.read() == f"[{logger.name}] boom\n"
+
+
+def test_download_image_save_oserror_is_logged(logs, tmp_path, monkeypatch) -> None:
+    class _Resp:
+        status_code = 200
+        headers = {"Content-Type": "image/png"}
+
+        def iter_content(self, chunk_size):
+            yield b"png-bytes"
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(ss, "check_url_safe", lambda url: None)
+    monkeypatch.setattr(ss.requests, "get", lambda *a, **k: _Resp())
+    path, reason = ss._download_image("https://example.com/a.png", tmp_path / "missing-dir", 1)
+    assert path is None and "could not save to disk" in reason
+    errors = [r.getMessage() for r in logs.records if r.levelno == logging.ERROR]
+    assert len(errors) == 1
+    assert "image 1: could not save to" in errors[0] and "errno 2" in errors[0]
+
+
+def test_download_image_request_error_log_carries_no_url(logs, tmp_path, monkeypatch) -> None:
+    """A requests error's text holds the URL; a signed storage URL holds a token."""
+    def _raise(*a, **k):
+        raise ss.requests.exceptions.ConnectionError(
+            "Max retries exceeded with url: /object/sign/photo.jpg?token=SIGNED-TOKEN-XYZ")
+    monkeypatch.setattr(ss, "check_url_safe", lambda url: None)
+    monkeypatch.setattr(ss.requests, "get", _raise)
+    path, _ = ss._download_image("https://example.com/p.jpg?token=SIGNED-TOKEN-XYZ", tmp_path, 2)
+    assert path is None
+    assert "image 2: download failed: ConnectionError" in logs.text
+    assert "SIGNED-TOKEN-XYZ" not in logs.text
+
+
+def test_cleanup_staging_dir_failure_is_logged(logs, tmp_path) -> None:
+    not_a_dir = tmp_path / "staging-file"
+    not_a_dir.write_text("x")
+    ss.cleanup_staging_dir(not_a_dir)  # still never raises
+    warnings = [r.getMessage() for r in logs.records if r.levelno == logging.WARNING]
+    assert warnings and all("could not remove image staging path" in m for m in warnings)
+    assert "NotADirectoryError" in warnings[0]
+
+
+def test_cleanup_staging_dir_already_gone_is_quiet(logs, tmp_path) -> None:
+    ss.cleanup_staging_dir(tmp_path / "never-created")
+    assert not logs.records
+
+
+def test_unreadable_claude_credential_logs_class_not_content(logs, tmp_path, monkeypatch) -> None:
+    cred = tmp_path / ".credentials.json"
+    cred.write_text('{"claudeAiOauth": SECRET-CREDENTIAL-BYTES', encoding="utf-8")
+    monkeypatch.setenv("CLAUDE_CREDENTIALS_PATH", str(cred))
+    ok, _ = ss._claude_auth_status()
+    assert ok is False
+    assert "unusable: JSONDecodeError" in logs.text
+    assert "SECRET-CREDENTIAL-BYTES" not in logs.text
 
 
 if __name__ == "__main__":
