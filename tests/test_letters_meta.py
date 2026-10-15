@@ -12,6 +12,8 @@ from lib import mailbox
     ("blocker · urgent · key missing", "blocker"),
     ("[Project Head (CTO) #7cf528f0] : blocker · urgent · x", "blocker"),
     ("report · normal · M9 done", "report"),
+    ("[Project Head (CTO) #7cf528f0] : fyi · normal · x", "fyi"),
+    ("[a\nb] : blocker · urgent · x", None),
     ("blocked on the key", None),
     ("[x] : nonsense · y", None),
 ])
