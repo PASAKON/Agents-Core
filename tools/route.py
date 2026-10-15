@@ -86,6 +86,7 @@ def _make_reason(
     all_active: list[_CandidateItem],
     tie_threshold: float,
     tie_points: int,
+    order: str = "fullest",
 ) -> str:
     if item.weekly is None:
         return "quota unknown"
@@ -95,6 +96,9 @@ def _make_reason(
     w_pct = item.weekly * 100
     d_pct = item.daily * 100 if item.daily is not None else None
     item_b_str = f" {item.bucket}" if item.bucket else ""
+
+    if order == "ceo":
+        return f"CEO order #{item.idx + 1}, weekly {w_pct:.1f}%{item_b_str}"
 
     if len(all_active) <= 1:
         if d_pct is not None:
@@ -179,6 +183,9 @@ def rank(
     min_samples = cfg.get("router", {}).get("min_samples", 5)
     tie_points = cfg.get("router", {}).get("tie_points", 5)
     tie_threshold = tie_points / 100.0
+    # router.order: "fullest" (default) ranks usable candidates by weekly remaining; "ceo" keeps the roles
+    # list order and moves past a candidate only when its quota is spent (exhausted here, will_hit in plan()).
+    order = cfg.get("router", {}).get("order", "fullest")
 
     filtered_items: list[_CandidateItem] = []
     for idx, cand_str in enumerate(raw_candidates):
@@ -272,7 +279,10 @@ def rank(
         # Still tied -> keep the CEO's order from roles
         return -1 if a.idx < b.idx else 1
 
-    active_items.sort(key=functools.cmp_to_key(compare_active))
+    if order == "ceo":
+        active_items.sort(key=lambda x: x.idx)
+    else:
+        active_items.sort(key=functools.cmp_to_key(compare_active))
 
     # Keep CEO order within exhausted and unknown groups
     exhausted_items.sort(key=lambda x: x.idx)
@@ -285,7 +295,7 @@ def rank(
 
     choices: list[Choice] = []
     for rank_idx, item in enumerate(ranked_items):
-        reason = _make_reason(item, rank_idx, active_items, tie_threshold, tie_points)
+        reason = _make_reason(item, rank_idx, active_items, tie_threshold, tie_points, order)
         choices.append(
             Choice(
                 candidate=item.candidate,
