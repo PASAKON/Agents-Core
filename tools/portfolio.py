@@ -7,12 +7,24 @@
     bash scripts/hub/org-python.sh tools/portfolio.py block black-liquidity --on ceo --what "pick the thumbnail"
     bash scripts/hub/org-python.sh tools/portfolio.py show [<id>]
     bash scripts/hub/org-python.sh tools/portfolio.py monitor          # the P3-E v1 JSON the widget reads
+    bash scripts/hub/org-python.sh tools/portfolio.py edit black-liquidity --goal "..." --repos a/b,c/d
     bash scripts/hub/org-python.sh tools/portfolio.py --import-status docs/plans/X-STATUS.md \
         --project x --dry-run                                           # a PH STATUS.md table, once
+    bash scripts/hub/org-python.sh tools/portfolio.py --import-status docs/plans/X-STATUS.md \
+        --project x --reimport [--dry-run]                              # catch an imported project up
 
-Verbs: open, stage, milestone add|done, block, unblock, decided, go add|use, park, close,
+Verbs: open, edit, stage, milestone add|done, block, unblock, decided, go add|use, park, close,
 lock take|release, show, monitor. Every write appends a project_events row signed with the
-caller's identity (`<role>-<session>`, `ceo` for the CEO).
+caller's identity (`<role>-<session>`, `ceo` for the CEO); `edit` is the exception (no event
+kind for it), it prints the old and the new value of each field it changed.
+
+`--import-status` reads a STATUS.md milestone table into a project with no milestones yet, once.
+A row is done when its State is `landed` or `done` (any case, with or without Markdown emphasis,
+and `done` may be followed by a time or a date) and its Evidence cell is not empty. On a
+project that already has milestones the import is refused; `--reimport` then marks done the
+milestones that are open in the hub and done in the file, matched by title. It never reopens a
+done milestone, never adds one, and `--reimport --dry-run` shows what it would mark (it reads
+the hub; the plain `--dry-run` does not).
 
 Who may write comes from tools.agent_transport.current_identity(), never from a flag:
 - the CEO and the COO: every project;
@@ -170,6 +182,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="import the milestone table of a PH STATUS.md into --project, once")
     p.add_argument("--project", help="with --import-status: the project to import into")
     p.add_argument("--dry-run", action="store_true", help="with --import-status: parse and print, write nothing")
+    p.add_argument("--reimport", action="store_true",
+                   help="with --import-status: mark done the open milestones the file shows as done")
     sub = p.add_subparsers(dest="verb")
 
     s = sub.add_parser("open", help="register a project")
@@ -186,6 +200,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--repos", help="comma list, e.g. PASAKON/Agents-Core")
     s.add_argument("--relay-accounts", help="comma list of account ids")
     s.add_argument("--hq-row")
+
+    s = sub.add_parser("edit", help="change a project's name, goal, repos, done criteria or host")
+    s.add_argument("id")
+    s.add_argument("--name")
+    s.add_argument("--goal")
+    s.add_argument("--repos", help="comma list; replaces the current list")
+    s.add_argument("--done-criteria")
+    s.add_argument("--host")
 
     s = sub.add_parser("stage", help="move a project to another stage")
     s.add_argument("id")
@@ -273,14 +295,22 @@ def _import_status(args, identity, now: datetime) -> int:
     except OSError as e:
         raise pf.PortfolioError(f"cannot read {path}: {e.strerror}") from e
     rows = pf.parse_status_milestones(text)
-    if args.dry_run:
+    if args.dry_run and not args.reimport:
         _out({"dry_run": True, "project": args.project, "source": path.name, "total": len(rows),
               "done": sum(r["done"] for r in rows),
+              "done_state_without_evidence": sum(r["state_done"] and not r["done"] for r in rows),
               "milestones": [{"n": n, "title": r["title"], "done": r["done"], "evidence": r["evidence"]}
                              for n, r in enumerate(rows, 1)]})
         return 0
     if not args.project:
         raise pf.PortfolioError("--import-status needs --project <id>")
+    if args.reimport:
+        project = pf.get_project(args.project)
+        if not args.dry_run and not gate(identity, "reimport", args.project, authorize(identity, "reimport", project)):
+            return 1
+        _out(pf.reimport_milestones(args.project, rows, actor=actor_of(identity), source=path.name,
+                                    dry_run=args.dry_run, now=now))
+        return 0
     project = pf.get_project(args.project)
     if not gate(identity, "import", args.project, authorize(identity, "import", project)):
         return 1
@@ -326,9 +356,15 @@ def _write(args, identity, now: datetime):
         force = identity is not None and (identity.kind == "ceo" or identity.role == "coo")
         return {"resource": args.resource, "released": pf.lock_release(args.resource, holder=actor, force=force)}
 
+    if v == "edit":                                  # bad input is refused before the hub is asked anything
+        pf.edit_fields(name=args.name, goal=args.goal, repos=_csv(args.repos),
+                       done_criteria=args.done_criteria, host=args.host)
     project = pf.get_project(args.id)
     if not ok(v, project):
         return REFUSED
+    if v == "edit":
+        return pf.edit_project(args.id, actor=actor, name=args.name, goal=args.goal, repos=_csv(args.repos),
+                               done_criteria=args.done_criteria, host=args.host)
     if v == "stage":
         return pf.set_stage(args.id, args.stage, actor=actor, reason=args.reason, now=now)
     if v == "milestone":
@@ -357,6 +393,8 @@ def run(argv: list[str], *, identity=None, now: datetime | None = None) -> int:
         if args.verb is None and not args.import_status:
             parser.print_usage(sys.stderr)
             return 2
+        if args.reimport and not args.import_status:
+            raise pf.PortfolioError("--reimport goes with --import-status <file> --project <id>")
         if args.verb == "monitor":
             print(json.dumps(pf.monitor_payload(now), ensure_ascii=False, indent=2))
             return 0
