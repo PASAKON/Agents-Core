@@ -54,6 +54,7 @@ Run:  python -m runners.secretary_waker          (loop)
 """
 from __future__ import annotations
 
+import errno
 import json
 import os
 import sys
@@ -112,8 +113,14 @@ _LOGGER = None
 def _log():
     global _LOGGER
     if _LOGGER is None:
-        _LOGGER = get_logger("secretary_waker")
+        _LOGGER = secretary_server.use_journal_levels(get_logger("secretary_waker"))
     return _LOGGER
+
+
+# One INFO line per hour from the idle loop (task-4c7b0b9d), same reason as
+# secretary_server.HEARTBEAT_SECONDS: an empty box logs nothing, so without it a
+# "0 errors in 24 h" count over this unit's journal cannot fail.
+HEARTBEAT_SECONDS = 3600
 
 
 # ---------------------------------------------------------------------------
@@ -132,12 +139,16 @@ def _try_lock(path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         fd = os.open(str(path), os.O_CREAT | os.O_RDWR, 0o644)
-    except OSError:
+    except OSError as e:
+        # Not contention: tick() would otherwise only say "still in flight".
+        _log().error("cannot open lock %s: %s", path, secretary_server._exc_brief(e))
         return None
     try:
         fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError:
+    except OSError as e:
         os.close(fd)
+        if e.errno not in (errno.EWOULDBLOCK, errno.EAGAIN):  # those are plain contention
+            _log().error("cannot flock %s: %s", path, secretary_server._exc_brief(e))
         return None
     return fd
 
@@ -147,8 +158,8 @@ def _unlock(fd) -> None:
         return
     try:
         os.close(fd)  # releases the flock too
-    except OSError:
-        pass
+    except OSError as e:
+        _log().warning("closing lock fd %s failed: %s", fd, secretary_server._exc_brief(e))
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +186,12 @@ def _peek_with_paths(root: Path | None = None) -> list[tuple[Path, dict]]:
     for p in sorted(box.glob("*.json")):
         try:
             letter = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
+        except Exception as e:
+            # mailbox.send() writes by atomic rename, so this is a corrupt letter,
+            # not a half-written one: it is skipped on every tick, so it is
+            # logged on every tick. Class only, never the letter's content.
+            _log().error("unreadable letter %s skipped: %s", p.name,
+                         secretary_server._exc_brief(e))
             continue
         out.append((p, letter))
     return out
@@ -191,7 +207,11 @@ def _peek_with_paths(root: Path | None = None) -> list[tuple[Path, dict]]:
 def _load_failcounts(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except FileNotFoundError:  # no failure recorded yet
+        return {}
+    except Exception as e:
+        _log().warning("failcounts %s unreadable, poison-letter counts reset: %s",
+                       path, secretary_server._exc_brief(e))
         return {}
 
 
@@ -385,13 +405,22 @@ def _tick_locked() -> int:
 
 def main() -> None:
     once = "--once" in sys.argv
-    _log().info("secretary_waker starting (poll=%ss max_batch=%s once=%s)",
-                POLL_SECONDS, MAX_BATCH, once)
+    _log().info("secretary_waker starting (pid=%s poll=%ss max_batch=%s once=%s)",
+                os.getpid(), POLL_SECONDS, MAX_BATCH, once)
+    started = time.monotonic()
+    next_heartbeat = started + HEARTBEAT_SECONDS
+    ticks = sent = 0
     while True:
         try:
-            tick()
+            sent += tick()
         except Exception as e:  # one bad tick must never kill the loop
             _log().error("tick failed: %s", e)
+        ticks += 1
+        now = time.monotonic()
+        if now >= next_heartbeat:
+            next_heartbeat = now + HEARTBEAT_SECONDS
+            _log().info("secretary_waker heartbeat: up %ds, %d tick(s), %d letter(s) sent",
+                        now - started, ticks, sent)
         if once:
             return
         time.sleep(POLL_SECONDS)
