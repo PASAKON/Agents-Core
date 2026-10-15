@@ -199,7 +199,7 @@ def test_secretary_relay_path_works_on_bare_env(isolated_env, monkeypatch):
     monkeypatch.setattr(mac_agent, "find_session_for_role", lambda r: "cfo-cfosess1")
     monkeypatch.setattr(mac_agent, "attempt_wake", lambda *a, **k: True)
 
-    ok, detail = mac_agent.do_relay("cfo", {"message": "[CEO via Secretary]: check budget"})
+    ok, detail = mac_agent.do_relay("cfo", {"message": "[CEO via SomPong]: check budget"})
     assert ok is True
     assert "delivered to cfo-cfosess1" in detail
     letters = mailbox.peek("cfo", "cfosess1", root=inbox)
