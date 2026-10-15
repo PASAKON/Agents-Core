@@ -178,7 +178,7 @@ def test_send_to_cto_sequence(tmp_path: Path) -> bool:
         m.STATE_DIR, mailbox.INBOX_ROOT = orig_state, orig_inbox
 
 
-def test_send_to_dev_sequence(tmp_path: Path) -> bool:
+def test_send_to_dev_sequence(tmp_path: Path, ceo_command) -> bool:
     """Supersedes the old assertion (task-2f04a8ca, 2026-08-14): send_to_dev
     no longer types anything -- the `_send` helper this test used to import
     is deleted, not renamed. Full delivery-contract coverage (wake
