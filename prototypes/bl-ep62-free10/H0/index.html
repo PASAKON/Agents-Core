@@ -1,0 +1,1264 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-deep: #050609;
+        --bg-panel: rgba(9, 11, 16, 0.90);
+        --crimson: #E6192E;
+        --neon-red: #FF243B;
+        --gold: #FFD026;
+        --gold-warm: #FFA800;
+        --ice: #F5F7FA;
+        --slate: #98A3B3;
+        --stroke-heavy:
+          0 0 12px rgba(0, 0, 0, 0.98),
+          0 5px 22px rgba(0, 0, 0, 0.92),
+          3px 3px 0 #000,
+          -3px 3px 0 #000,
+          3px -3px 0 #000,
+          -3px -3px 0 #000;
+        --glow-red: 0 0 24px rgba(255, 36, 59, 0.72), 0 0 54px rgba(255, 36, 59, 0.30);
+        --glow-gold: 0 0 24px rgba(255, 208, 38, 0.65), 0 0 48px rgba(255, 208, 38, 0.25);
+      }
+
+      html, body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg-deep);
+        font-family: 'Kanit', sans-serif;
+        color: var(--ice);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg-deep);
+      }
+
+      /* Base dark investigative grid canvas */
+      .canvas-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(95% 55% at 50% 18%, rgba(230, 25, 46, 0.24), transparent 68%),
+          radial-gradient(80% 45% at 45% 78%, rgba(255, 208, 38, 0.10), transparent 65%),
+          #050609;
+      }
+      .canvas-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 36, 59, 0.08) 1.5px, transparent 1.5px),
+          linear-gradient(90deg, rgba(255, 36, 59, 0.08) 1.5px, transparent 1.5px);
+        background-size: 72px 72px;
+        opacity: 0.55;
+      }
+
+      /* HyperFrames media clips */
+      .clip {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        object-fit: cover;
+        pointer-events: none;
+      }
+
+      .track-1 { z-index: 1; }
+      .track-2 { z-index: 2; }
+      .track-3 { z-index: 3; }
+      .track-4 { z-index: 4; }
+
+      /* Bespoke framing for specific shots */
+      /* Shot 1: Avatar framed in upper cinema window over gold vault b-roll */
+      #v-av-1 {
+        object-fit: cover;
+        object-position: 50% 16%;
+        clip-path: polygon(0 0, 100% 0, 100% 62%, 0 70%);
+        filter: contrast(1.12) saturate(1.08) brightness(0.96);
+      }
+      #v-broll-gold-1 {
+        filter: brightness(0.55) contrast(1.2) saturate(1.2);
+      }
+
+      /* Shot 2: Hourglass full screen + Avatar lower-left split cutout panel */
+      #v-broll-hourglass {
+        filter: brightness(0.62) contrast(1.22) saturate(1.25);
+      }
+      #v-av-2 {
+        width: 490px;
+        height: 730px;
+        left: 76px;
+        top: 630px;
+        inset: auto;
+        border-radius: 28px;
+        border: 4px solid var(--neon-red);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9), var(--glow-red);
+        object-fit: cover;
+        object-position: 50% 15%;
+        filter: contrast(1.12) saturate(1.06);
+      }
+
+      /* Shot 3: Red digital countdown intense background */
+      #v-broll-countdown {
+        filter: brightness(0.58) contrast(1.30) saturate(1.35);
+      }
+
+      /* Shot 4: Finger taps red lock + cxm-post-claim.png evidence plate */
+      #v-broll-lock {
+        filter: brightness(0.42) contrast(1.2) blur(2px);
+      }
+      /* cxm-post-claim.png has white text band around y=760..1160 on black.
+         Used as-is without zooming onto any blurred area. */
+      #img-post-claim {
+        object-fit: contain;
+        clip-path: inset(735px 24px 725px 24px round 22px);
+        filter: drop-shadow(0 24px 48px rgba(0,0,0,0.95));
+      }
+
+      /* Shot 5: Gold bar + Full-frame graded presenter + account screenshot strip */
+      #v-broll-gold-2 {
+        filter: brightness(0.38) contrast(1.25) saturate(1.3);
+      }
+      #v-av-5 {
+        object-fit: cover;
+        object-position: 50% 14%;
+        clip-path: polygon(0 0, 100% 0, 100% 54%, 0 60%);
+        filter: contrast(1.14) saturate(1.08) brightness(0.92);
+      }
+      #img-post-account {
+        object-fit: contain;
+        clip-path: inset(745px 24px 735px 24px round 20px);
+        filter: drop-shadow(0 20px 44px rgba(0,0,0,0.95));
+      }
+
+      /* Shot 6: Typewriter red neon ticker + Contract wax seal split */
+      #v-broll-typewriter {
+        clip-path: polygon(0 0, 100% 0, 100% 58%, 0 58%);
+        filter: brightness(0.68) contrast(1.25) saturate(1.3);
+      }
+      #v-broll-contract {
+        clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+        filter: brightness(0.56) contrast(1.22) saturate(1.15);
+      }
+
+      /* Shot 7: Red forbidden icon glow + Presenter cutout */
+      #v-broll-forbidden {
+        filter: brightness(0.66) contrast(1.28) saturate(1.35);
+      }
+      #v-av-7 {
+        width: 460px;
+        height: 640px;
+        left: 76px;
+        top: 710px;
+        inset: auto;
+        border-radius: 26px;
+        border: 4px solid var(--gold);
+        box-shadow: 0 20px 55px rgba(0,0,0,0.92), var(--glow-gold);
+        object-fit: cover;
+        object-position: 50% 15%;
+        filter: contrast(1.12);
+      }
+
+      /* Shot 8: Final lockup — Presenter + un-zoomed full post still */
+      #v-av-8 {
+        object-fit: cover;
+        object-position: 50% 16%;
+        filter: brightness(0.48) contrast(1.18) saturate(1.05);
+      }
+      /* Rule 1 strictly respected: cxm-post-full.png used as-is, scaled down
+         as an un-sharpened dossier card, never un-blurred or zoomed onto the top header. */
+      #img-post-full {
+        object-fit: contain;
+        transform-origin: 50% 50%;
+      }
+
+      /* Cinematic dark vignette & scanline overlay above clips */
+      .cinema-grade {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg,
+            rgba(5, 6, 9, 0.82) 0%,
+            rgba(5, 6, 9, 0.16) 20%,
+            rgba(5, 6, 9, 0.22) 55%,
+            rgba(5, 6, 9, 0.78) 80%,
+            rgba(5, 6, 9, 0.96) 100%);
+      }
+      .scanlines {
+        position: absolute;
+        inset: 0;
+        z-index: 11;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.028) 0px,
+          rgba(255, 255, 255, 0.028) 2px,
+          transparent 2px,
+          transparent 6px
+        );
+      }
+
+      /* Top Broadcast HUD Header (Always within safe area x: 76..944, y: 152..228) */
+      .hud-top {
+        position: absolute;
+        top: 152px;
+        left: 76px;
+        right: 136px;
+        height: 76px;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 22px;
+        background: rgba(8, 10, 15, 0.90);
+        border: 2px solid rgba(255, 36, 59, 0.55);
+        border-left: 10px solid var(--neon-red);
+        border-radius: 16px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+      }
+      .hud-brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .hud-logo {
+        height: 44px;
+        width: auto;
+        display: block;
+      }
+      .hud-ep {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        font-size: 24px;
+        letter-spacing: 0.06em;
+        color: var(--ice);
+        background: var(--crimson);
+        padding: 4px 12px;
+        border-radius: 8px;
+      }
+      .hud-claim-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 208, 38, 0.14);
+        border: 1.5px solid var(--gold);
+        padding: 6px 16px;
+        border-radius: 999px;
+      }
+      .hud-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--neon-red);
+        box-shadow: 0 0 12px var(--neon-red);
+      }
+      .hud-claim-txt {
+        font-weight: 800;
+        font-size: 24px;
+        color: var(--gold);
+        white-space: nowrap;
+      }
+      .hud-tc {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        font-size: 24px;
+        color: #CBD5E1;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+      }
+
+      /* Stage container for all shot-specific kinetic graphics */
+      .stage {
+        position: absolute;
+        inset: 0;
+        z-index: 35;
+        pointer-events: none;
+      }
+
+      /* Every shot panel stays strictly inside TikTok safe area:
+         left: 76px, right: 136px (width 868px, clear of x>960 right rail),
+         and all key graphics above y=1400 (clear of y>1500 bottom chrome). */
+      .shot-layer {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+
+      .fit-line {
+        white-space: nowrap;
+        display: inline-block;
+      }
+
+      /* Typography utility styles */
+      .t-mega {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 106px;
+        line-height: 1.10;
+        text-shadow: var(--stroke-heavy);
+      }
+      .t-hero {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 86px;
+        line-height: 1.14;
+        text-shadow: var(--stroke-heavy);
+      }
+      .t-title {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 66px;
+        line-height: 1.18;
+        text-shadow: var(--stroke-heavy);
+      }
+      .t-sub {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 48px;
+        line-height: 1.24;
+        text-shadow: var(--stroke-heavy);
+      }
+      .t-label {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 35px;
+        line-height: 1.26;
+        text-shadow: var(--stroke-heavy);
+      }
+      .num-en {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .c-red {
+        color: var(--neon-red);
+        text-shadow: var(--stroke-heavy), var(--glow-red);
+      }
+      .c-gold {
+        color: var(--gold);
+        text-shadow: var(--stroke-heavy), var(--glow-gold);
+      }
+      .c-white {
+        color: var(--ice);
+      }
+
+      /* Graphic cards & badges */
+      .glass-card {
+        background: rgba(8, 10, 15, 0.90);
+        border: 2.5px solid rgba(255, 255, 255, 0.16);
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+      }
+      .stamp-box {
+        display: inline-block;
+        padding: 10px 28px;
+        border-radius: 14px;
+        font-weight: 800;
+        background: var(--crimson);
+        color: #fff;
+        border: 3px solid #FF8A95;
+        box-shadow: var(--glow-red), 0 12px 30px rgba(0,0,0,0.8);
+      }
+      .gold-pill {
+        display: inline-block;
+        padding: 8px 24px;
+        border-radius: 12px;
+        font-weight: 800;
+        background: var(--gold);
+        color: #090A0F;
+        box-shadow: var(--glow-gold);
+      }
+
+      /* Hazard Warning Tape */
+      .hazard-strip {
+        position: absolute;
+        left: -60px;
+        width: 1200px;
+        height: 44px;
+        background: repeating-linear-gradient(
+          -45deg,
+          #FFD026 0px,
+          #FFD026 28px,
+          #090A0F 28px,
+          #090A0F 56px
+        );
+        box-shadow: 0 8px 24px rgba(0,0,0,0.85);
+        z-index: 32;
+      }
+
+      /* Flash impact overlay for cut transitions */
+      .cut-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 55;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(circle at 50% 45%, #FFFFFF 0%, #FF243B 55%, transparent 100%);
+        mix-blend-mode: screen;
+      }
+
+      /* Progress timeline bar right above the legal disclaimer */
+      .timeline-bar-wrap {
+        position: absolute;
+        left: 76px;
+        right: 136px;
+        top: 1408px;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        overflow: hidden;
+        z-index: 85;
+      }
+      .timeline-bar-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--neon-red), var(--gold));
+        transform-origin: left center;
+        transform: scaleX(0);
+      }
+
+      /* HARD RULE 2: Standing legal label on screen for the whole 10 s, readable, clear of y>1500 and x>960 */
+      .legal-bar {
+        position: absolute;
+        left: 76px;
+        right: 136px;
+        top: 1430px;
+        z-index: 90;
+        background: rgba(5, 6, 9, 0.92);
+        border: 1.5px solid rgba(255, 255, 255, 0.22);
+        border-radius: 14px;
+        padding: 11px 20px;
+        text-align: center;
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 23px;
+        line-height: 1.3;
+        color: #E2E8F0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.85);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10"
+         data-width="1080" data-height="1920">
+
+      <div class="canvas-bg"><div class="canvas-grid" id="bg-grid"></div></div>
+
+      <!-- ==================== HYPERFRAMES MEDIA TRACKS ==================== -->
+      <!-- SHOT 1 (0.00 - 1.00s): Gold bar vault + lip-synced Presenter -->
+      <video id="v-broll-gold-1" class="clip track-1" src="assets/broll/gold-bar-in-glass-cube.mp4"
+             muted playsinline data-start="0" data-duration="1.0" data-media-start="0" data-track-index="1"></video>
+      <video id="v-av-1" class="clip track-2" src="assets/avatar-lipsync-0-10s.mp4"
+             muted playsinline data-start="0" data-duration="1.0" data-media-start="0" data-track-index="2"></video>
+
+      <!-- SHOT 2 (1.00 - 2.25s): Hourglass red sand + lip-synced Presenter PiP (media-start=1.0) -->
+      <video id="v-broll-hourglass" class="clip track-1" src="assets/broll/hourglass-red-sand.mp4"
+             muted playsinline data-start="1.0" data-duration="1.25" data-media-start="0" data-track-index="1"></video>
+      <video id="v-av-2" class="clip track-2" src="assets/avatar-lipsync-0-10s.mp4"
+             muted playsinline data-start="1.0" data-duration="1.25" data-media-start="1.0" data-track-index="2"></video>
+
+      <!-- SHOT 3 (2.25 - 3.60s): Red digital countdown -->
+      <video id="v-broll-countdown" class="clip track-1" src="assets/broll/red-digital-countdown.mp4"
+             muted playsinline data-start="2.25" data-duration="1.35" data-media-start="0" data-track-index="1"></video>
+
+      <!-- SHOT 4 (3.60 - 4.90s): Finger taps red lock + Facebook post claim screenshot -->
+      <video id="v-broll-lock" class="clip track-1" src="assets/broll/finger-taps-red-lock.mp4"
+             muted playsinline data-start="3.6" data-duration="1.3" data-media-start="0" data-track-index="1"></video>
+      <img id="img-post-claim" class="clip track-2" src="assets/stills/cxm-post-claim.png"
+           alt="" data-start="3.6" data-duration="1.3" data-track-index="2" />
+
+      <!-- SHOT 5 (4.90 - 6.40s): Gold bar + Presenter (media-start=4.9) + Account screenshot -->
+      <video id="v-broll-gold-2" class="clip track-1" src="assets/broll/gold-bar-in-glass-cube.mp4"
+             muted playsinline data-start="4.9" data-duration="1.5" data-media-start="2.0" data-track-index="1"></video>
+      <video id="v-av-5" class="clip track-2" src="assets/avatar-lipsync-0-10s.mp4"
+             muted playsinline data-start="4.9" data-duration="1.5" data-media-start="4.9" data-track-index="2"></video>
+      <img id="img-post-account" class="clip track-3" src="assets/stills/cxm-post-account.png"
+           alt="" data-start="4.9" data-duration="1.5" data-track-index="3" />
+
+      <!-- SHOT 6 (6.40 - 7.75s): Typewriter red neon ticker + Contract signature wax seal -->
+      <video id="v-broll-typewriter" class="clip track-1" src="assets/broll/typewriter-red-neon-ticker-tape.mp4"
+             muted playsinline data-start="6.4" data-duration="1.35" data-media-start="0" data-track-index="1"></video>
+      <video id="v-broll-contract" class="clip track-2" src="assets/broll/contract-signature-wax-seal.mp4"
+             muted playsinline data-start="6.4" data-duration="1.35" data-media-start="0" data-track-index="2"></video>
+
+      <!-- SHOT 7 (7.75 - 9.30s): Red forbidden icon glow + Presenter (media-start=7.75) -->
+      <video id="v-broll-forbidden" class="clip track-1" src="assets/broll/red-forbidden-icon-glow.mp4"
+             muted playsinline data-start="7.75" data-duration="1.55" data-media-start="0" data-track-index="1"></video>
+      <video id="v-av-7" class="clip track-2" src="assets/avatar-lipsync-0-10s.mp4"
+             muted playsinline data-start="7.75" data-duration="1.55" data-media-start="7.75" data-track-index="2"></video>
+
+      <!-- SHOT 8 (9.30 - 10.00s): Presenter (media-start=9.3) + Full post dossier card (un-zoomed, as-is) -->
+      <video id="v-av-8" class="clip track-1" src="assets/avatar-lipsync-0-10s.mp4"
+             muted playsinline data-start="9.3" data-duration="0.7" data-media-start="9.3" data-track-index="1"></video>
+      <img id="img-post-full" class="clip track-2" src="assets/stills/cxm-post-full.png"
+           alt="" data-start="9.3" data-duration="0.7" data-track-index="2" />
+
+      <!-- NARRATION AUDIO (0.0s - 10.0s, untouched) -->
+      <audio id="va" src="assets/voice-10s.wav" data-start="0" data-duration="10"
+             data-track-index="10" data-volume="1"></audio>
+
+      <!-- ==================== GRADING & STANDING HUD ==================== -->
+      <div class="cinema-grade"></div>
+      <div class="scanlines"></div>
+
+      <!-- Top Investigative Dossier Header -->
+      <div class="hud-top" id="hud-top">
+        <div class="hud-brand">
+          <img class="hud-logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY" />
+          <span class="hud-ep">EP.62</span>
+        </div>
+        <div class="hud-claim-pill">
+          <span class="hud-dot" id="hud-dot"></span>
+          <span class="hud-claim-txt fit-line" data-max-w="340">ตามที่เจ้าของโพสต์เล่า</span>
+        </div>
+        <div class="hud-tc" id="hud-tc">00:00:00</div>
+      </div>
+
+      <!-- ==================== SHOT-BY-SHOT KINETIC STAGE ==================== -->
+      <div class="stage" id="stage">
+
+        <!-- SHOT 1 (0.00 - 1.00s): Scroll-Stopper First Frame Hook -->
+        <div class="shot-layer" id="s1-layer" style="opacity:1">
+          <div id="s1-top-tag" class="stamp-box" style="position:absolute;left:76px;top:254px;font-size:32px;padding:8px 22px;">
+            <span class="fit-line" data-max-w="420">BREAKING CLAIM · CXM</span>
+          </div>
+          <div id="s1-card" class="glass-card" style="position:absolute;left:76px;right:136px;top:840px;padding:30px 34px;border-left:12px solid var(--gold);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span class="gold-pill fit-line" data-max-w="500" style="font-size:30px;">ดราม่าเทรดเดอร์ · อ้างอิงโพสต์ผู้เสียหาย</span>
+              <span class="num-en" style="font-size:34px;color:var(--neon-red);background:rgba(255,36,59,0.16);padding:4px 16px;border-radius:10px;border:2px solid var(--neon-red);">CXM</span>
+            </div>
+            <div id="s1-h1" class="t-mega c-white fit-line" data-max-w="790">พอร์ตบวกเกือบ <span class="c-gold">6 ล้าน</span></div>
+            <div id="s1-h2" class="t-hero c-red fit-line" data-max-w="790" style="margin-top:6px;">แต่โบรกไม่จ่ายกำไร?!</div>
+            <div id="s1-bar" style="height:8px;background:linear-gradient(90deg,var(--neon-red),var(--gold));border-radius:4px;margin-top:20px;transform-origin:left center;"></div>
+            <div id="s1-sub" class="t-label fit-line" data-max-w="790" style="margin-top:16px;color:#CBD5E1;">
+              ถือออเดอร์ <span class="c-gold">2 ชั่วโมง</span> · แต่ถูกกล่าวหาว่า <span class="c-red">"เทรดเร็วเกินไป"</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHOT 2 (1.00 - 2.25s): "ถือออเดอร์สองชั่วโมง" -->
+        <div class="shot-layer" id="s2-layer">
+          <div id="s2-top-box" class="glass-card" style="position:absolute;left:76px;right:136px;top:254px;padding:26px 34px;border-top:8px solid var(--gold);text-align:center;">
+            <div id="s2-kicker" class="t-sub c-white fit-line" data-max-w="790">เธอเล่าว่าเทรดทอง · ถือออเดอร์นานถึง</div>
+            <div id="s2-big-row" style="display:flex;align-items:baseline;justify-content:center;gap:20px;margin-top:4px;">
+              <span id="s2-num" class="num-en c-gold" style="font-size:154px;line-height:0.95;text-shadow:var(--stroke-heavy),var(--glow-gold);">2</span>
+              <span id="s2-unit" class="t-mega c-white fit-line" data-max-w="500">ชั่วโมงเต็ม!</span>
+            </div>
+            <div style="margin-top:14px;display:flex;justify-content:center;gap:16px;">
+              <div class="stamp-box num-en" id="s2-timer" style="background:#0D111A;border-color:var(--gold);color:var(--gold);font-size:36px;letter-spacing:0.06em;">HOLD TIME · 02:00:00</div>
+            </div>
+          </div>
+
+          <!-- Right-side vertical stat stack next to Avatar PiP (inside safe x <= 940) -->
+          <div id="s2-right-card" class="glass-card" style="position:absolute;left:590px;width:350px;top:630px;height:730px;padding:30px 26px;border-left:8px solid var(--gold);display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="gold-pill fit-line" data-max-w="290" style="font-size:26px;">ตามที่เจ้าของโพสต์เล่า</div>
+              <div class="num-en c-white" style="font-size:74px;line-height:1.0;margin-top:18px;">120 MIN</div>
+              <div class="t-label c-gold fit-line" data-max-w="295" style="margin-top:6px;">7,200 วินาที</div>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.18);"></div>
+            <div>
+              <div class="t-label c-white fit-line" data-max-w="295">เทรดทองผ่านมือถือ</div>
+              <div class="t-label fit-line" data-max-w="295" style="color:#CBD5E1;margin-top:6px;">มีทั้งไม้กำไร &amp; ขาดทุน</div>
+            </div>
+            <div style="height:3px;background:rgba(255,255,255,0.18);"></div>
+            <div>
+              <div class="t-label c-gold fit-line" data-max-w="295">บัญชี Cent · CXM</div>
+              <div class="t-label c-white fit-line" data-max-w="295" style="margin-top:4px;">ใช้เงินทุนตัวเอง</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHOT 3 (2.25 - 3.60s): "แต่โดนข้อหาเทรดเร็วเกินไป?" -->
+        <div class="shot-layer" id="s3-layer">
+          <div class="hazard-strip" id="s3-haz-1" style="top:256px;transform:rotate(-1.8deg);"></div>
+          <div class="hazard-strip" id="s3-haz-2" style="top:1312px;transform:rotate(1.4deg);"></div>
+
+          <div id="s3-main" style="position:absolute;left:76px;right:136px;top:334px;text-align:center;">
+            <div id="s3-tag" class="stamp-box fit-line" data-max-w="680" style="font-size:40px;margin-bottom:18px;">
+              แต่กลับโดนตั้งข้อหาสุดงง!
+            </div>
+            <div id="s3-line1" class="t-title c-white fit-line" data-max-w="830" style="display:block;">
+              กล่าวหาว่าเธอ...
+            </div>
+            <div id="s3-line2" class="t-mega c-red fit-line" data-max-w="840" style="display:block;font-size:110px;margin-top:8px;">
+              "เทรดเร็วเกินไป?!"
+            </div>
+          </div>
+
+          <!-- Contradiction VS Comparison Card -->
+          <div id="s3-vs-card" class="glass-card" style="position:absolute;left:76px;right:136px;top:815px;padding:28px 30px;display:flex;align-items:center;justify-content:space-between;border:3px solid var(--neon-red);">
+            <div style="flex:1;text-align:center;">
+              <div class="t-label fit-line" data-max-w="340" style="color:#94A3B8;">สิ่งที่ผู้เสียหายเล่า</div>
+              <div class="t-title c-gold fit-line" data-max-w="350" style="margin-top:8px;">ถือ 2 ชั่วโมง</div>
+              <div class="t-label c-white fit-line" data-max-w="340" style="margin-top:4px;">(120 นาทีเต็ม)</div>
+            </div>
+            <div style="width:86px;height:86px;border-radius:50%;background:var(--crimson);display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:800;font-size:36px;box-shadow:var(--glow-red);flex-shrink:0;margin:0 14px;">
+              VS
+            </div>
+            <div style="flex:1;text-align:center;">
+              <div class="t-label fit-line" data-max-w="340" style="color:#94A3B8;">ข้อหาจากโบรกเกอร์</div>
+              <div class="t-title c-red fit-line" data-max-w="350" style="margin-top:8px;">เทรดเร็วเกินไป?</div>
+              <div class="t-label c-white fit-line" data-max-w="340" style="margin-top:4px;">อ้างผิดกฎโบรก?!</div>
+            </div>
+          </div>
+
+          <div id="s3-speech-cap" class="glass-card" style="position:absolute;left:76px;right:136px;top:1145px;padding:18px 28px;text-align:center;border-left:8px solid var(--gold);">
+            <span class="t-sub c-white fit-line" data-max-w="790">"ถือออเดอร์ 2 ชั่วโมง แต่โดนข้อหาเทรดเร็วเกินไป?"</span>
+          </div>
+        </div>
+
+        <!-- SHOT 4 (3.60 - 4.90s): "เธอเล่าว่าซีเอ็กซ์เอ็มไม่จ่ายกำไร..." + Post Claim Screenshot -->
+        <div class="shot-layer" id="s4-layer">
+          <div id="s4-top" class="glass-card" style="position:absolute;left:76px;right:136px;top:252px;padding:26px 34px;border-left:12px solid var(--neon-red);">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+              <span class="gold-pill fit-line" data-max-w="420" style="font-size:28px;">โพสต์ของผู้เสียหาย</span>
+              <span class="t-label c-white fit-line" data-max-w="380">ตามที่เจ้าของโพสต์เล่า</span>
+            </div>
+            <div id="s4-h1" class="t-hero c-white fit-line" data-max-w="790">
+              เธอเล่าว่าโบรกเกอร์ <span class="c-red num-en">CXM</span>
+            </div>
+            <div id="s4-h2" class="t-mega c-gold fit-line" data-max-w="790" style="margin-top:2px;">
+              ไม่จ่ายกำไร!
+            </div>
+          </div>
+
+          <!-- Highlight frame around scaled cxm-post-claim.png band (safe x: 76..944, y: 660..1085) -->
+          <div id="s4-frame" style="position:absolute;left:76px;right:136px;top:665px;height:410px;border:4px solid var(--neon-red);border-radius:24px;box-shadow:var(--glow-red);pointer-events:none;">
+            <div id="s4-hl-1" style="position:absolute;left:18px;right:18px;top:28px;height:84px;background:rgba(255,208,38,0.22);border-left:8px solid var(--gold);border-radius:8px;transform-origin:left center;"></div>
+            <div id="s4-hl-2" style="position:absolute;left:18px;right:18px;top:245px;height:115px;background:rgba(255,36,59,0.20);border-left:8px solid var(--neon-red);border-radius:8px;transform-origin:left center;"></div>
+          </div>
+
+          <div id="s4-stamp" class="stamp-box" style="position:absolute;right:150px;top:1120px;font-size:46px;transform:rotate(-5deg);">
+            <span class="fit-line" data-max-w="480">ปฏิเสธจ่ายกำไร!</span>
+          </div>
+        </div>
+
+        <!-- SHOT 5 (4.90 - 6.40s): "...เกือบหกล้านบาท" (6,000,000 BAHT COUNT-UP) -->
+        <div class="shot-layer" id="s5-layer">
+          <div id="s5-counter-card" class="glass-card" style="position:absolute;left:76px;right:136px;top:455px;padding:26px 34px;border:3px solid var(--gold);text-align:center;background:rgba(7,9,14,0.94);">
+            <div class="t-sub c-white fit-line" data-max-w="780">ยอดกำไรบัญชี Cent ที่เธออ้างว่าถูกปฏิเสธ</div>
+            <div id="s5-digits" class="num-en c-gold" style="font-size:114px;line-height:1.02;margin-top:6px;text-shadow:var(--stroke-heavy),var(--glow-gold);">
+              ฿<span id="s5-count-val">0</span>
+            </div>
+            <div id="s5-thai-amt" class="t-mega c-red fit-line" data-max-w="790" style="margin-top:4px;">
+              เกือบ 6 ล้านบาท!
+            </div>
+            <!-- Frozen payout progress bar -->
+            <div style="margin-top:14px;background:rgba(255,255,255,0.12);height:20px;border-radius:999px;overflow:hidden;position:relative;">
+              <div id="s5-meter" style="width:100%;height:100%;background:linear-gradient(90deg,var(--gold),var(--neon-red));transform-origin:left center;"></div>
+            </div>
+          </div>
+
+          <!-- Frame around cxm-post-account.png floating below -->
+          <div id="s5-acc-badge" class="stamp-box" style="position:absolute;left:76px;right:136px;top:1260px;font-size:34px;background:#111622;border-color:var(--gold);color:var(--gold);text-align:center;">
+            <span class="fit-line" data-max-w="780">ตามโพสต์: เปิดบัญชี Cent กับ CXM Direct ด้วยทุนตัวเอง</span>
+          </div>
+        </div>
+
+        <!-- SHOT 6 (6.40 - 7.75s): "ซีเอ็กซ์เอ็มแจ้งในอีเมลว่า..." -->
+        <div class="shot-layer" id="s6-layer">
+          <div id="s6-email-card" class="glass-card" style="position:absolute;left:76px;right:136px;top:350px;padding:0;overflow:hidden;border:3px solid var(--neon-red);">
+            <div style="background:linear-gradient(90deg,#990F1E,#E6192E);padding:20px 30px;display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <span class="num-en" style="font-size:30px;background:#000;color:var(--gold);padding:4px 14px;border-radius:8px;">EMAIL NOTICE</span>
+                <span class="t-label c-white fit-line" data-max-w="420">ข้อความแจ้งจากโบรกเกอร์ CXM</span>
+              </div>
+              <span class="num-en" style="font-size:26px;color:#FFD026;">ALERT</span>
+            </div>
+            <div style="padding:34px 34px 38px;">
+              <div class="t-label fit-line" data-max-w="780" style="color:#94A3B8;">ตามที่เจ้าของโพสต์เล่า:</div>
+              <div id="s6-l1" class="t-hero c-white fit-line" data-max-w="790" style="margin-top:10px;">
+                <span class="c-red num-en">CXM</span> แจ้งในอีเมลว่า
+              </div>
+              <div id="s6-l2" class="t-title c-gold fit-line" data-max-w="790" style="margin-top:14px;">
+                คำสั่งซื้อขายนี้เข้าข่าย...
+              </div>
+              <div id="s6-typing-bar" style="margin-top:26px;padding:18px 24px;background:rgba(255,36,59,0.14);border:2px dashed var(--neon-red);border-radius:14px;text-align:center;">
+                <span class="num-en c-red fit-line" data-max-w="720" style="font-size:44px;letter-spacing:0.05em;">STATUS: VIOLATION CLAIMED</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="s6-cap" class="glass-card" style="position:absolute;left:76px;right:136px;top:1120px;padding:22px 30px;text-align:center;border-left:10px solid var(--neon-red);">
+            <span class="t-sub c-white fit-line" data-max-w="790">"CXM แจ้งในอีเมลว่า เป็น..."</span>
+          </div>
+        </div>
+
+        <!-- SHOT 7 (7.75 - 9.30s): "...เป็นท็อกซิกเทรดดิ้ง" ("TOXIC TRADING" SLAM) -->
+        <div class="shot-layer" id="s7-layer">
+          <div id="s7-top-banner" class="glass-card" style="position:absolute;left:76px;right:136px;top:254px;padding:28px 32px;text-align:center;border:4px solid var(--neon-red);background:rgba(12,6,10,0.94);">
+            <div class="gold-pill fit-line" data-max-w="620" style="font-size:30px;margin-bottom:12px;">ข้อหาที่โบรกเกอร์ระบุในอีเมล (ตามโพสต์)</div>
+            <div id="s7-en" class="num-en c-red fit-line" data-max-w="800" style="font-size:100px;line-height:0.98;letter-spacing:0.01em;">
+              "TOXIC TRADING"
+            </div>
+            <div id="s7-th" class="t-hero c-gold fit-line" data-max-w="790" style="margin-top:8px;">
+              ท็อกซิกเทรดดิ้ง!
+            </div>
+          </div>
+
+          <!-- Right-side breakdown cards next to Presenter cutout (x: 560..940) -->
+          <div id="s7-pill-1" class="glass-card" style="position:absolute;left:560px;width:380px;top:710px;padding:22px 24px;border-left:8px solid var(--gold);">
+            <div class="t-label fit-line" data-max-w="330" style="color:#94A3B8;">ฝั่งเทรดเดอร์อ้าง</div>
+            <div class="t-sub c-gold fit-line" data-max-w="330" style="margin-top:4px;">ถือออเดอร์ 2 ชม.</div>
+          </div>
+          <div id="s7-pill-2" class="glass-card" style="position:absolute;left:560px;width:380px;top:925px;padding:22px 24px;border-left:8px solid var(--neon-red);">
+            <div class="t-label fit-line" data-max-w="330" style="color:#94A3B8;">ยอดกำไรที่ถูกปฏิเสธ</div>
+            <div class="t-sub c-white fit-line" data-max-w="330" style="margin-top:4px;">เกือบ 6 ล้านบาท</div>
+          </div>
+          <div id="s7-pill-3" class="glass-card" style="position:absolute;left:560px;width:380px;top:1140px;padding:22px 24px;border-left:8px solid var(--neon-red);">
+            <div class="t-label fit-line" data-max-w="330" style="color:#94A3B8;">เหตุผลจาก CXM</div>
+            <div class="t-sub c-red fit-line" data-max-w="330" style="margin-top:4px;">อ้างเทรดเร็วเกินไป</div>
+          </div>
+        </div>
+
+        <!-- SHOT 8 (9.30 - 10.00s): Final Summary Lockup (Silence Beat) -->
+        <div class="shot-layer" id="s8-layer">
+          <div id="s8-board" class="glass-card" style="position:absolute;left:76px;right:136px;top:264px;padding:34px 36px;border:3px solid var(--gold);background:rgba(7,9,14,0.92);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+              <span class="gold-pill fit-line" data-max-w="500" style="font-size:28px;">สรุปปมดราม่า · ตามที่เจ้าของโพสต์เล่า</span>
+              <span class="num-en c-red" style="font-size:34px;">CXM CLAIM</span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:18px;margin-top:12px;">
+              <div id="s8-r1" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.06);padding:18px 24px;border-radius:16px;border-left:8px solid var(--gold);">
+                <span class="t-label c-white fit-line" data-max-w="380">เวลาถือออเดอร์ (ตามโพสต์)</span>
+                <span class="t-sub c-gold fit-line" data-max-w="360">2 ชั่วโมง</span>
+              </div>
+              <div id="s8-r2" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.06);padding:18px 24px;border-radius:16px;border-left:8px solid var(--neon-red);">
+                <span class="t-label c-white fit-line" data-max-w="380">กำไรที่อ้างว่าไม่ได้รับ</span>
+                <span class="t-sub c-white fit-line" data-max-w="360">เกือบ <span class="c-gold">6 ล้านบาท</span></span>
+              </div>
+              <div id="s8-r3" style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,36,59,0.14);padding:18px 24px;border-radius:16px;border-left:8px solid var(--neon-red);">
+                <span class="t-label c-white fit-line" data-max-w="340">ข้อหาในอีเมล CXM</span>
+                <span class="num-en c-red fit-line" data-max-w="420" style="font-size:44px;">"TOXIC TRADING"</span>
+              </div>
+            </div>
+
+            <div id="s8-cta" style="margin-top:26px;text-align:center;padding:18px 24px;background:linear-gradient(90deg,rgba(230,25,46,0.28),rgba(255,208,38,0.22));border-radius:16px;border:2px solid var(--gold);">
+              <div class="t-title c-white fit-line" data-max-w="760">ถือ 2 ชม. แต่หาว่าเทรดไว... <span class="c-gold">คิดเห็นยังไง?</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Cut Flash Overlay -->
+      <div class="cut-flash" id="cut-flash"></div>
+
+      <!-- Timeline Progress Bar -->
+      <div class="timeline-bar-wrap">
+        <div class="timeline-bar-fill" id="timeline-fill"></div>
+      </div>
+
+      <!-- HARD RULE 2: Legal Label on screen for the whole 10 s -->
+      <div class="legal-bar">
+        <span class="fit-line" data-max-w="820">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</span>
+      </div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      // Deterministic single-line fitter using un-transformed offsetWidth/scrollWidth
+      function fitAllLines() {
+        var nodes = document.querySelectorAll('.fit-line');
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i];
+          el.style.whiteSpace = 'nowrap';
+          el.style.display = 'inline-block';
+          var maxW = parseFloat(el.getAttribute('data-max-w') || '800');
+          var size = parseFloat(window.getComputedStyle(el).fontSize);
+          for (var step = 0; step < 10; step++) {
+            var w = Math.max(el.offsetWidth, el.scrollWidth);
+            if (w <= maxW || size <= 18) break;
+            size = Math.max(18, Math.floor(size * (maxW / w) * 0.97));
+            el.style.fontSize = size + 'px';
+          }
+        }
+      }
+
+      fitAllLines();
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(fitAllLines);
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Deterministic flash cut helper: explicitly zeroed at t=0, spikes at cut, decays smoothly
+      tl.set('#cut-flash', { opacity: 0 }, 0);
+      function flashCut(at, peak) {
+        tl.set('#cut-flash', { opacity: peak || 0.75 }, at);
+        tl.to('#cut-flash', { opacity: 0, duration: 0.22, ease: 'power2.out' }, at);
+      }
+
+      // ==================== GLOBAL 10-SECOND DETERMINISTIC DRIVERS ====================
+      // Progress bar 0 -> 10s
+      tl.fromTo('#timeline-fill', { scaleX: 0 }, { scaleX: 1, duration: 10.0, ease: 'none' }, 0);
+
+      // Subtle background grid drift over 10s
+      tl.fromTo('#bg-grid', { y: 0 }, { y: -72, duration: 10.0, ease: 'none' }, 0);
+
+      // Deterministic timecode counter in HUD
+      var tcState = { t: 0 };
+      var tcNode = document.getElementById('hud-tc');
+      function renderTimecode() {
+        var cur = tcState.t;
+        var sec = Math.floor(cur);
+        var frm = Math.min(29, Math.floor((cur - sec) * 30));
+        var sStr = sec < 10 ? '0' + sec : '' + sec;
+        var fStr = frm < 10 ? '0' + frm : '' + frm;
+        tcNode.textContent = '00:' + sStr + ':' + fStr;
+      }
+      tl.fromTo(tcState, { t: 0 }, {
+        t: 10.0,
+        duration: 10.0,
+        ease: 'none',
+        onUpdate: renderTimecode
+      }, 0);
+
+      // Deterministic HUD live dot pulse across 10s
+      tl.set('#hud-dot', { scale: 0.85, opacity: 0.55 }, 0);
+      for (var p = 0; p < 10; p++) {
+        tl.to('#hud-dot', { scale: 1.25, opacity: 1, duration: 0.5, ease: 'sine.inOut' }, p);
+        tl.to('#hud-dot', { scale: 0.85, opacity: 0.55, duration: 0.5, ease: 'sine.inOut' }, p + 0.5);
+      }
+
+      // Initialize all clip visibilities deterministically at t=0
+      var allClips = [
+        { id: '#v-broll-gold-1',    s: 0.0,  d: 1.0 },
+        { id: '#v-av-1',            s: 0.0,  d: 1.0 },
+        { id: '#v-broll-hourglass', s: 1.0,  d: 1.25 },
+        { id: '#v-av-2',            s: 1.0,  d: 1.25 },
+        { id: '#v-broll-countdown', s: 2.25, d: 1.35 },
+        { id: '#v-broll-lock',      s: 3.6,  d: 1.3 },
+        { id: '#img-post-claim',    s: 3.6,  d: 1.3 },
+        { id: '#v-broll-gold-2',    s: 4.9,  d: 1.5 },
+        { id: '#v-av-5',            s: 4.9,  d: 1.5 },
+        { id: '#img-post-account',  s: 4.9,  d: 1.5 },
+        { id: '#v-broll-typewriter',s: 6.4,  d: 1.35 },
+        { id: '#v-broll-contract',  s: 6.4,  d: 1.35 },
+        { id: '#v-broll-forbidden', s: 7.75, d: 1.55 },
+        { id: '#v-av-7',            s: 7.75, d: 1.55 },
+        { id: '#v-av-8',            s: 9.3,  d: 0.7 },
+        { id: '#img-post-full',     s: 9.3,  d: 0.7 }
+      ];
+
+      allClips.forEach(function (c) {
+        if (c.s === 0) {
+          tl.set(c.id, { autoAlpha: 1 }, 0);
+        } else {
+          tl.set(c.id, { autoAlpha: 0 }, 0);
+          tl.set(c.id, { autoAlpha: 1 }, c.s);
+        }
+        if (c.s + c.d < 10.0) {
+          tl.set(c.id, { autoAlpha: 0 }, c.s + c.d);
+        }
+      });
+
+      // Initialize shot layers deterministically at t=0
+      tl.set(['#s2-layer', '#s3-layer', '#s4-layer', '#s5-layer', '#s6-layer', '#s7-layer', '#s8-layer'], { opacity: 0 }, 0);
+
+      // ==================== SHOT 1 (0.00 - 1.00s): SCROLL-STOPPER HOOK ====================
+      // Strong first frame at t=0: headline and presenter already visible and sharp on frame 0,
+      // with dynamic camera push & accent motion through 1.00s.
+      tl.set('#s1-layer', { opacity: 1 }, 0);
+      tl.fromTo('#v-av-1', { scale: 1.04, y: 0 }, { scale: 1.12, y: -18, duration: 1.0, ease: 'power1.out' }, 0);
+      tl.fromTo('#v-broll-gold-1', { scale: 1.08 }, { scale: 1.20, duration: 1.0, ease: 'none' }, 0);
+      tl.fromTo('#s1-top-tag', { x: 0 }, { x: 10, duration: 1.0, ease: 'sine.inOut' }, 0);
+      tl.fromTo('#s1-card', { y: 0, scale: 1.0 }, { y: -14, scale: 1.02, duration: 1.0, ease: 'power1.out' }, 0);
+      tl.fromTo('#s1-bar', { scaleX: 0.35 }, { scaleX: 1, duration: 0.55, ease: 'expo.out' }, 0);
+      tl.fromTo('#s1-h2', { scale: 0.96 }, { scale: 1.02, duration: 0.45, ease: 'back.out(2)' }, 0);
+      tl.set('#s1-layer', { opacity: 0 }, 1.0);
+
+      // ==================== SHOT 2 (1.00 - 2.25s): "ถือออเดอร์สองชั่วโมง" ====================
+      flashCut(1.0, 0.80);
+      tl.set('#s2-layer', { opacity: 1 }, 1.0);
+      tl.fromTo('#v-broll-hourglass', { scale: 1.02 }, { scale: 1.16, duration: 1.25, ease: 'none' }, 1.0);
+      tl.fromTo('#v-av-2',
+        { x: -80, scale: 0.92 },
+        { x: 0, scale: 1, duration: 0.32, ease: 'back.out(1.6)' },
+        1.0
+      );
+      tl.fromTo('#s2-top-box',
+        { y: -50, opacity: 0, scale: 0.94 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.28, ease: 'expo.out' },
+        1.0
+      );
+      tl.fromTo('#s2-num',
+        { scale: 0.4, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.34, ease: 'back.out(2.2)' },
+        1.12
+      );
+      tl.fromTo('#s2-unit',
+        { clipPath: 'inset(0 100% 0 0)' },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.32, ease: 'expo.out' },
+        1.18
+      );
+      tl.fromTo('#s2-right-card',
+        { x: 70, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.34, ease: 'expo.out' },
+        1.22
+      );
+
+      // Hold-time stopwatch count-up 00:00:00 -> 02:00:00
+      var holdCounter = { m: 0 };
+      var holdNode = document.getElementById('s2-timer');
+      function renderHold() {
+        var mins = Math.round(holdCounter.m);
+        var h = Math.floor(mins / 60);
+        var rem = mins % 60;
+        var hStr = '0' + h;
+        var mStr = rem < 10 ? '0' + rem : '' + rem;
+        holdNode.textContent = 'HOLD TIME · ' + hStr + ':' + mStr + ':00';
+      }
+      tl.fromTo(holdCounter,
+        { m: 0 },
+        {
+          m: 120,
+          duration: 0.75,
+          ease: 'power2.out',
+          onUpdate: renderHold
+        },
+        1.15
+      );
+      tl.set('#s2-layer', { opacity: 0 }, 2.25);
+
+      // ==================== SHOT 3 (2.25 - 3.60s): "แต่โดนข้อหาเทรดเร็วเกินไป?" ====================
+      flashCut(2.25, 0.85);
+      tl.set('#s3-layer', { opacity: 1 }, 2.25);
+      tl.fromTo('#v-broll-countdown', { scale: 1.04, rotation: -1.2 }, { scale: 1.22, rotation: 0.8, duration: 1.35, ease: 'none' }, 2.25);
+      tl.fromTo('#s3-haz-1', { x: -160 }, { x: 40, duration: 1.35, ease: 'none' }, 2.25);
+      tl.fromTo('#s3-haz-2', { x: 120 }, { x: -80, duration: 1.35, ease: 'none' }, 2.25);
+
+      tl.fromTo('#s3-tag',
+        { scale: 1.5, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.24, ease: 'back.out(2)' },
+        2.25
+      );
+      tl.fromTo('#s3-line1',
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.24, ease: 'expo.out' },
+        2.36
+      );
+      tl.fromTo('#s3-line2',
+        { scale: 0.55, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.30, ease: 'back.out(2.4)' },
+        2.48
+      );
+      tl.fromTo('#s3-vs-card',
+        { y: 60, opacity: 0, scale: 0.92 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.34, ease: 'expo.out' },
+        2.66
+      );
+      tl.fromTo('#s3-speech-cap',
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.26, ease: 'power3.out' },
+        2.80
+      );
+      tl.set('#s3-layer', { opacity: 0 }, 3.60);
+
+      // ==================== SHOT 4 (3.60 - 4.90s): "เธอเล่าว่าซีเอ็กซ์เอ็มไม่จ่ายกำไร..." ====================
+      flashCut(3.60, 0.75);
+      tl.set('#s4-layer', { opacity: 1 }, 3.60);
+      tl.fromTo('#v-broll-lock', { scale: 1.05 }, { scale: 1.18, duration: 1.30, ease: 'none' }, 3.60);
+
+      // Evidence still cxm-post-claim.png fitted inside safe zone (x: 76..944, y: 665..1075)
+      tl.fromTo('#img-post-claim',
+        { x: -30, y: -45, scale: 0.74 },
+        { x: -30, y: -90, scale: 0.78, duration: 0.35, ease: 'expo.out' },
+        3.60
+      );
+      tl.fromTo('#s4-frame',
+        { y: 45, scale: 0.95, opacity: 0 },
+        { y: 0, scale: 1.0, opacity: 1, duration: 0.35, ease: 'expo.out' },
+        3.60
+      );
+      tl.fromTo('#s4-top',
+        { y: -45, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.28, ease: 'expo.out' },
+        3.60
+      );
+      tl.fromTo('#s4-h2',
+        { clipPath: 'inset(0 100% 0 0)' },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.34, ease: 'expo.out' },
+        3.80
+      );
+      tl.fromTo('#s4-hl-1',
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.38, ease: 'expo.out' },
+        3.88
+      );
+      tl.fromTo('#s4-hl-2',
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.42, ease: 'expo.out' },
+        4.10
+      );
+      tl.fromTo('#s4-stamp',
+        { scale: 2.1, opacity: 0, rotation: -18 },
+        { scale: 1.0, opacity: 1, rotation: -5, duration: 0.28, ease: 'back.out(2.2)' },
+        4.20
+      );
+      tl.set('#s4-layer', { opacity: 0 }, 4.90);
+
+      // ==================== SHOT 5 (4.90 - 6.40s): "...เกือบหกล้านบาท" ====================
+      flashCut(4.90, 0.85);
+      tl.set('#s5-layer', { opacity: 1 }, 4.90);
+      tl.fromTo('#v-av-5', { scale: 1.03, y: 0 }, { scale: 1.12, y: -15, duration: 1.50, ease: 'none' }, 4.90);
+      tl.fromTo('#v-broll-gold-2', { scale: 1.05 }, { scale: 1.18, duration: 1.50, ease: 'none' }, 4.90);
+
+      // Position cxm-post-account.png in lower evidence band inside safe zone (x: 76..944, y: 860..1220)
+      tl.fromTo('#img-post-account',
+        { x: -30, y: 120, scale: 0.74 },
+        { x: -30, y: 80, scale: 0.78, duration: 0.35, ease: 'expo.out' },
+        4.90
+      );
+      tl.fromTo('#s5-counter-card',
+        { scale: 0.86, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.30, ease: 'back.out(1.8)' },
+        4.90
+      );
+
+      // Deterministic 0 -> 6,000,000 Baht count-up
+      var bahtCounter = { v: 0 };
+      var bahtNode = document.getElementById('s5-count-val');
+      function renderBaht() {
+        var n = Math.round(bahtCounter.v);
+        bahtNode.textContent = n.toLocaleString('en-US');
+      }
+      tl.fromTo(bahtCounter,
+        { v: 0 },
+        {
+          v: 6000000,
+          duration: 0.72,
+          ease: 'power3.out',
+          onUpdate: renderBaht
+        },
+        4.92
+      );
+      tl.fromTo('#s5-meter',
+        { scaleX: 0 },
+        { scaleX: 0.98, duration: 0.72, ease: 'power3.out' },
+        4.92
+      );
+      tl.fromTo('#s5-thai-amt',
+        { scale: 0.65, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.28, ease: 'back.out(2.2)' },
+        5.22
+      );
+      tl.fromTo('#s5-acc-badge',
+        { x: -60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.30, ease: 'expo.out' },
+        5.35
+      );
+      tl.set('#s5-layer', { opacity: 0 }, 6.40);
+
+      // ==================== SHOT 6 (6.40 - 7.75s): "ซีเอ็กซ์เอ็มแจ้งในอีเมลว่า..." ====================
+      flashCut(6.40, 0.75);
+      tl.set('#s6-layer', { opacity: 1 }, 6.40);
+      tl.fromTo('#v-broll-typewriter', { scale: 1.04 }, { scale: 1.16, duration: 1.35, ease: 'none' }, 6.40);
+      tl.fromTo('#v-broll-contract', { scale: 1.04 }, { scale: 1.14, duration: 1.35, ease: 'none' }, 6.40);
+
+      tl.fromTo('#s6-email-card',
+        { y: 70, opacity: 0, scale: 0.92 },
+        { y: 0, opacity: 1, scale: 1.0, duration: 0.32, ease: 'expo.out' },
+        6.40
+      );
+      tl.fromTo('#s6-l1',
+        { clipPath: 'inset(0 100% 0 0)' },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.34, ease: 'expo.out' },
+        6.50
+      );
+      tl.fromTo('#s6-l2',
+        { clipPath: 'inset(0 100% 0 0)' },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.36, ease: 'expo.out' },
+        6.78
+      );
+      tl.fromTo('#s6-typing-bar',
+        { scale: 0.88, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.26, ease: 'back.out(2)' },
+        7.05
+      );
+      tl.fromTo('#s6-cap',
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.26, ease: 'power2.out' },
+        6.60
+      );
+      tl.set('#s6-layer', { opacity: 0 }, 7.75);
+
+      // ==================== SHOT 7 (7.75 - 9.30s): "...เป็นท็อกซิกเทรดดิ้ง" ====================
+      flashCut(7.75, 0.90);
+      tl.set('#s7-layer', { opacity: 1 }, 7.75);
+      tl.fromTo('#v-broll-forbidden', { scale: 1.04 }, { scale: 1.22, duration: 1.55, ease: 'none' }, 7.75);
+      tl.fromTo('#v-av-7',
+        { x: -70, scale: 0.92 },
+        { x: 0, scale: 1.0, duration: 0.32, ease: 'back.out(1.6)' },
+        7.75
+      );
+      tl.fromTo('#s7-top-banner',
+        { scale: 0.85, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.28, ease: 'back.out(2.0)' },
+        7.75
+      );
+      tl.fromTo('#s7-en',
+        { scale: 1.45, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.30, ease: 'back.out(2.4)' },
+        7.84
+      );
+      tl.fromTo('#s7-th',
+        { clipPath: 'inset(0 100% 0 0)' },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.34, ease: 'expo.out' },
+        8.02
+      );
+      tl.fromTo('#s7-pill-1',
+        { x: 60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.28, ease: 'expo.out' },
+        8.16
+      );
+      tl.fromTo('#s7-pill-2',
+        { x: 60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.28, ease: 'expo.out' },
+        8.34
+      );
+      tl.fromTo('#s7-pill-3',
+        { x: 60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.28, ease: 'expo.out' },
+        8.52
+      );
+      tl.set('#s7-layer', { opacity: 0 }, 9.30);
+
+      // ==================== SHOT 8 (9.30 - 10.00s): FINAL SUMMARY LOCKUP ====================
+      flashCut(9.30, 0.70);
+      tl.set('#s8-layer', { opacity: 1 }, 9.30);
+      tl.fromTo('#v-av-8', { scale: 1.04 }, { scale: 1.10, duration: 0.70, ease: 'none' }, 9.30);
+      // cxm-post-full.png shown scaled down (0.24) in lower corner as un-zoomed reference card
+      tl.fromTo('#img-post-full',
+        { scale: 0.22, x: -240, y: 360, rotation: -4 },
+        { scale: 0.24, x: -230, y: 340, rotation: -2, duration: 0.28, ease: 'expo.out' },
+        9.30
+      );
+      tl.fromTo('#s8-board',
+        { scale: 0.92, opacity: 0, y: 24 },
+        { scale: 1.0, opacity: 1, y: 0, duration: 0.22, ease: 'expo.out' },
+        9.30
+      );
+      tl.fromTo('#s8-r1', { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.16, ease: 'expo.out' }, 9.34);
+      tl.fromTo('#s8-r2', { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.16, ease: 'expo.out' }, 9.40);
+      tl.fromTo('#s8-r3', { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.16, ease: 'expo.out' }, 9.46);
+      tl.fromTo('#s8-cta', { scale: 0.90, opacity: 0 }, { scale: 1.0, opacity: 1, duration: 0.20, ease: 'back.out(2)' }, 9.52);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

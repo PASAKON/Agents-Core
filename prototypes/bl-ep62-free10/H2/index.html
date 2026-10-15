@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-obsidian: #07060A;
+        --bg-panel: rgba(12, 10, 16, 0.88);
+        --bg-panel-heavy: rgba(8, 7, 11, 0.94);
+        --crimson: #FF1E38;
+        --crimson-deep: #B80D23;
+        --gold: #FFB800;
+        --gold-soft: #FFE082;
+        --bone: #F7F5F0;
+        --slate: #A3ABB8;
+        --border-subtle: rgba(247, 245, 240, 0.16);
+        --border-crimson: rgba(255, 30, 56, 0.65);
+        --border-gold: rgba(255, 184, 0, 0.65);
+        --shadow-heavy: 0 20px 50px rgba(0, 0, 0, 0.85);
+        --stroke-dark: 0 3px 14px rgba(0, 0, 0, 0.95),
+                       2px 2px 0 #050507, -2px 2px 0 #050507,
+                       2px -2px 0 #050507, -2px -2px 0 #050507;
+        --glow-crimson: 0 0 28px rgba(255, 30, 56, 0.65), 0 0 60px rgba(255, 30, 56, 0.25);
+        --glow-gold: 0 0 28px rgba(255, 184, 0, 0.55), 0 0 56px rgba(255, 184, 0, 0.22);
+      }
+
+      html, body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg-obsidian);
+        font-family: 'Kanit', sans-serif;
+        color: var(--bone);
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg-obsidian);
+      }
+
+      .nowrap {
+        white-space: nowrap;
+      }
+
+      /* ==================== BASE MEDIA CLIPS ==================== */
+      .clip {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        object-fit: cover;
+        z-index: 1;
+      }
+
+      .track-0 { z-index: 1; }
+      .track-1 { z-index: 2; }
+      .track-2 { z-index: 3; }
+
+      /* Graded B-roll backdrops */
+      .broll-dark {
+        filter: brightness(0.46) contrast(1.18) saturate(1.12);
+      }
+      .broll-crimson {
+        filter: brightness(0.42) contrast(1.24) saturate(1.25);
+      }
+
+      /* Framed Avatar Modes (always data-media-start == data-start) */
+      .av-left-card {
+        left: 64px;
+        top: 660px;
+        width: 450px;
+        height: 610px;
+        border-radius: 26px;
+        border: 3px solid var(--crimson);
+        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.88), 0 0 30px rgba(255, 30, 56, 0.38);
+        object-fit: cover;
+        object-position: center 18%;
+      }
+
+      .av-right-top-card {
+        left: 560px;
+        top: 210px;
+        width: 452px;
+        height: 550px;
+        border-radius: 24px;
+        border: 3px solid var(--gold);
+        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.88), 0 0 28px rgba(255, 184, 0, 0.35);
+        object-fit: cover;
+        object-position: center 15%;
+      }
+
+      .av-full-graded {
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        object-fit: cover;
+        object-position: center 22%;
+        filter: contrast(1.12) saturate(1.06) brightness(0.84);
+      }
+
+      .av-split-bottom {
+        left: 64px;
+        top: 680px;
+        width: 856px;
+        height: 590px;
+        border-radius: 28px;
+        border: 3px solid rgba(247, 245, 240, 0.28);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9);
+        object-fit: cover;
+        object-position: center 20%;
+      }
+
+      /* Facebook Post Stills: 1:1 native resolution, clipped strictly to the white text band y 768..1195.
+         Never un-blurred, sharpened, or zoomed onto the blurred header area. */
+      .still-band-claim {
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        object-fit: none;
+        clip-path: inset(775px 32px 770px 20px round 20px);
+      }
+
+      .still-band-account {
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        object-fit: none;
+        clip-path: inset(768px 32px 725px 20px round 20px);
+      }
+
+      /* ==================== ATMOSPHERIC DEPTH LAYER ==================== */
+      #atmo-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        background:
+          radial-gradient(90% 50% at 50% 10%, rgba(255, 30, 56, 0.18), transparent 65%),
+          radial-gradient(80% 45% at 20% 85%, rgba(255, 184, 0, 0.10), transparent 60%),
+          linear-gradient(180deg, rgba(7, 6, 10, 0.72) 0%, rgba(7, 6, 10, 0.18) 35%, rgba(7, 6, 10, 0.35) 70%, rgba(7, 6, 10, 0.92) 100%);
+      }
+
+      .scanlines {
+        position: absolute;
+        inset: 0;
+        opacity: 0.25;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.03) 0px,
+          rgba(255, 255, 255, 0.03) 2px,
+          transparent 2px,
+          transparent 6px
+        );
+      }
+
+      .ghost-ticker {
+        position: absolute;
+        left: -120px;
+        top: 410px;
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        font-size: 210px;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+        color: rgba(247, 245, 240, 0.045);
+        white-space: nowrap;
+        user-select: none;
+      }
+
+      /* Corner viewfinder ticks */
+      .vf-corner {
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        border-color: rgba(255, 30, 56, 0.55);
+        border-style: solid;
+        z-index: 15;
+        pointer-events: none;
+      }
+      .vf-tl { top: 68px; left: 48px; border-width: 3px 0 0 3px; }
+      .vf-tr { top: 68px; right: 48px; border-width: 3px 3px 0 0; }
+      .vf-bl { top: 1490px; left: 48px; border-width: 0 0 3px 3px; }
+      .vf-br { top: 1490px; right: 132px; border-width: 0 3px 3px 0; }
+
+      /* ==================== PERSISTENT BROADCAST HEADER ==================== */
+      #hud-header {
+        position: absolute;
+        top: 86px;
+        left: 64px;
+        right: 64px;
+        height: 68px;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(10, 9, 14, 0.86);
+        border: 2px solid var(--border-subtle);
+        border-left: 6px solid var(--crimson);
+        border-radius: 14px;
+        padding: 0 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+      }
+
+      .hud-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .live-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--crimson);
+        box-shadow: 0 0 14px var(--crimson);
+      }
+
+      .hud-case {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: 0.06em;
+        color: var(--bone);
+      }
+
+      .hud-sep {
+        width: 2px;
+        height: 24px;
+        background: rgba(247, 245, 240, 0.22);
+      }
+
+      .hud-claim-tag {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 22px;
+        color: var(--gold);
+        background: rgba(255, 184, 0, 0.14);
+        border: 1px solid rgba(255, 184, 0, 0.45);
+        padding: 3px 12px;
+        border-radius: 8px;
+      }
+
+      .hud-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .hud-logo {
+        height: 40px;
+        width: auto;
+        display: block;
+      }
+
+      /* Timeline progress bar with beat markers */
+      #hud-progress-track {
+        position: absolute;
+        top: 164px;
+        left: 64px;
+        width: 952px;
+        height: 6px;
+        background: rgba(247, 245, 240, 0.14);
+        border-radius: 3px;
+        z-index: 40;
+        overflow: hidden;
+      }
+
+      #hud-progress-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--crimson), var(--gold));
+        transform-origin: left center;
+        transform: scaleX(0);
+      }
+
+      /* ==================== FLASH CUT OVERLAY ==================== */
+      #cut-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 38;
+        pointer-events: none;
+        background: radial-gradient(circle at 50% 45%, rgba(255, 30, 56, 0.55), rgba(255, 184, 0, 0.2) 60%, transparent 85%);
+        opacity: 0;
+      }
+
+      /* ==================== SCENE STAGE ==================== */
+      #stage {
+        position: absolute;
+        inset: 0;
+        z-index: 25;
+        pointer-events: none;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+      }
+
+      /* Safe-zone containers:
+         Above y=960: x=64..1016 (width 952px)
+         Below y=960: x=64..920  (width 856px, strictly clear of x > 960 right rail)
+         Bottom limit: y <= 1485 (strictly clear of y > 1500 bottom UI) */
+      .zone-top {
+        position: absolute;
+        left: 64px;
+        width: 952px;
+      }
+
+      .zone-safe-low {
+        position: absolute;
+        left: 64px;
+        width: 856px;
+      }
+
+      /* Reusable editorial badges & cards */
+      .kicker-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 18px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 25px;
+        letter-spacing: 0.03em;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      }
+      .kicker-crimson {
+        background: var(--crimson);
+        color: var(--bone);
+      }
+      .kicker-gold {
+        background: var(--gold);
+        color: #09080C;
+      }
+      .kicker-outline {
+        background: rgba(10, 9, 14, 0.9);
+        border: 2px solid var(--gold);
+        color: var(--gold);
+      }
+
+      .dossier-card {
+        background: var(--bg-panel);
+        border: 2px solid var(--border-subtle);
+        border-radius: 22px;
+        padding: 24px 30px;
+        box-shadow: var(--shadow-heavy);
+      }
+
+      .headline-xl {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 96px;
+        line-height: 1.14;
+        text-shadow: var(--stroke-dark);
+      }
+
+      .headline-lg {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 78px;
+        line-height: 1.16;
+        text-shadow: var(--stroke-dark);
+      }
+
+      .headline-md {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 800;
+        font-size: 60px;
+        line-height: 1.20;
+        text-shadow: var(--stroke-dark);
+      }
+
+      .num-display {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 0.95;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .c-crimson {
+        color: var(--crimson);
+        text-shadow: var(--stroke-dark), var(--glow-crimson);
+      }
+
+      .c-gold {
+        color: var(--gold);
+        text-shadow: var(--stroke-dark), var(--glow-gold);
+      }
+
+      .c-bone {
+        color: var(--bone);
+        text-shadow: var(--stroke-dark);
+      }
+
+      /* ==================== SPOKEN CAPTION RAIL (y: 1290..1395) ==================== */
+      #caption-rail {
+        position: absolute;
+        left: 64px;
+        width: 856px;
+        top: 1300px;
+        z-index: 35;
+        pointer-events: none;
+      }
+
+      .cap-box {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 856px;
+        background: rgba(8, 7, 12, 0.92);
+        border: 2px solid rgba(247, 245, 240, 0.22);
+        border-left: 8px solid var(--crimson);
+        border-radius: 18px;
+        padding: 16px 26px;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        opacity: 0;
+      }
+
+      .cap-text {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 40px;
+        line-height: 1.22;
+        color: var(--bone);
+        white-space: nowrap;
+      }
+
+      .cap-speaker-tag {
+        font-family: 'Archivo', sans-serif;
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: 0.06em;
+        color: var(--slate);
+        background: rgba(255, 255, 255, 0.08);
+        padding: 5px 10px;
+        border-radius: 6px;
+        margin-right: 16px;
+        flex-shrink: 0;
+      }
+
+      /* ==================== STANDING LEGAL LABEL (0-10s ALWAYS ON) ==================== */
+      #legal-banner {
+        position: absolute;
+        left: 64px;
+        width: 856px;
+        top: 1422px;
+        z-index: 45;
+        background: rgba(7, 7, 10, 0.92);
+        border: 1.5px solid rgba(247, 245, 240, 0.22);
+        border-left: 5px solid var(--gold);
+        border-radius: 12px;
+        padding: 10px 18px;
+        text-align: center;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.85);
+      }
+
+      #legal-text {
+        font-family: 'Kanit', sans-serif;
+        font-weight: 600;
+        font-size: 21px;
+        line-height: 1.25;
+        color: #E2E6EC;
+        white-space: nowrap;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10"
+         data-width="1080" data-height="1920">
+
+      <!-- ==================== AUDIO TRACK (0.0s - 10.0s) ==================== -->
+      <audio id="va" src="assets/voice-10s.wav" data-start="0" data-duration="10"
+             data-track-index="10" data-volume="1"></audio>
+
+      <!-- ==================== VIDEO & STILL CLIPS ==================== -->
+      <!-- SHOT 1 (0.0 - 1.0s): Hook - Gold bar backdrop + Left Cut-Out Presenter -->
+      <video class="clip track-0 broll-dark" id="v-s1-bg"
+             src="assets/broll/gold-bar-in-glass-cube.mp4" muted playsinline
+             data-start="0" data-duration="1.0" data-media-start="0" data-track-index="0"></video>
+      <video class="clip track-1 av-left-card" id="v-s1-av"
+             src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="0" data-duration="1.0" data-media-start="0" data-track-index="1"></video>
+
+      <!-- SHOT 2 (1.0 - 2.3s): "ถือออเดอร์สองชั่วโมง" - Hourglass + Facebook Post Claim Band -->
+      <video class="clip track-0 broll-dark" id="v-s2-bg"
+             src="assets/broll/hourglass-red-sand.mp4" muted playsinline
+             data-start="1.0" data-duration="1.3" data-media-start="0.4" data-track-index="0"></video>
+      <img class="clip track-1 still-band-claim" id="img-s2-claim"
+           src="assets/stills/cxm-post-claim.png" alt="Facebook post claim"
+           data-start="1.0" data-duration="1.3" data-track-index="1" />
+
+      <!-- SHOT 3 (2.3 - 3.6s): "แต่โดนข้อหาเทรดเร็วเกินไป?" - Red Countdown + Presenter -->
+      <video class="clip track-0 broll-crimson" id="v-s3-bg"
+             src="assets/broll/red-digital-countdown.mp4" muted playsinline
+             data-start="2.3" data-duration="1.3" data-media-start="1.2" data-track-index="0"></video>
+      <video class="clip track-1 av-split-bottom" id="v-s3-av"
+             src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="2.3" data-duration="1.3" data-media-start="2.3" data-track-index="1"></video>
+
+      <!-- SHOT 4 (3.6 - 5.0s): "เธอเล่าว่า CXM ไม่จ่ายกำไร" - Red Lock + Facebook Post Account Band -->
+      <video class="clip track-0 broll-crimson" id="v-s4-bg"
+             src="assets/broll/finger-taps-red-lock.mp4" muted playsinline
+             data-start="3.6" data-duration="1.4" data-media-start="0.5" data-track-index="0"></video>
+      <img class="clip track-1 still-band-account" id="img-s4-account"
+           src="assets/stills/cxm-post-account.png" alt="Facebook post account"
+           data-start="3.6" data-duration="1.4" data-track-index="1" />
+
+      <!-- SHOT 5 (5.0 - 6.4s): "เกือบหกล้านบาท" - Gold Bar + Presenter Left Card + 6M Count-Up -->
+      <video class="clip track-0 broll-dark" id="v-s5-bg"
+             src="assets/broll/gold-bar-in-glass-cube.mp4" muted playsinline
+             data-start="5.0" data-duration="1.4" data-media-start="2.2" data-track-index="0"></video>
+      <video class="clip track-1 av-left-card" id="v-s5-av"
+             src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="5.0" data-duration="1.4" data-media-start="5.0" data-track-index="1"></video>
+
+      <!-- SHOT 6 (6.4 - 7.8s): "CXM แจ้งในอีเมลว่า..." - Neon Ticker Tape + Presenter Top-Right Card -->
+      <video class="clip track-0 broll-crimson" id="v-s6-bg"
+             src="assets/broll/typewriter-red-neon-ticker-tape.mp4" muted playsinline
+             data-start="6.4" data-duration="1.4" data-media-start="0.6" data-track-index="0"></video>
+      <video class="clip track-1 av-right-top-card" id="v-s6-av"
+             src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="6.4" data-duration="1.4" data-media-start="6.4" data-track-index="1"></video>
+
+      <!-- SHOT 7 (7.8 - 9.3s): "...เป็นท็อกซิกเทรดดิ้ง" - Full-Frame Presenter + Red Forbidden Glow -->
+      <video class="clip track-0 av-full-graded" id="v-s7-av"
+             src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="7.8" data-duration="1.5" data-media-start="7.8" data-track-index="0"></video>
+      <video class="clip track-1" id="v-s7-fg"
+             style="left:600px;top:210px;width:416px;height:416px;border-radius:26px;border:3px solid var(--crimson);box-shadow:0 18px 44px rgba(0,0,0,0.9)"
+             src="assets/broll/red-forbidden-icon-glow.mp4" muted playsinline
+             data-start="7.8" data-duration="1.5" data-media-start="1.5" data-track-index="1"></video>
+
+      <!-- SHOT 8 (9.3 - 10.0s): Silence Verdict Lockup - Wax Seal + Presenter Cut-Out -->
+      <video class="clip track-0 broll-dark" id="v-s8-bg"
+             src="assets/broll/contract-signature-wax-seal.mp4" muted playsinline
+             data-start="9.3" data-duration="0.7" data-media-start="3.2" data-track-index="0"></video>
+      <video class="clip track-1 av-left-card" id="v-s8-av"
+             style="top:720px;height:550px"
+             src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="9.3" data-duration="0.7" data-media-start="9.3" data-track-index="1"></video>
+
+      <!-- ==================== ATMOSPHERIC DEPTH LAYER ==================== -->
+      <div id="atmo-layer">
+        <div class="scanlines"></div>
+        <div class="ghost-ticker" id="ghost-1">CXM · 6,000,000 THB · TOXIC TRADING · 2 HRS</div>
+        <div class="ghost-ticker" id="ghost-2" style="top:1050px;font-size:180px">ACCORDING TO POST · CASE #62 · CLAIM</div>
+      </div>
+
+      <div class="vf-corner vf-tl"></div>
+      <div class="vf-corner vf-tr"></div>
+      <div class="vf-corner vf-bl"></div>
+      <div class="vf-corner vf-br"></div>
+
+      <!-- ==================== PERSISTENT BROADCAST HEADER ==================== -->
+      <div id="hud-header">
+        <div class="hud-left">
+          <div class="live-dot" id="live-dot"></div>
+          <div class="hud-case">EP.62 // CXM CASE</div>
+          <div class="hud-sep"></div>
+          <div class="hud-claim-tag nowrap" data-fit="420">ตามที่เจ้าของโพสต์เล่า</div>
+        </div>
+        <div class="hud-right">
+          <img class="hud-logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY" />
+        </div>
+      </div>
+      <div id="hud-progress-track">
+        <div id="hud-progress-fill"></div>
+      </div>
+
+      <!-- ==================== FLASH CUT LAYER ==================== -->
+      <div id="cut-flash"></div>
+
+      <!-- ==================== KINETIC SCENE STAGE ==================== -->
+      <div id="stage">
+
+        <!-- ==================== SCENE 1 (0.00 - 1.00s): SCROLL-STOPPER HOOK ==================== -->
+        <div class="scene" id="sc-1" style="opacity:1">
+          <div class="zone-top" style="top:198px">
+            <div id="s1-kicker" class="kicker-pill kicker-crimson nowrap" data-fit="900">
+              🚨 ดราม่าเทรดเดอร์ทอง · ตามที่เจ้าของโพสต์เล่า
+            </div>
+            <div id="s1-line1" class="headline-xl c-gold nowrap" data-fit="940" style="margin-top:16px">
+              กำไรเกือบ 6 ล้าน
+            </div>
+            <div id="s1-line2" class="headline-xl c-bone nowrap" data-fit="940" style="margin-top:4px">
+              แต่โบรก <span class="c-crimson" style="font-family:Archivo,sans-serif">CXM</span> ไม่จ่าย?!
+            </div>
+            <div id="s1-rule" style="width:940px;height:8px;background:linear-gradient(90deg,var(--crimson),var(--gold));border-radius:4px;margin-top:16px;transform-origin:left center"></div>
+          </div>
+
+          <!-- Right-side Dossier Summary Stack (x: 540..920, strictly inside safe zone x<=960) -->
+          <div id="s1-dossier" style="position:absolute;left:540px;top:660px;width:380px;height:610px;display:flex;flex-direction:column;justify-content:space-between">
+            <div class="dossier-card" style="border-left:8px solid var(--gold);padding:20px 22px">
+              <div style="font-size:22px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">เวลาที่อ้างว่าถือออเดอร์</div>
+              <div class="num-display c-gold nowrap" data-fit="330" style="font-size:66px;margin-top:6px">2 HRS</div>
+              <div style="font-size:26px;color:var(--bone);font-weight:800;margin-top:4px" class="nowrap" data-fit="330">ถือออเดอร์ 2 ชั่วโมง</div>
+            </div>
+            <div class="dossier-card" style="border-left:8px solid var(--crimson);padding:20px 22px">
+              <div style="font-size:22px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">กำไรที่อ้างว่าถูกปฏิเสธ</div>
+              <div class="num-display c-crimson nowrap" data-fit="330" style="font-size:62px;margin-top:6px">~฿6M</div>
+              <div style="font-size:26px;color:var(--bone);font-weight:800;margin-top:4px" class="nowrap" data-fit="330">บัญชี Cent เทรดทอง</div>
+            </div>
+            <div class="dossier-card" style="background:rgba(255,30,56,0.18);border:2px solid var(--crimson);padding:16px 22px;text-align:center">
+              <div class="nowrap" data-fit="330" style="font-family:Archivo,sans-serif;font-weight:800;font-size:28px;color:var(--gold)">
+                "TOXIC TRADING?"
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 2 (1.00 - 2.30s): HELD ORDER 2 HOURS ==================== -->
+        <div class="scene" id="sc-2">
+          <div class="zone-top" style="top:196px">
+            <div class="dossier-card" id="s2-top-card" style="border-left:10px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:26px 34px">
+              <div style="max-width:570px">
+                <div class="kicker-pill kicker-gold nowrap" data-fit="540" style="margin-bottom:14px">
+                  ⏱ ข้อมูลฝั่งผู้โพสต์ · ORDER HOLD TIME
+                </div>
+                <div id="s2-title" class="headline-lg c-bone nowrap" data-fit="560">
+                  ถือออเดอร์นานถึง
+                </div>
+                <div id="s2-sub" class="headline-xl c-gold nowrap" data-fit="560" style="margin-top:4px">
+                  2 ชั่วโมงเต็ม!
+                </div>
+              </div>
+              <!-- Circular Timer Gauge + Count-Up -->
+              <div style="position:relative;width:270px;height:270px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="270" height="270" viewBox="0 0 270 270" style="transform:rotate(-90deg)">
+                  <circle cx="135" cy="135" r="112" fill="rgba(7,6,10,0.85)" stroke="rgba(255,255,255,0.12)" stroke-width="16" />
+                  <circle id="s2-ring" cx="135" cy="135" r="112" fill="none" stroke="#FFB800" stroke-width="16"
+                          stroke-linecap="round" stroke-dasharray="703.7" stroke-dashoffset="703.7" />
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                  <div id="s2-counter" class="num-display c-gold" style="font-size:66px">00:00</div>
+                  <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:var(--bone);margin-top:6px;letter-spacing:0.08em">
+                    120 MINUTES
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Evidence pointer bar above the Facebook post screenshot band (y 775..1150) -->
+          <div class="zone-safe-low" id="s2-ev-label" style="top:698px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,184,0,0.95);color:#08070B;padding:10px 24px;border-radius:14px;font-weight:800;font-size:28px;box-shadow:0 10px 28px rgba(0,0,0,0.75)">
+            <span class="nowrap" data-fit="560">▼ ภาพโพสต์ต้นเรื่อง (ตามที่เจ้าของโพสต์เล่า)</span>
+            <span style="font-family:Archivo,sans-serif;font-size:24px;background:#08070B;color:var(--gold);padding:4px 12px;border-radius:8px">EVIDENCE #01</span>
+          </div>
+
+          <!-- Highlight callout bar under the white screenshot band -->
+          <div class="zone-safe-low" id="s2-highlight-bar" style="top:1165px;background:rgba(12,10,16,0.92);border:2px solid var(--gold);border-radius:16px;padding:14px 24px;display:flex;align-items:center;justify-content:space-between">
+            <span class="nowrap c-gold" data-fit="580" style="font-weight:800;font-size:34px">“เทรดทองผ่านมือถือ · ถือออเดอร์นานถึง 2 ชั่วโมง”</span>
+            <span class="nowrap" style="font-size:24px;color:var(--slate);font-weight:600">อ้างอิงจากโพสต์</span>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 3 (2.30 - 3.60s): ACCUSED OF TRADING TOO FAST ==================== -->
+        <div class="scene" id="sc-3">
+          <div class="zone-top" id="s3-clash-wrap" style="top:194px">
+            <!-- Contradiction VS Header -->
+            <div style="display:flex;align-items:stretch;gap:18px">
+              <div id="s3-left-box" class="dossier-card" style="flex:1;border-top:6px solid var(--gold);padding:18px 24px">
+                <div style="font-size:22px;color:var(--slate);font-weight:600" class="nowrap" data-fit="400">สิ่งที่ผู้โพสต์ยืนยัน</div>
+                <div class="headline-md c-gold nowrap" data-fit="400" style="margin-top:4px">ถือออเดอร์ 2 ชม.</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;width:78px">
+                <div style="width:68px;height:68px;border-radius:50%;background:var(--crimson);color:var(--bone);font-family:Archivo,sans-serif;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:var(--glow-crimson)">
+                  VS
+                </div>
+              </div>
+              <div id="s3-right-box" class="dossier-card" style="flex:1;border-top:6px solid var(--crimson);padding:18px 24px;background:rgba(45,8,16,0.92)">
+                <div style="font-size:22px;color:#FFA8B4;font-weight:600" class="nowrap" data-fit="400">ข้อหาที่โดนแจ้ง</div>
+                <div class="headline-md c-crimson nowrap" data-fit="400" style="margin-top:4px">เทรดเร็วเกินไป?!</div>
+              </div>
+            </div>
+
+            <!-- Giant Kinetic Slam Accusation -->
+            <div id="s3-slam-card" class="dossier-card" style="margin-top:20px;border:3px solid var(--crimson);background:rgba(14,7,11,0.94);padding:24px 32px;text-align:center">
+              <div class="kicker-pill kicker-crimson nowrap" data-fit="860" style="margin-bottom:10px">
+                ⚠️ CONTRADICTION · ข้อหาสวนทางกับเวลาถือออเดอร์?
+              </div>
+              <div id="s3-main-line" class="headline-xl c-bone nowrap" data-fit="880">
+                แต่โดนข้อหา <span class="c-crimson">“เทรดเร็วเกินไป?!”</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telemetry Overlay Badge on Presenter Frame -->
+          <div class="zone-safe-low" id="s3-telemetry" style="top:1182px;display:flex;align-items:center;justify-content:space-between;background:rgba(9,8,13,0.92);border:2px solid var(--crimson);border-radius:16px;padding:12px 24px;box-shadow:0 12px 30px rgba(0,0,0,0.85)">
+            <span class="nowrap" data-fit="520" style="font-weight:800;font-size:28px;color:var(--gold)">⏱ ถือออเดอร์ 120 นาที · แต่ถูกหาว่าเทรดไวเกิน?</span>
+            <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:22px;color:var(--crimson)">CLAIM VS RULE</span>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 4 (3.60 - 5.00s): SHE SAYS CXM REFUSED TO PAY ==================== -->
+        <div class="scene" id="sc-4">
+          <div class="zone-top" style="top:196px">
+            <div id="s4-broker-card" class="dossier-card" style="border-left:12px solid var(--crimson);padding:26px 34px;position:relative;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div class="kicker-pill kicker-outline nowrap" data-fit="520">
+                    📌 เธอเล่าว่า · ACCORDING TO HER POST
+                  </div>
+                  <div style="display:flex;align-items:baseline;gap:20px;margin-top:14px">
+                    <span class="num-display c-bone" style="font-size:132px">CXM</span>
+                    <span class="headline-lg c-crimson nowrap" data-fit="500">ไม่จ่ายกำไร!</span>
+                  </div>
+                  <div class="headline-md c-gold nowrap" data-fit="860" style="margin-top:8px">
+                    อ้างถูกโบรกเกอร์ปฏิเสธจ่ายเงินรางวัล/กำไร
+                  </div>
+                </div>
+              </div>
+              <!-- Stamp overlay -->
+              <div id="s4-stamp" style="position:absolute;right:28px;top:24px;border:4px solid var(--crimson);color:var(--crimson);font-family:Archivo,sans-serif;font-weight:800;font-size:28px;padding:8px 18px;border-radius:10px;letter-spacing:0.08em;background:rgba(7,6,10,0.92);box-shadow:var(--glow-crimson)">
+                PAYOUT REFUSED
+              </div>
+            </div>
+          </div>
+
+          <!-- Label above the second Facebook post screenshot (y 768..1195) -->
+          <div class="zone-safe-low" id="s4-ev-label" style="top:694px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,30,56,0.95);color:var(--bone);padding:10px 24px;border-radius:14px;font-weight:800;font-size:27px;box-shadow:0 10px 28px rgba(0,0,0,0.75)">
+            <span class="nowrap" data-fit="580">▼ ข้อความจากโพสต์: เปิดบัญชี Cent กับ CXM Direct</span>
+            <span style="font-family:Archivo,sans-serif;font-size:22px;background:#08070B;color:var(--crimson);padding:4px 12px;border-radius:8px">EVIDENCE #02</span>
+          </div>
+
+          <!-- Callout bar below the second screenshot -->
+          <div class="zone-safe-low" id="s4-highlight-bar" style="top:1210px;background:rgba(12,10,16,0.92);border:2px solid var(--crimson);border-radius:16px;padding:12px 24px;display:flex;align-items:center;justify-content:space-between">
+            <span class="nowrap c-bone" data-fit="580" style="font-weight:800;font-size:30px">“เทรดขาดทุนรับผิดชอบเอง · แต่พอได้กำไรต้องมาทวงถาม!”</span>
+            <span class="nowrap" style="font-size:22px;color:var(--gold);font-weight:600">ตามโพสต์ระบุ</span>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 5 (5.00 - 6.40s): ALMOST 6 MILLION BAHT STAT HIT ==================== -->
+        <div class="scene" id="sc-5">
+          <!-- Hero Count-Up Banner at Top (y: 196..625) -->
+          <div class="zone-top" style="top:196px">
+            <div id="s5-stat-card" class="dossier-card" style="border:3px solid var(--gold);background:rgba(12,10,15,0.94);padding:26px 34px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span class="kicker-pill kicker-gold nowrap" data-fit="580">💰 ยอดกำไรตามคำบอกเล่า · UNPAID PROFIT CLAIM</span>
+                <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;color:var(--crimson);background:rgba(255,30,56,0.16);border:1.5px solid var(--crimson);padding:6px 16px;border-radius:8px">
+                  STATUS: BLOCKED
+                </span>
+              </div>
+
+              <div style="margin-top:18px;display:flex;align-items:baseline;justify-content:space-between">
+                <div class="headline-lg c-bone nowrap" data-fit="220">เกือบ</div>
+                <div id="s5-num" class="num-display c-gold nowrap" style="font-size:118px">฿0</div>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+                <div class="headline-lg c-gold nowrap" data-fit="520">เกือบ 6 ล้านบาท!</div>
+                <div class="nowrap" style="font-size:28px;color:var(--slate);font-weight:600">บัญชี Cent · เทรดทองคำ</div>
+              </div>
+
+              <!-- Proportional Fill Bar Meter -->
+              <div style="width:100%;height:22px;background:rgba(255,255,255,0.10);border-radius:11px;margin-top:18px;overflow:hidden;position:relative">
+                <div id="s5-bar" style="width:100%;height:100%;background:linear-gradient(90deg,var(--gold),var(--crimson));transform-origin:left center;transform:scaleX(0)"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right of Presenter Cut-Out (x: 536..920, y: 660..1260) -->
+          <div id="s5-side-stack" style="position:absolute;left:536px;top:660px;width:384px;display:flex;flex-direction:column;gap:20px">
+            <div class="dossier-card" style="border-left:8px solid var(--gold);padding:22px 24px">
+              <div style="font-size:22px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">แหล่งที่มาของข้อมูล</div>
+              <div style="font-size:32px;color:var(--bone);font-weight:800;margin-top:6px" class="nowrap" data-fit="330">ตามที่เจ้าของโพสต์เล่า</div>
+              <div style="font-size:24px;color:var(--gold);font-weight:600;margin-top:6px" class="nowrap" data-fit="330">ใช้เงินทุนตัวเองเทรด</div>
+            </div>
+            <div class="dossier-card" style="border-left:8px solid var(--crimson);padding:22px 24px">
+              <div style="font-size:22px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">ผลลัพธ์ที่อ้างว่าเจอ</div>
+              <div style="font-size:36px;color:var(--crimson);font-weight:800;margin-top:6px" class="nowrap" data-fit="330">CXM ปฏิเสธจ่ายกำไร</div>
+              <div style="font-size:24px;color:var(--bone);font-weight:600;margin-top:6px" class="nowrap" data-fit="330">อ้างว่าเทรดผิดกฎโบรกเกอร์</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 6 (6.40 - 7.80s): CXM STATED IN EMAIL ==================== -->
+        <div class="scene" id="sc-6">
+          <!-- Left of Top-Right Presenter (x: 64..536, y: 210..760) -->
+          <div id="s6-left-head" style="position:absolute;left:64px;top:210px;width:472px">
+            <div class="kicker-pill kicker-crimson nowrap" data-fit="450">
+              📩 INCOMING NOTICE · อีเมลจากโบรก
+            </div>
+            <div class="headline-xl c-bone nowrap" data-fit="460" style="margin-top:18px;font-family:Archivo,sans-serif">
+              CXM
+            </div>
+            <div class="headline-lg c-gold nowrap" data-fit="460" style="margin-top:6px">
+              แจ้งในอีเมลว่า...
+            </div>
+            <div class="dossier-card" style="margin-top:20px;border-left:8px solid var(--crimson);padding:18px 22px">
+              <div style="font-size:24px;color:var(--slate);font-weight:600" class="nowrap" data-fit="420">คำชี้แจงที่ผู้โพสต์อ้างว่าได้รับ:</div>
+              <div style="font-size:32px;color:var(--bone);font-weight:800;margin-top:6px" class="nowrap" data-fit="420">“เข้าข่ายเทรดผิดกฎ”</div>
+            </div>
+          </div>
+
+          <!-- Simulated Broker Email Dossier Window (y: 790..1240, x: 64..920) -->
+          <div class="zone-safe-low" id="s6-email-window" style="top:790px">
+            <div class="dossier-card" style="border:2px solid var(--border-crimson);background:rgba(9,8,13,0.95);padding:0;overflow:hidden">
+              <div style="background:rgba(255,30,56,0.22);border-bottom:2px solid var(--border-crimson);padding:14px 26px;display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="width:12px;height:12px;border-radius:50%;background:var(--crimson);display:inline-block"></span>
+                  <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:22px;color:var(--bone)">EMAIL NOTIFICATION // CXM COMPLIANCE (ACCORDING TO POST)</span>
+                </div>
+                <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:20px;color:var(--gold)">CLAIM</span>
+              </div>
+              <div style="padding:24px 28px">
+                <div style="font-size:24px;color:var(--slate);font-weight:600" class="nowrap" data-fit="790">
+                  เรื่อง: การตรวจสอบคำสั่งซื้อขายและปฏิเสธการจ่ายกำไร (ตามคำบอกเล่า)
+                </div>
+                <div id="s6-email-line" class="headline-md c-bone nowrap" data-fit="790" style="margin-top:12px">
+                  ระบุสาเหตุว่าเป็น <span class="c-crimson">“ท็อกซิกเทรดดิ้ง”</span>
+                </div>
+                <div id="s6-email-bar" style="width:100%;height:6px;background:var(--crimson);margin-top:16px;transform-origin:left center"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 7 (7.80 - 9.30s): "TOXIC TRADING" CLIMAX SLAM ==================== -->
+        <div class="scene" id="sc-7">
+          <!-- Upper-Left Hazard Callout (x: 64..576, y: 210..626) -->
+          <div id="s7-top-left" style="position:absolute;left:64px;top:210px;width:512px">
+            <div class="kicker-pill kicker-gold nowrap" data-fit="490">
+              ⚡ ข้อกล่าวหาหลัก · THE ACCUSATION
+            </div>
+            <div class="headline-lg c-bone nowrap" data-fit="500" style="margin-top:16px">
+              CXM อ้างว่าเป็น
+            </div>
+            <div class="headline-lg c-crimson nowrap" data-fit="500" style="margin-top:4px">
+              ท็อกซิกเทรดดิ้ง!
+            </div>
+            <div style="margin-top:16px;background:rgba(10,9,14,0.9);border:2px solid var(--border-subtle);border-left:8px solid var(--gold);padding:16px 20px;border-radius:14px">
+              <div class="nowrap" data-fit="460" style="font-size:26px;color:var(--gold);font-weight:800">
+                ทั้งที่ผู้โพสต์อ้างว่าถือออเดอร์ 2 ชั่วโมง
+              </div>
+            </div>
+          </div>
+
+          <!-- Massive Climax Stamp Lockup (y: 820..1245, x: 64..920) -->
+          <div class="zone-safe-low" id="s7-slam-wrap" style="top:835px">
+            <div id="s7-slam-inner" class="dossier-card" style="border:4px solid var(--crimson);background:rgba(10,6,9,0.95);padding:28px 34px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.95), 0 0 50px rgba(255,30,56,0.45)">
+              <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:24px;letter-spacing:0.14em;color:var(--gold)">
+                BROKER ACCUSATION // ตามที่เจ้าของโพสต์เล่า
+              </div>
+              <div id="s7-toxic-en" class="num-display c-crimson nowrap" data-fit="780" style="font-size:108px;margin-top:10px">
+                “TOXIC TRADING”
+              </div>
+              <div id="s7-toxic-th" class="headline-md c-bone nowrap" data-fit="780" style="margin-top:10px">
+                ข้อหา <span class="c-gold">“เทรดพิษ / เทรดเร็วเกินไป”</span> ไม่จ่ายเกือบ 6 ล้าน
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCENE 8 (9.30 - 10.00s): FINAL CASE SUMMARY LOCKUP ==================== -->
+        <div class="scene" id="sc-8">
+          <div class="zone-top" style="top:196px">
+            <div id="s8-header-card" class="dossier-card" style="border-left:10px solid var(--gold);padding:24px 32px;background:rgba(10,9,14,0.95)">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span class="kicker-pill kicker-crimson nowrap" data-fit="620">📌 สรุปคำบอกเล่าเจ้าของโพสต์ · CASE FILE #62</span>
+                <span style="font-family:Archivo,sans-serif;font-weight:800;font-size:28px;color:var(--gold)">CXM CLAIM</span>
+              </div>
+              <div class="headline-lg c-bone nowrap" data-fit="880" style="margin-top:14px">
+                ถือ 2 ชม. · ชวดเกือบ 6 ล้าน · ข้อหา <span class="c-crimson">TOXIC!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mid-Frame Verdict Banner (y: 450..675) -->
+          <div class="zone-top" id="s8-verdict-banner" style="top:452px">
+            <div class="dossier-card" style="border:2px solid var(--border-gold);background:rgba(14,11,18,0.92);padding:22px 32px;text-align:center">
+              <div style="font-size:24px;color:var(--gold);font-weight:600" class="nowrap" data-fit="860">
+                คำถามจากโพสต์ต้นเรื่อง (เป็นคำบอกเล่าฝั่งผู้โพสต์ ไม่ใช่ข้อเท็จจริงที่พิสูจน์แล้ว)
+              </div>
+              <div class="headline-md c-bone nowrap" data-fit="880" style="margin-top:8px">
+                “ถือออเดอร์ 2 ชั่วโมง... เรียกว่าเทรดเร็วเกินไปได้เหรอ?!”
+              </div>
+            </div>
+          </div>
+
+          <!-- Right of Presenter Cut-Out: 3 Key Numbers/Claims Stack (x: 536..920, y: 720..1270) -->
+          <div id="s8-summary-stack" style="position:absolute;left:536px;top:720px;width:384px;display:flex;flex-direction:column;gap:16px">
+            <div class="dossier-card" style="border-left:8px solid var(--gold);padding:16px 22px">
+              <div style="font-size:20px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">1 · เวลาถือออเดอร์ (ตามโพสต์)</div>
+              <div class="headline-md c-gold nowrap" data-fit="330" style="font-size:46px">2 ชั่วโมง</div>
+            </div>
+            <div class="dossier-card" style="border-left:8px solid var(--crimson);padding:16px 22px">
+              <div style="font-size:20px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">2 · กำไรที่อ้างว่า CXM ไม่จ่าย</div>
+              <div class="headline-md c-crimson nowrap" data-fit="330" style="font-size:46px">เกือบ 6 ล้านบาท</div>
+            </div>
+            <div class="dossier-card" style="border-left:8px solid var(--bone);padding:16px 22px">
+              <div style="font-size:20px;color:var(--slate);font-weight:600" class="nowrap" data-fit="330">3 · ข้อหาในอีเมล</div>
+              <div class="num-display c-bone nowrap" data-fit="330" style="font-size:42px;margin-top:6px">"TOXIC TRADING"</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== SPOKEN CAPTION RAIL (SYNCED TO VOICE BEATS) ==================== -->
+      <div id="caption-rail">
+        <div class="cap-box" id="cap-0" style="opacity:1">
+          <span class="cap-speaker-tag">CLAIM</span>
+          <span class="cap-text" data-fit="700">ดราม่าโบรกเกอร์ CXM · ตามที่เจ้าของโพสต์เล่า</span>
+        </div>
+        <div class="cap-box" id="cap-1">
+          <span class="cap-speaker-tag">01:00</span>
+          <span class="cap-text" data-fit="700">“ถือออเดอร์ 2 ชั่วโมง แต่โดนข้อหาเทรดเร็วเกินไป?”</span>
+        </div>
+        <div class="cap-box" id="cap-2">
+          <span class="cap-speaker-tag">03:60</span>
+          <span class="cap-text" data-fit="700">“เธอเล่าว่า CXM ไม่จ่ายกำไรเกือบ 6 ล้านบาท”</span>
+        </div>
+        <div class="cap-box" id="cap-3">
+          <span class="cap-speaker-tag">06:40</span>
+          <span class="cap-text" data-fit="700">“CXM แจ้งในอีเมลว่าเป็น TOXIC TRADING”</span>
+        </div>
+        <div class="cap-box" id="cap-4">
+          <span class="cap-speaker-tag">EP.62</span>
+          <span class="cap-text" data-fit="700">ทั้งหมดเป็นคำบอกเล่าจากฝั่งเจ้าของโพสต์ · คุณคิดเห็นอย่างไร?</span>
+        </div>
+      </div>
+
+      <!-- ==================== STANDING LEGAL LABEL (ALWAYS ON 0.0-10.0s) ==================== -->
+      <div id="legal-banner">
+        <span id="legal-text" data-fit="816">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</span>
+      </div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+
+      // Fit every single-line Thai/English element marked with data-fit so it NEVER wraps or overflows
+      function fitAllLines() {
+        var nodes = document.querySelectorAll("[data-fit]");
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i];
+          var maxW = parseFloat(el.getAttribute("data-fit"));
+          if (!maxW) continue;
+          el.style.whiteSpace = "nowrap";
+          var prevDisplay = el.style.display;
+          el.style.display = "inline-block";
+          var size = parseFloat(window.getComputedStyle(el).fontSize);
+          for (var step = 0; step < 10; step++) {
+            var w = el.getBoundingClientRect().width;
+            if (w <= maxW || size <= 18) break;
+            size = Math.max(18, Math.floor(size * (maxW / w) * 0.97));
+            el.style.fontSize = size + "px";
+          }
+          el.style.display = prevDisplay;
+        }
+      }
+      fitAllLines();
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Helper: hard scene switch + impact flash at cut boundaries
+      function cutScene(hideSel, showSel, at, flashStrength) {
+        if (hideSel) {
+          tl.set(hideSel, { opacity: 0 }, at);
+        }
+        if (showSel) {
+          tl.set(showSel, { opacity: 1 }, at);
+        }
+        if (flashStrength) {
+          tl.fromTo(
+            "#cut-flash",
+            { opacity: flashStrength },
+            { opacity: 0, duration: 0.22, ease: "power2.out" },
+            at
+          );
+        }
+      }
+
+      // Helper: caption rail switch
+      function switchCap(hideSel, showSel, at) {
+        if (hideSel) tl.set(hideSel, { opacity: 0 }, at);
+        if (showSel) {
+          tl.fromTo(
+            showSel,
+            { opacity: 0, y: 16 },
+            { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" },
+            at
+          );
+        }
+      }
+
+      // ==================== GLOBAL PERSISTENT MOTION (0.0 - 10.0s) ====================
+      // Progress bar fills smoothly from 0s to 10s
+      tl.fromTo(
+        "#hud-progress-fill",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 10.0, ease: "none" },
+        0
+      );
+
+      // Ambient ghost typography drift across the 10 seconds
+      tl.fromTo(
+        "#ghost-1",
+        { x: 0 },
+        { x: -420, duration: 10.0, ease: "none" },
+        0
+      );
+      tl.fromTo(
+        "#ghost-2",
+        { x: -260 },
+        { x: 180, duration: 10.0, ease: "none" },
+        0
+      );
+
+      // Live indicator pulse (deterministic keyframes over 10s)
+      tl.to(
+        "#live-dot",
+        {
+          keyframes: [
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 },
+            { scale: 1.35, opacity: 0.5, duration: 0.5 },
+            { scale: 1.0, opacity: 1.0, duration: 0.5 }
+          ],
+          ease: "sine.inOut"
+        },
+        0
+      );
+
+      // ==================== SHOT 1 (0.00 - 1.00s): SCROLL-STOPPER HOOK ====================
+      // Frame 0 is already fully legible; punchy motion happens across 0.0 -> 1.0s
+      tl.fromTo(
+        "#v-s1-bg",
+        { scale: 1.12 },
+        { scale: 1.02, duration: 1.0, ease: "power2.out" },
+        0
+      );
+      tl.fromTo(
+        "#v-s1-av",
+        { scale: 0.94, x: -24 },
+        { scale: 1.0, x: 0, duration: 0.45, ease: "back.out(1.6)" },
+        0
+      );
+      tl.fromTo(
+        "#s1-line1",
+        { scale: 0.88, y: 14 },
+        { scale: 1.0, y: 0, duration: 0.38, ease: "back.out(1.8)" },
+        0
+      );
+      tl.fromTo(
+        "#s1-line2",
+        { x: 48 },
+        { x: 0, duration: 0.42, ease: "expo.out" },
+        0.06
+      );
+      tl.fromTo(
+        "#s1-rule",
+        { scaleX: 0.25 },
+        { scaleX: 1, duration: 0.55, ease: "expo.out" },
+        0.10
+      );
+      tl.fromTo(
+        "#s1-dossier",
+        { x: 40, opacity: 0.85 },
+        { x: 0, opacity: 1, duration: 0.48, ease: "power3.out" },
+        0.08
+      );
+
+      // ==================== SHOT 2 (1.00 - 2.30s): "ถือออเดอร์สองชั่วโมง" ====================
+      cutScene("#sc-1", "#sc-2", 1.0, 0.65);
+      switchCap("#cap-0", "#cap-1", 1.0);
+
+      tl.fromTo(
+        "#v-s2-bg",
+        { scale: 1.02 },
+        { scale: 1.12, duration: 1.3, ease: "none" },
+        1.0
+      );
+      // 1:1 native pixel resolution on Facebook post screenshot (no zoom/scale/sharpen)
+      tl.fromTo(
+        "#img-s2-claim",
+        { y: 24 },
+        { y: 0, duration: 0.36, ease: "expo.out" },
+        1.0
+      );
+      tl.fromTo(
+        "#s2-top-card",
+        { y: -36, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.36, ease: "power3.out" },
+        1.02
+      );
+      tl.fromTo(
+        "#s2-ring",
+        { strokeDashoffset: 703.7 },
+        { strokeDashoffset: 0, duration: 0.95, ease: "power2.out" },
+        1.08
+      );
+
+      // Deterministic 2-hour timer count-up (00:00 -> 02:00 HRS)
+      var holdCounter = { mins: 0 };
+      var s2CounterEl = document.getElementById("s2-counter");
+      tl.fromTo(
+        holdCounter,
+        { mins: 0 },
+        {
+          mins: 120,
+          duration: 0.95,
+          ease: "power2.out",
+          onUpdate: function () {
+            var m = Math.round(holdCounter.mins);
+            var hrs = Math.floor(m / 60);
+            var rem = m % 60;
+            s2CounterEl.textContent =
+              "0" + hrs + ":" + (rem < 10 ? "0" + rem : rem);
+          }
+        },
+        1.08
+      );
+
+      tl.fromTo(
+        "#s2-ev-label",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.34, ease: "expo.out" },
+        1.10
+      );
+      tl.fromTo(
+        "#s2-highlight-bar",
+        { y: 28, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.38, ease: "back.out(1.4)" },
+        1.18
+      );
+
+      // ==================== SHOT 3 (2.30 - 3.60s): "แต่โดนข้อหาเทรดเร็วเกินไป?" ====================
+      cutScene("#sc-2", "#sc-3", 2.3, 0.85);
+
+      tl.fromTo(
+        "#v-s3-bg",
+        { scale: 1.16 },
+        { scale: 1.03, duration: 1.3, ease: "power2.out" },
+        2.3
+      );
+      tl.fromTo(
+        "#v-s3-av",
+        { y: 48, scale: 0.95 },
+        { y: 0, scale: 1.0, duration: 0.42, ease: "expo.out" },
+        2.3
+      );
+      tl.fromTo(
+        "#s3-left-box",
+        { x: -50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.32, ease: "expo.out" },
+        2.32
+      );
+      tl.fromTo(
+        "#s3-right-box",
+        { x: 50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.32, ease: "expo.out" },
+        2.38
+      );
+      tl.fromTo(
+        "#s3-slam-card",
+        { scale: 0.76, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.34, ease: "back.out(2.1)" },
+        2.46
+      );
+      tl.fromTo(
+        "#s3-telemetry",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.34, ease: "expo.out" },
+        2.54
+      );
+      // Impact shake after slam lands
+      tl.to(
+        "#s3-clash-wrap",
+        {
+          keyframes: [
+            { x: -10, duration: 0.04 },
+            { x: 10, duration: 0.04 },
+            { x: -6, duration: 0.04 },
+            { x: 6, duration: 0.04 },
+            { x: 0, duration: 0.04 }
+          ],
+          ease: "none"
+        },
+        2.78
+      );
+
+      // ==================== SHOT 4 (3.60 - 5.00s): "เธอเล่าว่า CXM ไม่จ่ายกำไร..." ====================
+      cutScene("#sc-3", "#sc-4", 3.6, 0.75);
+      switchCap("#cap-1", "#cap-2", 3.6);
+
+      tl.fromTo(
+        "#v-s4-bg",
+        { scale: 1.04 },
+        { scale: 1.14, duration: 1.4, ease: "none" },
+        3.6
+      );
+      // 1:1 native pixel resolution on second Facebook post screenshot
+      tl.fromTo(
+        "#img-s4-account",
+        { y: 24 },
+        { y: 0, duration: 0.38, ease: "expo.out" },
+        3.6
+      );
+      tl.fromTo(
+        "#s4-broker-card",
+        { x: -60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, ease: "expo.out" },
+        3.62
+      );
+      tl.fromTo(
+        "#s4-stamp",
+        { scale: 1.85, rotation: -14, opacity: 0 },
+        { scale: 1.0, rotation: -6, opacity: 1, duration: 0.34, ease: "back.out(2.2)" },
+        3.84
+      );
+      tl.fromTo(
+        "#s4-ev-label",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.34, ease: "power3.out" },
+        3.70
+      );
+      tl.fromTo(
+        "#s4-highlight-bar",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.36, ease: "back.out(1.4)" },
+        3.78
+      );
+
+      // ==================== SHOT 5 (5.00 - 6.40s): "...เกือบ 6 ล้านบาท!" ====================
+      cutScene("#sc-4", "#sc-5", 5.0, 0.80);
+
+      tl.fromTo(
+        "#v-s5-bg",
+        { scale: 1.12 },
+        { scale: 1.0, duration: 1.4, ease: "power2.out" },
+        5.0
+      );
+      tl.fromTo(
+        "#v-s5-av",
+        { x: -36, scale: 0.94 },
+        { x: 0, scale: 1.0, duration: 0.38, ease: "back.out(1.5)" },
+        5.0
+      );
+      tl.fromTo(
+        "#s5-stat-card",
+        { scale: 0.88, y: -28, opacity: 0 },
+        { scale: 1.0, y: 0, opacity: 1, duration: 0.36, ease: "back.out(1.7)" },
+        5.02
+      );
+      tl.fromTo(
+        "#s5-bar",
+        { scaleX: 0 },
+        { scaleX: 0.97, duration: 0.92, ease: "expo.out" },
+        5.08
+      );
+      tl.fromTo(
+        "#s5-side-stack",
+        { x: 44, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.42, ease: "expo.out" },
+        5.14
+      );
+
+      // Deterministic 6,000,000 THB count-up
+      var profitCounter = { val: 0 };
+      var s5NumEl = document.getElementById("s5-num");
+      tl.fromTo(
+        profitCounter,
+        { val: 0 },
+        {
+          val: 6000000,
+          duration: 0.92,
+          ease: "power3.out",
+          onUpdate: function () {
+            var v = Math.round(profitCounter.val);
+            s5NumEl.textContent = "฿" + v.toLocaleString("en-US");
+          }
+        },
+        5.06
+      );
+
+      // ==================== SHOT 6 (6.40 - 7.80s): "CXM แจ้งในอีเมลว่า..." ====================
+      cutScene("#sc-5", "#sc-6", 6.4, 0.70);
+      switchCap("#cap-2", "#cap-3", 6.4);
+
+      tl.fromTo(
+        "#v-s6-bg",
+        { scale: 1.02 },
+        { scale: 1.12, duration: 1.4, ease: "none" },
+        6.4
+      );
+      tl.fromTo(
+        "#v-s6-av",
+        { x: 40, scale: 0.92 },
+        { x: 0, scale: 1.0, duration: 0.40, ease: "back.out(1.5)" },
+        6.4
+      );
+      tl.fromTo(
+        "#s6-left-head",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, ease: "expo.out" },
+        6.42
+      );
+      tl.fromTo(
+        "#s6-email-window",
+        { y: 52, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.42, ease: "back.out(1.5)" },
+        6.52
+      );
+      tl.fromTo(
+        "#s6-email-bar",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.75, ease: "expo.out" },
+        6.68
+      );
+
+      // ==================== SHOT 7 (7.80 - 9.30s): "...เป็น TOXIC TRADING" ====================
+      cutScene("#sc-6", "#sc-7", 7.8, 0.90);
+
+      tl.fromTo(
+        "#v-s7-av",
+        { scale: 1.02 },
+        { scale: 1.10, duration: 1.5, ease: "none" },
+        7.8
+      );
+      tl.fromTo(
+        "#v-s7-fg",
+        { scale: 0.80, rotation: 6 },
+        { scale: 1.0, rotation: 0, duration: 0.38, ease: "back.out(1.8)" },
+        7.82
+      );
+      tl.fromTo(
+        "#s7-top-left",
+        { x: -46, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.36, ease: "expo.out" },
+        7.82
+      );
+      tl.fromTo(
+        "#s7-slam-wrap",
+        { scale: 0.68, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.34, ease: "back.out(2.3)" },
+        7.90
+      );
+      // Heavy impact shake on #s7-slam-inner (child element so no conflict with parent #s7-slam-wrap)
+      tl.to(
+        "#s7-slam-inner",
+        {
+          keyframes: [
+            { x: -12, y: 4, duration: 0.04 },
+            { x: 12, y: -4, duration: 0.04 },
+            { x: -8, y: 2, duration: 0.04 },
+            { x: 8, y: -2, duration: 0.04 },
+            { x: 0, y: 0, duration: 0.04 }
+          ],
+          ease: "none"
+        },
+        8.22
+      );
+
+      // ==================== SHOT 8 (9.30 - 10.00s): FINAL VERDICT SUMMARY ====================
+      cutScene("#sc-7", "#sc-8", 9.3, 0.75);
+      switchCap("#cap-3", "#cap-4", 9.3);
+
+      tl.fromTo(
+        "#v-s8-bg",
+        { scale: 1.08 },
+        { scale: 1.0, duration: 0.7, ease: "power2.out" },
+        9.3
+      );
+      tl.fromTo(
+        "#v-s8-av",
+        { scale: 0.94, x: -20 },
+        { scale: 1.0, x: 0, duration: 0.30, ease: "power3.out" },
+        9.3
+      );
+      tl.fromTo(
+        "#s8-header-card",
+        { y: -28, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.28, ease: "expo.out" },
+        9.32
+      );
+      tl.fromTo(
+        "#s8-verdict-banner",
+        { scale: 0.92, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.30, ease: "back.out(1.6)" },
+        9.34
+      );
+      tl.fromTo(
+        "#s8-summary-stack",
+        { x: 36, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.32, ease: "expo.out" },
+        9.36
+      );
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

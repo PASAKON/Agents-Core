@@ -1,0 +1,1 @@
+remotion-dev/skills (npx remotion skills add) in free10/R2/.agents and hook-ab/v2/.agents — deleted 16 Oct 04:26 TH

@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-10d9bd15.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-87937726.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Archivo';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/archivo-800-23599068.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-b4b6e60e.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-9895ee29.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-fc0bae07.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 600;
+        font-display: block;
+        src: url('assets/fonts/kanit-600-0c71a5b8.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-aa86a0cb.woff2') format('woff2');
+        unicode-range: U+02D7, U+0303, U+0331, U+0E01-0E5B, U+200C-200D, U+25CC;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f99e92e2.woff2') format('woff2');
+        unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-f57eab15.woff2') format('woff2');
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: 'Kanit';
+        font-style: normal;
+        font-weight: 800;
+        font-display: block;
+        src: url('assets/fonts/kanit-800-1bf17218.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      /* ============================ BL KIT ============================
+         BLACK LIQUIDITY video kit. Catalogue and rationale: BL-KIT.md
+         Theme (CEO 2026-09-18): black / red / white, red always emissive neon.
+         Motion grammar is measured off the reference edit, not chosen:
+         every reveal is expo.out, text arrives by clip-path wipe (never a
+         fade), rules scale from a left or top origin.
+         ================================================================ */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      :root {
+        --ink:    #07080A;
+        --red:    #E0202F;
+        --neon:   #FF2D40;
+        --white:  #F4F6F7;
+        --yellow: #F4DF14;
+        --muted:  #98A0A8;
+        --line:   rgba(255,255,255,.12);
+        --glow-s: 0 0 10px rgba(255,45,64,.55);
+        --glow-m: 0 0 22px rgba(255,45,64,.55), 0 0 44px rgba(255,45,64,.22);
+        --outline: 0 0 10px rgba(0,0,0,.95), 0 4px 18px rgba(0,0,0,.9),
+                   2px 2px 0 rgba(0,0,0,.92), -2px 2px 0 rgba(0,0,0,.92),
+                   2px -2px 0 rgba(0,0,0,.92), -2px -2px 0 rgba(0,0,0,.92);
+
+        --safe-top:    252px;
+        --safe-left:   120px;
+        --safe-right:  240px;   /* right rail: content must end by x=840 */
+        --safe-bottom: 756px;   /* caption + scrub bar: end by y=1164 */
+      }
+
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ink); }
+      #root { position: relative; width: 100%; height: 100%;
+              background: var(--ink); color: var(--white); font-family: Kanit, sans-serif; }
+
+      .clip { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+      video.clip { object-fit: cover; }
+
+      .avatar-comp { position: absolute; left: 0; bottom: 0; z-index: 2;
+                     height: 56%; width: auto; object-fit: contain;
+                     object-position: left bottom; transform: translateX(-6%); }
+      .plate-darkened { filter: brightness(.4) saturate(.85) blur(1.5px); }
+
+      .bl-bg { position: absolute; inset: 0; z-index: 0; opacity: 1;
+               background: radial-gradient(130% 62% at 50% 6%, rgba(224,32,47,.20), transparent 62%),
+                           var(--ink); }
+      .bl-bg .grid { position: absolute; inset: 0; opacity: .5;
+        background-image: linear-gradient(rgba(255,45,64,.07) 2px, transparent 2px),
+                          linear-gradient(90deg, rgba(255,45,64,.07) 2px, transparent 2px);
+        background-size: 108px 108px; }
+      .bl-bg .scan { position: absolute; inset: 0; opacity: .35;
+        background: repeating-linear-gradient(rgba(255,255,255,.035) 0 2px, transparent 2px 6px); }
+
+      .stage { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+      /* Evidence focus frame & yellow highlighter bars (descendant rules under .stage, SKILL.md §6d) */
+      .stage .evbox { position: absolute; left: 120px; top: 528px; width: 840px; height: 300px;
+                      border: 3px solid var(--neon); border-radius: 16px;
+                      box-shadow: var(--glow-m), 0 22px 54px rgba(0,0,0,.78); opacity: 0; }
+      .stage .hl-bar { position: absolute; height: 34px; background: var(--yellow);
+                       border-radius: 6px; mix-blend-mode: multiply; opacity: 0.92;
+                       transform: scaleX(0); transform-origin: left center; }
+
+      .blk { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             opacity: 0; text-align: center; }
+      .nb { white-space: nowrap; }
+      .blk.wide { right: var(--safe-left); }
+      .blk.l { text-align: left; }
+
+      .bl-xl { font-weight: 800; font-size: 104px; line-height: 1.26; text-shadow: var(--outline); }
+      .bl-lg { font-weight: 800; font-size:  82px; line-height: 1.28; text-shadow: var(--outline); }
+      .bl-md { font-weight: 800; font-size:  62px; line-height: 1.32; text-shadow: var(--outline); }
+      .bl-sm { font-weight: 600; font-size:  44px; line-height: 1.38; text-shadow: var(--outline); }
+      .bl-xs { font-weight: 600; font-size:  34px; line-height: 1.30; color: var(--muted); }
+      .y { color: var(--yellow); }
+      .n { color: var(--neon); text-shadow: var(--outline), var(--glow-s); }
+      .wipe { display: inline-block; clip-path: inset(0 100% 0 0);
+              background: rgba(7,8,10,.76); padding: 4px 18px; border-radius: 12px; }
+
+      .bl-rule  { display: block; height: 8px; border-radius: 4px; background: var(--neon);
+                  box-shadow: var(--glow-m); transform: scaleX(0); transform-origin: left center; }
+      .bl-vline { position: absolute; width: 7px; border-radius: 4px;
+                  background: linear-gradient(var(--red), var(--neon));
+                  box-shadow: var(--glow-s); transform: scaleY(0); transform-origin: top center; }
+
+      .bl-card { position: relative; background: rgba(10,11,13,.84);
+                 border: 2px solid var(--line); border-left: 10px solid var(--neon);
+                 border-radius: 20px; padding: 26px 32px; text-align: left;
+                 box-shadow: 0 22px 50px rgba(0,0,0,.55), -14px 0 26px -12px rgba(255,45,64,.55); }
+      .bl-card .nm { font-family: Archivo, sans-serif; font-weight: 800; font-size: 52px;
+                     letter-spacing: -.01em; line-height: 1.20; }
+      .bl-card .cl { font-weight: 600; font-size: 38px; color: #D7DCE0; margin-top: 6px; }
+      .bl-card .badge { position: absolute; right: 24px; top: 22px; background: var(--red);
+                        color: #fff; font-weight: 800; font-size: 24px; padding: 7px 15px;
+                        border-radius: 10px; letter-spacing: .04em; box-shadow: var(--glow-s); }
+
+      .bl-rulecard .idx { width: 118px; height: 118px; border-radius: 50%;
+                          border: 4px solid var(--neon); box-shadow: var(--glow-m);
+                          display: flex; align-items: center; justify-content: center;
+                          font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                          color: var(--neon); }
+      .bl-rulecard .hd  { font-weight: 800; font-size: 72px; line-height: 1.30;
+                          margin-top: 28px; text-shadow: var(--outline); }
+      .bl-rulecard .dt  { font-weight: 600; font-size: 44px; line-height: 1.34;
+                          color: #CBD2D8; margin-top: 18px; }
+
+      .bl-row { display: flex; align-items: flex-start; gap: 22px; text-align: left;
+                background: rgba(10,11,13,.84); border: 2px solid var(--line);
+                border-radius: 18px; padding: 22px 26px; }
+      .bl-row .tick { flex: none; width: 46px; height: 46px; border-radius: 50%;
+                      background: var(--neon); box-shadow: var(--glow-s); color: #12060A;
+                      font-family: Archivo, sans-serif; font-weight: 800; font-size: 26px;
+                      display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+      .bl-row .tx { font-weight: 600; font-size: 42px; line-height: 1.26; }
+
+      .bl-stat { background: rgba(10,11,13,.84); border: 2px solid var(--line);
+                 border-top: 6px solid var(--neon); border-radius: 20px;
+                 padding: 20px 30px; box-shadow: 0 18px 42px rgba(0,0,0,.6); }
+      .bl-stat .big { font-family: Archivo, Kanit, sans-serif; font-weight: 800; font-size: 110px;
+                      line-height: 1.02; color: var(--neon); text-shadow: var(--outline), var(--glow-m); }
+      .bl-stat .lb  { font-weight: 600; font-size: 36px; color: #D7DCE0; margin-top: 10px;
+                      text-shadow: var(--outline); }
+
+      .bl-legal { position: absolute; left: var(--safe-left); right: var(--safe-right);
+                  top: 1430px; z-index: 45;
+                  font-family: Kanit, sans-serif; font-weight: 400; font-size: 24px;
+                  line-height: 1.35; text-align: center; color: #B9C0C6;
+                  text-shadow: 0 2px 6px rgba(0,0,0,.95), 0 0 2px rgba(0,0,0,1);
+                  background: rgba(7,8,10,.72); padding: 8px 24px;
+                  border-radius: 10px; width: fit-content; margin: 0 auto; }
+
+      .bug { position: absolute; right: 150px; top: 310px; z-index: 40;
+             display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+      .bug .logo { height: 60px; width: auto; display: block;
+                   filter: drop-shadow(0 3px 10px rgba(0,0,0,.85)); }
+      .bug .b1 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 62px;
+                 letter-spacing: .06em; color: #fff; text-shadow: var(--outline); line-height: .92; }
+      .bug .b2 { font-family: Archivo, sans-serif; font-weight: 800; font-size: 54px;
+                 letter-spacing: .10em; color: var(--neon); line-height: .92;
+                 text-shadow: var(--outline), var(--glow-s); }
+      .bug .rl { width: 74px; height: 5px; background: var(--neon); border-radius: 3px;
+                 box-shadow: var(--glow-s); }
+      .bug .dt2 { font-weight: 600; font-size: 24px; color: #E8EAEC; letter-spacing: .02em;
+                  text-shadow: var(--outline);
+                  background: rgba(7,8,10,.72); padding: 3px 10px; border-radius: 6px; }
+
+      .caplayer { position: absolute; left: 0; right: 0; top: 1300px; height: 0; z-index: 35; }
+      .cap { position: absolute; left: var(--safe-left); right: var(--safe-right);
+             top: 0; transform: translateY(-50%);
+             text-align: center; opacity: 0; font-weight: 600; font-size: 48px;
+             line-height: 1.28; text-shadow: var(--outline);
+             text-wrap: balance;
+             background: rgba(5,6,8,.90); padding: 20px 30px;
+             border-radius: 18px; box-shadow: 0 10px 28px rgba(0,0,0,.55); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10"
+         data-width="1080" data-height="1920">
+
+      <!-- VIDEO & STILL TRACK (0.00s - 10.00s, frame-aligned on 30fps grid, zero gaps) -->
+      <!-- Shot 1 & 2A (0.00 - 2.20s): Presenter lip-synced (hook slide + "ถือออเดอร์สองชั่วโมง") -->
+      <video id="v-av1" class="clip" src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="0" data-duration="2.2" data-media-start="0"
+             data-track-index="1"></video>
+
+      <!-- Shot 2B (2.20 - 2.90s): Hourglass red sand ("แต่โดนข้อหา...") -->
+      <video id="v-hour" class="clip plate-darkened" src="assets/broll/hourglass-red-sand.mp4" muted playsinline
+             data-start="2.2" data-duration="0.7" data-media-start="0"
+             data-track-index="2"></video>
+
+      <!-- Shot 2C (2.90 - 3.60s): Red digital countdown ("...เทรดเร็วเกินไป?") -->
+      <video id="v-cnt" class="clip plate-darkened" src="assets/broll/red-digital-countdown.mp4" muted playsinline
+             data-start="2.9" data-duration="0.7" data-media-start="0"
+             data-track-index="3"></video>
+
+      <!-- Shot 3A (3.60 - 5.10s): Gold bar B-roll + Real FB post claim screenshot ("เธอเล่าว่า CXM ไม่จ่ายกำไร...") -->
+      <video id="v-gold" class="clip plate-darkened" src="assets/broll/gold-bar-in-glass-cube.mp4" muted playsinline
+             data-start="3.6" data-duration="1.5" data-media-start="0"
+             data-track-index="4"></video>
+      <img id="img-claim" class="clip" src="assets/stills/cxm-post-claim.png" alt="CXM Post Claim"
+           data-start="3.6" data-duration="1.5"
+           data-track-index="5" />
+
+      <!-- Shot 3B (5.10 - 6.40s): Red lock B-roll + Real FB post account screenshot ("...เกือบหกล้านบาท") -->
+      <video id="v-lock" class="clip plate-darkened" src="assets/broll/finger-taps-red-lock.mp4" muted playsinline
+             data-start="5.1" data-duration="1.3" data-media-start="0"
+             data-track-index="6"></video>
+      <img id="img-acc" class="clip" src="assets/stills/cxm-post-account.png" alt="CXM Post Account"
+           data-start="5.1" data-duration="1.3"
+           data-track-index="7" />
+
+      <!-- Shot 4A (6.40 - 7.80s): Presenter lip-synced ("ซีเอ็กซ์เอ็มแจ้งในอีเมล...") -->
+      <video id="v-av2" class="clip" src="assets/avatar-lipsync-0-10s.mp4" muted playsinline
+             data-start="6.4" data-duration="1.4" data-media-start="6.4"
+             data-track-index="8"></video>
+
+      <!-- Shot 4B (7.80 - 8.60s): Typewriter neon ticker ("...ว่าเป็นท็อกซิกเทรดดิ้ง") -->
+      <video id="v-type" class="clip plate-darkened" src="assets/broll/typewriter-red-neon-ticker-tape.mp4" muted playsinline
+             data-start="7.8" data-duration="0.8" data-media-start="0"
+             data-track-index="9"></video>
+
+      <!-- Shot 4C (8.60 - 9.30s): Red forbidden icon glow ("Toxic Trading") -->
+      <video id="v-forb" class="clip plate-darkened" src="assets/broll/red-forbidden-icon-glow.mp4" muted playsinline
+             data-start="8.6" data-duration="0.7" data-media-start="0"
+             data-track-index="10"></video>
+
+      <!-- Shot 5 (9.30 - 10.00s): Contract signature wax seal closing verdict plate -->
+      <video id="v-seal" class="clip plate-darkened" src="assets/broll/contract-signature-wax-seal.mp4" muted playsinline
+             data-start="9.3" data-duration="0.7" data-media-start="0"
+             data-track-index="11"></video>
+
+      <audio id="va" src="assets/voice-10s.wav" data-start="0" data-duration="10"
+             data-track-index="20" data-volume="1"></audio>
+
+      <div class="bl-bg" id="bg"><div class="grid"></div><div class="scan"></div></div>
+
+      <!-- legal label: present on every frame, never animated, never moved -->
+      <div class="bl-legal">เนื้อหาเพื่อการศึกษา ไม่ใช่คำแนะนำหรือการชักชวนลงทุน · การลงทุนมีความเสี่ยง</div>
+
+      <div class="stage" id="stage">
+        <div class="evbox" id="evbox"></div>
+        <!-- Highlighters for cxm-post-claim.png (3.60 - 5.10s) -->
+        <div class="hl-bar" id="hl-claim-1" style="left:532px;top:548px;width:308px"></div>
+        <div class="hl-bar" id="hl-claim-2" style="left:140px;top:588px;width:478px"></div>
+        <div class="hl-bar" id="hl-claim-3" style="left:555px;top:662px;width:282px"></div>
+        <!-- Highlighters for cxm-post-account.png (5.10 - 6.40s) -->
+        <div class="hl-bar" id="hl-acc-1" style="left:140px;top:584px;width:315px"></div>
+        <div class="hl-bar" id="hl-acc-2" style="left:140px;top:776px;width:395px"></div>
+      </div>
+
+      <div class="bug" id="bug">
+        <img class="logo" src="assets/bl-logo.png" alt="BLACK LIQUIDITY">
+        <div class="rl"></div>
+        <div class="dt2">15 ต.ค. 69</div>
+      </div>
+
+      <div class="caplayer" id="caps"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var stage = document.getElementById("stage");
+      var tl = gsap.timeline({ paused: true });
+      var E = "expo.out";
+
+      function el(h) { var d = document.createElement("div"); d.innerHTML = h; return d.firstElementChild; }
+      function show(s, at) { tl.to(s, { opacity: 1, duration: 0.12, ease: "power1.out" }, at); }
+      function hide(s, at) { tl.to(s, { opacity: 0, duration: 0.18, ease: "power1.in" }, at); }
+      function wipe(s, at, d) {
+        tl.fromTo(s, { clipPath: "inset(0 100% 0 0)" },
+                     { clipPath: "inset(0 0% 0 0)", duration: d || 0.60, ease: E }, at); }
+      function sweep(s, at, d) { tl.fromTo(s, { scaleX: 0 }, { scaleX: 1, duration: d || 0.8, ease: E }, at); }
+      function grow(s, at, d)  { tl.fromTo(s, { scaleY: 0 }, { scaleY: 1, duration: d || 0.9, ease: E }, at); }
+      function slide(s, at, d) { tl.fromTo(s, { opacity: 0, x: -64 }, { opacity: 1, x: 0, duration: d || 0.7, ease: E }, at); }
+      function drop(s, at, d)  { tl.fromTo(s, { opacity: 0, y: 44 }, { opacity: 1, y: 0, duration: d || 0.6, ease: "power3.out" }, at); }
+
+      var B = 0;
+      function block(cls, top, at, out) {
+        var wide = (top < 900) ? " wide" : "";
+        var id = "b" + (++B);
+        var d = el('<div class="blk ' + (cls || "") + wide + '" id="' + id + '" style="top:' + top + 'px"></div>');
+        stage.appendChild(d); show("#" + id, at); if (out) hide("#" + id, out);
+        return { id: id, node: d };
+      }
+
+      var KINETIC_FONT_FLOOR = 32;
+      function fitKineticLine(span, safeW) {
+        span.style.whiteSpace = "nowrap";
+        var size = parseFloat(window.getComputedStyle(span).fontSize);
+        for (var i = 0; i < 8; i++) {
+          var w = span.getBoundingClientRect().width;
+          if (w <= safeW) return;
+          if (size <= KINETIC_FONT_FLOOR) break;
+          size = Math.max(KINETIC_FONT_FLOOR, Math.floor(size * (safeW / w) * 0.97));
+          span.style.fontSize = size + "px";
+        }
+        var finalW = span.getBoundingClientRect().width;
+        if (finalW > safeW) {
+          throw new Error('kinetic(): line "' + span.textContent + '" is ' + Math.round(finalW) +
+            'px wide, still over the ' + Math.round(safeW) + 'px safe box at the ' +
+            KINETIC_FONT_FLOOR + 'px floor -- split it into more kinetic lines.');
+        }
+      }
+
+      function kinetic(top, at, out, lines, ruleW) {
+        var b = block("", top, at, out), t = at + 0.05;
+        var safeW = b.node.getBoundingClientRect().width;
+        lines.forEach(function (ln, i) {
+          var w = b.id + "w" + i;
+          b.node.appendChild(el('<div class="' + ln.c + '" style="margin-top:' + (i ? 18 : 0) + 'px">' +
+            '<span class="wipe" id="' + w + '">' + ln.h + '</span></div>'));
+          fitKineticLine(document.getElementById(w), safeW);
+          wipe("#" + w, t, ln.d || 0.60); t += (ln.g || 0.62); });
+        if (ruleW) {
+          var r = b.id + "r";
+          b.node.appendChild(el('<div style="position:relative;height:8px;margin:24px auto 0;width:' +
+            ruleW + 'px"><span class="bl-rule" id="' + r + '"></span></div>'));
+          sweep("#" + r, t, 0.85); }
+        return b;
+      }
+
+      function cards(top, at, out, title, items, visible) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var wrap = el('<div style="margin-top:30px;overflow:hidden"></div>');
+        var inner = el('<div id="' + b.id + 'i" style="display:flex;flex-direction:column;gap:18px"></div>');
+        wrap.appendChild(inner); b.node.appendChild(wrap);
+        items.forEach(function (it, i) {
+          var c = b.id + "c" + i;
+          inner.appendChild(el('<div class="bl-card" id="' + c + '"><div class="badge">อ้าง</div>' +
+            '<div class="nm">' + it.n + '</div><div class="cl">' + it.c + '</div></div>'));
+          tl.set("#" + c, { opacity: 0 }, 0);
+          slide("#" + c, it.t, 0.62);
+          if (i > 0) tl.to("#" + b.id + "c" + (i - 1), { opacity: 0.4, duration: 0.4, ease: "power2.inOut" }, it.t);
+        });
+        var pitch = inner.children.length > 1
+          ? inner.children[1].offsetTop - inner.children[0].offsetTop
+          : inner.children[0].offsetHeight + 18;
+        wrap.style.height = (pitch * visible) + "px";
+        items.forEach(function (it, i) {
+          if (i >= visible) tl.to("#" + b.id + "i",
+            { y: -(i - visible + 1) * pitch, duration: 0.6, ease: E }, it.t); });
+        return b;
+      }
+
+      function check(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var box = el('<div style="margin-top:28px;display:flex;flex-direction:column;gap:16px"></div>');
+        b.node.appendChild(box);
+        items.forEach(function (it, i) {
+          var r = b.id + "r" + i;
+          box.appendChild(el('<div class="bl-row" id="' + r + '"><div class="tick">' +
+            (it.k || (i + 1)) + '</div><div class="tx">' + it.x + '</div></div>'));
+          tl.set("#" + r, { opacity: 0 }, 0); slide("#" + r, it.t, 0.55); });
+        return b;
+      }
+
+      function rules(top, items) {
+        items.forEach(function (it) {
+          var b = block("l", top, it.t - 0.10, it.o);
+          var i2 = b.id + "i", h2 = b.id + "h", d2 = b.id + "d", r2 = b.id + "u";
+          b.node.appendChild(el('<div class="bl-rulecard">' +
+            '<div class="idx" id="' + i2 + '">' + it.n + '</div>' +
+            '<div class="hd"><span class="wipe" id="' + h2 + '">' + it.h + '</span></div>' +
+            '<div class="dt"><span class="wipe" id="' + d2 + '">' + it.d + '</span></div>' +
+            '<div style="position:relative;height:8px;margin-top:26px;width:460px">' +
+            '<span class="bl-rule" id="' + r2 + '"></span></div></div>'));
+          tl.fromTo("#" + i2, { scale: 0.55, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)", transformOrigin: "50% 50%" }, it.t);
+          wipe("#" + h2, it.t + 0.22, 0.62);
+          wipe("#" + d2, it.t + 0.72, 0.60);
+          sweep("#" + r2, it.t + 1.10, 0.8); });
+      }
+
+      function stats(top, at, out, title, items) {
+        var b = block("", top, at, out), tid = b.id + "t";
+        b.node.appendChild(el('<div class="bl-md"><span class="wipe" id="' + tid + '">' + title + '</span></div>'));
+        wipe("#" + tid, at + 0.05, 0.55);
+        var row = el('<div style="margin-top:44px;display:flex;justify-content:center;gap:54px"></div>');
+        b.node.appendChild(row);
+        items.forEach(function (it, i) {
+          var s = b.id + "s" + i;
+          row.appendChild(el('<div class="bl-stat" id="' + s + '"><div class="big">' + it.b +
+            '</div><div class="lb">' + it.l + '</div></div>'));
+          tl.set("#" + s, { opacity: 0 }, 0);
+          tl.fromTo("#" + s, { opacity: 0, y: 40, scale: 0.86 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.4)", transformOrigin: "50% 50%" }, it.t); });
+        return b;
+      }
+
+      var CAPN = 0;
+      function caption(at, out, text, cy) {
+        var id = "cap" + (++CAPN);
+        var d = el('<div class="cap" id="' + id + '">' + text + '</div>');
+        if (cy !== undefined) d.style.top = (cy - 1300) + "px";
+        document.getElementById("caps").appendChild(d);
+        show("#" + id, at); hide("#" + id, out - 0.20);
+        return { id: id };
+      }
+
+      /* ======================== THE CUT ======================== */
+
+      // The brand mark is on from frame 0 and never animates (CMO ruling 2026-10-01).
+      tl.set("#bug", { x: 0, opacity: 1 }, 0);
+
+      // Deterministic plate visibility & camera movement (every frame 0..300 covered)
+      var allPlates = ["#v-av1", "#v-hour", "#v-cnt", "#v-gold", "#img-claim", "#v-lock", "#img-acc", "#v-av2", "#v-type", "#v-forb", "#v-seal"];
+      tl.set(allPlates, { opacity: 0 }, 0);
+
+      // Position real-footage evidence stills inside the 840px safe box (x=120..960, y=528..828),
+      // cropped to the white post band (39.8%..60.2% of 1080x1920), undarkened (SKILL.md §5a & §6d).
+      tl.set(["#img-claim", "#img-acc"], {
+        clipPath: "inset(39.8% 0% 39.8% 0% round 20px)",
+        scale: 0.778,
+        y: -282,
+        zIndex: 12,
+        transformOrigin: "50% 50%"
+      }, 0);
+
+      // 0.00 - 2.20s: Presenter full-frame with measured hook drop (SKILL.md §6d: power1.out downward slide)
+      tl.set("#v-av1", { opacity: 1 }, 0);
+      tl.fromTo("#v-av1",
+        { scale: 1.28, y: 150 },
+        { scale: 1.28, y: 265, duration: 1.20, ease: "power1.out" }, 0);
+      tl.to("#v-av1", { scale: 1.31, y: 265, duration: 1.00, ease: "sine.inOut" }, 1.20);
+      tl.set("#v-av1", { opacity: 0 }, 2.20);
+
+      // 2.20 - 2.90s: Hourglass red sand
+      tl.set("#v-hour", { opacity: 1 }, 2.20);
+      tl.fromTo("#v-hour", { scale: 1.14 }, { scale: 1.02, duration: 0.70, ease: E }, 2.20);
+      tl.set("#v-hour", { opacity: 0 }, 2.90);
+
+      // 2.90 - 3.60s: Red digital countdown
+      tl.set("#v-cnt", { opacity: 1 }, 2.90);
+      tl.fromTo("#v-cnt", { scale: 1.16 }, { scale: 1.03, duration: 0.70, ease: E }, 2.90);
+      tl.set("#v-cnt", { opacity: 0 }, 3.60);
+
+      // 3.60 - 5.10s: Gold bar B-roll + Real FB post screenshot (cxm-post-claim.png)
+      tl.set(["#v-gold", "#img-claim", "#evbox"], { opacity: 1 }, 3.60);
+      tl.fromTo("#v-gold", { scale: 1.10 }, { scale: 1.02, duration: 1.50, ease: "sine.out" }, 3.60);
+      // Yellow highlighter sweeps on cxm-post-claim.png
+      sweep("#hl-claim-1", 3.68, 0.50); // "ถูกโบรกเกอร์ CXM ปฏิเสธจ่าย"
+      sweep("#hl-claim-2", 4.10, 0.52); // "กำไรบัญชี Cent เกือบ 6 ล้านบาท!"
+      sweep("#hl-claim-3", 4.52, 0.45); // "ถือออเดอร์นานถึง 2 ชั่วโมง"
+      tl.set(["#img-claim", "#hl-claim-1", "#hl-claim-2", "#hl-claim-3"], { opacity: 0 }, 5.10);
+      tl.set("#v-gold", { opacity: 0 }, 5.10);
+
+      // 5.10 - 6.40s: Finger taps red lock B-roll + Real FB post account screenshot (cxm-post-account.png)
+      tl.set(["#v-lock", "#img-acc"], { opacity: 1 }, 5.10);
+      tl.fromTo("#v-lock", { scale: 1.12 }, { scale: 1.02, duration: 1.30, ease: E }, 5.10);
+      // Yellow highlighter sweeps on cxm-post-account.png
+      sweep("#hl-acc-1", 5.16, 0.45); // "โบรกเกอร์ CXM Direct"
+      sweep("#hl-acc-2", 5.58, 0.50); // "มาทวงถามกำไรจากโบรกเกอร์!"
+      tl.set(["#v-lock", "#img-acc", "#evbox", "#hl-acc-1", "#hl-acc-2"], { opacity: 0 }, 6.40);
+
+      // 6.40 - 7.80s: Presenter lip-synced return ("ซีเอ็กซ์เอ็มแจ้งในอีเมล...")
+      tl.set("#v-av2", { opacity: 1 }, 6.40);
+      tl.fromTo("#v-av2",
+        { scale: 1.28, y: 255 },
+        { scale: 1.32, y: 255, duration: 1.40, ease: "sine.out" }, 6.40);
+      tl.set("#v-av2", { opacity: 0 }, 7.80);
+
+      // 7.80 - 8.60s: Typewriter red neon ticker tape ("...ว่าเป็นท็อกซิกเทรดดิ้ง")
+      tl.set("#v-type", { opacity: 1 }, 7.80);
+      tl.fromTo("#v-type", { scale: 1.14 }, { scale: 1.02, duration: 0.80, ease: E }, 7.80);
+      tl.set("#v-type", { opacity: 0 }, 8.60);
+
+      // 8.60 - 9.30s: Red forbidden icon glow
+      tl.set("#v-forb", { opacity: 1 }, 8.60);
+      tl.fromTo("#v-forb", { scale: 1.04 }, { scale: 1.14, duration: 0.70, ease: E }, 8.60);
+      tl.set("#v-forb", { opacity: 0 }, 9.30);
+
+      // 9.30 - 10.00s: Contract signature wax seal closing verdict
+      tl.set("#v-seal", { opacity: 1 }, 9.30);
+      tl.fromTo("#v-seal", { scale: 1.10 }, { scale: 1.00, duration: 0.70, ease: E }, 9.30);
+
+      /* -------- KINETIC & GRAPHIC BLOCKS (0.00s - 10.00s, zero overlap) -------- */
+
+      // BLOCK 1 (0.00 - 0.82s): Scroll-stopping Frame-0 Hook Banner above presenter's head (y=445..660)
+      var bHook = kinetic(445, 0.00, 0.82, [
+        { c: "bl-sm", h: '<span class="nb">ตามที่เจ้าของโพสต์เล่า · กำไรเกือบ</span> <span class="y" id="hk-num">6,000,000</span> <span class="nb">฿</span>', d: 0.25, g: 0.08 },
+        { c: "bl-lg", h: '<span class="nb">แต่โบรกเกอร์</span> <span class="n">CXM</span> <span class="nb">ไม่จ่าย?!</span>', d: 0.35, g: 0.12 }
+      ], 480);
+      // Pin Frame 0 (t=0) so the cover frame is immediately legible and never snaps off
+      bHook.node.style.opacity = "1";
+      tl.fromTo("#" + bHook.id + "w0",
+        { clipPath: "inset(0 0% 0 0)" },
+        { clipPath: "inset(0 0% 0 0)", duration: 0.30, ease: E }, 0);
+      var hkCounter = { v: 5400000 };
+      var hkNumEl = document.getElementById("hk-num");
+      tl.to(hkCounter, {
+        v: 6000000,
+        duration: 0.70,
+        ease: E,
+        onUpdate: function () {
+          hkNumEl.textContent = Math.round(hkCounter.v).toLocaleString("en-US");
+        }
+      }, 0);
+
+      // BLOCK 2 (1.00 - 2.02s): Compact 2-Hour Hold Headline above presenter's head (y=445..640)
+      kinetic(445, 1.00, 2.02, [
+        { c: "bl-sm", h: '<span class="nb">ตามที่เจ้าของโพสต์เล่า · เทรดทองมือถือ</span>', d: 0.32, g: 0.16 },
+        { c: "bl-lg", h: '<span class="nb">ถือออเดอร์นาน</span> <span class="y" id="hr-num">2.0</span> <span class="nb">ชั่วโมง</span>', d: 0.38, g: 0.20 }
+      ], 440);
+      var hrCounter = { v: 0 };
+      var hrNumEl = document.getElementById("hr-num");
+      tl.to(hrCounter, {
+        v: 2,
+        duration: 0.55,
+        ease: E,
+        onUpdate: function () {
+          hrNumEl.textContent = hrCounter.v >= 1.95 ? "2" : hrCounter.v.toFixed(1);
+        }
+      }, 1.08);
+
+      // BLOCK 3 (2.20 - 3.42s): Paradox Stats Comparison over darkened B-roll (y=450..820)
+      stats(450, 2.20, 3.42, '<span class="nb">ถือออเดอร์ 2 ชม. vs ข้อหาเทรดเร็ว?!</span>', [
+        { b: '2 <span class="y">ชม.</span>', l: '<span class="nb">ถือออเดอร์จริง (ตามโพสต์)</span>', t: 2.24 },
+        { b: '<span class="n">FAST?!</span>', l: '<span class="nb">ข้อหาจากโบรกเกอร์ CXM</span>', t: 2.75 }
+      ]);
+
+      // BLOCK 4A (3.60 - 6.22s): Attribution Header above Real FB Post Evidence Stills (y=445..506, above y=528 still)
+      kinetic(445, 3.60, 6.22, [
+        { c: "bl-sm", h: '<span class="nb">ตามที่เจ้าของโพสต์เล่า · โพสต์ผู้เสียหาย</span>', d: 0.40, g: 0.20 }
+      ], 0);
+
+      // BLOCK 4B (3.60 - 6.22s): Live 6,000,000 Baht Profit Callout below Evidence Still (top=905 >= 900 -> narrow box x=120..840, y=905..1120)
+      kinetic(905, 3.60, 6.22, [
+        { c: "bl-sm", h: '<span class="n">CXM</span> <span class="nb">ปฏิเสธจ่ายกำไรบัญชี Cent</span>', d: 0.42, g: 0.20 },
+        { c: "bl-lg", h: '<span class="nb">เกือบ</span> <span class="y" id="m6-num">6,000,000</span> <span class="nb">บาท!</span>', d: 0.46, g: 0.24 }
+      ], 420);
+      var m6Counter = { v: 1200000 };
+      var m6NumEl = document.getElementById("m6-num");
+      tl.to(m6Counter, {
+        v: 6000000,
+        duration: 1.15,
+        ease: E,
+        onUpdate: function () {
+          m6NumEl.textContent = Math.round(m6Counter.v).toLocaleString("en-US");
+        }
+      }, 3.85);
+
+      // BLOCK 5 (6.40 - 7.62s): Email Notification Callout above Presenter (y=445..640)
+      kinetic(445, 6.40, 7.62, [
+        { c: "bl-sm", h: '<span class="nb">คำชี้แจงจากโบรกเกอร์ (ตามที่เธอเล่า)</span>', d: 0.38, g: 0.20 },
+        { c: "bl-lg", h: '<span class="y">CXM</span> <span class="nb">แจ้งข้อหาทางอีเมล</span>', d: 0.44, g: 0.24 }
+      ], 440);
+
+      // BLOCK 6 (7.80 - 10.00s): Scrolling Toxic Trading Claim Cards (y=450..754, visible=1, holds through 10.00s)
+      cards(450, 7.80, 0, '<span class="n">"TOXIC TRADING"</span> <span class="nb">คือข้อหาที่อ้าง</span>', [
+        {
+          n: 'TOXIC TRADING',
+          c: '<span class="nb">CXM แจ้งในอีเมลว่าเทรดเร็วเกินไป · ปฏิเสธจ่าย</span>',
+          t: 7.86
+        },
+        {
+          n: '2 HRS vs 6M THB',
+          c: '<span class="nb">ตามที่เจ้าของโพสต์เล่า: ถือ 2 ชม. แต่ชวดเกือบ 6 ล้าน</span>',
+          t: 8.60
+        }
+      ], 1);
+
+      /* -------- SPOKEN-LINE CAPTIONS (SKILL.md §6f: one caption style, every mode) -------- */
+      caption(1.00, 3.60, '<span class="nb">ถือออเดอร์</span> <span class="y">2 ชั่วโมง</span><br><span class="nb">แต่โดนข้อหาเทรดเร็วเกินไป?</span>');
+      caption(3.60, 6.40, '<span class="nb">เธอเล่าว่า</span> <span class="y">CXM</span> <span class="nb">ไม่จ่ายกำไร</span><br><span class="nb">เกือบ</span> <span class="n">6 ล้านบาท</span>');
+      caption(6.40, 9.30, '<span class="y">CXM</span> <span class="nb">แจ้งในอีเมลว่าเป็น</span><br><span class="n">"Toxic Trading"</span>');
+      // Closing summary caption (9.30 - 10.00s): out=10.25 so hide() at out-0.20=10.05s keeps it 100% visible through 10.00s
+      caption(9.30, 10.25, '<span class="nb">ตามที่เจ้าของโพสต์เล่า:</span> <span class="y">ถือ 2 ชม.</span><br><span class="nb">แต่ถูกปฏิเสธกำไรเกือบ</span> <span class="n">6 ล้านบาท!</span>');
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
