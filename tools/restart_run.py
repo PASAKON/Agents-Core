@@ -341,12 +341,17 @@ def resume(args):
     return int(failed)
 
 
-def relay_open():
-    """Unknown: Console owns relay-requests.json, outside this repository.
+RELAY_CLI = Path('/opt/MoonieXHQ/Projects/MoonieX/Console/scripts/relay-request.mjs')
 
-    Never infer that no request exists from an absent local file.
-    """
-    return None
+
+def relay_open():
+    """Ask Console's relay CLI whether a login relay is open: True, False, or None if unknown."""
+    try:
+        out = subprocess.run(['node', str(RELAY_CLI), 'list'], check=True, timeout=30,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out.strip() != '(no open requests)'
 
 
 def memory():
@@ -371,8 +376,10 @@ def clean(args):
                 or row.get('in_turn') or row.get('incomplete')
                 or row['action'] not in ('park', 'close')):
             continue
-        # park uses prep's direct-kill fallback; no claim that /session-save ran.
-        status = 'closed' if row['action'] == 'close' else 'force_saved'
+        # A parked session is closed only once it saved itself; one still waiting is left alone.
+        if row['action'] == 'park' and row.get('status') != 'saved':
+            continue
+        status = 'closed' if row['action'] == 'close' else 'saved'
         command = ['bash', 'scripts/session-kill.sh', '--status', status, pane(row)]
         try:
             if not args.dry_run:

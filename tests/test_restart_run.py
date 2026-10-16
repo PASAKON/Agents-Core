@@ -315,8 +315,10 @@ def test_clean_selection(tmp_path, monkeypatch, capsys, dry):
         r = row('park', role=role)
         r['in_turn'] = False
         rows.append(r)
+    rows[0]['status'] = 'saved'
     rows.extend([dict(rows[0], in_turn=True), dict(rows[0], service_managed=True),
-                 dict(rows[0], name='wd-task'), dict(rows[0], incomplete=True)])
+                 dict(rows[0], name='wd-task'), dict(rows[0], incomplete=True),
+                 dict(rows[0], status='open', sid='0000000f')])
     rr.restart_plan.build_plan.side_effect = None
     rr.restart_plan.build_plan.return_value = dict(host='contabo', sessions=rows)
     monkeypatch.setattr(rr, 'memory', lambda: {'MemFree_kB': 42, 'SwapFree_kB': 12})
@@ -328,7 +330,7 @@ def test_clean_selection(tmp_path, monkeypatch, capsys, dry):
     assert len(result['events']) == 3
     assert result['before'] == result['after']
     assert commands() == ([] if dry else [
-        ['bash', 'scripts/session-kill.sh', '--status', 'force_saved', 'project_head-00000000'],
+        ['bash', 'scripts/session-kill.sh', '--status', 'saved', 'project_head-00000000'],
         ['bash', 'scripts/session-kill.sh', '--status', 'closed', 'project_head-00000001']])
 
 
@@ -404,3 +406,18 @@ def test_clean_dry_chrome_never_runs(tmp_path, monkeypatch):
     a.dry_run = True
     assert rr.clean(a) == 0
     assert not commands()
+
+
+def test_relay_open_reads_console_cli(monkeypatch):
+    def fake(out=None, exc=None):
+        def run(*a, **k):
+            if exc:
+                raise exc
+            return type('R', (), {'stdout': out})()
+        return run
+    monkeypatch.setattr(rr.subprocess, 'run', fake('(no open requests)\n'))
+    assert rr.relay_open() is False
+    monkeypatch.setattr(rr.subprocess, 'run', fake('req-1 open google\n'))
+    assert rr.relay_open() is True
+    monkeypatch.setattr(rr.subprocess, 'run', fake(exc=OSError('no node')))
+    assert rr.relay_open() is None

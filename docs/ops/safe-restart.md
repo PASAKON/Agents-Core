@@ -28,19 +28,19 @@ boot without the marker is a no-op. Failed resume leaves the marker and manifest
 for retry; successful resume archives the manifest and removes the marker.
 Dry runs never write or consume either file.
 
-Clean uses a fresh P1 plan. Only idle, complete-evidence Project Head rows with
-`park` (④) or `close` (done) qualify: park records `force_saved`, matching prep's
-direct-kill fallback, and done records `closed`. C-levels, COO/service-managed
-sessions, workers (including `wd-*`), mid-turn sessions, and ①/②/⑤ are excluded.
+Clean uses a fresh P1 plan. Only idle, complete-evidence Project Head rows qualify:
+`close` (done) records `closed`; `park` (④) is closed with `saved` only when the
+session already saved itself (status `saved`) — a parked session still waiting on
+an answer is left running. C-levels, COO/service-managed sessions, workers
+(including `wd-*`), mid-turn sessions, and ①/②/⑤ are excluded.
 It prints actions and RAM free/available and swap free/total in kB before/after.
 Use `--dry-run --json` for a machine-readable preview.
 
-The relay's `scripts/relay-request.mjs` belongs to MoonieX-Console, not this repo;
-repository docs identify its `relay-requests.json` store but do not establish a
-cheap authoritative open-request query. Chrome therefore stays running by
-default. Append `--chrome` only after checking the relay is idle; it permits
-`docker restart neko-pilot` when relay state is unknown. A known open relay
-always blocks Chrome, including with `--chrome`. Clean never reboots.
+Before restarting Chrome, Clean asks MoonieX-Console's relay CLI
+(`node …/Console/scripts/relay-request.mjs list`). It runs
+`docker restart neko-pilot` only when that prints `(no open requests)`. An open
+relay always blocks Chrome; if the CLI fails, Chrome is skipped unless `--chrome`
+is passed. Clean never reboots.
 
 ## Install later, from a separate CEO card
 
