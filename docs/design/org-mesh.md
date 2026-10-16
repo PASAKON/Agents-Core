@@ -1,6 +1,7 @@
 # Org Mesh — every machine is a node, one hub, pull not push
 
-Status: **DRAFT for CEO decision** · CTO (session e6754203) · 2026-09-28
+Status: **Main-node plan accepted by the CEO, 2026-10-16**; earlier design below
+records the 2026-09-28 draft · CTO (session e6754203).
 Extends `multi-host-workers.md` (Phase 1 + 2 done) and absorbs its open Phase 3
 (router) and Phase 4 (hub on Contabo, ADR 0025). Does not redesign git as the
 artefact channel or the worker launchers — both stay.
@@ -9,6 +10,32 @@ CEO question (2026-09-28): can `spawn cxo` and `delegate worker` run on the Mac,
 winbox and Contabo; can a worker be delegated across machines in every
 direction; can the three machines ssh each other; and can a new machine register
 and be used straight away?
+
+## Contabo is the Main node (2026-10-16)
+
+Contabo is the one centre: the Postgres hub, Run cards, the dispatcher and the
+collector for `tools/mesh_check.py`. Dispatch uses `node_dispatch` over ssh with
+the `org_dispatch` key. This decision supersedes the older topology below.
+
+Peers (Mac and winbox) pull files from GitHub and take orders over
+`node_dispatch`. Mac SSH dispatch is **planned, ADR 0034**: a key-only sshd
+drop-in and forced command `node_dispatch`; it is not live yet.
+
+Agents-Rules, Agents-Wikis and Agents-Memory are plain git checkouts on every
+host. GitHub is the file source. Every launcher pulls at session start:
+`tools/kit_sync.py pull` for the wiki roots (PR #396), and
+`tools/memory_sync.py pull` for memory. rsync from the Mac is retired.
+Contabo uses `/opt/MoonieXHQ/Agents/{Rules,Wikis,Memory}`; winbox uses
+`%USERPROFILE%\mooniex\repo\Agents-{Rules,Wikis,Memory}` (Wikis read-only deploy
+key, Memory read-write deploy key).
+
+Run the check on Contabo:
+
+```bash
+bash scripts/hub/org-python.sh -m tools.mesh_check --expect w5
+```
+
+The KIT level (PR #397) checks that every host runs the same org kit.
 
 ## 1. Measured state (2026-09-28)
 
@@ -46,7 +73,8 @@ after that the label becomes the hostname (`VMI3371421`) and session rows split.
 | **Contabo** | **no path** | **broken** — task-cf5db03d 2026-09-28 01:50 `Could not resolve hostname mooniex-vps` | spawn ok (7 done, last 09-23), **merge by hand** — `merge_task` needs the Mac path (task-854cb512) |
 | **winbox** | no | no | no — no org MCP, no ledger |
 
-Return channel for a remote worker (all hubbed on the Mac):
+Return channel for a remote worker (historical 2026-09-28 state, then hubbed on
+the Mac; Contabo is now the collector and dispatcher):
 
 | piece | winbox worker | Contabo worker |
 |---|---|---|
