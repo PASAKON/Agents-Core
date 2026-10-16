@@ -363,6 +363,8 @@ def test_lifecycle_restart_once_then_give_up_writes_open_md_and_resets_next_cycl
 # --------------------------------------------------------------------------
 
 def test_launch_argv_builder_output():
+    configured = watcher.build_launch_argv("contabo", cwd="/repo", env={"RUN_WATCH_SID": "abc"})
+    assert configured[5:9] == ["-c", "/repo", "-e", "RUN_WATCH_SID=abc"]
     argv = watcher.build_launch_argv(
         "contabo", sid="abc12345", n_active=2, light=rw.LIGHT_OK
     )
@@ -456,3 +458,8 @@ def test_role_and_skill_files_exist_and_match_contract():
         "ตอบได้แค่สถานะงาน ถาม PH/CTO",
     ):
         assert required in skill_text
+
+
+def test_launch_argv_takes_an_absolute_claude_path():
+    argv = watcher.build_launch_argv("contabo", claude_bin="/root/.local/bin/claude")
+    assert "/root/.local/bin/claude" in argv and "claude" not in argv
