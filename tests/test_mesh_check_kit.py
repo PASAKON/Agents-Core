@@ -1,6 +1,7 @@
 """KIT probes use local fixture repositories only; no network or SSH."""
 import copy
 import asyncio
+import base64
 import json
 import os
 import subprocess
@@ -265,3 +266,79 @@ def test_old_peer_falls_back_to_piped_source(monkeypatch):
     assert m._collect_peer_local("winbox", {"os": "windows", "agents_root": "C:/fixture"},
                                  Path("fixture.py")) == {"kit": {}}
     assert len(calls) == 2 and "stdin_path" in calls[-1]
+
+
+@pytest.mark.parametrize("override", [False, True])
+def test_core_path_controls_all_checkout_facts(tmp_path, monkeypatch, override):
+    root, core, home = (tmp_path / name for name in ("root", "core", "home"))
+    root.mkdir()
+    for name in ("roles/project_head.md", "scripts/spawn-ph.sh", "windows/cxo-claude.ps1",
+                 ".claude/skills/example/SKILL.md"):
+        path = core / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+    generator = core / "scripts/lib/cxo_mcp_config.py"
+    generator.parent.mkdir(parents=True)
+    generator.write_text("def _names_for(role): return ['org']\n"
+                         "def _build(*args): return {}\n"
+                         "def hub_route(root): return 'infisical'\n")
+    monkeypatch.setattr(m, "kit_git", lambda path, **kwargs: {"path": str(path)})
+    monkeypatch.setattr(m, "_kit_run", lambda *a, **k: None)
+    paths = {"core": str(core), "rules": "/fixture/rules", "wikis": "/fixture/wikis"} if override else None
+    facts = m.kit_facts(root, home=home, path_overrides=paths)
+    selected = core if override else root
+    assert facts["core"]["path"] == str(selected)
+    assert facts["skills_repo"] == int(override)
+    assert facts["role"] is override
+    assert facts["launcher"] is override
+    assert facts["mcp_names"] == (["org"] if override else "n/a")
+    slug = m.re.sub(r"[^A-Za-z0-9]", "-", str(selected))
+    assert facts["memory"]["path"] == str(home / ".claude/projects" / slug / "memory")
+    if override:
+        assert facts["rules"]["path"] == paths["rules"]
+        assert facts["wikis"]["path"] == paths["wikis"]
+
+
+@pytest.mark.parametrize("platform", ["windows", "linux"])
+def test_peer_transports_paths_to_deployed_and_piped_collectors(monkeypatch, platform):
+    paths = {key: f"C:/kit with spaces/$literal/{key}" for key in ("core", "rules", "wikis", "memory")}
+    calls = []
+
+    def ssh(alias, command, **kwargs):
+        calls.append(command)
+        encoded = command.split("--kit-paths-b64 ")[1]
+        assert m._parse_args(["--local", "--kit-paths-b64", encoded]).kit_paths_b64 == paths
+        return None if "stdin_path" not in kwargs else '{"kit": {}}'
+
+    monkeypatch.setattr(m, "_ssh_run", ssh)
+    assert m._collect_peer_local("peer", {"os": platform, "agents_root": "/wrong",
+                                         "kit_paths": paths}, Path("fixture.py")) == {"kit": {}}
+    assert len(calls) == 2
+
+
+def test_piped_source_receives_paths_without_config(checkout, tmp_path):
+    cwd = tmp_path / "wrong"
+    cwd.mkdir()
+    paths = {key: str(checkout) for key in ("core", "rules", "wikis", "memory")}
+    encoded = base64.b64encode(json.dumps(paths).encode()).decode()
+    result = subprocess.run([sys.executable, "-S", "-", "--local", "--json",
+                             "--kit-paths-b64", encoded], cwd=cwd,
+                            input=Path(m.__file__).read_text(), capture_output=True,
+                            text=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    facts = json.loads(result.stdout)["kit"]
+    for key in paths:
+        assert facts[key]["head"] == git(checkout, "rev-parse", "HEAD")
+
+
+def test_configured_core_and_caller_precedence(tmp_path):
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config/hosts.yaml").write_text(
+        "hosts:\n  winbox:\n    kit_paths:\n      core: C:/configured/core\n")
+    home = tmp_path / "home"
+    configured = m.kit_paths(tmp_path, home, "winbox")
+    assert configured["core"] == Path("C:/configured/core")
+    assert configured["memory"] == home / ".claude/projects/C--configured-core/memory"
+    passed = m.kit_paths(tmp_path, home, "winbox", {"core": "C:/caller/core"})
+    assert passed["core"] == Path("C:/caller/core")
+    assert passed["memory"] == home / ".claude/projects/C--caller-core/memory"

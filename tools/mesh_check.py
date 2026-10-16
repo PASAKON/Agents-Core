@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
 import contextlib
 import copy
 import importlib.util
@@ -291,7 +292,7 @@ def kit_git(path: Path | None, *, fetch=False) -> dict:
     return facts
 
 
-def kit_paths(root: Path, home: Path, host: str | None) -> dict:
+def kit_paths(root: Path, home: Path, host: str | None, overrides: dict | None = None) -> dict:
     """Host kit_paths overrides the machine contract's HQ layout; then env/slug."""
     paths = {}
     try:
@@ -307,12 +308,15 @@ def kit_paths(root: Path, home: Path, host: str | None) -> dict:
     except Exception:
         # Includes optional YAML parser errors on a partially deployed host.
         pass
+    paths.update(overrides or {})
+    core = Path(os.path.expandvars(str(paths.get("core") or root))).expanduser()
+    paths["core"] = core
     paths.setdefault("rules", os.environ.get("WIKI_ROOT_ORG"))
     paths.setdefault("wikis", os.environ.get("WIKI_ROOT_MOONIEX"))
-    slug = re.sub(r"[^A-Za-z0-9]", "-", str(root))
+    slug = re.sub(r"[^A-Za-z0-9]", "-", str(core))
     paths.setdefault("memory", str(home / ".claude/projects" / slug / "memory"))
     return {key: Path(os.path.expandvars(str(value))).expanduser() if value else None
-            for key, value in paths.items() if key in ("rules", "wikis", "memory")}
+            for key, value in paths.items() if key in ("core", "rules", "wikis", "memory")}
 
 
 def kit_mcp_names(raw) -> list[str] | str:
@@ -328,10 +332,12 @@ def kit_mcp_names(raw) -> list[str] | str:
 
 
 def kit_facts(root: Path = ROOT, *, fetch=False, home: Path | None = None,
-              host: str | None = None) -> dict:
+              host: str | None = None, path_overrides: dict | None = None) -> dict:
     home = home or Path.home()
+    paths = kit_paths(root, home, host, path_overrides)
+    root = paths["core"]
     facts = {name: kit_git(path, fetch=fetch)
-             for name, path in {"core": root, **kit_paths(root, home, host)}.items()}
+             for name, path in paths.items()}
     for label, base in (("repo", root), ("home", home)):
         try:
             facts["skills_" + label] = sum(p.is_file() for p in (base / ".claude/skills").glob("*/SKILL.md"))
@@ -1747,7 +1753,7 @@ def check_invariant() -> dict:
 # --local: this host's L0-L2 cells only, no ssh, writes nothing
 # ---------------------------------------------------------------------------
 
-async def local_payload(*, kit_fetch=False) -> dict:
+async def local_payload(*, kit_fetch=False, kit_path_overrides=None) -> dict:
     """This host's L0-L2 cells. The L1 cell to this host is n/a, where "this
     host" is `_running_host_guess(ROOT)`, the source build_matrix labels its row
     with: one identity per run. When it cannot say (None) every host is dialled,
@@ -1762,7 +1768,8 @@ async def local_payload(*, kit_fetch=False) -> dict:
         payload["l0"] = {"ok": False, "reason": "no repo access"}
         payload["l1"] = {}
         payload["l2"] = {"ok": False, "reason": "no repo access"}
-    payload["kit"] = kit_facts(fetch=kit_fetch, host=_running_host_guess(ROOT) if HAVE_CONFIG else None)
+    payload["kit"] = kit_facts(fetch=kit_fetch, host=_running_host_guess(ROOT) if HAVE_CONFIG else None,
+                               path_overrides=kit_path_overrides)
     return payload
 
 
@@ -1772,15 +1779,24 @@ def _collect_peer_local(alias: str, cfg: dict, script_path: Path) -> dict | None
     have pulled this branch yet)."""
     remote_root = cfg.get("agents_root")
     is_windows = cfg.get("os") == "windows"
+    # Base64 keeps host-native paths (including spaces and shell metacharacters)
+    # a single safe argument under both POSIX shells and Windows cmd.exe.
+    paths = {k: v for k, v in (cfg.get("kit_paths") or {}).items()
+             if k in ("core", "rules", "wikis", "memory") and v}
+    kit_args = ""
+    if paths:
+        encoded = base64.b64encode(json.dumps(paths).encode()).decode()
+        kit_args = f" --kit-paths-b64 {encoded}"
     if remote_root:
         python = f"{remote_root}\\.venv\\Scripts\\python.exe" if is_windows \
             else f"{remote_root}/.venv/bin/python"
-        deployed_cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --local --json'
+        deployed_cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --local --json{kit_args}'
         data = _try_json(_ssh_run(alias, deployed_cmd, timeout=30))
         if data is not None and "kit" in data:
             return data
 
     piped_cmd = "python - --local --json" if is_windows else "python3 - --local --json"
+    piped_cmd += kit_args
     if remote_root:
         piped_cmd = f'cd "{remote_root}" && {piped_cmd}'
     return _try_json(_ssh_run(alias, piped_cmd, timeout=30, stdin_path=script_path))
@@ -2010,6 +2026,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--local", action="store_true", help="print this host's L0-L2 cells only")
     ap.add_argument("--json", action="store_true", help="with --local, JSON output (default)")
     ap.add_argument("--kit-fetch", action="store_true", help="explicitly fetch this host's kit origin/main refs")
+    ap.add_argument("--kit-paths-b64", help=argparse.SUPPRESS,
+                    type=lambda value: json.loads(base64.b64decode(value, validate=True)))
     ap.add_argument("--get-task", metavar="TASK_ID", help="print db.get_task(TASK_ID) as JSON")
     ap.add_argument("--join-drill", nargs=2, metavar=("VERB", "ARG"),
                     help="hub side of scripts/drill-join.sh: task-create <host>, task-close <id>, "
@@ -2036,7 +2054,7 @@ async def amain(argv: list[str] | None = None) -> int:
         return 0
 
     if args.local:
-        payload = await local_payload(kit_fetch=args.kit_fetch)
+        payload = await local_payload(kit_fetch=args.kit_fetch, kit_path_overrides=args.kit_paths_b64)
         print(json.dumps(payload))
         return 0
 
