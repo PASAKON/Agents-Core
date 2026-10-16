@@ -1,11 +1,17 @@
 """No real tmux, launchers, sleeps, or hub access."""
 import argparse
 import json
+import os
+from pathlib import Path
+import subprocess
 from unittest.mock import Mock
 
 import pytest
 
 from tools import restart_run as rr
+
+REAL_RUN = subprocess.run
+REPO = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(autouse=True)
@@ -45,6 +51,7 @@ def manifest(entries):
     rr.STATE.mkdir(exist_ok=True)
     path = rr.STATE / 'contabo-resume.json'
     path.write_text(json.dumps(entries))
+    (rr.STATE / 'pending-contabo.json').write_text(json.dumps(dict(manifest=str(path))))
     return path
 
 
@@ -156,6 +163,8 @@ def test_linux_launcher(tmp_path, host, role):
     manifest([entry('lazy', role)])
     path = rr.STATE / 'contabo-resume.json'
     path.rename(rr.STATE / f'{host}-resume.json')
+    (rr.STATE / f'pending-{host}.json').write_text(json.dumps(
+        dict(manifest=str(rr.STATE / f'{host}-resume.json'))))
     a = args(tmp_path)
     a.host = host
     rr.tmux_session.has_session.side_effect = [False, True]
@@ -187,6 +196,7 @@ def test_resume_messages(tmp_path, mode, count):
     assert len([c for c in commands() if c[-1] == rr.MESSAGE]) == count
     assert not path.exists()
     assert list(rr.STATE.glob('*done*'))
+    assert not (rr.STATE / 'pending-contabo.json').exists()
 
 
 def test_resume_idempotent(tmp_path):
@@ -205,6 +215,7 @@ def test_resume_draft(tmp_path):
     assert not commands()
     rr.tmux_session.create.assert_called_once()
     assert path.exists()
+    assert (rr.STATE / 'pending-contabo.json').exists()
 
 
 @pytest.mark.parametrize('back', [False, True])
@@ -252,6 +263,7 @@ def test_resume_dry_run(tmp_path):
     a.dry_run = True
     assert rr.resume(a) == 0
     assert path.exists()
+    assert (rr.STATE / 'pending-contabo.json').exists()
     assert not commands()
     rr.tmux_session.capture.assert_not_called()
 
@@ -271,3 +283,124 @@ def test_workers_are_never_saved_killed_or_resumed():
     assert restart_run.worker({"role": "developer"})
     assert not restart_run.worker({"role": "project_head"})
     assert not restart_run.worker({"role": "cto"})
+
+
+def test_marker_written_before_closing(tmp_path, monkeypatch):
+    def check(*args, **kwargs):
+        marker = json.loads((rr.STATE / 'pending-contabo.json').read_text())
+        assert Path(marker['manifest']).exists()
+        assert marker['timestamp']
+    monkeypatch.setattr(rr.subprocess, 'run', Mock(side_effect=check))
+    assert rr.prep(args(tmp_path, [row('close')])) == 0
+    rr.subprocess.run.assert_called_once()
+
+
+def test_no_marker_noop_even_with_manifest(tmp_path):
+    path = manifest([entry()])
+    (rr.STATE / 'pending-contabo.json').unlink()
+    assert rr.resume(args(tmp_path)) == 0
+    assert path.exists()
+    assert not commands()
+    rr.live_sessions.read_registry.assert_not_called()
+
+
+@pytest.mark.parametrize('dry', [False, True])
+def test_clean_selection(tmp_path, monkeypatch, capsys, dry):
+    rows = []
+    for action in ['park', 'close', 'resume_lazy', 'resume_full', 'compact_then_resume', 'wait']:
+        r = row(action, role='project_head', sid=f'{len(rows):08x}')
+        r['in_turn'] = False
+        rows.append(r)
+    for role in ['cto', 'cfo', 'cmo', 'cgo', 'coo', 'developer']:
+        r = row('park', role=role)
+        r['in_turn'] = False
+        rows.append(r)
+    rows.extend([dict(rows[0], in_turn=True), dict(rows[0], service_managed=True),
+                 dict(rows[0], name='wd-task'), dict(rows[0], incomplete=True)])
+    rr.restart_plan.build_plan.side_effect = None
+    rr.restart_plan.build_plan.return_value = dict(host='contabo', sessions=rows)
+    monkeypatch.setattr(rr, 'memory', lambda: {'MemFree_kB': 42, 'SwapFree_kB': 12})
+    monkeypatch.setattr(rr, 'relay_open', lambda: None)
+    a = args(tmp_path, chrome=False)
+    a.dry_run, a.json = dry, True
+    assert rr.clean(a) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert len(result['events']) == 3
+    assert result['before'] == result['after']
+    assert commands() == ([] if dry else [
+        ['bash', 'scripts/session-kill.sh', '--status', 'force_saved', 'project_head-00000000'],
+        ['bash', 'scripts/session-kill.sh', '--status', 'closed', 'project_head-00000001']])
+
+
+@pytest.mark.parametrize('relay,chrome,restarts', [(True, False, False), (True, True, False),
+    (None, False, False), (None, True, True), (False, False, True)])
+def test_clean_chrome(tmp_path, monkeypatch, relay, chrome, restarts):
+    rr.restart_plan.build_plan.side_effect = None
+    rr.restart_plan.build_plan.return_value = dict(host='contabo', sessions=[])
+    monkeypatch.setattr(rr, 'relay_open', lambda: relay)
+    assert rr.clean(args(tmp_path, chrome=chrome)) == 0
+    assert commands() == ([['docker', 'restart', 'neko-pilot']] if restarts else [])
+
+
+@pytest.mark.parametrize('prep_status', [0, 1, 3])
+def test_restart_shell_prep_gate(tmp_path, prep_status):
+    scripts = tmp_path / 'scripts'
+    (scripts / 'hub').mkdir(parents=True)
+    (scripts / 'org-restart.sh').write_text((REPO / 'scripts/org-restart.sh').read_text())
+    (scripts / 'hub/org-python.sh').write_text(f'exit {prep_status}\n')
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    mock = bindir / 'systemd-run'
+    mock.write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$CALL_LOG"\n')
+    mock.chmod(0o755)
+    log = tmp_path / 'calls'
+    result = REAL_RUN(['bash', str(scripts / 'org-restart.sh'), 'contabo'],
+                      env={**os.environ, 'PATH': f'{bindir}:' + os.environ['PATH'],
+                           'CALL_LOG': str(log)}, capture_output=True, text=True)
+    assert result.returncode == prep_status
+    if prep_status:
+        assert not log.exists()
+        assert f'prep exited {prep_status}' in result.stdout
+    else:
+        assert '--on-active=90\nsystemctl\nreboot\n' in log.read_text()
+
+
+def test_direct_script_help():
+    result = REAL_RUN(['bash', 'scripts/hub/org-python.sh', 'tools/restart_run.py', '--help'],
+                      cwd=REPO, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert 'clean' in result.stdout
+
+
+@pytest.mark.parametrize('missing', [False, True])
+def test_report_notification(tmp_path, missing):
+    manifest([entry()])
+    if not missing:
+        rr.live_sessions.read_registry.return_value = [dict(role='cto', sid='1234abcd')]
+    a = args(tmp_path, notify=True)
+    assert rr.report(a) == int(missing)
+    command = commands()[0]
+    assert command[:4] == ['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'ask']
+    assert command[-4:] == ['--option', 'รับทราบ', '--option',
+                            'ดูรายชื่อที่ขาด' if missing else 'ดูรายงาน']
+    lines = (command[command.index('--question') + 1] + '\n' +
+             command[command.index('--why') + 1]).splitlines()
+    assert len(lines) <= 5
+    assert all(len(line) <= 90 for line in lines)
+
+
+def test_clean_refuses_pending_restart(tmp_path):
+    manifest([])
+    with pytest.raises(ValueError, match='pending restart'):
+        rr.clean(args(tmp_path, chrome=False))
+    assert not commands()
+
+
+def test_clean_dry_chrome_never_runs(tmp_path, monkeypatch):
+    rr.restart_plan.build_plan.side_effect = None
+    rr.restart_plan.build_plan.return_value = dict(host='contabo', sessions=[])
+    monkeypatch.setattr(rr, 'relay_open', lambda: False)
+    a = args(tmp_path, chrome=True)
+    a.dry_run = True
+    assert rr.clean(a) == 0
+    assert not commands()

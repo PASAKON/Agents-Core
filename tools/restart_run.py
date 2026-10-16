@@ -12,7 +12,11 @@ from pathlib import Path
 import re
 import shlex
 import subprocess
+import sys
 import time
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from lib import roles
 from tools import live_sessions, restart_plan, session_status, tmux_session
@@ -79,7 +83,8 @@ def managed(row):
 
 def worker(row):
     """Workers belong to the task ledger: never typed into, killed or resumed here."""
-    return row["role"] != roles.PH_ROLE and row["role"] not in roles.c_level_roles()
+    return (row.get('name', '').startswith('wd-') or
+            (row["role"] != roles.PH_ROLE and row["role"] not in roles.c_level_roles()))
 
 
 def identity(row):
@@ -229,9 +234,11 @@ def prep(args):
                                  mode='lazy' if action == 'resume_lazy' else 'full'))
     # Persist recovery intent before the first destructive operation.
     manifest_path = STATE / f'{args.host}-resume.json'
-    if manifest_path.exists():
+    if manifest_path.exists() or (STATE / f'pending-{args.host}.json').exists():
         raise ValueError('pending resume manifest exists; resume/report it before another prep')
     write_json(manifest_path, manifest, args.dry_run)
+    write_json(STATE / f'pending-{args.host}.json',
+               dict(manifest=str(manifest_path.resolve()), timestamp=now().isoformat()), args.dry_run)
     failed = False
     for row in plan['sessions']:
         if managed(row):
@@ -286,10 +293,13 @@ def live(host):
 
 
 def resume(args):
-    path = STATE / f'{args.host}-resume.json'
-    if not path.exists():
-        print('no pending resume manifest')
+    marker = STATE / f'pending-{args.host}.json'
+    if not marker.exists():
+        print('no pending restart marker; nothing to resume')
         return 0
+    path = Path(json.loads(marker.read_text())['manifest'])
+    if path.resolve() != (STATE / f'{args.host}-resume.json').resolve():
+        raise ValueError('unexpected resume manifest path')
     entries = json.loads(path.read_text())
     existing = live(args.host)
     failed = False
@@ -327,6 +337,66 @@ def resume(args):
             print(f'rename {path} -> {done}')
         else:
             path.replace(done)
+            marker.unlink()
+    return int(failed)
+
+
+def relay_open():
+    """Unknown: Console owns relay-requests.json, outside this repository.
+
+    Never infer that no request exists from an absent local file.
+    """
+    return None
+
+
+def memory():
+    values = {}
+    for line in Path('/proc/meminfo').read_text().splitlines():
+        key, value = line.split(':', 1)
+        if key in ('MemFree', 'MemAvailable', 'SwapFree', 'SwapTotal'):
+            values[key + '_kB'] = int(value.split()[0])
+    return values
+
+
+def clean(args):
+    if (STATE / f'pending-{args.host}.json').exists():
+        raise ValueError('pending restart; resume/report it before cleaning')
+    before = memory()
+    plan = restart_plan.build_plan(args.host, now(), STATE)
+    if plan.get('host') != args.host:
+        raise ValueError('plan host does not match --host')
+    events, failed = [], False
+    for row in plan['sessions']:
+        if (managed(row) or worker(row) or row['role'] in roles.c_level_roles()
+                or row.get('in_turn') or row.get('incomplete')
+                or row['action'] not in ('park', 'close')):
+            continue
+        # park uses prep's direct-kill fallback; no claim that /session-save ran.
+        status = 'closed' if row['action'] == 'close' else 'force_saved'
+        command = ['bash', 'scripts/session-kill.sh', '--status', status, pane(row)]
+        try:
+            if not args.dry_run:
+                subprocess.run(command, cwd=ROOT, check=True, timeout=300,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            events.append(('would run: ' if args.dry_run else 'ran: ') + shlex.join(command))
+        except (OSError, subprocess.SubprocessError):
+            events.append(f"failed: {pane(row)}")
+            failed = True
+    relay = relay_open()
+    if relay is False or (relay is None and args.chrome):
+        try:
+            if not args.dry_run:
+                subprocess.run(['docker', 'restart', 'neko-pilot'], check=True, timeout=300,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            events.append(('would restart' if args.dry_run else 'restarted') + ' neko-pilot')
+        except (OSError, subprocess.SubprocessError):
+            events.append('failed: neko-pilot restart')
+            failed = True
+    else:
+        events.append('Chrome skipped: relay open' if relay else 'Chrome skipped: relay state unknown; use --chrome')
+    result = dict(events=events, before=before, after=memory(), dry_run=args.dry_run)
+    print(json.dumps(result, ensure_ascii=False) if args.json else
+          '\n'.join(events + [f"RAM/swap before (kB): {before}", f"RAM/swap after (kB): {result['after']}"]))
     return int(failed)
 
 
@@ -341,18 +411,32 @@ def report(args):
         print(f"กลับมา {result['back']}/{result['total']}")
         for name in missing:
             print(name)
+    if getattr(args, 'notify', False):
+        owners = [r for r in entries if r['role'] in roles.c_level_roles()]
+        requester = (['--role', owners[0]['role'], '--session', pane(owners[0])]
+                     if owners else [])  # Empty manifests use the configured service requester.
+        question = f"Restart Contabo: กลับมา {result['back']}/{result['total']}"
+        details = ['ยังไม่กลับมา: ' + str(name).replace('\n', ' ')[:70] for name in missing[:3]]
+        if len(missing) > 3:
+            details.append(f'อีก {len(missing) - 3} รายชื่ออยู่ในรายงานบนเครื่อง')
+        run(['bash', 'scripts/hub/org-python.sh', 'tools/ask_run.py', 'ask',
+             '--host', args.host, *requester,
+             '--question', question, '--why', '\n'.join(details) or 'ทุก session ในรายการกลับมาแล้ว',
+             '--option', 'รับทราบ', '--option', 'ดูรายชื่อที่ขาด' if missing else 'ดูรายงาน'], args.dry_run)
     return int(bool(missing))
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prep', 'resume', 'report'))
+    parser.add_argument('command', choices=('prep', 'resume', 'report', 'clean'))
     parser.add_argument('--host', required=True, choices=('contabo', 'mac', 'winbox'))
     parser.add_argument('--plan', type=Path)
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--wait-max', type=float, default=600)
     parser.add_argument('--force', action='store_true')
     parser.add_argument('--json', action='store_true')
+    parser.add_argument('--chrome', action='store_true', help='allow Chrome restart when relay state is unknown')
+    parser.add_argument('--notify', action='store_true', help='send report as a Run Inbox question')
     args = parser.parse_args(argv)
     if args.wait_max < 0:
         parser.error('--wait-max must be nonnegative')
@@ -360,7 +444,7 @@ def main(argv=None):
         from lib import config
         if config.self_host() != args.host:
             raise ValueError('run on the selected host')
-        return {'prep': prep, 'resume': resume, 'report': report}[args.command](args)
+        return {'prep': prep, 'resume': resume, 'report': report, 'clean': clean}[args.command](args)
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         print(f'restart_run failed: {exc}')
         return 1
