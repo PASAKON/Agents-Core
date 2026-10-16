@@ -109,6 +109,12 @@ def tick(*, dry_run: bool = False) -> int:
         if field in state.get("follower", {}):
             setattr(follower, field, state["follower"][field])
     pending = state.setdefault("pending_out", [])
+    if alive:
+        pending.extend(follower.step(runs, now))
+        if n == 0:
+            pending.extend(follower.pending)
+            follower.pending = []
+            follower.window_start = None
     applied = decision
     if decision in ("start", "restart"):
         if not tmux("list-sessions"):
@@ -135,8 +141,12 @@ def tick(*, dry_run: bool = False) -> int:
         if reason:
             applied = "none"
     elif decision == "stop":
-        if dry_run or tmux("kill-session", "-t", "=" + session):
+        if (pending or follower.pending) and state.get("flush_ticks", 0) < 3:
+            state["flush_ticks"] = state.get("flush_ticks", 0) + 1
+            applied, reason = "none", "flush"
+        elif dry_run or tmux("kill-session", "-t", "=" + session):
             alive = False
+            state["flush_ticks"] = 0
         else:
             applied, reason = "none", "stop failed"
     if alive:
@@ -146,7 +156,6 @@ def tick(*, dry_run: bool = False) -> int:
             result = "would type" if dry_run else rename_service.type_rename(session, typed)
             if result == "renamed":
                 state["last_name"] = name
-        pending.extend(follower.step(runs, now))
         if pending and not typed and ready(session):
             typed = event_line(pending)
             result = "would type" if dry_run else rename_service.type_rename(session, typed)
