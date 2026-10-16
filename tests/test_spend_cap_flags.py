@@ -563,6 +563,12 @@ def test_champa_fire_without_the_flag_is_unchanged(tmp_path, capsys, _fast_label
 
 # ═══ iteration 2 (CTO feedback) ═══════════════════════════════════════════════════════════
 
+def printed_line(out: str, message: str) -> bool:
+    """The message on a line of its own. The stop note embeds the same words, so a substring test cannot
+    tell whether the dedicated `spend cap reached: ...` line was printed."""
+    return any(line.strip() == message for line in out.splitlines())
+
+
 # ── topview_wan3: --max-credits is a RUN total across every job file given ─────────────────
 
 class _TVPage:
@@ -623,7 +629,7 @@ def test_topview_cap_is_a_run_total_across_jobs(monkeypatch, tmp_path, capsys):
     rc, b = _tv_main(monkeypatch, tmp_path, 1.5, 4, "--max-credits", "4")
     assert rc == 3
     assert b.clicks == 2                           # 1.5 + 1.5 = 3 <= 4; the third would make 4.5
-    assert "spend cap reached: spent 3 of 4 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 3 of 4 credits")
     ledger = topview_wan3.load_ledger(tmp_path / "out" / "ledger.json")
     assert ledger["n03"]["status"] == "stopped" and ledger["n03"]["hazard_kind"] == "spend_cap"
     assert "n04" not in ledger                     # nothing after the stop was touched
@@ -639,7 +645,7 @@ def test_topview_total_equal_to_the_cap_is_allowed(monkeypatch, tmp_path, capsys
 def test_topview_one_job_dearer_than_the_cap_fires_nothing_and_exits_3(monkeypatch, tmp_path, capsys):
     rc, b = _tv_main(monkeypatch, tmp_path, 2, 2, "--max-credits", "1")
     assert rc == 3 and b.clicks == 0               # the old per-job stop was exit 1
-    assert "spend cap reached: spent 0 of 1 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 0 of 1 credits")
 
 
 def test_topview_float_noise_does_not_stop_a_run_at_exactly_the_cap(monkeypatch, tmp_path):
@@ -681,8 +687,9 @@ class _FMBrowser:
     """A Flow Music whose Generate click takes `charge` off the balance. The price is not shown
     before the click, as on the live page (measured 2026-09-26)."""
 
-    def __init__(self, charge: float, balance: float = 1000.0):
+    def __init__(self, charge: float, balance: float = 1000.0, blind_after_click: bool = False):
         self.charge, self.balance, self.clicks = charge, balance, 0
+        self.blind_after_click, self.reads = blind_after_click, 0
         self.page = _FMPage()
         self.debug_net = False
         self.api_credits = None
@@ -692,7 +699,11 @@ class _FMBrowser:
     def log(self, *_a): pass
     def library_clips(self): return []
     def drain(self): return []
-    def read_balance(self): return self.balance, f"{self.balance:g} credits"
+    def read_balance(self):
+        self.reads += 1
+        if self.blind_after_click and self.reads % 2 == 0:   # run_item reads before (odd) and after (even)
+            return None, "unreadable"
+        return self.balance, f"{self.balance:g} credits"
 
     def state(self):
         return {"genCount": 1, "genText": "Generate", "genDisabled": False, "dialogs": [],
@@ -710,8 +721,8 @@ def _fm_prompts(tmp_path, n):
     return str(f)
 
 
-def _fm_main(monkeypatch, tmp_path, charge, n, *flags):
-    browser = _FMBrowser(charge)
+def _fm_main(monkeypatch, tmp_path, charge, n, *flags, blind_after_click=False):
+    browser = _FMBrowser(charge, blind_after_click=blind_after_click)
     monkeypatch.setattr(flow_music, "FlowMusicBrowser", lambda _url, debug_net=False: browser)
     monkeypatch.setattr(flow_music, "prepare", lambda *_a, **_k: {
         "compose_url": "u", "instrumental": True, "length": "1:00", "bpm": "Auto", "model": "Lyria 3.5",
@@ -735,7 +746,7 @@ def test_flow_music_stops_before_the_click_that_could_pass_the_cap(monkeypatch, 
     rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits", "12")
     assert rc == 3
     assert b.clicks == 2                           # 5 + 5 = 10 spent; a third track may charge 5 -> 15 > 12
-    assert "spend cap reached: spent 10 of 12 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 10 of 12 credits")
     ledger = flow_music.load_ledger(tmp_path / "out" / "ledger.json")
     assert ledger["A3"]["status"] == "stopped" and ledger["A3"]["hazard_kind"] == "spend_cap"
 
@@ -750,13 +761,20 @@ def test_flow_music_counts_the_measured_charge_not_the_worst_case(monkeypatch, t
     # tracks charge 2: after each, the total is the actual 2, not the 5 reserved at the click
     rc, b = _fm_main(monkeypatch, tmp_path, 2, 6, "--max-credits", "12")
     assert rc == 3 and b.clicks == 4               # 2, 4, 6, 8 spent; the fifth could reach 13 > 12
-    assert "spend cap reached: spent 8 of 12 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 8 of 12 credits")
+
+
+def test_flow_music_an_unreadable_balance_after_a_track_keeps_the_worst_case_reservation(monkeypatch, tmp_path, capsys):
+    # the charge cannot be measured, so each track stays counted at WORST_TRACK_CREDITS (5): 5, 10, then stop
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits", "12", blind_after_click=True)
+    assert rc == 3 and b.clicks == 2
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 10 of 12 credits")
 
 
 def test_flow_music_a_cap_below_one_track_fires_nothing(monkeypatch, tmp_path, capsys):
     rc, b = _fm_main(monkeypatch, tmp_path, 5, 2, "--max-credits", "4")
     assert rc == 3 and b.clicks == 0
-    assert "spend cap reached: spent 0 of 4 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 0 of 4 credits")
 
 
 def test_flow_music_track_dearer_than_assumed_ends_the_run_even_with_max_credits_alone(monkeypatch, tmp_path, capsys):
@@ -772,7 +790,7 @@ def test_flow_music_track_dearer_than_assumed_ends_the_run_even_with_max_credits
 def test_flow_music_track_that_takes_the_run_past_the_cap_exits_3(monkeypatch, tmp_path, capsys):
     rc, b = _fm_main(monkeypatch, tmp_path, 9, 3, "--max-credits", "8")
     assert rc == 3 and b.clicks == 1
-    assert "spend cap reached: spent 9 of 8 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 9 of 8 credits")
 
 
 def test_flow_music_per_track_flag_alone_behaves_as_before(monkeypatch, tmp_path, capsys):
@@ -854,7 +872,7 @@ def test_flow_shoot_effective_credit_cap(credit_cap, max_credits, want):
 def test_flow_shoot_max_credits_alone_runs_and_stops_at_n(tmp_path, capsys):
     rc, stub = _flow_run(tmp_path, 40, "--max-credits", "100", credit_cap=None)
     assert rc == 3 and stub.submits == 2
-    assert "spend cap reached: spent 80 of 100 credits" in capsys.readouterr().out
+    assert printed_line(capsys.readouterr().out, "spend cap reached: spent 80 of 100 credits")
 
 
 def test_flow_shoot_credit_cap_zero_is_not_replaced_by_max_credits(tmp_path, capsys):
