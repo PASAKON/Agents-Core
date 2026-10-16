@@ -20,7 +20,7 @@ the first-pair read (EP58 A vs EP61 B) is done after 16 Oct 22:00 TH, and the re
 |---|---|---|---|---|
 | M1 | EP61 (B) live | 14 Oct 22:00, check 22:10 | done | https://www.tiktok.com/@black_liquidity/video/7696265373473197320 · 22:10 TH Studio row 01:08, Oct 14 5:00 PM CEST, Everyone, 2 views; profile grid label gone |
 | M2 | EP59 (A) live | 15 Oct 22:00, check 22:11 | done | https://www.tiktok.com/@black_liquidity/video/7696267883713760520 — checked 15 Oct 22:2x Thai: video page loads, playCount 1; Studio content list Oct 15, 5:00 PM, Everyone, views 1 |
-| M3 | EP60 (B) live + pair-1 read | 16 Oct 22:00, check 22:12 | open | |
+| M3 | EP60 (B) live + pair-1 read | 16 Oct 22:00, check 22:12 | done 22:13 Thai | EP60 live (id 7696270171547110664, playCount 1 at 12 min); pair-1 read in AB_POSTS: EP61 8 vs EP58 365@9d, not an arm result (label confound; every post since 14 Oct near 0) |
 | M4 | real read, 2 per arm, reported | 18 Oct 22:00, check 22:13 | open | |
 
 | M5 | EP62 (CXM cent-account case) script, approved | 14 Oct ~13:15 | done | v2 4e6e2421 approved by CMO Main 13:3x TH |
