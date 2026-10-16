@@ -33,8 +33,9 @@ def row(**kw) -> dict:
     return base
 
 
-def state(task, *, pid=True, tmux=False, last_log=None, now=NOW):
-    return rl.classify(task, pid_ok=pid, tmux_ok=tmux, last_log=last_log, now=now)
+def state(task, *, pid=True, tmux=False, last_log=None, now=NOW, report_ok=None):
+    return rl.classify(task, pid_ok=pid, tmux_ok=tmux, last_log=last_log,
+                       now=now, report_ok=report_ok)
 
 
 @pytest.fixture(autouse=True)
@@ -126,6 +127,17 @@ def test_external_runner_waits_for_branch_poller_before_dead(runner):
     assert state(t, pid=False, tmux=False, last_log=NOW - 400) == "dead"
 
 
+@pytest.mark.parametrize("runner", ["codex", "agy"])
+def test_external_runner_report_ok_controls_report_grace(runner):
+    t = row(runner=runner)
+    assert state(t, pid=False, tmux=False, last_log=NOW - 30, report_ok=False) == "dead"
+    assert state(t, pid=False, tmux=False, last_log=NOW - 30, report_ok=True) == "running"
+    assert state(t, pid=False, tmux=False, last_log=NOW - 30, report_ok=None) == "running"
+    assert rl.classify(t, pid_ok=False, tmux_ok=False, last_log=NOW - 30, now=NOW) == "running"
+    fresh = row(runner=runner, spawned_at=iso(30), updated_at=iso(30))
+    assert state(fresh, pid=False, tmux=False, last_log=NOW - 30, report_ok=False) == "running"
+
+
 def test_claude_worker_gets_no_report_grace():
     # a claude worker reports through the MCP tool itself: gone + in_progress = dead
     assert state(row(), pid=False, tmux=False, last_log=NOW - 30) == "dead"
@@ -171,6 +183,27 @@ def test_a_pid_we_may_not_signal_still_counts_as_alive(monkeypatch):
     monkeypatch.setattr(os, "kill", denied)
     assert rl.probe_pid(row(pid=4242)) is True
     assert rl.probe_pid(row(pid=None)) is False
+
+
+def test_probe_report_with_without_and_missing_worktree(monkeypatch, tmp_path):
+    wt = tmp_path / "wt"
+    wt.mkdir()
+    t = row(runner="codex", worktree=str(wt))
+    assert rl.probe_report(t) is False
+
+    report = wt / "docs" / "reports" / t["id"] / "REPORT.md"
+    report.parent.mkdir(parents=True)
+    report.write_text("# REPORT task-aaaa1111\n")
+    assert rl.probe_report(t) is True
+
+    assert rl.probe_report(row(worktree=None)) is None
+    assert rl.probe_report(row(worktree="")) is None
+    assert rl.probe_report({"id": "task-aaaa1111"}) is None
+
+    def denied(self):
+        raise PermissionError("unreadable")
+    monkeypatch.setattr(rl.Path, "is_file", denied)
+    assert rl.probe_report(t) is None
 
 
 # --- where the log is ------------------------------------------------------
@@ -258,3 +291,32 @@ def test_inspect_run_defaults_now_to_the_clock():
                          newest_log_fn=lambda t: (None, None))
     assert run["state"] == "running"
     assert 0 <= run["elapsed_s"] < 60
+
+
+def test_inspect_run_probes_report_for_external_runner(tmp_path):
+    wt = tmp_path / "wt"
+    wt.mkdir()
+    t = row(runner="codex", worktree=str(wt))
+    dead_run = rl.inspect_run(
+        t, now=NOW, pid_alive_fn=lambda r: False, tmux_alive_fn=lambda r: False,
+        newest_log_fn=lambda r: ("/x/codex-events.jsonl", NOW - 30))
+    assert dead_run["state"] == "dead"
+
+    report = wt / "docs" / "reports" / t["id"] / "REPORT.md"
+    report.parent.mkdir(parents=True)
+    report.write_text("# REPORT task-aaaa1111\n")
+    grace_run = rl.inspect_run(
+        t, now=NOW, pid_alive_fn=lambda r: False, tmux_alive_fn=lambda r: False,
+        newest_log_fn=lambda r: ("/x/codex-events.jsonl", NOW - 30))
+    assert grace_run["state"] == "running"
+
+
+def test_probe_report_accepts_root_report_and_blocker(tmp_path):
+    from lib.run_liveness import probe_report
+    task = {"id": "task-x", "worktree": str(tmp_path)}
+    assert probe_report(task) is False
+    (tmp_path / "BLOCKER.md").write_text("b")
+    assert probe_report(task) is True
+    (tmp_path / "BLOCKER.md").unlink()
+    (tmp_path / "REPORT.md").write_text("r")
+    assert probe_report(task) is True
