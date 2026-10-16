@@ -15,7 +15,7 @@ and be used straight away?
 
 Contabo is the one centre: the Postgres hub, Run cards, the dispatcher and the
 collector for `tools/mesh_check.py`. Dispatch uses `node_dispatch` over ssh with
-the `org_dispatch` key. This decision supersedes the older topology below.
+the `org_dispatch` key. This decision (ADR 0036 in Agents-Rules) supersedes the older topology below.
 
 Peers (Mac and winbox) pull files from GitHub and take orders over
 `node_dispatch`. Mac SSH dispatch is **planned, ADR 0034**: a key-only sshd
