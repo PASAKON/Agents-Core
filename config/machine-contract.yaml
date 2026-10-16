@@ -113,6 +113,13 @@ entries:
   # doctor re-discovers it if it ever appears — no row until then.
 
   # ── winbox (Windows, account passg since 2026-09-24) ──
+  # CEO approved these folders in the OrgMesh plan on 2026-10-16 (IRON §54).
+  - {machine: winbox, path: "C:/Users/passg/mooniex/repo/Agents-Rules", class: REBUILD, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone PASAKON/Agents-Rules"}
+  - {machine: winbox, path: "C:/Users/passg/mooniex/repo/Agents-Wikis", class: REBUILD, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone PASAKON/Agents-Wikis"}
+  - {machine: winbox, path: "C:/Users/passg/mooniex/repo/Agents-Memory", class: REBUILD, owner: CTO, review: 2026-12-23, discovered: false,
+     restore: "git clone PASAKON/Agents-Memory"}
   - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/play_rec/**", class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
      restore: "the CEO's recorded takes + bot sessions — Drive BACKUP/CookieRun Backup/{play_rec,bot_sessions,jumpsweeps}/ (tar + manifest per item); pull with rclone copy"}
   - {machine: winbox,  path: "%USERPROFILE%/Documents/CookieRunScript/modelplay/session-*/**", class: IRREPLACEABLE, owner: CTO, review: 2026-12-23, discovered: false,
