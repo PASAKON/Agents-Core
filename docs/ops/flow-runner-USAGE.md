@@ -20,7 +20,7 @@ CEO's main Chrome, never Higgsfield's 9222.
 python3 tools/flow_ledger.py init  <sheet.md> <ledger.tsv>       # or let `run`/`pull` do this for you
 python3 tools/flow_shoot.py status --ledger <ledger.tsv>
 python3 tools/flow_shoot.py run    --sheet <sheet.md> --ledger <ledger.tsv> \
-    --dest <download-folder> --credit-cap <N> [--only 37-46] [--dry-run] \
+    --dest <download-folder> --max-credits <N> [--credit-cap <N>] [--only 37-46] [--dry-run] \
     [--resolution {720p,360p}] [--force-duration N]
 python3 tools/flow_shoot.py pull   --sheet <sheet.md> --ledger <ledger.tsv> \
     --dest <download-folder> [--only 53-58]
@@ -31,8 +31,13 @@ python3 tools/flow_shoot.py pull   --sheet <sheet.md> --ledger <ledger.tsv> \
   with `--dry-run`: it does everything up to reading the credit estimate for
   the first `todo` row and stops before Submit — zero credits, and it is how
   you confirm the selectors still match the live UI before spending anything.
-  `--credit-cap` is the only money safety in the loop; the run stops the
-  moment the next shot would cross it, with a `CAP REACHED` line, not a crash.
+  `--max-credits N` is the run's money cap: before each Submit the runner
+  stops if the credits so far plus this shot's estimate would pass N, prints
+  `spend cap reached: spent X of N credits` and exits 3. A spend-labelled Run
+  card must carry it. The older `--credit-cap` still works (the run stops the
+  moment the next shot would cross it, with a `CAP REACHED` line); give at
+  least one of the two, and with only `--max-credits` it also serves as the
+  credit cap (16 Oct 2026, task-407a64ce).
   `--resolution {720p,360p}` (default `720p`) sets the composer's resolution
   facet and reads it back like every other setting. `--force-duration N` is
   **proof shots only**: it overrides the sheet's per-shot duration for both

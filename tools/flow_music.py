@@ -11,7 +11,7 @@ signs in with "Continue with Google", no credential typed) with the pwvenv Pytho
 it at the end; never touches another tab (ChatGPT, TopView and Outlook run in that browser).
 
     C:/mooniex/pwvenv/Scripts/python.exe tools/flow_music.py PROMPTS.json --out OUTDIR ^
-        --max-credits-per-track 20 [--ids A1,A2] [--dry-run] [--length 1:00] [--format wav|m4a]
+        --max-credits 20 [--max-credits-per-track 20] [--ids A1,A2] [--dry-run] [--length 1:00] [--format wav|m4a]
     ... --recover A1        collect A1's finished songs after the runner stopped waiting; fires nothing
     ... --refire C3 [--debug-net]   fire a failed-after-submit id again, only when its failed click left no
                             song and no charge (balance == balance_before minus later rows' measured charges)
@@ -40,6 +40,12 @@ Per prompt (measured live 2026-09-26 on www.flowmusic.app, account tier "Member"
      duration.status "completed", then fetch each song's wav_url / audio_url (public storage.googleapis.com
      object) and write <id>-<n>.<ext>; the UI's own Download > WAV menu is the fallback.
 
+--max-credits N is a RUN total (Run Inbox spend label): before every click spent + WORST_TRACK_CREDITS must stay
+<= N, else the run stops with "spend cap reached: spent X of N credits" and exit 3; each finished track then
+adds the charge it was measured to cost. A spend-labelled card carries --max-credits only (tools/ask_run.py
+reads --max-credits-per-track as an abbreviation of it and refuses the command), so --max-credits-per-track is
+optional when --max-credits is given and then defaults to WORST_TRACK_CREDITS. At least one of the two.
+
 Measured on the ILAG run 2026-09-26 (12 prompts, Length 1:00): 5 credits per Generate (30610 -> 30555 for 13
 songs); one Generate = one song, except B2 = two songs for 0 charged; songs 53-63 s, WAV pcm_s16le 48 kHz
 stereo, ~55 s per generation. C3 failed silently twice (session created, tool-call 200, no song, no charge)
@@ -54,6 +60,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -238,6 +245,33 @@ def now_iso() -> str:
 
 
 FIRED = ("submitted", "done", "failed-after-submit")
+
+# Flow Music shows no price before the click, so --max-credits (a run total) is checked against the most one
+# track can charge. 5 is the figure this file states twice ("5 credits per Generate", "about 5 per song") and
+# every recorded charge equals: docs/promo/topview-trailer/MUSIC-LEDGER.json (12 tracks at 1:00) and
+# docs/scripts/khaoniao-ep1-music-ledger.json (a 3:00 track) hold 5.0, plus one 0.0 (B2). The 20 in the usage
+# line and the 10 in the CMO_Workflow_ShortFilm recipe are --max-credits-per-track caps an operator chose, not
+# prices. A track that charges more than this is caught right after it (see main) and ends the run.
+WORST_TRACK_CREDITS = 5.0
+EXIT_SPEND_CAP = 3  # Console docs/run.md §Spend label: the tool exits 3 when the cap stops it
+
+
+def spend_cap_arg(text: str) -> float:
+    """argparse type for --max-credits: finite and >= 0. A NaN cap would never trip
+    (spent + cost > nan is always False), so it is refused at the door."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
+    return value
+
+
+def spend_cap_exceeded(spent: float, cost: float, max_credits: float | None) -> bool:
+    # rounded: 0.6 added five times is 3.0000000000000004, which must not stop a run capped at exactly 3
+    return max_credits is not None and round(spent + cost, 6) > max_credits
+
+
+def spend_cap_message(spent: float, max_credits: float) -> str:
+    return f"spend cap reached: spent {spent:.10g} of {max_credits:.10g} credits"
 
 
 class HazardStop(Exception):
@@ -635,6 +669,13 @@ def run_item(browser: FlowMusicBrowser, item: dict, args, ledger: dict, ledger_p
         gate(st, balance, args.max_credits_per_track)
     except HazardStop as h:
         return save("stopped", hazard_kind=h.kind, note=h.text)
+    spent = getattr(args, "spent_credits", 0.0)
+    if spend_cap_exceeded(spent, WORST_TRACK_CREDITS, getattr(args, "max_credits", None)):
+        args.spend_cap_hit = True
+        return save("stopped", hazard_kind="spend_cap",
+                    note=f"{spend_cap_message(spent, args.max_credits)}: one track may charge up to "
+                         f"{WORST_TRACK_CREDITS:g}; not clicked")
+    args.spent_credits = spent + WORST_TRACK_CREDITS  # reserved at the click; the measured charge replaces it
 
     t0 = time.time()
     save("submitted", fired_at=now_iso(), before_ids=sorted(before_ids),
@@ -674,6 +715,8 @@ def run_item(browser: FlowMusicBrowser, item: dict, args, ledger: dict, ledger_p
     browser.library_clips()
     after, after_text = browser.read_balance()
     charged = round(balance - after, 3) if balance is not None and after is not None else None
+    if charged is not None:
+        args.spent_credits = spent + charged  # an unreadable balance keeps the reservation
     return save("done", files=files, songs=len(files), balance_after=after, charged=charged,
                 per_song=round(charged / len(files), 3) if charged is not None and files else None,
                 api_credits_after=browser.api_credits)
@@ -729,12 +772,19 @@ def refire_blocker(browser: FlowMusicBrowser, item: dict, row: dict, ledger: dic
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter,
+                                 allow_abbrev=False)
     ap.add_argument("prompts", help="JSON list of {id, title, prompt, ...}")
     ap.add_argument("--out", required=True, help="dir for <id>-<n>.<ext> and ledger.json")
     ap.add_argument("--ids", help="comma-separated ids to run, in this order (default: all, file order)")
-    ap.add_argument("--max-credits-per-track", type=float, required=True,
-                    help="stop the run when one track charged more than this (the UI shows no price before)")
+    ap.add_argument("--max-credits-per-track", type=float, default=None,
+                    help="stop the run when one track charged more than this (the UI shows no price before). "
+                         "At least one of this / --max-credits; alone-with---max-credits it defaults to "
+                         "WORST_TRACK_CREDITS")
+    ap.add_argument("--max-credits", type=spend_cap_arg, default=None,
+                    help="RUN total (Run Inbox spend label): stop before any Generate when the credits spent "
+                         "so far + WORST_TRACK_CREDITS would pass N (prints 'spend cap reached: spent X of N "
+                         "credits', exits 3)")
     ap.add_argument("--dry-run", action="store_true", help="fill and read everything; no Generate click")
     ap.add_argument("--length", default="1:00", help="m:ss, 1:00..3:00 (default 1:00, the shortest accepted)")
     ap.add_argument("--format", choices=["wav", "m4a"], default="wav")
@@ -754,6 +804,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="record the app's API answers after the click (redacted; for a silent failure)")
     args = ap.parse_args(argv)
     args.length = check_length(args.length)
+    if args.max_credits_per_track is None:
+        if args.max_credits is None:
+            ap.error("give --max-credits or --max-credits-per-track (at least one)")
+        args.max_credits_per_track = WORST_TRACK_CREDITS
+    args.spent_credits, args.spend_cap_hit = 0.0, False
 
     items = load_prompts(Path(args.prompts))
     by_id = {it["id"]: it for it in items}
@@ -798,6 +853,14 @@ def main(argv: list[str] | None = None) -> int:
             if row["status"] not in ("done", "dry-run"):
                 print(f"STOP at {it['id']}: {row['status']} — {row.get('note')}")
                 rc = 1
+                if args.spend_cap_hit:
+                    print(spend_cap_message(args.spent_credits, args.max_credits))
+                    rc = EXIT_SPEND_CAP
+                break
+            if row["status"] == "done" and args.max_credits is not None and args.spent_credits > args.max_credits:
+                # a track charged more than WORST_TRACK_CREDITS and took the run past its cap
+                print(spend_cap_message(args.spent_credits, args.max_credits))
+                rc = EXIT_SPEND_CAP
                 break
             if row["status"] == "done" and row.get("charged") is not None \
                     and row["charged"] > args.max_credits_per_track:

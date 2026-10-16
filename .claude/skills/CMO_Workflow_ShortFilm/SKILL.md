@@ -238,8 +238,8 @@ and the CEO's own edit needs a day.
   **The «บ้านนี้มีมีมี่» recipe (CEO 2026-10-01, "ผ่านแล้ว … ต้องใส่เพลงด้วยแบบนี้เลย"): every episode of that channel
   carries a quiet solo-piano bed made exactly like M1.** One track per episode:
   1. *Make it* (zero-model, 5 credits from the separate Flow Music pool of 30,000/month, ~50 s):
-     `tools/flow_music.py <prompts.json> --out <dir> --max-credits-per-track 10 --length 3:00 --no-title --cdp-url http://127.0.0.1:9224`
-     on winbox (9224 is the Chrome signed in to Flow Music; the default 9226 is not). `--dry-run` first, it is free.
+     `tools/flow_music.py <prompts.json> --out <dir> --max-credits 5 --length 3:00 --no-title --cdp-url http://127.0.0.1:9224`
+     on winbox (`--max-credits N` caps the whole run, N = 5 × tracks; a spend-labelled Run card refuses `--max-credits-per-track`, since 16 Oct 2026) (9224 is the Chrome signed in to Flow Music; the default 9226 is not). `--dry-run` first, it is free.
      Prompt = the M1 text in `docs/scripts/khaoniao-ep1-music-prompts.json` (tender lullaby piano, ~66 BPM, pp–mp,
      solo piano only: no drums, strings, vocals, pads or effects), adapted by one scene line per episode. Instrumental
      ON, Lyria 3.5. Length is clamped to 1:00–3:00, so order 3:00 for a 3-minute episode (came back 2:55).
