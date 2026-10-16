@@ -8,7 +8,7 @@ on Contabo. This pulls plan Phase 4 forward.
 |---|---|---|
 | M13a | `spawn-ph.sh` on the Mac, by a C-level on the Mac | #287 |
 | M13b | Contabo C-level → Mac, one Run Inbox card per spawn; needs Run Inbox P2 (task-5eb22787) | #290 |
-| M13c | winbox: org_dispatch key (#238, the CEO's call), Windows PH launcher | key blocked; launcher in the M13c PR |
+| M13c | winbox: org_dispatch key (#238, the CEO's call), Windows PH launcher, remote spawn over the mesh | key blocked; launcher in the M13c PR; `spawn_ph` verb + `spawn_ph mesh` (section 4) |
 
 ## M13a: on the Mac
 
@@ -139,3 +139,39 @@ commit with M12 + M13c (`git -C C:\Users\passg\mooniex\repo\MoonieX-Agents pull 
 once P2 lands, `windows\spawn-ph.ps1 --project WinboxProbe --brief "Read README.md and write a 3-line summary to your reply. Change no file."`.
 Check: a new Windows Terminal tab titled `Project Head (CTO) #<id> WinboxProbe` shows the
 claude TUI; the PH reports to its owner; `state\locks\project_head-<id>.*` is gone after it exits.
+
+### (4) Remote spawn over the mesh
+
+A Contabo C-level starts a Project Head on winbox without a Run Inbox card, the way
+`start_clevel` starts a C-level there:
+
+```
+bash scripts/hub/org-python.sh -m tools.spawn_ph mesh --host winbox --project <Name> [--dry-run]
+```
+
+It prints one JSON line (node_dispatch's reply: `session_id`, `project`, `owner`, `via`).
+`--dry-run` prints the dispatch it would send and sends nothing.
+
+- **Who owns the PH.** The caller's own identity: it must be a C-level session (the same
+  `_caller()` check as a local spawn). Lane and owner session id come from it; no flag
+  names them. The owner session id must be 8 hex characters, which the verb requires.
+- **What is sent.** `lib.mesh.dispatch('winbox', 'spawn_ph', <lane>, <owner sid>, <project>)`,
+  the `spawn_ph` verb of `tools/node_dispatch.py` (exactly 3 arguments, each checked
+  against its pattern on both ends). It needs the org_dispatch key, #238, which is the
+  CEO's call (section 2); until it is installed the command ends `winbox did not answer
+  over the mesh`.
+- **What winbox checks** (`tools.spawn_ph.spawn_from_mesh`, the same gates as `spawn()`):
+  the host flag `ORG_PH_ROLES`, one Project Head per project (ignoring case), the role
+  doc, the resource gate and the CEO hold. It does not check for Windows session 0: the
+  window comes from a one-shot interactive scheduled task, which lands on the desktop.
+  Windows only; any other OS is refused.
+- **What it writes.** The same claim and owner record as `spawn()`
+  (`project_head-<id>.project`, `.spawned_by` = `cxo:<lane>:<owner sid>`) and a fixed
+  brief stub, "Your owner <lane>-<sid> sends your brief by message. Run /session-open
+  once it arrives." No text from the caller reaches the brief; the owner sends the real
+  brief by message. A launch that fails takes the claim files back.
+- **How the window opens.** `powershell.exe` runs `windows/cxo-claude.ps1 -Role project_head
+  -Lane <lane> -Project <Name> -Session <id>` (the arguments `spawn_ph.windows_launcher_args`
+  also gives the wt tab) from the scheduled task. It is a console window, not a tab in the
+  CEO's Windows Terminal window, and every token must pass `_PS_ARGUMENT_RE` or the call is
+  refused, never escaped.

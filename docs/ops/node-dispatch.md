@@ -8,7 +8,7 @@ id, a letter id). It cannot **send** a command.
 
 ## Verbs
 
-Exactly these seven. Anything else is refused. Argument patterns are `fullmatch`.
+Exactly these eight. Anything else is refused. Argument patterns are `fullmatch`.
 
 | verb | args | does |
 |---|---|---|
@@ -17,6 +17,7 @@ Exactly these seven. Anything else is refused. Argument patterns are `fullmatch`
 | `spawn_worker` | `task-xxxxxxxx` | starts the worker for a pending task whose `host` is this host (a NULL host is refused on every OS), through `delegate_task` |
 | `kill_worker` | `task-xxxxxxxx` | `worker_reap.close_dev`; keeps its own "only review/done" refusal rules |
 | `start_clevel` | `<role> [--resume <8 hex>]` | starts a C-level session; role must be in `policies/agents.yaml` `c_level`; refused (exit 2) when 3 sessions of that role are already live on this host or another start of that role is still running or succeeded less than 60 s ago |
+| `spawn_ph` | `<lane> <8 hex owner session> <project>` | Windows only: starts a Project Head for that C-level through a one-shot interactive scheduled task (`tools.spawn_ph.spawn_from_mesh`; same gates as `spawn-ph`, CEO hold included; fixed brief stub); lane must be a C-level, project 1-40 chars of `[A-Za-z0-9_-]`; run it with `python -m tools.spawn_ph mesh --host winbox --project <Name>` |
 | `deliver_letter` | `<digits, max 12>` | writes hub letter N into this host's mailbox, wakes the pane, marks it delivered; a call that overlaps one still writing is refused (exit 2) |
 | `publish_branch` | `task-xxxxxxxx` | `git push origin <the task's own branch>` from its worktree, never force |
 
