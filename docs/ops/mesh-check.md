@@ -5,45 +5,86 @@
 the wiring matrix from the design doc's §1 measured tables and exits 1 when a
 cell that is expected green for the given `--expect` wave is red. Every wave
 adds its own level to check; this build ships the frame plus L0–L8, the SEC
-(dispatch-key security) row and the one-poller invariant (INV).
+(dispatch-key security) row, the one-poller invariant (INV), L9 and KIT.
 
 ## How to run
 
-### Default mode (Mac)
+### Default mode (Contabo)
 
 ```bash
-.venv/bin/python -m tools.mesh_check --expect w0
+bash scripts/hub/org-python.sh -m tools.mesh_check --expect w5
 ```
 
-Runs this host's own L0/L1/L2 checks, collects every other host's L0–L2 via
+Runs this host's own L0/L1/L2/KIT checks, collects every other host's facts via
 read-only ssh (`--local --json`, see below), prints the combined markdown
-matrix, writes it to `state/mesh-check/<UTC ts>.json` and
-`state/mesh-check/latest.json` (both gitignored), then exits 0 if every cell
+matrix and KIT facts table without writing state, then exits 0 if every cell
 in scope for `--expect` passed, 1 otherwise. It also computes the two levels
-that only read: L8 (a file or the hub's `join_drill` row, from w4) and INV (the hub, from w1). It never
-dials a host and never writes the ledger unless `--live` is given.
+that only read: L8 (a file or the hub's `join_drill` row, from w4) and INV (the hub, from w1).
+SSH collection is read-only. Ledger-writing probes, including L4, require `--live`.
 
 `--expect wN` is required outside `--local`/`--get-task` — it's the wave
 you're claiming, and it decides which cells actually count toward the exit
 code (see "Wave gating" below).
 
-### `--local --json` (run on Contabo or winbox)
+### `--local --json` (run on any host)
 
 ```bash
 python3 -m tools.mesh_check --local --json
 ```
 
-Prints only this host's own L0/L1/L2 cells as one JSON object, writes
-nothing, and makes no delegate/ledger calls. This is what the Mac's default
+Prints this host's own L0/L1/L2 cells and `kit` facts as one JSON object, writes
+nothing by default, and makes no delegate/ledger calls. This is what Contabo's default
 mode collects over ssh from each peer. It works two ways:
 
 - **Deployed checkout**: `ssh <alias> "<python> -m tools.mesh_check --local --json"`.
-- **Not deployed yet** (this branch hasn't been pulled there): the Mac pipes
+- **Not deployed yet** (or a deployed collector lacks KIT): Contabo pipes
   the script's own source over stdin —
   `ssh <alias> python3 - --local --json < tools/mesh_check.py`. Every import
   of a repo module is guarded with `try/except`, so a piped copy with no
   filesystem context around `lib/config.py` degrades its cells to "n/a"
   instead of crashing.
+
+### KIT — org kit parity (w5)
+
+KIT uses the existing w5 slot and is diagonal: contabo, winbox and mac each
+report their own kit. L9 remains spawn+resume. Missing/unreachable peer facts
+are red at w5; earlier waves do not count KIT. The compact table below the
+matrix shows verdict, skill counts, home drift and MCP names.
+
+`kit` JSON contains `core`, `rules`, `wikis`, `memory`: each has `head`,
+`origin_main`, `behind` (commits), `merge_base_age_hours` and `status`.
+These describe the **last fetched** origin/main, not a live remote comparison.
+No fetch occurs unless `--kit-fetch` explicitly requests one on the host
+running the command; peer collection never fetches. Missing facts are `n/a`;
+an existing directory without `.git` is `not-git` and fails.
+
+Paths use `hosts.yaml` host `kit_paths: {rules, wikis, memory}` overrides,
+then the `machine-contract.yaml` machine HQ's `Agents/{Rules,Wikis,Memory}`
+layout. Without configured paths, rules/wikis use `WIKI_ROOT_ORG` and
+`WIKI_ROOT_MOONIEX`; memory uses `~/.claude/projects/<checkout-slug>/memory`.
+Symlinks and Windows junctions are resolved before inspecting `.git`.
+
+Green requires rules/wikis/memory HEAD equal origin/main, core zero commits
+behind or a merge base at most 24 hours old, checkout skill
+count at least 120 (`.claude/skills/*/SKILL.md`), `roles/project_head.md`,
+the platform PH launcher, and a successful hook interpreter `--version`.
+An up-to-date core is green even if its last commit is old. Divergence of
+rules/wikis/memory fails even when the checkout is only ahead.
+Org skills load from the checkout. Home skills remain in the facts and table
+for information only; Contabo's 11 home skills are valid.
+
+MCP names are parsed from the PH launcher's config built in memory by
+`scripts/lib/cxo_mcp_config.py`; only server keys are emitted, never env or
+credential values.
+For linked task worktrees without a venv, names describe the primary checkout's
+PH launcher, located through Git's common directory; core still describes the worktree.
+Missing generator/dependencies or a config the generator
+would refuse (no org server) yield `n/a`; Windows standalone mode passes no
+MCP config and reports an empty list. Home drift
+reuses `install-claude-home.sh --check` exit status and reports `ok` or
+`drift N lines`. Older copies whose check still creates a directory are
+skipped as `n/a`. MCP names and home drift are informational, not green gates.
+Piped-source collection needs no repo imports; unavailable facts fail closed.
 
 ### `--live` (delegate and mesh probes — CTO runs this, not you)
 
@@ -258,8 +299,7 @@ genuinely has to originate from that row's own host.
 
 Practically: getting a fully green (in-scope) matrix requires running
 `mesh_check.py --expect wN --live` **separately on each host**, from that
-host's own seat, and merging the three `state/mesh-check/latest.json`
-snapshots (or just reading each host's own printed matrix) — never a single
+host's own seat, and reading each host's own printed matrix — never a single
 run claiming to speak for every row.
 
 The same rule holds for SEC, L5 and L6: `--live` computes only the row whose
@@ -291,11 +331,12 @@ the Postgres hub; `state/tasks.db` is a tombstone and is never opened.
 | L7 | `win_gui` → winbox, and stale winbox → `no_host` | w3 |
 | L8 | `all` (one cell) | w4 |
 | INV | `all` (one cell) | w1 |
+| KIT | contabo, winbox, mac (diagonal) | w5 |
 
 L7 is one diagonal cell per host (contabo, winbox), not a pair. L8 and INV
 are single cells: in the printed matrix they show as a two-column
-`check | result` table, and in `state/mesh-check/latest.json` under
-`matrix.L8.all.all` and `matrix.INV.all.all`. INV is gated at w1, the wave in
+`check | result` table. Their internal matrix keys are
+`L8.all.all` and `INV.all.all`. INV is gated at w1, the wave in
 which the hub lands, because the poller sets it reads only mean something
 when every host shares one ledger.
 

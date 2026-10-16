@@ -32,6 +32,12 @@ sys.path.insert(0, str(ROOT))
 import tools.mesh_check as m  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def isolate_kit(monkeypatch):
+    """Legacy probes mock subprocess as SSH; KIT has its own fixture suite."""
+    monkeypatch.setattr(m, "kit_facts", lambda *args, **kwargs: {})
+
+
 # ---------------------------------------------------------------------------
 # L0 — identity
 # ---------------------------------------------------------------------------
