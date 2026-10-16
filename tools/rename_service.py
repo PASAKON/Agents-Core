@@ -251,7 +251,11 @@ def session_of(box: str, host: str) -> dict | None:
                 pid = int(data["pid"])
             except (ValueError, KeyError, TypeError):
                 continue
-            if str(data.get("tmux") or "").split(":", 1)[0] != tmux_name:
+            rec_tmux = str(data.get("tmux") or "").split(":", 1)[0]
+            # The COO's launcher drops to its unix user with `env -i`, so $TMUX is gone and
+            # Claude writes no tmux field (16 Oct: "no single live session for coo-…"). For a
+            # fixed-tmux role an empty field is allowed: the pane-ancestry check below is the proof.
+            if rec_tmux != tmux_name and not (rec_tmux == "" and role in _FIXED_TMUX):
                 continue
             uuid = str(data.get("sessionId") or "")
             start = ls._proc_start(data.get("procStart"))
@@ -267,7 +271,7 @@ def session_of(box: str, host: str) -> dict | None:
                 continue
             if role == "coo" and not ls._launcher_uuid("coo", uuid):
                 continue
-            hits.append({"name": str(data.get("name") or ""), "pane": str(data["tmux"]).split(":", 1)[0],
+            hits.append({"name": str(data.get("name") or ""), "pane": tmux_name,
                          "uuid": uuid, "pid": pid})
     return hits[0] if len(hits) == 1 else None
 
