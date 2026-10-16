@@ -218,7 +218,7 @@ def build_plan(host, now, out_dir):
         for item in items:
             if item.get('host') and item['host'] != host:
                 continue
-            if (item.get('host') or 'mac') == host and item.get('runner') in ('codex', 'agy') and item.get('pid'):
+            if (item.get('host') or item.get('dispatcher_host')) == host and item.get('runner') in ('codex', 'agy') and item.get('pid'):
                 if is_alive(int(item['pid'])):
                     workers.append({k: item.get(k) for k in ('id', 'runner', 'pid', 'status')})
             if item.get('status') in ('running', 'in_progress', 'merging', 'generating'):
