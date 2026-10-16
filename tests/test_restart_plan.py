@@ -1,0 +1,110 @@
+import json
+from datetime import datetime, timedelta, timezone
+
+import pytest
+
+from tools import restart_plan as rp
+
+NOW = datetime(2026, 10, 15, 12, tzinfo=timezone.utc)
+
+
+def entry(kind='assistant', minutes=0, **message):
+    return {'type': kind, 'timestamp': (NOW-timedelta(minutes=minutes)).isoformat(),
+            'message': {'id': 'request-1', 'usage': {'input_tokens': 100,
+                        'cache_read_input_tokens': 200, 'cache_creation_input_tokens': 300}, **message}}
+
+
+def transcript(tmp_path, entries):
+    path = tmp_path / 'transcript.jsonl'
+    path.write_text('\n'.join(json.dumps(e) for e in entries)+'\n')
+    return path
+
+
+def test_dedupe_last_request(tmp_path):
+    path = transcript(tmp_path, [entry(id='old', usage={'input_tokens': 900}), entry(), entry()])
+    assert rp.measure(path, NOW)['C'] == 600
+    assert len(list(rp.tail_entries(path, 13))) == 3
+
+
+@pytest.mark.parametrize('after,expected', [(False, 110000), (True, 600)])
+def test_compaction(tmp_path, after, expected):
+    entries = [entry(), {'type': 'system', 'subtype': 'compact_boundary'}]
+    if after:
+        entries.append(entry(id='new'))
+    assert rp.measure(transcript(tmp_path, entries), NOW)['C'] == expected
+
+
+@pytest.mark.parametrize('kind,stop,minutes,expected', [
+    ('user', None, 0, True), ('user', None, 15, False),
+    ('assistant', 'tool_use', 14, True), ('assistant', 'tool_use', 15, False),
+    ('assistant', 'end_turn', 0, False), ('assistant', None, 0, False)])
+def test_turn(tmp_path, kind, stop, minutes, expected):
+    entries = [entry(), entry(kind, minutes, stop_reason=stop,
+                             content=[{'type': 'tool_result', 'content': 'ok'}]),
+               {'type': 'progress'}]
+    assert rp.measure(transcript(tmp_path, entries), NOW)['in_turn'] is expected
+
+
+@pytest.mark.parametrize('changes,action', [
+    ({'in_turn': True, 'status': 'closed'}, 'wait'),
+    ({'status': 'closed'}, 'close'),
+    ({'charter': None}, 'park'),
+    ({'only_waiting_on_ceo': True, 'open_tasks': [{'kind': 'ceo_card'}]}, 'park'),
+    ({'last_active': NOW-timedelta(minutes=60, seconds=1)}, 'resume_lazy'),
+    ({'last_active': NOW-timedelta(minutes=60)}, 'resume_full'),
+    ({'C': 140000}, 'resume_full'), ({'C': 140001}, 'compact_then_resume'),
+    ({'charter': None, 'open_tasks': [{'kind': 'task'}]}, 'resume_full'),
+    ({'incomplete': True}, 'wait'), ({'override': 'park', 'in_turn': True}, 'park')])
+def test_decide(changes, action):
+    row = {'name': 'Example', 'C': 100000, 'last_active': NOW, 'charter': 'Work', 'open_tasks': []}
+    row.update(changes)
+    assert rp.decide(row, NOW)[0] == action
+
+
+def test_override_file(tmp_path):
+    path = tmp_path / 'overrides.json'
+    assert rp.load_overrides(path) == {}
+    path.write_text('{"abcdef12": "close"}')
+    assert rp.load_overrides(path) == {'abcdef12': 'close'}
+    path.write_text('{"abcdef12": "kill"}')
+    with pytest.raises(ValueError):
+        rp.load_overrides(path)
+
+
+def test_plan_mocked_hub(tmp_path, monkeypatch):
+    from lib import config
+    monkeypatch.setattr(config, 'self_host', lambda: 'contabo')
+    sessions = tmp_path / 'sessions'
+    projects = tmp_path / 'projects' / '-cwd'
+    projects.mkdir(parents=True)
+    uuid = '00000000-0000-0000-0000-0000abcdef12'
+    transcript(tmp_path, [entry()]).rename(projects / f'{uuid}.jsonl')
+    monkeypatch.setattr(rp, 'session_dirs', lambda host: [sessions])
+    monkeypatch.setattr(rp, 'read_registry', lambda dirs: [
+        {'uuid': uuid, 'sid': 'abcdef12', 'name': 'Example', 'role': 'cto'}])
+    monkeypatch.setattr(rp, 'is_alive', lambda pid: True)
+    monkeypatch.setattr(rp, 'read_hub', lambda: {
+        'c_level_sessions': [{'session_id': 'abcdef12', 'role': 'cto', 'charter': 'Work', 'status': 'open'}],
+        'tasks': [{'id': 'task-example', 'owner_cto': 'abcdef12', 'status': 'in_progress',
+                   'host': 'contabo', 'pid': 123, 'runner': 'codex'}]})
+    plan = rp.build_plan('contabo', NOW, tmp_path)
+    assert plan['sessions'][0]['action'] == 'resume_full'
+    assert plan['sessions'][0]['est_cost_M'] == pytest.approx(.0012)
+    assert plan['extra_cost_M'] == pytest.approx(.00114)
+    assert len(plan['running_workers']) == 1
+    assert plan['warnings']
+    assert rp.main(['--host', 'contabo', '--now', NOW.isoformat(), '--out-dir', str(tmp_path), '--json']) == 0
+    assert len(list(tmp_path.glob('contabo-*.json'))) == 1
+
+
+def test_unavailable_hub(tmp_path, monkeypatch):
+    from lib import config
+    monkeypatch.setattr(config, 'self_host', lambda: 'contabo')
+    monkeypatch.setattr(rp, 'session_dirs', lambda host: [])
+    monkeypatch.setattr(rp, 'read_registry', lambda dirs: [])
+    def unavailable():
+        raise RuntimeError('private connection details')
+    monkeypatch.setattr(rp, 'read_hub', unavailable)
+    plan = rp.build_plan('contabo', NOW, tmp_path)
+    assert 'private' not in json.dumps(plan)
+    assert plan['warnings']
