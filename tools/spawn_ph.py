@@ -55,6 +55,18 @@ The card runs the pinned scripts/spawn-ph.sh with exactly
 - raising the card (`card`) runs the same C-level check as a local spawn
   (_caller, send_to_cxo.authorize spawning=True). The brief is one line of at most
   CARD_BRIEF_MAX characters (the hub caps script args); the owner sends the rest.
+
+Over the org mesh (M13c, no card): a Contabo C-level runs
+
+    bash scripts/hub/org-python.sh -m tools.spawn_ph mesh --host winbox --project <Name> [--dry-run]
+
+which sends `spawn_ph <lane> <owner sid> <project>` through lib.mesh to
+tools/node_dispatch on winbox. There `spawn_from_mesh` runs the same gates as
+spawn() (host flag, one PH per project, role doc, resource gate, CEO hold) and starts
+the window through a one-shot interactive scheduled task, which lands in the desktop
+session an ssh shell cannot reach. The owner is the identity the dispatching side
+proved with its C-level check; no text from the caller reaches the brief, which is a
+fixed stub (the owner sends the real brief by message).
 """
 from __future__ import annotations
 
@@ -96,6 +108,7 @@ _NONCE_RE = re.compile(r"[0-9a-f]{16}")
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
 CARD_BRIEF_MAX = 300
 CARD_ARGS_MAX = 480     # the hub refuses script args over 500 characters
+MESH_HOSTS = ("winbox",)    # hosts with a `spawn_ph` verb: Windows, where a scheduled task reaches the desktop
 MCP_SCREEN_RE = re.compile(r"MCP server", re.IGNORECASE)
 
 
@@ -269,17 +282,11 @@ def _owner(card: list[str] | None) -> tuple[str, str]:
     return card_owner(card) if card is not None else _caller()
 
 
-def refusal(project: str, *, locks_dir: Path | None = None,
-            role_doc: Path | None = None, card: list[str] | None = None) -> str | None:
-    """None when this caller (or, with `card`, that card's requester) may start
-    a Project Head for `project` now."""
+def _project_refusal(project: str, *, locks_dir: Path | None = None,
+                     role_doc: Path | None = None) -> str | None:
+    """The gates that do not depend on who asks: the name, one Project Head per
+    project, the role doc and the resource gate."""
     role_doc = Path(role_doc or ROLE_DOC)
-    if not roles.ph_roles_on():
-        return "Project Heads are off on this host (ORG_PH_ROLES=1 turns them on; org restructure P2)"
-    try:
-        _owner(card)
-    except Refused as e:
-        return str(e)
     why = roles.ph_project_refusal(project)
     if why:
         return why
@@ -292,12 +299,40 @@ def refusal(project: str, *, locks_dir: Path | None = None,
     return resource_gate.check()
 
 
+def _flag_refusal() -> str | None:
+    if not roles.ph_roles_on():
+        return "Project Heads are off on this host (ORG_PH_ROLES=1 turns them on; org restructure P2)"
+    return None
+
+
+def refusal(project: str, *, locks_dir: Path | None = None,
+            role_doc: Path | None = None, card: list[str] | None = None) -> str | None:
+    """None when this caller (or, with `card`, that card's requester) may start
+    a Project Head for `project` now."""
+    why = _flag_refusal()
+    if why:
+        return why
+    try:
+        _owner(card)
+    except Refused as e:
+        return str(e)
+    return _project_refusal(project, locks_dir=locks_dir, role_doc=role_doc)
+
+
 def first_prompt(sid: str, lane: str, project: str, owner: str) -> str:
     """The one-line first prompt a Project Head starts with (the Windows
     launcher asks for it too, so both hosts say the same thing)."""
     brief_path = BRIEFS_DIR / f"{roles.PH_ROLE}-{sid}.md"
     return (f"You are {roles.ph_display(lane)} #{sid} for project {project}; you report to "
             f"{lane}-{owner}. Your brief is {brief_path}. Read it, run /session-open, then start.")
+
+
+def windows_launcher_args(sid: str, lane: str, project: str) -> list[str]:
+    """The arguments powershell.exe gets to run the Project Head's launcher
+    (M13c). Both the wt tab below and the mesh path's scheduled task run exactly
+    these, so the two cannot start different things."""
+    return ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(WIN_LAUNCHER),
+            "-Role", roles.PH_ROLE, "-Lane", lane, "-Project", project, "-Session", sid]
 
 
 def windows_launch_argv(sid: str, lane: str, project: str, *, wt: str, new_window: bool) -> list[str]:
@@ -307,8 +342,7 @@ def windows_launch_argv(sid: str, lane: str, project: str, *, wt: str, new_windo
     owner record. Every token is a bare word or this checkout's path."""
     title = f"{roles.ph_display(lane)} #{sid} {project}"
     return [wt, "-w", "new" if new_window else "0", "nt", "--title", title, "-d", str(ROOT),
-            "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(WIN_LAUNCHER),
-            "-Role", roles.PH_ROLE, "-Lane", lane, "-Project", project, "-Session", sid]
+            "powershell", *windows_launcher_args(sid, lane, project)]
 
 
 def _windows_session_id() -> int | None:
@@ -323,11 +357,19 @@ def _windows_session_id() -> int | None:
     return None
 
 
-def windows_refusal(session_id: int | None, ceo_hold: Path | None = None) -> str | None:
-    """Why no Project Head window may open on this Windows desktop now."""
+def ceo_hold_refusal(ceo_hold: Path | None = None) -> str | None:
+    """Why no Project Head window may open on this Windows desktop now: the CEO's hold."""
     if Path(ceo_hold or CEO_HOLD).exists():
         return ("the CEO is using this PC (CEO hold, windows/pc_lease.py ceo-on); no window "
                 "opens until he presses his release button")
+    return None
+
+
+def windows_refusal(session_id: int | None, ceo_hold: Path | None = None) -> str | None:
+    """Why no Project Head window may open on this Windows desktop now."""
+    why = ceo_hold_refusal(ceo_hold)
+    if why:
+        return why
     if session_id in (None, 0):
         return ("this process is in Windows session 0 (an ssh shell or a service), which "
                 "never reaches the desktop; start the Project Head from a desktop session "
@@ -363,6 +405,15 @@ def launch_command(sid: str, lane: str, project: str, owner: str, prompt: str) -
             f"--initial-prompt {shlex.quote(prompt)}")
 
 
+def _make_plan(project: str, lane: str, owner: str) -> dict:
+    sid = uuid.uuid4().hex[:8]
+    name = f"{roles.PH_ROLE}-{sid}"
+    prompt = first_prompt(sid, lane, project, owner)
+    return {"session_id": sid, "tmux_session": name, "lane": lane, "project": project,
+            "owner": f"{lane}-{owner}", "brief": str(BRIEFS_DIR / f"{name}.md"),
+            "command": launch_command(sid, lane, project, owner, prompt)}
+
+
 def _plan(project: str, brief: str, card: list[str] | None = None) -> dict:
     why = refusal(project, card=card)
     if why:
@@ -370,13 +421,33 @@ def _plan(project: str, brief: str, card: list[str] | None = None) -> dict:
     lane, owner = _owner(card)
     if len(brief) > BRIEF_MAX:
         raise Refused(f"brief is {len(brief)} characters; keep it under {BRIEF_MAX} or point at a file")
-    sid = uuid.uuid4().hex[:8]
-    name = f"{roles.PH_ROLE}-{sid}"
-    brief_path = BRIEFS_DIR / f"{name}.md"
-    prompt = first_prompt(sid, lane, project, owner)
-    return {"session_id": sid, "tmux_session": name, "lane": lane, "project": project,
-            "owner": f"{lane}-{owner}", "brief": str(brief_path),
-            "command": launch_command(sid, lane, project, owner, prompt)}
+    return _make_plan(project, lane, owner)
+
+
+def _write_claim(plan: dict, brief_text: str) -> None:
+    """The brief, the project claim and the owner record of a Project Head about
+    to start; call it under _claim_lock. The owner record is written before the
+    session exists: its first send must already find its owner. A write that
+    fails takes back what it wrote."""
+    from tools import send_to_cxo
+    from tools.agent_transport import Identity
+    name = plan["tmux_session"]
+    try:
+        BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
+        Path(plan["brief"]).write_text(brief_text, encoding="utf-8")
+        LOCKS_DIR.mkdir(parents=True, exist_ok=True)
+        (LOCKS_DIR / f"{name}.project").write_text(plan["project"], encoding="utf-8")
+        send_to_cxo.record_spawn(Identity("cxo", plan["lane"], plan["owner"].split("-", 1)[1]),
+                                 roles.PH_ROLE, plan["session_id"])
+    except BaseException:
+        _drop_claim(name)
+        raise
+
+
+def _drop_claim(name: str) -> None:
+    """Take back the claim and the owner record of a Project Head that did not start."""
+    for p in (LOCKS_DIR / f"{name}.project", LOCKS_DIR / f"{name}.spawned_by"):
+        p.unlink(missing_ok=True)
 
 
 def spawn(project: str, brief: str = "", *, dry_run: bool = False,
@@ -390,22 +461,14 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
     if dry_run:
         return {**_plan(project, brief, card), "dry_run": True}
 
-    from tools import send_to_cxo, tmux_session
-    from tools.agent_transport import Identity
+    from tools import tmux_session
 
     with _claim_lock(LOCKS_DIR):
         plan = _plan(project, brief, card)
         if card is not None:
             use_nonce(parse_card_args(card)["nonce"])
-        name, lane = plan["tmux_session"], plan["lane"]
-        owner = plan["owner"].split("-", 1)[1]
-        BRIEFS_DIR.mkdir(parents=True, exist_ok=True)
-        Path(plan["brief"]).write_text(brief or f"(no brief given — ask {plan['owner']} for one)\n",
-                                       encoding="utf-8")
-        LOCKS_DIR.mkdir(parents=True, exist_ok=True)
-        (LOCKS_DIR / f"{name}.project").write_text(project, encoding="utf-8")
-        # Before the session exists: its first send must already find its owner.
-        send_to_cxo.record_spawn(Identity("cxo", lane, owner), roles.PH_ROLE, plan["session_id"])
+        name = plan["tmux_session"]
+        _write_claim(plan, brief or f"(no brief given — ask {plan['owner']} for one)\n")
     cmd = plan.pop("command")
     try:
         if os.name == "nt":
@@ -413,8 +476,7 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
             return {**plan, "window": "windows-terminal"}
         tmux_session.create(name, ROOT, cmd)
     except Exception as e:  # noqa: BLE001
-        for p in (LOCKS_DIR / f"{name}.project", LOCKS_DIR / f"{name}.spawned_by"):
-            p.unlink(missing_ok=True)
+        _drop_claim(name)
         if isinstance(e, Refused):
             raise
         raise Refused(f"{'window' if os.name == 'nt' else 'tmux'} spawn failed: {e}") from e
@@ -428,6 +490,44 @@ def spawn(project: str, brief: str = "", *, dry_run: bool = False,
     except (OSError, subprocess.SubprocessError):
         dismissed = None
     return {**plan, "mcp_screen_dismissed": dismissed}
+
+
+MESH_BRIEF = ("Your owner {owner} sends your brief by message. "
+              "Run /session-open once it arrives.\n")
+
+
+def spawn_from_mesh(project: str, lane: str, owner_sid: str, *, launch) -> dict:
+    """Start a Project Head for a C-level on another host (M13c). Runs on the
+    host that opens the window (winbox), called by tools/node_dispatch's
+    `spawn_ph` verb; nobody here proves who the owner is: the mesh key and the
+    dispatching side's C-level check do (tools.spawn_ph mesh).
+
+    Same gates as spawn(), minus the caller check and the Windows session-0 check
+    (`launch` puts the window on the desktop itself): the host flag, one Project
+    Head per project, the role doc, the resource gate and the CEO hold. The brief
+    is a fixed stub; nothing the caller sent goes into it.
+
+    `launch(sid, args)` starts powershell.exe with `args` (windows_launcher_args)
+    and raises if it cannot. If it raises, the claim and the owner record are
+    taken back and the error propagates."""
+    why = _flag_refusal() or roles.ph_lane_refusal(lane)
+    if not why and not _SID_RE.fullmatch(owner_sid or ""):
+        why = f"owner session id must be 8 lowercase hex characters (got {owner_sid!r})"
+    why = why or ceo_hold_refusal()
+    if why:
+        raise Refused(why)
+    with _claim_lock(LOCKS_DIR):
+        why = _project_refusal(project)
+        if why:
+            raise Refused(why)
+        plan = _make_plan(project, lane, owner_sid)
+        _write_claim(plan, MESH_BRIEF.format(owner=plan["owner"]))
+    try:
+        launch(plan["session_id"], windows_launcher_args(plan["session_id"], lane, project))
+    except BaseException:
+        _drop_claim(plan["tmux_session"])
+        raise
+    return {"session_id": plan["session_id"], "project": project, "owner": plan["owner"]}
 
 
 def card_command(host: str, project: str, brief: str, sha: str, nonce: str | None = None) -> list[str]:
@@ -477,10 +577,45 @@ def _card_main(argv: list[str]) -> int:
     return subprocess.run(cmd).returncode
 
 
+def _mesh_main(argv: list[str]) -> int:
+    """Start a Project Head on another host over the org mesh (M13c). The lane
+    and the owner session are this C-level session's own identity: no flag
+    names them."""
+    ap = argparse.ArgumentParser(prog="python -m tools.spawn_ph mesh")
+    ap.add_argument("--host", required=True, choices=MESH_HOSTS)
+    ap.add_argument("--project", required=True)
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print the dispatch that would be sent and send nothing")
+    args = ap.parse_args(argv)
+    try:
+        lane, sid = _caller()
+        why = roles.ph_lane_refusal(lane) or roles.ph_project_refusal(args.project)
+        if not why and not _SID_RE.fullmatch(sid):
+            why = f"owner session id {sid!r} is not 8 lowercase hex characters, which the mesh verb requires"
+        if why:
+            raise Refused(why)
+        call = {"host": args.host, "verb": "spawn_ph", "args": [lane, sid, args.project]}
+        if args.dry_run:
+            print(json.dumps({**call, "dry_run": True}, ensure_ascii=False))
+            return 0
+        from lib import mesh
+        try:
+            reply = mesh.dispatch(args.host, call["verb"], *call["args"])
+        except mesh.MeshUnreachable as e:
+            raise Refused(f"{args.host} did not answer over the mesh: {e}") from e
+    except Refused as e:
+        print(f"spawn-ph mesh: {e}", file=sys.stderr)
+        return 1
+    print(json.dumps(reply, ensure_ascii=False))
+    return 0 if reply.get("ok") else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     if argv[:1] == ["card"]:
         return _card_main(argv[1:])
+    if argv[:1] == ["mesh"]:
+        return _mesh_main(argv[1:])
     ap = argparse.ArgumentParser(prog="bash scripts/spawn-ph.sh")
     ap.add_argument("--project", required=True)
     g = ap.add_mutually_exclusive_group()
