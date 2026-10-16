@@ -280,3 +280,53 @@ def test_tmux_never_starts_server(monkeypatch):
                         calls.append(argv) or SimpleNamespace(returncode=1))
     assert not d.tmux("new-session", "-s", "runwatch-contabo")
     assert calls == [["tmux", "-N", "new-session", "-s", "runwatch-contabo"]]
+
+
+def test_dead_and_failed_release_without_waiting_for_batch_window(rig, monkeypatch):
+    r = rig
+    monkeypatch.setenv("RUN_WATCH_BATCH_S", "120")
+    r["runs"] = [run(tid="task-11111111"), run(tid="task-22222222")]
+    d.tick()
+    assert not r["typed"]
+
+    # Plain start/quiet events wait for the 120 s batch window while runs are active.
+    r["now"] += 10
+    r["runs"] = [run("quiet", "task-11111111"), run(tid="task-22222222"),
+                 run(tid="task-33333333")]
+    d.tick()
+    assert len(r["typed"]) == 1 and r["typed"][-1].startswith("/rename ")
+    assert not r["state"]()["pending_out"]
+    assert len(r["state"]()["follower"]["pending"]) == 2
+
+    r["now"] += 10
+    d.tick()
+    assert len(r["typed"]) == 1
+    assert not r["state"]()["pending_out"]
+
+    # A dead event releases the whole pending batch into pending_out immediately;
+    # rename runs first on this tick, and the summary is typed on the next ready tick.
+    r["now"] += 10
+    r["runs"] = [run("quiet", "task-11111111"), run("dead", "task-22222222"),
+                 run(tid="task-33333333")]
+    d.tick()
+    assert len(r["typed"]) == 2 and r["typed"][-1].startswith("/rename ")
+    assert len(r["state"]()["pending_out"]) == 3
+    assert not r["state"]()["follower"]["pending"]
+    assert r["state"]()["follower"]["window_start"] is None
+
+    r["now"] += 10
+    d.tick()
+    assert r["typed"][-1] == "runs: 11111111 เงียบ; 33333333 เริ่ม; 22222222 ตาย"
+    assert not r["state"]()["pending_out"]
+
+    # A failed event also releases without waiting 120 s.
+    r["now"] += 10
+    r["runs"] = [run("quiet", "task-11111111"), run("dead", "task-22222222"),
+                 run("failed", "task-33333333")]
+    d.tick()
+    assert r["typed"][-1].startswith("/rename ")   # the count changed: rename first
+    assert len(r["state"]()["pending_out"]) == 1   # released at once, not held 120 s
+    r["now"] += 10
+    d.tick()
+    assert r["typed"][-1] == "runs: 33333333 พัง"
+    assert not r["state"]()["pending_out"]

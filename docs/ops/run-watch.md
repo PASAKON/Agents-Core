@@ -14,6 +14,8 @@ Summaries are at most 100 characters, with `+N more` for omitted events.
 Every `RUN_WATCH_*` environment setting is forwarded to the launched watcher.
 The watcher uses only Bash, user settings (no project hooks), and a standalone role system prompt with strict status-only dispatch.
 When no runs remain, batches release immediately; stopping defers for up to three flush ticks (`reason=flush`), preserving rename priority and one typed action per tick.
+External runners (`codex`/`agy`) whose pid and tmux session are gone skip `RUN_WATCH_REPORT_GRACE_S` and read as `dead` immediately (after `RUN_WATCH_SPAWN_GRACE_S`) when `<worktree>/docs/reports/<task-id>/REPORT.md` is absent.
+Any follower batch containing a `dead` or `failed` event releases into `pending_out` immediately without waiting for `RUN_WATCH_BATCH_S`, keeping rename priority and one typed action per tick.
 
 Install after the code lands (operator Run card):
 
