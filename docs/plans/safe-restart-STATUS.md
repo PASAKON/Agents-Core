@@ -16,6 +16,8 @@ Targets: P1+P2 by Sat 17 Oct 18:00 TH · P3 Sun 18 Oct · P4, P5 after.
 
 - **Shared files with PH#73c HostSpawn** (CTO Main 16 Oct): `tools/spawn_ph.py`, `scripts/spawn-ph.sh`. SendMessage HostSpawn before landing; the second PR rebases; CTO Main decides on disagreement. P4/P5 build on HostSpawn. HostSpawn PR #380 (spawn_ph.py only, merging 16 Oct): whichever lands second rebases.
 
+- **Idle resume costs nothing until the first message** (16 Oct 02:37Z probe): `claude --resume <uuid> --fork-session` on a 67k transcript sat at an empty ❯ for 120 s; no jsonl created or touched → no API request. Option ⑤ holds.
+
 ## Blockers
 - (none)
 
