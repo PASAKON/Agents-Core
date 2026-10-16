@@ -261,3 +261,10 @@ def test_capture_preserves_escapes():
     module = reload(rr.tmux_session)
     module.capture('cto-1234abcd:0.0', escapes=True)
     assert '-e' in commands()[-1]
+
+
+def test_workers_are_never_saved_killed_or_resumed():
+    from tools import restart_run
+    assert restart_run.worker({"role": "developer"})
+    assert not restart_run.worker({"role": "project_head"})
+    assert not restart_run.worker({"role": "cto"})

@@ -72,8 +72,16 @@ def empty_input(capture):
     return True
 
 
+SESSION_ROLES = ("project_head", "cto", "cmo", "cfo", "cgo", "coo")
+
+
 def managed(row):
     return row.get("service_managed", False) or row["role"] == "coo"
+
+
+def worker(row):
+    """Workers belong to the task ledger: never typed into, killed or resumed here."""
+    return row["role"] not in SESSION_ROLES
 
 
 def identity(row):
@@ -207,7 +215,7 @@ def prep(args):
             return 3
     manifest = []
     for row in plan['sessions']:
-        if managed(row):
+        if managed(row) or worker(row):
             continue
         action = row['action']
         # Force bypasses the turn gate; conservatively preserve waiting work.
@@ -230,6 +238,9 @@ def prep(args):
     for row in plan['sessions']:
         if managed(row):
             print(f"service_managed: {row['name']}")
+            continue
+        if worker(row):
+            print(f"worker_left_running: {row['name']}")
             continue
         action = row['action']
         try:
