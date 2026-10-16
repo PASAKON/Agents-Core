@@ -17,6 +17,9 @@ def isolated(monkeypatch, tmp_path):
     monkeypatch.setattr(rr.tmux_session, 'create', Mock())
     monkeypatch.setattr(rr.tmux_session, 'capture', Mock(return_value='❯\n────────'))
     monkeypatch.setattr(rr.tmux_session, 'tmux_bin', lambda: 'tmux')
+    # Record typing in the same argv shape the assertions read.
+    monkeypatch.setattr(rr.tmux_session, 'send_keys',
+                        lambda t, x: rr.subprocess.run(['tmux', 'send-keys', '-t', t, '-l', x]))
     monkeypatch.setattr(rr.session_status, 'get', Mock(return_value={'status': 'saved'}))
     monkeypatch.setattr(rr.live_sessions, 'session_dirs', Mock(return_value=[]))
     monkeypatch.setattr(rr.live_sessions, 'read_registry', Mock(return_value=[]))

@@ -14,6 +14,7 @@ import shlex
 import subprocess
 import time
 
+from lib import roles
 from tools import live_sessions, restart_plan, session_status, tmux_session
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,16 +73,13 @@ def empty_input(capture):
     return True
 
 
-SESSION_ROLES = ("project_head", "cto", "cmo", "cfo", "cgo", "coo")
-
-
 def managed(row):
     return row.get("service_managed", False) or row["role"] == "coo"
 
 
 def worker(row):
     """Workers belong to the task ledger: never typed into, killed or resumed here."""
-    return row["role"] not in SESSION_ROLES
+    return row["role"] != roles.PH_ROLE and row["role"] not in roles.c_level_roles()
 
 
 def identity(row):
@@ -108,10 +106,10 @@ def send(row, text, dry=False):
     if not dry and not empty_input(tmux_session.capture(target + ':0.0', escapes=True)):
         print(f"draft_or_not_ready: {row['name']}")
         return False
-    # A single Enter: the general helper sends Enter twice.
-    binary = "tmux" if dry else tmux_session.tmux_bin()
-    run([binary, "send-keys", "-t", target + ":0.0", "-l", text], dry)
-    run([binary, "send-keys", "-t", target + ":0.0", "Enter"], dry)
+    # The shared typing primitive; its second Enter lands on an empty prompt.
+    print(f"type into {target}:0.0: {text}")
+    if not dry:
+        tmux_session.send_keys(target + ':0.0', text)
     return True
 
 
@@ -177,7 +175,7 @@ def launcher(row, host):
     role, sid = identity(row)
     if role == 'project_head':
         return ['bash', 'scripts/spawn-ph.sh', '--resume', sid]
-    if host != 'mac' and role in ('cto', 'cmo', 'cfo', 'cgo'):
+    if host != 'mac' and role in roles.c_level_roles() and role != 'coo':
         if host == 'winbox':
             raise ValueError('C-level tmux resume requires a Linux host')
         variable = 'CTO_SESSION_ID' if role == 'cto' else 'CXO_SESSION_ID'
@@ -186,7 +184,7 @@ def launcher(row, host):
         return f'export {variable}={shlex.quote(sid)} && exec {shlex.join(command + ["--resume", sid])}'
     if role == 'cto':
         return ['bash', 'scripts/spawn-cto.sh', '--resume', sid, '--id', sid]
-    if role in ('cmo', 'cfo', 'cgo'):
+    if role in roles.c_level_roles() and role != 'coo':
         return ['bash', 'scripts/spawn-cxo.sh', '--role', role, '--resume', sid, '--id', sid]
     raise ValueError(f'{role}: launcher cannot preserve session id (COO is service_managed)')
 
