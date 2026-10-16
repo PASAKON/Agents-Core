@@ -166,8 +166,11 @@ def send_keys(session: str, text: str, *, press_enter: bool = True) -> None:
         _run([tmux_bin(), "send-keys", "-t", session, "Enter"])
 
 
-def capture(session: str, lines: int = 200) -> str:
+def capture(session: str, lines: int = 200, *, escapes: bool = False) -> str:
     """Best-effort text of a session's pane, including scrollback.
+
+    ``escapes=True`` preserves SGR styling (tmux ``-e``), allowing callers
+    to distinguish dim input suggestions from a real draft.
 
     Exists so a spawn that dies can still say why. A tmux session whose only
     command exits is torn down immediately, taking the error message with it
@@ -182,7 +185,8 @@ def capture(session: str, lines: int = 200) -> str:
     if sys.platform == "win32":
         return ""
     r = subprocess.run(
-        [tmux_bin(), "capture-pane", "-t", session, "-p", "-S", f"-{lines}"],
+        [tmux_bin(), "capture-pane", "-t", session, "-p", "-S", f"-{lines}"]
+        + (["-e"] if escapes else []),
         capture_output=True, text=True, check=False,
     )
     if r.returncode != 0:
