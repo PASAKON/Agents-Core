@@ -427,6 +427,7 @@ def compute_light(
     host: str | None = None,
     state_dir: Path | str | None = None,
     tasks: list[dict] | None = None,
+    persist: bool = True,
 ) -> tuple[int, str]:
     """From `collect_runs` output, compute `(n_active, light)`:
     🟢 all running · 🟡 any quiet >15 min · 🔴 any failed or dead · ⚪ 0 runs.
@@ -472,7 +473,7 @@ def compute_light(
                 bad.pop(tid, None)
                 changed = True
 
-    if changed:
+    if changed and persist:
         _save_ack_state(path, data)
 
     n_active = sum(1 for r in runs if r.get("state") in ACTIVE_STATES)

@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import sys
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -150,6 +150,7 @@ def decide_lifecycle(
     host: str | None = None,
     open_md: Path | str | None = None,
     state_root: Path | str | None = None,
+    record: bool = True,
 ) -> str:
     """Pure decision function for the Run Watch session lifecycle.
 
@@ -173,6 +174,8 @@ def decide_lifecycle(
             return "start"
         if start_count == 1:
             return "restart"
+        if start_count == 2 and not record:
+            return "give_up"
         if start_count == 2:
             record_give_up(
                 host,
@@ -278,12 +281,13 @@ def build_claude_argv(
     model: str = DEFAULT_MODEL,
     mcp_config: str = EMPTY_MCP_CONFIG,
     prompt_file: str = PROMPT_FILE,
+    claude_bin: str = "claude",
 ) -> list[str]:
     """Pure builder for the `claude` command argv inside the watcher session."""
     h = _resolve_host(host)
     name = run_watch.format_watch_name(n_active, light, sid=sid, host=h)
     return [
-        "claude",
+        claude_bin,
         "--model",
         model,
         "--remote-control",
@@ -313,6 +317,9 @@ def build_launch_argv(
     model: str = DEFAULT_MODEL,
     mcp_config: str = EMPTY_MCP_CONFIG,
     prompt_file: str = PROMPT_FILE,
+    cwd: Path | str | None = None,
+    env: Mapping[str, str] | None = None,
+    claude_bin: str = "claude",
 ) -> list[str]:
     """Pure builder for the full `tmux new-session -d -s runwatch-<host> claude ...` argv."""
     h = _resolve_host(host)
@@ -322,6 +329,8 @@ def build_launch_argv(
         "-d",
         "-s",
         tmux_session_name(h),
+        *(["-c", str(cwd)] if cwd is not None else []),
+        *(arg for key, value in sorted((env or {}).items()) for arg in ("-e", f"{key}={value}")),
         *build_claude_argv(
             h,
             sid=sid,
@@ -330,6 +339,7 @@ def build_launch_argv(
             model=model,
             mcp_config=mcp_config,
             prompt_file=prompt_file,
+            claude_bin=claude_bin,
         ),
     ]
 

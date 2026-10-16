@@ -1,0 +1,16 @@
+# A tmux CLIENT only: restarting this unit never touches existing sessions.
+# Lifecycle changes occur only when a tick decides to start/stop runwatch-<host>.
+# Never creates a tmux server; no PrivateTmp because the socket lives under /tmp.
+[Unit]
+Description=Run Watch one-shot driver
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/MoonieXHQ/Agents/Core
+Environment=TMUX_TMPDIR=/tmp
+ExecStart=/bin/bash /opt/MoonieXHQ/Agents/Core/scripts/hub/org-python.sh tools/run_watch_driver.py tick
+MemoryMax=200M
+TimeoutStartSec=50
