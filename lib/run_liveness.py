@@ -229,9 +229,25 @@ def probe_tmux(task: dict) -> bool:
     return False
 
 
+def probe_report(task: dict) -> bool | None:
+    """Whether `<worktree>/docs/reports/<task id>/REPORT.md` exists; None when
+    the row has no worktree path or the path cannot be read."""
+    worktree = task.get("worktree")
+    tid = task.get("id")
+    if not worktree or not tid or not isinstance(worktree, (str, os.PathLike)):
+        return None
+    if isinstance(worktree, str) and not worktree.strip():
+        return None
+    try:
+        return (Path(worktree) / "docs" / "reports" / str(tid) / "REPORT.md").is_file()
+    except (OSError, ValueError):
+        return None
+
+
 def classify(task: dict, *, pid_ok: bool, tmux_ok: bool,
-             last_log: float | None, now: float) -> str | None:
-    """The state of one run, from the row and the three probe answers. Pure:
+             last_log: float | None, now: float,
+             report_ok: bool | None = None) -> str | None:
+    """The state of one run, from the row and the probe answers. Pure:
     no I/O, so the five states can be pinned by a fixture."""
     status = task.get("status")
     if status in DONE_STATUSES:
@@ -246,7 +262,7 @@ def classify(task: dict, *, pid_ok: bool, tmux_ok: bool,
                        if t is not None), default=None)
         if touched is not None and now - touched < spawn_grace_s():
             return "running"
-        if (task.get("runner") or "claude") in EXTERNAL_RUNNERS:
+        if (task.get("runner") or "claude") in EXTERNAL_RUNNERS and report_ok is not False:
             gone = max((t for t in (last_log, started) if t is not None), default=None)
             if gone is not None and now - gone < report_grace_s():
                 return "running"
@@ -258,20 +274,24 @@ def classify(task: dict, *, pid_ok: bool, tmux_ok: bool,
 
 
 def inspect_run(task: dict, *, now: float | None = None, pid_alive_fn=None,
-                tmux_alive_fn=None, newest_log_fn=None) -> dict | None:
+                tmux_alive_fn=None, newest_log_fn=None,
+                report_ok_fn=None) -> dict | None:
     """One run, as the dict `status --json` prints; None when the row is not a
-    run. The three `*_fn` arguments replace the real probes (tests only).
+    run. The `*_fn` arguments replace the real probes (tests only).
 
     A finished run is not probed at all: its state comes from its status, and
     a live pid on a `done` row (an idle worker at its prompt) is not news.
     """
     now = time.time() if now is None else now
     pid_ok = tmux_ok = False
+    report_ok = None
     if task.get("status") in LIVE_STATUSES:
         pid_ok = (pid_alive_fn or probe_pid)(task)
         tmux_ok = (tmux_alive_fn or probe_tmux)(task)
+        report_ok = (report_ok_fn or probe_report)(task)
     path, last_log = (newest_log_fn or newest_log)(task)
-    state = classify(task, pid_ok=pid_ok, tmux_ok=tmux_ok, last_log=last_log, now=now)
+    state = classify(task, pid_ok=pid_ok, tmux_ok=tmux_ok, last_log=last_log,
+                     now=now, report_ok=report_ok)
     if state is None:
         return None
     started = started_at(task)

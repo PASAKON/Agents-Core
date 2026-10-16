@@ -112,7 +112,7 @@ def tick(*, dry_run: bool = False) -> int:
     pending = state.setdefault("pending_out", [])
     if alive:
         pending.extend(follower.step(runs, now))
-        if n == 0:
+        if n == 0 or any(ln.split()[1] in watch.FAIL_STATES for ln in follower.pending):
             pending.extend(follower.pending)
             follower.pending = []
             follower.window_start = None
