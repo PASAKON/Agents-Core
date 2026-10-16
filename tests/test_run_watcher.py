@@ -383,13 +383,18 @@ def test_launch_argv_builder_output():
         "dontAsk",
         "--allowedTools",
         "Bash(bash scripts/hub/org-python.sh tools/run_watch.py *)",
-        "--append-system-prompt-file",
+        "--tools",
+        "Bash",
+        "--setting-sources",
+        "user",
+        "--system-prompt-file",
         "roles/run_watch.md",
         "-n",
         sn.watch_name("abc12345", 2, rw.LIGHT_OK, host="contabo"),
     ]
 
     # Winbox argv uses ASCII Watch name via windows_safe
+    assert "--append-system-prompt-file" not in claude_part
     win_argv = watcher.build_launch_argv(
         "winbox", sid="abc12345", n_active=1, light=rw.LIGHT_BAD
     )

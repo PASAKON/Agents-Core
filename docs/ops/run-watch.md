@@ -12,6 +12,8 @@ Name updates take priority over batched Thai event summaries. Each tick types at
 most one line, checks the empty, idle prompt twice, and retains undelivered events.
 Summaries are at most 100 characters, with `+N more` for omitted events.
 Every `RUN_WATCH_*` environment setting is forwarded to the launched watcher.
+The watcher uses only Bash, user settings (no project hooks), and a standalone role system prompt with strict status-only dispatch.
+When no runs remain, batches release immediately; stopping defers for up to three flush ticks (`reason=flush`), preserving rename priority and one typed action per tick.
 
 Install after the code lands (operator Run card):
 
