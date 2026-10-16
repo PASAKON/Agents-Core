@@ -1,0 +1,361 @@
+"""Execute SafeRestart plans locally. This tool never reboots the host.
+
+Exit 3 means the safety gate is still blocked; exit 1 means partial failure.
+Run prep outside the sessions it closes (for example from the Run card worker).
+"""
+from __future__ import annotations
+
+import argparse
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import time
+
+from tools import live_sessions, restart_plan, session_status, tmux_session
+
+ROOT = Path(__file__).resolve().parents[1]
+STATE = ROOT / "state/restart"
+MESSAGE = "ระบบ restart เสร็จแล้ว ทำงานต่อจากเดิม"
+SGR = re.compile(r"\x1b\[([0-9;]*)m")
+
+
+def now():
+    return datetime.now(timezone.utc)
+
+
+def stamp():
+    return now().strftime("%Y%m%dT%H%M%S%fZ")
+
+
+def visible(text):
+    """Remove ANSI styling and SGR-2 suggestions, preserving real input."""
+    result, dim, start = [], False, 0
+    for match in SGR.finditer(text):
+        if not dim:
+            result.append(text[start:match.start()])
+        codes = iter(match[1].split(";"))
+        for code in codes:
+            if code in ('38', '48', '58'):
+                # Extended colour payloads contain a literal 2 (RGB), which
+                # is not the faint attribute. Consume the colour as a unit.
+                mode = next(codes, '')
+                for _ in range(3 if mode == '2' else 1):
+                    next(codes, '')
+                continue
+            if code in ("", "0", "22"):
+                dim = False
+            elif code == "2":
+                dim = True
+        start = match.end()
+    if not dim:
+        result.append(text[start:])
+    return "".join(result)
+
+
+def empty_input(capture):
+    """Require a visible prompt and no real text in its multiline input box."""
+    lines = visible(capture).splitlines()
+    prompts = [i for i, line in enumerate(lines) if line.lstrip().startswith("❯")]
+    if not prompts:
+        return False
+    i = prompts[-1]
+    if lines[i].lstrip()[1:].strip():
+        return False
+    for line in lines[i + 1:]:
+        if re.fullmatch(r"\s*[─━—\-]{3,}\s*", line):
+            break
+        if line.strip():
+            return False
+    return True
+
+
+def managed(row):
+    return row.get("service_managed", False) or row["role"] == "coo"
+
+
+def identity(row):
+    sid = row.get("sid", row.get("session_id"))
+    role = row["role"]
+    if not re.fullmatch(r"[0-9a-f]{8}", sid or "") or not re.fullmatch(r"[a-z][a-z_]{1,30}", role):
+        raise ValueError("invalid session identity")
+    return role, sid
+
+
+def pane(row):
+    role, sid = identity(row)
+    return f"{role}-{sid}"
+
+
+def run(command, dry=False):
+    print(shlex.join(command))
+    if not dry:
+        subprocess.run(command, cwd=ROOT, check=True, timeout=300)
+
+
+def send(row, text, dry=False):
+    target = pane(row)
+    if not dry and not empty_input(tmux_session.capture(target + ':0.0', escapes=True)):
+        print(f"draft_or_not_ready: {row['name']}")
+        return False
+    # A single Enter: the general helper sends Enter twice.
+    binary = "tmux" if dry else tmux_session.tmux_bin()
+    run([binary, "send-keys", "-t", target + ":0.0", "-l", text], dry)
+    run([binary, "send-keys", "-t", target + ":0.0", "Enter"], dry)
+    return True
+
+
+def until(predicate, timeout):
+    end = time.monotonic() + timeout
+    while True:
+        if predicate():
+            return True
+        remaining = end - time.monotonic()
+        if remaining <= 0:
+            return False
+        time.sleep(min(2, remaining))
+
+
+def write_json(path, value, dry=False):
+    if dry:
+        print(f"write {path}: {json.dumps(value, ensure_ascii=False)}")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+    temporary.replace(path)
+
+
+def blockers(plan):
+    return ([r['name'] for r in plan['sessions'] if r['action'] == 'wait' and not managed(r)]
+            + list(plan.get('warnings', [])))
+
+
+def remeasure(plan):
+    for row in plan['sessions']:
+        if managed(row) or row['action'] != 'wait':
+            continue
+        try:
+            row.update(restart_plan.measure(row['transcript_path'], now()))
+            row['action'], row['reason'] = restart_plan.decide(row, now())
+        except (OSError, ValueError, TypeError, KeyError):
+            pass  # Unknown evidence remains blocked.
+
+
+def boundary(row):
+    path = row.get('transcript_path')
+    if not path:
+        return None
+    try:
+        for entry in restart_plan.tail_entries(path):
+            if entry.get('subtype') == 'compact_boundary':
+                return json.dumps(entry, sort_keys=True)
+    except OSError:
+        pass
+    return None
+
+
+def saved(row):
+    if not tmux_session.has_session(pane(row)):
+        return True
+    role, sid = identity(row)
+    record = session_status.get(role, sid)
+    return bool(record and record.get('status') == 'saved')
+
+
+def launcher(row, host):
+    role, sid = identity(row)
+    if role == 'project_head':
+        return ['bash', 'scripts/spawn-ph.sh', '--resume', sid]
+    if host != 'mac' and role in ('cto', 'cmo', 'cfo', 'cgo'):
+        if host == 'winbox':
+            raise ValueError('C-level tmux resume requires a Linux host')
+        variable = 'CTO_SESSION_ID' if role == 'cto' else 'CXO_SESSION_ID'
+        command = (['bash', 'scripts/cto-claude.sh'] if role == 'cto' else
+                   ['bash', 'scripts/cxo-claude.sh', '--role', role])
+        return f'export {variable}={shlex.quote(sid)} && exec {shlex.join(command + ["--resume", sid])}'
+    if role == 'cto':
+        return ['bash', 'scripts/spawn-cto.sh', '--resume', sid, '--id', sid]
+    if role in ('cmo', 'cfo', 'cgo'):
+        return ['bash', 'scripts/spawn-cxo.sh', '--role', role, '--resume', sid, '--id', sid]
+    raise ValueError(f'{role}: launcher cannot preserve session id (COO is service_managed)')
+
+
+def prep(args):
+    plan = json.loads(args.plan.read_text()) if args.plan else restart_plan.build_plan(args.host, now(), STATE)
+    if plan.get('host') != args.host:
+        raise ValueError('plan host does not match --host')
+    for row in plan['sessions']:
+        identity(row)
+        if row['action'] not in restart_plan.ACTIONS:
+            raise ValueError('unknown plan action')
+    write_json(STATE / f'{args.host}-plan-{stamp()}.json', plan, args.dry_run)
+    if blockers(plan) and not args.force:
+        if not args.dry_run:
+            def ready():
+                nonlocal plan
+                remeasure(plan)
+                if not args.plan:
+                    plan = restart_plan.build_plan(args.host, now(), STATE)
+                return not blockers(plan)
+            until(ready, args.wait_max)
+        if blockers(plan):
+            for item in blockers(plan):
+                print(f'ยังทำอยู่: {item}')
+            return 3
+    manifest = []
+    for row in plan['sessions']:
+        if managed(row):
+            continue
+        action = row['action']
+        # Force bypasses the turn gate; conservatively preserve waiting work.
+        if action == 'wait':
+            row['action'] = action = 'resume_full'
+        if action in ('resume_lazy', 'resume_full', 'compact_then_resume'):
+            role, sid = identity(row)
+            project = row.get('project')
+            if role == 'project_head' and not project:
+                path = ROOT / 'state/locks' / f'{pane(row)}.project'
+                project = path.read_text().strip() if path.exists() else None
+            manifest.append(dict(sid=sid, role=role, name=row['name'], project=project,
+                                 mode='lazy' if action == 'resume_lazy' else 'full'))
+    # Persist recovery intent before the first destructive operation.
+    manifest_path = STATE / f'{args.host}-resume.json'
+    if manifest_path.exists():
+        raise ValueError('pending resume manifest exists; resume/report it before another prep')
+    write_json(manifest_path, manifest, args.dry_run)
+    failed = False
+    for row in plan['sessions']:
+        if managed(row):
+            print(f"service_managed: {row['name']}")
+            continue
+        action = row['action']
+        try:
+            if action == 'close':
+                run(['bash', 'scripts/session-kill.sh', '--status', 'closed', pane(row)], args.dry_run)
+                continue
+            compact_ok = True
+            if action == 'compact_then_resume':
+                before = None if args.dry_run else boundary(row)
+                if not send(row, '/compact', args.dry_run):
+                    failed = True
+                    continue
+                compact_ok = args.dry_run or until(lambda: boundary(row) not in (None, before), args.wait_max)
+                if args.dry_run:
+                    print(f"wait compact_boundary: {row['name']}")
+            if compact_ok:
+                if not send(row, '/session-save', args.dry_run):
+                    failed = True
+                    continue
+                if args.dry_run:
+                    print(f"wait saved; on timeout: bash scripts/session-kill.sh --status force_saved {pane(row)}")
+                    continue
+                if until(lambda: saved(row), args.wait_max):
+                    continue
+            run(['bash', 'scripts/session-kill.sh', '--status', 'force_saved', pane(row)], args.dry_run)
+            print(f"force_saved: {row['name']}")
+        except (OSError, subprocess.SubprocessError, RuntimeError) as exc:
+            print(f"failed: {row['name']}: {exc}")
+            failed = True
+    return int(failed)
+
+
+def manifest_file(host):
+    pending = STATE / f'{host}-resume.json'
+    if pending.exists():
+        return pending
+    done = sorted(STATE.glob(f'{host}-resume.done-*.json'))
+    if not done:
+        raise ValueError('no resume manifest found')
+    return done[-1]
+
+
+def live(host):
+    return {(r['role'], r['sid']) for r in live_sessions.read_registry(live_sessions.session_dirs(host))}
+
+
+def resume(args):
+    path = STATE / f'{args.host}-resume.json'
+    if not path.exists():
+        print('no pending resume manifest')
+        return 0
+    entries = json.loads(path.read_text())
+    existing = live(args.host)
+    failed = False
+    for row in entries:
+        try:
+            if managed(row):
+                print(f"service_managed: {row['name']}; spawn-coo.sh cannot preserve session id")
+                failed = True
+                continue
+            command = launcher(row, args.host)
+            if identity(row) in existing or (not args.dry_run and tmux_session.has_session(pane(row))):
+                print(f"already_live: {row['name']}")
+                continue
+            if isinstance(command, str):
+                print(shlex.join(['tmux', 'new-session', '-d', '-s', pane(row),
+                                  '-c', str(ROOT), command]))
+                if not args.dry_run:
+                    tmux_session.create(pane(row), str(ROOT), command)
+            else:
+                run(command, args.dry_run)
+            if not args.dry_run and not until(lambda: tmux_session.has_session(pane(row)), args.wait_max):
+                raise RuntimeError('session did not become live')
+            if row['mode'] == 'full':
+                if not args.dry_run and not until(lambda: empty_input(tmux_session.capture(pane(row) + ':0.0', escapes=True)), args.wait_max):
+                    raise RuntimeError('input never became empty; no message sent')
+                if not send(row, MESSAGE, args.dry_run):
+                    failed = True
+        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+            print(f"failed: {row['name']}: {exc}")
+            failed = True
+    # Keep failed entries retryable instead of marking a partial launch complete.
+    if not failed:
+        done = path.with_name(f'{args.host}-resume.done-{stamp()}.json')
+        if args.dry_run:
+            print(f'rename {path} -> {done}')
+        else:
+            path.replace(done)
+    return int(failed)
+
+
+def report(args):
+    entries = json.loads(manifest_file(args.host).read_text())
+    existing = live(args.host)
+    missing = [r['name'] for r in entries if identity(r) not in existing]
+    result = dict(back=len(entries) - len(missing), total=len(entries), missing=missing)
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False))
+    else:
+        print(f"กลับมา {result['back']}/{result['total']}")
+        for name in missing:
+            print(name)
+    return int(bool(missing))
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('command', choices=('prep', 'resume', 'report'))
+    parser.add_argument('--host', required=True, choices=('contabo', 'mac', 'winbox'))
+    parser.add_argument('--plan', type=Path)
+    parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--wait-max', type=float, default=600)
+    parser.add_argument('--force', action='store_true')
+    parser.add_argument('--json', action='store_true')
+    args = parser.parse_args(argv)
+    if args.wait_max < 0:
+        parser.error('--wait-max must be nonnegative')
+    try:
+        from lib import config
+        if config.self_host() != args.host:
+            raise ValueError('run on the selected host')
+        return {'prep': prep, 'resume': resume, 'report': report}[args.command](args)
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+        print(f'restart_run failed: {exc}')
+        return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
