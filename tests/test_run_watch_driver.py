@@ -154,6 +154,59 @@ def test_summary_limit_and_words():
     assert len(line) <= 100 and line.endswith(" more")
 
 
+def test_final_events_flush_before_stop(rig, monkeypatch, capsys):
+    r = rig
+    monkeypatch.setenv("RUN_WATCH_BATCH_S", "120")
+    r.update(now=3 * 3600 + 31 * 60,
+             runs=[run(tid="task-11111111"), run(tid="task-22222222")])
+    d.tick()
+    r.update(now=3 * 3600 + 32 * 60,
+             runs=[run("done", "task-11111111"), run(tid="task-22222222")])
+    d.tick()
+    assert r["state"]()["follower"]["pending"]
+    r.update(now=3 * 3600 + 34 * 60,
+             runs=[run("done", "task-11111111"), run("dead", "task-22222222")])
+    before = len(r["typed"])
+    d.tick()
+    assert len(r["typed"]) == before + 1
+    assert r["typed"][-1].startswith("/rename ")
+    assert len(r["state"]()["pending_out"]) == 2
+    assert not r["state"]()["follower"]["pending"]
+    assert r["state"]()["follower"]["window_start"] is None
+    r["now"] += 60  # 03:35: close deadline, but final events still need typing.
+    d.tick()
+    assert r["alive"]
+    assert r["typed"][-1] == "runs: 11111111 เสร็จ; 22222222 ตาย"
+    assert not r["state"]()["pending_out"]
+    assert "reason=flush" in capsys.readouterr().out
+    r["now"] += 60
+    d.tick()
+    assert not r["alive"]
+    assert r["state"]()["flush_ticks"] == 0
+
+
+@pytest.mark.parametrize("blocked", ["busy", "held"])
+def test_stop_flush_capped_at_three_ticks(rig, blocked):
+    r = rig
+    r["runs"] = [run()]
+    d.tick()
+    r.update(runs=[run("done")], busy=blocked == "busy",
+             result="held" if blocked == "held" else "renamed")
+    d.tick()
+    # End-of-cycle release bypasses even an unexpired batch window.
+    assert r["state"]()["pending_out"]
+    assert not r["state"]()["follower"]["pending"]
+    for count in range(1, 4):
+        r["now"] += 60
+        d.tick()
+        assert r["alive"]
+        assert r["state"]()["flush_ticks"] == count
+    r["now"] += 60
+    d.tick()
+    assert not r["alive"]
+    assert r["state"]()["flush_ticks"] == 0
+
+
 def test_multiple_events_accumulate_between_ticks(rig):
     rig["runs"] = [run()]
     d.tick()
