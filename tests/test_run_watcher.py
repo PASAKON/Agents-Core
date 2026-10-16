@@ -458,3 +458,8 @@ def test_role_and_skill_files_exist_and_match_contract():
         "ตอบได้แค่สถานะงาน ถาม PH/CTO",
     ):
         assert required in skill_text
+
+
+def test_launch_argv_takes_an_absolute_claude_path():
+    argv = watcher.build_launch_argv("contabo", claude_bin="/root/.local/bin/claude")
+    assert "/root/.local/bin/claude" in argv and "claude" not in argv

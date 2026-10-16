@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -66,6 +67,14 @@ def event_line(events: list[str]) -> str:
     raise ValueError("event count too large")
 
 
+def claude_bin() -> str:
+    """Absolute path: the tmux server's PATH and the unit's PATH lack ~/.local/bin."""
+    return (os.environ.get("RUN_WATCH_CLAUDE_BIN")
+            or shutil.which("claude", path=os.pathsep.join(
+                [os.environ.get("PATH", ""), str(Path.home() / ".local/bin")]))
+            or "claude")
+
+
 def ready(pane: str) -> bool:
     return rename_service._blocked(pane) is None and rename_service._blocked(pane) is None
 
@@ -115,7 +124,7 @@ def tick(*, dry_run: bool = False) -> int:
             env = {k: v for k, v in os.environ.items() if k.startswith("RUN_WATCH_")}
             env["RUN_WATCH_SID"] = sid
             argv = watcher.build_launch_argv(host, sid=sid, n_active=n, light=light,
-                                             cwd=ROOT, env=env)
+                                             cwd=ROOT, env=env, claude_bin=claude_bin())
             if dry_run or tmux(*argv[1:]):
                 state.update(sid=sid, last_name=watch.format_watch_name(n, light, sid=sid, host=host))
                 follower = watch.Follower()

@@ -281,12 +281,13 @@ def build_claude_argv(
     model: str = DEFAULT_MODEL,
     mcp_config: str = EMPTY_MCP_CONFIG,
     prompt_file: str = PROMPT_FILE,
+    claude_bin: str = "claude",
 ) -> list[str]:
     """Pure builder for the `claude` command argv inside the watcher session."""
     h = _resolve_host(host)
     name = run_watch.format_watch_name(n_active, light, sid=sid, host=h)
     return [
-        "claude",
+        claude_bin,
         "--model",
         model,
         "--remote-control",
@@ -318,6 +319,7 @@ def build_launch_argv(
     prompt_file: str = PROMPT_FILE,
     cwd: Path | str | None = None,
     env: Mapping[str, str] | None = None,
+    claude_bin: str = "claude",
 ) -> list[str]:
     """Pure builder for the full `tmux new-session -d -s runwatch-<host> claude ...` argv."""
     h = _resolve_host(host)
@@ -337,6 +339,7 @@ def build_launch_argv(
             model=model,
             mcp_config=mcp_config,
             prompt_file=prompt_file,
+            claude_bin=claude_bin,
         ),
     ]
 
