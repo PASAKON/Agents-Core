@@ -309,3 +309,14 @@ def test_inspect_run_probes_report_for_external_runner(tmp_path):
         t, now=NOW, pid_alive_fn=lambda r: False, tmux_alive_fn=lambda r: False,
         newest_log_fn=lambda r: ("/x/codex-events.jsonl", NOW - 30))
     assert grace_run["state"] == "running"
+
+
+def test_probe_report_accepts_root_report_and_blocker(tmp_path):
+    from lib.run_liveness import probe_report
+    task = {"id": "task-x", "worktree": str(tmp_path)}
+    assert probe_report(task) is False
+    (tmp_path / "BLOCKER.md").write_text("b")
+    assert probe_report(task) is True
+    (tmp_path / "BLOCKER.md").unlink()
+    (tmp_path / "REPORT.md").write_text("r")
+    assert probe_report(task) is True

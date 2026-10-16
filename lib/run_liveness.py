@@ -230,8 +230,9 @@ def probe_tmux(task: dict) -> bool:
 
 
 def probe_report(task: dict) -> bool | None:
-    """Whether `<worktree>/docs/reports/<task id>/REPORT.md` exists; None when
-    the row has no worktree path or the path cannot be read."""
+    """Whether the worker left a REPORT.md or BLOCKER.md where runners/branch_poller
+    looks (`docs/reports/<task id>/` first, then the repo root); None when the row
+    has no worktree path or the path cannot be read."""
     worktree = task.get("worktree")
     tid = task.get("id")
     if not worktree or not tid or not isinstance(worktree, (str, os.PathLike)):
@@ -239,7 +240,10 @@ def probe_report(task: dict) -> bool | None:
     if isinstance(worktree, str) and not worktree.strip():
         return None
     try:
-        return (Path(worktree) / "docs" / "reports" / str(tid) / "REPORT.md").is_file()
+        root = Path(worktree)
+        return any((d / f).is_file()
+                   for d in (root / "docs" / "reports" / str(tid), root)
+                   for f in ("REPORT.md", "BLOCKER.md"))
     except (OSError, ValueError):
         return None
 

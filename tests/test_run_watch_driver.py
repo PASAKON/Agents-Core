@@ -324,5 +324,9 @@ def test_dead_and_failed_release_without_waiting_for_batch_window(rig, monkeypat
     r["runs"] = [run("quiet", "task-11111111"), run("dead", "task-22222222"),
                  run("failed", "task-33333333")]
     d.tick()
+    assert r["typed"][-1].startswith("/rename ")   # the count changed: rename first
+    assert len(r["state"]()["pending_out"]) == 1   # released at once, not held 120 s
+    r["now"] += 10
+    d.tick()
     assert r["typed"][-1] == "runs: 33333333 พัง"
     assert not r["state"]()["pending_out"]
