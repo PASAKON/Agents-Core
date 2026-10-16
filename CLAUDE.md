@@ -77,16 +77,12 @@ there. Prefixing with `org:` is no longer required.
 how Contabo resolves them. Any namespace can be repointed the same way with
 `WIKI_ROOT_<NS>`.
 
-⚠️ **Contabo's copies are rsync snapshots, not git checkouts** — neither has a
-`.git`, so there is nothing to pull and nothing to push. They go stale as soon
-as the Mac's wiki changes, and a `wiki_write` on that box edits a copy the next
-sync silently overwrites. Treat Contabo wikis as **read-only** and refresh after
-any significant wiki change (run from the Mac):
-
-```bash
-rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Wikis/         mooniex-vps:/opt/MoonieXHQ/Agents/Wikis/
-rsync -aH --delete --exclude '.git/' /Users/gob/MoonieXHQ/Agents/Rules/ mooniex-vps:/opt/MoonieXHQ/Agents/Rules/
-```
+**Both namespaces are git checkouts on every host** (Contabo, Mac and winbox).
+GitHub is the file source; every launcher runs `tools/kit_sync.py pull` at
+session start. Edit on any host by commit + push to the wiki repo; never rsync.
+The winbox Wikis deploy key is read-only, so pushing needs a write-authorized
+credential. Agents-Memory follows the same git model, pulled at session start
+with `tools/memory_sync.py pull`; its winbox deploy key is read-write.
 
 ## Maintenance
 
