@@ -23,6 +23,7 @@ import fcntl
 import importlib.util
 import json
 import os
+import pwd
 import re
 import shutil
 import signal
@@ -405,7 +406,8 @@ def sompong(tmp_path: Path, lroot: Path) -> dict[str, Path]:
         claude,
         f"""#!/bin/sh
 {{ echo "PWD=$(pwd)"; for a in "$@"; do echo "ARG=$a"; done; env | sed 's/^/ENV=/'
-  echo "BOXMODE=$(stat -c %a '{lroot}/state/inbox/coo-'"$CXO_SESSION_ID")"; }} > '{out}'
+  echo "BOXMODE=$(stat -c %a '{lroot}/state/inbox/coo-'"$CXO_SESSION_ID")"
+  echo "TOPICOWNER=$(stat -c %U '{lroot}/state/locks/coo-'"$CXO_SESSION_ID"'.topic')"; }} > '{out}'
 exit 0
 """,
     )
@@ -542,6 +544,10 @@ def test_launcher_runs_claude_unprivileged_with_the_channel_flag_and_a_clean_env
     # the mailbox box existed while claude ran, group-writable so SomPong's user can delete a letter it read
     # (the launcher's exit trap removes an empty box afterwards)
     assert "BOXMODE=2775" in got
+    # session-rename.sh can record its topic: the launcher hands SomPong's user that one file
+    # (chown needs root; as another user the file still exists, owned by the caller)
+    owner = next(line.split("=", 1)[1] for line in got if line.startswith("TOPICOWNER="))
+    assert owner == ("nobody" if os.getuid() == 0 else pwd.getpwuid(os.getuid()).pw_name), owner
 
 
 @needs_nobody
