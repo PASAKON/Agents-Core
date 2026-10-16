@@ -71,6 +71,7 @@ LETTER_WRITE_MARGIN_S = 15
 VERB_TIMEOUT_S = {
     "spawn_worker": 300,
     "start_clevel": 180,
+    "spawn_ph": 120,        # ssh dial + the scheduled task's wait to reach Running (90 s cap)
     "publish_branch": 150,
     "kill_worker": 60,
     # ssh dial, then the far side's wake (up to WAKE_WORST_CASE_S), then the write.

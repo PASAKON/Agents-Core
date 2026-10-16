@@ -18,6 +18,7 @@ tests run the spawn path with each of those taken away:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -433,3 +434,82 @@ def test_a_spawn_must_use_the_cards_project_and_brief(mac, hub):
     for project, brief in (("Other", "b"), ("LuminaSkies", "another brief")):
         with pytest.raises(spawn_ph.Refused, match="must be the card's"):
             spawn_ph.spawn(project, brief, dry_run=True, card=ARGS)
+
+# --- M13c: winbox ---
+
+def test_windows_launch_argv_carries_no_environment_or_prompt():
+    argv = spawn_ph.windows_launch_argv(PH_SID, "cto", "LuminaSkies", wt=r"C:\wt.exe",
+                                        new_window=False)
+    assert argv[:4] == [r"C:\wt.exe", "-w", "0", "nt"]
+    assert argv[argv.index("-File") + 1].endswith("cxo-claude.ps1")
+    assert argv[-8:] == ["-Role", PH, "-Lane", "cto", "-Project", "LuminaSkies", "-Session", PH_SID]
+    assert not any(";" in a for a in argv)  # wt.exe splits its command line on ;
+    assert spawn_ph.windows_launch_argv(PH_SID, "cto", "X", wt="wt", new_window=True)[2] == "new"
+
+
+def test_windows_refuses_session_0_and_the_ceo_hold(tmp_path):
+    hold = tmp_path / "CEO_HOLD.json"
+    assert "session 0" in spawn_ph.windows_refusal(0, hold)
+    assert "session 0" in spawn_ph.windows_refusal(None, hold)
+    assert spawn_ph.windows_refusal(1, hold) is None
+    hold.write_text("{}")
+    assert "CEO is using this PC" in spawn_ph.windows_refusal(1, hold)
+
+
+def test_first_prompt_is_the_same_on_every_host():
+    p = spawn_ph.first_prompt(PH_SID, "cto", "LuminaSkies", OWNER)
+    assert p.startswith(f"You are Project Head (CTO) #{PH_SID} for project LuminaSkies; "
+                        f"you report to cto-{OWNER}.")
+    assert f"project_head-{PH_SID}.md" in p and '"' not in p
+
+
+def test_winbox_card_runs_the_powershell_twin(mac, hub, monkeypatch):
+    cmd = spawn_ph.card_command("winbox", "LuminaSkies", "b", SHA, nonce=NONCE)
+    assert f"Agents-Core@{SHA}:windows/spawn-ph.ps1" in cmd
+    cards, _ = hub
+    import lib.config
+    card = _card(host="winbox")
+    card["script"] = {**card["script"], "path": "windows/spawn-ph.ps1"}
+    cards.append(card)
+    monkeypatch.setattr(lib.config, "self_host", lambda: "winbox")
+    assert spawn_ph.card_owner(ARGS) == ("cto", OWNER)
+    # The bash script's card is not the winbox one, and the other way round.
+    card["script"]["path"] = "scripts/spawn-ph.sh"
+    with pytest.raises(spawn_ph.Refused, match="no single running"):
+        spawn_ph.card_owner(ARGS)
+
+
+def test_the_flag_directory_on_windows():
+    assert org_flags.flags_dir_for("nt", r"C:\ProgramData") == r"C:\ProgramData\org-flags"
+    assert org_flags.flags_dir_for("nt", None) == r"C:\ProgramData\org-flags"
+    assert org_flags.flags_dir_for("posix", r"C:\ProgramData") == "/etc/org-flags"
+
+
+def test_windows_launchers_are_ascii_and_keep_the_ph_rules():
+    for name in ("cxo-claude.ps1", "spawn-ph.ps1"):
+        raw = (ROOT / "windows" / name).read_bytes()
+        assert raw.isascii(), f"{name}: PS 5.1 reads a BOM-less .ps1 as ANSI"
+    ps = (ROOT / "windows" / "cxo-claude.ps1").read_text()
+    for must in ("'project_head'", "org-flags\\ORG_PH_ROLES", "spawned_by", "roles\\project_head.md",
+                 "Remove-Item Env:CTO_SESSION, Env:CTO_SESSION_ID", "Invoke-NativeExe -Exe $claude",
+                 "$env:CXO_ROLE -eq 'project_head'"):
+        assert must in ps, must
+    # The inline python goes to python.exe as one native argument: no double quote in it.
+    for block in re.findall(r"@'\r?\n(.*?)\r?\n'@", ps, re.S):
+        assert '"' not in block
+
+
+@pytest.mark.parametrize("role,lane,display", [("project_head", "cto", "Project Head (CTO)"),
+                                               ("cto", "", None)])
+def test_the_windows_role_line_splits_on_tabs(role, lane, display):
+    ps = (ROOT / "windows" / "cxo-claude.ps1").read_text()
+    code = re.search(r"\$pyRoleCode = @'\r?\n(.*?)\r?\n'@", ps, re.S).group(1)
+    env = {**os.environ, "ROLE_ARG": role, "ROLE_ROOT": str(ROOT), "PH_LANE": lane}
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env,
+                       timeout=60)
+    assert r.returncode == 0, r.stderr
+    parts = r.stdout.strip().split("\t")
+    assert len(parts) == 4, parts
+    if display:
+        assert parts[0] == display
+    assert parts[2] and parts[3]

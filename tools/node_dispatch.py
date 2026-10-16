@@ -50,7 +50,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from lib import config, db, mailbox, proc, session_names  # noqa: E402
+from lib import config, db, mailbox, proc, roles, session_names  # noqa: E402
 
 ACTOR = "node_dispatch"
 MESH_PROBE_DIR = ROOT / "state" / "mesh-probe"
@@ -1059,6 +1059,53 @@ def _parse_start_clevel(args: list[str]) -> tuple[str, str | None, bool]:
     return args[0], args[2], probe
 
 
+def _launch_ph_schtask(sid: str, args: list[str]) -> None:
+    """Windows: run `powershell.exe <args>` (spawn_ph.windows_launcher_args) from
+    a one-shot interactive scheduled task, the way _start_clevel_schtask runs the
+    C-level launcher. A token with a character PowerShell could act on is
+    refused, never escaped; a token with a space is wrapped in the double quotes
+    the task's argument string allows."""
+    tokens = []
+    for token in args:
+        if '"' in token or not _PS_ARGUMENT_RE.fullmatch(token):
+            raise Refusal(f"spawn_ph: launch argument {_show(token)} is not safe to hand to PowerShell")
+        tokens.append(f'"{token}"' if " " in token else token)
+    script = _one_shot_task_script(f"mooniex-ph-{sid}", " ".join(tokens))
+    try:
+        r = _run_powershell(script)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise Failure(f"scheduled task launch failed: {e}")
+    if r.returncode != 0 or "STARTED" not in (r.stdout or ""):
+        raise Failure(f"scheduled task exit {r.returncode}: "
+                      f"{(r.stderr or r.stdout).strip()[:200]}")
+
+
+def verb_spawn_ph(lane: str, owner_sid: str, project: str) -> dict:
+    """Start a Project Head for C-level `lane`-`owner_sid` on this Windows host
+    (M13c). The gates, the claim and the owner record are
+    tools.spawn_ph.spawn_from_mesh's; the window comes from a one-shot
+    interactive scheduled task, which lands on the desktop and not in the
+    session 0 sshd gives us. The dispatching side's C-level check
+    (`python -m tools.spawn_ph mesh`) and the dispatch key are the authority for
+    the owner; the verb takes no text for the brief."""
+    if not _is_windows():
+        raise Refusal("spawn_ph over the mesh is winbox-only; Linux/Mac spawn locally or by card")
+    from tools import spawn_ph
+    key = f"ph:{_self_host()}:{project.casefold()}:start"
+    # spawn_ph's flock is a no-op on Windows: this slot is what keeps two calls
+    # for one project from both passing the "already held" check.
+    token = _claim(key, CLEVEL_START_CLAIM_TTL_S)
+    if token is None:
+        raise Refusal(f"spawn_ph: another start of project {project} is in progress on this host")
+    try:
+        result = spawn_ph.spawn_from_mesh(project, lane, owner_sid, launch=_launch_ph_schtask)
+    except spawn_ph.Refused as e:
+        raise Refusal(str(e)) from e
+    finally:
+        _release(key, token)
+    return {**result, "via": "schtask"}
+
+
 def verb_stop_clevel(role: str, sid: str) -> dict:
     from tools import send_to_cxo, session_name, session_status, tmux_session
     host = _self_host()
@@ -1421,6 +1468,7 @@ HANDLERS = {
     "spawn_worker": verb_spawn_worker,
     "kill_worker": verb_kill_worker,
     "start_clevel": verb_start_clevel,
+    "spawn_ph": verb_spawn_ph,
     "stop_clevel": verb_stop_clevel,
     "deliver_letter": verb_deliver_letter,
     "publish_branch": verb_publish_branch,
@@ -1433,6 +1481,7 @@ _ARGSPEC = {
     "spawn_worker": (TASK_ID_RE,),
     "kill_worker": (TASK_ID_RE,),
     "stop_clevel": (_SAFE_TOKEN_RE, SESSION_ID_RE),
+    "spawn_ph": (_SAFE_TOKEN_RE, SESSION_ID_RE, roles.PH_PROJECT_RE),
     "deliver_letter": (LETTER_ID_RE,),
     "publish_branch": (TASK_ID_RE,),
 }
@@ -1450,6 +1499,10 @@ def _check_args(verb: str, args: list[str]) -> tuple:
             raise Refusal(f"{verb}: malformed argument {_show(arg)}")
     if verb == "stop_clevel" and args[0] not in config.live_c_level_roles():
         raise Refusal(f"stop_clevel: unknown role {_show(args[0])}")
+    if verb == "spawn_ph":
+        why = roles.ph_lane_refusal(args[0]) or roles.ph_project_refusal(args[2])
+        if why:
+            raise Refusal(f"spawn_ph: {why}")
     return tuple(args)
 
 
