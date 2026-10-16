@@ -7,6 +7,11 @@ from lib import db, mesh
 from tools import mesh_check as m, session_status
 
 
+@pytest.fixture(autouse=True)
+def isolate_kit(monkeypatch):
+    monkeypatch.setattr(m, "kit_facts", lambda *args, **kwargs: {})
+
+
 @pytest.fixture
 def probe(monkeypatch):
     monkeypatch.setattr(m, "_self_host_or_none", lambda: "mac")

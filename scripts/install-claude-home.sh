@@ -75,7 +75,7 @@ link_entry() {  # $1 = relative entry; links $HOME_DIR/$1 -> $SRC/$1
 
 echo "claude-home ($MODE): HOME=$HOME_DIR  SRC=$SRC"
 [ -d "$SRC" ] || { echo "no $SRC — wrong repo?" >&2; exit 2; }
-mkdir -p "$HOME_DIR/skills"
+[ "$MODE" = check ] || mkdir -p "$HOME_DIR/skills"
 
 echo "— core entries"
 for e in "${ENTRIES[@]}"; do link_entry "$e"; done

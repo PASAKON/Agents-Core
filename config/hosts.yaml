@@ -51,6 +51,11 @@ hosts:
     chrome_device_id: 815ddf16-36ea-4e0d-827a-f51e9ff85351   # winbox Chrome (worker verified via navigator.userAgent 2026-09-07; 70bf3142-… is Edge)
     chrome_name: winbox-chrome
     os: windows
+    # OrgMesh KIT (mesh_check): the clones live under the repo dir, not under hq/Agents.
+    kit_paths:
+      rules: C:/Users/passg/mooniex/repo/Agents-Rules
+      wikis: C:/Users/passg/mooniex/repo/Agents-Wikis
+      memory: C:/Users/passg/mooniex/repo/Agents-Memory
     remote_control: true   # session shows in the CEO Claude app
     ssh: winbox
     mesh_ssh: passg@100.124.196.11

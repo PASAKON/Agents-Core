@@ -71,9 +71,11 @@ import json
 import ntpath
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
+import types
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -108,7 +110,7 @@ except Exception:
 AGENTS_PROJECT_KEY = "mooniex-agents"
 
 WAVES = ["w0", "w1", "w2", "w3", "w4", "w5"]
-LEVELS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "SEC", "INV"]
+LEVELS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "SEC", "INV", "KIT"]
 
 # Levels whose cells are one verdict for the whole hub, not a from x to matrix.
 # Their one cell is keyed (level, "all", "all").
@@ -240,6 +242,172 @@ EXPECT: dict[tuple[str, str, str], str] = {
 }
 EXPECT.update({("L9", frm, to): wave for (level, frm, to), wave in list(EXPECT.items())
                if level == "L5"})
+EXPECT.update({("KIT", h, h): "w5" for h in ("contabo", "winbox", "mac")})
+
+
+def _kit_run(argv, *, cwd=None, timeout=10):
+    """Capture diagnostics privately: command output can contain credentials."""
+    try:
+        return subprocess.run(argv, cwd=cwd, capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=timeout,
+                              env={**os.environ, "GIT_OPTIONAL_LOCKS": "0"})
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def kit_git(path: Path | None, *, fetch=False) -> dict:
+    facts = dict(status="n/a", head="n/a", origin_main="n/a", behind="n/a",
+                 merge_base_age_hours="n/a")
+    if path is None:
+        return facts
+    try:
+        path = path.resolve()  # follows symlinks and Windows junctions
+        if not path.is_dir():
+            return facts
+        if not (path / ".git").exists():
+            facts["status"] = "not-git"
+            return facts
+    except (OSError, RuntimeError):
+        return facts
+
+    def git(*args):
+        result = _kit_run(["git", "-C", str(path), *args])
+        return result.stdout.strip() if result is not None and result.returncode == 0 else None
+
+    if fetch:
+        result = _kit_run(["git", "-C", str(path), "fetch", "--no-tags", "origin",
+                           "+refs/heads/main:refs/remotes/origin/main"], timeout=60)
+        facts["fetch"] = "ok" if result is not None and result.returncode == 0 else "n/a"
+    for key, ref in (("head", "HEAD"), ("origin_main", "origin/main")):
+        value = git("rev-parse", "--verify", ref)
+        if value and re.fullmatch(r"[0-9a-f]{40,64}", value):
+            facts[key] = value
+    base = git("merge-base", "HEAD", "origin/main")
+    behind = git("rev-list", "--count", "HEAD..origin/main")
+    stamp = git("show", "-s", "--format=%ct", base) if base else None
+    if behind and behind.isdigit() and stamp and stamp.isdigit():
+        facts.update(status="ok", behind=int(behind),
+                     merge_base_age_hours=round(max(0, time.time() - int(stamp)) / 3600, 2))
+    return facts
+
+
+def kit_paths(root: Path, home: Path, host: str | None) -> dict:
+    """Host kit_paths overrides the machine contract's HQ layout; then env/slug."""
+    paths = {}
+    try:
+        import yaml
+        hosts = yaml.safe_load((root / "config/hosts.yaml").read_text()) or {}
+        cfg = (hosts.get("hosts", hosts).get(host) or {})
+        paths.update(cfg.get("kit_paths") or {})
+        contract = yaml.safe_load((root / "config/machine-contract.yaml").read_text()) or {}
+        hq = (contract.get("machines", {}).get(host) or {}).get("hq")
+        if hq:
+            for key in ("rules", "wikis", "memory"):
+                paths.setdefault(key, str(Path(hq) / "Agents" / key.title()))
+    except Exception:
+        # Includes optional YAML parser errors on a partially deployed host.
+        pass
+    paths.setdefault("rules", os.environ.get("WIKI_ROOT_ORG"))
+    paths.setdefault("wikis", os.environ.get("WIKI_ROOT_MOONIEX"))
+    slug = re.sub(r"[^A-Za-z0-9]", "-", str(root))
+    paths.setdefault("memory", str(home / ".claude/projects" / slug / "memory"))
+    return {key: Path(os.path.expandvars(str(value))).expanduser() if value else None
+            for key, value in paths.items() if key in ("rules", "wikis", "memory")}
+
+
+def kit_mcp_names(raw) -> list[str] | str:
+    """Parse only server keys, never return configuration values."""
+    try:
+        data = json.loads(raw) if isinstance(raw, str) else raw
+        servers = data["mcpServers"]
+        if not isinstance(servers, dict):
+            return "n/a"
+        return sorted(name for name in servers if re.fullmatch(r"[\w-]{1,64}", name))
+    except (ValueError, TypeError, KeyError):
+        return "n/a"
+
+
+def kit_facts(root: Path = ROOT, *, fetch=False, home: Path | None = None,
+              host: str | None = None) -> dict:
+    home = home or Path.home()
+    facts = {name: kit_git(path, fetch=fetch)
+             for name, path in {"core": root, **kit_paths(root, home, host)}.items()}
+    for label, base in (("repo", root), ("home", home)):
+        try:
+            facts["skills_" + label] = sum(p.is_file() for p in (base / ".claude/skills").glob("*/SKILL.md"))
+        except OSError:
+            facts["skills_" + label] = "n/a"
+    facts["role"] = (root / "roles/project_head.md").is_file()
+    facts["launcher"] = (root / ("windows/cxo-claude.ps1" if os.name == "nt"
+                                  else "scripts/spawn-ph.sh")).is_file()
+    hooks = _kit_run(["python" if os.name == "nt" else "python3", "--version"])
+    facts["hooks"] = hooks is not None and hooks.returncode == 0
+    facts["mcp_names"] = "n/a"
+    # Build the launcher's PH config in memory: no --out, no temp files, no server start.
+    try:
+        # Linked task worktrees have no installed venv. Inspect the host's
+        # primary checkout launcher in that case, without changing KIT's core.
+        launcher_root = root
+        if (root / ".git").is_file() and not _venv_python(root).exists():
+            common = _kit_run(["git", "-C", str(root), "rev-parse", "--git-common-dir"])
+            if common is not None and common.returncode == 0:
+                launcher_root = (root / common.stdout.strip()).resolve().parent
+        source = launcher_root / "scripts/lib/cxo_mcp_config.py"
+        mod = types.ModuleType("kit_mcp")
+        mod.__file__ = str(source)
+        # exec from source avoids importlib writing a generator .pyc in the checkout.
+        exec(compile(source.read_text(encoding="utf-8"), str(source), "exec"), mod.__dict__)
+        servers = {n: entry for n in mod._names_for("project_head")
+                   if (entry := mod._build(n, str(launcher_root), "project_head")) is not None}
+        if os.name == "nt" and mod.hub_route(str(launcher_root)) != "infisical":
+            facts["mcp_names"] = []  # Windows standalone launcher passes no config.
+        elif "org" in servers:  # generator refuses a role config without org
+            facts["mcp_names"] = kit_mcp_names({"mcpServers": servers})
+    except Exception:
+        pass  # piped-source hosts may have neither generator nor repo dependencies
+    facts["claude_home"] = "n/a"
+    script = root / "scripts/install-claude-home.sh"
+    # Older deployed scripts mkdir even in --check; never execute that version.
+    try:
+        safe_check = '[ "$MODE" = check ] || mkdir' in script.read_text()
+    except OSError:
+        safe_check = False
+    if shutil.which("bash") and safe_check:
+        result = _kit_run(["bash", str(script), "--check"], cwd=root, timeout=20)
+        if result is not None:
+            if result.returncode == 0:
+                facts["claude_home"] = "ok"
+            elif result.returncode == 1:
+                match = re.search(r"claude-home: (\d+) problem", result.stdout)
+                if match:
+                    facts["claude_home"] = f"drift {match[1]} lines"
+    return facts
+
+
+def check_kit(raw) -> dict:
+    facts = raw if isinstance(raw, dict) else {}
+    failed = []
+    for name in ("core", "rules", "wikis", "memory"):
+        repo = facts.get(name)
+        repo = repo if isinstance(repo, dict) else {}
+        if repo.get("status") != "ok":
+            failed.append(f"{name}:{'not-git' if repo.get('status') == 'not-git' else 'n/a'}")
+        elif name == "core":
+            behind, age = repo.get("behind"), repo.get("merge_base_age_hours")
+            if not (type(behind) is int and behind >= 0 and
+                    (behind == 0 or (type(age) in (int, float) and 0 <= age <= 24))):
+                failed.append("core:>24h/n/a")
+        elif not (isinstance(repo.get("head"), str) and
+                  re.fullmatch(r"[0-9a-f]{40,64}", repo["head"]) and
+                  repo["head"] == repo.get("origin_main")):
+            failed.append(f"{name}:HEAD!=main")
+    for key in ("skills_repo",):
+        if type(facts.get(key)) is not int or facts[key] < 120:
+            failed.append(key.replace("skills_", "skills-") + "<120")
+    for key in ("role", "launcher", "hooks"):
+        if facts.get(key) is not True:
+            failed.append(key)
+    return {"ok": not failed, "reason": "; ".join(failed)[:80] or None, "facts": facts}
 
 
 # ---------------------------------------------------------------------------
@@ -1579,7 +1747,7 @@ def check_invariant() -> dict:
 # --local: this host's L0-L2 cells only, no ssh, writes nothing
 # ---------------------------------------------------------------------------
 
-async def local_payload() -> dict:
+async def local_payload(*, kit_fetch=False) -> dict:
     """This host's L0-L2 cells. The L1 cell to this host is n/a, where "this
     host" is `_running_host_guess(ROOT)`, the source build_matrix labels its row
     with: one identity per run. When it cannot say (None) every host is dialled,
@@ -1594,6 +1762,7 @@ async def local_payload() -> dict:
         payload["l0"] = {"ok": False, "reason": "no repo access"}
         payload["l1"] = {}
         payload["l2"] = {"ok": False, "reason": "no repo access"}
+    payload["kit"] = kit_facts(fetch=kit_fetch, host=_running_host_guess(ROOT) if HAVE_CONFIG else None)
     return payload
 
 
@@ -1608,7 +1777,7 @@ def _collect_peer_local(alias: str, cfg: dict, script_path: Path) -> dict | None
             else f"{remote_root}/.venv/bin/python"
         deployed_cmd = f'cd "{remote_root}" && "{python}" -m tools.mesh_check --local --json'
         data = _try_json(_ssh_run(alias, deployed_cmd, timeout=30))
-        if data is not None:
+        if data is not None and "kit" in data:
             return data
 
     piped_cmd = "python - --local --json" if is_windows else "python3 - --local --json"
@@ -1625,6 +1794,11 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
     combined: dict = {lvl: ({"all": {}} if lvl in SINGLE_LEVELS else {h: {} for h in HOSTS})
                       for lvl in LEVELS}
     running_host = _running_host_guess(ROOT)
+    for h in HOSTS:
+        combined["KIT"][h][h] = check_kit(None)
+    if running_host:
+        combined["KIT"][running_host][running_host] = check_kit(
+            kit_facts(fetch=getattr(args, "kit_fetch", False), host=running_host))
 
     if running_host and HAVE_CONFIG:
         combined["L0"][running_host][running_host] = _to_cell(check_l0(ROOT))
@@ -1646,6 +1820,7 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
             peer = _collect_peer_local(alias, cfg, script_path)
             if not peer:
                 continue
+            combined["KIT"][h][h] = check_kit(peer.get("kit"))
             l0 = _norm_cell(peer.get("l0"))
             if l0:
                 combined["L0"][h][h] = l0
@@ -1669,7 +1844,7 @@ async def build_matrix(args: argparse.Namespace) -> tuple[dict, str | None]:
             if window is not None and window.cell is not None:
                 combined["L5"][running_host][target] = window.cell
 
-    if running_host and HAVE_CONFIG and _wave_index(args.expect) >= _wave_index("w1"):
+    if args.live and running_host and HAVE_CONFIG and _wave_index(args.expect) >= _wave_index("w1"):
         for target in HOSTS:
             if target == running_host:
                 continue
@@ -1785,6 +1960,23 @@ def render(combined: dict, expect: str) -> tuple[str, bool, int, int]:
             lines.append("| " + " | ".join([frm] + [cell_text(level, frm, to) for to in HOSTS]) + " |")
         lines.append("")
 
+    lines.extend(["## KIT facts", "", "Git columns: HEAD / commits behind / merge-base age (hours).", "",
+                  "| host | result | core | rules | wikis | memory | skills repo/home | home check | MCP names |",
+                  "|---|---|---|---|---|---|---|---|---|"])
+    for h in HOSTS:
+        cell = combined.get("KIT", {}).get(h, {}).get(h, check_kit(None))
+        facts = cell.get("facts", {})
+        names = kit_mcp_names({"mcpServers": {n: {} for n in facts.get("mcp_names", [])}}) if isinstance(facts.get("mcp_names"), list) else "n/a"
+        names = ", ".join(names) if isinstance(names, list) else names
+        verdict = "ok" if cell.get("ok") else cell.get("reason", "n/a")
+        repos = []
+        for name in ("core", "rules", "wikis", "memory"):
+            repo = facts.get(name, {})
+            repo = repo if isinstance(repo, dict) else {}
+            repos.append(f"{str(repo.get('head', 'n/a'))[:8]}/{repo.get('behind', 'n/a')}/{repo.get('merge_base_age_hours', 'n/a')}"
+                         if repo.get("status") == "ok" else repo.get("status", "n/a"))
+        lines.append(f"| {h} | {verdict} | " + " | ".join(repos) +
+                     f" | {facts.get('skills_repo', 'n/a')}/{facts.get('skills_home', 'n/a')} | {facts.get('claude_home', 'n/a')} | {names} |")
     return "\n".join(lines), tally["fail"] > 0, tally["ok"], tally["fail"]
 
 
@@ -1817,6 +2009,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--no-merge", action="store_true", help="L3: skip merge_task after delegate")
     ap.add_argument("--local", action="store_true", help="print this host's L0-L2 cells only")
     ap.add_argument("--json", action="store_true", help="with --local, JSON output (default)")
+    ap.add_argument("--kit-fetch", action="store_true", help="explicitly fetch this host's kit origin/main refs")
     ap.add_argument("--get-task", metavar="TASK_ID", help="print db.get_task(TASK_ID) as JSON")
     ap.add_argument("--join-drill", nargs=2, metavar=("VERB", "ARG"),
                     help="hub side of scripts/drill-join.sh: task-create <host>, task-close <id>, "
@@ -1843,17 +2036,16 @@ async def amain(argv: list[str] | None = None) -> int:
         return 0
 
     if args.local:
-        payload = await local_payload()
+        payload = await local_payload(kit_fetch=args.kit_fetch)
         print(json.dumps(payload))
         return 0
 
     combined, running_host = await build_matrix(args)
     markdown, any_fail, n_ok, n_fail = render(combined, args.expect)
-    latest = write_state(combined, args, running_host)
 
     print(markdown)
     print(f"mesh-check: expect={args.expect} running_host={running_host or '?'} "
-          f"live={args.live} ok={n_ok} fail={n_fail} state={latest}")
+          f"live={args.live} ok={n_ok} fail={n_fail}")
 
     return 1 if any_fail else 0
 
