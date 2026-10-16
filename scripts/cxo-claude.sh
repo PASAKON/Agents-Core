@@ -818,6 +818,12 @@ if [ "$ROLE" = "coo" ]; then
   COO_ENV+=("CXO_ROLE=$ROLE" "CXO_SESSION=1" "CXO_SESSION_ID=$CXO_SESSION_ID")
   COO_BOX="$ROOT/state/inbox/$ROLE-$CXO_SESSION_ID"
   mkdir -p "$COO_BOX" && chmod 2775 "$COO_BOX" 2>/dev/null || true
+  # scripts/session-rename.sh records the topic it sent in state/locks/<role>-<id>.topic, and
+  # state/locks is the launching user's: hand the unprivileged user this one file, nothing more,
+  # or every rename request is re-sent and --show answers (none) (SomPong, 16 Oct 2026).
+  COO_TOPIC="$ROOT/state/locks/$ROLE-$CXO_SESSION_ID.topic"
+  [ -e "$COO_TOPIC" ] || : > "$COO_TOPIC"
+  chown "$COO_UNIX_USER" "$COO_TOPIC" 2>/dev/null || true
   # Each launch is a new session id, so a letter that reached the previous
   # session's box and was never read (it died first) moves to this one: the lock
   # check above proved no other SomPong is alive. rmdir only takes an empty box.
