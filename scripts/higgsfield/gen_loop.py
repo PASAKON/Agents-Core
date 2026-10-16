@@ -15,6 +15,7 @@ Usage:
 import argparse
 import csv
 import json
+import math
 import os
 import random
 import re
@@ -34,6 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from tools import decide as decide_tool  # noqa: E402
 from tools import storage_policy  # noqa: E402
+from scripts.higgsfield.credit_guard import parse_price  # noqa: E402
 
 # ── config ──────────────────────────────────────────────────────────────────
 CDP = "http://127.0.0.1:9222"
@@ -45,6 +47,31 @@ COMPLETION_TIMEOUT_S = 900
 POLL_S = 8
 CATEGORY_FOLDERS = {"trading": "01_trading-finance"}  # add more categories here
 POLICY_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "storage-policy.yaml"
+
+
+# ── --max-credits: Run Inbox spend label (the tool stops before the click that would pass N) ──
+# The cost of a click is the number on the Generate button right before it (credit_guard.parse_price:
+# the LAST integer, 'UNLIMITED · 140 0' -> 0). If the label cannot be read the price is unknown, and
+# the largest per-call cost the Higgsfield code mentions is the list price 140 in that docstring.
+EXIT_SPEND_CAP = 3
+UNKNOWN_CLICK_CREDITS = 140
+
+
+def spend_cap_arg(text: str) -> float:
+    """argparse type for --max-credits: finite and >= 0 (a NaN cap would never trip)."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
+    return value
+
+
+def click_cost(label: str | None) -> int:
+    price = parse_price(label)
+    return UNKNOWN_CLICK_CREDITS if price is None else price
+
+
+def spend_cap_message(spent: float, max_credits: float) -> str:
+    return f"spend cap reached: spent {spent:.10g} of {max_credits:.10g} credits"
 
 
 # ── Work/ dest guard + space_check (task-2b587031 dest; task-9586db0c space) ─
@@ -525,7 +552,7 @@ def done_ids():
 
 # ── main loop ───────────────────────────────────────────────────────────────
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(allow_abbrev=False)
     ap.add_argument('--csv', required=True)
     ap.add_argument('--limit', type=int, default=0, help="0 = all")
     ap.add_argument('--delay-min', type=int, default=45)
@@ -540,6 +567,10 @@ def main():
     ap.add_argument('--project', default=None,
                      help="Project key into config space_check.estimates_gb. "
                           "Falls back to $WORK_PROJECT.")
+    ap.add_argument('--max-credits', type=spend_cap_arg, default=None,
+                     help="Run Inbox spend label: stop before any Generate click that would take this "
+                          "run's credits past N (price = the number on the Generate button); prints "
+                          "'spend cap reached: spent X of N credits' and exits 3. Not given = today's behaviour.")
     args = ap.parse_args()
 
     try:
@@ -584,6 +615,7 @@ def main():
             print("NOT_LOGGED_IN"); sys.exit(1)
 
         ok_count, fail_count_n = 0, 0
+        spent_credits, spend_cap_hit = 0, False
         for i, r in enumerate(todo, 1):
             cid = r['clip_id']
             print(f"\n=== [{i}/{len(todo)}] {cid} ===")
@@ -599,10 +631,22 @@ def main():
                 # AFTER this click and the full poll_for_result() wait — a disk-space refusal
                 # there still burned the generation for nothing.
                 check_free_space(expect_gb=args.expect_gb, project=args.project)
+                cost = 0
+                if args.max_credits is not None:
+                    cost = click_cost(page.query_selector('button[type=submit]').inner_text())
+                    if spent_credits + cost > args.max_credits:
+                        spend_cap_hit = True
+                        break
+                    spent_credits += cost  # counted before the click: a click that lands is charged
                 page.locator('button[type=submit]').first.click()
                 page.wait_for_timeout(8000)
                 if not page.evaluate("()=>/generating|processing|queued|rendering|in progress/i.test(document.body.innerText)"):
                     print("  gen not started — retry click")
+                    if args.max_credits is not None:
+                        if spent_credits + cost > args.max_credits:
+                            spend_cap_hit = True
+                            break
+                        spent_credits += cost
                     page.locator('button[type=submit]').first.click()
                     page.wait_for_timeout(8000)
                 try: page.locator('button:has-text("History")').first.click(timeout=2000)
@@ -656,6 +700,9 @@ def main():
                 time.sleep(d)
 
         print(f"\n=== DONE: {ok_count} ok, {fail_count_n} fail ===")
+    if spend_cap_hit:
+        print(spend_cap_message(spent_credits, args.max_credits))
+        sys.exit(EXIT_SPEND_CAP)
 
 
 if __name__ == "__main__":

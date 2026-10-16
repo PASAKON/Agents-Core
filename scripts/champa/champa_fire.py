@@ -11,6 +11,9 @@ CLI:
   ledger: <out>/queue.jsonl
   --dry-run is DEFAULT mode
   --fire needs --max-jobs N with 1<=N<=8, else return 2 before connecting
+  --max-credits N optional Run Inbox spend label: stop before any submit that would take this run's
+    credits past N (price = the last integer on the submit label; the Unlimited lane is 0), print
+    'spend cap reached: spent X of N credits', exit 3. Not given = today's behaviour.
   --model default "Seedance 2.0"
   --ratio default "16:9"
   --duration default "4s"
@@ -21,7 +24,7 @@ CLI:
 Exit codes:
   0: done
   2: bad arguments
-  3: Refused by the guard (or balance drop)
+  3: Refused by the guard (or balance drop, or --max-credits reached)
   4: page problem (setting did not read back, label not free, textbox missing, unlimited switch not true)
   5: timed out with jobs still running
 """
@@ -29,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
 import os
 import re
 import sys
@@ -50,6 +54,21 @@ COMPOSER_URL = "https://champa.io/"
 WAIT_LABEL_TIMEOUT_S = 5.0
 WAIT_LABEL_POLL_S = 0.5
 HARVEST_POLL_INTERVAL_S = 10.0
+
+
+def spend_cap_arg(text: str) -> float:
+    """argparse type for --max-credits: finite and >= 0 (a NaN cap would never trip)."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
+    return value
+
+
+def label_credits(label: str | None) -> int:
+    """Credits a submit with this label charges: its last integer ('Unlimited 0' -> 0). A label with
+    no number has no price to add; QueueGuard.check() refuses it (not free) before any click."""
+    integers = re.findall(r"\d+", label or "")
+    return int(integers[-1]) if integers else 0
 
 
 class ArgumentParsingError(Exception):
@@ -450,7 +469,7 @@ def harvest_loop(
 
 def build_parser() -> NonExitingArgumentParser:
     """Build the command line argument parser."""
-    parser = NonExitingArgumentParser(description="Champa Unlimited Fire Runner")
+    parser = NonExitingArgumentParser(description="Champa Unlimited Fire Runner", allow_abbrev=False)
     parser.add_argument("--prompts", required=True, help="Prompts CSV path (clip_id,prompt)")
     parser.add_argument(
         "--cdp", default="http://127.0.0.1:9280", help="CDP endpoint"
@@ -464,6 +483,12 @@ def build_parser() -> NonExitingArgumentParser:
     )
     parser.add_argument(
         "--max-jobs", type=int, default=None, help="Max parallel jobs (1..8)"
+    )
+    parser.add_argument(
+        "--max-credits",
+        type=spend_cap_arg,
+        default=None,
+        help="Run Inbox spend label: stop before any submit that would take this run's credits past N",
     )
     parser.add_argument(
         "--model", default="Seedance 2.0", help="Model name (default Seedance 2.0)"
@@ -662,6 +687,7 @@ def main(
         initial_balance = parse_balance(initial_balance_text)
 
         submits_this_run = 0
+        spent_credits = 0
         for r in todo:
             if submits_this_run >= args.max_jobs:
                 break
@@ -700,7 +726,16 @@ def main(
                 )
                 return 4
 
-            # 4. guard.check(label) -> Refused = exit 3
+            # 4a. --max-credits (Run card spend label): total so far + this submit's price past N =
+            # stop, nothing clicked. First, so the card's cap speaks when the guard would refuse too.
+            price = label_credits(label)
+            if args.max_credits is not None and spent_credits + price > args.max_credits:
+                print(
+                    f"spend cap reached: spent {spent_credits:.10g} of {args.max_credits:.10g} credits"
+                )
+                return 3
+
+            # 4b. guard.check(label) -> Refused = exit 3
             try:
                 guard.check(label)
             except Refused as e:
@@ -712,6 +747,7 @@ def main(
 
             # 6. record_submit immediately
             guard.record_submit(cid, label)
+            spent_credits += price
             submits_this_run += 1
 
             # Check balance after submit; stop if dropped

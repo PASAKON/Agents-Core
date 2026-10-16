@@ -63,7 +63,7 @@ def contact_sheet(items, title, out: Path):
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(allow_abbrev=False)
     ap.add_argument("--round", required=True)
     ap.add_argument("--item", action="append", required=True, help='name="tag shown on the sheet"')
     ap.add_argument("--no-drive", action="store_true")
