@@ -8,10 +8,14 @@ the file sets allow_abbrev=False, or `--max 100` is silently expanded to the cap
 Two halves:
   A. all 8 files: an abbreviation of a real flag is rejected. Each case first proves the
      abbreviation WOULD parse with abbreviations switched back on, so it cannot pass vacuously.
-  B. the 4 tools that click a paid button (flow_shoot, gen_loop, credit_fire, champa_fire): with
-     --max-credits N the tool makes no call that would pass N, nothing after it, and exits 3;
-     without the flag nothing changes. bl_realfootage and ilag_round make no paid call, so they
-     are in half A only.
+  B. the tools that click a paid button (flow_shoot, gen_loop, credit_fire, champa_fire and, since
+     iteration 2, topview_wan3 and flow_music): with --max-credits N the tool makes no call that
+     would pass N, nothing after it, and exits 3; without the flag nothing changes.
+     bl_realfootage and ilag_round make no paid call, so they are in half A only.
+
+Iteration 2 (CTO feedback) is the last section: topview_wan3's cap is a run total, flow_music gets a
+run-total --max-credits, flow_shoot accepts --max-credits without --credit-cap, and the hub's own
+cap_flag_check accepts the command each of them will carry.
 
 HARD: no network and no spend. Every provider key is stripped from the environment, sockets and
 urlopen refuse, and the paid click is a stub in every test. Nothing here runs a tool for real.
@@ -20,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import json
 import os
 import socket
 import sys
@@ -31,9 +36,11 @@ import pytest
 
 from scripts.champa import champa_fire
 from scripts.higgsfield import credit_fire, gen_loop
-from tools import bl_realfootage, flow_ledger, flow_music, flow_shoot, topview_wan3
+from tools import ask_run, bl_realfootage, flow_ledger, flow_music, flow_shoot, topview_wan3
 
 REPO = Path(__file__).resolve().parent.parent
+_CAP_ARGS = (flow_shoot.spend_cap_arg, gen_loop.spend_cap_arg, credit_fire.spend_cap_arg,
+             champa_fire.spend_cap_arg, topview_wan3.spend_cap_arg, flow_music.spend_cap_arg)
 FIXTURE_SHEET = REPO / "docs" / "scripts" / "banchi-ACT2.md"
 
 # Exact names the eight files (and tools.decide, which two of them import) read, plus the prefixes a
@@ -122,8 +129,10 @@ def assert_abbrev_rejected(parser, ok_argv, abbrev_argv, errors=(SystemExit,)):
 
 def test_flow_music_abbrev_rejected():
     parser = capture_parser(lambda: flow_music.main(["x"]))
-    base = ["p.json", "--out", "o"]
-    assert_abbrev_rejected(parser, base + ["--max-credits-per-track", "5"], base + ["--max", "5"])
+    base = ["p.json", "--out", "o", "--max-credits", "20"]
+    # `--max` / `--max-c` are ambiguous between --max-credits and --max-credits-per-track (argparse refuses
+    # them even with abbreviations on), so the proof uses the longer abbreviation that WOULD expand
+    assert_abbrev_rejected(parser, base + ["--max-credits-per-track", "5"], base + ["--max-credits-per", "5"])
 
 
 def test_topview_wan3_abbrev_rejected():
@@ -192,16 +201,14 @@ def test_ilag_round_abbrev_rejected(monkeypatch):
 @pytest.mark.parametrize("bad", ["nan", "inf", "-inf", "-1", "abc", ""])
 def test_cap_value_that_would_never_trip_is_refused(bad):
     """spent + cost > nan is always False: a NaN cap would let every call through."""
-    for fn in (flow_shoot.spend_cap_arg, gen_loop.spend_cap_arg,
-               credit_fire.spend_cap_arg, champa_fire.spend_cap_arg):
+    for fn in _CAP_ARGS:
         with pytest.raises((argparse.ArgumentTypeError, ValueError)):
             fn(bad)
 
 
 @pytest.mark.parametrize("good, value", [("0", 0.0), ("5", 5.0), ("2.5", 2.5)])
 def test_plain_cap_numbers_are_accepted(good, value):
-    for fn in (flow_shoot.spend_cap_arg, gen_loop.spend_cap_arg,
-               credit_fire.spend_cap_arg, champa_fire.spend_cap_arg):
+    for fn in _CAP_ARGS:
         assert fn(good) == value
 
 
@@ -238,9 +245,10 @@ class _FlowStub:
 
 
 def _flow_run(tmp_path, estimate, *flags, credit_cap="9999"):
+    cap_flags = ["--credit-cap", credit_cap] if credit_cap is not None else []
     args = flow_shoot.build_parser().parse_args([
         "run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "l.tsv"),
-        "--dest", str(tmp_path / "dest"), "--credit-cap", credit_cap, "--only", "35-37", *flags])
+        "--dest", str(tmp_path / "dest"), *cap_flags, "--only", "35-37", *flags])
     stub = _FlowStub(estimate)
     return flow_shoot.cmd_run(args, browser_factory=lambda: stub), stub
 
@@ -551,3 +559,336 @@ def test_champa_fire_without_the_flag_is_unchanged(tmp_path, capsys, _fast_label
     out = capsys.readouterr()
     assert rc == 3 and adapter.clicks == 0
     assert "Refused by guard" in out.err and "spend cap reached" not in out.out
+
+
+# ═══ iteration 2 (CTO feedback) ═══════════════════════════════════════════════════════════
+
+# ── topview_wan3: --max-credits is a RUN total across every job file given ─────────────────
+
+class _TVPage:
+    url = "https://www.topview.ai/board/stub"
+
+    def wait_for_timeout(self, _ms): pass
+    def reload(self, **_k): pass
+
+
+class _TVBrowser:
+    """Reads like the live page: a Generate button priced `cost`, a big balance, a paid plan.
+    click_generate is a counter and nothing else."""
+
+    def __init__(self, cost: float):
+        self.cost = cost
+        self.clicks = 0
+        self.page = _TVPage()
+
+    def attach(self): pass
+    def close(self, keep_tab=False): pass
+    def log(self, *_a): pass
+    def media_srcs(self): return []
+    def drain_network(self, _seen): pass
+
+    def state(self):
+        return {"genText": f"Generate {self.cost:g}", "costAria": None, "balanceText": "1000",
+                "genDisabled": False, "dialogs": [], "pricingModal": "", "plan": "Pro"}
+
+    def click_generate(self, _cost): self.clicks += 1
+
+
+def _tv_jobs(tmp_path, n):
+    refs = tmp_path / "refs"
+    refs.mkdir(exist_ok=True)
+    (refs / "a.png").write_bytes(b"x")
+    paths = []
+    for i in range(1, n + 1):
+        job = tmp_path / f"n{i:02d}.wan3.json"
+        job.write_text(json.dumps({"key": f"n{i:02d}", "title": "t", "seconds": 2,
+                                   "images": ["C/a.png"], "prompt": "@Image1 x"}))
+        paths.append(str(job))
+    return paths
+
+
+def _tv_main(monkeypatch, tmp_path, cost, n_jobs, *flags):
+    browser = _TVBrowser(cost)
+    monkeypatch.setattr(topview_wan3, "TopViewBrowser", lambda _url: browser)
+    monkeypatch.setattr(topview_wan3, "prepare", lambda *_a, **_k: {
+        "gen_text": "Generate 1", "balance_text": "1000", "model": "Wan 3.0", "aspect": "16:9",
+        "seconds": "2s", "resolution": "SD 480p", "chips": ["@Image1"], "plan": "Pro"})
+    monkeypatch.setattr(topview_wan3, "wait_for_clip",
+                        lambda *_a, **_k: ("https://stub.invalid/v.mp4", b"x"))
+    rc = topview_wan3.main([*_tv_jobs(tmp_path, n_jobs), "--out", str(tmp_path / "out"), *flags])
+    return rc, browser
+
+
+def test_topview_cap_is_a_run_total_across_jobs(monkeypatch, tmp_path, capsys):
+    rc, b = _tv_main(monkeypatch, tmp_path, 1.5, 4, "--max-credits", "4")
+    assert rc == 3
+    assert b.clicks == 2                           # 1.5 + 1.5 = 3 <= 4; the third would make 4.5
+    assert "spend cap reached: spent 3 of 4 credits" in capsys.readouterr().out
+    ledger = topview_wan3.load_ledger(tmp_path / "out" / "ledger.json")
+    assert ledger["n03"]["status"] == "stopped" and ledger["n03"]["hazard_kind"] == "spend_cap"
+    assert "n04" not in ledger                     # nothing after the stop was touched
+    assert not (tmp_path / "out" / "n03.mp4").exists()
+
+
+def test_topview_total_equal_to_the_cap_is_allowed(monkeypatch, tmp_path, capsys):
+    rc, b = _tv_main(monkeypatch, tmp_path, 1.5, 3, "--max-credits", "4.5")
+    assert rc == 0 and b.clicks == 3
+    assert "spend cap reached" not in capsys.readouterr().out
+
+
+def test_topview_one_job_dearer_than_the_cap_fires_nothing_and_exits_3(monkeypatch, tmp_path, capsys):
+    rc, b = _tv_main(monkeypatch, tmp_path, 2, 2, "--max-credits", "1")
+    assert rc == 3 and b.clicks == 0               # the old per-job stop was exit 1
+    assert "spend cap reached: spent 0 of 1 credits" in capsys.readouterr().out
+
+
+def test_topview_float_noise_does_not_stop_a_run_at_exactly_the_cap(monkeypatch, tmp_path):
+    assert 0.1 + 0.1 + 0.1 > 0.3                   # the trap: three 0.1s sum to 0.30000000000000004
+    rc, b = _tv_main(monkeypatch, tmp_path, 0.1, 3, "--max-credits", "0.3")
+    assert rc == 0 and b.clicks == 3
+
+
+def test_topview_dry_run_fires_nothing_and_is_not_capped(monkeypatch, tmp_path, capsys):
+    rc, b = _tv_main(monkeypatch, tmp_path, 1.5, 2, "--max-credits", "0", "--dry-run")
+    assert rc == 0 and b.clicks == 0
+    assert "spend cap reached" not in capsys.readouterr().out
+
+
+def test_topview_a_job_already_fired_costs_nothing_this_run(monkeypatch, tmp_path):
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "ledger.json").write_text(json.dumps({"n01": {"key": "n01", "status": "done"}}))
+    rc, b = _tv_main(monkeypatch, tmp_path, 1.5, 2, "--max-credits", "1.5")
+    assert rc == 0 and b.clicks == 1               # n01 is read back as done; only n02 is clicked
+
+
+def test_topview_max_credits_is_still_required(tmp_path):
+    with pytest.raises(SystemExit) as e:
+        topview_wan3.main([*_tv_jobs(tmp_path, 1), "--out", str(tmp_path / "out")])
+    assert e.value.code == 2
+
+
+# ── flow_music: --max-credits is a RUN total, checked before each click against the worst track ──
+
+class _FMPage:
+    url = "https://www.flowmusic.app/session/00000000-0000-0000-0000-000000000000"
+
+    def wait_for_timeout(self, _ms): pass
+    def evaluate(self, _script): return 1          # the song card is on the session page
+
+
+class _FMBrowser:
+    """A Flow Music whose Generate click takes `charge` off the balance. The price is not shown
+    before the click, as on the live page (measured 2026-09-26)."""
+
+    def __init__(self, charge: float, balance: float = 1000.0):
+        self.charge, self.balance, self.clicks = charge, balance, 0
+        self.page = _FMPage()
+        self.debug_net = False
+        self.api_credits = None
+
+    def attach(self): pass
+    def close(self, keep_tab=False): pass
+    def log(self, *_a): pass
+    def library_clips(self): return []
+    def drain(self): return []
+    def read_balance(self): return self.balance, f"{self.balance:g} credits"
+
+    def state(self):
+        return {"genCount": 1, "genText": "Generate", "genDisabled": False, "dialogs": [],
+                "url": self.page.url}
+
+    def click_generate(self):
+        self.clicks += 1
+        self.balance -= self.charge
+
+
+def _fm_prompts(tmp_path, n):
+    f = tmp_path / "prompts.json"
+    f.write_text(json.dumps([{"id": f"A{i}", "title": f"t{i}", "prompt": f"piano {i}"}
+                             for i in range(1, n + 1)]))
+    return str(f)
+
+
+def _fm_main(monkeypatch, tmp_path, charge, n, *flags):
+    browser = _FMBrowser(charge)
+    monkeypatch.setattr(flow_music, "FlowMusicBrowser", lambda _url, debug_net=False: browser)
+    monkeypatch.setattr(flow_music, "prepare", lambda *_a, **_k: {
+        "compose_url": "u", "instrumental": True, "length": "1:00", "bpm": "Auto", "model": "Lyria 3.5",
+        "title_set": None, "gen_text": "Generate", "gen_count": 1, "gen_disabled": False, "dialogs": [],
+        "prompt_chars": 7})
+    monkeypatch.setattr(flow_music, "wait_for_songs", lambda *_a, **_k: [{"id": "c1"}])
+    monkeypatch.setattr(flow_music, "collect", lambda *_a, **_k: [{"file": "stub.wav"}])
+    rc = flow_music.main([_fm_prompts(tmp_path, n), "--out", str(tmp_path / "out"), *flags])
+    return rc, browser
+
+
+def test_flow_music_worst_track_figure_is_the_one_the_file_and_its_ledgers_state():
+    assert flow_music.WORST_TRACK_CREDITS == 5.0
+    ledger = json.loads((REPO / "docs/promo/topview-trailer/MUSIC-LEDGER.json").read_text())
+    rows = ledger.values() if isinstance(ledger, dict) else ledger
+    charges = [r["charged"] for r in rows if isinstance(r, dict) and r.get("charged") is not None]
+    assert charges and max(charges) <= flow_music.WORST_TRACK_CREDITS   # no recorded track cost more
+
+
+def test_flow_music_stops_before_the_click_that_could_pass_the_cap(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits", "12")
+    assert rc == 3
+    assert b.clicks == 2                           # 5 + 5 = 10 spent; a third track may charge 5 -> 15 > 12
+    assert "spend cap reached: spent 10 of 12 credits" in capsys.readouterr().out
+    ledger = flow_music.load_ledger(tmp_path / "out" / "ledger.json")
+    assert ledger["A3"]["status"] == "stopped" and ledger["A3"]["hazard_kind"] == "spend_cap"
+
+
+def test_flow_music_total_equal_to_the_cap_is_allowed(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits", "15")
+    assert rc == 0 and b.clicks == 3
+    assert "spend cap reached" not in capsys.readouterr().out
+
+
+def test_flow_music_counts_the_measured_charge_not_the_worst_case(monkeypatch, tmp_path, capsys):
+    # tracks charge 2: after each, the total is the actual 2, not the 5 reserved at the click
+    rc, b = _fm_main(monkeypatch, tmp_path, 2, 6, "--max-credits", "12")
+    assert rc == 3 and b.clicks == 4               # 2, 4, 6, 8 spent; the fifth could reach 13 > 12
+    assert "spend cap reached: spent 8 of 12 credits" in capsys.readouterr().out
+
+
+def test_flow_music_a_cap_below_one_track_fires_nothing(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 2, "--max-credits", "4")
+    assert rc == 3 and b.clicks == 0
+    assert "spend cap reached: spent 0 of 4 credits" in capsys.readouterr().out
+
+
+def test_flow_music_track_dearer_than_assumed_ends_the_run_even_with_max_credits_alone(monkeypatch, tmp_path, capsys):
+    # --max-credits-per-track was not given: it defaults to WORST_TRACK_CREDITS, so a track that charged 9
+    # is the old per-track stop (exit 1) while the run total (9 <= 20) is still inside the cap
+    rc, b = _fm_main(monkeypatch, tmp_path, 9, 3, "--max-credits", "20")
+    out = capsys.readouterr().out
+    assert rc == 1 and b.clicks == 1
+    assert "STOP after A1: charged 9.0 > --max-credits-per-track 5.0" in out
+    assert "spend cap reached" not in out
+
+
+def test_flow_music_track_that_takes_the_run_past_the_cap_exits_3(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 9, 3, "--max-credits", "8")
+    assert rc == 3 and b.clicks == 1
+    assert "spend cap reached: spent 9 of 8 credits" in capsys.readouterr().out
+
+
+def test_flow_music_per_track_flag_alone_behaves_as_before(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits-per-track", "20")
+    assert rc == 0 and b.clicks == 3
+    assert "spend cap reached" not in capsys.readouterr().out
+
+
+def test_flow_music_per_track_flag_still_stops_the_run_after_a_dearer_track(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits-per-track", "4")
+    out = capsys.readouterr().out
+    assert rc == 1 and b.clicks == 1
+    assert "STOP after A1: charged 5.0 > --max-credits-per-track 4.0" in out and "spend cap reached" not in out
+
+
+def test_flow_music_both_flags_together_the_run_total_still_applies(monkeypatch, tmp_path):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 3, "--max-credits", "12", "--max-credits-per-track", "20")
+    assert rc == 3 and b.clicks == 2
+
+
+def test_flow_music_needs_one_of_the_two_flags(tmp_path):
+    with pytest.raises(SystemExit) as e:
+        flow_music.main([_fm_prompts(tmp_path, 1), "--out", str(tmp_path / "out")])
+    assert e.value.code == 2
+
+
+def test_flow_music_dry_run_fires_nothing_and_is_not_capped(monkeypatch, tmp_path, capsys):
+    rc, b = _fm_main(monkeypatch, tmp_path, 5, 2, "--max-credits", "0", "--dry-run")
+    assert rc == 0 and b.clicks == 0
+    assert "spend cap reached" not in capsys.readouterr().out
+
+
+# ── the cap flag on the command line itself refuses a number that would never trip ─────────
+
+@pytest.mark.parametrize("bad", ["nan", "inf"])
+def test_cap_flag_given_on_the_command_line_refuses_nan_and_inf(bad, tmp_path):
+    runs = (
+        lambda: topview_wan3.main(["a.wan3.json", "--out", "o", "--max-credits", bad]),
+        lambda: flow_music.main([_fm_prompts(tmp_path, 1), "--out", "o", "--max-credits", bad]),
+        lambda: flow_shoot.main(["run", "--sheet", "s", "--ledger", "l", "--dest", "d", "--max-credits", bad]),
+    )
+    for run in runs:
+        with pytest.raises(SystemExit) as e:
+            run()
+        assert e.value.code == 2
+
+
+# ── flow_shoot: --max-credits alone is enough; at least one of the two is required ─────────
+
+def test_flow_shoot_run_parses_with_max_credits_alone():
+    args = flow_shoot.build_parser().parse_args(
+        ["run", "--sheet", "s", "--ledger", "l", "--dest", "d", "--max-credits", "100"])
+    assert args.credit_cap is None and args.max_credits == 100.0
+
+
+def test_flow_shoot_run_with_neither_cap_is_an_argparse_error():
+    with pytest.raises(SystemExit) as e:
+        flow_shoot.main(["run", "--sheet", "s", "--ledger", "l", "--dest", "d"])
+    assert e.value.code == 2
+
+
+def test_flow_shoot_pull_and_status_need_no_cap():
+    parser = flow_shoot.build_parser()
+    parser.parse_args(["pull", "--sheet", "s", "--ledger", "l", "--dest", "d"])
+    parser.parse_args(["status", "--ledger", "l"])
+
+
+@pytest.mark.parametrize("credit_cap, max_credits, want", [
+    (None, 100.0, 100.0),      # --max-credits alone doubles as the credit cap
+    (300, 100.0, 300),         # --credit-cap given: it stays what it was
+    (0, 100.0, 0),             # 0 is a real cap ("never spend"), not "unset"
+    (300, None, 300),
+    (None, None, None),
+])
+def test_flow_shoot_effective_credit_cap(credit_cap, max_credits, want):
+    assert flow_shoot.effective_credit_cap(credit_cap, max_credits) == want
+
+
+def test_flow_shoot_max_credits_alone_runs_and_stops_at_n(tmp_path, capsys):
+    rc, stub = _flow_run(tmp_path, 40, "--max-credits", "100", credit_cap=None)
+    assert rc == 3 and stub.submits == 2
+    assert "spend cap reached: spent 80 of 100 credits" in capsys.readouterr().out
+
+
+def test_flow_shoot_credit_cap_zero_is_not_replaced_by_max_credits(tmp_path, capsys):
+    rc, stub = _flow_run(tmp_path, 40, "--max-credits", "100", credit_cap="0")
+    assert stub.submits == 0                       # the legacy "never spend" cap still blocks the Submit
+    assert "spend cap reached" not in capsys.readouterr().out
+
+
+def test_flow_shoot_cmd_run_with_neither_cap_refuses_before_it_attaches(tmp_path):
+    args = flow_shoot.build_parser().parse_args(
+        ["run", "--sheet", str(FIXTURE_SHEET), "--ledger", str(tmp_path / "l.tsv"),
+         "--dest", str(tmp_path / "dest"), "--credit-cap", "5", "--only", "35"])
+    args.credit_cap = None                         # a caller that skipped main()'s argparse check
+
+    def no_browser():
+        raise AssertionError("a browser was built although no cap was given")
+
+    assert flow_shoot.cmd_run(args, browser_factory=no_browser) == 2
+
+
+# ── the hub's own validator accepts the command each of these tools will carry ─────────────
+
+def test_hub_cap_flag_check_accepts_the_command_a_spend_labelled_card_carries():
+    assert ask_run.cap_flag_check(
+        "python3 tools/flow_music.py prompts.json --out out --max-credits 20", "credits", 20.0) is None
+    assert ask_run.cap_flag_check(
+        "python3 tools/flow_shoot.py run --sheet s.md --ledger l.tsv --dest d --max-credits 100",
+        "credits", 100.0) is None
+    assert ask_run.cap_flag_check(
+        "python3 tools/topview_wan3.py a.wan3.json b.wan3.json --out out --max-credits 3",
+        "credits", 3.0) is None
+
+
+def test_hub_refuses_the_per_track_spelling_which_is_why_it_is_optional_next_to_max_credits():
+    for cmd in ("python3 tools/flow_music.py prompts.json --out out --max-credits-per-track 20",
+                "python3 tools/flow_music.py prompts.json --out out --max-credits 20 --max-credits-per-track 20"):
+        assert ask_run.cap_flag_check(cmd, "credits", 20.0) == "spend_cap_flag_ambiguous"

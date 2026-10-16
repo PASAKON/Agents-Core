@@ -12,11 +12,14 @@ non-verified row, and a verified row is never re-fired.
 
     python3 tools/flow_shoot.py run    --sheet docs/scripts/banchi-ACT2.md \
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 \
-        --credit-cap 300 [--only 37-46] [--dry-run] \
+        --credit-cap 300 [--max-credits 300] [--only 37-46] [--dry-run] \
         [--resolution {720p,360p}] [--force-duration N]
     python3 tools/flow_shoot.py pull   --sheet docs/scripts/banchi-ACT2.md \
         --ledger state/banchi/ACT2.tsv --dest ~/Desktop/banchi-ACT2 [--only 53-58]
     python3 tools/flow_shoot.py status --ledger state/banchi/ACT2.tsv
+
+`run` needs --credit-cap or --max-credits (at least one). --max-credits alone is also used as the credit
+cap: that is what a Run Inbox spend-labelled card carries.
 
 --dest is required unless $WORK_DIR is set (task-2b587031, WORK_DIR pilot
 scope, IRON §55 / Work/RULES.md rule 2): with $WORK_DIR set, --dest defaults
@@ -191,6 +194,12 @@ def spend_cap_arg(text: str) -> float:
     if not math.isfinite(value) or value < 0:
         raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
     return value
+
+
+def effective_credit_cap(credit_cap: int | None, max_credits: float | None) -> float | None:
+    """The legacy per-run cap `run` enforces. --credit-cap when given (0 is a real value: "never
+    spend"), else --max-credits, so a Run Inbox card can carry --max-credits alone. None = neither."""
+    return credit_cap if credit_cap is not None else max_credits
 
 
 # ── pure helpers (no browser — these are what tests/test_flow_shoot.py covers) ──
@@ -1602,6 +1611,12 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     if getattr(args, "resolution", None) == "360p":
         _log("360p run: verify target is 360x640 (original captured file, 9:16; skips 1080p upscale for throwaway test)")
 
+    max_credits = getattr(args, "max_credits", None)
+    credit_cap = effective_credit_cap(getattr(args, "credit_cap", None), max_credits)
+    if credit_cap is None:
+        _log("run needs --credit-cap or --max-credits (at least one); nothing was attached or spent")
+        return 2
+
     browser = browser_factory()
     # Set immediately after construction, before anything else can touch
     # the browser — FlowBrowser.submit() itself refuses while this is set
@@ -1614,7 +1629,6 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
     cdp_url = flow_cdp.pick_cdp_url(getattr(args, "cdp_url", None))
     browser.cdp_url = cdp_url
     spent_this_run = 0
-    max_credits = getattr(args, "max_credits", None)
     spend_cap_hit = False
     try:
         try:
@@ -1698,9 +1712,9 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     _log(spend_cap_message(spent_this_run, max_credits))
                     spend_cap_hit = True
                     break
-                if credit_cap_exceeded(spent_this_run, estimate, args.credit_cap):
+                if credit_cap_exceeded(spent_this_run, estimate, credit_cap):
                     _log(f"CAP REACHED: spent={spent_this_run} + estimate={estimate} "
-                         f"> cap={args.credit_cap} — stopping the whole run")
+                         f"> cap={credit_cap} — stopping the whole run")
                     break
 
                 if args.dry_run:
@@ -1709,7 +1723,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                          f"prompt_verified=True estimate={estimate} credits — stopping before Submit")
                     return 0
 
-                _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                _submit_or_raise(browser, spent_this_run, estimate, credit_cap,
                                   expected_chip_count=len(shot["chips"]),
                                   expect_gb=args.expect_gb, project=args.project,
                                   max_credits=max_credits)
@@ -1735,7 +1749,7 @@ def cmd_run(args: argparse.Namespace, browser_factory=FlowBrowser) -> int:
                     break
                 elif result["status"] == "refusal" and int(row["attempts"]) == 1:
                     _log(f"shot {n}: refused — re-firing identical prompt once (refunded)")
-                    _submit_or_raise(browser, spent_this_run, estimate, args.credit_cap,
+                    _submit_or_raise(browser, spent_this_run, estimate, credit_cap,
                                   expected_chip_count=len(shot["chips"]),
                                   expect_gb=args.expect_gb, project=args.project,
                                   max_credits=max_credits)
@@ -1988,11 +2002,14 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Output dir for downloaded clips. Optional when "
                              "$WORK_DIR is set (defaults to $WORK_DIR/out); "
                              "required otherwise.")
-    p_run.add_argument("--credit-cap", type=int, required=True)
+    p_run.add_argument("--credit-cap", type=int, default=None,
+                        help="Stop the whole run before a Submit that would take its credits past N. "
+                             "At least one of --credit-cap / --max-credits is required; with "
+                             "--max-credits alone it is used as the cap too.")
     p_run.add_argument("--max-credits", type=spend_cap_arg, default=None,
                         help="Run Inbox spend label: stop before any Submit that would take this "
                              "run's credits past N; prints 'spend cap reached: spent X of N credits' "
-                             "and exits 3. Not given = today's behaviour (--credit-cap still applies).")
+                             "and exits 3. Enough on its own (also used as --credit-cap).")
     p_run.add_argument("--only", default=None)
     p_run.add_argument("--dry-run", action="store_true")
     p_run.add_argument("--resolution", choices=["720p", "360p"], default="720p",
@@ -2060,9 +2077,11 @@ def build_parser() -> argparse.ArgumentParser:
     return ap
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     ap = build_parser()
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+    if args.cmd == "run" and args.credit_cap is None and args.max_credits is None:
+        ap.error("run: give --credit-cap or --max-credits (at least one)")
     return args.func(args)
 
 

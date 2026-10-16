@@ -32,7 +32,8 @@ Per job (measured live 2026-09-26, see the skill CMO_Knowledge_Wan3.0_TopView Fi
   4. aspect 16:9, duration = the job's seconds (2-30 s offered), resolution (--resolution, default the lowest
      offered), Generation Count 1, Auto Upscale and Internet Search off;
   5. read the cost off the visible Generate button ("Generate 0.6"), the balance off the sidebar Credits
-     button; click Generate only when cost <= --max-credits and cost <= balance; one click, never twice.
+     button; click Generate only when this run's credits so far + cost stay <= --max-credits (a RUN total; else exit 3,
+     'spend cap reached: spent X of N credits') and cost <= balance; one click, never twice.
      On the Free plan (sidebar badge "Free") Generate opened the pricing modal "UPGRADE YOUR PLAN" and
      generated nothing (2026-09-26, balance stayed 5), so the runner stops before the click on "Free"
      (ledger "stopped", plan_required) and, if the modal appears after a click anyway, stops there too;
@@ -50,6 +51,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -194,6 +196,25 @@ def md5_bytes(data: bytes) -> str:
 
 
 FIRED = ("submitted", "done", "failed-after-submit")
+EXIT_SPEND_CAP = 3  # Console docs/run.md §Spend label: the tool exits 3 when the cap stops it
+
+
+def spend_cap_arg(text: str) -> float:
+    """argparse type for --max-credits: finite and >= 0. A NaN cap would never trip
+    (spent + cost > nan is always False), so it is refused at the door."""
+    value = float(text)
+    if not math.isfinite(value) or value < 0:
+        raise argparse.ArgumentTypeError(f"{text!r} is not a finite number >= 0")
+    return value
+
+
+def spend_cap_exceeded(spent: float, cost: float, max_credits: float | None) -> bool:
+    # rounded: 0.1 + 0.1 + 0.1 is 0.30000000000000004, which must not stop a run capped at exactly 0.3
+    return max_credits is not None and round(spent + cost, 6) > max_credits
+
+
+def spend_cap_message(spent: float, max_credits: float) -> str:
+    return f"spend cap reached: spent {spent:.10g} of {max_credits:.10g} credits"
 
 
 def _last(menu_text: str) -> str:
@@ -640,9 +661,13 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
     balance = parse_balance(st["balanceText"])
     if cost is None:
         return save("stopped", hazard_kind="no_cost", note=f"no cost on the Generate button: {st['genText']!r}")
-    if cost > args.max_credits:
-        return save("stopped", hazard_kind="over_cap", cost_read=cost,
-                    note=f"button says {cost} credits > --max-credits {args.max_credits}; not clicked")
+    # --max-credits is a RUN total (Run Inbox spend label): this job's price on top of what the earlier
+    # jobs of this run were charged must stay within it. The first job is the old per-job check.
+    spent = getattr(args, "spent_credits", 0.0)
+    if spend_cap_exceeded(spent, cost, args.max_credits):
+        args.spend_cap_hit = True
+        return save("stopped", hazard_kind="spend_cap", cost_read=cost,
+                    note=f"{spend_cap_message(spent, args.max_credits)}: the button says {cost} credits; not clicked")
     if balance is None or balance < cost:
         return save("stopped", hazard_kind="balance", cost_read=cost, balance_before=balance,
                     note=f"balance {st['balanceText']!r} < cost {cost}; not clicked")
@@ -661,6 +686,7 @@ def run_job(browser: TopViewBrowser, job_path: Path, args, ledger: dict, ledger_
     seen = set(browser.media_srcs())
     browser.drain_network(seen)  # every mp4 URL the page's JSON carried before the click is not ours
     t0 = time.time()
+    args.spent_credits = spent + cost  # counted before the click: a click that lands is charged
     save("submitted", cost_read=cost, balance_before=balance, fired_at=now_iso(),
          note="Generate clicked once; never click it again for this key")
     try:
@@ -731,8 +757,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", required=True, help="dir for <key>.mp4 and ledger.json")
     ap.add_argument("--refs", help="dir holding the reference images by basename (default <job dir>/refs)")
     ap.add_argument("--resolution", help="480p / 720p / 1080p (default: the lowest the menu offers)")
-    ap.add_argument("--max-credits", type=float, required=True,
-                    help="fire only when the Generate button shows this many credits or fewer")
+    ap.add_argument("--max-credits", type=spend_cap_arg, required=True,
+                    help="RUN total: stop before any Generate that would take this run's credits past N "
+                         "(prints 'spend cap reached: spent X of N credits', exits 3)")
     ap.add_argument("--dry-run", action="store_true", help="everything except the Generate click")
     ap.add_argument("--upscale", choices=["2K", "4K"], help="turn Auto Upscale on at this resolution (default off)")
     ap.add_argument("--internet-search", action="store_true", help="turn Internet Search on (default off)")
@@ -751,6 +778,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.jobs and not args.recover:
         ap.error("give job files or --recover KEY")
 
+    args.spent_credits, args.spend_cap_hit = 0.0, False
     ledger_path = Path(args.out) / "ledger.json"
     ledger = load_ledger(ledger_path)
     browser = TopViewBrowser(args.cdp_url)
@@ -767,6 +795,9 @@ def main(argv: list[str] | None = None) -> int:
             if row["status"] not in ("done", "dry-run"):
                 print(f"STOP at {row['key']}: {row['status']} — {row.get('note')}")
                 rc = 1
+                if args.spend_cap_hit:
+                    print(spend_cap_message(args.spent_credits, args.max_credits))
+                    rc = EXIT_SPEND_CAP
                 break
     finally:
         browser.close(keep_tab=args.keep_tab)
