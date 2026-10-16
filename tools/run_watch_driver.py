@@ -94,6 +94,7 @@ def tick(*, dry_run: bool = False) -> int:
     count = state.get("start_count", 0)
     if n:
         state["last_end_at"] = None
+        state["flush_ticks"] = 0
     elif state.get("prev_n_active", 0) > 0:
         state["last_end_at"] = now
     ended = state.get("last_end_at")
