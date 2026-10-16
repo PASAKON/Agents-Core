@@ -1157,3 +1157,29 @@ def test_preview_cli_picks_the_host_emoji_from_org_host_as_session_rename_sh_run
     (locks / "project_head-f39cb080.project").unlink()    # the same command with no marker: CTO Main's name
     r = run()
     assert (r.returncode, r.stdout.strip()) == (0, f"{MAC} CTO (Kavin) — LuminaSkies"), r.stderr
+
+
+def test_the_coo_record_without_a_tmux_field_is_found_by_its_pane(box, stranger):
+    # cxo-claude.sh starts SomPong with `runuser … env -i`, so $TMUX is gone and Claude writes
+    # no tmux field. The fixed tmux "sompong" plus pane ancestry still prove which session it is.
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        if d["sessionId"] == U_COO:
+            d["tmux"] = None
+            f.write_text(json.dumps(d))
+    (box.locks / "coo-fde4c4ca.uuid").write_text(U_COO)
+    box.panes["sompong"] = [stranger]          # not in that tmux session: still refused
+    assert box.request("coo-fde4c4ca", "x").startswith("refused: no single live session")
+    del box.panes["sompong"]
+    assert box.request("coo-fde4c4ca", "x").startswith("queued")
+    rs.once("contabo", box.pending, now=1.0)
+    assert ("sompong", f"/rename {CONTABO} COO (SomPong) — x") in box.sent
+
+
+def test_a_missing_tmux_field_is_allowed_only_for_a_fixed_tmux_role(box):
+    for f in box.sessions.iterdir():
+        d = json.loads(f.read_text())
+        if d["sessionId"] == U_CTO:
+            d.pop("tmux")
+            f.write_text(json.dumps(d))
+    assert box.request("cto-c34459eb", "x").startswith("refused: no single live session")
