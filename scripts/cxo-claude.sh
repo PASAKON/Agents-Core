@@ -684,19 +684,18 @@ export CLAUDE_CODE_DISABLE_TERMINAL_TITLE=1
 # ADR 0013 Phase 5 — org wiki root on a non-Mac box.
 # config/wikis.yaml carries Mac absolute paths; Contabo keeps its copy at
 # /opt/MoonieXHQ/Agents/Rules since the HQ move (2026-09-23).
-# No-op on the Mac, where this path does not exist.
+# Fall back to the Mac checkout when present.
 if [ -z "${WIKI_ROOT_ORG:-}" ]; then
-  for d in /opt/MoonieXHQ/Agents/Rules; do
+  for d in /opt/MoonieXHQ/Agents/Rules "$HOME/MoonieXHQ/Agents/Rules"; do
     if [ -d "$d" ]; then export WIKI_ROOT_ORG="$d"; break; fi
   done
 fi
 
 # MoonieX product wiki on Contabo (CEO 2026-08-09). Previously Mac-only, which
 # made `mooniex:` fail on that box — and with it every UNPREFIXED path, since
-# mooniex is the default namespace. Same rsync-not-clone shape as agents-wikis,
-# so reads work and there is no git remote to push back to. No-op on the Mac.
+# mooniex is the default namespace. Both hosts now use plain git checkouts.
 if [ -z "${WIKI_ROOT_MOONIEX:-}" ]; then
-  for d in /opt/MoonieXHQ/Agents/Wikis; do
+  for d in /opt/MoonieXHQ/Agents/Wikis "$HOME/MoonieXHQ/Agents/Wikis"; do
     if [ -d "$d" ]; then export WIKI_ROOT_MOONIEX="$d"; break; fi
   done
 fi
@@ -803,6 +802,11 @@ fi
 if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ] && [ "$ROLE" != "coo" ]; then
   (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
     python3 -m tools.memory_sync pull) || true
+fi
+if [ "${CTO_CLAUDE_TEST_MODE:-0}" != "1" ]; then
+  (cd "$ROOT" && source .venv/bin/activate 2>/dev/null || true
+    export WIKI_ROOT_ORG WIKI_ROOT_MOONIEX
+    python3 -m tools.kit_sync pull) || true
 fi
 
 # SomPong: cwd is its own repo (CLAUDE.md, memory, the family-gate hook live

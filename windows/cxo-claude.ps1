@@ -433,8 +433,14 @@ if (-not $env:CLAUDE_CODE_AUTO_COMPACT_WINDOW) { $env:CLAUDE_CODE_AUTO_COMPACT_W
 # memory_sync.pull() degrades to "stale memory" on any error, and the
 # CTO_CLAUDE_TEST_MODE guard mirrors cxo-claude.sh's own (skips the pull
 # during automated tests of this launcher).
+# Environment variables are inherited by the helper and the Claude session.
+$rulesRoot = Join-Path $env:USERPROFILE 'mooniex\repo\Agents-Rules'
+$wikisRoot = Join-Path $env:USERPROFILE 'mooniex\repo\Agents-Wikis'
+if (Test-Path -PathType Container $rulesRoot) { $env:WIKI_ROOT_ORG = $rulesRoot }
+if (Test-Path -PathType Container $wikisRoot) { $env:WIKI_ROOT_MOONIEX = $wikisRoot }
 if ($env:CTO_CLAUDE_TEST_MODE -ne '1') {
     try { & $venvPy -m tools.memory_sync pull 2>$null | Out-Null } catch {}
+    try { & $venvPy -m tools.kit_sync pull | Out-Null } catch {}
 }
 
 $claude = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
